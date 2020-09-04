@@ -33,6 +33,7 @@
 #include "theory/strings/term_registry.h"
 #include "theory/theory_inference_manager.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/inference_manager_buffered.h"
 
 namespace CVC4 {
 namespace theory {
@@ -68,7 +69,7 @@ namespace strings {
  * theory of strings, e.g. sendPhaseRequirement, setIncomplete, and
  * with the extended theory object e.g. markCongruent.
  */
-class InferenceManager : public TheoryInferenceManager
+class InferenceManager : public InferenceManagerBuffered
 {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
@@ -85,7 +86,10 @@ class InferenceManager : public TheoryInferenceManager
 
   /**
    * Do pending method. This processes all pending facts, lemmas and pending
-   * phase requests.
+   * phase requests based on the policy of this manager. This means that
+   * we process the pending facts first and abort if in conflict. Otherwise, we
+   * process the pending lemmas and then the pending phase requirements.
+   * Notice that we process the pending lemmas even if there were facts.
    */
   void doPending();
 
@@ -195,17 +199,6 @@ class InferenceManager : public TheoryInferenceManager
    * otherwise. A split is trivial if a=b rewrites to a constant.
    */
   bool sendSplit(Node a, Node b, Inference infer, bool preq = true);
-
-  /** Send phase requirement
-   *
-   * This method is called to indicate this class should send a phase
-   * requirement request to the output channel for literal lit to be
-   * decided with polarity pol. This requirement is processed at the same time
-   * lemmas are sent on the output channel of this class during this call to
-   * check. This means if the current lemmas of this class are abandoned (due
-   * to a conflict), the phase requirement is not processed.
-   */
-  void sendPhaseRequirement(Node lit, bool pol);
   /**
    * Set that we are incomplete for the current set of assertions (in other
    * words, we must answer "unknown" instead of "sat"); this calls the output
@@ -222,45 +215,12 @@ class InferenceManager : public TheoryInferenceManager
   /** Adds lit to the vector exp if it is non-null */
   void addToExplanation(Node lit, std::vector<Node>& exp) const;
   //----------------------------end constructing antecedants
-  /** Do pending facts
-   *
-   * This method asserts pending facts (d_pending) with explanations
-   * (d_pendingExp) to the equality engine of the theory of strings via calls
-   * to assertPendingFact.
-   *
-   * It terminates early if a conflict is encountered, for instance, by
-   * equality reasoning within the equality engine.
-   *
-   * Regardless of whether a conflict is encountered, the vector d_pending
-   * and map d_pendingExp are cleared.
-   */
-  void doPendingFacts();
-  /** Do pending lemmas
-   *
-   * This method flushes all pending lemmas (d_pending_lem) to the output
-   * channel of theory of strings.
-   *
-   * Like doPendingFacts, this function will terminate early if a conflict
-   * has already been encountered by the theory of strings. The vector
-   * d_pending_lem is cleared regardless of whether a conflict is discovered.
-   *
-   * Notice that as a result of the above design, some lemmas may be "dropped"
-   * if a conflict is discovered in between when a lemma is added to the
-   * pending vector of this class (via a sendInference call). Lemmas
-   * e.g. those that are required for initialization should not be sent via
-   * this class, since they should never be dropped.
-   */
-  void doPendingLemmas();
   /**
    * Have we processed an inference during this call to check? In particular,
    * this returns true if we have a pending fact or lemma, or have encountered
    * a conflict.
    */
   bool hasProcessed() const;
-  /** Do we have a pending fact to add to the equality engine? */
-  bool hasPendingFact() const { return !d_pending.empty(); }
-  /** Do we have a pending lemma to send on the output channel? */
-  bool hasPendingLemma() const { return !d_pendingLem.empty(); }
 
   // ------------------------------------------------- extended theory
   /**
@@ -279,16 +239,16 @@ class InferenceManager : public TheoryInferenceManager
   // ------------------------------------------------- end extended theory
 
   /**
-   * Send explained conflict based on the inference info ii. This makes a
+   * Called when ii is ready to be processed as a conflict. This makes a
    * trusted node whose generator is the underlying proof equality engine
    * (if it exists), and sends it on the output channel.
    */
   void processConflict(const InferInfo& ii);
 
  private:
-  /** Called when ii is processed as a fact */
+  /** Called when ii is ready to be processed as a fact */
   bool processFact(InferInfo& ii);
-  /** Called when ii is processed as a lemma */
+  /** Called when ii is ready to be processed as a lemma */
   bool processLemma(InferInfo& ii);
   /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
@@ -305,15 +265,6 @@ class InferenceManager : public TheoryInferenceManager
   Node d_false;
   Node d_zero;
   Node d_one;
-  /**
-   * The list of pending literals to assert to the equality engine along with
-   * their explanation.
-   */
-  std::vector<InferInfo> d_pending;
-  /** A map from literals to their pending phase requirement */
-  std::map<Node, bool> d_pendingReqPhase;
-  /** A list of pending lemmas to be sent on the output channel. */
-  std::vector<InferInfo> d_pendingLem;
 };
 
 }  // namespace strings

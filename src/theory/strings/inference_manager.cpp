@@ -34,7 +34,7 @@ InferenceManager::InferenceManager(Theory& t,
                                    ExtTheory& e,
                                    SequencesStatistics& statistics,
                                    ProofNodeManager* pnm)
-    : TheoryInferenceManager(t, s, pnm),
+    : InferenceManagerBuffered(t, s, pnm),
       d_state(s),
       d_termReg(tr),
       d_extt(e),
@@ -51,7 +51,6 @@ InferenceManager::InferenceManager(Theory& t,
 
 void InferenceManager::doPending() 
 {
-/*
   doPendingFacts();
   if (d_state.isInConflict())
   {
@@ -62,7 +61,6 @@ void InferenceManager::doPending()
   }
   doPendingLemmas();
   doPendingPhaseRequirements();
-*/
 }
 
 bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
@@ -183,7 +181,7 @@ void InferenceManager::sendInference(InferInfo& ii, bool asLemma)
   else if (asLemma || options::stringInferAsLemmas() || !ii.isFact())
   {
     Trace("strings-infer-debug") << "...as lemma" << std::endl;
-    d_pendingLem.push_back(ii);
+    addPendingLemma(std::unique_ptr<InferInfo>(new InferInfo(ii)));
     return;
   }
   if (options::stringInferSym())
@@ -218,7 +216,7 @@ void InferenceManager::sendInference(InferInfo& ii, bool asLemma)
         }
       }
       Trace("strings-infer-debug") << "...as symbolic lemma" << std::endl;
-      d_pendingLem.push_back(iiSubsLem);
+      addPendingLemma(std::unique_ptr<InferInfo>(new InferInfo(iiSubsLem)));
       return;
     }
     if (Trace.isOn("strings-lemma-debug"))
@@ -232,7 +230,7 @@ void InferenceManager::sendInference(InferInfo& ii, bool asLemma)
   }
   Trace("strings-infer-debug") << "...as fact" << std::endl;
   // add to pending to be processed as a fact
-  d_pending.push_back(ii);
+  addPendingFact(std::unique_ptr<InferInfo>(new InferInfo(ii)));
 }
 
 bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
@@ -249,14 +247,9 @@ bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
   iiSplit.d_id = infer;
   iiSplit.d_conc = nm->mkNode(OR, eq, nm->mkNode(NOT, eq));
   eq = Rewriter::rewrite(eq);
-  sendPhaseRequirement(eq, preq);
-  d_pendingLem.push_back(iiSplit);
+  addPendingPhaseRequirement(eq, preq);
+  addPendingLemma(std::unique_ptr<InferInfo>(new InferInfo(iiSplit)));
   return true;
-}
-
-void InferenceManager::sendPhaseRequirement(Node lit, bool pol)
-{
-  d_pendingReqPhase[lit] = pol;
 }
 
 void InferenceManager::setIncomplete() { d_out.setIncomplete(); }
@@ -283,160 +276,9 @@ void InferenceManager::addToExplanation(Node lit, std::vector<Node>& exp) const
   }
 }
 
-void InferenceManager::doPendingFacts()
-{
-  size_t i = 0;
-  while (!d_state.isInConflict() && i < d_pending.size())
-  {
-    InferInfo& ii = d_pending[i];
-    // get the facts
-    std::vector<Node> facts;
-    if (ii.d_conc.getKind() == AND)
-    {
-      for (const Node& cc : ii.d_conc)
-      {
-        facts.push_back(cc);
-      }
-    }
-    else
-    {
-      facts.push_back(ii.d_conc);
-    }
-    Trace("strings-assert")
-        << "(assert (=> " << ii.getAntecedant() << " " << ii.d_conc
-        << ")) ; fact " << ii.d_id << std::endl;
-    Trace("strings-lemma") << "Strings::Fact: " << ii.d_conc << " from "
-                           << ii.getAntecedant() << " by " << ii.d_id
-                           << std::endl;
-    std::vector<Node> exp;
-    for (const Node& ec : ii.d_ant)
-    {
-      utils::flattenOp(AND, ec, exp);
-    }
-    // convert for each fact
-    for (const Node& fact : facts)
-    {
-      ii.d_conc = fact;
-      // notify fact, which
-      d_statistics.d_inferences << ii.d_id;
-      bool polarity = fact.getKind() != NOT;
-      TNode atom = polarity ? fact : fact[0];
-      if (d_ipc != nullptr)
-      {
-        d_ipc->notifyFact(ii);
-        // now, assert the internal fact with d_ipc as proof generator
-        assertInternalFact(atom, polarity, exp, d_ipc.get());
-      }
-      else
-      {
-        Node cexp = utils::mkAnd(exp);
-        // without proof generator
-        assertInternalFact(atom, polarity, cexp);
-      }
-      // may be in conflict
-      if (d_state.isInConflict())
-      {
-        break;
-      }
-    }
-    i++;
-  }
-  d_pending.clear();
-}
-
-void InferenceManager::doPendingLemmas()
-{
-  if (d_state.isInConflict())
-  {
-    // just clear the pending vectors, nothing else to do
-    d_pendingLem.clear();
-    d_pendingReqPhase.clear();
-    return;
-  }
-  // we probably don't need to add lazily since temporary proofs are setup
-  for (unsigned i = 0, psize = d_pendingLem.size(); i < psize; i++)
-  {
-    InferInfo& ii = d_pendingLem[i];
-    Assert(!ii.isTrivial());
-    Assert(!ii.isConflict());
-    // set up proof step based on inference
-    // pfExp is the children of the proof step below. This should be an
-    // ordered list of expConj + expn.
-
-    // set up the explanation and no-explanation
-    TrustNode tlem;
-    std::vector<Node> exp;
-    for (const Node& ec : ii.d_ant)
-    {
-      utils::flattenOp(AND, ec, exp);
-    }
-    std::vector<Node> noExplain;
-    if (!options::stringRExplainLemmas())
-    {
-      // if we aren't regressing the explanation, we add all literals to
-      // noExplain and ignore ii.d_ant.
-      noExplain.insert(noExplain.end(), exp.begin(), exp.end());
-    }
-    else
-    {
-      // otherwise, the no-explain literals are those provided
-      for (const Node& ecn : ii.d_noExplain)
-      {
-        utils::flattenOp(AND, ecn, noExplain);
-      }
-    }
-    // update the explanation and no-explain set
-    ii.d_ant = exp;
-    ii.d_noExplain = noExplain;
-    // ensure that the proof generator is ready to explain the final conclusion
-    // of the lemma (ii.d_conc).
-    d_statistics.d_inferences << ii.d_id;
-    if (d_ipc != nullptr)
-    {
-      d_ipc->notifyFact(ii);
-    }
-    tlem = mkLemmaExp(ii.d_conc, exp, noExplain, d_ipc.get());
-    Node lem = tlem.getNode();
-    Trace("strings-pending") << "Process pending lemma : " << lem << std::endl;
-
-    // Process the side effects of the inference info.
-    // Register the new skolems from this inference. We register them here
-    // (lazily), since this is the moment when we have decided to process the
-    // inference.
-    for (const std::pair<const LengthStatus, std::vector<Node> >& sks :
-         ii.d_new_skolem)
-    {
-      for (const Node& n : sks.second)
-      {
-        d_termReg.registerTermAtomic(n, sks.first);
-      }
-    }
-    LemmaProperty p = LemmaProperty::NONE;
-    if (ii.d_id == Inference::REDUCTION)
-    {
-      p |= LemmaProperty::NEEDS_JUSTIFY;
-    }
-    Trace("strings-assert")
-        << "(assert " << lem << ") ; lemma " << ii.d_id << std::endl;
-    Trace("strings-lemma") << "Strings::Lemma: " << lem << " by " << ii.d_id
-                           << std::endl;
-    ++(d_statistics.d_lemmasInfer);
-    d_out.trustedLemma(tlem, p);
-  }
-  // process the pending require phase calls
-  for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)
-  {
-    Trace("strings-pending") << "Require phase : " << prp.first
-                             << ", polarity = " << prp.second << std::endl;
-    d_out.requirePhase(prp.first, prp.second);
-  }
-  d_pendingLem.clear();
-  d_pendingReqPhase.clear();
-}
-
 bool InferenceManager::hasProcessed() const
 {
-  return d_state.isInConflict() || !d_pendingLem.empty() || !d_pending.empty();
+  return d_state.isInConflict() || hasPending();
 }
 
 void InferenceManager::markCongruent(Node a, Node b)
@@ -590,8 +432,8 @@ bool InferenceManager::processLemma(InferInfo& ii)
   Trace("strings-lemma") << "Strings::Lemma: " << tlem.getNode() << " by "
                          << ii.d_id << std::endl;
   ++(d_statistics.d_lemmasInfer);
-  // call the trusted lemma
-  return trustedLemma(tlem, p);
+  // call the trusted lemma, without caching
+  return trustedLemma(tlem, p, false);
 }
 
 }  // namespace strings

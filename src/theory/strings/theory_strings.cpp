@@ -732,8 +732,7 @@ void TheoryStrings::postCheck(Effort e)
       // otherwise avoided by aborting the strategy when a fact is ready.
       addedFact = d_im.hasPendingFact();
       addedLemma = d_im.hasPendingLemma();
-      d_im.doPendingFacts();
-      d_im.doPendingLemmas();
+      d_im.doPending();
       if (Trace.isOn("strings-check"))
       {
         Trace("strings-check") << "  ...finish run strategy: ";
@@ -994,7 +993,7 @@ void TheoryStrings::checkCodes()
           // str.code(x)==-1 V str.code(x)!=str.code(y) V x==y
           Node inj_lem = nm->mkNode(kind::OR, eq_no, deq, eqn);
           deq = Rewriter::rewrite(deq);
-          d_im.sendPhaseRequirement(deq, false);
+          d_im.addPendingPhaseRequirement(deq, false);
           std::vector<Node> emptyVec;
           d_im.sendInference(emptyVec, inj_lem, Inference::CODE_INJ);
         }
