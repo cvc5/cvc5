@@ -24,10 +24,6 @@
 
 namespace CVC4 {
 
-namespace proof {
-class ResolutionBitVectorProof;
-}
-
 namespace theory {
 namespace bv {
 
@@ -39,8 +35,10 @@ class QuickXPlain;
 /**
  * BitblastSolver
  */
-class BitblastSolver : public SubtheorySolver {
-  struct Statistics {
+class BitblastSolver : public SubtheorySolver
+{
+  struct Statistics
+  {
     IntStat d_numCallstoCheck;
     IntStat d_numBBLemmas;
     Statistics();
@@ -59,14 +57,15 @@ class BitblastSolver : public SubtheorySolver {
 
   /** Queue for bit-blasting lemma atoms only in full check if we are sat */
   context::CDQueue<TNode> d_lemmaAtomsQueue;
-  bool  d_useSatPropagation;
+  bool d_useSatPropagation;
   AbstractionModule* d_abstractionModule;
   std::unique_ptr<BVQuickCheck> d_quickCheck;
   std::unique_ptr<QuickXPlain> d_quickXplain;
   //  Node getModelValueRec(TNode node);
   void setConflict(TNode conflict);
-public:
-  BitblastSolver(context::Context* c, TheoryBV* bv);
+
+ public:
+  BitblastSolver(context::Context* c, BVSolverLazy* bv);
   ~BitblastSolver();
 
   void preRegister(TNode node) override;
@@ -79,9 +78,8 @@ public:
   void bitblastQueue();
   void setAbstraction(AbstractionModule* module);
   uint64_t computeAtomWeight(TNode atom);
-  void setProofLog(proof::BitVectorProof* bvp) override;
 };
 
-} /* namespace CVC4::theory::bv */
-} /* namespace CVC4::theory */
+}  // namespace bv
+}  // namespace theory
 } /* namespace CVC4 */

@@ -51,7 +51,7 @@ void DumpManager::finishInit()
 
 void DumpManager::resetAssertions() { d_modelGlobalCommands.clear(); }
 
-void DumpManager::addToModelCommandAndDump(const Command& c,
+void DumpManager::addToModelCommandAndDump(const NodeCommand& c,
                                            uint32_t flags,
                                            bool userVisible,
                                            const char* dumpTag)
@@ -70,14 +70,14 @@ void DumpManager::addToModelCommandAndDump(const Command& c,
   {
     if (flags & ExprManager::VAR_FLAG_GLOBAL)
     {
-      d_modelGlobalCommands.push_back(std::unique_ptr<Command>(c.clone()));
+      d_modelGlobalCommands.push_back(std::unique_ptr<NodeCommand>(c.clone()));
     }
     else
     {
-      Command* cc = c.clone();
+      NodeCommand* cc = c.clone();
       d_modelCommands.push_back(cc);
       // also remember for memory management purposes
-      d_modelCommandsAlloc.push_back(std::unique_ptr<Command>(cc));
+      d_modelCommandsAlloc.push_back(std::unique_ptr<NodeCommand>(cc));
     }
   }
   if (Dump.isOn(dumpTag))
@@ -88,7 +88,7 @@ void DumpManager::addToModelCommandAndDump(const Command& c,
     }
     else
     {
-      d_dumpCommands.push_back(std::unique_ptr<Command>(c.clone()));
+      d_dumpCommands.push_back(std::unique_ptr<NodeCommand>(c.clone()));
     }
   }
 }
@@ -96,7 +96,7 @@ void DumpManager::addToModelCommandAndDump(const Command& c,
 void DumpManager::setPrintFuncInModel(Node f, bool p)
 {
   Trace("setp-model") << "Set printInModel " << f << " to " << p << std::endl;
-  for (std::unique_ptr<Command>& c : d_modelGlobalCommands)
+  for (std::unique_ptr<NodeCommand>& c : d_modelGlobalCommands)
   {
     DeclareFunctionCommand* dfc =
         dynamic_cast<DeclareFunctionCommand*>(c.get());
@@ -109,7 +109,7 @@ void DumpManager::setPrintFuncInModel(Node f, bool p)
       }
     }
   }
-  for (Command* c : d_modelCommands)
+  for (NodeCommand* c : d_modelCommands)
   {
     DeclareFunctionCommand* dfc = dynamic_cast<DeclareFunctionCommand*>(c);
     if (dfc != NULL)
@@ -128,7 +128,7 @@ size_t DumpManager::getNumModelCommands() const
   return d_modelCommands.size() + d_modelGlobalCommands.size();
 }
 
-const Command* DumpManager::getModelCommand(size_t i) const
+const NodeCommand* DumpManager::getModelCommand(size_t i) const
 {
   Assert(i < getNumModelCommands());
   // index the global commands first, then the locals

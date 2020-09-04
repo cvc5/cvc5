@@ -20,11 +20,12 @@
 #include "expr/node.h"
 #include "expr/proof_checker.h"
 #include "expr/proof_node.h"
+#include "theory/quantifiers/extended_rewrite.h"
 
 namespace CVC4 {
 namespace theory {
 
-/** 
+/**
  * Identifiers for rewriters and substitutions, which we abstractly
  * classify as "methods".  Methods have a unique identifier in the internal
  * proof calculus implemented by the checker below.
@@ -41,6 +42,12 @@ enum class MethodId : uint32_t
   //---------------------------- Rewriters
   // Rewriter::rewrite(n)
   RW_REWRITE,
+  // d_ext_rew.extendedRewrite(n);
+  RW_EXT_REWRITE,
+  // Rewriter::rewriteExtEquality(n)
+  RW_REWRITE_EQ_EXT,
+  // Evaluator::evaluate(n)
+  RW_EVALUATE,
   // identity
   RW_IDENTITY,
   //---------------------------- Substitutions
@@ -75,21 +82,10 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * specifying a call to Rewriter::rewrite.
    * @return The rewritten form of n.
    */
-  static Node applyRewrite(Node n, MethodId idr = MethodId::RW_REWRITE);
-  /**
-   * Apply small-step rewrite on n in skolem form (either pre- or
-   * post-rewrite). This encapsulates the exact behavior of a THEORY_REWRITE
-   * step in a proof.
-   *
-   * @param n The node to rewrite
-   * @param preRewrite If true, performs a pre-rewrite or a post-rewrite
-   * otherwise
-   * @return The rewritten form of n
-   */
-  static Node applyTheoryRewrite(Node n, bool preRewrite);
+  Node applyRewrite(Node n, MethodId idr = MethodId::RW_REWRITE);
   /**
    * Get substitution. Updates vars/subs to the substitution specified by
-   * exp (e.g. as an equality) for the substitution method ids.
+   * exp for the substitution method ids.
    */
   static bool getSubstitution(Node exp,
                               TNode& var,
@@ -123,10 +119,10 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * @param idr The method identifier of the rewriter.
    * @return The substituted, rewritten form of n.
    */
-  static Node applySubstitutionRewrite(Node n,
-                                       const std::vector<Node>& exp,
-                                       MethodId ids = MethodId::SB_DEFAULT,
-                                       MethodId idr = MethodId::RW_REWRITE);
+  Node applySubstitutionRewrite(Node n,
+                                const std::vector<Node>& exp,
+                                MethodId ids = MethodId::SB_DEFAULT,
+                                MethodId idr = MethodId::RW_REWRITE);
   /** get a method identifier from a node, return false if we fail */
   static bool getMethodId(TNode n, MethodId& i);
   /**
@@ -144,6 +140,11 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    */
   static void addMethodIds(std::vector<Node>& args, MethodId ids, MethodId idr);
 
+  /** get a TheoryId from a node, return false if we fail */
+  static bool getTheoryId(TNode n, TheoryId& tid);
+  /** Make a TheoryId into a node */
+  static Node mkTheoryIdNode(TheoryId tid);
+
   /** Register all rules owned by this rule checker into pc. */
   void registerTo(ProofChecker* pc) override;
  protected:
@@ -151,6 +152,9 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   Node checkInternal(PfRule id,
                      const std::vector<Node>& children,
                      const std::vector<Node>& args) override;
+
+  /** extended rewriter object */
+  quantifiers::ExtendedRewriter d_ext_rewriter;
 };
 
 }  // namespace builtin

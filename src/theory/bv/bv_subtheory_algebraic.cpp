@@ -22,7 +22,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/bv/bv_quick_check.h"
-#include "theory/bv/theory_bv.h"
+#include "theory/bv/bv_solver_lazy.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
 
@@ -227,7 +227,7 @@ void SubstitutionEx::storeCache(TNode from, TNode to, Node reason) {
   d_cache[from] = SubstitutionElement(to, reason);
 }
 
-AlgebraicSolver::AlgebraicSolver(context::Context* c, TheoryBV* bv)
+AlgebraicSolver::AlgebraicSolver(context::Context* c, BVSolverLazy* bv)
     : SubtheorySolver(c, bv),
       d_modelMap(),
       d_quickSolver(new BVQuickCheck("theory::bv::algebraic", bv)),
@@ -345,7 +345,8 @@ bool AlgebraicSolver::check(Theory::Effort e)
       Debug("bv-subtheory-algebraic") << " UNSAT: assertion simplfies to false with conflict: "<< conflict << "\n";
 
       if (Dump.isOn("bv-algebraic")) {
-        Dump("bv-algebraic") << EchoCommand("TheoryBV::AlgebraicSolver::conflict");
+        Dump("bv-algebraic")
+            << EchoCommand("BVSolverLazy::AlgebraicSolver::conflict");
         Dump("bv-algebraic") << PushCommand();
         Dump("bv-algebraic") << AssertCommand(conflict.toExpr());
         Dump("bv-algebraic") << CheckSatCommand();

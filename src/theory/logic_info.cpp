@@ -23,6 +23,7 @@
 #include <string>
 
 #include "base/check.h"
+#include "base/configuration.h"
 #include "expr/kind.h"
 
 using namespace std;
@@ -43,7 +44,12 @@ LogicInfo::LogicInfo()
       d_higherOrder(true),
       d_locked(false)
 {
-  for(TheoryId id = THEORY_FIRST; id < THEORY_LAST; ++id) {
+  for (TheoryId id = THEORY_FIRST; id < THEORY_LAST; ++id)
+  {
+    if (id == THEORY_FP && !Configuration::isBuiltWithSymFPU())
+    {
+      continue;
+    }
     enableTheory(id);
   }
 }

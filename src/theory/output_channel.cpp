@@ -93,11 +93,6 @@ TNode LemmaStatus::getRewrittenLemma() const { return d_rewrittenLemma; }
 
 unsigned LemmaStatus::getLevel() const { return d_level; }
 
-LemmaStatus OutputChannel::lemma(TNode n, LemmaProperty p)
-{
-  return lemma(n, RULE_INVALID, p);
-}
-
 LemmaStatus OutputChannel::split(TNode n)
 {
   return splitLemma(n.orNode(n.notNode()));
