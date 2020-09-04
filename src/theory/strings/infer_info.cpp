@@ -14,8 +14,8 @@
 
 #include "theory/strings/infer_info.h"
 
-#include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/inference_manager.h"
+#include "theory/strings/theory_strings_utils.h"
 
 namespace CVC4 {
 namespace theory {
@@ -99,7 +99,9 @@ std::ostream& operator<<(std::ostream& out, Inference i)
   return out;
 }
 
-InferInfo::InferInfo() : d_sim(nullptr), d_id(Inference::NONE), d_idRev(false) {}
+InferInfo::InferInfo() : d_sim(nullptr), d_id(Inference::NONE), d_idRev(false)
+{
+}
 
 bool InferInfo::process(TheoryInferenceManager* im, bool asLemma)
 {

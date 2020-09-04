@@ -37,7 +37,7 @@
 namespace CVC4 {
 namespace theory {
 namespace strings {
-  
+
 /** Inference Manager
  *
  * The purpose of this class is to process inference steps for strategies
@@ -73,6 +73,7 @@ class InferenceManager : public TheoryInferenceManager
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
   friend class InferInfo;
+
  public:
   InferenceManager(Theory& t,
                    SolverState& s,
@@ -81,8 +82,8 @@ class InferenceManager : public TheoryInferenceManager
                    SequencesStatistics& statistics,
                    ProofNodeManager* pnm);
   ~InferenceManager() {}
-  
-  /** 
+
+  /**
    * Process method. This processes all pending facts, lemmas and pending
    * phase requests.
    */

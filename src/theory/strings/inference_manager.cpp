@@ -49,10 +49,7 @@ InferenceManager::InferenceManager(Theory& t,
   d_false = nm->mkConst(false);
 }
 
-void InferenceManager::process()
-{
-  
-}
+void InferenceManager::process() {}
 
 bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
                                              Node conc,
@@ -161,7 +158,7 @@ void InferenceManager::sendInference(InferInfo& ii, bool asLemma)
   {
     Trace("strings-infer-debug") << "...as conflict" << std::endl;
     Trace("strings-lemma") << "Strings::Conflict: " << ii.d_ant << " by "
-                            << ii.d_id << std::endl;
+                           << ii.d_id << std::endl;
     Trace("strings-conflict") << "CONFLICT: inference conflict " << ii.d_ant
                               << " by " << ii.d_id << std::endl;
     ++(d_statistics.d_conflictsInfer);
@@ -474,12 +471,11 @@ bool InferenceManager::processFact(InferInfo& ii)
   {
     facts.push_back(ii.d_conc);
   }
-  Trace("strings-assert")
-      << "(assert (=> " << ii.getAntecedant() << " " << ii.d_conc
-      << ")) ; fact " << ii.d_id << std::endl;
+  Trace("strings-assert") << "(assert (=> " << ii.getAntecedant() << " "
+                          << ii.d_conc << ")) ; fact " << ii.d_id << std::endl;
   Trace("strings-lemma") << "Strings::Fact: " << ii.d_conc << " from "
-                          << ii.getAntecedant() << " by " << ii.d_id
-                          << std::endl;
+                         << ii.getAntecedant() << " by " << ii.d_id
+                         << std::endl;
   std::vector<Node> exp;
   for (const Node& ec : ii.d_ant)
   {
@@ -553,14 +549,15 @@ bool InferenceManager::processLemma(InferInfo& ii)
     d_ipc->notifyFact(ii);
   }
   TrustNode tlem = mkLemmaExp(ii.d_conc, exp, noExplain, d_ipc.get());
-  Trace("strings-pending") << "Process pending lemma : " << tlem.getNode() << std::endl;
+  Trace("strings-pending") << "Process pending lemma : " << tlem.getNode()
+                           << std::endl;
 
   // Process the side effects of the inference info.
   // Register the new skolems from this inference. We register them here
   // (lazily), since this is the moment when we have decided to process the
   // inference.
   for (const std::pair<const LengthStatus, std::vector<Node> >& sks :
-        ii.d_new_skolem)
+       ii.d_new_skolem)
   {
     for (const Node& n : sks.second)
     {
@@ -572,10 +569,10 @@ bool InferenceManager::processLemma(InferInfo& ii)
   {
     p |= LemmaProperty::NEEDS_JUSTIFY;
   }
-  Trace("strings-assert")
-      << "(assert " << tlem.getNode() << ") ; lemma " << ii.d_id << std::endl;
-  Trace("strings-lemma") << "Strings::Lemma: " << tlem.getNode() << " by " << ii.d_id
-                          << std::endl;
+  Trace("strings-assert") << "(assert " << tlem.getNode() << ") ; lemma "
+                          << ii.d_id << std::endl;
+  Trace("strings-lemma") << "Strings::Lemma: " << tlem.getNode() << " by "
+                         << ii.d_id << std::endl;
   ++(d_statistics.d_lemmasInfer);
   // call the trusted lemma
   return trustedLemma(tlem, p);
