@@ -21,9 +21,9 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/infer_bounds.h"
+#include "theory/arith/nl/nonlinear_extension.h"
 #include "theory/arith/theory_arith_private.h"
 #include "theory/ext_theory.h"
-#include "theory/arith/nl/nonlinear_extension.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -81,7 +81,8 @@ void TheoryArith::finishInit()
   // only need to create nonlinear extension if non-linear logic
   if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
   {
-    d_nonlinearExtension.reset(new nl::NonlinearExtension(*this, d_equalityEngine));
+    d_nonlinearExtension.reset(
+        new nl::NonlinearExtension(*this, d_equalityEngine));
   }
   // finish initialize internally
   d_internal->finishInit();
@@ -139,7 +140,7 @@ bool TheoryArith::collectModelInfo(TheoryModel* m)
 }
 
 bool TheoryArith::collectModelValues(TheoryModel* m,
-                        const std::set<Node>& termSet)
+                                     const std::set<Node>& termSet)
 {
   // get the model from the linear solver
   std::map<Node, Node> arithModel;
@@ -165,7 +166,7 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     // we would terminate with an invalid model. Thus, we add a splitting
     // lemma of the form ( x = v V x != v ) where v is the model value
     // assigned by the non-linear solver to x.
-    if (d_nonlinearExtension!=nullptr)
+    if (d_nonlinearExtension != nullptr)
     {
       Node eq = p.first.eqNode(p.second);
       Node lem = NodeManager::currentNM()->mkNode(kind::OR, eq, eq.negate());
@@ -175,7 +176,7 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
   }
   return true;
 }
-                          
+
 void TheoryArith::notifyRestart(){
   d_internal->notifyRestart();
 }

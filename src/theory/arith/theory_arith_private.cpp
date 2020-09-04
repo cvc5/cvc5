@@ -4068,7 +4068,8 @@ Rational TheoryArithPrivate::deltaValueForTotalOrder() const{
   return belowMin;
 }
 
-void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet, std::map<Node, Node>& arithModel)
+void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet,
+                                            std::map<Node, Node>& arithModel)
 {
   AlwaysAssert(d_qflraStatus == Result::SAT);
   //AlwaysAssert(!d_nlIncomplete, "Arithmetic solver cannot currently produce models for input with nonlinear arithmetic constraints");
@@ -4078,7 +4079,7 @@ void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet, std::
   }
 
   Debug("arith::collectModelInfo") << "collectModelInfo() begin " << endl;
-  
+
   // Delta lasts at least the duration of the function call
   const Rational& delta = d_partialModel.getDelta();
   std::unordered_set<TNode, TNodeHashFunction> shared = d_containing.currentlySharedTerms();
@@ -4108,7 +4109,6 @@ void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet, std::
       }
     }
   }
-
 
   // Iterate over equivalence classes in LinearEqualityModule
   // const eq::EqualityEngine& ee = d_congruenceManager.getEqualityEngine();

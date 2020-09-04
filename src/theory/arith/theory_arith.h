@@ -81,12 +81,12 @@ class TheoryArith : public Theory {
   TrustNode explain(TNode n) override;
 
   bool collectModelInfo(TheoryModel* m) override;
-  /** 
+  /**
    * Collect model values in m based on the relevant terms given by termSet.
    */
   bool collectModelValues(TheoryModel* m,
                           const std::set<Node>& termSet) override;
-                          
+
   void shutdown() override {}
 
   void presolve() override;
@@ -118,7 +118,7 @@ class TheoryArith : public Theory {
   /** The arith::InferenceManager. */
   InferenceManager d_inferenceManager;
 
-  /** 
+  /**
    * The non-linear extension, responsible for all approaches for non-linear
    * arithmetic.
    */
