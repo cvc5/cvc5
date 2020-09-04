@@ -203,6 +203,7 @@ enum RewriteRuleId
   ConcatToMult,
   IsPowerOfTwo,
   MultSltMult,
+  BitOfConst,
 };
 
 inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
@@ -367,6 +368,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case IsPowerOfTwo: out << "IsPowerOfTwo"; return out;
   case MultSltMult: out << "MultSltMult"; return out;
   case NormalizeEqPlusNeg: out << "NormalizeEqPlusNeg"; return out;
+  case BitOfConst: out << "BitOfConst"; return out;
   default:
     Unreachable();
   }

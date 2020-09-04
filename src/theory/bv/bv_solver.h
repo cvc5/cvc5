@@ -68,7 +68,7 @@ class BVSolver
    */
   virtual void notifyFact(TNode atom, bool pol, TNode fact, bool isInternal) {}
 
-  virtual bool needsCheckLastEffort() = 0;
+  virtual bool needsCheckLastEffort() { return false; }
 
   virtual void propagate(Theory::Effort e){};
 
@@ -103,7 +103,12 @@ class BVSolver
 
   /** Called by abstraction preprocessing pass. */
   virtual bool applyAbstraction(const std::vector<Node>& assertions,
-                                std::vector<Node>& new_assertions) = 0;
+                                std::vector<Node>& new_assertions)
+  {
+    new_assertions.insert(
+        new_assertions.end(), assertions.begin(), assertions.end());
+    return false;
+  };
 
  protected:
   TheoryState& d_state;

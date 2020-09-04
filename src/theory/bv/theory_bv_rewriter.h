@@ -50,8 +50,9 @@ class TheoryBVRewriter : public TheoryRewriter
 
  private:
   static RewriteResponse IdentityRewrite(TNode node, bool prerewrite = false);
-  static RewriteResponse UndefinedRewrite(TNode node, bool prerewrite = false); 
-  
+  static RewriteResponse UndefinedRewrite(TNode node, bool prerewrite = false);
+
+  static RewriteResponse RewriteBitOf(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteEqual(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteUlt(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteUltBv(TNode node, bool prerewrite = false);

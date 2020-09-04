@@ -65,6 +65,16 @@ class TheoryBV : public Theory
 
   bool preCheck(Effort e) override;
 
+  void postCheck(Effort e) override;
+
+  bool preNotifyFact(TNode atom,
+                     bool pol,
+                     TNode fact,
+                     bool isPrereg,
+                     bool isInternal) override;
+
+  void notifyFact(TNode atom, bool pol, TNode fact, bool isInternal) override;
+
   bool needsCheckLastEffort() override;
 
   void propagate(Effort e) override;

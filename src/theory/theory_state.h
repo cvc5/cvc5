@@ -80,6 +80,9 @@ class TheoryState
    */
   TheoryModel* getModel();
 
+  /** Returns true if n has a current SAT assignment and stores it in value. */
+  virtual bool hasSatValue(TNode n, bool& value) const;
+
  protected:
   /** Pointer to the SAT context object used by the theory. */
   context::Context* d_context;
