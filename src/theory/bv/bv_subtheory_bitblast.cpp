@@ -248,9 +248,11 @@ EqualityStatus BitblastSolver::getEqualityStatus(TNode a, TNode b) {
   return d_bitblaster->getEqualityStatus(a, b);
 }
 
-bool BitblastSolver::collectModelInfo(TheoryModel* m, bool fullModel)
+bool BitblastSolver::collectModelInfo(TheoryModel* m,
+                                      bool fullModel,
+                                      const std::set<Node>& termSet)
 {
-  return d_bitblaster->collectModelInfo(m, fullModel);
+  return d_bitblaster->collectModelInfo(m, fullModel, termSet);
 }
 
 Node BitblastSolver::getModelValue(TNode node)
@@ -263,9 +265,8 @@ Node BitblastSolver::getModelValue(TNode node)
   return val;
 }
 
-
-
-void BitblastSolver::setConflict(TNode conflict) {
+void BitblastSolver::setConflict(TNode conflict)
+{
   Node final_conflict = conflict;
   if (options::bitvectorQuickXplain() &&
       conflict.getKind() == kind::AND) {

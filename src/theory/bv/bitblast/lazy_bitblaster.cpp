@@ -530,12 +530,10 @@ Node TLazyBitblaster::getModelFromSatSolver(TNode a, bool fullModel) {
   return utils::mkConst(bits.size(), value);
 }
 
-bool TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
+bool TLazyBitblaster::collectModelInfo(TheoryModel* m,
+                                       bool fullModel,
+                                       const std::set<Node>& termSet)
 {
-  std::set<Node> termSet;
-  const std::set<Kind>& irrKinds = m->getIrrelevantKinds();
-  d_bv->computeAssertedTerms(termSet, irrKinds, true);
-
   for (std::set<Node>::const_iterator it = termSet.begin(); it != termSet.end(); ++it) {
     TNode var = *it;
     // not actually a leaf of the bit-vector theory

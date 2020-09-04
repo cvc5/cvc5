@@ -472,7 +472,8 @@ bool AlgebraicSolver::quickCheck(std::vector<Node>& facts) {
   return false;
 }
 
-void AlgebraicSolver::setConflict(TNode conflict) {
+void AlgebraicSolver::setConflict(TNode conflict)
+{
   Node final_conflict = conflict;
   if (options::bitvectorQuickXplain() &&
       conflict.getKind() == kind::AND &&
@@ -711,13 +712,12 @@ EqualityStatus AlgebraicSolver::getEqualityStatus(TNode a, TNode b) {
   return EQUALITY_UNKNOWN;
 }
 
-bool AlgebraicSolver::collectModelInfo(TheoryModel* model, bool fullModel)
+bool AlgebraicSolver::collectModelInfo(TheoryModel* model,
+                                       bool fullModel,
+                                       const std::set<Node>& termSet)
 {
   Debug("bitvector-model") << "AlgebraicSolver::collectModelInfo\n";
   AlwaysAssert(!d_quickSolver->inConflict());
-  set<Node> termSet;
-  const std::set<Kind>& irrKinds = model->getIrrelevantKinds();
-  d_bv->computeAssertedTerms(termSet, irrKinds, true);
 
   // collect relevant terms that the bv theory abstracts to variables
   // (variables and parametric terms such as select apply_uf)

@@ -164,9 +164,11 @@ bool TheoryBV::needsCheckLastEffort()
   return d_internal->needsCheckLastEffort();
 }
 
-bool TheoryBV::collectModelInfo(TheoryModel* m)
+
+bool TheoryBV::collectModelValues(TheoryModel* m,
+                        const std::set<Node>& termSet)
 {
-  return d_internal->collectModelInfo(m);
+  return d_internal->collectModelValues(m, termSet);
 }
 
 void TheoryBV::propagate(Effort e) { return d_internal->propagate(e); }
