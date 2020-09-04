@@ -740,7 +740,8 @@ void TheoryStrings::postCheck(Effort e)
       // Send the facts *and* the lemmas. We send lemmas regardless of whether
       // we send facts since some lemmas cannot be dropped. Other lemmas are
       // otherwise avoided by aborting the strategy when a fact is ready.
-      d_im.doPending();
+      d_im.doPendingFacts();
+      d_im.doPendingLemmas();
       // Did we successfully send a lemma? Notice that if hasPending = true
       // and sentLemma = false, then the above call may have:
       // (1) had no pending lemmas, but (successfully) processed pending facts,
