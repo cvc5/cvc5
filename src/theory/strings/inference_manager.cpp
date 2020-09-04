@@ -49,7 +49,21 @@ InferenceManager::InferenceManager(Theory& t,
   d_false = nm->mkConst(false);
 }
 
-void InferenceManager::process() {}
+void InferenceManager::doPending() 
+{
+/*
+  doPendingFacts();
+  if (d_state.isInConflict())
+  {
+    // just clear the pending vectors, nothing else to do
+    clearPendingLemmas();
+    clearPendingPhaseRequirements();
+    return;
+  }
+  doPendingLemmas();
+  doPendingPhaseRequirements();
+*/
+}
 
 bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
                                              Node conc,
@@ -234,6 +248,7 @@ bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
   iiSplit.d_sim = this;
   iiSplit.d_id = infer;
   iiSplit.d_conc = nm->mkNode(OR, eq, nm->mkNode(NOT, eq));
+  eq = Rewriter::rewrite(eq);
   sendPhaseRequirement(eq, preq);
   d_pendingLem.push_back(iiSplit);
   return true;
@@ -241,7 +256,6 @@ bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
 
 void InferenceManager::sendPhaseRequirement(Node lit, bool pol)
 {
-  lit = Rewriter::rewrite(lit);
   d_pendingReqPhase[lit] = pol;
 }
 
@@ -441,6 +455,7 @@ void InferenceManager::markReduced(Node n, bool contextDepend)
 
 void InferenceManager::processConflict(const InferInfo& ii)
 {
+  Assert (!d_state.isInConflict());
   // setup the fact to reproduce the proof in the call below
   d_statistics.d_inferences << ii.d_id;
   if (d_ipc != nullptr)
@@ -486,13 +501,14 @@ bool InferenceManager::processFact(InferInfo& ii)
   for (const Node& fact : facts)
   {
     ii.d_conc = fact;
-    // notify fact, which
     d_statistics.d_inferences << ii.d_id;
     bool polarity = fact.getKind() != NOT;
     TNode atom = polarity ? fact : fact[0];
     bool curRet = false;
     if (d_ipc != nullptr)
     {
+      // ensure the proof generator is ready to explain this fact in the
+      // current SAT context
       d_ipc->notifyFact(ii);
       // now, assert the internal fact with d_ipc as proof generator
       curRet = assertInternalFact(atom, polarity, exp, d_ipc.get());

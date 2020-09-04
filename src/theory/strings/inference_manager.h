@@ -84,10 +84,10 @@ class InferenceManager : public TheoryInferenceManager
   ~InferenceManager() {}
 
   /**
-   * Process method. This processes all pending facts, lemmas and pending
+   * Do pending method. This processes all pending facts, lemmas and pending
    * phase requests.
    */
-  void process();
+  void doPending();
 
   /** send internal inferences
    *
