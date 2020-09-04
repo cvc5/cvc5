@@ -222,8 +222,8 @@ class SmtEngineState
 
   /**
    * Internal status flag to indicate whether we have been issued a
-   * notifyCheckSat call and have yet to process the "postsolve" methods of
-   * SmtEngine via SmtEngine::notifyPostSolvePre/notifyPostSolvePost.
+   * notifyCheckSat call and have yet to process the
+   * SmtEngine::notifyPostSolvePre method of SmtEngine.
    */
   bool d_needPostsolve;
 

@@ -287,11 +287,7 @@ void SmtEngineState::doPendingPops()
     --d_pendingPops;
     // no need for pop post (for now)
   }
-  if (d_needPostsolve)
-  {
-    d_smt.notifyPostSolvePost();
-    d_needPostsolve = false;
-  }
+  d_needPostsolve = false;
 }
 
 }  // namespace smt

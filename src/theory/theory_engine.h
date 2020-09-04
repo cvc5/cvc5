@@ -525,11 +525,6 @@ class TheoryEngine {
    */
   bool presolve();
 
-   /**
-   * Calls postsolve() on all theories.
-   */
-  void postsolve();
-
   /**
    * Calls notifyRestart() on all active theories.
    */

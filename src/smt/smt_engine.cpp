@@ -910,13 +910,6 @@ void SmtEngine::notifyPostSolvePre()
   pe->resetTrail();
 }
 
-void SmtEngine::notifyPostSolvePost()
-{
-  TheoryEngine* te = getTheoryEngine();
-  Assert(te != nullptr);
-  te->postsolve();
-}
-
 Result SmtEngine::checkSat(const Expr& assumption, bool inUnsatCore)
 {
   Dump("benchmark") << CheckSatCommand(assumption);

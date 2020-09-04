@@ -989,11 +989,6 @@ class CVC4_PUBLIC SmtEngine
    * doPendingPops.
    */
   void notifyPostSolvePre();
-  /**
-   * Same as above, but after contexts are popped. This calls the postsolve
-   * method of the underlying TheoryEngine.
-   */
-  void notifyPostSolvePost();
   // --------------------------------------- end callbacks from the state
 
   /**

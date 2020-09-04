@@ -39,7 +39,6 @@
 #       ppStaticLearn     the theory supports ppStaticLearn()
 #       notifyRestart     the theory supports notifyRestart()
 #       presolve          the theory supports presolve()
-#       postsolve         the theory supports postsolve()
 #
 #     In the case of the "theory-supports-function" properties, you
 #     need to declare these for your theory or the functions will not
