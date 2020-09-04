@@ -49,7 +49,7 @@ InferenceManager::InferenceManager(Theory& t,
   d_false = nm->mkConst(false);
 }
 
-void InferenceManager::doPending() 
+void InferenceManager::doPending()
 {
   doPendingFacts();
   if (d_state.isInConflict())
@@ -297,7 +297,7 @@ void InferenceManager::markReduced(Node n, bool contextDepend)
 
 void InferenceManager::processConflict(const InferInfo& ii)
 {
-  Assert (!d_state.isInConflict());
+  Assert(!d_state.isInConflict());
   // setup the fact to reproduce the proof in the call below
   d_statistics.d_inferences << ii.d_id;
   if (d_ipc != nullptr)
