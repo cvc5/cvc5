@@ -135,7 +135,7 @@ bool TheoryArith::collectModelInfo(TheoryModel* m)
   // Work out which variables are needed
   const std::set<Kind>& irrKinds = m->getIrrelevantKinds();
   computeAssertedTerms(termSet, irrKinds);
-  // this override behavior to not assert equality engine
+  // this overrides behavior to not assert equality engine
   return collectModelValues(m, termSet);
 }
 
