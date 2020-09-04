@@ -47,7 +47,7 @@ class TheoryInference
    * @param im The inference manager to use
    * @param asLemma Whether this inference is being processed as a lemma
    * during doPendingLemmas (otherwise it is being processed in doPendingFacts).
-   * Typically, this method call lemma or conflict when asLemma is
+   * Typically, this method calls lemma or conflict when asLemma is
    * true, and assertInternalFact when this flag is false, although this
    * behavior is (intentionally) not strictly enforced. In particular, the
    * choice to send a conflict, lemma or fact may depend on local state of the
