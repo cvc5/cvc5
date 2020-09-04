@@ -84,7 +84,7 @@ bool ArithCongruenceManager::needsEqualityEngine(EeSetupInfo& esi)
   return true;
 }
 
-void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee)
+void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee, eq::ProofEqEngine * pfee)
 {
   Assert(ee != nullptr);
   d_ee = ee;
@@ -92,13 +92,9 @@ void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee)
   d_ee->addFunctionKind(kind::EXPONENTIAL);
   d_ee->addFunctionKind(kind::SINE);
   d_ee->addFunctionKind(kind::IAND);
-
-  // initialize the proof equality engine if proofs are enabled
-  if (isProofEnabled())
-  {
-    d_pfee.reset(
-        new eq::ProofEqEngine(d_satContext, d_userContext, *d_ee, d_pnm));
-  }
+  // have proof equality engine only if proofs are enabled
+  Assert (isProofEnabled()==(pfee!=nullptr));
+  d_pfee = pfee;
 }
 
 ArithCongruenceManager::Statistics::Statistics():

@@ -48,6 +48,7 @@ TheoryArith::TheoryArith(context::Context* c,
 
   // indicate we are using the theory state object
   d_theoryState = &d_astate;
+  d_inferManager = &d_inferenceManager;
 }
 
 TheoryArith::~TheoryArith(){
@@ -145,6 +146,10 @@ std::pair<bool, Node> TheoryArith::entailmentCheck(TNode lit)
   ArithEntailmentCheckSideEffects ase;
   std::pair<bool, Node> res = d_internal->entailmentCheck(lit, def, ase);
   return res;
+}
+eq::ProofEqEngine * TheoryArith::getProofEqEngine()
+{
+  return d_inferenceManager.getProofEqEngine();
 }
 
 }/* CVC4::theory::arith namespace */

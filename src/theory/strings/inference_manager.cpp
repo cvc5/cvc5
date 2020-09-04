@@ -310,23 +310,26 @@ void InferenceManager::doPendingFacts()
     {
       utils::flattenOp(AND, ec, exp);
     }
-    Node cexp = utils::mkAnd(exp);
     // convert for each fact
     for (const Node& fact : facts)
     {
       ii.d_conc = fact;
       // notify fact, which
       d_statistics.d_inferences << ii.d_id;
+      bool polarity = fact.getKind() != NOT;
+      TNode atom = polarity ? fact : fact[0];
       if (d_ipc != nullptr)
       {
         d_ipc->notifyFact(ii);
+        // now, assert the internal fact with d_ipc as proof generator
+        assertInternalFact(atom, polarity, exp, d_ipc.get());
       }
-      // assert to equality engine using proof generator interface for
-      // assertFact.
-      bool polarity = fact.getKind() != NOT;
-      TNode atom = polarity ? fact : fact[0];
-      // now, assert the internal fact with d_ipc as proof generator
-      assertInternalFact(atom, polarity, exp, d_ipc.get());
+      else
+      {
+        Node cexp = utils::mkAnd(exp);
+        // without proof generator
+        assertInternalFact(atom, polarity, cexp);
+      }
       // may be in conflict
       if (d_state.isInConflict())
       {

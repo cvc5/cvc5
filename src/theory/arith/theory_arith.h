@@ -104,9 +104,10 @@ class TheoryArith : public Theory {
   }
 
  private:
+   /** Get the proof equality engine */
+   eq::ProofEqEngine * getProofEqEngine();
   /** The state object wrapping TheoryArithPrivate  */
   ArithState d_astate;
-
   /** The arith::InferenceManager. */
   InferenceManager d_inferenceManager;
 

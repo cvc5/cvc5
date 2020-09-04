@@ -194,8 +194,9 @@ bool TheoryArithPrivate::needsEqualityEngine(EeSetupInfo& esi)
 void TheoryArithPrivate::finishInit()
 {
   eq::EqualityEngine* ee = d_containing.getEqualityEngine();
+  eq::ProofEqEngine * pfee = d_containing.getProofEqEngine();
   Assert(ee != nullptr);
-  d_congruenceManager.finishInit(ee);
+  d_congruenceManager.finishInit(ee, pfee);
   const LogicInfo& logicInfo = getLogicInfo();
   // only need to create nonlinear extension if non-linear logic
   if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
