@@ -96,7 +96,7 @@ class TheoryInferenceManager
    * Returns true if we are in conflict, or if we have sent a lemma or fact
    * since the last call to reset.
    */
-  bool hasProcessed() const;
+  bool hasSent() const;
   /** Get the underlying proof equality engine */
   eq::ProofEqEngine* getProofEqEngine();
   //--------------------------------------- propagations
