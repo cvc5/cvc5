@@ -57,7 +57,7 @@ class NlLemma : public ArithLemma
   }
   ~NlLemma() {}
 
-  bool process(TheoryInferenceManager* im) override;
+  bool process(TheoryInferenceManager* im, bool asLemma) override;
 
   /** secant points to add
    *

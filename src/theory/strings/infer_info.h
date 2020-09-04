@@ -22,6 +22,7 @@
 
 #include "expr/node.h"
 #include "util/safe_print.h"
+#include "theory/theory_inference.h"
 
 namespace CVC4 {
 namespace theory {
@@ -368,11 +369,13 @@ enum LengthStatus
  * - (main equality) x ++ y ++ v1 = z ++ w ++ v2,
  * - (length constraint) len(y) = len(w).
  */
-class InferInfo
+class InferInfo : public TheoryInference
 {
  public:
   InferInfo();
   ~InferInfo() {}
+  /** Process this inference */
+  bool process(TheoryInferenceManager* im, bool asLemma) override;
   /** The inference identifier */
   Inference d_id;
   /** Whether it is the reverse form of the above id */

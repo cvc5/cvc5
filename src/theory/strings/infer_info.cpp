@@ -100,6 +100,12 @@ std::ostream& operator<<(std::ostream& out, Inference i)
 
 InferInfo::InferInfo() : d_id(Inference::NONE), d_idRev(false) {}
 
+bool InferInfo::process(TheoryInferenceManager* im, bool asLemma)
+{
+  // TODO
+  return false;
+}
+
 bool InferInfo::isTrivial() const
 {
   Assert(!d_conc.isNull());
