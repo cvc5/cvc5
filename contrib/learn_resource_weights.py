@@ -12,7 +12,7 @@ def parse_commandline():
     parser = argparse.ArgumentParser(description='export and analyze resources from statistics',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('command', choices=[
-                        'parse', 'analyze'], help='path of benchmark results')
+                        'parse', 'analyze'], help='task to perform')
     parser.add_argument('basedir', default=None, nargs='?',
                         help='path of benchmark results')
     parser.add_argument('-v', '--verbose',
