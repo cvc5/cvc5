@@ -87,7 +87,7 @@ void InferenceManager::addConflict(const Node& conf, InferenceId inftype)
   conflict(Rewriter::rewrite(conf));
 }
 
-bool InferenceManager::hasMadeProgress() const
+bool InferenceManager::hasUsed() const
 {
   return hasSent() || hasPending();
 }
