@@ -26,7 +26,9 @@
 #include "context/cdlist.h"
 #include "expr/kind.h"
 #include "expr/node.h"
+#include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/cad_solver.h"
+#include "theory/arith/nl/ext_theory_callback.h"
 #include "theory/arith/nl/iand_solver.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
@@ -77,48 +79,6 @@ class NonlinearExtension
    * Does non-context dependent setup for a node connected to a theory.
    */
   void preRegisterTerm(TNode n);
-  /** Get current substitution
-   *
-   * This function and the one below are
-   * used for context-dependent
-   * simplification, see Section 3.1 of
-   * "Designing Theory Solvers with Extensions"
-   * by Reynolds et al. FroCoS 2017.
-   *
-   * effort : an identifier indicating the stage where
-   *          we are performing context-dependent simplification,
-   * vars : a set of arithmetic variables.
-   *
-   * This function populates subs and exp, such that for 0 <= i < vars.size():
-   *   ( exp[vars[i]] ) => vars[i] = subs[i]
-   * where exp[vars[i]] is a set of assertions
-   * that hold in the current context. We call { vars -> subs } a "derivable
-   * substituion" (see Reynolds et al. FroCoS 2017).
-   */
-  bool getCurrentSubstitution(int effort,
-                              const std::vector<Node>& vars,
-                              std::vector<Node>& subs,
-                              std::map<Node, std::vector<Node>>& exp);
-  /** Is the term n in reduced form?
-   *
-   * Used for context-dependent simplification.
-   *
-   * effort : an identifier indicating the stage where
-   *          we are performing context-dependent simplification,
-   * on : the original term that we reduced to n,
-   * exp : an explanation such that ( exp => on = n ).
-   *
-   * We return a pair ( b, exp' ) such that
-   *   if b is true, then:
-   *     n is in reduced form
-   *     if exp' is non-null, then ( exp' => on = n )
-   * The second part of the pair is used for constructing
-   * minimal explanations for context-dependent simplifications.
-   */
-  std::pair<bool, Node> isExtfReduced(int effort,
-                                      Node n,
-                                      Node on,
-                                      const std::vector<Node>& exp) const;
   /** Check at effort level e.
    *
    * This call may result in (possibly multiple) calls to d_out->lemma(...)
@@ -278,10 +238,6 @@ class NonlinearExtension
    */
   void sendLemmas(const std::vector<NlLemma>& out);
 
-  /** cache of all lemmas sent on the output channel (user-context-dependent) */
-  NodeSet d_lemmas;
-  /** Same as above, for preprocessed lemmas */
-  NodeSet d_lemmasPp;
   /** commonly used terms */
   Node d_zero;
   Node d_one;
@@ -289,6 +245,7 @@ class NonlinearExtension
   Node d_true;
   // The theory of arithmetic containing this extension.
   TheoryArith& d_containing;
+  InferenceManager& d_im;
   // pointer to used equality engine
   eq::EqualityEngine* d_ee;
   /** The statistics class */
@@ -300,6 +257,8 @@ class NonlinearExtension
    * (modelBasedRefinement). This counter is used for interleaving strategies.
    */
   unsigned d_checkCounter;
+  /** The callback for the extended theory below */
+  NlExtTheoryCallback d_extTheoryCb;
   /** Extended theory, responsible for context-dependent simplification. */
   ExtTheory d_extTheory;
   /** The non-linear model object

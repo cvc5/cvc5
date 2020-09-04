@@ -192,7 +192,7 @@ TrustNode ProofEqEngine::assertConflict(PfRule id,
 {
   Trace("pfee") << "pfee::assertConflict " << id << ", exp = " << exp
                 << ", args = " << args << std::endl;
-  // conflict is same as proof of false
+  // conflict is same as lemma concluding false
   return assertLemma(d_false, id, exp, {}, args);
 }
 

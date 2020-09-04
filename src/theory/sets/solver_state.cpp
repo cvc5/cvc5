@@ -25,15 +25,16 @@ namespace CVC4 {
 namespace theory {
 namespace sets {
 
-SolverState::SolverState(TheorySetsPrivate& p,
-                         context::Context* c,
+SolverState::SolverState(context::Context* c,
                          context::UserContext* u,
                          Valuation val)
-    : TheoryState(c, u, val), d_parent(p), d_proxy(u), d_proxy_to_term(u)
+    : TheoryState(c, u, val), d_parent(nullptr), d_proxy(u), d_proxy_to_term(u)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
+
+void SolverState::setParent(TheorySetsPrivate* p) { d_parent = p; }
 
 void SolverState::reset()
 {
@@ -249,7 +250,7 @@ bool SolverState::isEntailed(Node n, bool polarity) const
     if (polarity && d_ee->hasTerm(n[1]))
     {
       Node r = d_ee->getRepresentative(n[1]);
-      if (d_parent.isMember(n[0], r))
+      if (d_parent->isMember(n[0], r))
       {
         return true;
       }
@@ -387,13 +388,13 @@ Node SolverState::getProxy(Node n)
   d_proxy_to_term[k] = n;
   Node eq = k.eqNode(n);
   Trace("sets-lemma") << "Sets::Lemma : " << eq << " by proxy" << std::endl;
-  d_parent.getOutputChannel()->lemma(eq);
+  d_parent->getOutputChannel()->lemma(eq);
   if (nk == SINGLETON)
   {
     Node slem = nm->mkNode(MEMBER, n[0], k);
     Trace("sets-lemma") << "Sets::Lemma : " << slem << " by singleton"
                         << std::endl;
-    d_parent.getOutputChannel()->lemma(slem);
+    d_parent->getOutputChannel()->lemma(slem);
   }
   return k;
 }
@@ -452,7 +453,7 @@ Node SolverState::getUnivSet(TypeNode tn)
       Node ulem = nm->mkNode(SUBSET, n1, n2);
       Trace("sets-lemma") << "Sets::Lemma : " << ulem << " by univ-type"
                           << std::endl;
-      d_parent.getOutputChannel()->lemma(ulem);
+      d_parent->getOutputChannel()->lemma(ulem);
     }
   }
   d_univset[tn] = n;
