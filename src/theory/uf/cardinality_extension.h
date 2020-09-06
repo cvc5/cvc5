@@ -315,8 +315,6 @@ class CardinalityExtension
     void check( Theory::Effort level, OutputChannel* out );
     /** presolve */
     void presolve();
-    /** propagate */
-    void propagate( Theory::Effort level, OutputChannel* out );
     /** assert cardinality */
     void assertCardinality( OutputChannel* out, int c, bool val );
     /** get cardinality */

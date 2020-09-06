@@ -673,7 +673,7 @@ bool SortModel::areDisequal( Node a, Node b ) {
 }
 
 /** check */
-void SortModel::check( Theory::Effort level, OutputChannel* out ){
+void SortModel::check( Theory::Effort level ){
   Assert(options::ufssMode() == options::UfssMode::FULL);
   if (level >= Theory::EFFORT_STANDARD && d_hasCard && !d_state.isInConflict())
   {
@@ -786,10 +786,6 @@ void SortModel::check( Theory::Effort level, OutputChannel* out ){
 
 void SortModel::presolve() {
   d_initialized = false;
-}
-
-void SortModel::propagate( Theory::Effort level, OutputChannel* out ){
-
 }
 
 int SortModel::getNumDisequalitiesToRegion( Node n, int ri ){
@@ -991,7 +987,7 @@ void SortModel::moveNode( Node n, int ri ){
   d_regions_map[n] = ri;
 }
 
-int SortModel::addSplit( Region* r, OutputChannel* out ){
+int SortModel::addSplit( Region* r ){
   Node s;
   if( r->hasSplits() ){
     //take the first split you find
@@ -1052,7 +1048,7 @@ int SortModel::addSplit( Region* r, OutputChannel* out ){
 }
 
 
-void SortModel::addCliqueLemma( std::vector< Node >& clique, OutputChannel* out ){
+void SortModel::addCliqueLemma( std::vector< Node >& clique ){
   Assert(d_hasCard);
   Assert(d_cardinality > 0);
   while( clique.size()>size_t(d_cardinality+1) ){
@@ -1076,7 +1072,7 @@ void SortModel::addCliqueLemma( std::vector< Node >& clique, OutputChannel* out 
   }
 }
 
-void SortModel::addTotalityAxiom( Node n, int cardinality, OutputChannel* out ){
+void SortModel::addTotalityAxiom( Node n, int cardinality ){
   if( std::find( d_totality_terms[0].begin(), d_totality_terms[0].end(), n )==d_totality_terms[0].end() ){
     if( std::find( d_totality_lems[n].begin(), d_totality_lems[n].end(), cardinality ) == d_totality_lems[n].end() ){
       NodeManager* nm = NodeManager::currentNM();
