@@ -1649,7 +1649,7 @@ void TheoryDatatypes::checkCycles() {
           //do cycle checks
           std::map< TNode, bool > visited;
           std::map< TNode, bool > proc;
-          std::vector< TNode > expl;
+          std::vector< Node > expl;
           Trace("datatypes-cycle-check") << "...search for cycle starting at " << eqc << std::endl;
           Node cn = searchForCycle( eqc, eqc, visited, proc, expl );
           Trace("datatypes-cycle-check") << "...finish." << std::endl;
@@ -1838,14 +1838,17 @@ void TheoryDatatypes::separateBisimilar( std::vector< Node >& part, std::vector<
 //postcondition: if cycle detected, explanation is why n is a subterm of on
 Node TheoryDatatypes::searchForCycle( TNode n, TNode on,
                                       std::map< TNode, bool >& visited, std::map< TNode, bool >& proc,
-                                      std::vector< TNode >& explanation, bool firstTime ) {
+                                      std::vector< Node >& explanation, bool firstTime ) {
   Trace("datatypes-cycle-check2") << "Search for cycle " << n << " " << on << endl;
   TNode ncons;
   TNode nn;
   if( !firstTime ){
     nn = getRepresentative( n );
     if( nn==on ){
-      explainEquality( n, nn, true, explanation );
+      if (n!=nn)
+      {
+        explanation.push_back(n.eqNode(nn));
+      }
       return on;
     }
   }else{
@@ -1869,7 +1872,7 @@ Node TheoryDatatypes::searchForCycle( TNode n, TNode on,
           //add explanation for why the constructor is connected
           if (n != nncons)
           {
-            explainEquality(n, nncons, true, explanation);
+            explanation.push_back(n.eqNode(nncons));
           }
           return on;
         }else if( !cn.isNull() ){
