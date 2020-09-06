@@ -500,7 +500,7 @@ SortModel::~SortModel() {
 }
 
 /** initialize */
-void SortModel::initialize( OutputChannel* out ){
+void SortModel::initialize( ){
   if (d_c_dec_strat.get() != nullptr && !d_initialized)
   {
     d_initialized = true;
@@ -832,7 +832,7 @@ void SortModel::setSplitScore( Node n, int s ){
   }
 }
 
-void SortModel::assertCardinality( OutputChannel* out, int c, bool val ){
+void SortModel::assertCardinality( int c, bool val ){
   if (!d_state.isInConflict())
   {
     Trace("uf-ss-assert")
