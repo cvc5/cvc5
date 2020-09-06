@@ -1305,8 +1305,9 @@ Node SortModel::getCardinalityLiteral(unsigned c)
   return lit;
 }
 
-CardinalityExtension::CardinalityExtension(
-    TheoryState & state, TheoryInferenceManager & im, TheoryUF * th)
+CardinalityExtension::CardinalityExtension(TheoryState& state,
+                                           TheoryInferenceManager& im,
+                                           TheoryUF* th)
     : d_state(state),
       d_im(im),
       d_th(th),
