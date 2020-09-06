@@ -657,8 +657,7 @@ void TheoryDatatypes::explain(TNode literal, std::vector<TNode>& assumptions){
 
 TrustNode TheoryDatatypes::explain(TNode literal)
 {
-  Node exp = explainLit(literal);
-  return TrustNode::mkTrustPropExp(literal, exp, nullptr);
+  return d_im.explainLit(literal);
 }
 
 Node TheoryDatatypes::explainLit(TNode literal)
