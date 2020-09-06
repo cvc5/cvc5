@@ -339,6 +339,11 @@ class TheoryInferenceManager
    * Forward to OutputChannel::safePoint() to spend resources.
    */
   void safePoint(ResourceManager::Resource r);
+  /**
+   * Notification from a theory that it realizes it is incomplete at
+   * this context level.
+   */
+  void setIncomplete();
 
  protected:
   /**
