@@ -293,8 +293,6 @@ class CardinalityExtension
     /** simple check cardinality */
     void simpleCheckCardinality();
 
-    bool doSendLemma( Node lem );
-
    public:
     SortModel(Node n,
               TheoryState& state,

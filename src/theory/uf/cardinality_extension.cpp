@@ -1038,7 +1038,8 @@ int SortModel::addSplit(Region* r)
     //Notice() << "*** Split on " << s << std::endl;
     //split on the equality s
     Node lem = NodeManager::currentNM()->mkNode( kind::OR, ss, ss.negate() );
-    if( doSendLemma( lem ) ){
+    // send lemma, with caching
+    if( d_im.lemma( lem ) ){
       Trace("uf-ss-lemma") << "*** Split on " << s << std::endl;
       //tell the sat solver to explore the equals branch first
       d_im.requirePhase(ss, true);
@@ -1068,7 +1069,8 @@ void SortModel::addCliqueLemma(std::vector<Node>& clique)
   }
   eqs.push_back(d_cardinality_literal[d_cardinality].notNode());
   Node lem = NodeManager::currentNM()->mkNode(OR, eqs);
-  if (doSendLemma(lem))
+  // send lemma, with caching
+  if( d_im.lemma( lem ) ){
   {
     Trace("uf-ss-lemma") << "*** Add clique lemma " << lem << std::endl;
     ++(d_thss->d_statistics.d_clique_lemmas);
@@ -1110,7 +1112,7 @@ void SortModel::addTotalityAxiom(Node n, int cardinality)
               Node ax = eqs.size()==1 ? eqs[0] : NodeManager::currentNM()->mkNode( OR, eqs );
               Node lem = NodeManager::currentNM()->mkNode( IMPLIES, eq, ax );
               Trace("uf-ss-lemma") << "*** Add (canonicity) totality axiom " << lem << std::endl;
-              d_im.lemma(lem);
+              d_im.lemma(lem, LemmaProperty::NONE, false);
             }
           }
         }
@@ -1124,7 +1126,7 @@ void SortModel::addTotalityAxiom(Node n, int cardinality)
       Node lem = NodeManager::currentNM()->mkNode( IMPLIES, cardLit, ax );
       Trace("uf-ss-lemma") << "*** Add totality axiom " << lem << std::endl;
       //send as lemma to the output channel
-      d_im.lemma(lem);
+      d_im.lemma(lem, LemmaProperty::NONE, false);
       ++( d_thss->d_statistics.d_totality_lemmas );
     }
   }
@@ -1148,8 +1150,6 @@ void SortModel::simpleCheckCardinality() {
     d_im.conflict(lem);
   }
 }
-
-bool SortModel::doSendLemma(Node lem) { return d_im.lemma(lem); }
 
 void SortModel::debugPrint( const char* c ){
   if( Debug.isOn( c ) ){
@@ -1228,7 +1228,7 @@ bool SortModel::debugModel( TheoryModel* m ){
         Node cl = getCardinalityLiteral( d_maxNegCard );
         Node lem = NodeManager::currentNM()->mkNode( OR, cl, NodeManager::currentNM()->mkNode( AND, force_cl ) );
         Trace("uf-ss-lemma") << "*** Enforce negative cardinality constraint lemma : " << lem << std::endl;
-        d_im.lemma(lem);
+        d_im.lemma(lem, LemmaProperty::NONE, false);
         return false;
       }
     }
@@ -1292,7 +1292,7 @@ Node SortModel::getCardinalityLiteral(unsigned c)
     Node lem = var.eqNode(d_totality_terms[0][i - 1]).notNode();
     Trace("uf-ss-lemma") << "Totality distinctness lemma : " << lem
                          << std::endl;
-    d_im.lemma(lem);
+    d_im.lemma(lem, LemmaProperty::NONE, false);
   }
   // must send totality axioms for each existing term
   for (NodeIntMap::iterator it = d_regions_map.begin();
@@ -1508,7 +1508,7 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
           Node eqv_lit = NodeManager::currentNM()->mkNode( CARDINALITY_CONSTRAINT, ct, lit[1] );
           eqv_lit = lit.eqNode( eqv_lit );
           Trace("uf-ss-lemma") << "*** Cardinality equiv lemma : " << eqv_lit << std::endl;
-          d_im.lemma(eqv_lit);
+          d_im.lemma(eqv_lit, LemmaProperty::NONE, false);
           d_card_assertions_eqv_lemma[lit] = true;
         }
       }
@@ -1622,7 +1622,7 @@ void CardinalityExtension::check(Theory::Effort level)
                     Node eq = Rewriter::rewrite( a.eqNode( b ) );
                     Node lem = NodeManager::currentNM()->mkNode( kind::OR, eq, eq.negate() );
                     Trace("uf-ss-lemma") << "*** Split (no-minimal) : " << lem << std::endl;
-                    d_im.lemma(lem);
+                    d_im.lemma(lem, LemmaProperty::NONE, false);
                     d_im.requirePhase(eq, true);
                     type_proc[tn] = true;
                     break;
