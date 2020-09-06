@@ -90,8 +90,7 @@ void TheoryUF::finishInit() {
   if (options::finiteModelFind()
       && options::ufssMode() != options::UfssMode::NONE)
   {
-    d_thss.reset(new CardinalityExtension(
-        d_state, d_im, this));
+    d_thss.reset(new CardinalityExtension(d_state, d_im, this));
   }
   // The kinds we are treating as function application in congruence
   d_equalityEngine->addFunctionKind(kind::APPLY_UF, false, options::ufHo());

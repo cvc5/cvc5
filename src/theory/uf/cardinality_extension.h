@@ -262,11 +262,11 @@ class CardinalityExtension
      *  -1 = entailed disequality added, or
      *   1 = split added.
      */
-    int addSplit( Region* r );
+    int addSplit(Region* r);
     /** add clique lemma */
-    void addCliqueLemma( std::vector< Node >& clique );
+    void addCliqueLemma(std::vector<Node>& clique);
     /** add totality axiom */
-    void addTotalityAxiom( Node n, int cardinality );
+    void addTotalityAxiom(Node n, int cardinality);
     /** cardinality */
     context::CDO< int > d_cardinality;
     /** cardinality lemma term */
@@ -297,7 +297,7 @@ class CardinalityExtension
 
    public:
     SortModel(Node n,
-              TheoryState& state, 
+              TheoryState& state,
               TheoryInferenceManager& im,
               CardinalityExtension* thss);
     virtual ~SortModel();
@@ -363,7 +363,7 @@ class CardinalityExtension
   }; /** class SortModel */
 
  public:
-  CardinalityExtension(TheoryState& state, 
+  CardinalityExtension(TheoryState& state,
                        TheoryInferenceManager& im,
                        TheoryUF* th);
   ~CardinalityExtension();
