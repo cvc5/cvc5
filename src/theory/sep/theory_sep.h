@@ -27,6 +27,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 #include "util/statistics_registry.h"
+#include "theory/inference_manager_buffered.h"
 
 namespace CVC4 {
 namespace theory {
@@ -60,7 +61,9 @@ class TheorySep : public Theory {
   TheorySepRewriter d_rewriter;
   /** A (default) theory state object */
   TheoryState d_state;
-
+  /** A buffered inference manager */
+  InferenceManagerBuffered d_im;
+  
   Node mkAnd( std::vector< TNode >& assumptions );
 
   int processAssertion( Node n, std::map< int, std::map< Node, int > >& visited, 
@@ -213,11 +216,6 @@ class TheorySep : public Theory {
   /** The notify class for d_equalityEngine */
   NotifyClass d_notify;
 
-  /** Are we in conflict? */
-  std::vector< Node > d_pending_exp;
-  std::vector< Node > d_pending;
-  std::vector< int > d_pending_lem;
-
   /** list of all refinement lemms */
   std::map< Node, std::map< Node, std::vector< Node > > > d_refinement_lem;
 
@@ -327,7 +325,7 @@ class TheorySep : public Theory {
   void eqNotifyMerge(TNode t1, TNode t2);
 
   void sendLemma( std::vector< Node >& ant, Node conc, const char * c, bool infer = false );
-  void doPendingFacts();
+  void doPending();
 
  public:
 
