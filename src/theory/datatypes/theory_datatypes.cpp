@@ -1109,7 +1109,7 @@ void TheoryDatatypes::addConstructor( Node c, EqcInfo* eqc, Node n ){
         {
           std::vector<Node> conf;
           conf.push_back(t);
-          conf.push_back(c.eqNode(t[0][0]);
+          conf.push_back(c.eqNode(t[0][0]));
           Trace("dt-conflict") << "CONFLICT: Tester merge eq conflict : " << d_conflictNode << std::endl;
           d_im.conflictExp(conf, nullptr);
           return;
