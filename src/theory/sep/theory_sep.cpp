@@ -1839,7 +1839,7 @@ void TheorySep::sendLemma( std::vector< Node >& ant, Node conc, const char * c, 
         d_im.conflictExp(ant, nullptr);
       }else{
         Trace("sep-lemma") << "Sep::Lemma: " << conc << " from " << ant_n << " by " << c << std::endl;
-        TrustNode trn = d_im.mkLemmaExp(conc, ant);
+        TrustNode trn = d_im.mkLemmaExp(conc, ant, {});
         d_im.addPendingLemma(trn.getNode(), LemmaProperty::NONE, trn.getGenerator());
       }
     }
