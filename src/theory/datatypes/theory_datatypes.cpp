@@ -1107,12 +1107,11 @@ void TheoryDatatypes::addConstructor( Node c, EqcInfo* eqc, Node n ){
         unsigned tindex = d_labels_tindex[n][i];
         if (tindex == constructorIndex)
         {
-          std::vector< TNode > assumptions;
-          explain( t, assumptions );
-          explainEquality( c, t[0][0], true, assumptions );
-          d_conflictNode = mkAnd( assumptions );
+          std::vector<Node> conf;
+          conf.push_back(t);
+          conf.push_back(c.eqNode(t[0][0]);
           Trace("dt-conflict") << "CONFLICT: Tester merge eq conflict : " << d_conflictNode << std::endl;
-          d_im.conflict(d_conflictNode);
+          d_im.conflictExp(conf, nullptr);
           return;
         }
       }
