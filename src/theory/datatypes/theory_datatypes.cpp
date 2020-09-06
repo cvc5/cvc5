@@ -678,8 +678,8 @@ Node TheoryDatatypes::explain( std::vector< Node >& lits ) {
 
 /** Conflict when merging two constants */
 void TheoryDatatypes::conflict(TNode a, TNode b){
-  Trace("dt-conflict") << "CONFLICT: Eq engine conflict merge : " << a << " == "
-                       << b << std::endl;
+  Trace("dt-conflict") << "CONFLICT: Eq engine conflict merge : " << a
+                       << " == " << b << std::endl;
   d_im.conflictEqConstantMerge(a, b);
 }
 
@@ -730,7 +730,8 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
           {
             std::vector<Node> conf;
             conf.push_back(unifEq);
-            Trace("dt-conflict") << "CONFLICT: Clash conflict : " << conf << std::endl;
+            Trace("dt-conflict")
+                << "CONFLICT: Clash conflict : " << conf << std::endl;
             d_im.conflictExp(conf, nullptr);
             return;
           }
@@ -933,7 +934,8 @@ void TheoryDatatypes::addTester(
         std::vector<Node> conf;
         conf.push_back(t);
         conf.push_back(eqc->d_constructor.get().eqNode(t_arg));
-        Trace("dt-conflict") << "CONFLICT: Tester eq conflict " << conf << std::endl;
+        Trace("dt-conflict")
+            << "CONFLICT: Tester eq conflict " << conf << std::endl;
         d_im.conflictExp(conf, nullptr);
         return;
       }else{
@@ -1095,7 +1097,8 @@ void TheoryDatatypes::addConstructor( Node c, EqcInfo* eqc, Node n ){
           std::vector<Node> conf;
           conf.push_back(t);
           conf.push_back(c.eqNode(t[0][0]));
-          Trace("dt-conflict") << "CONFLICT: Tester merge eq conflict : " << conf << std::endl;
+          Trace("dt-conflict")
+              << "CONFLICT: Tester merge eq conflict : " << conf << std::endl;
           d_im.conflictExp(conf, nullptr);
           return;
         }
@@ -1649,7 +1652,7 @@ void TheoryDatatypes::checkCycles() {
           //do cycle checks
           std::map< TNode, bool > visited;
           std::map< TNode, bool > proc;
-          std::vector< Node > expl;
+          std::vector<Node> expl;
           Trace("datatypes-cycle-check") << "...search for cycle starting at " << eqc << std::endl;
           Node cn = searchForCycle( eqc, eqc, visited, proc, expl );
           Trace("datatypes-cycle-check") << "...finish." << std::endl;
@@ -1665,7 +1668,8 @@ void TheoryDatatypes::checkCycles() {
 
           if( !cn.isNull() ) {
             Assert(expl.size() > 0);
-            Trace("dt-conflict") << "CONFLICT: Cycle conflict : " << expl << std::endl;
+            Trace("dt-conflict")
+                << "CONFLICT: Cycle conflict : " << expl << std::endl;
             d_im.conflictExp(expl, nullptr);
             return;
           }
@@ -1836,16 +1840,20 @@ void TheoryDatatypes::separateBisimilar( std::vector< Node >& part, std::vector<
 }
 
 //postcondition: if cycle detected, explanation is why n is a subterm of on
-Node TheoryDatatypes::searchForCycle( TNode n, TNode on,
-                                      std::map< TNode, bool >& visited, std::map< TNode, bool >& proc,
-                                      std::vector< Node >& explanation, bool firstTime ) {
+Node TheoryDatatypes::searchForCycle(TNode n,
+                                     TNode on,
+                                     std::map<TNode, bool>& visited,
+                                     std::map<TNode, bool>& proc,
+                                     std::vector<Node>& explanation,
+                                     bool firstTime)
+{
   Trace("datatypes-cycle-check2") << "Search for cycle " << n << " " << on << endl;
   TNode ncons;
   TNode nn;
   if( !firstTime ){
     nn = getRepresentative( n );
     if( nn==on ){
-      if (n!=nn)
+      if (n != nn)
       {
         explanation.push_back(n.eqNode(nn));
       }
