@@ -1039,7 +1039,8 @@ int SortModel::addSplit(Region* r)
     //split on the equality s
     Node lem = NodeManager::currentNM()->mkNode( kind::OR, ss, ss.negate() );
     // send lemma, with caching
-    if( d_im.lemma( lem ) ){
+    if (d_im.lemma(lem))
+    {
       Trace("uf-ss-lemma") << "*** Split on " << s << std::endl;
       //tell the sat solver to explore the equals branch first
       d_im.requirePhase(ss, true);
@@ -1070,7 +1071,7 @@ void SortModel::addCliqueLemma(std::vector<Node>& clique)
   eqs.push_back(d_cardinality_literal[d_cardinality].notNode());
   Node lem = NodeManager::currentNM()->mkNode(OR, eqs);
   // send lemma, with caching
-  if( d_im.lemma( lem ) ){
+  if (d_im.lemma(lem))
   {
     Trace("uf-ss-lemma") << "*** Add clique lemma " << lem << std::endl;
     ++(d_thss->d_statistics.d_clique_lemmas);
@@ -1304,9 +1305,8 @@ Node SortModel::getCardinalityLiteral(unsigned c)
   return lit;
 }
 
-CardinalityExtension::CardinalityExtension(TheoryState& state,
-                                           TheoryInferenceManager& im,
-                                           TheoryUF* th)
+CardinalityExtension::CardinalityExtension(
+    TheoryState & state, TheoryInferenceManager & im, TheoryUF * th)
     : d_state(state),
       d_im(im),
       d_th(th),
