@@ -500,7 +500,8 @@ SortModel::~SortModel() {
 }
 
 /** initialize */
-void SortModel::initialize( ){
+void SortModel::initialize()
+{
   if (d_c_dec_strat.get() != nullptr && !d_initialized)
   {
     d_initialized = true;
@@ -673,7 +674,8 @@ bool SortModel::areDisequal( Node a, Node b ) {
 }
 
 /** check */
-void SortModel::check( Theory::Effort level ){
+void SortModel::check(Theory::Effort level)
+{
   Assert(options::ufssMode() == options::UfssMode::FULL);
   if (level >= Theory::EFFORT_STANDARD && d_hasCard && !d_state.isInConflict())
   {
@@ -703,7 +705,7 @@ void SortModel::check( Theory::Effort level ){
             std::vector< Node > clique;
             if( d_regions[i]->check( level, d_cardinality, clique ) ){
               //add clique lemma
-              addCliqueLemma( clique );
+              addCliqueLemma(clique);
               return;
             }else{
               Trace("uf-ss-debug") << "No clique in Region #" << i << std::endl;
@@ -720,15 +722,14 @@ void SortModel::check( Theory::Effort level ){
           //see if we have any recommended splits from large regions
           for( int i=0; i<(int)d_regions_index; i++ ){
             if( d_regions[i]->valid() && d_regions[i]->getNumReps()>d_cardinality ){
-
-              int sp = addSplit( d_regions[i] );
+              int sp = addSplit(d_regions[i]);
               if( sp==1 ){
                 addedLemma = true;
 #ifdef ONE_SPLIT_REGION
                 break;
 #endif
               }else if( sp==-1 ){
-                check( level );
+                check(level);
                 return;
               }
             }
@@ -775,7 +776,7 @@ void SortModel::check( Theory::Effort level ){
             }
             if( recheck ){
               Trace("uf-ss-debug") << "Must recheck." << std::endl;
-              check( level );
+              check(level);
             }
           }
         }
@@ -832,7 +833,8 @@ void SortModel::setSplitScore( Node n, int s ){
   }
 }
 
-void SortModel::assertCardinality( int c, bool val ){
+void SortModel::assertCardinality(int c, bool val)
+{
   if (!d_state.isInConflict())
   {
     Trace("uf-ss-assert")
@@ -987,7 +989,8 @@ void SortModel::moveNode( Node n, int ri ){
   d_regions_map[n] = ri;
 }
 
-int SortModel::addSplit( Region* r ){
+int SortModel::addSplit(Region* r)
+{
   Node s;
   if( r->hasSplits() ){
     //take the first split you find
@@ -1047,8 +1050,8 @@ int SortModel::addSplit( Region* r ){
   }
 }
 
-
-void SortModel::addCliqueLemma( std::vector< Node >& clique ){
+void SortModel::addCliqueLemma(std::vector<Node>& clique)
+{
   Assert(d_hasCard);
   Assert(d_cardinality > 0);
   while( clique.size()>size_t(d_cardinality+1) ){
@@ -1072,7 +1075,8 @@ void SortModel::addCliqueLemma( std::vector< Node >& clique ){
   }
 }
 
-void SortModel::addTotalityAxiom( Node n, int cardinality ){
+void SortModel::addTotalityAxiom(Node n, int cardinality)
+{
   if( std::find( d_totality_terms[0].begin(), d_totality_terms[0].end(), n )==d_totality_terms[0].end() ){
     if( std::find( d_totality_lems[n].begin(), d_totality_lems[n].end(), cardinality ) == d_totality_lems[n].end() ){
       NodeManager* nm = NodeManager::currentNM();
@@ -1495,7 +1499,7 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
           }
         }
         Trace("uf-ss-com-card-debug") << "...assert cardinality" << std::endl;
-        d_rep_model[tn]->assertCardinality( nCard, polarity );
+        d_rep_model[tn]->assertCardinality(nCard, polarity);
         //check if combined cardinality is violated
         checkCombinedCardinality();
       }else{
@@ -1591,7 +1595,7 @@ void CardinalityExtension::check(Theory::Effort level)
         }
       }
       for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
-        it->second->check( level );
+        it->second->check(level);
         if (d_state.isInConflict())
         {
           break;
@@ -1647,7 +1651,7 @@ void CardinalityExtension::presolve()
   d_initializedCombinedCardinality = false;
   for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
     it->second->presolve();
-    it->second->initialize( );
+    it->second->initialize();
   }
 }
 
@@ -1688,13 +1692,13 @@ void CardinalityExtension::preRegisterTerm(TNode n)
         rm = new SortModel(n, d_state, d_im, this);
       }
       if( rm ){
-        rm->initialize( );
+        rm->initialize();
         d_rep_model[tn] = rm;
         //d_rep_model_init[tn] = true;
       }
     }else{
       //ensure sort model is initialized
-      it->second->initialize( );
+      it->second->initialize();
     }
   }
 }

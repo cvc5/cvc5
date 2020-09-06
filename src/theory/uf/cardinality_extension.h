@@ -302,7 +302,7 @@ class CardinalityExtension
               CardinalityExtension* thss);
     virtual ~SortModel();
     /** initialize */
-    void initialize( );
+    void initialize();
     /** new node */
     void newEqClass( Node n );
     /** merge */
@@ -312,11 +312,11 @@ class CardinalityExtension
     /** are disequal */
     bool areDisequal( Node a, Node b );
     /** check */
-    void check( Theory::Effort level);
+    void check(Theory::Effort level);
     /** presolve */
     void presolve();
     /** assert cardinality */
-    void assertCardinality( int c, bool val );
+    void assertCardinality(int c, bool val);
     /** get cardinality */
     int getCardinality() { return d_cardinality; }
     /** has cardinality */
