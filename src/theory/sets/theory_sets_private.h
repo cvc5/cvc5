@@ -214,8 +214,6 @@ class TheorySetsPrivate {
 
   void presolve();
 
-  /** get default output channel */
-  OutputChannel* getOutputChannel();
   /** get the valuation */
   Valuation& getValuation();
 
