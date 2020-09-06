@@ -183,7 +183,7 @@ void Region::setDisequal( Node n1, Node n2, int type, bool valid ){
 void Region::setRep( Node n, bool valid ) {
   Assert(hasRep(n) != valid);
   if( valid && d_nodes.find( n )==d_nodes.end() ){
-    d_nodes[n] = new RegionNodeInfo( d_cf->d_thss->getSatContext() );
+    d_nodes[n] = new RegionNodeInfo( d_cf->d_state.getSatContext() );
   }
   d_nodes[n]->setValid(valid);
   d_reps_size = d_reps_size + ( valid ? 1 : -1 );
@@ -460,22 +460,22 @@ std::string SortModel::CardinalityDecisionStrategy::identify() const
 }
 
 SortModel::SortModel(Node n,
-                     context::Context* c,
-                     context::UserContext* u,
+                     TheoryState& state, 
+              TheoryInferenceManager& im,
                      CardinalityExtension* thss)
     : d_type(n.getType()),
+    d_state(state),
+    d_im(im),
       d_thss(thss),
-      d_regions_index(c, 0),
-      d_regions_map(c),
-      d_split_score(c),
-      d_disequalities_index(c, 0),
-      d_reps(c, 0),
-      d_conflict(c, false),
-      d_cardinality(c, 1),
-      d_hasCard(c, false),
-      d_maxNegCard(c, 0),
-      d_initialized(u, false),
-      d_lemma_cache(u),
+      d_regions_index(d_state.getSatContext(), 0),
+      d_regions_map(d_state.getSatContext()),
+      d_split_score(d_state.getSatContext()),
+      d_disequalities_index(d_state.getSatContext(), 0),
+      d_reps(d_state.getSatContext(), 0),
+      d_cardinality(d_state.getSatContext(), 1),
+      d_hasCard(d_state.getSatContext(), false),
+      d_maxNegCard(d_state.getSatContext(), 0),
+      d_initialized(d_state.getUserContext(), false),
       d_c_dec_strat(nullptr)
 {
   d_cardinality_term = n;
@@ -486,7 +486,7 @@ SortModel::SortModel(Node n,
     // We are guaranteed that the decision manager is ready since we
     // construct this module during TheoryUF::finishInit.
     d_c_dec_strat.reset(new CardinalityDecisionStrategy(
-        n, c, thss->getTheory()->getValuation()));
+        n, d_state.getSatContext(), thss->getTheory()->getValuation()));
   }
 }
 
@@ -513,14 +513,14 @@ void SortModel::initialize( OutputChannel* out ){
 
 /** new node */
 void SortModel::newEqClass( Node n ){
-  if( !d_conflict ){
+  if( !d_state.isInConflict() ){
     if( d_regions_map.find( n )==d_regions_map.end() ){
       // Must generate totality axioms for every cardinality we have
       // allocated thus far.
       for( std::map< int, Node >::iterator it = d_cardinality_literal.begin();
            it != d_cardinality_literal.end(); ++it ){
         if( applyTotality( it->first ) ){
-          addTotalityAxiom( n, it->first, &d_thss->getOutputChannel() );
+          addTotalityAxiom( n, it->first );
         }
       }
       if( options::ufssTotality() ){
@@ -542,7 +542,7 @@ void SortModel::newEqClass( Node n ){
           d_regions[ d_regions_index ]->setValid(true);
           Assert(d_regions[d_regions_index]->getNumReps() == 0);
         }else{
-          d_regions.push_back( new Region( this, d_thss->getSatContext() ) );
+          d_regions.push_back( new Region( this, d_state.getSatContext() ) );
         }
         d_regions[ d_regions_index ]->addRep( n );
         d_regions_index = d_regions_index + 1;
@@ -554,7 +554,7 @@ void SortModel::newEqClass( Node n ){
 
 /** merge */
 void SortModel::merge( Node a, Node b ){
-  if( !d_conflict ){
+  if( !d_state.isInConflict() ){
     if( options::ufssTotality() ){
       if( d_regions_map[b]==-1 ){
         d_regions_map[a] = -1;
@@ -611,7 +611,7 @@ void SortModel::merge( Node a, Node b ){
 
 /** assert terms are disequal */
 void SortModel::assertDisequal( Node a, Node b, Node reason ){
-  if( !d_conflict ){
+  if( !d_state.isInConflict() ){
     if( options::ufssTotality() ){
       //do nothing
     }else{
@@ -672,7 +672,7 @@ bool SortModel::areDisequal( Node a, Node b ) {
 /** check */
 void SortModel::check( Theory::Effort level, OutputChannel* out ){
   Assert(options::ufssMode() == options::UfssMode::FULL);
-  if( level>=Theory::EFFORT_STANDARD && d_hasCard && !d_conflict ){
+  if( level>=Theory::EFFORT_STANDARD && d_hasCard && !d_state.isInConflict() ){
     Debug("uf-ss") << "CardinalityExtension: Check " << level << " " << d_type
                    << std::endl;
     if( level==Theory::EFFORT_FULL ){
@@ -833,7 +833,7 @@ void SortModel::setSplitScore( Node n, int s ){
 }
 
 void SortModel::assertCardinality( OutputChannel* out, int c, bool val ){
-  if( !d_conflict ){
+  if( !d_state.isInConflict() ){
     Trace("uf-ss-assert")
         << "Assert cardinality " << d_type << " " << c << " " << val
         << " level = "
@@ -847,7 +847,7 @@ void SortModel::assertCardinality( OutputChannel* out, int c, bool val ){
       if( !prevHasCard || c<d_cardinality ){
         d_cardinality = c;
         simpleCheckCardinality();
-        if( d_thss->d_conflict.get() ){
+        if( d_state.isInConflict() ){
           return;
         }
       }
@@ -856,7 +856,7 @@ void SortModel::assertCardinality( OutputChannel* out, int c, bool val ){
         for( int i=0; i<(int)d_regions_index; i++ ){
           if( d_regions[i]->valid() ){
             checkRegion( i );
-            if( d_conflict ){
+            if( d_state.isInConflict() ){
               return;
             }
           }
@@ -905,7 +905,7 @@ void SortModel::checkRegion( int ri, bool checkCombine ){
     std::vector< Node > clique;
     if( d_regions[ri]->check( Theory::EFFORT_STANDARD, d_cardinality, clique ) ){
       //explain clique
-      addCliqueLemma( clique, &d_thss->getOutputChannel() );
+      addCliqueLemma( clique );
     }
   }
 }
@@ -1035,7 +1035,7 @@ int SortModel::addSplit( Region* r, OutputChannel* out ){
     if( doSendLemma( lem ) ){
       Trace("uf-ss-lemma") << "*** Split on " << s << std::endl;
       //tell the sat solver to explore the equals branch first
-      out->requirePhase( ss, true );
+      d_im.requirePhase( ss, true );
       ++( d_thss->d_statistics.d_split_lemmas );
     }
     return 1;
@@ -1103,7 +1103,7 @@ void SortModel::addTotalityAxiom( Node n, int cardinality, OutputChannel* out ){
               Node ax = eqs.size()==1 ? eqs[0] : NodeManager::currentNM()->mkNode( OR, eqs );
               Node lem = NodeManager::currentNM()->mkNode( IMPLIES, eq, ax );
               Trace("uf-ss-lemma") << "*** Add (canonicity) totality axiom " << lem << std::endl;
-              d_thss->getOutputChannel().lemma( lem );
+              d_im.lemma( lem );
             }
           }
         }
@@ -1117,7 +1117,7 @@ void SortModel::addTotalityAxiom( Node n, int cardinality, OutputChannel* out ){
       Node lem = NodeManager::currentNM()->mkNode( IMPLIES, cardLit, ax );
       Trace("uf-ss-lemma") << "*** Add totality axiom " << lem << std::endl;
       //send as lemma to the output channel
-      d_thss->getOutputChannel().lemma( lem );
+      d_im.lemma( lem );
       ++( d_thss->d_statistics.d_totality_lemmas );
     }
   }
@@ -1138,19 +1138,12 @@ void SortModel::simpleCheckCardinality() {
     Node lem = NodeManager::currentNM()->mkNode( AND, getCardinalityLiteral( d_cardinality.get() ),
                                                       getCardinalityLiteral( d_maxNegCard.get() ).negate() );
     Trace("uf-ss-lemma") << "*** Simple cardinality conflict : " << lem << std::endl;
-    d_thss->getOutputChannel().conflict( lem );
-    d_thss->d_conflict.set( true );
+    d_im.conflict( lem );
   }
 }
 
 bool SortModel::doSendLemma( Node lem ) {
-  if( d_lemma_cache.find( lem )==d_lemma_cache.end() ){
-    d_lemma_cache[lem] = true;
-    d_thss->getOutputChannel().lemma( lem );
-    return true;
-  }else{
-    return false;
-  }
+  return d_im.lemma( lem );
 }
 
 void SortModel::debugPrint( const char* c ){
@@ -1230,7 +1223,7 @@ bool SortModel::debugModel( TheoryModel* m ){
         Node cl = getCardinalityLiteral( d_maxNegCard );
         Node lem = NodeManager::currentNM()->mkNode( OR, cl, NodeManager::currentNM()->mkNode( AND, force_cl ) );
         Trace("uf-ss-lemma") << "*** Enforce negative cardinality constraint lemma : " << lem << std::endl;
-        d_thss->getOutputChannel().lemma( lem );
+        d_im.lemma( lem );
         return false;
       }
     }
@@ -1294,32 +1287,31 @@ Node SortModel::getCardinalityLiteral(unsigned c)
     Node lem = var.eqNode(d_totality_terms[0][i - 1]).notNode();
     Trace("uf-ss-lemma") << "Totality distinctness lemma : " << lem
                          << std::endl;
-    d_thss->getOutputChannel().lemma(lem);
+    d_im.lemma(lem);
   }
   // must send totality axioms for each existing term
   for (NodeIntMap::iterator it = d_regions_map.begin();
        it != d_regions_map.end();
        ++it)
   {
-    addTotalityAxiom((*it).first, c, &d_thss->getOutputChannel());
+    addTotalityAxiom((*it).first, c);
   }
   return lit;
 }
 
-CardinalityExtension::CardinalityExtension(context::Context* c,
-                                           context::UserContext* u,
-                                           OutputChannel& out,
+CardinalityExtension::CardinalityExtension(TheoryState& state, 
+                       TheoryInferenceManager& im,
                                            TheoryUF* th)
-    : d_out(&out),
+    : d_state(state),
+      d_im(im),
       d_th(th),
-      d_conflict(c, false),
       d_rep_model(),
-      d_min_pos_com_card(c, -1),
+      d_min_pos_com_card(state.getSatContext(), -1),
       d_cc_dec_strat(nullptr),
-      d_initializedCombinedCardinality(u, false),
-      d_card_assertions_eqv_lemma(u),
-      d_min_pos_tn_master_card(c, -1),
-      d_rel_eqc(c)
+      d_initializedCombinedCardinality(state.getUserContext(), false),
+      d_card_assertions_eqv_lemma(state.getUserContext()),
+      d_min_pos_tn_master_card(state.getSatContext(), -1),
+      d_rel_eqc(state.getSatContext())
 {
   if (options::ufssMode() == options::UfssMode::FULL && options::ufssFairness())
   {
@@ -1327,7 +1319,7 @@ CardinalityExtension::CardinalityExtension(context::Context* c,
     // We are guaranteed that the decision manager is ready since we
     // construct this module during TheoryUF::finishInit.
     d_cc_dec_strat.reset(
-        new CombinedCardinalityDecisionStrategy(c, th->getValuation()));
+        new CombinedCardinalityDecisionStrategy(state.getSatContext(), th->getValuation()));
   }
 }
 
@@ -1351,18 +1343,6 @@ SortInference* CardinalityExtension::getSortInference()
     return qe->getTheoryEngine()->getSortInference();
   }
   return nullptr;
-}
-
-/** get default sat context */
-context::Context* CardinalityExtension::getSatContext()
-{
-  return d_th->getSatContext();
-}
-
-/** get default output channel */
-OutputChannel& CardinalityExtension::getOutputChannel()
-{
-  return d_th->getOutputChannel();
 }
 
 /** ensure eqc */
@@ -1523,7 +1503,7 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
           Node eqv_lit = NodeManager::currentNM()->mkNode( CARDINALITY_CONSTRAINT, ct, lit[1] );
           eqv_lit = lit.eqNode( eqv_lit );
           Trace("uf-ss-lemma") << "*** Cardinality equiv lemma : " << eqv_lit << std::endl;
-          getOutputChannel().lemma( eqv_lit );
+          d_im.lemma( eqv_lit );
           d_card_assertions_eqv_lemma[lit] = true;
         }
       }
@@ -1557,7 +1537,7 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
     if( lit.getKind()==CARDINALITY_CONSTRAINT || lit.getKind()==COMBINED_CARDINALITY_CONSTRAINT ){
       // cardinality constraint from user input, set incomplete   
       Trace("uf-ss") << "Literal " << lit << " not handled when uf ss mode is not FULL, set incomplete." << std::endl;
-      d_out->setIncomplete();
+      d_im.setIncomplete();
     }
   }
   Trace("uf-ss") << "Assert: done " << n << " " << isDecision << std::endl;
@@ -1586,7 +1566,7 @@ bool CardinalityExtension::areDisequal(Node a, Node b)
 /** check */
 void CardinalityExtension::check(Theory::Effort level)
 {
-  if( !d_conflict ){
+  if( !d_state.isInConflict() ){
     if (options::ufssMode() == options::UfssMode::FULL)
     {
       Trace("uf-ss-solver")
@@ -1610,8 +1590,7 @@ void CardinalityExtension::check(Theory::Effort level)
       }
       for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
         it->second->check( level, d_out );
-        if( it->second->isConflict() ){
-          d_conflict = true;
+        if( d_state.isInConflict() ){
           break;
         }
       }
@@ -1636,8 +1615,8 @@ void CardinalityExtension::check(Theory::Effort level)
                     Node eq = Rewriter::rewrite( a.eqNode( b ) );
                     Node lem = NodeManager::currentNM()->mkNode( kind::OR, eq, eq.negate() );
                     Trace("uf-ss-lemma") << "*** Split (no-minimal) : " << lem << std::endl;
-                    d_out->lemma( lem );
-                    d_out->requirePhase( eq, true );
+                    d_im.lemma( lem );
+                    d_im.requirePhase( eq, true );
                     type_proc[tn] = true;
                     break;
                   }
@@ -1703,22 +1682,7 @@ void CardinalityExtension::preRegisterTerm(TNode n)
       SortModel* rm = NULL;
       if( tn.isSort() ){
         Trace("uf-ss-register") << "Create sort model " << tn << "." << std::endl;
-        rm  = new SortModel( n, d_th->getSatContext(), d_th->getUserContext(), this );
-        //getOutputChannel().lemma( n.eqNode( rm->getCardinalityTerm() ) );
-      }else{
-        /*
-        if( tn==NodeManager::currentNM()->integerType() || tn==NodeManager::currentNM()->realType() ){
-          Debug("uf-ss-na") << "Error: Cannot perform finite model finding on arithmetic quantifier";
-          Debug("uf-ss-na") << " (" << f << ")";
-          Debug("uf-ss-na") << std::endl;
-          Unimplemented() << "Cannot perform finite model finding on arithmetic quantifier";
-        }else if( tn.isDatatype() ){
-          Debug("uf-ss-na") << "Error: Cannot perform finite model finding on datatype quantifier";
-          Debug("uf-ss-na") << " (" << f << ")";
-          Debug("uf-ss-na") << std::endl;
-          Unimplemented() << "Cannot perform finite model finding on datatype quantifier";
-        }
-        */
+        rm  = new SortModel( n, d_state, d_im, this );
       }
       if( rm ){
         rm->initialize( d_out );
@@ -1838,8 +1802,7 @@ void CardinalityExtension::checkCombinedCardinality()
                              << " : " << cf << std::endl;
         Trace("uf-ss-com-card") << "*** Combined monotone cardinality conflict"
                                 << " : " << cf << std::endl;
-        getOutputChannel().conflict( cf );
-        d_conflict.set( true );
+        d_im.conflict( cf );
         return;
       }
     }
@@ -1876,8 +1839,7 @@ void CardinalityExtension::checkCombinedCardinality()
                            << std::endl;
       Trace("uf-ss-com-card") << "*** Combined cardinality conflict : " << cf
                               << std::endl;
-      getOutputChannel().conflict( cf );
-      d_conflict.set( true );
+      d_im.conflict(cf);
     }
   }
 }
