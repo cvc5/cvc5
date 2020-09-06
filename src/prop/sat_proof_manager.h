@@ -109,6 +109,8 @@ class SatProofManager
    */
   std::map<Node, std::shared_ptr<ProofNode>> d_clauseProofs;
 
+  std::vector<CDProof> d_backup;
+
   LazyCDProofChain d_chain;
 
   /** The resolution proof of false */

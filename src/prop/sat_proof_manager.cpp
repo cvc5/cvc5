@@ -239,6 +239,7 @@ void SatProofManager::endResChain(Node conclusion)
   d_clauseProofs[conclusion] = conclusionProof.getProofFor(conclusion)->clone();
   // test lazy proof chain
   d_chain.addLazyStep(conclusion, &conclusionProof);
+  d_backup.push_back(conclusionProof);
 }
 
 void SatProofManager::tryJustifyingLit(SatLiteral lit)
@@ -376,6 +377,11 @@ void SatProofManager::tryJustifyingLit(
                   false,
                   CDPOverwrite::ALWAYS);
   Trace("sat-proof") << CVC4::pop;
+  // test lazy proof chain
+  CDProof conclusionProof(d_pnm, nullptr, "CDProof::tryJustLit");
+  conclusionProof.addStep(litNode, PfRule::CHAIN_RESOLUTION, children, args);
+  d_chain.addLazyStep(litNode, &conclusionProof);
+  d_backup.push_back(conclusionProof);
 }
 
 void SatProofManager::finalizeProof(Node inConflictNode,
@@ -439,6 +445,11 @@ void SatProofManager::finalizeProof(Node inConflictNode,
                   args,
                   false,
                   CDPOverwrite::ALWAYS);
+  // test lazy proof chain
+  CDProof conclusionProof(d_pnm, nullptr, "CDProof::finalizeProof");
+  conclusionProof.addStep(d_false, PfRule::CHAIN_RESOLUTION, children, args);
+  d_chain.addLazyStep(d_false, &conclusionProof);
+  d_backup.push_back(conclusionProof);
 }
 
 void SatProofManager::storeUnitConflict(Minisat::Lit inConflict)

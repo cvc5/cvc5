@@ -35,10 +35,13 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
   // which facts have had proofs retrieved for. This is maintained to avoid
   // cycles. It also saves the proof node of the fact and its proof node
   // assumptions in the map's range
-  std::unordered_map<Node,
-                     std::pair<std::shared_ptr<ProofNode>,
-                               std::map<Node, std::vector<ProofNode*>>>,
-                     NodeHashFunction>
+  std::unordered_map<
+      Node,
+      std::pair<std::shared_ptr<ProofNode>,
+                std::unordered_map<Node,
+                                   std::vector<std::shared_ptr<ProofNode>>,
+                                   NodeHashFunction>>,
+      NodeHashFunction>
       expandedToConnect;
   std::unordered_map<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
       expanded;
@@ -54,11 +57,12 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
     // pre-traversal
     if (itVisited == visited.end())
     {
+      Trace("lazy-cdproofchain")
+          << "LazyCDProofChain::getProofFor: check " << cur << "\n";
       if (!hasGenerator(cur))
       {
         Trace("lazy-cdproofchain")
-            << "LazyCDProofChain::getProofFor: nothing to do for " << cur
-            << "\n";
+            << "LazyCDProofChain::getProofFor: nothing to do\n";
         // nothing to do for this fact, it'll be a leaf in the final proof node
         visited[cur] = cur;
         continue;
@@ -99,7 +103,13 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
       // must have been expanded and connected
       visited[cur] = Node::null();
       visit.push_back(cur);
-      // enqueue free assumptions to process
+      // use a persistent version of the free assumptions to proof nodes map
+      std::unordered_map<Node,
+                         std::vector<std::shared_ptr<ProofNode>>,
+                         NodeHashFunction>
+          famapPersistent;
+      // enqueue free assumptions to process and register proof nodes to be
+      // connected
       for (const std::pair<const Node, std::vector<ProofNode*>>& fap : famap)
       {
         // check cycles
@@ -107,16 +117,21 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
                      == expandedToConnect.end())
             << "Fact " << fap.first << " is part of a cycle\n";
         visit.push_back(fap.first);
+        std::vector<std::shared_ptr<ProofNode>> pfns;
+        for (ProofNode* pfn : fap.second)
+        {
+          pfns.push_back(pfn->clone());
+        }
+        famapPersistent[fap.first] = pfns;
       }
-      // register proof nodes to connect
-      expandedToConnect.insert(
-          std::pair<Node,
-                    std::pair<std::shared_ptr<ProofNode>,
-                              std::map<Node, std::vector<ProofNode*>>>>(
-              cur,
-              std::pair<std::shared_ptr<ProofNode>,
-                        std::map<Node, std::vector<ProofNode*>>>(curPfn,
-                                                                 famap)));
+      // map node whose proof node must be expanded to the respective poof node
+      // and to the persistent map of its assumptions to proof nodes
+      expandedToConnect[cur] =
+          std::pair<std::shared_ptr<ProofNode>,
+                    std::unordered_map<Node,
+                                       std::vector<std::shared_ptr<ProofNode>>,
+                                       NodeHashFunction>>(curPfn,
+                                                          famapPersistent);
     }
     // post-traversal
     else if (itVisited->second.isNull())
@@ -133,7 +148,8 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
       Assert(it != expandedToConnect.end());
       // the first element of the iterator pair is the proofNode of cur, the
       // second is the map of the assumption node to all its proofnodes
-      for (const std::pair<const Node, std::vector<ProofNode*>>& fap : it->second.second)
+      for (const std::pair<const Node, std::vector<std::shared_ptr<ProofNode>>>&
+               fap : it->second.second)
       {
         // see if assumption has been expanded and thus has a new proof node to
         // connect here
@@ -150,9 +166,9 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
             << " expanded\n";
         // update each assumption proof node with the expanded proof node of
         // that assumption
-        for (ProofNode* pfn : fap.second)
+        for (std::shared_ptr<ProofNode> pfn : fap.second)
         {
-          d_manager->updateNode(pfn, itt->second.get());
+          d_manager->updateNode(pfn.get(), itt->second.get());
         }
       }
       // assign the expanded proof node
