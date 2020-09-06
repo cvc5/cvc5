@@ -1495,7 +1495,7 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
           }
         }
         Trace("uf-ss-com-card-debug") << "...assert cardinality" << std::endl;
-        d_rep_model[tn]->assertCardinality( d_out, nCard, polarity );
+        d_rep_model[tn]->assertCardinality( nCard, polarity );
         //check if combined cardinality is violated
         checkCombinedCardinality();
       }else{
@@ -1591,7 +1591,7 @@ void CardinalityExtension::check(Theory::Effort level)
         }
       }
       for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
-        it->second->check( level, d_out );
+        it->second->check( level );
         if (d_state.isInConflict())
         {
           break;
@@ -1647,7 +1647,7 @@ void CardinalityExtension::presolve()
   d_initializedCombinedCardinality = false;
   for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
     it->second->presolve();
-    it->second->initialize( d_out );
+    it->second->initialize( );
   }
 }
 
@@ -1688,13 +1688,13 @@ void CardinalityExtension::preRegisterTerm(TNode n)
         rm = new SortModel(n, d_state, d_im, this);
       }
       if( rm ){
-        rm->initialize( d_out );
+        rm->initialize( );
         d_rep_model[tn] = rm;
         //d_rep_model_init[tn] = true;
       }
     }else{
       //ensure sort model is initialized
-      it->second->initialize( d_out );
+      it->second->initialize( );
     }
   }
 }
