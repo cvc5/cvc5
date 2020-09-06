@@ -703,7 +703,7 @@ void SortModel::check( Theory::Effort level ){
             std::vector< Node > clique;
             if( d_regions[i]->check( level, d_cardinality, clique ) ){
               //add clique lemma
-              addCliqueLemma( clique, out );
+              addCliqueLemma( clique );
               return;
             }else{
               Trace("uf-ss-debug") << "No clique in Region #" << i << std::endl;
@@ -721,14 +721,14 @@ void SortModel::check( Theory::Effort level ){
           for( int i=0; i<(int)d_regions_index; i++ ){
             if( d_regions[i]->valid() && d_regions[i]->getNumReps()>d_cardinality ){
 
-              int sp = addSplit( d_regions[i], out );
+              int sp = addSplit( d_regions[i] );
               if( sp==1 ){
                 addedLemma = true;
 #ifdef ONE_SPLIT_REGION
                 break;
 #endif
               }else if( sp==-1 ){
-                check( level, out );
+                check( level );
                 return;
               }
             }
@@ -775,7 +775,7 @@ void SortModel::check( Theory::Effort level ){
             }
             if( recheck ){
               Trace("uf-ss-debug") << "Must recheck." << std::endl;
-              check( level, out );
+              check( level );
             }
           }
         }
