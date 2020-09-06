@@ -692,8 +692,9 @@ Node TheoryDatatypes::explain( std::vector< Node >& lits ) {
 
 /** Conflict when merging two constants */
 void TheoryDatatypes::conflict(TNode a, TNode b){
-  Trace("dt-conflict") << "CONFLICT: Eq engine conflict merge : " << a << ", " << b << std::endl;
-  d_im.conflictEqConstantMerge( a, b );
+  Trace("dt-conflict") << "CONFLICT: Eq engine conflict merge : " << a << ", "
+                       << b << std::endl;
+  d_im.conflictEqConstantMerge(a, b);
 }
 
 /** called when a new equivalance class is created */
@@ -743,7 +744,7 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
           {
             d_conflictNode = explainLit(unifEq);
             Trace("dt-conflict") << "CONFLICT: Clash conflict : " << d_conflictNode << std::endl;
-            d_im.conflict( d_conflictNode );
+            d_im.conflict(d_conflictNode);
             return;
           }
           else
@@ -947,7 +948,7 @@ void TheoryDatatypes::addTester(
         explainEquality( eqc->d_constructor.get(), t_arg, true, assumptions );
         d_conflictNode = mkAnd( assumptions );
         Trace("dt-conflict") << "CONFLICT: Tester eq conflict : " << d_conflictNode << std::endl;
-        d_im.conflict( d_conflictNode );
+        d_im.conflict(d_conflictNode);
         return;
       }else{
         makeConflict = true;
@@ -1053,7 +1054,7 @@ void TheoryDatatypes::addTester(
     explainEquality( jt[0], t_arg, true, assumptions );
     d_conflictNode = mkAnd( assumptions );
     Trace("dt-conflict") << "CONFLICT: Tester conflict : " << d_conflictNode << std::endl;
-    d_im.conflict( d_conflictNode );
+    d_im.conflict(d_conflictNode);
   }
 }
 
@@ -1111,7 +1112,7 @@ void TheoryDatatypes::addConstructor( Node c, EqcInfo* eqc, Node n ){
           explainEquality( c, t[0][0], true, assumptions );
           d_conflictNode = mkAnd( assumptions );
           Trace("dt-conflict") << "CONFLICT: Tester merge eq conflict : " << d_conflictNode << std::endl;
-          d_im.conflict( d_conflictNode );
+          d_im.conflict(d_conflictNode);
           return;
         }
       }
@@ -1682,7 +1683,7 @@ void TheoryDatatypes::checkCycles() {
             Assert(expl.size() > 0);
             d_conflictNode = mkAnd( expl );
             Trace("dt-conflict") << "CONFLICT: Cycle conflict : " << d_conflictNode << std::endl;
-            d_im.conflict( d_conflictNode );
+            d_im.conflict(d_conflictNode);
             return;
           }
         }
