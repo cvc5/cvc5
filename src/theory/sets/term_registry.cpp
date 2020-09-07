@@ -25,8 +25,14 @@ namespace CVC4 {
 namespace theory {
 namespace sets {
 
-TermRegistry::TermRegistry(SolverState& state, InferenceManager& im, SkolemCache& skc)
-    : d_state(state), d_im(im), d_skCache(skc), d_proxy(state.getUserContext()), d_proxy_to_term(state.getUserContext())
+TermRegistry::TermRegistry(SolverState& state,
+                           InferenceManager& im,
+                           SkolemCache& skc)
+    : d_state(state),
+      d_im(im),
+      d_skCache(skc),
+      d_proxy(state.getUserContext()),
+      d_proxy_to_term(state.getUserContext())
 {
 }
 

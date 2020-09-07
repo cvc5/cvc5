@@ -21,9 +21,9 @@
 #include "context/context.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/solver_state.h"
+#include "theory/sets/term_registry.h"
 #include "theory/type_set.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/sets/term_registry.h"
 
 namespace CVC4 {
 namespace theory {
@@ -68,7 +68,9 @@ class CardinalityExtension
    * Constructs a new instance of the cardinality solver w.r.t. the provided
    * contexts.
    */
-  CardinalityExtension(SolverState& s, InferenceManager& im, TermRegistry& treg);
+  CardinalityExtension(SolverState& s,
+                       InferenceManager& im,
+                       TermRegistry& treg);
 
   ~CardinalityExtension() {}
   /** reset

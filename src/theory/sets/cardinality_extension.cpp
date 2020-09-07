@@ -30,7 +30,9 @@ namespace CVC4 {
 namespace theory {
 namespace sets {
 
-CardinalityExtension::CardinalityExtension(SolverState& s, InferenceManager& im, TermRegistry& treg)
+CardinalityExtension::CardinalityExtension(SolverState& s,
+                                           InferenceManager& im,
+                                           TermRegistry& treg)
     : d_state(s),
       d_im(im),
       d_treg(treg),

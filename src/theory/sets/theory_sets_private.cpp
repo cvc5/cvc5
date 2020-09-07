@@ -36,7 +36,8 @@ namespace sets {
 
 TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
                                      SolverState& state,
-                                     InferenceManager& im, SkolemCache& skc)
+                                     InferenceManager& im,
+                                     SkolemCache& skc)
     : d_members(state.getSatContext()),
       d_deq(state.getSatContext()),
       d_termProcessed(state.getUserContext()),
@@ -1448,8 +1449,9 @@ Node TheorySetsPrivate::getChooseFunction(const TypeNode& setType)
   return chooseSkolem;
 }
 
-void TheorySetsPrivate::presolve() { 
-  d_state.reset(); 
+void TheorySetsPrivate::presolve()
+{
+  d_state.reset();
   d_state.reset();
 }
 

@@ -20,9 +20,9 @@
 #include <map>
 #include <vector>
 
+#include "theory/sets/skolem_cache.h"
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/sets/skolem_cache.h"
 
 namespace CVC4 {
 namespace theory {
@@ -45,7 +45,10 @@ class TheorySetsPrivate;
 class SolverState : public TheoryState
 {
  public:
-  SolverState(context::Context* c, context::UserContext* u, Valuation val, SkolemCache& skc);
+  SolverState(context::Context* c,
+              context::UserContext* u,
+              Valuation val,
+              SkolemCache& skc);
   /** Set parent */
   void setParent(TheorySetsPrivate* p);
   //-------------------------------- initialize per check

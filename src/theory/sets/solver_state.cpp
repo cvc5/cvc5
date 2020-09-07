@@ -27,7 +27,8 @@ namespace sets {
 
 SolverState::SolverState(context::Context* c,
                          context::UserContext* u,
-                         Valuation val, SkolemCache& skc)
+                         Valuation val,
+                         SkolemCache& skc)
     : TheoryState(c, u, val), d_skCache(skc), d_parent(nullptr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);

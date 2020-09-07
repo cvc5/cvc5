@@ -24,9 +24,9 @@
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/rels_utils.h"
 #include "theory/sets/solver_state.h"
+#include "theory/sets/term_registry.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/sets/term_registry.h"
 
 namespace CVC4 {
 namespace theory {
@@ -66,7 +66,10 @@ class TheorySetsRels {
   typedef context::CDHashMap< Node, Node, NodeHashFunction >      NodeMap;
 
 public:
- TheorySetsRels(SolverState& s, InferenceManager& im, SkolemCache& skc, TermRegistry& treg);
+ TheorySetsRels(SolverState& s,
+                InferenceManager& im,
+                SkolemCache& skc,
+                TermRegistry& treg);
 
  ~TheorySetsRels();
  /**
