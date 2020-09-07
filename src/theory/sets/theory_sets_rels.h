@@ -66,7 +66,7 @@ class TheorySetsRels {
   typedef context::CDHashMap< Node, Node, NodeHashFunction >      NodeMap;
 
 public:
- TheorySetsRels(SolverState& s, InferenceManager& im, TermRegistry& treg);
+ TheorySetsRels(SolverState& s, InferenceManager& im, SkolemCache& skc, TermRegistry& treg);
 
  ~TheorySetsRels();
  /**
@@ -88,6 +88,8 @@ private:
   SolverState& d_state;
   /** Reference to the inference manager for the theory of sets */
   InferenceManager& d_im;
+  /** Reference to the skolem cache */
+  SkolemCache& d_skCache;
   /** Reference to the term registry */
   TermRegistry& d_treg;
   /** A list of pending inferences to process */

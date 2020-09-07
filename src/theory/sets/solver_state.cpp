@@ -187,8 +187,8 @@ Node SolverState::getEmptySetEqClass(TypeNode tn) const
 
 Node SolverState::getUnivSetEqClass(TypeNode tn) const
 {
-  std::map<TypeNode, Node>::const_iterator it = d_univset.find(tn);
-  if (it != d_univset.end())
+  std::map<TypeNode, Node>::const_iterator it = d_eqc_univset.find(tn);
+  if (it != d_eqc_univset.end())
   {
     return it->second;
   }

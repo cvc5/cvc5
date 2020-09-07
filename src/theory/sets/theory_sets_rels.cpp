@@ -31,8 +31,8 @@ typedef std::map< Node, std::unordered_set< Node, NodeHashFunction > >::iterator
 typedef std::map< Node, std::map< kind::Kind_t, std::vector< Node > > >::iterator               TERM_IT;
 typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFunction > > >::iterator   TC_IT;
 
-TheorySetsRels::TheorySetsRels(SolverState& s, InferenceManager& im, TermRegistry& treg)
-    : d_state(s), d_im(im), d_treg(treg), d_shared_terms(s.getUserContext())
+TheorySetsRels::TheorySetsRels(SolverState& s, InferenceManager& im, SkolemCache& skc, TermRegistry& treg)
+    : d_state(s), d_im(im), d_skCache(skc), d_treg(treg), d_shared_terms(s.getUserContext())
 {
   d_trueNode = NodeManager::currentNM()->mkConst(true);
   d_falseNode = NodeManager::currentNM()->mkConst(false);
@@ -542,13 +542,12 @@ void TheorySetsRels::check(Theory::Effort level)
     }
     Node fst_element = RelsUtils::nthElementOfTuple( exp[0], 0 );
     Node snd_element = RelsUtils::nthElementOfTuple( exp[0], 1 );
-    SkolemCache& sc = d_state.getSkolemCache();
-    Node sk_1 = sc.mkTypedSkolemCached(fst_element.getType(),
+    Node sk_1 = d_skCache.mkTypedSkolemCached(fst_element.getType(),
                                        exp[0],
                                        tc_rel[0],
                                        SkolemCache::SK_TCLOSURE_DOWN1,
                                        "stc1");
-    Node sk_2 = sc.mkTypedSkolemCached(fst_element.getType(),
+    Node sk_2 = d_skCache.mkTypedSkolemCached(fst_element.getType(),
                                        exp[0],
                                        tc_rel[0],
                                        SkolemCache::SK_TCLOSURE_DOWN2,
@@ -1185,7 +1184,7 @@ void TheorySetsRels::check(Theory::Effort level)
     Trace("rels-share") << " [sets-rels] making shared term " << n << std::endl;
     // force a proxy lemma to be sent for the singleton containing n
     Node ss = NodeManager::currentNM()->mkNode(SINGLETON, n);
-    d_state.getProxy(ss);
+    d_treg.getProxy(ss);
     d_shared_terms.insert(n);
   }
 
