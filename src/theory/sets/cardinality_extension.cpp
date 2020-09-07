@@ -209,7 +209,7 @@ void CardinalityExtension::check()
   Assert(intro_sets.size() == 1);
   Trace("sets-intro") << "Introduce term : " << intro_sets[0] << std::endl;
   Trace("sets-intro") << "  Actual Intro : ";
-  d_state.debugPrintSet(intro_sets[0], "sets-nf");
+  d_treg.debugPrintSet(intro_sets[0], "sets-nf");
   Trace("sets-nf") << std::endl;
   Node k = d_treg.getProxy(intro_sets[0]);
   AlwaysAssert(!k.isNull());
@@ -684,7 +684,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
       Trace("sets-nf") << "  F " << itf.first << " : " << itf.second
                        << std::endl;
       Trace("sets-nf-debug") << " ...";
-      d_state.debugPrintSet(itf.first, "sets-nf-debug");
+      d_treg.debugPrintSet(itf.first, "sets-nf-debug");
       Trace("sets-nf-debug") << std::endl;
     }
   }
@@ -773,7 +773,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
             Node r = e == 2 ? common[l] : only[e][l];
             Trace("sets-nf-debug") << "Try split empty : " << r << std::endl;
             Trace("sets-nf-debug") << "         actual : ";
-            d_state.debugPrintSet(r, "sets-nf-debug");
+            d_treg.debugPrintSet(r, "sets-nf-debug");
             Trace("sets-nf-debug") << std::endl;
             Assert(!d_state.areEqual(r, emp_set));
             if (!d_state.areDisequal(r, emp_set) && !d_state.hasMembers(r))
@@ -781,7 +781,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
               // guess that its equal empty if it has no explicit members
               Trace("sets-nf") << " Split empty : " << r << std::endl;
               Trace("sets-nf") << "Actual Split : ";
-              d_state.debugPrintSet(r, "sets-nf");
+              d_treg.debugPrintSet(r, "sets-nf");
               Trace("sets-nf") << std::endl;
               d_im.split(r.eqNode(emp_set), 1);
               Assert(d_im.hasSent());
