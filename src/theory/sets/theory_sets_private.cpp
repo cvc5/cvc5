@@ -1444,7 +1444,7 @@ TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
   }
 
   // (is_singleton A) is expanded as
-  // (= (A) (singleton x))
+  // (= A (singleton x))
   // where x is a fresh skolem
 
   NodeManager* nm = NodeManager::currentNM();
