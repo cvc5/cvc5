@@ -250,6 +250,10 @@ class TheorySetsPrivate {
    * given set type, or creates a new one if it does not exist.
    */
   Node getChooseFunction(const TypeNode& setType);
+  /** expand the definition of the choose operator */
+  TrustNode expandChooseOperator(const Node& node);
+  /** expand the definition of is_singleton operator */
+  TrustNode expandIsSingletonOperator(const Node& node);
   /** subtheory solver for the theory of relations */
   std::unique_ptr<TheorySetsRels> d_rels;
   /** subtheory solver for the theory of sets with cardinality */
@@ -270,10 +274,11 @@ class TheorySetsPrivate {
   /** The theory rewriter for this theory. */
   TheorySetsRewriter d_rewriter;
 
-  /*
-   * a map that stores the choose functions for set types
-   */
+  /** a map that stores the choose functions for set types */
   std::map<TypeNode, Node> d_chooseFunctions;
+
+  /** a map that stores the skolems generated for is_singleton operator*/
+  std::map<Node, Node> d_isSingletonSkolems;
 };/* class TheorySetsPrivate */
 
 

@@ -243,6 +243,31 @@ struct ChooseTypeRule
   }
 }; /* struct ChooseTypeRule */
 
+struct IsSingletonTypeRule
+{
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::IS_SINGLETON);
+    TypeNode setType = n[0].getType(check);
+    if (check)
+    {
+      if (!setType.isSet())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "IS_SINGLETON operator expects a set, a non-set is found");
+      }
+    }
+    return nodeManager->booleanType();
+  }
+  inline static bool computeIsConst(NodeManager* nodeManager, TNode n)
+  {
+    Assert(n.getKind() == kind::IS_SINGLETON);
+    return false; // n[0].isConst();
+  }
+}; /* struct IsSingletonTypeRule */
+
 struct InsertTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
