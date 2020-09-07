@@ -226,9 +226,6 @@ class TheorySep : public Theory {
   std::map<Node, std::unique_ptr<DecisionStrategySingleton> >
       d_neg_guard_strategy;
   std::map< Node, Node > d_guard_to_assertion;
-  /** inferences: maintained to ensure ref count for internally introduced nodes */
-  NodeList d_infer;
-  NodeList d_infer_exp;
   NodeList d_spatial_assertions;
 
   //data,ref type (globally fixed)

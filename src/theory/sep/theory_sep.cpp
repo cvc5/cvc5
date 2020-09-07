@@ -53,8 +53,6 @@ TheorySep::TheorySep(context::Context* c,
       d_im(*this, d_state, pnm),
       d_notify(*this),
       d_reduce(u),
-      d_infer(c),
-      d_infer_exp(c),
       d_spatial_assertions(c)
 {
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
@@ -1802,12 +1800,8 @@ void TheorySep::sendLemma( std::vector< Node >& ant, Node conc, const char * c, 
 }
 
 void TheorySep::doPending() {
-  if( d_im.hasPendingFact() ){
-    d_im.doPendingFacts();
-    d_im.clearPendingLemmas();
-  }else{
-    d_im.doPendingLemmas();
-  }
+  d_im.doPendingFacts();
+  d_im.doPendingLemmas();
 }
 
 void TheorySep::debugPrintHeap( HeapInfo& heap, const char * c ) {
