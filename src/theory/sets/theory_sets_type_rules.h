@@ -264,7 +264,7 @@ struct IsSingletonTypeRule
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n)
   {
     Assert(n.getKind() == kind::IS_SINGLETON);
-    return false; // n[0].isConst();
+    return false;
   }
 }; /* struct IsSingletonTypeRule */
 

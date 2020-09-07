@@ -1401,6 +1401,8 @@ TrustNode TheorySetsPrivate::expandDefinition(Node node)
 
 TrustNode TheorySetsPrivate::expandChooseOperator(const Node& node)
 {
+  Assert(node.getKind() == CHOOSE);
+
   if (node[0].getKind() == SINGLETON)
   {
     //(= (choose (singleton x)) x) is a tautology
@@ -1436,6 +1438,8 @@ TrustNode TheorySetsPrivate::expandChooseOperator(const Node& node)
 
 TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
 {
+  Assert(node.getKind() == IS_SINGLETON);
+
   if (node[0].getKind() == SINGLETON)
   {
     //(= (is_singleton (singleton x)) is a tautology
