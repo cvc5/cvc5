@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file solver_state.h
+/*! \file term_registry.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mudathir Mohamed
@@ -14,16 +14,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__SETS__THEORY_SOLVER_STATE_H
-#define CVC4__THEORY__SETS__THEORY_SOLVER_STATE_H
+#ifndef CVC4__THEORY__SETS__TERM_REGISTRY_H
+#define CVC4__THEORY__SETS__TERM_REGISTRY_H
 
 #include <map>
 #include <vector>
 
 #include "context/cdhashset.h"
 #include "theory/sets/skolem_cache.h"
-#include "theory/theory_state.h"
-#include "theory/uf/equality_engine.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/solver_state.h"
 

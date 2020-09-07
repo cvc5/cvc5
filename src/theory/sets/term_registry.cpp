@@ -12,7 +12,7 @@
  ** \brief Implementation of sets state object
  **/
 
-#include "theory/sets/solver_state.h"
+#include "theory/sets/term_registry.h"
 
 #include "expr/emptyset.h"
 #include "options/sets_options.h"
@@ -25,14 +25,12 @@ namespace CVC4 {
 namespace theory {
 namespace sets {
 
-TermRegistry::TermRegistry(olverState& state, InferenceManager& im)
+TermRegistry::TermRegistry(SolverState& state, InferenceManager& im)
     : d_state(state), d_im(im), d_proxy(state.getUserContext()), d_proxy_to_term(state.getUserContext())
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
-
-void TermRegistry::setParent(TheorySetsPrivate* p) { d_parent = p; }
 
 void TermRegistry::reset()
 {
@@ -61,13 +59,14 @@ void TermRegistry::registerEqc(TypeNode tn, Node r)
 
 void TermRegistry::registerTerm(Node r, TypeNode tnn, Node n)
 {
+  eq::EqualityEngine * ee = d_state.getEqualityEngine();
   Kind nk = n.getKind();
   if (nk == MEMBER)
   {
     if (r.isConst())
     {
-      Node s = d_ee->getRepresentative(n[1]);
-      Node x = d_ee->getRepresentative(n[0]);
+      Node s = ee->getRepresentative(n[1]);
+      Node x = ee->getRepresentative(n[0]);
       int pindex = r == d_true ? 0 : (r == d_false ? 1 : -1);
       if (pindex != -1)
       {
@@ -90,7 +89,7 @@ void TermRegistry::registerTerm(Node r, TypeNode tnn, Node n)
     {
       // singleton lemma
       getProxy(n);
-      Node re = d_ee->getRepresentative(n[0]);
+      Node re = ee->getRepresentative(n[0]);
       if (d_singleton_index.find(re) == d_singleton_index.end())
       {
         d_singleton_index[re] = n;
@@ -113,8 +112,8 @@ void TermRegistry::registerTerm(Node r, TypeNode tnn, Node n)
     }
     else
     {
-      Node r1 = d_ee->getRepresentative(n[0]);
-      Node r2 = d_ee->getRepresentative(n[1]);
+      Node r1 = ee->getRepresentative(n[0]);
+      Node r2 = ee->getRepresentative(n[1]);
       std::map<Node, Node>& binr1 = d_bop_index[nk][r1];
       std::map<Node, Node>::iterator itb = binr1.find(r2);
       if (itb == binr1.end())
@@ -152,15 +151,6 @@ void TermRegistry::registerTerm(Node r, TypeNode tnn, Node n)
   else
   {
     Trace("sets-debug2") << "Unknown-set[" << r << "] : " << n << std::endl;
-  }
-}
-
-void TermRegistry::addEqualityToExp(Node a, Node b, std::vector<Node>& exp) const
-{
-  if (a != b)
-  {
-    Assert(areEqual(a, b));
-    exp.push_back(a.eqNode(b));
   }
 }
 

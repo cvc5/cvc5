@@ -26,6 +26,7 @@
 #include "theory/sets/solver_state.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/sets/term_registry.h"
 
 namespace CVC4 {
 namespace theory {
@@ -65,7 +66,7 @@ class TheorySetsRels {
   typedef context::CDHashMap< Node, Node, NodeHashFunction >      NodeMap;
 
 public:
- TheorySetsRels(SolverState& s, InferenceManager& im);
+ TheorySetsRels(SolverState& s, InferenceManager& im, TermRegistry& treg);
 
  ~TheorySetsRels();
  /**
@@ -87,6 +88,8 @@ private:
   SolverState& d_state;
   /** Reference to the inference manager for the theory of sets */
   InferenceManager& d_im;
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
   /** A list of pending inferences to process */
   std::vector<Node> d_pending;
   NodeSet                       d_shared_terms;
