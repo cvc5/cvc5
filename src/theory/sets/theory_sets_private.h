@@ -251,9 +251,9 @@ class TheorySetsPrivate {
    */
   Node getChooseFunction(const TypeNode& setType);
   /** expand the definition of the choose operator */
-  TrustNode expandChooseOperator(Node node);
+  TrustNode expandChooseOperator(const Node& node);
   /** expand the definition of is_singleton operator */
-  TrustNode expandIsSingletonOperator(Node node);
+  TrustNode expandIsSingletonOperator(const Node& node);
   /** subtheory solver for the theory of relations */
   std::unique_ptr<TheorySetsRels> d_rels;
   /** subtheory solver for the theory of sets with cardinality */

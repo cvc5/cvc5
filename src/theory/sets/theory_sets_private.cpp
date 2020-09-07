@@ -1399,16 +1399,16 @@ TrustNode TheorySetsPrivate::expandDefinition(Node node)
   }
 }
 
-TrustNode TheorySetsPrivate::expandChooseOperator(Node node)
+TrustNode TheorySetsPrivate::expandChooseOperator(const Node& node)
 {
   Assert(node.getKind() == CHOOSE);
 
   // we call the rewriter here to handle the pattern (choose (singleton x))
   // because the rewriter is called after expansion
-  node = Rewriter::rewrite(node);
-  if(node.getKind() != CHOOSE)
+  Node rewritten = Rewriter::rewrite(node);
+  if (rewritten.getKind() != CHOOSE)
   {
-    return TrustNode::null();
+    return TrustNode::mkTrustRewrite(node, rewritten, nullptr);
   }
 
   // (choose A) is expanded as
@@ -1419,7 +1419,7 @@ TrustNode TheorySetsPrivate::expandChooseOperator(Node node)
   //      (and (member x A) (= x chooseUf(A)))
 
   NodeManager* nm = NodeManager::currentNM();
-  Node set = node[0];
+  Node set = rewritten[0];
   TypeNode setType = set.getType();
   Node chooseSkolem = getChooseFunction(setType);
   Node apply = NodeManager::currentNM()->mkNode(APPLY_UF, chooseSkolem, set);
@@ -1437,16 +1437,16 @@ TrustNode TheorySetsPrivate::expandChooseOperator(Node node)
   return TrustNode::mkTrustRewrite(node, witness, nullptr);
 }
 
-TrustNode TheorySetsPrivate::expandIsSingletonOperator(Node node)
+TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
 {
   Assert(node.getKind() == IS_SINGLETON);
 
   // we call the rewriter here to handle the pattern
   // (is_singleton (singleton x)) because the rewriter is called after expansion
-  node = Rewriter::rewrite(node);
-  if(node.getKind() != IS_SINGLETON)
+  Node rewritten = Rewriter::rewrite(node);
+  if (rewritten.getKind() != IS_SINGLETON)
   {
-    return TrustNode::null();
+    return TrustNode::mkTrustRewrite(node, rewritten, nullptr);
   }
 
   // (is_singleton A) is expanded as
@@ -1454,13 +1454,13 @@ TrustNode TheorySetsPrivate::expandIsSingletonOperator(Node node)
   // where T is the sort of elements of A
 
   NodeManager* nm = NodeManager::currentNM();
-  Node set = node[0];
+  Node set = rewritten[0];
 
-  std::map<Node, Node>::iterator it = d_isSingletonNodes.find(node);
+  std::map<Node, Node>::iterator it = d_isSingletonNodes.find(rewritten);
 
   if (it != d_isSingletonNodes.end())
   {
-    return TrustNode::mkTrustRewrite(node, it->second, nullptr);
+    return TrustNode::mkTrustRewrite(rewritten, it->second, nullptr);
   }
 
   TypeNode setType = set.getType();
@@ -1470,7 +1470,7 @@ TrustNode TheorySetsPrivate::expandIsSingletonOperator(Node node)
   std::vector<Node> variables = {boundVar};
   Node boundVars = nm->mkNode(BOUND_VAR_LIST, variables);
   Node exists = nm->mkNode(kind::EXISTS, boundVars, equal);
-  d_isSingletonNodes[node] = exists;
+  d_isSingletonNodes[rewritten] = exists;
 
   return TrustNode::mkTrustRewrite(node, exists, nullptr);
 }
