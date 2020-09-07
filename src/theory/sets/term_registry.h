@@ -29,7 +29,7 @@ namespace CVC4 {
 namespace theory {
 namespace sets {
 
-/** 
+/**
  * Term registry, the purpose of this class is to maintain a database of
  * commonly used terms, and mappings from sets to their "proxy variables".
  */
@@ -69,6 +69,7 @@ class TermRegistry
   Node getUnivSet(TypeNode tn);
   /** debug print set */
   void debugPrintSet(Node s, const char* c) const;
+
  private:
   /** The state */
   SolverState& d_state;
