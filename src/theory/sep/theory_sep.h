@@ -111,8 +111,6 @@ class TheorySep : public Theory {
   bool propagateLit(TNode literal);
   /** Conflict when merging constants */
   void conflict(TNode a, TNode b);
-  /** Explain why this literal is true by adding assumptions */
-  void explain(TNode literal, std::vector<TNode>& assumptions);
 
  public:
   TrustNode explain(TNode n) override;
