@@ -20,10 +20,9 @@
 #include <map>
 #include <vector>
 
-#include "context/cdhashset.h"
-#include "theory/sets/skolem_cache.h"
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/sets/skolem_cache.h"
 
 namespace CVC4 {
 namespace theory {
@@ -45,10 +44,8 @@ class TheorySetsPrivate;
  */
 class SolverState : public TheoryState
 {
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
-
  public:
-  SolverState(context::Context* c, context::UserContext* u, Valuation val);
+  SolverState(context::Context* c, context::UserContext* u, Valuation val, SkolemCache& skc);
   /** Set parent */
   void setParent(TheorySetsPrivate* p);
   //-------------------------------- initialize per check
@@ -165,6 +162,8 @@ class SolverState : public TheoryState
   /** the empty vector and map */
   std::vector<Node> d_emptyVec;
   std::map<Node, Node> d_emptyMap;
+  /** Reference to skolem cache */
+  SkolemCache& d_skCache;
   /** Pointer to the parent theory of sets */
   TheorySetsPrivate* d_parent;
   /** The list of all equivalence classes of type set in the current context */

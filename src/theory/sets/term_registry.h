@@ -47,7 +47,7 @@ class TermRegistry
 {
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
  public:
-  TermRegistry(SolverState& state, InferenceManager& im);
+  TermRegistry(SolverState& state, InferenceManager& im, SkolemCache& skc);
   /** Get type constraint skolem
    *
    * The sets theory solver outputs equality lemmas of the form:
@@ -76,11 +76,6 @@ class TermRegistry
   Node getEmptySet(TypeNode tn);
   /** Get the universe set of type tn if it exists or create a new one */
   Node getUnivSet(TypeNode tn);
-  /**
-   * Get the skolem cache of this theory, which manages a database of introduced
-   * skolem variables used for various inferences.
-   */
-  SkolemCache& getSkolemCache() { return d_skCache; }
   /** debug print set */
   void debugPrintSet(Node s, const char* c) const;
 
@@ -89,6 +84,8 @@ class TermRegistry
   SolverState& d_state;
   /** The inference manager */
   InferenceManager& d_im;
+  /** Reference to the skolem cache */
+  SkolemCache& d_skCache;
   /** Map from set terms to their proxy variables */
   NodeMap d_proxy;
   /** Backwards map of above */
@@ -99,8 +96,6 @@ class TermRegistry
   std::map<TypeNode, Node> d_emptyset;
   /** Map from types to universe set of that type */
   std::map<TypeNode, Node> d_univset;
-  /** the skolem cache */
-  SkolemCache d_skCache;
 }; /* class TheorySetsPrivate */
 
 }  // namespace sets

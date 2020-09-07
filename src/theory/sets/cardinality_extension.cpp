@@ -925,7 +925,7 @@ void CardinalityExtension::checkMinCard()
 {
   NodeManager* nm = NodeManager::currentNM();
   const std::vector<Node>& setEqc = d_state.getSetsEqClasses();
-  for (int i = (int)(setEqc.size() - 1); i >= 0; i--)d
+  for (int i = (int)(setEqc.size() - 1); i >= 0; i--)
   {
     Node eqc = setEqc[i];
     TypeNode tn = eqc.getType().getSetElementType();

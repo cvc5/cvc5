@@ -44,7 +44,8 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
       d_external(external),
       d_state(state),
       d_im(im),
-      d_treg(state, im),
+      d_skCache(skc),
+      d_treg(state, im, skc),
       d_rels(new TheorySetsRels(d_state, d_im, d_treg)),
       d_cardSolver(new CardinalityExtension(d_state, d_im, d_treg)),
       d_rels_enabled(false),
@@ -822,7 +823,7 @@ void TheorySetsPrivate::checkDisequalities()
     d_termProcessed.insert(deq[1].eqNode(deq[0]));
     Trace("sets") << "Process Disequality : " << deq.negate() << std::endl;
     TypeNode elementType = deq[0].getType().getSetElementType();
-    Node x = d_state.getSkolemCache().mkTypedSkolemCached(
+    Node x = d_skCache.mkTypedSkolemCached(
         elementType, deq[0], deq[1], SkolemCache::SK_DISEQUAL, "sde");
     Node mem1 = nm->mkNode(MEMBER, x, deq[0]);
     Node mem2 = nm->mkNode(MEMBER, x, deq[1]);

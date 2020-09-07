@@ -25,6 +25,7 @@
 #include "theory/sets/solver_state.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/sets/skolem_cache.h"
 
 namespace CVC4 {
 namespace theory {
@@ -98,6 +99,8 @@ class TheorySets : public Theory
    private:
     TheorySetsPrivate& d_theory;
   };
+  /** The skolem cache */
+  SkolemCache d_skCache;
   /** The state of the sets solver at full effort */
   SolverState d_state;
   /** The inference manager */
