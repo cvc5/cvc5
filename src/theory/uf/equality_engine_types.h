@@ -75,14 +75,6 @@ enum MergeReasonType
   MERGED_THROUGH_CONSTANTS,
   /** Terms were merged due to transitivity */
   MERGED_THROUGH_TRANS,
-  // TEMPORARY RULES WHILE WE DON'T MIGRATE TO PROOF_NEW
-
-  /** Terms were merged due to arrays read-over-write */
-  MERGED_THROUGH_ROW,
-  /** Terms were merged due to arrays read-over-write (1) */
-  MERGED_THROUGH_ROW1,
-  /** Terms were merged due to extensionality */
-  MERGED_THROUGH_EXT,
 };
 
 inline std::ostream& operator << (std::ostream& out, MergeReasonType reason) {
@@ -100,9 +92,6 @@ inline std::ostream& operator << (std::ostream& out, MergeReasonType reason) {
   case MERGED_THROUGH_TRANS:
     out << "transitivity";
     break;
-  case MERGED_THROUGH_ROW: out << "read-over-write"; break;
-  case MERGED_THROUGH_ROW1: out << "read-over-write (1)"; break;
-  case MERGED_THROUGH_EXT: out << "extensionality"; break;
   default:
     out << "[theory]";
     break;
