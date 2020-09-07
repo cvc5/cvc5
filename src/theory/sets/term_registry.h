@@ -20,7 +20,7 @@
 #include <map>
 #include <vector>
 
-#include "context/cdhashset.h"
+#include "context/cdhashmap.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/skolem_cache.h"
 #include "theory/sets/solver_state.h"
@@ -29,19 +29,9 @@ namespace CVC4 {
 namespace theory {
 namespace sets {
 
-class TheorySetsPrivate;
-
-/** Sets state
- *
- * The purpose of this class is to:
- * (1) Maintain information concerning the current set of assertions during a
- * full effort check,
- * (2) Maintain a database of commonly used terms.
- *
- * During a full effort check, the solver for theory of sets should call:
- *   reset; ( registerEqc | registerTerm )*
- * to initialize the information in this class regarding full effort checks.
- * Other query calls are then valid for the remainder of the full effort check.
+/** 
+ * Term registry, the purpose of this class is to maintain a database of
+ * commonly used terms, and mappings from sets to their "proxy variables".
  */
 class TermRegistry
 {
@@ -79,7 +69,6 @@ class TermRegistry
   Node getUnivSet(TypeNode tn);
   /** debug print set */
   void debugPrintSet(Node s, const char* c) const;
-
  private:
   /** The state */
   SolverState& d_state;
@@ -103,4 +92,4 @@ class TermRegistry
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* CVC4__THEORY__SETS__THEORY_SOLVER_STATE_H */
+#endif /* CVC4__THEORY__SETS__TERM_REGISTRY_H */

@@ -32,10 +32,8 @@ class TheorySetsPrivate;
 
 /** Sets state
  *
- * The purpose of this class is to:
- * (1) Maintain information concerning the current set of assertions during a
- * full effort check,
- * (2) Maintain a database of commonly used terms.
+ * The purpose of this class is to maintain information concerning the current
+ * set of assertions during a full effort check.
  *
  * During a full effort check, the solver for theory of sets should call:
  *   reset; ( registerEqc | registerTerm )*

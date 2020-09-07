@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file solver_state.cpp
+/*! \file term_registry.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mudathir Mohamed
@@ -9,14 +9,12 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of sets state object
+ ** \brief Implementation of sets term registry object
  **/
 
 #include "theory/sets/term_registry.h"
 
 #include "expr/emptyset.h"
-#include "options/sets_options.h"
-#include "theory/sets/theory_sets_private.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -78,6 +76,7 @@ Node TermRegistry::getEmptySet(TypeNode tn)
   d_emptyset[tn] = n;
   return n;
 }
+
 Node TermRegistry::getUnivSet(TypeNode tn)
 {
   std::map<TypeNode, Node>::iterator it = d_univset.find(tn);
