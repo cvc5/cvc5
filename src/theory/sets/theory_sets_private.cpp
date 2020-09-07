@@ -1457,20 +1457,22 @@ TrustNode TheorySetsPrivate::expandIsSingletonOperator(Node node)
   Node set = node[0];
 
   std::map<Node, Node>::iterator it = d_isSingletonNodes.find(node);
-  Node skolem;
-  if (it == d_isSingletonNodes.end())
+
+  if (it != d_isSingletonNodes.end())
   {
-    TypeNode setType = set.getType();
-    skolem = nm->mkSkolem("isSingleton", setType.getSetElementType());
-    d_isSingletonNodes[node] = skolem;
+    return TrustNode::mkTrustRewrite(node, it->second, nullptr);
   }
-  else
-  {
-    skolem = it->second;
-  }
-  Node singleton = nm->mkNode(kind::SINGLETON, skolem);
+
+  TypeNode setType = set.getType();
+  Node boundVar = nm->mkBoundVar(setType.getSetElementType());
+  Node singleton = nm->mkNode(kind::SINGLETON, boundVar);
   Node equal = set.eqNode(singleton);
-  return TrustNode::mkTrustRewrite(node, equal, nullptr);
+  std::vector<Node> variables = {boundVar};
+  Node boundVars = nm->mkNode(BOUND_VAR_LIST, variables);
+  Node exists = nm->mkNode(kind::EXISTS, boundVars, equal);
+  d_isSingletonNodes[node] = exists;
+
+  return TrustNode::mkTrustRewrite(node, exists, nullptr);
 }
 
 Node TheorySetsPrivate::getChooseFunction(const TypeNode& setType)
