@@ -251,9 +251,9 @@ class TheorySetsPrivate {
    */
   Node getChooseFunction(const TypeNode& setType);
   /** expand the definition of the choose operator */
-  TrustNode expandChooseOperator(const Node& node);
+  TrustNode expandChooseOperator(Node node);
   /** expand the definition of is_singleton operator */
-  TrustNode expandIsSingletonOperator(const Node& node);
+  TrustNode expandIsSingletonOperator(Node node);
   /** subtheory solver for the theory of relations */
   std::unique_ptr<TheorySetsRels> d_rels;
   /** subtheory solver for the theory of sets with cardinality */
@@ -277,8 +277,9 @@ class TheorySetsPrivate {
   /** a map that stores the choose functions for set types */
   std::map<TypeNode, Node> d_chooseFunctions;
 
-  /** a map that stores the skolems generated for is_singleton operator*/
-  std::map<Node, Node> d_isSingletonSkolems;
+  /** a map that maps each set to an existential quantifier generated for
+   * operator is_singleton */
+  std::map<Node, Node> d_isSingletonNodes;
 };/* class TheorySetsPrivate */
 
 

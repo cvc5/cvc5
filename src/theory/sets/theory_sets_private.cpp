@@ -1399,15 +1399,16 @@ TrustNode TheorySetsPrivate::expandDefinition(Node node)
   }
 }
 
-TrustNode TheorySetsPrivate::expandChooseOperator(const Node& node)
+TrustNode TheorySetsPrivate::expandChooseOperator(Node node)
 {
   Assert(node.getKind() == CHOOSE);
 
-  if (node[0].getKind() == SINGLETON)
+  // we call the rewriter here to handle the pattern (choose (singleton x))
+  // because the rewriter is called after expansion
+  node = Rewriter::rewrite(node);
+  if(node.getKind() != CHOOSE)
   {
-    //(= (choose (singleton x)) x) is a tautology
-    // we return x for (choose (singleton x))
-    return TrustNode::mkTrustRewrite(node, node[0][0], nullptr);
+    return TrustNode::null();
   }
 
   // (choose A) is expanded as
@@ -1436,31 +1437,32 @@ TrustNode TheorySetsPrivate::expandChooseOperator(const Node& node)
   return TrustNode::mkTrustRewrite(node, witness, nullptr);
 }
 
-TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
+TrustNode TheorySetsPrivate::expandIsSingletonOperator(Node node)
 {
   Assert(node.getKind() == IS_SINGLETON);
 
-  if (node[0].getKind() == SINGLETON)
+  // we call the rewriter here to handle the pattern
+  // (is_singleton (singleton x)) because the rewriter is called after expansion
+  node = Rewriter::rewrite(node);
+  if(node.getKind() != IS_SINGLETON)
   {
-    //(= (is_singleton (singleton x)) is a tautology
-    // we return true for (is_singleton (singleton x))
-    return TrustNode::mkTrustRewrite(node, d_true, nullptr);
+    return TrustNode::null();
   }
 
   // (is_singleton A) is expanded as
-  // (= A (singleton x))
-  // where x is a fresh skolem
+  // (exists ((x: T)) (= A (singleton x)))
+  // where T is the sort of elements of A
 
   NodeManager* nm = NodeManager::currentNM();
   Node set = node[0];
 
-  std::map<Node, Node>::iterator it = d_isSingletonSkolems.find(node);
+  std::map<Node, Node>::iterator it = d_isSingletonNodes.find(node);
   Node skolem;
-  if (it == d_isSingletonSkolems.end())
+  if (it == d_isSingletonNodes.end())
   {
     TypeNode setType = set.getType();
     skolem = nm->mkSkolem("isSingleton", setType.getSetElementType());
-    d_isSingletonSkolems[node] = skolem;
+    d_isSingletonNodes[node] = skolem;
   }
   else
   {
