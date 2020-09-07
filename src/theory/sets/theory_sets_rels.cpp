@@ -814,7 +814,7 @@ void TheorySetsRels::check(Theory::Effort level)
     Node r1_rep = getRepresentative(join_rel[0]);
     Node r2_rep = getRepresentative(join_rel[1]);
     TypeNode     shared_type    = r2_rep.getType().getSetElementType().getTupleTypes()[0];
-    Node shared_x = d_state.getSkolemCache().mkTypedSkolemCached(
+    Node shared_x = d_skCache.mkTypedSkolemCached(
         shared_type, mem, join_rel, SkolemCache::SK_JOIN, "srj");
     const DType& dt1 = join_rel[0].getType().getSetElementType().getDType();
     unsigned int s1_len         = join_rel[0].getType().getSetElementType().getTupleLength();

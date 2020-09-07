@@ -458,32 +458,6 @@ const std::vector<Node>& SolverState::getComprehensionSets() const
   return d_allCompSets;
 }
 
-void SolverState::debugPrintSet(Node s, const char* c) const
-{
-  if (s.getNumChildren() == 0)
-  {
-    NodeMap::const_iterator it = d_proxy_to_term.find(s);
-    if (it != d_proxy_to_term.end())
-    {
-      debugPrintSet((*it).second, c);
-    }
-    else
-    {
-      Trace(c) << s;
-    }
-  }
-  else
-  {
-    Trace(c) << "(" << s.getOperator();
-    for (const Node& sc : s)
-    {
-      Trace(c) << " ";
-      debugPrintSet(sc, c);
-    }
-    Trace(c) << ")";
-  }
-}
-
 const vector<Node> SolverState::getSetsEqClasses(const TypeNode& t) const
 {
   vector<Node> representatives;
