@@ -81,7 +81,7 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
   NodeManager* nm = NodeManager::currentNM();
   TypeNode setType = nm->mkSetType(t);
   // skip infinite types that do not have univset terms
-  if (!t.isInterpretedFinite() && d_treg.getUnivSetEqClass(setType).isNull())
+  if (!t.isInterpretedFinite() && d_state.getUnivSetEqClass(setType).isNull())
   {
     return;
   }
@@ -119,7 +119,7 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
   }
 
   // get all equivalent classes of type t
-  vector<Node> representatives = d_treg.getSetsEqClasses(t);
+  vector<Node> representatives = d_state.getSetsEqClasses(t);
 
   if (t.isInterpretedFinite())
   {
@@ -143,7 +143,7 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
     {
       // here we only add representatives with variables to avoid adding
       // infinite equivalent generated terms to the cardinality graph
-      Node variable = d_treg.getVariableSet(representative);
+      Node variable = d_state.getVariableSet(representative);
       if (variable.isNull())
       {
         continue;
@@ -209,7 +209,7 @@ void CardinalityExtension::check()
   Assert(intro_sets.size() == 1);
   Trace("sets-intro") << "Introduce term : " << intro_sets[0] << std::endl;
   Trace("sets-intro") << "  Actual Intro : ";
-  d_treg.debugPrintSet(intro_sets[0], "sets-nf");
+  d_state.debugPrintSet(intro_sets[0], "sets-nf");
   Trace("sets-nf") << std::endl;
   Node k = d_treg.getProxy(intro_sets[0]);
   AlwaysAssert(!k.isNull());
@@ -221,13 +221,13 @@ void CardinalityExtension::checkRegister()
   NodeManager* nm = NodeManager::currentNM();
   // first, ensure cardinality relationships are added as lemmas for all
   // non-basic set terms
-  const std::vector<Node>& setEqc = d_treg.getSetsEqClasses();
+  const std::vector<Node>& setEqc = d_state.getSetsEqClasses();
   for (const Node& eqc : setEqc)
   {
-    const std::vector<Node>& nvsets = d_treg.getNonVariableSets(eqc);
+    const std::vector<Node>& nvsets = d_state.getNonVariableSets(eqc);
     for (Node n : nvsets)
     {
-      if (!d_treg.isCongruent(n))
+      if (!d_state.isCongruent(n))
       {
         // if setminus, do for intersection instead
         if (n.getKind() == SETMINUS)
@@ -293,7 +293,7 @@ void CardinalityExtension::checkCardCycles()
 {
   Trace("sets") << "Check cardinality cycles..." << std::endl;
   // build order of equivalence classes, also build cardinality graph
-  const std::vector<Node>& setEqc = d_treg.getSetsEqClasses();
+  const std::vector<Node>& setEqc = d_state.getSetsEqClasses();
   d_oSetEqc.clear();
   d_card_parent.clear();
   for (const Node& s : setEqc)
@@ -352,7 +352,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
     // already processed
     return;
   }
-  const std::vector<Node>& nvsets = d_treg.getNonVariableSets(eqc);
+  const std::vector<Node>& nvsets = d_state.getNonVariableSets(eqc);
   if (nvsets.empty())
   {
     // no non-variable sets, trivial
@@ -361,7 +361,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
   }
   curr.push_back(eqc);
   TypeNode tn = eqc.getType();
-  bool is_empty = eqc == d_treg.getEmptySetEqClass(tn);
+  bool is_empty = eqc == d_state.getEmptySetEqClass(tn);
   Node emp_set = d_treg.getEmptySet(tn);
   for (const Node& n : nvsets)
   {
@@ -518,7 +518,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
                           << card_parents.size() << std::endl;
 
       // if parent is singleton, then we should either be empty to equal to it
-      Node eqccSingleton = d_treg.getSingletonEqClass(eqcc);
+      Node eqccSingleton = d_state.getSingletonEqClass(eqcc);
       if (!eqccSingleton.isNull())
       {
         bool eq_parent = false;
@@ -657,7 +657,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
   TypeNode tn = eqc.getType();
   Trace("sets") << "Compute normal form for " << eqc << std::endl;
   Trace("sets-nf") << "Compute N " << eqc << "..." << std::endl;
-  if (eqc == d_treg.getEmptySetEqClass(tn))
+  if (eqc == d_state.getEmptySetEqClass(tn))
   {
     d_nf[eqc].clear();
     Trace("sets-nf") << "----> N " << eqc << " => {}" << std::endl;
@@ -684,7 +684,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
       Trace("sets-nf") << "  F " << itf.first << " : " << itf.second
                        << std::endl;
       Trace("sets-nf-debug") << " ...";
-      d_treg.debugPrintSet(itf.first, "sets-nf-debug");
+      d_state.debugPrintSet(itf.first, "sets-nf-debug");
       Trace("sets-nf-debug") << std::endl;
     }
   }
@@ -773,7 +773,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
             Node r = e == 2 ? common[l] : only[e][l];
             Trace("sets-nf-debug") << "Try split empty : " << r << std::endl;
             Trace("sets-nf-debug") << "         actual : ";
-            d_treg.debugPrintSet(r, "sets-nf-debug");
+            d_state.debugPrintSet(r, "sets-nf-debug");
             Trace("sets-nf-debug") << std::endl;
             Assert(!d_state.areEqual(r, emp_set));
             if (!d_state.areDisequal(r, emp_set) && !d_state.hasMembers(r))
@@ -781,7 +781,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
               // guess that its equal empty if it has no explicit members
               Trace("sets-nf") << " Split empty : " << r << std::endl;
               Trace("sets-nf") << "Actual Split : ";
-              d_treg.debugPrintSet(r, "sets-nf");
+              d_state.debugPrintSet(r, "sets-nf");
               Trace("sets-nf") << std::endl;
               d_im.split(r.eqNode(emp_set), 1);
               Assert(d_im.hasSent());
@@ -802,7 +802,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
               Node r1 = e == 0 ? o0 : o1;
               Node r2 = e == 0 ? o1 : o0;
               // check if their intersection exists modulo equality
-              Node r1r2i = d_treg.getBinaryOpTerm(INTERSECTION, r1, r2);
+              Node r1r2i = d_state.getBinaryOpTerm(INTERSECTION, r1, r2);
               if (!r1r2i.isNull())
               {
                 Trace("sets-nf-debug")
@@ -873,7 +873,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
   }
   // Send to parents (a parent is a set that contains a term in this equivalence
   // class as a direct child).
-  const std::vector<Node>& nvsets = d_treg.getNonVariableSets(eqc);
+  const std::vector<Node>& nvsets = d_state.getNonVariableSets(eqc);
   if (nvsets.empty())
   {
     // no non-variable sets
@@ -924,8 +924,8 @@ void CardinalityExtension::checkNormalForm(Node eqc,
 void CardinalityExtension::checkMinCard()
 {
   NodeManager* nm = NodeManager::currentNM();
-  const std::vector<Node>& setEqc = d_treg.getSetsEqClasses();
-  for (int i = (int)(setEqc.size() - 1); i >= 0; i--)
+  const std::vector<Node>& setEqc = d_state.getSetsEqClasses();
+  for (int i = (int)(setEqc.size() - 1); i >= 0; i--)d
   {
     Node eqc = setEqc[i];
     TypeNode tn = eqc.getType().getSetElementType();

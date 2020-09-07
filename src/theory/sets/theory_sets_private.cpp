@@ -279,7 +279,7 @@ void TheorySetsPrivate::fullEffortReset()
   d_im.reset();
   d_im.clearPendingLemmas();
   // reset the term registry
-  d_treg.reset();
+  d_state.reset();
   // reset the cardinality solver
   d_cardSolver->reset();
 }
@@ -336,7 +336,7 @@ void TheorySetsPrivate::fullEffortCheck()
           }
         }
         // register it with the term registry
-        d_treg.registerTerm(eqc, tnn, n);
+        d_state.registerTerm(eqc, tnn, n);
         if (n.getKind() == kind::CARD)
         {
           d_card_enabled = true;
@@ -400,7 +400,7 @@ void TheorySetsPrivate::fullEffortCheck()
     }
     if (Trace.isOn("sets-mem"))
     {
-      const std::vector<Node>& sec = d_treg.getSetsEqClasses();
+      const std::vector<Node>& sec = d_state.getSetsEqClasses();
       for (const Node& s : sec)
       {
         Trace("sets-mem") << "Eqc " << s << " : ";
@@ -413,7 +413,7 @@ void TheorySetsPrivate::fullEffortCheck()
             Trace("sets-mem") << it2.first << " ";
           }
         }
-        Node ss = d_treg.getSingletonEqClass(s);
+        Node ss = d_state.getSingletonEqClass(s);
         if (!ss.isNull())
         {
           Trace("sets-mem") << " : Singleton : " << ss;
@@ -481,7 +481,7 @@ void TheorySetsPrivate::fullEffortCheck()
 void TheorySetsPrivate::checkSubtypes()
 {
   Trace("sets") << "TheorySetsPrivate: check Subtypes..." << std::endl;
-  const std::vector<Node>& sec = d_treg.getSetsEqClasses();
+  const std::vector<Node>& sec = d_state.getSetsEqClasses();
   for (const Node& s : sec)
   {
     TypeNode mct = d_most_common_type[s];
@@ -525,16 +525,16 @@ void TheorySetsPrivate::checkDownwardsClosure()
 {
   Trace("sets") << "TheorySetsPrivate: check downwards closure..." << std::endl;
   // downwards closure
-  const std::vector<Node>& sec = d_treg.getSetsEqClasses();
+  const std::vector<Node>& sec = d_state.getSetsEqClasses();
   for (const Node& s : sec)
   {
-    const std::vector<Node>& nvsets = d_treg.getNonVariableSets(s);
+    const std::vector<Node>& nvsets = d_state.getNonVariableSets(s);
     if (!nvsets.empty())
     {
       const std::map<Node, Node>& smem = d_state.getMembers(s);
       for (const Node& nv : nvsets)
       {
-        if (!d_treg.isCongruent(nv))
+        if (!d_state.isCongruent(nv))
         {
           for (const std::pair<const Node, Node>& it2 : smem)
           {
@@ -593,7 +593,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
   // upwards closure
   NodeManager* nm = NodeManager::currentNM();
   const std::map<Kind, std::map<Node, std::map<Node, Node> > >& boi =
-      d_treg.getBinaryOpIndex();
+      d_state.getBinaryOpIndex();
   for (const std::pair<const Kind, std::map<Node, std::map<Node, Node> > >&
            itb : boi)
   {
@@ -730,11 +730,11 @@ void TheorySetsPrivate::checkUpwardsClosure()
       // universal sets
       Trace("sets-debug") << "Check universe sets..." << std::endl;
       // all elements must be in universal set
-      const std::vector<Node>& sec = d_treg.getSetsEqClasses();
+      const std::vector<Node>& sec = d_state.getSetsEqClasses();
       for (const Node& s : sec)
       {
         // if equivalence class contains a variable
-        Node v = d_treg.getVariableSet(s);
+        Node v = d_state.getVariableSet(s);
         if (!v.isNull())
         {
           // the variable in the equivalence class
@@ -748,7 +748,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
             std::map<TypeNode, Node>::iterator itu = univ_set.find(tn);
             if (itu == univ_set.end())
             {
-              Node ueqc = d_treg.getUnivSetEqClass(tn);
+              Node ueqc = d_state.getUnivSetEqClass(tn);
               // if the universe does not yet exist, or is not in this
               // equivalence class
               if (s != ueqc)
@@ -822,7 +822,7 @@ void TheorySetsPrivate::checkDisequalities()
     d_termProcessed.insert(deq[1].eqNode(deq[0]));
     Trace("sets") << "Process Disequality : " << deq.negate() << std::endl;
     TypeNode elementType = deq[0].getType().getSetElementType();
-    Node x = d_treg.getSkolemCache().mkTypedSkolemCached(
+    Node x = d_state.getSkolemCache().mkTypedSkolemCached(
         elementType, deq[0], deq[1], SkolemCache::SK_DISEQUAL, "sde");
     Node mem1 = nm->mkNode(MEMBER, x, deq[0]);
     Node mem2 = nm->mkNode(MEMBER, x, deq[1]);
@@ -840,7 +840,7 @@ void TheorySetsPrivate::checkDisequalities()
 void TheorySetsPrivate::checkReduceComprehensions()
 {
   NodeManager* nm = NodeManager::currentNM();
-  const std::vector<Node>& comps = d_treg.getComprehensionSets();
+  const std::vector<Node>& comps = d_state.getComprehensionSets();
   for (const Node& n : comps)
   {
     if (d_termProcessed.find(n) != d_termProcessed.end())
@@ -1074,7 +1074,7 @@ void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
 
 void TheorySetsPrivate::computeCareGraph()
 {
-  const std::map<Kind, std::vector<Node> >& ol = d_treg.getOperatorList();
+  const std::map<Kind, std::vector<Node> >& ol = d_state.getOperatorList();
   for (const std::pair<const Kind, std::vector<Node> >& it : ol)
   {
     Kind k = it.first;
@@ -1195,7 +1195,7 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
   // graph.
   const std::vector<Node>& sec = d_card_enabled
                                      ? d_cardSolver->getOrderedSetsEqClasses()
-                                     : d_treg.getSetsEqClasses();
+                                     : d_state.getSetsEqClasses();
   Valuation& val = getValuation();
   for (int i = (int)(sec.size() - 1); i >= 0; i--)
   {
@@ -1446,7 +1446,7 @@ Node TheorySetsPrivate::getChooseFunction(const TypeNode& setType)
 
 void TheorySetsPrivate::presolve() { 
   d_state.reset(); 
-  d_treg.reset();
+  d_state.reset();
 }
 
 }  // namespace sets
