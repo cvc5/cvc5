@@ -98,9 +98,6 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
   {
     if (nk == SINGLETON)
     {
-      // singleton lemma
-      //getProxy(n);
-      // FIXME
       Node re = d_ee->getRepresentative(n[0]);
       if (d_singleton_index.find(re) == d_singleton_index.end())
       {

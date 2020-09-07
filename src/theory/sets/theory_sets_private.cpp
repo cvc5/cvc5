@@ -338,7 +338,13 @@ void TheorySetsPrivate::fullEffortCheck()
         }
         // register it with the term registry
         d_state.registerTerm(eqc, tnn, n);
-        if (n.getKind() == kind::CARD)
+        Kind nk = n.getKind();
+        if (nk == kind::SINGLETON)
+        {
+          // ensure the proxy has been introduced
+          d_treg.getProxy(n);
+        }
+        else if (nk == kind::CARD)
         {
           d_card_enabled = true;
           // register it with the cardinality solver
