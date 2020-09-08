@@ -1001,6 +1001,21 @@ void TheorySep::ppNotifyAssertions(const std::vector<Node>& assertions) {
       d_loc_to_data_type[d_type_ref] = d_type_data;
     }
   }
+  // initialize the EPR utility
+  if (d_quantEngine!=nullptr)
+  {
+    quantifiers::QuantEPR* qepr = d_quantEngine->getQuantEPR();
+    if (qepr != nullptr)
+    {
+      for (const Node& a : assertions)
+      {
+        qepr->registerAssertion(a);
+      }
+      // must handle sources of other new constants e.g. separation logic
+      initializeBounds();
+      qepr->finishInit();
+    }
+  }
 }
 
 //return cardinality
