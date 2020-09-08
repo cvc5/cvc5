@@ -31,7 +31,9 @@
 #include "prop/minisat/minisat.h"
 #include "prop/prop_engine.h"
 #include "prop/theory_proxy.h"
-#include "smt/command.h"
+#include "smt/dump.h"
+#include "smt/smt_engine.h"
+#include "printer/printer.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
@@ -69,17 +71,24 @@ TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver,
 
 void CnfStream::assertClause(TNode node, SatClause& c) {
   Debug("cnf") << "Inserting into stream " << c << " node = " << node << endl;
-  if(Dump.isOn("clauses")) {
-    if(c.size() == 1) {
-      Dump("clauses") << AssertCommand(Expr(getNode(c[0]).toExpr()));
-    } else {
+  if (Dump.isOn("clauses"))
+  {
+    std::ostream& out = *smt::currentSmtEngine()->getOptions().getOut();
+    Printer* printer = smt::currentSmtEngine()->getPrinter();
+    if (c.size() == 1)
+    {
+      printer->toStreamCmdAssert(out, getNode(c[0]));
+    }
+    else
+    {
       Assert(c.size() > 1);
       NodeBuilder<> b(kind::OR);
-      for(unsigned i = 0; i < c.size(); ++i) {
+      for (unsigned i = 0; i < c.size(); ++i)
+      {
         b << getNode(c[i]);
       }
       Node n = b;
-      Dump("clauses") << AssertCommand(Expr(n.toExpr()));
+      printer->toStreamCmdAssert(out, n);
     }
   }
 

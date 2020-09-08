@@ -572,10 +572,6 @@ inline void Solver::newDecisionLevel()
   trail_lim.push(trail.size());
   flipped.push(false);
   d_context->push();
-  if (Dump.isOn("state"))
-  {
-    Dump("state") << CVC4::PushCommand();
-  }
 }
 
 inline int      Solver::decisionLevel ()      const   { return trail_lim.size(); }

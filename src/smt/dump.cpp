@@ -19,8 +19,28 @@
 #include "base/output.h"
 #include "lib/strtok_r.h"
 #include "preprocessing/preprocessing_pass_registry.h"
+#include "smt/command.h"
+#include "smt/node_command.h"
 
 namespace CVC4 {
+
+CVC4dumpstream& CVC4dumpstream::operator<<(const Command& c)
+{
+  if (d_os != nullptr)
+  {
+    (*d_os) << c;
+  }
+  return *this;
+}
+
+CVC4dumpstream& CVC4dumpstream::operator<<(const NodeCommand& nc)
+{
+  if (d_os != nullptr)
+  {
+    (*d_os) << nc;
+  }
+  return *this;
+}
 
 DumpC DumpChannel CVC4_PUBLIC;
 

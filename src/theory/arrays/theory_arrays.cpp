@@ -23,7 +23,6 @@
 #include "expr/node_algorithm.h"
 #include "options/arrays_options.h"
 #include "options/smt_options.h"
-#include "smt/command.h"
 #include "smt/logic_exception.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arrays/theory_arrays_rewriter.h"

@@ -79,7 +79,7 @@
 #include "smt/abduction_solver.h"
 #include "smt/abstract_values.h"
 #include "smt/assertions.h"
-#include "smt/command.h"
+#include "smt/node_command.h"
 #include "smt/defined_function.h"
 #include "smt/dump_manager.h"
 #include "smt/expr_names.h"
@@ -123,9 +123,19 @@ using namespace CVC4::theory;
 
 namespace CVC4 {
 
-namespace smt {
+// !!! Temporary until commands are migrated to the new API !!!
+std::vector<Node> exprVectorToNodes(const std::vector<Expr>& exprs)
+{
+  std::vector<Node> nodes;
+  nodes.reserve(exprs.size());
 
-}/* namespace CVC4::smt */
+  for (Expr e : exprs)
+  {
+    nodes.push_back(Node::fromExpr(e));
+  }
+
+  return nodes;
+}
 
 SmtEngine::SmtEngine(ExprManager* em, Options* optr)
     : d_state(new SmtEngineState(*this)),
@@ -278,12 +288,13 @@ void SmtEngine::finishInit()
   {
       LogicInfo everything;
       everything.lock();
-      Dump("benchmark") << CommentCommand(
+      getPrinter()->toStreamCmdComment(
+          *getOptions().getOut(),
           "CVC4 always dumps the most general, all-supported logic (below), as "
           "some internals might require the use of a logic more general than "
-          "the input.")
-                        << SetBenchmarkLogicCommand(
-                               everything.getLogicString());
+          "the input.");
+      getPrinter()->toStreamCmdSetBenchmarkLogic(*getOptions().getOut(),
+                                                 everything.getLogicString());
   }
 
   // initialize the dump manager
@@ -393,8 +404,8 @@ void SmtEngine::setLogic(const std::string& s)
     // dump out a set-logic command
     if (Dump.isOn("raw-benchmark"))
     {
-      Dump("raw-benchmark")
-          << SetBenchmarkLogicCommand(d_logic.getLogicString());
+      getPrinter()->toStreamCmdSetBenchmarkLogic(*getOptions().getOut(),
+                                                 d_logic.getLogicString());
     }
   }
   catch (IllegalArgumentException& e)
@@ -448,12 +459,13 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
   if(Dump.isOn("benchmark")) {
     if(key == "status") {
       string s = value.getValue();
-      BenchmarkStatus status =
-        (s == "sat") ? SMT_SATISFIABLE :
-          ((s == "unsat") ? SMT_UNSATISFIABLE : SMT_UNKNOWN);
-      Dump("benchmark") << SetBenchmarkStatusCommand(status);
+      Result::Sat status =
+          (s == "sat") ? Result::SAT
+                       : ((s == "unsat") ? Result::UNSAT : Result::SAT_UNKNOWN);
+      getPrinter()->toStreamCmdSetBenchmarkStatus(*getOptions().getOut(),
+                                                  status);
     } else {
-      Dump("benchmark") << SetInfoCommand(key, value);
+      getPrinter()->toStreamCmdSetInfo(*getOptions().getOut(), key, value);
     }
   }
 
@@ -763,16 +775,15 @@ void SmtEngine::defineFunctionsRec(
 
   if (Dump.isOn("raw-benchmark"))
   {
-    std::vector<api::Term> tFuncs = api::exprVectorToTerms(d_solver, funcs);
-    std::vector<std::vector<api::Term>> tFormals;
+    std::vector<Node> nFuncs = exprVectorToNodes(funcs);
+    std::vector<std::vector<Node>> nFormals;
     for (const std::vector<Expr>& formal : formals)
     {
-      tFormals.emplace_back(api::exprVectorToTerms(d_solver, formal));
+      nFormals.emplace_back(exprVectorToNodes(formal));
     }
-    std::vector<api::Term> tFormulas =
-        api::exprVectorToTerms(d_solver, formulas);
-    Dump("raw-benchmark") << DefineFunctionRecCommand(
-        d_solver, tFuncs, tFormals, tFormulas, global);
+    std::vector<Node> nFormulas = exprVectorToNodes(formulas);
+    getPrinter()->toStreamCmdDefineFunctionRec(
+        *getOptions().getOut(), nFuncs, nFormals, nFormulas);
   }
 
   ExprManager* em = getExprManager();
@@ -919,7 +930,10 @@ void SmtEngine::notifyPostSolvePost()
 
 Result SmtEngine::checkSat(const Expr& assumption, bool inUnsatCore)
 {
-  Dump("benchmark") << CheckSatCommand(assumption);
+  if (Dump.isOn("benchmark"))
+  {
+    getPrinter()->toStreamCmdCheckSat(*getOptions().getOut(), assumption);
+  }
   std::vector<Node> assump;
   if (!assumption.isNull())
   {
@@ -930,13 +944,17 @@ Result SmtEngine::checkSat(const Expr& assumption, bool inUnsatCore)
 
 Result SmtEngine::checkSat(const vector<Expr>& assumptions, bool inUnsatCore)
 {
-  if (assumptions.empty())
+  if (Dump.isOn("benchmark"))
   {
-    Dump("benchmark") << CheckSatCommand();
-  }
-  else
-  {
-    Dump("benchmark") << CheckSatAssumingCommand(assumptions);
+    if (assumptions.empty())
+    {
+      getPrinter()->toStreamCmdCheckSat(*getOptions().getOut());
+    }
+    else
+    {
+      getPrinter()->toStreamCmdCheckSatAssuming(*getOptions().getOut(),
+                                                exprVectorToNodes(assumptions));
+    }
   }
   std::vector<Node> assumps;
   for (const Expr& e : assumptions)
@@ -948,7 +966,10 @@ Result SmtEngine::checkSat(const vector<Expr>& assumptions, bool inUnsatCore)
 
 Result SmtEngine::checkEntailed(const Expr& node, bool inUnsatCore)
 {
-  Dump("benchmark") << QueryCommand(node, inUnsatCore);
+  if (Dump.isOn("benchmark"))
+  {
+    getPrinter()->toStreamCmdQuery(*getOptions().getOut(), node.getNode());
+  }
   return checkSatInternal(node.isNull()
                               ? std::vector<Node>()
                               : std::vector<Node>{Node::fromExpr(node)},
@@ -1034,7 +1055,7 @@ std::vector<Node> SmtEngine::getUnsatAssumptions(void)
   finishInit();
   if (Dump.isOn("benchmark"))
   {
-    Dump("benchmark") << GetUnsatAssumptionsCommand();
+    getPrinter()->toStreamCmdGetUnsatAssumptions(*getOptions().getOut());
   }
   UnsatCore core = getUnsatCoreInternal();
   std::vector<Node> res;
@@ -1058,7 +1079,7 @@ Result SmtEngine::assertFormula(const Node& formula, bool inUnsatCore)
   Trace("smt") << "SmtEngine::assertFormula(" << formula << ")" << endl;
 
   if (Dump.isOn("raw-benchmark")) {
-    Dump("raw-benchmark") << AssertCommand(formula.toExpr());
+    getPrinter()->toStreamCmdAssert(*getOptions().getOut(), formula);
   }
 
   // Substitute out any abstract values in ex
@@ -1079,8 +1100,10 @@ void SmtEngine::declareSygusVar(const std::string& id, Node var, TypeNode type)
   SmtScope smts(this);
   finishInit();
   d_sygusSolver->declareSygusVar(id, var, type);
-  Dump("raw-benchmark") << DeclareSygusVarCommand(
-      id, var.toExpr(), type.toType());
+  if (Dump.isOn("raw-benchmark"))
+  {
+    getPrinter()->toStreamCmdDeclareVar(*getOptions().getOut(), var, type);
+  }
   // don't need to set that the conjecture is stale
 }
 
@@ -1125,7 +1148,10 @@ void SmtEngine::assertSygusConstraint(Node constraint)
   SmtScope smts(this);
   finishInit();
   d_sygusSolver->assertSygusConstraint(constraint);
-  Dump("raw-benchmark") << SygusConstraintCommand(constraint.toExpr());
+  if (Dump.isOn("raw-benchmark"))
+  {
+    getPrinter()->toStreamCmdConstraint(*getOptions().getOut(), constraint);
+  }
 }
 
 void SmtEngine::assertSygusInvConstraint(Node inv,
@@ -1136,8 +1162,11 @@ void SmtEngine::assertSygusInvConstraint(Node inv,
   SmtScope smts(this);
   finishInit();
   d_sygusSolver->assertSygusInvConstraint(inv, pre, trans, post);
-  Dump("raw-benchmark") << SygusInvConstraintCommand(
-      inv.toExpr(), pre.toExpr(), trans.toExpr(), post.toExpr());
+  if (Dump.isOn("raw-benchmark"))
+  {
+    getPrinter()->toStreamCmdInvConstraint(
+        *getOptions().getOut(), inv, pre, trans, post);
+  }
 }
 
 Result SmtEngine::checkSynth()
@@ -1181,7 +1210,7 @@ Node SmtEngine::getValue(const Node& ex) const
 
   Trace("smt") << "SMT getValue(" << ex << ")" << endl;
   if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << GetValueCommand(ex.toExpr());
+    getPrinter()->toStreamCmdGetValue(*d_options.getOut(), {ex});
   }
   TypeNode expectedType = ex.getType();
 
@@ -1279,7 +1308,7 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
   SmtScope smts(this);
   finishInit();
   if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << GetAssignmentCommand();
+    getPrinter()->toStreamCmdGetAssignment(*getOptions().getOut());
   }
   if(!options::produceAssignments()) {
     const char* msg =
@@ -1340,7 +1369,7 @@ Model* SmtEngine::getModel() {
   finishInit();
 
   if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << GetModelCommand();
+    getPrinter()->toStreamCmdGetModel(*getOptions().getOut());
   }
 
   TheoryModel* m = getAvailableModel("get model");
@@ -1373,7 +1402,7 @@ Result SmtEngine::blockModel()
 
   if (Dump.isOn("benchmark"))
   {
-    Dump("benchmark") << BlockModelCommand();
+    getPrinter()->toStreamCmdBlockModel(*getOptions().getOut());
   }
 
   TheoryModel* m = getAvailableModel("block model");
@@ -1404,7 +1433,8 @@ Result SmtEngine::blockModelValues(const std::vector<Expr>& exprs)
       "block model values must be called on non-empty set of terms");
   if (Dump.isOn("benchmark"))
   {
-    Dump("benchmark") << BlockModelValuesCommand(exprs);
+    getPrinter()->toStreamCmdBlockModelValues(*getOptions().getOut(),
+                                              exprVectorToNodes(exprs));
   }
 
   TheoryModel* m = getAvailableModel("block model values");
@@ -1562,7 +1592,8 @@ void SmtEngine::checkModel(bool hardFailure) {
   SubstitutionMap substitutions(&fakeContext, /* substituteUnderQuantifiers = */ false);
 
   for(size_t k = 0; k < m->getNumCommands(); ++k) {
-    const DeclareFunctionCommand* c = dynamic_cast<const DeclareFunctionCommand*>(m->getCommand(k));
+    const DeclareFunctionNodeCommand* c =
+        dynamic_cast<const DeclareFunctionNodeCommand*>(m->getCommand(k));
     Notice() << "SmtEngine::checkModel(): model command " << k << " : " << m->getCommand(k) << endl;
     if(c == NULL) {
       // we don't care about DECLARE-DATATYPES, DECLARE-SORT, ...
@@ -1573,7 +1604,7 @@ void SmtEngine::checkModel(bool hardFailure) {
       // We'll first do some checks, then add to our substitution map
       // the mapping: function symbol |-> value
 
-      Expr func = c->getFunction();
+      Expr func = c->getFunction().toExpr();
       Node val = m->getValue(func);
 
       Notice() << "SmtEngine::checkModel(): adding substitution: " << func << " |-> " << val << endl;
@@ -1762,7 +1793,7 @@ UnsatCore SmtEngine::getUnsatCore() {
   SmtScope smts(this);
   finishInit();
   if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << GetUnsatCoreCommand();
+    getPrinter()->toStreamCmdGetUnsatCore(*getOptions().getOut());
   }
   return getUnsatCoreInternal();
 }
@@ -1887,7 +1918,7 @@ std::vector<Expr> SmtEngine::getAssertions()
   finishInit();
   d_state->doPendingPops();
   if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << GetAssertionsCommand();
+    getPrinter()->toStreamCmdGetAssertions(*getOptions().getOut());
   }
   Trace("smt") << "SMT getAssertions()" << endl;
   if(!options::produceAssertions()) {
@@ -1914,7 +1945,7 @@ void SmtEngine::push()
   Trace("smt") << "SMT push()" << endl;
   d_smtSolver->processAssertions(*d_asserts);
   if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << PushCommand();
+    getPrinter()->toStreamCmdPush(*getOptions().getOut());
   }
   d_state->userPush();
 }
@@ -1924,7 +1955,7 @@ void SmtEngine::pop() {
   finishInit();
   Trace("smt") << "SMT pop()" << endl;
   if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << PopCommand();
+    getPrinter()->toStreamCmdPop(*getOptions().getOut());
   }
   d_state->userPop();
 
@@ -1945,7 +1976,7 @@ void SmtEngine::reset()
   ExprManager *em = d_exprManager;
   Trace("smt") << "SMT reset()" << endl;
   if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << ResetCommand();
+    getPrinter()->toStreamCmdReset(*getOptions().getOut());
   }
   std::string filename = d_state->getFilename();
   Options opts;
@@ -1974,7 +2005,7 @@ void SmtEngine::resetAssertions()
   Trace("smt") << "SMT resetAssertions()" << endl;
   if (Dump.isOn("benchmark"))
   {
-    Dump("benchmark") << ResetAssertionsCommand();
+    getPrinter()->toStreamCmdResetAssertions(*getOptions().getOut());
   }
 
   d_state->notifyResetAssertions();
@@ -2064,7 +2095,7 @@ void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
   Trace("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
 
   if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << SetOptionCommand(key, value);
+    getPrinter()->toStreamCmdSetOption(*getOptions().getOut(), key, value);
   }
 
   if(key == "command-verbosity") {
@@ -2117,7 +2148,7 @@ CVC4::SExpr SmtEngine::getOption(const std::string& key) const
   }
 
   if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << GetOptionCommand(key);
+    getPrinter()->toStreamCmdGetOption(*d_options.getOut(), key);
   }
 
   if(key == "command-verbosity") {
@@ -2171,5 +2202,10 @@ ResourceManager* SmtEngine::getResourceManager()
 }
 
 DumpManager* SmtEngine::getDumpManager() { return d_dumpm.get(); }
+
+Printer* SmtEngine::getPrinter() const
+{
+  return Printer::getPrinter(d_options[options::outputLanguage]);
+}
 
 }/* CVC4 namespace */

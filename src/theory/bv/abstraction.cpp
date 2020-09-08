@@ -15,11 +15,13 @@
 #include "theory/bv/abstraction.h"
 
 #include "options/bv_options.h"
+#include "printer/printer.h"
 #include "smt/dump.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
-
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -694,10 +696,14 @@ Node AbstractionModule::simplifyConflict(TNode conflict) {
   if (Dump.isOn("bv-abstraction")) {
     NodeNodeMap seen;
     Node c = reverseAbstraction(conflict, seen);
-    Dump("bv-abstraction") << PushCommand();
-    Dump("bv-abstraction") << AssertCommand(c.toExpr());
-    Dump("bv-abstraction") << CheckSatCommand();
-    Dump("bv-abstraction") << PopCommand();
+
+    Printer* printer = smt::currentSmtEngine()->getPrinter();
+    std::ostream& out = *smt::currentSmtEngine()->getOptions().getOut();
+
+    printer->toStreamCmdPush(out);
+    printer->toStreamCmdAssert(out, c);
+    printer->toStreamCmdCheckSat(out);
+    printer->toStreamCmdPop(out);
   }
 
   Debug("bv-abstraction-dbg") << "AbstractionModule::simplifyConflict " << conflict << "\n";
@@ -746,10 +752,14 @@ Node AbstractionModule::simplifyConflict(TNode conflict) {
 
     NodeNodeMap seen;
     Node nc = reverseAbstraction(new_conflict, seen);
-    Dump("bv-abstraction") << PushCommand();
-    Dump("bv-abstraction") << AssertCommand(nc.toExpr());
-    Dump("bv-abstraction") << CheckSatCommand();
-    Dump("bv-abstraction") << PopCommand();
+
+    Printer* printer = smt::currentSmtEngine()->getPrinter();
+    std::ostream& out = *smt::currentSmtEngine()->getOptions().getOut();
+
+    printer->toStreamCmdPush(out);
+    printer->toStreamCmdAssert(out, nc);
+    printer->toStreamCmdCheckSat(out);
+    printer->toStreamCmdPop(out);
   }
 
   return new_conflict;
@@ -840,10 +850,14 @@ void AbstractionModule::generalizeConflict(TNode conflict, std::vector<Node>& le
       if (Dump.isOn("bv-abstraction")) {
         NodeNodeMap seen;
         Node l = reverseAbstraction(lemma, seen);
-        Dump("bv-abstraction") << PushCommand();
-        Dump("bv-abstraction") << AssertCommand(l.toExpr());
-        Dump("bv-abstraction") << CheckSatCommand();
-        Dump("bv-abstraction") << PopCommand();
+
+        Printer* printer = smt::currentSmtEngine()->getPrinter();
+        std::ostream& out = *smt::currentSmtEngine()->getOptions().getOut();
+
+        printer->toStreamCmdPush(out);
+        printer->toStreamCmdAssert(out, l);
+        printer->toStreamCmdCheckSat(out);
+        printer->toStreamCmdPop(out);
       }
     }
   }

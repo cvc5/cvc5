@@ -33,7 +33,6 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "prop/prop_engine.h"
-#include "smt/command.h"
 #include "theory/atom_requests.h"
 #include "theory/engine_output_channel.h"
 #include "theory/interrupted.h"

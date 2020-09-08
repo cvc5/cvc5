@@ -22,7 +22,10 @@
 #include <sstream>
 
 #include "context/context.h"
-#include "smt/command.h"
+#include "printer/printer.h"
+#include "smt/dump.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory.h"
 #include "util/statistics_registry.h"
@@ -449,9 +452,11 @@ public:
 
           Node condition = node.eqNode(result).notNode();
 
-          Dump("bv-rewrites")
-            << CommentCommand(os.str())
-            << CheckSatCommand(condition.toExpr());
+          std::ostream& out = *smt::currentSmtEngine()->getOptions().getOut();
+          Printer* printer = smt::currentSmtEngine()->getPrinter();
+
+          printer->toStreamCmdComment(out, os.str());
+          printer->toStreamCmdCheckSat(out, condition);
         }
       }
       Debug("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node << ") => " << result << std::endl;

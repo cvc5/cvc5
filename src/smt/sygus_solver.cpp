@@ -17,6 +17,8 @@
 #include "expr/dtype.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
+#include "printer/printer.h"
+#include "smt/dump.h"
 #include "smt/preprocessor.h"
 #include "smt/smt_solver.h"
 #include "theory/smt_engine_subsolver.h"
@@ -205,7 +207,11 @@ Result SygusSolver::checkSynth(Assertions& as)
     te->setUserAttribute("sygus", sygusVar, {}, "");
 
     Trace("smt") << "Check synthesis conjecture: " << body << std::endl;
-    Dump("raw-benchmark") << CheckSynthCommand();
+    if (Dump.isOn("raw-benchmark"))
+    {
+      smt::currentSmtEngine()->getPrinter()->toStreamCmdCheckSynth(
+          *smt::currentSmtEngine()->getOptions().getOut());
+    }
 
     d_sygusConjectureStale = false;
 

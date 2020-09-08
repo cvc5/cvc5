@@ -63,6 +63,8 @@ class Model;
 class LogicRequest;
 class StatisticsRegistry;
 
+class Printer;
+
 /* -------------------------------------------------------------------------- */
 
 namespace api {
@@ -127,6 +129,8 @@ namespace theory {
   class TheoryModel;
   class Rewriter;
 }/* CVC4::theory namespace */
+
+std::vector<Node> exprVectorToNodes(const std::vector<Expr>& exprs);
 
 // TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
 // hood): use a type parameter and have check() delegate, or subclass
@@ -860,6 +864,9 @@ class CVC4_PUBLIC SmtEngine
   /** Permit access to the underlying dump manager. */
   smt::DumpManager* getDumpManager();
 
+  /** Get the printer used by this SMT engine */
+  Printer* getPrinter() const;
+
   /**
    * Get expanded assertions.
    *
@@ -1125,7 +1132,7 @@ class CVC4_PUBLIC SmtEngine
   std::unique_ptr<smt::SmtEngineStatistics> d_stats;
 
   /** The options object */
-  Options d_options;
+  mutable Options d_options;
   /**
    * Manager for limiting time and abstract resource usage.
    */

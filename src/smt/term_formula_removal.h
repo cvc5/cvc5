@@ -26,7 +26,6 @@
 #include "expr/lazy_proof.h"
 #include "expr/node.h"
 #include "expr/term_conversion_proof_generator.h"
-#include "smt/dump.h"
 #include "theory/eager_proof_generator.h"
 #include "theory/trust_node.h"
 #include "util/bool.h"

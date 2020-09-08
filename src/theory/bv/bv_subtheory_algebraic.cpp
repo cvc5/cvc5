@@ -19,6 +19,10 @@
 
 #include "expr/node_algorithm.h"
 #include "options/bv_options.h"
+#include "printer/printer.h"
+#include "smt/dump.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/bv/bv_quick_check.h"
@@ -324,11 +328,16 @@ bool AlgebraicSolver::check(Theory::Effort e)
     if (Dump.isOn("bv-algebraic")) {
       Node expl = d_explanations[id];
       Node query = utils::mkNot(nm->mkNode(kind::IMPLIES, expl, fact));
-      Dump("bv-algebraic") << EchoCommand("ThoeryBV::AlgebraicSolver::substitution explanation");
-      Dump("bv-algebraic") << PushCommand();
-      Dump("bv-algebraic") << AssertCommand(query.toExpr());
-      Dump("bv-algebraic") << CheckSatCommand();
-      Dump("bv-algebraic") << PopCommand();
+
+      Printer* printer = smt::currentSmtEngine()->getPrinter();
+      std::ostream& out = *smt::currentSmtEngine()->getOptions().getOut();
+
+      printer->toStreamCmdEcho(
+          out, "ThoeryBV::AlgebraicSolver::substitution explanation");
+      printer->toStreamCmdPush(out);
+      printer->toStreamCmdAssert(out, query);
+      printer->toStreamCmdCheckSat(out);
+      printer->toStreamCmdPop(out);
     }
 
     if (fact.isConst() &&
@@ -345,12 +354,15 @@ bool AlgebraicSolver::check(Theory::Effort e)
       Debug("bv-subtheory-algebraic") << " UNSAT: assertion simplfies to false with conflict: "<< conflict << "\n";
 
       if (Dump.isOn("bv-algebraic")) {
-        Dump("bv-algebraic")
-            << EchoCommand("BVSolverLazy::AlgebraicSolver::conflict");
-        Dump("bv-algebraic") << PushCommand();
-        Dump("bv-algebraic") << AssertCommand(conflict.toExpr());
-        Dump("bv-algebraic") << CheckSatCommand();
-        Dump("bv-algebraic") << PopCommand();
+        Printer* printer = smt::currentSmtEngine()->getPrinter();
+        std::ostream& out = *smt::currentSmtEngine()->getOptions().getOut();
+
+        printer->toStreamCmdEcho(out,
+                                 "BVSolverLazy::AlgebraicSolver::conflict");
+        printer->toStreamCmdPush(out);
+        printer->toStreamCmdAssert(out, conflict);
+        printer->toStreamCmdCheckSat(out);
+        printer->toStreamCmdPop(out);
       }
 
 
@@ -539,11 +551,16 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
     if (Dump.isOn("bv-algebraic")) {
       Node query = utils::mkNot(nm->mkNode(
           kind::EQUAL, fact, nm->mkNode(kind::EQUAL, var, new_right)));
-      Dump("bv-algebraic") << EchoCommand("ThoeryBV::AlgebraicSolver::substitution explanation");
-      Dump("bv-algebraic") << PushCommand();
-      Dump("bv-algebraic") << AssertCommand(query.toExpr());
-      Dump("bv-algebraic") << CheckSatCommand();
-      Dump("bv-algebraic") << PopCommand();
+
+      Printer* printer = smt::currentSmtEngine()->getPrinter();
+      std::ostream& out = *smt::currentSmtEngine()->getOptions().getOut();
+
+      printer->toStreamCmdEcho(
+          out, "ThoeryBV::AlgebraicSolver::substitution explanation");
+      printer->toStreamCmdPush(out);
+      printer->toStreamCmdAssert(out, query);
+      printer->toStreamCmdCheckSat(out);
+      printer->toStreamCmdPop(out);
     }
 
 
