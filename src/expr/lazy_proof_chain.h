@@ -45,7 +45,7 @@ class LazyCDProofChain : public CDProof
    */
   LazyCDProofChain(ProofNodeManager* pnm,
                    context::Context* c = nullptr,
-                    std::string name = "LazyCDProofChain");
+                   std::string name = "LazyCDProofChain");
   ~LazyCDProofChain();
   /**
    * Get lazy proof for fact, or nullptr if it does not exist. This may
@@ -74,8 +74,8 @@ class LazyCDProofChain : public CDProof
    *  (2) formulas in the current domain of d_gens.
    *
    * As a precondition for adding a step, we require:
-   *  (1) F is not already in the domain of this map. (HB Not sure about this one)
-   *  (2) F does not occur in F1 ... Fn.
+   *  (1) F is not already in the domain of this map. (HB Not sure about this
+   * one) (2) F does not occur in F1 ... Fn.
    *
    * @param expected The fact that can be proven.
    * @param pg The generator that can proof expected.

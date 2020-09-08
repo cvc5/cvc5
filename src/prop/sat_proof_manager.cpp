@@ -28,7 +28,8 @@ SatProofManager::SatProofManager(Minisat::Solver* solver,
     : d_solver(solver),
       d_proxy(proxy),
       d_pnm(pnm),
-      d_chain(pnm, userContext, "SatProofManager::LazyChain"),
+      d_resChains(pnm, userContext, "SatProofManager::LazyChain"),
+      d_resChainPg(userContext, pnm),
       d_proof(pnm, userContext, "SatProofManager::CDProof"),
       d_false(NodeManager::currentNM()->mkConst(false)),
       d_conflictLit(undefSatVariable)
@@ -79,7 +80,7 @@ void SatProofManager::startResChain(Minisat::Clause& start)
     printClause(start);
     Trace("sat-proof") << "\n";
   }
-  d_resolution.push_back(
+  d_resLinks.push_back(
       std::pair<Node, Node>(getClauseNode(start), Node::null()));
 }
 
@@ -88,7 +89,7 @@ void SatProofManager::addResolutionStep(Minisat::Lit lit)
   SatLiteral satLit = MinisatSatSolver::toSatLiteral(lit);
   Trace("sat-proof") << "SatProofManager::addResolutionStep: [" << satLit
                      << "] " << ~satLit << "\n";
-  d_resolution.push_back(
+  d_resLinks.push_back(
       std::pair<Node, Node>(d_proxy->getCnfStream()->getNodeCache()[~satLit],
                             d_proxy->getCnfStream()->getNodeCache()[satLit]));
 }
@@ -101,7 +102,7 @@ void SatProofManager::addResolutionStep(Minisat::Clause& clause,
   // second)
   SatLiteral satLit = MinisatSatSolver::toSatLiteral(~lit);
   Node clauseNode = getClauseNode(clause);
-  d_resolution.push_back(std::pair<Node, Node>(
+  d_resLinks.push_back(std::pair<Node, Node>(
       clauseNode, d_proxy->getCnfStream()->getNodeCache()[satLit]));
   if (Trace.isOn("sat-proof"))
   {
@@ -136,32 +137,32 @@ void SatProofManager::endResChain(Node conclusion)
 {
   Trace("sat-proof") << ", " << conclusion << "\n";
   std::vector<Node> children, args;
-  for (unsigned i = 0, size = d_resolution.size(); i < size; ++i)
+  for (unsigned i = 0, size = d_resLinks.size(); i < size; ++i)
   {
-    children.push_back(d_resolution[i].first);
+    children.push_back(d_resLinks[i].first);
     Trace("sat-proof") << "SatProofManager::endResChain:   ";
     if (i > 0)
     {
       Trace("sat-proof") << "["
                          << d_proxy->getCnfStream()
-                                ->getTranslationCache()[d_resolution[i].second]
+                                ->getTranslationCache()[d_resLinks[i].second]
                          << "] ";
     }
     // special case for clause (or l1 ... ln) being a single literal
     // corresponding itself to a clause, which is indicated by the pivot being
     // of the form (not (or l1 ... ln))
-    if (d_resolution[i].first.getKind() == kind::OR
-        && !(d_resolution[i].second.getKind() == kind::NOT
-             && d_resolution[i].second[0].getKind() == kind::OR
-             && d_resolution[i].second[0] == d_resolution[i].first))
+    if (d_resLinks[i].first.getKind() == kind::OR
+        && !(d_resLinks[i].second.getKind() == kind::NOT
+             && d_resLinks[i].second[0].getKind() == kind::OR
+             && d_resLinks[i].second[0] == d_resLinks[i].first))
     {
-      for (unsigned j = 0, sizeJ = d_resolution[i].first.getNumChildren();
+      for (unsigned j = 0, sizeJ = d_resLinks[i].first.getNumChildren();
            j < sizeJ;
            ++j)
       {
         Trace("sat-proof")
             << d_proxy->getCnfStream()
-                   ->getTranslationCache()[d_resolution[i].first[j]];
+                   ->getTranslationCache()[d_resLinks[i].first[j]];
         if (j < sizeJ - 1)
         {
           Trace("sat-proof") << ", ";
@@ -171,24 +172,24 @@ void SatProofManager::endResChain(Node conclusion)
     else
     {
       Assert(d_proxy->getCnfStream()->getTranslationCache().find(
-                 d_resolution[i].first)
+                 d_resLinks[i].first)
              != d_proxy->getCnfStream()->getTranslationCache().end())
-          << "clause node " << d_resolution[i].first
+          << "clause node " << d_resLinks[i].first
           << " treated as unit has no literal. Pivot is "
-          << d_resolution[i].second << "\n";
+          << d_resLinks[i].second << "\n";
       Trace("sat-proof") << d_proxy->getCnfStream()
-                                ->getTranslationCache()[d_resolution[i].first];
+                                ->getTranslationCache()[d_resLinks[i].first];
     }
     Trace("sat-proof") << " : ";
     if (i > 0)
     {
-      args.push_back(d_resolution[i].second);
-      Trace("sat-proof") << "[" << d_resolution[i].second << "] ";
+      args.push_back(d_resLinks[i].second);
+      Trace("sat-proof") << "[" << d_resLinks[i].second << "] ";
     }
-    Trace("sat-proof") << d_resolution[i].first << "\n";
+    Trace("sat-proof") << d_resLinks[i].first << "\n";
   }
   // clearing
-  d_resolution.clear();
+  d_resLinks.clear();
   // whether no-op
   if (children.size() == 1)
   {
@@ -237,9 +238,23 @@ void SatProofManager::endResChain(Node conclusion)
                        << conclusion << "\n";
   }
   d_clauseProofs[conclusion] = conclusionProof.getProofFor(conclusion)->clone();
-  // test lazy proof chain
-  d_chain.addLazyStep(conclusion, &conclusionProof);
-  d_backup.push_back(conclusionProof);
+  // ------------------------------ test lazy proof chain
+  // buffer steps
+  ProofStepBuffer psb;
+  psb.addStep(PfRule::CHAIN_RESOLUTION, children, args, chainConclusion);
+  if (chainConclusion != conclusion)
+  {
+    CDProof::factorReorderElimDoubleNeg(chainConclusion, psb);
+  }
+  // buffer the steps in the resolution chain proof generator
+  const std::vector<std::pair<Node, ProofStep>>& steps = psb.getSteps();
+  for (const std::pair<Node, ProofStep>& step : steps)
+  {
+    Trace("lazy-cdproofchain") << "SatProofManager::endResChain: adding for "
+                               << step.first << " step " << step.second << "\n";
+    d_resChainPg.addStep(step.first, step.second);
+    d_resChains.addLazyStep(step.first, &d_resChainPg);
+  }
 }
 
 void SatProofManager::tryJustifyingLit(SatLiteral lit)
@@ -378,10 +393,9 @@ void SatProofManager::tryJustifyingLit(
                   CDPOverwrite::ALWAYS);
   Trace("sat-proof") << CVC4::pop;
   // test lazy proof chain
-  CDProof conclusionProof(d_pnm, nullptr, "CDProof::tryJustLit");
-  conclusionProof.addStep(litNode, PfRule::CHAIN_RESOLUTION, children, args);
-  d_chain.addLazyStep(litNode, &conclusionProof);
-  d_backup.push_back(conclusionProof);
+  ProofStep ps(PfRule::CHAIN_RESOLUTION, children, args);
+  d_resChainPg.addStep(litNode, ps);
+  d_resChains.addLazyStep(litNode, &d_resChainPg);
 }
 
 void SatProofManager::finalizeProof(Node inConflictNode,
@@ -446,10 +460,9 @@ void SatProofManager::finalizeProof(Node inConflictNode,
                   false,
                   CDPOverwrite::ALWAYS);
   // test lazy proof chain
-  CDProof conclusionProof(d_pnm, nullptr, "CDProof::finalizeProof");
-  conclusionProof.addStep(d_false, PfRule::CHAIN_RESOLUTION, children, args);
-  d_chain.addLazyStep(d_false, &conclusionProof);
-  d_backup.push_back(conclusionProof);
+  ProofStep ps(PfRule::CHAIN_RESOLUTION, children, args);
+  d_resChainPg.addStep(d_false, ps);
+  d_resChains.addLazyStep(d_false, &d_resChainPg);
 }
 
 void SatProofManager::storeUnitConflict(Minisat::Lit inConflict)
@@ -496,7 +509,7 @@ CDProof* SatProofManager::getProof() { return &d_proof; }
 
 void SatProofManager::registerInputs(const std::vector<Node>& inputs)
 {
-  d_chain.addFixedAssumptions(inputs);
+  d_resChains.addFixedAssumptions(inputs);
 }
 
 }  // namespace prop

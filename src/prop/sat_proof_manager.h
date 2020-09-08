@@ -17,6 +17,7 @@
 #ifndef CVC4__SAT_PROOF_MANAGER_H
 #define CVC4__SAT_PROOF_MANAGER_H
 
+#include "expr/buffered_proof_generator.h"
 #include "expr/expr.h"
 #include "expr/lazy_proof_chain.h"
 #include "expr/node.h"
@@ -98,9 +99,9 @@ class SatProofManager
   /** The proof node manager */
   ProofNodeManager* d_pnm;
 
-  /** resolution steps accumulator for chain resolution. Each pair has a clause
-   * and the pivot for the resolution step it is involved on. */
-  std::vector<std::pair<Node, Node>> d_resolution;
+  /** Resolution steps (links) accumulator for chain resolution. Each pair has a
+   * clause and the pivot for the resolution step it is involved on. */
+  std::vector<std::pair<Node, Node>> d_resLinks;
 
   /**
    * Associates clauses to their local proofs. These proofs are local and
@@ -109,9 +110,10 @@ class SatProofManager
    */
   std::map<Node, std::shared_ptr<ProofNode>> d_clauseProofs;
 
-  std::vector<CDProof> d_backup;
+  LazyCDProofChain d_resChains;
 
-  LazyCDProofChain d_chain;
+  /** The proof generator for resolution chains */
+  BufferedProofGenerator d_resChainPg;
 
   /** The resolution proof of false */
   CDProof d_proof;
