@@ -18,8 +18,8 @@
 #define CVC4__THEORY__THEORY_EQ_NOTIFY_H
 
 #include "expr/node.h"
-#include "theory/uf/equality_engine_notify.h"
 #include "theory/theory_inference_manager.h"
+#include "theory/uf/equality_engine_notify.h"
 
 namespace CVC4 {
 namespace theory {
@@ -29,25 +29,27 @@ namespace theory {
  * calls for trigger predicates, trigger term equalities and conflicts due to
  * constant merges to the provided theory inference manager.
  */
-class TheoryEqNotifyClass : public eq::EqualityEngineNotify 
+class TheoryEqNotifyClass : public eq::EqualityEngineNotify
 {
-public:
-  TheoryEqNotifyClass(TheoryInferenceManager& im): d_im(im) {}
-  ~TheoryEqNotifyClass(){}
+ public:
+  TheoryEqNotifyClass(TheoryInferenceManager& im) : d_im(im) {}
+  ~TheoryEqNotifyClass() {}
 
   bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
   {
-    if (value) {
+    if (value)
+    {
       return d_im.propagateLit(predicate);
     }
     return d_im.propagateLit(predicate.notNode());
   }
   bool eqNotifyTriggerTermEquality(TheoryId tag,
-                                    TNode t1,
-                                    TNode t2,
-                                    bool value) override
+                                   TNode t1,
+                                   TNode t2,
+                                   bool value) override
   {
-    if (value) {
+    if (value)
+    {
       return d_im.propagateLit(t1.eqNode(t2));
     }
     return d_im.propagateLit(t1.eqNode(t2).notNode());
@@ -68,7 +70,8 @@ public:
   {
     // do nothing
   }
-protected:
+
+ protected:
   /** Reference to the theory inference manager */
   TheoryInferenceManager& d_im;
 };
