@@ -1002,8 +1002,8 @@ void TheorySep::ppNotifyAssertions(const std::vector<Node>& assertions) {
     }
   }
   // initialize the EPR utility
-  QuantifiersEngine * qe = getQuantifiersEngine();
-  if (qe!=nullptr)
+  QuantifiersEngine* qe = getQuantifiersEngine();
+  if (qe != nullptr)
   {
     quantifiers::QuantEPR* qepr = qe->getQuantEPR();
     if (qepr != nullptr)
