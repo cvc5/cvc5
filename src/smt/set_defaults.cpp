@@ -911,6 +911,10 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       options::preSkolemQuant.set(true);
     }
+    // must have separation logic
+    logic = logic.getUnlockedCopy();
+    logic.enableTheory(THEORY_SEP);
+    logic.lock();
   }
 
   // now, have determined whether finite model find is on/off
