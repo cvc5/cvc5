@@ -1447,10 +1447,7 @@ Node TheorySetsPrivate::getChooseFunction(const TypeNode& setType)
   return chooseSkolem;
 }
 
-void TheorySetsPrivate::presolve()
-{
-  d_state.reset();
-}
+void TheorySetsPrivate::presolve() { d_state.reset(); }
 
 }  // namespace sets
 }  // namespace theory
