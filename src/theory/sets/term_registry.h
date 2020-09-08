@@ -23,6 +23,7 @@
 #include "context/cdhashmap.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/skolem_cache.h"
+#include "theory/sets/solver_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -37,7 +38,7 @@ class TermRegistry
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
 
  public:
-  TermRegistry(InferenceManager& im, SkolemCache& skc);
+  TermRegistry(SolverState& state, InferenceManager& im, SkolemCache& skc);
   /** Get type constraint skolem
    *
    * The sets theory solver outputs equality lemmas of the form:
