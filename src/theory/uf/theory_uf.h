@@ -29,6 +29,7 @@
 #include "theory/uf/proof_equality_engine.h"
 #include "theory/uf/symmetry_breaker.h"
 #include "theory/uf/theory_uf_rewriter.h"
+#include "theory/theory_eq_notify.h"
 
 namespace CVC4 {
 namespace theory {
@@ -41,37 +42,10 @@ class TheoryUF : public Theory {
 
 public:
 
-  class NotifyClass : public eq::EqualityEngineNotify {
+  class NotifyClass : public TheoryEqNotifyClass {
     TheoryUF& d_uf;
   public:
-    NotifyClass(TheoryUF& uf): d_uf(uf) {}
-
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
-    {
-      Debug("uf") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
-      if (value) {
-        return d_uf.propagateLit(predicate);
-      }
-      return d_uf.propagateLit(predicate.notNode());
-    }
-
-    bool eqNotifyTriggerTermEquality(TheoryId tag,
-                                     TNode t1,
-                                     TNode t2,
-                                     bool value) override
-    {
-      Debug("uf") << "NotifyClass::eqNotifyTriggerTermMerge(" << tag << ", " << t1 << ", " << t2 << ")" << std::endl;
-      if (value) {
-        return d_uf.propagateLit(t1.eqNode(t2));
-      }
-      return d_uf.propagateLit(t1.eqNode(t2).notNode());
-    }
-
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
-    {
-      Debug("uf-notify") << "NotifyClass::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << ")" << std::endl;
-      d_uf.conflict(t1, t2);
-    }
+    NotifyClass(TheoryInferenceManager& im, TheoryUF& uf): TheoryEqNotifyClass(im), d_uf(uf) {}
 
     void eqNotifyNewClass(TNode t) override
     {
@@ -95,10 +69,6 @@ public:
   };/* class TheoryUF::NotifyClass */
 
 private:
-
-  /** The notify class */
-  NotifyClass d_notify;
-
   /** The associated cardinality extension (or nullptr if it does not exist) */
   std::unique_ptr<CardinalityExtension> d_thss;
   /** the higher-order solver extension (or nullptr if it does not exist) */
@@ -107,20 +77,11 @@ private:
   /** node for true */
   Node d_true;
 
-  /**
-   * Should be called to propagate the literal. We use a node here
-   * since some of the propagated literals are not kept anywhere.
-   */
-  bool propagateLit(TNode literal);
-
   /** All the function terms that the theory has seen */
   context::CDList<TNode> d_functionsTerms;
 
   /** Symmetry analyzer */
   SymmetryBreaker d_symb;
-
-  /** Conflict when merging two constants */
-  void conflict(TNode a, TNode b);
 
   /** called when a new equivalance class is created */
   void eqNotifyNewClass(TNode t);
@@ -208,6 +169,8 @@ private:
   TheoryState d_state;
   /** A (default) inference manager */
   TheoryInferenceManager d_im;
+  /** The notify class */
+  NotifyClass d_notify;
 };/* class TheoryUF */
 
 }/* CVC4::theory::uf namespace */
