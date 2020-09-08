@@ -46,7 +46,7 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
       d_state(state),
       d_im(im),
       d_skCache(skc),
-      d_treg(state, im, skc),
+      d_treg(im, skc),
       d_rels(new TheorySetsRels(state, im, skc, d_treg)),
       d_cardSolver(new CardinalityExtension(state, im, d_treg)),
       d_rels_enabled(false),
@@ -280,8 +280,6 @@ void TheorySetsPrivate::fullEffortReset()
   // reset the inference manager
   d_im.reset();
   d_im.clearPendingLemmas();
-  // reset the term registry
-  d_state.reset();
   // reset the cardinality solver
   d_cardSolver->reset();
 }
@@ -337,7 +335,7 @@ void TheorySetsPrivate::fullEffortCheck()
             tnct = n;
           }
         }
-        // register it with the term registry
+        // register it with the state
         d_state.registerTerm(eqc, tnn, n);
         Kind nk = n.getKind();
         if (nk == kind::SINGLETON)
@@ -1451,7 +1449,6 @@ Node TheorySetsPrivate::getChooseFunction(const TypeNode& setType)
 
 void TheorySetsPrivate::presolve()
 {
-  d_state.reset();
   d_state.reset();
 }
 
