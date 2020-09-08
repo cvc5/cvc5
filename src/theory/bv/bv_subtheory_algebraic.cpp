@@ -325,21 +325,6 @@ bool AlgebraicSolver::check(Theory::Effort e)
     TNode fact = worklist[r].node;
     unsigned id = worklist[r].id;
 
-    if (Dump.isOn("bv-algebraic")) {
-      Node expl = d_explanations[id];
-      Node query = utils::mkNot(nm->mkNode(kind::IMPLIES, expl, fact));
-
-      Printer* printer = smt::currentSmtEngine()->getPrinter();
-      std::ostream& out = *smt::currentSmtEngine()->getOptions().getOut();
-
-      printer->toStreamCmdEcho(
-          out, "ThoeryBV::AlgebraicSolver::substitution explanation");
-      printer->toStreamCmdPush(out);
-      printer->toStreamCmdAssert(out, query);
-      printer->toStreamCmdCheckSat(out);
-      printer->toStreamCmdPop(out);
-    }
-
     if (fact.isConst() &&
         fact.getConst<bool>() == true) {
       continue;
@@ -352,19 +337,6 @@ bool AlgebraicSolver::check(Theory::Effort e)
       d_bv->setConflict(conflict);
       d_isComplete.set(true);
       Debug("bv-subtheory-algebraic") << " UNSAT: assertion simplfies to false with conflict: "<< conflict << "\n";
-
-      if (Dump.isOn("bv-algebraic")) {
-        Printer* printer = smt::currentSmtEngine()->getPrinter();
-        std::ostream& out = *smt::currentSmtEngine()->getOptions().getOut();
-
-        printer->toStreamCmdEcho(out,
-                                 "BVSolverLazy::AlgebraicSolver::conflict");
-        printer->toStreamCmdPush(out);
-        printer->toStreamCmdAssert(out, conflict);
-        printer->toStreamCmdCheckSat(out);
-        printer->toStreamCmdPop(out);
-      }
-
 
       ++(d_statistics.d_numSimplifiesToFalse);
       ++(d_numSolved);
@@ -547,22 +519,6 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
     Node inverse = left.getNumChildren() == 2? (Node)left[1] : (Node)nb;
     Node new_right = nm->mkNode(kind::BITVECTOR_XOR, right, inverse);
     bool changed = subst.addSubstitution(var, new_right, reason);
-
-    if (Dump.isOn("bv-algebraic")) {
-      Node query = utils::mkNot(nm->mkNode(
-          kind::EQUAL, fact, nm->mkNode(kind::EQUAL, var, new_right)));
-
-      Printer* printer = smt::currentSmtEngine()->getPrinter();
-      std::ostream& out = *smt::currentSmtEngine()->getOptions().getOut();
-
-      printer->toStreamCmdEcho(
-          out, "ThoeryBV::AlgebraicSolver::substitution explanation");
-      printer->toStreamCmdPush(out);
-      printer->toStreamCmdAssert(out, query);
-      printer->toStreamCmdCheckSat(out);
-      printer->toStreamCmdPop(out);
-    }
-
 
     return changed;
   }

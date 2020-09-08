@@ -693,19 +693,6 @@ Node AbstractionModule::substituteArguments(TNode signature, TNode apply, unsign
 }
 
 Node AbstractionModule::simplifyConflict(TNode conflict) {
-  if (Dump.isOn("bv-abstraction")) {
-    NodeNodeMap seen;
-    Node c = reverseAbstraction(conflict, seen);
-
-    Printer* printer = smt::currentSmtEngine()->getPrinter();
-    std::ostream& out = *smt::currentSmtEngine()->getOptions().getOut();
-
-    printer->toStreamCmdPush(out);
-    printer->toStreamCmdAssert(out, c);
-    printer->toStreamCmdCheckSat(out);
-    printer->toStreamCmdPop(out);
-  }
-
   Debug("bv-abstraction-dbg") << "AbstractionModule::simplifyConflict " << conflict << "\n";
   if (conflict.getKind() != kind::AND)
     return conflict;
@@ -747,20 +734,6 @@ Node AbstractionModule::simplifyConflict(TNode conflict) {
 
   Debug("bv-abstraction") << "AbstractionModule::simplifyConflict conflict " << conflict <<"\n";
   Debug("bv-abstraction") << "   => " << new_conflict <<"\n";
-
-  if (Dump.isOn("bv-abstraction")) {
-
-    NodeNodeMap seen;
-    Node nc = reverseAbstraction(new_conflict, seen);
-
-    Printer* printer = smt::currentSmtEngine()->getPrinter();
-    std::ostream& out = *smt::currentSmtEngine()->getOptions().getOut();
-
-    printer->toStreamCmdPush(out);
-    printer->toStreamCmdAssert(out, nc);
-    printer->toStreamCmdCheckSat(out);
-    printer->toStreamCmdPop(out);
-  }
 
   return new_conflict;
 }
@@ -846,19 +819,6 @@ void AbstractionModule::generalizeConflict(TNode conflict, std::vector<Node>& le
       lemmas.push_back(lemma);
       Debug("bv-abstraction-gen") << "adding lemma " << lemma << "\n";
       storeLemma(lemma);
-
-      if (Dump.isOn("bv-abstraction")) {
-        NodeNodeMap seen;
-        Node l = reverseAbstraction(lemma, seen);
-
-        Printer* printer = smt::currentSmtEngine()->getPrinter();
-        std::ostream& out = *smt::currentSmtEngine()->getOptions().getOut();
-
-        printer->toStreamCmdPush(out);
-        printer->toStreamCmdAssert(out, l);
-        printer->toStreamCmdCheckSat(out);
-        printer->toStreamCmdPop(out);
-      }
     }
   }
 }
