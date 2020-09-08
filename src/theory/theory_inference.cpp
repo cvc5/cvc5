@@ -28,9 +28,10 @@ SimpleTheoryLemma::SimpleTheoryLemma(Node n,
 {
 }
 
-bool SimpleTheoryLemma::process(TheoryInferenceManager* im)
+bool SimpleTheoryLemma::process(TheoryInferenceManager* im, bool asLemma)
 {
   Assert(!d_node.isNull());
+  Assert(asLemma);
   // send (trusted) lemma on the output channel with property p
   return im->trustedLemma(TrustNode::mkTrustLemma(d_node, d_pg), d_property);
 }
@@ -42,8 +43,9 @@ SimpleTheoryInternalFact::SimpleTheoryInternalFact(Node conc,
 {
 }
 
-bool SimpleTheoryInternalFact::process(TheoryInferenceManager* im)
+bool SimpleTheoryInternalFact::process(TheoryInferenceManager* im, bool asLemma)
 {
+  Assert(!asLemma);
   bool polarity = d_conc.getKind() != NOT;
   TNode atom = polarity ? d_conc : d_conc[0];
   // no double negation or conjunctive conclusions

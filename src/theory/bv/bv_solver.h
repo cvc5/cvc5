@@ -77,13 +77,11 @@ class BVSolver
     Unimplemented() << "BVSolver propagated a node but doesn't implement the "
                        "BVSolver::explain() interface!";
     return TrustNode::null();
-  };
+  }
 
-  /**
-   * This is temporary only and will be deprecated soon in favor of
-   * Theory::collectModelValues.
-   */
-  virtual bool collectModelInfo(TheoryModel* m) = 0;
+  /** Collect model values in m based on the relevant terms given by termSet */
+  virtual bool collectModelValues(TheoryModel* m,
+                                  const std::set<Node>& termSet) = 0;
 
   virtual std::string identify() const = 0;
 
@@ -96,7 +94,7 @@ class BVSolver
 
   virtual void presolve(){};
 
-  virtual void notifySharedTerm(TNode t) = 0;
+  virtual void notifySharedTerm(TNode t) {}
 
   virtual EqualityStatus getEqualityStatus(TNode a, TNode b)
   {
