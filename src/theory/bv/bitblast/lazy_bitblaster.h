@@ -32,7 +32,7 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-class TheoryBV;
+class BVSolverLazy;
 
 class TLazyBitblaster : public TBitblaster<Node>
 {
@@ -45,7 +45,7 @@ class TLazyBitblaster : public TBitblaster<Node>
   bool hasBBAtom(TNode atom) const override;
 
   TLazyBitblaster(context::Context* c,
-                  TheoryBV* bv,
+                  BVSolverLazy* bv,
                   const std::string name = "",
                   bool emptyNotify = false);
   ~TLazyBitblaster();
@@ -72,10 +72,10 @@ class TLazyBitblaster : public TBitblaster<Node>
    * Adds a constant value for each bit-blasted variable in the model.
    *
    * @param m the model
-   * @param fullModel whether to create a "full model," i.e., add
-   * constants to equivalence classes that don't already have them
+   * @param termSet the set of relevant terms
    */
-  bool collectModelInfo(TheoryModel* m, bool fullModel);
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet);
 
   typedef TNodeSet::const_iterator vars_iterator;
   vars_iterator beginVars() { return d_variables.begin(); }
@@ -108,11 +108,11 @@ class TLazyBitblaster : public TBitblaster<Node>
   class MinisatNotify : public prop::BVSatSolverNotify
   {
     prop::CnfStream* d_cnf;
-    TheoryBV* d_bv;
+    BVSolverLazy* d_bv;
     TLazyBitblaster* d_lazyBB;
 
    public:
-    MinisatNotify(prop::CnfStream* cnf, TheoryBV* bv, TLazyBitblaster* lbv)
+    MinisatNotify(prop::CnfStream* cnf, BVSolverLazy* bv, TLazyBitblaster* lbv)
         : d_cnf(cnf), d_bv(bv), d_lazyBB(lbv)
     {
     }
@@ -123,7 +123,7 @@ class TLazyBitblaster : public TBitblaster<Node>
     void safePoint(ResourceManager::Resource r) override;
   };
 
-  TheoryBV* d_bv;
+  BVSolverLazy* d_bv;
   context::Context* d_ctx;
 
   std::unique_ptr<prop::NullRegistrar> d_nullRegistrar;

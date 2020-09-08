@@ -15,21 +15,19 @@
  ** \todo document this file
  **/
 
-
 #include <cxxtest/TestSuite.h>
 
-#include "theory/theory.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
-#include "theory/bv/theory_bv.h"
-#include "theory/bv/bitblast/eager_bitblaster.h"
+#include <vector>
+
+#include "context/context.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
-#include "context/context.h"
-
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
+#include "theory/bv/bitblast/eager_bitblaster.h"
+#include "theory/bv/bv_solver_lazy.h"
+#include "theory/theory.h"
 #include "theory/theory_test_utils.h"
-
-#include <vector>
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -76,10 +74,11 @@ public:
     // engine d_smt. We must ensure that d_smt is properly initialized via
     // the following call, which constructs its underlying theory engine.
     d_smt->finishInit();
-    EagerBitblaster* bb = new EagerBitblaster(
-        dynamic_cast<TheoryBV*>(
-            d_smt->getTheoryEngine()->d_theoryTable[THEORY_BV]),
-        d_smt->getContext());
+    TheoryBV* tbv = dynamic_cast<TheoryBV*>(
+        d_smt->getTheoryEngine()->d_theoryTable[THEORY_BV]);
+    BVSolverLazy* bvsl = dynamic_cast<BVSolverLazy*>(tbv->d_internal.get());
+    EagerBitblaster* bb = new EagerBitblaster(bvsl, d_smt->getContext());
+
     Node x = d_nm->mkVar("x", d_nm->mkBitVectorType(16));
     Node y = d_nm->mkVar("y", d_nm->mkBitVectorType(16));
     Node x_plus_y = d_nm->mkNode(kind::BITVECTOR_PLUS, x, y);

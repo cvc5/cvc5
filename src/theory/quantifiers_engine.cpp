@@ -172,38 +172,37 @@ class QuantifiersEnginePrivate
   }
 };
 
-QuantifiersEngine::QuantifiersEngine(context::Context* c,
-                                     context::UserContext* u,
-                                     TheoryEngine* te)
+QuantifiersEngine::QuantifiersEngine(TheoryEngine* te, DecisionManager& dm,
+                                     ProofNodeManager* pnm)
     : d_te(te),
+      d_context(te->getSatContext()),
+      d_userContext(te->getUserContext()),
+      d_decManager(dm),
       d_masterEqualityEngine(nullptr),
-      d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine(c, this)),
+      d_eq_query(
+          new quantifiers::EqualityQueryQuantifiersEngine(d_context, this)),
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
       d_builder(nullptr),
       d_qepr(nullptr),
       d_term_util(new quantifiers::TermUtil(this)),
       d_term_canon(new expr::TermCanonize),
-      d_term_db(new quantifiers::TermDb(c, u, this)),
+      d_term_db(new quantifiers::TermDb(d_context, d_userContext, this)),
       d_sygus_tdb(nullptr),
       d_quant_attr(new quantifiers::QuantAttributes(this)),
-      d_instantiate(new quantifiers::Instantiate(this, u)),
-      d_skolemize(new quantifiers::Skolemize(this, u)),
+      d_instantiate(new quantifiers::Instantiate(this, d_userContext, pnm)),
+      d_skolemize(new quantifiers::Skolemize(this, d_userContext)),
       d_term_enum(new quantifiers::TermEnumeration),
-      d_conflict_c(c, false),
-      // d_quants(u),
-      d_quants_prereg(u),
-      d_quants_red(u),
-      d_lemmas_produced_c(u),
-      d_ierCounter_c(c),
-      // d_ierCounter(c),
-      // d_ierCounter_lc(c),
-      // d_ierCounterLastLc(c),
-      d_presolve(u, true),
-      d_presolve_in(u),
-      d_presolve_cache(u),
-      d_presolve_cache_wq(u),
-      d_presolve_cache_wic(u)
+      d_conflict_c(d_context, false),
+      d_quants_prereg(d_userContext),
+      d_quants_red(d_userContext),
+      d_lemmas_produced_c(d_userContext),
+      d_ierCounter_c(d_context),
+      d_presolve(d_userContext, true),
+      d_presolve_in(d_userContext),
+      d_presolve_cache(d_userContext),
+      d_presolve_cache_wq(d_userContext),
+      d_presolve_cache_wic(d_userContext)
 {
   // initialize the private utility
   d_private.reset(new QuantifiersEnginePrivate);
@@ -216,7 +215,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
 
   if (options::sygus() || options::sygusInst())
   {
-    d_sygus_tdb.reset(new quantifiers::TermDbSygus(c, this));
+    d_sygus_tdb.reset(new quantifiers::TermDbSygus(d_context, this));
   }
 
   d_util.push_back(d_instantiate.get());
@@ -244,7 +243,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   d_inst_when_phase = 1 + ( options::instWhenPhase()<1 ? 1 : options::instWhenPhase() );
 
   bool needsBuilder = false;
-  d_private->initialize(this, c, d_modules, needsBuilder);
+  d_private->initialize(this, d_context, d_modules, needsBuilder);
 
   if (d_private->d_rel_dom.get())
   {
@@ -260,16 +259,18 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
     {
       Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
       d_model.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
-          this, c, "FirstOrderModelFmc"));
-      d_builder.reset(new quantifiers::fmcheck::FullModelChecker(c, this));
+          this, d_context, "FirstOrderModelFmc"));
+      d_builder.reset(
+          new quantifiers::fmcheck::FullModelChecker(d_context, this));
     }else{
       Trace("quant-engine-debug") << "...make default model builder." << std::endl;
       d_model.reset(
-          new quantifiers::FirstOrderModel(this, c, "FirstOrderModel"));
-      d_builder.reset(new quantifiers::QModelBuilder(c, this));
+          new quantifiers::FirstOrderModel(this, d_context, "FirstOrderModel"));
+      d_builder.reset(new quantifiers::QModelBuilder(d_context, this));
     }
   }else{
-    d_model.reset(new quantifiers::FirstOrderModel(this, c, "FirstOrderModel"));
+    d_model.reset(
+        new quantifiers::FirstOrderModel(this, d_context, "FirstOrderModel"));
   }
 }
 
@@ -280,14 +281,18 @@ void QuantifiersEngine::setMasterEqualityEngine(eq::EqualityEngine* mee)
   d_masterEqualityEngine = mee;
 }
 
-context::Context* QuantifiersEngine::getSatContext()
+TheoryEngine* QuantifiersEngine::getTheoryEngine() const { return d_te; }
+
+DecisionManager* QuantifiersEngine::getDecisionManager()
 {
-  return d_te->theoryOf(THEORY_QUANTIFIERS)->getSatContext();
+  return &d_decManager;
 }
+
+context::Context* QuantifiersEngine::getSatContext() { return d_context; }
 
 context::UserContext* QuantifiersEngine::getUserContext()
 {
-  return d_te->theoryOf(THEORY_QUANTIFIERS)->getUserContext();
+  return d_userContext;
 }
 
 OutputChannel& QuantifiersEngine::getOutputChannel()
@@ -1021,6 +1026,19 @@ bool QuantifiersEngine::addLemma( Node lem, bool doCache, bool doRewrite ){
   }
 }
 
+bool QuantifiersEngine::addTrustedLemma(TrustNode tlem,
+                                        bool doCache,
+                                        bool doRewrite)
+{
+  Node lem = tlem.getProven();
+  if (!addLemma(lem, doCache, doRewrite))
+  {
+    return false;
+  }
+  d_lemmasWaitingPg[lem] = tlem.getGenerator();
+  return true;
+}
+
 bool QuantifiersEngine::removeLemma( Node lem ) {
   std::vector< Node >::iterator it = std::find( d_lemmas_waiting.begin(), d_lemmas_waiting.end(), lem );
   if( it!=d_lemmas_waiting.end() ){
@@ -1102,19 +1120,31 @@ options::UserPatMode QuantifiersEngine::getInstUserPatMode()
 }
 
 void QuantifiersEngine::flushLemmas(){
+  OutputChannel& out = getOutputChannel();
   if( !d_lemmas_waiting.empty() ){
     //take default output channel if none is provided
     d_hasAddedLemma = true;
-    for( unsigned i=0; i<d_lemmas_waiting.size(); i++ ){
-      Trace("qe-lemma") << "Lemma : " << d_lemmas_waiting[i] << std::endl;
-      getOutputChannel().lemma(d_lemmas_waiting[i], LemmaProperty::PREPROCESS);
+    std::map<Node, ProofGenerator*>::iterator itp;
+    for (const Node& lemw : d_lemmas_waiting)
+    {
+      Trace("qe-lemma") << "Lemma : " << lemw << std::endl;
+      itp = d_lemmasWaitingPg.find(lemw);
+      if (itp != d_lemmasWaitingPg.end())
+      {
+        TrustNode tlemw = TrustNode::mkTrustLemma(lemw, itp->second);
+        out.trustedLemma(tlemw, LemmaProperty::PREPROCESS);
+      }
+      else
+      {
+        out.lemma(lemw, LemmaProperty::PREPROCESS);
+      }
     }
     d_lemmas_waiting.clear();
   }
   if( !d_phase_req_waiting.empty() ){
     for( std::map< Node, bool >::iterator it = d_phase_req_waiting.begin(); it != d_phase_req_waiting.end(); ++it ){
       Trace("qe-lemma") << "Require phase : " << it->first << " -> " << it->second << std::endl;
-      getOutputChannel().requirePhase( it->first, it->second );
+      out.requirePhase(it->first, it->second);
     }
     d_phase_req_waiting.clear();
   }

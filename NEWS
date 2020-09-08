@@ -27,6 +27,9 @@ Changes:
   modulus results in a constant value, instead of an uninterpreted one).
   Similarly, when no language is set, the API semantics now correspond to the
   SMT-LIB 2.6 semantics.
+* The `competition` build type includes the dependencies used for SMT-COMP by
+  default. Note that this makes this build type produce GPL-licensed binaries.
+
 
 Changes since 1.7
 =================

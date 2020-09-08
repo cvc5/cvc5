@@ -170,7 +170,7 @@ void TheoryDatatypes::postCheck(Effort level)
     return;
   }
   else if (level == EFFORT_FULL && !d_state.isInConflict()
-           && !d_im.hasAddedLemma() && !d_valuation.needCheck())
+           && !d_im.hasSentLemma() && !d_valuation.needCheck())
   {
     //check for cycles
     Assert(!d_im.hasPendingFact());
@@ -180,11 +180,11 @@ void TheoryDatatypes::postCheck(Effort level)
       checkCycles();
       Trace("datatypes-proc") << "...finish check cycles" << std::endl;
       d_im.process();
-      if (d_state.isInConflict() || d_im.hasAddedLemma())
+      if (d_state.isInConflict() || d_im.hasSentLemma())
       {
         return;
       }
-    } while (d_im.hasAddedFact());
+    } while (d_im.hasSentFact());
 
     //check for splits
     Trace("datatypes-debug") << "Check for splits " << endl;
@@ -329,7 +329,7 @@ void TheoryDatatypes::postCheck(Effort level)
         }
         ++eqcs_i;
       }
-      if (d_im.hasAddedLemma())
+      if (d_im.hasSentLemma())
       {
         // clear pending facts: we added a lemma, so internal inferences are
         // no longer necessary
@@ -342,11 +342,11 @@ void TheoryDatatypes::postCheck(Effort level)
         Trace("datatypes-debug") << "Flush pending facts..." << std::endl;
         d_im.process();
       }
-    } while (!d_state.isInConflict() && !d_im.hasAddedLemma()
-             && d_im.hasAddedFact());
+    } while (!d_state.isInConflict() && !d_im.hasSentLemma()
+             && d_im.hasSentFact());
     Trace("datatypes-debug")
         << "Finished, conflict=" << d_state.isInConflict()
-        << ", lemmas=" << d_im.hasAddedLemma() << std::endl;
+        << ", lemmas=" << d_im.hasSentLemma() << std::endl;
     if (!d_state.isInConflict())
     {
       Trace("dt-model-debug") << std::endl;
@@ -1963,10 +1963,6 @@ TNode TheoryDatatypes::getRepresentative( TNode a ){
   }else{
     return a;
   }
-}
-
-bool TheoryDatatypes::getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) {
-  return false;
 }
 
 void TheoryDatatypes::printModelDebug( const char* c ){

@@ -66,7 +66,7 @@ bool DatatypesInference::mustCommunicateFact(Node n, Node exp)
   return false;
 }
 
-bool DatatypesInference::process(TheoryInferenceManager* im)
+bool DatatypesInference::process(TheoryInferenceManager* im, bool asLemma)
 {
   // check to see if we have to communicate it to the rest of the system
   if (mustCommunicateFact(d_conc, d_exp))
@@ -89,7 +89,7 @@ bool DatatypesInference::process(TheoryInferenceManager* im)
 InferenceManager::InferenceManager(Theory& t,
                                    TheoryState& state,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(t, state, pnm)
+    : InferenceManagerBuffered(t, state, nullptr)
 {
 }
 
@@ -97,7 +97,7 @@ void InferenceManager::addPendingInference(Node conc,
                                            Node exp,
                                            ProofGenerator* pg)
 {
-  d_pendingFact.push_back(std::make_shared<DatatypesInference>(conc, exp, pg));
+  d_pendingFact.emplace_back(new DatatypesInference(conc, exp, pg));
 }
 
 void InferenceManager::process()

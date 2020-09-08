@@ -65,9 +65,7 @@ class TheorySetsRels {
   typedef context::CDHashMap< Node, Node, NodeHashFunction >      NodeMap;
 
 public:
- TheorySetsRels(SolverState& s,
-                InferenceManager& im,
-                context::UserContext* u);
+ TheorySetsRels(SolverState& s, InferenceManager& im);
 
  ~TheorySetsRels();
  /**
