@@ -24,12 +24,12 @@
 #include "expr/node.h"
 #include "expr/node_trie.h"
 #include "theory/theory.h"
+#include "theory/theory_eq_notify.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_checker.h"
 #include "theory/uf/proof_equality_engine.h"
 #include "theory/uf/symmetry_breaker.h"
 #include "theory/uf/theory_uf_rewriter.h"
-#include "theory/theory_eq_notify.h"
 
 namespace CVC4 {
 namespace theory {
@@ -41,16 +41,20 @@ class HoExtension;
 class TheoryUF : public Theory {
 
 public:
-
-  class NotifyClass : public TheoryEqNotifyClass {
-    TheoryUF& d_uf;
+ class NotifyClass : public TheoryEqNotifyClass
+ {
+   TheoryUF& d_uf;
   public:
-    NotifyClass(TheoryInferenceManager& im, TheoryUF& uf): TheoryEqNotifyClass(im), d_uf(uf) {}
+   NotifyClass(TheoryInferenceManager& im, TheoryUF& uf)
+       : TheoryEqNotifyClass(im), d_uf(uf)
+   {
+   }
 
-    void eqNotifyNewClass(TNode t) override
-    {
-      Debug("uf-notify") << "NotifyClass::eqNotifyNewClass(" << t << ")" << std::endl;
-      d_uf.eqNotifyNewClass(t);
+   void eqNotifyNewClass(TNode t) override
+   {
+     Debug("uf-notify") << "NotifyClass::eqNotifyNewClass(" << t << ")"
+                        << std::endl;
+     d_uf.eqNotifyNewClass(t);
     }
 
     void eqNotifyMerge(TNode t1, TNode t2) override
