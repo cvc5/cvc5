@@ -34,12 +34,13 @@ class SkolemCache
 
   /**
    * Get the skolem correspoding to the index that witnesses the disequality
-   * between arrays a and b.
+   * between arrays a and b. The witness form of this skolem is:
+   * (witness ((x T)) (=> (not (= a b)) (not (= (select a x) (select b x)))))
    */
   static Node getExtIndexSkolem(Node a, Node b);
 
  private:
-  /** Get the bound variable */
+  /** Get the bound variable x of the witness term above for a, b. */
   static Node getExtIndexVar(Node a, Node b);
 };
 
