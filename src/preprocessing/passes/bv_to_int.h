@@ -275,14 +275,6 @@ class BVToInt : public PreprocessingPass
    * applies BitVector_TO_NAT operator.
    * Otherwise, keeps n intact.
    */
-  Node castIfNeeded(Node n, TypeNode tn);
-
-  /**
-   * Helper function for castIfNeeded.
-   * Does the actual casting between bit-vectors
-   * and integers or vice verse using
-   * IntToBitVector or BITVECTOR_TO_NAT.
-   */
   Node castToType(Node n, TypeNode tn);
 
   /**

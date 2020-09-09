@@ -815,13 +815,13 @@ void BVToInt::defineBVUFAsIntUF(Node bvUF)
     // Other arguments are left intact.
     Node fresh_bound_var = d_nm->mkBoundVar(d);
     args.push_back(fresh_bound_var.toExpr());
-    Node casted_arg = castIfNeeded(args[i], d_nm->integerType());
+    Node casted_arg = castToType(args[i], d_nm->integerType());
     achildren.push_back(casted_arg);
     i++;
   }
   Node intApplication = d_nm->mkNode(kind::APPLY_UF, achildren);
   // If the range is BV, the application needs to be casted back.
-  intApplication = castIfNeeded(intApplication, bvRange);
+  intApplication = castToType(intApplication, bvRange);
   // add the function definition to the smt engine.
   smt::currentSmtEngine()->defineFunction(
       bvUF.toExpr(), args, intApplication.toExpr(), true);
@@ -843,21 +843,13 @@ bool BVToInt::childrenTypesChanged(Node n)
   return result;
 }
 
-Node BVToInt::castIfNeeded(Node n, TypeNode tn)
+Node BVToInt::castToType(Node n, TypeNode tn)
 {
-  if ((n.getType().isBitVector() && tn.isInteger())
-      || (n.getType().isInteger() && tn.isBitVector()))
-  {
-    return castToType(n, tn);
-  }
-  else
+  if (!((n.getType().isBitVector() && tn.isInteger())
+        || (n.getType().isInteger() && tn.isBitVector())))
   {
     return n;
   }
-}
-
-Node BVToInt::castToType(Node n, TypeNode tn)
-{
   if (n.getType().isInteger())
   {
     Assert(tn.isBitVector());
@@ -865,12 +857,9 @@ Node BVToInt::castToType(Node n, TypeNode tn)
     Node intToBVOp = d_nm->mkConst<IntToBitVector>(IntToBitVector(bvsize));
     return d_nm->mkNode(intToBVOp, n);
   }
-  else
-  {
-    Assert(n.getType().isBitVector());
-    Assert(tn.isInteger());
-    return d_nm->mkNode(kind::BITVECTOR_TO_NAT, n);
-  }
+  Assert(n.getType().isBitVector());
+  Assert(tn.isInteger());
+  return d_nm->mkNode(kind::BITVECTOR_TO_NAT, n);
 }
 
 Node BVToInt::reconstructNode(Node node)
@@ -879,7 +868,7 @@ Node BVToInt::reconstructNode(Node node)
   vector<Node> adjusted_children;
   for (const Node& child : node)
   {
-    Node adjusted_child = castIfNeeded(d_bvToIntCache[child], child.getType());
+    Node adjusted_child = castToType(d_bvToIntCache[child], child.getType());
     adjusted_children.push_back(adjusted_child);
   }
   // re-construct the term with the adjusted children.
@@ -895,7 +884,7 @@ Node BVToInt::reconstructNode(Node node)
   }
   Node reconstruction = builder.constructNode();
   // cast back to integers if the result is a bit-vector.
-  return castIfNeeded(reconstruction, d_nm->integerType());
+  return castToType(reconstruction, d_nm->integerType());
 }
 
 BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
