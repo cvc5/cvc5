@@ -29,7 +29,7 @@ SolverState::SolverState(context::Context* c,
                          context::UserContext* u,
                          Valuation val,
                          SkolemCache& skc)
-    : TheoryState(c, u, val), d_skCache(skc), d_parent(nullptr)
+    : TheoryState(c, u, val), d_skCache(skc), d_members(c)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -469,6 +469,120 @@ const vector<Node> SolverState::getSetsEqClasses(const TypeNode& t) const
   return representatives;
 }
 
+bool SolverState::isMember(TNode x, TNode s)
+{
+  Assert(hasTerm(s)
+         && getRepresentative(s) == s);
+  NodeIntMap::iterator mem_i = d_members.find(s);
+  if (mem_i != d_members.end())
+  {
+    for (int i = 0; i < (*mem_i).second; i++)
+    {
+      if (areEqual(d_members_data[s][i][0], x))
+      {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+void SolverState::addMember(TNode r, TNode atom)
+{
+  NodeIntMap::iterator mem_i = d_members.find(r);
+  size_t n_members = 0;
+  if (mem_i != d_members.end())
+  {
+    n_members = (*mem_i).second;
+  }
+  d_members[r] = n_members + 1;
+  if (n_members < d_members_data[r].size())
+  {
+    d_members_data[r][n_members] = atom;
+  }
+  else
+  {
+    d_members_data[r].push_back(atom);
+  }
+}
+
+void SolverState::merge(TNode t1, TNode t2, std::vector<Node>& facts, Node cset)
+{
+  NodeIntMap::iterator mem_i2 = d_members.find(t2);
+  if (mem_i2 == d_members.end())
+  {
+    // no members in t2, we are done
+    return true;
+  }
+  NodeIntMap::iterator mem_i1 = d_members.find(t1);
+  size_t n_members = 0;
+  if (mem_i1 != d_members.end())
+  {
+    n_members = (*mem_i1).second;
+  }
+  for (int i = 0; i < (*mem_i2).second; i++)
+  {
+    Assert(i < d_members_data[t2].size()
+            && d_members_data[t2][i].getKind() == MEMBER);
+    Node m2 = d_members_data[t2][i];
+    // check if redundant
+    bool add = true;
+    for (int j = 0; j < n_members; j++)
+    {
+      Assert(j < d_members_data[t1].size()
+              && d_members_data[t1][j].getKind() == MEMBER);
+      if (areEqual(m2[0], d_members_data[t1][j][0]))
+      {
+        add = false;
+        break;
+      }
+    }
+    if (add)
+    {
+      // if there is a concrete set in t1, we may propagate
+      if (!cset.isNull())
+      {
+        NodeManager * nm = NodeManager::currentNM();
+        Assert(m2[1].getType().isComparableTo(cset.getType()));
+        Assert(areEqual(m2[1], cset));
+        Node exp = nm->mkNode(
+            AND, m2[1].eqNode(cset), m2);
+        if (cset.getKind() == SINGLETON)
+        {
+          if (cset[0] != m2[0])
+          {
+            Node eq = cset[0].eqNode(m2[0]);
+            Trace("sets-prop") << "Propagate eq-mem eq inference : " << exp
+                                << " => " << eq << std::endl;
+            Node fact = nm->mkNode(IMPLIES, exp, eq);
+            facts.push_back(fact);
+          }
+        }
+        else
+        {
+          // conflict
+          Assert (facts.empty());
+          Trace("sets-prop")
+              << "Propagate eq-mem conflict : " << exp << std::endl;
+          facts.push_back(exp);
+          return false;
+        }
+      }
+      if (n_members < d_members_data[t1].size())
+      {
+        d_members_data[t1][n_members] = m2;
+      }
+      else
+      {
+        d_members_data[t1].push_back(m2);
+      }
+      n_members++;
+    }
+  }
+  d_members[t1] = n_members;
+  return true;
+}
+    
 }  // namespace sets
 }  // namespace theory
 }  // namespace CVC4
