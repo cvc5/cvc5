@@ -75,14 +75,18 @@ class LazyCDProofChain : public CDProof
    *
    * As a precondition for adding a step, we require:
    *  (1) F is not already in the domain of this map. (HB Not sure about this
-   * one) (2) F does not occur in F1 ... Fn.
+   * one)
+   *  (2) F does not occur in F1 ... Fn.
    *
    * @param expected The fact that can be proven.
    * @param pg The generator that can proof expected.
+   * @param isClosed Whether we are ready to check that expected has a closed
+   * proof when connecting the chain.
    * @param ctx The context we are in (for debugging).
    */
   void addLazyStep(Node expected,
                    ProofGenerator* pg,
+                   bool isClosed = true,
                    const char* ctx = "LazyCDProofChain::addLazyStep");
   /**
    * Does this have any proof generators? This method always returns true

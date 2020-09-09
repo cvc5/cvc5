@@ -253,7 +253,8 @@ void SatProofManager::endResChain(Node conclusion)
     Trace("lazy-cdproofchain") << "SatProofManager::endResChain: adding for "
                                << step.first << " step " << step.second << "\n";
     d_resChainPg.addStep(step.first, step.second);
-    d_resChains.addLazyStep(step.first, &d_resChainPg);
+    // the premises of this resolution may not have been justified yet
+    d_resChains.addLazyStep(step.first, &d_resChainPg, false);
   }
 }
 
@@ -395,7 +396,11 @@ void SatProofManager::tryJustifyingLit(
   // test lazy proof chain
   ProofStep ps(PfRule::CHAIN_RESOLUTION, children, args);
   d_resChainPg.addStep(litNode, ps);
-  d_resChains.addLazyStep(litNode, &d_resChainPg);
+  // the premises in the limit of the justification may correspond to other
+  // links in the chain which have, themselves, literals yet to be justified. So
+  // we are not ready yet to check closedness w.r.t. CNF transformation of the
+  // preprocessed assertions
+  d_resChains.addLazyStep(litNode, &d_resChainPg, false);
 }
 
 void SatProofManager::finalizeProof(Node inConflictNode,
@@ -462,6 +467,8 @@ void SatProofManager::finalizeProof(Node inConflictNode,
   // test lazy proof chain
   ProofStep ps(PfRule::CHAIN_RESOLUTION, children, args);
   d_resChainPg.addStep(d_false, ps);
+  // TODO FIX POINT JUSTIFICATION OF LITERALS IN LEAVES
+  // now we should be able to close it
   d_resChains.addLazyStep(d_false, &d_resChainPg);
 }
 

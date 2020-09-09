@@ -112,10 +112,18 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
       // connected
       for (const std::pair<const Node, std::vector<ProofNode*>>& fap : famap)
       {
-        // check cycles
+        auto it = expanded.find(fap.first);
+        // check cycles, which are cases in which we have facts in
+        // expandedToConnect but not already expanded
         AlwaysAssert(expandedToConnect.find(fap.first)
-                     == expandedToConnect.end())
+                         == expandedToConnect.end()
+                     || it != expanded.end())
             << "Fact " << fap.first << " is part of a cycle\n";
+        // already expanded, skip
+        if (it != expanded.end())
+        {
+          continue;
+        }
         visit.push_back(fap.first);
         std::vector<std::shared_ptr<ProofNode>> pfns;
         for (ProofNode* pfn : fap.second)
@@ -185,6 +193,7 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
 
 void LazyCDProofChain::addLazyStep(Node expected,
                                    ProofGenerator* pg,
+                                   bool isClosed,
                                    const char* ctx)
 {
   Assert(pg != nullptr);
@@ -197,7 +206,7 @@ void LazyCDProofChain::addLazyStep(Node expected,
   }
   d_gens.insert(expected, pg);
   // check if chain is closed if options::proofNewEagerChecking() is on
-  if (options::proofNewEagerChecking())
+  if (isClosed && options::proofNewEagerChecking())
   {
     Trace("lazy-cdproofchain")
         << "LazyCDProofChain::addLazyStep: Checking closed proof...\n";
