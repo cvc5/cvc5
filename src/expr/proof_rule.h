@@ -555,7 +555,7 @@ enum class PfRule : uint32_t
   // Conclusion: (= (f t1 ... tn) (g s1 ... sn))
   // Notice that this rule is only used when the application kinds are APPLY_UF.
   HO_CONG,
-  
+
   //================================================= Array rules
   // ======== Read over write
   // Children: (P:(not (= i1 i2)))

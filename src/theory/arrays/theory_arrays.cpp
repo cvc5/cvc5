@@ -132,7 +132,7 @@ TheoryArrays::TheoryArrays(context::Context* c,
   {
     d_pchecker.registerTo(pc);
   }
-  
+
   // indicate we are using the default theory state object
   d_theoryState = &d_state;
 }
