@@ -43,9 +43,7 @@ theory::TrustNode RemoveTermFormulas::run(
     std::vector<Node>& newSkolems,
     bool reportDeps)
 {
-  TCtxStack ctx(&d_rtfc);
-  ctx.pushInitial(assertion);
-  Node itesRemoved = run(ctx, newAsserts, newSkolems);
+  Node itesRemoved = runInternal(assertion, newAsserts, newSkolems);
   // In some calling contexts, not necessary to report dependence information.
   if (reportDeps && options::unsatCores())
   {
@@ -70,11 +68,12 @@ theory::TrustNode RemoveTermFormulas::run(
   return theory::TrustNode::mkTrustRewrite(assertion, itesRemoved, d_tpg.get());
 }
 
-Node RemoveTermFormulas::run(TCtxStack& ctx,
+Node RemoveTermFormulas::runInternal(Node assertion,
                              std::vector<theory::TrustNode>& output,
                              std::vector<Node>& newSkolems)
 {
-  Assert (!ctx.empty());
+  TCtxStack ctx(&d_rtfc);
+  ctx.pushInitial(assertion);
   TermFormulaCache::const_iterator itc;
   while (!ctx.empty())
   {
@@ -386,9 +385,7 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
       // Remove ITEs from the new assertion, rewrite it and push it to the
       // output
       Node newAssertionPre = newAssertion;
-      TCtxStack cctx(&d_rtfc);
-      cctx.pushInitial(newAssertion);
-      newAssertion = run(cctx, output, newSkolems);
+      newAssertion = runInternal(newAssertion, output, newSkolems);
 
       if (isProofEnabled())
       {
