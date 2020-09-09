@@ -262,8 +262,14 @@ class BVToInt : public PreprocessingPass
    * is a bit-vector array, we do not change A to be
    * an integer array, even though x was translated
    * to integers.
-   * In this case we case x to (bv2nat x) during
+   * In this case we cast x to (bv2nat x) during
    * the reconstruction.
+   *
+   * @param originalNode the node that we are reconstructing
+   * @param resultType the desired type for the reconstruction
+   * @param translated_children the children of originalNode
+   *        after their translation to integers.
+   * @return A node with originalNode's operator that has type resultType.
    */
   Node reconstructNode(Node originalNode,
                        TypeNode resultType,
