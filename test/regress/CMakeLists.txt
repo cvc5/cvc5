@@ -1999,6 +1999,7 @@ set(regress_1_tests
   regress1/sygus/rec-fun-while-infinite.sy
   regress1/sygus/re-concat.sy
   regress1/sygus/repair-const-rl.sy
+  regress1/sygus/rex-strings-alarm.sy
   regress1/sygus/sets-pred-test.sy
   regress1/sygus/simple-regexp.sy
   regress1/sygus/stopwatch-bt.sy
