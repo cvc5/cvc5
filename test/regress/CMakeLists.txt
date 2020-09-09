@@ -289,6 +289,7 @@ set(regress_0_tests
   regress0/bv/core/slice-18.smtv1.smt2
   regress0/bv/core/slice-19.smtv1.smt2
   regress0/bv/core/slice-20.smtv1.smt2
+  regress0/bv/div_mod.cvc
   regress0/bv/divtest_2_5.smt2
   regress0/bv/divtest_2_6.smt2
   regress0/bv/eager-inc-cadical.smt2
