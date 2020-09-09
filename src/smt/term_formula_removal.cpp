@@ -72,6 +72,7 @@ Node RemoveTermFormulas::runInternal(Node assertion,
                              std::vector<theory::TrustNode>& output,
                              std::vector<Node>& newSkolems)
 {
+  NodeManager* nm = NodeManager::currentNM();
   TCtxStack ctx(&d_rtfc);
   ctx.pushInitial(assertion);
   TermFormulaCache::const_iterator itc;
@@ -124,7 +125,7 @@ Node RemoveTermFormulas::runInternal(Node assertion,
       Node ret = node;
       if (childChanged) 
       {
-        ret = nodeManager->mkNode(node.getKind(), newChildren);
+        ret = nm->mkNode(node.getKind(), newChildren);
       }
       // cache
       d_tfCache.insert(curr, ret);
@@ -148,7 +149,6 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
   Debug("ite") << "removeITEs(" << node << ")"
                << " " << inQuant << " " << inTerm << std::endl;
 
-  // The result may be cached already
   NodeManager *nodeManager = NodeManager::currentNM();
 
   TypeNode nodeType = node.getType();

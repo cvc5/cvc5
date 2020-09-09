@@ -181,7 +181,7 @@ class RemoveTermFormulas {
   /**
    * Removes terms of the forms described above from formula assertion.
    * All additional assertions and skolems are pushed into newAsserts and
-   * newSkolems, which are of the same length. 
+   * newSkolems, which are always of the same length. 
    *
    * This uses a term-context-sensitive stack to process assertion. It returns
    * the version of assertion with all term formulas removed.
@@ -194,7 +194,8 @@ class RemoveTermFormulas {
    * a term context identifier computed by RtfTermContext. If curr should be
    * replaced by a skolem, this method returns this skolem k, adds k to
    * newSkolems and adds the axiom defining that skolem to newAsserts, where
-   * runInternal is called on that axiom.
+   * runInternal is called on that axiom. Otherwise, this method returns the
+   * null node.
    */
   Node runCurrent(std::pair<Node, uint32_t>& curr,
            std::vector<theory::TrustNode>& newAsserts,
