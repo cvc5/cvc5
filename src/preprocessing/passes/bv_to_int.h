@@ -265,7 +265,7 @@ class BVToInt : public PreprocessingPass
    * In this case we case x to (bv2nat x) during
    * the reconstruction.
    */
-  Node reconstructNode(Node node);
+  Node reconstructNode(Node node, TypeNode tn);
 
   /**
    * A useful utility function.

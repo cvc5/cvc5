@@ -773,7 +773,8 @@ Node BVToInt::bvToInt(Node n)
               // translate directly to integers. The children whose types have
               // changed from bv to int should be adjusted back to bv and then
               // this term is reconstructed.
-              Node reconstruction = reconstructNode(current);
+              Node reconstruction =
+                  reconstructNode(current, d_nm->integerType());
               d_bvToIntCache[current] = reconstruction;
               break;
             }
@@ -862,7 +863,7 @@ Node BVToInt::castToType(Node n, TypeNode tn)
   return d_nm->mkNode(kind::BITVECTOR_TO_NAT, n);
 }
 
-Node BVToInt::reconstructNode(Node node)
+Node BVToInt::reconstructNode(Node node, TypeNode tn)
 {
   // first, we adjust the children of the node as needed.
   vector<Node> adjusted_children;
@@ -884,7 +885,7 @@ Node BVToInt::reconstructNode(Node node)
   }
   Node reconstruction = builder.constructNode();
   // cast back to integers if the result is a bit-vector.
-  return castToType(reconstruction, d_nm->integerType());
+  return castToType(reconstruction, tn);
 }
 
 BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
