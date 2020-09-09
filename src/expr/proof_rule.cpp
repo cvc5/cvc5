@@ -108,7 +108,8 @@ const char* toString(PfRule id)
     case PfRule::HO_CONG: return "HO_CONG";
     //================================================= Array rules
     case PfRule::ARRAYS_READ_OVER_WRITE: return "ARRAYS_READ_OVER_WRITE";
-    case PfRule::ARRAYS_READ_OVER_WRITE_CONTRA: return "ARRAYS_READ_OVER_WRITE_CONTRA";
+    case PfRule::ARRAYS_READ_OVER_WRITE_CONTRA:
+      return "ARRAYS_READ_OVER_WRITE_CONTRA";
     case PfRule::ARRAYS_READ_OVER_WRITE_1: return "ARRAYS_READ_OVER_WRITE_1";
     case PfRule::ARRAYS_EXT: return "ARRAYS_EXT";
     case PfRule::ARRAYS_TRUST: return "ARRAYS_TRUST";

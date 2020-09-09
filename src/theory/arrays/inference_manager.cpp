@@ -107,9 +107,7 @@ void InferenceManager::convert(PfRule& id,
         args.push_back(conc[0]);
       }
       break;
-    case PfRule::ARRAYS_READ_OVER_WRITE_CONTRA:
-      children.push_back(exp);
-      break;
+    case PfRule::ARRAYS_READ_OVER_WRITE_CONTRA: children.push_back(exp); break;
     case PfRule::ARRAYS_READ_OVER_WRITE_1:
       Assert(exp.isConst());
       args.push_back(conc[0]);

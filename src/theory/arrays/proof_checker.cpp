@@ -65,9 +65,8 @@ Node ArraysProofRuleChecker::checkInternal(PfRule id,
     }
     Node lhs = adeq[0][0];
     Node rhs = adeq[0][1];
-    if (lhs.getKind() != kind::SELECT || lhs[0].getKind() != kind::STORE ||
-      rhs.getKind() != kind::SELECT
-        || lhs[1] != rhs[1])
+    if (lhs.getKind() != kind::SELECT || lhs[0].getKind() != kind::STORE
+        || rhs.getKind() != kind::SELECT || lhs[1] != rhs[1])
     {
       return Node::null();
     }
