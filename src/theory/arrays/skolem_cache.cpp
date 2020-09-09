@@ -1,0 +1,84 @@
+/*********************                                                        */
+/*! \file skolem_cache.cpp
+ ** \verbatim
+ ** Top contributors (to current version):
+ **   Andrew Reynolds
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
+ **
+ ** \brief Arrays skolem cache
+ **/
+
+#include "theory/arrays/skolem_cache.h"
+
+#include "expr/attribute.h"
+#include "expr/type_node.h"
+
+using namespace CVC4::kind;
+
+namespace CVC4 {
+namespace theory {
+namespace arrays {
+
+/**
+ * A bound variable corresponding to an index for witnessing the satisfiability
+ * of array disequalities.
+ */
+struct ExtIndexVarAttributeId
+{
+};
+typedef expr::Attribute<ExtIndexVarAttributeId, Node> ExtIndexVarAttribute;
+
+
+SkolemCache::SkolemCache()
+{
+}
+
+Node SkolemCache::getExtIndexSkolem(Node a, Node b)
+{
+  Assert (a.getType().isArray());
+  Assert (b.getType()==a.getType());
+  
+  NodeManager * nm = NodeManager::currentNM();
+  
+  // get the reference index, which notice is deterministic for a, b in the
+  // lifetime of the node manager
+  Node x = getExtIndexVar(a, b);
+  
+  // make the axiom for x
+  Node deq = a.eqNode(b).notNode();
+  Node as = nm->mkNode(SELECT, a, x);
+  Node bs = nm->mkNode(SELECT, b, x);
+  Node deqIndex = as.eqNode(bs).notNode();
+  Node axiom = nm->mkNode(IMPLIES, deq, deqIndex);
+  
+  // make the skolem that witnesses the above axiom
+  SkolemManager* sm = nm->getSkolemManager();
+  return sm->mkSkolem(x, axiom, "array_ext_index", "an extensional lemma index variable from the theory of arrays");
+}
+
+Node SkolemCache::getExtIndexVar(Node a, Node b)
+{
+  Node deq = a.eqNode(b).notNode();
+  IndexVarAttribute iva;
+  if (deq.hasAttribute(iva))
+  {
+    return deq.getAttribute(iva);
+  }
+  TypeNode atn = a.getType();
+  Assert (atn.isArray());
+  Assert (atn==b.getType();
+  TypeNode atnIndex = atn.getArrayIndexType();
+  
+  NodeManager* nm = NodeManager::currentNM();
+  Node v = nm->mkBoundVar(atnIndex);
+  deq.setAttribute(iva, v);
+  return v;
+}
+
+}  // namespace arrays
+}  // namespace theory
+}  // namespace CVC4

@@ -1181,37 +1181,26 @@ void TheoryArrays::presolve()
 /////////////////////////////////////////////////////////////////////////////
 
 
-Node TheoryArrays::getSkolem(TNode ref, const string& name, const TypeNode& type, const string& comment, bool makeEqual)
+Node TheoryArrays::getSkolem(TNode ref)
 {
+  // the call to SkolemCache::getExtIndexSkolem should be deterministic, but use cache anyways for now
   Node skolem;
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it = d_skolemCache.find(ref);
   if (it == d_skolemCache.end()) {
-    // TODO: use ref
     NodeManager* nm = NodeManager::currentNM();
-    skolem = nm->mkSkolem(name, type, comment);
+    Assert (ref.getKind()==NOT && ref[0].getKind()==EQUAL);
+    TNode a = ref[0][0];
+    TNode b = ref[0][1];
+    skolem = SkolemCache::getExtIndexSkolem(a, b);
     d_skolemCache[ref] = skolem;
   }
   else {
     skolem = (*it).second;
-    if (d_equalityEngine->hasTerm(ref) && d_equalityEngine->hasTerm(skolem)
-        && d_equalityEngine->areEqual(ref, skolem))
-    {
-      makeEqual = false;
-    }
   }
 
   Debug("pf::array") << "Pregistering a Skolem" << std::endl;
   preRegisterTermInternal(skolem);
   Debug("pf::array") << "Pregistering a Skolem DONE" << std::endl;
-
-  if (makeEqual) {
-    Node d = skolem.eqNode(ref);
-    Debug("arrays-model-based") << "Asserting skolem equality " << d << endl;
-    d_im.assertInference(d, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
-    Assert(!d_state.isInConflict());
-    d_skolemAssertions.push_back(d);
-    d_skolemIndex = d_skolemIndex + 1;
-  }
 
   Debug("pf::array") << "getSkolem DONE" << std::endl;
   return skolem;
@@ -1357,7 +1346,6 @@ void TheoryArrays::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
     if (fact[0][0].getType().isArray() && !d_state.isInConflict())
     {
       NodeManager* nm = NodeManager::currentNM();
-      TypeNode indexType = fact[0][0].getType()[0];
 
       TNode k;
       // k is the skolem for this disequality.
@@ -1365,12 +1353,7 @@ void TheoryArrays::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
                           << std::endl;
 
       // If not in replay mode, generate a fresh skolem variable
-      k = getSkolem(
-          fact,
-          "array_ext_index",
-          indexType,
-          "an extensional lemma index variable from the theory of arrays",
-          false);
+      k = getSkolem(fact);
 
       Node ak = nm->mkNode(kind::SELECT, fact[0][0], k);
       Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
