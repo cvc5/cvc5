@@ -91,8 +91,7 @@ Node RemoveTermFormulas::runInternal(Node assertion,
     {
       // check if we should replace the current node
       Node currt = runCurrent(curr, output, newSkolems);
-      // add to cache, whether null or not
-      d_tfCache.insert(curr, currt);
+        d_tfCache.insert(curr, currt);
       // if null, we need to recurse
       if (currt.isNull())
       {
@@ -110,7 +109,7 @@ Node RemoveTermFormulas::runInternal(Node assertion,
     // otherwise, pop the current node
     ctx.pop();
     // if we have not already computed the result
-    if (itc->second.isNull())
+    if ((*itc).second.isNull())
     {
       std::vector<Node> newChildren;
       bool childChanged = false;
@@ -127,7 +126,7 @@ Node RemoveTermFormulas::runInternal(Node assertion,
         currChild = std::pair<Node, uint32_t>(node[i], val);
         itc = d_tfCache.find(currChild);
         Assert(itc != d_tfCache.end());
-        Node newChild = itc->second;
+        Node newChild = (*itc).second;
         Assert (!newChild.isNull());
         childChanged |= (newChild != node[i]);
         newChildren.push_back(newChild);
@@ -144,7 +143,7 @@ Node RemoveTermFormulas::runInternal(Node assertion,
   }
   itc = d_tfCache.find(initial);
   Assert(itc != d_tfCache.end());
-  return itc->second;
+  return (*itc).second;
 }
 
 Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
