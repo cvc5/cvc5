@@ -773,8 +773,17 @@ Node BVToInt::bvToInt(Node n)
               // translate directly to integers. The children whose types have
               // changed from bv to int should be adjusted back to bv and then
               // this term is reconstructed.
+              TypeNode resultingType;
+              if (current.getType().isBitVector())
+              {
+                resultingType = d_nm->integerType();
+              }
+              else
+              {
+                resultingType = current.getType();
+              }
               Node reconstruction =
-                  reconstructNode(current, d_nm->integerType());
+                  reconstructNode(current, resultingType, translated_children);
               d_bvToIntCache[current] = reconstruction;
               break;
             }
@@ -871,32 +880,28 @@ Node BVToInt::castToType(Node n, TypeNode tn)
   return d_nm->mkNode(kind::BITVECTOR_TO_NAT, n);
 }
 
-Node BVToInt::reconstructNode(Node node, TypeNode tn)
+Node BVToInt::reconstructNode(Node originalNode,
+                              TypeNode resultType,
+                              const vector<Node>& translated_children)
 {
   // first, we adjust the children of the node as needed.
-  vector<Node> adjusted_children;
-  for (const Node& child : node)
-  {
-    Node adjusted_child = castToType(d_bvToIntCache[child], child.getType());
-    adjusted_children.push_back(adjusted_child);
-  }
   // re-construct the term with the adjusted children.
-  kind::Kind_t oldKind = node.getKind();
+  kind::Kind_t oldKind = originalNode.getKind();
   NodeBuilder<> builder(oldKind);
-  if (node.getMetaKind() == kind::metakind::PARAMETERIZED)
+  if (originalNode.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
-    builder << node.getOperator();
+    builder << originalNode.getOperator();
   }
-  for (Node child : adjusted_children)
+  for (uint i = 0; i < originalNode.getNumChildren(); i++)
   {
-    builder << child;
+    Node originalChild = originalNode[i];
+    Node translatedChild = translated_children[i];
+    Node adjustedChild = castToType(translatedChild, originalChild.getType());
+    builder << adjustedChild;
   }
   Node reconstruction = builder.constructNode();
   // cast to tn in case the reconstruction is a bit-vector.
-  if (reconstruction.getType().isBitVector())
-  {
-    reconstruction = castToType(reconstruction, tn);
-  }
+  reconstruction = castToType(reconstruction, resultType);
   return reconstruction;
 }
 

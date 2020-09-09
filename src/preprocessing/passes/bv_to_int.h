@@ -265,7 +265,9 @@ class BVToInt : public PreprocessingPass
    * In this case we case x to (bv2nat x) during
    * the reconstruction.
    */
-  Node reconstructNode(Node node, TypeNode tn);
+  Node reconstructNode(Node originalNode,
+                       TypeNode resultType,
+                       const vector<Node>& translated_children);
 
   /**
    * A useful utility function.
