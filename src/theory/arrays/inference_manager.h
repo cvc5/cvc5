@@ -19,8 +19,8 @@
 
 #include "expr/node.h"
 #include "expr/proof_rule.h"
-#include "theory/theory_inference_manager.h"
 #include "theory/eager_proof_generator.h"
+#include "theory/theory_inference_manager.h"
 
 namespace CVC4 {
 namespace theory {
@@ -50,13 +50,22 @@ class InferenceManager : public TheoryInferenceManager
    * Send lemma (exp => conc) based on proof rule id with properties p. Cache
    * the lemma if doCache is true.
    */
-  bool arrayLemma(Node conc, Node exp, PfRule id, LemmaProperty p = LemmaProperty::NONE, bool doCache = false);
+  bool arrayLemma(Node conc,
+                  Node exp,
+                  PfRule id,
+                  LemmaProperty p = LemmaProperty::NONE,
+                  bool doCache = false);
+
  private:
-  /** 
+  /**
    * Converts a conclusion, explanation and proof rule id used by the array
    * theory to the set of arguments required for a proof rule application.
    */
-  void convert( PfRule& id, Node conc, Node exp, std::vector<Node>& children, std::vector<Node>& args);
+  void convert(PfRule& id,
+               Node conc,
+               Node exp,
+               std::vector<Node>& children,
+               std::vector<Node>& args);
   /** Eager proof generator for lemmas from the above method */
   std::unique_ptr<EagerProofGenerator> d_lemmaPg;
 };

@@ -28,7 +28,10 @@ InferenceManager::InferenceManager(Theory& t,
                                    TheoryState& state,
                                    ProofNodeManager* pnm)
     : TheoryInferenceManager(t, state, pnm),
-    d_lemmaPg( pnm ? new EagerProofGenerator(pnm, state.getUserContext(), "ArrayLemmaProofGenerator") : nullptr)
+      d_lemmaPg(pnm ? new EagerProofGenerator(pnm,
+                                              state.getUserContext(),
+                                              "ArrayLemmaProofGenerator")
+                    : nullptr)
 {
 }
 
@@ -55,12 +58,12 @@ bool InferenceManager::assertInference(TNode atom,
   return assertInternalFact(atom, polarity, reason);
 }
 
-bool InferenceManager::arrayLemma(Node conc, Node exp, PfRule id, LemmaProperty p, bool doCache)
+bool InferenceManager::arrayLemma(
+    Node conc, Node exp, PfRule id, LemmaProperty p, bool doCache)
 {
-  Trace("arrays-infer") << "TheoryArrays::arrayLemma: "
-                        << conc << " by "
-                        << exp << "; " << id << std::endl;
-  NodeManager * nm = NodeManager::currentNM();
+  Trace("arrays-infer") << "TheoryArrays::arrayLemma: " << conc << " by " << exp
+                        << "; " << id << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
   if (isProofEnabled())
   {
     std::vector<Node> children;
@@ -74,23 +77,25 @@ bool InferenceManager::arrayLemma(Node conc, Node exp, PfRule id, LemmaProperty 
   return lemma(lem, p, doCache);
 }
 
-void InferenceManager::convert( PfRule& id, Node conc, Node exp, std::vector<Node>& children, std::vector<Node>& args)
+void InferenceManager::convert(PfRule& id,
+                               Node conc,
+                               Node exp,
+                               std::vector<Node>& children,
+                               std::vector<Node>& args)
 {
   // note that children must contain something equivalent to reason,
   // regardless of the PfRule.
   switch (id)
   {
     case PfRule::MACRO_SR_PRED_INTRO:
-      Assert (exp.isConst());
-      args.push_back(conc); 
+      Assert(exp.isConst());
+      args.push_back(conc);
       break;
     case PfRule::ARRAYS_READ_OVER_WRITE_1:
-      Assert (exp.isConst());
+      Assert(exp.isConst());
       args.push_back(conc[0]);
       break;
-    case PfRule::ARRAYS_EXT:
-      children.push_back(exp);
-      break;
+    case PfRule::ARRAYS_EXT: children.push_back(exp); break;
     case PfRule::ARRAYS_READ_OVER_WRITE:
     default:
       children.push_back(exp);
