@@ -396,9 +396,6 @@ bool InferenceManager::processLemma(InferInfo& ii)
       utils::flattenOp(AND, ecn, noExplain);
     }
   }
-  // update the explanation and no-explain set
-  ii.d_ant = exp;
-  ii.d_noExplain = noExplain;
   // ensure that the proof generator is ready to explain the final conclusion
   // of the lemma (ii.d_conc).
   d_statistics.d_inferences << ii.d_id;
