@@ -116,20 +116,21 @@ class EagerProofGenerator : public ProofGenerator
                         std::shared_ptr<ProofNode> pf,
                         bool isConflict = false);
   /**
-   * Make trust node from a single step proof (with no premises). This is a
-   * convenience function that avoids the need to explictly construct ProofNode
-   * by the caller.
+   * Make trust node from a single step proof. This is a convenience function
+   * that avoids the need to explictly construct ProofNode by the caller.
    *
-   * @param n The proven node,
-   * @param id The rule of the proof concluding n
-   * @param args The arguments to the proof concluding n,
+   * @param conc The conclusion of the rule,
+   * @param id The rule of the proof concluding conc
+   * @param exp The explanation (premises) to the proof concluding conc,
+   * @param args The arguments to the proof concluding conc,
    * @param isConflict Whether the returned trust node is a conflict (otherwise
    * it is a lemma),
    * @return The trust node corresponding to the fact that this generator has
-   * a proof of n.
+   * a proof of (children => exp), or of exp if children is empty.
    */
-  TrustNode mkTrustNode(Node n,
+  TrustNode mkTrustNode(Node conc,
                         PfRule id,
+                        const std::vector<Node>& exp,
                         const std::vector<Node>& args,
                         bool isConflict = false);
   /**

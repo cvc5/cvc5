@@ -52,7 +52,11 @@ TermRegistry::TermRegistry(SolverState& s,
       d_proxyVar(s.getUserContext()),
       d_proxyVarToLength(s.getUserContext()),
       d_lengthLemmaTermsCache(s.getUserContext()),
-      d_epg(nullptr)
+      d_epg(pnm ? new EagerProofGenerator(
+                      pnm,
+                      s.getUserContext(),
+                      "strings::TermRegistry::EagerProofGenerator")
+                : nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
@@ -282,7 +286,7 @@ void TermRegistry::registerTerm(Node n, int effort)
       if (d_epg != nullptr)
       {
         regTermLem = d_epg->mkTrustNode(
-            eagerRedLemma, PfRule::STRING_EAGER_REDUCTION, {n});
+            eagerRedLemma, PfRule::STRING_EAGER_REDUCTION, {}, {n});
       }
       else
       {
@@ -384,7 +388,7 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
   // it is a simple rewrite to justify this
   if (d_epg != nullptr)
   {
-    return d_epg->mkTrustNode(ret, PfRule::MACRO_SR_PRED_INTRO, {ret});
+    return d_epg->mkTrustNode(ret, PfRule::MACRO_SR_PRED_INTRO, {}, {ret});
   }
   return TrustNode::mkTrustLemma(ret, nullptr);
 }
@@ -508,7 +512,7 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
 
   if (d_epg != nullptr)
   {
-    return d_epg->mkTrustNode(lenLemma, PfRule::STRING_LENGTH_POS, {n});
+    return d_epg->mkTrustNode(lenLemma, PfRule::STRING_LENGTH_POS, {}, {n});
   }
   return TrustNode::mkTrustLemma(lenLemma, nullptr);
 }
