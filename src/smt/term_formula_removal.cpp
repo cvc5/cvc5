@@ -75,24 +75,29 @@ Node RemoveTermFormulas::runInternal(Node assertion,
   NodeManager* nm = NodeManager::currentNM();
   TCtxStack ctx(&d_rtfc);
   ctx.pushInitial(assertion);
+  std::pair<Node, uint32_t> curr;
+  Node node;
+  uint32_t nodeVal;
   TermFormulaCache::const_iterator itc;
   while (!ctx.empty())
   {
-    std::pair<Node, uint32_t> curr = ctx.getCurrent();
+    curr = ctx.getCurrent();
     itc = d_tfCache.find(curr);
-    Node node = curr.first;
-    // if first time visiting
+    node = curr.first;
+    nodeVal = curr.second;
+    // if first time visiting the node in this term context
     if (itc == d_tfCache.end())
     {
-      d_tfCache.insert(curr, Node::null());
       // check if we should replace the current node
       Node currt = runCurrent(curr, output, newSkolems);
-      if (currt.isNull())
+      // add to cache, whether null or not
+      d_tfCache.insert(curr, currt);
+      // if null, we need to recurse
+      if (!currt.isNull())
       {
-        // otherwise, visit the children
         for (size_t i = 0, nchild = node.getNumChildren(); i < nchild; i++)
         {
-          ctx.pushChild(node, cval, i);
+          ctx.pushChild(node, nodeVal, i);
         }
       }
       continue;
@@ -102,7 +107,6 @@ Node RemoveTermFormulas::runInternal(Node assertion,
     // if we have not already computed the result
     if (itc->second.isNull())
     {
-      uint32_t nodeVal = curr.second;
       std::vector<Node> newChildren;
       bool childChanged = false;
       if(node.getMetaKind() == kind::metakind::PARAMETERIZED) {
@@ -417,8 +421,6 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
       newSkolems.push_back(skolem);
     }
 
-    // Attach the skolem
-    d_tfCache.insert(curr, skolem);
     // The representation is now the skolem
     return skolem;
   }
