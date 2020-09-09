@@ -49,8 +49,6 @@ class SolverState : public TheoryState
               context::UserContext* u,
               Valuation val,
               SkolemCache& skc);
-  /** Set parent */
-  void setParent(TheorySetsPrivate* p);
   //-------------------------------- initialize per check
   /** reset, clears the data structures maintained by this class. */
   void reset();
@@ -161,7 +159,7 @@ class SolverState : public TheoryState
   /**
    * Is x entailed to be a member of set s in the current context?
    */
-  bool isMember(TNode x, TNode s);
+  bool isMember(TNode x, TNode s) const;
   /**
    * Add member, called when atom is of the form (member x s) where s is in the
    * equivalence class of r.
@@ -180,16 +178,9 @@ class SolverState : public TheoryState
    * This method returns false if a (single) conflict was added to facts, and
    * true otherwise.
    */
-  bool merge(TNode t1, TNode t2, std::vector<Node>& facts, Node cset);
+  bool merge(TNode t1, TNode t2, std::vector<Node>& facts, TNode cset);
 
  private:
-  /**
-   * Map from representatives r of set equivalence classes to atoms of the form
-   * (member x s) where s is in the equivalence class of r.
-   */
-  std::map<Node, std::vector<Node> > d_members_data;
-  /** A (SAT-context-dependent) number of members in the above map */
-  NodeIntMap d_members;
   /** constants */
   Node d_true;
   Node d_false;
@@ -240,7 +231,17 @@ class SolverState : public TheoryState
   /** A list of comprehension sets */
   std::vector<Node> d_allCompSets;
   // -------------------------------- end term indices
+  /** List of operators per kind */
   std::map<Kind, std::vector<Node> > d_op_list;
+  //--------------------------------- SAT-context-dependent member list
+  /**
+   * Map from representatives r of set equivalence classes to atoms of the form
+   * (member x s) where s is in the equivalence class of r.
+   */
+  std::map<Node, std::vector<Node> > d_members_data;
+  /** A (SAT-context-dependent) number of members in the above map */
+  NodeIntMap d_members;
+  //--------------------------------- end
   /** is set disequality entailed internal
    *
    * This returns true if disequality between sets a and b is entailed in the

@@ -35,8 +35,6 @@ SolverState::SolverState(context::Context* c,
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
-void SolverState::setParent(TheorySetsPrivate* p) { d_parent = p; }
-
 void SolverState::reset()
 {
   d_set_eqc.clear();
@@ -249,7 +247,7 @@ bool SolverState::isEntailed(Node n, bool polarity) const
     if (polarity && d_ee->hasTerm(n[1]))
     {
       Node r = d_ee->getRepresentative(n[1]);
-      if (d_parent->isMember(n[0], r))
+      if (isMember(n[0], r))
       {
         return true;
       }
@@ -469,15 +467,19 @@ const vector<Node> SolverState::getSetsEqClasses(const TypeNode& t) const
   return representatives;
 }
 
-bool SolverState::isMember(TNode x, TNode s)
+bool SolverState::isMember(TNode x, TNode s) const
 {
   Assert(hasTerm(s) && getRepresentative(s) == s);
-  NodeIntMap::iterator mem_i = d_members.find(s);
+  NodeIntMap::const_iterator mem_i = d_members.find(s);
   if (mem_i != d_members.end())
   {
-    for (int i = 0; i < (*mem_i).second; i++)
+    std::map<Node, std::vector<Node> >::const_iterator itd = d_members_data.find(s);
+    Assert (itd!=d_members_data.end());
+    const std::vector<Node>& members = itd->second;
+    Assert ((*mem_i).second<=members.size());
+    for (size_t i = 0, nmem = (*mem_i).second; i < nmem; i++)
     {
-      if (areEqual(d_members_data[s][i][0], x))
+      if (areEqual(members[i][0], x))
       {
         return true;
       }
@@ -505,7 +507,7 @@ void SolverState::addMember(TNode r, TNode atom)
   }
 }
 
-void SolverState::merge(TNode t1, TNode t2, std::vector<Node>& facts, Node cset)
+bool SolverState::merge(TNode t1, TNode t2, std::vector<Node>& facts, TNode cset)
 {
   NodeIntMap::iterator mem_i2 = d_members.find(t2);
   if (mem_i2 == d_members.end())
@@ -519,14 +521,14 @@ void SolverState::merge(TNode t1, TNode t2, std::vector<Node>& facts, Node cset)
   {
     n_members = (*mem_i1).second;
   }
-  for (int i = 0; i < (*mem_i2).second; i++)
+  for (size_t i = 0, nmem2 = (*mem_i2).second; i < nmem2; i++)
   {
     Assert(i < d_members_data[t2].size()
            && d_members_data[t2][i].getKind() == MEMBER);
     Node m2 = d_members_data[t2][i];
     // check if redundant
     bool add = true;
-    for (int j = 0; j < n_members; j++)
+    for (size_t j = 0; j < n_members; j++)
     {
       Assert(j < d_members_data[t1].size()
              && d_members_data[t1][j].getKind() == MEMBER);
@@ -538,7 +540,7 @@ void SolverState::merge(TNode t1, TNode t2, std::vector<Node>& facts, Node cset)
     }
     if (add)
     {
-      // if there is a concrete set in t1, we may propagate
+      // if there is a concrete set in t1, propagate new facts or conflicts
       if (!cset.isNull())
       {
         NodeManager* nm = NodeManager::currentNM();

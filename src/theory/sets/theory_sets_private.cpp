@@ -645,7 +645,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
                 if (valid)
                 {
                   Node rr = d_equalityEngine->getRepresentative(term);
-                  if (!isMember(x, rr))
+                  if (!d_state.isMember(x, rr))
                   {
                     Node kk = d_treg.getProxy(term);
                     Node fact = nm->mkNode(kind::MEMBER, x, kk);
@@ -669,7 +669,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
                 {
                   Node x = itm2m.second[0];
                   Node rr = d_equalityEngine->getRepresentative(term);
-                  if (!isMember(x, rr))
+                  if (!d_state.isMember(x, rr))
                   {
                     std::vector<Node> exp;
                     exp.push_back(itm2m.second);
