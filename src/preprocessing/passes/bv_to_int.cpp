@@ -884,7 +884,7 @@ Node BVToInt::reconstructNode(Node node, TypeNode tn)
     builder << child;
   }
   Node reconstruction = builder.constructNode();
-  // cast back to integers if the result is a bit-vector.
+  // cast to tn
   return castToType(reconstruction, tn);
 }
 
