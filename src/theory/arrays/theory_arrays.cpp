@@ -1365,7 +1365,6 @@ void TheoryArrays::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
           && d_equalityEngine->hasTerm(bk))
       {
         // Propagate witness disequality - might produce a conflict
-        d_permRef.push_back(lemma);
         Debug("pf::array") << "Asserting to the equality engine:" << std::endl
                            << "\teq = " << eq << std::endl
                            << "\treason = " << fact << std::endl;
@@ -1376,7 +1375,7 @@ void TheoryArrays::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
       // If this is the solution pass, generate the lemma. Otherwise, don't
       // generate it - as this is the lemma that we're reproving...
       Trace("arrays-lem") << "Arrays::addExtLemma " << lemma << "\n";
-      d_out->lemma(lemma);
+      d_im.arrayLemma(eq.notNode(), fact, PfRule::ARRAYS_EXT);
       ++d_numExt;
     }
     else

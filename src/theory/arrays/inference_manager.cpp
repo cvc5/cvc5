@@ -70,9 +70,11 @@ bool InferenceManager::arrayLemma(
     std::vector<Node> args;
     // convert to proof rule application
     convert(id, conc, exp, children, args);
-    // FIXME
+    // make the trusted lemma based on the eager proof generator and send
+    TrustNode tlem = d_lemmaPg->mkTrustNode(conc, id, children, args);
+    return trustedLemma(tlem, p, doCache);
   }
-  // send lemma without caching
+  // send lemma without proofs
   Node lem = nm->mkNode(IMPLIES, exp, conc);
   return lemma(lem, p, doCache);
 }

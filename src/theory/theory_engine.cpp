@@ -1303,7 +1303,7 @@ theory::TrustNode TheoryEngine::getExplanation(TNode node)
     Node explanation = texplanation.getNode();
     Debug("theory::explain") << "TheoryEngine::getExplanation(" << node
                              << ") => " << explanation << endl;
-    if (options::proofNew())
+    if (isProofEnabled())
     {
       // check if no generator, if so, add THEORY_LEMMA
       if (texplanation.getGenerator() == nullptr)
@@ -1456,7 +1456,7 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
 
   // when proofs are enabled, we ensure the trust node has a generator by
   // adding a trust step to the lazy proof maintained by this class
-  if (options::proofNew())
+  if (isProofEnabled())
   {
     // ensure proof: set THEORY_LEMMA if no generator is provided
     if (tlemma.getGenerator() == nullptr)
@@ -1511,7 +1511,7 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
     if (lemmap != lemma)
     {
       // process the preprocessing
-      if (options::proofNew())
+      if (isProofEnabled())
       {
         Assert(d_lazyProof != nullptr);
         // add the original proof to the lazy proof
@@ -1565,13 +1565,13 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   }
 
   // assert lemmas to prop engine
-  Assert(!options::proofNew() || tlemma.getGenerator() != nullptr);
+  Assert(!isProofEnabled() || tlemma.getGenerator() != nullptr);
   // ensure closed, make the proof node eagerly here to debug
   tlemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma");
   d_propEngine->assertLemma(tlemma, removable);
   for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
   {
-    Assert(!options::proofNew() || newLemmas[i].getGenerator() != nullptr);
+    Assert(!isProofEnabled() || newLemmas[i].getGenerator() != nullptr);
     newLemmas[i].debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_new");
     d_propEngine->assertLemma(newLemmas[i], removable);
   }
@@ -1641,7 +1641,7 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
                             "TheoryEngine::conflict_explained_sharing");
     Node fullConflict = tncExp.getNode();
 
-    if (options::proofNew())
+    if (isProofEnabled())
     {
       Trace("te-proof-debug") << "Process conflict: " << conflict << std::endl;
       Trace("te-proof-debug") << "Conflict " << tconflict << " from "
@@ -2035,6 +2035,12 @@ theory::TrustNode TheoryEngine::getExplanation(
   }
 
   return theory::TrustNode::mkTrustLemma(expNode, nullptr);
+}
+
+
+bool TheoryEngine::isProofEnabled() const
+{
+  return d_pnm!=nullptr;
 }
 
 void TheoryEngine::setUserAttribute(const std::string& attr,
