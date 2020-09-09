@@ -97,6 +97,8 @@ class TheoryInferenceManager
    * since the last call to reset.
    */
   bool hasSent() const;
+  /** Get the underlying proof equality engine */
+  eq::ProofEqEngine* getProofEqEngine();
   //--------------------------------------- propagations
   /**
    * T-propagate literal lit, possibly encountered by equality engine,

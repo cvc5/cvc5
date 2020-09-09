@@ -64,6 +64,11 @@ bool TheoryInferenceManager::hasSent() const
          || d_numCurrentFacts > 0;
 }
 
+eq::ProofEqEngine* TheoryInferenceManager::getProofEqEngine()
+{
+  return d_pfee.get();
+}
+
 void TheoryInferenceManager::conflictEqConstantMerge(TNode a, TNode b)
 {
   if (!d_theoryState.isInConflict())
