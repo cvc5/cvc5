@@ -253,6 +253,7 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {IDEN, CVC4::Kind::IDEN},
     {COMPREHENSION, CVC4::Kind::COMPREHENSION},
     {CHOOSE, CVC4::Kind::CHOOSE},
+    {IS_SINGLETON, CVC4::Kind::IS_SINGLETON},
     /* Strings ------------------------------------------------------------- */
     {STRING_CONCAT, CVC4::Kind::STRING_CONCAT},
     {STRING_IN_REGEXP, CVC4::Kind::STRING_IN_REGEXP},
@@ -542,6 +543,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::IDEN, IDEN},
         {CVC4::Kind::COMPREHENSION, COMPREHENSION},
         {CVC4::Kind::CHOOSE, CHOOSE},
+        {CVC4::Kind::IS_SINGLETON, IS_SINGLETON},
         /* Strings --------------------------------------------------------- */
         {CVC4::Kind::STRING_CONCAT, STRING_CONCAT},
         {CVC4::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},

@@ -110,6 +110,9 @@ TrustNode EagerProofGenerator::mkTrustNode(Node conc,
   CDProof cdp(d_pnm);
   cdp.addStep(conc, id, exp, args);
   std::shared_ptr<ProofNode> pf = cdp.getProofFor(conc);
+  // We use mkNode instead of mkScope, since there is no reason to check
+  // whether the free assumptions of pf are in exp, since they are by the
+  // construction above.
   std::shared_ptr<ProofNode> pfs = d_pnm->mkNode(PfRule::SCOPE, {pf}, exp);
   return mkTrustNode(pfs->getResult(), pfs, isConflict);
 }

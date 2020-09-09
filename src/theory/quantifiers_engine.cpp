@@ -498,19 +498,6 @@ void QuantifiersEngine::ppNotifyAssertions(
       quantifiers::QuantAttributes::setInstantiationLevelAttr(a, 0);
     }
   }
-  if (d_qepr != NULL)
-  {
-    for (const Node& a : assertions)
-    {
-      d_qepr->registerAssertion(a);
-    }
-    // must handle sources of other new constants e.g. separation logic
-    // FIXME (as part of project 3) : cleanup
-    sep::TheorySep* theory_sep =
-        static_cast<sep::TheorySep*>(getTheoryEngine()->theoryOf(THEORY_SEP));
-    theory_sep->initializeBounds();
-    d_qepr->finishInit();
-  }
   if (options::sygus())
   {
     quantifiers::SynthEngine* sye = d_private->d_synth_e.get();

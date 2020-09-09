@@ -205,7 +205,7 @@ Node RemoveTermFormulas::run(TCtxStack& ctx,
     //   http://planetmath.org/hilbertsvarepsilonoperator.
     if (!inQuant || !expr::hasFreeVar(node))
     {
-      // TODO: we can replace by t if body is of the form (and (= z t) ...)
+      // NOTE: we can replace by t if body is of the form (and (= z t) ...)
       skolem = getSkolemForNode(node);
       if (skolem.isNull())
       {
@@ -239,7 +239,6 @@ Node RemoveTermFormulas::run(TCtxStack& ctx,
           // -------------------- SKOLEMIZE
           // node[1] * { x -> skolem }
           ProofGenerator* expg = sm->getProofGenerator(existsAssertion);
-          // TODO: should have more descriptive trust kind
           d_lp->addLazyStep(existsAssertion,
                             expg,
                             true,
@@ -351,8 +350,8 @@ Node RemoveTermFormulas::run(TCtxStack& ctx,
           d_lp->addLazyStep(naEq, d_tpg.get());
           // ---------------- from lp  ------------------------------- from tpg
           // newAssertionPre            newAssertionPre = newAssertion
-          // ---------------------------------------------------------
-          // EQ_RESOLVE newAssertion
+          // ------------------------------------------------------- EQ_RESOLVE
+          // newAssertion
           d_lp->addStep(
               newAssertion, PfRule::EQ_RESOLVE, {newAssertionPre, naEq}, {});
         }

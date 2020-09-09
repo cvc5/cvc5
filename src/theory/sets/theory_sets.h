@@ -22,6 +22,7 @@
 #include <memory>
 
 #include "theory/sets/inference_manager.h"
+#include "theory/sets/skolem_cache.h"
 #include "theory/sets/solver_state.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
@@ -98,6 +99,8 @@ class TheorySets : public Theory
    private:
     TheorySetsPrivate& d_theory;
   };
+  /** The skolem cache */
+  SkolemCache d_skCache;
   /** The state of the sets solver at full effort */
   SolverState d_state;
   /** The inference manager */
