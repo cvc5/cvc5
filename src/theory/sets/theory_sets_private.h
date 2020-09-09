@@ -25,6 +25,7 @@
 #include "theory/sets/cardinality_extension.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/solver_state.h"
+#include "theory/sets/term_registry.h"
 #include "theory/sets/theory_sets_rels.h"
 #include "theory/sets/theory_sets_rewriter.h"
 #include "theory/theory.h"
@@ -149,7 +150,8 @@ class TheorySetsPrivate {
    */
   TheorySetsPrivate(TheorySets& external,
                     SolverState& state,
-                    InferenceManager& im);
+                    InferenceManager& im,
+                    SkolemCache& skc);
 
   ~TheorySetsPrivate();
 
@@ -231,6 +233,10 @@ class TheorySetsPrivate {
   SolverState& d_state;
   /** The inference manager of the sets solver */
   InferenceManager& d_im;
+  /** Reference to the skolem cache */
+  SkolemCache& d_skCache;
+  /** The term registry */
+  TermRegistry d_treg;
 
   /** Pointer to the equality engine of theory of sets */
   eq::EqualityEngine* d_equalityEngine;

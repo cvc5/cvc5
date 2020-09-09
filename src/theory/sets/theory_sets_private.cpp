@@ -36,7 +36,8 @@ namespace sets {
 
 TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
                                      SolverState& state,
-                                     InferenceManager& im)
+                                     InferenceManager& im,
+                                     SkolemCache& skc)
     : d_members(state.getSatContext()),
       d_deq(state.getSatContext()),
       d_termProcessed(state.getUserContext()),
@@ -44,8 +45,10 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
       d_external(external),
       d_state(state),
       d_im(im),
-      d_rels(new TheorySetsRels(d_state, d_im)),
-      d_cardSolver(new CardinalityExtension(d_state, d_im)),
+      d_skCache(skc),
+      d_treg(state, im, skc),
+      d_rels(new TheorySetsRels(state, im, skc, d_treg)),
+      d_cardSolver(new CardinalityExtension(state, im, d_treg)),
       d_rels_enabled(false),
       d_card_enabled(false)
 {
@@ -334,15 +337,21 @@ void TheorySetsPrivate::fullEffortCheck()
         }
         // register it with the state
         d_state.registerTerm(eqc, tnn, n);
-        if (n.getKind() == kind::CARD)
+        Kind nk = n.getKind();
+        if (nk == kind::SINGLETON)
+        {
+          // ensure the proxy has been introduced
+          d_treg.getProxy(n);
+        }
+        else if (nk == kind::CARD)
         {
           d_card_enabled = true;
           // register it with the cardinality solver
           d_cardSolver->registerTerm(n);
           // if we do not handle the kind, set incomplete
-          Kind nk = n[0].getKind();
+          Kind nk0 = n[0].getKind();
           // some kinds of cardinality we cannot handle
-          if (d_rels->isRelationKind(nk))
+          if (d_rels->isRelationKind(nk0))
           {
             d_full_check_incomplete = true;
             Trace("sets-incomplete")
@@ -358,12 +367,9 @@ void TheorySetsPrivate::fullEffortCheck()
             // 4- Supporting cardinality for relations (hard)
           }
         }
-        else
+        else if (d_rels->isRelationKind(nk))
         {
-          if (d_rels->isRelationKind(n.getKind()))
-          {
-            d_rels_enabled = true;
-          }
+          d_rels_enabled = true;
         }
         ++eqc_i;
       }
@@ -501,7 +507,7 @@ void TheorySetsPrivate::checkSubtypes()
           exp.push_back(it2.second);
           Assert(d_state.areEqual(mctt, it2.second[1]));
           exp.push_back(mctt.eqNode(it2.second[1]));
-          Node tc_k = d_state.getTypeConstraintSkolem(it2.first, mct);
+          Node tc_k = d_treg.getTypeConstraintSkolem(it2.first, mct);
           if (!tc_k.isNull())
           {
             Node etc = tc_k.eqNode(it2.first);
@@ -559,7 +565,7 @@ void TheorySetsPrivate::checkDownwardsClosure()
               else
               {
                 // use proxy set
-                Node k = d_state.getProxy(eq_set);
+                Node k = d_treg.getProxy(eq_set);
                 Node pmem =
                     NodeManager::currentNM()->mkNode(kind::MEMBER, mem[0], k);
                 Node nmem = NodeManager::currentNM()->mkNode(
@@ -677,7 +683,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
                   Node rr = d_equalityEngine->getRepresentative(term);
                   if (!isMember(x, rr))
                   {
-                    Node kk = d_state.getProxy(term);
+                    Node kk = d_treg.getProxy(term);
                     Node fact = nm->mkNode(kind::MEMBER, x, kk);
                     d_im.assertInference(fact, exp, "upc", inferType);
                     if (d_state.isInConflict())
@@ -704,7 +710,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
                     std::vector<Node> exp;
                     exp.push_back(itm2m.second);
                     d_state.addEqualityToExp(term[1], itm2m.second[1], exp);
-                    Node r = d_state.getProxy(term);
+                    Node r = d_treg.getProxy(term);
                     Node fact = nm->mkNode(kind::MEMBER, x, r);
                     d_im.assertInference(fact, exp, "upc2");
                     if (d_state.isInConflict())
@@ -750,7 +756,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
               // equivalence class
               if (s != ueqc)
               {
-                u = d_state.getUnivSet(tn);
+                u = d_treg.getUnivSet(tn);
               }
               univ_set[tn] = u;
             }
@@ -819,7 +825,7 @@ void TheorySetsPrivate::checkDisequalities()
     d_termProcessed.insert(deq[1].eqNode(deq[0]));
     Trace("sets") << "Process Disequality : " << deq.negate() << std::endl;
     TypeNode elementType = deq[0].getType().getSetElementType();
-    Node x = d_state.getSkolemCache().mkTypedSkolemCached(
+    Node x = d_skCache.mkTypedSkolemCached(
         elementType, deq[0], deq[1], SkolemCache::SK_DISEQUAL, "sde");
     Node mem1 = nm->mkNode(MEMBER, x, deq[0]);
     Node mem2 = nm->mkNode(MEMBER, x, deq[1]);
