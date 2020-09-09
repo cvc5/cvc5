@@ -134,17 +134,17 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
     if (!d_state.merge(t1, t2, facts, checkSingleton))
     {
       // conflict case
-      Assert (facts.size()==1);
-      Trace("sets-prop")
-          << "Propagate eq-mem conflict : " << facts[0] << std::endl;
+      Assert(facts.size() == 1);
+      Trace("sets-prop") << "Propagate eq-mem conflict : " << facts[0]
+                         << std::endl;
       d_im.conflict(facts[0]);
       return;
     }
     for (const Node& f : facts)
     {
-      Assert (f.getKind()==kind::IMPLIES);
-      Trace("sets-prop") << "Propagate eq-mem eq inference : " << f[0]
-                          << " => " << f[1] << std::endl;
+      Assert(f.getKind() == kind::IMPLIES);
+      Trace("sets-prop") << "Propagate eq-mem eq inference : " << f[0] << " => "
+                         << f[1] << std::endl;
       d_im.assertInternalFact(f[1], true, f[0]);
     }
     /*

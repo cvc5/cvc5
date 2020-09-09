@@ -471,8 +471,7 @@ const vector<Node> SolverState::getSetsEqClasses(const TypeNode& t) const
 
 bool SolverState::isMember(TNode x, TNode s)
 {
-  Assert(hasTerm(s)
-         && getRepresentative(s) == s);
+  Assert(hasTerm(s) && getRepresentative(s) == s);
   NodeIntMap::iterator mem_i = d_members.find(s);
   if (mem_i != d_members.end())
   {
@@ -523,14 +522,14 @@ void SolverState::merge(TNode t1, TNode t2, std::vector<Node>& facts, Node cset)
   for (int i = 0; i < (*mem_i2).second; i++)
   {
     Assert(i < d_members_data[t2].size()
-            && d_members_data[t2][i].getKind() == MEMBER);
+           && d_members_data[t2][i].getKind() == MEMBER);
     Node m2 = d_members_data[t2][i];
     // check if redundant
     bool add = true;
     for (int j = 0; j < n_members; j++)
     {
       Assert(j < d_members_data[t1].size()
-              && d_members_data[t1][j].getKind() == MEMBER);
+             && d_members_data[t1][j].getKind() == MEMBER);
       if (areEqual(m2[0], d_members_data[t1][j][0]))
       {
         add = false;
@@ -542,18 +541,17 @@ void SolverState::merge(TNode t1, TNode t2, std::vector<Node>& facts, Node cset)
       // if there is a concrete set in t1, we may propagate
       if (!cset.isNull())
       {
-        NodeManager * nm = NodeManager::currentNM();
+        NodeManager* nm = NodeManager::currentNM();
         Assert(m2[1].getType().isComparableTo(cset.getType()));
         Assert(areEqual(m2[1], cset));
-        Node exp = nm->mkNode(
-            AND, m2[1].eqNode(cset), m2);
+        Node exp = nm->mkNode(AND, m2[1].eqNode(cset), m2);
         if (cset.getKind() == SINGLETON)
         {
           if (cset[0] != m2[0])
           {
             Node eq = cset[0].eqNode(m2[0]);
             Trace("sets-prop") << "Propagate eq-mem eq inference : " << exp
-                                << " => " << eq << std::endl;
+                               << " => " << eq << std::endl;
             Node fact = nm->mkNode(IMPLIES, exp, eq);
             facts.push_back(fact);
           }
@@ -561,7 +559,7 @@ void SolverState::merge(TNode t1, TNode t2, std::vector<Node>& facts, Node cset)
         else
         {
           // conflict
-          Assert (facts.empty());
+          Assert(facts.empty());
           Trace("sets-prop")
               << "Propagate eq-mem conflict : " << exp << std::endl;
           facts.push_back(exp);
@@ -582,7 +580,7 @@ void SolverState::merge(TNode t1, TNode t2, std::vector<Node>& facts, Node cset)
   d_members[t1] = n_members;
   return true;
 }
-    
+
 }  // namespace sets
 }  // namespace theory
 }  // namespace CVC4

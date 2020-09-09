@@ -42,7 +42,8 @@ class TheorySetsPrivate;
  */
 class SolverState : public TheoryState
 {
-  typedef context::CDHashMap< Node, size_t, NodeHashFunction> NodeIntMap;
+  typedef context::CDHashMap<Node, size_t, NodeHashFunction> NodeIntMap;
+
  public:
   SolverState(context::Context* c,
               context::UserContext* u,
@@ -156,9 +157,9 @@ class SolverState : public TheoryState
   const std::map<Kind, std::vector<Node> >& getOperatorList() const;
   /** Get the list of all comprehension sets in the current context */
   const std::vector<Node>& getComprehensionSets() const;
-  
-  /** 
-   * Is x entailed to be a member of set s in the current context? 
+
+  /**
+   * Is x entailed to be a member of set s in the current context?
    */
   bool isMember(TNode x, TNode s);
   /**
@@ -169,23 +170,24 @@ class SolverState : public TheoryState
   /**
    * Called when equivalence classes t1 and t2 merge. This updates the
    * membership lists, adding members of t2 into t1.
-   * 
+   *
    * If cset is non-null, then this is a singleton or empty set in the
    * equivalence class of t1 where moreover t2 has no singleton or empty sets.
    * When this is the case, notice that all members of t2 should be made equal
    * to the element that cset contains, or we are in conflict if cset is the
    * empty set. These conclusions are added to facts.
-   * 
+   *
    * This method returns false if a (single) conflict was added to facts, and
    * true otherwise.
    */
   bool merge(TNode t1, TNode t2, std::vector<Node>& facts, Node cset);
+
  private:
-  /** 
+  /**
    * Map from representatives r of set equivalence classes to atoms of the form
    * (member x s) where s is in the equivalence class of r.
    */
-  std::map< Node, std::vector< Node > > d_members_data;
+  std::map<Node, std::vector<Node> > d_members_data;
   /** A (SAT-context-dependent) number of members in the above map */
   NodeIntMap d_members;
   /** constants */
