@@ -701,6 +701,7 @@ Node BVToInt::bvToInt(Node n)
               }
               else
               {
+                // The function symbol has not been converted yet
                 vector<TypeNode> bvDomain = tn.getArgTypes();
                 vector<TypeNode> intDomain;
                 /**
@@ -725,48 +726,11 @@ Node BVToInt::bvToInt(Node n)
                 // Insert the function symbol itself to the cache
                 d_bvToIntCache[bvUF] = intUF;
 
-                // construct the new function application
-                // In addition, create formal arguments (called `args` below)
-                // and use them in a `define-fun` for the new function.
-
-                Node intApplication;
-                vector<Node> achildren;
-                achildren.push_back(intUF);
-                int i = 0;
-                vector<Expr> args;
-                for (TypeNode d : bvDomain)
-                {
-                  // Each bit-vector argument is casted to a natural number
-                  // using BITVECTOR_TO_NAT operator.
-                  // Other arguments are left intact.
-
-                  Node fresh_bound_var = d_nm->mkBoundVar(d);
-                  args.push_back(fresh_bound_var.toExpr());
-                  if (d.isBitVector())
-                  {
-                    achildren.push_back(
-                        d_nm->mkNode(kind::BITVECTOR_TO_NAT, args[i]));
-                  }
-                  else
-                  {
-                    achildren.push_back(args[i]);
-                  }
-                  i++;
-                }
-                intApplication = d_nm->mkNode(kind::APPLY_UF, achildren);
-                // If the range is BV, the application is casted to
-                //  integers using BITVECTOR_TO_NAT.
-                if (bvRange.isBitVector())
-                {
-                  uint64_t bvsize = bvRange.getBitVectorSize();
-                  Node intToBVOp =
-                      d_nm->mkConst<IntToBitVector>(IntToBitVector(bvsize));
-                  intApplication = d_nm->mkNode(intToBVOp, intApplication);
-                }
-                smt::currentSmtEngine()->defineFunction(
-                    bvUF.toExpr(), args, intApplication.toExpr(), true);
+                // define-fun in the smt-engine to keep
+                // the correspondence between the original
+                // function symbol and the new one.
+                defineBVUFAsIntUF(bvUF);
               }
-
               /**
                * higher order logic allows comparing between functions
                * The current translation does not support this,
@@ -821,6 +785,35 @@ Node BVToInt::bvToInt(Node n)
   return d_bvToIntCache[n];
 }
 
+void BVToInt::defineBVUFAsIntUF(Node bvUF)
+{
+  Assert(d_bvToIntCache.find(bvUF) != d_bvToIntCache.end());
+  Node intUF = d_bvToIntCache[bvUF];
+  TypeNode tn = bvUF.getType();
+  vector<TypeNode> bvDomain = tn.getArgTypes();
+  TypeNode bvRange = tn.getRangeType();
+  Node intApplication;
+  vector<Node> achildren;
+  achildren.push_back(intUF);
+  int i = 0;
+  vector<Expr> args;
+  for (TypeNode d : bvDomain)
+  {
+    // Each bit-vector argument is casted to a natural number
+    // Other arguments are left intact.
+    Node fresh_bound_var = d_nm->mkBoundVar(d);
+    args.push_back(fresh_bound_var.toExpr());
+    Node casted_arg = castIfNeeded(args[i], d_nm->integerType());
+    achildren.push_back(casted_arg);
+    i++;
+  }
+  intApplication = d_nm->mkNode(kind::APPLY_UF, achildren);
+  // If the range is BV, the application needs to be casted back.
+  intApplication = castIfNeeded(intApplication, bvRange);
+  smt::currentSmtEngine()->defineFunction(
+      bvUF.toExpr(), args, intApplication.toExpr(), true);
+}
+
 bool BVToInt::childrenTypesChanged(Node n)
 {
   bool result = false;
@@ -837,28 +830,44 @@ bool BVToInt::childrenTypesChanged(Node n)
   return result;
 }
 
-Node BVToInt::adjustNode(Node node)
+Node BVToInt::castIfNeeded(Node n, TypeNode tn)
 {
-  // A node to store the result of the function
-  Node adjustedNode;
-  TypeNode originalType = node.getType();
-  Node translated_node = d_bvToIntCache[node];
-  TypeNode newType = translated_node.getType();
-  if (newType.isSubtypeOf(originalType))
+  if (!n.getType().isBitVector() && !n.getType().isInteger())
   {
-    // type has not changed. The original node remains the same.
-    adjustedNode = translated_node;
+    return n;
+  }
+  if (tn.isSubtypeOf(n.getType()))
+  {
+    return n;
+  }
+  if (n.getType().isBitVector() && tn.isBitVector())
+  {
+    return n;
+  }
+  if (n.getType().isInteger() && tn.isInteger())
+  {
+    return n;
+  }
+  // both types are either BV or integer,
+  // but they are not the same.
+  return castToType(n, tn);
+}
+
+Node BVToInt::castToType(Node n, TypeNode tn)
+{
+  if (n.getType().isInteger())
+  {
+    Assert(tn.isBitVector());
+    unsigned bvsize = tn.getBitVectorSize();
+    Node intToBVOp = d_nm->mkConst<IntToBitVector>(IntToBitVector(bvsize));
+    return d_nm->mkNode(intToBVOp, n);
   }
   else
   {
-    // type has changed. The original node is adjusted.
-    Assert(originalType.isBitVector());
-    Assert(newType.isInteger());
-    uint64_t bvsize = originalType.getBitVectorSize();
-    Node intToBVOp = d_nm->mkConst<IntToBitVector>(IntToBitVector(bvsize));
-    adjustedNode = d_nm->mkNode(intToBVOp, translated_node);
+    Assert(n.getType().isBitVector());
+    Assert(tn.isInteger());
+    return d_nm->mkNode(kind::BITVECTOR_TO_NAT, n);
   }
-  return adjustedNode;
 }
 
 Node BVToInt::reconstructNode(Node node)
@@ -867,7 +876,7 @@ Node BVToInt::reconstructNode(Node node)
   vector<Node> adjusted_children;
   for (Node child : node)
   {
-    Node adjusted_child = adjustNode(child);
+    Node adjusted_child = castIfNeeded(d_bvToIntCache[child], child.getType());
     adjusted_children.push_back(adjusted_child);
   }
   // re-construct the term with the adjusted children.
@@ -883,11 +892,7 @@ Node BVToInt::reconstructNode(Node node)
   }
   Node reconstruction = builder.constructNode();
   // cast back to integers if the result is a bit-vector.
-  if (reconstruction.getType().isBitVector())
-  {
-    reconstruction = d_nm->mkNode(kind::BITVECTOR_TO_NAT, reconstruction);
-  }
-  return reconstruction;
+  return castIfNeeded(reconstruction, d_nm->integerType());
 }
 
 BVToInt::BVToInt(PreprocessingPassContext* preprocContext)

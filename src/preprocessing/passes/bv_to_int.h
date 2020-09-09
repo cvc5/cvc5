@@ -271,8 +271,11 @@ class BVToInt : public PreprocessingPass
    * Does the actual casting between bit-vectors
    * and integers.
    */
-  Node adjustNode(Node node);
+  Node castToType(Node n, TypeNode tn);
 
+  Node castIfNeeded(Node n, TypeNode tn);
+
+  void defineBVUFAsIntUF(Node bvUF);
   /**
    * Caches for the different functions
    */
