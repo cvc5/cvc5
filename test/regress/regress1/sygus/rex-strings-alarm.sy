@@ -3,7 +3,6 @@
 
 (set-logic S)
 
-(set-option :sygus-out status-and-def)
 (set-option :sygus-rec-fun true)
 (set-option :e-matching false)
 
