@@ -27,7 +27,8 @@ namespace arrays {
 InferenceManager::InferenceManager(Theory& t,
                                    TheoryState& state,
                                    ProofNodeManager* pnm)
-    : TheoryInferenceManager(t, state, pnm)
+    : TheoryInferenceManager(t, state, pnm),
+    d_lemmaPg( pnm ? new EagerProofGenerator(pnm, state.getUserContext(), "ArrayLemmaProofGenerator") : nullptr)
 {
 }
 
@@ -47,26 +48,56 @@ bool InferenceManager::assertInference(TNode atom,
     Node fact = polarity ? Node(atom) : atom.notNode();
     std::vector<Node> children;
     std::vector<Node> args;
-    switch (id)
-    {
-      case PfRule::MACRO_SR_PRED_INTRO: args.push_back(fact); break;
-      case PfRule::ARRAYS_READ_OVER_WRITE_1:
-        Assert(polarity);
-        args.push_back(atom[0]);
-        break;
-      case PfRule::ARRAYS_READ_OVER_WRITE:
-      case PfRule::ARRAYS_EXT:
-      default:
-        children.push_back(reason);
-        args.push_back(fact);
-        id = PfRule::ARRAYS_TRUST;
-        break;
-    }
-    // note that children must contain something equivalent to reason,
-    // regardless of the PfRule.
+    // convert to proof rule application
+    convert(id, fact, reason, children, args);
     return assertInternalFact(atom, polarity, id, children, args);
   }
   return assertInternalFact(atom, polarity, reason);
+}
+
+bool InferenceManager::arrayLemma(Node conc, Node exp, PfRule id, LemmaProperty p, bool doCache)
+{
+  Trace("arrays-infer") << "TheoryArrays::arrayLemma: "
+                        << conc << " by "
+                        << exp << "; " << id << std::endl;
+  NodeManager * nm = NodeManager::currentNM();
+  if (isProofEnabled())
+  {
+    std::vector<Node> children;
+    std::vector<Node> args;
+    // convert to proof rule application
+    convert(id, conc, exp, children, args);
+    // FIXME
+  }
+  // send lemma without caching
+  Node lem = nm->mkNode(IMPLIES, exp, conc);
+  return lemma(lem, p, doCache);
+}
+
+void InferenceManager::convert( PfRule& id, Node conc, Node exp, std::vector<Node>& children, std::vector<Node>& args)
+{
+  // note that children must contain something equivalent to reason,
+  // regardless of the PfRule.
+  switch (id)
+  {
+    case PfRule::MACRO_SR_PRED_INTRO:
+      Assert (exp.isConst());
+      args.push_back(conc); 
+      break;
+    case PfRule::ARRAYS_READ_OVER_WRITE_1:
+      Assert (exp.isConst());
+      args.push_back(conc[0]);
+      break;
+    case PfRule::ARRAYS_EXT:
+      children.push_back(exp);
+      break;
+    case PfRule::ARRAYS_READ_OVER_WRITE:
+    default:
+      children.push_back(exp);
+      args.push_back(conc);
+      id = PfRule::ARRAYS_TRUST;
+      break;
+  }
 }
 
 }  // namespace arrays
