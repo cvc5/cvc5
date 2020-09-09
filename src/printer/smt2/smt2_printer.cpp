@@ -661,6 +661,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::REGEXP_RANGE:
   case kind::REGEXP_LOOP:
   case kind::REGEXP_COMPLEMENT:
+  case kind::REGEXP_DIFF:
   case kind::REGEXP_EMPTY:
   case kind::REGEXP_SIGMA:
   case kind::SEQ_UNIT:
@@ -1242,6 +1243,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::REGEXP_RANGE: return "re.range";
   case kind::REGEXP_LOOP: return "re.loop";
   case kind::REGEXP_COMPLEMENT: return "re.comp";
+  case kind::REGEXP_DIFF: return "re.diff";
   case kind::SEQUENCE_TYPE: return "Seq";
   case kind::SEQ_UNIT: return "seq.unit";
   case kind::SEQ_NTH: return "seq.nth";
