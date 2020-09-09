@@ -26,7 +26,7 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-EagerBitblastSolver::EagerBitblastSolver(context::Context* c, TheoryBV* bv)
+EagerBitblastSolver::EagerBitblastSolver(context::Context* c, BVSolverLazy* bv)
     : d_assertionSet(c),
       d_assumptionSet(c),
       d_context(c),

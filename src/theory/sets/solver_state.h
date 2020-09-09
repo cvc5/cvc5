@@ -20,7 +20,6 @@
 #include <map>
 #include <vector>
 
-#include "context/cdhashset.h"
 #include "theory/sets/skolem_cache.h"
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
@@ -33,10 +32,8 @@ class TheorySetsPrivate;
 
 /** Sets state
  *
- * The purpose of this class is to:
- * (1) Maintain information concerning the current set of assertions during a
- * full effort check,
- * (2) Maintain a database of commonly used terms.
+ * The purpose of this class is to maintain information concerning the current
+ * set of assertions during a full effort check.
  *
  * During a full effort check, the solver for theory of sets should call:
  *   reset; ( registerEqc | registerTerm )*
@@ -45,13 +42,13 @@ class TheorySetsPrivate;
  */
 class SolverState : public TheoryState
 {
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
-
  public:
-  SolverState(TheorySetsPrivate& p,
-              context::Context* c,
+  SolverState(context::Context* c,
               context::UserContext* u,
-              Valuation val);
+              Valuation val,
+              SkolemCache& skc);
+  /** Set parent */
+  void setParent(TheorySetsPrivate* p);
   //-------------------------------- initialize per check
   /** reset, clears the data structures maintained by this class. */
   void reset();
@@ -159,44 +156,6 @@ class SolverState : public TheoryState
   /** Get the list of all comprehension sets in the current context */
   const std::vector<Node>& getComprehensionSets() const;
 
-  // --------------------------------------- commonly used terms
-  /** Get type constraint skolem
-   *
-   * The sets theory solver outputs equality lemmas of the form:
-   *   n = d_tc_skolem[n][tn]
-   * where the type of d_tc_skolem[n][tn] is tn, and the type
-   * of n is not a subtype of tn. This is required to handle benchmarks like
-   *   test/regress/regress0/sets/sets-of-sets-subtypes.smt2
-   * where for s : (Set Int) and t : (Set Real), we have that
-   *   ( s = t ^ y in t ) implies ( exists k : Int. y = k )
-   * The type constraint Skolem for (y, Int) is the skolemization of k above.
-   */
-  Node getTypeConstraintSkolem(Node n, TypeNode tn);
-  /** get the proxy variable for set n
-   *
-   * Proxy variables are used to communicate information that otherwise would
-   * not be possible due to rewriting. For example, the literal
-   *   card( singleton( 0 ) ) = 1
-   * is rewritten to true. Instead, to communicate this fact (e.g. to other
-   * theories), we require introducing a proxy variable x for singleton( 0 ).
-   * Then:
-   *   card( x ) = 1 ^ x = singleton( 0 )
-   * communicates the equivalent of the above literal.
-   */
-  Node getProxy(Node n);
-  /** Get the empty set of type tn */
-  Node getEmptySet(TypeNode tn);
-  /** Get the universe set of type tn if it exists or create a new one */
-  Node getUnivSet(TypeNode tn);
-  /**
-   * Get the skolem cache of this theory, which manages a database of introduced
-   * skolem variables used for various inferences.
-   */
-  SkolemCache& getSkolemCache() { return d_skCache; }
-  // --------------------------------------- end commonly used terms
-  /** debug print set */
-  void debugPrintSet(Node s, const char* c) const;
-
  private:
   /** constants */
   Node d_true;
@@ -204,8 +163,10 @@ class SolverState : public TheoryState
   /** the empty vector and map */
   std::vector<Node> d_emptyVec;
   std::map<Node, Node> d_emptyMap;
-  /** Reference to the parent theory of sets */
-  TheorySetsPrivate& d_parent;
+  /** Reference to skolem cache */
+  SkolemCache& d_skCache;
+  /** Pointer to the parent theory of sets */
+  TheorySetsPrivate* d_parent;
   /** The list of all equivalence classes of type set in the current context */
   std::vector<Node> d_set_eqc;
   /** Maps types to the equivalence class containing empty set of that type */
@@ -229,18 +190,6 @@ class SolverState : public TheoryState
    * to their negative memberships.
    */
   std::map<Node, std::map<Node, Node> > d_pol_mems[2];
-  // --------------------------------------- commonly used terms
-  /** Map from set terms to their proxy variables */
-  NodeMap d_proxy;
-  /** Backwards map of above */
-  NodeMap d_proxy_to_term;
-  /** Cache of type constraint skolems (see getTypeConstraintSkolem) */
-  std::map<Node, std::map<TypeNode, Node> > d_tc_skolem;
-  /** Map from types to empty set of that type */
-  std::map<TypeNode, Node> d_emptyset;
-  /** Map from types to universe set of that type */
-  std::map<TypeNode, Node> d_univset;
-  // --------------------------------------- end commonly used terms
   // -------------------------------- term indices
   /** Term index for MEMBER
    *
@@ -261,8 +210,6 @@ class SolverState : public TheoryState
   std::vector<Node> d_allCompSets;
   // -------------------------------- end term indices
   std::map<Kind, std::vector<Node> > d_op_list;
-  /** the skolem cache */
-  SkolemCache d_skCache;
   /** is set disequality entailed internal
    *
    * This returns true if disequality between sets a and b is entailed in the

@@ -35,19 +35,20 @@ namespace theory {
 namespace sets {
 
 TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
-                                     context::Context* c,
-                                     context::UserContext* u,
-                                     Valuation valuation)
-    : d_members(c),
-      d_deq(c),
-      d_termProcessed(u),
-      d_keep(c),
+                                     SolverState& state,
+                                     InferenceManager& im,
+                                     SkolemCache& skc)
+    : d_members(state.getSatContext()),
+      d_deq(state.getSatContext()),
+      d_termProcessed(state.getUserContext()),
       d_full_check_incomplete(false),
       d_external(external),
-      d_state(*this, c, u, valuation),
-      d_im(*this, d_state, c, u),
-      d_rels(new TheorySetsRels(d_state, d_im, u)),
-      d_cardSolver(new CardinalityExtension(d_state, d_im, c, u)),
+      d_state(state),
+      d_im(im),
+      d_skCache(skc),
+      d_treg(state, im, skc),
+      d_rels(new TheorySetsRels(state, im, skc, d_treg)),
+      d_cardSolver(new CardinalityExtension(state, im, d_treg)),
       d_rels_enabled(false),
       d_card_enabled(false)
 {
@@ -104,9 +105,7 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
             // infer equality between elements of singleton
             Node exp = s1.eqNode(s2);
             Node eq = s1[0].eqNode(s2[0]);
-            d_keep.insert(exp);
-            d_keep.insert(eq);
-            assertFact(eq, exp);
+            d_im.assertInternalFact(eq, true, exp);
           }
           else
           {
@@ -166,11 +165,9 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
               if (s1[0] != m2[0])
               {
                 Node eq = s1[0].eqNode(m2[0]);
-                d_keep.insert(exp);
-                d_keep.insert(eq);
                 Trace("sets-prop") << "Propagate eq-mem eq inference : " << exp
                                    << " => " << eq << std::endl;
-                assertFact(eq, exp);
+                d_im.assertInternalFact(eq, true, exp);
               }
             }
             else
@@ -270,29 +267,6 @@ bool TheorySetsPrivate::isMember(Node x, Node s)
   return false;
 }
 
-bool TheorySetsPrivate::assertFact(Node fact, Node exp)
-{
-  Trace("sets-assert") << "TheorySets::assertFact : " << fact
-                       << ", exp = " << exp << std::endl;
-  bool polarity = fact.getKind() != kind::NOT;
-  TNode atom = polarity ? fact : fact[0];
-  if (d_state.isEntailed(atom, polarity))
-  {
-    return false;
-  }
-  if (atom.getKind() == kind::EQUAL)
-  {
-    d_equalityEngine->assertEquality(atom, polarity, exp);
-  }
-  else
-  {
-    d_equalityEngine->assertPredicate(atom, polarity, exp);
-  }
-  // call the notify new fact method
-  notifyFact(atom, polarity, exp);
-  return true;
-}
-
 void TheorySetsPrivate::fullEffortReset()
 {
   Assert(d_equalityEngine->consistent());
@@ -305,6 +279,7 @@ void TheorySetsPrivate::fullEffortReset()
   d_state.reset();
   // reset the inference manager
   d_im.reset();
+  d_im.clearPendingLemmas();
   // reset the cardinality solver
   d_cardSolver->reset();
 }
@@ -314,7 +289,7 @@ void TheorySetsPrivate::fullEffortCheck()
   Trace("sets") << "----- Full effort check ------" << std::endl;
   do
   {
-    Assert(!d_im.hasPendingLemmas() || d_im.hasProcessed());
+    Assert(!d_im.hasPendingLemma() || d_im.hasSent());
 
     Trace("sets") << "...iterate full effort check..." << std::endl;
     fullEffortReset();
@@ -362,15 +337,21 @@ void TheorySetsPrivate::fullEffortCheck()
         }
         // register it with the state
         d_state.registerTerm(eqc, tnn, n);
-        if (n.getKind() == kind::CARD)
+        Kind nk = n.getKind();
+        if (nk == kind::SINGLETON)
+        {
+          // ensure the proxy has been introduced
+          d_treg.getProxy(n);
+        }
+        else if (nk == kind::CARD)
         {
           d_card_enabled = true;
           // register it with the cardinality solver
           d_cardSolver->registerTerm(n);
           // if we do not handle the kind, set incomplete
-          Kind nk = n[0].getKind();
+          Kind nk0 = n[0].getKind();
           // some kinds of cardinality we cannot handle
-          if (d_rels->isRelationKind(nk))
+          if (d_rels->isRelationKind(nk0))
           {
             d_full_check_incomplete = true;
             Trace("sets-incomplete")
@@ -386,12 +367,9 @@ void TheorySetsPrivate::fullEffortCheck()
             // 4- Supporting cardinality for relations (hard)
           }
         }
-        else
+        else if (d_rels->isRelationKind(nk))
         {
-          if (d_rels->isRelationKind(n.getKind()))
-          {
-            d_rels_enabled = true;
-          }
+          d_rels_enabled = true;
         }
         ++eqc_i;
       }
@@ -419,7 +397,7 @@ void TheorySetsPrivate::fullEffortCheck()
 
     // We may have sent lemmas while registering the terms in the loop above,
     // e.g. the cardinality solver.
-    if (d_im.hasProcessed())
+    if (d_im.hasSent())
     {
       continue;
     }
@@ -448,36 +426,36 @@ void TheorySetsPrivate::fullEffortCheck()
     }
     // check subtypes
     checkSubtypes();
-    d_im.flushPendingLemmas(true);
-    if (d_im.hasProcessed())
+    d_im.doPendingLemmas();
+    if (d_im.hasSent())
     {
       continue;
     }
     // check downwards closure
     checkDownwardsClosure();
-    d_im.flushPendingLemmas();
-    if (d_im.hasProcessed())
+    d_im.doPendingLemmas();
+    if (d_im.hasSent())
     {
       continue;
     }
     // check upwards closure
     checkUpwardsClosure();
-    d_im.flushPendingLemmas();
-    if (d_im.hasProcessed())
+    d_im.doPendingLemmas();
+    if (d_im.hasSent())
     {
       continue;
     }
     // check disequalities
     checkDisequalities();
-    d_im.flushPendingLemmas();
-    if (d_im.hasProcessed())
+    d_im.doPendingLemmas();
+    if (d_im.hasSent())
     {
       continue;
     }
     // check reduce comprehensions
     checkReduceComprehensions();
-    d_im.flushPendingLemmas();
-    if (d_im.hasProcessed())
+    d_im.doPendingLemmas();
+    if (d_im.hasSent())
     {
       continue;
     }
@@ -485,7 +463,7 @@ void TheorySetsPrivate::fullEffortCheck()
     {
       // call the check method of the cardinality solver
       d_cardSolver->check();
-      if (d_im.hasProcessed())
+      if (d_im.hasSent())
       {
         continue;
       }
@@ -496,8 +474,8 @@ void TheorySetsPrivate::fullEffortCheck()
       d_rels->check(Theory::EFFORT_FULL);
     }
   } while (!d_im.hasSentLemma() && !d_state.isInConflict()
-           && d_im.hasAddedFact());
-  Assert(!d_im.hasPendingLemmas() || d_im.hasProcessed());
+           && d_im.hasSentFact());
+  Assert(!d_im.hasPendingLemma() || d_im.hasSent());
   Trace("sets") << "----- End full effort check, conflict="
                 << d_state.isInConflict() << ", lemma=" << d_im.hasSentLemma()
                 << std::endl;
@@ -529,7 +507,7 @@ void TheorySetsPrivate::checkSubtypes()
           exp.push_back(it2.second);
           Assert(d_state.areEqual(mctt, it2.second[1]));
           exp.push_back(mctt.eqNode(it2.second[1]));
-          Node tc_k = d_state.getTypeConstraintSkolem(it2.first, mct);
+          Node tc_k = d_treg.getTypeConstraintSkolem(it2.first, mct);
           if (!tc_k.isNull())
           {
             Node etc = tc_k.eqNode(it2.first);
@@ -587,7 +565,7 @@ void TheorySetsPrivate::checkDownwardsClosure()
               else
               {
                 // use proxy set
-                Node k = d_state.getProxy(eq_set);
+                Node k = d_treg.getProxy(eq_set);
                 Node pmem =
                     NodeManager::currentNM()->mkNode(kind::MEMBER, mem[0], k);
                 Node nmem = NodeManager::currentNM()->mkNode(
@@ -705,7 +683,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
                   Node rr = d_equalityEngine->getRepresentative(term);
                   if (!isMember(x, rr))
                   {
-                    Node kk = d_state.getProxy(term);
+                    Node kk = d_treg.getProxy(term);
                     Node fact = nm->mkNode(kind::MEMBER, x, kk);
                     d_im.assertInference(fact, exp, "upc", inferType);
                     if (d_state.isInConflict())
@@ -732,7 +710,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
                     std::vector<Node> exp;
                     exp.push_back(itm2m.second);
                     d_state.addEqualityToExp(term[1], itm2m.second[1], exp);
-                    Node r = d_state.getProxy(term);
+                    Node r = d_treg.getProxy(term);
                     Node fact = nm->mkNode(kind::MEMBER, x, r);
                     d_im.assertInference(fact, exp, "upc2");
                     if (d_state.isInConflict())
@@ -748,7 +726,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
       }
     }
   }
-  if (!d_im.hasProcessed())
+  if (!d_im.hasSent())
   {
     if (options::setsExt())
     {
@@ -778,7 +756,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
               // equivalence class
               if (s != ueqc)
               {
-                u = d_state.getUnivSet(tn);
+                u = d_treg.getUnivSet(tn);
               }
               univ_set[tn] = u;
             }
@@ -847,15 +825,15 @@ void TheorySetsPrivate::checkDisequalities()
     d_termProcessed.insert(deq[1].eqNode(deq[0]));
     Trace("sets") << "Process Disequality : " << deq.negate() << std::endl;
     TypeNode elementType = deq[0].getType().getSetElementType();
-    Node x = d_state.getSkolemCache().mkTypedSkolemCached(
+    Node x = d_skCache.mkTypedSkolemCached(
         elementType, deq[0], deq[1], SkolemCache::SK_DISEQUAL, "sde");
     Node mem1 = nm->mkNode(MEMBER, x, deq[0]);
     Node mem2 = nm->mkNode(MEMBER, x, deq[1]);
     Node lem = nm->mkNode(OR, deq, nm->mkNode(EQUAL, mem1, mem2).negate());
     lem = Rewriter::rewrite(lem);
     d_im.assertInference(lem, d_true, "diseq", 1);
-    d_im.flushPendingLemmas();
-    if (d_im.hasProcessed())
+    d_im.doPendingLemmas();
+    if (d_im.hasSent())
     {
       return;
     }
@@ -893,7 +871,7 @@ void TheorySetsPrivate::checkReduceComprehensions()
         nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, v), body.eqNode(mem));
     Trace("sets-comprehension")
         << "Comprehension reduction: " << lem << std::endl;
-    d_im.flushLemma(lem);
+    d_im.lemma(lem);
   }
 }
 
@@ -922,12 +900,6 @@ void TheorySetsPrivate::postCheck(Theory::Effort level)
   Trace("sets-check") << "Sets finish Check effort " << level << std::endl;
 }
 
-bool TheorySetsPrivate::preNotifyFact(TNode atom, bool polarity, TNode fact)
-{
-  // use entailment check (is this necessary?)
-  return d_state.isEntailed(atom, polarity);
-}
-
 void TheorySetsPrivate::notifyFact(TNode atom, bool polarity, TNode fact)
 {
   if (d_state.isInConflict())
@@ -946,16 +918,14 @@ void TheorySetsPrivate::notifyFact(TNode atom, bool polarity, TNode fact)
       {
         Node pexp = NodeManager::currentNM()->mkNode(
             kind::AND, atom, atom[1].eqNode(s));
-        d_keep.insert(pexp);
         if (s.getKind() == kind::SINGLETON)
         {
           if (s[0] != atom[0])
           {
             Trace("sets-prop") << "Propagate mem-eq : " << pexp << std::endl;
             Node eq = s[0].eqNode(atom[0]);
-            d_keep.insert(eq);
             // triggers an internal inference
-            assertFact(eq, pexp);
+            d_im.assertInternalFact(eq, true, pexp);
           }
         }
         else
@@ -1427,35 +1397,88 @@ TrustNode TheorySetsPrivate::expandDefinition(Node node)
 {
   Debug("sets-proc") << "expandDefinition : " << node << std::endl;
 
-  if (node.getKind() == kind::CHOOSE)
+  switch (node.getKind())
   {
-    // (choose A) is expanded as
-    // (witness ((x elementType))
-    //    (ite
-    //      (= A (as emptyset setType))
-    //      (= x chooseUf(A))
-    //      (and (member x A) (= x chooseUf(A)))
+    case kind::CHOOSE: return expandChooseOperator(node);
+    case kind::IS_SINGLETON: return expandIsSingletonOperator(node);
+    default: return TrustNode::null();
+  }
+}
 
-    NodeManager* nm = NodeManager::currentNM();
-    Node set = node[0];
-    TypeNode setType = set.getType();
-    Node chooseSkolem = getChooseFunction(setType);
-    Node apply = NodeManager::currentNM()->mkNode(APPLY_UF, chooseSkolem, set);
+TrustNode TheorySetsPrivate::expandChooseOperator(const Node& node)
+{
+  Assert(node.getKind() == CHOOSE);
 
-    Node witnessVariable = nm->mkBoundVar(setType.getSetElementType());
-
-    Node equal = witnessVariable.eqNode(apply);
-    Node emptySet = nm->mkConst(EmptySet(setType));
-    Node isEmpty = set.eqNode(emptySet);
-    Node member = nm->mkNode(MEMBER, witnessVariable, set);
-    Node memberAndEqual = member.andNode(equal);
-    Node ite = nm->mkNode(kind::ITE, isEmpty, equal, memberAndEqual);
-    Node witnessVariables = nm->mkNode(BOUND_VAR_LIST, witnessVariable);
-    Node witness = nm->mkNode(WITNESS, witnessVariables, ite);
-    return TrustNode::mkTrustRewrite(node, witness, nullptr);
+  // we call the rewriter here to handle the pattern (choose (singleton x))
+  // because the rewriter is called after expansion
+  Node rewritten = Rewriter::rewrite(node);
+  if (rewritten.getKind() != CHOOSE)
+  {
+    return TrustNode::mkTrustRewrite(node, rewritten, nullptr);
   }
 
-  return TrustNode::null();
+  // (choose A) is expanded as
+  // (witness ((x elementType))
+  //    (ite
+  //      (= A (as emptyset setType))
+  //      (= x chooseUf(A))
+  //      (and (member x A) (= x chooseUf(A)))
+
+  NodeManager* nm = NodeManager::currentNM();
+  Node set = rewritten[0];
+  TypeNode setType = set.getType();
+  Node chooseSkolem = getChooseFunction(setType);
+  Node apply = NodeManager::currentNM()->mkNode(APPLY_UF, chooseSkolem, set);
+
+  Node witnessVariable = nm->mkBoundVar(setType.getSetElementType());
+
+  Node equal = witnessVariable.eqNode(apply);
+  Node emptySet = nm->mkConst(EmptySet(setType));
+  Node isEmpty = set.eqNode(emptySet);
+  Node member = nm->mkNode(MEMBER, witnessVariable, set);
+  Node memberAndEqual = member.andNode(equal);
+  Node ite = nm->mkNode(ITE, isEmpty, equal, memberAndEqual);
+  Node witnessVariables = nm->mkNode(BOUND_VAR_LIST, witnessVariable);
+  Node witness = nm->mkNode(WITNESS, witnessVariables, ite);
+  return TrustNode::mkTrustRewrite(node, witness, nullptr);
+}
+
+TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
+{
+  Assert(node.getKind() == IS_SINGLETON);
+
+  // we call the rewriter here to handle the pattern
+  // (is_singleton (singleton x)) because the rewriter is called after expansion
+  Node rewritten = Rewriter::rewrite(node);
+  if (rewritten.getKind() != IS_SINGLETON)
+  {
+    return TrustNode::mkTrustRewrite(node, rewritten, nullptr);
+  }
+
+  // (is_singleton A) is expanded as
+  // (exists ((x: T)) (= A (singleton x)))
+  // where T is the sort of elements of A
+
+  NodeManager* nm = NodeManager::currentNM();
+  Node set = rewritten[0];
+
+  std::map<Node, Node>::iterator it = d_isSingletonNodes.find(rewritten);
+
+  if (it != d_isSingletonNodes.end())
+  {
+    return TrustNode::mkTrustRewrite(rewritten, it->second, nullptr);
+  }
+
+  TypeNode setType = set.getType();
+  Node boundVar = nm->mkBoundVar(setType.getSetElementType());
+  Node singleton = nm->mkNode(kind::SINGLETON, boundVar);
+  Node equal = set.eqNode(singleton);
+  std::vector<Node> variables = {boundVar};
+  Node boundVars = nm->mkNode(BOUND_VAR_LIST, variables);
+  Node exists = nm->mkNode(kind::EXISTS, boundVars, equal);
+  d_isSingletonNodes[rewritten] = exists;
+
+  return TrustNode::mkTrustRewrite(node, exists, nullptr);
 }
 
 Node TheorySetsPrivate::getChooseFunction(const TypeNode& setType)

@@ -19,6 +19,7 @@
 
 #include "expr/node.h"
 #include "theory/arith/arith_state.h"
+#include "theory/arith/inference_manager.h"
 #include "theory/arith/theory_arith_private_forward.h"
 #include "theory/theory.h"
 
@@ -75,14 +76,6 @@ class TheoryArith : public Theory {
   bool needsCheckLastEffort() override;
   void propagate(Effort e) override;
   TrustNode explain(TNode n) override;
-  bool getCurrentSubstitution(int effort,
-                              std::vector<Node>& vars,
-                              std::vector<Node>& subs,
-                              std::map<Node, std::vector<Node> >& exp) override;
-  bool isExtfReduced(int effort,
-                     Node n,
-                     Node on,
-                     std::vector<Node>& exp) override;
 
   bool collectModelInfo(TheoryModel* m) override;
 
@@ -104,9 +97,19 @@ class TheoryArith : public Theory {
 
   std::pair<bool, Node> entailmentCheck(TNode lit) override;
 
+  /** Return a reference to the arith::InferenceManager. */
+  InferenceManager& getInferenceManager()
+  {
+    return d_inferenceManager;
+  }
+
  private:
   /** The state object wrapping TheoryArithPrivate  */
   ArithState d_astate;
+
+  /** The arith::InferenceManager. */
+  InferenceManager d_inferenceManager;
+
 };/* class TheoryArith */
 
 }/* CVC4::theory::arith namespace */
