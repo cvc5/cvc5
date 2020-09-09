@@ -81,7 +81,6 @@ TrustNode EagerProofGenerator::mkTrustNode(Node n,
   {
     return TrustNode::null();
   }
-  Assert(n == pf->getResult());
   if (isConflict)
   {
     // this shouldnt modify the key
