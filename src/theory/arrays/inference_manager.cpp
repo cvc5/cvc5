@@ -85,7 +85,7 @@ void InferenceManager::convert(PfRule& id,
                                std::vector<Node>& children,
                                std::vector<Node>& args)
 {
-  // note that children must contain something equivalent to reason,
+  // note that children must contain something equivalent to exp,
   // regardless of the PfRule.
   switch (id)
   {
@@ -93,13 +93,31 @@ void InferenceManager::convert(PfRule& id,
       Assert(exp.isConst());
       args.push_back(conc);
       break;
+    case PfRule::ARRAYS_READ_OVER_WRITE:
+      if (exp.isConst())
+      {
+        // Premise can be shown by rewriting, use standard predicate intro rule.
+        // This is the case where we have 2 constant indices.
+        id = PfRule::MACRO_SR_PRED_INTRO;
+        args.push_back(conc);
+      }
+      else
+      {
+        children.push_back(exp);
+        args.push_back(conc[0]);
+      }
+      break;
+    case PfRule::ARRAYS_READ_OVER_WRITE_CONTRA:
+      children.push_back(exp);
+      break;
     case PfRule::ARRAYS_READ_OVER_WRITE_1:
       Assert(exp.isConst());
       args.push_back(conc[0]);
       break;
     case PfRule::ARRAYS_EXT: children.push_back(exp); break;
-    case PfRule::ARRAYS_READ_OVER_WRITE:
     default:
+      // unknown rule, should never happen
+      Assert(false);
       children.push_back(exp);
       args.push_back(conc);
       id = PfRule::ARRAYS_TRUST;

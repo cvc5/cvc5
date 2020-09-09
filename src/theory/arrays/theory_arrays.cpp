@@ -1286,7 +1286,7 @@ void TheoryArrays::postCheck(Effort level)
           weakEquivBuildCond(r2[0], r[1], conjunctions);
           lemma = mkAnd(conjunctions, true);
           // LSH FIXME: which kind of arrays lemma is this
-          Trace("arrays-lem") << "Arrays::addExtLemma " << lemma <<"\n";
+          Trace("arrays-lem") << "Arrays::addExtLemma (weak-eq) " << lemma <<"\n";
           d_out->lemma(lemma, LemmaProperty::SEND_ATOMS);
           d_readTableContext->pop();
           Trace("arrays") << spaces(getSatContext()->getLevel()) << "Arrays::check(): done" << endl;
@@ -1802,10 +1802,9 @@ void TheoryArrays::propagate(RowLemmaType lem)
       Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::queueRowLemma: propagating i = j ("<<i<<", "<<j<<")\n";
       Node reason =
           (aj.isConst() && bj.isConst()) ? d_true : aj.eqNode(bj).notNode();
-      Node i_eq_j = i.eqNode(j);
-      d_permRef.push_back(reason);
+      Node j_eq_i = j.eqNode(i);
       d_im.assertInference(
-          i_eq_j, true, reason, PfRule::ARRAYS_READ_OVER_WRITE);
+          j_eq_i, true, reason, PfRule::ARRAYS_READ_OVER_WRITE_CONTRA);
       ++d_numProp;
       return;
     }
@@ -1915,9 +1914,10 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
 
     Node lemma = nm->mkNode(kind::OR, eq2_r, eq1_r);
 
-    Trace("arrays-lem")<<"Arrays::addRowLemma adding "<<lemma<<"\n";
+    Trace("arrays-lem")<<"Arrays::addRowLemma (1) adding "<<lemma<<"\n";
     d_RowAlreadyAdded.insert(lem);
-    d_out->lemma(lemma);
+    // use non-rewritten nodes
+    d_im.arrayLemma(aj.eqNode(bj), eq2.notNode(), PfRule::ARRAYS_READ_OVER_WRITE);
     ++d_numRow;
   }
   else {
@@ -2030,9 +2030,10 @@ bool TheoryArrays::dischargeLemmas()
 
     Node lem = nm->mkNode(kind::OR, eq2_r, eq1_r);
 
-    Trace("arrays-lem")<<"Arrays::addRowLemma adding "<<lem<<"\n";
+    Trace("arrays-lem")<<"Arrays::addRowLemma (2) adding "<<lem<<"\n";
     d_RowAlreadyAdded.insert(l);
-    d_out->lemma(lem);
+    // use non-rewritten nodes, theory preprocessing will rewrite
+    d_im.arrayLemma(aj.eqNode(bj), eq2.notNode(), PfRule::ARRAYS_READ_OVER_WRITE);
     ++d_numRow;
     lemmasAdded = true;
     if (options::arraysReduceSharing()) {

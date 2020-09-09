@@ -24,6 +24,7 @@ namespace arrays {
 void ArraysProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(PfRule::ARRAYS_READ_OVER_WRITE, this);
+  pc->registerChecker(PfRule::ARRAYS_READ_OVER_WRITE_CONTRA, this);
   pc->registerChecker(PfRule::ARRAYS_READ_OVER_WRITE_1, this);
   pc->registerChecker(PfRule::ARRAYS_EXT, this);
   // trusted rules
@@ -52,6 +53,25 @@ Node ArraysProofRuleChecker::checkInternal(PfRule id,
     }
     Node rhs = nm->mkNode(kind::SELECT, lhs[0][0], ideq[0][1]);
     return lhs.eqNode(rhs);
+  }
+  else if (id == PfRule::ARRAYS_READ_OVER_WRITE_CONTRA)
+  {
+    Assert(children.size() == 1);
+    Assert(args.empty());
+    Node adeq = children[0];
+    if (adeq.getKind() != kind::NOT || adeq[0].getKind() != kind::EQUAL)
+    {
+      return Node::null();
+    }
+    Node lhs = adeq[0][0];
+    Node rhs = adeq[0][1];
+    if (lhs.getKind() != kind::SELECT || lhs[0].getKind() != kind::STORE ||
+      rhs.getKind() != kind::SELECT
+        || lhs[1] != rhs[1])
+    {
+      return Node::null();
+    }
+    return lhs[1].eqNode(lhs[0][1]);
   }
   if (id == PfRule::ARRAYS_READ_OVER_WRITE_1)
   {
