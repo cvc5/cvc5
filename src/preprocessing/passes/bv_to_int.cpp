@@ -830,7 +830,7 @@ void BVToInt::defineBVUFAsIntUF(Node bvUF)
 bool BVToInt::childrenTypesChanged(Node n)
 {
   bool result = false;
-  for (Node child : n)
+  for (const Node& child : n)
   {
     TypeNode originalType = child.getType();
     TypeNode newType = d_bvToIntCache[child].get().getType();
@@ -877,7 +877,7 @@ Node BVToInt::reconstructNode(Node node)
 {
   // first, we adjust the children of the node as needed.
   vector<Node> adjusted_children;
-  for (Node child : node)
+  for (const Node& child : node)
   {
     Node adjusted_child = castIfNeeded(d_bvToIntCache[child], child.getType());
     adjusted_children.push_back(adjusted_child);
