@@ -30,9 +30,12 @@ namespace CVC4 {
 namespace theory {
 namespace sets {
 
-CardinalityExtension::CardinalityExtension(SolverState& s, InferenceManager& im)
+CardinalityExtension::CardinalityExtension(SolverState& s,
+                                           InferenceManager& im,
+                                           TermRegistry& treg)
     : d_state(s),
       d_im(im),
+      d_treg(treg),
       d_card_processed(s.getUserContext()),
       d_finite_type_constants_processed(false)
 {
@@ -101,7 +104,7 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
 
   // here we call getUnivSet instead of getUnivSetEqClass to generate
   // a univset term for finite types even if they are not used in the input
-  Node univ = d_state.getUnivSet(setType);
+  Node univ = d_treg.getUnivSet(setType);
   std::map<Node, Node>::iterator it = d_univProxy.find(univ);
 
   Node proxy;
@@ -109,7 +112,7 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
   if (it == d_univProxy.end())
   {
     // Force cvc4 to build the cardinality graph for the universe set
-    proxy = d_state.getProxy(univ);
+    proxy = d_treg.getProxy(univ);
     d_univProxy[univ] = proxy;
   }
   else
@@ -208,9 +211,9 @@ void CardinalityExtension::check()
   Assert(intro_sets.size() == 1);
   Trace("sets-intro") << "Introduce term : " << intro_sets[0] << std::endl;
   Trace("sets-intro") << "  Actual Intro : ";
-  d_state.debugPrintSet(intro_sets[0], "sets-nf");
+  d_treg.debugPrintSet(intro_sets[0], "sets-nf");
   Trace("sets-nf") << std::endl;
-  Node k = d_state.getProxy(intro_sets[0]);
+  Node k = d_treg.getProxy(intro_sets[0]);
   AlwaysAssert(!k.isNull());
 }
 
@@ -274,7 +277,7 @@ void CardinalityExtension::registerCardinalityTerm(Node n)
   for (unsigned k = 0, csize = cterms.size(); k < csize; k++)
   {
     Node nn = cterms[k];
-    Node nk = d_state.getProxy(nn);
+    Node nk = d_treg.getProxy(nn);
     Node pos_lem = nm->mkNode(GEQ, nm->mkNode(CARD, nk), d_zero);
     d_im.assertInference(pos_lem, d_emp_exp, "pcard", 1);
     if (nn != nk)
@@ -361,7 +364,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
   curr.push_back(eqc);
   TypeNode tn = eqc.getType();
   bool is_empty = eqc == d_state.getEmptySetEqClass(tn);
-  Node emp_set = d_state.getEmptySet(tn);
+  Node emp_set = d_treg.getEmptySet(tn);
   for (const Node& n : nvsets)
   {
     Kind nk = n.getKind();
@@ -683,7 +686,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
       Trace("sets-nf") << "  F " << itf.first << " : " << itf.second
                        << std::endl;
       Trace("sets-nf-debug") << " ...";
-      d_state.debugPrintSet(itf.first, "sets-nf-debug");
+      d_treg.debugPrintSet(itf.first, "sets-nf-debug");
       Trace("sets-nf-debug") << std::endl;
     }
   }
@@ -696,7 +699,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
   std::vector<Node>& nfeqc = d_nf[eqc];
   NodeManager* nm = NodeManager::currentNM();
   bool success = true;
-  Node emp_set = d_state.getEmptySet(tn);
+  Node emp_set = d_treg.getEmptySet(tn);
   if (!base.isNull())
   {
     for (unsigned j = 0, csize = comps.size(); j < csize; j++)
@@ -772,7 +775,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
             Node r = e == 2 ? common[l] : only[e][l];
             Trace("sets-nf-debug") << "Try split empty : " << r << std::endl;
             Trace("sets-nf-debug") << "         actual : ";
-            d_state.debugPrintSet(r, "sets-nf-debug");
+            d_treg.debugPrintSet(r, "sets-nf-debug");
             Trace("sets-nf-debug") << std::endl;
             Assert(!d_state.areEqual(r, emp_set));
             if (!d_state.areDisequal(r, emp_set) && !d_state.hasMembers(r))
@@ -780,7 +783,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
               // guess that its equal empty if it has no explicit members
               Trace("sets-nf") << " Split empty : " << r << std::endl;
               Trace("sets-nf") << "Actual Split : ";
-              d_state.debugPrintSet(r, "sets-nf");
+              d_treg.debugPrintSet(r, "sets-nf");
               Trace("sets-nf") << std::endl;
               d_im.split(r.eqNode(emp_set), 1);
               Assert(d_im.hasSent());
@@ -820,8 +823,8 @@ void CardinalityExtension::checkNormalForm(Node eqc,
             {
               // simply introduce their intersection
               Assert(o0 != o1);
-              Node kca = d_state.getProxy(o0);
-              Node kcb = d_state.getProxy(o1);
+              Node kca = d_treg.getProxy(o0);
+              Node kcb = d_treg.getProxy(o1);
               Node intro =
                   Rewriter::rewrite(nm->mkNode(INTERSECTION, kca, kcb));
               Trace("sets-nf") << "   Intro split : " << o0 << " against " << o1
