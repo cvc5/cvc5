@@ -741,7 +741,8 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::SET_TYPE:
   case kind::SINGLETON:
   case kind::COMPLEMENT:
-  case kind::CHOOSE: out << smtKindString(k, d_variant) << " "; break;
+  case kind::CHOOSE:
+  case kind::IS_SINGLETON: out << smtKindString(k, d_variant) << " "; break;
   case kind::UNIVERSE_SET:out << "(as univset " << n.getType() << ")";break;
 
     // fp theory
@@ -1146,6 +1147,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::CARD: return "card";
   case kind::COMPREHENSION: return "comprehension";
   case kind::CHOOSE: return "choose";
+  case kind::IS_SINGLETON: return "is_singleton";
   case kind::JOIN: return "join";
   case kind::PRODUCT: return "product";
   case kind::TRANSPOSE: return "transpose";

@@ -240,6 +240,29 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     }
     break;
   }
+    
+  case kind::CHOOSE:
+  {
+    if (node[0].getKind() == SINGLETON)
+    {
+      //(= (choose (singleton x)) x) is a tautology
+      // we return x for (choose (singleton x))
+      return RewriteResponse(REWRITE_AGAIN, node[0][0]);
+    }
+    break;
+  }  // kind::CHOOSE
+  case kind::IS_SINGLETON:
+  {
+    if (node[0].getKind() == SINGLETON)
+    {
+      //(= (is_singleton (singleton x)) is a tautology
+      // we return true for (is_singleton (singleton x))
+      return RewriteResponse(REWRITE_AGAIN,
+                             NodeManager::currentNM()->mkConst(true));
+    }
+    break;
+  } // kind::IS_SINGLETON
+
   case kind::TRANSPOSE: {
     if(node[0].getKind() == kind::TRANSPOSE) {
       return RewriteResponse(REWRITE_AGAIN, node[0][0]);
