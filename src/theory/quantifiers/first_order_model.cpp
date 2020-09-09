@@ -51,7 +51,7 @@ void FirstOrderModel::assertQuantifier( Node n ){
   }
 }
 
-unsigned FirstOrderModel::getNumAssertedQuantifiers() { 
+size_t FirstOrderModel::getNumAssertedQuantifiers() const { 
   return d_forall_asserts.size(); 
 }
 
