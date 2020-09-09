@@ -147,33 +147,6 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
                          << f[1] << std::endl;
       d_im.assertInternalFact(f[1], true, f[0]);
     }
-    /*
-        if (!s1.isNull() && s2.isNull())
-        {
-          Assert(m2[1].getType().isComparableTo(s1.getType()));
-          Assert(areEqual(m2[1], s1));
-          Node exp = NodeManager::currentNM()->mkNode(
-              kind::AND, m2[1].eqNode(s1), m2);
-          if (s1.getKind() == kind::SINGLETON)
-          {
-            if (s1[0] != m2[0])
-            {
-              Node eq = s1[0].eqNode(m2[0]);
-              Trace("sets-prop") << "Propagate eq-mem eq inference : " << exp
-                                  << " => " << eq << std::endl;
-              d_im.assertInternalFact(eq, true, exp);
-            }
-          }
-          else
-          {
-            // conflict
-            Trace("sets-prop")
-                << "Propagate eq-mem conflict : " << exp << std::endl;
-            d_im.conflict(exp);
-            return;
-          }
-        }
-        */
   }
 }
 
