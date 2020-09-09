@@ -25,7 +25,7 @@ namespace CVC4 {
 namespace theory {
 namespace arrays {
 
-/** A checker for boolean reasoning in proofs */
+/** A checker for array reasoning in proofs */
 class ArraysProofRuleChecker : public ProofRuleChecker
 {
  public:
