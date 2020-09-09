@@ -993,6 +993,7 @@ std::string FloatingPoint::toString(bool printAsIndexed) const
       str.append(" ");
     }
   }
+  str.append(")");
   return str;
 }
 

@@ -341,7 +341,7 @@ void AstPrinter::toStreamCmdGetUnsatCore(std::ostream& out) const
 }
 
 void AstPrinter::toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                               BenchmarkStatus status) const
+                                               Result::Sat status) const
 {
   out << "SetBenchmarkStatus(" << status << ')';
 }
