@@ -75,6 +75,7 @@ Node RemoveTermFormulas::runInternal(Node assertion,
   NodeManager* nm = NodeManager::currentNM();
   TCtxStack ctx(&d_rtfc);
   ctx.pushInitial(assertion);
+  std::pair<Node, uint32_t> initial = ctx.getCurrent();
   std::pair<Node, uint32_t> curr;
   Node node;
   uint32_t nodeVal;
@@ -135,6 +136,9 @@ Node RemoveTermFormulas::runInternal(Node assertion,
       d_tfCache.insert(curr, ret);
     }
   }
+  itc = d_tfCache.find(initial);
+  Assert (itc!=d_tfCache.end());
+  return itc->second;
 }
 
 
