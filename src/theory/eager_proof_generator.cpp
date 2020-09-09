@@ -14,8 +14,8 @@
 
 #include "theory/eager_proof_generator.h"
 
-#include "expr/proof_node_manager.h"
 #include "expr/proof.h"
+#include "expr/proof_node_manager.h"
 
 namespace CVC4 {
 namespace theory {
@@ -81,7 +81,7 @@ TrustNode EagerProofGenerator::mkTrustNode(Node n,
   {
     return TrustNode::null();
   }
-  Assert (n==pf->getResult());
+  Assert(n == pf->getResult());
   if (isConflict)
   {
     // this shouldnt modify the key
