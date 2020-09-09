@@ -14,8 +14,8 @@
 
 #include "theory/arrays/proof_checker.h"
 #include "expr/skolem_manager.h"
-#include "theory/rewriter.h"
 #include "theory/arrays/skolem_cache.h"
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace theory {
@@ -34,7 +34,7 @@ Node ArraysProofRuleChecker::checkInternal(PfRule id,
                                            const std::vector<Node>& children,
                                            const std::vector<Node>& args)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   if (id == PfRule::ARRAYS_READ_OVER_WRITE)
   {
     Assert(children.size() == 1);
@@ -50,8 +50,7 @@ Node ArraysProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
-    Node rhs =
-        nm->mkNode(kind::SELECT, lhs[0][0], ideq[0][1]);
+    Node rhs = nm->mkNode(kind::SELECT, lhs[0][0], ideq[0][1]);
     return lhs.eqNode(rhs);
   }
   if (id == PfRule::ARRAYS_READ_OVER_WRITE_1)
@@ -72,13 +71,14 @@ Node ArraysProofRuleChecker::checkInternal(PfRule id,
     Assert(children.size() == 1);
     Assert(args.empty());
     Node adeq = children[0];
-    if (adeq.getKind() != kind::NOT || adeq[0].getKind() != kind::EQUAL || !adeq[0][0].getType().isArray())
+    if (adeq.getKind() != kind::NOT || adeq[0].getKind() != kind::EQUAL
+        || !adeq[0][0].getType().isArray())
     {
       return Node::null();
     }
     Node a = adeq[0][0];
     Node b = adeq[0][1];
-    Node k = SkolemCache::getExtIndexSkolem(a,b);
+    Node k = SkolemCache::getExtIndexSkolem(a, b);
     Node as = nm->mkNode(kind::SELECT, a, k);
     Node bs = nm->mkNode(kind::SELECT, b, k);
     return as.eqNode(bs).notNode();

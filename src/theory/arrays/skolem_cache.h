@@ -31,12 +31,13 @@ class SkolemCache
  public:
   SkolemCache();
   ~SkolemCache() {}
-  
-  /** 
+
+  /**
    * Get the skolem correspoding to the index that witnesses the disequality
    * between arrays a and b.
    */
   static Node getExtIndexSkolem(Node a, Node b);
+
  private:
   /** Get the bound variable */
   static Node getExtIndexVar(Node a, Node b);

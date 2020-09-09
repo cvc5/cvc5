@@ -27,8 +27,8 @@
 #include "smt/command.h"
 #include "smt/logic_exception.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/arrays/skolem_cache.h"
+#include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
@@ -1181,14 +1181,14 @@ void TheoryArrays::presolve()
 // MAIN SOLVER
 /////////////////////////////////////////////////////////////////////////////
 
-
 Node TheoryArrays::getSkolem(TNode ref)
 {
-  // the call to SkolemCache::getExtIndexSkolem should be deterministic, but use cache anyways for now
+  // the call to SkolemCache::getExtIndexSkolem should be deterministic, but use
+  // cache anyways for now
   Node skolem;
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it = d_skolemCache.find(ref);
   if (it == d_skolemCache.end()) {
-    Assert (ref.getKind()==kind::NOT && ref[0].getKind()==kind::EQUAL);
+    Assert(ref.getKind() == kind::NOT && ref[0].getKind() == kind::EQUAL);
     TNode a = ref[0][0];
     TNode b = ref[0][1];
     // make the skolem using the skolem cache utility
