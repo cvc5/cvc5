@@ -473,10 +473,11 @@ bool SolverState::isMember(TNode x, TNode s) const
   NodeIntMap::const_iterator mem_i = d_members.find(s);
   if (mem_i != d_members.end())
   {
-    std::map<Node, std::vector<Node> >::const_iterator itd = d_members_data.find(s);
-    Assert (itd!=d_members_data.end());
+    std::map<Node, std::vector<Node> >::const_iterator itd =
+        d_members_data.find(s);
+    Assert(itd != d_members_data.end());
     const std::vector<Node>& members = itd->second;
-    Assert ((*mem_i).second<=members.size());
+    Assert((*mem_i).second <= members.size());
     for (size_t i = 0, nmem = (*mem_i).second; i < nmem; i++)
     {
       if (areEqual(members[i][0], x))
@@ -507,7 +508,10 @@ void SolverState::addMember(TNode r, TNode atom)
   }
 }
 
-bool SolverState::merge(TNode t1, TNode t2, std::vector<Node>& facts, TNode cset)
+bool SolverState::merge(TNode t1,
+                        TNode t2,
+                        std::vector<Node>& facts,
+                        TNode cset)
 {
   NodeIntMap::iterator mem_i2 = d_members.find(t2);
   if (mem_i2 == d_members.end())
