@@ -93,6 +93,13 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
         d_proof.addStep(
             nnode, PfRule::MACRO_SR_PRED_TRANSFORM, {node.notNode()}, {nnode});
       }
+      // if we are eagerly checking proofs, track sat solver assumptions
+      if (d_pfEnabled && added && options::proofNewEagerChecking())
+      {
+        MinisatSatSolver* minisat =
+            static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+        minisat->getProofManager()->registerInputs({nnode});
+      }
     }
   }
 }
