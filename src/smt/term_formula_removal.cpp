@@ -101,6 +101,10 @@ Node RemoveTermFormulas::runInternal(Node assertion,
           ctx.pushChild(node, nodeVal, i);
         }
       }
+      else
+      {
+        ctx.pop();
+      }
       continue;
     }
     // otherwise, pop the current node
