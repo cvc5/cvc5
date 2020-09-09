@@ -845,25 +845,15 @@ bool BVToInt::childrenTypesChanged(Node n)
 
 Node BVToInt::castIfNeeded(Node n, TypeNode tn)
 {
-  if (!n.getType().isBitVector() && !n.getType().isInteger())
+  if ((n.getType().isBitVector() && tn.isInteger())
+      || (n.getType().isInteger() && tn.isBitVector()))
+  {
+    return castToType(n, tn);
+  }
+  else
   {
     return n;
   }
-  if (tn.isSubtypeOf(n.getType()))
-  {
-    return n;
-  }
-  if (n.getType().isBitVector() && tn.isBitVector())
-  {
-    return n;
-  }
-  if (n.getType().isInteger() && tn.isInteger())
-  {
-    return n;
-  }
-  // both types are either BV or integer,
-  // but they are not the same.
-  return castToType(n, tn);
 }
 
 Node BVToInt::castToType(Node n, TypeNode tn)
