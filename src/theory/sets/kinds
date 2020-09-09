@@ -100,20 +100,6 @@ typerule JOIN_IMAGE	    ::CVC4::theory::sets::JoinImageTypeRule
 typerule IDEN 			::CVC4::theory::sets::RelIdenTypeRule
 
 construle UNION         ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
-construle INTERSECTION  ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
-construle SETMINUS      ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 construle SINGLETON     ::CVC4::theory::sets::SingletonTypeRule
-construle INSERT        ::CVC4::theory::sets::InsertTypeRule
-construle CARD          ::CVC4::theory::sets::CardTypeRule
-construle COMPLEMENT    ::CVC4::theory::sets::ComplementTypeRule
-construle CHOOSE        ::CVC4::theory::sets::ChooseTypeRule
-construle IS_SINGLETON  ::CVC4::theory::sets::IsSingletonTypeRule
-
-construle JOIN 			::CVC4::theory::sets::RelBinaryOperatorTypeRule
-construle PRODUCT 		::CVC4::theory::sets::RelBinaryOperatorTypeRule
-construle TRANSPOSE 	::CVC4::theory::sets::RelTransposeTypeRule
-construle TCLOSURE 	    ::CVC4::theory::sets::RelTransClosureTypeRule
-construle JOIN_IMAGE 	::CVC4::theory::sets::JoinImageTypeRule
-construle IDEN 			::CVC4::theory::sets::RelIdenTypeRule
 
 endtheory

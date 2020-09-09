@@ -1761,7 +1761,7 @@ set(regress_1_tests
   regress1/sets/infinite-type/sets-card-int-1.smt2
   regress1/sets/infinite-type/sets-card-int-2.smt2
   regress1/sets/insert_invariant_37_2.smt2
-  regress1/sets/is_signleton1.smt2
+  regress1/sets/is_singleton1.smt2
   regress1/sets/issue2568.smt2
   regress1/sets/issue2904.smt2
   regress1/sets/issue4391-card-lasso.smt2
