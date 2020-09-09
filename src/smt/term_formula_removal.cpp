@@ -94,7 +94,7 @@ Node RemoveTermFormulas::runInternal(Node assertion,
       // add to cache, whether null or not
       d_tfCache.insert(curr, currt);
       // if null, we need to recurse
-      if (!currt.isNull())
+      if (currt.isNull())
       {
         for (size_t i = 0, nchild = node.getNumChildren(); i < nchild; i++)
         {
@@ -128,6 +128,7 @@ Node RemoveTermFormulas::runInternal(Node assertion,
         itc = d_tfCache.find(currChild);
         Assert(itc != d_tfCache.end());
         Node newChild = itc->second;
+        Assert (!newChild.isNull());
         childChanged |= (newChild != node[i]);
         newChildren.push_back(newChild);
       }
