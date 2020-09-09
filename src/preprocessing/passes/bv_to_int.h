@@ -266,15 +266,33 @@ class BVToInt : public PreprocessingPass
    * the reconstruction.
    */
   Node reconstructNode(Node node);
+
   /**
-   * A helper function for reconstructNode.
+   * A useful utility function.
+   * if n is an integer and tn is bit-vector,
+   * applies the IntToBitVector operator on n.
+   * if n is a vit-vector and tn is integer,
+   * applies BitVector_TO_NAT operator.
+   * Otherwise, keeps n intact.
+   */
+  Node castIfNeeded(Node n, TypeNode tn);
+
+  /**
+   * Helper function for castIfNeeded.
    * Does the actual casting between bit-vectors
-   * and integers.
+   * and integers or vice verse using
+   * IntToBitVector or BITVECTOR_TO_NAT.
    */
   Node castToType(Node n, TypeNode tn);
 
-  Node castIfNeeded(Node n, TypeNode tn);
-
+  /**
+   * When a UF f is translated to a UF g,
+   * we add a define-fun command to the smt-engine
+   * to relate between f and g.
+   * This is useful, for example, when asking
+   * for a model-value of a term that includes the
+   * original UF f.
+   */
   void defineBVUFAsIntUF(Node bvUF);
   /**
    * Caches for the different functions

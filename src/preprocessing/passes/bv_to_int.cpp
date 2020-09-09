@@ -726,7 +726,7 @@ Node BVToInt::bvToInt(Node n)
                 // Insert the function symbol itself to the cache
                 d_bvToIntCache[bvUF] = intUF;
 
-                // define-fun in the smt-engine to keep
+                // introduce a `define-fun` in the smt-engine to keep
                 // the correspondence between the original
                 // function symbol and the new one.
                 defineBVUFAsIntUF(bvUF);
@@ -745,12 +745,13 @@ Node BVToInt::bvToInt(Node n)
                     string("Cannot translate to Int: ") + current.toString());
               }
 
-              // Now that the translated function and application were
-              // created, we add them to the cache and possibly add
+              // Now that the translated function symbol was
+              // created, we translate the applicatio and add to the cache.
+              // Additionally, we add
               // range constraints induced by the original BV width of the
               // the functions range (codomain)..
               translated_children.insert(translated_children.begin(), intUF);
-              // Insert the term to the cache
+              // Insert the translated application term to the cache
               d_bvToIntCache[current] =
                   d_nm->mkNode(kind::APPLY_UF, translated_children);
               // Add range constraints if necessary.
@@ -787,16 +788,27 @@ Node BVToInt::bvToInt(Node n)
 
 void BVToInt::defineBVUFAsIntUF(Node bvUF)
 {
+  // This function should only be called after translating
+  // the function symbol to a new function symbol
+  // with the right domain and range.
   Assert(d_bvToIntCache.find(bvUF) != d_bvToIntCache.end());
-  Node intUF = d_bvToIntCache[bvUF];
+
+  // get domain and range of the original function
   TypeNode tn = bvUF.getType();
   vector<TypeNode> bvDomain = tn.getArgTypes();
   TypeNode bvRange = tn.getRangeType();
-  Node intApplication;
+
+  // get the translated function symbol
+  Node intUF = d_bvToIntCache[bvUF];
+
+  // create a symbolic  application to be used in define-fun
+
+  // symbolic arguments of original function
+  vector<Expr> args;
+  // children of the new symbolic application
   vector<Node> achildren;
   achildren.push_back(intUF);
   int i = 0;
-  vector<Expr> args;
   for (TypeNode d : bvDomain)
   {
     // Each bit-vector argument is casted to a natural number
@@ -807,9 +819,10 @@ void BVToInt::defineBVUFAsIntUF(Node bvUF)
     achildren.push_back(casted_arg);
     i++;
   }
-  intApplication = d_nm->mkNode(kind::APPLY_UF, achildren);
+  Node intApplication = d_nm->mkNode(kind::APPLY_UF, achildren);
   // If the range is BV, the application needs to be casted back.
   intApplication = castIfNeeded(intApplication, bvRange);
+  // add the function definition to the smt engine.
   smt::currentSmtEngine()->defineFunction(
       bvUF.toExpr(), args, intApplication.toExpr(), true);
 }
