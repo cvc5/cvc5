@@ -21,6 +21,7 @@
 #include "context/context.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/solver_state.h"
+#include "theory/sets/term_registry.h"
 #include "theory/type_set.h"
 #include "theory/uf/equality_engine.h"
 
@@ -69,8 +70,7 @@ class CardinalityExtension
    */
   CardinalityExtension(SolverState& s,
                        InferenceManager& im,
-                       context::Context* c,
-                       context::UserContext* u);
+                       TermRegistry& treg);
 
   ~CardinalityExtension() {}
   /** reset
@@ -163,6 +163,8 @@ class CardinalityExtension
   SolverState& d_state;
   /** Reference to the inference manager for the theory of sets */
   InferenceManager& d_im;
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
   /** register cardinality term
    *
    * This method add lemmas corresponding to the definition of

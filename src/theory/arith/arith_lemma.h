@@ -19,7 +19,7 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/arith/nl/inference.h"
+#include "theory/arith/inference_id.h"
 #include "theory/inference_manager_buffered.h"
 #include "theory/output_channel.h"
 #include "theory/theory_inference.h"
@@ -40,14 +40,14 @@ class ArithLemma : public SimpleTheoryLemma
   ArithLemma(Node n,
              LemmaProperty p,
              ProofGenerator* pg,
-             nl::Inference inf = nl::Inference::UNKNOWN)
+             InferenceId inf = InferenceId::UNKNOWN)
       : SimpleTheoryLemma(n, p, pg), d_inference(inf)
   {
   }
   virtual ~ArithLemma() {}
 
   /** The inference id for the lemma */
-  nl::Inference d_inference;
+  InferenceId d_inference;
 };
 /**
  * Writes an arithmetic lemma to a stream.

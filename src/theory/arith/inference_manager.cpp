@@ -65,7 +65,7 @@ void InferenceManager::addPendingArithLemma(const ArithLemma& lemma,
                        isWaiting);
 }
 void InferenceManager::addPendingArithLemma(const Node& lemma,
-                                            nl::Inference inftype,
+                                            InferenceId inftype,
                                             bool isWaiting)
 {
   addPendingArithLemma(std::unique_ptr<ArithLemma>(new ArithLemma(
@@ -82,9 +82,14 @@ void InferenceManager::flushWaitingLemmas()
   d_waitingLem.clear();
 }
 
-void InferenceManager::addConflict(const Node& conf, nl::Inference inftype)
+void InferenceManager::addConflict(const Node& conf, InferenceId inftype)
 {
   conflict(Rewriter::rewrite(conf));
+}
+
+bool InferenceManager::hasUsed() const
+{
+  return hasSent() || hasPending();
 }
 
 std::size_t InferenceManager::numWaitingLemmas() const

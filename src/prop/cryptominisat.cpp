@@ -62,7 +62,6 @@ void toInternalClause(SatClause& clause,
 CryptoMinisatSolver::CryptoMinisatSolver(StatisticsRegistry* registry,
                                          const std::string& name)
     : d_solver(new CMSat::SATSolver()),
-      d_bvp(nullptr),
       d_numVariables(0),
       d_okay(true),
       d_statistics(registry, name)

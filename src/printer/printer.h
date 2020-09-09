@@ -24,13 +24,16 @@
 
 #include "expr/node.h"
 #include "options/language.h"
-#include "smt/command.h"
 #include "smt/model.h"
+#include "util/result.h"
 #include "util/sexpr.h"
 
 namespace CVC4 {
 
+class Command;
+class CommandStatus;
 class NodeCommand;
+class UnsatCore;
 
 class Printer
 {
@@ -212,7 +215,7 @@ class Printer
 
   /** Print set-info :status command */
   virtual void toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                             BenchmarkStatus status) const;
+                                             Result::Sat status) const;
 
   /** Print set-logic command */
   virtual void toStreamCmdSetBenchmarkLogic(std::ostream& out,

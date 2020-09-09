@@ -25,6 +25,7 @@
 #include "theory/sets/cardinality_extension.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/solver_state.h"
+#include "theory/sets/term_registry.h"
 #include "theory/sets/theory_sets_rels.h"
 #include "theory/sets/theory_sets_rewriter.h"
 #include "theory/theory.h"
@@ -46,12 +47,6 @@ class TheorySetsPrivate {
   void eqNotifyNewClass(TNode t);
   void eqNotifyMerge(TNode t1, TNode t2);
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
-  /** Assert fact holds in the current context with explanation exp.
-   *
-   * exp should be explainable by the equality engine of this class, and fact
-   * should be a literal.
-   */
-  bool assertFact(Node fact, Node exp);
 
  private:
   /** Are a and b trigger terms in the equality engine that may be disequal? */
@@ -122,7 +117,6 @@ class TheorySetsPrivate {
    * context.
    */
   NodeSet d_termProcessed;
-  NodeSet d_keep;
   
   //propagation
   class EqcInfo
@@ -155,9 +149,9 @@ class TheorySetsPrivate {
    * contexts.
    */
   TheorySetsPrivate(TheorySets& external,
-                    context::Context* c,
-                    context::UserContext* u,
-                    Valuation valuation);
+                    SolverState& state,
+                    InferenceManager& im,
+                    SkolemCache& skc);
 
   ~TheorySetsPrivate();
 
@@ -175,8 +169,6 @@ class TheorySetsPrivate {
   //--------------------------------- standard check
   /** Post-check, called after the fact queue of the theory is processed. */
   void postCheck(Theory::Effort level);
-  /** Preprocess fact, return true if processed. */
-  bool preNotifyFact(TNode atom, bool polarity, TNode fact);
   /** Notify new fact */
   void notifyFact(TNode atom, bool polarity, TNode fact);
   //--------------------------------- end standard check
@@ -237,6 +229,14 @@ class TheorySetsPrivate {
 
  private:
   TheorySets& d_external;
+  /** The state of the sets solver at full effort */
+  SolverState& d_state;
+  /** The inference manager of the sets solver */
+  InferenceManager& d_im;
+  /** Reference to the skolem cache */
+  SkolemCache& d_skCache;
+  /** The term registry */
+  TermRegistry d_treg;
 
   /** Pointer to the equality engine of theory of sets */
   eq::EqualityEngine* d_equalityEngine;
@@ -256,10 +256,10 @@ class TheorySetsPrivate {
    * given set type, or creates a new one if it does not exist.
    */
   Node getChooseFunction(const TypeNode& setType);
-  /** The state of the sets solver at full effort */
-  SolverState d_state;
-  /** The inference manager of the sets solver */
-  InferenceManager d_im;
+  /** expand the definition of the choose operator */
+  TrustNode expandChooseOperator(const Node& node);
+  /** expand the definition of is_singleton operator */
+  TrustNode expandIsSingletonOperator(const Node& node);
   /** subtheory solver for the theory of relations */
   std::unique_ptr<TheorySetsRels> d_rels;
   /** subtheory solver for the theory of sets with cardinality */
@@ -280,10 +280,12 @@ class TheorySetsPrivate {
   /** The theory rewriter for this theory. */
   TheorySetsRewriter d_rewriter;
 
-  /*
-   * a map that stores the choose functions for set types
-   */
+  /** a map that stores the choose functions for set types */
   std::map<TypeNode, Node> d_chooseFunctions;
+
+  /** a map that maps each set to an existential quantifier generated for
+   * operator is_singleton */
+  std::map<Node, Node> d_isSingletonNodes;
 };/* class TheorySetsPrivate */
 
 
