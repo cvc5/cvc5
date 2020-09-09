@@ -816,8 +816,12 @@ void BVToInt::defineBVUFAsIntUF(Node bvUF)
     // Other arguments are left intact.
     Node fresh_bound_var = d_nm->mkBoundVar(d);
     args.push_back(fresh_bound_var.toExpr());
-    Node casted_arg = castToType(args[i], d_nm->integerType());
-    achildren.push_back(casted_arg);
+    Node castedArg = args[i];
+    if (d.isBitVector())
+    {
+      castedArg = castToType(castedArg, d_nm->integerType());
+    }
+    achildren.push_back(castedArg);
     i++;
   }
   Node intApplication = d_nm->mkNode(kind::APPLY_UF, achildren);
@@ -846,11 +850,15 @@ bool BVToInt::childrenTypesChanged(Node n)
 
 Node BVToInt::castToType(Node n, TypeNode tn)
 {
-  if (!((n.getType().isBitVector() && tn.isInteger())
-        || (n.getType().isInteger() && tn.isBitVector())))
+  // If there is no reason to cast, return the
+  // original node.
+  if (n.getType().isSubtypeOf(tn))
   {
     return n;
   }
+  // We only case int to bv or vice verse.
+  Assert((n.getType().isBitVector() && tn.isInteger())
+         || (n.getType().isInteger() && tn.isBitVector()));
   if (n.getType().isInteger())
   {
     Assert(tn.isBitVector());
@@ -884,8 +892,12 @@ Node BVToInt::reconstructNode(Node node, TypeNode tn)
     builder << child;
   }
   Node reconstruction = builder.constructNode();
-  // cast to tn
-  return castToType(reconstruction, tn);
+  // cast to tn in case the reconstruction is a bit-vector.
+  if (reconstruction.getType().isBitVector())
+  {
+    reconstruction = castToType(reconstruction, tn);
+  }
+  return reconstruction;
 }
 
 BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
