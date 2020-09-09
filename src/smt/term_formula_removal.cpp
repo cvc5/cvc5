@@ -69,8 +69,8 @@ theory::TrustNode RemoveTermFormulas::run(
 }
 
 Node RemoveTermFormulas::runInternal(Node assertion,
-                             std::vector<theory::TrustNode>& output,
-                             std::vector<Node>& newSkolems)
+                                     std::vector<theory::TrustNode>& output,
+                                     std::vector<Node>& newSkolems)
 {
   NodeManager* nm = NodeManager::currentNM();
   TCtxStack ctx(&d_rtfc);
@@ -110,7 +110,8 @@ Node RemoveTermFormulas::runInternal(Node assertion,
     {
       std::vector<Node> newChildren;
       bool childChanged = false;
-      if(node.getMetaKind() == kind::metakind::PARAMETERIZED) {
+      if (node.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
         newChildren.push_back(node.getOperator());
       }
       // reconstruct from the children
@@ -121,14 +122,14 @@ Node RemoveTermFormulas::runInternal(Node assertion,
         uint32_t val = d_rtfc.computeValue(node, nodeVal, i);
         currChild = std::pair<Node, uint32_t>(node[i], val);
         itc = d_tfCache.find(currChild);
-        Assert (itc != d_tfCache.end());
+        Assert(itc != d_tfCache.end());
         Node newChild = itc->second;
         childChanged |= (newChild != node[i]);
         newChildren.push_back(newChild);
       }
       // If changes, we reconstruct the node
       Node ret = node;
-      if (childChanged) 
+      if (childChanged)
       {
         ret = nm->mkNode(node.getKind(), newChildren);
       }
@@ -137,14 +138,13 @@ Node RemoveTermFormulas::runInternal(Node assertion,
     }
   }
   itc = d_tfCache.find(initial);
-  Assert (itc!=d_tfCache.end());
+  Assert(itc != d_tfCache.end());
   return itc->second;
 }
 
-
 Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
-                             std::vector<theory::TrustNode>& output,
-                             std::vector<Node>& newSkolems)
+                                    std::vector<theory::TrustNode>& output,
+                                    std::vector<Node>& newSkolems)
 {
   TNode node = curr.first;
   if (node.getKind() == kind::INST_PATTERN_LIST)
@@ -428,7 +428,7 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
     // The representation is now the skolem
     return skolem;
   }
-  
+
   // will recurse
   return Node::null();
 }

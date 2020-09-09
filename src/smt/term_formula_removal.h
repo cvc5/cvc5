@@ -181,14 +181,14 @@ class RemoveTermFormulas {
   /**
    * Removes terms of the forms described above from formula assertion.
    * All additional assertions and skolems are pushed into newAsserts and
-   * newSkolems, which are always of the same length. 
+   * newSkolems, which are always of the same length.
    *
    * This uses a term-context-sensitive stack to process assertion. It returns
    * the version of assertion with all term formulas removed.
    */
   Node runInternal(Node assertion,
-           std::vector<theory::TrustNode>& newAsserts,
-           std::vector<Node>& newSkolems);
+                   std::vector<theory::TrustNode>& newAsserts,
+                   std::vector<Node>& newSkolems);
   /**
    * This is called on curr of the form (t, val) where t is a term and val is
    * a term context identifier computed by RtfTermContext. If curr should be
@@ -198,8 +198,8 @@ class RemoveTermFormulas {
    * null node.
    */
   Node runCurrent(std::pair<Node, uint32_t>& curr,
-           std::vector<theory::TrustNode>& newAsserts,
-           std::vector<Node>& newSkolems);
+                  std::vector<theory::TrustNode>& newAsserts,
+                  std::vector<Node>& newSkolems);
   /** Replace internal */
   Node replaceInternal(TCtxStack& ctx) const;
 
