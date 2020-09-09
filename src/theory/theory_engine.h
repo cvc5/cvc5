@@ -449,7 +449,7 @@ class TheoryEngine {
    */
   theory::TrustNode getExplanation(
       std::vector<NodeTheoryPair>& explanationVector);
-  
+
   /** Are proofs enabled? */
   bool isProofEnabled() const;
 

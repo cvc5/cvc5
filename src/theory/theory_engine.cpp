@@ -2037,11 +2037,7 @@ theory::TrustNode TheoryEngine::getExplanation(
   return theory::TrustNode::mkTrustLemma(expNode, nullptr);
 }
 
-
-bool TheoryEngine::isProofEnabled() const
-{
-  return d_pnm!=nullptr;
-}
+bool TheoryEngine::isProofEnabled() const { return d_pnm != nullptr; }
 
 void TheoryEngine::setUserAttribute(const std::string& attr,
                                     Node n,
