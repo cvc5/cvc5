@@ -286,7 +286,7 @@ void TermRegistry::registerTerm(Node n, int effort)
       if (d_epg != nullptr)
       {
         regTermLem = d_epg->mkTrustNode(
-            eagerRedLemma, PfRule::STRING_EAGER_REDUCTION, {n});
+            eagerRedLemma, PfRule::STRING_EAGER_REDUCTION, {}, {n});
       }
       else
       {
@@ -388,7 +388,7 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
   // it is a simple rewrite to justify this
   if (d_epg != nullptr)
   {
-    return d_epg->mkTrustNode(ret, PfRule::MACRO_SR_PRED_INTRO, {ret});
+    return d_epg->mkTrustNode(ret, PfRule::MACRO_SR_PRED_INTRO, {}, {ret});
   }
   return TrustNode::mkTrustLemma(ret, nullptr);
 }
@@ -512,7 +512,7 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
 
   if (d_epg != nullptr)
   {
-    return d_epg->mkTrustNode(lenLemma, PfRule::STRING_LENGTH_POS, {n});
+    return d_epg->mkTrustNode(lenLemma, PfRule::STRING_LENGTH_POS, {}, {n});
   }
   return TrustNode::mkTrustLemma(lenLemma, nullptr);
 }
