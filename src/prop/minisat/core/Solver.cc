@@ -1031,7 +1031,7 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
                   Debug("newproof::sat")
                       << "Solver::analyze: redundant lit "
                       << toSatLiteral<Minisat::Solver>(out_learnt[i]) << "\n";
-                  d_pfManager->addResolutionStep(out_learnt[i]);
+                  d_pfManager->addResolutionStep(out_learnt[i], true);
                 }
                 // Literal is redundant, to be safe, mark the level as current assertion level
                 // TODO: maybe optimize

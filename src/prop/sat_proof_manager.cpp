@@ -73,7 +73,7 @@ Node SatProofManager::getClauseNode(const Minisat::Clause& clause)
   return NodeManager::currentNM()->mkNode(kind::OR, clauseNodes);
 }
 
-void SatProofManager::startResChain(Minisat::Clause& start)
+void SatProofManager::startResChain(const Minisat::Clause& start)
 {
   if (Trace.isOn("sat-proof"))
   {
@@ -85,17 +85,26 @@ void SatProofManager::startResChain(Minisat::Clause& start)
       std::pair<Node, Node>(getClauseNode(start), Node::null()));
 }
 
-void SatProofManager::addResolutionStep(Minisat::Lit lit)
+void SatProofManager::addResolutionStep(Minisat::Lit lit, bool redundant)
 {
   SatLiteral satLit = MinisatSatSolver::toSatLiteral(lit);
-  Trace("sat-proof") << "SatProofManager::addResolutionStep: [" << satLit
-                     << "] " << ~satLit << "\n";
-  d_resLinks.push_back(
-      std::pair<Node, Node>(d_proxy->getCnfStream()->getNodeCache()[~satLit],
-                            d_proxy->getCnfStream()->getNodeCache()[satLit]));
+  if (!redundant)
+  {
+    Trace("sat-proof") << "SatProofManager::addResolutionStep: [" << satLit
+                       << "] " << ~satLit << "\n";
+    d_resLinks.push_back(
+        std::pair<Node, Node>(d_proxy->getCnfStream()->getNodeCache()[~satLit],
+                              d_proxy->getCnfStream()->getNodeCache()[satLit]));
+  }
+  else
+  {
+    Trace("sat-proof") << "SatProofManager::addResolutionStep: redundant lit "
+                       << satLit << " stored\n";
+    d_redundantLits.push_back(satLit);
+  }
 }
 
-void SatProofManager::addResolutionStep(Minisat::Clause& clause,
+void SatProofManager::addResolutionStep(const Minisat::Clause& clause,
                                         Minisat::Lit lit)
 {
   // pivot is given as in the second clause, so we store its negation (which
@@ -120,25 +129,40 @@ void SatProofManager::endResChain(Minisat::Lit lit)
   SatLiteral satLit = MinisatSatSolver::toSatLiteral(lit);
   Trace("sat-proof") << "SatProofManager::endResChain: chain_res for "
                      << satLit;
-  endResChain(getClauseNode(satLit));
+  endResChain(getClauseNode(satLit), {satLit});
   // save for possibly overwriting this afterwards
   litsJustifiedInSolving.insert(satLit);
 }
 
-void SatProofManager::endResChain(Minisat::Clause& clause)
+void SatProofManager::endResChain(const Minisat::Clause& clause)
 {
   if (Trace.isOn("sat-proof"))
   {
     Trace("sat-proof") << "SatProofManager::endResChain: chain_res for ";
     printClause(clause);
   }
-  endResChain(getClauseNode(clause));
+  std::set<SatLiteral> clauseLits;
+  for (unsigned i = 0, size = clause.size(); i < size; ++i)
+  {
+    clauseLits.insert(MinisatSatSolver::toSatLiteral(clause[i]));
+  }
+  endResChain(getClauseNode(clause), clauseLits);
 }
 
 // id is the conclusion
-void SatProofManager::endResChain(Node conclusion)
+void SatProofManager::endResChain(Node conclusion,
+                                  const std::set<SatLiteral>& conclusionLits)
 {
   Trace("sat-proof") << ", " << conclusion << "\n";
+  // first process redundant literals
+  std::set<SatLiteral> visited;
+  unsigned pos = d_resLinks.size();
+  for (SatLiteral satLit : d_redundantLits)
+  {
+    processRedundantLit(satLit, conclusionLits, visited, pos);
+  }
+  d_redundantLits.clear();
+  // build resolution chain
   std::vector<Node> children, args;
   for (unsigned i = 0, size = d_resLinks.size(); i < size; ++i)
   {
@@ -231,7 +255,7 @@ void SatProofManager::endResChain(Node conclusion)
         << "given res chain conclusion " << conclusion
         << "\nafter factorReorderElimDoubleNeg "
         << CDProof::factorReorderElimDoubleNeg(conclusion, nullptr)
-        << "\nis different from chain_res " << chainConclusion
+        << "\nis different from computed chain_res " << chainConclusion
         << "\nafter factorReorderElimDoubleNeg " << reducedChainConclusion;
   }
   // buffer the steps in the resolution chain proof generator
@@ -244,6 +268,70 @@ void SatProofManager::endResChain(Node conclusion)
     // the premises of this resolution may not have been justified yet
     d_resChains.addLazyStep(step.first, &d_resChainPg, false);
   }
+}
+
+void SatProofManager::processRedundantLit(
+    SatLiteral lit,
+    const std::set<SatLiteral>& conclusionLits,
+    std::set<SatLiteral>& visited, unsigned pos)
+{
+  Trace("sat-proof") << CVC4::push
+                     << "SatProofManager::processRedundantLit: Lit: " << lit
+                     << "\n";
+  if (visited.count(lit))
+  {
+    Trace("sat-proof") << "already visited\n" << CVC4::pop;
+    return;
+  }
+  Minisat::Solver::TCRef reasonRef =
+      d_solver->reason(Minisat::var(MinisatSatSolver::toMinisatLit(lit)));
+  if (reasonRef == Minisat::Solver::TCRef_Undef)
+  {
+    Trace("sat-proof") << "unit, add link to lit " << lit << " at pos: " << pos
+                       << "\n"
+                       << CVC4::pop;
+    visited.insert(lit);
+    d_resLinks.insert(
+        d_resLinks.begin() + pos,
+        std::pair<Node, Node>(d_proxy->getCnfStream()->getNodeCache()[~lit],
+                              d_proxy->getCnfStream()->getNodeCache()[lit]));
+    return;
+  }
+  Assert(reasonRef >= 0 && reasonRef < d_solver->ca.size())
+      << "reasonRef " << reasonRef << " and d_satSolver->ca.size() "
+      << d_solver->ca.size() << "\n";
+  const Minisat::Clause& reason  = d_solver->ca[reasonRef];
+  if (Trace.isOn("sat-proof"))
+  {
+    Trace("sat-proof") << "reason: ";
+    printClause(reason);
+    Trace("sat-proof") << "\n";
+  }
+  // check if redundant literals in the reason. The first literal is the one we
+  // will be eliminating, so we check the others
+  for (unsigned i = 1, size = reason.size(); i < size; ++i)
+  {
+    SatLiteral satLit = MinisatSatSolver::toSatLiteral(reason[i]);
+    // if literal does not occur in the conclusion we process it as well
+    if (!conclusionLits.count(satLit))
+    {
+      processRedundantLit(satLit, conclusionLits, visited, pos);
+    }
+  }
+  if (visited.count(lit))
+  {
+    Assert(false) << "how come?????\n";
+  }
+  visited.insert(lit);
+  Trace("sat-proof") << "clause, add link to lit " << lit << " at pos: " << pos
+                     << "\n"
+                     << CVC4::pop;
+  // add the step before steps for children
+  Node clauseNode = getClauseNode(reason);
+  d_resLinks.insert(
+      d_resLinks.begin() + pos,
+      std::pair<Node, Node>(clauseNode,
+                            d_proxy->getCnfStream()->getNodeCache()[lit]));
 }
 
 void SatProofManager::tryJustifyingLit(SatLiteral lit)
@@ -530,7 +618,7 @@ void SatProofManager::finalizeProof(Minisat::Lit inConflict, bool adding)
   finalizeProof(clauseNode, {satLit});
 }
 
-void SatProofManager::finalizeProof(Minisat::Clause& inConflict, bool adding)
+void SatProofManager::finalizeProof(const Minisat::Clause& inConflict, bool adding)
 {
   if (Trace.isOn("sat-proof"))
   {

@@ -46,18 +46,18 @@ class SatProofManager
                   context::UserContext* userContext,
                   ProofNodeManager* pnm);
 
-  void startResChain(Minisat::Clause& start);
+  void startResChain(const Minisat::Clause& start);
   // resolution with unit clause ~lit, to be justified
   //
-  // bool is on whether to justify the ~lit recursively
-  void addResolutionStep(Minisat::Lit lit);
+  // @param redundant whether lit is redundant, in which case it will be handled
+  // differently
+  void addResolutionStep(Minisat::Lit lit, bool redundant = false);
   // resolution with clause using lit as pivot. Sign determines whether it's
   // being removed positively from the given clause or the implicit one it's
   // being resolved against
-  void addResolutionStep(Minisat::Clause& clause, Minisat::Lit lit);
+  void addResolutionStep(const Minisat::Clause& clause, Minisat::Lit lit);
   void endResChain(Minisat::Lit lit);
-  void endResChain(Minisat::Clause& clause);
-  void endResChain(Node conclusion);
+  void endResChain(const Minisat::Clause& clause);
 
   /**
    * The justification of a literal is built according to its *current*
@@ -84,7 +84,7 @@ class SatProofManager
   /**
    * @param adding whethen the conflict is coming from a freshly added clause
    */
-  void finalizeProof(Minisat::Clause& inConflict, bool adding = false);
+  void finalizeProof(const Minisat::Clause& inConflict, bool adding = false);
   void finalizeProof(Minisat::Lit inConflict, bool adding = false);
   void finalizeProof();
   void storeUnitConflict(Minisat::Lit inConflict);
@@ -95,6 +95,20 @@ class SatProofManager
   void registerInputs(const std::vector<Node>& inputs);
 
  private:
+  void endResChain(Node conclusion, const std::set<SatLiteral>& conclusionLits);
+
+  // If the redundant literal has a reason, we add that as the resolution step,
+  // with the redundant literal as resolvent, otherwise it's a step with the
+  // negation of the redundant literal as the res step clause.
+  //
+  // Moreover, if the reason contains literals that do not show up in the
+  // conclusion of the resolution chain, they count as redundant literals as
+  // well mark literal as redundant
+  void processRedundantLit(SatLiteral lit,
+                           const std::set<SatLiteral>& conclusionLits,
+                           std::set<SatLiteral>& visited,
+                           unsigned pos);
+
   /** The sat solver to which we are managing proofs */
   Minisat::Solver* d_solver;
   /** A pointer to theory proxy */
@@ -106,6 +120,9 @@ class SatProofManager
   /** Resolution steps (links) accumulator for chain resolution. Each pair has a
    * clause and the pivot for the resolution step it is involved on. */
   std::vector<std::pair<Node, Node>> d_resLinks;
+
+  /** redundant literals removed from the resolution chain conclusion */
+  std::vector<SatLiteral> d_redundantLits;
 
   /**
    * Associates clauses to their local proofs. These proofs are local and
