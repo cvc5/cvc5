@@ -37,7 +37,7 @@ QuantifiersModules::QuantifiersModules()
       d_sygus_inst(nullptr)
 {
 }
-QuantifiersModules::~QuantifiersModules(){}
+QuantifiersModules::~QuantifiersModules() {}
 void QuantifiersModules::initialize(QuantifiersEngine* qe,
                                     context::Context* c,
                                     std::vector<QuantifiersModule*>& modules)
