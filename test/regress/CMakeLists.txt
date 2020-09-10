@@ -2001,6 +2001,7 @@ set(regress_1_tests
   regress1/sygus/rec-fun-while-infinite.sy
   regress1/sygus/re-concat.sy
   regress1/sygus/repair-const-rl.sy
+  regress1/sygus/rex-strings-alarm.sy
   regress1/sygus/sets-pred-test.sy
   regress1/sygus/simple-regexp.sy
   regress1/sygus/stopwatch-bt.sy
@@ -2082,6 +2083,7 @@ set(regress_2_tests
   regress2/bv_to_int_inc1.smt2
   regress2/bv_to_int_mask_array_1.smt2
   regress2/bv_to_int_mask_array_2.smt2
+  regress2/bv_to_int_mask_array_3.smt2
   regress2/bv_to_int_shifts.smt2
   regress2/error0.smt2
   regress2/error1.smtv1.smt2
