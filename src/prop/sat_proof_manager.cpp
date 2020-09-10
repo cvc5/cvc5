@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file sat_proof_manager
+/*! \file sat_proof_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Haniel Barbosa
