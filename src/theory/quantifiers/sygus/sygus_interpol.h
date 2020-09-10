@@ -46,7 +46,7 @@ class SygusInterpol
  public:
   SygusInterpol();
 
-  SygusInterpol(LogicInfo logic);
+  SygusInterpol(LogicInfo logic, int mode);
 
   /**
    * Returns the sygus conjecture in interpol corresponding to the interpolation
@@ -177,6 +177,8 @@ class SygusInterpol
    * solutions.
    */
   std::unique_ptr<SmtEngine> d_subSolver;
+
+	int d_mode;
 
   /**
    * The logic for the local copy of SMT engine (d_subSolver).

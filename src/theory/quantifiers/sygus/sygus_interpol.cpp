@@ -34,7 +34,7 @@ namespace quantifiers {
 
 SygusInterpol::SygusInterpol() {}
 
-SygusInterpol::SygusInterpol(LogicInfo logic) : d_logic(logic) {}
+SygusInterpol::SygusInterpol(LogicInfo logic, int mode) : d_logic(logic), d_mode(mode) {}
 
 void SygusInterpol::collectSymbols(const std::vector<Node>& axioms,
                                    const Node& conj)
@@ -98,21 +98,21 @@ void SygusInterpol::getIncludeCons(
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& result)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Assert(options::produceInterpols() != options::ProduceInterpols::NONE);
+  //Assert(options::produceInterpols() != options::ProduceInterpols::NONE);
   // ASSUMPTIONS
-  if (options::produceInterpols() == options::ProduceInterpols::ASSUMPTIONS)
+  if (d_mode == 2)//options::produceInterpols() == options::ProduceInterpols::ASSUMPTIONS)
   {
     Node tmpAssumptions =
         (axioms.size() == 1 ? axioms[0] : nm->mkNode(kind::AND, axioms));
     expr::getOperatorsMap(tmpAssumptions, result);
   }
   // CONJECTURE
-  else if (options::produceInterpols() == options::ProduceInterpols::CONJECTURE)
+  else if (d_mode == 3)//options::produceInterpols() == options::ProduceInterpols::CONJECTURE)
   {
     expr::getOperatorsMap(conj, result);
   }
   // SHARED
-  else if (options::produceInterpols() == options::ProduceInterpols::SHARED)
+  else if (d_mode == 4)//options::produceInterpols() == options::ProduceInterpols::SHARED)
   {
     // Get operators from axioms
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>
@@ -155,7 +155,7 @@ void SygusInterpol::getIncludeCons(
     }
   }
   // ALL
-  else if (options::produceInterpols() == options::ProduceInterpols::ALL)
+  else if (d_mode == 5)//options::produceInterpols() == options::ProduceInterpols::ALL)
   {
     Node tmpAssumptions =
         (axioms.size() == 1 ? axioms[0] : nm->mkNode(kind::AND, axioms));
@@ -339,6 +339,7 @@ bool SygusInterpol::SolveInterpolation(const std::string& name,
     d_subSolver->declareSygusVar(name, var.toExpr(), var.getType().toType());
   }
   std::vector<Expr> vars_empty;
+	std::cerr << options::produceInterpols() << std::endl;
   TypeNode grammarType = setSynthGrammar(itpGType, axioms, conj);
   Node itp = mkPredicate(name);
   d_subSolver->declareSynthFun(
