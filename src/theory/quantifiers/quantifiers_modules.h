@@ -31,6 +31,9 @@
 
 namespace CVC4 {
 namespace theory {
+  
+class QuantifiersEngine;
+
 namespace quantifiers {
 
 /**
@@ -40,9 +43,19 @@ namespace quantifiers {
  */
 class QuantifiersModules
 {
+  friend class QuantifiersEngine;
  public:
   QuantifiersModules();
   ~QuantifiersModules();
+  /** initialize
+   *
+   * This constructs the above modules based on the current options. It adds
+   * a pointer to each module it constructs to modules.
+   */
+  void initialize(QuantifiersEngine* qe,
+                  context::Context* c,
+                  std::vector<QuantifiersModule*>& modules);
+ private:
   //------------------------------ quantifier utilities
   /** relevant domain */
   std::unique_ptr<quantifiers::RelevantDomain> d_rel_dom;
@@ -71,14 +84,6 @@ class QuantifiersModules
   std::unique_ptr<quantifiers::QuantAntiSkolem> d_anti_skolem;
   /** SyGuS instantiation engine */
   std::unique_ptr<quantifiers::SygusInst> d_sygus_inst;
-  /** initialize
-   *
-   * This constructs the above modules based on the current options. It adds
-   * a pointer to each module it constructs to modules.
-   */
-  void initialize(QuantifiersEngine* qe,
-                  context::Context* c,
-                  std::vector<QuantifiersModule*>& modules);
 };
 
 }  // namespace quantifiers
