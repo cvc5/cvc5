@@ -74,7 +74,9 @@ Node RemoveTermFormulas::runInternal(Node assertion,
 {
   NodeManager* nm = NodeManager::currentNM();
   TCtxStack ctx(&d_rtfc);
+  std::vector<bool> processedChildren;
   ctx.pushInitial(assertion);
+  processedChildren.push_back(false);
   std::pair<Node, uint32_t> initial = ctx.getCurrent();
   std::pair<Node, uint32_t> curr;
   Node node;
@@ -86,60 +88,86 @@ Node RemoveTermFormulas::runInternal(Node assertion,
     itc = d_tfCache.find(curr);
     node = curr.first;
     nodeVal = curr.second;
-    // if first time visiting the node in this term context
-    if (itc == d_tfCache.end())
+    Trace("rtf-debug") << "Visit " << node << ", " << nodeVal << std::endl;
+    if (itc != d_tfCache.end())
+    {
+      Trace("rtf-debug") << "...already computed" << std::endl;
+      ctx.pop();
+      processedChildren.pop_back();
+      // already computed
+      continue;
+    }
+    // if we have yet to process children
+    if (!processedChildren.back())
     {
       // check if we should replace the current node
       Node currt = runCurrent(curr, output, newSkolems);
-        d_tfCache.insert(curr, currt);
       // if null, we need to recurse
-      if (currt.isNull())
+      if (!currt.isNull())
       {
-        for (size_t i = 0, nchild = node.getNumChildren(); i < nchild; i++)
-        {
-          ctx.pushChild(node, nodeVal, i);
-        }
+        Trace("rtf-debug") << "...replace by skolem" << std::endl;
+        d_tfCache.insert(curr, currt);
+        ctx.pop();
+        processedChildren.pop_back();
       }
       else
       {
-        ctx.pop();
+        size_t nchild = node.getNumChildren();
+        if (nchild>0)
+        {
+          Trace("rtf-debug") << "...recurse to children" << std::endl;
+          // recurse if we have children
+          processedChildren[processedChildren.size()-1] = true;
+          for (size_t i = 0; i < nchild; i++)
+          {
+            ctx.pushChild(node, nodeVal, i);
+            processedChildren.push_back(false);
+          }
+        }
+        else
+        {
+          Trace("rtf-debug") << "...base case" << std::endl;
+          d_tfCache.insert(curr, node);
+          ctx.pop();
+          processedChildren.pop_back();
+        }
       }
       continue;
     }
-    // otherwise, pop the current node
+    Trace("rtf-debug") << "...reconstruct" << std::endl;
+    // otherwise, we are now finished processing children, pop the current node
+    // and compute the result
     ctx.pop();
+    processedChildren.pop_back();
     // if we have not already computed the result
-    if ((*itc).second.isNull())
+    std::vector<Node> newChildren;
+    bool childChanged = false;
+    if (node.getMetaKind() == kind::metakind::PARAMETERIZED)
     {
-      std::vector<Node> newChildren;
-      bool childChanged = false;
-      if (node.getMetaKind() == kind::metakind::PARAMETERIZED)
-      {
-        newChildren.push_back(node.getOperator());
-      }
-      // reconstruct from the children
-      std::pair<Node, uint32_t> currChild;
-      for (size_t i = 0, nchild = node.getNumChildren(); i < nchild; i++)
-      {
-        // recompute the value of the child
-        uint32_t val = d_rtfc.computeValue(node, nodeVal, i);
-        currChild = std::pair<Node, uint32_t>(node[i], val);
-        itc = d_tfCache.find(currChild);
-        Assert(itc != d_tfCache.end());
-        Node newChild = (*itc).second;
-        Assert (!newChild.isNull());
-        childChanged |= (newChild != node[i]);
-        newChildren.push_back(newChild);
-      }
-      // If changes, we reconstruct the node
-      Node ret = node;
-      if (childChanged)
-      {
-        ret = nm->mkNode(node.getKind(), newChildren);
-      }
-      // cache
-      d_tfCache.insert(curr, ret);
+      newChildren.push_back(node.getOperator());
     }
+    // reconstruct from the children
+    std::pair<Node, uint32_t> currChild;
+    for (size_t i = 0, nchild = node.getNumChildren(); i < nchild; i++)
+    {
+      // recompute the value of the child
+      uint32_t val = d_rtfc.computeValue(node, nodeVal, i);
+      currChild = std::pair<Node, uint32_t>(node[i], val);
+      itc = d_tfCache.find(currChild);
+      Assert(itc != d_tfCache.end());
+      Node newChild = (*itc).second;
+      Assert (!newChild.isNull());
+      childChanged |= (newChild != node[i]);
+      newChildren.push_back(newChild);
+    }
+    // If changes, we reconstruct the node
+    Node ret = node;
+    if (childChanged)
+    {
+      ret = nm->mkNode(node.getKind(), newChildren);
+    }
+    // cache
+    d_tfCache.insert(curr, ret);
   }
   itc = d_tfCache.find(initial);
   Assert(itc != d_tfCache.end());

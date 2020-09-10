@@ -121,7 +121,7 @@ class RemoveTermFormulas {
   static Node getAxiomFor(Node n);
 
  private:
-  typedef context::CDHashMap<
+  typedef context::CDInsertHashMap<
       std::pair<Node, int32_t>,
       Node,
       PairHashFunction<Node, int32_t, NodeHashFunction> >
