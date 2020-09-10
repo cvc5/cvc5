@@ -130,8 +130,6 @@ void SatProofManager::endResChain(Minisat::Lit lit)
   Trace("sat-proof") << "SatProofManager::endResChain: chain_res for "
                      << satLit;
   endResChain(getClauseNode(satLit), {satLit});
-  // save for possibly overwriting this afterwards
-  litsJustifiedInSolving.insert(satLit);
 }
 
 void SatProofManager::endResChain(const Minisat::Clause& clause)
@@ -525,28 +523,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
   // create step
   ProofStep ps(PfRule::CHAIN_RESOLUTION, children, args);
   d_resChainPg.addStep(d_false, ps);
-  // TODO FIX POINT JUSTIFICATION OF LITERALS IN LEAVES
-
-  // traverse all *literals* in the domain of d_resChains and see if it's
-  // possible to update their justifications
-  for (SatLiteral lit : litsJustifiedInSolving)
-  {
-    Trace("sat-proof") << "Literal " << lit << " resolved in solving now has";
-    Minisat::Solver::TCRef reasonRef =
-        d_solver->reason(Minisat::var(MinisatSatSolver::toMinisatLit(lit)));
-    if (reasonRef == Minisat::Solver::TCRef_Undef)
-    {
-      Trace("sat-proof") << "no SAT reason\n";
-      continue;
-    }
-    Assert(reasonRef >= 0 && reasonRef < d_solver->ca.size())
-        << "reasonRef " << reasonRef << " and d_satSolver->ca.size() "
-        << d_solver->ca.size() << "\n";
-    Trace("sat-proof") << "reason: ";
-    printClause(d_solver->ca[reasonRef]);
-    Trace("sat-proof") << "\n";
-    continue;
-  }
+  // Fix point justification of literals in leaves
   d_resChains.addLazyStep(d_false, &d_resChainPg, false);
   bool expanded;
   do

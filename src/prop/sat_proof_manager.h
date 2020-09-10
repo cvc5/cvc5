@@ -134,8 +134,6 @@ class SatProofManager
   /** The proof generator for resolution chains */
   BufferedProofGenerator d_resChainPg;
 
-  std::set<SatLiteral> litsJustifiedInSolving;
-
   /** The resolution proof of false */
   CDProof d_proof;
 
