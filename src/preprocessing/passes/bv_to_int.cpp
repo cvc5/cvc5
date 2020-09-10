@@ -592,7 +592,6 @@ Node BVToInt::translateWithChildren(Node original,
     {
       // ((_ extract i j) a) is a / 2^j mod 2^{i-j+1}
       // original = a[i:j]
-      Node a = original[0];
       uint64_t i = bv::utils::getExtractHigh(original);
       uint64_t j = bv::utils::getExtractLow(original);
       Assert(i >= j);
