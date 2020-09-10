@@ -1309,10 +1309,9 @@ TrustNode TheoryEngine::getExplanation(TNode node)
         << " Responsible theory is: " << theoryOf(atom)->getId() << std::endl;
 
     TrustNode texplanation = theoryOf(atom)->explain(node);
-    Node explanation = texplanation.getNode();
     Debug("theory::explain") << "TheoryEngine::getExplanation(" << node
-                             << ") => " << explanation << endl;
-    return explanation;
+                             << ") => " << texplanation.getNode() << endl;
+    return texplanation;
   }
 
   Debug("theory::explain") << "TheoryEngine::getExplanation: sharing IS enabled"
@@ -1823,7 +1822,7 @@ theory::TrustNode TheoryEngine::getExplanation(
   explanationVector.resize(j);
 
   Node expNode = mkExplanation(explanationVector);
-  return theory::TrustNode::mkTrustLemma(expNode, nullptr)
+  return theory::TrustNode::mkTrustLemma(expNode, nullptr);
 }
 
 bool TheoryEngine::isProofEnabled() const { return d_pnm != nullptr; }
