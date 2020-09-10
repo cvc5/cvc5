@@ -61,6 +61,7 @@
 #include "options/set_language.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
+#include "options/quantifiers_options.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"

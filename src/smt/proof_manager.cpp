@@ -97,7 +97,6 @@ void PfManager::setFinalProof(ProofGenerator* pg, context::CDList<Node>* al)
 
   Trace("smt-proof") << "SmtEngine::setFinalProof(): postprocess...\n";
   Assert(d_pfpp != nullptr);
-  d_pfpp->setAssertions(assertions);
   d_pfpp->process(body);
 
   Trace("smt-proof") << "SmtEngine::setFinalProof(): make scope...\n";
