@@ -616,7 +616,15 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
 
 void Solver::attachClause(CRef cr) {
     const Clause& c = ca[cr];
-    Debug("minisat") << "Solver::attachClause(" << c << "): level " << c.level() << std::endl;
+    if (Debug.isOn("minisat"))
+    {
+      Debug("minisat") << "Solver::attachClause(" << c << "): ";
+      for (unsigned i = 0, size = c.size(); i < size; ++i)
+      {
+        Debug("minisat") << c[i] << " ";
+      }
+      Debug("minisat") << ", level " << c.level() << "\n";
+    }
     Assert(c.size() > 1);
     watches[~c[0]].push(Watcher(cr, c[1]));
     watches[~c[1]].push(Watcher(cr, c[0]));
