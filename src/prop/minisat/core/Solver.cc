@@ -311,27 +311,27 @@ void Solver::resizeVars(int newSize) {
 }
 
 CRef Solver::reason(Var x) {
-  Debug("pf::sat") << "Solver::reason(" << x << ")" << std::endl;
+  Trace("pf::sat") << "Solver::reason(" << x << ")" << std::endl;
 
   // If we already have a reason, just return it
   if (vardata[x].d_reason != CRef_Lazy)
   {
-    if (Debug.isOn("pf::sat"))
+    if (Trace.isOn("pf::sat"))
     {
-      Debug("pf::sat") << "  Solver::reason: " << vardata[x].d_reason << ", ";
+      Trace("pf::sat") << "  Solver::reason: " << vardata[x].d_reason << ", ";
       if (vardata[x].d_reason == CRef_Undef)
       {
-        Debug("pf::sat") << "CRef_Undef";
+        Trace("pf::sat") << "CRef_Undef";
       }
       else
       {
         for (unsigned i = 0, size = ca[vardata[x].d_reason].size(); i < size;
              ++i)
         {
-          Debug("pf::sat") << ca[vardata[x].d_reason][i] << " ";
+          Trace("pf::sat") << ca[vardata[x].d_reason][i] << " ";
         }
       }
-      Debug("pf::sat") << "\n";
+      Trace("pf::sat") << "\n";
     }
     return vardata[x].d_reason;
   }
@@ -347,7 +347,7 @@ CRef Solver::reason(Var x) {
   vec<Lit> explanation;
   MinisatSatSolver::toMinisatClause(explanation_cl, explanation);
 
-  Debug("pf::sat") << "Solver::reason: explanation_cl = " << explanation_cl
+  Trace("pf::sat") << "Solver::reason: explanation_cl = " << explanation_cl
                    << std::endl;
 
   // Sort the literals by trail index level
@@ -398,12 +398,12 @@ CRef Solver::reason(Var x) {
       }
       explanation.shrink(i - j);
 
-      Debug("pf::sat") << "Solver::reason: explanation = ";
+      Trace("pf::sat") << "Solver::reason: explanation = ";
       for (int k = 0; k < explanation.size(); ++k)
       {
-        Debug("pf::sat") << explanation[k] << " ";
+        Trace("pf::sat") << explanation[k] << " ";
       }
-      Debug("pf::sat") << std::endl;
+      Trace("pf::sat") << std::endl;
 
       // We need an explanation clause so we add a fake literal
       if (j == 1)
@@ -417,7 +417,7 @@ CRef Solver::reason(Var x) {
     CRef real_reason = ca.alloc(explLevel, explanation, true);
     // FIXME: at some point will need more information about where this explanation
     // came from (ie. the theory/sharing)
-    Debug("pf::sat") << "Minisat::Solver registering a THEORY_LEMMA (1)" << std::endl;
+    Trace("pf::sat") << "Minisat::Solver registering a THEORY_LEMMA (1)" << std::endl;
     PROOF(ClauseId id = ProofManager::getSatProof()->registerClause(
               real_reason, THEORY_LEMMA);
           ProofManager::getCnfProof()->registerConvertedClause(id, true);
@@ -488,11 +488,11 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
     // If we are in solve_ or propagate
     if (minisat_busy)
     {
-      Debug("pf::sat") << "Add clause adding a new lemma: ";
+      Trace("pf::sat") << "Add clause adding a new lemma: ";
       for (int k = 0; k < ps.size(); ++k) {
-        Debug("pf::sat") << ps[k] << " ";
+        Trace("pf::sat") << ps[k] << " ";
       }
-      Debug("pf::sat") << std::endl;
+      Trace("pf::sat") << std::endl;
 
       lemmas.push();
       ps.copyTo(lemmas.last());
@@ -520,7 +520,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
             PROOF( ProofManager::getSatProof()->finalizeProof(CVC4::Minisat::CRef_Lazy); )
             if (d_pfManager)
             {
-              d_pfManager->finalizeProof(ps[0]);
+              d_pfManager->finalizeProof(ps[0], true);
             }
             return ok = false;
           }
@@ -550,7 +550,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
             PROOF( ProofManager::getSatProof()->finalizeProof(cr); )
             if (d_pfManager)
             {
-              d_pfManager->finalizeProof(ca[cr]);
+              d_pfManager->finalizeProof(ca[cr], true);
             }
             return ok = false;
           }
@@ -569,13 +569,10 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
                   id = ProofManager::getSatProof()->registerUnitClause(ps[0], INPUT);
                 }
                 );
-          if (CVC4::options::proofNew())
+          // since this may happen before the proof cnf stream has the chance to register the input
+          if (d_pfManager)
           {
-            // TODO HB not sure why this is commented out :)
-            // if (ps.size() == 1)
-            // {
-            //   NewProofManager::currentPM()->registerClause(ps[0]);
-            // }
+            d_pfManager->registerInput(ps[0]);
           }
           CRef confl = propagate(CHECK_WITHOUT_THEORY);
           if(! (ok = (confl == CRef_Undef)) ) {
@@ -681,10 +678,16 @@ void Solver::removeClause(CRef cr) {
       // this propagation here.
       if (d_pfManager)
       {
-        Debug("pf::sat")
+        Trace("pf::sat")
             << "Solver::removeClause: eagerly compute propagation of " << c[0]
             << "\n";
-        d_pfManager->tryJustifyingLit(MinisatSatSolver::toSatLiteral(c[0]));
+        // d_pfManager->tryJustifyingLit(MinisatSatSolver::toSatLiteral(c[0]));
+        d_pfManager->startResChain(c);
+        for (unsigned i = 1, size = c.size(); i < size; ++i)
+        {
+          d_pfManager->addResolutionStep(c[i]);
+        }
+        d_pfManager->endResChain(c[0]);
       }
       vardata[var(c[0])].d_reason = CRef_Undef;
     }
@@ -2036,11 +2039,11 @@ CRef Solver::updateLemmas() {
       // The current lemma
       vec<Lit>& lemma = lemmas[i];
 
-      Debug("pf::sat") << "Solver::updateLemmas: working on lemma: ";
+      Trace("pf::sat") << "Solver::updateLemmas: working on lemma: ";
       for (int k = 0; k < lemma.size(); ++k) {
-        Debug("pf::sat") << lemma[k] << " ";
+        Trace("pf::sat") << lemma[k] << " ";
       }
-      Debug("pf::sat") << std::endl;
+      Trace("pf::sat") << std::endl;
 
       // If it's an empty lemma, we have a conflict at zero level
       if (lemma.size() == 0) {
@@ -2101,7 +2104,7 @@ CRef Solver::updateLemmas() {
       PROOF(TNode cnf_assertion = lemmas_cnf_assertion[j].first;
             TNode cnf_def = lemmas_cnf_assertion[j].second;
 
-            Debug("pf::sat")
+            Trace("pf::sat")
             << "Minisat::Solver registering a THEORY_LEMMA (2)" << std::endl;
             ClauseId id = ProofManager::getSatProof()->registerClause(
                 lemma_ref, THEORY_LEMMA);
@@ -2123,7 +2126,7 @@ CRef Solver::updateLemmas() {
           Node cnf_assertion = lemmas_cnf_assertion[j].first;
           Node cnf_def = lemmas_cnf_assertion[j].second;
 
-          Debug("pf::sat") << "Minisat::Solver registering a THEORY_LEMMA (3) "
+          Trace("pf::sat") << "Minisat::Solver registering a THEORY_LEMMA (3) "
                            << cnf_assertion << value(lemma[0]) << std::endl;
           ClauseId id = ProofManager::getSatProof()->registerUnitClause(
               lemma[0], THEORY_LEMMA);
@@ -2132,7 +2135,7 @@ CRef Solver::updateLemmas() {
         }
         if (CVC4::options::proofNew())
         {
-          Debug("pf::sat") << "Solver::updateLemmas: unit theory lemma: "
+          Trace("pf::sat") << "Solver::updateLemmas: unit theory lemma: "
                            << lemma[0] << std::endl;
         }
         if (value(lemma[0]) == l_False) {
