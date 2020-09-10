@@ -452,7 +452,7 @@ class TheoryEngine {
    * where the node is the one to be explained, and the theory is the
    * theory that sent the literal.
    */
-  void getExplanation(std::vector<NodeTheoryPair>& explanationVector);
+  theory::TrustNode getExplanation(std::vector<NodeTheoryPair>& explanationVector);
 
   /** Are proofs enabled? */
   bool isProofEnabled() const;
@@ -573,7 +573,7 @@ class TheoryEngine {
   /**
    * Returns an explanation of the node propagated to the SAT solver.
    */
-  Node getExplanation(TNode node);
+  theory::TrustNode getExplanation(TNode node);
 
   /**
    * Get the pointer to the model object used by this theory engine.

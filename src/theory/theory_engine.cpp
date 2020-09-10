@@ -1292,7 +1292,7 @@ static Node mkExplanation(const std::vector<NodeTheoryPair>& explanation) {
   return conjunction;
 }
 
-Node TheoryEngine::getExplanation(TNode node)
+TrustNode TheoryEngine::getExplanation(TNode node)
 {
   Debug("theory::explain") << "TheoryEngine::getExplanation(" << node
                            << "): current propagation index = "
@@ -1332,13 +1332,10 @@ Node TheoryEngine::getExplanation(TNode node)
   std::vector<NodeTheoryPair> explanationVector;
   explanationVector.push_back(d_propagationMap[toExplain]);
   // Process the explanation
-  getExplanation(explanationVector);
-  Node explanation = mkExplanation(explanationVector);
-
+  TrustNode texplanation = getExplanation(explanationVector);
   Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << ") => "
-                           << explanation << endl;
-
-  return explanation;
+                           << texplanation.getNode() << endl;
+  return texplanation;
 }
 
 struct AtomsCollect {
@@ -1576,10 +1573,10 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   }
 
   // now, send the lemmas to the prop engine
-  d_propEngine->assertLemma(tlemma, removable);
+  d_propEngine->assertLemma(tlemma.getProven(), false, removable);
   for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
   {
-    d_propEngine->assertLemma(newLemmas[i], removable);
+    d_propEngine->assertLemma(newLemmas[i].getProven(), false, removable);
   }
 
   // assert to decision engine
@@ -1710,7 +1707,7 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
   }
 }
 
-void TheoryEngine::getExplanation(
+theory::TrustNode TheoryEngine::getExplanation(
     std::vector<NodeTheoryPair>& explanationVector)
 {
   Assert(explanationVector.size() > 0);
@@ -1824,6 +1821,9 @@ void TheoryEngine::getExplanation(
 
   // Keep only the relevant literals
   explanationVector.resize(j);
+  
+  Node expNode = mkExplanation(explanationVector);
+  return theory::TrustNode::mkTrustLemma(expNode, nullptr)
 }
 
 bool TheoryEngine::isProofEnabled() const { return d_pnm != nullptr; }
