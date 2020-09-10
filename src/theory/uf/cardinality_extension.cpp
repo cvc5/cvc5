@@ -1573,6 +1573,16 @@ bool CardinalityExtension::areDisequal(Node a, Node b)
 /** check */
 void CardinalityExtension::check(Theory::Effort level)
 {
+  if (level==Theory::EFFORT_LAST_CALL)
+  {
+    // if last call, call last call check for each sort
+    for( std::pair< TypeNode, SortModel* >& r : d_rep_model ){
+      if( !r->checkLastCall() ){
+        break;
+      }
+    }
+    return;
+  }
   if (!d_state.isInConflict())
   {
     if (options::ufssMode() == options::UfssMode::FULL)
@@ -1749,16 +1759,6 @@ void CardinalityExtension::debugPrint(const char* c)
     it->second->debugPrint( c );
     Debug( c ) << std::endl;
   }
-}
-
-bool CardinalityExtension::checkLastCall()
-{
-  for( std::pair< TypeNode, SortModel* >& r : d_rep_model ){
-    if( !r->checkLastCall() ){
-      return false;
-    }
-  }
-  return true;
 }
 
 /** initialize */

@@ -142,7 +142,7 @@ void TheoryUF::postCheck(Effort level)
   {
     d_thss->check(level);
   }
-  // check with the higher-order extension
+  // check with the higher-order extension at full effort
   if (!d_state.isInConflict() && fullEffort(level))
   {
     if (options::ufHo())

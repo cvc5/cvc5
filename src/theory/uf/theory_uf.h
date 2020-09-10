@@ -189,10 +189,6 @@ private:
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
   std::string identify() const override { return "THEORY_UF"; }
-
-  /** get a pointer to the uf with cardinality */
-  CardinalityExtension* getCardinalityExtension() const { return d_thss.get(); }
-
  private:
   /** Explain why this literal is true by building an explanation */
   void explain(TNode literal, Node& exp);
