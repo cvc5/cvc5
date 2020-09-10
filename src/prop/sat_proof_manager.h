@@ -81,13 +81,17 @@ class SatProofManager
 
   void finalizeProof(Node inConflictNode,
                      const std::vector<SatLiteral>& inConflict);
-  void finalizeProof(Minisat::Clause& inConflict);
-  void finalizeProof(Minisat::Lit inConflict);
+  /**
+   * @param adding whethen the conflict is coming from a freshly added clause
+   */
+  void finalizeProof(Minisat::Clause& inConflict, bool adding = false);
+  void finalizeProof(Minisat::Lit inConflict, bool adding = false);
   void finalizeProof();
   void storeUnitConflict(Minisat::Lit inConflict);
 
   CDProof* getProof();
 
+  void registerInput(Minisat::Lit lit);
   void registerInputs(const std::vector<Node>& inputs);
 
  private:
@@ -108,12 +112,12 @@ class SatProofManager
    * possibly updated during solving. When the final conclusion is reached, a
    * final proof is built based on the proofs saved here.
    */
-  std::map<Node, std::shared_ptr<ProofNode>> d_clauseProofs;
-
   LazyCDProofChain d_resChains;
 
   /** The proof generator for resolution chains */
   BufferedProofGenerator d_resChainPg;
+
+  std::set<SatLiteral> litsJustifiedInSolving;
 
   /** The resolution proof of false */
   CDProof d_proof;

@@ -14,6 +14,7 @@
 
 #include "prop/sat_proof_manager.h"
 
+#include "expr/proof_node_algorithm.h"
 #include "prop/cnf_stream.h"
 #include "prop/minisat/minisat.h"
 #include "prop/theory_proxy.h"
@@ -120,6 +121,8 @@ void SatProofManager::endResChain(Minisat::Lit lit)
   Trace("sat-proof") << "SatProofManager::endResChain: chain_res for "
                      << satLit;
   endResChain(getClauseNode(satLit));
+  // save for possibly overwriting this afterwards
+  litsJustifiedInSolving.insert(satLit);
 }
 
 void SatProofManager::endResChain(Minisat::Clause& clause)
@@ -198,7 +201,11 @@ void SatProofManager::endResChain(Node conclusion)
                        << children[0] << "\n";
     return;
   }
-  CDProof conclusionProof(d_pnm, nullptr, "CDProof::endResChain");
+  if (Trace.isOn("sat-proof") && d_resChains.hasGenerator(conclusion))
+  {
+    Trace("sat-proof") << "SatProofManager::endResChain: replacing proof of "
+                       << conclusion << "\n";
+  }
   // since the conclusion can be both reordered and without duplucates and the
   // SAT solver does not record this information, we must recompute it here so
   // the proper CHAIN_RESOLUTION step can be created
@@ -208,20 +215,16 @@ void SatProofManager::endResChain(Node conclusion)
   Trace("sat-proof")
       << "SatProofManager::endResChain: creating step for computed conclusion "
       << chainConclusion << "\n";
-  // create step
-  conclusionProof.addStep(chainConclusion,
-                          PfRule::CHAIN_RESOLUTION,
-                          children,
-                          args,
-                          false,
-                          CDPOverwrite::ALWAYS);
+  // buffer steps
+  ProofStepBuffer psb;
+  psb.addStep(PfRule::CHAIN_RESOLUTION, children, args, chainConclusion);
   if (chainConclusion != conclusion)
   {
     // if this happens that chainConclusion needs to be factored and/or
     // reordered, which in either case can be done only if it's not a unit
     // clause.
     CVC4_UNUSED Node reducedChainConclusion =
-        CDProof::factorReorderElimDoubleNeg(chainConclusion, &conclusionProof);
+        CDProof::factorReorderElimDoubleNeg(chainConclusion, psb);
     Assert(reducedChainConclusion == conclusion
            || reducedChainConclusion
                   == CDProof::factorReorderElimDoubleNeg(conclusion, nullptr))
@@ -230,21 +233,6 @@ void SatProofManager::endResChain(Node conclusion)
         << CDProof::factorReorderElimDoubleNeg(conclusion, nullptr)
         << "\nis different from chain_res " << chainConclusion
         << "\nafter factorReorderElimDoubleNeg " << reducedChainConclusion;
-  }
-  if (Trace.isOn("sat-proof")
-      && d_clauseProofs.find(conclusion) != d_clauseProofs.end())
-  {
-    Trace("sat-proof") << "SatProofManager::endResChain: replacing proof of "
-                       << conclusion << "\n";
-  }
-  d_clauseProofs[conclusion] = conclusionProof.getProofFor(conclusion)->clone();
-  // ------------------------------ test lazy proof chain
-  // buffer steps
-  ProofStepBuffer psb;
-  psb.addStep(PfRule::CHAIN_RESOLUTION, children, args, chainConclusion);
-  if (chainConclusion != conclusion)
-  {
-    CDProof::factorReorderElimDoubleNeg(chainConclusion, psb);
   }
   // buffer the steps in the resolution chain proof generator
   const std::vector<std::pair<Node, ProofStep>>& steps = psb.getSteps();
@@ -276,22 +264,12 @@ void SatProofManager::tryJustifyingLit(
   if (reasonRef == Minisat::Solver::TCRef_Undef)
   {
     Trace("sat-proof") << "SatProofManager::tryJustifyingLit: no SAT reason\n";
-    std::map<Node, std::shared_ptr<ProofNode>>::const_iterator it =
-        d_clauseProofs.find(litNode);
-    if (it != d_clauseProofs.end())
-    {
-      Trace("sat-proof")
-          << "SatProofManager::tryJustifyingLit:   retrieve previous proof\n";
-      d_proof.addProof(it->second);
-    }
     Trace("sat-proof") << CVC4::pop;
     return;
   }
   Assert(reasonRef >= 0 && reasonRef < d_solver->ca.size())
       << "reasonRef " << reasonRef << " and d_satSolver->ca.size() "
       << d_solver->ca.size() << "\n";
-  // Here, the call to resolveUnit() can reallocate memory in the
-  // clause allocator.  So reload reason ptr each time.
   const Minisat::Clause& initialReason = d_solver->ca[reasonRef];
   unsigned currentReason_size = initialReason.size();
   if (Trace.isOn("sat-proof"))
@@ -299,6 +277,18 @@ void SatProofManager::tryJustifyingLit(
     Trace("sat-proof") << "SatProofManager::tryJustifyingLit: with clause: ";
     printClause(initialReason);
     Trace("sat-proof") << "\n";
+  }
+  // pedantically check that the negation literal of the literal to justify
+  // *does not* occur in the reason, otherwise we will loop forever
+  for (unsigned i = 0; i < currentReason_size; ++i)
+  {
+    if (~MinisatSatSolver::toSatLiteral(initialReason[i]) == lit)
+    {
+      Trace("sat-proof")
+          << "SatProofManager::tryJustifyingLit: cyclic justification\n"
+          << CVC4::pop;
+      return;
+    }
   }
   // add the reason clause first
   std::vector<Node> children{getClauseNode(initialReason)}, args;
@@ -375,25 +365,11 @@ void SatProofManager::tryJustifyingLit(
   {
     Trace("sat-proof") << "SatProofManager::tryJustifyingLit: CYCLIC PROOF of "
                        << lit << " [" << litNode << "], ABORT\n";
-    std::map<Node, std::shared_ptr<ProofNode>>::const_iterator it =
-        d_clauseProofs.find(litNode);
-    if (it != d_clauseProofs.end())
-    {
-      Trace("sat-proof")
-          << "SatProofManager::tryJustifyingLit:   retrieve previous proof\n";
-      d_proof.addProof(it->second);
-    }
     Trace("sat-proof") << CVC4::pop;
     return;
   }
-  d_proof.addStep(litNode,
-                  PfRule::CHAIN_RESOLUTION,
-                  children,
-                  args,
-                  false,
-                  CDPOverwrite::ALWAYS);
   Trace("sat-proof") << CVC4::pop;
-  // test lazy proof chain
+  // create step
   ProofStep ps(PfRule::CHAIN_RESOLUTION, children, args);
   d_resChainPg.addStep(litNode, ps);
   // the premises in the limit of the justification may correspond to other
@@ -458,16 +434,70 @@ void SatProofManager::finalizeProof(Node inConflictNode,
       Trace("sat-proof") << "\n";
     }
   }
-  d_proof.addStep(d_false,
-                  PfRule::CHAIN_RESOLUTION,
-                  children,
-                  args,
-                  false,
-                  CDPOverwrite::ALWAYS);
-  // test lazy proof chain
+  // create step
   ProofStep ps(PfRule::CHAIN_RESOLUTION, children, args);
   d_resChainPg.addStep(d_false, ps);
   // TODO FIX POINT JUSTIFICATION OF LITERALS IN LEAVES
+
+  // traverse all *literals* in the domain of d_resChains and see if it's
+  // possible to update their justifications
+  for (SatLiteral lit : litsJustifiedInSolving)
+  {
+    Trace("sat-proof") << "Literal " << lit << " resolved in solving now has";
+    Minisat::Solver::TCRef reasonRef =
+        d_solver->reason(Minisat::var(MinisatSatSolver::toMinisatLit(lit)));
+    if (reasonRef == Minisat::Solver::TCRef_Undef)
+    {
+      Trace("sat-proof") << "no SAT reason\n";
+      continue;
+    }
+    Assert(reasonRef >= 0 && reasonRef < d_solver->ca.size())
+        << "reasonRef " << reasonRef << " and d_satSolver->ca.size() "
+        << d_solver->ca.size() << "\n";
+    Trace("sat-proof") << "reason: ";
+    printClause(d_solver->ca[reasonRef]);
+    Trace("sat-proof") << "\n";
+    continue;
+  }
+  d_resChains.addLazyStep(d_false, &d_resChainPg, false);
+  bool expanded;
+  do
+  {
+    expanded = false;
+    std::shared_ptr<ProofNode> pfn = d_resChains.getProofFor(d_false);
+    Trace("sat-proof") << "sat proof of flase: " << *pfn.get() << "\n";
+    std::vector<Node> fassumps;
+    expr::getFreeAssumptions(pfn.get(), fassumps);
+    // for each assumption, see if it has a reason
+    for (const Node& fa : fassumps)
+    {
+      // ignore already processed assumptions
+      if (assumptions.count(fa))
+      {
+        continue;
+      }
+      // ignore non-literals
+      auto it = d_proxy->getCnfStream()->getTranslationCache().find(fa);
+      if (it == d_proxy->getCnfStream()->getTranslationCache().end())
+      {
+        Trace("sat-proof") << "no lit assumption " << fa << "\n";
+        assumptions.insert(fa);
+        continue;
+      }
+      Trace("sat-proof") << "lit assumption (" << it->second << "), " << fa
+                         << "\n";
+      // mark another iteration for the loop, as some resolution link may be
+      // connected because of the new justifications
+      expanded = true;
+      std::unordered_set<TNode, TNodeHashFunction> childAssumptions;
+      tryJustifyingLit(it->second, childAssumptions);
+      // add the assumptions used in the justification. We know they will have
+      // been as expanded as possible
+      assumptions.insert(childAssumptions.begin(), childAssumptions.end());
+      // add free assumption itself
+      assumptions.insert(fa);
+    }
+  } while (expanded);
   // now we should be able to close it
   d_resChains.addLazyStep(d_false, &d_resChainPg);
 }
@@ -487,15 +517,20 @@ void SatProofManager::finalizeProof()
   finalizeProof(getClauseNode(d_conflictLit), {d_conflictLit});
 }
 
-void SatProofManager::finalizeProof(Minisat::Lit inConflict)
+void SatProofManager::finalizeProof(Minisat::Lit inConflict, bool adding)
 {
   SatLiteral satLit = MinisatSatSolver::toSatLiteral(inConflict);
   Trace("sat-proof") << "SatProofManager::finalizeProof: conflicting satLit: "
                      << satLit << "\n";
-  finalizeProof(getClauseNode(satLit), {satLit});
+  Node clauseNode = getClauseNode(satLit);
+  if (adding)
+  {
+    registerInputs({clauseNode});
+  }
+  finalizeProof(clauseNode, {satLit});
 }
 
-void SatProofManager::finalizeProof(Minisat::Clause& inConflict)
+void SatProofManager::finalizeProof(Minisat::Clause& inConflict, bool adding)
 {
   if (Trace.isOn("sat-proof"))
   {
@@ -509,10 +544,29 @@ void SatProofManager::finalizeProof(Minisat::Clause& inConflict)
   {
     clause.push_back(MinisatSatSolver::toSatLiteral(inConflict[i]));
   }
-  finalizeProof(getClauseNode(inConflict), clause);
+  Node clauseNode = getClauseNode(inConflict);
+  if (adding)
+  {
+    registerInputs({clauseNode});
+  }
+  finalizeProof(clauseNode, clause);
 }
 
-CDProof* SatProofManager::getProof() { return &d_proof; }
+CDProof* SatProofManager::getProof()
+{
+  std::shared_ptr<ProofNode> pfn = d_resChains.getProofFor(d_false);
+  if (pfn)
+  {
+    d_proof.addProof(pfn);
+  }
+  return &d_proof;
+}
+
+void SatProofManager::registerInput(Minisat::Lit lit)
+{
+  d_resChains.addFixedAssumption(
+      getClauseNode(MinisatSatSolver::toSatLiteral(lit)));
+}
 
 void SatProofManager::registerInputs(const std::vector<Node>& inputs)
 {
