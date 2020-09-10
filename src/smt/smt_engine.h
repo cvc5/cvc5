@@ -901,8 +901,8 @@ class CVC4_PUBLIC SmtEngine
   /** Get a pointer to the PropEngine owned by this SmtEngine. */
   prop::PropEngine* getPropEngine();
 
-  /** 
-   * Get a pointer to the ProofManager owned by this SmtEngine. 
+  /**
+   * Get a pointer to the ProofManager owned by this SmtEngine.
    * TODO (project #37): this is the old proof manager and will be deleted
    */
   ProofManager* getProofManager() { return d_proofManager.get(); };
@@ -1084,7 +1084,7 @@ class CVC4_PUBLIC SmtEngine
    * processing, and printing proofs.
    */
   std::unique_ptr<smt::PfManager> d_pfManager;
-  
+
   /**
    * The rewriter associated with this SmtEngine. We have a different instance
    * of the rewriter for each SmtEngine instance. This is because rewriters may

@@ -58,10 +58,10 @@
 #include "options/option_exception.h"
 #include "options/printer_options.h"
 #include "options/prop_options.h"
+#include "options/quantifiers_options.h"
 #include "options/set_language.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
-#include "options/quantifiers_options.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
@@ -81,6 +81,7 @@
 #include "smt/model_core_builder.h"
 #include "smt/options_manager.h"
 #include "smt/preprocessor.h"
+#include "smt/proof_manager.h"
 #include "smt/quant_elim_solver.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_engine_state.h"
@@ -101,7 +102,6 @@
 #include "util/hash.h"
 #include "util/random.h"
 #include "util/resource_manager.h"
-#include "smt/proof_manager.h"
 
 using namespace std;
 using namespace CVC4;
