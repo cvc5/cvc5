@@ -205,8 +205,12 @@ class TheoryEngine {
 
   /**
    * Called by the theories to notify of a conflict.
+   *
+   * @param conflict The trust node containing the conflict and its proof
+   * generator (if it exists),
+   * @param theoryId The theory that sent the conflict
    */
-  void conflict(TNode conflict, theory::TheoryId theoryId);
+  void conflict(theory::TrustNode conflict, theory::TheoryId theoryId);
 
   /**
    * Debugging flag to ensure that shutdown() is called before the
@@ -282,13 +286,16 @@ class TheoryEngine {
   /**
    * Adds a new lemma, returning its status.
    * @param node the lemma
-   * @param negated should the lemma be asserted negated
    * @param p the properties of the lemma.
+   * @param atomsTo the theory that atoms of the lemma should be sent to
+   * @param from the theory that sent the lemma
+   * @return a lemma status, containing the lemma and context information
+   * about when it was sent.
    */
-  theory::LemmaStatus lemma(TNode node,
-                            bool negated,
+  theory::LemmaStatus lemma(theory::TrustNode node,
                             theory::LemmaProperty p,
-                            theory::TheoryId atomsTo);
+                            theory::TheoryId atomsTo = theory::THEORY_LAST,
+                            theory::TheoryId from = theory::THEORY_LAST);
 
   /** Enusre that the given atoms are send to the given theory */
   void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);
