@@ -36,10 +36,8 @@ std::shared_ptr<ProofNode> PropPfManager::getProof()
   // retrieve the propositional conflict proof
   Trace("sat-proof")
       << "PropPfManager::getProof: Getting resolution proof of false\n";
-  std::shared_ptr<ProofNode> conflictProof =
-      d_satPM->getProof()
-          ->getProofFor(NodeManager::currentNM()->mkConst(false))
-          ->clone();
+  std::shared_ptr<ProofNode> conflictProof = d_satPM->getProof()->getProofFor(
+      NodeManager::currentNM()->mkConst(false));
   if (Trace.isOn("sat-proof"))
   {
     std::vector<Node> fassumps;

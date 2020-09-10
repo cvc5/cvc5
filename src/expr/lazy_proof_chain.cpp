@@ -66,8 +66,7 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
           << "LazyCDProofChain::getProofFor: Call generator " << pg->identify()
           << " for chain link " << cur << "\n";
       Node curFactGen = isSym ? CDProof::getSymmFact(cur) : cur;
-      // copy the proof node so that changing it does not change the stored one
-      std::shared_ptr<ProofNode> curPfn = pg->getProofFor(curFactGen)->clone();
+      std::shared_ptr<ProofNode> curPfn = pg->getProofFor(curFactGen);
       if (isSym)
       {
         curPfn = d_manager->mkNode(PfRule::SYMM, {curPfn}, {});

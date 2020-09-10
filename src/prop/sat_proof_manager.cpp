@@ -529,10 +529,34 @@ void SatProofManager::finalizeProof(Node inConflictNode,
   do
   {
     expanded = false;
+    Trace("sat-proof") << "expand assumptions to prove false\n";
     std::shared_ptr<ProofNode> pfn = d_resChains.getProofFor(d_false);
-    Trace("sat-proof") << "sat proof of flase: " << *pfn.get() << "\n";
+    Trace("sat-proof-debug") << "sat proof of flase: " << *pfn.get() << "\n";
     std::vector<Node> fassumps;
     expr::getFreeAssumptions(pfn.get(), fassumps);
+    if (Trace.isOn("sat-proof"))
+    {
+      for (const Node& fa : fassumps)
+      {
+        Trace("sat-proof") << "- ";
+        auto it = d_proxy->getCnfStream()->getTranslationCache().find(fa);
+        if (it != d_proxy->getCnfStream()->getTranslationCache().end())
+        {
+          Trace("sat-proof") << it->second << "\n";
+          continue;
+        }
+        // then it's a clause
+        Assert(fa.getKind() == kind::OR);
+        for (const Node& n : fa)
+        {
+          it = d_proxy->getCnfStream()->getTranslationCache().find(n);
+          Assert(it != d_proxy->getCnfStream()->getTranslationCache().end());
+          Trace("sat-proof") << it->second << " ";
+        }
+        Trace("sat-proof") << "\n";
+      }
+    }
+
     // for each assumption, see if it has a reason
     for (const Node& fa : fassumps)
     {
