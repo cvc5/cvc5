@@ -116,6 +116,7 @@ class LazyCDProofChain : public CDProof
   /** Maps facts that can be proven to generators */
   NodeProofGeneratorMap d_gens;
 
+  /** set of assumptions with relation to which the chain must be closed */
   std::vector<Node> d_fixedAssumptions;
 };
 
