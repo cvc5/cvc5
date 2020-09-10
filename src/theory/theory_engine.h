@@ -446,6 +446,8 @@ class TheoryEngine {
    */
   void getExplanation(std::vector<NodeTheoryPair>& explanationVector);
 
+  /** Are proofs enabled? */
+  bool isProofEnabled() const;
  public:
   /**
    * Signal the start of a new round of assertion preprocessing

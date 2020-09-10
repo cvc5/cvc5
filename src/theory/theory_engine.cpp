@@ -1821,6 +1821,8 @@ void TheoryEngine::getExplanation(
   explanationVector.resize(j);
 }
 
+bool TheoryEngine::isProofEnabled() const { return d_pnm != nullptr; }
+
 void TheoryEngine::setUserAttribute(const std::string& attr,
                                     Node n,
                                     const std::vector<Node>& node_values,
