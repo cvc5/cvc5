@@ -25,11 +25,10 @@
 #include "expr/node.h"
 #include "theory/strings/extf_solver.h"
 #include "theory/strings/inference_manager.h"
+#include "theory/strings/skolem_cache.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/sequences_stats.h"
-#include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
-#include "theory/strings/term_registry.h"
 #include "util/string.h"
 
 namespace CVC4 {

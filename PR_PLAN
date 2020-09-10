@@ -83,10 +83,13 @@ PRs ready:
 (53) CNF proof producing [Haniel]
 (70) rewriter unit test [Andres] (req 36, 37)
 (82) SmtEngine proof manager (req 84, 87, 93) *
-(88) fixes for smt preprocess proof generator
+(88) fixes for smt preprocess proof generator, theory engine proof generator
 (91) Proof producing lemma TheoryEngine *
 (94) HO_CONG in eq proof conversion [Haniel]
 (95) Arrays proof checker
+(99) SAT rules to Boolean checker [Haniel]
+(100) fixes for instantiate, quantifiers proof checker
+(101) strings misc changes to preprocess, base
 
 PRs future:
 
@@ -101,6 +104,8 @@ PRs future:
 (85) SmtEngine check proofs (req 68, 82)
 (96) arrays proof producing (req 95)
 (97) BV new basic solver, proof producing
+(98) fixes in setDefaults
+
 
 Wish list:
 
