@@ -33,7 +33,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-/** 
+/**
  * This class is responsible for constructing the vector of modules to be
  * used by quantifiers engine. It generates this list of modules in its
  * initialize method, which is based on the options.
@@ -84,8 +84,8 @@ class QuantifiersModules
                   bool& needsBuilder);
 };
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H */

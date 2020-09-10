@@ -35,14 +35,12 @@ QuantifiersModules::QuantifiersModules()
       d_anti_skolem(nullptr),
       d_sygus_inst(nullptr)
 {
-
-  
 }
 
 void QuantifiersModules::initialize(QuantifiersEngine* qe,
-                context::Context* c,
-                std::vector<QuantifiersModule*>& modules,
-                bool& needsBuilder)
+                                    context::Context* c,
+                                    std::vector<QuantifiersModule*>& modules,
+                                    bool& needsBuilder)
 {
   // add quantifiers modules
   if (options::quantConflictFind())
@@ -112,6 +110,6 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
   }
 }
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
