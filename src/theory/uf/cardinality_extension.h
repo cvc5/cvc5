@@ -387,8 +387,8 @@ class CardinalityExtension
   std::string identify() const { return std::string("CardinalityExtension"); }
   //print debug
   void debugPrint( const char* c );
-  /** debug a model */
-  bool debugModel( TheoryModel* m );
+  /** Check at last call effort */
+  bool checkLastCall();
   /** get cardinality for node */
   int getCardinality( Node n );
   /** get cardinality for type */

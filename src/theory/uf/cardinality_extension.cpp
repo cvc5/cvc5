@@ -1182,7 +1182,7 @@ void SortModel::debugPrint( const char* c ){
   }
 }
 
-bool SortModel::debugModel( TheoryModel* m ){
+bool SortModel::checkLastCall(){
   if( Trace.isOn("uf-ss-warn") ){
     std::vector< Node > eqcs;
     eq::EqClassesIterator eqcs_i =
@@ -1203,6 +1203,7 @@ bool SortModel::debugModel( TheoryModel* m ){
       ++eqcs_i;
     }
   }
+  TheoryModel * m = d_state.getModel();
   RepSet* rs = m->getRepSetPtr();
   int nReps = (int)rs->getNumRepresentatives(d_type);
   if( nReps!=(d_maxNegCard+1) ){
@@ -1750,10 +1751,10 @@ void CardinalityExtension::debugPrint(const char* c)
   }
 }
 
-bool CardinalityExtension::debugModel(TheoryModel* m)
+bool CardinalityExtension::checkLastCall()
 {
-  for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
-    if( !it->second->debugModel( m ) ){
+  for( std::pair< TypeNode, SortModel* >& r : d_rep_model ){
+    if( !r->checkLastCall() ){
       return false;
     }
   }
