@@ -296,45 +296,8 @@ Node BVToInt::bvToInt(Node n)
         // This is when we do the actual translation.
         if (currentNumChildren == 0)
         {
-          Assert(current.isVar() || current.isConst());
-          if (current.isVar())
-          {
-            if (current.getType().isBitVector())
-            {
-              // For bit-vector variables, we create integer variables and add a
-              // range constraint.
-              Node newVar = d_nm->mkSkolem("__bvToInt_var",
-                                           d_nm->integerType(),
-                                           "Variable introduced in bvToInt "
-                                           "pass instead of original variable "
-                                               + current.toString());
-
-              d_bvToIntCache[current] = newVar;
-              d_rangeAssertions.insert(mkRangeConstraint(
-                  newVar, current.getType().getBitVectorSize()));
-            }
-            else
-            {
-              // variables other than bit-vector variables are left intact
-              d_bvToIntCache[current] = current;
-            }
-          }
-          else
-          {
-            // current is a const
-            if (current.getKind() == kind::CONST_BITVECTOR)
-            {
-              // Bit-vector constants are transformed into their integer value.
-              BitVector constant(current.getConst<BitVector>());
-              Integer c = constant.toInteger();
-              d_bvToIntCache[current] = d_nm->mkConst<Rational>(c);
-            }
-            else
-            {
-              // Other constants stay the same.
-              d_bvToIntCache[current] = current;
-            }
-          }
+          Node translation = translateNoChildren(current);
+          d_bvToIntCache[current] = translation;
         }
         else
         {
@@ -826,26 +789,20 @@ Node BVToInt::translateFunctionSymbol(Node bvUF)
   // introduce a `define-fun` in the smt-engine to keep
   // the correspondence between the original
   // function symbol and the new one.
-  defineBVUFAsIntUF(bvUF);
+  defineBVUFAsIntUF(bvUF, intUF);
   return intUF;
 }
 
-void BVToInt::defineBVUFAsIntUF(Node bvUF)
+void BVToInt::defineBVUFAsIntUF(Node bvUF, Node intUF)
 {
   // This function should only be called after translating
   // the function symbol to a new function symbol
   // with the right domain and range.
-  Assert(d_bvToIntCache.find(bvUF) != d_bvToIntCache.end());
 
   // get domain and range of the original function
   TypeNode tn = bvUF.getType();
   vector<TypeNode> bvDomain = tn.getArgTypes();
   TypeNode bvRange = tn.getRangeType();
-
-  // get the translated function symbol
-  Node intUF = d_bvToIntCache[bvUF];
-
-  // create a symbolic  application to be used in define-fun
 
   // symbolic arguments of original function
   vector<Expr> args;

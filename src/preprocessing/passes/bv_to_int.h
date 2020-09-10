@@ -292,11 +292,13 @@ class BVToInt : public PreprocessingPass
    * This is useful, for example, when asking
    * for a model-value of a term that includes the
    * original UF f.
+   * @param bvUF the original function
+   * @param intUF the translated function
    */
-  void defineBVUFAsIntUF(Node bvUF);
+  void defineBVUFAsIntUF(Node bvUF, Node intUF);
 
   /**
-   * @parm bvUF is an uninterpreted function symbol from the original formula
+   * @param bvUF is an uninterpreted function symbol from the original formula
    * @return a fresh uninterpreted function symbol, obtained from bvUF
      by replacing every argument of type BV to an argument of type Integer,
      and the return type becomes integer in case it was BV.
