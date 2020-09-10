@@ -273,7 +273,7 @@ Node BVToInt::bvToInt(Node n)
       // a null node to it.
       d_bvToIntCache[current] = Node();
       // all the node's children are added to the stack to be visited
-      // before visigint this node again.
+      // before visiting this node again.
       toVisit.insert(toVisit.end(), current.begin(), current.end());
       // If this is a UF applicatinon, we also add the function to
       // toVisit.
