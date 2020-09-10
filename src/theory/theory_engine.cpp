@@ -45,12 +45,12 @@
 #include "theory/relevance_manager.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "theory/theory_engine_proof_generator.h"
 #include "theory/theory_id.h"
 #include "theory/theory_model.h"
 #include "theory/theory_traits.h"
 #include "theory/uf/equality_engine.h"
 #include "util/resource_manager.h"
-#include "theory/theory_engine_proof_generator.h"
 
 using namespace std;
 
@@ -1821,7 +1821,7 @@ theory::TrustNode TheoryEngine::getExplanation(
 
   // Keep only the relevant literals
   explanationVector.resize(j);
-  
+
   Node expNode = mkExplanation(explanationVector);
   return theory::TrustNode::mkTrustLemma(expNode, nullptr)
 }
