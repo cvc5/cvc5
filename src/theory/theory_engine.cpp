@@ -1455,8 +1455,8 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
       // internal lemmas should have generators
       Assert(from != THEORY_LAST);
       // add theory lemma step to proof
-      addTheoryLemmaToProof(
-          d_lazyProof.get(), lemma, from, "TheoryEngine::lemma");
+      Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(from);
+      d_lazyProof->addStep(lemma, PfRule::THEORY_LEMMA, {}, {lemma, tidn});
       // update the trust node
       tlemma = TrustNode::mkTrustLemma(lemma, d_lazyProof.get());
     }
@@ -1646,10 +1646,10 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
       }
       else
       {
-        addTheoryLemmaToProof(d_lazyProof.get(),
-                              tconflict.getProven(),
-                              theoryId,
-                              "conflict_shared_theory");
+        // add theory lemma step
+        Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
+        Node conf = tconflict.getProven();
+        d_lazyProof->addStep(conf, PfRule::THEORY_LEMMA, {}, {conf, tidn});
       }
       // store the explicit step, which should come from a different
       // generator, e.g. d_tepg.

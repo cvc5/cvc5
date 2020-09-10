@@ -141,6 +141,13 @@ class TheoryEngine {
   //--------------------------------- new proofs
   /** Proof node manager used by this theory engine, if proofs are enabled */
   ProofNodeManager* d_pnm;
+  /** The lazy proof object
+   *
+   * This stores instructions for how to construct proofs for all theory lemmas.
+   */
+  std::shared_ptr<LazyCDProof> d_lazyProof;
+  /** The proof generator */
+  std::shared_ptr<TheoryEngineProofGenerator> d_tepg;
   //--------------------------------- end new proofs
 
   /**
