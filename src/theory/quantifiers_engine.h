@@ -381,9 +381,9 @@ public:
   std::unique_ptr<quantifiers::TermEnumeration> d_term_enum;
   //------------- end quantifiers utilities
   /**
-   * The private utility, which contains all of the quantifiers modules.
+   * The modules utility, which contains all of the quantifiers modules.
    */
-  std::unique_ptr<QuantifiersEnginePrivate> d_private;
+  std::unique_ptr<QuantifiersModules> d_modules;
   //------------- temporary information during check
   /** current effort level */
   QuantifiersModule::QEffort d_curr_effort_level;
