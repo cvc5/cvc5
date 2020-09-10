@@ -24,22 +24,29 @@ BufferedProofGenerator::BufferedProofGenerator(context::Context* c,
 {
 }
 
-bool BufferedProofGenerator::addStep(Node fact, ProofStep ps)
+bool BufferedProofGenerator::addStep(Node fact,
+                                     ProofStep ps,
+                                     CDPOverwrite opolicy)
 {
-  if (d_facts.find(fact) != d_facts.end())
+  // check duplicates if we are not always overwriting
+  if (opolicy != CDPOverwrite::ALWAYS)
   {
-    // duplicate
-    return false;
-  }
-  Node symFact = CDProof::getSymmFact(fact);
-  if (!symFact.isNull())
-  {
-    if (d_facts.find(symFact) != d_facts.end())
+    if (d_facts.find(fact) != d_facts.end())
     {
-      // duplicate due to symmetry
+      // duplicate
       return false;
     }
+    Node symFact = CDProof::getSymmFact(fact);
+    if (!symFact.isNull())
+    {
+      if (d_facts.find(symFact) != d_facts.end())
+      {
+        // duplicate due to symmetry
+        return false;
+      }
+    }
   }
+  // note that this replaces the value fact is mapped to if there is already one
   d_facts.insert(fact, std::make_shared<ProofStep>(ps));
   return true;
 }

@@ -42,7 +42,9 @@ class BufferedProofGenerator : public ProofGenerator
   BufferedProofGenerator(context::Context* c, ProofNodeManager* pnm);
   ~BufferedProofGenerator() {}
   /** add step */
-  bool addStep(Node fact, ProofStep ps);
+  bool addStep(Node fact,
+               ProofStep ps,
+               CDPOverwrite opolicy = CDPOverwrite::NEVER);
   /** Get proof for */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** identify */
