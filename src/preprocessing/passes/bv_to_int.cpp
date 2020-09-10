@@ -168,6 +168,14 @@ Node BVToInt::eliminationPass(Node n)
   while (!toVisit.empty())
   {
     current = toVisit.back();
+    // assert that the node is binarized
+    kind::Kind_t k = current.getKind();
+    // Make sure node is binarized
+    uint64_t numChildren = current.getNumChildren();
+    Assert((numChildren == 2)
+           || !(k == kind::BITVECTOR_PLUS || k == kind::BITVECTOR_MULT
+                || k == kind::BITVECTOR_AND || k == kind::BITVECTOR_OR
+                || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_CONCAT));
     toVisit.pop_back();
     bool inEliminationCache =
         (d_eliminationCache.find(current) != d_eliminationCache.end());
@@ -217,7 +225,7 @@ Node BVToInt::eliminationPass(Node n)
       if (d_rebuildCache[current].get().isNull())
       {
         // current wasn't rebuilt yet.
-        uint64_t numChildren = current.getNumChildren();
+        numChildren = current.getNumChildren();
         if (numChildren == 0)
         {
           // We only eliminate operators that are not nullary.
@@ -257,7 +265,12 @@ Node BVToInt::eliminationPass(Node n)
  */
 Node BVToInt::bvToInt(Node n)
 {
+  n = makeBinary(n);
   n = eliminationPass(n);
+  /**
+   *  binarize again, in case the elimination pass introduced
+   * non-binary terms (as can happen by RepeatEliminate, for example)
+   */
   n = makeBinary(n);
   vector<Node> toVisit;
   toVisit.push_back(n);
@@ -340,11 +353,13 @@ Node BVToInt::translateWithChildren(Node original,
   // ultbv and sltbv were supposed to be eliminated before this point.
   Assert(oldKind != kind::BITVECTOR_ULTBV);
   Assert(oldKind != kind::BITVECTOR_SLTBV);
+  uint64_t originalNumChildren = original.getNumChildren();
   Node returnNode;
   switch (oldKind)
   {
     case kind::BITVECTOR_PLUS:
     {
+      Assert(originalNumChildren == 2);
       uint64_t bvsize = original[0].getType().getBitVectorSize();
       Node plus = d_nm->mkNode(kind::PLUS, translated_children);
       Node p2 = pow2(bvsize);
@@ -353,6 +368,7 @@ Node BVToInt::translateWithChildren(Node original,
     }
     case kind::BITVECTOR_MULT:
     {
+      Assert(originalNumChildren == 2);
       uint64_t bvsize = original[0].getType().getBitVectorSize();
       Node mult = d_nm->mkNode(kind::MULT, translated_children);
       Node p2 = pow2(bvsize);
