@@ -64,10 +64,9 @@ SimpSolver::SimpSolver(CVC4::prop::TheoryProxy* proxy,
       asymm_lits(0),
       eliminated_vars(0),
       elimorder(1),
-      use_simplification(
-          !enableIncremental
-          && !options::unsatCores())  // TODO: turn off simplifications if
-                                      // proofs are on initially
+      use_simplification(!enableIncremental && !options::unsatCores()
+                         && !pnm)  // TODO: turn off simplifications if
+                                   // proofs are on initially
       ,
       occurs(ClauseDeleted(ca)),
       elim_heap(ElimLt(n_occ)),

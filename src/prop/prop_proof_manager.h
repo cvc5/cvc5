@@ -21,6 +21,7 @@
 #include "expr/proof_node_manager.h"
 #include "options/smt_options.h"
 #include "prop/proof_post_processor.h"
+#include "prop/sat_proof_manager.h"
 
 namespace CVC4 {
 
@@ -34,7 +35,7 @@ class PropPfManager
 {
  public:
   PropPfManager(ProofNodeManager* pnm,
-                CDProof* satProof,
+                SatProofManager* satPM,
                 ProofCnfStream* cnfProof);
 
   /** saves assertion for later checking whether final proved is closed */
@@ -60,8 +61,8 @@ class PropPfManager
   ProofNodeManager* d_pnm;
   /** The proof post-processor */
   std::unique_ptr<prop::ProofPostproccess> d_pfpp;
-  /** The sat solver proof to be processed when the final proof is requested */
-  CDProof* d_satProof;
+  /** The sat solver proof manager, which will provide the final resolution proof when requested */
+  SatProofManager* d_satPM;
   /** The assertions that should be the only assumptions of the postprocessed
    * proof */
   std::vector<Node> d_assertions;

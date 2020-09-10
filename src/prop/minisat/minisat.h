@@ -84,6 +84,8 @@ public:
 
   Minisat::SimpSolver* getSolver() { return d_minisat; }
 
+  SatProofManager* getProofManager();
+
   CDProof* getProof();
 
  private:

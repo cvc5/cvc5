@@ -152,6 +152,9 @@ public:
  Var trueVar() const { return varTrue; }
  Var falseVar() const { return varFalse; }
 
+ /** retrive SAT proof manager */
+ CVC4::prop::SatProofManager* getProofManager();
+
  /** retrive resolution proof */
  CDProof* getProof();
 

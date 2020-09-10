@@ -590,6 +590,136 @@ Node CDProof::elimDoubleNegLit(Node n, CDProof* p)
   return n;
 }
 
+Node CDProof::factorReorderElimDoubleNeg(Node n, ProofStepBuffer& psb)
+{
+  Trace("proof-norm")
+      << "PropEngine::factorReorderElimDoubleNeg: normalize node: " << n
+      << "\n";
+  if (n.getKind() != kind::OR)
+  {
+    return CDProof::elimDoubleNegLit(n, psb);
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  std::vector<Node> children{n.begin(), n.end()};
+  std::vector<Node> childrenEqs;
+  // eliminate double neg for each lit. Do it first because it may expose
+  // duplicates
+  bool hasDoubleNeg = false;
+  for (unsigned i = 0; i < children.size(); ++i)
+  {
+    if (children[i].getKind() == kind::NOT
+        && children[i][0].getKind() == kind::NOT)
+    {
+      hasDoubleNeg = true;
+      childrenEqs.push_back(children[i].eqNode(children[i][0][0]));
+      psb.addStep(PfRule::MACRO_SR_PRED_INTRO,
+                  {},
+                  {childrenEqs.back()},
+                  childrenEqs.back());
+      // update child
+      children[i] = children[i][0][0];
+    }
+    else
+    {
+      childrenEqs.push_back(children[i].eqNode(children[i]));
+      psb.addStep(PfRule::REFL, {}, {children[i]}, childrenEqs.back());
+    }
+  }
+  if (hasDoubleNeg)
+  {
+    Node oldn = n;
+    n = nm->mkNode(kind::OR, children);
+    Trace("proof-norm")
+        << "PropEngine::factorReorderElimDoubleNeg: eliminate double negs: "
+        << oldn << " ==> " << n << "\n";
+    // Create a congruence step to justify replacement of each doubly negated
+    // literal. This is done to avoid having to use MACRO_SR_PRED_TRANSFORM
+    // from the old clause to the new one, which, under the standard rewriter,
+    // may not hold. An example is
+    //
+    //   ---------------------------------------------------------------------
+    //   (or (or (not x2) x1 x2) (not (not x2))) = (or (or (not x2) x1 x2) x2)
+    //
+    // which fails due to factoring not happening after flattening.
+    //
+    // Using congruence only the
+    //
+    //  ------------------ MACRO_SR_PRED_INTRO
+    //  (not (not t)) = t
+    //
+    // steps are added, which, since double negation is eliminated in a
+    // pre-rewrite in the Boolean rewriter, will always hold under the
+    // standard rewriter.
+    Node congEq = oldn.eqNode(n);
+    psb.addStep(PfRule::CONG,
+                childrenEqs,
+                {ProofRuleChecker::mkKindNode(kind::OR)},
+                congEq);
+    // add an equality resolution step to derive normalize clause
+    psb.addStep(PfRule::EQ_RESOLVE, {oldn, congEq}, {}, n);
+  }
+  children.clear();
+  // remove duplicates while keeping the order of children
+  std::unordered_set<TNode, TNodeHashFunction> clauseSet;
+  unsigned size = n.getNumChildren();
+  for (unsigned i = 0; i < size; ++i)
+  {
+    if (clauseSet.count(n[i]))
+    {
+      continue;
+    }
+    children.push_back(n[i]);
+    clauseSet.insert(n[i]);
+  }
+  // if factoring changed
+  if (children.size() < size)
+  {
+    Node factored = children.empty()
+                        ? nm->mkConst<bool>(false)
+                        : children.size() == 1 ? children[0]
+                                               : nm->mkNode(kind::OR, children);
+    // don't overwrite what already has a proof step to avoid cycles
+    psb.addStep(PfRule::FACTORING, {n}, {}, factored);
+    n = factored;
+  }
+  Trace("proof-norm") << "factorReorderElimDoubleNeg: factored node: " << n
+                      << ", factored children " << children << "\n";
+  // nothing to order
+  if (children.size() < 2)
+  {
+    return n;
+  }
+  // order
+  std::sort(children.begin(), children.end());
+  Trace("proof-norm") << "factorReorderElimDoubleNeg: sorted children: "
+                      << children << "\n";
+  Node ordered = nm->mkNode(kind::OR, children);
+  // if ordering changed
+  if (ordered != n)
+  {
+    // don't overwrite what already has a proof step to avoid cycles
+    psb.addStep(PfRule::REORDERING, {n}, {ordered}, ordered);
+  }
+  Trace("proof-norm") << "factorReorderElimDoubleNeg: ordered node: " << ordered
+                      << "\n";
+  return ordered;
+}
+
+Node CDProof::elimDoubleNegLit(Node n, ProofStepBuffer& psb)
+{
+  // eliminate double neg
+  if (n.getKind() == kind::NOT && n[0].getKind() == kind::NOT)
+  {
+    Trace("proof-norm")
+        << "PropEngine::elimDoubleNegLit: eliminate double neg: " << n << ", "
+        << n[0][0] << "\n";
+    psb.addStep(PfRule::MACRO_SR_PRED_TRANSFORM, {n}, {n[0][0]}, n[0][0]);
+    return n[0][0];
+  }
+  Trace("proof-norm") << "PropEngine::elimDoubleNegLit: nothing to do\n";
+  return n;
+}
+
 std::string CDProof::identify() const { return d_name; }
 
 }  // namespace CVC4
