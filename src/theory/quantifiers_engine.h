@@ -46,7 +46,10 @@ class TheoryEngine;
 namespace theory {
 
 class DecisionManager;
-class QuantifiersEnginePrivate;
+
+namespace quantifiers {
+class QuantifiersModules;
+}
 
 // TODO: organize this more/review this, github issue #1163
 class QuantifiersEngine {
@@ -60,6 +63,8 @@ class QuantifiersEngine {
   QuantifiersEngine(TheoryEngine* te, DecisionManager& dm,
                     ProofNodeManager* pnm);
   ~QuantifiersEngine();
+  /** finish initialize */
+  void finishInit();
   //---------------------- external interface
   /** get theory engine */
   TheoryEngine* getTheoryEngine() const;
@@ -383,7 +388,7 @@ public:
   /**
    * The modules utility, which contains all of the quantifiers modules.
    */
-  std::unique_ptr<QuantifiersModules> d_modules;
+  std::unique_ptr<quantifiers::QuantifiersModules> d_qmodules;
   //------------- temporary information during check
   /** current effort level */
   QuantifiersModule::QEffort d_curr_effort_level;

@@ -15,6 +15,7 @@
 #include "theory/quantifiers/quantifiers_modules.h"
 
 #include "options/quantifiers_options.h"
+#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -36,11 +37,10 @@ QuantifiersModules::QuantifiersModules()
       d_sygus_inst(nullptr)
 {
 }
-
+QuantifiersModules::~QuantifiersModules(){}
 void QuantifiersModules::initialize(QuantifiersEngine* qe,
                                     context::Context* c,
-                                    std::vector<QuantifiersModule*>& modules,
-                                    bool& needsBuilder)
+                                    std::vector<QuantifiersModule*>& modules)
 {
   // add quantifiers modules
   if (options::quantConflictFind())
@@ -79,8 +79,6 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
   {
     d_model_engine.reset(new quantifiers::ModelEngine(c, qe));
     modules.push_back(d_model_engine.get());
-    // finite model finder has special ways of building the model
-    needsBuilder = true;
   }
   if (options::quantDynamicSplit() != options::QuantDSplitMode::NONE)
   {

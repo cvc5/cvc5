@@ -62,19 +62,11 @@ QuantifiersEngine::QuantifiersEngine(TheoryEngine* te, DecisionManager& dm,
       d_presolve_cache_wq(d_userContext),
       d_presolve_cache_wic(d_userContext)
 {
-  // initialize the private utility
-  d_modules.reset(new QuantifiersModules);
-
   //---- utilities
   d_util.push_back(d_eq_query.get());
   // term util must come before the other utilities
   d_util.push_back(d_term_util.get());
   d_util.push_back(d_term_db.get());
-
-  if (options::sygus() || options::sygusInst())
-  {
-    d_sygus_tdb.reset(new quantifiers::TermDbSygus(d_context, this));
-  }
 
   d_util.push_back(d_instantiate.get());
 
@@ -100,16 +92,8 @@ QuantifiersEngine::QuantifiersEngine(TheoryEngine* te, DecisionManager& dm,
   d_ierCounterLastLc = 0;
   d_inst_when_phase = 1 + ( options::instWhenPhase()<1 ? 1 : options::instWhenPhase() );
 
-  bool needsBuilder = false;
-  d_modules->initialize(this, d_context, d_modules, needsBuilder);
-
-  if (d_modules->d_rel_dom.get())
-  {
-    d_util.push_back(d_modules->d_rel_dom.get());
-  }
-
   // if we require specialized ways of building the model
-  if( needsBuilder ){
+  if( options::finiteModelFind() || options::fmfBound() ){
     Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBound() << std::endl;
     if (options::mbqiMode() == options::MbqiMode::FMC
         || options::mbqiMode() == options::MbqiMode::TRUST
@@ -133,6 +117,21 @@ QuantifiersEngine::QuantifiersEngine(TheoryEngine* te, DecisionManager& dm,
 }
 
 QuantifiersEngine::~QuantifiersEngine() {}
+
+void QuantifiersEngine::finishInit()
+{
+  // initialize the modules and the utilities
+  d_qmodules.reset(new quantifiers::QuantifiersModules);
+  if (options::sygus() || options::sygusInst())
+  {
+    d_sygus_tdb.reset(new quantifiers::TermDbSygus(d_context, this));
+  }
+  d_qmodules->initialize(this, d_context, d_modules);
+  if (d_qmodules->d_rel_dom.get())
+  {
+    d_util.push_back(d_qmodules->d_rel_dom.get());
+  }
+}
 
 void QuantifiersEngine::setMasterEqualityEngine(eq::EqualityEngine* mee)
 {
@@ -248,14 +247,14 @@ void QuantifiersEngine::setOwner(Node q, quantifiers::QAttributes& qa)
 {
   if (qa.d_sygus || (options::sygusRecFun() && !qa.d_fundef_f.isNull()))
   {
-    if (d_modules->d_synth_e.get() == nullptr)
+    if (d_qmodules->d_synth_e.get() == nullptr)
     {
       Trace("quant-warn") << "WARNING : synth engine is null, and we have : "
                           << q << std::endl;
     }
     // set synth engine as owner since this is either a conjecture or a function
     // definition to be used by sygus
-    setOwner(q, d_modules->d_synth_e.get(), 2);
+    setOwner(q, d_qmodules->d_synth_e.get(), 2);
   }
 }
 
@@ -266,7 +265,7 @@ bool QuantifiersEngine::hasOwnership( Node q, QuantifiersModule * m ) {
 
 bool QuantifiersEngine::isFiniteBound(Node q, Node v) const
 {
-  quantifiers::BoundedIntegers* bi = d_modules->d_bint.get();
+  quantifiers::BoundedIntegers* bi = d_qmodules->d_bint.get();
   if (bi && bi->isBound(q, v))
   {
     return true;
@@ -285,7 +284,7 @@ bool QuantifiersEngine::isFiniteBound(Node q, Node v) const
 
 BoundVarType QuantifiersEngine::getBoundVarType(Node q, Node v) const
 {
-  quantifiers::BoundedIntegers* bi = d_modules->d_bint.get();
+  quantifiers::BoundedIntegers* bi = d_qmodules->d_bint.get();
   if (bi)
   {
     return bi->getBoundVarType(q, v);
@@ -298,7 +297,7 @@ void QuantifiersEngine::getBoundVarIndices(Node q,
 {
   Assert(indices.empty());
   // we take the bounded variables first
-  quantifiers::BoundedIntegers* bi = d_modules->d_bint.get();
+  quantifiers::BoundedIntegers* bi = d_qmodules->d_bint.get();
   if (bi)
   {
     bi->getBoundVarIndices(q, indices);
@@ -319,7 +318,7 @@ bool QuantifiersEngine::getBoundElements(RepSetIterator* rsi,
                                          Node v,
                                          std::vector<Node>& elements) const
 {
-  quantifiers::BoundedIntegers* bi = d_modules->d_bint.get();
+  quantifiers::BoundedIntegers* bi = d_qmodules->d_bint.get();
   if (bi)
   {
     return bi->getBoundElements(rsi, initial, q, v, elements);
@@ -358,7 +357,7 @@ void QuantifiersEngine::ppNotifyAssertions(
   }
   if (options::sygus())
   {
-    quantifiers::SynthEngine* sye = d_modules->d_synth_e.get();
+    quantifiers::SynthEngine* sye = d_qmodules->d_synth_e.get();
     for (const Node& a : assertions)
     {
       sye->preregisterAssertion(a);
@@ -685,11 +684,11 @@ bool QuantifiersEngine::reduceQuantifier( Node q ) {
     Node lem;
     std::map< Node, Node >::iterator itr = d_quants_red_lem.find( q );
     if( itr==d_quants_red_lem.end() ){
-      if (d_modules->d_alpha_equiv)
+      if (d_qmodules->d_alpha_equiv)
       {
         Trace("quant-engine-red") << "Alpha equivalence " << q << "?" << std::endl;
         //add equivalence with another quantified formula
-        lem = d_modules->d_alpha_equiv->reduceQuantifier(q);
+        lem = d_qmodules->d_alpha_equiv->reduceQuantifier(q);
         if( !lem.isNull() ){
           Trace("quant-engine-red") << "...alpha equivalence success." << std::endl;
           ++(d_statistics.d_red_alpha_equiv);
@@ -1036,9 +1035,9 @@ void QuantifiersEngine::printInstantiations( std::ostream& out ) {
 }
 
 void QuantifiersEngine::printSynthSolution( std::ostream& out ) {
-  if (d_modules->d_synth_e)
+  if (d_qmodules->d_synth_e)
   {
-    d_modules->d_synth_e->printSynthSolution(out);
+    d_qmodules->d_synth_e->printSynthSolution(out);
   }else{
     out << "Internal error : module for synth solution not found." << std::endl;
   }
@@ -1139,7 +1138,7 @@ Node QuantifiersEngine::getInternalRepresentative( Node a, Node q, int index ){
 bool QuantifiersEngine::getSynthSolutions(
     std::map<Node, std::map<Node, Node> >& sol_map)
 {
-  return d_modules->d_synth_e->getSynthSolutions(sol_map);
+  return d_qmodules->d_synth_e->getSynthSolutions(sol_map);
 }
 
 void QuantifiersEngine::debugPrintEqualityEngine( const char * c ) {

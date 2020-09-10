@@ -42,7 +42,7 @@ class QuantifiersModules
 {
  public:
   QuantifiersModules();
-  ~QuantifiersEnginePrivate();
+  ~QuantifiersModules();
   //------------------------------ quantifier utilities
   /** relevant domain */
   std::unique_ptr<quantifiers::RelevantDomain> d_rel_dom;
@@ -74,14 +74,11 @@ class QuantifiersModules
   /** initialize
    *
    * This constructs the above modules based on the current options. It adds
-   * a pointer to each module it constructs to modules. This method sets
-   * needsBuilder to true if we require a strategy-specific model builder
-   * utility.
+   * a pointer to each module it constructs to modules.
    */
   void initialize(QuantifiersEngine* qe,
                   context::Context* c,
-                  std::vector<QuantifiersModule*>& modules,
-                  bool& needsBuilder);
+                  std::vector<QuantifiersModule*>& modules);
 };
 
 }  // namespace quantifiers

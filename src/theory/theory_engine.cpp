@@ -198,6 +198,12 @@ void TheoryEngine::finishInit() {
     // finish initializing the theory
     t->finishInit();
   }
+  
+  // finish initializing the quantifiers engine
+  if (d_logicInfo.isQuantified())
+  {
+    d_quantEngine->finishInit();
+  }
 }
 
 TheoryEngine::TheoryEngine(context::Context* context,
