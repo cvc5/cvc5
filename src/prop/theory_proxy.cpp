@@ -78,7 +78,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
 
   theory::TrustNode texp = d_theoryEngine->getExplanation(lNode);
   Node theoryExplanation = texp.getNode();
-  
+
   if (options::unsatCores())
   {
     ProofManager::getCnfProof()->pushCurrentAssertion(theoryExplanation);
