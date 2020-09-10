@@ -1563,10 +1563,11 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
     for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
     {
       Assert(newLemmas[i].getGenerator() != nullptr);
-      newLemmas[i].debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_new");
+      newLemmas[i].debugCheckClosed("te-proof-debug",
+                                    "TheoryEngine::lemma_new");
     }
   }
-  
+
   // now, send the lemmas to the prop engine
   d_propEngine->assertLemma(tlemma, removable);
   for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
@@ -1593,7 +1594,6 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   }
   return theory::LemmaStatus(retLemma, d_userContext->getLevel());
 }
-
 
 void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
 {
