@@ -43,7 +43,7 @@ namespace quantifiers {
  */
 class QuantifiersModules
 {
-  friend class QuantifiersEngine;
+  friend class ::CVC4::theory::QuantifiersEngine;
  public:
   QuantifiersModules();
   ~QuantifiersModules();
