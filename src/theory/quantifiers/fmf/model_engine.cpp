@@ -24,9 +24,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
-#include "theory/uf/cardinality_extension.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/uf/theory_uf.h"
 
 using namespace std;
 using namespace CVC4;
