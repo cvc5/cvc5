@@ -2,9 +2,9 @@
 /*! \file sygus_inference.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -154,16 +154,18 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
         TypeNode tnv = v.getType();
         unsigned vnum = type_count[tnv];
         type_count[tnv]++;
+        vars.push_back(v);
         if (vnum < qtvars[tnv].size())
         {
-          vars.push_back(v);
           subs.push_back(qtvars[tnv][vnum]);
         }
         else
         {
           Assert(vnum == qtvars[tnv].size());
-          qtvars[tnv].push_back(v);
-          qvars.push_back(v);
+          Node bv = nm->mkBoundVar(tnv);
+          qtvars[tnv].push_back(bv);
+          qvars.push_back(bv);
+          subs.push_back(bv);
         }
       }
       pas = pas[1];
@@ -328,10 +330,10 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
     if (itffv != ff_var_to_ff.end())
     {
       Node ff = itffv->second;
-      Node body = Node::fromExpr(it->second);
-      Trace("sygus-infer") << "Define " << ff << " as " << body << std::endl;
+      Node body2 = Node::fromExpr(it->second);
+      Trace("sygus-infer") << "Define " << ff << " as " << body2 << std::endl;
       funs.push_back(ff);
-      sols.push_back(body);
+      sols.push_back(body2);
     }
   }
   return true;

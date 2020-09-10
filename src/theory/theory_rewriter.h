@@ -2,9 +2,9 @@
 /*! \file theory_rewriter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli
+ **   Andres Noetzli, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,6 +23,8 @@
 
 namespace CVC4 {
 namespace theory {
+
+class Rewriter;
 
 /**
  * Theory rewriters signal whether more rewriting is needed (or not)
@@ -62,6 +64,13 @@ class TheoryRewriter
 {
  public:
   virtual ~TheoryRewriter() = default;
+
+  /**
+   * Registers the rewrites of a given theory with the rewriter.
+   *
+   * @param rewriter The rewriter to register the rewrites with.
+   */
+  virtual void registerRewrites(Rewriter* rewriter) {}
 
   /**
    * Performs a pre-rewrite step.

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Makai Mann
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -47,9 +47,9 @@ int main()
   slv.assertFormula(eq);
 
   Term eq2 = slv.mkTerm(EQUAL, x_31_31, x_0_0);
-  cout << " Check validity assuming: " << eq2 << endl;
-  cout << " Expect valid. " << endl;
-  cout << " CVC4: " << slv.checkValidAssuming(eq2) << endl;
+  cout << " Check entailment assuming: " << eq2 << endl;
+  cout << " Expect ENTAILED. " << endl;
+  cout << " CVC4: " << slv.checkEntailed(eq2) << endl;
 
   return 0;
 }

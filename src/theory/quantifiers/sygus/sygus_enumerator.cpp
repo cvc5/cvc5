@@ -2,9 +2,9 @@
 /*! \file sygus_enumerator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -74,17 +74,17 @@ void SygusEnumerator::initialize(Node e)
       {
         sblc.push_back(slem);
       }
-      for (const Node& sbl : sblc)
+      for (const Node& sblemma : sblc)
       {
         Trace("sygus-enum")
-            << "  symmetry breaking lemma : " << sbl << std::endl;
+            << "  symmetry breaking lemma : " << sblemma << std::endl;
         // if its a negation of a unit top-level tester, then this specifies
         // that we should not enumerate terms whose top symbol is that
         // constructor
-        if (sbl.getKind() == NOT)
+        if (sblemma.getKind() == NOT)
         {
           Node a;
-          int tst = datatypes::utils::isTester(sbl[0], a);
+          int tst = datatypes::utils::isTester(sblemma[0], a);
           if (tst >= 0)
           {
             if (a == e)
@@ -205,8 +205,8 @@ void SygusEnumerator::TermCache::initialize(SygusStatistics* s,
     // record type information
     for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
     {
-      TypeNode tn = dt[i].getArgType(j);
-      argTypes[i].push_back(tn);
+      TypeNode type = dt[i].getArgType(j);
+      argTypes[i].push_back(type);
     }
   }
   NodeManager* nm = NodeManager::currentNM();
@@ -542,7 +542,7 @@ void SygusEnumerator::initializeTermCache(TypeNode tn)
   // initialize the term cache
   // see if we use an example evaluation cache for symmetry breaking
   ExampleEvalCache* eec = nullptr;
-  if (options::sygusSymBreakPbe())
+  if (d_parent != nullptr && options::sygusSymBreakPbe())
   {
     eec = d_parent->getExampleEvalCache(d_enum);
   }
@@ -781,7 +781,7 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
         }
         if (doTerminate)
         {
-          Trace("cegqi-engine") << "master(" << d_tn << "): complete at size "
+          Trace("sygus-engine") << "master(" << d_tn << "): complete at size "
                                 << d_currSize << std::endl;
           tc.setComplete();
           return false;
@@ -793,12 +793,12 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
     d_currSize++;
     Trace("sygus-enum-debug2") << "master(" << d_tn
                                << "): size++ : " << d_currSize << "\n";
-    if (Trace.isOn("cegqi-engine"))
+    if (Trace.isOn("sygus-engine"))
     {
       // am i the master enumerator? if so, print
       if (d_se->d_tlEnum == this)
       {
-        Trace("cegqi-engine") << "SygusEnumerator::size = " << d_currSize
+        Trace("sygus-engine") << "SygusEnumerator::size = " << d_currSize
                               << std::endl;
       }
     }

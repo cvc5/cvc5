@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -43,6 +43,7 @@ class TheoryBvRewriterWhite : public CxxTest::TestSuite
     d_em = new ExprManager(opts);
     d_smt = new SmtEngine(d_em);
     d_scope = new SmtScope(d_smt);
+    d_smt->finalOptionsAreSet();
 
     d_nm = NodeManager::currentNM();
   }

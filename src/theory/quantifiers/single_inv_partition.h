@@ -2,9 +2,9 @@
 /*! \file single_inv_partition.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -201,7 +201,7 @@ class SingleInvocationPartition
   std::vector<Node> d_si_vars;
 
   /** every free variable of conjuncts[2] */
-  std::vector<Node> d_all_vars;
+  std::unordered_set<Node, NodeHashFunction> d_all_vars;
   /** map from functions to first-order variables that anti-skolemized them */
   std::map<Node, Node> d_func_fo_var;
   /** map from first-order variables to the function it anti-skolemized */

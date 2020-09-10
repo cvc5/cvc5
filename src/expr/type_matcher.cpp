@@ -2,9 +2,9 @@
 /*! \file type_matcher.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters
+ **   Andrew Reynolds, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -86,9 +86,14 @@ bool TypeMatcher::doMatching(TypeNode pattern, TypeNode tn)
   {
     return false;
   }
-  for (size_t i = 0, nchild = pattern.getNumChildren(); i < nchild; i++)
+  else if (pattern.getNumChildren() == 0)
   {
-    if (!doMatching(pattern[i], tn[i]))
+    // fail if the type parameter or type constructors are different
+    return pattern == tn;
+  }
+  for (size_t j = 0, nchild = pattern.getNumChildren(); j < nchild; j++)
+  {
+    if (!doMatching(pattern[j], tn[j]))
     {
       return false;
     }

@@ -2,9 +2,9 @@
 /*! \file datatypes-new.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Makai Mann
+ **   Aina Niemetz, Andrew Reynolds, Makai Mann
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -91,12 +91,10 @@ void test(Solver& slv, Sort& consListSort)
   DatatypeDecl paramConsListSpec =
       slv.mkDatatypeDecl("paramlist",
                          sort);  // give the datatype a name
-  DatatypeConstructorDecl paramCons("cons");
-  DatatypeConstructorDecl paramNil("nil");
-  DatatypeSelectorDecl paramHead("head", sort);
-  DatatypeSelectorDecl paramTail("tail", DatatypeDeclSelfSort());
-  paramCons.addSelector(paramHead);
-  paramCons.addSelector(paramTail);
+  DatatypeConstructorDecl paramCons = slv.mkDatatypeConstructorDecl("cons");
+  DatatypeConstructorDecl paramNil = slv.mkDatatypeConstructorDecl("nil");
+  paramCons.addSelector("head", sort);
+  paramCons.addSelectorSelf("tail");
   paramConsListSpec.addConstructor(paramCons);
   paramConsListSpec.addConstructor(paramNil);
 
@@ -146,13 +144,11 @@ int main()
 
   DatatypeDecl consListSpec =
       slv.mkDatatypeDecl("list");  // give the datatype a name
-  DatatypeConstructorDecl cons("cons");
-  DatatypeSelectorDecl head("head", slv.getIntegerSort());
-  DatatypeSelectorDecl tail("tail", DatatypeDeclSelfSort());
-  cons.addSelector(head);
-  cons.addSelector(tail);
+  DatatypeConstructorDecl cons = slv.mkDatatypeConstructorDecl("cons");
+  cons.addSelector("head", slv.getIntegerSort());
+  cons.addSelectorSelf("tail");
   consListSpec.addConstructor(cons);
-  DatatypeConstructorDecl nil("nil");
+  DatatypeConstructorDecl nil = slv.mkDatatypeConstructorDecl("nil");
   consListSpec.addConstructor(nil);
 
   std::cout << "spec is:" << std::endl << consListSpec << std::endl;
@@ -171,12 +167,10 @@ int main()
             << ">>> Alternatively, use declareDatatype" << std::endl;
   std::cout << std::endl;
 
-  DatatypeConstructorDecl cons2("cons");
-  DatatypeSelectorDecl head2("head", slv.getIntegerSort());
-  DatatypeSelectorDecl tail2("tail", DatatypeDeclSelfSort());
-  cons2.addSelector(head2);
-  cons2.addSelector(tail2);
-  DatatypeConstructorDecl nil2("nil");
+  DatatypeConstructorDecl cons2 = slv.mkDatatypeConstructorDecl("cons");
+  cons2.addSelector("head", slv.getIntegerSort());
+  cons2.addSelectorSelf("tail");
+  DatatypeConstructorDecl nil2 = slv.mkDatatypeConstructorDecl("nil");
   std::vector<DatatypeConstructorDecl> ctors = {cons2, nil2};
   Sort consListSort2 = slv.declareDatatype("list2", ctors);
   test(slv, consListSort2);

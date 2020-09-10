@@ -2,9 +2,9 @@
 /*! \file bv_gauss.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz
+ **   Aina Niemetz, Mathias Preiner, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -30,7 +30,8 @@ namespace passes {
 class BVGauss : public PreprocessingPass
 {
  public:
-  BVGauss(PreprocessingPassContext* preprocContext);
+  BVGauss(PreprocessingPassContext* preprocContext,
+          const std::string& name = "bv-gauss");
 
  protected:
   /**

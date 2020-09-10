@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andres Noetzli, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -626,8 +626,7 @@ EvalResult Evaluator::evalInternal(
           const String& s = results[currNode[0]].d_str;
           if (s.size() == 1)
           {
-            results[currNode] = EvalResult(
-                Rational(String::convertUnsignedIntToCode(s.getVec()[0])));
+            results[currNode] = EvalResult(Rational(s.getVec()[0]));
           }
           else
           {

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -85,7 +85,7 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m)
     {
       Node x = m->getBoundVariable(tn);
       Node ccond = new_cond.substitute(solve_var, x);
-      c = nm->mkNode(kind::CHOICE, nm->mkNode(BOUND_VAR_LIST, x), ccond);
+      c = nm->mkNode(kind::WITNESS, nm->mkNode(BOUND_VAR_LIST, x), ccond);
       Trace("cegqi-bv-skvinv")
           << "SKVINV : Make " << c << " for " << new_cond << std::endl;
     }
@@ -150,7 +150,7 @@ Node BvInverter::getPathToPv(
           {
             children.push_back(lit.getOperator());
           }
-          for (size_t j = 0, num = lit.getNumChildren(); j < num; j++)
+          for (size_t j = 0, num2 = lit.getNumChildren(); j < num2; j++)
           {
             children.push_back(j == ii ? litc : lit[j]);
           }
@@ -336,7 +336,7 @@ Node BvInverter::solveBvLit(Node sv,
     }
     else if (k == BITVECTOR_CONCAT)
     {
-      if (litk == EQUAL && options::cbqiBvConcInv())
+      if (litk == EQUAL && options::cegqiBvConcInv())
       {
         /* Compute inverse for s1 o x, x o s2, s1 o x o s2
          * (while disregarding that invertibility depends on si)
@@ -397,9 +397,9 @@ Node BvInverter::solveBvLit(Node sv,
 
     if (!ic.isNull())
     {
-      /* We generate a choice term (choice x0. ic => x0 <k> s <litk> t) for
-       * x <k> s <litk> t. When traversing down, this choice term determines
-       * the value for x <k> s = (choice x0. ic => x0 <k> s <litk> t), i.e.,
+      /* We generate a witness term (witness x0. ic => x0 <k> s <litk> t) for
+       * x <k> s <litk> t. When traversing down, this witness term determines
+       * the value for x <k> s = (witness x0. ic => x0 <k> s <litk> t), i.e.,
        * from here on, the propagated literal is a positive equality. */
       litk = EQUAL;
       pol = true;

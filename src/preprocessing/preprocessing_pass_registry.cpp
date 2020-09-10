@@ -2,9 +2,9 @@
 /*! \file preprocessing_pass_registry.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli, Justin Xu, Yoni Zohar
+ **   Andres Noetzli, Yoni Zohar, Justin Xu
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,7 +25,6 @@
 #include "base/output.h"
 #include "preprocessing/passes/ackermann.h"
 #include "preprocessing/passes/apply_substs.h"
-#include "preprocessing/passes/apply_to_const.h"
 #include "preprocessing/passes/bool_to_bv.h"
 #include "preprocessing/passes/bv_abstraction.h"
 #include "preprocessing/passes/bv_eager_atoms.h"
@@ -51,8 +50,6 @@
 #include "preprocessing/passes/sort_infer.h"
 #include "preprocessing/passes/static_learning.h"
 #include "preprocessing/passes/sygus_inference.h"
-#include "preprocessing/passes/symmetry_breaker.h"
-#include "preprocessing/passes/symmetry_detect.h"
 #include "preprocessing/passes/synth_rew_rules.h"
 #include "preprocessing/passes/theory_preprocess.h"
 #include "preprocessing/passes/unconstrained_simplifier.h"
@@ -122,7 +119,6 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("bv-gauss", callCtor<BVGauss>);
   registerPassInfo("static-learning", callCtor<StaticLearning>);
   registerPassInfo("ite-simp", callCtor<ITESimp>);
-  registerPassInfo("apply-to-const", callCtor<ApplyToConst>);
   registerPassInfo("global-negate", callCtor<GlobalNegate>);
   registerPassInfo("int-to-bv", callCtor<IntToBV>);
   registerPassInfo("bv-to-int", callCtor<BVToInt>);
@@ -145,7 +141,6 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("miplib-trick", callCtor<MipLibTrick>);
   registerPassInfo("non-clausal-simp", callCtor<NonClausalSimp>);
   registerPassInfo("ackermann", callCtor<Ackermann>);
-  registerPassInfo("sym-break", callCtor<SymBreakerPass>);
   registerPassInfo("ext-rew-pre", callCtor<ExtRewPre>);
   registerPassInfo("theory-preprocess", callCtor<TheoryPreprocess>);
   registerPassInfo("quantifier-macros", callCtor<QuantifierMacros>);

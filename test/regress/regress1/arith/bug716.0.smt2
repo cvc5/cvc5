@@ -1,4 +1,4 @@
-; COMMAND-LINE: --lang=smt2.5
+; COMMAND-LINE: --lang=smt2.6
 ; SCRUBBER: sed -e 's/The fact in question: .*$/The fact in question: TERM/' -e 's/in a linear logic: .*$/in a linear logic: TERM/'
 ; EXPECT: (error "A non-linear fact was asserted to arithmetic in a linear logic.
 ; EXPECT: The fact in question: TERM
@@ -15,23 +15,22 @@
 (set-option :produce-models true)
 ;;; SMT-LIB2: integer arithmetic
 ;;; SMT-LIB2: real arithmetic
-(declare-datatypes () ((tuple0 (Tuple0))))
+(declare-datatypes ((tuple0 0)) (((Tuple0))))
 (declare-sort us_private 0)
 
 (declare-fun us_null_ext__ () us_private)
 
 (declare-sort us_type_of_heap 0)
 
-(declare-datatypes ()
-((us_type_of_heap__ref
- (mk___type_of_heap__ref (us_type_of_heap__content us_type_of_heap)))))
+(declare-datatypes ((us_type_of_heap__ref 0))
+  (((mk___type_of_heap__ref (us_type_of_heap__content us_type_of_heap)))))
 (declare-sort us_image 0)
 
-(declare-datatypes () ((int__ref (mk_int__ref (int__content Int)))))
-(declare-datatypes () ((bool__ref (mk_bool__ref (bool__content Bool)))))
-(declare-datatypes () ((real__ref (mk_real__ref (real__content Real)))))
-(declare-datatypes ()
-((us_private__ref (mk___private__ref (us_private__content us_private)))))
+(declare-datatypes ((int__ref 0)) (((mk_int__ref (int__content Int)))))
+(declare-datatypes ((bool__ref 0)) (((mk_bool__ref (bool__content Bool)))))
+(declare-datatypes ((real__ref 0)) (((mk_real__ref (real__content Real)))))
+(declare-datatypes ((us_private__ref 0))
+  (((mk___private__ref (us_private__content us_private)))))
 (define-fun int__ref___projection ((a int__ref)) Int (int__content a))
 
 (define-fun bool__ref___projection ((a bool__ref)) Bool (bool__content a))
@@ -97,8 +96,8 @@
   (forall ((x Real) (n Int))
   (=> (and (<= 0 n) (<= 1.0 x)) (<= 1.0 (power x n)))))
 
-(declare-datatypes ()
-((mode (NearestTiesToEven) (ToZero) (Up) (Down) (NearestTiesToAway))))
+(declare-datatypes ((mode 0))
+  (((NearestTiesToEven) (ToZero) (Up) (Down) (NearestTiesToAway))))
 (declare-sort single 0)
 
 (declare-fun round (mode Real) Real)
@@ -441,7 +440,7 @@
 ;; range_axiom
   (assert (forall ((x float)) (in_range1 (to_real1 x))))
 
-(declare-datatypes () ((float__ref (mk_float__ref (float__content float)))))
+(declare-datatypes ((float__ref 0)) (((mk_float__ref (float__content float)))))
 (define-fun float__ref___projection ((a float__ref)) float (float__content a))
 
 (declare-sort weapon_kind 0)
@@ -480,8 +479,8 @@
   (! (=> (in_range2 x) (= (to_rep (of_rep x)) x)) :pattern ((to_rep
                                                             (of_rep x))) )))
 
-(declare-datatypes ()
-((weapon_kind__ref (mk_weapon_kind__ref (weapon_kind__content weapon_kind)))))
+(declare-datatypes ((weapon_kind__ref 0))
+  (((mk_weapon_kind__ref (weapon_kind__content weapon_kind)))))
 (define-fun weapon_kind__ref___projection ((a weapon_kind__ref)) weapon_kind
   (weapon_kind__content a))
 
@@ -545,8 +544,8 @@
   (! (=> (in_range3 x) (= (to_rep1 (of_rep1 x)) x)) :pattern ((to_rep1
                                                               (of_rep1 x))) )))
 
-(declare-datatypes ()
-((integer__ref (mk_integer__ref (integer__content integer)))))
+(declare-datatypes ((integer__ref 0))
+  (((mk_integer__ref (integer__content integer)))))
 (define-fun integer__ref___projection ((a integer__ref)) integer (integer__content
                                                                  a))
 
@@ -593,8 +592,8 @@
   (! (=> (in_range4 x) (= (to_rep2 (of_rep2 x)) x)) :pattern ((to_rep2
                                                               (of_rep2 x))) )))
 
-(declare-datatypes ()
-((bullet_kind__ref (mk_bullet_kind__ref (bullet_kind__content bullet_kind)))))
+(declare-datatypes ((bullet_kind__ref 0))
+  (((mk_bullet_kind__ref (bullet_kind__content bullet_kind)))))
 (define-fun bullet_kind__ref___projection ((a bullet_kind__ref)) bullet_kind
   (bullet_kind__content a))
 

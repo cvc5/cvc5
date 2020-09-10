@@ -79,13 +79,13 @@ let formula = em->mkExpr(implies, lhs, twox_plus_y_geq_3)
 
 let bformula = new_Expr(formula) in
 
-print_string "Checking validity of formula " ;
+print_string "Checking entailment of formula " ;
 print_string (get_string (formula->toString ())) ;
 print_string " with CVC4." ;
 print_newline () ;
-print_string "CVC4 should report VALID." ;
+print_string "CVC4 should report ENTAILED." ;
 print_newline () ;
 print_string "Result from CVC4 is: " ;
-print_string (get_string (smt->query(bformula)->toString ())) ;
+print_string (get_string (smt->checkEntailed(bformula)->toString ())) ;
 print_newline ()
 ;;

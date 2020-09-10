@@ -2,9 +2,9 @@
 /*! \file theory_sets_private.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Kshitij Bansal, Paul Meng
+ **   Andrew Reynolds, Mudathir Mohamed, Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -304,24 +304,25 @@ bool TheorySetsPrivate::assertFact(Node fact, Node exp)
           Node s = e->d_singleton;
           if (!s.isNull())
           {
-            Node exp = NodeManager::currentNM()->mkNode(
+            Node pexp = NodeManager::currentNM()->mkNode(
                 kind::AND, atom, atom[1].eqNode(s));
-            d_keep.insert(exp);
+            d_keep.insert(pexp);
             if (s.getKind() == kind::SINGLETON)
             {
               if (s[0] != atom[0])
               {
-                Trace("sets-prop") << "Propagate mem-eq : " << exp << std::endl;
+                Trace("sets-prop")
+                    << "Propagate mem-eq : " << pexp << std::endl;
                 Node eq = s[0].eqNode(atom[0]);
                 d_keep.insert(eq);
-                assertFact(eq, exp);
+                assertFact(eq, pexp);
               }
             }
             else
             {
               Trace("sets-prop")
-                  << "Propagate mem-eq conflict : " << exp << std::endl;
-              d_state.setConflict(exp);
+                  << "Propagate mem-eq conflict : " << pexp << std::endl;
+              d_state.setConflict(pexp);
             }
           }
         }
@@ -372,6 +373,8 @@ void TheorySetsPrivate::fullEffortCheck()
   Trace("sets") << "----- Full effort check ------" << std::endl;
   do
   {
+    Assert(!d_im.hasPendingLemmas() || d_im.hasProcessed());
+
     Trace("sets") << "...iterate full effort check..." << std::endl;
     fullEffortReset();
 
@@ -475,71 +478,85 @@ void TheorySetsPrivate::fullEffortCheck()
 
     // We may have sent lemmas while registering the terms in the loop above,
     // e.g. the cardinality solver.
-    if (!d_im.hasProcessed())
+    if (d_im.hasProcessed())
     {
-      if (Trace.isOn("sets-mem"))
+      continue;
+    }
+    if (Trace.isOn("sets-mem"))
+    {
+      const std::vector<Node>& sec = d_state.getSetsEqClasses();
+      for (const Node& s : sec)
       {
-        const std::vector<Node>& sec = d_state.getSetsEqClasses();
-        for (const Node& s : sec)
+        Trace("sets-mem") << "Eqc " << s << " : ";
+        const std::map<Node, Node>& smem = d_state.getMembers(s);
+        if (!smem.empty())
         {
-          Trace("sets-mem") << "Eqc " << s << " : ";
-          const std::map<Node, Node>& smem = d_state.getMembers(s);
-          if (!smem.empty())
+          Trace("sets-mem") << "Memberships : ";
+          for (const std::pair<const Node, Node>& it2 : smem)
           {
-            Trace("sets-mem") << "Memberships : ";
-            for (const std::pair<const Node, Node>& it2 : smem)
-            {
-              Trace("sets-mem") << it2.first << " ";
-            }
-          }
-          Node ss = d_state.getSingletonEqClass(s);
-          if (!ss.isNull())
-          {
-            Trace("sets-mem") << " : Singleton : " << ss;
-          }
-          Trace("sets-mem") << std::endl;
-        }
-      }
-      checkSubtypes();
-      d_im.flushPendingLemmas(true);
-      if (!d_im.hasProcessed())
-      {
-        checkDownwardsClosure();
-        if (options::setsInferAsLemmas())
-        {
-          d_im.flushPendingLemmas();
-        }
-        if (!d_im.hasProcessed())
-        {
-          checkUpwardsClosure();
-          d_im.flushPendingLemmas();
-          if (!d_im.hasProcessed())
-          {
-            checkDisequalities();
-            d_im.flushPendingLemmas();
-            if (!d_im.hasProcessed())
-            {
-              checkReduceComprehensions();
-              d_im.flushPendingLemmas();
-
-              if (!d_im.hasProcessed() && d_card_enabled)
-              {
-                // call the check method of the cardinality solver
-                d_cardSolver->check();
-              }
-            }
+            Trace("sets-mem") << it2.first << " ";
           }
         }
+        Node ss = d_state.getSingletonEqClass(s);
+        if (!ss.isNull())
+        {
+          Trace("sets-mem") << " : Singleton : " << ss;
+        }
+        Trace("sets-mem") << std::endl;
       }
     }
-    if (!d_im.hasProcessed())
+    // check subtypes
+    checkSubtypes();
+    d_im.flushPendingLemmas(true);
+    if (d_im.hasProcessed())
     {
-      // invoke relations solver
+      continue;
+    }
+    // check downwards closure
+    checkDownwardsClosure();
+    d_im.flushPendingLemmas();
+    if (d_im.hasProcessed())
+    {
+      continue;
+    }
+    // check upwards closure
+    checkUpwardsClosure();
+    d_im.flushPendingLemmas();
+    if (d_im.hasProcessed())
+    {
+      continue;
+    }
+    // check disequalities
+    checkDisequalities();
+    d_im.flushPendingLemmas();
+    if (d_im.hasProcessed())
+    {
+      continue;
+    }
+    // check reduce comprehensions
+    checkReduceComprehensions();
+    d_im.flushPendingLemmas();
+    if (d_im.hasProcessed())
+    {
+      continue;
+    }
+    if (d_card_enabled)
+    {
+      // call the check method of the cardinality solver
+      d_cardSolver->check();
+      if (d_im.hasProcessed())
+      {
+        continue;
+      }
+    }
+    if (d_rels_enabled)
+    {
+      // call the check method of the relations solver
       d_rels->check(Theory::EFFORT_FULL);
     }
-    Assert(!d_im.hasPendingLemmas() || d_im.hasProcessed());
   } while (!d_im.hasSentLemma() && !d_state.isInConflict()
            && d_im.hasAddedFact());
+  Assert(!d_im.hasPendingLemmas() || d_im.hasProcessed());
   Trace("sets") << "----- End full effort check, conflict="
                 << d_state.isInConflict() << ", lemma=" << d_im.hasSentLemma()
                 << std::endl;
@@ -774,8 +791,8 @@ void TheorySetsPrivate::checkUpwardsClosure()
                     std::vector<Node> exp;
                     exp.push_back(itm2m.second);
                     d_state.addEqualityToExp(term[1], itm2m.second[1], exp);
-                    Node k = d_state.getProxy(term);
-                    Node fact = nm->mkNode(kind::MEMBER, x, k);
+                    Node r = d_state.getProxy(term);
+                    Node fact = nm->mkNode(kind::MEMBER, x, r);
                     d_im.assertInference(fact, exp, "upc2");
                     if (d_state.isInConflict())
                     {
@@ -895,7 +912,7 @@ void TheorySetsPrivate::checkDisequalities()
     Node mem2 = nm->mkNode(MEMBER, x, deq[1]);
     Node lem = nm->mkNode(OR, deq, nm->mkNode(EQUAL, mem1, mem2).negate());
     lem = Rewriter::rewrite(lem);
-    d_im.assertInference(lem, d_emp_exp, "diseq", 1);
+    d_im.assertInference(lem, d_true, "diseq", 1);
     d_im.flushPendingLemmas();
     if (d_im.hasProcessed())
     {
@@ -1465,50 +1482,58 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
   }
 }
 
-Node TheorySetsPrivate::expandDefinition(LogicRequest& logicRequest, Node n)
+Node TheorySetsPrivate::expandDefinition(Node node)
 {
-  Debug("sets-proc") << "expandDefinition : " << n << std::endl;
-  return n;
+  Debug("sets-proc") << "expandDefinition : " << node << std::endl;
+
+  if (node.getKind() == kind::CHOOSE)
+  {
+    // (choose A) is expanded as
+    // (witness ((x elementType))
+    //    (ite
+    //      (= A (as emptyset setType))
+    //      (= x chooseUf(A))
+    //      (and (member x A) (= x chooseUf(A)))
+
+    NodeManager* nm = NodeManager::currentNM();
+    Node set = node[0];
+    TypeNode setType = set.getType();
+    Node chooseSkolem = getChooseFunction(setType);
+    Node apply = NodeManager::currentNM()->mkNode(APPLY_UF, chooseSkolem, set);
+
+    Node witnessVariable = nm->mkBoundVar(setType.getSetElementType());
+
+    Node equal = witnessVariable.eqNode(apply);
+    Node emptySet = nm->mkConst(EmptySet(setType.toType()));
+    Node isEmpty = set.eqNode(emptySet);
+    Node member = nm->mkNode(MEMBER, witnessVariable, set);
+    Node memberAndEqual = member.andNode(equal);
+    Node ite = nm->mkNode(kind::ITE, isEmpty, equal, memberAndEqual);
+    Node witnessVariables = nm->mkNode(BOUND_VAR_LIST, witnessVariable);
+    Node witness = nm->mkNode(WITNESS, witnessVariables, ite);
+    return witness;
+  }
+
+  return node;
 }
 
-Theory::PPAssertStatus TheorySetsPrivate::ppAssert(
-    TNode in, SubstitutionMap& outSubstitutions)
+Node TheorySetsPrivate::getChooseFunction(const TypeNode& setType)
 {
-  Debug("sets-proc") << "ppAssert : " << in << std::endl;
-  Theory::PPAssertStatus status = Theory::PP_ASSERT_STATUS_UNSOLVED;
-
-  // TODO: allow variable elimination for sets when setsExt = true
-
-  // this is based off of Theory::ppAssert
-  if (in.getKind() == kind::EQUAL)
+  std::map<TypeNode, Node>::iterator it = d_chooseFunctions.find(setType);
+  if (it != d_chooseFunctions.end())
   {
-    if (in[0].isVar() && !expr::hasSubterm(in[1], in[0])
-        && (in[1].getType()).isSubtypeOf(in[0].getType()))
-    {
-      if (!in[0].getType().isSet() || !options::setsExt())
-      {
-        outSubstitutions.addSubstitution(in[0], in[1]);
-        status = Theory::PP_ASSERT_STATUS_SOLVED;
-      }
-    }
-    else if (in[1].isVar() && !expr::hasSubterm(in[0], in[1])
-             && (in[0].getType()).isSubtypeOf(in[1].getType()))
-    {
-      if (!in[1].getType().isSet() || !options::setsExt())
-      {
-        outSubstitutions.addSubstitution(in[1], in[0]);
-        status = Theory::PP_ASSERT_STATUS_SOLVED;
-      }
-    }
-    else if (in[0].isConst() && in[1].isConst())
-    {
-      if (in[0] != in[1])
-      {
-        status = Theory::PP_ASSERT_STATUS_CONFLICT;
-      }
-    }
+    return it->second;
   }
-  return status;
+
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode chooseUf = nm->mkFunctionType(setType, setType.getSetElementType());
+  stringstream stream;
+  stream << "chooseUf" << setType.getId();
+  string name = stream.str();
+  Node chooseSkolem = nm->mkSkolem(
+      name, chooseUf, "choose function", NodeManager::SKOLEM_EXACT_NAME);
+  d_chooseFunctions[setType] = chooseSkolem;
+  return chooseSkolem;
 }
 
 void TheorySetsPrivate::presolve() { d_state.reset(); }

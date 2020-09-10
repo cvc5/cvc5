@@ -1,0 +1,185 @@
+on: [push, pull_request]
+name: CI
+
+jobs:
+  build:
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        name: [
+          production,
+          production-clang,
+          debug,
+          debug-cln
+        ]
+
+        include:
+          - name: production
+            config: production --language-bindings=java --lfsc --python-bindings
+            cache-key: production
+            python-bindings: true
+            check-examples: true
+
+          - name: production-clang
+            config: production
+            cache-key: production-clang
+            check-examples: true
+            env: CC=clang CXX=clang++
+
+          - name: debug
+            config: debug --symfpu --lfsc --no-debug-symbols
+            cache-key: debug
+
+          - name: debug-cln
+            config: debug --symfpu --cln --gpl --no-debug-symbols --no-proofs
+            cache-key: debug-cln
+
+    name: ${{ matrix.os }}:${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - name: Install Packages
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          ccache \
+          cxxtest \
+          libcln-dev \
+          libgmp-dev \
+          swig3.0
+        python3 -m pip install toml
+        python3 -m pip install setuptools
+        echo "::add-path::/usr/lib/ccache"
+
+    - name: Install Packages (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install \
+          ccache \
+          cxxtest \
+          cln \
+          gmp \
+          swig
+        python3 -m pip install toml
+        python3 -m pip install setuptools
+        echo "::add-path::/usr/local/opt/ccache/libexec"
+
+    # Note: We install Cython with sudo since cmake can't find Cython otherwise.
+    - name: Install Cython
+      if: matrix.python-bindings && runner.os == 'Linux'
+      run: |
+        sudo python3 -m pip install \
+          Cython==0.29 --install-option="--no-cython-compile"
+
+    - name: Install Cython (macOS)
+      if: matrix.python-bindings && runner.os == 'macOS'
+      run: |
+        python3 -m pip install \
+          Cython==0.29 --install-option="--no-cython-compile"
+
+    - name: Install Pytest
+      if: matrix.python-bindings
+      run: |
+        python3 -m pip install pytest
+        python3 -m pytest --version
+
+    - name: Restore Dependencies
+      id: restore-deps
+      uses: actions/cache@v1
+      with:
+        path: deps/install
+        key: ${{ runner.os }}-deps-${{ hashFiles('contrib/get-**') }}-${{ hashFiles('.github/workflows/ci.yml') }}
+
+    - name: Setup Dependencies
+      if: steps.restore-deps.outputs.cache-hit != 'true'
+      run: |
+        ./contrib/get-antlr-3.4
+        ./contrib/get-symfpu
+        ./contrib/get-cadical
+        ./contrib/get-cryptominisat
+        ./contrib/get-lfsc-checker
+
+    - name: List dependencies
+      run: |
+        find deps/install -type f
+        cat deps/install/bin/antlr3
+
+    # GitHub actions currently does not support modifying an already existing
+    # cache. Hence, we create a new cache for each commit with key
+    # cache-${{ runner.os }}-${{ matrix.cache-key }}-${{ github.sha }}. This
+    # will result in an initial cache miss. However, restore-keys will search
+    # for the most recent cache with prefix
+    # cache-${{ runner.os }}-${{ matrix.cache-key }}-, and if found uses it as
+    # a base for the new cache.
+    - name: Restore ccache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: ccache-dir
+        key: cache-${{ runner.os }}-${{ matrix.cache-key }}-${{ github.sha }}
+        restore-keys: cache-${{ runner.os }}-${{ matrix.cache-key }}-
+
+    - name: Configure ccache
+      run: |
+        ccache --set-config=cache_dir=${{ github.workspace }}/ccache-dir
+        ccache --set-config=compression=true
+        ccache --set-config=compression_level=6
+        ccache -M 500M
+        ccache -z
+
+    - name: Configure
+      run: |
+        ${{ matrix.env }} ./configure.sh ${{ matrix.config }} \
+          --python3 \
+          --prefix=$(pwd)/build/install \
+          --unit-testing
+
+    - name: Build
+      run: make -j2
+      working-directory: build
+
+    - name: ccache Statistics
+      run: ccache -s
+
+    - name: Run CTest
+      run: make -j2 check
+      env:
+        ARGS: --output-on-failure -LE regress[1-4]
+        CVC4_REGRESSION_ARGS: --no-early-exit
+      working-directory: build
+
+    - name: Install Check
+      run: |
+        make -j2 install
+        echo -e "#include <cvc4/api/cvc4cpp.h>\nint main() { CVC4::api::Solver s; return 0; }" > /tmp/test.cpp
+        g++ -std=c++11 /tmp/test.cpp -I install/include -L install/lib -lcvc4
+      working-directory: build
+
+    - name: Python Install Check
+      if: matrix.python-bindings
+      run: |
+       export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
+       python3 -c "import pycvc4"
+
+    - name: Run Pytest
+      if: matrix.python-bindings
+      run: |
+       export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
+       python3 -m pytest ./test/unit/api/python
+
+      # Examples are built for non-symfpu builds
+    - name: Check Examples
+      if: matrix.check-examples && runner.os == 'Linux'
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DCMAKE_PREFIX_PATH=$(pwd)/../../build/install/lib/cmake
+        make -j2
+        ctest -j2 --output-on-failure
+      working-directory: examples
+

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -213,24 +213,14 @@ class CVC4_PUBLIC DatatypeConstructor {
 
   /**
    * Create a new Datatype constructor with the given name for the
-   * constructor and the same name (prefixed with "is_") for the
-   * tester.  The actual constructor and tester (meaning, the Exprs
+   * constructor.  The actual constructor and tester (meaning, the Exprs
    * representing operators for these entities) aren't created until
    * resolution time.
-   */
-  explicit DatatypeConstructor(std::string name);
-
-  /**
-   * Create a new Datatype constructor with the given name for the
-   * constructor and the given name for the tester.  The actual
-   * constructor and tester aren't created until resolution time.
    * weight is the value that this constructor carries when computing size.
    * For example, if A, B, C have weights 0, 1, and 3 respectively, then
    * C( B( A() ), B( A() ) ) has size 5.
    */
-  DatatypeConstructor(std::string name,
-                      std::string tester,
-                      unsigned weight = 1);
+  explicit DatatypeConstructor(std::string name, unsigned weight = 1);
 
   ~DatatypeConstructor() {}
   /**
@@ -308,11 +298,6 @@ class CVC4_PUBLIC DatatypeConstructor {
    * size of datatype terms that involve this constructor.
    */
   unsigned getWeight() const;
-
-  /**
-   * Get the tester name for this Datatype constructor.
-   */
-  std::string getTesterName() const;
 
   /**
    * Get the number of arguments (so far) of this Datatype constructor.
@@ -456,8 +441,6 @@ class CVC4_PUBLIC DatatypeConstructor {
  private:
   /** The internal representation */
   std::shared_ptr<DTypeConstructor> d_internal;
-  /** the name of the tester */
-  std::string d_testerName;
   /** The constructor */
   Expr d_constructor;
   /** the arguments of this constructor */
@@ -722,6 +705,12 @@ class CVC4_PUBLIC Datatype {
    * This datatype must be resolved or an exception is thrown.
    */
   bool isWellFounded() const;
+  /** has nested recursion
+   *
+   * Return true iff this datatype has nested recursion.
+   * This datatype must be resolved or an exception is thrown.
+   */
+  bool hasNestedRecursion() const;
 
   /** is recursive singleton
    *

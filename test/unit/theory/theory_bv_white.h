@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Aina Niemetz, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -79,7 +79,7 @@ public:
     EagerBitblaster* bb = new EagerBitblaster(
         dynamic_cast<TheoryBV*>(
             d_smt->d_theoryEngine->d_theoryTable[THEORY_BV]),
-        d_smt->d_context);
+        d_smt->getContext());
     Node x = d_nm->mkVar("x", d_nm->mkBitVectorType(16));
     Node y = d_nm->mkVar("y", d_nm->mkBitVectorType(16));
     Node x_plus_y = d_nm->mkNode(kind::BITVECTOR_PLUS, x, y);

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --lang=smt2.6.1 --check-models
+; COMMAND-LINE: --lang=smt2.6 --check-models
 ; EXPECT: (error "Cannot generate model with string whose length exceeds UINT32_MAX")
 ; EXIT: 1
 (set-logic SLIA)

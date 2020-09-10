@@ -2,9 +2,9 @@
 /*! \file configuration_private.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Christopher L. Conway, Morgan Deters, Mathias Preiner
+ **   Christopher L. Conway, Andres Noetzli, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -35,12 +35,6 @@ namespace CVC4 {
 #else /* CVC4_STATISTICS_ON */
 #  define IS_STATISTICS_BUILD false
 #endif /* CVC4_STATISTICS_ON */
-
-#ifdef CVC4_REPLAY
-#  define IS_REPLAY_BUILD true
-#else /* CVC4_REPLAY */
-#  define IS_REPLAY_BUILD false
-#endif /* CVC4_REPLAY */
 
 #ifdef CVC4_TRACING
 #  define IS_TRACING_BUILD true
@@ -131,6 +125,12 @@ namespace CVC4 {
 #else /* CVC4_USE_DRAT2ER */
 #  define IS_DRAT2ER_BUILD false
 #endif /* CVC4_USE_DRAT2ER */
+
+#if CVC4_USE_KISSAT
+#define IS_KISSAT_BUILD true
+#else /* CVC4_USE_KISSAT */
+#define IS_KISSAT_BUILD false
+#endif /* CVC4_USE_KISSAT */
 
 #if CVC4_USE_LFSC
 #define IS_LFSC_BUILD true

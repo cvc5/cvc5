@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -56,11 +56,30 @@ void SygusRedundantCons::initialize(QuantifiersEngine* qe, TypeNode tn)
     Node g = tds->mkGeneric(dt, i, pre, false);
     Trace("sygus-red-debug") << "  ...pre-rewrite : " << g << std::endl;
     d_gen_terms[i] = g;
+    // is the operator a lambda of the form (lambda x1...xn. f(x1...xn))?
+    bool lamInOrder = false;
+    if (sop.getKind() == LAMBDA && sop[0].getNumChildren() == sop[1].getNumChildren())
+    {
+      Assert(g.getNumChildren()==sop[0].getNumChildren());
+      lamInOrder = true;
+      for (size_t j = 0, nchild = sop[1].getNumChildren(); j < nchild; j++)
+      {
+        if (sop[0][j] != sop[1][j])
+        {
+          // arguments not in order
+          lamInOrder = false;
+          break;
+        }
+      }
+    }
     // a list of variants of the generic term (see getGenericList).
     std::vector<Node> glist;
-    if (sop.isConst() || sop.getKind() == LAMBDA)
+    if (lamInOrder)
     {
-      Assert(g.getNumChildren() == dt[i].getNumArgs());
+      // If it is a lambda whose arguments are one-to-one with the datatype
+      // arguments, then we can add variants of this operator by permuting
+      // the argument list (see getGenericList).
+      Assert(g.getNumChildren()==dt[i].getNumArgs());
       for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
       {
         pre[j] = g[j];

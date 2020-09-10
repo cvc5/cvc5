@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -93,7 +93,7 @@ class TestOutputChannel : public OutputChannel {
 };
 
 class DummyTheory : public Theory {
-public:
+ public:
   set<Node> d_registered;
   vector<Node> d_getSequence;
 
@@ -101,6 +101,8 @@ public:
               Valuation valuation, const LogicInfo& logicInfo)
       : Theory(theory::THEORY_BUILTIN, ctxt, uctxt, out, valuation, logicInfo)
   {}
+
+  TheoryRewriter* getTheoryRewriter() { return nullptr; }
 
   void registerTerm(TNode n) {
     // check that we registerTerm() a term only once
@@ -162,8 +164,8 @@ class TheoryBlack : public CxxTest::TestSuite {
     d_em = new ExprManager();
     d_nm = NodeManager::fromExprManager(d_em);
     d_smt = new SmtEngine(d_em);
-    d_ctxt = d_smt->d_context;
-    d_uctxt = d_smt->d_userContext;
+    d_ctxt = d_smt->getContext();
+    d_uctxt = d_smt->getUserContext();
     d_scope = new SmtScope(d_smt);
     d_logicInfo = new LogicInfo();
     d_logicInfo->lock();

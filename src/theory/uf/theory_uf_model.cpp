@@ -2,9 +2,9 @@
 /*! \file theory_uf_model.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Clark Barrett
+ **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -153,14 +153,20 @@ void UfModelTreeNode::simplify( Node op, Node defaultVal, int argIndex ){
       }
     }
     //now see if any children can be removed, and simplify the ones that cannot
-    for( std::map< Node, UfModelTreeNode >::iterator it = d_data.begin(); it != d_data.end(); ++it ){
-      if( !it->first.isNull() ){
-        if( !defaultVal.isNull() && it->second.d_value==defaultVal ){
-          eraseData.push_back( it->first );
-        }else{
-          it->second.simplify( op, defaultVal, argIndex+1 );
-          if( it->second.isEmpty() ){
-            eraseData.push_back( it->first );
+    for (auto& kv : d_data)
+    {
+      if (!kv.first.isNull())
+      {
+        if (!defaultVal.isNull() && kv.second.d_value == defaultVal)
+        {
+          eraseData.push_back(kv.first);
+        }
+        else
+        {
+          kv.second.simplify(op, defaultVal, argIndex + 1);
+          if (kv.second.isEmpty())
+          {
+            eraseData.push_back(kv.first);
           }
         }
       }

@@ -2,9 +2,9 @@
 /*! \file theory_sets_private.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Kshitij Bansal, Paul Meng
+ **   Andrew Reynolds, Kshitij Bansal, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,6 +26,7 @@
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/solver_state.h"
 #include "theory/sets/theory_sets_rels.h"
+#include "theory/sets/theory_sets_rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -123,7 +124,6 @@ class TheorySetsPrivate {
    */
   NodeSet d_termProcessed;
   NodeSet d_keep;
-  std::vector< Node > d_emp_exp;
   
   //propagation
   class EqcInfo
@@ -160,6 +160,8 @@ class TheorySetsPrivate {
                     context::UserContext* u);
 
   ~TheorySetsPrivate();
+
+  TheoryRewriter* getTheoryRewriter() { return &d_rewriter; }
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
 
@@ -206,9 +208,7 @@ class TheorySetsPrivate {
    * Another option to fix this is to make TheoryModel::getValue more general
    * so that it makes theory-specific calls to evaluate interpreted symbols.
    */
-  Node expandDefinition(LogicRequest &logicRequest, Node n);
-
-  Theory::PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
+  Node expandDefinition(Node n);
   
   void presolve();
 
@@ -259,6 +259,12 @@ class TheorySetsPrivate {
   bool isMember(Node x, Node s);
 
  private:
+  /** get choose function
+   *
+   * Returns the existing uninterpreted function for the choose operator for the
+   * given set type, or creates a new one if it does not exist.
+   */
+  Node getChooseFunction(const TypeNode& setType);
   /** The state of the sets solver at full effort */
   SolverState d_state;
   /** The inference manager of the sets solver */
@@ -279,6 +285,14 @@ class TheorySetsPrivate {
    * involving cardinality constraints is asserted to this theory.
    */
   bool d_card_enabled;
+
+  /** The theory rewriter for this theory. */
+  TheorySetsRewriter d_rewriter;
+
+  /*
+   * a map that stores the choose functions for set types
+   */
+  std::map<TypeNode, Node> d_chooseFunctions;
 };/* class TheorySetsPrivate */
 
 

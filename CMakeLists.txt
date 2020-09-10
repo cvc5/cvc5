@@ -67,6 +67,9 @@ endif()
 if(GMP_DIR)
   list(APPEND CMAKE_PREFIX_PATH "${GMP_DIR}")
 endif()
+if(KISSAT_DIR)
+  list(APPEND CMAKE_PREFIX_PATH "${KISSAT_DIR}")
+endif()
 if(LFSC_DIR)
   list(APPEND CMAKE_PREFIX_PATH "${LFSC_DIR}")
 endif()
@@ -82,19 +85,6 @@ list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/install")
 set(INCLUDE_INSTALL_DIR include)
 set(LIBRARY_INSTALL_DIR lib)
 set(RUNTIME_INSTALL_DIR bin)
-
-#-----------------------------------------------------------------------------#
-
-# Embed the installation prefix as an RPATH in the executable such that the
-# linker can find our libraries (such as libcvc4parser) when executing the cvc4
-# binary. This is for example useful when installing CVC4 with a custom prefix
-# on macOS (e.g. when using homebrew in a non-standard directory). If we do not
-# set this option, then the linker will not be able to find the required
-# libraries when trying to run CVC4.
-#
-# More information on RPATH in CMake:
-# https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIBRARY_INSTALL_DIR}")
 
 #-----------------------------------------------------------------------------#
 
@@ -121,7 +111,6 @@ cvc4_option(ENABLE_DEBUG_SYMBOLS  "Enable debug symbols")
 cvc4_option(ENABLE_DUMPING        "Enable dumping")
 cvc4_option(ENABLE_MUZZLE         "Suppress ALL non-result output")
 cvc4_option(ENABLE_PROOFS         "Enable proof support")
-cvc4_option(ENABLE_REPLAY         "Enable the replay feature")
 cvc4_option(ENABLE_STATISTICS     "Enable statistics")
 cvc4_option(ENABLE_TRACING        "Enable tracing")
 cvc4_option(ENABLE_UNIT_TESTING   "Enable unit testing")
@@ -144,8 +133,9 @@ option(ENABLE_PROFILING        "Enable support for gprof profiling")
 cvc4_option(USE_ABC           "Use ABC for AIG bit-blasting")
 cvc4_option(USE_CADICAL       "Use CaDiCaL SAT solver")
 cvc4_option(USE_CLN           "Use CLN instead of GMP")
-cvc4_option(USE_GLPK          "Use GLPK simplex solver")
 cvc4_option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver")
+cvc4_option(USE_GLPK          "Use GLPK simplex solver")
+cvc4_option(USE_KISSAT        "Use Kissat SAT solver")
 cvc4_option(USE_READLINE      "Use readline for better interactive support")
 # >> 2-valued: ON OFF
 #    > for options where we don't need to detect if set by user (default: OFF)
@@ -168,6 +158,7 @@ set(CXXTEST_DIR       "" CACHE STRING "Set CxxTest install directory")
 set(DRAT2ER_DIR       "" CACHE STRING "Set drat2er install directory")
 set(GLPK_DIR          "" CACHE STRING "Set GLPK install directory")
 set(GMP_DIR           "" CACHE STRING "Set GMP install directory")
+set(KISSAT_DIR        "" CACHE STRING "Set Kissat install directory")
 set(LFSC_DIR          "" CACHE STRING "Set LFSC install directory")
 set(SYMFPU_DIR        "" CACHE STRING "Set SymFPU install directory")
 
@@ -237,10 +228,15 @@ add_check_c_cxx_flag("-Wno-deprecated")
 add_check_cxx_flag("-Wsuggest-override")
 add_check_cxx_flag("-Wnon-virtual-dtor")
 add_check_c_cxx_flag("-Wimplicit-fallthrough")
+add_check_c_cxx_flag("-Wshadow")
 
 # Temporarily disable -Wclass-memaccess to suppress 'no trivial copy-assignment'
 # cdlist.h warnings. Remove when fixed.
 add_check_cxx_flag("-Wno-class-memaccess")
+
+if (WIN32)
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--stack,100000000")
+endif ()
 
 #-----------------------------------------------------------------------------#
 # Use ld.gold if available
@@ -297,6 +293,17 @@ if(ENABLE_SHARED)
     set(ENABLE_STATIC_BINARY OFF)
     message(WARNING "Disabling static binary since shared build is enabled.")
   endif()
+
+  # Embed the installation prefix as an RPATH in the executable such that the
+  # linker can find our libraries (such as libcvc4parser) when executing the
+  # cvc4 binary. This is for example useful when installing CVC4 with a custom
+  # prefix on macOS (e.g. when using homebrew in a non-standard directory). If
+  # we do not set this option, then the linker will not be able to find the
+  # required libraries when trying to run CVC4.
+  #
+  # More information on RPATH in CMake:
+  # https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIBRARY_INSTALL_DIR}")
 else()
   set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
   set(BUILD_SHARED_LIBS OFF)
@@ -424,10 +431,6 @@ if(ENABLE_PROOFS)
   add_definitions(-DCVC4_PROOF)
 endif()
 
-if(ENABLE_REPLAY)
-  add_definitions(-DCVC4_REPLAY)
-endif()
-
 if(ENABLE_TRACING)
   add_definitions(-DCVC4_TRACING)
 endif()
@@ -481,6 +484,11 @@ if(USE_GLPK)
   set(GPL_LIBS "${GPL_LIBS} glpk")
   find_package(GLPK REQUIRED)
   add_definitions(-DCVC4_USE_GLPK)
+endif()
+
+if(USE_KISSAT)
+  find_package(Kissat REQUIRED)
+  add_definitions(-DCVC4_USE_KISSAT)
 endif()
 
 if(USE_LFSC)
@@ -587,9 +595,9 @@ string(REPLACE ";" " " CVC4_DEFINITIONS "${CVC4_DEFINITIONS}")
 message("CVC4 ${CVC4_RELEASE_STRING}")
 message("")
 if(ENABLE_COMP_INC_TRACK)
-  message("Build profile        : ${CVC4_BUILD_PROFILE_STRING} (incremental)")
+  message("Build profile             : ${CVC4_BUILD_PROFILE_STRING} (incremental)")
 else()
-  message("Build profile        : ${CVC4_BUILD_PROFILE_STRING}")
+  message("Build profile             : ${CVC4_BUILD_PROFILE_STRING}")
 endif()
 message("")
 print_config("GPL                       :" ENABLE_GPL)
@@ -603,7 +611,6 @@ message("")
 print_config("Dumping                   :" ENABLE_DUMPING)
 print_config("Muzzle                    :" ENABLE_MUZZLE)
 print_config("Proofs                    :" ENABLE_PROOFS)
-print_config("Replay                    :" ENABLE_REPLAY)
 print_config("Statistics                :" ENABLE_STATISTICS)
 print_config("Tracing                   :" ENABLE_TRACING)
 message("")
@@ -628,54 +635,59 @@ print_config("CaDiCaL                   :" USE_CADICAL)
 print_config("CryptoMiniSat             :" USE_CRYPTOMINISAT)
 print_config("drat2er                   :" USE_DRAT2ER)
 print_config("GLPK                      :" USE_GLPK)
+print_config("Kissat                    :" USE_KISSAT)
 print_config("LFSC                      :" USE_LFSC)
 
 if(CVC4_USE_CLN_IMP)
-  message("MP library                   : cln")
+  message("MP library                : cln")
 else()
-  message("MP library                   : gmp")
+  message("MP library                : gmp")
 endif()
 print_config("Readline                  :" ${USE_READLINE})
 print_config("SymFPU                    :" ${USE_SYMFPU})
 message("")
 if(ABC_DIR)
-  message("ABC dir                      : ${ABC_DIR}")
+  message("ABC dir                   : ${ABC_DIR}")
 endif()
 if(ANTLR_DIR)
-  message("ANTLR dir                    : ${ANTLR_DIR}")
+  message("ANTLR dir                 : ${ANTLR_DIR}")
 endif()
 if(CADICAL_DIR)
-  message("CADICAL dir                  : ${CADICAL_DIR}")
+  message("CADICAL dir               : ${CADICAL_DIR}")
 endif()
 if(CRYPTOMINISAT_DIR)
-  message("CRYPTOMINISAT dir            : ${CRYPTOMINISAT_DIR}")
+  message("CRYPTOMINISAT dir         : ${CRYPTOMINISAT_DIR}")
 endif()
 if(DRAT2ER_DIR)
-  message("DRAT2ER dir                  : ${DRAT2ER_DIR}")
+  message("DRAT2ER dir               : ${DRAT2ER_DIR}")
 endif()
 if(GLPK_DIR)
-  message("GLPK dir                     : ${GLPK_DIR}")
+  message("GLPK dir                  : ${GLPK_DIR}")
 endif()
 if(GMP_DIR)
-  message("GMP dir                      : ${GMP_DIR}")
+  message("GMP dir                   : ${GMP_DIR}")
+endif()
+if(KISSAT_DIR)
+  message("KISSAT dir                : ${KISSAT_DIR}")
 endif()
 if(LFSC_DIR)
-  message("LFSC dir                     : ${LFSC_DIR}")
+  message("LFSC dir                  : ${LFSC_DIR}")
 endif()
 if(SYMFPU_DIR)
-  message("SYMFPU dir                   : ${SYMFPU_DIR}")
+  message("SYMFPU dir                : ${SYMFPU_DIR}")
 endif()
 message("")
-message("CPPLAGS (-D...)                : ${CVC4_DEFINITIONS}")
-message("CXXFLAGS                       : ${CMAKE_CXX_FLAGS}")
-message("CFLAGS                         : ${CMAKE_C_FLAGS}")
+message("CPPLAGS (-D...)           : ${CVC4_DEFINITIONS}")
+message("CXXFLAGS                  : ${CMAKE_CXX_FLAGS}")
+message("CFLAGS                    : ${CMAKE_C_FLAGS}")
+message("Linker flags              : ${CMAKE_EXE_LINKER_FLAGS}")
 message("")
-message("Install prefix                 : ${CMAKE_INSTALL_PREFIX}")
+message("Install prefix            : ${CMAKE_INSTALL_PREFIX}")
 message("")
 
 if(GPL_LIBS)
   message(
-  "CVC4 license                         : GPLv3 (due to optional libraries; see below)"
+  "CVC4 license             : GPLv3 (due to optional libraries; see below)"
   "\n"
   "\n"
   "Please note that CVC4 will be built against the following GPLed libraries:"
@@ -692,7 +704,7 @@ if(GPL_LIBS)
   )
 else()
   message(
-  "CVC4 license                         : modified BSD"
+  "CVC4 license              : modified BSD"
   "\n"
   "\n"
   "Note that this configuration is NOT built against any GPL'ed libraries, so"
@@ -705,6 +717,14 @@ else()
   )
 endif()
 
+if("${CMAKE_GENERATOR}" STREQUAL "Ninja")
+  set(BUILD_COMMAND_NAME "ninja")
+else()
+  set(BUILD_COMMAND_NAME "make")
+endif()
+
 message("")
-message("Now just type make, followed by make check or make install.")
+message("Now just type '${BUILD_COMMAND_NAME}', "
+        "followed by '${BUILD_COMMAND_NAME} check' "
+        "or '${BUILD_COMMAND_NAME} install'.")
 message("")

@@ -2,9 +2,9 @@
 /*! \file anti_skolem.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
+ **   Andrew Reynolds, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -229,10 +229,10 @@ bool QuantAntiSkolem::sendAntiSkolemizeLemma( std::vector< Node >& quants, bool 
 
     std::vector< Node > outer_vars;
     std::vector< Node > inner_vars;
-    Node q = quants[0];
-    for (unsigned i = 0, size = d_ask_types[q].size(); i < size; i++)
+    Node q0 = quants[0];
+    for (unsigned i = 0, size = d_ask_types[q0].size(); i < size; i++)
     {
-      Node v = NodeManager::currentNM()->mkBoundVar( d_ask_types[q][i] );
+      Node v = NodeManager::currentNM()->mkBoundVar(d_ask_types[q0][i]);
       Trace("anti-sk-debug") << "Outer var " << i << " : " << v << std::endl;
       outer_vars.push_back( v );
     }

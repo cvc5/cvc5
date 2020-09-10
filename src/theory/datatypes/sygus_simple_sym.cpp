@@ -2,9 +2,9 @@
 /*! \file sygus_simple_sym.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa
+ **   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -178,8 +178,8 @@ bool SygusSimpleSymBreak::considerArgKind(
     // the argument types of the child must be the parent's type
     for (unsigned i = 0, nargs = dt[c].getNumArgs(); i < nargs; i++)
     {
-      TypeNode tn = dt[c].getArgType(i);
-      if (tn != tnp)
+      TypeNode type = dt[c].getArgType(i);
+      if (type != tnp)
       {
         return true;
       }

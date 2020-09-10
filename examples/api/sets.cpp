@@ -2,9 +2,9 @@
 /*! \file sets.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King
+ **   Kshitij Bansal, Aina Niemetz, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -55,7 +55,8 @@ int main() {
 
     Expr theorem = em.mkExpr(kind::EQUAL, lhs, rhs);
 
-    cout << "CVC4 reports: " << theorem << " is " << smt.query(theorem) << "." << endl;
+    cout << "CVC4 reports: " << theorem << " is " << smt.checkEntailed(theorem)
+         << "." << endl;
   }
 
   // Verify emptset is a subset of any set
@@ -65,7 +66,8 @@ int main() {
 
     Expr theorem = em.mkExpr(kind::SUBSET, emptyset, A);
 
-    cout << "CVC4 reports: " << theorem << " is " << smt.query(theorem) << "." << endl;
+    cout << "CVC4 reports: " << theorem << " is " << smt.checkEntailed(theorem)
+         << "." << endl;
   }
 
   // Find me an element in {1, 2} intersection {2, 3}, if there is one.

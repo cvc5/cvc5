@@ -2,9 +2,9 @@
 /*! \file datatypes_rewriter.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Paul Meng
+ **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,6 +20,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/sygus_datatype.h"
 #include "options/datatypes_options.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 
 using namespace CVC4;
@@ -32,21 +33,21 @@ namespace datatypes {
 RewriteResponse DatatypesRewriter::postRewrite(TNode in)
 {
   Trace("datatypes-rewrite-debug") << "post-rewriting " << in << std::endl;
-  Kind k = in.getKind();
+  Kind kind = in.getKind();
   NodeManager* nm = NodeManager::currentNM();
-  if (k == kind::APPLY_CONSTRUCTOR)
+  if (kind == kind::APPLY_CONSTRUCTOR)
   {
     return rewriteConstructor(in);
   }
-  else if (k == kind::APPLY_SELECTOR_TOTAL || k == kind::APPLY_SELECTOR)
+  else if (kind == kind::APPLY_SELECTOR_TOTAL || kind == kind::APPLY_SELECTOR)
   {
     return rewriteSelector(in);
   }
-  else if (k == kind::APPLY_TESTER)
+  else if (kind == kind::APPLY_TESTER)
   {
     return rewriteTester(in);
   }
-  else if (k == kind::DT_SIZE)
+  else if (kind == kind::DT_SIZE)
   {
     if (in[0].getKind() == kind::APPLY_CONSTRUCTOR)
     {
@@ -72,7 +73,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       return RewriteResponse(REWRITE_AGAIN_FULL, res);
     }
   }
-  else if (k == kind::DT_HEIGHT_BOUND)
+  else if (kind == kind::DT_HEIGHT_BOUND)
   {
     if (in[0].getKind() == kind::APPLY_CONSTRUCTOR)
     {
@@ -106,7 +107,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       return RewriteResponse(REWRITE_AGAIN_FULL, res);
     }
   }
-  else if (k == kind::DT_SIZE_BOUND)
+  else if (kind == kind::DT_SIZE_BOUND)
   {
     if (in[0].isConst())
     {
@@ -114,7 +115,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       return RewriteResponse(REWRITE_AGAIN_FULL, res);
     }
   }
-  else if (k == DT_SYGUS_EVAL)
+  else if (kind == DT_SYGUS_EVAL)
   {
     // sygus evaluation function
     Node ev = in[0];
@@ -134,7 +135,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
   }
-  else if (k == MATCH)
+  else if (kind == MATCH)
   {
     Trace("dt-rewrite-match") << "Rewrite match: " << in << std::endl;
     Node h = in[0];
@@ -223,7 +224,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
     return RewriteResponse(REWRITE_AGAIN_FULL, ret);
   }
 
-  if (k == kind::EQUAL)
+  if (kind == kind::EQUAL)
   {
     if (in[0] == in[1])
     {

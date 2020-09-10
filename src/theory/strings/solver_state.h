@@ -2,9 +2,9 @@
 /*! \file solver_state.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Tianyi Liang, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -44,8 +44,15 @@ class SolverState
   typedef context::CDList<Node> NodeList;
 
  public:
-  SolverState(context::Context* c, eq::EqualityEngine& ee, Valuation& v);
+  SolverState(context::Context* c,
+              context::UserContext* u,
+              eq::EqualityEngine& ee,
+              Valuation& v);
   ~SolverState();
+  /** Get the SAT context */
+  context::Context* getSatContext() const;
+  /** Get the user context */
+  context::UserContext* getUserContext() const;
   //-------------------------------------- equality information
   /**
    * Get the representative of t in the equality engine of this class, or t
@@ -118,6 +125,23 @@ class SolverState
   Node getLengthExp(Node t, std::vector<Node>& exp, Node te);
   /** shorthand for getLengthExp(t, exp, t) */
   Node getLength(Node t, std::vector<Node>& exp);
+  /** explain non-empty
+   *
+   * This returns an explanation of why string-like term is non-empty in the
+   * current context, if such an explanation exists. Otherwise, this returns
+   * the null node.
+   *
+   * Note that an explanation is a (conjunction of) literals that currently hold
+   * in the equality engine.
+   */
+  Node explainNonEmpty(Node s);
+  /**
+   * Is equal empty word? Returns true if s is equal to the empty word (of
+   * its type). If this method returns true, it updates emps to be that word.
+   * This is an optimization so that the relevant empty word does not need to
+   * be constructed to check if s is equal to the empty word.
+   */
+  bool isEqualEmptyWord(Node s, Node& emps);
   /**
    * Get the above information for equivalence class eqc. If doMake is true,
    * we construct a new information class if one does not exist. The term eqc
@@ -147,14 +171,21 @@ class SolverState
    *
    * Separate the string representatives in argument n into a partition cols
    * whose collections have equal length. The i^th vector in cols has length
-   * lts[i] for all elements in col.
+   * lts[i] for all elements in col. These vectors are furthmore separated
+   * by string-like type.
    */
-  void separateByLength(const std::vector<Node>& n,
-                        std::vector<std::vector<Node> >& cols,
-                        std::vector<Node>& lts);
+  void separateByLength(
+      const std::vector<Node>& n,
+      std::map<TypeNode, std::vector<std::vector<Node>>>& cols,
+      std::map<TypeNode, std::vector<Node>>& lts);
+
  private:
+  /** Common constants */
+  Node d_zero;
   /** Pointer to the SAT context object used by the theory of strings. */
   context::Context* d_context;
+  /** Pointer to the user context object used by the theory of strings. */
+  context::UserContext* d_ucontext;
   /** Reference to equality engine of the theory of strings. */
   eq::EqualityEngine& d_ee;
   /**

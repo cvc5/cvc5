@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Dejan Jovanovic, Liana Hadarean, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -132,10 +132,13 @@ public:
 
 };/* class BVSatSolverInterface */
 
+class DPLLSatSolverInterface : public SatSolver
+{
+ public:
+  virtual ~DPLLSatSolverInterface(){};
 
-class DPLLSatSolverInterface: public SatSolver {
-public:
-  virtual void initialize(context::Context* context, prop::TheoryProxy* theoryProxy) = 0;
+  virtual void initialize(context::Context* context,
+                          prop::TheoryProxy* theoryProxy) = 0;
 
   virtual void push() = 0;
 
@@ -152,7 +155,7 @@ public:
   virtual void requirePhase(SatLiteral lit) = 0;
 
   virtual bool isDecision(SatVariable decn) const = 0;
-};/* class DPLLSatSolverInterface */
+}; /* class DPLLSatSolverInterface */
 
 inline std::ostream& operator <<(std::ostream& out, prop::SatLiteral lit) {
   out << lit.toString();

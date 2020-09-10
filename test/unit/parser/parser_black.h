@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Christopher L. Conway, Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -45,21 +45,21 @@ class ParserBlack
   /* Set up declaration context for expr inputs */
   virtual void setupContext(Parser& parser) {
     /* a, b, c: BOOLEAN */
-    parser.mkVar("a", d_solver->getExprManager()->booleanType());
-    parser.mkVar("b", d_solver->getExprManager()->booleanType());
-    parser.mkVar("c", d_solver->getExprManager()->booleanType());
+    parser.bindVar("a", d_solver->getBooleanSort());
+    parser.bindVar("b", d_solver->getBooleanSort());
+    parser.bindVar("c", d_solver->getBooleanSort());
     /* t, u, v: TYPE */
-    Type t = parser.mkSort("t");
-    Type u = parser.mkSort("u");
-    Type v = parser.mkSort("v");
+    api::Sort t = parser.mkSort("t");
+    api::Sort u = parser.mkSort("u");
+    api::Sort v = parser.mkSort("v");
     /* f : t->u; g: u->v; h: v->t; */
-    parser.mkVar("f", d_solver->getExprManager()->mkFunctionType(t, u));
-    parser.mkVar("g", d_solver->getExprManager()->mkFunctionType(u, v));
-    parser.mkVar("h", d_solver->getExprManager()->mkFunctionType(v, t));
+    parser.bindVar("f", d_solver->mkFunctionSort(t, u));
+    parser.bindVar("g", d_solver->mkFunctionSort(u, v));
+    parser.bindVar("h", d_solver->mkFunctionSort(v, t));
     /* x:t; y:u; z:v; */
-    parser.mkVar("x",t);
-    parser.mkVar("y",u);
-    parser.mkVar("z",v);
+    parser.bindVar("x", t);
+    parser.bindVar("y", u);
+    parser.bindVar("z", v);
   }
 
   void tryGoodInput(const string goodInput)
@@ -254,7 +254,10 @@ public:
     tryGoodInput("DATATYPE list = nil | cons(car:INT,cdr:list) END; DATATYPE cons = null END;");
     tryGoodInput("DATATYPE tree = node(data:list), list = cons(car:tree,cdr:list) | nil END;");
     //tryGoodInput("DATATYPE tree = node(data:[list,list,ARRAY tree OF list]), list = cons(car:ARRAY list OF tree,cdr:BITVECTOR(32)) END;");
-    tryGoodInput("DATATYPE trex = Foo | Bar END; DATATYPE tree = node(data:[list,list,ARRAY trex OF list]), list = cons(car:ARRAY list OF tree,cdr:BITVECTOR(32)) END;");
+    tryGoodInput(
+        "DATATYPE trex = Foo | Bar END; DATATYPE tree = "
+        "node(data:[list,list,ARRAY trex OF list]), list = cons(car:ARRAY list "
+        "OF tree,cdr:BITVECTOR(32)) END;");
   }
 
   void testBadCvc4Inputs() {
@@ -316,9 +319,6 @@ public:
 
   void setupContext(Parser& parser) override
   {
-    if(dynamic_cast<Smt2*>(&parser) != NULL){
-      dynamic_cast<Smt2*>(&parser)->addTheory(Smt2::THEORY_CORE);
-    }
     super::setupContext(parser);
   }
 

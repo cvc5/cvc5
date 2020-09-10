@@ -2,9 +2,9 @@
 /*! \file combination.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Makai Mann
+ **   Tim King, Aina Niemetz, Makai Mann
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -45,7 +45,7 @@ int main() {
   SmtEngine smt(&em);
   smt.setOption("produce-models", true); // Produce Models
   smt.setOption("output-language", "cvc4"); // Set the output-language to CVC's
-  smt.setOption("default-dag-thresh", 0); //Disable dagifying the output
+  smt.setOption("dag-thresh", 0); //Disable dagifying the output
   smt.setLogic(string("QF_UFLIRA"));
 
   // Sorts
@@ -86,8 +86,8 @@ int main() {
 
   cout << "Given the following assumptions:" << endl
        << assumptions << endl
-       << "Prove x /= y is valid. "
-       << "CVC4 says: " << smt.query(em.mkExpr(kind::DISTINCT, x, y))
+       << "Prove x /= y is entailed. "
+       << "CVC4 says: " << smt.checkEntailed(em.mkExpr(kind::DISTINCT, x, y))
        << "." << endl;
 
   cout << "Now we call checksat on a trivial query to show that" << endl

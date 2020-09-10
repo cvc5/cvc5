@@ -2,9 +2,9 @@
 /*! \file simple_vc_cxx.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic
+ **   Morgan Deters, Dejan Jovanovic, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -50,9 +50,9 @@ int main() {
     em.mkExpr(kind::AND, x_positive, y_positive).
     impExpr(twox_plus_y_geq_3);
 
-  cout << "Checking validity of formula " << formula << " with CVC4." << endl;
-  cout << "CVC4 should report VALID." << endl;
-  cout << "Result from CVC4 is: " << smt.query(formula) << endl;
+  cout << "Checking entailment of formula " << formula << " with CVC4." << endl;
+  cout << "CVC4 should report ENTAILED." << endl;
+  cout << "Result from CVC4 is: " << smt.checkEntailed(formula) << endl;
 
   return 0;
 }

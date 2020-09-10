@@ -1,10 +1,11 @@
-; COMMAND-LINE: --sygus-out=status --uf-ho
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --uf-ho
 ; EXPECT: unsat
-(set-logic UFLIA)
+(set-logic ALL)
 
-(declare-fun uf (Int) Int)
+(declare-var uf (-> Int Int))
 
 (synth-fun f ((x Int) (y Int)) Bool
+  ((Start Bool) (IntExpr Int))
   ((Start Bool (true false
                 (<= IntExpr IntExpr)
                 (= IntExpr IntExpr)

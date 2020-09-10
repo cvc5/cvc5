@@ -2,9 +2,9 @@
 /*! \file theory.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Tim King
+ **   Dejan Jovanovic, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -42,6 +42,7 @@
 #include "theory/logic_info.h"
 #include "theory/output_channel.h"
 #include "theory/theory_id.h"
+#include "theory/theory_rewriter.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
 
@@ -55,6 +56,7 @@ class QuantifiersEngine;
 class TheoryModel;
 class SubstitutionMap;
 class ExtTheory;
+class TheoryRewriter;
 
 class EntailmentCheckParameters;
 class EntailmentCheckSideEffects;
@@ -78,9 +80,7 @@ namespace eq {
  * all calls to them.)
  */
 class Theory {
-
-private:
-
+ private:
   friend class ::CVC4::TheoryEngine;
 
   // Disallow default construction, copy, assignment.
@@ -138,7 +138,6 @@ private:
   ExtTheory* d_extTheory;
 
  protected:
-
 
   // === STATISTICS ===
   /** time spent in check calls */
@@ -249,8 +248,24 @@ private:
   void printFacts(std::ostream& os) const;
   void debugPrintFacts() const;
 
-public:
+  /** is legal elimination
+   *
+   * Returns true if x -> val is a legal elimination of variable x. This is
+   * useful for ppAssert, when x = val is an entailed equality. This function
+   * determines whether indeed x can be eliminated from the problem via the
+   * substituion x -> val.
+   *
+   * The following criteria imply that x -> val is *not* a legal elimination:
+   * (1) If x is contained in val,
+   * (2) If the type of val is not a subtype of the type of x,
+   * (3) If val contains an operator that cannot be evaluated, and produceModels
+   * is true. For example, x -> sqrt(2) is not a legal elimination if we
+   * are producing models. This is because we care about the value of x, and
+   * its value must be computed (approximated) by the non-linear solver.
+   */
+  bool isLegalElimination(TNode x, TNode val);
 
+ public:
   /**
    * Return the ID of the theory responsible for the given type.
    */
@@ -315,6 +330,11 @@ public:
    * Destructs a Theory.
    */
   virtual ~Theory();
+
+  /**
+   * @return The theory rewriter associated with this theory.
+   */
+  virtual TheoryRewriter* getTheoryRewriter() = 0;
 
   /**
    * Subclasses of Theory may add additional efforts.  DO NOT CHECK
@@ -420,22 +440,21 @@ public:
   virtual void finishInit() { }
 
   /**
-   * Some theories have kinds that are effectively definitions and
-   * should be expanded before they are handled.  Definitions allow
-   * a much wider range of actions than the normal forms given by the
-   * rewriter; they can enable other theories and create new terms.
-   * However no assumptions can be made about subterms having been
-   * expanded or rewritten.  Where possible rewrite rules should be
-   * used, definitions should only be used when rewrites are not
-   * possible, for example in handling under-specified operations
-   * using partially defined functions.
+   * Some theories have kinds that are effectively definitions and should be
+   * expanded before they are handled.  Definitions allow a much wider range of
+   * actions than the normal forms given by the rewriter. However no
+   * assumptions can be made about subterms having been expanded or rewritten.
+   * Where possible rewrite rules should be used, definitions should only be
+   * used when rewrites are not possible, for example in handling
+   * under-specified operations using partially defined functions.
    *
    * Some theories like sets use expandDefinition as a "context
    * independent preRegisterTerm".  This is required for cases where
    * a theory wants to be notified about a term before preprocessing
    * and simplification but doesn't necessarily want to rewrite it.
    */
-  virtual Node expandDefinition(LogicRequest &logicRequest, Node node) {
+  virtual Node expandDefinition(Node node)
+  {
     // by default, do nothing
     return node;
   }

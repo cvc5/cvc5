@@ -1,0 +1,31 @@
+#!/usr/bin/env python
+
+# This script is automatically configured with cmake when CVC4
+# is built with --python-bindings. It is called during make
+# install to automatically install the python bindings using
+# distutils.
+# If it is called from a python virtualenv, the bindings are
+# installed in the virtualenv, otherwise, it respects the
+# configured install prefix using the setup.py --prefix option
+
+from distutils.core import setup
+from distutils.command.clean import clean
+from distutils.command.install import install
+
+class PyCVC4Install(install):
+
+    # Calls the default run command, then deletes the build area
+    # (equivalent to "setup clean --all").
+    def run(self):
+        install.run(self)
+        c = clean(self.distribution)
+        c.all = True
+        c.finalize_options()
+        c.run()
+
+setup(name='pycvc4',
+      version='${CVC4_MAJOR}.${CVC4_MINOR}.${CVC4_RELEASE}',
+      packages=['pycvc4'],
+      package_dir={'pycvc4': '${CMAKE_CURRENT_BINARY_DIR}/pycvc4'},
+      package_data={'pycvc4': ['pycvc4.so']},
+      cmdclass={'install': PyCVC4Install})

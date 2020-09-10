@@ -2,9 +2,9 @@
 /*! \file dtype_cons.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -87,12 +87,9 @@ class DTypeConstructor
   void setSygus(Node op);
   /** get sygus op
    *
-   * This method returns the operator or
-   * term that this constructor represents
-   * in the sygus encoding. This may be a
-   * builtin operator, defined function, variable,
-   * or constant that this constructor encodes in this
-   * deep embedding.
+   * This method returns the operator or term that this constructor represents
+   * in the sygus encoding. This may be a builtin operator, defined function,
+   * variable, or constant that this constructor encodes in this deep embedding.
    */
   Node getSygusOp() const;
   /** is this a sygus identity function?

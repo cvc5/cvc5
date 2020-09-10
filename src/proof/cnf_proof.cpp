@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Andrew Reynolds, Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -69,7 +69,7 @@ ProofRule CnfProof::getProofRule(ClauseId clause) {
 
 Node CnfProof::getAssertionForClause(ClauseId clause) {
   ClauseIdToNode::const_iterator it = d_clauseToAssertion.find(clause);
-  Assert(it != d_clauseToAssertion.end());
+  Assert(it != d_clauseToAssertion.end() && !(*it).second.isNull());
   return (*it).second;
 }
 
@@ -135,8 +135,15 @@ void CnfProof::setClauseAssertion(ClauseId clause, Node expr) {
   // case we keep the first assertion. For example asserting a /\ b
   // and then b /\ c where b is an atom, would assert b twice (note
   // that since b is top level, it is not cached by the CnfStream)
-  if (d_clauseToAssertion.find(clause) != d_clauseToAssertion.end())
+  //
+  // Note: If the current assertion associated with the clause is null, we
+  // update it because it means that it was previously added the clause without
+  // associating it with an assertion.
+  const auto& it = d_clauseToAssertion.find(clause);
+  if (it != d_clauseToAssertion.end() && (*it).second != Node::null())
+  {
     return;
+  }
 
   d_clauseToAssertion.insert (clause, expr);
 }

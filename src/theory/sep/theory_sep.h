@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,6 +23,7 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "context/cdqueue.h"
+#include "theory/sep/theory_sep_rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 #include "util/statistics_registry.h"
@@ -56,6 +57,8 @@ class TheorySep : public Theory {
   //whether bounds have been initialized
   bool d_bounds_init;
 
+  TheorySepRewriter d_rewriter;
+
   Node mkAnd( std::vector< TNode >& assumptions );
 
   int processAssertion( Node n, std::map< int, std::map< Node, int > >& visited, 
@@ -65,6 +68,8 @@ class TheorySep : public Theory {
  public:
   TheorySep(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
   ~TheorySep();
+
+  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 

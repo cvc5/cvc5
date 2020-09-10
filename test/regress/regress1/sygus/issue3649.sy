@@ -1,5 +1,5 @@
 ; EXPECT: unknown
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 (set-logic ALL)
 (synth-fun inv-fn ((i Int) (x (Array Int Int)) (c Int)) Bool)
 
@@ -18,7 +18,6 @@
 (declare-var i! Int)
 (declare-var c Int)
 
-	
 (constraint (=> (init-fn i x c) (inv-fn i x c)))
 (constraint (=> (inv-fn i x c) (post-fn i x c)))
 (check-synth)

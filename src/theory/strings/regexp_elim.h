@@ -2,9 +2,9 @@
 /*! \file regexp_elim.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -47,6 +47,8 @@ class RegExpElimination
   Node d_zero;
   Node d_one;
   Node d_neg_one;
+  /** The type of regular expressions */
+  TypeNode d_regExpType;
   /** return elimination
    *
    * This method is called when atom is rewritten to atomElim, and returns

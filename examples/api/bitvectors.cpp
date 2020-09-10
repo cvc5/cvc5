@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Aina Niemetz, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -87,8 +87,8 @@ int main() {
   Expr new_x_eq_new_x_ = em.mkExpr(kind::EQUAL, new_x, new_x_);
 
   cout << " Querying: " << new_x_eq_new_x_ << endl;
-  cout << " Expect valid. " << endl;
-  cout << " CVC4: " << smt.query(new_x_eq_new_x_) << endl;
+  cout << " Expect entailed. " << endl;
+  cout << " CVC4: " << smt.checkEntailed(new_x_eq_new_x_) << endl;
   cout << " Popping context. " << endl;
   smt.pop();
 
@@ -103,14 +103,14 @@ int main() {
   smt.assertFormula(assignment2);
 
   cout << " Querying: " << new_x_eq_new_x_ << endl;
-  cout << " Expect valid. " << endl;
-  cout << " CVC4: " << smt.query(new_x_eq_new_x_) << endl;
+  cout << " Expect ENTAILED. " << endl;
+  cout << " CVC4: " << smt.checkEntailed(new_x_eq_new_x_) << endl;
 
   Expr x_neq_x = em.mkExpr(kind::EQUAL, x, x).notExpr();
   std::vector<Expr> v{new_x_eq_new_x_, x_neq_x};
   cout << " Querying: " << v << endl;
-  cout << " Expect invalid. " << endl;
-  cout << " CVC4: " << smt.query(v) << endl;
+  cout << " Expect NOT_ENTAILED. " << endl;
+  cout << " CVC4: " << smt.checkEntailed(v) << endl;
 
   // Assert that a is odd 
   Expr extract_op = em.mkConst(BitVectorExtract(0, 0));

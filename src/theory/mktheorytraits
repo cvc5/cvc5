@@ -121,12 +121,6 @@ function alternate {
   theory_header="$4"
   theory_includes="${theory_includes}#include \"$theory_header\"
 "
-
-  eval "alternate_for_$1=\"\${alternate_for_$1}
-      if(engine->useTheoryAlternative(\\\"$2\\\")) {
-        engine->addTheory< $3 >($1);
-        return;
-      }\""
 }
 
 function rewriter {

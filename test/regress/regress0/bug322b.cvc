@@ -1,7 +1,7 @@
 % COMMAND-LINE: --incremental
-% EXPECT: valid
-% EXPECT: valid
-% EXPECT: valid
+% EXPECT: entailed
+% EXPECT: entailed
+% EXPECT: entailed
 x : INT;
 y : INT = x + 1;
 z : INT = -10;

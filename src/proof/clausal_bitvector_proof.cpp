@@ -2,9 +2,9 @@
 /*! \file clausal_bitvector_proof.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Alex Ozdemir
+ **   Alex Ozdemir, Mathias Preiner, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -196,11 +196,11 @@ void ClausalBitVectorProof::optimizeDratProof()
 
     if (options::bvOptimizeSatProof() == options::BvOptimizeSatProof::FORMULA)
     {
-      std::ifstream optFormulaStream{optFormulaFilename};
-      const int64_t startPos = static_cast<int64_t>(optFormulaStream.tellg());
-      std::vector<prop::SatClause> core = parseDimacs(optFormulaStream);
+      std::ifstream optFormulaInStream{optFormulaFilename};
+      const int64_t startPos = static_cast<int64_t>(optFormulaInStream.tellg());
+      std::vector<prop::SatClause> core = parseDimacs(optFormulaInStream);
       d_dratOptimizationStatistics.d_optimizedFormulaSize.setData(
-          static_cast<int64_t>(optFormulaStream.tellg()) - startPos);
+          static_cast<int64_t>(optFormulaInStream.tellg()) - startPos);
 
       CodeTimer clauseMatchingTimer{
           d_dratOptimizationStatistics.d_clauseMatchingTime};

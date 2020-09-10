@@ -2,9 +2,9 @@
 /*! \file extract.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Clark Barrett
+ **   Clark Barrett, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -48,8 +48,8 @@ int main() {
 
   Expr eq2 = em.mkExpr(kind::EQUAL, x_31_31, x_0_0);
   cout << " Querying: " << eq2 << endl;
-  cout << " Expect valid. " << endl;
-  cout << " CVC4: " << smt.query(eq2) << endl;
+  cout << " Expect entailed. " << endl;
+  cout << " CVC4: " << smt.checkEntailed(eq2) << endl;
 
   return 0;
 }

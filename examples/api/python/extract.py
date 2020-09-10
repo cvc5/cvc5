@@ -4,7 +4,7 @@
 #! \file extract.py
  ## \verbatim
  ## Top contributors (to current version):
- ##   Makai Mann
+ ##   Makai Mann, Aina Niemetz
  ## This file is part of the CVC4 project.
  ## Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ## in the top-level source directory) and their institutional affiliations.
@@ -46,6 +46,6 @@ if __name__ == "__main__":
     slv.assertFormula(eq)
 
     eq2 = slv.mkTerm(Equal, x_31_31, x_0_0)
-    print("Check validity assuming:", eq2)
-    print("Expect valid")
-    print("CVC4:", slv.checkValidAssuming(eq2))
+    print("Check entailment assuming:", eq2)
+    print("Expect ENTAILED")
+    print("CVC4:", slv.checkEntailed(eq2))

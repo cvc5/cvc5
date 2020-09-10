@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Tim King, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -285,8 +285,8 @@ bool TSatProof<Solver>::checkResolution(ClauseId id) {
       typename Solver::TLit var = steps[i].lit;
       LitSet clause2;
       createLitSet(steps[i].id, clause2);
-      bool res = resolve<Solver>(var, clause1, clause2, steps[i].sign);
-      if (res == false) {
+      if (!resolve<Solver>(var, clause1, clause2, steps[i].sign))
+      {
         validRes = false;
         break;
       }

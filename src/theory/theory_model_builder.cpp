@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Clark Barrett, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -736,7 +736,6 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       }
 #endif
 
-      set<Node>* repSet = typeRepSet.getSet(t);
       TypeNode tb = t.getBaseType();
       if (!assignOne)
       {
@@ -755,6 +754,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       bool assignable, evaluable CVC4_UNUSED;
       std::map<Node, Assigner>::iterator itAssigner;
       std::map<Node, Node>::iterator itAssignerM;
+      set<Node>* repSet = typeRepSet.getSet(t);
       for (i = noRepSet.begin(); i != noRepSet.end();)
       {
         i2 = i;
@@ -928,11 +928,10 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   for (it = typeNoRepSet.begin(); it != typeNoRepSet.end(); ++it)
   {
     set<Node>& noRepSet = TypeSet::getSet(it);
-    set<Node>::iterator i;
-    for (i = noRepSet.begin(); i != noRepSet.end(); ++i)
+    for (const Node& node : noRepSet)
     {
-      tm->d_reps[*i] = *i;
-      tm->d_rep_set.add((*i).getType(), *i);
+      tm->d_reps[node] = node;
+      tm->d_rep_set.add(node.getType(), node);
     }
   }
 
@@ -1116,7 +1115,7 @@ void TheoryEngineModelBuilder::postProcessModel(bool incomplete, Model* m)
   TheoryModel* tm = static_cast<TheoryModel*>(m);
   Assert(tm != nullptr);
   // debug-check the model if the checkModels() is enabled.
-  if (options::checkModels())
+  if (options::debugCheckModels())
   {
     debugCheckModel(tm);
   }

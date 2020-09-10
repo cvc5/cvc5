@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -291,39 +291,6 @@ void CandidateRewriteDatabase::setSilent(bool flag) { d_silent = flag; }
 void CandidateRewriteDatabase::setExtendedRewriter(ExtendedRewriter* er)
 {
   d_ext_rewrite = er;
-}
-
-CandidateRewriteDatabaseGen::CandidateRewriteDatabaseGen(
-    std::vector<Node>& vars, unsigned nsamples)
-    : d_qe(nullptr), d_vars(vars.begin(), vars.end()), d_nsamples(nsamples)
-{
-}
-
-bool CandidateRewriteDatabaseGen::addTerm(Node n, std::ostream& out)
-{
-  ExtendedRewriter* er = &d_ext_rewrite;
-  Node nr;
-  if (er == nullptr)
-  {
-    nr = Rewriter::rewrite(n);
-  }
-  else
-  {
-    nr = er->extendedRewrite(n);
-  }
-  TypeNode tn = nr.getType();
-  std::map<TypeNode, CandidateRewriteDatabase>::iterator itc = d_cdbs.find(tn);
-  if (itc == d_cdbs.end())
-  {
-    Trace("synth-rr-dbg") << "Initialize database for " << tn << std::endl;
-    // initialize with the extended rewriter owned by this class
-    d_cdbs[tn].initialize(d_vars, &d_sampler[tn]);
-    d_cdbs[tn].setExtendedRewriter(er);
-    itc = d_cdbs.find(tn);
-    Trace("synth-rr-dbg") << "...finish." << std::endl;
-  }
-  Trace("synth-rr-dbg") << "Add term " << nr << " for " << tn << std::endl;
-  return itc->second.addTerm(nr, false, out);
 }
 
 } /* CVC4::theory::quantifiers namespace */

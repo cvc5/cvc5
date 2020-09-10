@@ -2,9 +2,9 @@
 /*! \file arith_proof.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Alex Ozdemir, Guy Katz, Liana Hadarean
+ **   Alex Ozdemir, Liana Hadarean, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -1157,7 +1157,8 @@ void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
   else
   {
     os << "\n; Arithmetic proofs which use reasoning more complex than Farkas "
-          "proofs are currently unsupported\n(clausify_false trust)\n";
+          "proofs and bound tightening are currently unsupported\n"
+          "(clausify_false trust)\n";
   }
 }
 

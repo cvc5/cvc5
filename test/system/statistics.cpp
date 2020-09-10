@@ -2,9 +2,9 @@
 /*! \file statistics.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters, Aina Niemetz, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -35,9 +35,10 @@ int main() {
   Expr y = em.mkVar("y", em.integerType());
   smt.assertFormula(em.mkExpr(kind::GT, em.mkExpr(kind::PLUS, x, y), em.mkConst(Rational(5))));
   Expr q = em.mkExpr(kind::GT, x, em.mkConst(Rational(0)));
-  Result r = smt.query(q);
+  Result r = smt.checkEntailed(q);
 
-  if(r != Result::INVALID) {
+  if (r != Result::NOT_ENTAILED)
+  {
     exit(1);
   }
 
@@ -47,7 +48,7 @@ int main() {
   }
 
   smt.assertFormula(em.mkExpr(kind::LT, y, em.mkConst(Rational(5))));
-  r = smt.query(q);
+  r = smt.checkEntailed(q);
   Statistics stats2 = smt.getStatistics();
   bool different = false;
   for(Statistics::iterator i = stats2.begin(); i != stats2.end(); ++i) {
@@ -68,5 +69,5 @@ int main() {
   }
 #endif /* CVC4_STATISTICS_ON */
 
-  return r == Result::VALID ? 0 : 1;
+  return r == Result::ENTAILED ? 0 : 1;
 }

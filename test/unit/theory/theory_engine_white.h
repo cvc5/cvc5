@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -38,6 +38,7 @@
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
+#include "theory/theory_rewriter.h"
 #include "theory/valuation.h"
 #include "util/integer.h"
 #include "util/proof.h"
@@ -91,118 +92,57 @@ struct RewriteItem {
   bool d_topLevel;
 };/* struct RewriteItem */
 
+class FakeTheoryRewriter : public TheoryRewriter
+{
+ public:
+  RewriteResponse preRewrite(TNode n) override
+  {
+    return RewriteResponse(REWRITE_DONE, n);
+  }
+
+  RewriteResponse postRewrite(TNode n) override
+  {
+    return RewriteResponse(REWRITE_DONE, n);
+  }
+};
+
 /**
- * Fake Theory interface.  Looks like a Theory, but really all it does is note when and
- * how rewriting behavior is requested.
+ * Fake Theory interface.  Looks like a Theory, but really all it does is note
+ * when and how rewriting behavior is requested.
  */
-template<TheoryId theoryId>
-class FakeTheory : public Theory {
-  /**
-   * This fake theory class is equally useful for bool, uf, arith, etc.  It keeps an
-   * identifier to identify itself.
-   */
-  std::string d_id;
+template <TheoryId theoryId>
+class FakeTheory : public Theory
+{
+ public:
+  FakeTheory(context::Context* ctxt,
+             context::UserContext* uctxt,
+             OutputChannel& out,
+             Valuation valuation,
+             const LogicInfo& logicInfo)
+      : Theory(theoryId, ctxt, uctxt, out, valuation, logicInfo)
+  {
+  }
 
-  /**
-   * The expected sequence of rewrite calls.  Filled by FakeTheory::expect() and consumed
-   * by FakeTheory::preRewrite() and FakeTheory::postRewrite().
-   */
-  // static std::deque<RewriteItem> s_expected;
-
-public:
-  FakeTheory(context::Context* ctxt, context::UserContext* uctxt, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
-      Theory(theoryId, ctxt, uctxt, out, valuation, logicInfo)
-  { }
+  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
   /** Register an expected rewrite call */
-  static void expect(RewriteType type, FakeTheory* thy, TNode n, bool topLevel)
-      throw()
+  static void expect(RewriteType type,
+                     FakeTheory* thy,
+                     TNode n,
+                     bool topLevel) throw()
   {
-    RewriteItem item = { type, thy, n, topLevel };
-    //s_expected.push_back(item);
+    RewriteItem item = {type, thy, n, topLevel};
+    // s_expected.push_back(item);
   }
 
   /**
-   * Returns whether the expected queue is empty.  This is done after a call into
-   * the rewriter to ensure that the actual set of observed rewrite calls completed
-   * the sequence of expected rewrite calls.
+   * Returns whether the expected queue is empty.  This is done after a call
+   * into the rewriter to ensure that the actual set of observed rewrite calls
+   * completed the sequence of expected rewrite calls.
    */
-  static bool nothingMoreExpected() throw() {
-    return true; // s_expected.empty();
-  }
-
-  /**
-   * Overrides Theory::preRewrite().  This "fake theory" version ensures that
-   * this actual, observed pre-rewrite call matches the next "expected" call set up
-   * by the test.
-   */
-  RewriteResponse preRewrite(TNode n, bool topLevel) {
-//    if(false) { //s_expected.empty()) {
-//      cout << std::endl
-//           << "didn't expect anything more, but got" << std::endl
-//           << "     PRE  " << topLevel << " " << identify() << " " << n
-//           << std::endl;
-//    }
-//    TS_ASSERT(!s_expected.empty());
-//
-//    RewriteItem expected = s_expected.front();
-//    s_expected.pop_front();
-//
-//    if(expected.d_type != PRE ||
-////       expected.d_theory != this ||
-//       expected.d_node != n ||
-//       expected.d_topLevel != topLevel) {
-//      cout << std::endl
-//           << "HAVE PRE  " << topLevel << " " << identify() << " " << n
-//           << std::endl
-//           << "WANT " << (expected.d_type == PRE ? "PRE  " : "POST ")
-//  //         << expected.d_topLevel << " " << expected.d_theory->identify()
-//           << " " << expected.d_node << std::endl << std::endl;
-//    }
-//
-//    TS_ASSERT_EQUALS(expected.d_type, PRE);
-////    TS_ASSERT_EQUALS(expected.d_theory, this);
-//    TS_ASSERT_EQUALS(expected.d_node, n);
-//    TS_ASSERT_EQUALS(expected.d_topLevel, topLevel);
-
-    return RewriteResponse(REWRITE_DONE, n);
-  }
-
-  /**
-   * Overrides Theory::postRewrite().  This "fake theory" version ensures that
-   * this actual, observed post-rewrite call matches the next "expected" call set up
-   * by the test.
-   */
-  RewriteResponse postRewrite(TNode n, bool topLevel) {
-//    if(s_expected.empty()) {
-//      cout << std::endl
-//           << "didn't expect anything more, but got" << std::endl
-//           << "     POST " << topLevel << " " << identify() << " " << n
-//           << std::endl;
-//    }
-//    TS_ASSERT(!s_expected.empty());
-//
-//    RewriteItem expected = s_expected.front();
-//    s_expected.pop_front();
-//
-//    if(expected.d_type != POST ||
-////       expected.d_theory != this ||
-//       expected.d_node != n ||
-//       expected.d_topLevel != topLevel) {
-//      cout << std::endl
-//           << "HAVE POST " << topLevel << " " << identify() << " " << n
-//           << std::endl
-//           << "WANT " << (expected.d_type == PRE ? "PRE  " : "POST ")
-////           << expected.d_topLevel << " " << expected.d_theory->identify()
-//           << " " << expected.d_node << std::endl << std::endl;
-//    }
-//
-//    TS_ASSERT_EQUALS(expected.d_type, POST);
-//    TS_ASSERT_EQUALS(expected.d_theory, this);
-//    TS_ASSERT_EQUALS(expected.d_node, n);
-//    TS_ASSERT_EQUALS(expected.d_topLevel, topLevel);
-
-    return RewriteResponse(REWRITE_DONE, n);
+  static bool nothingMoreExpected() throw()
+  {
+    return true;  // s_expected.empty();
   }
 
   std::string identify() const override {
@@ -215,10 +155,23 @@ public:
   void registerTerm(TNode) { Unimplemented(); }
   void check(Theory::Effort) override { Unimplemented(); }
   void propagate(Theory::Effort) override { Unimplemented(); }
-  Node explain(TNode) override { Unimplemented(); }
+  Node explain(TNode) override
+  {
+    Unimplemented();
+    return Node::null();
+  }
   Node getValue(TNode n) { return Node::null(); }
-};/* class FakeTheory */
 
+ private:
+  /**
+   * This fake theory class is equally useful for bool, uf, arith, etc.  It
+   * keeps an identifier to identify itself.
+   */
+  std::string d_id;
+
+  /** The theory rewriter for this theory. */
+  FakeTheoryRewriter d_rewriter;
+}; /* class FakeTheory */
 
 /* definition of the s_expected static field in FakeTheory; see above */
 // std::deque<RewriteItem> FakeTheory::s_expected;
@@ -246,8 +199,8 @@ public:
     d_nm = NodeManager::fromExprManager(d_em);
     d_scope = new SmtScope(d_smt);
 
-    d_ctxt = d_smt->d_context;
-    d_uctxt = d_smt->d_userContext;
+    d_ctxt = d_smt->getContext();
+    d_uctxt = d_smt->getUserContext();
 
     d_nullChannel = new FakeOutputChannel();
 
@@ -255,7 +208,7 @@ public:
     // engine d_smt. We must ensure that d_smt is properly initialized via
     // the following call, which constructs its underlying theory engine.
     d_smt->finalOptionsAreSet();
-    d_theoryEngine = d_smt->d_theoryEngine;
+    d_theoryEngine = d_smt->getTheoryEngine();
     for(TheoryId id = THEORY_FIRST; id != THEORY_LAST; ++id) {
       delete d_theoryEngine->d_theoryOut[id];
       delete d_theoryEngine->d_theoryTable[id];

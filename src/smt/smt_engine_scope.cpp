@@ -2,9 +2,9 @@
 /*! \file smt_engine_scope.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andres Noetzli, Tim King
+ **   Andres Noetzli, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -38,7 +38,7 @@ bool smtEngineInScope() { return s_smtEngine_current != NULL; }
 ProofManager* currentProofManager() {
 #if IS_PROOFS_BUILD
   Assert(s_smtEngine_current != NULL);
-  return s_smtEngine_current->d_proofManager;
+  return s_smtEngine_current->getProofManager();
 #else  /* IS_PROOFS_BUILD */
   InternalError()
       << "proofs/unsat cores are not on, but ProofManager requested";
@@ -62,7 +62,7 @@ SmtScope::~SmtScope() {
 
 StatisticsRegistry* SmtScope::currentStatisticsRegistry() {
   Assert(smtEngineInScope());
-  return s_smtEngine_current->d_statisticsRegistry;
+  return s_smtEngine_current->getStatisticsRegistry();
 }
 
 }/* CVC4::smt namespace */

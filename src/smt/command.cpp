@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -27,6 +27,7 @@
 #include "base/output.h"
 #include "expr/expr_iomanip.h"
 #include "expr/node.h"
+#include "expr/type.h"
 #include "options/options.h"
 #include "options/smt_options.h"
 #include "printer/printer.h"
@@ -512,7 +513,7 @@ void QueryCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    d_result = smtEngine->query(d_expr);
+    d_result = smtEngine->checkEntailed(d_expr);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -1265,22 +1266,27 @@ std::string DefineTypeCommand::getCommandName() const { return "define-sort"; }
 
 DefineFunctionCommand::DefineFunctionCommand(const std::string& id,
                                              Expr func,
-                                             Expr formula)
+                                             Expr formula,
+                                             bool global)
     : DeclarationDefinitionCommand(id),
       d_func(func),
       d_formals(),
-      d_formula(formula)
+      d_formula(formula),
+      d_global(global)
 {
 }
 
 DefineFunctionCommand::DefineFunctionCommand(const std::string& id,
                                              Expr func,
                                              const std::vector<Expr>& formals,
-                                             Expr formula)
+                                             Expr formula,
+                                             bool global)
     : DeclarationDefinitionCommand(id),
       d_func(func),
       d_formals(formals),
-      d_formula(formula)
+      d_formula(formula),
+      d_global(global)
+
 {
 }
 
@@ -1297,7 +1303,7 @@ void DefineFunctionCommand::invoke(SmtEngine* smtEngine)
   {
     if (!d_func.isNull())
     {
-      smtEngine->defineFunction(d_func, d_formals, d_formula);
+      smtEngine->defineFunction(d_func, d_formals, d_formula, d_global);
     }
     d_commandStatus = CommandSuccess::instance();
   }
@@ -1318,12 +1324,13 @@ Command* DefineFunctionCommand::exportTo(ExprManager* exprManager,
             back_inserter(formals),
             ExportTransformer(exprManager, variableMap));
   Expr formula = d_formula.exportTo(exprManager, variableMap);
-  return new DefineFunctionCommand(d_symbol, func, formals, formula);
+  return new DefineFunctionCommand(d_symbol, func, formals, formula, d_global);
 }
 
 Command* DefineFunctionCommand::clone() const
 {
-  return new DefineFunctionCommand(d_symbol, d_func, d_formals, d_formula);
+  return new DefineFunctionCommand(
+      d_symbol, d_func, d_formals, d_formula, d_global);
 }
 
 std::string DefineFunctionCommand::getCommandName() const
@@ -1339,8 +1346,9 @@ DefineNamedFunctionCommand::DefineNamedFunctionCommand(
     const std::string& id,
     Expr func,
     const std::vector<Expr>& formals,
-    Expr formula)
-    : DefineFunctionCommand(id, func, formals, formula)
+    Expr formula,
+    bool global)
+    : DefineFunctionCommand(id, func, formals, formula, global)
 {
 }
 
@@ -1364,12 +1372,14 @@ Command* DefineNamedFunctionCommand::exportTo(
             back_inserter(formals),
             ExportTransformer(exprManager, variableMap));
   Expr formula = d_formula.exportTo(exprManager, variableMap);
-  return new DefineNamedFunctionCommand(d_symbol, func, formals, formula);
+  return new DefineNamedFunctionCommand(
+      d_symbol, func, formals, formula, d_global);
 }
 
 Command* DefineNamedFunctionCommand::clone() const
 {
-  return new DefineNamedFunctionCommand(d_symbol, d_func, d_formals, d_formula);
+  return new DefineNamedFunctionCommand(
+      d_symbol, d_func, d_formals, d_formula, d_global);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1377,7 +1387,8 @@ Command* DefineNamedFunctionCommand::clone() const
 /* -------------------------------------------------------------------------- */
 
 DefineFunctionRecCommand::DefineFunctionRecCommand(
-    Expr func, const std::vector<Expr>& formals, Expr formula)
+    Expr func, const std::vector<Expr>& formals, Expr formula, bool global)
+    : d_global(global)
 {
   d_funcs.push_back(func);
   d_formals.push_back(formals);
@@ -1387,11 +1398,10 @@ DefineFunctionRecCommand::DefineFunctionRecCommand(
 DefineFunctionRecCommand::DefineFunctionRecCommand(
     const std::vector<Expr>& funcs,
     const std::vector<std::vector<Expr>>& formals,
-    const std::vector<Expr>& formulas)
+    const std::vector<Expr>& formulas,
+    bool global)
+    : d_funcs(funcs), d_formals(formals), d_formulas(formulas), d_global(global)
 {
-  d_funcs.insert(d_funcs.end(), funcs.begin(), funcs.end());
-  d_formals.insert(d_formals.end(), formals.begin(), formals.end());
-  d_formulas.insert(d_formulas.end(), formulas.begin(), formulas.end());
 }
 
 const std::vector<Expr>& DefineFunctionRecCommand::getFunctions() const
@@ -1414,7 +1424,7 @@ void DefineFunctionRecCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    smtEngine->defineFunctionsRec(d_funcs, d_formals, d_formulas);
+    smtEngine->defineFunctionsRec(d_funcs, d_formals, d_formulas, d_global);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -1449,12 +1459,12 @@ Command* DefineFunctionRecCommand::exportTo(
     Expr formula = d_formulas[i].exportTo(exprManager, variableMap);
     formulas.push_back(formula);
   }
-  return new DefineFunctionRecCommand(funcs, formals, formulas);
+  return new DefineFunctionRecCommand(funcs, formals, formulas, d_global);
 }
 
 Command* DefineFunctionRecCommand::clone() const
 {
-  return new DefineFunctionRecCommand(d_funcs, d_formals, d_formulas);
+  return new DefineFunctionRecCommand(d_funcs, d_formals, d_formulas, d_global);
 }
 
 std::string DefineFunctionRecCommand::getCommandName() const
@@ -2783,21 +2793,19 @@ std::string SetExpressionNameCommand::getCommandName() const
 /* class DatatypeDeclarationCommand                                           */
 /* -------------------------------------------------------------------------- */
 
-DatatypeDeclarationCommand::DatatypeDeclarationCommand(
-    const DatatypeType& datatype)
+DatatypeDeclarationCommand::DatatypeDeclarationCommand(const Type& datatype)
     : d_datatypes()
 {
   d_datatypes.push_back(datatype);
 }
 
 DatatypeDeclarationCommand::DatatypeDeclarationCommand(
-    const std::vector<DatatypeType>& datatypes)
+    const std::vector<Type>& datatypes)
     : d_datatypes(datatypes)
 {
 }
 
-const std::vector<DatatypeType>& DatatypeDeclarationCommand::getDatatypes()
-    const
+const std::vector<Type>& DatatypeDeclarationCommand::getDatatypes() const
 {
   return d_datatypes;
 }

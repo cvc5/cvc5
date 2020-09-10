@@ -2,9 +2,9 @@
 /*! \file synth_conjecture.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Tim King
+ **   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -73,7 +73,7 @@ class EnumValGenerator
 };
 
 /** a synthesis conjecture
- * This class implements approaches for a synthesis conecjture, given by data
+ * This class implements approaches for a synthesis conjecture, given by data
  * member d_quant.
  * This includes both approaches for synthesis in Reynolds et al CAV 2015. It
  * determines which approach and optimizations are applicable to the

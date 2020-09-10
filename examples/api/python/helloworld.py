@@ -4,7 +4,7 @@
 #! \file helloworld.py
 ## \verbatim
 ## Top contributors (to current version):
-##   Makai Mann
+##   Makai Mann, Aina Niemetz
 ## This file is part of the CVC4 project.
 ## Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
 ## in the top-level source directory) and their institutional affiliations.
@@ -18,4 +18,4 @@ from pycvc4 import kinds
 if __name__ == "__main__":
     slv = pycvc4.Solver()
     helloworld = slv.mkConst(slv.getBooleanSort(), "Hello World!")
-    print(helloworld, "is", slv.checkValidAssuming(helloworld))
+    print(helloworld, "is", slv.checkEntailed(helloworld))

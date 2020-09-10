@@ -2,9 +2,9 @@
 /*! \file bounded_integers.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
+ **   Andrew Reynolds, Mathias Preiner, Mudathir Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -72,7 +72,7 @@ private:
    *
    * For each set S and integer n, d_setm_choice[S][n] is the canonical
    * representation for the (n+1)^th member of set S. It is of the form:
-   * choice x. (|S| <= n OR ( x in S AND
+   * witness x. (|S| <= n OR ( x in S AND
    *   distinct( x, d_setm_choice[S][0], ..., d_setm_choice[S][n-1] ) ) )
    */
   std::map<Node, std::vector<Node> > d_setm_choice;

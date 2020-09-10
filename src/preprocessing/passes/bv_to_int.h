@@ -2,9 +2,9 @@
 /*! \file bv_to_int.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Yoni Zohar and Ahmed Irfan
+ **   Yoni Zohar
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -230,6 +230,8 @@ class BVToInt : public PreprocessingPass
    * @return A node representing (n mod (2^exponent))
    */
   Node modpow2(Node n, uint64_t exponent);
+
+  bool childrenTypesChanged(Node n);
 
   /**
    * Add the range assertions collected in d_rangeAssertions

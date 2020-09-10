@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,6 +22,7 @@
 #include "theory/quantifiers/ematching/instantiation_engine.h"
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
@@ -37,15 +38,12 @@ using namespace CVC4::theory::quantifiers;
 TheoryQuantifiers::TheoryQuantifiers(Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
     Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo)
 {
-  out.handleUserAttribute( "axiom", this );
-  out.handleUserAttribute( "conjecture", this );
   out.handleUserAttribute( "fun-def", this );
   out.handleUserAttribute( "sygus", this );
   out.handleUserAttribute("quant-name", this);
   out.handleUserAttribute("sygus-synth-grammar", this);
   out.handleUserAttribute( "sygus-synth-fun-var-list", this );
   out.handleUserAttribute( "quant-inst-max-level", this );
-  out.handleUserAttribute( "rr-priority", this );
   out.handleUserAttribute( "quant-elim", this );
   out.handleUserAttribute( "quant-elim-partial", this );
 }
@@ -60,6 +58,8 @@ void TheoryQuantifiers::finishInit()
   Assert(tm != nullptr);
   tm->setUnevaluatedKind(EXISTS);
   tm->setUnevaluatedKind(FORALL);
+  // witness is used in several instantiation strategies
+  tm->setUnevaluatedKind(WITNESS);
 }
 
 void TheoryQuantifiers::preRegisterTerm(TNode n) {

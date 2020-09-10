@@ -1,3 +1,5 @@
+; COMMAND-LINE: --no-check-unsat-cores
+; EXPECT: unsat
 (set-logic ALL_SUPPORTED)
 (set-info :status unsat)
 (declare-fun P (Real) Bool)

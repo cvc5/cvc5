@@ -2,9 +2,9 @@
 /*! \file statistics_registry.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Kshitij Bansal
+ **   Morgan Deters, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -157,9 +157,11 @@ StatisticsRegistry::StatisticsRegistry(const std::string& name) : Stat(name)
 void StatisticsRegistry::registerStat(Stat* s)
 {
 #ifdef CVC4_STATISTICS_ON
-  PrettyCheckArgument(d_stats.find(s) == d_stats.end(), s,
-                "Statistic `%s' was not registered with this registry.",
-                s->getName().c_str());
+  PrettyCheckArgument(
+      d_stats.find(s) == d_stats.end(),
+      s,
+      "Statistic `%s' is already registered with this registry.",
+      s->getName().c_str());
   d_stats.insert(s);
 #endif /* CVC4_STATISTICS_ON */
 }/* StatisticsRegistry::registerStat_() */

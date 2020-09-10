@@ -32,6 +32,7 @@ set(libcvc4parser_src_files
   line_buffer.h
   memory_mapped_input_buffer.cpp
   memory_mapped_input_buffer.h
+  parse_op.cpp
   parse_op.h
   parser.cpp
   parser.h

@@ -2,9 +2,9 @@
 /*! \file op_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz
+ **   Makai Mann, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,7 +25,6 @@ class OpBlack : public CxxTest::TestSuite
   void tearDown() override {}
 
   void testGetKind();
-  void testGetSort();
   void testIsNull();
   void testOpFromKind();
   void testGetIndicesString();
@@ -39,17 +38,8 @@ class OpBlack : public CxxTest::TestSuite
 void OpBlack::testGetKind()
 {
   Op x;
-  TS_ASSERT_THROWS(x.getSort(), CVC4ApiException&);
   x = d_solver.mkOp(BITVECTOR_EXTRACT, 31, 1);
   TS_ASSERT_THROWS_NOTHING(x.getKind());
-}
-
-void OpBlack::testGetSort()
-{
-  Op x;
-  TS_ASSERT_THROWS(x.getSort(), CVC4ApiException&);
-  x = d_solver.mkOp(BITVECTOR_EXTRACT, 31, 1);
-  TS_ASSERT_THROWS_NOTHING(x.getSort());
 }
 
 void OpBlack::testIsNull()
@@ -62,7 +52,7 @@ void OpBlack::testIsNull()
 
 void OpBlack::testOpFromKind()
 {
-  Op plus(PLUS);
+  Op plus(&d_solver, PLUS);
   TS_ASSERT(!plus.isIndexed());
   TS_ASSERT_THROWS(plus.getIndices<uint32_t>(), CVC4ApiException&);
 

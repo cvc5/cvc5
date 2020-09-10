@@ -1,0 +1,12 @@
+% COMMAND-LINE: --produce-models
+% EXPECT: sat
+% EXPECT: MODEL BEGIN
+% EXPECT: s1 : INT = 2;
+% EXPECT: s2 : INT = 1;
+% EXPECT: MODEL END;
+
+OPTION "produce-models";
+s1, s2 : INT;
+ASSERT s1 = 2;
+CHECKSAT s2 > 0 AND s2 < s1;
+COUNTERMODEL;

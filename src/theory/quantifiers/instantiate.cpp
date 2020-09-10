@@ -2,9 +2,9 @@
 /*! \file instantiate.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -81,22 +81,9 @@ bool Instantiate::checkComplete()
   return true;
 }
 
-void Instantiate::addNotify(InstantiationNotify* in)
-{
-  d_inst_notify.push_back(in);
-}
-
 void Instantiate::addRewriter(InstantiationRewriter* ir)
 {
   d_instRewrite.push_back(ir);
-}
-
-void Instantiate::notifyFlushLemmas()
-{
-  for (InstantiationNotify*& in : d_inst_notify)
-  {
-    in->filterInstantiations();
-  }
 }
 
 bool Instantiate::addInstantiation(
@@ -129,7 +116,7 @@ bool Instantiate::addInstantiation(
     // Ensure the type is correct, this for instance ensures that real terms
     // are cast to integers for { x -> t } where x has type Int and t has
     // type Real.
-    terms[i] = quantifiers::TermUtil::ensureType(terms[i], tn);
+    terms[i] = ensureType(terms[i], tn);
     if (mkRep)
     {
       // pick the best possible representative for instantiation, based on past
@@ -159,7 +146,7 @@ bool Instantiate::addInstantiation(
                     << std::endl;
       bad_inst = true;
     }
-    else if (options::cbqi())
+    else if (options::cegqi())
     {
       Node icf = quantifiers::TermUtil::getInstConstAttr(terms[i]);
       if (!icf.isNull())
@@ -303,7 +290,10 @@ bool Instantiate::addInstantiation(
     {
       // virtual term substitution/instantiation level features are
       // incompatible
-      Assert(false);
+      std::stringstream ss;
+      ss << "Cannot combine instantiation strategies that require virtual term "
+            "substitution with those that restrict instantiation levels";
+      throw LogicException(ss.str());
     }
     else
     {
@@ -318,23 +308,6 @@ bool Instantiate::addInstantiation(
       }
       QuantAttributes::setInstantiationLevelAttr(
           orig_body, q[1], maxInstLevel + 1);
-    }
-  }
-  QuantifiersModule::QEffort elevel = d_qe->getCurrentQEffort();
-  if (elevel > QuantifiersModule::QEFFORT_CONFLICT
-      && elevel < QuantifiersModule::QEFFORT_NONE
-      && !d_inst_notify.empty())
-  {
-    // notify listeners
-    for (InstantiationNotify*& in : d_inst_notify)
-    {
-      if (!in->notifyInstantiation(elevel, q, lem, terms, body))
-      {
-        Trace("inst-add-debug") << "...we are in conflict." << std::endl;
-        d_qe->setConflict();
-        Assert(d_qe->getNumLemmasWaiting() > 0);
-        break;
-      }
     }
   }
   if (options::trackInstLemmas())
@@ -772,6 +745,22 @@ void Instantiate::debugPrintModel()
                               << std::endl;
     }
   }
+}
+
+Node Instantiate::ensureType(Node n, TypeNode tn)
+{
+  Trace("inst-add-debug2") << "Ensure " << n << " : " << tn << std::endl;
+  TypeNode ntn = n.getType();
+  Assert(ntn.isComparableTo(tn));
+  if (ntn.isSubtypeOf(tn))
+  {
+    return n;
+  }
+  if (tn.isInteger())
+  {
+    return NodeManager::currentNM()->mkNode(TO_INTEGER, n);
+  }
+  return Node::null();
 }
 
 Instantiate::Statistics::Statistics()

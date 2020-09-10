@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Clark Barrett, Andres Noetzli, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -37,19 +37,15 @@ using namespace CVC4::theory;
 using namespace CVC4::smt;
 
 class TheoryBlack : public CxxTest::TestSuite {
-private:
-
-  ExprManager* d_em;
-  SmtEngine* d_smt;
-  NodeManager* d_nm;
-  SmtScope* d_scope;
-
  public:
   void setUp() override
   {
     d_em = new ExprManager();
     d_smt = new SmtEngine(d_em);
     d_scope = new SmtScope(d_smt);
+    // Ensure that the SMT engine is fully initialized (required for the
+    // rewriter)
+    d_smt->push();
 
     d_nm = NodeManager::fromExprManager(d_em);
   }
@@ -152,4 +148,9 @@ private:
 
   }
 
+ private:
+  ExprManager* d_em;
+  SmtEngine* d_smt;
+  NodeManager* d_nm;
+  SmtScope* d_scope;
 };

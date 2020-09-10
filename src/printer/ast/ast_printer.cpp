@@ -2,9 +2,9 @@
 /*! \file ast_printer.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Liana Hadarean
+ **   Morgan Deters, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,12 +20,12 @@
 #include <typeinfo>
 #include <vector>
 
-#include "expr/expr.h" // for ExprSetDepth etc..
-#include "expr/node_manager_attributes.h" // for VarNameAttr
-#include "options/language.h" // for LANG_AST
+#include "expr/expr.h"                     // for ExprSetDepth etc..
+#include "expr/node_manager_attributes.h"  // for VarNameAttr
+#include "expr/node_visitor.h"
+#include "options/language.h"  // for LANG_AST
 #include "printer/dagification_visitor.h"
 #include "smt/command.h"
-#include "smt_util/node_visitor.h"
 #include "theory/substitutions.h"
 
 using namespace std;
@@ -391,13 +391,11 @@ static void toStream(std::ostream& out, const GetOptionCommand* c)
 
 static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c)
 {
-  const vector<DatatypeType>& datatypes = c->getDatatypes();
+  const vector<Type>& datatypes = c->getDatatypes();
   out << "DatatypeDeclarationCommand([";
-  for(vector<DatatypeType>::const_iterator i = datatypes.begin(),
-        i_end = datatypes.end();
-      i != i_end;
-      ++i) {
-    out << *i << ";" << endl;
+  for (const Type& t : datatypes)
+  {
+    out << t << ";" << endl;
   }
   out << "])";
 }

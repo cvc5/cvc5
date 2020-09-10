@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -163,6 +163,10 @@ AigBitblaster::AigBitblaster()
     case options::SatSolverMode::CRYPTOMINISAT:
       solver = prop::SatSolverFactory::createCryptoMinisat(
           smtStatisticsRegistry(), "AigBitblaster");
+      break;
+    case options::SatSolverMode::KISSAT:
+      solver = prop::SatSolverFactory::createKissat(smtStatisticsRegistry(),
+                                                    "AigBitblaster");
       break;
     default: CVC4_FATAL() << "Unknown SAT solver type";
   }

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -356,8 +356,14 @@ void FirstOrderModelFmc::processInitialize( bool ispre ) {
 
 void FirstOrderModelFmc::processInitializeModelForTerm(Node n) {
   if( n.getKind()==APPLY_UF ){
-    if( d_models.find(n.getOperator())==d_models.end()) {
-      d_models[n.getOperator()] = new Def;
+    // cannot be a bound variable
+    Node op = n.getOperator();
+    if (op.getKind() != BOUND_VARIABLE)
+    {
+      if (d_models.find(op) == d_models.end())
+      {
+        d_models[op] = new Def;
+      }
     }
   }
 }

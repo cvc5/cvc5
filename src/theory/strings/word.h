@@ -2,9 +2,9 @@
 /*! \file word.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -37,13 +37,36 @@ class Word
   static Node mkEmptyWord(Kind k);
 
   /** make word from constants in (non-empty) vector vec */
-  static Node mkWord(const std::vector<Node>& xs);
+  static Node mkWordFlatten(const std::vector<Node>& xs);
 
   /** Return the length of word x */
   static size_t getLength(TNode x);
 
+  /** Get characters
+   *
+   * Given word x, this returns the vector of words of length one whose
+   * concatenation is equivalent to x.
+   */
+  static std::vector<Node> getChars(TNode x);
+
   /** Return true if x is empty */
   static bool isEmpty(TNode x);
+
+  /** string compare
+   *
+   * Returns true if x is equal to y for their first n characters.
+   * If n is larger than the length of x or y, this method returns
+   * true if and only if x is equal to y.
+   */
+  static bool strncmp(TNode x, TNode y, std::size_t n);
+
+  /** reverse string compare
+   *
+   * Returns true if x is equal to y for their last n characters.
+   * If n is larger than the length of tx or y, this method returns
+   * true if and only if x is equal to y.
+   */
+  static bool rstrncmp(TNode x, TNode y, std::size_t n);
 
   /** Return the first position y occurs in x, or std::string::npos otherwise */
   static std::size_t find(TNode x, TNode y, std::size_t start = 0);
@@ -116,6 +139,26 @@ class Word
    * Notice that x.overlap(y) = y.roverlap(x)
    */
   static std::size_t roverlap(TNode x, TNode y);
+  /** Return true if word x is a repetition of the same character */
+  static bool isRepeated(TNode x);
+  /** Split constant
+   *
+   * This returns the suffix remainder (resp. prefix remainder when isRev is
+   * true) of words a and b, call it r, such that:
+   * (1) a = b ++ r , or
+   * (2) a ++ r = b
+   * when isRev = false.  The argument index is set to 1 if we are in the second
+   * case, and 0 otherwise.
+   *
+   * If a and b do not share a common prefix (resp. suffix), then this method
+   * returns the null node.
+   */
+  static Node splitConstant(TNode x, TNode y, size_t& index, bool isRev);
+  /** reverse
+   *
+   * Return the result of reversing x.
+   */
+  static Node reverse(TNode x);
 };
 
 // ------------------------------ end for words (string or sequence constants)

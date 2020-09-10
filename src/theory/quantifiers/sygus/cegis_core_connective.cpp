@@ -2,9 +2,9 @@
 /*! \file cegis_core_connective.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -209,8 +209,8 @@ bool CegisCoreConnective::processInitialize(Node conj,
   SygusTypeInfo& gti = d_tds->getTypeInfo(gt);
   for (unsigned r = 0; r < 2; r++)
   {
-    Node f = prePost[r];
-    if (f.isConst())
+    Node node = prePost[r];
+    if (node.isConst())
     {
       // this direction is trivial, ignore
       continue;
@@ -225,7 +225,7 @@ bool CegisCoreConnective::processInitialize(Node conj,
       Trace("sygus-ccore-init") << "  will do " << (r == 0 ? "pre" : "post")
                                 << "condition." << std::endl;
       Node cons = gdt[i].getConstructor();
-      c.initialize(f, cons);
+      c.initialize(node, cons);
       // Register the symmetry breaking lemma: do not do top-level solutions
       // with this constructor (e.g. we want to enumerate literals, not
       // conjunctions).
@@ -667,8 +667,7 @@ Node CegisCoreConnective::evaluate(Node n,
   Node cn = d_eval.eval(n, d_vars, mvs);
   if (cn.isNull())
   {
-    Node cn =
-        n.substitute(d_vars.begin(), d_vars.end(), mvs.begin(), mvs.end());
+    cn = n.substitute(d_vars.begin(), d_vars.end(), mvs.begin(), mvs.end());
     cn = Rewriter::rewrite(cn);
   }
   if (!id.isNull())

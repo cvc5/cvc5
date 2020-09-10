@@ -1,4 +1,4 @@
-% EXPECT: valid
+% EXPECT: entailed
 % Simple test for right precedence of comparisons and booleans
 
 x , y, z: INT;

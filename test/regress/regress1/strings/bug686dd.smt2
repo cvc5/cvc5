@@ -8,7 +8,7 @@
 (declare-fun root6 () T)
 
 (assert (and 
-(str.in.re root5 (re.loop (re.range "0" "9") 4 4) )
-(str.in.re (TCb root6) (re.loop (re.range "0" "9") 4 4) )
+(str.in.re root5 ((_ re.loop 4 4) (re.range "0" "9")) )
+(str.in.re (TCb root6) ((_ re.loop 4 4) (re.range "0" "9")) )
 ) )
 (check-sat)

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tianyi Liang, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,9 +19,11 @@
 #ifndef CVC4__THEORY__STRINGS__THEORY_STRINGS_H
 #define CVC4__THEORY__STRINGS__THEORY_STRINGS_H
 
+#include <climits>
+#include <deque>
+
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
-#include "expr/attribute.h"
 #include "expr/node_trie.h"
 #include "theory/strings/base_solver.h"
 #include "theory/strings/core_solver.h"
@@ -32,14 +34,14 @@
 #include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/regexp_solver.h"
+#include "theory/strings/sequences_stats.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/strings_fmf.h"
+#include "theory/strings/strings_rewriter.h"
+#include "theory/strings/term_registry.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
-
-#include <climits>
-#include <deque>
 
 namespace CVC4 {
 namespace theory {
@@ -91,9 +93,6 @@ enum InferStep
 };
 std::ostream& operator<<(std::ostream& out, Inference i);
 
-struct StringsProxyVarAttributeId {};
-typedef expr::Attribute< StringsProxyVarAttributeId, bool > StringsProxyVarAttribute;
-
 class TheoryStrings : public Theory {
   friend class InferenceManager;
   typedef context::CDList<Node> NodeList;
@@ -101,12 +100,18 @@ class TheoryStrings : public Theory {
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashSet<TypeNode, TypeNodeHashFunction> TypeNodeSet;
 
  public:
   TheoryStrings(context::Context* c, context::UserContext* u,
                 OutputChannel& out, Valuation valuation,
                 const LogicInfo& logicInfo);
   ~TheoryStrings();
+
+  /** finish initialization */
+  void finishInit() override;
+
+  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
@@ -198,18 +203,6 @@ class TheoryStrings : public Theory {
     SolverState& d_state;
   };/* class TheoryStrings::NotifyClass */
 
-  //--------------------------- helper functions
-  /** get normal string
-   *
-   * This method returns the node that is equivalent to the normal form of x,
-   * and adds the corresponding explanation to nf_exp.
-   *
-   * For example, if x = y ++ z is an assertion in the current context, then
-   * this method returns the term y ++ z and adds x = y ++ z to nf_exp.
-   */
-  Node getNormalString(Node x, std::vector<Node>& nf_exp);
-  //-------------------------- end helper functions
-
  private:
   // Constants
   Node d_emptyString;
@@ -222,18 +215,23 @@ class TheoryStrings : public Theory {
   uint32_t d_cardSize;
   /** The notify class */
   NotifyClass d_notify;
+
+  /**
+   * Statistics for the theory of strings/sequences. All statistics for these
+   * theories is collected in this object.
+   */
+  SequencesStatistics d_statistics;
+
   /** Equaltity engine */
   eq::EqualityEngine d_equalityEngine;
   /** The solver state object */
   SolverState d_state;
+  /** The term registry for this theory */
+  TermRegistry d_termReg;
   /** The (custom) output channel of the theory of strings */
-  InferenceManager d_im;
-  // preReg cache
-  NodeSet d_pregistered_terms_cache;
-  NodeSet d_registered_terms_cache;
-  std::vector< Node > d_empty_vec;
-private:
+  std::unique_ptr<InferenceManager> d_im;
 
+ private:
   std::map< Node, Node > d_eqc_to_len_term;
 
 
@@ -252,24 +250,6 @@ private:
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
  private:
-  /** All the function terms that the theory has seen */
-  context::CDList<TNode> d_functionsTerms;
-private:
-  /** have we asserted any str.code terms? */
-  bool d_has_str_code;
-  // static information about extf
-  class ExtfInfo {
-  public:
-    //all variables in this term
-    std::vector< Node > d_vars;
-  };
-
- private:
-
-  /** cache of all skolems */
-  SkolemCache d_sk_cache;
-
- private:
   void addCarePairs(TNodeTrie* t1,
                     TNodeTrie* t2,
                     unsigned arity,
@@ -279,7 +259,7 @@ private:
   /** preregister term */
   void preRegisterTerm(TNode n) override;
   /** Expand definition */
-  Node expandDefinition(LogicRequest& logicRequest, Node n) override;
+  Node expandDefinition(Node n) override;
   /** Check at effort e */
   void check(Effort e) override;
   /** needs check last effort */
@@ -301,13 +281,17 @@ private:
   /** Collect model info for type tn
    *
    * Assigns model values (in m) to all relevant terms of the string-like type
-   * tn in the current context, which are stored in repSet.
+   * tn in the current context, which are stored in repSet. Furthermore,
+   * col is a partition of repSet where equivalence classes are grouped into
+   * sets having equal length, where these lengths are stored in lts.
    *
    * Returns false if a conflict is discovered while doing this assignment.
    */
   bool collectModelInfoType(
       TypeNode tn,
       const std::unordered_set<Node, NodeHashFunction>& repSet,
+      std::vector<std::vector<Node> >& col,
+      std::vector<Node>& lts,
       TheoryModel* m);
 
   /** assert pending fact
@@ -320,38 +304,20 @@ private:
    */
   void assertPendingFact(Node atom, bool polarity, Node exp);
 
-  /** Register term
-   *
-   * This performs SAT-context-independent registration for a term n, which
-   * may cause lemmas to be sent on the output channel that involve
-   * "initial refinement lemmas" for n. This includes introducing proxy
-   * variables for string terms and asserting that str.code terms are within
-   * proper bounds.
-   *
-   * Effort is one of the following (TODO make enum #1881):
-   * 0 : upon preregistration or internal assertion
-   * 1 : upon occurrence in length term
-   * 2 : before normal form computation
-   * 3 : called on normal form terms
-   *
-   * Based on the strategy, we may choose to add these initial refinement
-   * lemmas at one of the following efforts, where if it is not the given
-   * effort, the call to this method does nothing.
-   */
-  void registerTerm(Node n, int effort);
-
   // Symbolic Regular Expression
  private:
+  /** The theory rewriter for this theory. */
+  StringsRewriter d_rewriter;
   /**
    * The base solver, responsible for reasoning about congruent terms and
    * inferring constants for equivalence classes.
    */
-  BaseSolver d_bsolver;
+  std::unique_ptr<BaseSolver> d_bsolver;
   /**
    * The core solver, responsible for reasoning about string concatenation
    * with length constraints.
    */
-  CoreSolver d_csolver;
+  std::unique_ptr<CoreSolver> d_csolver;
   /**
    * Extended function solver, responsible for reductions and simplifications
    * involving extended string functions.
@@ -367,19 +333,6 @@ private:
  public:
   // ppRewrite
   Node ppRewrite(TNode atom) override;
-
- public:
-  /** statistics class */
-  class Statistics {
-  public:
-    IntStat d_splits;
-    IntStat d_eq_splits;
-    IntStat d_deq_splits;
-    IntStat d_loop_lemmas;
-    Statistics();
-    ~Statistics();
-  };/* class TheoryStrings::Statistics */
-  Statistics d_statistics;
 
  private:
   //-----------------------inference steps
@@ -443,7 +396,6 @@ private:
    */
   void runStrategy(unsigned sbegin, unsigned send);
   //-----------------------end representation of the strategy
-
 };/* class TheoryStrings */
 
 }/* CVC4::theory::strings namespace */

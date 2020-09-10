@@ -4,7 +4,7 @@
 #! \file sets.py
 ## \verbatim
 ## Top contributors (to current version):
-##   Makai Mann
+##   Makai Mann, Aina Niemetz
 ## This file is part of the CVC4 project.
 ## Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
 ## in the top-level source directory) and their institutional affiliations.
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     theorem = slv.mkTerm(kinds.Equal, lhs, rhs)
 
     print("CVC4 reports: {} is {}".format(theorem,
-                                          slv.checkValidAssuming(theorem)))
+                                          slv.checkEntailed(theorem)))
 
     # Verify emptset is a subset of any set
 
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     theorem = slv.mkTerm(kinds.Subset, emptyset, A)
 
     print("CVC4 reports: {} is {}".format(theorem,
-                                          slv.checkValidAssuming(theorem)))
+                                          slv.checkEntailed(theorem)))
 
     # Find me an element in 1, 2 intersection 2, 3, if there is one.
 

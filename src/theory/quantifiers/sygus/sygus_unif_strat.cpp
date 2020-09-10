@@ -2,9 +2,9 @@
 /*! \file sygus_unif_strat.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa
+ **   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -870,8 +870,8 @@ void SygusUnifStrategy::staticLearnRedundantOps(
       }
       if (op.getKind() == kind::BUILTIN)
       {
-        Kind k = NodeManager::operatorToKind(op);
-        if (k == NOT || k == OR || k == AND || k == ITE)
+        Kind kind = NodeManager::operatorToKind(op);
+        if (kind == NOT || kind == OR || kind == AND || kind == ITE)
         {
           // can eliminate if their argument types are simple loops to this type
           bool type_ok = true;

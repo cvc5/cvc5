@@ -2,9 +2,9 @@
 /*! \file type_enumerator_white.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andres Noetzli, Tim King
+ **   Morgan Deters, Andres Noetzli, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,30 +25,32 @@
 #include "expr/node_manager.h"
 #include "expr/type_node.h"
 #include "options/language.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 #include "theory/type_enumerator.h"
 
 using namespace CVC4;
+using namespace CVC4::smt;
 using namespace CVC4::theory;
 using namespace CVC4::kind;
 
 using namespace std;
 
 class TypeEnumeratorWhite : public CxxTest::TestSuite {
-  ExprManager* d_em;
-  NodeManager* d_nm;
-  NodeManagerScope* d_scope;
-
  public:
   void setUp() override
   {
     d_em = new ExprManager();
+    d_smt = new SmtEngine(d_em);
     d_nm = NodeManager::fromExprManager(d_em);
-    d_scope = new NodeManagerScope(d_nm);
+    d_scope = new SmtScope(d_smt);
+    d_smt->finalOptionsAreSet();
   }
 
   void tearDown() override
   {
     delete d_scope;
+    delete d_smt;
     delete d_em;
   }
 
@@ -272,4 +274,9 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
     TS_ASSERT_THROWS(*++te, NoMoreValuesException&);
   }
 
+ private:
+  ExprManager* d_em;
+  SmtEngine* d_smt;
+  NodeManager* d_nm;
+  SmtScope* d_scope;
 };/* class TypeEnumeratorWhite */

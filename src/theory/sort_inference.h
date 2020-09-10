@@ -2,9 +2,9 @@
 /*! \file sort_inference.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Paul Meng
+ **   Andrew Reynolds, Paul Meng, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -154,11 +154,15 @@ public:
   //is well sorted
   bool isWellSortedFormula( Node n );
   bool isWellSorted( Node n );
-  //get constraints for being well-typed according to computed sub-types
-  void getSortConstraints( Node n, SortInference::UnionFind& uf );
 private:
   // store monotonicity for original sorts as well
  std::map<TypeNode, bool> d_non_monotonic_sorts_orig;
+ /**
+  * Returns true if k is the APPLY_UF kind and we are not using higher-order
+  * techniques. This is called in places where we want to know whether to
+  * treat a term as uninterpreted function.
+  */
+ bool isHandledApplyUf(Kind k) const;
 };
 
 }

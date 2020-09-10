@@ -2,9 +2,9 @@
 /*! \file node_algorithm.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
+ **   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -150,6 +150,34 @@ bool hasSubtermKind(Kind k, Node n)
       {
         visit.push_back(cn);
       }
+    }
+  } while (!visit.empty());
+  return false;
+}
+
+bool hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
+                     Node n)
+{
+  if (ks.empty())
+  {
+    return false;
+  }
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      if (ks.find(cur.getKind()) != ks.end())
+      {
+        return true;
+      }
+      visited.insert(cur);
+      visit.insert(visit.end(), cur.begin(), cur.end());
     }
   } while (!visit.empty());
   return false;
@@ -517,8 +545,7 @@ Node substituteCaptureAvoiding(TNode n,
             (std::distance(src.begin(), itt.base()) - 1) >= 0
             && static_cast<unsigned>(std::distance(src.begin(), itt.base()) - 1)
                    < dest.size());
-        Node n = dest[std::distance(src.begin(), itt.base()) - 1];
-        visited[curr] = n;
+        visited[curr] = dest[std::distance(src.begin(), itt.base()) - 1];
         continue;
       }
       if (curr.getNumChildren() == 0)
@@ -568,8 +595,7 @@ Node substituteCaptureAvoiding(TNode n,
         Assert(visited.find(curr[i]) != visited.end());
         nb << visited[curr[i]];
       }
-      Node n = nb;
-      visited[curr] = n;
+      visited[curr] = nb;
 
       // remove renaming
       if (curr.isClosure())
@@ -596,13 +622,13 @@ void getComponentTypes(
     TypeNode curr = toProcess.back();
     toProcess.pop_back();
     // if not already visited
-    if (types.find(t) == types.end())
+    if (types.find(curr) == types.end())
     {
-      types.insert(t);
+      types.insert(curr);
       // get component types from the children
-      for (unsigned i = 0, nchild = t.getNumChildren(); i < nchild; i++)
+      for (unsigned i = 0, nchild = curr.getNumChildren(); i < nchild; i++)
       {
-        toProcess.push_back(t[i]);
+        toProcess.push_back(curr[i]);
       }
     }
   } while (!toProcess.empty());

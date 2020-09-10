@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -232,7 +232,16 @@ public:
   bool usingModelEqualityEngine() const { return d_useModelEe; }
   /** debug print equality engine */
   void debugPrintEqualityEngine( const char * c );
-  /** get internal representative */
+  /** get internal representative
+   *
+   * Choose a term that is equivalent to a in the current context that is the
+   * best term for instantiating the index^th variable of quantified formula q.
+   * If no legal term can be found, we return null. This can occur if:
+   * - a's type is not a subtype of the type of the index^th variable of q,
+   * - a is in an equivalent class with all terms that are restricted not to
+   * appear in instantiations of q, e.g. INST_CONSTANT terms for counterexample
+   * guided instantiation.
+   */
   Node getInternalRepresentative( Node a, Node q, int index );
 
  public:

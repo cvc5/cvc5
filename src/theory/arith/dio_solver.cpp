@@ -2,9 +2,9 @@
 /*! \file dio_solver.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Dejan Jovanovic
+ **   Tim King, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -513,8 +513,8 @@ SumPair DioSolver::purifyIndex(TrailIndex i){
   Constant negOne = Constant::mkConstant(-1);
 
   for(uint32_t revIter = d_subs.size(); revIter > 0; --revIter){
-    uint32_t i = revIter - 1;
-    Node freshNode = d_subs[i].d_fresh;
+    uint32_t i2 = revIter - 1;
+    Node freshNode = d_subs[i2].d_fresh;
     if(freshNode.isNull()){
       continue;
     }else{
@@ -523,7 +523,7 @@ SumPair DioSolver::purifyIndex(TrailIndex i){
 
       Constant a = vsum.getCoefficient(VarList(var));
       if(!a.isZero()){
-        const SumPair& sj = d_trail[d_subs[i].d_constraint].d_eq;
+        const SumPair& sj = d_trail[d_subs[i2].d_constraint].d_eq;
         Assert(sj.getPolynomial().getCoefficient(VarList(var)).isOne());
         SumPair newSi = (curr * negOne) + (sj * a);
         Assert(newSi.getPolynomial().getCoefficient(VarList(var)).isZero());

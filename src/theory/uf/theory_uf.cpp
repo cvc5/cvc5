@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -201,7 +201,8 @@ unsigned TheoryUF::getArgumentStartIndexForApplyTerm( TNode node ) {
   return node.getKind()==kind::APPLY_UF ? 0 : 1;
 }
 
-Node TheoryUF::expandDefinition(LogicRequest &logicRequest, Node node) {
+Node TheoryUF::expandDefinition(Node node)
+{
   Trace("uf-exp-def") << "TheoryUF::expandDefinition: expanding definition : "
                       << node << std::endl;
   if( node.getKind()==kind::HO_APPLY ){

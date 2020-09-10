@@ -2,9 +2,9 @@
 /*! \file theory_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Andrew Reynolds
+ **   Dejan Jovanovic, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -36,6 +36,7 @@
 #include "smt/command.h"
 #include "theory/atom_requests.h"
 #include "theory/decision_manager.h"
+#include "theory/engine_output_channel.h"
 #include "theory/interrupted.h"
 #include "theory/rewriter.h"
 #include "theory/shared_terms_database.h"
@@ -43,6 +44,7 @@
 #include "theory/substitutions.h"
 #include "theory/term_registration_visitor.h"
 #include "theory/theory.h"
+#include "theory/theory_preprocessor.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
 #include "util/hash.h"
@@ -101,7 +103,6 @@ namespace theory {
   class EntailmentCheckSideEffects;
 }/* CVC4::theory namespace */
 
-class DecisionEngine;
 class RemoveTermFormulas;
 
 /**
@@ -115,12 +116,10 @@ class TheoryEngine {
   /** Shared terms database can use the internals notify the theories */
   friend class SharedTermsDatabase;
   friend class theory::quantifiers::TermDb;
+  friend class theory::EngineOutputChannel;
 
   /** Associated PropEngine engine */
   prop::PropEngine* d_propEngine;
-
-  /** Access to decision engine */
-  DecisionEngine* d_decisionEngine;
 
   /** Our context */
   context::Context* d_context;
@@ -221,11 +220,6 @@ class TheoryEngine {
   typedef std::unordered_map<TNode, Node, TNodeHashFunction> TNodeMap;
 
   /**
-  * Cache for theory-preprocessing of assertions
-   */
-  NodeMap d_ppCache;
-
-  /**
    * Used for "missed-t-propagations" dumping mode only.  A set of all
    * theory-propagable literals.
    */
@@ -238,115 +232,10 @@ class TheoryEngine {
    */
   context::CDHashSet<Node, NodeHashFunction> d_hasPropagated;
 
-
-  /**
-   * Statistics for a particular theory.
-   */
-  class Statistics {
-
-    static std::string mkName(std::string prefix,
-                              theory::TheoryId theory,
-                              std::string suffix) {
-      std::stringstream ss;
-      ss << prefix << theory << suffix;
-      return ss.str();
-    }
-
-   public:
-    IntStat conflicts, propagations, lemmas, requirePhase, restartDemands;
-
-    Statistics(theory::TheoryId theory);
-    ~Statistics();
-  };/* class TheoryEngine::Statistics */
-
-  /**
-   * An output channel for Theory that passes messages
-   * back to a TheoryEngine.
-   */
-  class EngineOutputChannel : public theory::OutputChannel {
-    friend class TheoryEngine;
-
-    /**
-     * The theory engine we're communicating with.
-     */
-    TheoryEngine* d_engine;
-
-    /**
-     * The statistics of the theory interractions.
-     */
-    Statistics d_statistics;
-
-    /** The theory owning this channel. */
-    theory::TheoryId d_theory;
-
-   public:
-    EngineOutputChannel(TheoryEngine* engine, theory::TheoryId theory)
-        : d_engine(engine), d_statistics(theory), d_theory(theory) {}
-
-    void safePoint(ResourceManager::Resource r) override
-    {
-      spendResource(r);
-      if (d_engine->d_interrupted) {
-        throw theory::Interrupted();
-      }
-    }
-
-    void conflict(TNode conflictNode,
-                  std::unique_ptr<Proof> pf = nullptr) override;
-    bool propagate(TNode literal) override;
-
-    theory::LemmaStatus lemma(TNode lemma, ProofRule rule,
-                              bool removable = false, bool preprocess = false,
-                              bool sendAtoms = false) override;
-
-    theory::LemmaStatus splitLemma(TNode lemma,
-                                   bool removable = false) override;
-
-    void demandRestart() override {
-      NodeManager* curr = NodeManager::currentNM();
-      Node restartVar = curr->mkSkolem(
-          "restartVar", curr->booleanType(),
-          "A boolean variable asserted to be true to force a restart");
-      Trace("theory::restart")
-          << "EngineOutputChannel<" << d_theory << ">::restart(" << restartVar
-          << ")" << std::endl;
-      ++d_statistics.restartDemands;
-      lemma(restartVar, RULE_INVALID, true);
-    }
-
-    void requirePhase(TNode n, bool phase) override {
-      Debug("theory") << "EngineOutputChannel::requirePhase(" << n << ", "
-                      << phase << ")" << std::endl;
-      ++d_statistics.requirePhase;
-      d_engine->d_propEngine->requirePhase(n, phase);
-    }
-
-    void setIncomplete() override {
-      Trace("theory") << "TheoryEngine::setIncomplete()" << std::endl;
-      d_engine->setIncomplete(d_theory);
-    }
-
-    void spendResource(ResourceManager::Resource r) override
-    {
-      d_engine->spendResource(r);
-    }
-
-    void handleUserAttribute(const char* attr, theory::Theory* t) override {
-      d_engine->handleUserAttribute(attr, t);
-    }
-
-   private:
-    /**
-     * A helper function for registering lemma recipes with the proof engine
-     */
-    void registerLemmaRecipe(Node lemma, Node originalLemma, bool preprocess,
-                             theory::TheoryId theoryId);
-  }; /* class TheoryEngine::EngineOutputChannel */
-
   /**
    * Output channels for individual theories.
    */
-  EngineOutputChannel* d_theoryOut[theory::THEORY_LAST];
+  theory::EngineOutputChannel* d_theoryOut[theory::THEORY_LAST];
 
   /**
    * Are we in conflict.
@@ -454,10 +343,11 @@ class TheoryEngine {
   /** Enusre that the given atoms are send to the given theory */
   void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);
 
-  RemoveTermFormulas& d_tform_remover;
-
   /** sort inference module */
   SortInference d_sortInfer;
+
+  /** The theory preprocessor */
+  theory::TheoryPreprocessor d_tpp;
 
   /** Time spent in theory combination */
   TimerStat d_combineTheoriesTime;
@@ -492,22 +382,19 @@ class TheoryEngine {
   inline void addTheory(theory::TheoryId theoryId)
   {
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
-    d_theoryOut[theoryId] = new EngineOutputChannel(this, theoryId);
+    d_theoryOut[theoryId] = new theory::EngineOutputChannel(this, theoryId);
     d_theoryTable[theoryId] = new TheoryClass(d_context,
                                               d_userContext,
                                               *d_theoryOut[theoryId],
                                               theory::Valuation(this),
                                               d_logicInfo);
+    theory::Rewriter::registerTheoryRewriter(
+        theoryId, d_theoryTable[theoryId]->getTheoryRewriter());
   }
 
-  inline void setPropEngine(prop::PropEngine* propEngine) {
-    Assert(d_propEngine == NULL);
+  void setPropEngine(prop::PropEngine* propEngine)
+  {
     d_propEngine = propEngine;
-  }
-
-  inline void setDecisionEngine(DecisionEngine* decisionEngine) {
-    Assert(d_decisionEngine == NULL);
-    d_decisionEngine = decisionEngine;
   }
 
   /** Called when all initialization of options/logic is done */
@@ -550,11 +437,6 @@ class TheoryEngine {
 
  private:
   /**
-   * Helper for preprocess
-   */
-  Node ppTheoryRewrite(TNode term);
-
-  /**
    * Queue of nodes for pre-registration.
    */
   std::queue<TNode> d_preregisterQueue;
@@ -594,7 +476,7 @@ class TheoryEngine {
    * @param assertion the normalized assertion being sent
    * @param originalAssertion the actual assertion that was sent
    * @param toTheoryId the theory that is on the receiving end
-   * @param fromTheoryId the theory that sent the assertino
+   * @param fromTheoryId the theory that sent the assertion
    * @return true if a new assertion, false if theory already got it
    */
   bool markPropagation(TNode assertion, TNode originalAssertions, theory::TheoryId toTheoryId, theory::TheoryId fromTheoryId);
@@ -897,21 +779,12 @@ public:
 
   theory::eq::EqualityEngine* getMasterEqualityEngine() { return d_masterEqualityEngine; }
 
-  RemoveTermFormulas* getTermFormulaRemover() { return &d_tform_remover; }
-
   SortInference* getSortInference() { return &d_sortInfer; }
 
   /** Prints the assertions to the debug stream */
   void printAssertions(const char* tag);
 
-  /** Theory alternative is in use. */
-  bool useTheoryAlternative(const std::string& name);
-
-  /** Enables using a theory alternative by name. */
-  void enableTheoryAlternative(const std::string& name);
-
 private:
-  std::set< std::string > d_theoryAlternatives;
 
   std::map< std::string, std::vector< theory::Theory* > > d_attr_handle;
 

@@ -29,9 +29,8 @@ class ResultBlack : public CxxTest::TestSuite
   void testIsSat();
   void testIsUnsat();
   void testIsSatUnknown();
-  void testIsValid();
-  void testIsInvalid();
-  void testIsValidUnknown();
+  void testIsEntailed();
+  void testIsEntailmentUnknown();
 
  private:
   std::unique_ptr<Solver> d_solver;
@@ -44,9 +43,9 @@ void ResultBlack::testIsNull()
   TS_ASSERT(!res_null.isSat());
   TS_ASSERT(!res_null.isUnsat());
   TS_ASSERT(!res_null.isSatUnknown());
-  TS_ASSERT(!res_null.isValid());
-  TS_ASSERT(!res_null.isInvalid());
-  TS_ASSERT(!res_null.isValidUnknown());
+  TS_ASSERT(!res_null.isEntailed());
+  TS_ASSERT(!res_null.isNotEntailed());
+  TS_ASSERT(!res_null.isEntailmentUnknown());
   Sort u_sort = d_solver->mkUninterpretedSort("u");
   Term x = d_solver->mkVar(u_sort, "x");
   d_solver->assertFormula(x.eqTerm(x));
@@ -100,27 +99,24 @@ void ResultBlack::testIsSatUnknown()
   TS_ASSERT(res.isSatUnknown());
 }
 
-void ResultBlack::testIsValid()
+void ResultBlack::testIsEntailed()
 {
+  d_solver->setOption("incremental", "true");
   Sort u_sort = d_solver->mkUninterpretedSort("u");
-  Term x = d_solver->mkVar(u_sort, "x");
-  d_solver->assertFormula(x.eqTerm(x).notTerm());
-  Result res = d_solver->checkValid();
-  TS_ASSERT(res.isValid());
-  TS_ASSERT(!res.isValidUnknown());
+  Term x = d_solver->mkConst(u_sort, "x");
+  Term y = d_solver->mkConst(u_sort, "y");
+  Term a = x.eqTerm(y).notTerm();
+  Term b = x.eqTerm(y);
+  d_solver->assertFormula(a);
+  Result entailed = d_solver->checkEntailed(a);
+  TS_ASSERT(entailed.isEntailed());
+  TS_ASSERT(!entailed.isEntailmentUnknown());
+  Result not_entailed = d_solver->checkEntailed(b);
+  TS_ASSERT(not_entailed.isNotEntailed());
+  TS_ASSERT(!not_entailed.isEntailmentUnknown());
 }
 
-void ResultBlack::testIsInvalid()
-{
-  Sort u_sort = d_solver->mkUninterpretedSort("u");
-  Term x = d_solver->mkVar(u_sort, "x");
-  d_solver->assertFormula(x.eqTerm(x));
-  Result res = d_solver->checkValid();
-  TS_ASSERT(res.isInvalid());
-  TS_ASSERT(!res.isValidUnknown());
-}
-
-void ResultBlack::testIsValidUnknown()
+void ResultBlack::testIsEntailmentUnknown()
 {
   d_solver->setLogic("QF_NIA");
   d_solver->setOption("incremental", "false");
@@ -128,9 +124,9 @@ void ResultBlack::testIsValidUnknown()
   Sort int_sort = d_solver->getIntegerSort();
   Term x = d_solver->mkVar(int_sort, "x");
   d_solver->assertFormula(x.eqTerm(x).notTerm());
-  Result res = d_solver->checkValid();
-  TS_ASSERT(!res.isValid());
-  TS_ASSERT(res.isValidUnknown());
+  Result res = d_solver->checkEntailed(x.eqTerm(x));
+  TS_ASSERT(!res.isEntailed());
+  TS_ASSERT(res.isEntailmentUnknown());
   TS_ASSERT_EQUALS(res.getUnknownExplanation(), "UNKNOWN_REASON");
 }
 

@@ -2,9 +2,9 @@
 /*! \file linear_arith-new.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Makai Mann
+ **   Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -62,9 +62,9 @@ int main()
   slv.push();
   Term diff_leq_two_thirds = slv.mkTerm(LEQ, diff, two_thirds);
   cout << "Prove that " << diff_leq_two_thirds << " with CVC4." << endl;
-  cout << "CVC4 should report VALID." << endl;
-  cout << "Result from CVC4 is: "
-       << slv.checkValidAssuming(diff_leq_two_thirds) << endl;
+  cout << "CVC4 should report ENTAILED." << endl;
+  cout << "Result from CVC4 is: " << slv.checkEntailed(diff_leq_two_thirds)
+       << endl;
   slv.pop();
 
   cout << endl;

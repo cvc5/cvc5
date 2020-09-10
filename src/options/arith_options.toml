@@ -149,7 +149,6 @@ header = "options/arith_options.h"
   long       = "miplib-trick"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "turns on the preprocessing step of attempting to infer bounds on miplib problems"
 
 [[option]]
@@ -275,14 +274,6 @@ header = "options/arith_options.h"
   type       = "bool"
   default    = "false"
   help       = "use quick explain to minimize the sum of infeasibility conflicts"
-
-[[option]]
-  name       = "rewriteDivk"
-  category   = "regular"
-  long       = "rewrite-divk"
-  type       = "bool"
-  default    = "false"
-  help       = "rewrite division and mod when by a constant into linear terms"
 
 [[option]]
   name       = "trySolveIntStandardEffort"
@@ -438,15 +429,6 @@ header = "options/arith_options.h"
   help       = "apply pseudo boolean rewrites"
 
 [[option]]
-  name       = "sNormInferEq"
-  category   = "regular"
-  long       = "snorm-infer-eq"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "infer equalities based on Shostak normalization"
-
-[[option]]
   name       = "nlExt"
   category   = "regular"
   long       = "nl-ext"
@@ -551,3 +533,12 @@ header = "options/arith_options.h"
   default    = "true"
   read_only  = true
   help       = "whether to increment the precision for irrational function constraints"
+
+[[option]]
+  name       = "brabTest"
+  category   = "regular"
+  long       = "arith-brab"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "whether to use simple rounding, similar to a unit-cube test, for integers"

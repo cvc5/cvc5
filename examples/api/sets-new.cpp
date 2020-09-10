@@ -2,9 +2,9 @@
 /*! \file sets-new.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Makai Mann
+ **   Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -52,8 +52,8 @@ int main()
 
     Term theorem = slv.mkTerm(EQUAL, lhs, rhs);
 
-    cout << "CVC4 reports: " << theorem << " is "
-         << slv.checkValidAssuming(theorem) << "." << endl;
+    cout << "CVC4 reports: " << theorem << " is " << slv.checkEntailed(theorem)
+         << "." << endl;
   }
 
   // Verify emptset is a subset of any set
@@ -63,8 +63,8 @@ int main()
 
     Term theorem = slv.mkTerm(SUBSET, emptyset, A);
 
-    cout << "CVC4 reports: " << theorem << " is "
-         << slv.checkValidAssuming(theorem) << "." << endl;
+    cout << "CVC4 reports: " << theorem << " is " << slv.checkEntailed(theorem)
+         << "." << endl;
   }
 
   // Find me an element in {1, 2} intersection {2, 3}, if there is one.

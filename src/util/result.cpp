@@ -2,9 +2,9 @@
 /*! \file result.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Andrew Reynolds
+ **   Tim King, Aina Niemetz, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -29,59 +29,68 @@ namespace CVC4 {
 
 Result::Result()
     : d_sat(SAT_UNKNOWN),
-      d_validity(VALIDITY_UNKNOWN),
+      d_entailment(ENTAILMENT_UNKNOWN),
       d_which(TYPE_NONE),
       d_unknownExplanation(UNKNOWN_REASON),
-      d_inputName("") {}
+      d_inputName("")
+{
+}
 
 Result::Result(enum Sat s, std::string inputName)
     : d_sat(s),
-      d_validity(VALIDITY_UNKNOWN),
+      d_entailment(ENTAILMENT_UNKNOWN),
       d_which(TYPE_SAT),
       d_unknownExplanation(UNKNOWN_REASON),
-      d_inputName(inputName) {
+      d_inputName(inputName)
+{
   PrettyCheckArgument(s != SAT_UNKNOWN,
                       "Must provide a reason for satisfiability being unknown");
 }
 
-Result::Result(enum Validity v, std::string inputName)
+Result::Result(enum Entailment e, std::string inputName)
     : d_sat(SAT_UNKNOWN),
-      d_validity(v),
-      d_which(TYPE_VALIDITY),
+      d_entailment(e),
+      d_which(TYPE_ENTAILMENT),
       d_unknownExplanation(UNKNOWN_REASON),
-      d_inputName(inputName) {
-  PrettyCheckArgument(v != VALIDITY_UNKNOWN,
-                      "Must provide a reason for validity being unknown");
+      d_inputName(inputName)
+{
+  PrettyCheckArgument(e != ENTAILMENT_UNKNOWN,
+                      "Must provide a reason for entailment being unknown");
 }
 
-Result::Result(enum Sat s, enum UnknownExplanation unknownExplanation,
+Result::Result(enum Sat s,
+               enum UnknownExplanation unknownExplanation,
                std::string inputName)
     : d_sat(s),
-      d_validity(VALIDITY_UNKNOWN),
+      d_entailment(ENTAILMENT_UNKNOWN),
       d_which(TYPE_SAT),
       d_unknownExplanation(unknownExplanation),
-      d_inputName(inputName) {
+      d_inputName(inputName)
+{
   PrettyCheckArgument(s == SAT_UNKNOWN,
                       "improper use of unknown-result constructor");
 }
 
-Result::Result(enum Validity v, enum UnknownExplanation unknownExplanation,
+Result::Result(enum Entailment e,
+               enum UnknownExplanation unknownExplanation,
                std::string inputName)
     : d_sat(SAT_UNKNOWN),
-      d_validity(v),
-      d_which(TYPE_VALIDITY),
+      d_entailment(e),
+      d_which(TYPE_ENTAILMENT),
       d_unknownExplanation(unknownExplanation),
-      d_inputName(inputName) {
-  PrettyCheckArgument(v == VALIDITY_UNKNOWN,
+      d_inputName(inputName)
+{
+  PrettyCheckArgument(e == ENTAILMENT_UNKNOWN,
                       "improper use of unknown-result constructor");
 }
 
 Result::Result(const std::string& instr, std::string inputName)
     : d_sat(SAT_UNKNOWN),
-      d_validity(VALIDITY_UNKNOWN),
+      d_entailment(ENTAILMENT_UNKNOWN),
       d_which(TYPE_NONE),
       d_unknownExplanation(UNKNOWN_REASON),
-      d_inputName(inputName) {
+      d_inputName(inputName)
+{
   string s = instr;
   transform(s.begin(), s.end(), s.begin(), ::tolower);
   if (s == "sat" || s == "satisfiable") {
@@ -90,38 +99,56 @@ Result::Result(const std::string& instr, std::string inputName)
   } else if (s == "unsat" || s == "unsatisfiable") {
     d_which = TYPE_SAT;
     d_sat = UNSAT;
-  } else if (s == "valid") {
-    d_which = TYPE_VALIDITY;
-    d_validity = VALID;
-  } else if (s == "invalid") {
-    d_which = TYPE_VALIDITY;
-    d_validity = INVALID;
-  } else if (s == "incomplete") {
+  }
+  else if (s == "entailed")
+  {
+    d_which = TYPE_ENTAILMENT;
+    d_entailment = ENTAILED;
+  }
+  else if (s == "not_entailed")
+  {
+    d_which = TYPE_ENTAILMENT;
+    d_entailment = NOT_ENTAILED;
+  }
+  else if (s == "incomplete")
+  {
     d_which = TYPE_SAT;
     d_sat = SAT_UNKNOWN;
     d_unknownExplanation = INCOMPLETE;
-  } else if (s == "timeout") {
+  }
+  else if (s == "timeout")
+  {
     d_which = TYPE_SAT;
     d_sat = SAT_UNKNOWN;
     d_unknownExplanation = TIMEOUT;
-  } else if (s == "resourceout") {
+  }
+  else if (s == "resourceout")
+  {
     d_which = TYPE_SAT;
     d_sat = SAT_UNKNOWN;
     d_unknownExplanation = RESOURCEOUT;
-  } else if (s == "memout") {
+  }
+  else if (s == "memout")
+  {
     d_which = TYPE_SAT;
     d_sat = SAT_UNKNOWN;
     d_unknownExplanation = MEMOUT;
-  } else if (s == "interrupted") {
+  }
+  else if (s == "interrupted")
+  {
     d_which = TYPE_SAT;
     d_sat = SAT_UNKNOWN;
     d_unknownExplanation = INTERRUPTED;
-  } else if (s.size() >= 7 && s.compare(0, 7, "unknown") == 0) {
+  }
+  else if (s.size() >= 7 && s.compare(0, 7, "unknown") == 0)
+  {
     d_which = TYPE_SAT;
     d_sat = SAT_UNKNOWN;
-  } else {
+  }
+  else
+  {
     IllegalArgument(s,
-                    "expected satisfiability/validity result, "
+                    "expected satisfiability/entailment result, "
                     "instead got `%s'",
                     s.c_str());
   }
@@ -142,37 +169,41 @@ bool Result::operator==(const Result& r) const {
     return d_sat == r.d_sat && (d_sat != SAT_UNKNOWN ||
                                 d_unknownExplanation == r.d_unknownExplanation);
   }
-  if (d_which == TYPE_VALIDITY) {
-    return d_validity == r.d_validity &&
-           (d_validity != VALIDITY_UNKNOWN ||
-            d_unknownExplanation == r.d_unknownExplanation);
+  if (d_which == TYPE_ENTAILMENT)
+  {
+    return d_entailment == r.d_entailment
+           && (d_entailment != ENTAILMENT_UNKNOWN
+               || d_unknownExplanation == r.d_unknownExplanation);
   }
   return false;
 }
 
 bool operator==(enum Result::Sat sr, const Result& r) { return r == sr; }
 
-bool operator==(enum Result::Validity vr, const Result& r) { return r == vr; }
+bool operator==(enum Result::Entailment e, const Result& r) { return r == e; }
 bool operator!=(enum Result::Sat s, const Result& r) { return !(s == r); }
-bool operator!=(enum Result::Validity v, const Result& r) { return !(v == r); }
+bool operator!=(enum Result::Entailment e, const Result& r)
+{
+  return !(e == r);
+}
 
 Result Result::asSatisfiabilityResult() const {
   if (d_which == TYPE_SAT) {
     return *this;
   }
 
-  if (d_which == TYPE_VALIDITY) {
-    switch (d_validity) {
-      case INVALID:
-        return Result(SAT, d_inputName);
+  if (d_which == TYPE_ENTAILMENT)
+  {
+    switch (d_entailment)
+    {
+      case NOT_ENTAILED: return Result(SAT, d_inputName);
 
-      case VALID:
-        return Result(UNSAT, d_inputName);
+      case ENTAILED: return Result(UNSAT, d_inputName);
 
-      case VALIDITY_UNKNOWN:
+      case ENTAILMENT_UNKNOWN:
         return Result(SAT_UNKNOWN, d_unknownExplanation, d_inputName);
 
-      default: Unhandled() << d_validity;
+      default: Unhandled() << d_entailment;
     }
   }
 
@@ -180,28 +211,28 @@ Result Result::asSatisfiabilityResult() const {
   return Result(SAT_UNKNOWN, NO_STATUS, d_inputName);
 }
 
-Result Result::asValidityResult() const {
-  if (d_which == TYPE_VALIDITY) {
+Result Result::asEntailmentResult() const
+{
+  if (d_which == TYPE_ENTAILMENT)
+  {
     return *this;
   }
 
   if (d_which == TYPE_SAT) {
     switch (d_sat) {
-      case SAT:
-        return Result(INVALID, d_inputName);
+      case SAT: return Result(NOT_ENTAILED, d_inputName);
 
-      case UNSAT:
-        return Result(VALID, d_inputName);
+      case UNSAT: return Result(ENTAILED, d_inputName);
 
       case SAT_UNKNOWN:
-        return Result(VALIDITY_UNKNOWN, d_unknownExplanation, d_inputName);
+        return Result(ENTAILMENT_UNKNOWN, d_unknownExplanation, d_inputName);
 
       default: Unhandled() << d_sat;
     }
   }
 
   // TYPE_NONE
-  return Result(VALIDITY_UNKNOWN, NO_STATUS, d_inputName);
+  return Result(ENTAILMENT_UNKNOWN, NO_STATUS, d_inputName);
 }
 
 string Result::toString() const {
@@ -226,18 +257,14 @@ ostream& operator<<(ostream& out, enum Result::Sat s) {
   return out;
 }
 
-ostream& operator<<(ostream& out, enum Result::Validity v) {
-  switch (v) {
-    case Result::INVALID:
-      out << "INVALID";
-      break;
-    case Result::VALID:
-      out << "VALID";
-      break;
-    case Result::VALIDITY_UNKNOWN:
-      out << "VALIDITY_UNKNOWN";
-      break;
-    default: Unhandled() << v;
+ostream& operator<<(ostream& out, enum Result::Entailment e)
+{
+  switch (e)
+  {
+    case Result::NOT_ENTAILED: out << "NOT_ENTAILED"; break;
+    case Result::ENTAILED: out << "ENTAILED"; break;
+    case Result::ENTAILMENT_UNKNOWN: out << "ENTAILMENT_UNKNOWN"; break;
+    default: Unhandled() << e;
   }
   return out;
 }
@@ -301,14 +328,11 @@ void Result::toStreamDefault(std::ostream& out) const {
         break;
     }
   } else {
-    switch (isValid()) {
-      case Result::INVALID:
-        out << "invalid";
-        break;
-      case Result::VALID:
-        out << "valid";
-        break;
-      case Result::VALIDITY_UNKNOWN:
+    switch (isEntailed())
+    {
+      case Result::NOT_ENTAILED: out << "not_entailed"; break;
+      case Result::ENTAILED: out << "entailed"; break;
+      case Result::ENTAILMENT_UNKNOWN:
         out << "unknown";
         if (whyUnknown() != Result::UNKNOWN_REASON) {
           out << " (" << whyUnknown() << ")";
@@ -332,11 +356,17 @@ void Result::toStreamTptp(std::ostream& out) const {
     out << "Satisfiable";
   } else if (isSat() == Result::UNSAT) {
     out << "Unsatisfiable";
-  } else if (isValid() == Result::VALID) {
+  }
+  else if (isEntailed() == Result::ENTAILED)
+  {
     out << "Theorem";
-  } else if (isValid() == Result::INVALID) {
+  }
+  else if (isEntailed() == Result::NOT_ENTAILED)
+  {
     out << "CounterSatisfiable";
-  } else {
+  }
+  else
+  {
     out << "GaveUp";
   }
   out << " for " << getInputName();
@@ -344,7 +374,7 @@ void Result::toStreamTptp(std::ostream& out) const {
 
 void Result::toStream(std::ostream& out, OutputLanguage language) const {
   switch (language) {
-    case language::output::LANG_SYGUS:
+    case language::output::LANG_SYGUS_V1:
     case language::output::LANG_SYGUS_V2: toStreamSmt2(out); break;
     case language::output::LANG_TPTP:
       toStreamTptp(out);

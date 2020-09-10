@@ -2,9 +2,9 @@
 /*! \file subs_minimize.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,6 +17,7 @@
 #include "expr/node_algorithm.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
+#include "theory/strings/word.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -194,15 +195,15 @@ bool SubstitutionMinimize::findInternal(Node n,
     {
       if (cur.isVar())
       {
-        const std::vector<Node>::const_iterator& it =
+        const std::vector<Node>::const_iterator& iit =
             std::find(vars.begin(), vars.end(), cur);
-        if (it == vars.end())
+        if (iit == vars.end())
         {
           value[cur] = cur;
         }
         else
         {
-          ptrdiff_t pos = std::distance(vars.begin(), it);
+          ptrdiff_t pos = std::distance(vars.begin(), iit);
           value[cur] = subs[pos];
         }
       }
@@ -448,7 +449,7 @@ bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
   if ((arg == 1 && k == STRING_STRCTN) || (arg == 0 && k == STRING_SUBSTR))
   {
     // empty string
-    if (n.getConst<String>().size() == 0)
+    if (strings::Word::getLength(n) == 0)
     {
       return true;
     }

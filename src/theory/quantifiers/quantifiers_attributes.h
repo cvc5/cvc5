@@ -2,9 +2,9 @@
 /*! \file quantifiers_attributes.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,14 +26,6 @@ namespace CVC4 {
 namespace theory {
 
 class QuantifiersEngine;
-
-/** Attribute true for quantifiers that are axioms */
-struct AxiomAttributeId {};
-typedef expr::Attribute< AxiomAttributeId, bool > AxiomAttribute;
-
-/** Attribute true for quantifiers that are conjecture */
-struct ConjectureAttributeId {};
-typedef expr::Attribute< ConjectureAttributeId, bool > ConjectureAttribute;
 
 /** Attribute true for function definition quantifiers */
 struct FunDefAttributeId {};
@@ -108,8 +100,6 @@ struct QAttributes
  public:
   QAttributes()
       : d_hasPattern(false),
-        d_conjecture(false),
-        d_axiom(false),
         d_sygus(false),
         d_qinstLevel(-1),
         d_quant_elim(false),
@@ -119,10 +109,6 @@ struct QAttributes
   ~QAttributes(){}
   /** does the quantified formula have a pattern? */
   bool d_hasPattern;
-  /** is this formula marked a conjecture? */
-  bool d_conjecture;
-  /** is this formula marked an axiom? */
-  bool d_axiom;
   /** if non-null, this quantified formula is a function definition for function
    * d_fundef_f */
   Node d_fundef_f;
@@ -200,10 +186,6 @@ public:
   /** is quant elim annotation */
   static bool checkQuantElimAnnotation( Node ipl );
 
-  /** is conjecture */
-  bool isConjecture( Node q );
-  /** is axiom */
-  bool isAxiom( Node q );
   /** is function definition */
   bool isFunDef( Node q );
   /** is sygus conjecture */

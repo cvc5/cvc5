@@ -2,9 +2,9 @@
 /*! \file synth_rew_rules.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -169,7 +169,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       std::stringstream ssv;
       if (varCounter < 26)
       {
-        ssv << String::convertUnsignedIntToChar(varCounter + 32);
+        ssv << static_cast<char>(varCounter + 61);
       }
       else
       {
@@ -310,11 +310,11 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         std::map<TypeNode, bool> hasArgType;
         for (unsigned j = 0, size = argListTmp.size(); j < size; j++)
         {
-          TypeNode t = argListTmp[j];
-          if (hasArgType.find(t) == hasArgType.end())
+          TypeNode tn = argListTmp[j];
+          if (hasArgType.find(tn) == hasArgType.end())
           {
-            hasArgType[t] = true;
-            argList.push_back(t);
+            hasArgType[tn] = true;
+            argList.push_back(tn);
           }
         }
       }

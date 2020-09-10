@@ -2,9 +2,9 @@
 /*! \file drat_proof.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Alex Ozdemir
+ **   Alex Ozdemir, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -215,12 +215,12 @@ DratProof DratProof::fromBinary(const std::string& s)
       }
       default:
       {
-        std::ostringstream s;
-        s << "Invalid instruction in Drat proof. Instruction bits: "
-          << std::bitset<8>(*i)
-          << ". Expected 'a' (01100001) or 'd' "
-             "(01100100).";
-        throw InvalidDratProofException(s.str());
+        std::ostringstream errmsg;
+        errmsg << "Invalid instruction in Drat proof. Instruction bits: "
+               << std::bitset<8>(*i)
+               << ". Expected 'a' (01100001) or 'd' "
+                  "(01100100).";
+        throw InvalidDratProofException(errmsg.str());
       }
     }
   }

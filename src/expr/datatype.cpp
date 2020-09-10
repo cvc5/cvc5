@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -273,10 +273,8 @@ void Datatype::addSygusConstructor(Expr op,
   std::stringstream ss;
   ss << getName() << "_" << getNumConstructors() << "_" << cname;
   std::string name = ss.str();
-  std::string testerId("is-");
-  testerId.append(name);
   unsigned cweight = weight >= 0 ? weight : (cargs.empty() ? 0 : 1);
-  DatatypeConstructor c(name, testerId, cweight);
+  DatatypeConstructor c(name, cweight);
   c.setSygus(op, spc);
   for( unsigned j=0; j<cargs.size(); j++ ){
     Debug("parser-sygus-debug") << "  arg " << j << " : " << cargs[j] << std::endl;
@@ -408,6 +406,12 @@ bool Datatype::isWellFounded() const
   return d_internal->isWellFounded();
 }
 
+bool Datatype::hasNestedRecursion() const
+{
+  ExprManagerScope ems(d_self);
+  return d_internal->hasNestedRecursion();
+}
+
 Expr Datatype::mkGroundTerm(Type t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
@@ -515,21 +519,10 @@ const std::vector<DatatypeConstructor>* Datatype::getConstructors() const
   return &d_constructors;
 }
 
-DatatypeConstructor::DatatypeConstructor(std::string name)
-    : d_internal(nullptr),
-      d_testerName("is_" + name)  // default tester name is "is_FOO"
+DatatypeConstructor::DatatypeConstructor(std::string name, unsigned weight)
+    : d_internal(nullptr)
 {
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor without a name");
-  d_internal = std::make_shared<DTypeConstructor>(name, 1);
-}
-
-DatatypeConstructor::DatatypeConstructor(std::string name,
-                                         std::string tester,
-                                         unsigned weight)
-    : d_internal(nullptr), d_testerName(tester)
-{
-  PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor without a name");
-  PrettyCheckArgument(!tester.empty(), tester, "cannot construct a datatype constructor without a tester");
   d_internal = std::make_shared<DTypeConstructor>(name, weight);
 }
 
@@ -592,12 +585,6 @@ void DatatypeConstructor::addArg(std::string selectorName, DatatypeSelfType) {
 std::string DatatypeConstructor::getName() const
 {
   return d_internal->getName();
-}
-
-std::string DatatypeConstructor::getTesterName() const
-{
-  // not stored internally, since tester names only pertain to parsing
-  return d_testerName;
 }
 
 Expr DatatypeConstructor::getConstructor() const {
