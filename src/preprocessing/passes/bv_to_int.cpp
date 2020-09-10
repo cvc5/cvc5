@@ -267,10 +267,9 @@ Node BVToInt::bvToInt(Node n)
 {
   n = makeBinary(n);
   n = eliminationPass(n);
-  /**
-   *  binarize again, in case the elimination pass introduced
-   * non-binary terms (as can happen by RepeatEliminate, for example)
-   */
+   
+  // binarize again, in case the elimination pass introduced
+  // non-binary terms (as can happen by RepeatEliminate, for example).
   n = makeBinary(n);
   vector<Node> toVisit;
   toVisit.push_back(n);
@@ -359,13 +358,6 @@ Node BVToInt::translateWithChildren(Node original,
     case kind::BITVECTOR_PLUS:
     {
       uint64_t bvsize = original[0].getType().getBitVectorSize();
-      /**
-       * we avoid modular arithmetics by the addition of an
-       * indicator variable sigma.
-       * Tr(a+b) is Tr(a)+Tr(b)-(sigma*2^k),
-       * with k being the bit width,
-       * and sigma being either 0 or 1.
-       */
       Node sigma = d_nm->mkSkolem(
           "__bvToInt_sigma_var",
           d_nm->integerType(),
