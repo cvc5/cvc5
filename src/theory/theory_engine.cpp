@@ -1460,6 +1460,8 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
       // update the trust node
       tlemma = TrustNode::mkTrustLemma(lemma, d_lazyProof.get());
     }
+    // ensure closed
+    tlemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_initial");
   }
 
   // Do we need to check atoms
@@ -1478,9 +1480,6 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   }
   bool removable = isLemmaPropertyRemovable(p);
   bool preprocess = isLemmaPropertyPreprocess(p);
-
-  // ensure closed
-  tlemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_initial");
 
   // call preprocessor
   std::vector<TrustNode> newLemmas;
@@ -1555,15 +1554,23 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
     d_relManager->notifyPreprocessedAssertions(lemmas.ref());
   }
 
-  // assert lemmas to prop engine
-  Assert(!isProofEnabled() || tlemma.getGenerator() != nullptr);
-  // ensure closed, make the proof node eagerly here to debug
-  tlemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma");
+  // do final checks on the lemmas we are about to send
+  if (isProofEnabled())
+  {
+    Assert(tlemma.getGenerator() != nullptr);
+    // ensure closed, make the proof node eagerly here to debug
+    tlemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma");
+    for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
+    {
+      Assert(newLemmas[i].getGenerator() != nullptr);
+      newLemmas[i].debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_new");
+    }
+  }
+  
+  // now, send the lemmas to the prop engine
   d_propEngine->assertLemma(tlemma, removable);
   for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
   {
-    Assert(!isProofEnabled() || newLemmas[i].getGenerator() != nullptr);
-    newLemmas[i].debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_new");
     d_propEngine->assertLemma(newLemmas[i], removable);
   }
 
@@ -1598,15 +1605,6 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
   // doesn't require proof generator, yet, since THEORY_LEMMA is added below
   tconflict.debugCheckClosed(
       "te-proof-debug", "TheoryEngine::conflict_initial", false);
-  // If proofNew is enabled, then either:
-  // (1) The lazy proof contains an explicitly provided step (probably
-  // THEORY_LEMMA),
-  // (2) The lazy proof contains an explicitly provided proof generator,
-  // (3) The conflict being processed is a propagatation of false.
-  // AlwaysAssert(
-  //    d_lazyProof == nullptr || d_lazyProof->hasStep(conflict.notNode())
-  //    || d_lazyProof->hasGenerator(conflict.notNode()) || conflict ==
-  //    d_false);
 
   Trace("dtview::conflict") << ":THEORY-CONFLICT: " << conflict << std::endl;
 
