@@ -33,22 +33,13 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
   Trace("lazy-cdproofchain")
       << "LazyCDProofChain::getProofFor " << fact << "\n";
   // which facts have had proofs retrieved for. This is maintained to avoid
-  // cycles. It also saves the proof node of the fact and its proof node
-  // assumptions in the map's range
-  std::unordered_map<
-      Node,
-      std::pair<std::shared_ptr<ProofNode>,
-                std::unordered_map<Node,
-                                   std::vector<std::shared_ptr<ProofNode>>,
-                                   NodeHashFunction>>,
-      NodeHashFunction>
-      expandedToConnect;
+  // cycles. It also saves the proof node of the fact
   std::unordered_map<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
-      expanded;
+      expandedToConnect;
+  std::unordered_set<Node, NodeHashFunction> expanded;
   std::vector<Node> visit{fact};
   std::unordered_map<Node, Node, NodeHashFunction> visited;
   Node cur;
-
   do
   {
     cur = visit.back();
@@ -103,92 +94,97 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
       // must have been expanded and connected
       visited[cur] = Node::null();
       visit.push_back(cur);
-      // use a persistent version of the free assumptions to proof nodes map
-      std::unordered_map<Node,
-                         std::vector<std::shared_ptr<ProofNode>>,
-                         NodeHashFunction>
-          famapPersistent;
-      // enqueue free assumptions to process and register proof nodes to be
-      // connected
+      // enqueue free assumptions to process
       for (const std::pair<const Node, std::vector<ProofNode*>>& fap : famap)
       {
-        auto it = expanded.find(fap.first);
         // check cycles, which are cases in which we have facts in
         // expandedToConnect but not already expanded
-        AlwaysAssert(expandedToConnect.find(fap.first)
-                         == expandedToConnect.end()
-                     || it != expanded.end())
-            << "Fact " << fap.first << " is part of a cycle\n";
+        auto it = expandedToConnect.find(fap.first);
+        if (it != expandedToConnect.end() && !expanded.count(fap.first))
+        {
+          // mark as a not to expand assumption. We do this rather than just
+          // assining visited[fap.first] to a non-null value so that we properly
+          // pop the traces previously pushed.
+          Trace("lazy-cdproofchain")
+              << "LazyCDProofChain::getProofFor: removing cyclic assumption "
+              << fap.first << " from expansion\n";
+          expandedToConnect.erase(it);
+          break;
+        }
         // already expanded, skip
-        if (it != expanded.end())
+        if (expanded.count(fap.first))
         {
           continue;
         }
         visit.push_back(fap.first);
-        std::vector<std::shared_ptr<ProofNode>> pfns;
-        for (ProofNode* pfn : fap.second)
-        {
-          pfns.push_back(pfn->clone());
-        }
-        famapPersistent[fap.first] = pfns;
       }
       // map node whose proof node must be expanded to the respective poof node
-      // and to the persistent map of its assumptions to proof nodes
-      expandedToConnect[cur] =
-          std::pair<std::shared_ptr<ProofNode>,
-                    std::unordered_map<Node,
-                                       std::vector<std::shared_ptr<ProofNode>>,
-                                       NodeHashFunction>>(curPfn,
-                                                          famapPersistent);
+      expandedToConnect[cur] = curPfn;
     }
     // post-traversal
     else if (itVisited->second.isNull())
     {
+      Assert(!expanded.count(cur));
       Trace("lazy-cdproofchain") << pop;
       Trace("lazy-cdproofchain-debug") << pop;
+      // mark final processing
+      visited[cur] = cur;
+      // get proof node to expand
+      auto it = expandedToConnect.find(cur);
+      // this was part of a cycle, ignore it
+      if (it == expandedToConnect.end())
+      {
+        continue;
+      }
       Trace("lazy-cdproofchain") << "LazyCDProofChain::getProofFor: "
                                     "connect proofs for assumptions of: "
                                  << cur << "\n";
-      // mark final processing
-      visited[cur] = cur;
-      // get proof nodes
-      auto it = expandedToConnect.find(cur);
-      Assert(it != expandedToConnect.end());
+
+      // get assumptions
+      std::map<Node, std::vector<ProofNode*>> famap;
+      expr::getFreeAssumptionsMap(it->second.get(), famap);
       // the first element of the iterator pair is the proofNode of cur, the
       // second is the map of the assumption node to all its proofnodes
-      for (const std::pair<const Node, std::vector<std::shared_ptr<ProofNode>>>&
-               fap : it->second.second)
+      for (const std::pair<const Node, std::vector<ProofNode*>>& fap : famap)
       {
         // see if assumption has been expanded and thus has a new proof node to
         // connect here
-        auto itt = expanded.find(fap.first);
-        if (itt == expanded.end())
+        if (!expanded.count(fap.first))
         {
           Trace("lazy-cdproofchain")
               << "LazyCDProofChain::getProofFor: assumption " << fap.first
               << " not expanded\n";
           continue;
         }
+        auto itt = expandedToConnect.find(fap.first);
+        Assert(itt != expandedToConnect.end());
         Trace("lazy-cdproofchain")
             << "LazyCDProofChain::getProofFor: assumption " << fap.first
             << " expanded\n";
+        Trace("lazy-cdproofchain-debug")
+            << "LazyCDProofChain::getProofFor: expanded to: "
+            << *itt->second.get() << "\n";
         // update each assumption proof node with the expanded proof node of
         // that assumption
-        for (std::shared_ptr<ProofNode> pfn : fap.second)
+        for (ProofNode* pfn : fap.second)
         {
-          d_manager->updateNode(pfn.get(), itt->second.get());
+          d_manager->updateNode(pfn, itt->second.get());
         }
       }
-      // assign the expanded proof node
-      expanded[cur] = it->second.first;
+      // mark the fact as expanded
+      expanded.insert(cur);
       Trace("lazy-cdproofchain-debug")
           << "LazyCDProofChain::getProofFor: expanded proof node: "
-          << *it->second.first.get() << "\n";
+          << *it->second.get() << "\n";
     }
   } while (!visit.empty());
-  Assert(expanded.find(cur) != expanded.end());
+  if (!expanded.count(cur))
+  {
+    return nullptr;
+  }
   // final proof of fact
-  return expanded[cur];
+  Assert(expandedToConnect.find(cur) != expandedToConnect.end());
+  return expandedToConnect[cur];
 }
 
 void LazyCDProofChain::addLazyStep(Node expected,
