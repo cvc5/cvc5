@@ -1182,8 +1182,9 @@ void SortModel::debugPrint( const char* c ){
   }
 }
 
-bool SortModel::checkLastCall(){
-  TheoryModel * m = d_state.getModel();
+bool SortModel::checkLastCall()
+{
+  TheoryModel* m = d_state.getModel();
   if( Trace.isOn("uf-ss-warn") ){
     std::vector< Node > eqcs;
     eq::EqClassesIterator eqcs_i =
@@ -1573,11 +1574,13 @@ bool CardinalityExtension::areDisequal(Node a, Node b)
 /** check */
 void CardinalityExtension::check(Theory::Effort level)
 {
-  if (level==Theory::EFFORT_LAST_CALL)
+  if (level == Theory::EFFORT_LAST_CALL)
   {
     // if last call, call last call check for each sort
-    for( std::pair< const TypeNode, SortModel* >& r : d_rep_model ){
-      if( !r.second->checkLastCall() ){
+    for (std::pair<const TypeNode, SortModel*>& r : d_rep_model)
+    {
+      if (!r.second->checkLastCall())
+      {
         break;
       }
     }

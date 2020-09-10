@@ -87,12 +87,13 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
     }
     Trace("model-engine-debug") << "Check model..." << std::endl;
     d_incomplete_check = false;
-    //print debug
-    if( Trace.isOn("fmf-model-complete") ){
+    // print debug
+    if (Trace.isOn("fmf-model-complete"))
+    {
       Trace("fmf-model-complete") << std::endl;
       debugPrint("fmf-model-complete");
     }
-    //successfully built an acceptable model, now check it
+    // successfully built an acceptable model, now check it
     addedLemmas += checkModel();
 
     if( Trace.isOn("model-engine") ){
