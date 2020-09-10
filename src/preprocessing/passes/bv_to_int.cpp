@@ -666,11 +666,6 @@ Node BVToInt::translateWithChildren(Node original,
             original.toExpr(),
             string("Cannot translate to Int: ") + original.toString());
       }
-      // Now that the translated function symbol was
-      // created, we translate the applicatio and add to the cache.
-      // Additionally, we add
-      // range constraints induced by the original BV width of the
-      // the functions range (codomain)..
       // Insert the translated application term to the cache
       returnNode = d_nm->mkNode(kind::APPLY_UF, translated_children);
       // Add range constraints if necessary.
