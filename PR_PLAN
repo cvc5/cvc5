@@ -77,18 +77,19 @@ PR finished:
 
 PRs ready:
 
+(29) arithmetic proof producing [Alex] (req 24, 25)
 (41) SharedTermDatabase uses pfee (req 24)
 (43) strings InferProofCons (req 13, 18, 26, 34, 42, 65, 86) *
 (53) CNF proof producing [Haniel]
 (70) rewriter unit test [Andres] (req 36, 37)
 (82) SmtEngine proof manager (req 84, 87, 93) *
 (88) fixes for smt preprocess proof generator
-(91) Proof producing lemma TheoryEngine
+(91) Proof producing lemma TheoryEngine *
 (94) HO_CONG in eq proof conversion [Haniel]
+(95) Arrays proof checker
 
 PRs future:
 
-(29) arithmetic proof producing [Alex] (req 24, 25)
 (31) update strings inference manager to use ProofEqEngine (req 24, 26, 43, cee-strings)
 (44) TheoryEngine explanation proof producing (req 12, 40, 41, 87, 91)
 (54) DSL rewrite rule
@@ -98,6 +99,8 @@ PRs future:
 (68) PropEngine proof producing [Haniel] (req 53)
 (83) DSL rewrite rule compilation, including side condition utility [Andres] (req 56)
 (85) SmtEngine check proofs (req 68, 82)
+(96) arrays proof producing (req 95)
+(97) BV new basic solver, proof producing
 
 Wish list:
 
