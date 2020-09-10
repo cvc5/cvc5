@@ -53,6 +53,7 @@
 namespace CVC4 {
 
 class ResourceManager;
+class TheoryEngineProofGenerator;
 
 /**
  * A pair of a theory and a node. This is used to mark the flow of

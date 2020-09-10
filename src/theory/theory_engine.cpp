@@ -50,6 +50,7 @@
 #include "theory/theory_traits.h"
 #include "theory/uf/equality_engine.h"
 #include "util/resource_manager.h"
+#include "theory/theory_engine_proof_generator.h"
 
 using namespace std;
 
@@ -210,6 +211,12 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_userContext(userContext),
       d_logicInfo(logicInfo),
       d_pnm(nullptr),
+      d_lazyProof(
+          d_pnm != nullptr
+              ? new LazyCDProof(
+                    d_pnm, nullptr, d_userContext, "TheoryEngine::LazyCDProof")
+              : nullptr),
+      d_tepg(new TheoryEngineProofGenerator(d_pnm, d_userContext)),
       d_sharedTerms(this, context),
       d_tc(nullptr),
       d_quantEngine(nullptr),
