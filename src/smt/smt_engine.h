@@ -859,9 +859,6 @@ class CVC4_PUBLIC SmtEngine
    */
   void setExpressionName(const Node& e, const std::string& name);
 
-  /** Get a pointer to the Rewriter owned by this SmtEngine. */
-  theory::Rewriter* getRewriter() { return d_rewriter.get(); }
-
   /** Get the options object (const and non-const versions) */
   Options& getOptions();
   const Options& getOptions() const;
