@@ -20,7 +20,7 @@
  (not
   (=
    (a2
-    (ite
+    (ite 
      (=> (or (and (= (bvnor (bvnand (bvor (bvand x0 x1) x2) x3) x4) ((_ extract 9 0) v3)) p1) p2) p3)
      v2
      6)

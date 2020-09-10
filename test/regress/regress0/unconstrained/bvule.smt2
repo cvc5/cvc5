@@ -20,7 +20,7 @@
  (not
   (=
    (a2
-    (ite
+    (ite 
      (bvule x0 x1)
      v2
      6)

@@ -289,6 +289,7 @@ public:
  void getExplanationForInstLemmas(const std::vector<Node>& lems,
                                   std::map<Node, Node>& quant,
                                   std::map<Node, std::vector<Node> >& tvec);
+
  /** get synth solutions
   *
   * This method returns true if there is a synthesis solution available. This

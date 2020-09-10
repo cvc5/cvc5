@@ -80,11 +80,8 @@ class CVC4_PUBLIC CVC4dumpstream
   CVC4dumpstream() {}
   CVC4dumpstream(std::ostream& os) {}
   CVC4dumpstream& operator<<(const Command& c) { return *this; }
-<<<<<<< HEAD
   CVC4dumpstream& operator<<(ProofNode* pn) { return *this; }
-=======
   CVC4dumpstream& operator<<(const NodeCommand& nc) { return *this; }
->>>>>>> 254c0391d9186221bc3b8c63687cc30a06b14f1b
 }; /* class CVC4dumpstream */
 
 #endif /* CVC4_DUMPING && !CVC4_MUZZLE */

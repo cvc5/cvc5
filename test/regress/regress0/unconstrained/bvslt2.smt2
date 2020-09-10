@@ -21,7 +21,7 @@
  (not
   (=
    (a2
-    (ite
+    (ite 
      (bvslt x0 x1)
      v2
      6)

@@ -20,7 +20,7 @@
  (not
   (=
    (a2
-    (ite
+    (ite 
      (= (xor (= (bvxor (bvxnor (bvadd (bvsub x0 ((_ extract 9 0) v3)) ((_ extract
      9 0) v4)) ((_ extract 9 0) v5)) ((_ extract 19 10) v3)) ((_ extract 19 10)
      v4)) (= v3 v4)) (= v4 v5))

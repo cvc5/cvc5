@@ -124,6 +124,9 @@ class Theory {
   /** Information about the logic we're operating within. */
   const LogicInfo& d_logicInfo;
 
+  /** Pointer to proof node manager */
+  ProofNodeManager* d_pnm;
+
   /**
    * The assertFact() queue.
    *
@@ -151,8 +154,6 @@ class Theory {
   DecisionManager* d_decManager;
 
  protected:
-  /** Pointer to proof node manager */
-  ProofNodeManager* d_pnm;
   /** Name of this theory instance. Along with the TheoryId this should provide
    * an unique string identifier for each instance of a Theory class. We need
    * this to ensure unique statistics names over multiple theory instances. */

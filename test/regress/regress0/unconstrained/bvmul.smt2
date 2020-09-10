@@ -20,7 +20,7 @@
  (not
   (=
    (a2
-    (ite
+    (ite 
      (= (bvmul x0 x1) ((_ extract 9 0) v3))
      v2
      6)

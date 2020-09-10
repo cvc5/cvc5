@@ -4,11 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
-<<<<<<< HEAD
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
-=======
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
->>>>>>> 27413a45e28001f6155d529a59d679556cdc011e
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
