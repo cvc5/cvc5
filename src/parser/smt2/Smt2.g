@@ -1265,7 +1265,7 @@ datatypesDef[bool isCo,
     RPAREN_TOK
     )+
   {
-    if (dts.size()!=dnames.size())
+    if (dts.size() != dnames.size())
     {
       PARSER_STATE->parseError("Wrong number of datatypes provided.");
     }
