@@ -272,8 +272,8 @@ Node BVToInt::bvToInt(Node n)
       // We mark this node as visited but not translated by assiging
       // a null node to it.
       d_bvToIntCache[current] = Node();
-      // all the node's chidlren are added to the stack to be visited
-      // before visigint this node again.
+      // all the node's children are added to the stack to be visited
+      // before visiting this node again.
       toVisit.insert(toVisit.end(), current.begin(), current.end());
       // If this is a UF applicatinon, we also add the function to
       // toVisit.
@@ -665,11 +665,6 @@ Node BVToInt::translateWithChildren(Node original,
             original.toExpr(),
             string("Cannot translate to Int: ") + original.toString());
       }
-      // Now that the translated function symbol was
-      // created, we translate the applicatio and add to the cache.
-      // Additionally, we add
-      // range constraints induced by the original BV width of the
-      // the functions range (codomain)..
       // Insert the translated application term to the cache
       returnNode = d_nm->mkNode(kind::APPLY_UF, translated_children);
       // Add range constraints if necessary.
