@@ -46,10 +46,13 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
   ProofNode* cur;
   visit.push_back(pf.get());
   std::map<Node, ProofNode*>::iterator itc;
-  std::map<Node, ProofNode*> resCache;
   // NOTE: temporary, debugging
   unsigned counterReuse = 0;
   unsigned counterNew = 0;
+  // A cache from formulas to proof nodes that are in the current scope.
+  // Notice that we make a fresh recursive call to process if the current
+  // rule is SCOPE below.
+  std::map<Node, ProofNode*> resCache;
   TNode res;
   do
   {
@@ -80,7 +83,8 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
         {
           if (cp->getRule() == PfRule::SCOPE)
           {
-            // process in new scope separately
+            // Process in new call separately, since we should not cache
+            // the results of proofs that have a different scope.
             process(cp);
             continue;
           }
@@ -89,6 +93,12 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
       }
       Trace("pf-process-debug")
           << "Processing " << counterReuse << "/" << counterNew << std::endl;
+    }
+    else if (!it->second)
+    {
+      visited[cur] = true;
+      // cache result
+      resCache[res] = cur;
     }
     else if (!it->second)
     {
@@ -126,6 +136,7 @@ void ProofNodeUpdater::runUpdate(ProofNode* cur)
   if (d_cb.update(res, id, ccn, cur->getArguments(), &cpf))
   {
     std::shared_ptr<ProofNode> npn = cpf.getProofFor(res);
+    /*
     // this may not be a desired assertion in general, but typically
     if (cur->isClosed() && !npn->isClosed())
     {
@@ -143,6 +154,7 @@ void ProofNodeUpdater::runUpdate(ProofNode* cur)
       }
       AlwaysAssert(false) << ss.str();
     }
+    */
     // then, update the original proof node based on this one
     Trace("pf-process-debug") << "Update node..." << std::endl;
     d_pnm->updateNode(cur, npn.get());
