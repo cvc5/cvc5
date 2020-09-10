@@ -19,8 +19,8 @@
 #ifndef CVC4__BV_QUICK_CHECK_H
 #define CVC4__BV_QUICK_CHECK_H
 
-#include <vector>
 #include <unordered_set>
+#include <vector>
 
 #include "context/cdo.h"
 #include "expr/node.h"
@@ -36,43 +36,44 @@ class TheoryModel;
 namespace bv {
 
 class TLazyBitblaster;
-class TheoryBV;
+class BVSolverLazy;
 
-class BVQuickCheck {
+class BVQuickCheck
+{
   context::Context d_ctx;
   std::unique_ptr<TLazyBitblaster> d_bitblaster;
   Node d_conflict;
   context::CDO<bool> d_inConflict;
   void setConflict();
 
-public:
-  BVQuickCheck(const std::string& name, theory::bv::TheoryBV* bv);
+ public:
+  BVQuickCheck(const std::string& name, theory::bv::BVSolverLazy* bv);
   ~BVQuickCheck();
   bool inConflict();
   Node getConflict() { return d_conflict; }
-  /** 
+  /**
    * Checks the satisfiability for a given set of assumptions.
-   * 
+   *
    * @param assumptions literals assumed true
    * @param budget max number of conflicts
-   * 
-   * @return 
+   *
+   * @return
    */
   prop::SatValue checkSat(std::vector<Node>& assumptions, unsigned long budget);
-  /** 
+  /**
    * Checks the satisfiability of given assertions.
-   * 
+   *
    * @param budget max number of conflicts
-   * 
-   * @return 
+   *
+   * @return
    */
   prop::SatValue checkSat(unsigned long budget);
-  
-  /** 
+
+  /**
    * Convert to CNF and assert the given literal.
-   * 
+   *
    * @param assumption bv literal
-   * 
+   *
    * @return false if a conflict has been found via bcp.
    */
   bool addAssertion(TNode assumption);
@@ -80,36 +81,38 @@ public:
   void push();
   void pop();
   void popToZero();
-  /** 
+  /**
    * Deletes the SAT solver and CNF stream, but maintains the
-   * bit-blasting term cache. 
-   * 
+   * bit-blasting term cache.
+   *
    */
-  void clearSolver(); 
+  void clearSolver();
 
-  /** 
+  /**
    * Computes the size of the circuit required to bit-blast
-   * atom, by not recounting the nodes in seen. 
-   * 
-   * @param node 
-   * @param seen 
-   * 
-   * @return 
+   * atom, by not recounting the nodes in seen.
+   *
+   * @param node
+   * @param seen
+   *
+   * @return
    */
   uint64_t computeAtomWeight(TNode atom, NodeSet& seen);
-  bool collectModelInfo(theory::TheoryModel* model, bool fullModel);
+  bool collectModelValues(theory::TheoryModel* model,
+                          const std::set<Node>& termSet);
 
-  typedef std::unordered_set<TNode, TNodeHashFunction>::const_iterator vars_iterator;
-  vars_iterator beginVars(); 
-  vars_iterator endVars(); 
+  typedef std::unordered_set<TNode, TNodeHashFunction>::const_iterator
+      vars_iterator;
+  vars_iterator beginVars();
+  vars_iterator endVars();
 
-  Node getVarValue(TNode var, bool fullModel); 
-
+  Node getVarValue(TNode var, bool fullModel);
 };
 
-
-class QuickXPlain {
-  struct Statistics {
+class QuickXPlain
+{
+  struct Statistics
+  {
     TimerStat d_xplainTime;
     IntStat d_numSolved;
     IntStat d_numUnknown;
@@ -124,52 +127,59 @@ class QuickXPlain {
   unsigned long d_budget;
 
   // crazy heuristic variables
-  unsigned d_numCalled; // number of times called
-  double d_minRatioSum; // sum of minimization ratio for computing average min ratio  
-  unsigned d_numConflicts; // number of conflicts (including when minimization not applied)
+  unsigned d_numCalled;  // number of times called
+  double d_minRatioSum;  // sum of minimization ratio for computing average min
+                         // ratio
+  unsigned d_numConflicts;  // number of conflicts (including when minimization
+                            // not applied)
   // unsigned d_period; // after how many conflicts to try minimizing again
 
   // double d_thresh; // if minimization ratio is less, increase period
-  // double d_hardThresh; // decrease period if minimization ratio is greater than this
-  
-  
+  // double d_hardThresh; // decrease period if minimization ratio is greater
+  // than this
+
   Statistics d_statistics;
-  /** 
+  /**
    * Uses solve with assumptions unsat core feature to
    * further minimize a conflict. The minimized conflict
    * will be between low and the returned value in conflict.
-   * 
-   * @param low 
-   * @param high 
-   * @param conflict 
-   * 
-   * @return 
+   *
+   * @param low
+   * @param high
+   * @param conflict
+   *
+   * @return
    */
-  unsigned selectUnsatCore(unsigned low, unsigned high,
+  unsigned selectUnsatCore(unsigned low,
+                           unsigned high,
                            std::vector<TNode>& conflict);
-  /** 
+  /**
    * Internal conflict  minimization, attempts to minimize
    * literals in conflict between low and high and adds the
-   * result in new_conflict. 
-   * 
-   * @param low 
-   * @param high 
-   * @param conflict 
-   * @param new_conflict 
+   * result in new_conflict.
+   *
+   * @param low
+   * @param high
+   * @param conflict
+   * @param new_conflict
    */
-  void minimizeConflictInternal(unsigned low, unsigned high,
+  void minimizeConflictInternal(unsigned low,
+                                unsigned high,
                                 std::vector<TNode>& conflict,
                                 std::vector<TNode>& new_conflict);
 
   bool useHeuristic();
-public:
-  QuickXPlain(const std::string& name, BVQuickCheck* solver, unsigned long budged = 10000);
+
+ public:
+  QuickXPlain(const std::string& name,
+              BVQuickCheck* solver,
+              unsigned long budged = 10000);
   ~QuickXPlain();
-  Node minimizeConflict(TNode conflict); 
+  Node minimizeConflict(TNode conflict);
 };
 
-} /* bv namespace */
-} /* theory namespace */
-} /* CVC4 namespace */
+}  // namespace bv
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* CVC4__BV_QUICK_CHECK_H */

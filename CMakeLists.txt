@@ -5,6 +5,8 @@ cmake_minimum_required(VERSION 3.4)
 
 project(cvc4)
 
+include(GNUInstallDirs)
+
 set(CVC4_MAJOR   1) # Major component of the version of CVC4.
 set(CVC4_MINOR   9) # Minor component of the version of CVC4.
 set(CVC4_RELEASE 0) # Release component of the version of CVC4.
@@ -82,12 +84,6 @@ endif()
 
 # By default the contrib/get-* scripts install dependencies to deps/install.
 list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/install")
-
-#-----------------------------------------------------------------------------#
-
-set(INCLUDE_INSTALL_DIR include)
-set(LIBRARY_INSTALL_DIR lib)
-set(RUNTIME_INSTALL_DIR bin)
 
 #-----------------------------------------------------------------------------#
 
@@ -315,7 +311,7 @@ if(ENABLE_SHARED)
   #
   # More information on RPATH in CMake:
   # https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
-  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIBRARY_INSTALL_DIR};${PROJECT_SOURCE_DIR}/deps/install/lib")
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR};${PROJECT_SOURCE_DIR}/deps/install/lib")
 else()
   # When building statically, we *only* want static archives/libraries
   if (WIN32)
@@ -636,13 +632,13 @@ endif()
 install(EXPORT cvc4-targets
   FILE CVC4Targets.cmake
   NAMESPACE CVC4::
-  DESTINATION ${LIBRARY_INSTALL_DIR}/cmake/CVC4)
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CVC4)
 
 configure_package_config_file(
   ${CMAKE_SOURCE_DIR}/cmake/CVC4Config.cmake.in
   ${CMAKE_BINARY_DIR}/cmake/CVC4Config.cmake
-  INSTALL_DESTINATION ${LIBRARY_INSTALL_DIR}/cmake/CVC4
-  PATH_VARS LIBRARY_INSTALL_DIR
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CVC4
+  PATH_VARS CMAKE_INSTALL_LIBDIR
 )
 
 write_basic_package_version_file(
@@ -654,7 +650,7 @@ write_basic_package_version_file(
 install(FILES
   ${CMAKE_BINARY_DIR}/cmake/CVC4Config.cmake
   ${CMAKE_BINARY_DIR}/CVC4ConfigVersion.cmake
-  DESTINATION ${LIBRARY_INSTALL_DIR}/cmake/CVC4
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CVC4
 )
 
 
@@ -768,7 +764,7 @@ message("")
 
 if(GPL_LIBS)
   message(
-  "CVC4 license             : GPLv3 (due to optional libraries; see below)"
+  "CVC4 license             : ${Yellow}GPLv3 (due to optional libraries; see below)${ResetColor}"
   "\n"
   "\n"
   "Please note that CVC4 will be built against the following GPLed libraries:"

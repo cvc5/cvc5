@@ -29,10 +29,9 @@ InferenceManagerBuffered::InferenceManagerBuffered(Theory& t,
 {
 }
 
-bool InferenceManagerBuffered::hasProcessed() const
+bool InferenceManagerBuffered::hasPending() const
 {
-  return d_theoryState.isInConflict() || !d_pendingLem.empty()
-         || !d_pendingFact.empty();
+  return hasPendingFact() || hasPendingLemma();
 }
 
 bool InferenceManagerBuffered::hasPendingFact() const
@@ -50,11 +49,11 @@ void InferenceManagerBuffered::addPendingLemma(Node lem,
                                                ProofGenerator* pg)
 {
   // make the simple theory lemma
-  d_pendingLem.push_back(std::make_shared<SimpleTheoryLemma>(lem, p, pg));
+  d_pendingLem.emplace_back(new SimpleTheoryLemma(lem, p, pg));
 }
 
 void InferenceManagerBuffered::addPendingLemma(
-    std::shared_ptr<TheoryInference> lemma)
+    std::unique_ptr<TheoryInference> lemma)
 {
   d_pendingLem.emplace_back(std::move(lemma));
 }
@@ -65,20 +64,18 @@ void InferenceManagerBuffered::addPendingFact(Node conc,
 {
   // make a simple theory internal fact
   Assert(conc.getKind() != AND && conc.getKind() != OR);
-  d_pendingFact.push_back(
-      std::make_shared<SimpleTheoryInternalFact>(conc, exp, pg));
+  d_pendingFact.emplace_back(new SimpleTheoryInternalFact(conc, exp, pg));
 }
 
 void InferenceManagerBuffered::addPendingFact(
-    std::shared_ptr<TheoryInference> fact)
+    std::unique_ptr<TheoryInference> fact)
 {
   d_pendingFact.emplace_back(std::move(fact));
 }
 
 void InferenceManagerBuffered::addPendingPhaseRequirement(Node lit, bool pol)
 {
-  // must ensure rewritten
-  lit = Rewriter::rewrite(lit);
+  // it is the responsibility of the caller to ensure lit is rewritten
   d_pendingReqPhase[lit] = pol;
 }
 
@@ -89,7 +86,7 @@ void InferenceManagerBuffered::doPendingFacts()
   {
     // process this fact, which notice may enqueue more pending facts in this
     // loop.
-    d_pendingFact[i]->process(this);
+    d_pendingFact[i]->process(this, false);
     i++;
   }
   d_pendingFact.clear();
@@ -97,10 +94,10 @@ void InferenceManagerBuffered::doPendingFacts()
 
 void InferenceManagerBuffered::doPendingLemmas()
 {
-  for (const std::shared_ptr<TheoryInference>& plem : d_pendingLem)
+  for (const std::unique_ptr<TheoryInference>& plem : d_pendingLem)
   {
     // process this lemma
-    plem->process(this);
+    plem->process(this, true);
   }
   d_pendingLem.clear();
 }
@@ -110,7 +107,7 @@ void InferenceManagerBuffered::doPendingPhaseRequirements()
   // process the pending require phase calls
   for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)
   {
-    d_out.requirePhase(prp.first, prp.second);
+    requirePhase(prp.first, prp.second);
   }
   d_pendingReqPhase.clear();
 }
@@ -120,6 +117,14 @@ void InferenceManagerBuffered::clearPendingPhaseRequirements()
 {
   d_pendingReqPhase.clear();
 }
+
+
+  std::size_t InferenceManagerBuffered::numPendingLemmas() const {
+    return d_pendingLem.size();
+  }
+  std::size_t InferenceManagerBuffered::numPendingFacts() const {
+    return d_pendingFact.size();
+  }
 
 }  // namespace theory
 }  // namespace CVC4

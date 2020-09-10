@@ -18,10 +18,18 @@
  ** Tr(x) = fresh_x for every bit-vector variable x, where fresh_x is a fresh
  **         integer variable.
  ** Tr(c) = the integer value of c, for any bit-vector constant c.
- ** Tr((bvadd s t)) = Tr(s) + Tr(t) mod 2^k, where k is the bit width of 
+ ** Tr((bvadd s t)) = Tr(s) + Tr(t) mod 2^k, where k is the bit width of
  **         s and t.
  ** Similar transformations are done for bvmul, bvsub, bvudiv, bvurem, bvneg,
  **         bvnot, bvconcat, bvextract
+ ** Tr((_ zero_extend m) x) = Tr(x)
+ ** Tr((_ sign_extend m) x) = ite(msb(x)=0, x, 2^k*(2^m-1) + x))
+ ** explanation: if the msb is 0, this is the same as zero_extend,
+ ** which does not change the integer value.
+ ** If the msb is 1, then the result should correspond to
+ ** concat(1...1, x), with m 1's.
+ ** m 1's is 2^m-1, and multiplying it by x's width (k) moves it
+ ** to the front.
  **
  ** Tr((bvand s t)) depends on the granularity, which is provided by the user
  ** when enabling this preprocessing pass.
@@ -245,6 +253,47 @@ class BVToInt : public PreprocessingPass
    */
   void addFinalizeRangeAssertions(AssertionPipeline* assertionsToPreprocess);
 
+  /**
+   * Reconstructs a node whose main operator cannot be
+   * translated to integers.
+   * Reconstruction is done by casting to integers/bit-vectors
+   * as needed.
+   * For example, if node is (select A x) where A
+   * is a bit-vector array, we do not change A to be
+   * an integer array, even though x was translated
+   * to integers.
+   * In this case we cast x to (bv2nat x) during
+   * the reconstruction.
+   *
+   * @param originalNode the node that we are reconstructing
+   * @param resultType the desired type for the reconstruction
+   * @param translated_children the children of originalNode
+   *        after their translation to integers.
+   * @return A node with originalNode's operator that has type resultType.
+   */
+  Node reconstructNode(Node originalNode,
+                       TypeNode resultType,
+                       const vector<Node>& translated_children);
+
+  /**
+   * A useful utility function.
+   * if n is an integer and tn is bit-vector,
+   * applies the IntToBitVector operator on n.
+   * if n is a vit-vector and tn is integer,
+   * applies BitVector_TO_NAT operator.
+   * Otherwise, keeps n intact.
+   */
+  Node castToType(Node n, TypeNode tn);
+
+  /**
+   * When a UF f is translated to a UF g,
+   * we add a define-fun command to the smt-engine
+   * to relate between f and g.
+   * This is useful, for example, when asking
+   * for a model-value of a term that includes the
+   * original UF f.
+   */
+  void defineBVUFAsIntUF(Node bvUF);
   /**
    * Caches for the different functions
    */

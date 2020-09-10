@@ -2,14 +2,23 @@
 #
 source "$(dirname "$0")/get-script-header.sh"
 
+# get the full path to the contrib dir; needs to be the full path so we can
+# refer the patch from within the 'glpk-cut-log' build directory
+contrib_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd -P)"
+
+# Get the full path the patch we wish to apply
+patch_file=${contrib_dir}/glpk-cut-log.patch
+
 GLPK_DIR="$DEPS_DIR/glpk-cut-log"
-commit=b420454e732f4b3d229c552ef7cd46fec75fe65c
+version="4.52"
 
 check_dep_dir "$GLPK_DIR"
 setup_dep \
-  "https://github.com/timothy-king/glpk-cut-log/archive/$commit.tar.gz" \
+  "https://ftp.gnu.org/gnu/glpk/glpk-${version}.tar.gz" \
   "$GLPK_DIR"
 cd "$GLPK_DIR"
+
+patch -p1 < ${patch_file}
 
 libtoolize
 aclocal

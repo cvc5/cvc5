@@ -45,7 +45,8 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_statistics(),
       d_state(c, u, d_valuation),
       d_termReg(d_state, out, d_statistics, nullptr),
-      d_extTheory(this),
+      d_extTheoryCb(),
+      d_extTheory(d_extTheoryCb, c, u, out),
       d_im(*this, d_state, d_termReg, d_extTheory, d_statistics, pnm),
       d_rewriter(&d_statistics.d_rewrites),
       d_bsolver(d_state, d_im),
@@ -74,6 +75,9 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_false = NodeManager::currentNM()->mkConst( false );
 
   d_cardSize = utils::getAlphabetCardinality();
+
+  // set up the extended function callback
+  d_extTheoryCb.d_esolver = &d_esolver;
 
   ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
   if (pc != nullptr)
@@ -200,18 +204,6 @@ TrustNode TheoryStrings::explain(TNode literal)
     ret = NodeManager::currentNM()->mkNode(kind::AND, assumptions);
   }
   return TrustNode::mkTrustPropExp(literal, ret, nullptr);
-}
-
-bool TheoryStrings::getCurrentSubstitution( int effort, std::vector< Node >& vars, 
-                                            std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) {
-  Trace("strings-subs") << "getCurrentSubstitution, effort = " << effort << std::endl;
-  for( unsigned i=0; i<vars.size(); i++ ){
-    Node n = vars[i];
-    Trace("strings-subs") << "  get subs for " << n << "..." << std::endl;
-    Node s = d_esolver.getCurrentSubstitutionFor(effort, n, exp[n]);
-    subs.push_back(s);
-  }
-  return true;
 }
 
 void TheoryStrings::presolve() {

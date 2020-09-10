@@ -861,6 +861,9 @@ class CVC4_PUBLIC SmtEngine
   /** Permit access to the underlying dump manager. */
   smt::DumpManager* getDumpManager();
 
+  /** Get a pointer to the Rewriter owned by this SmtEngine. */
+  theory::Rewriter* getRewriter() { return d_rewriter.get(); }
+
   /**
    * Get expanded assertions.
    *
@@ -903,9 +906,6 @@ class CVC4_PUBLIC SmtEngine
    * TODO (project #37): this is the old proof manager and will be deleted
    */
   ProofManager* getProofManager() { return d_proofManager.get(); };
-
-  /** Get a pointer to the Rewriter owned by this SmtEngine. */
-  theory::Rewriter* getRewriter() { return d_rewriter.get(); }
 
   /** Get a pointer to the StatisticsRegistry owned by this SmtEngine. */
   StatisticsRegistry* getStatisticsRegistry()

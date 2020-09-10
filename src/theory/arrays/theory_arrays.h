@@ -240,7 +240,6 @@ class TheoryArrays : public Theory {
 
  public:
   void notifySharedTerm(TNode t) override;
-  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   void computeCareGraph() override;
   bool isShared(TNode t)
   {
@@ -252,6 +251,7 @@ class TheoryArrays : public Theory {
   /////////////////////////////////////////////////////////////////////////////
 
  public:
+  /** Collect model values in m based on the relevant terms given by termSet */
   bool collectModelValues(TheoryModel* m,
                           const std::set<Node>& termSet) override;
 
@@ -267,8 +267,18 @@ class TheoryArrays : public Theory {
   // MAIN SOLVER
   /////////////////////////////////////////////////////////////////////////////
 
- public:
-  void check(Effort e) override;
+  //--------------------------------- standard check
+  /** Post-check, called after the fact queue of the theory is processed. */
+  void postCheck(Effort level) override;
+  /** Pre-notify fact, return true if processed. */
+  bool preNotifyFact(TNode atom,
+                     bool pol,
+                     TNode fact,
+                     bool isPrereg,
+                     bool isInternal) override;
+  /** Notify fact */
+  void notifyFact(TNode atom, bool pol, TNode fact, bool isInternal) override;
+  //--------------------------------- end standard check
 
  private:
   TNode weakEquivGetRep(TNode node);
@@ -330,9 +340,6 @@ class TheoryArrays : public Theory {
 
   /** The notify class for d_equalityEngine */
   NotifyClass d_notify;
-
-  /** Are we in conflict? */
-  context::CDO<bool> d_conflict;
 
   /** Conflict when merging constants */
   void conflict(TNode a, TNode b);
@@ -464,7 +471,6 @@ class TheoryArrays : public Theory {
    * for the comparison between the indexes that appears in the lemma.
    */
   Node getNextDecisionRequest();
-
   /**
    * Compute relevant terms. This includes select nodes for the
    * RIntro1 and RIntro2 rules.

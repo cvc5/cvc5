@@ -26,6 +26,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_checker.h"
+#include "theory/uf/proof_equality_engine.h"
 #include "theory/uf/symmetry_breaker.h"
 #include "theory/uf/theory_uf_rewriter.h"
 
@@ -205,6 +206,8 @@ private:
   UfProofRuleChecker d_ufProofChecker;
   /** A (default) theory state object */
   TheoryState d_state;
+  /** A (default) inference manager */
+  TheoryInferenceManager d_im;
 };/* class TheoryUF */
 
 }/* CVC4::theory::uf namespace */

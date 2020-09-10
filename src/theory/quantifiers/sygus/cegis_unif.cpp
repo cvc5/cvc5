@@ -557,7 +557,7 @@ void CegisUnifEnumDecisionStrategy::initialize(
   }
 
   // register this strategy
-  d_qe->getTheoryEngine()->getDecisionManager()->registerStrategy(
+  d_qe->getDecisionManager()->registerStrategy(
       DecisionManager::STRAT_QUANT_CEGIS_UNIF_NUM_ENUMS, this);
 
   // create single condition enumerator for each decision tree strategy

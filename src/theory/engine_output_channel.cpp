@@ -162,8 +162,8 @@ void EngineOutputChannel::trustedConflict(TrustNode pconf)
 {
   Assert(pconf.getKind() == TrustNodeKind::CONFLICT);
   Trace("theory::conflict")
-      << "EngineOutputChannel<" << d_theory << ">::conflict(" << pconf.getNode()
-      << ")" << std::endl;
+      << "EngineOutputChannel<" << d_theory << ">::trustedConflict("
+      << pconf.getNode() << ")" << std::endl;
   if (pconf.getGenerator() != nullptr)
   {
     ++d_statistics.trustedConflicts;
@@ -175,6 +175,8 @@ void EngineOutputChannel::trustedConflict(TrustNode pconf)
 
 LemmaStatus EngineOutputChannel::trustedLemma(TrustNode plem, LemmaProperty p)
 {
+  Debug("theory::lemma") << "EngineOutputChannel<" << d_theory
+                         << ">::trustedLemma(" << plem << ")" << std::endl;
   Assert(plem.getKind() == TrustNodeKind::LEMMA);
   if (plem.getGenerator() != nullptr)
   {

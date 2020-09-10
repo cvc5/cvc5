@@ -63,15 +63,15 @@ void CombinationCareGraph::combineTheories()
     Debug("combineTheories")
         << "TheoryEngine::combineTheories(): requesting a split " << std::endl;
 
-    Node split = equality.orNode(equality.notNode());
     TrustNode tsplit;
     if (isProofEnabled())
     {
       // make proof of splitting lemma
-      tsplit = d_cmbsPg->mkTrustNode(split, PfRule::SPLIT, {equality});
+      tsplit = d_cmbsPg->mkTrustNodeSplit(equality);
     }
     else
     {
+      Node split = equality.orNode(equality.notNode());
       tsplit = TrustNode::mkTrustLemma(split, nullptr);
     }
     sendLemma(tsplit, carePair.d_theory);
