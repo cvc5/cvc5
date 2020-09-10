@@ -113,11 +113,11 @@ Node RemoveTermFormulas::runInternal(Node assertion,
       else
       {
         size_t nchild = node.getNumChildren();
-        if (nchild>0)
+        if (nchild > 0)
         {
           Trace("rtf-debug") << "...recurse to children" << std::endl;
           // recurse if we have children
-          processedChildren[processedChildren.size()-1] = true;
+          processedChildren[processedChildren.size() - 1] = true;
           for (size_t i = 0; i < nchild; i++)
           {
             ctx.pushChild(node, nodeVal, i);
@@ -156,7 +156,7 @@ Node RemoveTermFormulas::runInternal(Node assertion,
       itc = d_tfCache.find(currChild);
       Assert(itc != d_tfCache.end());
       Node newChild = (*itc).second;
-      Assert (!newChild.isNull());
+      Assert(!newChild.isNull());
       childChanged |= (newChild != node[i]);
       newChildren.push_back(newChild);
     }
