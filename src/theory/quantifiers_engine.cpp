@@ -68,6 +68,12 @@ QuantifiersEngine::QuantifiersEngine(TheoryEngine* te, DecisionManager& dm,
   d_util.push_back(d_term_util.get());
   d_util.push_back(d_term_db.get());
 
+  if (options::sygus() || options::sygusInst())
+  {
+    // must be constructed here since it is required for datatypes finistInit
+    d_sygus_tdb.reset(new quantifiers::TermDbSygus(d_context, this));
+  }
+
   d_util.push_back(d_instantiate.get());
 
   d_curr_effort_level = QuantifiersModule::QEFFORT_NONE;
@@ -92,7 +98,9 @@ QuantifiersEngine::QuantifiersEngine(TheoryEngine* te, DecisionManager& dm,
   d_ierCounterLastLc = 0;
   d_inst_when_phase = 1 + ( options::instWhenPhase()<1 ? 1 : options::instWhenPhase() );
 
-  // if we require specialized ways of building the model
+  // Finite model finding requires specialized ways of building the model.
+  // We require constructing the model and model builder here, since it is
+  // required for initializing the CombinationEngine.
   if( options::finiteModelFind() || options::fmfBound() ){
     Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBound() << std::endl;
     if (options::mbqiMode() == options::MbqiMode::FMC
@@ -120,12 +128,10 @@ QuantifiersEngine::~QuantifiersEngine() {}
 
 void QuantifiersEngine::finishInit()
 {
-  // initialize the modules and the utilities
+  // Initialize the modules and the utilities here. We delay their
+  // initialization to here, since this is after TheoryQuantifiers finishInit,
+  // which has initialized the state and inference manager of this engine.
   d_qmodules.reset(new quantifiers::QuantifiersModules);
-  if (options::sygus() || options::sygusInst())
-  {
-    d_sygus_tdb.reset(new quantifiers::TermDbSygus(d_context, this));
-  }
   d_qmodules->initialize(this, d_context, d_modules);
   if (d_qmodules->d_rel_dom.get())
   {
