@@ -254,6 +254,47 @@ class BVToInt : public PreprocessingPass
   void addFinalizeRangeAssertions(AssertionPipeline* assertionsToPreprocess);
 
   /**
+   * Reconstructs a node whose main operator cannot be
+   * translated to integers.
+   * Reconstruction is done by casting to integers/bit-vectors
+   * as needed.
+   * For example, if node is (select A x) where A
+   * is a bit-vector array, we do not change A to be
+   * an integer array, even though x was translated
+   * to integers.
+   * In this case we cast x to (bv2nat x) during
+   * the reconstruction.
+   *
+   * @param originalNode the node that we are reconstructing
+   * @param resultType the desired type for the reconstruction
+   * @param translated_children the children of originalNode
+   *        after their translation to integers.
+   * @return A node with originalNode's operator that has type resultType.
+   */
+  Node reconstructNode(Node originalNode,
+                       TypeNode resultType,
+                       const vector<Node>& translated_children);
+
+  /**
+   * A useful utility function.
+   * if n is an integer and tn is bit-vector,
+   * applies the IntToBitVector operator on n.
+   * if n is a vit-vector and tn is integer,
+   * applies BitVector_TO_NAT operator.
+   * Otherwise, keeps n intact.
+   */
+  Node castToType(Node n, TypeNode tn);
+
+  /**
+   * When a UF f is translated to a UF g,
+   * we add a define-fun command to the smt-engine
+   * to relate between f and g.
+   * This is useful, for example, when asking
+   * for a model-value of a term that includes the
+   * original UF f.
+   */
+  void defineBVUFAsIntUF(Node bvUF);
+  /**
    * Caches for the different functions
    */
   CDNodeMap d_binarizeCache;
