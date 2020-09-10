@@ -77,7 +77,6 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
   if( doCheck ){
     Assert(!d_quantEngine->inConflict());
     int addedLemmas = 0;
-    FirstOrderModel* fm = d_quantEngine->getModel();
 
     //the following will test that the model satisfies all asserted universal quantifiers by
     // (model-based) exhaustive instantiation.

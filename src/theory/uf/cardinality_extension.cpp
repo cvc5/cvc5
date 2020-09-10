@@ -1183,6 +1183,7 @@ void SortModel::debugPrint( const char* c ){
 }
 
 bool SortModel::checkLastCall(){
+  TheoryModel * m = d_state.getModel();
   if( Trace.isOn("uf-ss-warn") ){
     std::vector< Node > eqcs;
     eq::EqClassesIterator eqcs_i =
@@ -1203,7 +1204,6 @@ bool SortModel::checkLastCall(){
       ++eqcs_i;
     }
   }
-  TheoryModel * m = d_state.getModel();
   RepSet* rs = m->getRepSetPtr();
   int nReps = (int)rs->getNumRepresentatives(d_type);
   if( nReps!=(d_maxNegCard+1) ){
@@ -1576,8 +1576,8 @@ void CardinalityExtension::check(Theory::Effort level)
   if (level==Theory::EFFORT_LAST_CALL)
   {
     // if last call, call last call check for each sort
-    for( std::pair< TypeNode, SortModel* >& r : d_rep_model ){
-      if( !r->checkLastCall() ){
+    for( std::pair< const TypeNode, SortModel* >& r : d_rep_model ){
+      if( !r.second->checkLastCall() ){
         break;
       }
     }
