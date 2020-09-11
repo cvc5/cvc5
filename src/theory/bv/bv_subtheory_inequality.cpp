@@ -18,7 +18,7 @@
 
 #include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/bv/theory_bv.h"
+#include "theory/bv/bv_solver_lazy.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
 
@@ -189,9 +189,10 @@ void InequalitySolver::explain(TNode literal, std::vector<TNode>& assumptions) {
 }
 
 void InequalitySolver::propagate(Theory::Effort e) { Assert(false); }
-bool InequalitySolver::collectModelInfo(TheoryModel* m, bool fullModel)
+bool InequalitySolver::collectModelValues(TheoryModel* m,
+                                          const std::set<Node>& termSet)
 {
-  Debug("bitvector-model") << "InequalitySolver::collectModelInfo \n";
+  Debug("bitvector-model") << "InequalitySolver::collectModelValues \n";
   std::vector<Node> model;
   d_inequalityGraph.getAllValuesInModel(model);
   for (unsigned i = 0; i < model.size(); ++i) {

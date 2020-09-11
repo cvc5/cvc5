@@ -260,9 +260,8 @@ TrustNode ProofEqEngine::assertConflict(PfRule id,
 {
   Trace("pfee") << "pfee::assertConflict " << id << ", exp = " << exp
                 << ", args = " << args << std::endl;
-  // conflict is same as proof of false
-  std::vector<Node> empVec;
-  return assertLemma(d_false, id, exp, empVec, args);
+  // conflict is same as lemma concluding false
+  return assertLemma(d_false, id, exp, {}, args);
 }
 
 TrustNode ProofEqEngine::assertConflict(const std::vector<Node>& exp,
@@ -270,15 +269,15 @@ TrustNode ProofEqEngine::assertConflict(const std::vector<Node>& exp,
 {
   Trace("pfee") << "pfee::assertConflict " << exp << " via buffer with "
                 << psb.getNumSteps() << " steps" << std::endl;
-  if (d_pfEnabled)
-  {
-    if (!d_proof.addSteps(psb))
-    {
-      return TrustNode::null();
-    }
-  }
-  std::vector<Node> empVec;
-  return assertLemmaInternal(d_false, exp, empVec, &d_proof);
+  return assertLemma(d_false, exp, {}, psb);
+}
+
+TrustNode ProofEqEngine::assertConflict(const std::vector<Node>& exp,
+                                        ProofGenerator* pg)
+{
+  Trace("pfee") << "pfee::assertConflict " << exp << " via generator"
+                << std::endl;
+  return assertLemma(d_false, exp, {}, pg);
 }
 
 TrustNode ProofEqEngine::assertLemma(Node conc,

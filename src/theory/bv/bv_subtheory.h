@@ -55,7 +55,7 @@ inline std::ostream& operator<<(std::ostream& out, SubTheory subtheory) {
 }
 
 // forward declaration
-class TheoryBV;
+class BVSolverLazy;
 
 using AssertionQueue = context::CDQueue<Node>;
 
@@ -65,21 +65,20 @@ using AssertionQueue = context::CDQueue<Node>;
  */
 class SubtheorySolver {
  public:
-  SubtheorySolver(context::Context* c, TheoryBV* bv)
-      : d_context(c),
-        d_bv(bv),
-        d_assertionQueue(c),
-        d_assertionIndex(c, 0) {}
+  SubtheorySolver(context::Context* c, BVSolverLazy* bv)
+      : d_context(c), d_bv(bv), d_assertionQueue(c), d_assertionIndex(c, 0)
+  {
+  }
   virtual ~SubtheorySolver() {}
   virtual bool check(Theory::Effort e) = 0;
   virtual void explain(TNode literal, std::vector<TNode>& assumptions) = 0;
   virtual void preRegister(TNode node) {}
   virtual void propagate(Theory::Effort e) {}
-  virtual bool collectModelInfo(TheoryModel* m, bool fullModel) = 0;
+  virtual bool collectModelValues(TheoryModel* m,
+                                  const std::set<Node>& termSet) = 0;
   virtual Node getModelValue(TNode var) = 0;
   virtual bool isComplete() = 0;
   virtual EqualityStatus getEqualityStatus(TNode a, TNode b) = 0;
-  virtual void addSharedTerm(TNode node) {}
   bool done() { return d_assertionQueue.size() == d_assertionIndex; }
   TNode get() {
     Assert(!done());
@@ -101,7 +100,7 @@ class SubtheorySolver {
   context::Context* d_context;
 
   /** The bit-vector theory */
-  TheoryBV* d_bv;
+  BVSolverLazy* d_bv;
   AssertionQueue d_assertionQueue;
   context::CDO<uint32_t> d_assertionIndex;
 }; /* class SubtheorySolver */

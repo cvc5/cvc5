@@ -19,7 +19,7 @@
 #include "options/bv_options.h"
 #include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/bv/theory_bv.h"
+#include "theory/bv/bv_solver_lazy.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/ext_theory.h"
 #include "theory/theory_model.h"
@@ -89,7 +89,7 @@ bool CoreSolverExtTheoryCallback::getReduction(int effort,
   return false;
 }
 
-CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv)
+CoreSolver::CoreSolver(context::Context* c, BVSolverLazy* bv)
     : SubtheorySolver(c, bv),
       d_notify(*this),
       d_isComplete(c, true),
@@ -99,13 +99,13 @@ CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv)
       d_bv(bv),
       d_extTheoryCb(),
       d_extTheory(new ExtTheory(d_extTheoryCb,
-                                bv->getSatContext(),
-                                bv->getUserContext(),
-                                bv->getOutputChannel())),
+                                bv->d_bv.getSatContext(),
+                                bv->d_bv.getUserContext(),
+                                bv->d_bv.getOutputChannel())),
       d_reasons(c),
       d_needsLastCallCheck(false),
-      d_extf_range_infer(bv->getUserContext()),
-      d_extf_collapse_infer(bv->getUserContext())
+      d_extf_range_infer(bv->d_bv.getUserContext()),
+      d_extf_collapse_infer(bv->d_bv.getUserContext())
 {
   d_extTheory->addFunctionKind(kind::BITVECTOR_TO_NAT);
   d_extTheory->addFunctionKind(kind::INT_TO_BITVECTOR);
@@ -123,7 +123,7 @@ bool CoreSolver::needsEqualityEngine(EeSetupInfo& esi)
 void CoreSolver::finishInit()
 {
   // use the parent's equality engine, which may be the one we allocated above
-  d_equalityEngine = d_bv->getEqualityEngine();
+  d_equalityEngine = d_bv->d_bv.getEqualityEngine();
 
   // The kinds we are treating as function application in congruence
   d_equalityEngine->addFunctionKind(kind::BITVECTOR_CONCAT, true);
@@ -188,7 +188,8 @@ void CoreSolver::explain(TNode literal, std::vector<TNode>& assumptions) {
 bool CoreSolver::check(Theory::Effort e) {
   Trace("bitvector::core") << "CoreSolver::check \n";
 
-  d_bv->spendResource(ResourceManager::Resource::TheoryCheckStep);
+  d_bv->d_inferManager.spendResource(
+      ResourceManager::Resource::TheoryCheckStep);
 
   d_checkCalled = true;
   Assert(!d_bv->inConflict());
@@ -346,7 +347,10 @@ void CoreSolver::buildModel()
 
 bool CoreSolver::assertFactToEqualityEngine(TNode fact, TNode reason) {
   // Notify the equality engine
-  if (!d_bv->inConflict() && (!d_bv->wasPropagatedBySubtheory(fact) || d_bv->getPropagatingSubtheory(fact) != SUB_CORE)) {
+  if (!d_bv->inConflict()
+      && (!d_bv->wasPropagatedBySubtheory(fact)
+          || d_bv->getPropagatingSubtheory(fact) != SUB_CORE))
+  {
     Debug("bv-slicer-eq") << "CoreSolver::assertFactToEqualityEngine fact=" << fact << endl;
     // Debug("bv-slicer-eq") << "                     reason=" << reason << endl;
     bool negated = fact.getKind() == kind::NOT;
@@ -369,7 +373,8 @@ bool CoreSolver::assertFactToEqualityEngine(TNode fact, TNode reason) {
   }
 
   // checking for a conflict
-  if (d_bv->inConflict()) {
+  if (d_bv->inConflict())
+  {
     return false;
   }
   return true;
@@ -411,29 +416,23 @@ bool CoreSolver::isCompleteForTerm(TNode term, TNodeBoolMap& seen) {
   return utils::isEqualityTerm(term, seen); 
 }
 
-bool CoreSolver::collectModelInfo(TheoryModel* m, bool fullModel)
+bool CoreSolver::collectModelValues(TheoryModel* m,
+                                    const std::set<Node>& termSet)
 {
   if (Debug.isOn("bitvector-model")) {
     context::CDQueue<Node>::const_iterator it = d_assertionQueue.begin();
     for (; it!= d_assertionQueue.end(); ++it) {
-      Debug("bitvector-model") << "CoreSolver::collectModelInfo (assert "
-                               << *it << ")\n";
+      Debug("bitvector-model")
+          << "CoreSolver::collectModelValues (assert " << *it << ")\n";
     }
   }
-  set<Node> termSet;
-  const std::set<Kind>& irrKinds = m->getIrrelevantKinds();
-  d_bv->computeAssertedTerms(termSet, irrKinds, true);
-  if (!m->assertEqualityEngine(d_equalityEngine, &termSet))
-  {
-    return false;
-  }
   if (isComplete()) {
-    Debug("bitvector-model") << "CoreSolver::collectModelInfo complete.";
+    Debug("bitvector-model") << "CoreSolver::collectModelValues complete.";
     for (ModelValue::const_iterator it = d_modelValues.begin(); it != d_modelValues.end(); ++it) {
       Node a = it->first;
       Node b = it->second;
-      Debug("bitvector-model") << "CoreSolver::collectModelInfo modelValues "
-                               << a << " => " << b <<")\n";
+      Debug("bitvector-model") << "CoreSolver::collectModelValues modelValues "
+                               << a << " => " << b << ")\n";
       if (!m->assertEquality(a, b, true))
       {
         return false;
@@ -459,11 +458,6 @@ Node CoreSolver::getModelValue(TNode var) {
   }
   Debug("bitvector-model") << " => " << result <<"\n";
   return result;
-}
-
-void CoreSolver::addSharedTerm(TNode t)
-{
-  d_equalityEngine->addTriggerTerm(t, THEORY_BV);
 }
 
 EqualityStatus CoreSolver::getEqualityStatus(TNode a, TNode b)
@@ -566,7 +560,7 @@ bool CoreSolver::doExtfInferences(std::vector<Node>& terms)
                               nm->mkNode(kind::LT, n, max));
         Trace("bv-extf-lemma")
             << "BV extf lemma (range) : " << lem << std::endl;
-        d_bv->getOutputChannel().lemma(lem);
+        d_bv->d_inferManager.lemma(lem);
         sentLemma = true;
       }
     }
@@ -615,7 +609,7 @@ bool CoreSolver::doExtfInferences(std::vector<Node>& terms)
           //   (bv2nat ((_ int2bv w) x)) == x + k*2^w for some k
           Trace("bv-extf-lemma")
               << "BV extf lemma (collapse) : " << lem << std::endl;
-          d_bv->getOutputChannel().lemma(lem);
+          d_bv->d_inferManager.lemma(lem);
           sentLemma = true;
         }
       }
