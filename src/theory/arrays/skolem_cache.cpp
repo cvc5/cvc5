@@ -71,6 +71,8 @@ Node SkolemCache::getExtIndexVar(Node deq)
   {
     return deq.getAttribute(eiva);
   }
+  Node a = deq[0][0];
+  Node b = deq[0][1];
   TypeNode atn = a.getType();
   Assert(atn.isArray());
   Assert(atn == b.getType());
