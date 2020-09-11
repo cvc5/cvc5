@@ -87,7 +87,8 @@ class BVSolverLazy : public BVSolver
 
   TrustNode explain(TNode n) override;
 
-  bool collectModelInfo(TheoryModel* m) override;
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet) override;
 
   std::string identify() const override { return std::string("BVSolverLazy"); }
 
@@ -207,13 +208,6 @@ class BVSolverLazy : public BVSolver
   }
 
   void checkForLemma(TNode node);
-
-  void computeAssertedTerms(std::set<Node>& termSet,
-                            const std::set<Kind>& irrKinds,
-                            bool includeShared) const
-  {
-    return d_bv.computeAssertedTerms(termSet, irrKinds, includeShared);
-  }
 
   size_t numAssertions() { return d_bv.numAssertions(); }
 
