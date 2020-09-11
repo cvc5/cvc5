@@ -134,7 +134,7 @@ header = "options/bv_options.h"
   category   = "regular"
   long       = "bv-div-zero-const"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "always return -1 on division by zero"
 
 [[option]]

@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "options/bv_options.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
@@ -1553,6 +1554,41 @@ template<> inline
 Node RewriteRule<ShiftZero>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<ShiftZero>(" << node << ")" << std::endl;
   return node[0]; 
+}
+
+/* -------------------------------------------------------------------------- */
+
+/**
+ * UgtUrem
+ *
+ * (bvugt (bvurem T x) x)
+ *   ==>  (ite (= x 0_k) (bvugt T x) false)
+ *   ==>  (and (=> (= x 0_k) (bvugt T x)) (=> (not (= x 0_k)) false))
+ *   ==>  (and (=> (= x 0_k) (bvugt T x)) (= x 0_k))
+ *   ==>  (and (bvugt T x) (= x 0_k))
+ *   ==>  (and (bvugt T 0_k) (= x 0_k))
+ */
+
+template <>
+inline bool RewriteRule<UgtUrem>::applies(TNode node)
+{
+  return (options::bitvectorDivByZeroConst()
+          && node.getKind() == kind::BITVECTOR_UGT
+          && node[0].getKind() == kind::BITVECTOR_UREM_TOTAL
+          && node[0][1] == node[1]);
+}
+
+template <>
+inline Node RewriteRule<UgtUrem>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<UgtUrem>(" << node << ")" << std::endl;
+  const Node& T = node[0][0];
+  const Node& x = node[1];
+  Node zero = utils::mkConst(utils::getSize(x), 0);
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkNode(kind::AND,
+                    nm->mkNode(kind::EQUAL, x, zero),
+                    nm->mkNode(kind::BITVECTOR_UGT, T, zero));
 }
 
 /* -------------------------------------------------------------------------- */

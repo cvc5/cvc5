@@ -206,9 +206,8 @@ TrustNode ProofEqEngine::assertConflict(PfRule id,
 {
   Trace("pfee") << "pfee::assertConflict " << id << ", exp = " << exp
                 << ", args = " << args << std::endl;
-  // conflict is same as proof of false
-  std::vector<Node> empVec;
-  return assertLemma(d_false, id, exp, empVec, args);
+  // conflict is same as lemma concluding false
+  return assertLemma(d_false, id, exp, {}, args);
 }
 
 TrustNode ProofEqEngine::assertConflict(const std::vector<Node>& exp,
@@ -216,15 +215,15 @@ TrustNode ProofEqEngine::assertConflict(const std::vector<Node>& exp,
 {
   Trace("pfee") << "pfee::assertConflict " << exp << " via buffer with "
                 << psb.getNumSteps() << " steps" << std::endl;
-  if (d_pfEnabled)
-  {
-    if (!d_proof.addSteps(psb))
-    {
-      return TrustNode::null();
-    }
-  }
-  std::vector<Node> empVec;
-  return assertLemmaInternal(d_false, exp, empVec, &d_proof);
+  return assertLemma(d_false, exp, {}, psb);
+}
+
+TrustNode ProofEqEngine::assertConflict(const std::vector<Node>& exp,
+                                        ProofGenerator* pg)
+{
+  Trace("pfee") << "pfee::assertConflict " << exp << " via generator"
+                << std::endl;
+  return assertLemma(d_false, exp, {}, pg);
 }
 
 TrustNode ProofEqEngine::assertLemma(Node conc,
@@ -323,8 +322,16 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
     {
       curr = &tmpProof;
     }
-    // Register the proof step.
-    if (!pg->addProofTo(conc, curr))
+    // Register the proof. Notice we do a deep copy here because the CDProof
+    // curr should take ownership of the proof steps that pg provided for conc.
+    // In other words, this sets up the "skeleton" of proof that is the base
+    // of the proof we are constructing. The call to assertLemmaInternal below
+    // will expand the leaves of this proof. If we used a shallow copy, then
+    // the connection to these leaves would be lost since they would not be
+    // owned by curr. Notice this is very rarely more than a single step, but
+    // may be multiple steps if e.g. a theory inference corresponds to a
+    // sequence of more than one PfRule steps.
+    if (!pg->addProofTo(conc, curr, CDPOverwrite::ASSUME_ONLY, true))
     {
       // a step went wrong, e.g. during checking
       Assert(false) << "pfee::assertConflict: register proof step";

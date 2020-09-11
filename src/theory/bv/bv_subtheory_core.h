@@ -97,7 +97,7 @@ class CoreSolver : public SubtheorySolver {
   bool d_checkCalled;
 
   /** Pointer to the parent theory solver that owns this */
-  TheoryBV* d_bv;
+  BVSolverLazy* d_bv;
   /** Pointer to the equality engine of the parent */
   eq::EqualityEngine* d_equalityEngine;
   /** The extended theory callback */
@@ -110,8 +110,6 @@ class CoreSolver : public SubtheorySolver {
   ModelValue d_modelValues;
   void buildModel();
   bool assertFactToEqualityEngine(TNode fact, TNode reason);
-  bool decomposeFact(TNode fact);
-  Node getBaseDecomposition(TNode a);
   bool isCompleteForTerm(TNode term, TNodeBoolMap& seen);
   Statistics d_statistics;
 
@@ -146,7 +144,7 @@ class CoreSolver : public SubtheorySolver {
   bool doExtfReductions(std::vector<Node>& terms);
 
  public:
-  CoreSolver(context::Context* c, TheoryBV* bv);
+  CoreSolver(context::Context* c, BVSolverLazy* bv);
   ~CoreSolver();
   bool needsEqualityEngine(EeSetupInfo& esi);
   void finishInit();
@@ -154,9 +152,9 @@ class CoreSolver : public SubtheorySolver {
   void preRegister(TNode node) override;
   bool check(Theory::Effort e) override;
   void explain(TNode literal, std::vector<TNode>& assumptions) override;
-  bool collectModelInfo(TheoryModel* m, bool fullModel) override;
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet) override;
   Node getModelValue(TNode var) override;
-  void addSharedTerm(TNode t) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   bool hasTerm(TNode node) const;
   void addTermToEqualityEngine(TNode node);

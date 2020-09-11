@@ -222,6 +222,8 @@ libcvc4_add_sources(
   smt/preprocess_proof_generator.h
   smt/process_assertions.cpp
   smt/process_assertions.h
+  smt/proof_post_processor.cpp
+  smt/proof_post_processor.h
   smt/set_defaults.cpp
   smt/set_defaults.h
   smt/smt_engine.cpp
@@ -291,6 +293,8 @@ libcvc4_add_sources(
   theory/arith/fc_simplex.h
   theory/arith/infer_bounds.cpp
   theory/arith/infer_bounds.h
+  theory/arith/inference_id.cpp
+  theory/arith/inference_id.h
   theory/arith/inference_manager.cpp
   theory/arith/inference_manager.h
   theory/arith/linear_equality.cpp
@@ -313,8 +317,6 @@ libcvc4_add_sources(
   theory/arith/nl/ext_theory_callback.h
   theory/arith/nl/iand_solver.cpp
   theory/arith/nl/iand_solver.h
-  theory/arith/nl/inference.cpp
-  theory/arith/nl/inference.h
   theory/arith/nl/nl_constraint.cpp
   theory/arith/nl/nl_constraint.h
   theory/arith/nl/nl_lemma_utils.cpp
@@ -406,6 +408,9 @@ libcvc4_add_sources(
   theory/bv/bv_inequality_graph.h
   theory/bv/bv_quick_check.cpp
   theory/bv/bv_quick_check.h
+  theory/bv/bv_solver.h
+  theory/bv/bv_solver_lazy.cpp
+  theory/bv/bv_solver_lazy.h
   theory/bv/bv_subtheory.h
   theory/bv/bv_subtheory_algebraic.cpp
   theory/bv/bv_subtheory_algebraic.h
@@ -706,6 +711,8 @@ libcvc4_add_sources(
   theory/sets/skolem_cache.h
   theory/sets/solver_state.cpp
   theory/sets/solver_state.h
+  theory/sets/term_registry.cpp
+  theory/sets/term_registry.h
   theory/sets/theory_sets.cpp
   theory/sets/theory_sets.h
   theory/sets/theory_sets_private.cpp

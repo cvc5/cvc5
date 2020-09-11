@@ -15,8 +15,6 @@
 #include "theory/sets/inference_manager.h"
 
 #include "options/sets_options.h"
-#include "theory/sets/theory_sets.h"
-#include "theory/sets/theory_sets_private.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -25,26 +23,13 @@ namespace CVC4 {
 namespace theory {
 namespace sets {
 
-InferenceManager::InferenceManager(TheorySetsPrivate& p,
+InferenceManager::InferenceManager(Theory& t,
                                    SolverState& s,
-                                   context::Context* c,
-                                   context::UserContext* u)
-    : d_parent(p),
-      d_state(s),
-      d_sentLemma(false),
-      d_addedFact(false),
-      d_lemmas_produced(u),
-      d_keep(c)
+                                   ProofNodeManager* pnm)
+    : InferenceManagerBuffered(t, s, pnm), d_state(s)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
-}
-
-void InferenceManager::reset()
-{
-  d_sentLemma = false;
-  d_addedFact = false;
-  d_pendingLemmas.clear();
 }
 
 bool InferenceManager::assertFactRec(Node fact, Node exp, int inferType)
@@ -61,7 +46,7 @@ bool InferenceManager::assertFactRec(Node fact, Node exp, int inferType)
     {
       lem = NodeManager::currentNM()->mkNode(IMPLIES, exp, fact);
     }
-    d_pendingLemmas.push_back(lem);
+    addPendingLemma(lem);
     return true;
   }
   Trace("sets-fact") << "Assert fact rec : " << fact << ", exp = " << exp
@@ -96,18 +81,22 @@ bool InferenceManager::assertFactRec(Node fact, Node exp, int inferType)
   }
   bool polarity = fact.getKind() != NOT;
   TNode atom = polarity ? fact : fact[0];
+  if (d_state.isEntailed(atom, polarity))
+  {
+    return false;
+  }
   // things we can assert to equality engine
   if (atom.getKind() == MEMBER
       || (atom.getKind() == EQUAL && atom[0].getType().isSet()))
   {
     // send to equality engine
-    if (d_parent.assertFact(fact, exp))
+    if (assertInternalFact(atom, polarity, exp))
     {
-      d_addedFact = true;
+      // return true if this wasn't redundant
       return true;
     }
   }
-  else if (!d_state.isEntailed(fact, true))
+  else
   {
     // must send as lemma
     Node lem = fact;
@@ -115,7 +104,7 @@ bool InferenceManager::assertFactRec(Node fact, Node exp, int inferType)
     {
       lem = NodeManager::currentNM()->mkNode(IMPLIES, exp, fact);
     }
-    d_pendingLemmas.push_back(lem);
+    addPendingLemma(lem);
     return true;
   }
   return false;
@@ -125,8 +114,6 @@ void InferenceManager::assertInference(Node fact,
                                        const char* c,
                                        int inferType)
 {
-  d_keep.insert(exp);
-  d_keep.insert(fact);
   if (assertFactRec(fact, exp, inferType))
   {
     Trace("sets-lemma") << "Sets::Lemma : " << fact << " from " << exp << " by "
@@ -176,67 +163,15 @@ void InferenceManager::split(Node n, int reqPol)
 {
   n = Rewriter::rewrite(n);
   Node lem = NodeManager::currentNM()->mkNode(OR, n, n.negate());
-  flushLemma(lem);
+  // send the lemma
+  lemma(lem);
   Trace("sets-lemma") << "Sets::Lemma split : " << lem << std::endl;
   if (reqPol != 0)
   {
     Trace("sets-lemma") << "Sets::Require phase " << n << " " << (reqPol > 0)
                         << std::endl;
-    d_parent.getOutputChannel()->requirePhase(n, reqPol > 0);
+    requirePhase(n, reqPol > 0);
   }
-}
-void InferenceManager::flushLemmas(std::vector<Node>& lemmas, bool preprocess)
-{
-  if (!d_state.isInConflict())
-  {
-    for (const Node& l : lemmas)
-    {
-      flushLemma(l, preprocess);
-    }
-  }
-  lemmas.clear();
-}
-
-void InferenceManager::flushLemma(Node lem, bool preprocess)
-{
-  if (d_state.isInConflict())
-  {
-    return;
-  }
-  if (d_lemmas_produced.find(lem) != d_lemmas_produced.end())
-  {
-    Trace("sets-lemma-debug") << "Already sent lemma : " << lem << std::endl;
-    return;
-  }
-  Trace("sets-lemma-debug") << "Send lemma : " << lem << std::endl;
-  d_lemmas_produced.insert(lem);
-  LemmaProperty p =
-      preprocess ? LemmaProperty::PREPROCESS : LemmaProperty::NONE;
-  d_parent.getOutputChannel()->lemma(lem, p);
-  d_sentLemma = true;
-}
-
-void InferenceManager::flushPendingLemmas(bool preprocess)
-{
-  flushLemmas(d_pendingLemmas, preprocess);
-}
-
-bool InferenceManager::hasLemmaCached(Node lem) const
-{
-  return d_lemmas_produced.find(lem) != d_lemmas_produced.end();
-}
-
-bool InferenceManager::hasProcessed() const
-{
-  return d_state.isInConflict() || d_sentLemma || d_addedFact;
-}
-bool InferenceManager::hasSentLemma() const { return d_sentLemma; }
-bool InferenceManager::hasAddedFact() const { return d_addedFact; }
-
-void InferenceManager::conflict(Node conf)
-{
-  d_parent.getOutputChannel()->conflict(conf);
-  d_state.notifyInConflict();
 }
 
 }  // namespace sets

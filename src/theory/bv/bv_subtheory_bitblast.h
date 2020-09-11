@@ -35,8 +35,10 @@ class QuickXPlain;
 /**
  * BitblastSolver
  */
-class BitblastSolver : public SubtheorySolver {
-  struct Statistics {
+class BitblastSolver : public SubtheorySolver
+{
+  struct Statistics
+  {
     IntStat d_numCallstoCheck;
     IntStat d_numBBLemmas;
     Statistics();
@@ -55,21 +57,23 @@ class BitblastSolver : public SubtheorySolver {
 
   /** Queue for bit-blasting lemma atoms only in full check if we are sat */
   context::CDQueue<TNode> d_lemmaAtomsQueue;
-  bool  d_useSatPropagation;
+  bool d_useSatPropagation;
   AbstractionModule* d_abstractionModule;
   std::unique_ptr<BVQuickCheck> d_quickCheck;
   std::unique_ptr<QuickXPlain> d_quickXplain;
   //  Node getModelValueRec(TNode node);
   void setConflict(TNode conflict);
-public:
-  BitblastSolver(context::Context* c, TheoryBV* bv);
+
+ public:
+  BitblastSolver(context::Context* c, BVSolverLazy* bv);
   ~BitblastSolver();
 
   void preRegister(TNode node) override;
   bool check(Theory::Effort e) override;
   void explain(TNode literal, std::vector<TNode>& assumptions) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
-  bool collectModelInfo(TheoryModel* m, bool fullModel) override;
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet) override;
   Node getModelValue(TNode node) override;
   bool isComplete() override { return true; }
   void bitblastQueue();
@@ -77,6 +81,6 @@ public:
   uint64_t computeAtomWeight(TNode atom);
 };
 
-} /* namespace CVC4::theory::bv */
-} /* namespace CVC4::theory */
+}  // namespace bv
+}  // namespace theory
 } /* namespace CVC4 */

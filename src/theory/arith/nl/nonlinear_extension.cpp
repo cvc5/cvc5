@@ -33,9 +33,8 @@ namespace nl {
 
 NonlinearExtension::NonlinearExtension(TheoryArith& containing,
                                        eq::EqualityEngine* ee)
-    : d_lemmas(containing.getUserContext()),
-      d_lemmasPp(containing.getUserContext()),
-      d_containing(containing),
+    : d_containing(containing),
+      d_im(containing.getInferenceManager()),
       d_ee(ee),
       d_needsLastCall(false),
       d_checkCounter(0),
@@ -47,7 +46,7 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       d_model(containing.getSatContext()),
       d_trSlv(d_model),
       d_nlSlv(containing, d_model),
-      d_cadSlv(containing, d_model),
+      d_cadSlv(d_im, d_model),
       d_iandSlv(containing, d_model),
       d_builtModel(containing.getSatContext(), false)
 {
@@ -75,22 +74,9 @@ void NonlinearExtension::sendLemmas(const std::vector<NlLemma>& out)
 {
   for (const NlLemma& nlem : out)
   {
-    Node lem = nlem.d_node;
-    LemmaProperty p = nlem.d_property;
     Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : " << nlem.d_inference
-                          << " : " << lem << std::endl;
-    d_containing.getOutputChannel().lemma(lem, p);
-    // process the side effect
-    processSideEffect(nlem);
-    // add to cache based on preprocess
-    if (isLemmaPropertyPreprocess(p))
-    {
-      d_lemmasPp.insert(lem);
-    }
-    else
-    {
-      d_lemmas.insert(lem);
-    }
+                          << " : " << nlem.d_node << std::endl;
+    d_im.addPendingArithLemma(nlem);
     d_stats.d_inferences << nlem.d_inference;
   }
 }
@@ -121,10 +107,8 @@ unsigned NonlinearExtension::filterLemma(NlLemma lem, std::vector<NlLemma>& out)
   Trace("nl-ext-lemma-debug")
       << "NonlinearExtension::Lemma pre-rewrite : " << lem.d_node << std::endl;
   lem.d_node = Rewriter::rewrite(lem.d_node);
-  // get the proper cache
-  NodeSet& lcache =
-      isLemmaPropertyPreprocess(lem.d_property) ? d_lemmasPp : d_lemmas;
-  if (lcache.find(lem.d_node) != lcache.end())
+
+  if (d_im.hasCachedLemma(lem.d_node, lem.d_property))
   {
     Trace("nl-ext-lemma-debug")
         << "NonlinearExtension::Lemma duplicate : " << lem.d_node << std::endl;
@@ -198,6 +182,8 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
   {
     nassertions++;
     const Assertion& assertion = *it;
+    Trace("nl-ext") << "Loaded " << assertion.d_assertion << " from theory"
+                    << std::endl;
     Node lit = assertion.d_assertion;
     if (useRelevance && !v.isRelevant(lit))
     {
@@ -298,6 +284,21 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
     }
   }
 
+  // Try to be "more deterministic" by adding assertions in the order they were
+  // given
+  for (auto it = d_containing.facts_begin(); it != d_containing.facts_end();
+       ++it)
+  {
+    Node lit = (*it).d_assertion;
+    auto iait = init_assertions.find(lit);
+    if (iait != init_assertions.end())
+    {
+      assertions.push_back(lit);
+      init_assertions.erase(iait);
+    }
+  }
+  // Now add left over assertions that have been newly created within this
+  // function by the code above.
   for (const Node& a : init_assertions)
   {
     assertions.push_back(a);
@@ -372,6 +373,14 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
 
   ++(d_stats.d_checkRuns);
 
+  if (Trace.isOn("nl-ext"))
+  {
+    for (const auto& a : assertions)
+    {
+      Trace("nl-ext") << "Input assertion: " << a << std::endl;
+    }
+  }
+
   if (options::nlExt())
   {
     // initialize the non-linear solver
@@ -388,7 +397,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
 
   // init last call with IAND
   d_iandSlv.initLastCall(assertions, false_asserts, xts);
-  
+
   if (!lems.empty())
   {
     Trace("nl-ext") << "  ...finished with " << lems.size()
@@ -432,7 +441,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                     << std::endl;
     return lems.size();
   }
-  
+
   // main calls to nlExt
   if (options::nlExt())
   {
@@ -548,12 +557,16 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   }
   if (options::nlCad())
   {
-    lemmas = d_cadSlv.checkFull();
-    if (lemmas.empty())
+    d_cadSlv.checkFull();
+    if (!d_im.hasUsed())
     {
       Trace("nl-cad") << "nl-cad found SAT!" << std::endl;
     }
-    filterLemmas(lemmas, wlems);
+    else
+    {
+      // checkFull() only adds a single conflict
+      return 1;
+    }
   }
   // run the full refinement in the IAND solver
   lemmas = d_iandSlv.checkFullRefine();
@@ -595,9 +608,12 @@ void NonlinearExtension::check(Theory::Effort e)
   else
   {
     // If we computed lemmas during collectModelInfo, send them now.
-    if (!d_cmiLemmas.empty())
+    if (!d_cmiLemmas.empty() || d_im.hasPendingLemma())
     {
       sendLemmas(d_cmiLemmas);
+      d_im.doPendingFacts();
+      d_im.doPendingLemmas();
+      d_im.doPendingPhaseRequirements();
       return;
     }
     // Otherwise, we will answer SAT. The values that we approximated are
@@ -774,7 +790,7 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
             d_containing.getOutputChannel().requirePhase(literal, true);
             Trace("nl-ext-debug") << "Split on : " << literal << std::endl;
             Node split = literal.orNode(literal.negate());
-            NlLemma nsplit(split, Inference::SHARED_TERM_VALUE_SPLIT);
+            NlLemma nsplit(split, InferenceId::NL_SHARED_TERM_VALUE_SPLIT);
             filterLemma(nsplit, stvLemmas);
           }
           if (!stvLemmas.empty())

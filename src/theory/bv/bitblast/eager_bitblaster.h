@@ -31,12 +31,12 @@ namespace theory {
 namespace bv {
 
 class BitblastingRegistrar;
-class TheoryBV;
+class BVSolverLazy;
 
 class EagerBitblaster : public TBitblaster<Node>
 {
  public:
-  EagerBitblaster(TheoryBV* theory_bv, context::Context* context);
+  EagerBitblaster(BVSolverLazy* theory_bv, context::Context* context);
   ~EagerBitblaster();
 
   void addAtom(TNode atom);
@@ -61,7 +61,7 @@ class EagerBitblaster : public TBitblaster<Node>
   std::unique_ptr<prop::SatSolver> d_satSolver;
   std::unique_ptr<BitblastingRegistrar> d_bitblastingRegistrar;
 
-  TheoryBV* d_bv;
+  BVSolverLazy* d_bv;
   TNodeSet d_bbAtoms;
   TNodeSet d_variables;
 

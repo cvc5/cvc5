@@ -94,10 +94,6 @@ namespace eq {
 class EqualityEngine;
 }  // namespace eq
 
-namespace quantifiers {
-class TermDb;
-}
-
 class EntailmentCheckParameters;
 class EntailmentCheckSideEffects;
 }/* CVC4::theory namespace */
@@ -115,7 +111,6 @@ class TheoryEngine {
   /** Shared terms database can use the internals notify the theories */
   friend class SharedTermsDatabase;
   friend class theory::CombinationEngine;
-  friend class theory::quantifiers::TermDb;
   friend class theory::EngineOutputChannel;
   friend class theory::CombinationEngine;
 
@@ -373,16 +368,12 @@ class TheoryEngine {
   /**
    * Get a pointer to the underlying sat context.
    */
-  inline context::Context* getSatContext() const {
-    return d_context;
-  }
+  context::Context* getSatContext() const { return d_context; }
 
   /**
    * Get a pointer to the underlying user context.
    */
-  inline context::Context* getUserContext() const {
-    return d_userContext;
-  }
+  context::UserContext* getUserContext() const { return d_userContext; }
 
   /**
    * Get a pointer to the underlying quantifiers engine.

@@ -178,7 +178,7 @@ class Smt2Printer : public CVC4::Printer
 
   /** Print set-info :status command */
   void toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                     BenchmarkStatus status) const override;
+                                     Result::Sat status) const override;
 
   /** Print set-logic command */
   void toStreamCmdSetBenchmarkLogic(std::ostream& out,
