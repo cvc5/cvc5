@@ -35,8 +35,11 @@ typedef expr::Attribute<ExtIndexVarAttributeId, Node> ExtIndexVarAttribute;
 
 SkolemCache::SkolemCache() {}
 
-Node SkolemCache::getExtIndexSkolem(Node a, Node b)
+Node SkolemCache::getExtIndexSkolem(Node deq)
 {
+  Assert (deq.getKind()==NOT && deq[0].getKind()==EQUAL);
+  Node a = deq[0][0];
+  Node b = deq[0][1];
   Assert(a.getType().isArray());
   Assert(b.getType() == a.getType());
 
@@ -44,10 +47,9 @@ Node SkolemCache::getExtIndexSkolem(Node a, Node b)
 
   // get the reference index, which notice is deterministic for a, b in the
   // lifetime of the node manager
-  Node x = getExtIndexVar(a, b);
+  Node x = getExtIndexVar(deq);
 
   // make the axiom for x
-  Node deq = a.eqNode(b).notNode();
   Node as = nm->mkNode(SELECT, a, x);
   Node bs = nm->mkNode(SELECT, b, x);
   Node deqIndex = as.eqNode(bs).notNode();
@@ -62,9 +64,8 @@ Node SkolemCache::getExtIndexSkolem(Node a, Node b)
       "an extensional lemma index variable from the theory of arrays");
 }
 
-Node SkolemCache::getExtIndexVar(Node a, Node b)
+Node SkolemCache::getExtIndexVar(Node deq)
 {
-  Node deq = a.eqNode(b).notNode();
   ExtIndexVarAttribute eiva;
   if (deq.hasAttribute(eiva))
   {
