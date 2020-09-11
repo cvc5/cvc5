@@ -88,8 +88,7 @@ void TheoryUF::finishInit() {
   if (options::finiteModelFind()
       && options::ufssMode() != options::UfssMode::NONE)
   {
-    d_thss.reset(new CardinalityExtension(
-        getSatContext(), getUserContext(), *d_out, this));
+    d_thss.reset(new CardinalityExtension(d_state, d_im, this));
   }
   // The kinds we are treating as function application in congruence
   d_equalityEngine->addFunctionKind(kind::APPLY_UF, false, options::ufHo());
@@ -134,10 +133,6 @@ void TheoryUF::postCheck(Effort level)
   if (d_thss != nullptr)
   {
     d_thss->check(level);
-    if (d_thss->isConflict())
-    {
-      d_state.notifyInConflict();
-    }
   }
   // check with the higher-order extension
   if (!d_state.isInConflict() && fullEffort(level))
@@ -157,9 +152,8 @@ bool TheoryUF::preNotifyFact(
     bool isDecision =
         d_valuation.isSatLiteral(fact) && d_valuation.isDecision(fact);
     d_thss->assertNode(fact, isDecision);
-    if (d_thss->isConflict())
+    if (d_state.isInConflict())
     {
-      d_state.notifyInConflict();
       return true;
     }
   }

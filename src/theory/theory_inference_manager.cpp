@@ -464,5 +464,7 @@ void TheoryInferenceManager::safePoint(ResourceManager::Resource r)
   d_out.safePoint(r);
 }
 
+void TheoryInferenceManager::setIncomplete() { d_out.setIncomplete(); }
+
 }  // namespace theory
 }  // namespace CVC4

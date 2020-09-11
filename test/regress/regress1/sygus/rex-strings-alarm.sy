@@ -1,0 +1,60 @@
+; EXPECT: unsat
+; COMMAND-LINE: --sygus-out=status --lang=sygus2 --strings-exp
+
+(set-logic S)
+
+(set-option :sygus-rec-fun true)
+(set-option :e-matching false)
+
+(define-sort Rex () RegLan)
+    
+    
+;SyGuS Grammar Definition.
+(synth-fun phi () Rex
+
+  ((<R> Rex))  
+  ((<R> Rex (
+    
+    ; alphabets
+    (str.to_re "r") ; r = request 
+    (str.to_re "g") ; g = grant
+    (str.to_re "e") ; e = empty 
+    (str.to_re "b") ; b = request, grant
+
+;    (re.none <R>)
+;    (re.all <R>)
+    
+    ; CHOICE
+    (re.union <R> <R>)
+    
+    ; CONCATENATION
+    (re.++    <R> <R>)
+    
+    ; INTERSECTION
+    (re.inter <R> <R>)
+    
+    ; STAR 
+    (re.* <R>)
+
+    ; PLUS
+    (re.+ <R>)
+
+    ; Complement / Don't work
+    (re.comp <R>)
+    
+    ; Difference / Don't work
+    (re.diff <R> <R>)
+
+    (re.opt <R>)
+
+   )))
+)
+
+(define-fun w1() String "ee")
+
+(constraint (str.in_re  w1 phi))
+
+(define-fun n1() String "bbegre")
+(constraint (str.in_re n1 (re.comp  phi)))
+
+(check-synth)
