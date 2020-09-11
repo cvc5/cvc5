@@ -78,9 +78,11 @@ bool ProofPostprocessCallback::update(Node res,
     }
     else
     {
+      Trace("smt-proof-pp-debug") << "...get proof" << std::endl;
       Assert(d_pppg != nullptr);
       // get proof from preprocess proof generator
       pfn = d_pppg->getProofFor(f);
+      Trace("smt-proof-pp-debug") << "...finished get proof" << std::endl;
       // print for debugging
       if (pfn == nullptr)
       {
@@ -99,11 +101,13 @@ bool ProofPostprocessCallback::update(Node res,
       }
       d_assumpToProof[f] = pfn;
     }
-    if (pfn == nullptr)
+    if (pfn == nullptr || pfn->getRule()==PfRule::ASSUME)
     {
+      Trace("smt-proof-pp-debug") << "...do not add proof" << std::endl;
       // no update
       return false;
     }
+    Trace("smt-proof-pp-debug") << "...add proof" << std::endl;
     // connect the proof
     cdp->addProof(pfn);
     return true;
@@ -269,6 +273,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         << "Transform " << children[0] << " == " << args[0] << std::endl;
     if (CDProof::isSame(children[0], args[0]))
     {
+      Trace("smt-proof-pp-debug")
+          << "...nothing to do" << std::endl;
       // nothing to do
       return children[0];
     }
@@ -685,7 +691,8 @@ void ProofPostproccess::setEliminateRule(PfRule rule)
 
 void ProofPostproccess::setAssertions(const std::vector<Node>& assertions)
 {
-  d_updater.setDebugFreeAssumptions(assertions);
+  // for debugging (slow)
+  //d_updater.setDebugFreeAssumptions(assertions);
 }
 
 }  // namespace smt

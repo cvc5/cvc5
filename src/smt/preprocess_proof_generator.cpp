@@ -40,6 +40,7 @@ void PreprocessProofGenerator::notifyPreprocessed(Node n,
   // only keep if indeed it rewrote
   if (n != np)
   {
+    // FIXME: often we replace true by something
     Trace("smt-proof-pp-debug")
         << "PreprocessProofGenerator::notifyPreprocessed: " << n << "..." << np
         << std::endl;
@@ -62,6 +63,7 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
                     << std::endl;
   Node curr = f;
   std::vector<Node> transChildren;
+  std::unordered_set<Node, NodeHashFunction> processed;
   bool success;
   do
   {
@@ -73,6 +75,11 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
       Node proven = it->second.getProven();
       Assert(!proven.isNull());
       Trace("smt-pppg") << "...process proven " << proven << std::endl;
+      if (processed.find(proven)!=processed.end())
+      {
+        continue;
+      }
+      processed.insert(proven);
       bool proofStepProcessed = false;
 
       // if a generator for the step was provided, it is stored in the proof

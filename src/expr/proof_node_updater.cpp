@@ -60,17 +60,17 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
       
     }
   }
-  processInternal(pf, d_freeAssumps);
+  processInternal(pf.get(), d_freeAssumps);
 }
 
-void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf, const std::vector<Node>& fa)
+void ProofNodeUpdater::processInternal(ProofNode* pf, const std::vector<Node>& fa)
 {
   Trace("pf-process") << "ProofNodeUpdater::process" << std::endl;
   std::unordered_map<ProofNode*, bool> visited;
   std::unordered_map<ProofNode*, bool>::iterator it;
   std::vector<ProofNode*> visit;
   ProofNode* cur;
-  visit.push_back(pf.get());
+  visit.push_back(pf);
   std::map<Node, ProofNode*>::iterator itc;
   // NOTE: temporary, debugging
   unsigned counterReuse = 0;
@@ -100,30 +100,35 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf, const std:
       {
         counterNew++;
         visited[cur] = false;
-        // run update first
-        runUpdate(cur, fa);
+        // run update to a fixed point
+        while (runUpdate(cur, fa))
+        {
+          Trace("pf-process-debug") << "...updated proof." << std::endl;
+        }
         visit.push_back(cur);
+        // If we are not the top-level proof, we were a scope, or became a
+        // scope after updating, we need to make a separate recursive call to
+        // this method.
+        if (cur->getRule()== PfRule::SCOPE && cur!=pf)
+        {
+          std::vector<Node> nfa;
+          // if we are debugging free assumptions, update the set
+          if (d_debugFreeAssumps)
+          {
+            nfa.insert(nfa.end(), fa.begin(), fa.end());
+            const std::vector<Node>& args = cur->getArguments();
+            nfa.insert(nfa.end(), args.begin(), args.end());
+            Trace("pfnu-debug2") << "Process new scope with " << args << std::endl;
+          }
+          // Process in new call separately, since we should not cache
+          // the results of proofs that have a different scope.
+          processInternal(cur, nfa);
+          continue;
+        }
         const std::vector<std::shared_ptr<ProofNode>>& ccp = cur->getChildren();
         // now, process children
         for (const std::shared_ptr<ProofNode>& cp : ccp)
         {
-          if (cp->getRule() == PfRule::SCOPE)
-          {
-            std::vector<Node> nfa;
-            // if we are debugging free assumptions, update the set
-            if (d_debugFreeAssumps)
-            {
-              nfa.insert(nfa.end(), fa.begin(), fa.end());
-              const std::vector<Node>& args = cp->getArguments();
-              nfa.insert(nfa.end(), args.begin(), args.end());
-              Trace("pfnu-debug2") << "Process new scope with " << args << std::endl;
-            }
-            // Process in new call separately, since we should not cache
-            // the results of proofs that have a different scope.
-            processInternal(cp, nfa);
-              Trace("pfnu-debug2") << "...finished process new scope" << std::endl;
-            continue;
-          }
           visit.push_back(cp.get());
         }
       }
@@ -140,12 +145,12 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf, const std:
   Trace("pf-process") << "ProofNodeUpdater::process: finished" << std::endl;
 }
 
-void ProofNodeUpdater::runUpdate(ProofNode* cur, const std::vector<Node>& fa)
+bool ProofNodeUpdater::runUpdate(ProofNode* cur, const std::vector<Node>& fa)
 {
   // should it be updated?
   if (!d_cb.shouldUpdate(cur))
   {
-    return;
+    return false;
   }
   PfRule id = cur->getRule();
   // use CDProof to open a scope for which the callback updates
@@ -162,8 +167,6 @@ void ProofNodeUpdater::runUpdate(ProofNode* cur, const std::vector<Node>& fa)
   Trace("pf-process-debug")
       << "Updating (" << cur->getRule() << ")..." << std::endl;
   Node res = cur->getResult();
-  std::stringstream sorig;
-  sorig << *cur;
   // only if the callback updated the node
   if (d_cb.update(res, id, ccn, cur->getArguments(), &cpf))
   {
@@ -178,11 +181,13 @@ void ProofNodeUpdater::runUpdate(ProofNode* cur, const std::vector<Node>& fa)
       // the proof. We can now debug based on the expected set of free
       // assumptions.
       Trace("pfnu-debug") << "Ensure update closed..." << std::endl;
-      Trace("pfnu-debug") << "Original proof : " << sorig.str() << std::endl;
       pfnEnsureClosedWrt(npn.get(), fa, "pfnu-debug", "ProofNodeUpdater:postupdate");
     }
+    Trace("pf-process-debug") << "..finished" << std::endl;
+    return true;
   }
   Trace("pf-process-debug") << "..finished" << std::endl;
+  return false;
 }
 
 void ProofNodeUpdater::setDebugFreeAssumptions(const std::vector<Node>& freeAssumps)
