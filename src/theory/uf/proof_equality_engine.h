@@ -87,16 +87,6 @@ class ProofEqEngine : public EagerProofGenerator
                 EqualityEngine& ee,
                 ProofNodeManager* pnm);
   ~ProofEqEngine() {}
-  //-------------------------- assert assumption
-  /**
-   * Assert literal lit by assumption to the underlying equality engine. It is
-   * its own explanation.
-   *
-   * @param lit The literal to assert to the equality engine
-   * @return true if this fact was processed by this method. If lit already
-   * holds in the equality engine, this method returns false.
-   */
-  bool assertAssume(TNode lit);
   //-------------------------- assert fact
   /**
    * Assert the literal lit by proof step id, given explanation exp and
