@@ -40,10 +40,9 @@ class HoExtension;
 
 class TheoryUF : public Theory {
 
-public:
+ public:
  class NotifyClass : public TheoryEqNotifyClass
  {
-   TheoryUF& d_uf;
   public:
    NotifyClass(TheoryInferenceManager& im, TheoryUF& uf)
        : TheoryEqNotifyClass(im), d_uf(uf)
@@ -69,7 +68,9 @@ public:
       Debug("uf-notify") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << ")" << std::endl;
       d_uf.eqNotifyDisequal(t1, t2, reason);
     }
-
+  private:
+   /** Reference to the parent theory */
+   TheoryUF& d_uf;
   };/* class TheoryUF::NotifyClass */
 
 private:
