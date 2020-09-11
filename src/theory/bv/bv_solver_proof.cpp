@@ -106,12 +106,12 @@ Node BBSimple::getBBAtom(TNode node) const { return node; }
 
 void BBSimple::bbTerm(TNode node, Bits& bits)
 {
+  Assert(node.getType().isBitVector());
   if (hasBBTerm(node))
   {
     getBBTerm(node, bits);
     return;
   }
-  Assert(node.getType().isBitVector());
   d_termBBStrategies[node.getKind()](node, bits, this);
   Assert(bits.size() == utils::getSize(node));
   storeBBTerm(node, bits);
@@ -185,7 +185,8 @@ namespace {
 
 bool isBVAtom(TNode n)
 {
-  return n.getKind() == kind::EQUAL || n.getKind() == kind::BITVECTOR_ULT
+  return (n.getKind() == kind::EQUAL && n[0].getType().isBitVector())
+         || n.getKind() == kind::BITVECTOR_ULT
          || n.getKind() == kind::BITVECTOR_ULE
          || n.getKind() == kind::BITVECTOR_SLT
          || n.getKind() == kind::BITVECTOR_SLE;
