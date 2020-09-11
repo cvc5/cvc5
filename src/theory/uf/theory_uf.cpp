@@ -125,6 +125,12 @@ static Node mkAnd(const std::vector<TNode>& conjunctions) {
 
 //--------------------------------- standard check
 
+bool TheoryUF::needsCheckLastEffort()
+{
+  // last call effort needed if using finite model finding
+  return d_thss != nullptr;
+}
+
 void TheoryUF::postCheck(Effort level)
 {
   if (d_state.isInConflict())
@@ -136,7 +142,7 @@ void TheoryUF::postCheck(Effort level)
   {
     d_thss->check(level);
   }
-  // check with the higher-order extension
+  // check with the higher-order extension at full effort
   if (!d_state.isInConflict() && fullEffort(level))
   {
     if (options::ufHo())
