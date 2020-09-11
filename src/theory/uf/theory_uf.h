@@ -39,21 +39,20 @@ class CardinalityExtension;
 class HoExtension;
 
 class TheoryUF : public Theory {
-
  public:
- class NotifyClass : public TheoryEqNotifyClass
- {
-  public:
-   NotifyClass(TheoryInferenceManager& im, TheoryUF& uf)
-       : TheoryEqNotifyClass(im), d_uf(uf)
-   {
-   }
+  class NotifyClass : public TheoryEqNotifyClass
+  {
+   public:
+    NotifyClass(TheoryInferenceManager& im, TheoryUF& uf)
+        : TheoryEqNotifyClass(im), d_uf(uf)
+    {
+    }
 
-   void eqNotifyNewClass(TNode t) override
-   {
-     Debug("uf-notify") << "NotifyClass::eqNotifyNewClass(" << t << ")"
-                        << std::endl;
-     d_uf.eqNotifyNewClass(t);
+    void eqNotifyNewClass(TNode t) override
+    {
+      Debug("uf-notify") << "NotifyClass::eqNotifyNewClass(" << t << ")"
+                         << std::endl;
+      d_uf.eqNotifyNewClass(t);
     }
 
     void eqNotifyMerge(TNode t1, TNode t2) override
@@ -68,9 +67,10 @@ class TheoryUF : public Theory {
       Debug("uf-notify") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << ")" << std::endl;
       d_uf.eqNotifyDisequal(t1, t2, reason);
     }
-  private:
-   /** Reference to the parent theory */
-   TheoryUF& d_uf;
+
+   private:
+    /** Reference to the parent theory */
+    TheoryUF& d_uf;
   };/* class TheoryUF::NotifyClass */
 
 private:
