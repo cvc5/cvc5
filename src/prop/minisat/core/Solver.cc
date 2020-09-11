@@ -421,7 +421,8 @@ CRef Solver::reason(Var x) {
     CRef real_reason = ca.alloc(explLevel, explanation, true);
     // FIXME: at some point will need more information about where this explanation
     // came from (ie. the theory/sharing)
-    Trace("pf::sat") << "Minisat::Solver registering a THEORY_LEMMA (1)" << std::endl;
+    Trace("pf::sat") << "Minisat::Solver registering a THEORY_LEMMA (1)"
+                     << std::endl;
     if (options::unsatCores())
     {
       ClauseId id = ProofManager::getSatProof()->registerClause(real_reason,
@@ -2322,7 +2323,7 @@ inline bool Solver::withinBudget(ResourceManager::Resource r) const
 
 SatProofManager* Solver::getProofManager()
 {
-  return d_pfManager? d_pfManager.get() : nullptr;
+  return d_pfManager ? d_pfManager.get() : nullptr;
 }
 
 CDProof* Solver::getProof()

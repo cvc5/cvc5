@@ -271,7 +271,8 @@ void SatProofManager::endResChain(Node conclusion,
 void SatProofManager::processRedundantLit(
     SatLiteral lit,
     const std::set<SatLiteral>& conclusionLits,
-    std::set<SatLiteral>& visited, unsigned pos)
+    std::set<SatLiteral>& visited,
+    unsigned pos)
 {
   Trace("sat-proof") << CVC4::push
                      << "SatProofManager::processRedundantLit: Lit: " << lit
@@ -298,7 +299,7 @@ void SatProofManager::processRedundantLit(
   Assert(reasonRef >= 0 && reasonRef < d_solver->ca.size())
       << "reasonRef " << reasonRef << " and d_satSolver->ca.size() "
       << d_solver->ca.size() << "\n";
-  const Minisat::Clause& reason  = d_solver->ca[reasonRef];
+  const Minisat::Clause& reason = d_solver->ca[reasonRef];
   if (Trace.isOn("sat-proof"))
   {
     Trace("sat-proof") << "reason: ";
@@ -619,7 +620,8 @@ void SatProofManager::finalizeProof(Minisat::Lit inConflict, bool adding)
   finalizeProof(clauseNode, {satLit});
 }
 
-void SatProofManager::finalizeProof(const Minisat::Clause& inConflict, bool adding)
+void SatProofManager::finalizeProof(const Minisat::Clause& inConflict,
+                                    bool adding)
 {
   if (Trace.isOn("sat-proof"))
   {

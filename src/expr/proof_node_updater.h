@@ -67,11 +67,12 @@ class ProofNodeUpdater
    * above.
    */
   void process(std::shared_ptr<ProofNode> pf);
-  
-  /** 
-   * Set free assumptions 
+
+  /**
+   * Set free assumptions
    */
   void setDebugFreeAssumptions(const std::vector<Node>& freeAssumps);
+
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;

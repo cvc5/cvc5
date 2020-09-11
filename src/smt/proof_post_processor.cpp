@@ -101,7 +101,7 @@ bool ProofPostprocessCallback::update(Node res,
       }
       d_assumpToProof[f] = pfn;
     }
-    if (pfn == nullptr || pfn->getRule()==PfRule::ASSUME)
+    if (pfn == nullptr || pfn->getRule() == PfRule::ASSUME)
     {
       Trace("smt-proof-pp-debug") << "...do not add proof" << std::endl;
       // no update
@@ -273,8 +273,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         << "Transform " << children[0] << " == " << args[0] << std::endl;
     if (CDProof::isSame(children[0], args[0]))
     {
-      Trace("smt-proof-pp-debug")
-          << "...nothing to do" << std::endl;
+      Trace("smt-proof-pp-debug") << "...nothing to do" << std::endl;
       // nothing to do
       return children[0];
     }
@@ -657,7 +656,11 @@ bool ProofPostprocessFinalCallback::wasPedanticFailure(std::ostream& out) const
 ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,
                                      SmtEngine* smte,
                                      ProofGenerator* pppg)
-    : d_pnm(pnm), d_cb(pnm, smte, pppg), d_updater(d_pnm, d_cb), d_finalCb(pnm), d_finalizer(d_pnm, d_finalCb)
+    : d_pnm(pnm),
+      d_cb(pnm, smte, pppg),
+      d_updater(d_pnm, d_cb),
+      d_finalCb(pnm),
+      d_finalizer(d_pnm, d_finalCb)
 {
 }
 
@@ -692,7 +695,7 @@ void ProofPostproccess::setEliminateRule(PfRule rule)
 void ProofPostproccess::setAssertions(const std::vector<Node>& assertions)
 {
   // for debugging (slow)
-  //d_updater.setDebugFreeAssumptions(assertions);
+  // d_updater.setDebugFreeAssumptions(assertions);
 }
 
 }  // namespace smt

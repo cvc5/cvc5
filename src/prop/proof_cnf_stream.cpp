@@ -15,8 +15,8 @@
 #include "prop/proof_cnf_stream.h"
 
 #include "options/smt_options.h"
-#include "theory/builtin/proof_checker.h"
 #include "prop/minisat/minisat.h"
+#include "theory/builtin/proof_checker.h"
 
 namespace CVC4 {
 namespace prop {

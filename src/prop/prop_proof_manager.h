@@ -61,7 +61,8 @@ class PropPfManager
   ProofNodeManager* d_pnm;
   /** The proof post-processor */
   std::unique_ptr<prop::ProofPostproccess> d_pfpp;
-  /** The sat solver proof manager, which will provide the final resolution proof when requested */
+  /** The sat solver proof manager, which will provide the final resolution
+   * proof when requested */
   SatProofManager* d_satPM;
   /** The assertions that should be the only assumptions of the postprocessed
    * proof */

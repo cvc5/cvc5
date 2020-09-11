@@ -75,7 +75,7 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
       Node proven = it->second.getProven();
       Assert(!proven.isNull());
       Trace("smt-pppg") << "...process proven " << proven << std::endl;
-      if (processed.find(proven)!=processed.end())
+      if (processed.find(proven) != processed.end())
       {
         continue;
       }
