@@ -67,18 +67,31 @@ class ProofNodeUpdater
    * above.
    */
   void process(std::shared_ptr<ProofNode> pf);
-
+  
+  /** 
+   * Set free assumptions 
+   */
+  void setDebugFreeAssumptions(const std::vector<Node>& freeAssumps);
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /** The callback */
   ProofNodeUpdaterCallback& d_cb;
   /**
+   * Post-process, which performs the main post-processing technique described
+   * above.
+   */
+  void processInternal(std::shared_ptr<ProofNode> pf, const std::vector<Node>& fa);
+  /**
    * Update proof node cur based on the callback. This modifies curr using
    * ProofNodeManager::updateNode based on the proof node constructed to
    * replace it by the callback.
    */
-  void runUpdate(ProofNode* cur);
+  void runUpdate(ProofNode* cur, const std::vector<Node>& fa);
+  /** Are we debugging free assumptions? */
+  bool d_debugFreeAssumps;
+  /** The initial free assumptions */
+  std::vector<Node> d_freeAssumps;
 };
 
 }  // namespace CVC4

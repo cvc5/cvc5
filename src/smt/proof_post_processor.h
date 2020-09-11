@@ -61,9 +61,6 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
               const std::vector<Node>& args,
               CDProof* cdp) override;
 
-  /** Set assertions (for debugging whether the final proof is closed) */
-  void setAssertions(const std::vector<Node>& assertions);
-
  private:
   /** Common constants */
   Node d_true;
@@ -83,8 +80,6 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   /** Mapping assumptions to their proof from preprocessing */
   std::map<Node, std::shared_ptr<ProofNode> > d_assumpToProof;
   //---------------------------------end reset at the begining of each update
-  /** The set of assertions (for debugging) */
-  std::vector<Node> d_freeAssertions;
   /**
    * Expand rules in the given application, add the expanded proof to cdp.
    * The set of rules we expand is configured by calls to setEliminateRule
@@ -194,12 +189,16 @@ class ProofPostproccess
   void setAssertions(const std::vector<Node>& assertions);
 
  private:
-  /** The post process callback */
-  ProofPostprocessCallback d_cb;
-  /** The post process callback for finalization */
-  ProofPostprocessFinalCallback d_finalCb;
   /** The proof node manager */
   ProofNodeManager* d_pnm;
+  /** The post process callback */
+  ProofPostprocessCallback d_cb;
+  /** The updater */
+  ProofNodeUpdater d_updater;
+  /** The post process callback for finalization */
+  ProofPostprocessFinalCallback d_finalCb;
+  /** The finalizer */
+  ProofNodeUpdater d_finalizer;
 };
 
 }  // namespace smt

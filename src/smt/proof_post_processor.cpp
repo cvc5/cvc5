@@ -86,15 +86,6 @@ bool ProofPostprocessCallback::update(Node res,
       {
         Trace("smt-proof-pp-debug")
             << "...no proof, possibly an input assumption" << std::endl;
-        // this doesn't hold since it could be an ASSUME in a local scope.
-        /*
-        AlwaysAssert(std::find(d_freeAssertions.begin(), d_freeAssertions.end(),
-        f)
-               != d_freeAssertions.end())
-            << "No preprocess proof for formula which is not an input "
-               "assertion: "
-            << f;
-            */
       }
       else
       {
@@ -105,12 +96,6 @@ bool ProofPostprocessCallback::update(Node res,
               << "=== Connect proof for preprocessing: " << f << std::endl;
           Trace("smt-proof-pp") << *pfn.get() << std::endl;
         }
-        // debug closed
-        pfgEnsureClosedWrt(f,
-                           d_pppg,
-                           d_freeAssertions,
-                           "smt-proof-pp-debug",
-                           "ProofPostprocess::connect_preprocess");
       }
       d_assumpToProof[f] = pfn;
     }
@@ -407,7 +392,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
           // add previous rewrite steps
           for (unsigned j = 0, nvars = vvec.size(); j < nvars; j++)
           {
-            tcg.addRewriteStep(vvec[j], svec[j], pgs[j]);
+            // not necessarily closed
+            tcg.addRewriteStep(vvec[j], svec[j], pgs[j], false);
           }
           // get the proof for the update to the current substitution
           Node seqss = subs.eqNode(ss);
@@ -446,7 +432,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       TConvProofGenerator tcpg(d_pnm, nullptr, TConvPolicy::ONCE);
       for (unsigned j = 0, nvars = vvec.size(); j < nvars; j++)
       {
-        tcpg.addRewriteStep(vvec[j], svec[j], pgs[j]);
+        // not necessarily closed
+        tcpg.addRewriteStep(vvec[j], svec[j], pgs[j], false);
       }
       // add the proof constructed by the term conversion utility
       std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(eq);
@@ -599,14 +586,6 @@ bool ProofPostprocessCallback::addToTransChildren(Node eq,
   return true;
 }
 
-void ProofPostprocessCallback::setAssertions(
-    const std::vector<Node>& assertions)
-{
-  d_freeAssertions.clear();
-  d_freeAssertions.insert(
-      d_freeAssertions.end(), assertions.begin(), assertions.end());
-}
-
 ProofPostprocessFinalCallback::ProofPostprocessFinalCallback(
     ProofNodeManager* pnm)
     : d_ruleCount("finalProof::ruleCount"),
@@ -672,7 +651,7 @@ bool ProofPostprocessFinalCallback::wasPedanticFailure(std::ostream& out) const
 ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,
                                      SmtEngine* smte,
                                      ProofGenerator* pppg)
-    : d_cb(pnm, smte, pppg), d_finalCb(pnm), d_pnm(pnm)
+    : d_pnm(pnm), d_cb(pnm, smte, pppg), d_updater(d_pnm, d_cb), d_finalCb(pnm), d_finalizer(d_pnm, d_finalCb)
 {
 }
 
@@ -684,12 +663,10 @@ void ProofPostproccess::process(std::shared_ptr<ProofNode> pf)
   // how to process, including how to process assumptions in pf.
   d_cb.initializeUpdate();
   // now, process
-  ProofNodeUpdater updater(d_pnm, d_cb);
-  updater.process(pf);
+  d_updater.process(pf);
   // take stats and check pedantic
   d_finalCb.initializeUpdate();
-  ProofNodeUpdater finalizer(d_pnm, d_finalCb);
-  finalizer.process(pf);
+  d_finalizer.process(pf);
 
   std::stringstream serr;
   bool wasPedanticFailure = d_finalCb.wasPedanticFailure(serr);
@@ -708,7 +685,7 @@ void ProofPostproccess::setEliminateRule(PfRule rule)
 
 void ProofPostproccess::setAssertions(const std::vector<Node>& assertions)
 {
-  d_cb.setAssertions(assertions);
+  d_updater.setDebugFreeAssumptions(assertions);
 }
 
 }  // namespace smt
