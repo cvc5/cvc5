@@ -37,7 +37,7 @@ SkolemCache::SkolemCache() {}
 
 Node SkolemCache::getExtIndexSkolem(Node deq)
 {
-  Assert (deq.getKind()==NOT && deq[0].getKind()==EQUAL);
+  Assert(deq.getKind() == NOT && deq[0].getKind() == EQUAL);
   Node a = deq[0][0];
   Node b = deq[0][1];
   Assert(a.getType().isArray());

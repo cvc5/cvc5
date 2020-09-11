@@ -43,7 +43,7 @@ class SkolemCache
   static Node getExtIndexSkolem(Node deq);
 
  private:
-  /** 
+  /**
    * Get the bound variable x of the witness term above for disequality deq
    * between arrays.
    */
