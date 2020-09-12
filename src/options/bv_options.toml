@@ -247,7 +247,7 @@ header = "options/bv_options.h"
 [[option.mode.LAZY]]
   name = "lazy"
   help = "Enables the lazy BV solver infrastructure."
-[[option.mode.PROOF]]
-  name = "proof"
-  help = "Enables the bitblasting solver with proof support."
+[[option.mode.SIMPLE]]
+  name = "simple"
+  help = "Enables simple bitblasting solver with proof support."
 

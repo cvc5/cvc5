@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BV__BV_SOLVER_PROOF_H
-#define CVC4__THEORY__BV__BV_SOLVER_PROOF_H
+#ifndef CVC4__THEORY__BV__BV_SOLVER_SIMPLE_H
+#define CVC4__THEORY__BV__BV_SOLVER_SIMPLE_H
 
 #include <unordered_map>
 
@@ -30,11 +30,11 @@ namespace bv {
 
 class BBSimple;
 
-class BVSolverProof : public BVSolver
+class BVSolverSimple : public BVSolver
 {
  public:
-  BVSolverProof(TheoryState& state, TheoryInferenceManager& inferMgr);
-  ~BVSolverProof() = default;
+  BVSolverSimple(TheoryState& state, TheoryInferenceManager& inferMgr);
+  ~BVSolverSimple() = default;
 
   void preRegisterTerm(TNode n) override {}
 
@@ -44,7 +44,7 @@ class BVSolverProof : public BVSolver
                      bool isPrereg,
                      bool isInternal) override;
 
-  std::string identify() const override { return "BVSolverProof"; };
+  std::string identify() const override { return "BVSolverSimple"; };
 
   Theory::PPAssertStatus ppAssert(TNode in,
                                   SubstitutionMap& outSubstitutions) override

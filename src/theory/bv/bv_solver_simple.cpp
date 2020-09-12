@@ -14,7 +14,7 @@
  ** Simple bitblast solver that sends bitblast lemmas directly to MiniSat.
  **/
 
-#include "theory/bv/bv_solver_proof.h"
+#include "theory/bv/bv_solver_simple.h"
 
 #include "theory/bv/bitblast/lazy_bitblaster.h"
 #include "theory/bv/theory_bv.h"
@@ -221,12 +221,12 @@ void collectBVAtoms(TNode n, std::unordered_set<Node, NodeHashFunction>& atoms)
 
 }  // namespace
 
-BVSolverProof::BVSolverProof(TheoryState& s, TheoryInferenceManager& inferMgr)
+BVSolverSimple::BVSolverSimple(TheoryState& s, TheoryInferenceManager& inferMgr)
     : BVSolver(s, inferMgr), d_bitblaster(new BBSimple(s)), d_lemmasCache()
 {
 }
 
-void BVSolverProof::addBBLemma(TNode fact)
+void BVSolverSimple::addBBLemma(TNode fact)
 {
   if (!d_bitblaster->hasBBAtom(fact))
   {
@@ -241,7 +241,7 @@ void BVSolverProof::addBBLemma(TNode fact)
   }
 }
 
-bool BVSolverProof::preNotifyFact(
+bool BVSolverSimple::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
   if (fact.getKind() == kind::NOT)
@@ -272,8 +272,8 @@ bool BVSolverProof::preNotifyFact(
   return true;
 }
 
-bool BVSolverProof::collectModelValues(TheoryModel* m,
-                                       const std::set<Node>& termSet)
+bool BVSolverSimple::collectModelValues(TheoryModel* m,
+                                        const std::set<Node>& termSet)
 {
   return d_bitblaster->collectModelValues(m, termSet);
 }

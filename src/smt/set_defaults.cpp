@@ -124,9 +124,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
   }
 
-  /* BVSolver::PROOF does not natively support int2bv and nat2bv and need to
+  /* BVSolver::SIMPLE does not natively support int2bv and nat2bv and need to
    * to be eliminated eagerly. */
-  if (options::bvSolver() == options::BVSolver::PROOF)
+  if (options::bvSolver() == options::BVSolver::SIMPLE)
   {
     options::bvLazyReduceExtf.set(false);
     options::bvLazyRewriteExtf.set(false);

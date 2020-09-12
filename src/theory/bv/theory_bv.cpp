@@ -17,7 +17,7 @@
 
 #include "options/bv_options.h"
 #include "theory/bv/bv_solver_lazy.h"
-#include "theory/bv/bv_solver_proof.h"
+#include "theory/bv/bv_solver_simple.h"
 #include "theory/bv/theory_bv_utils.h"
 
 namespace CVC4 {
@@ -46,8 +46,8 @@ TheoryBV::TheoryBV(context::Context* c,
       break;
 
     default:
-      AlwaysAssert(options::bvSolver() == options::BVSolver::PROOF);
-      d_internal.reset(new BVSolverProof(d_state, d_inferMgr));
+      AlwaysAssert(options::bvSolver() == options::BVSolver::SIMPLE);
+      d_internal.reset(new BVSolverSimple(d_state, d_inferMgr));
   }
   d_theoryState = &d_state;
   d_inferManager = &d_inferMgr;
