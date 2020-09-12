@@ -327,8 +327,15 @@ class CardinalityExtension
     int getMaximumNegativeCardinality() { return d_maxNegCard.get(); }
     //print debug
     void debugPrint( const char* c );
-    /** debug a model */
-    bool debugModel( TheoryModel* m );
+    /**
+     * Check at last call effort. This will verify that the model is minimal.
+     * This return lemmas if there are terms in the model that the cardinality
+     * extension was not notified of.
+     *
+     * @return false if current model is not minimal. In this case, lemmas are
+     * sent on the output channel of the UF theory.
+     */
+    bool checkLastCall();
     /** get number of regions (for debugging) */
     int getNumRegions();
 
@@ -387,8 +394,6 @@ class CardinalityExtension
   std::string identify() const { return std::string("CardinalityExtension"); }
   //print debug
   void debugPrint( const char* c );
-  /** debug a model */
-  bool debugModel( TheoryModel* m );
   /** get cardinality for node */
   int getCardinality( Node n );
   /** get cardinality for type */
