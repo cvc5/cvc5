@@ -695,7 +695,10 @@ void ProofPostproccess::setEliminateRule(PfRule rule)
 void ProofPostproccess::setAssertions(const std::vector<Node>& assertions)
 {
   // for debugging (slow)
-  // d_updater.setDebugFreeAssumptions(assertions);
+  if (options::proofNewUpdateDebug())
+  {
+    d_updater.setDebugFreeAssumptions(assertions);
+  }
 }
 
 }  // namespace smt

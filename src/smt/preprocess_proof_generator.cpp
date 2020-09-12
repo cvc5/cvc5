@@ -21,8 +21,8 @@
 namespace CVC4 {
 namespace smt {
 
-PreprocessProofGenerator::PreprocessProofGenerator(ProofNodeManager* pnm)
-    : d_pnm(pnm)
+PreprocessProofGenerator::PreprocessProofGenerator(context::UserContext* u, ProofNodeManager* pnm)
+    : d_pnm(pnm), d_src(u)
 {
 }
 
@@ -50,7 +50,7 @@ void PreprocessProofGenerator::notifyPreprocessed(Node n,
 
 std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
 {
-  std::map<Node, theory::TrustNode>::iterator it = d_src.find(f);
+  NodeTrustNodeMap::iterator it = d_src.find(f);
   if (it == d_src.end())
   {
     // could be an assumption, return nullptr
@@ -70,9 +70,9 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
     success = false;
     if (it != d_src.end())
     {
-      Assert(it->second.getNode() == curr);
+      Assert((*it).second.getNode() == curr);
       // get the proven node
-      Node proven = it->second.getProven();
+      Node proven = (*it).second.getProven();
       Assert(!proven.isNull());
       Trace("smt-pppg") << "...process proven " << proven << std::endl;
       if (processed.find(proven) != processed.end())
@@ -84,7 +84,7 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
 
       // if a generator for the step was provided, it is stored in the proof
       Trace("smt-pppg") << "...get provided proof" << std::endl;
-      std::shared_ptr<ProofNode> pfr = it->second.toProofNode();
+      std::shared_ptr<ProofNode> pfr = (*it).second.toProofNode();
       if (pfr != nullptr)
       {
         Trace("smt-pppg") << "...add provided" << std::endl;
@@ -94,7 +94,7 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
       }
 
       Trace("smt-pppg") << "...update" << std::endl;
-      theory::TrustNodeKind tnk = it->second.getKind();
+      theory::TrustNodeKind tnk = (*it).second.getKind();
       if (tnk == theory::TrustNodeKind::REWRITE)
       {
         Trace("smt-pppg") << "...rewritten from " << proven[0] << std::endl;

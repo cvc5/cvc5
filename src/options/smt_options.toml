@@ -177,6 +177,7 @@ header = "options/smt_options.h"
   category   = "regular"
   long       = "check-proofs-new-fail"
   type       = "bool"
+  default    = "false"
   help       = "always fail when the checkProof method is invoked (dummy option)"
 
 [[option]]
@@ -184,7 +185,16 @@ header = "options/smt_options.h"
   category   = "regular"
   long       = "proof-new-req"
   type       = "bool"
+  default    = "false"
   help       = "always fail during setDefaults if proof-new is not enabled (dummy option)"
+
+[[option]]
+  name       = "proofNewUpdateDebug"
+  category   = "regular"
+  long       = "proof-new-update-debug"
+  type       = "bool"
+  default    = "false"
+  help       = "debug proof node updater"
 
 [[option]]
   name       = "proofGranularityMode"

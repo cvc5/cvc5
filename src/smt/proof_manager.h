@@ -42,7 +42,7 @@ class Assertions;
 class PfManager
 {
  public:
-  PfManager(SmtEngine* smte);
+  PfManager(context::UserContext* u, SmtEngine* smte);
   ~PfManager();
   /**
    * Print the proof on the output channel of the current options in scope.

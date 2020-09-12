@@ -22,6 +22,7 @@
 #include "expr/proof_generator.h"
 #include "expr/proof_node_manager.h"
 #include "theory/trust_node.h"
+#include "context/cdhashmap.h"
 
 namespace CVC4 {
 namespace smt {
@@ -41,8 +42,10 @@ namespace smt {
  */
 class PreprocessProofGenerator : public ProofGenerator
 {
+  typedef context::CDHashMap<Node, theory::TrustNode, NodeHashFunction>
+      NodeTrustNodeMap;
  public:
-  PreprocessProofGenerator(ProofNodeManager* pnm);
+  PreprocessProofGenerator(context::UserContext* u, ProofNodeManager* pnm);
   ~PreprocessProofGenerator() {}
   /**
    * Notify that n is a new assertion, where pg can provide a proof of n.
@@ -72,7 +75,7 @@ class PreprocessProofGenerator : public ProofGenerator
    * (1) A trust node REWRITE proving (n_src = n) for some n_src, or
    * (2) A trust node LEMMA proving n.
    */
-  std::map<Node, theory::TrustNode> d_src;
+  NodeTrustNodeMap d_src;
 };
 
 }  // namespace smt
