@@ -186,13 +186,13 @@ header = "options/smt_options.h"
   help = "Do not improve the granularity of proofs."
 [[option.mode.REWRITE]]
   name = "rewrite"
-  help = "Expand macros, but do not expand rewrite or substitution steps."
+  help = "allow rewrite or substitution steps, expand macros."
 [[option.mode.THEORY_REWRITE]]
   name = "theory-rewrite"
-  help = "Expand macros, rewrite and substitution steps, but do not expand theory rewrite steps."
+  help = "allow theory rewrite steps, expand macros, rewrite and substitution steps."
 [[option.mode.DSL_REWRITE]]
   name = "dsl-rewrite"
-  help = "Expand all steps to the level of DSL rewrites and evaluation steps."
+  help = "Allow DSL rewrites and evaluation steps, expand macros, rewrite, substitution, and theory rewrite steps."
 
 [[option]]
   name       = "checkProofsNew"
