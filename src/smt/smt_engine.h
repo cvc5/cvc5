@@ -912,7 +912,10 @@ class CVC4_PUBLIC SmtEngine
   /** Get a pointer to the (new) PfManager owned by this SmtEngine. */
   smt::PfManager* getPfManager() { return d_pfManager.get(); };
 
-  /** Get a pointer to the ProofManager owned by this SmtEngine. */
+  /**
+   * Get a pointer to the ProofManager owned by this SmtEngine.
+   * TODO (project #37): this is the old proof manager and will be deleted
+   */
   ProofManager* getProofManager() { return d_proofManager.get(); };
 
   /** Get a pointer to the StatisticsRegistry owned by this SmtEngine. */
@@ -1089,8 +1092,14 @@ class CVC4_PUBLIC SmtEngine
   /** The SMT solver */
   std::unique_ptr<smt::SmtSolver> d_smtSolver;
 
-  /** The proof manager */
+  /** The (old) proof manager TODO (project #37): delete this */
   std::unique_ptr<ProofManager> d_proofManager;
+
+  /**
+   * The proof manager, which manages all things related to checking,
+   * processing, and printing proofs.
+   */
+  std::unique_ptr<smt::PfManager> d_pfManager;
 
   /**
    * The rewriter associated with this SmtEngine. We have a different instance

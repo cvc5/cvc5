@@ -90,7 +90,7 @@ class PfManager
   std::unique_ptr<ProofNodeManager> d_pnm;
   /** The rewrite proof database. */
   std::unique_ptr<theory::RewriteDb> d_rewriteDb;
-  /** The preprocess proof manager. */
+  /** The preprocess proof generator. */
   std::unique_ptr<smt::PreprocessProofGenerator> d_pppg;
   /** The proof post-processor */
   std::unique_ptr<smt::ProofPostproccess> d_pfpp;

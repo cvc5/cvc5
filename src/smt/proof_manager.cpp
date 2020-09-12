@@ -58,7 +58,8 @@ PfManager::~PfManager() {}
 void PfManager::setFinalProof(ProofGenerator* pg, context::CDList<Node>* al)
 {
   Assert(al != nullptr);
-  // TODO: don't recompute if already done so?
+  // Note this assumes that setFinalProof is only called once per unsat
+  // response. This method would need to cache its result otherwise.
   Trace("smt-proof") << "SmtEngine::setFinalProof(): get proof body...\n";
 
   // d_finalProof should just be a ProofNode
@@ -112,8 +113,8 @@ void PfManager::printProof(ProofGenerator* pg, Assertions& as)
 {
   Trace("smt-proof") << "PfManager::printProof: start" << std::endl;
   std::shared_ptr<ProofNode> fp = getFinalProof(pg, as);
-  // TODO according to the proof format, post process the proof node
-  // TODO according to the proof format, print the proof node
+  // TODO (proj #37) according to the proof format, post process the proof node
+  // TODO (proj #37) according to the proof format, print the proof node
   // leanPrinter(out, fp.get());
   std::ostream& out = *options::out();
   out << "(proof\n";
