@@ -17,12 +17,12 @@
 #ifndef CVC4__PROP_PROOF_MANAGER_H
 #define CVC4__PROP_PROOF_MANAGER_H
 
+#include "context/cdlist.h"
 #include "expr/proof.h"
 #include "expr/proof_node_manager.h"
 #include "options/smt_options.h"
 #include "prop/proof_post_processor.h"
 #include "prop/sat_proof_manager.h"
-#include "context/cdlist.h"
 
 namespace CVC4 {
 
@@ -35,6 +35,7 @@ namespace prop {
 class PropPfManager
 {
   typedef context::CDList<Node> NodeList;
+
  public:
   PropPfManager(context::UserContext* userContext,
                 ProofNodeManager* pnm,

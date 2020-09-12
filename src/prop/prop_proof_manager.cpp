@@ -23,7 +23,10 @@ PropPfManager::PropPfManager(context::UserContext* userContext,
                              ProofNodeManager* pnm,
                              SatProofManager* satPM,
                              ProofCnfStream* cnfProof)
-    : d_pnm(pnm), d_pfpp(new ProofPostproccess(pnm, cnfProof)), d_satPM(satPM), d_assertions(userContext)
+    : d_pnm(pnm),
+      d_pfpp(new ProofPostproccess(pnm, cnfProof)),
+      d_satPM(satPM),
+      d_assertions(userContext)
 {
 }
 
@@ -84,8 +87,7 @@ std::shared_ptr<ProofNode> PropPfManager::getProof()
     {
       avec.push_back(as);
     }
-    std::shared_ptr<ProofNode> scopePfn =
-        d_pnm->mkScope(conflictProof, avec);
+    std::shared_ptr<ProofNode> scopePfn = d_pnm->mkScope(conflictProof, avec);
     Trace("sat-proof") << "PropPfManager::getProof: prop engine prood is "
                           "closed w.r.t. preprocessed assertions\n";
   }
