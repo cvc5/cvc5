@@ -317,11 +317,6 @@ class ProofEqEngine : public EagerProofGenerator
    * SAT-context-dependent.
    */
   NodeSet d_keep;
-  /**
-   * Whether proofs are enabled. If this flag is false, then this class acts
-   * as a simplified interface to the EqualityEngine, without proofs.
-   */
-  bool d_pfEnabled;
   /** Explain
    *
    * This adds to assumps the set of facts that were asserted to this
