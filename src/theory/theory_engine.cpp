@@ -1052,7 +1052,7 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
     if (!normalizedLiteral.getConst<bool>()) {
       // Mark the propagation for explanations
       if (markPropagation(normalizedLiteral, originalAssertion, toTheoryId, fromTheoryId)) {
-        // special case, trust node has no proof generator?
+        // special case, trust node has no proof generator
         TrustNode trnn = TrustNode::mkTrustConflict(normalizedLiteral);
         // Get the explanation (conflict will figure out where it came from)
         conflict(trnn, toTheoryId);
@@ -1300,7 +1300,6 @@ theory::TrustNode TheoryEngine::getExplanation(TNode node)
         << " Responsible theory is: " << theoryOf(atom)->getId() << std::endl;
 
     TrustNode texplanation = theoryOf(atom)->explain(node);
-    Node explanation = texplanation.getNode();
     Debug("theory::explain") << "TheoryEngine::getExplanation(" << node
                              << ") => " << explanation << endl;
     if (isProofEnabled())
@@ -1464,11 +1463,13 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
       // internal lemmas should have generators
       Assert(from != THEORY_LAST);
       // add theory lemma step to proof
-      addTheoryLemmaToProof(
-          d_lazyProof.get(), lemma, from, "TheoryEngine::lemma");
+      Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(from);
+      d_lazyProof->addStep(lemma, PfRule::THEORY_LEMMA, {}, {lemma, tidn});
       // update the trust node
       tlemma = TrustNode::mkTrustLemma(lemma, d_lazyProof.get());
     }
+    // ensure closed
+    tlemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_initial");
   }
 
   // Do we need to check atoms
@@ -1564,16 +1565,25 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
     d_relManager->notifyPreprocessedAssertions(lemmas.ref());
   }
 
-  // assert lemmas to prop engine
-  Assert(!isProofEnabled() || tlemma.getGenerator() != nullptr);
-  // ensure closed, make the proof node eagerly here to debug
-  tlemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma");
-  d_propEngine->assertLemma(tlemma, removable);
+  // do final checks on the lemmas we are about to send
+  if (isProofEnabled())
+  {
+    Assert(tlemma.getGenerator() != nullptr);
+    // ensure closed, make the proof node eagerly here to debug
+    tlemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma");
+    for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
+    {
+      Assert(newLemmas[i].getGenerator() != nullptr);
+      newLemmas[i].debugCheckClosed("te-proof-debug",
+                                    "TheoryEngine::lemma_new");
+    }
+  }
+
+  // now, send the lemmas to the prop engine
+  d_propEngine->assertLemma(tlemma.getProven(), false, removable);
   for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
   {
-    Assert(!isProofEnabled() || newLemmas[i].getGenerator() != nullptr);
-    newLemmas[i].debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_new");
-    d_propEngine->assertLemma(newLemmas[i], removable);
+    d_propEngine->assertLemma(newLemmas[i].getProven(), false, removable);
   }
 
   // assert to decision engine
@@ -1606,15 +1616,6 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
   // doesn't require proof generator, yet, since THEORY_LEMMA is added below
   tconflict.debugCheckClosed(
       "te-proof-debug", "TheoryEngine::conflict_initial", false);
-  // If proofNew is enabled, then either:
-  // (1) The lazy proof contains an explicitly provided step (probably
-  // THEORY_LEMMA),
-  // (2) The lazy proof contains an explicitly provided proof generator,
-  // (3) The conflict being processed is a propagatation of false.
-  // AlwaysAssert(
-  //    d_lazyProof == nullptr || d_lazyProof->hasStep(conflict.notNode())
-  //    || d_lazyProof->hasGenerator(conflict.notNode()) || conflict ==
-  //    d_false);
 
   Trace("dtview::conflict") << ":THEORY-CONFLICT: " << conflict << std::endl;
 
@@ -1656,10 +1657,10 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
       }
       else
       {
-        addTheoryLemmaToProof(d_lazyProof.get(),
-                              tconflict.getProven(),
-                              theoryId,
-                              "conflict_shared_theory");
+        // add theory lemma step
+        Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
+        Node conf = tconflict.getProven();
+        d_lazyProof->addStep(conf, PfRule::THEORY_LEMMA, {}, {conf, tidn});
       }
       // store the explicit step, which should come from a different
       // generator, e.g. d_tepg.

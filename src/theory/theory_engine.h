@@ -209,6 +209,10 @@ class TheoryEngine {
 
   /**
    * Called by the theories to notify of a conflict.
+   *
+   * @param conflict The trust node containing the conflict and its proof
+   * generator (if it exists),
+   * @param theoryId The theory that sent the conflict
    */
   void conflict(theory::TrustNode conflict, theory::TheoryId theoryId);
 
@@ -287,6 +291,10 @@ class TheoryEngine {
    * Adds a new lemma, returning its status.
    * @param node the lemma
    * @param p the properties of the lemma.
+   * @param atomsTo the theory that atoms of the lemma should be sent to
+   * @param from the theory that sent the lemma
+   * @return a lemma status, containing the lemma and context information
+   * about when it was sent.
    */
   theory::LemmaStatus lemma(theory::TrustNode node,
                             theory::LemmaProperty p,
