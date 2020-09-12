@@ -29,7 +29,7 @@ SatProofManager::SatProofManager(Minisat::Solver* solver,
     : d_solver(solver),
       d_proxy(proxy),
       d_pnm(pnm),
-      d_resChains(pnm, userContext, "SatProofManager::LazyChain"),
+      d_resChains(pnm, userContext),
       d_resChainPg(userContext, pnm),
       d_proof(pnm, userContext, "SatProofManager::CDProof"),
       d_false(NodeManager::currentNM()->mkConst(false)),
@@ -260,11 +260,12 @@ void SatProofManager::endResChain(Node conclusion,
   const std::vector<std::pair<Node, ProofStep>>& steps = psb.getSteps();
   for (const std::pair<Node, ProofStep>& step : steps)
   {
-    Trace("lazy-cdproofchain") << "SatProofManager::endResChain: adding for "
-                               << step.first << " step " << step.second << "\n";
+    Trace("sat-proof") << "SatProofManager::endResChain: adding for "
+                       << step.first << " step " << step.second << "\n";
     d_resChainPg.addStep(step.first, step.second);
-    // the premises of this resolution may not have been justified yet
-    d_resChains.addLazyStep(step.first, &d_resChainPg, false);
+    // the premises of this resolution may not have been justified yet, so we do
+    // not pass assumptions to check closedness
+    d_resChains.addLazyStep(step.first, &d_resChainPg);
   }
 }
 
@@ -463,7 +464,7 @@ void SatProofManager::tryJustifyingLit(
   // links in the chain which have, themselves, literals yet to be justified. So
   // we are not ready yet to check closedness w.r.t. CNF transformation of the
   // preprocessed assertions
-  d_resChains.addLazyStep(litNode, &d_resChainPg, false);
+  d_resChains.addLazyStep(litNode, &d_resChainPg);
 }
 
 void SatProofManager::finalizeProof(Node inConflictNode,
@@ -524,8 +525,10 @@ void SatProofManager::finalizeProof(Node inConflictNode,
   // create step
   ProofStep ps(PfRule::CHAIN_RESOLUTION, children, args);
   d_resChainPg.addStep(d_false, ps);
-  // Fix point justification of literals in leaves
-  d_resChains.addLazyStep(d_false, &d_resChainPg, false);
+  // not yet ready to check closedness because maybe only now we will justify
+  // literals used in resolutions
+  d_resChains.addLazyStep(d_false, &d_resChainPg);
+  // Fix point justification of literals in leaves of the proof of false
   bool expanded;
   do
   {
@@ -589,7 +592,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
     }
   } while (expanded);
   // now we should be able to close it
-  d_resChains.addLazyStep(d_false, &d_resChainPg);
+  d_resChains.addLazyStep(d_false, &d_resChainPg, d_assumptions);
 }
 
 void SatProofManager::storeUnitConflict(Minisat::Lit inConflict)
@@ -615,7 +618,7 @@ void SatProofManager::finalizeProof(Minisat::Lit inConflict, bool adding)
   Node clauseNode = getClauseNode(satLit);
   if (adding)
   {
-    registerInputs({clauseNode});
+    registerSatAssumptions({clauseNode});
   }
   finalizeProof(clauseNode, {satLit});
 }
@@ -638,7 +641,7 @@ void SatProofManager::finalizeProof(const Minisat::Clause& inConflict,
   Node clauseNode = getClauseNode(inConflict);
   if (adding)
   {
-    registerInputs({clauseNode});
+    registerSatAssumptions({clauseNode});
   }
   finalizeProof(clauseNode, clause);
 }
@@ -653,15 +656,25 @@ CDProof* SatProofManager::getProof()
   return &d_proof;
 }
 
-void SatProofManager::registerInput(Minisat::Lit lit)
+void SatProofManager::registerSatAssumptions(Minisat::Lit lit)
 {
-  d_resChains.addFixedAssumption(
-      getClauseNode(MinisatSatSolver::toSatLiteral(lit)));
+  Trace("sat-proof") << "SatProofManager::registerSatAssumptions: - "
+                     << getClauseNode(MinisatSatSolver::toSatLiteral(lit))
+                     << "\n";
+  d_assumptions.push_back(getClauseNode(MinisatSatSolver::toSatLiteral(lit)));
 }
 
-void SatProofManager::registerInputs(const std::vector<Node>& inputs)
+void SatProofManager::registerSatAssumptions(const std::vector<Node>& assumps)
 {
-  d_resChains.addFixedAssumptions(inputs);
+  if (Trace.isOn("sat-proof"))
+  {
+    for (const Node& a : assumps)
+    {
+      Trace("sat-proof") << "SatProofManager::registerSatAssumptions: - " << a
+                         << "\n";
+    }
+  }
+  d_assumptions.insert(d_assumptions.end(), assumps.begin(), assumps.end());
 }
 
 }  // namespace prop

@@ -98,7 +98,7 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
       {
         MinisatSatSolver* minisat =
             static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-        minisat->getProofManager()->registerInputs({nnode});
+        minisat->getProofManager()->registerSatAssumptions({nnode});
       }
     }
   }
@@ -153,7 +153,7 @@ void ProofCnfStream::convertAndAssertAnd(TNode node, bool negated)
       {
         MinisatSatSolver* minisat =
             static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-        minisat->getProofManager()->registerInputs({normClauseNode});
+        minisat->getProofManager()->registerSatAssumptions({normClauseNode});
       }
     }
   }
@@ -179,7 +179,7 @@ void ProofCnfStream::convertAndAssertOr(TNode node, bool negated)
     {
       MinisatSatSolver* minisat =
           static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerInputs({normClauseNode});
+      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
     }
     d_cnfStream.assertClause(node, clause);
   }
@@ -230,7 +230,7 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
       {
         MinisatSatSolver* minisat =
             static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-        minisat->getProofManager()->registerInputs({normClauseNode});
+        minisat->getProofManager()->registerSatAssumptions({normClauseNode});
       }
     }
     // Construct the clause (p v q)
@@ -249,7 +249,7 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
       {
         MinisatSatSolver* minisat =
             static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-        minisat->getProofManager()->registerInputs({normClauseNode});
+        minisat->getProofManager()->registerSatAssumptions({normClauseNode});
       }
     }
   }
@@ -276,7 +276,7 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
       {
         MinisatSatSolver* minisat =
             static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-        minisat->getProofManager()->registerInputs({normClauseNode});
+        minisat->getProofManager()->registerSatAssumptions({normClauseNode});
       }
     }
     // Construct the clause ~q v p
@@ -295,7 +295,7 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
       {
         MinisatSatSolver* minisat =
             static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-        minisat->getProofManager()->registerInputs({normClauseNode});
+        minisat->getProofManager()->registerSatAssumptions({normClauseNode});
       }
     }
   }
@@ -330,7 +330,7 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
       {
         MinisatSatSolver* minisat =
             static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-        minisat->getProofManager()->registerInputs({normClauseNode});
+        minisat->getProofManager()->registerSatAssumptions({normClauseNode});
       }
     }
     // Construct the clauses ~q v p
@@ -349,7 +349,7 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
       {
         MinisatSatSolver* minisat =
             static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-        minisat->getProofManager()->registerInputs({normClauseNode});
+        minisat->getProofManager()->registerSatAssumptions({normClauseNode});
       }
     }
   }
@@ -380,7 +380,7 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
       {
         MinisatSatSolver* minisat =
             static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-        minisat->getProofManager()->registerInputs({normClauseNode});
+        minisat->getProofManager()->registerSatAssumptions({normClauseNode});
       }
       Trace("cnf")
           << "ProofCnfStream::convertAndAssertIff: NOT_EQUIV_ELIM2 added norm "
@@ -403,7 +403,7 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
       {
         MinisatSatSolver* minisat =
             static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-        minisat->getProofManager()->registerInputs({normClauseNode});
+        minisat->getProofManager()->registerSatAssumptions({normClauseNode});
       }
       Trace("cnf")
           << "ProofCnfStream::convertAndAssertIff: NOT_EQUIV_ELIM1 added norm "
@@ -436,7 +436,7 @@ void ProofCnfStream::convertAndAssertImplies(TNode node, bool negated)
       {
         MinisatSatSolver* minisat =
             static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-        minisat->getProofManager()->registerInputs({normClauseNode});
+        minisat->getProofManager()->registerSatAssumptions({normClauseNode});
       }
     }
   }
@@ -492,7 +492,7 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
       {
         MinisatSatSolver* minisat =
             static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-        minisat->getProofManager()->registerInputs({normClauseNode});
+        minisat->getProofManager()->registerSatAssumptions({normClauseNode});
       }
     }
     else
@@ -507,7 +507,7 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
       {
         MinisatSatSolver* minisat =
             static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-        minisat->getProofManager()->registerInputs({normClauseNode});
+        minisat->getProofManager()->registerSatAssumptions({normClauseNode});
       }
     }
   }
@@ -530,7 +530,7 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
       {
         MinisatSatSolver* minisat =
             static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-        minisat->getProofManager()->registerInputs({normClauseNode});
+        minisat->getProofManager()->registerSatAssumptions({normClauseNode});
       }
     }
     else
@@ -544,7 +544,7 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
       {
         MinisatSatSolver* minisat =
             static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-        minisat->getProofManager()->registerInputs({normClauseNode});
+        minisat->getProofManager()->registerSatAssumptions({normClauseNode});
       }
     }
   }
@@ -608,7 +608,7 @@ void ProofCnfStream::convertPropagation(theory::TrustNode trn)
   {
     MinisatSatSolver* minisat =
         static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-    minisat->getProofManager()->registerInputs({normClauseNode});
+    minisat->getProofManager()->registerSatAssumptions({normClauseNode});
   }
 }
 
@@ -733,7 +733,7 @@ SatLiteral ProofCnfStream::handleAnd(TNode node)
       {
         MinisatSatSolver* minisat =
             static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-        minisat->getProofManager()->registerInputs({normClauseNode});
+        minisat->getProofManager()->registerSatAssumptions({normClauseNode});
       }
       Trace("cnf") << "ProofCnfStream::handleAnd: CNF_AND_POS " << i
                    << " added norm " << normClauseNode << "\n";
@@ -763,7 +763,7 @@ SatLiteral ProofCnfStream::handleAnd(TNode node)
     {
       MinisatSatSolver* minisat =
           static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerInputs({normClauseNode});
+      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
     }
     Trace("cnf") << "ProofCnfStream::handleAnd: CNF_AND_NEG added norm "
                  << normClauseNode << "\n";
@@ -807,7 +807,7 @@ SatLiteral ProofCnfStream::handleOr(TNode node)
       {
         MinisatSatSolver* minisat =
             static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-        minisat->getProofManager()->registerInputs({normClauseNode});
+        minisat->getProofManager()->registerSatAssumptions({normClauseNode});
       }
     }
   }
@@ -832,7 +832,7 @@ SatLiteral ProofCnfStream::handleOr(TNode node)
     {
       MinisatSatSolver* minisat =
           static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerInputs({normClauseNode});
+      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
     }
   }
   return lit;
@@ -861,7 +861,7 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
     {
       MinisatSatSolver* minisat =
           static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerInputs({normClauseNode});
+      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
     }
   }
   added = d_cnfStream.assertClause(node.negate(), ~a, ~b, ~lit);
@@ -877,7 +877,7 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
     {
       MinisatSatSolver* minisat =
           static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerInputs({normClauseNode});
+      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
     }
   }
   added = d_cnfStream.assertClause(node, a, ~b, lit);
@@ -893,7 +893,7 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
     {
       MinisatSatSolver* minisat =
           static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerInputs({normClauseNode});
+      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
     }
   }
   added = d_cnfStream.assertClause(node, ~a, b, lit);
@@ -909,7 +909,7 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
     {
       MinisatSatSolver* minisat =
           static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerInputs({normClauseNode});
+      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
     }
   }
   return lit;
@@ -944,7 +944,7 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
     {
       MinisatSatSolver* minisat =
           static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerInputs({normClauseNode});
+      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
     }
   }
   added = d_cnfStream.assertClause(node.negate(), a, ~b, ~lit);
@@ -960,7 +960,7 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
     {
       MinisatSatSolver* minisat =
           static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerInputs({normClauseNode});
+      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
     }
   }
   // (a<->b) -> lit
@@ -981,7 +981,7 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
     {
       MinisatSatSolver* minisat =
           static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerInputs({normClauseNode});
+      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
     }
   }
   added = d_cnfStream.assertClause(node, a, b, lit);
@@ -996,7 +996,7 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
     {
       MinisatSatSolver* minisat =
           static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerInputs({normClauseNode});
+      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
     }
   }
   return lit;
@@ -1029,7 +1029,7 @@ SatLiteral ProofCnfStream::handleImplies(TNode node)
     {
       MinisatSatSolver* minisat =
           static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerInputs({normClauseNode});
+      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
     }
   }
   // (a->b) -> lit
@@ -1047,7 +1047,7 @@ SatLiteral ProofCnfStream::handleImplies(TNode node)
     {
       MinisatSatSolver* minisat =
           static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerInputs({normClauseNode});
+      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
     }
   }
   added = d_cnfStream.assertClause(node, ~b, lit);
@@ -1062,7 +1062,7 @@ SatLiteral ProofCnfStream::handleImplies(TNode node)
     {
       MinisatSatSolver* minisat =
           static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerInputs({normClauseNode});
+      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
     }
   }
   return lit;
@@ -1101,7 +1101,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
     {
       MinisatSatSolver* minisat =
           static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerInputs({normClauseNode});
+      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
     }
   }
   added = d_cnfStream.assertClause(node.negate(), ~lit, ~condLit, thenLit);
@@ -1117,7 +1117,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
     {
       MinisatSatSolver* minisat =
           static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerInputs({normClauseNode});
+      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
     }
   }
   added = d_cnfStream.assertClause(node.negate(), ~lit, condLit, elseLit);
@@ -1132,7 +1132,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
     {
       MinisatSatSolver* minisat =
           static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerInputs({normClauseNode});
+      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
     }
   }
   // If ITE is false then one of the branches is false and the condition
@@ -1154,7 +1154,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
     {
       MinisatSatSolver* minisat =
           static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerInputs({normClauseNode});
+      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
     }
   }
   added = d_cnfStream.assertClause(node, lit, ~condLit, ~thenLit);
@@ -1170,7 +1170,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
     {
       MinisatSatSolver* minisat =
           static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerInputs({normClauseNode});
+      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
     }
   }
   added = d_cnfStream.assertClause(node, lit, condLit, ~elseLit);
@@ -1185,7 +1185,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
     {
       MinisatSatSolver* minisat =
           static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerInputs({normClauseNode});
+      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
     }
   }
   return lit;

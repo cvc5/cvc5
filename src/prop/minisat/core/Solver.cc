@@ -625,7 +625,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
           // register the input
           if (d_pfManager)
           {
-            d_pfManager->registerInput(ps[0]);
+            d_pfManager->registerSatAssumptions(ps[0]);
           }
           CRef confl = propagate(CHECK_WITHOUT_THEORY);
           if(! (ok = (confl == CRef_Undef)) ) {

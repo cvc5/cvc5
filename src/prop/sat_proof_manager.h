@@ -91,8 +91,8 @@ class SatProofManager
 
   CDProof* getProof();
 
-  void registerInput(Minisat::Lit lit);
-  void registerInputs(const std::vector<Node>& inputs);
+  void registerSatAssumptions(Minisat::Lit lit);
+  void registerSatAssumptions(const std::vector<Node>& assumps);
 
  private:
   void endResChain(Node conclusion, const std::set<SatLiteral>& conclusionLits);
@@ -139,6 +139,9 @@ class SatProofManager
 
   /** The false node */
   Node d_false;
+
+  /** All clauses added to the SAT solver */
+  std::vector<Node> d_assumptions;
 
   /**
    * A placeholder that may be used to store the literal with the final

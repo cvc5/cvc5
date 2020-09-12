@@ -14,15 +14,14 @@
 
 #include "expr/lazy_proof_chain.h"
 
+#include "expr/proof.h"
 #include "expr/proof_node_algorithm.h"
 #include "options/smt_options.h"
 
 namespace CVC4 {
 
-LazyCDProofChain::LazyCDProofChain(ProofNodeManager* pnm,
-                                   context::Context* c,
-                                   std::string name)
-    : CDProof(pnm, c, name), d_gens(c ? c : &d_context)
+LazyCDProofChain::LazyCDProofChain(ProofNodeManager* pnm, context::Context* c)
+    : d_manager(pnm), d_context(), d_gens(c ? c : &d_context)
 {
 }
 
@@ -186,28 +185,33 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
   return expandedToConnect[cur];
 }
 
+void LazyCDProofChain::addLazyStep(Node expected, ProofGenerator* pg)
+{
+  Assert(pg != nullptr);
+  Trace("lazy-cdproofchain") << "LazyCDProofChain::addLazyStep: " << expected
+                             << " set to generator " << pg->identify() << "\n";
+  // note this will rewrite the generator for expected, if any
+  d_gens.insert(expected, pg);
+}
+
 void LazyCDProofChain::addLazyStep(Node expected,
                                    ProofGenerator* pg,
-                                   bool isClosed,
+                                   const std::vector<Node>& assumptions,
                                    const char* ctx)
 {
   Assert(pg != nullptr);
   Trace("lazy-cdproofchain") << "LazyCDProofChain::addLazyStep: " << expected
                              << " set to generator " << pg->identify() << "\n";
-  if (d_gens.find(expected) != d_gens.end())
-  {
-    Trace("lazy-cdproofchain") << "LazyCDProofChain::addLazyStep: " << expected
-                               << " had a previous generator\n";
-  }
+  // note this will rewrite the generator for expected, if any
   d_gens.insert(expected, pg);
   // check if chain is closed if options::proofNewEagerChecking() is on
-  if (isClosed && options::proofNewEagerChecking())
+  if (options::proofNewEagerChecking())
   {
     Trace("lazy-cdproofchain")
         << "LazyCDProofChain::addLazyStep: Checking closed proof...\n";
-    std::shared_ptr<ProofNode> pfn = getProofFor(expected);
-    std::vector<Node> allowedLeaves{d_fixedAssumptions.begin(),
-                                    d_fixedAssumptions.end()};
+    std::shared_ptr<ProofNode> pfn = pg->getProofFor(expected);
+    std::vector<Node> allowedLeaves{assumptions.begin(), assumptions.end()};
+    // add all current links in the chain
     for (const std::pair<const Node, ProofGenerator*>& link : d_gens)
     {
       allowedLeaves.push_back(link.first);
@@ -227,7 +231,7 @@ void LazyCDProofChain::addLazyStep(Node expected,
 
 bool LazyCDProofChain::hasGenerator(Node fact) const
 {
-  NodeProofGeneratorMap::const_iterator it = d_gens.find(fact);
+  auto it = d_gens.find(fact);
   if (it != d_gens.end())
   {
     return true;
@@ -244,7 +248,7 @@ bool LazyCDProofChain::hasGenerator(Node fact) const
 ProofGenerator* LazyCDProofChain::getGeneratorFor(Node fact, bool& isSym)
 {
   isSym = false;
-  NodeProofGeneratorMap::const_iterator it = d_gens.find(fact);
+  auto it = d_gens.find(fact);
   if (it != d_gens.end())
   {
     return (*it).second;
@@ -265,25 +269,6 @@ ProofGenerator* LazyCDProofChain::getGeneratorFor(Node fact, bool& isSym)
   return nullptr;
 }
 
-void LazyCDProofChain::addFixedAssumption(Node assumption)
-{
-  Trace("lazy-cdproofchain")
-      << "LazyCDProofChain::addFixedAssumption " << assumption << "\n";
-  d_fixedAssumptions.push_back(assumption);
-}
-
-void LazyCDProofChain::addFixedAssumptions(const std::vector<Node>& assumptions)
-{
-  if (Trace.isOn("lazy-cdproofchain"))
-  {
-    for (const Node& a : assumptions)
-    {
-      Trace("lazy-cdproofchain")
-          << "LazyCDProofChain::addFixedAssumptions: - " << a << "\n";
-    }
-  }
-  d_fixedAssumptions.insert(
-      d_fixedAssumptions.end(), assumptions.begin(), assumptions.end());
-}
+std::string LazyCDProofChain::identify() const { return "LazyCDProofChain"; }
 
 }  // namespace CVC4

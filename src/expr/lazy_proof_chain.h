@@ -20,21 +20,22 @@
 #include <unordered_map>
 #include <vector>
 
-#include "expr/proof.h"
+#include "context/cdhashmap.h"
 #include "expr/proof_generator.h"
 #include "expr/proof_node_manager.h"
 
 namespace CVC4 {
 
 /**
- * A (context-dependent) lazy proof chain. This class is an extension of CDProof
- * that additionally maps facts to proof generators in a context-dependent
- * manner. It extends CDProof with an additional method, addLazyStep for adding
- * steps to a proof via a given proof generator. More importantly, its
- * getProofFor method is so that it expands the proof generators registered to
- * this class until a fix-point.
+ * A (context-dependent) lazy generator for proof chains. This class is an
+ * extension of ProofGenerator that additionally that maps facts to proof
+ * generators in a context-dependent manner. The map is built with the addition
+ * of lazy steps mapping facts to proof generators. More importantly, its
+ * getProofFor method expands the proof generators registered to this class by
+ * connecting, for the proof generated to one fact, assumptions to the proofs
+ * generated for those assumptinos that are registered in the chain.
  */
-class LazyCDProofChain : public CDProof
+class LazyCDProofChain : public ProofGenerator
 {
  public:
   /** Constructor
@@ -43,15 +44,29 @@ class LazyCDProofChain : public CDProof
    * @param c The context that this class depends on. If none is provided,
    * this class is context-independent.
    */
-  LazyCDProofChain(ProofNodeManager* pnm,
-                   context::Context* c = nullptr,
-                   std::string name = "LazyCDProofChain");
+  LazyCDProofChain(ProofNodeManager* pnm, context::Context* c = nullptr);
   ~LazyCDProofChain();
   /**
-   * Get lazy proof for fact, or nullptr if it does not exist. This may
-   * additionally call proof generators to generate proofs for ASSUME nodes that
-   * don't yet have a concrete proof. This is done until a fix-point, so that
-   * the nods registered in d_gens are connected in a chain.
+   * Get lazDyet have a concrete proof and that are registered in the chains
+   * (i.e., are in the domain of d_gens). Starting with the proof generated for
+   * fact, if any.
+   *
+   * For example, if d_gens consists of the following pairs
+   *
+   * --- (A, PG1)
+   * --- (B, PG2)
+   * --- (C, PG3)
+   *
+   * and getProofFor(A) is called, with PG1 generating a proof with assumptions
+   * B and D, then B is expanded, with its assumption proof node being updated
+   * to the expanded proof node, while D is not. Assuming PG2 provides a proof
+   * with assumptions C and E, then C is expanded and E is not. Suppose PG3
+   * gives a closed proof, thus the call getProofFor(A) produces a proof node
+   *
+   *  A : ( ... B : ( ... C : (...), ... ASSUME( E ) ), ... ASSUME( D ) )
+   *
+   * Note that the expansions are done directly on the proof nodes produced by
+   * the generators.
    */
   std::shared_ptr<ProofNode> getProofFor(Node fact) override;
   /** Add step by generator
@@ -60,39 +75,29 @@ class LazyCDProofChain : public CDProof
    * it is required to do so. This mapping is maintained in the remainder of
    * the current context (according to the context c provided to this class).
    *
-   * It is important to note that pg is asked to provide a proof for expected
-   * only when no other call for the fact expected is provided via the addStep
-   * method of this class. In particular, pg is asked to prove expected when it
-   * appears as the conclusion of an ASSUME leaf within CDProof::getProofFor.
-   *
    * Moreover the lazy steps of this class are expected to fulfill the
-   * requirement that pg.getProofFor(expected) triggers proof generators
-   * registered to this class (to the leaves of the initial proof of expected)
-   * until a fix point, building a chain of connections so that the final
-   * assumption leaves are contained in
+   * requirement that pg.getProofFor(expected) generates a proof node closed
+   * with relation to
    *  (1) a fixed set F1, ..., Fn,
    *  (2) formulas in the current domain of d_gens.
    *
-   * As a precondition for adding a step, we require:
-   *  (1) F is not already in the domain of this map. (HB Not sure about this
-   * one)
-   *  (2) F does not occur in F1 ... Fn.
+   * This is so that we only add links to the chain that depend on a fixed set
+   * of assumptions or in other links.
    *
    * @param expected The fact that can be proven.
    * @param pg The generator that can proof expected.
-   * @param isClosed Whether we are ready to check that expected has a closed
-   * proof when connecting the chain.
+   * @param assumptions The fixed set of assumptions with relation to which the
+   * chain, now augmented with expect, must be closed.
    * @param ctx The context we are in (for debugging).
    */
   void addLazyStep(Node expected,
                    ProofGenerator* pg,
-                   bool isClosed = true,
+                   const std::vector<Node>& assumptions,
                    const char* ctx = "LazyCDProofChain::addLazyStep");
-  /**
-   * Does this have any proof generators? This method always returns true
-   * if the default is non-null.
-   */
-  bool hasGenerators() const;
+
+  /** As above but does not do the closedness check. */
+  void addLazyStep(Node expected, ProofGenerator* pg);
+
   /** Does the given fact have an explicitly provided generator? */
   bool hasGenerator(Node fact) const;
 
@@ -103,21 +108,16 @@ class LazyCDProofChain : public CDProof
    */
   ProofGenerator* getGeneratorFor(Node fact, bool& isSym);
 
-  /** Sets the fixed set of assumptions on which this chain depends. This is
-   * used for debugging purposes when checking that added steps are closed. */
-  void addFixedAssumptions(const std::vector<Node>& assumptions);
+  /** identify */
+  std::string identify() const override;
 
-  /** as above, but single assumption */
-  void addFixedAssumption(Node assumption);
-
- protected:
-  typedef context::CDHashMap<Node, ProofGenerator*, NodeHashFunction>
-      NodeProofGeneratorMap;
+ private:
+  /** The proof manager, used for allocating new ProofNode objects */
+  ProofNodeManager* d_manager;
+  /** A dummy context used by this class if none is provided */
+  context::Context d_context;
   /** Maps facts that can be proven to generators */
-  NodeProofGeneratorMap d_gens;
-
-  /** set of assumptions with relation to which the chain must be closed */
-  std::vector<Node> d_fixedAssumptions;
+  context::CDHashMap<Node, ProofGenerator*, NodeHashFunction> d_gens;
 };
 
 }  // namespace CVC4
