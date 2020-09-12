@@ -22,6 +22,7 @@
 #include "options/smt_options.h"
 #include "prop/proof_post_processor.h"
 #include "prop/sat_proof_manager.h"
+#include "context/cdlist.h"
 
 namespace CVC4 {
 
@@ -33,8 +34,10 @@ namespace prop {
  */
 class PropPfManager
 {
+  typedef context::CDList<Node> NodeList;
  public:
-  PropPfManager(ProofNodeManager* pnm,
+  PropPfManager(context::UserContext* userContext,
+                ProofNodeManager* pnm,
                 SatProofManager* satPM,
                 ProofCnfStream* cnfProof);
 
@@ -66,7 +69,7 @@ class PropPfManager
   SatProofManager* d_satPM;
   /** The assertions that should be the only assumptions of the postprocessed
    * proof */
-  std::vector<Node> d_assertions;
+  NodeList d_assertions;
 }; /* class SmtEngine */
 
 }  // namespace prop

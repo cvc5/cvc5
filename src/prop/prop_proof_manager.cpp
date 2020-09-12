@@ -19,10 +19,11 @@
 namespace CVC4 {
 namespace prop {
 
-PropPfManager::PropPfManager(ProofNodeManager* pnm,
+PropPfManager::PropPfManager(context::UserContext* userContext,
+                             ProofNodeManager* pnm,
                              SatProofManager* satPM,
                              ProofCnfStream* cnfProof)
-    : d_pnm(pnm), d_pfpp(new ProofPostproccess(pnm, cnfProof)), d_satPM(satPM)
+    : d_pnm(pnm), d_pfpp(new ProofPostproccess(pnm, cnfProof)), d_satPM(satPM), d_assertions(userContext)
 {
 }
 
@@ -77,8 +78,14 @@ std::shared_ptr<ProofNode> PropPfManager::getProof()
   {
     Trace("sat-proof")
         << "PropPfManager::getProof: checking if can make scope...\n";
+    // convert to vector
+    std::vector<Node> avec;
+    for (const Node& as : d_assertions)
+    {
+      avec.push_back(as);
+    }
     std::shared_ptr<ProofNode> scopePfn =
-        d_pnm->mkScope(conflictProof, d_assertions);
+        d_pnm->mkScope(conflictProof, avec);
     Trace("sat-proof") << "PropPfManager::getProof: prop engine prood is "
                           "closed w.r.t. preprocessed assertions\n";
   }
