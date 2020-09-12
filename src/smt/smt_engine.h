@@ -1109,12 +1109,6 @@ class CVC4_PUBLIC SmtEngine
    */
   std::unique_ptr<theory::Rewriter> d_rewriter;
 
-  /**
-   * The proof manager, which manages all things related to checking,
-   * processing, and printing proofs.
-   */
-  std::unique_ptr<smt::PfManager> d_pfManager;
-
   /** An index of our defined functions */
   DefinedFunctionMap* d_definedFunctions;
 

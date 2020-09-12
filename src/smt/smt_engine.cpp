@@ -135,7 +135,6 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_proofManager(nullptr),
       d_pfManager(nullptr),
       d_rewriter(new theory::Rewriter()),
-      d_pfManager(nullptr),
       d_definedFunctions(nullptr),
       d_sygusSolver(nullptr),
       d_abductSolver(nullptr),
