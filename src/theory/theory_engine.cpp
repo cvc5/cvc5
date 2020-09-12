@@ -1300,6 +1300,7 @@ theory::TrustNode TheoryEngine::getExplanation(TNode node)
         << " Responsible theory is: " << theoryOf(atom)->getId() << std::endl;
 
     TrustNode texplanation = theoryOf(atom)->explain(node);
+    Node explanation = texplanation.getNode();
     Debug("theory::explain") << "TheoryEngine::getExplanation(" << node
                              << ") => " << explanation << endl;
     if (isProofEnabled())
@@ -1580,10 +1581,10 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   }
 
   // now, send the lemmas to the prop engine
-  d_propEngine->assertLemma(tlemma.getProven(), false, removable);
+  d_propEngine->assertLemma(tlemma, removable);
   for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
   {
-    d_propEngine->assertLemma(newLemmas[i].getProven(), false, removable);
+    d_propEngine->assertLemma(newLemmas[i], removable);
   }
 
   // assert to decision engine
