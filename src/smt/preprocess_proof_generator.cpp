@@ -21,7 +21,8 @@
 namespace CVC4 {
 namespace smt {
 
-PreprocessProofGenerator::PreprocessProofGenerator(context::UserContext* u, ProofNodeManager* pnm)
+PreprocessProofGenerator::PreprocessProofGenerator(context::UserContext* u,
+                                                   ProofNodeManager* pnm)
     : d_pnm(pnm), d_src(u)
 {
 }

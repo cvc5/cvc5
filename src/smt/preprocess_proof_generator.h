@@ -19,10 +19,10 @@
 
 #include <map>
 
+#include "context/cdhashmap.h"
 #include "expr/proof_generator.h"
 #include "expr/proof_node_manager.h"
 #include "theory/trust_node.h"
-#include "context/cdhashmap.h"
 
 namespace CVC4 {
 namespace smt {
@@ -44,6 +44,7 @@ class PreprocessProofGenerator : public ProofGenerator
 {
   typedef context::CDHashMap<Node, theory::TrustNode, NodeHashFunction>
       NodeTrustNodeMap;
+
  public:
   PreprocessProofGenerator(context::UserContext* u, ProofNodeManager* pnm);
   ~PreprocessProofGenerator() {}
