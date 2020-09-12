@@ -256,16 +256,16 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   }
   else if (id == PfRule::MACRO_SR_PRED_TRANSFORM)
   {
-    // (TRUE_ELIM
-    // (TRANS
-    //    (MACRO_SR_EQ_INTRO children[1:] :args <args>)
-    //    ... proof of a = wa
-    //    (MACRO_SR_EQ_INTRO {} wa)
-    //    (SYMM
+    // (EQ_RESOLVE
+    //   (TRANS
     //      (MACRO_SR_EQ_INTRO children[1:] :args (children[0] args[1:]))
     //      ... proof of c = wc
-    //      (MACRO_SR_EQ_INTRO {} wc))
-    //    (TRUE_INTRO children[0])))
+    //      (MACRO_SR_EQ_INTRO {} wc)
+    //      (SYMM
+    //        (MACRO_SR_EQ_INTRO children[1:] :args <args>)
+    //        ... proof of a = wa
+    //        (MACRO_SR_EQ_INTRO {} wa)))
+    //   :args children[0])
     // where
     // wa = toWitness(apply_SR(args[0])) and
     // wc = toWitness(apply_SR(children[0])).
@@ -286,8 +286,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     for (unsigned r = 0; r < 2; r++)
     {
       std::vector<Node> tchildrenr;
-      // first rewrite args[0], then children[0]
-      sargs[0] = r == 0 ? args[0] : children[0];
+      // first rewrite children[0], then args[0]
+      sargs[0] = r == 0 ? children[0] : args[0];
       // t = apply_SR(t)
       Node eq = expandMacros(PfRule::MACRO_SR_EQ_INTRO, schildren, sargs, cdp);
       Trace("smt-proof-pp-debug")
@@ -333,16 +333,10 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
           << "transform finish (" << r << ")" << std::endl;
     }
 
-    // children[0] = true
-    Node eq3 = children[0].eqNode(d_true);
-    Trace("smt-proof-pp-debug") << "transform true_intro: " << eq3 << std::endl;
-    cdp->addStep(eq3, PfRule::TRUE_INTRO, {children[0]}, {});
-    addToTransChildren(eq3, tchildren);
-
     // apply transitivity if necessary
     Node eq = addProofForTrans(tchildren, cdp);
 
-    cdp->addStep(args[0], PfRule::TRUE_ELIM, {eq}, {});
+    cdp->addStep(args[0], PfRule::EQ_RESOLVE, {children[0], eq}, {});
     return args[0];
   }
   else if (id == PfRule::SUBS)

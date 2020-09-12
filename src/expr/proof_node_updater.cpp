@@ -59,27 +59,27 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
       }
     }
   }
-  processInternal(pf.get(), d_freeAssumps);
+  processInternal(pf, d_freeAssumps);
 }
 
-void ProofNodeUpdater::processInternal(ProofNode* pf,
+void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
                                        const std::vector<Node>& fa)
 {
   Trace("pf-process") << "ProofNodeUpdater::process" << std::endl;
-  std::unordered_map<ProofNode*, bool> visited;
-  std::unordered_map<ProofNode*, bool>::iterator it;
-  std::vector<ProofNode*> visit;
-  ProofNode* cur;
+  std::unordered_map<std::shared_ptr<ProofNode>, bool> visited;
+  std::unordered_map<std::shared_ptr<ProofNode>, bool>::iterator it;
+  std::vector<std::shared_ptr<ProofNode>> visit;
+  std::shared_ptr<ProofNode> cur;
   visit.push_back(pf);
-  std::map<Node, ProofNode*>::iterator itc;
+  std::map<Node, std::shared_ptr<ProofNode>>::iterator itc;
   // NOTE: temporary, debugging
   unsigned counterReuse = 0;
   unsigned counterNew = 0;
   // A cache from formulas to proof nodes that are in the current scope.
   // Notice that we make a fresh recursive call to process if the current
   // rule is SCOPE below.
-  std::map<Node, ProofNode*> resCache;
-  TNode res;
+  std::map<Node, std::shared_ptr<ProofNode>> resCache;
+  Node res;
   do
   {
     cur = visit.back();
@@ -94,7 +94,7 @@ void ProofNodeUpdater::processInternal(ProofNode* pf,
         counterReuse++;
         // already have a proof
         visited[cur] = true;
-        d_pnm->updateNode(cur, itc->second);
+        d_pnm->updateNode(cur.get(), itc->second.get());
       }
       else
       {
@@ -130,7 +130,7 @@ void ProofNodeUpdater::processInternal(ProofNode* pf,
         // now, process children
         for (const std::shared_ptr<ProofNode>& cp : ccp)
         {
-          visit.push_back(cp.get());
+          visit.push_back(cp);
         }
       }
       Trace("pf-process-debug")
@@ -146,10 +146,10 @@ void ProofNodeUpdater::processInternal(ProofNode* pf,
   Trace("pf-process") << "ProofNodeUpdater::process: finished" << std::endl;
 }
 
-bool ProofNodeUpdater::runUpdate(ProofNode* cur, const std::vector<Node>& fa)
+bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur, const std::vector<Node>& fa)
 {
   // should it be updated?
-  if (!d_cb.shouldUpdate(cur))
+  if (!d_cb.shouldUpdate(cur.get()))
   {
     return false;
   }
@@ -174,7 +174,7 @@ bool ProofNodeUpdater::runUpdate(ProofNode* cur, const std::vector<Node>& fa)
     std::shared_ptr<ProofNode> npn = cpf.getProofFor(res);
     // then, update the original proof node based on this one
     Trace("pf-process-debug") << "Update node..." << std::endl;
-    d_pnm->updateNode(cur, npn.get());
+    d_pnm->updateNode(cur.get(), npn.get());
     Trace("pf-process-debug") << "...update node finished." << std::endl;
     if (d_debugFreeAssumps)
     {
