@@ -1410,6 +1410,11 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     throw OptionException("--proof-new is not yet supported.");
   }
+	if (options::produceInterpols() != options::ProduceInterpols::NONE)
+	{
+		std::cerr << "enter" << std::endl;
+		options::incrementalSolving.set(false);
+	}
 }
 
 }  // namespace smt
