@@ -310,7 +310,9 @@ class TermDbSygus {
 
   /** print to sygus stream n on trace c */
   static void toStreamSygus(const char* c, Node n);
-
+  /** print to sygus stream n on output out */
+  static void toStreamSygus(std::ostream& out, Node n);
+  
  private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;

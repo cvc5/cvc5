@@ -45,15 +45,11 @@ class EngineOutputChannel : public theory::OutputChannel
 
   void safePoint(ResourceManager::Resource r) override;
 
-  void conflict(TNode conflictNode,
-                std::unique_ptr<Proof> pf = nullptr) override;
+  void conflict(TNode conflictNode) override;
   bool propagate(TNode literal) override;
 
   theory::LemmaStatus lemma(TNode lemma,
-                            ProofRule rule,
-                            bool removable = false,
-                            bool preprocess = false,
-                            bool sendAtoms = false) override;
+                            LemmaProperty p = LemmaProperty::NONE) override;
 
   theory::LemmaStatus splitLemma(TNode lemma, bool removable = false) override;
 
@@ -66,6 +62,22 @@ class EngineOutputChannel : public theory::OutputChannel
   void spendResource(ResourceManager::Resource r) override;
 
   void handleUserAttribute(const char* attr, theory::Theory* t) override;
+
+  /**
+   * Let pconf be the pair (Node conf, ProofGenerator * pfg). This method
+   * sends conf on the output channel of this class whose proof can be generated
+   * by the generator pfg. Apart from pfg, the interface for this method is
+   * the same as calling OutputChannel::lemma on conf.
+   */
+  void trustedConflict(TrustNode pconf) override;
+  /**
+   * Let plem be the pair (Node lem, ProofGenerator * pfg).
+   * Send lem on the output channel of this class whose proof can be generated
+   * by the generator pfg. Apart from pfg, the interface for this method is
+   * the same as calling OutputChannel::lemma on lem.
+   */
+  LemmaStatus trustedLemma(TrustNode plem,
+                           LemmaProperty p = LemmaProperty::NONE) override;
 
  protected:
   /**

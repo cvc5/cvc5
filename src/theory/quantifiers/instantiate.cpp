@@ -16,6 +16,8 @@
 
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
+#include "options/smt_options.h"
+#include "proof/proof_manager.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -33,12 +35,16 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-Instantiate::Instantiate(QuantifiersEngine* qe, context::UserContext* u)
+Instantiate::Instantiate(QuantifiersEngine* qe,
+                         context::UserContext* u,
+                         ProofNodeManager* pnm)
     : d_qe(qe),
+      d_pnm(pnm),
       d_term_db(nullptr),
       d_term_util(nullptr),
-      d_total_inst_count_debug(0),
-      d_c_inst_match_trie_dom(u)
+      d_total_inst_debug(u),
+      d_c_inst_match_trie_dom(u),
+      d_pfInst(pnm ? new CDProof(pnm) : nullptr)
 {
 }
 
@@ -229,44 +235,109 @@ bool Instantiate::addInstantiation(
     return false;
   }
 
+  // Set up a proof if proofs are enabled. This proof stores a proof of
+  // the instantiation body with q as a free assumption.
+  std::shared_ptr<LazyCDProof> pfTmp;
+  if (isProofEnabled())
+  {
+    pfTmp.reset(new LazyCDProof(
+        d_pnm, nullptr, nullptr, "Instantiate::LazyCDProof::tmp"));
+  }
+
   // construct the instantiation
   Trace("inst-add-debug") << "Constructing instantiation..." << std::endl;
   Assert(d_term_util->d_vars[q].size() == terms.size());
   // get the instantiation
-  Node body = getInstantiation(q, d_term_util->d_vars[q], terms, doVts);
+  Node body =
+      getInstantiation(q, d_term_util->d_vars[q], terms, doVts, pfTmp.get());
   Node orig_body = body;
-  // now preprocess
-  body = quantifiers::QuantifiersRewriter::preprocess(body, true);
+  // now preprocess, storing the trust node for the rewrite
+  TrustNode tpBody = quantifiers::QuantifiersRewriter::preprocess(body, true);
+  if (!tpBody.isNull())
+  {
+    Assert(tpBody.getKind() == TrustNodeKind::REWRITE);
+    body = tpBody.getNode();
+    // do a tranformation step
+    if (pfTmp != nullptr)
+    {
+      //              ----------------- from preprocess
+      // orig_body    orig_body = body
+      // ------------------------------ EQ_RESOLVE
+      // body
+      Node proven = tpBody.getProven();
+      // add the transformation proof, or THEORY_PREPROCESS if none provided
+      pfTmp->addLazyStep(proven,
+                         tpBody.getGenerator(),
+                         true,
+                         "Instantiate::getInstantiation:qpreprocess",
+                         false,
+                         PfRule::THEORY_PREPROCESS);
+      pfTmp->addStep(body, PfRule::EQ_RESOLVE, {orig_body, proven}, {body});
+    }
+  }
   Trace("inst-debug") << "...preprocess to " << body << std::endl;
 
   // construct the lemma
   Trace("inst-assert") << "(assert " << body << ")" << std::endl;
 
-  if (d_qe->usingModelEqualityEngine() && options::instNoModelTrue())
+  // construct the instantiation, and rewrite the lemma
+  Node lem = NodeManager::currentNM()->mkNode(kind::IMPLIES, q, body);
+
+  // If proofs are enabled, construct the proof, which is of the form:
+  // ... free assumption q ...
+  // ------------------------- from pfTmp
+  // body
+  // ------------------------- SCOPE
+  // (=> q body)
+  // -------------------------- MACRO_SR_PRED_ELIM
+  // lem
+  bool hasProof = false;
+  if (isProofEnabled())
   {
-    Node val_body = d_qe->getModel()->getValue(body);
-    if (val_body.isConst() && val_body.getConst<bool>())
+    // make the proof of body
+    std::shared_ptr<ProofNode> pfn = pfTmp->getProofFor(body);
+    // make the scope proof to get (=> q body)
+    std::vector<Node> assumps;
+    assumps.push_back(q);
+    std::shared_ptr<ProofNode> pfns = d_pnm->mkScope({pfn}, assumps);
+    Assert(assumps.size() == 1 && assumps[0] == q);
+    // store in the main proof
+    d_pfInst->addProof(pfns);
+    Node prevLem = lem;
+    lem = Rewriter::rewrite(lem);
+    if (prevLem != lem)
     {
-      Trace("inst-add-debug") << " --> True in model." << std::endl;
-      ++(d_statistics.d_inst_duplicate_model_true);
-      return false;
+      d_pfInst->addStep(lem, PfRule::MACRO_SR_PRED_ELIM, {prevLem}, {});
     }
+    hasProof = true;
+  }
+  else
+  {
+    lem = Rewriter::rewrite(lem);
   }
 
-  Node lem = NodeManager::currentNM()->mkNode(kind::OR, q.negate(), body);
-  lem = Rewriter::rewrite(lem);
+  // added lemma, which checks for lemma duplication
+  bool addedLem = false;
+  if (hasProof)
+  {
+    // use trust interface
+    TrustNode tlem = TrustNode::mkTrustLemma(lem, d_pfInst.get());
+    addedLem = d_qe->addTrustedLemma(tlem, true, false);
+  }
+  else
+  {
+    addedLem = d_qe->addLemma(lem, true, false);
+  }
 
-  // check for lemma duplication
-  if (!d_qe->addLemma(lem, true, false))
+  if (!addedLem)
   {
     Trace("inst-add-debug") << " --> Lemma already exists." << std::endl;
     ++(d_statistics.d_inst_duplicate);
     return false;
   }
 
-  d_total_inst_debug[q]++;
+  d_total_inst_debug[q] = d_total_inst_debug[q] + 1;
   d_temp_inst_debug[q]++;
-  d_total_inst_count_debug++;
   if (Trace.isOn("inst"))
   {
     Trace("inst") << "*** Instantiate " << q << " with " << std::endl;
@@ -377,7 +448,8 @@ bool Instantiate::existsInstantiation(Node q,
 Node Instantiate::getInstantiation(Node q,
                                    std::vector<Node>& vars,
                                    std::vector<Node>& terms,
-                                   bool doVts)
+                                   bool doVts,
+                                   LazyCDProof* pf)
 {
   Node body;
   Assert(vars.size() == terms.size());
@@ -385,10 +457,34 @@ Node Instantiate::getInstantiation(Node q,
   // Notice that this could be optimized, but no significant performance
   // improvements were observed with alternative implementations (see #1386).
   body = q[1].substitute(vars.begin(), vars.end(), terms.begin(), terms.end());
+
+  // store the proof of the instantiated body, with (open) assumption q
+  if (pf != nullptr)
+  {
+    pf->addStep(body, PfRule::INSTANTIATE, {q}, terms);
+  }
+
   // run rewriters to rewrite the instantiation in sequence.
   for (InstantiationRewriter*& ir : d_instRewrite)
   {
-    body = ir->rewriteInstantiation(q, terms, body, doVts);
+    TrustNode trn = ir->rewriteInstantiation(q, terms, body, doVts);
+    if (!trn.isNull())
+    {
+      Node newBody = trn.getNode();
+      // if using proofs, we store a preprocess + transformation step.
+      if (pf != nullptr)
+      {
+        Node proven = trn.getProven();
+        pf->addLazyStep(proven,
+                        trn.getGenerator(),
+                        true,
+                        "Instantiate::getInstantiation:rewrite_inst",
+                        false,
+                        PfRule::THEORY_PREPROCESS);
+        pf->addStep(newBody, PfRule::EQ_RESOLVE, {body, proven}, {});
+      }
+      body = newBody;
+    }
   }
   return body;
 }
@@ -466,6 +562,16 @@ Node Instantiate::getTermForType(TypeNode tn)
 
 bool Instantiate::printInstantiations(std::ostream& out)
 {
+  if (options::printInstMode() == options::PrintInstMode::NUM)
+  {
+    return printInstantiationsNum(out);
+  }
+  Assert(options::printInstMode() == options::PrintInstMode::LIST);
+  return printInstantiationsList(out);
+}
+
+bool Instantiate::printInstantiationsList(std::ostream& out)
+{
   bool useUnsatCore = false;
   std::vector<Node> active_lemmas;
   if (options::trackInstLemmas() && getUnsatCoreLemmas(active_lemmas))
@@ -473,33 +579,86 @@ bool Instantiate::printInstantiations(std::ostream& out)
     useUnsatCore = true;
   }
   bool printed = false;
+  bool isFull = options::printInstFull();
   if (options::incrementalSolving())
   {
     for (std::pair<const Node, inst::CDInstMatchTrie*>& t : d_c_inst_match_trie)
     {
-      bool firstTime = true;
-      t.second->print(out, t.first, firstTime, useUnsatCore, active_lemmas);
-      if (!firstTime)
+      std::stringstream qout;
+      if (!printQuant(t.first, qout, isFull))
       {
-        out << ")" << std::endl;
+        continue;
       }
-      printed = printed || !firstTime;
+      std::stringstream sout;
+      t.second->print(sout, t.first, useUnsatCore, active_lemmas);
+      if (!sout.str().empty())
+      {
+        out << "(instantiations " << qout.str() << std::endl;
+        out << sout.str();
+        out << ")" << std::endl;
+        printed = true;
+      }
     }
   }
   else
   {
     for (std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
     {
-      bool firstTime = true;
-      t.second.print(out, t.first, firstTime, useUnsatCore, active_lemmas);
-      if (!firstTime)
+      std::stringstream qout;
+      if (!printQuant(t.first, qout, isFull))
       {
-        out << ")" << std::endl;
+        continue;
       }
-      printed = printed || !firstTime;
+      std::stringstream sout;
+      t.second.print(sout, t.first, useUnsatCore, active_lemmas);
+      if (!sout.str().empty())
+      {
+        out << "(instantiations " << qout.str() << std::endl;
+        out << sout.str();
+        out << ")" << std::endl;
+        printed = true;
+      }
     }
   }
   return printed;
+}
+
+bool Instantiate::printInstantiationsNum(std::ostream& out)
+{
+  if (d_total_inst_debug.empty())
+  {
+    return false;
+  }
+  bool isFull = options::printInstFull();
+  for (NodeUIntMap::iterator it = d_total_inst_debug.begin();
+       it != d_total_inst_debug.end();
+       ++it)
+  {
+    std::stringstream ss;
+    if (printQuant((*it).first, ss, isFull))
+    {
+      out << "(num-instantiations " << ss.str() << " " << (*it).second << ")"
+          << std::endl;
+    }
+  }
+  return true;
+}
+
+bool Instantiate::printQuant(Node q, std::ostream& out, bool isFull)
+{
+  if (isFull)
+  {
+    out << q;
+    return true;
+  }
+  quantifiers::QuantAttributes* qa = d_qe->getQuantAttributes();
+  Node name = qa->getQuantName(q);
+  if (name.isNull())
+  {
+    return false;
+  }
+  out << name;
+  return true;
 }
 
 void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
@@ -526,18 +685,21 @@ void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
 bool Instantiate::getUnsatCoreLemmas(std::vector<Node>& active_lemmas)
 {
   // only if unsat core available
-  if (options::proof())
+  if (options::unsatCores())
   {
     if (!ProofManager::currentPM()->unsatCoreAvailable())
     {
       return false;
     }
   }
+  else
+  {
+    return false;
+  }
 
   Trace("inst-unsat-core") << "Get instantiations in unsat core..."
                            << std::endl;
-  ProofManager::currentPM()->getLemmasInUnsatCore(theory::THEORY_QUANTIFIERS,
-                                                  active_lemmas);
+  ProofManager::currentPM()->getLemmasInUnsatCore(active_lemmas);
   if (Trace.isOn("inst-unsat-core"))
   {
     Trace("inst-unsat-core") << "Quantifiers lemmas in unsat core: "
@@ -549,27 +711,6 @@ bool Instantiate::getUnsatCoreLemmas(std::vector<Node>& active_lemmas)
     Trace("inst-unsat-core") << std::endl;
   }
   return true;
-}
-
-bool Instantiate::getUnsatCoreLemmas(std::vector<Node>& active_lemmas,
-                                     std::map<Node, Node>& weak_imp)
-{
-  if (getUnsatCoreLemmas(active_lemmas))
-  {
-    for (unsigned i = 0, size = active_lemmas.size(); i < size; ++i)
-    {
-      Node n = ProofManager::currentPM()->getWeakestImplicantInUnsatCore(
-          active_lemmas[i]);
-      if (n != active_lemmas[i])
-      {
-        Trace("inst-unsat-core") << "  weaken : " << active_lemmas[i] << " -> "
-                                 << n << std::endl;
-      }
-      weak_imp[active_lemmas[i]] = n;
-    }
-    return true;
-  }
-  return false;
 }
 
 void Instantiate::getInstantiationTermVectors(
@@ -639,6 +780,8 @@ void Instantiate::getExplanationForInstLemmas(
   }
 #endif
 }
+
+bool Instantiate::isProofEnabled() const { return d_pfInst != nullptr; }
 
 void Instantiate::getInstantiations(std::map<Node, std::vector<Node> >& insts)
 {
@@ -721,16 +864,30 @@ Node Instantiate::getInstantiatedConjunction(Node q)
   return ret;
 }
 
-void Instantiate::debugPrint()
+void Instantiate::debugPrint(std::ostream& out)
 {
   // debug information
   if (Trace.isOn("inst-per-quant-round"))
   {
-    for (std::pair<const Node, int>& i : d_temp_inst_debug)
+    for (std::pair<const Node, uint32_t>& i : d_temp_inst_debug)
     {
       Trace("inst-per-quant-round") << " * " << i.second << " for " << i.first
                                     << std::endl;
       d_temp_inst_debug[i.first] = 0;
+    }
+  }
+  if (options::debugInst())
+  {
+    bool isFull = options::printInstFull();
+    for (std::pair<const Node, uint32_t>& i : d_temp_inst_debug)
+    {
+      std::stringstream ss;
+      if (!printQuant(i.first, ss, isFull))
+      {
+        continue;
+      }
+      out << "(num-instantiations " << ss.str() << " " << i.second << ")"
+          << std::endl;
     }
   }
 }
@@ -739,10 +896,12 @@ void Instantiate::debugPrintModel()
 {
   if (Trace.isOn("inst-per-quant"))
   {
-    for (std::pair<const Node, int>& i : d_total_inst_debug)
+    for (NodeUIntMap::iterator it = d_total_inst_debug.begin();
+         it != d_total_inst_debug.end();
+         ++it)
     {
-      Trace("inst-per-quant") << " * " << i.second << " for " << i.first
-                              << std::endl;
+      Trace("inst-per-quant")
+          << " * " << (*it).second << " for " << (*it).first << std::endl;
     }
   }
 }
@@ -767,14 +926,12 @@ Instantiate::Statistics::Statistics()
     : d_instantiations("Instantiate::Instantiations_Total", 0),
       d_inst_duplicate("Instantiate::Duplicate_Inst", 0),
       d_inst_duplicate_eq("Instantiate::Duplicate_Inst_Eq", 0),
-      d_inst_duplicate_ent("Instantiate::Duplicate_Inst_Entailed", 0),
-      d_inst_duplicate_model_true("Instantiate::Duplicate_Inst_Model_True", 0)
+      d_inst_duplicate_ent("Instantiate::Duplicate_Inst_Entailed", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_instantiations);
   smtStatisticsRegistry()->registerStat(&d_inst_duplicate);
   smtStatisticsRegistry()->registerStat(&d_inst_duplicate_eq);
   smtStatisticsRegistry()->registerStat(&d_inst_duplicate_ent);
-  smtStatisticsRegistry()->registerStat(&d_inst_duplicate_model_true);
 }
 
 Instantiate::Statistics::~Statistics()
@@ -783,7 +940,6 @@ Instantiate::Statistics::~Statistics()
   smtStatisticsRegistry()->unregisterStat(&d_inst_duplicate);
   smtStatisticsRegistry()->unregisterStat(&d_inst_duplicate_eq);
   smtStatisticsRegistry()->unregisterStat(&d_inst_duplicate_ent);
-  smtStatisticsRegistry()->unregisterStat(&d_inst_duplicate_model_true);
 }
 
 } /* CVC4::theory::quantifiers namespace */

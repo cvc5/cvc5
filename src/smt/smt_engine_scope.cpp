@@ -20,7 +20,6 @@
 #include "base/check.h"
 #include "base/configuration_private.h"
 #include "base/output.h"
-#include "proof/proof.h"
 #include "smt/smt_engine.h"
 
 namespace CVC4 {
@@ -46,9 +45,16 @@ ProofManager* currentProofManager() {
 #endif /* IS_PROOFS_BUILD */
 }
 
+ResourceManager* currentResourceManager()
+{
+  return s_smtEngine_current->getResourceManager();
+}
+
 SmtScope::SmtScope(const SmtEngine* smt)
     : NodeManagerScope(smt->d_nodeManager),
-      d_oldSmtEngine(s_smtEngine_current) {
+      d_oldSmtEngine(s_smtEngine_current),
+      d_optionsScope(smt ? &const_cast<SmtEngine*>(smt)->getOptions() : nullptr)
+{
   Assert(smt != NULL);
   s_smtEngine_current = const_cast<SmtEngine*>(smt);
   Debug("current") << "smt scope: " << s_smtEngine_current << std::endl;

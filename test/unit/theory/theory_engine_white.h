@@ -41,7 +41,6 @@
 #include "theory/theory_rewriter.h"
 #include "theory/valuation.h"
 #include "util/integer.h"
-#include "util/proof.h"
 #include "util/rational.h"
 
 using namespace CVC4;
@@ -55,13 +54,11 @@ using namespace CVC4::theory::bv;
 using namespace std;
 
 class FakeOutputChannel : public OutputChannel {
-  void conflict(TNode n, std::unique_ptr<Proof> pf) override
-  {
-    Unimplemented();
-  }
+  void conflict(TNode n) override { Unimplemented(); }
   bool propagate(TNode n) override { Unimplemented(); }
-  LemmaStatus lemma(TNode n, ProofRule rule, bool removable, bool preprocess,
-                    bool sendAtoms) override {
+  LemmaStatus lemma(TNode n,
+                    LemmaProperty p = LemmaProperty::NONE) override
+  {
     Unimplemented();
   }
   void requirePhase(TNode, bool) override { Unimplemented(); }
@@ -118,8 +115,9 @@ class FakeTheory : public Theory
              context::UserContext* uctxt,
              OutputChannel& out,
              Valuation valuation,
-             const LogicInfo& logicInfo)
-      : Theory(theoryId, ctxt, uctxt, out, valuation, logicInfo)
+             const LogicInfo& logicInfo,
+             ProofNodeManager* pnm)
+      : Theory(theoryId, ctxt, uctxt, out, valuation, logicInfo, pnm)
   {
   }
 
@@ -155,10 +153,10 @@ class FakeTheory : public Theory
   void registerTerm(TNode) { Unimplemented(); }
   void check(Theory::Effort) override { Unimplemented(); }
   void propagate(Theory::Effort) override { Unimplemented(); }
-  Node explain(TNode) override
+  TrustNode explain(TNode) override
   {
     Unimplemented();
-    return Node::null();
+    return TrustNode::null();
   }
   Node getValue(TNode n) { return Node::null(); }
 
@@ -207,7 +205,7 @@ public:
     // Notice that this unit test uses the theory engine of a created SMT
     // engine d_smt. We must ensure that d_smt is properly initialized via
     // the following call, which constructs its underlying theory engine.
-    d_smt->finalOptionsAreSet();
+    d_smt->finishInit();
     d_theoryEngine = d_smt->getTheoryEngine();
     for(TheoryId id = THEORY_FIRST; id != THEORY_LAST; ++id) {
       delete d_theoryEngine->d_theoryOut[id];

@@ -86,7 +86,9 @@ class EagerProofGenerator : public ProofGenerator
       NodeProofNodeMap;
 
  public:
-  EagerProofGenerator(ProofNodeManager* pnm, context::Context* c = nullptr);
+  EagerProofGenerator(ProofNodeManager* pnm,
+                      context::Context* c = nullptr,
+                      std::string name = "EagerProofGenerator");
   ~EagerProofGenerator() {}
   /** Get the proof for formula f. */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
@@ -114,20 +116,21 @@ class EagerProofGenerator : public ProofGenerator
                         std::shared_ptr<ProofNode> pf,
                         bool isConflict = false);
   /**
-   * Make trust node from a single step proof (with no premises). This is a
-   * convenience function that avoids the need to explictly construct ProofNode
-   * by the caller.
+   * Make trust node from a single step proof. This is a convenience function
+   * that avoids the need to explictly construct ProofNode by the caller.
    *
-   * @param n The proven node,
-   * @param id The rule of the proof concluding n
-   * @param args The arguments to the proof concluding n,
+   * @param conc The conclusion of the rule,
+   * @param id The rule of the proof concluding conc
+   * @param exp The explanation (premises) to the proof concluding conc,
+   * @param args The arguments to the proof concluding conc,
    * @param isConflict Whether the returned trust node is a conflict (otherwise
    * it is a lemma),
    * @return The trust node corresponding to the fact that this generator has
-   * a proof of n.
+   * a proof of (children => exp), or of exp if children is empty.
    */
-  TrustNode mkTrustNode(Node n,
+  TrustNode mkTrustNode(Node conc,
                         PfRule id,
+                        const std::vector<Node>& exp,
                         const std::vector<Node>& args,
                         bool isConflict = false);
   /**
@@ -152,7 +155,7 @@ class EagerProofGenerator : public ProofGenerator
   TrustNode mkTrustNodeSplit(Node f);
   //--------------------------------------- end common proofs
   /** identify */
-  std::string identify() const override { return "EagerProofGenerator"; }
+  std::string identify() const override;
 
  protected:
   /** Set that pf is the proof for conflict conf */
@@ -163,6 +166,8 @@ class EagerProofGenerator : public ProofGenerator
   void setProofForPropExp(TNode lit, Node exp, std::shared_ptr<ProofNode> pf);
   /** The proof node manager */
   ProofNodeManager* d_pnm;
+  /** Name identifier */
+  std::string d_name;
   /** A dummy context used by this class if none is provided */
   context::Context d_context;
   /**

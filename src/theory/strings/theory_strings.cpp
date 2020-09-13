@@ -10,20 +10,14 @@
  ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of the theory of strings.
- **
- ** Implementation of the theory of strings.
  **/
 
 #include "theory/strings/theory_strings.h"
 
-#include <cmath>
-
 #include "expr/kind.h"
 #include "options/strings_options.h"
 #include "options/theory_options.h"
-#include "smt/command.h"
 #include "smt/logic_exception.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
@@ -40,91 +34,39 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-std::ostream& operator<<(std::ostream& out, InferStep s)
-{
-  switch (s)
-  {
-    case BREAK: out << "break"; break;
-    case CHECK_INIT: out << "check_init"; break;
-    case CHECK_CONST_EQC: out << "check_const_eqc"; break;
-    case CHECK_EXTF_EVAL: out << "check_extf_eval"; break;
-    case CHECK_CYCLES: out << "check_cycles"; break;
-    case CHECK_FLAT_FORMS: out << "check_flat_forms"; break;
-    case CHECK_NORMAL_FORMS_EQ: out << "check_normal_forms_eq"; break;
-    case CHECK_NORMAL_FORMS_DEQ: out << "check_normal_forms_deq"; break;
-    case CHECK_CODES: out << "check_codes"; break;
-    case CHECK_LENGTH_EQC: out << "check_length_eqc"; break;
-    case CHECK_EXTF_REDUCTION: out << "check_extf_reduction"; break;
-    case CHECK_MEMBERSHIP: out << "check_membership"; break;
-    case CHECK_CARDINALITY: out << "check_cardinality"; break;
-    default: out << "?"; break;
-  }
-  return out;
-}
-
 TheoryStrings::TheoryStrings(context::Context* c,
                              context::UserContext* u,
                              OutputChannel& out,
                              Valuation valuation,
-                             const LogicInfo& logicInfo)
-    : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo),
+                             const LogicInfo& logicInfo,
+                             ProofNodeManager* pnm)
+    : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo, pnm),
       d_notify(*this),
       d_statistics(),
-      d_equalityEngine(d_notify, c, "theory::strings::ee", true),
-      d_state(c, u, d_equalityEngine, d_valuation),
-      d_termReg(c, u, d_equalityEngine, out, d_statistics),
-      d_im(nullptr),
+      d_state(c, u, d_valuation),
+      d_termReg(d_state, out, d_statistics, nullptr),
+      d_extTheoryCb(),
+      d_extTheory(d_extTheoryCb, c, u, out),
+      d_im(*this, d_state, d_termReg, d_extTheory, d_statistics, pnm),
       d_rewriter(&d_statistics.d_rewrites),
-      d_bsolver(nullptr),
-      d_csolver(nullptr),
-      d_esolver(nullptr),
-      d_rsolver(nullptr),
-      d_stringsFmf(c, u, valuation, d_termReg),
-      d_strategy_init(false)
+      d_bsolver(d_state, d_im),
+      d_csolver(d_state, d_im, d_termReg, d_bsolver),
+      d_esolver(d_state,
+                d_im,
+                d_termReg,
+                d_rewriter,
+                d_bsolver,
+                d_csolver,
+                d_extTheory,
+                d_statistics),
+      d_rsolver(d_state,
+                d_im,
+                d_termReg.getSkolemCache(),
+                d_csolver,
+                d_esolver,
+                d_statistics),
+      d_stringsFmf(c, u, valuation, d_termReg)
 {
-  setupExtTheory();
-  ExtTheory* extt = getExtTheory();
-  // initialize the inference manager, which requires the extended theory
-  d_im.reset(
-      new InferenceManager(c, u, d_state, d_termReg, *extt, out, d_statistics));
-  // initialize the solvers
-  d_bsolver.reset(new BaseSolver(d_state, *d_im));
-  d_csolver.reset(new CoreSolver(c, u, d_state, *d_im, d_termReg, *d_bsolver));
-  d_esolver.reset(new ExtfSolver(c,
-                                 u,
-                                 d_state,
-                                 *d_im,
-                                 d_termReg,
-                                 d_rewriter,
-                                 *d_bsolver,
-                                 *d_csolver,
-                                 *extt,
-                                 d_statistics));
-  d_rsolver.reset(new RegExpSolver(
-      d_state, *d_im, *d_csolver, *d_esolver, d_statistics, c, u));
-
-  // The kinds we are treating as function application in congruence
-  d_equalityEngine.addFunctionKind(kind::STRING_LENGTH);
-  d_equalityEngine.addFunctionKind(kind::STRING_CONCAT);
-  d_equalityEngine.addFunctionKind(kind::STRING_IN_REGEXP);
-  d_equalityEngine.addFunctionKind(kind::STRING_TO_CODE);
-  d_equalityEngine.addFunctionKind(kind::SEQ_UNIT);
-
-  // extended functions
-  d_equalityEngine.addFunctionKind(kind::STRING_STRCTN);
-  d_equalityEngine.addFunctionKind(kind::STRING_LEQ);
-  d_equalityEngine.addFunctionKind(kind::STRING_SUBSTR);
-  d_equalityEngine.addFunctionKind(kind::STRING_ITOS);
-  d_equalityEngine.addFunctionKind(kind::STRING_STOI);
-  d_equalityEngine.addFunctionKind(kind::STRING_STRIDOF);
-  d_equalityEngine.addFunctionKind(kind::STRING_STRREPL);
-  d_equalityEngine.addFunctionKind(kind::STRING_STRREPLALL);
-  d_equalityEngine.addFunctionKind(kind::STRING_REPLACE_RE);
-  d_equalityEngine.addFunctionKind(kind::STRING_REPLACE_RE_ALL);
-  d_equalityEngine.addFunctionKind(kind::STRING_STRREPLALL);
-  d_equalityEngine.addFunctionKind(kind::STRING_TOLOWER);
-  d_equalityEngine.addFunctionKind(kind::STRING_TOUPPER);
-  d_equalityEngine.addFunctionKind(kind::STRING_REV);
 
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
@@ -133,25 +75,82 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_false = NodeManager::currentNM()->mkConst( false );
 
   d_cardSize = utils::getAlphabetCardinality();
+
+  // set up the extended function callback
+  d_extTheoryCb.d_esolver = &d_esolver;
+
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
+  if (pc != nullptr)
+  {
+    // add checkers
+    d_sProofChecker.registerTo(pc);
+  }
+  // use the state object as the official theory state
+  d_theoryState = &d_state;
+  // use the inference manager as the official inference manager
+  d_inferManager = &d_im;
 }
 
 TheoryStrings::~TheoryStrings() {
 
 }
 
+TheoryRewriter* TheoryStrings::getTheoryRewriter() { return &d_rewriter; }
+
+bool TheoryStrings::needsEqualityEngine(EeSetupInfo& esi)
+{
+  esi.d_notify = &d_notify;
+  esi.d_name = "theory::strings::ee";
+  return true;
+}
+
 void TheoryStrings::finishInit()
 {
-  TheoryModel* tm = d_valuation.getModel();
+  Assert(d_equalityEngine != nullptr);
+
   // witness is used to eliminate str.from_code
-  tm->setUnevaluatedKind(WITNESS);
+  d_valuation.setUnevaluatedKind(WITNESS);
+
+  bool eagerEval = options::stringEagerEval();
+  // The kinds we are treating as function application in congruence
+  d_equalityEngine->addFunctionKind(kind::STRING_LENGTH, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_CONCAT, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_IN_REGEXP, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_TO_CODE, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::SEQ_UNIT, eagerEval);
+  // extended functions
+  d_equalityEngine->addFunctionKind(kind::STRING_STRCTN, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_LEQ, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_SUBSTR, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_UPDATE, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_ITOS, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_STOI, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_STRIDOF, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_STRREPL, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_STRREPLALL, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_REPLACE_RE, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_REPLACE_RE_ALL, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_STRREPLALL, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_TOLOWER, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_TOUPPER, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_REV, eagerEval);
+}
+
+std::string TheoryStrings::identify() const
+{
+  return std::string("TheoryStrings");
 }
 
 bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
-  Assert(d_equalityEngine.hasTerm(x));
-  Assert(d_equalityEngine.hasTerm(y));
-  if( d_equalityEngine.isTriggerTerm(x, THEORY_STRINGS) && d_equalityEngine.isTriggerTerm(y, THEORY_STRINGS) ){
-    TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_STRINGS);
-    TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_STRINGS);
+  Assert(d_equalityEngine->hasTerm(x));
+  Assert(d_equalityEngine->hasTerm(y));
+  if (d_equalityEngine->isTriggerTerm(x, THEORY_STRINGS)
+      && d_equalityEngine->isTriggerTerm(y, THEORY_STRINGS))
+  {
+    TNode x_shared =
+        d_equalityEngine->getTriggerTermRepresentative(x, THEORY_STRINGS);
+    TNode y_shared =
+        d_equalityEngine->getTriggerTermRepresentative(y, THEORY_STRINGS);
     EqualityStatus eqStatus = d_valuation.getEqualityStatus(x_shared, y_shared);
     if( eqStatus==EQUALITY_FALSE_AND_PROPAGATED || eqStatus==EQUALITY_FALSE || eqStatus==EQUALITY_FALSE_IN_MODEL ){
       return true;
@@ -160,89 +159,56 @@ bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
   return false;
 }
 
-void TheoryStrings::setMasterEqualityEngine(eq::EqualityEngine* eq) {
-  d_equalityEngine.setMasterEqualityEngine(eq);
-}
-
-void TheoryStrings::addSharedTerm(TNode t) {
-  Debug("strings") << "TheoryStrings::addSharedTerm(): "
-                     << t << " " << t.getType().isBoolean() << endl;
-  d_equalityEngine.addTriggerTerm(t, THEORY_STRINGS);
+void TheoryStrings::notifySharedTerm(TNode t)
+{
+  Debug("strings") << "TheoryStrings::notifySharedTerm(): " << t << " "
+                   << t.getType().isBoolean() << endl;
+  d_equalityEngine->addTriggerTerm(t, THEORY_STRINGS);
   if (options::stringExp())
   {
-    getExtTheory()->registerTermRec(t);
+    d_esolver.addSharedTerm(t);
   }
-  Debug("strings") << "TheoryStrings::addSharedTerm() finished" << std::endl;
+  Debug("strings") << "TheoryStrings::notifySharedTerm() finished" << std::endl;
 }
 
-EqualityStatus TheoryStrings::getEqualityStatus(TNode a, TNode b) {
-  if( d_equalityEngine.hasTerm(a) && d_equalityEngine.hasTerm(b) ){
-    if (d_equalityEngine.areEqual(a, b)) {
-      // The terms are implied to be equal
-      return EQUALITY_TRUE;
-    }
-    if (d_equalityEngine.areDisequal(a, b, false)) {
-      // The terms are implied to be dis-equal
-      return EQUALITY_FALSE;
-    }
-  }
-  return EQUALITY_UNKNOWN;
-}
-
-void TheoryStrings::propagate(Effort e) {
-  // direct propagation now
-}
-
-bool TheoryStrings::propagate(TNode literal) {
-  Debug("strings-propagate") << "TheoryStrings::propagate(" << literal  << ")" << std::endl;
+bool TheoryStrings::propagateLit(TNode literal)
+{
+  Debug("strings-propagate")
+      << "TheoryStrings::propagateLit(" << literal << ")" << std::endl;
   // If already in conflict, no more propagation
   if (d_state.isInConflict())
   {
-    Debug("strings-propagate") << "TheoryStrings::propagate(" << literal << "): already in conflict" << std::endl;
+    Debug("strings-propagate") << "TheoryStrings::propagateLit(" << literal
+                               << "): already in conflict" << std::endl;
     return false;
   }
   // Propagate out
   bool ok = d_out->propagate(literal);
   if (!ok) {
-    d_state.setConflict();
+    d_state.notifyInConflict();
   }
   return ok;
 }
 
-
-Node TheoryStrings::explain( TNode literal ){
+TrustNode TheoryStrings::explain(TNode literal)
+{
   Debug("strings-explain") << "explain called on " << literal << std::endl;
   std::vector< TNode > assumptions;
-  d_im->explain(literal, assumptions);
+  d_im.explain(literal, assumptions);
+  Node ret;
   if( assumptions.empty() ){
-    return d_true;
+    ret = d_true;
   }else if( assumptions.size()==1 ){
-    return assumptions[0];
+    ret = assumptions[0];
   }else{
-    return NodeManager::currentNM()->mkNode( kind::AND, assumptions );
+    ret = NodeManager::currentNM()->mkNode(kind::AND, assumptions);
   }
+  return TrustNode::mkTrustPropExp(literal, ret, nullptr);
 }
-
-bool TheoryStrings::getCurrentSubstitution( int effort, std::vector< Node >& vars, 
-                                            std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) {
-  Trace("strings-subs") << "getCurrentSubstitution, effort = " << effort << std::endl;
-  for( unsigned i=0; i<vars.size(); i++ ){
-    Node n = vars[i];
-    Trace("strings-subs") << "  get subs for " << n << "..." << std::endl;
-    Node s = d_esolver->getCurrentSubstitutionFor(effort, n, exp[n]);
-    subs.push_back(s);
-  }
-  return true;
-}
-
-/////////////////////////////////////////////////////////////////////////////
-// NOTIFICATIONS
-/////////////////////////////////////////////////////////////////////////////
-
 
 void TheoryStrings::presolve() {
   Debug("strings-presolve") << "TheoryStrings::Presolving : get fmf options " << (options::stringFMF() ? "true" : "false") << std::endl;
-  initializeStrategy();
+  d_strat.initializeStrategy();
 
   // if strings fmf is enabled, register the strategy
   if (options::stringFMF())
@@ -263,23 +229,10 @@ void TheoryStrings::presolve() {
 // MODEL GENERATION
 /////////////////////////////////////////////////////////////////////////////
 
-bool TheoryStrings::collectModelInfo(TheoryModel* m)
+bool TheoryStrings::collectModelValues(TheoryModel* m,
+                                       const std::set<Node>& termSet)
 {
-  Trace("strings-model") << "TheoryStrings : Collect model info" << std::endl;
-  Trace("strings-model") << "TheoryStrings : assertEqualityEngine." << std::endl;
-
-  std::set<Node> termSet;
-
-  // Compute terms appearing in assertions and shared terms
-  computeRelevantTerms(termSet);
-  // assert the (relevant) portion of the equality engine to the model
-  if (!m->assertEqualityEngine(&d_equalityEngine, &termSet))
-  {
-    Unreachable()
-        << "TheoryStrings::collectModelInfo: failed to assert equality engine"
-        << std::endl;
-    return false;
-  }
+  Trace("strings-model") << "TheoryStrings : Collect model values" << std::endl;
 
   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > repSet;
   // Generate model
@@ -323,7 +276,7 @@ bool TheoryStrings::collectModelInfoType(
   std::map< Node, Node > processed;
   //step 1 : get all values for known lengths
   std::vector< Node > lts_values;
-  std::map<unsigned, Node> values_used;
+  std::map<std::size_t, Node> values_used;
   std::vector<Node> len_splits;
   for( unsigned i=0; i<col.size(); i++ ) {
     Trace("strings-model") << "Checking length for {";
@@ -350,15 +303,16 @@ bool TheoryStrings::collectModelInfoType(
     else
     {
       // must throw logic exception if we cannot construct the string
-      if (len_value.getConst<Rational>() > Rational(String::maxSize()))
+      if (len_value.getConst<Rational>() > String::maxSize())
       {
         std::stringstream ss;
-        ss << "Cannot generate model with string whose length exceeds UINT32_MAX";
+        ss << "The model was computed to have strings of length " << len_value
+           << ". We only allow strings up to length " << String::maxSize();
         throw LogicException(ss.str());
       }
-      unsigned lvalue =
+      std::size_t lvalue =
           len_value.getConst<Rational>().getNumerator().toUnsignedInt();
-      std::map<unsigned, Node>::iterator itvu = values_used.find(lvalue);
+      auto itvu = values_used.find(lvalue);
       if (itvu == values_used.end())
       {
         values_used[lvalue] = lts[i];
@@ -385,12 +339,18 @@ bool TheoryStrings::collectModelInfoType(
       //check if col[i][j] has only variables
       if (!eqc.isConst())
       {
-        NormalForm& nfe = d_csolver->getNormalForm(eqc);
+        NormalForm& nfe = d_csolver.getNormalForm(eqc);
         if (nfe.d_nf.size() == 1)
         {
+          // is it an equivalence class with a seq.unit term?
+          if (nfe.d_nf[0].getKind() == SEQ_UNIT)
+          {
+            pure_eq_assign[eqc] = nfe.d_nf[0];
+            Trace("strings-model") << "(unit: " << nfe.d_nf[0] << ") ";
+          }
           // does it have a code and the length of these equivalence classes are
           // one?
-          if (d_termReg.hasStringCode() && lts_values[i] == d_one)
+          else if (d_termReg.hasStringCode() && lts_values[i] == d_one)
           {
             EqcInfo* eip = d_state.getOrMakeEqcInfo(eqc, false);
             if (eip && !eip->d_codeTerm.get().isNull())
@@ -422,7 +382,7 @@ bool TheoryStrings::collectModelInfoType(
     if( !pure_eq.empty() ){
       if( lts_values[i].isNull() ){
         // start with length two (other lengths have special precendence)
-        unsigned lvalue = 2;
+        std::size_t lvalue = 2;
         while( values_used.find( lvalue )!=values_used.end() ){
           lvalue++;
         }
@@ -444,7 +404,7 @@ bool TheoryStrings::collectModelInfoType(
       std::unique_ptr<SEnumLen> sel;
       Trace("strings-model") << "Cardinality of alphabet is "
                              << utils::getAlphabetCardinality() << std::endl;
-      if (tn.isString())
+      if (tn.isString())  // string-only
       {
         sel.reset(new StringEnumLen(
             currLen, currLen, utils::getAlphabetCardinality()));
@@ -531,7 +491,7 @@ bool TheoryStrings::collectModelInfoType(
   {
     if (processed.find(rn) == processed.end())
     {
-      NormalForm& nf = d_csolver->getNormalForm(rn);
+      NormalForm& nf = d_csolver.getNormalForm(rn);
       if (Trace.isOn("strings-model"))
       {
         Trace("strings-model")
@@ -560,7 +520,6 @@ bool TheoryStrings::collectModelInfoType(
         nc.push_back(r.isConst() ? r : processed[r]);
       }
       Node cc = utils::mkNConcat(nc, tn);
-      Assert(cc.isConst());
       Trace("strings-model")
           << "*** Determined constant " << cc << " for " << rn << std::endl;
       processed[rn] = cc;
@@ -568,11 +527,16 @@ bool TheoryStrings::collectModelInfoType(
       {
         // this should never happen due to the model soundness argument
         // for strings
-
         Unreachable() << "TheoryStrings::collectModelInfoType: "
                          "Inconsistent equality (unprocessed eqc)"
                       << std::endl;
         return false;
+      }
+      else if (!cc.isConst())
+      {
+        // the value may be specified by seq.unit components, ensure this
+        // is marked as the skeleton for constructing values in this class.
+        m->assertSkeleton(cc);
       }
     }
   }
@@ -592,7 +556,7 @@ void TheoryStrings::preRegisterTerm(TNode n)
   d_termReg.preRegisterTerm(n);
 }
 
-Node TheoryStrings::expandDefinition(Node node)
+TrustNode TheoryStrings::expandDefinition(Node node)
 {
   Trace("strings-exp-def") << "TheoryStrings::expandDefinition : " << node << std::endl;
 
@@ -608,55 +572,134 @@ Node TheoryStrings::expandDefinition(Node node)
     Node k = nm->mkBoundVar(nm->stringType());
     Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
     Node emp = Word::mkEmptyWord(node.getType());
-    node = nm->mkNode(
+    Node ret = nm->mkNode(
         WITNESS,
         bvl,
         nm->mkNode(
             ITE, cond, t.eqNode(nm->mkNode(STRING_TO_CODE, k)), k.eqNode(emp)));
+    return TrustNode::mkTrustRewrite(node, ret, nullptr);
   }
 
-  return node;
+  if (node.getKind() == SEQ_NTH)
+  {
+    // str.nth(s,i) --->
+    //   ite(0<=i<=len(s), witness k. 0<=i<=len(s)->unit(k) = seq.at(s,i),
+    //   uf(s,i))
+    NodeManager* nm = NodeManager::currentNM();
+    Node s = node[0];
+    Node i = node[1];
+    Node len = nm->mkNode(STRING_LENGTH, s);
+    Node cond =
+        nm->mkNode(AND, nm->mkNode(LEQ, d_zero, i), nm->mkNode(LT, i, len));
+    TypeNode elemType = s.getType().getSequenceElementType();
+    Node k = nm->mkBoundVar(elemType);
+    Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
+    std::vector<TypeNode> argTypes;
+    argTypes.push_back(s.getType());
+    argTypes.push_back(nm->integerType());
+    TypeNode ufType = nm->mkFunctionType(argTypes, elemType);
+    SkolemCache* sc = d_termReg.getSkolemCache();
+    Node uf = sc->mkTypedSkolemCached(
+        ufType, Node::null(), Node::null(), SkolemCache::SK_NTH, "Uf");
+    Node ret = nm->mkNode(
+        ITE,
+        cond,
+        nm->mkNode(WITNESS,
+                   bvl,
+                   nm->mkNode(IMPLIES,
+                              cond,
+                              nm->mkNode(SEQ_UNIT, k)
+                                  .eqNode(nm->mkNode(STRING_CHARAT, s, i)))),
+        nm->mkNode(APPLY_UF, uf, s, i));
+    return TrustNode::mkTrustRewrite(node, ret, nullptr);
+  }
+
+  return TrustNode::null();
 }
 
-void TheoryStrings::check(Effort e) {
-  if (done() && e<EFFORT_FULL) {
-    return;
-  }
-
-  TimerStat::CodeTimer checkTimer(d_checkTime);
-
-  // Trace("strings-process") << "Theory of strings, check : " << e << std::endl;
-  Trace("strings-check-debug")
-      << "Theory of strings, check : " << e << std::endl;
-  while (!done() && !d_state.isInConflict())
+bool TheoryStrings::preNotifyFact(
+    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
+{
+  // this is only required for internal facts, others are already registered
+  if (isInternal && atom.getKind() == EQUAL)
   {
-    // Get all the assertions
-    Assertion assertion = get();
-    TNode fact = assertion.d_assertion;
-
-    Trace("strings-assertion") << "get assertion: " << fact << endl;
-    d_im->sendAssumption(fact);
+    // we must ensure these terms are registered
+    for (const Node& t : atom)
+    {
+      // terms in the equality engine are already registered, hence skip
+      // currently done for only string-like terms, but this could potentially
+      // be avoided.
+      if (!d_equalityEngine->hasTerm(t) && t.getType().isStringLike())
+      {
+        d_termReg.registerTerm(t, 0);
+      }
+    }
   }
-  d_im->doPendingFacts();
+  return false;
+}
 
-  Assert(d_strategy_init);
-  std::map<Effort, std::pair<unsigned, unsigned> >::iterator itsr =
-      d_strat_steps.find(e);
+void TheoryStrings::notifyFact(TNode atom,
+                               bool polarity,
+                               TNode fact,
+                               bool isInternal)
+{
+  if (atom.getKind() == STRING_IN_REGEXP)
+  {
+    if (polarity && atom[1].getKind() == REGEXP_CONCAT)
+    {
+      Node eqc = d_equalityEngine->getRepresentative(atom[0]);
+      d_state.addEndpointsToEqcInfo(atom, atom[1], eqc);
+    }
+  }
+  // process pending conflicts due to reasoning about endpoints
+  if (!d_state.isInConflict())
+  {
+    Node pc = d_state.getPendingConflict();
+    if (!pc.isNull())
+    {
+      std::vector<Node> a;
+      a.push_back(pc);
+      Trace("strings-pending")
+          << "Process pending conflict " << pc << std::endl;
+      Node conflictNode = d_im.mkExplain(a);
+      Trace("strings-conflict")
+          << "CONFLICT: Eager prefix : " << conflictNode << std::endl;
+      ++(d_statistics.d_conflictsEagerPrefix);
+      d_im.conflict(conflictNode);
+      return;
+    }
+  }
+  Trace("strings-pending-debug") << "  Now collect terms" << std::endl;
+  // Collect extended function terms in the atom. Notice that we must register
+  // all extended functions occurring in assertions and shared terms. We
+  // make a similar call to registerTermRec in TheoryStrings::addSharedTerm.
+  d_extTheory.registerTermRec(atom);
+  Trace("strings-pending-debug") << "  Finished collect terms" << std::endl;
+}
+
+void TheoryStrings::postCheck(Effort e)
+{
+  d_im.doPendingFacts();
+
+  Assert(d_strat.isStrategyInit());
   if (!d_state.isInConflict() && !d_valuation.needCheck()
-      && itsr != d_strat_steps.end())
+      && d_strat.hasStrategyEffort(e))
   {
     Trace("strings-check-debug")
         << "Theory of strings " << e << " effort check " << std::endl;
-    if(Trace.isOn("strings-eqc")) {
-      for( unsigned t=0; t<2; t++ ) {
-        eq::EqClassesIterator eqcs2_i = eq::EqClassesIterator( &d_equalityEngine );
+    if (Trace.isOn("strings-eqc"))
+    {
+      for (unsigned t = 0; t < 2; t++)
+      {
+        eq::EqClassesIterator eqcs2_i = eq::EqClassesIterator(d_equalityEngine);
         Trace("strings-eqc") << (t==0 ? "STRINGS:" : "OTHER:") << std::endl;
         while( !eqcs2_i.isFinished() ){
           Node eqc = (*eqcs2_i);
           bool print = (t == 0 && eqc.getType().isStringLike())
                        || (t == 1 && !eqc.getType().isStringLike());
           if (print) {
-            eq::EqClassIterator eqc2_i = eq::EqClassIterator( eqc, &d_equalityEngine );
+            eq::EqClassIterator eqc2_i =
+                eq::EqClassIterator(eqc, d_equalityEngine);
             Trace("strings-eqc") << "Eqc( " << eqc << " ) : { ";
             while( !eqc2_i.isFinished() ) {
               if( (*eqc2_i)!=eqc && (*eqc2_i).getKind()!=kind::EQUAL ){
@@ -684,20 +727,20 @@ void TheoryStrings::check(Effort e) {
       Trace("strings-eqc") << std::endl;
     }
     ++(d_statistics.d_checkRuns);
-    unsigned sbegin = itsr->second.first;
-    unsigned send = itsr->second.second;
     bool addedLemma = false;
     bool addedFact;
     Trace("strings-check") << "Full effort check..." << std::endl;
     do{
       ++(d_statistics.d_strategyRuns);
       Trace("strings-check") << "  * Run strategy..." << std::endl;
-      runStrategy(sbegin, send);
-      // flush the facts
-      addedFact = d_im->hasPendingFact();
-      addedLemma = d_im->hasPendingLemma();
-      d_im->doPendingFacts();
-      d_im->doPendingLemmas();
+      runStrategy(e);
+      // Send the facts *and* the lemmas. We send lemmas regardless of whether
+      // we send facts since some lemmas cannot be dropped. Other lemmas are
+      // otherwise avoided by aborting the strategy when a fact is ready.
+      addedFact = d_im.hasPendingFact();
+      addedLemma = d_im.hasPendingLemma();
+      d_im.doPendingFacts();
+      d_im.doPendingLemmas();
       if (Trace.isOn("strings-check"))
       {
         Trace("strings-check") << "  ...finish run strategy: ";
@@ -714,13 +757,13 @@ void TheoryStrings::check(Effort e) {
     } while (!d_state.isInConflict() && !addedLemma && addedFact);
   }
   Trace("strings-check") << "Theory of strings, done check : " << e << std::endl;
-  Assert(!d_im->hasPendingFact());
-  Assert(!d_im->hasPendingLemma());
+  Assert(!d_im.hasPendingFact());
+  Assert(!d_im.hasPendingLemma());
 }
 
 bool TheoryStrings::needsCheckLastEffort() {
   if( options::stringGuessModel() ){
-    return d_esolver->hasExtendedFunctions();
+    return d_esolver.hasExtendedFunctions();
   }
   return false;
 }
@@ -730,12 +773,13 @@ void TheoryStrings::conflict(TNode a, TNode b){
   if (!d_state.isInConflict())
   {
     Debug("strings-conflict") << "Making conflict..." << std::endl;
-    d_state.setConflict();
-    Node conflictNode;
-    conflictNode = explain( a.eqNode(b) );
-    Trace("strings-conflict") << "CONFLICT: Eq engine conflict : " << conflictNode << std::endl;
+    d_state.notifyInConflict();
+    TrustNode conflictNode = explain(a.eqNode(b));
+    Trace("strings-conflict")
+        << "CONFLICT: Eq engine conflict : " << conflictNode.getNode()
+        << std::endl;
     ++(d_statistics.d_conflictsEqEngine);
-    d_out->conflict( conflictNode );
+    d_out->conflict(conflictNode.getNode());
   }
 }
 
@@ -759,20 +803,26 @@ void TheoryStrings::addCarePairs(TNodeTrie* t1,
     if( t2!=NULL ){
       Node f1 = t1->getData();
       Node f2 = t2->getData();
-      if( !d_equalityEngine.areEqual( f1, f2 ) ){
+      if (!d_equalityEngine->areEqual(f1, f2))
+      {
         Trace("strings-cg-debug") << "TheoryStrings::computeCareGraph(): checking function " << f1 << " and " << f2 << std::endl;
         vector< pair<TNode, TNode> > currentPairs;
         for (unsigned k = 0; k < f1.getNumChildren(); ++ k) {
           TNode x = f1[k];
           TNode y = f2[k];
-          Assert(d_equalityEngine.hasTerm(x));
-          Assert(d_equalityEngine.hasTerm(y));
-          Assert(!d_equalityEngine.areDisequal(x, y, false));
+          Assert(d_equalityEngine->hasTerm(x));
+          Assert(d_equalityEngine->hasTerm(y));
+          Assert(!d_equalityEngine->areDisequal(x, y, false));
           Assert(!areCareDisequal(x, y));
-          if( !d_equalityEngine.areEqual( x, y ) ){
-            if( d_equalityEngine.isTriggerTerm(x, THEORY_STRINGS) && d_equalityEngine.isTriggerTerm(y, THEORY_STRINGS) ){
-              TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_STRINGS);
-              TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_STRINGS);
+          if (!d_equalityEngine->areEqual(x, y))
+          {
+            if (d_equalityEngine->isTriggerTerm(x, THEORY_STRINGS)
+                && d_equalityEngine->isTriggerTerm(y, THEORY_STRINGS))
+            {
+              TNode x_shared = d_equalityEngine->getTriggerTermRepresentative(
+                  x, THEORY_STRINGS);
+              TNode y_shared = d_equalityEngine->getTriggerTermRepresentative(
+                  y, THEORY_STRINGS);
               currentPairs.push_back(make_pair(x_shared, y_shared));
             }
           }
@@ -800,7 +850,8 @@ void TheoryStrings::addCarePairs(TNodeTrie* t1,
         std::map<TNode, TNodeTrie>::iterator it2 = it;
         ++it2;
         for( ; it2 != t1->d_data.end(); ++it2 ){
-          if( !d_equalityEngine.areDisequal(it->first, it2->first, false) ){
+          if (!d_equalityEngine->areDisequal(it->first, it2->first, false))
+          {
             if( !areCareDisequal(it->first, it2->first) ){
               addCarePairs( &it->second, &it2->second, arity, depth+1 );
             }
@@ -813,7 +864,7 @@ void TheoryStrings::addCarePairs(TNodeTrie* t1,
       {
         for (std::pair<const TNode, TNodeTrie>& tt2 : t2->d_data)
         {
-          if (!d_equalityEngine.areDisequal(tt1.first, tt2.first, false))
+          if (!d_equalityEngine->areDisequal(tt1.first, tt2.first, false))
           {
             if (!areCareDisequal(tt1.first, tt2.first))
             {
@@ -842,8 +893,9 @@ void TheoryStrings::computeCareGraph(){
     std::vector< TNode > reps;
     bool has_trigger_arg = false;
     for( unsigned j=0; j<f1.getNumChildren(); j++ ){
-      reps.push_back( d_equalityEngine.getRepresentative( f1[j] ) );
-      if( d_equalityEngine.isTriggerTerm( f1[j], THEORY_STRINGS ) ){
+      reps.push_back(d_equalityEngine->getRepresentative(f1[j]));
+      if (d_equalityEngine->isTriggerTerm(f1[j], THEORY_STRINGS))
+      {
         has_trigger_arg = true;
       }
     }
@@ -866,14 +918,14 @@ void TheoryStrings::computeCareGraph(){
 
 void TheoryStrings::checkRegisterTermsPreNormalForm()
 {
-  const std::vector<Node>& seqc = d_bsolver->getStringEqc();
+  const std::vector<Node>& seqc = d_bsolver.getStringEqc();
   for (const Node& eqc : seqc)
   {
-    eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, &d_equalityEngine);
+    eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, d_equalityEngine);
     while (!eqc_i.isFinished())
     {
       Node n = (*eqc_i);
-      if (!d_bsolver->isCongruent(n))
+      if (!d_bsolver.isCongruent(n))
       {
         d_termReg.registerTerm(n, 2);
       }
@@ -895,10 +947,10 @@ void TheoryStrings::checkCodes()
     // str.code applied to the proxy variables for each equivalence classes that
     // are constants of size one
     std::vector<Node> const_codes;
-    const std::vector<Node>& seqc = d_bsolver->getStringEqc();
+    const std::vector<Node>& seqc = d_bsolver.getStringEqc();
     for (const Node& eqc : seqc)
     {
-      NormalForm& nfe = d_csolver->getNormalForm(eqc);
+      NormalForm& nfe = d_csolver.getNormalForm(eqc);
       if (nfe.d_nf.size() == 1 && nfe.d_nf[0].isConst())
       {
         Node c = nfe.d_nf[0];
@@ -907,13 +959,12 @@ void TheoryStrings::checkCodes()
         Node cc = nm->mkNode(kind::STRING_TO_CODE, c);
         cc = Rewriter::rewrite(cc);
         Assert(cc.isConst());
-        Node cp = d_termReg.getProxyVariableFor(c);
-        AlwaysAssert(!cp.isNull());
+        Node cp = d_termReg.ensureProxyVariableFor(c);
         Node vc = nm->mkNode(STRING_TO_CODE, cp);
         if (!d_state.areEqual(cc, vc))
         {
           std::vector<Node> emptyVec;
-          d_im->sendInference(emptyVec, cc.eqNode(vc), Inference::CODE_PROXY);
+          d_im.sendInference(emptyVec, cc.eqNode(vc), Inference::CODE_PROXY);
         }
         const_codes.push_back(vc);
       }
@@ -927,7 +978,7 @@ void TheoryStrings::checkCodes()
         }
       }
     }
-    if (d_im->hasProcessed())
+    if (d_im.hasProcessed())
     {
       return;
     }
@@ -950,9 +1001,9 @@ void TheoryStrings::checkCodes()
           Node eqn = c1[0].eqNode(c2[0]);
           // str.code(x)==-1 V str.code(x)!=str.code(y) V x==y
           Node inj_lem = nm->mkNode(kind::OR, eq_no, deq, eqn);
-          d_im->sendPhaseRequirement(deq, false);
+          d_im.sendPhaseRequirement(deq, false);
           std::vector<Node> emptyVec;
-          d_im->sendInference(emptyVec, inj_lem, Inference::CODE_INJ);
+          d_im.sendInference(emptyVec, inj_lem, Inference::CODE_INJ);
         }
       }
     }
@@ -961,10 +1012,10 @@ void TheoryStrings::checkCodes()
 
 void TheoryStrings::checkRegisterTermsNormalForms()
 {
-  const std::vector<Node>& seqc = d_bsolver->getStringEqc();
+  const std::vector<Node>& seqc = d_bsolver.getStringEqc();
   for (const Node& eqc : seqc)
   {
-    NormalForm& nfi = d_csolver->getNormalForm(eqc);
+    NormalForm& nfi = d_csolver.getNormalForm(eqc);
     // check if there is a length term for this equivalence class
     EqcInfo* ei = d_state.getOrMakeEqcInfo(eqc, false);
     Node lt = ei ? ei->d_lengthTerm : Node::null();
@@ -976,39 +1027,48 @@ void TheoryStrings::checkRegisterTermsNormalForms()
   }
 }
 
-Node TheoryStrings::ppRewrite(TNode atom) {
+TrustNode TheoryStrings::ppRewrite(TNode atom)
+{
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
-  Node atomElim;
+  Node atomRet = atom;
   if (options::regExpElim() && atom.getKind() == STRING_IN_REGEXP)
   {
     // aggressive elimination of regular expression membership
-    atomElim = d_regexp_elim.eliminate(atom);
+    Node atomElim = d_regexp_elim.eliminate(atomRet);
     if (!atomElim.isNull())
     {
       Trace("strings-ppr") << "  rewrote " << atom << " -> " << atomElim
                            << " via regular expression elimination."
                            << std::endl;
-      atom = atomElim;
+      atomRet = atomElim;
     }
   }
   if( !options::stringLazyPreproc() ){
     //eager preprocess here
     std::vector< Node > new_nodes;
-    StringsPreprocess* p = d_esolver->getPreprocess();
-    Node ret = p->processAssertion(atom, new_nodes);
-    if( ret!=atom ){
-      Trace("strings-ppr") << "  rewrote " << atom << " -> " << ret << ", with " << new_nodes.size() << " lemmas." << std::endl; 
-      for( unsigned i=0; i<new_nodes.size(); i++ ){
-        Trace("strings-ppr") << "    lemma : " << new_nodes[i] << std::endl;
+    StringsPreprocess* p = d_esolver.getPreprocess();
+    Node ret = p->processAssertion(atomRet, new_nodes);
+    if (ret != atomRet)
+    {
+      Trace("strings-ppr") << "  rewrote " << atomRet << " -> " << ret
+                           << ", with " << new_nodes.size() << " lemmas."
+                           << std::endl;
+      for (const Node& lem : new_nodes)
+      {
+        Trace("strings-ppr") << "    lemma : " << lem << std::endl;
         ++(d_statistics.d_lemmasEagerPreproc);
-        d_out->lemma( new_nodes[i] );
+        d_out->lemma(lem);
       }
-      return ret;
+      atomRet = ret;
     }else{
       Assert(new_nodes.empty());
     }
   }
-  return atom;
+  if (atomRet != atom)
+  {
+    return TrustNode::mkTrustRewrite(atom, atomRet, nullptr);
+  }
+  return TrustNode::null();
 }
 
 /** run the given inference step */
@@ -1022,145 +1082,55 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
   Trace("strings-process") << "..." << std::endl;
   switch (s)
   {
-    case CHECK_INIT: d_bsolver->checkInit(); break;
-    case CHECK_CONST_EQC: d_bsolver->checkConstantEquivalenceClasses(); break;
-    case CHECK_EXTF_EVAL: d_esolver->checkExtfEval(effort); break;
-    case CHECK_CYCLES: d_csolver->checkCycles(); break;
-    case CHECK_FLAT_FORMS: d_csolver->checkFlatForms(); break;
+    case CHECK_INIT: d_bsolver.checkInit(); break;
+    case CHECK_CONST_EQC: d_bsolver.checkConstantEquivalenceClasses(); break;
+    case CHECK_EXTF_EVAL: d_esolver.checkExtfEval(effort); break;
+    case CHECK_CYCLES: d_csolver.checkCycles(); break;
+    case CHECK_FLAT_FORMS: d_csolver.checkFlatForms(); break;
     case CHECK_REGISTER_TERMS_PRE_NF: checkRegisterTermsPreNormalForm(); break;
-    case CHECK_NORMAL_FORMS_EQ: d_csolver->checkNormalFormsEq(); break;
-    case CHECK_NORMAL_FORMS_DEQ: d_csolver->checkNormalFormsDeq(); break;
+    case CHECK_NORMAL_FORMS_EQ: d_csolver.checkNormalFormsEq(); break;
+    case CHECK_NORMAL_FORMS_DEQ: d_csolver.checkNormalFormsDeq(); break;
     case CHECK_CODES: checkCodes(); break;
-    case CHECK_LENGTH_EQC: d_csolver->checkLengthsEqc(); break;
+    case CHECK_LENGTH_EQC: d_csolver.checkLengthsEqc(); break;
     case CHECK_REGISTER_TERMS_NF: checkRegisterTermsNormalForms(); break;
-    case CHECK_EXTF_REDUCTION: d_esolver->checkExtfReductions(effort); break;
-    case CHECK_MEMBERSHIP: d_rsolver->checkMemberships(); break;
-    case CHECK_CARDINALITY: d_bsolver->checkCardinality(); break;
+    case CHECK_EXTF_REDUCTION: d_esolver.checkExtfReductions(effort); break;
+    case CHECK_MEMBERSHIP: d_rsolver.checkMemberships(); break;
+    case CHECK_CARDINALITY: d_bsolver.checkCardinality(); break;
     default: Unreachable(); break;
   }
   Trace("strings-process") << "Done " << s
-                           << ", addedFact = " << d_im->hasPendingFact()
-                           << ", addedLemma = " << d_im->hasPendingLemma()
+                           << ", addedFact = " << d_im.hasPendingFact()
+                           << ", addedLemma = " << d_im.hasPendingLemma()
                            << ", conflict = " << d_state.isInConflict()
                            << std::endl;
 }
 
-bool TheoryStrings::hasStrategyEffort(Effort e) const
+void TheoryStrings::runStrategy(Theory::Effort e)
 {
-  return d_strat_steps.find(e) != d_strat_steps.end();
-}
+  std::vector<std::pair<InferStep, int> >::iterator it = d_strat.stepBegin(e);
+  std::vector<std::pair<InferStep, int> >::iterator stepEnd =
+      d_strat.stepEnd(e);
 
-void TheoryStrings::addStrategyStep(InferStep s, int effort, bool addBreak)
-{
-  // must run check init first
-  Assert((s == CHECK_INIT) == d_infer_steps.empty());
-  // must use check cycles when using flat forms
-  Assert(s != CHECK_FLAT_FORMS
-         || std::find(d_infer_steps.begin(), d_infer_steps.end(), CHECK_CYCLES)
-                != d_infer_steps.end());
-  d_infer_steps.push_back(s);
-  d_infer_step_effort.push_back(effort);
-  if (addBreak)
-  {
-    d_infer_steps.push_back(BREAK);
-    d_infer_step_effort.push_back(0);
-  }
-}
-
-void TheoryStrings::initializeStrategy()
-{
-  // initialize the strategy if not already done so
-  if (!d_strategy_init)
-  {
-    std::map<Effort, unsigned> step_begin;
-    std::map<Effort, unsigned> step_end;
-    d_strategy_init = true;
-    // beginning indices
-    step_begin[EFFORT_FULL] = 0;
-    if (options::stringEager())
-    {
-      step_begin[EFFORT_STANDARD] = 0;
-    }
-    // add the inference steps
-    addStrategyStep(CHECK_INIT);
-    addStrategyStep(CHECK_CONST_EQC);
-    addStrategyStep(CHECK_EXTF_EVAL, 0);
-    addStrategyStep(CHECK_CYCLES);
-    if (options::stringFlatForms())
-    {
-      addStrategyStep(CHECK_FLAT_FORMS);
-    }
-    addStrategyStep(CHECK_EXTF_REDUCTION, 1);
-    if (options::stringEager())
-    {
-      // do only the above inferences at standard effort, if applicable
-      step_end[EFFORT_STANDARD] = d_infer_steps.size() - 1;
-    }
-    if (!options::stringEagerLen())
-    {
-      addStrategyStep(CHECK_REGISTER_TERMS_PRE_NF);
-    }
-    addStrategyStep(CHECK_NORMAL_FORMS_EQ);
-    addStrategyStep(CHECK_EXTF_EVAL, 1);
-    if (!options::stringEagerLen() && options::stringLenNorm())
-    {
-      addStrategyStep(CHECK_LENGTH_EQC, 0, false);
-      addStrategyStep(CHECK_REGISTER_TERMS_NF);
-    }
-    addStrategyStep(CHECK_NORMAL_FORMS_DEQ);
-    addStrategyStep(CHECK_CODES);
-    if (options::stringEagerLen() && options::stringLenNorm())
-    {
-      addStrategyStep(CHECK_LENGTH_EQC);
-    }
-    if (options::stringExp() && !options::stringGuessModel())
-    {
-      addStrategyStep(CHECK_EXTF_REDUCTION, 2);
-    }
-    addStrategyStep(CHECK_MEMBERSHIP);
-    addStrategyStep(CHECK_CARDINALITY);
-    step_end[EFFORT_FULL] = d_infer_steps.size() - 1;
-    if (options::stringExp() && options::stringGuessModel())
-    {
-      step_begin[EFFORT_LAST_CALL] = d_infer_steps.size();
-      // these two steps are run in parallel
-      addStrategyStep(CHECK_EXTF_REDUCTION, 2, false);
-      addStrategyStep(CHECK_EXTF_EVAL, 3);
-      step_end[EFFORT_LAST_CALL] = d_infer_steps.size() - 1;
-    }
-    // set the beginning/ending ranges
-    for (const std::pair<const Effort, unsigned>& it_begin : step_begin)
-    {
-      Effort e = it_begin.first;
-      std::map<Effort, unsigned>::iterator it_end = step_end.find(e);
-      Assert(it_end != step_end.end());
-      d_strat_steps[e] =
-          std::pair<unsigned, unsigned>(it_begin.second, it_end->second);
-    }
-  }
-}
-
-void TheoryStrings::runStrategy(unsigned sbegin, unsigned send)
-{
   Trace("strings-process") << "----check, next round---" << std::endl;
-  for (unsigned i = sbegin; i <= send; i++)
+  while (it != stepEnd)
   {
-    InferStep curr = d_infer_steps[i];
+    InferStep curr = it->first;
     if (curr == BREAK)
     {
-      if (d_im->hasProcessed())
+      if (d_im.hasProcessed())
       {
         break;
       }
     }
     else
     {
-      runInferStep(curr, d_infer_step_effort[i]);
+      runInferStep(curr, it->second);
       if (d_state.isInConflict())
       {
         break;
       }
     }
+    ++it;
   }
   Trace("strings-process") << "----finished round---" << std::endl;
 }

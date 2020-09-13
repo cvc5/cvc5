@@ -88,6 +88,15 @@ bool Configuration::isCompetitionBuild() {
   return IS_COMPETITION_BUILD;
 }
 
+bool Configuration::isStaticBuild()
+{
+#if defined(CVC4_STATIC_BUILD)
+  return true;
+#else
+  return false;
+#endif
+}
+
 string Configuration::getPackageName() {
   return CVC4_PACKAGE_NAME;
 }
@@ -139,7 +148,8 @@ std::string Configuration::copyright() {
       || Configuration::isBuiltWithCadical()
       || Configuration::isBuiltWithCryptominisat()
       || Configuration::isBuiltWithKissat()
-      || Configuration::isBuiltWithSymFPU())
+      || Configuration::isBuiltWithSymFPU()
+      || Configuration::isBuiltWithEditline())
   {
     ss << "This version of CVC4 is linked against the following non-(L)GPL'ed\n"
        << "third party libraries.\n\n";
@@ -177,9 +187,15 @@ std::string Configuration::copyright() {
          << "  See https://github.com/martin-cs/symfpu/tree/CVC4 for copyright "
          << "information.\n\n";
     }
+    if (Configuration::isBuiltWithEditline())
+    {
+      ss << "  Editline Library\n"
+         << "  See https://thrysoee.dk/editline\n"
+         << "  for copyright information.\n\n";
+    }
   }
 
-  if (Configuration::isBuiltWithGmp())
+  if (Configuration::isBuiltWithGmp() || Configuration::isBuiltWithPoly())
   {
     ss << "This version of CVC4 is linked against the following third party\n"
        << "libraries covered by the LGPLv3 license.\n"
@@ -188,11 +204,23 @@ std::string Configuration::copyright() {
       ss << "  GMP - Gnu Multi Precision Arithmetic Library\n"
          << "  See http://gmplib.org for copyright information.\n\n";
     }
+    if (Configuration::isBuiltWithPoly())
+    {
+      ss << "  LibPoly polynomial library\n"
+         << "  See https://github.com/SRI-CSL/libpoly for copyright and\n"
+         << "  licensing information.\n\n";
+    }
+    if (Configuration::isStaticBuild())
+    {
+      ss << "CVC4 is statically linked against these libraries. To recompile\n"
+            "this version of CVC4 with different versions of these libraries\n"
+            "follow the instructions on "
+            "https://github.com/CVC4/CVC4/blob/master/INSTALL.md\n\n";
+    }
   }
 
   if (Configuration::isBuiltWithCln()
-      || Configuration::isBuiltWithGlpk ()
-      || Configuration::isBuiltWithReadline()) {
+      || Configuration::isBuiltWithGlpk ()) {
     ss << "This version of CVC4 is linked against the following third party\n"
        << "libraries covered by the GPLv3 license.\n"
        << "See licenses/gpl-3.0.txt for more information.\n\n";
@@ -205,11 +233,6 @@ std::string Configuration::copyright() {
          << "the GNU Linear Programming Kit\n"
          << "  See http://github.com/timothy-king/glpk-cut-log for copyright"
          << "information\n\n";
-    }
-    if (Configuration::isBuiltWithReadline()) {
-      ss << "  GNU Readline\n"
-         << "  See http://cnswww.cns.cwru.edu/php/chet/readline/rltop.html\n"
-         << "  for copyright information.\n\n";
     }
   }
 
@@ -261,12 +284,15 @@ bool Configuration::isBuiltWithKissat() { return IS_KISSAT_BUILD; }
 
 bool Configuration::isBuiltWithDrat2Er() { return IS_DRAT2ER_BUILD; }
 
-bool Configuration::isBuiltWithReadline() {
-  return IS_READLINE_BUILD;
-}
+bool Configuration::isBuiltWithEditline() { return IS_EDITLINE_BUILD; }
 
 bool Configuration::isBuiltWithLfsc() {
   return IS_LFSC_BUILD;
+}
+
+bool Configuration::isBuiltWithPoly()
+{
+  return IS_POLY_BUILD;
 }
 
 bool Configuration::isBuiltWithSymFPU() { return IS_SYMFPU_BUILD; }

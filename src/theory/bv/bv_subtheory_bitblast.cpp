@@ -15,15 +15,15 @@
  **/
 
 #include "theory/bv/bv_subtheory_bitblast.h"
+
 #include "decision/decision_attributes.h"
 #include "options/bv_options.h"
 #include "options/decision_options.h"
-#include "proof/proof_manager.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/abstraction.h"
 #include "theory/bv/bitblast/lazy_bitblaster.h"
 #include "theory/bv/bv_quick_check.h"
-#include "theory/bv/theory_bv.h"
+#include "theory/bv/bv_solver_lazy.h"
 #include "theory/bv/theory_bv_utils.h"
 
 using namespace std;
@@ -33,7 +33,7 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-BitblastSolver::BitblastSolver(context::Context* c, TheoryBV* bv)
+BitblastSolver::BitblastSolver(context::Context* c, BVSolverLazy* bv)
     : SubtheorySolver(c, bv),
       d_bitblaster(new TLazyBitblaster(c, bv, "theory::bv::lazy")),
       d_bitblastQueue(c),
@@ -248,9 +248,10 @@ EqualityStatus BitblastSolver::getEqualityStatus(TNode a, TNode b) {
   return d_bitblaster->getEqualityStatus(a, b);
 }
 
-bool BitblastSolver::collectModelInfo(TheoryModel* m, bool fullModel)
+bool BitblastSolver::collectModelValues(TheoryModel* m,
+                                        const std::set<Node>& termSet)
 {
-  return d_bitblaster->collectModelInfo(m, fullModel);
+  return d_bitblaster->collectModelValues(m, termSet);
 }
 
 Node BitblastSolver::getModelValue(TNode node)
@@ -263,9 +264,8 @@ Node BitblastSolver::getModelValue(TNode node)
   return val;
 }
 
-
-
-void BitblastSolver::setConflict(TNode conflict) {
+void BitblastSolver::setConflict(TNode conflict)
+{
   Node final_conflict = conflict;
   if (options::bitvectorQuickXplain() &&
       conflict.getKind() == kind::AND) {
@@ -274,12 +274,6 @@ void BitblastSolver::setConflict(TNode conflict) {
     //std::cout << "Minimized conflict " << final_conflict.getNumChildren() << "\n";
   }
   d_bv->setConflict(final_conflict);
-}
-
-void BitblastSolver::setProofLog(proof::BitVectorProof* bvp)
-{
-  d_bitblaster->setProofLog( bvp );
-  bvp->setBitblaster(d_bitblaster.get());
 }
 
 }/* namespace CVC4::theory::bv */

@@ -14,12 +14,12 @@
  **/
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 
-#include "expr/datatype.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "prop/prop_engine.h"
+#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -235,7 +235,7 @@ void SynthConjecture::assign(Node q)
                                     d_feasible_guard,
                                     d_qe->getSatContext(),
                                     d_qe->getValuation()));
-  d_qe->getTheoryEngine()->getDecisionManager()->registerStrategy(
+  d_qe->getDecisionManager()->registerStrategy(
       DecisionManager::STRAT_QUANT_SYGUS_FEASIBLE, d_feasible_strategy.get());
   // this must be called, both to ensure that the feasible guard is
   // decided on with true polariy, but also to ensure that output channel
@@ -255,7 +255,7 @@ void SynthConjecture::assign(Node q)
   {
     d_stream_strategy.reset(new SygusStreamDecisionStrategy(
         d_qe->getSatContext(), d_qe->getValuation()));
-    d_qe->getTheoryEngine()->getDecisionManager()->registerStrategy(
+    d_qe->getDecisionManager()->registerStrategy(
         DecisionManager::STRAT_QUANT_SYGUS_STREAM_FEASIBLE,
         d_stream_strategy.get());
     d_current_stream_guard = d_stream_strategy->getLiteral(0);
@@ -372,7 +372,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
         for (const Node& fc : fail_cvs)
         {
           std::stringstream ss;
-          Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, fc);
+          TermDbSygus::toStreamSygus(ss, fc);
           Trace("sygus-engine") << ss.str() << " ";
         }
         Trace("sygus-engine") << std::endl;
@@ -386,6 +386,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     }
   }
 
+  bool printDebug = options::debugSygus();
   if (!constructed_cand)
   {
     // get the model value of the relevant terms from the master module
@@ -419,17 +420,24 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       Trace("sygus-engine-debug") << "...empty model, fail." << std::endl;
       return !activeIncomplete;
     }
-    // debug print
-    if (Trace.isOn("sygus-engine"))
+    // Must separately compute whether trace is on due to compilation of
+    // Trace.isOn.
+    bool traceIsOn = Trace.isOn("sygus-engine");
+    if (printDebug || traceIsOn)
     {
       Trace("sygus-engine") << "  * Value is : ";
+      std::stringstream sygusEnumOut;
       for (unsigned i = 0, size = terms.size(); i < size; i++)
       {
         Node nv = enum_values[i];
         Node onv = nv.isNull() ? d_qe->getModel()->getValue(terms[i]) : nv;
         TypeNode tn = onv.getType();
         std::stringstream ss;
-        Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, onv);
+        TermDbSygus::toStreamSygus(ss, onv);
+        if (printDebug)
+        {
+          sygusEnumOut << " " << ss.str();
+        }
         Trace("sygus-engine") << terms[i] << " -> ";
         if (nv.isNull())
         {
@@ -447,6 +455,12 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
         }
       }
       Trace("sygus-engine") << std::endl;
+      if (printDebug)
+      {
+        Options& sopts = smt::currentSmtEngine()->getOptions();
+        std::ostream& out = *sopts.getOut();
+        out << "(sygus-enum" << sygusEnumOut.str() << ")" << std::endl;
+      }
     }
     Assert(candidate_values.empty());
     constructed_cand = d_master->constructCandidates(
@@ -534,6 +548,21 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   std::vector<Node> vars;
   if (constructed_cand)
   {
+    if (printDebug)
+    {
+      Options& sopts = smt::currentSmtEngine()->getOptions();
+      std::ostream& out = *sopts.getOut();
+      out << "(sygus-candidate ";
+      Assert(d_quant[0].getNumChildren() == candidate_values.size());
+      for (unsigned i = 0, ncands = candidate_values.size(); i < ncands; i++)
+      {
+        Node v = candidate_values[i];
+        std::stringstream ss;
+        TermDbSygus::toStreamSygus(ss, v);
+        out << "(" << d_quant[0][i] << " " << ss.str() << ")";
+      }
+      out << ")" << std::endl;
+    }
     if (inst.getKind() == NOT && inst[0].getKind() == FORALL)
     {
       for (const Node& v : inst[0][0])
@@ -1003,8 +1032,8 @@ void SynthConjecture::printAndContinueStream(const std::vector<Node>& enums,
   // we have generated a solution, print it
   // get the current output stream
   // this output stream should coincide with wherever --dump-synth is output on
-  Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
-  printSynthSolution(*nodeManagerOptions.getOut());
+  Options& sopts = smt::currentSmtEngine()->getOptions();
+  printSynthSolution(*sopts.getOut());
   excludeCurrentSolution(enums, values);
 }
 
@@ -1163,8 +1192,8 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
         }
         else
         {
-          Printer::getPrinter(options::outputLanguage())
-              ->toStreamSygus(out, sol);
+          Node bsol = datatypes::utils::sygusToBuiltin(sol, true);
+          out << bsol;
         }
         out << ")" << std::endl;
       }

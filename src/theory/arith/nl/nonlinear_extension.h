@@ -19,17 +19,24 @@
 #define CVC4__THEORY__ARITH__NL__NONLINEAR_EXTENSION_H
 
 #include <stdint.h>
+
 #include <map>
 #include <vector>
 
 #include "context/cdlist.h"
 #include "expr/kind.h"
 #include "expr/node.h"
+#include "theory/arith/inference_manager.h"
+#include "theory/arith/nl/cad_solver.h"
+#include "theory/arith/nl/ext_theory_callback.h"
+#include "theory/arith/nl/iand_solver.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/nl_solver.h"
+#include "theory/arith/nl/stats.h"
 #include "theory/arith/nl/transcendental_solver.h"
 #include "theory/arith/theory_arith.h"
+#include "theory/ext_theory.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -68,48 +75,10 @@ class NonlinearExtension
  public:
   NonlinearExtension(TheoryArith& containing, eq::EqualityEngine* ee);
   ~NonlinearExtension();
-  /** Get current substitution
-   *
-   * This function and the one below are
-   * used for context-dependent
-   * simplification, see Section 3.1 of
-   * "Designing Theory Solvers with Extensions"
-   * by Reynolds et al. FroCoS 2017.
-   *
-   * effort : an identifier indicating the stage where
-   *          we are performing context-dependent simplification,
-   * vars : a set of arithmetic variables.
-   *
-   * This function populates subs and exp, such that for 0 <= i < vars.size():
-   *   ( exp[vars[i]] ) => vars[i] = subs[i]
-   * where exp[vars[i]] is a set of assertions
-   * that hold in the current context. We call { vars -> subs } a "derivable
-   * substituion" (see Reynolds et al. FroCoS 2017).
+  /**
+   * Does non-context dependent setup for a node connected to a theory.
    */
-  bool getCurrentSubstitution(int effort,
-                              const std::vector<Node>& vars,
-                              std::vector<Node>& subs,
-                              std::map<Node, std::vector<Node>>& exp);
-  /** Is the term n in reduced form?
-   *
-   * Used for context-dependent simplification.
-   *
-   * effort : an identifier indicating the stage where
-   *          we are performing context-dependent simplification,
-   * on : the original term that we reduced to n,
-   * exp : an explanation such that ( exp => on = n ).
-   *
-   * We return a pair ( b, exp' ) such that
-   *   if b is true, then:
-   *     n is in reduced form
-   *     if exp' is non-null, then ( exp' => on = n )
-   * The second part of the pair is used for constructing
-   * minimal explanations for context-dependent simplifications.
-   */
-  std::pair<bool, Node> isExtfReduced(int effort,
-                                      Node n,
-                                      Node on,
-                                      const std::vector<Node>& exp) const;
+  void preRegisterTerm(TNode n);
   /** Check at effort level e.
    *
    * This call may result in (possibly multiple) calls to d_out->lemma(...)
@@ -162,6 +131,9 @@ class NonlinearExtension
    * on the output channel of TheoryArith in this function.
    */
   void presolve();
+
+  /** Process side effect se */
+  void processSideEffect(const NlLemma& se);
 
  private:
   /** Model-based refinement
@@ -245,14 +217,12 @@ class NonlinearExtension
    * ensureLiteral respectively.
    */
   bool checkModel(const std::vector<Node>& assertions,
-                  const std::vector<Node>& false_asserts,
                   std::vector<NlLemma>& lemmas,
                   std::vector<Node>& gs);
   //---------------------------end check model
-
-  /** Is n entailed with polarity pol in the current context? */
-  bool isEntailed(Node n, bool pol);
-
+  /** compute relevant assertions */
+  void computeRelevantAssertions(const std::vector<Node>& assertions,
+                                 std::vector<Node>& keep);
   /**
    * Potentially adds lemmas to the set out and clears lemmas. Returns
    * the number of lemmas added to out. We do not add lemmas that have already
@@ -267,13 +237,7 @@ class NonlinearExtension
    * Send lemmas in out on the output channel of theory of arithmetic.
    */
   void sendLemmas(const std::vector<NlLemma>& out);
-  /** Process side effect se */
-  void processSideEffect(const NlLemma& se);
 
-  /** cache of all lemmas sent on the output channel (user-context-dependent) */
-  NodeSet d_lemmas;
-  /** Same as above, for preprocessed lemmas */
-  NodeSet d_lemmasPp;
   /** commonly used terms */
   Node d_zero;
   Node d_one;
@@ -281,10 +245,22 @@ class NonlinearExtension
   Node d_true;
   // The theory of arithmetic containing this extension.
   TheoryArith& d_containing;
+  InferenceManager& d_im;
   // pointer to used equality engine
   eq::EqualityEngine* d_ee;
+  /** The statistics class */
+  NlStats d_stats;
   // needs last call effort
   bool d_needsLastCall;
+  /**
+   * The number of times we have the called main check method
+   * (modelBasedRefinement). This counter is used for interleaving strategies.
+   */
+  unsigned d_checkCounter;
+  /** The callback for the extended theory below */
+  NlExtTheoryCallback d_extTheoryCb;
+  /** Extended theory, responsible for context-dependent simplification. */
+  ExtTheory d_extTheory;
   /** The non-linear model object
    *
    * This class is responsible for computing model values for arithmetic terms
@@ -300,9 +276,17 @@ class NonlinearExtension
   /** The nonlinear extension object
    *
    * This is the subsolver responsible for running the procedure for
-   * constraints involving nonlinear mulitplication.
+   * constraints involving nonlinear mulitplication, Cimatti et al., TACAS 2017.
    */
   NlSolver d_nlSlv;
+  /** The CAD-based solver */
+  CadSolver d_cadSlv;
+  /** The integer and solver
+   *
+   * This is the subsolver responsible for running the procedure for
+   * constraints involving integer and.
+   */
+  IAndSolver d_iandSlv;
   /**
    * The lemmas we computed during collectModelInfo, to be sent out on the
    * output channel of TheoryArith.
@@ -313,6 +297,11 @@ class NonlinearExtension
    * NlModel::getModelValueRepair.
    */
   std::map<Node, std::pair<Node, Node>> d_approximations;
+  /**
+   * The witnesses computed during collectModelInfo. For details, see
+   * NlModel::getModelValueRepair.
+   */
+  std::map<Node, Node> d_witnesses;
   /** have we successfully built the model in this SAT context? */
   context::CDO<bool> d_builtModel;
 }; /* class NonlinearExtension */

@@ -14,16 +14,20 @@
  ** Unit tests for symbolic regular expression operations.
  **/
 
+#include <cxxtest/TestSuite.h>
+
+#include <iostream>
+#include <memory>
+#include <vector>
+
+#include "api/cvc4cpp.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "theory/rewriter.h"
 #include "theory/strings/regexp_operation.h"
-
-#include <cxxtest/TestSuite.h>
-#include <iostream>
-#include <memory>
-#include <vector>
+#include "theory/strings/skolem_cache.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -40,10 +44,12 @@ class RegexpOperationBlack : public CxxTest::TestSuite
   {
     Options opts;
     opts.setOutputLanguage(language::output::LANG_SMTLIB_V2);
-    d_em = new ExprManager(opts);
-    d_smt = new SmtEngine(d_em);
+    d_slv = new api::Solver();
+    d_em = d_slv->getExprManager();
+    d_smt = d_slv->getSmtEngine();
     d_scope = new SmtScope(d_smt);
-    d_regExpOpr = new RegExpOpr();
+    d_skc = new SkolemCache();
+    d_regExpOpr = new RegExpOpr(d_skc);
 
     // Ensure that the SMT engine is fully initialized (required for the
     // rewriter)
@@ -55,9 +61,9 @@ class RegexpOperationBlack : public CxxTest::TestSuite
   void tearDown() override
   {
     delete d_regExpOpr;
+    delete d_skc;
     delete d_scope;
-    delete d_smt;
-    delete d_em;
+    delete d_slv;
   }
 
   void includes(Node r1, Node r2)
@@ -147,9 +153,11 @@ class RegexpOperationBlack : public CxxTest::TestSuite
   }
 
  private:
+  api::Solver* d_slv;
   ExprManager* d_em;
   SmtEngine* d_smt;
   SmtScope* d_scope;
+  SkolemCache* d_skc;
   RegExpOpr* d_regExpOpr;
 
   NodeManager* d_nm;

@@ -425,7 +425,6 @@ header = "options/arith_options.h"
   long       = "pb-rewrites"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "apply pseudo boolean rewrites"
 
 [[option]]
@@ -435,7 +434,7 @@ header = "options/arith_options.h"
   type       = "bool"
   default    = "true"
   read_only  = true
-  help       = "extended approach to non-linear"
+  help       = "incremental linearization approach to non-linear"
 
 [[option]]
   name       = "nlExtResBound"
@@ -444,7 +443,7 @@ header = "options/arith_options.h"
   type       = "bool"
   default    = "false"
   read_only  = true
-  help       = "use resolution-style inference for inferring new bounds"
+  help       = "use resolution-style inference for inferring new bounds in non-linear incremental linearization solver"
 
 [[option]]
   name       = "nlExtFactor"
@@ -453,7 +452,7 @@ header = "options/arith_options.h"
   type       = "bool"
   default    = "true"
   read_only  = true
-  help       = "use factoring inference in non-linear solver"
+  help       = "use factoring inference in non-linear incremental linearization solver"
 
 [[option]]
   name       = "nlExtTangentPlanes"
@@ -462,7 +461,7 @@ header = "options/arith_options.h"
   type       = "bool"
   default    = "false"
   read_only  = true
-  help       = "use non-terminating tangent plane strategy for non-linear"
+  help       = "use non-terminating tangent plane strategy for non-linear incremental linearization solver"
 
 [[option]]
   name       = "nlExtTangentPlanesInterleave"
@@ -470,7 +469,7 @@ header = "options/arith_options.h"
   long       = "nl-ext-tplanes-interleave"
   type       = "bool"
   default    = "false"
-  help       = "interleave tangent plane strategy for non-linear"
+  help       = "interleave tangent plane strategy for non-linear incremental linearization solver"
 
 [[option]]
   name       = "nlExtTfTangentPlanes"
@@ -479,7 +478,7 @@ header = "options/arith_options.h"
   type       = "bool"
   default    = "true"
   read_only  = true
-  help       = "use non-terminating tangent plane strategy for transcendental functions for non-linear"
+  help       = "use non-terminating tangent plane strategy for transcendental functions for non-linear incremental linearization solver"
 
 [[option]]
   name       = "nlExtEntailConflicts"
@@ -497,7 +496,7 @@ header = "options/arith_options.h"
   type       = "bool"
   default    = "true"
   read_only  = true
-  help       = "do rewrites in non-linear solver"
+  help       = "do context-dependent simplification based on rewrites in non-linear solver"
 
 [[option]]
   name       = "nlExtPurify"
@@ -535,6 +534,24 @@ header = "options/arith_options.h"
   help       = "whether to increment the precision for irrational function constraints"
 
 [[option]]
+  name       = "nlRlvMode"
+  category   = "regular"
+  long       = "nl-rlv=MODE"
+  type       = "NlRlvMode"
+  default    = "NONE"
+  help       = "choose mode for using relevance of assertoins in non-linear arithmetic"
+  help_mode  = "Modes for using relevance of assertoins in non-linear arithmetic."
+[[option.mode.NONE]]
+  name = "none"
+  help = "Do not use relevance."
+[[option.mode.INTERLEAVE]]
+  name = "interleave"
+  help = "Alternate rounds using relevance."
+[[option.mode.ALWAYS]]
+  name = "always"
+  help = "Always use relevance."
+  
+[[option]]
   name       = "brabTest"
   category   = "regular"
   long       = "arith-brab"
@@ -542,3 +559,12 @@ header = "options/arith_options.h"
   default    = "true"
   read_only  = true
   help       = "whether to use simple rounding, similar to a unit-cube test, for integers"
+
+[[option]]
+  name       = "nlCad"
+  category   = "regular"
+  long       = "nl-cad"
+  type       = "bool"
+  default    = "false"
+  help       = "whether to use the cylindrical algebraic decomposition solver for non-linear arithmetic"
+

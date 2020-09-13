@@ -14,7 +14,6 @@
  **/
 #include "theory/quantifiers/sygus/ce_guided_single_inv_sol.h"
 
-#include "expr/datatype.h"
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"

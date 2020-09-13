@@ -23,8 +23,13 @@
 
 #include "context/cdinsert_hashmap.h"
 #include "context/context.h"
+#include "expr/lazy_proof.h"
 #include "expr/node.h"
+#include "expr/term_context_stack.h"
+#include "expr/term_conversion_proof_generator.h"
 #include "smt/dump.h"
+#include "theory/eager_proof_generator.h"
+#include "theory/trust_node.h"
 #include "util/bool.h"
 #include "util/hash.h"
 
@@ -33,52 +38,7 @@ namespace CVC4 {
 typedef std::unordered_map<Node, unsigned, NodeHashFunction> IteSkolemMap;
 
 class RemoveTermFormulas {
-  typedef context::
-      CDInsertHashMap<std::pair<Node, int>,
-                      Node,
-                      PairHashFunction<Node, int, NodeHashFunction> >
-          TermFormulaCache;
-  /** term formula removal cache
-   *
-   * This stores the results of term formula removal for inputs to the run(...)
-   * function below, where the integer in the pair we hash on is the
-   * result of cacheVal below.
-   */
-  TermFormulaCache d_tfCache;
-
-  /** return the integer cache value for the input flags to run(...) */
-  static inline int cacheVal( bool inQuant, bool inTerm ) { return (inQuant ? 1 : 0) + 2*(inTerm ? 1 : 0); }
-
-  /** skolem cache
-   *
-   * This is a cache that maps terms to the skolem we use to replace them.
-   *
-   * Notice that this cache is necessary in addition to d_tfCache, since
-   * we should use the same skolem to replace terms, regardless of the input
-   * arguments to run(...). For example:
-   *
-   * ite( G, a, b ) = c ^ forall x. P( ite( G, a, b ), x )
-   *
-   * should be processed to:
-   *
-   * k = c ^ forall x. P( k, x ) ^ ite( G, k=a, k=b )
-   *
-   * where notice
-   *   d_skolem_cache[ite( G, a, b )] = k, and
-   *   d_tfCache[<ite( G, a, b ),0>] = d_tfCache[<ite( G, a, b ),1>] = k.
-   */
-  context::CDInsertHashMap<Node, Node, NodeHashFunction> d_skolem_cache;
-
-  /** gets the skolem for node
-   *
-   * This returns the d_skolem_cache value for node, if it exists as a key
-   * in the above map, or the null node otherwise.
-   */
-  inline Node getSkolemForNode(Node node) const;
-
-  static bool hasNestedTermChildren( TNode node );
-public:
-
+ public:
   RemoveTermFormulas(context::UserContext* u);
   ~RemoveTermFormulas();
 
@@ -119,8 +79,104 @@ public:
    *
    * With reportDeps true, report reasoning dependences to the proof
    * manager (for unsat cores).
+   *
+   * @param assertion The assertion to remove term formulas from
+   * @param newAsserts The new assertions corresponding to axioms for newly
+   * introduced skolems.
+   * @param newSkolems The skolems corresponding to each of the newAsserts.
+   * @param reportDeps Used for unsat cores in the old proof infrastructure.
+   * @return a trust node of kind TrustNodeKind::REWRITE whose
+   * right hand side is assertion after removing term formulas, and the proof
+   * generator (if provided) that can prove the equivalence.
    */
-  void run(std::vector<Node>& assertions, IteSkolemMap& iteSkolemMap, bool reportDeps = false);
+  theory::TrustNode run(Node assertion,
+                        std::vector<theory::TrustNode>& newAsserts,
+                        std::vector<Node>& newSkolems,
+                        bool reportDeps = false);
+
+  /**
+   * Substitute under node using pre-existing cache.  Do not remove
+   * any ITEs not seen during previous runs.
+   */
+  Node replace(TNode node) const;
+
+  /** Returns true if e contains a term ite. */
+  bool containsTermITE(TNode e) const;
+
+  /** Garbage collects non-context dependent data-structures. */
+  void garbageCollect();
+
+  /**
+   * Set proof node manager, which signals this class to enable proofs using the
+   * given checker.
+   */
+  void setProofNodeManager(ProofNodeManager* pnm);
+
+  /**
+   * Get axiom for term n. This returns the axiom that this class uses to
+   * eliminate the term n, which is determined by its top-most symbol. For
+   * example, if n is (ite n1 n2 n3), this returns the formula:
+   *   (ite n1 (= (ite n1 n2 n3) n2) (= (ite n1 n2 n3) n3))
+   */
+  static Node getAxiomFor(Node n);
+
+ private:
+  typedef context::CDInsertHashMap<
+      std::pair<Node, int32_t>,
+      Node,
+      PairHashFunction<Node, int32_t, NodeHashFunction> >
+      TermFormulaCache;
+  /** term formula removal cache
+   *
+   * This stores the results of term formula removal for inputs to the run(...)
+   * function below, where the integer in the pair we hash on is the
+   * result of cacheVal below.
+   */
+  TermFormulaCache d_tfCache;
+
+  /** skolem cache
+   *
+   * This is a cache that maps terms to the skolem we use to replace them.
+   *
+   * Notice that this cache is necessary in addition to d_tfCache, since
+   * we should use the same skolem to replace terms, regardless of the input
+   * arguments to run(...). For example:
+   *
+   * ite( G, a, b ) = c ^ forall x. P( ite( G, a, b ), x )
+   *
+   * should be processed to:
+   *
+   * k = c ^ forall x. P( k, x ) ^ ite( G, k=a, k=b )
+   *
+   * where notice
+   *   d_skolem_cache[ite( G, a, b )] = k, and
+   *   d_tfCache[<ite( G, a, b ),0>] = d_tfCache[<ite( G, a, b ),1>] = k.
+   */
+  context::CDInsertHashMap<Node, Node, NodeHashFunction> d_skolem_cache;
+
+  /** gets the skolem for node
+   *
+   * This returns the d_skolem_cache value for node, if it exists as a key
+   * in the above map, or the null node otherwise.
+   */
+  inline Node getSkolemForNode(Node node) const;
+
+  /** Pointer to a proof node manager */
+  ProofNodeManager* d_pnm;
+  /**
+   * A proof generator for the term conversion.
+   */
+  std::unique_ptr<TConvProofGenerator> d_tpg;
+  /**
+   * A proof generator for skolems we introduce that are based on axioms that
+   * this class is responsible for.
+   */
+  std::unique_ptr<LazyCDProof> d_lp;
+  /**
+   * The remove term formula context, which computes hash values for term
+   * contexts.
+   */
+  RtfTermContext d_rtfc;
 
   /**
    * Removes terms of the form (1), (2), (3) described above from node.
@@ -133,20 +189,14 @@ public:
    * inTerm is whether we are are processing node in a "term" position, that is, it is a subterm
    *        of a parent term that is not a Boolean connective.
    */
-  Node run(TNode node, std::vector<Node>& additionalAssertions,
-           IteSkolemMap& iteSkolemMap, bool inQuant, bool inTerm);
+  Node run(TCtxStack& cxt,
+           std::vector<theory::TrustNode>& newAsserts,
+           std::vector<Node>& newSkolems);
+  /** Replace internal */
+  Node replaceInternal(TCtxStack& ctx) const;
 
-  /**
-   * Substitute under node using pre-existing cache.  Do not remove
-   * any ITEs not seen during previous runs.
-   */
-  Node replace(TNode node, bool inQuant = false, bool inTerm = false) const;
-
-  /** Returns true if e contains a term ite. */
-  bool containsTermITE(TNode e) const;
-
-  /** Garbage collects non-context dependent data-structures. */
-  void garbageCollect();
+  /** Whether proofs are enabled */
+  bool isProofEnabled() const;
 };/* class RemoveTTE */
 
 }/* CVC4 namespace */

@@ -38,6 +38,7 @@ namespace strings {
  */
 enum class Inference : uint32_t
 {
+  BEGIN,
   //-------------------------------------- base solver
   // initial normalize singular
   //   x1 = "" ^ ... ^ x_{i-1} = "" ^ x_{i+1} = "" ^ ... ^ xn = "" =>
@@ -59,6 +60,10 @@ enum class Inference : uint32_t
   // equal after e.g. removing strings that are currently empty. For example:
   //   y = "" ^ z = "" => x ++ y = z ++ x
   I_NORM,
+  // injectivity of seq.unit
+  UNIT_INJ,
+  // unit constant conflict
+  UNIT_CONST_CONFLICT,
   // A split due to cardinality
   CARD_SP,
   // The cardinality inference for strings, see Liang et al CAV 2014.
@@ -291,6 +296,10 @@ enum class Inference : uint32_t
   // (see theory_strings_preprocess).
   REDUCTION,
   //-------------------------------------- end extended function solver
+  //-------------------------------------- prefix conflict
+  // prefix conflict (coarse-grained)
+  PREFIX_CONFLICT,
+  //-------------------------------------- end prefix conflict
   NONE,
 };
 
@@ -343,6 +352,8 @@ class InferInfo
   ~InferInfo() {}
   /** The inference identifier */
   Inference d_id;
+  /** Whether it is the reverse form of the above id */
+  bool d_idRev;
   /** The conclusion */
   Node d_conc;
   /**
@@ -353,9 +364,11 @@ class InferInfo
   /**
    * The "new literal" antecedant(s) of the inference, interpreted
    * conjunctively. These are literals that were needed to show the conclusion
-   * but do not currently hold in the equality engine.
+   * but do not currently hold in the equality engine. These should be a subset
+   * of d_ant. In other words, antecedants that are not explained are stored
+   * in *both* d_ant and d_noExplain.
    */
-  std::vector<Node> d_antn;
+  std::vector<Node> d_noExplain;
   /**
    * A list of new skolems introduced as a result of this inference. They
    * are mapped to by a length status, indicating the length constraint that
@@ -366,15 +379,17 @@ class InferInfo
   bool isTrivial() const;
   /**
    * Does this infer info correspond to a conflict? True if d_conc is false
-   * and it has no new antecedants (d_antn).
+   * and it has no new antecedants (d_noExplain).
    */
   bool isConflict() const;
   /**
    * Does this infer info correspond to a "fact". A fact is an inference whose
    * conclusion should be added as an equality or predicate to the equality
-   * engine with no new external antecedants (d_antn).
+   * engine with no new external antecedants (d_noExplain).
    */
   bool isFact() const;
+  /** Get antecedant */
+  Node getAntecedant() const;
 };
 
 /**

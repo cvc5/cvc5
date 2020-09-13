@@ -98,11 +98,33 @@ RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
     {
       for (unsigned i = 0; i < 2; i++)
       {
+        // (witness ((x T)) (= x t)) ---> t
         if (node[1][i] == node[0][0])
         {
-          return RewriteResponse(REWRITE_DONE, node[1][1 - i]);
+          Trace("builtin-rewrite") << "Witness rewrite: " << node << " --> "
+                                   << node[1][1 - i] << std::endl;
+          // also must be a legal elimination: the other side of the equality
+          // cannot contain the variable, and it must be a subtype of the
+          // variable
+          if (!expr::hasSubterm(node[1][1 - i], node[0][0]) &&
+              node[1][i].getType().isSubtypeOf(node[0][0].getType()))
+          {
+            return RewriteResponse(REWRITE_DONE, node[1][1 - i]);
+          }
         }
       }
+    }
+    else if (node[1] == node[0][0])
+    {
+      // (witness ((x Bool)) x) ---> true
+      return RewriteResponse(REWRITE_DONE,
+                             NodeManager::currentNM()->mkConst(true));
+    }
+    else if (node[1].getKind() == kind::NOT && node[1][0] == node[0][0])
+    {
+      // (witness ((x Bool)) (not x)) ---> false
+      return RewriteResponse(REWRITE_DONE,
+                             NodeManager::currentNM()->mkConst(false));
     }
     return RewriteResponse(REWRITE_DONE, node);
   }else{ 
@@ -163,7 +185,7 @@ Node TheoryBuiltinRewriter::getLambdaForArrayRepresentationRec( TNode a, TNode b
         }
       }else if( a.getKind()==kind::STORE_ALL ){
         ArrayStoreAll storeAll = a.getConst<ArrayStoreAll>();
-        Node sa = Node::fromExpr(storeAll.getExpr());
+        Node sa = storeAll.getValue();
         // convert the default value recursively (bounded by the number of arguments in bvl)
         ret = getLambdaForArrayRepresentationRec( sa, bvl, bvlIndex+1, visited );
       }
@@ -426,8 +448,7 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
     }
     Trace("builtin-rewrite-debug2") << "  make array store all " << curr.getType() << " annotated : " << array_type << std::endl;
     Assert(curr.getType().isSubtypeOf(array_type.getArrayConstituentType()));
-    curr = nm->mkConst(
-        ArrayStoreAll((ArrayType(array_type.toType())), curr.toExpr()));
+    curr = nm->mkConst(ArrayStoreAll(array_type, curr));
     Trace("builtin-rewrite-debug2") << "  build array..." << std::endl;
     // can only build if default value is constant (since array store all must be constant)
     Trace("builtin-rewrite-debug2") << "  got constant base " << curr << std::endl;

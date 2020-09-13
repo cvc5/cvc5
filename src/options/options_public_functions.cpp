@@ -54,10 +54,6 @@ OutputLanguage Options::getOutputLanguage() const {
 
 bool Options::getUfHo() const { return (*this)[options::ufHo]; }
 
-bool Options::getCheckProofs() const{
-  return (*this)[options::checkProofs];
-}
-
 bool Options::getDumpInstantiations() const{
   return (*this)[options::dumpInstantiations];
 }
@@ -124,10 +120,6 @@ bool Options::getProduceModels() const{
   return (*this)[options::produceModels];
 }
 
-bool Options::getProof() const{
-  return (*this)[options::proof];
-}
-
 bool Options::getSegvSpin() const{
   return (*this)[options::segvSpin];
 }
@@ -155,6 +147,10 @@ bool Options::getStrictParsing() const{
 
 int Options::getTearDownIncremental() const{
   return (*this)[options::tearDownIncremental];
+}
+
+unsigned long Options::getCumulativeTimeLimit() const {
+  return (*this)[options::cumulativeMillisecondLimit];
 }
 
 bool Options::getVersion() const{

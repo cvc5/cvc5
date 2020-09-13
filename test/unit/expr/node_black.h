@@ -22,12 +22,16 @@
 #include <string>
 #include <vector>
 
+#include "api/cvc4cpp.h"
+#include "expr/dtype.h"
 #include "expr/expr_manager.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
 #include "expr/node_value.h"
+#include "smt/smt_engine.h"
 #include "test_utils.h"
+#include "theory/rewriter.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -50,15 +54,13 @@ std::vector<Node> makeNSkolemNodes(NodeManager* nodeManager, int N,
 
 class NodeBlack : public CxxTest::TestSuite {
  private:
-  Options opts;
   NodeManager* d_nodeManager;
-  NodeManagerScope* d_scope;
-  TypeNode* d_booleanType;
-  TypeNode* d_realType;
-
+  api::Solver* d_slv;
  public:
   void setUp() override
   {
+    // setup a SMT engine so that options are in scope
+    Options opts;
     char* argv[2];
     argv[0] = strdup("");
     argv[1] = strdup("--output-lang=ast");
@@ -66,18 +68,12 @@ class NodeBlack : public CxxTest::TestSuite {
     free(argv[0]);
     free(argv[1]);
 
-    d_nodeManager = new NodeManager(NULL, opts);
-    d_scope = new NodeManagerScope(d_nodeManager);
-    d_booleanType = new TypeNode(d_nodeManager->booleanType());
-    d_realType = new TypeNode(d_nodeManager->realType());
+    d_slv = new api::Solver(&opts);
+    d_nodeManager = d_slv->getSmtEngine()->getNodeManager();
   }
 
-  void tearDown() override
-  {
-    delete d_realType;
-    delete d_booleanType;
-    delete d_scope;
-    delete d_nodeManager;
+  void tearDown() override { 
+    delete d_slv;
   }
 
   bool imp(bool a, bool b) const { return (!a) || (b); }
@@ -114,12 +110,12 @@ class NodeBlack : public CxxTest::TestSuite {
   void testOperatorEquals() {
     Node a, b, c;
 
-    b = d_nodeManager->mkSkolem("b", *d_booleanType);
+    b = d_nodeManager->mkSkolem("b", d_nodeManager->booleanType());
 
     a = b;
     c = a;
 
-    Node d = d_nodeManager->mkSkolem("d", *d_booleanType);
+    Node d = d_nodeManager->mkSkolem("d", d_nodeManager->booleanType());
 
     TS_ASSERT(a == a);
     TS_ASSERT(a == b);
@@ -148,12 +144,12 @@ class NodeBlack : public CxxTest::TestSuite {
   void testOperatorNotEquals() {
     Node a, b, c;
 
-    b = d_nodeManager->mkSkolem("b", *d_booleanType);
+    b = d_nodeManager->mkSkolem("b", d_nodeManager->booleanType());
 
     a = b;
     c = a;
 
-    Node d = d_nodeManager->mkSkolem("d", *d_booleanType);
+    Node d = d_nodeManager->mkSkolem("d", d_nodeManager->booleanType());
 
     /*structed assuming operator == works */
     TS_ASSERT(iff(a != a, !(a == a)));
@@ -208,7 +204,7 @@ class NodeBlack : public CxxTest::TestSuite {
   void testOperatorAssign() {
     Node a, b;
     Node c = d_nodeManager->mkNode(
-        NOT, d_nodeManager->mkSkolem("c", *d_booleanType));
+        NOT, d_nodeManager->mkSkolem("c", d_nodeManager->booleanType()));
 
     b = c;
     TS_ASSERT(b == c);
@@ -324,8 +320,8 @@ class NodeBlack : public CxxTest::TestSuite {
   void testIteNode() {
     /*Node iteNode(const Node& thenpart, const Node& elsepart) const;*/
 
-    Node a = d_nodeManager->mkSkolem("a", *d_booleanType);
-    Node b = d_nodeManager->mkSkolem("b", *d_booleanType);
+    Node a = d_nodeManager->mkSkolem("a", d_nodeManager->booleanType());
+    Node b = d_nodeManager->mkSkolem("b", d_nodeManager->booleanType());
 
     Node cnd = d_nodeManager->mkNode(OR, a, b);
     Node thenBranch = d_nodeManager->mkConst(true);
@@ -383,8 +379,8 @@ class NodeBlack : public CxxTest::TestSuite {
   void testGetKind() {
     /*inline Kind getKind() const; */
 
-    Node a = d_nodeManager->mkSkolem("a", *d_booleanType);
-    Node b = d_nodeManager->mkSkolem("b", *d_booleanType);
+    Node a = d_nodeManager->mkSkolem("a", d_nodeManager->booleanType());
+    Node b = d_nodeManager->mkSkolem("b", d_nodeManager->booleanType());
 
     Node n = d_nodeManager->mkNode(NOT, a);
     TS_ASSERT(NOT == n.getKind());
@@ -392,8 +388,8 @@ class NodeBlack : public CxxTest::TestSuite {
     n = d_nodeManager->mkNode(EQUAL, a, b);
     TS_ASSERT(EQUAL == n.getKind());
 
-    Node x = d_nodeManager->mkSkolem("x", *d_realType);
-    Node y = d_nodeManager->mkSkolem("y", *d_realType);
+    Node x = d_nodeManager->mkSkolem("x", d_nodeManager->realType());
+    Node y = d_nodeManager->mkSkolem("y", d_nodeManager->realType());
 
     n = d_nodeManager->mkNode(PLUS, x, y);
     TS_ASSERT(PLUS == n.getKind());
@@ -470,9 +466,9 @@ class NodeBlack : public CxxTest::TestSuite {
   // test iterators
   void testIterator() {
     NodeBuilder<> b;
-    Node x = d_nodeManager->mkSkolem("x", *d_booleanType);
-    Node y = d_nodeManager->mkSkolem("y", *d_booleanType);
-    Node z = d_nodeManager->mkSkolem("z", *d_booleanType);
+    Node x = d_nodeManager->mkSkolem("x", d_nodeManager->booleanType());
+    Node y = d_nodeManager->mkSkolem("y", d_nodeManager->booleanType());
+    Node z = d_nodeManager->mkSkolem("z", d_nodeManager->booleanType());
     Node n = b << x << y << z << kind::AND;
 
     {  // iterator
@@ -712,12 +708,86 @@ class NodeBlack : public CxxTest::TestSuite {
               std::equal(children.begin(), children.end(), skolems.begin()));
   }
 
+  void testIsConst()
+  {
+    // more complicated "constants" exist in datatypes and arrays theories
+    DType list("list");
+    std::shared_ptr<DTypeConstructor> consC =
+        std::make_shared<DTypeConstructor>("cons");
+    consC->addArg("car", d_nodeManager->integerType());
+    consC->addArgSelf("cdr");
+    list.addConstructor(consC);
+    list.addConstructor(std::make_shared<DTypeConstructor>("nil"));
+    TypeNode listType = d_nodeManager->mkDatatypeType(list);
+    const std::vector<std::shared_ptr<DTypeConstructor> >& lcons =
+        listType.getDType().getConstructors();
+    Node cons = lcons[0]->getConstructor();
+    Node nil = lcons[1]->getConstructor();
+    Node x = d_nodeManager->mkSkolem("x", d_nodeManager->integerType());
+    Node cons_x_nil =
+        d_nodeManager->mkNode(APPLY_CONSTRUCTOR,
+                              cons,
+                              x,
+                              d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil));
+    Node cons_1_nil =
+        d_nodeManager->mkNode(APPLY_CONSTRUCTOR,
+                              cons,
+                              d_nodeManager->mkConst(Rational(1)),
+                              d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil));
+    Node cons_1_cons_2_nil = d_nodeManager->mkNode(
+        APPLY_CONSTRUCTOR,
+        cons,
+        d_nodeManager->mkConst(Rational(1)),
+        d_nodeManager->mkNode(APPLY_CONSTRUCTOR,
+                              cons,
+                              d_nodeManager->mkConst(Rational(2)),
+                              d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil)));
+    TS_ASSERT(d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil).isConst());
+    TS_ASSERT(!cons_x_nil.isConst());
+    TS_ASSERT(cons_1_nil.isConst());
+    TS_ASSERT(cons_1_cons_2_nil.isConst());
+
+    TypeNode arrType = d_nodeManager->mkArrayType(d_nodeManager->integerType(),
+                                                  d_nodeManager->integerType());
+    Node zero = d_nodeManager->mkConst(Rational(0));
+    Node one = d_nodeManager->mkConst(Rational(1));
+    Node storeAll = d_nodeManager->mkConst(ArrayStoreAll(arrType, zero));
+    TS_ASSERT(storeAll.isConst());
+
+    Node arr = d_nodeManager->mkNode(STORE, storeAll, zero, zero);
+    TS_ASSERT(!arr.isConst());
+    arr = d_nodeManager->mkNode(STORE, storeAll, zero, one);
+    TS_ASSERT(arr.isConst());
+    Node arr2 = d_nodeManager->mkNode(STORE, arr, one, zero);
+    TS_ASSERT(!arr2.isConst());
+    arr2 = d_nodeManager->mkNode(STORE, arr, zero, one);
+    TS_ASSERT(!arr2.isConst());
+
+    arrType = d_nodeManager->mkArrayType(d_nodeManager->mkBitVectorType(1),
+                                         d_nodeManager->mkBitVectorType(1));
+    zero = d_nodeManager->mkConst(BitVector(1, unsigned(0)));
+    one = d_nodeManager->mkConst(BitVector(1, unsigned(1)));
+    storeAll = d_nodeManager->mkConst(ArrayStoreAll(arrType, zero));
+    TS_ASSERT(storeAll.isConst());
+
+    arr = d_nodeManager->mkNode(STORE, storeAll, zero, zero);
+    TS_ASSERT(!arr.isConst());
+    arr = d_nodeManager->mkNode(STORE, storeAll, zero, one);
+    TS_ASSERT(arr.isConst());
+    arr2 = d_nodeManager->mkNode(STORE, arr, one, zero);
+    TS_ASSERT(!arr2.isConst());
+    arr2 = d_nodeManager->mkNode(STORE, arr, one, one);
+    TS_ASSERT(!arr2.isConst());
+    arr2 = d_nodeManager->mkNode(STORE, arr, zero, one);
+    TS_ASSERT(!arr2.isConst());
+  }
+
   //  This Test is designed to fail in a way that will cause a segfault,
   //  so it is commented out.
   //  This is for demonstrating what a certain type of user error looks like.
   //   Node level0(){
   //     NodeBuilder<> nb(kind::AND);
-  //     Node x = d_nodeManager->mkSkolem("x", *d_booleanType);
+  //     Node x = d_nodeManager->mkSkolem("x", d_nodeManager->booleanType());
   //     nb << x;
   //     nb << x;
   //     return Node(nb.constructNode());

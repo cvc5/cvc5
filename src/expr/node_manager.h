@@ -66,7 +66,7 @@ class NodeManagerListener {
   virtual void nmNotifyNewSortConstructor(TypeNode tn, uint32_t flags) {}
   virtual void nmNotifyInstantiateSortConstructor(TypeNode ctor, TypeNode sort,
                                                   uint32_t flags) {}
-  virtual void nmNotifyNewDatatypes(const std::vector<DatatypeType>& datatypes,
+  virtual void nmNotifyNewDatatypes(const std::vector<TypeNode>& datatypes,
                                     uint32_t flags)
   {
   }
@@ -91,10 +91,6 @@ class NodeManager {
   friend Expr ExprManager::mkVar(const std::string&, Type, uint32_t flags);
   friend Expr ExprManager::mkVar(Type, uint32_t flags);
 
-  // friend so it can access NodeManager's d_listeners and notify clients
-  friend std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
-      std::vector<Datatype>&, std::set<Type>&, uint32_t);
-
   /** Predicate for use with STL algorithms */
   struct NodeValueReferenceCountNonZero {
     bool operator()(expr::NodeValue* nv) { return nv->d_rc > 0; }
@@ -109,19 +105,10 @@ class NodeManager {
 
   static thread_local NodeManager* s_current;
 
-  Options* d_options;
   StatisticsRegistry* d_statisticsRegistry;
-
-  ResourceManager* d_resourceManager;
 
   /** The skolem manager */
   std::shared_ptr<SkolemManager> d_skManager;
-
-  /**
-   * A list of registrations on d_options to that call into d_resourceManager.
-   * These must be garbage collected before d_options and d_resourceManager.
-   */
-  ListenerRegistrationList* d_registrations;
 
   NodeValuePool d_nodeValuePool;
 
@@ -181,8 +168,12 @@ class NodeManager {
    */
   std::vector<NodeManagerListener*> d_listeners;
 
-  /** A list of datatypes owned by this node manager. */
-  std::vector<std::shared_ptr<DType> > d_ownedDTypes;
+  /** A list of datatypes registered by its corresponding expr manager.
+   * !!! this member should be deleted when the Expr-layer is deleted.
+   */
+  std::vector<std::shared_ptr<DType> > d_registeredDTypes;
+  /** A list of datatypes owned by this node manager */
+  std::vector<std::unique_ptr<DType> > d_ownedDTypes;
 
   /**
    * A map of tuple and record types to their corresponding datatype.
@@ -385,30 +376,14 @@ class NodeManager {
   /** Create a variable with the given type. */
   Node mkVar(const TypeNode& type, uint32_t flags = ExprManager::VAR_FLAG_NONE);
   Node* mkVarPtr(const TypeNode& type, uint32_t flags = ExprManager::VAR_FLAG_NONE);
-  
-public:
+
+ public:
 
   explicit NodeManager(ExprManager* exprManager);
-  explicit NodeManager(ExprManager* exprManager, const Options& options);
   ~NodeManager();
 
   /** The node manager in the current public-facing CVC4 library context */
   static NodeManager* currentNM() { return s_current; }
-  /** The resource manager associated with the current node manager */
-  static ResourceManager* currentResourceManager() { return s_current->d_resourceManager; }
-
-  /** Get this node manager's options (const version) */
-  const Options& getOptions() const {
-    return *d_options;
-  }
-
-  /** Get this node manager's options (non-const version) */
-  Options& getOptions() {
-    return *d_options;
-  }
-
-  /** Get this node manager's resource manager */
-  ResourceManager* getResourceManager() { return d_resourceManager; }
   /** Get this node manager's skolem manager */
   SkolemManager* getSkolemManager() { return d_skManager.get(); }
 
@@ -432,8 +407,10 @@ public:
     Assert(elt != d_listeners.end()) << "listener not subscribed";
     d_listeners.erase(elt);
   }
-  
-  /** register datatype */
+
+  /** register that datatype dt was constructed by the expression manager
+   * !!! this interface should be deleted when the Expr-layer is deleted.
+   */
   size_t registerDatatype(std::shared_ptr<DType> dt);
   /**
    * Return the datatype at the given index owned by this class. Type nodes are
@@ -445,7 +422,7 @@ public:
    * would lead to memory leaks. Thus TypeNode are given a DatatypeIndexConstant
    * which is used as an index to retrieve the DType via this call.
    */
-  const DType& getDTypeForIndex(unsigned index) const;
+  const DType& getDTypeForIndex(size_t index) const;
 
   /** Get a Kind from an operator expression */
   static inline Kind operatorToKind(TNode n);
@@ -495,6 +472,17 @@ public:
   Node mkNode(Kind kind, const std::vector<NodeTemplate<ref_count> >& children);
   template <bool ref_count>
   Node* mkNodePtr(Kind kind, const std::vector<NodeTemplate<ref_count> >& children);
+
+  /**
+   * Create an AND node with arbitrary number of children. This returns the
+   * true node if children is empty, or the single node in children if
+   * it contains only one node.
+   *
+   * We define construction of AND as a special case here since it is widely
+   * used for e.g. constructing explanations.
+   */
+  template <bool ref_count>
+  Node mkAnd(const std::vector<NodeTemplate<ref_count> >& children);
 
   /** Create a node (with no children) by operator. */
   Node mkNode(TNode opNode);
@@ -550,8 +538,10 @@ public:
     SKOLEM_DEFAULT = 0,    /**< default behavior */
     SKOLEM_NO_NOTIFY = 1,  /**< do not notify subscribers */
     SKOLEM_EXACT_NAME = 2, /**< do not make the name unique by adding the id */
-    SKOLEM_IS_GLOBAL = 4   /**< global vars appear in models even after a pop */
-  };
+    SKOLEM_IS_GLOBAL = 4,  /**< global vars appear in models even after a pop */
+    SKOLEM_BOOL_TERM_VAR = 8 /**< vars requiring kind BOOLEAN_TERM_VARIABLE */
+  };                         /* enum SkolemFlags */
+
   /**
    * Create a skolem constant with the given name, type, and comment.
    *
@@ -901,8 +891,61 @@ public:
   /** Make the type of sequences with the given parameterization */
   TypeNode mkSequenceType(TypeNode elementType);
 
-  /** Make a type representing a constructor with the given parameterization */
-  TypeNode mkConstructorType(const DatatypeConstructor& constructor, TypeNode range);
+  /** Bits for use in mkDatatypeType() flags.
+   *
+   * DATATYPE_FLAG_PLACEHOLDER indicates that the type should not be printed
+   * out as a definition, for example, in models or during dumping.
+   */
+  enum
+  {
+    DATATYPE_FLAG_NONE = 0,
+    DATATYPE_FLAG_PLACEHOLDER = 1
+  }; /* enum */
+
+  /** Make a type representing the given datatype. */
+  TypeNode mkDatatypeType(DType& datatype, uint32_t flags = DATATYPE_FLAG_NONE);
+
+  /**
+   * Make a set of types representing the given datatypes, which may be
+   * mutually recursive.
+   */
+  std::vector<TypeNode> mkMutualDatatypeTypes(
+      const std::vector<DType>& datatypes, uint32_t flags = DATATYPE_FLAG_NONE);
+
+  /**
+   * Make a set of types representing the given datatypes, which may
+   * be mutually recursive.  unresolvedTypes is a set of SortTypes
+   * that were used as placeholders in the Datatypes for the Datatypes
+   * of the same name.  This is just a more complicated version of the
+   * above mkMutualDatatypeTypes() function, but is required to handle
+   * complex types.
+   *
+   * For example, unresolvedTypes might contain the single sort "list"
+   * (with that name reported from SortType::getName()).  The
+   * datatypes list might have the single datatype
+   *
+   *   DATATYPE
+   *     list = cons(car:ARRAY INT OF list, cdr:list) | nil;
+   *   END;
+   *
+   * To represent the Type of the array, the user had to create a
+   * placeholder type (an uninterpreted sort) to stand for "list" in
+   * the type of "car".  It is this placeholder sort that should be
+   * passed in unresolvedTypes.  If the datatype was of the simpler
+   * form:
+   *
+   *   DATATYPE
+   *     list = cons(car:list, cdr:list) | nil;
+   *   END;
+   *
+   * then no complicated Type needs to be created, and the above,
+   * simpler form of mkMutualDatatypeTypes() is enough.
+   */
+  std::vector<TypeNode> mkMutualDatatypeTypes(
+      const std::vector<DType>& datatypes,
+      const std::set<TypeNode>& unresolvedTypes,
+      uint32_t flags = DATATYPE_FLAG_NONE);
+
   /**
    * Make a type representing a constructor with the given argument (subfield)
    * types and return type range.
@@ -982,7 +1025,7 @@ public:
   /**
    * Convert a type node to a type.
    */
-  inline Type toType(TypeNode tn);
+  inline Type toType(const TypeNode& tn);
 
   /**
    * Convert a type to a type node.
@@ -1035,25 +1078,19 @@ public:
 class NodeManagerScope {
   /** The old NodeManager, to be restored on destruction. */
   NodeManager* d_oldNodeManager;
-  Options::OptionsScope d_optionsScope;
 public:
-
-  NodeManagerScope(NodeManager* nm)
-      : d_oldNodeManager(NodeManager::s_current)
-      , d_optionsScope(nm ? nm->d_options : NULL) {
-    // There are corner cases where nm can be NULL and it's ok.
-    // For example, if you write { Expr e; }, then when the null
-    // Expr is destructed, there's no active node manager.
-    //Assert(nm != NULL);
-    NodeManager::s_current = nm;
-    //Options::s_current = nm ? nm->d_options : NULL;
-    Debug("current") << "node manager scope: "
-                     << NodeManager::s_current << "\n";
+ NodeManagerScope(NodeManager* nm) : d_oldNodeManager(NodeManager::s_current)
+ {
+   // There are corner cases where nm can be NULL and it's ok.
+   // For example, if you write { Expr e; }, then when the null
+   // Expr is destructed, there's no active node manager.
+   // Assert(nm != NULL);
+   NodeManager::s_current = nm;
+   Debug("current") << "node manager scope: " << NodeManager::s_current << "\n";
   }
 
   ~NodeManagerScope() {
     NodeManager::s_current = d_oldNodeManager;
-    //Options::s_current = d_oldNodeManager ? d_oldNodeManager->d_options : NULL;
     Debug("current") << "node manager scope: "
                      << "returning to " << NodeManager::s_current << "\n";
   }
@@ -1213,7 +1250,8 @@ inline NodeManager* NodeManager::fromExprManager(ExprManager* exprManager) {
   return exprManager->getNodeManager();
 }
 
-inline Type NodeManager::toType(TypeNode tn) {
+inline Type NodeManager::toType(const TypeNode& tn)
+{
   return Type(this, new TypeNode(tn));
 }
 
@@ -1330,6 +1368,20 @@ inline Node NodeManager::mkNode(Kind kind,
   NodeBuilder<> nb(this, kind);
   nb.append(children);
   return nb.constructNode();
+}
+
+template <bool ref_count>
+Node NodeManager::mkAnd(const std::vector<NodeTemplate<ref_count> >& children)
+{
+  if (children.empty())
+  {
+    return mkConst(true);
+  }
+  else if (children.size() == 1)
+  {
+    return children[0];
+  }
+  return mkNode(kind::AND, children);
 }
 
 template <bool ref_count>
@@ -1512,6 +1564,9 @@ TypeNode NodeManager::mkTypeConst(const T& val) {
 
 template <class NodeClass, class T>
 NodeClass NodeManager::mkConstInternal(const T& val) {
+  // This method indirectly calls `NodeValue::inc()`, which relies on having
+  // the correct `NodeManager` in scope.
+  NodeManagerScope nms(this);
 
   // typedef typename kind::metakind::constantMap<T>::OwningTheory theory_t;
   NVStorage<1> nvStorage;

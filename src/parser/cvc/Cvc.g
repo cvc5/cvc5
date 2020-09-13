@@ -244,6 +244,7 @@ tokens {
   REGEXP_EMPTY_TOK = 'RE_EMPTY';
   REGEXP_SIGMA_TOK = 'RE_SIGMA';
   REGEXP_COMPLEMENT_TOK = 'RE_COMPLEMENT';
+  SEQ_UNIT_TOK = 'SEQ_UNIT';
 
   SETS_CARD_TOK = 'CARD';
 
@@ -935,15 +936,8 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
           PARSER_STATE->parseError("Type mismatch in definition");
         }
       }
-      std::vector<std::vector<Expr>> eformals;
-      for (unsigned i=0, fsize = formals.size(); i<fsize; i++)
-      {
-        eformals.push_back(api::termVectorToExprs(formals[i]));
-      }
       cmd->reset(
-          new DefineFunctionRecCommand(api::termVectorToExprs(funcs),
-                                       eformals,
-                                       api::termVectorToExprs(formulas), true));
+          new DefineFunctionRecCommand(SOLVER, funcs, formals, formulas, true));
     }
   | toplevelDeclaration[cmd]
   ;
@@ -1652,9 +1646,9 @@ tupleStore[CVC4::api::Term& f]
         ss << "tuple is of length " << length << "; cannot update index " << k;
         PARSER_STATE->parseError(ss.str());
       }
-      const Datatype & dt = ((DatatypeType)t.getType()).getDatatype();
+      const api::Datatype& dt = t.getDatatype();
       f2 = SOLVER->mkTerm(
-          api::APPLY_SELECTOR, api::Term(SOLVER, dt[0][k].getSelector()), f);
+          api::APPLY_SELECTOR, dt[0][k].getSelectorTerm(), f);
     }
     ( ( arrayStore[f2]
       | DOT ( tupleStore[f2]
@@ -1681,13 +1675,9 @@ recordStore[CVC4::api::Term& f]
            << "its type: " << t;
         PARSER_STATE->parseError(ss.str());
       }
-      const Record& rec = ((DatatypeType)t.getType()).getRecord();
-      if(! rec.contains(id)) {
-        PARSER_STATE->parseError(std::string("no such field `") + id + "' in record");
-      }
-      const Datatype & dt = ((DatatypeType)t.getType()).getDatatype();
+      const api::Datatype& dt = t.getDatatype();
       f2 = SOLVER->mkTerm(
-          api::APPLY_SELECTOR, api::Term(SOLVER, dt[0][id].getSelector()), f);
+          api::APPLY_SELECTOR, dt[0][id].getSelectorTerm(), f);
     }
     ( ( arrayStore[f2]
       | DOT ( tupleStore[f2]
@@ -1826,13 +1816,9 @@ postfixTerm[CVC4::api::Term& f]
           if(! type.isRecord()) {
             PARSER_STATE->parseError("record-select applied to non-record");
           }
-          const Record& rec = ((DatatypeType)type.getType()).getRecord();
-          if(!rec.contains(id)){
-            PARSER_STATE->parseError(std::string("no such field `") + id + "' in record");
-          }
-          const Datatype & dt = ((DatatypeType)type.getType()).getDatatype();
+          const api::Datatype& dt = type.getDatatype();
           f = SOLVER->mkTerm(api::APPLY_SELECTOR,
-                             api::Term(SOLVER, dt[0][id].getSelector()),
+                             dt[0][id].getSelectorTerm(),
                              f);
         }
       | k=numeral
@@ -1847,9 +1833,9 @@ postfixTerm[CVC4::api::Term& f]
             ss << "tuple is of length " << length << "; cannot access index " << k;
             PARSER_STATE->parseError(ss.str());
           }
-          const Datatype & dt = ((DatatypeType)type.getType()).getDatatype();
+          const api::Datatype& dt = type.getDatatype();
           f = SOLVER->mkTerm(api::APPLY_SELECTOR,
-                             api::Term(SOLVER, dt[0][k].getSelector()),
+                             dt[0][k].getSelectorTerm(),
                              f);
         }
       )
@@ -1889,8 +1875,8 @@ relationTerm[CVC4::api::Term& f]
       args.push_back(f);
       types.push_back(f.getSort());
       api::Sort t = SOLVER->mkTupleSort(types);
-      const Datatype& dt = Datatype(((DatatypeType)t.getType()).getDatatype());
-      args.insert(args.begin(), api::Term(SOLVER, dt[0].getConstructor()));
+      const api::Datatype& dt = t.getDatatype();
+      args.insert(args.begin(), dt[0].getConstructorTerm());
       f = MK_TERM(api::APPLY_CONSTRUCTOR, args);
     }
   | IDEN_TOK LPAREN formula[f] RPAREN
@@ -2087,6 +2073,8 @@ stringTerm[CVC4::api::Term& f]
     }
   | REGEXP_COMPLEMENT_TOK LPAREN formula[f] RPAREN
     { f = MK_TERM(CVC4::api::REGEXP_COMPLEMENT, f); }
+  | SEQ_UNIT_TOK LPAREN formula[f] RPAREN
+    { f = MK_TERM(CVC4::api::SEQ_UNIT, f); }
   | REGEXP_EMPTY_TOK
     { f = MK_TERM(CVC4::api::REGEXP_EMPTY, std::vector<api::Term>()); }
   | REGEXP_SIGMA_TOK
@@ -2139,8 +2127,8 @@ simpleTerm[CVC4::api::Term& f]
           types.push_back((*i).getSort());
         }
         api::Sort dtype = SOLVER->mkTupleSort(types);
-        const Datatype& dt = ((DatatypeType)dtype.getType()).getDatatype();
-        args.insert(args.begin(), api::Term(SOLVER, dt[0].getConstructor()));
+        const api::Datatype& dt = dtype.getDatatype();
+        args.insert(args.begin(), dt[0].getConstructorTerm());
         f = MK_TERM(api::APPLY_CONSTRUCTOR, args);
       }
     }
@@ -2149,9 +2137,8 @@ simpleTerm[CVC4::api::Term& f]
   | LPAREN RPAREN
     { std::vector<api::Sort> types;
       api::Sort dtype = SOLVER->mkTupleSort(types);
-      const Datatype& dt = ((DatatypeType)dtype.getType()).getDatatype();
-      f = MK_TERM(api::APPLY_CONSTRUCTOR,
-                  api::Term(SOLVER, dt[0].getConstructor()));
+      const api::Datatype& dt = dtype.getDatatype();
+      f = MK_TERM(api::APPLY_CONSTRUCTOR, dt[0].getConstructorTerm());
     }
 
     /* empty record literal */
@@ -2159,9 +2146,8 @@ simpleTerm[CVC4::api::Term& f]
     {
       api::Sort dtype = SOLVER->mkRecordSort(
           std::vector<std::pair<std::string, api::Sort>>());
-      const Datatype& dt = ((DatatypeType)dtype.getType()).getDatatype();
-      f = MK_TERM(api::APPLY_CONSTRUCTOR,
-                  api::Term(SOLVER, dt[0].getConstructor()));
+      const api::Datatype& dt = dtype.getDatatype();
+      f = MK_TERM(api::APPLY_CONSTRUCTOR, dt[0].getConstructorTerm());
     }
     /* empty set literal */
   | LBRACE RBRACE
@@ -2258,8 +2244,8 @@ simpleTerm[CVC4::api::Term& f]
         typeIds.push_back(std::make_pair(names[i], args[i].getSort()));
       }
       api::Sort dtype = SOLVER->mkRecordSort(typeIds);
-      const Datatype& dt = ((DatatypeType)dtype.getType()).getDatatype();
-      args.insert(args.begin(), api::Term(SOLVER, dt[0].getConstructor()));
+      const api::Datatype& dt = dtype.getDatatype();
+      args.insert(args.begin(), dt[0].getConstructorTerm());
       f = MK_TERM(api::APPLY_CONSTRUCTOR, args);
     }
 
@@ -2495,7 +2481,7 @@ fragment DOT:;
 fragment DOTDOT:;
 
 /**
- * Matches the hexidecimal digits (0-9, a-f, A-F)
+ * Matches the hexadecimal digits (0-9, a-f, A-F)
  */
 fragment HEX_DIGIT : DIGIT | 'a'..'f' | 'A'..'F';
 

@@ -21,7 +21,6 @@
 #include "options/arith_options.h"
 #include "options/base_options.h"
 #include "options/bv_options.h"
-#include "options/proof_options.h"
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
 #include "options/smt_options.h"
@@ -91,8 +90,9 @@ void ProcessAssertions::spendResource(ResourceManager::Resource r)
   d_resourceManager.spendResource(r);
 }
 
-bool ProcessAssertions::apply(AssertionPipeline& assertions)
+bool ProcessAssertions::apply(Assertions& as)
 {
+  AssertionPipeline& assertions = as.getAssertionPipeline();
   Assert(d_preprocessingPassContext != nullptr);
   // Dump the assertions
   dumpAssertions("pre-everything", assertions);
@@ -146,19 +146,13 @@ bool ProcessAssertions::apply(AssertionPipeline& assertions)
       << endl;
   dumpAssertions("post-definition-expansion", assertions);
 
-  // save the assertions now
-  THEORY_PROOF(
-      for (size_t i = 0, nasserts = assertions.size(); i < nasserts; ++i) {
-        ProofManager::currentPM()->addAssertion(assertions[i].toExpr());
-      });
-
   Debug("smt") << " assertions     : " << assertions.size() << endl;
 
   if (options::globalNegate())
   {
     // global negation of the formula
     d_passes["global-negate"]->apply(&assertions);
-    d_smt.d_globalNegation = !d_smt.d_globalNegation;
+    as.flipGlobalNegated();
   }
 
   if (options::nlExtPurify())
@@ -222,7 +216,7 @@ bool ProcessAssertions::apply(AssertionPipeline& assertions)
   {
     d_passes["bv-to-bool"]->apply(&assertions);
   }
-  if (options::solveBVAsInt() > 0)
+  if (options::solveBVAsInt() != options::SolveBVAsIntMode::OFF)
   {
     d_passes["bv-to-int"]->apply(&assertions);
   }
@@ -461,7 +455,6 @@ bool ProcessAssertions::apply(AssertionPipeline& assertions)
 bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
 {
   spendResource(ResourceManager::Resource::PreprocessStep);
-  Assert(d_smt.d_pendingPops == 0);
   try
   {
     ScopeCounter depth(d_simplifyAssertionsDepth);
@@ -470,7 +463,7 @@ bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
 
     if (options::simplificationMode() != options::SimplificationMode::NONE)
     {
-      if (!options::unsatCores() && !options::fewerPreprocessingHoles())
+      if (!options::unsatCores())
       {
         // Perform non-clausal simplification
         PreprocessingPassResult res =
@@ -503,9 +496,6 @@ bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
 
     Debug("smt") << " assertions     : " << assertions.size() << endl;
 
-    // before ppRewrite check if only core theory for BV theory
-    d_smt.d_theoryEngine->staticInitializeBVOptions(assertions.ref());
-
     // Theory preprocessing
     bool doEarlyTheoryPp = !options::arithRewriteEq();
     if (doEarlyTheoryPp)
@@ -535,7 +525,7 @@ bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
 
     if (options::repeatSimp()
         && options::simplificationMode() != options::SimplificationMode::NONE
-        && !options::unsatCores() && !options::fewerPreprocessingHoles())
+        && !options::unsatCores())
     {
       PreprocessingPassResult res =
           d_passes["non-clausal-simp"]->apply(&assertions);
@@ -735,10 +725,11 @@ Node ProcessAssertions::expandDefinitions(
       {
         // do not do any theory stuff if expandOnly is true
 
-        theory::Theory* t = d_smt.d_theoryEngine->theoryOf(node);
+        theory::Theory* t = d_smt.getTheoryEngine()->theoryOf(node);
 
         Assert(t != NULL);
-        node = t->expandDefinition(n);
+        TrustNode trn = t->expandDefinition(n);
+        node = trn.isNull() ? Node(n) : trn.getNode();
       }
 
       // the partial functions can fall through, in which case we still

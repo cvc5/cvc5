@@ -19,9 +19,13 @@
 #include <sstream>
 #include <string>
 
+#include "api/cvc4cpp.h"
 #include "base/exception.h"
-#include "expr/expr_manager.h"
 #include "expr/expr.h"
+#include "expr/expr_manager.h"
+#include "expr/expr_manager_scope.h"
+#include "expr/node.h"
+#include "expr/type_node.h"
 #include "options/options.h"
 
 using namespace CVC4;
@@ -29,27 +33,6 @@ using namespace CVC4::kind;
 using namespace std;
 
 class ExprPublic : public CxxTest::TestSuite {
-private:
-
-  Options opts;
-
-  ExprManager* d_em;
-
-  Expr* a_bool;
-  Expr* b_bool;
-  Expr* c_bool_and;
-  Expr* and_op;
-  Expr* plus_op;
-  Type* fun_type;
-  Expr* fun_op;
-  Expr* d_apply_fun_bool;
-  Expr* null;
-
-  Expr* i1;
-  Expr* i2;
-  Expr* r1;
-  Expr* r2;
-
  public:
   void setUp() override
   {
@@ -62,7 +45,8 @@ private:
       free(argv[0]);
       free(argv[1]);
 
-      d_em = new ExprManager(opts);
+      d_slv = new api::Solver(&opts);
+      d_em = d_slv->getExprManager();
 
       a_bool = new Expr(d_em->mkVar("a", d_em->booleanType()));
       b_bool = new Expr(d_em->mkVar("b", d_em->booleanType()));
@@ -104,8 +88,7 @@ private:
       delete c_bool_and;
       delete b_bool;
       delete a_bool;
-
-      delete d_em;
+      delete d_slv;
     }
     catch (Exception& e)
     {
@@ -356,74 +339,6 @@ private:
     TS_ASSERT(null->isNull());
   }
 
-  void testIsConst() {
-    /* bool isConst() const; */
-
-    //Debug.on("isConst");
-
-    TS_ASSERT(!a_bool->isConst());
-    TS_ASSERT(!b_bool->isConst());
-    TS_ASSERT(!c_bool_and->isConst());
-    TS_ASSERT(and_op->isConst());
-    TS_ASSERT(plus_op->isConst());
-    TS_ASSERT(!d_apply_fun_bool->isConst());
-    TS_ASSERT(!null->isConst());
-
-    // more complicated "constants" exist in datatypes and arrays theories
-    Datatype list(d_em, "list");
-    DatatypeConstructor consC("cons");
-    consC.addArg("car", d_em->integerType());
-    consC.addArg("cdr", DatatypeSelfType());
-    list.addConstructor(consC);
-    list.addConstructor(DatatypeConstructor("nil"));
-    DatatypeType listType = d_em->mkDatatypeType(list);
-    Expr cons = listType.getDatatype().getConstructor("cons");
-    Expr nil = listType.getDatatype().getConstructor("nil");
-    Expr x = d_em->mkVar("x", d_em->integerType());
-    Expr cons_x_nil = d_em->mkExpr(APPLY_CONSTRUCTOR, cons, x, d_em->mkExpr(APPLY_CONSTRUCTOR, nil));
-    Expr cons_1_nil = d_em->mkExpr(APPLY_CONSTRUCTOR, cons, d_em->mkConst(Rational(1)), d_em->mkExpr(APPLY_CONSTRUCTOR, nil));
-    Expr cons_1_cons_2_nil = d_em->mkExpr(APPLY_CONSTRUCTOR, cons, d_em->mkConst(Rational(1)), d_em->mkExpr(APPLY_CONSTRUCTOR, cons, d_em->mkConst(Rational(2)), d_em->mkExpr(APPLY_CONSTRUCTOR, nil)));
-    TS_ASSERT(d_em->mkExpr(APPLY_CONSTRUCTOR, nil).isConst());
-    TS_ASSERT(!cons_x_nil.isConst());
-    TS_ASSERT(cons_1_nil.isConst());
-    TS_ASSERT(cons_1_cons_2_nil.isConst());
-
-    ArrayType arrType = d_em->mkArrayType(d_em->integerType(), d_em->integerType());
-    Expr zero = d_em->mkConst(Rational(0));
-    Expr one = d_em->mkConst(Rational(1));
-    Expr storeAll = d_em->mkConst(ArrayStoreAll(arrType, zero));
-    TS_ASSERT(storeAll.isConst());
-
-    Expr arr = d_em->mkExpr(STORE, storeAll, zero, zero);
-    TS_ASSERT(!arr.isConst());
-    arr = d_em->mkExpr(STORE, storeAll, zero, one);
-    TS_ASSERT(arr.isConst());
-    Expr arr2 = d_em->mkExpr(STORE, arr, one, zero);
-    TS_ASSERT(!arr2.isConst());
-    arr2 = d_em->mkExpr(STORE, arr, one, one);
-    TS_ASSERT(arr2.isConst());
-    arr2 = d_em->mkExpr(STORE, arr, zero, one);
-    TS_ASSERT(!arr2.isConst());
-
-    arrType = d_em->mkArrayType(d_em->mkBitVectorType(1), d_em->mkBitVectorType(1));
-    zero = d_em->mkConst(BitVector(1,unsigned(0)));
-    one = d_em->mkConst(BitVector(1,unsigned(1)));
-    storeAll = d_em->mkConst(ArrayStoreAll(arrType, zero));
-    TS_ASSERT(storeAll.isConst());
-
-    arr = d_em->mkExpr(STORE, storeAll, zero, zero);
-    TS_ASSERT(!arr.isConst());
-    arr = d_em->mkExpr(STORE, storeAll, zero, one);
-    TS_ASSERT(arr.isConst());
-    arr2 = d_em->mkExpr(STORE, arr, one, zero);
-    TS_ASSERT(!arr2.isConst());
-    arr2 = d_em->mkExpr(STORE, arr, one, one);
-    TS_ASSERT(!arr2.isConst());
-    arr2 = d_em->mkExpr(STORE, arr, zero, one);
-    TS_ASSERT(!arr2.isConst());
-
-  }
-
   void testGetConst() {
     /* template <class T>
        const T& getConst() const; */
@@ -466,4 +381,25 @@ private:
     TS_ASSERT(r1->getExprManager() == d_em);
     TS_ASSERT(r2->getExprManager() == d_em);
   }
+
+ private:
+  Options opts;
+
+  api::Solver* d_slv;
+  ExprManager* d_em;
+
+  Expr* a_bool;
+  Expr* b_bool;
+  Expr* c_bool_and;
+  Expr* and_op;
+  Expr* plus_op;
+  Type* fun_type;
+  Expr* fun_op;
+  Expr* d_apply_fun_bool;
+  Expr* null;
+
+  Expr* i1;
+  Expr* i2;
+  Expr* r1;
+  Expr* r2;
 };

@@ -304,11 +304,7 @@ Node TypeNode::mkGroundValue() const
   return *te;
 }
 
-bool TypeNode::isStringLike() const
-{
-  // TODO (cvc4-projects #23): sequence here
-  return isString();
-}
+bool TypeNode::isStringLike() const { return isString() || isSequence(); }
 
 bool TypeNode::isSubtypeOf(TypeNode t) const {
   if(*this == t) {
@@ -400,10 +396,14 @@ std::vector<TypeNode> TypeNode::getParamTypes() const {
   return params;
 }
 
-
-/** Is this a tuple type? */
-bool TypeNode::isTuple() const {
+bool TypeNode::isTuple() const
+{
   return (getKind() == kind::DATATYPE_TYPE && getDType().isTuple());
+}
+
+bool TypeNode::isRecord() const
+{
+  return (getKind() == kind::DATATYPE_TYPE && getDType().isRecord());
 }
 
 size_t TypeNode::getTupleLength() const {
@@ -579,7 +579,8 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
     case kind::TESTER_TYPE:
     case kind::ARRAY_TYPE:
     case kind::DATATYPE_TYPE:
-    case kind::PARAMETRIC_DATATYPE: return TypeNode();
+    case kind::PARAMETRIC_DATATYPE:
+    case kind::SEQUENCE_TYPE: return TypeNode();
     case kind::SET_TYPE:
     {
       // take the least common subtype of element types
@@ -660,6 +661,15 @@ bool TypeNode::isCodatatype() const
   if (isDatatype())
   {
     return getDType().isCodatatype();
+  }
+  return false;
+}
+
+bool TypeNode::isSygusDatatype() const
+{
+  if (isDatatype())
+  {
+    return getDType().isSygus();
   }
   return false;
 }

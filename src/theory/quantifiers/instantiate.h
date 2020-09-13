@@ -20,6 +20,7 @@
 #include <map>
 
 #include "expr/node.h"
+#include "expr/proof.h"
 #include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/quant_util.h"
 #include "util/statistics_registry.h"
@@ -53,11 +54,14 @@ class InstantiationRewriter
    *
    * The flag doVts is whether we must apply virtual term substitution to the
    * instantiation.
+   *
+   * Returns a TrustNode of kind REWRITE, corresponding to the rewrite of inst
+   * and its proof generator.
    */
-  virtual Node rewriteInstantiation(Node q,
-                                    std::vector<Node>& terms,
-                                    Node inst,
-                                    bool doVts) = 0;
+  virtual TrustNode rewriteInstantiation(Node q,
+                                         std::vector<Node>& terms,
+                                         Node inst,
+                                         bool doVts) = 0;
 };
 
 /** Instantiate
@@ -81,8 +85,12 @@ class InstantiationRewriter
  */
 class Instantiate : public QuantifiersUtil
 {
+  typedef context::CDHashMap<Node, uint32_t, NodeHashFunction> NodeUIntMap;
+
  public:
-  Instantiate(QuantifiersEngine* qe, context::UserContext* u);
+  Instantiate(QuantifiersEngine* qe,
+              context::UserContext* u,
+              ProofNodeManager* pnm = nullptr);
   ~Instantiate();
 
   /** reset */
@@ -172,11 +180,16 @@ class Instantiate : public QuantifiersUtil
    *
    * Returns the instantiation lemma for q under substitution { vars -> terms }.
    * doVts is whether to apply virtual term substitution to its body.
+   *
+   * If provided, pf is a lazy proof for which we store a proof of the
+   * returned formula with free assumption q. This typically stores a
+   * single INSTANTIATE step concluding the instantiated body of q from q.
    */
   Node getInstantiation(Node q,
                         std::vector<Node>& vars,
                         std::vector<Node>& terms,
-                        bool doVts = false);
+                        bool doVts = false,
+                        LazyCDProof* pf = nullptr);
   /** get instantiation
    *
    * Same as above, but with vars/terms specified by InstMatch m.
@@ -200,8 +213,12 @@ class Instantiate : public QuantifiersUtil
   Node getTermForType(TypeNode tn);
   //--------------------------------------end general utilities
 
-  /** debug print, called once per instantiation round. */
-  void debugPrint();
+  /**
+   * Debug print, called once per instantiation round. This prints
+   * instantiations added this round to trace inst-per-quant-round, if
+   * applicable, and prints to out if the option debug-inst is enabled.
+   */
+  void debugPrint(std::ostream& out);
   /** debug print model, called once, before we terminate with sat/unknown. */
   void debugPrintModel();
 
@@ -209,7 +226,8 @@ class Instantiate : public QuantifiersUtil
   /** print instantiations
    *
    * Print all instantiations for all quantified formulas on out,
-   * returns true if at least one instantiation was printed.
+   * returns true if at least one instantiation was printed. The type of output
+   * (list, num, etc.) is determined by printInstMode.
    */
   bool printInstantiations(std::ostream& out);
   /** get instantiated quantified formulas
@@ -261,21 +279,6 @@ class Instantiate : public QuantifiersUtil
    * This method returns false if the unsat core is not available.
    */
   bool getUnsatCoreLemmas(std::vector<Node>& active_lemmas);
-  /** get unsat core lemmas
-   *
-   * If this method returns true, then it appends to active_lemmas all lemmas
-   * that are in the unsat core that originated from the theory of quantifiers.
-   * This method returns false if the unsat core is not available.
-   *
-   * It also computes a weak implicant for each of these lemmas. For each lemma
-   * L in active_lemmas, this is a formula L' such that:
-   *   L => L'
-   * and replacing L by L' in the unsat core results in a set that is still
-   * unsatisfiable. The map weak_imp stores this formula for each formula in
-   * active_lemmas.
-   */
-  bool getUnsatCoreLemmas(std::vector<Node>& active_lemmas,
-                          std::map<Node, Node>& weak_imp);
   /** get explanation for instantiation lemmas
    *
    *
@@ -284,6 +287,9 @@ class Instantiate : public QuantifiersUtil
                                    std::map<Node, Node>& quant,
                                    std::map<Node, std::vector<Node> >& tvec);
   //--------------------------------------end user-level interface utilities
+
+  /** Are proofs enabled for this object? */
+  bool isProofEnabled() const;
 
   /** statistics class
    *
@@ -298,7 +304,6 @@ class Instantiate : public QuantifiersUtil
     IntStat d_inst_duplicate;
     IntStat d_inst_duplicate_eq;
     IntStat d_inst_duplicate_ent;
-    IntStat d_inst_duplicate_model_true;
     Statistics();
     ~Statistics();
   }; /* class Instantiate::Statistics */
@@ -323,9 +328,21 @@ class Instantiate : public QuantifiersUtil
    * if possible.
    */
   static Node ensureType(Node n, TypeNode tn);
+  /** print instantiations in list format */
+  bool printInstantiationsList(std::ostream& out);
+  /** print instantiations in num format */
+  bool printInstantiationsNum(std::ostream& out);
+  /**
+   * Print quantified formula q on output out. If isFull is false, then we print
+   * the identifier of the quantified formula if it has one, or print
+   * nothing and return false otherwise.
+   */
+  bool printQuant(Node q, std::ostream& out, bool isFull);
 
   /** pointer to the quantifiers engine */
   QuantifiersEngine* d_qe;
+  /** pointer to the proof node manager */
+  ProofNodeManager* d_pnm;
   /** cache of term database for quantifiers engine */
   TermDb* d_term_db;
   /** cache of term util for quantifiers engine */
@@ -333,12 +350,10 @@ class Instantiate : public QuantifiersUtil
   /** instantiation rewriter classes */
   std::vector<InstantiationRewriter*> d_instRewrite;
 
-  /** statistics for debugging total instantiation */
-  int d_total_inst_count_debug;
   /** statistics for debugging total instantiations per quantifier */
-  std::map<Node, int> d_total_inst_debug;
+  NodeUIntMap d_total_inst_debug;
   /** statistics for debugging total instantiations per quantifier per round */
-  std::map<Node, int> d_temp_inst_debug;
+  std::map<Node, uint32_t> d_temp_inst_debug;
 
   /** list of all instantiations produced for each quantifier
    *
@@ -360,6 +375,10 @@ class Instantiate : public QuantifiersUtil
    * of these instantiations, for each quantified formula.
    */
   std::vector<std::pair<Node, std::vector<Node> > > d_recorded_inst;
+  /**
+   * A CDProof storing instantiation steps.
+   */
+  std::unique_ptr<CDProof> d_pfInst;
 };
 
 } /* CVC4::theory::quantifiers namespace */

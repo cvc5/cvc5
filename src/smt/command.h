@@ -28,16 +28,20 @@
 #include <string>
 #include <vector>
 
-#include "expr/datatype.h"
+#include "api/cvc4cpp.h"
 #include "expr/expr.h"
 #include "expr/type.h"
 #include "expr/variable_type_map.h"
 #include "proof/unsat_core.h"
-#include "util/proof.h"
 #include "util/result.h"
 #include "util/sexpr.h"
 
 namespace CVC4 {
+
+namespace api {
+class Solver;
+class Term;
+}  // namespace api
 
 class SmtEngine;
 class Command;
@@ -115,6 +119,7 @@ class CVC4_PUBLIC CommandStatus
  protected:
   // shouldn't construct a CommandStatus (use a derived class)
   CommandStatus() {}
+
  public:
   virtual ~CommandStatus() {}
   void toStream(std::ostream& out,
@@ -186,27 +191,11 @@ class CVC4_PUBLIC CommandRecoverableFailure : public CommandStatus
 
 class CVC4_PUBLIC Command
 {
- protected:
-  /**
-   * This field contains a command status if the command has been
-   * invoked, or NULL if it has not.  This field is either a
-   * dynamically-allocated pointer, or it's a pointer to the singleton
-   * CommandSuccess instance.  Doing so is somewhat asymmetric, but
-   * it avoids the need to dynamically allocate memory in the common
-   * case of a successful command.
-   */
-  const CommandStatus* d_commandStatus;
-
-  /**
-   * True if this command is "muted"---i.e., don't print "success" on
-   * successful execution.
-   */
-  bool d_muted;
-
  public:
   typedef CommandPrintSuccess printsuccess;
 
   Command();
+  Command(const api::Solver* solver);
   Command(const Command& cmd);
 
   virtual ~Command();
@@ -214,11 +203,12 @@ class CVC4_PUBLIC Command
   virtual void invoke(SmtEngine* smtEngine) = 0;
   virtual void invoke(SmtEngine* smtEngine, std::ostream& out);
 
-  void toStream(std::ostream& out,
-                int toDepth = -1,
-                bool types = false,
-                size_t dag = 1,
-                OutputLanguage language = language::output::LANG_AUTO) const;
+  virtual void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const = 0;
 
   std::string toString() const;
 
@@ -281,7 +271,26 @@ class CVC4_PUBLIC Command
     Expr operator()(Expr e) { return e.exportTo(d_exprManager, d_variableMap); }
     Type operator()(Type t) { return t.exportTo(d_exprManager, d_variableMap); }
   }; /* class Command::ExportTransformer */
-};   /* class Command */
+
+  /** The solver instance that this command is associated with. */
+  const api::Solver* d_solver;
+
+  /**
+   * This field contains a command status if the command has been
+   * invoked, or NULL if it has not.  This field is either a
+   * dynamically-allocated pointer, or it's a pointer to the singleton
+   * CommandSuccess instance.  Doing so is somewhat asymmetric, but
+   * it avoids the need to dynamically allocate memory in the common
+   * case of a successful command.
+   */
+  const CommandStatus* d_commandStatus;
+
+  /**
+   * True if this command is "muted"---i.e., don't print "success" on
+   * successful execution.
+   */
+  bool d_muted;
+}; /* class Command */
 
 /**
  * EmptyCommands are the residue of a command after the parser handles
@@ -297,6 +306,12 @@ class CVC4_PUBLIC EmptyCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 
  protected:
   std::string d_name;
@@ -315,6 +330,12 @@ class CVC4_PUBLIC EchoCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 
  protected:
   std::string d_output;
@@ -336,6 +357,12 @@ class CVC4_PUBLIC AssertCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class AssertCommand */
 
 class CVC4_PUBLIC PushCommand : public Command
@@ -346,6 +373,12 @@ class CVC4_PUBLIC PushCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class PushCommand */
 
 class CVC4_PUBLIC PopCommand : public Command
@@ -356,6 +389,12 @@ class CVC4_PUBLIC PopCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class PopCommand */
 
 class CVC4_PUBLIC DeclarationDefinitionCommand : public Command
@@ -391,6 +430,12 @@ class CVC4_PUBLIC DeclareFunctionCommand : public DeclarationDefinitionCommand
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class DeclareFunctionCommand */
 
 class CVC4_PUBLIC DeclareTypeCommand : public DeclarationDefinitionCommand
@@ -410,6 +455,12 @@ class CVC4_PUBLIC DeclareTypeCommand : public DeclarationDefinitionCommand
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class DeclareTypeCommand */
 
 class CVC4_PUBLIC DefineTypeCommand : public DeclarationDefinitionCommand
@@ -432,6 +483,12 @@ class CVC4_PUBLIC DefineTypeCommand : public DeclarationDefinitionCommand
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class DefineTypeCommand */
 
 class CVC4_PUBLIC DefineFunctionCommand : public DeclarationDefinitionCommand
@@ -456,6 +513,12 @@ class CVC4_PUBLIC DefineFunctionCommand : public DeclarationDefinitionCommand
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 
  protected:
   /** The function we are defining */
@@ -488,6 +551,12 @@ class CVC4_PUBLIC DefineNamedFunctionCommand : public DefineFunctionCommand
   Command* exportTo(ExprManager* exprManager,
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class DefineNamedFunctionCommand */
 
 /**
@@ -498,32 +567,40 @@ class CVC4_PUBLIC DefineNamedFunctionCommand : public DefineFunctionCommand
 class CVC4_PUBLIC DefineFunctionRecCommand : public Command
 {
  public:
-  DefineFunctionRecCommand(Expr func,
-                           const std::vector<Expr>& formals,
-                           Expr formula,
+  DefineFunctionRecCommand(const api::Solver* solver,
+                           api::Term func,
+                           const std::vector<api::Term>& formals,
+                           api::Term formula,
                            bool global);
-  DefineFunctionRecCommand(const std::vector<Expr>& funcs,
-                           const std::vector<std::vector<Expr> >& formals,
-                           const std::vector<Expr>& formula,
+  DefineFunctionRecCommand(const api::Solver* solver,
+                           const std::vector<api::Term>& funcs,
+                           const std::vector<std::vector<api::Term> >& formals,
+                           const std::vector<api::Term>& formula,
                            bool global);
 
-  const std::vector<Expr>& getFunctions() const;
-  const std::vector<std::vector<Expr> >& getFormals() const;
-  const std::vector<Expr>& getFormulas() const;
+  const std::vector<api::Term>& getFunctions() const;
+  const std::vector<std::vector<api::Term> >& getFormals() const;
+  const std::vector<api::Term>& getFormulas() const;
 
   void invoke(SmtEngine* smtEngine) override;
   Command* exportTo(ExprManager* exprManager,
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 
  protected:
   /** functions we are defining */
-  std::vector<Expr> d_funcs;
+  std::vector<api::Term> d_funcs;
   /** formal arguments for each of the functions we are defining */
-  std::vector<std::vector<Expr> > d_formals;
+  std::vector<std::vector<api::Term> > d_formals;
   /** formulas corresponding to the bodies of the functions we are defining */
-  std::vector<Expr> d_formulas;
+  std::vector<api::Term> d_formulas;
   /**
    * Stores whether this definition is global (i.e. should persist when
    * popping the user context.
@@ -551,6 +628,12 @@ class CVC4_PUBLIC SetUserAttributeCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 
  private:
   SetUserAttributeCommand(const std::string& attr,
@@ -582,6 +665,12 @@ class CVC4_PUBLIC CheckSatCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 
  private:
   Expr d_expr;
@@ -607,6 +696,12 @@ class CVC4_PUBLIC CheckSatAssumingCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 
  private:
   std::vector<Expr> d_terms;
@@ -631,6 +726,12 @@ class CVC4_PUBLIC QueryCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class QueryCommand */
 
 /* ------------------- sygus commands  ------------------ */
@@ -657,74 +758,18 @@ class CVC4_PUBLIC DeclareSygusVarCommand : public DeclarationDefinitionCommand
   Command* clone() const override;
   /** returns this command's name */
   std::string getCommandName() const override;
+  /** prints this command */
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 
  protected:
   /** the declared variable */
   Expr d_var;
   /** the declared variable's type */
-  Type d_type;
-};
-
-/** Declares a sygus primed variable, for invariant problems
- *
- * We do not actually build expressions for the declared variables because they
- * are unnecessary for building SyGuS problems.
- */
-class CVC4_PUBLIC DeclareSygusPrimedVarCommand
-    : public DeclarationDefinitionCommand
-{
- public:
-  DeclareSygusPrimedVarCommand(const std::string& id, Type type);
-  /** returns the declared primed variable's type */
-  Type getType() const;
-
-  /** invokes this command
-   *
-   * The type of the primed variable is communicated to the SMT engine for
-   * debugging purposes when a synthesis conjecture is built later on.
-   */
-  void invoke(SmtEngine* smtEngine) override;
-  /** exports command to given expression manager */
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
-  /** creates a copy of this command */
-  Command* clone() const override;
-  /** returns this command's name */
-  std::string getCommandName() const override;
-
- protected:
-  /** the type of the declared primed variable */
-  Type d_type;
-};
-
-/** Declares a sygus universal function variable */
-class CVC4_PUBLIC DeclareSygusFunctionCommand
-    : public DeclarationDefinitionCommand
-{
- public:
-  DeclareSygusFunctionCommand(const std::string& id, Expr func, Type type);
-  /** returns the declared function variable */
-  Expr getFunction() const;
-  /** returns the declared function variable's type */
-  Type getType() const;
-  /** invokes this command
-   *
-   * The declared sygus function variable is communicated to the SMT engine in
-   * case a synthesis conjecture is built later on.
-   */
-  void invoke(SmtEngine* smtEngine) override;
-  /** exports command to given expression manager */
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
-  /** creates a copy of this command */
-  Command* clone() const override;
-  /** returns this command's name */
-  std::string getCommandName() const override;
-
- protected:
-  /** the declared function variable */
-  Expr d_func;
-  /** the declared function variable's type */
   Type d_type;
 };
 
@@ -736,20 +781,23 @@ class CVC4_PUBLIC DeclareSygusFunctionCommand
 class CVC4_PUBLIC SynthFunCommand : public DeclarationDefinitionCommand
 {
  public:
-  SynthFunCommand(const std::string& id,
-                  Expr func,
-                  Type sygusType,
+  SynthFunCommand(const api::Solver* solver,
+                  const std::string& id,
+                  api::Term fun,
+                  const std::vector<api::Term>& vars,
+                  api::Sort sort,
                   bool isInv,
-                  const std::vector<Expr>& vars);
-  SynthFunCommand(const std::string& id, Expr func, Type sygusType, bool isInv);
+                  api::Grammar* g);
   /** returns the function-to-synthesize */
-  Expr getFunction() const;
+  api::Term getFunction() const;
   /** returns the input variables of the function-to-synthesize */
-  const std::vector<Expr>& getVars() const;
-  /** returns the sygus type of the function-to-synthesize */
-  Type getSygusType() const;
+  const std::vector<api::Term>& getVars() const;
+  /** returns the sygus sort of the function-to-synthesize */
+  api::Sort getSort() const;
   /** returns whether the function-to-synthesize should be an invariant */
   bool isInv() const;
+  /** Get the sygus grammar given for the synth fun command */
+  const api::Grammar* getGrammar() const;
 
   /** invokes this command
    *
@@ -764,20 +812,25 @@ class CVC4_PUBLIC SynthFunCommand : public DeclarationDefinitionCommand
   Command* clone() const override;
   /** returns this command's name */
   std::string getCommandName() const override;
+  /** prints this command */
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 
  protected:
   /** the function-to-synthesize */
-  Expr d_func;
-  /** sygus type of the function-to-synthesize
-   *
-   * If this type is a "sygus datatype" then it encodes a grammar for the
-   * possible varlues of the function-to-sytnhesize
-   */
-  Type d_sygusType;
+  api::Term d_fun;
+  /** the input variables of the function-to-synthesize */
+  std::vector<api::Term> d_vars;
+  /** sort of the function-to-synthesize */
+  api::Sort d_sort;
   /** whether the function-to-synthesize should be an invariant */
   bool d_isInv;
-  /** the input variables of the function-to-synthesize */
-  std::vector<Expr> d_vars;
+  /** optional grammar for the possible values of the function-to-sytnhesize */
+  api::Grammar* d_grammar;
 };
 
 /** Declares a sygus constraint */
@@ -800,6 +853,13 @@ class CVC4_PUBLIC SygusConstraintCommand : public Command
   Command* clone() const override;
   /** returns this command's name */
   std::string getCommandName() const override;
+  /** prints this command */
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 
  protected:
   /** the declared constraint */
@@ -840,6 +900,13 @@ class CVC4_PUBLIC SygusInvConstraintCommand : public Command
   Command* clone() const override;
   /** returns this command's name */
   std::string getCommandName() const override;
+  /** prints this command */
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 
  protected:
   /** the place holder predicates with which to build the actual constraint
@@ -873,6 +940,13 @@ class CVC4_PUBLIC CheckSynthCommand : public Command
   Command* clone() const override;
   /** returns this command's name */
   std::string getCommandName() const override;
+  /** prints this command */
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 
  protected:
   /** result of the check-synth call */
@@ -901,6 +975,12 @@ class CVC4_PUBLIC SimplifyCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class SimplifyCommand */
 
 class CVC4_PUBLIC ExpandDefinitionsCommand : public Command
@@ -920,6 +1000,12 @@ class CVC4_PUBLIC ExpandDefinitionsCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class ExpandDefinitionsCommand */
 
 class CVC4_PUBLIC GetValueCommand : public Command
@@ -940,6 +1026,12 @@ class CVC4_PUBLIC GetValueCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class GetValueCommand */
 
 class CVC4_PUBLIC GetAssignmentCommand : public Command
@@ -957,6 +1049,12 @@ class CVC4_PUBLIC GetAssignmentCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class GetAssignmentCommand */
 
 class CVC4_PUBLIC GetModelCommand : public Command
@@ -972,6 +1070,12 @@ class CVC4_PUBLIC GetModelCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 
  protected:
   Model* d_result;
@@ -989,6 +1093,12 @@ class CVC4_PUBLIC BlockModelCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class BlockModelCommand */
 
 /** The command to block model values. */
@@ -1003,6 +1113,12 @@ class CVC4_PUBLIC BlockModelValuesCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 
  protected:
   /** The terms we are blocking */
@@ -1014,18 +1130,17 @@ class CVC4_PUBLIC GetProofCommand : public Command
  public:
   GetProofCommand();
 
-  const Proof& getResult() const;
   void invoke(SmtEngine* smtEngine) override;
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* exportTo(ExprManager* exprManager,
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
-
- protected:
-  SmtEngine* d_smtEngine;
-  // d_result is owned by d_smtEngine.
-  const Proof* d_result;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class GetProofCommand */
 
 class CVC4_PUBLIC GetInstantiationsCommand : public Command
@@ -1039,6 +1154,12 @@ class CVC4_PUBLIC GetInstantiationsCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 
  protected:
   SmtEngine* d_smtEngine;
@@ -1055,10 +1176,71 @@ class CVC4_PUBLIC GetSynthSolutionCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 
  protected:
   SmtEngine* d_smtEngine;
 }; /* class GetSynthSolutionCommand */
+
+/** The command (get-interpol s B (G)?)
+ *
+ * This command asks for an interpolant from the current set of assertions and
+ * conjecture (goal) B.
+ *
+ * The symbol s is the name for the interpolation predicate. If we successfully
+ * find a predicate P, then the output response of this command is: (define-fun
+ * s () Bool P)
+ */
+class CVC4_PUBLIC GetInterpolCommand : public Command
+{
+ public:
+  GetInterpolCommand(const api::Solver* solver,
+                     const std::string& name,
+                     api::Term conj);
+  /** The argument g is the grammar of the interpolation query */
+  GetInterpolCommand(const api::Solver* solver,
+                     const std::string& name,
+                     api::Term conj,
+                     api::Grammar* g);
+
+  /** Get the conjecture of the interpolation query */
+  api::Term getConjecture() const;
+  /** Get the sygus grammar given for the interpolation query */
+  const api::Grammar* getGrammar() const;
+  /** Get the result of the query, which is the solution to the interpolation
+   * query. */
+  api::Term getResult() const;
+
+  void invoke(SmtEngine* smtEngine) override;
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
+
+ protected:
+  /** The name of the interpolation predicate */
+  std::string d_name;
+  /** The conjecture of the interpolation query */
+  api::Term d_conj;
+  /** The (optional) grammar of the interpolation query */
+  api::Grammar* d_sygus_grammar;
+  /** the return status of the command */
+  bool d_resultStatus;
+  /** the return expression of the command */
+  api::Term d_result;
+}; /* class GetInterpolCommand */
 
 /** The command (get-abduct s B (G)?)
  *
@@ -1069,23 +1251,29 @@ class CVC4_PUBLIC GetSynthSolutionCommand : public Command
  * find a predicate P, then the output response of this command is:
  *   (define-fun s () Bool P)
  *
- * A grammar type G can be optionally provided to indicate the syntactic
- * restrictions on the possible solutions returned.
+ * A grammar G can be optionally provided to indicate the syntactic restrictions
+ * on the possible solutions returned.
  */
 class CVC4_PUBLIC GetAbductCommand : public Command
 {
  public:
-  GetAbductCommand();
-  GetAbductCommand(const std::string& name, Expr conj);
-  GetAbductCommand(const std::string& name, Expr conj, const Type& gtype);
+  GetAbductCommand(const api::Solver* solver,
+                   const std::string& name,
+                   api::Term conj);
+  GetAbductCommand(const api::Solver* solver,
+                   const std::string& name,
+                   api::Term conj,
+                   api::Grammar* g);
 
   /** Get the conjecture of the abduction query */
-  Expr getConjecture() const;
-  /** Get the grammar type given for the abduction query */
-  Type getGrammarType() const;
+  api::Term getConjecture() const;
+  /** Get the grammar given for the abduction query */
+  const api::Grammar* getGrammar() const;
+  /** Get the name of the abduction predicate for the abduction query */
+  std::string getAbductName() const;
   /** Get the result of the query, which is the solution to the abduction query.
    */
-  Expr getResult() const;
+  api::Term getResult() const;
 
   void invoke(SmtEngine* smtEngine) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
@@ -1093,21 +1281,24 @@ class CVC4_PUBLIC GetAbductCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 
  protected:
   /** The name of the abduction predicate */
   std::string d_name;
   /** The conjecture of the abduction query */
-  Expr d_conj;
-  /**
-   * The (optional) grammar of the abduction query, expressed as a sygus
-   * datatype type.
-   */
-  Type d_sygus_grammar_type;
+  api::Term d_conj;
+  /** The (optional) grammar of the abduction query */
+  api::Grammar* d_sygus_grammar;
   /** the return status of the command */
   bool d_resultStatus;
   /** the return expression of the command */
-  Expr d_result;
+  api::Term d_result;
 }; /* class GetAbductCommand */
 
 class CVC4_PUBLIC GetQuantifierEliminationCommand : public Command
@@ -1131,6 +1322,12 @@ class CVC4_PUBLIC GetQuantifierEliminationCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class GetQuantifierEliminationCommand */
 
 class CVC4_PUBLIC GetUnsatAssumptionsCommand : public Command
@@ -1144,6 +1341,13 @@ class CVC4_PUBLIC GetUnsatAssumptionsCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
+
  protected:
   std::vector<Expr> d_result;
 }; /* class GetUnsatAssumptionsCommand */
@@ -1161,6 +1365,12 @@ class CVC4_PUBLIC GetUnsatCoreCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 
  protected:
   // the result of the unsat core call
@@ -1182,6 +1392,12 @@ class CVC4_PUBLIC GetAssertionsCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class GetAssertionsCommand */
 
 class CVC4_PUBLIC SetBenchmarkStatusCommand : public Command
@@ -1199,6 +1415,12 @@ class CVC4_PUBLIC SetBenchmarkStatusCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class SetBenchmarkStatusCommand */
 
 class CVC4_PUBLIC SetBenchmarkLogicCommand : public Command
@@ -1215,6 +1437,12 @@ class CVC4_PUBLIC SetBenchmarkLogicCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class SetBenchmarkLogicCommand */
 
 class CVC4_PUBLIC SetInfoCommand : public Command
@@ -1234,6 +1462,12 @@ class CVC4_PUBLIC SetInfoCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class SetInfoCommand */
 
 class CVC4_PUBLIC GetInfoCommand : public Command
@@ -1254,6 +1488,12 @@ class CVC4_PUBLIC GetInfoCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class GetInfoCommand */
 
 class CVC4_PUBLIC SetOptionCommand : public Command
@@ -1273,6 +1513,12 @@ class CVC4_PUBLIC SetOptionCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class SetOptionCommand */
 
 class CVC4_PUBLIC GetOptionCommand : public Command
@@ -1293,6 +1539,12 @@ class CVC4_PUBLIC GetOptionCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class GetOptionCommand */
 
 // Set expression name command
@@ -1316,6 +1568,12 @@ class CVC4_PUBLIC SetExpressionNameCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class SetExpressionNameCommand */
 
 class CVC4_PUBLIC DatatypeDeclarationCommand : public Command
@@ -1333,6 +1591,12 @@ class CVC4_PUBLIC DatatypeDeclarationCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class DatatypeDeclarationCommand */
 
 class CVC4_PUBLIC ResetCommand : public Command
@@ -1344,6 +1608,12 @@ class CVC4_PUBLIC ResetCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class ResetCommand */
 
 class CVC4_PUBLIC ResetAssertionsCommand : public Command
@@ -1355,6 +1625,12 @@ class CVC4_PUBLIC ResetAssertionsCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class ResetAssertionsCommand */
 
 class CVC4_PUBLIC QuitCommand : public Command
@@ -1366,6 +1642,12 @@ class CVC4_PUBLIC QuitCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class QuitCommand */
 
 class CVC4_PUBLIC CommentCommand : public Command
@@ -1382,11 +1664,17 @@ class CVC4_PUBLIC CommentCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class CommentCommand */
 
 class CVC4_PUBLIC CommandSequence : public Command
 {
- private:
+ protected:
   /** All the commands to be executed (in sequence) */
   std::vector<Command*> d_commandSequence;
   /** Next command to be executed */
@@ -1415,12 +1703,24 @@ class CVC4_PUBLIC CommandSequence : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class CommandSequence */
 
 class CVC4_PUBLIC DeclarationSequence : public CommandSequence
 {
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 };
 
-} /* CVC4 namespace */
+}  // namespace CVC4
 
 #endif /* CVC4__COMMAND_H */

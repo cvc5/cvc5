@@ -40,6 +40,8 @@ namespace options {
   class OptionsHandler;
 }/* CVC4::options namespace */
 
+class OptionsListener;
+
 class CVC4_PUBLIC Options {
   friend api::Solver;
   /** The struct that holds all option values. */
@@ -50,48 +52,6 @@ class CVC4_PUBLIC Options {
 
   /** The current Options in effect */
   static thread_local Options* s_current;
-
-  /** Listeners for notifyBeforeSearch. */
-  ListenerCollection d_beforeSearchListeners;
-
-  /** Listeners for options::tlimit. */
-  ListenerCollection d_tlimitListeners;
-
-  /** Listeners for options::tlimit-per. */
-  ListenerCollection d_tlimitPerListeners;
-
-  /** Listeners for options::rlimit. */
-  ListenerCollection d_rlimitListeners;
-
-  /** Listeners for options::tlimit-per. */
-  ListenerCollection d_rlimitPerListeners;
-
-  /** Listeners for options::defaultExprDepth. */
-  ListenerCollection d_setDefaultExprDepthListeners;
-
-  /** Listeners for options::defaultDagThresh. */
-  ListenerCollection d_setDefaultDagThreshListeners;
-
-  /** Listeners for options::printExprTypes. */
-  ListenerCollection d_setPrintExprTypesListeners;
-
-  /** Listeners for options::dumpModeString. */
-  ListenerCollection d_setDumpModeListeners;
-
-  /** Listeners for options::printSuccess. */
-  ListenerCollection d_setPrintSuccessListeners;
-
-  /** Listeners for options::dumpToFileName. */
-  ListenerCollection d_dumpToFileListeners;
-
-  /** Listeners for options::regularChannelName. */
-  ListenerCollection d_setRegularChannelListeners;
-
-  /** Listeners for options::diagnosticChannelName. */
-  ListenerCollection d_setDiagnosticChannelListeners;
-
-  static ListenerCollection::Registration* registerAndNotify(
-      ListenerCollection& collection, Listener* listener, bool notify);
 
   /** Low-level assignment function for options */
   template <class T>
@@ -144,7 +104,7 @@ public:
     return s_current;
   }
 
-  Options();
+  Options(OptionsListener* ol = nullptr);
   ~Options();
 
   /**
@@ -190,7 +150,6 @@ public:
   options::InstFormatMode getInstFormatMode() const;
   OutputLanguage getOutputLanguage() const;
   bool getUfHo() const;
-  bool getCheckProofs() const;
   bool getDumpInstantiations() const;
   bool getDumpModels() const;
   bool getDumpProofs() const;
@@ -207,7 +166,6 @@ public:
   bool getMemoryMap() const;
   bool getParseOnly() const;
   bool getProduceModels() const;
-  bool getProof() const;
   bool getSegvSpin() const;
   bool getSemanticChecks() const;
   bool getStatistics() const;
@@ -215,6 +173,7 @@ public:
   bool getStatsHideZeros() const;
   bool getStrictParsing() const;
   int getTearDownIncremental() const;
+  unsigned long getCumulativeTimeLimit() const;
   bool getVersion() const;
   const std::string& getForceLogicString() const;
   int getVerbosity() const;
@@ -311,162 +270,8 @@ public:
    */
   std::vector<std::vector<std::string> > getOptions() const;
 
-  /**
-   * Registers a listener for the notification, notifyBeforeSearch.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   *
-   * This has multiple usages so having a notifyIfSet flag does not add
-   * clarity. Users should check the relevant flags before registering this.
-   */
-  ListenerCollection::Registration* registerBeforeSearchListener(
-      Listener* listener);
-
-  /**
-   * Registers a listener for options::tlimit being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerTlimitListener(
-      Listener* listener, bool notifyIfSet);
-
-  /**
-   * Registers a listener for options::tlimit-per being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerTlimitPerListener(
-      Listener* listener, bool notifyIfSet);
-
-
-  /**
-   * Registers a listener for options::rlimit being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerRlimitListener(
-      Listener* listener, bool notifyIfSet);
-
-  /**
-   * Registers a listener for options::rlimit-per being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerRlimitPerListener(
-      Listener* listener, bool notifyIfSet);
-
-  /**
-   * Registers a listener for options::defaultExprDepth being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerSetDefaultExprDepthListener(
-      Listener* listener, bool notifyIfSet);
-
-  /**
-   * Registers a listener for options::defaultDagThresh being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerSetDefaultExprDagListener(
-      Listener* listener, bool notifyIfSet);
-
-  /**
-   * Registers a listener for options::printExprTypes being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerSetPrintExprTypesListener(
-      Listener* listener, bool notifyIfSet);
-
-  /**
-   * Registers a listener for options::dumpModeString being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerSetDumpModeListener(
-      Listener* listener, bool notifyIfSet);
-
-  /**
-   * Registers a listener for options::printSuccess being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerSetPrintSuccessListener(
-      Listener* listener, bool notifyIfSet);
-
-  /**
-   * Registers a listener for options::dumpToFileName being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerDumpToFileNameListener(
-      Listener* listener, bool notifyIfSet);
-
-  /**
-   * Registers a listener for options::regularChannelName being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerSetRegularOutputChannelListener(
-      Listener* listener, bool notifyIfSet);
-
-  /**
-   * Registers a listener for options::diagnosticChannelName being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerSetDiagnosticOutputChannelListener(
-      Listener* listener, bool notifyIfSet);
+  /** Set the generic listener associated with this class to ol */
+  void setListener(OptionsListener* ol);
 
   /** Sends a std::flush to getErr(). */
   void flushErr();
@@ -475,6 +280,13 @@ public:
   void flushOut();
 
  private:
+  /** Pointer to the options listener, if one exists */
+  OptionsListener* d_olisten;
+  /**
+   * Helper method for setOption, updates this object for setting the given
+   * option.
+   */
+  void setOptionInternal(const std::string& key, const std::string& optionarg);
   /**
    * Internal procedure for implementing the parseOptions function.
    * Initializes the options object based on the given command-line

@@ -18,26 +18,14 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-std::ostream& operator<<(std::ostream& out, CDPOverwrite opol)
-{
-  switch (opol)
-  {
-    case CDPOverwrite::ALWAYS: out << "ALWAYS"; break;
-    case CDPOverwrite::ASSUME_ONLY: out << "ASSUME_ONLY"; break;
-    case CDPOverwrite::NEVER: out << "NEVER"; break;
-    default: out << "CDPOverwrite:unknown"; break;
-  }
-  return out;
-}
-
-CDProof::CDProof(ProofNodeManager* pnm, context::Context* c)
-    : d_manager(pnm), d_context(), d_nodes(c ? c : &d_context)
+CDProof::CDProof(ProofNodeManager* pnm, context::Context* c, std::string name)
+    : d_manager(pnm), d_context(), d_nodes(c ? c : &d_context), d_name(name)
 {
 }
 
 CDProof::~CDProof() {}
 
-std::shared_ptr<ProofNode> CDProof::mkProof(Node fact)
+std::shared_ptr<ProofNode> CDProof::getProofFor(Node fact)
 {
   std::shared_ptr<ProofNode> pf = getProofSymm(fact);
   if (pf != nullptr)
@@ -123,9 +111,13 @@ bool CDProof::addStep(Node expected,
                       bool ensureChildren,
                       CDPOverwrite opolicy)
 {
-  Trace("cdproof") << "CDProof::addStep: " << id << " " << expected
-                   << ", ensureChildren = " << ensureChildren
+  Trace("cdproof") << "CDProof::addStep: " << identify() << " : " << id << " "
+                   << expected << ", ensureChildren = " << ensureChildren
                    << ", overwrite policy = " << opolicy << std::endl;
+  Trace("cdproof-debug") << "CDProof::addStep: " << identify()
+                         << " : children: " << children << "\n";
+  Trace("cdproof-debug") << "CDProof::addStep: " << identify()
+                         << " : args: " << args << "\n";
   // We must always provide expected to this method
   Assert(!expected.isNull());
 
@@ -435,5 +427,7 @@ Node CDProof::getSymmFact(TNode f)
   Node symFact = fatom[1].eqNode(fatom[0]);
   return polarity ? symFact : symFact.notNode();
 }
+
+std::string CDProof::identify() const { return d_name; }
 
 }  // namespace CVC4

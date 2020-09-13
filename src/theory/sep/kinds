@@ -8,7 +8,7 @@ theory THEORY_SEP ::CVC4::theory::sep::TheorySep "theory/sep/theory_sep.h"
 typechecker "theory/sep/theory_sep_type_rules.h"
 
 properties polite stable-infinite parametric
-properties check propagate presolve
+properties check presolve
 
 rewriter ::CVC4::theory::sep::TheorySepRewriter "theory/sep/theory_sep_rewriter.h"
 

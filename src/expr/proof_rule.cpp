@@ -27,12 +27,23 @@ const char* toString(PfRule id)
     case PfRule::SCOPE: return "SCOPE";
     case PfRule::SUBS: return "SUBS";
     case PfRule::REWRITE: return "REWRITE";
+    case PfRule::EVALUATE: return "EVALUATE";
     case PfRule::MACRO_SR_EQ_INTRO: return "MACRO_SR_EQ_INTRO";
     case PfRule::MACRO_SR_PRED_INTRO: return "MACRO_SR_PRED_INTRO";
     case PfRule::MACRO_SR_PRED_ELIM: return "MACRO_SR_PRED_ELIM";
     case PfRule::MACRO_SR_PRED_TRANSFORM: return "MACRO_SR_PRED_TRANSFORM";
+    case PfRule::REMOVE_TERM_FORMULA_AXIOM: return "REMOVE_TERM_FORMULA_AXIOM";
+    //================================================= Trusted rules
+    case PfRule::THEORY_LEMMA: return "THEORY_LEMMA";
+    case PfRule::THEORY_REWRITE: return "THEORY_REWRITE";
+    case PfRule::PREPROCESS: return "PREPROCESS";
+    case PfRule::PREPROCESS_LEMMA: return "PREPROCESS_LEMMA";
+    case PfRule::THEORY_PREPROCESS: return "THEORY_PREPROCESS";
+    case PfRule::THEORY_PREPROCESS_LEMMA: return "THEORY_PREPROCESS_LEMMA";
+    case PfRule::WITNESS_AXIOM: return "WITNESS_AXIOM";
     //================================================= Boolean rules
     case PfRule::SPLIT: return "SPLIT";
+    case PfRule::EQ_RESOLVE: return "EQ_RESOLVE";
     case PfRule::AND_ELIM: return "AND_ELIM";
     case PfRule::AND_INTRO: return "AND_INTRO";
     case PfRule::NOT_OR_ELIM: return "NOT_OR_ELIM";
@@ -85,11 +96,42 @@ const char* toString(PfRule id)
     case PfRule::TRUE_ELIM: return "TRUE_ELIM";
     case PfRule::FALSE_INTRO: return "FALSE_INTRO";
     case PfRule::FALSE_ELIM: return "FALSE_ELIM";
+    case PfRule::HO_APP_ENCODE: return "HO_APP_ENCODE";
+    case PfRule::HO_CONG: return "HO_CONG";
     //================================================= Quantifiers rules
     case PfRule::WITNESS_INTRO: return "WITNESS_INTRO";
     case PfRule::EXISTS_INTRO: return "EXISTS_INTRO";
     case PfRule::SKOLEMIZE: return "SKOLEMIZE";
     case PfRule::INSTANTIATE: return "INSTANTIATE";
+    //================================================= String rules
+    case PfRule::CONCAT_EQ: return "CONCAT_EQ";
+    case PfRule::CONCAT_UNIFY: return "CONCAT_UNIFY";
+    case PfRule::CONCAT_CONFLICT: return "CONCAT_CONFLICT";
+    case PfRule::CONCAT_SPLIT: return "CONCAT_SPLIT";
+    case PfRule::CONCAT_CSPLIT: return "CONCAT_CSPLIT";
+    case PfRule::CONCAT_LPROP: return "CONCAT_LPROP";
+    case PfRule::CONCAT_CPROP: return "CONCAT_CPROP";
+    case PfRule::STRING_DECOMPOSE: return "STRING_DECOMPOSE";
+    case PfRule::STRING_LENGTH_POS: return "STRING_LENGTH_POS";
+    case PfRule::STRING_LENGTH_NON_EMPTY: return "STRING_LENGTH_NON_EMPTY";
+    case PfRule::STRING_REDUCTION: return "STRING_REDUCTION";
+    case PfRule::STRING_EAGER_REDUCTION: return "STRING_EAGER_REDUCTION";
+    case PfRule::RE_INTER: return "RE_INTER";
+    case PfRule::RE_UNFOLD_POS: return "RE_UNFOLD_POS";
+    case PfRule::RE_UNFOLD_NEG: return "RE_UNFOLD_NEG";
+    case PfRule::RE_UNFOLD_NEG_CONCAT_FIXED:
+      return "RE_UNFOLD_NEG_CONCAT_FIXED";
+    case PfRule::RE_ELIM: return "RE_ELIM";
+    case PfRule::STRING_CODE_INJ: return "STRING_CODE_INJ";
+    case PfRule::STRING_SEQ_UNIT_INJ: return "STRING_SEQ_UNIT_INJ";
+    case PfRule::STRING_TRUST: return "STRING_TRUST";
+    //================================================= Arith rules
+    case PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS: return "ARITH_SCALE_SUM_UPPER_BOUNDS";
+    case PfRule::ARITH_TRICHOTOMY: return "ARITH_TRICHOTOMY";
+    case PfRule::INT_TIGHT_LB: return "INT_TIGHT_LB";
+    case PfRule::INT_TIGHT_UB: return "INT_TIGHT_UB";
+    case PfRule::INT_TRUST: return "INT_TRUST";
+    case PfRule::ARITH_OP_ELIM_AXIOM: return "ARITH_OP_ELIM_AXIOM";
     //================================================= Unknown rule
     case PfRule::UNKNOWN: return "UNKNOWN";
     default: return "?";
@@ -100,6 +142,11 @@ std::ostream& operator<<(std::ostream& out, PfRule id)
 {
   out << toString(id);
   return out;
+}
+
+size_t PfRuleHashFunction::operator()(PfRule id) const
+{
+  return static_cast<size_t>(id);
 }
 
 }  // namespace CVC4

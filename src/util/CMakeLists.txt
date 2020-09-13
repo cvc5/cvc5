@@ -1,6 +1,7 @@
 configure_file(floatingpoint.h.in floatingpoint.h)
 configure_file(rational.h.in rational.h)
 configure_file(integer.h.in integer.h)
+configure_file(real_algebraic_number.h.in real_algebraic_number.h)
 
 libcvc4_add_sources(
   abstract_value.cpp
@@ -17,12 +18,14 @@ libcvc4_add_sources(
   floatingpoint.cpp
   gmp_util.h
   hash.h
+  iand.h
   index.cpp
   index.h
   maybe.h
   ostream_util.cpp
   ostream_util.h
-  proof.h
+  poly_util.cpp
+  poly_util.h
   random.cpp
   random.h
   resource_manager.cpp
@@ -57,4 +60,8 @@ endif()
 
 if(CVC4_USE_GMP_IMP)
   libcvc4_add_sources(rational_gmp_imp.cpp integer_gmp_imp.cpp)
+endif()
+
+if(CVC4_USE_POLY_IMP)
+  libcvc4_add_sources(real_algebraic_number_poly_imp.cpp real_algebraic_number_poly_imp.h)
 endif()

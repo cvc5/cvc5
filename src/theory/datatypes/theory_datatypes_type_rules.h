@@ -282,9 +282,10 @@ struct RecordUpdateTypeRule {
         throw TypeCheckingExceptionPrivate(
             n, "Record-update expression formed over non-record");
       }
-      const Record& rec =
-          DatatypeType(recordType.toType()).getRecord();
-      if (!rec.contains(ru.getField())) {
+      const DType& dt = recordType.getDType();
+      const DTypeConstructor& recCons = dt[0];
+      if (recCons.getSelectorIndexForName(ru.getField()) == -1)
+      {
         std::stringstream ss;
         ss << "Record-update field `" << ru.getField()
            << "' is not a valid field name for the record type";

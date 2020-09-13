@@ -20,7 +20,6 @@
 #include <map>
 #include <vector>
 
-#include "expr/datatype.h"
 #include "expr/node.h"
 
 namespace CVC4 {

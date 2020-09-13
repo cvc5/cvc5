@@ -19,7 +19,6 @@
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "expr/sygus_datatype.h"
-#include "printer/sygus_print_callback.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/evaluator.h"
@@ -233,8 +232,7 @@ Node mkSygusTerm(const DType& dt,
         // ensures we don't try to expand e.g. bitvector extract operators,
         // whose type is undefined, and thus should not be passed to
         // expandDefinitions.
-        opn = Node::fromExpr(
-            smt::currentSmtEngine()->expandDefinitions(op.toExpr()));
+        opn = smt::currentSmtEngine()->expandDefinitions(op);
         opn = Rewriter::rewrite(opn);
         opn = eliminatePartialOperators(opn);
         SygusOpRewrittenAttribute sora;
@@ -327,9 +325,28 @@ struct SygusToBuiltinTermAttributeId
 typedef expr::Attribute<SygusToBuiltinTermAttributeId, Node>
     SygusToBuiltinTermAttribute;
 
+// A variant of the above attribute for cases where we introduce a fresh
+// variable. This is to support sygusToBuiltin on non-constant sygus terms,
+// where sygus variables should be mapped to canonical builtin variables.
+// It is important to cache this so that sygusToBuiltin is deterministic.
+struct SygusToBuiltinVarAttributeId
+{
+};
+typedef expr::Attribute<SygusToBuiltinVarAttributeId, Node>
+    SygusToBuiltinVarAttribute;
+
+// A variant of the above attribute for cases where we introduce a fresh
+// variable. This is to support sygusToBuiltin on non-constant sygus terms,
+// where sygus variables should be mapped to canonical builtin variables.
+// It is important to cache this so that sygusToBuiltin is deterministic.
+struct BuiltinVarToSygusAttributeId
+{
+};
+typedef expr::Attribute<BuiltinVarToSygusAttributeId, Node>
+    BuiltinVarToSygusAttribute;
+
 Node sygusToBuiltin(Node n, bool isExternal)
 {
-  Assert(n.isConst());
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   std::vector<TNode> visit;
@@ -343,6 +360,9 @@ Node sygusToBuiltin(Node n, bool isExternal)
     it = visited.find(cur);
     if (it == visited.end())
     {
+      // Notice this condition succeeds in roughly 99% of the executions of this
+      // method (based on our coverage tests), hence the else if / else cases
+      // below do not significantly impact performance.
       if (cur.getKind() == APPLY_CONSTRUCTOR)
       {
         if (!isExternal && cur.hasAttribute(SygusToBuiltinTermAttribute()))
@@ -357,6 +377,30 @@ Node sygusToBuiltin(Node n, bool isExternal)
           {
             visit.push_back(cn);
           }
+        }
+      }
+      else if (cur.getType().isSygusDatatype())
+      {
+        Assert (cur.isVar());
+        if (cur.hasAttribute(SygusToBuiltinVarAttribute()))
+        {
+          // use the previously constructed variable for it
+          visited[cur] = cur.getAttribute(SygusToBuiltinVarAttribute());
+        }
+        else
+        {
+          std::stringstream ss;
+          ss << cur;
+          const DType& dt = cur.getType().getDType();
+          // make a fresh variable
+          NodeManager * nm = NodeManager::currentNM();
+          Node var = nm->mkBoundVar(ss.str(), dt.getSygusType());
+          SygusToBuiltinVarAttribute stbv;
+          cur.setAttribute(stbv, var);
+          visited[cur] = var;
+          // create backwards mapping
+          BuiltinVarToSygusAttribute bvtsa;
+          var.setAttribute(bvtsa, cur);
         }
       }
       else
@@ -518,6 +562,16 @@ Node sygusToBuiltinEval(Node n, const std::vector<Node>& args)
   return visited[n];
 }
 
+Node builtinVarToSygus(Node v)
+{
+  BuiltinVarToSygusAttribute bvtsa;
+  if (v.hasAttribute(bvtsa))
+  {
+    return v.getAttribute(bvtsa);
+  }
+  return Node::null();
+}
+
 void getFreeSymbolsSygusType(TypeNode sdt,
                              std::unordered_set<Node, NodeHashFunction>& syms)
 {
@@ -594,7 +648,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
 
   // must convert all constructors to version with variables in "vars"
   std::vector<SygusDatatype> sdts;
-  std::set<Type> unres;
+  std::set<TypeNode> unres;
 
   Trace("dtsygus-gen-debug") << "Process sygus type:" << std::endl;
   Trace("dtsygus-gen-debug") << sdtd.getName() << std::endl;
@@ -608,7 +662,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
   ssutn0 << sdtd.getName() << "_s";
   TypeNode abdTNew =
       nm->mkSort(ssutn0.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
-  unres.insert(abdTNew.toType());
+  unres.insert(abdTNew);
   dtProcessed[sdt] = abdTNew;
 
   // We must convert all symbols in the sygus datatype type sdt to
@@ -652,7 +706,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
                 nm->mkSort(ssutn.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
             Trace("dtsygus-gen-debug") << "    ...unresolved type " << argtNew
                                        << " for " << argt << std::endl;
-            unres.insert(argtNew.toType());
+            unres.insert(argtNew);
             dtProcessed[argt] = argtNew;
             dtNextToProcess.push_back(argt);
           }
@@ -664,28 +718,10 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
               << "    Arg #" << k << ": " << argtNew << std::endl;
           cargs.push_back(argtNew);
         }
-        // callback prints as the expression
-        std::shared_ptr<SygusPrintCallback> spc;
-        std::vector<Expr> args;
-        if (op.getKind() == LAMBDA)
-        {
-          Node opBody = op[1];
-          for (const Node& v : op[0])
-          {
-            args.push_back(v.toExpr());
-          }
-          spc = std::make_shared<printer::SygusExprPrintCallback>(
-              opBody.toExpr(), args);
-        }
-        else if (cargs.empty())
-        {
-          spc = std::make_shared<printer::SygusExprPrintCallback>(op.toExpr(),
-                                                                  args);
-        }
         std::stringstream ss;
         ss << ops.getKind();
         Trace("dtsygus-gen-debug") << "Add constructor : " << ops << std::endl;
-        sdts.back().addConstructor(ops, ss.str(), cargs, spc);
+        sdts.back().addConstructor(ops, ss.str(), cargs);
       }
       Trace("dtsygus-gen-debug")
           << "Set sygus : " << dtc.getSygusType() << " " << abvl << std::endl;
@@ -700,22 +736,21 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
   Trace("dtsygus-gen-debug")
       << "Make " << sdts.size() << " datatype types..." << std::endl;
   // extract the datatypes
-  std::vector<Datatype> datatypes;
+  std::vector<DType> datatypes;
   for (unsigned i = 0, ndts = sdts.size(); i < ndts; i++)
   {
     datatypes.push_back(sdts[i].getDatatype());
   }
   // make the datatype types
-  std::vector<DatatypeType> datatypeTypes =
-      nm->toExprManager()->mkMutualDatatypeTypes(
-          datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
-  TypeNode sdtS = TypeNode::fromType(datatypeTypes[0]);
+  std::vector<TypeNode> datatypeTypes = nm->mkMutualDatatypeTypes(
+      datatypes, unres, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+  TypeNode sdtS = datatypeTypes[0];
   if (Trace.isOn("dtsygus-gen-debug"))
   {
     Trace("dtsygus-gen-debug") << "Made datatype types:" << std::endl;
     for (unsigned j = 0, ndts = datatypeTypes.size(); j < ndts; j++)
     {
-      const DType& dtj = TypeNode::fromType(datatypeTypes[j]).getDType();
+      const DType& dtj = datatypeTypes[j].getDType();
       Trace("dtsygus-gen-debug") << "#" << j << ": " << dtj << std::endl;
       for (unsigned k = 0, ncons = dtj.getNumConstructors(); k < ncons; k++)
       {

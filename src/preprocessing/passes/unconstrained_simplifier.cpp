@@ -18,6 +18,7 @@
 
 #include "preprocessing/passes/unconstrained_simplifier.h"
 
+#include "expr/dtype.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
@@ -74,6 +75,16 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
         if (current.isVar())
         {
           d_unconstrained.erase(current);
+        }
+        else
+        {
+          // Also erase the children from the visited-once set when we visit a
+          // node a second time, otherwise variables in this node are not
+          // erased from the set of unconstrained variables.
+          for (TNode childNode : current)
+          {
+            toVisit.push_back(unc_preprocess_stack_element(childNode, current));
+          }
         }
       }
       ++find->second;
@@ -252,8 +263,8 @@ void UnconstrainedSimplifier::processUnconstrained()
           if (parent[0].getType().isDatatype())
           {
             TypeNode tn = parent[0].getType();
-            const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-            if (dt.isRecursiveSingleton(tn.toType()))
+            const DType& dt = tn.getDType();
+            if (dt.isRecursiveSingleton(tn))
             {
               // domain size may be 1
               break;

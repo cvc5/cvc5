@@ -3,7 +3,6 @@ name: CI
 
 jobs:
   build:
-
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -14,26 +13,41 @@ jobs:
           debug-cln
         ]
 
+        exclude:
+          - name: production-clang
+            os: macos-latest
+          - name: debug
+            os: macos-latest
+          - name: debug-cln
+            os: macos-latest
+
         include:
           - name: production
-            config: production --language-bindings=java --lfsc --python-bindings
+            config: production --all-bindings --lfsc --editline
             cache-key: production
             python-bindings: true
             check-examples: true
+            exclude_regress: 3-4
 
           - name: production-clang
             config: production
             cache-key: production-clang
             check-examples: true
             env: CC=clang CXX=clang++
+            os: ubuntu-latest
+            exclude_regress: 1-4
 
           - name: debug
-            config: debug --symfpu --lfsc --no-debug-symbols
+            config: debug --symfpu --lfsc --no-debug-symbols --editline
             cache-key: debug
+            os: ubuntu-latest
+            exclude_regress: 1-4
 
           - name: debug-cln
             config: debug --symfpu --cln --gpl --no-debug-symbols --no-proofs
             cache-key: debug-cln
+            os: ubuntu-latest
+            exclude_regress: 1-4
 
     name: ${{ matrix.os }}:${{ matrix.name }}
     runs-on: ${{ matrix.os }}
@@ -51,11 +65,16 @@ jobs:
           cxxtest \
           libcln-dev \
           libgmp-dev \
-          swig3.0
+          libedit-dev \
+          flex \
+          libfl-dev \
+          flexc++
         python3 -m pip install toml
         python3 -m pip install setuptools
+        python3 -m pip install pexpect
         echo "::add-path::/usr/lib/ccache"
 
+    # Note: macOS comes with a libedit; it does not need to brew-installed
     - name: Install Packages (macOS)
       if: runner.os == 'macOS'
       run: |
@@ -64,17 +83,19 @@ jobs:
           cxxtest \
           cln \
           gmp \
-          swig
+          pkgconfig \
+          flex
         python3 -m pip install toml
         python3 -m pip install setuptools
+        python3 -m pip install pexpect
         echo "::add-path::/usr/local/opt/ccache/libexec"
 
-    # Note: We install Cython with sudo since cmake can't find Cython otherwise.
     - name: Install Cython
       if: matrix.python-bindings && runner.os == 'Linux'
       run: |
-        sudo python3 -m pip install \
-          Cython==0.29 --install-option="--no-cython-compile"
+        python3 -m pip install \
+          Cython==0.29.* --install-option="--no-cython-compile"
+        echo "::add-path::$(python3 -m site --user-base)/bin"
 
     - name: Install Cython (macOS)
       if: matrix.python-bindings && runner.os == 'macOS'
@@ -99,6 +120,7 @@ jobs:
       if: steps.restore-deps.outputs.cache-hit != 'true'
       run: |
         ./contrib/get-antlr-3.4
+        ./contrib/get-poly
         ./contrib/get-symfpu
         ./contrib/get-cadical
         ./contrib/get-cryptominisat
@@ -136,6 +158,7 @@ jobs:
       run: |
         ${{ matrix.env }} ./configure.sh ${{ matrix.config }} \
           --python3 \
+          --poly \
           --prefix=$(pwd)/build/install \
           --unit-testing
 
@@ -149,7 +172,7 @@ jobs:
     - name: Run CTest
       run: make -j2 check
       env:
-        ARGS: --output-on-failure -LE regress[1-4]
+        ARGS: --output-on-failure -LE regress[${{ matrix.exclude_regress }}]
         CVC4_REGRESSION_ARGS: --no-early-exit
       working-directory: build
 

@@ -23,6 +23,8 @@
 #include "printer/cvc/cvc_printer.h"
 #include "printer/smt2/smt2_printer.h"
 #include "printer/tptp/tptp_printer.h"
+#include "smt/command.h"
+#include "smt/node_command.h"
 
 using namespace std;
 
@@ -52,14 +54,6 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
   case LANG_CVC4:
     return unique_ptr<Printer>(new printer::cvc::CvcPrinter());
 
-  case LANG_Z3STR:
-    return unique_ptr<Printer>(
-        new printer::smt2::Smt2Printer(printer::smt2::z3str_variant));
-
-  case LANG_SYGUS_V1:
-    return unique_ptr<Printer>(
-        new printer::smt2::Smt2Printer(printer::smt2::sygus_variant));
-
   case LANG_SYGUS_V2:
     // sygus version 2.0 does not have discrepancies with smt2, hence we use
     // a normal smt2 variant here.
@@ -77,20 +71,13 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
   }
 }
 
-void Printer::toStreamSygus(std::ostream& out, TNode n) const
-{
-  // no sygus-specific printing associated with this printer,
-  // just print the original term, without letification (the fifth argument is
-  // set to 0).
-  toStream(out, n, -1, false, 0);
-}
-
 void Printer::toStream(std::ostream& out, const Model& m) const
 {
   for(size_t i = 0; i < m.getNumCommands(); ++i) {
-    const Command* cmd = m.getCommand(i);
-    const DeclareFunctionCommand* dfc = dynamic_cast<const DeclareFunctionCommand*>(cmd);
-    if (dfc != NULL && !m.isModelCoreSymbol(dfc->getFunction()))
+    const NodeCommand* cmd = m.getCommand(i);
+    const DeclareFunctionNodeCommand* dfc =
+        dynamic_cast<const DeclareFunctionNodeCommand*>(cmd);
+    if (dfc != NULL && !m.isModelCoreSymbol(dfc->getFunction().toExpr()))
     {
       continue;
     }
@@ -101,8 +88,7 @@ void Printer::toStream(std::ostream& out, const Model& m) const
 void Printer::toStream(std::ostream& out, const UnsatCore& core) const
 {
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
-    AssertCommand cmd(*i);
-    toStream(out, &cmd, -1, false, -1);
+    toStreamCmdAssert(out, Node::fromExpr(*i));
     out << std::endl;
   }
 }/* Printer::toStream(UnsatCore) */
@@ -133,5 +119,316 @@ Printer* Printer::getPrinter(OutputLanguage lang)
   return d_printers[lang].get();
 }
 
+void Printer::printUnknownCommand(std::ostream& out,
+                                  const std::string& name) const
+{
+  out << "ERROR: don't know how to print " << name << " command" << std::endl;
+}
+
+void Printer::toStreamCmdEmpty(std::ostream& out, const std::string& name) const
+{
+  printUnknownCommand(out, "empty");
+}
+
+void Printer::toStreamCmdEcho(std::ostream& out,
+                              const std::string& output) const
+{
+  printUnknownCommand(out, "echo");
+}
+
+void Printer::toStreamCmdAssert(std::ostream& out, Node n) const
+{
+  printUnknownCommand(out, "assert");
+}
+
+void Printer::toStreamCmdPush(std::ostream& out) const
+{
+  printUnknownCommand(out, "push");
+}
+
+void Printer::toStreamCmdPop(std::ostream& out) const
+{
+  printUnknownCommand(out, "pop");
+}
+
+void Printer::toStreamCmdDeclareFunction(std::ostream& out,
+                                         const std::string& id,
+                                         TypeNode type) const
+{
+  printUnknownCommand(out, "declare-fun");
+}
+
+void Printer::toStreamCmdDeclareType(std::ostream& out,
+                                     const std::string& id,
+                                     size_t arity,
+                                     TypeNode type) const
+{
+  printUnknownCommand(out, "declare-sort");
+}
+
+void Printer::toStreamCmdDefineType(std::ostream& out,
+                                    const std::string& id,
+                                    const std::vector<TypeNode>& params,
+                                    TypeNode t) const
+{
+  printUnknownCommand(out, "define-sort");
+}
+
+void Printer::toStreamCmdDefineFunction(std::ostream& out,
+                                        const std::string& id,
+                                        const std::vector<Node>& formals,
+                                        TypeNode range,
+                                        Node formula) const
+{
+  printUnknownCommand(out, "define-fun");
+}
+
+void Printer::toStreamCmdDefineNamedFunction(std::ostream& out,
+                                             const std::string& id,
+                                             const std::vector<Node>& formals,
+                                             TypeNode range,
+                                             Node formula) const
+{
+  printUnknownCommand(out, "define-named-function");
+}
+
+void Printer::toStreamCmdDefineFunctionRec(
+    std::ostream& out,
+    const std::vector<Node>& funcs,
+    const std::vector<std::vector<Node>>& formals,
+    const std::vector<Node>& formulas) const
+{
+  printUnknownCommand(out, "define-fun-rec");
+}
+
+void Printer::toStreamCmdSetUserAttribute(std::ostream& out,
+                                          const std::string& attr,
+                                          Node n) const
+{
+  printUnknownCommand(out, "set-user-attribute");
+}
+
+void Printer::toStreamCmdCheckSat(std::ostream& out, Node n) const
+{
+  printUnknownCommand(out, "check-sat");
+}
+
+void Printer::toStreamCmdCheckSatAssuming(std::ostream& out,
+                                          const std::vector<Node>& nodes) const
+{
+  printUnknownCommand(out, "check-sat-assuming");
+}
+
+void Printer::toStreamCmdQuery(std::ostream& out, Node n) const
+{
+  printUnknownCommand(out, "query");
+}
+
+void Printer::toStreamCmdDeclareVar(std::ostream& out,
+                                    Node var,
+                                    TypeNode type) const
+{
+  printUnknownCommand(out, "declare-var");
+}
+
+void Printer::toStreamCmdSynthFun(std::ostream& out,
+                                  const std::string& sym,
+                                  const std::vector<Node>& vars,
+                                  TypeNode range,
+                                  bool isInv,
+                                  TypeNode sygusType) const
+{
+  printUnknownCommand(out, isInv ? "synth-inv" : "synth-fun");
+}
+
+void Printer::toStreamCmdConstraint(std::ostream& out, Node n) const
+{
+  printUnknownCommand(out, "constraint");
+}
+
+void Printer::toStreamCmdInvConstraint(
+    std::ostream& out, Node inv, Node pre, Node trans, Node post) const
+{
+  printUnknownCommand(out, "inv-constraint");
+}
+
+void Printer::toStreamCmdCheckSynth(std::ostream& out) const
+{
+  printUnknownCommand(out, "check-synth");
+}
+
+void Printer::toStreamCmdSimplify(std::ostream& out, Node n) const
+{
+  printUnknownCommand(out, "simplify");
+}
+
+void Printer::toStreamCmdExpandDefinitions(std::ostream& out, Node n) const
+{
+  printUnknownCommand(out, "expand-definitions");
+}
+
+void Printer::toStreamCmdGetValue(std::ostream& out,
+                                  const std::vector<Node>& nodes) const
+{
+  printUnknownCommand(out, "get-value");
+}
+
+void Printer::toStreamCmdGetAssignment(std::ostream& out) const
+{
+  printUnknownCommand(out, "get-assignment");
+}
+
+void Printer::toStreamCmdGetModel(std::ostream& out) const
+{
+  printUnknownCommand(out, "ge-model");
+}
+
+void Printer::toStreamCmdBlockModel(std::ostream& out) const
+{
+  printUnknownCommand(out, "block-model");
+}
+
+void Printer::toStreamCmdBlockModelValues(std::ostream& out,
+                                          const std::vector<Node>& nodes) const
+{
+  printUnknownCommand(out, "block-model-values");
+}
+
+void Printer::toStreamCmdGetProof(std::ostream& out) const
+{
+  printUnknownCommand(out, "get-proof");
+}
+
+void Printer::toStreamCmdGetInstantiations(std::ostream& out) const
+{
+  printUnknownCommand(out, "get-instantiations");
+}
+
+void Printer::toStreamCmdGetSynthSolution(std::ostream& out) const
+{
+  printUnknownCommand(out, "get-synth-solution");
+}
+
+void Printer::toStreamCmdGetInterpol(std::ostream& out,
+                                     const std::string& name,
+                                     Node conj,
+                                     TypeNode sygusType) const
+{
+  printUnknownCommand(out, "get-interpol");
+}
+
+void Printer::toStreamCmdGetAbduct(std::ostream& out,
+                                   const std::string& name,
+                                   Node conj,
+                                   TypeNode sygusType) const
+{
+  printUnknownCommand(out, "get-abduct");
+}
+
+void Printer::toStreamCmdGetQuantifierElimination(std::ostream& out,
+                                                  Node n) const
+{
+  printUnknownCommand(out, "get-quantifier-elimination");
+}
+
+void Printer::toStreamCmdGetUnsatAssumptions(std::ostream& out) const
+{
+  printUnknownCommand(out, "get-unsat-assumption");
+}
+
+void Printer::toStreamCmdGetUnsatCore(std::ostream& out) const
+{
+  printUnknownCommand(out, "get-unsat-core");
+}
+
+void Printer::toStreamCmdGetAssertions(std::ostream& out) const
+{
+  printUnknownCommand(out, "get-assertions");
+}
+
+void Printer::toStreamCmdSetBenchmarkStatus(std::ostream& out,
+                                            Result::Sat status) const
+{
+  printUnknownCommand(out, "set-info");
+}
+
+void Printer::toStreamCmdSetBenchmarkLogic(std::ostream& out,
+                                           const std::string& logic) const
+{
+  printUnknownCommand(out, "set-logic");
+}
+
+void Printer::toStreamCmdSetInfo(std::ostream& out,
+                                 const std::string& flag,
+                                 SExpr sexpr) const
+{
+  printUnknownCommand(out, "set-info");
+}
+
+void Printer::toStreamCmdGetInfo(std::ostream& out,
+                                 const std::string& flag) const
+{
+  printUnknownCommand(out, "get-info");
+}
+
+void Printer::toStreamCmdSetOption(std::ostream& out,
+                                   const std::string& flag,
+                                   SExpr sexpr) const
+{
+  printUnknownCommand(out, "set-option");
+}
+
+void Printer::toStreamCmdGetOption(std::ostream& out,
+                                   const std::string& flag) const
+{
+  printUnknownCommand(out, "get-option");
+}
+
+void Printer::toStreamCmdSetExpressionName(std::ostream& out,
+                                           Node n,
+                                           const std::string& name) const
+{
+  printUnknownCommand(out, "set-expression-name");
+}
+
+void Printer::toStreamCmdDatatypeDeclaration(
+    std::ostream& out, const std::vector<TypeNode>& datatypes) const
+{
+  printUnknownCommand(
+      out, datatypes.size() == 1 ? "declare-datatype" : "declare-datatypes");
+}
+
+void Printer::toStreamCmdReset(std::ostream& out) const
+{
+  printUnknownCommand(out, "reset");
+}
+
+void Printer::toStreamCmdResetAssertions(std::ostream& out) const
+{
+  printUnknownCommand(out, "reset-assertions");
+}
+
+void Printer::toStreamCmdQuit(std::ostream& out) const
+{
+  printUnknownCommand(out, "quit");
+}
+
+void Printer::toStreamCmdComment(std::ostream& out,
+                                 const std::string& comment) const
+{
+  printUnknownCommand(out, "comment");
+}
+
+void Printer::toStreamCmdCommandSequence(
+    std::ostream& out, const std::vector<Command*>& sequence) const
+{
+  printUnknownCommand(out, "sequence");
+}
+
+void Printer::toStreamCmdDeclarationSequence(
+    std::ostream& out, const std::vector<Command*>& sequence) const
+{
+  printUnknownCommand(out, "sequence");
+}
 
 }/* CVC4 namespace */
