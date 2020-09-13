@@ -155,7 +155,8 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
   Trace("pf-process") << "ProofNodeUpdater::process: finished" << std::endl;
 }
 
-bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur, const std::vector<Node>& fa)
+bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur,
+                                 const std::vector<Node>& fa)
 {
   // should it be updated?
   if (!d_cb.shouldUpdate(cur.get()))
@@ -193,7 +194,7 @@ bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur, const std::vect
     Trace("pf-process-debug") << "...update node finished." << std::endl;
     if (d_debugFreeAssumps)
     {
-      fullFa.insert(fullFa.end(),fa.begin(), fa.end());
+      fullFa.insert(fullFa.end(), fa.begin(), fa.end());
       // We have that npn is a node we occurring the final updated version of
       // the proof. We can now debug based on the expected set of free
       // assumptions.

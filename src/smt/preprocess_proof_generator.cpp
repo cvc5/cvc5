@@ -165,10 +165,7 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
   return cdp.getProofFor(f);
 }
 
-ProofNodeManager * PreprocessProofGenerator::getManager()
-{
-  return d_pnm;
-}
+ProofNodeManager* PreprocessProofGenerator::getManager() { return d_pnm; }
 
 theory::EagerProofGenerator* PreprocessProofGenerator::getHelperProofGenerator()
 {

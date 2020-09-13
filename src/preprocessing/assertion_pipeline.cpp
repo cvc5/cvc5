@@ -137,12 +137,13 @@ void AssertionPipeline::addSubstitutionNode(Node n, ProofGenerator* pgen)
 {
   Assert(d_storeSubstsInAsserts);
   Assert(n.getKind() == kind::EQUAL);
-  if (n==d_nodes[d_substsIndex])
+  if (n == d_nodes[d_substsIndex])
   {
     // trivial case, skip to avoid cyclic proofs below
     return;
   }
-  Node newConj = NodeManager::currentNM()->mkNode(kind::AND, n, d_nodes[d_substsIndex]);
+  Node newConj =
+      NodeManager::currentNM()->mkNode(kind::AND, n, d_nodes[d_substsIndex]);
   Node newConjr = theory::Rewriter::rewrite(newConj);
   if (isProofEnabled())
   {
@@ -153,16 +154,17 @@ void AssertionPipeline::addSubstitutionNode(Node n, ProofGenerator* pgen)
     lcp.addStep(newConj, PfRule::AND_INTRO, {n, d_nodes[d_substsIndex]}, {});
     if (newConj!=newConjr)
     {
-      lcp.addStep(newConjr, PfRule::MACRO_SR_PRED_TRANSFORM, {newConj}, {newConjr});
+      lcp.addStep(newConjr, PfRule::MACRO_SR_PRED_TRANSFORM, {newConj},
+    {newConjr});
     }
     std::shared_ptr<ProofNode> pf = lcp.getProofFor(newConjr);
     theory::EagerProofGenerator * helper = d_pppg->getHelperProofGenerator();
     helper->setProofFor(newConjr, pf);
     */
-    
-    ProofGenerator * pgReplace = nullptr;//d_pppg->getHelperProofGenerator();
+
+    ProofGenerator* pgReplace = nullptr;  // d_pppg->getHelperProofGenerator();
     // TODO
-    //d_pppg->notifyNewAssert(n, pgen);
+    // d_pppg->notifyNewAssert(n, pgen);
     d_pppg->notifyPreprocessed(d_nodes[d_substsIndex], newConjr, pgReplace);
   }
   d_nodes[d_substsIndex] = newConjr;

@@ -82,7 +82,8 @@ class ProofNodeUpdater
    * Post-process, which performs the main post-processing technique described
    * above.
    */
-  void processInternal(std::shared_ptr<ProofNode> pf, const std::vector<Node>& fa);
+  void processInternal(std::shared_ptr<ProofNode> pf,
+                       const std::vector<Node>& fa);
   /**
    * Update proof node cur based on the callback. This modifies curr using
    * ProofNodeManager::updateNode based on the proof node constructed to

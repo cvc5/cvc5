@@ -137,7 +137,7 @@ class AssertionPipeline
   /**
    * Adds a substitution node of the form (= lhs rhs) to the assertions.
    */
-  void addSubstitutionNode(Node n, ProofGenerator* pgen=nullptr);
+  void addSubstitutionNode(Node n, ProofGenerator* pgen = nullptr);
 
   /**
    * Checks whether the assertion at a given index represents substitutions.
