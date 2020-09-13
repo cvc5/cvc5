@@ -141,6 +141,15 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
       visited[cur] = true;
       // cache result
       resCache[res] = cur;
+      if (d_debugFreeAssumps)
+      {
+        // We have that npn is a node we occurring the final updated version of
+        // the proof. We can now debug based on the expected set of free
+        // assumptions.
+        Trace("pfnu-debug") << "Ensure update closed..." << std::endl;
+        pfnEnsureClosedWrt(
+            cur.get(), fa, "pfnu-debug", "ProofNodeUpdater:finalize");
+      }
     }
   } while (!visit.empty());
   Trace("pf-process") << "ProofNodeUpdater::process: finished" << std::endl;
@@ -172,18 +181,25 @@ bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur, const std::vect
   if (d_cb.update(res, id, ccn, cur->getArguments(), &cpf))
   {
     std::shared_ptr<ProofNode> npn = cpf.getProofFor(res);
+    std::vector<Node> fullFa;
+    if (d_debugFreeAssumps)
+    {
+      expr::getFreeAssumptions(cur.get(), fullFa);
+      Trace("pfnu-debug") << "Original proof : " << *cur << std::endl;
+    }
     // then, update the original proof node based on this one
     Trace("pf-process-debug") << "Update node..." << std::endl;
     d_pnm->updateNode(cur.get(), npn.get());
     Trace("pf-process-debug") << "...update node finished." << std::endl;
     if (d_debugFreeAssumps)
     {
+      fullFa.insert(fullFa.end(),fa.begin(), fa.end());
       // We have that npn is a node we occurring the final updated version of
       // the proof. We can now debug based on the expected set of free
       // assumptions.
       Trace("pfnu-debug") << "Ensure update closed..." << std::endl;
       pfnEnsureClosedWrt(
-          npn.get(), fa, "pfnu-debug", "ProofNodeUpdater:postupdate");
+          npn.get(), fullFa, "pfnu-debug", "ProofNodeUpdater:postupdate");
     }
     Trace("pf-process-debug") << "..finished" << std::endl;
     return true;

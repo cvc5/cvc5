@@ -23,6 +23,7 @@
 #include "expr/proof_generator.h"
 #include "expr/proof_node_manager.h"
 #include "theory/trust_node.h"
+#include "theory/eager_proof_generator.h"
 
 namespace CVC4 {
 namespace smt {
@@ -65,6 +66,10 @@ class PreprocessProofGenerator : public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Identify */
   std::string identify() const override;
+  /** Get the proof manager */
+  ProofNodeManager * getManager();
+  /** Get the helper proof generator */
+  theory::EagerProofGenerator* getHelperProofGenerator();
 
  private:
   /** The proof node manager */
@@ -77,6 +82,11 @@ class PreprocessProofGenerator : public ProofGenerator
    * (2) A trust node LEMMA proving n.
    */
   NodeTrustNodeMap d_src;
+  /** 
+   * An helper eager proof generator. This is used for storing steps that
+   * transform substitution steps.
+   */
+  theory::EagerProofGenerator d_helperEpg;
 };
 
 }  // namespace smt

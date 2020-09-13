@@ -23,7 +23,7 @@ namespace smt {
 
 PreprocessProofGenerator::PreprocessProofGenerator(context::UserContext* u,
                                                    ProofNodeManager* pnm)
-    : d_pnm(pnm), d_src(u)
+    : d_pnm(pnm), d_src(u), d_helperEpg(pnm, u, "pppg::subsEpg")
 {
 }
 
@@ -163,6 +163,16 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
   // Note F_1 may have been given a proof if it was not an input assumption.
 
   return cdp.getProofFor(f);
+}
+
+ProofNodeManager * PreprocessProofGenerator::getManager()
+{
+  return d_pnm;
+}
+
+theory::EagerProofGenerator* PreprocessProofGenerator::getHelperProofGenerator()
+{
+  return &d_helperEpg;
 }
 
 std::string PreprocessProofGenerator::identify() const
