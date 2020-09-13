@@ -51,9 +51,7 @@ class ScopeCounter
 };
 
 ProcessAssertions::ProcessAssertions(SmtEngine& smt, ResourceManager& rm)
-    : d_smt(smt),
-      d_resourceManager(rm),
-      d_preprocessingPassContext(nullptr)
+    : d_smt(smt), d_resourceManager(rm), d_preprocessingPassContext(nullptr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
 }
@@ -364,7 +362,7 @@ bool ProcessAssertions::apply(Assertions& as)
         }
         // Move this iteExpr into the main assertions
         builder << assertions[(*it).second];
-        assertions.replace( (*it).second, d_true );
+        assertions.replace((*it).second, d_true);
         toErase.push_back((*it).first);
       }
       if (builder.getNumChildren() > 1)
@@ -376,7 +374,7 @@ bool ProcessAssertions::apply(Assertions& as)
         }
         size_t index = assertions.getRealAssertionsEnd() - 1;
         Node newAssertion = Rewriter::rewrite(Node(builder));
-        assertions.replace( index, newAssertion );
+        assertions.replace(index, newAssertion);
       }
       // TODO(b/1256): For some reason this is needed for some benchmarks, such
       // as

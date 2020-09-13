@@ -96,7 +96,7 @@ struct AbsTypeFunDefAttributeId
 {
 };
 typedef expr::Attribute<AbsTypeFunDefAttributeId, bool> AbsTypeFunDefAttribute;
-    
+
 namespace quantifiers {
 
 /** Attribute priority for rewrite rules */

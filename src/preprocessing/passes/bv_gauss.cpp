@@ -786,7 +786,7 @@ PreprocessingPassResult BVGauss::applyInternal(
     {
       Node a = aref[i];
       Node as = a.substitute(subst.begin(), subst.end());
-      if (a!=as)
+      if (a != as)
       {
         // replace the assertion
         assertionsToPreprocess->replace(i, as);

@@ -67,8 +67,9 @@ void QuantifierMacros::clearMaps()
   d_ground_macros = false;
 }
 
-bool QuantifierMacros::simplify(AssertionPipeline* ap, bool doRewrite ){
-  const std::vector< Node >& assertions = ap->ref();
+bool QuantifierMacros::simplify(AssertionPipeline* ap, bool doRewrite)
+{
+  const std::vector<Node>& assertions = ap->ref();
   unsigned rmax =
       options::macrosQuantMode() == options::MacrosQuantMode::ALL ? 2 : 1;
   for( unsigned r=0; r<rmax; r++ ){

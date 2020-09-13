@@ -27,9 +27,9 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "util/hash.h"
 #include "util/statistics_registry.h"
-#include "preprocessing/assertion_pipeline.h"
 
 namespace CVC4 {
 namespace preprocessing {

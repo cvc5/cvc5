@@ -69,7 +69,7 @@ class AssertionPipeline
   /** Same as above, with TrustNode */
   void pushBackTrusted(theory::TrustNode trn);
 
-  /** 
+  /**
    * Get the constant reference to the underlying assertions. It is only
    * possible to modify these via the replace methods below.
    */
