@@ -32,13 +32,22 @@ namespace passes {
 FunDefFmf::FunDefFmf(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "fun-def-fmf"),
       d_fmfRecFunctionsDefined(nullptr){
-  d_fmfRecFunctionsDefined = new (true) NodeList(preprocContext.getUserContext());        
+  d_fmfRecFunctionsDefined = new (true) NodeList(preprocContext->getUserContext());        
+}
+
+FunDefFmf::~FunDefFmf()
+{
+  d_fmfRecFunctionsDefined->deleteSelf();
 }
 
 PreprocessingPassResult FunDefFmf::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
   Assert(d_fmfRecFunctionsDefined != nullptr);
+  // reset
+  d_sorts.clear();
+  d_input_arg_inj.clear();
+  d_funcs.clear();
   // must carry over current definitions (in case of incremental)
   for (context::CDList<Node>::const_iterator fit =
             d_fmfRecFunctionsDefined->begin();
@@ -48,22 +57,22 @@ PreprocessingPassResult FunDefFmf::applyInternal(
     Node f = (*fit);
     Assert(d_fmfRecFunctionsAbs.find(f) != d_fmfRecFunctionsAbs.end());
     TypeNode ft = d_fmfRecFunctionsAbs[f];
-    fdf.d_sorts[f] = ft;
+    d_sorts[f] = ft;
     std::map<Node, std::vector<Node>>::iterator fcit =
         d_fmfRecFunctionsConcrete.find(f);
     Assert(fcit != d_fmfRecFunctionsConcrete.end());
     for (const Node& fcc : fcit->second)
     {
-      fdf.d_input_arg_inj[f].push_back(fcc);
+      d_input_arg_inj[f].push_back(fcc);
     }
   }
   process(assertionsToPreprocess);
   // must store new definitions (in case of incremental)
-  for (const Node& f : fdf.d_funcs)
+  for (const Node& f : d_funcs)
   {
-    d_fmfRecFunctionsAbs[f] = fdf.d_sorts[f];
+    d_fmfRecFunctionsAbs[f] = d_sorts[f];
     d_fmfRecFunctionsConcrete[f].clear();
-    for (const Node& fcc : fdf.d_input_arg_inj[f])
+    for (const Node& fcc : d_input_arg_inj[f])
     {
       d_fmfRecFunctionsConcrete[f].push_back(fcc);
     }
@@ -72,7 +81,7 @@ PreprocessingPassResult FunDefFmf::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-void FunDefFmf::applyInternal(
+void FunDefFmf::process(
     AssertionPipeline* assertionsToPreprocess)
 {
   const std::vector<Node>& assertions = assertionsToPreprocess->ref();

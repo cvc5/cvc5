@@ -64,7 +64,7 @@ class QuantifierMacros : public PreprocessingPass
                        bool reqComplete);
   void addMacro(Node op, Node n, std::vector<Node>& opc);
   void debugMacroDefinition(Node oo, Node n);
-  bool simplify(const std::vector<Node>& assertions, bool doRewrite = false);
+  bool simplify(AssertionPipeline* ap, bool doRewrite = false);
   Node simplify(Node n);
   void finalizeDefinitions();
   void clearMaps();

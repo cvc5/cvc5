@@ -38,7 +38,7 @@ class FunDefFmf : public PreprocessingPass
   typedef context::CDList<Node> NodeList;
  public:
   FunDefFmf(PreprocessingPassContext* preprocContext);
-
+  ~FunDefFmf();
  protected:
   /**
    * Run the preprocessing pass on the pipeline, taking into account the

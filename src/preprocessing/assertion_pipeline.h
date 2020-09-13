@@ -49,7 +49,6 @@ class AssertionPipeline
    */
   void clear();
 
-  //Node& operator[](size_t i) { return d_nodes[i]; }
   const Node& operator[](size_t i) const { return d_nodes[i]; }
 
   /**
@@ -70,7 +69,10 @@ class AssertionPipeline
   /** Same as above, with TrustNode */
   void pushBackTrusted(theory::TrustNode trn);
 
-  //std::vector<Node>& ref() { return d_nodes; }
+  /** 
+   * Get the constant reference to the underlying assertions. It is only
+   * possible to modify these via the replace methods below.
+   */
   const std::vector<Node>& ref() const { return d_nodes; }
 
   std::vector<Node>::const_iterator begin() const { return d_nodes.cbegin(); }

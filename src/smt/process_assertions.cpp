@@ -30,7 +30,6 @@
 #include "smt/defined_function.h"
 #include "smt/smt_engine.h"
 #include "theory/logic_info.h"
-#include "theory/quantifiers/fun_def_process.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4::preprocessing;
@@ -61,7 +60,6 @@ ProcessAssertions::ProcessAssertions(SmtEngine& smt, ResourceManager& rm)
 
 ProcessAssertions::~ProcessAssertions()
 {
-  d_fmfRecFunctionsDefined->deleteSelf();
 }
 
 void ProcessAssertions::finishInit(PreprocessingPassContext* pc)
@@ -366,7 +364,7 @@ bool ProcessAssertions::apply(Assertions& as)
         }
         // Move this iteExpr into the main assertions
         builder << assertions[(*it).second];
-        assertions[(*it).second] = d_true;
+        assertions.replace( (*it).second, d_true );
         toErase.push_back((*it).first);
       }
       if (builder.getNumChildren() > 1)
@@ -376,8 +374,9 @@ bool ProcessAssertions::apply(Assertions& as)
           iskMap.erase(toErase.back());
           toErase.pop_back();
         }
-        assertions[assertions.getRealAssertionsEnd() - 1] =
-            Rewriter::rewrite(Node(builder));
+        size_t index = assertions.getRealAssertionsEnd() - 1;
+        Node newAssertion = Rewriter::rewrite(Node(builder));
+        assertions.replace( index, newAssertion );
       }
       // TODO(b/1256): For some reason this is needed for some benchmarks, such
       // as
