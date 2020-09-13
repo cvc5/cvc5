@@ -130,13 +130,13 @@ bool ITEUtilities::simpIteDidALotOfWorkHeuristic() const
 }
 
 /* returns false if an assertion is discovered to be equal to false. */
-bool ITEUtilities::compress(std::vector<Node>& assertions)
+bool ITEUtilities::compress(AssertionPipeline* assertionsToPreprocess)
 {
   if (d_compressor == NULL)
   {
     d_compressor = new ITECompressor(d_containsVisitor.get());
   }
-  return d_compressor->compress(assertions);
+  return d_compressor->compress(assertionsToPreprocess);
 }
 
 Node ITEUtilities::simplifyWithCare(TNode e)
@@ -527,17 +527,18 @@ Node ITECompressor::compressBoolean(Node toCompress)
   }
 }
 
-bool ITECompressor::compress(std::vector<Node>& assertions)
+bool ITECompressor::compress(AssertionPipeline* assertionsToPreprocess)
 {
   reset();
 
-  d_assertions = &assertions;
-  d_incoming.computeReachability(assertions);
+  d_assertions = assertionsToPreprocess;
+  d_incoming.computeReachability(assertionsToPreprocess->ref());
 
   ++(d_statistics.d_compressCalls);
   Chat() << "Computed reachability" << endl;
 
   bool nofalses = true;
+  const std::vector<Node>& assertions = assertionsToPreprocess->ref();
   size_t original_size = assertions.size();
   Chat() << "compressing " << original_size << endl;
   for (size_t i = 0; i < original_size && nofalses; ++i)
@@ -545,7 +546,8 @@ bool ITECompressor::compress(std::vector<Node>& assertions)
     Node assertion = assertions[i];
     Node compressed = compressBoolean(assertion);
     Node rewritten = theory::Rewriter::rewrite(compressed);
-    assertions[i] = rewritten;
+    // replace
+    assertionsToPreprocess->replace(i, rewritten);
     Assert(!d_contains->containsTermITE(rewritten));
 
     nofalses = (rewritten != d_false);

@@ -51,6 +51,7 @@
 #include "preprocessing/passes/static_learning.h"
 #include "preprocessing/passes/sygus_inference.h"
 #include "preprocessing/passes/synth_rew_rules.h"
+#include "preprocessing/passes/fun_def_fmf.h"
 #include "preprocessing/passes/theory_preprocess.h"
 #include "preprocessing/passes/unconstrained_simplifier.h"
 #include "preprocessing/preprocessing_pass.h"
@@ -147,6 +148,7 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("nl-ext-purify", callCtor<NlExtPurify>);
   registerPassInfo("bool-to-bv", callCtor<BoolToBV>);
   registerPassInfo("ho-elim", callCtor<HoElim>);
+  registerPassInfo("fun-def-fmf", callCtor<FunDefFmf>);
 }
 
 }  // namespace preprocessing

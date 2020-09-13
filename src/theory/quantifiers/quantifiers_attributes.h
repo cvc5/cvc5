@@ -88,6 +88,15 @@ struct SygusVarToTermAttributeId
 typedef expr::Attribute<SygusVarToTermAttributeId, Node>
     SygusVarToTermAttribute;
 
+/**
+ * Attribute marked true for types that are used as abstraction types in
+ * the finite model finding for function definitions algorithm.
+ */
+struct AbsTypeFunDefAttributeId
+{
+};
+typedef expr::Attribute<AbsTypeFunDefAttributeId, bool> AbsTypeFunDefAttribute;
+    
 namespace quantifiers {
 
 /** Attribute priority for rewrite rules */

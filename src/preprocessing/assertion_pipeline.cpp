@@ -61,10 +61,17 @@ void AssertionPipeline::push_back(Node n,
     Assert(d_assumptionsStart + d_numAssumptions == d_nodes.size() - 1);
     d_numAssumptions++;
   }
-  if (!isInput && isProofEnabled())
+  if (isProofEnabled())
   {
-    // notice this is always called, regardless of whether pgen is nullptr
-    d_pppg->notifyNewAssert(n, pgen);
+    if (!isInput)
+    {
+      // notice this is always called, regardless of whether pgen is nullptr
+      d_pppg->notifyNewAssert(n, pgen);
+    }
+    else
+    {
+      Trace("smt-pppg") << "...input assertion " << n << std::endl;
+    }
   }
 }
 

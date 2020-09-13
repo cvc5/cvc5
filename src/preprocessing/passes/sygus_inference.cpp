@@ -80,7 +80,7 @@ PreprocessingPassResult SygusInference::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-bool SygusInference::solveSygus(std::vector<Node>& assertions,
+bool SygusInference::solveSygus(const std::vector<Node>& assertions,
                                 std::vector<Node>& funs,
                                 std::vector<Node>& sols)
 {

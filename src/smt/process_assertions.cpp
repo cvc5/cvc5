@@ -54,11 +54,9 @@ class ScopeCounter
 ProcessAssertions::ProcessAssertions(SmtEngine& smt, ResourceManager& rm)
     : d_smt(smt),
       d_resourceManager(rm),
-      d_preprocessingPassContext(nullptr),
-      d_fmfRecFunctionsDefined(nullptr)
+      d_preprocessingPassContext(nullptr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
-  d_fmfRecFunctionsDefined = new (true) NodeList(d_smt.getUserContext());
 }
 
 ProcessAssertions::~ProcessAssertions()
@@ -245,38 +243,7 @@ bool ProcessAssertions::apply(Assertions& as)
     // to FMF
     if (options::fmfFunWellDefined())
     {
-      quantifiers::FunDefFmf fdf;
-      Assert(d_fmfRecFunctionsDefined != NULL);
-      // must carry over current definitions (in case of incremental)
-      for (context::CDList<Node>::const_iterator fit =
-               d_fmfRecFunctionsDefined->begin();
-           fit != d_fmfRecFunctionsDefined->end();
-           ++fit)
-      {
-        Node f = (*fit);
-        Assert(d_fmfRecFunctionsAbs.find(f) != d_fmfRecFunctionsAbs.end());
-        TypeNode ft = d_fmfRecFunctionsAbs[f];
-        fdf.d_sorts[f] = ft;
-        std::map<Node, std::vector<Node>>::iterator fcit =
-            d_fmfRecFunctionsConcrete.find(f);
-        Assert(fcit != d_fmfRecFunctionsConcrete.end());
-        for (const Node& fcc : fcit->second)
-        {
-          fdf.d_input_arg_inj[f].push_back(fcc);
-        }
-      }
-      fdf.simplify(assertions.ref());
-      // must store new definitions (in case of incremental)
-      for (const Node& f : fdf.d_funcs)
-      {
-        d_fmfRecFunctionsAbs[f] = fdf.d_sorts[f];
-        d_fmfRecFunctionsConcrete[f].clear();
-        for (const Node& fcc : fdf.d_input_arg_inj[f])
-        {
-          d_fmfRecFunctionsConcrete[f].push_back(fcc);
-        }
-        d_fmfRecFunctionsDefined->push_back(f);
-      }
+      d_passes["fun-def-fmf"]->apply(&assertions);
     }
   }
 

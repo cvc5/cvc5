@@ -737,7 +737,6 @@ PreprocessingPassResult BVGauss::applyInternal(
   }
 
   std::unordered_map<Node, Node, NodeHashFunction> subst;
-  std::vector<Node>& atpp = assertionsToPreprocess->ref();
 
   for (const auto& eq : equations)
   {
@@ -759,8 +758,7 @@ PreprocessingPassResult BVGauss::applyInternal(
       NodeManager *nm = NodeManager::currentNM();
       if (ret == BVGauss::Result::NONE)
       {
-        atpp.clear();
-        atpp.push_back(nm->mkConst<bool>(false));
+        return PreprocessingPassResult::CONFLICT;
       }
       else
       {
@@ -773,7 +771,8 @@ PreprocessingPassResult BVGauss::applyInternal(
         {
           Node a = nm->mkNode(kind::EQUAL, p.first, p.second);
           Trace("bv-gauss-elim") << "added assertion: " << a << std::endl;
-          atpp.push_back(a);
+          // add new assertion
+          assertionsToPreprocess->push_back(a);
         }
       }
     }
@@ -782,9 +781,16 @@ PreprocessingPassResult BVGauss::applyInternal(
   if (!subst.empty())
   {
     /* delete (= substitute with true) obsolete assertions */
-    for (auto& a : atpp)
+    const std::vector<Node>& aref = assertionsToPreprocess->ref();
+    for (size_t i = 0, asize = aref.size(); i < asize; ++i)
     {
-      a = a.substitute(subst.begin(), subst.end());
+      Node a = aref[i];
+      Node as = a.substitute(subst.begin(), subst.end());
+      if (a!=as)
+      {
+        // replace the assertion
+        assertionsToPreprocess->replace(i, as);
+      }
     }
   }
   return PreprocessingPassResult::NO_CONFLICT;

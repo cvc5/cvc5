@@ -67,7 +67,7 @@ void QuantifierMacros::clearMaps()
   d_ground_macros = false;
 }
 
-bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite ){
+bool QuantifierMacros::simplify(const std::vector< Node >& assertions, bool doRewrite ){
   unsigned rmax =
       options::macrosQuantMode() == options::MacrosQuantMode::ALL ? 2 : 1;
   for( unsigned r=0; r<rmax; r++ ){
