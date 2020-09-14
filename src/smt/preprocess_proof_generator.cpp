@@ -31,7 +31,15 @@ void PreprocessProofGenerator::notifyNewAssert(Node n, ProofGenerator* pg)
 {
   Trace("smt-proof-pp-debug")
       << "PreprocessProofGenerator::notifyNewAssert: " << n << std::endl;
-  d_src[n] = theory::TrustNode::mkTrustLemma(n, pg);
+  NodeTrustNodeMap::iterator it = d_src.find(n);
+  if (it==d_src.end())
+  {
+    d_src[n] = theory::TrustNode::mkTrustLemma(n, pg);
+  }
+  else
+  {
+    Trace("smt-proof-pp-debug") << "...already proven" << std::endl;
+  }
 }
 
 void PreprocessProofGenerator::notifyPreprocessed(Node n,
@@ -41,11 +49,18 @@ void PreprocessProofGenerator::notifyPreprocessed(Node n,
   // only keep if indeed it rewrote
   if (n != np)
   {
-    // FIXME: often we replace true by something
     Trace("smt-proof-pp-debug")
         << "PreprocessProofGenerator::notifyPreprocessed: " << n << "..." << np
         << std::endl;
-    d_src[np] = theory::TrustNode::mkTrustRewrite(n, np, pg);
+    NodeTrustNodeMap::iterator it = d_src.find(np);
+    if (it==d_src.end())
+    {
+      d_src[np] = theory::TrustNode::mkTrustRewrite(n, np, pg);
+    }
+    else
+    {
+      Trace("smt-proof-pp-debug") << "...already proven" << std::endl;
+    }
   }
 }
 
@@ -78,6 +93,7 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
       Trace("smt-pppg") << "...process proven " << proven << std::endl;
       if (processed.find(proven) != processed.end())
       {
+        Unhandled() << "Cyclic steps in preprocess proof generator";
         continue;
       }
       processed.insert(proven);
