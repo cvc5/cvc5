@@ -33,8 +33,13 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
 
 TheorySetsRels::TheorySetsRels(SolverState& s,
                                InferenceManager& im,
-                               context::UserContext* u)
-    : d_state(s), d_im(im), d_shared_terms(u)
+                               SkolemCache& skc,
+                               TermRegistry& treg)
+    : d_state(s),
+      d_im(im),
+      d_skCache(skc),
+      d_treg(treg),
+      d_shared_terms(s.getUserContext())
 {
   d_trueNode = NodeManager::currentNM()->mkConst(true);
   d_falseNode = NodeManager::currentNM()->mkConst(false);
@@ -544,17 +549,16 @@ void TheorySetsRels::check(Theory::Effort level)
     }
     Node fst_element = RelsUtils::nthElementOfTuple( exp[0], 0 );
     Node snd_element = RelsUtils::nthElementOfTuple( exp[0], 1 );
-    SkolemCache& sc = d_state.getSkolemCache();
-    Node sk_1 = sc.mkTypedSkolemCached(fst_element.getType(),
-                                       exp[0],
-                                       tc_rel[0],
-                                       SkolemCache::SK_TCLOSURE_DOWN1,
-                                       "stc1");
-    Node sk_2 = sc.mkTypedSkolemCached(fst_element.getType(),
-                                       exp[0],
-                                       tc_rel[0],
-                                       SkolemCache::SK_TCLOSURE_DOWN2,
-                                       "stc2");
+    Node sk_1 = d_skCache.mkTypedSkolemCached(fst_element.getType(),
+                                              exp[0],
+                                              tc_rel[0],
+                                              SkolemCache::SK_TCLOSURE_DOWN1,
+                                              "stc1");
+    Node sk_2 = d_skCache.mkTypedSkolemCached(fst_element.getType(),
+                                              exp[0],
+                                              tc_rel[0],
+                                              SkolemCache::SK_TCLOSURE_DOWN2,
+                                              "stc2");
     Node mem_of_r = nm->mkNode(MEMBER, exp[0], tc_rel[0]);
     Node sk_eq = nm->mkNode(EQUAL, sk_1, sk_2);
     Node reason   = exp;
@@ -817,7 +821,7 @@ void TheorySetsRels::check(Theory::Effort level)
     Node r1_rep = getRepresentative(join_rel[0]);
     Node r2_rep = getRepresentative(join_rel[1]);
     TypeNode     shared_type    = r2_rep.getType().getSetElementType().getTupleTypes()[0];
-    Node shared_x = d_state.getSkolemCache().mkTypedSkolemCached(
+    Node shared_x = d_skCache.mkTypedSkolemCached(
         shared_type, mem, join_rel, SkolemCache::SK_JOIN, "srj");
     const DType& dt1 = join_rel[0].getType().getSetElementType().getDType();
     unsigned int s1_len         = join_rel[0].getType().getSetElementType().getTupleLength();
@@ -1103,7 +1107,7 @@ void TheorySetsRels::check(Theory::Effort level)
       // if we are still not in conflict, send lemmas
       if (!d_state.isInConflict())
       {
-        d_im.flushPendingLemmas();
+        d_im.doPendingLemmas();
       }
     }
     d_pending.clear();
@@ -1187,7 +1191,7 @@ void TheorySetsRels::check(Theory::Effort level)
     Trace("rels-share") << " [sets-rels] making shared term " << n << std::endl;
     // force a proxy lemma to be sent for the singleton containing n
     Node ss = NodeManager::currentNM()->mkNode(SINGLETON, n);
-    d_state.getProxy(ss);
+    d_treg.getProxy(ss);
     d_shared_terms.insert(n);
   }
 

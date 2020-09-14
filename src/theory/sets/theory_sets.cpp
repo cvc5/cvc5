@@ -34,16 +34,22 @@ TheorySets::TheorySets(context::Context* c,
                        const LogicInfo& logicInfo,
                        ProofNodeManager* pnm)
     : Theory(THEORY_SETS, c, u, out, valuation, logicInfo, pnm),
-      d_internal(new TheorySetsPrivate(*this, c, u, valuation)),
+      d_skCache(),
+      d_state(c, u, valuation, d_skCache),
+      d_im(*this, d_state, pnm),
+      d_internal(new TheorySetsPrivate(*this, d_state, d_im, d_skCache)),
       d_notify(*d_internal.get())
 {
-  // use the state object as the official theory state
-  d_theoryState = d_internal->getSolverState();
+  // use the official theory state and inference manager objects
+  d_theoryState = &d_state;
+  d_inferManager = &d_im;
+
+  // TODO: remove this
+  d_state.setParent(d_internal.get());
 }
 
 TheorySets::~TheorySets()
 {
-  // Do not move me to the header. See explanation in the constructor.
 }
 
 TheoryRewriter* TheorySets::getTheoryRewriter()
@@ -89,12 +95,6 @@ void TheorySets::finishInit()
 }
 
 void TheorySets::postCheck(Effort level) { d_internal->postCheck(level); }
-
-bool TheorySets::preNotifyFact(
-    TNode atom, bool polarity, TNode fact, bool isPrereg, bool isInternal)
-{
-  return d_internal->preNotifyFact(atom, polarity, fact);
-}
 
 void TheorySets::notifyFact(TNode atom,
                             bool polarity,

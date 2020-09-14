@@ -31,6 +31,7 @@
 #include "options/printer_options.h"
 #include "options/smt_options.h"
 #include "printer/dagification_visitor.h"
+#include "smt/command.h"
 #include "smt/node_command.h"
 #include "smt/smt_engine.h"
 #include "smt_util/boolean_simplification.h"
@@ -660,6 +661,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::REGEXP_RANGE:
   case kind::REGEXP_LOOP:
   case kind::REGEXP_COMPLEMENT:
+  case kind::REGEXP_DIFF:
   case kind::REGEXP_EMPTY:
   case kind::REGEXP_SIGMA:
   case kind::SEQ_UNIT:
@@ -739,7 +741,8 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::SET_TYPE:
   case kind::SINGLETON:
   case kind::COMPLEMENT:
-  case kind::CHOOSE: out << smtKindString(k, d_variant) << " "; break;
+  case kind::CHOOSE:
+  case kind::IS_SINGLETON: out << smtKindString(k, d_variant) << " "; break;
   case kind::UNIVERSE_SET:out << "(as univset " << n.getType() << ")";break;
 
     // fp theory
@@ -1144,6 +1147,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::CARD: return "card";
   case kind::COMPREHENSION: return "comprehension";
   case kind::CHOOSE: return "choose";
+  case kind::IS_SINGLETON: return "is_singleton";
   case kind::JOIN: return "join";
   case kind::PRODUCT: return "product";
   case kind::TRANSPOSE: return "transpose";
@@ -1239,6 +1243,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::REGEXP_RANGE: return "re.range";
   case kind::REGEXP_LOOP: return "re.loop";
   case kind::REGEXP_COMPLEMENT: return "re.comp";
+  case kind::REGEXP_DIFF: return "re.diff";
   case kind::SEQUENCE_TYPE: return "Seq";
   case kind::SEQ_UNIT: return "seq.unit";
   case kind::SEQ_NTH: return "seq.nth";
@@ -1775,7 +1780,7 @@ void Smt2Printer::toStreamCmdGetUnsatCore(std::ostream& out) const
 }
 
 void Smt2Printer::toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                                BenchmarkStatus status) const
+                                                Result::Sat status) const
 {
   out << "(set-info :status " << status << ')';
 }

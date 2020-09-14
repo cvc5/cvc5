@@ -77,6 +77,11 @@ class TheoryInferenceManager
    */
   void setEqualityEngine(eq::EqualityEngine* ee);
   /**
+   * Are proofs enabled in this inference manager? Returns true if the proof
+   * node manager pnm provided to the constructor of this class was non-null.
+   */
+  bool isProofEnabled() const;
+  /**
    * Reset, which resets counters regarding the number of added lemmas and
    * internal facts. This method should be manually called by the theory at
    * the appropriate time for the purpose of tracking the usage of this
@@ -87,6 +92,13 @@ class TheoryInferenceManager
    * beginning of this loop and repeat its strategy while hasAddedFact is true.
    */
   void reset();
+  /**
+   * Returns true if we are in conflict, or if we have sent a lemma or fact
+   * since the last call to reset.
+   */
+  bool hasSent() const;
+  /** Get the underlying proof equality engine */
+  eq::ProofEqEngine* getProofEqEngine();
   //--------------------------------------- propagations
   /**
    * T-propagate literal lit, possibly encountered by equality engine,
@@ -122,7 +134,7 @@ class TheoryInferenceManager
   void conflict(TNode conf);
   /**
    * Raise trusted conflict tconf (of any form) where a proof generator has
-   * been provided in a custom way.
+   * been provided (as part of the trust node) in a custom way.
    */
   void trustedConflict(TrustNode tconf);
   /**
@@ -135,6 +147,29 @@ class TheoryInferenceManager
   void conflictExp(PfRule id,
                    const std::vector<Node>& exp,
                    const std::vector<Node>& args);
+  /**
+   * Make the trust node corresponding to the conflict of the above form. It is
+   * the responsibility of the caller to subsequently call trustedConflict with
+   * the returned trust node.
+   */
+  TrustNode mkConflictExp(PfRule id,
+                          const std::vector<Node>& exp,
+                          const std::vector<Node>& args);
+  /**
+   * Explain and send conflict from contradictory facts. This method is called
+   * when proof generator pg has a proof of false from free assumptions exp.
+   * This method sends a trusted conflict corresponding to the official
+   * equality engine's explanation of literals in exp, with the proof equality
+   * engine as the proof generator (if it exists), where pg provides the
+   * final step(s) of this proof during this call.
+   */
+  void conflictExp(const std::vector<Node>& exp, ProofGenerator* pg);
+  /**
+   * Make the trust node corresponding to the conflict of the above form. It is
+   * the responsibility of the caller to subsequently call trustedConflict with
+   * the returned trust node.
+   */
+  TrustNode mkConflictExp(const std::vector<Node>& exp, ProofGenerator* pg);
   //--------------------------------------- lemmas
   /**
    * Send (trusted) lemma lem with property p on the output channel.
@@ -186,9 +221,19 @@ class TheoryInferenceManager
                 LemmaProperty p = LemmaProperty::NONE,
                 bool doCache = true);
   /**
+   * Make the trust node for the above method. It is responsibility of the
+   * caller to subsequently call trustedLemma with the returned trust node.
+   */
+  TrustNode mkLemmaExp(Node conc,
+                       PfRule id,
+                       const std::vector<Node>& exp,
+                       const std::vector<Node>& noExplain,
+                       const std::vector<Node>& args);
+  /**
    * Same as above, but where pg can provide a proof of conc from free
-   * assumptions in exp. It is required to do so in the remainder of the user
-   * context when this method returns true.
+   * assumptions in exp. This sends a trusted lemma on the output channel where
+   * the proof equality engine is the proof generator. The generator pg
+   * is asked to provide the final step(s) of this proof during this call.
    *
    * @param conc The conclusion of the lemma
    * @param exp The set of (all) literals that imply conc
@@ -205,6 +250,14 @@ class TheoryInferenceManager
                 ProofGenerator* pg = nullptr,
                 LemmaProperty p = LemmaProperty::NONE,
                 bool doCache = true);
+  /**
+   * Make the trust node for the above method. It is responsibility of the
+   * caller to subsequently call trustedLemma with the returned trust node.
+   */
+  TrustNode mkLemmaExp(Node conc,
+                       const std::vector<Node>& exp,
+                       const std::vector<Node>& noExplain,
+                       ProofGenerator* pg = nullptr);
   /**
    * Has this inference manager cached and sent the given lemma (in this user
    * context)? This method can be overridden by the particular manager. If not,
@@ -278,6 +331,22 @@ class TheoryInferenceManager
    * decided with polarity pol, for details see OutputChannel::requirePhase.
    */
   void requirePhase(TNode n, bool pol);
+
+  /**
+   * Forward to OutputChannel::spendResource() to spend resources.
+   */
+  void spendResource(ResourceManager::Resource r);
+
+  /**
+   * Forward to OutputChannel::safePoint() to spend resources.
+   */
+  void safePoint(ResourceManager::Resource r);
+  /**
+   * Notification from a theory that it realizes it is incomplete at
+   * this context level.
+   */
+  void setIncomplete();
+
  protected:
   /**
    * Process internal fact. This is a common helper method for the

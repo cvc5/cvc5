@@ -31,12 +31,17 @@ namespace theory {
 namespace bv {
 
 /** Cache for InequalitySolver::isInequalityOnly() */
-struct IneqOnlyAttributeId {};
+struct IneqOnlyAttributeId
+{
+};
 typedef expr::Attribute<IneqOnlyAttributeId, bool> IneqOnlyAttribute;
 
 /** Whether the above has been computed yet or not for an expr */
-struct IneqOnlyComputedAttributeId {};
-typedef expr::Attribute<IneqOnlyComputedAttributeId, bool> IneqOnlyComputedAttribute;
+struct IneqOnlyComputedAttributeId
+{
+};
+typedef expr::Attribute<IneqOnlyComputedAttributeId, bool>
+    IneqOnlyComputedAttribute;
 
 class InequalitySolver : public SubtheorySolver
 {
@@ -57,30 +62,33 @@ class InequalitySolver : public SubtheorySolver
   bool isInequalityOnly(TNode node);
   bool addInequality(TNode a, TNode b, bool strict, TNode fact);
   Statistics d_statistics;
-public:
-  InequalitySolver(context::Context* c, context::Context* u, TheoryBV* bv)
-    : SubtheorySolver(c, bv),
-      d_assertionSet(c),
-      d_inequalityGraph(c, u),
-      d_explanations(c),
-      d_isComplete(c, true),
-      d_ineqTerms(),
-      d_statistics()
-  {}
+
+ public:
+  InequalitySolver(context::Context* c, context::Context* u, BVSolverLazy* bv)
+      : SubtheorySolver(c, bv),
+        d_assertionSet(c),
+        d_inequalityGraph(c, u),
+        d_explanations(c),
+        d_isComplete(c, true),
+        d_ineqTerms(),
+        d_statistics()
+  {
+  }
 
   bool check(Theory::Effort e) override;
   void propagate(Theory::Effort e) override;
   void explain(TNode literal, std::vector<TNode>& assumptions) override;
   bool isComplete() override { return d_isComplete; }
-  bool collectModelInfo(TheoryModel* m, bool fullModel) override;
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet) override;
   Node getModelValue(TNode var) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   void assertFact(TNode fact) override;
   void preRegister(TNode node) override;
 };
 
-}
-}
-}
+}  // namespace bv
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H */
