@@ -17,8 +17,8 @@
 #include "options/smt_options.h"
 #include "smt/smt_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/sygus/sygus_interpol.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/sygus_interpol.h"
 #include "theory/smt_engine_subsolver.h"
 
 using namespace CVC4::theory;
@@ -26,13 +26,15 @@ using namespace CVC4::theory;
 namespace CVC4 {
 namespace smt {
 
-InterpolationSolver::InterpolationSolver(SmtEngine* parent) : d_parent(parent) {}
+InterpolationSolver::InterpolationSolver(SmtEngine* parent) : d_parent(parent)
+{
+}
 
 InterpolationSolver::~InterpolationSolver() {}
 
 bool InterpolationSolver::getInterpol(const Node& conj,
-                                const TypeNode& grammarType,
-                                Node& interpol)
+                                      const TypeNode& grammarType,
+                                      Node& interpol)
 {
   if (options::produceInterpols() == options::ProduceInterpols::NONE)
   {
@@ -41,25 +43,16 @@ bool InterpolationSolver::getInterpol(const Node& conj,
     throw ModalException(msg);
   }
   int interpolmode = 0;
-  switch(options::produceInterpols()) {
-    case options::ProduceInterpols::DEFAULT:
-      interpolmode = 1;
-      break;
-    case options::ProduceInterpols::ASSUMPTIONS:
-      interpolmode = 2;
-      break;
-    case options::ProduceInterpols::CONJECTURE:
-      interpolmode = 3;
-      break;
-    case options::ProduceInterpols::SHARED:
-      interpolmode = 4;
-      break;
-    case options::ProduceInterpols::ALL:
-      interpolmode = 5;
-      break;
+  switch (options::produceInterpols())
+  {
+    case options::ProduceInterpols::DEFAULT: interpolmode = 1; break;
+    case options::ProduceInterpols::ASSUMPTIONS: interpolmode = 2; break;
+    case options::ProduceInterpols::CONJECTURE: interpolmode = 3; break;
+    case options::ProduceInterpols::SHARED: interpolmode = 4; break;
+    case options::ProduceInterpols::ALL: interpolmode = 5; break;
     default:
       const char* msg =
-        "Cannot get interpolation when produce-interpol options is off.";
+          "Cannot get interpolation when produce-interpol options is off.";
       throw ModalException(msg);
   }
   Trace("sygus-interpol") << "SmtEngine::getInterpol: conjecture " << conj
@@ -94,8 +87,8 @@ bool InterpolationSolver::getInterpol(const Node& conj, Node& interpol)
 }
 
 void InterpolationSolver::checkInterpol(Expr interpol,
-                              const std::vector<Expr>& easserts,
-                              const Node& conj)
+                                        const std::vector<Expr>& easserts,
+                                        const Node& conj)
 {
   Assert(interpol.getType().isBoolean());
   Trace("check-interpol") << "SmtEngine::checkInterpol: get expanded assertions"

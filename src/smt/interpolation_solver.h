@@ -54,7 +54,9 @@ class InterpolationSolver
    * This method invokes a separate copy of the SMT engine for solving the
    * corresponding sygus problem for generating such a solution.
    */
-  bool getInterpol(const Node& conj, const TypeNode& grammarType, Node& interpol);
+  bool getInterpol(const Node& conj,
+                   const TypeNode& grammarType,
+                   Node& interpol);
 
   /**
    * Same as above, but without user-provided grammar restrictions. A default
@@ -72,7 +74,7 @@ class InterpolationSolver
   void checkInterpol(Expr interpol,
                      const std::vector<Expr>& easserts,
                      const Node& conj);
-  
+
  private:
   /** The parent SMT engine */
   SmtEngine* d_parent;

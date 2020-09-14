@@ -298,7 +298,7 @@ bool SygusInterpol::findInterpol(Node& interpol, Node itp)
   {
     interpoln_reduced = interpoln;
   }
-  
+
   // get the grammar type for the interpolant
   Node igdtbv = itp.getAttribute(SygusSynthFunVarListAttribute());
   Assert(!igdtbv.isNull());
@@ -314,7 +314,8 @@ bool SygusInterpol::findInterpol(Node& interpol, Node itp)
     vars.push_back(bv);
     syms.push_back(bv.hasAttribute(sta) ? bv.getAttribute(sta) : bv);
   }
-  interpoln_reduced = interpoln_reduced.substitute(vars.begin(), vars.end(), syms.begin(), syms.end());
+  interpoln_reduced = interpoln_reduced.substitute(
+      vars.begin(), vars.end(), syms.begin(), syms.end());
 
   // convert to expression
   interpol = interpoln_reduced;
@@ -341,10 +342,9 @@ bool SygusInterpol::SolveInterpolation(const std::string& name,
     d_subSolver->declareSygusVar(name, var, var.getType());
   }
   std::vector<Node> vars_empty;
-	TypeNode grammarType = setSynthGrammar(itpGType, axioms, conj);
+  TypeNode grammarType = setSynthGrammar(itpGType, axioms, conj);
   Node itp = mkPredicate(name);
-  d_subSolver->declareSynthFun(
-      name, itp, grammarType, false, vars_empty);
+  d_subSolver->declareSynthFun(name, itp, grammarType, false, vars_empty);
   mkSygusConjecture(itp, axioms, conj);
   Trace("sygus-interpol") << "SmtEngine::getInterpol: made conjecture : "
                           << d_sygusConj << ", solving for "

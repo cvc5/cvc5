@@ -75,9 +75,9 @@
 #include "smt/defined_function.h"
 #include "smt/dump_manager.h"
 #include "smt/expr_names.h"
+#include "smt/interpolation_solver.h"
 #include "smt/listeners.h"
 #include "smt/logic_request.h"
-#include "smt/interpolation_solver.h"
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
 #include "smt/options_manager.h"
@@ -1818,7 +1818,7 @@ bool SmtEngine::getInterpol(const Node& conj,
                             const TypeNode& grammarType,
                             Node& interpol)
 {
-	bool success = d_interpolSolver->getInterpol(conj, grammarType, interpol);
+  bool success = d_interpolSolver->getInterpol(conj, grammarType, interpol);
   // notify the state of whether the get-interpol call was successfuly, which
   // impacts the SMT mode.
   d_state->notifyGetInterpol(success);
