@@ -84,6 +84,15 @@ void AssertionPipeline::pushBackTrusted(theory::TrustNode trn)
 
 void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
 {
+  if (n==d_nodes[i])
+  {
+    // no change, abort
+    // TODO: make assertion failure?
+    return;
+  }
+  Trace("smt-pppg-repl") << "Replace " << d_nodes[i] << " with " << n << std::endl;
+  // NOTE: checks for replacing true with something (should use conjoin instead)
+  //Assert(!d_nodes[i].isConst());
   if (options::unsatCores())
   {
     ProofManager::currentPM()->addDependence(n, d_nodes[i]);
@@ -99,26 +108,6 @@ void AssertionPipeline::replaceTrusted(size_t i, theory::TrustNode trn)
 {
   Assert(trn.getKind() == theory::TrustNodeKind::REWRITE);
   replace(i, trn.getNode(), trn.getGenerator());
-}
-
-void AssertionPipeline::replace(size_t i,
-                                Node n,
-                                const std::vector<Node>& addnDeps,
-                                ProofGenerator* pgen)
-{
-  if (options::unsatCores())
-  {
-    ProofManager::currentPM()->addDependence(n, d_nodes[i]);
-    for (const auto& addnDep : addnDeps)
-    {
-      ProofManager::currentPM()->addDependence(n, addnDep);
-    }
-  }
-  if (isProofEnabled())
-  {
-    d_pppg->notifyPreprocessed(d_nodes[i], n, pgen);
-  }
-  d_nodes[i] = n;
 }
 
 void AssertionPipeline::setProofGenerator(smt::PreprocessProofGenerator* pppg)
@@ -140,25 +129,30 @@ void AssertionPipeline::disableStoreSubstsInAsserts()
   d_storeSubstsInAsserts = false;
 }
 
-void AssertionPipeline::addSubstitutionNode(Node n, ProofGenerator* pgen)
+void AssertionPipeline::addSubstitutionNode(Node n, ProofGenerator* pg)
 {
   Assert(d_storeSubstsInAsserts);
   Assert(n.getKind() == kind::EQUAL);
-  if (n == d_nodes[d_substsIndex])
+  conjoin(d_substsIndex, n, pg);
+}
+  
+void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
+{
+  if (n == d_nodes[i])
   {
     // trivial case, skip to avoid cyclic proofs below
     return;
   }
   Node newConj =
-      NodeManager::currentNM()->mkNode(kind::AND, n, d_nodes[d_substsIndex]);
+      NodeManager::currentNM()->mkNode(kind::AND, n, d_nodes[i]);
   Node newConjr = theory::Rewriter::rewrite(newConj);
   if (isProofEnabled())
   {
     /*
     LazyCDProof lcp(d_pppg->getManager());
     lcp.addLazyStep(n, pgen);
-    lcp.addLazyStep(d_nodes[d_substsIndex], d_pppg);
-    lcp.addStep(newConj, PfRule::AND_INTRO, {n, d_nodes[d_substsIndex]}, {});
+    lcp.addLazyStep(d_nodes[i], d_pppg);
+    lcp.addStep(newConj, PfRule::AND_INTRO, {n, d_nodes[i]}, {});
     if (newConj!=newConjr)
     {
       lcp.addStep(newConjr, PfRule::MACRO_SR_PRED_TRANSFORM, {newConj},
@@ -172,9 +166,13 @@ void AssertionPipeline::addSubstitutionNode(Node n, ProofGenerator* pgen)
     ProofGenerator* pgReplace = nullptr;  // d_pppg->getHelperProofGenerator();
     // TODO
     // d_pppg->notifyNewAssert(n, pgen);
-    d_pppg->notifyPreprocessed(d_nodes[d_substsIndex], newConjr, pgReplace);
+    d_pppg->notifyPreprocessed(d_nodes[i], newConjr, pgReplace);
   }
-  d_nodes[d_substsIndex] = newConjr;
+  if (options::unsatCores())
+  {
+    ProofManager::currentPM()->addDependence(newConjr, d_nodes[i]);
+  }
+  d_nodes[i] = newConjr;
   Assert(theory::Rewriter::rewrite(newConjr) == newConjr);
 }
 

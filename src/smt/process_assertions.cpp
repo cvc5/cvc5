@@ -132,7 +132,11 @@ bool ProcessAssertions::apply(Assertions& as)
     unordered_map<Node, Node, NodeHashFunction> cache;
     for (size_t i = 0, nasserts = assertions.size(); i < nasserts; ++i)
     {
-      assertions.replace(i, expandDefinitions(assertions[i], cache));
+      Node expd = expandDefinitions(assertions[i], cache);
+      if (expd!=assertions[i])
+      {
+        assertions.replace(i, expd);
+      }
     }
   }
   Trace("smt-proc")
@@ -333,8 +337,7 @@ bool ProcessAssertions::apply(Assertions& as)
       // assertion
       IteSkolemMap::iterator it = iskMap.begin();
       IteSkolemMap::iterator iend = iskMap.end();
-      NodeBuilder<> builder(AND);
-      builder << assertions[assertions.getRealAssertionsEnd() - 1];
+      std::vector<Node> newConj;
       vector<TNode> toErase;
       for (; it != iend; ++it)
       {
@@ -361,11 +364,11 @@ bool ProcessAssertions::apply(Assertions& as)
           }
         }
         // Move this iteExpr into the main assertions
-        builder << assertions[(*it).second];
+        newConj.push_back( assertions[(*it).second] );
         assertions.replace((*it).second, d_true);
         toErase.push_back((*it).first);
       }
-      if (builder.getNumChildren() > 1)
+      if (!newConj.empty())
       {
         while (!toErase.empty())
         {
@@ -373,8 +376,8 @@ bool ProcessAssertions::apply(Assertions& as)
           toErase.pop_back();
         }
         size_t index = assertions.getRealAssertionsEnd() - 1;
-        Node newAssertion = Rewriter::rewrite(Node(builder));
-        assertions.replace(index, newAssertion);
+        Node newAssertion = NodeManager::currentNM()->mkAnd(newConj);
+        assertions.conjoin(index, newAssertion);
       }
       // TODO(b/1256): For some reason this is needed for some benchmarks, such
       // as

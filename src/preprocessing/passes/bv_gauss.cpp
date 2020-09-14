@@ -758,6 +758,9 @@ PreprocessingPassResult BVGauss::applyInternal(
       NodeManager *nm = NodeManager::currentNM();
       if (ret == BVGauss::Result::NONE)
       {
+        assertionsToPreprocess->clear();
+        Node n = NodeManager::currentNM()->mkConst<bool>(false);
+        assertionsToPreprocess->push_back(n);
         return PreprocessingPassResult::CONFLICT;
       }
       else
