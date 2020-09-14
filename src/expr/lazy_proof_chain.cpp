@@ -74,8 +74,8 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
           << "LazyCDProofChain::getProofFor: stored proof: " << *curPfn.get()
           << "\n";
       // retrieve free assumptions and their respective proof nodes
-      std::map<Node, std::vector<ProofNode*>> famap;
-      expr::getFreeAssumptionsMap(curPfn.get(), famap);
+      std::map<Node, std::vector<std::shared_ptr<ProofNode>>> famap;
+      expr::getFreeAssumptionsMap(curPfn, famap);
       if (Trace.isOn("lazy-cdproofchain"))
       {
         Trace("lazy-cdproofchain")
@@ -93,7 +93,8 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
       visited[cur] = Node::null();
       visit.push_back(cur);
       // enqueue free assumptions to process
-      for (const std::pair<const Node, std::vector<ProofNode*>>& fap : famap)
+      for (const std::pair<const Node, std::vector<std::shared_ptr<ProofNode>>>&
+               fap : famap)
       {
         // check cycles, which are cases in which we have facts in
         // expandedToConnect but not already expanded
@@ -139,11 +140,12 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
                                  << cur << "\n";
 
       // get assumptions
-      std::map<Node, std::vector<ProofNode*>> famap;
-      expr::getFreeAssumptionsMap(it->second.get(), famap);
+      std::map<Node, std::vector<std::shared_ptr<ProofNode>>> famap;
+      expr::getFreeAssumptionsMap(it->second, famap);
       // the first element of the iterator pair is the proofNode of cur, the
       // second is the map of the assumption node to all its proofnodes
-      for (const std::pair<const Node, std::vector<ProofNode*>>& fap : famap)
+      for (const std::pair<const Node, std::vector<std::shared_ptr<ProofNode>>>&
+               fap : famap)
       {
         // see if assumption has been expanded and thus has a new proof node to
         // connect here
@@ -164,9 +166,9 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
             << *itt->second.get() << "\n";
         // update each assumption proof node with the expanded proof node of
         // that assumption
-        for (ProofNode* pfn : fap.second)
+        for (std::shared_ptr<ProofNode> pfn : fap.second)
         {
-          d_manager->updateNode(pfn, itt->second.get());
+          d_manager->updateNode(pfn.get(), itt->second.get());
         }
       }
       // mark the fact as expanded
