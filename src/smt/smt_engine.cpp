@@ -77,6 +77,7 @@
 #include "smt/expr_names.h"
 #include "smt/listeners.h"
 #include "smt/logic_request.h"
+#include "smt/interpolation_solver.h"
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
 #include "smt/options_manager.h"
@@ -134,6 +135,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_definedFunctions(nullptr),
       d_sygusSolver(nullptr),
       d_abductSolver(nullptr),
+      d_interpolSolver(nullptr),
       d_quantElimSolver(nullptr),
       d_assignments(nullptr),
       d_logic(),
@@ -298,6 +300,10 @@ void SmtEngine::finishInit()
   if (options::produceAbducts())
   {
     d_abductSolver.reset(new AbductionSolver(this));
+  }
+  if (options::produceInterpols() != options::ProduceInterpols::NONE)
+  {
+    d_interpolSolver.reset(new InterpolationSolver(this));
   }
 
   d_pp->finishInit();
@@ -1755,71 +1761,6 @@ void SmtEngine::checkModel(bool hardFailure) {
   Notice() << "SmtEngine::checkModel(): all assertions checked out OK !" << endl;
 }
 
-void SmtEngine::checkInterpol(Expr interpol,
-                              const std::vector<Expr>& easserts,
-                              const Node& conj)
-{
-	Assert(interpol.getType().isBoolean());
-  Trace("check-interpol") << "SmtEngine::checkInterpol: get expanded assertions"
-                          << std::endl;
-
-  // two checks: first, axioms imply interpol, second, interpol implies conj.
-  for (unsigned j = 0; j < 2; j++)
-  {
-    if (j == 1)
-    {
-      Trace("check-interpol") << "SmtEngine::checkInterpol: conjecture is "
-                              << conj.toExpr() << std::endl;
-    }
-    Trace("check-interpol") << "SmtEngine::checkInterpol: phase " << j
-                            << ": make new SMT engine" << std::endl;
-    // Start new SMT engine to check solution
-    SmtEngine itpChecker(d_exprManager);
-    itpChecker.setLogic(getLogicInfo());
-    Trace("check-interpol") << "SmtEngine::checkInterpol: phase " << j
-                            << ": asserting formulas" << std::endl;
-    if (j == 0)
-    {
-      for (const Expr& e : easserts)
-      {
-        itpChecker.assertFormula(e);
-      }
-      Expr negitp = interpol.notExpr();
-      itpChecker.assertFormula(negitp);
-    }
-    else
-    {
-      itpChecker.assertFormula(interpol);
-      Assert(!conj.isNull());
-      itpChecker.assertFormula(conj.toExpr().notExpr());
-    }
-    Trace("check-interpol") << "SmtEngine::checkInterpol: phase " << j
-                            << ": check the assertions" << std::endl;
-    Result r = itpChecker.checkSat();
-    Trace("check-interpol") << "SmtEngine::checkInterpol: phase " << j
-                            << ": result is " << r << endl;
-    std::stringstream serr;
-    if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
-    {
-      if (j == 0)
-      {
-        serr << "SmtEngine::checkInterpol(): negated produced solution cannot "
-                "be shown "
-                "unsatisfiable with assertions, result was "
-             << r;
-      }
-      else
-      {
-        serr
-            << "SmtEngine::checkInterpol(): negated conjecture cannot be shown "
-               "unsatisfiable with produced solution, result was "
-            << r;
-      }
-      InternalError() << serr.str();
-    }
-  }
-}
-
 // TODO(#1108): Simplify the error reporting of this method.
 UnsatCore SmtEngine::getUnsatCore() {
   Trace("smt") << "SMT getUnsatCore()" << endl;
@@ -1877,66 +1818,11 @@ bool SmtEngine::getInterpol(const Node& conj,
                             const TypeNode& grammarType,
                             Node& interpol)
 {
-	SmtScope smts(this);
-
-	std::cerr << options::produceInterpols() << std::endl;
-  if (options::produceInterpols() == options::ProduceInterpols::NONE)
-  {
-    const char* msg =
-        "Cannot get interpolation when produce-interpol options is off.";
-    throw ModalException(msg);
-  }
-	int interpolmode = 0;
-	switch(options::produceInterpols()) {
-		case options::ProduceInterpols::DEFAULT:
-			interpolmode = 1;
-			break;
-		case options::ProduceInterpols::ASSUMPTIONS:
-		  interpolmode = 2;
-			break;
-		case options::ProduceInterpols::CONJECTURE:
-			interpolmode = 3;
-		  break;
-		case options::ProduceInterpols::SHARED:
-			interpolmode = 4;
-			break;
-		case options::ProduceInterpols::ALL:
-			interpolmode = 5;
-			break;
-		default:
-			const char* msg =
-				"Cannot get interpolation when produce-interpol options is off.";
-			throw ModalException(msg);
-	}
-  Trace("sygus-interpol") << "SmtEngine::getInterpol: conjecture " << conj
-                          << std::endl;
-  std::vector<Expr> easserts = getExpandedAssertions();
-  std::vector<Node> axioms;
-  for (unsigned i = 0, size = easserts.size(); i < size; i++)
-  {
-    axioms.push_back(Node::fromExpr(easserts[i]));
-  }
-  Node conjn = Node::fromExpr(conj);
-  // must expand definitions
-	std::unordered_map<Node, Node, NodeHashFunction> cache;
-	conjn = d_private->getProcessAssertions()->expandDefinitions(conjn, cache);
-  std::string name("A");
-
-  theory::quantifiers::SygusInterpol interpolSolver(d_logic, interpolmode);
-  if (interpolSolver.SolveInterpolation(
-          name, axioms, conjn, TypeNode::fromType(grammarType), interpol))
-  {
-    // successfully generated an interpolation, update to interpol state
-    d_smtMode = SMT_MODE_INTERPOL;
-    if (options::checkInterpols())
-    {
-      checkInterpol(interpol, easserts, conj);
-    }
-    return true;
-  }
-  // failed, we revert to the assert state
-  d_smtMode = SMT_MODE_ASSERT;
-  return false;
+	bool success = d_interpolSolver->getInterpol(conj, grammarType, interpol);
+  // notify the state of whether the get-interpol call was successfuly, which
+  // impacts the SMT mode.
+  d_state->notifyGetInterpol(success);
+  return success;
 }
 
 bool SmtEngine::getInterpol(const Node& conj, Node& interpol)

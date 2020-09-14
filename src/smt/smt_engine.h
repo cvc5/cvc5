@@ -105,6 +105,7 @@ class Preprocessor;
 class SmtSolver;
 class SygusSolver;
 class AbductionSolver;
+class InterpolationSolver;
 class QuantElimSolver;
 /**
  * Representation of a defined function.  We keep these around in
@@ -1101,6 +1102,8 @@ class CVC4_PUBLIC SmtEngine
 
   /** The solver for abduction queries */
   std::unique_ptr<smt::AbductionSolver> d_abductSolver;
+  /** The solver for interpolation queries */
+  std::unique_ptr<smt::InterpolationSolver> d_interpolSolver;
   /** The solver for quantifier elimination queries */
   std::unique_ptr<smt::QuantElimSolver> d_quantElimSolver;
   /**
