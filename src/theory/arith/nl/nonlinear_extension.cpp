@@ -396,7 +396,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   // init last call with IAND
   d_iandSlv.initLastCall(assertions, false_asserts, xts);
 
-  if (d_im.hasProcessed() || d_im.hasPending() || !lems.empty())
+  if (d_im.hasUsed() || !lems.empty())
   {
     unsigned count = lems.size() + d_im.numPendingLemmas() + d_im.numSentLemmas();
     Trace("nl-ext") << "  ...finished with " << count
@@ -423,7 +423,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   {
     // functions
     d_trSlv.checkTranscendentalInitialRefine();
-    if (d_im.hasProcessed() || d_im.hasPending())
+    if (d_im.hasUsed())
     {
       unsigned count = lems.size() + d_im.numPendingLemmas() + d_im.numSentLemmas();
       Trace("nl-ext") << "  ...finished with " << count << " new lemmas."
@@ -456,7 +456,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
 
     //-----------------------------------monotonicity of transdental functions
     d_trSlv.checkTranscendentalMonotonic();
-    if (d_im.hasProcessed() || d_im.hasPending())
+    if (d_im.hasUsed())
     {
       unsigned count = lems.size() + d_im.numPendingLemmas() + d_im.numSentLemmas();
       Trace("nl-ext") << "  ...finished with " << count << " new lemmas."
@@ -727,7 +727,7 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
     {
       complete_status = num_shared_wrong_value > 0 ? -1 : 0;
       checkLastCall(assertions, false_asserts, xts, mlems, wlems);
-      if (!mlems.empty() || d_im.hasProcessed() || d_im.hasPending())
+      if (!mlems.empty() || d_im.hasUsed())
       {
         return true;
       }

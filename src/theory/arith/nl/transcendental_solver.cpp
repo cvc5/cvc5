@@ -162,7 +162,7 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
     getCurrentPiBounds();
   }
 
-  if (d_im.hasProcessed())
+  if (d_im.hasUsed())
   {
     return;
   }
