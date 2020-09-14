@@ -30,11 +30,13 @@ using namespace std;
 
 namespace CVC4 {
 namespace theory {
-  
-  
+
 /** Attribute true for nodes that have been rewritten with proofs enabled */
-struct RewriteWithProofsAttributeId {};
-typedef expr::Attribute< RewriteWithProofsAttributeId, bool > RewriteWithProofsAttribute;
+struct RewriteWithProofsAttributeId
+{
+};
+typedef expr::Attribute<RewriteWithProofsAttributeId, bool>
+    RewriteWithProofsAttribute;
 
 // Note that this function is a simplified version of Theory::theoryOf for
 // (type-based) theoryOfMode. We expand and simplify it here for the sake of
@@ -374,13 +376,18 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
           // proofs and then rewrote again with proofs.
           if (rewriteStackTop.d_node != cached)
           {
-            Trace("rewriter-proof") << "WARNING: Rewritten forms with and without proofs were not equivalent" << std::endl;
-            Trace("rewriter-proof") << "   original: " << rewriteStackTop.d_original << std::endl;
-            Trace("rewriter-proof") << "with proofs: " << rewriteStackTop.d_node << std::endl;
+            Trace("rewriter-proof") << "WARNING: Rewritten forms with and "
+                                       "without proofs were not equivalent"
+                                    << std::endl;
+            Trace("rewriter-proof")
+                << "   original: " << rewriteStackTop.d_original << std::endl;
+            Trace("rewriter-proof")
+                << "with proofs: " << rewriteStackTop.d_node << std::endl;
             Trace("rewriter-proof") << " w/o proofs: " << cached << std::endl;
             // TODO: prove equivalence
             Node eq = rewriteStackTop.d_node.eqNode(cached);
-            tcpg->addRewriteStep(rewriteStackTop.d_node, cached, PfRule::TRUST, {}, {eq});
+            tcpg->addRewriteStep(
+                rewriteStackTop.d_node, cached, PfRule::TRUST, {}, {eq});
             // don't overwrite the cache, should be the same
             rewriteStackTop.d_node = cached;
           }
