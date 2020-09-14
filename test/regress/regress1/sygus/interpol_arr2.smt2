@@ -1,3 +1,6 @@
+; COMMAND-LINE: --produce-interpols=default --sygus-active-gen=enum --check-interpols
+; SCRUBBER: grep -v -E '(\(define-fun)'
+; EXIT: 0
 (set-logic ALL)
 (declare-fun arr () (Array Int Int))
 
