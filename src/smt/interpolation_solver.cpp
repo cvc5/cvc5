@@ -34,7 +34,6 @@ bool InterpolationSolver::getInterpol(const Node& conj,
                                 const TypeNode& grammarType,
                                 Node& interpol)
 {
-  std::cerr << options::produceInterpols() << std::endl;
   if (options::produceInterpols() == options::ProduceInterpols::NONE)
   {
     const char* msg =
@@ -93,7 +92,6 @@ bool InterpolationSolver::getInterpol(const Node& conj, Node& interpol)
   TypeNode grammarType;
   return getInterpol(conj, grammarType, interpol);
 }
-
 
 void InterpolationSolver::checkInterpol(Expr interpol,
                               const std::vector<Expr>& easserts,

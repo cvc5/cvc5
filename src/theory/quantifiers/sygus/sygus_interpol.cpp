@@ -295,18 +295,24 @@ bool SygusInterpol::findInterpol(Node& interpol, Node itp)
   {
     interpoln_reduced = interpoln;
   }
-  if (interpoln.getNumChildren() != 0 && interpoln[0].getNumChildren() != 0)
+  
+  // get the grammar type for the interpolant
+  Node igdtbv = itp.getAttribute(SygusSynthFunVarListAttribute());
+  Assert(!igdtbv.isNull());
+  Assert(igdtbv.getKind() == kind::BOUND_VAR_LIST);
+  // convert back to original
+  // must replace formal arguments of itp with the free variables in the
+  // input problem that they correspond to.
+  std::vector<Node> vars;
+  std::vector<Node> syms;
+  SygusVarToTermAttribute sta;
+  for (const Node& bv : igdtbv)
   {
-    std::vector<Node> formals;
-    for (const Node& n : interpoln[0])
-    {
-      formals.push_back(n);
-    }
-    interpoln_reduced = interpoln_reduced.substitute(formals.begin(),
-                                                     formals.end(),
-                                                     d_symSetShared.begin(),
-                                                     d_symSetShared.end());
+    vars.push_back(bv);
+    syms.push_back(bv.hasAttribute(sta) ? bv.getAttribute(sta) : bv);
   }
+  interpoln_reduced = interpoln_reduced.substitute(vars.begin(), vars.end(), syms.begin(), syms.end());
+
   // convert to expression
   interpol = interpoln_reduced;
   return true;
@@ -332,8 +338,7 @@ bool SygusInterpol::SolveInterpolation(const std::string& name,
     d_subSolver->declareSygusVar(name, var, var.getType());
   }
   std::vector<Node> vars_empty;
-	std::cerr << options::produceInterpols() << std::endl;
-  TypeNode grammarType = setSynthGrammar(itpGType, axioms, conj);
+	TypeNode grammarType = setSynthGrammar(itpGType, axioms, conj);
   Node itp = mkPredicate(name);
   d_subSolver->declareSynthFun(
       name, itp, grammarType, false, vars_empty);
