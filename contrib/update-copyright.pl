@@ -109,6 +109,7 @@ comments, but this isn't guaranteed.  You should run this in a git working tree
 and run "git diff" after to ensure everything was correctly rewritten.
 
 The directories in which to search for and change sources is:
+  $pwd/CMakeLists.txt
   $pwd/cmake
   $pwd/src
   $pwd/examples
@@ -120,10 +121,11 @@ EOF
   $_ = <STDIN>; chomp;
   die 'aborting operation' if !( $_ eq 'y' || $_ eq 'yes' || $_ eq 'Y' || $_ eq 'YES' );
 
-  $searchdirs[0] = 'cmake';
-  $searchdirs[1] = 'src';
-  $searchdirs[2] = 'examples';
-  $searchdirs[3] = 'test';
+  $searchdirs[0] = 'CMakeLists.txt';
+  $searchdirs[1] = 'cmake';
+  $searchdirs[2] = 'src';
+  $searchdirs[3] = 'examples';
+  $searchdirs[4] = 'test';
 } else {
   @searchdirs = @ARGV;
 }
