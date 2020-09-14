@@ -87,16 +87,6 @@ class ProofEqEngine : public EagerProofGenerator
                 EqualityEngine& ee,
                 ProofNodeManager* pnm);
   ~ProofEqEngine() {}
-  //-------------------------- assert assumption
-  /**
-   * Assert literal lit by assumption to the underlying equality engine. It is
-   * its own explanation.
-   *
-   * @param lit The literal to assert to the equality engine
-   * @return true if this fact was processed by this method. If lit already
-   * holds in the equality engine, this method returns false.
-   */
-  bool assertAssume(TNode lit);
   //-------------------------- assert fact
   /**
    * Assert the literal lit by proof step id, given explanation exp and
@@ -180,6 +170,8 @@ class ProofEqEngine : public EagerProofGenerator
                            const std::vector<Node>& args);
   /** Multi-step version */
   TrustNode assertConflict(const std::vector<Node>& exp, ProofStepBuffer& psb);
+  /** Generator version, where pg has a proof of false from assumptions exp */
+  TrustNode assertConflict(const std::vector<Node>& exp, ProofGenerator* pg);
   //-------------------------- assert lemma
   /**
    * Called when we have concluded conc, typically via theory specific

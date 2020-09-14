@@ -76,7 +76,8 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   TNode lNode = d_cnfStream->getNode(l);
   Debug("prop-explain") << "explainPropagation(" << lNode << ")" << std::endl;
 
-  Node theoryExplanation = d_theoryEngine->getExplanation(lNode);
+  theory::TrustNode texp = d_theoryEngine->getExplanation(lNode);
+  Node theoryExplanation = texp.getNode();
 
   if (options::unsatCores())
   {

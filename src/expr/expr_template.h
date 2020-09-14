@@ -39,12 +39,6 @@ ${includes}
 #include "options/language.h"
 #include "util/hash.h"
 
-// This is a hack, but an important one: if there's an error, the
-// compiler directs the user to the template file instead of the
-// generated one.  We don't want the user to modify the generated one,
-// since it'll get overwritten on a later build.
-#line 47 "${template}"
-
 namespace CVC4 {
 
 // The internal expression representation
@@ -620,8 +614,6 @@ private:
 };/* class Expr */
 
 ${getConst_instantiations}
-
-#line 625 "${template}"
 
 inline size_t ExprHashFunction::operator()(CVC4::Expr e) const {
   return (size_t) e.getId();

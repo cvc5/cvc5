@@ -40,60 +40,6 @@ ProofEqEngine::ProofEqEngine(context::Context* c,
   d_false = nm->mkConst(false);
 }
 
-bool ProofEqEngine::assertAssume(TNode lit)
-{
-  Trace("pfee") << "pfee::assertAssume " << lit << std::endl;
-  // don't need to explicitly add anything to the proof here, since ASSUME
-  // nodes are constructed lazily
-  TNode atom = lit.getKind() == NOT ? lit[0] : lit;
-  bool polarity = lit.getKind() != NOT;
-
-  // Second, assert it directly to the equality engine, where it is its own
-  // explanation. Notice we do not reference count atom/lit.
-  if (atom.getKind() == EQUAL)
-  {
-    if (d_pfEnabled)
-    {
-      // If proofs are enabled, we check if lit is an assertion of the form
-      //   (= P true), (= P false), (= false P) or (= true P).
-      // Such literals must be handled as a special case here, since equality
-      // with Boolean constants have a special status internally within equality
-      // engine. In particular, the proofs constructed by EqProof conversion
-      // always produce proofs involving equalities with Boolean constants, and
-      // whose assumptions are only of the form P or (not P). However, in the
-      // case that (= P true) (resp (= P false)) is itself an input to the
-      // equality engine, we will explain in terms of P (resp. (not P)), which
-      // leads to a bogus proof, typically encountered in
-      // ProofNodeManager::mkScope.
-      //
-      // To correct this, we add an explicit *fact* that P holds by (= P true)
-      // here. This means that EqProof conversion may generate a proof where
-      // the internal equality (= P true) is justified by assumption P, and that
-      // afterwards, P is explained in terms of the original (external) equality
-      // (= P true) by the step provided here. This means that the proof may end
-      // up using (= P true) in a roundabout way (through two redundant steps),
-      // but regardless this allows the core proof utilities (EqProof
-      // conversion, proof equality engine, lazy proof, etc.) to be unconcerned
-      // with this case. Multiple users of the proof equality engine
-      // (SharedTermDatabase and TheoryArrays) require this special case.
-      if (atom[0].getKind() == kind::CONST_BOOLEAN
-          || atom[1].getKind() == kind::CONST_BOOLEAN)
-      {
-        Node nlit = Rewriter::rewrite(lit);
-        if (!CDProof::isSame(lit, nlit))
-        {
-          // use a rewrite step as a fact
-          std::vector<Node> pfChildren;
-          pfChildren.push_back(lit);
-          return assertFact(nlit, PfRule::MACRO_SR_PRED_ELIM, pfChildren, {});
-        }
-      }
-    }
-    return d_ee.assertEquality(atom, polarity, lit);
-  }
-  return d_ee.assertPredicate(atom, polarity, lit);
-}
-
 bool ProofEqEngine::assertFact(Node lit,
                                PfRule id,
                                const std::vector<Node>& exp,
@@ -260,9 +206,8 @@ TrustNode ProofEqEngine::assertConflict(PfRule id,
 {
   Trace("pfee") << "pfee::assertConflict " << id << ", exp = " << exp
                 << ", args = " << args << std::endl;
-  // conflict is same as proof of false
-  std::vector<Node> empVec;
-  return assertLemma(d_false, id, exp, empVec, args);
+  // conflict is same as lemma concluding false
+  return assertLemma(d_false, id, exp, {}, args);
 }
 
 TrustNode ProofEqEngine::assertConflict(const std::vector<Node>& exp,
@@ -270,15 +215,16 @@ TrustNode ProofEqEngine::assertConflict(const std::vector<Node>& exp,
 {
   Trace("pfee") << "pfee::assertConflict " << exp << " via buffer with "
                 << psb.getNumSteps() << " steps" << std::endl;
-  if (d_pfEnabled)
-  {
-    if (!d_proof.addSteps(psb))
-    {
-      return TrustNode::null();
-    }
-  }
-  std::vector<Node> empVec;
-  return assertLemmaInternal(d_false, exp, empVec, &d_proof);
+  return assertLemma(d_false, exp, {}, psb);
+}
+
+TrustNode ProofEqEngine::assertConflict(const std::vector<Node>& exp,
+                                        ProofGenerator* pg)
+{
+  Assert(pg != nullptr);
+  Trace("pfee") << "pfee::assertConflict " << exp << " via generator"
+                << std::endl;
+  return assertLemma(d_false, exp, {}, pg);
 }
 
 TrustNode ProofEqEngine::assertLemma(Node conc,
@@ -361,6 +307,7 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
                                      const std::vector<Node>& noExplain,
                                      ProofGenerator* pg)
 {
+  Assert(pg != nullptr);
   Trace("pfee") << "pfee::assertLemma " << conc << ", exp = " << exp
                 << ", noExplain = " << noExplain << " via buffer with generator"
                 << std::endl;
@@ -377,8 +324,16 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
     {
       curr = &tmpProof;
     }
-    // Register the proof step.
-    if (!pg->addProofTo(conc, curr))
+    // Register the proof. Notice we do a deep copy here because the CDProof
+    // curr should take ownership of the proof steps that pg provided for conc.
+    // In other words, this sets up the "skeleton" of proof that is the base
+    // of the proof we are constructing. The call to assertLemmaInternal below
+    // will expand the leaves of this proof. If we used a shallow copy, then
+    // the connection to these leaves would be lost since they would not be
+    // owned by curr. Notice this is very rarely more than a single step, but
+    // may be multiple steps if e.g. a theory inference corresponds to a
+    // sequence of more than one PfRule steps.
+    if (!pg->addProofTo(conc, curr, CDPOverwrite::ASSUME_ONLY, true))
     {
       // a step went wrong, e.g. during checking
       Assert(false) << "pfee::assertConflict: register proof step";
