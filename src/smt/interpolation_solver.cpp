@@ -71,15 +71,13 @@ bool InterpolationSolver::getInterpol(const Node& conj,
   {
     axioms.push_back(Node::fromExpr(easserts[i]));
   }
-  Node conjn = conj;
   // must expand definitions
-  std::unordered_map<Node, Node, NodeHashFunction> cache;
-  conjn = d_private->getProcessAssertions()->expandDefinitions(conjn, cache);
+  Node conjn = d_parent->expandDefinitions(conj);
   std::string name("A");
 
-  theory::quantifiers::SygusInterpol interpolSolver(d_logic, interpolmode);
+  theory::quantifiers::SygusInterpol interpolSolver(interpolmode);
   if (interpolSolver.SolveInterpolation(
-          name, axioms, conjn, TypeNode::fromType(grammarType), interpol))
+          name, axioms, conjn, grammarType, interpol))
   {
     if (options::checkInterpols())
     {
@@ -92,12 +90,12 @@ bool InterpolationSolver::getInterpol(const Node& conj,
 
 bool InterpolationSolver::getInterpol(const Node& conj, Node& interpol)
 {
-  Type grammarType;
+  TypeNode grammarType;
   return getInterpol(conj, grammarType, interpol);
 }
 
 
-void SmtEngine::checkInterpol(Expr interpol,
+void InterpolationSolver::checkInterpol(Expr interpol,
                               const std::vector<Expr>& easserts,
                               const Node& conj)
 {
@@ -116,30 +114,30 @@ void SmtEngine::checkInterpol(Expr interpol,
     Trace("check-interpol") << "SmtEngine::checkInterpol: phase " << j
                             << ": make new SMT engine" << std::endl;
     // Start new SMT engine to check solution
-    std::unique_ptr<SmtEngine> abdChecker;
-    initializeSubsolver(abdChecker);
+    std::unique_ptr<SmtEngine> itpChecker;
+    initializeSubsolver(itpChecker);
     Trace("check-interpol") << "SmtEngine::checkInterpol: phase " << j
                             << ": asserting formulas" << std::endl;
     if (j == 0)
     {
       for (const Expr& e : easserts)
       {
-        itpChecker.assertFormula(e);
+        itpChecker->assertFormula(e);
       }
       Expr negitp = interpol.notExpr();
-      itpChecker.assertFormula(negitp);
+      itpChecker->assertFormula(negitp);
     }
     else
     {
-      itpChecker.assertFormula(interpol);
+      itpChecker->assertFormula(interpol);
       Assert(!conj.isNull());
-      itpChecker.assertFormula(conj.toExpr().notExpr());
+      itpChecker->assertFormula(conj.toExpr().notExpr());
     }
     Trace("check-interpol") << "SmtEngine::checkInterpol: phase " << j
                             << ": check the assertions" << std::endl;
-    Result r = itpChecker.checkSat();
+    Result r = itpChecker->checkSat();
     Trace("check-interpol") << "SmtEngine::checkInterpol: phase " << j
-                            << ": result is " << r << endl;
+                            << ": result is " << r << std::endl;
     std::stringstream serr;
     if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
     {
