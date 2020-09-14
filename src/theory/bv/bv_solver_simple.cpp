@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file bv_solver_proof.cpp
+/*! \file bv_solver_simple.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Mathias Preiner
@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Simple bitblast solver
+ ** \brief Simple bit-blast solver
  **
- ** Simple bitblast solver that sends bitblast lemmas directly to MiniSat.
+ ** Simple bit-blast solver that sends bitblast lemmas directly to MiniSat.
  **/
 
 #include "theory/bv/bv_solver_simple.h"
