@@ -54,7 +54,7 @@ bool InterpolationSolver::getInterpol(const Node& conj,
   Node conjn = d_parent->expandDefinitions(conj);
   std::string name("A");
 
-  theory::quantifiers::SygusInterpol interpolSolver;
+  quantifiers::SygusInterpol interpolSolver;
   if (interpolSolver.SolveInterpolation(
           name, axioms, conjn, grammarType, interpol))
   {
