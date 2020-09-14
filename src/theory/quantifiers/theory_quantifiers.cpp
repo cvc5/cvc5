@@ -29,12 +29,12 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/valuation.h"
 
-using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
+
+namespace CVC4 {
+namespace theory {
+namespace quantifiers {
 
 TheoryQuantifiers::TheoryQuantifiers(Context* c,
                                      context::UserContext* u,
@@ -77,22 +77,24 @@ void TheoryQuantifiers::finishInit()
   d_valuation.setUnevaluatedKind(WITNESS);
 }
 
-void TheoryQuantifiers::preRegisterTerm(TNode n) {
+void TheoryQuantifiers::preRegisterTerm(TNode n)
+{
   if (n.getKind() != FORALL)
   {
     return;
   }
-  Debug("quantifiers-prereg") << "TheoryQuantifiers::preRegisterTerm() " << n << endl;
+  Debug("quantifiers-prereg")
+      << "TheoryQuantifiers::preRegisterTerm() " << n << std::endl;
   // Preregister the quantified formula.
   // This initializes the modules used for handling n in this user context.
   getQuantifiersEngine()->preRegisterQuantifier(n);
   Debug("quantifiers-prereg")
-      << "TheoryQuantifiers::preRegisterTerm() done " << n << endl;
+      << "TheoryQuantifiers::preRegisterTerm() done " << n << std::endl;
 }
 
 
 void TheoryQuantifiers::presolve() {
-  Debug("quantifiers-presolve") << "TheoryQuantifiers::presolve()" << endl;
+  Debug("quantifiers-presolve") << "TheoryQuantifiers::presolve()" << std::endl;
   if( getQuantifiersEngine() ){
     getQuantifiersEngine()->presolve();
   }
@@ -107,13 +109,14 @@ void TheoryQuantifiers::ppNotifyAssertions(
   }
 }
 
-bool TheoryQuantifiers::collectModelInfo(TheoryModel* m)
+bool TheoryQuantifiers::collectModelValues(TheoryModel* m,
+                                           const std::set<Node>& termSet)
 {
   for(assertions_iterator i = facts_begin(); i != facts_end(); ++i) {
-    if ((*i).d_assertion.getKind() == kind::NOT)
+    if ((*i).d_assertion.getKind() == NOT)
     {
       Debug("quantifiers::collectModelInfo")
-          << "got quant FALSE: " << (*i).d_assertion[0] << endl;
+          << "got quant FALSE: " << (*i).d_assertion[0] << std::endl;
       if (!m->assertPredicate((*i).d_assertion[0], false))
       {
         return false;
@@ -121,7 +124,8 @@ bool TheoryQuantifiers::collectModelInfo(TheoryModel* m)
     }
     else
     {
-      Debug("quantifiers::collectModelInfo") << "got quant TRUE : " << *i << endl;
+      Debug("quantifiers::collectModelInfo")
+          << "got quant TRUE : " << *i << std::endl;
       if (!m->assertPredicate(*i, true))
       {
         return false;
@@ -131,51 +135,44 @@ bool TheoryQuantifiers::collectModelInfo(TheoryModel* m)
   return true;
 }
 
-void TheoryQuantifiers::check(Effort e) {
-  if (done() && !fullEffort(e)) {
-    return;
+void TheoryQuantifiers::postCheck(Effort level)
+{
+  // call the quantifiers engine to check
+  getQuantifiersEngine()->check(level);
+}
+
+bool TheoryQuantifiers::preNotifyFact(
+    TNode atom, bool polarity, TNode fact, bool isPrereg, bool isInternal)
+{
+  Kind k = atom.getKind();
+  if (k == FORALL)
+  {
+    getQuantifiersEngine()->assertQuantifier(atom, polarity);
   }
-
-  TimerStat::CodeTimer checkTimer(d_checkTime);
-
-  Trace("quantifiers-check") << "quantifiers::check(" << e << ")" << std::endl;
-  while(!done()) {
-    Node assertion = get();
-    Trace("quantifiers-assert") << "quantifiers::assert(): " << assertion << std::endl;
-    switch(assertion.getKind()) {
-    case kind::FORALL:
-      getQuantifiersEngine()->assertQuantifier(assertion, true);
-      break;
-    case kind::INST_CLOSURE:
-      getQuantifiersEngine()->addTermToDatabase( assertion[0], false, true );
-      if( !options::lteRestrictInstClosure() ){
-        getQuantifiersEngine()->getMasterEqualityEngine()->addTerm( assertion[0] );
-      }
-      break;
-    case kind::EQUAL:
-      //do nothing
-      break;
-    case kind::NOT:
-      {
-        switch( assertion[0].getKind()) {
-        case kind::FORALL:
-          getQuantifiersEngine()->assertQuantifier(assertion[0], false);
-          break;
-        case kind::EQUAL:
-          //do nothing
-          break;
-        case kind::INST_CLOSURE:
-        default: Unhandled() << assertion[0].getKind(); break;
-        }
-      }
-      break;
-      default: Unhandled() << assertion.getKind(); break;
+  else if (k == INST_CLOSURE)
+  {
+    if (!polarity)
+    {
+      Unhandled() << "Unexpected inst-closure fact " << fact;
+    }
+    getQuantifiersEngine()->addTermToDatabase(atom[0], false, true);
+    if (!options::lteRestrictInstClosure())
+    {
+      getQuantifiersEngine()->getMasterEqualityEngine()->addTerm(atom[0]);
     }
   }
-  // call the quantifiers engine to check
-  getQuantifiersEngine()->check( e );
+  else
+  {
+    Unhandled() << "Unexpected fact " << fact;
+  }
+  // don't use equality engine, always return true
+  return true;
 }
 
 void TheoryQuantifiers::setUserAttribute(const std::string& attr, Node n, std::vector<Node> node_values, std::string str_value){
   QuantAttributes::setUserAttribute( attr, n, node_values, str_value );
 }
+
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4

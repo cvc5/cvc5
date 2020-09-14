@@ -33,6 +33,7 @@
 #include "options/smt_options.h"
 #include "printer/dagification_visitor.h"
 #include "smt/command.h"
+#include "smt/node_command.h"
 #include "smt/smt_engine.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/substitutions.h"
@@ -316,6 +317,13 @@ void CvcPrinter::toStream(
       out << ")";
       return;
       break;
+    case kind::WITNESS:
+      out << "(WITNESS";
+      toStream(out, n[0], depth, types, false);
+      out << " : ";
+      toStream(out, n[1], depth, types, false);
+      out << ')';
+      return;
     case kind::DISTINCT:
       // distinct not supported directly, blast it away with the rewriter
       toStream(out, theory::Rewriter::rewrite(n), depth, types, true);
@@ -1059,11 +1067,11 @@ void CvcPrinter::toStream(std::ostream& out, const CommandStatus* s) const
 
 namespace {
 
-void DeclareTypeCommandToStream(std::ostream& out,
-                                const theory::TheoryModel& model,
-                                const DeclareTypeCommand& command)
+void DeclareTypeNodeCommandToStream(std::ostream& out,
+                                    const theory::TheoryModel& model,
+                                    const DeclareTypeNodeCommand& command)
 {
-  TypeNode type_node = TypeNode::fromType(command.getType());
+  TypeNode type_node = command.getType();
   const std::vector<Node>* type_reps =
       model.getRepSet()->getTypeRepsOrNull(type_node);
   if (options::modelUninterpDtEnum() && type_node.isSort()
@@ -1104,11 +1112,12 @@ void DeclareTypeCommandToStream(std::ostream& out,
   }
 }
 
-void DeclareFunctionCommandToStream(std::ostream& out,
-                                    const theory::TheoryModel& model,
-                                    const DeclareFunctionCommand& command)
+void DeclareFunctionNodeCommandToStream(
+    std::ostream& out,
+    const theory::TheoryModel& model,
+    const DeclareFunctionNodeCommand& command)
 {
-  Node n = Node::fromExpr(command.getFunction());
+  Node n = command.getFunction();
   if (n.getKind() == kind::SKOLEM)
   {
     // don't print out internal stuff
@@ -1172,23 +1181,23 @@ void CvcPrinter::toStream(std::ostream& out, const Model& m) const
 
 void CvcPrinter::toStream(std::ostream& out,
                           const Model& model,
-                          const Command* command) const
+                          const NodeCommand* command) const
 {
   const auto* theory_model = dynamic_cast<const theory::TheoryModel*>(&model);
   AlwaysAssert(theory_model != nullptr);
   if (const auto* declare_type_command =
-          dynamic_cast<const DeclareTypeCommand*>(command))
+          dynamic_cast<const DeclareTypeNodeCommand*>(command))
   {
-    DeclareTypeCommandToStream(out, *theory_model, *declare_type_command);
+    DeclareTypeNodeCommandToStream(out, *theory_model, *declare_type_command);
   }
   else if (const auto* dfc =
-               dynamic_cast<const DeclareFunctionCommand*>(command))
+               dynamic_cast<const DeclareFunctionNodeCommand*>(command))
   {
-    DeclareFunctionCommandToStream(out, *theory_model, *dfc);
+    DeclareFunctionNodeCommandToStream(out, *theory_model, *dfc);
   }
   else
   {
-    out << command << std::endl;
+    out << *command << std::endl;
   }
 }
 
@@ -1434,7 +1443,7 @@ void CvcPrinter::toStreamCmdGetUnsatCore(std::ostream& out) const
 }
 
 void CvcPrinter::toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                               BenchmarkStatus status) const
+                                               Result::Sat status) const
 {
   out << "% (set-info :status " << status << ')';
 }

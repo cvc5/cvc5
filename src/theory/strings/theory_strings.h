@@ -86,38 +86,39 @@ class TheoryStrings : public Theory {
   std::string identify() const override;
   /** Explain */
   TrustNode explain(TNode literal) override;
-  /** Get current substitution */
-  bool getCurrentSubstitution(int effort,
-                              std::vector<Node>& vars,
-                              std::vector<Node>& subs,
-                              std::map<Node, std::vector<Node> >& exp) override;
   /** presolve */
   void presolve() override;
   /** shutdown */
   void shutdown() override {}
   /** add shared term */
   void notifySharedTerm(TNode n) override;
-  /** get equality status */
-  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   /** preregister term */
   void preRegisterTerm(TNode n) override;
   /** Expand definition */
   TrustNode expandDefinition(Node n) override;
-  /** Check at effort e */
-  void check(Effort e) override;
-  /** needs check last effort */
+  //--------------------------------- standard check
+  /** Do we need a check call at last call effort? */
   bool needsCheckLastEffort() override;
+  bool preNotifyFact(TNode atom,
+                     bool pol,
+                     TNode fact,
+                     bool isPrereg,
+                     bool isInternal) override;
+  void notifyFact(TNode atom, bool pol, TNode fact, bool isInternal) override;
+  /** Post-check, called after the fact queue of the theory is processed. */
+  void postCheck(Effort level) override;
+  //--------------------------------- end standard check
+  /** propagate method */
+  bool propagateLit(TNode literal);
   /** Conflict when merging two constants */
   void conflict(TNode a, TNode b);
   /** called when a new equivalence class is created */
   void eqNotifyNewClass(TNode t);
   /** preprocess rewrite */
   TrustNode ppRewrite(TNode atom) override;
-  /**
-   * Get all relevant information in this theory regarding the current
-   * model. Return false if a contradiction is discovered.
-   */
-  bool collectModelInfo(TheoryModel* m) override;
+  /** Collect model values in m based on the relevant terms given by termSet */
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet) override;
 
  private:
   /** NotifyClass for equality engine */
@@ -171,8 +172,6 @@ class TheoryStrings : public Theory {
     /** The solver state of the theory of strings */
     SolverState& d_state;
   };/* class TheoryStrings::NotifyClass */
-  /** propagate method */
-  bool propagateLit(TNode literal);
   /** compute care graph */
   void computeCareGraph() override;
   /**
@@ -258,6 +257,8 @@ class TheoryStrings : public Theory {
   SolverState d_state;
   /** The term registry for this theory */
   TermRegistry d_termReg;
+  /** The extended theory callback */
+  StringsExtfCallback d_extTheoryCb;
   /** Extended theory, responsible for context-dependent simplification. */
   ExtTheory d_extTheory;
   /** The (custom) output channel of the theory of strings */

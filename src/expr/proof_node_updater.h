@@ -42,10 +42,11 @@ class ProofNodeUpdaterCallback
    * the proof changed. It can be assumed that cdp contains proofs of each
    * fact in children.
    */
-  virtual bool update(PfRule id,
+  virtual bool update(Node res,
+                      PfRule id,
                       const std::vector<Node>& children,
                       const std::vector<Node>& args,
-                      CDProof* cdp) = 0;
+                      CDProof* cdp);
 };
 
 /**
@@ -72,6 +73,12 @@ class ProofNodeUpdater
   ProofNodeManager* d_pnm;
   /** The callback */
   ProofNodeUpdaterCallback& d_cb;
+  /**
+   * Update proof node cur based on the callback. This modifies curr using
+   * ProofNodeManager::updateNode based on the proof node constructed to
+   * replace it by the callback.
+   */
+  void runUpdate(ProofNode* cur);
 };
 
 }  // namespace CVC4

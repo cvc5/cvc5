@@ -103,11 +103,7 @@ class PropEngine
    * @param removable whether this lemma can be quietly removed based
    * on an activity heuristic (or not)
    */
-  void assertLemma(TNode node,
-                   bool negated,
-                   bool removable,
-                   ProofRule rule,
-                   TNode from = TNode::null());
+  void assertLemma(TNode node, bool negated, bool removable);
 
   /**
    * Pass a list of assertions from an AssertionPipeline to the decision engine.

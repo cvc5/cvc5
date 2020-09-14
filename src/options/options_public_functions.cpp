@@ -54,10 +54,6 @@ OutputLanguage Options::getOutputLanguage() const {
 
 bool Options::getUfHo() const { return (*this)[options::ufHo]; }
 
-bool Options::getCheckProofs() const{
-  return (*this)[options::checkProofs];
-}
-
 bool Options::getDumpInstantiations() const{
   return (*this)[options::dumpInstantiations];
 }
@@ -122,10 +118,6 @@ bool Options::getParseOnly() const{
 
 bool Options::getProduceModels() const{
   return (*this)[options::produceModels];
-}
-
-bool Options::getProof() const{
-  return (*this)[options::proof];
 }
 
 bool Options::getSegvSpin() const{

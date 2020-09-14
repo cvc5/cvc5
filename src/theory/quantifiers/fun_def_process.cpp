@@ -14,13 +14,15 @@
  ** This class implements pre-process steps for admissible recursive function definitions (Reynolds et al IJCAR2016)
  **/
 
+#include "theory/quantifiers/fun_def_process.h"
+
 #include <vector>
 
-#include "theory/quantifiers/fun_def_process.h"
+#include "options/smt_options.h"
+#include "proof/proof_manager.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "proof/proof_manager.h"
 
 using namespace CVC4;
 using namespace std;
@@ -86,7 +88,10 @@ void FunDefFmf::simplify( std::vector< Node >& assertions ) {
         Trace("fmf-fun-def") << "  to " << std::endl;
         Node new_q = NodeManager::currentNM()->mkNode( FORALL, bvl, bd );
         new_q = Rewriter::rewrite( new_q );
-        PROOF( ProofManager::currentPM()->addDependence(new_q, assertions[i]); );
+        if (options::unsatCores())
+        {
+          ProofManager::currentPM()->addDependence(new_q, assertions[i]);
+        }
         assertions[i] = new_q;
         Trace("fmf-fun-def") << "  " << assertions[i] << std::endl;
         fd_assertions.push_back( i );
@@ -120,7 +125,10 @@ void FunDefFmf::simplify( std::vector< Node >& assertions ) {
                                    << std::endl;
       Trace("fmf-fun-def-rewrite") << "  to " << std::endl;
       Trace("fmf-fun-def-rewrite") << "  " << n << std::endl;
-      PROOF(ProofManager::currentPM()->addDependence(n, assertions[i]););
+      if (options::unsatCores())
+      {
+        ProofManager::currentPM()->addDependence(n, assertions[i]);
+      }
       assertions[i] = n;
     }
   }
@@ -175,8 +183,12 @@ Node FunDefFmf::simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Nod
             c = simplifyFormula( n[i], newPol, newHasPol, cconstraints, hd, false, visited, visited_cons );
             if( branch_pos ){
               // if at a branching position, the other constraints don't matter if this is satisfied
-              Node bcons = cconstraints.empty() ? NodeManager::currentNM()->mkConst( true ) : 
-                           ( cconstraints.size()==1 ? cconstraints[0] : NodeManager::currentNM()->mkNode( AND, cconstraints ) );
+              Node bcons = cconstraints.empty()
+                               ? NodeManager::currentNM()->mkConst(true)
+                               : (cconstraints.size() == 1
+                                      ? cconstraints[0]
+                                      : NodeManager::currentNM()->mkNode(
+                                          AND, cconstraints));
               branch_constraints.push_back( bcons );
               Trace("fmf-fun-def-debug2") << "Branching constraint at arg " << i << " is " << bcons << std::endl;
             }
@@ -201,10 +213,14 @@ Node FunDefFmf::simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Nod
             // in the default case, we care about all conditions
             branch_cond = constraints.size()==1 ? constraints[0] : NodeManager::currentNM()->mkNode( AND, constraints );
             for( unsigned i=0; i<n.getNumChildren(); i++ ){
-              // if this child holds with forcing polarity (true child of OR or false child of AND), 
-              // then we only care about its associated recursive conditions 
-              branch_cond = NodeManager::currentNM()->mkNode( kind::ITE, 
-                              ( n.getKind()==OR ? n[i] : n[i].negate() ), branch_constraints[i], branch_cond );
+              // if this child holds with forcing polarity (true child of OR or
+              // false child of AND), then we only care about its associated
+              // recursive conditions
+              branch_cond = NodeManager::currentNM()->mkNode(
+                  kind::ITE,
+                  (n.getKind() == OR ? n[i] : n[i].negate()),
+                  branch_constraints[i],
+                  branch_cond);
             }
           }
           Trace("fmf-fun-def-debug2") << "Made branching condition " << branch_cond << std::endl;

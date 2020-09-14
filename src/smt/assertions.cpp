@@ -17,7 +17,6 @@
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/language.h"
-#include "options/proof_options.h"
 #include "options/smt_options.h"
 #include "proof/proof_manager.h"
 #include "smt/smt_engine.h"
@@ -179,21 +178,26 @@ void Assertions::addFormula(
   }
 
   // Give it to proof manager
-  PROOF(if (inInput) {
-    // n is an input assertion
-    if (inUnsatCore || options::unsatCores() || options::dumpUnsatCores()
-        || options::checkUnsatCores() || options::fewerPreprocessingHoles())
-    {
-      ProofManager::currentPM()->addCoreAssertion(n.toExpr());
+  if (options::unsatCores())
+  {
+    if (inInput)
+    {  // n is an input assertion
+      if (inUnsatCore || options::unsatCores() || options::dumpUnsatCores()
+          || options::checkUnsatCores())
+      {
+        ProofManager::currentPM()->addCoreAssertion(n.toExpr());
+      }
     }
-  } else {
-    // n is the result of an unknown preprocessing step, add it to dependency
-    // map to null
-    ProofManager::currentPM()->addDependence(n, Node::null());
-  });
+    else
+    {
+      // n is the result of an unknown preprocessing step, add it to dependency
+      // map to null
+      ProofManager::currentPM()->addDependence(n, Node::null());
+    }
+  }
 
   // Add the normalized formula to the queue
-  d_assertions.push_back(n, isAssumption);
+  d_assertions.push_back(n, isAssumption, true);
 }
 
 void Assertions::addDefineFunRecDefinition(Node n, bool global)
@@ -228,6 +232,16 @@ void Assertions::ensureBoolean(const Node& n)
        << "Its type      : " << type;
     throw TypeCheckingException(n.toExpr(), ss.str());
   }
+}
+
+void Assertions::setProofGenerator(smt::PreprocessProofGenerator* pppg)
+{
+  d_assertions.setProofGenerator(pppg);
+}
+
+bool Assertions::isProofEnabled() const
+{
+  return d_assertions.isProofEnabled();
 }
 
 }  // namespace smt

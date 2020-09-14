@@ -16,7 +16,6 @@
 
 #include <vector>
 
-#include "options/proof_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/nary_builder.h"
 #include "theory/arith/arith_ite_utils.h"
@@ -118,7 +117,7 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
   // This pass does not support dependency tracking yet
   // (learns substitutions from all assertions so just
   // adding addDependence is not enough)
-  if (options::unsatCores() || options::fewerPreprocessingHoles())
+  if (options::unsatCores())
   {
     return true;
   }

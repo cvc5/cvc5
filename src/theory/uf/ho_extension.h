@@ -21,7 +21,9 @@
 #include "context/cdhashset.h"
 #include "context/cdo.h"
 #include "expr/node.h"
+#include "theory/theory_inference_manager.h"
 #include "theory/theory_model.h"
+#include "theory/theory_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -50,7 +52,7 @@ class HoExtension
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
 
  public:
-  HoExtension(TheoryUF& p, TheoryState& state);
+  HoExtension(TheoryState& state, TheoryInferenceManager& im);
 
   /** expand definition
    *
@@ -180,10 +182,10 @@ class HoExtension
  private:
   /** common constants */
   Node d_true;
-  /** the parent of this extension */
-  TheoryUF& d_parent;
   /** Reference to the state object */
   TheoryState& d_state;
+  /** Reference to the inference manager */
+  TheoryInferenceManager& d_im;
   /** extensionality has been applied to these disequalities */
   NodeSet d_extensionality;
 
