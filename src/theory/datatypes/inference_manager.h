@@ -55,7 +55,7 @@ class DatatypesInference : public SimpleTheoryInternalFact
    * Process this fact, possibly as a fact or as a lemma, depending on the
    * above method.
    */
-  bool process(TheoryInferenceManager* im) override;
+  bool process(TheoryInferenceManager* im, bool asLemma) override;
 };
 
 /**

@@ -684,6 +684,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::CARD, "card");
     addOperator(api::COMPLEMENT, "complement");
     addOperator(api::CHOOSE, "choose");
+    addOperator(api::IS_SINGLETON, "is_singleton");
     addOperator(api::JOIN, "join");
     addOperator(api::PRODUCT, "product");
     addOperator(api::TRANSPOSE, "transpose");

@@ -81,6 +81,12 @@ class InferenceManager : public InferenceManagerBuffered
   /** Add a conflict to the this inference manager. */
   void addConflict(const Node& conf, InferenceId inftype);
 
+  /**
+   * Checks whether we have made any progress, that is whether a conflict, lemma
+   * or fact was added or whether a lemma or fact is pending.
+   */
+  bool hasUsed() const;
+
   /** Returns the number of pending lemmas. */
   std::size_t numWaitingLemmas() const;
 

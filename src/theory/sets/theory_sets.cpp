@@ -34,9 +34,10 @@ TheorySets::TheorySets(context::Context* c,
                        const LogicInfo& logicInfo,
                        ProofNodeManager* pnm)
     : Theory(THEORY_SETS, c, u, out, valuation, logicInfo, pnm),
-      d_state(c, u, valuation),
+      d_skCache(),
+      d_state(c, u, valuation, d_skCache),
       d_im(*this, d_state, pnm),
-      d_internal(new TheorySetsPrivate(*this, d_state, d_im)),
+      d_internal(new TheorySetsPrivate(*this, d_state, d_im, d_skCache)),
       d_notify(*d_internal.get())
 {
   // use the official theory state and inference manager objects
