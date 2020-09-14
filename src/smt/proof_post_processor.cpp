@@ -478,7 +478,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
           trn.getGenerator()->getProofFor(trn.getProven());
       cdp->addProof(pfn);
       Assert(trn.getNode() == ret)
-          << "Unexpected rewrite " << trn.getNode() << " " << ret;
+          << "Unexpected rewrite " << args[0] << std::endl << "Got: " << trn.getNode() << std::endl << "Expected: " << ret;
     }
     else if (idr == MethodId::RW_EVALUATE)
     {

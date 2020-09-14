@@ -30,6 +30,11 @@ using namespace std;
 
 namespace CVC4 {
 namespace theory {
+  
+  
+/** Attribute true for nodes that have been rewritten with proofs enabled */
+struct RewriteWithProofsAttributeId {};
+typedef expr::Attribute< RewriteWithProofsAttributeId, bool > RewriteWithProofsAttribute;
 
 // Note that this function is a simplified version of Theory::theoryOf for
 // (type-based) theoryOfMode. We expand and simplify it here for the sake of
@@ -121,6 +126,7 @@ void Rewriter::setProofNodeManager(ProofNodeManager* pnm)
   // if not already initialized with proof support
   if (d_tpg == nullptr)
   {
+    Trace("rewriter") << "Rewriter::setProofNodeManager" << std::endl;
     // the rewriter is staticly determinstic, thus use static cache policy
     // for the term conversion proof generator
     d_tpg.reset(new TConvProofGenerator(pnm,
@@ -182,6 +188,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
                          Node node,
                          TConvProofGenerator* tcpg)
 {
+  RewriteWithProofsAttribute rpfa;
 #ifdef CVC4_ASSERTIONS
   bool isEquality = node.getKind() == kind::EQUAL && (!node[0].getType().isBoolean());
 
@@ -195,7 +202,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
 
   // Check if it's been cached already
   Node cached = getPostRewriteCache(theoryId, node);
-  if (!cached.isNull() && (tcpg == nullptr || tcpg->hasRewriteStep(node)))
+  if (!cached.isNull() && (tcpg == nullptr || node.getAttribute(rpfa)))
   {
     return cached;
   }
@@ -232,7 +239,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
       cached = getPreRewriteCache(rewriteStackTop.getTheoryId(),
                                   rewriteStackTop.d_node);
       if (cached.isNull()
-          || (tcpg != nullptr && !tcpg->hasRewriteStep(rewriteStackTop.d_node)))
+          || (tcpg != nullptr && !rewriteStackTop.d_node.getAttribute(rpfa)))
       {
         // Rewrite until fix-point is reached
         for(;;) {
@@ -271,7 +278,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
                                  rewriteStackTop.d_node);
     // If not, go through the children
     if (cached.isNull()
-        || (tcpg != nullptr && !tcpg->hasRewriteStep(rewriteStackTop.d_node)))
+        || (tcpg != nullptr && !rewriteStackTop.d_node.getAttribute(rpfa)))
     {
       // The child we need to rewrite
       unsigned child = rewriteStackTop.d_nextChild++;
@@ -355,6 +362,30 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
       }
 
       // We're done with the post rewrite, so we add to the cache
+      if (tcpg != nullptr)
+      {
+        // if proofs are enabled, mark that we've rewritten with proofs
+        rewriteStackTop.d_original.setAttribute(rpfa, true);
+        if (!cached.isNull())
+        {
+          // We may have gotten a different node, due to non-determinism in
+          // theory rewriters (e.g. quantifiers rewriter which introduces
+          // fresh BOUND_VARIABLE). This can happen if we wrote once without
+          // proofs and then rewrote again with proofs.
+          if (rewriteStackTop.d_node != cached)
+          {
+            Trace("rewriter-proof") << "WARNING: Rewritten forms with and without proofs were not equivalent" << std::endl;
+            Trace("rewriter-proof") << "   original: " << rewriteStackTop.d_original << std::endl;
+            Trace("rewriter-proof") << "with proofs: " << rewriteStackTop.d_node << std::endl;
+            Trace("rewriter-proof") << " w/o proofs: " << cached << std::endl;
+            // TODO: prove equivalence
+            Node eq = rewriteStackTop.d_node.eqNode(cached);
+            tcpg->addRewriteStep(rewriteStackTop.d_node, cached, PfRule::TRUST, {}, {eq});
+            // don't overwrite the cache, should be the same
+            rewriteStackTop.d_node = cached;
+          }
+        }
+      }
       setPostRewriteCache(rewriteStackTop.getOriginalTheoryId(),
                           rewriteStackTop.d_original,
                           rewriteStackTop.d_node);
