@@ -143,14 +143,14 @@ void InterpolationSolver::checkInterpol(Expr interpol,
       {
         serr << "SmtEngine::checkInterpol(): negated produced solution cannot "
                 "be shown "
-                "unsatisfiable with assertions, result was "
+                "satisfiable with assertions, result was "
              << r;
       }
       else
       {
         serr
             << "SmtEngine::checkInterpol(): negated conjecture cannot be shown "
-               "unsatisfiable with produced solution, result was "
+               "satisfiable with produced solution, result was "
             << r;
       }
       InternalError() << serr.str();

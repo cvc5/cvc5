@@ -76,6 +76,9 @@ void SygusInterpol::createVariables(bool needsShared)
     Node var = nm->mkBoundVar(tn);
     d_vars.push_back(var);
     Node vlv = nm->mkBoundVar(ss.str(), tn);
+    // set that this variable encodes the term s
+    SygusVarToTermAttribute sta;
+    vlv.setAttribute(sta, s);
     d_vlvs.push_back(vlv);
     if (!needsShared || d_symSetShared.find(s) != d_symSetShared.end())
     {
