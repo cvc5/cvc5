@@ -24,9 +24,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
-#include "theory/uf/cardinality_extension.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/uf/theory_uf.h"
 
 using namespace std;
 using namespace CVC4;
@@ -79,7 +77,6 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
   if( doCheck ){
     Assert(!d_quantEngine->inConflict());
     int addedLemmas = 0;
-    FirstOrderModel* fm = d_quantEngine->getModel();
 
     //the following will test that the model satisfies all asserted universal quantifiers by
     // (model-based) exhaustive instantiation.
@@ -88,28 +85,16 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
       Trace("model-engine") << "---Model Engine Round---" << std::endl;
       clSet = double(clock())/double(CLOCKS_PER_SEC);
     }
-
-    Trace("model-engine-debug") << "Verify uf ss is minimal..." << std::endl;
-    // Let the cardinality extension verify that the model is minimal.
-    // This will if there are terms in the model that the cardinality extension
-    // was not notified of.
-    uf::CardinalityExtension* ufss =
-        static_cast<uf::TheoryUF*>(
-            d_quantEngine->getTheoryEngine()->theoryOf(THEORY_UF))
-            ->getCardinalityExtension();
-    if( !ufss || ufss->debugModel( fm ) ){
-      Trace("model-engine-debug") << "Check model..." << std::endl;
-      d_incomplete_check = false;
-      //print debug
-      if( Trace.isOn("fmf-model-complete") ){
-        Trace("fmf-model-complete") << std::endl;
-        debugPrint("fmf-model-complete");
-      }
-      //successfully built an acceptable model, now check it
-      addedLemmas += checkModel();
-    }else{
-      addedLemmas++;
+    Trace("model-engine-debug") << "Check model..." << std::endl;
+    d_incomplete_check = false;
+    // print debug
+    if (Trace.isOn("fmf-model-complete"))
+    {
+      Trace("fmf-model-complete") << std::endl;
+      debugPrint("fmf-model-complete");
     }
+    // successfully built an acceptable model, now check it
+    addedLemmas += checkModel();
 
     if( Trace.isOn("model-engine") ){
       double clSet2 = double(clock())/double(CLOCKS_PER_SEC);

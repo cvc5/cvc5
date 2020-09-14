@@ -107,7 +107,8 @@ public:
   Node getModelValue(TNode var);
 
   /**
-   * Returns pointer to model.
+   * Returns pointer to model. This model is only valid during last call effort
+   * check.
    */
   TheoryModel* getModel();
 

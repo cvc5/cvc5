@@ -858,6 +858,7 @@ set(regress_0_tests
   regress0/sep/sep-01.smt2
   regress0/sep/sep-plus1.smt2
   regress0/sep/sep-simp-unsat-emp.smt2
+  regress0/sep/simple-080420-const-sets.smt2
   regress0/sep/skolem_emp.smt2
   regress0/sep/trees-1.smt2
   regress0/sep/wand-crash.smt2

@@ -844,7 +844,7 @@ Node BVToInt::reconstructNode(Node originalNode,
   {
     builder << originalNode.getOperator();
   }
-  for (uint i = 0; i < originalNode.getNumChildren(); i++)
+  for (size_t i = 0; i < originalNode.getNumChildren(); i++)
   {
     Node originalChild = originalNode[i];
     Node translatedChild = translated_children[i];

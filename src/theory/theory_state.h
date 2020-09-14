@@ -74,6 +74,11 @@ class TheoryState
 
   /** Returns true if lit is a SAT literal. */
   virtual bool isSatLiteral(TNode lit) const;
+  /**
+   * Returns pointer to model. This model is only valid during last call effort
+   * check.
+   */
+  TheoryModel* getModel();
 
  protected:
   /** Pointer to the SAT context object used by the theory. */
