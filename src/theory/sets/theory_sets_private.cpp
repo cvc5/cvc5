@@ -1292,7 +1292,6 @@ bool TheorySetsPrivate::collectModelInfo(TheoryModel* m)
     else
     {
       std::vector<Node> els;
-      std::set<Node> elsSet;
       bool is_base = !d_card_enabled || d_cardSolver->isModelValueBasic(eqc);
       if (is_base)
       {

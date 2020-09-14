@@ -60,7 +60,7 @@ class NormalForm {
    *   (union (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
    * where c1 ... cn are constants and the node identifier of these constants
    * are such that:
-   *   c1 < ... < cn.
+   *   c1 > ... > cn.
    * Also handles the corner cases of empty set and singleton set.
    */
   static bool checkNormalConstant(TNode n) {

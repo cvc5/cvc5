@@ -27,7 +27,7 @@ namespace CVC4 {
 namespace theory {
 namespace sets {
 
-bool checkConstantMembership(TNode elementTerm, TNode setTerm)
+bool TheorySetsRewriter::checkConstantMembership(TNode elementTerm, TNode setTerm)
 {
   if(setTerm.getKind() == kind::EMPTYSET) {
     return false;
