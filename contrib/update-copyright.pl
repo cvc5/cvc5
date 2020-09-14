@@ -25,7 +25,8 @@
 #
 # It ignores any file not ending with one of:
 #   .c .cc .cpp .C .h .hh .hpp .H .y .yy .ypp .Y .l .ll .lpp .L .g
-#   .cmake .cmake.in [ or those with ".in" also suffixed, e.g., .cpp.in ]
+#   .cmake .cmake.in CMakeLists.txt
+#   [ or those with ".in" also suffixed, e.g., .cpp.in ]
 # (so, this includes emacs ~-backups, CVS detritus, etc.)
 #
 # It ignores any directory matching $excluded_directories
@@ -149,13 +150,18 @@ while($#searchdirs >= 0) {
   }
 }
 
+sub isCMakeFile {
+  my ($file) = @_;
+  return ($file =~ /\.cmake(\.in)?$/ or $file =~ /CMakeLists\.txt/);
+}
+
 sub printHeader {
   my ($OUT, $file) = @_;
 
   if($file =~ /\.(y|yy|ypp|Y)$/) {
     print $OUT "%{/*******************                                                        */\n";
     print $OUT "/** $file\n";
-  } elsif($file =~ /\.cmake/) {
+  } elsif(isCMakeFile($file)) {
     print $OUT "##\n";
     print $OUT "# $file\n";
   } elsif($file =~ /\.g$/) {
@@ -169,15 +175,20 @@ sub printHeader {
 }
 
 sub printTopContrib {
-  my ($OUT, $authors) = @_;
-  print $OUT " ** \\verbatim\n";
-  print $OUT " ** Top contributors (to current version):\n";
-  print $OUT " **   $authors\n";
+  my ($OUT, $file, $authors) = @_;
+  my $comment_style = " **";
+  if (isCMakeFile($file)) {
+    $comment_style = "#";
+  } else {
+    print $OUT "$comment_style \\verbatim\n";
+  }
+  print $OUT "$comment_style Top contributors (to current version):\n";
+  print $OUT "$comment_style   $authors\n";
 }
 
 sub handleFile {
   my ($srcdir, $file) = @_;
-  return if !($file =~ /\.(c|cc|cpp|C|h|hh|hpp|H|y|yy|ypp|Y|l|ll|lpp|L|g|java|cmake)(\.in)?$/);
+  return if !($file =~ /\.(c|cc|cpp|C|h|hh|hpp|H|y|yy|ypp|Y|l|ll|lpp|L|g|java)(\.in)?$/ or isCMakeFile($file));
   return if ($srcdir.'/'.$file) =~ /$excluded_paths/;
   return if $modonly && `git status -s "$srcdir/$file" 2>/dev/null` !~ /^(M|.M)/;
   print "$srcdir/$file...";
@@ -193,9 +204,7 @@ sub handleFile {
   if((m,^(%\{)?/\*(\*| )\*\*\*,) or (m,^\#\#$,)) {
     print "updating\n";
     printHeader($OUT, $file);
-    if (!($file =~ /\.cmake/)) {
-      printTopContrib($OUT, $authors);
-    }
+    printTopContrib($OUT, $file, $authors);
     my $comment_stub = "";
     while(my $line = <$IN>) {
       if($line =~ /\b[Cc]opyright\b/ && $line !~ /\bby the authors listed in the file AUTHORS\b/) {
@@ -210,7 +219,7 @@ $line";
         last;
       }
     }
-    if ($file =~ /\.cmake/) {
+    if (isCMakeFile($file)) {
       print $OUT $standard_template_cmake;
     } else {
       print $OUT $standard_template;
@@ -224,11 +233,11 @@ $line";
     my $line = $_;
     print "adding\n";
     printHeader($OUT, $file);
-    if ($file =~ /\.cmake/) {
+    printTopContrib($OUT, $file, $authors);
+    if (isCMakeFile($file)) {
       print $OUT $standard_template_cmake;
       print $OUT $line;
     } else {
-      printTopContrib($OUT, $authors);
       print $OUT $standard_template;
       print $OUT " **\n";
       print $OUT " ** \\brief [[ Add one-line brief description here ]]\n";
