@@ -25,7 +25,7 @@
 #
 # It ignores any file not ending with one of:
 #   .c .cc .cpp .C .h .hh .hpp .H .y .yy .ypp .Y .l .ll .lpp .L .g
-#   [ or those with ".in" also suffixed, e.g., .cpp.in ]
+#   .cmake .cmake.in [ or those with ".in" also suffixed, e.g., .cpp.in ]
 # (so, this includes emacs ~-backups, CVS detritus, etc.)
 #
 # It ignores any directory matching $excluded_directories
@@ -37,7 +37,11 @@ my $excluded_directories = '^(CVS|generated)$';
 my $excluded_paths = '^(';
 # note: first excluded path regexp must not start with a '|'
 # different license
-$excluded_paths .= 'src/util/channel.h';
+$excluded_paths .= 'cmake/CodeCoverage.cmake';
+$excluded_paths .= '|cmake/FindCython.cmake';
+$excluded_paths .= '|cmake/FindPythonExtensions.cmake';
+$excluded_paths .= '|cmake/UseCython.cmake';
+$excluded_paths .= '|cmake/targetLinkLibrariesWithDynamicLookup.cmake';
 # minisat license
 $excluded_paths .= '|src/prop/(bv)?minisat/core/.*';
 $excluded_paths .= '|src/prop/(bv)?minisat/mtl/.*';
@@ -52,9 +56,18 @@ my $years = '2009-2020';
 my $standard_template = <<EOF;
  ** This file is part of the CVC4 project.
  ** Copyright (c) $years by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** (in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\\endverbatim
+EOF
+
+my $standard_template_cmake = <<EOF;
+# This file is part of the CVC4 project.
+# Copyright (c) $years by the authors listed in the file AUTHORS
+# (in the top-level source directory) and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+#
 EOF
 
 ## end config ##
@@ -95,6 +108,7 @@ comments, but this isn't guaranteed.  You should run this in a git working tree
 and run "git diff" after to ensure everything was correctly rewritten.
 
 The directories in which to search for and change sources is:
+  $pwd/cmake
   $pwd/src
   $pwd/examples
   $pwd/test
@@ -105,9 +119,10 @@ EOF
   $_ = <STDIN>; chomp;
   die 'aborting operation' if !( $_ eq 'y' || $_ eq 'yes' || $_ eq 'Y' || $_ eq 'YES' );
 
-  $searchdirs[0] = 'src';
-  $searchdirs[1] = 'examples';
-  $searchdirs[2] = 'test';
+  $searchdirs[0] = 'cmake';
+  $searchdirs[1] = 'src';
+  $searchdirs[2] = 'examples';
+  $searchdirs[3] = 'test';
 } else {
   @searchdirs = @ARGV;
 }
@@ -134,9 +149,35 @@ while($#searchdirs >= 0) {
   }
 }
 
+sub printHeader {
+  my ($OUT, $file) = @_;
+
+  if($file =~ /\.(y|yy|ypp|Y)$/) {
+    print $OUT "%{/*******************                                                        */\n";
+    print $OUT "/** $file\n";
+  } elsif($file =~ /\.cmake/) {
+    print $OUT "##\n";
+    print $OUT "# $file\n";
+  } elsif($file =~ /\.g$/) {
+    # avoid javadoc-style comment here; antlr complains
+    print $OUT "/* *******************                                                        */\n";
+    print $OUT "/*! \\file $file\n";
+  } else {
+    print $OUT "/*********************                                                        */\n";
+    print $OUT "/*! \\file $file\n";
+  }
+}
+
+sub printTopContrib {
+  my ($OUT, $authors) = @_;
+  print $OUT " ** \\verbatim\n";
+  print $OUT " ** Top contributors (to current version):\n";
+  print $OUT " **   $authors\n";
+}
+
 sub handleFile {
   my ($srcdir, $file) = @_;
-  return if !($file =~ /\.(c|cc|cpp|C|h|hh|hpp|H|y|yy|ypp|Y|l|ll|lpp|L|g|java)(\.in)?$/);
+  return if !($file =~ /\.(c|cc|cpp|C|h|hh|hpp|H|y|yy|ypp|Y|l|ll|lpp|L|g|java|cmake)(\.in)?$/);
   return if ($srcdir.'/'.$file) =~ /$excluded_paths/;
   return if $modonly && `git status -s "$srcdir/$file" 2>/dev/null` !~ /^(M|.M)/;
   print "$srcdir/$file...";
@@ -148,29 +189,20 @@ sub handleFile {
   my $authors = <$AUTHOR>; chomp $authors;
   close $AUTHOR;
   $_ = <$IN>;
-  if(m,^(%\{)?/\*(\*| )\*\*\*,) {
+  # Header already exists
+  if((m,^(%\{)?/\*(\*| )\*\*\*,) or (m,^\#\#$,)) {
     print "updating\n";
-    if($file =~ /\.(y|yy|ypp|Y)$/) {
-      print $OUT "%{/*******************                                                        */\n";
-      print $OUT "/** $file\n";
-    } elsif($file =~ /\.g$/) {
-      # avoid javadoc-style comment here; antlr complains
-      print $OUT "/* *******************                                                        */\n";
-      print $OUT "/*! \\file $file\n";
-    } else {
-      print $OUT "/*********************                                                        */\n";
-      print $OUT "/*! \\file $file\n";
+    printHeader($OUT, $file);
+    if (!($file =~ /\.cmake/)) {
+      printTopContrib($OUT, $authors);
     }
-    print $OUT " ** \\verbatim\n";
-    print $OUT " ** Top contributors (to current version):\n";
-    print $OUT " **   $authors\n";
     my $comment_stub = "";
     while(my $line = <$IN>) {
       if($line =~ /\b[Cc]opyright\b/ && $line !~ /\bby the authors listed in the file AUTHORS\b/) {
         # someone else holds this copyright
         print $OUT $line;
       }
-      last if $line =~ /^ \*\*\s*$/;
+      last if ($line =~ /^ \*\*\s*$/ or $line =~ /^\#$/);
       if($line =~ /\*\//) {
         $comment_stub = " ** [[ Add lengthier description here ]]\n\
  ** \\todo document this file\n\
@@ -178,36 +210,34 @@ $line";
         last;
       }
     }
-    print $OUT $standard_template;
-    print $OUT " **\n";
-    if($comment_stub) {
-      print $OUT $comment_stub;
+    if ($file =~ /\.cmake/) {
+      print $OUT $standard_template_cmake;
+    } else {
+      print $OUT $standard_template;
+      print $OUT " **\n";
+      if($comment_stub) {
+        print $OUT $comment_stub;
+      }
     }
+  # No header found
   } else {
     my $line = $_;
     print "adding\n";
-    if($file =~ /\.(y|yy|ypp|Y)$/) {
-      print $OUT "%{/*******************                                                        */\n";
-      print $OUT "/*! \\file $file\n";
-    } elsif($file =~ /\.g$/) {
-      # avoid javadoc-style comment here; antlr complains
-      print $OUT "/* *******************                                                        */\n";
-      print $OUT "/*! \\file $file\n";
+    printHeader($OUT, $file);
+    if ($file =~ /\.cmake/) {
+      print $OUT $standard_template_cmake;
+      print $OUT $line;
     } else {
-      print $OUT "/*********************                                                        */\n";
-      print $OUT "/*! \\file $file\n";
+      printTopContrib($OUT, $authors);
+      print $OUT $standard_template;
+      print $OUT " **\n";
+      print $OUT " ** \\brief [[ Add one-line brief description here ]]\n";
+      print $OUT " **\n";
+      print $OUT " ** [[ Add lengthier description here ]]\n";
+      print $OUT " ** \\todo document this file\n";
+      print $OUT " **/\n\n";
+      print $OUT $line;
     }
-    print $OUT " ** \\verbatim\n";
-    print $OUT " ** Top contributors (to current version):\n";
-    print $OUT " **   $authors\n";
-    print $OUT $standard_template;
-    print $OUT " **\n";
-    print $OUT " ** \\brief [[ Add one-line brief description here ]]\n";
-    print $OUT " **\n";
-    print $OUT " ** [[ Add lengthier description here ]]\n";
-    print $OUT " ** \\todo document this file\n";
-    print $OUT " **/\n\n";
-    print $OUT $line;
     if($file =~ /\.(y|yy|ypp|Y)$/) {
       while(my $line = <$IN>) {
         chomp $line;
