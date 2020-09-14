@@ -67,6 +67,7 @@ PR finished:
 (79) term context extended utilities (req 46)
 (80) generalize TConvProofGenerator for term contexts (req 79)
 (81) update term formula removal to use term context (req 79, 80)
+(82) SmtEngine proof manager (req 84, 87, 93)
 (84) SMT engine proof post-processor (req 63)
 (86) builtin proof checker updates including theory rewrite is a trusted rule
 (87) Delete old proof code [Haniel]
@@ -82,14 +83,17 @@ PRs ready:
 (43) strings InferProofCons (req 13, 18, 26, 34, 42, 65, 86) *
 (53) CNF proof producing [Haniel]
 (70) rewriter unit test [Andres] (req 36, 37)
-(82) SmtEngine proof manager (req 84, 87, 93) *
-(88) fixes for smt preprocess proof generator, theory engine proof generator
+(85) SmtEngine check proofs (req 68, 82)
+(88) fixes for smt preprocess proof generator
 (91) Proof producing lemma TheoryEngine *
 (94) HO_CONG in eq proof conversion [Haniel]
-(95) Arrays proof checker
+(95) Arrays proof checker *
 (99) SAT rules to Boolean checker [Haniel]
 (100) fixes for instantiate, quantifiers proof checker
 (101) strings misc changes to preprocess, base
+(102) proof equality engine always proof
+(104) lazy proof chain [Haniel] *
+(105) fixes for theory engine proof generator
 
 PRs future:
 
@@ -99,18 +103,18 @@ PRs future:
 (55) DSL rewrite rule term processor
 (56) DSL rewrite rule database (req 54)
 (58) DSL rewrite rule proof generator (req 57)
-(68) PropEngine proof producing [Haniel] (req 53)
+(68) PropEngine proof producing [Haniel] (req 53, 104)
+(69) Initial dumping infrastructure [Haniel]
 (83) DSL rewrite rule compilation, including side condition utility [Andres] (req 56)
-(85) SmtEngine check proofs (req 68, 82)
 (96) arrays proof producing (req 95)
-(97) BV new basic solver, proof producing
+(97) BV new basic solver, proof producing [Mathias]
 (98) fixes in setDefaults
+(103) buffered proof manager [Haniel] (req 102)
 
 
 Wish list:
 
 (57) compilation of rewrite DSL into DSL rewrite rule database initialization [Andres] (req 56)
-(69) Initial dumping infrastructure [Haniel]
 - SEXPR simply typed
 - Proof kinds infrastructure?
 - arith op eliminate proof producing, defining axioms (req 30)
