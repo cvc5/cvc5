@@ -441,9 +441,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   {
     size_t replIndex = assertionsToPreprocess->getRealAssertionsEnd() - 1;
     Node newConj = NodeManager::currentNM()->mkAnd(learnedLitsToConjoin);
-    assertionsToPreprocess->conjoin(
-        replIndex,
-        newConj);
+    assertionsToPreprocess->conjoin(replIndex, newConj);
   }
 
   propagator->setNeedsFinish(true);

@@ -277,7 +277,7 @@ void usortsToBitVectors(const LogicInfo& d_logic,
     {
       Node old = (*assertions)[i];
       Node newA = usVarsToBVVars.apply((*assertions)[i]);
-      if (newA!=old)
+      if (newA != old)
       {
         assertions->replace(i, newA);
         Trace("uninterpretedSorts-to-bv")

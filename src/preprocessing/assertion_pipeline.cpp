@@ -84,15 +84,16 @@ void AssertionPipeline::pushBackTrusted(theory::TrustNode trn)
 
 void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
 {
-  if (n==d_nodes[i])
+  if (n == d_nodes[i])
   {
     // no change, abort
     // TODO: make assertion failure?
     return;
   }
-  Trace("smt-pppg-repl") << "Replace " << d_nodes[i] << " with " << n << std::endl;
+  Trace("smt-pppg-repl") << "Replace " << d_nodes[i] << " with " << n
+                         << std::endl;
   // NOTE: checks for replacing true with something (should use conjoin instead)
-  //Assert(!d_nodes[i].isConst());
+  // Assert(!d_nodes[i].isConst());
   if (options::unsatCores())
   {
     ProofManager::currentPM()->addDependence(n, d_nodes[i]);
@@ -135,7 +136,7 @@ void AssertionPipeline::addSubstitutionNode(Node n, ProofGenerator* pg)
   Assert(n.getKind() == kind::EQUAL);
   conjoin(d_substsIndex, n, pg);
 }
-  
+
 void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
 {
   if (n == d_nodes[i])
@@ -143,8 +144,7 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
     // trivial case, skip to avoid cyclic proofs below
     return;
   }
-  Node newConj =
-      NodeManager::currentNM()->mkNode(kind::AND, n, d_nodes[i]);
+  Node newConj = NodeManager::currentNM()->mkNode(kind::AND, n, d_nodes[i]);
   Node newConjr = theory::Rewriter::rewrite(newConj);
   if (isProofEnabled())
   {

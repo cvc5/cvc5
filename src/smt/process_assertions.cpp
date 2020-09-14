@@ -133,7 +133,7 @@ bool ProcessAssertions::apply(Assertions& as)
     for (size_t i = 0, nasserts = assertions.size(); i < nasserts; ++i)
     {
       Node expd = expandDefinitions(assertions[i], cache);
-      if (expd!=assertions[i])
+      if (expd != assertions[i])
       {
         assertions.replace(i, expd);
       }
@@ -364,7 +364,7 @@ bool ProcessAssertions::apply(Assertions& as)
           }
         }
         // Move this iteExpr into the main assertions
-        newConj.push_back( assertions[(*it).second] );
+        newConj.push_back(assertions[(*it).second]);
         assertions.replace((*it).second, d_true);
         toErase.push_back((*it).first);
       }

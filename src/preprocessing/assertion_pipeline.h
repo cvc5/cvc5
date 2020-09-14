@@ -90,7 +90,7 @@ class AssertionPipeline
   void replace(size_t i, Node n, ProofGenerator* pg = nullptr);
   /** Same as above, with TrustNode */
   void replaceTrusted(size_t i, theory::TrustNode trn);
-  
+
   IteSkolemMap& getIteSkolemMap() { return d_iteSkolemMap; }
   const IteSkolemMap& getIteSkolemMap() const { return d_iteSkolemMap; }
 
@@ -124,8 +124,8 @@ class AssertionPipeline
    * Adds a substitution node of the form (= lhs rhs) to the assertions.
    */
   void addSubstitutionNode(Node n, ProofGenerator* pgen = nullptr);
-  
-  /** 
+
+  /**
    * Conjoin
    */
   void conjoin(size_t i, Node n, ProofGenerator* pg = nullptr);
