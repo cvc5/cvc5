@@ -121,8 +121,7 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
         size_t nchildn = n.getNumChildren();
         for (size_t j = 0; j < nchildn; j++)
         {
-          TypeNode typ =
-              nm->mkFunctionType(iType, n[j].getType());
+          TypeNode typ = nm->mkFunctionType(iType, n[j].getType());
           std::stringstream ssf;
           ssf << f << "_arg_" << j;
           d_input_arg_inj[f].push_back(
@@ -138,8 +137,7 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
         for (size_t j = 0; j < nchildn; j++)
         {
           vars.push_back(n[j]);
-          subs.push_back(nm->mkNode(
-              APPLY_UF, d_input_arg_inj[f][j], bv));
+          subs.push_back(nm->mkNode(APPLY_UF, d_input_arg_inj[f][j], bv));
         }
         bd = bd.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
         subs_head[i] =
@@ -224,25 +222,18 @@ Node FunDefFmf::simplifyFormula(
     }
     return itv->second;
   }
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Node ret;
-  Trace("fmf-fun-def-debug2") << "Simplify " << n << " " << pol << " "
-                              << hasPol << " " << is_fun_def << std::endl;
+  Trace("fmf-fun-def-debug2") << "Simplify " << n << " " << pol << " " << hasPol
+                              << " " << is_fun_def << std::endl;
   if (n.getKind() == FORALL)
   {
-    Node c = simplifyFormula(n[1],
-                              pol,
-                              hasPol,
-                              constraints,
-                              hd,
-                              is_fun_def,
-                              visited,
-                              visited_cons);
+    Node c = simplifyFormula(
+        n[1], pol, hasPol, constraints, hd, is_fun_def, visited, visited_cons);
     // append prenex to constraints
     for (unsigned i = 0; i < constraints.size(); i++)
     {
-      constraints[i] =
-          nm->mkNode(FORALL, n[0], constraints[i]);
+      constraints[i] = nm->mkNode(FORALL, n[0], constraints[i]);
       constraints[i] = Rewriter::rewrite(constraints[i]);
     }
     if (c != n[1])
@@ -318,10 +309,8 @@ Node FunDefFmf::simplifyFormula(
           branch_cond = nm->mkNode(
               AND,
               branch_constraints[0],
-              nm->mkNode(ITE,
-                                                n[0],
-                                                branch_constraints[1],
-                                                branch_constraints[2]));
+              nm->mkNode(
+                  ITE, n[0], branch_constraints[1], branch_constraints[2]));
         }
         else
         {
@@ -332,11 +321,10 @@ Node FunDefFmf::simplifyFormula(
             // if this child holds with forcing polarity (true child of OR or
             // false child of AND), then we only care about its associated
             // recursive conditions
-            branch_cond = nm->mkNode(
-                ITE,
-                (n.getKind() == OR ? n[i] : n[i].negate()),
-                branch_constraints[i],
-                branch_cond);
+            branch_cond = nm->mkNode(ITE,
+                                     (n.getKind() == OR ? n[i] : n[i].negate()),
+                                     branch_constraints[i],
+                                     branch_cond);
           }
         }
         Trace("fmf-fun-def-debug2")
