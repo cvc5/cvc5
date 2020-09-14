@@ -1942,6 +1942,14 @@ set(regress_1_tests
   regress1/sygus/inv-example.sy
   regress1/sygus/inv-missed-sol-true.sy
   regress1/sygus/inv-unused.sy
+	regress1/sygus/interpol1.smt2
+	regress1/sygus/interpol2.smt2
+	regress1/sygus/interpol3.smt2
+	regress1/sygus/interpol_arr1.smt2
+	regress1/sygus/interpol_arr2.smt2
+	regress1/sygus/interpol_cosa_1.smt2
+	regress1/sygus/interpol_from_pono_1.smt2
+	regress1/sygus/interpol_from_pono_2.smt2
   regress1/sygus/issue2914.sy
   regress1/sygus/issue2935.sy
   regress1/sygus/issue3199.smt2
