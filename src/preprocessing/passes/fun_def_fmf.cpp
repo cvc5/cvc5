@@ -224,6 +224,7 @@ Node FunDefFmf::simplifyFormula(
     }
     return itv->second;
   }
+  NodeManager * nm = NodeManager::currentNM();
   Node ret;
   Trace("fmf-fun-def-debug2") << "Simplify " << n << " " << pol << " "
                               << hasPol << " " << is_fun_def << std::endl;
@@ -289,7 +290,7 @@ Node FunDefFmf::simplifyFormula(
           {
             // if at a branching position, the other constraints don't matter
             // if this is satisfied
-            Node bcons = nm->mkAnd(cconstraints)
+            Node bcons = nm->mkAnd(cconstraints);
             branch_constraints.push_back(bcons);
             Trace("fmf-fun-def-debug2") << "Branching constraint at arg " << i
                                         << " is " << bcons << std::endl;
