@@ -42,19 +42,6 @@ bool InterpolationSolver::getInterpol(const Node& conj,
         "Cannot get interpolation when produce-interpol options is off.";
     throw ModalException(msg);
   }
-  int interpolmode = 0;
-  switch (options::produceInterpols())
-  {
-    case options::ProduceInterpols::DEFAULT: interpolmode = 1; break;
-    case options::ProduceInterpols::ASSUMPTIONS: interpolmode = 2; break;
-    case options::ProduceInterpols::CONJECTURE: interpolmode = 3; break;
-    case options::ProduceInterpols::SHARED: interpolmode = 4; break;
-    case options::ProduceInterpols::ALL: interpolmode = 5; break;
-    default:
-      const char* msg =
-          "Cannot get interpolation when produce-interpol options is off.";
-      throw ModalException(msg);
-  }
   Trace("sygus-interpol") << "SmtEngine::getInterpol: conjecture " << conj
                           << std::endl;
   std::vector<Expr> easserts = d_parent->getExpandedAssertions();
@@ -67,7 +54,7 @@ bool InterpolationSolver::getInterpol(const Node& conj,
   Node conjn = d_parent->expandDefinitions(conj);
   std::string name("A");
 
-  theory::quantifiers::SygusInterpol interpolSolver(interpolmode);
+  theory::quantifiers::SygusInterpol interpolSolver;
   if (interpolSolver.SolveInterpolation(
           name, axioms, conjn, grammarType, interpol))
   {

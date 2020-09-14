@@ -46,8 +46,6 @@ class SygusInterpol
  public:
   SygusInterpol();
 
-  SygusInterpol(int mode);
-
   /**
    * Returns the sygus conjecture in interpol corresponding to the interpolation
    * problem for input problem (F above) given by axioms (Fa above), and conj
@@ -177,8 +175,6 @@ class SygusInterpol
    * solutions.
    */
   std::unique_ptr<SmtEngine> d_subSolver;
-
-	int d_mode;
 
   /**
    * symbols from axioms and conjecture.

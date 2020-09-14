@@ -31,8 +31,6 @@ namespace quantifiers {
 
 SygusInterpol::SygusInterpol() {}
 
-SygusInterpol::SygusInterpol(int mode) : d_mode(mode) {}
-
 void SygusInterpol::collectSymbols(const std::vector<Node>& axioms,
                                    const Node& conj)
 {
@@ -98,21 +96,21 @@ void SygusInterpol::getIncludeCons(
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& result)
 {
   NodeManager* nm = NodeManager::currentNM();
-  //Assert(options::produceInterpols() != options::ProduceInterpols::NONE);
+  Assert(options::produceInterpols() != options::ProduceInterpols::NONE);
   // ASSUMPTIONS
-  if (d_mode == 2)//options::produceInterpols() == options::ProduceInterpols::ASSUMPTIONS)
+  if (options::produceInterpols() == options::ProduceInterpols::ASSUMPTIONS)
   {
     Node tmpAssumptions =
         (axioms.size() == 1 ? axioms[0] : nm->mkNode(kind::AND, axioms));
     expr::getOperatorsMap(tmpAssumptions, result);
   }
   // CONJECTURE
-  else if (d_mode == 3)//options::produceInterpols() == options::ProduceInterpols::CONJECTURE)
+  else if (options::produceInterpols() == options::ProduceInterpols::CONJECTURE)
   {
     expr::getOperatorsMap(conj, result);
   }
   // SHARED
-  else if (d_mode == 4)//options::produceInterpols() == options::ProduceInterpols::SHARED)
+  else if (options::produceInterpols() == options::ProduceInterpols::SHARED)
   {
     // Get operators from axioms
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>
@@ -155,7 +153,7 @@ void SygusInterpol::getIncludeCons(
     }
   }
   // ALL
-  else if (d_mode == 5)//options::produceInterpols() == options::ProduceInterpols::ALL)
+  else if (options::produceInterpols() == options::ProduceInterpols::ALL)
   {
     Node tmpAssumptions =
         (axioms.size() == 1 ? axioms[0] : nm->mkNode(kind::AND, axioms));
@@ -287,16 +285,11 @@ bool SygusInterpol::findInterpol(Node& interpol, Node itp)
   }
   Trace("sygus-interpol") << "SmtEngine::getInterpol: solution is "
                           << its->second << std::endl;
-  Node interpoln = its->second;
+  interpol = its->second;
   // replace back the created variables to original symbols.
-  Node interpoln_reduced;
-  if (interpoln.getKind() == kind::LAMBDA)
+  if (interpol.getKind() == kind::LAMBDA)
   {
-    interpoln_reduced = interpoln[1];
-  }
-  else
-  {
-    interpoln_reduced = interpoln;
+    interpol = interpol[1];
   }
 
   // get the grammar type for the interpolant
@@ -314,11 +307,9 @@ bool SygusInterpol::findInterpol(Node& interpol, Node itp)
     vars.push_back(bv);
     syms.push_back(bv.hasAttribute(sta) ? bv.getAttribute(sta) : bv);
   }
-  interpoln_reduced = interpoln_reduced.substitute(
+  interpol = interpol.substitute(
       vars.begin(), vars.end(), syms.begin(), syms.end());
 
-  // convert to expression
-  interpol = interpoln_reduced;
   return true;
 }
 
