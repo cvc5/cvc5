@@ -307,8 +307,8 @@ bool SygusInterpol::findInterpol(Node& interpol, Node itp)
     vars.push_back(bv);
     syms.push_back(bv.hasAttribute(sta) ? bv.getAttribute(sta) : bv);
   }
-  interpol = interpol.substitute(
-      vars.begin(), vars.end(), syms.begin(), syms.end());
+  interpol =
+      interpol.substitute(vars.begin(), vars.end(), syms.begin(), syms.end());
 
   return true;
 }
