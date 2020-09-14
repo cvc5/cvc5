@@ -22,9 +22,9 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-bool NlLemma::process(TheoryInferenceManager* im)
+bool NlLemma::process(TheoryInferenceManager* im, bool asLemma)
 {
-  bool res = ArithLemma::process(im);
+  bool res = ArithLemma::process(im, asLemma);
   if (d_nlext != nullptr)
   {
     d_nlext->processSideEffect(*this);
