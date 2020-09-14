@@ -1,20 +1,22 @@
 # Find Editline
 # Editline_FOUND - found Editline lib
-# Editline_INCLUDE_DIR - the Editline include directory
+# Editline_INCLUDE_DIRS - the Editline include directory
 # Editline_LIBRARIES - Libraries needed to use Editline
 # Editline_COMPENTRY_FUNC_RETURNS_CHARPTR - Indicates if compentry function
 #                                           returns a (char *)
 
-find_path(Editline_INCLUDE_DIR NAMES histedit.h)
-find_library(Editline_LIBRARIES NAMES edit libedit)
+# When finding libedit, use pkg-config to ensure we find all the required
+# linking flags for libedit
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(Editline REQUIRED libedit)
 
-if(Editline_INCLUDE_DIR)
+if(Editline_INCLUDE_DIRS)
   # Check which standard of editline is installed on the system.
   # https://github.com/CVC4/CVC4/issues/702
   include(CheckCXXSourceCompiles)
   set(CMAKE_REQUIRED_QUIET TRUE)
   set(CMAKE_REQUIRED_LIBRARIES ${Editline_LIBRARIES})
-  set(CMAKE_REQUIRED_INCLUDES ${Editline_INCLUDE_DIR})
+  set(CMAKE_REQUIRED_INCLUDES ${Editline_INCLUDE_DIRS})
   check_cxx_source_compiles(
     "#include <stdio.h>
      #include <editline/readline.h>
@@ -29,9 +31,9 @@ endif()
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Editline
-  DEFAULT_MSG Editline_INCLUDE_DIR Editline_LIBRARIES)
+  DEFAULT_MSG Editline_INCLUDE_DIRS Editline_LIBRARIES)
 mark_as_advanced(
-  Editline_INCLUDE_DIR
+  Editline_INCLUDE_DIRS
   Editline_LIBRARIES
   Editline_COMPENTRY_FUNC_RETURNS_CHARPTR
 )

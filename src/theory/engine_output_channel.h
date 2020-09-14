@@ -45,15 +45,11 @@ class EngineOutputChannel : public theory::OutputChannel
 
   void safePoint(ResourceManager::Resource r) override;
 
-  void conflict(TNode conflictNode,
-                std::unique_ptr<Proof> pf = nullptr) override;
+  void conflict(TNode conflictNode) override;
   bool propagate(TNode literal) override;
 
   theory::LemmaStatus lemma(TNode lemma,
-                            ProofRule rule,
-                            bool removable = false,
-                            bool preprocess = false,
-                            bool sendAtoms = false) override;
+                            LemmaProperty p = LemmaProperty::NONE) override;
 
   theory::LemmaStatus splitLemma(TNode lemma, bool removable = false) override;
 
@@ -81,9 +77,7 @@ class EngineOutputChannel : public theory::OutputChannel
    * the same as calling OutputChannel::lemma on lem.
    */
   LemmaStatus trustedLemma(TrustNode plem,
-                           bool removable = false,
-                           bool preprocess = false,
-                           bool sendAtoms = false) override;
+                           LemmaProperty p = LemmaProperty::NONE) override;
 
  protected:
   /**

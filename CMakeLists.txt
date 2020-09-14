@@ -5,6 +5,8 @@ cmake_minimum_required(VERSION 3.4)
 
 project(cvc4)
 
+include(GNUInstallDirs)
+
 set(CVC4_MAJOR   1) # Major component of the version of CVC4.
 set(CVC4_MINOR   9) # Minor component of the version of CVC4.
 set(CVC4_RELEASE 0) # Release component of the version of CVC4.
@@ -82,12 +84,6 @@ endif()
 
 # By default the contrib/get-* scripts install dependencies to deps/install.
 list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/install")
-
-#-----------------------------------------------------------------------------#
-
-set(INCLUDE_INSTALL_DIR include)
-set(LIBRARY_INSTALL_DIR lib)
-set(RUNTIME_INSTALL_DIR bin)
 
 #-----------------------------------------------------------------------------#
 
@@ -173,6 +169,9 @@ set(PROGRAM_PREFIX    "" CACHE STRING "Program prefix on make install")
 # Supprted language bindings based on new C++ API
 option(BUILD_BINDINGS_PYTHON "Build Python bindings based on new C++ API ")
 option(BUILD_BINDINGS_JAVA "Build Java bindings based on new C++ API ")
+
+# Build limitations
+option(BUILD_LIB_ONLY         "Only build the library")
 
 #-----------------------------------------------------------------------------#
 # Internal cmake variables
@@ -312,9 +311,14 @@ if(ENABLE_SHARED)
   #
   # More information on RPATH in CMake:
   # https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
-  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIBRARY_INSTALL_DIR};${PROJECT_SOURCE_DIR}/deps/install/lib")
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR};${PROJECT_SOURCE_DIR}/deps/install/lib")
 else()
-  set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
+  # When building statically, we *only* want static archives/libraries
+  if (WIN32)
+      set(CMAKE_FIND_LIBRARY_SUFFIXES .lib .a)
+  else()
+      set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
+  endif()
   set(BUILD_SHARED_LIBS OFF)
   cvc4_set_option(ENABLE_STATIC_BINARY ON)
 
@@ -548,7 +552,11 @@ endif()
 # Generate CVC4's cvc4autoconfig.h header
 
 include(ConfigureCVC4)
+if(NOT ENABLE_SHARED)
+  set(CVC4_STATIC_BUILD ON)
+endif()
 configure_file(cvc4autoconfig.h.in cvc4autoconfig.h)
+unset(CVC4_STATIC_BUILD)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 #-----------------------------------------------------------------------------#
@@ -564,6 +572,7 @@ add_subdirectory(src)
 add_subdirectory(test)
 
 if(BUILD_BINDINGS_PYTHON)
+  set(BUILD_BINDINGS_PYTHON_VERSION ${PYTHON_VERSION_MAJOR})
   add_subdirectory(src/api/python)
 endif()
 
@@ -628,13 +637,13 @@ endif()
 install(EXPORT cvc4-targets
   FILE CVC4Targets.cmake
   NAMESPACE CVC4::
-  DESTINATION ${LIBRARY_INSTALL_DIR}/cmake/CVC4)
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CVC4)
 
 configure_package_config_file(
   ${CMAKE_SOURCE_DIR}/cmake/CVC4Config.cmake.in
   ${CMAKE_BINARY_DIR}/cmake/CVC4Config.cmake
-  INSTALL_DESTINATION ${LIBRARY_INSTALL_DIR}/cmake/CVC4
-  PATH_VARS LIBRARY_INSTALL_DIR
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CVC4
+  PATH_VARS CMAKE_INSTALL_LIBDIR
 )
 
 write_basic_package_version_file(
@@ -646,7 +655,7 @@ write_basic_package_version_file(
 install(FILES
   ${CMAKE_BINARY_DIR}/cmake/CVC4Config.cmake
   ${CMAKE_BINARY_DIR}/CVC4ConfigVersion.cmake
-  DESTINATION ${LIBRARY_INSTALL_DIR}/cmake/CVC4
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CVC4
 )
 
 
@@ -705,6 +714,8 @@ print_config("GLPK                      :" USE_GLPK)
 print_config("Kissat                    :" USE_KISSAT)
 print_config("LFSC                      :" USE_LFSC)
 print_config("LibPoly                   :" USE_POLY)
+message("")
+print_config("BUILD_LIB_ONLY            :" BUILD_LIB_ONLY)
 
 if(CVC4_USE_CLN_IMP)
   message("MP library                : cln")
@@ -758,7 +769,7 @@ message("")
 
 if(GPL_LIBS)
   message(
-  "CVC4 license             : GPLv3 (due to optional libraries; see below)"
+  "CVC4 license             : ${Yellow}GPLv3 (due to optional libraries; see below)${ResetColor}"
   "\n"
   "\n"
   "Please note that CVC4 will be built against the following GPLed libraries:"

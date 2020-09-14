@@ -1394,7 +1394,7 @@ void CegInstantiator::presolve( Node q ) {
       lem = NodeManager::currentNM()->mkNode( OR, g, lem );
       Trace("cegqi-presolve-debug") << "Presolve lemma : " << lem << std::endl;
       Assert(!expr::hasFreeVar(lem));
-      d_qe->getOutputChannel().lemma( lem, false, true );
+      d_qe->getOutputChannel().lemma(lem, LemmaProperty::PREPROCESS);
     }
   }
 }

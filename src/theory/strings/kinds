@@ -6,7 +6,7 @@
 
 theory THEORY_STRINGS ::CVC4::theory::strings::TheoryStrings "theory/strings/theory_strings.h"
 
-properties check parametric propagate presolve
+properties check parametric presolve
 
 rewriter ::CVC4::theory::strings::SequencesRewriter "theory/strings/sequences_rewriter.h"
 
@@ -83,6 +83,7 @@ constant CONST_SEQUENCE \
     "a sequence of characters"
 
 operator SEQ_UNIT 1 "a sequence of length one"
+operator SEQ_NTH 2 "The nth element of a sequence"
 
 # equal equal / less than / output
 operator STRING_TO_REGEXP 1 "convert string to regexp"
@@ -169,5 +170,6 @@ typerule STRING_TOLOWER "SimpleTypeRule<RString, AString>"
 
 typerule CONST_SEQUENCE ::CVC4::theory::strings::ConstSequenceTypeRule
 typerule SEQ_UNIT ::CVC4::theory::strings::SeqUnitTypeRule
+typerule SEQ_NTH ::CVC4::theory::strings::SeqNthTypeRule
 
 endtheory

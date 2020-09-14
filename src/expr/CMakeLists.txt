@@ -61,6 +61,12 @@ libcvc4_add_sources(
   symbol_table.h
   term_canonize.cpp
   term_canonize.h
+  term_context.cpp
+  term_context.h
+  term_context_node.cpp
+  term_context_node.h
+  term_context_stack.cpp
+  term_context_stack.h
   term_conversion_proof_generator.cpp
   term_conversion_proof_generator.h
   type.cpp
@@ -71,8 +77,8 @@ libcvc4_add_sources(
   type_node.cpp
   type_node.h
   variable_type_map.h
-  datatype.h
-  datatype.cpp
+  datatype_index.h
+  datatype_index.cpp
   dtype.h
   dtype.cpp
   dtype_cons.h

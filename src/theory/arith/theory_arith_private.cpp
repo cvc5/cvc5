@@ -87,7 +87,8 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
                                        context::UserContext* u,
                                        OutputChannel& out,
                                        Valuation valuation,
-                                       const LogicInfo& logicInfo)
+                                       const LogicInfo& logicInfo,
+                                       ProofNodeManager* pnm)
     : d_containing(containing),
       d_nlIncomplete(false),
       d_rowTracking(),
@@ -133,7 +134,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
           d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
       d_attemptSolSimplex(
           d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
-      d_nonlinearExtension(NULL),
+      d_nonlinearExtension(nullptr),
       d_pass1SDP(NULL),
       d_otherSDP(NULL),
       d_lastContextIntegerAttempted(c, -1),
@@ -156,20 +157,32 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_solveIntMaybeHelp(0u),
       d_solveIntAttempts(0u),
       d_statistics(),
-      d_opElim(logicInfo)
+      d_opElim(pnm, logicInfo)
 {
-  // only need to create if non-linear logic
-  if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
-  {
-    d_nonlinearExtension = new nl::NonlinearExtension(
-        containing, d_congruenceManager.getEqualityEngine());
-  }
 }
 
 TheoryArithPrivate::~TheoryArithPrivate(){
   if(d_treeLog != NULL){ delete d_treeLog; }
   if(d_approxStats != NULL) { delete d_approxStats; }
   if(d_nonlinearExtension != NULL) { delete d_nonlinearExtension; }
+}
+
+TheoryRewriter* TheoryArithPrivate::getTheoryRewriter() { return &d_rewriter; }
+bool TheoryArithPrivate::needsEqualityEngine(EeSetupInfo& esi)
+{
+  return d_congruenceManager.needsEqualityEngine(esi);
+}
+void TheoryArithPrivate::finishInit()
+{
+  eq::EqualityEngine* ee = d_containing.getEqualityEngine();
+  Assert(ee != nullptr);
+  d_congruenceManager.finishInit(ee);
+  const LogicInfo& logicInfo = getLogicInfo();
+  // only need to create nonlinear extension if non-linear logic
+  if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
+  {
+    d_nonlinearExtension = new nl::NonlinearExtension(d_containing, ee);
+  }
 }
 
 static bool contains(const ConstraintCPVec& v, ConstraintP con){
@@ -224,10 +237,6 @@ static void resolve(ConstraintCPVec& buf, ConstraintP c, const ConstraintCPVec& 
   // dropPosition(nb, dnconf, dnpos);
   // dropPosition(nb, upconf, uppos);
   // return safeConstructNary(nb);
-}
-
-void TheoryArithPrivate::setMasterEqualityEngine(eq::EqualityEngine* eq) {
-  d_congruenceManager.setMasterEqualityEngine(eq);
 }
 
 TheoryArithPrivate::ModelException::ModelException(TNode n, const char* msg)
@@ -615,7 +624,7 @@ bool TheoryArithPrivate::AssertLower(ConstraintP constraint){
     ConstraintP ubc = d_partialModel.getUpperBoundConstraint(x_i);
     ConstraintP negation = constraint->getNegation();
     negation->impliedByUnate(ubc, true);
-    
+
     raiseConflict(constraint);
 
     ++(d_statistics.d_statAssertLowerConflicts);
@@ -748,7 +757,7 @@ bool TheoryArithPrivate::AssertUpper(ConstraintP constraint){
   if(d_partialModel.greaterThanUpperBound(x_i, c_i) ){ // \upperbound(x_i) <= c_i
     return false; //sat
   }
-  
+
   // cmpToLb =  \lowerbound(x_i).cmp(c_i)
   int cmpToLB = d_partialModel.cmpToLowerBound(x_i, c_i);
   if( cmpToLB < 0 ){ //  \upperbound(x_i) < \lowerbound(x_i)
@@ -793,7 +802,7 @@ bool TheoryArithPrivate::AssertUpper(ConstraintP constraint){
         ++(d_statistics.d_statDisequalityConflicts);
         raiseConflict(eq);
         return true;
-      }      
+      }
     }
   }else if(cmpToLB > 0){
     // l <= x <= u and l < u
@@ -1078,26 +1087,21 @@ Node TheoryArithPrivate::getModelValue(TNode term) {
   }
 }
 
-Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
+TrustNode TheoryArithPrivate::ppRewriteTerms(TNode n)
+{
   if(Theory::theoryOf(n) != THEORY_ARITH) {
-    return n;
+    return TrustNode::null();
   }
   // Eliminate operators recursively. Notice we must do this here since other
   // theories may generate lemmas that involve non-standard operators. For
   // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may
   // introduce non-standard arithmetic terms appearing in grammars.
   // call eliminate operators
-  Node nn = d_opElim.eliminateOperators(n);
-  if (nn != n)
-  {
-    // since elimination may introduce new operators to eliminate, we must
-    // recursively eliminate result
-    return d_opElim.eliminateOperatorsRec(nn);
-  }
-  return n;
+  return d_opElim.eliminate(n);
 }
 
-Node TheoryArithPrivate::ppRewrite(TNode atom) {
+TrustNode TheoryArithPrivate::ppRewrite(TNode atom)
+{
   Debug("arith::preprocess") << "arith::preprocess() : " << atom << endl;
 
   if (options::arithRewriteEq())
@@ -1106,13 +1110,21 @@ Node TheoryArithPrivate::ppRewrite(TNode atom) {
     {
       Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
       Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
-      leq = ppRewriteTerms(leq);
-      geq = ppRewriteTerms(geq);
+      TrustNode tleq = ppRewriteTerms(leq);
+      TrustNode tgeq = ppRewriteTerms(geq);
+      if (!tleq.isNull())
+      {
+        leq = tleq.getNode();
+      }
+      if (!tgeq.isNull())
+      {
+        geq = tgeq.getNode();
+      }
       Node rewritten = Rewriter::rewrite(leq.andNode(geq));
       Debug("arith::preprocess")
           << "arith::preprocess() : returning " << rewritten << endl;
       // don't need to rewrite terms since rewritten is not a non-standard op
-      return rewritten;
+      return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
     }
   }
   return ppRewriteTerms(atom);
@@ -1279,8 +1291,10 @@ void TheoryArithPrivate::setupVariableList(const VarList& vl){
   }else{
     if (d_nonlinearExtension == nullptr)
     {
-      if( vlNode.getKind()==kind::EXPONENTIAL || vlNode.getKind()==kind::SINE || 
-          vlNode.getKind()==kind::COSINE || vlNode.getKind()==kind::TANGENT ){
+      if (vlNode.getKind() == kind::EXPONENTIAL
+          || vlNode.getKind() == kind::SINE || vlNode.getKind() == kind::COSINE
+          || vlNode.getKind() == kind::TANGENT)
+      {
         d_nlIncomplete = true;
       }
     }
@@ -1725,7 +1739,6 @@ ConstraintP TheoryArithPrivate::constraintFromFactQueue(){
   } else {
     Debug("arith::constraint") << "already has proof: " << constraint->externalExplainByAssertions() << endl;
   }
-  
 
   if(Debug.isOn("arith::negatedassumption") && inConflict){
     ConstraintP negation = constraint->getNegation();
@@ -1893,7 +1906,7 @@ void TheoryArithPrivate::outputConflicts(){
   Debug("arith::conflict") << "outputting conflicts" << std::endl;
   Assert(anyConflict());
   static unsigned int conflicts = 0;
-  
+
   if(!conflictQueueEmpty()){
     Assert(!d_conflicts.empty());
     for(size_t i = 0, i_end = d_conflicts.size(); i < i_end; ++i){
@@ -1911,34 +1924,6 @@ void TheoryArithPrivate::outputConflicts(){
       ++conflicts;
       Debug("arith::conflict") << "d_conflicts[" << i << "] " << conflict
                                << " has proof: " << hasProof << endl;
-      PROOF(if (d_containing.d_proofRecorder && confConstraint->hasFarkasProof()
-                && pf.d_farkasCoefficients->size()
-                       == conflict.getNumChildren()) {
-        // The Farkas coefficients and the children of `conflict` seem to be in
-        // opposite orders... There is some relevant documentation in the
-        // comment for the d_farkasCoefficients field  in "constraint.h"
-        //
-        // Anyways, we reverse the children in `conflict` here.
-        NodeBuilder<> conflictInFarkasCoefficientOrder(kind::AND);
-        for (size_t j = 0, nchildren = conflict.getNumChildren(); j < nchildren;
-             ++j)
-        {
-          conflictInFarkasCoefficientOrder
-              << conflict[conflict.getNumChildren() - j - 1];
-        }
-
-        if (Debug.isOn("arith::pf::tree")) {
-          confConstraint->printProofTree(Debug("arith::pf::tree"));
-          confConstraint->getNegation()->printProofTree(Debug("arith::pf::tree"));
-        }
-
-        Assert(conflict.getNumChildren() == pf.d_farkasCoefficients->size());
-        if (confConstraint->hasSimpleFarkasProof())
-        {
-          d_containing.d_proofRecorder->saveFarkasCoefficients(
-              conflictInFarkasCoefficientOrder, pf.d_farkasCoefficients);
-        }
-      })
       if(Debug.isOn("arith::normalize::external")){
         conflict = flattenAndSort(conflict);
         Debug("arith::conflict") << "(normalized to) " << conflict << endl;
@@ -2177,7 +2162,6 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const D
       return make_pair(imp, added);
     }
   }
-  
 
   ConstraintP newc = d_constraintDatabase.getConstraint(v, t, dr);
   d_replayConstraints.push_back(newc);
@@ -2324,7 +2308,7 @@ void TheoryArithPrivate::tryBranchCut(ApproximateSimplex* approx, int nid, Branc
       // ConstraintCPVec& back = conflicts.back();
       // back.push_back(conflicting);
       // back.push_back(negConflicting);
-      
+
       // // remove the floor/ceiling contraint implied by bcneg
       // Constraint::assertionFringe(back);
     }
@@ -2362,14 +2346,15 @@ void TheoryArithPrivate::replayAssert(ConstraintP c) {
     }else{
       Debug("approx::replayAssert") << "replayAssert " << c << " has explanation" << endl;
     }
-    Debug("approx::replayAssert") << "replayAssertion " << c << endl;    
+    Debug("approx::replayAssert") << "replayAssertion " << c << endl;
     if(inConflict){
       raiseConflict(c);
     }else{
       assertionCases(c);
     }
   }else{
-    Debug("approx::replayAssert") << "replayAssert " << c << " already asserted" << endl;    
+    Debug("approx::replayAssert")
+        << "replayAssert " << c << " already asserted" << endl;
   }
 }
 
@@ -2538,7 +2523,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
 
         SimplexDecisionProcedure& simplex = selectSimplex(true);
         simplex.findModel(false);
-	// can change d_qflraStatus
+        // can change d_qflraStatus
 
         d_linEq.stopTrackingBoundCounts();
         d_partialModel.startQueueingBoundCounts();
@@ -3088,13 +3073,13 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
     << " " << useApprox
     << " " << safeToCallApprox()
     << endl;
-  
+
   bool noPivotLimitPass1 = noPivotLimit && !useApprox;
   d_qflraStatus = simplex.findModel(noPivotLimitPass1);
 
   Debug("TheoryArithPrivate::solveRealRelaxation")
     << "solveRealRelaxation()" << " pass1 " << d_qflraStatus << endl;
-  
+
   if(d_qflraStatus == Result::SAT_UNKNOWN && useApprox && safeToCallApprox()){
     // pass2: fancy-final
     static const int32_t relaxationLimit = 10000;
@@ -3262,7 +3247,6 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
 //   if(!useFancyFinal){
 //     d_qflraStatus = simplex.findModel(noPivotLimit);
 //   }else{
-    
 
 //     if(d_qflraStatus == Result::SAT_UNKNOWN){
 //       //Message() << "got sat unknown" << endl;
@@ -3698,7 +3682,7 @@ Node TheoryArithPrivate::branchIntegerVariable(ArithVar x) const {
     Integer ceil_d = d.ceiling();
     Rational f = r - floor_d;
     // Multiply by -1 to get abs value.
-    Rational c = (r - ceil_d) * (-1); 
+    Rational c = (r - ceil_d) * (-1);
     Integer nearest = (c > f) ? floor_d : ceil_d;
 
     // Prioritize trying a simple rounding of the real solution first,
@@ -3890,31 +3874,6 @@ Node TheoryArithPrivate::explain(TNode n)
     Assert(d_congruenceManager.canExplain(n));
     Debug("arith::explain") << "dm explanation" << n << endl;
     return d_congruenceManager.explain(n);
-  }
-}
-
-bool TheoryArithPrivate::getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) {
-  if (d_nonlinearExtension != nullptr)
-  {
-    return d_nonlinearExtension->getCurrentSubstitution( effort, vars, subs, exp );
-  }else{
-    return false;
-  }
-}
-
-bool TheoryArithPrivate::isExtfReduced(int effort, Node n, Node on,
-                                       std::vector<Node>& exp) {
-  if (d_nonlinearExtension != nullptr)
-  {
-    std::pair<bool, Node> reduced =
-        d_nonlinearExtension->isExtfReduced(effort, n, on, exp);
-    if (!reduced.second.isNull()) {
-      exp.clear();
-      exp.push_back(reduced.second);
-    }
-    return reduced.first;
-  } else {
-    return false;  // d_containing.isExtfReduced( effort, n, on );
   }
 }
 
@@ -4127,8 +4086,8 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
   Debug("arith::collectModelInfo") << "collectModelInfo() begin " << endl;
 
   std::set<Node> termSet;
-  d_containing.computeRelevantTerms(termSet);
- 
+  const std::set<Kind>& irrKinds = m->getIrrelevantKinds();
+  d_containing.computeAssertedTerms(termSet, irrKinds, true);
 
   // Delta lasts at least the duration of the function call
   const Rational& delta = d_partialModel.getDelta();
@@ -4359,7 +4318,7 @@ bool TheoryArithPrivate::propagateCandidateBound(ArithVar basic, bool upperBound
     //We are only going to recreate the functionality for now.
     //In the future this can be improved to generate a temporary constraint
     //if none exists.
-    //Experiment with doing this everytime or only when the new constraint
+    //Experiment with doing this every time or only when the new constraint
     //implies an unknown fact.
 
     ConstraintType t = upperBound ? UpperBound : LowerBound;
@@ -4638,7 +4597,6 @@ bool TheoryArithPrivate::tryToPropagate(RowIndex ridx, bool rowUp, ArithVar v, b
 
     ConstraintP implied = d_constraintDatabase.getBestImpliedBound(v, t, bound);
     if(implied != NullConstraint){
-      
       return rowImplicationCanBeApplied(ridx, rowUp, implied);
     }
   }
@@ -4686,9 +4644,8 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
 
   if( !assertedToTheTheory && canBePropagated && !hasProof ){
     ConstraintCPVec explain;
-
-    PROOF(d_farkasBuffer.clear());
-    RationalVectorP coeffs = NULLPROOF(&d_farkasBuffer);
+    ARITH_PROOF(d_farkasBuffer.clear());
+    RationalVectorP coeffs = ARITH_NULLPROOF(&d_farkasBuffer);
 
     // After invoking `propegateRow`:
     //   * coeffs[0] is for implied
@@ -4703,38 +4660,6 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
       }
       Node implication = implied->externalImplication(explain);
       Node clause = flattenImplication(implication);
-      PROOF(if (d_containing.d_proofRecorder
-                && coeffs != RationalVectorCPSentinel
-                && coeffs->size() == clause.getNumChildren()) {
-        Debug("arith::prop") << "implied    : " << implied << std::endl;
-        Debug("arith::prop") << "implication: " << implication << std::endl;
-        Debug("arith::prop") << "coeff len: " << coeffs->size() << std::endl;
-        Debug("arith::prop") << "exp    : " << explain << std::endl;
-        Debug("arith::prop") << "clause : " << clause << std::endl;
-        Debug("arith::prop")
-            << "clause len: " << clause.getNumChildren() << std::endl;
-        Debug("arith::prop") << "exp len: " << explain.size() << std::endl;
-        // Using the information from the above comment we assemble a conflict
-        // AND in coefficient order
-        NodeBuilder<> conflictInFarkasCoefficientOrder(kind::AND);
-        conflictInFarkasCoefficientOrder << implication[1].negate();
-        for (const Node& antecedent : implication[0])
-        {
-          Debug("arith::prop") << "  ante: " << antecedent << std::endl;
-          conflictInFarkasCoefficientOrder << antecedent;
-        }
-
-        Assert(coeffs != RationalVectorPSentinel);
-        Assert(conflictInFarkasCoefficientOrder.getNumChildren()
-               == coeffs->size());
-        if (std::all_of(explain.begin(), explain.end(), [](ConstraintCP c) {
-              return c->isAssumption() || c->hasIntTightenProof();
-            }))
-        {
-          d_containing.d_proofRecorder->saveFarkasCoefficients(
-              conflictInFarkasCoefficientOrder, coeffs);
-        }
-      })
       outputLemma(clause);
     }else{
       Assert(!implied->negationHasProof());
@@ -4811,17 +4736,10 @@ const BoundsInfo& TheoryArithPrivate::boundsInfo(ArithVar basic) const{
   return d_rowTracking[ridx];
 }
 
-Node TheoryArithPrivate::expandDefinition(Node node)
+TrustNode TheoryArithPrivate::expandDefinition(Node node)
 {
   // call eliminate operators
-  Node nn = d_opElim.eliminateOperators(node);
-  if (nn != node)
-  {
-    // since elimination may introduce new operators to eliminate, we must
-    // recursively eliminate result
-    return d_opElim.eliminateOperatorsRec(nn);
-  }
-  return node;
+  return d_opElim.eliminate(node);
 }
 
 std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit, const ArithEntailmentCheckParameters& params, ArithEntailmentCheckSideEffects& out){

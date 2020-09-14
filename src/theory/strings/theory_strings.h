@@ -32,6 +32,7 @@
 #include "theory/strings/infer_info.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/normal_form.h"
+#include "theory/strings/proof_checker.h"
 #include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/regexp_solver.h"
@@ -69,80 +70,68 @@ class TheoryStrings : public Theory {
                 const LogicInfo& logicInfo,
                 ProofNodeManager* pnm);
   ~TheoryStrings();
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+  /**
+   * Returns true if we need an equality engine. If so, we initialize the
+   * information regarding how it should be setup. For details, see the
+   * documentation in Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
   /** finish initialization */
   void finishInit() override;
-  /** Get the theory rewriter of this class */
-  TheoryRewriter* getTheoryRewriter() override;
-  /** Set the master equality engine */
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
+  //--------------------------------- end initialization
   /** Identify this theory */
   std::string identify() const override;
-  /** Propagate */
-  void propagate(Effort e) override;
   /** Explain */
   TrustNode explain(TNode literal) override;
-  /** Get the equality engine */
-  eq::EqualityEngine* getEqualityEngine() override;
-  /** Get current substitution */
-  bool getCurrentSubstitution(int effort,
-                              std::vector<Node>& vars,
-                              std::vector<Node>& subs,
-                              std::map<Node, std::vector<Node> >& exp) override;
   /** presolve */
   void presolve() override;
   /** shutdown */
   void shutdown() override {}
   /** add shared term */
-  void addSharedTerm(TNode n) override;
-  /** get equality status */
-  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
+  void notifySharedTerm(TNode n) override;
   /** preregister term */
   void preRegisterTerm(TNode n) override;
   /** Expand definition */
   TrustNode expandDefinition(Node n) override;
-  /** Check at effort e */
-  void check(Effort e) override;
-  /** needs check last effort */
+  //--------------------------------- standard check
+  /** Do we need a check call at last call effort? */
   bool needsCheckLastEffort() override;
+  bool preNotifyFact(TNode atom,
+                     bool pol,
+                     TNode fact,
+                     bool isPrereg,
+                     bool isInternal) override;
+  void notifyFact(TNode atom, bool pol, TNode fact, bool isInternal) override;
+  /** Post-check, called after the fact queue of the theory is processed. */
+  void postCheck(Effort level) override;
+  //--------------------------------- end standard check
+  /** propagate method */
+  bool propagateLit(TNode literal);
   /** Conflict when merging two constants */
   void conflict(TNode a, TNode b);
   /** called when a new equivalence class is created */
   void eqNotifyNewClass(TNode t);
   /** preprocess rewrite */
   TrustNode ppRewrite(TNode atom) override;
-  /**
-   * Get all relevant information in this theory regarding the current
-   * model. Return false if a contradiction is discovered.
-   */
-  bool collectModelInfo(TheoryModel* m) override;
+  /** Collect model values in m based on the relevant terms given by termSet */
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet) override;
 
  private:
   /** NotifyClass for equality engine */
   class NotifyClass : public eq::EqualityEngineNotify {
   public:
    NotifyClass(TheoryStrings& ts) : d_str(ts), d_state(ts.d_state) {}
-   bool eqNotifyTriggerEquality(TNode equality, bool value) override
-   {
-     Debug("strings") << "NotifyClass::eqNotifyTriggerEquality(" << equality
-                      << ", " << (value ? "true" : "false") << ")" << std::endl;
-     if (value)
-     {
-       return d_str.propagate(equality);
-     }
-     else
-     {
-       // We use only literal triggers so taking not is safe
-       return d_str.propagate(equality.notNode());
-     }
-    }
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
       Debug("strings") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
       if (value) {
-        return d_str.propagate(predicate);
-      } else {
-        return d_str.propagate(predicate.notNode());
+        return d_str.propagateLit(predicate);
       }
+      return d_str.propagateLit(predicate.notNode());
     }
     bool eqNotifyTriggerTermEquality(TheoryId tag,
                                      TNode t1,
@@ -151,10 +140,9 @@ class TheoryStrings : public Theory {
     {
       Debug("strings") << "NotifyClass::eqNotifyTriggerTermMerge(" << tag << ", " << t1 << ", " << t2 << ")" << std::endl;
       if (value) {
-        return d_str.propagate(t1.eqNode(t2));
-      } else {
-        return d_str.propagate(t1.eqNode(t2).notNode());
+        return d_str.propagateLit(t1.eqNode(t2));
       }
+      return d_str.propagateLit(t1.eqNode(t2).notNode());
     }
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
     {
@@ -166,14 +154,11 @@ class TheoryStrings : public Theory {
       Debug("strings") << "NotifyClass::eqNotifyNewClass(" << t << std::endl;
       d_str.eqNotifyNewClass(t);
     }
-    void eqNotifyPreMerge(TNode t1, TNode t2) override
+    void eqNotifyMerge(TNode t1, TNode t2) override
     {
-      Debug("strings") << "NotifyClass::eqNotifyPreMerge(" << t1 << ", " << t2 << std::endl;
-      d_state.eqNotifyPreMerge(t1, t2);
-    }
-    void eqNotifyPostMerge(TNode t1, TNode t2) override
-    {
-      Debug("strings") << "NotifyClass::eqNotifyPostMerge(" << t1 << ", " << t2 << std::endl;
+      Debug("strings") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2
+                       << std::endl;
+      d_state.eqNotifyMerge(t1, t2);
     }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
     {
@@ -187,8 +172,6 @@ class TheoryStrings : public Theory {
     /** The solver state of the theory of strings */
     SolverState& d_state;
   };/* class TheoryStrings::NotifyClass */
-  /** propagate method */
-  bool propagate(TNode literal);
   /** compute care graph */
   void computeCareGraph() override;
   /**
@@ -270,18 +253,20 @@ class TheoryStrings : public Theory {
    * theories is collected in this object.
    */
   SequencesStatistics d_statistics;
-  /** Equaltity engine */
-  eq::EqualityEngine d_equalityEngine;
   /** The solver state object */
   SolverState d_state;
   /** The term registry for this theory */
   TermRegistry d_termReg;
+  /** The extended theory callback */
+  StringsExtfCallback d_extTheoryCb;
   /** Extended theory, responsible for context-dependent simplification. */
   ExtTheory d_extTheory;
   /** The (custom) output channel of the theory of strings */
   InferenceManager d_im;
   /** The theory rewriter for this theory. */
   StringsRewriter d_rewriter;
+  /** The proof rule checker */
+  StringProofRuleChecker d_sProofChecker;
   /**
    * The base solver, responsible for reasoning about congruent terms and
    * inferring constants for equivalence classes.

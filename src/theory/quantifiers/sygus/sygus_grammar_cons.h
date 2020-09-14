@@ -222,7 +222,8 @@ public:
   };
 
   // helper for mkSygusDefaultGrammar (makes unresolved type for mutually recursive datatype construction)
-  static TypeNode mkUnresolvedType(const std::string& name, std::set<Type>& unres);
+  static TypeNode mkUnresolvedType(const std::string& name,
+                                   std::set<TypeNode>& unres);
   // collect the list of types that depend on type range
   static void collectSygusGrammarTypesFor(TypeNode range,
                                           std::vector<TypeNode>& types);
@@ -243,7 +244,7 @@ public:
           include_cons,
       std::unordered_set<Node, NodeHashFunction>& term_irrelevant,
       std::vector<SygusDatatypeGenerator>& sdts,
-      std::set<Type>& unres);
+      std::set<TypeNode>& unres);
 
   // helper function for mkSygusTemplateType
   static TypeNode mkSygusTemplateTypeRec(Node templ,

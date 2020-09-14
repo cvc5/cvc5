@@ -3,44 +3,6 @@ name   = "Bitvector theory"
 header = "options/bv_options.h"
 
 [[option]]
-  name       = "bvProofFormat"
-  category   = "expert"
-  long       = "bv-proof-format=MODE"
-  type       = "BvProofFormat"
-  default    = "ER"
-  predicates = ["checkSatSolverEnabled<BvProofFormat>"]
-  help       = "choose which UNSAT proof format to use, see --bv-sat-solver=help"
-  help_mode  = "Bit-vector proof formats."
-[[option.mode.ER]]
-  name = "er"
-  help = "Extended Resolution, i.e. resolution with new variable definitions."
-[[option.mode.DRAT]]
-  name = "drat"
-  help = "Deletion and Resolution Asymmetric Tautology Additions."
-[[option.mode.LRAT]]
-  name = "lrat"
-  help = "DRAT with unit propagation hints to accelerate checking."
-
-[[option]]
-  name       = "bvOptimizeSatProof"
-  category   = "expert"
-  long       = "bv-optimize-sat-proof=MODE"
-  type       = "BvOptimizeSatProof"
-  default    = "FORMULA"
-  predicates = ["checkSatSolverEnabled<BvOptimizeSatProof>"]
-  help       = "enable SAT proof optimizations, see --bv-optimize-sat-proof=help"
-  help_mode  = "SAT proof optimization level."
-[[option.mode.NONE]]
-  name = "none"
-  help = "Do not optimize the SAT proof."
-[[option.mode.PROOF]]
-  name = "proof"
-  help = "Use drat-trim to shrink the SAT proof."
-[[option.mode.FORMULA]]
-  name = "formula"
-  help = "Use drat-trim to shrink the SAT proof and formula."
-
-[[option]]
   name       = "bvSatSolver"
   smt_name   = "bv-sat-solver"
   category   = "expert"
@@ -109,24 +71,6 @@ header = "options/bv_options.h"
   help       = "use the equality engine for the bit-vector theory (only if --bitblast=lazy)"
 
 [[option]]
-  name       = "bitvectorEqualitySlicer"
-  category   = "regular"
-  long       = "bv-eq-slicer=MODE"
-  type       = "BvSlicerMode"
-  default    = "OFF"
-  help       = "turn on the slicing equality solver for the bit-vector theory (only if --bitblast=lazy)"
-  help_mode  = "Bit-vector equality slicer modes."
-[[option.mode.ON]]
-  name = "on"
-  help = "Turn slicer on."
-[[option.mode.OFF]]
-  name = "off"
-  help = "Turn slicer off."
-[[option.mode.AUTO]]
-  name = "auto"
-  help = "Turn slicer on if input has only equalities over core symbols."
-
-[[option]]
   name       = "bitvectorInequalitySolver"
   category   = "regular"
   long       = "bv-inequality-solver"
@@ -190,7 +134,7 @@ header = "options/bv_options.h"
   category   = "regular"
   long       = "bv-div-zero-const"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "always return -1 on division by zero"
 
 [[option]]

@@ -182,7 +182,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
 }
 
 eq::EqualityEngine* EqualityQueryQuantifiersEngine::getEngine(){
-  return d_qe->getActiveEqualityEngine();
+  return d_qe->getMasterEqualityEngine();
 }
 
 void EqualityQueryQuantifiersEngine::getEquivalenceClass( Node a, std::vector< Node >& eqc ){

@@ -19,14 +19,12 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
 #define CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
 
-#include "context/context.h"
 #include "expr/node.h"
-#include "theory/output_channel.h"
 #include "theory/quantifiers/proof_checker.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
+#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/theory.h"
 #include "theory/valuation.h"
-#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
@@ -42,15 +40,29 @@ class TheoryQuantifiers : public Theory {
                     ProofNodeManager* pnm = nullptr);
   ~TheoryQuantifiers();
 
-  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
-
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
   /** finish initialization */
   void finishInit() override;
+  //--------------------------------- end initialization
+
   void preRegisterTerm(TNode n) override;
   void presolve() override;
   void ppNotifyAssertions(const std::vector<Node>& assertions) override;
-  void check(Effort e) override;
-  bool collectModelInfo(TheoryModel* m) override;
+  //--------------------------------- standard check
+  /** Post-check, called after the fact queue of the theory is processed. */
+  void postCheck(Effort level) override;
+  /** Pre-notify fact, return true if processed. */
+  bool preNotifyFact(TNode atom,
+                     bool pol,
+                     TNode fact,
+                     bool isPrereg,
+                     bool isInternal) override;
+  //--------------------------------- end standard check
+  /** Collect model values in m based on the relevant terms given by termSet */
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet) override;
   void shutdown() override {}
   std::string identify() const override
   {
@@ -66,6 +78,8 @@ class TheoryQuantifiers : public Theory {
   QuantifiersRewriter d_rewriter;
   /** The proof rule checker */
   QuantifiersProofRuleChecker d_qChecker;
+  /** The quantifiers state */
+  QuantifiersState d_qstate;
 };/* class TheoryQuantifiers */
 
 }/* CVC4::theory::quantifiers namespace */

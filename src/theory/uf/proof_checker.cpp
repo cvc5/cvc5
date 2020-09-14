@@ -14,6 +14,8 @@
 
 #include "theory/uf/proof_checker.h"
 
+#include "theory/uf/theory_uf_rewriter.h"
+
 using namespace CVC4::kind;
 
 namespace CVC4 {
@@ -31,6 +33,8 @@ void UfProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::TRUE_ELIM, this);
   pc->registerChecker(PfRule::FALSE_INTRO, this);
   pc->registerChecker(PfRule::FALSE_ELIM, this);
+  pc->registerChecker(PfRule::HO_CONG, this);
+  pc->registerChecker(PfRule::HO_APP_ENCODE, this);
 }
 
 Node UfProofRuleChecker::checkInternal(PfRule id,
@@ -86,15 +90,15 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
   else if (id == PfRule::CONG)
   {
     Assert(children.size() > 0);
-    Assert(args.size() == 1);
+    Assert(args.size() >= 1 && args.size() <= 2);
     // We do congruence over builtin kinds using operatorToKind
     std::vector<Node> lchildren;
     std::vector<Node> rchildren;
-    // get the expected kind for args[0]
-    Kind k = NodeManager::getKindForFunction(args[0]);
-    if (k == kind::UNDEFINED_KIND)
+    // get the kind encoded as args[0]
+    Kind k;
+    if (!getKind(args[0], k))
     {
-      k = NodeManager::operatorToKind(args[0]);
+      return Node::null();
     }
     if (k == kind::UNDEFINED_KIND)
     {
@@ -104,9 +108,17 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
                         << ", metakind=" << kind::metaKindOf(k) << std::endl;
     if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
     {
+      if (args.size() <= 1)
+      {
+        return Node::null();
+      }
       // parameterized kinds require the operator
-      lchildren.push_back(args[0]);
-      rchildren.push_back(args[0]);
+      lchildren.push_back(args[1]);
+      rchildren.push_back(args[1]);
+    }
+    else if (args.size() > 1)
+    {
+      return Node::null();
     }
     for (size_t i = 0, nchild = children.size(); i < nchild; i++)
     {
@@ -162,6 +174,32 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     return children[0][0].notNode();
+  }
+  if (id == PfRule::HO_CONG)
+  {
+    Assert(children.size() > 0);
+    std::vector<Node> lchildren;
+    std::vector<Node> rchildren;
+    for (size_t i = 0, nchild = children.size(); i < nchild; ++i)
+    {
+      Node eqp = children[i];
+      if (eqp.getKind() != EQUAL)
+      {
+        return Node::null();
+      }
+      lchildren.push_back(eqp[0]);
+      rchildren.push_back(eqp[1]);
+    }
+    NodeManager* nm = NodeManager::currentNM();
+    Node l = nm->mkNode(kind::APPLY_UF, lchildren);
+    Node r = nm->mkNode(kind::APPLY_UF, rchildren);
+    return l.eqNode(r);
+  }
+  else if (id == PfRule::HO_APP_ENCODE)
+  {
+    Assert(args.size() == 1);
+    Node ret = TheoryUfRewriter::getHoApplyForApplyUf(args[0]);
+    return args[0].eqNode(ret);
   }
   // no rule
   return Node::null();

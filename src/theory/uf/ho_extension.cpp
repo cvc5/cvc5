@@ -18,7 +18,6 @@
 #include "expr/node_algorithm.h"
 #include "options/uf_options.h"
 #include "theory/theory_model.h"
-#include "theory/uf/theory_uf.h"
 #include "theory/uf/theory_uf_rewriter.h"
 
 using namespace std;
@@ -28,10 +27,11 @@ namespace CVC4 {
 namespace theory {
 namespace uf {
 
-HoExtension::HoExtension(TheoryUF& p,
-                         context::Context* c,
-                         context::UserContext* u)
-    : d_parent(p), d_extensionality(u), d_uf_std_skolem(u)
+HoExtension::HoExtension(TheoryState& state, TheoryInferenceManager& im)
+    : d_state(state),
+      d_im(im),
+      d_extensionality(state.getUserContext()),
+      d_uf_std_skolem(state.getUserContext())
 {
   d_true = NodeManager::currentNM()->mkConst(true);
 }
@@ -107,7 +107,7 @@ unsigned HoExtension::applyExtensionality(TNode deq)
     Node lem = NodeManager::currentNM()->mkNode(OR, deq[0], conc);
     Trace("uf-ho-lemma") << "uf-ho-lemma : extensionality : " << lem
                          << std::endl;
-    d_parent.getOutputChannel().lemma(lem);
+    d_im.lemma(lem);
     return 1;
   }
   return 0;
@@ -167,7 +167,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
       Trace("uf-ho-lemma")
           << "uf-ho-lemma : Skolem definition for apply-conversion : " << lem
           << std::endl;
-      d_parent.getOutputChannel().lemma(lem);
+      d_im.lemma(lem);
       d_uf_std_skolem[f] = new_f;
     }
     else
@@ -191,7 +191,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
 
 unsigned HoExtension::checkExtensionality(TheoryModel* m)
 {
-  eq::EqualityEngine* ee = d_parent.getEqualityEngine();
+  eq::EqualityEngine* ee = d_state.getEqualityEngine();
   NodeManager* nm = NodeManager::currentNM();
   unsigned num_lemmas = 0;
   bool isCollectModel = (m != nullptr);
@@ -256,7 +256,7 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
               Node lem = nm->mkNode(OR, deq.negate(), eq);
               Trace("uf-ho") << "HoExtension: cmi extensionality lemma " << lem
                              << std::endl;
-              d_parent.getOutputChannel().lemma(lem);
+              d_im.lemma(lem);
               return 1;
             }
           }
@@ -276,15 +276,15 @@ unsigned HoExtension::applyAppCompletion(TNode n)
 {
   Assert(n.getKind() == APPLY_UF);
 
-  eq::EqualityEngine* ee = d_parent.getEqualityEngine();
+  eq::EqualityEngine* ee = d_state.getEqualityEngine();
   // must expand into APPLY_HO version if not there already
   Node ret = TheoryUfRewriter::getHoApplyForApplyUf(n);
   if (!ee->hasTerm(ret) || !ee->areEqual(ret, n))
   {
-    Node eq = ret.eqNode(n);
+    Node eq = n.eqNode(ret);
     Trace("uf-ho-lemma") << "uf-ho-lemma : infer, by apply-expand : " << eq
                          << std::endl;
-    ee->assertEquality(eq, true, d_true);
+    d_im.assertInternalFact(eq, true, PfRule::HO_APP_ENCODE, {}, {n});
     return 1;
   }
   Trace("uf-ho-debug") << "    ...already have " << ret << " == " << n << "."
@@ -297,7 +297,7 @@ unsigned HoExtension::checkAppCompletion()
   Trace("uf-ho") << "HoExtension::checkApplyCompletion..." << std::endl;
   // compute the operators that are relevant (those for which an HO_APPLY exist)
   std::set<TNode> rlvOp;
-  eq::EqualityEngine* ee = d_parent.getEqualityEngine();
+  eq::EqualityEngine* ee = d_state.getEqualityEngine();
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(ee);
   std::map<TNode, std::vector<Node> > apply_uf;
   while (!eqcs_i.isFinished())
@@ -388,7 +388,7 @@ unsigned HoExtension::check()
   do
   {
     num_facts = checkAppCompletion();
-    if (d_parent.inConflict())
+    if (d_state.isInConflict())
     {
       Trace("uf-ho") << "...conflict during app-completion." << std::endl;
       return 1;
@@ -413,7 +413,8 @@ unsigned HoExtension::check()
   return 0;
 }
 
-bool HoExtension::collectModelInfoHo(std::set<Node>& termSet, TheoryModel* m)
+bool HoExtension::collectModelInfoHo(TheoryModel* m,
+                                     const std::set<Node>& termSet)
 {
   for (std::set<Node>::iterator it = termSet.begin(); it != termSet.end(); ++it)
   {
@@ -440,7 +441,7 @@ bool HoExtension::collectModelInfoHoTerm(Node n, TheoryModel* m)
       Node eq = n.eqNode(hn);
       Trace("uf-ho") << "HoExtension: cmi app completion lemma " << eq
                      << std::endl;
-      d_parent.getOutputChannel().lemma(eq);
+      d_im.lemma(eq);
       return false;
     }
   }

@@ -70,6 +70,13 @@ class PropEngine
   CVC4_PUBLIC ~PropEngine();
 
   /**
+   * Finish initialize. Call this after construction just before we are
+   * ready to use this class. Should be called after TheoryEngine::finishInit.
+   * This method converts and asserts true and false into the CNF stream.
+   */
+  void finishInit();
+
+  /**
    * This is called by SmtEngine, at shutdown time, just before
    * destruction.  It is important because there are destruction
    * ordering issues between some parts of the system (notably between
@@ -96,11 +103,7 @@ class PropEngine
    * @param removable whether this lemma can be quietly removed based
    * on an activity heuristic (or not)
    */
-  void assertLemma(TNode node,
-                   bool negated,
-                   bool removable,
-                   ProofRule rule,
-                   TNode from = TNode::null());
+  void assertLemma(TNode node, bool negated, bool removable);
 
   /**
    * Pass a list of assertions from an AssertionPipeline to the decision engine.

@@ -15,7 +15,6 @@
  **/
 
 #include "theory/sets/theory_sets_rels.h"
-#include "expr/datatype.h"
 #include "theory/sets/theory_sets_private.h"
 #include "theory/sets/theory_sets.h"
 
@@ -34,19 +33,16 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
 
 TheorySetsRels::TheorySetsRels(SolverState& s,
                                InferenceManager& im,
-                               eq::EqualityEngine& e,
-                               context::UserContext* u)
-    : d_state(s), d_im(im), d_ee(e), d_shared_terms(u)
+                               SkolemCache& skc,
+                               TermRegistry& treg)
+    : d_state(s),
+      d_im(im),
+      d_skCache(skc),
+      d_treg(treg),
+      d_shared_terms(s.getUserContext())
 {
   d_trueNode = NodeManager::currentNM()->mkConst(true);
   d_falseNode = NodeManager::currentNM()->mkConst(false);
-  d_ee.addFunctionKind(PRODUCT);
-  d_ee.addFunctionKind(JOIN);
-  d_ee.addFunctionKind(TRANSPOSE);
-  d_ee.addFunctionKind(TCLOSURE);
-  d_ee.addFunctionKind(JOIN_IMAGE);
-  d_ee.addFunctionKind(IDEN);
-  d_ee.addFunctionKind(APPLY_CONSTRUCTOR);
 }
 
 TheorySetsRels::~TheorySetsRels() {}
@@ -185,10 +181,11 @@ void TheorySetsRels::check(Theory::Effort level)
 
   void TheorySetsRels::collectRelsInfo() {
     Trace("rels") << "[sets-rels] Start collecting relational terms..." << std::endl;
-    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(&d_ee);
+    eq::EqualityEngine* ee = d_state.getEqualityEngine();
+    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(ee);
     while( !eqcs_i.isFinished() ){
       Node                      eqc_rep  = (*eqcs_i);
-      eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc_rep, &d_ee);
+      eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc_rep, ee);
 
       TypeNode erType = eqc_rep.getType();
       Trace("rels-ee") << "[sets-rels-ee] Eqc term representative: " << eqc_rep << " with type " << eqc_rep.getType() << std::endl;
@@ -552,17 +549,16 @@ void TheorySetsRels::check(Theory::Effort level)
     }
     Node fst_element = RelsUtils::nthElementOfTuple( exp[0], 0 );
     Node snd_element = RelsUtils::nthElementOfTuple( exp[0], 1 );
-    SkolemCache& sc = d_state.getSkolemCache();
-    Node sk_1 = sc.mkTypedSkolemCached(fst_element.getType(),
-                                       exp[0],
-                                       tc_rel[0],
-                                       SkolemCache::SK_TCLOSURE_DOWN1,
-                                       "stc1");
-    Node sk_2 = sc.mkTypedSkolemCached(fst_element.getType(),
-                                       exp[0],
-                                       tc_rel[0],
-                                       SkolemCache::SK_TCLOSURE_DOWN2,
-                                       "stc2");
+    Node sk_1 = d_skCache.mkTypedSkolemCached(fst_element.getType(),
+                                              exp[0],
+                                              tc_rel[0],
+                                              SkolemCache::SK_TCLOSURE_DOWN1,
+                                              "stc1");
+    Node sk_2 = d_skCache.mkTypedSkolemCached(fst_element.getType(),
+                                              exp[0],
+                                              tc_rel[0],
+                                              SkolemCache::SK_TCLOSURE_DOWN2,
+                                              "stc2");
     Node mem_of_r = nm->mkNode(MEMBER, exp[0], tc_rel[0]);
     Node sk_eq = nm->mkNode(EQUAL, sk_1, sk_2);
     Node reason   = exp;
@@ -825,7 +821,7 @@ void TheorySetsRels::check(Theory::Effort level)
     Node r1_rep = getRepresentative(join_rel[0]);
     Node r2_rep = getRepresentative(join_rel[1]);
     TypeNode     shared_type    = r2_rep.getType().getSetElementType().getTupleTypes()[0];
-    Node shared_x = d_state.getSkolemCache().mkTypedSkolemCached(
+    Node shared_x = d_skCache.mkTypedSkolemCached(
         shared_type, mem, join_rel, SkolemCache::SK_JOIN, "srj");
     const DType& dt1 = join_rel[0].getType().getSetElementType().getDType();
     unsigned int s1_len         = join_rel[0].getType().getSetElementType().getTupleLength();
@@ -1111,7 +1107,7 @@ void TheorySetsRels::check(Theory::Effort level)
       // if we are still not in conflict, send lemmas
       if (!d_state.isInConflict())
       {
-        d_im.flushPendingLemmas();
+        d_im.doPendingLemmas();
       }
     }
     d_pending.clear();
@@ -1139,24 +1135,17 @@ void TheorySetsRels::check(Theory::Effort level)
   }
 
   Node TheorySetsRels::getRepresentative( Node t ) {
-    if (d_ee.hasTerm(t))
-    {
-      return d_ee.getRepresentative(t);
-    }
-    else
-    {
-      return t;
-    }
+    return d_state.getRepresentative(t);
   }
 
-  bool TheorySetsRels::hasTerm(Node a) { return d_ee.hasTerm(a); }
+  bool TheorySetsRels::hasTerm(Node a) { return d_state.hasTerm(a); }
   bool TheorySetsRels::areEqual( Node a, Node b ){
     Assert(a.getType() == b.getType());
     Trace("rels-eq") << "[sets-rels]**** checking equality between " << a << " and " << b << std::endl;
     if(a == b) {
       return true;
     } else if( hasTerm( a ) && hasTerm( b ) ){
-      return d_ee.areEqual(a, b);
+      return d_state.areEqual(a, b);
     } else if(a.getType().isTuple()) {
       bool equal = true;
       for(unsigned int i = 0; i < a.getType().getTupleLength(); i++) {
@@ -1202,7 +1191,7 @@ void TheorySetsRels::check(Theory::Effort level)
     Trace("rels-share") << " [sets-rels] making shared term " << n << std::endl;
     // force a proxy lemma to be sent for the singleton containing n
     Node ss = NodeManager::currentNM()->mkNode(SINGLETON, n);
-    d_state.getProxy(ss);
+    d_treg.getProxy(ss);
     d_shared_terms.insert(n);
   }
 

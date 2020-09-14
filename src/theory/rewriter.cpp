@@ -21,6 +21,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/builtin/proof_checker.h"
 #include "theory/rewriter_tables.h"
 #include "theory/theory.h"
 #include "util/resource_manager.h"
@@ -115,13 +116,18 @@ TrustNode Rewriter::rewriteWithProof(TNode node,
   return TrustNode::mkTrustRewrite(node, ret, d_tpg.get());
 }
 
-void Rewriter::setProofChecker(ProofChecker* pc)
+void Rewriter::setProofNodeManager(ProofNodeManager* pnm)
 {
   // if not already initialized with proof support
   if (d_tpg == nullptr)
   {
-    d_pnm.reset(new ProofNodeManager(pc));
-    d_tpg.reset(new TConvProofGenerator(d_pnm.get()));
+    // the rewriter is staticly determinstic, thus use static cache policy
+    // for the term conversion proof generator
+    d_tpg.reset(new TConvProofGenerator(pnm,
+                                        nullptr,
+                                        TConvPolicy::FIXPOINT,
+                                        TConvCachePolicy::STATIC,
+                                        "Rewriter::TConvProofGenerator"));
   }
 }
 
@@ -391,7 +397,7 @@ RewriteResponse Rewriter::preRewrite(theory::TheoryId theoryId,
           d_theoryRewriters[theoryId]->preRewriteWithProof(n);
       // process the trust rewrite response: store the proof step into
       // tcpg if necessary and then convert to rewrite response.
-      return processTrustRewriteResponse(tresponse, true, tcpg);
+      return processTrustRewriteResponse(theoryId, tresponse, true, tcpg);
     }
     return d_theoryRewriters[theoryId]->preRewrite(n);
   }
@@ -412,7 +418,7 @@ RewriteResponse Rewriter::postRewrite(theory::TheoryId theoryId,
       // same as above, for post-rewrite
       TrustRewriteResponse tresponse =
           d_theoryRewriters[theoryId]->postRewriteWithProof(n);
-      return processTrustRewriteResponse(tresponse, false, tcpg);
+      return processTrustRewriteResponse(theoryId, tresponse, false, tcpg);
     }
     return d_theoryRewriters[theoryId]->postRewrite(n);
   }
@@ -420,6 +426,7 @@ RewriteResponse Rewriter::postRewrite(theory::TheoryId theoryId,
 }
 
 RewriteResponse Rewriter::processTrustRewriteResponse(
+    theory::TheoryId theoryId,
     const TrustRewriteResponse& tresponse,
     bool isPre,
     TConvProofGenerator* tcpg)
@@ -433,13 +440,14 @@ RewriteResponse Rewriter::processTrustRewriteResponse(
     ProofGenerator* pg = trn.getGenerator();
     if (pg == nullptr)
     {
+      Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
       // add small step trusted rewrite
       NodeManager* nm = NodeManager::currentNM();
       tcpg->addRewriteStep(proven[0],
                            proven[1],
                            PfRule::THEORY_REWRITE,
                            {},
-                           {proven[0], nm->mkConst(isPre)});
+                           {proven, tidn, nm->mkConst(isPre)});
     }
     else
     {

@@ -18,6 +18,7 @@
 #include "theory/arith/nl/nonlinear_extension.h"
 
 #include "options/arith_options.h"
+#include "options/theory_options.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/ext_theory.h"
@@ -32,15 +33,20 @@ namespace nl {
 
 NonlinearExtension::NonlinearExtension(TheoryArith& containing,
                                        eq::EqualityEngine* ee)
-    : d_lemmas(containing.getUserContext()),
-      d_lemmasPp(containing.getUserContext()),
-      d_containing(containing),
+    : d_containing(containing),
+      d_im(containing.getInferenceManager()),
       d_ee(ee),
       d_needsLastCall(false),
-      d_extTheory(&containing),
+      d_checkCounter(0),
+      d_extTheoryCb(ee),
+      d_extTheory(d_extTheoryCb,
+                  containing.getSatContext(),
+                  containing.getUserContext(),
+                  containing.getOutputChannel()),
       d_model(containing.getSatContext()),
       d_trSlv(d_model),
       d_nlSlv(containing, d_model),
+      d_cadSlv(d_im, d_model),
       d_iandSlv(containing, d_model),
       d_builtModel(containing.getSatContext(), false)
 {
@@ -64,124 +70,14 @@ void NonlinearExtension::preRegisterTerm(TNode n)
   d_extTheory.registerTermRec(n);
 }
 
-bool NonlinearExtension::getCurrentSubstitution(
-    int effort,
-    const std::vector<Node>& vars,
-    std::vector<Node>& subs,
-    std::map<Node, std::vector<Node>>& exp)
-{
-  // get the constant equivalence classes
-  std::map<Node, std::vector<int>> rep_to_subs_index;
-
-  bool retVal = false;
-  for (unsigned i = 0; i < vars.size(); i++)
-  {
-    Node n = vars[i];
-    if (d_ee->hasTerm(n))
-    {
-      Node nr = d_ee->getRepresentative(n);
-      if (nr.isConst())
-      {
-        subs.push_back(nr);
-        Trace("nl-subs") << "Basic substitution : " << n << " -> " << nr
-                         << std::endl;
-        exp[n].push_back(n.eqNode(nr));
-        retVal = true;
-      }
-      else
-      {
-        rep_to_subs_index[nr].push_back(i);
-        subs.push_back(n);
-      }
-    }
-    else
-    {
-      subs.push_back(n);
-    }
-  }
-
-  // return true if the substitution is non-trivial
-  return retVal;
-}
-
-std::pair<bool, Node> NonlinearExtension::isExtfReduced(
-    int effort, Node n, Node on, const std::vector<Node>& exp) const
-{
-  if (n != d_zero)
-  {
-    Kind k = n.getKind();
-    return std::make_pair(
-        k != NONLINEAR_MULT && !isTranscendentalKind(k) && k != IAND,
-        Node::null());
-  }
-  Assert(n == d_zero);
-  if (on.getKind() == NONLINEAR_MULT)
-  {
-    Trace("nl-ext-zero-exp")
-        << "Infer zero : " << on << " == " << n << std::endl;
-    // minimize explanation if a substitution+rewrite results in zero
-    const std::set<Node> vars(on.begin(), on.end());
-
-    for (unsigned i = 0, size = exp.size(); i < size; i++)
-    {
-      Trace("nl-ext-zero-exp")
-          << "  exp[" << i << "] = " << exp[i] << std::endl;
-      std::vector<Node> eqs;
-      if (exp[i].getKind() == EQUAL)
-      {
-        eqs.push_back(exp[i]);
-      }
-      else if (exp[i].getKind() == AND)
-      {
-        for (const Node& ec : exp[i])
-        {
-          if (ec.getKind() == EQUAL)
-          {
-            eqs.push_back(ec);
-          }
-        }
-      }
-
-      for (unsigned j = 0; j < eqs.size(); j++)
-      {
-        for (unsigned r = 0; r < 2; r++)
-        {
-          if (eqs[j][r] == d_zero && vars.find(eqs[j][1 - r]) != vars.end())
-          {
-            Trace("nl-ext-zero-exp")
-                << "...single exp : " << eqs[j] << std::endl;
-            return std::make_pair(true, eqs[j]);
-          }
-        }
-      }
-    }
-  }
-  return std::make_pair(true, Node::null());
-}
-
 void NonlinearExtension::sendLemmas(const std::vector<NlLemma>& out)
 {
   for (const NlLemma& nlem : out)
   {
-    Node lem = nlem.d_lemma;
-    bool preprocess = nlem.d_preprocess;
-    Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : " << nlem.d_id
-                          << " : " << lem << std::endl;
-    d_containing.getOutputChannel().lemma(lem, false, preprocess);
-    // process the side effect
-    processSideEffect(nlem);
-    // add to cache if not preprocess
-    if (preprocess)
-    {
-      d_lemmasPp.insert(lem);
-    }
-    else
-    {
-      d_lemmas.insert(lem);
-    }
-    d_stats.d_inferences << nlem.d_id;
-    // also indicate this is a tautology
-    d_model.addTautology(lem);
+    Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : " << nlem.d_inference
+                          << " : " << nlem.d_node << std::endl;
+    d_im.addPendingArithLemma(nlem);
+    d_stats.d_inferences << nlem.d_inference;
   }
 }
 
@@ -190,17 +86,32 @@ void NonlinearExtension::processSideEffect(const NlLemma& se)
   d_trSlv.processSideEffect(se);
 }
 
+void NonlinearExtension::computeRelevantAssertions(
+    const std::vector<Node>& assertions, std::vector<Node>& keep)
+{
+  Trace("nl-ext-rlv") << "Compute relevant assertions..." << std::endl;
+  Valuation v = d_containing.getValuation();
+  for (const Node& a : assertions)
+  {
+    if (v.isRelevant(a))
+    {
+      keep.push_back(a);
+    }
+  }
+  Trace("nl-ext-rlv") << "...keep " << keep.size() << "/" << assertions.size()
+                      << " assertions" << std::endl;
+}
+
 unsigned NonlinearExtension::filterLemma(NlLemma lem, std::vector<NlLemma>& out)
 {
   Trace("nl-ext-lemma-debug")
-      << "NonlinearExtension::Lemma pre-rewrite : " << lem.d_lemma << std::endl;
-  lem.d_lemma = Rewriter::rewrite(lem.d_lemma);
-  // get the proper cache
-  NodeSet& lcache = lem.d_preprocess ? d_lemmasPp : d_lemmas;
-  if (lcache.find(lem.d_lemma) != lcache.end())
+      << "NonlinearExtension::Lemma pre-rewrite : " << lem.d_node << std::endl;
+  lem.d_node = Rewriter::rewrite(lem.d_node);
+
+  if (d_im.hasCachedLemma(lem.d_node, lem.d_property))
   {
     Trace("nl-ext-lemma-debug")
-        << "NonlinearExtension::Lemma duplicate : " << lem.d_lemma << std::endl;
+        << "NonlinearExtension::Lemma duplicate : " << lem.d_node << std::endl;
     return 0;
   }
   out.emplace_back(lem);
@@ -215,7 +126,7 @@ unsigned NonlinearExtension::filterLemmas(std::vector<NlLemma>& lemmas,
     // check if any are entailed to be false
     for (const NlLemma& lem : lemmas)
     {
-      Node ch_lemma = lem.d_lemma.negate();
+      Node ch_lemma = lem.d_node.negate();
       ch_lemma = Rewriter::rewrite(ch_lemma);
       Trace("nl-ext-et-debug")
           << "Check entailment of " << ch_lemma << "..." << std::endl;
@@ -226,7 +137,7 @@ unsigned NonlinearExtension::filterLemmas(std::vector<NlLemma>& lemmas,
       if (et.first)
       {
         Trace("nl-ext-et") << "*** Lemma entailed to be in conflict : "
-                           << lem.d_lemma << std::endl;
+                           << lem.d_node << std::endl;
         // return just this lemma
         if (filterLemma(lem, out) > 0)
         {
@@ -249,6 +160,16 @@ unsigned NonlinearExtension::filterLemmas(std::vector<NlLemma>& lemmas,
 void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
 {
   Trace("nl-ext") << "Getting assertions..." << std::endl;
+  bool useRelevance = false;
+  if (options::nlRlvMode() == options::NlRlvMode::INTERLEAVE)
+  {
+    useRelevance = (d_checkCounter % 2);
+  }
+  else if (options::nlRlvMode() == options::NlRlvMode::ALWAYS)
+  {
+    useRelevance = true;
+  }
+  Valuation v = d_containing.getValuation();
   NodeManager* nm = NodeManager::currentNM();
   // get the assertions
   std::map<Node, Rational> init_bounds[2];
@@ -261,7 +182,14 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
   {
     nassertions++;
     const Assertion& assertion = *it;
+    Trace("nl-ext") << "Loaded " << assertion.d_assertion << " from theory"
+                    << std::endl;
     Node lit = assertion.d_assertion;
+    if (useRelevance && !v.isRelevant(lit))
+    {
+      // not relevant, skip
+      continue;
+    }
     init_assertions.insert(lit);
     // check for concrete bounds
     bool pol = lit.getKind() != NOT;
@@ -356,6 +284,21 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
     }
   }
 
+  // Try to be "more deterministic" by adding assertions in the order they were
+  // given
+  for (auto it = d_containing.facts_begin(); it != d_containing.facts_end();
+       ++it)
+  {
+    Node lit = (*it).d_assertion;
+    auto iait = init_assertions.find(lit);
+    if (iait != init_assertions.end())
+    {
+      assertions.push_back(lit);
+      init_assertions.erase(iait);
+    }
+  }
+  // Now add left over assertions that have been newly created within this
+  // function by the code above.
   for (const Node& a : init_assertions)
   {
     assertions.push_back(a);
@@ -388,7 +331,6 @@ std::vector<Node> NonlinearExtension::checkModelEval(
 }
 
 bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
-                                    const std::vector<Node>& false_asserts,
                                     std::vector<NlLemma>& lemmas,
                                     std::vector<Node>& gs)
 {
@@ -396,6 +338,10 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
 
   // get the presubstitution
   Trace("nl-ext-cm-debug") << "  apply pre-substitution..." << std::endl;
+  // Notice that we do not consider relevance here, since assertions were
+  // already filtered based on relevance. It is incorrect to filter based on
+  // relevance here, since we may have discarded literals that are relevant
+  // that are entailed based on the techniques in getAssertions.
   std::vector<Node> passertions = assertions;
   if (options::nlExt())
   {
@@ -405,10 +351,15 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
       return false;
     }
   }
+  if (options::nlCad())
+  {
+    d_cadSlv.constructModelIfAvailable(passertions);
+  }
 
   Trace("nl-ext-cm") << "-----" << std::endl;
   unsigned tdegree = d_trSlv.getTaylorDegree();
-  bool ret = d_model.checkModel(passertions, tdegree, lemmas, gs);
+  bool ret =
+      d_model.checkModel(passertions, tdegree, lemmas, gs);
   return ret;
 }
 
@@ -422,6 +373,14 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
 
   ++(d_stats.d_checkRuns);
 
+  if (Trace.isOn("nl-ext"))
+  {
+    for (const auto& a : assertions)
+    {
+      Trace("nl-ext") << "Input assertion: " << a << std::endl;
+    }
+  }
+
   if (options::nlExt())
   {
     // initialize the non-linear solver
@@ -431,10 +390,14 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     // process lemmas that may have been generated by the transcendental solver
     filterLemmas(lemmas, lems);
   }
-  
+  if (options::nlCad())
+  {
+    d_cadSlv.initLastCall(assertions);
+  }
+
   // init last call with IAND
   d_iandSlv.initLastCall(assertions, false_asserts, xts);
-  
+
   if (!lems.empty())
   {
     Trace("nl-ext") << "  ...finished with " << lems.size()
@@ -478,7 +441,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                     << std::endl;
     return lems.size();
   }
-  
+
   // main calls to nlExt
   if (options::nlExt())
   {
@@ -592,6 +555,19 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       filterLemmas(lemmas, wlems);
     }
   }
+  if (options::nlCad())
+  {
+    d_cadSlv.checkFull();
+    if (!d_im.hasUsed())
+    {
+      Trace("nl-cad") << "nl-cad found SAT!" << std::endl;
+    }
+    else
+    {
+      // checkFull() only adds a single conflict
+      return 1;
+    }
+  }
   // run the full refinement in the IAND solver
   lemmas = d_iandSlv.checkFullRefine();
   filterLemmas(lemmas, wlems);
@@ -632,9 +608,12 @@ void NonlinearExtension::check(Theory::Effort e)
   else
   {
     // If we computed lemmas during collectModelInfo, send them now.
-    if (!d_cmiLemmas.empty())
+    if (!d_cmiLemmas.empty() || d_im.hasPendingLemma())
     {
       sendLemmas(d_cmiLemmas);
+      d_im.doPendingFacts();
+      d_im.doPendingLemmas();
+      d_im.doPendingPhaseRequirements();
       return;
     }
     // Otherwise, we will answer SAT. The values that we approximated are
@@ -661,6 +640,7 @@ void NonlinearExtension::check(Theory::Effort e)
 bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
 {
   ++(d_stats.d_mbrRuns);
+  d_checkCounter++;
 
   // get the assertions
   std::vector<Node> assertions;
@@ -766,7 +746,7 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
       // error bounds on the Taylor approximation of transcendental functions.
       std::vector<NlLemma> lemmas;
       std::vector<Node> gs;
-      if (checkModel(assertions, false_asserts, lemmas, gs))
+      if (checkModel(assertions, lemmas, gs))
       {
         complete_status = 1;
       }
@@ -810,7 +790,7 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
             d_containing.getOutputChannel().requirePhase(literal, true);
             Trace("nl-ext-debug") << "Split on : " << literal << std::endl;
             Node split = literal.orNode(literal.negate());
-            NlLemma nsplit(split, Inference::SHARED_TERM_VALUE_SPLIT);
+            NlLemma nsplit(split, InferenceId::NL_SHARED_TERM_VALUE_SPLIT);
             filterLemma(nsplit, stvLemmas);
           }
           if (!stvLemmas.empty())

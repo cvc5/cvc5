@@ -51,11 +51,11 @@ target_link_libraries(cvc4-bin cvc4 cvc4parser)
 if(PROGRAM_PREFIX)
   install(PROGRAMS
     $<TARGET_FILE:cvc4-bin>
-    DESTINATION ${RUNTIME_INSTALL_DIR}
+    DESTINATION ${CMAKE_INSTALL_BINDIR}
     RENAME ${PROGRAM_PREFIX}cvc4)
 else()
   install(TARGETS cvc4-bin
-    DESTINATION ${RUNTIME_INSTALL_DIR})
+    DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 
 # In order to get a fully static executable we have to make sure that we also
@@ -71,7 +71,7 @@ endif()
 if(USE_EDITLINE)
   target_link_libraries(cvc4-bin ${Editline_LIBRARIES})
   target_link_libraries(main-test ${Editline_LIBRARIES})
-  target_include_directories(main PRIVATE ${Editline_INCLUDE_DIR})
+  target_include_directories(main PRIVATE ${Editline_INCLUDE_DIRS})
 endif()
 
 #-----------------------------------------------------------------------------#

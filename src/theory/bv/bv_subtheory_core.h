@@ -30,8 +30,24 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-class Slicer;
 class Base;
+
+/** An extended theory callback used by the core solver */
+class CoreSolverExtTheoryCallback : public ExtTheoryCallback
+{
+ public:
+  CoreSolverExtTheoryCallback() : d_equalityEngine(nullptr) {}
+  /** Get current substitution based on the underlying equality engine. */
+  bool getCurrentSubstitution(int effort,
+                              const std::vector<Node>& vars,
+                              std::vector<Node>& subs,
+                              std::map<Node, std::vector<Node> >& exp) override;
+  /** Get reduction. */
+  bool getReduction(int effort, Node n, Node& nr, bool& satDep) override;
+  /** The underlying equality engine */
+  eq::EqualityEngine* d_equalityEngine;
+};
+
 /**
  * Bitvector equality solver
  */
@@ -43,7 +59,6 @@ class CoreSolver : public SubtheorySolver {
 
   struct Statistics {
     IntStat d_numCallstoCheck;
-    BackedStat<bool> d_slicerEnabled;
     Statistics();
     ~Statistics();
   };
@@ -54,16 +69,14 @@ class CoreSolver : public SubtheorySolver {
 
   public:
     NotifyClass(CoreSolver& solver): d_solver(solver) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override;
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override;
     bool eqNotifyTriggerTermEquality(TheoryId tag,
                                      TNode t1,
                                      TNode t2,
                                      bool value) override;
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override;
-    void eqNotifyNewClass(TNode t) override;
-    void eqNotifyPreMerge(TNode t1, TNode t2) override {}
-    void eqNotifyPostMerge(TNode t1, TNode t2) override {}
+    void eqNotifyNewClass(TNode t) override {}
+    void eqNotifyMerge(TNode t1, TNode t2) override {}
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
   };
 
@@ -71,71 +84,84 @@ class CoreSolver : public SubtheorySolver {
   /** The notify class for d_equalityEngine */
   NotifyClass d_notify;
 
-  /** Equality engine */
-  eq::EqualityEngine d_equalityEngine;
-
   /** Store a propagation to the bv solver */
   bool storePropagation(TNode literal);
 
   /** Store a conflict from merging two constants */
   void conflict(TNode a, TNode b);
 
-  /** new equivalence class */
-  void eqNotifyNewClass(TNode t);
-
-  std::unique_ptr<Slicer> d_slicer;
   context::CDO<bool> d_isComplete;
   unsigned d_lemmaThreshold;
-  
-  /** Used to ensure that the core slicer is used properly*/
-  bool d_useSlicer;
+
   bool d_preregisterCalled;
   bool d_checkCalled;
 
-  /** Pointer to the extended theory module. */
-  ExtTheory* d_extTheory;
+  /** Pointer to the parent theory solver that owns this */
+  BVSolverLazy* d_bv;
+  /** Pointer to the equality engine of the parent */
+  eq::EqualityEngine* d_equalityEngine;
+  /** The extended theory callback */
+  CoreSolverExtTheoryCallback d_extTheoryCb;
+  /** Extended theory module, for context-dependent simplification. */
+  std::unique_ptr<ExtTheory> d_extTheory;
 
   /** To make sure we keep the explanations */
   context::CDHashSet<Node, NodeHashFunction> d_reasons;
   ModelValue d_modelValues;
   void buildModel();
   bool assertFactToEqualityEngine(TNode fact, TNode reason);
-  bool decomposeFact(TNode fact);
-  Node getBaseDecomposition(TNode a);
   bool isCompleteForTerm(TNode term, TNodeBoolMap& seen);
   Statistics d_statistics;
-public:
- CoreSolver(context::Context* c, TheoryBV* bv, ExtTheory* extt);
- ~CoreSolver();
- bool isComplete() override { return d_isComplete; }
- void setMasterEqualityEngine(eq::EqualityEngine* eq);
- void preRegister(TNode node) override;
- bool check(Theory::Effort e) override;
- void explain(TNode literal, std::vector<TNode>& assumptions) override;
- bool collectModelInfo(TheoryModel* m, bool fullModel) override;
- Node getModelValue(TNode var) override;
- void addSharedTerm(TNode t) override
- {
-   d_equalityEngine.addTriggerTerm(t, THEORY_BV);
-  }
-  EqualityStatus getEqualityStatus(TNode a, TNode b) override
-  {
-    if (d_equalityEngine.areEqual(a, b)) {
-      // The terms are implied to be equal
-      return EQUALITY_TRUE;
-    }
-    if (d_equalityEngine.areDisequal(a, b, false)) {
-      // The terms are implied to be dis-equal
-      return EQUALITY_FALSE;
-    }
-    return EQUALITY_UNKNOWN;
-  }
-  bool hasTerm(TNode node) const { return d_equalityEngine.hasTerm(node); }
-  void addTermToEqualityEngine(TNode node) { d_equalityEngine.addTerm(node); }
-  void enableSlicer();
-  eq::EqualityEngine * getEqualityEngine() { return &d_equalityEngine; }
-};
 
+  /** Whether we need a last call effort check */
+  bool d_needsLastCallCheck;
+  /** For extended functions */
+  context::CDHashSet<Node, NodeHashFunction> d_extf_range_infer;
+  context::CDHashSet<Node, NodeHashFunction> d_extf_collapse_infer;
+
+  /** do extended function inferences
+   *
+   * This method adds lemmas on the output channel of TheoryBV based on
+   * reasoning about extended functions, such as bv2nat and int2bv. Examples
+   * of lemmas added by this method include:
+   *   0 <= ((_ int2bv w) x) < 2^w
+   *   ((_ int2bv w) (bv2nat x)) = x
+   *   (bv2nat ((_ int2bv w) x)) == x + k*2^w
+   * The purpose of these lemmas is to recognize easy conflicts before fully
+   * reducing extended functions based on their full semantics.
+   */
+  bool doExtfInferences(std::vector<Node>& terms);
+  /** do extended function reductions
+   *
+   * This method adds lemmas on the output channel of TheoryBV based on
+   * reducing all extended function applications that are preregistered to
+   * this theory and have not already been reduced by context-dependent
+   * simplification (see theory/ext_theory.h). Examples of lemmas added by
+   * this method include:
+   *   (bv2nat x) = (ite ((_ extract w w-1) x) 2^{w-1} 0) + ... +
+   *                (ite ((_ extract 1 0) x) 1 0)
+   */
+  bool doExtfReductions(std::vector<Node>& terms);
+
+ public:
+  CoreSolver(context::Context* c, BVSolverLazy* bv);
+  ~CoreSolver();
+  bool needsEqualityEngine(EeSetupInfo& esi);
+  void finishInit();
+  bool isComplete() override { return d_isComplete; }
+  void preRegister(TNode node) override;
+  bool check(Theory::Effort e) override;
+  void explain(TNode literal, std::vector<TNode>& assumptions) override;
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet) override;
+  Node getModelValue(TNode var) override;
+  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
+  bool hasTerm(TNode node) const;
+  void addTermToEqualityEngine(TNode node);
+  /** check extended functions at the given effort */
+  void checkExtf(Theory::Effort e);
+  bool needsCheckLastEffort() const;
+};
 
 }
 }

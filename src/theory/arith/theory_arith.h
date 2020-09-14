@@ -17,11 +17,11 @@
 
 #pragma once
 
-#include "theory/theory.h"
 #include "expr/node.h"
-#include "proof/arith_proof_recorder.h"
+#include "theory/arith/arith_state.h"
+#include "theory/arith/inference_manager.h"
 #include "theory/arith/theory_arith_private_forward.h"
-
+#include "theory/theory.h"
 
 namespace CVC4 {
 namespace theory {
@@ -41,11 +41,6 @@ class TheoryArith : public Theory {
 
   TimerStat d_ppRewriteTimer;
 
-  /**
-   * @brief Where to store Farkas proofs of lemmas
-   */
-  proof::ArithProofRecorder * d_proofRecorder;
-
  public:
   TheoryArith(context::Context* c,
               context::UserContext* u,
@@ -55,31 +50,32 @@ class TheoryArith : public Theory {
               ProofNodeManager* pnm = nullptr);
   virtual ~TheoryArith();
 
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
+  /**
+   * Returns true if this theory needs an equality engine, which is assigned
+   * to it (d_equalityEngine) by the equality engine manager during
+   * TheoryEngine::finishInit, prior to calling finishInit for this theory.
+   * If this method returns true, it stores instructions for the notifications
+   * this Theory wishes to receive from its equality engine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
+  /** finish initialization */
+  void finishInit() override;
+  //--------------------------------- end initialization
 
   /**
    * Does non-context dependent setup for a node connected to a theory.
    */
   void preRegisterTerm(TNode n) override;
 
-  void finishInit() override;
-
   TrustNode expandDefinition(Node node) override;
-
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
   void check(Effort e) override;
   bool needsCheckLastEffort() override;
   void propagate(Effort e) override;
   TrustNode explain(TNode n) override;
-  bool getCurrentSubstitution(int effort,
-                              std::vector<Node>& vars,
-                              std::vector<Node>& subs,
-                              std::map<Node, std::vector<Node> >& exp) override;
-  bool isExtfReduced(int effort,
-                     Node n,
-                     Node on,
-                     std::vector<Node>& exp) override;
 
   bool collectModelInfo(TheoryModel* m) override;
 
@@ -95,16 +91,24 @@ class TheoryArith : public Theory {
 
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
-  void addSharedTerm(TNode n) override;
+  void notifySharedTerm(TNode n) override;
 
   Node getModelValue(TNode var) override;
 
   std::pair<bool, Node> entailmentCheck(TNode lit) override;
 
-  void setProofRecorder(proof::ArithProofRecorder* proofRecorder)
+  /** Return a reference to the arith::InferenceManager. */
+  InferenceManager& getInferenceManager()
   {
-    d_proofRecorder = proofRecorder;
+    return d_inferenceManager;
   }
+
+ private:
+  /** The state object wrapping TheoryArithPrivate  */
+  ArithState d_astate;
+
+  /** The arith::InferenceManager. */
+  InferenceManager d_inferenceManager;
 
 };/* class TheoryArith */
 

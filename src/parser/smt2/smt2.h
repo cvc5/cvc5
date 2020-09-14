@@ -60,6 +60,11 @@ class Smt2 : public Parser
    */
   std::unordered_map<std::string, api::Kind> d_indexedOpKindMap;
   std::pair<api::Term, std::string> d_lastNamedTerm;
+  /**
+   * A list of sygus grammar objects. We keep track of them here to ensure that
+   * they don't get deleted before the commands using them get invoked.
+   */
+  std::vector<std::unique_ptr<api::Grammar>> d_allocGrammars;
 
  protected:
   Smt2(api::Solver* solver,
@@ -198,7 +203,7 @@ class Smt2 : public Parser
      * Creates an instance of `SynthFunFactory`.
      *
      * @param smt2 Pointer to the parser state
-     * @param fun Name of the function to synthesize
+     * @param id Name of the function to synthesize
      * @param isInv True if the goal is to synthesize an invariant, false
      * otherwise
      * @param range The return type of the function-to-synthesize
@@ -206,11 +211,10 @@ class Smt2 : public Parser
      */
     SynthFunFactory(
         Smt2* smt2,
-        const std::string& fun,
+        const std::string& id,
         bool isInv,
         api::Sort range,
         std::vector<std::pair<std::string, api::Sort>>& sortedVarNames);
-    ~SynthFunFactory();
 
     const std::vector<api::Term>& getSygusVars() const { return d_sygusVars; }
 
@@ -220,13 +224,13 @@ class Smt2 : public Parser
      * @param grammar Optional grammar associated with the synth-fun command
      * @return The instance of `SynthFunCommand`
      */
-    std::unique_ptr<Command> mkCommand(api::Sort grammar);
+    std::unique_ptr<Command> mkCommand(api::Grammar* grammar);
 
    private:
     Smt2* d_smt2;
-    std::string d_fun;
-    api::Term d_synthFun;
-    api::Sort d_sygusType;
+    std::string d_id;
+    api::Term d_fun;
+    api::Sort d_sort;
     bool d_isInv;
     std::vector<api::Term> d_sygusVars;
   };
@@ -256,6 +260,15 @@ class Smt2 : public Parser
    * Get the logic.
    */
   const LogicInfo& getLogic() const { return d_logic; }
+
+  /**
+   * Create a Sygus grammar.
+   * @param boundVars the parameters to corresponding synth-fun/synth-inv
+   * @param ntSymbols the pre-declaration of the non-terminal symbols
+   * @return a pointer to the grammar
+   */
+  api::Grammar* mkGrammar(const std::vector<api::Term>& boundVars,
+                          const std::vector<api::Term>& ntSymbols);
 
   bool v2_0() const
   {
@@ -308,10 +321,13 @@ class Smt2 : public Parser
    */
   void checkLogicAllowsFunctions();
 
-  void checkUserSymbol(const std::string& name) {
-    if(name.length() > 0 && (name[0] == '.' || name[0] == '@')) {
+  void checkUserSymbol(const std::string& name)
+  {
+    if (name.length() > 0 && (name[0] == '.' || name[0] == '@'))
+    {
       std::stringstream ss;
-      ss << "cannot declare or define symbol `" << name << "'; symbols starting with . and @ are reserved in SMT-LIB";
+      ss << "cannot declare or define symbol `" << name
+         << "'; symbols starting with . and @ are reserved in SMT-LIB";
       parseError(ss.str());
     }
     else if (isOperatorEnabled(name))
@@ -329,7 +345,8 @@ class Smt2 : public Parser
     d_lastNamedTerm = std::make_pair(e, name);
   }
 
-  void clearLastNamedTerm() {
+  void clearLastNamedTerm()
+  {
     d_lastNamedTerm = std::make_pair(api::Term(), "");
   }
 
@@ -345,31 +362,6 @@ class Smt2 : public Parser
    */
   api::Term mkAbstractValue(const std::string& name);
 
-  /**
-   * Adds a constructor to sygus datatype dt whose sygus operator is term.
-   *
-   * ntsToUnres contains a mapping from non-terminal symbols to the unresolved
-   * types they correspond to. This map indicates how the argument term should
-   * be interpreted (instances of symbols from the domain of ntsToUnres
-   * correspond to constructor arguments).
-   *
-   * The sygus operator that is actually added to dt corresponds to replacing
-   * each occurrence of non-terminal symbols from the domain of ntsToUnres
-   * with bound variables via purifySygusGTerm, and binding these variables
-   * via a lambda.
-   */
-  void addSygusConstructorTerm(
-      api::DatatypeDecl& dt,
-      api::Term term,
-      std::map<api::Term, api::Sort>& ntsToUnres) const;
-  /**
-   * This adds constructors to dt for sygus variables in sygusVars whose
-   * type is argument type. This method should be called when the sygus grammar
-   * term (Variable type) is encountered.
-   */
-  void addSygusConstructorVariables(api::DatatypeDecl& dt,
-                                    const std::vector<api::Term>& sygusVars,
-                                    api::Sort type) const;
   /**
    * Smt2 parser provides its own checkDeclaration, which does the
    * same as the base, but with some more helpful errors.
@@ -475,22 +467,6 @@ class Smt2 : public Parser
   //------------------------- end processing parse operators
  private:
 
-  /** Purify sygus grammar term
-   *
-   * This returns a term where all occurrences of non-terminal symbols (those
-   * in the domain of ntsToUnres) are replaced by fresh variables. For each
-   * variable replaced in this way, we add the fresh variable it is replaced
-   * with to args, and the unresolved type corresponding to the non-terminal
-   * symbol to cargs (constructor args). In other words, args contains the
-   * free variables in the term returned by this method (which should be bound
-   * by a lambda), and cargs contains the types of the arguments of the
-   * sygus constructor.
-   */
-  api::Term purifySygusGTerm(api::Term term,
-                             std::map<api::Term, api::Sort>& ntsToUnres,
-                             std::vector<api::Term>& args,
-                             std::vector<api::Sort>& cargs) const;
-
   void addArithmeticOperators();
 
   void addTranscendentalOperators();
@@ -519,7 +495,7 @@ class Smt2 : public Parser
   api::Term mkAnd(const std::vector<api::Term>& es);
 }; /* class Smt2 */
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace CVC4
 
 #endif /* CVC4__PARSER__SMT2_H */

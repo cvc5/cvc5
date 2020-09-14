@@ -18,6 +18,7 @@
 
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/bitblast/lazy_bitblaster.h"
+#include "theory/bv/bv_solver_lazy.h"
 #include "theory/bv/theory_bv_utils.h"
 
 using namespace CVC4::prop;
@@ -26,11 +27,12 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-BVQuickCheck::BVQuickCheck(const std::string& name, theory::bv::TheoryBV* bv)
-  : d_ctx()
-  , d_bitblaster(new TLazyBitblaster(&d_ctx, bv, name, true))
-  , d_conflict()
-  , d_inConflict(&d_ctx, false)
+BVQuickCheck::BVQuickCheck(const std::string& name,
+                           theory::bv::BVSolverLazy* bv)
+    : d_ctx(),
+      d_bitblaster(new TLazyBitblaster(&d_ctx, bv, name, true)),
+      d_conflict(),
+      d_inConflict(&d_ctx, false)
 {}
 
 
@@ -138,9 +140,10 @@ void BVQuickCheck::popToZero() {
   }
 }
 
-bool BVQuickCheck::collectModelInfo(theory::TheoryModel* model, bool fullModel)
+bool BVQuickCheck::collectModelValues(theory::TheoryModel* model,
+                                      const std::set<Node>& termSet)
 {
-  return d_bitblaster->collectModelInfo(model, fullModel);
+  return d_bitblaster->collectModelValues(model, termSet);
 }
 
 BVQuickCheck::~BVQuickCheck() {

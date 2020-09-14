@@ -26,7 +26,6 @@
 #include "smt/smt_engine_scope.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
-#include "util/proof.h"
 #include "util/resource_manager.h"
 
 using namespace CVC4;
@@ -48,18 +47,16 @@ class TestOutputChannel : public OutputChannel {
   ~TestOutputChannel() override {}
 
   void safePoint(ResourceManager::Resource r) override {}
-  void conflict(TNode n, std::unique_ptr<Proof> pf) override
-  {
-    push(CONFLICT, n);
-  }
+  void conflict(TNode n) override { push(CONFLICT, n); }
 
   bool propagate(TNode n) override {
     push(PROPAGATE, n);
     return true;
   }
 
-  LemmaStatus lemma(TNode n, ProofRule rule, bool removable = false,
-                    bool preprocess = false, bool sendAtoms = false) override {
+  LemmaStatus lemma(TNode n,
+                    LemmaProperty p = LemmaProperty::NONE) override
+  {
     push(LEMMA, n);
     return LemmaStatus(Node::null(), 0);
   }
@@ -178,12 +175,12 @@ class TheoryBlack : public CxxTest::TestSuite {
     // Notice that this unit test uses the theory engine of a created SMT
     // engine d_smt. We must ensure that d_smt is properly initialized via
     // the following call, which constructs its underlying theory engine.
-    d_smt->finalOptionsAreSet();
+    d_smt->finishInit();
     // guard against duplicate statistics assertion errors
-    delete d_smt->d_theoryEngine->d_theoryTable[THEORY_BUILTIN];
-    delete d_smt->d_theoryEngine->d_theoryOut[THEORY_BUILTIN];
-    d_smt->d_theoryEngine->d_theoryTable[THEORY_BUILTIN] = NULL;
-    d_smt->d_theoryEngine->d_theoryOut[THEORY_BUILTIN] = NULL;
+    delete d_smt->getTheoryEngine()->d_theoryTable[THEORY_BUILTIN];
+    delete d_smt->getTheoryEngine()->d_theoryOut[THEORY_BUILTIN];
+    d_smt->getTheoryEngine()->d_theoryTable[THEORY_BUILTIN] = NULL;
+    d_smt->getTheoryEngine()->d_theoryOut[THEORY_BUILTIN] = NULL;
 
     d_dummy = new DummyTheory(d_ctxt,
                               d_uctxt,
@@ -296,7 +293,7 @@ class TheoryBlack : public CxxTest::TestSuite {
 
   void testOutputChannel() {
     Node n = atom0.orNode(atom1);
-    d_outputChannel.lemma(n, RULE_INVALID);
+    d_outputChannel.lemma(n);
     d_outputChannel.split(atom0);
     Node s = atom0.orNode(atom0.notNode());
     TS_ASSERT_EQUALS(d_outputChannel.d_callHistory.size(), 2u);

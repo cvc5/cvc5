@@ -317,3 +317,36 @@ are configured to **run** in parallel with the maximum number of threads
 available on the system. Override with `ARGS=-jN`.
 
 Use `-jN` for parallel **building** with `N` threads.
+
+
+## Recompiling a specific CVC4 version with different LGPL library versions
+
+To recompile a specific static binary of CVC4 with different versions of the
+linked LGPL libraries perform the following steps:
+
+1. Make sure that you have installed the desired LGPL library versions.
+   You can check the versions found by CVC4's build system during the configure
+   phase.
+
+2. Determine the commit sha and configuration of the CVC4 binary
+```
+cvc4 --show-config
+```
+3. Download the specific source code version:
+```
+wget https://github.com/CVC4/CVC4/archive/<commit-sha>.tar.gz
+```
+4. Extract the source code
+```
+tar xf <commit-sha>.tar.gz
+```
+5. Change into source code directory
+```
+cd CVC4-<commit-sha>
+```
+6. Configure CVC4 with options listed by `cvc4 --show-config`
+```
+./configure.sh --static <options>
+```
+
+7. Follow remaining steps from [build instructions](#building-cvc4)
