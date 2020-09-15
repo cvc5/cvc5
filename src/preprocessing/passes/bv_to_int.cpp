@@ -687,11 +687,7 @@ Node BVToInt::translateNoChildren(Node original)
         uint64_t bvsize = original.getType().getBitVectorSize();
         translation = newVar;
         d_rangeAssertions.insert(mkRangeConstraint(newVar, bvsize));
-        std::vector<Expr> args;
-        Node intToBVOp = d_nm->mkConst<IntToBitVector>(IntToBitVector(bvsize));
-        Node newNode = d_nm->mkNode(intToBVOp, newVar);
-        smt::currentSmtEngine()->defineFunction(
-            original.toExpr(), args, newNode.toExpr(), true);
+        defineBVUFAsIntUF(original, newVar);
     }
     else if (original.getType().isFunction())
     {
@@ -761,33 +757,41 @@ void BVToInt::defineBVUFAsIntUF(Node bvUF, Node intUF)
   // with the right domain and range.
 
   // get domain and range of the original function
-  TypeNode tn = bvUF.getType();
-  vector<TypeNode> bvDomain = tn.getArgTypes();
-  TypeNode bvRange = tn.getRangeType();
+  TypeNode resultType;
+
 
   // symbolic arguments of original function
   vector<Expr> args;
-  // children of the new symbolic application
-  vector<Node> achildren;
-  achildren.push_back(intUF);
-  int i = 0;
-  for (TypeNode d : bvDomain)
-  {
-    // Each bit-vector argument is casted to a natural number
-    // Other arguments are left intact.
-    Node fresh_bound_var = d_nm->mkBoundVar(d);
-    args.push_back(fresh_bound_var.toExpr());
-    Node castedArg = args[i];
-    if (d.isBitVector())
+  Node intApplication;
+  if (!bvUF.getType().isFunction()) {
+    intApplication = intUF;
+    resultType = bvUF.getType();
+  } else {
+    TypeNode tn = bvUF.getType();
+    resultType = tn.getRangeType();
+    vector<TypeNode> bvDomain = tn.getArgTypes();
+    // children of the new symbolic application
+    vector<Node> achildren;
+    achildren.push_back(intUF);
+    int i = 0;
+    for (TypeNode d : bvDomain)
     {
-      castedArg = castToType(castedArg, d_nm->integerType());
+      // Each bit-vector argument is casted to a natural number
+      // Other arguments are left intact.
+      Node fresh_bound_var = d_nm->mkBoundVar(d);
+      args.push_back(fresh_bound_var.toExpr());
+      Node castedArg = args[i];
+      if (d.isBitVector())
+      {
+        castedArg = castToType(castedArg, d_nm->integerType());
+      }
+      achildren.push_back(castedArg);
+      i++;
     }
-    achildren.push_back(castedArg);
-    i++;
+    intApplication = d_nm->mkNode(kind::APPLY_UF, achildren);
   }
-  Node intApplication = d_nm->mkNode(kind::APPLY_UF, achildren);
   // If the range is BV, the application needs to be casted back.
-  intApplication = castToType(intApplication, bvRange);
+  intApplication = castToType(intApplication, resultType);
   // add the function definition to the smt engine.
   smt::currentSmtEngine()->defineFunction(
       bvUF.toExpr(), args, intApplication.toExpr(), true);
