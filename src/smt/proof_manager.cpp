@@ -62,8 +62,8 @@ void PfManager::setFinalProof(ProofGenerator* pg, context::CDList<Node>* al)
   // response. This method would need to cache its result otherwise.
   Trace("smt-proof") << "SmtEngine::setFinalProof(): get proof body...\n";
 
-  // d_finalProof should just be a ProofNode
-  std::shared_ptr<ProofNode> body = pg->getProofFor(d_false)->clone();
+  // d_finalProof should just be a ProofNode, do not clone
+  std::shared_ptr<ProofNode> body = pg->getProofFor(d_false);
 
   if (Trace.isOn("smt-proof-debug"))
   {
@@ -75,6 +75,7 @@ void PfManager::setFinalProof(ProofGenerator* pg, context::CDList<Node>* al)
 
   if (Trace.isOn("smt-proof"))
   {
+    Trace("smt-proof") << "SmtEngine::setFinalProof(): get free assumptions..." << std::endl;
     std::vector<Node> fassumps;
     expr::getFreeAssumptions(body.get(), fassumps);
     Trace("smt-proof")
