@@ -21,6 +21,7 @@
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
+#include "smt/smt_engine.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/abstraction.h"
 #include "theory/bv/bv_solver_lazy.h"
@@ -79,12 +80,14 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c,
       prop::SatSolverFactory::createMinisat(c, smtStatisticsRegistry(), name));
 
   ResourceManager* rm = smt::currentResourceManager();
-  d_cnfStream.reset(new prop::TseitinCnfStream(d_satSolver.get(),
-                                               d_nullRegistrar.get(),
-                                               d_nullContext.get(),
-                                               rm,
-                                               false,
-                                               "LazyBitblaster"));
+  d_cnfStream.reset(
+      new prop::TseitinCnfStream(d_satSolver.get(),
+                                 d_nullRegistrar.get(),
+                                 d_nullContext.get(),
+                                 smt::currentSmtEngine()->getOutputManager(),
+                                 rm,
+                                 false,
+                                 "LazyBitblaster"));
 
   d_satSolverNotify.reset(
       d_emptyNotify
@@ -573,8 +576,12 @@ void TLazyBitblaster::clearSolver() {
   d_satSolver.reset(
       prop::SatSolverFactory::createMinisat(d_ctx, smtStatisticsRegistry()));
   ResourceManager* rm = smt::currentResourceManager();
-  d_cnfStream.reset(new prop::TseitinCnfStream(
-      d_satSolver.get(), d_nullRegistrar.get(), d_nullContext.get(), rm));
+  d_cnfStream.reset(
+      new prop::TseitinCnfStream(d_satSolver.get(),
+                                 d_nullRegistrar.get(),
+                                 d_nullContext.get(),
+                                 smt::currentSmtEngine()->getOutputManager(),
+                                 rm));
   d_satSolverNotify.reset(
       d_emptyNotify
           ? (prop::BVSatSolverNotify*)new MinisatEmptyNotify()

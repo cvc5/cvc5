@@ -31,6 +31,7 @@
 #include "options/options.h"
 #include "proof/unsat_core.h"
 #include "smt/logic_exception.h"
+#include "smt/output_manager.h"
 #include "smt/smt_mode.h"
 #include "theory/logic_info.h"
 #include "util/hash.h"
@@ -865,7 +866,9 @@ class CVC4_PUBLIC SmtEngine
   smt::DumpManager* getDumpManager();
 
   /** Get the printer used by this SMT engine */
-  Printer* getPrinter() const;
+  const Printer* getPrinter() const;
+
+  OutputManager& getOutputManager();
 
   /**
    * Get expanded assertions.
@@ -1132,7 +1135,11 @@ class CVC4_PUBLIC SmtEngine
   std::unique_ptr<smt::SmtEngineStatistics> d_stats;
 
   /** The options object */
-  mutable Options d_options;
+  Options d_options;
+
+  /** the dump output manager for commands */
+  mutable OutputManager d_outMgr;
+
   /**
    * Manager for limiting time and abstract resource usage.
    */

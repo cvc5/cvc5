@@ -452,11 +452,13 @@ public:
 
           Node condition = node.eqNode(result).notNode();
 
-          std::ostream& out = *smt::currentSmtEngine()->getOptions().getOut();
-          Printer* printer = smt::currentSmtEngine()->getPrinter();
+          const Printer& printer =
+              smt::currentSmtEngine()->getOutputManager().getPrinter();
+          std::ostream& out =
+              smt::currentSmtEngine()->getOutputManager().getDumpOut();
 
-          printer->toStreamCmdComment(out, os.str());
-          printer->toStreamCmdCheckSat(out, condition);
+          printer.toStreamCmdComment(out, os.str());
+          printer.toStreamCmdCheckSat(out, condition);
         }
       }
       Debug("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node << ") => " << result << std::endl;

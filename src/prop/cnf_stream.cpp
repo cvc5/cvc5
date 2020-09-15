@@ -44,10 +44,14 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace prop {
 
-CnfStream::CnfStream(SatSolver* satSolver, Registrar* registrar,
-                     context::Context* context, bool fullLitToNodeMap,
+CnfStream::CnfStream(SatSolver* satSolver,
+                     Registrar* registrar,
+                     context::Context* context,
+                     OutputManager& outMgr,
+                     bool fullLitToNodeMap,
                      std::string name)
     : d_satSolver(satSolver),
+      d_outMgr(outMgr),
       d_booleanVariables(context),
       d_nodeToLiteralMap(context),
       d_literalToNodeMap(context),
@@ -56,16 +60,18 @@ CnfStream::CnfStream(SatSolver* satSolver, Registrar* registrar,
       d_registrar(registrar),
       d_name(name),
       d_cnfProof(NULL),
-      d_removable(false) {
+      d_removable(false)
+{
 }
 
 TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver,
                                    Registrar* registrar,
                                    context::Context* context,
+                                   OutputManager& outMgr,
                                    ResourceManager* rm,
                                    bool fullLitToNodeMap,
                                    std::string name)
-    : CnfStream(satSolver, registrar, context, fullLitToNodeMap, name),
+    : CnfStream(satSolver, registrar, context, outMgr, fullLitToNodeMap, name),
       d_resourceManager(rm)
 {}
 
@@ -73,11 +79,11 @@ void CnfStream::assertClause(TNode node, SatClause& c) {
   Debug("cnf") << "Inserting into stream " << c << " node = " << node << endl;
   if (Dump.isOn("clauses"))
   {
-    std::ostream& out = *smt::currentSmtEngine()->getOptions().getOut();
-    Printer* printer = smt::currentSmtEngine()->getPrinter();
+    const Printer& printer = d_outMgr.getPrinter();
+    std::ostream& out = d_outMgr.getDumpOut();
     if (c.size() == 1)
     {
-      printer->toStreamCmdAssert(out, getNode(c[0]));
+      printer.toStreamCmdAssert(out, getNode(c[0]));
     }
     else
     {
@@ -88,7 +94,7 @@ void CnfStream::assertClause(TNode node, SatClause& c) {
         b << getNode(c[i]);
       }
       Node n = b;
-      printer->toStreamCmdAssert(out, n);
+      printer.toStreamCmdAssert(out, n);
     }
   }
 

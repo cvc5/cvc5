@@ -137,6 +137,9 @@ class TheoryEngine {
    */
   const LogicInfo& d_logicInfo;
 
+  /** Reference to the output manager of the smt engine */
+  OutputManager& d_outMgr;
+
   //--------------------------------- new proofs
   /** Proof node manager used by this theory engine, if proofs are enabled */
   ProofNodeManager* d_pnm;
@@ -314,7 +317,8 @@ class TheoryEngine {
                context::UserContext* userContext,
                ResourceManager* rm,
                RemoveTermFormulas& iteRemover,
-               const LogicInfo& logic);
+               const LogicInfo& logic,
+               OutputManager& outMgr);
 
   /** Destroys a theory engine */
   ~TheoryEngine();

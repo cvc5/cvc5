@@ -32,8 +32,12 @@ namespace smt {
 
 SygusSolver::SygusSolver(SmtSolver& sms,
                          Preprocessor& pp,
-                         context::UserContext* u)
-    : d_smtSolver(sms), d_pp(pp), d_sygusConjectureStale(u, true)
+                         context::UserContext* u,
+                         OutputManager& outMgr)
+    : d_smtSolver(sms),
+      d_pp(pp),
+      d_sygusConjectureStale(u, true),
+      d_outMgr(outMgr)
 {
 }
 
@@ -209,7 +213,7 @@ Result SygusSolver::checkSynth(Assertions& as)
     Trace("smt") << "Check synthesis conjecture: " << body << std::endl;
     if (Dump.isOn("raw-benchmark"))
     {
-      smt::currentSmtEngine()->getPrinter()->toStreamCmdCheckSynth(
+      d_outMgr.getPrinter().toStreamCmdCheckSynth(
           *smt::currentSmtEngine()->getOptions().getOut());
     }
 

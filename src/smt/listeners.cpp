@@ -37,7 +37,11 @@ void ResourceOutListener::notify()
   d_smt.interrupt();
 }
 
-SmtNodeManagerListener::SmtNodeManagerListener(DumpManager& dm) : d_dm(dm) {}
+SmtNodeManagerListener::SmtNodeManagerListener(DumpManager& dm,
+                                               OutputManager& outMgr)
+    : d_dm(dm), d_outMgr(outMgr)
+{
+}
 
 void SmtNodeManagerListener::nmNotifyNewSort(TypeNode tn, uint32_t flags)
 {
@@ -93,8 +97,8 @@ void SmtNodeManagerListener::nmNotifyNewSkolem(TNode n,
   DeclareFunctionNodeCommand c(id, n, n.getType());
   if (Dump.isOn("skolems") && comment != "")
   {
-    smt::currentSmtEngine()->getPrinter()->toStreamCmdComment(
-        *smt::currentSmtEngine()->getOptions().getOut(), id + " is " + comment);
+    d_outMgr.getPrinter().toStreamCmdComment(d_outMgr.getDumpOut(),
+                                             id + " is " + comment);
   }
   if ((flags & ExprManager::VAR_FLAG_DEFINED) == 0)
   {

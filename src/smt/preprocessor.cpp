@@ -129,7 +129,8 @@ Node Preprocessor::simplify(const Node& node, bool removeItes)
   Trace("smt") << "SMT simplify(" << node << ")" << endl;
   if (Dump.isOn("benchmark"))
   {
-    d_smt.getPrinter()->toStreamCmdSimplify(*d_smt.getOptions().getOut(), node);
+    d_smt.getOutputManager().getPrinter().toStreamCmdSimplify(
+        *d_smt.getOptions().getOut(), node);
   }
   Node nas = d_absValues.substituteAbstractValues(node);
   if (options::typeChecking())

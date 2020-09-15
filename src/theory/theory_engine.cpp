@@ -206,11 +206,13 @@ TheoryEngine::TheoryEngine(context::Context* context,
                            context::UserContext* userContext,
                            ResourceManager* rm,
                            RemoveTermFormulas& iteRemover,
-                           const LogicInfo& logicInfo)
+                           const LogicInfo& logicInfo,
+                           OutputManager& outMgr)
     : d_propEngine(nullptr),
       d_context(context),
       d_userContext(userContext),
       d_logicInfo(logicInfo),
+      d_outMgr(outMgr),
       d_pnm(nullptr),
       d_sharedTerms(this, context),
       d_tc(nullptr),
@@ -389,28 +391,28 @@ void TheoryEngine::printAssertions(const char* tag) {
 
 void TheoryEngine::dumpAssertions(const char* tag) {
   if (Dump.isOn(tag)) {
-    Printer* printer = smt::currentSmtEngine()->getPrinter();
-    std::ostream& out = *smt::currentSmtEngine()->getOptions().getOut();
-    printer->toStreamCmdComment(out, "Starting completeness check");
+    const Printer& printer = d_outMgr.getPrinter();
+    std::ostream& out = d_outMgr.getDumpOut();
+    printer.toStreamCmdComment(out, "Starting completeness check");
     for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
       Theory* theory = d_theoryTable[theoryId];
       if (theory && d_logicInfo.isTheoryEnabled(theoryId)) {
-        printer->toStreamCmdComment(out, "Completeness check");
-        printer->toStreamCmdPush(out);
+        printer.toStreamCmdComment(out, "Completeness check");
+        printer.toStreamCmdPush(out);
 
         // Dump the shared terms
         if (d_logicInfo.isSharingEnabled()) {
-          printer->toStreamCmdComment(out, "Shared terms");
+          printer.toStreamCmdComment(out, "Shared terms");
           context::CDList<TNode>::const_iterator it = theory->shared_terms_begin(), it_end = theory->shared_terms_end();
           for (unsigned i = 0; it != it_end; ++ it, ++i) {
               stringstream ss;
               ss << (*it);
-              printer->toStreamCmdComment(out, ss.str());
+              printer.toStreamCmdComment(out, ss.str());
           }
         }
 
         // Dump the assertions
-        printer->toStreamCmdComment(out, "Assertions");
+        printer.toStreamCmdComment(out, "Assertions");
         context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
         for (; it != it_end; ++ it) {
           // Get the assertion
@@ -419,17 +421,17 @@ void TheoryEngine::dumpAssertions(const char* tag) {
 
           if ((*it).d_isPreregistered)
           {
-            printer->toStreamCmdComment(out, "Preregistered");
+            printer.toStreamCmdComment(out, "Preregistered");
           }
           else
           {
-            printer->toStreamCmdComment(out, "Shared assertion");
+            printer.toStreamCmdComment(out, "Shared assertion");
           }
-          printer->toStreamCmdAssert(out, assertionNode);
+          printer.toStreamCmdAssert(out, assertionNode);
         }
-        printer->toStreamCmdCheckSat(out);
+        printer.toStreamCmdCheckSat(out);
 
-        printer->toStreamCmdPop(out);
+        printer.toStreamCmdPop(out);
       }
     }
   }
@@ -508,11 +510,11 @@ void TheoryEngine::check(Theory::Effort effort) {
       CVC4_FOR_EACH_THEORY;
 
       if(Dump.isOn("missed-t-conflicts")) {
-        Printer* printer = smt::currentSmtEngine()->getPrinter();
-        std::ostream& out = *smt::currentSmtEngine()->getOptions().getOut();
-        printer->toStreamCmdComment(
+        const Printer& printer = d_outMgr.getPrinter();
+        std::ostream& out = d_outMgr.getDumpOut();
+        printer.toStreamCmdComment(
             out, "Completeness check for T-conflicts; expect sat");
-        printer->toStreamCmdCheckSat(out);
+        printer.toStreamCmdCheckSat(out);
       }
 
       Debug("theory") << "TheoryEngine::check(" << effort << "): running propagation after the initial check" << endl;
@@ -625,14 +627,14 @@ void TheoryEngine::propagate(Theory::Effort effort)
       }
       // Doesn't have a value, check it (and the negation)
       if(d_hasPropagated.find(atom) == d_hasPropagated.end()) {
-        Printer* printer = smt::currentSmtEngine()->getPrinter();
-        std::ostream& out = *smt::currentSmtEngine()->getOptions().getOut();
-        printer->toStreamCmdComment(
+        const Printer& printer = d_outMgr.getPrinter();
+        std::ostream& out = d_outMgr.getDumpOut();
+        printer.toStreamCmdComment(
             out, "Completeness check for T-propagations; expect invalid");
-        printer->toStreamCmdEcho(out, atom.toString());
-        printer->toStreamCmdQuery(out, atom);
-        printer->toStreamCmdEcho(out, atom.notNode().toString());
-        printer->toStreamCmdQuery(out, atom.notNode());
+        printer.toStreamCmdEcho(out, atom.toString());
+        printer.toStreamCmdQuery(out, atom);
+        printer.toStreamCmdEcho(out, atom.notNode().toString());
+        printer.toStreamCmdQuery(out, atom.notNode());
       }
     }
   }
@@ -1128,11 +1130,11 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
   // spendResource();
 
   if(Dump.isOn("t-propagations")) {
-    Printer* printer = smt::currentSmtEngine()->getPrinter();
-    std::ostream& out = *smt::currentSmtEngine()->getOptions().getOut();
-    printer->toStreamCmdComment(out,
-                                "negation of theory propagation: expect valid");
-    printer->toStreamCmdQuery(out, literal);
+    const Printer& printer = d_outMgr.getPrinter();
+    std::ostream& out = d_outMgr.getDumpOut();
+    printer.toStreamCmdComment(out,
+                               "negation of theory propagation: expect valid");
+    printer.toStreamCmdQuery(out, literal);
   }
   if(Dump.isOn("missed-t-propagations")) {
     d_hasPropagated.insert(literal);
@@ -1462,10 +1464,10 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
     if (!negated) {
       n = node.negate();
     }
-    Printer* printer = smt::currentSmtEngine()->getPrinter();
-    std::ostream& out = *smt::currentSmtEngine()->getOptions().getOut();
-    printer->toStreamCmdComment(out, "theory lemma: expect valid");
-    printer->toStreamCmdCheckSat(out, n);
+    const Printer& printer = d_outMgr.getPrinter();
+    std::ostream& out = d_outMgr.getDumpOut();
+    printer.toStreamCmdComment(out, "theory lemma: expect valid");
+    printer.toStreamCmdCheckSat(out, n);
   }
   bool removable = isLemmaPropertyRemovable(p);
   bool preprocess = isLemmaPropertyPreprocess(p);
@@ -1545,10 +1547,10 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
   d_inConflict = true;
 
   if(Dump.isOn("t-conflicts")) {
-    Printer* printer = smt::currentSmtEngine()->getPrinter();
-    std::ostream& out = *smt::currentSmtEngine()->getOptions().getOut();
-    printer->toStreamCmdComment(out, "theory conflict: expect unsat");
-    printer->toStreamCmdCheckSat(out, conflict);
+    const Printer& printer = d_outMgr.getPrinter();
+    std::ostream& out = d_outMgr.getDumpOut();
+    printer.toStreamCmdComment(out, "theory conflict: expect unsat");
+    printer.toStreamCmdCheckSat(out, conflict);
   }
 
   // In the multiple-theories case, we need to reconstruct the conflict
