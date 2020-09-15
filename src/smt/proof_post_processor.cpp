@@ -150,7 +150,9 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       }
       ts =
           builtin::BuiltinProofRuleChecker::applySubstitution(t, children, sid);
-      Trace("smt-proof-pp-debug") << "...eq intro subs equality is " << t << " == " << ts << ", from " << sid << std::endl;
+      Trace("smt-proof-pp-debug")
+          << "...eq intro subs equality is " << t << " == " << ts << ", from "
+          << sid << std::endl;
       if (ts != t)
       {
         Node eq = t.eqNode(ts);
@@ -182,7 +184,9 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         static_cast<builtin::BuiltinProofRuleChecker*>(
             d_pnm->getChecker()->getCheckerFor(PfRule::MACRO_SR_EQ_INTRO));
     Node tr = builtinPfC->applyRewrite(ts, rid);
-    Trace("smt-proof-pp-debug") << "...eq intro rewrite equality is " << ts << " == " << tr << ", from " << rid << std::endl;
+    Trace("smt-proof-pp-debug")
+        << "...eq intro rewrite equality is " << ts << " == " << tr << ", from "
+        << rid << std::endl;
     if (ts != tr)
     {
       Node eq = ts.eqNode(tr);
@@ -320,8 +324,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         Node eqr = addProofForTrans(tchildrenr, cdp);
         if (!eqr.isNull())
         {
-          Trace("smt-proof-pp-debug")
-              << "transform connect sym " << tchildren << " " << eqr << std::endl;
+          Trace("smt-proof-pp-debug") << "transform connect sym " << tchildren
+                                      << " " << eqr << std::endl;
           // take symmetry of above and add it to the overall chain
           addToTransChildren(eqr, tchildren, true);
         }
@@ -374,7 +378,9 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       TNode var, subs;
       builtin::BuiltinProofRuleChecker::getSubstitution(
           children[i], var, subs, ids);
-      Trace("smt-proof-pp-debug") << "...process " << var << " -> " << subs << " (" << children[i] << ", " << ids << ")" << std::endl;
+      Trace("smt-proof-pp-debug")
+          << "...process " << var << " -> " << subs << " (" << children[i]
+          << ", " << ids << ")" << std::endl;
       // apply the current substitution to the range
       if (!vvec.empty())
       {
@@ -382,7 +388,9 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
             subs.substitute(vvec.begin(), vvec.end(), svec.begin(), svec.end());
         if (ss != subs)
         {
-          Trace("smt-proof-pp-debug") << "......updated to " << var << " -> " << ss << " based on previous substitution" << std::endl;
+          Trace("smt-proof-pp-debug")
+              << "......updated to " << var << " -> " << ss
+              << " based on previous substitution" << std::endl;
           // make the proof for the tranitivity step
           std::shared_ptr<CDProof> pf = std::make_shared<CDProof>(d_pnm);
           pfs.push_back(pf);
@@ -479,7 +487,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       Rewriter* rr = d_smte->getRewriter();
       TrustNode trn = rr->rewriteWithProof(args[0], elimTR, isExtEq);
       std::shared_ptr<ProofNode> pfn = trn.toProofNode();
-      if (pfn==nullptr)
+      if (pfn == nullptr)
       {
         // did not have a proof of rewriting, probably isExtEq is true
         cdp->addStep(eq, PfRule::TRUST, {}, {eq});
