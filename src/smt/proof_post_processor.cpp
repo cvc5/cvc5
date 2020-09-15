@@ -282,6 +282,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     std::vector<Node> sargs = args;
     // first, compute if we need
     bool reqWitness = d_wfpm.requiresWitnessFormTransform(children[0], args[0]);
+    Trace("smt-proof-pp-debug") << "...reqWitness=" << reqWitness << std::endl;
     // convert both sides, in three steps, take symmetry of second chain
     for (unsigned r = 0; r < 2; r++)
     {
@@ -325,6 +326,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         Node eqr = addProofForTrans(tchildrenr, cdp);
         if (!eqr.isNull())
         {
+          Trace("smt-proof-pp-debug")
+              << "transform connect sym " << tchildren << " " << eqr << std::endl;
           // take symmetry of above and add it to the overall chain
           addToTransChildren(eqr, tchildren, true);
         }
@@ -474,9 +477,16 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       // use rewrite with proof interface
       Rewriter* rr = d_smte->getRewriter();
       TrustNode trn = rr->rewriteWithProof(args[0], elimTR, isExtEq);
-      std::shared_ptr<ProofNode> pfn =
-          trn.getGenerator()->getProofFor(trn.getProven());
-      cdp->addProof(pfn);
+      std::shared_ptr<ProofNode> pfn = trn.toProofNode();
+      if (pfn==nullptr)
+      {
+        // did not have a proof of rewriting, probably isExtEq is true
+        cdp->addStep(eq, PfRule::TRUST, {}, {eq});
+      }
+      else
+      {
+        cdp->addProof(pfn);
+      }
       Assert(trn.getNode() == ret)
           << "Unexpected rewrite " << args[0] << std::endl
           << "Got: " << trn.getNode() << std::endl
