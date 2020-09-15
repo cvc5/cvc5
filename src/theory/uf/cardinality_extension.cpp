@@ -1182,7 +1182,9 @@ void SortModel::debugPrint( const char* c ){
   }
 }
 
-bool SortModel::debugModel( TheoryModel* m ){
+bool SortModel::checkLastCall()
+{
+  TheoryModel* m = d_state.getModel();
   if( Trace.isOn("uf-ss-warn") ){
     std::vector< Node > eqcs;
     eq::EqClassesIterator eqcs_i =
@@ -1572,6 +1574,18 @@ bool CardinalityExtension::areDisequal(Node a, Node b)
 /** check */
 void CardinalityExtension::check(Theory::Effort level)
 {
+  if (level == Theory::EFFORT_LAST_CALL)
+  {
+    // if last call, call last call check for each sort
+    for (std::pair<const TypeNode, SortModel*>& r : d_rep_model)
+    {
+      if (!r.second->checkLastCall())
+      {
+        break;
+      }
+    }
+    return;
+  }
   if (!d_state.isInConflict())
   {
     if (options::ufssMode() == options::UfssMode::FULL)
@@ -1748,16 +1762,6 @@ void CardinalityExtension::debugPrint(const char* c)
     it->second->debugPrint( c );
     Debug( c ) << std::endl;
   }
-}
-
-bool CardinalityExtension::debugModel(TheoryModel* m)
-{
-  for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
-    if( !it->second->debugModel( m ) ){
-      return false;
-    }
-  }
-  return true;
 }
 
 /** initialize */

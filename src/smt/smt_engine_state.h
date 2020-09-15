@@ -96,6 +96,18 @@ class SmtEngineState
    */
   void notifyGetAbduct(bool success);
   /**
+   * Notify that we finished an interpolation query, where success is whether
+   * the command was successful. This is managed independently of the above
+   * calls for notifying check-sat. In other words, if a get-interpol command
+   * is issued to an SmtEngine, it may use a satisfiability call (if desired)
+   * to solve the interpolation query. This method is called *in addition* to
+   * the above calls to notifyCheckSat / notifyCheckSatResult in this case.
+   * In particular, it is called after these two methods are completed.
+   * This overwrites the SMT mode to the "INTERPOL" mode if the call to
+   * interpolation was successful.
+   */
+  void notifyGetInterpol(bool success);
+  /**
    * Setup the context, which makes a single push to maintain a global
    * context around everything.
    */
