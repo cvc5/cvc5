@@ -102,11 +102,9 @@ class LazyCDProofChain : public ProofGenerator
   bool hasGenerator(Node fact) const;
 
   /**
-   * Get generator for fact, or nullptr if it doesnt exist. This method is
-   * robust to symmetry of (dis)equality. It updates isSym to true if a
-   * proof generator for the symmetric form of fact was provided.
+   * Get generator for fact, or nullptr if it doesnt exist.
    */
-  ProofGenerator* getGeneratorFor(Node fact, bool& isSym);
+  ProofGenerator* getGeneratorFor(Node fact);
 
   /** identify */
   std::string identify() const override;
