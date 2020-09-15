@@ -87,7 +87,6 @@ class BVToInt : public PreprocessingPass
  public:
   BVToInt(PreprocessingPassContext* preprocContext);
 
-  
  protected:
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
