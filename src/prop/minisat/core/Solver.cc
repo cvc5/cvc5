@@ -2083,6 +2083,8 @@ void Solver::pop()
 
   // Pop the trail below the user level
   --assertionLevel;
+  Debug("minisat") << "in user pop, decreasing assertion level to "
+                   << assertionLevel << "\n" << CVC4::push;
   while (true) {
     Debug("minisat") << "== unassigning " << trail.last() << std::endl;
     Var      x  = var(trail.last());
@@ -2097,16 +2099,19 @@ void Solver::pop()
       break;
     }
   }
+
   // The head should be at the trail top
   qhead = trail.size();
 
   // Remove the clauses
   removeClausesAboveLevel(clauses_persistent, assertionLevel);
   removeClausesAboveLevel(clauses_removable, assertionLevel);
-
+  Debug("minisat") << CVC4::pop;
   // Pop the SAT context to notify everyone
   d_context->pop();  // SAT context for CVC4
 
+  Debug("minisat") << "MINISAT POP assertionLevel is " << assertionLevel
+                   << ", trail.size is " << trail.size() << "\n";
   // Pop the created variables
   resizeVars(assigns_lim.last());
   assigns_lim.pop();
