@@ -257,7 +257,7 @@ void TheorySetsPrivate::fullEffortCheck()
         Node n = (*eqc_i);
         if (n != eqc)
         {
-          Trace("sets-eqc") << n << " ";
+          Trace("sets-eqc") << n << " (" << n.isConst() << ") ";
         }
         TypeNode tnn = n.getType();
         if (isSet)
@@ -1320,35 +1320,88 @@ TrustNode TheorySetsPrivate::expandDefinition(Node node)
 {
   Debug("sets-proc") << "expandDefinition : " << node << std::endl;
 
-  if (node.getKind() == kind::CHOOSE)
+  switch (node.getKind())
   {
-    // (choose A) is expanded as
-    // (witness ((x elementType))
-    //    (ite
-    //      (= A (as emptyset setType))
-    //      (= x chooseUf(A))
-    //      (and (member x A) (= x chooseUf(A)))
+    case kind::CHOOSE: return expandChooseOperator(node);
+    case kind::IS_SINGLETON: return expandIsSingletonOperator(node);
+    default: return TrustNode::null();
+  }
+}
 
-    NodeManager* nm = NodeManager::currentNM();
-    Node set = node[0];
-    TypeNode setType = set.getType();
-    Node chooseSkolem = getChooseFunction(setType);
-    Node apply = NodeManager::currentNM()->mkNode(APPLY_UF, chooseSkolem, set);
+TrustNode TheorySetsPrivate::expandChooseOperator(const Node& node)
+{
+  Assert(node.getKind() == CHOOSE);
 
-    Node witnessVariable = nm->mkBoundVar(setType.getSetElementType());
-
-    Node equal = witnessVariable.eqNode(apply);
-    Node emptySet = nm->mkConst(EmptySet(setType));
-    Node isEmpty = set.eqNode(emptySet);
-    Node member = nm->mkNode(MEMBER, witnessVariable, set);
-    Node memberAndEqual = member.andNode(equal);
-    Node ite = nm->mkNode(kind::ITE, isEmpty, equal, memberAndEqual);
-    Node witnessVariables = nm->mkNode(BOUND_VAR_LIST, witnessVariable);
-    Node witness = nm->mkNode(WITNESS, witnessVariables, ite);
-    return TrustNode::mkTrustRewrite(node, witness, nullptr);
+  // we call the rewriter here to handle the pattern (choose (singleton x))
+  // because the rewriter is called after expansion
+  Node rewritten = Rewriter::rewrite(node);
+  if (rewritten.getKind() != CHOOSE)
+  {
+    return TrustNode::mkTrustRewrite(node, rewritten, nullptr);
   }
 
-  return TrustNode::null();
+  // (choose A) is expanded as
+  // (witness ((x elementType))
+  //    (ite
+  //      (= A (as emptyset setType))
+  //      (= x chooseUf(A))
+  //      (and (member x A) (= x chooseUf(A)))
+
+  NodeManager* nm = NodeManager::currentNM();
+  Node set = rewritten[0];
+  TypeNode setType = set.getType();
+  Node chooseSkolem = getChooseFunction(setType);
+  Node apply = NodeManager::currentNM()->mkNode(APPLY_UF, chooseSkolem, set);
+
+  Node witnessVariable = nm->mkBoundVar(setType.getSetElementType());
+
+  Node equal = witnessVariable.eqNode(apply);
+  Node emptySet = nm->mkConst(EmptySet(setType));
+  Node isEmpty = set.eqNode(emptySet);
+  Node member = nm->mkNode(MEMBER, witnessVariable, set);
+  Node memberAndEqual = member.andNode(equal);
+  Node ite = nm->mkNode(ITE, isEmpty, equal, memberAndEqual);
+  Node witnessVariables = nm->mkNode(BOUND_VAR_LIST, witnessVariable);
+  Node witness = nm->mkNode(WITNESS, witnessVariables, ite);
+  return TrustNode::mkTrustRewrite(node, witness, nullptr);
+}
+
+TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
+{
+  Assert(node.getKind() == IS_SINGLETON);
+
+  // we call the rewriter here to handle the pattern
+  // (is_singleton (singleton x)) because the rewriter is called after expansion
+  Node rewritten = Rewriter::rewrite(node);
+  if (rewritten.getKind() != IS_SINGLETON)
+  {
+    return TrustNode::mkTrustRewrite(node, rewritten, nullptr);
+  }
+
+  // (is_singleton A) is expanded as
+  // (exists ((x: T)) (= A (singleton x)))
+  // where T is the sort of elements of A
+
+  NodeManager* nm = NodeManager::currentNM();
+  Node set = rewritten[0];
+
+  std::map<Node, Node>::iterator it = d_isSingletonNodes.find(rewritten);
+
+  if (it != d_isSingletonNodes.end())
+  {
+    return TrustNode::mkTrustRewrite(rewritten, it->second, nullptr);
+  }
+
+  TypeNode setType = set.getType();
+  Node boundVar = nm->mkBoundVar(setType.getSetElementType());
+  Node singleton = nm->mkNode(kind::SINGLETON, boundVar);
+  Node equal = set.eqNode(singleton);
+  std::vector<Node> variables = {boundVar};
+  Node boundVars = nm->mkNode(BOUND_VAR_LIST, variables);
+  Node exists = nm->mkNode(kind::EXISTS, boundVars, equal);
+  d_isSingletonNodes[rewritten] = exists;
+
+  return TrustNode::mkTrustRewrite(node, exists, nullptr);
 }
 
 Node TheorySetsPrivate::getChooseFunction(const TypeNode& setType)

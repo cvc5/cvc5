@@ -1956,6 +1956,14 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child)
    */
   CHOOSE,
+  /**
+   * Set is_singleton predicate.
+   * Parameters: 1
+   *   -[1]: Term of set sort, is [1] a singleton set?
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  IS_SINGLETON,
 
   /* Strings --------------------------------------------------------------- */
 
