@@ -570,8 +570,9 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   lemmas = d_iandSlv.checkFullRefine();
   filterLemmas(lemmas, wlems);
 
-  Trace("nl-ext") << "  ...finished with " << wlems.size() << " waiting lemmas."
-                  << std::endl;
+  Trace("nl-ext") << "  ...finished with "
+                  << (wlems.size() + d_im.numWaitingLemmas())
+                  << " waiting lemmas." << std::endl;
 
   return 0;
 }

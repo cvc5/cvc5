@@ -675,11 +675,13 @@ void TranscendentalSolver::checkTranscendentalTangentPlanes()
       for (unsigned d = 1; d <= d_taylor_degree; d++)
       {
         Trace("nl-ext-tftp") << "- run at degree " << d << "..." << std::endl;
-        unsigned prev = d_im.numPendingLemmas();
+        unsigned prev = d_im.numPendingLemmas() + d_im.numWaitingLemmas();
         if (checkTfTangentPlanesFun(tf, d))
         {
           Trace("nl-ext-tftp")
-              << "...fail, #lemmas = " << (d_im.numPendingLemmas() - prev) << std::endl;
+              << "...fail, #lemmas = "
+              << (d_im.numPendingLemmas() + d_im.numWaitingLemmas() - prev)
+              << std::endl;
           break;
         }
         else
@@ -873,7 +875,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
         << "*** Tangent plane lemma : " << lem << std::endl;
     Assert(d_model.computeAbstractModelValue(lem) == d_false);
     // Figure 3 : line 9
-    d_im.addPendingArithLemma(lem, InferenceId::NL_T_TANGENT);
+    d_im.addPendingArithLemma(lem, InferenceId::NL_T_TANGENT, true);
   }
   else if (is_secant)
   {
