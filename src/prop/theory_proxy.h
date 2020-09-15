@@ -114,8 +114,7 @@ class TheoryProxy
    * all imported and exported lemmas.
    */
   std::unordered_set<Node, NodeHashFunction> d_shared;
-
-}; /* class SatSolver */
+}; /* class TheoryProxy */
 
 }/* CVC4::prop namespace */
 
