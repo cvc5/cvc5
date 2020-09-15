@@ -213,8 +213,7 @@ Result SygusSolver::checkSynth(Assertions& as)
     Trace("smt") << "Check synthesis conjecture: " << body << std::endl;
     if (Dump.isOn("raw-benchmark"))
     {
-      d_outMgr.getPrinter().toStreamCmdCheckSynth(
-          *smt::currentSmtEngine()->getOptions().getOut());
+      d_outMgr.getPrinter().toStreamCmdCheckSynth(d_outMgr.getDumpOut());
     }
 
     d_sygusConjectureStale = false;
