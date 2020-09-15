@@ -33,6 +33,7 @@ SatProofManager::SatProofManager(Minisat::Solver* solver,
       d_resChainPg(userContext, pnm),
       d_proof(pnm, userContext, "SatProofManager::CDProof"),
       d_false(NodeManager::currentNM()->mkConst(false)),
+      d_assumptions(userContext),
       d_conflictLit(undefSatVariable)
 {
 }
@@ -593,7 +594,12 @@ void SatProofManager::finalizeProof(Node inConflictNode,
     }
   } while (expanded);
   // now we should be able to close it
-  d_resChains.addLazyStep(d_false, &d_resChainPg, d_assumptions);
+  std::vector<Node> assumptionsVec;
+  for (const Node& a : d_assumptions)
+  {
+    assumptionsVec.push_back(a);
+  }
+  d_resChains.addLazyStep(d_false, &d_resChainPg, assumptionsVec);
 }
 
 void SatProofManager::storeUnitConflict(Minisat::Lit inConflict)
@@ -667,15 +673,12 @@ void SatProofManager::registerSatAssumptions(Minisat::Lit lit)
 
 void SatProofManager::registerSatAssumptions(const std::vector<Node>& assumps)
 {
-  if (Trace.isOn("sat-proof"))
+  for (const Node& a : assumps)
   {
-    for (const Node& a : assumps)
-    {
-      Trace("sat-proof") << "SatProofManager::registerSatAssumptions: - " << a
-                         << "\n";
-    }
+    Trace("sat-proof") << "SatProofManager::registerSatAssumptions: - " << a
+                       << "\n";
+    d_assumptions.push_back(a);
   }
-  d_assumptions.insert(d_assumptions.end(), assumps.begin(), assumps.end());
 }
 
 }  // namespace prop
