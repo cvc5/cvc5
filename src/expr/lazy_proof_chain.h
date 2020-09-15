@@ -47,9 +47,9 @@ class LazyCDProofChain : public ProofGenerator
   LazyCDProofChain(ProofNodeManager* pnm, context::Context* c = nullptr);
   ~LazyCDProofChain();
   /**
-   * Get lazDyet have a concrete proof and that are registered in the chains
-   * (i.e., are in the domain of d_gens). Starting with the proof generated for
-   * fact, if any.
+   * Get lazy proof for fact, or nullptr if it does not exist, by connecting the
+   * proof nodes generated for each intermediate relevant fact registered in the
+   * chain (i.e., in the domain of d_gens).
    *
    * For example, if d_gens consists of the following pairs
    *

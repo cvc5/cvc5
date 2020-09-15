@@ -56,7 +56,8 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
     {
       Trace("lazy-cdproofchain")
           << "LazyCDProofChain::getProofFor: check " << cur << "\n";
-      if (!hasGenerator(cur))
+      ProofGenerator* pg = getGeneratorFor(cur);
+      if (!pg)
       {
         Trace("lazy-cdproofchain")
             << "LazyCDProofChain::getProofFor: nothing to do\n";
@@ -65,8 +66,6 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
         visited[cur] = true;
         continue;
       }
-      ProofGenerator* pg = getGeneratorFor(cur);
-      Assert(pg != nullptr);
       Trace("lazy-cdproofchain")
           << "LazyCDProofChain::getProofFor: Call generator " << pg->identify()
           << " for chain link " << cur << "\n";
@@ -104,7 +103,10 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
         if (toConnect.find(fap.first) != toConnect.end()
             && std::find(visit.begin(), visit.end(), fap.first) != visit.end())
         {
-          // mark as a not to expand assumption. Note that we don't assign
+          // Since we have a cycle with an assumption, this fact will be an
+          // assumption in the final proof node produced by this method. This we
+          // mark the proof node it results on, i.e. its value in the toConnect
+          // map, as an assumption proof node. Note that we don't assign
           // visited[fap.first] to true so that we properly pop the traces
           // previously pushed.
           Trace("lazy-cdproofchain")
@@ -169,7 +171,7 @@ void LazyCDProofChain::addLazyStep(Node expected, ProofGenerator* pg)
   Assert(pg != nullptr);
   Trace("lazy-cdproofchain") << "LazyCDProofChain::addLazyStep: " << expected
                              << " set to generator " << pg->identify() << "\n";
-  // note this will rewrite the generator for expected, if any
+  // note this will replace the generator for expected, if any
   d_gens.insert(expected, pg);
 }
 
