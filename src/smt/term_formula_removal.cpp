@@ -461,7 +461,7 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
     return skolem;
   }
 
-  // will recurse
+  // return null, indicating we will traverse children within runInternal
   return Node::null();
 }
 
