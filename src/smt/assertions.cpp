@@ -197,7 +197,7 @@ void Assertions::addFormula(
   }
 
   // Add the normalized formula to the queue
-  d_assertions.push_back(n, isAssumption);
+  d_assertions.push_back(n, isAssumption, true);
 }
 
 void Assertions::addDefineFunRecDefinition(Node n, bool global)
@@ -232,6 +232,16 @@ void Assertions::ensureBoolean(const Node& n)
        << "Its type      : " << type;
     throw TypeCheckingException(n.toExpr(), ss.str());
   }
+}
+
+void Assertions::setProofGenerator(smt::PreprocessProofGenerator* pppg)
+{
+  d_assertions.setProofGenerator(pppg);
+}
+
+bool Assertions::isProofEnabled() const
+{
+  return d_assertions.isProofEnabled();
 }
 
 }  // namespace smt

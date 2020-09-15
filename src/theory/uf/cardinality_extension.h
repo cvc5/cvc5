@@ -215,6 +215,10 @@ class CardinalityExtension
    private:
     /** the type this model is for */
     TypeNode d_type;
+    /** Reference to the state object */
+    TheoryState& d_state;
+    /** Reference to the inference manager */
+    TheoryInferenceManager& d_im;
     /** Pointer to the cardinality extension that owns this. */
     CardinalityExtension* d_thss;
     /** regions used to d_region_index */
@@ -251,20 +255,18 @@ class CardinalityExtension
     /** move node n to region ri */
     void moveNode( Node n, int ri );
     /** allocate cardinality */
-    void allocateCardinality( OutputChannel* out );
+    void allocateCardinality();
     /**
      * Add splits. Returns
      *   0 = no split,
      *  -1 = entailed disequality added, or
      *   1 = split added.
      */
-    int addSplit( Region* r, OutputChannel* out );
+    int addSplit(Region* r);
     /** add clique lemma */
-    void addCliqueLemma( std::vector< Node >& clique, OutputChannel* out );
+    void addCliqueLemma(std::vector<Node>& clique);
     /** add totality axiom */
-    void addTotalityAxiom( Node n, int cardinality, OutputChannel* out );
-    /** Are we in conflict */
-    context::CDO<bool> d_conflict;
+    void addTotalityAxiom(Node n, int cardinality);
     /** cardinality */
     context::CDO< int > d_cardinality;
     /** cardinality lemma term */
@@ -283,8 +285,6 @@ class CardinalityExtension
     std::vector< Node > d_fresh_aloc_reps;
     /** whether we are initialized */
     context::CDO< bool > d_initialized;
-    /** cache for lemmas */
-    NodeBoolMap d_lemma_cache;
 
     /** apply totality */
     bool applyTotality( int cardinality );
@@ -293,16 +293,14 @@ class CardinalityExtension
     /** simple check cardinality */
     void simpleCheckCardinality();
 
-    bool doSendLemma( Node lem );
-
    public:
     SortModel(Node n,
-              context::Context* c,
-              context::UserContext* u,
+              TheoryState& state,
+              TheoryInferenceManager& im,
               CardinalityExtension* thss);
     virtual ~SortModel();
     /** initialize */
-    void initialize( OutputChannel* out );
+    void initialize();
     /** new node */
     void newEqClass( Node n );
     /** merge */
@@ -312,15 +310,11 @@ class CardinalityExtension
     /** are disequal */
     bool areDisequal( Node a, Node b );
     /** check */
-    void check( Theory::Effort level, OutputChannel* out );
+    void check(Theory::Effort level);
     /** presolve */
     void presolve();
-    /** propagate */
-    void propagate( Theory::Effort level, OutputChannel* out );
     /** assert cardinality */
-    void assertCardinality( OutputChannel* out, int c, bool val );
-    /** is in conflict */
-    bool isConflict() { return d_conflict; }
+    void assertCardinality(int c, bool val);
     /** get cardinality */
     int getCardinality() { return d_cardinality; }
     /** has cardinality */
@@ -333,8 +327,15 @@ class CardinalityExtension
     int getMaximumNegativeCardinality() { return d_maxNegCard.get(); }
     //print debug
     void debugPrint( const char* c );
-    /** debug a model */
-    bool debugModel( TheoryModel* m );
+    /**
+     * Check at last call effort. This will verify that the model is minimal.
+     * This return lemmas if there are terms in the model that the cardinality
+     * extension was not notified of.
+     *
+     * @return false if current model is not minimal. In this case, lemmas are
+     * sent on the output channel of the UF theory.
+     */
+    bool checkLastCall();
     /** get number of regions (for debugging) */
     int getNumRegions();
 
@@ -365,19 +366,14 @@ class CardinalityExtension
   }; /** class SortModel */
 
  public:
-  CardinalityExtension(context::Context* c,
-                       context::UserContext* u,
-                       OutputChannel& out,
+  CardinalityExtension(TheoryState& state,
+                       TheoryInferenceManager& im,
                        TheoryUF* th);
   ~CardinalityExtension();
   /** get theory */
   TheoryUF* getTheory() { return d_th; }
   /** get sort inference module */
   SortInference* getSortInference();
-  /** get default sat context */
-  context::Context* getSatContext();
-  /** get default output channel */
-  OutputChannel& getOutputChannel();
   /** new node */
   void newEqClass( Node n );
   /** merge */
@@ -398,10 +394,6 @@ class CardinalityExtension
   std::string identify() const { return std::string("CardinalityExtension"); }
   //print debug
   void debugPrint( const char* c );
-  /** debug a model */
-  bool debugModel( TheoryModel* m );
-  /** get is in conflict */
-  bool isConflict() { return d_conflict; }
   /** get cardinality for node */
   int getCardinality( Node n );
   /** get cardinality for type */
@@ -435,12 +427,12 @@ class CardinalityExtension
   /** ensure eqc for all subterms of n */
   void ensureEqcRec(Node n);
 
-  /** The output channel used by this class. */
-  OutputChannel* d_out;
+  /** Reference to the state object */
+  TheoryState& d_state;
+  /** Reference to the inference manager */
+  TheoryInferenceManager& d_im;
   /** theory uf pointer */
   TheoryUF* d_th;
-  /** Are we in conflict */
-  context::CDO<bool> d_conflict;
   /** rep model structure, one for each type */
   std::map<TypeNode, SortModel*> d_rep_model;
 

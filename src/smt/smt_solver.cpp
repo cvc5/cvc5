@@ -35,6 +35,7 @@ SmtSolver::SmtSolver(SmtEngine& smt,
       d_rm(rm),
       d_pp(pp),
       d_stats(stats),
+      d_pnm(nullptr),
       d_theoryEngine(nullptr),
       d_propEngine(nullptr)
 {
@@ -251,6 +252,8 @@ void SmtSolver::processAssertions(Assertions& as)
   // clear the current assertions
   as.clearCurrent();
 }
+
+void SmtSolver::setProofNodeManager(ProofNodeManager* pnm) { d_pnm = pnm; }
 
 TheoryEngine* SmtSolver::getTheoryEngine() { return d_theoryEngine.get(); }
 

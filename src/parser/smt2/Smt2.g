@@ -1265,6 +1265,10 @@ datatypesDef[bool isCo,
     RPAREN_TOK
     )+
   {
+    if (dts.size() != dnames.size())
+    {
+      PARSER_STATE->parseError("Wrong number of datatypes provided.");
+    }
     PARSER_STATE->popScope();
     cmd->reset(new DatatypeDeclarationCommand(
       api::sortVectorToTypes(
