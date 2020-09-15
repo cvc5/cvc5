@@ -559,10 +559,6 @@ void ProofCnfStream::convertPropagation(theory::TrustNode trn)
   Assert(trn.getGenerator());
   Trace("cnf-steps") << proven << " by explainPropagation "
                      << trn.identifyGenerator() << std::endl;
-  // TODO: due to lifetime of explanations, need to cache this now?
-  // Assert(trn.getGenerator()->getProofFor(proven)->isClosed());
-  // std::shared_ptr<ProofNode> exp = trn.toProofNode();
-  // d_proof.addProof(exp);
 
   Assert(trn.getGenerator()->getProofFor(proven)->isClosed());
   d_proof.addLazyStep(
@@ -603,6 +599,9 @@ void ProofCnfStream::convertPropagation(theory::TrustNode trn)
   }
   Node normClauseNode =
       CDProof::factorReorderElimDoubleNeg(clauseExp, &d_proof);
+  Trace("cnf")
+      << "ProofCnfStream::convertPropagation: actual clause registered is "
+      << normClauseNode << "\n";
   // if we are eagerly checking proofs, track sat solver assumptions
   if (options::proofNewEagerChecking())
   {

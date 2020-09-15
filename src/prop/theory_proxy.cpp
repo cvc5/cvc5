@@ -87,15 +87,16 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
     ProofManager::getCnfProof()->pushCurrentAssertion(theoryExplanation);
   }
   Debug("prop-explain") << "explainPropagation() => " << theoryExplanation << std::endl;
-  if (theoryExplanation.getKind() == kind::AND) {
-    Node::const_iterator it = theoryExplanation.begin();
-    Node::const_iterator it_end = theoryExplanation.end();
-    explanation.push_back(l);
-    for (; it != it_end; ++ it) {
-      explanation.push_back(~d_cnfStream->getLiteral(*it));
+  explanation.push_back(l);
+  if (theoryExplanation.getKind() == kind::AND)
+  {
+    for (const Node& n : theoryExplanation)
+    {
+      explanation.push_back(~d_cnfStream->getLiteral(n));
     }
-  } else {
-    explanation.push_back(l);
+  }
+  else
+  {
     explanation.push_back(~d_cnfStream->getLiteral(theoryExplanation));
   }
   if (Trace.isOn("sat-proof"))

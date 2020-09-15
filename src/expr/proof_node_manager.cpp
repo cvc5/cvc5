@@ -22,7 +22,10 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-ProofNodeManager::ProofNodeManager(ProofChecker* pc) : d_checker(pc) {}
+ProofNodeManager::ProofNodeManager(ProofChecker* pc)
+    : d_checker(pc), d_true(NodeManager::currentNM()->mkConst<bool>(true))
+{
+}
 
 std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
     PfRule id,
@@ -85,6 +88,19 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     if (ac.find(a) != ac.end())
     {
       // already covered by an assumption
+      acu.insert(a);
+      continue;
+    }
+    // trivial assumption
+    if (a == d_true)
+    {
+      Trace("pnm-scope") << "- justify trivial True assumption\n";
+      for (std::shared_ptr<ProofNode> pfs : fa.second)
+      {
+        Assert(pfs->getResult() == a);
+        updateNode(pfs.get(), PfRule::MACRO_SR_PRED_INTRO, {}, {a});
+      }
+      Trace("pnm-scope") << "...finished" << std::endl;
       acu.insert(a);
       continue;
     }
