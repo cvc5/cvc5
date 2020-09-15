@@ -17,6 +17,7 @@
 #ifndef CVC4__SAT_PROOF_MANAGER_H
 #define CVC4__SAT_PROOF_MANAGER_H
 
+#include "context/cdlist.h"
 #include "expr/buffered_proof_generator.h"
 #include "expr/expr.h"
 #include "expr/lazy_proof_chain.h"
@@ -140,8 +141,8 @@ class SatProofManager
   /** The false node */
   Node d_false;
 
-  /** All clauses added to the SAT solver */
-  std::vector<Node> d_assumptions;
+  /** All clauses added to the SAT solver, kept in a context-dependend manner. */
+  context::CDList<Node> d_assumptions;
 
   /**
    * A placeholder that may be used to store the literal with the final
