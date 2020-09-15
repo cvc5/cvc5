@@ -752,21 +752,21 @@ Node BVToInt::translateFunctionSymbol(Node bvUF)
 
 void BVToInt::defineBVUFAsIntUF(Node bvUF, Node intUF)
 {
-  // This function should only be called after translating
-  // the function symbol to a new function symbol
-  // with the right domain and range.
-
-  // get domain and range of the original function
+  // The resulting term
+  Node result;
+  // The type of the resulting term
   TypeNode resultType;
-
-
   // symbolic arguments of original function
   vector<Expr> args;
-  Node intApplication;
   if (!bvUF.getType().isFunction()) {
-    intApplication = intUF;
+    // bvUF is a variable.
+    // in this case, the result is just the original term
+    // (it will be casted later if needed)
+    result = intUF;
     resultType = bvUF.getType();
   } else {
+    // bvUF is a function with arguments
+    // The arguments need to be casted as well.
     TypeNode tn = bvUF.getType();
     resultType = tn.getRangeType();
     vector<TypeNode> bvDomain = tn.getArgTypes();
@@ -788,13 +788,13 @@ void BVToInt::defineBVUFAsIntUF(Node bvUF, Node intUF)
       achildren.push_back(castedArg);
       i++;
     }
-    intApplication = d_nm->mkNode(kind::APPLY_UF, achildren);
+    result = d_nm->mkNode(kind::APPLY_UF, achildren);
   }
-  // If the range is BV, the application needs to be casted back.
-  intApplication = castToType(intApplication, resultType);
+  // If the result is BV, it needs to be casted back.
+  result = castToType(result, resultType);
   // add the function definition to the smt engine.
   smt::currentSmtEngine()->defineFunction(
-      bvUF.toExpr(), args, intApplication.toExpr(), true);
+      bvUF.toExpr(), args, result.toExpr(), true);
 }
 
 bool BVToInt::childrenTypesChanged(Node n)
