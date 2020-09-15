@@ -233,30 +233,23 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   }
   else if (id == PfRule::MACRO_SR_PRED_ELIM)
   {
-    // (TRUE_ELIM
-    //   (TRANS
-    //     (SYMM (MACRO_SR_EQ_INTRO children[1:] :args children[0] ++ args))
-    //     (TRUE_INTRO children[0])))
+    // (EQ_RESOLVE
+    //   children[0]
+    //   (MACRO_SR_EQ_INTRO children[1:] :args children[0] ++ args))
     std::vector<Node> schildren(children.begin() + 1, children.end());
     std::vector<Node> srargs;
     srargs.push_back(children[0]);
     srargs.insert(srargs.end(), args.begin(), args.end());
     Node conc = expandMacros(PfRule::MACRO_SR_EQ_INTRO, schildren, srargs, cdp);
     Assert(!conc.isNull() && conc.getKind() == EQUAL && conc[0] == children[0]);
-
-    Node eq1 = children[0].eqNode(d_true);
-    cdp->addStep(eq1, PfRule::TRUE_INTRO, {children[0]}, {});
-
-    Node concSym = conc[1].eqNode(conc[0]);
-    Node eq2 = conc[1].eqNode(d_true);
-    cdp->addStep(eq2, PfRule::TRANS, {concSym, eq1}, {});
-
-    cdp->addStep(conc[1], PfRule::TRUE_ELIM, {eq2}, {});
+    // apply equality resolve
+    cdp->addStep(conc[1], PfRule::EQ_RESOLVE, {children[0], conc}, {});
     return conc[1];
   }
   else if (id == PfRule::MACRO_SR_PRED_TRANSFORM)
   {
     // (EQ_RESOLVE
+    //   children[0]
     //   (TRANS
     //      (MACRO_SR_EQ_INTRO children[1:] :args (children[0] args[1:]))
     //      ... proof of c = wc
@@ -264,8 +257,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     //      (SYMM
     //        (MACRO_SR_EQ_INTRO children[1:] :args <args>)
     //        ... proof of a = wa
-    //        (MACRO_SR_EQ_INTRO {} wa)))
-    //   :args children[0])
+    //        (MACRO_SR_EQ_INTRO {} wa))))
     // where
     // wa = toWitness(apply_SR(args[0])) and
     // wc = toWitness(apply_SR(children[0])).
