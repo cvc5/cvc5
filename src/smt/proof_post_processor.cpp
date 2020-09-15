@@ -150,13 +150,14 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       }
       ts =
           builtin::BuiltinProofRuleChecker::applySubstitution(t, children, sid);
+      Trace("smt-proof-pp-debug") << "...eq intro subs equality is " << t << " == " << ts << ", from " << sid << std::endl;
       if (ts != t)
       {
         Node eq = t.eqNode(ts);
         // apply SUBS proof rule if necessary
         if (!update(eq, PfRule::SUBS, children, sargs, cdp))
         {
-          // if not elimianted, add as step
+          // if we specified that we did not want to elimiante, add as step
           cdp->addStep(eq, PfRule::SUBS, children, sargs);
         }
         tchildren.push_back(eq);
@@ -181,6 +182,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         static_cast<builtin::BuiltinProofRuleChecker*>(
             d_pnm->getChecker()->getCheckerFor(PfRule::MACRO_SR_EQ_INTRO));
     Node tr = builtinPfC->applyRewrite(ts, rid);
+    Trace("smt-proof-pp-debug") << "...eq intro rewrite equality is " << ts << " == " << tr << ", from " << rid << std::endl;
     if (ts != tr)
     {
       Node eq = ts.eqNode(tr);
@@ -365,12 +367,14 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     std::vector<ProofGenerator*> pgs;
     for (size_t i = 0, nchild = children.size(); i < nchild; i++)
     {
-      // process in reverse order
-      size_t index = nchild - (i + 1);
+      // Note we process in forward order, since later substitution should be
+      // applied to earlier ones, and the last child of a SUBS is processed
+      // first.
       // get the substitution
       TNode var, subs;
       builtin::BuiltinProofRuleChecker::getSubstitution(
-          children[index], var, subs, ids);
+          children[i], var, subs, ids);
+      Trace("smt-proof-pp-debug") << "...process " << var << " -> " << subs << " (" << children[i] << ", " << ids << ")" << std::endl;
       // apply the current substitution to the range
       if (!vvec.empty())
       {
@@ -378,6 +382,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
             subs.substitute(vvec.begin(), vvec.end(), svec.begin(), svec.end());
         if (ss != subs)
         {
+          Trace("smt-proof-pp-debug") << "......updated to " << var << " -> " << ss << " based on previous substitution" << std::endl;
           // make the proof for the tranitivity step
           std::shared_ptr<CDProof> pf = std::make_shared<CDProof>(d_pnm);
           pfs.push_back(pf);
@@ -399,7 +404,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
           pfn = cdp->getProofFor(children[i]);
           pf->addProof(pfn);
           // ensure we have a proof of var = subs
-          Node veqs = addProofForSubsStep(var, subs, children[index], pf.get());
+          Node veqs = addProofForSubsStep(var, subs, children[i], pf.get());
           // transitivity
           pf->addStep(var.eqNode(ss), PfRule::TRANS, {veqs, seqss}, {});
           // add to the substitution
@@ -411,9 +416,9 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       }
       // Just use equality from CDProof, but ensure we have a proof in cdp.
       // This may involve a TRUE_INTRO/FALSE_INTRO if the substitution step
-      // uses the assumption children[index] as a Boolean assignment (e.g.
-      // children[index] = true if we are using MethodId::SB_LITERAL).
-      addProofForSubsStep(var, subs, children[index], cdp);
+      // uses the assumption children[i] as a Boolean assignment (e.g.
+      // children[i] = true if we are using MethodId::SB_LITERAL).
+      addProofForSubsStep(var, subs, children[i], cdp);
       vvec.push_back(var);
       svec.push_back(subs);
       pgs.push_back(cdp);
