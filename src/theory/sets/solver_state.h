@@ -42,13 +42,13 @@ class TheorySetsPrivate;
  */
 class SolverState : public TheoryState
 {
+  typedef context::CDHashMap<Node, size_t, NodeHashFunction> NodeIntMap;
+
  public:
   SolverState(context::Context* c,
               context::UserContext* u,
               Valuation val,
               SkolemCache& skc);
-  /** Set parent */
-  void setParent(TheorySetsPrivate* p);
   //-------------------------------- initialize per check
   /** reset, clears the data structures maintained by this class. */
   void reset();
@@ -156,6 +156,30 @@ class SolverState : public TheoryState
   /** Get the list of all comprehension sets in the current context */
   const std::vector<Node>& getComprehensionSets() const;
 
+  /**
+   * Is x entailed to be a member of set s in the current context?
+   */
+  bool isMember(TNode x, TNode s) const;
+  /**
+   * Add member, called when atom is of the form (member x s) where s is in the
+   * equivalence class of r.
+   */
+  void addMember(TNode r, TNode atom);
+  /**
+   * Called when equivalence classes t1 and t2 merge. This updates the
+   * membership lists, adding members of t2 into t1.
+   *
+   * If cset is non-null, then this is a singleton or empty set in the
+   * equivalence class of t1 where moreover t2 has no singleton or empty sets.
+   * When this is the case, notice that all members of t2 should be made equal
+   * to the element that cset contains, or we are in conflict if cset is the
+   * empty set. These conclusions are added to facts.
+   *
+   * This method returns false if a (single) conflict was added to facts, and
+   * true otherwise.
+   */
+  bool merge(TNode t1, TNode t2, std::vector<Node>& facts, TNode cset);
+
  private:
   /** constants */
   Node d_true;
@@ -165,8 +189,6 @@ class SolverState : public TheoryState
   std::map<Node, Node> d_emptyMap;
   /** Reference to skolem cache */
   SkolemCache& d_skCache;
-  /** Pointer to the parent theory of sets */
-  TheorySetsPrivate* d_parent;
   /** The list of all equivalence classes of type set in the current context */
   std::vector<Node> d_set_eqc;
   /** Maps types to the equivalence class containing empty set of that type */
@@ -209,7 +231,17 @@ class SolverState : public TheoryState
   /** A list of comprehension sets */
   std::vector<Node> d_allCompSets;
   // -------------------------------- end term indices
+  /** List of operators per kind */
   std::map<Kind, std::vector<Node> > d_op_list;
+  //--------------------------------- SAT-context-dependent member list
+  /**
+   * Map from representatives r of set equivalence classes to atoms of the form
+   * (member x s) where s is in the equivalence class of r.
+   */
+  std::map<Node, std::vector<Node> > d_members_data;
+  /** A (SAT-context-dependent) number of members in the above map */
+  NodeIntMap d_members;
+  //--------------------------------- end
   /** is set disequality entailed internal
    *
    * This returns true if disequality between sets a and b is entailed in the

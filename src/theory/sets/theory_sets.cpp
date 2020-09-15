@@ -43,9 +43,6 @@ TheorySets::TheorySets(context::Context* c,
   // use the official theory state and inference manager objects
   d_theoryState = &d_state;
   d_inferManager = &d_im;
-
-  // TODO: remove this
-  d_state.setParent(d_internal.get());
 }
 
 TheorySets::~TheorySets()
