@@ -87,6 +87,7 @@ class BVToInt : public PreprocessingPass
  public:
   BVToInt(PreprocessingPassContext* preprocContext);
 
+  
  protected:
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
@@ -252,6 +253,8 @@ class BVToInt : public PreprocessingPass
    * Otherwise, add all of them as a single conjunction
    */
   void addFinalizeRangeAssertions(AssertionPipeline* assertionsToPreprocess);
+
+  Node translateQuantifiedFormula(Node current, kind::Kind_t k);
 
   /**
    * Reconstructs a node whose main operator cannot be
