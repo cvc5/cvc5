@@ -73,7 +73,19 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
     case kind::XOR: convertAndAssertXor(node, negated); break;
     case kind::IMPLIES: convertAndAssertImplies(node, negated); break;
     case kind::ITE: convertAndAssertIte(node, negated); break;
-    case kind::NOT: convertAndAssert(node[0], !negated); break;
+    case kind::NOT:
+    {
+      // track double negation elimination
+      if (d_pfEnabled && negated)
+      {
+        d_proof.addStep(node[0],
+                        PfRule::MACRO_SR_PRED_TRANSFORM,
+                        {node.notNode()},
+                        {node[0]});
+      }
+      convertAndAssert(node[0], !negated);
+      break;
+    }
     case kind::EQUAL:
       if (node[0].getType().isBoolean())
       {
