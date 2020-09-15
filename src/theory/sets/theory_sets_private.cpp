@@ -125,8 +125,8 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
     }
     // merge membership list
     Trace("sets-prop-debug") << "Copying membership list..." << std::endl;
-    // if t1 has a singleton and s2 does not, we may have new inferences to
-    // process.
+    // if s1 has a singleton or empty set and s2 does not, we may have new
+    // inferences to process.
     Node checkSingleton = s2.isNull() ? s1 : Node::null();
     std::vector<Node> facts;
     // merge the membership list in the state, which may produce facts or

@@ -548,7 +548,6 @@ bool SolverState::merge(TNode t1,
       if (!cset.isNull())
       {
         NodeManager* nm = NodeManager::currentNM();
-        Assert(m2[1].getType().isComparableTo(cset.getType()));
         Assert(areEqual(m2[1], cset));
         Node exp = nm->mkNode(AND, m2[1].eqNode(cset), m2);
         if (cset.getKind() == SINGLETON)
