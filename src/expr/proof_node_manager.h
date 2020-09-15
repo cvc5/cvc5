@@ -150,6 +150,8 @@ class ProofNodeManager
  private:
   /** The (optional) proof checker */
   ProofChecker* d_checker;
+  /** the true node */
+  Node d_true;
   /** Check internal
    *
    * This returns the result of proof checking a ProofNode with the provided
