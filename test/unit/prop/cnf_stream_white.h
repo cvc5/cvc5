@@ -149,7 +149,7 @@ class CnfStreamWhite : public CxxTest::TestSuite {
     d_cnfStream = new CVC4::prop::TseitinCnfStream(d_satSolver,
                                                    d_cnfRegistrar,
                                                    d_cnfContext,
-                                                   d_smt->getOutputManager(),
+                                                   &d_smt->getOutputManager(),
                                                    rm);
   }
 

@@ -92,7 +92,7 @@ PropEngine::PropEngine(TheoryEngine* te,
 
   d_registrar = new theory::TheoryRegistrar(d_theoryEngine);
   d_cnfStream = new CVC4::prop::TseitinCnfStream(
-      d_satSolver, d_registrar, userContext, d_outMgr, rm, true);
+      d_satSolver, d_registrar, userContext, &d_outMgr, rm, true);
 
   d_theoryProxy = new TheoryProxy(
       this, d_theoryEngine, d_decisionEngine.get(), d_context, d_cnfStream);

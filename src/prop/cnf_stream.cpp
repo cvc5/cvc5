@@ -47,7 +47,7 @@ namespace prop {
 CnfStream::CnfStream(SatSolver* satSolver,
                      Registrar* registrar,
                      context::Context* context,
-                     OutputManager& outMgr,
+                     OutputManager* outMgr,
                      bool fullLitToNodeMap,
                      std::string name)
     : d_satSolver(satSolver),
@@ -67,7 +67,7 @@ CnfStream::CnfStream(SatSolver* satSolver,
 TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver,
                                    Registrar* registrar,
                                    context::Context* context,
-                                   OutputManager& outMgr,
+                                   OutputManager* outMgr,
                                    ResourceManager* rm,
                                    bool fullLitToNodeMap,
                                    std::string name)
@@ -77,10 +77,10 @@ TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver,
 
 void CnfStream::assertClause(TNode node, SatClause& c) {
   Debug("cnf") << "Inserting into stream " << c << " node = " << node << endl;
-  if (Dump.isOn("clauses"))
+  if (Dump.isOn("clauses") && d_outMgr != nullptr)
   {
-    const Printer& printer = d_outMgr.getPrinter();
-    std::ostream& out = d_outMgr.getDumpOut();
+    const Printer& printer = d_outMgr->getPrinter();
+    std::ostream& out = d_outMgr->getDumpOut();
     if (c.size() == 1)
     {
       printer.toStreamCmdAssert(out, getNode(c[0]));
