@@ -647,7 +647,7 @@ Node BVToInt::translateWithChildren(Node original,
     }
     case kind::BOUND_VAR_LIST:
     {
-      returnNode = d_nm->mkNode(kind::BOUND_VAR_LIST, translated_children);
+      returnNode = d_nm->mkNode(oldKind, translated_children);
       break;
     }
     case kind::FORALL:
@@ -694,16 +694,20 @@ Node BVToInt::translateNoChildren(Node original)
   {
     if (original.getType().isBitVector())
     {
-      // For bit-vector variables, we create integer variables and add a
-      // range constraint.
+      // For bit-vector variables, we create fresh integer variables.
       if (original.getKind() == kind::BOUND_VARIABLE)
       {
+        // Range constraints for the bound integer variables are not added now.
+        // they will be added once the quantifier itself is handled.
         std::stringstream ss;
         ss << original;
         translation = d_nm->mkBoundVar(ss.str() + "_int", d_nm->integerType());
       }
       else
       {
+        // New integer variables  that are not bound (symbolic constants)
+        // are added together with range constraints induced by the 
+        // bit-width of the original bit-vector variables.
         Node newVar = d_nm->mkSkolem("__bvToInt_var",
                                      d_nm->integerType(),
                                      "Variable introduced in bvToInt "
@@ -782,10 +786,6 @@ Node BVToInt::translateFunctionSymbol(Node bvUF)
 
 void BVToInt::defineBVUFAsIntUF(Node bvUF, Node intUF)
 {
-  // This function should only be called after translating
-  // the function symbol to a new function symbol
-  // with the right domain and range.
-
   // get domain and range of the original function
   TypeNode tn = bvUF.getType();
   vector<TypeNode> bvDomain = tn.getArgTypes();
