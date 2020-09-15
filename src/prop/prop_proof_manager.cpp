@@ -52,8 +52,8 @@ std::shared_ptr<ProofNode> PropPfManager::getProof()
     {
       Trace("sat-proof") << "- " << a << "\n";
     }
-    Trace("sat-proof") << "PropPfManager::getProof: proof is "
-                       << *conflictProof.get() << "\n";
+    Trace("sat-proof-debug")
+        << "PropPfManager::getProof: proof is " << *conflictProof.get() << "\n";
     Trace("sat-proof")
         << "PropPfManager::getProof: Connecting with CNF proof\n";
   }
@@ -74,8 +74,8 @@ std::shared_ptr<ProofNode> PropPfManager::getProof()
     {
       Trace("sat-proof") << "- " << a << "\n";
     }
-    Trace("sat-proof") << "PropPfManager::getProof: proof is "
-                       << *conflictProof.get() << "\n";
+    Trace("sat-proof-debug")
+        << "PropPfManager::getProof: proof is " << *conflictProof.get() << "\n";
   }
   if (options::proofNewEagerChecking())
   {
