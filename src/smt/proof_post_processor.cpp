@@ -434,7 +434,11 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       // should give a proof, if not, then tcpg does not agree with the
       // substitution.
       Assert(pfn != nullptr);
-      if (pfn != nullptr)
+      if (pfn == nullptr)
+      {
+        cdp->addStep(eq, PfRule::TRUST, {}, {eq});
+      }
+      else
       {
         cdp->addProof(pfn);
       }
