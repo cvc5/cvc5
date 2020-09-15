@@ -45,7 +45,7 @@ void TCtxStack::pushChild(Node t, uint32_t tval, size_t index)
 
 void TCtxStack::pushOp(Node t, uint32_t tval)
 {
-  Assert (t.hasOperator());
+  Assert(t.hasOperator());
   uint32_t toval = d_tctx->computeValueOp(t, tval);
   d_stack.push_back(std::pair<Node, uint32_t>(t.getOperator(), toval));
 }

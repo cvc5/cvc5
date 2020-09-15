@@ -342,7 +342,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
       {
         visitctx->push(cur, curCVal);
         // visit operator if apply uf
-        if (cur.getKind()==APPLY_UF)
+        if (cur.getKind() == APPLY_UF)
         {
           visitctx->pushOp(cur, curCVal);
         }
@@ -352,7 +352,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
       {
         visit.push_back(cur);
         // visit operator if apply uf
-        if (cur.getKind()==APPLY_UF)
+        if (cur.getKind() == APPLY_UF)
         {
           visit.push_back(cur.getOperator());
         }
@@ -404,7 +404,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
         bool childChanged = false;
         std::vector<Node> children;
         Kind ck = cur.getKind();
-        if (ck==kind::APPLY_UF)
+        if (ck == kind::APPLY_UF)
         {
           // the operator of APPLY_UF is visited
           Node cop = cur.getOperator();
@@ -464,7 +464,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
           std::vector<Node> pfChildren;
           std::vector<Node> pfArgs;
           pfArgs.push_back(ProofRuleChecker::mkKindNode(ck));
-          if (ck==APPLY_UF && children[0]!=cur.getOperator())
+          if (ck == APPLY_UF && children[0] != cur.getOperator())
           {
             // use HO_CONG if the operator changed
             congRule = PfRule::HO_CONG;
