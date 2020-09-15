@@ -105,6 +105,7 @@ class Preprocessor;
 class SmtSolver;
 class SygusSolver;
 class AbductionSolver;
+class InterpolationSolver;
 class QuantElimSolver;
 /**
  * Representation of a defined function.  We keep these around in
@@ -117,6 +118,7 @@ class DefinedFunction;
 struct SmtEngineStatistics;
 class SmtScope;
 class ProcessAssertions;
+class PfManager;
 
 ProofManager* currentProofManager();
 }/* CVC4::smt namespace */
@@ -860,6 +862,9 @@ class CVC4_PUBLIC SmtEngine
   /** Permit access to the underlying dump manager. */
   smt::DumpManager* getDumpManager();
 
+  /** Get a pointer to the Rewriter owned by this SmtEngine. */
+  theory::Rewriter* getRewriter() { return d_rewriter.get(); }
+
   /**
    * Get expanded assertions.
    *
@@ -897,11 +902,11 @@ class CVC4_PUBLIC SmtEngine
   /** Get a pointer to the PropEngine owned by this SmtEngine. */
   prop::PropEngine* getPropEngine();
 
-  /** Get a pointer to the ProofManager owned by this SmtEngine. */
+  /**
+   * Get a pointer to the ProofManager owned by this SmtEngine.
+   * TODO (project #37): this is the old proof manager and will be deleted
+   */
   ProofManager* getProofManager() { return d_proofManager.get(); };
-
-  /** Get a pointer to the Rewriter owned by this SmtEngine. */
-  theory::Rewriter* getRewriter() { return d_rewriter.get(); }
 
   /** Get a pointer to the StatisticsRegistry owned by this SmtEngine. */
   StatisticsRegistry* getStatisticsRegistry()
@@ -1072,8 +1077,14 @@ class CVC4_PUBLIC SmtEngine
   /** The SMT solver */
   std::unique_ptr<smt::SmtSolver> d_smtSolver;
 
-  /** The proof manager */
+  /** The (old) proof manager TODO (project #37): delete this */
   std::unique_ptr<ProofManager> d_proofManager;
+
+  /**
+   * The proof manager, which manages all things related to checking,
+   * processing, and printing proofs.
+   */
+  std::unique_ptr<smt::PfManager> d_pfManager;
 
   /**
    * The rewriter associated with this SmtEngine. We have a different instance
@@ -1091,6 +1102,8 @@ class CVC4_PUBLIC SmtEngine
 
   /** The solver for abduction queries */
   std::unique_ptr<smt::AbductionSolver> d_abductSolver;
+  /** The solver for interpolation queries */
+  std::unique_ptr<smt::InterpolationSolver> d_interpolSolver;
   /** The solver for quantifier elimination queries */
   std::unique_ptr<smt::QuantElimSolver> d_quantElimSolver;
   /**

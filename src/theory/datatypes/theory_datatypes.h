@@ -293,9 +293,12 @@ private:
   Node removeUninterpretedConstants( Node n, std::map< Node, Node >& visited );
   /** for checking if cycles exist */
   void checkCycles();
-  Node searchForCycle( TNode n, TNode on,
-                       std::map< TNode, bool >& visited, std::map< TNode, bool >& proc,
-                       std::vector< TNode >& explanation, bool firstTime = true );
+  Node searchForCycle(TNode n,
+                      TNode on,
+                      std::map<TNode, bool>& visited,
+                      std::map<TNode, bool>& proc,
+                      std::vector<Node>& explanation,
+                      bool firstTime = true);
   /** for checking whether two codatatype terms must be equal */
   void separateBisimilar( std::vector< Node >& part, std::vector< std::vector< Node > >& part_out,
                           std::vector< TNode >& exp,

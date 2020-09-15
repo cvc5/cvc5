@@ -320,7 +320,7 @@ void TheorySetsPrivate::fullEffortCheck()
         Node n = (*eqc_i);
         if (n != eqc)
         {
-          Trace("sets-eqc") << n << " ";
+          Trace("sets-eqc") << n << " (" << n.isConst() << ") ";
         }
         TypeNode tnn = n.getType();
         if (isSet)

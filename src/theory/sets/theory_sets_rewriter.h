@@ -70,7 +70,11 @@ class TheorySetsRewriter : public TheoryRewriter
     // often this will suffice
     return postRewrite(equality).d_node;
   }
-
+private:
+  /**
+   * Returns true if elementTerm is in setTerm, where both terms are constants.
+   */
+  bool checkConstantMembership(TNode elementTerm, TNode setTerm);
 }; /* class TheorySetsRewriter */
 
 }/* CVC4::theory::sets namespace */
