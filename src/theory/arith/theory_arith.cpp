@@ -154,7 +154,7 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     d_nonlinearExtension->interceptModel(arithModel);
   }
   // We are now ready to assert the model.
-  for (std::pair<const Node, Node>& p : arithModel)
+  for (const std::pair<const Node, Node>& p : arithModel)
   {
     if (m->assertEquality(p.first, p.second, true))
     {
