@@ -868,6 +868,7 @@ class CVC4_PUBLIC SmtEngine
   /** Get the printer used by this SMT engine */
   const Printer* getPrinter() const;
 
+  /** Get the output manager for this SMT engine */
   OutputManager& getOutputManager();
 
   /**
@@ -1137,7 +1138,7 @@ class CVC4_PUBLIC SmtEngine
   /** The options object */
   Options d_options;
 
-  /** the dump output manager for commands */
+  /** the output manager for commands */
   mutable OutputManager d_outMgr;
 
   /**
