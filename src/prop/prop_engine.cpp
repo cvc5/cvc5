@@ -117,6 +117,14 @@ void PropEngine::finishInit()
 {
   NodeManager* nm = NodeManager::currentNM();
   d_cnfStream->convertAndAssert(nm->mkConst(true), false, false);
+  // this is necessary because if True is later asserted to the prop engine the
+  // CNF stream will ignore it since the SAT solver already had it registered,
+  // thus not having True as an assumption for the SAT proof. To solve this
+  // issue we track it directly here
+  if (d_pfCnfStream)
+  {
+    d_satSolver->getProofManager()->registerSatAssumptions({nm->mkConst(true)});
+  }
   d_cnfStream->convertAndAssert(nm->mkConst(false).notNode(), false, false);
 }
 
