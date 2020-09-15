@@ -55,7 +55,7 @@ namespace {
  */
 bool assertionLevelOnly()
 {
-  return options::unsatCores() && options::incrementalSolving();
+  return (options::proofNew() || options::unsatCores()) && options::incrementalSolving();
 }
 
 //=================================================================================================
