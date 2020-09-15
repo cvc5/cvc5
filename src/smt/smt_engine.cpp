@@ -50,12 +50,7 @@
 #include "expr/node_builder.h"
 #include "expr/node_self_iterator.h"
 #include "expr/node_visitor.h"
-#include "options/arith_options.h"
-#include "options/arrays_options.h"
 #include "options/base_options.h"
-#include "options/booleans_options.h"
-#include "options/bv_options.h"
-#include "options/datatypes_options.h"
 #include "options/decision_options.h"
 #include "options/language.h"
 #include "options/main_options.h"
@@ -64,12 +59,9 @@
 #include "options/printer_options.h"
 #include "options/prop_options.h"
 #include "options/quantifiers_options.h"
-#include "options/sep_options.h"
 #include "options/set_language.h"
 #include "options/smt_options.h"
-#include "options/strings_options.h"
 #include "options/theory_options.h"
-#include "options/uf_options.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
@@ -83,12 +75,14 @@
 #include "smt/defined_function.h"
 #include "smt/dump_manager.h"
 #include "smt/expr_names.h"
+#include "smt/interpolation_solver.h"
 #include "smt/listeners.h"
 #include "smt/logic_request.h"
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
 #include "smt/options_manager.h"
 #include "smt/preprocessor.h"
+#include "smt/proof_manager.h"
 #include "smt/quant_elim_solver.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_engine_state.h"
@@ -99,12 +93,9 @@
 #include "smt/update_ostream.h"
 #include "smt_util/boolean_simplification.h"
 #include "smt_util/nary_builder.h"
-#include "theory/booleans/circuit_propagator.h"
-#include "theory/bv/theory_bv_rewriter.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
-#include "theory/strings/theory_strings.h"
 #include "theory/substitutions.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
@@ -139,10 +130,12 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_snmListener(new SmtNodeManagerListener(*d_dumpm.get())),
       d_smtSolver(nullptr),
       d_proofManager(nullptr),
+      d_pfManager(nullptr),
       d_rewriter(new theory::Rewriter()),
       d_definedFunctions(nullptr),
       d_sygusSolver(nullptr),
       d_abductSolver(nullptr),
+      d_interpolSolver(nullptr),
       d_quantElimSolver(nullptr),
       d_assignments(nullptr),
       d_logic(),
@@ -262,6 +255,20 @@ void SmtEngine::finishInit()
   // based on our heuristics.
   d_optm->finishInit(d_logic, d_isInternalSubsolver);
 
+  ProofNodeManager* pnm = nullptr;
+  if (options::proofNew())
+  {
+    d_pfManager.reset(new PfManager(this));
+    // use this proof node manager
+    pnm = d_pfManager->getProofNodeManager();
+    // enable proof support in the rewriter
+    d_rewriter->setProofNodeManager(pnm);
+    // enable it in the assertions pipeline
+    d_asserts->setProofGenerator(d_pfManager->getPreprocessProofGenerator());
+    // enable it in the SmtSolver
+    d_smtSolver->setProofNodeManager(pnm);
+  }
+
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
   d_smtSolver->finishInit(const_cast<const LogicInfo&>(d_logic));
 
@@ -293,6 +300,10 @@ void SmtEngine::finishInit()
   if (options::produceAbducts())
   {
     d_abductSolver.reset(new AbductionSolver(this));
+  }
+  if (options::produceInterpols() != options::ProduceInterpols::NONE)
+  {
+    d_interpolSolver.reset(new InterpolationSolver(this));
   }
 
   d_pp->finishInit();
@@ -1750,12 +1761,6 @@ void SmtEngine::checkModel(bool hardFailure) {
   Notice() << "SmtEngine::checkModel(): all assertions checked out OK !" << endl;
 }
 
-void SmtEngine::checkInterpol(Expr interpol,
-                              const std::vector<Expr>& easserts,
-                              const Node& conj)
-{
-}
-
 // TODO(#1108): Simplify the error reporting of this method.
 UnsatCore SmtEngine::getUnsatCore() {
   Trace("smt") << "SMT getUnsatCore()" << endl;
@@ -1813,7 +1818,11 @@ bool SmtEngine::getInterpol(const Node& conj,
                             const TypeNode& grammarType,
                             Node& interpol)
 {
-  return false;
+  bool success = d_interpolSolver->getInterpol(conj, grammarType, interpol);
+  // notify the state of whether the get-interpol call was successfuly, which
+  // impacts the SMT mode.
+  d_state->notifyGetInterpol(success);
+  return success;
 }
 
 bool SmtEngine::getInterpol(const Node& conj, Node& interpol)

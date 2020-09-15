@@ -202,6 +202,8 @@ libcvc4_add_sources(
   smt/logic_exception.h
   smt/logic_request.cpp
   smt/logic_request.h
+  smt/interpolation_solver.cpp
+  smt/interpolation_solver.h
   smt/managed_ostreams.cpp
   smt/managed_ostreams.h
   smt/model.cpp
@@ -222,6 +224,8 @@ libcvc4_add_sources(
   smt/preprocess_proof_generator.h
   smt/process_assertions.cpp
   smt/process_assertions.h
+  smt/proof_manager.cpp
+  smt/proof_manager.h
   smt/proof_post_processor.cpp
   smt/proof_post_processor.h
   smt/set_defaults.cpp

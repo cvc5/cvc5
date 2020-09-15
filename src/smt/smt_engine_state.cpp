@@ -122,6 +122,20 @@ void SmtEngineState::notifyGetAbduct(bool success)
   }
 }
 
+void SmtEngineState::notifyGetInterpol(bool success)
+{
+  if (success)
+  {
+    // successfully generated an interpolant, update to interpol state
+    d_smtMode = SmtMode::INTERPOL;
+  }
+  else
+  {
+    // failed, we revert to the assert state
+    d_smtMode = SmtMode::ASSERT;
+  }
+}
+
 void SmtEngineState::setup()
 {
   // push a context

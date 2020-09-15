@@ -124,6 +124,8 @@ private:
   //--------------------------------- end initialization
 
   //--------------------------------- standard check
+  /** Do we need a check call at last call effort? */
+  bool needsCheckLastEffort() override;
   /** Post-check, called after the fact queue of the theory is processed. */
   void postCheck(Effort level) override;
   /** Pre-notify fact, return true if processed. */
@@ -153,10 +155,6 @@ private:
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
   std::string identify() const override { return "THEORY_UF"; }
-
-  /** get a pointer to the uf with cardinality */
-  CardinalityExtension* getCardinalityExtension() const { return d_thss.get(); }
-
  private:
   /** Explain why this literal is true by building an explanation */
   void explain(TNode literal, Node& exp);
