@@ -22,11 +22,11 @@
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
+#include "expr/buffered_proof_generator.h"
 #include "expr/lazy_proof.h"
 #include "expr/node.h"
 #include "expr/proof_node.h"
 #include "expr/proof_node_manager.h"
-#include "expr/proof_step_buffer.h"
 #include "theory/eager_proof_generator.h"
 #include "theory/uf/equality_engine.h"
 
@@ -243,33 +243,6 @@ class ProofEqEngine : public EagerProofGenerator
   TrustNode explain(Node conc);
 
  private:
-  /**
-   * The default proof generator (for simple facts). This class is a context
-   * dependent mapping from formulas to proof steps. It does not generate
-   * ProofNode until it is asked to provide a proof for a given fact.
-   */
-  class FactProofGenerator : public ProofGenerator
-  {
-    typedef context::
-        CDHashMap<Node, std::shared_ptr<ProofStep>, NodeHashFunction>
-            NodeProofStepMap;
-
-   public:
-    FactProofGenerator(context::Context* c, ProofNodeManager* pnm);
-    ~FactProofGenerator() {}
-    /** add step */
-    bool addStep(Node fact, ProofStep ps);
-    /** Get proof for */
-    std::shared_ptr<ProofNode> getProofFor(Node f) override;
-    /** identify */
-    std::string identify() const override { return "FactProofGenerator"; }
-
-   private:
-    /** maps expected to ProofStep */
-    NodeProofStepMap d_facts;
-    /** the proof node manager */
-    ProofNodeManager* d_pnm;
-  };
   /** Assert internal */
   bool assertFactInternal(TNode pred, bool polarity, TNode reason);
   /** holds */
@@ -302,7 +275,7 @@ class ProofEqEngine : public EagerProofGenerator
   /** Reference to the equality engine */
   eq::EqualityEngine& d_ee;
   /** The default proof generator (for simple facts) */
-  FactProofGenerator d_factPg;
+  BufferedProofGenerator d_factPg;
   /** common nodes */
   Node d_true;
   Node d_false;
@@ -317,11 +290,6 @@ class ProofEqEngine : public EagerProofGenerator
    * SAT-context-dependent.
    */
   NodeSet d_keep;
-  /**
-   * Whether proofs are enabled. If this flag is false, then this class acts
-   * as a simplified interface to the EqualityEngine, without proofs.
-   */
-  bool d_pfEnabled;
   /** Explain
    *
    * This adds to assumps the set of facts that were asserted to this
