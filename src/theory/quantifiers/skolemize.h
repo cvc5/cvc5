@@ -26,6 +26,9 @@
 #include "theory/quantifiers/quant_util.h"
 
 namespace CVC4 {
+
+class DTypeConstructor;
+
 namespace theory {
 namespace quantifiers {
 

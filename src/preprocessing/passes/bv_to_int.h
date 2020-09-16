@@ -289,11 +289,37 @@ class BVToInt : public PreprocessingPass
    * When a UF f is translated to a UF g,
    * we add a define-fun command to the smt-engine
    * to relate between f and g.
+   * We do the same when f and g are just variables.
    * This is useful, for example, when asking
    * for a model-value of a term that includes the
    * original UF f.
+   * @param bvUF the original function or variable
+   * @param intUF the translated function or variable
    */
-  void defineBVUFAsIntUF(Node bvUF);
+  void defineBVUFAsIntUF(Node bvUF, Node intUF);
+
+  /**
+   * @param bvUF is an uninterpreted function symbol from the original formula
+   * @return a fresh uninterpreted function symbol, obtained from bvUF
+     by replacing every argument of type BV to an argument of type Integer,
+     and the return type becomes integer in case it was BV.
+   */
+  Node translateFunctionSymbol(Node bvUF);
+
+  /**
+   * Performs the actual translation to integers for nodes
+   * that have children.
+   */
+  Node translateWithChildren(Node original,
+                             const vector<Node>& translated_children);
+
+  /**
+   * Performs the actual translation to integers for nodes
+   * that don't have children (variables, constants, uninterpreted function
+   * symbols).
+   */
+  Node translateNoChildren(Node original);
+
   /**
    * Caches for the different functions
    */

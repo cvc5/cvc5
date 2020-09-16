@@ -22,9 +22,11 @@
 
 #include "context/cdlist.h"
 #include "expr/node.h"
-#include "smt/node_command.h"
 
 namespace CVC4 {
+
+class NodeCommand;
+
 namespace smt {
 
 /**

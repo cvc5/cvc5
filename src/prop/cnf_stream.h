@@ -34,6 +34,8 @@
 
 namespace CVC4 {
 
+class OutputManager;
+
 namespace prop {
 
 class PropEngine;
@@ -55,6 +57,9 @@ class CnfStream {
  protected:
   /** The SAT solver we will be using */
   SatSolver* d_satSolver;
+
+  /** Reference to the output manager of the smt engine */
+  OutputManager* d_outMgr;
 
   /** Boolean variables that we translated */
   context::CDList<TNode> d_booleanVariables;
@@ -166,12 +171,17 @@ class CnfStream {
    * @param satSolver the sat solver to use.
    * @param registrar the entity that takes care of preregistration of Nodes.
    * @param context the context that the CNF should respect.
+   * @param outMgr Reference to the output manager of the smt engine. Assertions
+   * will not be dumped if outMgr == nullptr.
    * @param fullLitToNodeMap maintain a full SAT-literal-to-Node mapping.
    * @param name string identifier to distinguish between different instances
    * even for non-theory literals.
    */
-  CnfStream(SatSolver* satSolver, Registrar* registrar,
-            context::Context* context, bool fullLitToNodeMap = false,
+  CnfStream(SatSolver* satSolver,
+            Registrar* registrar,
+            context::Context* context,
+            OutputManager* outMgr = nullptr,
+            bool fullLitToNodeMap = false,
             std::string name = "");
 
   /**
@@ -256,6 +266,8 @@ class TseitinCnfStream : public CnfStream {
    * @param satSolver the sat solver to use
    * @param registrar the entity that takes care of pre-registration of Nodes
    * @param context the context that the CNF should respect.
+   * @param outMgr reference to the output manager of the smt engine. Assertions
+   * will not be dumped if outMgr == nullptr.
    * @param rm the resource manager of the CNF stream
    * @param fullLitToNodeMap maintain a full SAT-literal-to-Node mapping,
    * even for non-theory literals
@@ -263,6 +275,7 @@ class TseitinCnfStream : public CnfStream {
   TseitinCnfStream(SatSolver* satSolver,
                    Registrar* registrar,
                    context::Context* context,
+                   OutputManager* outMgr,
                    ResourceManager* rm,
                    bool fullLitToNodeMap = false,
                    std::string name = "");
