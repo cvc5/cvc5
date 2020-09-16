@@ -232,9 +232,10 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_outMgr(outMgr),
       d_pnm(pnm),
       d_lazyProof(
-          d_pnm != nullptr ? new LazyCDProof(
-              d_pnm, nullptr, d_userContext, "TheoryEngine::LazyCDProof")
-                           : nullptr),
+          d_pnm != nullptr
+              ? new LazyCDProof(
+                    d_pnm, nullptr, d_userContext, "TheoryEngine::LazyCDProof")
+              : nullptr),
       d_tepg(new TheoryEngineProofGenerator(d_pnm, d_userContext)),
       d_sharedTerms(this, context, userContext, d_pnm),
       d_tc(nullptr),
@@ -1278,7 +1279,8 @@ theory::TrustNode TheoryEngine::getExplanation(TNode node)
                              << ") => " << explanation << endl;
     if (isProofEnabled())
     {
-      texplanation.debugCheckClosed("te-proof-exp", "texplanation no share", false);
+      texplanation.debugCheckClosed(
+          "te-proof-exp", "texplanation no share", false);
       // check if no generator, if so, add THEORY_LEMMA
       if (texplanation.getGenerator() == nullptr)
       {

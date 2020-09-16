@@ -89,6 +89,7 @@ class TheoryProxy
   SatValue getDecisionPolarity(SatVariable var);
 
   CnfStream* getCnfStream();
+
  private:
   /** The prop engine we are using. */
   PropEngine* d_propEngine;

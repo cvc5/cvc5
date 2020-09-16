@@ -75,7 +75,7 @@ TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver,
       d_resourceManager(rm)
 {}
 
-bool CnfStream::assertClause(TNode node, SatClause& c) 
+bool CnfStream::assertClause(TNode node, SatClause& c)
 {
   Debug("cnf") << "Inserting into stream " << c << " node = " << node << endl;
   if (Dump.isOn("clauses") && d_outMgr != nullptr)

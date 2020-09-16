@@ -59,7 +59,7 @@ bool ProofPostprocessCallback::update(Node res,
                                       const std::vector<Node>& children,
                                       const std::vector<Node>& args,
                                       CDProof* cdp,
-                      bool& continueUpdate)
+                                      bool& continueUpdate)
 {
   Trace("smt-proof-pp-debug") << "- Post process " << id << " " << children
                               << " / " << args << std::endl;
@@ -119,10 +119,10 @@ bool ProofPostprocessCallback::update(Node res,
 }
 
 bool ProofPostprocessCallback::updateInternal(Node res,
-            PfRule id,
-            const std::vector<Node>& children,
-            const std::vector<Node>& args,
-            CDProof* cdp)
+                                              PfRule id,
+                                              const std::vector<Node>& children,
+                                              const std::vector<Node>& args,
+                                              CDProof* cdp)
 {
   bool continueUpdate = true;
   return update(res, id, children, args, cdp, continueUpdate);
@@ -224,7 +224,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     std::vector<Node> sargs = args;
     // take into account witness form, if necessary
     bool reqWitness = d_wfpm.requiresWitnessFormIntro(args[0]);
-    Trace("smt-proof-pp-debug") << "...pred intro reqWitness=" << reqWitness << std::endl;
+    Trace("smt-proof-pp-debug")
+        << "...pred intro reqWitness=" << reqWitness << std::endl;
     // (TRUE_ELIM
     // (TRANS
     //    (MACRO_SR_EQ_INTRO <children> :args (t args[1:]))
@@ -235,10 +236,11 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     // that this rule application is immediately expanded in the recursive
     // call and not added to the proof.
     Node conc = expandMacros(PfRule::MACRO_SR_EQ_INTRO, children, sargs, cdp);
-    Trace("smt-proof-pp-debug") << "...pred intro conclusion is " << conc << std::endl;
-    Assert (!conc.isNull());
-    Assert (conc.getKind()==EQUAL);
-    Assert (conc[0]==args[0]);
+    Trace("smt-proof-pp-debug")
+        << "...pred intro conclusion is " << conc << std::endl;
+    Assert(!conc.isNull());
+    Assert(conc.getKind() == EQUAL);
+    Assert(conc[0] == args[0]);
     tchildren.push_back(conc);
     if (reqWitness)
     {

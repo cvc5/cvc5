@@ -39,7 +39,7 @@ bool ProofPostprocessCallback::update(Node res,
                                       const std::vector<Node>& children,
                                       const std::vector<Node>& args,
                                       CDProof* cdp,
-                      bool& continueUpdate)
+                                      bool& continueUpdate)
 {
   Trace("prop-proof-pp-debug")
       << "- Post process " << id << " " << children << " / " << args << "\n";

@@ -55,7 +55,8 @@ namespace {
  */
 bool assertionLevelOnly()
 {
-  return (options::proofNew() || options::unsatCores()) && options::incrementalSolving();
+  return (options::proofNew() || options::unsatCores())
+         && options::incrementalSolving();
 }
 
 //=================================================================================================
@@ -2081,7 +2082,8 @@ void Solver::pop()
   // Pop the trail below the user level
   --assertionLevel;
   Debug("minisat") << "in user pop, decreasing assertion level to "
-                   << assertionLevel << "\n" << CVC4::push;
+                   << assertionLevel << "\n"
+                   << CVC4::push;
   while (true) {
     Debug("minisat") << "== unassigning " << trail.last() << std::endl;
     Var      x  = var(trail.last());

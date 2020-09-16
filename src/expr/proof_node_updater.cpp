@@ -27,7 +27,7 @@ bool ProofNodeUpdaterCallback::update(Node res,
                                       const std::vector<Node>& children,
                                       const std::vector<Node>& args,
                                       CDProof* cdp,
-                      bool& continueUpdate)
+                                      bool& continueUpdate)
 {
   return false;
 }
@@ -110,7 +110,8 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
         if (!continueUpdate)
         {
           // no further changes should be made to cur according to the callback
-          Trace("pf-process-debug") << "...marked to not continue update." << std::endl;
+          Trace("pf-process-debug")
+              << "...marked to not continue update." << std::endl;
           continue;
         }
         visit.push_back(cur);
@@ -165,7 +166,7 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
 
 bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur,
                                  const std::vector<Node>& fa,
-                      bool& continueUpdate)
+                                 bool& continueUpdate)
 {
   // should it be updated?
   if (!d_cb.shouldUpdate(cur.get()))

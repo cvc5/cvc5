@@ -55,7 +55,8 @@ theory::TrustNode TheoryEngineProofGenerator::mkTrustExplain(
 
 std::shared_ptr<ProofNode> TheoryEngineProofGenerator::getProofFor(Node f)
 {
-  Trace("tepg-debug") << "TheoryEngineProofGenerator::getProofFor: " << f << std::endl;
+  Trace("tepg-debug") << "TheoryEngineProofGenerator::getProofFor: " << f
+                      << std::endl;
   NodeLazyCDProofMap::iterator it = d_proofs.find(f);
   if (it == d_proofs.end())
   {
@@ -80,9 +81,8 @@ std::shared_ptr<ProofNode> TheoryEngineProofGenerator::getProofFor(Node f)
   }
   else
   {
-    Unhandled()
-        << "TheoryEngineProofGenerator::getProofFor: unexpected fact " << f
-        << std::endl;
+    Unhandled() << "TheoryEngineProofGenerator::getProofFor: unexpected fact "
+                << f << std::endl;
     return nullptr;
   }
   // get the assumptions to assume in a scope

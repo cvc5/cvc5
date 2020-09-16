@@ -141,7 +141,8 @@ class SatProofManager
   /** The false node */
   Node d_false;
 
-  /** All clauses added to the SAT solver, kept in a context-dependend manner. */
+  /** All clauses added to the SAT solver, kept in a context-dependend manner.
+   */
   context::CDList<Node> d_assumptions;
 
   /**
