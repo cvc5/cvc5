@@ -20,8 +20,10 @@
 
 namespace CVC4 {
 
-LazyCDProofChain::LazyCDProofChain(ProofNodeManager* pnm, context::Context* c)
-    : d_manager(pnm), d_context(), d_gens(c ? c : &d_context)
+LazyCDProofChain::LazyCDProofChain(ProofNodeManager* pnm,
+                                   bool cyclic,
+                                   context::Context* c)
+    : d_manager(pnm), d_cyclic(cyclic), d_context(), d_gens(c ? c : &d_context)
 {
 }
 
@@ -86,13 +88,20 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
               << "LazyCDProofChain::getProofFor:  - " << fap.first << "\n";
         }
       }
-      Trace("lazy-cdproofchain") << push;
-      Trace("lazy-cdproofchain-debug") << push;
       // map node whose proof node must be expanded to the respective poof node
       toConnect[cur] = curPfn;
-      // mark for post-traversal. This is to avoid cycles and to pop the traces
-      visit.push_back(cur);
-      visited[cur] = false;
+      // mark for post-traversal if we are controlling cycles
+      if (d_cyclic)
+      {
+        visit.push_back(cur);
+        visited[cur] = false;
+        Trace("lazy-cdproofchain") << push;
+        Trace("lazy-cdproofchain-debug") << push;
+      }
+      else
+      {
+        visited[cur] = true;
+      }
       // enqueue free assumptions to process
       for (const std::pair<const Node, std::vector<std::shared_ptr<ProofNode>>>&
                fap : famap)
@@ -100,7 +109,7 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
         // check cycles, which are cases in which the assumption has already
         // been marked to be connected but we have not finished processing the
         // nodes it depends on
-        if (toConnect.find(fap.first) != toConnect.end()
+        if (d_cyclic && toConnect.find(fap.first) != toConnect.end()
             && std::find(visit.begin(), visit.end(), fap.first) != visit.end())
         {
           // Since we have a cycle with an assumption, this fact will be an
