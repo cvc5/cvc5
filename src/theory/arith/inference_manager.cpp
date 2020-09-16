@@ -92,7 +92,7 @@ bool InferenceManager::hasUsed() const
   return hasSent() || hasPending();
 }
 
-bool InferenceManager::hasWaitingLemmas() const
+bool InferenceManager::hasWaitingLemma() const
 {
   return !d_waitingLem.empty();
 }
