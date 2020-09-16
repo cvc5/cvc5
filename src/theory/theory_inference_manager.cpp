@@ -32,6 +32,7 @@ TheoryInferenceManager::TheoryInferenceManager(Theory& t,
       d_pnm(pnm),
       d_keep(t.getSatContext()),
       d_lemmasSent(t.getUserContext()),
+      d_numConflicts(0),
       d_numCurrentLemmas(0),
       d_numCurrentFacts(0)
 {
@@ -54,6 +55,7 @@ bool TheoryInferenceManager::isProofEnabled() const { return d_pnm != nullptr; }
 
 void TheoryInferenceManager::reset()
 {
+  d_numConflicts = 0;
   d_numCurrentLemmas = 0;
   d_numCurrentFacts = 0;
 }
@@ -85,7 +87,18 @@ void TheoryInferenceManager::conflict(TNode conf)
   {
     d_theoryState.notifyInConflict();
     d_out.conflict(conf);
+    ++d_numConflicts;
   }
+}
+
+uint32_t TheoryInferenceManager::numSentConflicts() const
+{
+  return d_numConflicts;
+}
+
+bool TheoryInferenceManager::hasSentConflict() const
+{
+  return d_numConflicts != 0;
 }
 
 void TheoryInferenceManager::trustedConflict(TrustNode tconf)
