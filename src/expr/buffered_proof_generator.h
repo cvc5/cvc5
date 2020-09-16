@@ -2,7 +2,7 @@
 /*! \file buffered_proof_generator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -29,8 +29,8 @@
 namespace CVC4 {
 
 /**
- * The proof generator for bufferent steps. This class is a context dependent
- * mapping from formulas to proof steps. It does not generate ProofNode until it
+ * The proof generator for buffered steps. This class is a context-dependent
+ * mapping from formulas to proof steps. It does not generate ProofNodes until it
  * is asked to provide a proof for a given fact.
  */
 class BufferedProofGenerator : public ProofGenerator
@@ -41,11 +41,14 @@ class BufferedProofGenerator : public ProofGenerator
  public:
   BufferedProofGenerator(context::Context* c, ProofNodeManager* pnm);
   ~BufferedProofGenerator() {}
-  /** add step */
+  /** add step
+   * Unless the overwrite policy is ALWAYS it does not replace previously
+   * registered steps (modulo (dis)equality symmetry).
+   */
   bool addStep(Node fact,
                ProofStep ps,
                CDPOverwrite opolicy = CDPOverwrite::NEVER);
-  /** Get proof for */
+  /** Get proof for. It is robust to (dis)equality symmetry. */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** identify */
   std::string identify() const override { return "BufferedProofGenerator"; }
