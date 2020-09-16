@@ -75,6 +75,10 @@ PR finished:
 (90) inference manager uses pfee
 (92) strings term registry proof preparation (req 75)
 (93) updates to proof node updater (req 86)
+(94) HO_CONG in eq proof conversion [Haniel]
+(99) SAT rules to Boolean checker [Haniel]
+(102) proof equality engine always proof
+(103) buffered proof manager [Haniel] (req 102)
 
 PRs ready:
 
@@ -86,14 +90,13 @@ PRs ready:
 (85) SmtEngine check proofs (req 68, 82)
 (88) fixes for smt preprocess proof generator
 (91) Proof producing lemma TheoryEngine *
-(94) HO_CONG in eq proof conversion [Haniel]
 (95) Arrays proof checker *
-(99) SAT rules to Boolean checker [Haniel]
 (100) fixes for instantiate, quantifiers proof checker
 (101) strings misc changes to preprocess, base
-(102) proof equality engine always proof
 (104) lazy proof chain [Haniel] *
 (105) fixes for theory engine proof generator
+(106) term conversion operators + term context operators
+(107) fmf fun def as preprocessing pass *
 
 PRs future:
 
@@ -109,7 +112,7 @@ PRs future:
 (96) arrays proof producing (req 95)
 (97) BV new basic solver, proof producing [Mathias]
 (98) fixes in setDefaults
-(103) buffered proof manager [Haniel] (req 102)
+(108) eliminate preprocessing passes non-const uses
 
 
 Wish list:
