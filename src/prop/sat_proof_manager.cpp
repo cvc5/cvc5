@@ -18,6 +18,7 @@
 #include "prop/cnf_stream.h"
 #include "prop/minisat/minisat.h"
 #include "prop/theory_proxy.h"
+#include "theory/theory_proof_step_buffer.h"
 
 namespace CVC4 {
 namespace prop {
@@ -239,7 +240,7 @@ void SatProofManager::endResChain(Node conclusion,
       << "SatProofManager::endResChain: creating step for computed conclusion "
       << chainConclusion << "\n";
   // buffer steps
-  ProofStepBuffer psb;
+  theory::TheoryProofStepBuffer psb;
   psb.addStep(PfRule::CHAIN_RESOLUTION, children, args, chainConclusion);
   if (chainConclusion != conclusion)
   {
@@ -247,14 +248,10 @@ void SatProofManager::endResChain(Node conclusion,
     // reordered, which in either case can be done only if it's not a unit
     // clause.
     CVC4_UNUSED Node reducedChainConclusion =
-        CDProof::factorReorderElimDoubleNeg(chainConclusion, psb);
-    Assert(reducedChainConclusion == conclusion
-           || reducedChainConclusion
-                  == CDProof::factorReorderElimDoubleNeg(conclusion, nullptr))
-        << "given res chain conclusion " << conclusion
-        << "\nafter factorReorderElimDoubleNeg "
-        << CDProof::factorReorderElimDoubleNeg(conclusion, nullptr)
-        << "\nis different from computed chain_res " << chainConclusion
+        psb.factorReorderElimDoubleNeg(chainConclusion);
+    Assert(reducedChainConclusion == conclusion)
+        << "original conclusion " << conclusion
+        << "\nis different from computed conclusion " << chainConclusion
         << "\nafter factorReorderElimDoubleNeg " << reducedChainConclusion;
   }
   // buffer the steps in the resolution chain proof generator

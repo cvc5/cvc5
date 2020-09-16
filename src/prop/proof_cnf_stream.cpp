@@ -58,8 +58,20 @@ void ProofCnfStream::convertAndAssert(TNode node,
     Node toJustify = negated ? node.notNode() : static_cast<Node>(node);
     d_proof.addLazyStep(
         toJustify, pg, true, "ProofCnfStream::convertAndAssert:cnf");
+    Assert(!d_psb.getNumSteps());
   }
+
   convertAndAssert(node, negated);
+  // process saved steps in buffer
+  if (d_pfEnabled)
+  {
+    const std::vector<std::pair<Node, ProofStep>>& steps = d_psb.getSteps();
+    for (const std::pair<Node, ProofStep>& step : steps)
+    {
+      d_proof.addStep(step.first, step.second);
+    }
+    d_psb.clear();
+  }
 }
 
 void ProofCnfStream::convertAndAssert(TNode node, bool negated)
@@ -159,7 +171,7 @@ void ProofCnfStream::convertAndAssertAnd(TNode node, bool negated)
       // justify normalized clause as well, since that's what will be saved in
       // the SAT solver and registered with prop engine
       Node normClauseNode =
-          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+          d_psb.factorReorderElimDoubleNeg(clauseNode);
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -185,7 +197,7 @@ void ProofCnfStream::convertAndAssertOr(TNode node, bool negated)
     {
       clause[i] = toCNF(node[i], false);
     }
-    Node normClauseNode = CDProof::factorReorderElimDoubleNeg(node, &d_proof);
+    Node normClauseNode = d_psb.factorReorderElimDoubleNeg(node);
     // if we are eagerly checking proofs, track sat solver assumptions
     if (options::proofNewEagerChecking())
     {
@@ -236,7 +248,7 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
           nm->mkNode(kind::OR, node[0].notNode(), node[1].notNode());
       d_proof.addStep(clauseNode, PfRule::XOR_ELIM2, {node}, {});
       Node normClauseNode =
-          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+          d_psb.factorReorderElimDoubleNeg(clauseNode);
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -255,7 +267,7 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
       Node clauseNode = nm->mkNode(kind::OR, node[0], node[1]);
       d_proof.addStep(clauseNode, PfRule::XOR_ELIM1, {node}, {});
       Node normClauseNode =
-          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+          d_psb.factorReorderElimDoubleNeg(clauseNode);
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -282,7 +294,7 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
       Node clauseNode = nm->mkNode(kind::OR, node[0].notNode(), node[1]);
       d_proof.addStep(clauseNode, PfRule::NOT_XOR_ELIM2, {node.notNode()}, {});
       Node normClauseNode =
-          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+          d_psb.factorReorderElimDoubleNeg(clauseNode);
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -301,7 +313,7 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
       Node clauseNode = nm->mkNode(kind::OR, node[0], node[1].notNode());
       d_proof.addStep(clauseNode, PfRule::NOT_XOR_ELIM1, {node.notNode()}, {});
       Node normClauseNode =
-          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+          d_psb.factorReorderElimDoubleNeg(clauseNode);
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -336,7 +348,7 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
       Node clauseNode = nm->mkNode(kind::OR, node[0].notNode(), node[1]);
       d_proof.addStep(clauseNode, PfRule::EQUIV_ELIM1, {node}, {});
       Node normClauseNode =
-          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+          d_psb.factorReorderElimDoubleNeg(clauseNode);
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -355,7 +367,7 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
       Node clauseNode = nm->mkNode(kind::OR, node[0], node[1].notNode());
       d_proof.addStep(clauseNode, PfRule::EQUIV_ELIM2, {node}, {});
       Node normClauseNode =
-          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+          d_psb.factorReorderElimDoubleNeg(clauseNode);
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -386,7 +398,7 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
       d_proof.addStep(
           clauseNode, PfRule::NOT_EQUIV_ELIM2, {node.notNode()}, {});
       Node normClauseNode =
-          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+          d_psb.factorReorderElimDoubleNeg(clauseNode);
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -409,7 +421,7 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
       d_proof.addStep(
           clauseNode, PfRule::NOT_EQUIV_ELIM1, {node.notNode()}, {});
       Node normClauseNode =
-          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+          d_psb.factorReorderElimDoubleNeg(clauseNode);
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -442,7 +454,7 @@ void ProofCnfStream::convertAndAssertImplies(TNode node, bool negated)
           kind::OR, node[0].notNode(), node[1]);
       d_proof.addStep(clauseNode, PfRule::IMPLIES_ELIM, {node}, {});
       Node normClauseNode =
-          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+          d_psb.factorReorderElimDoubleNeg(clauseNode);
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -498,7 +510,7 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
       Node clauseNode = nm->mkNode(kind::OR, node[0].notNode(), node[1]);
       d_proof.addStep(clauseNode, PfRule::ITE_ELIM1, {node}, {});
       Node normClauseNode =
-          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+          d_psb.factorReorderElimDoubleNeg(clauseNode);
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -513,7 +525,7 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
           nm->mkNode(kind::OR, node[0].notNode(), node[1].notNode());
       d_proof.addStep(clauseNode, PfRule::NOT_ITE_ELIM1, {node.notNode()}, {});
       Node normClauseNode =
-          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+          d_psb.factorReorderElimDoubleNeg(clauseNode);
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -536,7 +548,7 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
       Node clauseNode = nm->mkNode(kind::OR, node[0], node[2]);
       d_proof.addStep(clauseNode, PfRule::ITE_ELIM2, {node}, {});
       Node normClauseNode =
-          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+          d_psb.factorReorderElimDoubleNeg(clauseNode);
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -550,7 +562,7 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
       Node clauseNode = nm->mkNode(kind::OR, node[0], node[2].notNode());
       d_proof.addStep(clauseNode, PfRule::NOT_ITE_ELIM2, {node.notNode()}, {});
       Node normClauseNode =
-          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+          d_psb.factorReorderElimDoubleNeg(clauseNode);
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -609,8 +621,14 @@ void ProofCnfStream::convertPropagation(theory::TrustNode trn)
   {
     clauseExp = clauseImpliesElim;
   }
-  Node normClauseNode =
-      CDProof::factorReorderElimDoubleNeg(clauseExp, &d_proof);
+  Assert(!d_psb.getNumSteps());
+  Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseExp);
+  const std::vector<std::pair<Node, ProofStep>>& steps = d_psb.getSteps();
+  for (const std::pair<Node, ProofStep>& step : steps)
+  {
+    d_proof.addStep(step.first, step.second);
+  }
+  d_psb.clear();
   Trace("cnf")
       << "ProofCnfStream::convertPropagation: actual clause registered is "
       << normClauseNode << "\n";
@@ -738,7 +756,7 @@ SatLiteral ProofCnfStream::handleAnd(TNode node)
       Node iNode = nm->mkConst<Rational>(i);
       d_proof.addStep(clauseNode, PfRule::CNF_AND_POS, {}, {node, iNode});
       Node normClauseNode =
-          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+          d_psb.factorReorderElimDoubleNeg(clauseNode);
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -768,7 +786,7 @@ SatLiteral ProofCnfStream::handleAnd(TNode node)
     Node clauseNode = nm->mkNode(kind::OR, disjuncts);
     d_proof.addStep(clauseNode, PfRule::CNF_AND_NEG, {}, {node});
     Node normClauseNode =
-        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+        d_psb.factorReorderElimDoubleNeg(clauseNode);
     // if we are eagerly checking proofs, track sat solver assumptions
     if (options::proofNewEagerChecking())
     {
@@ -812,7 +830,7 @@ SatLiteral ProofCnfStream::handleOr(TNode node)
       Node iNode = nm->mkConst<Rational>(i);
       d_proof.addStep(clauseNode, PfRule::CNF_OR_NEG, {}, {node, iNode});
       Node normClauseNode =
-          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+          d_psb.factorReorderElimDoubleNeg(clauseNode);
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -837,7 +855,7 @@ SatLiteral ProofCnfStream::handleOr(TNode node)
     Node clauseNode = nm->mkNode(kind::OR, disjuncts);
     d_proof.addStep(clauseNode, PfRule::CNF_OR_POS, {}, {node});
     Node normClauseNode =
-        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+        d_psb.factorReorderElimDoubleNeg(clauseNode);
     // if we are eagerly checking proofs, track sat solver assumptions
     if (options::proofNewEagerChecking())
     {
@@ -866,7 +884,7 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
         kind::OR, node.notNode(), node[0], node[1]);
     d_proof.addStep(clauseNode, PfRule::CNF_XOR_POS1, {}, {node});
     Node normClauseNode =
-        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+        d_psb.factorReorderElimDoubleNeg(clauseNode);
     // if we are eagerly checking proofs, track sat solver assumptions
     if (options::proofNewEagerChecking())
     {
@@ -882,7 +900,7 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
         kind::OR, node.notNode(), node[0].notNode(), node[1].notNode());
     d_proof.addStep(clauseNode, PfRule::CNF_XOR_POS2, {}, {node});
     Node normClauseNode =
-        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+        d_psb.factorReorderElimDoubleNeg(clauseNode);
     // if we are eagerly checking proofs, track sat solver assumptions
     if (options::proofNewEagerChecking())
     {
@@ -898,7 +916,7 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
         kind::OR, node, node[0], node[1].notNode());
     d_proof.addStep(clauseNode, PfRule::CNF_XOR_NEG2, {}, {node});
     Node normClauseNode =
-        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+        d_psb.factorReorderElimDoubleNeg(clauseNode);
     // if we are eagerly checking proofs, track sat solver assumptions
     if (options::proofNewEagerChecking())
     {
@@ -914,7 +932,7 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
         kind::OR, node, node[0].notNode(), node[1]);
     d_proof.addStep(clauseNode, PfRule::CNF_XOR_NEG1, {}, {node});
     Node normClauseNode =
-        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+        d_psb.factorReorderElimDoubleNeg(clauseNode);
     // if we are eagerly checking proofs, track sat solver assumptions
     if (options::proofNewEagerChecking())
     {
@@ -949,7 +967,7 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
         nm->mkNode(kind::OR, node.notNode(), node[0].notNode(), node[1]);
     d_proof.addStep(clauseNode, PfRule::CNF_EQUIV_POS1, {}, {node});
     Node normClauseNode =
-        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+        d_psb.factorReorderElimDoubleNeg(clauseNode);
     // if we are eagerly checking proofs, track sat solver assumptions
     if (options::proofNewEagerChecking())
     {
@@ -965,7 +983,7 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
         nm->mkNode(kind::OR, node.notNode(), node[0], node[1].notNode());
     d_proof.addStep(clauseNode, PfRule::CNF_EQUIV_POS2, {}, {node});
     Node normClauseNode =
-        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+        d_psb.factorReorderElimDoubleNeg(clauseNode);
     // if we are eagerly checking proofs, track sat solver assumptions
     if (options::proofNewEagerChecking())
     {
@@ -986,7 +1004,7 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
         nm->mkNode(kind::OR, node, node[0].notNode(), node[1].notNode());
     d_proof.addStep(clauseNode, PfRule::CNF_EQUIV_NEG2, {}, {node});
     Node normClauseNode =
-        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+        d_psb.factorReorderElimDoubleNeg(clauseNode);
     // if we are eagerly checking proofs, track sat solver assumptions
     if (options::proofNewEagerChecking())
     {
@@ -1001,7 +1019,7 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
     Node clauseNode = nm->mkNode(kind::OR, node, node[0], node[1]);
     d_proof.addStep(clauseNode, PfRule::CNF_EQUIV_NEG1, {}, {node});
     Node normClauseNode =
-        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+        d_psb.factorReorderElimDoubleNeg(clauseNode);
     // if we are eagerly checking proofs, track sat solver assumptions
     if (options::proofNewEagerChecking())
     {
@@ -1034,7 +1052,7 @@ SatLiteral ProofCnfStream::handleImplies(TNode node)
         nm->mkNode(kind::OR, node.notNode(), node[0].notNode(), node[1]);
     d_proof.addStep(clauseNode, PfRule::CNF_IMPLIES_POS, {}, {node});
     Node normClauseNode =
-        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+        d_psb.factorReorderElimDoubleNeg(clauseNode);
     // if we are eagerly checking proofs, track sat solver assumptions
     if (options::proofNewEagerChecking())
     {
@@ -1052,7 +1070,7 @@ SatLiteral ProofCnfStream::handleImplies(TNode node)
     Node clauseNode = nm->mkNode(kind::OR, node, node[0]);
     d_proof.addStep(clauseNode, PfRule::CNF_IMPLIES_NEG1, {}, {node});
     Node normClauseNode =
-        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+        d_psb.factorReorderElimDoubleNeg(clauseNode);
     // if we are eagerly checking proofs, track sat solver assumptions
     if (options::proofNewEagerChecking())
     {
@@ -1067,7 +1085,7 @@ SatLiteral ProofCnfStream::handleImplies(TNode node)
     Node clauseNode = nm->mkNode(kind::OR, node, node[1].notNode());
     d_proof.addStep(clauseNode, PfRule::CNF_IMPLIES_NEG2, {}, {node});
     Node normClauseNode =
-        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+        d_psb.factorReorderElimDoubleNeg(clauseNode);
     // if we are eagerly checking proofs, track sat solver assumptions
     if (options::proofNewEagerChecking())
     {
@@ -1106,7 +1124,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
     Node clauseNode = nm->mkNode(kind::OR, node.notNode(), node[1], node[2]);
     d_proof.addStep(clauseNode, PfRule::CNF_ITE_POS3, {}, {node});
     Node normClauseNode =
-        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+        d_psb.factorReorderElimDoubleNeg(clauseNode);
     // if we are eagerly checking proofs, track sat solver assumptions
     if (options::proofNewEagerChecking())
     {
@@ -1122,7 +1140,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
         nm->mkNode(kind::OR, node.notNode(), node[0].notNode(), node[1]);
     d_proof.addStep(clauseNode, PfRule::CNF_ITE_POS1, {}, {node});
     Node normClauseNode =
-        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+        d_psb.factorReorderElimDoubleNeg(clauseNode);
     // if we are eagerly checking proofs, track sat solver assumptions
     if (options::proofNewEagerChecking())
     {
@@ -1137,7 +1155,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
     Node clauseNode = nm->mkNode(kind::OR, node.notNode(), node[0], node[2]);
     d_proof.addStep(clauseNode, PfRule::CNF_ITE_POS2, {}, {node});
     Node normClauseNode =
-        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+        d_psb.factorReorderElimDoubleNeg(clauseNode);
     // if we are eagerly checking proofs, track sat solver assumptions
     if (options::proofNewEagerChecking())
     {
@@ -1159,7 +1177,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
         nm->mkNode(kind::OR, node, node[1].notNode(), node[2].notNode());
     d_proof.addStep(clauseNode, PfRule::CNF_ITE_NEG3, {}, {node});
     Node normClauseNode =
-        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+        d_psb.factorReorderElimDoubleNeg(clauseNode);
     // if we are eagerly checking proofs, track sat solver assumptions
     if (options::proofNewEagerChecking())
     {
@@ -1175,7 +1193,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
         nm->mkNode(kind::OR, node, node[0].notNode(), node[1].notNode());
     d_proof.addStep(clauseNode, PfRule::CNF_ITE_NEG1, {}, {node});
     Node normClauseNode =
-        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+        d_psb.factorReorderElimDoubleNeg(clauseNode);
     // if we are eagerly checking proofs, track sat solver assumptions
     if (options::proofNewEagerChecking())
     {
@@ -1190,7 +1208,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
     Node clauseNode = nm->mkNode(kind::OR, node, node[0], node[2].notNode());
     d_proof.addStep(clauseNode, PfRule::CNF_ITE_NEG2, {}, {node});
     Node normClauseNode =
-        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+        d_psb.factorReorderElimDoubleNeg(clauseNode);
     // if we are eagerly checking proofs, track sat solver assumptions
     if (options::proofNewEagerChecking())
     {

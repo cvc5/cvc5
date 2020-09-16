@@ -24,6 +24,7 @@
 #include "expr/proof_node_manager.h"
 #include "prop/cnf_stream.h"
 #include "theory/eager_proof_generator.h"
+#include "theory/theory_proof_step_buffer.h"
 
 namespace CVC4 {
 namespace prop {
@@ -122,12 +123,16 @@ class ProofCnfStream : public ProofGenerator
   CnfStream& d_cnfStream;
   /** the proof node manager */
   ProofNodeManager* d_pnm;
-  /** The User-context-dependent proof object */
+  /** The user-context-dependent proof object */
   LazyCDProof d_proof;
-  /** The default proof generator (for simple facts) */
+
+  /** An accumulator of steps that may be applied to normalize the clauses
+   * generated during clausification */
+  theory::TheoryProofStepBuffer d_psb;
+
   /**
    * Whether proofs are enabled. If this flag is false, then this class acts
-   * as a simplified interface to the EqualityEngine, without proofs.
+   * as a simplified interface to the CnfStream, without proofs.
    */
   bool d_pfEnabled;
 

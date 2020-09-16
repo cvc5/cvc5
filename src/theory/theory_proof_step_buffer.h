@@ -73,6 +73,27 @@ class TheoryProofStepBuffer : public ProofStepBuffer
                      MethodId ids = MethodId::SB_DEFAULT,
                      MethodId idr = MethodId::RW_REWRITE);
   //---------------------------- end utilities builtin proof rules
+
+  //---------------------------- utility methods for normalizing clauses
+  /**
+   * Normalizes a clause (an OR node) according to factoring and reordering,
+   * i.e. removes duplicates and reorders literals (according to node
+   * ids). Moreover it eliminates double negations, which can be done also for
+   * unit clauses. All normalization steps are tracked via proof steps added to
+   * this proof step buffer.
+   *
+   * @param n the clause to be normalized
+   */
+  Node factorReorderElimDoubleNeg(Node n);
+
+  /**
+   * Eliminates double negation of a literal if it has the form
+   *  (not (not t))
+   * If the elimination happens, a step is added to this proof step buffer.
+   *
+   * @param n the node to have the top-level double negation eliminated
+   */
+  Node elimDoubleNegLit(Node n);
 };
 
 }  // namespace theory
