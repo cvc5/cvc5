@@ -65,8 +65,8 @@ public:
 };
 
 PropEngine::PropEngine(TheoryEngine* te,
-                       Context* satContext,
-                       UserContext* userContext,
+                       context::Context* satContext,
+                       context::UserContext* userContext,
                        ResourceManager* rm,
                        OutputManager& outMgr,
                        ProofNodeManager* pnm)
