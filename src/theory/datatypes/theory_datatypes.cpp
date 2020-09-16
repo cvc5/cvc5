@@ -1991,16 +1991,18 @@ std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit)
       int t_index = static_cast<int>(utils::indexOf(atom.getOperator()));
       Trace("dt-entail") << "  Tester indices are " << t_index << " and " << l_index << std::endl;
       if( l_index!=-1 && (l_index==t_index)==pol ){
-        std::vector< Node > exp_c;
+        std::vector< TNode > exp_c;
+        Node eqToExplain;
         if( ei && !ei->d_constructor.get().isNull() ){
-          exp_c.push_back(n.eqNode(ei->d_constructor.get()));
+          eqToExplain = n.eqNode(ei->d_constructor.get());
         }else{
           Node lbl = getLabel( n );
           Assert(!lbl.isNull());
           exp_c.push_back( lbl );
           Assert(areEqual(n, lbl[0]));
-          exp_c.push_back(n.eqNode(lbl[0]));
+          eqToExplain = n.eqNode(lbl[0]);
         }
+        d_equalityEngine->explainLit(eqToExplain, exp_c);
         Node exp = NodeManager::currentNM()->mkAnd( exp_c );
         Trace("dt-entail") << "  entailed, explanation is " << exp << std::endl;
         return make_pair(true, exp);
