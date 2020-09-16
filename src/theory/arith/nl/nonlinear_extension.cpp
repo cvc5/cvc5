@@ -389,9 +389,12 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
 
     if (d_im.hasUsed())
     {
-      Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas() + d_im.numSentLemmas() + d_im.numSentConflicts()
+      Trace("nl-ext") << "  ...finished with "
+                      << d_im.numPendingLemmas() + d_im.numSentLemmas()
+                             + d_im.numSentConflicts()
                       << " new lemmas from ICP." << std::endl;
-      return d_im.numPendingLemmas() + d_im.numSentLemmas() + d_im.numSentConflicts();
+      return d_im.numPendingLemmas() + d_im.numSentLemmas()
+             + d_im.numSentConflicts();
     }
     Trace("nl-ext") << "Done with ICP" << std::endl;
   }

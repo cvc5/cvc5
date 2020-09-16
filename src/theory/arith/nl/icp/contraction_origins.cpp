@@ -83,7 +83,9 @@ Node ContractionOriginManager::getOrigins(const Node& variable) const
       Kind::AND, std::vector<Node>(origins.begin(), origins.end()));
 }
 
-bool ContractionOriginManager::isInOrigins(const Node& variable, const Node& c) const {
+bool ContractionOriginManager::isInOrigins(const Node& variable,
+                                           const Node& c) const
+{
   std::set<Node> origins;
   Assert(d_currentOrigins.find(variable) != d_currentOrigins.end())
       << "Using variable as origin that is unknown yet.";
