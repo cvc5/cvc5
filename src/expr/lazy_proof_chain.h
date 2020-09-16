@@ -41,10 +41,13 @@ class LazyCDProofChain : public ProofGenerator
   /** Constructor
    *
    * @param pnm The proof node manager for constructing ProofNode objects.
+   * @param cyclic Whether this instance is robust to cycles in the cahin.
    * @param c The context that this class depends on. If none is provided,
    * this class is context-independent.
    */
-  LazyCDProofChain(ProofNodeManager* pnm, context::Context* c = nullptr);
+  LazyCDProofChain(ProofNodeManager* pnm,
+                   bool cyclic = true,
+                   context::Context* c = nullptr);
   ~LazyCDProofChain();
   /**
    * Get lazy proof for fact, or nullptr if it does not exist, by connecting the
@@ -67,6 +70,13 @@ class LazyCDProofChain : public ProofGenerator
    *
    * Note that the expansions are done directly on the proof nodes produced by
    * the generators.
+   *
+   * If this instance has been set to be robust to cyclic proofs (i.e., d_cyclic
+   * is true), then the construction of the proof chain checks that there are no
+   * cycles, i.e., a given fact would have itself as an assumption when
+   * connecting the chain links. If such a cycle were to be detected then the
+   * fact will be marked as an assumption and not expanded in the final proof
+   * node. The method does not fail.
    */
   std::shared_ptr<ProofNode> getProofFor(Node fact) override;
   /** Add step by generator
@@ -112,6 +122,8 @@ class LazyCDProofChain : public ProofGenerator
  private:
   /** The proof manager, used for allocating new ProofNode objects */
   ProofNodeManager* d_manager;
+  /** Whether this istance is robust to cycles in the chain. */
+  bool d_cyclic;
   /** A dummy context used by this class if none is provided */
   context::Context d_context;
   /** Maps facts that can be proven to generators */
