@@ -19,7 +19,7 @@ while [ $# -gt 0 ]; do
   else
     header_lines=$(grep "\*\*\/" "$f" -m 1 -n | cut -d ':' -f 1)
     if [ -z $header_lines ]; then
-      header_lines=$(grep "^#$" "$f" -m 1 -n | cut -d ':' -f 1)
+      header_lines=$(grep "^##$" "$f" -m 1 -n | cut -d ':' -f 1)
       [ -z "$header_lines" ] && header_lines=0;
     fi
   fi
