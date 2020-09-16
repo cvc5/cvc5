@@ -50,10 +50,9 @@ TheorySep::TheorySep(context::Context* c,
       d_lemmas_produced_c(u),
       d_bounds_init(false),
       d_state(c, u, valuation),
+      d_im(*this, d_state, pnm),
       d_notify(*this),
       d_reduce(u),
-      d_infer(c),
-      d_infer_exp(c),
       d_spatial_assertions(c)
 {
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
@@ -61,6 +60,7 @@ TheorySep::TheorySep(context::Context* c,
 
   // indicate we are using the default theory state object
   d_theoryState = &d_state;
+  d_inferManager = &d_im;
 }
 
 TheorySep::~TheorySep() {
@@ -128,31 +128,10 @@ bool TheorySep::propagateLit(TNode literal)
   return ok;
 }
 
-void TheorySep::explain(TNode literal, std::vector<TNode>& assumptions) {
-  if( literal.getKind()==kind::SEP_LABEL ||
-      ( literal.getKind()==kind::NOT && literal[0].getKind()==kind::SEP_LABEL ) ){
-    //labelled assertions are never given to equality engine and should only come from the outside
-    assumptions.push_back( literal );
-  }else{
-    // Do the work
-    bool polarity = literal.getKind() != kind::NOT;
-    TNode atom = polarity ? literal : literal[0];
-    if (atom.getKind() == kind::EQUAL) {
-      d_equalityEngine->explainEquality(
-          atom[0], atom[1], polarity, assumptions, NULL);
-    } else {
-      d_equalityEngine->explainPredicate(atom, polarity, assumptions);
-    }
-  }
-}
-
 TrustNode TheorySep::explain(TNode literal)
 {
   Debug("sep") << "TheorySep::explain(" << literal << ")" << std::endl;
-  std::vector<TNode> assumptions;
-  explain(literal, assumptions);
-  Node exp = mkAnd(assumptions);
-  return TrustNode::mkTrustPropExp(literal, exp, nullptr);
+  return d_im.explainLit(literal);
 }
 
 
@@ -298,7 +277,7 @@ bool TheorySep::preNotifyFact(
     return false;
   }
   // otherwise, maybe propagate
-  doPendingFacts();
+  doPending();
   return true;
 }
 
@@ -316,7 +295,7 @@ void TheorySep::notifyFact(TNode atom,
     addPto(ei, r, atom, polarity);
   }
   // maybe propagate
-  doPendingFacts();
+  doPending();
 }
 
 void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
@@ -943,12 +922,7 @@ bool TheorySep::needsCheckLastEffort() {
 
 void TheorySep::conflict(TNode a, TNode b) {
   Trace("sep-conflict") << "Sep::conflict : " << a << " " << b << std::endl;
-  Node eq = a.eqNode(b);
-  std::vector<TNode> assumptions;
-  explain(eq, assumptions);
-  Node conflictNode = mkAnd(assumptions);
-  d_state.notifyInConflict();
-  d_out->conflict( conflictNode );
+  d_im.conflictEqConstantMerge(a, b);
 }
 
 
@@ -1825,81 +1799,29 @@ void TheorySep::sendLemma( std::vector< Node >& ant, Node conc, const char * c, 
   Trace("sep-lemma-debug") << "Got : " << conc << std::endl;
   if( conc!=d_true ){
     if( infer && conc!=d_false ){
-      Node ant_n;
-      if( ant.empty() ){
-        ant_n = d_true;
-      }else if( ant.size()==1 ){
-        ant_n = ant[0];
-      }else{
-        ant_n = NodeManager::currentNM()->mkNode( kind::AND, ant );
-      }
+      Node ant_n = NodeManager::currentNM()->mkAnd(ant);
       Trace("sep-lemma") << "Sep::Infer: " << conc << " from " << ant_n << " by " << c << std::endl;
-      d_pending_exp.push_back( ant_n );
-      d_pending.push_back( conc );
-      d_infer.push_back( ant_n );
-      d_infer_exp.push_back( conc );
+      d_im.addPendingFact(conc, ant_n);
     }else{
-      std::vector< TNode > ant_e;
-      for( unsigned i=0; i<ant.size(); i++ ){
-        Trace("sep-lemma-debug") << "Explain : " << ant[i] << std::endl;
-        explain( ant[i], ant_e );
-      }
-      Node ant_n;
-      if( ant_e.empty() ){
-        ant_n = d_true;
-      }else if( ant_e.size()==1 ){
-        ant_n = ant_e[0];
-      }else{
-        ant_n = NodeManager::currentNM()->mkNode( kind::AND, ant_e );
-      }
       if( conc==d_false ){
-        Trace("sep-lemma") << "Sep::Conflict: " << ant_n << " by " << c << std::endl;
-        d_out->conflict( ant_n );
-        d_state.notifyInConflict();
+        Trace("sep-lemma") << "Sep::Conflict: " << ant << " by " << c
+                           << std::endl;
+        d_im.conflictExp(ant, nullptr);
       }else{
-        Trace("sep-lemma") << "Sep::Lemma: " << conc << " from " << ant_n << " by " << c << std::endl;
-        d_pending_exp.push_back( ant_n );
-        d_pending.push_back( conc );
-        d_pending_lem.push_back( d_pending.size()-1 );
+        Trace("sep-lemma") << "Sep::Lemma: " << conc << " from " << ant
+                           << " by " << c << std::endl;
+        TrustNode trn = d_im.mkLemmaExp(conc, ant, {});
+        d_im.addPendingLemma(
+            trn.getNode(), LemmaProperty::NONE, trn.getGenerator());
       }
     }
   }
 }
 
-void TheorySep::doPendingFacts() {
-  if( d_pending_lem.empty() ){
-    for( unsigned i=0; i<d_pending.size(); i++ ){
-      if (d_state.isInConflict())
-      {
-        break;
-      }
-      Node atom = d_pending[i].getKind()==kind::NOT ? d_pending[i][0] : d_pending[i];
-      bool pol = d_pending[i].getKind()!=kind::NOT;
-      Trace("sep-pending") << "Sep : Assert to EE : " << atom << ", pol = " << pol << std::endl;
-      if( atom.getKind()==kind::EQUAL ){
-        d_equalityEngine->assertEquality(atom, pol, d_pending_exp[i]);
-      }else{
-        d_equalityEngine->assertPredicate(atom, pol, d_pending_exp[i]);
-      }
-    }
-  }else{
-    for( unsigned i=0; i<d_pending_lem.size(); i++ ){
-      if (d_state.isInConflict())
-      {
-        break;
-      }
-      int index = d_pending_lem[i];
-      Node lem = NodeManager::currentNM()->mkNode( kind::IMPLIES, d_pending_exp[index], d_pending[index] );
-      if( d_lemmas_produced_c.find( lem )==d_lemmas_produced_c.end() ){
-        d_lemmas_produced_c.insert( lem );
-        d_out->lemma( lem );
-        Trace("sep-pending") << "Sep : Lemma : " << lem << std::endl;
-      }
-    }
-  }
-  d_pending_exp.clear();
-  d_pending.clear();
-  d_pending_lem.clear();
+void TheorySep::doPending()
+{
+  d_im.doPendingFacts();
+  d_im.doPendingLemmas();
 }
 
 void TheorySep::debugPrintHeap( HeapInfo& heap, const char * c ) {

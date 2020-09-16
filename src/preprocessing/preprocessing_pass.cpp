@@ -18,6 +18,7 @@
 
 #include "smt/dump.h"
 #include "smt/smt_statistics_registry.h"
+#include "printer/printer.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -39,8 +40,13 @@ void PreprocessingPass::dumpAssertions(const char* key,
   if (Dump.isOn("assertions") && Dump.isOn(std::string("assertions:") + key))
   {
     // Push the simplified assertions to the dump output stream
-    for (const auto& n : assertionList) {
-      Dump("assertions") << AssertCommand(Expr(n.toExpr()));
+    OutputManager& outMgr = d_preprocContext->getSmt()->getOutputManager();
+    const Printer& printer = outMgr.getPrinter();
+    std::ostream& out = outMgr.getDumpOut();
+
+    for (const auto& n : assertionList)
+    {
+      printer.toStreamCmdAssert(out, n);
     }
   }
 }

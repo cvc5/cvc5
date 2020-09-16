@@ -122,7 +122,7 @@ class LazyCDProofChain : public ProofGenerator
  private:
   /** The proof manager, used for allocating new ProofNode objects */
   ProofNodeManager* d_manager;
-  /** Whether this istance is robust to cycles in the chain. */
+  /** Whether this instance is robust to cycles in the chain. */
   bool d_cyclic;
   /** A dummy context used by this class if none is provided */
   context::Context d_context;

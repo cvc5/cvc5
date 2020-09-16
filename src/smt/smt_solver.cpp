@@ -52,7 +52,8 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
                                         d_rm,
                                         d_pp.getTermFormulaRemover(),
                                         logicInfo,
-                                        d_pnm));
+                                        d_pnm,
+                                        d_smt.getOutputManager()));
 
   // Add the theories
   for (theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST;
@@ -70,6 +71,7 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
                                     d_smt.getContext(),
                                     d_smt.getUserContext(),
                                     d_rm,
+                                    d_smt.getOutputManager(),
                                     d_pnm));
 
   Trace("smt-debug") << "Setting up theory engine..." << std::endl;
@@ -90,6 +92,7 @@ void SmtSolver::resetAssertions()
                                     d_smt.getContext(),
                                     d_smt.getUserContext(),
                                     d_rm,
+                                    d_smt.getOutputManager(),
                                     d_pnm));
   d_theoryEngine->setPropEngine(getPropEngine());
   // Notice that we do not reset TheoryEngine, nor does it require calling

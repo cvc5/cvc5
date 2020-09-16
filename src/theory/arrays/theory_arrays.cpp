@@ -24,7 +24,6 @@
 #include "expr/proof_checker.h"
 #include "options/arrays_options.h"
 #include "options/smt_options.h"
-#include "smt/command.h"
 #include "smt/logic_exception.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arrays/skolem_cache.h"
