@@ -1311,7 +1311,7 @@ theory::TrustNode TheoryEngine::getExplanation(TNode node)
                              << ") => " << explanation << endl;
     if (isProofEnabled())
     {
-      texplanation.debugCheckClosed("te-proof-exp", "texplanation no share");
+      texplanation.debugCheckClosed("te-proof-exp", "texplanation no share", false);
       // check if no generator, if so, add THEORY_LEMMA
       if (texplanation.getGenerator() == nullptr)
       {
@@ -1873,7 +1873,7 @@ theory::TrustNode TheoryEngine::getExplanation(
     }
     if (lcp != nullptr)
     {
-      texplanation.debugCheckClosed("te-proof-exp", "texplanation");
+      texplanation.debugCheckClosed("te-proof-exp", "texplanation", false);
       Trace("te-proof-exp")
           << "- t-explained[" << toExplain.d_theory << "]: " << toExplain.d_node
           << " by " << texplanation.getNode() << std::endl;
