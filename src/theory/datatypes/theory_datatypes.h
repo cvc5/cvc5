@@ -45,11 +45,6 @@ class TheoryDatatypes : public Theory {
   typedef context::CDHashMap<Node, bool, NodeHashFunction> BoolMap;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
 
-  Node d_true;
-  Node d_zero;
-  /** mkAnd */
-  Node mkAnd(std::vector<TNode>& assumptions);
-
  private:
   //notification class for equality engine
   class NotifyClass : public TheoryEqNotifyClass {
@@ -214,13 +209,7 @@ private:
   /** Conflict when merging two constants */
   void conflict(TNode a, TNode b);
   /** explain */
-  void addAssumptions( std::vector<TNode>& assumptions, std::vector<TNode>& tassumptions );
-  void explainEquality( TNode a, TNode b, bool polarity, std::vector<TNode>& assumptions );
-  void explainPredicate( TNode p, bool polarity, std::vector<TNode>& assumptions );
-  void explain( TNode literal, std::vector<TNode>& assumptions );
   TrustNode explain(TNode literal) override;
-  Node explainLit(TNode literal);
-  Node explain( std::vector< Node >& lits );
   /** called when a new equivalance class is created */
   void eqNotifyNewClass(TNode t);
   /** called when two equivalance classes have merged */
@@ -301,10 +290,11 @@ private:
    * equivalence classes.
    */
   void computeRelevantTerms(std::set<Node>& termSet) override;
-
+  /** Commonly used terms */
+  Node d_true;
+  Node d_zero;
   /** sygus symmetry breaking utility */
   std::unique_ptr<SygusExtension> d_sygusExtension;
-
   /** The theory rewriter for this theory. */
   DatatypesRewriter d_rewriter;
   /** A (default) theory state object */

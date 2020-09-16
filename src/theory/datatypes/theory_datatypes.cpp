@@ -598,74 +598,9 @@ TrustNode TheoryDatatypes::ppRewrite(TNode in)
   return TrustNode::null();
 }
 
-void TheoryDatatypes::addAssumptions( std::vector<TNode>& assumptions, std::vector<TNode>& tassumptions ) {
-  std::vector<TNode> ntassumptions;
-  for( unsigned i=0; i<tassumptions.size(); i++ ){
-    //flatten AND
-    if( tassumptions[i].getKind()==AND ){
-      for( unsigned j=0; j<tassumptions[i].getNumChildren(); j++ ){
-        explain( tassumptions[i][j], ntassumptions );
-      }
-    }else{
-      if( std::find( assumptions.begin(), assumptions.end(), tassumptions[i] )==assumptions.end() ){
-        assumptions.push_back( tassumptions[i] );
-      }
-    }
-  }
-  if( !ntassumptions.empty() ){
-    addAssumptions( assumptions, ntassumptions );
-  }
-}
-
-void TheoryDatatypes::explainEquality( TNode a, TNode b, bool polarity, std::vector<TNode>& assumptions ) {
-  if( a!=b ){
-    std::vector<TNode> tassumptions;
-    d_equalityEngine->explainEquality(a, b, polarity, tassumptions);
-    addAssumptions( assumptions, tassumptions );
-  }
-}
-
-void TheoryDatatypes::explainPredicate( TNode p, bool polarity, std::vector<TNode>& assumptions ) {
-  std::vector<TNode> tassumptions;
-  d_equalityEngine->explainPredicate(p, polarity, tassumptions);
-  addAssumptions( assumptions, tassumptions );
-}
-
-/** explain */
-void TheoryDatatypes::explain(TNode literal, std::vector<TNode>& assumptions){
-  Debug("datatypes-explain") << "Explain " << literal << std::endl;
-  bool polarity = literal.getKind() != kind::NOT;
-  TNode atom = polarity ? literal : literal[0];
-  if (atom.getKind() == kind::EQUAL) {
-    explainEquality( atom[0], atom[1], polarity, assumptions );
-  } else if( atom.getKind() == kind::AND && polarity ){
-    for( unsigned i=0; i<atom.getNumChildren(); i++ ){
-      explain( atom[i], assumptions );
-    }
-  } else {
-    Assert(atom.getKind() != kind::AND);
-    explainPredicate( atom, polarity, assumptions );
-  }
-}
-
 TrustNode TheoryDatatypes::explain(TNode literal)
 {
   return d_im.explainLit(literal);
-}
-
-Node TheoryDatatypes::explainLit(TNode literal)
-{
-  std::vector< TNode > assumptions;
-  explain( literal, assumptions );
-  return mkAnd( assumptions );
-}
-
-Node TheoryDatatypes::explain( std::vector< Node >& lits ) {
-  std::vector< TNode > assumptions;
-  for( unsigned i=0; i<lits.size(); i++ ){
-    explain( lits[i], assumptions );
-  }
-  return mkAnd( assumptions );
 }
 
 /** called when a new equivalance class is created */
@@ -1672,7 +1607,7 @@ void TheoryDatatypes::checkCycles() {
     printModelDebug("dt-cdt-debug");
     Trace("dt-cdt-debug") << "Process " << cdt_eqc.size() << " co-datatypes" << std::endl;
     std::vector< std::vector< Node > > part_out;
-    std::vector< TNode > exp;
+    std::vector< Node > exp;
     std::map< Node, Node > cn;
     std::map< Node, std::map< Node, int > > dni;
     for( unsigned i=0; i<cdt_eqc.size(); i++ ){
@@ -1704,7 +1639,7 @@ void TheoryDatatypes::checkCycles() {
           }
           Trace("dt-cdt") << std::endl;
           Node eq = part_out[i][0].eqNode( part_out[i][j] );
-          Node eqExp = mkAnd( exp );
+          Node eqExp = NodeManager::currentNM()->mkAnd( exp );
           d_im.addPendingInference(eq, eqExp);
           Trace("datatypes-infer") << "DtInfer : cdt-bisimilar : " << eq << " by " << eqExp << std::endl;
         }
@@ -1998,16 +1933,6 @@ void TheoryDatatypes::printModelDebug( const char* c ){
   }
 }
 
-Node TheoryDatatypes::mkAnd( std::vector< TNode >& assumptions ) {
-  if( assumptions.empty() ){
-    return d_true;
-  }else if( assumptions.size()==1 ){
-    return assumptions[0];
-  }else{
-    return NodeManager::currentNM()->mkNode( AND, assumptions );
-  }
-}
-
 void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
 {
   Trace("dt-cmi") << "Have " << termSet.size() << " relevant terms..."
@@ -2076,7 +2001,7 @@ std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit)
           Assert(areEqual(n, lbl[0]));
           exp_c.push_back(n.eqNode(lbl[0]));
         }
-        Node exp = mkAnd( exp_c );
+        Node exp = NodeManager::currentNM()->mkAnd( exp_c );
         Trace("dt-entail") << "  entailed, explanation is " << exp << std::endl;
         return make_pair(true, exp);
       }
