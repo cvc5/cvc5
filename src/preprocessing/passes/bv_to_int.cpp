@@ -774,7 +774,7 @@ void BVToInt::defineBVUFAsIntUF(Node bvUF, Node intUF)
     vector<Node> achildren;
     achildren.push_back(intUF);
     int i = 0;
-    for (TypeNode d : bvDomain)
+    for (const TypeNode& d : bvDomain)
     {
       // Each bit-vector argument is casted to a natural number
       // Other arguments are left intact.
