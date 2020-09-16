@@ -389,9 +389,9 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
 
     if (d_im.hasUsed())
     {
-      Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas()
+      Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas() + d_im.numSentLemmas() + d_im.numSentConflicts()
                       << " new lemmas from ICP." << std::endl;
-      return d_im.numPendingLemmas();
+      return d_im.numPendingLemmas() + d_im.numSentLemmas() + d_im.numSentConflicts();
     }
     Trace("nl-ext") << "Done with ICP" << std::endl;
   }
@@ -743,7 +743,7 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
     {
       complete_status = num_shared_wrong_value > 0 ? -1 : 0;
       checkLastCall(assertions, false_asserts, xts, mlems, wlems);
-      if (!mlems.empty())
+      if (!mlems.empty() || d_im.hasUsed())
       {
         return true;
       }
