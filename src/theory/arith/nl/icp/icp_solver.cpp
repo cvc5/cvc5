@@ -261,34 +261,38 @@ std::vector<Node> ICPSolver::generateLemmas() const
     {
       Kind rel = get_lower_open(i) ? Kind::GT : Kind::GEQ;
       Node c = nm->mkNode(rel, v, value_to_node(get_lower(i), v));
-      Node premise = d_state.d_origins.getOrigins(v);
-      Trace("nl-icp") << premise << " => " << c << std::endl;
-      Node lemma = Rewriter::rewrite(nm->mkNode(Kind::IMPLIES, premise, c));
-      if (lemma.isConst())
-      {
-        Assert(lemma == nm->mkConst<bool>(true));
-      }
-      else
-      {
-        Trace("nl-icp") << "Adding lemma " << lemma << std::endl;
-        lemmas.emplace_back(lemma);
+      if (!d_state.d_origins.isInOrigins(v, c)) {
+        Node premise = d_state.d_origins.getOrigins(v);
+        Trace("nl-icp") << premise << " => " << c << std::endl;
+        Node lemma = Rewriter::rewrite(nm->mkNode(Kind::IMPLIES, premise, c));
+        if (lemma.isConst())
+        {
+          Assert(lemma == nm->mkConst<bool>(true));
+        }
+        else
+        {
+          Trace("nl-icp") << "Adding lemma " << lemma << std::endl;
+          lemmas.emplace_back(lemma);
+        }
       }
     }
     if (!is_plus_infinity(get_upper(i)))
     {
       Kind rel = get_upper_open(i) ? Kind::LT : Kind::LEQ;
       Node c = nm->mkNode(rel, v, value_to_node(get_upper(i), v));
-      Node premise = d_state.d_origins.getOrigins(v);
-      Trace("nl-icp") << premise << " => " << c << std::endl;
-      Node lemma = Rewriter::rewrite(nm->mkNode(Kind::IMPLIES, premise, c));
-      if (lemma.isConst())
-      {
-        Assert(lemma == nm->mkConst<bool>(true));
-      }
-      else
-      {
-        Trace("nl-icp") << "Adding lemma " << lemma << std::endl;
-        lemmas.emplace_back(lemma);
+      if (!d_state.d_origins.isInOrigins(v, c)) {
+        Node premise = d_state.d_origins.getOrigins(v);
+        Trace("nl-icp") << premise << " => " << c << std::endl;
+        Node lemma = Rewriter::rewrite(nm->mkNode(Kind::IMPLIES, premise, c));
+        if (lemma.isConst())
+        {
+          Assert(lemma == nm->mkConst<bool>(true));
+        }
+        else
+        {
+          Trace("nl-icp") << "Adding lemma " << lemma << std::endl;
+          lemmas.emplace_back(lemma);
+        }
       }
     }
   }

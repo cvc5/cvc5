@@ -82,6 +82,9 @@ class ContractionOriginManager
    */
   Node getOrigins(const Node& variable) const;
 
+  /** Check whether a node c is among the origins of a variable. */
+  bool isInOrigins(const Node& variable, const Node& c) const;
+
  private:
   /** The current origins for every variable. */
   std::map<Node, ContractionOrigin*> d_currentOrigins;
