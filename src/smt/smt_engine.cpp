@@ -79,6 +79,7 @@
 #include "smt/defined_function.h"
 #include "smt/dump_manager.h"
 #include "smt/expr_names.h"
+#include "smt/interpolation_solver.h"
 #include "smt/listeners.h"
 #include "smt/logic_request.h"
 #include "smt/model_blocker.h"
@@ -138,6 +139,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_definedFunctions(nullptr),
       d_sygusSolver(nullptr),
       d_abductSolver(nullptr),
+      d_interpolSolver(nullptr),
       d_quantElimSolver(nullptr),
       d_assignments(nullptr),
       d_logic(),
@@ -302,6 +304,10 @@ void SmtEngine::finishInit()
   if (options::produceAbducts())
   {
     d_abductSolver.reset(new AbductionSolver(this));
+  }
+  if (options::produceInterpols() != options::ProduceInterpols::NONE)
+  {
+    d_interpolSolver.reset(new InterpolationSolver(this));
   }
 
   d_pp->finishInit();
@@ -1801,12 +1807,6 @@ void SmtEngine::checkModel(bool hardFailure) {
   Notice() << "SmtEngine::checkModel(): all assertions checked out OK !" << endl;
 }
 
-void SmtEngine::checkInterpol(Expr interpol,
-                              const std::vector<Expr>& easserts,
-                              const Node& conj)
-{
-}
-
 // TODO(#1108): Simplify the error reporting of this method.
 UnsatCore SmtEngine::getUnsatCore() {
   Trace("smt") << "SMT getUnsatCore()" << endl;
@@ -1883,7 +1883,11 @@ bool SmtEngine::getInterpol(const Node& conj,
                             const TypeNode& grammarType,
                             Node& interpol)
 {
-  return false;
+  bool success = d_interpolSolver->getInterpol(conj, grammarType, interpol);
+  // notify the state of whether the get-interpol call was successfuly, which
+  // impacts the SMT mode.
+  d_state->notifyGetInterpol(success);
+  return success;
 }
 
 bool SmtEngine::getInterpol(const Node& conj, Node& interpol)

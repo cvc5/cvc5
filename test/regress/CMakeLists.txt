@@ -858,6 +858,7 @@ set(regress_0_tests
   regress0/sep/sep-01.smt2
   regress0/sep/sep-plus1.smt2
   regress0/sep/sep-simp-unsat-emp.smt2
+  regress0/sep/simple-080420-const-sets.smt2
   regress0/sep/skolem_emp.smt2
   regress0/sep/trees-1.smt2
   regress0/sep/wand-crash.smt2
@@ -1582,6 +1583,7 @@ set(regress_1_tests
   regress1/quantifiers/issue4290-cegqi-r.smt2
   regress1/quantifiers/issue4620-erq-witness-unsound.smt2
   regress1/quantifiers/issue4685-wrewrite.smt2
+  regress1/quantifiers/issue5019-cegqi-i.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lra-vts-inf.smt2
@@ -1942,6 +1944,14 @@ set(regress_1_tests
   regress1/sygus/inv-example.sy
   regress1/sygus/inv-missed-sol-true.sy
   regress1/sygus/inv-unused.sy
+  regress1/sygus/interpol1.smt2
+  regress1/sygus/interpol2.smt2
+  regress1/sygus/interpol3.smt2
+  regress1/sygus/interpol_arr1.smt2
+  regress1/sygus/interpol_arr2.smt2
+  regress1/sygus/interpol_cosa_1.smt2
+  regress1/sygus/interpol_from_pono_1.smt2
+  regress1/sygus/interpol_from_pono_2.smt2
   regress1/sygus/issue2914.sy
   regress1/sygus/issue2935.sy
   regress1/sygus/issue3199.smt2

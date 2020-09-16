@@ -168,6 +168,13 @@ Node BVToInt::eliminationPass(Node n)
   while (!toVisit.empty())
   {
     current = toVisit.back();
+    // assert that the node is binarized
+    kind::Kind_t k = current.getKind();
+    uint64_t numChildren = current.getNumChildren();
+    Assert((numChildren == 2)
+           || !(k == kind::BITVECTOR_PLUS || k == kind::BITVECTOR_MULT
+                || k == kind::BITVECTOR_AND || k == kind::BITVECTOR_OR
+                || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_CONCAT));
     toVisit.pop_back();
     bool inEliminationCache =
         (d_eliminationCache.find(current) != d_eliminationCache.end());
@@ -217,7 +224,7 @@ Node BVToInt::eliminationPass(Node n)
       if (d_rebuildCache[current].get().isNull())
       {
         // current wasn't rebuilt yet.
-        uint64_t numChildren = current.getNumChildren();
+        numChildren = current.getNumChildren();
         if (numChildren == 0)
         {
           // We only eliminate operators that are not nullary.
@@ -257,7 +264,10 @@ Node BVToInt::eliminationPass(Node n)
  */
 Node BVToInt::bvToInt(Node n)
 {
+  n = makeBinary(n);
   n = eliminationPass(n);
+  // binarize again, in case the elimination pass introduced
+  // non-binary terms (as can happen by RepeatEliminate, for example).
   n = makeBinary(n);
   vector<Node> toVisit;
   toVisit.push_back(n);
@@ -340,69 +350,26 @@ Node BVToInt::translateWithChildren(Node original,
   // ultbv and sltbv were supposed to be eliminated before this point.
   Assert(oldKind != kind::BITVECTOR_ULTBV);
   Assert(oldKind != kind::BITVECTOR_SLTBV);
+  uint64_t originalNumChildren = original.getNumChildren();
   Node returnNode;
   switch (oldKind)
   {
     case kind::BITVECTOR_PLUS:
     {
+      Assert(originalNumChildren == 2);
       uint64_t bvsize = original[0].getType().getBitVectorSize();
-      /**
-       * we avoid modular arithmetics by the addition of an
-       * indicator variable sigma.
-       * Tr(a+b) is Tr(a)+Tr(b)-(sigma*2^k),
-       * with k being the bit width,
-       * and sigma being either 0 or 1.
-       */
-      Node sigma = d_nm->mkSkolem(
-          "__bvToInt_sigma_var",
-          d_nm->integerType(),
-          "Variable introduced in bvToInt pass to avoid integer mod");
       Node plus = d_nm->mkNode(kind::PLUS, translated_children);
-      Node multSig = d_nm->mkNode(kind::MULT, sigma, pow2(bvsize));
-      returnNode = d_nm->mkNode(kind::MINUS, plus, multSig);
-      d_rangeAssertions.insert(d_nm->mkNode(kind::LEQ, d_zero, sigma));
-      d_rangeAssertions.insert(d_nm->mkNode(kind::LEQ, sigma, d_one));
-      d_rangeAssertions.insert(
-          mkRangeConstraint(returnNode, bvsize));
+      Node p2 = pow2(bvsize);
+      returnNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, plus, p2);
       break;
     }
     case kind::BITVECTOR_MULT:
     {
+      Assert(originalNumChildren == 2);
       uint64_t bvsize = original[0].getType().getBitVectorSize();
-      /**
-       * we use a similar trick to the one used for addition.
-       * Tr(a*b) is Tr(a)*Tr(b)-(sigma*2^k),
-       * with k being the bit width,
-       * and sigma is between [0, 2^k - 1).
-       */
-      Node sigma = d_nm->mkSkolem(
-          "__bvToInt_sigma_var",
-          d_nm->integerType(),
-          "Variable introduced in bvToInt pass to avoid integer mod");
       Node mult = d_nm->mkNode(kind::MULT, translated_children);
-      Node multSig = d_nm->mkNode(kind::MULT, sigma, pow2(bvsize));
-      returnNode = d_nm->mkNode(kind::MINUS, mult, multSig);
-      d_rangeAssertions.insert(
-          mkRangeConstraint(returnNode, bvsize));
-      if (translated_children[0].isConst() || translated_children[1].isConst())
-      {
-        /*
-         * based on equation (23), section 3.2.3 of:
-         * Bozzano et al.
-         * Encoding RTL Constructs for MathSAT: a Preliminary Report.
-         */
-        // this is an optimization when one of the children is constant
-        Node c = translated_children[0].isConst() ? translated_children[0]
-                                                  : translated_children[1];
-        d_rangeAssertions.insert(d_nm->mkNode(kind::LEQ, d_zero, sigma));
-        // the value of sigma is bounded by (c - 1)
-        // where c is the constant multiplicand
-        d_rangeAssertions.insert(d_nm->mkNode(kind::LT, sigma, c));
-      }
-      else
-      {
-        d_rangeAssertions.insert(mkRangeConstraint(sigma, bvsize));
-      }
+      Node p2 = pow2(bvsize);
+      returnNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, mult, p2);
       break;
     }
     case kind::BITVECTOR_UDIV_TOTAL:
@@ -654,7 +621,7 @@ Node BVToInt::translateWithChildren(Node original,
     {
       /**
        * higher order logic allows comparing between functions
-       * The current translation does not support this,
+       * The translation does not support this,
        * as the translated functions may be different outside
        * of the bounds that were relevant for the original
        * bit-vectors.
@@ -877,7 +844,7 @@ Node BVToInt::reconstructNode(Node originalNode,
   {
     builder << originalNode.getOperator();
   }
-  for (uint i = 0; i < originalNode.getNumChildren(); i++)
+  for (size_t i = 0; i < originalNode.getNumChildren(); i++)
   {
     Node originalChild = originalNode[i];
     Node translatedChild = translated_children[i];
