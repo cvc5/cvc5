@@ -22,8 +22,14 @@ Changes:
   BSD-licensed Editline. Compiling with `--best` now enables Editline, instead
   of Readline. Without selecting optional GPL components, Editline-enabled CVC4
   builds will be BSD licensed.
+* The semantics for division and remainder operators in the CVC language now
+  correspond to SMT-LIB 2.6 semantics (i.e. a division by zero or a zero
+  modulus results in a constant value, instead of an uninterpreted one).
+  Similarly, when no language is set, the API semantics now correspond to the
+  SMT-LIB 2.6 semantics.
 * The `competition` build type includes the dependencies used for SMT-COMP by
   default. Note that this makes this build type produce GPL-licensed binaries.
+
 
 Changes since 1.7
 =================

@@ -77,10 +77,10 @@ theory::LemmaStatus EngineOutputChannel::lemma(TNode lemma, LemmaProperty p)
 
   TrustNode tlem = TrustNode::mkTrustLemma(lemma);
   theory::LemmaStatus result = d_engine->lemma(
-      tlem.getNode(),
-      false,
+      tlem,
       p,
-      isLemmaPropertySendAtoms(p) ? d_theory : theory::THEORY_LAST);
+      isLemmaPropertySendAtoms(p) ? d_theory : theory::THEORY_LAST,
+      d_theory);
   return result;
 }
 
@@ -95,8 +95,7 @@ theory::LemmaStatus EngineOutputChannel::splitLemma(TNode lemma, bool removable)
                        << std::endl;
   TrustNode tlem = TrustNode::mkTrustLemma(lemma);
   LemmaProperty p = removable ? LemmaProperty::REMOVABLE : LemmaProperty::NONE;
-  theory::LemmaStatus result =
-      d_engine->lemma(tlem.getNode(), false, p, d_theory);
+  theory::LemmaStatus result = d_engine->lemma(tlem, p, d_theory);
   return result;
 }
 
@@ -117,7 +116,7 @@ void EngineOutputChannel::conflict(TNode conflictNode)
   ++d_statistics.conflicts;
   d_engine->d_outputChannelUsed = true;
   TrustNode tConf = TrustNode::mkTrustConflict(conflictNode);
-  d_engine->conflict(tConf.getNode(), d_theory);
+  d_engine->conflict(tConf, d_theory);
 }
 
 void EngineOutputChannel::demandRestart()
@@ -170,7 +169,7 @@ void EngineOutputChannel::trustedConflict(TrustNode pconf)
   }
   ++d_statistics.conflicts;
   d_engine->d_outputChannelUsed = true;
-  d_engine->conflict(pconf.getNode(), d_theory);
+  d_engine->conflict(pconf, d_theory);
 }
 
 LemmaStatus EngineOutputChannel::trustedLemma(TrustNode plem, LemmaProperty p)
@@ -186,10 +185,10 @@ LemmaStatus EngineOutputChannel::trustedLemma(TrustNode plem, LemmaProperty p)
   d_engine->d_outputChannelUsed = true;
   // now, call the normal interface for lemma
   return d_engine->lemma(
-      plem.getNode(),
-      false,
+      plem,
       p,
-      isLemmaPropertySendAtoms(p) ? d_theory : theory::THEORY_LAST);
+      isLemmaPropertySendAtoms(p) ? d_theory : theory::THEORY_LAST,
+      d_theory);
 }
 
 }  // namespace theory

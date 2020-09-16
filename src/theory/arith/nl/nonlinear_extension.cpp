@@ -46,7 +46,7 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       d_model(containing.getSatContext()),
       d_trSlv(d_model),
       d_nlSlv(containing, d_model),
-      d_cadSlv(containing, d_model),
+      d_cadSlv(d_im, d_model),
       d_iandSlv(containing, d_model),
       d_builtModel(containing.getSatContext(), false)
 {
@@ -557,12 +557,16 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   }
   if (options::nlCad())
   {
-    lemmas = d_cadSlv.checkFull();
-    if (lemmas.empty())
+    d_cadSlv.checkFull();
+    if (!d_im.hasUsed())
     {
       Trace("nl-cad") << "nl-cad found SAT!" << std::endl;
     }
-    filterLemmas(lemmas, wlems);
+    else
+    {
+      // checkFull() only adds a single conflict
+      return 1;
+    }
   }
   // run the full refinement in the IAND solver
   lemmas = d_iandSlv.checkFullRefine();

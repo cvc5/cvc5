@@ -1001,6 +1001,22 @@ void TheorySep::ppNotifyAssertions(const std::vector<Node>& assertions) {
       d_loc_to_data_type[d_type_ref] = d_type_data;
     }
   }
+  // initialize the EPR utility
+  QuantifiersEngine* qe = getQuantifiersEngine();
+  if (qe != nullptr)
+  {
+    quantifiers::QuantEPR* qepr = qe->getQuantEPR();
+    if (qepr != nullptr)
+    {
+      for (const Node& a : assertions)
+      {
+        qepr->registerAssertion(a);
+      }
+      // must handle sources of other new constants e.g. separation logic
+      initializeBounds();
+      qepr->finishInit();
+    }
+  }
 }
 
 //return cardinality
@@ -1630,9 +1646,9 @@ void TheorySep::computeLabelModel( Node lbl ) {
     Trace("sep-process") << "Model value (from valuation) for " << lbl << " : " << v_val << std::endl;
     if( v_val.getKind()!=kind::EMPTYSET ){
       while( v_val.getKind()==kind::UNION ){
-        Assert(v_val[1].getKind() == kind::SINGLETON);
-        d_label_model[lbl].d_heap_locs_model.push_back( v_val[1] );
-        v_val = v_val[0];
+        Assert(v_val[0].getKind() == kind::SINGLETON);
+        d_label_model[lbl].d_heap_locs_model.push_back(v_val[0]);
+        v_val = v_val[1];
       }
       if( v_val.getKind()==kind::SINGLETON ){
         d_label_model[lbl].d_heap_locs_model.push_back( v_val );
@@ -1900,15 +1916,13 @@ Node TheorySep::HeapInfo::getValue( TypeNode tn ) {
   Assert(d_heap_locs.size() == d_heap_locs_model.size());
   if( d_heap_locs.empty() ){
     return NodeManager::currentNM()->mkConst(EmptySet(tn));
-  }else if( d_heap_locs.size()==1 ){
-    return d_heap_locs[0];
-  }else{
-    Node curr = NodeManager::currentNM()->mkNode( kind::UNION, d_heap_locs[0], d_heap_locs[1] );
-    for( unsigned j=2; j<d_heap_locs.size(); j++ ){
-      curr = NodeManager::currentNM()->mkNode( kind::UNION, curr, d_heap_locs[j] );
-    }
-    return curr;
   }
+  Node curr = d_heap_locs[0];
+  for (unsigned j = 1; j < d_heap_locs.size(); j++)
+  {
+    curr = NodeManager::currentNM()->mkNode(kind::UNION, d_heap_locs[j], curr);
+  }
+  return curr;
 }
 
 }/* CVC4::theory::sep namespace */
