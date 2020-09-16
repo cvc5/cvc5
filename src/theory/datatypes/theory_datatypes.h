@@ -47,14 +47,18 @@ class TheoryDatatypes : public Theory {
 
  private:
   //notification class for equality engine
-  class NotifyClass : public TheoryEqNotifyClass {
+  class NotifyClass : public TheoryEqNotifyClass
+  {
     TheoryDatatypes& d_dt;
   public:
-    NotifyClass(TheoryInferenceManager& im, TheoryDatatypes& dt): TheoryEqNotifyClass(im), d_dt(dt) {}
-    void eqNotifyNewClass(TNode t) override
-    {
-      Debug("dt") << "NotifyClass::eqNotifyNewClass(" << t << ")" << std::endl;
-      d_dt.eqNotifyNewClass(t);
+   NotifyClass(TheoryInferenceManager& im, TheoryDatatypes& dt)
+       : TheoryEqNotifyClass(im), d_dt(dt)
+   {
+   }
+   void eqNotifyNewClass(TNode t) override
+   {
+     Debug("dt") << "NotifyClass::eqNotifyNewClass(" << t << ")" << std::endl;
+     d_dt.eqNotifyNewClass(t);
     }
     void eqNotifyMerge(TNode t1, TNode t2) override
     {
@@ -260,10 +264,13 @@ private:
                       std::vector<Node>& explanation,
                       bool firstTime = true);
   /** for checking whether two codatatype terms must be equal */
-  void separateBisimilar( std::vector< Node >& part, std::vector< std::vector< Node > >& part_out,
-                          std::vector< Node >& exp,
-                          std::map< Node, Node >& cn,
-                          std::map< Node, std::map< Node, int > >& dni, int dniLvl, bool mkExp );
+  void separateBisimilar(std::vector<Node>& part,
+                         std::vector<std::vector<Node> >& part_out,
+                         std::vector<Node>& exp,
+                         std::map<Node, Node>& cn,
+                         std::map<Node, std::map<Node, int> >& dni,
+                         int dniLvl,
+                         bool mkExp);
   /** build model */
   Node getCodatatypesValue( Node n, std::map< Node, Node >& eqc_cons, std::map< Node, int >& vmap, int depth );
   /** get singleton lemma */

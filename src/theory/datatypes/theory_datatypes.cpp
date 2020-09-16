@@ -1607,7 +1607,7 @@ void TheoryDatatypes::checkCycles() {
     printModelDebug("dt-cdt-debug");
     Trace("dt-cdt-debug") << "Process " << cdt_eqc.size() << " co-datatypes" << std::endl;
     std::vector< std::vector< Node > > part_out;
-    std::vector< Node > exp;
+    std::vector<Node> exp;
     std::map< Node, Node > cn;
     std::map< Node, std::map< Node, int > > dni;
     for( unsigned i=0; i<cdt_eqc.size(); i++ ){
@@ -1639,7 +1639,7 @@ void TheoryDatatypes::checkCycles() {
           }
           Trace("dt-cdt") << std::endl;
           Node eq = part_out[i][0].eqNode( part_out[i][j] );
-          Node eqExp = NodeManager::currentNM()->mkAnd( exp );
+          Node eqExp = NodeManager::currentNM()->mkAnd(exp);
           d_im.addPendingInference(eq, eqExp);
           Trace("datatypes-infer") << "DtInfer : cdt-bisimilar : " << eq << " by " << eqExp << std::endl;
         }
@@ -1649,10 +1649,15 @@ void TheoryDatatypes::checkCycles() {
 }
 
 //everything is in terms of representatives
-void TheoryDatatypes::separateBisimilar( std::vector< Node >& part, std::vector< std::vector< Node > >& part_out,
-                                         std::vector< Node >& exp,
-                                         std::map< Node, Node >& cn,
-                                         std::map< Node, std::map< Node, int > >& dni, int dniLvl, bool mkExp ){
+void TheoryDatatypes::separateBisimilar(
+    std::vector<Node>& part,
+    std::vector<std::vector<Node> >& part_out,
+    std::vector<Node>& exp,
+    std::map<Node, Node>& cn,
+    std::map<Node, std::map<Node, int> >& dni,
+    int dniLvl,
+    bool mkExp)
+{
   if( !mkExp ){
     Trace("dt-cdt-debug") << "Separate bisimilar : " << std::endl;
     for( unsigned i=0; i<part.size(); i++ ){
@@ -2003,7 +2008,7 @@ std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit)
           eqToExplain = n.eqNode(lbl[0]);
         }
         d_equalityEngine->explainLit(eqToExplain, exp_c);
-        Node exp = NodeManager::currentNM()->mkAnd( exp_c );
+        Node exp = NodeManager::currentNM()->mkAnd(exp_c);
         Trace("dt-entail") << "  entailed, explanation is " << exp << std::endl;
         return make_pair(true, exp);
       }
