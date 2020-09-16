@@ -922,7 +922,7 @@ bool TheorySep::needsCheckLastEffort() {
 
 void TheorySep::conflict(TNode a, TNode b) {
   Trace("sep-conflict") << "Sep::conflict : " << a << " " << b << std::endl;
-  d_im.conflictEqConstantMerge(a,b);
+  d_im.conflictEqConstantMerge(a, b);
 }
 
 
@@ -1801,21 +1801,25 @@ void TheorySep::sendLemma( std::vector< Node >& ant, Node conc, const char * c, 
     if( infer && conc!=d_false ){
       Node ant_n = NodeManager::currentNM()->mkAnd(ant);
       Trace("sep-lemma") << "Sep::Infer: " << conc << " from " << ant_n << " by " << c << std::endl;
-      d_im.addPendingFact( conc, ant_n);
+      d_im.addPendingFact(conc, ant_n);
     }else{
       if( conc==d_false ){
-        Trace("sep-lemma") << "Sep::Conflict: " << ant << " by " << c << std::endl;
+        Trace("sep-lemma") << "Sep::Conflict: " << ant << " by " << c
+                           << std::endl;
         d_im.conflictExp(ant, nullptr);
       }else{
-        Trace("sep-lemma") << "Sep::Lemma: " << conc << " from " << ant << " by " << c << std::endl;
+        Trace("sep-lemma") << "Sep::Lemma: " << conc << " from " << ant
+                           << " by " << c << std::endl;
         TrustNode trn = d_im.mkLemmaExp(conc, ant, {});
-        d_im.addPendingLemma(trn.getNode(), LemmaProperty::NONE, trn.getGenerator());
+        d_im.addPendingLemma(
+            trn.getNode(), LemmaProperty::NONE, trn.getGenerator());
       }
     }
   }
 }
 
-void TheorySep::doPending() {
+void TheorySep::doPending()
+{
   d_im.doPendingFacts();
   d_im.doPendingLemmas();
 }

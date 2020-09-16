@@ -23,11 +23,11 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "context/cdqueue.h"
+#include "theory/inference_manager_buffered.h"
 #include "theory/sep/theory_sep_rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 #include "util/statistics_registry.h"
-#include "theory/inference_manager_buffered.h"
 
 namespace CVC4 {
 namespace theory {
@@ -63,7 +63,7 @@ class TheorySep : public Theory {
   TheoryState d_state;
   /** A buffered inference manager */
   InferenceManagerBuffered d_im;
-  
+
   Node mkAnd( std::vector< TNode >& assumptions );
 
   int processAssertion( Node n, std::map< int, std::map< Node, int > >& visited, 
