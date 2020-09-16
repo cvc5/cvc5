@@ -232,6 +232,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     //    ... proof of apply_SR(t) = toWitness(apply_SR(t)) ...
     //    (MACRO_SR_EQ_INTRO {} {toWitness(apply_SR(t))})
     // ))
+    // Notice this is an optimized, one sided version of the expansion of
+    // MACRO_SR_PRED_TRANSFORM below.
     // We call the expandMacros method on MACRO_SR_EQ_INTRO, where notice
     // that this rule application is immediately expanded in the recursive
     // call and not added to the proof.
@@ -248,10 +250,10 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       Trace("smt-proof-pp-debug") << "...weq is " << weq << std::endl;
       if (addToTransChildren(weq, tchildren))
       {
-        sargs[0] = weq[1];
         // toWitness(apply_SR(t)) = apply_SR(toWitness(apply_SR(t)))
-        // rewrite again, don't need substitution
-        Node weqr = expandMacros(PfRule::MACRO_SR_EQ_INTRO, {}, sargs, cdp);
+        // rewrite again, don't need substitution. Also we always use the
+        // default rewriter.
+        Node weqr = expandMacros(PfRule::MACRO_SR_EQ_INTRO, {}, {weq[1]}, cdp);
         addToTransChildren(weqr, tchildren);
       }
     }
@@ -331,10 +333,10 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
             << "transform toWitness (" << r << "): " << weq << std::endl;
         if (addToTransChildren(weq, tchildrenr))
         {
-          sargs[0] = weq[1];
           // toWitness(apply_SR(t)) = apply_SR(toWitness(apply_SR(t)))
-          // rewrite again, don't need substitution
-          Node weqr = expandMacros(PfRule::MACRO_SR_EQ_INTRO, {}, sargs, cdp);
+          // rewrite again, don't need substitution. Also, we always use the
+          // default rewriter.
+          Node weqr = expandMacros(PfRule::MACRO_SR_EQ_INTRO, {}, {weq[1]}, cdp);
           Trace("smt-proof-pp-debug") << "transform rewrite_witness (" << r
                                       << "): " << weqr << std::endl;
           addToTransChildren(weqr, tchildrenr);
