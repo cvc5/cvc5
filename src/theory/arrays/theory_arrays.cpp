@@ -644,34 +644,43 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     return;
   }
   Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::preRegisterTerm(" << node << ")" << std::endl;
-  switch (node.getKind()) {
-  case kind::EQUAL:
+  Kind nk = node.getKind();
+  if (nk==kind::EQUAL)
+  {
     // Add the trigger for equality
     // NOTE: note that if the equality is true or false already, it might not be added
     d_equalityEngine->addTriggerPredicate(node);
-    break;
-  case kind::SELECT: {
+    return;
+  }
+  else if (d_equalityEngine->hasTerm(node))
+  {
     // Invariant: array terms should be preregistered before being added to the equality engine
-    if (d_equalityEngine->hasTerm(node))
+    Assert(nk!=kind::SELECT || d_isPreRegistered.find(node) != d_isPreRegistered.end());
+    return;
+  }
+  // add to equality engine and the may equality engine
+  TypeNode nodeType = node.getType();
+  if (nodeType.isArray())
+  {
+    // index type should not be an array, otherwise we throw a logic exception
+    if (nodeType.getArrayIndexType().isArray())
     {
-      Assert(d_isPreRegistered.find(node) != d_isPreRegistered.end());
-      return;
+      std::stringstream ss;
+      ss << "Arrays cannot be indexed by array types, offending array type is " << nodeType;
+      throw LogicException(ss.str());
     }
+    d_mayEqualEqualityEngine.addTerm(node);
+  }
+  d_equalityEngine->addTerm(node);
+      
+  switch (node.getKind()) {
+  case kind::SELECT: {
     // Reads
     TNode store = d_equalityEngine->getRepresentative(node[0]);
 
     // The may equal needs the store
     d_mayEqualEqualityEngine.addTerm(store);
 
-    if (node.getType().isArray())
-    {
-      d_mayEqualEqualityEngine.addTerm(node);
-      d_equalityEngine->addTerm(node);
-    }
-    else
-    {
-      d_equalityEngine->addTerm(node);
-    }
     Assert((d_isPreRegistered.insert(node), true));
 
     Assert(d_equalityEngine->getRepresentative(store) == store);
@@ -706,11 +715,6 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     break;
   }
   case kind::STORE: {
-    if (d_equalityEngine->hasTerm(node))
-    {
-      break;
-    }
-    d_equalityEngine->addTerm(node);
 
     TNode a = d_equalityEngine->getRepresentative(node[0]);
 
@@ -762,33 +766,18 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     break;
   }
   case kind::STORE_ALL: {
-    if (d_equalityEngine->hasTerm(node))
-    {
-      break;
-    }
     ArrayStoreAll storeAll = node.getConst<ArrayStoreAll>();
     Node defaultValue = storeAll.getValue();
     if (!defaultValue.isConst()) {
       throw LogicException("Array theory solver does not yet support non-constant default values for arrays");
     }
     d_infoMap.setConstArr(node, node);
-    d_mayEqualEqualityEngine.addTerm(node);
     Assert(d_mayEqualEqualityEngine.getRepresentative(node) == node);
-    d_equalityEngine->addTerm(node);
     d_defValues[node] = defaultValue;
     break;
   }
   default:
-    // Variables etc
-    if (node.getType().isArray()) {
-      // The may equal needs the node
-      d_mayEqualEqualityEngine.addTerm(node);
-      d_equalityEngine->addTerm(node);
-    }
-    else {
-      d_equalityEngine->addTerm(node);
-    }
-
+    // Variables etc, already processed above
     break;
   }
   // Invariant: preregistered terms are exactly the terms in the equality engine
