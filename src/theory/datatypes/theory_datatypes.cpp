@@ -48,7 +48,6 @@ TheoryDatatypes::TheoryDatatypes(Context* c,
                                  ProofNodeManager* pnm)
     : Theory(THEORY_DATATYPES, c, u, out, valuation, logicInfo, pnm),
       d_term_sk(u),
-      d_notify(*this),
       d_labels(c),
       d_selector_apps(c),
       d_collectTermsCache(c),
@@ -58,7 +57,8 @@ TheoryDatatypes::TheoryDatatypes(Context* c,
       d_lemmas_produced_c(u),
       d_sygusExtension(nullptr),
       d_state(c, u, valuation),
-      d_im(*this, d_state, pnm)
+      d_im(*this, d_state, pnm),
+      d_notify(d_im, *this)
 {
 
   d_true = NodeManager::currentNM()->mkConst( true );
@@ -598,13 +598,6 @@ TrustNode TheoryDatatypes::ppRewrite(TNode in)
   return TrustNode::null();
 }
 
-bool TheoryDatatypes::propagateLit(TNode literal)
-{
-  Debug("dt::propagate") << "TheoryDatatypes::propagateLit(" << literal << ")"
-                         << std::endl;
-  return d_im.propagateLit(literal);
-}
-
 void TheoryDatatypes::addAssumptions( std::vector<TNode>& assumptions, std::vector<TNode>& tassumptions ) {
   std::vector<TNode> ntassumptions;
   for( unsigned i=0; i<tassumptions.size(); i++ ){
@@ -673,13 +666,6 @@ Node TheoryDatatypes::explain( std::vector< Node >& lits ) {
     explain( lits[i], assumptions );
   }
   return mkAnd( assumptions );
-}
-
-/** Conflict when merging two constants */
-void TheoryDatatypes::conflict(TNode a, TNode b){
-  Trace("dt-conflict") << "CONFLICT: Eq engine conflict merge : " << a
-                       << " == " << b << std::endl;
-  d_im.conflictEqConstantMerge(a, b);
 }
 
 /** called when a new equivalance class is created */
@@ -1729,7 +1715,7 @@ void TheoryDatatypes::checkCycles() {
 
 //everything is in terms of representatives
 void TheoryDatatypes::separateBisimilar( std::vector< Node >& part, std::vector< std::vector< Node > >& part_out,
-                                         std::vector< TNode >& exp,
+                                         std::vector< Node >& exp,
                                          std::map< Node, Node >& cn,
                                          std::map< Node, std::map< Node, int > >& dni, int dniLvl, bool mkExp ){
   if( !mkExp ){
@@ -1758,7 +1744,7 @@ void TheoryDatatypes::separateBisimilar( std::vector< Node >& part, std::vector<
           Node cc = ncons.getOperator();
           cn_cons[part[j]] = ncons;
           if( mkExp ){
-            explainEquality( c, ncons, true, exp );
+            exp.push_back(c.eqNode(ncons));
           }
           new_part[cc].push_back( part[j] );
           if( !mkExp ){ Trace("dt-cdt-debug") << "  - " << part[j] << " is datatype " << ncons << "." << std::endl; }
@@ -1818,7 +1804,7 @@ void TheoryDatatypes::separateBisimilar( std::vector< Node >& part, std::vector<
             Node n = split_new_part[j][k];
             cn[n] = getRepresentative( cn_cons[n][cindex] );
             if( mkExp ){
-              explainEquality( cn[n], cn_cons[n][cindex], true, exp );
+              exp.push_back(cn[n].eqNode(cn_cons[n][cindex]));
             }
           }
           std::vector< std::vector< Node > > c_part_out;
@@ -2080,15 +2066,15 @@ std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit)
       int t_index = static_cast<int>(utils::indexOf(atom.getOperator()));
       Trace("dt-entail") << "  Tester indices are " << t_index << " and " << l_index << std::endl;
       if( l_index!=-1 && (l_index==t_index)==pol ){
-        std::vector< TNode > exp_c;
+        std::vector< Node > exp_c;
         if( ei && !ei->d_constructor.get().isNull() ){
-          explainEquality( n, ei->d_constructor.get(), true, exp_c );
+          exp_c.push_back(n.eqNode(ei->d_constructor.get()));
         }else{
           Node lbl = getLabel( n );
           Assert(!lbl.isNull());
           exp_c.push_back( lbl );
           Assert(areEqual(n, lbl[0]));
-          explainEquality( n, lbl[0], true, exp_c );
+          exp_c.push_back(n.eqNode(lbl[0]));
         }
         Node exp = mkAnd( exp_c );
         Trace("dt-entail") << "  entailed, explanation is " << exp << std::endl;

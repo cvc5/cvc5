@@ -29,6 +29,7 @@
 #include "theory/datatypes/inference_manager.h"
 #include "theory/datatypes/sygus_extension.h"
 #include "theory/theory.h"
+#include "theory/theory_eq_notify.h"
 #include "theory/uf/equality_engine.h"
 #include "util/hash.h"
 
@@ -51,35 +52,10 @@ class TheoryDatatypes : public Theory {
 
  private:
   //notification class for equality engine
-  class NotifyClass : public eq::EqualityEngineNotify {
+  class NotifyClass : public TheoryEqNotifyClass {
     TheoryDatatypes& d_dt;
   public:
-    NotifyClass(TheoryDatatypes& dt): d_dt(dt) {}
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
-    {
-      Debug("dt") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
-      if (value) {
-        return d_dt.propagateLit(predicate);
-      }
-      return d_dt.propagateLit(predicate.notNode());
-    }
-    bool eqNotifyTriggerTermEquality(TheoryId tag,
-                                     TNode t1,
-                                     TNode t2,
-                                     bool value) override
-    {
-      AlwaysAssert(tag == THEORY_DATATYPES);
-      Debug("dt") << "NotifyClass::eqNotifyTriggerTermMerge(" << tag << ", " << t1 << ", " << t2 << ")" << std::endl;
-      if (value) {
-        return d_dt.propagateLit(t1.eqNode(t2));
-      }
-      return d_dt.propagateLit(t1.eqNode(t2).notNode());
-    }
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
-    {
-      Debug("dt") << "NotifyClass::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << ")" << std::endl;
-      d_dt.conflict(t1, t2);
-    }
+    NotifyClass(TheoryInferenceManager& im, TheoryDatatypes& dt): TheoryEqNotifyClass(im), d_dt(dt) {}
     void eqNotifyNewClass(TNode t) override
     {
       Debug("dt") << "NotifyClass::eqNotifyNewClass(" << t << ")" << std::endl;
@@ -90,9 +66,6 @@ class TheoryDatatypes : public Theory {
       Debug("dt") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2 << ")"
                   << std::endl;
       d_dt.eqNotifyMerge(t1, t2);
-    }
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
-    {
     }
   };/* class TheoryDatatypes::NotifyClass */
 private:
@@ -129,8 +102,6 @@ private:
   NodeMap d_term_sk;
   Node getTermSkolemFor( Node n );
 private:
-  /** The notify class */
-  NotifyClass d_notify;
   /** information necessary for equivalence classes */
   std::map< Node, EqcInfo* > d_eqc_info;
   /** map from nodes to their instantiated equivalent for each constructor type */
@@ -301,7 +272,7 @@ private:
                       bool firstTime = true);
   /** for checking whether two codatatype terms must be equal */
   void separateBisimilar( std::vector< Node >& part, std::vector< std::vector< Node > >& part_out,
-                          std::vector< TNode >& exp,
+                          std::vector< Node >& exp,
                           std::map< Node, Node >& cn,
                           std::map< Node, std::map< Node, int > >& dni, int dniLvl, bool mkExp );
   /** build model */
@@ -340,6 +311,8 @@ private:
   TheoryState d_state;
   /** The inference manager */
   InferenceManager d_im;
+  /** The notify class */
+  NotifyClass d_notify;
 };/* class TheoryDatatypes */
 
 }/* CVC4::theory::datatypes namespace */
