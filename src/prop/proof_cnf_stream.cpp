@@ -58,9 +58,7 @@ void ProofCnfStream::convertAndAssert(TNode node,
     Node toJustify = negated ? node.notNode() : static_cast<Node>(node);
     d_proof.addLazyStep(
         toJustify, pg, true, "ProofCnfStream::convertAndAssert:cnf");
-    Assert(!d_psb.getNumSteps());
   }
-
   convertAndAssert(node, negated);
   // process saved steps in buffer
   if (d_pfEnabled)
@@ -621,7 +619,6 @@ void ProofCnfStream::convertPropagation(theory::TrustNode trn)
   {
     clauseExp = clauseImpliesElim;
   }
-  Assert(!d_psb.getNumSteps());
   Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseExp);
   const std::vector<std::pair<Node, ProofStep>>& steps = d_psb.getSteps();
   for (const std::pair<Node, ProofStep>& step : steps)
