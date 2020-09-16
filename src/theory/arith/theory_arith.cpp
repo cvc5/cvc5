@@ -156,6 +156,9 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
   // We are now ready to assert the model.
   for (const std::pair<const Node, Node>& p : arithModel)
   {
+    // maps to constant of comparable type
+    Assert (p.first.getType().isComparableTo(p.second.getType()));
+    Assert (p.second.isConst());
     if (m->assertEquality(p.first, p.second, true))
     {
       continue;
