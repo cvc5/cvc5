@@ -49,8 +49,9 @@ void getFreeAssumptions(ProofNode* pn, std::vector<Node>& assump);
  * @param amap The mapping to add the free asumptions of pn and their
  * corresponding proof nodes to.
  */
-void getFreeAssumptionsMap(ProofNode* pn,
-                           std::map<Node, std::vector<ProofNode*>>& amap);
+void getFreeAssumptionsMap(
+    std::shared_ptr<ProofNode> pn,
+    std::map<Node, std::vector<std::shared_ptr<ProofNode>>>& amap);
 
 }  // namespace expr
 }  // namespace CVC4
