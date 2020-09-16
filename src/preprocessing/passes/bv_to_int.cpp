@@ -984,18 +984,25 @@ Node BVToInt::createShiftNode(vector<Node> children,
   return ite;
 }
 
-Node BVToInt::translateQuantifiedFormula(Node current, kind::Kind_t k)
+Node BVToInt::translateQuantifiedFormula(Node quantifiedNode)
 {
-  Node boundVarList = current[0];
+  kind::Kind_t k = quantifiedNode.getKind();
+  Node boundVarList = quantifiedNode[0];
   Assert(boundVarList.getKind() == kind::BOUND_VAR_LIST);
+  // Since bit-vector variables are being translated to
+  // integer variables, we need to substitute the new ones
+  // for the old ones.
   vector<Node> oldBoundVars;
   vector<Node> newBoundVars;
   vector<Node> rangeConstraints;
-  for (Node bv : current[0])
+  for (Node bv : quantifiedNode[0])
   {
     oldBoundVars.push_back(bv);
     if (bv.getType().isBitVector())
     {
+      // bit-vector variables are replaced by integer ones.
+      // the new variables induce range constraints based on the
+      // original bit-width.
       Node newBoundVar = d_bvToIntCache[bv];
       newBoundVars.push_back(newBoundVar);
       rangeConstraints.push_back(
@@ -1003,15 +1010,20 @@ Node BVToInt::translateQuantifiedFormula(Node current, kind::Kind_t k)
     }
     else
     {
+      // variables that are not bit-vectors are not changed
       newBoundVars.push_back(bv);
     }
   }
-  Node ranges;
-  Node matrix = d_bvToIntCache[current[1]];
+
+  // the body of the quantifier
+  Node matrix = d_bvToIntCache[quantifiedNode[1]];
+  // make the substitution
   matrix = matrix.substitute(oldBoundVars.begin(),
                              oldBoundVars.end(),
                              newBoundVars.begin(),
                              newBoundVars.end());
+  // A node to represent all the range constraints.
+  Node ranges;
   if (rangeConstraints.size() > 0)
   {
     if (rangeConstraints.size() == 1)
@@ -1022,9 +1034,14 @@ Node BVToInt::translateQuantifiedFormula(Node current, kind::Kind_t k)
     {
       ranges = d_nm->mkNode(kind::AND, rangeConstraints);
     }
+    // Add the range constraints to the body of the quantifier.
+    // For "exists", this is added conjunctively
+    // For "forall", this is added to the left side of an implication.
     matrix = d_nm->mkNode(
         k == kind::FORALL ? kind::IMPLIES : kind::AND, ranges, matrix);
   }
+
+  // create the new quantified formula and return it.
   Node newBoundVarsList = d_nm->mkNode(kind::BOUND_VAR_LIST, newBoundVars);
   Node result = d_nm->mkNode(kind::FORALL, newBoundVarsList, matrix);
   return result;
