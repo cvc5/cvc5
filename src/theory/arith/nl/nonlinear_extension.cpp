@@ -768,7 +768,7 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
     if (complete_status != 1)
     {
       // flush the waiting lemmas
-      if (!wlems.empty() || d_im.hasWaitingLemmas())
+      if (!wlems.empty() || d_im.hasWaitingLemma())
       {
         std::size_t count = wlems.size() + d_im.numWaitingLemmas();
         mlems.insert(mlems.end(), wlems.begin(), wlems.end());

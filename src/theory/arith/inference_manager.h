@@ -88,7 +88,7 @@ class InferenceManager : public InferenceManagerBuffered
   bool hasUsed() const;
 
   /** Checks whether we have waiting lemmas. */
-  bool hasWaitingLemmas() const;
+  bool hasWaitingLemma() const;
 
   /** Returns the number of pending lemmas. */
   std::size_t numWaitingLemmas() const;
