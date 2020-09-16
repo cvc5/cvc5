@@ -75,10 +75,11 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
   bool computedAcr = false;
 
   // The free assumptions of the proof
-  std::map<Node, std::vector<ProofNode*>> famap;
-  expr::getFreeAssumptionsMap(pf.get(), famap);
+  std::map<Node, std::vector<std::shared_ptr<ProofNode>>> famap;
+  expr::getFreeAssumptionsMap(pf, famap);
   std::unordered_set<Node, NodeHashFunction> acu;
-  for (const std::pair<const Node, std::vector<ProofNode*>>& fa : famap)
+  for (const std::pair<const Node, std::vector<std::shared_ptr<ProofNode>>>&
+           fa : famap)
   {
     Node a = fa.first;
     if (ac.find(a) != ac.end())
@@ -135,10 +136,10 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
       children.push_back(pfaa);
       std::vector<Node> args;
       args.push_back(a);
-      for (ProofNode* pfs : fa.second)
+      for (std::shared_ptr<ProofNode> pfs : fa.second)
       {
         Assert(pfs->getResult() == a);
-        updateNode(pfs, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
+        updateNode(pfs.get(), PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
       }
       Trace("pnm-scope") << "...finished" << std::endl;
       acu.insert(aMatch);

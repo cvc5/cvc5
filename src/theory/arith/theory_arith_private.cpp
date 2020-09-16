@@ -164,7 +164,6 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
 TheoryArithPrivate::~TheoryArithPrivate(){
   if(d_treeLog != NULL){ delete d_treeLog; }
   if(d_approxStats != NULL) { delete d_approxStats; }
-  if(d_nonlinearExtension != NULL) { delete d_nonlinearExtension; }
 }
 
 TheoryRewriter* TheoryArithPrivate::getTheoryRewriter() { return &d_rewriter; }
@@ -177,12 +176,7 @@ void TheoryArithPrivate::finishInit()
   eq::EqualityEngine* ee = d_containing.getEqualityEngine();
   Assert(ee != nullptr);
   d_congruenceManager.finishInit(ee);
-  const LogicInfo& logicInfo = getLogicInfo();
-  // only need to create nonlinear extension if non-linear logic
-  if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
-  {
-    d_nonlinearExtension = new nl::NonlinearExtension(d_containing, ee);
-  }
+  d_nonlinearExtension = d_containing.d_nonlinearExtension.get();
 }
 
 static bool contains(const ConstraintCPVec& v, ConstraintP con){
@@ -4074,7 +4068,8 @@ Rational TheoryArithPrivate::deltaValueForTotalOrder() const{
   return belowMin;
 }
 
-bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
+void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet,
+                                            std::map<Node, Node>& arithModel)
 {
   AlwaysAssert(d_qflraStatus == Result::SAT);
   //AlwaysAssert(!d_nlIncomplete, "Arithmetic solver cannot currently produce models for input with nonlinear arithmetic constraints");
@@ -4085,10 +4080,6 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
 
   Debug("arith::collectModelInfo") << "collectModelInfo() begin " << endl;
 
-  std::set<Node> termSet;
-  const std::set<Kind>& irrKinds = m->getIrrelevantKinds();
-  d_containing.computeAssertedTerms(termSet, irrKinds, true);
-
   // Delta lasts at least the duration of the function call
   const Rational& delta = d_partialModel.getDelta();
   std::unordered_set<TNode, TNodeHashFunction> shared = d_containing.currentlySharedTerms();
@@ -4096,8 +4087,6 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
   // TODO:
   // This is not very good for user push/pop....
   // Revisit when implementing push/pop
-  // Map of terms to values, constructed when non-linear arithmetic is active.
-  std::map<Node, Node> arithModel;
   for(var_iterator vi = var_begin(), vend = var_end(); vi != vend; ++vi){
     ArithVar v = *vi;
 
@@ -4112,46 +4101,11 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
 
         Node qNode = mkRationalNode(qmodel);
         Debug("arith::collectModelInfo") << "m->assertEquality(" << term << ", " << qmodel << ", true)" << endl;
-        if (d_nonlinearExtension != nullptr)
-        {
-          // Let non-linear extension inspect the values before they are sent
-          // to the theory model.
-          arithModel[term] = qNode;
-        }
-        else
-        {
-          if (!m->assertEquality(term, qNode, true))
-          {
-            return false;
-          }
-        }
+        // Add to the map
+        arithModel[term] = qNode;
       }else{
         Debug("arith::collectModelInfo") << "Skipping m->assertEquality(" << term << ", true)" << endl;
 
-      }
-    }
-  }
-  if (d_nonlinearExtension != nullptr)
-  {
-    // Non-linear may repair values to satisfy non-linear constraints (see
-    // documentation for NonlinearExtension::interceptModel).
-    d_nonlinearExtension->interceptModel(arithModel);
-    // We are now ready to assert the model.
-    for (std::pair<const Node, Node>& p : arithModel)
-    {
-      if (!m->assertEquality(p.first, p.second, true))
-      {
-        // If we failed to assert an equality, it is likely due to theory
-        // combination, namely the repaired model for non-linear changed
-        // an equality status that was agreed upon by both (linear) arithmetic
-        // and another theory. In this case, we must add a lemma, or otherwise
-        // we would terminate with an invalid model. Thus, we add a splitting
-        // lemma of the form ( x = v V x != v ) where v is the model value
-        // assigned by the non-linear solver to x.
-        Node eq = p.first.eqNode(p.second);
-        Node lem = NodeManager::currentNM()->mkNode(kind::OR, eq, eq.negate());
-        d_containing.d_out->lemma(lem);
-        return false;
       }
     }
   }
@@ -4161,7 +4115,6 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
   // m->assertEqualityEngine(&ee);
 
   Debug("arith::collectModelInfo") << "collectModelInfo() end " << endl;
-  return true;
 }
 
 bool TheoryArithPrivate::safeToReset() const {
