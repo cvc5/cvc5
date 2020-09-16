@@ -222,10 +222,9 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_outMgr(outMgr),
       d_pnm(nullptr),
       d_lazyProof(
-          d_pnm != nullptr
-              ? new LazyCDProof(
-                    d_pnm, nullptr, d_userContext, "TheoryEngine::LazyCDProof")
-              : nullptr),
+          d_pnm != nullptr ? new LazyCDProof(
+              d_pnm, nullptr, d_userContext, "TheoryEngine::LazyCDProof")
+                           : nullptr),
       d_tepg(new TheoryEngineProofGenerator(d_pnm, d_userContext)),
       d_sharedTerms(this, context),
       d_tc(nullptr),
@@ -235,8 +234,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_preRegistrationVisitor(this, context),
       d_sharedTermsVisitor(d_sharedTerms),
       d_eager_model_building(false),
-      d_possiblePropagations(context),
-      d_hasPropagated(context),
       d_inConflict(context, false),
       d_inSatMode(false),
       d_hasShutDown(false),
@@ -289,11 +286,8 @@ TheoryEngine::~TheoryEngine() {
 
 void TheoryEngine::interrupt() { d_interrupted = true; }
 void TheoryEngine::preRegister(TNode preprocessed) {
-
-  Debug("theory") << "TheoryEngine::preRegister( " << preprocessed << ")" << std::endl;
-  if(Dump.isOn("missed-t-propagations")) {
-    d_possiblePropagations.push_back(preprocessed);
-  }
+  Debug("theory") << "TheoryEngine::preRegister( " << preprocessed << ")"
+                  << std::endl;
   d_preregisterQueue.push(preprocessed);
 
   if (!d_inPreregister) {
@@ -522,14 +516,6 @@ void TheoryEngine::check(Theory::Effort effort) {
       // Do the checking
       CVC4_FOR_EACH_THEORY;
 
-      if(Dump.isOn("missed-t-conflicts")) {
-        const Printer& printer = d_outMgr.getPrinter();
-        std::ostream& out = d_outMgr.getDumpOut();
-        printer.toStreamCmdComment(
-            out, "Completeness check for T-conflicts; expect sat");
-        printer.toStreamCmdCheckSat(out);
-      }
-
       Debug("theory") << "TheoryEngine::check(" << effort << "): running propagation after the initial check" << endl;
 
       // We are still satisfiable, propagate as much as possible
@@ -630,27 +616,6 @@ void TheoryEngine::propagate(Theory::Effort effort)
 
   // Propagate for each theory using the statement above
   CVC4_FOR_EACH_THEORY;
-
-  if(Dump.isOn("missed-t-propagations")) {
-    for(unsigned i = 0; i < d_possiblePropagations.size(); ++i) {
-      Node atom = d_possiblePropagations[i];
-      bool value;
-      if(d_propEngine->hasValue(atom, value)) {
-        continue;
-      }
-      // Doesn't have a value, check it (and the negation)
-      if(d_hasPropagated.find(atom) == d_hasPropagated.end()) {
-        const Printer& printer = d_outMgr.getPrinter();
-        std::ostream& out = d_outMgr.getDumpOut();
-        printer.toStreamCmdComment(
-            out, "Completeness check for T-propagations; expect invalid");
-        printer.toStreamCmdEcho(out, atom.toString());
-        printer.toStreamCmdQuery(out, atom);
-        printer.toStreamCmdEcho(out, atom.notNode().toString());
-        printer.toStreamCmdQuery(out, atom.notNode());
-      }
-    }
-  }
 }
 
 Node TheoryEngine::getNextDecisionRequest()
@@ -1143,17 +1108,6 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
                         << ":THEORY-PROP: " << literal << endl;
 
   // spendResource();
-
-  if(Dump.isOn("t-propagations")) {
-    const Printer& printer = d_outMgr.getPrinter();
-    std::ostream& out = d_outMgr.getDumpOut();
-    printer.toStreamCmdComment(out,
-                               "negation of theory propagation: expect valid");
-    printer.toStreamCmdQuery(out, literal);
-  }
-  if(Dump.isOn("missed-t-propagations")) {
-    d_hasPropagated.insert(literal);
-  }
 
   // Get the atom
   bool polarity = literal.getKind() != kind::NOT;

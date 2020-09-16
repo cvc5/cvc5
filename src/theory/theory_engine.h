@@ -184,19 +184,6 @@ class TheoryEngine {
   typedef std::unordered_map<TNode, Node, TNodeHashFunction> TNodeMap;
 
   /**
-   * Used for "missed-t-propagations" dumping mode only.  A set of all
-   * theory-propagable literals.
-   */
-  context::CDList<TNode> d_possiblePropagations;
-
-  /**
-   * Used for "missed-t-propagations" dumping mode only.  A
-   * context-dependent set of those theory-propagable literals that
-   * have been propagated.
-   */
-  context::CDHashSet<Node, NodeHashFunction> d_hasPropagated;
-
-  /**
    * Output channels for individual theories.
    */
   theory::EngineOutputChannel* d_theoryOut[theory::THEORY_LAST];
