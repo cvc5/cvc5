@@ -251,7 +251,8 @@ void SharedTermsDatabase::checkForConflict() {
     std::vector<TNode> assumptions;
     d_equalityEngine.explainEquality(d_conflictLHS, d_conflictRHS, d_conflictPolarity, assumptions);
     Node conflict = mkAnd(assumptions);
-    d_theoryEngine->conflict(conflict, THEORY_BUILTIN);
+    TrustNode tconf = TrustNode::mkTrustConflict(conflict);
+    d_theoryEngine->conflict(tconf, THEORY_BUILTIN);
     d_conflictLHS = d_conflictRHS = Node::null();
   }
 }

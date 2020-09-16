@@ -113,7 +113,7 @@ eq::EqualityEngineNotify* CombinationEngine::getModelEqualityEngineNotify()
 
 void CombinationEngine::sendLemma(TrustNode trn, TheoryId atomsTo)
 {
-  d_te.lemma(trn.getNode(), false, LemmaProperty::NONE, atomsTo);
+  d_te.lemma(trn, LemmaProperty::NONE, atomsTo);
 }
 
 void CombinationEngine::resetRound()

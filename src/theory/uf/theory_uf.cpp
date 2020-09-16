@@ -46,15 +46,13 @@ TheoryUF::TheoryUF(context::Context* c,
                    ProofNodeManager* pnm,
                    std::string instanceName)
     : Theory(THEORY_UF, c, u, out, valuation, logicInfo, pnm, instanceName),
-      d_notify(*this),
-      /* The strong theory solver can be notified by EqualityEngine::init(),
-       * so make sure it's initialized first. */
       d_thss(nullptr),
       d_ho(nullptr),
       d_functionsTerms(c),
       d_symb(u, instanceName),
       d_state(c, u, valuation),
-      d_im(*this, d_state, pnm)
+      d_im(*this, d_state, pnm),
+      d_notify(d_im, *this)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
 
@@ -90,8 +88,7 @@ void TheoryUF::finishInit() {
   if (options::finiteModelFind()
       && options::ufssMode() != options::UfssMode::NONE)
   {
-    d_thss.reset(new CardinalityExtension(
-        getSatContext(), getUserContext(), *d_out, this));
+    d_thss.reset(new CardinalityExtension(d_state, d_im, this));
   }
   // The kinds we are treating as function application in congruence
   d_equalityEngine->addFunctionKind(kind::APPLY_UF, false, options::ufHo());
@@ -126,6 +123,12 @@ static Node mkAnd(const std::vector<TNode>& conjunctions) {
 
 //--------------------------------- standard check
 
+bool TheoryUF::needsCheckLastEffort()
+{
+  // last call effort needed if using finite model finding
+  return d_thss != nullptr;
+}
+
 void TheoryUF::postCheck(Effort level)
 {
   if (d_state.isInConflict())
@@ -136,12 +139,8 @@ void TheoryUF::postCheck(Effort level)
   if (d_thss != nullptr)
   {
     d_thss->check(level);
-    if (d_thss->isConflict())
-    {
-      d_state.notifyInConflict();
-    }
   }
-  // check with the higher-order extension
+  // check with the higher-order extension at full effort
   if (!d_state.isInConflict() && fullEffort(level))
   {
     if (options::ufHo())
@@ -159,9 +158,8 @@ bool TheoryUF::preNotifyFact(
     bool isDecision =
         d_valuation.isSatLiteral(fact) && d_valuation.isDecision(fact);
     d_thss->assertNode(fact, isDecision);
-    if (d_thss->isConflict())
+    if (d_state.isInConflict())
     {
-      d_state.notifyInConflict();
       return true;
     }
   }
@@ -267,25 +265,6 @@ void TheoryUF::preRegisterTerm(TNode node)
     break;
   }
 }
-
-bool TheoryUF::propagateLit(TNode literal)
-{
-  Debug("uf::propagate") << "TheoryUF::propagateLit(" << literal << ")"
-                         << std::endl;
-  // If already in conflict, no more propagation
-  if (d_state.isInConflict())
-  {
-    Debug("uf::propagate") << "TheoryUF::propagateLit(" << literal
-                           << "): already in conflict" << std::endl;
-    return false;
-  }
-  // Propagate out
-  bool ok = d_out->propagate(literal);
-  if (!ok) {
-    d_state.notifyInConflict();
-  }
-  return ok;
-}/* TheoryUF::propagate(TNode) */
 
 void TheoryUF::explain(TNode literal, Node& exp)
 {
@@ -647,14 +626,6 @@ void TheoryUF::computeCareGraph() {
   Debug("uf::sharing") << "TheoryUf::computeCareGraph(): finished."
                        << std::endl;
 }/* TheoryUF::computeCareGraph() */
-
-void TheoryUF::conflict(TNode a, TNode b)
-{
-  // call the inference manager, which will construct the conflict (possibly
-  // with proofs from the underlying proof equality engine), and notify the
-  // state object.
-  d_im.conflictEqConstantMerge(a, b);
-}
 
 void TheoryUF::eqNotifyNewClass(TNode t) {
   if (d_thss != NULL) {
