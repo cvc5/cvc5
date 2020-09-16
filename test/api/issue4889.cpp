@@ -12,7 +12,7 @@
  ** \brief Test for issue #4889
  **/
 
-#include <cvc4/api/cvc4cpp.h>                                                   
+#include "api/cvc4cpp.h"
                                                                                    
 using namespace CVC4::api;                                                      
                                                                                    
