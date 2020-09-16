@@ -17,6 +17,8 @@ libcvc4_add_sources(
   kind_map.h
   lazy_proof.cpp
   lazy_proof.h
+  lazy_proof_chain.cpp
+  lazy_proof_chain.h
   match_trie.cpp
   match_trie.h
   node.cpp
