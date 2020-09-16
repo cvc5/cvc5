@@ -223,29 +223,44 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     std::vector<Node> tchildren;
     std::vector<Node> sargs = args;
     // take into account witness form, if necessary
-    if (d_wfpm.requiresWitnessFormIntro(args[0]))
-    {
-      Node weq = addProofForWitnessForm(args[0], cdp);
-      tchildren.push_back(weq);
-      // replace the first argument
-      sargs[0] = weq[1];
-    }
+    bool reqWitness = d_wfpm.requiresWitnessFormIntro(args[0]);
+    Trace("smt-proof-pp-debug") << "...pred intro reqWitness=" << reqWitness << std::endl;
     // (TRUE_ELIM
     // (TRANS
-    //    ... proof of t = toWitness(t) ...
-    //    (MACRO_SR_EQ_INTRO <children> :args (toWitness(t) args[1:]))))
+    //    (MACRO_SR_EQ_INTRO <children> :args (t args[1:]))
+    //    ... proof of apply_SR(t) = toWitness(apply_SR(t)) ...
+    //    (MACRO_SR_EQ_INTRO {} {toWitness(apply_SR(t))})
+    // ))
     // We call the expandMacros method on MACRO_SR_EQ_INTRO, where notice
     // that this rule application is immediately expanded in the recursive
     // call and not added to the proof.
     Node conc = expandMacros(PfRule::MACRO_SR_EQ_INTRO, children, sargs, cdp);
+    Trace("smt-proof-pp-debug") << "...pred intro conclusion is " << conc << std::endl;
+    Assert (!conc.isNull());
+    Assert (conc.getKind()==EQUAL);
+    Assert (conc[0]==args[0]);
     tchildren.push_back(conc);
-    Assert(!conc.isNull() && conc.getKind() == EQUAL && conc[0] == sargs[0]
-           && conc[1] == d_true);
-    // transitivity if necessary
+    if (reqWitness)
+    {
+      Node weq = addProofForWitnessForm(conc[1], cdp);
+      Trace("smt-proof-pp-debug") << "...weq is " << weq << std::endl;
+      if (addToTransChildren(weq, tchildren))
+      {
+        sargs[0] = weq[1];
+        // toWitness(apply_SR(t)) = apply_SR(toWitness(apply_SR(t)))
+        // rewrite again, don't need substitution
+        Node weqr = expandMacros(PfRule::MACRO_SR_EQ_INTRO, {}, sargs, cdp);
+        addToTransChildren(weqr, tchildren);
+      }
+    }
+    // apply transitivity if necessary
     Node eq = addProofForTrans(tchildren, cdp);
+    Assert(!eq.isNull());
+    Assert(eq.getKind() == EQUAL);
+    Assert(eq[0] == args[0]);
+    Assert(eq[1] == d_true);
 
     cdp->addStep(eq[0], PfRule::TRUE_ELIM, {eq}, {});
-    Assert(eq[0] == args[0]);
     return eq[0];
   }
   else if (id == PfRule::MACRO_SR_PRED_ELIM)
@@ -258,7 +273,9 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     srargs.push_back(children[0]);
     srargs.insert(srargs.end(), args.begin(), args.end());
     Node conc = expandMacros(PfRule::MACRO_SR_EQ_INTRO, schildren, srargs, cdp);
-    Assert(!conc.isNull() && conc.getKind() == EQUAL && conc[0] == children[0]);
+    Assert(!conc.isNull());
+    Assert(conc.getKind() == EQUAL);
+    Assert(conc[0] == children[0]);
     // apply equality resolve
     cdp->addStep(conc[1], PfRule::EQ_RESOLVE, {children[0], conc}, {});
     return conc[1];
