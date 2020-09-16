@@ -298,12 +298,12 @@ void SmtEngine::finishInit()
       LogicInfo everything;
       everything.lock();
       getOutputManager().getPrinter().toStreamCmdComment(
-          *getOptions().getOut(),
+          getOutputManager().getDumpOut(),
           "CVC4 always dumps the most general, all-supported logic (below), as "
           "some internals might require the use of a logic more general than "
           "the input.");
       getOutputManager().getPrinter().toStreamCmdSetBenchmarkLogic(
-          *getOptions().getOut(), everything.getLogicString());
+          getOutputManager().getDumpOut(), everything.getLogicString());
   }
 
   // initialize the dump manager
@@ -418,7 +418,7 @@ void SmtEngine::setLogic(const std::string& s)
     if (Dump.isOn("raw-benchmark"))
     {
       getOutputManager().getPrinter().toStreamCmdSetBenchmarkLogic(
-          *getOptions().getOut(), d_logic.getLogicString());
+          getOutputManager().getDumpOut(), d_logic.getLogicString());
     }
   }
   catch (IllegalArgumentException& e)
@@ -476,10 +476,10 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
           (s == "sat") ? Result::SAT
                        : ((s == "unsat") ? Result::UNSAT : Result::SAT_UNKNOWN);
       getOutputManager().getPrinter().toStreamCmdSetBenchmarkStatus(
-          *getOptions().getOut(), status);
+          getOutputManager().getDumpOut(), status);
     } else {
       getOutputManager().getPrinter().toStreamCmdSetInfo(
-          *getOptions().getOut(), key, value);
+          getOutputManager().getDumpOut(), key, value);
     }
   }
 
@@ -797,7 +797,7 @@ void SmtEngine::defineFunctionsRec(
     }
     std::vector<Node> nFormulas = exprVectorToNodes(formulas);
     getOutputManager().getPrinter().toStreamCmdDefineFunctionRec(
-        *getOptions().getOut(), nFuncs, nFormals, nFormulas);
+        getOutputManager().getDumpOut(), nFuncs, nFormals, nFormulas);
   }
 
   ExprManager* em = getExprManager();
@@ -946,8 +946,8 @@ Result SmtEngine::checkSat(const Expr& assumption, bool inUnsatCore)
 {
   if (Dump.isOn("benchmark"))
   {
-    getOutputManager().getPrinter().toStreamCmdCheckSat(*getOptions().getOut(),
-                                                        assumption);
+    getOutputManager().getPrinter().toStreamCmdCheckSat(
+        getOutputManager().getDumpOut(), assumption);
   }
   std::vector<Node> assump;
   if (!assumption.isNull())
@@ -964,12 +964,12 @@ Result SmtEngine::checkSat(const vector<Expr>& assumptions, bool inUnsatCore)
     if (assumptions.empty())
     {
       getOutputManager().getPrinter().toStreamCmdCheckSat(
-          *getOptions().getOut());
+          getOutputManager().getDumpOut());
     }
     else
     {
       getOutputManager().getPrinter().toStreamCmdCheckSatAssuming(
-          *getOptions().getOut(), exprVectorToNodes(assumptions));
+          getOutputManager().getDumpOut(), exprVectorToNodes(assumptions));
     }
   }
   std::vector<Node> assumps;
@@ -984,8 +984,8 @@ Result SmtEngine::checkEntailed(const Expr& node, bool inUnsatCore)
 {
   if (Dump.isOn("benchmark"))
   {
-    getOutputManager().getPrinter().toStreamCmdQuery(*getOptions().getOut(),
-                                                     node.getNode());
+    getOutputManager().getPrinter().toStreamCmdQuery(
+        getOutputManager().getDumpOut(), node.getNode());
   }
   return checkSatInternal(node.isNull()
                               ? std::vector<Node>()
@@ -1073,7 +1073,7 @@ std::vector<Node> SmtEngine::getUnsatAssumptions(void)
   if (Dump.isOn("benchmark"))
   {
     getOutputManager().getPrinter().toStreamCmdGetUnsatAssumptions(
-        *getOptions().getOut());
+        getOutputManager().getDumpOut());
   }
   UnsatCore core = getUnsatCoreInternal();
   std::vector<Node> res;
@@ -1097,8 +1097,8 @@ Result SmtEngine::assertFormula(const Node& formula, bool inUnsatCore)
   Trace("smt") << "SmtEngine::assertFormula(" << formula << ")" << endl;
 
   if (Dump.isOn("raw-benchmark")) {
-    getOutputManager().getPrinter().toStreamCmdAssert(*getOptions().getOut(),
-                                                      formula);
+    getOutputManager().getPrinter().toStreamCmdAssert(
+        getOutputManager().getDumpOut(), formula);
   }
 
   // Substitute out any abstract values in ex
@@ -1122,7 +1122,7 @@ void SmtEngine::declareSygusVar(const std::string& id, Node var, TypeNode type)
   if (Dump.isOn("raw-benchmark"))
   {
     getOutputManager().getPrinter().toStreamCmdDeclareVar(
-        *getOptions().getOut(), var, type);
+        getOutputManager().getDumpOut(), var, type);
   }
   // don't need to set that the conjecture is stale
 }
@@ -1163,7 +1163,7 @@ void SmtEngine::assertSygusConstraint(Node constraint)
   if (Dump.isOn("raw-benchmark"))
   {
     getOutputManager().getPrinter().toStreamCmdConstraint(
-        *getOptions().getOut(), constraint);
+        getOutputManager().getDumpOut(), constraint);
   }
 }
 
@@ -1178,7 +1178,7 @@ void SmtEngine::assertSygusInvConstraint(Node inv,
   if (Dump.isOn("raw-benchmark"))
   {
     getOutputManager().getPrinter().toStreamCmdInvConstraint(
-        *getOptions().getOut(), inv, pre, trans, post);
+        getOutputManager().getDumpOut(), inv, pre, trans, post);
   }
 }
 
@@ -1322,7 +1322,7 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
   finishInit();
   if(Dump.isOn("benchmark")) {
     getOutputManager().getPrinter().toStreamCmdGetAssignment(
-        *getOptions().getOut());
+        getOutputManager().getDumpOut());
   }
   if(!options::produceAssignments()) {
     const char* msg =
@@ -1383,7 +1383,8 @@ Model* SmtEngine::getModel() {
   finishInit();
 
   if(Dump.isOn("benchmark")) {
-    getOutputManager().getPrinter().toStreamCmdGetModel(*getOptions().getOut());
+    getOutputManager().getPrinter().toStreamCmdGetModel(
+        getOutputManager().getDumpOut());
   }
 
   TheoryModel* m = getAvailableModel("get model");
@@ -1417,7 +1418,7 @@ Result SmtEngine::blockModel()
   if (Dump.isOn("benchmark"))
   {
     getOutputManager().getPrinter().toStreamCmdBlockModel(
-        *getOptions().getOut());
+        getOutputManager().getDumpOut());
   }
 
   TheoryModel* m = getAvailableModel("block model");
@@ -1449,7 +1450,7 @@ Result SmtEngine::blockModelValues(const std::vector<Expr>& exprs)
   if (Dump.isOn("benchmark"))
   {
     getOutputManager().getPrinter().toStreamCmdBlockModelValues(
-        *getOptions().getOut(), exprVectorToNodes(exprs));
+        getOutputManager().getDumpOut(), exprVectorToNodes(exprs));
   }
 
   TheoryModel* m = getAvailableModel("block model values");
@@ -1803,7 +1804,7 @@ UnsatCore SmtEngine::getUnsatCore() {
   finishInit();
   if(Dump.isOn("benchmark")) {
     getOutputManager().getPrinter().toStreamCmdGetUnsatCore(
-        *getOptions().getOut());
+        getOutputManager().getDumpOut());
   }
   return getUnsatCoreInternal();
 }
@@ -1933,7 +1934,7 @@ std::vector<Expr> SmtEngine::getAssertions()
   d_state->doPendingPops();
   if(Dump.isOn("benchmark")) {
     getOutputManager().getPrinter().toStreamCmdGetAssertions(
-        *getOptions().getOut());
+        getOutputManager().getDumpOut());
   }
   Trace("smt") << "SMT getAssertions()" << endl;
   if(!options::produceAssertions()) {
@@ -1960,7 +1961,8 @@ void SmtEngine::push()
   Trace("smt") << "SMT push()" << endl;
   d_smtSolver->processAssertions(*d_asserts);
   if(Dump.isOn("benchmark")) {
-    getOutputManager().getPrinter().toStreamCmdPush(*getOptions().getOut());
+    getOutputManager().getPrinter().toStreamCmdPush(
+        getOutputManager().getDumpOut());
   }
   d_state->userPush();
 }
@@ -1970,7 +1972,8 @@ void SmtEngine::pop() {
   finishInit();
   Trace("smt") << "SMT pop()" << endl;
   if(Dump.isOn("benchmark")) {
-    getOutputManager().getPrinter().toStreamCmdPop(*getOptions().getOut());
+    getOutputManager().getPrinter().toStreamCmdPop(
+        getOutputManager().getDumpOut());
   }
   d_state->userPop();
 
@@ -1991,7 +1994,8 @@ void SmtEngine::reset()
   ExprManager *em = d_exprManager;
   Trace("smt") << "SMT reset()" << endl;
   if(Dump.isOn("benchmark")) {
-    getOutputManager().getPrinter().toStreamCmdReset(*getOptions().getOut());
+    getOutputManager().getPrinter().toStreamCmdReset(
+        getOutputManager().getDumpOut());
   }
   std::string filename = d_state->getFilename();
   Options opts;
@@ -2021,7 +2025,7 @@ void SmtEngine::resetAssertions()
   if (Dump.isOn("benchmark"))
   {
     getOutputManager().getPrinter().toStreamCmdResetAssertions(
-        *getOptions().getOut());
+        getOutputManager().getDumpOut());
   }
 
   d_state->notifyResetAssertions();
@@ -2112,7 +2116,7 @@ void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
 
   if(Dump.isOn("benchmark")) {
     getOutputManager().getPrinter().toStreamCmdSetOption(
-        *getOptions().getOut(), key, value);
+        getOutputManager().getDumpOut(), key, value);
   }
 
   if(key == "command-verbosity") {

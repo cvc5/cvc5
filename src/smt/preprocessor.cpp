@@ -130,7 +130,7 @@ Node Preprocessor::simplify(const Node& node, bool removeItes)
   if (Dump.isOn("benchmark"))
   {
     d_smt.getOutputManager().getPrinter().toStreamCmdSimplify(
-        *d_smt.getOptions().getOut(), node);
+        d_smt.getOutputManager().getDumpOut(), node);
   }
   Node nas = d_absValues.substituteAbstractValues(node);
   if (options::typeChecking())

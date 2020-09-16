@@ -565,7 +565,7 @@ void ProcessAssertions::dumpAssertions(const char* key,
     {
       TNode n = assertionList[i];
       d_smt.getOutputManager().getPrinter().toStreamCmdAssert(
-          *d_smt.getOptions().getOut(), n);
+          d_smt.getOutputManager().getDumpOut(), n);
     }
   }
 }

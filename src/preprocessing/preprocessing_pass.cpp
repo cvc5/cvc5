@@ -40,10 +40,9 @@ void PreprocessingPass::dumpAssertions(const char* key,
   if (Dump.isOn("assertions") && Dump.isOn(std::string("assertions:") + key))
   {
     // Push the simplified assertions to the dump output stream
-    const Printer& printer =
-        d_preprocContext->getSmt()->getOutputManager().getPrinter();
-    std::ostream& out =
-        d_preprocContext->getSmt()->getOutputManager().getDumpOut();
+    OutputManager& outMgr = d_preprocContext->getSmt()->getOutputManager();
+    const Printer& printer = outMgr.getPrinter();
+    std::ostream& out = outMgr.getDumpOut();
 
     for (const auto& n : assertionList)
     {
