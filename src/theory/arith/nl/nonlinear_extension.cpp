@@ -632,6 +632,7 @@ void NonlinearExtension::check(Theory::Effort e)
       d_im.doPendingFacts();
       d_im.doPendingLemmas();
       d_im.doPendingPhaseRequirements();
+      d_im.reset();
       return;
     }
     // Otherwise, we will answer SAT. The values that we approximated are
@@ -776,7 +777,7 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
         d_builtModel = true;
       }
       filterLemmas(lemmas, mlems);
-      if (!mlems.empty())
+      if (!mlems.empty() || d_im.hasPendingLemma())
       {
         return true;
       }
@@ -786,9 +787,10 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
     if (complete_status != 1)
     {
       // flush the waiting lemmas
-      if (!wlems.empty())
+      if (!wlems.empty() || d_im.hasWaitingLemma())
       {
         mlems.insert(mlems.end(), wlems.begin(), wlems.end());
+        d_im.flushWaitingLemmas();
         Trace("nl-ext") << "...added " << wlems.size() << " waiting lemmas."
                         << std::endl;
         return true;
