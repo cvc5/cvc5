@@ -32,7 +32,6 @@
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "parser/parser_exception.h"
-#include "smt/command.h"
 #include "smt/smt_engine.h"
 #include "util/result.h"
 #include "util/statistics.h"

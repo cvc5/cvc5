@@ -32,8 +32,6 @@
 #include "expr/node.h"
 #include "options/options.h"
 #include "options/theory_options.h"
-#include "smt/command.h"
-#include "smt/dump.h"
 #include "smt/logic_request.h"
 #include "theory/assertion.h"
 #include "theory/care_graph.h"
@@ -910,10 +908,6 @@ inline theory::Assertion Theory::get() {
   d_factsHead = d_factsHead + 1;
 
   Trace("theory") << "Theory::get() => " << fact << " (" << d_facts.size() - d_factsHead << " left)" << std::endl;
-
-  if(Dump.isOn("state")) {
-    Dump("state") << AssertCommand(fact.d_assertion.toExpr());
-  }
 
   return fact;
 }

@@ -28,12 +28,12 @@
 #include "api/cvc4cpp.h"
 #include "parser/parse_op.h"
 #include "parser/parser.h"
-#include "smt/command.h"
 #include "theory/logic_info.h"
 #include "util/abstract_value.h"
 
 namespace CVC4 {
 
+class Command;
 class SExpr;
 
 namespace api {
