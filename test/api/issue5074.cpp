@@ -1,0 +1,18 @@
+#include <assert.h>
+
+#include "api/cvc4cpp.h"
+
+using namespace CVC4::api;
+
+int main()
+{
+  Solver slv;
+  Term c1 = slv.mkConst(slv.getIntegerSort());
+  Term t6 = slv.mkTerm(Kind::STRING_FROM_CODE, c1);
+  Term t12 = slv.mkTerm(Kind::STRING_TO_REGEXP, t6);
+  Term t14 = slv.mkTerm(Kind::STRING_REPLACE_RE, {t6, t12, t6});
+  Term t16 = slv.mkTerm(Kind::STRING_CONTAINS, {t14, t14});
+  slv.checkEntailed(t16);
+
+  return 0;
+}
