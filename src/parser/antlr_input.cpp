@@ -33,7 +33,6 @@
 #include "parser/smt2/smt2_input.h"
 #include "parser/smt2/sygus_input.h"
 #include "parser/tptp/tptp_input.h"
-#include "smt/command.h"
 
 using namespace std;
 using namespace CVC4;

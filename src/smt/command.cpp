@@ -106,20 +106,6 @@ std::ostream& operator<<(std::ostream& out, BenchmarkStatus status)
 }
 
 // !!! Temporary until commands are migrated to the new API !!!
-std::vector<Node> exprVectorToNodes(const std::vector<Expr>& exprs)
-{
-  std::vector<Node> nodes;
-  nodes.reserve(exprs.size());
-
-  for (Expr e : exprs)
-  {
-    nodes.push_back(Node::fromExpr(e));
-  }
-
-  return nodes;
-}
-
-// !!! Temporary until commands are migrated to the new API !!!
 std::vector<TypeNode> typeVectorToTypeNodes(const std::vector<Type>& types)
 {
   std::vector<TypeNode> typeNodes;
@@ -2977,7 +2963,7 @@ void SetBenchmarkStatusCommand::toStream(std::ostream& out,
                                          size_t dag,
                                          OutputLanguage language) const
 {
-  Result::Sat status;
+  Result::Sat status = Result::SAT_UNKNOWN;
   switch (d_status)
   {
     case BenchmarkStatus::SMT_SATISFIABLE: status = Result::SAT; break;

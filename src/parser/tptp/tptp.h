@@ -28,10 +28,11 @@
 #include "api/cvc4cpp.h"
 #include "parser/parse_op.h"
 #include "parser/parser.h"
-#include "smt/command.h"
 #include "util/hash.h"
 
 namespace CVC4 {
+
+class Command;
 
 namespace api {
 class Solver;
