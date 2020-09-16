@@ -58,7 +58,8 @@ bool ProofPostprocessCallback::update(Node res,
                                       PfRule id,
                                       const std::vector<Node>& children,
                                       const std::vector<Node>& args,
-                                      CDProof* cdp)
+                                      CDProof* cdp,
+                      bool& continueUpdate)
 {
   Trace("smt-proof-pp-debug") << "- Post process " << id << " " << children
                               << " / " << args << std::endl;
@@ -117,6 +118,16 @@ bool ProofPostprocessCallback::update(Node res,
   return !ret.isNull();
 }
 
+bool ProofPostprocessCallback::updateInternal(Node res,
+            PfRule id,
+            const std::vector<Node>& children,
+            const std::vector<Node>& args,
+            CDProof* cdp)
+{
+  bool continueUpdate = true;
+  return update(res, id, children, args, cdp, continueUpdate);
+}
+
 Node ProofPostprocessCallback::expandMacros(PfRule id,
                                             const std::vector<Node>& children,
                                             const std::vector<Node>& args,
@@ -157,7 +168,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       {
         Node eq = t.eqNode(ts);
         // apply SUBS proof rule if necessary
-        if (!update(eq, PfRule::SUBS, children, sargs, cdp))
+        if (!updateInternal(eq, PfRule::SUBS, children, sargs, cdp))
         {
           // if we specified that we did not want to elimiante, add as step
           cdp->addStep(eq, PfRule::SUBS, children, sargs);
@@ -191,7 +202,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     {
       Node eq = ts.eqNode(tr);
       // apply REWRITE proof rule
-      if (!update(eq, PfRule::REWRITE, {}, rargs, cdp))
+      if (!updateInternal(eq, PfRule::REWRITE, {}, rargs, cdp))
       {
         // if not elimianted, add as step
         cdp->addStep(eq, PfRule::REWRITE, {}, rargs);

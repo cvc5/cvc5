@@ -38,7 +38,8 @@ bool ProofPostprocessCallback::update(Node res,
                                       PfRule id,
                                       const std::vector<Node>& children,
                                       const std::vector<Node>& args,
-                                      CDProof* cdp)
+                                      CDProof* cdp,
+                      bool& continueUpdate)
 {
   Trace("prop-proof-pp-debug")
       << "- Post process " << id << " " << children << " / " << args << "\n";
@@ -69,6 +70,8 @@ bool ProofPostprocessCallback::update(Node res,
   }
   // connect the proof
   cdp->addProof(pfn);
+  // do not recursively process the result
+  continueUpdate = false;
   return true;
 }
 

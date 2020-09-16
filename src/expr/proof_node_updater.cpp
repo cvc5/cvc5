@@ -26,7 +26,8 @@ bool ProofNodeUpdaterCallback::update(Node res,
                                       PfRule id,
                                       const std::vector<Node>& children,
                                       const std::vector<Node>& args,
-                                      CDProof* cdp)
+                                      CDProof* cdp,
+                      bool& continueUpdate)
 {
   return false;
 }
@@ -101,9 +102,16 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
         counterNew++;
         visited[cur] = false;
         // run update to a fixed point
-        while (runUpdate(cur, fa))
+        bool continueUpdate = true;
+        while (runUpdate(cur, fa, continueUpdate) && continueUpdate)
         {
           Trace("pf-process-debug") << "...updated proof." << std::endl;
+        }
+        if (!continueUpdate)
+        {
+          // no further changes should be made to cur according to the callback
+          Trace("pf-process-debug") << "...marked to not continue update." << std::endl;
+          continue;
         }
         visit.push_back(cur);
         // If we are not the top-level proof, we were a scope, or became a
@@ -156,7 +164,8 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
 }
 
 bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur,
-                                 const std::vector<Node>& fa)
+                                 const std::vector<Node>& fa,
+                      bool& continueUpdate)
 {
   // should it be updated?
   if (!d_cb.shouldUpdate(cur.get()))
@@ -179,7 +188,7 @@ bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur,
       << "Updating (" << cur->getRule() << ")..." << std::endl;
   Node res = cur->getResult();
   // only if the callback updated the node
-  if (d_cb.update(res, id, ccn, cur->getArguments(), &cpf))
+  if (d_cb.update(res, id, ccn, cur->getArguments(), &cpf, continueUpdate))
   {
     std::shared_ptr<ProofNode> npn = cpf.getProofFor(res);
     std::vector<Node> fullFa;
