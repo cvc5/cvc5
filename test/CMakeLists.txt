@@ -2,11 +2,11 @@
 # Add target 'check', builds and runs
 # > unit tests
 # > regression tests of levels 0 and 1
-# > system tests
+# > api tests
 
 add_custom_target(build-tests)
 
-# Note: Do not add custom targets for running tests (regress, systemtests,
+# Note: Do not add custom targets for running tests (regress, apitests,
 # units) as dependencies to other run targets. This will result in executing
 # tests multiple times. For example, if check would depend on regress it would
 # first run the command of the regress target (i.e., run all regression tests)
@@ -24,7 +24,7 @@ add_custom_target(check
 if (NOT BUILD_LIB_ONLY)
   add_subdirectory(regress)
 endif()
-add_subdirectory(system EXCLUDE_FROM_ALL)
+add_subdirectory(api EXCLUDE_FROM_ALL)
 
 if(ENABLE_UNIT_TESTING)
   add_subdirectory(unit EXCLUDE_FROM_ALL)

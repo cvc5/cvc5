@@ -289,11 +289,12 @@ class BVToInt : public PreprocessingPass
    * When a UF f is translated to a UF g,
    * we add a define-fun command to the smt-engine
    * to relate between f and g.
+   * We do the same when f and g are just variables.
    * This is useful, for example, when asking
    * for a model-value of a term that includes the
    * original UF f.
-   * @param bvUF the original function
-   * @param intUF the translated function
+   * @param bvUF the original function or variable
+   * @param intUF the translated function or variable
    */
   void defineBVUFAsIntUF(Node bvUF, Node intUF);
 
