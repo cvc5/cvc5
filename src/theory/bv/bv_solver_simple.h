@@ -30,6 +30,13 @@ namespace bv {
 
 class BBSimple;
 
+/**
+ * Simple bit-blasting solver that sends bit-blasting lemmas directly to the
+ * internal MiniSat. It is also ablo to handle atoms of kind
+ * BITVECTOR_EAGER_ATOM.
+ *
+ * Sends lemmas atom <=> bb(atom) to MiniSat on preNotifyFact().
+ */
 class BVSolverSimple : public BVSolver
 {
  public:
@@ -56,11 +63,16 @@ class BVSolverSimple : public BVSolver
                           const std::set<Node>& termSet) override;
 
  private:
+  /**
+   * Sends a bit-blasting lemma fact <=> d_bitblaster.bbAtom(fact) to the
+   * inference manager.
+   */
+  void addBBLemma(TNode fact);
+
+  /** Bit-blaster used to bit-blast atoms/terms. */
   std::unique_ptr<BBSimple> d_bitblaster;
   /** Caches lemmas added for BV atoms. */
   std::unordered_set<Node, NodeHashFunction> d_lemmasCache;
-
-  void addBBLemma(TNode fact);
 };
 
 }  // namespace bv
