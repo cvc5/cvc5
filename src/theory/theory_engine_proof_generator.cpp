@@ -55,9 +55,11 @@ theory::TrustNode TheoryEngineProofGenerator::mkTrustExplain(
 
 std::shared_ptr<ProofNode> TheoryEngineProofGenerator::getProofFor(Node f)
 {
+  Trace("tepg-debug") << "TheoryEngineProofGenerator::getProofFor: " << f << std::endl;
   NodeLazyCDProofMap::iterator it = d_proofs.find(f);
   if (it == d_proofs.end())
   {
+    Trace("tepg-debug") << "...null" << std::endl;
     return nullptr;
   }
   std::shared_ptr<LazyCDProof> lcp = (*it).second;
@@ -78,7 +80,7 @@ std::shared_ptr<ProofNode> TheoryEngineProofGenerator::getProofFor(Node f)
   }
   else
   {
-    AlwaysAssert(false)
+    Unhandled()
         << "TheoryEngineProofGenerator::getProofFor: unexpected fact " << f
         << std::endl;
     return nullptr;
@@ -95,8 +97,10 @@ std::shared_ptr<ProofNode> TheoryEngineProofGenerator::getProofFor(Node f)
   {
     scopeAssumps.push_back(exp);
   }
+  Trace("tepg-debug") << "...get proof body" << std::endl;
   // get the proof for conclusion
   std::shared_ptr<ProofNode> pfb = lcp->getProofFor(conclusion);
+  Trace("tepg-debug") << "...mkScope" << std::endl;
   // call the scope method of proof node manager
   std::shared_ptr<ProofNode> pf = d_pnm->mkScope(pfb, scopeAssumps);
 
@@ -109,8 +113,9 @@ std::shared_ptr<ProofNode> TheoryEngineProofGenerator::getProofFor(Node f)
          << std::endl;
     serr << "  Expected: " << f << std::endl;
     serr << "       Got: " << pf->getResult() << std::endl;
-    AlwaysAssert(false) << serr.str();
+    Unhandled() << serr.str();
   }
+  Trace("tepg-debug") << "...finished" << std::endl;
   return pf;
 }
 
