@@ -1013,7 +1013,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
     // The side effect says that if lem is added, then we should add the
     // secant point c for (tf,d).
     nlem.d_secantPoint.push_back(std::make_tuple(tf, d, c));
-    d_im.addPendingArithLemma(nlem);
+    d_im.addPendingArithLemma(nlem, true);
   }
   return true;
 }
