@@ -36,6 +36,7 @@ namespace CVC4 {
 
 class ResourceManager;
 class DecisionEngine;
+class OutputManager;
 class TheoryEngine;
 
 namespace theory {
@@ -62,7 +63,8 @@ class PropEngine
   PropEngine(TheoryEngine*,
              context::Context* satContext,
              context::UserContext* userContext,
-             ResourceManager* rm);
+             ResourceManager* rm,
+             OutputManager& outMgr);
 
   /**
    * Destructor.
@@ -255,6 +257,8 @@ class PropEngine
   /** Pointer to resource manager for associated SmtEngine */
   ResourceManager* d_resourceManager;
 
+  /** Reference to the output manager of the smt engine */
+  OutputManager& d_outMgr;
 };
 
 }  // namespace prop
