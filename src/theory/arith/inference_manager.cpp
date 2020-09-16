@@ -92,6 +92,11 @@ bool InferenceManager::hasUsed() const
   return hasSent() || hasPending();
 }
 
+bool InferenceManager::hasWaitingLemmas() const
+{
+  return !d_waitingLem.empty();
+}
+
 std::size_t InferenceManager::numWaitingLemmas() const
 {
   return d_waitingLem.size();
