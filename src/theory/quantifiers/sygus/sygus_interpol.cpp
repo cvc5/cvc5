@@ -23,14 +23,13 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/rewriter.h"
+#include "theory/smt_engine_subsolver.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
 SygusInterpol::SygusInterpol() {}
-
-SygusInterpol::SygusInterpol(LogicInfo logic) : d_logic(logic) {}
 
 void SygusInterpol::collectSymbols(const std::vector<Node>& axioms,
                                    const Node& conj)
@@ -75,6 +74,9 @@ void SygusInterpol::createVariables(bool needsShared)
     Node var = nm->mkBoundVar(tn);
     d_vars.push_back(var);
     Node vlv = nm->mkBoundVar(ss.str(), tn);
+    // set that this variable encodes the term s
+    SygusVarToTermAttribute sta;
+    vlv.setAttribute(sta, s);
     d_vlvs.push_back(vlv);
     if (!needsShared || d_symSetShared.find(s) != d_symSetShared.end())
     {
@@ -266,7 +268,7 @@ void SygusInterpol::mkSygusConjecture(Node itp,
   Trace("sygus-interpol") << "Generate: " << d_sygusConj << std::endl;
 }
 
-bool SygusInterpol::findInterpol(Expr& interpol, Node itp)
+bool SygusInterpol::findInterpol(Node& interpol, Node itp)
 {
   // get the synthesis solution
   std::map<Node, Node> sols;
@@ -283,31 +285,31 @@ bool SygusInterpol::findInterpol(Expr& interpol, Node itp)
   }
   Trace("sygus-interpol") << "SmtEngine::getInterpol: solution is "
                           << its->second << std::endl;
-  Node interpoln = its->second;
+  interpol = its->second;
   // replace back the created variables to original symbols.
-  Node interpoln_reduced;
-  if (interpoln.getKind() == kind::LAMBDA)
+  if (interpol.getKind() == kind::LAMBDA)
   {
-    interpoln_reduced = interpoln[1];
+    interpol = interpol[1];
   }
-  else
+
+  // get the grammar type for the interpolant
+  Node igdtbv = itp.getAttribute(SygusSynthFunVarListAttribute());
+  Assert(!igdtbv.isNull());
+  Assert(igdtbv.getKind() == kind::BOUND_VAR_LIST);
+  // convert back to original
+  // must replace formal arguments of itp with the free variables in the
+  // input problem that they correspond to.
+  std::vector<Node> vars;
+  std::vector<Node> syms;
+  SygusVarToTermAttribute sta;
+  for (const Node& bv : igdtbv)
   {
-    interpoln_reduced = interpoln;
+    vars.push_back(bv);
+    syms.push_back(bv.hasAttribute(sta) ? bv.getAttribute(sta) : bv);
   }
-  if (interpoln.getNumChildren() != 0 && interpoln[0].getNumChildren() != 0)
-  {
-    std::vector<Node> formals;
-    for (const Node& n : interpoln[0])
-    {
-      formals.push_back(n);
-    }
-    interpoln_reduced = interpoln_reduced.substitute(formals.begin(),
-                                                     formals.end(),
-                                                     d_symSetShared.begin(),
-                                                     d_symSetShared.end());
-  }
-  // convert to expression
-  interpol = interpoln_reduced.toExpr();
+  interpol =
+      interpol.substitute(vars.begin(), vars.end(), syms.begin(), syms.end());
+
   return true;
 }
 
@@ -315,14 +317,11 @@ bool SygusInterpol::SolveInterpolation(const std::string& name,
                                        const std::vector<Node>& axioms,
                                        const Node& conj,
                                        const TypeNode& itpGType,
-                                       Expr& interpol)
+                                       Node& interpol)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  // we generate a new smt engine to do the interpolation query
-  d_subSolver.reset(new SmtEngine(nm->toExprManager()));
-  d_subSolver->setIsInternalSubsolver();
+  initializeSubsolver(d_subSolver);
   // get the logic
-  LogicInfo l = d_logic.getUnlockedCopy();
+  LogicInfo l = d_subSolver->getLogicInfo().getUnlockedCopy();
   // enable everything needed for sygus
   l.enableSygus();
   d_subSolver->setLogic(l);

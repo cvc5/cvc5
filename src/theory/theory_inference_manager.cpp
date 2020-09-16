@@ -141,6 +141,7 @@ TrustNode TheoryInferenceManager::mkConflictExp(const std::vector<Node>& exp,
 {
   if (d_pfee != nullptr)
   {
+    Assert(pg != nullptr);
     // use proof equality engine to construct the trust node
     return d_pfee->assertConflict(exp, pg);
   }
