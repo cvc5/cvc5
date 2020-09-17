@@ -23,8 +23,9 @@ using namespace CVC4::kind;
 namespace CVC4 {
 
 ProofNodeManager::ProofNodeManager(ProofChecker* pc)
-    : d_checker(pc), d_true(NodeManager::currentNM()->mkConst<bool>(true))
+    : d_checker(pc)
 {
+  d_true = NodeManager::currentNM()->mkConst(true);
 }
 
 std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
