@@ -180,6 +180,12 @@ std::vector<poly::Polynomial> CDCAC::constructCharacterization(
   Trace("cdcac") << "Constructing characterization now" << std::endl;
   std::vector<poly::Polynomial> res;
 
+
+  for (std::size_t i = 0, n = intervals.size(); i < n - 1; ++i)
+  {
+    cad::makeFinestSquareFreeBasis(intervals[i], intervals[i + 1]);
+  }
+
   for (const auto& i : intervals)
   {
     Trace("cdcac") << "Considering " << i.d_interval << std::endl;
@@ -229,8 +235,6 @@ std::vector<poly::Polynomial> CDCAC::constructCharacterization(
   for (std::size_t i = 0, n = intervals.size(); i < n - 1; ++i)
   {
     // Add resultants of consecutive intervals.
-    cad::makeFinestSquareFreeBasis(intervals[i].d_upperPolys,
-                                   intervals[i + 1].d_lowerPolys);
     for (const auto& p : intervals[i].d_upperPolys)
     {
       for (const auto& q : intervals[i + 1].d_lowerPolys)
