@@ -36,7 +36,6 @@ void TConvSeqProofGenerator::registerConvertedTerm(Node t, Node s, size_t index)
     return;
   }
   std::pair<Node, size_t> key = std::pair<Node, size_t>(t, index);
-  Assert(d_converted.find(key) == d_converted.end());
   d_converted[key] = s;
 }
 

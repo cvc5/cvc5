@@ -22,6 +22,7 @@
 #include "expr/lazy_proof.h"
 #include "expr/node.h"
 #include "expr/term_conversion_proof_generator.h"
+#include "expr/tconv_seq_proof_generator.h"
 #include "theory/trust_node.h"
 
 namespace CVC4 {
@@ -85,10 +86,17 @@ class TheoryPreprocessor
   RemoveTermFormulas& d_tfr;
   /** The context for the proof generator below */
   context::Context d_pfContext;
+  /** The term context, which computes hash values for term contexts. */
+  InQuantTermContext d_iqtc;
   /** A term conversion proof generator */
   std::unique_ptr<TConvProofGenerator> d_tpg;
   /** A lazy proof, for additional lemmas. */
   std::unique_ptr<LazyCDProof> d_lp;
+  /** 
+   * A term conversion sequence generator, which applies theory preprocessing
+   * and term formula removal in sequence.
+   */
+  std::unique_ptr<TConvSeqProofGenerator> d_tspg;
   /** Helper for theoryPreprocess */
   Node ppTheoryRewrite(TNode term);
   /**
