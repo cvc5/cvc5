@@ -91,7 +91,8 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
   // In this method, all rewriting steps of node are stored in d_tpg.
 
   Trace("tpp-proof-debug") << "TheoryPreprocessor::preprocess: start " << node
-                           << ", doTheoryPreprocess=" << doTheoryPreprocess << std::endl;
+                           << ", doTheoryPreprocess=" << doTheoryPreprocess
+                           << std::endl;
   // Run theory preprocessing, maybe
   Node ppNode = node;
   if (doTheoryPreprocess)

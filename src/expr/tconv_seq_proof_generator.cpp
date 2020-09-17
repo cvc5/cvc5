@@ -24,7 +24,9 @@ TConvSeqProofGenerator::TConvSeqProofGenerator(
     : d_pnm(pnm), d_converted(c), d_name(name)
 {
   d_tconvs.insert(d_tconvs.end(), ts.begin(), ts.end());
-  AlwaysAssert (!d_tconvs.empty()) << "TConvSeqProofGenerator::TConvSeqProofGenerator: expecting non-empty sequence";
+  AlwaysAssert(!d_tconvs.empty())
+      << "TConvSeqProofGenerator::TConvSeqProofGenerator: expecting non-empty "
+         "sequence";
 }
 
 TConvSeqProofGenerator::~TConvSeqProofGenerator() {}
@@ -45,12 +47,13 @@ std::shared_ptr<ProofNode> TConvSeqProofGenerator::getProofFor(Node f)
   Trace("tconv-seq-pf-gen")
       << "TConvSeqProofGenerator::getProofFor: " << identify() << ": " << f
       << std::endl;
-  return getSubsequenceProofFor(f, 0, d_tconvs.size()-1);
+  return getSubsequenceProofFor(f, 0, d_tconvs.size() - 1);
 }
 
-std::shared_ptr<ProofNode> TConvSeqProofGenerator::getSubsequenceProofFor(Node f, size_t start, size_t end)
+std::shared_ptr<ProofNode> TConvSeqProofGenerator::getSubsequenceProofFor(
+    Node f, size_t start, size_t end)
 {
-  Assert (end<d_tconvs.size());
+  Assert(end < d_tconvs.size());
   if (f.getKind() != kind::EQUAL)
   {
     std::stringstream serr;
@@ -116,11 +119,12 @@ std::shared_ptr<ProofNode> TConvSeqProofGenerator::getSubsequenceProofFor(Node f
 
 std::string TConvSeqProofGenerator::identify() const { return d_name; }
 
-
-TConvSubSeqGenerator::TConvSubSeqGenerator(TConvSeqProofGenerator* tref, size_t start, size_t end, 
-                        std::string name) : d_tref(tref), d_start(start), d_end(end), d_name(name)
+TConvSubSeqGenerator::TConvSubSeqGenerator(TConvSeqProofGenerator* tref,
+                                           size_t start,
+                                           size_t end,
+                                           std::string name)
+    : d_tref(tref), d_start(start), d_end(end), d_name(name)
 {
-  
 }
 
 std::shared_ptr<ProofNode> TConvSubSeqGenerator::getProofFor(Node f)

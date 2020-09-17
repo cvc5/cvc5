@@ -62,10 +62,12 @@ class TConvSeqProofGenerator : public ProofGenerator
    * @return The proof for f.
    */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
-  /** 
+  /**
    * Get subsequence proof, with given start and end steps (inclusive).
    */
-  std::shared_ptr<ProofNode> getSubsequenceProofFor(Node f, size_t start, size_t end);
+  std::shared_ptr<ProofNode> getSubsequenceProofFor(Node f,
+                                                    size_t start,
+                                                    size_t end);
   /** Identify this generator (for debugging, etc..) */
   std::string identify() const override;
 
@@ -88,9 +90,11 @@ class TConvSeqProofGenerator : public ProofGenerator
 /** Applies a subsequence of the steps for the above generator */
 class TConvSubSeqGenerator : public ProofGenerator
 {
-public:
-  TConvSubSeqGenerator(TConvSeqProofGenerator* tref, size_t start, size_t end, 
-                         std::string name = "TConvSubSeqGenerator");
+ public:
+  TConvSubSeqGenerator(TConvSeqProofGenerator* tref,
+                       size_t start,
+                       size_t end,
+                       std::string name = "TConvSubSeqGenerator");
   /**
    * Get proof for, calls getSubsequenceProofFor on the referenced term
    * conversion sequence generator.
@@ -98,9 +102,10 @@ public:
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Identify this generator (for debugging, etc..) */
   std::string identify() const override;
-private:
+
+ private:
   /** The conversion sequence generator */
-  TConvSeqProofGenerator * d_tref;
+  TConvSeqProofGenerator* d_tref;
   /** The start and end indices in the reference */
   size_t d_start;
   size_t d_end;
