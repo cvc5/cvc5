@@ -17,7 +17,10 @@
 #ifndef CVC4__EXPR__TCONV_SEQ_PROOF_GENERATOR_H
 #define CVC4__EXPR__TCONV_SEQ_PROOF_GENERATOR_H
 
-#include "expr/term_conversion_proof_generator.h"
+#include "expr/node.h"
+#include "expr/proof_generator.h"
+#include "expr/proof_node_manager.h"
+#include "context/cdhashmap.h"
 
 namespace CVC4 {
 
@@ -37,7 +40,7 @@ class TConvSeqProofGenerator : public ProofGenerator
    */
   TConvSeqProofGenerator(
                       ProofNodeManager* pnm,
-                      const std::vector<TConvProofGenerator*>& ts,
+                      const std::vector<ProofGenerator*>& ts,
                       context::Context* c = nullptr,
                       std::string name = "TConvSeqProofGenerator");
   ~TConvSeqProofGenerator();
@@ -66,11 +69,15 @@ class TConvSeqProofGenerator : public ProofGenerator
   std::string identify() const override;
 
  protected:
-  typedef context::CDHashMap<std::pair<Node, size_t>, Node> IndexNodeNodeMap;
+  using NodeIndexPairHashFunction =
+      PairHashFunction<Node, size_t, NodeHashFunction>;
+  typedef context::CDHashMap<std::pair<Node, size_t>, Node, NodeIndexPairHashFunction> NodeIndexNodeMap;
+  /** The proof node manager */
+  ProofNodeManager * d_pnm;
   /** The term conversion generators */
-  std::vector<TConvProofGenerator*> d_tconvs;
+  std::vector<ProofGenerator*> d_tconvs;
   /** the set of converted terms */
-  IndexNodeNodeMap d_converted;
+  NodeIndexNodeMap d_converted;
   /** Name identifier */
   std::string d_name;
 };
