@@ -1,3 +1,4 @@
+from fractions import Fraction
 import sys
 
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
@@ -27,6 +28,7 @@ from cvc4 cimport ROUND_NEAREST_TIES_TO_AWAY
 from cvc4 cimport Term as c_Term
 from cvc4 cimport TermHashFunction as c_TermHashFunction
 
+import cvc4kinds
 from cvc4kinds cimport Kind as c_Kind
 
 ################################## DECORATORS #################################
@@ -1502,6 +1504,95 @@ cdef class Term:
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.iteTerm(then_t.cterm, else_t.cterm)
         return term
+
+    def toPythonObj(self):
+        '''
+        Converts a constant value Term to a Python object.
+        Requires isConst to hold.
+
+        Currently supports:
+          Boolean -- returns a Python bool
+          Int     -- returns a Python int
+          Real    -- returns a Python Fraction
+          BV      -- returns a Python int (treats BV as unsigned)
+          Array   -- returns a Python dict
+                  -- the constant array base is the value for the string '*'
+        '''
+
+        if not self.isConst():
+            raise RuntimeError("Cannot call toPythonObj on a non-const Term")
+
+        string_repr = self.cterm.toString().decode()
+        assert string_repr
+        sort = self.getSort()
+        res = None
+        if sort.isBoolean():
+            if string_repr == "true":
+                res = True
+            else:
+                assert string_repr == "false"
+                res = False
+        elif sort.isInteger():
+            is_neg = False
+            updated_string_repr = string_repr
+            if string_repr[:1] == '(-':
+                is_neg = True
+                updated_string_repr = string_repr[2:-1]
+            try:
+                res = int(updated_string_repr)
+            except:
+                raise ValueError("Failed to convert {} to an int".format(string_repr))
+
+            if is_neg:
+                res = -res
+        elif sort.isReal():
+            is_neg = False
+            updated_string_repr = string_repr
+            if string_repr[:1] == '(-':
+                is_neg = True
+                updated_string_repr = string_repr[2:-1]
+
+            try:
+                # expecting format (/ a b)
+                splits = updated_string_repr.split()
+                assert len(splits) == 3
+                num = int(splits[1])
+                den = int(splits[2])
+                res = Fraction(num, den)
+            except:
+                raise ValueError("Failed to convert {} to an int".format(string_repr))
+
+            if is_neg:
+                res = -res
+        elif sort.isBitVector():
+            # expecting format (_ bv{val} {width})
+            splits = string_repr.split()
+            assert len(splits) == 3
+            assert splits[1][:2] == "bv"
+            try:
+                res = int(splits[1][2:])
+            except:
+                raise ValueError("Failed to convert bitvector {} to an int".format(string_repr))
+        elif sort.isArray():
+            res = {}
+            to_visit = [self]
+            # Array models are represented as a series of store operations
+            # on a constant array
+            while to_visit:
+                t = to_visit.pop()
+                if t.getKind() == cvc4kinds.Store:
+                    # map the index constant to the element constant
+                    res[t[1].toPythonObj()] = t[2].toPythonObj()
+                else:
+                    assert t.getKind() == cvc4kinds.Const_Array
+                    val = t.getConstArrayBase()
+                    res['*'] = val.toPythonObj()
+        else:
+            raise ValueError("Cannot convert term {}"
+                             " of sort {} to Python object".format(string_repr, sort))
+
+        assert res is not None
+        return res
 
 
 # Generate rounding modes
