@@ -41,12 +41,19 @@ class ProofNodeUpdaterCallback
    * Update the proof rule application, store steps in cdp. Return true if
    * the proof changed. It can be assumed that cdp contains proofs of each
    * fact in children.
+   *
+   * If continueUpdate is set to false in this method, then the resulting
+   * proof (the proof of res in cdp) is *not* recursively updated by the proof
+   * node updater. Otherwise, by default, the proof node updater will
+   * continue traversing the resulting proof. This is analogous to marking
+   * REWRITE_DONE in a rewrite response.
    */
   virtual bool update(Node res,
                       PfRule id,
                       const std::vector<Node>& children,
                       const std::vector<Node>& args,
-                      CDProof* cdp);
+                      CDProof* cdp,
+                      bool& continueUpdate);
 };
 
 /**
@@ -68,17 +75,35 @@ class ProofNodeUpdater
    */
   void process(std::shared_ptr<ProofNode> pf);
 
+  /**
+   * Set free assumptions
+   */
+  void setDebugFreeAssumptions(const std::vector<Node>& freeAssumps);
+
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /** The callback */
   ProofNodeUpdaterCallback& d_cb;
   /**
+   * Post-process, which performs the main post-processing technique described
+   * above.
+   */
+  void processInternal(std::shared_ptr<ProofNode> pf,
+                       const std::vector<Node>& fa);
+  /**
    * Update proof node cur based on the callback. This modifies curr using
    * ProofNodeManager::updateNode based on the proof node constructed to
-   * replace it by the callback.
+   * replace it by the callback. Return true if cur was updated. If
+   * continueUpdate is updated to false, then cur is not updated recursively.
    */
-  void runUpdate(ProofNode* cur);
+  bool runUpdate(std::shared_ptr<ProofNode> cur,
+                 const std::vector<Node>& fa,
+                 bool& continueUpdate);
+  /** Are we debugging free assumptions? */
+  bool d_debugFreeAssumps;
+  /** The initial free assumptions */
+  std::vector<Node> d_freeAssumps;
 };
 
 }  // namespace CVC4
