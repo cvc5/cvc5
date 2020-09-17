@@ -3021,30 +3021,33 @@ Node SequencesRewriter::rewriteReplaceRe(Node node)
   Node y = node[1];
   Node z = node[2];
 
-  if (x.isConst())
+  if (RegExpEntail::isConstRegExp(y))
   {
-    // str.replace_re("ZABCZ", re.++("A", _*, "C"), y) ---> "Z" ++ y ++ "Z"
-    std::pair<size_t, size_t> match = firstMatch(x, y);
-    if (match.first != string::npos)
+    if (x.isConst())
     {
-      String s = x.getConst<String>();
-      Node ret = nm->mkNode(STRING_CONCAT,
-                            nm->mkConst(s.substr(0, match.first)),
-                            z,
-                            nm->mkConst(s.substr(match.second)));
-      return returnRewrite(node, ret, Rewrite::REPLACE_RE_EVAL);
+      // str.replace_re("ZABCZ", re.++("A", _*, "C"), y) ---> "Z" ++ y ++ "Z"
+      std::pair<size_t, size_t> match = firstMatch(x, y);
+      if (match.first != string::npos)
+      {
+        String s = x.getConst<String>();
+        Node ret = nm->mkNode(STRING_CONCAT,
+                              nm->mkConst(s.substr(0, match.first)),
+                              z,
+                              nm->mkConst(s.substr(match.second)));
+        return returnRewrite(node, ret, Rewrite::REPLACE_RE_EVAL);
+      }
+      else
+      {
+        return returnRewrite(node, x, Rewrite::REPLACE_RE_EVAL);
+      }
     }
-    else
+    // str.replace_re( x, y, z ) ---> z ++ x if "" in y ---> true
+    String emptyStr("");
+    if (RegExpEntail::testConstStringInRegExp(emptyStr, 0, y))
     {
-      return returnRewrite(node, x, Rewrite::REPLACE_RE_EVAL);
+      Node ret = nm->mkNode(STRING_CONCAT, z, x);
+      return returnRewrite(node, ret, Rewrite::REPLACE_RE_EMP_RE);
     }
-  }
-  // str.replace_re( x, y, z ) ---> z ++ x if "" in y ---> true
-  String emptyStr("");
-  if (RegExpEntail::testConstStringInRegExp(emptyStr, 0, y))
-  {
-    Node ret = nm->mkNode(STRING_CONCAT, z, x);
-    return returnRewrite(node, ret, Rewrite::REPLACE_RE_EMP_RE);
   }
   return node;
 }
@@ -3057,31 +3060,34 @@ Node SequencesRewriter::rewriteReplaceReAll(Node node)
   Node y = node[1];
   Node z = node[2];
 
-  if (x.isConst())
+  if (RegExpEntail::isConstRegExp(y))
   {
-    // str.replace_re_all("ZABCZAB", re.++("A", _*, "C"), y) --->
-    //   "Z" ++ y ++ "Z" ++ y
-    TypeNode t = x.getType();
-    Node emp = Word::mkEmptyWord(t);
-    Node yp = Rewriter::rewrite(
-        nm->mkNode(REGEXP_DIFF, y, nm->mkNode(STRING_TO_REGEXP, emp)));
-    std::vector<Node> res;
-    String rem = x.getConst<String>();
-    std::pair<size_t, size_t> match(0, 0);
-    while (rem.size() >= 0)
+    if (x.isConst())
     {
-      match = firstMatch(nm->mkConst(rem), yp);
-      if (match.first == string::npos)
+      // str.replace_re_all("ZABCZAB", re.++("A", _*, "C"), y) --->
+      //   "Z" ++ y ++ "Z" ++ y
+      TypeNode t = x.getType();
+      Node emp = Word::mkEmptyWord(t);
+      Node yp = Rewriter::rewrite(
+          nm->mkNode(REGEXP_DIFF, y, nm->mkNode(STRING_TO_REGEXP, emp)));
+      std::vector<Node> res;
+      String rem = x.getConst<String>();
+      std::pair<size_t, size_t> match(0, 0);
+      while (rem.size() >= 0)
       {
-        break;
+        match = firstMatch(nm->mkConst(rem), yp);
+        if (match.first == string::npos)
+        {
+          break;
+        }
+        res.push_back(nm->mkConst(rem.substr(0, match.first)));
+        res.push_back(z);
+        rem = rem.substr(match.second);
       }
-      res.push_back(nm->mkConst(rem.substr(0, match.first)));
-      res.push_back(z);
-      rem = rem.substr(match.second);
+      res.push_back(nm->mkConst(rem));
+      Node ret = utils::mkConcat(res, t);
+      return returnRewrite(node, ret, Rewrite::REPLACE_RE_ALL_EVAL);
     }
-    res.push_back(nm->mkConst(rem));
-    Node ret = utils::mkConcat(res, t);
-    return returnRewrite(node, ret, Rewrite::REPLACE_RE_ALL_EVAL);
   }
 
   return node;
