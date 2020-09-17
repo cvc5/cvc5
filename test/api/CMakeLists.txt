@@ -35,6 +35,7 @@ cvc4_add_api_test(smt2_compliance)
 # cvc4_add_api_test(statistics)
 cvc4_add_api_test(two_solvers)
 cvc4_add_api_test(issue5074)
+cvc4_add_api_test(issue4889)
 
 # if we've built using libedit, then we want the interactive shell tests
 if (USE_EDITLINE)
