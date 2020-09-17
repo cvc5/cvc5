@@ -166,7 +166,7 @@ void DefineFunctionNodeCommand::toStream(std::ostream& out,
 {
   TypeNode tn = d_fun.getType();
   bool hasRange =
-      ((tn.isFunction()) || (tn.isConstructor()) || (tn.isSelector()));
+      (tn.isFunction() || tn.isConstructor() || tn.isSelector());
   Printer::getPrinter(language)->toStreamCmdDefineFunction(
       out,
       d_fun.toString(),
