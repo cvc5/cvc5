@@ -1567,12 +1567,11 @@ cdef class Term:
             if is_neg:
                 res = -res
         elif sort.isBitVector():
-            # expecting format (_ bv{val} {width})
-            splits = string_repr.split()
-            assert len(splits) == 3
-            assert splits[1][:2] == "bv"
+            # expecting format #b<bits>
+            assert string_repr[:2] == "#b"
+            python_bin_repr = "0" + string_repr[1:]
             try:
-                res = int(splits[1][2:])
+                res = int(python_bin_repr, 2)
             except:
                 raise ValueError("Failed to convert bitvector {} to an int".format(string_repr))
         elif sort.isArray():
@@ -1585,8 +1584,9 @@ cdef class Term:
                 if t.getKind() == kinds.Store:
                     # map the index constant to the element constant
                     res[t[1].toPythonObj()] = t[2].toPythonObj()
+                    to_visit.append(t[0])
                 else:
-                    assert t.getKind() == kinds.Const_Array
+                    assert t.getKind() == kinds.ConstArray
                     val = t.getConstArrayBase()
                     res['*'] = val.toPythonObj()
         else:
