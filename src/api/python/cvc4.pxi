@@ -1556,10 +1556,13 @@ cdef class Term:
                 splits = updated_string_repr.split()
                 assert len(splits) == 3
                 num = int(splits[1])
-                den = int(splits[2])
+                den = splits[2]
+                if den[-1] == ')':
+                    den = den[:-1]
+                den = int(den)
                 res = Fraction(num, den)
             except:
-                raise ValueError("Failed to convert {} to an int".format(string_repr))
+                raise ValueError("Failed to convert {} to a Fraction".format(string_repr))
 
             if is_neg:
                 res = -res
