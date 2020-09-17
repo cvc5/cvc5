@@ -92,7 +92,7 @@ class RtfTermContext : public TermContext
   static bool hasNestedTermChildren(TNode t);
 };
 
-/** 
+/**
  * Simpler version of above that only computes whether we are inside a
  * quantifier.
  */

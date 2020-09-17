@@ -33,13 +33,12 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
       d_ppCache(),
       d_tfr(tfr),
       d_pfContext(),
-      d_tpg(pnm ? new TConvProofGenerator(
-                      pnm,
-                      &d_pfContext,
-                      TConvPolicy::FIXPOINT,
-                      TConvCachePolicy::NEVER,
-                      "TheoryPreprocessor::preprocess",
-                      &d_iqtc)
+      d_tpg(pnm ? new TConvProofGenerator(pnm,
+                                          &d_pfContext,
+                                          TConvPolicy::FIXPOINT,
+                                          TConvCachePolicy::NEVER,
+                                          "TheoryPreprocessor::preprocess",
+                                          &d_iqtc)
                 : nullptr),
       d_lp(pnm ? new LazyCDProof(pnm,
                                  nullptr,
@@ -65,7 +64,8 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
     ts.push_back(d_tpg.get());
     ts.push_back(d_tfr.getTConvProofGenerator());
     ts.push_back(d_tpg.get());
-    d_tspg.reset(new TConvSeqProofGenerator(pnm, ts, &d_pfContext, "TheoryPreprocessor::TConvSeqProofGenerator"));
+    d_tspg.reset(new TConvSeqProofGenerator(
+        pnm, ts, &d_pfContext, "TheoryPreprocessor::TConvSeqProofGenerator"));
   }
 }
 
@@ -131,14 +131,14 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
       << "TheoryPreprocessor::preprocess: after rewriting is " << retNode
       << std::endl;
   // Now, sequence the conversion steps if proofs are enabled.
-  ProofGenerator * retPg = nullptr;
+  ProofGenerator* retPg = nullptr;
   if (isProofEnabled())
   {
     // We have that:
     // node -> ppNode via theory preprocessing + rewriting
     // ppNode -> rtfNode via term formula removal
     // rtfNode -> retNode via rewriting
-    if (ppNode==rtfNode)
+    if (ppNode == rtfNode)
     {
       // As an optimization, we don't need the sequence generator if we did
       // not use term formula removal

@@ -485,7 +485,7 @@ void RemoveTermFormulas::setProofNodeManager(ProofNodeManager* pnm)
   }
 }
 
-ProofGenerator * RemoveTermFormulas::getTConvProofGenerator()
+ProofGenerator* RemoveTermFormulas::getTConvProofGenerator()
 {
   return d_tpg.get();
 }

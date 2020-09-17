@@ -21,8 +21,8 @@
 
 #include "expr/lazy_proof.h"
 #include "expr/node.h"
-#include "expr/term_conversion_proof_generator.h"
 #include "expr/tconv_seq_proof_generator.h"
+#include "expr/term_conversion_proof_generator.h"
 #include "theory/trust_node.h"
 
 namespace CVC4 {
@@ -92,7 +92,7 @@ class TheoryPreprocessor
   std::unique_ptr<TConvProofGenerator> d_tpg;
   /** A lazy proof, for additional lemmas. */
   std::unique_ptr<LazyCDProof> d_lp;
-  /** 
+  /**
    * A term conversion sequence generator, which applies theory preprocessing
    * and term formula removal in sequence.
    */
