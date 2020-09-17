@@ -59,7 +59,7 @@ bool ProofPostprocessCallback::update(Node res,
                                       const std::vector<Node>& children,
                                       const std::vector<Node>& args,
                                       CDProof* cdp,
-                      bool& continueUpdate)
+                                      bool& continueUpdate)
 {
   Trace("smt-proof-pp-debug") << "- Post process " << id << " " << children
                               << " / " << args << std::endl;
@@ -113,7 +113,6 @@ bool ProofPostprocessCallback::update(Node res,
   Trace("smt-proof-pp-debug") << "...expanded = " << !ret.isNull() << std::endl;
   return !ret.isNull();
 }
-
 
 bool ProofPostprocessCallback::updateInternal(Node res,
                                               PfRule id,

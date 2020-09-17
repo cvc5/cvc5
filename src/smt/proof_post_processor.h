@@ -60,7 +60,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
               const std::vector<Node>& children,
               const std::vector<Node>& args,
               CDProof* cdp,
-                      bool& continueUpdate) override;
+              bool& continueUpdate) override;
 
  private:
   /** Common constants */
