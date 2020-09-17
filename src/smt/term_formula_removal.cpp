@@ -43,9 +43,7 @@ theory::TrustNode RemoveTermFormulas::run(
     std::vector<Node>& newSkolems,
     bool reportDeps)
 {
-  TCtxStack ctx(&d_rtfc);
-  ctx.pushInitial(assertion);
-  Node itesRemoved = run(ctx, newAsserts, newSkolems);
+  Node itesRemoved = runInternal(assertion, newAsserts, newSkolems);
   // In some calling contexts, not necessary to report dependence information.
   if (reportDeps && options::unsatCores())
   {
@@ -70,13 +68,116 @@ theory::TrustNode RemoveTermFormulas::run(
   return theory::TrustNode::mkTrustRewrite(assertion, itesRemoved, d_tpg.get());
 }
 
-Node RemoveTermFormulas::run(TCtxStack& ctx,
-                             std::vector<theory::TrustNode>& output,
-                             std::vector<Node>& newSkolems)
+Node RemoveTermFormulas::runInternal(Node assertion,
+                                     std::vector<theory::TrustNode>& output,
+                                     std::vector<Node>& newSkolems)
 {
-  Assert(!ctx.empty());
-  std::pair<Node, uint32_t> curr = ctx.getCurrent();
-  ctx.pop();
+  NodeManager* nm = NodeManager::currentNM();
+  TCtxStack ctx(&d_rtfc);
+  std::vector<bool> processedChildren;
+  ctx.pushInitial(assertion);
+  processedChildren.push_back(false);
+  std::pair<Node, uint32_t> initial = ctx.getCurrent();
+  std::pair<Node, uint32_t> curr;
+  Node node;
+  uint32_t nodeVal;
+  TermFormulaCache::const_iterator itc;
+  while (!ctx.empty())
+  {
+    curr = ctx.getCurrent();
+    itc = d_tfCache.find(curr);
+    node = curr.first;
+    nodeVal = curr.second;
+    Trace("rtf-debug") << "Visit " << node << ", " << nodeVal << std::endl;
+    if (itc != d_tfCache.end())
+    {
+      Trace("rtf-debug") << "...already computed" << std::endl;
+      ctx.pop();
+      processedChildren.pop_back();
+      // already computed
+      continue;
+    }
+    // if we have yet to process children
+    if (!processedChildren.back())
+    {
+      // check if we should replace the current node
+      Node currt = runCurrent(curr, output, newSkolems);
+      // if null, we need to recurse
+      if (!currt.isNull())
+      {
+        Trace("rtf-debug") << "...replace by skolem" << std::endl;
+        d_tfCache.insert(curr, currt);
+        ctx.pop();
+        processedChildren.pop_back();
+      }
+      else
+      {
+        size_t nchild = node.getNumChildren();
+        if (nchild > 0)
+        {
+          Trace("rtf-debug") << "...recurse to children" << std::endl;
+          // recurse if we have children
+          processedChildren[processedChildren.size() - 1] = true;
+          for (size_t i = 0; i < nchild; i++)
+          {
+            ctx.pushChild(node, nodeVal, i);
+            processedChildren.push_back(false);
+          }
+        }
+        else
+        {
+          Trace("rtf-debug") << "...base case" << std::endl;
+          d_tfCache.insert(curr, node);
+          ctx.pop();
+          processedChildren.pop_back();
+        }
+      }
+      continue;
+    }
+    Trace("rtf-debug") << "...reconstruct" << std::endl;
+    // otherwise, we are now finished processing children, pop the current node
+    // and compute the result
+    ctx.pop();
+    processedChildren.pop_back();
+    // if we have not already computed the result
+    std::vector<Node> newChildren;
+    bool childChanged = false;
+    if (node.getMetaKind() == kind::metakind::PARAMETERIZED)
+    {
+      newChildren.push_back(node.getOperator());
+    }
+    // reconstruct from the children
+    std::pair<Node, uint32_t> currChild;
+    for (size_t i = 0, nchild = node.getNumChildren(); i < nchild; i++)
+    {
+      // recompute the value of the child
+      uint32_t val = d_rtfc.computeValue(node, nodeVal, i);
+      currChild = std::pair<Node, uint32_t>(node[i], val);
+      itc = d_tfCache.find(currChild);
+      Assert(itc != d_tfCache.end());
+      Node newChild = (*itc).second;
+      Assert(!newChild.isNull());
+      childChanged |= (newChild != node[i]);
+      newChildren.push_back(newChild);
+    }
+    // If changes, we reconstruct the node
+    Node ret = node;
+    if (childChanged)
+    {
+      ret = nm->mkNode(node.getKind(), newChildren);
+    }
+    // cache
+    d_tfCache.insert(curr, ret);
+  }
+  itc = d_tfCache.find(initial);
+  Assert(itc != d_tfCache.end());
+  return (*itc).second;
+}
+
+Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
+                                    std::vector<theory::TrustNode>& output,
+                                    std::vector<Node>& newSkolems)
+{
   TNode node = curr.first;
   if (node.getKind() == kind::INST_PATTERN_LIST)
   {
@@ -88,15 +189,7 @@ Node RemoveTermFormulas::run(TCtxStack& ctx,
   Debug("ite") << "removeITEs(" << node << ")"
                << " " << inQuant << " " << inTerm << std::endl;
 
-  // The result may be cached already
   NodeManager *nodeManager = NodeManager::currentNM();
-  TermFormulaCache::const_iterator itc = d_tfCache.find(curr);
-  if (itc != d_tfCache.end())
-  {
-    Node cached = (*itc).second;
-    Debug("ite") << "removeITEs: in-cache: " << cached << endl;
-    return cached.isNull() ? Node(curr.first) : cached;
-  }
 
   TypeNode nodeType = node.getType();
   Node skolem;
@@ -288,8 +381,6 @@ Node RemoveTermFormulas::run(TCtxStack& ctx,
 
   // if the term should be replaced by a skolem
   if( !skolem.isNull() ){
-    // Attach the skolem
-    d_tfCache.insert(curr, skolem);
     // this must be done regardless of whether the assertion was new below,
     // since a formula-term may rewrite to the same skolem in multiple contexts.
     if (isProofEnabled())
@@ -334,9 +425,7 @@ Node RemoveTermFormulas::run(TCtxStack& ctx,
       // Remove ITEs from the new assertion, rewrite it and push it to the
       // output
       Node newAssertionPre = newAssertion;
-      TCtxStack cctx(&d_rtfc);
-      cctx.pushInitial(newAssertion);
-      newAssertion = run(cctx, output, newSkolems);
+      newAssertion = runInternal(newAssertion, output, newSkolems);
 
       if (isProofEnabled())
       {
@@ -372,29 +461,8 @@ Node RemoveTermFormulas::run(TCtxStack& ctx,
     return skolem;
   }
 
-  // If not an ITE, go deep
-  std::vector<Node> newChildren;
-  bool somethingChanged = false;
-  if(node.getMetaKind() == kind::metakind::PARAMETERIZED) {
-    newChildren.push_back(node.getOperator());
-  }
-  // Remove the ITEs from the children
-  for (size_t i = 0, nchild = node.getNumChildren(); i < nchild; i++)
-  {
-    ctx.pushChild(node, cval, i);
-    Node newChild = run(ctx, output, newSkolems);
-    somethingChanged |= (newChild != node[i]);
-    newChildren.push_back(newChild);
-  }
-
-  // If changes, we rewrite
-  if(somethingChanged) {
-    Node cached = nodeManager->mkNode(node.getKind(), newChildren);
-    d_tfCache.insert(curr, cached);
-    return cached;
-  }
-  d_tfCache.insert(curr, Node::null());
-  return node;
+  // return null, indicating we will traverse children within runInternal
+  return Node::null();
 }
 
 Node RemoveTermFormulas::getSkolemForNode(Node node) const
@@ -431,8 +499,7 @@ Node RemoveTermFormulas::replaceInternal(TCtxStack& ctx) const
   TermFormulaCache::const_iterator itc = d_tfCache.find(curr);
   if (itc != d_tfCache.end())
   {
-    Node cached = (*itc).second;
-    return cached.isNull() ? Node(node) : cached;
+    return (*itc).second;
   }
 
   vector<Node> newChildren;
