@@ -24,6 +24,7 @@ TConvSeqProofGenerator::TConvSeqProofGenerator(
     : d_pnm(pnm), d_converted(c), d_name(name)
 {
   d_tconvs.insert(d_tconvs.end(), ts.begin(), ts.end());
+  AlwaysAssert (!d_tconvs.empty()) << "TConvSeqProofGenerator::TConvSeqProofGenerator: expecting non-empty sequence";
 }
 
 TConvSeqProofGenerator::~TConvSeqProofGenerator() {}
@@ -44,6 +45,12 @@ std::shared_ptr<ProofNode> TConvSeqProofGenerator::getProofFor(Node f)
   Trace("tconv-seq-pf-gen")
       << "TConvSeqProofGenerator::getProofFor: " << identify() << ": " << f
       << std::endl;
+  return getSubsequenceProofFor(f, 0, d_tconvs.size()-1);
+}
+
+std::shared_ptr<ProofNode> TConvSeqProofGenerator::getSubsequenceProofFor(Node f, size_t start, size_t end)
+{
+  Assert (end<d_tconvs.size());
   if (f.getKind() != kind::EQUAL)
   {
     std::stringstream serr;
@@ -60,7 +67,7 @@ std::shared_ptr<ProofNode> TConvSeqProofGenerator::getProofFor(Node f)
   std::pair<Node, size_t> currKey;
   NodeIndexNodeMap::iterator itc;
   // convert the term in sequence
-  for (size_t i = 0, ntconvs = d_tconvs.size(); i < ntconvs; i++)
+  for (size_t i = start; i <= end; i++)
   {
     currKey = std::pair<Node, size_t>(curr, i);
     itc = d_converted.find(currKey);
@@ -108,5 +115,18 @@ std::shared_ptr<ProofNode> TConvSeqProofGenerator::getProofFor(Node f)
 }
 
 std::string TConvSeqProofGenerator::identify() const { return d_name; }
+
+
+TConvSubSeqGenerator::TConvSubSeqGenerator(TConvSeqProofGenerator* tref, size_t start, size_t end, 
+                        std::string name) : d_tref(tref), d_start(start), d_end(end), d_name(name)
+{
+  
+}
+
+std::shared_ptr<ProofNode> TConvSubSeqGenerator::getProofFor(Node f)
+{
+  return d_tref->getSubsequenceProofFor(f, d_start, d_end);
+}
+std::string TConvSubSeqGenerator::identify() const { return d_name; }
 
 }  // namespace CVC4

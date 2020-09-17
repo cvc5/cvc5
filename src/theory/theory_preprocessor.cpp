@@ -65,7 +65,7 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
     ts.push_back(d_tfr.getTConvProofGenerator());
     ts.push_back(d_tpg.get());
     d_tspg.reset(new TConvSeqProofGenerator(
-        pnm, ts, &d_pfContext, "TheoryPreprocessor::TConvSeqProofGenerator"));
+        pnm, ts, &d_pfContext, "TheoryPreprocessor::sequence"));
   }
 }
 
@@ -73,8 +73,9 @@ TheoryPreprocessor::~TheoryPreprocessor() {}
 
 void TheoryPreprocessor::clearCache()
 {
+  Trace("tpp-proof-debug") << "TheoryPreprocessor::clearCache" << std::endl;
   d_ppCache.clear();
-  // clear proofs from d_tpg and d_lp using internal push/pop context
+  // clear proofs from d_tpg, d_tspg and d_lp using internal push/pop context
   if (isProofEnabled())
   {
     d_pfContext.pop();
@@ -90,7 +91,7 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
   // In this method, all rewriting steps of node are stored in d_tpg.
 
   Trace("tpp-proof-debug") << "TheoryPreprocessor::preprocess: start " << node
-                           << std::endl;
+                           << ", doTheoryPreprocess=" << doTheoryPreprocess << std::endl;
   // Run theory preprocessing, maybe
   Node ppNode = node;
   if (doTheoryPreprocess)
@@ -150,6 +151,7 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
       d_tspg->registerConvertedTerm(node, ppNode, 0);
       d_tspg->registerConvertedTerm(ppNode, rtfNode, 1);
       d_tspg->registerConvertedTerm(rtfNode, retNode, 2);
+      // FIXME: need subsequence
       // we wil use the sequence generator
       retPg = d_tspg.get();
     }
@@ -227,7 +229,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(TNode assertion)
     preprocess_stack_element& stackHead = toVisit.back();
     TNode current = stackHead.node;
 
-    Debug("theory::internal")
+    Trace("theory::preprocess-debug")
         << "TheoryPreprocessor::theoryPreprocess(" << assertion
         << "): processing " << current << endl;
 
@@ -280,7 +282,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(TNode assertion)
       {
         result = rewriteWithProof(result);
       }
-      Debug("theory::internal")
+      Trace("theory::preprocess-debug")
           << "TheoryPreprocessor::theoryPreprocess(" << assertion
           << "): setting " << current << " -> " << result << endl;
       d_ppCache[current] = result;
@@ -308,7 +310,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(TNode assertion)
       else
       {
         // No children, so we're done
-        Debug("substitution::internal")
+        Trace("theory::preprocess-debug")
             << "SubstitutionMap::internalSubstitute(" << assertion
             << "): setting " << current << " -> " << current << endl;
         d_ppCache[current] = current;

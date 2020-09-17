@@ -93,8 +93,8 @@ class TheoryPreprocessor
   /** A lazy proof, for additional lemmas. */
   std::unique_ptr<LazyCDProof> d_lp;
   /**
-   * A term conversion sequence generator, which applies theory preprocessing
-   * and term formula removal in sequence.
+   * A term conversion sequence generator, which applies theory preprocessing,
+   * term formula removal, and rewriting in sequence.
    */
   std::unique_ptr<TConvSeqProofGenerator> d_tspg;
   /** Helper for theoryPreprocess */
