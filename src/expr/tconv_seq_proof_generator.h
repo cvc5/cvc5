@@ -17,10 +17,10 @@
 #ifndef CVC4__EXPR__TCONV_SEQ_PROOF_GENERATOR_H
 #define CVC4__EXPR__TCONV_SEQ_PROOF_GENERATOR_H
 
+#include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "expr/proof_generator.h"
 #include "expr/proof_node_manager.h"
-#include "context/cdhashmap.h"
 
 namespace CVC4 {
 
@@ -38,20 +38,17 @@ class TConvSeqProofGenerator : public ProofGenerator
    * this class is context-independent.
    * @param name The name of this generator (for debugging).
    */
-  TConvSeqProofGenerator(
-                      ProofNodeManager* pnm,
-                      const std::vector<ProofGenerator*>& ts,
-                      context::Context* c = nullptr,
-                      std::string name = "TConvSeqProofGenerator");
+  TConvSeqProofGenerator(ProofNodeManager* pnm,
+                         const std::vector<ProofGenerator*>& ts,
+                         context::Context* c = nullptr,
+                         std::string name = "TConvSeqProofGenerator");
   ~TConvSeqProofGenerator();
   /**
    * Indicate that the index^th proof generator converts term t to s. This
-   * should be called for a unique s for each (t, index). It must be the 
+   * should be called for a unique s for each (t, index). It must be the
    * case that d_tconv[index] can provide a proof for t = s.
    */
-  void registerConvertedTerm(Node t,
-                      Node s,
-                      size_t index);
+  void registerConvertedTerm(Node t, Node s, size_t index);
   /**
    * Get the proof for formula f. It should be the case that f is of the form
    * t_0 = t_n, where it must be the case that t_n is obtained by the following:
@@ -71,9 +68,11 @@ class TConvSeqProofGenerator : public ProofGenerator
  protected:
   using NodeIndexPairHashFunction =
       PairHashFunction<Node, size_t, NodeHashFunction>;
-  typedef context::CDHashMap<std::pair<Node, size_t>, Node, NodeIndexPairHashFunction> NodeIndexNodeMap;
+  typedef context::
+      CDHashMap<std::pair<Node, size_t>, Node, NodeIndexPairHashFunction>
+          NodeIndexNodeMap;
   /** The proof node manager */
-  ProofNodeManager * d_pnm;
+  ProofNodeManager* d_pnm;
   /** The term conversion generators */
   std::vector<ProofGenerator*> d_tconvs;
   /** the set of converted terms */

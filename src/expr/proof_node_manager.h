@@ -80,12 +80,13 @@ class ProofNodeManager
    * @return The ASSUME proof of fact.
    */
   std::shared_ptr<ProofNode> mkAssume(Node fact);
-  /** 
+  /**
    * Make transitivity proof, where children contains one or more proofs of
    * equalities that form a chain.
    */
-  std::shared_ptr<ProofNode> mkTrans(const std::vector<std::shared_ptr<ProofNode>>& children,
-                                     Node expected = Node::null());
+  std::shared_ptr<ProofNode> mkTrans(
+      const std::vector<std::shared_ptr<ProofNode>>& children,
+      Node expected = Node::null());
 
   /**
    * Make scope having body pf and arguments (assumptions-to-close) assumps.

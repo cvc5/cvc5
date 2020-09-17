@@ -55,13 +55,13 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkAssume(Node fact)
   return mkNode(PfRule::ASSUME, {}, {fact}, fact);
 }
 
-std::shared_ptr<ProofNode> ProofNodeManager::mkTrans(const std::vector<std::shared_ptr<ProofNode>>& children,
-                                    Node expected)
+std::shared_ptr<ProofNode> ProofNodeManager::mkTrans(
+    const std::vector<std::shared_ptr<ProofNode>>& children, Node expected)
 {
-  Assert (!children.empty());
-  if (children.size()==1)
+  Assert(!children.empty());
+  if (children.size() == 1)
   {
-    Assert (expected.isNull() || children[0]->getResult()==expected);
+    Assert(expected.isNull() || children[0]->getResult() == expected);
     return children[0];
   }
   return mkNode(PfRule::TRANS, children, {}, expected);

@@ -17,36 +17,34 @@
 namespace CVC4 {
 
 TConvSeqProofGenerator::TConvSeqProofGenerator(
-                    ProofNodeManager* pnm,
-                    const std::vector<ProofGenerator*>& ts,
-                    context::Context* c,
-                    std::string name) : d_pnm(pnm), d_converted(c), d_name(name)
+    ProofNodeManager* pnm,
+    const std::vector<ProofGenerator*>& ts,
+    context::Context* c,
+    std::string name)
+    : d_pnm(pnm), d_converted(c), d_name(name)
 {
   d_tconvs.insert(d_tconvs.end(), ts.begin(), ts.end());
 }
 
-TConvSeqProofGenerator::~TConvSeqProofGenerator()
-{
-}
+TConvSeqProofGenerator::~TConvSeqProofGenerator() {}
 
-void TConvSeqProofGenerator::registerConvertedTerm(Node t,
-                    Node s,
-                    size_t index)
+void TConvSeqProofGenerator::registerConvertedTerm(Node t, Node s, size_t index)
 {
-  if (t==s)
+  if (t == s)
   {
     // no need
     return;
   }
-  std::pair<Node, size_t> key = std::pair<Node, size_t>(t,index);
-  Assert (d_converted.find(key)==d_converted.end());
+  std::pair<Node, size_t> key = std::pair<Node, size_t>(t, index);
+  Assert(d_converted.find(key) == d_converted.end());
   d_converted[key] = s;
 }
 
 std::shared_ptr<ProofNode> TConvSeqProofGenerator::getProofFor(Node f)
 {
-  Trace("tconv-seq-pf-gen") << "TConvSeqProofGenerator::getProofFor: " << identify()
-                        << ": " << f << std::endl;
+  Trace("tconv-seq-pf-gen")
+      << "TConvSeqProofGenerator::getProofFor: " << identify() << ": " << f
+      << std::endl;
   if (f.getKind() != kind::EQUAL)
   {
     std::stringstream serr;
@@ -63,9 +61,9 @@ std::shared_ptr<ProofNode> TConvSeqProofGenerator::getProofFor(Node f)
   std::pair<Node, size_t> currKey;
   NodeIndexNodeMap::iterator itc;
   // convert the term in sequence
-  for (size_t i=0, ntconvs = d_tconvs.size(); i<ntconvs; i++)
+  for (size_t i = 0, ntconvs = d_tconvs.size(); i < ntconvs; i++)
   {
-    currKey = std::pair<Node, size_t>(curr,i);
+    currKey = std::pair<Node, size_t>(curr, i);
     itc = d_converted.find(currKey);
     // if we provided a conversion at this index
     if (itc != d_converted.end())
@@ -79,26 +77,28 @@ std::shared_ptr<ProofNode> TConvSeqProofGenerator::getProofFor(Node f)
     }
   }
   // should end up with the right hand side of the equality
-  if (curr!=f[1])
+  if (curr != f[1])
   {
     // unexpected
     std::stringstream serr;
     serr << "TConvSeqProofGenerator::getProofFor: " << identify()
-          << ": failed, mismatch (see -t tconv-seq-pf-gen-debug for details)"
-          << std::endl;
+         << ": failed, mismatch (see -t tconv-seq-pf-gen-debug for details)"
+         << std::endl;
     serr << "                    source: " << f[0] << std::endl;
     serr << "expected after conversions: " << f[1] << std::endl;
     serr << "  actual after conversions: " << curr << std::endl;
 
     if (Trace.isOn("tconv-seq-pf-gen-debug"))
     {
-      Trace("tconv-pf-gen-debug") << "Printing conversion steps..." << std::endl;
+      Trace("tconv-pf-gen-debug")
+          << "Printing conversion steps..." << std::endl;
       serr << "Conversions: " << std::endl;
       for (NodeIndexNodeMap::const_iterator it = d_converted.begin();
-            it != d_converted.end();
-            ++it)
+           it != d_converted.end();
+           ++it)
       {
-        serr << "(" << (*it).first.first << ", " << (*it).first.second << ") -> " << (*it).second << std::endl;
+        serr << "(" << (*it).first.first << ", " << (*it).first.second
+             << ") -> " << (*it).second << std::endl;
       }
     }
     Unhandled() << serr.str();
@@ -108,9 +108,6 @@ std::shared_ptr<ProofNode> TConvSeqProofGenerator::getProofFor(Node f)
   return d_pnm->mkTrans(transChildren, f);
 }
 
-std::string TConvSeqProofGenerator::identify() const
-{
-  return d_name;
-}
+std::string TConvSeqProofGenerator::identify() const { return d_name; }
 
 }  // namespace CVC4
