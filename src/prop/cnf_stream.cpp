@@ -31,7 +31,9 @@
 #include "prop/minisat/minisat.h"
 #include "prop/prop_engine.h"
 #include "prop/theory_proxy.h"
-#include "smt/command.h"
+#include "smt/dump.h"
+#include "smt/smt_engine.h"
+#include "printer/printer.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
@@ -42,10 +44,14 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace prop {
 
-CnfStream::CnfStream(SatSolver* satSolver, Registrar* registrar,
-                     context::Context* context, bool fullLitToNodeMap,
+CnfStream::CnfStream(SatSolver* satSolver,
+                     Registrar* registrar,
+                     context::Context* context,
+                     OutputManager* outMgr,
+                     bool fullLitToNodeMap,
                      std::string name)
     : d_satSolver(satSolver),
+      d_outMgr(outMgr),
       d_booleanVariables(context),
       d_nodeToLiteralMap(context),
       d_literalToNodeMap(context),
@@ -54,32 +60,41 @@ CnfStream::CnfStream(SatSolver* satSolver, Registrar* registrar,
       d_registrar(registrar),
       d_name(name),
       d_cnfProof(NULL),
-      d_removable(false) {
+      d_removable(false)
+{
 }
 
 TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver,
                                    Registrar* registrar,
                                    context::Context* context,
+                                   OutputManager* outMgr,
                                    ResourceManager* rm,
                                    bool fullLitToNodeMap,
                                    std::string name)
-    : CnfStream(satSolver, registrar, context, fullLitToNodeMap, name),
+    : CnfStream(satSolver, registrar, context, outMgr, fullLitToNodeMap, name),
       d_resourceManager(rm)
 {}
 
 void CnfStream::assertClause(TNode node, SatClause& c) {
   Debug("cnf") << "Inserting into stream " << c << " node = " << node << endl;
-  if(Dump.isOn("clauses")) {
-    if(c.size() == 1) {
-      Dump("clauses") << AssertCommand(Expr(getNode(c[0]).toExpr()));
-    } else {
+  if (Dump.isOn("clauses") && d_outMgr != nullptr)
+  {
+    const Printer& printer = d_outMgr->getPrinter();
+    std::ostream& out = d_outMgr->getDumpOut();
+    if (c.size() == 1)
+    {
+      printer.toStreamCmdAssert(out, getNode(c[0]));
+    }
+    else
+    {
       Assert(c.size() > 1);
       NodeBuilder<> b(kind::OR);
-      for(unsigned i = 0; i < c.size(); ++i) {
+      for (unsigned i = 0; i < c.size(); ++i)
+      {
         b << getNode(c[i]);
       }
       Node n = b;
-      Dump("clauses") << AssertCommand(Expr(n.toExpr()));
+      printer.toStreamCmdAssert(out, n);
     }
   }
 

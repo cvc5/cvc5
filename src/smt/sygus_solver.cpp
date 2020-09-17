@@ -17,6 +17,8 @@
 #include "expr/dtype.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
+#include "printer/printer.h"
+#include "smt/dump.h"
 #include "smt/preprocessor.h"
 #include "smt/smt_solver.h"
 #include "theory/smt_engine_subsolver.h"
@@ -30,8 +32,12 @@ namespace smt {
 
 SygusSolver::SygusSolver(SmtSolver& sms,
                          Preprocessor& pp,
-                         context::UserContext* u)
-    : d_smtSolver(sms), d_pp(pp), d_sygusConjectureStale(u, true)
+                         context::UserContext* u,
+                         OutputManager& outMgr)
+    : d_smtSolver(sms),
+      d_pp(pp),
+      d_sygusConjectureStale(u, true),
+      d_outMgr(outMgr)
 {
 }
 
@@ -205,7 +211,10 @@ Result SygusSolver::checkSynth(Assertions& as)
     te->setUserAttribute("sygus", sygusVar, {}, "");
 
     Trace("smt") << "Check synthesis conjecture: " << body << std::endl;
-    Dump("raw-benchmark") << CheckSynthCommand();
+    if (Dump.isOn("raw-benchmark"))
+    {
+      d_outMgr.getPrinter().toStreamCmdCheckSynth(d_outMgr.getDumpOut());
+    }
 
     d_sygusConjectureStale = false;
 

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --theoryof-mode=type --quiet
+; COMMAND-LINE: --theoryof-mode=type --quiet --nl-ext-tplanes
 (set-logic QF_NIA)
 (declare-fun a () Int)
 (declare-fun b () Int)

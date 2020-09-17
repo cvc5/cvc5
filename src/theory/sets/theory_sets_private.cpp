@@ -38,8 +38,7 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
                                      SolverState& state,
                                      InferenceManager& im,
                                      SkolemCache& skc)
-    : d_members(state.getSatContext()),
-      d_deq(state.getSatContext()),
+    : d_deq(state.getSatContext()),
       d_termProcessed(state.getUserContext()),
       d_full_check_incomplete(false),
       d_external(external),
@@ -126,71 +125,27 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
     }
     // merge membership list
     Trace("sets-prop-debug") << "Copying membership list..." << std::endl;
-    NodeIntMap::iterator mem_i2 = d_members.find(t2);
-    if (mem_i2 != d_members.end())
+    // if s1 has a singleton or empty set and s2 does not, we may have new
+    // inferences to process.
+    Node checkSingleton = s2.isNull() ? s1 : Node::null();
+    std::vector<Node> facts;
+    // merge the membership list in the state, which may produce facts or
+    // conflicts to propagate
+    if (!d_state.merge(t1, t2, facts, checkSingleton))
     {
-      NodeIntMap::iterator mem_i1 = d_members.find(t1);
-      int n_members = 0;
-      if (mem_i1 != d_members.end())
-      {
-        n_members = (*mem_i1).second;
-      }
-      for (int i = 0; i < (*mem_i2).second; i++)
-      {
-        Assert(i < (int)d_members_data[t2].size()
-               && d_members_data[t2][i].getKind() == kind::MEMBER);
-        Node m2 = d_members_data[t2][i];
-        // check if redundant
-        bool add = true;
-        for (int j = 0; j < n_members; j++)
-        {
-          Assert(j < (int)d_members_data[t1].size()
-                 && d_members_data[t1][j].getKind() == kind::MEMBER);
-          if (d_state.areEqual(m2[0], d_members_data[t1][j][0]))
-          {
-            add = false;
-            break;
-          }
-        }
-        if (add)
-        {
-          if (!s1.isNull() && s2.isNull())
-          {
-            Assert(m2[1].getType().isComparableTo(s1.getType()));
-            Assert(d_state.areEqual(m2[1], s1));
-            Node exp = NodeManager::currentNM()->mkNode(
-                kind::AND, m2[1].eqNode(s1), m2);
-            if (s1.getKind() == kind::SINGLETON)
-            {
-              if (s1[0] != m2[0])
-              {
-                Node eq = s1[0].eqNode(m2[0]);
-                Trace("sets-prop") << "Propagate eq-mem eq inference : " << exp
-                                   << " => " << eq << std::endl;
-                d_im.assertInternalFact(eq, true, exp);
-              }
-            }
-            else
-            {
-              // conflict
-              Trace("sets-prop")
-                  << "Propagate eq-mem conflict : " << exp << std::endl;
-              d_im.conflict(exp);
-              return;
-            }
-          }
-          if (n_members < (int)d_members_data[t1].size())
-          {
-            d_members_data[t1][n_members] = m2;
-          }
-          else
-          {
-            d_members_data[t1].push_back(m2);
-          }
-          n_members++;
-        }
-      }
-      d_members[t1] = n_members;
+      // conflict case
+      Assert(facts.size() == 1);
+      Trace("sets-prop") << "Propagate eq-mem conflict : " << facts[0]
+                         << std::endl;
+      d_im.conflict(facts[0]);
+      return;
+    }
+    for (const Node& f : facts)
+    {
+      Assert(f.getKind() == kind::IMPLIES);
+      Trace("sets-prop") << "Propagate eq-mem eq inference : " << f[0] << " => "
+                         << f[1] << std::endl;
+      d_im.assertInternalFact(f[1], true, f[0]);
     }
   }
 }
@@ -249,24 +204,6 @@ bool TheorySetsPrivate::areCareDisequal(Node a, Node b)
   return false;
 }
 
-bool TheorySetsPrivate::isMember(Node x, Node s)
-{
-  Assert(d_equalityEngine->hasTerm(s)
-         && d_equalityEngine->getRepresentative(s) == s);
-  NodeIntMap::iterator mem_i = d_members.find(s);
-  if (mem_i != d_members.end())
-  {
-    for (int i = 0; i < (*mem_i).second; i++)
-    {
-      if (d_state.areEqual(d_members_data[s][i][0], x))
-      {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 void TheorySetsPrivate::fullEffortReset()
 {
   Assert(d_equalityEngine->consistent());
@@ -320,7 +257,7 @@ void TheorySetsPrivate::fullEffortCheck()
         Node n = (*eqc_i);
         if (n != eqc)
         {
-          Trace("sets-eqc") << n << " ";
+          Trace("sets-eqc") << n << " (" << n.isConst() << ") ";
         }
         TypeNode tnn = n.getType();
         if (isSet)
@@ -681,7 +618,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
                 if (valid)
                 {
                   Node rr = d_equalityEngine->getRepresentative(term);
-                  if (!isMember(x, rr))
+                  if (!d_state.isMember(x, rr))
                   {
                     Node kk = d_treg.getProxy(term);
                     Node fact = nm->mkNode(kind::MEMBER, x, kk);
@@ -705,7 +642,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
                 {
                   Node x = itm2m.second[0];
                   Node rr = d_equalityEngine->getRepresentative(term);
-                  if (!isMember(x, rr))
+                  if (!d_state.isMember(x, rr))
                   {
                     std::vector<Node> exp;
                     exp.push_back(itm2m.second);
@@ -937,21 +874,7 @@ void TheorySetsPrivate::notifyFact(TNode atom, bool polarity, TNode fact)
       }
     }
     // add to membership list
-    NodeIntMap::iterator mem_i = d_members.find(r);
-    int n_members = 0;
-    if (mem_i != d_members.end())
-    {
-      n_members = (*mem_i).second;
-    }
-    d_members[r] = n_members + 1;
-    if (n_members < (int)d_members_data[r].size())
-    {
-      d_members_data[r][n_members] = atom;
-    }
-    else
-    {
-      d_members_data[r].push_back(atom);
-    }
+    d_state.addMember(r, atom);
   }
 }
 //--------------------------------- end standard check

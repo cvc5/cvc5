@@ -7,6 +7,8 @@ libcvc4_add_sources(
   attribute.cpp
   attribute_internals.h
   attribute_unique_id.h
+  buffered_proof_generator.cpp
+  buffered_proof_generator.h
   emptyset.cpp
   emptyset.h
   expr_iomanip.cpp
@@ -15,6 +17,8 @@ libcvc4_add_sources(
   kind_map.h
   lazy_proof.cpp
   lazy_proof.h
+  lazy_proof_chain.cpp
+  lazy_proof_chain.h
   match_trie.cpp
   match_trie.h
   node.cpp
