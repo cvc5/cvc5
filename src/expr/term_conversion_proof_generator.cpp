@@ -48,13 +48,15 @@ TConvProofGenerator::TConvProofGenerator(ProofNodeManager* pnm,
                                          TConvPolicy pol,
                                          TConvCachePolicy cpol,
                                          std::string name,
-                                         TermContext* tccb)
+                                         TermContext* tccb,
+                                         bool rewriteOps)
     : d_proof(pnm, nullptr, c, name + "::LazyCDProof"),
       d_rewriteMap(c ? c : &d_context),
       d_policy(pol),
       d_cpolicy(cpol),
       d_name(name),
-      d_tcontext(tccb)
+      d_tcontext(tccb),
+      d_rewriteOps(rewriteOps)
 {
 }
 
@@ -316,7 +318,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
       {
         visitctx->push(cur, curCVal);
         // visit operator if apply uf
-        if (cur.getKind() == APPLY_UF)
+        if (cur.getKind() == APPLY_UF && d_rewriteOps)
         {
           visitctx->pushOp(cur, curCVal);
         }
@@ -326,7 +328,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
       {
         visit.push_back(cur);
         // visit operator if apply uf
-        if (cur.getKind() == APPLY_UF)
+        if (cur.getKind() == APPLY_UF && d_rewriteOps)
         {
           visit.push_back(cur.getOperator());
         }
@@ -378,7 +380,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
         bool childChanged = false;
         std::vector<Node> children;
         Kind ck = cur.getKind();
-        if (ck == kind::APPLY_UF)
+        if (ck == APPLY_UF && d_rewriteOps)
         {
           // the operator of APPLY_UF is visited
           Node cop = cur.getOperator();
