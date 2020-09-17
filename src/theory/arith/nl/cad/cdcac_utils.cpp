@@ -292,7 +292,10 @@ void replace_polynomial(std::vector<poly::Polynomial>& polys,
   {
     // Replace in polys[id] and *mit
     polys[id] = subst.first;
-    *mit = subst.first;
+    if (mit != interval.d_mainPolys.end())
+    {
+      *mit = subst.first;
+    }
     replaced = true;
   }
   else
@@ -315,7 +318,10 @@ void replace_polynomial(std::vector<poly::Polynomial>& polys,
       {
         // Replace in polys[id] and *mit
         polys[id] = subst.second;
-        *mit = subst.second;
+        if (mit != interval.d_mainPolys.end())
+        {
+          *mit = subst.second;
+        }
         replaced = true;
       }
     }
