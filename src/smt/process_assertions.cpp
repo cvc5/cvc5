@@ -27,7 +27,9 @@
 #include "options/uf_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_registry.h"
+#include "printer/printer.h"
 #include "smt/defined_function.h"
+#include "smt/dump.h"
 #include "smt/smt_engine.h"
 #include "theory/logic_info.h"
 #include "theory/quantifiers/fun_def_process.h"
@@ -562,7 +564,8 @@ void ProcessAssertions::dumpAssertions(const char* key,
     for (unsigned i = 0; i < assertionList.size(); ++i)
     {
       TNode n = assertionList[i];
-      Dump("assertions") << AssertCommand(Expr(n.toExpr()));
+      d_smt.getOutputManager().getPrinter().toStreamCmdAssert(
+          d_smt.getOutputManager().getDumpOut(), n);
     }
   }
 }

@@ -23,6 +23,7 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "context/cdqueue.h"
+#include "theory/inference_manager_buffered.h"
 #include "theory/sep/theory_sep_rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
@@ -60,6 +61,8 @@ class TheorySep : public Theory {
   TheorySepRewriter d_rewriter;
   /** A (default) theory state object */
   TheoryState d_state;
+  /** A buffered inference manager */
+  InferenceManagerBuffered d_im;
 
   Node mkAnd( std::vector< TNode >& assumptions );
 
@@ -108,8 +111,6 @@ class TheorySep : public Theory {
   bool propagateLit(TNode literal);
   /** Conflict when merging constants */
   void conflict(TNode a, TNode b);
-  /** Explain why this literal is true by adding assumptions */
-  void explain(TNode literal, std::vector<TNode>& assumptions);
 
  public:
   TrustNode explain(TNode n) override;
@@ -213,11 +214,6 @@ class TheorySep : public Theory {
   /** The notify class for d_equalityEngine */
   NotifyClass d_notify;
 
-  /** Are we in conflict? */
-  std::vector< Node > d_pending_exp;
-  std::vector< Node > d_pending;
-  std::vector< int > d_pending_lem;
-
   /** list of all refinement lemms */
   std::map< Node, std::map< Node, std::vector< Node > > > d_refinement_lem;
 
@@ -230,9 +226,6 @@ class TheorySep : public Theory {
   std::map<Node, std::unique_ptr<DecisionStrategySingleton> >
       d_neg_guard_strategy;
   std::map< Node, Node > d_guard_to_assertion;
-  /** inferences: maintained to ensure ref count for internally introduced nodes */
-  NodeList d_infer;
-  NodeList d_infer_exp;
   NodeList d_spatial_assertions;
 
   //data,ref type (globally fixed)
@@ -327,7 +320,7 @@ class TheorySep : public Theory {
   void eqNotifyMerge(TNode t1, TNode t2);
 
   void sendLemma( std::vector< Node >& ant, Node conc, const char * c, bool infer = false );
-  void doPendingFacts();
+  void doPending();
 
  public:
 

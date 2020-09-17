@@ -24,6 +24,7 @@
 
 namespace CVC4 {
 
+class OutputManager;
 class SmtEngine;
 
 namespace smt {
@@ -49,7 +50,7 @@ class DumpManager;
 class SmtNodeManagerListener : public NodeManagerListener
 {
  public:
-  SmtNodeManagerListener(DumpManager& dm);
+  SmtNodeManagerListener(DumpManager& dm, OutputManager& outMgr);
   /** Notify when new sort is created */
   void nmNotifyNewSort(TypeNode tn, uint32_t flags) override;
   /** Notify when new sort constructor is created */
@@ -69,6 +70,8 @@ class SmtNodeManagerListener : public NodeManagerListener
  private:
   /** Reference to the dump manager of smt engine */
   DumpManager& d_dm;
+  /** Reference to the output manager of the smt engine */
+  OutputManager& d_outMgr;
 };
 
 }  // namespace smt
