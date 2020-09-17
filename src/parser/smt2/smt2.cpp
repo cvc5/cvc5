@@ -525,8 +525,8 @@ std::unique_ptr<Command> Smt2::SynthFunFactory::mkCommand(api::Grammar* grammar)
 {
   Debug("parser-sygus") << "...read synth fun " << d_id << std::endl;
   d_smt2->popScope();
-  return std::unique_ptr<Command>(new SynthFunCommand(
-      d_smt2->d_solver, d_id, d_fun, d_sygusVars, d_sort, d_isInv, grammar));
+  return std::unique_ptr<Command>(
+      new SynthFunCommand(d_id, d_fun, d_sygusVars, d_sort, d_isInv, grammar));
 }
 
 std::unique_ptr<Command> Smt2::invConstraint(
@@ -556,8 +556,7 @@ std::unique_ptr<Command> Smt2::invConstraint(
     terms.push_back(getVariable(name));
   }
 
-  return std::unique_ptr<Command>(
-      new SygusInvConstraintCommand(api::termVectorToExprs(terms)));
+  return std::unique_ptr<Command>(new SygusInvConstraintCommand(terms));
 }
 
 Command* Smt2::setLogic(std::string name, bool fromCommand)
@@ -761,8 +760,8 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
 api::Grammar* Smt2::mkGrammar(const std::vector<api::Term>& boundVars,
                               const std::vector<api::Term>& ntSymbols)
 {
-  d_allocGrammars.emplace_back(new api::Grammar(
-      std::move(d_solver->mkSygusGrammar(boundVars, ntSymbols))));
+  d_allocGrammars.emplace_back(
+      new api::Grammar(d_solver->mkSygusGrammar(boundVars, ntSymbols)));
   return d_allocGrammars.back().get();
 }
 

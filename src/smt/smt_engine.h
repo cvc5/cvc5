@@ -133,8 +133,6 @@ namespace theory {
   class Rewriter;
 }/* CVC4::theory namespace */
 
-std::vector<Node> exprVectorToNodes(const std::vector<Expr>& exprs);
-
 // TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
 // hood): use a type parameter and have check() delegate, or subclass
 // SmtEngine and override check()?
