@@ -25,7 +25,9 @@ WitnessFormGenerator::WitnessFormGenerator(ProofNodeManager* pnm)
              nullptr,
              TConvPolicy::FIXPOINT,
              TConvCachePolicy::NEVER,
-             "WfGenerator::TConvProofGenerator", nullptr, true),
+             "WfGenerator::TConvProofGenerator",
+             nullptr,
+             true),
       d_wintroPf(pnm, nullptr, nullptr, "WfGenerator::LazyCDProof")
 {
 }

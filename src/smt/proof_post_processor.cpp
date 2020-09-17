@@ -336,7 +336,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
           // toWitness(apply_SR(t)) = apply_SR(toWitness(apply_SR(t)))
           // rewrite again, don't need substitution. Also, we always use the
           // default rewriter.
-          Node weqr = expandMacros(PfRule::MACRO_SR_EQ_INTRO, {}, {weq[1]}, cdp);
+          Node weqr =
+              expandMacros(PfRule::MACRO_SR_EQ_INTRO, {}, {weq[1]}, cdp);
           Trace("smt-proof-pp-debug") << "transform rewrite_witness (" << r
                                       << "): " << weqr << std::endl;
           addToTransChildren(weqr, tchildrenr);
