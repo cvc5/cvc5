@@ -322,7 +322,7 @@ void replace_polynomial(std::vector<poly::Polynomial>& polys,
     else
     {
       // Push to d_downPolys
-      interval.d_downPolys.emplace_back(subst.first);
+      interval.d_downPolys.emplace_back(subst.second);
     }
   }
   Assert(replaced)
