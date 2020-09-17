@@ -652,12 +652,12 @@ Node BVToInt::translateWithChildren(Node original,
     }
     case kind::FORALL:
     {
-      returnNode = translateQuantifiedFormula(original, oldKind);
+      returnNode = translateQuantifiedFormula(original);
       break;
     }
     case kind::EXISTS:
     {
-      returnNode = translateQuantifiedFormula(original, oldKind);
+      returnNode = translateQuantifiedFormula(original);
       break;
     }
     default:
