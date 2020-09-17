@@ -21,6 +21,7 @@
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
+#include "smt/smt_engine.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/abstraction.h"
 #include "theory/bv/bv_solver_lazy.h"
@@ -82,6 +83,7 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c,
   d_cnfStream.reset(new prop::TseitinCnfStream(d_satSolver.get(),
                                                d_nullRegistrar.get(),
                                                d_nullContext.get(),
+                                               nullptr,
                                                rm,
                                                false,
                                                "LazyBitblaster"));
@@ -573,8 +575,11 @@ void TLazyBitblaster::clearSolver() {
   d_satSolver.reset(
       prop::SatSolverFactory::createMinisat(d_ctx, smtStatisticsRegistry()));
   ResourceManager* rm = smt::currentResourceManager();
-  d_cnfStream.reset(new prop::TseitinCnfStream(
-      d_satSolver.get(), d_nullRegistrar.get(), d_nullContext.get(), rm));
+  d_cnfStream.reset(new prop::TseitinCnfStream(d_satSolver.get(),
+                                               d_nullRegistrar.get(),
+                                               d_nullContext.get(),
+                                               nullptr,
+                                               rm));
   d_satSolverNotify.reset(
       d_emptyNotify
           ? (prop::BVSatSolverNotify*)new MinisatEmptyNotify()
