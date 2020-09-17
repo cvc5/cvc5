@@ -28,7 +28,6 @@ from cvc4 cimport ROUND_NEAREST_TIES_TO_AWAY
 from cvc4 cimport Term as c_Term
 from cvc4 cimport TermHashFunction as c_TermHashFunction
 
-import cvc4kinds
 from cvc4kinds cimport Kind as c_Kind
 
 ################################## DECORATORS #################################
@@ -1580,11 +1579,11 @@ cdef class Term:
             # on a constant array
             while to_visit:
                 t = to_visit.pop()
-                if t.getKind() == cvc4kinds.Store:
+                if t.getKind() == kinds.Store:
                     # map the index constant to the element constant
                     res[t[1].toPythonObj()] = t[2].toPythonObj()
                 else:
-                    assert t.getKind() == cvc4kinds.Const_Array
+                    assert t.getKind() == kinds.Const_Array
                     val = t.getConstArrayBase()
                     res['*'] = val.toPythonObj()
         else:
