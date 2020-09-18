@@ -88,15 +88,30 @@ class TheoryPreprocessor
   context::Context d_pfContext;
   /** The term context, which computes hash values for term contexts. */
   InQuantTermContext d_iqtc;
-  /** A term conversion proof generator */
+  /** 
+   * A term conversion proof generator storing preprocessing and rewriting
+   * steps.
+   */
   std::unique_ptr<TConvProofGenerator> d_tpg;
-  /** A lazy proof, for additional lemmas. */
-  std::unique_ptr<LazyCDProof> d_lp;
   /**
    * A term conversion sequence generator, which applies theory preprocessing,
    * term formula removal, and rewriting in sequence.
    */
   std::unique_ptr<TConvSeqProofGenerator> d_tspg;
+  /** 
+   * A term conversion proof generator storing rewriting steps, which is used
+   * for calls to preprocess when doTheoryPreprocess is false. We store
+   * (top-level) rewrite steps independently of storing them in d_tpg.
+   */
+  std::unique_ptr<TConvProofGenerator> d_tpgRew;
+  /**
+   * A term conversion sequence generator, which applies term formula removal
+   * and rewriting in sequence. This is used for reconstruct proofs of
+   * calls to preprocess where doTheoryPreprocess is false.
+   */
+  std::unique_ptr<TConvSeqProofGenerator> d_tspgNoPp;
+  /** A lazy proof, for additional lemmas. */
+  std::unique_ptr<LazyCDProof> d_lp;
   /** Helper for theoryPreprocess */
   Node ppTheoryRewrite(TNode term);
   /**

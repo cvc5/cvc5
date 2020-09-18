@@ -37,8 +37,14 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
                                           &d_pfContext,
                                           TConvPolicy::FIXPOINT,
                                           TConvCachePolicy::NEVER,
-                                          "TheoryPreprocessor::preprocess",
+                                          "TheoryPreprocessor::preprocess_rewrite",
                                           &d_iqtc)
+                : nullptr),
+      d_tpgRew(pnm ? new TConvProofGenerator(pnm,
+                                          &d_pfContext,
+                                          TConvPolicy::FIXPOINT,
+                                          TConvCachePolicy::NEVER,
+                                          "TheoryPreprocessor::rewrite")
                 : nullptr),
       d_lp(pnm ? new LazyCDProof(pnm,
                                  nullptr,
@@ -66,6 +72,11 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
     ts.push_back(d_tpg.get());
     d_tspg.reset(new TConvSeqProofGenerator(
         pnm, ts, &d_pfContext, "TheoryPreprocessor::sequence"));
+    std::vector<ProofGenerator*> tsNoPp;
+    tsNoPp.push_back(d_tfr.getTConvProofGenerator());
+    tsNoPp.push_back(d_tpgRew.get());
+    d_tspgNoPp.reset(new TConvSeqProofGenerator(
+        pnm, tsNoPp, &d_pfContext, "TheoryPreprocessor::sequence_no_pp"));
   }
 }
 
@@ -132,27 +143,54 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
   Trace("tpp-proof-debug")
       << "TheoryPreprocessor::preprocess: after rewriting is " << retNode
       << std::endl;
+  if (node == retNode)
+  {
+    // no change
+    Assert (newLemmas.empty());
+    return TrustNode::null();
+  }
+  
   // Now, sequence the conversion steps if proofs are enabled.
   ProofGenerator* retPg = nullptr;
   if (isProofEnabled())
   {
     // We have that:
-    // node -> ppNode via theory preprocessing + rewriting
+    // node -> ppNode via preprocessing + rewriting (if doTheoryPreprocess)
     // ppNode -> rtfNode via term formula removal
     // rtfNode -> retNode via rewriting
-    if (ppNode == rtfNode)
+    if (!doTheoryPreprocess)
     {
-      // As an optimization, we don't need the sequence generator if we did
-      // not use term formula removal
+      Assert (node==ppNode);
+      // If preprocessing is not performed, we cannot use d_tpg or d_tspg.
+      // Instead we use d_tpgRew and d_tspgNoPp.
+      // First, if necessary, register in the pure rewrite term converter.
+      d_tpgRew->addRewriteStep(rtfNode, retNode, PfRule::REWRITE, {}, {rtfNode});
+      if (node==rtfNode)
+      {
+        // optimization: just use rewrite generator if we did not use term formula removal
+        retPg = d_tpgRew.get();
+      }
+      else
+      {
+        // use the restricted sequence generator
+        d_tspgNoPp->registerConvertedTerm(node, rtfNode, 0);
+        d_tspgNoPp->registerConvertedTerm(rtfNode, retNode, 1);
+        // we wil use the sequence generator that ignores preprocessing
+        retPg = d_tspgNoPp.get();
+      }
+    }
+    else if (ppNode == rtfNode)
+    {
+      // As an optimization, we just use the preprocess+rewrite generator if
+      // we did not use term formula removal
       retPg = d_tpg.get();
     }
     else
     {
-      // Register all conversion steps with the sequence generator
+      // Register all conversion steps with the full sequence generator
       d_tspg->registerConvertedTerm(node, ppNode, 0);
       d_tspg->registerConvertedTerm(ppNode, rtfNode, 1);
       d_tspg->registerConvertedTerm(rtfNode, retNode, 2);
-      // FIXME: need subsequence
       // we wil use the sequence generator
       retPg = d_tspg.get();
     }
@@ -194,11 +232,6 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
     Assert(!isProofEnabled() || newLemmas[i].getGenerator() != nullptr);
     newLemmas[i].debugCheckClosed("tpp-proof-debug",
                                   "TheoryPreprocessor::lemma_new");
-  }
-  if (node == retNode)
-  {
-    // no change
-    return TrustNode::null();
   }
   Trace("tpp-proof-debug") << "Preprocessed: " << node << " " << retNode
                            << std::endl;
