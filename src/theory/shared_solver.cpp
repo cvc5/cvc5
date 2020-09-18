@@ -41,7 +41,7 @@ bool SharedSolver::needsEqualityEngine(theory::EeSetupInfo& esi)
 
 void SharedSolver::preRegisterShared(TNode t, bool multipleTheories)
 {
-  // register it with the equality engine manager if shared is enabled
+  // register it with the equality engine manager if sharing is enabled
   if (d_logicInfo.isSharingEnabled())
   {
     preRegisterSharedInternal(t);
@@ -59,7 +59,7 @@ void SharedSolver::preNotifySharedFact(TNode atom)
 {
   if (d_sharedTerms.hasSharedTerms(atom))
   {
-    // Always notify the theories the shared terms, which is independent of
+    // Always notify the theories of the shared terms, which is independent of
     // the architecture currently.
     SharedTermsDatabase::shared_terms_iterator it = d_sharedTerms.begin(atom);
     SharedTermsDatabase::shared_terms_iterator it_end = d_sharedTerms.end(atom);

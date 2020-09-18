@@ -85,7 +85,7 @@ class SharedSolver
    */
   virtual EqualityStatus getEqualityStatus(TNode a, TNode b);
   /**
-   * Explain literal, which returns a conjunction of literals that that entail
+   * Explain literal, which returns a conjunction of literals that entail
    * the given one.
    */
   virtual TrustNode explain(TNode literal, TheoryId id) = 0;
