@@ -381,7 +381,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
         bool childChanged = false;
         std::vector<Node> children;
         Kind ck = cur.getKind();
-        if (ck == APPLY_UF && d_rewriteOps)
+        if (d_rewriteOps && ck == APPLY_UF)
         {
           // the operator of APPLY_UF is visited
           Node cop = cur.getOperator();
