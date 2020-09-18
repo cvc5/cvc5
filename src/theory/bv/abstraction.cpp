@@ -15,11 +15,13 @@
 #include "theory/bv/abstraction.h"
 
 #include "options/bv_options.h"
+#include "printer/printer.h"
 #include "smt/dump.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
-
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -691,15 +693,6 @@ Node AbstractionModule::substituteArguments(TNode signature, TNode apply, unsign
 }
 
 Node AbstractionModule::simplifyConflict(TNode conflict) {
-  if (Dump.isOn("bv-abstraction")) {
-    NodeNodeMap seen;
-    Node c = reverseAbstraction(conflict, seen);
-    Dump("bv-abstraction") << PushCommand();
-    Dump("bv-abstraction") << AssertCommand(c.toExpr());
-    Dump("bv-abstraction") << CheckSatCommand();
-    Dump("bv-abstraction") << PopCommand();
-  }
-
   Debug("bv-abstraction-dbg") << "AbstractionModule::simplifyConflict " << conflict << "\n";
   if (conflict.getKind() != kind::AND)
     return conflict;
@@ -741,16 +734,6 @@ Node AbstractionModule::simplifyConflict(TNode conflict) {
 
   Debug("bv-abstraction") << "AbstractionModule::simplifyConflict conflict " << conflict <<"\n";
   Debug("bv-abstraction") << "   => " << new_conflict <<"\n";
-
-  if (Dump.isOn("bv-abstraction")) {
-
-    NodeNodeMap seen;
-    Node nc = reverseAbstraction(new_conflict, seen);
-    Dump("bv-abstraction") << PushCommand();
-    Dump("bv-abstraction") << AssertCommand(nc.toExpr());
-    Dump("bv-abstraction") << CheckSatCommand();
-    Dump("bv-abstraction") << PopCommand();
-  }
 
   return new_conflict;
 }
@@ -836,15 +819,6 @@ void AbstractionModule::generalizeConflict(TNode conflict, std::vector<Node>& le
       lemmas.push_back(lemma);
       Debug("bv-abstraction-gen") << "adding lemma " << lemma << "\n";
       storeLemma(lemma);
-
-      if (Dump.isOn("bv-abstraction")) {
-        NodeNodeMap seen;
-        Node l = reverseAbstraction(lemma, seen);
-        Dump("bv-abstraction") << PushCommand();
-        Dump("bv-abstraction") << AssertCommand(l.toExpr());
-        Dump("bv-abstraction") << CheckSatCommand();
-        Dump("bv-abstraction") << PopCommand();
-      }
     }
   }
 }

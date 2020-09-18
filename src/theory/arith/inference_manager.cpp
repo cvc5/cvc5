@@ -32,6 +32,8 @@ InferenceManager::InferenceManager(TheoryArith& ta,
 void InferenceManager::addPendingArithLemma(std::unique_ptr<ArithLemma> lemma,
                                             bool isWaiting)
 {
+  Trace("arith::infman") << "Add " << lemma->d_inference << " " << lemma->d_node
+                         << (isWaiting ? " as waiting" : "") << std::endl;
   lemma->d_node = Rewriter::rewrite(lemma->d_node);
   if (hasCachedLemma(lemma->d_node, lemma->d_property))
   {
@@ -77,6 +79,9 @@ void InferenceManager::flushWaitingLemmas()
 {
   for (auto& lem : d_waitingLem)
   {
+    Trace("arith::infman") << "Flush waiting lemma to pending: "
+                           << lem->d_inference << " " << lem->d_node
+                           << std::endl;
     d_pendingLem.emplace_back(std::move(lem));
   }
   d_waitingLem.clear();
@@ -84,12 +89,19 @@ void InferenceManager::flushWaitingLemmas()
 
 void InferenceManager::addConflict(const Node& conf, InferenceId inftype)
 {
+  Trace("arith::infman") << "Adding conflict: " << inftype << " " << conf
+                         << std::endl;
   conflict(Rewriter::rewrite(conf));
 }
 
 bool InferenceManager::hasUsed() const
 {
   return hasSent() || hasPending();
+}
+
+bool InferenceManager::hasWaitingLemma() const
+{
+  return !d_waitingLem.empty();
 }
 
 std::size_t InferenceManager::numWaitingLemmas() const

@@ -46,8 +46,6 @@ class SygusInterpol
  public:
   SygusInterpol();
 
-  SygusInterpol(LogicInfo logic);
-
   /**
    * Returns the sygus conjecture in interpol corresponding to the interpolation
    * problem for input problem (F above) given by axioms (Fa above), and conj
@@ -65,7 +63,7 @@ class SygusInterpol
                           const std::vector<Node>& axioms,
                           const Node& conj,
                           const TypeNode& itpGType,
-                          Expr& interpol);
+                          Node& interpol);
 
  private:
   /**
@@ -158,7 +156,7 @@ class SygusInterpol
    * @param interpol the solution to the sygus conjecture.
    * @param itp the interpolation predicate.
    */
-  bool findInterpol(Expr& interpol, Node itp);
+  bool findInterpol(Node& interpol, Node itp);
 
   /** The SMT engine subSolver
    *
@@ -178,10 +176,6 @@ class SygusInterpol
    */
   std::unique_ptr<SmtEngine> d_subSolver;
 
-  /**
-   * The logic for the local copy of SMT engine (d_subSolver).
-   */
-  LogicInfo d_logic;
   /**
    * symbols from axioms and conjecture.
    */

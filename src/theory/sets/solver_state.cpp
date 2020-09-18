@@ -27,14 +27,13 @@ namespace sets {
 
 SolverState::SolverState(context::Context* c,
                          context::UserContext* u,
-                         Valuation val)
-    : TheoryState(c, u, val), d_parent(nullptr), d_proxy(u), d_proxy_to_term(u)
+                         Valuation val,
+                         SkolemCache& skc)
+    : TheoryState(c, u, val), d_skCache(skc), d_members(c)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
-
-void SolverState::setParent(TheorySetsPrivate* p) { d_parent = p; }
 
 void SolverState::reset()
 {
@@ -98,8 +97,6 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
   {
     if (nk == SINGLETON)
     {
-      // singleton lemma
-      getProxy(n);
       Node re = d_ee->getRepresentative(n[0]);
       if (d_singleton_index.find(re) == d_singleton_index.end())
       {
@@ -186,8 +183,8 @@ Node SolverState::getEmptySetEqClass(TypeNode tn) const
 
 Node SolverState::getUnivSetEqClass(TypeNode tn) const
 {
-  std::map<TypeNode, Node>::const_iterator it = d_univset.find(tn);
-  if (it != d_univset.end())
+  std::map<TypeNode, Node>::const_iterator it = d_eqc_univset.find(tn);
+  if (it != d_eqc_univset.end())
   {
     return it->second;
   }
@@ -250,7 +247,7 @@ bool SolverState::isEntailed(Node n, bool polarity) const
     if (polarity && d_ee->hasTerm(n[1]))
     {
       Node r = d_ee->getRepresentative(n[1]);
-      if (d_parent->isMember(n[0], r))
+      if (isMember(n[0], r))
       {
         return true;
       }
@@ -368,37 +365,6 @@ bool SolverState::isSetDisequalityEntailedInternal(Node a,
   return false;
 }
 
-Node SolverState::getProxy(Node n)
-{
-  Kind nk = n.getKind();
-  if (nk != EMPTYSET && nk != SINGLETON && nk != INTERSECTION && nk != SETMINUS
-      && nk != UNION && nk != UNIVERSE_SET)
-  {
-    return n;
-  }
-  NodeMap::const_iterator it = d_proxy.find(n);
-  if (it != d_proxy.end())
-  {
-    return (*it).second;
-  }
-  NodeManager* nm = NodeManager::currentNM();
-  Node k = d_skCache.mkTypedSkolemCached(
-      n.getType(), n, SkolemCache::SK_PURIFY, "sp");
-  d_proxy[n] = k;
-  d_proxy_to_term[k] = n;
-  Node eq = k.eqNode(n);
-  Trace("sets-lemma") << "Sets::Lemma : " << eq << " by proxy" << std::endl;
-  d_parent->getOutputChannel()->lemma(eq);
-  if (nk == SINGLETON)
-  {
-    Node slem = nm->mkNode(MEMBER, n[0], k);
-    Trace("sets-lemma") << "Sets::Lemma : " << slem << " by singleton"
-                        << std::endl;
-    d_parent->getOutputChannel()->lemma(slem);
-  }
-  return k;
-}
-
 Node SolverState::getCongruent(Node n) const
 {
   Assert(d_ee->hasTerm(n));
@@ -413,65 +379,6 @@ bool SolverState::isCongruent(Node n) const
 {
   return d_congruent.find(n) != d_congruent.end();
 }
-
-Node SolverState::getEmptySet(TypeNode tn)
-{
-  std::map<TypeNode, Node>::iterator it = d_emptyset.find(tn);
-  if (it != d_emptyset.end())
-  {
-    return it->second;
-  }
-  Node n = NodeManager::currentNM()->mkConst(EmptySet(tn));
-  d_emptyset[tn] = n;
-  return n;
-}
-Node SolverState::getUnivSet(TypeNode tn)
-{
-  std::map<TypeNode, Node>::iterator it = d_univset.find(tn);
-  if (it != d_univset.end())
-  {
-    return it->second;
-  }
-  NodeManager* nm = NodeManager::currentNM();
-  Node n = nm->mkNullaryOperator(tn, UNIVERSE_SET);
-  for (it = d_univset.begin(); it != d_univset.end(); ++it)
-  {
-    Node n1;
-    Node n2;
-    if (tn.isSubtypeOf(it->first))
-    {
-      n1 = n;
-      n2 = it->second;
-    }
-    else if (it->first.isSubtypeOf(tn))
-    {
-      n1 = it->second;
-      n2 = n;
-    }
-    if (!n1.isNull())
-    {
-      Node ulem = nm->mkNode(SUBSET, n1, n2);
-      Trace("sets-lemma") << "Sets::Lemma : " << ulem << " by univ-type"
-                          << std::endl;
-      d_parent->getOutputChannel()->lemma(ulem);
-    }
-  }
-  d_univset[tn] = n;
-  return n;
-}
-
-Node SolverState::getTypeConstraintSkolem(Node n, TypeNode tn)
-{
-  std::map<TypeNode, Node>::iterator it = d_tc_skolem[n].find(tn);
-  if (it == d_tc_skolem[n].end())
-  {
-    Node k = NodeManager::currentNM()->mkSkolem("tc_k", tn);
-    d_tc_skolem[n][tn] = k;
-    return k;
-  }
-  return it->second;
-}
-
 const std::vector<Node>& SolverState::getNonVariableSets(Node r) const
 {
   std::map<Node, std::vector<Node> >::const_iterator it = d_nvar_sets.find(r);
@@ -547,32 +454,6 @@ const std::vector<Node>& SolverState::getComprehensionSets() const
   return d_allCompSets;
 }
 
-void SolverState::debugPrintSet(Node s, const char* c) const
-{
-  if (s.getNumChildren() == 0)
-  {
-    NodeMap::const_iterator it = d_proxy_to_term.find(s);
-    if (it != d_proxy_to_term.end())
-    {
-      debugPrintSet((*it).second, c);
-    }
-    else
-    {
-      Trace(c) << s;
-    }
-  }
-  else
-  {
-    Trace(c) << "(" << s.getOperator();
-    for (const Node& sc : s)
-    {
-      Trace(c) << " ";
-      debugPrintSet(sc, c);
-    }
-    Trace(c) << ")";
-  }
-}
-
 const vector<Node> SolverState::getSetsEqClasses(const TypeNode& t) const
 {
   vector<Node> representatives;
@@ -584,6 +465,125 @@ const vector<Node> SolverState::getSetsEqClasses(const TypeNode& t) const
     }
   }
   return representatives;
+}
+
+bool SolverState::isMember(TNode x, TNode s) const
+{
+  Assert(hasTerm(s) && getRepresentative(s) == s);
+  NodeIntMap::const_iterator mem_i = d_members.find(s);
+  if (mem_i != d_members.end())
+  {
+    std::map<Node, std::vector<Node> >::const_iterator itd =
+        d_members_data.find(s);
+    Assert(itd != d_members_data.end());
+    const std::vector<Node>& members = itd->second;
+    Assert((*mem_i).second <= members.size());
+    for (size_t i = 0, nmem = (*mem_i).second; i < nmem; i++)
+    {
+      if (areEqual(members[i][0], x))
+      {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+void SolverState::addMember(TNode r, TNode atom)
+{
+  NodeIntMap::iterator mem_i = d_members.find(r);
+  size_t n_members = 0;
+  if (mem_i != d_members.end())
+  {
+    n_members = (*mem_i).second;
+  }
+  d_members[r] = n_members + 1;
+  if (n_members < d_members_data[r].size())
+  {
+    d_members_data[r][n_members] = atom;
+  }
+  else
+  {
+    d_members_data[r].push_back(atom);
+  }
+}
+
+bool SolverState::merge(TNode t1,
+                        TNode t2,
+                        std::vector<Node>& facts,
+                        TNode cset)
+{
+  NodeIntMap::iterator mem_i2 = d_members.find(t2);
+  if (mem_i2 == d_members.end())
+  {
+    // no members in t2, we are done
+    return true;
+  }
+  NodeIntMap::iterator mem_i1 = d_members.find(t1);
+  size_t n_members = 0;
+  if (mem_i1 != d_members.end())
+  {
+    n_members = (*mem_i1).second;
+  }
+  for (size_t i = 0, nmem2 = (*mem_i2).second; i < nmem2; i++)
+  {
+    Assert(i < d_members_data[t2].size()
+           && d_members_data[t2][i].getKind() == MEMBER);
+    Node m2 = d_members_data[t2][i];
+    // check if redundant
+    bool add = true;
+    for (size_t j = 0; j < n_members; j++)
+    {
+      Assert(j < d_members_data[t1].size()
+             && d_members_data[t1][j].getKind() == MEMBER);
+      if (areEqual(m2[0], d_members_data[t1][j][0]))
+      {
+        add = false;
+        break;
+      }
+    }
+    if (add)
+    {
+      // if there is a concrete set in t1, propagate new facts or conflicts
+      if (!cset.isNull())
+      {
+        NodeManager* nm = NodeManager::currentNM();
+        Assert(areEqual(m2[1], cset));
+        Node exp = nm->mkNode(AND, m2[1].eqNode(cset), m2);
+        if (cset.getKind() == SINGLETON)
+        {
+          if (cset[0] != m2[0])
+          {
+            Node eq = cset[0].eqNode(m2[0]);
+            Trace("sets-prop") << "Propagate eq-mem eq inference : " << exp
+                               << " => " << eq << std::endl;
+            Node fact = nm->mkNode(IMPLIES, exp, eq);
+            facts.push_back(fact);
+          }
+        }
+        else
+        {
+          // conflict
+          Assert(facts.empty());
+          Trace("sets-prop")
+              << "Propagate eq-mem conflict : " << exp << std::endl;
+          facts.push_back(exp);
+          return false;
+        }
+      }
+      if (n_members < d_members_data[t1].size())
+      {
+        d_members_data[t1][n_members] = m2;
+      }
+      else
+      {
+        d_members_data[t1].push_back(m2);
+      }
+      n_members++;
+    }
+  }
+  d_members[t1] = n_members;
+  return true;
 }
 
 }  // namespace sets

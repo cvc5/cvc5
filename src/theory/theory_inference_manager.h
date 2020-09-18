@@ -97,6 +97,8 @@ class TheoryInferenceManager
    * since the last call to reset.
    */
   bool hasSent() const;
+  /** Get the underlying proof equality engine */
+  eq::ProofEqEngine* getProofEqEngine();
   //--------------------------------------- propagations
   /**
    * T-propagate literal lit, possibly encountered by equality engine,
@@ -339,6 +341,11 @@ class TheoryInferenceManager
    * Forward to OutputChannel::safePoint() to spend resources.
    */
   void safePoint(ResourceManager::Resource r);
+  /**
+   * Notification from a theory that it realizes it is incomplete at
+   * this context level.
+   */
+  void setIncomplete();
 
  protected:
   /**

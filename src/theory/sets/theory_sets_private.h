@@ -25,6 +25,7 @@
 #include "theory/sets/cardinality_extension.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/solver_state.h"
+#include "theory/sets/term_registry.h"
 #include "theory/sets/theory_sets_rels.h"
 #include "theory/sets/theory_sets_rewriter.h"
 #include "theory/theory.h"
@@ -39,7 +40,6 @@ class TheorySets;
 
 class TheorySetsPrivate {
   typedef context::CDHashMap< Node, bool, NodeHashFunction> NodeBoolMap;
-  typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
@@ -50,8 +50,6 @@ class TheorySetsPrivate {
  private:
   /** Are a and b trigger terms in the equality engine that may be disequal? */
   bool areCareDisequal(Node a, Node b);
-  NodeIntMap d_members;
-  std::map< Node, std::vector< Node > > d_members_data;
   /**
    * Invoke the decision procedure for this theory, which is run at
    * full effort. This will either send a lemma or conflict on the output
@@ -149,7 +147,8 @@ class TheorySetsPrivate {
    */
   TheorySetsPrivate(TheorySets& external,
                     SolverState& state,
-                    InferenceManager& im);
+                    InferenceManager& im,
+                    SkolemCache& skc);
 
   ~TheorySetsPrivate();
 
@@ -229,6 +228,10 @@ class TheorySetsPrivate {
   SolverState& d_state;
   /** The inference manager of the sets solver */
   InferenceManager& d_im;
+  /** Reference to the skolem cache */
+  SkolemCache& d_skCache;
+  /** The term registry */
+  TermRegistry d_treg;
 
   /** Pointer to the equality engine of theory of sets */
   eq::EqualityEngine* d_equalityEngine;
@@ -238,8 +241,6 @@ class TheorySetsPrivate {
  public:
   /** Is formula n entailed to have polarity pol in the current context? */
   bool isEntailed(Node n, bool pol) { return d_state.isEntailed(n, pol); }
-  /** Is x entailed to be a member of set s in the current context? */
-  bool isMember(Node x, Node s);
 
  private:
   /** get choose function
@@ -248,6 +249,10 @@ class TheorySetsPrivate {
    * given set type, or creates a new one if it does not exist.
    */
   Node getChooseFunction(const TypeNode& setType);
+  /** expand the definition of the choose operator */
+  TrustNode expandChooseOperator(const Node& node);
+  /** expand the definition of is_singleton operator */
+  TrustNode expandIsSingletonOperator(const Node& node);
   /** subtheory solver for the theory of relations */
   std::unique_ptr<TheorySetsRels> d_rels;
   /** subtheory solver for the theory of sets with cardinality */
@@ -268,10 +273,12 @@ class TheorySetsPrivate {
   /** The theory rewriter for this theory. */
   TheorySetsRewriter d_rewriter;
 
-  /*
-   * a map that stores the choose functions for set types
-   */
+  /** a map that stores the choose functions for set types */
   std::map<TypeNode, Node> d_chooseFunctions;
+
+  /** a map that maps each set to an existential quantifier generated for
+   * operator is_singleton */
+  std::map<Node, Node> d_isSingletonNodes;
 };/* class TheorySetsPrivate */
 
 

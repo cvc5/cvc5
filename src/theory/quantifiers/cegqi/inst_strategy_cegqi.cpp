@@ -82,9 +82,12 @@ bool InstStrategyCegqi::needsCheck(Theory::Effort e)
 
 QuantifiersModule::QEffort InstStrategyCegqi::needsModel(Theory::Effort e)
 {
-  for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
+  size_t nquant = d_quantEngine->getModel()->getNumAssertedQuantifiers();
+  for (size_t i = 0; i < nquant; i++)
+  {
     Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
-    if( doCbqi( q ) && d_quantEngine->getModel()->isQuantifierActive( q ) ){
+    if (doCbqi(q))
+    {
       return QEFFORT_STANDARD;
     }
   }

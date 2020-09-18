@@ -16,6 +16,12 @@
 
 namespace CVC4 {
 
+uint32_t TermContext::computeValueOp(TNode t, uint32_t tval) const
+{
+  // default is no change
+  return tval;
+}
+
 uint32_t RtfTermContext::initialValue() const
 {
   // by default, not in a term context or a quantifier

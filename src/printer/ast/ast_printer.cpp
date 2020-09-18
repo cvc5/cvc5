@@ -166,23 +166,28 @@ void AstPrinter::toStream(std::ostream& out,
 void AstPrinter::toStreamCmdEmpty(std::ostream& out,
                                   const std::string& name) const
 {
-  out << "EmptyCommand(" << name << ')';
+  out << "EmptyCommand(" << name << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdEcho(std::ostream& out,
                                  const std::string& output) const
 {
-  out << "EchoCommand(" << output << ')';
+  out << "EchoCommand(" << output << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdAssert(std::ostream& out, Node n) const
 {
-  out << "Assert(" << n << ')';
+  out << "Assert(" << n << ')' << std::endl;
 }
 
-void AstPrinter::toStreamCmdPush(std::ostream& out) const { out << "Push()"; }
+void AstPrinter::toStreamCmdPush(std::ostream& out) const
+{
+  out << "Push()" << std::endl;
+}
 
-void AstPrinter::toStreamCmdPop(std::ostream& out) const { out << "Pop()"; }
+void AstPrinter::toStreamCmdPop(std::ostream& out) const {
+  out << "Pop()" << std::endl;
+}
 
 void AstPrinter::toStreamCmdCheckSat(std::ostream& out, Node n) const
 {
@@ -194,6 +199,7 @@ void AstPrinter::toStreamCmdCheckSat(std::ostream& out, Node n) const
   {
     out << "CheckSat(" << n << ')';
   }
+  out << std::endl;
 }
 
 void AstPrinter::toStreamCmdCheckSatAssuming(
@@ -201,22 +207,28 @@ void AstPrinter::toStreamCmdCheckSatAssuming(
 {
   out << "CheckSatAssuming( << ";
   copy(nodes.begin(), nodes.end(), ostream_iterator<Node>(out, ", "));
-  out << ">> )";
+  out << ">> )" << std::endl;
 }
 
 void AstPrinter::toStreamCmdQuery(std::ostream& out, Node n) const
 {
-  out << "Query(" << n << ')';
+  out << "Query(" << n << ')' << std::endl;
 }
 
-void AstPrinter::toStreamCmdReset(std::ostream& out) const { out << "Reset()"; }
+void AstPrinter::toStreamCmdReset(std::ostream& out) const
+{
+  out << "Reset()" << std::endl;
+}
 
 void AstPrinter::toStreamCmdResetAssertions(std::ostream& out) const
 {
-  out << "ResetAssertions()";
+  out << "ResetAssertions()" << std::endl;
 }
 
-void AstPrinter::toStreamCmdQuit(std::ostream& out) const { out << "Quit()"; }
+void AstPrinter::toStreamCmdQuit(std::ostream& out) const
+{
+  out << "Quit()" << std::endl;
+}
 
 void AstPrinter::toStreamCmdDeclarationSequence(
     std::ostream& out, const std::vector<Command*>& sequence) const
@@ -228,7 +240,7 @@ void AstPrinter::toStreamCmdDeclarationSequence(
   {
     out << *i << endl;
   }
-  out << "]";
+  out << "]" << std::endl;
 }
 
 void AstPrinter::toStreamCmdCommandSequence(
@@ -241,14 +253,14 @@ void AstPrinter::toStreamCmdCommandSequence(
   {
     out << *i << endl;
   }
-  out << "]";
+  out << "]" << std::endl;
 }
 
 void AstPrinter::toStreamCmdDeclareFunction(std::ostream& out,
                                             const std::string& id,
                                             TypeNode type) const
 {
-  out << "Declare(" << id << "," << type << ')';
+  out << "Declare(" << id << "," << type << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdDefineFunction(std::ostream& out,
@@ -263,7 +275,7 @@ void AstPrinter::toStreamCmdDefineFunction(std::ostream& out,
     copy(formals.begin(), formals.end() - 1, ostream_iterator<Node>(out, ", "));
     out << formals.back();
   }
-  out << "], << " << formula << " >> )";
+  out << "], << " << formula << " >> )" << std::endl;
 }
 
 void AstPrinter::toStreamCmdDeclareType(std::ostream& out,
@@ -271,7 +283,8 @@ void AstPrinter::toStreamCmdDeclareType(std::ostream& out,
                                         size_t arity,
                                         TypeNode type) const
 {
-  out << "DeclareType(" << id << "," << arity << "," << type << ')';
+  out << "DeclareType(" << id << "," << arity << "," << type << ')'
+      << std::endl;
 }
 
 void AstPrinter::toStreamCmdDefineType(std::ostream& out,
@@ -287,7 +300,7 @@ void AstPrinter::toStreamCmdDefineType(std::ostream& out,
          ostream_iterator<TypeNode>(out, ", "));
     out << params.back();
   }
-  out << "]," << t << ')';
+  out << "]," << t << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdDefineNamedFunction(
@@ -304,7 +317,7 @@ void AstPrinter::toStreamCmdDefineNamedFunction(
 
 void AstPrinter::toStreamCmdSimplify(std::ostream& out, Node n) const
 {
-  out << "Simplify( << " << n << " >> )";
+  out << "Simplify( << " << n << " >> )" << std::endl;
 }
 
 void AstPrinter::toStreamCmdGetValue(std::ostream& out,
@@ -312,70 +325,70 @@ void AstPrinter::toStreamCmdGetValue(std::ostream& out,
 {
   out << "GetValue( << ";
   copy(nodes.begin(), nodes.end(), ostream_iterator<Node>(out, ", "));
-  out << ">> )";
+  out << ">> )" << std::endl;
 }
 
 void AstPrinter::toStreamCmdGetModel(std::ostream& out) const
 {
-  out << "GetModel()";
+  out << "GetModel()" << std::endl;
 }
 
 void AstPrinter::toStreamCmdGetAssignment(std::ostream& out) const
 {
-  out << "GetAssignment()";
+  out << "GetAssignment()" << std::endl;
 }
 
 void AstPrinter::toStreamCmdGetAssertions(std::ostream& out) const
 {
-  out << "GetAssertions()";
+  out << "GetAssertions()" << std::endl;
 }
 
 void AstPrinter::toStreamCmdGetProof(std::ostream& out) const
 {
-  out << "GetProof()";
+  out << "GetProof()" << std::endl;
 }
 
 void AstPrinter::toStreamCmdGetUnsatCore(std::ostream& out) const
 {
-  out << "GetUnsatCore()";
+  out << "GetUnsatCore()" << std::endl;
 }
 
 void AstPrinter::toStreamCmdSetBenchmarkStatus(std::ostream& out,
                                                Result::Sat status) const
 {
-  out << "SetBenchmarkStatus(" << status << ')';
+  out << "SetBenchmarkStatus(" << status << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdSetBenchmarkLogic(std::ostream& out,
                                               const std::string& logic) const
 {
-  out << "SetBenchmarkLogic(" << logic << ')';
+  out << "SetBenchmarkLogic(" << logic << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdSetInfo(std::ostream& out,
                                     const std::string& flag,
                                     SExpr sexpr) const
 {
-  out << "SetInfo(" << flag << ", " << sexpr << ')';
+  out << "SetInfo(" << flag << ", " << sexpr << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdGetInfo(std::ostream& out,
                                     const std::string& flag) const
 {
-  out << "GetInfo(" << flag << ')';
+  out << "GetInfo(" << flag << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdSetOption(std::ostream& out,
                                       const std::string& flag,
                                       SExpr sexpr) const
 {
-  out << "SetOption(" << flag << ", " << sexpr << ')';
+  out << "SetOption(" << flag << ", " << sexpr << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdGetOption(std::ostream& out,
                                       const std::string& flag) const
 {
-  out << "GetOption(" << flag << ')';
+  out << "GetOption(" << flag << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdDatatypeDeclaration(
@@ -386,13 +399,13 @@ void AstPrinter::toStreamCmdDatatypeDeclaration(
   {
     out << t << ";" << endl;
   }
-  out << "])";
+  out << "])" << std::endl;
 }
 
 void AstPrinter::toStreamCmdComment(std::ostream& out,
                                     const std::string& comment) const
 {
-  out << "CommentCommand([" << comment << "])";
+  out << "CommentCommand([" << comment << "])" << std::endl;
 }
 
 template <class T>
