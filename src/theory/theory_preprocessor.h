@@ -88,7 +88,7 @@ class TheoryPreprocessor
   context::Context d_pfContext;
   /** The term context, which computes hash values for term contexts. */
   InQuantTermContext d_iqtc;
-  /** 
+  /**
    * A term conversion proof generator storing preprocessing and rewriting
    * steps.
    */
@@ -98,7 +98,7 @@ class TheoryPreprocessor
    * term formula removal, and rewriting in sequence.
    */
   std::unique_ptr<TConvSeqProofGenerator> d_tspg;
-  /** 
+  /**
    * A term conversion proof generator storing rewriting steps, which is used
    * for calls to preprocess when doTheoryPreprocess is false. We store
    * (top-level) rewrite steps independently of storing them in d_tpg.

@@ -33,19 +33,20 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
       d_ppCache(),
       d_tfr(tfr),
       d_pfContext(),
-      d_tpg(pnm ? new TConvProofGenerator(pnm,
-                                          &d_pfContext,
-                                          TConvPolicy::FIXPOINT,
-                                          TConvCachePolicy::NEVER,
-                                          "TheoryPreprocessor::preprocess_rewrite",
-                                          &d_iqtc)
+      d_tpg(pnm ? new TConvProofGenerator(
+                      pnm,
+                      &d_pfContext,
+                      TConvPolicy::FIXPOINT,
+                      TConvCachePolicy::NEVER,
+                      "TheoryPreprocessor::preprocess_rewrite",
+                      &d_iqtc)
                 : nullptr),
       d_tpgRew(pnm ? new TConvProofGenerator(pnm,
-                                          &d_pfContext,
-                                          TConvPolicy::FIXPOINT,
-                                          TConvCachePolicy::NEVER,
-                                          "TheoryPreprocessor::rewrite")
-                : nullptr),
+                                             &d_pfContext,
+                                             TConvPolicy::FIXPOINT,
+                                             TConvCachePolicy::NEVER,
+                                             "TheoryPreprocessor::rewrite")
+                   : nullptr),
       d_lp(pnm ? new LazyCDProof(pnm,
                                  nullptr,
                                  &d_pfContext,
@@ -146,10 +147,10 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
   if (node == retNode)
   {
     // no change
-    Assert (newLemmas.empty());
+    Assert(newLemmas.empty());
     return TrustNode::null();
   }
-  
+
   // Now, sequence the conversion steps if proofs are enabled.
   ProofGenerator* retPg = nullptr;
   if (isProofEnabled())
@@ -160,14 +161,16 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
     // rtfNode -> retNode via rewriting
     if (!doTheoryPreprocess)
     {
-      Assert (node==ppNode);
+      Assert(node == ppNode);
       // If preprocessing is not performed, we cannot use d_tpg or d_tspg.
       // Instead we use d_tpgRew and d_tspgNoPp.
       // First, if necessary, register in the pure rewrite term converter.
-      d_tpgRew->addRewriteStep(rtfNode, retNode, PfRule::REWRITE, {}, {rtfNode});
-      if (node==rtfNode)
+      d_tpgRew->addRewriteStep(
+          rtfNode, retNode, PfRule::REWRITE, {}, {rtfNode});
+      if (node == rtfNode)
       {
-        // optimization: just use rewrite generator if we did not use term formula removal
+        // optimization: just use rewrite generator if we did not use term
+        // formula removal
         retPg = d_tpgRew.get();
       }
       else
