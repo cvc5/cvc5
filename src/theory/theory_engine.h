@@ -87,6 +87,7 @@ struct NodeTheoryPairHashFunction {
 namespace theory {
 class TheoryModel;
 class CombinationEngine;
+class SharedSolver;
 class DecisionManager;
 class RelevanceManager;
 
@@ -113,6 +114,7 @@ class TheoryEngine {
   friend class theory::CombinationEngine;
   friend class theory::EngineOutputChannel;
   friend class theory::CombinationEngine;
+  friend class theory::SharedSolver;
 
   /** Associated PropEngine engine */
   prop::PropEngine* d_propEngine;
