@@ -87,6 +87,7 @@ class TConvSeqProofGenerator : public ProofGenerator
    * save the conversion steps or use this class.
    */
   theory::TrustNode mkTrustRewriteSequence(const std::vector<Node>& cterms);
+
  protected:
   using NodeIndexPairHashFunction =
       PairHashFunction<Node, size_t, NodeHashFunction>;
