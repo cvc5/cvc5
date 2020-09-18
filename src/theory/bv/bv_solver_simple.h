@@ -71,8 +71,6 @@ class BVSolverSimple : public BVSolver
 
   /** Bit-blaster used to bit-blast atoms/terms. */
   std::unique_ptr<BBSimple> d_bitblaster;
-  /** Caches lemmas added for BV atoms. */
-  std::unordered_set<Node, NodeHashFunction> d_lemmasCache;
 };
 
 }  // namespace bv

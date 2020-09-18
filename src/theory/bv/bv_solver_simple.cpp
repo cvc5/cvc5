@@ -238,7 +238,7 @@ void collectBVAtoms(TNode n, std::unordered_set<Node, NodeHashFunction>& atoms)
 }  // namespace
 
 BVSolverSimple::BVSolverSimple(TheoryState& s, TheoryInferenceManager& inferMgr)
-    : BVSolver(s, inferMgr), d_bitblaster(new BBSimple(s)), d_lemmasCache()
+    : BVSolver(s, inferMgr), d_bitblaster(new BBSimple(s))
 {
 }
 
@@ -248,13 +248,10 @@ void BVSolverSimple::addBBLemma(TNode fact)
   {
     d_bitblaster->bbAtom(fact);
   }
-  if (d_lemmasCache.find(fact) == d_lemmasCache.end())
-  {
-    NodeManager* nm = NodeManager::currentNM();
-    Node atom_bb = Rewriter::rewrite(d_bitblaster->getStoredBBAtom(fact));
-    Node lemma = nm->mkNode(kind::EQUAL, fact, atom_bb);
-    d_inferManager.lemma(lemma);
-  }
+  NodeManager* nm = NodeManager::currentNM();
+  Node atom_bb = Rewriter::rewrite(d_bitblaster->getStoredBBAtom(fact));
+  Node lemma = nm->mkNode(kind::EQUAL, fact, atom_bb);
+  d_inferManager.lemma(lemma);
 }
 
 bool BVSolverSimple::preNotifyFact(
