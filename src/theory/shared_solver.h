@@ -76,9 +76,7 @@ class SharedSolver
    */
   void preNotifySharedFact(TNode atom);
   /**
-   * Get the equality status of a and b, which first asks if the shared
-   * terms database as an equality status, and otherwise asks the appropriate
-   * Theory.
+   * Get the equality status of a and b.
    *
    * This method is used by theories via Valuation mostly for determining their
    * care graph.
