@@ -43,10 +43,11 @@ class ProofNodeUpdaterCallback
    * fact in children.
    *
    * If continueUpdate is set to false in this method, then the resulting
-   * proof (the proof of res in cdp) is *not* recursively updated by the proof
-   * node updater. Otherwise, by default, the proof node updater will
-   * continue traversing the resulting proof. This is analogous to marking
-   * REWRITE_DONE in a rewrite response.
+   * proof (the proof of res in cdp) is *not* called back to update by the
+   * proof node updater, nor are its children recursed. Otherwise, by default,
+   * the proof node updater will continue updating the resulting proof and will
+   * recursively update its children. This is analogous to marking REWRITE_DONE
+   * in a rewrite response.
    */
   virtual bool update(Node res,
                       PfRule id,
@@ -99,7 +100,8 @@ class ProofNodeUpdater
    * Update proof node cur based on the callback. This modifies curr using
    * ProofNodeManager::updateNode based on the proof node constructed to
    * replace it by the callback. Return true if cur was updated. If
-   * continueUpdate is updated to false, then cur is not updated recursively.
+   * continueUpdate is updated to false, then cur is not updated further
+   * and its children are not traversed.
    */
   bool runUpdate(std::shared_ptr<ProofNode> cur,
                  const std::vector<Node>& fa,
