@@ -200,6 +200,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
   }
   std::shared_ptr<ProofNode> pfn = lpf.getProofFor(f);
   Trace("tconv-pf-gen") << "... success" << std::endl;
+  Assert (pfn!=nullptr);
   Trace("tconv-pf-gen-debug") << "... proof is " << *pfn << std::endl;
   return pfn;
 }
