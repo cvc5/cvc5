@@ -31,6 +31,7 @@
 #include "options/options.h"
 #include "proof/unsat_core.h"
 #include "smt/logic_exception.h"
+#include "smt/output_manager.h"
 #include "smt/smt_mode.h"
 #include "theory/logic_info.h"
 #include "util/hash.h"
@@ -62,6 +63,8 @@ class ProofManager;
 class Model;
 class LogicRequest;
 class StatisticsRegistry;
+
+class Printer;
 
 /* -------------------------------------------------------------------------- */
 
@@ -129,6 +132,8 @@ namespace theory {
   class TheoryModel;
   class Rewriter;
 }/* CVC4::theory namespace */
+
+std::vector<Node> exprVectorToNodes(const std::vector<Expr>& exprs);
 
 // TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
 // hood): use a type parameter and have check() delegate, or subclass
@@ -862,6 +867,12 @@ class CVC4_PUBLIC SmtEngine
   /** Permit access to the underlying dump manager. */
   smt::DumpManager* getDumpManager();
 
+  /** Get the printer used by this SMT engine */
+  const Printer* getPrinter() const;
+
+  /** Get the output manager for this SMT engine */
+  OutputManager& getOutputManager();
+
   /** Get a pointer to the Rewriter owned by this SmtEngine. */
   theory::Rewriter* getRewriter() { return d_rewriter.get(); }
 
@@ -1139,6 +1150,10 @@ class CVC4_PUBLIC SmtEngine
 
   /** The options object */
   Options d_options;
+
+  /** the output manager for commands */
+  mutable OutputManager d_outMgr;
+
   /**
    * Manager for limiting time and abstract resource usage.
    */

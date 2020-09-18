@@ -24,6 +24,7 @@
 #include "expr/type.h"
 #include "options/options.h"
 #include "parser/parser.h"
+#include "smt/command.h"
 
 // ANTLR defines these, which is really bad!
 #undef true

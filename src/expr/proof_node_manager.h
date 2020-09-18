@@ -118,7 +118,6 @@ class ProofNodeManager
                                      bool ensureClosed = true,
                                      bool doMinimize = false,
                                      Node expected = Node::null());
-
   /**
    * This method updates pn to be a proof of the form <id>( children, args ),
    * while maintaining its d_proven field. This method returns false if this
@@ -150,6 +149,8 @@ class ProofNodeManager
  private:
   /** The (optional) proof checker */
   ProofChecker* d_checker;
+  /** the true node */
+  Node d_true;
   /** Check internal
    *
    * This returns the result of proof checking a ProofNode with the provided
