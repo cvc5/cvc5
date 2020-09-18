@@ -752,6 +752,14 @@ CDProof* SatProofManager::getProof()
   return &d_proof;
 }
 
+void SatProofManager::registerSatAssumptions(Minisat::Lit lit)
+{
+  Trace("sat-proof") << "SatProofManager::registerSatAssumptions: - "
+                     << getClauseNode(MinisatSatSolver::toSatLiteral(lit))
+                     << "\n";
+  d_assumptions.insert(getClauseNode(MinisatSatSolver::toSatLiteral(lit)));
+}
+
 void SatProofManager::registerSatAssumptions(const std::vector<Node>& assumps)
 {
   for (const Node& a : assumps)

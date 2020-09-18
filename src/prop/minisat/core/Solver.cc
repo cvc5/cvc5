@@ -622,6 +622,12 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
               ProofManager::getCnfProof()->registerConvertedClause(id);
             }
           }
+          // since this may happen before the proof cnf stream has the chance to
+          // register the input
+          if (d_pfManager)
+          {
+            d_pfManager->registerSatAssumptions(ps[0]);
+          }
           CRef confl = propagate(CHECK_WITHOUT_THEORY);
           if(! (ok = (confl == CRef_Undef)) ) {
             if (options::unsatCores())

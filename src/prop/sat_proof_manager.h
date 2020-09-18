@@ -92,6 +92,7 @@ class SatProofManager
 
   CDProof* getProof();
 
+  void registerSatAssumptions(Minisat::Lit lit);
   void registerSatAssumptions(const std::vector<Node>& assumps);
 
  private:
