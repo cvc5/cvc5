@@ -83,6 +83,7 @@ class TheoryProofStepBuffer : public ProofStepBuffer
    * tracked via proof steps added to this proof step buffer.
    *
    * @param n the clause to be normalized
+   * @return the normalized clause node
    */
   Node factorReorderElimDoubleNeg(Node n);
 
@@ -92,6 +93,7 @@ class TheoryProofStepBuffer : public ProofStepBuffer
    * If the elimination happens, a step is added to this proof step buffer.
    *
    * @param n the node to have the top-level double negation eliminated
+   * @return the normalized clause node
    */
   Node elimDoubleNegLit(Node n);
 };
