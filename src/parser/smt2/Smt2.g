@@ -332,8 +332,9 @@ command [std::unique_ptr<CVC4::Command>* cmd]
             ++i) {
           sorts.push_back((*i).second);
         }
-        t = PARSER_STATE->mkFlatFunctionType(sorts, t, flattenVars);
       }
+
+      t = PARSER_STATE->mkFlatFunctionType(sorts, t, flattenVars);
       PARSER_STATE->pushScope(true);
       terms = PARSER_STATE->bindBoundVars(sortedVarNames);
     }

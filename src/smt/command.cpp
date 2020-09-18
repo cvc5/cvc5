@@ -1267,7 +1267,6 @@ DefineFunctionCommand::DefineFunctionCommand(const std::string& id,
 }
 
 DefineFunctionCommand::DefineFunctionCommand(
-
     const std::string& id,
     api::Term func,
     const std::vector<api::Term>& formals,
@@ -1278,7 +1277,6 @@ DefineFunctionCommand::DefineFunctionCommand(
       d_formals(formals),
       d_formula(formula),
       d_global(global)
-
 {
 }
 
@@ -1665,10 +1663,11 @@ void GetValueCommand::invoke(api::Solver* solver)
 {
   try
   {
-    ExprManager* em = solver->getSmtEngine()->getExprManager();
+    ExprManager* em = solver->getExprManager();
     NodeManager* nm = NodeManager::fromExprManager(em);
     smt::SmtScope scope(solver->getSmtEngine());
-    vector<api::Term> result = solver->getValue(d_terms);
+    vector<Expr> result =
+        solver->getSmtEngine()->getValues(api::termVectorToExprs(d_terms));
     Assert(result.size() == d_terms.size());
     for (int i = 0, size = d_terms.size(); i < size; i++)
     {
@@ -1678,7 +1677,7 @@ void GetValueCommand::invoke(api::Solver* solver)
       Node request = options::expandDefinitions()
                          ? solver->getSmtEngine()->expandDefinitions(tNode)
                          : tNode;
-      Node value = result[i].getNode();
+      Node value = Node::fromExpr(result[i]);
       if (value.getType().isInteger() && request.getType() == nm->realType())
       {
         // Need to wrap in division-by-one so that output printers know this
@@ -1686,10 +1685,9 @@ void GetValueCommand::invoke(api::Solver* solver)
         // a rational.  Necessary for SMT-LIB standards compliance.
         value = nm->mkNode(kind::DIVISION, value, nm->mkConst(Rational(1)));
       }
-      result[i] = api::Term(solver, nm->mkNode(kind::SEXPR, request, value));
+      result[i] = nm->mkNode(kind::SEXPR, request, value).toExpr();
     }
-    d_result = api::Term(
-        solver, em->mkExpr(kind::SEXPR, api::termVectorToExprs(result)));
+    d_result = api::Term(solver, em->mkExpr(kind::SEXPR, result));
     d_commandStatus = CommandSuccess::instance();
   }
   catch (RecoverableModalException& e)
@@ -1748,8 +1746,8 @@ void GetAssignmentCommand::invoke(api::Solver* solver)
 {
   try
   {
-    std::vector<std::pair<api::Term, api::Term>> assignments =
-        solver->getAssignment();
+    std::vector<std::pair<Expr, Expr>> assignments =
+        solver->getSmtEngine()->getAssignment();
     vector<SExpr> sexprs;
     for (const auto& p : assignments)
     {
