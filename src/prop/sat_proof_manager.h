@@ -17,7 +17,7 @@
 #ifndef CVC4__SAT_PROOF_MANAGER_H
 #define CVC4__SAT_PROOF_MANAGER_H
 
-#include "context/cdlist.h"
+#include "context/cdhashset.h"
 #include "expr/buffered_proof_generator.h"
 #include "expr/expr.h"
 #include "expr/lazy_proof_chain.h"
@@ -143,7 +143,7 @@ class SatProofManager
 
   /** All clauses added to the SAT solver, kept in a context-dependend manner.
    */
-  context::CDList<Node> d_assumptions;
+  context::CDHashSet<Node, NodeHashFunction> d_assumptions;
 
   /**
    * A placeholder that may be used to store the literal with the final

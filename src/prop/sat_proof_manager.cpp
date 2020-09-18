@@ -647,6 +647,13 @@ void SatProofManager::finalizeProof(Node inConflictNode,
       // ignore already processed assumptions
       if (assumptions.count(fa))
       {
+        Trace("sat-proof") << "already processed assumption " << fa << "\n";
+        continue;
+      }
+      // ignore input assumptions
+      if (d_assumptions.contains(fa))
+      {
+        Trace("sat-proof") << "input assumption " << fa << "\n";
         continue;
       }
       // ignore non-literals
@@ -746,7 +753,7 @@ void SatProofManager::registerSatAssumptions(Minisat::Lit lit)
   Trace("sat-proof") << "SatProofManager::registerSatAssumptions: - "
                      << getClauseNode(MinisatSatSolver::toSatLiteral(lit))
                      << "\n";
-  d_assumptions.push_back(getClauseNode(MinisatSatSolver::toSatLiteral(lit)));
+  d_assumptions.insert(getClauseNode(MinisatSatSolver::toSatLiteral(lit)));
 }
 
 void SatProofManager::registerSatAssumptions(const std::vector<Node>& assumps)
@@ -755,7 +762,7 @@ void SatProofManager::registerSatAssumptions(const std::vector<Node>& assumps)
   {
     Trace("sat-proof") << "SatProofManager::registerSatAssumptions: - " << a
                        << "\n";
-    d_assumptions.push_back(a);
+    d_assumptions.insert(a);
   }
 }
 
