@@ -642,6 +642,12 @@ header = "options/smt_options.h"
 [[option.mode.SUM]]
   name = "sum"
   help = "Generate a sum expression for each bvand instance, based on the value in --solbv-bv-as-int-granularity"
+[[option.mode.IAND]]
+  name = "iand"
+  help = "Translate bvand to the iand operator (experimental)"
+[[option.mode.BV]]
+  name = "bv"
+  help = "Translate bvand back to bit-vectors"
 
 [[option]]
   name       = "BVAndIntegerGranularity"
