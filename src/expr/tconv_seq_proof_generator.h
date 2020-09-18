@@ -29,7 +29,7 @@ namespace CVC4 {
  * The term conversion sequence proof generator. This is used for maintaining
  * a fixed sequence of proof generators that provide proofs for rewrites
  * (equalities). We call these the "component generators" of this sequence,
- * which are typically TConvSeqProofGenerator.
+ * which are typically TConvProofGenerator.
  */
 class TConvSeqProofGenerator : public ProofGenerator
 {
