@@ -343,6 +343,9 @@ class BVToInt : public PreprocessingPass
    */
   NodeManager* d_nm;
 
+
+  theory::SubstitutionMap& d_top_level_substs;
+
   /**
    * A set of constraints of the form 0 <= x < 2^k
    * These are added for every new integer variable that we introduce.

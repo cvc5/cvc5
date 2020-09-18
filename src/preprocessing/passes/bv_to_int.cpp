@@ -302,12 +302,12 @@ Node BVToInt::bvToInt(Node n)
       }
       else
       {
+        Node translation;
         // We are now visiting current on the way back up.
         // This is when we do the actual translation.
         if (currentNumChildren == 0)
         {
-          Node translation = translateNoChildren(current);
-          d_bvToIntCache[current] = translation;
+          translation = translateNoChildren(current);
         }
         else
         {
@@ -330,9 +330,17 @@ Node BVToInt::bvToInt(Node n)
           {
             translated_children.push_back(d_bvToIntCache[current[i]]);
           }
-          Node translation =
+          translation =
               translateWithChildren(current, translated_children);
-          d_bvToIntCache[current] = translation;
+        }
+        d_bvToIntCache[current] = translation;
+        cout << "panda before condition: " << current << endl;
+        if (d_top_level_substs.hasSubstitution(current)) {
+          cout << "panda in condition!" << endl;
+          Node currentSubs = d_top_level_substs.apply(current);
+          Assert(d_bvToIntCache.find(currentSubs) != d_bvToIntCache.end());
+          Node translationSubs = d_bvToIntCache[currentSubs];
+          d_top_level_substs.addSubstitution(currentSubs, translationSubs);
         }
         toVisit.pop_back();
       }
@@ -897,6 +905,7 @@ BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
       d_eliminationCache(preprocContext->getUserContext()),
       d_rebuildCache(preprocContext->getUserContext()),
       d_bvToIntCache(preprocContext->getUserContext()),
+      d_top_level_substs(preprocContext->getTopLevelSubstitutions()),
       d_rangeAssertions(preprocContext->getUserContext())
 {
   d_nm = NodeManager::currentNM();
@@ -911,9 +920,12 @@ PreprocessingPassResult BVToInt::applyInternal(
   {
     Node bvNode = (*assertionsToPreprocess)[i];
     Node intNode = bvToInt(bvNode);
-    Node rwNode = Rewriter::rewrite(intNode);
+    Node tlsNode = d_top_level_substs.apply(intNode);
+    Node rwNode = Rewriter::rewrite(tlsNode);
+
     Trace("bv-to-int-debug") << "bv node: " << bvNode << std::endl;
     Trace("bv-to-int-debug") << "int node: " << intNode << std::endl;
+    Trace("bv-to-int-debug") << "tls node: " << tlsNode << std::endl;
     Trace("bv-to-int-debug") << "rw node: " << rwNode << std::endl;
     assertionsToPreprocess->replace(i, rwNode);
   }
