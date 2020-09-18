@@ -416,6 +416,8 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
 
 void ProofCnfStream::convertAndAssertImplies(TNode node, bool negated)
 {
+  Trace("cnf") << "ProofCnfStream::convertAndAssertImplies(" << node
+               << ", negated = " << (negated ? "true" : "false") << ")\n";
   if (!negated)
   {
     // ~p v q
@@ -456,6 +458,8 @@ void ProofCnfStream::convertAndAssertImplies(TNode node, bool negated)
 
 void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
 {
+  Trace("cnf") << "ProofCnfStream::convertAndAssertITE(" << node
+               << ", negated = " << (negated ? "true" : "false") << ")\n";
   // ITE(p, q, r)
   SatLiteral p = toCNF(node[0], false);
   SatLiteral q = toCNF(node[1], negated);
