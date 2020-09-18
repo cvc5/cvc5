@@ -645,6 +645,21 @@ Node BVToInt::translateWithChildren(Node original,
       }
       break;
     }
+    case kind::BOUND_VAR_LIST:
+    {
+      returnNode = d_nm->mkNode(oldKind, translated_children);
+      break;
+    }
+    case kind::FORALL:
+    {
+      returnNode = translateQuantifiedFormula(original);
+      break;
+    }
+    case kind::EXISTS:
+    {
+      // Exists is eliminated by the rewriter.
+      Assert(false);
+    }
     default:
     {
       // In the default case, we have reached an operator that we do not
@@ -679,6 +694,20 @@ Node BVToInt::translateNoChildren(Node original)
   {
     if (original.getType().isBitVector())
     {
+      // For bit-vector variables, we create fresh integer variables.
+      if (original.getKind() == kind::BOUND_VARIABLE)
+      {
+        // Range constraints for the bound integer variables are not added now.
+        // they will be added once the quantifier itself is handled.
+        std::stringstream ss;
+        ss << original;
+        translation = d_nm->mkBoundVar(ss.str() + "_int", d_nm->integerType());
+      }
+      else
+      {
+        // New integer variables  that are not bound (symbolic constants)
+        // are added together with range constraints induced by the 
+        // bit-width of the original bit-vector variables.
         Node newVar = d_nm->mkSkolem("__bvToInt_var",
                                      d_nm->integerType(),
                                      "Variable introduced in bvToInt "
@@ -688,6 +717,7 @@ Node BVToInt::translateNoChildren(Node original)
         translation = newVar;
         d_rangeAssertions.insert(mkRangeConstraint(newVar, bvsize));
         defineBVUFAsIntUF(original, newVar);
+      }
     }
     else if (original.getType().isFunction())
     {
@@ -952,6 +982,69 @@ Node BVToInt::createShiftNode(vector<Node> children,
                        ite);
   }
   return ite;
+}
+
+Node BVToInt::translateQuantifiedFormula(Node quantifiedNode)
+{
+  kind::Kind_t k = quantifiedNode.getKind();
+  Node boundVarList = quantifiedNode[0];
+  Assert(boundVarList.getKind() == kind::BOUND_VAR_LIST);
+  // Since bit-vector variables are being translated to
+  // integer variables, we need to substitute the new ones
+  // for the old ones.
+  vector<Node> oldBoundVars;
+  vector<Node> newBoundVars;
+  vector<Node> rangeConstraints;
+  for (Node bv : quantifiedNode[0])
+  {
+    oldBoundVars.push_back(bv);
+    if (bv.getType().isBitVector())
+    {
+      // bit-vector variables are replaced by integer ones.
+      // the new variables induce range constraints based on the
+      // original bit-width.
+      Node newBoundVar = d_bvToIntCache[bv];
+      newBoundVars.push_back(newBoundVar);
+      rangeConstraints.push_back(
+          mkRangeConstraint(newBoundVar, bv.getType().getBitVectorSize()));
+    }
+    else
+    {
+      // variables that are not bit-vectors are not changed
+      newBoundVars.push_back(bv);
+    }
+  }
+
+  // the body of the quantifier
+  Node matrix = d_bvToIntCache[quantifiedNode[1]];
+  // make the substitution
+  matrix = matrix.substitute(oldBoundVars.begin(),
+                             oldBoundVars.end(),
+                             newBoundVars.begin(),
+                             newBoundVars.end());
+  // A node to represent all the range constraints.
+  Node ranges;
+  if (rangeConstraints.size() > 0)
+  {
+    if (rangeConstraints.size() == 1)
+    {
+      ranges = rangeConstraints[0];
+    }
+    else
+    {
+      ranges = d_nm->mkNode(kind::AND, rangeConstraints);
+    }
+    // Add the range constraints to the body of the quantifier.
+    // For "exists", this is added conjunctively
+    // For "forall", this is added to the left side of an implication.
+    matrix = d_nm->mkNode(
+        k == kind::FORALL ? kind::IMPLIES : kind::AND, ranges, matrix);
+  }
+
+  // create the new quantified formula and return it.
+  Node newBoundVarsList = d_nm->mkNode(kind::BOUND_VAR_LIST, newBoundVars);
+  Node result = d_nm->mkNode(kind::FORALL, newBoundVarsList, matrix);
+  return result;
 }
 
 Node BVToInt::createITEFromTable(

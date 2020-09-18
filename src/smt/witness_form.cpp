@@ -25,7 +25,9 @@ WitnessFormGenerator::WitnessFormGenerator(ProofNodeManager* pnm)
              nullptr,
              TConvPolicy::FIXPOINT,
              TConvCachePolicy::NEVER,
-             "WfGenerator::TConvProofGenerator"),
+             "WfGenerator::TConvProofGenerator",
+             nullptr,
+             true),
       d_wintroPf(pnm, nullptr, nullptr, "WfGenerator::LazyCDProof")
 {
 }
@@ -110,6 +112,10 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
           // It should be the case that cur has children, since the witness
           // form of constants are themselves.
           Assert(cur.getNumChildren() > 0);
+          if (cur.hasOperator())
+          {
+            visit.push_back(cur.getOperator());
+          }
           visit.insert(visit.end(), cur.begin(), cur.end());
         }
       }
