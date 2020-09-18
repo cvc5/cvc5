@@ -414,15 +414,36 @@ Node BVToInt::translateWithChildren(Node original,
     }
     case kind::BITVECTOR_AND:
     {
-      // Construct an ite, based on granularity.
       uint64_t bvsize = original[0].getType().getBitVectorSize();
-      Assert(translated_children.size() == 2);
-      Node newNode = createBitwiseNode(translated_children[0],
+      if (options::solveBVAsInt() == options::SolveBVAsIntMode::IAND)
+      {
+        Node iAndOp = d_nm->mkConst(IntAnd(bvsize));
+        returnNode = d_nm->mkNode(
+            kind::IAND, iAndOp, translated_children[0], translated_children[1]);
+      }
+      else if (options::solveBVAsInt() == options::SolveBVAsIntMode::BV)
+      {
+        Node intToBVOp = d_nm->mkConst<IntToBitVector>(IntToBitVector(bvsize));
+        Node x = translated_children[0];
+        Node y = translated_children[1];
+        Node bvx = d_nm->mkNode(intToBVOp, x);
+        Node bvy = d_nm->mkNode(intToBVOp, y);
+        Node bvand = d_nm->mkNode(kind::BITVECTOR_AND, bvx, bvy);
+        returnNode = d_nm->mkNode(kind::BITVECTOR_TO_NAT, bvand);
+      }
+      else
+      {
+
+        Assert(options::solveBVAsInt() == options::SolveBVAsIntMode::SUM);
+        // Construct an ite, based on granularity.
+        Assert(translated_children.size() == 2);
+        Node newNode = createBitwiseNode(translated_children[0],
                                        translated_children[1],
                                        bvsize,
                                        options::BVAndIntegerGranularity(),
                                        &oneBitAnd);
-      returnNode = newNode;
+        returnNode = newNode;
+      }
       break;
     }
     case kind::BITVECTOR_SHL:
