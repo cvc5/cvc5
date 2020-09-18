@@ -117,6 +117,45 @@ std::shared_ptr<ProofNode> TConvSeqProofGenerator::getSubsequenceProofFor(
   return d_pnm->mkTrans(transChildren, f);
 }
 
+theory::TrustNode TConvSeqProofGenerator::mkTrustRewriteSequence(const std::vector<Node>& cterms)
+{
+  Assert (cterms.size()==d_tconvs.size()+1);
+  if (cterms[0]==cterms[cterms.size()-1])
+  {
+    return theory::TrustNode::null();
+  }
+  bool useThis = false;
+  ProofGenerator * pg = nullptr;
+  for (size_t i=0, nconvs = d_tconvs.size(); i<nconvs; i++)
+  {
+    if (cterms[i]==cterms[i+1])
+    {
+      continue;
+    }
+    else if (pg==nullptr)
+    {
+      // maybe the i^th generator can explain it alone
+      pg = d_tconvs[i];
+    }
+    else
+    {
+      useThis = true;
+      break;
+    }
+  }
+  if (useThis)
+  {
+    pg = this;
+    // if more than two steps, we must register each conversion step
+    for (size_t i=0, nconvs = d_tconvs.size(); i<nconvs; i++)
+    {
+      registerConvertedTerm(cterms[i], cterms[i+1], i);
+    }
+  }
+  Assert (pg!=nullptr);
+  return theory::TrustNode::mkTrustRewrite(cterms[0], cterms[cterms.size()-1], pg);
+}
+
 std::string TConvSeqProofGenerator::identify() const { return d_name; }
 
 TConvSubSeqGenerator::TConvSubSeqGenerator(TConvSeqProofGenerator* tref,

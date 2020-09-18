@@ -21,19 +21,23 @@
 #include "expr/node.h"
 #include "expr/proof_generator.h"
 #include "expr/proof_node_manager.h"
+#include "theory/trust_node.h"
 
 namespace CVC4 {
 
 /**
- * The term conversion sequence proof generator.
+ * The term conversion sequence proof generator. This is used for maintaining
+ * a fixed sequence of proof generators that provide proofs for rewrites
+ * (equalities). We call these the "component generators" of this sequence,
+ * which are typically TConvSeqProofGenerator.
  */
 class TConvSeqProofGenerator : public ProofGenerator
 {
  public:
   /**
    * @param pnm The proof node manager for constructing ProofNode objects.
-   * @param ts The list of term conversion generators that are applied in
-   * sequence
+   * @param ts The list of component term conversion generators that are
+   * applied in sequence
    * @param c The context that this class depends on. If none is provided,
    * this class is context-independent.
    * @param name The name of this generator (for debugging).
@@ -46,7 +50,8 @@ class TConvSeqProofGenerator : public ProofGenerator
   /**
    * Indicate that the index^th proof generator converts term t to s. This
    * should be called for a unique s for each (t, index). It must be the
-   * case that d_tconv[index] can provide a proof for t = s.
+   * case that d_tconv[index] can provide a proof for t = s in the remainder
+   * of the context maintained by this class.
    */
   void registerConvertedTerm(Node t, Node s, size_t index);
   /**
@@ -71,6 +76,17 @@ class TConvSeqProofGenerator : public ProofGenerator
   /** Identify this generator (for debugging, etc..) */
   std::string identify() const override;
 
+  /**
+   * Make trust node from a sequence of converted terms. The number of
+   * terms in cterms should be 1 + the number of component proof generators
+   * maintained by this class. This selects a proof generator that is capable
+   * of proving cterms[0] = cterms[cterms.size()-1], which is either this
+   * generator, or one of the component proof generators, if only one step
+   * rewrote. In the former case, all steps are registered to this class.
+   * Using a component generator is an optimization that saves having to
+   * save the conversion steps or use this class.
+   */
+  theory::TrustNode mkTrustRewriteSequence(const std::vector<Node>& cterms);
  protected:
   using NodeIndexPairHashFunction =
       PairHashFunction<Node, size_t, NodeHashFunction>;
@@ -87,7 +103,7 @@ class TConvSeqProofGenerator : public ProofGenerator
   std::string d_name;
 };
 
-/** Applies a subsequence of the steps for the above generator */
+/** Applies a consecutive subsequence of the steps for the above generator */
 class TConvSubSeqGenerator : public ProofGenerator
 {
  public:

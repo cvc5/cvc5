@@ -152,51 +152,41 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
   }
 
   // Now, sequence the conversion steps if proofs are enabled.
-  ProofGenerator* retPg = nullptr;
+  TrustNode tret;
   if (isProofEnabled())
   {
+    std::vector<Node> cterms;
+    cterms.push_back(node);
+    if (doTheoryPreprocess)
+    {
+      cterms.push_back(ppNode);
+    }
+    cterms.push_back(rtfNode);
+    cterms.push_back(retNode);
     // We have that:
     // node -> ppNode via preprocessing + rewriting (if doTheoryPreprocess)
     // ppNode -> rtfNode via term formula removal
     // rtfNode -> retNode via rewriting
     if (!doTheoryPreprocess)
     {
-      Assert(node == ppNode);
-      // If preprocessing is not performed, we cannot use d_tpg or d_tspg.
-      // Instead we use d_tpgRew and d_tspgNoPp.
-      // First, if necessary, register in the pure rewrite term converter.
+      // If preprocessing is not performed, we cannot use the main sequence
+      // generator, instead we use d_tspgNoPp.
+      // We register the top-level rewrite in the pure rewrite term converter.
       d_tpgRew->addRewriteStep(
           rtfNode, retNode, PfRule::REWRITE, {}, {rtfNode});
-      if (node == rtfNode)
-      {
-        // optimization: just use rewrite generator if we did not use term
-        // formula removal
-        retPg = d_tpgRew.get();
-      }
-      else
-      {
-        // use the restricted sequence generator
-        d_tspgNoPp->registerConvertedTerm(node, rtfNode, 0);
-        d_tspgNoPp->registerConvertedTerm(rtfNode, retNode, 1);
-        // we wil use the sequence generator that ignores preprocessing
-        retPg = d_tspgNoPp.get();
-      }
-    }
-    else if (ppNode == rtfNode)
-    {
-      // As an optimization, we just use the preprocess+rewrite generator if
-      // we did not use term formula removal
-      retPg = d_tpg.get();
+      // Now get the trust node from the sequence generator
+      tret = d_tspgNoPp->mkTrustRewriteSequence(cterms);
     }
     else
     {
-      // Register all conversion steps with the full sequence generator
-      d_tspg->registerConvertedTerm(node, ppNode, 0);
-      d_tspg->registerConvertedTerm(ppNode, rtfNode, 1);
-      d_tspg->registerConvertedTerm(rtfNode, retNode, 2);
       // we wil use the sequence generator
-      retPg = d_tspg.get();
+      tret = d_tspg->mkTrustRewriteSequence(cterms);
     }
+    tret.debugCheckClosed("tpp-proof-debug", "TheoryPreprocessor::lemma_ret");
+  }
+  else
+  {
+    tret = TrustNode::mkTrustRewrite(node, retNode, nullptr);
   }
 
   // now, rewrite the lemmas
@@ -238,8 +228,6 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
   }
   Trace("tpp-proof-debug") << "Preprocessed: " << node << " " << retNode
                            << std::endl;
-  TrustNode tret = TrustNode::mkTrustRewrite(node, retNode, retPg);
-  tret.debugCheckClosed("tpp-proof-debug", "TheoryPreprocessor::lemma_ret");
   return tret;
 }
 
