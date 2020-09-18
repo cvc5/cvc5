@@ -41,6 +41,11 @@ class TCtxStack
    * the term context hash of t.
    */
   void pushChild(Node t, uint32_t tval, size_t index);
+  /**
+   * Push the operator of t to the stack, where tval is the term context has
+   * of t.
+   */
+  void pushOp(Node t, uint32_t tval);
   /** Push t to the stack with term context hash tval. */
   void push(Node t, uint32_t tval);
   /** Pop a term from the context */

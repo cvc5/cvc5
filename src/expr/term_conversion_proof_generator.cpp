@@ -48,13 +48,15 @@ TConvProofGenerator::TConvProofGenerator(ProofNodeManager* pnm,
                                          TConvPolicy pol,
                                          TConvCachePolicy cpol,
                                          std::string name,
-                                         TermContext* tccb)
+                                         TermContext* tccb,
+                                         bool rewriteOps)
     : d_proof(pnm, nullptr, c, name + "::LazyCDProof"),
       d_rewriteMap(c ? c : &d_context),
       d_policy(pol),
       d_cpolicy(cpol),
       d_name(name),
-      d_tcontext(tccb)
+      d_tcontext(tccb),
+      d_rewriteOps(rewriteOps)
 {
 }
 
@@ -196,8 +198,11 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
       return nullptr;
     }
   }
+  std::shared_ptr<ProofNode> pfn = lpf.getProofFor(f);
   Trace("tconv-pf-gen") << "... success" << std::endl;
-  return lpf.getProofFor(f);
+  Assert (pfn!=nullptr);
+  Trace("tconv-pf-gen-debug") << "... proof is " << *pfn << std::endl;
+  return pfn;
 }
 
 Node TConvProofGenerator::getProofForRewriting(Node t,
@@ -313,11 +318,21 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
       else if (tctx != nullptr)
       {
         visitctx->push(cur, curCVal);
+        // visit operator if apply uf
+        if (d_rewriteOps && cur.getKind() == APPLY_UF)
+        {
+          visitctx->pushOp(cur, curCVal);
+        }
         visitctx->pushChildren(cur, curCVal);
       }
       else
       {
         visit.push_back(cur);
+        // visit operator if apply uf
+        if (d_rewriteOps && cur.getKind() == APPLY_UF)
+        {
+          visit.push_back(cur.getOperator());
+        }
         visit.insert(visit.end(), cur.begin(), cur.end());
       }
     }
@@ -365,8 +380,29 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
         Node retHash = curHash;
         bool childChanged = false;
         std::vector<Node> children;
-        if (cur.getMetaKind() == metakind::PARAMETERIZED)
+        Kind ck = cur.getKind();
+        if (d_rewriteOps && ck == APPLY_UF)
         {
+          // the operator of APPLY_UF is visited
+          Node cop = cur.getOperator();
+          if (tctx != nullptr)
+          {
+            uint32_t coval = tctx->computeValueOp(cur, curCVal);
+            Node coHash = TCtxNode::computeNodeHash(cop, coval);
+            it = visited.find(coHash);
+          }
+          else
+          {
+            it = visited.find(cop);
+          }
+          Assert(it != visited.end());
+          Assert(!it->second.isNull());
+          childChanged = childChanged || cop != it->second;
+          children.push_back(it->second);
+        }
+        else if (cur.getMetaKind() == metakind::PARAMETERIZED)
+        {
+          // all other parametrized operators are unchanged
           children.push_back(cur.getOperator());
         }
         // get the results of the children
@@ -398,10 +434,23 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
         }
         if (childChanged)
         {
-          ret = nm->mkNode(cur.getKind(), children);
+          ret = nm->mkNode(ck, children);
           rewritten[curHash] = ret;
           // congruence to show (cur = ret)
+          PfRule congRule = PfRule::CONG;
           std::vector<Node> pfChildren;
+          std::vector<Node> pfArgs;
+          pfArgs.push_back(ProofRuleChecker::mkKindNode(ck));
+          if (ck == APPLY_UF && children[0] != cur.getOperator())
+          {
+            // use HO_CONG if the operator changed
+            congRule = PfRule::HO_CONG;
+            pfChildren.push_back(cur.getOperator().eqNode(children[0]));
+          }
+          else if (kind::metaKindOf(ck) == kind::metakind::PARAMETERIZED)
+          {
+            pfArgs.push_back(cur.getOperator());
+          }
           for (size_t i = 0, size = cur.getNumChildren(); i < size; i++)
           {
             if (cur[i] == ret[i])
@@ -411,15 +460,8 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
             }
             pfChildren.push_back(cur[i].eqNode(ret[i]));
           }
-          std::vector<Node> pfArgs;
-          Kind k = cur.getKind();
-          pfArgs.push_back(ProofRuleChecker::mkKindNode(k));
-          if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
-          {
-            pfArgs.push_back(cur.getOperator());
-          }
           Node result = cur.eqNode(ret);
-          pf.addStep(result, PfRule::CONG, pfChildren, pfArgs);
+          pf.addStep(result, congRule, pfChildren, pfArgs);
           // must update the hash
           retHash = ret;
           if (tctx != nullptr)
