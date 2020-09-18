@@ -210,12 +210,8 @@ set(regress_0_tests
   regress0/bv/bv-to-bool1.smtv1.smt2
   regress0/bv/bv-to-bool2.smt2
   regress0/bv/bv_to_int1.smt2
-  regress0/bv/bv_to_int2.smt2
-  regress0/bv/bv_to_int_bvmul1.smt2
   regress0/bv/bv_to_int_bvmul2.smt2
-  regress0/bv/bv_to_int_bitwise.smt2
   regress0/bv/bv_to_int_bvuf_to_intuf.smt2
-  regress0/bv/bv_to_int_bvuf_to_intuf_smtlib.smt2
   regress0/bv/bv_to_int_bvuf_to_intuf_sorts.smt2
   regress0/bv/bv_to_int_elim_err.smt2
   regress0/bv/bv_to_int_zext.smt2
@@ -2091,7 +2087,11 @@ set(regress_2_tests
   regress2/bug765.smt2
   regress2/bug812.smt2
   regress2/bv/opStructure_MBA_6.scrambled.min.smt2
+  regress2/bv_to_int2.smt2
   regress2/bv_to_int_ashr.smt2
+  regress2/bv_to_int_bitwise.smt2
+  regress2/bv_to_int_bvmul1.smt2
+  regress2/bv_to_int_bvuf_to_intuf_smtlib.smt2
   regress2/bv_to_int_inc1.smt2
   regress2/bv_to_int_mask_array_1.smt2
   regress2/bv_to_int_mask_array_2.smt2
