@@ -86,7 +86,10 @@ class TheorySets : public Theory
   class NotifyClass : public TheoryEqNotifyClass
   {
    public:
-    NotifyClass(TheorySetsPrivate& theory, TheoryInferenceManager& im) : TheoryEqNotifyClass(im), d_theory(theory) {}
+    NotifyClass(TheorySetsPrivate& theory, TheoryInferenceManager& im)
+        : TheoryEqNotifyClass(im), d_theory(theory)
+    {
+    }
     void eqNotifyNewClass(TNode t) override;
     void eqNotifyMerge(TNode t1, TNode t2) override;
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override;
