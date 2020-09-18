@@ -446,11 +446,11 @@ void ProofCnfStream::convertAndAssertImplies(TNode node, bool negated)
     // ~(p => q) is the same as p ^ ~q
     // process p
     convertAndAssert(node[0], false);
-      d_proof.addStep(node[0], PfRule::NOT_IMPLIES_ELIM1, {node.notNode()}, {});
+    d_proof.addStep(node[0], PfRule::NOT_IMPLIES_ELIM1, {node.notNode()}, {});
     // process ~q
     convertAndAssert(node[1], true);
-      d_proof.addStep(
-          node[1].notNode(), PfRule::NOT_IMPLIES_ELIM2, {node.notNode()}, {});
+    d_proof.addStep(
+        node[1].notNode(), PfRule::NOT_IMPLIES_ELIM2, {node.notNode()}, {});
   }
 }
 
