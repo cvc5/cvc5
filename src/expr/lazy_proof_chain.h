@@ -119,6 +119,10 @@ class LazyCDProofChain : public ProofGenerator
   /** identify */
   std::string identify() const override;
 
+  /** Retrieve, for each fact in d_gens, it mapped to the proof node generated
+   * by its generator in d_gens.  */
+  const std::map<Node, std::shared_ptr<ProofNode>> getLinks() const;
+
  private:
   /** The proof manager, used for allocating new ProofNode objects */
   ProofNodeManager* d_manager;
