@@ -318,7 +318,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
       {
         visitctx->push(cur, curCVal);
         // visit operator if apply uf
-        if (cur.getKind() == APPLY_UF && d_rewriteOps)
+        if (d_rewriteOps && cur.getKind() == APPLY_UF)
         {
           visitctx->pushOp(cur, curCVal);
         }
@@ -328,7 +328,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
       {
         visit.push_back(cur);
         // visit operator if apply uf
-        if (cur.getKind() == APPLY_UF && d_rewriteOps)
+        if (d_rewriteOps && cur.getKind() == APPLY_UF)
         {
           visit.push_back(cur.getOperator());
         }
