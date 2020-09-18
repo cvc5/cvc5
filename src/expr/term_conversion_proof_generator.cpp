@@ -200,6 +200,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
   }
   std::shared_ptr<ProofNode> pfn = lpf.getProofFor(f);
   Trace("tconv-pf-gen") << "... success" << std::endl;
+  Assert (pfn!=nullptr);
   Trace("tconv-pf-gen-debug") << "... proof is " << *pfn << std::endl;
   return pfn;
 }
@@ -346,7 +347,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
       {
         visitctx->push(cur, curCVal);
         // visit operator if apply uf
-        if (cur.getKind() == APPLY_UF && d_rewriteOps)
+        if (d_rewriteOps && cur.getKind() == APPLY_UF)
         {
           visitctx->pushOp(cur, curCVal);
         }
@@ -356,7 +357,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
       {
         visit.push_back(cur);
         // visit operator if apply uf
-        if (cur.getKind() == APPLY_UF && d_rewriteOps)
+        if (d_rewriteOps && cur.getKind() == APPLY_UF)
         {
           visit.push_back(cur.getOperator());
         }
@@ -408,7 +409,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
         bool childChanged = false;
         std::vector<Node> children;
         Kind ck = cur.getKind();
-        if (ck == APPLY_UF && d_rewriteOps)
+        if (d_rewriteOps && ck == APPLY_UF)
         {
           // the operator of APPLY_UF is visited
           Node cop = cur.getOperator();

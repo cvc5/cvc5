@@ -220,7 +220,11 @@ class TConvProofGenerator : public ProofGenerator
   std::map<Node, std::shared_ptr<ProofNode> > d_cache;
   /** An (optional) term context object */
   TermContext* d_tcontext;
-  /** Whether we rewrite operators */
+  /**
+   * Whether we rewrite operators. If this flag is true, then the main
+   * traversal algorithm of this proof generator traverses operators of
+   * APPLY_UF and uses HO_CONG to justify rewriting of subterms when necessary.
+   */
   bool d_rewriteOps;
   /** Get rewrite step for (hash value of) term. */
   Node getRewriteStepInternal(Node thash) const;
