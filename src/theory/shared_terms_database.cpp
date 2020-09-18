@@ -44,6 +44,18 @@ SharedTermsDatabase::~SharedTermsDatabase()
   smtStatisticsRegistry()->unregisterStat(&d_statSharedTerms);
 }
 
+void SharedTermsDatabase::setEqualityEngine(eq::EqualityEngine* ee)
+{
+  // TODO (project #39): dynamic allocation of equality engine here
+}
+
+bool SharedTermsDatabase::needsEqualityEngine(EeSetupInfo& esi)
+{
+  esi.d_notify = &d_EENotify;
+  esi.d_name = "SharedTermsDatabase";
+  return true;
+}
+
 void SharedTermsDatabase::addEqualityToPropagate(TNode equality) {
   d_registeredEqualities.insert(equality);
   d_equalityEngine.addTriggerPredicate(equality);
