@@ -88,7 +88,7 @@ EqualityStatus SharedSolver::getEqualityStatus(TNode a, TNode b)
 
 void SharedSolver::sendLemma(TrustNode trn, TheoryId atomsTo)
 {
-  d_te.lemma(trn.getNode(), RULE_INVALID, false, LemmaProperty::NONE, atomsTo);
+  d_te.lemma(trn, LemmaProperty::NONE, atomsTo);
 }
 
 bool SharedSolver::propagateSharedEquality(theory::TheoryId theory,
