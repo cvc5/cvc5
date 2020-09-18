@@ -18,6 +18,8 @@
 
 #ifdef CVC4_POLY_IMP
 
+#include "theory/arith/nl/cad/projections.h"
+
 namespace CVC4 {
 namespace theory {
 namespace arith {
@@ -262,6 +264,106 @@ bool sampleOutside(const std::vector<CACInterval>& infeasible, Value& sample)
     return true;
   }
   return false;
+}
+
+namespace {
+/**
+ * Replace a polynomial at polys[id] with the given pair of polynomials.
+ * Also update d_mainPolys in the given interval accordingly.
+ * If one of the factors (from the pair) is from a lower level (has a different
+ * main variable), push this factor to the d_downPolys.
+ * The first factor needs to be a proper polynomial (!is_constant(subst.first)),
+ * but the second factor may be anything.
+ */
+void replace_polynomial(std::vector<poly::Polynomial>& polys,
+                        std::size_t id,
+                        std::pair<poly::Polynomial, poly::Polynomial> subst,
+                        CACInterval& interval)
+{
+  Assert(polys[id] == subst.first * subst.second);
+  Assert(!is_constant(subst.first));
+  // Whether polys[id] has already been replaced
+  bool replaced = false;
+  poly::Variable var = main_variable(polys[id]);
+  // The position within interval.d_mainPolys to be replaced.
+  auto mit = std::find(
+      interval.d_mainPolys.begin(), interval.d_mainPolys.end(), polys[id]);
+  if (main_variable(subst.first) == var)
+  {
+    // Replace in polys[id] and *mit
+    polys[id] = subst.first;
+    if (mit != interval.d_mainPolys.end())
+    {
+      *mit = subst.first;
+    }
+    replaced = true;
+  }
+  else
+  {
+    // Push to d_downPolys
+    interval.d_downPolys.emplace_back(subst.first);
+  }
+  // Skip constant poly
+  if (!is_constant(subst.second))
+  {
+    if (main_variable(subst.second) == var)
+    {
+      if (replaced)
+      {
+        // Append to polys and d_mainPolys
+        polys.emplace_back(subst.second);
+        interval.d_mainPolys.emplace_back(subst.second);
+      }
+      else
+      {
+        // Replace in polys[id] and *mit
+        polys[id] = subst.second;
+        if (mit != interval.d_mainPolys.end())
+        {
+          *mit = subst.second;
+        }
+        replaced = true;
+      }
+    }
+    else
+    {
+      // Push to d_downPolys
+      interval.d_downPolys.emplace_back(subst.second);
+    }
+  }
+  Assert(replaced)
+      << "At least one of the factors should have the main variable";
+}
+}  // namespace
+
+void makeFinestSquareFreeBasis(CACInterval& lhs, CACInterval& rhs)
+{
+  auto& l = lhs.d_upperPolys;
+  auto& r = rhs.d_lowerPolys;
+  if (l.empty()) return;
+  for (std::size_t i = 0, ln = l.size(); i < ln; ++i)
+  {
+    for (std::size_t j = 0, rn = r.size(); j < rn; ++j)
+    {
+      // All main variables should be the same
+      Assert(main_variable(l[i]) == main_variable(r[j]));
+      if (l[i] == r[j]) continue;
+      Polynomial g = gcd(l[i], r[j]);
+      if (!is_constant(g))
+      {
+        auto newl = div(l[i], g);
+        auto newr = div(r[j], g);
+        replace_polynomial(l, i, std::make_pair(g, newl), lhs);
+        replace_polynomial(r, j, std::make_pair(g, newr), rhs);
+      }
+    }
+  }
+  reduceProjectionPolynomials(l);
+  reduceProjectionPolynomials(r);
+  reduceProjectionPolynomials(lhs.d_mainPolys);
+  reduceProjectionPolynomials(rhs.d_mainPolys);
+  reduceProjectionPolynomials(lhs.d_downPolys);
+  reduceProjectionPolynomials(rhs.d_downPolys);
 }
 
 }  // namespace cad

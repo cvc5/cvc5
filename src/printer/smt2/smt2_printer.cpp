@@ -31,11 +31,13 @@
 #include "options/printer_options.h"
 #include "options/smt_options.h"
 #include "printer/dagification_visitor.h"
+#include "smt/command.h"
+#include "smt/node_command.h"
 #include "smt/smt_engine.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"
 #include "util/smt2_quote_string.h"
@@ -659,6 +661,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::REGEXP_RANGE:
   case kind::REGEXP_LOOP:
   case kind::REGEXP_COMPLEMENT:
+  case kind::REGEXP_DIFF:
   case kind::REGEXP_EMPTY:
   case kind::REGEXP_SIGMA:
   case kind::SEQ_UNIT:
@@ -738,7 +741,8 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::SET_TYPE:
   case kind::SINGLETON:
   case kind::COMPLEMENT:
-  case kind::CHOOSE: out << smtKindString(k, d_variant) << " "; break;
+  case kind::CHOOSE:
+  case kind::IS_SINGLETON: out << smtKindString(k, d_variant) << " "; break;
   case kind::UNIVERSE_SET:out << "(as univset " << n.getType() << ")";break;
 
     // fp theory
@@ -1143,6 +1147,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::CARD: return "card";
   case kind::COMPREHENSION: return "comprehension";
   case kind::CHOOSE: return "choose";
+  case kind::IS_SINGLETON: return "is_singleton";
   case kind::JOIN: return "join";
   case kind::PRODUCT: return "product";
   case kind::TRANSPOSE: return "transpose";
@@ -1238,6 +1243,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::REGEXP_RANGE: return "re.range";
   case kind::REGEXP_LOOP: return "re.loop";
   case kind::REGEXP_COMPLEMENT: return "re.comp";
+  case kind::REGEXP_DIFF: return "re.diff";
   case kind::SEQUENCE_TYPE: return "Seq";
   case kind::SEQ_UNIT: return "seq.unit";
   case kind::SEQ_NTH: return "seq.nth";
@@ -1331,23 +1337,23 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m) const
 
 void Smt2Printer::toStream(std::ostream& out,
                            const Model& model,
-                           const Command* command) const
+                           const NodeCommand* command) const
 {
   const theory::TheoryModel* theory_model =
       dynamic_cast<const theory::TheoryModel*>(&model);
   AlwaysAssert(theory_model != nullptr);
-  if (const DeclareTypeCommand* dtc =
-          dynamic_cast<const DeclareTypeCommand*>(command))
+  if (const DeclareTypeNodeCommand* dtc =
+          dynamic_cast<const DeclareTypeNodeCommand*>(command))
   {
     // print out the DeclareTypeCommand
-    Type t = (*dtc).getType();
-    if (!t.isSort())
+    TypeNode tn = dtc->getType();
+    if (!tn.isSort())
     {
       out << (*dtc) << endl;
     }
     else
     {
-      std::vector<Expr> elements = theory_model->getDomainElements(t);
+      std::vector<Expr> elements = theory_model->getDomainElements(tn.toType());
       if (options::modelUninterpDtEnum())
       {
         if (isVariant_2_6(d_variant))
@@ -1367,7 +1373,7 @@ void Smt2Printer::toStream(std::ostream& out,
       else
       {
         // print the cardinality
-        out << "; cardinality of " << t << " is " << elements.size() << endl;
+        out << "; cardinality of " << tn << " is " << elements.size() << endl;
         out << (*dtc) << endl;
         // print the representatives
         for (const Expr& type_ref : elements)
@@ -1375,7 +1381,7 @@ void Smt2Printer::toStream(std::ostream& out,
           Node trn = Node::fromExpr(type_ref);
           if (trn.isVar())
           {
-            out << "(declare-fun " << quoteSymbol(trn) << " () " << t << ")"
+            out << "(declare-fun " << quoteSymbol(trn) << " () " << tn << ")"
                 << endl;
           }
           else
@@ -1386,11 +1392,11 @@ void Smt2Printer::toStream(std::ostream& out,
       }
     }
   }
-  else if (const DeclareFunctionCommand* dfc =
-               dynamic_cast<const DeclareFunctionCommand*>(command))
+  else if (const DeclareFunctionNodeCommand* dfc =
+               dynamic_cast<const DeclareFunctionNodeCommand*>(command))
   {
     // print out the DeclareFunctionCommand
-    Node n = Node::fromExpr((*dfc).getFunction());
+    Node n = dfc->getFunction();
     if ((*dfc).getPrintInModelSetByUser())
     {
       if (!(*dfc).getPrintInModel())
@@ -1432,10 +1438,10 @@ void Smt2Printer::toStream(std::ostream& out,
       out << ")" << endl;
     }
   }
-  else if (const DatatypeDeclarationCommand* datatype_declaration_command =
-               dynamic_cast<const DatatypeDeclarationCommand*>(command))
+  else if (const DeclareDatatypeNodeCommand* declare_datatype_command =
+               dynamic_cast<const DeclareDatatypeNodeCommand*>(command))
   {
-    out << datatype_declaration_command;
+    out << *declare_datatype_command;
   }
   else
   {
@@ -1445,15 +1451,18 @@ void Smt2Printer::toStream(std::ostream& out,
 
 void Smt2Printer::toStreamCmdAssert(std::ostream& out, Node n) const
 {
-  out << "(assert " << n << ')';
+  out << "(assert " << n << ')' << std::endl;
 }
 
 void Smt2Printer::toStreamCmdPush(std::ostream& out) const
 {
-  out << "(push 1)";
+  out << "(push 1)" << std::endl;
 }
 
-void Smt2Printer::toStreamCmdPop(std::ostream& out) const { out << "(pop 1)"; }
+void Smt2Printer::toStreamCmdPop(std::ostream& out) const
+{
+  out << "(pop 1)" << std::endl;
+}
 
 void Smt2Printer::toStreamCmdCheckSat(std::ostream& out, Node n) const
 {
@@ -1471,6 +1480,7 @@ void Smt2Printer::toStreamCmdCheckSat(std::ostream& out, Node n) const
   {
     out << "(check-sat)";
   }
+  out << std::endl;
 }
 
 void Smt2Printer::toStreamCmdCheckSatAssuming(
@@ -1478,7 +1488,7 @@ void Smt2Printer::toStreamCmdCheckSatAssuming(
 {
   out << "(check-sat-assuming ( ";
   copy(nodes.begin(), nodes.end(), ostream_iterator<Node>(out, " "));
-  out << "))";
+  out << "))" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdQuery(std::ostream& out, Node n) const
@@ -1502,34 +1512,25 @@ void Smt2Printer::toStreamCmdQuery(std::ostream& out, Node n) const
 
 void Smt2Printer::toStreamCmdReset(std::ostream& out) const
 {
-  out << "(reset)";
+  out << "(reset)" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdResetAssertions(std::ostream& out) const
 {
-  out << "(reset-assertions)";
+  out << "(reset-assertions)" << std::endl;
 }
 
-void Smt2Printer::toStreamCmdQuit(std::ostream& out) const { out << "(exit)"; }
+void Smt2Printer::toStreamCmdQuit(std::ostream& out) const
+{
+  out << "(exit)" << std::endl;
+}
 
 void Smt2Printer::toStreamCmdCommandSequence(
     std::ostream& out, const std::vector<Command*>& sequence) const
 {
-  CommandSequence::const_iterator i = sequence.cbegin();
-  if (i != sequence.cend())
+  for (Command* i : sequence)
   {
-    for (;;)
-    {
-      out << *i;
-      if (++i != sequence.cend())
-      {
-        out << endl;
-      }
-      else
-      {
-        break;
-      }
-    }
+    out << *i;
   }
 }
 
@@ -1557,7 +1558,7 @@ void Smt2Printer::toStreamCmdDeclareFunction(std::ostream& out,
     type = type.getRangeType();
   }
 
-  out << ") " << type << ')';
+  out << ") " << type << ')' << std::endl;
 }
 
 void Smt2Printer::toStreamCmdDefineFunction(std::ostream& out,
@@ -1584,7 +1585,7 @@ void Smt2Printer::toStreamCmdDefineFunction(std::ostream& out,
       }
     }
   }
-  out << ") " << range << ' ' << formula << ')';
+  out << ") " << range << ' ' << formula << ')' << std::endl;
 }
 
 void Smt2Printer::toStreamCmdDefineFunctionRec(
@@ -1653,7 +1654,7 @@ void Smt2Printer::toStreamCmdDefineFunctionRec(
   {
     out << ")";
   }
-  out << ")";
+  out << ")" << std::endl;
 }
 
 static void toStreamRational(std::ostream& out,
@@ -1698,7 +1699,8 @@ void Smt2Printer::toStreamCmdDeclareType(std::ostream& out,
                                          size_t arity,
                                          TypeNode type) const
 {
-  out << "(declare-sort " << CVC4::quoteSymbol(id) << " " << arity << ")";
+  out << "(declare-sort " << CVC4::quoteSymbol(id) << " " << arity << ")"
+      << std::endl;
 }
 
 void Smt2Printer::toStreamCmdDefineType(std::ostream& out,
@@ -1713,7 +1715,7 @@ void Smt2Printer::toStreamCmdDefineType(std::ostream& out,
         params.begin(), params.end() - 1, ostream_iterator<TypeNode>(out, " "));
     out << params.back();
   }
-  out << ") " << t << ")";
+  out << ") " << t << ")" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdDefineNamedFunction(
@@ -1732,7 +1734,7 @@ void Smt2Printer::toStreamCmdDefineNamedFunction(
 
 void Smt2Printer::toStreamCmdSimplify(std::ostream& out, Node n) const
 {
-  out << "(simplify " << n << ')';
+  out << "(simplify " << n << ')' << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetValue(std::ostream& out,
@@ -1740,49 +1742,49 @@ void Smt2Printer::toStreamCmdGetValue(std::ostream& out,
 {
   out << "(get-value ( ";
   copy(nodes.begin(), nodes.end(), ostream_iterator<Node>(out, " "));
-  out << "))";
+  out << "))" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetModel(std::ostream& out) const
 {
-  out << "(get-model)";
+  out << "(get-model)" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetAssignment(std::ostream& out) const
 {
-  out << "(get-assignment)";
+  out << "(get-assignment)" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetAssertions(std::ostream& out) const
 {
-  out << "(get-assertions)";
+  out << "(get-assertions)" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetProof(std::ostream& out) const
 {
-  out << "(get-proof)";
+  out << "(get-proof)" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetUnsatAssumptions(std::ostream& out) const
 {
-  out << "(get-unsat-assumptions)";
+  out << "(get-unsat-assumptions)" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetUnsatCore(std::ostream& out) const
 {
-  out << "(get-unsat-core)";
+  out << "(get-unsat-core)" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                                BenchmarkStatus status) const
+                                                Result::Sat status) const
 {
-  out << "(set-info :status " << status << ')';
+  out << "(set-info :status " << status << ')' << std::endl;
 }
 
 void Smt2Printer::toStreamCmdSetBenchmarkLogic(std::ostream& out,
                                                const std::string& logic) const
 {
-  out << "(set-logic " << logic << ')';
+  out << "(set-logic " << logic << ')' << std::endl;
 }
 
 void Smt2Printer::toStreamCmdSetInfo(std::ostream& out,
@@ -1791,13 +1793,13 @@ void Smt2Printer::toStreamCmdSetInfo(std::ostream& out,
 {
   out << "(set-info :" << flag << ' ';
   SExpr::toStream(out, sexpr, variantToLanguage(d_variant));
-  out << ')';
+  out << ')' << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetInfo(std::ostream& out,
                                      const std::string& flag) const
 {
-  out << "(get-info :" << flag << ')';
+  out << "(get-info :" << flag << ')' << std::endl;
 }
 
 void Smt2Printer::toStreamCmdSetOption(std::ostream& out,
@@ -1806,13 +1808,13 @@ void Smt2Printer::toStreamCmdSetOption(std::ostream& out,
 {
   out << "(set-option :" << flag << ' ';
   SExpr::toStream(out, sexpr, language::output::LANG_SMTLIB_V2_5);
-  out << ')';
+  out << ')' << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetOption(std::ostream& out,
                                        const std::string& flag) const
 {
-  out << "(get-option :" << flag << ')';
+  out << "(get-option :" << flag << ')' << std::endl;
 }
 
 void Smt2Printer::toStream(std::ostream& out, const DType& dt) const
@@ -1945,7 +1947,7 @@ void Smt2Printer::toStreamCmdDatatypeDeclaration(
     }
     out << ")";
   }
-  out << ")" << endl;
+  out << ")" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdComment(std::ostream& out,
@@ -1958,12 +1960,13 @@ void Smt2Printer::toStreamCmdComment(std::ostream& out,
     s.replace(pos, 1, d_variant == smt2_0_variant ? "\\\"" : "\"\"");
     pos += 2;
   }
-  out << "(set-info :notes \"" << s << "\")";
+  out << "(set-info :notes \"" << s << "\")" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdEmpty(std::ostream& out,
                                    const std::string& name) const
 {
+  out << std::endl;
 }
 
 void Smt2Printer::toStreamCmdEcho(std::ostream& out,
@@ -1977,7 +1980,7 @@ void Smt2Printer::toStreamCmdEcho(std::ostream& out,
     s.replace(pos, 1, d_variant == smt2_0_variant ? "\\\"" : "\"\"");
     pos += 2;
   }
-  out << "(echo \"" << s << "\")";
+  out << "(echo \"" << s << "\")" << std::endl;
 }
 
 /*
@@ -2078,31 +2081,31 @@ void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
   {
     toStreamSygusGrammar(out, sygusType);
   }
-  out << ')';
+  out << ')' << std::endl;
 }
 
 void Smt2Printer::toStreamCmdDeclareVar(std::ostream& out,
                                         Node var,
                                         TypeNode type) const
 {
-  out << "(declare-var " << var << ' ' << type << ')';
+  out << "(declare-var " << var << ' ' << type << ')' << std::endl;
 }
 
 void Smt2Printer::toStreamCmdConstraint(std::ostream& out, Node n) const
 {
-  out << "(constraint " << n << ')';
+  out << "(constraint " << n << ')' << std::endl;
 }
 
 void Smt2Printer::toStreamCmdInvConstraint(
     std::ostream& out, Node inv, Node pre, Node trans, Node post) const
 {
   out << "(inv-constraint " << inv << ' ' << pre << ' ' << trans << ' ' << post
-      << ')';
+      << ')' << std::endl;
 }
 
 void Smt2Printer::toStreamCmdCheckSynth(std::ostream& out) const
 {
-  out << "(check-synth)";
+  out << "(check-synth)" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetAbduct(std::ostream& out,
@@ -2119,7 +2122,7 @@ void Smt2Printer::toStreamCmdGetAbduct(std::ostream& out,
   {
     toStreamSygusGrammar(out, sygusType);
   }
-  out << ')';
+  out << ')' << std::endl;
 }
 
 /*

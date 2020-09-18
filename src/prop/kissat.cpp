@@ -19,7 +19,6 @@
 #ifdef CVC4_USE_KISSAT
 
 #include "base/check.h"
-#include "proof/sat_proof.h"
 
 namespace CVC4 {
 namespace prop {

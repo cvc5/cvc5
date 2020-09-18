@@ -25,9 +25,6 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
-#include "proof/proof_manager.h"
-#include "proof/theory_proof.h"
-#include "proof/uf_proof.h"
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
 #include "theory/uf/cardinality_extension.h"
@@ -49,14 +46,13 @@ TheoryUF::TheoryUF(context::Context* c,
                    ProofNodeManager* pnm,
                    std::string instanceName)
     : Theory(THEORY_UF, c, u, out, valuation, logicInfo, pnm, instanceName),
-      d_notify(*this),
-      /* The strong theory solver can be notified by EqualityEngine::init(),
-       * so make sure it's initialized first. */
       d_thss(nullptr),
       d_ho(nullptr),
       d_functionsTerms(c),
       d_symb(u, instanceName),
-      d_state(c, u, valuation)
+      d_state(c, u, valuation),
+      d_im(*this, d_state, pnm),
+      d_notify(d_im, *this)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
 
@@ -65,8 +61,9 @@ TheoryUF::TheoryUF(context::Context* c,
   {
     d_ufProofChecker.registerTo(pc);
   }
-  // indicate we are using the default theory state object
+  // indicate we are using the default theory state and inference managers
   d_theoryState = &d_state;
+  d_inferManager = &d_im;
 }
 
 TheoryUF::~TheoryUF() {
@@ -91,15 +88,14 @@ void TheoryUF::finishInit() {
   if (options::finiteModelFind()
       && options::ufssMode() != options::UfssMode::NONE)
   {
-    d_thss.reset(new CardinalityExtension(
-        getSatContext(), getUserContext(), *d_out, this));
+    d_thss.reset(new CardinalityExtension(d_state, d_im, this));
   }
   // The kinds we are treating as function application in congruence
   d_equalityEngine->addFunctionKind(kind::APPLY_UF, false, options::ufHo());
   if (options::ufHo())
   {
     d_equalityEngine->addFunctionKind(kind::HO_APPLY);
-    d_ho.reset(new HoExtension(*this, d_state));
+    d_ho.reset(new HoExtension(d_state, d_im));
   }
 }
 
@@ -127,6 +123,12 @@ static Node mkAnd(const std::vector<TNode>& conjunctions) {
 
 //--------------------------------- standard check
 
+bool TheoryUF::needsCheckLastEffort()
+{
+  // last call effort needed if using finite model finding
+  return d_thss != nullptr;
+}
+
 void TheoryUF::postCheck(Effort level)
 {
   if (d_state.isInConflict())
@@ -137,12 +139,8 @@ void TheoryUF::postCheck(Effort level)
   if (d_thss != nullptr)
   {
     d_thss->check(level);
-    if (d_thss->isConflict())
-    {
-      d_state.notifyInConflict();
-    }
   }
-  // check with the higher-order extension
+  // check with the higher-order extension at full effort
   if (!d_state.isInConflict() && fullEffort(level))
   {
     if (options::ufHo())
@@ -160,9 +158,8 @@ bool TheoryUF::preNotifyFact(
     bool isDecision =
         d_valuation.isSatLiteral(fact) && d_valuation.isDecision(fact);
     d_thss->assertNode(fact, isDecision);
-    if (d_thss->isConflict())
+    if (d_state.isInConflict())
     {
-      d_state.notifyInConflict();
       return true;
     }
   }
@@ -269,59 +266,26 @@ void TheoryUF::preRegisterTerm(TNode node)
   }
 }
 
-bool TheoryUF::propagateLit(TNode literal)
+void TheoryUF::explain(TNode literal, Node& exp)
 {
-  Debug("uf::propagate") << "TheoryUF::propagateLit(" << literal << ")"
-                         << std::endl;
-  // If already in conflict, no more propagation
-  if (d_state.isInConflict())
-  {
-    Debug("uf::propagate") << "TheoryUF::propagateLit(" << literal
-                           << "): already in conflict" << std::endl;
-    return false;
-  }
-  // Propagate out
-  bool ok = d_out->propagate(literal);
-  if (!ok) {
-    d_state.notifyInConflict();
-  }
-  return ok;
-}/* TheoryUF::propagate(TNode) */
-
-void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions, eq::EqProof* pf) {
+  Debug("uf") << "TheoryUF::explain(" << literal << ")" << std::endl;
+  std::vector<TNode> assumptions;
   // Do the work
   bool polarity = literal.getKind() != kind::NOT;
   TNode atom = polarity ? literal : literal[0];
-  if (atom.getKind() == kind::EQUAL) {
+  if (atom.getKind() == kind::EQUAL)
+  {
     d_equalityEngine->explainEquality(
-        atom[0], atom[1], polarity, assumptions, pf);
-  } else {
-    d_equalityEngine->explainPredicate(atom, polarity, assumptions, pf);
+        atom[0], atom[1], polarity, assumptions, nullptr);
   }
-  if( pf ){
-    Debug("pf::uf") << std::endl;
-    pf->debug_print("pf::uf");
+  else
+  {
+    d_equalityEngine->explainPredicate(atom, polarity, assumptions, nullptr);
   }
-
-  Debug("pf::uf") << "UF: explain( " << literal << " ):" << std::endl << "\t";
-  for (unsigned i = 0; i < assumptions.size(); ++i) {
-    Debug("pf::uf") << assumptions[i] << " ";
-  }
-  Debug("pf::uf") << std::endl;
+  exp = mkAnd(assumptions);
 }
 
-TrustNode TheoryUF::explain(TNode literal)
-{
-  Node exp = explain(literal, NULL);
-  return TrustNode::mkTrustPropExp(literal, exp, nullptr);
-}
-
-Node TheoryUF::explain(TNode literal, eq::EqProof* pf) {
-  Debug("uf") << "TheoryUF::explain(" << literal << ")" << std::endl;
-  std::vector<TNode> assumptions;
-  explain(literal, assumptions, pf);
-  return mkAnd(assumptions);
-}
+TrustNode TheoryUF::explain(TNode literal) { return d_im.explainLit(literal); }
 
 bool TheoryUF::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 {
@@ -350,7 +314,8 @@ void TheoryUF::presolve() {
         i != newClauses.end();
         ++i) {
       Debug("uf") << "uf: generating a lemma: " << *i << std::endl;
-      d_out->lemma(*i);
+      // no proof generator provided
+      d_im.lemma(*i);
     }
   }
   if( d_thss ){
@@ -661,15 +626,6 @@ void TheoryUF::computeCareGraph() {
   Debug("uf::sharing") << "TheoryUf::computeCareGraph(): finished."
                        << std::endl;
 }/* TheoryUF::computeCareGraph() */
-
-void TheoryUF::conflict(TNode a, TNode b) {
-  std::shared_ptr<eq::EqProof> pf =
-      d_proofsEnabled ? std::make_shared<eq::EqProof>() : nullptr;
-  Node conf = explain(a.eqNode(b), pf.get());
-  std::unique_ptr<ProofUF> puf(d_proofsEnabled ? new ProofUF(pf) : nullptr);
-  d_out->conflict(conf, std::move(puf));
-  d_state.notifyInConflict();
-}
 
 void TheoryUF::eqNotifyNewClass(TNode t) {
   if (d_thss != NULL) {

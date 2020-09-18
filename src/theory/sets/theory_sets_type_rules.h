@@ -25,42 +25,53 @@ namespace CVC4 {
 namespace theory {
 namespace sets {
 
-struct SetsBinaryOperatorTypeRule {
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+struct SetsBinaryOperatorTypeRule
+{
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
   {
-    Assert(n.getKind() == kind::UNION || n.getKind() == kind::INTERSECTION
-           || n.getKind() == kind::SETMINUS);
+    Assert(n.getKind() == kind::UNION ||
+           n.getKind() == kind::INTERSECTION ||
+           n.getKind() == kind::SETMINUS);
     TypeNode setType = n[0].getType(check);
-    if( check ) {
-      if(!setType.isSet()) {
-        throw TypeCheckingExceptionPrivate(n, "operator expects a set, first argument is not");
+    if (check)
+    {
+      if (!setType.isSet())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "operator expects a set, first argument is not");
       }
       TypeNode secondSetType = n[1].getType(check);
-      if(secondSetType != setType) {
-        if( n.getKind() == kind::INTERSECTION ){
-          setType = TypeNode::mostCommonTypeNode( secondSetType, setType );
-        }else{
-          setType = TypeNode::leastCommonTypeNode( secondSetType, setType );
+      if (secondSetType != setType)
+      {
+        if (n.getKind() == kind::INTERSECTION)
+        {
+          setType = TypeNode::mostCommonTypeNode(secondSetType, setType);
         }
-        if( setType.isNull() ){
-          throw TypeCheckingExceptionPrivate(n, "operator expects two sets of comparable types");
+        else
+        {
+          setType = TypeNode::leastCommonTypeNode(secondSetType, setType);
         }
-        
+        if (setType.isNull())
+        {
+          throw TypeCheckingExceptionPrivate(
+              n, "operator expects two sets of comparable types");
+        }
       }
     }
     return setType;
   }
 
-  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-    Assert(n.getKind() == kind::UNION || n.getKind() == kind::INTERSECTION
-           || n.getKind() == kind::SETMINUS);
-    if(n.getKind() == kind::UNION) {
-      return NormalForm::checkNormalConstant(n);
-    } else {
-      return false;
-    }
+  inline static bool computeIsConst(NodeManager* nodeManager, TNode n)
+  {
+    // only UNION has a const rule in kinds.
+    // INTERSECTION and SETMINUS are not used in the canonical representation of
+    // sets and therefore they do not have const rules in kinds
+    Assert(n.getKind() == kind::UNION);
+    return NormalForm::checkNormalConstant(n);
   }
-};/* struct SetUnionTypeRule */
+}; /* struct SetsBinaryOperatorTypeRule */
 
 struct SubsetTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
@@ -155,11 +166,6 @@ struct CardTypeRule {
     }
     return nodeManager->integerType();
   }
-
-  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-    Assert(n.getKind() == kind::CARD);
-    return false;
-  }
 };/* struct CardTypeRule */
 
 struct ComplementTypeRule {
@@ -173,11 +179,6 @@ struct ComplementTypeRule {
       }
     }
     return setType;
-  }
-
-  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-    Assert(n.getKind() == kind::COMPLEMENT);
-    return false;
   }
 };/* struct ComplementTypeRule */
 
@@ -235,13 +236,27 @@ struct ChooseTypeRule
     }
     return setType.getSetElementType();
   }
-  inline static bool computeIsConst(NodeManager* nodeManager, TNode n)
-  {
-    Assert(n.getKind() == kind::CHOOSE);
-    // choose nodes should be expanded
-    return false;
-  }
 }; /* struct ChooseTypeRule */
+
+struct IsSingletonTypeRule
+{
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::IS_SINGLETON);
+    TypeNode setType = n[0].getType(check);
+    if (check)
+    {
+      if (!setType.isSet())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "IS_SINGLETON operator expects a set, a non-set is found");
+      }
+    }
+    return nodeManager->booleanType();
+  }
+}; /* struct IsSingletonTypeRule */
 
 struct InsertTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
@@ -263,11 +278,6 @@ struct InsertTypeRule {
       }
     }
     return setType;
-  }
-
-  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-    Assert(n.getKind() == kind::INSERT);
-    return false;
   }
 };/* struct InsertTypeRule */
 
@@ -308,11 +318,6 @@ struct RelBinaryOperatorTypeRule {
 
     return resultType;
   }
-
-  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-    Assert(n.getKind() == kind::JOIN || n.getKind() == kind::PRODUCT);
-    return false;
-  }
 };/* struct RelBinaryOperatorTypeRule */
 
 struct RelTransposeTypeRule {
@@ -327,10 +332,6 @@ struct RelTransposeTypeRule {
     std::reverse(tupleTypes.begin(), tupleTypes.end());
     return nodeManager->mkSetType(nodeManager->mkTupleType(tupleTypes));
   }
-
-  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-      return false;
-    }
 };/* struct RelTransposeTypeRule */
 
 struct RelTransClosureTypeRule {
@@ -352,11 +353,6 @@ struct RelTransClosureTypeRule {
     }
     return setType;
   }
-
-  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-    Assert(n.getKind() == kind::TCLOSURE);
-    return false;
-    }
 };/* struct RelTransClosureTypeRule */
 
 struct JoinImageTypeRule {
@@ -399,11 +395,6 @@ struct JoinImageTypeRule {
     newTupleTypes.push_back(tupleTypes[0]);
     return nodeManager->mkSetType(nodeManager->mkTupleType(newTupleTypes));
   }
-
-  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-    Assert(n.getKind() == kind::JOIN_IMAGE);
-    return false;
-  }
 };/* struct JoinImageTypeRule */
 
 struct RelIdenTypeRule {
@@ -423,10 +414,6 @@ struct RelIdenTypeRule {
     tupleTypes.push_back(tupleTypes[0]);
     return nodeManager->mkSetType(nodeManager->mkTupleType(tupleTypes));
   }
-
-  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-      return false;
-    }
 };/* struct RelIdenTypeRule */
 
 struct SetsProperties {

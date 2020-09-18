@@ -22,7 +22,6 @@
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
 #include "proof/cnf_proof.h"
-#include "smt/command.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
@@ -76,22 +75,13 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   TNode lNode = d_cnfStream->getNode(l);
   Debug("prop-explain") << "explainPropagation(" << lNode << ")" << std::endl;
 
-  LemmaProofRecipe* proofRecipe = NULL;
-  PROOF(proofRecipe = new LemmaProofRecipe;);
+  theory::TrustNode texp = d_theoryEngine->getExplanation(lNode);
+  Node theoryExplanation = texp.getNode();
 
-  Node theoryExplanation = d_theoryEngine->getExplanationAndRecipe(lNode, proofRecipe);
-
-  PROOF({
-      ProofManager::getCnfProof()->pushCurrentAssertion(theoryExplanation);
-      ProofManager::getCnfProof()->setProofRecipe(proofRecipe);
-
-      Debug("pf::sat") << "TheoryProxy::explainPropagation: setting lemma recipe to: "
-                       << std::endl;
-      proofRecipe->dump("pf::sat");
-
-      delete proofRecipe;
-      proofRecipe = NULL;
-    });
+  if (options::unsatCores())
+  {
+    ProofManager::getCnfProof()->pushCurrentAssertion(theoryExplanation);
+  }
 
   Debug("prop-explain") << "explainPropagation() => " << theoryExplanation << std::endl;
   if (theoryExplanation.getKind() == kind::AND) {
@@ -157,12 +147,6 @@ bool TheoryProxy::isDecisionEngineDone() {
 
 SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
   return d_decisionEngine->getPolarity(var);
-}
-
-void TheoryProxy::dumpStatePop() {
-  if(Dump.isOn("state")) {
-    Dump("state") << PopCommand();
-  }
 }
 
 }/* CVC4::prop namespace */

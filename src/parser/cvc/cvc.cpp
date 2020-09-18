@@ -15,6 +15,7 @@
  **/
 
 #include "parser/cvc/cvc.h"
+#include "smt/command.h"
 
 namespace CVC4 {
 namespace parser {

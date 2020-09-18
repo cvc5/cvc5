@@ -14,7 +14,6 @@
 
 #include "smt/smt_solver.h"
 
-#include "proof/theory_proof.h"
 #include "prop/prop_engine.h"
 #include "smt/assertions.h"
 #include "smt/preprocessor.h"
@@ -36,6 +35,7 @@ SmtSolver::SmtSolver(SmtEngine& smt,
       d_rm(rm),
       d_pp(pp),
       d_stats(stats),
+      d_pnm(nullptr),
       d_theoryEngine(nullptr),
       d_propEngine(nullptr)
 {
@@ -51,18 +51,14 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
                                         d_smt.getUserContext(),
                                         d_rm,
                                         d_pp.getTermFormulaRemover(),
-                                        logicInfo));
+                                        logicInfo,
+                                        d_smt.getOutputManager()));
 
   // Add the theories
   for (theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST;
        ++id)
   {
     theory::TheoryConstructor::addTheory(d_theoryEngine.get(), id);
-    // register with proof engine if applicable
-#ifdef CVC4_PROOF
-    ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(
-        d_theoryEngine->theoryOf(id));
-#endif
   }
 
   Trace("smt-debug") << "Making prop engine..." << std::endl;
@@ -70,8 +66,11 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
    * are unregistered by the obsolete PropEngine object before registered
    * again by the new PropEngine object */
   d_propEngine.reset(nullptr);
-  d_propEngine.reset(new PropEngine(
-      d_theoryEngine.get(), d_smt.getContext(), d_smt.getUserContext(), d_rm));
+  d_propEngine.reset(new PropEngine(d_theoryEngine.get(),
+                                    d_smt.getContext(),
+                                    d_smt.getUserContext(),
+                                    d_rm,
+                                    d_smt.getOutputManager()));
 
   Trace("smt-debug") << "Setting up theory engine..." << std::endl;
   d_theoryEngine->setPropEngine(getPropEngine());
@@ -87,8 +86,11 @@ void SmtSolver::resetAssertions()
    * statistics are unregistered by the obsolete PropEngine object before
    * registered again by the new PropEngine object */
   d_propEngine.reset(nullptr);
-  d_propEngine.reset(new PropEngine(
-      d_theoryEngine.get(), d_smt.getContext(), d_smt.getUserContext(), d_rm));
+  d_propEngine.reset(new PropEngine(d_theoryEngine.get(),
+                                    d_smt.getContext(),
+                                    d_smt.getUserContext(),
+                                    d_rm,
+                                    d_smt.getOutputManager()));
   d_theoryEngine->setPropEngine(getPropEngine());
   // Notice that we do not reset TheoryEngine, nor does it require calling
   // finishInit again. In particular, TheoryEngine::finishInit does not
@@ -197,7 +199,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
 
   // set the filename on the result
   Result r = Result(result, filename);
-  
+
   // notify our state of the check-sat result
   d_state.notifyCheckSatResult(hasAssumptions, r);
 
@@ -250,6 +252,8 @@ void SmtSolver::processAssertions(Assertions& as)
   // clear the current assertions
   as.clearCurrent();
 }
+
+void SmtSolver::setProofNodeManager(ProofNodeManager* pnm) { d_pnm = pnm; }
 
 TheoryEngine* SmtSolver::getTheoryEngine() { return d_theoryEngine.get(); }
 

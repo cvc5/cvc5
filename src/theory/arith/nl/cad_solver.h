@@ -18,9 +18,9 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/cad/cdcac.h"
 #include "theory/arith/nl/nl_model.h"
-#include "theory/arith/theory_arith.h"
 
 namespace CVC4 {
 namespace theory {
@@ -34,7 +34,7 @@ namespace nl {
 class CadSolver
 {
  public:
-  CadSolver(TheoryArith& containing, NlModel& model);
+  CadSolver(InferenceManager& im, NlModel& model);
   ~CadSolver();
 
   /**
@@ -52,7 +52,7 @@ class CadSolver
    * for construct_model_if_available. Otherwise, the single lemma can be used
    * as an infeasible subset.
    */
-  std::vector<NlLemma> checkFull();
+  void checkFull();
 
   /**
    * Perform a partial check, returning either {} or a list of lemmas.
@@ -60,7 +60,7 @@ class CadSolver
    * for construct_model_if_available. Otherwise, the lemmas exclude some part
    * of the search space.
    */
-  std::vector<NlLemma> checkPartial();
+  void checkPartial();
 
   /**
    * If a model is available (indicated by the last call to check_full() or
@@ -88,8 +88,8 @@ class CadSolver
    */
   bool d_foundSatisfiability;
 
-  /** The theory of arithmetic containing this extension.*/
-  TheoryArith& d_containing;
+  /** The inference manager we are pushing conflicts and lemmas to. */
+  InferenceManager& d_im;
   /** Reference to the non-linear model object */
   NlModel& d_model;
 }; /* class CadSolver */

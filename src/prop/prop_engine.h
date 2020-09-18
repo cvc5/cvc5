@@ -36,6 +36,7 @@ namespace CVC4 {
 
 class ResourceManager;
 class DecisionEngine;
+class OutputManager;
 class TheoryEngine;
 
 namespace theory {
@@ -62,7 +63,8 @@ class PropEngine
   PropEngine(TheoryEngine*,
              context::Context* satContext,
              context::UserContext* userContext,
-             ResourceManager* rm);
+             ResourceManager* rm,
+             OutputManager& outMgr);
 
   /**
    * Destructor.
@@ -103,11 +105,7 @@ class PropEngine
    * @param removable whether this lemma can be quietly removed based
    * on an activity heuristic (or not)
    */
-  void assertLemma(TNode node,
-                   bool negated,
-                   bool removable,
-                   ProofRule rule,
-                   TNode from = TNode::null());
+  void assertLemma(TNode node, bool negated, bool removable);
 
   /**
    * Pass a list of assertions from an AssertionPipeline to the decision engine.
@@ -259,6 +257,8 @@ class PropEngine
   /** Pointer to resource manager for associated SmtEngine */
   ResourceManager* d_resourceManager;
 
+  /** Reference to the output manager of the smt engine */
+  OutputManager& d_outMgr;
 };
 
 }  // namespace prop

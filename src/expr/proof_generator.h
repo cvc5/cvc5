@@ -82,11 +82,13 @@ class ProofGenerator
    * @param f The fact to get the proof for.
    * @param pf The CDProof object to add the proof to.
    * @param opolicy The overwrite policy for adding to pf.
+   * @param doCopy Whether to do a deep copy of the proof steps into pf.
    * @return True if this call was sucessful.
    */
   virtual bool addProofTo(Node f,
                           CDProof* pf,
-                          CDPOverwrite opolicy = CDPOverwrite::ASSUME_ONLY);
+                          CDPOverwrite opolicy = CDPOverwrite::ASSUME_ONLY,
+                          bool doCopy = false);
   /**
    * Can we give the proof for formula f? This is used for debugging. This
    * returns false if the generator cannot provide a proof of formula f.
@@ -121,7 +123,9 @@ void pfgEnsureClosed(Node proven,
 
 /**
  * Debug check closed with Trace c. Context ctx is string for debugging and
- * assumps is the set of allowed open assertions.
+ * assumps is the set of allowed open assertions. This method throws an
+ * assertion failure if pg cannot provide a proof for fact proven whose
+ * free assumptions are contained in assumps.
  *
  * @param reqGen Whether we consider a null generator to be a failure.
  */
@@ -132,6 +136,20 @@ void pfgEnsureClosedWrt(Node proven,
                         const char* ctx,
                         bool reqGen = true);
 
+/**
+ * Debug check closed with Trace c, proof node versions. This gives an
+ * assertion failure if pn is not closed. Detailed information is printed
+ * on trace c. Context ctx is a string used for debugging.
+ */
+void pfnEnsureClosed(ProofNode* pn, const char* c, const char* ctx);
+/**
+ * Same as above, but throws an assertion failure only if the free assumptions
+ * of pn are not contained in assumps.
+ */
+void pfnEnsureClosedWrt(ProofNode* pn,
+                        const std::vector<Node>& assumps,
+                        const char* c,
+                        const char* ctx);
 }  // namespace CVC4
 
 #endif /* CVC4__EXPR__PROOF_GENERATOR_H */

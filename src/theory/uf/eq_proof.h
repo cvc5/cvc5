@@ -35,36 +35,21 @@ namespace eq {
 class EqProof
 {
  public:
-  /** A custom pretty printer used for custom rules being those in
-   * MergeReasonType. */
-  class PrettyPrinter
-  {
-   public:
-    virtual ~PrettyPrinter() {}
-    virtual std::string printTag(unsigned tag) = 0;
-  };
-
   EqProof() : d_id(MERGED_THROUGH_REFLEXIVITY) {}
   /** The proof rule for concluding d_node */
-  unsigned d_id;
+  MergeReasonType d_id;
   /** The conclusion of this EqProof */
   Node d_node;
   /** The proofs of the premises for deriving d_node with d_id */
   std::vector<std::shared_ptr<EqProof>> d_children;
   /**
-   * Debug print this proof on debug trace c with tabulation tb and pretty
-   * printer prettyPrinter.
+   * Debug print this proof on debug trace c with tabulation tb.
    */
-  void debug_print(const char* c,
-                   unsigned tb = 0,
-                   PrettyPrinter* prettyPrinter = nullptr) const;
+  void debug_print(const char* c, unsigned tb = 0) const;
   /**
-   * Debug print this proof on output stream os with tabulation tb and pretty
-   * printer prettyPrinter.
+   * Debug print this proof on output stream os with tabulation tb.
    */
-  void debug_print(std::ostream& os,
-                   unsigned tb = 0,
-                   PrettyPrinter* prettyPrinter = nullptr) const;
+  void debug_print(std::ostream& os, unsigned tb = 0) const;
 
   /** Add to proof
    *

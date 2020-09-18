@@ -17,8 +17,8 @@
 #ifndef CVC4__THEORY__SETS__INFERENCE_MANAGER_H
 #define CVC4__THEORY__SETS__INFERENCE_MANAGER_H
 
+#include "theory/inference_manager_buffered.h"
 #include "theory/sets/solver_state.h"
-#include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -33,22 +33,12 @@ class TheorySetsPrivate;
  * of theory of sets or internally as literals asserted to the equality engine
  * of theory of sets. The latter literals are referred to as "facts".
  */
-class InferenceManager
+class InferenceManager : public InferenceManagerBuffered
 {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  InferenceManager(TheorySetsPrivate& p,
-                   SolverState& s,
-                   context::Context* c,
-                   context::UserContext* u);
-  /** reset
-   *
-   * Called at the beginning of a full effort check. Resets the information
-   * related to this class regarding whether facts and lemmas have been
-   * processed.
-   */
-  void reset();
+  InferenceManager(Theory& t, SolverState& s, ProofNodeManager* pnm);
   /**
    * Add facts corresponding to ( exp => fact ) via calls to the assertFact
    * method of TheorySetsPrivate.
@@ -80,71 +70,23 @@ class InferenceManager
                        const char* c,
                        int inferType = 0);
 
-  /** Flush lemmas
-   *
-   * This sends lemmas on the output channel of the theory of sets.
-   *
-   * The argument preprocess indicates whether preprocessing should be applied
-   * (by TheoryEngine) on each of lemmas.
-   */
-  void flushLemmas(std::vector<Node>& lemmas, bool preprocess = false);
-  /** singular version of above */
-  void flushLemma(Node lem, bool preprocess = false);
-  /** Do we have pending lemmas? */
-  bool hasPendingLemmas() const { return !d_pendingLemmas.empty(); }
-  /** Applies flushLemmas on d_pendingLemmas */
-  void flushPendingLemmas(bool preprocess = false);
   /** flush the splitting lemma ( n OR (NOT n) )
    *
    * If reqPol is not 0, then a phase requirement for n is requested with
    * polarity ( reqPol>0 ).
    */
   void split(Node n, int reqPol = 0);
-  /** Have we sent a lemma during the current call to a full effort check? */
-  bool hasSentLemma() const;
-  /** Have we added a fact during the current call to a full effort check? */
-  bool hasAddedFact() const;
-  /** Have we processed an inference (fact, lemma, or conflict)? */
-  bool hasProcessed() const;
-  /** Have we sent lem as a lemma in the current user context? */
-  bool hasLemmaCached(Node lem) const;
-
-  /** 
-   * Send conflict.
-   * @param conf The conflict node to be sent on the output channel
-   */
-  void conflict(Node conf);
 
  private:
   /** constants */
   Node d_true;
   Node d_false;
-  /** the theory of sets which owns this */
-  TheorySetsPrivate& d_parent;
-  /** Reference to the state object for the theory of sets */
-  SolverState& d_state;
-  /** pending lemmas */
-  std::vector<Node> d_pendingLemmas;
-  /** sent lemma
-   *
-   * This flag is set to true during a full effort check if this theory
-   * called d_out->lemma(...).
-   */
-  bool d_sentLemma;
-  /** added fact
-   *
-   * This flag is set to true during a full effort check if this theory
-   * added an internal fact to its equality engine.
-   */
-  bool d_addedFact;
-  /** A user-context-dependent cache of all lemmas produced */
-  NodeSet d_lemmas_produced;
   /**
-   * A set of nodes to ref-count. Nodes that are facts or are explanations of
-   * facts must be added to this set since the equality engine does not
-   * ref count nodes.
+   * Reference to the state object for the theory of sets. We store the
+   * (derived) state here, since it has additional methods required in this
+   * class.
    */
-  NodeSet d_keep;
+  SolverState& d_state;
   /** Assert fact recursive
    *
    * This is a helper function for assertInference, which calls assertFact

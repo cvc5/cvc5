@@ -24,6 +24,9 @@
 #include "util/result.h"
 
 namespace CVC4 {
+
+class OutputManager;
+
 namespace smt {
 
 class Preprocessor;
@@ -41,7 +44,10 @@ class SmtSolver;
 class SygusSolver
 {
  public:
-  SygusSolver(SmtSolver& sms, Preprocessor& pp, context::UserContext* u);
+  SygusSolver(SmtSolver& sms,
+              Preprocessor& pp,
+              context::UserContext* u,
+              OutputManager& outMgr);
   ~SygusSolver();
 
   /**
@@ -116,7 +122,7 @@ class SygusSolver
   /**
    * Get synth solution.
    *
-   * This method returns true if we are in a state immediately preceeded by
+   * This method returns true if we are in a state immediately preceded by
    * a successful call to checkSynth.
    *
    * This method adds entries to sol_map that map functions-to-synthesize with
@@ -174,6 +180,8 @@ class SygusSolver
    * Whether we need to reconstruct the sygus conjecture.
    */
   context::CDO<bool> d_sygusConjectureStale;
+  /** Reference to the output manager of the smt engine */
+  OutputManager& d_outMgr;
 };
 
 }  // namespace smt

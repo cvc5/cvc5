@@ -16,38 +16,26 @@
 #include "theory/uf/eq_proof.h"
 
 #include "expr/proof.h"
+#include "options/uf_options.h"
 
 namespace CVC4 {
 namespace theory {
 namespace eq {
 
-void EqProof::debug_print(const char* c,
-                          unsigned tb,
-                          PrettyPrinter* prettyPrinter) const
+void EqProof::debug_print(const char* c, unsigned tb) const
 {
   std::stringstream ss;
-  debug_print(ss, tb, prettyPrinter);
+  debug_print(ss, tb);
   Debug(c) << ss.str();
 }
 
-void EqProof::debug_print(std::ostream& os,
-                          unsigned tb,
-                          PrettyPrinter* prettyPrinter) const
+void EqProof::debug_print(std::ostream& os, unsigned tb) const
 {
   for (unsigned i = 0; i < tb; i++)
   {
     os << "  ";
   }
-
-  if (prettyPrinter)
-  {
-    os << prettyPrinter->printTag(d_id);
-  }
-  else
-  {
-    os << static_cast<MergeReasonType>(d_id);
-  }
-  os << "(";
+  os << d_id << "(";
   if (d_children.empty() && d_node.isNull())
   {
     os << ")";
@@ -66,7 +54,7 @@ void EqProof::debug_print(std::ostream& os,
   for (unsigned i = 0; i < size; ++i)
   {
     os << std::endl;
-    d_children[i]->debug_print(os, tb + 1, prettyPrinter);
+    d_children[i]->debug_print(os, tb + 1);
     if (i < size - 1)
     {
       for (unsigned j = 0; j < tb + 1; ++j)
@@ -713,9 +701,10 @@ void EqProof::reduceNestedCongruence(
         << transitivityMatrix[i].back() << "\n";
     // if i == 0, first child must be REFL step, standing for (= f f), which can
     // be ignored in a first-order calculus
-    Assert(i > 0 || d_children[0]->d_id == MERGED_THROUGH_REFLEXIVITY);
+    Assert(i > 0 || d_children[0]->d_id == MERGED_THROUGH_REFLEXIVITY
+           || options::ufHo());
     // recurse
-    if (i > 0)
+    if (i > 1)
     {
       Trace("eqproof-conv")
           << "EqProof::reduceNestedCongruence: Reduce first child\n"
@@ -729,9 +718,21 @@ void EqProof::reduceNestedCongruence(
                                             isNary);
       Trace("eqproof-conv") << pop;
     }
+    // higher-order case
+    else if (d_children[0]->d_id != MERGED_THROUGH_REFLEXIVITY)
+    {
+      Trace("eqproof-conv") << "EqProof::reduceNestedCongruence: HO case. "
+                               "Processing first child\n";
+      // we only handle these cases
+      Assert(d_children[0]->d_id == MERGED_THROUGH_EQUALITY
+             || d_children[0]->d_id == MERGED_THROUGH_TRANS);
+      transitivityMatrix[0].push_back(
+          d_children[0]->addToProof(p, visited, assumptions));
+    }
     return;
   }
-  Assert(d_id == MERGED_THROUGH_TRANS);
+  Assert(d_id == MERGED_THROUGH_TRANS)
+      << "id is " << static_cast<MergeReasonType>(d_id) << "\n";
   Trace("eqproof-conv") << "EqProof::reduceNestedCongruence: it's a "
                            "transitivity step.\n";
   Assert(d_node.isNull()
@@ -850,8 +851,7 @@ Node EqProof::addToProof(
                           << ", returning " << it->second << "\n";
     return it->second;
   }
-  Trace("eqproof-conv") << "EqProof::addToProof: adding step for "
-                        << static_cast<MergeReasonType>(d_id)
+  Trace("eqproof-conv") << "EqProof::addToProof: adding step for " << d_id
                         << " with conclusion " << d_node << "\n";
   // Assumption
   if (d_id == MERGED_THROUGH_EQUALITY)
@@ -976,12 +976,10 @@ Node EqProof::addToProof(
   {
     Assert(!d_node.isNull() && d_node.getKind() == kind::EQUAL
            && d_node[1].isConst())
-        << ". Conclusion " << d_node << " from "
-        << static_cast<MergeReasonType>(d_id)
+        << ". Conclusion " << d_node << " from " << d_id
         << " was expected to be (= (f t1 ... tn) c)\n";
     Assert(!assumptions.count(d_node))
-        << "Conclusion " << d_node << " from "
-        << static_cast<MergeReasonType>(d_id) << " is an assumption\n";
+        << "Conclusion " << d_node << " from " << d_id << " is an assumption\n";
     // The step has the form
     //  [(= t1 c1)] ... [(= tn cn)]
     //  ------------------------
@@ -1202,23 +1200,24 @@ Node EqProof::addToProof(
   // example).
   if (d_node[0].getNumChildren() != d_node[1].getNumChildren())
   {
-    Assert(isNary);
+    Assert(isNary) << "We only handle congruences of apps with different "
+                      "number of children for theory n-ary operators";
     arity =
         d_node[1].getNumChildren() < arity ? arity : d_node[1].getNumChildren();
     Trace("eqproof-conv")
         << "EqProof::addToProof: Mismatching arities in cong conclusion "
         << d_node << ". Use tentative arity " << arity << "\n";
   }
-  // For a congruence proof of (= (f a0 ... an-1) (f b0 ... bn-1)), build a
-  // transitivity matrix where each row contains a transitivity chain justifying
-  // (= ai bi)
+  // For a congruence proof of (= (f a0 ... an-1) (g b0 ... bn-1)), build a
+  // transitivity matrix of n rows where the first row contains a transitivity
+  // chain justifying (= f g) and the next rows (= ai bi)
   std::vector<std::vector<Node>> transitivityChildren;
-  for (unsigned i = 0; i < arity; ++i)
+  for (unsigned i = 0; i < arity + 1; ++i)
   {
     transitivityChildren.push_back(std::vector<Node>());
   }
   reduceNestedCongruence(
-      arity - 1, d_node, transitivityChildren, p, visited, assumptions, isNary);
+      arity, d_node, transitivityChildren, p, visited, assumptions, isNary);
   // Congruences over n-ary operators may require changing the conclusion (as in
   // the above example). This is handled in a general manner below according to
   // whether the transitivity matrix computed by reduceNestedCongruence contains
@@ -1228,7 +1227,7 @@ Node EqProof::addToProof(
   if (isNary)
   {
     unsigned emptyRows = 0;
-    for (unsigned i = 0; i < arity; ++i)
+    for (unsigned i = 1; i <= arity; ++i)
     {
       if (transitivityChildren[i].empty())
       {
@@ -1248,7 +1247,11 @@ Node EqProof::addToProof(
     //  n - k1 == m - k2
     // Note that by construction the equality between the first emptyRows + 1
     // arguments of each application is justified by the transitivity step in
-    // the row emptyRows +1 in the matrix.
+    // the row emptyRows + 1 in the matrix.
+    //
+    // All of the above is with the very first row in the matrix, reserved for
+    // justifying the equality between the functions, which is not necessary in
+    // the n-ary case, notwithstanding.
     if (emptyRows > 0)
     {
       Trace("eqproof-conv")
@@ -1258,9 +1261,11 @@ Node EqProof::addToProof(
       // beginning are eliminated, as the new arity is the maximal arity among
       // the applications minus the number of empty rows.
       std::vector<std::vector<Node>> newTransitivityChildren{
-          transitivityChildren.begin() + emptyRows, transitivityChildren.end()};
+          transitivityChildren.begin() + 1 + emptyRows,
+          transitivityChildren.end()};
       transitivityChildren.clear();
-      transitivityChildren.insert(transitivityChildren.begin(),
+      transitivityChildren.push_back(std::vector<Node>());
+      transitivityChildren.insert(transitivityChildren.end(),
                                   newTransitivityChildren.begin(),
                                   newTransitivityChildren.end());
       unsigned arityPrefix1 =
@@ -1309,27 +1314,40 @@ Node EqProof::addToProof(
     Trace("eqproof-conv")
         << "EqProof::addToProof: premises from reduced cong of " << conclusion
         << ":\n";
-    for (unsigned i = 0; i < arity; ++i)
+    for (unsigned i = 0; i <= arity; ++i)
     {
       Trace("eqproof-conv") << "EqProof::addToProof:\t" << i
                             << "-th arg: " << transitivityChildren[i] << "\n";
     }
   }
+  std::vector<Node> children(arity + 1);
+  // Check if there is a justification for equality between functions (HO case)
+  if (!transitivityChildren[0].empty())
+  {
+    Assert(k == kind::APPLY_UF) << "Congruence with different functions only "
+                                   "allowed for uninterpreted functions.\n";
+
+    children[0] =
+        conclusion[0].getOperator().eqNode(conclusion[1].getOperator());
+    Assert(transitivityChildren[0].size() == 1
+           && CDProof::isSame(children[0], transitivityChildren[0][0]))
+        << "Justification of operators equality is wrong: "
+        << transitivityChildren[0] << "\n";
+  }
   // Proccess transitivity matrix to (possibly) generate transitivity steps for
   // congruence premises (= ai bi)
-  std::vector<Node> children(arity);
-  for (unsigned i = 0; i < arity; ++i)
+  for (unsigned i = 1; i <= arity; ++i)
   {
-    Node transConclusion = conclusion[0][i].eqNode(conclusion[1][i]);
+    Node transConclusion = conclusion[0][i - 1].eqNode(conclusion[1][i - 1]);
     children[i] = transConclusion;
     Assert(!transitivityChildren[i].empty())
         << "EqProof::addToProof: did not add any justification for " << i
         << "-th arg of congruence " << conclusion << "\n";
     // If the transitivity conclusion is a reflexivity step, just add it. Note
-    // that this can happen with with transitivityChildren containing several
-    // equalities in the case of (= ai bi) being the same n-ary application that
-    // was justified by a congruence step, which can happen in the current
-    // equality engine
+    // that this can happen even with the respective transitivityChildren row
+    // containing several equalities in the case of (= ai bi) being the same
+    // n-ary application that was justified by a congruence step, which can
+    // happen in the current equality engine.
     if (transConclusion[0] == transConclusion[1])
     {
       p->addStep(transConclusion, PfRule::REFL, {}, {transConclusion[0]});
@@ -1371,18 +1389,34 @@ Node EqProof::addToProof(
           transConclusion, PfRule::TRANS, transitivityChildren[i], {}, true);
     }
   }
-  // Get node of the function operator over which congruence is being applied.
-  std::vector<Node> args;
-  args.push_back(ProofRuleChecker::mkKindNode(k));
-  if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
+  // first-order case
+  if (children[0].isNull())
   {
-    args.push_back(conclusion[0].getOperator());
+    // remove placehold for function equality case
+    children.erase(children.begin());
+    // Get node of the function operator over which congruence is being
+    // applied.
+    std::vector<Node> args;
+    args.push_back(ProofRuleChecker::mkKindNode(k));
+    if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
+    {
+      args.push_back(conclusion[0].getOperator());
+    }
+    // Add congruence step
+    Trace("eqproof-conv") << "EqProof::addToProof: build cong step of "
+                          << conclusion << " with op " << args[0]
+                          << " and children " << children << "\n";
+    p->addStep(conclusion, PfRule::CONG, children, args, true);
   }
-  // Add congruence step
-  Trace("eqproof-conv") << "EqProof::addToProof: build cong step of "
-                        << conclusion << " with op " << args[0]
-                        << " and children " << children << "\n";
-  p->addStep(conclusion, PfRule::CONG, children, args, true);
+  // higher-order case
+  else
+  {
+    // Add congruence step
+    Trace("eqproof-conv") << "EqProof::addToProof: build HO-cong step of "
+                          << conclusion << " with children " << children
+                          << "\n";
+    p->addStep(conclusion, PfRule::HO_CONG, children, {}, true);
+  }
   // If the conclusion of the congruence step changed due to the n-ary handling,
   // we obtained for example (= (f (f t1 t2 t3) t4) (f (f t5 t6) t7)), which is
   // flattened into the original conclusion (= (f t1 t2 t3 t4) (f t5 t6 t7)) via

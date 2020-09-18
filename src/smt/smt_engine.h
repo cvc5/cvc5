@@ -31,10 +31,10 @@
 #include "options/options.h"
 #include "proof/unsat_core.h"
 #include "smt/logic_exception.h"
+#include "smt/output_manager.h"
 #include "smt/smt_mode.h"
 #include "theory/logic_info.h"
 #include "util/hash.h"
-#include "util/proof.h"
 #include "util/result.h"
 #include "util/sexpr.h"
 #include "util/statistics.h"
@@ -63,6 +63,8 @@ class ProofManager;
 class Model;
 class LogicRequest;
 class StatisticsRegistry;
+
+class Printer;
 
 /* -------------------------------------------------------------------------- */
 
@@ -106,6 +108,7 @@ class Preprocessor;
 class SmtSolver;
 class SygusSolver;
 class AbductionSolver;
+class InterpolationSolver;
 class QuantElimSolver;
 /**
  * Representation of a defined function.  We keep these around in
@@ -118,6 +121,7 @@ class DefinedFunction;
 struct SmtEngineStatistics;
 class SmtScope;
 class ProcessAssertions;
+class PfManager;
 
 ProofManager* currentProofManager();
 }/* CVC4::smt namespace */
@@ -128,6 +132,8 @@ namespace theory {
   class TheoryModel;
   class Rewriter;
 }/* CVC4::theory namespace */
+
+std::vector<Node> exprVectorToNodes(const std::vector<Expr>& exprs);
 
 // TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
 // hood): use a type parameter and have check() delegate, or subclass
@@ -544,16 +550,6 @@ class CVC4_PUBLIC SmtEngine
    */
   std::vector<std::pair<Expr, Expr> > getAssignment();
 
-  /**
-   * Get the last proof (only if immediately preceded by an UNSAT or ENTAILED
-   * query).  Only permitted if CVC4 was built with proof support and
-   * produce-proofs is on.
-   *
-   * The Proof object is owned by this SmtEngine until the SmtEngine is
-   * destroyed.
-   */
-  const Proof& getProof();
-
   /** Print all instantiations made by the quantifiers module.  */
   void printInstantiations(std::ostream& out);
 
@@ -566,7 +562,7 @@ class CVC4_PUBLIC SmtEngine
   /**
    * Get synth solution.
    *
-   * This method returns true if we are in a state immediately preceeded by
+   * This method returns true if we are in a state immediately preceded by
    * a successful call to checkSynth.
    *
    * This method adds entries to solMap that map functions-to-synthesize with
@@ -871,6 +867,15 @@ class CVC4_PUBLIC SmtEngine
   /** Permit access to the underlying dump manager. */
   smt::DumpManager* getDumpManager();
 
+  /** Get the printer used by this SMT engine */
+  const Printer* getPrinter() const;
+
+  /** Get the output manager for this SMT engine */
+  OutputManager& getOutputManager();
+
+  /** Get a pointer to the Rewriter owned by this SmtEngine. */
+  theory::Rewriter* getRewriter() { return d_rewriter.get(); }
+
   /**
    * Get expanded assertions.
    *
@@ -908,22 +913,17 @@ class CVC4_PUBLIC SmtEngine
   /** Get a pointer to the PropEngine owned by this SmtEngine. */
   prop::PropEngine* getPropEngine();
 
-  /** Get a pointer to the ProofManager owned by this SmtEngine. */
+  /**
+   * Get a pointer to the ProofManager owned by this SmtEngine.
+   * TODO (project #37): this is the old proof manager and will be deleted
+   */
   ProofManager* getProofManager() { return d_proofManager.get(); };
-
-  /** Get a pointer to the Rewriter owned by this SmtEngine. */
-  theory::Rewriter* getRewriter() { return d_rewriter.get(); }
 
   /** Get a pointer to the StatisticsRegistry owned by this SmtEngine. */
   StatisticsRegistry* getStatisticsRegistry()
   {
     return d_statisticsRegistry.get();
   };
-
-  /**
-   * Check that a generated proof (via getProof()) checks.
-   */
-  void checkProof();
 
   /**
    * Internal method to get an unsatisfiable core (only if immediately preceded
@@ -1088,8 +1088,14 @@ class CVC4_PUBLIC SmtEngine
   /** The SMT solver */
   std::unique_ptr<smt::SmtSolver> d_smtSolver;
 
-  /** The proof manager */
+  /** The (old) proof manager TODO (project #37): delete this */
   std::unique_ptr<ProofManager> d_proofManager;
+
+  /**
+   * The proof manager, which manages all things related to checking,
+   * processing, and printing proofs.
+   */
+  std::unique_ptr<smt::PfManager> d_pfManager;
 
   /**
    * The rewriter associated with this SmtEngine. We have a different instance
@@ -1107,6 +1113,8 @@ class CVC4_PUBLIC SmtEngine
 
   /** The solver for abduction queries */
   std::unique_ptr<smt::AbductionSolver> d_abductSolver;
+  /** The solver for interpolation queries */
+  std::unique_ptr<smt::InterpolationSolver> d_interpolSolver;
   /** The solver for quantifier elimination queries */
   std::unique_ptr<smt::QuantElimSolver> d_quantElimSolver;
   /**
@@ -1142,6 +1150,10 @@ class CVC4_PUBLIC SmtEngine
 
   /** The options object */
   Options d_options;
+
+  /** the output manager for commands */
+  mutable OutputManager d_outMgr;
+
   /**
    * Manager for limiting time and abstract resource usage.
    */

@@ -43,24 +43,8 @@ namespace CVC4 {
 namespace theory {
 namespace eq {
 
-
-class EqProof;
 class EqClassesIterator;
 class EqClassIterator;
-
-/**
- * An interface for equality engine notifications during equality path reconstruction.
- * Can be used to add theory-specific logic for, e.g., proof construction.
- */
-class PathReconstructionNotify {
-public:
-
-  virtual ~PathReconstructionNotify() {}
-
-  virtual void notify(unsigned reasonType, Node reason, Node a, Node b,
-                      std::vector<TNode>& equalities,
-                      EqProof* proof) const = 0;
-};
 
 /**
  * Class for keeping an incremental congruence closure over a set of terms. It provides
@@ -152,9 +136,6 @@ private:
   /** The map of kinds with operators to be considered external (for higher-order) */
   KindMap d_congruenceKindsExtOperators;
 
-  /** Objects that need to be notified during equality path reconstruction */
-  std::map<unsigned, const PathReconstructionNotify*> d_pathReconstructionTriggers;
-
   /** Map from nodes to their ids */
   std::unordered_map<TNode, EqualityNodeId, TNodeHashFunction> d_nodeIds;
 
@@ -195,9 +176,6 @@ private:
 
   /** Memory for the use-list nodes */
   std::vector<UseListNode> d_useListNodes;
-
-  /** A fresh merge reason type to return upon request */
-  unsigned d_freshMergeReasonType;
 
   /**
    * We keep a list of asserted equalities. Not among original terms, but
@@ -860,16 +838,6 @@ private:
    * Returns true if the engine is in a consistent state.
    */
   bool consistent() const { return !d_done; }
-
-  /**
-   * Marks an object for merge type based notification during equality path reconstruction.
-   */
-  void addPathReconstructionTrigger(unsigned trigger, const PathReconstructionNotify* notify);
-
-  /**
-   * Returns a fresh merge reason type tag for the client to use.
-   */
-  unsigned getFreshMergeReasonType();
 
   /** Identify this equality engine (for debugging, etc..) */
   std::string identify() const;
