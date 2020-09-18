@@ -463,7 +463,8 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
             // (= (str.++ "A" x y) (str.++ x "AB" z)) --->
             //   (and (= (str.++ "A" x) (str.++ x "A")) (= y (str.++ "B" z)))
             std::vector<Node> rpfxv1;
-            if (StringsEntail::stripSymbolicLength(pfxv1, rpfxv1, 1, lenPfx0))
+            if (StringsEntail::stripSymbolicLength(
+                    pfxv1, rpfxv1, 1, lenPfx0, true))
             {
               std::vector<Node> sfxv0(v0.begin() + i, v0.end());
               pfxv1.insert(pfxv1.end(), v1.begin() + j, v1.end());
@@ -490,7 +491,8 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
             // (= (str.++ x "AB" z) (str.++ "A" x y)) --->
             //   (and (= (str.++ x "A") (str.++ "A" x)) (= (str.++ "B" z) y))
             std::vector<Node> rpfxv0;
-            if (StringsEntail::stripSymbolicLength(pfxv0, rpfxv0, 1, lenPfx1))
+            if (StringsEntail::stripSymbolicLength(
+                    pfxv0, rpfxv0, 1, lenPfx1, true))
             {
               pfxv0.insert(pfxv0.end(), v0.begin() + i, v0.end());
               std::vector<Node> sfxv1(v1.begin() + j, v1.end());
