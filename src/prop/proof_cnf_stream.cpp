@@ -23,12 +23,10 @@ namespace prop {
 
 ProofCnfStream::ProofCnfStream(context::UserContext* u,
                                CnfStream& cnfStream,
-                               ProofNodeManager* pnm,
-                               bool pfEnabled)
+                               ProofNodeManager* pnm)
     : d_cnfStream(cnfStream),
       d_pnm(pnm),
-      d_proof(pnm, nullptr, u, "ProofCnfStream::LazyCDProof"),
-      d_pfEnabled(pfEnabled)
+      d_proof(pnm, nullptr, u, "ProofCnfStream::LazyCDProof")
 {
 }
 
@@ -53,7 +51,7 @@ void ProofCnfStream::convertAndAssert(TNode node,
                << ", removable = " << (removable ? "true" : "false")
                << ", negated = " << (negated ? "true" : "false") << ")\n";
   d_removable = removable;
-  if (d_pfEnabled && pg)
+  if (pg)
   {
     Node toJustify = negated ? node.notNode() : static_cast<Node>(node);
     d_proof.addLazyStep(
@@ -61,15 +59,12 @@ void ProofCnfStream::convertAndAssert(TNode node,
   }
   convertAndAssert(node, negated);
   // process saved steps in buffer
-  if (d_pfEnabled)
+  const std::vector<std::pair<Node, ProofStep>>& steps = d_psb.getSteps();
+  for (const std::pair<Node, ProofStep>& step : steps)
   {
-    const std::vector<std::pair<Node, ProofStep>>& steps = d_psb.getSteps();
-    for (const std::pair<Node, ProofStep>& step : steps)
-    {
-      d_proof.addStep(step.first, step.second);
-    }
-    d_psb.clear();
+    d_proof.addStep(step.first, step.second);
   }
+  d_psb.clear();
 }
 
 void ProofCnfStream::convertAndAssert(TNode node, bool negated)
@@ -86,7 +81,7 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
     case kind::NOT:
     {
       // track double negation elimination
-      if (d_pfEnabled && negated)
+      if (negated)
       {
         d_proof.addStep(node[0],
                         PfRule::MACRO_SR_PRED_TRANSFORM,
@@ -110,13 +105,13 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
       // Atoms
       SatLiteral lit = toCNF(node, negated);
       bool added = d_cnfStream.assertClause(nnode, lit);
-      if (d_pfEnabled && negated && added && nnode != node.notNode())
+      if (negated && added && nnode != node.notNode())
       {
         d_proof.addStep(
             nnode, PfRule::MACRO_SR_PRED_TRANSFORM, {node.notNode()}, {nnode});
       }
       // if we are eagerly checking proofs, track sat solver assumptions
-      if (d_pfEnabled && added && options::proofNewEagerChecking())
+      if (added && options::proofNewEagerChecking())
       {
         MinisatSatSolver* minisat =
             static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
@@ -137,12 +132,9 @@ void ProofCnfStream::convertAndAssertAnd(TNode node, bool negated)
     NodeManager* nm = NodeManager::currentNM();
     for (unsigned i = 0, size = node.getNumChildren(); i < size; ++i)
     {
-      if (d_pfEnabled)
-      {
-        // Create a proof step for each n_i
-        Node iNode = nm->mkConst<Rational>(i);
-        d_proof.addStep(node[i], PfRule::AND_ELIM, {node}, {iNode});
-      }
+      // Create a proof step for each n_i
+      Node iNode = nm->mkConst<Rational>(i);
+      d_proof.addStep(node[i], PfRule::AND_ELIM, {node}, {iNode});
       convertAndAssert(node[i], false);
     }
   }
@@ -157,7 +149,7 @@ void ProofCnfStream::convertAndAssertAnd(TNode node, bool negated)
     }
     bool added = d_cnfStream.assertClause(node.negate(), clause);
     // register proof step
-    if (d_pfEnabled && added)
+    if (added)
     {
       std::vector<Node> disjuncts;
       for (i = 0; i < size; ++i)
@@ -211,13 +203,10 @@ void ProofCnfStream::convertAndAssertOr(TNode node, bool negated)
     NodeManager* nm = NodeManager::currentNM();
     for (unsigned i = 0, size = node.getNumChildren(); i < size; ++i)
     {
-      if (d_pfEnabled)
-      {
-        // Create a proof step for each (not n_i)
-        Node iNode = nm->mkConst<Rational>(i);
-        d_proof.addStep(
-            node[i].notNode(), PfRule::NOT_OR_ELIM, {node.notNode()}, {iNode});
-      }
+      // Create a proof step for each (not n_i)
+      Node iNode = nm->mkConst<Rational>(i);
+      d_proof.addStep(
+          node[i].notNode(), PfRule::NOT_OR_ELIM, {node.notNode()}, {iNode});
       convertAndAssert(node[i], true);
     }
   }
@@ -239,7 +228,7 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
     clause1[0] = ~p;
     clause1[1] = ~q;
     added = d_cnfStream.assertClause(node, clause1);
-    if (d_pfEnabled && added)
+    if (added)
     {
       Node clauseNode =
           nm->mkNode(kind::OR, node[0].notNode(), node[1].notNode());
@@ -258,7 +247,7 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
     clause2[0] = p;
     clause2[1] = q;
     added = d_cnfStream.assertClause(node, clause2);
-    if (d_pfEnabled && added)
+    if (added)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0], node[1]);
       d_proof.addStep(clauseNode, PfRule::XOR_ELIM1, {node}, {});
@@ -284,7 +273,7 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
     clause1[0] = ~p;
     clause1[1] = q;
     added = d_cnfStream.assertClause(node.negate(), clause1);
-    if (d_pfEnabled && added)
+    if (added)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0].notNode(), node[1]);
       d_proof.addStep(clauseNode, PfRule::NOT_XOR_ELIM2, {node.notNode()}, {});
@@ -302,7 +291,7 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
     clause2[0] = p;
     clause2[1] = ~q;
     added = d_cnfStream.assertClause(node.negate(), clause2);
-    if (d_pfEnabled && added)
+    if (added)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0], node[1].notNode());
       d_proof.addStep(clauseNode, PfRule::NOT_XOR_ELIM1, {node.notNode()}, {});
@@ -336,7 +325,7 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
     clause1[0] = ~p;
     clause1[1] = q;
     added = d_cnfStream.assertClause(node, clause1);
-    if (d_pfEnabled && added)
+    if (added)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0].notNode(), node[1]);
       d_proof.addStep(clauseNode, PfRule::EQUIV_ELIM1, {node}, {});
@@ -354,7 +343,7 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
     clause2[0] = p;
     clause2[1] = ~q;
     added = d_cnfStream.assertClause(node, clause2);
-    if (d_pfEnabled && added)
+    if (added)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0], node[1].notNode());
       d_proof.addStep(clauseNode, PfRule::EQUIV_ELIM2, {node}, {});
@@ -382,7 +371,7 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
     clause1[0] = ~p;
     clause1[1] = ~q;
     added = d_cnfStream.assertClause(node.negate(), clause1);
-    if (d_pfEnabled && added)
+    if (added)
     {
       Node clauseNode =
           nm->mkNode(kind::OR, node[0].notNode(), node[1].notNode());
@@ -405,7 +394,7 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
     clause2[0] = p;
     clause2[1] = q;
     added = d_cnfStream.assertClause(node.negate(), clause2);
-    if (d_pfEnabled && added)
+    if (added)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0], node[1]);
       d_proof.addStep(
@@ -437,7 +426,7 @@ void ProofCnfStream::convertAndAssertImplies(TNode node, bool negated)
     clause[0] = ~p;
     clause[1] = q;
     bool added = d_cnfStream.assertClause(node, clause);
-    if (d_pfEnabled && added)
+    if (added)
     {
       Node clauseNode = NodeManager::currentNM()->mkNode(
           kind::OR, node[0].notNode(), node[1]);
@@ -457,17 +446,11 @@ void ProofCnfStream::convertAndAssertImplies(TNode node, bool negated)
     // ~(p => q) is the same as p ^ ~q
     // process p
     convertAndAssert(node[0], false);
-    if (d_pfEnabled)
-    {
       d_proof.addStep(node[0], PfRule::NOT_IMPLIES_ELIM1, {node.notNode()}, {});
-    }
     // process ~q
     convertAndAssert(node[1], true);
-    if (d_pfEnabled)
-    {
       d_proof.addStep(
           node[1].notNode(), PfRule::NOT_IMPLIES_ELIM2, {node.notNode()}, {});
-    }
   }
 }
 
@@ -490,7 +473,7 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
   clause1[0] = ~p;
   clause1[1] = q;
   added = d_cnfStream.assertClause(nnode, clause1);
-  if (d_pfEnabled && added)
+  if (added)
   {
     // redo the negation here to avoid silent double negation elimination
     if (!negated)
@@ -526,7 +509,7 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
   clause2[0] = p;
   clause2[1] = r;
   added = d_cnfStream.assertClause(nnode, clause2);
-  if (d_pfEnabled && added)
+  if (added)
   {
     // redo the negation here to avoid silent double negation elimination
     if (!negated)
@@ -560,7 +543,6 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
 
 void ProofCnfStream::convertPropagation(theory::TrustNode trn)
 {
-  Assert(d_pfEnabled);
   Node proven = trn.getProven();
   Trace("cnf") << "ProofCnfStream::convertPropagation: proven explanation"
                << proven << "\n";
@@ -733,7 +715,7 @@ SatLiteral ProofCnfStream::handleAnd(TNode node)
     Trace("cnf") << push;
     added = d_cnfStream.assertClause(node.negate(), ~lit, ~clause[i]);
     Trace("cnf") << pop;
-    if (d_pfEnabled && added)
+    if (added)
     {
       Node clauseNode = nm->mkNode(kind::OR, node.notNode(), node[i]);
       Node iNode = nm->mkConst<Rational>(i);
@@ -758,7 +740,7 @@ SatLiteral ProofCnfStream::handleAnd(TNode node)
   Trace("cnf") << push;
   added = d_cnfStream.assertClause(node, clause);
   Trace("cnf") << pop;
-  if (d_pfEnabled && added)
+  if (added)
   {
     std::vector<Node> disjuncts{node};
     for (unsigned i = 0; i < size; ++i)
@@ -805,7 +787,7 @@ SatLiteral ProofCnfStream::handleOr(TNode node)
   for (unsigned i = 0; i < size; ++i)
   {
     added = d_cnfStream.assertClause(node, lit, ~clause[i]);
-    if (d_pfEnabled && added)
+    if (added)
     {
       Node clauseNode = nm->mkNode(kind::OR, node, node[i].notNode());
       Node iNode = nm->mkConst<Rational>(i);
@@ -825,7 +807,7 @@ SatLiteral ProofCnfStream::handleOr(TNode node)
   clause[size] = ~lit;
   // This needs to go last, as the clause might get modified by the SAT solver
   added = d_cnfStream.assertClause(node.negate(), clause);
-  if (d_pfEnabled && added)
+  if (added)
   {
     std::vector<Node> disjuncts{node.notNode()};
     for (unsigned i = 0; i < size; ++i)
@@ -857,7 +839,7 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
   SatLiteral lit = d_cnfStream.newLiteral(node);
   bool added;
   added = d_cnfStream.assertClause(node.negate(), a, b, ~lit);
-  if (d_pfEnabled && added)
+  if (added)
   {
     Node clauseNode = NodeManager::currentNM()->mkNode(
         kind::OR, node.notNode(), node[0], node[1]);
@@ -872,7 +854,7 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
     }
   }
   added = d_cnfStream.assertClause(node.negate(), ~a, ~b, ~lit);
-  if (d_pfEnabled && added)
+  if (added)
   {
     Node clauseNode = NodeManager::currentNM()->mkNode(
         kind::OR, node.notNode(), node[0].notNode(), node[1].notNode());
@@ -887,7 +869,7 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
     }
   }
   added = d_cnfStream.assertClause(node, a, ~b, lit);
-  if (d_pfEnabled && added)
+  if (added)
   {
     Node clauseNode = NodeManager::currentNM()->mkNode(
         kind::OR, node, node[0], node[1].notNode());
@@ -902,7 +884,7 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
     }
   }
   added = d_cnfStream.assertClause(node, ~a, b, lit);
-  if (d_pfEnabled && added)
+  if (added)
   {
     Node clauseNode = NodeManager::currentNM()->mkNode(
         kind::OR, node, node[0].notNode(), node[1]);
@@ -936,7 +918,7 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
   // ~lit | ((~a | b) & (~b | a))
   // (~a | b | ~lit) & (~b | a | ~lit)
   added = d_cnfStream.assertClause(node.negate(), ~a, b, ~lit);
-  if (d_pfEnabled && added)
+  if (added)
   {
     Node clauseNode =
         nm->mkNode(kind::OR, node.notNode(), node[0].notNode(), node[1]);
@@ -951,7 +933,7 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
     }
   }
   added = d_cnfStream.assertClause(node.negate(), a, ~b, ~lit);
-  if (d_pfEnabled && added)
+  if (added)
   {
     Node clauseNode =
         nm->mkNode(kind::OR, node.notNode(), node[0], node[1].notNode());
@@ -971,7 +953,7 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
   // ((~a | ~b) & (a | b)) | lit
   // (~a | ~b | lit) & (a | b | lit)
   added = d_cnfStream.assertClause(node, ~a, ~b, lit);
-  if (d_pfEnabled && added)
+  if (added)
   {
     Node clauseNode =
         nm->mkNode(kind::OR, node, node[0].notNode(), node[1].notNode());
@@ -986,7 +968,7 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
     }
   }
   added = d_cnfStream.assertClause(node, a, b, lit);
-  if (d_pfEnabled && added)
+  if (added)
   {
     Node clauseNode = nm->mkNode(kind::OR, node, node[0], node[1]);
     d_proof.addStep(clauseNode, PfRule::CNF_EQUIV_NEG1, {}, {node});
@@ -1017,7 +999,7 @@ SatLiteral ProofCnfStream::handleImplies(TNode node)
   // lit -> (a->b)
   // ~lit | ~ a | b
   added = d_cnfStream.assertClause(node.negate(), ~lit, ~a, b);
-  if (d_pfEnabled && added)
+  if (added)
   {
     Node clauseNode =
         nm->mkNode(kind::OR, node.notNode(), node[0].notNode(), node[1]);
@@ -1035,7 +1017,7 @@ SatLiteral ProofCnfStream::handleImplies(TNode node)
   // ~(~a | b) | lit
   // (a | l) & (~b | l)
   added = d_cnfStream.assertClause(node, a, lit);
-  if (d_pfEnabled && added)
+  if (added)
   {
     Node clauseNode = nm->mkNode(kind::OR, node, node[0]);
     d_proof.addStep(clauseNode, PfRule::CNF_IMPLIES_NEG1, {}, {node});
@@ -1049,7 +1031,7 @@ SatLiteral ProofCnfStream::handleImplies(TNode node)
     }
   }
   added = d_cnfStream.assertClause(node, ~b, lit);
-  if (d_pfEnabled && added)
+  if (added)
   {
     Node clauseNode = nm->mkNode(kind::OR, node, node[1].notNode());
     d_proof.addStep(clauseNode, PfRule::CNF_IMPLIES_NEG2, {}, {node});
@@ -1087,7 +1069,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
   // lit -> (t | e) & (!b | t) & (b | e)
   // (!lit | t | e) & (!lit | !b | t) & (!lit | b | e)
   added = d_cnfStream.assertClause(node.negate(), ~lit, thenLit, elseLit);
-  if (d_pfEnabled && added)
+  if (added)
   {
     Node clauseNode = nm->mkNode(kind::OR, node.notNode(), node[1], node[2]);
     d_proof.addStep(clauseNode, PfRule::CNF_ITE_POS3, {}, {node});
@@ -1101,7 +1083,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
     }
   }
   added = d_cnfStream.assertClause(node.negate(), ~lit, ~condLit, thenLit);
-  if (d_pfEnabled && added)
+  if (added)
   {
     Node clauseNode =
         nm->mkNode(kind::OR, node.notNode(), node[0].notNode(), node[1]);
@@ -1116,7 +1098,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
     }
   }
   added = d_cnfStream.assertClause(node.negate(), ~lit, condLit, elseLit);
-  if (d_pfEnabled && added)
+  if (added)
   {
     Node clauseNode = nm->mkNode(kind::OR, node.notNode(), node[0], node[2]);
     d_proof.addStep(clauseNode, PfRule::CNF_ITE_POS2, {}, {node});
@@ -1136,7 +1118,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
   // !lit -> (!t | !e) & (!b | !t) & (b | !e)
   // (lit | !t | !e) & (lit | !b | !t) & (lit | b | !e)
   added = d_cnfStream.assertClause(node, lit, ~thenLit, ~elseLit);
-  if (d_pfEnabled && added)
+  if (added)
   {
     Node clauseNode =
         nm->mkNode(kind::OR, node, node[1].notNode(), node[2].notNode());
@@ -1151,7 +1133,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
     }
   }
   added = d_cnfStream.assertClause(node, lit, ~condLit, ~thenLit);
-  if (d_pfEnabled && added)
+  if (added)
   {
     Node clauseNode =
         nm->mkNode(kind::OR, node, node[0].notNode(), node[1].notNode());
@@ -1166,7 +1148,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
     }
   }
   added = d_cnfStream.assertClause(node, lit, condLit, ~elseLit);
-  if (d_pfEnabled && added)
+  if (added)
   {
     Node clauseNode = nm->mkNode(kind::OR, node, node[0], node[2].notNode());
     d_proof.addStep(clauseNode, PfRule::CNF_ITE_NEG2, {}, {node});
