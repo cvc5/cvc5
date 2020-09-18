@@ -622,11 +622,14 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
               ProofManager::getCnfProof()->registerConvertedClause(id);
             }
           }
-          // since this may happen before the proof cnf stream has the chance to
-          // register the input
-          if (d_pfManager)
+          // We need to do this so that the closedness check, if being done,
+          // goes through when we have unit assumptions whose literal has
+          // already been registered, as the ProofCnfStream will not register
+          // them and as they are not the result of propagation will be left
+          // hanging in assumptions accumulator
+          if (d_pfManager && ps.size() == 1)
           {
-            d_pfManager->registerSatAssumptions(ps[0]);
+            d_pfManager->registerSatLitAssumption(ps[0]);
           }
           CRef confl = propagate(CHECK_WITHOUT_THEORY);
           if(! (ok = (confl == CRef_Undef)) ) {

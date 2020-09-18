@@ -752,9 +752,9 @@ CDProof* SatProofManager::getProof()
   return &d_proof;
 }
 
-void SatProofManager::registerSatAssumptions(Minisat::Lit lit)
+void SatProofManager::registerSatLitAssumption(Minisat::Lit lit)
 {
-  Trace("sat-proof") << "SatProofManager::registerSatAssumptions: - "
+  Trace("sat-proof") << "SatProofManager::registerSatLitAssumption: - "
                      << getClauseNode(MinisatSatSolver::toSatLiteral(lit))
                      << "\n";
   d_assumptions.insert(getClauseNode(MinisatSatSolver::toSatLiteral(lit)));
