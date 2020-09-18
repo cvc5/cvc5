@@ -657,8 +657,8 @@ Node BVToInt::translateWithChildren(Node original,
     }
     case kind::EXISTS:
     {
-      returnNode = translateQuantifiedFormula(original);
-      break;
+      // Exists is eliminated by the rewriter.
+      Assert(false);
     }
     default:
     {
