@@ -68,7 +68,7 @@ void testGetInfo(api::Solver* solver, const char* s)
   assert(c != NULL);
   cout << c << endl;
   stringstream ss;
-  c->invoke(solver->getSmtEngine(), ss);
+  c->invoke(solver, ss);
   assert(p->nextCommand() == NULL);
   delete p;
   delete c;
