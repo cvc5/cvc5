@@ -27,7 +27,6 @@
 #include "expr/node.h"
 #include "expr/term_context_stack.h"
 #include "expr/term_conversion_proof_generator.h"
-#include "smt/dump.h"
 #include "theory/eager_proof_generator.h"
 #include "theory/trust_node.h"
 #include "util/bool.h"
@@ -179,19 +178,27 @@ class RemoveTermFormulas {
   RtfTermContext d_rtfc;
 
   /**
-   * Removes terms of the form (1), (2), (3) described above from node.
-   * All additional assertions are pushed into
-   * assertions. iteSkolemMap contains a map from introduced skolem
-   * variables to the index in assertions containing the new Boolean
-   * ite created in conjunction with that skolem variable.
+   * Removes terms of the forms described above from formula assertion.
+   * All additional assertions and skolems are pushed into newAsserts and
+   * newSkolems, which are always of the same length.
    *
-   * inQuant is whether we are processing node in the body of quantified formula
-   * inTerm is whether we are are processing node in a "term" position, that is, it is a subterm
-   *        of a parent term that is not a Boolean connective.
+   * This uses a term-context-sensitive stack to process assertion. It returns
+   * the version of assertion with all term formulas removed.
    */
-  Node run(TCtxStack& cxt,
-           std::vector<theory::TrustNode>& newAsserts,
-           std::vector<Node>& newSkolems);
+  Node runInternal(Node assertion,
+                   std::vector<theory::TrustNode>& newAsserts,
+                   std::vector<Node>& newSkolems);
+  /**
+   * This is called on curr of the form (t, val) where t is a term and val is
+   * a term context identifier computed by RtfTermContext. If curr should be
+   * replaced by a skolem, this method returns this skolem k, adds k to
+   * newSkolems and adds the axiom defining that skolem to newAsserts, where
+   * runInternal is called on that axiom. Otherwise, this method returns the
+   * null node.
+   */
+  Node runCurrent(std::pair<Node, uint32_t>& curr,
+                  std::vector<theory::TrustNode>& newAsserts,
+                  std::vector<Node>& newSkolems);
   /** Replace internal */
   Node replaceInternal(TCtxStack& ctx) const;
 

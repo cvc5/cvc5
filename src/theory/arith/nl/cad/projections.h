@@ -53,13 +53,6 @@ void addPolynomials(std::vector<poly::Polynomial>& polys,
 void makeFinestSquareFreeBasis(std::vector<poly::Polynomial>& polys);
 
 /**
- * Ensure that two sets of polynomials are finest square-free basis relative to
- * each other.
- */
-void makeFinestSquareFreeBasis(std::vector<poly::Polynomial>& lhs,
-                               std::vector<poly::Polynomial>& rhs);
-
-/**
  * Computes McCallum's projection operator.
  */
 std::vector<poly::Polynomial> projectionMcCallum(

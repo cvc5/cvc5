@@ -34,7 +34,6 @@
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
 #include "prop/theory_proxy.h"
-#include "smt/command.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_registrar.h"
@@ -70,7 +69,8 @@ public:
 PropEngine::PropEngine(TheoryEngine* te,
                        Context* satContext,
                        UserContext* userContext,
-                       ResourceManager* rm)
+                       ResourceManager* rm,
+                       OutputManager& outMgr)
     : d_inCheckSat(false),
       d_theoryEngine(te),
       d_context(satContext),
@@ -79,7 +79,8 @@ PropEngine::PropEngine(TheoryEngine* te,
       d_registrar(NULL),
       d_cnfStream(NULL),
       d_interrupted(false),
-      d_resourceManager(rm)
+      d_resourceManager(rm),
+      d_outMgr(outMgr)
 {
 
   Debug("prop") << "Constructing the PropEngine" << endl;
@@ -91,7 +92,7 @@ PropEngine::PropEngine(TheoryEngine* te,
 
   d_registrar = new theory::TheoryRegistrar(d_theoryEngine);
   d_cnfStream = new CVC4::prop::TseitinCnfStream(
-      d_satSolver, d_registrar, userContext, rm, true);
+      d_satSolver, d_registrar, userContext, &d_outMgr, rm, true);
 
   d_theoryProxy = new TheoryProxy(
       this, d_theoryEngine, d_decisionEngine.get(), d_context, d_cnfStream);
