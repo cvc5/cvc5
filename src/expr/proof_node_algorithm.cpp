@@ -19,22 +19,26 @@ namespace expr {
 
 void getFreeAssumptions(ProofNode* pn, std::vector<Node>& assump)
 {
-  std::map<Node, std::vector<ProofNode*>> amap;
-  getFreeAssumptionsMap(pn, amap);
-  for (const std::pair<const Node, std::vector<ProofNode*>>& p : amap)
+  std::map<Node, std::vector<std::shared_ptr<ProofNode>>> amap;
+  std::shared_ptr<ProofNode> spn = std::make_shared<ProofNode>(
+      pn->getRule(), pn->getChildren(), pn->getArguments());
+  getFreeAssumptionsMap(spn, amap);
+  for (const std::pair<const Node, std::vector<std::shared_ptr<ProofNode>>>& p :
+       amap)
   {
     assump.push_back(p.first);
   }
 }
 
-void getFreeAssumptionsMap(ProofNode* pn,
-                           std::map<Node, std::vector<ProofNode*>>& amap)
+void getFreeAssumptionsMap(
+    std::shared_ptr<ProofNode> pn,
+    std::map<Node, std::vector<std::shared_ptr<ProofNode>>>& amap)
 {
   // proof should not be cyclic
   // visited set false after preorder traversal, true after postorder traversal
   std::unordered_map<ProofNode*, bool> visited;
   std::unordered_map<ProofNode*, bool>::iterator it;
-  std::vector<ProofNode*> visit;
+  std::vector<std::shared_ptr<ProofNode>> visit;
   // Maps a bound assumption to the number of bindings it is under
   // e.g. in (SCOPE (SCOPE (ASSUME x) (x y)) (y)), y would be mapped to 2 at
   // (ASSUME x), and x would be mapped to 1.
@@ -54,17 +58,17 @@ void getFreeAssumptionsMap(ProofNode* pn,
   //   after postvisiting SCOPE2: {}
   //
   std::unordered_map<Node, uint32_t, NodeHashFunction> scopeDepth;
-  ProofNode* cur;
+  std::shared_ptr<ProofNode> cur;
   visit.push_back(pn);
   do
   {
     cur = visit.back();
     visit.pop_back();
-    it = visited.find(cur);
+    it = visited.find(cur.get());
     const std::vector<Node>& cargs = cur->getArguments();
     if (it == visited.end())
     {
-      visited[cur] = true;
+      visited[cur.get()] = true;
       PfRule id = cur->getRule();
       if (id == PfRule::ASSUME)
       {
@@ -85,7 +89,7 @@ void getFreeAssumptionsMap(ProofNode* pn,
             scopeDepth[a] += 1;
           }
           // will need to unbind the variables below
-          visited[cur] = false;
+          visited[cur.get()] = false;
           visit.push_back(cur);
         }
         // The following loop cannot be merged with the loop above because the
@@ -93,13 +97,13 @@ void getFreeAssumptionsMap(ProofNode* pn,
         const std::vector<std::shared_ptr<ProofNode>>& cs = cur->getChildren();
         for (const std::shared_ptr<ProofNode>& cp : cs)
         {
-          visit.push_back(cp.get());
+          visit.push_back(cp);
         }
       }
     }
     else if (!it->second)
     {
-      visited[cur] = true;
+      visited[cur.get()] = true;
       Assert(cur->getRule() == PfRule::SCOPE);
       // unbind its assumptions
       for (const Node& a : cargs)

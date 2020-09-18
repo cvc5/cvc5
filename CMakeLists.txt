@@ -328,6 +328,11 @@ else()
     message(WARNING "Disabling unit tests since static build is enabled.")
     set(ENABLE_UNIT_TESTING OFF)
   endif()
+
+  if (BUILD_BINDINGS_PYTHON)
+    message(FATAL_ERROR "Building Python bindings is not possible "
+                        "when building statically")
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#

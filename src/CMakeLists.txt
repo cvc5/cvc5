@@ -216,6 +216,8 @@ libcvc4_add_sources(
   smt/node_command.h
   smt/options_manager.cpp
   smt/options_manager.h
+  smt/output_manager.cpp
+  smt/output_manager.h
   smt/quant_elim_solver.cpp
   smt/quant_elim_solver.h
   smt/preprocessor.cpp

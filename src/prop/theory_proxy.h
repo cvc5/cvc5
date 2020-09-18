@@ -88,9 +88,6 @@ class TheoryProxy
 
   SatValue getDecisionPolarity(SatVariable var);
 
-  /** Shorthand for Dump("state") << PopCommand() */
-  void dumpStatePop();
-
  private:
   /** The prop engine we are using. */
   PropEngine* d_propEngine;
