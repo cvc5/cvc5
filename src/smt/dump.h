@@ -58,8 +58,8 @@ class CVC4_PUBLIC CVC4dumpstream
  public:
   CVC4dumpstream() {}
   CVC4dumpstream(std::ostream& os) {}
-  CVC4dumpstream& operator<<(const Command& c) { return *this; }
-  CVC4dumpstream& operator<<(const NodeCommand& nc) { return *this; }
+  CVC4dumpstream& operator<<(const Command& c);
+  CVC4dumpstream& operator<<(const NodeCommand& nc);
 }; /* class CVC4dumpstream */
 
 #endif /* CVC4_DUMPING && !CVC4_MUZZLE */
