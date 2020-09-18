@@ -82,16 +82,10 @@ class TheorySets : public Theory
 
  private:
   /** Functions to handle callbacks from equality engine */
-  class NotifyClass : public eq::EqualityEngineNotify
+  class NotifyClass : public TheoryEqNotifyClass
   {
    public:
-    NotifyClass(TheorySetsPrivate& theory) : d_theory(theory) {}
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override;
-    bool eqNotifyTriggerTermEquality(TheoryId tag,
-                                     TNode t1,
-                                     TNode t2,
-                                     bool value) override;
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override;
+    NotifyClass(TheorySetsPrivate& theory, TheoryInferenceManager& im) : TheoryEqNotifyClass(im), d_theory(theory) {}
     void eqNotifyNewClass(TNode t) override;
     void eqNotifyMerge(TNode t1, TNode t2) override;
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override;

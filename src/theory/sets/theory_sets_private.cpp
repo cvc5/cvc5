@@ -1234,21 +1234,7 @@ Node mkAnd(const std::vector<TNode>& conjunctions)
   return conjunction;
 } /* mkAnd() */
 
-bool TheorySetsPrivate::propagate(TNode literal)
-{
-  Debug("sets-prop") << " propagate(" << literal << ")" << std::endl;
-  return d_im.propagateLit(literal);
-}
-
 Valuation& TheorySetsPrivate::getValuation() { return d_external.d_valuation; }
-
-void TheorySetsPrivate::conflict(TNode a, TNode b)
-{
-  d_im.conflictEqConstantMerge(a, b);
-  Debug("sets") << "[sets] conflict: " << a << " iff " << b << ", explanation "
-                << conf << std::endl;
-  Trace("sets-lemma") << "Equality Conflict : " << a << " == " << b << std::endl;
-}
 
 Node TheorySetsPrivate::explain(TNode literal)
 {
