@@ -235,7 +235,7 @@ void SatProofManager::endResChain(Node conclusion,
   // the proper CHAIN_RESOLUTION step can be created
   // compute chain resolution conclusion
   Node chainConclusion = d_pnm->getChecker()->checkDebug(
-      PfRule::CHAIN_RESOLUTION, children, args, Node::null(), "newproof::sat");
+      PfRule::CHAIN_RESOLUTION, children, args, Node::null(), "");
   Trace("sat-proof")
       << "SatProofManager::endResChain: creating step for computed conclusion "
       << chainConclusion << "\n";
@@ -485,7 +485,87 @@ void SatProofManager::finalizeProof(Node inConflictNode,
   // For each l_i, a resolution step is created with the id of the step allowing
   // the derivation of ~l_i, whose pivot in the inConflict will be l_i. All
   // resolution steps will be saved in the given reasons vector.
-  Trace("sat-proof") << CVC4::push;
+  if (Trace.isOn("sat-proof-debug2"))
+  {
+    Trace("sat-proof-debug2")
+        << CVC4::push
+        << "SatProofManager::finalizeProof: saved proofs in chain:\n";
+    std::map<Node, std::shared_ptr<ProofNode>> links = d_resChains.getLinks();
+    std::unordered_set<Node, NodeHashFunction> skip;
+    for (const std::pair<const Node, std::shared_ptr<ProofNode>>& link : links)
+    {
+      if (skip.count(link.first))
+      {
+        continue;
+      }
+      auto it = d_proxy->getCnfStream()->getTranslationCache().find(link.first);
+      if (it != d_proxy->getCnfStream()->getTranslationCache().end())
+      {
+        Trace("sat-proof-debug2") << "SatProofManager::finalizeProof:  " << it->second;
+      }
+      // a refl step added due to double elim negation, ignore
+      else if (link.second->getRule() == PfRule::REFL)
+      {
+        continue;
+      }
+      // a clause
+      else
+      {
+        Trace("sat-proof-debug2") << "SatProofManager::finalizeProof:";
+        Assert(link.first.getKind() == kind::OR) << link.first;
+        for (const Node& n : link.first)
+        {
+          it = d_proxy->getCnfStream()->getTranslationCache().find(n);
+          Assert(it != d_proxy->getCnfStream()->getTranslationCache().end());
+          Trace("sat-proof-debug2") << it->second << " ";
+        }
+      }
+      Trace("sat-proof-debug2") << "\n";
+      Trace("sat-proof-debug2")
+          << "SatProofManager::finalizeProof: " << link.first << "\n";
+      // get resolution
+      Node cur = link.first;
+      std::shared_ptr<ProofNode> pfn = link.second;
+      while (pfn->getRule() != PfRule::CHAIN_RESOLUTION)
+      {
+        Assert(pfn->getChildren().size() == 1
+               && pfn->getChildren()[0]->getRule() == PfRule::ASSUME)
+            << *link.second.get() << "\n"
+            << *pfn.get();
+        cur = pfn->getChildren()[0]->getResult();
+        // retrieve justification of assumption in the links
+        Assert(links.find(cur) != links.end());
+        pfn = links[cur];
+        // ignore it in the rest of the outside loop
+        skip.insert(cur);
+      }
+      std::vector<Node> fassumps;
+      expr::getFreeAssumptions(pfn.get(), fassumps);
+      Trace("sat-proof-debug2") << CVC4::push;
+      for (const Node& fa : fassumps)
+      {
+        Trace("sat-proof-debug2") << "SatProofManager::finalizeProof:   - ";
+        it = d_proxy->getCnfStream()->getTranslationCache().find(fa);
+        if (it != d_proxy->getCnfStream()->getTranslationCache().end())
+        {
+          Trace("sat-proof-debug2") << it->second << "\n";
+          continue;
+        }
+        // then it's a clause
+        Assert(fa.getKind() == kind::OR);
+        for (const Node& n : fa)
+        {
+          it = d_proxy->getCnfStream()->getTranslationCache().find(n);
+          Assert(it != d_proxy->getCnfStream()->getTranslationCache().end());
+          Trace("sat-proof-debug2") << it->second << " ";
+        }
+        Trace("sat-proof-debug2") << "\n";
+      }
+      Trace("sat-proof-debug2") << CVC4::pop;
+      Trace("sat-proof-debug2") << "SatProofManager::finalizeProof:  " << *pfn.get() << "\n=======\n";;
+    }
+    Trace("sat-proof-debug2") << CVC4::pop;
+  }
   // premises and arguments for final resolution
   std::vector<Node> children{inConflictNode}, args;
   std::unordered_set<TNode, TNodeHashFunction> assumptions;
@@ -505,7 +585,6 @@ void SatProofManager::finalizeProof(Node inConflictNode,
     assumptions.insert(negatedLitNode);
     Trace("sat-proof") << "===========\n";
   }
-  Trace("sat-proof") << CVC4::pop;
   if (Trace.isOn("sat-proof"))
   {
     Trace("sat-proof") << "SatProofManager::finalizeProof: chain_res for false "
@@ -546,6 +625,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
         if (it != d_proxy->getCnfStream()->getTranslationCache().end())
         {
           Trace("sat-proof") << it->second << "\n";
+          Trace("sat-proof") << "- " << fa << "\n";
           continue;
         }
         // then it's a clause
@@ -557,6 +637,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
           Trace("sat-proof") << it->second << " ";
         }
         Trace("sat-proof") << "\n";
+        Trace("sat-proof") << "- " << fa << "\n";
       }
     }
 
