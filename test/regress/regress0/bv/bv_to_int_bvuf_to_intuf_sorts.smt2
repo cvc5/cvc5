@@ -1,4 +1,4 @@
-; COMMAND-LINE: --solve-bv-as-int=sum --bvand-integer-granularity=1   --no-check-unsat-cores
+; COMMAND-LINE: --solve-bv-as-int=sum --bvand-integer-granularity=1
 ; EXPECT: sat
 (set-logic QF_UFBV)
 (declare-sort S 0)
