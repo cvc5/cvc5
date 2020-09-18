@@ -494,7 +494,8 @@ TrustNode Constraint::externalExplainByAssertions() const
       assumptions.push_back(exp);
     }
     auto pf = d_database->d_pnm->mkScope(pfFromAssumptions, assumptions);
-    return d_database->d_pfGen->mkTrustedPropagation(getLiteral(), exp, pf);
+    return d_database->d_pfGen->mkTrustedPropagation(
+        getLiteral(), safeConstructNary(Kind::AND, assumptions), pf);
   }
   return TrustNode::mkTrustPropExp(getLiteral(), exp);
 }
@@ -1102,6 +1103,8 @@ TrustNode Constraint::split()
         PfRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
     std::vector<Node> a = {leqNode.negate(), geqNode.negate()};
     auto notAndNotPf = d_database->d_pnm->mkScope(botPf, a);
+    // No need to ensure that the expected node aggrees with `a` because we are
+    // not providing an expected node.
     auto orNotNotPf =
         d_database->d_pnm->mkNode(PfRule::NOT_AND, {notAndNotPf}, {});
     auto orPf = d_database->d_pnm->mkNode(
@@ -1536,7 +1539,8 @@ TrustNode Constraint::externalExplainForPropagation() const
           PfRule::MACRO_SR_PRED_TRANSFORM, {pfFromAssumptions}, {getLiteral()});
     }
     auto pf = d_database->d_pnm->mkScope(pfFromAssumptions, assumptions);
-    return d_database->d_pfGen->mkTrustedPropagation(getLiteral(), n, pf);
+    return d_database->d_pfGen->mkTrustedPropagation(
+        getLiteral(), safeConstructNary(Kind::AND, assumptions), pf);
   }
   else
   {
@@ -1566,6 +1570,14 @@ TrustNode Constraint::externalExplainConflict() const
     {
       lits.push_back(n);
     }
+    if (Debug.isOn("arith::pf::externalExplainConflict"))
+    {
+      Debug("arith::pf::externalExplainConflict") << "Lits:" << std::endl;
+      for (const auto& l : lits)
+      {
+        Debug("arith::pf::externalExplainConflict") << "  : " << l << std::endl;
+      }
+    }
     std::vector<Node> contraLits = {getProofLiteral(),
                                     getNegation()->getProofLiteral()};
     auto bot =
@@ -1581,7 +1593,8 @@ TrustNode Constraint::externalExplainConflict() const
       getNegation()->printProofTree(Debug("arith::pf::tree"));
     }
     auto confPf = d_database->d_pnm->mkScope(bot, lits);
-    return d_database->d_pfGen->mkTrustNode(n, confPf, true);
+    return d_database->d_pfGen->mkTrustNode(
+        safeConstructNary(Kind::AND, lits), confPf, true);
   }
   else
   {
@@ -1779,6 +1792,9 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
           auto maybeDoubleNotPf =
               d_database->d_pnm->mkScope(botPf, assump, false);
 
+          // No need to ensure that the expected node aggrees with `assump`
+          // because we are not providing an expected node.
+          //
           // Prove that this is the literal (may need to clean a double-not)
           pf = d_database->d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
                                          {maybeDoubleNotPf},
@@ -2071,6 +2087,8 @@ void ConstraintDatabase::proveOr(std::vector<TrustNode>& out,
     std::transform(orN.begin(), orN.end(), std::back_inserter(as), [](Node n) {
       return n.negate();
     });
+    // No need to ensure that the expected node aggrees with `as` because we
+    // are not providing an expected node.
     auto pf = d_pnm->mkNode(
         PfRule::MACRO_SR_PRED_TRANSFORM,
         {d_pnm->mkNode(PfRule::NOT_AND, {d_pnm->mkScope(bot_pf, as)}, {})},
