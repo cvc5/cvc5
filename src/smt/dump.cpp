@@ -52,7 +52,7 @@ CVC4dumpstream& CVC4dumpstream::operator<<(const NodeCommand& nc)
   return *this;
 }
 
-#endif
+#endif /* CVC4_DUMPING && !CVC4_MUZZLE */
 
 DumpC DumpChannel CVC4_PUBLIC;
 
