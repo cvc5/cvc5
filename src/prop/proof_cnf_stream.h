@@ -30,14 +30,13 @@ namespace CVC4 {
 namespace prop {
 
 /**
- * A layer on top of CNF stream. The goal of this class is manage the
- * use of a CNF stream object in such a way that the proper proofs are
- * internally constructed, and can be retrieved from this class when
- * necessary.
+ * A layer on top of CNF stream. The goal of this class is manage the use of a
+ * CNF stream object in such a way that the proper proofs are internally
+ * constructed, and can be retrieved from this class when necessary.
  *
  * It tracks the reason for why all clausification facts are added to an
- * underlying SAT solver in a user-context dependent manner in a
- * context-dependent (CDProof) object.
+ * underlying SAT solver in a user-context dependent manner in a lazy
+ * context-dependent (LazyCDProof) object.
  *
  * A user of a SAT solver that is proof producing and uses the CNF stream may
  * use this class to manage proofs that are justified by its underlying CNF
@@ -48,11 +47,13 @@ class ProofCnfStream : public ProofGenerator
  public:
   ProofCnfStream(context::UserContext* u,
                  CnfStream& cnfStream,
-                 ProofNodeManager* pnm,
-                 bool pfEnabled = true);
+                 ProofNodeManager* pnm);
   ~ProofCnfStream() {}
 
+  /** Invokes getProofFor of the underlying LazyCDProof */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
+  /** Whether there as (concrete) step or a generator associated with f in the
+   * underlying LazyCDProof. */
   bool hasProofFor(Node f) override;
   /** identify */
   std::string identify() const override;
@@ -119,23 +120,16 @@ class ProofCnfStream : public ProofGenerator
   void convertAndAssertImplies(TNode node, bool negated);
   void convertAndAssertIte(TNode node, bool negated);
 
-  /** Reference to the equality engine */
+  /** Reference to the underlying cnf stream. */
   CnfStream& d_cnfStream;
-  /** the proof node manager */
+  /** The proof node manager. */
   ProofNodeManager* d_pnm;
-  /** The user-context-dependent proof object */
+  /** The user-context-dependent proof object. */
   LazyCDProof d_proof;
 
   /** An accumulator of steps that may be applied to normalize the clauses
-   * generated during clausification */
+   * generated during clausification. */
   theory::TheoryProofStepBuffer d_psb;
-
-  /**
-   * Whether proofs are enabled. If this flag is false, then this class acts
-   * as a simplified interface to the CnfStream, without proofs.
-   */
-  bool d_pfEnabled;
-
   /**
    * Are we asserting a removable clause (true) or a permanent clause (false).
    * This is set at the beginning of convertAndAssert so that it doesn't
