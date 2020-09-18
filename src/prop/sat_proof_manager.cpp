@@ -650,7 +650,11 @@ void SatProofManager::finalizeProof(Node inConflictNode,
         Trace("sat-proof") << "already processed assumption " << fa << "\n";
         continue;
       }
-      // ignore input assumptions
+      // ignore input assumptions. This is necessary to avoid rare collisions
+      // between input clauses and literals that are equivalent at the node
+      // level. In trying to justify the literal below if it was previously
+      // propagated but no longer holds then we may introduce a bogus proof for
+      // it.
       if (d_assumptions.contains(fa))
       {
         Trace("sat-proof") << "input assumption " << fa << "\n";
