@@ -111,95 +111,92 @@ bool StringsEntail::canConstantContainList(Node c,
 bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
                                         std::vector<Node>& nr,
                                         int dir,
-                                        Node& curr)
+                                        Node& curr,
+                                        bool strict)
 {
   Assert(dir == 1 || dir == -1);
   Assert(nr.empty());
   NodeManager* nm = NodeManager::currentNM();
   Node zero = nm->mkConst(CVC4::Rational(0));
   bool ret = false;
-  bool success;
+  bool success = true;
   unsigned sindex = 0;
-  do
+  while (success && curr != zero && sindex < n1.size())
   {
     Assert(!curr.isNull());
     success = false;
-    if (curr != zero && sindex < n1.size())
+    unsigned sindex_use = dir == 1 ? sindex : ((n1.size() - 1) - sindex);
+    if (n1[sindex_use].isConst())
     {
-      unsigned sindex_use = dir == 1 ? sindex : ((n1.size() - 1) - sindex);
-      if (n1[sindex_use].isConst())
+      // could strip part of a constant
+      Node lowerBound = ArithEntail::getConstantBound(Rewriter::rewrite(curr));
+      if (!lowerBound.isNull())
       {
-        // could strip part of a constant
-        Node lowerBound =
-            ArithEntail::getConstantBound(Rewriter::rewrite(curr));
-        if (!lowerBound.isNull())
+        Assert(lowerBound.isConst());
+        Rational lbr = lowerBound.getConst<Rational>();
+        if (lbr.sgn() > 0)
         {
-          Assert(lowerBound.isConst());
-          Rational lbr = lowerBound.getConst<Rational>();
-          if (lbr.sgn() > 0)
+          Assert(ArithEntail::check(curr, true));
+          Node s = n1[sindex_use];
+          size_t slen = Word::getLength(s);
+          Node ncl = nm->mkConst(CVC4::Rational(slen));
+          Node next_s = nm->mkNode(MINUS, lowerBound, ncl);
+          next_s = Rewriter::rewrite(next_s);
+          Assert(next_s.isConst());
+          // we can remove the entire constant
+          if (next_s.getConst<Rational>().sgn() >= 0)
           {
-            Assert(ArithEntail::check(curr, true));
-            Node s = n1[sindex_use];
-            size_t slen = Word::getLength(s);
-            Node ncl = nm->mkConst(CVC4::Rational(slen));
-            Node next_s = nm->mkNode(MINUS, lowerBound, ncl);
-            next_s = Rewriter::rewrite(next_s);
-            Assert(next_s.isConst());
-            // we can remove the entire constant
-            if (next_s.getConst<Rational>().sgn() >= 0)
-            {
-              curr = Rewriter::rewrite(nm->mkNode(MINUS, curr, ncl));
-              success = true;
-              sindex++;
-            }
-            else
-            {
-              // we can remove part of the constant
-              // lower bound minus the length of a concrete string is negative,
-              // hence lowerBound cannot be larger than long max
-              Assert(lbr < Rational(String::maxSize()));
-              curr = Rewriter::rewrite(nm->mkNode(MINUS, curr, lowerBound));
-              uint32_t lbsize = lbr.getNumerator().toUnsignedInt();
-              Assert(lbsize < slen);
-              if (dir == 1)
-              {
-                // strip partially from the front
-                nr.push_back(Word::prefix(s, lbsize));
-                n1[sindex_use] = Word::suffix(s, slen - lbsize);
-              }
-              else
-              {
-                // strip partially from the back
-                nr.push_back(Word::suffix(s, lbsize));
-                n1[sindex_use] = Word::prefix(s, slen - lbsize);
-              }
-              ret = true;
-            }
-            Assert(ArithEntail::check(curr));
+            curr = Rewriter::rewrite(nm->mkNode(MINUS, curr, ncl));
+            success = true;
+            sindex++;
           }
           else
           {
-            // we cannot remove the constant
+            // we can remove part of the constant
+            // lower bound minus the length of a concrete string is negative,
+            // hence lowerBound cannot be larger than long max
+            Assert(lbr < Rational(String::maxSize()));
+            curr = Rewriter::rewrite(nm->mkNode(MINUS, curr, lowerBound));
+            uint32_t lbsize = lbr.getNumerator().toUnsignedInt();
+            Assert(lbsize < slen);
+            if (dir == 1)
+            {
+              // strip partially from the front
+              nr.push_back(Word::prefix(s, lbsize));
+              n1[sindex_use] = Word::suffix(s, slen - lbsize);
+            }
+            else
+            {
+              // strip partially from the back
+              nr.push_back(Word::suffix(s, lbsize));
+              n1[sindex_use] = Word::prefix(s, slen - lbsize);
+            }
+            ret = true;
           }
+          Assert(ArithEntail::check(curr));
         }
-      }
-      else
-      {
-        Node next_s = NodeManager::currentNM()->mkNode(
-            MINUS,
-            curr,
-            NodeManager::currentNM()->mkNode(STRING_LENGTH, n1[sindex_use]));
-        next_s = Rewriter::rewrite(next_s);
-        if (ArithEntail::check(next_s))
+        else
         {
-          success = true;
-          curr = next_s;
-          sindex++;
+          // we cannot remove the constant
         }
       }
     }
-  } while (success);
-  if (sindex > 0)
+    else
+    {
+      Node next_s = NodeManager::currentNM()->mkNode(
+          MINUS,
+          curr,
+          NodeManager::currentNM()->mkNode(STRING_LENGTH, n1[sindex_use]));
+      next_s = Rewriter::rewrite(next_s);
+      if (ArithEntail::check(next_s))
+      {
+        success = true;
+        curr = next_s;
+        sindex++;
+      }
+    }
+  }
+  if (sindex > 0 && (!strict || curr == zero))
   {
     if (dir == 1)
     {
