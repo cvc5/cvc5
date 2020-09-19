@@ -87,6 +87,9 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
                         PfRule::MACRO_SR_PRED_TRANSFORM,
                         {node.notNode()},
                         {node[0]});
+        Trace("cnf") << "ProofCnfStream::convertAndAssert: "
+                        "MACRO_SR_PRED_TRANSFORM added norm "
+                     << node[0] << "\n";
       }
       convertAndAssert(node[0], !negated);
       break;
@@ -109,6 +112,9 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
       {
         d_proof.addStep(
             nnode, PfRule::MACRO_SR_PRED_TRANSFORM, {node.notNode()}, {nnode});
+        Trace("cnf") << "ProofCnfStream::convertAndAssert: "
+                        "MACRO_SR_PRED_TRANSFORM added norm "
+                     << nnode << "\n";
       }
       // if we are eagerly checking proofs, track sat solver assumptions
       if (added && options::proofNewEagerChecking())
@@ -135,6 +141,8 @@ void ProofCnfStream::convertAndAssertAnd(TNode node, bool negated)
       // Create a proof step for each n_i
       Node iNode = nm->mkConst<Rational>(i);
       d_proof.addStep(node[i], PfRule::AND_ELIM, {node}, {iNode});
+      Trace("cnf") << "ProofCnfStream::convertAndAssertAnd: AND_ELIM " << i
+                   << " added norm " << node[i] << "\n";
       convertAndAssert(node[i], false);
     }
   }
@@ -158,6 +166,8 @@ void ProofCnfStream::convertAndAssertAnd(TNode node, bool negated)
       }
       Node clauseNode = NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
       d_proof.addStep(clauseNode, PfRule::NOT_AND, {node.notNode()}, {});
+      Trace("cnf") << "ProofCnfStream::convertAndAssertAnd: NOT_AND added norm "
+                   << clauseNode << "\n";
       // justify normalized clause as well, since that's what will be saved in
       // the SAT solver and registered with prop engine
       Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
@@ -187,6 +197,11 @@ void ProofCnfStream::convertAndAssertOr(TNode node, bool negated)
       clause[i] = toCNF(node[i], false);
     }
     Node normClauseNode = d_psb.factorReorderElimDoubleNeg(node);
+    if (Trace.isOn("cnf") && normClauseNode != node)
+    {
+      Trace("cnf") << "ProofCnfStream::convertAndAssertOr: steps to normalized "
+                   << normClauseNode << "\n";
+    }
     // if we are eagerly checking proofs, track sat solver assumptions
     if (options::proofNewEagerChecking())
     {
@@ -207,6 +222,8 @@ void ProofCnfStream::convertAndAssertOr(TNode node, bool negated)
       Node iNode = nm->mkConst<Rational>(i);
       d_proof.addStep(
           node[i].notNode(), PfRule::NOT_OR_ELIM, {node.notNode()}, {iNode});
+      Trace("cnf") << "ProofCnfStream::convertAndAssertOr: NOT_OR_ELIM " << i
+                   << " added norm  " << node[i].notNode() << "\n";
       convertAndAssert(node[i], true);
     }
   }
@@ -233,7 +250,15 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
       Node clauseNode =
           nm->mkNode(kind::OR, node[0].notNode(), node[1].notNode());
       d_proof.addStep(clauseNode, PfRule::XOR_ELIM2, {node}, {});
+      Trace("cnf") << "ProofCnfStream::convertAndAssertXor: XOR_ELIM2 added "
+                   << clauseNode << "\n";
       Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
+      if (Trace.isOn("cnf") && normClauseNode != clauseNode)
+      {
+        Trace("cnf")
+            << "ProofCnfStream::convertAndAssertXor: steps to normalized "
+            << normClauseNode << "\n";
+      }
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -251,7 +276,15 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0], node[1]);
       d_proof.addStep(clauseNode, PfRule::XOR_ELIM1, {node}, {});
+      Trace("cnf") << "ProofCnfStream::convertAndAssertXor: XOR_ELIM1 added "
+                   << clauseNode << "\n";
       Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
+      if (Trace.isOn("cnf") && normClauseNode != clauseNode)
+      {
+        Trace("cnf")
+            << "ProofCnfStream::convertAndAssertXor: steps to normalized "
+            << normClauseNode << "\n";
+      }
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -277,7 +310,15 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0].notNode(), node[1]);
       d_proof.addStep(clauseNode, PfRule::NOT_XOR_ELIM2, {node.notNode()}, {});
+      Trace("cnf") << "ProofCnfStream::convertAndAssertXor: NOT_XOR_ELIM2 added "
+                   << clauseNode << "\n";
       Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
+      if (Trace.isOn("cnf") && normClauseNode != clauseNode)
+      {
+        Trace("cnf")
+            << "ProofCnfStream::convertAndAssertXor: steps to normalized "
+            << normClauseNode << "\n";
+      }
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -295,7 +336,15 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0], node[1].notNode());
       d_proof.addStep(clauseNode, PfRule::NOT_XOR_ELIM1, {node.notNode()}, {});
+      Trace("cnf") << "ProofCnfStream::convertAndAssertXor: NOT_XOR_ELIM1 added "
+                   << clauseNode << "\n";
       Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
+      if (Trace.isOn("cnf") && normClauseNode != clauseNode)
+      {
+        Trace("cnf")
+            << "ProofCnfStream::convertAndAssertXor: steps to normalized "
+            << normClauseNode << "\n";
+      }
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -329,7 +378,15 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0].notNode(), node[1]);
       d_proof.addStep(clauseNode, PfRule::EQUIV_ELIM1, {node}, {});
+      Trace("cnf") << "ProofCnfStream::convertAndAssertIff: EQUIV_ELIM1 added "
+                   << clauseNode << "\n";
       Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
+      if (Trace.isOn("cnf") && normClauseNode != clauseNode)
+      {
+        Trace("cnf")
+            << "ProofCnfStream::convertAndAssertIff: steps to normalized "
+            << normClauseNode << "\n";
+      }
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -347,7 +404,15 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0], node[1].notNode());
       d_proof.addStep(clauseNode, PfRule::EQUIV_ELIM2, {node}, {});
+      Trace("cnf") << "ProofCnfStream::convertAndAssertIff: EQUIV_ELIM2 added "
+                   << clauseNode << "\n";
       Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
+      if (Trace.isOn("cnf") && normClauseNode != clauseNode)
+      {
+        Trace("cnf")
+            << "ProofCnfStream::convertAndAssertIff: steps to normalized "
+            << normClauseNode << "\n";
+      }
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -377,7 +442,15 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
           nm->mkNode(kind::OR, node[0].notNode(), node[1].notNode());
       d_proof.addStep(
           clauseNode, PfRule::NOT_EQUIV_ELIM2, {node.notNode()}, {});
+      Trace("cnf") << "ProofCnfStream::convertAndAssertIff: NOT_EQUIV_ELIM2 added "
+                   << clauseNode << "\n";
       Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
+      if (Trace.isOn("cnf") && normClauseNode != clauseNode)
+      {
+        Trace("cnf")
+            << "ProofCnfStream::convertAndAssertIff: steps to normalized "
+            << normClauseNode << "\n";
+      }
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -385,9 +458,6 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
             static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
         minisat->getProofManager()->registerSatAssumptions({normClauseNode});
       }
-      Trace("cnf")
-          << "ProofCnfStream::convertAndAssertIff: NOT_EQUIV_ELIM2 added norm "
-          << normClauseNode << "\n";
     }
     // Construct the clauses q v p
     SatClause clause2(2);
@@ -399,7 +469,16 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
       Node clauseNode = nm->mkNode(kind::OR, node[0], node[1]);
       d_proof.addStep(
           clauseNode, PfRule::NOT_EQUIV_ELIM1, {node.notNode()}, {});
+      Trace("cnf")
+          << "ProofCnfStream::convertAndAssertIff: NOT_EQUIV_ELIM1 added "
+          << clauseNode << "\n";
       Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
+      if (Trace.isOn("cnf") && normClauseNode != clauseNode)
+      {
+        Trace("cnf")
+            << "ProofCnfStream::convertAndAssertIff: steps to normalized "
+            << normClauseNode << "\n";
+      }
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -407,9 +486,6 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
             static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
         minisat->getProofManager()->registerSatAssumptions({normClauseNode});
       }
-      Trace("cnf")
-          << "ProofCnfStream::convertAndAssertIff: NOT_EQUIV_ELIM1 added norm "
-          << normClauseNode << "\n";
     }
   }
 }
@@ -433,7 +509,16 @@ void ProofCnfStream::convertAndAssertImplies(TNode node, bool negated)
       Node clauseNode = NodeManager::currentNM()->mkNode(
           kind::OR, node[0].notNode(), node[1]);
       d_proof.addStep(clauseNode, PfRule::IMPLIES_ELIM, {node}, {});
+      Trace("cnf")
+          << "ProofCnfStream::convertAndAssertImplies: IMPLIES_ELIM added "
+          << clauseNode << "\n";
       Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
+      if (Trace.isOn("cnf") && normClauseNode != clauseNode)
+      {
+        Trace("cnf")
+            << "ProofCnfStream::convertAndAssertImplies: steps to normalized "
+            << normClauseNode << "\n";
+      }
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -449,10 +534,16 @@ void ProofCnfStream::convertAndAssertImplies(TNode node, bool negated)
     // process p
     convertAndAssert(node[0], false);
     d_proof.addStep(node[0], PfRule::NOT_IMPLIES_ELIM1, {node.notNode()}, {});
+    Trace("cnf")
+        << "ProofCnfStream::convertAndAssertImplies: NOT_IMPLIES_ELIM1 added "
+        << node[0] << "\n";
     // process ~q
     convertAndAssert(node[1], true);
     d_proof.addStep(
         node[1].notNode(), PfRule::NOT_IMPLIES_ELIM2, {node.notNode()}, {});
+    Trace("cnf")
+        << "ProofCnfStream::convertAndAssertImplies: NOT_IMPLIES_ELIM2 added "
+        << node[1].notNode() << "\n";
   }
 }
 
@@ -484,7 +575,15 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0].notNode(), node[1]);
       d_proof.addStep(clauseNode, PfRule::ITE_ELIM1, {node}, {});
+      Trace("cnf") << "ProofCnfStream::convertAndAssertIte: ITE_ELIM1 added "
+                   << clauseNode << "\n";
       Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
+      if (Trace.isOn("cnf") && normClauseNode != clauseNode)
+      {
+        Trace("cnf")
+            << "ProofCnfStream::convertAndAssertIte: steps to normalized "
+            << normClauseNode << "\n";
+      }
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -498,7 +597,15 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
       Node clauseNode =
           nm->mkNode(kind::OR, node[0].notNode(), node[1].notNode());
       d_proof.addStep(clauseNode, PfRule::NOT_ITE_ELIM1, {node.notNode()}, {});
+      Trace("cnf") << "ProofCnfStream::convertAndAssertIte: NOT_ITE_ELIM1 added "
+                   << clauseNode << "\n";
       Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
+      if (Trace.isOn("cnf") && normClauseNode != clauseNode)
+      {
+        Trace("cnf")
+            << "ProofCnfStream::convertAndAssertIte: steps to normalized "
+            << normClauseNode << "\n";
+      }
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -520,7 +627,15 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0], node[2]);
       d_proof.addStep(clauseNode, PfRule::ITE_ELIM2, {node}, {});
+      Trace("cnf") << "ProofCnfStream::convertAndAssertIte: ITE_ELIM2 added "
+                   << clauseNode << "\n";
       Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
+      if (Trace.isOn("cnf") && normClauseNode != clauseNode)
+      {
+        Trace("cnf")
+            << "ProofCnfStream::convertAndAssertIte: steps to normalized "
+            << normClauseNode << "\n";
+      }
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -533,7 +648,15 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0], node[2].notNode());
       d_proof.addStep(clauseNode, PfRule::NOT_ITE_ELIM2, {node.notNode()}, {});
+      Trace("cnf") << "ProofCnfStream::convertAndAssertIte: NOT_ITE_ELIM2 added "
+                   << clauseNode << "\n";
       Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
+      if (Trace.isOn("cnf") && normClauseNode != clauseNode)
+      {
+        Trace("cnf")
+            << "ProofCnfStream::convertAndAssertIte: steps to normalized "
+            << normClauseNode << "\n";
+      }
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
