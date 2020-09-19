@@ -700,7 +700,7 @@ bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals) const
   return true;
 }
 
-void SynthConjecture::doRefine()
+bool SynthConjecture::doRefine()
 {
   std::vector<Node> lems;
   Assert(d_set_ce_sk_vars);
@@ -775,10 +775,10 @@ void SynthConjecture::doRefine()
   {
     Trace("cegqi-lemma") << "Cegqi::Lemma : candidate refinement : " << lem
                           << std::endl;
-    bool res = d_quantEngine->addLemma(lem);
+    bool res = d_qe->addLemma(lem);
     if (res)
     {
-      ++(d_statistics.d_cegqi_lemmas_refine);
+      ++(d_stats.d_cegqi_lemmas_refine);
       d_refine_count++;
       addedLemma = true;
     }
@@ -796,7 +796,11 @@ void SynthConjecture::doRefine()
     Trace("sygus-engine-debug") << "  ...(warning) failed to refine candidate, manually exclude candidate." << std::endl;
     // something went wrong, exclude the current candidate
     excludeCurrentSolution(sk_vars, sk_subs);
+    // Note this happens when evaluation is incapable of disproving a candidate,
+    // but satisfiability checking has. It is sound to exclude the candidate
+    // in this case.
   }
+  return addedLemma;
 }
 
 void SynthConjecture::preregisterConjecture(Node q)

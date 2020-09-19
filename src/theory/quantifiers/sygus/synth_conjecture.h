@@ -87,9 +87,9 @@ class SynthConjecture
   /** presolve */
   void presolve();
   /** get original version of conjecture */
-  Node getConjecture() { return d_quant; }
+  Node getConjecture() const { return d_quant; }
   /** get deep embedding version of conjecture */
-  Node getEmbeddedConjecture() { return d_embed_quant; }
+  Node getEmbeddedConjecture() const { return d_embed_quant; }
   //-------------------------------for counterexample-guided check/refine
   /** whether the conjecture is waiting for a call to doCheck below */
   bool needsCheck();
@@ -110,9 +110,10 @@ class SynthConjecture
    */
   bool doCheck(std::vector<Node>& lems);
   /** do refinement
+   *
    * This is step 2(b) of Figure 3 of Reynolds et al CAV 2015.
    */
-  void doRefine();
+  bool doRefine();
   //-------------------------------end for counterexample-guided check/refine
   /**
    * Prints the synthesis solution to output stream out. This invokes solution

@@ -304,8 +304,6 @@ void SynthEngine::registerQuantifier(Node q)
 
 bool SynthEngine::checkConjecture(SynthConjecture* conj)
 {
-  Node q = conj->getEmbeddedConjecture();
-  Node aq = conj->getConjecture();
   if (Trace.isOn("sygus-engine-debug"))
   {
     conj->debugPrint("sygus-engine-debug");
@@ -340,23 +338,15 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
           << "  ...check for counterexample." << std::endl;
       return true;
     }
-    else
+    if (!conj->needsRefinement())
     {
-      if (conj->needsRefinement())
-      {
-        // immediately go to refine candidate
-        return checkConjecture(conj);
-      }
+      return ret;
     }
-    return ret;
+    // otherwise, immediately go to refine candidate
   }
-  else
-  {
-    Trace("sygus-engine-debug")
-        << "  *** Refine candidate phase..." << std::endl;
-    return conj->doRefine();
-  }
-  return true;
+  Trace("sygus-engine-debug")
+      << "  *** Refine candidate phase..." << std::endl;
+  return conj->doRefine();
 }
 
 void SynthEngine::printSynthSolution(std::ostream& out)
