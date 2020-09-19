@@ -121,9 +121,9 @@ class RemoveTermFormulas {
 
  private:
   typedef context::CDInsertHashMap<
-      std::pair<Node, int32_t>,
+      std::pair<Node, uint32_t>,
       Node,
-      PairHashFunction<Node, int32_t, NodeHashFunction> >
+      PairHashFunction<Node, uint32_t, NodeHashFunction> >
       TermFormulaCache;
   /** term formula removal cache
    *
