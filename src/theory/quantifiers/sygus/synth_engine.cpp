@@ -354,30 +354,7 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
   {
     Trace("sygus-engine-debug")
         << "  *** Refine candidate phase..." << std::endl;
-    std::vector<Node> rlems;
-    conj->doRefine(rlems);
-    bool addedLemma = false;
-    for (unsigned i = 0; i < rlems.size(); i++)
-    {
-      Node lem = rlems[i];
-      Trace("cegqi-lemma") << "Cegqi::Lemma : candidate refinement : " << lem
-                           << std::endl;
-      bool res = d_quantEngine->addLemma(lem);
-      if (res)
-      {
-        ++(d_statistics.d_cegqi_lemmas_refine);
-        conj->incrementRefineCount();
-        addedLemma = true;
-      }
-      else
-      {
-        Trace("cegqi-warn") << "  ...FAILED to add refinement!" << std::endl;
-      }
-    }
-    if (addedLemma)
-    {
-      Trace("sygus-engine-debug") << "  ...refine candidate." << std::endl;
-    }
+    return conj->doRefine();
   }
   return true;
 }

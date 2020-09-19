@@ -91,9 +91,6 @@ class SynthConjecture
   /** get deep embedding version of conjecture */
   Node getEmbeddedConjecture() { return d_embed_quant; }
   //-------------------------------for counterexample-guided check/refine
-  /** increment the number of times we have successfully done candidate
-   * refinement */
-  void incrementRefineCount() { d_refine_count++; }
   /** whether the conjecture is waiting for a call to doCheck below */
   bool needsCheck();
   /** whether the conjecture is waiting for a call to doRefine below */
@@ -115,7 +112,7 @@ class SynthConjecture
   /** do refinement
    * This is step 2(b) of Figure 3 of Reynolds et al CAV 2015.
    */
-  void doRefine(std::vector<Node>& lems);
+  void doRefine();
   //-------------------------------end for counterexample-guided check/refine
   /**
    * Prints the synthesis solution to output stream out. This invokes solution
