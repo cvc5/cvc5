@@ -67,10 +67,11 @@ class StringsEntail
 
   /** strip symbolic length
    *
-   * This function strips off components of n1 whose length is less than
-   * or equal to argument curr, and stores them in nr. The direction
-   * dir determines whether the components are removed from the start
-   * or end of n1.
+   * This function strips off components of n1 whose length is less than or
+   * equal to argument curr, and stores them in nr. The direction dir
+   * determines whether the components are removed from the start or end of n1.
+   * If `strict` is set to true, then the function only returns true if full
+   * length `curr` can be stripped.
    *
    * In detail, this function updates n1 to n1' such that:
    *   If dir=1,
@@ -107,7 +108,8 @@ class StringsEntail
   static bool stripSymbolicLength(std::vector<Node>& n1,
                                   std::vector<Node>& nr,
                                   int dir,
-                                  Node& curr);
+                                  Node& curr,
+                                  bool strict = false);
   /** component contains
    * This function is used when rewriting str.contains( t1, t2 ), where
    * n1 is the vector form of t1

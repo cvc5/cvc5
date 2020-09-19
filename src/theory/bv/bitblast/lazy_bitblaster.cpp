@@ -21,6 +21,7 @@
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
+#include "smt/smt_engine.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/abstraction.h"
 #include "theory/bv/bv_solver_lazy.h"
@@ -82,6 +83,7 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c,
   d_cnfStream.reset(new prop::TseitinCnfStream(d_satSolver.get(),
                                                d_nullRegistrar.get(),
                                                d_nullContext.get(),
+                                               nullptr,
                                                rm,
                                                false,
                                                "LazyBitblaster"));
@@ -530,12 +532,9 @@ Node TLazyBitblaster::getModelFromSatSolver(TNode a, bool fullModel) {
   return utils::mkConst(bits.size(), value);
 }
 
-bool TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
+bool TLazyBitblaster::collectModelValues(TheoryModel* m,
+                                         const std::set<Node>& termSet)
 {
-  std::set<Node> termSet;
-  const std::set<Kind>& irrKinds = m->getIrrelevantKinds();
-  d_bv->computeAssertedTerms(termSet, irrKinds, true);
-
   for (std::set<Node>::const_iterator it = termSet.begin(); it != termSet.end(); ++it) {
     TNode var = *it;
     // not actually a leaf of the bit-vector theory
@@ -549,9 +548,9 @@ bool TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
     Node const_value = getModelFromSatSolver(var, true);
     Assert(const_value.isNull() || const_value.isConst());
     if(const_value != Node()) {
-      Debug("bitvector-model") << "TLazyBitblaster::collectModelInfo (assert (= "
-                               << var << " "
-                               << const_value << "))\n";
+      Debug("bitvector-model")
+          << "TLazyBitblaster::collectModelValues (assert (= " << var << " "
+          << const_value << "))\n";
       if (!m->assertEquality(var, const_value, true))
       {
         return false;
@@ -576,8 +575,11 @@ void TLazyBitblaster::clearSolver() {
   d_satSolver.reset(
       prop::SatSolverFactory::createMinisat(d_ctx, smtStatisticsRegistry()));
   ResourceManager* rm = smt::currentResourceManager();
-  d_cnfStream.reset(new prop::TseitinCnfStream(
-      d_satSolver.get(), d_nullRegistrar.get(), d_nullContext.get(), rm));
+  d_cnfStream.reset(new prop::TseitinCnfStream(d_satSolver.get(),
+                                               d_nullRegistrar.get(),
+                                               d_nullContext.get(),
+                                               nullptr,
+                                               rm));
   d_satSolverNotify.reset(
       d_emptyNotify
           ? (prop::BVSatSolverNotify*)new MinisatEmptyNotify()

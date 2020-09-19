@@ -43,7 +43,7 @@ theory::TrustNode RemoveTermFormulas::run(
     std::vector<Node>& newSkolems,
     bool reportDeps)
 {
-  Node itesRemoved = run(assertion, newAsserts, newSkolems, false, false);
+  Node itesRemoved = runInternal(assertion, newAsserts, newSkolems);
   // In some calling contexts, not necessary to report dependence information.
   if (reportDeps && options::unsatCores())
   {
@@ -68,31 +68,128 @@ theory::TrustNode RemoveTermFormulas::run(
   return theory::TrustNode::mkTrustRewrite(assertion, itesRemoved, d_tpg.get());
 }
 
-Node RemoveTermFormulas::run(TNode node,
-                             std::vector<theory::TrustNode>& output,
-                             std::vector<Node>& newSkolems,
-                             bool inQuant,
-                             bool inTerm)
+Node RemoveTermFormulas::runInternal(Node assertion,
+                                     std::vector<theory::TrustNode>& output,
+                                     std::vector<Node>& newSkolems)
 {
-  // Current node
-  Debug("ite") << "removeITEs(" << node << ")" << " " << inQuant << " " << inTerm << endl;
+  NodeManager* nm = NodeManager::currentNM();
+  TCtxStack ctx(&d_rtfc);
+  std::vector<bool> processedChildren;
+  ctx.pushInitial(assertion);
+  processedChildren.push_back(false);
+  std::pair<Node, uint32_t> initial = ctx.getCurrent();
+  std::pair<Node, uint32_t> curr;
+  Node node;
+  uint32_t nodeVal;
+  TermFormulaCache::const_iterator itc;
+  while (!ctx.empty())
+  {
+    curr = ctx.getCurrent();
+    itc = d_tfCache.find(curr);
+    node = curr.first;
+    nodeVal = curr.second;
+    Trace("rtf-debug") << "Visit " << node << ", " << nodeVal << std::endl;
+    if (itc != d_tfCache.end())
+    {
+      Trace("rtf-debug") << "...already computed" << std::endl;
+      ctx.pop();
+      processedChildren.pop_back();
+      // already computed
+      continue;
+    }
+    // if we have yet to process children
+    if (!processedChildren.back())
+    {
+      // check if we should replace the current node
+      Node currt = runCurrent(curr, output, newSkolems);
+      // if null, we need to recurse
+      if (!currt.isNull())
+      {
+        Trace("rtf-debug") << "...replace by skolem" << std::endl;
+        d_tfCache.insert(curr, currt);
+        ctx.pop();
+        processedChildren.pop_back();
+      }
+      else
+      {
+        size_t nchild = node.getNumChildren();
+        if (nchild > 0)
+        {
+          Trace("rtf-debug") << "...recurse to children" << std::endl;
+          // recurse if we have children
+          processedChildren[processedChildren.size() - 1] = true;
+          for (size_t i = 0; i < nchild; i++)
+          {
+            ctx.pushChild(node, nodeVal, i);
+            processedChildren.push_back(false);
+          }
+        }
+        else
+        {
+          Trace("rtf-debug") << "...base case" << std::endl;
+          d_tfCache.insert(curr, node);
+          ctx.pop();
+          processedChildren.pop_back();
+        }
+      }
+      continue;
+    }
+    Trace("rtf-debug") << "...reconstruct" << std::endl;
+    // otherwise, we are now finished processing children, pop the current node
+    // and compute the result
+    ctx.pop();
+    processedChildren.pop_back();
+    // if we have not already computed the result
+    std::vector<Node> newChildren;
+    bool childChanged = false;
+    if (node.getMetaKind() == kind::metakind::PARAMETERIZED)
+    {
+      newChildren.push_back(node.getOperator());
+    }
+    // reconstruct from the children
+    std::pair<Node, uint32_t> currChild;
+    for (size_t i = 0, nchild = node.getNumChildren(); i < nchild; i++)
+    {
+      // recompute the value of the child
+      uint32_t val = d_rtfc.computeValue(node, nodeVal, i);
+      currChild = std::pair<Node, uint32_t>(node[i], val);
+      itc = d_tfCache.find(currChild);
+      Assert(itc != d_tfCache.end());
+      Node newChild = (*itc).second;
+      Assert(!newChild.isNull());
+      childChanged |= (newChild != node[i]);
+      newChildren.push_back(newChild);
+    }
+    // If changes, we reconstruct the node
+    Node ret = node;
+    if (childChanged)
+    {
+      ret = nm->mkNode(node.getKind(), newChildren);
+    }
+    // cache
+    d_tfCache.insert(curr, ret);
+  }
+  itc = d_tfCache.find(initial);
+  Assert(itc != d_tfCache.end());
+  return (*itc).second;
+}
 
-  if( node.getKind()==kind::INST_PATTERN_LIST ){
+Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
+                                    std::vector<theory::TrustNode>& output,
+                                    std::vector<Node>& newSkolems)
+{
+  TNode node = curr.first;
+  if (node.getKind() == kind::INST_PATTERN_LIST)
+  {
     return Node(node);
   }
+  uint32_t cval = curr.second;
+  bool inQuant, inTerm;
+  RtfTermContext::getFlags(curr.second, inQuant, inTerm);
+  Debug("ite") << "removeITEs(" << node << ")"
+               << " " << inQuant << " " << inTerm << std::endl;
 
-  // The result may be cached already
-  int cv = cacheVal( inQuant, inTerm );
-  std::pair<Node, int> cacheKey(node, cv);
   NodeManager *nodeManager = NodeManager::currentNM();
-  TermFormulaCache::const_iterator i = d_tfCache.find(cacheKey);
-  if (i != d_tfCache.end())
-  {
-    Node cached = (*i).second;
-    Debug("ite") << "removeITEs: in-cache: " << cached << endl;
-    return cached.isNull() ? Node(node) : cached;
-  }
-
 
   TypeNode nodeType = node.getType();
   Node skolem;
@@ -110,6 +207,8 @@ Node RemoveTermFormulas::run(TNode node,
       skolem = getSkolemForNode(node);
       if (skolem.isNull())
       {
+        Trace("rtf-proof-debug")
+            << "RemoveTermFormulas::run: make ITE skolem" << std::endl;
         // Make the skolem to represent the ITE
         SkolemManager* sm = nodeManager->getSkolemManager();
         skolem = sm->mkPurifySkolem(
@@ -125,6 +224,9 @@ Node RemoveTermFormulas::run(TNode node,
         // we justify it internally
         if (isProofEnabled())
         {
+          Trace("rtf-proof-debug")
+              << "RemoveTermFormulas::run: justify " << newAssertion
+              << " with ITE axiom" << std::endl;
           // ---------------------- REMOVE_TERM_FORMULA_AXIOM
           // (ite node[0]
           //      (= node node[1])            ------------- MACRO_SR_PRED_INTRO
@@ -155,6 +257,8 @@ Node RemoveTermFormulas::run(TNode node,
       skolem = getSkolemForNode(node);
       if (skolem.isNull())
       {
+        Trace("rtf-proof-debug")
+            << "RemoveTermFormulas::run: make LAMBDA skolem" << std::endl;
         // Make the skolem to represent the lambda
         SkolemManager* sm = nodeManager->getSkolemManager();
         skolem = sm->mkPurifySkolem(
@@ -194,9 +298,12 @@ Node RemoveTermFormulas::run(TNode node,
     //   http://planetmath.org/hilbertsvarepsilonoperator.
     if (!inQuant || !expr::hasFreeVar(node))
     {
+      // NOTE: we can replace by t if body is of the form (and (= z t) ...)
       skolem = getSkolemForNode(node);
       if (skolem.isNull())
       {
+        Trace("rtf-proof-debug")
+            << "RemoveTermFormulas::run: make WITNESS skolem" << std::endl;
         // Make the skolem to witness the choice, which notice is handled
         // as a special case within SkolemManager::mkPurifySkolem.
         SkolemManager* sm = nodeManager->getSkolemManager();
@@ -225,10 +332,12 @@ Node RemoveTermFormulas::run(TNode node,
           // -------------------- SKOLEMIZE
           // node[1] * { x -> skolem }
           ProofGenerator* expg = sm->getProofGenerator(existsAssertion);
-          if (expg != nullptr)
-          {
-            d_lp->addLazyStep(existsAssertion, expg);
-          }
+          d_lp->addLazyStep(existsAssertion,
+                            expg,
+                            true,
+                            "RemoveTermFormulas::run:skolem_pf",
+                            false,
+                            PfRule::WITNESS_AXIOM);
           d_lp->addStep(newAssertion, PfRule::SKOLEMIZE, {existsAssertion}, {});
           newAssertionPg = d_lp.get();
         }
@@ -243,6 +352,9 @@ Node RemoveTermFormulas::run(TNode node,
     skolem = getSkolemForNode(node);
     if (skolem.isNull())
     {
+      Trace("rtf-proof-debug")
+          << "RemoveTermFormulas::run: make BOOLEAN_TERM_VARIABLE skolem"
+          << std::endl;
       // Make the skolem to represent the Boolean term
       // Skolems introduced for Boolean formulas appearing in terms have a
       // special kind (BOOLEAN_TERM_VARIABLE) that ensures they are handled
@@ -269,26 +381,33 @@ Node RemoveTermFormulas::run(TNode node,
 
   // if the term should be replaced by a skolem
   if( !skolem.isNull() ){
-    // Attach the skolem
-    d_tfCache.insert(cacheKey, skolem);
+    // this must be done regardless of whether the assertion was new below,
+    // since a formula-term may rewrite to the same skolem in multiple contexts.
+    if (isProofEnabled())
+    {
+      // justify the introduction of the skolem
+      // ------------------- MACRO_SR_PRED_INTRO
+      // t = witness x. x=t
+      // The above step is trivial, since the skolems introduced above are
+      // all purification skolems. We record this equality in the term
+      // conversion proof generator.
+      d_tpg->addRewriteStep(node,
+                            skolem,
+                            PfRule::MACRO_SR_PRED_INTRO,
+                            {},
+                            {node.eqNode(skolem)},
+                            cval);
+    }
 
     // if the skolem was introduced in this call
     if (!newAssertion.isNull())
     {
+      Trace("rtf-proof-debug")
+          << "RemoveTermFormulas::run: setup proof for new assertion "
+          << newAssertion << std::endl;
       // if proofs are enabled
       if (isProofEnabled())
       {
-        // justify the introduction of the skolem
-        // ------------------- MACRO_SR_PRED_INTRO
-        // t = witness x. x=t
-        // The above step is trivial, since the skolems introduced above are
-        // all purification skolems. We record this equality in the term
-        // conversion proof generator.
-        d_tpg->addRewriteStep(node,
-                              skolem,
-                              PfRule::MACRO_SR_PRED_INTRO,
-                              {},
-                              {node.eqNode(skolem)});
         // justify the axiom that defines the skolem, if not already done so
         if (newAssertionPg == nullptr)
         {
@@ -300,15 +419,39 @@ Node RemoveTermFormulas::run(TNode node,
               newAssertion, PfRule::MACRO_SR_PRED_INTRO, {}, {newAssertion});
         }
       }
-      Debug("ite") << "*** term formula removal introduced " << skolem
-                   << " for " << node << std::endl;
+      Trace("rtf-debug") << "*** term formula removal introduced " << skolem
+                         << " for " << node << std::endl;
 
       // Remove ITEs from the new assertion, rewrite it and push it to the
       // output
-      newAssertion = run(newAssertion, output, newSkolems, false, false);
+      Node newAssertionPre = newAssertion;
+      newAssertion = runInternal(newAssertion, output, newSkolems);
+
+      if (isProofEnabled())
+      {
+        if (newAssertionPre != newAssertion)
+        {
+          Trace("rtf-proof-debug")
+              << "RemoveTermFormulas::run: setup proof for processed new lemma"
+              << std::endl;
+          // for new assertions that rewrite recursively
+          Node naEq = newAssertionPre.eqNode(newAssertion);
+          d_lp->addLazyStep(naEq, d_tpg.get());
+          // ---------------- from lp  ------------------------------- from tpg
+          // newAssertionPre            newAssertionPre = newAssertion
+          // ------------------------------------------------------- EQ_RESOLVE
+          // newAssertion
+          d_lp->addStep(
+              newAssertion, PfRule::EQ_RESOLVE, {newAssertionPre, naEq}, {});
+        }
+      }
 
       theory::TrustNode trna =
           theory::TrustNode::mkTrustLemma(newAssertion, d_lp.get());
+
+      Trace("rtf-proof-debug") << "Checking closed..." << std::endl;
+      trna.debugCheckClosed("rtf-proof-debug",
+                            "RemoveTermFormulas::run:new_assert");
 
       output.push_back(trna);
       newSkolems.push_back(skolem);
@@ -318,38 +461,8 @@ Node RemoveTermFormulas::run(TNode node,
     return skolem;
   }
 
-  if (node.isClosure())
-  {
-    // Remember if we're inside a quantifier
-    inQuant = true;
-  }else if( !inTerm && hasNestedTermChildren( node ) ){
-    // Remember if we're inside a term
-    Debug("ite") << "In term because of " << node << " " << node.getKind() << std::endl;
-    inTerm = true;
-  }
-
-  // If not an ITE, go deep
-  vector<Node> newChildren;
-  bool somethingChanged = false;
-  if(node.getMetaKind() == kind::metakind::PARAMETERIZED) {
-    newChildren.push_back(node.getOperator());
-  }
-  // Remove the ITEs from the children
-  for(TNode::const_iterator it = node.begin(), end = node.end(); it != end; ++it) {
-    Node newChild = run(*it, output, newSkolems, inQuant, inTerm);
-    somethingChanged |= (newChild != *it);
-    newChildren.push_back(newChild);
-  }
-
-  // If changes, we rewrite
-  if(somethingChanged) {
-    Node cached = nodeManager->mkNode(node.getKind(), newChildren);
-    d_tfCache.insert(cacheKey, cached);
-    return cached;
-  } else {
-    d_tfCache.insert(cacheKey, Node::null());
-    return node;
-  }
+  // return null, indicating we will traverse children within runInternal
+  return Node::null();
 }
 
 Node RemoveTermFormulas::getSkolemForNode(Node node) const
@@ -363,28 +476,30 @@ Node RemoveTermFormulas::getSkolemForNode(Node node) const
   return Node::null();
 }
 
-Node RemoveTermFormulas::replace(TNode node, bool inQuant, bool inTerm) const {
+Node RemoveTermFormulas::replace(TNode node) const
+{
+  TCtxStack ctx(&d_rtfc);
+  ctx.pushInitial(node);
+  return replaceInternal(ctx);
+}
+
+Node RemoveTermFormulas::replaceInternal(TCtxStack& ctx) const
+{
+  // get the current node, tagged with a term context identifier
+  Assert(!ctx.empty());
+  std::pair<Node, uint32_t> curr = ctx.getCurrent();
+  ctx.pop();
+  TNode node = curr.first;
+
   if( node.getKind()==kind::INST_PATTERN_LIST ){
     return Node(node);
   }
 
   // Check the cache
-  NodeManager *nodeManager = NodeManager::currentNM();
-  int cv = cacheVal( inQuant, inTerm );
-  TermFormulaCache::const_iterator i = d_tfCache.find(make_pair(node, cv));
-  if (i != d_tfCache.end())
+  TermFormulaCache::const_iterator itc = d_tfCache.find(curr);
+  if (itc != d_tfCache.end())
   {
-    Node cached = (*i).second;
-    return cached.isNull() ? Node(node) : cached;
-  }
-
-  if (node.isClosure())
-  {
-    // Remember if we're inside a quantifier
-    inQuant = true;
-  }else if( !inTerm && hasNestedTermChildren( node ) ){
-    // Remember if we're inside a term
-    inTerm = true;
+    return (*itc).second;
   }
 
   vector<Node> newChildren;
@@ -393,28 +508,20 @@ Node RemoveTermFormulas::replace(TNode node, bool inQuant, bool inTerm) const {
     newChildren.push_back(node.getOperator());
   }
   // Replace in children
-  for(TNode::const_iterator it = node.begin(), end = node.end(); it != end; ++it) {
-    Node newChild = replace(*it, inQuant, inTerm);
-    somethingChanged |= (newChild != *it);
+  uint32_t cval = curr.second;
+  for (size_t i = 0, nchild = node.getNumChildren(); i < nchild; i++)
+  {
+    ctx.pushChild(node, cval, i);
+    Node newChild = replaceInternal(ctx);
+    somethingChanged |= (newChild != node[i]);
     newChildren.push_back(newChild);
   }
 
   // If changes, we rewrite
   if(somethingChanged) {
-    return nodeManager->mkNode(node.getKind(), newChildren);
-  } else {
-    return node;
+    return NodeManager::currentNM()->mkNode(node.getKind(), newChildren);
   }
-}
-
-// returns true if the children of node should be considered nested terms
-bool RemoveTermFormulas::hasNestedTermChildren( TNode node ) {
-  return theory::kindToTheoryId(node.getKind()) != theory::THEORY_BOOL
-         && node.getKind() != kind::EQUAL && node.getKind() != kind::SEP_STAR
-         && node.getKind() != kind::SEP_WAND
-         && node.getKind() != kind::SEP_LABEL
-         && node.getKind() != kind::BITVECTOR_EAGER_ATOM;
-  // dont' worry about FORALL or EXISTS (handled separately)
+  return node;
 }
 
 Node RemoveTermFormulas::getAxiomFor(Node n)
@@ -438,7 +545,8 @@ void RemoveTermFormulas::setProofNodeManager(ProofNodeManager* pnm)
                                 nullptr,
                                 TConvPolicy::FIXPOINT,
                                 TConvCachePolicy::NEVER,
-                                "RemoveTermFormulas::TConvProofGenerator"));
+                                "RemoveTermFormulas::TConvProofGenerator",
+                                &d_rtfc));
     d_lp.reset(new LazyCDProof(
         d_pnm, nullptr, nullptr, "RemoveTermFormulas::LazyCDProof"));
   }

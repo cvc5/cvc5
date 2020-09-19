@@ -236,7 +236,8 @@ class AlgebraicSolver : public SubtheorySolver
     Unreachable() << "AlgebraicSolver does not propagate.\n";
   }
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
-  bool collectModelInfo(TheoryModel* m, bool fullModel) override;
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet) override;
   Node getModelValue(TNode node) override;
   bool isComplete() override;
   void assertFact(TNode fact) override;

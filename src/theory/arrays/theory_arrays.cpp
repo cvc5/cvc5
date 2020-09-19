@@ -23,7 +23,6 @@
 #include "expr/node_algorithm.h"
 #include "options/arrays_options.h"
 #include "options/smt_options.h"
-#include "smt/command.h"
 #include "smt/logic_exception.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
@@ -644,115 +643,131 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     return;
   }
   Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::preRegisterTerm(" << node << ")" << std::endl;
-  switch (node.getKind()) {
-  case kind::EQUAL:
+  Kind nk = node.getKind();
+  if (nk == kind::EQUAL)
+  {
     // Add the trigger for equality
     // NOTE: note that if the equality is true or false already, it might not be added
     d_equalityEngine->addTriggerPredicate(node);
-    break;
-  case kind::SELECT: {
-    // Invariant: array terms should be preregistered before being added to the equality engine
-    if (d_equalityEngine->hasTerm(node))
-    {
-      Assert(d_isPreRegistered.find(node) != d_isPreRegistered.end());
-      return;
-    }
-    // Reads
-    TNode store = d_equalityEngine->getRepresentative(node[0]);
-
-    // The may equal needs the store
-    d_mayEqualEqualityEngine.addTerm(store);
-
-    if (node.getType().isArray())
-    {
-      d_mayEqualEqualityEngine.addTerm(node);
-      d_equalityEngine->addTerm(node);
-    }
-    else
-    {
-      d_equalityEngine->addTerm(node);
-    }
-    Assert((d_isPreRegistered.insert(node), true));
-
-    Assert(d_equalityEngine->getRepresentative(store) == store);
-    d_infoMap.addIndex(store, node[1]);
-
-    // Synchronize d_constReadsContext with SAT context
-    Assert(d_constReadsContext->getLevel() <= getSatContext()->getLevel());
-    while (d_constReadsContext->getLevel() < getSatContext()->getLevel()) {
-      d_constReadsContext->push();
-    }
-
-    // Record read in sharing data structure
-    TNode index = d_equalityEngine->getRepresentative(node[1]);
-    if (!options::arraysWeakEquivalence() && index.isConst()) {
-      CTNodeList* temp;
-      CNodeNListMap::iterator it = d_constReads.find(index);
-      if (it == d_constReads.end()) {
-        temp = new(true) CTNodeList(d_constReadsContext);
-        d_constReads[index] = temp;
-      }
-      else {
-        temp = (*it).second;
-      }
-      temp->push_back(node);
-      d_constReadsList.push_back(node);
-    }
-    else {
-      d_reads.push_back(node);
-    }
-
-    checkRowForIndex(node[1], store);
-    break;
+    return;
   }
-  case kind::STORE: {
-    if (d_equalityEngine->hasTerm(node))
+  else if (d_equalityEngine->hasTerm(node))
+  {
+    // Invariant: array terms should be preregistered before being added to the equality engine
+    Assert(nk != kind::SELECT
+           || d_isPreRegistered.find(node) != d_isPreRegistered.end());
+    return;
+  }
+  // add to equality engine and the may equality engine
+  TypeNode nodeType = node.getType();
+  if (nodeType.isArray())
+  {
+    // index type should not be an array, otherwise we throw a logic exception
+    if (nodeType.getArrayIndexType().isArray())
     {
+      std::stringstream ss;
+      ss << "Arrays cannot be indexed by array types, offending array type is "
+         << nodeType;
+      throw LogicException(ss.str());
+    }
+    d_mayEqualEqualityEngine.addTerm(node);
+  }
+  d_equalityEngine->addTerm(node);
+
+  switch (node.getKind())
+  {
+    case kind::SELECT:
+    {
+      // Reads
+      TNode store = d_equalityEngine->getRepresentative(node[0]);
+
+      // The may equal needs the store
+      d_mayEqualEqualityEngine.addTerm(store);
+
+      Assert((d_isPreRegistered.insert(node), true));
+
+      Assert(d_equalityEngine->getRepresentative(store) == store);
+      d_infoMap.addIndex(store, node[1]);
+
+      // Synchronize d_constReadsContext with SAT context
+      Assert(d_constReadsContext->getLevel() <= getSatContext()->getLevel());
+      while (d_constReadsContext->getLevel() < getSatContext()->getLevel())
+      {
+        d_constReadsContext->push();
+      }
+
+      // Record read in sharing data structure
+      TNode index = d_equalityEngine->getRepresentative(node[1]);
+      if (!options::arraysWeakEquivalence() && index.isConst())
+      {
+        CTNodeList* temp;
+        CNodeNListMap::iterator it = d_constReads.find(index);
+        if (it == d_constReads.end())
+        {
+          temp = new (true) CTNodeList(d_constReadsContext);
+          d_constReads[index] = temp;
+        }
+        else
+        {
+          temp = (*it).second;
+        }
+        temp->push_back(node);
+        d_constReadsList.push_back(node);
+      }
+      else
+      {
+        d_reads.push_back(node);
+      }
+
+      checkRowForIndex(node[1], store);
       break;
     }
-    d_equalityEngine->addTerm(node);
-
-    TNode a = d_equalityEngine->getRepresentative(node[0]);
-
-    if (node.isConst()) {
-      // Can't use d_mayEqualEqualityEngine to merge node with a because they are both constants,
-      // so just set the default value manually for node.
-      Assert(a == node[0]);
-      d_mayEqualEqualityEngine.addTerm(node);
-      Assert(d_mayEqualEqualityEngine.getRepresentative(node) == node);
-      Assert(d_mayEqualEqualityEngine.getRepresentative(a) == a);
-      DefValMap::iterator it = d_defValues.find(a);
-      Assert(it != d_defValues.end());
-      d_defValues[node] = (*it).second;
-    }
-    else {
-      d_mayEqualEqualityEngine.assertEquality(node.eqNode(a), true, d_true);
-      Assert(d_mayEqualEqualityEngine.consistent());
-    }
-
-    TNode i = node[1];
-    TNode v = node[2];
-    NodeManager* nm = NodeManager::currentNM();
-    Node ni = nm->mkNode(kind::SELECT, node, i);
-    if (!d_equalityEngine->hasTerm(ni))
+    case kind::STORE:
     {
-      preRegisterTermInternal(ni);
-    }
+      TNode a = d_equalityEngine->getRepresentative(node[0]);
 
-    // Apply RIntro1 Rule
-    d_equalityEngine->assertEquality(
-        ni.eqNode(v), true, d_true, theory::eq::MERGED_THROUGH_ROW1);
+      if (node.isConst())
+      {
+        // Can't use d_mayEqualEqualityEngine to merge node with a because they
+        // are both constants, so just set the default value manually for node.
+        Assert(a == node[0]);
+        d_mayEqualEqualityEngine.addTerm(node);
+        Assert(d_mayEqualEqualityEngine.getRepresentative(node) == node);
+        Assert(d_mayEqualEqualityEngine.getRepresentative(a) == a);
+        DefValMap::iterator it = d_defValues.find(a);
+        Assert(it != d_defValues.end());
+        d_defValues[node] = (*it).second;
+      }
+      else
+      {
+        d_mayEqualEqualityEngine.assertEquality(node.eqNode(a), true, d_true);
+        Assert(d_mayEqualEqualityEngine.consistent());
+      }
 
-    d_infoMap.addStore(node, node);
-    d_infoMap.addInStore(a, node);
-    d_infoMap.setModelRep(node, node);
+      TNode i = node[1];
+      TNode v = node[2];
+      NodeManager* nm = NodeManager::currentNM();
+      Node ni = nm->mkNode(kind::SELECT, node, i);
+      if (!d_equalityEngine->hasTerm(ni))
+      {
+        preRegisterTermInternal(ni);
+      }
 
-    //Add-Store for Weak Equivalence
-    if (options::arraysWeakEquivalence()) {
-      Assert(weakEquivGetRep(node[0]) == weakEquivGetRep(a));
-      Assert(weakEquivGetRep(node) == node);
-      d_infoMap.setWeakEquivPointer(node, node[0]);
-      d_infoMap.setWeakEquivIndex(node, node[1]);
+      // Apply RIntro1 Rule
+      d_equalityEngine->assertEquality(
+          ni.eqNode(v), true, d_true, theory::eq::MERGED_THROUGH_ROW1);
+
+      d_infoMap.addStore(node, node);
+      d_infoMap.addInStore(a, node);
+      d_infoMap.setModelRep(node, node);
+
+      // Add-Store for Weak Equivalence
+      if (options::arraysWeakEquivalence())
+      {
+        Assert(weakEquivGetRep(node[0]) == weakEquivGetRep(a));
+        Assert(weakEquivGetRep(node) == node);
+        d_infoMap.setWeakEquivPointer(node, node[0]);
+        d_infoMap.setWeakEquivIndex(node, node[1]);
 #ifdef CVC4_ASSERTIONS
       checkWeakEquiv(false);
 #endif
@@ -762,33 +777,18 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     break;
   }
   case kind::STORE_ALL: {
-    if (d_equalityEngine->hasTerm(node))
-    {
-      break;
-    }
     ArrayStoreAll storeAll = node.getConst<ArrayStoreAll>();
     Node defaultValue = storeAll.getValue();
     if (!defaultValue.isConst()) {
       throw LogicException("Array theory solver does not yet support non-constant default values for arrays");
     }
     d_infoMap.setConstArr(node, node);
-    d_mayEqualEqualityEngine.addTerm(node);
     Assert(d_mayEqualEqualityEngine.getRepresentative(node) == node);
-    d_equalityEngine->addTerm(node);
     d_defValues[node] = defaultValue;
     break;
   }
   default:
-    // Variables etc
-    if (node.getType().isArray()) {
-      // The may equal needs the node
-      d_mayEqualEqualityEngine.addTerm(node);
-      d_equalityEngine->addTerm(node);
-    }
-    else {
-      d_equalityEngine->addTerm(node);
-    }
-
+    // Variables etc, already processed above
     break;
   }
   // Invariant: preregistered terms are exactly the terms in the equality engine
