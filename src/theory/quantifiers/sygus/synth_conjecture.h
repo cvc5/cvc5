@@ -112,17 +112,17 @@ class SynthConjecture
   /** do refinement
    *
    * This is step 2(b) of Figure 3 of Reynolds et al CAV 2015.
-   * 
+   *
    * This method is run when needsRefinement() returns true, indicating that
    * the last call to doCheck found a counterexample to the last candidate.
-   * 
+   *
    * This method adds a refinement lemma on the output channel of quantifiers
    * engine. If the refinement lemma is a duplicate, then we manually
    * exclude the current candidate via excludeCurrentSolution. This should
    * only occur when the synthesis conjecture for the current candidate fails
    * to evaluate to false for a given counterexample point, but regardless its
    * negation is satisfiable for the current candidate and that point.
-   * 
+   *
    * This method returns true if a lemma was added on the output channel, and
    * false otherwise.
    */
