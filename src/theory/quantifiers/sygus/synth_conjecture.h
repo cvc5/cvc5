@@ -121,7 +121,8 @@ class SynthConjecture
    * exclude the current candidate via excludeCurrentSolution. This should
    * only occur when the synthesis conjecture for the current candidate fails
    * to evaluate to false for a given counterexample point, but regardless its
-   * negation is satisfiable for the current candidate and that point.
+   * negation is satisfiable for the current candidate and that point. This is
+   * exclusive to theories with partial functions, e.g. (non-linear) division.
    *
    * This method returns true if a lemma was added on the output channel, and
    * false otherwise.
