@@ -344,8 +344,7 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
     }
     // otherwise, immediately go to refine candidate
   }
-  Trace("sygus-engine-debug")
-      << "  *** Refine candidate phase..." << std::endl;
+  Trace("sygus-engine-debug") << "  *** Refine candidate phase..." << std::endl;
   return conj->doRefine();
 }
 

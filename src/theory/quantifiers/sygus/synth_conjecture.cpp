@@ -768,13 +768,13 @@ bool SynthConjecture::doRefine()
   d_set_ce_sk_vars = false;
   d_ce_sk_vars.clear();
   d_ce_sk_var_mvs.clear();
-  
-  // now send the lemmas 
+
+  // now send the lemmas
   bool addedLemma = false;
   for (const Node& lem : lems)
   {
     Trace("cegqi-lemma") << "Cegqi::Lemma : candidate refinement : " << lem
-                          << std::endl;
+                         << std::endl;
     bool res = d_qe->addLemma(lem);
     if (res)
     {
@@ -793,7 +793,9 @@ bool SynthConjecture::doRefine()
   }
   else
   {
-    Trace("sygus-engine-debug") << "  ...(warning) failed to refine candidate, manually exclude candidate." << std::endl;
+    Trace("sygus-engine-debug") << "  ...(warning) failed to refine candidate, "
+                                   "manually exclude candidate."
+                                << std::endl;
     // something went wrong, exclude the current candidate
     excludeCurrentSolution(sk_vars, sk_subs);
     // Note this happens when evaluation is incapable of disproving a candidate,
