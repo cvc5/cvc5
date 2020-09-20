@@ -60,6 +60,7 @@ CVC4dumpstream& CVC4dumpstream::operator<<(const NodeCommand& nc)
 {
   return *this;
 }
+CVC4dumpstream& CVC4dumpstream::operator<<(ProofNode* pn) { return *this; }
 
 #endif /* CVC4_DUMPING && !CVC4_MUZZLE */
 

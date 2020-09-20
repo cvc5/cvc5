@@ -43,14 +43,7 @@ class CVC4_PUBLIC CVC4dumpstream
    */
   CVC4dumpstream& operator<<(const NodeCommand& nc);
 
-  CVC4dumpstream& operator<<(ProofNode* pn)
-  {
-    if (d_os != nullptr)
-    {
-      pn->printDebug(*d_os);
-    }
-    return *this;
-  }
+  CVC4dumpstream& operator<<(ProofNode* pn);
 
  private:
   std::ostream* d_os;
