@@ -36,8 +36,7 @@ CombinationEngine::CombinationEngine(TheoryEngine& te,
 {
 }
 
-CombinationEngine::~CombinationEngine() {
-}
+CombinationEngine::~CombinationEngine() {}
 
 void CombinationEngine::finishInit()
 {

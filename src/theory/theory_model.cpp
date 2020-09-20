@@ -760,10 +760,7 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
   return funcs_to_assign;
 }
 
-const std::string& TheoryModel::getName() const
-{
-  return d_name;
-}
+const std::string& TheoryModel::getName() const { return d_name; }
 
 } /* namespace CVC4::theory */
 } /* namespace CVC4 */
