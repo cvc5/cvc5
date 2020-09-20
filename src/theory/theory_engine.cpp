@@ -224,9 +224,10 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_outMgr(outMgr),
       d_pnm(nullptr),
       d_lazyProof(
-          d_pnm != nullptr ? new LazyCDProof(
-              d_pnm, nullptr, d_userContext, "TheoryEngine::LazyCDProof")
-                           : nullptr),
+          d_pnm != nullptr
+              ? new LazyCDProof(
+                    d_pnm, nullptr, d_userContext, "TheoryEngine::LazyCDProof")
+              : nullptr),
       d_tepg(new TheoryEngineProofGenerator(d_pnm, d_userContext)),
       d_tc(nullptr),
       d_sharedSolver(nullptr),
@@ -1740,7 +1741,8 @@ theory::TrustNode TheoryEngine::getExplanation(
       }
     }
 
-    TrustNode texp = d_sharedSolver->explain(toExplain.d_node, toExplain.d_theory);
+    TrustNode texp =
+        d_sharedSolver->explain(toExplain.d_node, toExplain.d_theory);
     Node explanation = texp.getNode();
 
     Debug("theory::explain")
