@@ -14,12 +14,12 @@
  ** AIG bitblaster.
  **/
 
-#include "cvc4_private.h"
-
 #include "theory/bv/bitblast/aig_bitblaster.h"
 
 #include "base/check.h"
+#include "cvc4_private.h"
 #include "options/bv_options.h"
+#include "prop/cnf_stream.h"
 #include "prop/sat_solver_factory.h"
 #include "smt/smt_statistics_registry.h"
 
@@ -28,7 +28,6 @@
 extern "C" {
 #include "base/abc/abc.h"
 #include "base/main/main.h"
-#include "prop/cnf_stream.h"
 #include "sat/cnf/cnf.h"
 
 extern Aig_Man_t* Abc_NtkToDar(Abc_Ntk_t* pNtk, int fExors, int fRegisters);

@@ -50,48 +50,39 @@
 #include "expr/node_builder.h"
 #include "expr/node_self_iterator.h"
 #include "expr/node_visitor.h"
-#include "options/arith_options.h"
-#include "options/arrays_options.h"
 #include "options/base_options.h"
-#include "options/booleans_options.h"
-#include "options/bv_options.h"
-#include "options/datatypes_options.h"
 #include "options/decision_options.h"
 #include "options/language.h"
 #include "options/main_options.h"
 #include "options/open_ostream.h"
 #include "options/option_exception.h"
 #include "options/printer_options.h"
-#include "options/proof_options.h"
 #include "options/prop_options.h"
 #include "options/quantifiers_options.h"
-#include "options/sep_options.h"
 #include "options/set_language.h"
 #include "options/smt_options.h"
-#include "options/strings_options.h"
 #include "options/theory_options.h"
-#include "options/uf_options.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
 #include "printer/printer.h"
-#include "proof/proof.h"
 #include "proof/proof_manager.h"
-#include "proof/theory_proof.h"
 #include "proof/unsat_core.h"
 #include "smt/abduction_solver.h"
 #include "smt/abstract_values.h"
 #include "smt/assertions.h"
-#include "smt/command.h"
+#include "smt/node_command.h"
 #include "smt/defined_function.h"
 #include "smt/dump_manager.h"
 #include "smt/expr_names.h"
+#include "smt/interpolation_solver.h"
 #include "smt/listeners.h"
 #include "smt/logic_request.h"
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
 #include "smt/options_manager.h"
 #include "smt/preprocessor.h"
+#include "smt/proof_manager.h"
 #include "smt/quant_elim_solver.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_engine_state.h"
@@ -102,24 +93,16 @@
 #include "smt/update_ostream.h"
 #include "smt_util/boolean_simplification.h"
 #include "smt_util/nary_builder.h"
-#include "theory/booleans/circuit_propagator.h"
-#include "theory/bv/theory_bv_rewriter.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
-#include "theory/strings/theory_strings.h"
 #include "theory/substitutions.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
 #include "theory/theory_traits.h"
 #include "util/hash.h"
-#include "util/proof.h"
 #include "util/random.h"
 #include "util/resource_manager.h"
-
-#if (IS_LFSC_BUILD && IS_PROOFS_BUILD)
-#include "lfscc.h"
-#endif
 
 using namespace std;
 using namespace CVC4;
@@ -131,13 +114,19 @@ using namespace CVC4::theory;
 
 namespace CVC4 {
 
-namespace proof {
-extern const char* const plf_signatures;
-}  // namespace proof
+// !!! Temporary until commands are migrated to the new API !!!
+std::vector<Node> exprVectorToNodes(const std::vector<Expr>& exprs)
+{
+  std::vector<Node> nodes;
+  nodes.reserve(exprs.size());
 
-namespace smt {
+  for (Expr e : exprs)
+  {
+    nodes.push_back(Node::fromExpr(e));
+  }
 
-}/* namespace CVC4::smt */
+  return nodes;
+}
 
 SmtEngine::SmtEngine(ExprManager* em, Options* optr)
     : d_state(new SmtEngineState(*this)),
@@ -148,13 +137,15 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_exprNames(new ExprNames(getUserContext())),
       d_dumpm(new DumpManager(getUserContext())),
       d_routListener(new ResourceOutListener(*this)),
-      d_snmListener(new SmtNodeManagerListener(*d_dumpm.get())),
+      d_snmListener(new SmtNodeManagerListener(*d_dumpm.get(), d_outMgr)),
       d_smtSolver(nullptr),
       d_proofManager(nullptr),
+      d_pfManager(nullptr),
       d_rewriter(new theory::Rewriter()),
       d_definedFunctions(nullptr),
       d_sygusSolver(nullptr),
       d_abductSolver(nullptr),
+      d_interpolSolver(nullptr),
       d_quantElimSolver(nullptr),
       d_assignments(nullptr),
       d_logic(),
@@ -162,6 +153,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_isInternalSubsolver(false),
       d_statisticsRegistry(nullptr),
       d_stats(nullptr),
+      d_outMgr(this),
       d_resourceManager(nullptr),
       d_optm(nullptr),
       d_pp(nullptr),
@@ -202,7 +194,8 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
   d_smtSolver.reset(
       new SmtSolver(*this, *d_state, d_resourceManager.get(), *d_pp, *d_stats));
   // make the SyGuS solver
-  d_sygusSolver.reset(new SygusSolver(*d_smtSolver, *d_pp, getUserContext()));
+  d_sygusSolver.reset(
+      new SygusSolver(*d_smtSolver, *d_pp, getUserContext(), d_outMgr));
   // make the quantifier elimination solver
   d_quantElimSolver.reset(new QuantElimSolver(*d_smtSolver));
 
@@ -274,6 +267,20 @@ void SmtEngine::finishInit()
   // based on our heuristics.
   d_optm->finishInit(d_logic, d_isInternalSubsolver);
 
+  ProofNodeManager* pnm = nullptr;
+  if (options::proofNew())
+  {
+    d_pfManager.reset(new PfManager(this));
+    // use this proof node manager
+    pnm = d_pfManager->getProofNodeManager();
+    // enable proof support in the rewriter
+    d_rewriter->setProofNodeManager(pnm);
+    // enable it in the assertions pipeline
+    d_asserts->setProofGenerator(d_pfManager->getPreprocessProofGenerator());
+    // enable it in the SmtSolver
+    d_smtSolver->setProofNodeManager(pnm);
+  }
+
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
   d_smtSolver->finishInit(const_cast<const LogicInfo&>(d_logic));
 
@@ -290,12 +297,13 @@ void SmtEngine::finishInit()
   {
       LogicInfo everything;
       everything.lock();
-      Dump("benchmark") << CommentCommand(
+      getOutputManager().getPrinter().toStreamCmdComment(
+          getOutputManager().getDumpOut(),
           "CVC4 always dumps the most general, all-supported logic (below), as "
           "some internals might require the use of a logic more general than "
-          "the input.")
-                        << SetBenchmarkLogicCommand(
-                               everything.getLogicString());
+          "the input.");
+      getOutputManager().getPrinter().toStreamCmdSetBenchmarkLogic(
+          getOutputManager().getDumpOut(), everything.getLogicString());
   }
 
   // initialize the dump manager
@@ -306,16 +314,11 @@ void SmtEngine::finishInit()
   {
     d_abductSolver.reset(new AbductionSolver(this));
   }
+  if (options::produceInterpols() != options::ProduceInterpols::NONE)
+  {
+    d_interpolSolver.reset(new InterpolationSolver(this));
+  }
 
-  PROOF( ProofManager::currentPM()->setLogic(d_logic); );
-  PROOF({
-    TheoryEngine* te = d_smtSolver->getTheoryEngine();
-    for (TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id)
-    {
-      ProofManager::currentPM()->getTheoryProofEngine()->finishRegisterTheory(
-          te->theoryOf(id));
-    }
-  });
   d_pp->finishInit();
 
   AlwaysAssert(getPropEngine()->getAssertionLevel() == 0)
@@ -414,8 +417,8 @@ void SmtEngine::setLogic(const std::string& s)
     // dump out a set-logic command
     if (Dump.isOn("raw-benchmark"))
     {
-      Dump("raw-benchmark")
-          << SetBenchmarkLogicCommand(d_logic.getLogicString());
+      getOutputManager().getPrinter().toStreamCmdSetBenchmarkLogic(
+          getOutputManager().getDumpOut(), d_logic.getLogicString());
     }
   }
   catch (IllegalArgumentException& e)
@@ -469,12 +472,14 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
   if(Dump.isOn("benchmark")) {
     if(key == "status") {
       string s = value.getValue();
-      BenchmarkStatus status =
-        (s == "sat") ? SMT_SATISFIABLE :
-          ((s == "unsat") ? SMT_UNSATISFIABLE : SMT_UNKNOWN);
-      Dump("benchmark") << SetBenchmarkStatusCommand(status);
+      Result::Sat status =
+          (s == "sat") ? Result::SAT
+                       : ((s == "unsat") ? Result::UNSAT : Result::SAT_UNKNOWN);
+      getOutputManager().getPrinter().toStreamCmdSetBenchmarkStatus(
+          getOutputManager().getDumpOut(), status);
     } else {
-      Dump("benchmark") << SetInfoCommand(key, value);
+      getOutputManager().getPrinter().toStreamCmdSetInfo(
+          getOutputManager().getDumpOut(), key, value);
     }
   }
 
@@ -709,9 +714,18 @@ void SmtEngine::defineFunction(Expr func,
   ss << language::SetLanguage(
             language::SetLanguage::getLanguage(Dump.getStream()))
      << func;
-  DefineFunctionCommand c(ss.str(), func, formals, formula, global);
+  std::vector<Node> nFormals;
+  nFormals.reserve(formals.size());
+
+  for (const Expr& formal : formals)
+  {
+    nFormals.push_back(formal.getNode());
+  }
+
+  DefineFunctionNodeCommand nc(
+      ss.str(), func.getNode(), nFormals, formula.getNode());
   d_dumpm->addToModelCommandAndDump(
-      c, ExprManager::VAR_FLAG_DEFINED, true, "declarations");
+      nc, ExprManager::VAR_FLAG_DEFINED, true, "declarations");
 
   // type check body
   debugCheckFunctionBody(formula, formals, func);
@@ -775,16 +789,15 @@ void SmtEngine::defineFunctionsRec(
 
   if (Dump.isOn("raw-benchmark"))
   {
-    std::vector<api::Term> tFuncs = api::exprVectorToTerms(d_solver, funcs);
-    std::vector<std::vector<api::Term>> tFormals;
+    std::vector<Node> nFuncs = exprVectorToNodes(funcs);
+    std::vector<std::vector<Node>> nFormals;
     for (const std::vector<Expr>& formal : formals)
     {
-      tFormals.emplace_back(api::exprVectorToTerms(d_solver, formal));
+      nFormals.emplace_back(exprVectorToNodes(formal));
     }
-    std::vector<api::Term> tFormulas =
-        api::exprVectorToTerms(d_solver, formulas);
-    Dump("raw-benchmark") << DefineFunctionRecCommand(
-        d_solver, tFuncs, tFormals, tFormulas, global);
+    std::vector<Node> nFormulas = exprVectorToNodes(formulas);
+    getOutputManager().getPrinter().toStreamCmdDefineFunctionRec(
+        getOutputManager().getDumpOut(), nFuncs, nFormals, nFormulas);
   }
 
   ExprManager* em = getExprManager();
@@ -891,7 +904,7 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
     std::stringstream ss;
     ss << "Cannot " << c
        << " since model is not available. Perhaps the most recent call to "
-          "check-sat was interupted?";
+          "check-sat was interrupted?";
     throw RecoverableModalException(ss.str().c_str());
   }
 
@@ -931,7 +944,11 @@ void SmtEngine::notifyPostSolvePost()
 
 Result SmtEngine::checkSat(const Expr& assumption, bool inUnsatCore)
 {
-  Dump("benchmark") << CheckSatCommand(assumption);
+  if (Dump.isOn("benchmark"))
+  {
+    getOutputManager().getPrinter().toStreamCmdCheckSat(
+        getOutputManager().getDumpOut(), assumption);
+  }
   std::vector<Node> assump;
   if (!assumption.isNull())
   {
@@ -942,13 +959,18 @@ Result SmtEngine::checkSat(const Expr& assumption, bool inUnsatCore)
 
 Result SmtEngine::checkSat(const vector<Expr>& assumptions, bool inUnsatCore)
 {
-  if (assumptions.empty())
+  if (Dump.isOn("benchmark"))
   {
-    Dump("benchmark") << CheckSatCommand();
-  }
-  else
-  {
-    Dump("benchmark") << CheckSatAssumingCommand(assumptions);
+    if (assumptions.empty())
+    {
+      getOutputManager().getPrinter().toStreamCmdCheckSat(
+          getOutputManager().getDumpOut());
+    }
+    else
+    {
+      getOutputManager().getPrinter().toStreamCmdCheckSatAssuming(
+          getOutputManager().getDumpOut(), exprVectorToNodes(assumptions));
+    }
   }
   std::vector<Node> assumps;
   for (const Expr& e : assumptions)
@@ -960,7 +982,11 @@ Result SmtEngine::checkSat(const vector<Expr>& assumptions, bool inUnsatCore)
 
 Result SmtEngine::checkEntailed(const Expr& node, bool inUnsatCore)
 {
-  Dump("benchmark") << QueryCommand(node, inUnsatCore);
+  if (Dump.isOn("benchmark"))
+  {
+    getOutputManager().getPrinter().toStreamCmdQuery(
+        getOutputManager().getDumpOut(), node.getNode());
+  }
   return checkSatInternal(node.isNull()
                               ? std::vector<Node>()
                               : std::vector<Node>{Node::fromExpr(node)},
@@ -1005,12 +1031,6 @@ Result SmtEngine::checkSatInternal(const vector<Node>& assumptions,
         checkModel();
       }
     }
-    // Check that UNSAT results generate a proof correctly.
-    if(options::checkProofs()) {
-      if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
-        checkProof();
-      }
-    }
     // Check that UNSAT results generate an unsat core correctly.
     if(options::checkUnsatCores()) {
       if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
@@ -1052,7 +1072,8 @@ std::vector<Node> SmtEngine::getUnsatAssumptions(void)
   finishInit();
   if (Dump.isOn("benchmark"))
   {
-    Dump("benchmark") << GetUnsatAssumptionsCommand();
+    getOutputManager().getPrinter().toStreamCmdGetUnsatAssumptions(
+        getOutputManager().getDumpOut());
   }
   UnsatCore core = getUnsatCoreInternal();
   std::vector<Node> res;
@@ -1076,7 +1097,8 @@ Result SmtEngine::assertFormula(const Node& formula, bool inUnsatCore)
   Trace("smt") << "SmtEngine::assertFormula(" << formula << ")" << endl;
 
   if (Dump.isOn("raw-benchmark")) {
-    Dump("raw-benchmark") << AssertCommand(formula.toExpr());
+    getOutputManager().getPrinter().toStreamCmdAssert(
+        getOutputManager().getDumpOut(), formula);
   }
 
   // Substitute out any abstract values in ex
@@ -1097,8 +1119,11 @@ void SmtEngine::declareSygusVar(const std::string& id, Node var, TypeNode type)
   SmtScope smts(this);
   finishInit();
   d_sygusSolver->declareSygusVar(id, var, type);
-  Dump("raw-benchmark") << DeclareSygusVarCommand(
-      id, var.toExpr(), type.toType());
+  if (Dump.isOn("raw-benchmark"))
+  {
+    getOutputManager().getPrinter().toStreamCmdDeclareVar(
+        getOutputManager().getDumpOut(), var, type);
+  }
   // don't need to set that the conjecture is stale
 }
 
@@ -1119,22 +1144,14 @@ void SmtEngine::declareSynthFun(const std::string& id,
 
   if (Dump.isOn("raw-benchmark"))
   {
-    std::stringstream ss;
-
-    Printer::getPrinter(options::outputLanguage())
-        ->toStreamCmdSynthFun(ss,
-                              id,
-                              vars,
-                              func.getType().isFunction()
-                                  ? func.getType().getRangeType()
-                                  : func.getType(),
-                              isInv,
-                              sygusType);
-
-    // must print it on the standard output channel since it is not possible
-    // to print anything except for commands with Dump.
-    std::ostream& out = *d_options.getOut();
-    out << ss.str() << std::endl;
+    getOutputManager().getPrinter().toStreamCmdSynthFun(
+        getOutputManager().getDumpOut(),
+        id,
+        vars,
+        func.getType().isFunction() ? func.getType().getRangeType()
+                                    : func.getType(),
+        isInv,
+        sygusType);
   }
 }
 
@@ -1143,7 +1160,11 @@ void SmtEngine::assertSygusConstraint(Node constraint)
   SmtScope smts(this);
   finishInit();
   d_sygusSolver->assertSygusConstraint(constraint);
-  Dump("raw-benchmark") << SygusConstraintCommand(constraint.toExpr());
+  if (Dump.isOn("raw-benchmark"))
+  {
+    getOutputManager().getPrinter().toStreamCmdConstraint(
+        getOutputManager().getDumpOut(), constraint);
+  }
 }
 
 void SmtEngine::assertSygusInvConstraint(Node inv,
@@ -1154,8 +1175,11 @@ void SmtEngine::assertSygusInvConstraint(Node inv,
   SmtScope smts(this);
   finishInit();
   d_sygusSolver->assertSygusInvConstraint(inv, pre, trans, post);
-  Dump("raw-benchmark") << SygusInvConstraintCommand(
-      inv.toExpr(), pre.toExpr(), trans.toExpr(), post.toExpr());
+  if (Dump.isOn("raw-benchmark"))
+  {
+    getOutputManager().getPrinter().toStreamCmdInvConstraint(
+        getOutputManager().getDumpOut(), inv, pre, trans, post);
+  }
 }
 
 Result SmtEngine::checkSynth()
@@ -1199,7 +1223,7 @@ Node SmtEngine::getValue(const Node& ex) const
 
   Trace("smt") << "SMT getValue(" << ex << ")" << endl;
   if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << GetValueCommand(ex.toExpr());
+    d_outMgr.getPrinter().toStreamCmdGetValue(d_outMgr.getDumpOut(), {ex});
   }
   TypeNode expectedType = ex.getType();
 
@@ -1297,7 +1321,8 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
   SmtScope smts(this);
   finishInit();
   if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << GetAssignmentCommand();
+    getOutputManager().getPrinter().toStreamCmdGetAssignment(
+        getOutputManager().getDumpOut());
   }
   if(!options::produceAssignments()) {
     const char* msg =
@@ -1358,7 +1383,8 @@ Model* SmtEngine::getModel() {
   finishInit();
 
   if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << GetModelCommand();
+    getOutputManager().getPrinter().toStreamCmdGetModel(
+        getOutputManager().getDumpOut());
   }
 
   TheoryModel* m = getAvailableModel("get model");
@@ -1391,7 +1417,8 @@ Result SmtEngine::blockModel()
 
   if (Dump.isOn("benchmark"))
   {
-    Dump("benchmark") << BlockModelCommand();
+    getOutputManager().getPrinter().toStreamCmdBlockModel(
+        getOutputManager().getDumpOut());
   }
 
   TheoryModel* m = getAvailableModel("block model");
@@ -1422,7 +1449,8 @@ Result SmtEngine::blockModelValues(const std::vector<Expr>& exprs)
       "block model values must be called on non-empty set of terms");
   if (Dump.isOn("benchmark"))
   {
-    Dump("benchmark") << BlockModelValuesCommand(exprs);
+    getOutputManager().getPrinter().toStreamCmdBlockModelValues(
+        getOutputManager().getDumpOut(), exprVectorToNodes(exprs));
   }
 
   TheoryModel* m = getAvailableModel("block model values");
@@ -1476,43 +1504,6 @@ Expr SmtEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
 
 Expr SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
 
-void SmtEngine::checkProof()
-{
-#if (IS_LFSC_BUILD && IS_PROOFS_BUILD)
-
-  Chat() << "generating proof..." << endl;
-
-  const Proof& pf = getProof();
-
-  Chat() << "checking proof..." << endl;
-
-  std::string logicString = d_logic.getLogicString();
-
-  std::stringstream pfStream;
-
-  pfStream << proof::plf_signatures << endl;
-  int64_t sizeBeforeProof = static_cast<int64_t>(pfStream.tellp());
-
-  pf.toStream(pfStream);
-  d_stats->d_proofsSize +=
-      static_cast<int64_t>(pfStream.tellp()) - sizeBeforeProof;
-
-  {
-    TimerStat::CodeTimer checkProofTimer(d_stats->d_lfscCheckProofTime);
-    lfscc_init();
-    lfscc_check_file(pfStream, false, false, false, false, false, false, false);
-  }
-  // FIXME: we should actually call lfscc_cleanup here, but lfscc_cleanup
-  // segfaults on regress0/bv/core/bitvec7.smt
-  // lfscc_cleanup();
-
-#else  /* (IS_LFSC_BUILD && IS_PROOFS_BUILD) */
-  Unreachable()
-      << "This version of CVC4 was built without proof support; cannot check "
-         "proofs.";
-#endif /* (IS_LFSC_BUILD && IS_PROOFS_BUILD) */
-}
-
 UnsatCore SmtEngine::getUnsatCoreInternal()
 {
 #if IS_PROOFS_BUILD
@@ -1548,7 +1539,6 @@ void SmtEngine::checkUnsatCore() {
   coreChecker.setIsInternalSubsolver();
   coreChecker.setLogic(getLogicInfo());
   coreChecker.getOptions().set(options::checkUnsatCores, false);
-  coreChecker.getOptions().set(options::checkProofs, false);
 
   Notice() << "SmtEngine::checkUnsatCore(): pushing core assertions (size == " << core.size() << ")" << endl;
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
@@ -1618,7 +1608,8 @@ void SmtEngine::checkModel(bool hardFailure) {
   SubstitutionMap substitutions(&fakeContext, /* substituteUnderQuantifiers = */ false);
 
   for(size_t k = 0; k < m->getNumCommands(); ++k) {
-    const DeclareFunctionCommand* c = dynamic_cast<const DeclareFunctionCommand*>(m->getCommand(k));
+    const DeclareFunctionNodeCommand* c =
+        dynamic_cast<const DeclareFunctionNodeCommand*>(m->getCommand(k));
     Notice() << "SmtEngine::checkModel(): model command " << k << " : " << m->getCommand(k) << endl;
     if(c == NULL) {
       // we don't care about DECLARE-DATATYPES, DECLARE-SORT, ...
@@ -1629,7 +1620,7 @@ void SmtEngine::checkModel(bool hardFailure) {
       // We'll first do some checks, then add to our substitution map
       // the mapping: function symbol |-> value
 
-      Expr func = c->getFunction();
+      Expr func = c->getFunction().toExpr();
       Node val = m->getValue(func);
 
       Notice() << "SmtEngine::checkModel(): adding substitution: " << func << " |-> " << val << endl;
@@ -1806,47 +1797,16 @@ void SmtEngine::checkModel(bool hardFailure) {
   Notice() << "SmtEngine::checkModel(): all assertions checked out OK !" << endl;
 }
 
-void SmtEngine::checkInterpol(Expr interpol,
-                              const std::vector<Expr>& easserts,
-                              const Node& conj)
-{
-}
-
 // TODO(#1108): Simplify the error reporting of this method.
 UnsatCore SmtEngine::getUnsatCore() {
   Trace("smt") << "SMT getUnsatCore()" << endl;
   SmtScope smts(this);
   finishInit();
   if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << GetUnsatCoreCommand();
+    getOutputManager().getPrinter().toStreamCmdGetUnsatCore(
+        getOutputManager().getDumpOut());
   }
   return getUnsatCoreInternal();
-}
-
-// TODO(#1108): Simplify the error reporting of this method.
-const Proof& SmtEngine::getProof()
-{
-  Trace("smt") << "SMT getProof()" << endl;
-  SmtScope smts(this);
-  finishInit();
-  if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << GetProofCommand();
-  }
-#if IS_PROOFS_BUILD
-  if(!options::proof()) {
-    throw ModalException("Cannot get a proof when produce-proofs option is off.");
-  }
-  if (d_state->getMode() != SmtMode::UNSAT)
-  {
-    throw RecoverableModalException(
-        "Cannot get a proof unless immediately preceded by UNSAT/ENTAILED "
-        "response.");
-  }
-
-  return ProofManager::getProof(this);
-#else /* IS_PROOFS_BUILD */
-  throw ModalException("This build of CVC4 doesn't have proof support.");
-#endif /* IS_PROOFS_BUILD */
 }
 
 void SmtEngine::printInstantiations( std::ostream& out ) {
@@ -1895,7 +1855,11 @@ bool SmtEngine::getInterpol(const Node& conj,
                             const TypeNode& grammarType,
                             Node& interpol)
 {
-  return false;
+  bool success = d_interpolSolver->getInterpol(conj, grammarType, interpol);
+  // notify the state of whether the get-interpol call was successfuly, which
+  // impacts the SMT mode.
+  d_state->notifyGetInterpol(success);
+  return success;
 }
 
 bool SmtEngine::getInterpol(const Node& conj, Node& interpol)
@@ -1969,7 +1933,8 @@ std::vector<Expr> SmtEngine::getAssertions()
   finishInit();
   d_state->doPendingPops();
   if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << GetAssertionsCommand();
+    getOutputManager().getPrinter().toStreamCmdGetAssertions(
+        getOutputManager().getDumpOut());
   }
   Trace("smt") << "SMT getAssertions()" << endl;
   if(!options::produceAssertions()) {
@@ -1996,7 +1961,8 @@ void SmtEngine::push()
   Trace("smt") << "SMT push()" << endl;
   d_smtSolver->processAssertions(*d_asserts);
   if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << PushCommand();
+    getOutputManager().getPrinter().toStreamCmdPush(
+        getOutputManager().getDumpOut());
   }
   d_state->userPush();
 }
@@ -2006,7 +1972,8 @@ void SmtEngine::pop() {
   finishInit();
   Trace("smt") << "SMT pop()" << endl;
   if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << PopCommand();
+    getOutputManager().getPrinter().toStreamCmdPop(
+        getOutputManager().getDumpOut());
   }
   d_state->userPop();
 
@@ -2027,7 +1994,8 @@ void SmtEngine::reset()
   ExprManager *em = d_exprManager;
   Trace("smt") << "SMT reset()" << endl;
   if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << ResetCommand();
+    getOutputManager().getPrinter().toStreamCmdReset(
+        getOutputManager().getDumpOut());
   }
   std::string filename = d_state->getFilename();
   Options opts;
@@ -2056,7 +2024,8 @@ void SmtEngine::resetAssertions()
   Trace("smt") << "SMT resetAssertions()" << endl;
   if (Dump.isOn("benchmark"))
   {
-    Dump("benchmark") << ResetAssertionsCommand();
+    getOutputManager().getPrinter().toStreamCmdResetAssertions(
+        getOutputManager().getDumpOut());
   }
 
   d_state->notifyResetAssertions();
@@ -2146,7 +2115,8 @@ void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
   Trace("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
 
   if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << SetOptionCommand(key, value);
+    getOutputManager().getPrinter().toStreamCmdSetOption(
+        getOutputManager().getDumpOut(), key, value);
   }
 
   if(key == "command-verbosity") {
@@ -2199,7 +2169,7 @@ CVC4::SExpr SmtEngine::getOption(const std::string& key) const
   }
 
   if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << GetOptionCommand(key);
+    d_outMgr.getPrinter().toStreamCmdGetOption(d_outMgr.getDumpOut(), key);
   }
 
   if(key == "command-verbosity") {
@@ -2253,5 +2223,12 @@ ResourceManager* SmtEngine::getResourceManager()
 }
 
 DumpManager* SmtEngine::getDumpManager() { return d_dumpm.get(); }
+
+const Printer* SmtEngine::getPrinter() const
+{
+  return Printer::getPrinter(d_options[options::outputLanguage]);
+}
+
+OutputManager& SmtEngine::getOutputManager() { return d_outMgr; }
 
 }/* CVC4 namespace */

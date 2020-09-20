@@ -19,6 +19,7 @@
 #include <stdint.h>
 
 #include "expr/kind.h"
+#include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "proof/proof_manager.h"
 #include "smt/logic_exception.h"
@@ -972,7 +973,10 @@ void StringsPreprocess::processAssertions( std::vector< Node > &vec_node ){
                    : NodeManager::currentNM()->mkNode(kind::AND, asserts);
     if( res!=vec_node[i] ){
       res = Rewriter::rewrite( res );
-      PROOF( ProofManager::currentPM()->addDependence( res, vec_node[i] ); );
+      if (options::unsatCores())
+      {
+        ProofManager::currentPM()->addDependence(res, vec_node[i]);
+      }
       vec_node[i] = res;
     }
   }

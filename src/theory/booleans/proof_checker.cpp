@@ -21,6 +21,10 @@ namespace booleans {
 void BoolProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(PfRule::SPLIT, this);
+  pc->registerChecker(PfRule::RESOLUTION, this);
+  pc->registerChecker(PfRule::CHAIN_RESOLUTION, this);
+  pc->registerChecker(PfRule::FACTORING, this);
+  pc->registerChecker(PfRule::REORDERING, this);
   pc->registerChecker(PfRule::EQ_RESOLVE, this);
   pc->registerChecker(PfRule::AND_ELIM, this);
   pc->registerChecker(PfRule::AND_INTRO, this);
@@ -68,6 +72,139 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
                                          const std::vector<Node>& children,
                                          const std::vector<Node>& args)
 {
+  if (id == PfRule::RESOLUTION)
+  {
+    Assert(children.size() == 2);
+    Assert(args.size() == 1);
+    std::vector<Node> disjuncts;
+    for (unsigned i = 0; i < 2; ++i)
+    {
+      // if first clause, eliminate pivot, otherwise its negation
+      Node elim = i == 0 ? args[0] : args[0].notNode();
+      for (unsigned j = 0, size = children[i].getNumChildren(); j < size; ++j)
+      {
+        if (elim != children[i][j])
+        {
+          disjuncts.push_back(children[i][j]);
+        }
+      }
+    }
+    return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
+  }
+  if (id == PfRule::FACTORING)
+  {
+    Assert(children.size() == 1);
+    Assert(args.empty());
+    if (children[0].getKind() != kind::OR)
+    {
+      return Node::null();
+    }
+    // remove duplicates while keeping the order of children
+    std::unordered_set<TNode, TNodeHashFunction> clauseSet;
+    std::vector<Node> disjuncts;
+    unsigned size = children[0].getNumChildren();
+    for (unsigned i = 0; i < size; ++i)
+    {
+      if (clauseSet.count(children[0][i]))
+      {
+        continue;
+      }
+      disjuncts.push_back(children[0][i]);
+      clauseSet.insert(children[0][i]);
+    }
+    if (disjuncts.size() == size)
+    {
+      return Node::null();
+    }
+    NodeManager* nm = NodeManager::currentNM();
+    return disjuncts.empty()
+               ? nm->mkConst<bool>(false)
+               : disjuncts.size() == 1 ? disjuncts[0]
+                                       : nm->mkNode(kind::OR, disjuncts);
+  }
+  if (id == PfRule::REORDERING)
+  {
+    Assert(children.size() == 1);
+    Assert(args.size() == 1);
+    std::unordered_set<Node, NodeHashFunction> clauseSet1, clauseSet2;
+    if (children[0].getKind() == kind::OR)
+    {
+      clauseSet1.insert(children[0].begin(), children[0].end());
+    }
+    else
+    {
+      clauseSet1.insert(children[0]);
+    }
+    if (args[0].getKind() == kind::OR)
+    {
+      clauseSet2.insert(args[0].begin(), args[0].end());
+    }
+    else
+    {
+      clauseSet2.insert(args[0]);
+    }
+    if (clauseSet1 != clauseSet2)
+    {
+      Trace("bool-pfcheck") << id << ": clause set1: " << clauseSet1 << "\n"
+                            << id << ": clause set2: " << clauseSet2 << "\n";
+      return Node::null();
+    }
+    return args[0];
+  }
+  if (id == PfRule::CHAIN_RESOLUTION)
+  {
+    Assert(children.size() > 1);
+    Assert(args.size() == children.size() - 1);
+    Trace("bool-pfcheck") << "chain_res:\n" << push;
+    std::vector<Node> clauseNodes;
+    for (unsigned i = 0, childrenSize = children.size(); i < childrenSize; ++i)
+    {
+      std::unordered_set<Node, NodeHashFunction> elim;
+      // literals to be removed from "first" clause
+      if (i < childrenSize - 1)
+      {
+        elim.insert(args.begin() + i, args.end());
+      }
+      // literal to be removed from "second" clause. They will be negated
+      if (i > 0)
+      {
+        elim.insert(args[i - 1].negate());
+      }
+      Trace("bool-pfcheck") << i << ": elimination set: " << elim << "\n";
+      // only add to conclusion nodes that are not in elimination set. First get
+      // the nodes.
+      //
+      // Since unit clauses can also be OR nodes, we rely on the invariant that
+      // non-unit clauses will not occur themselves in their elimination sets.
+      // If they do then they must be unit.
+      std::vector<Node> lits;
+      if (children[i].getKind() == kind::OR && elim.count(children[i]) == 0)
+      {
+        lits.insert(lits.end(), children[i].begin(), children[i].end());
+      }
+      else
+      {
+        lits.push_back(children[i]);
+      }
+      Trace("bool-pfcheck") << i << ": clause lits: " << lits << "\n";
+      std::vector<Node> added;
+      for (unsigned j = 0, size = lits.size(); j < size; ++j)
+      {
+        if (elim.count(lits[j]) == 0)
+        {
+          clauseNodes.push_back(lits[j]);
+          added.push_back(lits[j]);
+        }
+      }
+      Trace("bool-pfcheck") << i << ": added lits: " << added << "\n\n";
+    }
+    Trace("bool-pfcheck") << "clause: " << clauseNodes << "\n" << pop;
+    NodeManager* nm = NodeManager::currentNM();
+    return clauseNodes.empty()
+               ? nm->mkConst<bool>(false)
+               : clauseNodes.size() == 1 ? clauseNodes[0]
+                                         : nm->mkNode(kind::OR, clauseNodes);
+  }
   if (id == PfRule::SPLIT)
   {
     Assert(children.empty());

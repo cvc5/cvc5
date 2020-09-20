@@ -4,6 +4,17 @@ import pycvc4
 from pycvc4 import kinds
 
 
+def test_getitem():
+    solver = pycvc4.Solver()
+    intsort = solver.getIntegerSort()
+    x = solver.mkConst(intsort, 'x')
+    y = solver.mkConst(intsort, 'y')
+    xpy = solver.mkTerm(kinds.Plus, x, y)
+
+    assert xpy[0] == x
+    assert xpy[1] == y
+
+
 def test_get_kind():
     solver = pycvc4.Solver()
     intsort = solver.getIntegerSort()

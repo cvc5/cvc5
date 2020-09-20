@@ -24,7 +24,6 @@
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
-#include "proof/proof_manager.h"
 #include "theory/rewriter.h"
 #include "theory/quantifiers/quant_util.h"
 

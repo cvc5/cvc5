@@ -27,19 +27,25 @@ const char* toString(PfRule id)
     case PfRule::SCOPE: return "SCOPE";
     case PfRule::SUBS: return "SUBS";
     case PfRule::REWRITE: return "REWRITE";
+    case PfRule::EVALUATE: return "EVALUATE";
     case PfRule::MACRO_SR_EQ_INTRO: return "MACRO_SR_EQ_INTRO";
     case PfRule::MACRO_SR_PRED_INTRO: return "MACRO_SR_PRED_INTRO";
     case PfRule::MACRO_SR_PRED_ELIM: return "MACRO_SR_PRED_ELIM";
     case PfRule::MACRO_SR_PRED_TRANSFORM: return "MACRO_SR_PRED_TRANSFORM";
-    case PfRule::THEORY_REWRITE: return "THEORY_REWRITE";
     case PfRule::REMOVE_TERM_FORMULA_AXIOM: return "REMOVE_TERM_FORMULA_AXIOM";
     //================================================= Trusted rules
+    case PfRule::THEORY_LEMMA: return "THEORY_LEMMA";
+    case PfRule::THEORY_REWRITE: return "THEORY_REWRITE";
     case PfRule::PREPROCESS: return "PREPROCESS";
     case PfRule::PREPROCESS_LEMMA: return "PREPROCESS_LEMMA";
     case PfRule::THEORY_PREPROCESS: return "THEORY_PREPROCESS";
     case PfRule::THEORY_PREPROCESS_LEMMA: return "THEORY_PREPROCESS_LEMMA";
     case PfRule::WITNESS_AXIOM: return "WITNESS_AXIOM";
     //================================================= Boolean rules
+    case PfRule::RESOLUTION: return "RESOLUTION";
+    case PfRule::CHAIN_RESOLUTION: return "CHAIN_RESOLUTION";
+    case PfRule::FACTORING: return "FACTORING";
+    case PfRule::REORDERING: return "REORDERING";
     case PfRule::SPLIT: return "SPLIT";
     case PfRule::EQ_RESOLVE: return "EQ_RESOLVE";
     case PfRule::AND_ELIM: return "AND_ELIM";
@@ -94,6 +100,8 @@ const char* toString(PfRule id)
     case PfRule::TRUE_ELIM: return "TRUE_ELIM";
     case PfRule::FALSE_INTRO: return "FALSE_INTRO";
     case PfRule::FALSE_ELIM: return "FALSE_ELIM";
+    case PfRule::HO_APP_ENCODE: return "HO_APP_ENCODE";
+    case PfRule::HO_CONG: return "HO_CONG";
     //================================================= Quantifiers rules
     case PfRule::WITNESS_INTRO: return "WITNESS_INTRO";
     case PfRule::EXISTS_INTRO: return "EXISTS_INTRO";

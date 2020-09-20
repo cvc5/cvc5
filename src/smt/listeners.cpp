@@ -18,9 +18,10 @@
 #include "expr/expr.h"
 #include "expr/node_manager_attributes.h"
 #include "options/smt_options.h"
-#include "smt/command.h"
+#include "printer/printer.h"
 #include "smt/dump.h"
 #include "smt/dump_manager.h"
+#include "smt/node_command.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 
@@ -36,11 +37,15 @@ void ResourceOutListener::notify()
   d_smt.interrupt();
 }
 
-SmtNodeManagerListener::SmtNodeManagerListener(DumpManager& dm) : d_dm(dm) {}
+SmtNodeManagerListener::SmtNodeManagerListener(DumpManager& dm,
+                                               OutputManager& outMgr)
+    : d_dm(dm), d_outMgr(outMgr)
+{
+}
 
 void SmtNodeManagerListener::nmNotifyNewSort(TypeNode tn, uint32_t flags)
 {
-  DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()), 0, tn.toType());
+  DeclareTypeNodeCommand c(tn.getAttribute(expr::VarNameAttr()), 0, tn);
   if ((flags & ExprManager::SORT_FLAG_PLACEHOLDER) == 0)
   {
     d_dm.addToModelCommandAndDump(c, flags);
@@ -50,9 +55,9 @@ void SmtNodeManagerListener::nmNotifyNewSort(TypeNode tn, uint32_t flags)
 void SmtNodeManagerListener::nmNotifyNewSortConstructor(TypeNode tn,
                                                         uint32_t flags)
 {
-  DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()),
-                       tn.getAttribute(expr::SortArityAttr()),
-                       tn.toType());
+  DeclareTypeNodeCommand c(tn.getAttribute(expr::VarNameAttr()),
+                           tn.getAttribute(expr::SortArityAttr()),
+                           tn);
   if ((flags & ExprManager::SORT_FLAG_PLACEHOLDER) == 0)
   {
     d_dm.addToModelCommandAndDump(c);
@@ -68,17 +73,16 @@ void SmtNodeManagerListener::nmNotifyNewDatatypes(
     for (const TypeNode& dt : dtts)
     {
       Assert(dt.isDatatype());
-      types.push_back(dt.toType());
     }
-    DatatypeDeclarationCommand c(types);
+    DeclareDatatypeNodeCommand c(dtts);
     d_dm.addToModelCommandAndDump(c);
   }
 }
 
 void SmtNodeManagerListener::nmNotifyNewVar(TNode n, uint32_t flags)
 {
-  DeclareFunctionCommand c(
-      n.getAttribute(expr::VarNameAttr()), n.toExpr(), n.getType().toType());
+  DeclareFunctionNodeCommand c(
+      n.getAttribute(expr::VarNameAttr()), n, n.getType());
   if ((flags & ExprManager::VAR_FLAG_DEFINED) == 0)
   {
     d_dm.addToModelCommandAndDump(c, flags);
@@ -90,10 +94,11 @@ void SmtNodeManagerListener::nmNotifyNewSkolem(TNode n,
                                                uint32_t flags)
 {
   std::string id = n.getAttribute(expr::VarNameAttr());
-  DeclareFunctionCommand c(id, n.toExpr(), n.getType().toType());
+  DeclareFunctionNodeCommand c(id, n, n.getType());
   if (Dump.isOn("skolems") && comment != "")
   {
-    Dump("skolems") << CommentCommand(id + " is " + comment);
+    d_outMgr.getPrinter().toStreamCmdComment(d_outMgr.getDumpOut(),
+                                             id + " is " + comment);
   }
   if ((flags & ExprManager::VAR_FLAG_DEFINED) == 0)
   {

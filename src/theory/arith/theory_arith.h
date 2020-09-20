@@ -18,19 +18,22 @@
 #pragma once
 
 #include "expr/node.h"
-#include "proof/arith_proof_recorder.h"
 #include "theory/arith/arith_state.h"
+#include "theory/arith/inference_manager.h"
 #include "theory/arith/theory_arith_private_forward.h"
 #include "theory/theory.h"
 
 namespace CVC4 {
 namespace theory {
-
 namespace arith {
 
+namespace nl {
+class NonlinearExtension;
+}
+
 /**
- * Implementation of QF_LRA.
- * Based upon:
+ * Implementation of linear and non-linear integer and real arithmetic.
+ * The linear arithmetic solver is based upon:
  * http://research.microsoft.com/en-us/um/people/leonardo/cav06.pdf
  */
 class TheoryArith : public Theory {
@@ -40,11 +43,6 @@ class TheoryArith : public Theory {
   TheoryArithPrivate* d_internal;
 
   TimerStat d_ppRewriteTimer;
-
-  /**
-   * @brief Where to store Farkas proofs of lemmas
-   */
-  proof::ArithProofRecorder * d_proofRecorder;
 
  public:
   TheoryArith(context::Context* c,
@@ -81,16 +79,13 @@ class TheoryArith : public Theory {
   bool needsCheckLastEffort() override;
   void propagate(Effort e) override;
   TrustNode explain(TNode n) override;
-  bool getCurrentSubstitution(int effort,
-                              std::vector<Node>& vars,
-                              std::vector<Node>& subs,
-                              std::map<Node, std::vector<Node> >& exp) override;
-  bool isExtfReduced(int effort,
-                     Node n,
-                     Node on,
-                     std::vector<Node>& exp) override;
 
   bool collectModelInfo(TheoryModel* m) override;
+  /**
+   * Collect model values in m based on the relevant terms given by termSet.
+   */
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet) override;
 
   void shutdown() override {}
 
@@ -110,14 +105,24 @@ class TheoryArith : public Theory {
 
   std::pair<bool, Node> entailmentCheck(TNode lit) override;
 
-  void setProofRecorder(proof::ArithProofRecorder* proofRecorder)
+  /** Return a reference to the arith::InferenceManager. */
+  InferenceManager& getInferenceManager()
   {
-    d_proofRecorder = proofRecorder;
+    return d_inferenceManager;
   }
 
  private:
   /** The state object wrapping TheoryArithPrivate  */
   ArithState d_astate;
+
+  /** The arith::InferenceManager. */
+  InferenceManager d_inferenceManager;
+
+  /**
+   * The non-linear extension, responsible for all approaches for non-linear
+   * arithmetic.
+   */
+  std::unique_ptr<nl::NonlinearExtension> d_nonlinearExtension;
 };/* class TheoryArith */
 
 }/* CVC4::theory::arith namespace */

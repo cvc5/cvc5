@@ -17,7 +17,6 @@
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/language.h"
-#include "options/proof_options.h"
 #include "options/smt_options.h"
 #include "proof/proof_manager.h"
 #include "smt/smt_engine.h"
@@ -102,12 +101,6 @@ void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
     Node n = d_absValues.substituteAbstractValues(e);
     // Ensure expr is type-checked at this point.
     ensureBoolean(n);
-
-    /* Add assumption  */
-    if (d_assertionList != nullptr)
-    {
-      d_assertionList->push_back(n);
-    }
     addFormula(n, inUnsatCore, true, true, false);
   }
   if (d_globalDefineFunRecLemmas != nullptr)
@@ -125,10 +118,6 @@ void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
 void Assertions::assertFormula(const Node& n, bool inUnsatCore)
 {
   ensureBoolean(n);
-  if (d_assertionList != nullptr)
-  {
-    d_assertionList->push_back(n);
-  }
   bool maybeHasFv = language::isInputLangSygus(options::inputLanguage());
   addFormula(n, inUnsatCore, true, false, maybeHasFv);
 }
@@ -150,6 +139,11 @@ context::CDList<Node>* Assertions::getAssertionList()
 void Assertions::addFormula(
     TNode n, bool inUnsatCore, bool inInput, bool isAssumption, bool maybeHasFv)
 {
+  // add to assertion list if it exists
+  if (d_assertionList != nullptr)
+  {
+    d_assertionList->push_back(n);
+  }
   if (n.isConst() && n.getConst<bool>())
   {
     // true, nothing to do
@@ -179,21 +173,26 @@ void Assertions::addFormula(
   }
 
   // Give it to proof manager
-  PROOF(if (inInput) {
-    // n is an input assertion
-    if (inUnsatCore || options::unsatCores() || options::dumpUnsatCores()
-        || options::checkUnsatCores() || options::fewerPreprocessingHoles())
-    {
-      ProofManager::currentPM()->addCoreAssertion(n.toExpr());
+  if (options::unsatCores())
+  {
+    if (inInput)
+    {  // n is an input assertion
+      if (inUnsatCore || options::unsatCores() || options::dumpUnsatCores()
+          || options::checkUnsatCores())
+      {
+        ProofManager::currentPM()->addCoreAssertion(n.toExpr());
+      }
     }
-  } else {
-    // n is the result of an unknown preprocessing step, add it to dependency
-    // map to null
-    ProofManager::currentPM()->addDependence(n, Node::null());
-  });
+    else
+    {
+      // n is the result of an unknown preprocessing step, add it to dependency
+      // map to null
+      ProofManager::currentPM()->addDependence(n, Node::null());
+    }
+  }
 
   // Add the normalized formula to the queue
-  d_assertions.push_back(n, isAssumption);
+  d_assertions.push_back(n, isAssumption, true);
 }
 
 void Assertions::addDefineFunRecDefinition(Node n, bool global)
@@ -228,6 +227,16 @@ void Assertions::ensureBoolean(const Node& n)
        << "Its type      : " << type;
     throw TypeCheckingException(n.toExpr(), ss.str());
   }
+}
+
+void Assertions::setProofGenerator(smt::PreprocessProofGenerator* pppg)
+{
+  d_assertions.setProofGenerator(pppg);
+}
+
+bool Assertions::isProofEnabled() const
+{
+  return d_assertions.isProofEnabled();
 }
 
 }  // namespace smt

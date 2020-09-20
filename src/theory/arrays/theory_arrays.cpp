@@ -23,10 +23,6 @@
 #include "expr/node_algorithm.h"
 #include "options/arrays_options.h"
 #include "options/smt_options.h"
-#include "proof/array_proof.h"
-#include "proof/proof_manager.h"
-#include "proof/theory_proof.h"
-#include "smt/command.h"
 #include "smt/logic_exception.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
@@ -46,7 +42,6 @@ namespace arrays {
 
 // Use static configuration of options for now
 const bool d_ccStore = false;
-const bool d_useArrTable = false;
   //const bool d_eagerLemmas = false;
 const bool d_preprocess = true;
 const bool d_solveWrite = true;
@@ -88,7 +83,6 @@ TheoryArrays::TheoryArrays(context::Context* c,
       d_isPreRegistered(c),
       d_mayEqualEqualityEngine(c, name + "theory::arrays::mayEqual", true),
       d_notify(*this),
-      d_conflict(c, false),
       d_backtracker(c),
       d_infoMap(c, &d_backtracker, name),
       d_mergeQueue(c),
@@ -111,7 +105,6 @@ TheoryArrays::TheoryArrays(context::Context* c,
       d_readTableContext(new context::Context()),
       d_arrayMerges(c),
       d_inCheckModel(false),
-      d_proofReconstruction(nullptr),
       d_dstrat(new TheoryArraysDecisionStrategy(this)),
       d_dstratInit(false)
 {
@@ -179,26 +172,6 @@ void TheoryArrays::finishInit()
   {
     d_equalityEngine->addFunctionKind(kind::STORE);
   }
-  if (d_useArrTable)
-  {
-    d_equalityEngine->addFunctionKind(kind::ARR_TABLE_FUN);
-  }
-
-  d_proofReconstruction.reset(new ArrayProofReconstruction(d_equalityEngine));
-  d_reasonRow = d_equalityEngine->getFreshMergeReasonType();
-  d_reasonRow1 = d_equalityEngine->getFreshMergeReasonType();
-  d_reasonExt = d_equalityEngine->getFreshMergeReasonType();
-
-  d_proofReconstruction->setRowMergeTag(d_reasonRow);
-  d_proofReconstruction->setRow1MergeTag(d_reasonRow1);
-  d_proofReconstruction->setExtMergeTag(d_reasonExt);
-
-  d_equalityEngine->addPathReconstructionTrigger(d_reasonRow,
-                                                 d_proofReconstruction.get());
-  d_equalityEngine->addPathReconstructionTrigger(d_reasonRow1,
-                                                 d_proofReconstruction.get());
-  d_equalityEngine->addPathReconstructionTrigger(d_reasonExt,
-                                                 d_proofReconstruction.get());
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -421,7 +394,8 @@ bool TheoryArrays::propagateLit(TNode literal)
                   << std::endl;
 
   // If already in conflict, no more propagation
-  if (d_conflict) {
+  if (d_state.isInConflict())
+  {
     Debug("arrays") << spaces(getSatContext()->getLevel())
                     << "TheoryArrays::propagateLit(" << literal
                     << "): already in conflict" << std::endl;
@@ -434,42 +408,11 @@ bool TheoryArrays::propagateLit(TNode literal)
   }
   bool ok = d_out->propagate(literal);
   if (!ok) {
-    d_conflict = true;
+    d_state.notifyInConflict();
   }
   return ok;
 }/* TheoryArrays::propagate(TNode) */
 
-
-void TheoryArrays::explain(TNode literal, std::vector<TNode>& assumptions,
-                           eq::EqProof* proof) {
-  // Do the work
-  bool polarity = literal.getKind() != kind::NOT;
-  TNode atom = polarity ? literal : literal[0];
-  //eq::EqProof * eqp = new eq::EqProof;
-  // eq::EqProof * eqp = NULL;
-  if (atom.getKind() == kind::EQUAL) {
-    d_equalityEngine->explainEquality(
-        atom[0], atom[1], polarity, assumptions, proof);
-  } else {
-    d_equalityEngine->explainPredicate(atom, polarity, assumptions, proof);
-  }
-  if (Debug.isOn("pf::array"))
-  {
-    if (proof)
-    {
-      Debug("pf::array") << " Proof is : " << std::endl;
-      proof->debug_print("pf::array");
-    }
-
-    Debug("pf::array") << "Array: explain( " << literal << " ):" << std::endl
-                       << "\t";
-    for (unsigned i = 0; i < assumptions.size(); ++i)
-    {
-      Debug("pf::array") << assumptions[i] << " ";
-    }
-    Debug("pf::array") << std::endl;
-  }
-}
 
 TNode TheoryArrays::weakEquivGetRep(TNode node) {
   TNode pointer;
@@ -695,118 +638,136 @@ void TheoryArrays::checkWeakEquiv(bool arraysMerged) {
  */
 void TheoryArrays::preRegisterTermInternal(TNode node)
 {
-  if (d_conflict) {
+  if (d_state.isInConflict())
+  {
     return;
   }
   Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::preRegisterTerm(" << node << ")" << std::endl;
-  switch (node.getKind()) {
-  case kind::EQUAL:
+  Kind nk = node.getKind();
+  if (nk == kind::EQUAL)
+  {
     // Add the trigger for equality
     // NOTE: note that if the equality is true or false already, it might not be added
     d_equalityEngine->addTriggerPredicate(node);
-    break;
-  case kind::SELECT: {
-    // Invariant: array terms should be preregistered before being added to the equality engine
-    if (d_equalityEngine->hasTerm(node))
-    {
-      Assert(d_isPreRegistered.find(node) != d_isPreRegistered.end());
-      return;
-    }
-    // Reads
-    TNode store = d_equalityEngine->getRepresentative(node[0]);
-
-    // The may equal needs the store
-    d_mayEqualEqualityEngine.addTerm(store);
-
-    if (node.getType().isArray())
-    {
-      d_mayEqualEqualityEngine.addTerm(node);
-      d_equalityEngine->addTerm(node);
-    }
-    else
-    {
-      d_equalityEngine->addTerm(node);
-    }
-    Assert((d_isPreRegistered.insert(node), true));
-
-    Assert(d_equalityEngine->getRepresentative(store) == store);
-    d_infoMap.addIndex(store, node[1]);
-
-    // Synchronize d_constReadsContext with SAT context
-    Assert(d_constReadsContext->getLevel() <= getSatContext()->getLevel());
-    while (d_constReadsContext->getLevel() < getSatContext()->getLevel()) {
-      d_constReadsContext->push();
-    }
-
-    // Record read in sharing data structure
-    TNode index = d_equalityEngine->getRepresentative(node[1]);
-    if (!options::arraysWeakEquivalence() && index.isConst()) {
-      CTNodeList* temp;
-      CNodeNListMap::iterator it = d_constReads.find(index);
-      if (it == d_constReads.end()) {
-        temp = new(true) CTNodeList(d_constReadsContext);
-        d_constReads[index] = temp;
-      }
-      else {
-        temp = (*it).second;
-      }
-      temp->push_back(node);
-      d_constReadsList.push_back(node);
-    }
-    else {
-      d_reads.push_back(node);
-    }
-
-    checkRowForIndex(node[1], store);
-    break;
+    return;
   }
-  case kind::STORE: {
-    if (d_equalityEngine->hasTerm(node))
+  else if (d_equalityEngine->hasTerm(node))
+  {
+    // Invariant: array terms should be preregistered before being added to the equality engine
+    Assert(nk != kind::SELECT
+           || d_isPreRegistered.find(node) != d_isPreRegistered.end());
+    return;
+  }
+  // add to equality engine and the may equality engine
+  TypeNode nodeType = node.getType();
+  if (nodeType.isArray())
+  {
+    // index type should not be an array, otherwise we throw a logic exception
+    if (nodeType.getArrayIndexType().isArray())
     {
+      std::stringstream ss;
+      ss << "Arrays cannot be indexed by array types, offending array type is "
+         << nodeType;
+      throw LogicException(ss.str());
+    }
+    d_mayEqualEqualityEngine.addTerm(node);
+  }
+  d_equalityEngine->addTerm(node);
+
+  switch (node.getKind())
+  {
+    case kind::SELECT:
+    {
+      // Reads
+      TNode store = d_equalityEngine->getRepresentative(node[0]);
+
+      // The may equal needs the store
+      d_mayEqualEqualityEngine.addTerm(store);
+
+      Assert((d_isPreRegistered.insert(node), true));
+
+      Assert(d_equalityEngine->getRepresentative(store) == store);
+      d_infoMap.addIndex(store, node[1]);
+
+      // Synchronize d_constReadsContext with SAT context
+      Assert(d_constReadsContext->getLevel() <= getSatContext()->getLevel());
+      while (d_constReadsContext->getLevel() < getSatContext()->getLevel())
+      {
+        d_constReadsContext->push();
+      }
+
+      // Record read in sharing data structure
+      TNode index = d_equalityEngine->getRepresentative(node[1]);
+      if (!options::arraysWeakEquivalence() && index.isConst())
+      {
+        CTNodeList* temp;
+        CNodeNListMap::iterator it = d_constReads.find(index);
+        if (it == d_constReads.end())
+        {
+          temp = new (true) CTNodeList(d_constReadsContext);
+          d_constReads[index] = temp;
+        }
+        else
+        {
+          temp = (*it).second;
+        }
+        temp->push_back(node);
+        d_constReadsList.push_back(node);
+      }
+      else
+      {
+        d_reads.push_back(node);
+      }
+
+      checkRowForIndex(node[1], store);
       break;
     }
-    d_equalityEngine->addTerm(node);
-
-    TNode a = d_equalityEngine->getRepresentative(node[0]);
-
-    if (node.isConst()) {
-      // Can't use d_mayEqualEqualityEngine to merge node with a because they are both constants,
-      // so just set the default value manually for node.
-      Assert(a == node[0]);
-      d_mayEqualEqualityEngine.addTerm(node);
-      Assert(d_mayEqualEqualityEngine.getRepresentative(node) == node);
-      Assert(d_mayEqualEqualityEngine.getRepresentative(a) == a);
-      DefValMap::iterator it = d_defValues.find(a);
-      Assert(it != d_defValues.end());
-      d_defValues[node] = (*it).second;
-    }
-    else {
-      d_mayEqualEqualityEngine.assertEquality(node.eqNode(a), true, d_true);
-      Assert(d_mayEqualEqualityEngine.consistent());
-    }
-
-    TNode i = node[1];
-    TNode v = node[2];
-    NodeManager* nm = NodeManager::currentNM();
-    Node ni = nm->mkNode(kind::SELECT, node, i);
-    if (!d_equalityEngine->hasTerm(ni))
+    case kind::STORE:
     {
-      preRegisterTermInternal(ni);
-    }
+      TNode a = d_equalityEngine->getRepresentative(node[0]);
 
-    // Apply RIntro1 Rule
-    d_equalityEngine->assertEquality(ni.eqNode(v), true, d_true, d_reasonRow1);
+      if (node.isConst())
+      {
+        // Can't use d_mayEqualEqualityEngine to merge node with a because they
+        // are both constants, so just set the default value manually for node.
+        Assert(a == node[0]);
+        d_mayEqualEqualityEngine.addTerm(node);
+        Assert(d_mayEqualEqualityEngine.getRepresentative(node) == node);
+        Assert(d_mayEqualEqualityEngine.getRepresentative(a) == a);
+        DefValMap::iterator it = d_defValues.find(a);
+        Assert(it != d_defValues.end());
+        d_defValues[node] = (*it).second;
+      }
+      else
+      {
+        d_mayEqualEqualityEngine.assertEquality(node.eqNode(a), true, d_true);
+        Assert(d_mayEqualEqualityEngine.consistent());
+      }
 
-    d_infoMap.addStore(node, node);
-    d_infoMap.addInStore(a, node);
-    d_infoMap.setModelRep(node, node);
+      TNode i = node[1];
+      TNode v = node[2];
+      NodeManager* nm = NodeManager::currentNM();
+      Node ni = nm->mkNode(kind::SELECT, node, i);
+      if (!d_equalityEngine->hasTerm(ni))
+      {
+        preRegisterTermInternal(ni);
+      }
 
-    //Add-Store for Weak Equivalence
-    if (options::arraysWeakEquivalence()) {
-      Assert(weakEquivGetRep(node[0]) == weakEquivGetRep(a));
-      Assert(weakEquivGetRep(node) == node);
-      d_infoMap.setWeakEquivPointer(node, node[0]);
-      d_infoMap.setWeakEquivIndex(node, node[1]);
+      // Apply RIntro1 Rule
+      d_equalityEngine->assertEquality(
+          ni.eqNode(v), true, d_true, theory::eq::MERGED_THROUGH_ROW1);
+
+      d_infoMap.addStore(node, node);
+      d_infoMap.addInStore(a, node);
+      d_infoMap.setModelRep(node, node);
+
+      // Add-Store for Weak Equivalence
+      if (options::arraysWeakEquivalence())
+      {
+        Assert(weakEquivGetRep(node[0]) == weakEquivGetRep(a));
+        Assert(weakEquivGetRep(node) == node);
+        d_infoMap.setWeakEquivPointer(node, node[0]);
+        d_infoMap.setWeakEquivIndex(node, node[1]);
 #ifdef CVC4_ASSERTIONS
       checkWeakEquiv(false);
 #endif
@@ -816,34 +777,18 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     break;
   }
   case kind::STORE_ALL: {
-    if (d_equalityEngine->hasTerm(node))
-    {
-      break;
-    }
     ArrayStoreAll storeAll = node.getConst<ArrayStoreAll>();
     Node defaultValue = storeAll.getValue();
     if (!defaultValue.isConst()) {
       throw LogicException("Array theory solver does not yet support non-constant default values for arrays");
     }
     d_infoMap.setConstArr(node, node);
-    d_mayEqualEqualityEngine.addTerm(node);
     Assert(d_mayEqualEqualityEngine.getRepresentative(node) == node);
-    d_equalityEngine->addTerm(node);
     d_defValues[node] = defaultValue;
     break;
   }
   default:
-    // Variables etc
-    if (node.getType().isArray()) {
-      // The may equal needs the node
-      d_mayEqualEqualityEngine.addTerm(node);
-      d_equalityEngine->addTerm(node);
-      Assert(d_equalityEngine->getSize(node) == 1);
-    }
-    else {
-      d_equalityEngine->addTerm(node);
-    }
-
+    // Variables etc, already processed above
     break;
   }
   // Invariant: preregistered terms are exactly the terms in the equality engine
@@ -851,7 +796,6 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
   // Assert(d_equalityEngine->hasTerm(node) ||
   // !d_equalityEngine->consistent());
 }
-
 
 void TheoryArrays::preRegisterTerm(TNode node)
 {
@@ -864,19 +808,32 @@ void TheoryArrays::preRegisterTerm(TNode node)
   }
 }
 
-TrustNode TheoryArrays::explain(TNode literal)
+void TheoryArrays::explain(TNode literal, Node& explanation)
 {
-  Node explanation = explain(literal, NULL);
-  return TrustNode::mkTrustPropExp(literal, explanation, nullptr);
-}
-
-Node TheoryArrays::explain(TNode literal, eq::EqProof* proof) {
   ++d_numExplain;
   Debug("arrays") << spaces(getSatContext()->getLevel())
                   << "TheoryArrays::explain(" << literal << ")" << std::endl;
   std::vector<TNode> assumptions;
-  explain(literal, assumptions, proof);
-  return mkAnd(assumptions);
+  // Do the work
+  bool polarity = literal.getKind() != kind::NOT;
+  TNode atom = polarity ? literal : literal[0];
+  if (atom.getKind() == kind::EQUAL)
+  {
+    d_equalityEngine->explainEquality(
+        atom[0], atom[1], polarity, assumptions, nullptr);
+  }
+  else
+  {
+    d_equalityEngine->explainPredicate(atom, polarity, assumptions, nullptr);
+  }
+  explanation = mkAnd(assumptions);
+}
+
+TrustNode TheoryArrays::explain(TNode literal)
+{
+  Node explanation;
+  explain(literal, explanation);
+  return TrustNode::mkTrustPropExp(literal, explanation, nullptr);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -899,23 +856,6 @@ void TheoryArrays::notifySharedTerm(TNode t)
     d_sharedTerms = true;
   }
 }
-
-
-EqualityStatus TheoryArrays::getEqualityStatus(TNode a, TNode b) {
-  Assert(d_equalityEngine->hasTerm(a) && d_equalityEngine->hasTerm(b));
-  if (d_equalityEngine->areEqual(a, b))
-  {
-    // The terms are implied to be equal
-    return EQUALITY_TRUE;
-  }
-  else if (d_equalityEngine->areDisequal(a, b, false))
-  {
-    // The terms are implied to be dis-equal
-    return EQUALITY_FALSE;
-  }
-  return EQUALITY_UNKNOWN;//FALSE_IN_MODEL;
-}
-
 
 void TheoryArrays::checkPair(TNode r1, TNode r2)
 {
@@ -1090,22 +1030,15 @@ void TheoryArrays::computeCareGraph()
 // MODEL GENERATION
 /////////////////////////////////////////////////////////////////////////////
 
-bool TheoryArrays::collectModelInfo(TheoryModel* m)
+bool TheoryArrays::collectModelValues(TheoryModel* m,
+                                      const std::set<Node>& termSet)
 {
-  // Compute terms appearing in assertions and shared terms, and also
-  // include additional reads due to the RIntro1 and RIntro2 rules.
-  std::set<Node> termSet;
-  computeRelevantTerms(termSet);
-
-  // Send the equality engine information to the model
-  if (!m->assertEqualityEngine(d_equalityEngine, &termSet))
-  {
-    return false;
-  }
-
+  // termSet contains terms appearing in assertions and shared terms, and also
+  // includes additional reads due to the RIntro1 and RIntro2 rules.
   NodeManager* nm = NodeManager::currentNM();
   // Compute arrays that we need to produce representatives for
   std::vector<Node> arrays;
+
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
   for (; !eqcs_i.isFinished(); ++eqcs_i) {
     Node eqc = (*eqcs_i);
@@ -1158,12 +1091,14 @@ bool TheoryArrays::collectModelInfo(TheoryModel* m)
   //}
 
   // Loop through all array equivalence classes that need a representative computed
-  for (size_t i=0; i<arrays.size(); ++i) {
-    TNode n = arrays[i];
-    TNode nrep = d_equalityEngine->getRepresentative(n);
+    for (size_t i = 0; i < arrays.size(); ++i)
+    {
+      TNode n = arrays[i];
+      TNode nrep = d_equalityEngine->getRepresentative(n);
 
-    //if (fullModel) {
-      // Compute default value for this array - there is one default value for every mayEqual equivalence class
+      // if (fullModel) {
+      // Compute default value for this array - there is one default value for
+      // every mayEqual equivalence class
       TNode mayRep = d_mayEqualEqualityEngine.getRepresentative(nrep);
       it = d_defValues.find(mayRep);
       // If this mayEqual EC doesn't have a default value associated, get the next available default value for the associated array element type
@@ -1265,7 +1200,7 @@ Node TheoryArrays::getSkolem(TNode ref, const string& name, const TypeNode& type
     Node d = skolem.eqNode(ref);
     Debug("arrays-model-based") << "Asserting skolem equality " << d << endl;
     d_equalityEngine->assertEquality(d, true, d_true);
-    Assert(!d_conflict);
+    Assert(!d_state.isInConflict());
     d_skolemAssertions.push_back(d);
     d_skolemIndex = d_skolemIndex + 1;
   }
@@ -1274,145 +1209,11 @@ Node TheoryArrays::getSkolem(TNode ref, const string& name, const TypeNode& type
   return skolem;
 }
 
-
-void TheoryArrays::check(Effort e) {
-  if (done() && !fullEffort(e)) {
-    return;
-  }
-
-  getOutputChannel().spendResource(ResourceManager::Resource::TheoryCheckStep);
-
-  TimerStat::CodeTimer checkTimer(d_checkTime);
-
-  while (!done() && !d_conflict)
+void TheoryArrays::postCheck(Effort level)
+{
+  if ((options::arraysEagerLemmas() || fullEffort(level))
+      && !d_state.isInConflict() && options::arraysWeakEquivalence())
   {
-    // Get all the assertions
-    Assertion assertion = get();
-    TNode fact = assertion.d_assertion;
-
-    Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::check(): processing " << fact << std::endl;
-
-    bool polarity = fact.getKind() != kind::NOT;
-    TNode atom = polarity ? fact : fact[0];
-
-    if (!assertion.d_isPreregistered)
-    {
-      if (atom.getKind() == kind::EQUAL) {
-        if (!d_equalityEngine->hasTerm(atom[0]))
-        {
-          Assert(atom[0].isConst());
-          d_equalityEngine->addTerm(atom[0]);
-        }
-        if (!d_equalityEngine->hasTerm(atom[1]))
-        {
-          Assert(atom[1].isConst());
-          d_equalityEngine->addTerm(atom[1]);
-        }
-      }
-    }
-
-    // Do the work
-    switch (fact.getKind()) {
-      case kind::EQUAL:
-        d_equalityEngine->assertEquality(fact, true, fact);
-        break;
-      case kind::SELECT:
-        d_equalityEngine->assertPredicate(fact, true, fact);
-        break;
-      case kind::NOT:
-        if (fact[0].getKind() == kind::SELECT) {
-          d_equalityEngine->assertPredicate(fact[0], false, fact);
-        }
-        else if (!d_equalityEngine->areDisequal(fact[0][0], fact[0][1], false))
-        {
-          // Assert the dis-equality
-          d_equalityEngine->assertEquality(fact[0], false, fact);
-
-          // Apply ArrDiseq Rule if diseq is between arrays
-          if(fact[0][0].getType().isArray() && !d_conflict) {
-            if (d_conflict) { Debug("pf::array") << "Entering the skolemization branch" << std::endl; }
-
-            NodeManager* nm = NodeManager::currentNM();
-            TypeNode indexType = fact[0][0].getType()[0];
-
-            TNode k;
-            // k is the skolem for this disequality.
-            if (!d_proofsEnabled) {
-              Debug("pf::array") << "Check: kind::NOT: array theory making a skolem" << std::endl;
-
-              // If not in replay mode, generate a fresh skolem variable
-              k = getSkolem(fact,
-                            "array_ext_index",
-                            indexType,
-                            "an extensional lemma index variable from the theory of arrays",
-                            false);
-
-              // Register this skolem for the proof replay phase
-              PROOF(ProofManager::getSkolemizationManager()->registerSkolem(fact, k));
-            } else {
-              if (!ProofManager::getSkolemizationManager()->hasSkolem(fact)) {
-                // In the solution pass we didn't need this skolem. Therefore, we don't need it
-                // in this reply pass, either.
-                break;
-              }
-
-              // Reuse the same skolem as in the solution pass
-              k = ProofManager::getSkolemizationManager()->getSkolem(fact);
-              Debug("pf::array") << "Skolem = " << k << std::endl;
-            }
-
-            Node ak = nm->mkNode(kind::SELECT, fact[0][0], k);
-            Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
-            Node eq = ak.eqNode(bk);
-            Node lemma = fact[0].orNode(eq.notNode());
-
-            // In solve mode we don't care if ak and bk are registered. If they aren't, they'll be registered
-            // when we output the lemma. However, in replay need the lemma to be propagated, and so we
-            // preregister manually.
-            if (d_proofsEnabled) {
-              if (!d_equalityEngine->hasTerm(ak))
-              {
-                preRegisterTermInternal(ak);
-              }
-              if (!d_equalityEngine->hasTerm(bk))
-              {
-                preRegisterTermInternal(bk);
-              }
-            }
-
-            if (options::arraysPropagate() > 0 && d_equalityEngine->hasTerm(ak)
-                && d_equalityEngine->hasTerm(bk))
-            {
-              // Propagate witness disequality - might produce a conflict
-              d_permRef.push_back(lemma);
-              Debug("pf::array") << "Asserting to the equality engine:" << std::endl
-                                 << "\teq = " << eq << std::endl
-                                 << "\treason = " << fact << std::endl;
-
-              d_equalityEngine->assertEquality(eq, false, fact, d_reasonExt);
-              ++d_numProp;
-            }
-
-            if (!d_proofsEnabled) {
-              // If this is the solution pass, generate the lemma. Otherwise, don't generate it -
-              // as this is the lemma that we're reproving...
-              Trace("arrays-lem")<<"Arrays::addExtLemma " << lemma <<"\n";
-              d_out->lemma(lemma);
-              ++d_numExt;
-            }
-          } else {
-            Debug("pf::array") << "Check: kind::NOT: array theory NOT making a skolem" << std::endl;
-            d_modelConstraints.push_back(fact);
-          }
-        }
-        break;
-    default:
-      Unreachable();
-      break;
-    }
-  }
-
-  if ((options::arraysEagerLemmas() || fullEffort(e)) && !d_conflict && options::arraysWeakEquivalence()) {
     // Replay all array merges to update weak equivalence data structures
     context::CDList<Node>::iterator it = d_arrayMerges.begin(), iend = d_arrayMerges.end();
     TNode a, b, eq;
@@ -1488,7 +1289,7 @@ void TheoryArrays::check(Effort e) {
           lemma = mkAnd(conjunctions, true);
           // LSH FIXME: which kind of arrays lemma is this
           Trace("arrays-lem") << "Arrays::addExtLemma " << lemma <<"\n";
-          d_out->lemma(lemma, RULE_INVALID, LemmaProperty::SEND_ATOMS);
+          d_out->lemma(lemma, LemmaProperty::SEND_ATOMS);
           d_readTableContext->pop();
           Trace("arrays") << spaces(getSatContext()->getLevel()) << "Arrays::check(): done" << endl;
           return;
@@ -1499,10 +1300,13 @@ void TheoryArrays::check(Effort e) {
     d_readTableContext->pop();
   }
 
-  if(!options::arraysEagerLemmas() && fullEffort(e) && !d_conflict && !options::arraysWeakEquivalence()) {
+  if (!options::arraysEagerLemmas() && fullEffort(level)
+      && !d_state.isInConflict() && !options::arraysWeakEquivalence())
+  {
     // generate the lemmas on the worklist
     Trace("arrays-lem")<< "Arrays::discharging lemmas. Number of queued lemmas: " << d_RowQueue.size() << "\n";
-    while (d_RowQueue.size() > 0 && !d_conflict) {
+    while (d_RowQueue.size() > 0 && !d_state.isInConflict())
+    {
       if (dischargeLemmas()) {
         break;
       }
@@ -1512,6 +1316,84 @@ void TheoryArrays::check(Effort e) {
   Trace("arrays") << spaces(getSatContext()->getLevel()) << "Arrays::check(): done" << endl;
 }
 
+bool TheoryArrays::preNotifyFact(
+    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
+{
+  if (!isPrereg)
+  {
+    if (atom.getKind() == kind::EQUAL)
+    {
+      if (!d_equalityEngine->hasTerm(atom[0]))
+      {
+        Assert(atom[0].isConst());
+        d_equalityEngine->addTerm(atom[0]);
+      }
+      if (!d_equalityEngine->hasTerm(atom[1]))
+      {
+        Assert(atom[1].isConst());
+        d_equalityEngine->addTerm(atom[1]);
+      }
+    }
+  }
+  return false;
+}
+
+void TheoryArrays::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
+{
+  // if a disequality
+  if (atom.getKind() == kind::EQUAL && !pol)
+  {
+    // Apply ArrDiseq Rule if diseq is between arrays
+    if (fact[0][0].getType().isArray() && !d_state.isInConflict())
+    {
+      NodeManager* nm = NodeManager::currentNM();
+      TypeNode indexType = fact[0][0].getType()[0];
+
+      TNode k;
+      // k is the skolem for this disequality.
+      Debug("pf::array") << "Check: kind::NOT: array theory making a skolem"
+                          << std::endl;
+
+      // If not in replay mode, generate a fresh skolem variable
+      k = getSkolem(
+          fact,
+          "array_ext_index",
+          indexType,
+          "an extensional lemma index variable from the theory of arrays",
+          false);
+
+      Node ak = nm->mkNode(kind::SELECT, fact[0][0], k);
+      Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
+      Node eq = ak.eqNode(bk);
+      Node lemma = fact[0].orNode(eq.notNode());
+
+      if (options::arraysPropagate() > 0 && d_equalityEngine->hasTerm(ak)
+          && d_equalityEngine->hasTerm(bk))
+      {
+        // Propagate witness disequality - might produce a conflict
+        d_permRef.push_back(lemma);
+        Debug("pf::array") << "Asserting to the equality engine:" << std::endl
+                           << "\teq = " << eq << std::endl
+                           << "\treason = " << fact << std::endl;
+
+        d_equalityEngine->assertEquality(eq, false, fact);
+        ++d_numProp;
+      }
+
+      // If this is the solution pass, generate the lemma. Otherwise, don't
+      // generate it - as this is the lemma that we're reproving...
+      Trace("arrays-lem") << "Arrays::addExtLemma " << lemma << "\n";
+      d_out->lemma(lemma);
+      ++d_numExt;
+    }
+    else
+    {
+      Debug("pf::array") << "Check: kind::NOT: array theory NOT making a skolem"
+                         << std::endl;
+      d_modelConstraints.push_back(fact);
+    }
+  }
+}
 
 Node TheoryArrays::mkAnd(std::vector<TNode>& conjunctions, bool invert, unsigned startIndex)
 {
@@ -1716,7 +1598,8 @@ void TheoryArrays::mergeArrays(TNode a, TNode b)
     }
 
     // If no more to do, break
-    if (d_conflict || d_mergeQueue.empty()) {
+    if (d_state.isInConflict() || d_mergeQueue.empty())
+    {
       break;
     }
 
@@ -1916,7 +1799,8 @@ void TheoryArrays::propagate(RowLemmaType lem)
       if (!bjExists) {
         preRegisterTermInternal(bj);
       }
-      d_equalityEngine->assertEquality(aj_eq_bj, true, reason, d_reasonRow);
+      d_equalityEngine->assertEquality(
+          aj_eq_bj, true, reason, theory::eq::MERGED_THROUGH_ROW);
       ++d_numProp;
       return;
     }
@@ -1927,7 +1811,8 @@ void TheoryArrays::propagate(RowLemmaType lem)
           (aj.isConst() && bj.isConst()) ? d_true : aj.eqNode(bj).notNode();
       Node i_eq_j = i.eqNode(j);
       d_permRef.push_back(reason);
-      d_equalityEngine->assertEquality(i_eq_j, true, reason, d_reasonRow);
+      d_equalityEngine->assertEquality(
+          i_eq_j, true, reason, theory::eq::MERGED_THROUGH_ROW);
       ++d_numProp;
       return;
     }
@@ -1938,7 +1823,8 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
 {
   Debug("pf::array") << "Array solver: queue row lemma called" << std::endl;
 
-  if (d_conflict || d_RowAlreadyAdded.contains(lem)) {
+  if (d_state.isInConflict() || d_RowAlreadyAdded.contains(lem))
+  {
     return;
   }
   TNode a, b, i, j;
@@ -1965,33 +1851,23 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
     propagate(lem);
   }
 
-  // If equivalent lemma already exists, don't enqueue this one
-  if (d_useArrTable) {
-    Node tableEntry = NodeManager::currentNM()->mkNode(kind::ARR_TABLE_FUN, a, b, i, j);
-    if (d_equalityEngine->getSize(tableEntry) != 1)
-    {
-      return;
-    }
-  }
-
   // Prefer equality between indexes so as not to introduce new read terms
   if (options::arraysEagerIndexSplitting() && !bothExist
       && !d_equalityEngine->areDisequal(i, j, false))
   {
     Node i_eq_j;
-    if (!d_proofsEnabled) {
-      i_eq_j = d_valuation.ensureLiteral(i.eqNode(j)); // TODO: think about this
-    } else {
-      i_eq_j = i.eqNode(j);
-    }
-
+    i_eq_j = d_valuation.ensureLiteral(i.eqNode(j));  // TODO: think about this
+#if 0
+    i_eq_j = i.eqNode(j);
+#endif
     getOutputChannel().requirePhase(i_eq_j, true);
     d_decisionRequests.push(i_eq_j);
   }
 
   // TODO: maybe add triggers here
 
-  if ((options::arraysEagerLemmas() || bothExist) && !d_proofsEnabled) {
+  if (options::arraysEagerLemmas() || bothExist)
+  {
     // Make sure that any terms introduced by rewriting are appropriately stored in the equality database
     Node aj2 = Rewriter::rewrite(aj);
     if (aj != aj2) {
@@ -2099,7 +1975,8 @@ bool TheoryArrays::dischargeLemmas()
     int prop = options::arraysPropagate();
     if (prop > 0) {
       propagate(l);
-      if (d_conflict) {
+      if (d_state.isInConflict())
+      {
         return true;
       }
     }
@@ -2170,26 +2047,14 @@ bool TheoryArrays::dischargeLemmas()
 
 void TheoryArrays::conflict(TNode a, TNode b) {
   Debug("pf::array") << "TheoryArrays::Conflict called" << std::endl;
-  std::shared_ptr<eq::EqProof> proof = d_proofsEnabled ?
-      std::make_shared<eq::EqProof>() : nullptr;
 
-  d_conflictNode = explain(a.eqNode(b), proof.get());
+  explain(a.eqNode(b), d_conflictNode);
 
   if (!d_inCheckModel) {
-    std::unique_ptr<ProofArray> proof_array;
-
-    if (d_proofsEnabled) {
-      proof->debug_print("pf::array");
-      proof_array.reset(new ProofArray(proof,
-                                       /*row=*/d_reasonRow,
-                                       /*row1=*/d_reasonRow1,
-                                       /*ext=*/d_reasonExt));
-    }
-
-    d_out->conflict(d_conflictNode, std::move(proof_array));
+    d_out->conflict(d_conflictNode);
   }
 
-  d_conflict = true;
+  d_state.notifyInConflict();
 }
 
 TheoryArrays::TheoryArraysDecisionStrategy::TheoryArraysDecisionStrategy(
@@ -2263,13 +2128,8 @@ TrustNode TheoryArrays::expandDefinition(Node node)
   return TrustNode::null();
 }
 
-void TheoryArrays::computeRelevantTerms(std::set<Node>& termSet,
-                                        bool includeShared)
+void TheoryArrays::computeRelevantTerms(std::set<Node>& termSet)
 {
-  // include all standard terms
-  std::set<Kind> irrKinds;
-  computeRelevantTermsInternal(termSet, irrKinds, includeShared);
-
   NodeManager* nm = NodeManager::currentNM();
   // make sure RIntro1 reads are included in the relevant set of reads
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);

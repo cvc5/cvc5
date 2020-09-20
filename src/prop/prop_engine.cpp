@@ -34,7 +34,6 @@
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
 #include "prop/theory_proxy.h"
-#include "smt/command.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_registrar.h"
@@ -70,7 +69,8 @@ public:
 PropEngine::PropEngine(TheoryEngine* te,
                        Context* satContext,
                        UserContext* userContext,
-                       ResourceManager* rm)
+                       ResourceManager* rm,
+                       OutputManager& outMgr)
     : d_inCheckSat(false),
       d_theoryEngine(te),
       d_context(satContext),
@@ -79,7 +79,8 @@ PropEngine::PropEngine(TheoryEngine* te,
       d_registrar(NULL),
       d_cnfStream(NULL),
       d_interrupted(false),
-      d_resourceManager(rm)
+      d_resourceManager(rm),
+      d_outMgr(outMgr)
 {
 
   Debug("prop") << "Constructing the PropEngine" << endl;
@@ -91,7 +92,7 @@ PropEngine::PropEngine(TheoryEngine* te,
 
   d_registrar = new theory::TheoryRegistrar(d_theoryEngine);
   d_cnfStream = new CVC4::prop::TseitinCnfStream(
-      d_satSolver, d_registrar, userContext, rm, true);
+      d_satSolver, d_registrar, userContext, &d_outMgr, rm, true);
 
   d_theoryProxy = new TheoryProxy(
       this, d_theoryEngine, d_decisionEngine.get(), d_context, d_cnfStream);
@@ -99,17 +100,17 @@ PropEngine::PropEngine(TheoryEngine* te,
 
   d_decisionEngine->setSatSolver(d_satSolver);
   d_decisionEngine->setCnfStream(d_cnfStream);
-  PROOF (
-         ProofManager::currentPM()->initCnfProof(d_cnfStream, userContext);
-         );
+  if (options::unsatCores())
+  {
+    ProofManager::currentPM()->initCnfProof(d_cnfStream, userContext);
+  }
 }
 
 void PropEngine::finishInit()
 {
   NodeManager* nm = NodeManager::currentNM();
-  d_cnfStream->convertAndAssert(nm->mkConst(true), false, false, RULE_GIVEN);
-  d_cnfStream->convertAndAssert(
-      nm->mkConst(false).notNode(), false, false, RULE_GIVEN);
+  d_cnfStream->convertAndAssert(nm->mkConst(true), false, false);
+  d_cnfStream->convertAndAssert(nm->mkConst(false).notNode(), false, false);
 }
 
 PropEngine::~PropEngine() {
@@ -126,18 +127,15 @@ void PropEngine::assertFormula(TNode node) {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   Debug("prop") << "assertFormula(" << node << ")" << endl;
   // Assert as non-removable
-  d_cnfStream->convertAndAssert(node, false, false, RULE_GIVEN);
+  d_cnfStream->convertAndAssert(node, false, false, true);
 }
 
-void PropEngine::assertLemma(TNode node, bool negated,
-                             bool removable,
-                             ProofRule rule,
-                             TNode from) {
-  //Assert(d_inCheckSat, "Sat solver should be in solve()!");
+void PropEngine::assertLemma(TNode node, bool negated, bool removable)
+{
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << endl;
 
   // Assert as (possibly) removable
-  d_cnfStream->convertAndAssert(node, removable, negated, rule, from);
+  d_cnfStream->convertAndAssert(node, removable, negated);
 }
 
 void PropEngine::addAssertionsToDecisionEngine(

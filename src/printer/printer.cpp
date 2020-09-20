@@ -23,6 +23,8 @@
 #include "printer/cvc/cvc_printer.h"
 #include "printer/smt2/smt2_printer.h"
 #include "printer/tptp/tptp_printer.h"
+#include "smt/command.h"
+#include "smt/node_command.h"
 
 using namespace std;
 
@@ -72,9 +74,10 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
 void Printer::toStream(std::ostream& out, const Model& m) const
 {
   for(size_t i = 0; i < m.getNumCommands(); ++i) {
-    const Command* cmd = m.getCommand(i);
-    const DeclareFunctionCommand* dfc = dynamic_cast<const DeclareFunctionCommand*>(cmd);
-    if (dfc != NULL && !m.isModelCoreSymbol(dfc->getFunction()))
+    const NodeCommand* cmd = m.getCommand(i);
+    const DeclareFunctionNodeCommand* dfc =
+        dynamic_cast<const DeclareFunctionNodeCommand*>(cmd);
+    if (dfc != NULL && !m.isModelCoreSymbol(dfc->getFunction().toExpr()))
     {
       continue;
     }
@@ -344,7 +347,7 @@ void Printer::toStreamCmdGetAssertions(std::ostream& out) const
 }
 
 void Printer::toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                            BenchmarkStatus status) const
+                                            Result::Sat status) const
 {
   printUnknownCommand(out, "set-info");
 }

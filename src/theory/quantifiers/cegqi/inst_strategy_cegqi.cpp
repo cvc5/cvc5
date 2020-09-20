@@ -42,10 +42,10 @@ InstRewriterCegqi::InstRewriterCegqi(InstStrategyCegqi* p)
 {
 }
 
-Node InstRewriterCegqi::rewriteInstantiation(Node q,
-                                             std::vector<Node>& terms,
-                                             Node inst,
-                                             bool doVts)
+TrustNode InstRewriterCegqi::rewriteInstantiation(Node q,
+                                                  std::vector<Node>& terms,
+                                                  Node inst,
+                                                  bool doVts)
 {
   return d_parent->rewriteInstantiation(q, terms, inst, doVts);
 }
@@ -82,9 +82,12 @@ bool InstStrategyCegqi::needsCheck(Theory::Effort e)
 
 QuantifiersModule::QEffort InstStrategyCegqi::needsModel(Theory::Effort e)
 {
-  for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
+  size_t nquant = d_quantEngine->getModel()->getNumAssertedQuantifiers();
+  for (size_t i = 0; i < nquant; i++)
+  {
     Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
-    if( doCbqi( q ) && d_quantEngine->getModel()->isQuantifierActive( q ) ){
+    if (doCbqi(q))
+    {
       return QEFFORT_STANDARD;
     }
   }
@@ -205,7 +208,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
       dlds = itds->second.get();
     }
     // it is appended to the list of strategies
-    d_quantEngine->getTheoryEngine()->getDecisionManager()->registerStrategy(
+    d_quantEngine->getDecisionManager()->registerStrategy(
         DecisionManager::STRAT_QUANT_CEGQI_FEASIBLE, dlds);
     return true;
   }else{
@@ -453,11 +456,12 @@ void InstStrategyCegqi::preRegisterQuantifier(Node q)
     }
   }
 }
-Node InstStrategyCegqi::rewriteInstantiation(Node q,
-                                             std::vector<Node>& terms,
-                                             Node inst,
-                                             bool doVts)
+TrustNode InstStrategyCegqi::rewriteInstantiation(Node q,
+                                                  std::vector<Node>& terms,
+                                                  Node inst,
+                                                  bool doVts)
 {
+  Node prevInst = inst;
   if (doVts)
   {
     // do virtual term substitution
@@ -470,7 +474,12 @@ Node InstStrategyCegqi::rewriteInstantiation(Node q,
   {
     inst = doNestedQE(q, terms, inst, doVts);
   }
-  return inst;
+  if (prevInst != inst)
+  {
+    // not proof producing yet
+    return TrustNode::mkTrustRewrite(prevInst, inst, nullptr);
+  }
+  return TrustNode::null();
 }
 
 InstantiationRewriter* InstStrategyCegqi::getInstRewriter() const

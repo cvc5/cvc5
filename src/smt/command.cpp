@@ -106,20 +106,6 @@ std::ostream& operator<<(std::ostream& out, BenchmarkStatus status)
 }
 
 // !!! Temporary until commands are migrated to the new API !!!
-std::vector<Node> exprVectorToNodes(const std::vector<Expr>& exprs)
-{
-  std::vector<Node> nodes;
-  nodes.reserve(exprs.size());
-
-  for (Expr e : exprs)
-  {
-    nodes.push_back(Node::fromExpr(e));
-  }
-
-  return nodes;
-}
-
-// !!! Temporary until commands are migrated to the new API !!!
 std::vector<TypeNode> typeVectorToTypeNodes(const std::vector<Type>& types)
 {
   std::vector<TypeNode> typeNodes;
@@ -2275,57 +2261,22 @@ void BlockModelValuesCommand::toStream(std::ostream& out,
 /* class GetProofCommand                                                      */
 /* -------------------------------------------------------------------------- */
 
-GetProofCommand::GetProofCommand() : d_smtEngine(nullptr), d_result(nullptr) {}
+GetProofCommand::GetProofCommand() {}
 void GetProofCommand::invoke(SmtEngine* smtEngine)
 {
-  try
-  {
-    d_smtEngine = smtEngine;
-    d_result = &smtEngine->getProof();
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (RecoverableModalException& e)
-  {
-    d_commandStatus = new CommandRecoverableFailure(e.what());
-  }
-  catch (UnsafeInterruptException& e)
-  {
-    d_commandStatus = new CommandInterrupted();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
-}
-
-const Proof& GetProofCommand::getResult() const { return *d_result; }
-void GetProofCommand::printResult(std::ostream& out, uint32_t verbosity) const
-{
-  if (!ok())
-  {
-    this->Command::printResult(out, verbosity);
-  }
-  else
-  {
-    smt::SmtScope scope(d_smtEngine);
-    d_result->toStream(out);
-  }
+  Unimplemented() << "Unimplemented get-proof\n";
 }
 
 Command* GetProofCommand::exportTo(ExprManager* exprManager,
                                    ExprManagerMapCollection& variableMap)
 {
   GetProofCommand* c = new GetProofCommand();
-  c->d_result = d_result;
-  c->d_smtEngine = d_smtEngine;
   return c;
 }
 
 Command* GetProofCommand::clone() const
 {
   GetProofCommand* c = new GetProofCommand();
-  c->d_result = d_result;
-  c->d_smtEngine = d_smtEngine;
   return c;
 }
 
@@ -3012,7 +2963,15 @@ void SetBenchmarkStatusCommand::toStream(std::ostream& out,
                                          size_t dag,
                                          OutputLanguage language) const
 {
-  Printer::getPrinter(language)->toStreamCmdSetBenchmarkStatus(out, d_status);
+  Result::Sat status = Result::SAT_UNKNOWN;
+  switch (d_status)
+  {
+    case BenchmarkStatus::SMT_SATISFIABLE: status = Result::SAT; break;
+    case BenchmarkStatus::SMT_UNSATISFIABLE: status = Result::UNSAT; break;
+    case BenchmarkStatus::SMT_UNKNOWN: status = Result::SAT_UNKNOWN; break;
+  }
+
+  Printer::getPrinter(language)->toStreamCmdSetBenchmarkStatus(out, status);
 }
 
 /* -------------------------------------------------------------------------- */

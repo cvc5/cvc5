@@ -34,16 +34,19 @@ TheorySets::TheorySets(context::Context* c,
                        const LogicInfo& logicInfo,
                        ProofNodeManager* pnm)
     : Theory(THEORY_SETS, c, u, out, valuation, logicInfo, pnm),
-      d_internal(new TheorySetsPrivate(*this, c, u, valuation)),
-      d_notify(*d_internal.get())
+      d_skCache(),
+      d_state(c, u, valuation, d_skCache),
+      d_im(*this, d_state, pnm),
+      d_internal(new TheorySetsPrivate(*this, d_state, d_im, d_skCache)),
+      d_notify(*d_internal.get(), d_im)
 {
-  // use the state object as the official theory state
-  d_theoryState = d_internal->getSolverState();
+  // use the official theory state and inference manager objects
+  d_theoryState = &d_state;
+  d_inferManager = &d_im;
 }
 
 TheorySets::~TheorySets()
 {
-  // Do not move me to the header. See explanation in the constructor.
 }
 
 TheoryRewriter* TheorySets::getTheoryRewriter()
@@ -67,12 +70,12 @@ void TheorySets::finishInit()
   d_valuation.setUnevaluatedKind(WITNESS);
 
   // functions we are doing congruence over
-  d_equalityEngine->addFunctionKind(kind::SINGLETON);
-  d_equalityEngine->addFunctionKind(kind::UNION);
-  d_equalityEngine->addFunctionKind(kind::INTERSECTION);
-  d_equalityEngine->addFunctionKind(kind::SETMINUS);
-  d_equalityEngine->addFunctionKind(kind::MEMBER);
-  d_equalityEngine->addFunctionKind(kind::SUBSET);
+  d_equalityEngine->addFunctionKind(SINGLETON);
+  d_equalityEngine->addFunctionKind(UNION);
+  d_equalityEngine->addFunctionKind(INTERSECTION);
+  d_equalityEngine->addFunctionKind(SETMINUS);
+  d_equalityEngine->addFunctionKind(MEMBER);
+  d_equalityEngine->addFunctionKind(SUBSET);
   // relation operators
   d_equalityEngine->addFunctionKind(PRODUCT);
   d_equalityEngine->addFunctionKind(JOIN);
@@ -88,19 +91,20 @@ void TheorySets::finishInit()
   d_internal->finishInit();
 }
 
-void TheorySets::notifySharedTerm(TNode n) { d_internal->addSharedTerm(n); }
+void TheorySets::postCheck(Effort level) { d_internal->postCheck(level); }
 
-void TheorySets::check(Effort e) {
-  if (done() && e < Theory::EFFORT_FULL) {
-    return;
-  }
-  TimerStat::CodeTimer checkTimer(d_checkTime);
-  d_internal->check(e);
+void TheorySets::notifyFact(TNode atom,
+                            bool polarity,
+                            TNode fact,
+                            bool isInternal)
+{
+  d_internal->notifyFact(atom, polarity, fact);
 }
 
-bool TheorySets::collectModelInfo(TheoryModel* m)
+bool TheorySets::collectModelValues(TheoryModel* m,
+                                    const std::set<Node>& termSet)
 {
-  return d_internal->collectModelInfo(m);
+  return d_internal->collectModelValues(m, termSet);
 }
 
 void TheorySets::computeCareGraph() {
@@ -113,15 +117,12 @@ TrustNode TheorySets::explain(TNode node)
   return TrustNode::mkTrustPropExp(node, exp, nullptr);
 }
 
-EqualityStatus TheorySets::getEqualityStatus(TNode a, TNode b) {
-  return d_internal->getEqualityStatus(a, b);
-}
-
 Node TheorySets::getModelValue(TNode node) {
   return Node::null();
 }
 
-void TheorySets::preRegisterTerm(TNode node) {
+void TheorySets::preRegisterTerm(TNode node)
+{
   d_internal->preRegisterTerm(node);
 }
 
@@ -157,7 +158,7 @@ Theory::PPAssertStatus TheorySets::ppAssert(TNode in, SubstitutionMap& outSubsti
   Theory::PPAssertStatus status = Theory::PP_ASSERT_STATUS_UNSOLVED;
 
   // this is based off of Theory::ppAssert
-  if (in.getKind() == kind::EQUAL)
+  if (in.getKind() == EQUAL)
   {
     if (in[0].isVar() && isLegalElimination(in[0], in[1]))
     {
@@ -199,37 +200,6 @@ bool TheorySets::isEntailed( Node n, bool pol ) {
 }
 
 /**************************** eq::NotifyClass *****************************/
-
-bool TheorySets::NotifyClass::eqNotifyTriggerPredicate(TNode predicate,
-                                                       bool value)
-{
-  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerPredicate: predicate = "
-                   << predicate << " value = " << value << std::endl;
-  if (value)
-  {
-    return d_theory.propagate(predicate);
-  }
-  return d_theory.propagate(predicate.notNode());
-}
-
-bool TheorySets::NotifyClass::eqNotifyTriggerTermEquality(TheoryId tag,
-                                                          TNode t1,
-                                                          TNode t2,
-                                                          bool value)
-{
-  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerTermEquality: tag = " << tag
-                   << " t1 = " << t1 << "  t2 = " << t2 << "  value = " << value
-                   << std::endl;
-  d_theory.propagate(value ? t1.eqNode(t2) : t1.eqNode(t2).negate());
-  return true;
-}
-
-void TheorySets::NotifyClass::eqNotifyConstantTermMerge(TNode t1, TNode t2)
-{
-  Debug("sets-eq") << "[sets-eq] eqNotifyConstantTermMerge "
-                   << " t1 = " << t1 << " t2 = " << t2 << std::endl;
-  d_theory.conflict(t1, t2);
-}
 
 void TheorySets::NotifyClass::eqNotifyNewClass(TNode t)
 {

@@ -16,6 +16,8 @@
  **/
 
 #include "theory/arith/callbacks.h"
+
+#include "theory/arith/proof_macros.h"
 #include "theory/arith/theory_arith_private.h"
 
 namespace CVC4 {
@@ -87,17 +89,17 @@ void FarkasConflictBuilder::reset(){
   d_consequent = NullConstraint;
   d_constraints.clear();
   d_consequentSet = false;
-  PROOF(d_farkas.clear());
+  ARITH_PROOF(d_farkas.clear());
   Assert(!underConstruction());
 }
 
 /* Adds a constraint to the constraint under construction. */
 void FarkasConflictBuilder::addConstraint(ConstraintCP c, const Rational& fc){
   Assert(
-      !PROOF_ON()
+      !ARITH_PROOF_ON()
       || (!underConstruction() && d_constraints.empty() && d_farkas.empty())
       || (underConstruction() && d_constraints.size() + 1 == d_farkas.size()));
-  Assert(PROOF_ON() || d_farkas.empty());
+  Assert(ARITH_PROOF_ON() || d_farkas.empty());
   Assert(c->isTrue());
 
   if(d_consequent == NullConstraint){
@@ -105,17 +107,20 @@ void FarkasConflictBuilder::addConstraint(ConstraintCP c, const Rational& fc){
   } else {
     d_constraints.push_back(c);
   }
-  PROOF(d_farkas.push_back(fc););
-  Assert(!PROOF_ON() || d_constraints.size() + 1 == d_farkas.size());
-  Assert(PROOF_ON() || d_farkas.empty());
+  ARITH_PROOF(d_farkas.push_back(fc));
+  Assert(!ARITH_PROOF_ON() || d_constraints.size() + 1 == d_farkas.size());
+  Assert(ARITH_PROOF_ON() || d_farkas.empty());
 }
 
 void FarkasConflictBuilder::addConstraint(ConstraintCP c, const Rational& fc, const Rational& mult){
   Assert(!mult.isZero());
-  if(PROOF_ON() && !mult.isOne()){
+  if (ARITH_PROOF_ON() && !mult.isOne())
+  {
     Rational prod = fc * mult;
     addConstraint(c, prod);
-  }else{
+  }
+  else
+  {
     addConstraint(c, fc);
   }
 }
@@ -132,7 +137,7 @@ void FarkasConflictBuilder::makeLastConsequent(){
     ConstraintCP last = d_constraints.back();
     d_constraints.back() = d_consequent;
     d_consequent = last;
-    PROOF( std::swap( d_farkas.front(), d_farkas.back() ) );
+    ARITH_PROOF(std::swap(d_farkas.front(), d_farkas.back()));
     d_consequentSet = true;
   }
 
@@ -145,14 +150,14 @@ ConstraintCP FarkasConflictBuilder::commitConflict(){
   Assert(underConstruction());
   Assert(!d_constraints.empty());
   Assert(
-      !PROOF_ON()
+      !ARITH_PROOF_ON()
       || (!underConstruction() && d_constraints.empty() && d_farkas.empty())
       || (underConstruction() && d_constraints.size() + 1 == d_farkas.size()));
-  Assert(PROOF_ON() || d_farkas.empty());
+  Assert(ARITH_PROOF_ON() || d_farkas.empty());
   Assert(d_consequentSet);
 
   ConstraintP not_c = d_consequent->getNegation();
-  RationalVectorCP coeffs = NULLPROOF(&d_farkas);
+  RationalVectorCP coeffs = ARITH_NULLPROOF(&d_farkas);
   not_c->impliedByFarkas(d_constraints, coeffs, true );
 
   reset();
