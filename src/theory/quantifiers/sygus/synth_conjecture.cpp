@@ -798,9 +798,10 @@ bool SynthConjecture::doRefine()
                                 << std::endl;
     // something went wrong, exclude the current candidate
     excludeCurrentSolution(sk_vars, sk_subs);
-    // Note this happens when evaluation is incapable of disproving a candidate,
-    // but satisfiability checking has. It is sound to exclude the candidate
-    // in this case.
+    // Note this happens when evaluation is incapable of disproving a candidate
+    // for counterexample point c, but satisfiability checking happened to find
+    // the the same point c is indeed a true counterexample. It is sound
+    // to exclude the candidate in this case.
   }
   return addedLemma;
 }
