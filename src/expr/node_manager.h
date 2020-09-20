@@ -889,7 +889,7 @@ class NodeManager {
   inline TypeNode mkSetType(TypeNode elementType);
 
   /** Make the type of bags with the given parameterization */
-  inline TypeNode mkBagType(TypeNode elementType);
+  TypeNode mkBagType(TypeNode elementType);
 
   /** Make the type of sequences with the given parameterization */
   TypeNode mkSequenceType(TypeNode elementType);
@@ -1197,18 +1197,6 @@ inline TypeNode NodeManager::mkSetType(TypeNode elementType) {
                 "option --uf-ho.");
   Debug("sets") << "making sets type " << elementType << std::endl;
   return mkTypeNode(kind::SET_TYPE, elementType);
-}
-
-inline TypeNode NodeManager::mkBagType(TypeNode elementType)
-{
-  CheckArgument(
-      !elementType.isNull(), elementType, "unexpected NULL element type");
-  CheckArgument(elementType.isFirstClass(),
-                elementType,
-                "cannot store types that are not first-class in bags. Try "
-                "option --uf-ho.");
-  Debug("bags") << "making bags type " << elementType << std::endl;
-  return mkTypeNode(kind::BAG_TYPE, elementType);
 }
 
 inline TypeNode NodeManager::mkSelectorType(TypeNode domain, TypeNode range) {
