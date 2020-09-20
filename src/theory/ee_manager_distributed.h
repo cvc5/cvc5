@@ -25,9 +25,6 @@
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
-
-class TheoryEngine;
-
 namespace theory {
 
 /**
@@ -55,27 +52,9 @@ class EqEngineManagerDistributed : public EqEngineManager
    * per theories and connects them to a master equality engine.
    */
   void initializeTheories() override;
-  /**
-   * Initialize model. This method allocates a new equality engine for the
-   * model.
-   */
-  void initializeModel(TheoryModel* m,
-                       eq::EqualityEngineNotify* notify) override;
-  /**
-   * Get the model equality engine context. This is a dummy context that is
-   * used for clearing the contents of the model's equality engine via
-   * pop/push.
-   */
-  context::Context* getModelEqualityEngineContext();
-  /** get the model equality engine */
-  eq::EqualityEngine* getModelEqualityEngine();
   /** get the core equality engine */
   eq::EqualityEngine* getCoreEqualityEngine() override;
-
  private:
-  /** Allocate equality engine that is context-dependent on c with info esi */
-  eq::EqualityEngine* allocateEqualityEngine(EeSetupInfo& esi,
-                                             context::Context* c);
   /** notify class for master equality engine */
   class MasterNotifyClass : public theory::eq::EqualityEngineNotify
   {
@@ -106,21 +85,10 @@ class EqEngineManagerDistributed : public EqEngineManager
     /** Pointer to quantifiers engine */
     QuantifiersEngine* d_quantEngine;
   };
-  /** Reference to the theory engine */
-  TheoryEngine& d_te;
   /** The master equality engine notify class */
   std::unique_ptr<MasterNotifyClass> d_masterEENotify;
   /** The master equality engine. */
   std::unique_ptr<eq::EqualityEngine> d_masterEqualityEngine;
-  /**
-   * A dummy context for the model equality engine, so we can clear it
-   * independently of search context.
-   */
-  context::Context d_modelEeContext;
-  /**
-   * The equality engine of the model.
-   */
-  std::unique_ptr<eq::EqualityEngine> d_modelEqualityEngine;
 };
 
 }  // namespace theory

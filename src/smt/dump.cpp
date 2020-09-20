@@ -24,6 +24,8 @@
 
 namespace CVC4 {
 
+#if defined(CVC4_DUMPING) && !defined(CVC4_MUZZLE)
+
 CVC4dumpstream& CVC4dumpstream::operator<<(const Command& c)
 {
   if (d_os != nullptr)
@@ -41,6 +43,25 @@ CVC4dumpstream& CVC4dumpstream::operator<<(const NodeCommand& nc)
   }
   return *this;
 }
+
+CVC4dumpstream& CVC4dumpstream::operator<<(ProofNode* pn)
+{
+  if (d_os != nullptr)
+  {
+    (*d_os) << *pn;
+  }
+  return *this;
+}
+
+#else
+
+CVC4dumpstream& CVC4dumpstream::operator<<(const Command& c) { return *this; }
+CVC4dumpstream& CVC4dumpstream::operator<<(const NodeCommand& nc)
+{
+  return *this;
+}
+
+#endif /* CVC4_DUMPING && !CVC4_MUZZLE */
 
 DumpC DumpChannel CVC4_PUBLIC;
 

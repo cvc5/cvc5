@@ -19,7 +19,7 @@
 
 #include <memory>
 
-#include "theory/ee_manager_distributed.h"
+#include "theory/ee_manager.h"
 #include "theory/model_manager.h"
 
 namespace CVC4 {
@@ -29,17 +29,20 @@ class TheoryEngine;
 namespace theory {
 
 /**
- * Manager for building models in a distributed architecture. Its prepare
- * model method uses collectModelInfo to assert all equalities from the equality
- * engine of each theory into the equality engine of the model. It additionally
- * uses the model equality engine context to clear the information from
- * the model's equality engine, as maintained by the distributed equality
- * engine manager.
+ * Manager for building models where the equality engine of the model is
+ * a separate instance. Notice that this manager can be used regardless of the
+ * method for managing the equality engines of the theories (which is the
+ * responsibility of the equality engine manager eem referenced by this class).
+ *
+ * Its prepare model method uses collectModelInfo to assert all equalities from
+ * the equality engine of each theory into the equality engine of the model. It
+ * additionally uses the model equality engine context to clear the information
+ * from the model's equality engine, which is maintained by this class.
  */
 class ModelManagerDistributed : public ModelManager
 {
  public:
-  ModelManagerDistributed(TheoryEngine& te, EqEngineManagerDistributed& eem);
+  ModelManagerDistributed(TheoryEngine& te, EqEngineManager& eem);
   ~ModelManagerDistributed();
 
   /** Prepare the model, as described above. */
@@ -49,13 +52,9 @@ class ModelManagerDistributed : public ModelManager
    * model, return true if successful.
    */
   bool finishBuildModel() const override;
-
  protected:
-  /**
-   * Distributed equality engine manager, which maintains the context of the
-   * model's equality engine.
-   */
-  EqEngineManagerDistributed& d_eem;
+  /** Initialize model equality engine */
+  void initializeModelEqEngine(eq::EqualityEngineNotify* notify) override;
 };
 
 }  // namespace theory

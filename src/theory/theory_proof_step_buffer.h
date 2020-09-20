@@ -76,13 +76,14 @@ class TheoryProofStepBuffer : public ProofStepBuffer
 
   //---------------------------- utility methods for normalizing clauses
   /**
-   * Normalizes a clause (an OR node) according to factoring and reordering,
-   * i.e. removes duplicates and reorders literals (according to node
-   * ids). Moreover it eliminates double negations, which can be done also for
-   * unit clauses. All normalization steps are tracked via proof steps added to
-   * this proof step buffer.
+   * Normalizes a non-unit clause (an OR node) according to factoring and
+   * reordering, i.e. removes duplicates and reorders literals (according to
+   * node ids). Moreover it eliminates double negations, which can be done also
+   * for unit clauses (a arbitrary Boolean node). All normalization steps are
+   * tracked via proof steps added to this proof step buffer.
    *
    * @param n the clause to be normalized
+   * @return the normalized clause node
    */
   Node factorReorderElimDoubleNeg(Node n);
 
@@ -92,6 +93,7 @@ class TheoryProofStepBuffer : public ProofStepBuffer
    * If the elimination happens, a step is added to this proof step buffer.
    *
    * @param n the node to have the top-level double negation eliminated
+   * @return the normalized clause node
    */
   Node elimDoubleNegLit(Node n);
 };
