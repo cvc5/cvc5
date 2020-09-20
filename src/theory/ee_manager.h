@@ -30,6 +30,8 @@ class TheoryEngine;
 
 namespace theory {
 
+class SharedSolver;
+
 /**
  * This is (theory-agnostic) information associated with the management of
  * an equality engine for a single theory. This information is maintained
@@ -51,7 +53,7 @@ struct EeTheoryInfo
 class EqEngineManager
 {
  public:
-  EqEngineManager(TheoryEngine& te);
+  EqEngineManager(TheoryEngine& te, SharedSolver& shs);
   virtual ~EqEngineManager() {}
   /**
    * Initialize theories, called during TheoryEngine::finishInit after theory
@@ -60,6 +62,9 @@ class EqEngineManager
    *
    * This method is context-independent, and is applied once during
    * the lifetime of TheoryEngine (during finishInit).
+   *
+   * @param sharedSolver The shared solver that is being used in combination
+   * with this equality engine manager
    */
   virtual void initializeTheories() = 0;
   /**
@@ -81,6 +86,8 @@ class EqEngineManager
  protected:
   /** Reference to the theory engine */
   TheoryEngine& d_te;
+  /** Reference to the shared solver */
+  SharedSolver& d_sharedSolver;
   /** Information related to the equality engine, per theory. */
   std::map<TheoryId, EeTheoryInfo> d_einfo;
 };

@@ -15,13 +15,15 @@
 #include "theory/ee_manager_distributed.h"
 
 #include "theory/quantifiers_engine.h"
+#include "theory/shared_solver.h"
 #include "theory/theory_engine.h"
 
 namespace CVC4 {
 namespace theory {
 
-EqEngineManagerDistributed::EqEngineManagerDistributed(TheoryEngine& te)
-    : EqEngineManager(te), d_masterEENotify(nullptr)
+EqEngineManagerDistributed::EqEngineManagerDistributed(TheoryEngine& te,
+                                                       SharedSolver& shs)
+    : EqEngineManager(te, shs), d_masterEENotify(nullptr)
 {
 }
 
@@ -52,7 +54,6 @@ void EqEngineManagerDistributed::initializeTheories()
       // theory said it doesn't need an equality engine, skip
       continue;
     }
-    // allocate the equality engine
     eet.d_allocEe.reset(allocateEqualityEngine(esi, c));
     // the theory uses the equality engine
     eet.d_usedEe = eet.d_allocEe.get();
