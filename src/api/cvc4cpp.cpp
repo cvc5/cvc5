@@ -254,6 +254,20 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {COMPREHENSION, CVC4::Kind::COMPREHENSION},
     {CHOOSE, CVC4::Kind::CHOOSE},
     {IS_SINGLETON, CVC4::Kind::IS_SINGLETON},
+    /* Bags ---------------------------------------------------------------- */
+    {MAX_UNION, CVC4::Kind::MAX_UNION},
+    {DISJOINT_UNION, CVC4::Kind::DISJOINT_UNION},
+    {MIN_INTERSECTION, CVC4::Kind::MIN_INTERSECTION},
+    {DIFFERENCE_SUBTRACT, CVC4::Kind::DIFFERENCE_SUBTRACT},
+    {DIFFERENCE_REMOVE, CVC4::Kind::DIFFERENCE_REMOVE},
+    {BAG_IS_INCLUDED, CVC4::Kind::BAG_IS_INCLUDED},
+    {BAG_COUNT, CVC4::Kind::BAG_COUNT},
+    {BAG_PAIR, CVC4::Kind::BAG_PAIR},
+    {EMPTYBAG, CVC4::Kind::EMPTYBAG},
+    {BAG_INSERT, CVC4::Kind::BAG_INSERT},
+    {BAG_CARD, CVC4::Kind::BAG_CARD},
+    {BAG_CHOOSE, CVC4::Kind::BAG_CHOOSE},
+    {BAG_IS_SINGLETON, CVC4::Kind::BAG_IS_SINGLETON},
     /* Strings ------------------------------------------------------------- */
     {STRING_CONCAT, CVC4::Kind::STRING_CONCAT},
     {STRING_IN_REGEXP, CVC4::Kind::STRING_IN_REGEXP},
@@ -544,6 +558,20 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::COMPREHENSION, COMPREHENSION},
         {CVC4::Kind::CHOOSE, CHOOSE},
         {CVC4::Kind::IS_SINGLETON, IS_SINGLETON},
+        /* Bags ------------------------------------------------------------ */
+        {CVC4::Kind::MAX_UNION, MAX_UNION},
+        {CVC4::Kind::DISJOINT_UNION, DISJOINT_UNION},
+        {CVC4::Kind::MIN_INTERSECTION, MIN_INTERSECTION},
+        {CVC4::Kind::DIFFERENCE_SUBTRACT, DIFFERENCE_SUBTRACT},
+        {CVC4::Kind::DIFFERENCE_REMOVE, DIFFERENCE_REMOVE},
+        {CVC4::Kind::BAG_IS_INCLUDED, BAG_IS_INCLUDED},
+        {CVC4::Kind::BAG_COUNT, BAG_COUNT},
+        {CVC4::Kind::BAG_PAIR, BAG_PAIR},
+        {CVC4::Kind::EMPTYBAG, EMPTYBAG},
+        {CVC4::Kind::BAG_INSERT, BAG_INSERT},
+        {CVC4::Kind::BAG_CARD, BAG_CARD},
+        {CVC4::Kind::BAG_CHOOSE, BAG_CHOOSE},
+        {CVC4::Kind::BAG_IS_SINGLETON, BAG_IS_SINGLETON},
         /* Strings --------------------------------------------------------- */
         {CVC4::Kind::STRING_CONCAT, STRING_CONCAT},
         {CVC4::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},
@@ -950,6 +978,8 @@ bool Sort::isRecord() const { return d_type->isRecord(); }
 bool Sort::isArray() const { return d_type->isArray(); }
 
 bool Sort::isSet() const { return d_type->isSet(); }
+
+bool Sort::isBag() const { return d_type->isBag(); }
 
 bool Sort::isSequence() const { return d_type->isSequence(); }
 
@@ -3495,6 +3525,17 @@ Sort Solver::mkSetSort(Sort elemSort) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
+Sort Solver::mkBagSort(Sort elemSort) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+    CVC4_API_ARG_CHECK_EXPECTED(!elemSort.isNull(), elemSort)
+    << "non-null element sort";
+
+    return Sort(this, d_exprMgr->mkBagType(*elemSort.d_type));
+
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
 Sort Solver::mkSequenceSort(Sort elemSort) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
@@ -3641,6 +3682,18 @@ Term Solver::mkEmptySet(Sort s) const
 
   return mkValHelper<CVC4::EmptySet>(
       CVC4::EmptySet(TypeNode::fromType(*s.d_type)));
+
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+Term Solver::mkEmptyBag(Sort s) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_ARG_CHECK_EXPECTED(s.isNull() || s.isBag(), s)
+      << "null sort or bag sort";
+
+  return mkValHelper<CVC4::EmptyBag>(
+      CVC4::EmptyBag(TypeNode::fromType(*s.d_type)));
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }

@@ -349,6 +349,9 @@ class CVC4_PUBLIC ExprManager {
   /** Make the type of set with the given parameterization. */
   SetType mkSetType(Type elementType) const;
 
+  /** Make the type of bag with the given parameterization. */
+  BagType mkBagType(Type elementType) const;
+
   /** Make the type of sequence with the given parameterization. */
   SequenceType mkSequenceType(Type elementType) const;
 

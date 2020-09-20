@@ -561,6 +561,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       || logic.isTheoryEnabled(THEORY_ARRAYS)
       || logic.isTheoryEnabled(THEORY_DATATYPES)
       || logic.isTheoryEnabled(THEORY_SETS)
+      || logic.isTheoryEnabled(THEORY_BAGS)
       // Non-linear arithmetic requires UF to deal with division/mod because
       // their expansion introduces UFs for the division/mod-by-zero case.
       // If we are eliminating non-linear arithmetic via solve-int-as-bv,
@@ -594,7 +595,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     if (logic.isSharingEnabled() && !logic.isTheoryEnabled(THEORY_BV)
         && !logic.isTheoryEnabled(THEORY_STRINGS)
-        && !logic.isTheoryEnabled(THEORY_SETS))
+        && !logic.isTheoryEnabled(THEORY_SETS)
+        && !logic.isTheoryEnabled(THEORY_BAGS))
     {
       Trace("smt") << "setting theoryof-mode to term-based" << std::endl;
       options::theoryOfMode.set(options::TheoryOfMode::THEORY_OF_TERM_BASED);
@@ -1274,7 +1276,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // introduces new literals into the search. This includes quantifiers
     // (quantifier instantiation), and the lemma schemas used in non-linear
     // and sets. We also can't use it if models are enabled.
-    if (logic.isTheoryEnabled(THEORY_SETS) || logic.isQuantified()
+    if (logic.isTheoryEnabled(THEORY_SETS)
+        || logic.isTheoryEnabled(THEORY_BAGS)
+        || logic.isQuantified()
         || options::produceModels() || options::produceAssignments()
         || options::checkModels()
         || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()))

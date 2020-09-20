@@ -691,6 +691,22 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::TCLOSURE, "tclosure");
   }
 
+  if (d_logic.isTheoryEnabled(theory::THEORY_BAGS))
+  {
+    defineVar("emptybag", d_solver->mkEmptyBag(d_solver->getNullSort()));
+    addOperator(api::MAX_UNION, "max-union");
+    addOperator(api::DISJOINT_UNION, "disjoint-union");
+    addOperator(api::MIN_INTERSECTION, "min-intersection");
+    addOperator(api::DIFFERENCE_SUBTRACT, "difference-subtract");
+    addOperator(api::DIFFERENCE_REMOVE, "difference-remove");
+    addOperator(api::BAG_IS_INCLUDED, "is-included");
+    addOperator(api::BAG_COUNT, "bag-count");
+    addOperator(api::BAG_PAIR, "bag-pair");
+    addOperator(api::BAG_INSERT, "bag-insert");
+    addOperator(api::BAG_CARD, "bag-card");
+    addOperator(api::BAG_CHOOSE, "bag-choose");
+    addOperator(api::BAG_IS_SINGLETON, "bag-is-singleton");
+  }
   if(d_logic.isTheoryEnabled(theory::THEORY_STRINGS)) {
     defineType("String", d_solver->getStringSort());
     defineType("RegLan", d_solver->getRegExpSort());
@@ -821,7 +837,8 @@ void Smt2::checkLogicAllowsFreeSorts()
   if (!d_logic.isTheoryEnabled(theory::THEORY_UF)
       && !d_logic.isTheoryEnabled(theory::THEORY_ARRAYS)
       && !d_logic.isTheoryEnabled(theory::THEORY_DATATYPES)
-      && !d_logic.isTheoryEnabled(theory::THEORY_SETS))
+      && !d_logic.isTheoryEnabled(theory::THEORY_SETS)
+      && !d_logic.isTheoryEnabled(theory::THEORY_BAGS))
   {
     parseErrorLogic("Free sort symbols not allowed in ");
   }

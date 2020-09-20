@@ -352,6 +352,13 @@ bool Type::isSet() const {
   return d_typeNode->isSet();
 }
 
+/** Is this a Bag type? */
+bool Type::isBag() const
+{
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isBag();
+}
+
 bool Type::isSequence() const
 {
   NodeManagerScope nms(d_nodeManager);
@@ -521,6 +528,11 @@ SetType::SetType(const Type& t) : Type(t)
   PrettyCheckArgument(isNull() || isSet(), this);
 }
 
+BagType::BagType(const Type& t) : Type(t)
+{
+  PrettyCheckArgument(isNull() || isBag(), this);
+}
+
 SequenceType::SequenceType(const Type& t) : Type(t)
 {
   PrettyCheckArgument(isNull() || isSequence(), this);
@@ -558,6 +570,11 @@ Type ArrayType::getConstituentType() const {
 
 Type SetType::getElementType() const {
   return makeType(d_typeNode->getSetElementType());
+}
+
+Type BagType::getElementType() const
+{
+  return makeType(d_typeNode->getBagElementType());
 }
 
 Type SequenceType::getElementType() const

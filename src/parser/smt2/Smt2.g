@@ -2086,6 +2086,12 @@ sortSymbol[CVC4::api::Sort& t, CVC4::parser::DeclarationCheck check]
             PARSER_STATE->parseError("Illegal set type.");
           }
           t = SOLVER->mkSetSort( args[0] );
+        } else if(name == "Bag" &&
+                          PARSER_STATE->isTheoryEnabled(theory::THEORY_BAGS) ) {
+          if(args.size() != 1) {
+            PARSER_STATE->parseError("Illegal bag type.");
+          }
+          t = SOLVER->mkBagSort( args[0] );
         } else if(name == "Seq" && !PARSER_STATE->strictModeEnabled() &&
                   PARSER_STATE->isTheoryEnabled(theory::THEORY_STRINGS) ) {
           if(args.size() != 1) {

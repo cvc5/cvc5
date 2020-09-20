@@ -338,6 +338,11 @@ std::string LogicInfo::getLogicString() const {
         ss << "FS";
         ++seen;
       }
+      if (d_theories[THEORY_BAGS])
+      {
+        ss << "FB";
+        ++seen;
+      }
       if(seen != d_sharingTheories) {
         Unhandled()
             << "can't extract a logic string from LogicInfo; at least one "

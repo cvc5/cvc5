@@ -43,6 +43,7 @@ std::ostream& operator<<(std::ostream& out, TheoryId theoryId)
     case THEORY_SAT_SOLVER: out << "THEORY_SAT_SOLVER"; break;
     case THEORY_SEP: out << "THEORY_SEP"; break;
     case THEORY_SETS: out << "THEORY_SETS"; break;
+    case THEORY_BAGS: out << "THEORY_BAGS"; break;
     case THEORY_STRINGS: out << "THEORY_STRINGS"; break;
     case THEORY_QUANTIFIERS: out << "THEORY_QUANTIFIERS"; break;
 
@@ -65,6 +66,7 @@ std::string getStatsPrefix(TheoryId theoryId)
     case THEORY_DATATYPES: return "theory::datatypes"; break;
     case THEORY_SEP: return "theory::sep"; break;
     case THEORY_SETS: return "theory::sets"; break;
+    case THEORY_BAGS: return "theory::bags"; break;
     case THEORY_STRINGS: return "theory::strings"; break;
     case THEORY_QUANTIFIERS: return "theory::quantifiers"; break;
 

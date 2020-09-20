@@ -374,6 +374,12 @@ protected:
   bool isSet() const;
 
   /**
+   * Is this a Bag type?
+   * @return true if the type is a Bag type
+   */
+  bool isBag() const;
+
+  /**
    * Is this a Sequence type?
    * @return true if the type is a Sequence type
    */
@@ -530,6 +536,17 @@ class CVC4_PUBLIC SetType : public Type {
   /** Get the element type */
   Type getElementType() const;
 }; /* class SetType */
+
+/** Class encapsulating a bag type. */
+class CVC4_PUBLIC BagType : public Type
+{
+ public:
+  /** Construct from the base type */
+  BagType(const Type& type = Type());
+
+  /** Get the element type */
+  Type getElementType() const;
+}; /* class BagType */
 
 /** Class encapsulating a sequence type. */
 class CVC4_PUBLIC SequenceType : public Type

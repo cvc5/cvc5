@@ -561,6 +561,10 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
   {
     t = d_solver->mkEmptySet(s);
   }
+  else if (k == api::EMPTYBAG)
+  {
+    t = d_solver->mkEmptyBag(s);
+  }
   else if (k == api::CONST_SEQUENCE)
   {
     if (!s.isSequence())
