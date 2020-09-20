@@ -21,9 +21,12 @@
 namespace CVC4 {
 namespace theory {
 
-ModelManager::ModelManager(TheoryEngine& te)
+ModelManager::ModelManager(TheoryEngine& te, EqEngineManager& eem)
     : d_te(te),
       d_logicInfo(te.getLogicInfo()),
+      d_eem(eem),
+      d_modelEqualityEngine(nullptr),
+      d_modelEqualityEngineAlloc(nullptr),
       d_model(nullptr),
       d_modelBuilder(nullptr),
       d_modelBuilt(false),
@@ -33,7 +36,7 @@ ModelManager::ModelManager(TheoryEngine& te)
 
 ModelManager::~ModelManager() {}
 
-void ModelManager::finishInit()
+void ModelManager::finishInit(eq::EqualityEngineNotify* notify)
 {
   // construct the model
   const LogicInfo& logicInfo = d_te.getLogicInfo();
@@ -61,6 +64,7 @@ void ModelManager::finishInit()
     d_modelBuilder = d_alocModelBuilder.get();
   }
   // notice that the equality engine of the model has yet to be assigned.
+  initializeModelEqEngine(notify);
 }
 
 void ModelManager::resetModel()
@@ -209,7 +213,6 @@ void ModelManager::collectTerms(TheoryId tid,
     // only add to term set if a relevant kind
     if (irrKinds.find(k) == irrKinds.end())
     {
-      Assert(Theory::theoryOf(cur) == tid);
       termSet.insert(cur);
     }
     // traverse owned terms, don't go under quantifiers
