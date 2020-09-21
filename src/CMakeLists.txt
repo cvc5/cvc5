@@ -366,6 +366,8 @@ libcvc4_add_sources(
   theory/arith/type_enumerator.h
   theory/arrays/array_info.cpp
   theory/arrays/array_info.h
+  theory/arrays/inference_manager.cpp
+  theory/arrays/inference_manager.h
   theory/arrays/proof_checker.cpp
   theory/arrays/proof_checker.h
   theory/arrays/skolem_cache.cpp
