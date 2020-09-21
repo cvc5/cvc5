@@ -27,8 +27,8 @@ struct BinaryOperatorTypeRule
 {
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    Assert(n.getKind() == kind::MAX_UNION || n.getKind() == kind::DISJOINT_UNION
-           || n.getKind() == kind::MIN_INTERSECTION
+    Assert(n.getKind() == kind::UNION_MAX || n.getKind() == kind::UNION_DISJOINT
+           || n.getKind() == kind::INTERSECTION_MIN
            || n.getKind() == kind::DIFFERENCE_SUBTRACT
            || n.getKind() == kind::DIFFERENCE_REMOVE);
     TypeNode bagType = n[0].getType(check);
@@ -42,7 +42,7 @@ struct BinaryOperatorTypeRule
       TypeNode secondBagType = n[1].getType(check);
       if (secondBagType != bagType)
       {
-        if (n.getKind() == kind::MIN_INTERSECTION)
+        if (n.getKind() == kind::INTERSECTION_MIN)
         {
           bagType = TypeNode::mostCommonTypeNode(secondBagType, bagType);
         }
@@ -62,9 +62,9 @@ struct BinaryOperatorTypeRule
 
   static bool computeIsConst(NodeManager* nodeManager, TNode n)
   {
-    // only DISJOINT_UNION has a const rule in kinds.
+    // only UNION_DISJOINT has a const rule in kinds.
     // Other binary operators do not have const rules in kinds
-    Assert(n.getKind() == kind::DISJOINT_UNION);
+    Assert(n.getKind() == kind::UNION_DISJOINT);
     return NormalForm::checkNormalConstant(n);
   }
 }; /* struct BinaryOperatorTypeRule */
@@ -132,36 +132,26 @@ struct CountTypeRule
   }
 }; /* struct CountTypeRule */
 
-struct BagPairTypeRule
+struct MkBagTypeRule
 {
   static TypeNode computeType(NodeManager* nm, TNode n, bool check)
   {
-    Assert(n.getKind() == kind::BAG_PAIR);
+    Assert(n.getKind() == kind::MK_BAG);
     if (check)
     {
       if (n.getNumChildren() != 2)
       {
         std::stringstream ss;
         ss << "operands in term " << n << " are " << n.getNumChildren()
-           << ", but BAG_PAIR expects 2 operands.";
+           << ", but MK_BAG expects 2 operands.";
         throw TypeCheckingExceptionPrivate(n, ss.str());
       }
       TypeNode type1 = n[1].getType(check);
       if (!type1.isInteger())
       {
         std::stringstream ss;
-        ss << "BAG_PAIR expects an integer for " << n[1] << ". Found" << type1;
+        ss << "MK_BAG expects an integer for " << n[1] << ". Found" << type1;
         throw TypeCheckingExceptionPrivate(n, ss.str());
-      }
-      if (n[1].isConst())
-      {
-        Rational count = n[1].getConst<Rational>();
-        if (count <= Rational::fromDecimal("0"))
-        {
-          std::stringstream ss;
-          ss << "BAG_PAIR expects a positive integer. Found " << n[1];
-          throw TypeCheckingExceptionPrivate(n, ss.str());
-        }
       }
     }
 
@@ -170,12 +160,12 @@ struct BagPairTypeRule
 
   static bool computeIsConst(NodeManager* nodeManager, TNode n)
   {
-    Assert(n.getKind() == kind::BAG_PAIR);
+    Assert(n.getKind() == kind::MK_BAG);
     // for a bag to be a constant, both the element and its multiplicity should
     // be constants.
     return n[0].isConst() && n[1].isConst();
   }
-}; /* struct BagPairTypeRule */
+}; /* struct MkBagTypeRule */
 
 struct IsSingletonTypeRule
 {
@@ -193,7 +183,7 @@ struct IsSingletonTypeRule
     }
     return nodeManager->booleanType();
   }
-}; /* struct IsBagPairTypeRule */
+}; /* struct IsMkBagTypeRule */
 
 struct EmptyBagTypeRule
 {
@@ -251,7 +241,7 @@ struct InsertTypeRule
     TypeNode bagType = n[numChildren - 1].getType(check);
     if (check)
     {
-      // e.g. (BAG_INSERT "E" 2 "D" 4 "C" 6 "B" 8 (BAG_PAIR "A" 100))
+      // e.g. (BAG_INSERT "E" 2 "D" 4 "C" 6 "B" 8 (MK_BAG "A" 100))
       if (!bagType.isBag())
       {
         throw TypeCheckingExceptionPrivate(n, "inserting into a non-bag");
@@ -280,19 +270,9 @@ struct InsertTypeRule
         if (!countType.isInteger())
         {
           std::stringstream ss;
-          ss << "BAG_PAIR expects an integer for " << n[i + 1] << " in " << n
+          ss << "MK_BAG expects an integer for " << n[i + 1] << " in " << n
              << ". Found " << countType << "." << std::endl;
           throw TypeCheckingExceptionPrivate(n, ss.str());
-        }
-        if (n[i + 1].isConst())
-        {
-          Rational count = n[i + 1].getConst<Rational>();
-          if (count <= Rational::fromDecimal("0"))
-          {
-            std::stringstream ss;
-            ss << "BAG_INSERT expects a positive integer. Found " << n[i + 1];
-            throw TypeCheckingExceptionPrivate(n, ss.str());
-          }
         }
       }
     }

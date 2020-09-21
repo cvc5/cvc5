@@ -694,14 +694,14 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   if (d_logic.isTheoryEnabled(theory::THEORY_BAGS))
   {
     defineVar("emptybag", d_solver->mkEmptyBag(d_solver->getNullSort()));
-    addOperator(api::MAX_UNION, "max-union");
-    addOperator(api::DISJOINT_UNION, "disjoint-union");
-    addOperator(api::MIN_INTERSECTION, "min-intersection");
-    addOperator(api::DIFFERENCE_SUBTRACT, "difference-subtract");
-    addOperator(api::DIFFERENCE_REMOVE, "difference-remove");
+    addOperator(api::UNION_MAX, "union-max");
+    addOperator(api::UNION_DISJOINT, "union-disjoint");
+    addOperator(api::INTERSECTION_MIN, "intersection-min");
+    addOperator(api::DIFFERENCE_SUBTRACT, "subtract-difference");
+    addOperator(api::DIFFERENCE_REMOVE, "remove-difference");
     addOperator(api::BAG_IS_INCLUDED, "is-included");
     addOperator(api::BAG_COUNT, "bag-count");
-    addOperator(api::BAG_PAIR, "bag-pair");
+    addOperator(api::MK_BAG, "mk-bag");
     addOperator(api::BAG_INSERT, "bag-insert");
     addOperator(api::BAG_CARD, "bag-card");
     addOperator(api::BAG_CHOOSE, "bag-choose");

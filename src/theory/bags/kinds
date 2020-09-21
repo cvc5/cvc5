@@ -35,9 +35,9 @@ enumerator BAG_TYPE \
     "theory/bags/theory_bags_type_enumerator.h"
 
 # operators
-operator MAX_UNION         2  "union for bags (max)"
-operator DISJOINT_UNION    2  "disjoint union for bags (sum)"
-operator MIN_INTERSECTION  2  "bag intersection (min)"
+operator UNION_MAX         2  "union for bags (max)"
+operator UNION_DISJOINT    2  "disjoint union for bags (sum)"
+operator INTERSECTION_MIN  2  "bag intersection (min)"
 
 # {("a", 2), ("b", 3)} \ {("a", 1)} = {("a", 1), ("b", 3)}
 operator DIFFERENCE_SUBTRACT    2  "bag difference1 (subtracts multiplicities)"
@@ -47,13 +47,13 @@ operator DIFFERENCE_REMOVE 2  "bag difference2 (removes shared elements)"
 
 operator BAG_IS_INCLUDED   2  "inclusion predicate for bags (less than or equal multiplicities)"
 operator BAG_COUNT         2  "multiplicity of an element in a bag"
-operator BAG_PAIR          2  "constructs a bag from one element along with its multiplicity"
+operator MK_BAG            2  "constructs a bag from one element along with its multiplicity"
 
 # The operator bag-is-singleton returns whether the given bag is a singleton
 operator BAG_IS_SINGLETON  1  "return whether the given bag is a singleton"
 
 # The bag obtained by inserting elements and their multiplicities.
-# Example: (BAG_INSERT "E" 2 "D" 4 "C" 6 "B" 8 (BAG_PAIR "A" 100))
+# Example: (BAG_INSERT "E" 2 "D" 4 "C" 6 "B" 8 (MK_BAG "A" 100))
 # Parameters: n >= 3 && odd(n)
 #   -[1], [3], [5]..[n-2]: Elements inserted into bag [n]
 #   -[2], [4], [6]..[n-1]: Multiplicities of above elements respectively
@@ -67,21 +67,21 @@ operator BAG_CARD          1  "bag cardinality operator"
 # If the bag has cardinality > 1, then (choose A) will deterministically return an element in A.
 operator BAG_CHOOSE        1  "return an element in the bag given as a parameter"
 
-typerule MAX_UNION           ::CVC4::theory::bags::BinaryOperatorTypeRule
-typerule DISJOINT_UNION      ::CVC4::theory::bags::BinaryOperatorTypeRule
-typerule MIN_INTERSECTION    ::CVC4::theory::bags::BinaryOperatorTypeRule
+typerule UNION_MAX           ::CVC4::theory::bags::BinaryOperatorTypeRule
+typerule UNION_DISJOINT      ::CVC4::theory::bags::BinaryOperatorTypeRule
+typerule INTERSECTION_MIN    ::CVC4::theory::bags::BinaryOperatorTypeRule
 typerule DIFFERENCE_SUBTRACT ::CVC4::theory::bags::BinaryOperatorTypeRule
 typerule DIFFERENCE_REMOVE   ::CVC4::theory::bags::BinaryOperatorTypeRule
 typerule BAG_IS_INCLUDED     ::CVC4::theory::bags::IsIncludedTypeRule
 typerule BAG_COUNT           ::CVC4::theory::bags::CountTypeRule
-typerule BAG_PAIR            ::CVC4::theory::bags::BagPairTypeRule
+typerule MK_BAG              ::CVC4::theory::bags::MkBagTypeRule
 typerule EMPTYBAG            ::CVC4::theory::bags::EmptyBagTypeRule
 typerule BAG_INSERT          ::CVC4::theory::bags::InsertTypeRule
 typerule BAG_CARD            ::CVC4::theory::bags::CardTypeRule
 typerule BAG_CHOOSE          ::CVC4::theory::bags::ChooseTypeRule
 typerule BAG_IS_SINGLETON    ::CVC4::theory::bags::IsSingletonTypeRule
 
-construle DISJOINT_UNION     ::CVC4::theory::bags::BinaryOperatorTypeRule
-construle BAG_PAIR           ::CVC4::theory::bags::BagPairTypeRule
+construle UNION_DISJOINT     ::CVC4::theory::bags::BinaryOperatorTypeRule
+construle MK_BAG             ::CVC4::theory::bags::MkBagTypeRule
 
 endtheory

@@ -62,22 +62,11 @@ class SetEnumeratorWhite : public CxxTest::TestSuite
     return elements;
   }
 
-  void testInvalidMultiplicities()
-  {
-    vector<Node> elements = getNStrings(1);
-
-    // -1 multiplicity must throw an exception
-    TS_ASSERT_THROWS(
-        d_nm->mkNode(BAG_PAIR, elements[0], d_nm->mkConst(Rational(-1))),
-        TypeCheckingExceptionPrivate&);
-  }
-
   void testInsertOperator()
   {
     vector<Node> elements = getNStrings(5);
     vector<Node> pairs;
-    Node node =
-        d_nm->mkNode(BAG_PAIR, elements[0], d_nm->mkConst(Rational(100)));
+    Node node = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(100)));
     for (int i = 1; i < elements.size(); i++)
     {
       pairs.push_back(elements[i]);
@@ -85,10 +74,11 @@ class SetEnumeratorWhite : public CxxTest::TestSuite
     }
     pairs.push_back(node);
 
-    // (BAG_INSERT "B" 2 "C" 4 "D" 6 "E" 8 (BAG_PAIR "A" 100))
+    // (BAG_INSERT "B" 2 "C" 4 "D" 6 "E" 8 (MK_BAG "A" 100))
     Node insert = d_nm->mkNode(BAG_INSERT, pairs);
 
-    // (BAG_INSERT "B" 2 "C" 4 "D" 6 "E" "E" (BAG_PAIR "A" 100))
+    // wrong type for the second "E" in
+    // (BAG_INSERT "B" 2 "C" 4 "D" 6 "E" "E" (MK_BAG "A" 100))
     pairs[pairs.size() - 2] = pairs[pairs.size() - 3];
     TS_ASSERT_THROWS(d_nm->mkNode(BAG_INSERT, pairs),
                      TypeCheckingExceptionPrivate&);
@@ -97,11 +87,12 @@ class SetEnumeratorWhite : public CxxTest::TestSuite
   void testCountOperator()
   {
     vector<Node> elements = getNStrings(1);
-    Node bag =
-        d_nm->mkNode(BAG_PAIR, elements[0], d_nm->mkConst(Rational(100)));
+    Node bag = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(100)));
 
     Node count = d_nm->mkNode(BAG_COUNT, elements[0], bag);
     Node node = d_nm->mkConst(Rational(10));
+
+    // node of type Int is not compatible with bag of type (Bag String)
     TS_ASSERT_THROWS(d_nm->mkNode(BAG_COUNT, node, bag),
                      TypeCheckingExceptionPrivate&);
   }

@@ -1981,7 +1981,7 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
-  MAX_UNION,
+  UNION_MAX,
   /**
    * Bag disjoint union (sum).
    * Parameters: 2
@@ -1990,7 +1990,7 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
-  DISJOINT_UNION,
+  UNION_DISJOINT,
   /**
    * Bag intersection (min).
    * Parameters: 2
@@ -1999,7 +1999,7 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
-  MIN_INTERSECTION,
+  INTERSECTION_MIN,
   /**
    * Bag difference subtract (subtracts multiplicities of the second from the
    * first).
@@ -2044,10 +2044,10 @@ enum CVC4_PUBLIC Kind : int32_t
    * Create with:
    *   mkTerm(Kind kind, Term child)
    */
-  BAG_PAIR,
+  MK_BAG,
   /**
    * The bag obtained by inserting elements and their multiplicities.
-   * Example: (BAG_INSERT "E" 2 "D" 4 "C" 6 "B" 8 (BAG_PAIR "A" 100))
+   * Example: (BAG_INSERT "E" 2 "D" 4 "C" 6 "B" 8 (MK_BAG "A" 100))
    * Parameters: n >= 3 && odd(n)
    *   -[1], [3], [5]..[n-2]: Elements inserted into bag [n]
    *   -[2], [4], [6]..[n-1]: Multiplicities of above elements respectively
