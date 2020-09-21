@@ -26,16 +26,6 @@ namespace CVC4 {
 namespace theory {
 namespace bags {
 
-/** Bags state
- *
- * The purpose of this class is to maintain information concerning the current
- * set of assertions during a full effort check.
- *
- * During a full effort check, the solver for theory of bags should call:
- *   reset; ( registerEqc | registerTerm )*
- * to initialize the information in this class regarding full effort checks.
- * Other query calls are then valid for the remainder of the full effort check.
- */
 class SolverState : public TheoryState
 {
  public:
