@@ -3525,6 +3525,20 @@ Sort Solver::mkSetSort(Sort elemSort) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
+Sort Solver::mkBagSort(Sort elemSort) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_ARG_CHECK_EXPECTED(!elemSort.isNull(), elemSort)
+      << "non-null element sort";
+  CVC4_API_SOLVER_CHECK_SORT(elemSort);
+
+  TypeNode typeNode = TypeNode::fromType(*elemSort.d_type);
+  Type type = getNodeManager()->mkBagType(typeNode).toType();
+  return Sort(this, type);
+
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
 Sort Solver::mkSequenceSort(Sort elemSort) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
