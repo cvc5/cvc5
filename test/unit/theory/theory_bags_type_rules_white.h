@@ -29,7 +29,7 @@ using namespace std;
 
 typedef expr::Attribute<Node, Node> attribute;
 
-class SetEnumeratorWhite : public CxxTest::TestSuite
+class BagsTypeRuleWhite : public CxxTest::TestSuite
 {
  public:
   void setUp() override
@@ -102,4 +102,4 @@ class SetEnumeratorWhite : public CxxTest::TestSuite
   SmtEngine* d_smt;
   NodeManager* d_nm;
   SmtScope* d_scope;
-}; /* class SetEnumeratorWhite */
+}; /* class BagsTypeRuleWhite */
