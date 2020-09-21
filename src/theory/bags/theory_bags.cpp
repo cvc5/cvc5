@@ -16,10 +16,6 @@
 
 #include "theory/bags/theory_bags.h"
 
-#include "options/sets_options.h"
-#include "theory/bags/theory_bags_rewriter.h"
-#include "theory/theory_model.h"
-
 using namespace CVC4::kind;
 
 namespace CVC4 {

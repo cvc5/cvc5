@@ -14,8 +14,6 @@
 
 #include "theory/bags/term_registry.h"
 
-#include "expr/emptybag.h"
-
 using namespace std;
 using namespace CVC4::kind;
 

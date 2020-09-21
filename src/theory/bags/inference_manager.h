@@ -24,8 +24,6 @@ namespace CVC4 {
 namespace theory {
 namespace bags {
 
-class TheoryBagsPrivate;
-
 /** Inference manager
  *
  * This class manages inferences produced by the theory of bags. It manages

@@ -14,10 +14,6 @@
 
 #include "theory/bags/solver_state.h"
 
-#include "expr/emptybag.h"
-#include "options/sets_options.h"
-#include "smt/logic_exception.h"
-
 using namespace std;
 using namespace CVC4::kind;
 

@@ -21,13 +21,10 @@
 #include <vector>
 
 #include "theory/theory_state.h"
-#include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bags {
-
-class TheoryBagsPrivate;
 
 /** Bags state
  *
