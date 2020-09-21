@@ -2,7 +2,7 @@
 /*! \file theory_bags.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Kshitij Bansal, Andrew Reynolds
+ **   Mudathir Mohamed, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -10,8 +10,6 @@
  ** directory for licensing information.\endverbatim
  **
  ** \brief Bags theory.
- **
- ** Bags theory.
  **/
 
 #include "cvc4_private.h"

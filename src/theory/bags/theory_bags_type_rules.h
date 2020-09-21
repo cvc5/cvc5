@@ -2,7 +2,7 @@
 /*! \file theory_bags_type_rules.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Andrew Reynolds, Paul Meng
+ **   Mudathir Mohamed, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -10,8 +10,6 @@
  ** directory for licensing information.\endverbatim
  **
  ** \brief Bags theory type rules.
- **
- ** Bags theory type rules.
  **/
 
 #include "cvc4_private.h"
