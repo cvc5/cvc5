@@ -910,15 +910,21 @@ PreprocessingPassResult BVToInt::applyInternal(
 {
   for (uint64_t i = 0; i < assertionsToPreprocess->size(); ++i)
   {
+    // original assertion
     Node bvNode = (*assertionsToPreprocess)[i];
+    // translated assertion
     Node intNode = bvToInt(bvNode);
+    // apply top level substitutions
     Node tlsNode = d_top_level_substs.apply(intNode);
+    // rewrite
     Node rwNode = Rewriter::rewrite(tlsNode);
 
     Trace("bv-to-int-debug") << "bv node: " << bvNode << std::endl;
     Trace("bv-to-int-debug") << "int node: " << intNode << std::endl;
     Trace("bv-to-int-debug") << "tls node: " << tlsNode << std::endl;
     Trace("bv-to-int-debug") << "rw node: " << rwNode << std::endl;
+
+    // add to the assertions list
     assertionsToPreprocess->replace(i, rwNode);
   }
   addFinalizeRangeAssertions(assertionsToPreprocess);
@@ -928,6 +934,8 @@ PreprocessingPassResult BVToInt::applyInternal(
 void BVToInt::addFinalizeRangeAssertions(
     AssertionPipeline* assertionsToPreprocess)
 {
+  // compute range assertions: either an empty formula, a single formula, or a
+  // conjunction.
   vector<Node> vec_range;
   vec_range.assign(d_rangeAssertions.key_begin(), d_rangeAssertions.key_end());
   if (vec_range.size() == 0)
@@ -943,6 +951,8 @@ void BVToInt::addFinalizeRangeAssertions(
   {
     node = d_nm->mkNode(kind::AND, vec_range);
   }
+  // apply top level substitutions and rewriting before adding
+  // the new constraints to the assertions list.
   node = d_top_level_substs.apply(node);
   node = Rewriter::rewrite(node);
   Trace("bv-to-int-debug") << "range constraints: " << node.toString()
