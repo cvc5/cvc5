@@ -17,6 +17,7 @@
 #include "theory/bags/theory_bags_type_enumerator.h"
 
 #include "expr/emptybag.h"
+#include "theory/rewriter.h"
 #include "theory_bags_type_enumerator.h"
 
 namespace CVC4 {

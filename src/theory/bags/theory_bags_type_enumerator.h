@@ -20,7 +20,6 @@
 #define CVC4__THEORY__BAGS__TYPE_ENUMERATOR_H
 
 #include "expr/type_node.h"
-#include "theory/rewriter.h"
 #include "theory/type_enumerator.h"
 
 namespace CVC4 {

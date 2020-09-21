@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file theory_sets_rewriter.cpp
+/*! \file theory_bags_rewriter.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Kshitij Bansal, Paul Meng
@@ -15,10 +15,6 @@
  **/
 
 #include "theory/bags/theory_bags_rewriter.h"
-
-#include "expr/attribute.h"
-#include "options/sets_options.h"
-#include "theory/bags/normal_form.h"
 
 using namespace CVC4::kind;
 
