@@ -1537,19 +1537,23 @@ cdef class Term:
             try:
                 res = int(updated_string_repr)
             except:
-                raise ValueError("Failed to convert {} to an int".format(string_repr))
+                raise ValueError("Failed to convert"
+                                 " {} to an int".format(string_repr))
         elif sort.isReal():
             updated_string_repr = string_repr
             try:
                 # expecting format (/ a b)
                 # note: a or b could be negated: (- a)
-                splits = [s.strip('()/') for s in updated_string_repr.strip('()/').replace('(- ', '(-').split()]
+                splits = [s.strip('()/')
+                          for s in updated_string_repr.strip('()/') \
+                          .replace('(- ', '(-').split()]
                 assert len(splits) == 2
                 num = int(splits[0])
                 den = int(splits[1])
                 res = Fraction(num, den)
             except:
-                raise ValueError("Failed to convert {} to a Fraction".format(string_repr))
+                raise ValueError("Failed to convert "
+                                 "{} to a Fraction".format(string_repr))
 
         elif sort.isBitVector():
             # expecting format #b<bits>
@@ -1558,7 +1562,8 @@ cdef class Term:
             try:
                 res = int(python_bin_repr, 2)
             except:
-                raise ValueError("Failed to convert bitvector {} to an int".format(string_repr))
+                raise ValueError("Failed to convert bitvector "
+                                 "{} to an int".format(string_repr))
         elif sort.isArray():
             keys = []
             values = []
@@ -1587,7 +1592,8 @@ cdef class Term:
                 res[k] = v
         else:
             raise ValueError("Cannot convert term {}"
-                             " of sort {} to Python object".format(string_repr, sort))
+                             " of sort {} to Python object".format(string_repr,
+                                                                   sort))
 
         assert res is not None
         return res
