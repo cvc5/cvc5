@@ -343,7 +343,10 @@ class BVToInt : public PreprocessingPass
    */
   NodeManager* d_nm;
 
-
+  /**
+   * top level substitutions map, to apply substitutions
+   * on introduced assertions.
+   */
   theory::SubstitutionMap& d_top_level_substs;
 
   /**
