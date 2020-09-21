@@ -19,12 +19,9 @@
 #ifndef CVC4__THEORY__BAGS__TYPE_ENUMERATOR_H
 #define CVC4__THEORY__BAGS__TYPE_ENUMERATOR_H
 
-#include "expr/kind.h"
 #include "expr/type_node.h"
-#include "theory/bags/normal_form.h"
 #include "theory/rewriter.h"
 #include "theory/type_enumerator.h"
-#include "theory_bags_type_enumerator.h"
 
 namespace CVC4 {
 namespace theory {
