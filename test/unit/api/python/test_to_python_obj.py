@@ -24,6 +24,12 @@ def testGetReal():
     half = solver.mkReal("1/2")
     assert half.toPythonObj() == Fraction(1, 2)
 
+    neg34 = solver.mkReal("-3/4")
+    assert neg34.toPythonObj() == Fraction(-3, 4)
+
+    neg1 = solver.mkReal("-1")
+    assert neg1.toPythonObj() == -1
+
 
 def testGetBV():
     solver = pycvc4.Solver()
@@ -48,7 +54,8 @@ def testGetArray():
     assert array_dict[1] == 2
     assert array_dict[2] == 3
     assert array_dict[4] == 5
-    assert array_dict['*'] == 0
+    # an index that wasn't stored at should give zero
+    assert array_dict[8] == 0
 
 
 def testGetSymbol():

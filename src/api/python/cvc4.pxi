@@ -1,3 +1,4 @@
+from collections import defaultdict
 from fractions import Fraction
 import sys
 
@@ -1514,8 +1515,8 @@ cdef class Term:
           Int     -- returns a Python int
           Real    -- returns a Python Fraction
           BV      -- returns a Python int (treats BV as unsigned)
-          Array   -- returns a Python dict
-                  -- the constant array base is the value for the string '*'
+          Array   -- returns a Python dict mapping indices to values
+                  -- the constant base is returned as the default value
         '''
 
         if not self.isConst():
@@ -1532,40 +1533,24 @@ cdef class Term:
                 assert string_repr == "false"
                 res = False
         elif sort.isInteger():
-            is_neg = False
-            updated_string_repr = string_repr
-            if string_repr[:1] == '(-':
-                is_neg = True
-                updated_string_repr = string_repr[2:-1]
+            updated_string_repr = string_repr.strip('()').replace(' ', '')
             try:
                 res = int(updated_string_repr)
             except:
                 raise ValueError("Failed to convert {} to an int".format(string_repr))
-
-            if is_neg:
-                res = -res
         elif sort.isReal():
-            is_neg = False
             updated_string_repr = string_repr
-            if string_repr[:1] == '(-':
-                is_neg = True
-                updated_string_repr = string_repr[2:-1]
-
             try:
                 # expecting format (/ a b)
-                splits = updated_string_repr.split()
-                assert len(splits) == 3
-                num = int(splits[1])
-                den = splits[2]
-                if den[-1] == ')':
-                    den = den[:-1]
-                den = int(den)
+                # note: a or b could be negated: (- a)
+                splits = [s.strip('()/') for s in updated_string_repr.strip('()/').replace('(- ', '(-').split()]
+                assert len(splits) == 2
+                num = int(splits[0])
+                den = int(splits[1])
                 res = Fraction(num, den)
             except:
                 raise ValueError("Failed to convert {} to a Fraction".format(string_repr))
 
-            if is_neg:
-                res = -res
         elif sort.isBitVector():
             # expecting format #b<bits>
             assert string_repr[:2] == "#b"
@@ -1575,20 +1560,31 @@ cdef class Term:
             except:
                 raise ValueError("Failed to convert bitvector {} to an int".format(string_repr))
         elif sort.isArray():
-            res = {}
+            keys = []
+            values = []
+            base_value = None
             to_visit = [self]
             # Array models are represented as a series of store operations
             # on a constant array
             while to_visit:
                 t = to_visit.pop()
                 if t.getKind() == kinds.Store:
-                    # map the index constant to the element constant
-                    res[t[1].toPythonObj()] = t[2].toPythonObj()
+                    # save the mappings
+                    keys.append(t[1].toPythonObj())
+                    values.append(t[2].toPythonObj())
                     to_visit.append(t[0])
                 else:
                     assert t.getKind() == kinds.ConstArray
-                    val = t.getConstArrayBase()
-                    res['*'] = val.toPythonObj()
+                    base_value = t.getConstArrayBase().toPythonObj()
+
+            assert len(keys) == len(values)
+            assert base_value is not None
+
+            # put everything in a dictionary with the constant
+            # base as the result for any index not included in the stores
+            res = defaultdict(lambda : base_value)
+            for k, v in zip(keys, values):
+                res[k] = v
         else:
             raise ValueError("Cannot convert term {}"
                              " of sort {} to Python object".format(string_repr, sort))
