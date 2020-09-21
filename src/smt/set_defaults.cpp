@@ -552,7 +552,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       log.enableIntegers();
       log.arithOnlyLinear();
     }
-    if (!logic.areIntegersUsed())
+    else if (!logic.areIntegersUsed())
     {
       Notice() << "Enabling integer arithmetic because strings are enabled"
                << std::endl;
