@@ -126,6 +126,12 @@ TheoryArrays::TheoryArrays(context::Context* c,
   d_ppEqualityEngine.addFunctionKind(kind::SELECT);
   d_ppEqualityEngine.addFunctionKind(kind::STORE);
 
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
+  if (pc != nullptr)
+  {
+    d_pchecker.registerTo(pc);
+  }
+
   // indicate we are using the default theory state object
   d_theoryState = &d_state;
 }
