@@ -43,15 +43,7 @@ bool DatatypesInference::mustCommunicateFact(Node n, Node exp)
   else if (n.getKind() == EQUAL)
   {
     TypeNode tn = n[0].getType();
-    if (!tn.isDatatype())
-    {
-      addLemma = true;
-    }
-    else
-    {
-      const DType& dt = tn.getDType();
-      addLemma = dt.involvesExternalType();
-    }
+    addLemma = !tn.isDatatype();
   }
   else if (n.getKind() == LEQ || n.getKind() == OR)
   {
