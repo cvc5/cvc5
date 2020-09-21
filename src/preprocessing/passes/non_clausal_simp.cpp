@@ -125,8 +125,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     // Simplify the literal we learned wrt previous substitutions
     Node learnedLiteral = learned_literals[i];
     Assert(Rewriter::rewrite(learnedLiteral) == learnedLiteral);
-    std::cout << "panda learnedLiteral: " << learnedLiteral << std::endl;
-    std::cout << "panda top_level_substs.apply(learnedLiteral): " << top_level_substs.apply(learnedLiteral) << std::endl;
     Assert(top_level_substs.apply(learnedLiteral) == learnedLiteral);
     Trace("non-clausal-simplify")
         << "Process learnedLiteral : " << learnedLiteral << std::endl;

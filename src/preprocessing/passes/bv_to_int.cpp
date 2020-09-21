@@ -334,14 +334,6 @@ Node BVToInt::bvToInt(Node n)
               translateWithChildren(current, translated_children);
         }
         d_bvToIntCache[current] = translation;
-        cout << "panda before condition: " << current << endl;
-        if (d_top_level_substs.hasSubstitution(current)) {
-          cout << "panda in condition!" << endl;
-          Node currentSubs = d_top_level_substs.apply(current);
-          Assert(d_bvToIntCache.find(currentSubs) != d_bvToIntCache.end());
-          Node translationSubs = d_bvToIntCache[currentSubs];
-          d_top_level_substs.addSubstitution(currentSubs, translationSubs);
-        }
         toVisit.pop_back();
       }
     }
@@ -942,20 +934,21 @@ void BVToInt::addFinalizeRangeAssertions(
   {
     return;
   }
+  Node node;
   if (vec_range.size() == 1)
   {
-    assertionsToPreprocess->push_back(vec_range[0]);
-    Trace("bv-to-int-debug")
-        << "range constraints: " << vec_range[0].toString() << std::endl;
+    node = vec_range[0];
   }
   else if (vec_range.size() >= 2)
   {
-    Node rangeAssertions =
-        Rewriter::rewrite(d_nm->mkNode(kind::AND, vec_range));
-    assertionsToPreprocess->push_back(rangeAssertions);
-    Trace("bv-to-int-debug")
-        << "range constraints: " << rangeAssertions.toString() << std::endl;
+    node = d_nm->mkNode(kind::AND, vec_range);
   }
+  node = d_top_level_substs.apply(node);
+  node = Rewriter::rewrite(node);
+  Trace("bv-to-int-debug") << "range constraints: " << node.toString()
+                           << std::endl;
+
+  assertionsToPreprocess->push_back(node);
 }
 
 Node BVToInt::createShiftNode(vector<Node> children,
