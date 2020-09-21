@@ -16,7 +16,6 @@
 
 #include "expr/dtype.h"
 #include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "theory/bags/theory_bags_type_rules.h"
 #include "theory/strings/type_enumerator.h"
 
@@ -34,18 +33,17 @@ class BagsTypeRuleWhite : public CxxTest::TestSuite
  public:
   void setUp() override
   {
-    d_em = new ExprManager();
-    d_smt = new SmtEngine(d_em);
-    d_nm = NodeManager::fromExprManager(d_em);
-    d_scope = new SmtScope(d_smt);
+    d_em.reset(new ExprManager());
+    d_smt.reset(new SmtEngine(d_em.get()));
+    d_nm.reset(NodeManager::fromExprManager(d_em.get()));
     d_smt->finishInit();
   }
 
   void tearDown() override
   {
-    delete d_scope;
-    delete d_smt;
-    delete d_em;
+    d_smt.reset();
+    d_nm.release();
+    d_em.reset();
   }
 
   std::vector<Node> getNStrings(size_t n)
@@ -98,8 +96,7 @@ class BagsTypeRuleWhite : public CxxTest::TestSuite
   }
 
  private:
-  ExprManager* d_em;
-  SmtEngine* d_smt;
-  NodeManager* d_nm;
-  SmtScope* d_scope;
+  std::unique_ptr<ExprManager> d_em;
+  std::unique_ptr<SmtEngine> d_smt;
+  std::unique_ptr<NodeManager> d_nm;
 }; /* class BagsTypeRuleWhite */
