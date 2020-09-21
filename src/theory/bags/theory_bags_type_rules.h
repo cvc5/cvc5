@@ -25,9 +25,7 @@ namespace bags {
 
 struct BinaryOperatorTypeRule
 {
-  inline static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
     Assert(n.getKind() == kind::MAX_UNION || n.getKind() == kind::DISJOINT_UNION
            || n.getKind() == kind::MIN_INTERSECTION
@@ -62,7 +60,7 @@ struct BinaryOperatorTypeRule
     return bagType;
   }
 
-  inline static bool computeIsConst(NodeManager* nodeManager, TNode n)
+  static bool computeIsConst(NodeManager* nodeManager, TNode n)
   {
     // only DISJOINT_UNION has a const rule in kinds.
     // Other binary operators do not have const rules in kinds
@@ -73,9 +71,7 @@ struct BinaryOperatorTypeRule
 
 struct IsIncludedTypeRule
 {
-  inline static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
     Assert(n.getKind() == kind::BAG_IS_INCLUDED);
     TypeNode bagType = n[0].getType(check);
@@ -102,9 +98,7 @@ struct IsIncludedTypeRule
 
 struct CountTypeRule
 {
-  inline static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
     Assert(n.getKind() == kind::BAG_COUNT);
     TypeNode bagType = n[1].getType(check);
@@ -140,7 +134,7 @@ struct CountTypeRule
 
 struct BagPairTypeRule
 {
-  inline static TypeNode computeType(NodeManager* nm, TNode n, bool check)
+  static TypeNode computeType(NodeManager* nm, TNode n, bool check)
   {
     Assert(n.getKind() == kind::BAG_PAIR);
     if (check)
@@ -174,7 +168,7 @@ struct BagPairTypeRule
     return nm->mkBagType(n[0].getType(check));
   }
 
-  inline static bool computeIsConst(NodeManager* nodeManager, TNode n)
+  static bool computeIsConst(NodeManager* nodeManager, TNode n)
   {
     Assert(n.getKind() == kind::BAG_PAIR);
     // for a bag to be a constant, both the element and its multiplicity should
@@ -185,9 +179,7 @@ struct BagPairTypeRule
 
 struct IsSingletonTypeRule
 {
-  inline static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
     Assert(n.getKind() == kind::BAG_IS_SINGLETON);
     TypeNode bagType = n[0].getType(check);
@@ -205,9 +197,7 @@ struct IsSingletonTypeRule
 
 struct EmptyBagTypeRule
 {
-  inline static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
     Assert(n.getKind() == kind::EMPTYBAG);
     EmptyBag emptyBag = n.getConst<EmptyBag>();
@@ -217,9 +207,7 @@ struct EmptyBagTypeRule
 
 struct CardTypeRule
 {
-  inline static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
     Assert(n.getKind() == kind::BAG_CARD);
     TypeNode bagType = n[0].getType(check);
@@ -237,9 +225,7 @@ struct CardTypeRule
 
 struct ChooseTypeRule
 {
-  inline static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
     Assert(n.getKind() == kind::BAG_CHOOSE);
     TypeNode bagType = n[0].getType(check);
@@ -257,9 +243,7 @@ struct ChooseTypeRule
 
 struct InsertTypeRule
 {
-  inline static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
     Assert(n.getKind() == kind::BAG_INSERT);
     size_t numChildren = n.getNumChildren();
@@ -318,18 +302,15 @@ struct InsertTypeRule
 
 struct BagsProperties
 {
-  inline static Cardinality computeCardinality(TypeNode type)
+  static Cardinality computeCardinality(TypeNode type)
   {
     // ToDo: review this
     return Cardinality::UNKNOWN_CARD;
   }
 
-  inline static bool isWellFounded(TypeNode type)
-  {
-    return type[0].isWellFounded();
-  }
+  static bool isWellFounded(TypeNode type) { return type[0].isWellFounded(); }
 
-  inline static Node mkGroundTerm(TypeNode type)
+  static Node mkGroundTerm(TypeNode type)
   {
     Assert(type.isBag());
     return NodeManager::currentNM()->mkConst(EmptyBag(type));

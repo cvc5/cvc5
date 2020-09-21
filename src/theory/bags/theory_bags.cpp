@@ -67,7 +67,7 @@ void TheoryBags::finishInit()
   d_equalityEngine->addFunctionKind(BAG_INSERT);
   d_equalityEngine->addFunctionKind(BAG_CARD);
 
-  //ToDo: review adding expanded operators
+  // ToDo: review adding expanded operators
   // d_equalityEngine->addFunctionKind(BAG_CHOOSE);
   // d_equalityEngine->addFunctionKind(BAG_IS_SINGLETON);
 }
@@ -95,7 +95,7 @@ void TheoryBags::preRegisterTerm(TNode node) {}
 
 TrustNode TheoryBags::expandDefinition(Node n)
 {
-  //ToDo: add choose and is_singleton here
+  // ToDo: add choose and is_singleton here
   return TrustNode::null();
 }
 

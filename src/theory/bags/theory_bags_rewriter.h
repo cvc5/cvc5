@@ -26,7 +26,6 @@ namespace bags {
 class TheoryBagsRewriter : public TheoryRewriter
 {
  public:
-
   RewriteResponse postRewrite(TNode node) override;
 
   RewriteResponse preRewrite(TNode node) override;

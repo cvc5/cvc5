@@ -39,9 +39,7 @@ namespace bags {
 class SolverState : public TheoryState
 {
  public:
-  SolverState(context::Context* c,
-              context::UserContext* u,
-              Valuation val);
+  SolverState(context::Context* c, context::UserContext* u, Valuation val);
 
   //-------------------------------- initialize per check
 
