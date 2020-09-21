@@ -20,6 +20,7 @@
 #include "options/bv_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver_factory.h"
+#include "smt/smt_engine.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/bv_solver_lazy.h"
 #include "theory/bv/theory_bv.h"
@@ -71,6 +72,7 @@ EagerBitblaster::EagerBitblaster(BVSolverLazy* theory_bv, context::Context* c)
   d_cnfStream.reset(new prop::TseitinCnfStream(d_satSolver.get(),
                                                d_bitblastingRegistrar.get(),
                                                d_nullContext.get(),
+                                               nullptr,
                                                rm,
                                                false,
                                                "EagerBitblaster"));

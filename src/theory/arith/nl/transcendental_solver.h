@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/arith/nl/nl_lemma_utils.h"
+#include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_model.h"
 
 namespace CVC4 {
@@ -44,7 +44,7 @@ namespace nl {
 class TranscendentalSolver
 {
  public:
-  TranscendentalSolver(NlModel& m);
+  TranscendentalSolver(InferenceManager& im, NlModel& m);
   ~TranscendentalSolver();
 
   /** init last call
@@ -60,8 +60,7 @@ class TranscendentalSolver
    */
   void initLastCall(const std::vector<Node>& assertions,
                     const std::vector<Node>& false_asserts,
-                    const std::vector<Node>& xts,
-                    std::vector<NlLemma>& lems);
+                    const std::vector<Node>& xts);
   /** increment taylor degree */
   void incrementTaylorDegree();
   /** get taylor degree */
@@ -80,7 +79,7 @@ class TranscendentalSolver
   //-------------------------------------------- lemma schemas
   /** check transcendental initial refine
    *
-   * Returns a set of valid theory lemmas, based on
+   * Constructs a set of valid theory lemmas, based on
    * simple facts about transcendental functions.
    * This mostly follows the initial axioms described in
    * Section 4 of "Satisfiability
@@ -94,11 +93,11 @@ class TranscendentalSolver
    * exp( x )>0
    * x<0 => exp( x )<1
    */
-  std::vector<NlLemma> checkTranscendentalInitialRefine();
+  void checkTranscendentalInitialRefine();
 
   /** check transcendental monotonic
    *
-   * Returns a set of valid theory lemmas, based on a
+   * Constructs a set of valid theory lemmas, based on a
    * lemma scheme that ensures that applications
    * of transcendental functions respect monotonicity.
    *
@@ -108,11 +107,11 @@ class TranscendentalSolver
    * PI/2 > x > y > 0 => sin( x ) > sin( y )
    * PI > x > y > PI/2 => sin( x ) < sin( y )
    */
-  std::vector<NlLemma> checkTranscendentalMonotonic();
+  void checkTranscendentalMonotonic();
 
   /** check transcendental tangent planes
    *
-   * Returns a set of valid theory lemmas, based on
+   * Constructs a set of valid theory lemmas, based on
    * computing an "incremental linearization" of
    * transcendental functions based on the model values
    * of transcendental functions and their arguments.
@@ -168,7 +167,8 @@ class TranscendentalSolver
    *     where c1, c2 are rationals (for brevity, omitted here)
    *     such that c1 ~= .277 and c2 ~= 2.032.
    */
-  std::vector<NlLemma> checkTranscendentalTangentPlanes();
+  void checkTranscendentalTangentPlanes();
+ private:
   /** check transcendental function refinement for tf
    *
    * This method is called by the above method for each "master"
@@ -186,9 +186,8 @@ class TranscendentalSolver
    * It returns false if the bounds are not precise enough to add a
    * secant or tangent plane lemma.
    */
-  bool checkTfTangentPlanesFun(Node tf, unsigned d, std::vector<NlLemma>& lems);
+  bool checkTfTangentPlanesFun(Node tf, unsigned d);
   //-------------------------------------------- end lemma schemas
- private:
   /** polynomial approximation bounds
    *
    * This adds P_l+[x], P_l-[x], P_u+[x], P_u-[x] to pbounds, where x is
@@ -268,10 +267,12 @@ class TranscendentalSolver
   Node getDerivative(Node n, Node x);
 
   void mkPi();
-  void getCurrentPiBounds(std::vector<NlLemma>& lemmas);
+  void getCurrentPiBounds();
   /** Make the node -pi <= a <= pi */
   static Node mkValidPhase(Node a, Node pi);
 
+  /** The inference manager that we push conflicts and lemmas to. */
+  InferenceManager& d_im;
   /** Reference to the non-linear model object */
   NlModel& d_model;
   /** commonly used terms */

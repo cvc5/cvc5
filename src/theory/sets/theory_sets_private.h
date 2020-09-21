@@ -40,7 +40,6 @@ class TheorySets;
 
 class TheorySetsPrivate {
   typedef context::CDHashMap< Node, bool, NodeHashFunction> NodeBoolMap;
-  typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
@@ -51,8 +50,6 @@ class TheorySetsPrivate {
  private:
   /** Are a and b trigger terms in the equality engine that may be disequal? */
   bool areCareDisequal(Node a, Node b);
-  NodeIntMap d_members;
-  std::map< Node, std::vector< Node > > d_members_data;
   /**
    * Invoke the decision procedure for this theory, which is run at
    * full effort. This will either send a lemma or conflict on the output
@@ -216,17 +213,8 @@ class TheorySetsPrivate {
 
   void presolve();
 
-  /** get default output channel */
-  OutputChannel* getOutputChannel();
   /** get the valuation */
   Valuation& getValuation();
-
-  /** Proagate out to output channel */
-  bool propagate(TNode);
-
-  /** generate and send out conflict node */
-  void conflict(TNode, TNode);
-
  private:
   TheorySets& d_external;
   /** The state of the sets solver at full effort */
@@ -246,8 +234,6 @@ class TheorySetsPrivate {
  public:
   /** Is formula n entailed to have polarity pol in the current context? */
   bool isEntailed(Node n, bool pol) { return d_state.isEntailed(n, pol); }
-  /** Is x entailed to be a member of set s in the current context? */
-  bool isMember(Node x, Node s);
 
  private:
   /** get choose function

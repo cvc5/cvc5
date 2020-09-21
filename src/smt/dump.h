@@ -20,10 +20,11 @@
 #define CVC4__DUMP_H
 
 #include "base/output.h"
-#include "smt/command.h"
-#include "smt/node_command.h"
 
 namespace CVC4 {
+
+class Command;
+class NodeCommand;
 
 #if defined(CVC4_DUMPING) && !defined(CVC4_MUZZLE)
 
@@ -33,27 +34,14 @@ class CVC4_PUBLIC CVC4dumpstream
   CVC4dumpstream() : d_os(nullptr) {}
   CVC4dumpstream(std::ostream& os) : d_os(&os) {}
 
-  CVC4dumpstream& operator<<(const Command& c) {
-    if (d_os != nullptr)
-    {
-      (*d_os) << c << std::endl;
-    }
-    return *this;
-  }
+  CVC4dumpstream& operator<<(const Command& c);
 
   /** A convenience function for dumping internal commands.
    *
    * Since Commands are now part of the public API, internal code should use
    * NodeCommands and this function (instead of the one above) to dump them.
    */
-  CVC4dumpstream& operator<<(const NodeCommand& nc)
-  {
-    if (d_os != nullptr)
-    {
-      (*d_os) << nc << std::endl;
-    }
-    return *this;
-  }
+  CVC4dumpstream& operator<<(const NodeCommand& nc);
 
  private:
   std::ostream* d_os;
@@ -70,8 +58,8 @@ class CVC4_PUBLIC CVC4dumpstream
  public:
   CVC4dumpstream() {}
   CVC4dumpstream(std::ostream& os) {}
-  CVC4dumpstream& operator<<(const Command& c) { return *this; }
-  CVC4dumpstream& operator<<(const NodeCommand& nc) { return *this; }
+  CVC4dumpstream& operator<<(const Command& c);
+  CVC4dumpstream& operator<<(const NodeCommand& nc);
 }; /* class CVC4dumpstream */
 
 #endif /* CVC4_DUMPING && !CVC4_MUZZLE */

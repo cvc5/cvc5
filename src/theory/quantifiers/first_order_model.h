@@ -60,7 +60,7 @@ class FirstOrderModel : public TheoryModel
   /** assert quantifier */
   void assertQuantifier( Node n );
   /** get number of asserted quantifiers */
-  unsigned getNumAssertedQuantifiers();
+  size_t getNumAssertedQuantifiers() const;
   /** get asserted quantifier */
   Node getAssertedQuantifier( unsigned i, bool ordered = false );
   /** initialize model for term */

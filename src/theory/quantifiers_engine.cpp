@@ -18,20 +18,9 @@
 #include "options/uf_options.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/quantifiers/alpha_equivalence.h"
-#include "theory/quantifiers/anti_skolem.h"
-#include "theory/quantifiers/conjecture_generator.h"
-#include "theory/quantifiers/ematching/instantiation_engine.h"
-#include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
-#include "theory/quantifiers/fmf/model_engine.h"
-#include "theory/quantifiers/inst_strategy_enumerative.h"
-#include "theory/quantifiers/quant_conflict_find.h"
-#include "theory/quantifiers/quant_split.h"
+#include "theory/quantifiers/quantifiers_modules.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
-#include "theory/quantifiers/sygus/synth_engine.h"
-#include "theory/quantifiers/sygus_inst.h"
-#include "theory/sep/theory_sep.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
 
@@ -40,137 +29,6 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
-
-class QuantifiersEnginePrivate
-{
- public:
-  QuantifiersEnginePrivate()
-      : d_rel_dom(nullptr),
-        d_alpha_equiv(nullptr),
-        d_inst_engine(nullptr),
-        d_model_engine(nullptr),
-        d_bint(nullptr),
-        d_qcf(nullptr),
-        d_sg_gen(nullptr),
-        d_synth_e(nullptr),
-        d_fs(nullptr),
-        d_i_cbqi(nullptr),
-        d_qsplit(nullptr),
-        d_anti_skolem(nullptr),
-        d_sygus_inst(nullptr)
-  {
-  }
-  ~QuantifiersEnginePrivate() {}
-  //------------------------------ private quantifier utilities
-  /** relevant domain */
-  std::unique_ptr<quantifiers::RelevantDomain> d_rel_dom;
-  //------------------------------ end private quantifier utilities
-  //------------------------------ quantifiers modules
-  /** alpha equivalence */
-  std::unique_ptr<quantifiers::AlphaEquivalence> d_alpha_equiv;
-  /** instantiation engine */
-  std::unique_ptr<quantifiers::InstantiationEngine> d_inst_engine;
-  /** model engine */
-  std::unique_ptr<quantifiers::ModelEngine> d_model_engine;
-  /** bounded integers utility */
-  std::unique_ptr<quantifiers::BoundedIntegers> d_bint;
-  /** Conflict find mechanism for quantifiers */
-  std::unique_ptr<quantifiers::QuantConflictFind> d_qcf;
-  /** subgoal generator */
-  std::unique_ptr<quantifiers::ConjectureGenerator> d_sg_gen;
-  /** ceg instantiation */
-  std::unique_ptr<quantifiers::SynthEngine> d_synth_e;
-  /** full saturation */
-  std::unique_ptr<quantifiers::InstStrategyEnum> d_fs;
-  /** counterexample-based quantifier instantiation */
-  std::unique_ptr<quantifiers::InstStrategyCegqi> d_i_cbqi;
-  /** quantifiers splitting */
-  std::unique_ptr<quantifiers::QuantDSplit> d_qsplit;
-  /** quantifiers anti-skolemization */
-  std::unique_ptr<quantifiers::QuantAntiSkolem> d_anti_skolem;
-  /** SyGuS instantiation engine */
-  std::unique_ptr<quantifiers::SygusInst> d_sygus_inst;
-  //------------------------------ end quantifiers modules
-  /** initialize
-   *
-   * This constructs the above modules based on the current options. It adds
-   * a pointer to each module it constructs to modules. This method sets
-   * needsBuilder to true if we require a strategy-specific model builder
-   * utility.
-   */
-  void initialize(QuantifiersEngine* qe,
-                  context::Context* c,
-                  std::vector<QuantifiersModule*>& modules,
-                  bool& needsBuilder)
-  {
-    // add quantifiers modules
-    if (options::quantConflictFind())
-    {
-      d_qcf.reset(new quantifiers::QuantConflictFind(qe, c));
-      modules.push_back(d_qcf.get());
-    }
-    if (options::conjectureGen())
-    {
-      d_sg_gen.reset(new quantifiers::ConjectureGenerator(qe, c));
-      modules.push_back(d_sg_gen.get());
-    }
-    if (!options::finiteModelFind() || options::fmfInstEngine())
-    {
-      d_inst_engine.reset(new quantifiers::InstantiationEngine(qe));
-      modules.push_back(d_inst_engine.get());
-    }
-    if (options::cegqi())
-    {
-      d_i_cbqi.reset(new quantifiers::InstStrategyCegqi(qe));
-      modules.push_back(d_i_cbqi.get());
-      qe->getInstantiate()->addRewriter(d_i_cbqi->getInstRewriter());
-    }
-    if (options::sygus())
-    {
-      d_synth_e.reset(new quantifiers::SynthEngine(qe, c));
-      modules.push_back(d_synth_e.get());
-    }
-    // finite model finding
-    if (options::fmfBound())
-    {
-      d_bint.reset(new quantifiers::BoundedIntegers(c, qe));
-      modules.push_back(d_bint.get());
-    }
-    if (options::finiteModelFind() || options::fmfBound())
-    {
-      d_model_engine.reset(new quantifiers::ModelEngine(c, qe));
-      modules.push_back(d_model_engine.get());
-      // finite model finder has special ways of building the model
-      needsBuilder = true;
-    }
-    if (options::quantDynamicSplit() != options::QuantDSplitMode::NONE)
-    {
-      d_qsplit.reset(new quantifiers::QuantDSplit(qe, c));
-      modules.push_back(d_qsplit.get());
-    }
-    if (options::quantAntiSkolem())
-    {
-      d_anti_skolem.reset(new quantifiers::QuantAntiSkolem(qe));
-      modules.push_back(d_anti_skolem.get());
-    }
-    if (options::quantAlphaEquiv())
-    {
-      d_alpha_equiv.reset(new quantifiers::AlphaEquivalence(qe));
-    }
-    // full saturation : instantiate from relevant domain, then arbitrary terms
-    if (options::fullSaturateQuant() || options::fullSaturateInterleave())
-    {
-      d_rel_dom.reset(new quantifiers::RelevantDomain(qe));
-      d_fs.reset(new quantifiers::InstStrategyEnum(qe, d_rel_dom.get()));
-      modules.push_back(d_fs.get());
-    }
-    if (options::sygusInst())
-    {
-      d_sygus_inst.reset(new quantifiers::SygusInst(qe));
-      modules.push_back(d_sygus_inst.get());
-    }
-  }
-};
 
 QuantifiersEngine::QuantifiersEngine(TheoryEngine* te, DecisionManager& dm,
                                      ProofNodeManager* pnm)
@@ -204,9 +62,6 @@ QuantifiersEngine::QuantifiersEngine(TheoryEngine* te, DecisionManager& dm,
       d_presolve_cache_wq(d_userContext),
       d_presolve_cache_wic(d_userContext)
 {
-  // initialize the private utility
-  d_private.reset(new QuantifiersEnginePrivate);
-
   //---- utilities
   d_util.push_back(d_eq_query.get());
   // term util must come before the other utilities
@@ -215,6 +70,7 @@ QuantifiersEngine::QuantifiersEngine(TheoryEngine* te, DecisionManager& dm,
 
   if (options::sygus() || options::sygusInst())
   {
+    // must be constructed here since it is required for datatypes finistInit
     d_sygus_tdb.reset(new quantifiers::TermDbSygus(d_context, this));
   }
 
@@ -242,16 +98,11 @@ QuantifiersEngine::QuantifiersEngine(TheoryEngine* te, DecisionManager& dm,
   d_ierCounterLastLc = 0;
   d_inst_when_phase = 1 + ( options::instWhenPhase()<1 ? 1 : options::instWhenPhase() );
 
-  bool needsBuilder = false;
-  d_private->initialize(this, d_context, d_modules, needsBuilder);
-
-  if (d_private->d_rel_dom.get())
+  // Finite model finding requires specialized ways of building the model.
+  // We require constructing the model and model builder here, since it is
+  // required for initializing the CombinationEngine.
+  if (options::finiteModelFind() || options::fmfBound())
   {
-    d_util.push_back(d_private->d_rel_dom.get());
-  }
-
-  // if we require specialized ways of building the model
-  if( needsBuilder ){
     Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBound() << std::endl;
     if (options::mbqiMode() == options::MbqiMode::FMC
         || options::mbqiMode() == options::MbqiMode::TRUST
@@ -275,6 +126,19 @@ QuantifiersEngine::QuantifiersEngine(TheoryEngine* te, DecisionManager& dm,
 }
 
 QuantifiersEngine::~QuantifiersEngine() {}
+
+void QuantifiersEngine::finishInit()
+{
+  // Initialize the modules and the utilities here. We delay their
+  // initialization to here, since this is after TheoryQuantifiers finishInit,
+  // which has initialized the state and inference manager of this engine.
+  d_qmodules.reset(new quantifiers::QuantifiersModules);
+  d_qmodules->initialize(this, d_context, d_modules);
+  if (d_qmodules->d_rel_dom.get())
+  {
+    d_util.push_back(d_qmodules->d_rel_dom.get());
+  }
+}
 
 void QuantifiersEngine::setMasterEqualityEngine(eq::EqualityEngine* mee)
 {
@@ -390,14 +254,14 @@ void QuantifiersEngine::setOwner(Node q, quantifiers::QAttributes& qa)
 {
   if (qa.d_sygus || (options::sygusRecFun() && !qa.d_fundef_f.isNull()))
   {
-    if (d_private->d_synth_e.get() == nullptr)
+    if (d_qmodules->d_synth_e.get() == nullptr)
     {
       Trace("quant-warn") << "WARNING : synth engine is null, and we have : "
                           << q << std::endl;
     }
     // set synth engine as owner since this is either a conjecture or a function
     // definition to be used by sygus
-    setOwner(q, d_private->d_synth_e.get(), 2);
+    setOwner(q, d_qmodules->d_synth_e.get(), 2);
   }
 }
 
@@ -408,7 +272,7 @@ bool QuantifiersEngine::hasOwnership( Node q, QuantifiersModule * m ) {
 
 bool QuantifiersEngine::isFiniteBound(Node q, Node v) const
 {
-  quantifiers::BoundedIntegers* bi = d_private->d_bint.get();
+  quantifiers::BoundedIntegers* bi = d_qmodules->d_bint.get();
   if (bi && bi->isBound(q, v))
   {
     return true;
@@ -427,7 +291,7 @@ bool QuantifiersEngine::isFiniteBound(Node q, Node v) const
 
 BoundVarType QuantifiersEngine::getBoundVarType(Node q, Node v) const
 {
-  quantifiers::BoundedIntegers* bi = d_private->d_bint.get();
+  quantifiers::BoundedIntegers* bi = d_qmodules->d_bint.get();
   if (bi)
   {
     return bi->getBoundVarType(q, v);
@@ -440,7 +304,7 @@ void QuantifiersEngine::getBoundVarIndices(Node q,
 {
   Assert(indices.empty());
   // we take the bounded variables first
-  quantifiers::BoundedIntegers* bi = d_private->d_bint.get();
+  quantifiers::BoundedIntegers* bi = d_qmodules->d_bint.get();
   if (bi)
   {
     bi->getBoundVarIndices(q, indices);
@@ -461,7 +325,7 @@ bool QuantifiersEngine::getBoundElements(RepSetIterator* rsi,
                                          Node v,
                                          std::vector<Node>& elements) const
 {
-  quantifiers::BoundedIntegers* bi = d_private->d_bint.get();
+  quantifiers::BoundedIntegers* bi = d_qmodules->d_bint.get();
   if (bi)
   {
     return bi->getBoundElements(rsi, initial, q, v, elements);
@@ -500,7 +364,7 @@ void QuantifiersEngine::ppNotifyAssertions(
   }
   if (options::sygus())
   {
-    quantifiers::SynthEngine* sye = d_private->d_synth_e.get();
+    quantifiers::SynthEngine* sye = d_qmodules->d_synth_e.get();
     for (const Node& a : assertions)
     {
       sye->preregisterAssertion(a);
@@ -827,11 +691,11 @@ bool QuantifiersEngine::reduceQuantifier( Node q ) {
     Node lem;
     std::map< Node, Node >::iterator itr = d_quants_red_lem.find( q );
     if( itr==d_quants_red_lem.end() ){
-      if (d_private->d_alpha_equiv)
+      if (d_qmodules->d_alpha_equiv)
       {
         Trace("quant-engine-red") << "Alpha equivalence " << q << "?" << std::endl;
         //add equivalence with another quantified formula
-        lem = d_private->d_alpha_equiv->reduceQuantifier(q);
+        lem = d_qmodules->d_alpha_equiv->reduceQuantifier(q);
         if( !lem.isNull() ){
           Trace("quant-engine-red") << "...alpha equivalence success." << std::endl;
           ++(d_statistics.d_red_alpha_equiv);
@@ -1178,9 +1042,9 @@ void QuantifiersEngine::printInstantiations( std::ostream& out ) {
 }
 
 void QuantifiersEngine::printSynthSolution( std::ostream& out ) {
-  if (d_private->d_synth_e)
+  if (d_qmodules->d_synth_e)
   {
-    d_private->d_synth_e->printSynthSolution(out);
+    d_qmodules->d_synth_e->printSynthSolution(out);
   }else{
     out << "Internal error : module for synth solution not found." << std::endl;
   }
@@ -1281,7 +1145,7 @@ Node QuantifiersEngine::getInternalRepresentative( Node a, Node q, int index ){
 bool QuantifiersEngine::getSynthSolutions(
     std::map<Node, std::map<Node, Node> >& sol_map)
 {
-  return d_private->d_synth_e->getSynthSolutions(sol_map);
+  return d_qmodules->d_synth_e->getSynthSolutions(sol_map);
 }
 
 void QuantifiersEngine::debugPrintEqualityEngine( const char * c ) {

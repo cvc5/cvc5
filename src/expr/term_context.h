@@ -48,6 +48,11 @@ class TermContext
    * is the term context identifier of t.
    */
   virtual uint32_t computeValue(TNode t, uint32_t tval, size_t index) const = 0;
+  /**
+   * Returns the term context identifier of the operator of t, where tval
+   * is the term context identifier of t.
+   */
+  virtual uint32_t computeValueOp(TNode t, uint32_t tval) const;
 };
 
 /**
