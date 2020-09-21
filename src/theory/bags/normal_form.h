@@ -2,7 +2,7 @@
 /*! \file normal_form.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Andrew Reynolds, Tim King
+ **   Mudathir Mohamed, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -10,8 +10,6 @@
  ** directory for licensing information.\endverbatim
  **
  ** \brief Normal form for bag constants.
- **
- ** Normal form for bag constants.
  **/
 
 #include "cvc4_private.h"
@@ -38,7 +36,7 @@ class NormalForm
    */
   static bool checkNormalConstant(TNode n)
   {
-    // ToDo: complete this function
+    // TODO(#223): complete this function
     return false;
   }
 };

@@ -983,11 +983,6 @@ inline bool TypeNode::isSet() const {
   return getKind() == kind::SET_TYPE;
 }
 
-inline bool TypeNode::isBag() const
-{
-  return getKind() == kind::BAG_TYPE;
-}
-
 inline bool TypeNode::isSequence() const
 {
   return getKind() == kind::SEQUENCE_TYPE;
@@ -995,12 +990,6 @@ inline bool TypeNode::isSequence() const
 
 inline TypeNode TypeNode::getSetElementType() const {
   Assert(isSet());
-  return (*this)[0];
-}
-
-inline TypeNode TypeNode::getBagElementType() const
-{
-  Assert(isBag());
   return (*this)[0];
 }
 
