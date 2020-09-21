@@ -639,7 +639,7 @@ enum class PfRule : uint32_t
   // Arguments: none
   // ----------------------------------------
   // Conclusion: (not (= (select a k) (select b k)))
-  // where k is arrays::SkolemCache::getExtIndexSkolem(a,b).
+  // where k is arrays::SkolemCache::getExtIndexSkolem((not (= a b))).
   ARRAYS_EXT,
   // ======== Array Trust
   // Children: (P1 ... Pn)

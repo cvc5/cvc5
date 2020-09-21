@@ -95,9 +95,9 @@ Node ArraysProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
+    Node k = SkolemCache::getExtIndexSkolem(adeq);
     Node a = adeq[0][0];
     Node b = adeq[0][1];
-    Node k = SkolemCache::getExtIndexSkolem(a, b);
     Node as = nm->mkNode(kind::SELECT, a, k);
     Node bs = nm->mkNode(kind::SELECT, b, k);
     return as.eqNode(bs).notNode();
