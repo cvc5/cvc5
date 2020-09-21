@@ -543,8 +543,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     LogicInfo log(logic.getUnlockedCopy());
     // Strings requires arith for length constraints, and also UF
     needsUf = true;
-    if (!logic.isTheoryEnabled(THEORY_ARITH) || logic.isDifferenceLogic()
-        || !logic.areIntegersUsed())
+    if (!logic.isTheoryEnabled(THEORY_ARITH) || logic.isDifferenceLogic())
     {
       Notice()
           << "Enabling linear integer arithmetic because strings are enabled"
@@ -552,6 +551,12 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       log.enableTheory(THEORY_ARITH);
       log.enableIntegers();
       log.arithOnlyLinear();
+    }
+    if (!logic.areIntegersUsed())
+    {
+      Notice() << "Enabling integer arithmetic because strings are enabled"
+               << std::endl;
+      log.enableIntegers();
     }
     logic = log;
     logic.lock();
