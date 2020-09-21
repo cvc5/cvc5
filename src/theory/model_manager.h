@@ -19,6 +19,7 @@
 
 #include <memory>
 
+#include "theory/ee_manager.h"
 #include "theory/logic_info.h"
 #include "theory/theory_model.h"
 #include "theory/theory_model_builder.h"
@@ -39,10 +40,16 @@ namespace theory {
 class ModelManager
 {
  public:
-  ModelManager(TheoryEngine& te);
+  ModelManager(TheoryEngine& te, EqEngineManager& eem);
   virtual ~ModelManager();
-  /** Finish initializing this class. */
-  void finishInit();
+  /**
+   * Finish initializing this class, which allocates the model, the model
+   * builder as well as the equality engine of the model. The equality engine
+   * to use is determined by the virtual method initializeModelEqEngine.
+   *
+   * @param notify The object that wants to be notified for callbacks occurring
+   */
+  void finishInit(eq::EqualityEngineNotify* notify);
   /** Reset model, called during full effort check before the model is built */
   void resetModel();
   /**
@@ -85,6 +92,12 @@ class ModelManager
   //------------------------ end finer grained control over model building
  protected:
   /**
+   * Initialize model equality engine. This is called at the end of finish
+   * init, after we have created a model object but before we have assigned it
+   * an equality engine.
+   */
+  virtual void initializeModelEqEngine(eq::EqualityEngineNotify* notify) = 0;
+  /**
    * Collect model Boolean variables.
    * This asserts the values of all boolean variables to the equality engine of
    * the model, based on their value in the prop engine.
@@ -112,6 +125,17 @@ class ModelManager
   TheoryEngine& d_te;
   /** Logic info of theory engine (cached) */
   const LogicInfo& d_logicInfo;
+  /** The equality engine manager */
+  EqEngineManager& d_eem;
+  /**
+   * A dummy context for the model equality engine, so we can clear it
+   * independently of search context.
+   */
+  context::Context d_modelEeContext;
+  /** Pointer to the equality engine of the model */
+  eq::EqualityEngine* d_modelEqualityEngine;
+  /** The equality engine of the model, if we allocated it */
+  std::unique_ptr<eq::EqualityEngine> d_modelEqualityEngineAlloc;
   /** The model object we are using */
   theory::TheoryModel* d_model;
   /** The model object we have allocated (if one exists) */

@@ -213,17 +213,8 @@ class TheorySetsPrivate {
 
   void presolve();
 
-  /** get default output channel */
-  OutputChannel* getOutputChannel();
   /** get the valuation */
   Valuation& getValuation();
-
-  /** Proagate out to output channel */
-  bool propagate(TNode);
-
-  /** generate and send out conflict node */
-  void conflict(TNode, TNode);
-
  private:
   TheorySets& d_external;
   /** The state of the sets solver at full effort */

@@ -44,22 +44,10 @@ TheoryModel::TheoryModel(context::Context* c,
 
 TheoryModel::~TheoryModel() {}
 
-void TheoryModel::setEqualityEngine(eq::EqualityEngine* ee)
+void TheoryModel::finishInit(eq::EqualityEngine* ee)
 {
+  Assert(ee != nullptr);
   d_equalityEngine = ee;
-}
-
-bool TheoryModel::needsEqualityEngine(EeSetupInfo& esi)
-{
-  // no notifications
-  esi.d_name = d_name;
-  esi.d_constantsAreTriggers = false;
-  return true;
-}
-
-void TheoryModel::finishInit()
-{
-  Assert(d_equalityEngine != nullptr);
   // The kinds we are treating as function application in congruence
   d_equalityEngine->addFunctionKind(kind::APPLY_UF, false, options::ufHo());
   d_equalityEngine->addFunctionKind(kind::HO_APPLY);
@@ -771,6 +759,8 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
   Trace("model-builder-fun") << "return " << funcs_to_assign.size() << " functions to assign..." << std::endl;
   return funcs_to_assign;
 }
+
+const std::string& TheoryModel::getName() const { return d_name; }
 
 } /* namespace CVC4::theory */
 } /* namespace CVC4 */
