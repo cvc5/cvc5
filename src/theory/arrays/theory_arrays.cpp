@@ -1191,7 +1191,7 @@ Node TheoryArrays::getSkolem(TNode ref)
     TNode a = ref[0][0];
     TNode b = ref[0][1];
     // make the skolem using the skolem cache utility
-    skolem = SkolemCache::getExtIndexSkolem(a, b);
+    skolem = SkolemCache::getExtIndexSkolem(ref);
     d_skolemCache[ref] = skolem;
   }
   else {
