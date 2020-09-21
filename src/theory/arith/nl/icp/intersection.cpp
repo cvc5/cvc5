@@ -93,10 +93,7 @@ PropagationResult intersect_interval_with(poly::Interval& cur,
       {
         return PropagationResult::CONTRACTED;
       }
-      else
-      {
-        return PropagationResult::CONTRACTED_WITHOUT_CURRENT;
-      }
+      return PropagationResult::CONTRACTED_WITHOUT_CURRENT;
     }
     Assert(get_lower(res) > get_lower(cur))
         << "Comparison operator does weird stuff.";
@@ -141,10 +138,7 @@ PropagationResult intersect_interval_with(poly::Interval& cur,
         {
           return PropagationResult::CONTRACTED_WITHOUT_CURRENT;
         }
-        else
-        {
-          return PropagationResult::CONTRACTED;
-        }
+        return PropagationResult::CONTRACTED;
       }
       return PropagationResult::NOT_CHANGED;
     }
@@ -160,10 +154,7 @@ PropagationResult intersect_interval_with(poly::Interval& cur,
     {
       return PropagationResult::CONTRACTED;
     }
-    else
-    {
-      return PropagationResult::CONTRACTED_WITHOUT_CURRENT;
-    }
+    return PropagationResult::CONTRACTED_WITHOUT_CURRENT;
   }
 
   Assert(get_upper(res) > get_upper(cur))
