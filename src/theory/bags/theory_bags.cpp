@@ -33,8 +33,7 @@ TheoryBags::TheoryBags(context::Context* c,
                        const LogicInfo& logicInfo,
                        ProofNodeManager* pnm)
     : Theory(THEORY_BAGS, c, u, out, valuation, logicInfo, pnm),
-      d_skCache(),
-      d_state(c, u, valuation, d_skCache),
+      d_state(c, u, valuation),
       d_im(*this, d_state, pnm),
       d_rewriter(),
       d_notify(*this, d_im)

@@ -17,7 +17,6 @@
 #include "expr/emptybag.h"
 #include "options/sets_options.h"
 #include "smt/logic_exception.h"
-#include "theory/bags/skolem_cache.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -28,9 +27,8 @@ namespace bags {
 
 SolverState::SolverState(context::Context* c,
                          context::UserContext* u,
-                         Valuation val,
-                         SkolemCache& skc)
-    : TheoryState(c, u, val), d_skCache(skc)
+                         Valuation val)
+    : TheoryState(c, u, val)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);

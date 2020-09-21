@@ -381,8 +381,6 @@ libcvc4_add_sources(
   theory/bags/inference_manager.cpp
   theory/bags/inference_manager.h
   theory/bags/normal_form.h
-  theory/bags/skolem_cache.cpp
-  theory/bags/skolem_cache.h
   theory/bags/solver_state.cpp
   theory/bags/solver_state.h
   theory/bags/term_registry.cpp

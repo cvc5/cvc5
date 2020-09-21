@@ -22,7 +22,6 @@
 #include <memory>
 
 #include "theory/bags/inference_manager.h"
-#include "theory/bags/skolem_cache.h"
 #include "theory/bags/solver_state.h"
 #include "theory/bags/theory_bags_rewriter.h"
 #include "theory/theory.h"
@@ -92,8 +91,6 @@ class TheoryBags : public Theory
     TheoryBags& d_theory;
   };
 
-  /** The skolem cache */
-  SkolemCache d_skCache;
   /** The state of the bags solver at full effort */
   SolverState d_state;
   /** The inference manager */

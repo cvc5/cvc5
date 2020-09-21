@@ -24,10 +24,8 @@ namespace theory {
 namespace bags {
 
 TermRegistry::TermRegistry(SolverState& state,
-                           InferenceManager& im,
-                           SkolemCache& skc)
+                           InferenceManager& im)
     : d_im(im),
-      d_skCache(skc),
       d_proxy(state.getUserContext()),
       d_proxy_to_term(state.getUserContext())
 {

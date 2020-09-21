@@ -21,7 +21,6 @@
 
 #include "context/cdhashmap.h"
 #include "theory/bags/inference_manager.h"
-#include "theory/bags/skolem_cache.h"
 #include "theory/bags/solver_state.h"
 
 namespace CVC4 {
@@ -37,7 +36,7 @@ class TermRegistry
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
 
  public:
-  TermRegistry(SolverState& state, InferenceManager& im, SkolemCache& skc);
+  TermRegistry(SolverState& state, InferenceManager& im);
 
   /** Get the empty bag of type tn */
   Node getEmptyBag(TypeNode tn);
@@ -45,8 +44,6 @@ class TermRegistry
  private:
   /** The inference manager */
   InferenceManager& d_im;
-  /** Reference to the skolem cache */
-  SkolemCache& d_skCache;
   /** Map from bag terms to their proxy variables */
   NodeMap d_proxy;
   /** Backwards map of above */

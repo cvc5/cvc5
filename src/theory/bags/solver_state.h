@@ -20,7 +20,6 @@
 #include <map>
 #include <vector>
 
-#include "theory/bags/skolem_cache.h"
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
 
@@ -45,8 +44,7 @@ class SolverState : public TheoryState
  public:
   SolverState(context::Context* c,
               context::UserContext* u,
-              Valuation val,
-              SkolemCache& skc);
+              Valuation val);
 
   //-------------------------------- initialize per check
 
@@ -54,9 +52,6 @@ class SolverState : public TheoryState
   /** constants */
   Node d_true;
   Node d_false;
-
-  /** Reference to skolem cache */
-  SkolemCache& d_skCache;
 }; /* class SolverState */
 
 }  // namespace bags
