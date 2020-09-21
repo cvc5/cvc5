@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file theory_bags_type_enumerator_white.h
+/*! \file theory_bags_type_rules_white.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Mudathir Mohamed
