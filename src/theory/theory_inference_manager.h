@@ -132,10 +132,6 @@ class TheoryInferenceManager
    * only be called if there is not yet proof support in the given theory.
    */
   void conflict(TNode conf);
-  /** The number of conflicts we have added since the last call to reset */
-  uint32_t numSentConflicts() const;
-  /** Have we added a conflict since the last call to reset? */
-  bool hasSentConflict() const;
   /**
    * Raise trusted conflict tconf (of any form) where a proof generator has
    * been provided (as part of the trust node) in a custom way.

@@ -91,16 +91,6 @@ void TheoryInferenceManager::conflict(TNode conf)
   }
 }
 
-uint32_t TheoryInferenceManager::numSentConflicts() const
-{
-  return d_numConflicts;
-}
-
-bool TheoryInferenceManager::hasSentConflict() const
-{
-  return d_numConflicts != 0;
-}
-
 void TheoryInferenceManager::trustedConflict(TrustNode tconf)
 {
   if (!d_theoryState.isInConflict())
