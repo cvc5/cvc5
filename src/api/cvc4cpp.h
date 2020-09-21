@@ -2310,13 +2310,6 @@ class CVC4_PUBLIC Solver
   Sort mkSetSort(Sort elemSort) const;
 
   /**
-   * Create a bag sort.
-   * @param elemSort the sort of the bag elements
-   * @return the bag sort
-   */
-  Sort mkBagSort(Sort elemSort) const;
-
-  /**
    * Create a sequence sort.
    * @param elemSort the sort of the sequence elements
    * @return the sequence sort

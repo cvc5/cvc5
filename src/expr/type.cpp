@@ -528,11 +528,6 @@ SetType::SetType(const Type& t) : Type(t)
   PrettyCheckArgument(isNull() || isSet(), this);
 }
 
-BagType::BagType(const Type& t) : Type(t)
-{
-  PrettyCheckArgument(isNull() || isBag(), this);
-}
-
 SequenceType::SequenceType(const Type& t) : Type(t)
 {
   PrettyCheckArgument(isNull() || isSequence(), this);
@@ -570,11 +565,6 @@ Type ArrayType::getConstituentType() const {
 
 Type SetType::getElementType() const {
   return makeType(d_typeNode->getSetElementType());
-}
-
-Type BagType::getElementType() const
-{
-  return makeType(d_typeNode->getBagElementType());
 }
 
 Type SequenceType::getElementType() const
