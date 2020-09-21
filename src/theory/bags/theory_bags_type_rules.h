@@ -110,7 +110,7 @@ struct CountTypeRule
             n, "checking for membership in a non-bag");
       }
       TypeNode elementType = n[0].getType(check);
-      // TODO : still need to be flexible here due to situations like:
+      // TODO(#226): comments from sets
       //
       // T : (Bag Int)
       // B : (Bag Real)
@@ -304,7 +304,6 @@ struct BagsProperties
 {
   static Cardinality computeCardinality(TypeNode type)
   {
-    // ToDo: review this
     return Cardinality::UNKNOWN_CARD;
   }
 

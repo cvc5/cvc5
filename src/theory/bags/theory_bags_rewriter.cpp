@@ -22,13 +22,13 @@ namespace bags {
 
 RewriteResponse TheoryBagsRewriter::postRewrite(TNode node)
 {
-  // ToDo: complete the code here
+  // TODO(#225): complete the code here
   return RewriteResponse(REWRITE_DONE, node);
 }
 
 RewriteResponse TheoryBagsRewriter::preRewrite(TNode node)
 {
-  // ToDo: complete the code here
+  // TODO(#225): complete the code here
   return RewriteResponse(REWRITE_DONE, node);
 }
 
