@@ -843,17 +843,13 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         sdts[i].addConstructor(kind, cargs);
       }
       // binary ops
-      std::vector<Kind> binary_kinds = {
-          FLOATINGPOINT_REM,
-          FLOATINGPOINT_MIN,
-          FLOATINGPOINT_MAX,
-      };
-      cargs.push_back(unres_t);
-      for (const Kind kind : binary_kinds)
       {
+        const Kind kind = FLOATINGPOINT_REM;
+        cargs.push_back(unres_t);
         Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
         sdts[i].addConstructor(kind, cargs);
       }
+      // binary ops with RM
       std::vector<Kind> binary_rm_kinds = {
           FLOATINGPOINT_SQRT,
           FLOATINGPOINT_RTI,
@@ -867,7 +863,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
         sdts[i].addConstructor(kind, cargs_rm);
       }
-      // ternary ops
+      // ternary ops with RM
       std::vector<Kind> ternary_rm_kinds = {
           FLOATINGPOINT_PLUS,
           FLOATINGPOINT_MULT,
@@ -880,10 +876,12 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         sdts[i].addConstructor(kind, cargs_rm);
       }
       // quaternary ops
-      cargs_rm.push_back(unres_t);
-      const Kind kind = FLOATINGPOINT_FMA;
-      Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
-      sdts[i].addConstructor(kind, cargs_rm);
+      {
+        cargs_rm.push_back(unres_t);
+        const Kind kind = FLOATINGPOINT_FMA;
+        Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
+        sdts[i].addConstructor(kind, cargs_rm);
+      }
     }
     else if (types[i].isStringLike())
     {
