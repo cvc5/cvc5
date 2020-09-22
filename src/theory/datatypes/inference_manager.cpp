@@ -42,6 +42,12 @@ bool DatatypesInference::mustCommunicateFact(Node n, Node exp)
   }
   else if (n.getKind() == EQUAL)
   {
+    // Datatypes can keep new equalities internal as long as they are for
+    // datatypes that have infinite type. Non-datatype equalities must be
+    // sent as lemmas since they belong to other theories. Finite datatype
+    // equalities must be sent because they introduce selector terms that may
+    // contribute to conflicts due to cardinality (a good example of the latter
+    // is regress0/datatypes/dt-param-card4-bool-sat.smt2).
     TypeNode tn = n[0].getType();
     addLemma = !tn.isDatatype() || tn.isInterpretedFinite();
   }
