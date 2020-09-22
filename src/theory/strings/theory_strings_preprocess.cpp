@@ -789,7 +789,7 @@ Node StringsPreprocess::reduce(Node t,
     Node bound =
         nm->mkNode(AND, nm->mkNode(LEQ, zero, i), nm->mkNode(LT, i, lenr));
     Node body = nm->mkNode(OR, bound.negate(), ssr.eqNode(ssx));
-    Node rangeA = nm->mkNode( bvi, body);
+    Node rangeA = mkForallInternal( bvi, body);
     // assert:
     //   len(r) = len(x) ^
     //   forall i. 0 <= i < len(r) =>
