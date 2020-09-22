@@ -979,7 +979,7 @@ bool Sort::isArray() const { return d_type->isArray(); }
 
 bool Sort::isSet() const { return d_type->isSet(); }
 
-bool Sort::isBag() const { return d_type->isBag(); }
+bool Sort::isBag() const { return TypeNode::fromType(*d_type).isBag(); }
 
 bool Sort::isSequence() const { return d_type->isSequence(); }
 

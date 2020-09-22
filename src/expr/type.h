@@ -374,12 +374,6 @@ protected:
   bool isSet() const;
 
   /**
-   * Is this a Bag type?
-   * @return true if the type is a Bag type
-   */
-  bool isBag() const;
-
-  /**
    * Is this a Sequence type?
    * @return true if the type is a Sequence type
    */

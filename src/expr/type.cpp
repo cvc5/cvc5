@@ -352,13 +352,6 @@ bool Type::isSet() const {
   return d_typeNode->isSet();
 }
 
-/** Is this a Bag type? */
-bool Type::isBag() const
-{
-  NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->isBag();
-}
-
 bool Type::isSequence() const
 {
   NodeManagerScope nms(d_nodeManager);
