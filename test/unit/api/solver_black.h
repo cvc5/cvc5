@@ -423,7 +423,7 @@ void SolverBlack::testMkSetSort()
   TS_ASSERT_THROWS_NOTHING(d_solver->mkSetSort(d_solver->getIntegerSort()));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkSetSort(d_solver->mkBitVectorSort(4)));
   Solver slv;
-  TS_ASSERT_THROWS(slv.mkBagSort(d_solver->mkBitVectorSort(4)),
+  TS_ASSERT_THROWS(slv.mkSetSort(d_solver->mkBitVectorSort(4)),
                    CVC4ApiException&);
 }
 
