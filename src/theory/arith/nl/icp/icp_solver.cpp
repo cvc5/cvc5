@@ -14,8 +14,6 @@
 
 #include "theory/arith/nl/icp/icp_solver.h"
 
-#ifdef CVC4_POLY_IMP
-
 #include <iostream>
 
 #include "base/check.h"
@@ -32,6 +30,8 @@ namespace theory {
 namespace arith {
 namespace nl {
 namespace icp {
+
+#ifdef CVC4_POLY_IMP
 
 namespace {
 /** A simple wrapper to nicely print an interval assignment. */
@@ -355,10 +355,22 @@ void ICPSolver::check()
   }
 }
 
+#else /* CVC4_POLY_IMP */
+
+void ICPSolver::reset(const std::vector<Node>& assertions)
+{
+  Unimplemented() << "ICPSolver requires CVC4 to be configured with LibPoly";
+}
+
+void ICPSolver::check()
+{
+  Unimplemented() << "ICPSolver requires CVC4 to be configured with LibPoly";
+}
+
+#endif /* CVC4_POLY_IMP */
+
 }  // namespace icp
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
-
-#endif
