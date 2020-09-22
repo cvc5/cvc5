@@ -90,6 +90,15 @@ class ProofCnfStream : public ProofGenerator
    */
   SatLiteral toCNF(TNode node, bool negated = false);
 
+  /** Blocks a proof, so that it is not further updated by a post processor
+      using this proof cnf stream. */
+  void addBlocked(std::shared_ptr<ProofNode> pfn);
+
+  /** Whether a given proof is blocked for further updates.  An example of a
+   * blocked proof node is one integrated into this class via an external proof
+   * generator. */
+  bool isBlocked(std::shared_ptr<ProofNode> pfn);
+
  private:
   /**
    * Same as above, except that removable is remembered.
@@ -137,6 +146,10 @@ class ProofCnfStream : public ProofGenerator
    * as removable.
    */
   bool d_removable;
+
+  /** Blocked proofs. These are proof nodes added to this class by external
+   * generators. */
+  context::CDHashSet<std::shared_ptr<ProofNode>, ProofNodeHashFunction> d_blocked;
 };
 
 }  // namespace prop

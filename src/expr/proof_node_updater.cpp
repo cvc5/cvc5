@@ -22,6 +22,11 @@ namespace CVC4 {
 ProofNodeUpdaterCallback::ProofNodeUpdaterCallback() {}
 ProofNodeUpdaterCallback::~ProofNodeUpdaterCallback() {}
 
+bool ProofNodeUpdaterCallback::shouldContinue(std::shared_ptr<ProofNode> pn)
+{
+  return true;
+}
+
 bool ProofNodeUpdaterCallback::update(Node res,
                                       PfRule id,
                                       const std::vector<Node>& children,
@@ -85,6 +90,11 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
   {
     cur = visit.back();
     visit.pop_back();
+    // don't continue visiting proof node
+    if (!d_cb.shouldContinue(cur))
+    {
+      continue;
+    }
     it = visited.find(cur);
     res = cur->getResult();
     if (it == visited.end())

@@ -45,6 +45,8 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   void initializeUpdate();
   /** Should proof pn be updated? */
   bool shouldUpdate(ProofNode* pn) override;
+  /** Should continue to traverse proof pn? */
+  bool shouldContinue(std::shared_ptr<ProofNode> pn) override;
   /** Update the proof rule application. */
   bool update(Node res,
               PfRule id,

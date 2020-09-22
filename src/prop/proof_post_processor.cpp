@@ -34,6 +34,11 @@ bool ProofPostprocessCallback::shouldUpdate(ProofNode* pn)
          && d_proofCnfStream->hasProofFor(pn->getResult());
 }
 
+bool ProofPostprocessCallback::shouldContinue(std::shared_ptr<ProofNode> pn)
+{
+  return !d_proofCnfStream->isBlocked(pn);
+}
+
 bool ProofPostprocessCallback::update(Node res,
                                       PfRule id,
                                       const std::vector<Node>& children,
@@ -72,6 +77,9 @@ bool ProofPostprocessCallback::update(Node res,
   cdp->addProof(pfn);
   // do not recursively process the result
   continueUpdate = false;
+  // moreover block the fact f so that its proof node is not traversed if we run
+  // this post processor again (which can happen in incremental benchmarks)
+  d_proofCnfStream->addBlocked(pfn);
   return true;
 }
 

@@ -26,9 +26,14 @@ ProofCnfStream::ProofCnfStream(context::UserContext* u,
                                ProofNodeManager* pnm)
     : d_cnfStream(cnfStream),
       d_pnm(pnm),
-      d_proof(pnm, nullptr, u, "ProofCnfStream::LazyCDProof")
+      d_proof(pnm, nullptr, u, "ProofCnfStream::LazyCDProof"),
+      d_blocked(u)
 {
 }
+
+void ProofCnfStream::addBlocked(std::shared_ptr<ProofNode> pfn) { d_blocked.insert(pfn); }
+
+bool ProofCnfStream::isBlocked(std::shared_ptr<ProofNode> pfn) { return d_blocked.contains(pfn); }
 
 std::shared_ptr<ProofNode> ProofCnfStream::getProofFor(Node f)
 {
