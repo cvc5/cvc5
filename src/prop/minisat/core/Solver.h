@@ -155,8 +155,8 @@ public:
  /** retrive SAT proof manager */
  CVC4::prop::SatProofManager* getProofManager();
 
- /** retrive resolution proof */
- CDProof* getProof();
+ /** retrive refutation proof */
+ std::shared_ptr<ProofNode> getProof();
 
  // Less than for literals in a lemma
  struct lemma_lt

@@ -1537,7 +1537,7 @@ void SmtEngine::checkProof()
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
   Assert(pe->getProof() != nullptr);
-  CDProof* pfpe = pe->getProof();
+  std::shared_ptr<ProofNode> pePfn = pe->getProof();
   // TEMPORARY for testing, this can be used to count how often checkProofs is
   // called
   if (options::checkProofsNewFail())
@@ -1546,7 +1546,7 @@ void SmtEngine::checkProof()
   }
   if (options ::checkProofsNew())
   {
-    d_pfManager->checkProof(pfpe, *d_asserts);
+    d_pfManager->checkProof(pePfn, *d_asserts);
   }
 }
 

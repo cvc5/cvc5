@@ -55,21 +55,19 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
 
 PfManager::~PfManager() {}
 
-void PfManager::setFinalProof(ProofGenerator* pg, context::CDList<Node>* al)
+void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn,
+                              context::CDList<Node>* al)
 {
   Assert(al != nullptr);
   // Note this assumes that setFinalProof is only called once per unsat
   // response. This method would need to cache its result otherwise.
   Trace("smt-proof") << "SmtEngine::setFinalProof(): get proof body...\n";
 
-  // d_finalProof should just be a ProofNode, do not clone
-  std::shared_ptr<ProofNode> body = pg->getProofFor(d_false);
-
   if (Trace.isOn("smt-proof-debug"))
   {
     Trace("smt-proof-debug")
         << "SmtEngine::setFinalProof(): Proof node for false:\n";
-    Trace("smt-proof-debug") << *body.get() << std::endl;
+    Trace("smt-proof-debug") << *pfn.get() << std::endl;
     Trace("smt-proof-debug") << "=====" << std::endl;
   }
 
@@ -78,7 +76,7 @@ void PfManager::setFinalProof(ProofGenerator* pg, context::CDList<Node>* al)
     Trace("smt-proof") << "SmtEngine::setFinalProof(): get free assumptions..."
                        << std::endl;
     std::vector<Node> fassumps;
-    expr::getFreeAssumptions(body.get(), fassumps);
+    expr::getFreeAssumptions(pfn.get(), fassumps);
     Trace("smt-proof")
         << "SmtEngine::setFinalProof(): initial free assumptions are:\n";
     for (const Node& a : fassumps)
@@ -101,20 +99,20 @@ void PfManager::setFinalProof(ProofGenerator* pg, context::CDList<Node>* al)
   Trace("smt-proof") << "SmtEngine::setFinalProof(): postprocess...\n";
   Assert(d_pfpp != nullptr);
   d_pfpp->setAssertions(assertions);
-  d_pfpp->process(body);
+  d_pfpp->process(pfn);
 
   Trace("smt-proof") << "SmtEngine::setFinalProof(): make scope...\n";
 
   // Now make the final scope, which ensures that the only open leaves
   // of the proof are the assertions.
-  d_finalProof = d_pnm->mkScope(body, assertions);
+  d_finalProof = d_pnm->mkScope(pfn, assertions);
   Trace("smt-proof") << "SmtEngine::setFinalProof(): finished.\n";
 }
 
-void PfManager::printProof(ProofGenerator* pg, Assertions& as)
+void PfManager::printProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
 {
   Trace("smt-proof") << "PfManager::printProof: start" << std::endl;
-  std::shared_ptr<ProofNode> fp = getFinalProof(pg, as);
+  std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as);
   // TODO (proj #37) according to the proof format, post process the proof node
   // TODO (proj #37) according to the proof format, print the proof node
   // leanPrinter(out, fp.get());
@@ -124,12 +122,12 @@ void PfManager::printProof(ProofGenerator* pg, Assertions& as)
   out << "\n)\n";
 }
 
-void PfManager::checkProof(ProofGenerator* pg, Assertions& as)
+void PfManager::checkProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
 {
   Trace("smt-proof") << "PfManager::checkProof: start" << std::endl;
-  std::shared_ptr<ProofNode> fp = getFinalProof(pg, as);
-  Trace("smt-proof") << "PfManager::checkProof: returned " << *fp.get()
-                     << std::endl;
+  std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as);
+  Trace("smt-proof-debug") << "PfManager::checkProof: returned " << *fp.get()
+                           << std::endl;
 }
 
 ProofChecker* PfManager::getProofChecker() const { return d_pchecker.get(); }
@@ -146,11 +144,11 @@ smt::PreprocessProofGenerator* PfManager::getPreprocessProofGenerator() const
   return d_pppg.get();
 }
 
-std::shared_ptr<ProofNode> PfManager::getFinalProof(ProofGenerator* pg,
-                                                    Assertions& as)
+std::shared_ptr<ProofNode> PfManager::getFinalProof(
+    std::shared_ptr<ProofNode> pfn, Assertions& as)
 {
   context::CDList<Node>* al = as.getAssertionList();
-  setFinalProof(pg, al);
+  setFinalProof(pfn, al);
   Assert(d_finalProof);
   return d_finalProof;
 }

@@ -86,7 +86,7 @@ public:
 
   SatProofManager* getProofManager();
 
-  CDProof* getProof();
+  std::shared_ptr<ProofNode> getProof();
 
  private:
 

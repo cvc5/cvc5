@@ -2333,7 +2333,7 @@ SatProofManager* Solver::getProofManager()
   return d_pfManager ? d_pfManager.get() : nullptr;
 }
 
-CDProof* Solver::getProof()
+std::shared_ptr<ProofNode> Solver::getProof()
 {
   return d_pfManager ? d_pfManager->getProof() : nullptr;
 }

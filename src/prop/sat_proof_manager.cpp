@@ -742,14 +742,14 @@ void SatProofManager::finalizeProof(const Minisat::Clause& inConflict,
   finalizeProof(clauseNode, clause);
 }
 
-CDProof* SatProofManager::getProof()
+std::shared_ptr<ProofNode> SatProofManager::getProof()
 {
   std::shared_ptr<ProofNode> pfn = d_resChains.getProofFor(d_false);
-  if (pfn)
+  if (!pfn)
   {
-    d_proof.addProof(pfn);
+    pfn = d_pnm->mkAssume(d_false);
   }
-  return &d_proof;
+  return pfn;
 }
 
 void SatProofManager::registerSatLitAssumption(Minisat::Lit lit)

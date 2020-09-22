@@ -226,7 +226,10 @@ SatProofManager* MinisatSatSolver::getProofManager()
   return d_minisat->getProofManager();
 }
 
-CDProof* MinisatSatSolver::getProof() { return d_minisat->getProof(); }
+std::shared_ptr<ProofNode> MinisatSatSolver::getProof()
+{
+  return d_minisat->getProof();
+}
 
 /** Incremental interface */
 

@@ -226,7 +226,7 @@ class PropEngine
   ProofCnfStream* getProofCnfStream() { return d_pfCnfStream.get(); }
 
   /** pieces together the prop engine proof and produce it */
-  CDProof* getProof();
+  std::shared_ptr<ProofNode> getProof();
 
  private:
   /** Dump out the satisfying assignment (after SAT result) */

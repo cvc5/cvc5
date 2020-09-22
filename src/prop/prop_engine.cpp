@@ -428,15 +428,13 @@ bool PropEngine::properExplanation(TNode node, TNode expl) const
   return true;
 }
 
-CDProof* PropEngine::getProof()
+std::shared_ptr<ProofNode> PropEngine::getProof()
 {
   if (!d_pnm)
   {
     return nullptr;
   }
-  std::shared_ptr<ProofNode> conflictProofNode = d_ppm->getProof();
-  d_proof.addProof(conflictProofNode);
-  return &d_proof;
+  return d_ppm->getProof();
 }
 
 }  // namespace prop

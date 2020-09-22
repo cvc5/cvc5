@@ -90,7 +90,7 @@ class SatProofManager
   void finalizeProof();
   void storeUnitConflict(Minisat::Lit inConflict);
 
-  CDProof* getProof();
+  std::shared_ptr<ProofNode> getProof();
 
   void registerSatLitAssumption(Minisat::Lit lit);
   void registerSatAssumptions(const std::vector<Node>& assumps);

@@ -40,8 +40,8 @@ std::shared_ptr<ProofNode> PropPfManager::getProof()
   // retrieve the propositional conflict proof
   Trace("sat-proof")
       << "PropPfManager::getProof: Getting resolution proof of false\n";
-  std::shared_ptr<ProofNode> conflictProof = d_satPM->getProof()->getProofFor(
-      NodeManager::currentNM()->mkConst(false));
+  std::shared_ptr<ProofNode> conflictProof = d_satPM->getProof();
+  Assert(conflictProof);
   if (Trace.isOn("sat-proof"))
   {
     std::vector<Node> fassumps;
@@ -79,18 +79,22 @@ std::shared_ptr<ProofNode> PropPfManager::getProof()
   }
   if (options::proofNewEagerChecking())
   {
-    Trace("sat-proof")
-        << "PropPfManager::getProof: checking if can make scope...\n";
+    Trace("sat-proof") << "PropPfManager::getProof: checking if closed...\n";
     // convert to vector
-    std::vector<Node> avec;
-    for (const Node& as : d_assertions)
-    {
-      avec.push_back(as);
-    }
-    std::shared_ptr<ProofNode> scopePfn = d_pnm->mkScope(conflictProof, avec);
-    Trace("sat-proof") << "PropPfManager::getProof: prop engine prood is "
-                          "closed w.r.t. preprocessed assertions\n";
+    std::vector<Node> avec{d_assertions.begin(), d_assertions.end()};
+    pfnEnsureClosedWrt(
+        conflictProof.get(), avec, "sat-proof", "PropPfManager::getProof");
   }
+  // in incremental mode the connection with preprocessing will modify this
+  // proof node assumptions, which in future unsat cases would have the
+  // consequence that this proof node has as assumptions not the preprocessed
+  // assertions but its expansions, which can break the connection in the SMT
+  // proof, let alone the above closedeness check. So for now when in
+  // incremental we copy the proof node
+  // if (options::incrementalSolving())
+  // {
+  //   return conflictProof->clone();
+  // }
   return conflictProof;
 }
 
