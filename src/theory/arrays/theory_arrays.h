@@ -26,6 +26,7 @@
 #include "context/cdhashset.h"
 #include "context/cdqueue.h"
 #include "theory/arrays/array_info.h"
+#include "theory/arrays/proof_checker.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
@@ -340,6 +341,9 @@ class TheoryArrays : public Theory {
 
   /** The notify class for d_equalityEngine */
   NotifyClass d_notify;
+
+  /** The proof checker */
+  ArraysProofRuleChecker d_pchecker;
 
   /** Conflict when merging constants */
   void conflict(TNode a, TNode b);

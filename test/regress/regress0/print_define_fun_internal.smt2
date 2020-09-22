@@ -1,3 +1,4 @@
+; REQUIRES: dumping
 ; COMMAND-LINE: --solve-real-as-int --dump=assertions:post-real-to-int
 ; EXIT: 0
 ; SCRUBBER: grep -v -E '.*'
