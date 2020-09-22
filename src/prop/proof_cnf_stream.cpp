@@ -53,6 +53,8 @@ void ProofCnfStream::convertAndAssert(TNode node,
   d_removable = removable;
   if (pg)
   {
+    Trace("cnf") << "ProofCnfStream::convertAndAssert: pg: " << pg->identify()
+                 << "\n";
     Node toJustify = negated ? node.notNode() : static_cast<Node>(node);
     d_proof.addLazyStep(
         toJustify, pg, true, "ProofCnfStream::convertAndAssert:cnf");
@@ -166,7 +168,7 @@ void ProofCnfStream::convertAndAssertAnd(TNode node, bool negated)
       }
       Node clauseNode = NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
       d_proof.addStep(clauseNode, PfRule::NOT_AND, {node.notNode()}, {});
-      Trace("cnf") << "ProofCnfStream::convertAndAssertAnd: NOT_AND added norm "
+      Trace("cnf") << "ProofCnfStream::convertAndAssertAnd: NOT_AND added "
                    << clauseNode << "\n";
       // justify normalized clause as well, since that's what will be saved in
       // the SAT solver and registered with prop engine
@@ -819,7 +821,7 @@ SatLiteral ProofCnfStream::handleAnd(TNode node)
   Assert(node.getKind() == kind::AND) << "Expecting an AND expression!";
   Assert(node.getNumChildren() > 1) << "Expecting more than 1 child!";
   Assert(!d_removable) << "Removable clauses cannot contain Boolean structure";
-  Trace("cnf") << "handleAnd(" << node << ")\n";
+  Trace("cnf") << "ProofCnfStream::handleAnd(" << node << ")\n";
   // Number of children
   unsigned size = node.getNumChildren();
   // Transform all the children first (remembering the negation)
@@ -896,6 +898,7 @@ SatLiteral ProofCnfStream::handleOr(TNode node)
   Assert(node.getKind() == kind::OR) << "Expecting an OR expression!";
   Assert(node.getNumChildren() > 1) << "Expecting more then 1 child!";
   Assert(!d_removable) << "Removable clauses can not contain Boolean structure";
+  Trace("cnf") << "ProofCnfStream::handleOr(" << node << ")\n";
   // Number of children
   unsigned size = node.getNumChildren();
   // Transform all the children first
@@ -919,7 +922,14 @@ SatLiteral ProofCnfStream::handleOr(TNode node)
       Node clauseNode = nm->mkNode(kind::OR, node, node[i].notNode());
       Node iNode = nm->mkConst<Rational>(i);
       d_proof.addStep(clauseNode, PfRule::CNF_OR_NEG, {}, {node, iNode});
+      Trace("cnf") << "ProofCnfStream::convertAndAssertAnd: CNF_OR_NEG " << i
+                   << " added " << clauseNode << "\n";
       Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
+      if (Trace.isOn("cnf") && normClauseNode != node)
+      {
+        Trace("cnf") << "ProofCnfStream::handleOr: steps to normalized "
+                     << normClauseNode << "\n";
+      }
       // if we are eagerly checking proofs, track sat solver assumptions
       if (options::proofNewEagerChecking())
       {
@@ -943,7 +953,14 @@ SatLiteral ProofCnfStream::handleOr(TNode node)
     }
     Node clauseNode = nm->mkNode(kind::OR, disjuncts);
     d_proof.addStep(clauseNode, PfRule::CNF_OR_POS, {}, {node});
+    Trace("cnf") << "ProofCnfStream::handleOr: CNF_OR_POS added "
+                 << clauseNode << "\n";
     Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
+    if (Trace.isOn("cnf") && normClauseNode != node)
+    {
+      Trace("cnf") << "ProofCnfStream::handleOr: steps to normalized "
+                   << normClauseNode << "\n";
+    }
     // if we are eagerly checking proofs, track sat solver assumptions
     if (options::proofNewEagerChecking())
     {
