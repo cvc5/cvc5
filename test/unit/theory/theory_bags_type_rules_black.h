@@ -60,28 +60,6 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     return elements;
   }
 
-  void testInsertOperator()
-  {
-    vector<Node> elements = getNStrings(5);
-    vector<Node> pairs;
-    Node node = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(100)));
-    for (int i = 1; i < elements.size(); i++)
-    {
-      pairs.push_back(elements[i]);
-      pairs.push_back(d_nm->mkConst(Rational(i * 2)));
-    }
-    pairs.push_back(node);
-
-    // (BAG_INSERT "B" 2 "C" 4 "D" 6 "E" 8 (MK_BAG "A" 100))
-    Node insert = d_nm->mkNode(BAG_INSERT, pairs);
-
-    // wrong type for the second "E" in
-    // (BAG_INSERT "B" 2 "C" 4 "D" 6 "E" "E" (MK_BAG "A" 100))
-    pairs[pairs.size() - 2] = pairs[pairs.size() - 3];
-    TS_ASSERT_THROWS(d_nm->mkNode(BAG_INSERT, pairs),
-                     TypeCheckingExceptionPrivate&);
-  }
-
   void testCountOperator()
   {
     vector<Node> elements = getNStrings(1);

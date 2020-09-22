@@ -2046,20 +2046,6 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   MK_BAG,
   /**
-   * The bag obtained by inserting elements and their multiplicities.
-   * Example: (BAG_INSERT "E" 2 "D" 4 "C" 6 "B" 8 (MK_BAG "A" 100))
-   * Parameters: n >= 3 && odd(n)
-   *   -[1], [3], [5]..[n-2]: Elements inserted into bag [n]
-   *   -[2], [4], [6]..[n-1]: Multiplicities of above elements respectively
-   *   -[n]: Bag Term
-   * Create with:
-   *   mkTerm(Kind kind, Term child)
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   */
-  BAG_INSERT,
-  /**
    * Bag cardinality.
    * Parameters: 1
    *   -[1]: Bag to determine the cardinality of

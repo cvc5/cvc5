@@ -232,55 +232,6 @@ struct ChooseTypeRule
   }
 }; /* struct ChooseTypeRule */
 
-struct InsertTypeRule
-{
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-  {
-    Assert(n.getKind() == kind::BAG_INSERT);
-    size_t numChildren = n.getNumChildren();
-    Assert(numChildren >= 3);
-    TypeNode bagType = n[numChildren - 1].getType(check);
-    if (check)
-    {
-      // e.g. (BAG_INSERT "E" 2 "D" 4 "C" 6 "B" 8 (MK_BAG "A" 100))
-      if (!bagType.isBag())
-      {
-        throw TypeCheckingExceptionPrivate(n, "inserting into a non-bag");
-      }
-
-      if (numChildren % 2 != 1)
-      {
-        std::stringstream ss;
-        ss << "BAG_INSERT needs an odd number of children. Node " << n
-           << " has " << numChildren << " children." << std::endl;
-        throw TypeCheckingExceptionPrivate(n, ss.str());
-      }
-
-      TypeNode baseType = bagType.getBagElementType();
-      for (size_t i = 0; i < numChildren - 1; i += 2)
-      {
-        TypeNode elementType = n[i].getType(check);
-        if (!elementType.isComparableTo(baseType))
-        {
-          std::stringstream ss;
-          ss << "node " << n << " inserts node " << n[i] << " of type "
-             << elementType << " into a bag of type " << bagType << std::endl;
-          throw TypeCheckingExceptionPrivate(n, ss.str());
-        }
-        TypeNode countType = n[i + 1].getType(check);
-        if (!countType.isInteger())
-        {
-          std::stringstream ss;
-          ss << "MK_BAG expects an integer for " << n[i + 1] << " in " << n
-             << ". Found " << countType << "." << std::endl;
-          throw TypeCheckingExceptionPrivate(n, ss.str());
-        }
-      }
-    }
-    return bagType;
-  }
-}; /* struct InsertTypeRule */
-
 struct BagsProperties
 {
   static Cardinality computeCardinality(TypeNode type)
