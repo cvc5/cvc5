@@ -348,7 +348,8 @@ void ICPSolver::check()
   } while (progress);
   if (did_progress)
   {
-    for (const auto& l : generateLemmas())
+    std::vector<Node> lemmas = generateLemmas();
+    for (const auto& l : lemmas)
     {
       d_im.addPendingArithLemma(l, InferenceId::NL_ICP_PROPAGATION);
     }
