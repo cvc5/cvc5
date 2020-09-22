@@ -28,6 +28,18 @@ TermRegistry::TermRegistry(SolverState& state, InferenceManager& im)
 {
 }
 
+Node TermRegistry::getEmptyBag(TypeNode tn)
+{
+  std::map<TypeNode, Node>::iterator it = d_emptybag.find(tn);
+  if (it != d_emptybag.end())
+  {
+    return it->second;
+  }
+  Node n = NodeManager::currentNM()->mkConst(EmptySet(tn));
+  d_emptybag[tn] = n;
+  return n;
+}
+
 }  // namespace bags
 }  // namespace theory
 }  // namespace CVC4
