@@ -380,6 +380,7 @@ libcvc4_add_sources(
   theory/atom_requests.h
   theory/bags/inference_manager.cpp
   theory/bags/inference_manager.h
+  theory/bags/normal_form.cpp
   theory/bags/normal_form.h
   theory/bags/solver_state.cpp
   theory/bags/solver_state.h

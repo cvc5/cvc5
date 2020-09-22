@@ -13,6 +13,7 @@
  **/
 
 #include "cvc4_private.h"
+#include <expr/node.h>
 
 #ifndef CVC4__THEORY__BAGS__NORMAL_FORM_H
 #define CVC4__THEORY__BAGS__NORMAL_FORM_H
@@ -27,18 +28,14 @@ class NormalForm
   /**
    * Returns true if n is considered a to be a (canonical) constant bag value.
    * A canonical bag value is one whose AST is:
-   *   (disjoint-union (bag-pair e1 n1) ...
-   *        (disjoint-union (bag-pair e_{n-1} n_{n-1}) (bag-pair e_n n_n))))
+   *   (disjoint-union (mk-bag e1 n1) ...
+   *        (disjoint-union (mk-bag e_{n-1} n_{n-1}) (mk-bag e_n n_n))))
    * where c1 ... cn are constants and the node identifier of these constants
    * are such that:
    *   c1 > ... > cn.
    * Also handles the corner cases of empty bag and singleton bag.
    */
-  static bool checkNormalConstant(TNode n)
-  {
-    // TODO(#223): complete this function
-    return false;
-  }
+  static bool checkNormalConstant(TNode n);
 };
 }  // namespace bags
 }  // namespace theory
