@@ -201,6 +201,15 @@ poly::Polynomial as_poly_polynomial(const CVC4::Node& n, VariableMapper& vm)
   poly::Integer denom;
   return as_poly_polynomial_impl(n, denom, vm);
 }
+poly::Polynomial as_poly_polynomial(const CVC4::Node& n,
+                                    VariableMapper& vm,
+                                    poly::Rational& denominator)
+{
+  poly::Integer denom;
+  auto res = as_poly_polynomial_impl(n, denom, vm);
+  denominator = poly::Rational(denom);
+  return res;
+}
 
 poly::SignCondition normalize_kind(CVC4::Kind kind,
                                    bool negated,

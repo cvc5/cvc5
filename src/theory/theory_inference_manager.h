@@ -416,6 +416,8 @@ class TheoryInferenceManager
    * nodes. Notice that this cache does not depedent on lemma property.
    */
   NodeSet d_lemmasSent;
+  /** The number of conflicts sent since the last call to reset. */
+  uint32_t d_numConflicts;
   /** The number of lemmas sent since the last call to reset. */
   uint32_t d_numCurrentLemmas;
   /** The number of internal facts added since the last call to reset. */

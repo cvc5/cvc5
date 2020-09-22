@@ -47,6 +47,7 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       d_trSlv(d_im, d_model),
       d_nlSlv(containing, d_model),
       d_cadSlv(d_im, d_model),
+      d_icpSlv(d_im),
       d_iandSlv(containing, d_model),
       d_builtModel(containing.getSatContext(), false)
 {
@@ -379,6 +380,21 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     {
       Trace("nl-ext") << "Input assertion: " << a << std::endl;
     }
+  }
+
+  if (options::nlICP())
+  {
+    d_icpSlv.reset(assertions);
+    d_icpSlv.check();
+
+    if (d_im.hasUsed())
+    {
+      Trace("nl-ext") << "  ...finished with "
+                      << d_im.numPendingLemmas() + d_im.numSentLemmas()
+                      << " new lemmas from ICP." << std::endl;
+      return d_im.numPendingLemmas() + d_im.numSentLemmas();
+    }
+    Trace("nl-ext") << "Done with ICP" << std::endl;
   }
 
   if (options::nlExt())
@@ -758,7 +774,7 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
         d_builtModel = true;
       }
       filterLemmas(lemmas, mlems);
-      if (!mlems.empty())
+      if (!mlems.empty() || d_im.hasPendingLemma())
       {
         return true;
       }

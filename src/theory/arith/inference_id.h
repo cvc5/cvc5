@@ -76,6 +76,11 @@ enum class InferenceId : uint32_t
   NL_CAD_CONFLICT,
   // excludes an interval for a single variable
   NL_CAD_EXCLUDED_INTERVAL,
+  //-------------------- icp solver
+  // conflict obtained from icp
+  NL_ICP_CONFLICT,
+  // propagation / contraction of variable bounds from icp
+  NL_ICP_PROPAGATION,
   //-------------------- unknown
   UNKNOWN,
 };
