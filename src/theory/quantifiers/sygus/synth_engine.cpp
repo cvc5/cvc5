@@ -184,7 +184,11 @@ void SynthEngine::assignConjecture(Node q)
       for (unsigned i = 0, size = all_vars.size(); i < size; i++)
       {
         Node v = all_vars[i];
-        if (std::find(si_vars.begin(), si_vars.end(), v) == si_vars.end())
+        if (std::find(funcs0.begin(),funcs0.end(), v)!=funcs0.end())
+        {
+          Trace("cegqi-qep") << "- fun var: " << v << std::endl;
+        }
+        else if (std::find(si_vars.begin(), si_vars.end(), v) == si_vars.end())
         {
           qe_vars.push_back(v);
           Trace("cegqi-qep") << "- qe var: " << v << std::endl;
