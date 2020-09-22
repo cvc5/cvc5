@@ -162,8 +162,9 @@ struct MkBagTypeRule
   {
     Assert(n.getKind() == kind::MK_BAG);
     // for a bag to be a constant, both the element and its multiplicity should
-    // be constants.
-    return n[0].isConst() && n[1].isConst();
+    // be constants, and the multiplicity should be > 0.
+    return n[0].isConst() && n[1].isConst()
+           && n[1].getConst<Rational>().sgn() == 1;
   }
 }; /* struct MkBagTypeRule */
 

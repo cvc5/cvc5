@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file theory_bags_type_rules_white.h
+/*! \file theory_bags_type_rules_black.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Mudathir Mohamed
@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief White box testing of bags typing rules
+ ** \brief Black box testing of bags typing rules
  **/
 
 #include <cxxtest/TestSuite.h>
@@ -28,7 +28,7 @@ using namespace std;
 
 typedef expr::Attribute<Node, Node> attribute;
 
-class BagsTypeRuleWhite : public CxxTest::TestSuite
+class BagsTypeRuleBlack : public CxxTest::TestSuite
 {
  public:
   void setUp() override
@@ -95,8 +95,21 @@ class BagsTypeRuleWhite : public CxxTest::TestSuite
                      TypeCheckingExceptionPrivate&);
   }
 
+  void testMkBagOperator()
+  {
+    vector<Node> elements = getNStrings(1);
+    Node negative = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(-1)));
+    Node zero = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(0)));
+    Node positive = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(1)));
+
+    // only positive multiplicity are constants
+    TS_ASSERT(! MkBagTypeRule::computeIsConst(d_nm.get(), negative));
+    TS_ASSERT(! MkBagTypeRule::computeIsConst(d_nm.get(), zero));
+    TS_ASSERT(MkBagTypeRule::computeIsConst(d_nm.get(), positive));
+  }
+
  private:
   std::unique_ptr<ExprManager> d_em;
   std::unique_ptr<SmtEngine> d_smt;
   std::unique_ptr<NodeManager> d_nm;
-}; /* class BagsTypeRuleWhite */
+}; /* class BagsTypeRuleBlack */
