@@ -187,10 +187,12 @@ void SynthEngine::assignConjecture(Node q)
         if (std::find(si_vars.begin(), si_vars.end(), v) == si_vars.end())
         {
           qe_vars.push_back(v);
+          Trace("cegqi-qep") << "- qe var: " << v << std::endl;
         }
         else
         {
           nqe_vars.push_back(v);
+          Trace("cegqi-qep") << "- non qe var: " << v << std::endl;
         }
       }
       std::vector<Node> orig;
