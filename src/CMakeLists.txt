@@ -456,6 +456,8 @@ libcvc4_add_sources(
   theory/bv/bv_solver.h
   theory/bv/bv_solver_lazy.cpp
   theory/bv/bv_solver_lazy.h
+  theory/bv/bv_solver_simple.cpp
+  theory/bv/bv_solver_simple.h
   theory/bv/bv_subtheory.h
   theory/bv/bv_subtheory_algebraic.cpp
   theory/bv/bv_subtheory_algebraic.h

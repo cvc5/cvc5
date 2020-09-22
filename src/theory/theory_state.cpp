@@ -132,5 +132,10 @@ bool TheoryState::isSatLiteral(TNode lit) const
 
 TheoryModel* TheoryState::getModel() { return d_valuation.getModel(); }
 
+bool TheoryState::hasSatValue(TNode n, bool& value) const
+{
+  return d_valuation.hasSatValue(n, value);
+}
+
 }  // namespace theory
 }  // namespace CVC4
