@@ -303,7 +303,7 @@ Node StringsPreprocess::reduce(Node t,
     Node ux1lem = nm->mkNode(GEQ, n, ux1);
 
     lem = nm->mkNode(OR, g.negate(), nm->mkNode(AND, eq, cb, ux1lem));
-    lem = nm->mkNode(FORALL, xbv, lem);
+    lem = mkForallInternal(xbv, lem);
     conc.push_back(lem);
 
     Node nonneg = nm->mkNode(GEQ, n, zero);
@@ -390,7 +390,7 @@ Node StringsPreprocess::reduce(Node t,
     Node ux1lem = nm->mkNode(GEQ, stoit, ux1);
 
     lem = nm->mkNode(OR, g.negate(), nm->mkNode(AND, eq, cb, ux1lem));
-    lem = nm->mkNode(FORALL, xbv, lem);
+    lem = mkForallInternal(xbv, lem);
     conc2.push_back(lem);
 
     Node sneg = nm->mkNode(LT, stoit, zero);
@@ -527,8 +527,8 @@ Node StringsPreprocess::reduce(Node t,
     flem.push_back(
         ufip1.eqNode(nm->mkNode(PLUS, ii, nm->mkNode(STRING_LENGTH, y))));
 
-    Node q = nm->mkNode(
-        FORALL, bvli, nm->mkNode(OR, bound.negate(), nm->mkNode(AND, flem)));
+    Node body = nm->mkNode(OR, bound.negate(), nm->mkNode(AND, flem));
+    Node q = mkForallInternal(bvli, body);
     lem.push_back(q);
 
     // assert:
@@ -697,8 +697,8 @@ Node StringsPreprocess::reduce(Node t,
             .eqNode(nm->mkNode(
                 STRING_CONCAT, pfxMatch, z, nm->mkNode(APPLY_UF, us, ip1))));
 
-    Node forall = nm->mkNode(
-        FORALL, bvli, nm->mkNode(OR, bound.negate(), nm->mkNode(AND, flem)));
+    Node body = nm->mkNode(OR, bound.negate(), nm->mkNode(AND, flem));
+    Node forall = mkForallInternal(bvli, body);
     lemmas.push_back(forall);
 
     // IF in_re(x, re.++(_*, y', _*))
@@ -753,8 +753,8 @@ Node StringsPreprocess::reduce(Node t,
 
     Node bound =
         nm->mkNode(AND, nm->mkNode(LEQ, zero, i), nm->mkNode(LT, i, lenr));
-    Node rangeA =
-        nm->mkNode(FORALL, bvi, nm->mkNode(OR, bound.negate(), ri.eqNode(res)));
+    Node body = nm->mkNode(OR, bound.negate(), ri.eqNode(res));
+    Node rangeA = mkForallInternal( bvi, body);
 
     // upper 65 ... 90
     // lower 97 ... 122
@@ -788,8 +788,8 @@ Node StringsPreprocess::reduce(Node t,
 
     Node bound =
         nm->mkNode(AND, nm->mkNode(LEQ, zero, i), nm->mkNode(LT, i, lenr));
-    Node rangeA = nm->mkNode(
-        FORALL, bvi, nm->mkNode(OR, bound.negate(), ssr.eqNode(ssx)));
+    Node body = nm->mkNode(OR, bound.negate(), ssr.eqNode(ssx));
+    Node rangeA = nm->mkNode( bvi, body);
     // assert:
     //   len(r) = len(x) ^
     //   forall i. 0 <= i < len(r) =>

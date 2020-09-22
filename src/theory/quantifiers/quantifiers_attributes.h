@@ -211,7 +211,7 @@ public:
   /** is quant elim partial */
   bool isQuantElimPartial( Node q );
   /** is internal quantifier */
-  bool isInternal(Node q);
+  bool isInternal(Node q) const;
   /** get quant name, which is used for :qid */
   Node getQuantName(Node q) const;
   /** get (internal) quant id num */
