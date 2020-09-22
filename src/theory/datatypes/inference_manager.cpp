@@ -47,7 +47,10 @@ bool DatatypesInference::mustCommunicateFact(Node n, Node exp)
     // sent as lemmas since they belong to other theories. Finite datatype
     // equalities must be sent because they introduce selector terms that may
     // contribute to conflicts due to cardinality (a good example of the latter
-    // is regress0/datatypes/dt-param-card4-bool-sat.smt2).
+    // is regress0/datatypes/dt-param-card4-bool-sat.smt2). Also, datatypes
+    // that do not involve external types, i.e. all their subfield types are
+    // datatypes, never need to be sent as lemmas since they do not involve
+    // other theories.
     TypeNode tn = n[0].getType();
     addLemma =
         !tn.isDatatype()
