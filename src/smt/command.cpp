@@ -1661,7 +1661,12 @@ void GetValueCommand::invoke(api::Solver* solver)
   {
     NodeManager* nm = solver->getNodeManager();
     smt::SmtScope scope(solver->getSmtEngine());
-    vector<Node> result = api::termVectorToNodes(solver->getValue(d_terms));
+    std::vector<Node> result;
+    for (const Expr& e :
+         solver->getSmtEngine()->getValues(api::termVectorToExprs(d_terms)))
+    {
+      result.push_back(Node::fromExpr(e));
+    }
     Assert(result.size() == d_terms.size());
     for (int i = 0, size = d_terms.size(); i < size; i++)
     {
