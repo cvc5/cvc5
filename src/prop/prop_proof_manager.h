@@ -34,8 +34,6 @@ namespace prop {
  */
 class PropPfManager
 {
-  typedef context::CDList<Node> NodeList;
-
  public:
   PropPfManager(context::UserContext* userContext,
                 ProofNodeManager* pnm,
@@ -60,6 +58,10 @@ class PropPfManager
    */
   std::shared_ptr<ProofNode> getProof();
 
+  /** Check that the prop engine proof is closed w.r.t. the given assertions and
+   * previously registered assertions in d_assertions. */
+  void checkProof(context::CDList<Node>* assertions);
+
  private:
   /** A node manager */
   ProofNodeManager* d_pnm;
@@ -70,7 +72,7 @@ class PropPfManager
   SatProofManager* d_satPM;
   /** The assertions that should be the only assumptions of the postprocessed
    * proof */
-  NodeList d_assertions;
+  context::CDList<Node> d_assertions;
 }; /* class SmtEngine */
 
 }  // namespace prop

@@ -28,11 +28,31 @@ PropPfManager::PropPfManager(context::UserContext* userContext,
       d_satPM(satPM),
       d_assertions(userContext)
 {
+  // add trivial assumption
+  d_assertions.push_back(NodeManager::currentNM()->mkConst(true));
 }
 
 void PropPfManager::registerAssertion(Node assertion)
 {
   d_assertions.push_back(assertion);
+}
+
+void PropPfManager::checkProof(context::CDList<Node>* assertions)
+{
+  Trace("sat-proof") << "PropPfManager::checkProof: Checking if resolution "
+                        "proof of false is closed\n";
+  std::shared_ptr<ProofNode> conflictProof = d_satPM->getProof();
+  Assert(conflictProof);
+  // connect it with CNF proof
+  d_pfpp->process(conflictProof);
+  // convert to vector
+  for (const Node& assertion : *assertions)
+  {
+    d_assertions.push_back(assertion);
+  }
+  std::vector<Node> avec{d_assertions.begin(), d_assertions.end()};
+  pfnEnsureClosedWrt(
+      conflictProof.get(), avec, "sat-proof", "PropPfManager::checkProof");
 }
 
 std::shared_ptr<ProofNode> PropPfManager::getProof()
@@ -76,14 +96,6 @@ std::shared_ptr<ProofNode> PropPfManager::getProof()
     }
     Trace("sat-proof-debug")
         << "PropPfManager::getProof: proof is " << *conflictProof.get() << "\n";
-  }
-  if (options::proofNewEagerChecking())
-  {
-    Trace("sat-proof") << "PropPfManager::getProof: checking if closed...\n";
-    // convert to vector
-    std::vector<Node> avec{d_assertions.begin(), d_assertions.end()};
-    pfnEnsureClosedWrt(
-        conflictProof.get(), avec, "sat-proof", "PropPfManager::getProof");
   }
   // in incremental mode the connection with preprocessing will modify this
   // proof node assumptions, which in future unsat cases would have the

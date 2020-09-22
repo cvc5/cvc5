@@ -228,6 +228,10 @@ class PropEngine
   /** pieces together the prop engine proof and produce it */
   std::shared_ptr<ProofNode> getProof();
 
+  /** Checks that the proof is closed w.r.t. asserted formulas to this engine as
+   * well as to the given assertions. */
+  void checkProof(context::CDList<Node>* assertions);
+
  private:
   /** Dump out the satisfying assignment (after SAT result) */
   void printSatisfyingAssignment();

@@ -428,6 +428,15 @@ bool PropEngine::properExplanation(TNode node, TNode expl) const
   return true;
 }
 
+void PropEngine::checkProof(context::CDList<Node>* assertions)
+{
+  if (!d_pnm)
+  {
+    return;
+  }
+  return d_ppm->checkProof(assertions);
+}
+
 std::shared_ptr<ProofNode> PropEngine::getProof()
 {
   if (!d_pnm)
