@@ -88,8 +88,8 @@ class InstantiationEngine : public QuantifiersModule {
   std::string identify() const override { return "InstEngine"; }
 
  private:
-   /** Return true if this module should process quantified formula q */
-   bool shouldProcess(Node q);
+  /** Return true if this module should process quantified formula q */
+  bool shouldProcess(Node q);
   /** for computing relevance of quantifiers */
   std::unique_ptr<QuantRelevance> d_quant_rel;
 }; /* class InstantiationEngine */

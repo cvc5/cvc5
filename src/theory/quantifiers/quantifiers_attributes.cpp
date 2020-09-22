@@ -30,7 +30,8 @@ namespace quantifiers {
 
 bool QAttributes::isStandard() const
 {
-  return !d_sygus && !d_quant_elim && !isFunDef() && d_name.isNull() && !d_isInternal;
+  return !d_sygus && !d_quant_elim && !isFunDef() && d_name.isNull()
+         && !d_isInternal;
 }
 
 QuantAttributes::QuantAttributes( QuantifiersEngine * qe ) : 
@@ -250,7 +251,8 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
           qa.d_quant_elim_partial = true;
           //don't set owner, should happen naturally
         }
-        if( avar.getAttribute(InternalQuantAttribute()) ){
+        if (avar.getAttribute(InternalQuantAttribute()))
+        {
           Trace("quant-attr") << "Attribute : internal : " << q << std::endl;
           qa.d_isInternal = true;
         }

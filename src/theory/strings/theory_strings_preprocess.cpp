@@ -23,10 +23,10 @@
 #include "options/strings_options.h"
 #include "proof/proof_manager.h"
 #include "smt/logic_exception.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/word.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -34,13 +34,13 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace strings {
-  
-/** Mapping to a dummy node for marking an attribute on internal quantified formulas */
+
+/** Mapping to a dummy node for marking an attribute on internal quantified
+ * formulas */
 struct QInternalVarAttributeId
 {
 };
 typedef expr::Attribute<QInternalVarAttributeId, Node> QInternalVarAttribute;
-
 
 StringsPreprocess::StringsPreprocess(SkolemCache* sc,
                                      context::UserContext* u,
@@ -754,7 +754,7 @@ Node StringsPreprocess::reduce(Node t,
     Node bound =
         nm->mkNode(AND, nm->mkNode(LEQ, zero, i), nm->mkNode(LT, i, lenr));
     Node body = nm->mkNode(OR, bound.negate(), ri.eqNode(res));
-    Node rangeA = mkForallInternal( bvi, body);
+    Node rangeA = mkForallInternal(bvi, body);
 
     // upper 65 ... 90
     // lower 97 ... 122
@@ -789,7 +789,7 @@ Node StringsPreprocess::reduce(Node t,
     Node bound =
         nm->mkNode(AND, nm->mkNode(LEQ, zero, i), nm->mkNode(LT, i, lenr));
     Node body = nm->mkNode(OR, bound.negate(), ssr.eqNode(ssx));
-    Node rangeA = mkForallInternal( bvi, body);
+    Node rangeA = mkForallInternal(bvi, body);
     // assert:
     //   len(r) = len(x) ^
     //   forall i. 0 <= i < len(r) =>
@@ -992,7 +992,7 @@ void StringsPreprocess::processAssertions( std::vector< Node > &vec_node ){
 
 Node StringsPreprocess::mkForallInternal(Node bvl, Node body)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   QInternalVarAttribute qiva;
   Node qvar;
   if (bvl.hasAttribute(qiva))

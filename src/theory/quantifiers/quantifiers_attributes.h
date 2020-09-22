@@ -88,7 +88,7 @@ struct SygusVarToTermAttributeId
 typedef expr::Attribute<SygusVarToTermAttributeId, Node>
     SygusVarToTermAttribute;
 
-/** 
+/**
  * Attribute true for quantifiers that have been internally generated, e.g.
  * for reductions of string operators.
  *
@@ -100,8 +100,10 @@ typedef expr::Attribute<SygusVarToTermAttributeId, Node>
  * the internal source of the quantified formula (of which strings reduction
  * is one possibility).
  */
-struct InternalQuantAttributeId {};
-typedef expr::Attribute< InternalQuantAttributeId, bool > InternalQuantAttribute;
+struct InternalQuantAttributeId
+{
+};
+typedef expr::Attribute<InternalQuantAttributeId, bool> InternalQuantAttribute;
 
 namespace quantifiers {
 

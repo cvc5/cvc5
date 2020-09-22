@@ -100,7 +100,7 @@ class StringsPreprocess {
   Node simplifyRec(Node t,
                    std::vector<Node>& asserts,
                    std::map<Node, Node>& visited);
-  /** 
+  /**
    * Make internal quantified formula with bound variable list bvl and body.
    * Internally, we get a node corresponding to marking a quantified formula as
    * an "internal" one. This node is provided as the third argument of the

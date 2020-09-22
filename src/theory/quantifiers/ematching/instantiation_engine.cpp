@@ -18,11 +18,11 @@
 #include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -130,39 +130,58 @@ void InstantiationEngine::check(Theory::Effort e, QEffort quant_e)
     return;
   }
   double clSet = 0;
-  if( Trace.isOn("inst-engine") ){
-    clSet = double(clock())/double(CLOCKS_PER_SEC);
-    Trace("inst-engine") << "---Instantiation Engine Round, effort = " << e << "---" << std::endl;
+  if (Trace.isOn("inst-engine"))
+  {
+    clSet = double(clock()) / double(CLOCKS_PER_SEC);
+    Trace("inst-engine") << "---Instantiation Engine Round, effort = " << e
+                         << "---" << std::endl;
   }
-  //collect all active quantified formulas belonging to this
+  // collect all active quantified formulas belonging to this
   bool quantActive = false;
   d_quants.clear();
   FirstOrderModel* m = d_quantEngine->getModel();
   size_t nquant = m->getNumAssertedQuantifiers();
-  for( size_t i=0; i<nquant; i++ ){
-    Node q = d_quantEngine->getModel()->getAssertedQuantifier( i, true );
-    if( shouldProcess( q ) && m->isQuantifierActive( q ) ){
+  for (size_t i = 0; i < nquant; i++)
+  {
+    Node q = d_quantEngine->getModel()->getAssertedQuantifier(i, true);
+    if (shouldProcess(q) && m->isQuantifierActive(q))
+    {
       quantActive = true;
-      d_quants.push_back( q );
+      d_quants.push_back(q);
     }
   }
-  Trace("inst-engine-debug") << "InstEngine: check: # asserted quantifiers " << d_quants.size() << "/";
+  Trace("inst-engine-debug")
+      << "InstEngine: check: # asserted quantifiers " << d_quants.size() << "/";
   Trace("inst-engine-debug") << nquant << " " << quantActive << std::endl;
-  if( quantActive ){
+  if (quantActive)
+  {
     unsigned lastWaiting = d_quantEngine->getNumLemmasWaiting();
-    doInstantiationRound( e );
-    if( d_quantEngine->inConflict() ){
+    doInstantiationRound(e);
+    if (d_quantEngine->inConflict())
+    {
       Assert(d_quantEngine->getNumLemmasWaiting() > lastWaiting);
-      Trace("inst-engine") << "Conflict, added lemmas = " << (d_quantEngine->getNumLemmasWaiting()-lastWaiting) << std::endl;
-    }else if( d_quantEngine->hasAddedLemma() ){
-      Trace("inst-engine") << "Added lemmas = " << (d_quantEngine->getNumLemmasWaiting()-lastWaiting)  << std::endl;
+      Trace("inst-engine") << "Conflict, added lemmas = "
+                           << (d_quantEngine->getNumLemmasWaiting()
+                               - lastWaiting)
+                           << std::endl;
     }
-  }else{
+    else if (d_quantEngine->hasAddedLemma())
+    {
+      Trace("inst-engine") << "Added lemmas = "
+                           << (d_quantEngine->getNumLemmasWaiting()
+                               - lastWaiting)
+                           << std::endl;
+    }
+  }
+  else
+  {
     d_quants.clear();
   }
-  if( Trace.isOn("inst-engine") ){
-    double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
-    Trace("inst-engine") << "Finished instantiation engine, time = " << (clSet2-clSet) << std::endl;
+  if (Trace.isOn("inst-engine"))
+  {
+    double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
+    Trace("inst-engine") << "Finished instantiation engine, time = "
+                         << (clSet2 - clSet) << std::endl;
   }
 }
 
@@ -246,6 +265,6 @@ bool InstantiationEngine::shouldProcess(Node q)
   return true;
 }
 
-}
-}
-}
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
