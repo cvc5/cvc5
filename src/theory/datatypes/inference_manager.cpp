@@ -49,7 +49,7 @@ bool DatatypesInference::mustCommunicateFact(Node n, Node exp)
     // contribute to conflicts due to cardinality (a good example of the latter
     // is regress0/datatypes/dt-param-card4-bool-sat.smt2).
     TypeNode tn = n[0].getType();
-    addLemma = !tn.isDatatype() || tn.isInterpretedFinite();
+    addLemma = !tn.isDatatype() || (tn.getDType().involvesExternalType() && tn.isInterpretedFinite());
   }
   else if (n.getKind() == LEQ || n.getKind() == OR)
   {
