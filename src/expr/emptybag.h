@@ -47,6 +47,7 @@ class CVC4_PUBLIC EmptyBag
  private:
   EmptyBag();
 
+  /** the type of the empty bag itself (not the type of the elements)*/
   std::unique_ptr<TypeNode> d_type;
 }; /* class EmptyBag */
 
