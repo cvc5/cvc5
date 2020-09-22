@@ -191,7 +191,7 @@ void InstantiationEngine::registerQuantifier(Node q)
     return;
   }
   // also ignore internal quantifiers
-  QuantAttributes* qattr = d_quantEngine->getQuantAttributes()
+  QuantAttributes* qattr = d_quantEngine->getQuantAttributes();
   if (qattr->isInternal(q))
   {
     return;
