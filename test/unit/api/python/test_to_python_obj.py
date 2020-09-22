@@ -49,8 +49,6 @@ def testGetArray():
 
     array_dict = stores.toPythonObj()
 
-    print(array_dict)
-
     assert array_dict[1] == 2
     assert array_dict[2] == 3
     assert array_dict[4] == 5
@@ -64,3 +62,15 @@ def testGetSymbol():
 
     with pytest.raises(RuntimeError):
         x.toPythonObj()
+
+
+def testGetString():
+    solver = pycvc4.Solver()
+
+    s1 = '"test\n"😃\\u{a}'
+    t1 = solver.mkString(s1)
+    assert s1 == t1.toPythonObj()
+
+    s2 = '❤️CVC4❤️'
+    t2 = solver.mkString(s2)
+    assert s2 == t2.toPythonObj()
