@@ -26,6 +26,7 @@
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/word.h"
+#include "theory/quantifiers/quantifier_attributes.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -33,6 +34,13 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace strings {
+  
+/** Mapping to a dummy node for marking an attribute on internal quantified formulas */
+struct QInternalVarAttributeId
+{
+};
+typedef expr::Attribute<QInternalVarAttributeId, Node> QInternalVarAttribute;
+
 
 StringsPreprocess::StringsPreprocess(SkolemCache* sc,
                                      context::UserContext* u,
@@ -980,6 +988,30 @@ void StringsPreprocess::processAssertions( std::vector< Node > &vec_node ){
       vec_node[i] = res;
     }
   }
+}
+
+Node StringsPreprocess::mkForallInternal(Node bvl, Node body)
+{
+  NodeManager * nm = NodeManager::currentNM();
+  QInternalVarAttribute qiva;
+  Node qvar;
+  if (bvl.hasAttribute(qiva))
+  {
+    qvar = bvl.getAttribute(qiva);
+  }
+  else
+  {
+    qvar = nm->mkSkolem("qinternal", nm->booleanType());
+    // this dummy variable marks that the quantified formula is internal
+    qvar.setAttribute(InternalQuantAttribute(), true);
+    // remember the dummy variable
+    bvl.setAttribute(qiva, qvar);
+  }
+  // make the internal attribute, and put it in a singleton list
+  Node ip = nm->mkNode(INST_ATTRIBUTE, qvar);
+  Node ipl = nm->mkNode(INST_PATTERN_LIST, ip);
+  // make the overall formula
+  return nm->mkNode(FORALL, bvl, body, ipl);
 }
 
 }/* CVC4::theory::strings namespace */

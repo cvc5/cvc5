@@ -22,6 +22,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 
 using namespace std;
 using namespace CVC4;
@@ -186,6 +187,12 @@ void InstantiationEngine::checkOwnership(Node q)
 void InstantiationEngine::registerQuantifier(Node q)
 {
   if (!d_quantEngine->hasOwnership(q, this))
+  {
+    return;
+  }
+  // also ignore internal quantifiers
+  QuantAttributes* qattr = d_quantEngine->getQuantAttributes()
+  if (qattr->isInternal(q))
   {
     return;
   }
