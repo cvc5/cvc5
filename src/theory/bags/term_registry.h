@@ -39,7 +39,10 @@ class TermRegistry
  public:
   TermRegistry(SolverState& state, InferenceManager& im);
 
-  /** Get the empty bag of type tn */
+  /**
+   * Returns the existing empty bag for type tn
+   * or creates a new empty bag for tn and returns it. 
+   **/
   Node getEmptyBag(TypeNode tn);
 
  private:
