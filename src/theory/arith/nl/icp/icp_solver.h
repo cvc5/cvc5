@@ -19,6 +19,7 @@
 
 #ifdef CVC4_POLY_IMP
 #include <poly/polyxx.h>
+#endif /* CVC4_POLY_IMP */
 
 #include "expr/node.h"
 #include "theory/arith/inference_manager.h"
@@ -33,6 +34,8 @@ namespace theory {
 namespace arith {
 namespace nl {
 namespace icp {
+
+#ifdef CVC4_POLY_IMP
 
 /**
  * This class implements an ICP-based solver. As it is intended to be used in
@@ -132,11 +135,22 @@ class ICPSolver
   void check();
 };
 
+#else /* CVC4_POLY_IMP */
+
+class ICPSolver
+{
+ public:
+  ICPSolver(InferenceManager& im) {}
+  void reset(const std::vector<Node>& assertions);
+  void check();
+};
+
+#endif /* CVC4_POLY_IMP */
+
 }  // namespace icp
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
 
-#endif
 #endif
