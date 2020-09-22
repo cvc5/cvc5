@@ -18,8 +18,6 @@
 #include "theory/care_graph.h"
 #include "theory/ee_manager_distributed.h"
 #include "theory/model_manager_distributed.h"
-#include "theory/shared_terms_database.h"
-#include "theory/term_registration_visitor.h"
 #include "theory/theory_engine.h"
 
 namespace CVC4 {
@@ -46,11 +44,9 @@ void CombinationEngine::finishInit()
   if (options::eeMode() == options::EqEngineMode::DISTRIBUTED)
   {
     // make the distributed equality engine manager
-    std::unique_ptr<EqEngineManagerDistributed> eeDistributed(
-        new EqEngineManagerDistributed(d_te));
+    d_eemanager.reset(new EqEngineManagerDistributed(d_te));
     // make the distributed model manager
-    d_mmanager.reset(new ModelManagerDistributed(d_te, *eeDistributed.get()));
-    d_eemanager = std::move(eeDistributed);
+    d_mmanager.reset(new ModelManagerDistributed(d_te, *d_eemanager.get()));
   }
   else
   {
@@ -65,13 +61,9 @@ void CombinationEngine::finishInit()
   d_eemanager->initializeTheories();
 
   Assert(d_mmanager != nullptr);
-  // initialize the model manager
-  d_mmanager->finishInit();
-
-  // initialize equality engine of the model using the equality engine manager
-  TheoryModel* m = d_mmanager->getModel();
+  // initialize the model manager, based on the notify object of this class
   eq::EqualityEngineNotify* meen = getModelEqualityEngineNotify();
-  d_eemanager->initializeModel(m, meen);
+  d_mmanager->finishInit(meen);
 }
 
 const EeTheoryInfo* CombinationEngine::getEeTheoryInfo(TheoryId tid) const
@@ -118,7 +110,7 @@ void CombinationEngine::sendLemma(TrustNode trn, TheoryId atomsTo)
 
 void CombinationEngine::resetRound()
 {
-  // do nothing
+  // compute the relevant terms?
 }
 
 }  // namespace theory

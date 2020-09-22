@@ -71,6 +71,8 @@ class TheoryEngineProofGenerator : public ProofGenerator
   ProofNodeManager* d_pnm;
   /** Map from formulas to lazy CD proofs */
   NodeLazyCDProofMap d_proofs;
+  /** The false node */
+  Node d_false;
 };
 
 }  // namespace CVC4

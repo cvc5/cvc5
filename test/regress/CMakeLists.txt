@@ -673,6 +673,7 @@ set(regress_0_tests
   regress0/preprocess/preprocess_13.cvc
   regress0/preprocess/preprocess_14.cvc
   regress0/preprocess/preprocess_15.cvc
+  regress0/print_define_fun_internal.smt2
   regress0/print_lambda.cvc
   regress0/print_model.cvc
   regress0/printer/bv_consts_bin.smt2
@@ -987,6 +988,7 @@ set(regress_0_tests
   regress0/strings/issue4674-recomp-nf.smt2
   regress0/strings/issue4820.smt2
   regress0/strings/issue4915.smt2
+  regress0/strings/issue5090.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/large-model.smt2
   regress0/strings/leadingzero001.smt2
@@ -2188,6 +2190,9 @@ set(regress_3_tests
   regress3/bmc-ibm-5.smtv1.smt2
   regress3/bmc-ibm-7.smtv1.smt2
   regress3/bv_to_int_and_or.smt2
+  regress3/bv_to_int_check_bvsge_bvashr0_4bit.smt2.minimized.smt2
+  regress3/bv_to_int_check_ne_bvlshr0_4bit.smt2.minimized.smt2
+  regress3/bv_to_int_input_mouser_detect.c.smt2.minimized.smt2
   regress3/eq_diamond14.smtv1.smt2
   regress3/friedman_n6_i4.smtv1.smt2
   regress3/hole9.cvc
