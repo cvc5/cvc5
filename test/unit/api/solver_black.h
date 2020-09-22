@@ -48,6 +48,7 @@ class SolverBlack : public CxxTest::TestSuite
   void testMkPredicateSort();
   void testMkRecordSort();
   void testMkSetSort();
+  void testMkBagSort();
   void testMkSequenceSort();
   void testMkSortConstructorSort();
   void testMkTupleSort();
@@ -59,6 +60,7 @@ class SolverBlack : public CxxTest::TestSuite
   void testMkConst();
   void testMkConstArray();
   void testMkEmptySet();
+  void testMkEmptyBag();
   void testMkEmptySequence();
   void testMkFalse();
   void testMkFloatingPoint();
@@ -421,7 +423,17 @@ void SolverBlack::testMkSetSort()
   TS_ASSERT_THROWS_NOTHING(d_solver->mkSetSort(d_solver->getIntegerSort()));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkSetSort(d_solver->mkBitVectorSort(4)));
   Solver slv;
-  TS_ASSERT_THROWS(slv.mkSetSort(d_solver->mkBitVectorSort(4)),
+  TS_ASSERT_THROWS(slv.mkBagSort(d_solver->mkBitVectorSort(4)),
+                   CVC4ApiException&);
+}
+
+void SolverBlack::testMkBagSort()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkBagSort(d_solver->getBooleanSort()));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkBagSort(d_solver->getIntegerSort()));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkBagSort(d_solver->mkBitVectorSort(4)));
+  Solver slv;
+  TS_ASSERT_THROWS(slv.mkBagSort(d_solver->mkBitVectorSort(4)),
                    CVC4ApiException&);
 }
 
@@ -594,6 +606,17 @@ void SolverBlack::testMkEmptySet()
   TS_ASSERT_THROWS(d_solver->mkEmptySet(d_solver->getBooleanSort()),
                    CVC4ApiException&);
   TS_ASSERT_THROWS(slv.mkEmptySet(s), CVC4ApiException&);
+}
+
+void SolverBlack::testMkEmptyBag()
+{
+  Solver slv;
+  Sort s = d_solver->mkBagSort(d_solver->getBooleanSort());
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkEmptyBag(Sort()));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkEmptyBag(s));
+  TS_ASSERT_THROWS(d_solver->mkEmptyBag(d_solver->getBooleanSort()),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.mkEmptyBag(s), CVC4ApiException&);
 }
 
 void SolverBlack::testMkEmptySequence()

@@ -31,8 +31,6 @@ class SolverState : public TheoryState
  public:
   SolverState(context::Context* c, context::UserContext* u, Valuation val);
 
-  //-------------------------------- initialize per check
-
  private:
   /** constants */
   Node d_true;

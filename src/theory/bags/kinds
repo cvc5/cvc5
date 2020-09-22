@@ -43,7 +43,7 @@ operator INTERSECTION_MIN  2  "bag intersection (min)"
 operator DIFFERENCE_SUBTRACT    2  "bag difference1 (subtracts multiplicities)"
 
 # {("a", 2), ("b", 3)} \\ {("a", 1)} = {("b", 3)}
-operator DIFFERENCE_REMOVE 2  "bag difference2 (removes shared elements)"
+operator DIFFERENCE_REMOVE 2  "bag difference remove (removes shared elements)"
 
 operator BAG_IS_INCLUDED   2  "inclusion predicate for bags (less than or equal multiplicities)"
 operator BAG_COUNT         2  "multiplicity of an element in a bag"
