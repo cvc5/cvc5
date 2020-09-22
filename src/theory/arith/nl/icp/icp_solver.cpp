@@ -117,7 +117,6 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
       poly::Polynomial rhs = as_poly_polynomial(val, d_mapper, rhsmult);
       rhsmult = poly::Rational(1) / rhsmult;
       // only correct up to a constant (denominator is thrown away!)
-      // std::cout << "rhs = " << rhs << std::endl;
       if (!veq_c.isNull())
       {
         rhsmult = poly_utils::toRational(veq_c.getConst<Rational>());

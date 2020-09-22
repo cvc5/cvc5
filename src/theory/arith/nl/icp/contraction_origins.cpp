@@ -108,7 +108,8 @@ inline std::ostream& operator<<(std::ostream& os,
                                 const ContractionOriginManager& com)
 {
   os << "ContractionOrigins:" << std::endl;
-  for (const auto& vars : com.currentOrigins())
+  const auto& origins = com.currentOrigins();
+  for (const auto& vars : origins)
   {
     os << vars.first << ":" << std::endl;
     print(os, "\t", vars.second);
