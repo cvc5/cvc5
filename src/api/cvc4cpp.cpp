@@ -1099,7 +1099,17 @@ Sort Sort::getSetElementSort() const
   return Sort(d_solver, SetType(*d_type).getElementType());
 }
 
-/* Set sort ------------------------------------------------------------ */
+/* Bag sort ------------------------------------------------------------ */
+
+Sort Sort::getBagElementSort() const
+{
+  CVC4_API_CHECK(isBag()) << "Not a bag sort.";
+  TypeNode typeNode = TypeNode::fromType(*d_type);
+  Type type = typeNode.getBagElementType().toType();
+  return Sort(d_solver, type);
+}
+
+/* Sequence sort ------------------------------------------------------- */
 
 Sort Sort::getSequenceElementSort() const
 {

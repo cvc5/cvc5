@@ -531,6 +531,13 @@ class CVC4_PUBLIC Sort
    */
   Sort getSetElementSort() const;
 
+  /* Bag sort ------------------------------------------------------------ */
+
+  /**
+   * @return the element sort of a bag sort
+   */
+  Sort getBagElementSort() const;
+
   /* Sequence sort ------------------------------------------------------- */
 
   /**
