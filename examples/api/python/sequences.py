@@ -1,19 +1,19 @@
 #!/usr/bin/env python
-
 #####################
-#! \file sequences.py
-## \verbatim
+## sequences.py
 ## Top contributors (to current version):
-##   Andres Noetzli
+##   Andres Noetzli, Makai Mann
 ## This file is part of the CVC4 project.
 ## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
-## in the top-level source directory) and their institutional affiliations.
+## in the top-level source directory and their institutional affiliations.
 ## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.\endverbatim
+## directory for licensing information.
 ##
-## \brief A simple demonstration of the solving capabilities of the CVC4
+## A simple demonstration of the solving capabilities of the CVC4
 ## strings solver through the Python API. This is a direct translation
 ## of sequences.cpp.
+##
+
 import pycvc4
 from pycvc4 import kinds
 
