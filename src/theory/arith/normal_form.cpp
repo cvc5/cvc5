@@ -5,7 +5,7 @@
  **   Tim King, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -814,6 +814,64 @@ DeltaRational Comparison::normalizedDeltaRational() const {
     }
     default: Unhandled() << cmpKind;
   }
+}
+
+std::tuple<Polynomial, Kind, Constant> Comparison::decompose(
+    bool split_constant) const
+{
+  Kind rel = getNode().getKind();
+  if (rel == Kind::NOT)
+  {
+    switch (getNode()[0].getKind())
+    {
+      case kind::LEQ: rel = Kind::GT; break;
+      case kind::LT: rel = Kind::GEQ; break;
+      case kind::EQUAL: rel = Kind::DISTINCT; break;
+      case kind::DISTINCT: rel = Kind::EQUAL; break;
+      case kind::GEQ: rel = Kind::LT; break;
+      case kind::GT: rel = Kind::LEQ; break;
+      default:
+        Assert(false) << "Unsupported relation: " << getNode()[0].getKind();
+    }
+  }
+
+  Polynomial poly = getLeft() - getRight();
+
+  if (!split_constant)
+  {
+    return std::tuple<Polynomial, Kind, Constant>{
+        poly, rel, Constant::mkZero()};
+  }
+
+  Constant right = Constant::mkZero();
+  if (poly.containsConstant())
+  {
+    right = -poly.getHead().getConstant();
+    poly = poly + Polynomial::mkPolynomial(right);
+  }
+
+  Constant lcoeff = poly.getHead().getConstant();
+  if (!lcoeff.isOne())
+  {
+    Constant invlcoeff = lcoeff.inverse();
+    if (lcoeff.isNegative())
+    {
+      switch (rel)
+      {
+        case kind::LEQ: rel = Kind::GEQ; break;
+        case kind::LT: rel = Kind::GT; break;
+        case kind::EQUAL: break;
+        case kind::DISTINCT: break;
+        case kind::GEQ: rel = Kind::LEQ; break;
+        case kind::GT: rel = Kind::LT; break;
+        default: Assert(false) << "Unsupported relation: " << rel;
+      }
+    }
+    poly = poly * invlcoeff;
+    right = right * invlcoeff;
+  }
+
+  return std::tuple<Polynomial, Kind, Constant>{poly, rel, right};
 }
 
 Comparison Comparison::parseNormalForm(TNode n) {
