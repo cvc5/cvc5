@@ -565,13 +565,13 @@ class NodeManager {
 
   /** Create a instantiation constant with the given type. */
   Node mkInstConstant(const TypeNode& type);
-  
+
   /** Create a boolean term variable. */
   Node mkBooleanTermVariable();
 
   /** Make a new abstract value with the given type. */
   Node mkAbstractValue(const TypeNode& type);
-  
+
   /** make unique (per Type,Kind) variable. */
   Node mkNullaryOperator(const TypeNode& type, Kind k);
 
@@ -876,7 +876,7 @@ class NodeManager {
 
   /** Make the type of floating-point with <code>exp</code> bit exponent and
       <code>sig</code> bit significand */
-  inline TypeNode mkFloatingPointType(unsigned exp, unsigned sig);  
+  inline TypeNode mkFloatingPointType(unsigned exp, unsigned sig);
   inline TypeNode mkFloatingPointType(FloatingPointSize fs);
 
   /** Make the type of bitvectors of size <code>size</code> */
@@ -887,6 +887,9 @@ class NodeManager {
 
   /** Make the type of set with the given parameterization */
   inline TypeNode mkSetType(TypeNode elementType);
+
+  /** Make the type of bags with the given parameterization */
+  TypeNode mkBagType(TypeNode elementType);
 
   /** Make the type of sequences with the given parameterization */
   TypeNode mkSequenceType(TypeNode elementType);
