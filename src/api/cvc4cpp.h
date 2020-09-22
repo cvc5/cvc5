@@ -388,7 +388,7 @@ class CVC4_PUBLIC Sort
 
   /**
    * Is this a Bag sort?
-   * @return true if the sort is a Set sort
+   * @return true if the sort is a Bag sort
    */
   bool isBag() const;
 

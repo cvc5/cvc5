@@ -110,7 +110,7 @@ struct CountTypeRule
             n, "checking for membership in a non-bag");
       }
       TypeNode elementType = n[0].getType(check);
-      // TODO(#226): comments from sets
+      // TODO(projects#226): comments from sets
       //
       // T : (Bag Int)
       // B : (Bag Real)

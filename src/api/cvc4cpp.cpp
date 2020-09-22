@@ -3706,7 +3706,7 @@ Term Solver::mkEmptyBag(Sort s) const
       << "null sort or bag sort";
 
   CVC4_API_ARG_CHECK_EXPECTED(s.isNull() || this == s.d_solver, s)
-      << "set sort associated to this solver object";
+      << "bag sort associated to this solver object";
 
   return mkValHelper<CVC4::EmptyBag>(
       CVC4::EmptyBag(TypeNode::fromType(*s.d_type)));

@@ -91,7 +91,7 @@ void TheoryBags::preRegisterTerm(TNode node) {}
 
 TrustNode TheoryBags::expandDefinition(Node n)
 {
-  // TODO(#224): add choose and is_singleton here
+  // TODO(projects#224): add choose and is_singleton here
   return TrustNode::null();
 }
 

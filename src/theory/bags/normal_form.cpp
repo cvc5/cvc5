@@ -18,7 +18,7 @@ namespace bags {
 
 bool NormalForm::checkNormalConstant(TNode n)
 {
-  // TODO(#223): complete this function
+  // TODO(projects#223): complete this function
   return false;
 }
 
