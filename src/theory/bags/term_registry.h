@@ -41,7 +41,7 @@ class TermRegistry
 
   /**
    * Returns the existing empty bag for type tn
-   * or creates a new empty bag for tn and returns it. 
+   * or creates a new one and returns it.
    **/
   Node getEmptyBag(TypeNode tn);
 
