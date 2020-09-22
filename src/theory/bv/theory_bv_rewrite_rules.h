@@ -5,7 +5,7 @@
  **   Liana Hadarean, Dejan Jovanovic, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -203,6 +203,7 @@ enum RewriteRuleId
   ConcatToMult,
   IsPowerOfTwo,
   MultSltMult,
+  BitOfConst,
 };
 
 inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
@@ -367,6 +368,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case IsPowerOfTwo: out << "IsPowerOfTwo"; return out;
   case MultSltMult: out << "MultSltMult"; return out;
   case NormalizeEqPlusNeg: out << "NormalizeEqPlusNeg"; return out;
+  case BitOfConst: out << "BitOfConst"; return out;
   default:
     Unreachable();
   }

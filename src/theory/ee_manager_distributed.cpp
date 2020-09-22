@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -21,14 +21,12 @@ namespace CVC4 {
 namespace theory {
 
 EqEngineManagerDistributed::EqEngineManagerDistributed(TheoryEngine& te)
-    : d_te(te), d_masterEENotify(nullptr)
+    : EqEngineManager(te), d_masterEENotify(nullptr)
 {
 }
 
 EqEngineManagerDistributed::~EqEngineManagerDistributed()
 {
-  // pop the model context which we pushed on initialization
-  d_modelEeContext.pop();
 }
 
 void EqEngineManagerDistributed::initializeTheories()
@@ -96,61 +94,15 @@ void EqEngineManagerDistributed::initializeTheories()
   }
 }
 
-void EqEngineManagerDistributed::initializeModel(
-    TheoryModel* m, eq::EqualityEngineNotify* notify)
-{
-  Assert(m != nullptr);
-  // initialize the model equality engine
-  EeSetupInfo esim;
-  if (m->needsEqualityEngine(esim))
-  {
-    // use the provided notification object
-    esim.d_notify = notify;
-    d_modelEqualityEngine.reset(
-        allocateEqualityEngine(esim, &d_modelEeContext));
-    m->setEqualityEngine(d_modelEqualityEngine.get());
-  }
-  else
-  {
-    AlwaysAssert(false) << "Expected model to use equality engine";
-  }
-  m->finishInit();
-  // We push a context during initialization since the model is cleared during
-  // collectModelInfo using pop/push.
-  d_modelEeContext.push();
-}
-
 void EqEngineManagerDistributed::MasterNotifyClass::eqNotifyNewClass(TNode t)
 {
   // adds t to the quantifiers term database
   d_quantEngine->eqNotifyNewClass(t);
 }
 
-context::Context* EqEngineManagerDistributed::getModelEqualityEngineContext()
-{
-  return &d_modelEeContext;
-}
-
-eq::EqualityEngine* EqEngineManagerDistributed::getModelEqualityEngine()
-{
-  return d_modelEqualityEngine.get();
-}
-
 eq::EqualityEngine* EqEngineManagerDistributed::getCoreEqualityEngine()
 {
   return d_masterEqualityEngine.get();
-}
-
-eq::EqualityEngine* EqEngineManagerDistributed::allocateEqualityEngine(
-    EeSetupInfo& esi, context::Context* c)
-{
-  if (esi.d_notify != nullptr)
-  {
-    return new eq::EqualityEngine(
-        *esi.d_notify, c, esi.d_name, esi.d_constantsAreTriggers);
-  }
-  // the theory doesn't care about explicit notifications
-  return new eq::EqualityEngine(c, esi.d_name, esi.d_constantsAreTriggers);
 }
 
 }  // namespace theory
