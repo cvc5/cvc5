@@ -180,11 +180,9 @@ void Command::invoke(api::Solver* solver, std::ostream& out)
   invoke(solver);
   if (!(isMuted() && ok()))
   {
-    printResult(out,
-                solver->getSmtEngine()
-                    ->getOption("command-verbosity:" + getCommandName())
-                    .getIntegerValue()
-                    .toUnsignedInt());
+    printResult(
+        out,
+        std::stoul(solver->getOption("command-verbosity:" + getCommandName())));
   }
 }
 
@@ -253,11 +251,9 @@ void EchoCommand::invoke(api::Solver* solver, std::ostream& out)
   Trace("dtview::command") << "* ~COMMAND: echo |" << d_output << "|~"
                            << std::endl;
   d_commandStatus = CommandSuccess::instance();
-  printResult(out,
-              solver->getSmtEngine()
-                  ->getOption("command-verbosity:" + getCommandName())
-                  .getIntegerValue()
-                  .toUnsignedInt());
+  printResult(
+      out,
+      std::stoul(solver->getOption("command-verbosity:" + getCommandName())));
 }
 
 Command* EchoCommand::clone() const { return new EchoCommand(d_output); }
@@ -1663,21 +1659,18 @@ void GetValueCommand::invoke(api::Solver* solver)
 {
   try
   {
-    ExprManager* em = solver->getExprManager();
-    NodeManager* nm = NodeManager::fromExprManager(em);
+    NodeManager* nm = solver->getNodeManager();
     smt::SmtScope scope(solver->getSmtEngine());
-    vector<Expr> result =
-        solver->getSmtEngine()->getValues(api::termVectorToExprs(d_terms));
+    vector<Node> result = api::termVectorToNodes(solver->getValue(d_terms));
     Assert(result.size() == d_terms.size());
     for (int i = 0, size = d_terms.size(); i < size; i++)
     {
       api::Term t = d_terms[i];
       Node tNode = t.getNode();
-      Assert(nm == NodeManager::fromExprManager(t.getExpr().getExprManager()));
       Node request = options::expandDefinitions()
                          ? solver->getSmtEngine()->expandDefinitions(tNode)
                          : tNode;
-      Node value = Node::fromExpr(result[i]);
+      Node value = result[i];
       if (value.getType().isInteger() && request.getType() == nm->realType())
       {
         // Need to wrap in division-by-one so that output printers know this
@@ -1685,9 +1678,9 @@ void GetValueCommand::invoke(api::Solver* solver)
         // a rational.  Necessary for SMT-LIB standards compliance.
         value = nm->mkNode(kind::DIVISION, value, nm->mkConst(Rational(1)));
       }
-      result[i] = nm->mkNode(kind::SEXPR, request, value).toExpr();
+      result[i] = nm->mkNode(kind::SEXPR, request, value);
     }
-    d_result = api::Term(solver, em->mkExpr(kind::SEXPR, result));
+    d_result = api::Term(solver, nm->mkNode(kind::SEXPR, result));
     d_commandStatus = CommandSuccess::instance();
   }
   catch (RecoverableModalException& e)

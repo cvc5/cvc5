@@ -309,34 +309,56 @@ restart:
   CommandSequence *cmd_seq = new CommandSequence();
   Command *cmd;
 
-  try {
-    while( (cmd = d_parser->nextCommand()) ) {
+  try
+  {
+    while ((cmd = d_parser->nextCommand()))
+    {
       cmd_seq->addCommand(cmd);
-      if(dynamic_cast<QuitCommand*>(cmd) != NULL) {
+      if (dynamic_cast<QuitCommand*>(cmd) != NULL)
+      {
         d_quit = true;
         break;
-      } else {
+      }
+      else
+      {
 #if HAVE_LIBEDITLINE
-        if(dynamic_cast<DeclareFunctionCommand*>(cmd) != NULL) {
-          s_declarations.insert(dynamic_cast<DeclareFunctionCommand*>(cmd)->getSymbol());
-        } else if(dynamic_cast<DefineFunctionCommand*>(cmd) != NULL) {
-          s_declarations.insert(dynamic_cast<DefineFunctionCommand*>(cmd)->getSymbol());
-        } else if(dynamic_cast<DeclareSortCommand*>(cmd) != NULL) {
-          s_declarations.insert(dynamic_cast<DeclareSortCommand*>(cmd)->getSymbol());
-        } else if(dynamic_cast<DefineSortCommand*>(cmd) != NULL) {
-          s_declarations.insert(dynamic_cast<DefineSortCommand*>(cmd)->getSymbol());
+        if (dynamic_cast<DeclareFunctionCommand*>(cmd) != NULL)
+        {
+          s_declarations.insert(
+              dynamic_cast<DeclareFunctionCommand*>(cmd)->getSymbol());
+        }
+        else if (dynamic_cast<DefineFunctionCommand*>(cmd) != NULL)
+        {
+          s_declarations.insert(
+              dynamic_cast<DefineFunctionCommand*>(cmd)->getSymbol());
+        }
+        else if (dynamic_cast<DeclareSortCommand*>(cmd) != NULL)
+        {
+          s_declarations.insert(
+              dynamic_cast<DeclareSortCommand*>(cmd)->getSymbol());
+        }
+        else if (dynamic_cast<DefineSortCommand*>(cmd) != NULL)
+        {
+          s_declarations.insert(
+              dynamic_cast<DefineSortCommand*>(cmd)->getSymbol());
         }
 #endif /* HAVE_LIBEDITLINE */
       }
     }
-  } catch(ParserEndOfFileException& pe) {
+  }
+  catch (ParserEndOfFileException& pe)
+  {
     line += "\n";
     goto restart;
-  } catch(ParserException& pe) {
+  }
+  catch (ParserException& pe)
+  {
     if (language::isOutputLang_smt2(d_options.getOutputLanguage()))
     {
       d_out << "(error \"" << pe << "\")" << endl;
-    } else {
+    }
+    else
+    {
       d_out << pe << endl;
     }
     // We can't really clear out the sequence and abort the current line,
@@ -350,8 +372,8 @@ restart:
     // FIXME: does that mean e.g. that a pushed LET scope might not yet have
     // been popped?!
     //
-    //delete cmd_seq;
-    //cmd_seq = new CommandSequence();
+    // delete cmd_seq;
+    // cmd_seq = new CommandSequence();
   }
 
   return cmd_seq;
