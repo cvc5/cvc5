@@ -124,6 +124,14 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
   }
 
+  /* BVSolver::SIMPLE does not natively support int2bv and nat2bv, they need to
+   * to be eliminated eagerly. */
+  if (options::bvSolver() == options::BVSolver::SIMPLE)
+  {
+    options::bvLazyReduceExtf.set(false);
+    options::bvLazyRewriteExtf.set(false);
+  }
+
   if (options::solveIntAsBV() > 0)
   {
     // not compatible with incremental
