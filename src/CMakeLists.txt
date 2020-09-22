@@ -1,3 +1,13 @@
+#####################
+## CMakeLists.txt
+## Top contributors (to current version):
+##   Mathias Preiner, Andrew Reynolds, Gereon Kremer
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
 #-----------------------------------------------------------------------------#
 # Collect libcvc4 source files
 
@@ -323,6 +333,16 @@ libcvc4_add_sources(
   theory/arith/nl/ext_theory_callback.h
   theory/arith/nl/iand_solver.cpp
   theory/arith/nl/iand_solver.h
+  theory/arith/nl/icp/candidate.cpp
+  theory/arith/nl/icp/candidate.h
+  theory/arith/nl/icp/contraction_origins.cpp
+  theory/arith/nl/icp/contraction_origins.h
+  theory/arith/nl/icp/icp_solver.cpp
+  theory/arith/nl/icp/icp_solver.h
+  theory/arith/nl/icp/intersection.cpp
+  theory/arith/nl/icp/intersection.h
+  theory/arith/nl/icp/variable_bounds.cpp
+  theory/arith/nl/icp/variable_bounds.h
   theory/arith/nl/nl_constraint.cpp
   theory/arith/nl/nl_constraint.h
   theory/arith/nl/nl_lemma_utils.cpp
@@ -366,6 +386,10 @@ libcvc4_add_sources(
   theory/arith/type_enumerator.h
   theory/arrays/array_info.cpp
   theory/arrays/array_info.h
+  theory/arrays/proof_checker.cpp
+  theory/arrays/proof_checker.h
+  theory/arrays/skolem_cache.cpp
+  theory/arrays/skolem_cache.h
   theory/arrays/theory_arrays.cpp
   theory/arrays/theory_arrays.h
   theory/arrays/theory_arrays_rewriter.cpp
