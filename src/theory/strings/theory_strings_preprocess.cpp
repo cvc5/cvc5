@@ -26,7 +26,7 @@
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/word.h"
-#include "theory/quantifiers/quantifier_attributes.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
