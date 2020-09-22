@@ -78,6 +78,11 @@ class InferenceManager : public InferenceManagerBuffered
    */
   void flushWaitingLemmas();
 
+  /**
+   * Removes all waiting lemmas without sending them anywhere.
+   */
+  void clearWaitingLemmas();
+
   /** Add a conflict to the this inference manager. */
   void addConflict(const Node& conf, InferenceId inftype);
 
