@@ -19,6 +19,7 @@
 
 #include "options/arith_options.h"
 #include "options/theory_options.h"
+#include "theory/arith/arith_state.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/ext_theory.h"
@@ -49,7 +50,7 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       d_nlSlv(d_im, state, d_model),
       d_cadSlv(d_im, d_model),
       d_icpSlv(d_im),
-      d_iandSlv(containing, d_model),
+      d_iandSlv(d_im, state, d_model),
       d_builtModel(containing.getSatContext(), false)
 {
   d_extTheory.addFunctionKind(kind::NONLINEAR_MULT);
@@ -448,13 +449,12 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     }
   }
   //-----------------------------------initial lemmas for iand
-  lemmas = d_iandSlv.checkInitialRefine();
-  filterLemmas(lemmas, lems);
-  if (!lems.empty())
+  d_iandSlv.checkInitialRefine();
+  if (d_im.hasUsed())
   {
-    Trace("nl-ext") << "  ...finished with " << lems.size() << " new lemmas."
+    Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas() << " new lemmas."
                     << std::endl;
-    return lems.size();
+    return d_im.numPendingLemmas();
   }
 
   // main calls to nlExt
@@ -571,13 +571,12 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     }
   }
   // run the full refinement in the IAND solver
-  lemmas = d_iandSlv.checkFullRefine();
-  filterLemmas(lemmas, wlems);
+  d_iandSlv.checkFullRefine();
 
-  Trace("nl-ext") << "  ...finished with "
-                  << (wlems.size() + d_im.numWaitingLemmas())
-                  << " waiting lemmas." << std::endl;
-
+  Trace("nl-ext") << "  ...finished with " << d_im.numWaitingLemmas() << " waiting lemmas."
+                  << std::endl;
+  Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas() << " lemmas."
+                  << std::endl;
   return 0;
 }
 
