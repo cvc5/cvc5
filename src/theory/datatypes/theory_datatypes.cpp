@@ -1552,12 +1552,17 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
     return;
   }
   eq = tt.eqNode(tt_cons);
-  // force lemma if there exists an argument of finite external type
+  // Determine if the equality must be sent out as a lemma. Notice that
+  // we can keep new equalities from the instantiate rule internal as long as
+  // they are for datatype constructors that have no arguments that have
+  // finite external type. Such equalities must be sent because they introduce
+  // selector terms that may contribute to conflicts due to cardinality (good
+  // examples of this are regress0/datatypes/dt-param-card4-bool-sat.smt2 and
+  // regress0/datatypes/list-bool.smt2).
   bool forceLemma = dt[index].hasFiniteExternalArgType(ttn);
-  Debug("datatypes-inst") << "DtInstantiate : " << eqc << " " << eq
+  Trace("datatypes-infer-debug") << "DtInstantiate : " << eqc << " " << eq
                           << " forceLemma = " << forceLemma << std::endl;
   d_im.addPendingInference(eq, exp, nullptr, forceLemma);
-  Trace("datatypes-infer-debug") << "inst : " << eqc << " " << n << std::endl;
   Trace("datatypes-infer") << "DtInfer : instantiate : " << eq << " by " << exp
                            << std::endl;
 }

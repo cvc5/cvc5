@@ -42,19 +42,13 @@ bool DatatypesInference::mustCommunicateFact(Node n, Node exp)
   }
   else if (n.getKind() == EQUAL)
   {
-    // Datatypes can keep new equalities internal as long as they are for
-    // datatypes that have infinite type. Non-datatype equalities must be
-    // sent as lemmas since they belong to other theories. Finite datatype
-    // equalities must be sent because they introduce selector terms that may
-    // contribute to conflicts due to cardinality (a good example of the latter
-    // is regress0/datatypes/dt-param-card4-bool-sat.smt2). Also, datatypes
-    // that do not involve external types, i.e. all their subfield types are
-    // datatypes, never need to be sent as lemmas since they do not involve
-    // other theories.
+    // Note that equalities due to instantiate are forced as lemmas if
+    // necessary as they are created. This ensures that terms are shared with
+    // external theories when necessary. We send the lemma here only if
+    // the equality is not for datatype terms, which can happen for collapse
+    // selector / term size or unification.
     TypeNode tn = n[0].getType();
-    addLemma =
-        !tn.isDatatype()
-        || (tn.getDType().involvesExternalType() && tn.isInterpretedFinite());
+    addLemma = !tn.isDatatype();
   }
   else if (n.getKind() == LEQ || n.getKind() == OR)
   {
@@ -71,7 +65,9 @@ bool DatatypesInference::mustCommunicateFact(Node n, Node exp)
 
 bool DatatypesInference::process(TheoryInferenceManager* im, bool asLemma)
 {
-  // check to see if we have to communicate it to the rest of the system
+  // Check to see if we have to communicate it to the rest of the system.
+  // The flag asLemma is true when the inference was marked that it must be
+  // sent as a lemma in addPendingInference below.
   if (asLemma || mustCommunicateFact(d_conc, d_exp))
   {
     // send it as an (explained) lemma

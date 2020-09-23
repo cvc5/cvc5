@@ -310,7 +310,7 @@ class DTypeConstructor
    * type t, and a Boolean indicating whether the constructor has any arguments
    * that have finite external type.
    */
-  std::pair<CardinalityType, bool> computeCardinalityInfo(TypeNode tn) const;
+  std::pair<CardinalityType, bool> computeCardinalityInfo(TypeNode t) const;
   /** compute shared selectors
    * This computes the maps d_sharedSelectors and d_sharedSelectorIndex.
    */

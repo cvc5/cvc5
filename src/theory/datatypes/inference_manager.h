@@ -72,6 +72,13 @@ class InferenceManager : public InferenceManagerBuffered
   /**
    * Add pending inference, which may be processed as either a fact or
    * a lemma based on mustCommunicateFact in DatatypesInference above.
+   *
+   * @param conc The conclusion of the inference
+   * @param exp The explanation of the inference
+   * @param pg The proof generator who can provide a proof of (conc => exp)
+   * @param forceLemma Whether this inference *must* be processed as a lemma.
+   * Otherwise, it may be processed as a fact or lemma based on
+   * mustCommunicateFact.
    */
   void addPendingInference(Node conc,
                            Node exp,
