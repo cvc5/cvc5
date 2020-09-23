@@ -2,10 +2,10 @@
 /*! \file solver_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Abdalrhman Mohamed, Makai Mann
+ **   Aina Niemetz, Andres Noetzli, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -26,6 +26,8 @@ class SolverBlack : public CxxTest::TestSuite
  public:
   void setUp() override;
   void tearDown() override;
+
+  void testRecoverableException();
 
   void testSupportsFloatingPoint();
 
@@ -48,6 +50,7 @@ class SolverBlack : public CxxTest::TestSuite
   void testMkPredicateSort();
   void testMkRecordSort();
   void testMkSetSort();
+  void testMkBagSort();
   void testMkSequenceSort();
   void testMkSortConstructorSort();
   void testMkTupleSort();
@@ -59,6 +62,7 @@ class SolverBlack : public CxxTest::TestSuite
   void testMkConst();
   void testMkConstArray();
   void testMkEmptySet();
+  void testMkEmptyBag();
   void testMkEmptySequence();
   void testMkFalse();
   void testMkFloatingPoint();
@@ -170,6 +174,14 @@ class SolverBlack : public CxxTest::TestSuite
 void SolverBlack::setUp() { d_solver.reset(new Solver()); }
 
 void SolverBlack::tearDown() { d_solver.reset(nullptr); }
+
+void SolverBlack::testRecoverableException()
+{
+  d_solver->setOption("produce-models", "true");
+  Term x = d_solver->mkConst(d_solver->getBooleanSort(), "x");
+  d_solver->assertFormula(x.eqTerm(x).notTerm());
+  TS_ASSERT_THROWS(d_solver->printModel(std::cout), CVC4ApiRecoverableException&);
+}
 
 void SolverBlack::testSupportsFloatingPoint()
 {
@@ -425,6 +437,16 @@ void SolverBlack::testMkSetSort()
                    CVC4ApiException&);
 }
 
+void SolverBlack::testMkBagSort()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkBagSort(d_solver->getBooleanSort()));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkBagSort(d_solver->getIntegerSort()));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkBagSort(d_solver->mkBitVectorSort(4)));
+  Solver slv;
+  TS_ASSERT_THROWS(slv.mkBagSort(d_solver->mkBitVectorSort(4)),
+                   CVC4ApiException&);
+}
+
 void SolverBlack::testMkSequenceSort()
 {
   TS_ASSERT_THROWS_NOTHING(
@@ -594,6 +616,17 @@ void SolverBlack::testMkEmptySet()
   TS_ASSERT_THROWS(d_solver->mkEmptySet(d_solver->getBooleanSort()),
                    CVC4ApiException&);
   TS_ASSERT_THROWS(slv.mkEmptySet(s), CVC4ApiException&);
+}
+
+void SolverBlack::testMkEmptyBag()
+{
+  Solver slv;
+  Sort s = d_solver->mkBagSort(d_solver->getBooleanSort());
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkEmptyBag(Sort()));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkEmptyBag(s));
+  TS_ASSERT_THROWS(d_solver->mkEmptyBag(d_solver->getBooleanSort()),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.mkEmptyBag(s), CVC4ApiException&);
 }
 
 void SolverBlack::testMkEmptySequence()

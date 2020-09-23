@@ -1,3 +1,5 @@
+from collections import defaultdict
+from fractions import Fraction
 import sys
 
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
@@ -698,7 +700,9 @@ cdef class Solver:
         cdef Term term = Term(self)
         cdef vector[unsigned] v
         if isinstance(str_or_vec, str):
-            term.cterm = self.csolver.mkString(<string &> str_or_vec.encode())
+            for u in str_or_vec:
+                v.push_back(<unsigned> ord(u))
+            term.cterm = self.csolver.mkString(<const vector[unsigned]&> v)
         elif isinstance(str_or_vec, list):
             for u in str_or_vec:
                 if not isinstance(u, int):
@@ -1502,6 +1506,120 @@ cdef class Term:
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.iteTerm(then_t.cterm, else_t.cterm)
         return term
+
+    def toPythonObj(self):
+        '''
+        Converts a constant value Term to a Python object.
+        Requires isConst to hold.
+
+        Currently supports:
+          Boolean -- returns a Python bool
+          Int     -- returns a Python int
+          Real    -- returns a Python Fraction
+          BV      -- returns a Python int (treats BV as unsigned)
+          Array   -- returns a Python dict mapping indices to values
+                  -- the constant base is returned as the default value
+          String  -- returns a Python Unicode string
+        '''
+
+        if not self.isConst():
+            raise RuntimeError("Cannot call toPythonObj on a non-const Term")
+
+        string_repr = self.cterm.toString().decode()
+        assert string_repr
+        sort = self.getSort()
+        res = None
+        if sort.isBoolean():
+            if string_repr == "true":
+                res = True
+            else:
+                assert string_repr == "false"
+                res = False
+        elif sort.isInteger():
+            updated_string_repr = string_repr.strip('()').replace(' ', '')
+            try:
+                res = int(updated_string_repr)
+            except:
+                raise ValueError("Failed to convert"
+                                 " {} to an int".format(string_repr))
+        elif sort.isReal():
+            updated_string_repr = string_repr
+            try:
+                # expecting format (/ a b)
+                # note: a or b could be negated: (- a)
+                splits = [s.strip('()/')
+                          for s in updated_string_repr.strip('()/') \
+                          .replace('(- ', '(-').split()]
+                assert len(splits) == 2
+                num = int(splits[0])
+                den = int(splits[1])
+                res = Fraction(num, den)
+            except:
+                raise ValueError("Failed to convert "
+                                 "{} to a Fraction".format(string_repr))
+
+        elif sort.isBitVector():
+            # expecting format #b<bits>
+            assert string_repr[:2] == "#b"
+            python_bin_repr = "0" + string_repr[1:]
+            try:
+                res = int(python_bin_repr, 2)
+            except:
+                raise ValueError("Failed to convert bitvector "
+                                 "{} to an int".format(string_repr))
+        elif sort.isArray():
+            keys = []
+            values = []
+            base_value = None
+            to_visit = [self]
+            # Array models are represented as a series of store operations
+            # on a constant array
+            while to_visit:
+                t = to_visit.pop()
+                if t.getKind() == kinds.Store:
+                    # save the mappings
+                    keys.append(t[1].toPythonObj())
+                    values.append(t[2].toPythonObj())
+                    to_visit.append(t[0])
+                else:
+                    assert t.getKind() == kinds.ConstArray
+                    base_value = t.getConstArrayBase().toPythonObj()
+
+            assert len(keys) == len(values)
+            assert base_value is not None
+
+            # put everything in a dictionary with the constant
+            # base as the result for any index not included in the stores
+            res = defaultdict(lambda : base_value)
+            for k, v in zip(keys, values):
+                res[k] = v
+        elif sort.isString():
+            # Strip leading and trailing double quotes and replace double
+            # double quotes by single quotes
+            string_repr = string_repr[1:-1].replace('""', '"')
+
+            # Convert escape sequences
+            res = ''
+            escape_prefix = '\\u{'
+            i = 0
+            while True:
+              prev_i = i
+              i = string_repr.find(escape_prefix, i)
+              if i == -1:
+                res += string_repr[prev_i:]
+                break
+
+              res += string_repr[prev_i:i]
+              val = string_repr[i + len(escape_prefix):string_repr.find('}', i)]
+              res += chr(int(val, 16))
+              i += len(escape_prefix) + len(val) + 1
+        else:
+            raise ValueError("Cannot convert term {}"
+                             " of sort {} to Python object".format(string_repr,
+                                                                   sort))
+
+        assert res is not None
+        return res
 
 
 # Generate rounding modes
