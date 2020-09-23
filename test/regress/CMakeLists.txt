@@ -409,6 +409,7 @@ set(regress_0_tests
   regress0/datatypes/datatype3.cvc
   regress0/datatypes/datatype4.cvc
   regress0/datatypes/dt-2.6.smt2
+  regress0/datatypes/dt-different-params.smt2
   regress0/datatypes/dt-match-pat-param-2.6.smt2
   regress0/datatypes/dt-param-2.6.smt2
   regress0/datatypes/dt-param-2.6-print.smt2
