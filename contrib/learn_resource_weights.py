@@ -12,8 +12,27 @@ import statistics
 
 def parse_commandline():
     """Parse commandline arguments"""
+    epilog = """
+This script can be used to compute good resource weights based on benchmark
+results. The resource weights are used by cvc4 to approximate the running time
+by the spent resources, multiplied with their weights.
+
+In the first stage ("parse") this script reads the output files of a benchmark
+run as generated on our cluster. The output files are expected to be named
+"*.smt2/output.log" and should contain the statistics (by use of "--stats").
+The result is a gziped json file that contains all the relevant information
+in a compact form.
+
+In the second stage ("analyze") this script loads the gziped json file and uses
+a linear regression model to learn resource weights. The resulting weights can
+be used as constants for the resource options ("--*-step=n"). Additionally,
+this script performs some analysis on the results to identify outliers where
+the linear model performs particularly bad, i.e., the runtime estimation is way
+off.
+    """
     parser = argparse.ArgumentParser(description='export and analyze resources from statistics',
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+                                     epilog=epilog)
     parser.add_argument('command', choices=[
                         'parse', 'analyze'], help='task to perform')
     parser.add_argument('basedir', default=None, nargs='?',
