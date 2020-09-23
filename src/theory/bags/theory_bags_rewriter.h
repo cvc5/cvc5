@@ -76,10 +76,10 @@ class TheoryBagsRewriter : public TheoryRewriter
    * - bag.is_singleton
    *   (bag.is_singleton emptybag) = false
    *   (bag.is_singleton (mkBag x c) = (c == 1) where c is a constant > 0
-   * @param node
+   * @param n
    * @return
    */
-  RewriteResponse postRewrite(TNode node) override;
+  RewriteResponse postRewrite(TNode n) override;
 
   RewriteResponse preRewrite(TNode node) override;
 }; /* class TheoryBagsRewriter */

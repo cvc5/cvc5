@@ -14,16 +14,29 @@
 
 #include "theory/bags/theory_bags_rewriter.h"
 
+#include "normal_form.h"
+
 using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
 namespace bags {
 
-RewriteResponse TheoryBagsRewriter::postRewrite(TNode node)
+RewriteResponse TheoryBagsRewriter::postRewrite(TNode n)
 {
-  // TODO(projects#225): complete the code here
-  return RewriteResponse(REWRITE_DONE, node);
+  if (n.isConst())
+  {
+    // no need to rewrite n if it is already in a normal form
+    return RewriteResponse(REWRITE_DONE, n);
+  }
+  // n is not in a normal form
+  if (NormalForm::AreChildrenInNormalForm(n))
+  {
+    // rewrite n to be in a normal form
+    TNode normal = NormalForm::getNormalForm(n);
+    return RewriteResponse(REWRITE_AGAIN, normal);
+  }
+  return RewriteResponse(REWRITE_DONE, n);
 }
 
 RewriteResponse TheoryBagsRewriter::preRewrite(TNode node)
@@ -31,7 +44,6 @@ RewriteResponse TheoryBagsRewriter::preRewrite(TNode node)
   // TODO(projects#225): complete the code here
   return RewriteResponse(REWRITE_DONE, node);
 }
-
 }  // namespace bags
 }  // namespace theory
 }  // namespace CVC4
