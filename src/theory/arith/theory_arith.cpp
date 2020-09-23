@@ -83,7 +83,7 @@ void TheoryArith::finishInit()
   if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
   {
     d_nonlinearExtension.reset(
-        new nl::NonlinearExtension(*this, d_equalityEngine));
+        new nl::NonlinearExtension(*this, d_astate, d_equalityEngine));
   }
   // finish initialize internally
   d_internal->finishInit();
