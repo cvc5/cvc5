@@ -960,7 +960,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
     // must disable cegqi-bv since it may introduce witness terms, which
     // cannot appear in synthesis solutions
-    if (options::cegqiBv.wasSetByUser())
+    if (!options::cegqiBv.wasSetByUser())
     {
       options::cegqiBv.set(false);
     }
