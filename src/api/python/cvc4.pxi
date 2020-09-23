@@ -700,7 +700,9 @@ cdef class Solver:
         cdef Term term = Term(self)
         cdef vector[unsigned] v
         if isinstance(str_or_vec, str):
-            term.cterm = self.csolver.mkString(<string &> str_or_vec.encode())
+            for u in str_or_vec:
+                v.push_back(<unsigned> ord(u))
+            term.cterm = self.csolver.mkString(<const vector[unsigned]&> v)
         elif isinstance(str_or_vec, list):
             for u in str_or_vec:
                 if not isinstance(u, int):
@@ -1517,6 +1519,7 @@ cdef class Term:
           BV      -- returns a Python int (treats BV as unsigned)
           Array   -- returns a Python dict mapping indices to values
                   -- the constant base is returned as the default value
+          String  -- returns a Python Unicode string
         '''
 
         if not self.isConst():
@@ -1590,6 +1593,26 @@ cdef class Term:
             res = defaultdict(lambda : base_value)
             for k, v in zip(keys, values):
                 res[k] = v
+        elif sort.isString():
+            # Strip leading and trailing double quotes and replace double
+            # double quotes by single quotes
+            string_repr = string_repr[1:-1].replace('""', '"')
+
+            # Convert escape sequences
+            res = ''
+            escape_prefix = '\\u{'
+            i = 0
+            while True:
+              prev_i = i
+              i = string_repr.find(escape_prefix, i)
+              if i == -1:
+                res += string_repr[prev_i:]
+                break
+
+              res += string_repr[prev_i:i]
+              val = string_repr[i + len(escape_prefix):string_repr.find('}', i)]
+              res += chr(int(val, 16))
+              i += len(escape_prefix) + len(val) + 1
         else:
             raise ValueError("Cannot convert term {}"
                              " of sort {} to Python object".format(string_repr,
