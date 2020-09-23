@@ -53,6 +53,12 @@ RewriteResponse TheoryBVRewriter::postRewrite(TNode node) {
   return res; 
 }
 
+RewriteResponse TheoryBVRewriter::RewriteBitOf(TNode node, bool prerewrite)
+{
+  Node resultNode = LinearRewriteStrategy<RewriteRule<BitOfConst>>::apply(node);
+  return RewriteResponse(REWRITE_DONE, resultNode);
+}
+
 RewriteResponse TheoryBVRewriter::RewriteUlt(TNode node, bool prerewrite) {
   // reduce common subexpressions on both sides
   Node resultNode = LinearRewriteStrategy
@@ -683,6 +689,7 @@ void TheoryBVRewriter::initializeRewrites() {
   }
 
   d_rewriteTable [ kind::EQUAL ] = RewriteEqual;
+  d_rewriteTable[kind::BITVECTOR_BITOF] = RewriteBitOf;
   d_rewriteTable [ kind::BITVECTOR_ULT ] = RewriteUlt;
   d_rewriteTable [ kind::BITVECTOR_SLT ] = RewriteSlt;
   d_rewriteTable [ kind::BITVECTOR_ULE ] = RewriteUle;

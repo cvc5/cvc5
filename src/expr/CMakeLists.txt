@@ -21,6 +21,8 @@ libcvc4_add_sources(
   buffered_proof_generator.h
   emptyset.cpp
   emptyset.h
+  emptybag.cpp
+  emptybag.h
   expr_iomanip.cpp
   expr_iomanip.h
   expr_manager_scope.h

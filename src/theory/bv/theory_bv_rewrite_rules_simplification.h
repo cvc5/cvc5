@@ -28,6 +28,23 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
+/* -------------------------------------------------------------------------- */
+
+/**
+ * BitOfConst
+ */
+template <>
+inline bool RewriteRule<BitOfConst>::applies(TNode node)
+{
+  return node.getKind() == kind::BITVECTOR_BITOF && node[0].isConst();
+}
+
+template <>
+inline Node RewriteRule<BitOfConst>::apply(TNode node)
+{
+  size_t pos = node.getOperator().getConst<BitVectorBitOf>().d_bitIndex;
+  return utils::getBit(node[0], pos) ? utils::mkTrue() : utils::mkFalse();
+}
 
 /* -------------------------------------------------------------------------- */
 
