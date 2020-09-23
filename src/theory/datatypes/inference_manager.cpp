@@ -98,7 +98,8 @@ InferenceManager::InferenceManager(Theory& t,
 
 void InferenceManager::addPendingInference(Node conc,
                                            Node exp,
-                                           ProofGenerator* pg, bool forceLemma)
+                                           ProofGenerator* pg,
+                                           bool forceLemma)
 {
   if (forceLemma)
   {
