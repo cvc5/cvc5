@@ -488,9 +488,7 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
     }
     // check equality between empty sets (possibly of different types)
     // e.g.  (= (as emptyset (Set Int)) (as emptyset (Set Real)))
-    if (node[0].getKind() == EMPTYSET && node[1].getKind() == EMPTYSET
-        && (node[0].getType().isSubtypeOf(node[1].getType())
-            || node[1].getType().isSubtypeOf(node[0].getType())))
+    if (node[0].getKind() == EMPTYSET && node[1].getKind() == EMPTYSET)
     {
       return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
     }
