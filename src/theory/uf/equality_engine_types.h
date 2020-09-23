@@ -2,10 +2,10 @@
 /*! \file equality_engine_types.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Andrew Reynolds, Morgan Deters
+ **   Dejan Jovanovic, Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
