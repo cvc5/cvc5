@@ -283,6 +283,10 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::EMPTYSET:
       out << "(as emptyset " << n.getConst<EmptySet>().getType() << ")";
       break;
+
+    case kind::EMPTYBAG:
+      out << "(as emptybag " << n.getConst<EmptyBag>().getType() << ")";
+      break;
     case kind::BITVECTOR_EXTRACT_OP:
     {
       BitVectorExtract p = n.getConst<BitVectorExtract>();
@@ -745,6 +749,9 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::IS_SINGLETON: out << smtKindString(k, d_variant) << " "; break;
   case kind::UNIVERSE_SET:out << "(as univset " << n.getType() << ")";break;
 
+  // bags
+  case kind::BAG_TYPE:  out << smtKindString(k, d_variant) << " "; break;
+
     // fp theory
   case kind::FLOATINGPOINT_FP:
   case kind::FLOATINGPOINT_EQ:
@@ -1151,8 +1158,10 @@ static string smtKindString(Kind k, Variant v)
   case kind::JOIN: return "join";
   case kind::PRODUCT: return "product";
   case kind::TRANSPOSE: return "transpose";
-  case kind::TCLOSURE:
-    return "tclosure";
+  case kind::TCLOSURE: return "tclosure";
+
+  // bag theory
+  case kind::BAG_TYPE: return "Bag";
 
     // fp theory
   case kind::FLOATINGPOINT_FP: return "fp";

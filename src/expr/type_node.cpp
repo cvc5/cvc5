@@ -692,4 +692,15 @@ const DType& TypeNode::getDType() const
   return (*this)[0].getDType();
 }
 
+bool TypeNode::isBag() const
+{
+  return getKind() == kind::BAG_TYPE;
+}
+
+TypeNode TypeNode::getBagElementType() const
+{
+  Assert(isBag());
+  return (*this)[0];
+}
+
 }/* CVC4 namespace */
