@@ -75,6 +75,16 @@ class CVC4_PUBLIC CVC4ApiException : public std::exception
   std::string d_msg;
 };
 
+class CVC4_PUBLIC CVC4ApiRecoverableException : public CVC4ApiException
+{
+ public:
+  CVC4ApiRecoverableException(const std::string& str) : CVC4ApiException(str) {}
+  CVC4ApiRecoverableException(const std::stringstream& stream)
+      : CVC4ApiException(stream.str())
+  {
+  }
+};
+
 /* -------------------------------------------------------------------------- */
 /* Result                                                                     */
 /* -------------------------------------------------------------------------- */
