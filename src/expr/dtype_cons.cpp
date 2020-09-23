@@ -201,8 +201,9 @@ std::pair<DTypeConstructor::CardinalityType, bool> DTypeConstructor::computeCard
     }
     else if (tc.isInterpretedFinite())
     {
-      if (ret.first != CardinalityType::INFINITE)
+      if (ret.first == CardinalityType::FINITE)
       {
+        // not simply finite, it depends on uninterpreted sorts being finite
         ret.first = CardinalityType::INTERPRETED_FINITE;
       }
     }
@@ -212,7 +213,8 @@ std::pair<DTypeConstructor::CardinalityType, bool> DTypeConstructor::computeCard
       ret.first = CardinalityType::INFINITE;
       continue;
     }
-    // if the argument is finite and external, set the flag
+    // if the argument is (interpreted) finite and external, set the flag
+    // for indicating it has a finite external argument
     ret.second = ret.second || !tc.isDatatype();
   }
   d_cardInfo[t] = ret;
