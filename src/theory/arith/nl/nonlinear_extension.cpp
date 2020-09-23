@@ -732,9 +732,9 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
     {
       complete_status = num_shared_wrong_value > 0 ? -1 : 0;
       checkLastCall(assertions, false_asserts, xts, mlems, wlems);
-      d_im.clearWaitingLemmas();
       if (!mlems.empty() || d_im.hasSentLemma() || d_im.hasPendingLemma())
       {
+        d_im.clearWaitingLemmas();
         return true;
       }
     }
@@ -765,6 +765,7 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
       filterLemmas(lemmas, mlems);
       if (!mlems.empty() || d_im.hasPendingLemma())
       {
+        d_im.clearWaitingLemmas();
         return true;
       }
     }
@@ -835,6 +836,7 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
         d_containing.getOutputChannel().setIncomplete();
       }
     }
+    d_im.clearWaitingLemmas();
   } while (needsRecheck);
 
   // did not add lemmas
