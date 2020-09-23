@@ -64,7 +64,8 @@ bool hasNewMonomials(Node n, const std::vector<Node>& existing)
 }
 
 NlSolver::NlSolver(InferenceManager& im, ArithState& astate, NlModel& model)
-    : d_im(im), d_astate(astate),
+    : d_im(im),
+      d_astate(astate),
       d_model(model),
       d_cdb(d_mdb),
       d_zero_split(d_astate.getUserContext())
@@ -844,7 +845,7 @@ void NlSolver::checkMonomialMagnitude(unsigned c)
   // could only take maximal lower/minimial lower bounds?
 }
 
-void NlSolver::checkTangentPlanes(bool addWaitingLemmas)
+void NlSolver::checkTangentPlanes(bool asWaitingLemmas)
 {
   Trace("nl-ext") << "Get monomial tangent plane lemmas..." << std::endl;
   NodeManager* nm = NodeManager::currentNM();
@@ -995,7 +996,8 @@ void NlSolver::checkTangentPlanes(bool addWaitingLemmas)
             tplaneConj.push_back(lb_reverse2);
 
             Node tlem = nm->mkNode(AND, tplaneConj);
-            d_im.addPendingArithLemma(tlem, InferenceId::NL_TANGENT_PLANE, addWaitingLemmas);
+            d_im.addPendingArithLemma(
+                tlem, InferenceId::NL_TANGENT_PLANE, asWaitingLemmas);
           }
         }
       }

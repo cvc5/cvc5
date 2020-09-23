@@ -196,12 +196,13 @@ class NlSolver
    * ( ( x>2 ^ y>5) ^ (x<2 ^ y<5) ) => x*y > 5*x + 2*y - 10
    * ( ( x>2 ^ y<5) ^ (x<2 ^ y>5) ) => x*y < 5*x + 2*y - 10
    */
-  void checkTangentPlanes(bool addWaitingLemmas);
+  void checkTangentPlanes(bool asWaitingLemmas);
 
   //-------------------------------------------- end lemma schemas
  private:
-  // The inference manager that we push conflicts and lemmas to.
+  /** The inference manager that we push conflicts and lemmas to. */
   InferenceManager& d_im;
+  /** Reference to the state. */
   ArithState& d_astate;
   /** Reference to the non-linear model object */
   NlModel& d_model;
