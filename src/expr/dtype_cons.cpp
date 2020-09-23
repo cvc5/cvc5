@@ -195,14 +195,18 @@ std::pair<DTypeConstructor::CardinalityType, bool> DTypeConstructor::computeCard
                          instTypes.begin(),
                          instTypes.end());
     }
-    if (tc.isInterpretedFinite())
+    if (tc.isFinite())
+    {
+      // do nothing
+    }
+    else if (tc.isInterpretedFinite())
     {
       if (ret.first != CardinalityType::INFINITE)
       {
         ret.first = CardinalityType::INTERPRETED_FINITE;
       }
     }
-    else if (!tc.isFinite())
+    else
     {
       // infinite implies the constructor is infinite cardinality
       ret.first = CardinalityType::INFINITE;
