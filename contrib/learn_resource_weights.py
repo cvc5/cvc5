@@ -30,9 +30,17 @@ this script performs some analysis on the results to identify outliers where
 the linear model performs particularly bad, i.e., the runtime estimation is way
 off.
     """
+    usage = """
+    first stage to parse the solver output:
+    %(prog)s parse <output directory>
+    
+    second stage to learn resource weights:
+    %(prog)s analyze
+    """
     parser = argparse.ArgumentParser(description='export and analyze resources from statistics',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-                                     epilog=epilog)
+                                     epilog=epilog,
+                                     usage=usage)
     parser.add_argument('command', choices=[
                         'parse', 'analyze'], help='task to perform')
     parser.add_argument('basedir', default=None, nargs='?',
