@@ -1561,7 +1561,7 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
   // regress0/datatypes/list-bool.smt2).
   bool forceLemma = dt[index].hasFiniteExternalArgType(ttn);
   Trace("datatypes-infer-debug") << "DtInstantiate : " << eqc << " " << eq
-                          << " forceLemma = " << forceLemma << std::endl;
+                                 << " forceLemma = " << forceLemma << std::endl;
   d_im.addPendingInference(eq, exp, nullptr, forceLemma);
   Trace("datatypes-infer") << "DtInfer : instantiate : " << eq << " by " << exp
                            << std::endl;
