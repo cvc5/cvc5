@@ -781,6 +781,10 @@ class CVC4ApiExceptionStream
   {
 #define CVC4_API_SOLVER_TRY_CATCH_END                                          \
   }                                                                            \
+  catch (const CVC4::RecoverableModalException& e)                             \
+  {                                                                            \
+    throw CVC4ApiRecoverableException(e.getMessage());                         \
+  }                                                                            \
   catch (const CVC4::Exception& e) { throw CVC4ApiException(e.getMessage()); } \
   catch (const std::invalid_argument& e) { throw CVC4ApiException(e.what()); }
 
