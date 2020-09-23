@@ -482,7 +482,16 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
   Kind k = node.getKind();
   if (k == kind::EQUAL)
   {
-    if(node[0] == node[1]) {
+    if (node[0] == node[1])
+    {
+      return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
+    }
+    // check equality between empty sets
+    if (node[0].getKind() == EMPTYSET && node[1].getKind() == EMPTYSET
+        && (node[0].getType().isSubtypeOf(node[1].getType())
+            || node[1].getType().isSubtypeOf(node[0].getType())))
+    {
+      // e.g.  (= (as emptyset (Set Int)) (as emptyset (Set Real)))
       return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
     }
   }
