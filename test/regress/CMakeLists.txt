@@ -1640,6 +1640,8 @@ set(regress_1_tests
   regress1/quantifiers/set-choice-koikonomou.cvc
   regress1/quantifiers/set8.smt2
   regress1/quantifiers/seu169+1.smt2
+  regress1/quantifiers/seq-solved-enum.smt2
+  regress1/quantifiers/seq-unsolved-ematch.smt2
   regress1/quantifiers/small-pipeline-fixpoint-3.smt2
   regress1/quantifiers/smtcomp-qbv-053118.smt2
   regress1/quantifiers/smtlib384a03.smt2
