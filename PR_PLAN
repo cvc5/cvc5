@@ -86,7 +86,6 @@ PR finished:
 PRs ready:
 
 (29) arithmetic proof producing [Alex] (req 24, 25)
-(41) SharedTermDatabase uses pfee (req 24)
 (43) strings InferProofCons (req 13, 18, 26, 34, 42, 65, 86) *
 (53) CNF proof producing [Haniel] (req 109)
 (70) rewriter unit test [Andres] (req 36, 37)
@@ -100,25 +99,25 @@ PRs ready:
 (106) term conversion operators + term context operators
 (107) fmf fun def as preprocessing pass *
 (110) Sat proof manager [Haniel] (req 104)
-(111) Prop engine proof post processor [Haniel] (req 53, 110)
-(112) Prop engine proof manager [Haniel] (req 111)
-(68) PropEngine proof producing [Haniel] (req 53, 110, 111, 112)
 
 PRs future:
 
 (31) update strings inference manager to use ProofEqEngine (req 24, 26, 43, cee-strings)
+(41) SharedTermDatabase uses pfee (req 24, cee-shs)
 (44) TheoryEngine explanation proof producing (req 12, 40, 41, 87, 91)
 (54) DSL rewrite rule
 (55) DSL rewrite rule term processor
 (56) DSL rewrite rule database (req 54)
 (58) DSL rewrite rule proof generator (req 57)
-
+(68) PropEngine proof producing [Haniel] (req 53, 110, 111, 112)
 (69) Initial dumping infrastructure [Haniel]
 (83) DSL rewrite rule compilation, including side condition utility [Andres] (req 56)
 (96) arrays proof producing (req 95)
 (97) BV new basic solver, proof producing [Mathias]
 (98) fixes in setDefaults
 (108) eliminate preprocessing passes non-const uses
+(111) Prop engine proof post processor [Haniel] (req 53, 110)
+(112) Prop engine proof manager [Haniel] (req 111)
 
 
 Wish list:
