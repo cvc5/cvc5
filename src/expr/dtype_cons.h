@@ -162,7 +162,7 @@ class DTypeConstructor
    * Has finite external argument type. This returns true if this constructor
    * has an argument type that is not a datatype and is interpreted as a
    * finite type. This function can only be called for resolved constructors.
-   * 
+   *
    */
   bool hasFiniteExternalArgType(TypeNode t) const;
 
@@ -304,7 +304,7 @@ class DTypeConstructor
                          std::vector<TypeNode>& processing,
                          std::map<TypeNode, Node>& gt,
                          bool isValue) const;
-  /** 
+  /**
    * Compute cardinality info, returns a pair where its first component is
    * an identifier indicating the cardinality type of this constructor for
    * type t, and a Boolean indicating whether the constructor has any arguments

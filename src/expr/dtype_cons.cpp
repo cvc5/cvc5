@@ -169,14 +169,16 @@ bool DTypeConstructor::hasFiniteExternalArgType(TypeNode t) const
   return cinfo.second;
 }
 
-std::pair<DTypeConstructor::CardinalityType, bool> DTypeConstructor::computeCardinalityInfo(TypeNode t) const
+std::pair<DTypeConstructor::CardinalityType, bool>
+DTypeConstructor::computeCardinalityInfo(TypeNode t) const
 {
-  std::map<TypeNode, std::pair<CardinalityType, bool> >::iterator it = d_cardInfo.find(t);
-  if (it!=d_cardInfo.end())
+  std::map<TypeNode, std::pair<CardinalityType, bool> >::iterator it =
+      d_cardInfo.find(t);
+  if (it != d_cardInfo.end())
   {
     return it->second;
   }
-  std::pair<CardinalityType, bool> ret(CardinalityType::FINITE,false);
+  std::pair<CardinalityType, bool> ret(CardinalityType::FINITE, false);
   std::vector<TypeNode> instTypes;
   std::vector<TypeNode> paramTypes;
   bool isParam = t.isParametricDatatype();
