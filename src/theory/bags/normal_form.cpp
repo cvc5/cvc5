@@ -34,8 +34,8 @@ Node NormalForm::getNormalForm(TNode n)
     {
       // zero or negative multiplicity
       Assert(n[1].getConst<Rational>().sgn() != 1);
-      // return an empty bag
-      Node emptybag = nm->mkConst(EmptyBag(n[0].getType()));
+      // return an empty bag of the same type of n
+      Node emptybag = nm->mkConst(EmptyBag(n.getType()));
       return emptybag;
     }
   }

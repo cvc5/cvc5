@@ -75,9 +75,13 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     Node negative =
         d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(-1)));
 
-    // bags with negative multiplicity are rewritten as empty bags
-    RewriteResponse response = d_rewriter.postRewrite(negative);
-    TS_ASSERT_EQUALS(REWRITE_AGAIN, response.d_status);
+    Node zero = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(0)));
+
+    // bags with non-positive multiplicity are rewritten as empty bags
+    RewriteResponse negativeResponse = d_rewriter.postRewrite(negative);
+    TS_ASSERT(negativeResponse.d_status == REWRITE_AGAIN
+              && negativeResponse.d_node.getKind() == EMPTYBAG
+              && negativeResponse.d_node.getType() == negative.getType());
   }
 
  private:
