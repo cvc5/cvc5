@@ -34,7 +34,8 @@ class TheoryBagsRewriter : public TheoryRewriter
    *   node = normal_form_node
    * - mkBag
    *   (mkBag x 0) = (emptybag T) where T is the type of x
-   *   (mkBag x -c) = (emptybag T) where T is the type of x, and c > 0 is a constant
+   *   (mkBag x (-c)) = (emptybag T) where T is the type of x, and c > 0 is a
+   *                                 constant
    * - bag.count
    *   (bag.count x emptybag) = 0
    *   (bag.count x (mkBag x c) = c where c > 0 is a constant
@@ -42,13 +43,21 @@ class TheoryBagsRewriter : public TheoryRewriter
    *   (union_max A emptybag) = A
    *   (union_max emptybag B) =>B
    *   (union_max A A) = A
+   *   (union_max A (union_max A B) = (union_max A B)
+   *   (union_max A (union_max B A) = (union_max B A)
+   *   (union_max A (union_disjoint A B) = (union_disjoint A B)
+   *   (union_max A (union_disjoint B A) = (union_disjoint A B)
    * - union_disjoint
    *   (union_disjoint A emptybag) = A
    *   (union_disjoint emptybag B) = B
+   *   (union_disjoint (A union_max B) (intersection_min A B)) =
+   *        (union_disjoint A B) // sum(a,b) = max(a,b) + min(a,b)
    * - intersection_min
    *   (intersection_min A emptybag) = emptybag
    *   (intersection_min emptybag B) = emptybag
    *   (intersection_min A A) = A
+   *   (intersection_min A (union_disjoint A B)) = A
+   *   (intersection_min A (union_disjoint B A)) = A
    * - difference_subtract
    *   (difference_subtract A emptybag) = A
    *   (difference_subtract emptybag B) = emptybag
