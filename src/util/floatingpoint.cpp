@@ -442,17 +442,17 @@ rm traits::RTZ(void) { return ::CVC4::roundTowardZero; };
 
 void traits::precondition(const prop &p)
 {
-  AlwaysAssert(p);
+  Assert(p);
   return;
 }
 void traits::postcondition(const prop &p)
 {
-  AlwaysAssert(p);
+  Assert(p);
   return;
 }
 void traits::invariant(const prop &p)
 {
-  AlwaysAssert(p);
+  Assert(p);
   return;
 }
 }

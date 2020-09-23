@@ -5712,6 +5712,16 @@ std::vector<Type> sortVectorToTypes(const std::vector<Sort>& sorts)
   return types;
 }
 
+std::vector<TypeNode> sortVectorToTypeNodes(const std::vector<Sort>& sorts)
+{
+  std::vector<TypeNode> typeNodes;
+  for (const Sort& sort : sorts)
+  {
+    typeNodes.push_back(TypeNode::fromType(sort.getType()));
+  }
+  return typeNodes;
+}
+
 std::set<Type> sortSetToTypes(const std::set<Sort>& sorts)
 {
   std::set<Type> types;
