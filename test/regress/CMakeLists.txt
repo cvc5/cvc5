@@ -420,6 +420,7 @@ set(regress_0_tests
   regress0/datatypes/issue1433.smt2
   regress0/datatypes/issue2838.cvc
   regress0/datatypes/jsat-2.6.smt2
+  regress0/datatypes/list-bool.smt2
   regress0/datatypes/model-subterms-min.smt2
   regress0/datatypes/mutually-recursive.cvc
   regress0/datatypes/pair-bool-bool.cvc
