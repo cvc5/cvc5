@@ -1023,13 +1023,10 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
 
     if (sdts[i].d_sdt.getNumConstructors() == 0)
     {
-      // if there are no constructors yet by this point, we cannot make
-      // datatype, which can happen e.g. for unimplemented types
-      // that have no variables in the argument list of the
-      // function-to-synthesize.
-      std::stringstream ss;
-      ss << "Cannot make default grammar for " << types[i];
-      throw LogicException(ss.str());
+      // if there are not constructors yet by this point, which can happen,
+      // e.g. for unimplemented types that have no variables in the argument
+      // list of the function-to-synthesize, create a fresh ground term 
+      sdts[i].addConstructor(types[i].mkGroundTerm(), "", {});
     }
 
     // always add ITE
