@@ -1,4 +1,5 @@
 ; COMMAND-LINE: --bool-to-bv=ite
+; COMMAND-LINE: --bool-to-bv=ite --bv-solver=simple
 ; EXPECT: sat
 (set-logic QF_BV)
 (declare-fun x2 () (_ BitVec 3))

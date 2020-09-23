@@ -2,10 +2,10 @@
 /*! \file Smt2.g
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Morgan Deters, Christopher L. Conway
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -263,10 +263,10 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       unsigned arity = AntlrInput::tokenToUnsigned(n);
       if(arity == 0) {
         api::Sort type = PARSER_STATE->mkSort(name);
-        cmd->reset(new DeclareTypeCommand(name, 0, type.getType()));
+        cmd->reset(new DeclareSortCommand(name, 0, type));
       } else {
         api::Sort type = PARSER_STATE->mkSortConstructor(name, arity);
-        cmd->reset(new DeclareTypeCommand(name, arity, type.getType()));
+        cmd->reset(new DeclareSortCommand(name, arity, type));
       }
     }
   | /* sort definition */
@@ -287,8 +287,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       // Do NOT call mkSort, since that creates a new sort!
       // This name is not its own distinct sort, it's an alias.
       PARSER_STATE->defineParameterizedType(name, sorts, t);
-      cmd->reset(new DefineTypeCommand(
-          name, api::sortVectorToTypes(sorts), t.getType()));
+      cmd->reset(new DefineSortCommand(name, sorts, t));
     }
   | /* function declaration */
     DECLARE_FUN_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -314,8 +313,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       {
         api::Term func =
             PARSER_STATE->bindVar(name, t, ExprManager::VAR_FLAG_NONE, true);
-        cmd->reset(
-            new DeclareFunctionCommand(name, func.getExpr(), t.getType()));
+        cmd->reset(new DeclareFunctionCommand(name, func, t));
       }
     }
   | /* function definition */
@@ -334,8 +332,9 @@ command [std::unique_ptr<CVC4::Command>* cmd]
             ++i) {
           sorts.push_back((*i).second);
         }
-        t = PARSER_STATE->mkFlatFunctionType(sorts, t, flattenVars);
       }
+
+      t = PARSER_STATE->mkFlatFunctionType(sorts, t, flattenVars);
       PARSER_STATE->pushScope(true);
       terms = PARSER_STATE->bindBoundVars(sortedVarNames);
     }
@@ -354,19 +353,15 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       // we allow overloading for function definitions
       api::Term func = PARSER_STATE->bindVar(name, t,
                                       ExprManager::VAR_FLAG_DEFINED, true);
-      cmd->reset(
-          new DefineFunctionCommand(name,
-                                    func.getExpr(),
-                                    api::termVectorToExprs(terms),
-                                    expr.getExpr(),
-                                    PARSER_STATE->getGlobalDeclarations()));
+      cmd->reset(new DefineFunctionCommand(
+          name, func, terms, expr, PARSER_STATE->getGlobalDeclarations()));
     }
   | DECLARE_DATATYPE_TOK datatypeDefCommand[false, cmd]
   | DECLARE_DATATYPES_TOK datatypesDefCommand[false, cmd]
   | /* value query */
     GET_VALUE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( LPAREN_TOK termList[terms,expr] RPAREN_TOK
-      { cmd->reset(new GetValueCommand(api::termVectorToExprs(terms))); }
+      { cmd->reset(new GetValueCommand(terms)); }
     | ~LPAREN_TOK
       { PARSER_STATE->parseError("The get-value command expects a list of "
                                  "terms.  Perhaps you forgot a pair of "
@@ -381,13 +376,13 @@ command [std::unique_ptr<CVC4::Command>* cmd]
     { PARSER_STATE->clearLastNamedTerm(); }
     term[expr, expr2]
     { bool inUnsatCore = PARSER_STATE->lastNamedTerm().first == expr;
-      cmd->reset(new AssertCommand(expr.getExpr(), inUnsatCore));
+      cmd->reset(new AssertCommand(expr, inUnsatCore));
       if(inUnsatCore) {
         // set the expression name, if there was a named term
         std::pair<api::Term, std::string> namedTerm =
             PARSER_STATE->lastNamedTerm();
-        Command* csen = new SetExpressionNameCommand(namedTerm.first.getExpr(),
-                                                     namedTerm.second);
+        Command* csen =
+            new SetExpressionNameCommand(namedTerm.first, namedTerm.second);
         csen->setMuted(true);
         PARSER_STATE->preemptCommand(csen);
       }
@@ -407,12 +402,12 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       }
     | { expr = api::Term(); }
     )
-    { cmd->reset(new CheckSatCommand(expr.getExpr())); }
+    { cmd->reset(new CheckSatCommand(expr)); }
   | /* check-sat-assuming */
     CHECK_SAT_ASSUMING_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( LPAREN_TOK termList[terms,expr] RPAREN_TOK
       {
-        cmd->reset(new CheckSatAssumingCommand(api::termVectorToExprs(terms)));
+        cmd->reset(new CheckSatAssumingCommand(terms));
       }
     | ~LPAREN_TOK
       { PARSER_STATE->parseError("The check-sat-assuming command expects a "
@@ -558,7 +553,7 @@ sygusCommand returns [std::unique_ptr<CVC4::Command> cmd]
     sortSymbol[t,CHECK_DECLARED]
     {
       api::Term var = PARSER_STATE->bindBoundVar(name, t);
-      cmd.reset(new DeclareSygusVarCommand(name, var.getExpr(), t.getType()));
+      cmd.reset(new DeclareSygusVarCommand(name, var, t));
     }
   | /* synth-fun */
     ( SYNTH_FUN_TOK { isInv = false; }
@@ -590,7 +585,7 @@ sygusCommand returns [std::unique_ptr<CVC4::Command> cmd]
     }
     term[expr, expr2]
     { Debug("parser-sygus") << "...read constraint " << expr << std::endl;
-      cmd.reset(new SygusConstraintCommand(expr.getExpr()));
+      cmd.reset(new SygusConstraintCommand(expr));
     }
   | /* inv-constraint */
     INV_CONSTRAINT_TOK
@@ -788,7 +783,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
     { // allow overloading here
       api::Term c =
           PARSER_STATE->bindVar(name, t, ExprManager::VAR_FLAG_NONE, true);
-      cmd->reset(new DeclareFunctionCommand(name, c.getExpr(), t.getType())); }
+      cmd->reset(new DeclareFunctionCommand(name, c, t)); }
 
     /* get model */
   | GET_MODEL_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -831,7 +826,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
         expr = PARSER_STATE->mkHoApply( expr, flattenVars );
       }
       cmd->reset(new DefineFunctionRecCommand(
-          SOLVER, func, bvs, expr, PARSER_STATE->getGlobalDeclarations()));
+          func, bvs, expr, PARSER_STATE->getGlobalDeclarations()));
     }
   | DEFINE_FUNS_REC_TOK
     { PARSER_STATE->checkThatLogicIsSet();}
@@ -894,12 +889,8 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
             "Number of functions defined does not match number listed in "
             "define-funs-rec"));
       }
-      cmd->reset(
-          new DefineFunctionRecCommand(SOLVER,
-                                       funcs,
-                                       formals,
-                                       func_defs,
-                                       PARSER_STATE->getGlobalDeclarations()));
+      cmd->reset(new DefineFunctionRecCommand(
+          funcs, formals, func_defs, PARSER_STATE->getGlobalDeclarations()));
     }
   ;
 
@@ -935,7 +926,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     ( symbol[name,CHECK_UNDECLARED,SYM_SORT]
       { PARSER_STATE->checkUserSymbol(name);
         api::Sort type = PARSER_STATE->mkSort(name);
-        seq->addCommand(new DeclareTypeCommand(name, 0, type.getType()));
+        seq->addCommand(new DeclareSortCommand(name, 0, type));
       }
     )+
     RPAREN_TOK
@@ -960,8 +951,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
         // allow overloading
         api::Term func =
             PARSER_STATE->bindVar(name, tt, ExprManager::VAR_FLAG_NONE, true);
-        seq->addCommand(
-            new DeclareFunctionCommand(name, func.getExpr(), tt.getType()));
+        seq->addCommand(new DeclareFunctionCommand(name, func, tt));
         sorts.clear();
       }
     )+
@@ -981,8 +971,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
         // allow overloading
         api::Term func =
             PARSER_STATE->bindVar(name, t, ExprManager::VAR_FLAG_NONE, true);
-        seq->addCommand(
-            new DeclareFunctionCommand(name, func.getExpr(), t.getType()));
+        seq->addCommand(new DeclareFunctionCommand(name, func, t));
         sorts.clear();
       }
     )+
@@ -997,11 +986,8 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       {
         api::Term func = PARSER_STATE->bindVar(name, e.getSort(),
                                         ExprManager::VAR_FLAG_DEFINED);
-        cmd->reset(
-            new DefineFunctionCommand(name,
-                                      func.getExpr(),
-                                      e.getExpr(),
-                                      PARSER_STATE->getGlobalDeclarations()));
+        cmd->reset(new DefineFunctionCommand(
+            name, func, e, PARSER_STATE->getGlobalDeclarations()));
       }
     | // (define (f (v U) ...) t)
       LPAREN_TOK
@@ -1031,12 +1017,8 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
         }
         api::Term func = PARSER_STATE->bindVar(name, tt,
                                         ExprManager::VAR_FLAG_DEFINED);
-        cmd->reset(
-            new DefineFunctionCommand(name,
-                                      func.getExpr(),
-                                      api::termVectorToExprs(terms),
-                                      e.getExpr(),
-                                      PARSER_STATE->getGlobalDeclarations()));
+        cmd->reset(new DefineFunctionCommand(
+            name, func, terms, e, PARSER_STATE->getGlobalDeclarations()));
       }
     )
   | // (define-const x U t)
@@ -1057,23 +1039,19 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       // permitted)
       api::Term func = PARSER_STATE->bindVar(name, t,
                                       ExprManager::VAR_FLAG_DEFINED);
-      cmd->reset(
-          new DefineFunctionCommand(name,
-                                    func.getExpr(),
-                                    api::termVectorToExprs(terms),
-                                    e.getExpr(),
-                                    PARSER_STATE->getGlobalDeclarations()));
+      cmd->reset(new DefineFunctionCommand(
+          name, func, terms, e, PARSER_STATE->getGlobalDeclarations()));
     }
 
   | SIMPLIFY_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     term[e,e2]
-    { cmd->reset(new SimplifyCommand(e.getExpr())); }
+    { cmd->reset(new SimplifyCommand(e)); }
   | GET_QE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     term[e,e2]
-    { cmd->reset(new GetQuantifierEliminationCommand(e.getExpr(), true)); }
+    { cmd->reset(new GetQuantifierEliminationCommand(e, true)); }
   | GET_QE_DISJUNCT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     term[e,e2]
-    { cmd->reset(new GetQuantifierEliminationCommand(e.getExpr(), false)); }
+    { cmd->reset(new GetQuantifierEliminationCommand(e, false)); }
   | GET_ABDUCT_TOK {
       PARSER_STATE->checkThatLogicIsSet();
     }
@@ -1083,7 +1061,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       sygusGrammar[g, terms, name]
     )?
     {
-      cmd->reset(new GetAbductCommand(SOLVER, name, e, g));
+      cmd->reset(new GetAbductCommand(name, e, g));
     }
   | GET_INTERPOL_TOK {
       PARSER_STATE->checkThatLogicIsSet();
@@ -1094,7 +1072,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       sygusGrammar[g, terms, name]
     )?
     {
-      cmd->reset(new GetInterpolCommand(SOLVER, name, e, g));
+      cmd->reset(new GetInterpolCommand(name, e, g));
     }
   | DECLARE_HEAP LPAREN_TOK
     sortSymbol[t, CHECK_DECLARED]
@@ -1107,7 +1085,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
 
   | BLOCK_MODEL_VALUES_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( LPAREN_TOK termList[terms,e] RPAREN_TOK
-      { cmd->reset(new BlockModelValuesCommand(api::termVectorToExprs(terms))); }
+      { cmd->reset(new BlockModelValuesCommand(terms)); }
     | ~LPAREN_TOK
       { PARSER_STATE->parseError("The block-model-value command expects a list "
                                  "of terms.  Perhaps you forgot a pair of "
@@ -1138,8 +1116,7 @@ datatypes_2_5_DefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
   LPAREN_TOK ( LPAREN_TOK datatypeDef[isCo, dts, sorts] RPAREN_TOK )+ RPAREN_TOK
   { PARSER_STATE->popScope();
     cmd->reset(new DatatypeDeclarationCommand(
-      api::sortVectorToTypes(
-        PARSER_STATE->bindMutualDatatypeTypes(dts, true))));
+        PARSER_STATE->bindMutualDatatypeTypes(dts, true)));
   }
   ;
 
@@ -1271,8 +1248,7 @@ datatypesDef[bool isCo,
     }
     PARSER_STATE->popScope();
     cmd->reset(new DatatypeDeclarationCommand(
-      api::sortVectorToTypes(
-        PARSER_STATE->bindMutualDatatypeTypes(dts, true))));
+        PARSER_STATE->bindMutualDatatypeTypes(dts, true)));
   }
   ;
 
@@ -1847,8 +1823,7 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
       api::Sort boolType = SOLVER->getBooleanSort();
       api::Term avar = PARSER_STATE->bindVar(attr_name, boolType);
       retExpr = MK_TERM(api::INST_ATTRIBUTE, avar);
-      Command* c = new SetUserAttributeCommand(
-          attr_name, avar.getExpr(), api::termVectorToExprs(values));
+      Command* c = new SetUserAttributeCommand(attr_name, avar, values);
       c->setMuted(true);
       PARSER_STATE->preemptCommand(c);
     }
@@ -1858,7 +1833,7 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
       api::Term avar = SOLVER->mkConst(boolType, sexpr.toString());
       attr = std::string(":qid");
       retExpr = MK_TERM(api::INST_ATTRIBUTE, avar);
-      Command* c = new SetUserAttributeCommand("qid", avar.getExpr());
+      Command* c = new SetUserAttributeCommand("qid", avar);
       c->setMuted(true);
       PARSER_STATE->preemptCommand(c);
     }
@@ -1868,8 +1843,12 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
       api::Term func = PARSER_STATE->setNamedAttribute(expr, sexpr);
       std::string name = sexpr.getValue();
       // bind name to expr with define-fun
-      Command* c = new DefineNamedFunctionCommand(
-          name, func.getExpr(), std::vector<Expr>(), expr.getExpr(), PARSER_STATE->getGlobalDeclarations());
+      Command* c =
+          new DefineNamedFunctionCommand(name,
+                                         func,
+                                         std::vector<api::Term>(),
+                                         expr,
+                                         PARSER_STATE->getGlobalDeclarations());
       c->setMuted(true);
       PARSER_STATE->preemptCommand(c);
     }
@@ -2086,7 +2065,15 @@ sortSymbol[CVC4::api::Sort& t, CVC4::parser::DeclarationCheck check]
             PARSER_STATE->parseError("Illegal set type.");
           }
           t = SOLVER->mkSetSort( args[0] );
-        } else if(name == "Seq" && !PARSER_STATE->strictModeEnabled() &&
+        }
+        else if(name == "Bag" &&
+                  PARSER_STATE->isTheoryEnabled(theory::THEORY_BAGS) ) {
+          if(args.size() != 1) {
+            PARSER_STATE->parseError("Illegal bag type.");
+          }
+          t = SOLVER->mkBagSort( args[0] );
+        }
+        else if(name == "Seq" && !PARSER_STATE->strictModeEnabled() &&
                   PARSER_STATE->isTheoryEnabled(theory::THEORY_STRINGS) ) {
           if(args.size() != 1) {
             PARSER_STATE->parseError("Illegal sequence type.");

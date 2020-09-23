@@ -5,7 +5,7 @@
  **   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -452,7 +452,7 @@ public:
   /**
    * Is this a first-class type?
    * First-class types are types for which:
-   * (1) we handle equalities between terms of that type, and 
+   * (1) we handle equalities between terms of that type, and
    * (2) they are allowed to be parameters of parametric types (e.g. index or element types of arrays).
    *
    * Examples of types that are not first-class include constructor types,
@@ -518,6 +518,9 @@ public:
   /** Is this a Set type? */
   bool isSet() const;
 
+  /** Is this a Bag type? */
+  bool isBag() const;
+
   /** Is this a Sequence type? */
   bool isSequence() const;
 
@@ -538,6 +541,9 @@ public:
 
   /** Get the element type (for set types) */
   TypeNode getSetElementType() const;
+
+  /** Get the element type (for bag types) */
+  TypeNode getBagElementType() const;
 
   /** Get the element type (for sequence types) */
   TypeNode getSequenceElementType() const;
@@ -712,7 +718,7 @@ public:
   static TypeNode leastCommonTypeNode(TypeNode t0, TypeNode t1);
   static TypeNode mostCommonTypeNode(TypeNode t0, TypeNode t1);
 
-  /** get ensure type condition 
+  /** get ensure type condition
    *  Return value is a condition that implies that n has type tn.
   */
   static Node getEnsureTypeCondition( Node n, TypeNode tn );
