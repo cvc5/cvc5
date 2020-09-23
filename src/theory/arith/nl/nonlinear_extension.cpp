@@ -2,10 +2,10 @@
 /*! \file nonlinear_extension.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Aina Niemetz
+ **   Andrew Reynolds, Gereon Kremer, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -19,6 +19,7 @@
 
 #include "options/arith_options.h"
 #include "options/theory_options.h"
+#include "theory/arith/arith_state.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/ext_theory.h"
@@ -32,6 +33,7 @@ namespace arith {
 namespace nl {
 
 NonlinearExtension::NonlinearExtension(TheoryArith& containing,
+                                       ArithState& state,
                                        eq::EqualityEngine* ee)
     : d_containing(containing),
       d_im(containing.getInferenceManager()),
@@ -47,7 +49,8 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       d_trSlv(d_im, d_model),
       d_nlSlv(containing, d_model),
       d_cadSlv(d_im, d_model),
-      d_iandSlv(containing, d_model),
+      d_icpSlv(d_im),
+      d_iandSlv(d_im, state, d_model),
       d_builtModel(containing.getSatContext(), false)
 {
   d_extTheory.addFunctionKind(kind::NONLINEAR_MULT);
@@ -381,6 +384,21 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     }
   }
 
+  if (options::nlICP())
+  {
+    d_icpSlv.reset(assertions);
+    d_icpSlv.check();
+
+    if (d_im.hasUsed())
+    {
+      Trace("nl-ext") << "  ...finished with "
+                      << d_im.numPendingLemmas() + d_im.numSentLemmas()
+                      << " new lemmas from ICP." << std::endl;
+      return d_im.numPendingLemmas() + d_im.numSentLemmas();
+    }
+    Trace("nl-ext") << "Done with ICP" << std::endl;
+  }
+
   if (options::nlExt())
   {
     // initialize the non-linear solver
@@ -432,13 +450,12 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     }
   }
   //-----------------------------------initial lemmas for iand
-  lemmas = d_iandSlv.checkInitialRefine();
-  filterLemmas(lemmas, lems);
-  if (!lems.empty())
+  d_iandSlv.checkInitialRefine();
+  if (d_im.hasUsed())
   {
-    Trace("nl-ext") << "  ...finished with " << lems.size() << " new lemmas."
+    Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas() << " new lemmas."
                     << std::endl;
-    return lems.size();
+    return d_im.numPendingLemmas();
   }
 
   // main calls to nlExt
@@ -567,13 +584,12 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     }
   }
   // run the full refinement in the IAND solver
-  lemmas = d_iandSlv.checkFullRefine();
-  filterLemmas(lemmas, wlems);
+  d_iandSlv.checkFullRefine();
 
-  Trace("nl-ext") << "  ...finished with "
-                  << (wlems.size() + d_im.numWaitingLemmas())
-                  << " waiting lemmas." << std::endl;
-
+  Trace("nl-ext") << "  ...finished with " << d_im.numWaitingLemmas() << " waiting lemmas."
+                  << std::endl;
+  Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas() << " lemmas."
+                  << std::endl;
   return 0;
 }
 
@@ -758,7 +774,7 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
         d_builtModel = true;
       }
       filterLemmas(lemmas, mlems);
-      if (!mlems.empty())
+      if (!mlems.empty() || d_im.hasPendingLemma())
       {
         return true;
       }

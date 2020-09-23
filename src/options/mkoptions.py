@@ -1,4 +1,14 @@
 #!/usr/bin/env python
+#####################
+## mkoptions.py
+## Top contributors (to current version):
+##   Mathias Preiner
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
 """
     Generate option handling code and documentation in one pass. The generated
     files are only written to the destination file if the contents of the file

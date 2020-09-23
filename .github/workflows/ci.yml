@@ -23,7 +23,7 @@ jobs:
 
         include:
           - name: production
-            config: production --all-bindings --lfsc --editline
+            config: production --all-bindings --lfsc --editline --poly
             cache-key: production
             python-bindings: true
             check-examples: true
@@ -44,7 +44,7 @@ jobs:
             exclude_regress: 1-4
 
           - name: debug-cln
-            config: debug --symfpu --cln --gpl --no-debug-symbols --no-proofs
+            config: debug --symfpu --cln --gpl --no-debug-symbols --no-proofs --poly
             cache-key: debug-cln
             os: ubuntu-latest
             exclude_regress: 1-4
@@ -158,7 +158,6 @@ jobs:
       run: |
         ${{ matrix.env }} ./configure.sh ${{ matrix.config }} \
           --python3 \
-          --poly \
           --prefix=$(pwd)/build/install \
           --unit-testing
 

@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -88,6 +88,8 @@ class InstantiationEngine : public QuantifiersModule {
   std::string identify() const override { return "InstEngine"; }
 
  private:
+  /** Return true if this module should process quantified formula q */
+  bool shouldProcess(Node q);
   /** for computing relevance of quantifiers */
   std::unique_ptr<QuantRelevance> d_quant_rel;
 }; /* class InstantiationEngine */

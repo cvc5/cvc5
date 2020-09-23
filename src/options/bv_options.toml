@@ -235,3 +235,19 @@ header = "options/bv_options.h"
   type       = "bool"
   default    = "false"
   help       = "print bit-vector constants in decimal (e.g. (_ bv1 4)) instead of binary (e.g. #b0001), applies to SMT-LIB 2.x"
+
+[[option]]
+  name       = "bvSolver"
+  category   = "regular"
+  long       = "bv-solver=MODE"
+  type       = "BVSolver"
+  default    = "LAZY"
+  help       = "choose bit-vector solver, see --bv-solver=help"
+  help_mode  = "Bit-vector solvers."
+[[option.mode.LAZY]]
+  name = "lazy"
+  help = "Enables the lazy BV solver infrastructure."
+[[option.mode.SIMPLE]]
+  name = "simple"
+  help = "Enables simple bitblasting solver with proof support."
+

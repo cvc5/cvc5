@@ -1,19 +1,19 @@
 #!/usr/bin/env python
-
 #####################
-#! \file bitvectors_and_arrays.py
- ## \verbatim
- ## Top contributors (to current version):
- ##   Makai Mann
- ## This file is part of the CVC4 project.
- ## Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ## in the top-level source directory) and their institutional affiliations.
- ## All rights reserved.  See the file COPYING in the top-level source
- ## directory for licensing information.\endverbatim
- ##
- ## \brief A simple demonstration of the solving capabilities of the CVC4
- ## bit-vector and array solvers through the Python API. This is a direct
- ## translation of bitvectors_and_arrays-new.cpp.
+## bitvectors_and_arrays.py
+## Top contributors (to current version):
+##   Makai Mann
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
+## A simple demonstration of the solving capabilities of the CVC4
+## bit-vector and array solvers through the Python API. This is a direct
+## translation of bitvectors_and_arrays-new.cpp.
+##
+
 import pycvc4
 from pycvc4 import kinds
 
