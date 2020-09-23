@@ -230,6 +230,12 @@ bool DTypeConstructor::isInterpretedFinite(TypeNode t) const
   return true;
 }
 
+bool DTypeConstructor::hasFiniteExternalArgType(TypeNode t) const
+{
+  // TODO
+  return false;
+}
+
 bool DTypeConstructor::isResolved() const { return !d_tester.isNull(); }
 
 const DTypeSelector& DTypeConstructor::operator[](size_t index) const

@@ -1541,7 +1541,8 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
     exp = getLabel(n);
     tt = exp[0];
   }
-  const DType& dt = tt.getType().getDType();
+  TypeNode ttn = tt.getType();
+  const DType& dt = ttn.getDType();
   // instantiate this equivalence class
   eqc->d_inst = true;
   Node tt_cons = getInstantiateCons(tt, dt, index);
@@ -1551,9 +1552,19 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
     return;
   }
   eq = tt.eqNode(tt_cons);
+  // force lemma if there exists an argument of finite external type
+  bool forceLemma = dt[index].hasFiniteExternalArgType(ttn);
   Debug("datatypes-inst") << "DtInstantiate : " << eqc << " " << eq
-                          << std::endl;
-  d_im.addPendingInference(eq, exp);
+                          << " forceLemma = " << forceLemma << std::endl;
+  if (forceLemma)
+  {
+    Node lem = nm->mkNode(kind::IMPLIES, exp, eq);
+    d_im.addPendingLemma(lem);
+  }
+  else
+  {
+    d_im.addPendingInference(eq, exp);
+  }
   Trace("datatypes-infer-debug") << "inst : " << eqc << " " << n << std::endl;
   Trace("datatypes-infer") << "DtInfer : instantiate : " << eq << " by " << exp
                            << std::endl;
