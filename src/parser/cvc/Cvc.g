@@ -5,7 +5,7 @@
  **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -704,13 +704,12 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   bool formCommaFlag = true;
 }
     /* our bread & butter */
-  : ASSERT_TOK formula[f] { cmd->reset(new AssertCommand(f.getExpr())); }
+  : ASSERT_TOK formula[f] { cmd->reset(new AssertCommand(f)); }
 
-  | QUERY_TOK formula[f] { cmd->reset(new QueryCommand(f.getExpr())); }
+  | QUERY_TOK formula[f] { cmd->reset(new QueryCommand(f)); }
   | CHECKSAT_TOK formula[f]?
     {
-      cmd->reset(f.isNull() ? new CheckSatCommand()
-                            : new CheckSatCommand(f.getExpr()));
+      cmd->reset(f.isNull() ? new CheckSatCommand() : new CheckSatCommand(f));
     }
     /* options */
   | OPTION_TOK
@@ -764,7 +763,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     END_TOK
     { PARSER_STATE->popScope();
       cmd->reset(new DatatypeDeclarationCommand(
-          api::sortVectorToTypes(PARSER_STATE->bindMutualDatatypeTypes(dts))));
+          PARSER_STATE->bindMutualDatatypeTypes(dts)));
     }
 
   | CONTEXT_TOK
@@ -789,7 +788,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     { UNSUPPORTED("GET_OP command"); }
 
   | GET_VALUE_TOK formula[f]
-    { cmd->reset(new GetValueCommand(f.getExpr())); }
+    { cmd->reset(new GetValueCommand(f)); }
 
   | SUBSTITUTE_TOK identifier[id,CHECK_NONE,SYM_VARIABLE] COLON
     type[t,CHECK_DECLARED] EQUAL_TOK formula[f] LBRACKET
@@ -823,7 +822,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
             )
 
   | TRANSFORM_TOK formula[f]
-    { cmd->reset(new SimplifyCommand(f.getExpr())); }
+    { cmd->reset(new SimplifyCommand(f)); }
 
   | PRINT_TOK formula[f]
     { UNSUPPORTED("PRINT command"); }
@@ -936,8 +935,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
           PARSER_STATE->parseError("Type mismatch in definition");
         }
       }
-      cmd->reset(
-          new DefineFunctionRecCommand(SOLVER, funcs, formals, formulas, true));
+      cmd->reset(new DefineFunctionRecCommand(funcs, formals, formulas, true));
     }
   | toplevelDeclaration[cmd]
   ;
@@ -1059,7 +1057,7 @@ declareTypes[std::unique_ptr<CVC4::Command>* cmd,
         // behavior here.
         PARSER_STATE->checkDeclaration(*i, CHECK_UNDECLARED, SYM_SORT);
         api::Sort sort = PARSER_STATE->mkSort(*i);
-        Command* decl = new DeclareTypeCommand(*i, 0, sort.getType());
+        Command* decl = new DeclareSortCommand(*i, 0, sort);
         seq->addCommand(decl);
       }
       cmd->reset(seq.release());
@@ -1125,8 +1123,7 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
             if(topLevel) {
               api::Term func =
                   PARSER_STATE->bindVar(*i, t, ExprManager::VAR_FLAG_GLOBAL);
-              Command* decl =
-                  new DeclareFunctionCommand(*i, func.getExpr(), t.getType());
+              Command* decl = new DeclareFunctionCommand(*i, func, t);
               seq->addCommand(decl);
             } else {
               PARSER_STATE->bindBoundVar(*i, t);
@@ -1156,8 +1153,7 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
               api::Sort(SOLVER, t.getType()),
               ExprManager::VAR_FLAG_GLOBAL | ExprManager::VAR_FLAG_DEFINED);
           PARSER_STATE->defineVar(*i, f);
-          Command* decl =
-              new DefineFunctionCommand(*i, func.getExpr(), f.getExpr(), true);
+          Command* decl = new DefineFunctionCommand(*i, func, f, true);
           seq->addCommand(decl);
         }
       }

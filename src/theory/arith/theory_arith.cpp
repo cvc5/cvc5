@@ -2,10 +2,10 @@
 /*! \file theory_arith.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Dejan Jovanovic
+ **   Andrew Reynolds, Tim King, Dejan Jovanovic
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -83,7 +83,7 @@ void TheoryArith::finishInit()
   if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
   {
     d_nonlinearExtension.reset(
-        new nl::NonlinearExtension(*this, d_equalityEngine));
+        new nl::NonlinearExtension(*this, d_astate, d_equalityEngine));
   }
   // finish initialize internally
   d_internal->finishInit();
