@@ -1556,15 +1556,7 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
   bool forceLemma = dt[index].hasFiniteExternalArgType(ttn);
   Debug("datatypes-inst") << "DtInstantiate : " << eqc << " " << eq
                           << " forceLemma = " << forceLemma << std::endl;
-  if (forceLemma)
-  {
-    Node lem = nm->mkNode(kind::IMPLIES, exp, eq);
-    d_im.addPendingLemma(lem);
-  }
-  else
-  {
-    d_im.addPendingInference(eq, exp);
-  }
+  d_im.addPendingInference(eq, exp, nullptr, forceLemma);
   Trace("datatypes-infer-debug") << "inst : " << eqc << " " << n << std::endl;
   Trace("datatypes-infer") << "DtInfer : instantiate : " << eq << " by " << exp
                            << std::endl;

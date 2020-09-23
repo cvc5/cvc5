@@ -72,7 +72,7 @@ bool DatatypesInference::mustCommunicateFact(Node n, Node exp)
 bool DatatypesInference::process(TheoryInferenceManager* im, bool asLemma)
 {
   // check to see if we have to communicate it to the rest of the system
-  if (mustCommunicateFact(d_conc, d_exp))
+  if (asLemma || mustCommunicateFact(d_conc, d_exp))
   {
     // send it as an (explained) lemma
     std::vector<Node> exp;
@@ -98,9 +98,16 @@ InferenceManager::InferenceManager(Theory& t,
 
 void InferenceManager::addPendingInference(Node conc,
                                            Node exp,
-                                           ProofGenerator* pg)
+                                           ProofGenerator* pg, bool forceLemma)
 {
-  d_pendingFact.emplace_back(new DatatypesInference(conc, exp, pg));
+  if (forceLemma)
+  {
+    d_pendingLem.emplace_back(new DatatypesInference(conc, exp, pg));
+  }
+  else
+  {
+    d_pendingFact.emplace_back(new DatatypesInference(conc, exp, pg));
+  }
 }
 
 void InferenceManager::process()
