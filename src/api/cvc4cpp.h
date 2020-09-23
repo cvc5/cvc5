@@ -5,7 +5,7 @@
  **   Aina Niemetz, Andrew Reynolds, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -388,6 +388,12 @@ class CVC4_PUBLIC Sort
   bool isSet() const;
 
   /**
+   * Is this a Bag sort?
+   * @return true if the sort is a Bag sort
+   */
+  bool isBag() const;
+
+  /**
    * Is this a Sequence sort?
    * @return true if the sort is a Sequence sort
    */
@@ -525,6 +531,13 @@ class CVC4_PUBLIC Sort
    * @return the element sort of a set sort
    */
   Sort getSetElementSort() const;
+
+  /* Bag sort ------------------------------------------------------------ */
+
+  /**
+   * @return the element sort of a bag sort
+   */
+  Sort getBagElementSort() const;
 
   /* Sequence sort ------------------------------------------------------- */
 
@@ -2305,6 +2318,13 @@ class CVC4_PUBLIC Solver
   Sort mkSetSort(Sort elemSort) const;
 
   /**
+   * Create a bag sort.
+   * @param elemSort the sort of the bag elements
+   * @return the bag sort
+   */
+  Sort mkBagSort(Sort elemSort) const;
+
+  /**
    * Create a sequence sort.
    * @param elemSort the sort of the sequence elements
    * @return the sequence sort
@@ -2568,6 +2588,13 @@ class CVC4_PUBLIC Solver
    * @return the empty set constant
    */
   Term mkEmptySet(Sort s) const;
+
+  /**
+   * Create a constant representing an empty bag of the given sort.
+   * @param s the sort of the bag elements.
+   * @return the empty bag constant
+   */
+  Term mkEmptyBag(Sort s) const;
 
   /**
    * Create a separation logic nil term.

@@ -2,10 +2,10 @@
 /*! \file shared_terms_database.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Mathias Preiner, Morgan Deters
+ **   Dejan Jovanovic, Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -21,6 +21,7 @@
 
 #include "context/cdhashset.h"
 #include "expr/node.h"
+#include "theory/ee_setup_info.h"
 #include "theory/theory_id.h"
 #include "theory/uf/equality_engine.h"
 #include "util/statistics_registry.h"
@@ -157,6 +158,16 @@ public:
 
   SharedTermsDatabase(TheoryEngine* theoryEngine, context::Context* context);
   ~SharedTermsDatabase();
+
+  //-------------------------------------------- initialization
+  /** Called to set the equality engine. */
+  void setEqualityEngine(theory::eq::EqualityEngine* ee);
+  /**
+   * Returns true if we need an equality engine, this has the same contract
+   * as Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(theory::EeSetupInfo& esi);
+  //-------------------------------------------- end initialization
 
   /**
    * Asserts the equality to the shared terms database,

@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Mudathir Mohamed, Kshitij Bansal
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -111,7 +111,7 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
             // singleton equal to emptyset, conflict
             Trace("sets-prop")
                 << "Propagate conflict : " << s1 << " == " << s2 << std::endl;
-            conflict(s1, s2);
+            d_im.conflictEqConstantMerge(s1, s2);
             return;
           }
         }
@@ -829,7 +829,7 @@ void TheorySetsPrivate::postCheck(Theory::Effort level)
         if (!d_state.isInConflict() && !d_im.hasSentLemma()
             && d_full_check_incomplete)
         {
-          d_external.d_out->setIncomplete();
+          d_im.setIncomplete();
         }
       }
     }
@@ -1234,43 +1234,7 @@ Node mkAnd(const std::vector<TNode>& conjunctions)
   return conjunction;
 } /* mkAnd() */
 
-bool TheorySetsPrivate::propagate(TNode literal)
-{
-  Debug("sets-prop") << " propagate(" << literal << ")" << std::endl;
-
-  // If already in conflict, no more propagation
-  if (d_state.isInConflict())
-  {
-    Debug("sets-prop") << "TheoryUF::propagate(" << literal
-                       << "): already in conflict" << std::endl;
-    return false;
-  }
-
-  // Propagate out
-  bool ok = d_external.d_out->propagate(literal);
-  if (!ok)
-  {
-    d_state.notifyInConflict();
-  }
-
-  return ok;
-} /* TheorySetsPrivate::propagate(TNode) */
-
-OutputChannel* TheorySetsPrivate::getOutputChannel()
-{
-  return d_external.d_out;
-}
-
 Valuation& TheorySetsPrivate::getValuation() { return d_external.d_valuation; }
-
-void TheorySetsPrivate::conflict(TNode a, TNode b)
-{
-  Node conf = explain(a.eqNode(b));
-  d_im.conflict(conf);
-  Debug("sets") << "[sets] conflict: " << a << " iff " << b << ", explanation "
-                << conf << std::endl;
-  Trace("sets-lemma") << "Equality Conflict : " << conf << std::endl;
-}
 
 Node TheorySetsPrivate::explain(TNode literal)
 {

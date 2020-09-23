@@ -5,7 +5,7 @@
  **   Yoni Zohar
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -252,6 +252,16 @@ class BVToInt : public PreprocessingPass
    * Otherwise, add all of them as a single conjunction
    */
   void addFinalizeRangeAssertions(AssertionPipeline* assertionsToPreprocess);
+
+  /**
+   * @param quantifiedNode a node whose main operator is forall/exists.
+   * @return a node opbtained from quantifiedNode by:
+   * 1. Replacing all bound BV variables by new bound integer variables.
+   * 2. Add range constraints for the new variables, induced by the original
+   * bit-width. These range constraints are added with "AND" in case of exists
+   * and with "IMPLIES" in case of forall.
+   */
+  Node translateQuantifiedFormula(Node quantifiedNode);
 
   /**
    * Reconstructs a node whose main operator cannot be

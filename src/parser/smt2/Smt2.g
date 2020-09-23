@@ -2,10 +2,10 @@
 /*! \file Smt2.g
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Morgan Deters, Christopher L. Conway
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -2065,7 +2065,15 @@ sortSymbol[CVC4::api::Sort& t, CVC4::parser::DeclarationCheck check]
             PARSER_STATE->parseError("Illegal set type.");
           }
           t = SOLVER->mkSetSort( args[0] );
-        } else if(name == "Seq" && !PARSER_STATE->strictModeEnabled() &&
+        }
+        else if(name == "Bag" &&
+                  PARSER_STATE->isTheoryEnabled(theory::THEORY_BAGS) ) {
+          if(args.size() != 1) {
+            PARSER_STATE->parseError("Illegal bag type.");
+          }
+          t = SOLVER->mkBagSort( args[0] );
+        }
+        else if(name == "Seq" && !PARSER_STATE->strictModeEnabled() &&
                   PARSER_STATE->isTheoryEnabled(theory::THEORY_STRINGS) ) {
           if(args.size() != 1) {
             PARSER_STATE->parseError("Illegal sequence type.");
