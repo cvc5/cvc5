@@ -118,7 +118,7 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
               && positive == positiveResponse.d_node);
   }
 
-  void testBagCountConstantElement()
+  void testBagCount()
   {
     int n = 3;
     vector<Node> elements = getNStrings(1);
