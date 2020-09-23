@@ -32,13 +32,6 @@ class TheoryBagsRewriter : public TheoryRewriter
    *   node = node // return the same node
    * - node is not in a normal form, but its children are
    *   node = normal_form_node
-   * - mkBag
-   *   (mkBag x 0) = (emptybag T) where T is the type of x
-   *   (mkBag x (-c)) = (emptybag T) where T is the type of x, and c > 0 is a
-   *                                 constant
-   * - bag.count
-   *   (bag.count x emptybag) = 0
-   *   (bag.count x (mkBag x c) = c where c > 0 is a constant
    * - union_max
    *   (union_max A emptybag) = A
    *   (union_max emptybag B) =>B
@@ -84,7 +77,20 @@ class TheoryBagsRewriter : public TheoryRewriter
   RewriteResponse preRewrite(TNode node) override;
 
  private:
+  /**
+   * patterns for mkBag:
+   * - (mkBag x 0) = (emptybag T) where T is the type of x
+   * - (mkBag x (-c)) = (emptybag T) where T is the type of x, and c > 0 is a
+   *   constant
+   * - otherwise = n
+   */
   RewriteResponse rewriteMakeBag(const TNode& n) const;
+  /**
+   * patterns for bag.count
+   * - (bag.count x emptybag) = 0
+   * - (bag.count x (mkBag x c) = c where c > 0 is a constant
+   * - otherwise = n
+   */
   RewriteResponse rewriteBagCount(const TNode& n) const;
 }; /* class TheoryBagsRewriter */
 
