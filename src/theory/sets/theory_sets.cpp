@@ -2,10 +2,10 @@
 /*! \file theory_sets.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Kshitij Bansal, Andres Noetzli
+ **   Andrew Reynolds, Mudathir Mohamed, Kshitij Bansal
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -38,7 +38,7 @@ TheorySets::TheorySets(context::Context* c,
       d_state(c, u, valuation, d_skCache),
       d_im(*this, d_state, pnm),
       d_internal(new TheorySetsPrivate(*this, d_state, d_im, d_skCache)),
-      d_notify(*d_internal.get())
+      d_notify(*d_internal.get(), d_im)
 {
   // use the official theory state and inference manager objects
   d_theoryState = &d_state;
@@ -200,37 +200,6 @@ bool TheorySets::isEntailed( Node n, bool pol ) {
 }
 
 /**************************** eq::NotifyClass *****************************/
-
-bool TheorySets::NotifyClass::eqNotifyTriggerPredicate(TNode predicate,
-                                                       bool value)
-{
-  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerPredicate: predicate = "
-                   << predicate << " value = " << value << std::endl;
-  if (value)
-  {
-    return d_theory.propagate(predicate);
-  }
-  return d_theory.propagate(predicate.notNode());
-}
-
-bool TheorySets::NotifyClass::eqNotifyTriggerTermEquality(TheoryId tag,
-                                                          TNode t1,
-                                                          TNode t2,
-                                                          bool value)
-{
-  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerTermEquality: tag = " << tag
-                   << " t1 = " << t1 << "  t2 = " << t2 << "  value = " << value
-                   << std::endl;
-  d_theory.propagate(value ? t1.eqNode(t2) : t1.eqNode(t2).negate());
-  return true;
-}
-
-void TheorySets::NotifyClass::eqNotifyConstantTermMerge(TNode t1, TNode t2)
-{
-  Debug("sets-eq") << "[sets-eq] eqNotifyConstantTermMerge "
-                   << " t1 = " << t1 << " t2 = " << t2 << std::endl;
-  d_theory.conflict(t1, t2);
-}
 
 void TheorySets::NotifyClass::eqNotifyNewClass(TNode t)
 {
