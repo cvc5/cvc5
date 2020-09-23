@@ -53,7 +53,7 @@ void StringProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::STRING_CODE_INJ, this);
   pc->registerChecker(PfRule::STRING_SEQ_UNIT_INJ, this);
   // trusted rules
-  pc->registerTrustedChecker(PfRule::STRING_TRUST, this, 1);
+  pc->registerTrustedChecker(PfRule::STRING_TRUST, this, 2);
 }
 
 Node StringProofRuleChecker::checkInternal(PfRule id,
