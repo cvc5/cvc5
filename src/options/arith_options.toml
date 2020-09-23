@@ -568,3 +568,11 @@ header = "options/arith_options.h"
   default    = "false"
   help       = "whether to use the cylindrical algebraic decomposition solver for non-linear arithmetic"
 
+[[option]]
+  name       = "nlICP"
+  category   = "regular"
+  long       = "nl-icp"
+  type       = "bool"
+  default    = "false"
+  help       = "whether to use ICP-style propagations for non-linear arithmetic"
+

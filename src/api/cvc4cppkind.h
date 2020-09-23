@@ -5,7 +5,7 @@
  **   Aina Niemetz, Andrew Reynolds, Makai Mann
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -1964,6 +1964,116 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child)
    */
   IS_SINGLETON,
+  /* Bags ------------------------------------------------------------------ */
+  /**
+   * Empty bag constant.
+   * Parameters: 1
+   *   -[1]: Sort of the bag elements
+   * Create with:
+   *   mkEmptyBag(Sort sort)
+   */
+  EMPTYBAG,
+  /**
+   * Bag max union.
+   * Parameters: 2
+   *   -[1]..[2]: Terms of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  UNION_MAX,
+  /**
+   * Bag disjoint union (sum).
+   * Parameters: 2
+   *   -[1]..[2]: Terms of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  UNION_DISJOINT,
+  /**
+   * Bag intersection (min).
+   * Parameters: 2
+   *   -[1]..[2]: Terms of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  INTERSECTION_MIN,
+  /**
+   * Bag difference subtract (subtracts multiplicities of the second from the
+   * first).
+   * Parameters: 2
+   *   -[1]..[2]: Terms of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  DIFFERENCE_SUBTRACT,
+  /**
+   * Bag difference 2 (removes shared elements in the two bags).
+   * Parameters: 2
+   *   -[1]..[2]: Terms of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  DIFFERENCE_REMOVE,
+  /**
+   * Bag is included (first multiplicities <= second multiplicities).
+   * Parameters: 2
+   *   -[1]..[2]: Terms of set sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  BAG_IS_INCLUDED,
+  /**
+   * Element multiplicity in a bag
+   * Parameters: 2
+   *   -[1]..[2]: Terms of bag sort (Bag E), [1] an element of sort E
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  BAG_COUNT,
+  /**
+   * The bag of the single element given as a parameter.
+   * Parameters: 1
+   *   -[1]: Single element
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  MK_BAG,
+  /**
+   * Bag cardinality.
+   * Parameters: 1
+   *   -[1]: Bag to determine the cardinality of
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  BAG_CARD,
+  /**
+   * Returns an element from a given bag.
+   * If a bag A = {(x,n)} where n is the multiplicity, then the term (choose A)
+   * is equivalent to the term x.
+   * If the bag is empty, then (choose A) is an arbitrary value.
+   * If the bag contains distinct elements, then (choose A) will
+   * deterministically return an element in A.
+   * Parameters: 1
+   *   -[1]: Term of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  BAG_CHOOSE,
+  /**
+   * Bag is_singleton predicate (single element with multiplicity exactly one).
+   * Parameters: 1
+   *   -[1]: Term of bag sort, is [1] a singleton bag?
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  BAG_IS_SINGLETON,
 
   /* Strings --------------------------------------------------------------- */
 
@@ -2664,6 +2774,8 @@ enum CVC4_PUBLIC Kind : int32_t
   SELECTOR_TYPE,
   /* set type, takes as parameter the type of the elements */
   SET_TYPE,
+  /* bag type, takes as parameter the type of the elements */
+  BAG_TYPE,
   /* sort tag */
   SORT_TAG,
   /* specifies types of user-declared 'uninterpreted' sorts */

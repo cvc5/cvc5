@@ -5,7 +5,7 @@
  **   Haniel Barbosa, Francois Bobot, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -161,10 +161,10 @@ parseCommand returns [CVC4::Command* cmd = NULL]
   }
     (COMMA_TOK anything*)? RPAREN_TOK DOT_TOK
     {
-      CVC4::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
+      CVC4::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr, expr);
       if( !aexpr.isNull() ){
         // set the expression name (e.g. used with unsat core printing)
-        Command* csen = new SetExpressionNameCommand(aexpr.getExpr(), name);
+        Command* csen = new SetExpressionNameCommand(aexpr, name);
         csen->setMuted(true);
         PARSER_STATE->preemptCommand(csen);
       }
@@ -178,7 +178,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
       CVC4::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
       if( !aexpr.isNull() ){
         // set the expression name (e.g. used with unsat core printing)
-        Command* csen = new SetExpressionNameCommand(aexpr.getExpr(), name);
+        Command* csen = new SetExpressionNameCommand(aexpr, name);
         csen->setMuted(true);
         PARSER_STATE->preemptCommand(csen);
       }
@@ -194,7 +194,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
         CVC4::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
         if( !aexpr.isNull() ){
           // set the expression name (e.g. used with unsat core printing)
-          Command* csen = new SetExpressionNameCommand(aexpr.getExpr(), name);
+          Command* csen = new SetExpressionNameCommand(aexpr, name);
           csen->setMuted(true);
           PARSER_STATE->preemptCommand(csen);
         }
@@ -219,7 +219,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
         if (!aexpr.isNull())
         {
           // set the expression name (e.g. used with unsat core printing)
-          Command* csen = new SetExpressionNameCommand(aexpr.getExpr(), name);
+          Command* csen = new SetExpressionNameCommand(aexpr, name);
           csen->setMuted(true);
           PARSER_STATE->preemptCommand(csen);
         }
@@ -255,7 +255,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
       CVC4::api::Term aexpr = PARSER_STATE->getAssertionDistinctConstants();
       if( !aexpr.isNull() )
       {
-        seq->addCommand(new AssertCommand(aexpr.getExpr(), false));
+        seq->addCommand(new AssertCommand(aexpr, false));
       }
 
       std::string filename = PARSER_STATE->getInput()->getInputStreamName();
@@ -268,7 +268,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
       }
       seq->addCommand(new SetInfoCommand("filename", SExpr(filename)));
       if(PARSER_STATE->hasConjecture()) {
-        seq->addCommand(new QueryCommand(SOLVER->mkFalse().getExpr()));
+        seq->addCommand(new QueryCommand(SOLVER->mkFalse()));
       } else {
         seq->addCommand(new CheckSatCommand());
       }
@@ -967,7 +967,7 @@ thfAtomTyping[CVC4::Command*& cmd]
         {
           // as yet, it's undeclared
           api::Sort atype = PARSER_STATE->mkSort(name);
-          cmd = new DeclareTypeCommand(name, 0, atype.getType());
+          cmd = new DeclareSortCommand(name, 0, atype);
         }
       }
     | parseThfType[type]
@@ -1007,8 +1007,7 @@ thfAtomTyping[CVC4::Command*& cmd]
           {
             freshExpr = PARSER_STATE->bindVar(name, type);
           }
-          cmd = new DeclareFunctionCommand(
-              name, freshExpr.getExpr(), type.getType());
+          cmd = new DeclareFunctionCommand(name, freshExpr, type);
         }
       }
     )
@@ -1320,7 +1319,7 @@ tffTypedAtom[CVC4::Command*& cmd]
         } else {
           // as yet, it's undeclared
           api::Sort atype = PARSER_STATE->mkSort(name);
-          cmd = new DeclareTypeCommand(name, 0, atype.getType());
+          cmd = new DeclareSortCommand(name, 0, atype);
         }
       }
     | parseType[type]
@@ -1339,8 +1338,7 @@ tffTypedAtom[CVC4::Command*& cmd]
         } else {
           // as yet, it's undeclared
           CVC4::api::Term aexpr = PARSER_STATE->bindVar(name, type);
-          cmd =
-              new DeclareFunctionCommand(name, aexpr.getExpr(), type.getType());
+          cmd = new DeclareFunctionCommand(name, aexpr, type);
         }
       }
     )

@@ -2,10 +2,10 @@
 /*! \file nonlinear_extension.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Aina Niemetz
+ **   Andrew Reynolds, Gereon Kremer, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -48,6 +48,7 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       d_trSlv(d_im, d_model),
       d_nlSlv(d_im, state, d_model),
       d_cadSlv(d_im, d_model),
+      d_icpSlv(d_im),
       d_iandSlv(containing, d_model),
       d_builtModel(containing.getSatContext(), false)
 {
@@ -380,6 +381,21 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     {
       Trace("nl-ext") << "Input assertion: " << a << std::endl;
     }
+  }
+
+  if (options::nlICP())
+  {
+    d_icpSlv.reset(assertions);
+    d_icpSlv.check();
+
+    if (d_im.hasUsed())
+    {
+      Trace("nl-ext") << "  ...finished with "
+                      << d_im.numPendingLemmas() + d_im.numSentLemmas()
+                      << " new lemmas from ICP." << std::endl;
+      return d_im.numPendingLemmas() + d_im.numSentLemmas();
+    }
+    Trace("nl-ext") << "Done with ICP" << std::endl;
   }
 
   if (options::nlExt())
@@ -747,7 +763,7 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
         d_builtModel = true;
       }
       filterLemmas(lemmas, mlems);
-      if (!mlems.empty())
+      if (!mlems.empty() || d_im.hasPendingLemma())
       {
         return true;
       }

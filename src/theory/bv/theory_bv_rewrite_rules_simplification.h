@@ -5,7 +5,7 @@
  **   Liana Hadarean, Aina Niemetz, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -28,6 +28,23 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
+/* -------------------------------------------------------------------------- */
+
+/**
+ * BitOfConst
+ */
+template <>
+inline bool RewriteRule<BitOfConst>::applies(TNode node)
+{
+  return node.getKind() == kind::BITVECTOR_BITOF && node[0].isConst();
+}
+
+template <>
+inline Node RewriteRule<BitOfConst>::apply(TNode node)
+{
+  size_t pos = node.getOperator().getConst<BitVectorBitOf>().d_bitIndex;
+  return utils::getBit(node[0], pos) ? utils::mkTrue() : utils::mkFalse();
+}
 
 /* -------------------------------------------------------------------------- */
 

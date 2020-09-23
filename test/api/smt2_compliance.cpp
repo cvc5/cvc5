@@ -5,7 +5,7 @@
  **   Aina Niemetz, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -68,7 +68,7 @@ void testGetInfo(api::Solver* solver, const char* s)
   assert(c != NULL);
   cout << c << endl;
   stringstream ss;
-  c->invoke(solver->getSmtEngine(), ss);
+  c->invoke(solver, ss);
   assert(p->nextCommand() == NULL);
   delete p;
   delete c;

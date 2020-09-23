@@ -5,7 +5,7 @@
  **   Liana Hadarean, Aina Niemetz, Dejan Jovanovic
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -51,6 +51,12 @@ RewriteResponse TheoryBVRewriter::postRewrite(TNode node) {
         << "TheoryBV::postRewrite to " << res.d_node << std::endl;
   }
   return res; 
+}
+
+RewriteResponse TheoryBVRewriter::RewriteBitOf(TNode node, bool prerewrite)
+{
+  Node resultNode = LinearRewriteStrategy<RewriteRule<BitOfConst>>::apply(node);
+  return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteUlt(TNode node, bool prerewrite) {
@@ -683,6 +689,7 @@ void TheoryBVRewriter::initializeRewrites() {
   }
 
   d_rewriteTable [ kind::EQUAL ] = RewriteEqual;
+  d_rewriteTable[kind::BITVECTOR_BITOF] = RewriteBitOf;
   d_rewriteTable [ kind::BITVECTOR_ULT ] = RewriteUlt;
   d_rewriteTable [ kind::BITVECTOR_SLT ] = RewriteSlt;
   d_rewriteTable [ kind::BITVECTOR_ULE ] = RewriteUle;
