@@ -27,6 +27,8 @@ class SolverBlack : public CxxTest::TestSuite
   void setUp() override;
   void tearDown() override;
 
+  void testRecoverableException();
+
   void testSupportsFloatingPoint();
 
   void testGetBooleanSort();
@@ -172,6 +174,14 @@ class SolverBlack : public CxxTest::TestSuite
 void SolverBlack::setUp() { d_solver.reset(new Solver()); }
 
 void SolverBlack::tearDown() { d_solver.reset(nullptr); }
+
+void SolverBlack::testRecoverableException()
+{
+  d_solver->setOption("produce-models", "true");
+  Term x = d_solver->mkConst(d_solver->getBooleanSort(), "x");
+  d_solver->assertFormula(x.eqTerm(x).notTerm());
+  TS_ASSERT_THROWS(d_solver->printModel(std::cout), CVC4ApiRecoverableException&);
+}
 
 void SolverBlack::testSupportsFloatingPoint()
 {

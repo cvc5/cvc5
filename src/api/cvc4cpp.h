@@ -50,6 +50,7 @@ class NodeManager;
 class SmtEngine;
 class SynthFunCommand;
 class Type;
+class TypeNode;
 class Options;
 class Random;
 class Result;
@@ -72,6 +73,16 @@ class CVC4_PUBLIC CVC4ApiException : public std::exception
 
  private:
   std::string d_msg;
+};
+
+class CVC4_PUBLIC CVC4ApiRecoverableException : public CVC4ApiException
+{
+ public:
+  CVC4ApiRecoverableException(const std::string& str) : CVC4ApiException(str) {}
+  CVC4ApiRecoverableException(const std::stringstream& stream)
+      : CVC4ApiException(stream.str())
+  {
+  }
 };
 
 /* -------------------------------------------------------------------------- */
@@ -3413,6 +3424,7 @@ class CVC4_PUBLIC Solver
 std::vector<Expr> termVectorToExprs(const std::vector<Term>& terms);
 std::vector<Node> termVectorToNodes(const std::vector<Term>& terms);
 std::vector<Type> sortVectorToTypes(const std::vector<Sort>& sorts);
+std::vector<TypeNode> sortVectorToTypeNodes(const std::vector<Sort>& sorts);
 std::set<Type> sortSetToTypes(const std::set<Sort>& sorts);
 std::vector<Term> exprVectorToTerms(const Solver* slv,
                                     const std::vector<Expr>& terms);

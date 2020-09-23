@@ -807,6 +807,10 @@ class CVC4ApiExceptionStream
   {
 #define CVC4_API_SOLVER_TRY_CATCH_END                                          \
   }                                                                            \
+  catch (const CVC4::RecoverableModalException& e)                             \
+  {                                                                            \
+    throw CVC4ApiRecoverableException(e.getMessage());                         \
+  }                                                                            \
   catch (const CVC4::Exception& e) { throw CVC4ApiException(e.getMessage()); } \
   catch (const std::invalid_argument& e) { throw CVC4ApiException(e.what()); }
 
@@ -5706,6 +5710,16 @@ std::vector<Type> sortVectorToTypes(const std::vector<Sort>& sorts)
     types.push_back(sorts[i].getType());
   }
   return types;
+}
+
+std::vector<TypeNode> sortVectorToTypeNodes(const std::vector<Sort>& sorts)
+{
+  std::vector<TypeNode> typeNodes;
+  for (const Sort& sort : sorts)
+  {
+    typeNodes.push_back(TypeNode::fromType(sort.getType()));
+  }
+  return typeNodes;
 }
 
 std::set<Type> sortSetToTypes(const std::set<Sort>& sorts)
