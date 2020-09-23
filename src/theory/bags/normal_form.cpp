@@ -22,7 +22,7 @@ bool NormalForm::checkNormalConstant(TNode n)
   return false;
 }
 
-TNode NormalForm::getNormalForm(TNode n)
+Node NormalForm::getNormalForm(TNode n)
 {
   Assert(AreChildrenInNormalForm(n))
       << "Expected the children of '" << n << "' to be constants" << std::endl;

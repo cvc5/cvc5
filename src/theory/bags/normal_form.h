@@ -40,7 +40,7 @@ class NormalForm
   /**
    * returns the normal form of n
    */
-  static TNode getNormalForm(TNode n);
+  static Node getNormalForm(TNode n);
   /**
    * returns true if all children of the given node are constants
    */

@@ -33,7 +33,7 @@ RewriteResponse TheoryBagsRewriter::postRewrite(TNode n)
   if (NormalForm::AreChildrenInNormalForm(n))
   {
     // rewrite n to be in a normal form
-    TNode normal = NormalForm::getNormalForm(n);
+    Node normal = NormalForm::getNormalForm(n);
     return RewriteResponse(REWRITE_AGAIN, normal);
   }
   return RewriteResponse(REWRITE_DONE, n);
