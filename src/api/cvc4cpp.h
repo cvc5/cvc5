@@ -5,7 +5,7 @@
  **   Aina Niemetz, Andrew Reynolds, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -50,6 +50,7 @@ class NodeManager;
 class SmtEngine;
 class SynthFunCommand;
 class Type;
+class TypeNode;
 class Options;
 class Random;
 class Result;
@@ -72,6 +73,16 @@ class CVC4_PUBLIC CVC4ApiException : public std::exception
 
  private:
   std::string d_msg;
+};
+
+class CVC4_PUBLIC CVC4ApiRecoverableException : public CVC4ApiException
+{
+ public:
+  CVC4ApiRecoverableException(const std::string& str) : CVC4ApiException(str) {}
+  CVC4ApiRecoverableException(const std::stringstream& stream)
+      : CVC4ApiException(stream.str())
+  {
+  }
 };
 
 /* -------------------------------------------------------------------------- */
@@ -387,6 +398,12 @@ class CVC4_PUBLIC Sort
   bool isSet() const;
 
   /**
+   * Is this a Bag sort?
+   * @return true if the sort is a Bag sort
+   */
+  bool isBag() const;
+
+  /**
    * Is this a Sequence sort?
    * @return true if the sort is a Sequence sort
    */
@@ -524,6 +541,13 @@ class CVC4_PUBLIC Sort
    * @return the element sort of a set sort
    */
   Sort getSetElementSort() const;
+
+  /* Bag sort ------------------------------------------------------------ */
+
+  /**
+   * @return the element sort of a bag sort
+   */
+  Sort getBagElementSort() const;
 
   /* Sequence sort ------------------------------------------------------- */
 
@@ -2304,6 +2328,13 @@ class CVC4_PUBLIC Solver
   Sort mkSetSort(Sort elemSort) const;
 
   /**
+   * Create a bag sort.
+   * @param elemSort the sort of the bag elements
+   * @return the bag sort
+   */
+  Sort mkBagSort(Sort elemSort) const;
+
+  /**
    * Create a sequence sort.
    * @param elemSort the sort of the sequence elements
    * @return the sequence sort
@@ -2567,6 +2598,13 @@ class CVC4_PUBLIC Solver
    * @return the empty set constant
    */
   Term mkEmptySet(Sort s) const;
+
+  /**
+   * Create a constant representing an empty bag of the given sort.
+   * @param s the sort of the bag elements.
+   * @return the empty bag constant
+   */
+  Term mkEmptyBag(Sort s) const;
 
   /**
    * Create a separation logic nil term.
@@ -3386,6 +3424,7 @@ class CVC4_PUBLIC Solver
 std::vector<Expr> termVectorToExprs(const std::vector<Term>& terms);
 std::vector<Node> termVectorToNodes(const std::vector<Term>& terms);
 std::vector<Type> sortVectorToTypes(const std::vector<Sort>& sorts);
+std::vector<TypeNode> sortVectorToTypeNodes(const std::vector<Sort>& sorts);
 std::set<Type> sortSetToTypes(const std::set<Sort>& sorts);
 std::vector<Term> exprVectorToTerms(const Solver* slv,
                                     const std::vector<Expr>& terms);

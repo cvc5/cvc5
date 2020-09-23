@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Andres Noetzli, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -28,12 +28,12 @@
 #include "api/cvc4cpp.h"
 #include "parser/parse_op.h"
 #include "parser/parser.h"
-#include "smt/command.h"
 #include "theory/logic_info.h"
 #include "util/abstract_value.h"
 
 namespace CVC4 {
 
+class Command;
 class SExpr;
 
 namespace api {

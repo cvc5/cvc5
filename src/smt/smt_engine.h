@@ -2,10 +2,10 @@
 /*! \file smt_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Aina Niemetz
+ **   Andrew Reynolds, Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -31,6 +31,7 @@
 #include "options/options.h"
 #include "proof/unsat_core.h"
 #include "smt/logic_exception.h"
+#include "smt/output_manager.h"
 #include "smt/smt_mode.h"
 #include "theory/logic_info.h"
 #include "util/hash.h"
@@ -62,6 +63,8 @@ class ProofManager;
 class Model;
 class LogicRequest;
 class StatisticsRegistry;
+
+class Printer;
 
 /* -------------------------------------------------------------------------- */
 
@@ -105,6 +108,7 @@ class Preprocessor;
 class SmtSolver;
 class SygusSolver;
 class AbductionSolver;
+class InterpolationSolver;
 class QuantElimSolver;
 /**
  * Representation of a defined function.  We keep these around in
@@ -861,6 +865,12 @@ class CVC4_PUBLIC SmtEngine
   /** Permit access to the underlying dump manager. */
   smt::DumpManager* getDumpManager();
 
+  /** Get the printer used by this SMT engine */
+  const Printer* getPrinter() const;
+
+  /** Get the output manager for this SMT engine */
+  OutputManager& getOutputManager();
+
   /** Get a pointer to the Rewriter owned by this SmtEngine. */
   theory::Rewriter* getRewriter() { return d_rewriter.get(); }
 
@@ -1101,6 +1111,8 @@ class CVC4_PUBLIC SmtEngine
 
   /** The solver for abduction queries */
   std::unique_ptr<smt::AbductionSolver> d_abductSolver;
+  /** The solver for interpolation queries */
+  std::unique_ptr<smt::InterpolationSolver> d_interpolSolver;
   /** The solver for quantifier elimination queries */
   std::unique_ptr<smt::QuantElimSolver> d_quantElimSolver;
   /**
@@ -1136,6 +1148,10 @@ class CVC4_PUBLIC SmtEngine
 
   /** The options object */
   Options d_options;
+
+  /** the output manager for commands */
+  mutable OutputManager d_outMgr;
+
   /**
    * Manager for limiting time and abstract resource usage.
    */

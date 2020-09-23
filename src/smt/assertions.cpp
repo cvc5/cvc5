@@ -2,10 +2,10 @@
 /*! \file assertions.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -101,12 +101,6 @@ void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
     Node n = d_absValues.substituteAbstractValues(e);
     // Ensure expr is type-checked at this point.
     ensureBoolean(n);
-
-    /* Add assumption  */
-    if (d_assertionList != nullptr)
-    {
-      d_assertionList->push_back(n);
-    }
     addFormula(n, inUnsatCore, true, true, false);
   }
   if (d_globalDefineFunRecLemmas != nullptr)
@@ -124,10 +118,6 @@ void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
 void Assertions::assertFormula(const Node& n, bool inUnsatCore)
 {
   ensureBoolean(n);
-  if (d_assertionList != nullptr)
-  {
-    d_assertionList->push_back(n);
-  }
   bool maybeHasFv = language::isInputLangSygus(options::inputLanguage());
   addFormula(n, inUnsatCore, true, false, maybeHasFv);
 }
@@ -149,6 +139,11 @@ context::CDList<Node>* Assertions::getAssertionList()
 void Assertions::addFormula(
     TNode n, bool inUnsatCore, bool inInput, bool isAssumption, bool maybeHasFv)
 {
+  // add to assertion list if it exists
+  if (d_assertionList != nullptr)
+  {
+    d_assertionList->push_back(n);
+  }
   if (n.isConst() && n.getConst<bool>())
   {
     // true, nothing to do

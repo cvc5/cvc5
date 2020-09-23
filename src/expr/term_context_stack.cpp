@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -41,6 +41,13 @@ void TCtxStack::pushChild(Node t, uint32_t tval, size_t index)
   Trace("tctx-debug") << "TCtxStack::pushChild: returned " << t << "[" << index
                       << "] / " << tval << " ---> " << tcval << std::endl;
   d_stack.push_back(std::pair<Node, uint32_t>(t[index], tcval));
+}
+
+void TCtxStack::pushOp(Node t, uint32_t tval)
+{
+  Assert(t.hasOperator());
+  uint32_t toval = d_tctx->computeValueOp(t, tval);
+  d_stack.push_back(std::pair<Node, uint32_t>(t.getOperator(), toval));
 }
 
 void TCtxStack::push(Node t, uint32_t tval)

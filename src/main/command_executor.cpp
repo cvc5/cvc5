@@ -5,7 +5,7 @@
  **   Kshitij Bansal, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -118,12 +118,12 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
 {
   bool status = true;
   if(d_options.getVerbosity() >= -1) {
-    status = smtEngineInvoke(d_smtEngine, cmd, d_options.getOut());
+    status = solverInvoke(d_solver.get(), cmd, d_options.getOut());
   } else {
-    status = smtEngineInvoke(d_smtEngine, cmd, nullptr);
+    status = solverInvoke(d_solver.get(), cmd, nullptr);
   }
 
-  Result res;
+  api::Result res;
   const CheckSatCommand* cs = dynamic_cast<const CheckSatCommand*>(cmd);
   if(cs != nullptr) {
     d_result = res = cs->getResult();
@@ -149,34 +149,34 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   if (status) {
     std::vector<std::unique_ptr<Command> > getterCommands;
     if (d_options.getDumpModels()
-        && (res.asSatisfiabilityResult() == Result::SAT
-            || (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE)))
+        && (res.isSat()
+            || (res.isSatUnknown()
+                && res.getResult().whyUnknown() == Result::INCOMPLETE)))
     {
       getterCommands.emplace_back(new GetModelCommand());
     }
-    if (d_options.getDumpProofs()
-        && res.asSatisfiabilityResult() == Result::UNSAT)
+    if (d_options.getDumpProofs() && res.isUnsat())
     {
       getterCommands.emplace_back(new GetProofCommand());
     }
 
     if (d_options.getDumpInstantiations()
         && ((d_options.getInstFormatMode() != options::InstFormatMode::SZS
-             && (res.asSatisfiabilityResult() == Result::SAT
-                 || (res.isUnknown()
-                     && res.whyUnknown() == Result::INCOMPLETE)))
-            || res.asSatisfiabilityResult() == Result::UNSAT))
+             && (res.isSat()
+                 || (res.isSatUnknown()
+                     && res.getResult().whyUnknown() == Result::INCOMPLETE)))
+            || res.isUnsat()))
     {
       getterCommands.emplace_back(new GetInstantiationsCommand());
     }
 
-    if (d_options.getDumpSynth() &&
-        res.asSatisfiabilityResult() == Result::UNSAT) {
+    if (d_options.getDumpSynth() && res.isUnsat())
+    {
       getterCommands.emplace_back(new GetSynthSolutionCommand());
     }
 
-    if (d_options.getDumpUnsatCores() &&
-        res.asSatisfiabilityResult() == Result::UNSAT) {
+    if (d_options.getDumpUnsatCores() && res.isUnsat())
+    {
       getterCommands.emplace_back(new GetUnsatCoreCommand());
     }
 
@@ -197,17 +197,21 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   return status;
 }
 
-bool smtEngineInvoke(SmtEngine* smt, Command* cmd, std::ostream *out)
+bool solverInvoke(api::Solver* solver, Command* cmd, std::ostream* out)
 {
-  if(out == NULL) {
-    cmd->invoke(smt);
-  } else {
-    cmd->invoke(smt, *out);
+  if (out == NULL)
+  {
+    cmd->invoke(solver);
+  }
+  else
+  {
+    cmd->invoke(solver, *out);
   }
   // ignore the error if the command-verbosity is 0 for this command
   std::string commandName =
       std::string("command-verbosity:") + cmd->getCommandName();
-  if(smt->getOption(commandName).getIntegerValue() == 0) {
+  if (solver->getOption(commandName) == "0")
+  {
     return true;
   }
   return !cmd->fail();

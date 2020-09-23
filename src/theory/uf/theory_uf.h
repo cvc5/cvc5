@@ -2,10 +2,10 @@
 /*! \file theory_uf.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Andrew Reynolds, Morgan Deters
+ **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -24,6 +24,7 @@
 #include "expr/node.h"
 #include "expr/node_trie.h"
 #include "theory/theory.h"
+#include "theory/theory_eq_notify.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_checker.h"
 #include "theory/uf/proof_equality_engine.h"
@@ -38,44 +39,19 @@ class CardinalityExtension;
 class HoExtension;
 
 class TheoryUF : public Theory {
-
-public:
-
-  class NotifyClass : public eq::EqualityEngineNotify {
-    TheoryUF& d_uf;
-  public:
-    NotifyClass(TheoryUF& uf): d_uf(uf) {}
-
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
+ public:
+  class NotifyClass : public TheoryEqNotifyClass
+  {
+   public:
+    NotifyClass(TheoryInferenceManager& im, TheoryUF& uf)
+        : TheoryEqNotifyClass(im), d_uf(uf)
     {
-      Debug("uf") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
-      if (value) {
-        return d_uf.propagateLit(predicate);
-      }
-      return d_uf.propagateLit(predicate.notNode());
-    }
-
-    bool eqNotifyTriggerTermEquality(TheoryId tag,
-                                     TNode t1,
-                                     TNode t2,
-                                     bool value) override
-    {
-      Debug("uf") << "NotifyClass::eqNotifyTriggerTermMerge(" << tag << ", " << t1 << ", " << t2 << ")" << std::endl;
-      if (value) {
-        return d_uf.propagateLit(t1.eqNode(t2));
-      }
-      return d_uf.propagateLit(t1.eqNode(t2).notNode());
-    }
-
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
-    {
-      Debug("uf-notify") << "NotifyClass::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << ")" << std::endl;
-      d_uf.conflict(t1, t2);
     }
 
     void eqNotifyNewClass(TNode t) override
     {
-      Debug("uf-notify") << "NotifyClass::eqNotifyNewClass(" << t << ")" << std::endl;
+      Debug("uf-notify") << "NotifyClass::eqNotifyNewClass(" << t << ")"
+                         << std::endl;
       d_uf.eqNotifyNewClass(t);
     }
 
@@ -92,13 +68,12 @@ public:
       d_uf.eqNotifyDisequal(t1, t2, reason);
     }
 
+   private:
+    /** Reference to the parent theory */
+    TheoryUF& d_uf;
   };/* class TheoryUF::NotifyClass */
 
 private:
-
-  /** The notify class */
-  NotifyClass d_notify;
-
   /** The associated cardinality extension (or nullptr if it does not exist) */
   std::unique_ptr<CardinalityExtension> d_thss;
   /** the higher-order solver extension (or nullptr if it does not exist) */
@@ -107,20 +82,11 @@ private:
   /** node for true */
   Node d_true;
 
-  /**
-   * Should be called to propagate the literal. We use a node here
-   * since some of the propagated literals are not kept anywhere.
-   */
-  bool propagateLit(TNode literal);
-
   /** All the function terms that the theory has seen */
   context::CDList<TNode> d_functionsTerms;
 
   /** Symmetry analyzer */
   SymmetryBreaker d_symb;
-
-  /** Conflict when merging two constants */
-  void conflict(TNode a, TNode b);
 
   /** called when a new equivalance class is created */
   void eqNotifyNewClass(TNode t);
@@ -206,6 +172,8 @@ private:
   TheoryState d_state;
   /** A (default) inference manager */
   TheoryInferenceManager d_im;
+  /** The notify class */
+  NotifyClass d_notify;
 };/* class TheoryUF */
 
 }/* CVC4::theory::uf namespace */

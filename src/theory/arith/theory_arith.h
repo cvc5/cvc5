@@ -2,10 +2,10 @@
 /*! \file theory_arith.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Alex Ozdemir, Morgan Deters
+ **   Andrew Reynolds, Tim King, Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -25,12 +25,15 @@
 
 namespace CVC4 {
 namespace theory {
-
 namespace arith {
 
+namespace nl {
+class NonlinearExtension;
+}
+
 /**
- * Implementation of QF_LRA.
- * Based upon:
+ * Implementation of linear and non-linear integer and real arithmetic.
+ * The linear arithmetic solver is based upon:
  * http://research.microsoft.com/en-us/um/people/leonardo/cav06.pdf
  */
 class TheoryArith : public Theory {
@@ -78,6 +81,11 @@ class TheoryArith : public Theory {
   TrustNode explain(TNode n) override;
 
   bool collectModelInfo(TheoryModel* m) override;
+  /**
+   * Collect model values in m based on the relevant terms given by termSet.
+   */
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet) override;
 
   void shutdown() override {}
 
@@ -110,6 +118,11 @@ class TheoryArith : public Theory {
   /** The arith::InferenceManager. */
   InferenceManager d_inferenceManager;
 
+  /**
+   * The non-linear extension, responsible for all approaches for non-linear
+   * arithmetic.
+   */
+  std::unique_ptr<nl::NonlinearExtension> d_nonlinearExtension;
 };/* class TheoryArith */
 
 }/* CVC4::theory::arith namespace */
