@@ -30,8 +30,6 @@ class TheoryBagsRewriter : public TheoryRewriter
    * Rewrite rules:
    * - node is a constant in normal form
    *   node = node // return the same node
-   * - node is not in a normal form, but its children are
-   *   node = normal_form_node
    * - union_max
    *   (union_max A emptybag) = A
    *   (union_max emptybag B) =>B
@@ -73,8 +71,10 @@ class TheoryBagsRewriter : public TheoryRewriter
    * @return
    */
   RewriteResponse postRewrite(TNode n) override;
-
-  RewriteResponse preRewrite(TNode node) override;
+  /**
+   * - (= A A) = true where A is a bag
+   */
+  RewriteResponse preRewrite(TNode n) override;
 
  private:
   /**

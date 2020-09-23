@@ -69,6 +69,20 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     TS_ASSERT(emptybag == response.d_node && response.d_status == REWRITE_DONE);
   }
 
+  void testBagEquality()
+  {
+    vector<Node> elements = getNStrings(1);
+    Node emptyBag1 =
+        d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
+    Node emptyBag2 =
+        d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
+    Node equal = emptyBag1.eqNode(emptyBag2);
+
+    RewriteResponse response = d_rewriter.preRewrite(equal);
+    TS_ASSERT(response.d_node == d_nm->mkConst(true)
+              && response.d_status == REWRITE_DONE);
+  }
+
   void testMkBagConstantElement()
   {
     vector<Node> elements = getNStrings(1);
@@ -121,6 +135,31 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
   void testBagCount()
   {
     int n = 3;
+    Node skolem = d_nm->mkSkolem("x", d_nm->stringType());
+    Node emptyBag = d_nm->mkConst(EmptyBag(d_nm->mkBagType(skolem.getType())));
+    Node bag = d_nm->mkNode(MK_BAG, skolem, d_nm->mkConst(Rational(n)));
+
+    std::cout << emptyBag.getType() << std::endl;
+    Node emptyCount = d_nm->mkNode(BAG_COUNT, skolem, emptyBag);
+    Node bagCount = d_nm->mkNode(BAG_COUNT, skolem, bag);
+
+    RewriteResponse zeroResponse = d_rewriter.postRewrite(emptyCount);
+    RewriteResponse nResponse = d_rewriter.postRewrite(bagCount);
+
+    TS_ASSERT(zeroResponse.d_status == REWRITE_AGAIN
+              && zeroResponse.d_node.isConst());
+    //&& zeroResponse.d_node.getConst<Rational>().isZero());
+
+    // no change for positive
+    TS_ASSERT(
+        nResponse.d_status == REWRITE_AGAIN && nResponse.d_node.isConst()
+        && nResponse.d_node.getConst<Rational>().getNumerator().toUnsignedInt()
+               == n);
+  }
+
+  void testBagCossunt()
+  {
+    int n = 3;
     vector<Node> elements = getNStrings(1);
     Node emptyBag =
         d_nm->mkConst(EmptyBag(d_nm->mkBagType(elements[0].getType())));
@@ -135,13 +174,13 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
 
     TS_ASSERT(zeroResponse.d_status == REWRITE_AGAIN
               && zeroResponse.d_node.isConst());
-              //&& zeroResponse.d_node.getConst<Rational>().isZero());
+    //&& zeroResponse.d_node.getConst<Rational>().isZero());
 
     // no change for positive
-    TS_ASSERT(nResponse.d_status == REWRITE_AGAIN
-              && nResponse.d_node.isConst()
-              && nResponse.d_node.getConst<Rational>()
-                         .getNumerator().toUnsignedInt() == n);
+    TS_ASSERT(
+        nResponse.d_status == REWRITE_AGAIN && nResponse.d_node.isConst()
+        && nResponse.d_node.getConst<Rational>().getNumerator().toUnsignedInt()
+               == n);
   }
 
  private:

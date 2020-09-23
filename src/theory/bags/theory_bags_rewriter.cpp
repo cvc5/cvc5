@@ -46,10 +46,17 @@ RewriteResponse TheoryBagsRewriter::postRewrite(TNode n)
   return RewriteResponse(REWRITE_DONE, n);
 }
 
-RewriteResponse TheoryBagsRewriter::preRewrite(TNode node)
+RewriteResponse TheoryBagsRewriter::preRewrite(TNode n)
 {
-  // TODO(projects#225): complete the code here
-  return RewriteResponse(REWRITE_DONE, node);
+  if (n.getKind() == EQUAL)
+  {
+    if (n[0] == n[1])
+    {
+      NodeManager* nm = NodeManager::currentNM();
+      return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
+    }
+  }
+  return RewriteResponse(REWRITE_DONE, n);
 }
 
 RewriteResponse TheoryBagsRewriter::rewriteMakeBag(const TNode& n) const
