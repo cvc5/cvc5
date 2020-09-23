@@ -220,12 +220,8 @@ set(regress_0_tests
   regress0/bv/bv-to-bool1.smtv1.smt2
   regress0/bv/bv-to-bool2.smt2
   regress0/bv/bv_to_int1.smt2
-  regress0/bv/bv_to_int2.smt2
-  regress0/bv/bv_to_int_bvmul1.smt2
   regress0/bv/bv_to_int_bvmul2.smt2
-  regress0/bv/bv_to_int_bitwise.smt2
   regress0/bv/bv_to_int_bvuf_to_intuf.smt2
-  regress0/bv/bv_to_int_bvuf_to_intuf_smtlib.smt2
   regress0/bv/bv_to_int_bvuf_to_intuf_sorts.smt2
   regress0/bv/bv_to_int_elim_err.smt2
   regress0/bv/bv_to_int_zext.smt2
@@ -2102,7 +2098,11 @@ set(regress_2_tests
   regress2/bug765.smt2
   regress2/bug812.smt2
   regress2/bv/opStructure_MBA_6.scrambled.min.smt2
+  regress2/bv_to_int2.smt2
   regress2/bv_to_int_ashr.smt2
+  regress2/bv_to_int_bitwise.smt2
+  regress2/bv_to_int_bvmul1.smt2
+  regress2/bv_to_int_bvuf_to_intuf_smtlib.smt2
   regress2/bv_to_int_inc1.smt2
   regress2/bv_to_int_mask_array_1.smt2
   regress2/bv_to_int_mask_array_2.smt2
@@ -2201,8 +2201,12 @@ set(regress_3_tests
   regress3/bmc-ibm-5.smtv1.smt2
   regress3/bmc-ibm-7.smtv1.smt2
   regress3/bv_to_int_and_or.smt2
+  regress3/bv_to_int_bench_9839.smt2.minimized.smt2
   regress3/bv_to_int_check_bvsge_bvashr0_4bit.smt2.minimized.smt2
+  regress3/bv_to_int_check_bvsgt_bvlshr0_4bit.smt2.minimized.smt2
   regress3/bv_to_int_check_ne_bvlshr0_4bit.smt2.minimized.smt2
+  regress3/bv_to_int_quant1.smt2
+  regress3/bv_to_int_quant2.smt2
   regress3/bv_to_int_input_mouser_detect.c.smt2.minimized.smt2
   regress3/eq_diamond14.smtv1.smt2
   regress3/friedman_n6_i4.smtv1.smt2
