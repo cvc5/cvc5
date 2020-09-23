@@ -36,6 +36,23 @@ RewriteResponse TheoryBagsRewriter::postRewrite(TNode n)
     Node normal = NormalForm::getNormalForm(n);
     return RewriteResponse(REWRITE_AGAIN, normal);
   }
+  // children are not in a normal form
+  Kind k = n.getKind();
+  switch (k)
+  {
+    case kind::MK_BAG:
+    {
+      // return emptybag for negative or zero multiplicity
+      if (n[1].isConst() && n[1].getConst<Rational>().sgn() != 1)
+      {
+        // (mkBag x -1) = emptybag
+        NodeManager* nm = NodeManager::currentNM();
+        Node emptybag = nm->mkConst(EmptyBag(n.getType()));
+        return RewriteResponse(REWRITE_AGAIN, emptybag);
+      }
+      return RewriteResponse(REWRITE_DONE, n);
+    }
+  }
   return RewriteResponse(REWRITE_DONE, n);
 }
 

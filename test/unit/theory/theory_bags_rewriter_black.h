@@ -69,7 +69,7 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     TS_ASSERT(emptybag == response.d_node && response.d_status == REWRITE_DONE);
   }
 
-  void testMkBag()
+  void testMkBagConstant()
   {
     vector<Node> elements = getNStrings(1);
     Node negative =
@@ -77,6 +77,30 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     Node zero = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(0)));
     Node positive =
         d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(1)));
+    RewriteResponse negativeResponse = d_rewriter.postRewrite(negative);
+    RewriteResponse zeroResponse = d_rewriter.postRewrite(zero);
+    RewriteResponse positiveResponse = d_rewriter.postRewrite(positive);
+
+    // bags with non-positive multiplicity are rewritten as empty bags
+    TS_ASSERT(negativeResponse.d_status == REWRITE_AGAIN
+              && negativeResponse.d_node.getKind() == EMPTYBAG
+              && negativeResponse.d_node.getType() == negative.getType());
+    TS_ASSERT(zeroResponse.d_status == REWRITE_AGAIN
+              && zeroResponse.d_node.getKind() == EMPTYBAG
+              && zeroResponse.d_node.getType() == negative.getType());
+
+    // no change for positive
+    TS_ASSERT(positiveResponse.d_status == REWRITE_DONE
+              && positive == positiveResponse.d_node);
+  }
+
+  void testMkBagVariable()
+  {
+    Node skolem = d_nm->mkSkolem("x", d_nm->stringType());
+    Node variable = d_nm->mkNode(MK_BAG, skolem, d_nm->mkConst(Rational(-1)));
+    Node negative = d_nm->mkNode(MK_BAG, skolem, d_nm->mkConst(Rational(-1)));
+    Node zero = d_nm->mkNode(MK_BAG, skolem, d_nm->mkConst(Rational(0)));
+    Node positive = d_nm->mkNode(MK_BAG, skolem, d_nm->mkConst(Rational(1)));
     RewriteResponse negativeResponse = d_rewriter.postRewrite(negative);
     RewriteResponse zeroResponse = d_rewriter.postRewrite(zero);
     RewriteResponse positiveResponse = d_rewriter.postRewrite(positive);
