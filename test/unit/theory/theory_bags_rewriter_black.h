@@ -69,7 +69,7 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     TS_ASSERT(emptybag == response.d_node && response.d_status == REWRITE_DONE);
   }
 
-  void testMkBagConstant()
+  void testMkBagConstantElement()
   {
     vector<Node> elements = getNStrings(1);
     Node negative =
@@ -94,7 +94,7 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
               && positive == positiveResponse.d_node);
   }
 
-  void testMkBagVariable()
+  void testMkBagVariableElement()
   {
     Node skolem = d_nm->mkSkolem("x", d_nm->stringType());
     Node variable = d_nm->mkNode(MK_BAG, skolem, d_nm->mkConst(Rational(-1)));
@@ -116,6 +116,32 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     // no change for positive
     TS_ASSERT(positiveResponse.d_status == REWRITE_DONE
               && positive == positiveResponse.d_node);
+  }
+
+  void testBagCountConstantElement()
+  {
+    int n = 3;
+    vector<Node> elements = getNStrings(1);
+    Node emptyBag =
+        d_nm->mkConst(EmptyBag(d_nm->mkBagType(elements[0].getType())));
+    Node bag = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(n)));
+
+    std::cout << emptyBag.getType() << std::endl;
+    Node emptyCount = d_nm->mkNode(BAG_COUNT, elements[0], emptyBag);
+    Node bagCount = d_nm->mkNode(BAG_COUNT, elements[0], bag);
+
+    RewriteResponse zeroResponse = d_rewriter.postRewrite(emptyCount);
+    RewriteResponse nResponse = d_rewriter.postRewrite(bagCount);
+
+    TS_ASSERT(zeroResponse.d_status == REWRITE_AGAIN
+              && zeroResponse.d_node.isConst());
+              //&& zeroResponse.d_node.getConst<Rational>().isZero());
+
+    // no change for positive
+    TS_ASSERT(nResponse.d_status == REWRITE_AGAIN
+              && nResponse.d_node.isConst()
+              && nResponse.d_node.getConst<Rational>()
+                         .getNumerator().toUnsignedInt() == n);
   }
 
  private:

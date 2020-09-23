@@ -82,6 +82,10 @@ class TheoryBagsRewriter : public TheoryRewriter
   RewriteResponse postRewrite(TNode n) override;
 
   RewriteResponse preRewrite(TNode node) override;
+
+ private:
+  RewriteResponse rewriteMakeBag(const TNode& n) const;
+  RewriteResponse rewriteBagCount(const TNode& n) const;
 }; /* class TheoryBagsRewriter */
 
 }  // namespace bags

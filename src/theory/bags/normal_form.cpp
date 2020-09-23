@@ -21,33 +21,6 @@ bool NormalForm::checkNormalConstant(TNode n)
   // TODO(projects#223): complete this function
   return false;
 }
-
-Node NormalForm::getNormalForm(TNode n)
-{
-  Assert(AreChildrenInNormalForm(n))
-      << "Expected the children of '" << n << "' to be constants" << std::endl;
-  Kind k = n.getKind();
-  NodeManager* nm = NodeManager::currentNM();
-  switch (k)
-  {
-    case kind::MK_BAG:
-    {
-      // zero or negative multiplicity
-      Assert(n[1].getConst<Rational>().sgn() != 1);
-      // return an empty bag of the same type of n
-      Node emptybag = nm->mkConst(EmptyBag(n.getType()));
-      return emptybag;
-    }
-  }
-  return n;
-}
-
-bool NormalForm::AreChildrenInNormalForm(TNode n)
-{
-  return std::all_of(
-      n.begin(), n.end(), [](TNode child) { return child.isConst(); });
-}
-
 }  // namespace bags
 }  // namespace theory
 }  // namespace CVC4
