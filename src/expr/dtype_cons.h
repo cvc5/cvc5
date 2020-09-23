@@ -158,7 +158,7 @@ class DTypeConstructor
    * only be called for resolved constructors.
    */
   bool isInterpretedFinite(TypeNode t) const;
-  /** 
+  /**
    * Has finite external argument type.
    */
   bool hasFiniteExternalArgType(TypeNode t) const;
