@@ -85,7 +85,7 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
           std::shared_ptr<ProofNode> pgc = pg->getProofFor(cfactGen);
           // if the proof was null, then the update is not performed
           // TODO: require/check this?
-          if (pgc!=nullptr)
+          if (pgc != nullptr)
           {
             Trace("lazy-cdproof-gen")
                 << "LazyCDProof: stored proof: " << *pgc.get() << std::endl;

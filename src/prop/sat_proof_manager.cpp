@@ -501,7 +501,8 @@ void SatProofManager::finalizeProof(Node inConflictNode,
       auto it = d_proxy->getCnfStream()->getTranslationCache().find(link.first);
       if (it != d_proxy->getCnfStream()->getTranslationCache().end())
       {
-        Trace("sat-proof-debug2") << "SatProofManager::finalizeProof:  " << it->second;
+        Trace("sat-proof-debug2")
+            << "SatProofManager::finalizeProof:  " << it->second;
       }
       // a refl step added due to double elim negation, ignore
       else if (link.second->getRule() == PfRule::REFL)
@@ -562,7 +563,9 @@ void SatProofManager::finalizeProof(Node inConflictNode,
         Trace("sat-proof-debug2") << "\n";
       }
       Trace("sat-proof-debug2") << CVC4::pop;
-      Trace("sat-proof-debug2") << "SatProofManager::finalizeProof:  " << *pfn.get() << "\n=======\n";;
+      Trace("sat-proof-debug2")
+          << "SatProofManager::finalizeProof:  " << *pfn.get() << "\n=======\n";
+      ;
     }
     Trace("sat-proof-debug2") << CVC4::pop;
   }

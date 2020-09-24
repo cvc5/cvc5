@@ -26,8 +26,7 @@ namespace theory {
 // In distributed equality engine management, shared terms database also
 // maintains an equality engine. In central equality engine management,
 // it does not.
-SharedSolver::SharedSolver(TheoryEngine& te,
-                                         ProofNodeManager* pnm)
+SharedSolver::SharedSolver(TheoryEngine& te, ProofNodeManager* pnm)
     : d_te(te),
       d_logicInfo(te.getLogicInfo()),
       d_sharedTerms(&d_te, d_te.getSatContext(), d_te.getUserContext(), pnm),

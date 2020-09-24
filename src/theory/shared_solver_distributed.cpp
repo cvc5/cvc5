@@ -20,7 +20,7 @@ namespace CVC4 {
 namespace theory {
 
 SharedSolverDistributed::SharedSolverDistributed(TheoryEngine& te,
-                                         ProofNodeManager* pnm)
+                                                 ProofNodeManager* pnm)
     : SharedSolver(te, pnm)
 {
 }

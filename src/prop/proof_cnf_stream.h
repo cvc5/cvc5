@@ -149,7 +149,8 @@ class ProofCnfStream : public ProofGenerator
 
   /** Blocked proofs. These are proof nodes added to this class by external
    * generators. */
-  context::CDHashSet<std::shared_ptr<ProofNode>, ProofNodeHashFunction> d_blocked;
+  context::CDHashSet<std::shared_ptr<ProofNode>, ProofNodeHashFunction>
+      d_blocked;
 };
 
 }  // namespace prop

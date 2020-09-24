@@ -18,8 +18,8 @@
 #include "expr/node_manager.h"
 #include "options/smt_options.h"
 #include "proof/proof_manager.h"
-#include "theory/rewriter.h"
 #include "theory/builtin/proof_checker.h"
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -139,10 +139,10 @@ void AssertionPipeline::addSubstitutionNode(Node n, ProofGenerator* pg)
 
 void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Node newConj = nm->mkNode(kind::AND, d_nodes[i], n);
   Node newConjr = theory::Rewriter::rewrite(newConj);
-  if (newConjr==d_nodes[i])
+  if (newConjr == d_nodes[i])
   {
     // trivial, skip
     return;
@@ -156,13 +156,15 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
     // -------------------------------- MACRO_SR_PRED_TRANSFORM
     //   rewrite( d_nodes[i] ^ n )
     // allocate a fresh proof which will act as the proof generator
-    LazyCDProof * lcp = d_pppg->allocateHelperProof();
+    LazyCDProof* lcp = d_pppg->allocateHelperProof();
     lcp->addLazyStep(d_nodes[i], d_pppg, false);
-    lcp->addLazyStep(n, pg, false, "AssertionPipeline::conjoin", false, PfRule::PREPROCESS);
+    lcp->addLazyStep(
+        n, pg, false, "AssertionPipeline::conjoin", false, PfRule::PREPROCESS);
     lcp->addStep(newConj, PfRule::AND_INTRO, {d_nodes[i], n}, {});
-    if (newConjr!=newConj)
+    if (newConjr != newConj)
     {
-      lcp->addStep(newConjr, PfRule::MACRO_SR_PRED_TRANSFORM, {newConj}, {newConjr});
+      lcp->addStep(
+          newConjr, PfRule::MACRO_SR_PRED_TRANSFORM, {newConj}, {newConjr});
     }
     // Notice we have constructed a proof of a new assertion, where d_pppg
     // is referenced in the lazy proof above. If alternatively we had

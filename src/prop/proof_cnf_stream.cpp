@@ -31,9 +31,15 @@ ProofCnfStream::ProofCnfStream(context::UserContext* u,
 {
 }
 
-void ProofCnfStream::addBlocked(std::shared_ptr<ProofNode> pfn) { d_blocked.insert(pfn); }
+void ProofCnfStream::addBlocked(std::shared_ptr<ProofNode> pfn)
+{
+  d_blocked.insert(pfn);
+}
 
-bool ProofCnfStream::isBlocked(std::shared_ptr<ProofNode> pfn) { return d_blocked.contains(pfn); }
+bool ProofCnfStream::isBlocked(std::shared_ptr<ProofNode> pfn)
+{
+  return d_blocked.contains(pfn);
+}
 
 std::shared_ptr<ProofNode> ProofCnfStream::getProofFor(Node f)
 {
@@ -769,9 +775,7 @@ SatLiteral ProofCnfStream::toCNF(TNode node, bool negated)
       lit = node[0].getType().isBoolean() ? handleIff(node)
                                           : d_cnfStream.convertAtom(node);
       break;
-    default:
-    {
-      lit = d_cnfStream.convertAtom(node);
+    default: { lit = d_cnfStream.convertAtom(node);
     }
     break;
   }

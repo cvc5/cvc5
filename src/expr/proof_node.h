@@ -123,7 +123,8 @@ class ProofNode
   Node d_proven;
 };
 
-inline size_t ProofNodeHashFunction::operator()(std::shared_ptr<ProofNode> pfn) const
+inline size_t ProofNodeHashFunction::operator()(
+    std::shared_ptr<ProofNode> pfn) const
 {
   return pfn->getResult().getId() + static_cast<unsigned>(pfn->getRule());
 }

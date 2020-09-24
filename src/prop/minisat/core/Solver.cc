@@ -730,8 +730,8 @@ void Solver::removeClause(CRef cr) {
     Clause& c = ca[cr];
     if (Debug.isOn("minisat"))
     {
-      Debug("minisat")
-          << "Solver::removeClause(" << c << "), CRef " << cr << ", clause ";
+      Debug("minisat") << "Solver::removeClause(" << c << "), CRef " << cr
+                       << ", clause ";
       for (unsigned i = 0, size = c.size(); i < size; ++i)
       {
         Debug("minisat") << c[i] << " ";
