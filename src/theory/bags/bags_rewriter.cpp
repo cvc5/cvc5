@@ -32,7 +32,7 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
   if (NormalForm::AreChildrenConstants(n))
   {
     Node normal = NormalForm::getNormalForm(n);
-    return RewriteResponse(REWRITE_DONE, n);
+    return RewriteResponse(REWRITE_DONE, normal);
   }
   Kind k = n.getKind();
   switch (k)
