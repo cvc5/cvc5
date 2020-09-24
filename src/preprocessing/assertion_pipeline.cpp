@@ -19,6 +19,7 @@
 #include "options/smt_options.h"
 #include "proof/proof_manager.h"
 #include "theory/rewriter.h"
+#include "theory/builtin/proof_checker.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -86,8 +87,7 @@ void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
 {
   if (n == d_nodes[i])
   {
-    // no change, abort
-    // TODO: make assertion failure?
+    // no change, skip
     return;
   }
   Trace("smt-pppg-repl") << "Replace " << d_nodes[i] << " with " << n
@@ -139,34 +139,37 @@ void AssertionPipeline::addSubstitutionNode(Node n, ProofGenerator* pg)
 
 void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
 {
-  if (n == d_nodes[i])
+  NodeManager * nm = NodeManager::currentNM();
+  Node newConj = nm->mkNode(kind::AND, d_nodes[i], n);
+  Node newConjr = theory::Rewriter::rewrite(newConj);
+  if (newConjr==d_nodes[i])
   {
-    // trivial case, skip to avoid cyclic proofs below
+    // trivial, skip
     return;
   }
-  Node newConj = NodeManager::currentNM()->mkNode(kind::AND, n, d_nodes[i]);
-  Node newConjr = theory::Rewriter::rewrite(newConj);
   if (isProofEnabled())
   {
-    /*
-    LazyCDProof lcp(d_pppg->getManager());
-    lcp.addLazyStep(n, pgen);
-    lcp.addLazyStep(d_nodes[i], d_pppg);
-    lcp.addStep(newConj, PfRule::AND_INTRO, {n, d_nodes[i]}, {});
-    if (newConj!=newConjr)
+    // ---------- from pppg   --------- from pg
+    // d_nodes[i]                n
+    // -------------------------------- AND_INTRO
+    //      d_nodes[i] ^ n
+    // -------------------------------- MACRO_SR_PRED_TRANSFORM
+    //   rewrite( d_nodes[i] ^ n )
+    // allocate a fresh proof which will act as the proof generator
+    LazyCDProof * lcp = d_pppg->allocateHelperProof();
+    lcp->addLazyStep(d_nodes[i], d_pppg, false);
+    lcp->addLazyStep(n, pg, false, "AssertionPipeline::conjoin", false, PfRule::PREPROCESS);
+    lcp->addStep(newConj, PfRule::AND_INTRO, {d_nodes[i], n}, {});
+    if (newConjr!=newConj)
     {
-      lcp.addStep(newConjr, PfRule::MACRO_SR_PRED_TRANSFORM, {newConj},
-    {newConjr});
+      lcp->addStep(newConjr, PfRule::MACRO_SR_PRED_TRANSFORM, {newConj}, {newConjr});
     }
-    std::shared_ptr<ProofNode> pf = lcp.getProofFor(newConjr);
-    theory::EagerProofGenerator * helper = d_pppg->getHelperProofGenerator();
-    helper->setProofFor(newConjr, pf);
-    */
-
-    ProofGenerator* pgReplace = nullptr;  // d_pppg->getHelperProofGenerator();
-    // TODO
-    // d_pppg->notifyNewAssert(n, pgen);
-    d_pppg->notifyPreprocessed(d_nodes[i], newConjr, pgReplace);
+    // Notice we have constructed a proof of a new assertion, where d_pppg
+    // is referenced in the lazy proof above. If alternatively we had
+    // constructed a proof of d_nodes[i] = rewrite( d_nodes[i] ^ n ), we would
+    // have used notifyPreprocessed. However, it is simpler to make the
+    // above proof.
+    d_pppg->notifyNewAssert(newConjr, lcp);
   }
   if (options::unsatCores())
   {

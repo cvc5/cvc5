@@ -83,19 +83,24 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
           // the current proof. Instead, it is only linked, and ignored on
           // future calls to getProofFor due to the check above.
           std::shared_ptr<ProofNode> pgc = pg->getProofFor(cfactGen);
-          Trace("lazy-cdproof-gen")
-              << "LazyCDProof: stored proof: " << *pgc.get() << std::endl;
+          // if the proof was null, then the update is not performed
+          // TODO: require/check this?
+          if (pgc!=nullptr)
+          {
+            Trace("lazy-cdproof-gen")
+                << "LazyCDProof: stored proof: " << *pgc.get() << std::endl;
 
-          if (isSym)
-          {
-            d_manager->updateNode(cur, PfRule::SYMM, {pgc}, {});
+            if (isSym)
+            {
+              d_manager->updateNode(cur, PfRule::SYMM, {pgc}, {});
+            }
+            else
+            {
+              d_manager->updateNode(cur, pgc.get());
+            }
+            Trace("lazy-cdproof") << "LazyCDProof: Successfully added fact for "
+                                  << cfactGen << std::endl;
           }
-          else
-          {
-            d_manager->updateNode(cur, pgc.get());
-          }
-          Trace("lazy-cdproof") << "LazyCDProof: Successfully added fact for "
-                                << cfactGen << std::endl;
         }
         else
         {

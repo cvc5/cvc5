@@ -20,10 +20,12 @@
 #include <map>
 
 #include "context/cdhashmap.h"
+#include "context/cdlist.h"
 #include "expr/proof_generator.h"
 #include "expr/proof_node_manager.h"
 #include "theory/eager_proof_generator.h"
 #include "theory/trust_node.h"
+#include "expr/lazy_proof.h"
 
 namespace CVC4 {
 namespace smt {
@@ -68,10 +70,11 @@ class PreprocessProofGenerator : public ProofGenerator
   std::string identify() const override;
   /** Get the proof manager */
   ProofNodeManager* getManager();
-  /** Get the helper proof generator */
-  theory::EagerProofGenerator* getHelperProofGenerator();
+  /** Allocate a helper proof */
+  LazyCDProof* allocateHelperProof();
 
  private:
+  typedef context::CDList<std::shared_ptr<LazyCDProof> > LazyCDProofList;
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /**
@@ -82,11 +85,8 @@ class PreprocessProofGenerator : public ProofGenerator
    * (2) A trust node LEMMA proving n.
    */
   NodeTrustNodeMap d_src;
-  /**
-   * An helper eager proof generator. This is used for storing steps that
-   * transform substitution steps.
-   */
-  theory::EagerProofGenerator d_helperEpg;
+  /** A context-dependent list of LazyCDProof, allocated for conjoin steps */
+  LazyCDProofList d_helperProofs;
 };
 
 }  // namespace smt

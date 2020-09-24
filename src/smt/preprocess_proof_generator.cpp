@@ -23,7 +23,7 @@ namespace smt {
 
 PreprocessProofGenerator::PreprocessProofGenerator(context::UserContext* u,
                                                    ProofNodeManager* pnm)
-    : d_pnm(pnm), d_src(u), d_helperEpg(pnm, u, "pppg::subsEpg")
+    : d_pnm(pnm), d_src(u), d_helperProofs(u)
 {
 }
 
@@ -183,9 +183,11 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
 
 ProofNodeManager* PreprocessProofGenerator::getManager() { return d_pnm; }
 
-theory::EagerProofGenerator* PreprocessProofGenerator::getHelperProofGenerator()
+LazyCDProof* PreprocessProofGenerator::allocateHelperProof()
 {
-  return &d_helperEpg;
+  std::shared_ptr<LazyCDProof> helperPf = std::make_shared<LazyCDProof>(d_pnm);
+  d_helperProofs.push_back(helperPf);
+  return helperPf.get();
 }
 
 std::string PreprocessProofGenerator::identify() const
