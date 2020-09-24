@@ -359,12 +359,6 @@ RewriteResponse BagsRewriter::rewriteChoose(const TNode& n) const
 RewriteResponse BagsRewriter::rewriteCard(const TNode& n) const
 {
   Assert(n.getKind() == BAG_CARD);
-  if (n[0].getKind() == EMPTYBAG)
-  {
-    // (bag.card emptybag) = 0
-    Node zero = NodeManager::currentNM()->mkConst(Rational(0));
-    return RewriteResponse(REWRITE_DONE, zero);
-  }
   if (n[0].getKind() == MK_BAG && n[0][1].isConst())
   {
     // (bag.card (mkBag x c)) = c where c is a constant > 0
