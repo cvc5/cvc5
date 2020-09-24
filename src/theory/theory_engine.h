@@ -708,8 +708,9 @@ class TheoryEngine {
    *
    * This method updates success to false if the set of relevant assertions
    * is not available. This may occur if we are not in SAT mode, if the
-   * relevance manager is disabled or if the relevance manager failed to
-   * compute relevant assertions due to an internal error.
+   * relevance manager is disabled (see option::relevanceFilter) or if the
+   * relevance manager failed to compute relevant assertions due to an internal
+   * error.
    */
   const std::unordered_set<TNode, TNodeHashFunction>& getRelevantAssertions(
       bool& success);
