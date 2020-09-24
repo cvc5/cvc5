@@ -162,14 +162,14 @@ RewriteResponse TheoryBagsRewriter::rewriteUnionDisjoint(const TNode& n) const
 RewriteResponse TheoryBagsRewriter::rewriteIntersectionMin(const TNode& n) const
 {
   Assert(n.getKind() == INTERSECTION_MIN);
-  if (n[1].getKind() == EMPTYBAG)
-  {
-    // (intersection_min A emptybag) = emptybag
-    return RewriteResponse(REWRITE_AGAIN, n[0]);
-  }
   if (n[0].getKind() == EMPTYBAG)
   {
     // (intersection_min emptybag A) = emptybag
+    return RewriteResponse(REWRITE_AGAIN, n[0]);
+  }
+  if (n[1].getKind() == EMPTYBAG)
+  {
+    // (intersection_min A emptybag) = emptybag
     return RewriteResponse(REWRITE_AGAIN, n[1]);
   }
   if (n[0] == n[1])
@@ -179,8 +179,7 @@ RewriteResponse TheoryBagsRewriter::rewriteIntersectionMin(const TNode& n) const
   }
   if (n[1].getKind() == UNION_DISJOINT || n[1].getKind() == UNION_MAX)
   {
-    std::set<Node> bags(n[1].begin(), n[1].end());
-    if (bags.find(n[0]) != bags.end())
+    if (n[0] == n[1][0] || n[0] == n[1][1])
     {
       // (intersection_min A (union_disjoint A B)) = A
       // (intersection_min A (union_disjoint B A)) = A
@@ -192,8 +191,7 @@ RewriteResponse TheoryBagsRewriter::rewriteIntersectionMin(const TNode& n) const
 
   if (n[0].getKind() == UNION_DISJOINT || n[0].getKind() == UNION_MAX)
   {
-    std::set<Node> bags(n[0].begin(), n[0].end());
-    if (bags.find(n[1]) != bags.end())
+    if (n[1] == n[0][0] || n[1] == n[0][1])
     {
       // (intersection_min (union_disjoint A B) A) = A
       // (intersection_min (union_disjoint B A) A) = A

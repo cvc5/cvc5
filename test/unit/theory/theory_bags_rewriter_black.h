@@ -181,7 +181,7 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     TS_ASSERT(response2.d_node == A && response2.d_status == REWRITE_AGAIN);
 
     // (union_max A A) = A
-    Node unionMax3 = d_nm->mkNode(UNION_MAX, emptyBag, A);
+    Node unionMax3 = d_nm->mkNode(UNION_MAX, A, A);
     RewriteResponse response3 = d_rewriter.postRewrite(unionMax3);
     TS_ASSERT(response3.d_node == A && response3.d_status == REWRITE_AGAIN);
 
@@ -274,6 +274,78 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     RewriteResponse response4 = d_rewriter.postRewrite(unionDisjoint4);
     TS_ASSERT(response4.d_node == unionDisjointBA
               && response4.d_status == REWRITE_AGAIN);
+  }
+
+  void testIntersectionMin()
+  {
+    int n = 3;
+    vector<Node> elements = getNStrings(2);
+    Node emptyBag =
+        d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
+    Node A = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(n)));
+    Node B = d_nm->mkNode(MK_BAG, elements[1], d_nm->mkConst(Rational(n + 1)));
+    Node unionMaxAB = d_nm->mkNode(UNION_MAX, A, B);
+    Node unionMaxBA = d_nm->mkNode(UNION_MAX, B, A);
+    Node unionDisjointAB = d_nm->mkNode(UNION_DISJOINT, A, B);
+    Node unionDisjointBA = d_nm->mkNode(UNION_DISJOINT, B, A);
+
+    // (intersection_min A emptybag) = A
+    Node n1 = d_nm->mkNode(INTERSECTION_MIN, A, emptyBag);
+    RewriteResponse response1 = d_rewriter.postRewrite(n1);
+    std::cout << response1.d_node << std::endl;
+    TS_ASSERT(response1.d_node == emptyBag
+              && response1.d_status == REWRITE_AGAIN);
+
+    // (intersection_min emptybag A) = A
+    Node n2 = d_nm->mkNode(INTERSECTION_MIN, emptyBag, A);
+    RewriteResponse response2 = d_rewriter.postRewrite(n2);
+    TS_ASSERT(response2.d_node == emptyBag
+              && response2.d_status == REWRITE_AGAIN);
+
+    // (intersection_min A A) = A
+    Node n3 = d_nm->mkNode(INTERSECTION_MIN, A, A);
+    RewriteResponse response3 = d_rewriter.postRewrite(n3);
+    TS_ASSERT(response3.d_node == A && response3.d_status == REWRITE_AGAIN);
+
+    // (intersection_min A (union_max A B) = A
+    Node n4 = d_nm->mkNode(INTERSECTION_MIN, A, unionMaxAB);
+    RewriteResponse response4 = d_rewriter.postRewrite(n4);
+    TS_ASSERT(response4.d_node == A && response4.d_status == REWRITE_AGAIN);
+
+    // (intersection_min A (union_max B A) = A
+    Node n5 = d_nm->mkNode(INTERSECTION_MIN, A, unionMaxBA);
+    RewriteResponse response5 = d_rewriter.postRewrite(n5);
+    TS_ASSERT(response5.d_node == A && response4.d_status == REWRITE_AGAIN);
+
+    // (intersection_min (union_max A B) A) = A
+    Node n6 = d_nm->mkNode(INTERSECTION_MIN, unionMaxAB, A);
+    RewriteResponse response6 = d_rewriter.postRewrite(n6);
+    TS_ASSERT(response6.d_node == A && response6.d_status == REWRITE_AGAIN);
+
+    // (intersection_min (union_max B A) A) = A
+    Node n7 = d_nm->mkNode(INTERSECTION_MIN, unionMaxBA, A);
+    RewriteResponse response7 = d_rewriter.postRewrite(n7);
+    TS_ASSERT(response7.d_node == A && response7.d_status == REWRITE_AGAIN);
+
+    // (intersection_min A (union_disjoint A B) = A
+    Node n8 = d_nm->mkNode(INTERSECTION_MIN, A, unionDisjointAB);
+    RewriteResponse response8 = d_rewriter.postRewrite(n8);
+    TS_ASSERT(response8.d_node == A && response8.d_status == REWRITE_AGAIN);
+
+    // (intersection_min A (union_disjoint B A) = A
+    Node n9 = d_nm->mkNode(INTERSECTION_MIN, A, unionDisjointBA);
+    RewriteResponse response9 = d_rewriter.postRewrite(n9);
+    TS_ASSERT(response9.d_node == A && response9.d_status == REWRITE_AGAIN);
+
+    // (intersection_min (union_disjoint A B) A) = A
+    Node n10 = d_nm->mkNode(INTERSECTION_MIN, unionDisjointAB, A);
+    RewriteResponse response10 = d_rewriter.postRewrite(n10);
+    TS_ASSERT(response10.d_node == A && response10.d_status == REWRITE_AGAIN);
+
+    // (intersection_min (union_disjoint B A) A) = A
+    Node n11 = d_nm->mkNode(INTERSECTION_MIN, unionDisjointBA, A);
+    RewriteResponse response11 = d_rewriter.postRewrite(n11);
+    TS_ASSERT(response11.d_node == A && response11.d_status == REWRITE_AGAIN);
   }
 
  private:
