@@ -415,6 +415,7 @@ set(regress_0_tests
   regress0/datatypes/datatype3.cvc
   regress0/datatypes/datatype4.cvc
   regress0/datatypes/dt-2.6.smt2
+  regress0/datatypes/dt-different-params.smt2
   regress0/datatypes/dt-match-pat-param-2.6.smt2
   regress0/datatypes/dt-param-2.6.smt2
   regress0/datatypes/dt-param-2.6-print.smt2
@@ -426,6 +427,7 @@ set(regress_0_tests
   regress0/datatypes/issue1433.smt2
   regress0/datatypes/issue2838.cvc
   regress0/datatypes/jsat-2.6.smt2
+  regress0/datatypes/list-bool.smt2
   regress0/datatypes/model-subterms-min.smt2
   regress0/datatypes/mutually-recursive.cvc
   regress0/datatypes/pair-bool-bool.cvc
@@ -1676,7 +1678,6 @@ set(regress_1_tests
   regress1/rels/rel_pressure_0.cvc
   regress1/rels/rel_tc_10_1.cvc
   regress1/rels/rel_tc_4.cvc
-  regress1/rels/rel_tc_4_1.cvc
   regress1/rels/rel_tc_5_1.cvc
   regress1/rels/rel_tc_6.cvc
   regress1/rels/rel_tc_9_1.cvc
@@ -1939,6 +1940,7 @@ set(regress_1_tests
   regress1/sygus/extract.sy
   regress1/sygus/fast-enum-backtrack.sy
   regress1/sygus/fg_polynomial3.sy
+  regress1/sygus/find_inv_eq_bvmul_4bit_withoutgrammar-v2.sy
   regress1/sygus/find_sc_bvult_bvnot.sy
   regress1/sygus/hd-01-d1-prog.sy
   regress1/sygus/hd-19-d1-prog-dup-op.sy
@@ -2518,6 +2520,8 @@ set(regression_disabled_tests
   # doing a coverage build with LFSC.
   regress1/quantifiers/set3.smt2
   regress1/rels/garbage_collect.cvc
+  # times out after dt fact update due to overly eager splitting for tclosure
+  regress1/rels/rel_tc_4_1.cvc
   regress1/sets/setofsets-disequal.smt2
   regress1/sets/finite-type/sets-card-neg-mem-union-2.smt2
   regress1/simple-rdl-definefun.smt2

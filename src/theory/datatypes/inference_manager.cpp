@@ -42,16 +42,13 @@ bool DatatypesInference::mustCommunicateFact(Node n, Node exp)
   }
   else if (n.getKind() == EQUAL)
   {
+    // Note that equalities due to instantiate are forced as lemmas if
+    // necessary as they are created. This ensures that terms are shared with
+    // external theories when necessary. We send the lemma here only if
+    // the equality is not for datatype terms, which can happen for collapse
+    // selector / term size or unification.
     TypeNode tn = n[0].getType();
-    if (!tn.isDatatype())
-    {
-      addLemma = true;
-    }
-    else
-    {
-      const DType& dt = tn.getDType();
-      addLemma = dt.involvesExternalType();
-    }
+    addLemma = !tn.isDatatype();
   }
   else if (n.getKind() == LEQ || n.getKind() == OR)
   {
@@ -68,8 +65,10 @@ bool DatatypesInference::mustCommunicateFact(Node n, Node exp)
 
 bool DatatypesInference::process(TheoryInferenceManager* im, bool asLemma)
 {
-  // check to see if we have to communicate it to the rest of the system
-  if (mustCommunicateFact(d_conc, d_exp))
+  // Check to see if we have to communicate it to the rest of the system.
+  // The flag asLemma is true when the inference was marked that it must be
+  // sent as a lemma in addPendingInference below.
+  if (asLemma || mustCommunicateFact(d_conc, d_exp))
   {
     // send it as an (explained) lemma
     std::vector<Node> exp;
@@ -95,9 +94,17 @@ InferenceManager::InferenceManager(Theory& t,
 
 void InferenceManager::addPendingInference(Node conc,
                                            Node exp,
-                                           ProofGenerator* pg)
+                                           ProofGenerator* pg,
+                                           bool forceLemma)
 {
-  d_pendingFact.emplace_back(new DatatypesInference(conc, exp, pg));
+  if (forceLemma)
+  {
+    d_pendingLem.emplace_back(new DatatypesInference(conc, exp, pg));
+  }
+  else
+  {
+    d_pendingFact.emplace_back(new DatatypesInference(conc, exp, pg));
+  }
 }
 
 void InferenceManager::process()
