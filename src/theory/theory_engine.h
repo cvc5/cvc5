@@ -2,10 +2,10 @@
 /*! \file theory_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Andrew Reynolds, Morgan Deters
+ **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -33,7 +33,6 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "prop/prop_engine.h"
-#include "smt/command.h"
 #include "theory/atom_requests.h"
 #include "theory/engine_output_channel.h"
 #include "theory/interrupted.h"
@@ -88,6 +87,7 @@ struct NodeTheoryPairHashFunction {
 namespace theory {
 class TheoryModel;
 class CombinationEngine;
+class SharedSolver;
 class DecisionManager;
 class RelevanceManager;
 
@@ -114,6 +114,7 @@ class TheoryEngine {
   friend class theory::CombinationEngine;
   friend class theory::EngineOutputChannel;
   friend class theory::CombinationEngine;
+  friend class theory::SharedSolver;
 
   /** Associated PropEngine engine */
   prop::PropEngine* d_propEngine;
@@ -138,6 +139,9 @@ class TheoryEngine {
    * the cost of walking the DAG on registration, etc.
    */
   const LogicInfo& d_logicInfo;
+
+  /** Reference to the output manager of the smt engine */
+  OutputManager& d_outMgr;
 
   //--------------------------------- new proofs
   /** Proof node manager used by this theory engine, if proofs are enabled */
@@ -180,19 +184,6 @@ class TheoryEngine {
 
   typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
   typedef std::unordered_map<TNode, Node, TNodeHashFunction> TNodeMap;
-
-  /**
-   * Used for "missed-t-propagations" dumping mode only.  A set of all
-   * theory-propagable literals.
-   */
-  context::CDList<TNode> d_possiblePropagations;
-
-  /**
-   * Used for "missed-t-propagations" dumping mode only.  A
-   * context-dependent set of those theory-propagable literals that
-   * have been propagated.
-   */
-  context::CDHashSet<Node, NodeHashFunction> d_hasPropagated;
 
   /**
    * Output channels for individual theories.
@@ -330,7 +321,8 @@ class TheoryEngine {
                context::UserContext* userContext,
                ResourceManager* rm,
                RemoveTermFormulas& iteRemover,
-               const LogicInfo& logic);
+               const LogicInfo& logic,
+               OutputManager& outMgr);
 
   /** Destroys a theory engine */
   ~TheoryEngine();

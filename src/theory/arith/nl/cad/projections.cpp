@@ -5,7 +5,7 @@
  **   Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -68,28 +68,6 @@ void makeFinestSquareFreeBasis(std::vector<Polynomial>& polys)
   });
   polys.erase(it, polys.end());
   reduceProjectionPolynomials(polys);
-}
-
-void makeFinestSquareFreeBasis(std::vector<poly::Polynomial>& lhs,
-                               std::vector<poly::Polynomial>& rhs)
-{
-  for (std::size_t i = 0, ln = lhs.size(); i < ln; ++i)
-  {
-    for (std::size_t j = 0, rn = rhs.size(); j < rn; ++j)
-    {
-      if (lhs[i] == rhs[j]) continue;
-      Polynomial g = gcd(lhs[i], rhs[j]);
-      if (!is_constant(g))
-      {
-        lhs[i] = div(lhs[i], g);
-        rhs[j] = div(rhs[j], g);
-        lhs.emplace_back(g);
-        rhs.emplace_back(g);
-      }
-    }
-  }
-  reduceProjectionPolynomials(lhs);
-  reduceProjectionPolynomials(rhs);
 }
 
 std::vector<Polynomial> projection_mccallum(

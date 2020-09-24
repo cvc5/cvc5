@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Tianyi Liang, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -100,6 +100,14 @@ class StringsPreprocess {
   Node simplifyRec(Node t,
                    std::vector<Node>& asserts,
                    std::map<Node, Node>& visited);
+  /**
+   * Make internal quantified formula with bound variable list bvl and body.
+   * Internally, we get a node corresponding to marking a quantified formula as
+   * an "internal" one. This node is provided as the third argument of the
+   * FORALL returned by this method. This ensures that E-matching is not applied
+   * to the quantified formula.
+   */
+  static Node mkForallInternal(Node bvl, Node body);
 };
 
 }/* CVC4::theory::strings namespace */

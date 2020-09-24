@@ -2,10 +2,10 @@
 /*! \file bv_subtheory_algebraic.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Aina Niemetz, Tim King
+ **   Liana Hadarean, Aina Niemetz, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -19,6 +19,10 @@
 
 #include "expr/node_algorithm.h"
 #include "options/bv_options.h"
+#include "printer/printer.h"
+#include "smt/dump.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/bv/bv_quick_check.h"
@@ -321,16 +325,6 @@ bool AlgebraicSolver::check(Theory::Effort e)
     TNode fact = worklist[r].node;
     unsigned id = worklist[r].id;
 
-    if (Dump.isOn("bv-algebraic")) {
-      Node expl = d_explanations[id];
-      Node query = utils::mkNot(nm->mkNode(kind::IMPLIES, expl, fact));
-      Dump("bv-algebraic") << EchoCommand("ThoeryBV::AlgebraicSolver::substitution explanation");
-      Dump("bv-algebraic") << PushCommand();
-      Dump("bv-algebraic") << AssertCommand(query.toExpr());
-      Dump("bv-algebraic") << CheckSatCommand();
-      Dump("bv-algebraic") << PopCommand();
-    }
-
     if (fact.isConst() &&
         fact.getConst<bool>() == true) {
       continue;
@@ -343,16 +337,6 @@ bool AlgebraicSolver::check(Theory::Effort e)
       d_bv->setConflict(conflict);
       d_isComplete.set(true);
       Debug("bv-subtheory-algebraic") << " UNSAT: assertion simplfies to false with conflict: "<< conflict << "\n";
-
-      if (Dump.isOn("bv-algebraic")) {
-        Dump("bv-algebraic")
-            << EchoCommand("BVSolverLazy::AlgebraicSolver::conflict");
-        Dump("bv-algebraic") << PushCommand();
-        Dump("bv-algebraic") << AssertCommand(conflict.toExpr());
-        Dump("bv-algebraic") << CheckSatCommand();
-        Dump("bv-algebraic") << PopCommand();
-      }
-
 
       ++(d_statistics.d_numSimplifiesToFalse);
       ++(d_numSolved);
@@ -535,17 +519,6 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
     Node inverse = left.getNumChildren() == 2? (Node)left[1] : (Node)nb;
     Node new_right = nm->mkNode(kind::BITVECTOR_XOR, right, inverse);
     bool changed = subst.addSubstitution(var, new_right, reason);
-
-    if (Dump.isOn("bv-algebraic")) {
-      Node query = utils::mkNot(nm->mkNode(
-          kind::EQUAL, fact, nm->mkNode(kind::EQUAL, var, new_right)));
-      Dump("bv-algebraic") << EchoCommand("ThoeryBV::AlgebraicSolver::substitution explanation");
-      Dump("bv-algebraic") << PushCommand();
-      Dump("bv-algebraic") << AssertCommand(query.toExpr());
-      Dump("bv-algebraic") << CheckSatCommand();
-      Dump("bv-algebraic") << PopCommand();
-    }
-
 
     return changed;
   }

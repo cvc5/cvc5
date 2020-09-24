@@ -2,10 +2,10 @@
 /*! \file shared_terms_database.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Tim King
+ **   Dejan Jovanovic, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -42,6 +42,18 @@ SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine,
 SharedTermsDatabase::~SharedTermsDatabase()
 {
   smtStatisticsRegistry()->unregisterStat(&d_statSharedTerms);
+}
+
+void SharedTermsDatabase::setEqualityEngine(eq::EqualityEngine* ee)
+{
+  // TODO (project #39): dynamic allocation of equality engine here
+}
+
+bool SharedTermsDatabase::needsEqualityEngine(EeSetupInfo& esi)
+{
+  esi.d_notify = &d_EENotify;
+  esi.d_name = "SharedTermsDatabase";
+  return true;
 }
 
 void SharedTermsDatabase::addEqualityToPropagate(TNode equality) {

@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Morgan Deters, Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -46,7 +46,10 @@ class TheoryEngine;
 namespace theory {
 
 class DecisionManager;
-class QuantifiersEnginePrivate;
+
+namespace quantifiers {
+class QuantifiersModules;
+}
 
 // TODO: organize this more/review this, github issue #1163
 class QuantifiersEngine {
@@ -60,6 +63,8 @@ class QuantifiersEngine {
   QuantifiersEngine(TheoryEngine* te, DecisionManager& dm,
                     ProofNodeManager* pnm);
   ~QuantifiersEngine();
+  /** finish initialize */
+  void finishInit();
   //---------------------- external interface
   /** get theory engine */
   TheoryEngine* getTheoryEngine() const;
@@ -381,9 +386,9 @@ public:
   std::unique_ptr<quantifiers::TermEnumeration> d_term_enum;
   //------------- end quantifiers utilities
   /**
-   * The private utility, which contains all of the quantifiers modules.
+   * The modules utility, which contains all of the quantifiers modules.
    */
-  std::unique_ptr<QuantifiersEnginePrivate> d_private;
+  std::unique_ptr<quantifiers::QuantifiersModules> d_qmodules;
   //------------- temporary information during check
   /** current effort level */
   QuantifiersModule::QEffort d_curr_effort_level;

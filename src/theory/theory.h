@@ -2,10 +2,10 @@
 /*! \file theory.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Tim King
+ **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -32,8 +32,6 @@
 #include "expr/node.h"
 #include "options/options.h"
 #include "options/theory_options.h"
-#include "smt/command.h"
-#include "smt/dump.h"
 #include "smt/logic_request.h"
 #include "theory/assertion.h"
 #include "theory/care_graph.h"
@@ -910,10 +908,6 @@ inline theory::Assertion Theory::get() {
   d_factsHead = d_factsHead + 1;
 
   Trace("theory") << "Theory::get() => " << fact << " (" << d_facts.size() - d_factsHead << " left)" << std::endl;
-
-  if(Dump.isOn("state")) {
-    Dump("state") << AssertCommand(fact.d_assertion.toExpr());
-  }
 
   return fact;
 }

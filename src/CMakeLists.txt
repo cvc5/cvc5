@@ -1,3 +1,13 @@
+#####################
+## CMakeLists.txt
+## Top contributors (to current version):
+##   Mathias Preiner, Andrew Reynolds, Gereon Kremer
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
 #-----------------------------------------------------------------------------#
 # Collect libcvc4 source files
 
@@ -204,6 +214,8 @@ libcvc4_add_sources(
   smt/logic_exception.h
   smt/logic_request.cpp
   smt/logic_request.h
+  smt/interpolation_solver.cpp
+  smt/interpolation_solver.h
   smt/managed_ostreams.cpp
   smt/managed_ostreams.h
   smt/model.cpp
@@ -216,6 +228,8 @@ libcvc4_add_sources(
   smt/node_command.h
   smt/options_manager.cpp
   smt/options_manager.h
+  smt/output_manager.cpp
+  smt/output_manager.h
   smt/quant_elim_solver.cpp
   smt/quant_elim_solver.h
   smt/preprocessor.cpp
@@ -321,6 +335,16 @@ libcvc4_add_sources(
   theory/arith/nl/ext_theory_callback.h
   theory/arith/nl/iand_solver.cpp
   theory/arith/nl/iand_solver.h
+  theory/arith/nl/icp/candidate.cpp
+  theory/arith/nl/icp/candidate.h
+  theory/arith/nl/icp/contraction_origins.cpp
+  theory/arith/nl/icp/contraction_origins.h
+  theory/arith/nl/icp/icp_solver.cpp
+  theory/arith/nl/icp/icp_solver.h
+  theory/arith/nl/icp/intersection.cpp
+  theory/arith/nl/icp/intersection.h
+  theory/arith/nl/icp/variable_bounds.cpp
+  theory/arith/nl/icp/variable_bounds.h
   theory/arith/nl/nl_constraint.cpp
   theory/arith/nl/nl_constraint.h
   theory/arith/nl/nl_lemma_utils.cpp
@@ -364,6 +388,10 @@ libcvc4_add_sources(
   theory/arith/type_enumerator.h
   theory/arrays/array_info.cpp
   theory/arrays/array_info.h
+  theory/arrays/proof_checker.cpp
+  theory/arrays/proof_checker.h
+  theory/arrays/skolem_cache.cpp
+  theory/arrays/skolem_cache.h
   theory/arrays/theory_arrays.cpp
   theory/arrays/theory_arrays.h
   theory/arrays/theory_arrays_rewriter.cpp
@@ -376,6 +404,21 @@ libcvc4_add_sources(
   theory/assertion.h
   theory/atom_requests.cpp
   theory/atom_requests.h
+  theory/bags/inference_manager.cpp
+  theory/bags/inference_manager.h
+  theory/bags/normal_form.cpp
+  theory/bags/normal_form.h
+  theory/bags/solver_state.cpp
+  theory/bags/solver_state.h
+  theory/bags/term_registry.cpp
+  theory/bags/term_registry.h
+  theory/bags/theory_bags.cpp
+  theory/bags/theory_bags.h
+  theory/bags/theory_bags_rewriter.cpp
+  theory/bags/theory_bags_rewriter.h
+  theory/bags/theory_bags_type_enumerator.cpp
+  theory/bags/theory_bags_type_enumerator.h
+  theory/bags/theory_bags_type_rules.h
   theory/booleans/circuit_propagator.cpp
   theory/booleans/circuit_propagator.h
   theory/booleans/proof_checker.cpp
@@ -415,6 +458,8 @@ libcvc4_add_sources(
   theory/bv/bv_solver.h
   theory/bv/bv_solver_lazy.cpp
   theory/bv/bv_solver_lazy.h
+  theory/bv/bv_solver_simple.cpp
+  theory/bv/bv_solver_simple.h
   theory/bv/bv_subtheory.h
   theory/bv/bv_subtheory_algebraic.cpp
   theory/bv/bv_subtheory_algebraic.h
@@ -592,6 +637,8 @@ libcvc4_add_sources(
   theory/quantifiers/quant_util.h
   theory/quantifiers/quantifiers_attributes.cpp
   theory/quantifiers/quantifiers_attributes.h
+  theory/quantifiers/quantifiers_modules.cpp
+  theory/quantifiers/quantifiers_modules.h
   theory/quantifiers/quantifiers_rewriter.cpp
   theory/quantifiers/quantifiers_rewriter.h
   theory/quantifiers/quantifiers_state.cpp
@@ -726,6 +773,10 @@ libcvc4_add_sources(
   theory/sets/theory_sets_type_enumerator.cpp
   theory/sets/theory_sets_type_enumerator.h
   theory/sets/theory_sets_type_rules.h
+  theory/shared_solver.cpp
+  theory/shared_solver.h
+  theory/shared_solver_distributed.cpp
+  theory/shared_solver_distributed.h
   theory/shared_terms_database.cpp
   theory/shared_terms_database.h
   theory/smt_engine_subsolver.cpp
@@ -803,6 +854,7 @@ libcvc4_add_sources(
   theory/theory_engine_proof_generator.h
   theory/theory_id.cpp
   theory/theory_id.h
+  theory/theory_eq_notify.h
   theory/theory_inference.cpp
   theory/theory_inference.h
   theory/theory_inference_manager.cpp
@@ -873,6 +925,7 @@ set(KINDS_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/datatypes/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/sep/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/sets/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/bags/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/strings/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds)
 

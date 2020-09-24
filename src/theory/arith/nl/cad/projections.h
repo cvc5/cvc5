@@ -5,7 +5,7 @@
  **   Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -51,13 +51,6 @@ void addPolynomials(std::vector<poly::Polynomial>& polys,
 
 /** Make a set of polynomials a finest square-free basis. */
 void makeFinestSquareFreeBasis(std::vector<poly::Polynomial>& polys);
-
-/**
- * Ensure that two sets of polynomials are finest square-free basis relative to
- * each other.
- */
-void makeFinestSquareFreeBasis(std::vector<poly::Polynomial>& lhs,
-                               std::vector<poly::Polynomial>& rhs);
 
 /**
  * Computes McCallum's projection operator.

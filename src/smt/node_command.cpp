@@ -5,7 +5,7 @@
  **   Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -164,11 +164,14 @@ void DefineFunctionNodeCommand::toStream(std::ostream& out,
                                          size_t dag,
                                          OutputLanguage language) const
 {
+  TypeNode tn = d_fun.getType();
+  bool hasRange =
+      (tn.isFunction() || tn.isConstructor() || tn.isSelector());
   Printer::getPrinter(language)->toStreamCmdDefineFunction(
       out,
       d_fun.toString(),
       d_formals,
-      d_fun.getType().getRangeType(),
+      (hasRange ? d_fun.getType().getRangeType() : tn),
       d_formula);
 }
 
