@@ -1373,22 +1373,23 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     else if (types[i].isFloatingPoint())
     {
       Trace("sygus-grammar-def") << "...add FP predicates" << std::endl;
-      std::vector<Kind> fp_predicates = {FLOATINGPOINT_LEQ,
-                                         FLOATINGPOINT_LT,
-                                         FLOATINGPOINT_ISN,
-                                         FLOATINGPOINT_ISSN,
-                                         FLOATINGPOINT_ISZ,
-                                         FLOATINGPOINT_ISINF,
-                                         FLOATINGPOINT_ISNAN,
-                                         FLOATINGPOINT_ISNEG,
-                                         FLOATINGPOINT_ISPOS};
-      for (const Kind kind : fp_predicates)
+      std::vector<Kind> fp_unary_predicates = {FLOATINGPOINT_ISN,
+                                               FLOATINGPOINT_ISSN,
+                                               FLOATINGPOINT_ISZ,
+                                               FLOATINGPOINT_ISINF,
+                                               FLOATINGPOINT_ISNAN,
+                                               FLOATINGPOINT_ISNEG,
+                                               FLOATINGPOINT_ISPOS};
+      for (const Kind kind : fp_unary_predicates)
       {
-        cargs.push_back(unres_types[iuse]);
-        if (kind == FLOATINGPOINT_LEQ || kind == FLOATINGPOINT_LT)
-        {
-          sdtBool.addConstructor(kind, cargs);
-        }
+        sdtBool.addConstructor(kind, cargs);
+      }
+      std::vector<Kind> fp_binary_predicates = {FLOATINGPOINT_LEQ,
+                                                FLOATINGPOINT_LT};
+      cargs.push_back(unres_types[iuse]);
+      for (const Kind kind : fp_binary_predicates)
+      {
+        sdtBool.addConstructor(kind, cargs);
       }
     }
     else if (types[i].isDatatype())
