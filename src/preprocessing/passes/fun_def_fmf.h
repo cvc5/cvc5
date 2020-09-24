@@ -18,8 +18,8 @@
 #include <map>
 #include <string>
 #include <vector>
-#include "expr/node.h"
 
+#include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 
