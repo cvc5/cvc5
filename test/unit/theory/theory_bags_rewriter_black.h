@@ -91,17 +91,17 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     Node zero = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(0)));
     Node positive =
         d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(1)));
+    Node emptybag =
+        d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
     RewriteResponse negativeResponse = d_rewriter.postRewrite(negative);
     RewriteResponse zeroResponse = d_rewriter.postRewrite(zero);
     RewriteResponse positiveResponse = d_rewriter.postRewrite(positive);
 
     // bags with non-positive multiplicity are rewritten as empty bags
-    TS_ASSERT(negativeResponse.d_status == REWRITE_AGAIN
-              && negativeResponse.d_node.getKind() == EMPTYBAG
-              && negativeResponse.d_node.getType() == negative.getType());
-    TS_ASSERT(zeroResponse.d_status == REWRITE_AGAIN
-              && zeroResponse.d_node.getKind() == EMPTYBAG
-              && zeroResponse.d_node.getType() == negative.getType());
+    TS_ASSERT(negativeResponse.d_status == REWRITE_DONE
+              && negativeResponse.d_node == emptybag);
+    TS_ASSERT(zeroResponse.d_status == REWRITE_DONE
+              && zeroResponse.d_node == emptybag);
 
     // no change for positive
     TS_ASSERT(positiveResponse.d_status == REWRITE_DONE
@@ -115,17 +115,17 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     Node negative = d_nm->mkNode(MK_BAG, skolem, d_nm->mkConst(Rational(-1)));
     Node zero = d_nm->mkNode(MK_BAG, skolem, d_nm->mkConst(Rational(0)));
     Node positive = d_nm->mkNode(MK_BAG, skolem, d_nm->mkConst(Rational(1)));
+    Node emptybag =
+        d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
     RewriteResponse negativeResponse = d_rewriter.postRewrite(negative);
     RewriteResponse zeroResponse = d_rewriter.postRewrite(zero);
     RewriteResponse positiveResponse = d_rewriter.postRewrite(positive);
 
     // bags with non-positive multiplicity are rewritten as empty bags
-    TS_ASSERT(negativeResponse.d_status == REWRITE_AGAIN
-              && negativeResponse.d_node.getKind() == EMPTYBAG
-              && negativeResponse.d_node.getType() == negative.getType());
-    TS_ASSERT(zeroResponse.d_status == REWRITE_AGAIN
-              && zeroResponse.d_node.getKind() == EMPTYBAG
-              && zeroResponse.d_node.getType() == negative.getType());
+    TS_ASSERT(negativeResponse.d_status == REWRITE_DONE
+              && negativeResponse.d_node == emptybag);
+    TS_ASSERT(zeroResponse.d_status == REWRITE_DONE
+              && zeroResponse.d_node == emptybag);
 
     // no change for positive
     TS_ASSERT(positiveResponse.d_status == REWRITE_DONE
@@ -139,21 +139,17 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     Node emptyBag = d_nm->mkConst(EmptyBag(d_nm->mkBagType(skolem.getType())));
     Node bag = d_nm->mkNode(MK_BAG, skolem, d_nm->mkConst(Rational(n)));
 
-    Node emptyCount = d_nm->mkNode(BAG_COUNT, skolem, emptyBag);
-    Node bagCount = d_nm->mkNode(BAG_COUNT, skolem, bag);
+    // (bag.count x emptybag) = 0
+    Node n1 = d_nm->mkNode(BAG_COUNT, skolem, emptyBag);
+    RewriteResponse response1 = d_rewriter.postRewrite(n1);
+    TS_ASSERT(response1.d_status == REWRITE_DONE
+              && response1.d_node == d_nm->mkConst(Rational(0)));
 
-    RewriteResponse zeroResponse = d_rewriter.postRewrite(emptyCount);
-    RewriteResponse nResponse = d_rewriter.postRewrite(bagCount);
-
-    TS_ASSERT(zeroResponse.d_status == REWRITE_AGAIN
-              && zeroResponse.d_node.isConst());
-    //&& zeroResponse.d_node.getConst<Rational>().isZero());
-
-    // no change for positive
-    TS_ASSERT(
-        nResponse.d_status == REWRITE_AGAIN && nResponse.d_node.isConst()
-        && nResponse.d_node.getConst<Rational>().getNumerator().toUnsignedInt()
-               == n);
+    // (bag.count x (mkBag x c) = c where c > 0 is a constant
+    Node n2 = d_nm->mkNode(BAG_COUNT, skolem, bag);
+    RewriteResponse response2 = d_rewriter.postRewrite(n2);
+    TS_ASSERT(response2.d_status == REWRITE_DONE
+              && response2.d_node == d_nm->mkConst(Rational(n)));
   }
 
   void testUnionMax()
@@ -172,65 +168,65 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     // (union_max A emptybag) = A
     Node unionMax1 = d_nm->mkNode(UNION_MAX, A, emptyBag);
     RewriteResponse response1 = d_rewriter.postRewrite(unionMax1);
-    TS_ASSERT(response1.d_node == A && response1.d_status == REWRITE_AGAIN);
+    TS_ASSERT(response1.d_node == A && response1.d_status == REWRITE_DONE);
 
     // (union_max emptybag A) = A
     Node unionMax2 = d_nm->mkNode(UNION_MAX, emptyBag, A);
     RewriteResponse response2 = d_rewriter.postRewrite(unionMax2);
-    TS_ASSERT(response2.d_node == A && response2.d_status == REWRITE_AGAIN);
+    TS_ASSERT(response2.d_node == A && response2.d_status == REWRITE_DONE);
 
     // (union_max A A) = A
     Node unionMax3 = d_nm->mkNode(UNION_MAX, A, A);
     RewriteResponse response3 = d_rewriter.postRewrite(unionMax3);
-    TS_ASSERT(response3.d_node == A && response3.d_status == REWRITE_AGAIN);
+    TS_ASSERT(response3.d_node == A && response3.d_status == REWRITE_DONE);
 
     // (union_max A (union_max A B) = (union_max A B)
     Node unionMax4 = d_nm->mkNode(UNION_MAX, A, unionMaxAB);
     RewriteResponse response4 = d_rewriter.postRewrite(unionMax4);
     TS_ASSERT(response4.d_node == unionMaxAB
-              && response4.d_status == REWRITE_AGAIN);
+              && response4.d_status == REWRITE_DONE);
 
     // (union_max A (union_max B A) = (union_max B A)
     Node unionMax5 = d_nm->mkNode(UNION_MAX, A, unionMaxBA);
     RewriteResponse response5 = d_rewriter.postRewrite(unionMax5);
     TS_ASSERT(response5.d_node == unionMaxBA
-              && response4.d_status == REWRITE_AGAIN);
+              && response4.d_status == REWRITE_DONE);
 
     // (union_max (union_max A B) A) = (union_max A B)
     Node unionMax6 = d_nm->mkNode(UNION_MAX, unionMaxAB, A);
     RewriteResponse response6 = d_rewriter.postRewrite(unionMax6);
     TS_ASSERT(response6.d_node == unionMaxAB
-              && response6.d_status == REWRITE_AGAIN);
+              && response6.d_status == REWRITE_DONE);
 
     // (union_max (union_max B A) A) = (union_max B A)
     Node unionMax7 = d_nm->mkNode(UNION_MAX, unionMaxBA, A);
     RewriteResponse response7 = d_rewriter.postRewrite(unionMax7);
     TS_ASSERT(response7.d_node == unionMaxBA
-              && response7.d_status == REWRITE_AGAIN);
+              && response7.d_status == REWRITE_DONE);
 
     // (union_max A (union_disjoint A B) = (union_disjoint A B)
     Node unionMax8 = d_nm->mkNode(UNION_MAX, A, unionDisjointAB);
     RewriteResponse response8 = d_rewriter.postRewrite(unionMax8);
     TS_ASSERT(response8.d_node == unionDisjointAB
-              && response8.d_status == REWRITE_AGAIN);
+              && response8.d_status == REWRITE_DONE);
 
     // (union_max A (union_disjoint B A) = (union_disjoint B A)
     Node unionMax9 = d_nm->mkNode(UNION_MAX, A, unionDisjointBA);
     RewriteResponse response9 = d_rewriter.postRewrite(unionMax9);
     TS_ASSERT(response9.d_node == unionDisjointBA
-              && response9.d_status == REWRITE_AGAIN);
+              && response9.d_status == REWRITE_DONE);
 
     // (union_max (union_disjoint A B) A) = (union_disjoint A B)
     Node unionMax10 = d_nm->mkNode(UNION_MAX, unionDisjointAB, A);
     RewriteResponse response10 = d_rewriter.postRewrite(unionMax10);
     TS_ASSERT(response10.d_node == unionDisjointAB
-              && response10.d_status == REWRITE_AGAIN);
+              && response10.d_status == REWRITE_DONE);
 
     // (union_max (union_disjoint B A) A) = (union_disjoint B A)
     Node unionMax11 = d_nm->mkNode(UNION_MAX, unionDisjointBA, A);
     RewriteResponse response11 = d_rewriter.postRewrite(unionMax11);
     TS_ASSERT(response11.d_node == unionDisjointBA
-              && response11.d_status == REWRITE_AGAIN);
+              && response11.d_status == REWRITE_DONE);
   }
 
   void testUnionDisjoint()
@@ -251,12 +247,12 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     // (union_disjoint A emptybag) = A
     Node unionDisjoint1 = d_nm->mkNode(UNION_DISJOINT, A, emptyBag);
     RewriteResponse response1 = d_rewriter.postRewrite(unionDisjoint1);
-    TS_ASSERT(response1.d_node == A && response1.d_status == REWRITE_AGAIN);
+    TS_ASSERT(response1.d_node == A && response1.d_status == REWRITE_DONE);
 
     // (union_disjoint emptybag A) = A
     Node unionDisjoint2 = d_nm->mkNode(UNION_DISJOINT, emptyBag, A);
     RewriteResponse response2 = d_rewriter.postRewrite(unionDisjoint2);
-    TS_ASSERT(response2.d_node == A && response2.d_status == REWRITE_AGAIN);
+    TS_ASSERT(response2.d_node == A && response2.d_status == REWRITE_DONE);
 
     // (union_disjoint (union_max A B) (intersection_min B A)) =
     //          (union_disjoint A B) // sum(a,b) = max(a,b) + min(a,b)
@@ -292,58 +288,58 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     Node n1 = d_nm->mkNode(INTERSECTION_MIN, A, emptyBag);
     RewriteResponse response1 = d_rewriter.postRewrite(n1);
     TS_ASSERT(response1.d_node == emptyBag
-              && response1.d_status == REWRITE_AGAIN);
+              && response1.d_status == REWRITE_DONE);
 
     // (intersection_min emptybag A) = emptyBag
     Node n2 = d_nm->mkNode(INTERSECTION_MIN, emptyBag, A);
     RewriteResponse response2 = d_rewriter.postRewrite(n2);
     TS_ASSERT(response2.d_node == emptyBag
-              && response2.d_status == REWRITE_AGAIN);
+              && response2.d_status == REWRITE_DONE);
 
     // (intersection_min A A) = A
     Node n3 = d_nm->mkNode(INTERSECTION_MIN, A, A);
     RewriteResponse response3 = d_rewriter.postRewrite(n3);
-    TS_ASSERT(response3.d_node == A && response3.d_status == REWRITE_AGAIN);
+    TS_ASSERT(response3.d_node == A && response3.d_status == REWRITE_DONE);
 
     // (intersection_min A (union_max A B) = A
     Node n4 = d_nm->mkNode(INTERSECTION_MIN, A, unionMaxAB);
     RewriteResponse response4 = d_rewriter.postRewrite(n4);
-    TS_ASSERT(response4.d_node == A && response4.d_status == REWRITE_AGAIN);
+    TS_ASSERT(response4.d_node == A && response4.d_status == REWRITE_DONE);
 
     // (intersection_min A (union_max B A) = A
     Node n5 = d_nm->mkNode(INTERSECTION_MIN, A, unionMaxBA);
     RewriteResponse response5 = d_rewriter.postRewrite(n5);
-    TS_ASSERT(response5.d_node == A && response4.d_status == REWRITE_AGAIN);
+    TS_ASSERT(response5.d_node == A && response4.d_status == REWRITE_DONE);
 
     // (intersection_min (union_max A B) A) = A
     Node n6 = d_nm->mkNode(INTERSECTION_MIN, unionMaxAB, A);
     RewriteResponse response6 = d_rewriter.postRewrite(n6);
-    TS_ASSERT(response6.d_node == A && response6.d_status == REWRITE_AGAIN);
+    TS_ASSERT(response6.d_node == A && response6.d_status == REWRITE_DONE);
 
     // (intersection_min (union_max B A) A) = A
     Node n7 = d_nm->mkNode(INTERSECTION_MIN, unionMaxBA, A);
     RewriteResponse response7 = d_rewriter.postRewrite(n7);
-    TS_ASSERT(response7.d_node == A && response7.d_status == REWRITE_AGAIN);
+    TS_ASSERT(response7.d_node == A && response7.d_status == REWRITE_DONE);
 
     // (intersection_min A (union_disjoint A B) = A
     Node n8 = d_nm->mkNode(INTERSECTION_MIN, A, unionDisjointAB);
     RewriteResponse response8 = d_rewriter.postRewrite(n8);
-    TS_ASSERT(response8.d_node == A && response8.d_status == REWRITE_AGAIN);
+    TS_ASSERT(response8.d_node == A && response8.d_status == REWRITE_DONE);
 
     // (intersection_min A (union_disjoint B A) = A
     Node n9 = d_nm->mkNode(INTERSECTION_MIN, A, unionDisjointBA);
     RewriteResponse response9 = d_rewriter.postRewrite(n9);
-    TS_ASSERT(response9.d_node == A && response9.d_status == REWRITE_AGAIN);
+    TS_ASSERT(response9.d_node == A && response9.d_status == REWRITE_DONE);
 
     // (intersection_min (union_disjoint A B) A) = A
     Node n10 = d_nm->mkNode(INTERSECTION_MIN, unionDisjointAB, A);
     RewriteResponse response10 = d_rewriter.postRewrite(n10);
-    TS_ASSERT(response10.d_node == A && response10.d_status == REWRITE_AGAIN);
+    TS_ASSERT(response10.d_node == A && response10.d_status == REWRITE_DONE);
 
     // (intersection_min (union_disjoint B A) A) = A
     Node n11 = d_nm->mkNode(INTERSECTION_MIN, unionDisjointBA, A);
     RewriteResponse response11 = d_rewriter.postRewrite(n11);
-    TS_ASSERT(response11.d_node == A && response11.d_status == REWRITE_AGAIN);
+    TS_ASSERT(response11.d_node == A && response11.d_status == REWRITE_DONE);
   }
 
   void testDifferenceSubtract()
@@ -364,65 +360,65 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     // (difference_subtract A emptybag) = A
     Node n1 = d_nm->mkNode(DIFFERENCE_SUBTRACT, A, emptyBag);
     RewriteResponse response1 = d_rewriter.postRewrite(n1);
-    TS_ASSERT(response1.d_node == A && response1.d_status == REWRITE_AGAIN);
+    TS_ASSERT(response1.d_node == A && response1.d_status == REWRITE_DONE);
 
     // (difference_subtract emptybag A) = emptyBag
     Node n2 = d_nm->mkNode(DIFFERENCE_SUBTRACT, emptyBag, A);
     RewriteResponse response2 = d_rewriter.postRewrite(n2);
     TS_ASSERT(response2.d_node == emptyBag
-              && response2.d_status == REWRITE_AGAIN);
+              && response2.d_status == REWRITE_DONE);
 
     // (difference_subtract A A) = emptybag
     Node n3 = d_nm->mkNode(DIFFERENCE_SUBTRACT, A, A);
     RewriteResponse response3 = d_rewriter.postRewrite(n3);
     TS_ASSERT(response3.d_node == emptyBag
-              && response3.d_status == REWRITE_AGAIN);
+              && response3.d_status == REWRITE_DONE);
 
     // (difference_subtract (union_disjoint A B) A) = B
     Node n4 = d_nm->mkNode(DIFFERENCE_SUBTRACT, unionDisjointAB, A);
     RewriteResponse response4 = d_rewriter.postRewrite(n4);
-    TS_ASSERT(response4.d_node == B && response4.d_status == REWRITE_AGAIN);
+    TS_ASSERT(response4.d_node == B && response4.d_status == REWRITE_DONE);
 
     // (difference_subtract (union_disjoint B A) A) = B
     Node n5 = d_nm->mkNode(DIFFERENCE_SUBTRACT, unionDisjointBA, A);
     RewriteResponse response5 = d_rewriter.postRewrite(n5);
-    TS_ASSERT(response5.d_node == B && response4.d_status == REWRITE_AGAIN);
+    TS_ASSERT(response5.d_node == B && response4.d_status == REWRITE_DONE);
 
     // (difference_subtract A (union_disjoint A B)) = emptybag
     Node n6 = d_nm->mkNode(DIFFERENCE_SUBTRACT, A, unionDisjointAB);
     RewriteResponse response6 = d_rewriter.postRewrite(n6);
     TS_ASSERT(response6.d_node == emptyBag
-              && response6.d_status == REWRITE_AGAIN);
+              && response6.d_status == REWRITE_DONE);
 
     // (difference_subtract A (union_disjoint B A)) = emptybag
     Node n7 = d_nm->mkNode(DIFFERENCE_SUBTRACT, A, unionDisjointBA);
     RewriteResponse response7 = d_rewriter.postRewrite(n7);
     TS_ASSERT(response7.d_node == emptyBag
-              && response7.d_status == REWRITE_AGAIN);
+              && response7.d_status == REWRITE_DONE);
 
     // (difference_subtract A (union_max A B)) = emptybag
     Node n8 = d_nm->mkNode(DIFFERENCE_SUBTRACT, A, unionMaxAB);
     RewriteResponse response8 = d_rewriter.postRewrite(n8);
     TS_ASSERT(response8.d_node == emptyBag
-              && response8.d_status == REWRITE_AGAIN);
+              && response8.d_status == REWRITE_DONE);
 
     // (difference_subtract A (union_max B A)) = emptybag
     Node n9 = d_nm->mkNode(DIFFERENCE_SUBTRACT, A, unionMaxBA);
     RewriteResponse response9 = d_rewriter.postRewrite(n9);
     TS_ASSERT(response9.d_node == emptyBag
-              && response9.d_status == REWRITE_AGAIN);
+              && response9.d_status == REWRITE_DONE);
 
     // (difference_subtract (intersection_min A B) A) = emptybag
     Node n10 = d_nm->mkNode(DIFFERENCE_SUBTRACT, intersectionAB, A);
     RewriteResponse response10 = d_rewriter.postRewrite(n10);
     TS_ASSERT(response10.d_node == emptyBag
-              && response10.d_status == REWRITE_AGAIN);
+              && response10.d_status == REWRITE_DONE);
 
     // (difference_subtract (intersection_min B A) A) = emptybag
     Node n11 = d_nm->mkNode(DIFFERENCE_SUBTRACT, intersectionBA, A);
     RewriteResponse response11 = d_rewriter.postRewrite(n11);
     TS_ASSERT(response11.d_node == emptyBag
-              && response11.d_status == REWRITE_AGAIN);
+              && response11.d_status == REWRITE_DONE);
   }
 
   void testDifferenceRemove()
@@ -443,55 +439,55 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     // (difference_remove A emptybag) = A
     Node n1 = d_nm->mkNode(DIFFERENCE_REMOVE, A, emptyBag);
     RewriteResponse response1 = d_rewriter.postRewrite(n1);
-    TS_ASSERT(response1.d_node == A && response1.d_status == REWRITE_AGAIN);
+    TS_ASSERT(response1.d_node == A && response1.d_status == REWRITE_DONE);
 
     // (difference_remove emptybag A) = emptyBag
     Node n2 = d_nm->mkNode(DIFFERENCE_REMOVE, emptyBag, A);
     RewriteResponse response2 = d_rewriter.postRewrite(n2);
     TS_ASSERT(response2.d_node == emptyBag
-              && response2.d_status == REWRITE_AGAIN);
+              && response2.d_status == REWRITE_DONE);
 
     // (difference_remove A A) = emptybag
     Node n3 = d_nm->mkNode(DIFFERENCE_REMOVE, A, A);
     RewriteResponse response3 = d_rewriter.postRewrite(n3);
     TS_ASSERT(response3.d_node == emptyBag
-              && response3.d_status == REWRITE_AGAIN);
+              && response3.d_status == REWRITE_DONE);
 
     // (difference_remove A (union_disjoint A B)) = emptybag
     Node n6 = d_nm->mkNode(DIFFERENCE_REMOVE, A, unionDisjointAB);
     RewriteResponse response6 = d_rewriter.postRewrite(n6);
     TS_ASSERT(response6.d_node == emptyBag
-              && response6.d_status == REWRITE_AGAIN);
+              && response6.d_status == REWRITE_DONE);
 
     // (difference_remove A (union_disjoint B A)) = emptybag
     Node n7 = d_nm->mkNode(DIFFERENCE_REMOVE, A, unionDisjointBA);
     RewriteResponse response7 = d_rewriter.postRewrite(n7);
     TS_ASSERT(response7.d_node == emptyBag
-              && response7.d_status == REWRITE_AGAIN);
+              && response7.d_status == REWRITE_DONE);
 
     // (difference_remove A (union_max A B)) = emptybag
     Node n8 = d_nm->mkNode(DIFFERENCE_REMOVE, A, unionMaxAB);
     RewriteResponse response8 = d_rewriter.postRewrite(n8);
     TS_ASSERT(response8.d_node == emptyBag
-              && response8.d_status == REWRITE_AGAIN);
+              && response8.d_status == REWRITE_DONE);
 
     // (difference_remove A (union_max B A)) = emptybag
     Node n9 = d_nm->mkNode(DIFFERENCE_REMOVE, A, unionMaxBA);
     RewriteResponse response9 = d_rewriter.postRewrite(n9);
     TS_ASSERT(response9.d_node == emptyBag
-              && response9.d_status == REWRITE_AGAIN);
+              && response9.d_status == REWRITE_DONE);
 
     // (difference_remove (intersection_min A B) A) = emptybag
     Node n10 = d_nm->mkNode(DIFFERENCE_REMOVE, intersectionAB, A);
     RewriteResponse response10 = d_rewriter.postRewrite(n10);
     TS_ASSERT(response10.d_node == emptyBag
-              && response10.d_status == REWRITE_AGAIN);
+              && response10.d_status == REWRITE_DONE);
 
     // (difference_remove (intersection_min B A) A) = emptybag
     Node n11 = d_nm->mkNode(DIFFERENCE_REMOVE, intersectionBA, A);
     RewriteResponse response11 = d_rewriter.postRewrite(n11);
     TS_ASSERT(response11.d_node == emptyBag
-              && response11.d_status == REWRITE_AGAIN);
+              && response11.d_status == REWRITE_DONE);
   }
 
   void testChoose()
@@ -535,7 +531,8 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     Node cardB = d_nm->mkNode(BAG_CARD, B);
     Node plus = d_nm->mkNode(PLUS, cardA, cardB);
     RewriteResponse response3 = d_rewriter.postRewrite(n3);
-    TS_ASSERT(response3.d_node == plus && response3.d_status == REWRITE_AGAIN);
+    TS_ASSERT(response3.d_node == plus
+              && response3.d_status == REWRITE_AGAIN_FULL);
   }
 
   void testIsSingleton()
