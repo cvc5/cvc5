@@ -1,226 +1,116 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-qe-preproc --sygus-si=all --sygus-rcons=none  --sygus-out=status
+; COMMAND-LINE: --sygus-qe-preproc --sygus-si=all  --sygus-out=status
 (set-logic LIA)
 (synth-fun fr0 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr1 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr10 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr11 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr12 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr13 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr14 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr15 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr16 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr17 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr18 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr19 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr2 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr20 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr21 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr22 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr23 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr24 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr25 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr26 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr27 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr28 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr29 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr3 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr30 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr31 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr32 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr33 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr34 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr35 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr36 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr4 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr5 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr6 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr7 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr8 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun fr9 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun m0 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun m1 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun m10 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun m11 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun m12 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun m13 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun m14 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun m15 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun m16 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun m17 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun m2 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun m3 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun m4 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun m5 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun m6 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun m7 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun m8 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun m9 ((_v Int) (n Int) (x Int)) Int
-  ((I Int) (Ic Int))
-  ((I Int ((Constant Int) n x (+ I I) (- I I) (* Ic I)))
-   (Ic Int ((Constant Int)))))
+       )
 (synth-fun p0 ((_v Int) (n Int) (x Int)) Int)
 (synth-fun p1 ((_v Int) (n Int) (x Int)) Int)
 (synth-fun p2 ((_v Int) (n Int) (x Int)) Int)
