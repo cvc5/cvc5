@@ -24,8 +24,6 @@ namespace bags {
 
 RewriteResponse BagsRewriter::postRewrite(TNode n)
 {
-  Trace("bags-postRewrite")
-      << "bags::BagsRewriter::postRewrite start " << n << std::endl;
   if (n.isConst())
   {
     // no need to rewrite n if it is already in a normal form
