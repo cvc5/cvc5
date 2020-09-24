@@ -719,9 +719,11 @@ poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi)
   poly::IntervalAssignment res;
   for (const auto& vb: bi.get()) {
     poly::Variable v = vm(vb.first);
-    poly::Interval i(node_to_value(vb.second.lower, vb.first),
+    poly::Value l = vb.second.lower.isNull() ? poly::Value::minus_infty() : node_to_value(vb.second.lower, vb.first);
+    poly::Value u = vb.second.upper.isNull() ? poly::Value::plus_infty() : node_to_value(vb.second.upper, vb.first);
+    poly::Interval i(l,
                      vb.second.lower_strict,
-                     node_to_value(vb.second.upper, vb.first),
+                     u,
                      vb.second.upper_strict);
     res.set(v, i);
   }

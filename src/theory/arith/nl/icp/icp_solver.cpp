@@ -180,9 +180,9 @@ void ICPSolver::addCandidate(const Node& n)
 
 void ICPSolver::initOrigins()
 {
-  for (const auto& vars : d_mapper.mVarCVCpoly)
+  for (const auto& vars : d_state.d_bounds.get())
   {
-    Bounds& i = d_state.d_bounds.get_or_add(vars.first);
+    const Bounds& i = vars.second;
     Trace("nl-icp") << "Adding initial " << vars.first << " -> " << i
                     << std::endl;
     if (!i.lower_origin.isNull())

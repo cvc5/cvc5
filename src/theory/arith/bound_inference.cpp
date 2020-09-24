@@ -105,7 +105,6 @@ bool BoundInference::add(const Node& n)
     Constant bound = std::get<2>(dec);
     // has the form  v  ~relation~  bound
 
-    Maybe<Node> res;
     switch (relation)
     {
       case Kind::LEQ:
