@@ -147,7 +147,7 @@ class BagsRewriter : public TheoryRewriter
   RewriteResponse rewriteDifferenceRemove(const TNode& n) const;
   /**
    * patterns for n
-   * -(bag.choose (mkBag x c)) = x where c is a constant > 0
+   * - (bag.choose (mkBag x c)) = x where c is a constant > 0
    * - otherwise = n
    */
   RewriteResponse rewriteChoose(const TNode& n) const;

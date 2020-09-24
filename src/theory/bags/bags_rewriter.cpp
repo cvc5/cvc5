@@ -347,7 +347,7 @@ RewriteResponse BagsRewriter::rewriteChoose(const TNode& n) const
   if (n[0].getKind() == MK_BAG && n[0][1].isConst())
   {
     // (bag.choose (mkBag x c)) = x where c is a constant > 0
-    return RewriteResponse(REWRITE_DONE, n[0][1]);
+    return RewriteResponse(REWRITE_DONE, n[0][0]);
   }
   return RewriteResponse(REWRITE_DONE, n);
 }

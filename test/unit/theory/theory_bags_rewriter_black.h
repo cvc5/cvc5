@@ -494,6 +494,18 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
               && response11.d_status == REWRITE_AGAIN);
   }
 
+  void testChoose()
+  {
+    Node x = d_nm->mkSkolem("x", d_nm->stringType());
+    Node c = d_nm->mkConst(Rational(3));
+    Node bag = d_nm->mkNode(MK_BAG, x, c);
+
+    // (bag.choose (mkBag x c)) = x where c is a constant > 0
+    Node n1 = d_nm->mkNode(BAG_CHOOSE, bag);
+    RewriteResponse response1 = d_rewriter.postRewrite(n1);
+    TS_ASSERT(response1.d_node == x && response1.d_status == REWRITE_DONE);
+  }
+
   void testBagCard()
   {
     Node x = d_nm->mkSkolem("x", d_nm->stringType());
