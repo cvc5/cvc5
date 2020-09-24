@@ -573,8 +573,9 @@ Node CegSingleInv::reconstructToSyntax(Node s,
     // In this case, we fail, since the solution is not valid.
     Trace("csi-sol") << "FAIL : solution " << d_solution
                      << " contains free constants." << std::endl;
-  Warning() << CommandFailure(
-      "Cannot get synth function: free constants encountered in synthesis solution.");
+    Warning() << CommandFailure(
+        "Cannot get synth function: free constants encountered in synthesis "
+        "solution.");
     reconstructed = -1;
   }
   if( Trace.isOn("cegqi-stats") ){
