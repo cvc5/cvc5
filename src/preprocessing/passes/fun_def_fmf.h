@@ -2,7 +2,7 @@
 /*! \file fun_def_fmf.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -18,8 +18,8 @@
 #include <map>
 #include <string>
 #include <vector>
-#include "expr/node.h"
 
+#include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 
