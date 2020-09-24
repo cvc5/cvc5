@@ -383,14 +383,9 @@ RewriteResponse BagsRewriter::rewriteIsSingleton(const TNode& n) const
 {
   Assert(n.getKind() == BAG_IS_SINGLETON);
   NodeManager* nm = NodeManager::currentNM();
-  if (n[0].getKind() == EMPTYBAG)
-  {
-    // (bag.is_singleton emptybag) = false
-    return RewriteResponse(REWRITE_DONE, nm->mkConst(false));
-  }
   if (n[0].getKind() == MK_BAG)
   {
-    // (bag.is_singleton (mkBag x c) = (c == 1)
+    // (bag.is_singleton (mkBag x c)) = (c == 1)
     Node one = nm->mkConst(Rational(1));
     Node equal = n[0][1].eqNode(one);
     return RewriteResponse(REWRITE_AGAIN, equal);
