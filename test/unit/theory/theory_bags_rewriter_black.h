@@ -16,7 +16,7 @@
 
 #include "expr/dtype.h"
 #include "smt/smt_engine.h"
-#include "theory/bags/theory_bags_rewriter.h"
+#include "theory/bags/bags_rewriter.h"
 #include "theory/strings/type_enumerator.h"
 
 using namespace CVC4;
@@ -139,7 +139,6 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     Node emptyBag = d_nm->mkConst(EmptyBag(d_nm->mkBagType(skolem.getType())));
     Node bag = d_nm->mkNode(MK_BAG, skolem, d_nm->mkConst(Rational(n)));
 
-    std::cout << emptyBag.getType() << std::endl;
     Node emptyCount = d_nm->mkNode(BAG_COUNT, skolem, emptyBag);
     Node bagCount = d_nm->mkNode(BAG_COUNT, skolem, bag);
 
@@ -289,14 +288,13 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     Node unionDisjointAB = d_nm->mkNode(UNION_DISJOINT, A, B);
     Node unionDisjointBA = d_nm->mkNode(UNION_DISJOINT, B, A);
 
-    // (intersection_min A emptybag) = A
+    // (intersection_min A emptybag) = emptyBag
     Node n1 = d_nm->mkNode(INTERSECTION_MIN, A, emptyBag);
     RewriteResponse response1 = d_rewriter.postRewrite(n1);
-    std::cout << response1.d_node << std::endl;
     TS_ASSERT(response1.d_node == emptyBag
               && response1.d_status == REWRITE_AGAIN);
 
-    // (intersection_min emptybag A) = A
+    // (intersection_min emptybag A) = emptyBag
     Node n2 = d_nm->mkNode(INTERSECTION_MIN, emptyBag, A);
     RewriteResponse response2 = d_rewriter.postRewrite(n2);
     TS_ASSERT(response2.d_node == emptyBag
@@ -348,9 +346,157 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     TS_ASSERT(response11.d_node == A && response11.d_status == REWRITE_AGAIN);
   }
 
+  void testDifferenceSubtract()
+  {
+    int n = 3;
+    vector<Node> elements = getNStrings(2);
+    Node emptyBag =
+        d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
+    Node A = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(n)));
+    Node B = d_nm->mkNode(MK_BAG, elements[1], d_nm->mkConst(Rational(n + 1)));
+    Node unionMaxAB = d_nm->mkNode(UNION_MAX, A, B);
+    Node unionMaxBA = d_nm->mkNode(UNION_MAX, B, A);
+    Node unionDisjointAB = d_nm->mkNode(UNION_DISJOINT, A, B);
+    Node unionDisjointBA = d_nm->mkNode(UNION_DISJOINT, B, A);
+    Node intersectionAB = d_nm->mkNode(INTERSECTION_MIN, A, B);
+    Node intersectionBA = d_nm->mkNode(INTERSECTION_MIN, B, A);
+
+    // (difference_subtract A emptybag) = A
+    Node n1 = d_nm->mkNode(DIFFERENCE_SUBTRACT, A, emptyBag);
+    RewriteResponse response1 = d_rewriter.postRewrite(n1);
+    TS_ASSERT(response1.d_node == A && response1.d_status == REWRITE_AGAIN);
+
+    // (difference_subtract emptybag A) = emptyBag
+    Node n2 = d_nm->mkNode(DIFFERENCE_SUBTRACT, emptyBag, A);
+    RewriteResponse response2 = d_rewriter.postRewrite(n2);
+    TS_ASSERT(response2.d_node == emptyBag
+              && response2.d_status == REWRITE_AGAIN);
+
+    // (difference_subtract A A) = emptybag
+    Node n3 = d_nm->mkNode(DIFFERENCE_SUBTRACT, A, A);
+    RewriteResponse response3 = d_rewriter.postRewrite(n3);
+    TS_ASSERT(response3.d_node == emptyBag
+              && response3.d_status == REWRITE_AGAIN);
+
+    // (difference_subtract (union_disjoint A B) A) = B
+    Node n4 = d_nm->mkNode(DIFFERENCE_SUBTRACT, unionDisjointAB, A);
+    RewriteResponse response4 = d_rewriter.postRewrite(n4);
+    TS_ASSERT(response4.d_node == B && response4.d_status == REWRITE_AGAIN);
+
+    // (difference_subtract (union_disjoint B A) A) = B
+    Node n5 = d_nm->mkNode(DIFFERENCE_SUBTRACT, unionDisjointBA, A);
+    RewriteResponse response5 = d_rewriter.postRewrite(n5);
+    TS_ASSERT(response5.d_node == B && response4.d_status == REWRITE_AGAIN);
+
+    // (difference_subtract A (union_disjoint A B)) = emptybag
+    Node n6 = d_nm->mkNode(DIFFERENCE_SUBTRACT, A, unionDisjointAB);
+    RewriteResponse response6 = d_rewriter.postRewrite(n6);
+    TS_ASSERT(response6.d_node == emptyBag
+              && response6.d_status == REWRITE_AGAIN);
+
+    // (difference_subtract A (union_disjoint B A)) = emptybag
+    Node n7 = d_nm->mkNode(DIFFERENCE_SUBTRACT, A, unionDisjointBA);
+    RewriteResponse response7 = d_rewriter.postRewrite(n7);
+    TS_ASSERT(response7.d_node == emptyBag
+              && response7.d_status == REWRITE_AGAIN);
+
+    // (difference_subtract A (union_max A B)) = emptybag
+    Node n8 = d_nm->mkNode(DIFFERENCE_SUBTRACT, A, unionMaxAB);
+    RewriteResponse response8 = d_rewriter.postRewrite(n8);
+    TS_ASSERT(response8.d_node == emptyBag
+              && response8.d_status == REWRITE_AGAIN);
+
+    // (difference_subtract A (union_max B A)) = emptybag
+    Node n9 = d_nm->mkNode(DIFFERENCE_SUBTRACT, A, unionMaxBA);
+    RewriteResponse response9 = d_rewriter.postRewrite(n9);
+    TS_ASSERT(response9.d_node == emptyBag
+              && response9.d_status == REWRITE_AGAIN);
+
+    // (difference_subtract (intersection_min A B) A) = emptybag
+    Node n10 = d_nm->mkNode(DIFFERENCE_SUBTRACT, intersectionAB, A);
+    RewriteResponse response10 = d_rewriter.postRewrite(n10);
+    TS_ASSERT(response10.d_node == emptyBag
+              && response10.d_status == REWRITE_AGAIN);
+
+    // (difference_subtract (intersection_min B A) A) = emptybag
+    Node n11 = d_nm->mkNode(DIFFERENCE_SUBTRACT, intersectionBA, A);
+    RewriteResponse response11 = d_rewriter.postRewrite(n11);
+    TS_ASSERT(response11.d_node == emptyBag
+              && response11.d_status == REWRITE_AGAIN);
+  }
+
+  void testDifferenceRemove()
+  {
+    int n = 3;
+    vector<Node> elements = getNStrings(2);
+    Node emptyBag =
+        d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
+    Node A = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(n)));
+    Node B = d_nm->mkNode(MK_BAG, elements[1], d_nm->mkConst(Rational(n + 1)));
+    Node unionMaxAB = d_nm->mkNode(UNION_MAX, A, B);
+    Node unionMaxBA = d_nm->mkNode(UNION_MAX, B, A);
+    Node unionDisjointAB = d_nm->mkNode(UNION_DISJOINT, A, B);
+    Node unionDisjointBA = d_nm->mkNode(UNION_DISJOINT, B, A);
+    Node intersectionAB = d_nm->mkNode(INTERSECTION_MIN, A, B);
+    Node intersectionBA = d_nm->mkNode(INTERSECTION_MIN, B, A);
+
+    // (difference_remove A emptybag) = A
+    Node n1 = d_nm->mkNode(DIFFERENCE_REMOVE, A, emptyBag);
+    RewriteResponse response1 = d_rewriter.postRewrite(n1);
+    TS_ASSERT(response1.d_node == A && response1.d_status == REWRITE_AGAIN);
+
+    // (difference_remove emptybag A) = emptyBag
+    Node n2 = d_nm->mkNode(DIFFERENCE_REMOVE, emptyBag, A);
+    RewriteResponse response2 = d_rewriter.postRewrite(n2);
+    TS_ASSERT(response2.d_node == emptyBag
+              && response2.d_status == REWRITE_AGAIN);
+
+    // (difference_remove A A) = emptybag
+    Node n3 = d_nm->mkNode(DIFFERENCE_REMOVE, A, A);
+    RewriteResponse response3 = d_rewriter.postRewrite(n3);
+    TS_ASSERT(response3.d_node == emptyBag
+              && response3.d_status == REWRITE_AGAIN);
+
+    // (difference_remove A (union_disjoint A B)) = emptybag
+    Node n6 = d_nm->mkNode(DIFFERENCE_REMOVE, A, unionDisjointAB);
+    RewriteResponse response6 = d_rewriter.postRewrite(n6);
+    TS_ASSERT(response6.d_node == emptyBag
+              && response6.d_status == REWRITE_AGAIN);
+
+    // (difference_remove A (union_disjoint B A)) = emptybag
+    Node n7 = d_nm->mkNode(DIFFERENCE_REMOVE, A, unionDisjointBA);
+    RewriteResponse response7 = d_rewriter.postRewrite(n7);
+    TS_ASSERT(response7.d_node == emptyBag
+              && response7.d_status == REWRITE_AGAIN);
+
+    // (difference_remove A (union_max A B)) = emptybag
+    Node n8 = d_nm->mkNode(DIFFERENCE_REMOVE, A, unionMaxAB);
+    RewriteResponse response8 = d_rewriter.postRewrite(n8);
+    TS_ASSERT(response8.d_node == emptyBag
+              && response8.d_status == REWRITE_AGAIN);
+
+    // (difference_remove A (union_max B A)) = emptybag
+    Node n9 = d_nm->mkNode(DIFFERENCE_REMOVE, A, unionMaxBA);
+    RewriteResponse response9 = d_rewriter.postRewrite(n9);
+    TS_ASSERT(response9.d_node == emptyBag
+              && response9.d_status == REWRITE_AGAIN);
+
+    // (difference_remove (intersection_min A B) A) = emptybag
+    Node n10 = d_nm->mkNode(DIFFERENCE_REMOVE, intersectionAB, A);
+    RewriteResponse response10 = d_rewriter.postRewrite(n10);
+    TS_ASSERT(response10.d_node == emptyBag
+              && response10.d_status == REWRITE_AGAIN);
+
+    // (difference_remove (intersection_min B A) A) = emptybag
+    Node n11 = d_nm->mkNode(DIFFERENCE_REMOVE, intersectionBA, A);
+    RewriteResponse response11 = d_rewriter.postRewrite(n11);
+    TS_ASSERT(response11.d_node == emptyBag
+              && response11.d_status == REWRITE_AGAIN);
+  }
+
  private:
   std::unique_ptr<ExprManager> d_em;
   std::unique_ptr<SmtEngine> d_smt;
   std::unique_ptr<NodeManager> d_nm;
-  TheoryBagsRewriter d_rewriter;
+  BagsRewriter d_rewriter;
 }; /* class BagsTypeRuleBlack */

@@ -12,7 +12,7 @@
  ** \brief Bags theory rewriter.
  **/
 
-#include "theory/bags/theory_bags_rewriter.h"
+#include "theory/bags/bags_rewriter.h"
 
 #include "normal_form.h"
 
@@ -22,8 +22,10 @@ namespace CVC4 {
 namespace theory {
 namespace bags {
 
-RewriteResponse TheoryBagsRewriter::postRewrite(TNode n)
+RewriteResponse BagsRewriter::postRewrite(TNode n)
 {
+  Trace("bags-postRewrite")
+      << "bags::BagsRewriter::postRewrite start " << n << std::endl;
   if (n.isConst())
   {
     // no need to rewrite n if it is already in a normal form
@@ -37,11 +39,13 @@ RewriteResponse TheoryBagsRewriter::postRewrite(TNode n)
     case kind::UNION_MAX: return rewriteUnionMax(n);
     case kind::UNION_DISJOINT: return rewriteUnionDisjoint(n);
     case kind::INTERSECTION_MIN: return rewriteIntersectionMin(n);
+    case kind::DIFFERENCE_SUBTRACT: return rewriteDifferenceSubtract(n);
+    case kind::DIFFERENCE_REMOVE: return rewriteDifferenceRemove(n);
   }
   return RewriteResponse(REWRITE_DONE, n);
 }
 
-RewriteResponse TheoryBagsRewriter::preRewrite(TNode n)
+RewriteResponse BagsRewriter::preRewrite(TNode n)
 {
   if (n.getKind() == EQUAL)
   {
@@ -54,7 +58,7 @@ RewriteResponse TheoryBagsRewriter::preRewrite(TNode n)
   return RewriteResponse(REWRITE_DONE, n);
 }
 
-RewriteResponse TheoryBagsRewriter::rewriteMakeBag(const TNode& n) const
+RewriteResponse BagsRewriter::rewriteMakeBag(const TNode& n) const
 {
   Assert(n.getKind() == MK_BAG);
   // return emptybag for negative or zero multiplicity
@@ -68,7 +72,7 @@ RewriteResponse TheoryBagsRewriter::rewriteMakeBag(const TNode& n) const
   return RewriteResponse(REWRITE_DONE, n);
 }
 
-RewriteResponse TheoryBagsRewriter::rewriteBagCount(const TNode& n) const
+RewriteResponse BagsRewriter::rewriteBagCount(const TNode& n) const
 {
   Assert(n.getKind() == BAG_COUNT);
   if (n[1].isConst() && n[1].getKind() == EMPTYBAG)
@@ -85,7 +89,7 @@ RewriteResponse TheoryBagsRewriter::rewriteBagCount(const TNode& n) const
   return RewriteResponse(REWRITE_DONE, n);
 }
 
-RewriteResponse TheoryBagsRewriter::rewriteUnionMax(const TNode& n) const
+RewriteResponse BagsRewriter::rewriteUnionMax(const TNode& n) const
 {
   Assert(n.getKind() == UNION_MAX);
   if (n[1].getKind() == EMPTYBAG || n[0] == n[1])
@@ -127,7 +131,7 @@ RewriteResponse TheoryBagsRewriter::rewriteUnionMax(const TNode& n) const
   return RewriteResponse(REWRITE_DONE, n);
 }
 
-RewriteResponse TheoryBagsRewriter::rewriteUnionDisjoint(const TNode& n) const
+RewriteResponse BagsRewriter::rewriteUnionDisjoint(const TNode& n) const
 {
   Assert(n.getKind() == UNION_DISJOINT);
   if (n[1].getKind() == EMPTYBAG)
@@ -159,7 +163,7 @@ RewriteResponse TheoryBagsRewriter::rewriteUnionDisjoint(const TNode& n) const
   return RewriteResponse(REWRITE_DONE, n);
 }
 
-RewriteResponse TheoryBagsRewriter::rewriteIntersectionMin(const TNode& n) const
+RewriteResponse BagsRewriter::rewriteIntersectionMin(const TNode& n) const
 {
   Assert(n.getKind() == INTERSECTION_MIN);
   if (n[0].getKind() == EMPTYBAG)
@@ -198,6 +202,114 @@ RewriteResponse TheoryBagsRewriter::rewriteIntersectionMin(const TNode& n) const
       // (intersection_min (union_max A B) A) = A
       // (intersection_min (union_max B A) A) = A
       return RewriteResponse(REWRITE_AGAIN, n[1]);
+    }
+  }
+
+  return RewriteResponse(REWRITE_DONE, n);
+}
+
+RewriteResponse BagsRewriter::rewriteDifferenceSubtract(const TNode& n) const
+{
+  Assert(n.getKind() == DIFFERENCE_SUBTRACT);
+  if (n[0].getKind() == EMPTYBAG || n[1].getKind() == EMPTYBAG)
+  {
+    // (difference_subtract A emptybag) = A
+    // (difference_subtract emptybag B) = emptybag
+    return RewriteResponse(REWRITE_AGAIN, n[0]);
+  }
+  if (n[0] == n[1])
+  {
+    // (difference_subtract A A) = emptybag
+    NodeManager* nm = NodeManager::currentNM();
+    Node emptyBag = nm->mkConst(EmptyBag(n.getType()));
+    return RewriteResponse(REWRITE_AGAIN, emptyBag);
+  }
+
+  if (n[0].getKind() == UNION_DISJOINT)
+  {
+    if (n[1] == n[0][0])
+    {
+      // (difference_subtract (union_disjoint A B) A) = B
+      return RewriteResponse(REWRITE_AGAIN, n[0][1]);
+    }
+    if (n[1] == n[0][1])
+    {
+      // (difference_subtract (union_disjoint B A) A) = B
+      return RewriteResponse(REWRITE_AGAIN, n[0][0]);
+    }
+  }
+
+  if (n[1].getKind() == UNION_DISJOINT || n[1].getKind() == UNION_MAX)
+  {
+    if (n[0] == n[1][0] || n[0] == n[1][1])
+    {
+      // (difference_subtract A (union_disjoint A B)) = emptybag
+      // (difference_subtract A (union_disjoint B A)) = emptybag
+      // (difference_subtract A (union_max A B)) = emptybag
+      // (difference_subtract A (union_max B A)) = emptybag
+      NodeManager* nm = NodeManager::currentNM();
+      Node emptyBag = nm->mkConst(EmptyBag(n.getType()));
+      return RewriteResponse(REWRITE_AGAIN, emptyBag);
+    }
+  }
+
+  if (n[0].getKind() == INTERSECTION_MIN)
+  {
+    if (n[1] == n[0][0] || n[1] == n[0][1])
+    {
+      // (difference_subtract (intersection_min A B) A) = emptybag
+      // (difference_subtract (intersection_min B A) A) = emptybag
+      NodeManager* nm = NodeManager::currentNM();
+      Node emptyBag = nm->mkConst(EmptyBag(n.getType()));
+      return RewriteResponse(REWRITE_AGAIN, emptyBag);
+    }
+  }
+
+  return RewriteResponse(REWRITE_DONE, n);
+}
+
+RewriteResponse BagsRewriter::rewriteDifferenceRemove(const TNode& n) const
+{
+  Assert(n.getKind() == DIFFERENCE_REMOVE);
+
+  if (n[0].getKind() == EMPTYBAG || n[1].getKind() == EMPTYBAG)
+  {
+    // (difference_remove A emptybag) = A
+    // (difference_remove emptybag B) = emptybag
+    return RewriteResponse(REWRITE_AGAIN, n[0]);
+  }
+
+  if (n[0] == n[1])
+  {
+    // (difference_remove A A) = emptybag
+    NodeManager* nm = NodeManager::currentNM();
+    Node emptyBag = nm->mkConst(EmptyBag(n.getType()));
+    return RewriteResponse(REWRITE_AGAIN, emptyBag);
+  }
+
+  if (n[1].getKind() == UNION_DISJOINT || n[1].getKind() == UNION_MAX)
+  {
+    if (n[0] == n[1][0] || n[0] == n[1][1])
+    {
+      // (difference_remove A (union_disjoint A B)) = emptybag
+      // (difference_remove A (union_disjoint B A)) = emptybag
+      // (difference_remove A (union_max A B)) = emptybag
+      // (difference_remove A (union_max B A)) = emptybag
+      NodeManager* nm = NodeManager::currentNM();
+      Node emptyBag = nm->mkConst(EmptyBag(n.getType()));
+      return RewriteResponse(REWRITE_AGAIN, emptyBag);
+    }
+  }
+
+  if (n[0].getKind() == INTERSECTION_MIN)
+  {
+    if (n[1] == n[0][0] || n[1] == n[0][1])
+    {
+      // (difference_remove (intersection_min A B) A) = emptybag
+      // (difference_remove (intersection_min B A) A) = emptybag
+      NodeManager* nm = NodeManager::currentNM();
+      Node emptyBag = nm->mkConst(EmptyBag(n.getType()));
+      return RewriteResponse(REWRITE_AGAIN, emptyBag);
     }
   }
 

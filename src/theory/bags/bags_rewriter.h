@@ -23,21 +23,13 @@ namespace CVC4 {
 namespace theory {
 namespace bags {
 
-class TheoryBagsRewriter : public TheoryRewriter
+class BagsRewriter : public TheoryRewriter
 {
  public:
   /**
    * Rewrite rules:
    * - node is a constant in normal form
    *   node = node // return the same node
-   * - difference_subtract
-   *   (difference_subtract A emptybag) = A
-   *   (difference_subtract emptybag B) = emptybag
-   *   (difference_subtract A A) = emptybag
-   * - difference_remove
-   *   (difference_remove A emptybag) = A
-   *   (difference_remove emptybag B) = emptybag
-   *   (difference_subtract A A) = emptybag
    * - bag.is_included
    *   (bag.is_included A B) = ((difference_subtract A B) == emptybag)
    * - bag.choose
@@ -119,6 +111,38 @@ class TheoryBagsRewriter : public TheoryRewriter
    * - otherwise = n
    */
   RewriteResponse rewriteIntersectionMin(const TNode& n) const;
+
+  /**
+   * patterns for n
+   * - (difference_subtract A emptybag) = A
+   * - (difference_subtract emptybag A) = emptybag
+   * - (difference_subtract A A) = emptybag
+   * - (difference_subtract (union_disjoint A B) A) = B
+   * - (difference_subtract (union_disjoint B A) A) = B
+   * - (difference_subtract A (union_disjoint A B)) = emptybag
+   * - (difference_subtract A (union_disjoint B A)) = emptybag
+   * - (difference_subtract A (union_max A B)) = emptybag
+   * - (difference_subtract A (union_max B A)) = emptybag
+   * - (difference_subtract (intersection_min A B) A) = emptybag
+   * - (difference_subtract (intersection_min B A) A) = emptybag
+   * - otherwise = n
+   */
+  RewriteResponse rewriteDifferenceSubtract(const TNode& n) const;
+
+  /**
+   * patterns for n
+   * - (difference_remove A emptybag) = A
+   * - (difference_remove emptybag A) = emptybag
+   * - (difference_remove A A) = emptybag
+   * - (difference_remove A (union_disjoint A B)) = emptybag
+   * - (difference_remove A (union_disjoint B A)) = emptybag
+   * - (difference_remove A (union_max A B)) = emptybag
+   * - (difference_remove A (union_max B A)) = emptybag
+   * - (difference_remove (intersection_min A B) A) = emptybag
+   * - (difference_remove (intersection_min B A) A) = emptybag
+   * - otherwise = n
+   */
+  RewriteResponse rewriteDifferenceRemove(const TNode& n) const;
 }; /* class TheoryBagsRewriter */
 
 }  // namespace bags

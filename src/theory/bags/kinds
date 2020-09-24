@@ -8,8 +8,8 @@ theory THEORY_BAGS \
     ::CVC4::theory::bags::TheoryBags \
     "theory/bags/theory_bags.h"
 typechecker "theory/bags/theory_bags_type_rules.h"
-rewriter ::CVC4::theory::bags::TheoryBagsRewriter \
-    "theory/bags/theory_bags_rewriter.h"
+rewriter ::CVC4::theory::bags::BagsRewriter \
+    "theory/bags/bags_rewriter.h"
 
 properties parametric
 properties check propagate presolve
