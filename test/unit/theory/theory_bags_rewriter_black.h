@@ -234,6 +234,48 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
               && response11.d_status == REWRITE_AGAIN);
   }
 
+  void testUnionDisjoint()
+  {
+    int n = 3;
+    vector<Node> elements = getNStrings(2);
+    Node emptyBag =
+        d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
+    Node A = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(n)));
+    Node B = d_nm->mkNode(MK_BAG, elements[1], d_nm->mkConst(Rational(n + 1)));
+    Node unionDisjointAB = d_nm->mkNode(UNION_DISJOINT, A, B);
+    Node unionDisjointBA = d_nm->mkNode(UNION_DISJOINT, B, A);
+    Node unionMaxAB = d_nm->mkNode(UNION_MAX, A, B);
+    Node unionMaxBA = d_nm->mkNode(UNION_MAX, B, A);
+    Node intersectionAB = d_nm->mkNode(INTERSECTION_MIN, A, B);
+    Node intersectionBA = d_nm->mkNode(INTERSECTION_MIN, B, A);
+
+    // (union_disjoint A emptybag) = A
+    Node unionDisjoint1 = d_nm->mkNode(UNION_DISJOINT, A, emptyBag);
+    RewriteResponse response1 = d_rewriter.postRewrite(unionDisjoint1);
+    TS_ASSERT(response1.d_node == A && response1.d_status == REWRITE_AGAIN);
+
+    // (union_disjoint emptybag A) = A
+    Node unionDisjoint2 = d_nm->mkNode(UNION_DISJOINT, emptyBag, A);
+    RewriteResponse response2 = d_rewriter.postRewrite(unionDisjoint2);
+    TS_ASSERT(response2.d_node == A && response2.d_status == REWRITE_AGAIN);
+
+    // (union_disjoint (union_max A B) (intersection_min B A)) =
+    //          (union_disjoint A B) // sum(a,b) = max(a,b) + min(a,b)
+    Node unionDisjoint3 =
+        d_nm->mkNode(UNION_DISJOINT, unionMaxAB, intersectionBA);
+    RewriteResponse response3 = d_rewriter.postRewrite(unionDisjoint3);
+    TS_ASSERT(response3.d_node == unionDisjointAB
+              && response3.d_status == REWRITE_AGAIN);
+
+    // (union_disjoint (intersection_min B A)) (union_max A B) =
+    //          (union_disjoint B A) // sum(a,b) = max(a,b) + min(a,b)
+    Node unionDisjoint4 =
+        d_nm->mkNode(UNION_DISJOINT, unionMaxBA, intersectionBA);
+    RewriteResponse response4 = d_rewriter.postRewrite(unionDisjoint4);
+    TS_ASSERT(response4.d_node == unionDisjointBA
+              && response4.d_status == REWRITE_AGAIN);
+  }
+
  private:
   std::unique_ptr<ExprManager> d_em;
   std::unique_ptr<SmtEngine> d_smt;

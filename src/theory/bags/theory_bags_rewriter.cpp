@@ -43,6 +43,7 @@ RewriteResponse TheoryBagsRewriter::postRewrite(TNode n)
     case kind::MK_BAG: return rewriteMakeBag(n);
     case kind::BAG_COUNT: return rewriteBagCount(n);
     case kind::UNION_MAX: return rewriteUnionMax(n);
+    case kind::UNION_DISJOINT: return rewriteUnionDisjoint(n);
   }
   return RewriteResponse(REWRITE_DONE, n);
 }
@@ -129,6 +130,38 @@ RewriteResponse TheoryBagsRewriter::rewriteUnionMax(const TNode& n) const
     // (union_max (union_disjoint A B) A) = (union_disjoint A B)
     // (union_max (union_disjoint B A) A) = (union_disjoint B A)
     return RewriteResponse(REWRITE_AGAIN, n[0]);
+  }
+  return RewriteResponse(REWRITE_DONE, n);
+}
+
+RewriteResponse TheoryBagsRewriter::rewriteUnionDisjoint(const TNode& n) const
+{
+  Assert(n.getKind() == UNION_DISJOINT);
+  if (n[1].getKind() == EMPTYBAG)
+  {
+    // (union_disjoint A emptybag) = A
+    return RewriteResponse(REWRITE_AGAIN, n[0]);
+  }
+  if (n[0].getKind() == EMPTYBAG)
+  {
+    // (union_disjoint emptybag A) = A
+    return RewriteResponse(REWRITE_AGAIN, n[1]);
+  }
+  if ((n[0].getKind() == UNION_MAX && n[1].getKind() == INTERSECTION_MIN)
+      || (n[1].getKind() == UNION_MAX && n[0].getKind() == INTERSECTION_MIN))
+
+  {
+    // (union_disjoint (union_max A B) (intersection_min A B)) =
+    //         (union_disjoint A B) // sum(a,b) = max(a,b) + min(a,b)
+    // check if the operands of union_max and intersection_min are the same
+    std::set<Node> left(n[0].begin(), n[0].end());
+    std::set<Node> right(n[0].begin(), n[0].end());
+    if (left == right)
+    {
+      NodeManager* nm = NodeManager::currentNM();
+      Node rewritten = nm->mkNode(UNION_DISJOINT, n[0][0], n[0][1]);
+      return RewriteResponse(REWRITE_AGAIN, rewritten);
+    }
   }
   return RewriteResponse(REWRITE_DONE, n);
 }

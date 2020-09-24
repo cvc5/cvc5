@@ -30,11 +30,6 @@ class TheoryBagsRewriter : public TheoryRewriter
    * Rewrite rules:
    * - node is a constant in normal form
    *   node = node // return the same node
-   * - union_disjoint
-   *   (union_disjoint A emptybag) = A
-   *   (union_disjoint emptybag B) = B
-   *   (union_disjoint (A union_max B) (intersection_min A B)) =
-   *        (union_disjoint A B) // sum(a,b) = max(a,b) + min(a,b)
    * - intersection_min
    *   (intersection_min A emptybag) = emptybag
    *   (intersection_min emptybag B) = emptybag
@@ -101,6 +96,18 @@ class TheoryBagsRewriter : public TheoryRewriter
    * - otherwise = n
    */
   RewriteResponse rewriteUnionMax(const TNode& n) const;
+
+  /**
+   * patterns for n
+   * - (union_disjoint A emptybag) = A
+   * - (union_disjoint emptybag A) = A
+   * - (union_disjoint (union_max A B) (intersection_min A B)) =
+   *         (union_disjoint A B) // sum(a,b) = max(a,b) + min(a,b)
+   * - other permutations of the above like swapping A and B, or swapping
+   *   intersection_min and union_max
+   * - otherwise = n
+   */
+  RewriteResponse rewriteUnionDisjoint(const TNode& n) const;
 }; /* class TheoryBagsRewriter */
 
 }  // namespace bags
