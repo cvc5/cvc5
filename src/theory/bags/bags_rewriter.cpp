@@ -34,28 +34,53 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
   Kind k = n.getKind();
   switch (k)
   {
-    case kind::MK_BAG: return rewriteMakeBag(n);
-    case kind::BAG_COUNT: return rewriteBagCount(n);
-    case kind::UNION_MAX: return rewriteUnionMax(n);
-    case kind::UNION_DISJOINT: return rewriteUnionDisjoint(n);
-    case kind::INTERSECTION_MIN: return rewriteIntersectionMin(n);
-    case kind::DIFFERENCE_SUBTRACT: return rewriteDifferenceSubtract(n);
-    case kind::DIFFERENCE_REMOVE: return rewriteDifferenceRemove(n);
+    case MK_BAG: return rewriteMakeBag(n);
+    case BAG_COUNT: return rewriteBagCount(n);
+    case UNION_MAX: return rewriteUnionMax(n);
+    case UNION_DISJOINT: return rewriteUnionDisjoint(n);
+    case INTERSECTION_MIN: return rewriteIntersectionMin(n);
+    case DIFFERENCE_SUBTRACT: return rewriteDifferenceSubtract(n);
+    case DIFFERENCE_REMOVE: return rewriteDifferenceRemove(n);
+    case BAG_CHOOSE: return rewriteChoose(n);
+    case BAG_CARD: return rewriteCard(n);
+    case BAG_IS_SINGLETON: return rewriteIsSingleton(n);
+    default: break;
   }
   return RewriteResponse(REWRITE_DONE, n);
 }
 
 RewriteResponse BagsRewriter::preRewrite(TNode n)
 {
-  if (n.getKind() == EQUAL)
+  Kind k = n.getKind();
+  switch (k)
   {
-    if (n[0] == n[1])
-    {
-      NodeManager* nm = NodeManager::currentNM();
-      return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
-    }
+    case EQUAL: return rewriteEqual(n);
+    case BAG_IS_INCLUDED: return rewriteIsIncluded(n);
+    default: break;
   }
   return RewriteResponse(REWRITE_DONE, n);
+}
+
+RewriteResponse BagsRewriter::rewriteEqual(const TNode& n) const
+{
+  Assert(n.getKind() == EQUAL);
+  if (n[0] == n[1])
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
+  }
+  return RewriteResponse(REWRITE_DONE, n);
+}
+
+RewriteResponse BagsRewriter::rewriteIsIncluded(const TNode& n) const
+{
+  Assert(n.getKind() == BAG_IS_INCLUDED);
+  // (bag.is_included A B) = ((difference_subtract A B) == emptybag)
+  NodeManager* nm = NodeManager::currentNM();
+  Node emptybag = nm->mkConst(EmptyBag(n[0].getType()));
+  Node subtract = nm->mkNode(DIFFERENCE_SUBTRACT, n[0], n[1]);
+  Node equal = subtract.eqNode(emptybag);
+  return RewriteResponse(REWRITE_AGAIN, equal);
 }
 
 RewriteResponse BagsRewriter::rewriteMakeBag(const TNode& n) const
@@ -313,6 +338,53 @@ RewriteResponse BagsRewriter::rewriteDifferenceRemove(const TNode& n) const
     }
   }
 
+  return RewriteResponse(REWRITE_DONE, n);
+}
+
+RewriteResponse BagsRewriter::rewriteChoose(const TNode& n) const
+{
+  Assert(n.getKind() == BAG_CHOOSE);
+  if (n[0].getKind() == MK_BAG && n[0][1].isConst())
+  {
+    // (bag.choose (mkBag x c)) = x where c is a constant > 0
+    return RewriteResponse(REWRITE_DONE, n[0][1]);
+  }
+  return RewriteResponse(REWRITE_DONE, n);
+}
+
+RewriteResponse BagsRewriter::rewriteCard(const TNode& n) const
+{
+  Assert(n.getKind() == BAG_CARD);
+  if (n[0].getKind() == EMPTYBAG)
+  {
+    // (bag.card emptybag) = 0
+    Node zero = NodeManager::currentNM()->mkConst(Rational(0));
+    return RewriteResponse(REWRITE_DONE, zero);
+  }
+  if (n[0].getKind() == MK_BAG && n[0][1].isConst())
+  {
+    // (bag.card (mkBag x c)) = c where c is a constant > 0
+    return RewriteResponse(REWRITE_DONE, n[0][1]);
+  }
+  return RewriteResponse(REWRITE_DONE, n);
+}
+
+RewriteResponse BagsRewriter::rewriteIsSingleton(const TNode& n) const
+{
+  Assert(n.getKind() == BAG_IS_SINGLETON);
+  NodeManager* nm = NodeManager::currentNM();
+  if (n[0].getKind() == EMPTYBAG)
+  {
+    // (bag.is_singleton emptybag) = false
+    return RewriteResponse(REWRITE_DONE, nm->mkConst(false));
+  }
+  if (n[0].getKind() == MK_BAG && n[0][1].isConst())
+  {
+    // (bag.is_singleton (mkBag x c) = (c == 1) where c is a constant > 0
+    Node one = nm->mkConst(Rational(1));
+    Node equal = n[0][1].eqNode(one);
+    return RewriteResponse(REWRITE_DONE, equal);
+  }
   return RewriteResponse(REWRITE_DONE, n);
 }
 

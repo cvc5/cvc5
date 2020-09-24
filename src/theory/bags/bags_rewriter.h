@@ -27,29 +27,31 @@ class BagsRewriter : public TheoryRewriter
 {
  public:
   /**
-   * Rewrite rules:
-   * - node is a constant in normal form
-   *   node = node // return the same node
-   * - bag.is_included
-   *   (bag.is_included A B) = ((difference_subtract A B) == emptybag)
-   * - bag.choose
-   *   (bag.choose x (mkBag x c)) = x where c is a constant > 0
-   * - bag.card
-   *   (bag.card emptybag) = 0
-   *   (bag.card (mkBag x c)) = c where c is a constant > 0
-   * - bag.is_singleton
-   *   (bag.is_singleton emptybag) = false
-   *   (bag.is_singleton (mkBag x c) = (c == 1) where c is a constant > 0
-   * @param n
-   * @return
+   * postRewrite nodes with kinds: MK_BAG, BAG_COUNT, UNION_MAX, UNION_DISJOINT,
+   * INTERSECTION_MIN, DIFFERENCE_SUBTRACT, DIFFERENCE_REMOVE, BAG_CHOOSE,
+   * BAG_CARD, BAG_IS_SINGLETON.
+   * See the rewrite rules for these kinds below.
    */
   RewriteResponse postRewrite(TNode n) override;
   /**
-   * - (= A A) = true where A is a bag
+   * preRewrite nodes with kinds: EQUAL, BAG_IS_INCLUDED.
+   * See the rewrite rules for these kinds below.
    */
   RewriteResponse preRewrite(TNode n) override;
 
  private:
+  /**
+   * patterns for n
+   * - (= A A) = true where A is a bag
+   */
+  RewriteResponse rewriteEqual(const TNode& n) const;
+
+  /**
+   * patterns for n
+   * - (bag.is_included A B) = ((difference_subtract A B) == emptybag)
+   */
+  RewriteResponse rewriteIsIncluded(const TNode& n) const;
+
   /**
    * patterns for n:
    * - (mkBag x 0) = (emptybag T) where T is the type of x
@@ -143,6 +145,26 @@ class BagsRewriter : public TheoryRewriter
    * - otherwise = n
    */
   RewriteResponse rewriteDifferenceRemove(const TNode& n) const;
+  /**
+   * patterns for n
+   * -(bag.choose (mkBag x c)) = x where c is a constant > 0
+   * - otherwise = n
+   */
+  RewriteResponse rewriteChoose(const TNode& n) const;
+  /**
+   * patterns for n
+   * - (bag.card emptybag) = 0
+   * - (bag.card (mkBag x c)) = c where c is a constant > 0
+   * - otherwise = n
+   */
+  RewriteResponse rewriteCard(const TNode& n) const;
+
+  /**
+   * patterns for n
+   * - (bag.is_singleton emptybag) = false
+   * - (bag.is_singleton (mkBag x c) = (c == 1) where c is a constant > 0
+   */
+  RewriteResponse rewriteIsSingleton(const TNode& n) const;
 }; /* class TheoryBagsRewriter */
 
 }  // namespace bags
