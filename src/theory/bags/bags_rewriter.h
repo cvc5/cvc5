@@ -155,6 +155,7 @@ class BagsRewriter : public TheoryRewriter
    * patterns for n
    * - (bag.card emptybag) = 0
    * - (bag.card (mkBag x c)) = c where c is a constant > 0
+   * - (bag.card (union-disjoint A B)) = (+ (bag.card A) (bag.card B))
    * - otherwise = n
    */
   RewriteResponse rewriteCard(const TNode& n) const;

@@ -494,6 +494,38 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
               && response11.d_status == REWRITE_AGAIN);
   }
 
+  void testBagCard()
+  {
+    Node x = d_nm->mkSkolem("x", d_nm->stringType());
+    Node emptyBag =
+        d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
+    Node zero = d_nm->mkConst(Rational(0));
+    Node c = d_nm->mkConst(Rational(3));
+    Node bag = d_nm->mkNode(MK_BAG, x, c);
+    vector<Node> elements = getNStrings(2);
+    Node A = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(4)));
+    Node B = d_nm->mkNode(MK_BAG, elements[1], d_nm->mkConst(Rational(5)));
+    Node unionDisjointAB = d_nm->mkNode(UNION_DISJOINT, A, B);
+
+    // (bag.card emptybag) = 0
+    Node n1 = d_nm->mkNode(BAG_CARD, emptyBag);
+    RewriteResponse response1 = d_rewriter.postRewrite(n1);
+    TS_ASSERT(response1.d_node == zero && response1.d_status == REWRITE_DONE);
+
+    // (bag.card (mkBag x c)) = c where c is a constant > 0
+    Node n2 = d_nm->mkNode(BAG_CARD, bag);
+    RewriteResponse response2 = d_rewriter.postRewrite(n2);
+    TS_ASSERT(response2.d_node == c && response2.d_status == REWRITE_DONE);
+
+    // (bag.card (union-disjoint A B)) = (+ (bag.card A) (bag.card B))
+    Node n3 = d_nm->mkNode(BAG_CARD, unionDisjointAB);
+    Node cardA = d_nm->mkNode(BAG_CARD, A);
+    Node cardB = d_nm->mkNode(BAG_CARD, B);
+    Node plus = d_nm->mkNode(PLUS, cardA, cardB);
+    RewriteResponse response3 = d_rewriter.postRewrite(n3);
+    TS_ASSERT(response3.d_node == plus && response3.d_status == REWRITE_AGAIN);
+  }
+
  private:
   std::unique_ptr<ExprManager> d_em;
   std::unique_ptr<SmtEngine> d_smt;

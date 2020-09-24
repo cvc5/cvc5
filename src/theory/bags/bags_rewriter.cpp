@@ -366,6 +366,19 @@ RewriteResponse BagsRewriter::rewriteCard(const TNode& n) const
     // (bag.card (mkBag x c)) = c where c is a constant > 0
     return RewriteResponse(REWRITE_DONE, n[0][1]);
   }
+
+  if(n[0].getKind() == UNION_DISJOINT)
+  {
+    NodeManager *nm = NodeManager::currentNM();
+
+    // (bag.card (union-disjoint A B)) = (+ (bag.card A) (bag.card B))
+    Node A = nm->mkNode(BAG_CARD, n[0][0]);
+    Node B = nm->mkNode(BAG_CARD, n[0][1]);
+    Node plus = nm->mkNode(PLUS, A, B);
+    return RewriteResponse(REWRITE_AGAIN, plus);
+  }
+
+
   return RewriteResponse(REWRITE_DONE, n);
 }
 
