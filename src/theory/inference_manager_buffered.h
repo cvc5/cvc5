@@ -134,6 +134,12 @@ class InferenceManagerBuffered : public TheoryInferenceManager
   std::vector<std::unique_ptr<TheoryInference>> d_pendingFact;
   /** A map from literals to their pending phase requirement */
   std::map<Node, bool> d_pendingReqPhase;
+  /**
+   * Whether we are currently processing pending lemmas. This flag ensures
+   * that we do not call pending lemmas recursively, which may lead to
+   * segfaults.
+   */
+  bool d_processingPendingLemmas;
 };
 
 }  // namespace theory

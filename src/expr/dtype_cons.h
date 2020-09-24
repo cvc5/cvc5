@@ -158,6 +158,13 @@ class DTypeConstructor
    * only be called for resolved constructors.
    */
   bool isInterpretedFinite(TypeNode t) const;
+  /**
+   * Has finite external argument type. This returns true if this constructor
+   * has an argument type that is not a datatype and is interpreted as a
+   * finite type. This function can only be called for resolved constructors.
+   *
+   */
+  bool hasFiniteExternalArgType(TypeNode t) const;
 
   /**
    * Returns true iff this constructor has already been
@@ -229,6 +236,17 @@ class DTypeConstructor
   void toStream(std::ostream& out) const;
 
  private:
+  /** Constructor cardinality type */
+  enum class CardinalityType
+  {
+    // the constructor is finite
+    FINITE,
+    // the constructor is interpreted-finite (finite under the assumption that
+    // uninterpreted sorts are finite)
+    INTERPRETED_FINITE,
+    // the constructor is infinte
+    INFINITE
+  };
   /** resolve
    *
    * This resolves (initializes) the constructor. For details
@@ -286,6 +304,13 @@ class DTypeConstructor
                          std::vector<TypeNode>& processing,
                          std::map<TypeNode, Node>& gt,
                          bool isValue) const;
+  /**
+   * Compute cardinality info, returns a pair where its first component is
+   * an identifier indicating the cardinality type of this constructor for
+   * type t, and a Boolean indicating whether the constructor has any arguments
+   * that have finite external type.
+   */
+  std::pair<CardinalityType, bool> computeCardinalityInfo(TypeNode t) const;
   /** compute shared selectors
    * This computes the maps d_sharedSelectors and d_sharedSelectorIndex.
    */
@@ -324,6 +349,8 @@ class DTypeConstructor
    * its argument index for this constructor.
    */
   mutable std::map<TypeNode, std::map<Node, unsigned> > d_sharedSelectorIndex;
+  /**  A cache for computeCardinalityInfo. */
+  mutable std::map<TypeNode, std::pair<CardinalityType, bool> > d_cardInfo;
 }; /* class DTypeConstructor */
 
 /**
