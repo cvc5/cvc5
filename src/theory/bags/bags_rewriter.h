@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file theory_bags_rewriter.h
+/*! \file bags_rewriter.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Mudathir Mohamed
