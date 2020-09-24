@@ -1238,11 +1238,13 @@ Node TheoryEngine::getInstantiatedConjunction( Node q ) {
 
 const std::unordered_set<TNode, TNodeHashFunction>& TheoryEngine::getRelevantAssertions(bool& success)
 {
-  if (d_relManager==nullptr)
+  // if we are not in SAT mode, or there is no relevance manager, we fail
+  if (!d_inSatMode || d_relManager==nullptr)
   {
     success = false;
     return d_emptyRelevantSet;
   }
+  return d_relManager->getRelevantAssertions(success);
 }
 
 static Node mkExplanation(const std::vector<NodeTheoryPair>& explanation) {

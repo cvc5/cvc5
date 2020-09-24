@@ -312,17 +312,13 @@ bool RelevanceManager::isRelevant(Node lit)
   return d_rset.find(lit) != d_rset.end();
 }
 
-bool RelevanceManager::computedRelevantAssertions() const
-{
-  return d_success;
-}
-
 const std::unordered_set<TNode, TNodeHashFunction>& RelevanceManager::getRelevantAssertions(bool& success)
 {
   if (!d_computed)
   {
     computeRelevance();
   }
+  // update success flag
   success = d_success;
   return d_rset;
 }
