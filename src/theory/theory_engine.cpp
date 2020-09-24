@@ -1236,10 +1236,11 @@ Node TheoryEngine::getInstantiatedConjunction( Node q ) {
   }
 }
 
-const std::unordered_set<TNode, TNodeHashFunction>& TheoryEngine::getRelevantAssertions(bool& success)
+const std::unordered_set<TNode, TNodeHashFunction>&
+TheoryEngine::getRelevantAssertions(bool& success)
 {
   // if we are not in SAT mode, or there is no relevance manager, we fail
-  if (!d_inSatMode || d_relManager==nullptr)
+  if (!d_inSatMode || d_relManager == nullptr)
   {
     success = false;
     return d_emptyRelevantSet;

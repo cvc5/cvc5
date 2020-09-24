@@ -312,7 +312,8 @@ bool RelevanceManager::isRelevant(Node lit)
   return d_rset.find(lit) != d_rset.end();
 }
 
-const std::unordered_set<TNode, TNodeHashFunction>& RelevanceManager::getRelevantAssertions(bool& success)
+const std::unordered_set<TNode, TNodeHashFunction>&
+RelevanceManager::getRelevantAssertions(bool& success)
 {
   if (!d_computed)
   {

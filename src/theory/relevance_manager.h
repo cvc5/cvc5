@@ -99,11 +99,13 @@ class RelevanceManager
    * if not already done so. This call is valid during a full effort check in
    * TheoryEngine, or after TheoryEngine has terminated with "sat". This method
    * sets the flag success to false if we failed to compute relevant
-   * assertions, which can occur if 
-   * 
+   * assertions, which can occur if
+   *
    * The value of this return is only valid if success was not updated to false.
    */
-  const std::unordered_set<TNode, TNodeHashFunction>& getRelevantAssertions(bool& success);
+  const std::unordered_set<TNode, TNodeHashFunction>& getRelevantAssertions(
+      bool& success);
+
  private:
   /**
    * Add the set of assertions to the formulas known to this class. This
