@@ -1541,7 +1541,8 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
     exp = getLabel(n);
     tt = exp[0];
   }
-  const DType& dt = tt.getType().getDType();
+  TypeNode ttn = tt.getType();
+  const DType& dt = ttn.getDType();
   // instantiate this equivalence class
   eqc->d_inst = true;
   Node tt_cons = getInstantiateCons(tt, dt, index);
@@ -1551,10 +1552,17 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
     return;
   }
   eq = tt.eqNode(tt_cons);
-  Debug("datatypes-inst") << "DtInstantiate : " << eqc << " " << eq
-                          << std::endl;
-  d_im.addPendingInference(eq, exp);
-  Trace("datatypes-infer-debug") << "inst : " << eqc << " " << n << std::endl;
+  // Determine if the equality must be sent out as a lemma. Notice that
+  // we can keep new equalities from the instantiate rule internal as long as
+  // they are for datatype constructors that have no arguments that have
+  // finite external type. Such equalities must be sent because they introduce
+  // selector terms that may contribute to conflicts due to cardinality (good
+  // examples of this are regress0/datatypes/dt-param-card4-bool-sat.smt2 and
+  // regress0/datatypes/list-bool.smt2).
+  bool forceLemma = dt[index].hasFiniteExternalArgType(ttn);
+  Trace("datatypes-infer-debug") << "DtInstantiate : " << eqc << " " << eq
+                                 << " forceLemma = " << forceLemma << std::endl;
+  d_im.addPendingInference(eq, exp, nullptr, forceLemma);
   Trace("datatypes-infer") << "DtInfer : instantiate : " << eq << " by " << exp
                            << std::endl;
 }

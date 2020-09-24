@@ -450,7 +450,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       }
     }
 
-    Result result;
+    api::Result result;
     if(status) {
       result = pExecutor->getResult();
       returnValue = 0;
@@ -467,7 +467,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     _exit(returnValue);
 #endif /* CVC4_COMPETITION_MODE */
 
-    ReferenceStat< Result > s_statSatResult("sat/unsat", result);
+    ReferenceStat<api::Result> s_statSatResult("sat/unsat", result);
     RegisterStatistic statSatResultReg(&pExecutor->getStatisticsRegistry(),
                                        &s_statSatResult);
 

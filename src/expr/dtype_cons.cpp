@@ -153,60 +153,39 @@ Cardinality DTypeConstructor::getCardinality(TypeNode t) const
 
 bool DTypeConstructor::isFinite(TypeNode t) const
 {
-  Assert(isResolved());
-
-  TNode self = d_constructor;
-  // is this already in the cache ?
-  if (self.getAttribute(DTypeFiniteComputedAttr()))
-  {
-    return self.getAttribute(DTypeFiniteAttr());
-  }
-  std::vector<TypeNode> instTypes;
-  std::vector<TypeNode> paramTypes;
-  bool isParam = t.isParametricDatatype();
-  if (isParam)
-  {
-    paramTypes = t.getDType().getParameters();
-    instTypes = TypeNode(t).getParamTypes();
-  }
-  for (size_t i = 0, nargs = getNumArgs(); i < nargs; i++)
-  {
-    TypeNode tc = getArgType(i);
-    if (isParam)
-    {
-      tc = tc.substitute(paramTypes.begin(),
-                         paramTypes.end(),
-                         instTypes.begin(),
-                         instTypes.end());
-    }
-    if (!tc.isFinite())
-    {
-      self.setAttribute(DTypeFiniteComputedAttr(), true);
-      self.setAttribute(DTypeFiniteAttr(), false);
-      return false;
-    }
-  }
-  self.setAttribute(DTypeFiniteComputedAttr(), true);
-  self.setAttribute(DTypeFiniteAttr(), true);
-  return true;
+  std::pair<CardinalityType, bool> cinfo = computeCardinalityInfo(t);
+  return cinfo.first == CardinalityType::FINITE;
 }
 
 bool DTypeConstructor::isInterpretedFinite(TypeNode t) const
 {
-  Assert(isResolved());
-  TNode self = d_constructor;
-  // is this already in the cache ?
-  if (self.getAttribute(DTypeUFiniteComputedAttr()))
+  std::pair<CardinalityType, bool> cinfo = computeCardinalityInfo(t);
+  return cinfo.first != CardinalityType::INFINITE;
+}
+
+bool DTypeConstructor::hasFiniteExternalArgType(TypeNode t) const
+{
+  std::pair<CardinalityType, bool> cinfo = computeCardinalityInfo(t);
+  return cinfo.second;
+}
+
+std::pair<DTypeConstructor::CardinalityType, bool>
+DTypeConstructor::computeCardinalityInfo(TypeNode t) const
+{
+  std::map<TypeNode, std::pair<CardinalityType, bool> >::iterator it =
+      d_cardInfo.find(t);
+  if (it != d_cardInfo.end())
   {
-    return self.getAttribute(DTypeUFiniteAttr());
+    return it->second;
   }
+  std::pair<CardinalityType, bool> ret(CardinalityType::FINITE, false);
   std::vector<TypeNode> instTypes;
   std::vector<TypeNode> paramTypes;
   bool isParam = t.isParametricDatatype();
   if (isParam)
   {
     paramTypes = t.getDType().getParameters();
-    instTypes = TypeNode(t).getParamTypes();
+    instTypes = t.getParamTypes();
   }
   for (unsigned i = 0, nargs = getNumArgs(); i < nargs; i++)
   {
@@ -218,16 +197,30 @@ bool DTypeConstructor::isInterpretedFinite(TypeNode t) const
                          instTypes.begin(),
                          instTypes.end());
     }
-    if (!tc.isInterpretedFinite())
+    if (tc.isFinite())
     {
-      self.setAttribute(DTypeUFiniteComputedAttr(), true);
-      self.setAttribute(DTypeUFiniteAttr(), false);
-      return false;
+      // do nothing
     }
+    else if (tc.isInterpretedFinite())
+    {
+      if (ret.first == CardinalityType::FINITE)
+      {
+        // not simply finite, it depends on uninterpreted sorts being finite
+        ret.first = CardinalityType::INTERPRETED_FINITE;
+      }
+    }
+    else
+    {
+      // infinite implies the constructor is infinite cardinality
+      ret.first = CardinalityType::INFINITE;
+      continue;
+    }
+    // if the argument is (interpreted) finite and external, set the flag
+    // for indicating it has a finite external argument
+    ret.second = ret.second || !tc.isDatatype();
   }
-  self.setAttribute(DTypeUFiniteComputedAttr(), true);
-  self.setAttribute(DTypeUFiniteAttr(), true);
-  return true;
+  d_cardInfo[t] = ret;
+  return ret;
 }
 
 bool DTypeConstructor::isResolved() const { return !d_tester.isNull(); }
