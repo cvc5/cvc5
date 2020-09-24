@@ -43,6 +43,11 @@ class BagsRewriter : public TheoryRewriter
   /**
    * patterns for n
    * - (= A A) = true where A is a bag
+   * - (= (mkBag x c) (mkBag y d)) =
+   *   (ite
+   *        (and (<= c 0) (<= d 0))
+   *        true
+   *        (and (= x y) (= c d)))
    */
   RewriteResponse rewriteEqual(const TNode& n) const;
 

@@ -67,16 +67,35 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
 
   void testBagEquality()
   {
-    vector<Node> elements = getNStrings(1);
-    Node emptyBag1 =
+    vector<Node> elements = getNStrings(2);
+    Node x = elements[0];
+    Node y = elements[1];
+    Node c = d_nm->mkSkolem("c", d_nm->integerType());
+    Node d = d_nm->mkSkolem("d", d_nm->integerType());
+    Node bagX = d_nm->mkNode(MK_BAG, x, c);
+    Node bagY = d_nm->mkNode(MK_BAG, y, d);
+    Node emptyBag =
         d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
-    Node emptyBag2 =
-        d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
-    Node equal = emptyBag1.eqNode(emptyBag2);
 
-    RewriteResponse response = d_rewriter.preRewrite(equal);
-    TS_ASSERT(response.d_node == d_nm->mkConst(true)
-              && response.d_status == REWRITE_DONE);
+    // (= A A) = true where A is a bag
+    Node n1 = emptyBag.eqNode(emptyBag);
+    RewriteResponse response1 = d_rewriter.preRewrite(n1);
+    TS_ASSERT(response1.d_node == d_nm->mkConst(true)
+              && response1.d_status == REWRITE_DONE);
+
+    //  (= (mkBag x c) (mkBag y d)) =
+    //  (ite
+    //        (and (<= c 0) (<= d 0))
+    //        true
+    //        (and (= x y) (= c d)))
+    Node n2 = bagX.eqNode(bagY);
+    RewriteResponse response2 = d_rewriter.preRewrite(n2);
+    Node zero = d_nm->mkConst(Rational(0));
+    Node lte = d_nm->mkNode(LEQ, c, zero).andNode(d_nm->mkNode(LEQ, d, zero));
+    Node equal = x.eqNode(y).andNode(c.eqNode(d));
+    Node ite = d_nm->mkNode(ITE, lte, d_nm->mkConst(true), equal);
+    TS_ASSERT(response2.d_node == ite
+              && response2.d_status == REWRITE_AGAIN_FULL);
   }
 
   void testMkBagConstantElement()
