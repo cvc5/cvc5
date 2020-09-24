@@ -37,6 +37,14 @@ class NormalForm
    * Also handles the corner cases of empty bag and singleton bag.
    */
   static bool checkNormalConstant(TNode n);
+  /**
+   * check whether all children of the given node are in normal form
+   */
+  static bool AreChildrenConstants(TNode n);
+  /**
+   * get the normal form of n
+   */
+  static Node getNormalForm(TNode n);
 };
 }  // namespace bags
 }  // namespace theory

@@ -31,6 +31,11 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
     // no need to rewrite n if it is already in a normal form
     return RewriteResponse(REWRITE_DONE, n);
   }
+  if (NormalForm::AreChildrenConstants(n))
+  {
+    Node normal = NormalForm::getNormalForm(n);
+    return RewriteResponse(REWRITE_DONE, n);
+  }
   Kind k = n.getKind();
   switch (k)
   {

@@ -21,6 +21,17 @@ bool NormalForm::checkNormalConstant(TNode n)
   // TODO(projects#223): complete this function
   return false;
 }
+
+bool NormalForm::AreChildrenConstants(TNode n)
+{
+  return std::all_of(n.begin(), n.end(), [](Node c) { return c.isConst(); });
+}
+
+Node NormalForm::getNormalForm(TNode n)
+{
+  // TODO(projects#223): complete this function
+  return CVC4::Node();
+}
 }  // namespace bags
 }  // namespace theory
 }  // namespace CVC4
