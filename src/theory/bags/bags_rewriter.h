@@ -73,8 +73,8 @@ class BagsRewriter : public TheoryRewriter
    * - (union_max A emptybag) = A
    * - (union_max emptybag A) = A
    * - (union_max A A) = A
-   * - (union_max A (union_max A B) = (union_max A B)
-   * - (union_max A (union_max B A) = (union_max B A)
+   * - (union_max A (union_max A B)) = (union_max A B)
+   * - (union_max A (union_max B A)) = (union_max B A)
    * - (union_max (union_max A B) A) = (union_max A B)
    * - (union_max (union_max B A) A) = (union_max B A)
    * - (union_max A (union_disjoint A B)) = (union_disjoint A B)

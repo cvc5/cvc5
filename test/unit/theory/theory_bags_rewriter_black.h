@@ -181,13 +181,13 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     RewriteResponse response3 = d_rewriter.postRewrite(unionMax3);
     TS_ASSERT(response3.d_node == A && response3.d_status == REWRITE_DONE);
 
-    // (union_max A (union_max A B) = (union_max A B)
+    // (union_max A (union_max A B)) = (union_max A B)
     Node unionMax4 = d_nm->mkNode(UNION_MAX, A, unionMaxAB);
     RewriteResponse response4 = d_rewriter.postRewrite(unionMax4);
     TS_ASSERT(response4.d_node == unionMaxAB
               && response4.d_status == REWRITE_DONE);
 
-    // (union_max A (union_max B A) = (union_max B A)
+    // (union_max A (union_max B A)) = (union_max B A)
     Node unionMax5 = d_nm->mkNode(UNION_MAX, A, unionMaxBA);
     RewriteResponse response5 = d_rewriter.postRewrite(unionMax5);
     TS_ASSERT(response5.d_node == unionMaxBA
@@ -205,13 +205,13 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     TS_ASSERT(response7.d_node == unionMaxBA
               && response7.d_status == REWRITE_DONE);
 
-    // (union_max A (union_disjoint A B) = (union_disjoint A B)
+    // (union_max A (union_disjoint A B)) = (union_disjoint A B)
     Node unionMax8 = d_nm->mkNode(UNION_MAX, A, unionDisjointAB);
     RewriteResponse response8 = d_rewriter.postRewrite(unionMax8);
     TS_ASSERT(response8.d_node == unionDisjointAB
               && response8.d_status == REWRITE_DONE);
 
-    // (union_max A (union_disjoint B A) = (union_disjoint B A)
+    // (union_max A (union_disjoint B A)) = (union_disjoint B A)
     Node unionMax9 = d_nm->mkNode(UNION_MAX, A, unionDisjointBA);
     RewriteResponse response9 = d_rewriter.postRewrite(unionMax9);
     TS_ASSERT(response9.d_node == unionDisjointBA

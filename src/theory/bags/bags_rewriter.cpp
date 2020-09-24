@@ -134,14 +134,14 @@ RewriteResponse BagsRewriter::rewriteUnionMax(const TNode& n) const
   }
   if (n[1].getKind() == UNION_MAX && (n[0] == n[1][0] || n[0] == n[1][1]))
   {
-    // (union_max A (union_max A B) = (union_max A B)
-    // (union_max A (union_max B A) = (union_max B A)
+    // (union_max A (union_max A B)) = (union_max A B)
+    // (union_max A (union_max B A)) = (union_max B A)
     return RewriteResponse(REWRITE_DONE, n[1]);
   }
   if (n[0].getKind() == UNION_MAX && (n[0][0] == n[1] || n[0][1] == n[1]))
   {
-    // (union_max (union_max A B) A) = (union_max A B)
-    // (union_max (union_max B A) A) = (union_max B A)
+    // (union_max (union_max A B) A)) = (union_max A B)
+    // (union_max (union_max B A) A)) = (union_max B A)
     return RewriteResponse(REWRITE_DONE, n[0]);
   }
 
@@ -153,8 +153,8 @@ RewriteResponse BagsRewriter::rewriteUnionMax(const TNode& n) const
   }
   if (n[0].getKind() == UNION_DISJOINT && (n[0][0] == n[1] || n[0][1] == n[1]))
   {
-    // (union_max (union_disjoint A B) A) = (union_disjoint A B)
-    // (union_max (union_disjoint B A) A) = (union_disjoint B A)
+    // (union_max (union_disjoint A B) A)) = (union_disjoint A B)
+    // (union_max (union_disjoint B A) A)) = (union_disjoint B A)
     return RewriteResponse(REWRITE_DONE, n[0]);
   }
   return RewriteResponse(REWRITE_DONE, n);
