@@ -22,11 +22,11 @@
 #endif /* CVC4_POLY_IMP */
 
 #include "expr/node.h"
+#include "theory/arith/bound_inference.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/icp/candidate.h"
 #include "theory/arith/nl/icp/contraction_origins.h"
 #include "theory/arith/nl/icp/intersection.h"
-#include "theory/arith/nl/icp/variable_bounds.h"
 #include "theory/arith/nl/poly_conversion.h"
 
 namespace CVC4 {
@@ -60,7 +60,7 @@ class ICPSolver
   struct ICPState
   {
     /** The variable bounds extracted from the input assertions */
-    VariableBounds d_bounds;
+    BoundInference d_bounds;
     /** The contraction candidates generated from the theory atoms */
     std::vector<Candidate> d_candidates;
     /** The current assignment */
@@ -71,12 +71,12 @@ class ICPSolver
     Node d_conflict;
 
     /** Initialized the variable bounds with a variable mapper */
-    ICPState(VariableMapper& vm) : d_bounds(vm) {}
+    ICPState(VariableMapper& vm) {}
 
     /** Reset this state */
     void reset()
     {
-      d_bounds.reset();
+      d_bounds = BoundInference();
       d_candidates.clear();
       d_assignment.clear();
       d_origins = ContractionOriginManager();

@@ -715,6 +715,19 @@ std::size_t bitsize(const poly::Value& v)
   return 0;
 }
 
+poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi) {
+  poly::IntervalAssignment res;
+  for (const auto& vb: bi.get()) {
+    poly::Variable v = vm(vb.first);
+    poly::Interval i(node_to_value(vb.second.lower, vb.first),
+                     vb.second.lower_strict,
+                     node_to_value(vb.second.upper, vb.first),
+                     vb.second.upper_strict);
+    res.set(v, i);
+  }
+  return res;
+}
+
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory

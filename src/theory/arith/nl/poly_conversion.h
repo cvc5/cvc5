@@ -26,6 +26,7 @@
 #include <iostream>
 
 #include "expr/node.h"
+#include "theory/arith/bound_inference.h"
 #include "util/real_algebraic_number.h"
 
 namespace CVC4 {
@@ -142,6 +143,8 @@ poly::Value node_to_value(const Node& n, const Node& ran_variable);
  * example to avoid divergence or disallow huge lemmas.
  */
 std::size_t bitsize(const poly::Value& v);
+
+poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi);
 
 }  // namespace nl
 }  // namespace arith
