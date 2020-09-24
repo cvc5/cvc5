@@ -367,9 +367,9 @@ RewriteResponse BagsRewriter::rewriteCard(const TNode& n) const
     return RewriteResponse(REWRITE_DONE, n[0][1]);
   }
 
-  if(n[0].getKind() == UNION_DISJOINT)
+  if (n[0].getKind() == UNION_DISJOINT)
   {
-    NodeManager *nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
 
     // (bag.card (union-disjoint A B)) = (+ (bag.card A) (bag.card B))
     Node A = nm->mkNode(BAG_CARD, n[0][0]);
@@ -377,7 +377,6 @@ RewriteResponse BagsRewriter::rewriteCard(const TNode& n) const
     Node plus = nm->mkNode(PLUS, A, B);
     return RewriteResponse(REWRITE_AGAIN, plus);
   }
-
 
   return RewriteResponse(REWRITE_DONE, n);
 }
@@ -391,12 +390,12 @@ RewriteResponse BagsRewriter::rewriteIsSingleton(const TNode& n) const
     // (bag.is_singleton emptybag) = false
     return RewriteResponse(REWRITE_DONE, nm->mkConst(false));
   }
-  if (n[0].getKind() == MK_BAG && n[0][1].isConst())
+  if (n[0].getKind() == MK_BAG)
   {
-    // (bag.is_singleton (mkBag x c) = (c == 1) where c is a constant > 0
+    // (bag.is_singleton (mkBag x c) = (c == 1)
     Node one = nm->mkConst(Rational(1));
     Node equal = n[0][1].eqNode(one);
-    return RewriteResponse(REWRITE_DONE, equal);
+    return RewriteResponse(REWRITE_AGAIN, equal);
   }
   return RewriteResponse(REWRITE_DONE, n);
 }

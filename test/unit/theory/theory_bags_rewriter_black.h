@@ -538,6 +538,28 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     TS_ASSERT(response3.d_node == plus && response3.d_status == REWRITE_AGAIN);
   }
 
+  void testIsSingleton()
+  {
+    Node emptybag =
+        d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
+    Node x = d_nm->mkSkolem("x", d_nm->stringType());
+    Node c = d_nm->mkSkolem("c", d_nm->integerType());
+    Node bag = d_nm->mkNode(MK_BAG, x, c);
+
+    // (bag.is_singleton emptybag) = false
+    Node n1 = d_nm->mkNode(BAG_IS_SINGLETON, emptybag);
+    RewriteResponse response1 = d_rewriter.postRewrite(n1);
+    TS_ASSERT(response1.d_node == d_nm->mkConst(false)
+              && response1.d_status == REWRITE_DONE);
+
+    // (bag.is_singleton (mkBag x c) = (c == 1)
+    Node n2 = d_nm->mkNode(BAG_IS_SINGLETON, bag);
+    RewriteResponse response2 = d_rewriter.postRewrite(n2);
+    Node one = d_nm->mkConst(Rational(1));
+    Node equal = c.eqNode(one);
+    TS_ASSERT(response2.d_node == equal && response2.d_status == REWRITE_AGAIN);
+  }
+
  private:
   std::unique_ptr<ExprManager> d_em;
   std::unique_ptr<SmtEngine> d_smt;

@@ -163,7 +163,7 @@ class BagsRewriter : public TheoryRewriter
   /**
    * patterns for n
    * - (bag.is_singleton emptybag) = false
-   * - (bag.is_singleton (mkBag x c) = (c == 1) where c is a constant > 0
+   * - (bag.is_singleton (mkBag x c) = (c == 1)
    */
   RewriteResponse rewriteIsSingleton(const TNode& n) const;
 }; /* class TheoryBagsRewriter */
