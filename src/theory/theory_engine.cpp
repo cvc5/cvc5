@@ -1236,6 +1236,14 @@ Node TheoryEngine::getInstantiatedConjunction( Node q ) {
   }
 }
 
+const std::unordered_set<TNode, TNodeHashFunction>& TheoryEngine::getRelevantAssertions(bool& success)
+{
+  if (d_relManager==nullptr)
+  {
+    success = false;
+    return d_emptyRelevantSet;
+  }
+}
 
 static Node mkExplanation(const std::vector<NodeTheoryPair>& explanation) {
 

@@ -172,6 +172,11 @@ class TheoryEngine {
   std::unique_ptr<theory::DecisionManager> d_decManager;
   /** The relevance manager */
   std::unique_ptr<theory::RelevanceManager> d_relManager;
+  /** 
+   * An empty set of relevant assertions, which is returned as a dummy value for
+   * getRelevantAssertions when relevance is disabled.
+   */
+  std::unordered_set<TNode, TNodeHashFunction> d_emptyRelevantSet;
 
   /** Default visitor for pre-registration */
   PreRegisterVisitor d_preRegistrationVisitor;
@@ -694,6 +699,11 @@ class TheoryEngine {
    *   Can be used for quantifier elimination when satisfiable and q[t1] ^ ... ^ q[tn] |= q
    */
   Node getInstantiatedConjunction( Node q );
+  
+  /** 
+   * Get relevant assertions.
+   */
+  const std::unordered_set<TNode, TNodeHashFunction>& getRelevantAssertions(bool& success);
 
   /**
    * Forwards an entailment check according to the given theoryOfMode.
