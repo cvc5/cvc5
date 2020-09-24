@@ -87,12 +87,19 @@ class RelevanceManager
    */
   void resetRound();
   /**
-   * Is lit part of the current relevant selection? This call is valid during
-   * full effort check in TheoryEngine. This means that theories can query this
-   * during FULL or LAST_CALL efforts, through the Valuation class.
+   * Is lit part of the current relevant selection? This computes the set of
+   * relevant assertions if not already done so. This call is valid during a
+   * full effort check in TheoryEngine, or after TheoryEngine has terminated
+   * with "sat". This means that theories can query this during FULL or
+   * LAST_CALL efforts, through the Valuation class.
    */
   bool isRelevant(Node lit);
-
+  /**
+   * Get the current set of relevant assertions. This computes this set
+   * if not already done so. This call is valid during a full effort check in
+   * TheoryEngine, or after TheoryEngine has terminated with "sat".
+   */
+  const std::unordered_set<TNode, TNodeHashFunction>& getRelevantAssertions();
  private:
   /**
    * Add the set of assertions to the formulas known to this class. This
