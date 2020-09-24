@@ -73,24 +73,6 @@ RewriteResponse BagsRewriter::rewriteEqual(const TNode& n) const
     NodeManager* nm = NodeManager::currentNM();
     return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
   }
-  if (n[0].getKind() == MK_BAG && n[1].getKind() == MK_BAG)
-  {
-    //  (= (mkBag x c) (mkBag y d)) =
-    //  (ite
-    //        (and (<= c 0) (<= d 0))
-    //        true
-    //        (and (= x y) (= c d)))
-    Node x = n[0][0];
-    Node c = n[0][1];
-    Node y = n[1][0];
-    Node d = n[1][1];
-    NodeManager* nm = NodeManager::currentNM();
-    Node zero = nm->mkConst(Rational(0));
-    Node lte = nm->mkNode(LEQ, c, zero).andNode(nm->mkNode(LEQ, d, zero));
-    Node equal = x.eqNode(y).andNode(c.eqNode(d));
-    Node ite = nm->mkNode(ITE, lte, nm->mkConst(true), equal);
-    return RewriteResponse(REWRITE_AGAIN_FULL, ite);
-  }
   return RewriteResponse(REWRITE_DONE, n);
 }
 

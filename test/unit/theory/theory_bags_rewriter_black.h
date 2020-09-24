@@ -82,20 +82,6 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     RewriteResponse response1 = d_rewriter.preRewrite(n1);
     TS_ASSERT(response1.d_node == d_nm->mkConst(true)
               && response1.d_status == REWRITE_DONE);
-
-    //  (= (mkBag x c) (mkBag y d)) =
-    //  (ite
-    //        (and (<= c 0) (<= d 0))
-    //        true
-    //        (and (= x y) (= c d)))
-    Node n2 = bagX.eqNode(bagY);
-    RewriteResponse response2 = d_rewriter.preRewrite(n2);
-    Node zero = d_nm->mkConst(Rational(0));
-    Node lte = d_nm->mkNode(LEQ, c, zero).andNode(d_nm->mkNode(LEQ, d, zero));
-    Node equal = x.eqNode(y).andNode(c.eqNode(d));
-    Node ite = d_nm->mkNode(ITE, lte, d_nm->mkConst(true), equal);
-    TS_ASSERT(response2.d_node == ite
-              && response2.d_status == REWRITE_AGAIN_FULL);
   }
 
   void testMkBagConstantElement()
