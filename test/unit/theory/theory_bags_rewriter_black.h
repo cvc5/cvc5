@@ -157,30 +157,81 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
                == n);
   }
 
-  void testBagCossunt()
+  void testUnionMax()
   {
     int n = 3;
-    vector<Node> elements = getNStrings(1);
+    vector<Node> elements = getNStrings(2);
     Node emptyBag =
-        d_nm->mkConst(EmptyBag(d_nm->mkBagType(elements[0].getType())));
-    Node bag = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(n)));
+        d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
+    Node A = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(n)));
+    Node B = d_nm->mkNode(MK_BAG, elements[1], d_nm->mkConst(Rational(n + 1)));
+    Node unionMaxAB = d_nm->mkNode(UNION_MAX, A, B);
+    Node unionMaxBA = d_nm->mkNode(UNION_MAX, B, A);
+    Node unionDisjointAB = d_nm->mkNode(UNION_DISJOINT, A, B);
+    Node unionDisjointBA = d_nm->mkNode(UNION_DISJOINT, B, A);
 
-    std::cout << emptyBag.getType() << std::endl;
-    Node emptyCount = d_nm->mkNode(BAG_COUNT, elements[0], emptyBag);
-    Node bagCount = d_nm->mkNode(BAG_COUNT, elements[0], bag);
+    // (union_max A emptybag) = A
+    Node unionMax1 = d_nm->mkNode(UNION_MAX, A, emptyBag);
+    RewriteResponse response1 = d_rewriter.postRewrite(unionMax1);
+    TS_ASSERT(response1.d_node == A && response1.d_status == REWRITE_AGAIN);
 
-    RewriteResponse zeroResponse = d_rewriter.postRewrite(emptyCount);
-    RewriteResponse nResponse = d_rewriter.postRewrite(bagCount);
+    // (union_max emptybag A) = A
+    Node unionMax2 = d_nm->mkNode(UNION_MAX, emptyBag, A);
+    RewriteResponse response2 = d_rewriter.postRewrite(unionMax2);
+    TS_ASSERT(response2.d_node == A && response2.d_status == REWRITE_AGAIN);
 
-    TS_ASSERT(zeroResponse.d_status == REWRITE_AGAIN
-              && zeroResponse.d_node.isConst());
-    //&& zeroResponse.d_node.getConst<Rational>().isZero());
+    // (union_max A A) = A
+    Node unionMax3 = d_nm->mkNode(UNION_MAX, emptyBag, A);
+    RewriteResponse response3 = d_rewriter.postRewrite(unionMax3);
+    TS_ASSERT(response3.d_node == A && response3.d_status == REWRITE_AGAIN);
 
-    // no change for positive
-    TS_ASSERT(
-        nResponse.d_status == REWRITE_AGAIN && nResponse.d_node.isConst()
-        && nResponse.d_node.getConst<Rational>().getNumerator().toUnsignedInt()
-               == n);
+    // (union_max A (union_max A B) = (union_max A B)
+    Node unionMax4 = d_nm->mkNode(UNION_MAX, A, unionMaxAB);
+    RewriteResponse response4 = d_rewriter.postRewrite(unionMax4);
+    TS_ASSERT(response4.d_node == unionMaxAB
+              && response4.d_status == REWRITE_AGAIN);
+
+    // (union_max A (union_max B A) = (union_max B A)
+    Node unionMax5 = d_nm->mkNode(UNION_MAX, A, unionMaxBA);
+    RewriteResponse response5 = d_rewriter.postRewrite(unionMax5);
+    TS_ASSERT(response5.d_node == unionMaxBA
+              && response4.d_status == REWRITE_AGAIN);
+
+    // (union_max (union_max A B) A) = (union_max A B)
+    Node unionMax6 = d_nm->mkNode(UNION_MAX, unionMaxAB, A);
+    RewriteResponse response6 = d_rewriter.postRewrite(unionMax6);
+    TS_ASSERT(response6.d_node == unionMaxAB
+              && response6.d_status == REWRITE_AGAIN);
+
+    // (union_max (union_max B A) A) = (union_max B A)
+    Node unionMax7 = d_nm->mkNode(UNION_MAX, unionMaxBA, A);
+    RewriteResponse response7 = d_rewriter.postRewrite(unionMax7);
+    TS_ASSERT(response7.d_node == unionMaxBA
+              && response7.d_status == REWRITE_AGAIN);
+
+    // (union_max A (union_disjoint A B) = (union_disjoint A B)
+    Node unionMax8 = d_nm->mkNode(UNION_MAX, A, unionDisjointAB);
+    RewriteResponse response8 = d_rewriter.postRewrite(unionMax8);
+    TS_ASSERT(response8.d_node == unionDisjointAB
+              && response8.d_status == REWRITE_AGAIN);
+
+    // (union_max A (union_disjoint B A) = (union_disjoint B A)
+    Node unionMax9 = d_nm->mkNode(UNION_MAX, A, unionDisjointBA);
+    RewriteResponse response9 = d_rewriter.postRewrite(unionMax9);
+    TS_ASSERT(response9.d_node == unionDisjointBA
+              && response9.d_status == REWRITE_AGAIN);
+
+    // (union_max (union_disjoint A B) A) = (union_disjoint A B)
+    Node unionMax10 = d_nm->mkNode(UNION_MAX, unionDisjointAB, A);
+    RewriteResponse response10 = d_rewriter.postRewrite(unionMax10);
+    TS_ASSERT(response10.d_node == unionDisjointAB
+              && response10.d_status == REWRITE_AGAIN);
+
+    // (union_max (union_disjoint B A) A) = (union_disjoint B A)
+    Node unionMax11 = d_nm->mkNode(UNION_MAX, unionDisjointBA, A);
+    RewriteResponse response11 = d_rewriter.postRewrite(unionMax11);
+    TS_ASSERT(response11.d_node == unionDisjointBA
+              && response11.d_status == REWRITE_AGAIN);
   }
 
  private:

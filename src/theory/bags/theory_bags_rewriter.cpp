@@ -42,6 +42,7 @@ RewriteResponse TheoryBagsRewriter::postRewrite(TNode n)
   {
     case kind::MK_BAG: return rewriteMakeBag(n);
     case kind::BAG_COUNT: return rewriteBagCount(n);
+    case kind::UNION_MAX: return rewriteUnionMax(n);
   }
   return RewriteResponse(REWRITE_DONE, n);
 }
@@ -86,6 +87,48 @@ RewriteResponse TheoryBagsRewriter::rewriteBagCount(const TNode& n) const
   {
     // (bag.count x (mkBag x c) = c where c > 0 is a constant
     return RewriteResponse(REWRITE_AGAIN, n[1][1]);
+  }
+  return RewriteResponse(REWRITE_DONE, n);
+}
+
+RewriteResponse TheoryBagsRewriter::rewriteUnionMax(const TNode& n) const
+{
+  Assert(n.getKind() == UNION_MAX);
+  if (n[1].getKind() == EMPTYBAG || n[0] == n[1])
+  {
+    // (union_max A A) = A
+    // (union_max A emptybag) = A
+    return RewriteResponse(REWRITE_AGAIN, n[0]);
+  }
+  if (n[0].getKind() == EMPTYBAG)
+  {
+    // (union_max emptybag A) = A
+    return RewriteResponse(REWRITE_AGAIN, n[1]);
+  }
+  if (n[1].getKind() == UNION_MAX && (n[0] == n[1][0] || n[0] == n[1][1]))
+  {
+    // (union_max A (union_max A B) = (union_max A B)
+    // (union_max A (union_max B A) = (union_max B A)
+    return RewriteResponse(REWRITE_AGAIN, n[1]);
+  }
+  if (n[0].getKind() == UNION_MAX && (n[0][0] == n[1] || n[0][1] == n[1]))
+  {
+    // (union_max (union_max A B) A) = (union_max A B)
+    // (union_max (union_max B A) A) = (union_max B A)
+    return RewriteResponse(REWRITE_AGAIN, n[0]);
+  }
+
+  if (n[1].getKind() == UNION_DISJOINT && (n[0] == n[1][0] || n[0] == n[1][1]))
+  {
+    // (union_max A (union_disjoint A B)) = (union_disjoint A B)
+    // (union_max A (union_disjoint B A)) = (union_disjoint B A)
+    return RewriteResponse(REWRITE_AGAIN, n[1]);
+  }
+  if (n[0].getKind() == UNION_DISJOINT && (n[0][0] == n[1] || n[0][1] == n[1]))
+  {
+    // (union_max (union_disjoint A B) A) = (union_disjoint A B)
+    // (union_max (union_disjoint B A) A) = (union_disjoint B A)
+    return RewriteResponse(REWRITE_AGAIN, n[0]);
   }
   return RewriteResponse(REWRITE_DONE, n);
 }

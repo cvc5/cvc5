@@ -30,14 +30,6 @@ class TheoryBagsRewriter : public TheoryRewriter
    * Rewrite rules:
    * - node is a constant in normal form
    *   node = node // return the same node
-   * - union_max
-   *   (union_max A emptybag) = A
-   *   (union_max emptybag B) =>B
-   *   (union_max A A) = A
-   *   (union_max A (union_max A B) = (union_max A B)
-   *   (union_max A (union_max B A) = (union_max B A)
-   *   (union_max A (union_disjoint A B) = (union_disjoint A B)
-   *   (union_max A (union_disjoint B A) = (union_disjoint A B)
    * - union_disjoint
    *   (union_disjoint A emptybag) = A
    *   (union_disjoint emptybag B) = B
@@ -78,7 +70,7 @@ class TheoryBagsRewriter : public TheoryRewriter
 
  private:
   /**
-   * patterns for mkBag:
+   * patterns for n:
    * - (mkBag x 0) = (emptybag T) where T is the type of x
    * - (mkBag x (-c)) = (emptybag T) where T is the type of x, and c > 0 is a
    *   constant
@@ -86,12 +78,29 @@ class TheoryBagsRewriter : public TheoryRewriter
    */
   RewriteResponse rewriteMakeBag(const TNode& n) const;
   /**
-   * patterns for bag.count
+   * patterns for n
    * - (bag.count x emptybag) = 0
    * - (bag.count x (mkBag x c) = c where c > 0 is a constant
    * - otherwise = n
    */
   RewriteResponse rewriteBagCount(const TNode& n) const;
+
+  /**
+   * patterns for n
+   * - (union_max A emptybag) = A
+   * - (union_max emptybag A) = A
+   * - (union_max A A) = A
+   * - (union_max A (union_max A B) = (union_max A B)
+   * - (union_max A (union_max B A) = (union_max B A)
+   * - (union_max (union_max A B) A) = (union_max A B)
+   * - (union_max (union_max B A) A) = (union_max B A)
+   * - (union_max A (union_disjoint A B)) = (union_disjoint A B)
+   * - (union_max A (union_disjoint B A)) = (union_disjoint B A)
+   * - (union_max (union_disjoint A B) A) = (union_disjoint A B)
+   * - (union_max (union_disjoint B A) A) = (union_disjoint B A)
+   * - otherwise = n
+   */
+  RewriteResponse rewriteUnionMax(const TNode& n) const;
 }; /* class TheoryBagsRewriter */
 
 }  // namespace bags
