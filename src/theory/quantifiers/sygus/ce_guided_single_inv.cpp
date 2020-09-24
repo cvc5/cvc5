@@ -403,11 +403,11 @@ bool CegSingleInv::solve()
     Trace("sygus-si") << "#instantiations of " << q << "=" << tvecs.size()
                       << std::endl;
     std::vector<Node> vars;
-    for (const Node& v : qn[0])
+    for (const Node& v : siq[0])
     {
       vars.push_back(v);
     }
-    Node body = qn[1];
+    Node body = siq[1];
     for (unsigned i = 0, ninsts = tvecs.size(); i < ninsts; i++)
     {
       std::vector<Expr>& tvi = tvecs[i];
@@ -573,6 +573,8 @@ Node CegSingleInv::reconstructToSyntax(Node s,
     // In this case, we fail, since the solution is not valid.
     Trace("csi-sol") << "FAIL : solution " << d_solution
                      << " contains free constants." << std::endl;
+  Warning() << CommandFailure(
+      "Cannot get synth function: free constants encountered in synthesis solution.");
     reconstructed = -1;
   }
   if( Trace.isOn("cegqi-stats") ){
