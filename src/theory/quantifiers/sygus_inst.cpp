@@ -138,6 +138,62 @@ bool SygusInst::checkCompleteFor(Node q)
   return d_inactive_quant.find(q) != d_inactive_quant.end();
 }
 
+// TODO
+//
+// scope of terms
+//  (1) inside of quantifier body
+//  (2) outside of quantifier body
+//
+// granularity of ground terms
+//  (3) minimal (leafs)
+//  (4) maximal (top-most ground terms)
+//
+//
+// We are currently using (1)+(3), where (3) collects the symbols of a
+// quantifier.
+//
+// TODO
+//
+// - inside/maximal: (1)+(4)
+// - outside/minimal: (2)+(3)
+//
+
+static void getMaxGroundTerms(
+    TNode n,
+    std::unordered_set<Node, NodeHashFunction>& terms,
+    std::unordered_set<TNode, TNodeHashFunction> cache = {})
+{
+  Node cur;
+  std::vector<TNode> visit;
+
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+
+    if (cache.find(cur) != cache.end())
+    {
+      continue;
+    }
+
+    if (expr::hasBoundVar(cur) || cur.getType().isBoolean())
+    {
+      visit.insert(visit.end(), cur.begin(), cur.end());
+    }
+    else
+    {
+      terms.insert(cur);
+    }
+  } while (!visit.empty());
+}
+
+static void getMinGroundTerms(Node n,
+                              std::unordered_set<Node, NodeHashFunction>& terms)
+{
+  expr::getSymbols(n, terms);
+}
+
 void SygusInst::registerQuantifier(Node q)
 {
   Assert(d_ce_lemmas.find(q) == d_ce_lemmas.end());
@@ -150,13 +206,38 @@ void SygusInst::registerQuantifier(Node q)
   std::unordered_set<Node, NodeHashFunction> term_irrelevant;
 
   /* Collect extra symbols in 'q' to be used in the grammar. */
-  std::unordered_set<Node, NodeHashFunction> syms;
-  expr::getSymbols(q, syms);
-  for (const TNode& var : syms)
+  if (!d_global_terms.empty())
   {
-    TypeNode tn = var.getType();
-    extra_cons[tn].insert(var);
-    Trace("sygus-inst") << "Found symbol: " << var << std::endl;
+    for (const Node& t : d_global_terms)
+    {
+      TypeNode tn = t.getType();
+      extra_cons[tn].insert(t);
+    }
+  }
+  if (options::sygusInstScope() == options::SygusInstScope::INSIDE
+      || options::sygusInstScope() == options::SygusInstScope::BOTH)
+  {
+    std::unordered_set<Node, NodeHashFunction> syms;
+    if (options::sygusInstGranularity()
+            == options::SygusInstGranularity::MAXIMAL
+        || options::sygusInstGranularity()
+               == options::SygusInstGranularity::BOTH)
+    {
+      getMaxGroundTerms(q, syms);
+    }
+    if (options::sygusInstGranularity()
+            == options::SygusInstGranularity::MINIMAL
+        || options::sygusInstGranularity()
+               == options::SygusInstGranularity::BOTH)
+    {
+      getMinGroundTerms(q, syms);
+    }
+    for (const TNode& var : syms)
+    {
+      TypeNode tn = var.getType();
+      extra_cons[tn].insert(var);
+      Trace("sygus-inst") << "Adding extra cons: " << var << std::endl;
+    }
   }
 
   /* Construct grammar for each bound variable of 'q'. */
@@ -188,6 +269,42 @@ void SygusInst::preRegisterQuantifier(Node q)
 {
   Trace("sygus-inst") << "preRegister " << q << std::endl;
   addCeLemma(q);
+}
+
+void SygusInst::ppNotifyAssertions(const std::vector<Node>& assertions)
+{
+  if (options::sygusInstScope() == options::SygusInstScope::INSIDE)
+  {
+    return;
+  }
+
+  std::unordered_set<TNode, TNodeHashFunction> cache;
+  for (const Node& n : assertions)
+  {
+    if (options::sygusInstGranularity()
+            == options::SygusInstGranularity::MAXIMAL
+        || options::sygusInstGranularity()
+               == options::SygusInstGranularity::BOTH)
+    {
+      getMaxGroundTerms(n, d_global_terms, cache);
+    }
+    if (options::sygusInstGranularity()
+            == options::SygusInstGranularity::MINIMAL
+        || options::sygusInstGranularity()
+               == options::SygusInstGranularity::BOTH)
+    {
+      getMinGroundTerms(n, d_global_terms);
+    }
+  }
+
+  if (Trace.isOn("sygus-inst"))
+  {
+    Trace("sygus-inst") << "Global terms collected:" << std::endl;
+    for (const auto& n : d_global_terms)
+    {
+      Trace("sygus-inst") << n << std::endl;
+    }
+  }
 }
 
 /*****************************************************************************/

@@ -1995,3 +1995,39 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   help       = "Enable SyGuS instantiation quantifiers module"
+
+[[option]]
+  name       = "sygusInstScope"
+  category   = "regular"
+  long       = "sygus-inst-scope=MODE"
+  type       = "SygusInstScope"
+  default    = "INSIDE"
+  help       = "select scope of ground terms"
+  help_mode  = "scope for collecting ground terms for the grammar."
+[[option.mode.INSIDE]]
+  name = "inside"
+  help = "use ground terms inside quantifier bodies only."
+[[option.mode.OUTSIDE]]
+  name = "outside"
+  help = "use ground terms outside of quantifier bodies only."
+[[option.mode.BOTH]]
+  name = "both"
+  help = "combines inside and outside."
+
+[[option]]
+  name       = "sygusInstGranularity"
+  category   = "regular"
+  long       = "sygus-inst-gran=MODE"
+  type       = "SygusInstGranularity"
+  default    = "MINIMAL"
+  help       = "granularity for ground terms"
+  help_mode  = "select granularity of ground terms."
+[[option.mode.MINIMAL]]
+  name = "minimal"
+  help = "collect minimal ground terms only."
+[[option.mode.MAXIMAL]]
+  name = "maximal"
+  help = "collect maximal ground terms only."
+[[option.mode.BOTH]]
+  name = "both"
+  help = "combines minimal and maximal ."

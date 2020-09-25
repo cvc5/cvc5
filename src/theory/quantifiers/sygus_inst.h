@@ -82,6 +82,8 @@ class SygusInst : public QuantifiersModule
   /* Called once for every quantifier 'q' per context. */
   void preRegisterQuantifier(Node q) override;
 
+  void ppNotifyAssertions(const std::vector<Node>& assertions);
+
   std::string identify() const override { return "SygusInst"; }
 
  private:
@@ -124,6 +126,8 @@ class SygusInst : public QuantifiersModule
   /* Indicates whether a counterexample lemma was added for a quantified
    * formula in the current context. */
   context::CDHashSet<Node, NodeHashFunction> d_ce_lemma_added;
+
+  std::unordered_set<Node, NodeHashFunction> d_global_terms;
 };
 
 }  // namespace quantifiers

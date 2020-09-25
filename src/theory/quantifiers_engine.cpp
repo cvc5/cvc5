@@ -370,6 +370,11 @@ void QuantifiersEngine::ppNotifyAssertions(
       sye->preregisterAssertion(a);
     }
   }
+  if (options::sygusInst())
+  {
+    quantifiers::SygusInst* si = d_qmodules->d_sygus_inst.get();
+    si->ppNotifyAssertions(assertions);
+  }
 }
 
 void QuantifiersEngine::check( Theory::Effort e ){
