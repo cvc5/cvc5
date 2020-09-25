@@ -146,11 +146,11 @@ class CnfStreamWhite : public CxxTest::TestSuite {
     d_cnfContext = new context::Context();
     d_cnfRegistrar = new theory::TheoryRegistrar(d_theoryEngine);
     ResourceManager* rm = d_smt->getResourceManager();
-    d_cnfStream = new CVC4::prop::TseitinCnfStream(d_satSolver,
-                                                   d_cnfRegistrar,
-                                                   d_cnfContext,
-                                                   &d_smt->getOutputManager(),
-                                                   rm);
+    d_cnfStream = new CVC4::prop::CnfStream(d_satSolver,
+                                            d_cnfRegistrar,
+                                            d_cnfContext,
+                                            &d_smt->getOutputManager(),
+                                            rm);
   }
 
   void tearDown() override
