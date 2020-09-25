@@ -312,17 +312,7 @@ void PropEngine::getBooleanVariables(std::vector<TNode>& outputVariables) const
   d_cnfStream->getBooleanVariables(outputVariables);
 }
 
-void PropEngine::ensureLiteral(TNode n)
-{
-  if (d_pfCnfStream)
-  {
-    d_pfCnfStream->ensureLiteral(n);
-  }
-  else
-  {
-    d_cnfStream->ensureLiteral(n);
-  }
-}
+void PropEngine::ensureLiteral(TNode n) { d_cnfStream->ensureLiteral(n); }
 
 void PropEngine::push()
 {
