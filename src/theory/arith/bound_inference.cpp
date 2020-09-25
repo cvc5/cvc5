@@ -36,7 +36,7 @@ void BoundInference::update_lower_bound(const Node& origin,
   Trace("nl-icp") << "\tNew bound " << variable << (strict ? ">" : ">=")
                   << value << " due to " << origin << std::endl;
   Bounds& b = get_or_add(variable);
-  if (b.lower.isNull() || b.lower < value)
+  if (b.lower.isNull() || b.lower.getConst<Rational>() < value.getConst<Rational>())
   {
     b.lower = value;
     b.lower_strict = strict;
@@ -57,7 +57,7 @@ void BoundInference::update_upper_bound(const Node& origin,
   Trace("nl-icp") << "\tNew bound " << variable << (strict ? "<" : "<=")
                   << value << " due to " << origin << std::endl;
   Bounds& b = get_or_add(variable);
-  if (b.upper.isNull() || b.upper > value)
+  if (b.upper.isNull() || b.upper.getConst<Rational>() > value.getConst<Rational>())
   {
     b.upper = value;
     b.upper_strict = strict;
