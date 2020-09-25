@@ -44,7 +44,7 @@ class NormalForm
   /**
    * get the normal form of n
    */
-  static Node getNormalForm(TNode n);
+  static Node evaluate(TNode n);
 };
 }  // namespace bags
 }  // namespace theory

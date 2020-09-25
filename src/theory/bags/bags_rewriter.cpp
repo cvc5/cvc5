@@ -53,8 +53,8 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
   }
   else if (NormalForm::AreChildrenConstants(n))
   {
-    Node normal = NormalForm::getNormalForm(n);
-    response = BagsRewriteResponse(normal, Rewrite::CONSTANT_CHILDREN);
+    Node value = NormalForm::evaluate(n);
+    response = BagsRewriteResponse(value, Rewrite::CONSTANT_CHILDREN);
   }
   else
   {

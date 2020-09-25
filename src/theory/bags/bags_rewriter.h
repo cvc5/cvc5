@@ -24,6 +24,7 @@ namespace CVC4 {
 namespace theory {
 namespace bags {
 
+/** a class represents the result of rewriting bag nodes */
 struct BagsRewriteResponse
 {
   /** the rewritten node */
