@@ -128,6 +128,11 @@ class AssertionPipeline
 
   /**
    * Adds a substitution node of the form (= lhs rhs) to the assertions.
+   * This conjoins n to assertions at a distinguished index given by
+   * d_substsIndex.
+   *
+   * @param n The substitution node
+   * @param pg The proof generator that can provide a proof of n.
    */
   void addSubstitutionNode(Node n, ProofGenerator* pgen = nullptr);
 
