@@ -54,9 +54,10 @@ namespace quantifiers {
 
 class SynthConjecture;
 
-/** utility for constructing datatypes that correspond to syntactic restrictions,
-* and applying the deep embedding from Section 4 of Reynolds et al CAV 2015.
-*/
+/**
+ * Utility for constructing datatypes that correspond to syntactic restrictions,
+ * and applying the deep embedding from Section 4 of Reynolds et al CAV 2015.
+ */
 class CegGrammarConstructor
 {
 public:
@@ -88,9 +89,12 @@ public:
               const std::map<Node, Node>& templates,
               const std::map<Node, Node>& templates_arg,
               const std::vector<Node>& ebvl);
- /** is the syntax restricted? */
+
+ /** Is the syntax restricted? */
  bool isSyntaxRestricted() { return d_is_syntax_restricted; }
- /** make the default sygus datatype type corresponding to builtin type range
+
+ /**
+  * Make the default sygus datatype type corresponding to builtin type range
   * arguments:
   *   - bvl: the set of free variables to include in the grammar
   *   - fun: used for naming
@@ -113,7 +117,10 @@ public:
      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>&
          include_cons,
      std::unordered_set<Node, NodeHashFunction>& term_irrelevant);
- /** make the default sygus datatype type corresponding to builtin type range */
+
+ /**
+  * Make the default sygus datatype type corresponding to builtin type range.
+  */
  static TypeNode mkSygusDefaultType(TypeNode range,
                                     Node bvl,
                                     const std::string& fun)
@@ -130,6 +137,7 @@ public:
                              include_cons,
                              term_irrelevant);
   }
+
   /** make the sygus datatype type that encodes the solution space (lambda
   * templ_arg. templ[templ_arg]) where templ_arg
   * has syntactic restrictions encoded by sygus type templ_arg_sygus_type
