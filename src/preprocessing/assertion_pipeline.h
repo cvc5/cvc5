@@ -49,7 +49,6 @@ class AssertionPipeline
    */
   void clear();
 
-  Node& operator[](size_t i) { return d_nodes[i]; }
   const Node& operator[](size_t i) const { return d_nodes[i]; }
 
   /**
@@ -70,7 +69,10 @@ class AssertionPipeline
   /** Same as above, with TrustNode */
   void pushBackTrusted(theory::TrustNode trn);
 
-  std::vector<Node>& ref() { return d_nodes; }
+  /**
+   * Get the constant reference to the underlying assertions. It is only
+   * possible to modify these via the replace methods below.
+   */
   const std::vector<Node>& ref() const { return d_nodes; }
 
   std::vector<Node>::const_iterator begin() const { return d_nodes.cbegin(); }
@@ -88,22 +90,6 @@ class AssertionPipeline
   void replace(size_t i, Node n, ProofGenerator* pg = nullptr);
   /** Same as above, with TrustNode */
   void replaceTrusted(size_t i, theory::TrustNode trn);
-
-  /*
-   * Replaces assertion i with node n and records that this replacement depends
-   * on assertion i and the nodes listed in addnDeps. The dependency
-   * information is used for unsat cores and proofs.
-   *
-   * @param i The position of the assertion to replace.
-   * @param n The replacement assertion.
-   * @param addnDeps The dependencies.
-   * @param pg The proof generator who can provide a proof of d_nodes[i] == n,
-   * where d_nodes[i] is the assertion at position i prior to this call.
-   */
-  void replace(size_t i,
-               Node n,
-               const std::vector<Node>& addnDeps,
-               ProofGenerator* pg = nullptr);
 
   IteSkolemMap& getIteSkolemMap() { return d_iteSkolemMap; }
   const IteSkolemMap& getIteSkolemMap() const { return d_iteSkolemMap; }
@@ -137,7 +123,12 @@ class AssertionPipeline
   /**
    * Adds a substitution node of the form (= lhs rhs) to the assertions.
    */
-  void addSubstitutionNode(Node n);
+  void addSubstitutionNode(Node n, ProofGenerator* pgen = nullptr);
+
+  /**
+   * Conjoin
+   */
+  void conjoin(size_t i, Node n, ProofGenerator* pg = nullptr);
 
   /**
    * Checks whether the assertion at a given index represents substitutions.
