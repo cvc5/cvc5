@@ -2,10 +2,10 @@
 /*! \file iand_solver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Tim King, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -20,9 +20,10 @@
 
 #include "context/cdhashset.h"
 #include "expr/node.h"
+#include "theory/arith/arith_state.h"
+#include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
-#include "theory/arith/theory_arith.h"
 
 namespace CVC4 {
 namespace theory {
@@ -37,7 +38,7 @@ class IAndSolver
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  IAndSolver(TheoryArith& containing, NlModel& model);
+  IAndSolver(InferenceManager& im, ArithState& state, NlModel& model);
   ~IAndSolver();
 
   /** init last call
@@ -66,18 +67,18 @@ class IAndSolver
    * This should be a heuristic incomplete check that only introduces a
    * small number of new terms in the lemmas it returns.
    */
-  std::vector<NlLemma> checkInitialRefine();
+  void checkInitialRefine();
   /** check full refine
    *
    * This should be a complete check that returns at least one lemma to
    * rule out the current model.
    */
-  std::vector<NlLemma> checkFullRefine();
+  void checkFullRefine();
 
   //-------------------------------------------- end lemma schemas
  private:
-  // The theory of arithmetic containing this extension.
-  TheoryArith& d_containing;
+  // The inference manager that we push conflicts and lemmas to.
+  InferenceManager& d_im;
   /** Reference to the non-linear model object */
   NlModel& d_model;
   /** commonly used terms */

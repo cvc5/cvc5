@@ -2,10 +2,10 @@
 /*! \file theory_inference_manager.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner, Martin Brain
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -416,6 +416,8 @@ class TheoryInferenceManager
    * nodes. Notice that this cache does not depedent on lemma property.
    */
   NodeSet d_lemmasSent;
+  /** The number of conflicts sent since the last call to reset. */
+  uint32_t d_numConflicts;
   /** The number of lemmas sent since the last call to reset. */
   uint32_t d_numCurrentLemmas;
   /** The number of internal facts added since the last call to reset. */

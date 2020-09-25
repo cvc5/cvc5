@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -58,7 +58,8 @@ bool ProofPostprocessCallback::update(Node res,
                                       PfRule id,
                                       const std::vector<Node>& children,
                                       const std::vector<Node>& args,
-                                      CDProof* cdp)
+                                      CDProof* cdp,
+                                      bool& continueUpdate)
 {
   Trace("smt-proof-pp-debug") << "- Post process " << id << " " << children
                               << " / " << args << std::endl;
@@ -113,6 +114,16 @@ bool ProofPostprocessCallback::update(Node res,
   return !ret.isNull();
 }
 
+bool ProofPostprocessCallback::updateInternal(Node res,
+                                              PfRule id,
+                                              const std::vector<Node>& children,
+                                              const std::vector<Node>& args,
+                                              CDProof* cdp)
+{
+  bool continueUpdate = true;
+  return update(res, id, children, args, cdp, continueUpdate);
+}
+
 Node ProofPostprocessCallback::expandMacros(PfRule id,
                                             const std::vector<Node>& children,
                                             const std::vector<Node>& args,
@@ -150,7 +161,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       {
         Node eq = t.eqNode(ts);
         // apply SUBS proof rule if necessary
-        if (!update(eq, PfRule::SUBS, children, sargs, cdp))
+        if (!updateInternal(eq, PfRule::SUBS, children, sargs, cdp))
         {
           // if not elimianted, add as step
           cdp->addStep(eq, PfRule::SUBS, children, sargs);
@@ -181,7 +192,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     {
       Node eq = ts.eqNode(tr);
       // apply REWRITE proof rule
-      if (!update(eq, PfRule::REWRITE, {}, rargs, cdp))
+      if (!updateInternal(eq, PfRule::REWRITE, {}, rargs, cdp))
       {
         // if not elimianted, add as step
         cdp->addStep(eq, PfRule::REWRITE, {}, rargs);

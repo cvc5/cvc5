@@ -2,10 +2,10 @@
 /*! \file proof_rule.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Haniel Barbosa, Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa, Alex Ozdemir
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -594,6 +594,39 @@ enum class PfRule : uint32_t
   // Conclusion: (= (f t1 ... tn) (g s1 ... sn))
   // Notice that this rule is only used when the application kinds are APPLY_UF.
   HO_CONG,
+
+  //================================================= Array rules
+  // ======== Read over write
+  // Children: (P:(not (= i1 i2)))
+  // Arguments: ((select (store a i2 e) i1))
+  // ----------------------------------------
+  // Conclusion: (= (select (store a i2 e) i1) (select a i1))
+  ARRAYS_READ_OVER_WRITE,
+  // ======== Read over write, contrapositive
+  // Children: (P:(not (= (select (store a i2 e) i1) (select a i1)))
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: (= i1 i2)
+  ARRAYS_READ_OVER_WRITE_CONTRA,
+  // ======== Read over write 1
+  // Children: none
+  // Arguments: ((select (store a i e) i))
+  // ----------------------------------------
+  // Conclusion: (= (select (store a i e) i) e)
+  ARRAYS_READ_OVER_WRITE_1,
+  // ======== Extensionality
+  // Children: (P:(not (= a b)))
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: (not (= (select a k) (select b k)))
+  // where k is arrays::SkolemCache::getExtIndexSkolem((not (= a b))).
+  ARRAYS_EXT,
+  // ======== Array Trust
+  // Children: (P1 ... Pn)
+  // Arguments: (F)
+  // ---------------------
+  // Conclusion: F
+  ARRAYS_TRUST,
 
   //================================================= Quantifiers rules
   // ======== Witness intro

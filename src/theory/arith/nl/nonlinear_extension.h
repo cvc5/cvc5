@@ -2,10 +2,10 @@
 /*! \file nonlinear_extension.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Tianyi Liang
+ **   Andrew Reynolds, Tim King, Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -30,6 +30,7 @@
 #include "theory/arith/nl/cad_solver.h"
 #include "theory/arith/nl/ext_theory_callback.h"
 #include "theory/arith/nl/iand_solver.h"
+#include "theory/arith/nl/icp/icp_solver.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/nl_solver.h"
@@ -73,7 +74,7 @@ class NonlinearExtension
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  NonlinearExtension(TheoryArith& containing, eq::EqualityEngine* ee);
+  NonlinearExtension(TheoryArith& containing, ArithState& state, eq::EqualityEngine* ee);
   ~NonlinearExtension();
   /**
    * Does non-context dependent setup for a node connected to a theory.
@@ -281,6 +282,8 @@ class NonlinearExtension
   NlSolver d_nlSlv;
   /** The CAD-based solver */
   CadSolver d_cadSlv;
+  /** The ICP-based solver */
+  icp::ICPSolver d_icpSlv;
   /** The integer and solver
    *
    * This is the subsolver responsible for running the procedure for
