@@ -74,31 +74,20 @@ class ProofCnfStream : public ProofGenerator
                         bool removable,
                         ProofGenerator* pg);
 
-  /** Clausifies the given propagation lemma *without* registering the
+  /**
+   * Clausifies the given propagation lemma *without* registering the
    * resoluting clause in the SAT solver, as this is handled internally by the
    * SAT solver. The clausification steps and the generator within the trust
    * node are saved in d_proof. */
   void convertPropagation(theory::TrustNode ttn);
 
   /**
-   * Transforms the node into CNF recursively and yields a literal
-   * definitionally equal to it.
-   *
-   * This method also populates caches, kept in d_cnfStream, between formulas
-   * and literals to avoid redundant work and to retrieve formulas from literals
-   * and vice-versa.
-   *
-   * @param node the formula to transform
-   * @param negated whether the literal is negated
-   * @return the literal representing the root of the formula
-   */
-  SatLiteral toCNF(TNode node, bool negated = false);
-
-  /** Blocks a proof, so that it is not further updated by a post processor of
+   * Blocks a proof, so that it is not further updated by a post processor of
    * this class's proof. */
   void addBlocked(std::shared_ptr<ProofNode> pfn);
 
-  /** Whether a given proof is blocked for further updates.  An example of a
+  /**
+   * Whether a given proof is blocked for further updates.  An example of a
    * blocked proof node is one integrated into this class via an external proof
    * generator. */
   bool isBlocked(std::shared_ptr<ProofNode> pfn);
@@ -116,7 +105,21 @@ class ProofCnfStream : public ProofGenerator
   void convertAndAssertIff(TNode node, bool negated);
   void convertAndAssertImplies(TNode node, bool negated);
   void convertAndAssertIte(TNode node, bool negated);
-  /** Specific clausifiers, based on the formula kinds, that clausify a formula,
+  /**
+   * Transforms the node into CNF recursively and yields a literal
+   * definitionally equal to it.
+   *
+   * This method also populates caches, kept in d_cnfStream, between formulas
+   * and literals to avoid redundant work and to retrieve formulas from literals
+   * and vice-versa.
+   *
+   * @param node the formula to transform
+   * @param negated whether the literal is negated
+   * @return the literal representing the root of the formula
+   */
+  SatLiteral toCNF(TNode node, bool negated = false);
+  /**
+   * Specific clausifiers, based on the formula kinds, that clausify a formula,
    * by calling toCNF into each of the formula's children under the respective
    * kind, and introduce a literal definitionally equal to it. */
   SatLiteral handleNot(TNode node);
@@ -142,8 +145,9 @@ class ProofCnfStream : public ProofGenerator
   /** An accumulator of steps that may be applied to normalize the clauses
    * generated during clausification. */
   theory::TheoryProofStepBuffer d_psb;
-  /** Blocked proofs. These are proof nodes added to this class by external
-   * generators. */
+  /** Blocked proofs.
+   *
+   * These are proof nodes added to this class by external generators. */
   context::CDHashSet<std::shared_ptr<ProofNode>, ProofNodeHashFunction>
       d_blocked;
 };
