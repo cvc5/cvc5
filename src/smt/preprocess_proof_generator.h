@@ -70,7 +70,12 @@ class PreprocessProofGenerator : public ProofGenerator
   std::string identify() const override;
   /** Get the proof manager */
   ProofNodeManager* getManager();
-  /** Allocate a helper proof */
+  /**
+   * Allocate a helper proof. This returns a fresh lazy proof object that
+   * remains alive in this user context. This feature is used to construct
+   * helper proofs for preprocessing, e.g. to support the skeleton of proofs
+   * that connect AssertionPipeline::conjoin steps.
+   */
   LazyCDProof* allocateHelperProof();
 
  private:
