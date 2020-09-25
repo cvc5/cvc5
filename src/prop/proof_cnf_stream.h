@@ -23,6 +23,7 @@
 #include "expr/proof_node.h"
 #include "expr/proof_node_manager.h"
 #include "prop/cnf_stream.h"
+#include "prop/sat_proof_manager.h"
 #include "theory/eager_proof_generator.h"
 #include "theory/theory_proof_step_buffer.h"
 
@@ -43,8 +44,8 @@ class ProofCnfStream : public ProofGenerator
  public:
   ProofCnfStream(context::UserContext* u,
                  CnfStream& cnfStream,
+                 SatProofManager* satPM,
                  ProofNodeManager* pnm);
-  ~ProofCnfStream() {}
 
   /** Invokes getProofFor of the underlying LazyCDProof */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
@@ -126,6 +127,17 @@ class ProofCnfStream : public ProofGenerator
   SatLiteral handleIte(TNode node);
   SatLiteral handleAnd(TNode node);
   SatLiteral handleOr(TNode node);
+
+  /** Normalizes a clause node and registers it in the SAT proof manager.
+   *
+   * Normalization (factoring, reordering, double negation elimination) is done
+   * via the TheoryProofStepBuffer of this class, which will register the
+   * respective steps, if any. This normalization is necessary so that the
+   * resulting clauses of the clausification process are synchronized with the
+   * clauses used in the underlying SAT solver, which automatically performs the
+   * above normalizations on all added clauses.
+   */
+  void normalizeAndRegister(TNode clauseNode);
   /**
    * Are we asserting a removable clause (true) or a permanent clause (false).
    * This is set at the beginning of convertAndAssert so that it doesn't need to
@@ -135,6 +147,8 @@ class ProofCnfStream : public ProofGenerator
   bool d_removable;
   /** Reference to the underlying cnf stream. */
   CnfStream& d_cnfStream;
+  /** The proof manager of underlying SAT solver associated with this stream. */
+  SatProofManager* d_satPM;
   /** The proof node manager. */
   ProofNodeManager* d_pnm;
   /** The user-context-dependent proof object. */
