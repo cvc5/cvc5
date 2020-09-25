@@ -23,9 +23,10 @@ namespace prop {
 
 ProofCnfStream::ProofCnfStream(context::UserContext* u,
                                CnfStream& cnfStream,
+                               SatProofManager* satPM,
                                ProofNodeManager* pnm)
     : d_cnfStream(cnfStream),
-      d_pnm(pnm),
+      d_satPM(satPM),
       d_proof(pnm, nullptr, u, "ProofCnfStream::LazyCDProof"),
       d_blocked(u)
 {
@@ -52,6 +53,19 @@ bool ProofCnfStream::hasProofFor(Node f)
 }
 
 std::string ProofCnfStream::identify() const { return "ProofCnfStream"; }
+
+void ProofCnfStream::normalizeAndRegister(TNode clauseNode)
+{
+  Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
+  if (Trace.isOn("cnf") && normClauseNode != clauseNode)
+  {
+    Trace("cnf") << push
+                 << "ProofCnfStream::normalizeAndRegister: steps to normalized "
+                 << normClauseNode << "\n"
+                 << pop;
+  }
+  d_satPM->registerSatAssumptions({normClauseNode});
+}
 
 void ProofCnfStream::convertAndAssert(TNode node,
                                       bool negated,
@@ -123,6 +137,10 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
       bool added = d_cnfStream.assertClause(nnode, lit);
       if (negated && added && nnode != node.notNode())
       {
+        // track double negation elimination
+        //    (not (not n))
+        //   -------------- MACRO_SR_PRED_TRANSFORM
+        //        n
         d_proof.addStep(
             nnode, PfRule::MACRO_SR_PRED_TRANSFORM, {node.notNode()}, {nnode});
         Trace("cnf") << "ProofCnfStream::convertAndAssert: "
@@ -131,9 +149,10 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
       }
       if (added)
       {
-        MinisatSatSolver* minisat =
-            static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-        minisat->getProofManager()->registerSatAssumptions({nnode});
+        // note that we do not need to do the normalization here since this is
+        // not a clause and double negation is tracked in a dedicated manner
+        // above
+        d_satPM->registerSatAssumptions({nnode});
       }
     }
   }
@@ -180,12 +199,7 @@ void ProofCnfStream::convertAndAssertAnd(TNode node, bool negated)
       d_proof.addStep(clauseNode, PfRule::NOT_AND, {node.notNode()}, {});
       Trace("cnf") << "ProofCnfStream::convertAndAssertAnd: NOT_AND added "
                    << clauseNode << "\n";
-      // justify normalized clause as well, since that's what will be saved in
-      // the SAT solver and registered with prop engine
-      Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-      MinisatSatSolver* minisat =
-          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+      normalizeAndRegister(clauseNode);
     }
   }
 }
@@ -204,21 +218,13 @@ void ProofCnfStream::convertAndAssertOr(TNode node, bool negated)
     {
       clause[i] = toCNF(node[i], false);
     }
-    Node normClauseNode = d_psb.factorReorderElimDoubleNeg(node);
-    if (Trace.isOn("cnf") && normClauseNode != node)
-    {
-      Trace("cnf") << "ProofCnfStream::convertAndAssertOr: steps to normalized "
-                   << normClauseNode << "\n";
-    }
-    MinisatSatSolver* minisat =
-        static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-    minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+    normalizeAndRegister(node);
     d_cnfStream.assertClause(node, clause);
   }
   else
   {
-    // If the node is a negated disjunction, we handle it a conjunction (of the
-    // negated arguments)
+    // If the node is a negated disjunction, we handle it as a conjunction of
+    // the negated arguments
     NodeManager* nm = NodeManager::currentNM();
     for (unsigned i = 0, size = node.getNumChildren(); i < size; ++i)
     {
@@ -256,16 +262,7 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
       d_proof.addStep(clauseNode, PfRule::XOR_ELIM2, {node}, {});
       Trace("cnf") << "ProofCnfStream::convertAndAssertXor: XOR_ELIM2 added "
                    << clauseNode << "\n";
-      Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-      if (Trace.isOn("cnf") && normClauseNode != clauseNode)
-      {
-        Trace("cnf")
-            << "ProofCnfStream::convertAndAssertXor: steps to normalized "
-            << normClauseNode << "\n";
-      }
-      MinisatSatSolver* minisat =
-          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+      normalizeAndRegister(clauseNode);
     }
     // Construct the clause (p v q)
     SatClause clause2(2);
@@ -278,16 +275,7 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
       d_proof.addStep(clauseNode, PfRule::XOR_ELIM1, {node}, {});
       Trace("cnf") << "ProofCnfStream::convertAndAssertXor: XOR_ELIM1 added "
                    << clauseNode << "\n";
-      Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-      if (Trace.isOn("cnf") && normClauseNode != clauseNode)
-      {
-        Trace("cnf")
-            << "ProofCnfStream::convertAndAssertXor: steps to normalized "
-            << normClauseNode << "\n";
-      }
-      MinisatSatSolver* minisat =
-          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+      normalizeAndRegister(clauseNode);
     }
   }
   else
@@ -309,16 +297,7 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
       Trace("cnf")
           << "ProofCnfStream::convertAndAssertXor: NOT_XOR_ELIM2 added "
           << clauseNode << "\n";
-      Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-      if (Trace.isOn("cnf") && normClauseNode != clauseNode)
-      {
-        Trace("cnf")
-            << "ProofCnfStream::convertAndAssertXor: steps to normalized "
-            << normClauseNode << "\n";
-      }
-      MinisatSatSolver* minisat =
-          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+      normalizeAndRegister(clauseNode);
     }
     // Construct the clause ~q v p
     SatClause clause2(2);
@@ -332,16 +311,7 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
       Trace("cnf")
           << "ProofCnfStream::convertAndAssertXor: NOT_XOR_ELIM1 added "
           << clauseNode << "\n";
-      Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-      if (Trace.isOn("cnf") && normClauseNode != clauseNode)
-      {
-        Trace("cnf")
-            << "ProofCnfStream::convertAndAssertXor: steps to normalized "
-            << normClauseNode << "\n";
-      }
-      MinisatSatSolver* minisat =
-          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+      normalizeAndRegister(clauseNode);
     }
   }
 }
@@ -370,16 +340,7 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
       d_proof.addStep(clauseNode, PfRule::EQUIV_ELIM1, {node}, {});
       Trace("cnf") << "ProofCnfStream::convertAndAssertIff: EQUIV_ELIM1 added "
                    << clauseNode << "\n";
-      Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-      if (Trace.isOn("cnf") && normClauseNode != clauseNode)
-      {
-        Trace("cnf")
-            << "ProofCnfStream::convertAndAssertIff: steps to normalized "
-            << normClauseNode << "\n";
-      }
-      MinisatSatSolver* minisat =
-          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+      normalizeAndRegister(clauseNode);
     }
     // Construct the clauses ~q v p
     SatClause clause2(2);
@@ -392,16 +353,7 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
       d_proof.addStep(clauseNode, PfRule::EQUIV_ELIM2, {node}, {});
       Trace("cnf") << "ProofCnfStream::convertAndAssertIff: EQUIV_ELIM2 added "
                    << clauseNode << "\n";
-      Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-      if (Trace.isOn("cnf") && normClauseNode != clauseNode)
-      {
-        Trace("cnf")
-            << "ProofCnfStream::convertAndAssertIff: steps to normalized "
-            << normClauseNode << "\n";
-      }
-      MinisatSatSolver* minisat =
-          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+      normalizeAndRegister(clauseNode);
     }
   }
   else
@@ -427,16 +379,7 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
       Trace("cnf")
           << "ProofCnfStream::convertAndAssertIff: NOT_EQUIV_ELIM2 added "
           << clauseNode << "\n";
-      Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-      if (Trace.isOn("cnf") && normClauseNode != clauseNode)
-      {
-        Trace("cnf")
-            << "ProofCnfStream::convertAndAssertIff: steps to normalized "
-            << normClauseNode << "\n";
-      }
-      MinisatSatSolver* minisat =
-          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+      normalizeAndRegister(clauseNode);
     }
     // Construct the clauses q v p
     SatClause clause2(2);
@@ -451,16 +394,7 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
       Trace("cnf")
           << "ProofCnfStream::convertAndAssertIff: NOT_EQUIV_ELIM1 added "
           << clauseNode << "\n";
-      Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-      if (Trace.isOn("cnf") && normClauseNode != clauseNode)
-      {
-        Trace("cnf")
-            << "ProofCnfStream::convertAndAssertIff: steps to normalized "
-            << normClauseNode << "\n";
-      }
-      MinisatSatSolver* minisat =
-          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+      normalizeAndRegister(clauseNode);
     }
   }
 }
@@ -487,16 +421,7 @@ void ProofCnfStream::convertAndAssertImplies(TNode node, bool negated)
       Trace("cnf")
           << "ProofCnfStream::convertAndAssertImplies: IMPLIES_ELIM added "
           << clauseNode << "\n";
-      Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-      if (Trace.isOn("cnf") && normClauseNode != clauseNode)
-      {
-        Trace("cnf")
-            << "ProofCnfStream::convertAndAssertImplies: steps to normalized "
-            << normClauseNode << "\n";
-      }
-      MinisatSatSolver* minisat =
-          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+      normalizeAndRegister(clauseNode);
     }
   }
   else
@@ -548,16 +473,7 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
       d_proof.addStep(clauseNode, PfRule::ITE_ELIM1, {node}, {});
       Trace("cnf") << "ProofCnfStream::convertAndAssertIte: ITE_ELIM1 added "
                    << clauseNode << "\n";
-      Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-      if (Trace.isOn("cnf") && normClauseNode != clauseNode)
-      {
-        Trace("cnf")
-            << "ProofCnfStream::convertAndAssertIte: steps to normalized "
-            << normClauseNode << "\n";
-      }
-      MinisatSatSolver* minisat =
-          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+      normalizeAndRegister(clauseNode);
     }
     else
     {
@@ -567,16 +483,7 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
       Trace("cnf")
           << "ProofCnfStream::convertAndAssertIte: NOT_ITE_ELIM1 added "
           << clauseNode << "\n";
-      Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-      if (Trace.isOn("cnf") && normClauseNode != clauseNode)
-      {
-        Trace("cnf")
-            << "ProofCnfStream::convertAndAssertIte: steps to normalized "
-            << normClauseNode << "\n";
-      }
-      MinisatSatSolver* minisat =
-          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+      normalizeAndRegister(clauseNode);
     }
   }
   // (p v r)
@@ -593,16 +500,7 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
       d_proof.addStep(clauseNode, PfRule::ITE_ELIM2, {node}, {});
       Trace("cnf") << "ProofCnfStream::convertAndAssertIte: ITE_ELIM2 added "
                    << clauseNode << "\n";
-      Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-      if (Trace.isOn("cnf") && normClauseNode != clauseNode)
-      {
-        Trace("cnf")
-            << "ProofCnfStream::convertAndAssertIte: steps to normalized "
-            << normClauseNode << "\n";
-      }
-      MinisatSatSolver* minisat =
-          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+      normalizeAndRegister(clauseNode);
     }
     else
     {
@@ -611,16 +509,7 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
       Trace("cnf")
           << "ProofCnfStream::convertAndAssertIte: NOT_ITE_ELIM2 added "
           << clauseNode << "\n";
-      Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-      if (Trace.isOn("cnf") && normClauseNode != clauseNode)
-      {
-        Trace("cnf")
-            << "ProofCnfStream::convertAndAssertIte: steps to normalized "
-            << normClauseNode << "\n";
-      }
-      MinisatSatSolver* minisat =
-          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+      normalizeAndRegister(clauseNode);
     }
   }
 }
@@ -669,19 +558,14 @@ void ProofCnfStream::convertPropagation(theory::TrustNode trn)
   {
     clauseExp = clauseImpliesElim;
   }
-  Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseExp);
+  normalizeAndRegister(clauseExp);
+  // consume steps
   const std::vector<std::pair<Node, ProofStep>>& steps = d_psb.getSteps();
   for (const std::pair<Node, ProofStep>& step : steps)
   {
     d_proof.addStep(step.first, step.second);
   }
   d_psb.clear();
-  Trace("cnf")
-      << "ProofCnfStream::convertPropagation: actual clause registered is "
-      << normClauseNode << "\n";
-  MinisatSatSolver* minisat =
-      static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-  minisat->getProofManager()->registerSatAssumptions({normClauseNode});
 }
 
 SatLiteral ProofCnfStream::toCNF(TNode node, bool negated)
@@ -755,15 +639,7 @@ SatLiteral ProofCnfStream::handleAnd(TNode node)
       d_proof.addStep(clauseNode, PfRule::CNF_AND_POS, {}, {node, iNode});
       Trace("cnf") << "ProofCnfStream::handleAnd: CNF_AND_POS " << i
                    << " added " << clauseNode << "\n";
-      Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-      if (Trace.isOn("cnf") && normClauseNode != node)
-      {
-        Trace("cnf") << "ProofCnfStream::handleAnd: steps to normalized "
-                     << normClauseNode << "\n";
-      }
-      MinisatSatSolver* minisat =
-          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+      normalizeAndRegister(clauseNode);
     }
   }
   // lit <- (a_1 & a_2 & a_3 & ... a_n)
@@ -785,17 +661,7 @@ SatLiteral ProofCnfStream::handleAnd(TNode node)
     d_proof.addStep(clauseNode, PfRule::CNF_AND_NEG, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleAnd: CNF_AND_NEG added "
                  << clauseNode << "\n";
-    Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-    if (Trace.isOn("cnf") && normClauseNode != node)
-    {
-      Trace("cnf") << "ProofCnfStream::handleAnd: steps to normalized "
-                   << normClauseNode << "\n";
-    }
-    MinisatSatSolver* minisat =
-        static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-    minisat->getProofManager()->registerSatAssumptions({normClauseNode});
-    Trace("cnf") << "ProofCnfStream::handleAnd: CNF_AND_NEG added norm "
-                 << normClauseNode << "\n";
+    normalizeAndRegister(clauseNode);
   }
   return lit;
 }
@@ -832,15 +698,7 @@ SatLiteral ProofCnfStream::handleOr(TNode node)
       d_proof.addStep(clauseNode, PfRule::CNF_OR_NEG, {}, {node, iNode});
       Trace("cnf") << "ProofCnfStream::handleOr: CNF_OR_NEG " << i << " added "
                    << clauseNode << "\n";
-      Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-      if (Trace.isOn("cnf") && normClauseNode != node)
-      {
-        Trace("cnf") << "ProofCnfStream::handleOr: steps to normalized "
-                     << normClauseNode << "\n";
-      }
-      MinisatSatSolver* minisat =
-          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-      minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+      normalizeAndRegister(clauseNode);
     }
   }
   // lit -> (a_1 | a_2 | a_3 | ... | a_n)
@@ -859,15 +717,7 @@ SatLiteral ProofCnfStream::handleOr(TNode node)
     d_proof.addStep(clauseNode, PfRule::CNF_OR_POS, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleOr: CNF_OR_POS added " << clauseNode
                  << "\n";
-    Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-    if (Trace.isOn("cnf") && normClauseNode != node)
-    {
-      Trace("cnf") << "ProofCnfStream::handleOr: steps to normalized "
-                   << normClauseNode << "\n";
-    }
-    MinisatSatSolver* minisat =
-        static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-    minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+    normalizeAndRegister(clauseNode);
   }
   return lit;
 }
@@ -891,15 +741,7 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
     d_proof.addStep(clauseNode, PfRule::CNF_XOR_POS1, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleXor: CNF_XOR_POS1 added "
                  << clauseNode << "\n";
-    Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-    if (Trace.isOn("cnf") && normClauseNode != node)
-    {
-      Trace("cnf") << "ProofCnfStream::handleXor: steps to normalized "
-                   << normClauseNode << "\n";
-    }
-    MinisatSatSolver* minisat =
-        static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-    minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+    normalizeAndRegister(clauseNode);
   }
   added = d_cnfStream.assertClause(node.negate(), ~a, ~b, ~lit);
   if (added)
@@ -909,15 +751,7 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
     d_proof.addStep(clauseNode, PfRule::CNF_XOR_POS2, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleXor: CNF_XOR_POS2 added "
                  << clauseNode << "\n";
-    Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-    if (Trace.isOn("cnf") && normClauseNode != node)
-    {
-      Trace("cnf") << "ProofCnfStream::handleXor: steps to normalized "
-                   << normClauseNode << "\n";
-    }
-    MinisatSatSolver* minisat =
-        static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-    minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+    normalizeAndRegister(clauseNode);
   }
   added = d_cnfStream.assertClause(node, a, ~b, lit);
   if (added)
@@ -927,15 +761,7 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
     d_proof.addStep(clauseNode, PfRule::CNF_XOR_NEG2, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleXor: CNF_XOR_NEG2 added "
                  << clauseNode << "\n";
-    Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-    if (Trace.isOn("cnf") && normClauseNode != node)
-    {
-      Trace("cnf") << "ProofCnfStream::handleXor: steps to normalized "
-                   << normClauseNode << "\n";
-    }
-    MinisatSatSolver* minisat =
-        static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-    minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+    normalizeAndRegister(clauseNode);
   }
   added = d_cnfStream.assertClause(node, ~a, b, lit);
   if (added)
@@ -945,15 +771,7 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
     d_proof.addStep(clauseNode, PfRule::CNF_XOR_NEG1, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleXor: CNF_XOR_NEG1 added "
                  << clauseNode << "\n";
-    Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-    if (Trace.isOn("cnf") && normClauseNode != node)
-    {
-      Trace("cnf") << "ProofCnfStream::handleXor: steps to normalized "
-                   << normClauseNode << "\n";
-    }
-    MinisatSatSolver* minisat =
-        static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-    minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+    normalizeAndRegister(clauseNode);
   }
   return lit;
 }
@@ -982,15 +800,7 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
     d_proof.addStep(clauseNode, PfRule::CNF_EQUIV_POS1, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleIff: CNF_EQUIV_POS1 added "
                  << clauseNode << "\n";
-    Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-    if (Trace.isOn("cnf") && normClauseNode != node)
-    {
-      Trace("cnf") << "ProofCnfStream::handleIff: steps to normalized "
-                   << normClauseNode << "\n";
-    }
-    MinisatSatSolver* minisat =
-        static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-    minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+    normalizeAndRegister(clauseNode);
   }
   added = d_cnfStream.assertClause(node.negate(), a, ~b, ~lit);
   if (added)
@@ -1000,15 +810,7 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
     d_proof.addStep(clauseNode, PfRule::CNF_EQUIV_POS2, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleIff: CNF_EQUIV_POS2 added "
                  << clauseNode << "\n";
-    Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-    if (Trace.isOn("cnf") && normClauseNode != node)
-    {
-      Trace("cnf") << "ProofCnfStream::handleIff: steps to normalized "
-                   << normClauseNode << "\n";
-    }
-    MinisatSatSolver* minisat =
-        static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-    minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+    normalizeAndRegister(clauseNode);
   }
   // (a<->b) -> lit
   // ~((a & b) | (~a & ~b)) | lit
@@ -1023,15 +825,7 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
     d_proof.addStep(clauseNode, PfRule::CNF_EQUIV_NEG2, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleIff: CNF_EQUIV_NEG2 added "
                  << clauseNode << "\n";
-    Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-    if (Trace.isOn("cnf") && normClauseNode != node)
-    {
-      Trace("cnf") << "ProofCnfStream::handleIff: steps to normalized "
-                   << normClauseNode << "\n";
-    }
-    MinisatSatSolver* minisat =
-        static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-    minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+    normalizeAndRegister(clauseNode);
   }
   added = d_cnfStream.assertClause(node, a, b, lit);
   if (added)
@@ -1040,15 +834,7 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
     d_proof.addStep(clauseNode, PfRule::CNF_EQUIV_NEG1, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleIff: CNF_EQUIV_NEG1 added "
                  << clauseNode << "\n";
-    Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-    if (Trace.isOn("cnf") && normClauseNode != node)
-    {
-      Trace("cnf") << "ProofCnfStream::handleIff: steps to normalized "
-                   << normClauseNode << "\n";
-    }
-    MinisatSatSolver* minisat =
-        static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-    minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+    normalizeAndRegister(clauseNode);
   }
   return lit;
 }
@@ -1076,15 +862,7 @@ SatLiteral ProofCnfStream::handleImplies(TNode node)
     d_proof.addStep(clauseNode, PfRule::CNF_IMPLIES_POS, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleImplies: CNF_IMPLIES_POS added "
                  << clauseNode << "\n";
-    Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-    if (Trace.isOn("cnf") && normClauseNode != node)
-    {
-      Trace("cnf") << "ProofCnfStream::handleImplies: steps to normalized "
-                   << normClauseNode << "\n";
-    }
-    MinisatSatSolver* minisat =
-        static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-    minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+    normalizeAndRegister(clauseNode);
   }
   // (a->b) -> lit
   // ~(~a | b) | lit
@@ -1096,15 +874,7 @@ SatLiteral ProofCnfStream::handleImplies(TNode node)
     d_proof.addStep(clauseNode, PfRule::CNF_IMPLIES_NEG1, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleImplies: CNF_IMPLIES_NEG1 added "
                  << clauseNode << "\n";
-    Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-    if (Trace.isOn("cnf") && normClauseNode != node)
-    {
-      Trace("cnf") << "ProofCnfStream::handleImplies: steps to normalized "
-                   << normClauseNode << "\n";
-    }
-    MinisatSatSolver* minisat =
-        static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-    minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+    normalizeAndRegister(clauseNode);
   }
   added = d_cnfStream.assertClause(node, ~b, lit);
   if (added)
@@ -1113,15 +883,7 @@ SatLiteral ProofCnfStream::handleImplies(TNode node)
     d_proof.addStep(clauseNode, PfRule::CNF_IMPLIES_NEG2, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleImplies: CNF_IMPLIES_NEG2 added "
                  << clauseNode << "\n";
-    Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-    if (Trace.isOn("cnf") && normClauseNode != node)
-    {
-      Trace("cnf") << "ProofCnfStream::handleImplies: steps to normalized "
-                   << normClauseNode << "\n";
-    }
-    MinisatSatSolver* minisat =
-        static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-    minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+    normalizeAndRegister(clauseNode);
   }
   return lit;
 }
@@ -1154,15 +916,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
     d_proof.addStep(clauseNode, PfRule::CNF_ITE_POS3, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleIte: CNF_ITE_POS3 added "
                  << clauseNode << "\n";
-    Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-    if (Trace.isOn("cnf") && normClauseNode != node)
-    {
-      Trace("cnf") << "ProofCnfStream::handleIte: steps to normalized "
-                   << normClauseNode << "\n";
-    }
-    MinisatSatSolver* minisat =
-        static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-    minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+    normalizeAndRegister(clauseNode);
   }
   added = d_cnfStream.assertClause(node.negate(), ~lit, ~condLit, thenLit);
   if (added)
@@ -1172,15 +926,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
     d_proof.addStep(clauseNode, PfRule::CNF_ITE_POS1, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleIte: CNF_ITE_POS1 added "
                  << clauseNode << "\n";
-    Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-    if (Trace.isOn("cnf") && normClauseNode != node)
-    {
-      Trace("cnf") << "ProofCnfStream::handleIte: steps to normalized "
-                   << normClauseNode << "\n";
-    }
-    MinisatSatSolver* minisat =
-        static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-    minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+    normalizeAndRegister(clauseNode);
   }
   added = d_cnfStream.assertClause(node.negate(), ~lit, condLit, elseLit);
   if (added)
@@ -1189,15 +935,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
     d_proof.addStep(clauseNode, PfRule::CNF_ITE_POS2, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleIte: CNF_ITE_POS2 added "
                  << clauseNode << "\n";
-    Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-    if (Trace.isOn("cnf") && normClauseNode != node)
-    {
-      Trace("cnf") << "ProofCnfStream::handleIte: steps to normalized "
-                   << normClauseNode << "\n";
-    }
-    MinisatSatSolver* minisat =
-        static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-    minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+    normalizeAndRegister(clauseNode);
   }
   // If ITE is false then one of the branches is false and the condition
   // implies which one
@@ -1213,15 +951,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
     d_proof.addStep(clauseNode, PfRule::CNF_ITE_NEG3, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleIte: CNF_ITE_NEG3 added "
                  << clauseNode << "\n";
-    Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-    if (Trace.isOn("cnf") && normClauseNode != node)
-    {
-      Trace("cnf") << "ProofCnfStream::handleIte: steps to normalized "
-                   << normClauseNode << "\n";
-    }
-    MinisatSatSolver* minisat =
-        static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-    minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+    normalizeAndRegister(clauseNode);
   }
   added = d_cnfStream.assertClause(node, lit, ~condLit, ~thenLit);
   if (added)
@@ -1231,15 +961,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
     d_proof.addStep(clauseNode, PfRule::CNF_ITE_NEG1, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleIte: CNF_ITE_NEG1 added "
                  << clauseNode << "\n";
-    Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-    if (Trace.isOn("cnf") && normClauseNode != node)
-    {
-      Trace("cnf") << "ProofCnfStream::handleIte: steps to normalized "
-                   << normClauseNode << "\n";
-    }
-    MinisatSatSolver* minisat =
-        static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-    minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+    normalizeAndRegister(clauseNode);
   }
   added = d_cnfStream.assertClause(node, lit, condLit, ~elseLit);
   if (added)
@@ -1248,15 +970,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
     d_proof.addStep(clauseNode, PfRule::CNF_ITE_NEG2, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleIte: CNF_ITE_NEG2 added "
                  << clauseNode << "\n";
-    Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-    if (Trace.isOn("cnf") && normClauseNode != node)
-    {
-      Trace("cnf") << "ProofCnfStream::handleIte: steps to normalized "
-                   << normClauseNode << "\n";
-    }
-    MinisatSatSolver* minisat =
-        static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
-    minisat->getProofManager()->registerSatAssumptions({normClauseNode});
+    normalizeAndRegister(clauseNode);
   }
   return lit;
 }
