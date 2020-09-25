@@ -49,6 +49,9 @@ class AssertionPipeline
    */
   void clear();
 
+  /** TODO (projects #75): remove this */
+  Node& operator[](size_t i) { return d_nodes[i]; }
+  /** Get the assertion at index i */
   const Node& operator[](size_t i) const { return d_nodes[i]; }
 
   /**
@@ -68,6 +71,9 @@ class AssertionPipeline
                  ProofGenerator* pg = nullptr);
   /** Same as above, with TrustNode */
   void pushBackTrusted(theory::TrustNode trn);
+  
+  /** TODO (projects #75): remove this */
+  std::vector<Node>& ref() { return d_nodes; }
 
   /**
    * Get the constant reference to the underlying assertions. It is only
