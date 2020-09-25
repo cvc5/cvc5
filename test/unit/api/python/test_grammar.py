@@ -1,4 +1,15 @@
-# translated from test/unit/api/grammar_black.h
+#####################
+## test_grammar.py
+## Top contributors (to current version):
+##   Yoni Zohar, Makai Mann
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
+## Translated from test/unit/api/grammar_black.h
+##
 
 import pytest
 

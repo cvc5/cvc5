@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 #####################
-#! \file sygus-fun.py
-## \verbatim
+## sygus-fun.py
 ## Top contributors (to current version):
-##   Yoni Zohar
-## This file is part of the CVC4 project.
+##   Yoni Zohar, Andres Noetzli
 ## Copyright (c) 2009-2018 by the authors listed in the file AUTHkinds.OrS
-## in the top-level source directory) and their institutional affiliations.
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
 ## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.\endverbatim
+## directory for licensing information.
 ##
-## \brief A simple demonstration of the solving capabilities of the CVC4
+## A simple demonstration of the solving capabilities of the CVC4
 ## sygus solver through the Python API. This is a direct
 ## translation of sygus-fun.cpp.
-#####################
+##
 
 import copy
 import pycvc4
