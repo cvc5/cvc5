@@ -69,6 +69,7 @@ class CnfStream {
    * @param context the context that the CNF should respect.
    * @param outMgr Reference to the output manager of the smt engine. Assertions
    * will not be dumped if outMgr == nullptr.
+   * @param rm the resource manager of the CNF stream
    * @param fullLitToNodeMap maintain a full SAT-literal-to-Node mapping.
    * @param name string identifier to distinguish between different instances
    * even for non-theory literals.
