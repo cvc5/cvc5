@@ -24,6 +24,31 @@ namespace CVC4 {
 namespace theory {
 namespace bags {
 
+struct BagsRewriteResponse
+{
+  RewriteStatus d_status;
+  Node d_node;
+  Rewrite d_rewrite;
+  BagsRewriteResponse()
+      : d_status(REWRITE_DONE),
+        d_node(Node::null()),
+        d_rewrite(Rewrite::NO_REWRITE)
+  {
+  }
+  BagsRewriteResponse(RewriteStatus status, Node n, Rewrite rewrite)
+      : d_status(status), d_node(n), d_rewrite(rewrite)
+  {
+  }
+  BagsRewriteResponse(const BagsRewriteResponse& r)
+      : d_status(r.d_status), d_node(r.d_node), d_rewrite(r.d_rewrite)
+  {
+  }
+  RewriteResponse getResponse() const
+  {
+    return RewriteResponse(d_status, d_node);
+  }
+}; /* struct BagsRewriteResponse */
+
 class BagsRewriter : public TheoryRewriter
 {
  public:
@@ -44,24 +69,16 @@ class BagsRewriter : public TheoryRewriter
 
  private:
   /**
-   * Called when node rewrites to ret.
-   *
-   * The rewrite r indicates the justification for the rewrite, which is printed
-   * by this function for debugging.
-   */
-  Node returnRewrite(Node node, Node ret, Rewrite r);
-
-  /**
    * patterns for n
    * - (= A A) = true where A is a bag
    */
-  RewriteResponse rewriteEqual(const TNode& n) const;
+  BagsRewriteResponse rewriteEqual(const TNode& n) const;
 
   /**
    * patterns for n
    * - (bag.is_included A B) = ((difference_subtract A B) == emptybag)
    */
-  RewriteResponse rewriteIsIncluded(const TNode& n) const;
+  BagsRewriteResponse rewriteIsIncluded(const TNode& n) const;
 
   /**
    * patterns for n:
@@ -70,14 +87,14 @@ class BagsRewriter : public TheoryRewriter
    *   constant
    * - otherwise = n
    */
-  RewriteResponse rewriteMakeBag(const TNode& n) const;
+  BagsRewriteResponse rewriteMakeBag(const TNode& n) const;
   /**
    * patterns for n
    * - (bag.count x emptybag) = 0
    * - (bag.count x (mkBag x c) = c where c > 0 is a constant
    * - otherwise = n
    */
-  RewriteResponse rewriteBagCount(const TNode& n) const;
+  BagsRewriteResponse rewriteBagCount(const TNode& n) const;
 
   /**
    * patterns for n
@@ -94,7 +111,7 @@ class BagsRewriter : public TheoryRewriter
    * - (union_max (union_disjoint B A) A) = (union_disjoint B A)
    * - otherwise = n
    */
-  RewriteResponse rewriteUnionMax(const TNode& n) const;
+  BagsRewriteResponse rewriteUnionMax(const TNode& n) const;
 
   /**
    * patterns for n
@@ -106,7 +123,7 @@ class BagsRewriter : public TheoryRewriter
    *   intersection_min and union_max
    * - otherwise = n
    */
-  RewriteResponse rewriteUnionDisjoint(const TNode& n) const;
+  BagsRewriteResponse rewriteUnionDisjoint(const TNode& n) const;
 
   /**
    * patterns for n
@@ -123,7 +140,7 @@ class BagsRewriter : public TheoryRewriter
    * - (intersection_min (union_max B A) A) = A
    * - otherwise = n
    */
-  RewriteResponse rewriteIntersectionMin(const TNode& n) const;
+  BagsRewriteResponse rewriteIntersectionMin(const TNode& n) const;
 
   /**
    * patterns for n
@@ -140,7 +157,7 @@ class BagsRewriter : public TheoryRewriter
    * - (difference_subtract (intersection_min B A) A) = emptybag
    * - otherwise = n
    */
-  RewriteResponse rewriteDifferenceSubtract(const TNode& n) const;
+  BagsRewriteResponse rewriteDifferenceSubtract(const TNode& n) const;
 
   /**
    * patterns for n
@@ -155,26 +172,26 @@ class BagsRewriter : public TheoryRewriter
    * - (difference_remove (intersection_min B A) A) = emptybag
    * - otherwise = n
    */
-  RewriteResponse rewriteDifferenceRemove(const TNode& n) const;
+  BagsRewriteResponse rewriteDifferenceRemove(const TNode& n) const;
   /**
    * patterns for n
    * - (bag.choose (mkBag x c)) = x where c is a constant > 0
    * - otherwise = n
    */
-  RewriteResponse rewriteChoose(const TNode& n) const;
+  BagsRewriteResponse rewriteChoose(const TNode& n) const;
   /**
    * patterns for n
    * - (bag.card (mkBag x c)) = c where c is a constant > 0
    * - (bag.card (union-disjoint A B)) = (+ (bag.card A) (bag.card B))
    * - otherwise = n
    */
-  RewriteResponse rewriteCard(const TNode& n) const;
+  BagsRewriteResponse rewriteCard(const TNode& n) const;
 
   /**
    * patterns for n
    * - (bag.is_singleton (mkBag x c)) = (c == 1)
    */
-  RewriteResponse rewriteIsSingleton(const TNode& n) const;
+  BagsRewriteResponse rewriteIsSingleton(const TNode& n) const;
 
  private:
   /** Reference to the rewriter statistics. */
