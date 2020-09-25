@@ -29,7 +29,8 @@ TheoryBags::TheoryBags(context::Context* c,
     : Theory(THEORY_BAGS, c, u, out, valuation, logicInfo, pnm),
       d_state(c, u, valuation),
       d_im(*this, d_state, pnm),
-      d_rewriter(),
+      d_statistics(),
+      d_rewriter(&d_statistics.d_rewrites),
       d_notify(*this, d_im)
 {
   // use the official theory state and inference manager objects

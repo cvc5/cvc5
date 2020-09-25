@@ -20,6 +20,7 @@
 #include <memory>
 
 #include "theory/bags/bags_rewriter.h"
+#include "theory/bags/bags_statistics.h"
 #include "theory/bags/inference_manager.h"
 #include "theory/bags/solver_state.h"
 #include "theory/theory.h"
@@ -97,6 +98,11 @@ class TheoryBags : public Theory
   NotifyClass d_notify;
   /** The theory rewriter for this theory. */
   BagsRewriter d_rewriter;
+
+  /**
+   * Statistics for the theory of bags.
+   */
+  BagsStatistics d_statistics;
 
   void eqNotifyNewClass(TNode t);
   void eqNotifyMerge(TNode t1, TNode t2);

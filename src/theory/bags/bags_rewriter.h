@@ -13,6 +13,7 @@
  **/
 
 #include "cvc4_private.h"
+#include "theory/bags/rewrites.h"
 
 #ifndef CVC4__THEORY__BAGS__THEORY_BAGS_REWRITER_H
 #define CVC4__THEORY__BAGS__THEORY_BAGS_REWRITER_H
@@ -26,6 +27,8 @@ namespace bags {
 class BagsRewriter : public TheoryRewriter
 {
  public:
+  BagsRewriter(HistogramStat<Rewrite>* statistics = nullptr);
+
   /**
    * postRewrite nodes with kinds: MK_BAG, BAG_COUNT, UNION_MAX, UNION_DISJOINT,
    * INTERSECTION_MIN, DIFFERENCE_SUBTRACT, DIFFERENCE_REMOVE, BAG_CHOOSE,
@@ -40,6 +43,19 @@ class BagsRewriter : public TheoryRewriter
   RewriteResponse preRewrite(TNode n) override;
 
  private:
+  /**
+   * Called when node rewrites to ret.
+   *
+   * The rewrite r indicates the justification for the rewrite, which is printed
+   * by this function for debugging.
+   *
+   * If node is not an equality and ret is an equality, this method applies
+   * an additional rewrite step (rewriteEqualityExt) that performs
+   * additional rewrites on ret, after which we return the result of this call.
+   * Otherwise, this method simply returns ret.
+   */
+  Node returnRewrite(Node node, Node ret, Rewrite r);
+
   /**
    * patterns for n
    * - (= A A) = true where A is a bag
@@ -164,6 +180,12 @@ class BagsRewriter : public TheoryRewriter
    * - (bag.is_singleton (mkBag x c)) = (c == 1)
    */
   RewriteResponse rewriteIsSingleton(const TNode& n) const;
+
+ private:
+  /** Reference to the rewriter statistics. */
+  NodeManager* d_nm;
+  /** Reference to the rewriter statistics. */
+  HistogramStat<Rewrite>* d_statistics;
 }; /* class TheoryBagsRewriter */
 
 }  // namespace bags
