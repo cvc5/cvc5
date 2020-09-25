@@ -38,7 +38,7 @@ const char* toString(Rewrite r)
     case Rewrite::INTERSECTION_SHARED_RIGHT: return "INTERSECTION_SHARED_RIGHT";
     case Rewrite::IS_SINGLETON_MK_BAG: return "IS_SINGLETON_MK_BAG";
     case Rewrite::MK_BAG_COUNT_NEGATIVE: return "MK_BAG_COUNT_NEGATIVE";
-    case Rewrite::NO_REWRITE: return "NO_REWRITE";
+    case Rewrite::NONE: return "NONE";
     case Rewrite::REMOVE_FROM_UNION: return "REMOVE_FROM_UNION";
     case Rewrite::REMOVE_MIN: return "REMOVE_MIN";
     case Rewrite::REMOVE_RETURN_LEFT: return "REMOVE_RETURN_LEFT";

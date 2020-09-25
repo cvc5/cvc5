@@ -25,7 +25,7 @@ namespace bags {
 BagsRewriteResponse::BagsRewriteResponse()
     : d_status(REWRITE_DONE),
       d_node(Node::null()),
-      d_rewrite(Rewrite::NO_REWRITE)
+      d_rewrite(Rewrite::NONE)
 {
 }
 
@@ -58,7 +58,7 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
   if (n.isConst())
   {
     // no need to rewrite n if it is already in a normal form
-    response = BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NO_REWRITE);
+    response = BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NONE);
   }
   else if (NormalForm::AreChildrenConstants(n))
   {
@@ -82,7 +82,7 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
       case BAG_CARD: response = rewriteCard(n); break;
       case BAG_IS_SINGLETON: response = rewriteIsSingleton(n); break;
       default:
-        response = BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NO_REWRITE);
+        response = BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NONE);
         break;
     }
   }
@@ -106,7 +106,7 @@ RewriteResponse BagsRewriter::preRewrite(TNode n)
     case EQUAL: response = rewriteEqual(n); break;
     case BAG_IS_INCLUDED: response = rewriteIsIncluded(n); break;
     default:
-      response = BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NO_REWRITE);
+      response = BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NONE);
   }
 
   Trace("bags-rewrite") << "preRewrite " << n << " to " << response.d_node
@@ -128,7 +128,7 @@ BagsRewriteResponse BagsRewriter::rewriteEqual(const TNode& n) const
     return BagsRewriteResponse(
         REWRITE_DONE, d_nm->mkConst(true), Rewrite::IDENTICAL_NODES);
   }
-  return BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NO_REWRITE);
+  return BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NONE);
 }
 
 BagsRewriteResponse BagsRewriter::rewriteIsIncluded(const TNode& n) const
@@ -153,7 +153,7 @@ BagsRewriteResponse BagsRewriter::rewriteMakeBag(const TNode& n) const
     return BagsRewriteResponse(
         REWRITE_DONE, emptybag, Rewrite::MK_BAG_COUNT_NEGATIVE);
   }
-  return BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NO_REWRITE);
+  return BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NONE);
 }
 
 BagsRewriteResponse BagsRewriter::rewriteBagCount(const TNode& n) const
@@ -170,7 +170,7 @@ BagsRewriteResponse BagsRewriter::rewriteBagCount(const TNode& n) const
     // (bag.count x (mkBag x c) = c where c > 0 is a constant
     return BagsRewriteResponse(REWRITE_DONE, n[1][1], Rewrite::COUNT_MK_BAG);
   }
-  return BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NO_REWRITE);
+  return BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NONE);
 }
 
 BagsRewriteResponse BagsRewriter::rewriteUnionMax(const TNode& n) const
@@ -210,7 +210,7 @@ BagsRewriteResponse BagsRewriter::rewriteUnionMax(const TNode& n) const
     return BagsRewriteResponse(
         REWRITE_DONE, n[0], Rewrite::UNION_MAX_UNION_RIGHT);
   }
-  return BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NO_REWRITE);
+  return BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NONE);
 }
 
 BagsRewriteResponse BagsRewriter::rewriteUnionDisjoint(const TNode& n) const
@@ -244,7 +244,7 @@ BagsRewriteResponse BagsRewriter::rewriteUnionDisjoint(const TNode& n) const
           REWRITE_AGAIN, rewritten, Rewrite::UNION_DISJOINT_MAX_MIN);
     }
   }
-  return BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NO_REWRITE);
+  return BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NONE);
 }
 
 BagsRewriteResponse BagsRewriter::rewriteIntersectionMin(const TNode& n) const
@@ -293,7 +293,7 @@ BagsRewriteResponse BagsRewriter::rewriteIntersectionMin(const TNode& n) const
     }
   }
 
-  return BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NO_REWRITE);
+  return BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NONE);
 }
 
 BagsRewriteResponse BagsRewriter::rewriteDifferenceSubtract(
@@ -355,7 +355,7 @@ BagsRewriteResponse BagsRewriter::rewriteDifferenceSubtract(
     }
   }
 
-  return BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NO_REWRITE);
+  return BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NONE);
 }
 
 BagsRewriteResponse BagsRewriter::rewriteDifferenceRemove(const TNode& n) const
@@ -401,7 +401,7 @@ BagsRewriteResponse BagsRewriter::rewriteDifferenceRemove(const TNode& n) const
     }
   }
 
-  return BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NO_REWRITE);
+  return BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NONE);
 }
 
 BagsRewriteResponse BagsRewriter::rewriteChoose(const TNode& n) const
@@ -412,7 +412,7 @@ BagsRewriteResponse BagsRewriter::rewriteChoose(const TNode& n) const
     // (bag.choose (mkBag x c)) = x where c is a constant > 0
     return BagsRewriteResponse(REWRITE_DONE, n[0][0], Rewrite::CHOOSE_MK_BAG);
   }
-  return BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NO_REWRITE);
+  return BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NONE);
 }
 
 BagsRewriteResponse BagsRewriter::rewriteCard(const TNode& n) const
@@ -434,7 +434,7 @@ BagsRewriteResponse BagsRewriter::rewriteCard(const TNode& n) const
         REWRITE_AGAIN_FULL, plus, Rewrite::CARD_DISJOINT);
   }
 
-  return BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NO_REWRITE);
+  return BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NONE);
 }
 
 BagsRewriteResponse BagsRewriter::rewriteIsSingleton(const TNode& n) const
@@ -448,7 +448,7 @@ BagsRewriteResponse BagsRewriter::rewriteIsSingleton(const TNode& n) const
     return BagsRewriteResponse(
         REWRITE_AGAIN, equal, Rewrite::IS_SINGLETON_MK_BAG);
   }
-  return BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NO_REWRITE);
+  return BagsRewriteResponse(REWRITE_DONE, n, Rewrite::NONE);
 }
 
 }  // namespace bags

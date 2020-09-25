@@ -29,6 +29,7 @@ namespace bags {
  */
 enum class Rewrite : uint32_t
 {
+  NONE, // no rewrite happened
   CARD_DISJOINT,
   CARD_MK_BAG,
   CHOOSE_MK_BAG,
@@ -43,7 +44,6 @@ enum class Rewrite : uint32_t
   INTERSECTION_SHARED_RIGHT,
   IS_SINGLETON_MK_BAG,
   MK_BAG_COUNT_NEGATIVE,
-  NO_REWRITE,
   REMOVE_FROM_UNION,
   REMOVE_MIN,
   REMOVE_RETURN_LEFT,
