@@ -42,7 +42,7 @@ class NormalForm
    */
   static bool AreChildrenConstants(TNode n);
   /**
-   * get the normal form of n
+   * evaluate the node n to a constant value
    */
   static Node evaluate(TNode n);
 };

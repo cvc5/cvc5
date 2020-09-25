@@ -27,13 +27,14 @@ namespace bags {
 /** a class represents the result of rewriting bag nodes */
 struct BagsRewriteResponse
 {
+  BagsRewriteResponse();
+  BagsRewriteResponse(Node n, Rewrite rewrite);
+  BagsRewriteResponse(const BagsRewriteResponse& r);
   /** the rewritten node */
   Node d_node;
   /** type of rewrite used by bags */
   Rewrite d_rewrite;
-  BagsRewriteResponse();
-  BagsRewriteResponse(Node n, Rewrite rewrite);
-  BagsRewriteResponse(const BagsRewriteResponse& r);
+
 }; /* struct BagsRewriteResponse */
 
 class BagsRewriter : public TheoryRewriter
@@ -56,19 +57,19 @@ class BagsRewriter : public TheoryRewriter
 
  private:
   /**
-   * patterns for n
+   * rewrites for n include:
    * - (= A A) = true where A is a bag
    */
   BagsRewriteResponse rewriteEqual(const TNode& n) const;
 
   /**
-   * patterns for n
+   * rewrites for n include:
    * - (bag.is_included A B) = ((difference_subtract A B) == emptybag)
    */
   BagsRewriteResponse rewriteIsIncluded(const TNode& n) const;
 
   /**
-   * patterns for n:
+   * rewrites for n include:
    * - (mkBag x 0) = (emptybag T) where T is the type of x
    * - (mkBag x (-c)) = (emptybag T) where T is the type of x, and c > 0 is a
    *   constant
@@ -76,7 +77,7 @@ class BagsRewriter : public TheoryRewriter
    */
   BagsRewriteResponse rewriteMakeBag(const TNode& n) const;
   /**
-   * patterns for n
+   * rewrites for n include:
    * - (bag.count x emptybag) = 0
    * - (bag.count x (mkBag x c) = c where c > 0 is a constant
    * - otherwise = n
@@ -84,7 +85,7 @@ class BagsRewriter : public TheoryRewriter
   BagsRewriteResponse rewriteBagCount(const TNode& n) const;
 
   /**
-   * patterns for n
+   * rewrites for n include:
    * - (union_max A emptybag) = A
    * - (union_max emptybag A) = A
    * - (union_max A A) = A
@@ -101,7 +102,7 @@ class BagsRewriter : public TheoryRewriter
   BagsRewriteResponse rewriteUnionMax(const TNode& n) const;
 
   /**
-   * patterns for n
+   * rewrites for n include:
    * - (union_disjoint A emptybag) = A
    * - (union_disjoint emptybag A) = A
    * - (union_disjoint (union_max A B) (intersection_min A B)) =
@@ -113,7 +114,7 @@ class BagsRewriter : public TheoryRewriter
   BagsRewriteResponse rewriteUnionDisjoint(const TNode& n) const;
 
   /**
-   * patterns for n
+   * rewrites for n include:
    * - (intersection_min A emptybag) = emptybag
    * - (intersection_min emptybag A) = emptybag
    * - (intersection_min A A) = A
@@ -130,7 +131,7 @@ class BagsRewriter : public TheoryRewriter
   BagsRewriteResponse rewriteIntersectionMin(const TNode& n) const;
 
   /**
-   * patterns for n
+   * rewrites for n include:
    * - (difference_subtract A emptybag) = A
    * - (difference_subtract emptybag A) = emptybag
    * - (difference_subtract A A) = emptybag
@@ -147,7 +148,7 @@ class BagsRewriter : public TheoryRewriter
   BagsRewriteResponse rewriteDifferenceSubtract(const TNode& n) const;
 
   /**
-   * patterns for n
+   * rewrites for n include:
    * - (difference_remove A emptybag) = A
    * - (difference_remove emptybag A) = emptybag
    * - (difference_remove A A) = emptybag
@@ -161,13 +162,13 @@ class BagsRewriter : public TheoryRewriter
    */
   BagsRewriteResponse rewriteDifferenceRemove(const TNode& n) const;
   /**
-   * patterns for n
+   * rewrites for n include:
    * - (bag.choose (mkBag x c)) = x where c is a constant > 0
    * - otherwise = n
    */
   BagsRewriteResponse rewriteChoose(const TNode& n) const;
   /**
-   * patterns for n
+   * rewrites for n include:
    * - (bag.card (mkBag x c)) = c where c is a constant > 0
    * - (bag.card (union-disjoint A B)) = (+ (bag.card A) (bag.card B))
    * - otherwise = n
@@ -175,7 +176,7 @@ class BagsRewriter : public TheoryRewriter
   BagsRewriteResponse rewriteCard(const TNode& n) const;
 
   /**
-   * patterns for n
+   * rewrites for n include:
    * - (bag.is_singleton (mkBag x c)) = (c == 1)
    */
   BagsRewriteResponse rewriteIsSingleton(const TNode& n) const;
