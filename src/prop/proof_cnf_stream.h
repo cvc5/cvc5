@@ -30,17 +30,13 @@ namespace CVC4 {
 namespace prop {
 
 /**
- * A layer on top of CNF stream. The goal of this class is manage the use of a
- * CNF stream object in such a way that the proper proofs are internally
- * constructed, and can be retrieved from this class when necessary.
- *
- * It tracks the reason for why all clausification facts are added to an
- * underlying SAT solver in a user-context dependent manner in a lazy
- * context-dependent (LazyCDProof) object.
- *
- * A user of a SAT solver that is proof producing and uses the CNF stream may
- * use this class to manage proofs that are justified by its underlying CNF
- * stream.
+ * A proof generator for CNF transformation. It is a layer on top of CNF stream,
+ * tracking the justifications for clauses added into the underlying SAT solver
+ * in a user-context dependent manner in a lazy context-dependent (LazyCDProof)
+ * object. The proof is lazy because formulas asserted to this class may also
+ * take proof generators (which is the case, for example, for theory lemmas), so
+ * that getting the proof of a clausified formula will also extend to its
+ * registered proof generator.
  */
 class ProofCnfStream : public ProofGenerator
 {
@@ -52,46 +48,54 @@ class ProofCnfStream : public ProofGenerator
 
   /** Invokes getProofFor of the underlying LazyCDProof */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
-  /** Whether there as (concrete) step or a generator associated with f in the
+  /** Whether there is a concrete step or a generator associated with f in the
    * underlying LazyCDProof. */
   bool hasProofFor(Node f) override;
   /** identify */
   std::string identify() const override;
-
   /**
-   * Converts and asserts a formula.
-   * @param node node to convert and assert
+   * Converts a formula into CNF into CNF and asserts the generated clauses into
+   * the underlying SAT solver of d_cnfStream. Every transformation the formula
+   * goes through is saved as a concrete step in d_proof.
+   *
+   * The given formula has arbitrary Boolean structure via kinds AND, OR, EQUAL,
+   * XOR, IMPLIES. ITE and NOT. The conversion is done polynomially via Tseitin
+   * transformation, with the children of non-conjunctive kinds being abstracted
+   * as new literals, which are clausified with the respective "handle" methods
+   * below.
+
+   * @param node formula to convert and assert
    * @param negated whether we are asserting the node negated
-   * @param removable whether the sat solver can choose to remove the clauses
+   * @param removable whether the SAT solver can choose to remove the clauses
+   * @param pg a proof generator for node
    */
   void convertAndAssert(TNode node,
                         bool negated,
                         bool removable,
                         ProofGenerator* pg);
 
-  /** Does the CNF convertion of the propagation lemma *without* registering the
+  /** Clausifies the given propagation lemma *without* registering the
    * resoluting clause in the SAT solver, as this is handled internally by the
-   * SAT solver */
+   * SAT solver. The clausification steps and the generator within the trust
+   * node are saved in d_proof. */
   void convertPropagation(theory::TrustNode ttn);
 
   /**
-   * Ensure that the given node will have a designated SAT literal that is
-   * definitionally equal to it. The result of this function is that the Node
-   * can be queried via getSatValue(). Essentially, this is like a "convert-but-
-   * don't-assert" version of convertAndAssert().
-   */
-  void ensureLiteral(TNode n, bool noPreregistration = false);
-
-  /**
-   * Transforms the node into CNF recursively.
+   * Transforms the node into CNF recursively and yields a literal
+   * definitionally equal to it.
+   *
+   * This method also populates caches, kept in d_cnfStream, between formulas
+   * and literals to avoid redundant work and to retrieve formulas from literals
+   * and vice-versa.
+   *
    * @param node the formula to transform
    * @param negated whether the literal is negated
    * @return the literal representing the root of the formula
    */
   SatLiteral toCNF(TNode node, bool negated = false);
 
-  /** Blocks a proof, so that it is not further updated by a post processor
-      using this proof cnf stream. */
+  /** Blocks a proof, so that it is not further updated by a post processor of
+   * this class's proof. */
   void addBlocked(std::shared_ptr<ProofNode> pfn);
 
   /** Whether a given proof is blocked for further updates.  An example of a
@@ -101,19 +105,20 @@ class ProofCnfStream : public ProofGenerator
 
  private:
   /**
-   * Same as above, except that removable is remembered.
+   * Same as above, except that uses the saved d_removable flag. It calls the
+   * dedicated converter for the possible formula kinds.
    */
   void convertAndAssert(TNode node, bool negated);
-  // Each of these formulas handles takes care of a Node of each Kind.
-  //
-  // Each handleX(Node &n) is responsible for:
-  //   - constructing a new literal, l (if necessary)
-  //   - calling registerNode(n,l)
-  //   - adding clauses assure that l is equivalent to the Node
-  //   - calling toCNF on its children (if necessary)
-  //   - returning l
-  //
-  // handleX( n ) can assume that n is not in d_translationCache
+  /** Specific converters for each formula kind. */
+  void convertAndAssertAnd(TNode node, bool negated);
+  void convertAndAssertOr(TNode node, bool negated);
+  void convertAndAssertXor(TNode node, bool negated);
+  void convertAndAssertIff(TNode node, bool negated);
+  void convertAndAssertImplies(TNode node, bool negated);
+  void convertAndAssertIte(TNode node, bool negated);
+  /** Specific clausifiers, based on the formula kinds, that clausify a formula,
+   * by calling toCNF into each of the formula's children under the respective
+   * kind, and introduce a literal definitionally equal to it. */
   SatLiteral handleNot(TNode node);
   SatLiteral handleXor(TNode node);
   SatLiteral handleImplies(TNode node);
@@ -121,35 +126,26 @@ class ProofCnfStream : public ProofGenerator
   SatLiteral handleIte(TNode node);
   SatLiteral handleAnd(TNode node);
   SatLiteral handleOr(TNode node);
-
-  void convertAndAssertAnd(TNode node, bool negated);
-  void convertAndAssertOr(TNode node, bool negated);
-  void convertAndAssertXor(TNode node, bool negated);
-  void convertAndAssertIff(TNode node, bool negated);
-  void convertAndAssertImplies(TNode node, bool negated);
-  void convertAndAssertIte(TNode node, bool negated);
-
+  /**
+   * Are we asserting a removable clause (true) or a permanent clause (false).
+   * This is set at the beginning of convertAndAssert so that it doesn't need to
+   * be passed on over the stack. Only pure clauses can be asserted as
+   * removable.
+   */
+  bool d_removable;
   /** Reference to the underlying cnf stream. */
   CnfStream& d_cnfStream;
   /** The proof node manager. */
   ProofNodeManager* d_pnm;
   /** The user-context-dependent proof object. */
   LazyCDProof d_proof;
-
   /** An accumulator of steps that may be applied to normalize the clauses
    * generated during clausification. */
   theory::TheoryProofStepBuffer d_psb;
-  /**
-   * Are we asserting a removable clause (true) or a permanent clause (false).
-   * This is set at the beginning of convertAndAssert so that it doesn't
-   * need to be passed on over the stack.  Only pure clauses can be asserted
-   * as removable.
-   */
-  bool d_removable;
-
   /** Blocked proofs. These are proof nodes added to this class by external
    * generators. */
-  context::CDHashSet<std::shared_ptr<ProofNode>, ProofNodeHashFunction> d_blocked;
+  context::CDHashSet<std::shared_ptr<ProofNode>, ProofNodeHashFunction>
+      d_blocked;
 };
 
 }  // namespace prop
