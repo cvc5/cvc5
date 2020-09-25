@@ -2,10 +2,10 @@
 /*! \file theory_sets_private.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Kshitij Bansal, Mathias Preiner
+ **   Andrew Reynolds, Kshitij Bansal, Mudathir Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -213,17 +213,8 @@ class TheorySetsPrivate {
 
   void presolve();
 
-  /** get default output channel */
-  OutputChannel* getOutputChannel();
   /** get the valuation */
   Valuation& getValuation();
-
-  /** Proagate out to output channel */
-  bool propagate(TNode);
-
-  /** generate and send out conflict node */
-  void conflict(TNode, TNode);
-
  private:
   TheorySets& d_external;
   /** The state of the sets solver at full effort */

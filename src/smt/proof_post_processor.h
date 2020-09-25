@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -59,7 +59,8 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
               PfRule id,
               const std::vector<Node>& children,
               const std::vector<Node>& args,
-              CDProof* cdp) override;
+              CDProof* cdp,
+              bool& continueUpdate) override;
 
  private:
   /** Common constants */
@@ -96,6 +97,16 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
                     const std::vector<Node>& children,
                     const std::vector<Node>& args,
                     CDProof* cdp);
+  /**
+   * Update the proof rule application, called during expand macros when
+   * we wish to apply the update method. This method has the same behavior
+   * as update apart from ignoring the continueUpdate flag.
+   */
+  bool updateInternal(Node res,
+                      PfRule id,
+                      const std::vector<Node>& children,
+                      const std::vector<Node>& args,
+                      CDProof* cdp);
   /**
    * Add proof for witness form. This returns the equality t = toWitness(t)
    * and ensures that the proof of this equality has been added to cdp.

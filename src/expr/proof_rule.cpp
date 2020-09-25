@@ -2,10 +2,10 @@
 /*! \file proof_rule.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Haniel Barbosa, Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa, Alex Ozdemir
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -102,6 +102,13 @@ const char* toString(PfRule id)
     case PfRule::FALSE_ELIM: return "FALSE_ELIM";
     case PfRule::HO_APP_ENCODE: return "HO_APP_ENCODE";
     case PfRule::HO_CONG: return "HO_CONG";
+    //================================================= Array rules
+    case PfRule::ARRAYS_READ_OVER_WRITE: return "ARRAYS_READ_OVER_WRITE";
+    case PfRule::ARRAYS_READ_OVER_WRITE_CONTRA:
+      return "ARRAYS_READ_OVER_WRITE_CONTRA";
+    case PfRule::ARRAYS_READ_OVER_WRITE_1: return "ARRAYS_READ_OVER_WRITE_1";
+    case PfRule::ARRAYS_EXT: return "ARRAYS_EXT";
+    case PfRule::ARRAYS_TRUST: return "ARRAYS_TRUST";
     //================================================= Quantifiers rules
     case PfRule::WITNESS_INTRO: return "WITNESS_INTRO";
     case PfRule::EXISTS_INTRO: return "EXISTS_INTRO";

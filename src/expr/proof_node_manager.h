@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -118,7 +118,6 @@ class ProofNodeManager
                                      bool ensureClosed = true,
                                      bool doMinimize = false,
                                      Node expected = Node::null());
-
   /**
    * This method updates pn to be a proof of the form <id>( children, args ),
    * while maintaining its d_proven field. This method returns false if this
@@ -150,6 +149,8 @@ class ProofNodeManager
  private:
   /** The (optional) proof checker */
   ProofChecker* d_checker;
+  /** the true node */
+  Node d_true;
   /** Check internal
    *
    * This returns the result of proof checking a ProofNode with the provided

@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -41,6 +41,11 @@ class TCtxStack
    * the term context hash of t.
    */
   void pushChild(Node t, uint32_t tval, size_t index);
+  /**
+   * Push the operator of t to the stack, where tval is the term context has
+   * of t.
+   */
+  void pushOp(Node t, uint32_t tval);
   /** Push t to the stack with term context hash tval. */
   void push(Node t, uint32_t tval);
   /** Pop a term from the context */
