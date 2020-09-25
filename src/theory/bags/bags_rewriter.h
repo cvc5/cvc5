@@ -26,13 +26,13 @@ namespace bags {
 
 struct BagsRewriteResponse
 {
-  RewriteStatus d_status;
+  /** the rewritten node */
   Node d_node;
+  /** type of rewrite used by bags */
   Rewrite d_rewrite;
   BagsRewriteResponse();
-  BagsRewriteResponse(RewriteStatus status, Node n, Rewrite rewrite);
+  BagsRewriteResponse(Node n, Rewrite rewrite);
   BagsRewriteResponse(const BagsRewriteResponse& r);
-  RewriteResponse getResponse() const;
 }; /* struct BagsRewriteResponse */
 
 class BagsRewriter : public TheoryRewriter
