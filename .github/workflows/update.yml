@@ -1,0 +1,25 @@
+name: Update Copyright Headers
+
+on: [pull_request, pull_request_target]
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+
+      - id: files
+        uses: jitterbit/get-changed-files@v1
+
+      - name: Update headers
+        run: |
+          contrib/update-copyright.pl ${{ steps.files.outputs.added_modified }}
+
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: 'Update copyright headers.'
+
