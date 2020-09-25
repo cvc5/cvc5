@@ -2,10 +2,10 @@
 /*! \file cvc4cpp.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Makai Mann, Andrew Reynolds
+ **   Aina Niemetz, Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -254,6 +254,19 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {COMPREHENSION, CVC4::Kind::COMPREHENSION},
     {CHOOSE, CVC4::Kind::CHOOSE},
     {IS_SINGLETON, CVC4::Kind::IS_SINGLETON},
+    /* Bags ---------------------------------------------------------------- */
+    {UNION_MAX, CVC4::Kind::UNION_MAX},
+    {UNION_DISJOINT, CVC4::Kind::UNION_DISJOINT},
+    {INTERSECTION_MIN, CVC4::Kind::INTERSECTION_MIN},
+    {DIFFERENCE_SUBTRACT, CVC4::Kind::DIFFERENCE_SUBTRACT},
+    {DIFFERENCE_REMOVE, CVC4::Kind::DIFFERENCE_REMOVE},
+    {BAG_IS_INCLUDED, CVC4::Kind::BAG_IS_INCLUDED},
+    {BAG_COUNT, CVC4::Kind::BAG_COUNT},
+    {MK_BAG, CVC4::Kind::MK_BAG},
+    {EMPTYBAG, CVC4::Kind::EMPTYBAG},
+    {BAG_CARD, CVC4::Kind::BAG_CARD},
+    {BAG_CHOOSE, CVC4::Kind::BAG_CHOOSE},
+    {BAG_IS_SINGLETON, CVC4::Kind::BAG_IS_SINGLETON},
     /* Strings ------------------------------------------------------------- */
     {STRING_CONCAT, CVC4::Kind::STRING_CONCAT},
     {STRING_IN_REGEXP, CVC4::Kind::STRING_IN_REGEXP},
@@ -544,6 +557,19 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::COMPREHENSION, COMPREHENSION},
         {CVC4::Kind::CHOOSE, CHOOSE},
         {CVC4::Kind::IS_SINGLETON, IS_SINGLETON},
+        /* Bags ------------------------------------------------------------ */
+        {CVC4::Kind::UNION_MAX, UNION_MAX},
+        {CVC4::Kind::UNION_DISJOINT, UNION_DISJOINT},
+        {CVC4::Kind::INTERSECTION_MIN, INTERSECTION_MIN},
+        {CVC4::Kind::DIFFERENCE_SUBTRACT, DIFFERENCE_SUBTRACT},
+        {CVC4::Kind::DIFFERENCE_REMOVE, DIFFERENCE_REMOVE},
+        {CVC4::Kind::BAG_IS_INCLUDED, BAG_IS_INCLUDED},
+        {CVC4::Kind::BAG_COUNT, BAG_COUNT},
+        {CVC4::Kind::MK_BAG, MK_BAG},
+        {CVC4::Kind::EMPTYBAG, EMPTYBAG},
+        {CVC4::Kind::BAG_CARD, BAG_CARD},
+        {CVC4::Kind::BAG_CHOOSE, BAG_CHOOSE},
+        {CVC4::Kind::BAG_IS_SINGLETON, BAG_IS_SINGLETON},
         /* Strings --------------------------------------------------------- */
         {CVC4::Kind::STRING_CONCAT, STRING_CONCAT},
         {CVC4::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},
@@ -781,6 +807,10 @@ class CVC4ApiExceptionStream
   {
 #define CVC4_API_SOLVER_TRY_CATCH_END                                          \
   }                                                                            \
+  catch (const CVC4::RecoverableModalException& e)                             \
+  {                                                                            \
+    throw CVC4ApiRecoverableException(e.getMessage());                         \
+  }                                                                            \
   catch (const CVC4::Exception& e) { throw CVC4ApiException(e.getMessage()); } \
   catch (const std::invalid_argument& e) { throw CVC4ApiException(e.what()); }
 
@@ -951,6 +981,8 @@ bool Sort::isArray() const { return d_type->isArray(); }
 
 bool Sort::isSet() const { return d_type->isSet(); }
 
+bool Sort::isBag() const { return TypeNode::fromType(*d_type).isBag(); }
+
 bool Sort::isSequence() const { return d_type->isSequence(); }
 
 bool Sort::isUninterpretedSort() const { return d_type->isSort(); }
@@ -1069,7 +1101,17 @@ Sort Sort::getSetElementSort() const
   return Sort(d_solver, SetType(*d_type).getElementType());
 }
 
-/* Set sort ------------------------------------------------------------ */
+/* Bag sort ------------------------------------------------------------ */
+
+Sort Sort::getBagElementSort() const
+{
+  CVC4_API_CHECK(isBag()) << "Not a bag sort.";
+  TypeNode typeNode = TypeNode::fromType(*d_type);
+  Type type = typeNode.getBagElementType().toType();
+  return Sort(d_solver, type);
+}
+
+/* Sequence sort ------------------------------------------------------- */
 
 Sort Sort::getSequenceElementSort() const
 {
@@ -3495,6 +3537,20 @@ Sort Solver::mkSetSort(Sort elemSort) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
+Sort Solver::mkBagSort(Sort elemSort) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_ARG_CHECK_EXPECTED(!elemSort.isNull(), elemSort)
+      << "non-null element sort";
+  CVC4_API_SOLVER_CHECK_SORT(elemSort);
+
+  TypeNode typeNode = TypeNode::fromType(*elemSort.d_type);
+  Type type = getNodeManager()->mkBagType(typeNode).toType();
+  return Sort(this, type);
+
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
 Sort Solver::mkSequenceSort(Sort elemSort) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
@@ -3641,6 +3697,21 @@ Term Solver::mkEmptySet(Sort s) const
 
   return mkValHelper<CVC4::EmptySet>(
       CVC4::EmptySet(TypeNode::fromType(*s.d_type)));
+
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+Term Solver::mkEmptyBag(Sort s) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_ARG_CHECK_EXPECTED(s.isNull() || s.isBag(), s)
+      << "null sort or bag sort";
+
+  CVC4_API_ARG_CHECK_EXPECTED(s.isNull() || this == s.d_solver, s)
+      << "bag sort associated to this solver object";
+
+  return mkValHelper<CVC4::EmptyBag>(
+      CVC4::EmptyBag(TypeNode::fromType(*s.d_type)));
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -5639,6 +5710,16 @@ std::vector<Type> sortVectorToTypes(const std::vector<Sort>& sorts)
     types.push_back(sorts[i].getType());
   }
   return types;
+}
+
+std::vector<TypeNode> sortVectorToTypeNodes(const std::vector<Sort>& sorts)
+{
+  std::vector<TypeNode> typeNodes;
+  for (const Sort& sort : sorts)
+  {
+    typeNodes.push_back(TypeNode::fromType(sort.getType()));
+  }
+  return typeNodes;
 }
 
 std::set<Type> sortSetToTypes(const std::set<Sort>& sorts)

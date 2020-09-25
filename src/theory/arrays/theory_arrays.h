@@ -2,10 +2,10 @@
 /*! \file theory_arrays.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Clark Barrett, Andrew Reynolds
+ **   Morgan Deters, Andrew Reynolds, Clark Barrett
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -26,6 +26,7 @@
 #include "context/cdhashset.h"
 #include "context/cdqueue.h"
 #include "theory/arrays/array_info.h"
+#include "theory/arrays/proof_checker.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
@@ -340,6 +341,9 @@ class TheoryArrays : public Theory {
 
   /** The notify class for d_equalityEngine */
   NotifyClass d_notify;
+
+  /** The proof checker */
+  ArraysProofRuleChecker d_pchecker;
 
   /** Conflict when merging constants */
   void conflict(TNode a, TNode b);

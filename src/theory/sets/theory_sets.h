@@ -2,10 +2,10 @@
 /*! \file theory_sets.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Kshitij Bansal, Andrew Reynolds
+ **   Andrew Reynolds, Tim King, Kshitij Bansal
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -25,6 +25,7 @@
 #include "theory/sets/skolem_cache.h"
 #include "theory/sets/solver_state.h"
 #include "theory/theory.h"
+#include "theory/theory_eq_notify.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -82,16 +83,13 @@ class TheorySets : public Theory
 
  private:
   /** Functions to handle callbacks from equality engine */
-  class NotifyClass : public eq::EqualityEngineNotify
+  class NotifyClass : public TheoryEqNotifyClass
   {
    public:
-    NotifyClass(TheorySetsPrivate& theory) : d_theory(theory) {}
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override;
-    bool eqNotifyTriggerTermEquality(TheoryId tag,
-                                     TNode t1,
-                                     TNode t2,
-                                     bool value) override;
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override;
+    NotifyClass(TheorySetsPrivate& theory, TheoryInferenceManager& im)
+        : TheoryEqNotifyClass(im), d_theory(theory)
+    {
+    }
     void eqNotifyNewClass(TNode t) override;
     void eqNotifyMerge(TNode t1, TNode t2) override;
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override;

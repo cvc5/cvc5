@@ -1,19 +1,18 @@
 #!/usr/bin/env python
-
 #####################
-#! \file floating_point.py
- ## \verbatim
- ## Top contributors (to current version):
- ##   Eva Darulova, Makai Mann
- ## This file is part of the CVC4 project.
- ## Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ## in the top-level source directory) and their institutional affiliations.
- ## All rights reserved.  See the file COPYING in the top-level source
- ## directory for licensing information.\endverbatim
- ##
- ## \brief A simple demonstration of the solving capabilities of the CVC4
- ## floating point solver through the Python API contributed by Eva
- ## Darulova. This requires building CVC4 with symfpu.
+## floating_point.py
+## Top contributors (to current version):
+##   Makai Mann, Andres Noetzli
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
+## A simple demonstration of the solving capabilities of the CVC4
+## floating point solver through the Python API contributed by Eva
+## Darulova. This requires building CVC4 with symfpu.
+##
 
 import pycvc4
 from pycvc4 import kinds
