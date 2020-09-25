@@ -87,7 +87,7 @@ PRs ready:
 
 (29) arithmetic proof producing [Alex] (req 24, 25)
 (43) strings InferProofCons (req 13, 18, 26, 34, 42, 65, 86) *
-(53) CNF proof producing [Haniel] (req 109)
+(53) CNF proof producing [Haniel] (req 109, 110)
 (70) rewriter unit test [Andres] (req 36, 37)
 (85) SmtEngine check proofs (req 68, 82)
 (88) fixes for smt preprocess proof generator
