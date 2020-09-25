@@ -48,11 +48,6 @@ class BagsRewriter : public TheoryRewriter
    *
    * The rewrite r indicates the justification for the rewrite, which is printed
    * by this function for debugging.
-   *
-   * If node is not an equality and ret is an equality, this method applies
-   * an additional rewrite step (rewriteEqualityExt) that performs
-   * additional rewrites on ret, after which we return the result of this call.
-   * Otherwise, this method simply returns ret.
    */
   Node returnRewrite(Node node, Node ret, Rewrite r);
 

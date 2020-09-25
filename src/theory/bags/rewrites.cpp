@@ -24,7 +24,7 @@ const char* toString(Rewrite r)
 {
   switch (r)
   {
-    // case Rewrite::CTN_COMPONENT: return "CTN_COMPONENT";
+    case Rewrite::NO_REWRITE: return "NO_REWRITE";
     default: return "?";
   }
 }

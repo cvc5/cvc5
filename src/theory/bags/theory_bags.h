@@ -96,13 +96,10 @@ class TheoryBags : public Theory
   InferenceManager d_im;
   /** Instance of the above class */
   NotifyClass d_notify;
+  /** Statistics for the theory of bags. */
+  BagsStatistics d_statistics;
   /** The theory rewriter for this theory. */
   BagsRewriter d_rewriter;
-
-  /**
-   * Statistics for the theory of bags.
-   */
-  BagsStatistics d_statistics;
 
   void eqNotifyNewClass(TNode t);
   void eqNotifyMerge(TNode t1, TNode t2);
