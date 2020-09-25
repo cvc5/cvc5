@@ -22,6 +22,30 @@ namespace CVC4 {
 namespace theory {
 namespace bags {
 
+BagsRewriteResponse::BagsRewriteResponse()
+    : d_status(REWRITE_DONE),
+      d_node(Node::null()),
+      d_rewrite(Rewrite::NO_REWRITE)
+{
+}
+
+BagsRewriteResponse::BagsRewriteResponse(RewriteStatus status,
+                                         Node n,
+                                         Rewrite rewrite)
+    : d_status(status), d_node(n), d_rewrite(rewrite)
+{
+}
+
+BagsRewriteResponse::BagsRewriteResponse(const BagsRewriteResponse& r)
+    : d_status(r.d_status), d_node(r.d_node), d_rewrite(r.d_rewrite)
+{
+}
+
+RewriteResponse BagsRewriteResponse::getResponse() const
+{
+  return RewriteResponse(d_status, d_node);
+}
+
 BagsRewriter::BagsRewriter(HistogramStat<Rewrite>* statistics)
     : d_statistics(statistics)
 {
