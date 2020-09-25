@@ -270,7 +270,7 @@ void SmtEngine::finishInit()
   ProofNodeManager* pnm = nullptr;
   if (options::proofNew())
   {
-    d_pfManager.reset(new PfManager(this));
+    d_pfManager.reset(new PfManager(getUserContext(), this));
     // use this proof node manager
     pnm = d_pfManager->getProofNodeManager();
     // enable proof support in the rewriter

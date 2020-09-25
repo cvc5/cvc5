@@ -22,7 +22,7 @@
 namespace CVC4 {
 namespace smt {
 
-PfManager::PfManager(SmtEngine* smte)
+PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
     : d_pchecker(new ProofChecker(options::proofNewPedantic())),
       d_pnm(new ProofNodeManager(d_pchecker.get())),
       d_pppg(new PreprocessProofGenerator(u, d_pnm.get())),
