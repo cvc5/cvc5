@@ -128,7 +128,8 @@ bool CnfStream::hasLiteral(TNode n) const {
   return find != d_nodeToLiteralMap.end();
 }
 
-void CnfStream::ensureLiteral(TNode n, bool noPreregistration) {
+void CnfStream::ensureLiteral(TNode n, bool noPreregistration)
+{
   // These are not removable and have no proof ID
   d_removable = false;
 
@@ -312,7 +313,8 @@ SatLiteral CnfStream::getLiteral(TNode node) {
   return literal;
 }
 
-SatLiteral CnfStream::handleXor(TNode xorNode) {
+SatLiteral CnfStream::handleXor(TNode xorNode)
+{
   Assert(!hasLiteral(xorNode)) << "Atom already mapped!";
   Assert(xorNode.getKind() == kind::XOR) << "Expecting an XOR expression!";
   Assert(xorNode.getNumChildren() == 2) << "Expecting exactly 2 children!";
@@ -332,7 +334,8 @@ SatLiteral CnfStream::handleXor(TNode xorNode) {
   return xorLit;
 }
 
-SatLiteral CnfStream::handleOr(TNode orNode) {
+SatLiteral CnfStream::handleOr(TNode orNode)
+{
   Assert(!hasLiteral(orNode)) << "Atom already mapped!";
   Assert(orNode.getKind() == kind::OR) << "Expecting an OR expression!";
   Assert(orNode.getNumChildren() > 1) << "Expecting more then 1 child!";
@@ -370,7 +373,8 @@ SatLiteral CnfStream::handleOr(TNode orNode) {
   return orLit;
 }
 
-SatLiteral CnfStream::handleAnd(TNode andNode) {
+SatLiteral CnfStream::handleAnd(TNode andNode)
+{
   Assert(!hasLiteral(andNode)) << "Atom already mapped!";
   Assert(andNode.getKind() == kind::AND) << "Expecting an AND expression!";
   Assert(andNode.getNumChildren() > 1) << "Expecting more than 1 child!";
@@ -408,7 +412,8 @@ SatLiteral CnfStream::handleAnd(TNode andNode) {
   return andLit;
 }
 
-SatLiteral CnfStream::handleImplies(TNode impliesNode) {
+SatLiteral CnfStream::handleImplies(TNode impliesNode)
+{
   Assert(!hasLiteral(impliesNode)) << "Atom already mapped!";
   Assert(impliesNode.getKind() == kind::IMPLIES)
       << "Expecting an IMPLIES expression!";
@@ -435,7 +440,8 @@ SatLiteral CnfStream::handleImplies(TNode impliesNode) {
   return impliesLit;
 }
 
-SatLiteral CnfStream::handleIff(TNode iffNode) {
+SatLiteral CnfStream::handleIff(TNode iffNode)
+{
   Assert(!hasLiteral(iffNode)) << "Atom already mapped!";
   Assert(iffNode.getKind() == kind::EQUAL) << "Expecting an EQUAL expression!";
   Assert(iffNode.getNumChildren() == 2) << "Expecting exactly 2 children!";
@@ -466,7 +472,8 @@ SatLiteral CnfStream::handleIff(TNode iffNode) {
   return iffLit;
 }
 
-SatLiteral CnfStream::handleIte(TNode iteNode) {
+SatLiteral CnfStream::handleIte(TNode iteNode)
+{
   Assert(!hasLiteral(iteNode)) << "Atom already mapped!";
   Assert(iteNode.getKind() == kind::ITE);
   Assert(iteNode.getNumChildren() == 3);
@@ -503,8 +510,8 @@ SatLiteral CnfStream::handleIte(TNode iteNode) {
   return iteLit;
 }
 
-
-SatLiteral CnfStream::toCNF(TNode node, bool negated) {
+SatLiteral CnfStream::toCNF(TNode node, bool negated)
+{
   Trace("cnf") << "toCNF(" << node
                << ", negated = " << (negated ? "true" : "false") << ")\n";
   SatLiteral nodeLit;
@@ -540,7 +547,8 @@ SatLiteral CnfStream::toCNF(TNode node, bool negated) {
   return !negated ? nodeLit : ~nodeLit;
 }
 
-void CnfStream::convertAndAssertAnd(TNode node, bool negated) {
+void CnfStream::convertAndAssertAnd(TNode node, bool negated)
+{
   Assert(node.getKind() == kind::AND);
   Trace("cnf") << "CnfStream::convertAndAssertAnd(" << node
                << ", negated = " << (negated ? "true" : "false") << ")\n";
@@ -564,7 +572,8 @@ void CnfStream::convertAndAssertAnd(TNode node, bool negated) {
   }
 }
 
-void CnfStream::convertAndAssertOr(TNode node, bool negated) {
+void CnfStream::convertAndAssertOr(TNode node, bool negated)
+{
   Assert(node.getKind() == kind::OR);
   Trace("cnf") << "CnfStream::convertAndAssertOr(" << node
                << ", negated = " << (negated ? "true" : "false") << ")\n";
@@ -588,7 +597,8 @@ void CnfStream::convertAndAssertOr(TNode node, bool negated) {
   }
 }
 
-void CnfStream::convertAndAssertXor(TNode node, bool negated) {
+void CnfStream::convertAndAssertXor(TNode node, bool negated)
+{
   Assert(node.getKind() == kind::XOR);
   Trace("cnf") << "CnfStream::convertAndAssertXor(" << node
                << ", negated = " << (negated ? "true" : "false") << ")\n";
@@ -621,7 +631,8 @@ void CnfStream::convertAndAssertXor(TNode node, bool negated) {
   }
 }
 
-void CnfStream::convertAndAssertIff(TNode node, bool negated) {
+void CnfStream::convertAndAssertIff(TNode node, bool negated)
+{
   Assert(node.getKind() == kind::EQUAL);
   Trace("cnf") << "CnfStream::convertAndAssertIff(" << node
                << ", negated = " << (negated ? "true" : "false") << ")\n";
@@ -654,7 +665,8 @@ void CnfStream::convertAndAssertIff(TNode node, bool negated) {
   }
 }
 
-void CnfStream::convertAndAssertImplies(TNode node, bool negated) {
+void CnfStream::convertAndAssertImplies(TNode node, bool negated)
+{
   Assert(node.getKind() == kind::IMPLIES);
   Trace("cnf") << "CnfStream::convertAndAssertImplies(" << node
                << ", negated = " << (negated ? "true" : "false") << ")\n";
@@ -674,7 +686,8 @@ void CnfStream::convertAndAssertImplies(TNode node, bool negated) {
   }
 }
 
-void CnfStream::convertAndAssertIte(TNode node, bool negated) {
+void CnfStream::convertAndAssertIte(TNode node, bool negated)
+{
   Assert(node.getKind() == kind::ITE);
   Trace("cnf") << "CnfStream::convertAndAssertIte(" << node
                << ", negated = " << (negated ? "true" : "false") << ")\n";
@@ -726,7 +739,8 @@ void CnfStream::convertAndAssert(TNode node,
   }
 }
 
-void CnfStream::convertAndAssert(TNode node, bool negated) {
+void CnfStream::convertAndAssert(TNode node, bool negated)
+{
   Trace("cnf") << "convertAndAssert(" << node
                << ", negated = " << (negated ? "true" : "false") << ")\n";
 
@@ -737,38 +751,28 @@ void CnfStream::convertAndAssert(TNode node, bool negated) {
   ++d_convertAndAssertCounter;
 
   switch(node.getKind()) {
-  case kind::AND:
-    convertAndAssertAnd(node, negated);
-    break;
-  case kind::OR:
-    convertAndAssertOr(node, negated);
-    break;
-  case kind::XOR:
-    convertAndAssertXor(node, negated);
-    break;
-  case kind::IMPLIES:
-    convertAndAssertImplies(node, negated);
-    break;
-  case kind::ITE:
-    convertAndAssertIte(node, negated);
-    break;
-  case kind::NOT:
-    convertAndAssert(node[0], !negated);
-    break;
-  case kind::EQUAL:
-    if( node[0].getType().isBoolean() ){
-      convertAndAssertIff(node, negated);
-      break;
-    }
-    CVC4_FALLTHROUGH;
-  default:
-  {
-    Node nnode = node;
-    if( negated ){
-      nnode = node.negate();
-    }
-    // Atoms
-    assertClause(nnode, toCNF(node, negated));
+    case kind::AND: convertAndAssertAnd(node, negated); break;
+    case kind::OR: convertAndAssertOr(node, negated); break;
+    case kind::XOR: convertAndAssertXor(node, negated); break;
+    case kind::IMPLIES: convertAndAssertImplies(node, negated); break;
+    case kind::ITE: convertAndAssertIte(node, negated); break;
+    case kind::NOT: convertAndAssert(node[0], !negated); break;
+    case kind::EQUAL:
+      if (node[0].getType().isBoolean())
+      {
+        convertAndAssertIff(node, negated);
+        break;
+      }
+      CVC4_FALLTHROUGH;
+    default:
+    {
+      Node nnode = node;
+      if (negated)
+      {
+        nnode = node.negate();
+      }
+      // Atoms
+      assertClause(nnode, toCNF(node, negated));
   }
     break;
   }

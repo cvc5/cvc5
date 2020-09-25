@@ -90,9 +90,9 @@ class CnfStream {
    * information is only relevant for unsat core tracking.
    */
   void convertAndAssert(TNode node,
-                                bool removable,
-                                bool negated,
-                                bool input = false);
+                        bool removable,
+                        bool negated,
+                        bool input = false);
   /**
    * Get the node that is represented by the given SatLiteral.
    * @param literal the literal from the sat solver
