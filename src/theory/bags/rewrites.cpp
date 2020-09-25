@@ -24,10 +24,11 @@ const char* toString(Rewrite r)
 {
   switch (r)
   {
+    case Rewrite::NONE: return "NONE";
     case Rewrite::CARD_DISJOINT: return "CARD_DISJOINT";
     case Rewrite::CARD_MK_BAG: return "CARD_MK_BAG";
     case Rewrite::CHOOSE_MK_BAG: return "CHOOSE_MK_BAG";
-    case Rewrite::CONSTANT_CHILDREN: return "CONSTANT_CHILDREN";
+    case Rewrite::CONSTANT_EVALUATION: return "CONSTANT_EVALUATION";
     case Rewrite::COUNT_EMPTY: return "COUNT_EMPTY";
     case Rewrite::COUNT_MK_BAG: return "COUNT_MK_BAG";
     case Rewrite::IDENTICAL_NODES: return "IDENTICAL_NODES";
@@ -38,7 +39,6 @@ const char* toString(Rewrite r)
     case Rewrite::INTERSECTION_SHARED_RIGHT: return "INTERSECTION_SHARED_RIGHT";
     case Rewrite::IS_SINGLETON_MK_BAG: return "IS_SINGLETON_MK_BAG";
     case Rewrite::MK_BAG_COUNT_NEGATIVE: return "MK_BAG_COUNT_NEGATIVE";
-    case Rewrite::NONE: return "NONE";
     case Rewrite::REMOVE_FROM_UNION: return "REMOVE_FROM_UNION";
     case Rewrite::REMOVE_MIN: return "REMOVE_MIN";
     case Rewrite::REMOVE_RETURN_LEFT: return "REMOVE_RETURN_LEFT";

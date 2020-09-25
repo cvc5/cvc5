@@ -54,7 +54,7 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
   else if (NormalForm::AreChildrenConstants(n))
   {
     Node value = NormalForm::evaluate(n);
-    response = BagsRewriteResponse(value, Rewrite::CONSTANT_CHILDREN);
+    response = BagsRewriteResponse(value, Rewrite::CONSTANT_EVALUATION);
   }
   else
   {
