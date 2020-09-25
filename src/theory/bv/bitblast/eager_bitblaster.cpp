@@ -69,13 +69,13 @@ EagerBitblaster::EagerBitblaster(BVSolverLazy* theory_bv, context::Context* c)
   }
   d_satSolver.reset(solver);
   ResourceManager* rm = smt::currentResourceManager();
-  d_cnfStream.reset(new prop::TseitinCnfStream(d_satSolver.get(),
-                                               d_bitblastingRegistrar.get(),
-                                               d_nullContext.get(),
-                                               nullptr,
-                                               rm,
-                                               false,
-                                               "EagerBitblaster"));
+  d_cnfStream.reset(new prop::CnfStream(d_satSolver.get(),
+                                        d_bitblastingRegistrar.get(),
+                                        d_nullContext.get(),
+                                        nullptr,
+                                        rm,
+                                        false,
+                                        "EagerBitblaster"));
 }
 
 EagerBitblaster::~EagerBitblaster() {}
