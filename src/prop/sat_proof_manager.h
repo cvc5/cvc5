@@ -32,12 +32,126 @@ class Solver;
 }
 
 namespace CVC4 {
-
 namespace prop {
 
 /**
- * This class is responsible for managing the proof output of SmtEngine, as
- * well as setting up the global proof checker and proof node manager.
+ * This class is responsible for managing the proof production of the SAT
+ * solver. It tracks justifications produce during the solving and stores them
+ * independently, only making the connection of the justifications when the
+ * empty clause is produced and the refutation is complete. These justifications
+ * are stored in a LazyCDProofChain, a user-context-dependent proof that takes
+ * lazy steps and can connect them during expansion. Its use in this proof
+ * manager is so that, assuming the following lazy steps are saved in the
+ * LazyCDProofChain:
+ *
+ * --- S0: (l4,          PG0)
+ * --- S1: ((or l3 l4),  PG1)
+ * --- S2: ((or l1 ~l3), PG2)
+ * --- S3: (false,       PG3)
+ * --- S4: (~l2,         PG4)
+ * --- S5: (~l3,         PG5)
+ * --- S6: (~l5,         PG6)
+ *
+ * when requesting the proof for false, assuming that the proof generators have
+ * the following expansions:
+ *
+ * --- PG0 -> (CHAIN_RES ((or l4 l1) ~l1))
+ * --- PG1 -> (CHAIN_RES ((or l3 l5 l6 l7 l8) ~l8 (or l4 ~l5) (or ~l6 l7) ~l7))
+ * --- PG2 -> (CHAIN_RES ((or l1 ~l3 l5) ~l5))
+ * --- PG3 -> (CHAIN_RES ((or l1 l2) ~l1 ~l2))
+ * --- PG4 -> (CHAIN_RES ((or l3 ~l2) ~l3))
+ * --- PG5 -> (CHAIN_RES ((or l1 ~l3) ~l1))
+ * --- PG6 -> (CHAIN_RES ((or l1 ~l5) ~l1))
+ *
+ * will connect the independent justifications, yielding the following refutation
+ *
+ *                                             (or l1 ~l5)  ~l1
+ *                                             ---------------- CHAIN_RES
+ *                            (or l1 ~l3 l5)   ~l5
+ *                            ---------------------- CHAIN_RES
+ *                                      (or l1 ~l3)            ~l1
+ *                                      --------------------------- CHAIN_RES
+ *                       (or l3 ~l2)     ~l3
+ *                       -------------------- CHAIN_RES
+ *   (or l1 l2)     ~l1   ~l2
+ *  --------------------------- CHAIN_RES
+ *                      false
+ *
+ * where note that the steps S0 and S1, for l4 and (or l3 l4), respectively,
+ * were ignored, since they were not part of the chain starting with
+ * false. Moreover there is no sense in the chain of steps being added
+ * chronologically. The chain started on step S3 and proceeded to steps S4, S5
+ * and S2.
+ *
+ * To track the reasoning of the SAT solver and produce the steps above this
+ * class does three main things:
+ *  (1) Register the justifications for learned clauses as they are learned.
+ *  (2) Register the justifications for propagated literals when necessary.
+ *  (3) Register the *full* justification for the empty clause.
+ *
+ * Case (1) covers the learned clauses during backjumping. We only information
+ * saved is that, from clauses C1 to Cn, a given learned clause C is derived via
+ * chain resolution (and possibly factoring, reordering and double negation
+ * elimination in its literals), i.e., we do not recursively justify C1 to Cn.
+ *
+ * Not explaining C1 to Cn eagerly is beneficial because:
+ * - we might be wasting resources in fully explanaining it now, since C may not be necessary
+ *   for the derivation of the empty clause, or
+ * - in explaining lazily we might have a shorter explanation, which has been
+ *   observed empirically to be often the case.
+ *
+ * The latter case is a result of the SAT solver possibly changing the
+ * explanation of each of C, C1 to Cn, or the components of their
+ * justifications. Since the set of propagated literals that may be used in
+ * these derivations can change with the different SAT contexts, the same clause
+ * may be derived several times.
+ *
+ * Therefore we only fully explain a clause when absolutely necessary, i.e.,
+ * when we are done (see case (3)) or when we'd not be able to do it afterwards
+ * (see case (2)). In the example above, step S2 in an example of case (1), with
+ * the shallow proof
+ *
+ *        (or l1 ~l3 l5)       ~l5
+ *        ------------------------- CHAIN_RES
+ *                 (or l1 ~l3)
+ *
+ * justifying the learned clause generated before the refutation is completed.
+ *
+ * Case (2) covers: the literals propagated from clauses being deleted (2.1);
+ * and propagated literals whose negation occurs in a learned clause (2.2),
+ * which are then deleted for being redundant.
+ *
+ * Case (2.1) only happens for the so-called "locked clauses", which are clauses
+ * C = l1 v ... v ln that propagate their first literal, l1. When a locked
+ * clause C is deleted we save a chain resolution justification of l1 because
+ * we'd not be able to retrieve C afterwards, since it is deleted. The
+ * justification is a chain resolution between C and ~l2, ..., ~ln, concluding
+ * l1. In the example above, step S0 is a result case (2.1),
+ *
+ * Case (2.2) requires that, when a redundant literal is deleted from a learned
+ * clause, we add its negation, which necessarily is a propagated literal, to
+ * the justification of the resolution yielding the learned clause. This
+ * justifies the deletion of the redundant literal. However, the justification
+ * for the propagated literal (the SAT solver maintains a map from propagated
+ * literals to the clauses that propagate them in the current context) may also
+ * contain literals that were in the learned clause and were deleted for being
+ * redundant. Therefore eliminating a redundant literal requires recursively
+ * explaining the propagated literals in its justification as long as they are,
+ * themselves, redundant literals in the learned clause.
+ *
+ * Case (3) happens when the SAT solver derives the empty clause and it's not
+ * possible to backjump. The empty clause is learned from a conflict clause: a
+ * clause whose every literal has its negation propagated in the current
+ * context. Thus the justification of the empty clause happens, at first, in the
+ * same way as case (1): a resolution chain betweeen the conflict clause and its
+ * negated literals. Moreover, since we are now done, we recursively explain the
+ * propagated literals, starting from the negated literals from the conflict
+ * clause and progressing to all propagated literals ocurring in a given
+ * explanation.
+ *
+ *
+ *
+ *
  */
 class SatProofManager
 {
@@ -47,6 +161,14 @@ class SatProofManager
                   context::UserContext* userContext,
                   ProofNodeManager* pnm);
 
+  /** Marks the start of a resolution chain.
+   *
+   * The given clause is registered in d_resLinks with a null pivot, since this
+   * is the first link in the chain.
+   *
+   * @param start a SAT solver clause (list of literals) that will be the first
+   * clause in a resolution chain.
+   */
   void startResChain(const Minisat::Clause& start);
   // resolution with unit clause ~lit, to be justified
   //
