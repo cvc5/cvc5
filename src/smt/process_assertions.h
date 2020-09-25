@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -107,12 +107,6 @@ class ProcessAssertions
    * Number of calls of simplify assertions active.
    */
   unsigned d_simplifyAssertionsDepth;
-  /** recursive function definition abstractions for fmf-fun */
-  std::map<Node, TypeNode> d_fmfRecFunctionsAbs;
-  /** map to concrete definitions for fmf-fun */
-  std::map<Node, std::vector<Node>> d_fmfRecFunctionsConcrete;
-  /** List of defined recursive functions processed by fmf-fun */
-  NodeList* d_fmfRecFunctionsDefined;
   /** Spend resource r by the resource manager of this class. */
   void spendResource(ResourceManager::Resource r);
   /**

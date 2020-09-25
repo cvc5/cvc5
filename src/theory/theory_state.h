@@ -2,10 +2,10 @@
 /*! \file theory_state.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -79,6 +79,9 @@ class TheoryState
    * check.
    */
   TheoryModel* getModel();
+
+  /** Returns true if n has a current SAT assignment and stores it in value. */
+  virtual bool hasSatValue(TNode n, bool& value) const;
 
  protected:
   /** Pointer to the SAT context object used by the theory. */
