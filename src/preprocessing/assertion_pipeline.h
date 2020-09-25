@@ -132,7 +132,12 @@ class AssertionPipeline
   void addSubstitutionNode(Node n, ProofGenerator* pgen = nullptr);
 
   /**
-   * Conjoin
+   * Conjoin n to the assertion vector at position i. This replaces
+   * d_nodes[i] with the rewritten form of (AND d_nodes[i] n).
+   *
+   * @param i The assertion to replace
+   * @param n The formula to conjoin at position i
+   * @param pg The proof generator that can provide a proof of n
    */
   void conjoin(size_t i, Node n, ProofGenerator* pg = nullptr);
 
