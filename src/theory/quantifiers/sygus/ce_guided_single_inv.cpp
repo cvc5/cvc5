@@ -402,12 +402,14 @@ bool CegSingleInv::solve()
     siSmt->getInstantiationTermVectors(q, tvecs);
     Trace("sygus-si") << "#instantiations of " << q << "=" << tvecs.size()
                       << std::endl;
+    // We use the original synthesis conjecture siq, since qn may contain
+    // internal symbols e.g. termITE skolem after preprocessing.
     std::vector<Node> vars;
-    for (const Node& v : qn[0])
+    for (const Node& v : siq[0])
     {
       vars.push_back(v);
     }
-    Node body = qn[1];
+    Node body = siq[1];
     for (unsigned i = 0, ninsts = tvecs.size(); i < ninsts; i++)
     {
       std::vector<Expr>& tvi = tvecs[i];
@@ -418,6 +420,8 @@ bool CegSingleInv::solve()
       }
       Trace("sygus-si") << "  Instantiation: " << inst << std::endl;
       d_inst.push_back(inst);
+      // instantiation should have same arity since we are not allowed to
+      // eliminate variables from quantifiers marked with QuantElimAttribute.
       Assert(inst.size() == vars.size());
       Node ilem =
           body.substitute(vars.begin(), vars.end(), inst.begin(), inst.end());
@@ -573,6 +577,9 @@ Node CegSingleInv::reconstructToSyntax(Node s,
     // In this case, we fail, since the solution is not valid.
     Trace("csi-sol") << "FAIL : solution " << d_solution
                      << " contains free constants." << std::endl;
+    Warning() <<
+        "Cannot get synth function: free constants encountered in synthesis "
+        "solution.";
     reconstructed = -1;
   }
   if( Trace.isOn("cegqi-stats") ){
