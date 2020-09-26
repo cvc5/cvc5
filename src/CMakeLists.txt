@@ -190,6 +190,8 @@ libcvc4_add_sources(
   prop/sat_solver_factory.cpp
   prop/sat_solver_factory.h
   prop/bv_sat_solver_notify.h
+  prop/sat_proof_manager.cpp
+  prop/sat_proof_manager.h
   prop/sat_solver_types.cpp
   prop/sat_solver_types.h
   prop/theory_proxy.cpp
