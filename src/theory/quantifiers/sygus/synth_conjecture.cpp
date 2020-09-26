@@ -700,9 +700,9 @@ bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals) const
   return true;
 }
 
-void SynthConjecture::doRefine(std::vector<Node>& lems)
+bool SynthConjecture::doRefine()
 {
-  Assert(lems.empty());
+  std::vector<Node> lems;
   Assert(d_set_ce_sk_vars);
 
   // first, make skolem substitution
@@ -768,6 +768,42 @@ void SynthConjecture::doRefine(std::vector<Node>& lems)
   d_set_ce_sk_vars = false;
   d_ce_sk_vars.clear();
   d_ce_sk_var_mvs.clear();
+
+  // now send the lemmas
+  bool addedLemma = false;
+  for (const Node& lem : lems)
+  {
+    Trace("cegqi-lemma") << "Cegqi::Lemma : candidate refinement : " << lem
+                         << std::endl;
+    bool res = d_qe->addLemma(lem);
+    if (res)
+    {
+      ++(d_stats.d_cegqi_lemmas_refine);
+      d_refine_count++;
+      addedLemma = true;
+    }
+    else
+    {
+      Trace("cegqi-warn") << "  ...FAILED to add refinement!" << std::endl;
+    }
+  }
+  if (addedLemma)
+  {
+    Trace("sygus-engine-debug") << "  ...refine candidate." << std::endl;
+  }
+  else
+  {
+    Trace("sygus-engine-debug") << "  ...(warning) failed to refine candidate, "
+                                   "manually exclude candidate."
+                                << std::endl;
+    // something went wrong, exclude the current candidate
+    excludeCurrentSolution(sk_vars, sk_subs);
+    // Note this happens when evaluation is incapable of disproving a candidate
+    // for counterexample point c, but satisfiability checking happened to find
+    // the the same point c is indeed a true counterexample. It is sound
+    // to exclude the candidate in this case.
+  }
+  return addedLemma;
 }
 
 void SynthConjecture::preregisterConjecture(Node q)
