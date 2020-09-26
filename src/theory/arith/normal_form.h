@@ -5,7 +5,7 @@
  **   Tim King, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -946,6 +946,18 @@ public:
   /** Returns true if the polynomial contains a non-linear monomial.*/
   bool isNonlinear() const;
 
+  /** Check whether this polynomial is only a single variable. */
+  bool isVariable() const
+  {
+    return singleton() && getHead().getVarList().singleton()
+           && getHead().coefficientIsOne();
+  }
+  /** Return the variable, given that isVariable() holds. */
+  Variable getVariable() const
+  {
+    Assert(isVariable());
+    return getHead().getVarList().getHead();
+  }
 
   /**
    * Selects a minimal monomial in the polynomial by the absolute value of
@@ -1376,6 +1388,19 @@ public:
 
   Polynomial normalizedVariablePart() const;
   DeltaRational normalizedDeltaRational() const;
+
+  /**
+   * Transforms a Comparison object into a stronger normal form:
+   *    Polynomial ~Kind~ Constant
+   * 
+   * From the comparison, this method resolved a negation (if present) and
+   * moves everything to the left side.
+   * If split_constant is false, the constant is always zero.
+   * If split_constant is true, the polynomial has no constant term and is
+   * normalized to have leading coefficient one.
+   */
+  std::tuple<Polynomial, Kind, Constant> decompose(
+      bool split_constant = false) const;
 
 };/* class Comparison */
 

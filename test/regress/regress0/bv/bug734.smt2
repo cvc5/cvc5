@@ -1,4 +1,5 @@
 ; COMMAND-LINE: --incremental
+; COMMAND-LINE: --incremental --bv-solver=simple
 ; EXPECT: sat
 ; EXPECT: sat
 (set-logic QF_BV)
