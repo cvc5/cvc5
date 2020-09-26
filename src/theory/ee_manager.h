@@ -53,6 +53,11 @@ struct EeTheoryInfo
 class EqEngineManager
 {
  public:
+   /**
+   * @param te Reference to the theory engine
+   * @param sharedSolver The shared solver that is being used in combination
+   * with this equality engine manager
+    */
   EqEngineManager(TheoryEngine& te, SharedSolver& shs);
   virtual ~EqEngineManager() {}
   /**
@@ -62,9 +67,6 @@ class EqEngineManager
    *
    * This method is context-independent, and is applied once during
    * the lifetime of TheoryEngine (during finishInit).
-   *
-   * @param sharedSolver The shared solver that is being used in combination
-   * with this equality engine manager
    */
   virtual void initializeTheories() = 0;
   /**
