@@ -86,6 +86,10 @@ void InferenceManager::flushWaitingLemmas()
   }
   d_waitingLem.clear();
 }
+void InferenceManager::clearWaitingLemmas()
+{
+  d_waitingLem.clear();
+}
 
 void InferenceManager::addConflict(const Node& conf, InferenceId inftype)
 {
