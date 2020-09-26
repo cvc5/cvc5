@@ -63,11 +63,12 @@ bool hasNewMonomials(Node n, const std::vector<Node>& existing)
   return false;
 }
 
-NlSolver::NlSolver(TheoryArith& containing, NlModel& model)
-    : d_containing(containing),
+NlSolver::NlSolver(InferenceManager& im, ArithState& astate, NlModel& model)
+    : d_im(im),
+      d_astate(astate),
       d_model(model),
       d_cdb(d_mdb),
-      d_zero_split(containing.getUserContext())
+      d_zero_split(d_astate.getUserContext())
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
@@ -165,9 +166,8 @@ void NlSolver::setMonomialFactor(Node a, Node b, const NodeMultiset& common)
   }
 }
 
-std::vector<NlLemma> NlSolver::checkSplitZero()
+void NlSolver::checkSplitZero()
 {
-  std::vector<NlLemma> lemmas;
   for (unsigned i = 0; i < d_ms_vars.size(); i++)
   {
     Node v = d_ms_vars[i];
@@ -175,13 +175,11 @@ std::vector<NlLemma> NlSolver::checkSplitZero()
     {
       Node eq = v.eqNode(d_zero);
       eq = Rewriter::rewrite(eq);
-      Node literal = d_containing.getValuation().ensureLiteral(eq);
-      d_containing.getOutputChannel().requirePhase(literal, true);
-      lemmas.emplace_back(literal.orNode(literal.negate()),
-                          InferenceId::NL_SPLIT_ZERO);
+      d_im.addPendingPhaseRequirement(eq, true);
+      Node lem = eq.orNode(eq.negate());
+      d_im.addPendingArithLemma(lem, InferenceId::NL_SPLIT_ZERO);
     }
   }
-  return lemmas;
 }
 
 void NlSolver::assignOrderIds(std::vector<Node>& vars,
@@ -260,8 +258,7 @@ int NlSolver::compareSign(Node oa,
                           Node a,
                           unsigned a_index,
                           int status,
-                          std::vector<Node>& exp,
-                          std::vector<NlLemma>& lem)
+                          std::vector<Node>& exp)
 {
   Trace("nl-ext-debug") << "Process " << a << " at index " << a_index
                         << ", status is " << status << std::endl;
@@ -274,7 +271,7 @@ int NlSolver::compareSign(Node oa,
     {
       Node lemma =
           safeConstructNary(AND, exp).impNode(mkLit(oa, d_zero, status * 2));
-      lem.emplace_back(lemma, InferenceId::NL_SIGN);
+      d_im.addPendingArithLemma(lemma, InferenceId::NL_SIGN);
     }
     return status;
   }
@@ -291,17 +288,17 @@ int NlSolver::compareSign(Node oa,
     if (mvaoa.getConst<Rational>().sgn() != 0)
     {
       Node lemma = av.eqNode(d_zero).impNode(oa.eqNode(d_zero));
-      lem.emplace_back(lemma, InferenceId::NL_SIGN);
+      d_im.addPendingArithLemma(lemma, InferenceId::NL_SIGN);
     }
     return 0;
   }
   if (aexp % 2 == 0)
   {
     exp.push_back(av.eqNode(d_zero).negate());
-    return compareSign(oa, a, a_index + 1, status, exp, lem);
+    return compareSign(oa, a, a_index + 1, status, exp);
   }
   exp.push_back(nm->mkNode(sgn == 1 ? GT : LT, av, d_zero));
-  return compareSign(oa, a, a_index + 1, status * sgn, exp, lem);
+  return compareSign(oa, a, a_index + 1, status * sgn, exp);
 }
 
 bool NlSolver::compareMonomial(
@@ -312,7 +309,7 @@ bool NlSolver::compareMonomial(
     Node b,
     NodeMultiset& b_exp_proc,
     std::vector<Node>& exp,
-    std::vector<NlLemma>& lem,
+    std::vector<ArithLemma>& lem,
     std::map<int, std::map<Node, std::map<Node, Node> > >& cmp_infers)
 {
   Trace("nl-ext-comp-debug")
@@ -416,7 +413,7 @@ bool NlSolver::compareMonomial(
     NodeMultiset& b_exp_proc,
     int status,
     std::vector<Node>& exp,
-    std::vector<NlLemma>& lem,
+    std::vector<ArithLemma>& lem,
     std::map<int, std::map<Node, std::map<Node, Node> > >& cmp_infers)
 {
   Trace("nl-ext-comp-debug")
@@ -448,7 +445,7 @@ bool NlSolver::compareMonomial(
       Node clem = nm->mkNode(
           IMPLIES, safeConstructNary(AND, exp), mkLit(oa, ob, status, true));
       Trace("nl-ext-comp-lemma") << "comparison lemma : " << clem << std::endl;
-      lem.emplace_back(clem, InferenceId::NL_COMPARISON);
+      lem.emplace_back(clem, LemmaProperty::NONE, nullptr, InferenceId::NL_COMPARISON);
       cmp_infers[status][oa][ob] = clem;
     }
     return true;
@@ -629,9 +626,8 @@ bool NlSolver::compareMonomial(
   return false;
 }
 
-std::vector<NlLemma> NlSolver::checkMonomialSign()
+void NlSolver::checkMonomialSign()
 {
-  std::vector<NlLemma> lemmas;
   std::map<Node, int> signs;
   Trace("nl-ext") << "Get monomial sign lemmas..." << std::endl;
   for (unsigned j = 0; j < d_ms.size(); j++)
@@ -648,7 +644,7 @@ std::vector<NlLemma> NlSolver::checkMonomialSign()
       }
       if (d_m_nconst_factor.find(a) == d_m_nconst_factor.end())
       {
-        signs[a] = compareSign(a, a, 0, 1, exp, lemmas);
+        signs[a] = compareSign(a, a, 0, 1, exp);
         if (signs[a] == 0)
         {
           d_ms_proc[a] = true;
@@ -665,10 +661,9 @@ std::vector<NlLemma> NlSolver::checkMonomialSign()
       }
     }
   }
-  return lemmas;
 }
 
-std::vector<NlLemma> NlSolver::checkMonomialMagnitude(unsigned c)
+void NlSolver::checkMonomialMagnitude(unsigned c)
 {
   // ensure information is setup
   if (c == 0)
@@ -682,7 +677,7 @@ std::vector<NlLemma> NlSolver::checkMonomialMagnitude(unsigned c)
   }
 
   unsigned r = 1;
-  std::vector<NlLemma> lemmas;
+  std::vector<ArithLemma> lemmas;
   // if (x,y,L) in cmp_infers, then x > y inferred as conclusion of L
   // in lemmas
   std::map<int, std::map<Node, std::map<Node, Node> > > cmp_infers;
@@ -840,24 +835,18 @@ std::vector<NlLemma> NlSolver::checkMonomialMagnitude(unsigned c)
       }
     }
   }
-  std::vector<NlLemma> nr_lemmas;
   for (unsigned i = 0; i < lemmas.size(); i++)
   {
     if (r_lemmas.find(lemmas[i].d_node) == r_lemmas.end())
     {
-      nr_lemmas.push_back(lemmas[i]);
+      d_im.addPendingArithLemma(lemmas[i]);
     }
   }
   // could only take maximal lower/minimial lower bounds?
-
-  Trace("nl-ext-comp") << nr_lemmas.size() << " / " << lemmas.size()
-                       << " were non-redundant." << std::endl;
-  return nr_lemmas;
 }
 
-std::vector<NlLemma> NlSolver::checkTangentPlanes()
+void NlSolver::checkTangentPlanes(bool asWaitingLemmas)
 {
-  std::vector<NlLemma> lemmas;
   Trace("nl-ext") << "Get monomial tangent plane lemmas..." << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   const std::map<Node, std::vector<Node> >& ccMap =
@@ -1007,19 +996,16 @@ std::vector<NlLemma> NlSolver::checkTangentPlanes()
             tplaneConj.push_back(lb_reverse2);
 
             Node tlem = nm->mkNode(AND, tplaneConj);
-            lemmas.emplace_back(tlem, InferenceId::NL_TANGENT_PLANE);
+            d_im.addPendingArithLemma(
+                tlem, InferenceId::NL_TANGENT_PLANE, asWaitingLemmas);
           }
         }
       }
     }
   }
-  Trace("nl-ext") << "...trying " << lemmas.size() << " tangent plane lemmas..."
-                  << std::endl;
-  return lemmas;
 }
 
-std::vector<NlLemma> NlSolver::checkMonomialInferBounds(
-    std::vector<NlLemma>& nt_lemmas,
+void NlSolver::checkMonomialInferBounds(
     const std::vector<Node>& asserts,
     const std::vector<Node>& false_asserts)
 {
@@ -1033,7 +1019,6 @@ std::vector<NlLemma> NlSolver::checkMonomialInferBounds(
   const std::map<Node, std::map<Node, ConstraintInfo> >& cim =
       d_cdb.getConstraints();
 
-  std::vector<NlLemma> lemmas;
   NodeManager* nm = NodeManager::currentNM();
   // register constraints
   Trace("nl-ext-debug") << "Register bound constraints..." << std::endl;
@@ -1260,26 +1245,16 @@ std::vector<NlLemma> NlSolver::checkMonomialInferBounds(
                 << " (pre-rewrite : " << pr_iblem << ")" << std::endl;
             // Trace("nl-ext-bound-lemma") << "       intro new
             // monomials = " << introNewTerms << std::endl;
-            if (!introNewTerms)
-            {
-              lemmas.emplace_back(iblem, InferenceId::NL_INFER_BOUNDS);
-            }
-            else
-            {
-              nt_lemmas.emplace_back(iblem, InferenceId::NL_INFER_BOUNDS_NT);
-            }
+            d_im.addPendingArithLemma(iblem, InferenceId::NL_INFER_BOUNDS_NT, introNewTerms);
           }
         }
       }
     }
   }
-  return lemmas;
 }
 
-std::vector<NlLemma> NlSolver::checkFactoring(
-    const std::vector<Node>& asserts, const std::vector<Node>& false_asserts)
+void NlSolver::checkFactoring(const std::vector<Node>& asserts, const std::vector<Node>& false_asserts)
 {
-  std::vector<NlLemma> lemmas;
   NodeManager* nm = NodeManager::currentNM();
   Trace("nl-ext") << "Get factoring lemmas..." << std::endl;
   for (const Node& lit : asserts)
@@ -1366,7 +1341,7 @@ std::vector<NlLemma> NlSolver::checkFactoring(
           sum = Rewriter::rewrite(sum);
           Trace("nl-ext-factor")
               << "* Factored sum for " << x << " : " << sum << std::endl;
-          Node kf = getFactorSkolem(sum, lemmas);
+          Node kf = getFactorSkolem(sum);
           std::vector<Node> poly;
           poly.push_back(nm->mkNode(MULT, x, kf));
           std::map<Node, std::vector<Node> >::iterator itfo =
@@ -1398,15 +1373,14 @@ std::vector<NlLemma> NlSolver::checkFactoring(
           lemma_disj.push_back(conc_lit);
           Node flem = nm->mkNode(OR, lemma_disj);
           Trace("nl-ext-factor") << "...lemma is " << flem << std::endl;
-          lemmas.emplace_back(flem, InferenceId::NL_FACTOR);
+          d_im.addPendingArithLemma(flem, InferenceId::NL_FACTOR);
         }
       }
     }
   }
-  return lemmas;
 }
 
-Node NlSolver::getFactorSkolem(Node n, std::vector<NlLemma>& lemmas)
+Node NlSolver::getFactorSkolem(Node n)
 {
   std::map<Node, Node>::iterator itf = d_factor_skolem.find(n);
   if (itf == d_factor_skolem.end())
@@ -1414,16 +1388,15 @@ Node NlSolver::getFactorSkolem(Node n, std::vector<NlLemma>& lemmas)
     NodeManager* nm = NodeManager::currentNM();
     Node k = nm->mkSkolem("kf", n.getType());
     Node k_eq = Rewriter::rewrite(k.eqNode(n));
-    lemmas.push_back(k_eq);
+    d_im.addPendingArithLemma(k_eq, InferenceId::NL_FACTOR);
     d_factor_skolem[n] = k;
     return k;
   }
   return itf->second;
 }
 
-std::vector<NlLemma> NlSolver::checkMonomialInferResBounds()
+void NlSolver::checkMonomialInferResBounds()
 {
-  std::vector<NlLemma> lemmas;
   NodeManager* nm = NodeManager::currentNM();
   Trace("nl-ext") << "Get monomial resolution inferred bound lemmas..."
                   << std::endl;
@@ -1570,7 +1543,7 @@ std::vector<NlLemma> NlSolver::checkMonomialInferResBounds()
                   rblem = Rewriter::rewrite(rblem);
                   Trace("nl-ext-rbound-lemma")
                       << "Resolution bound lemma : " << rblem << std::endl;
-                  lemmas.emplace_back(rblem, InferenceId::NL_RES_INFER_BOUNDS);
+                  d_im.addPendingArithLemma(rblem, InferenceId::NL_RES_INFER_BOUNDS);
                 }
               }
               exp.pop_back();
@@ -1583,7 +1556,6 @@ std::vector<NlLemma> NlSolver::checkMonomialInferResBounds()
       }
     }
   }
-  return lemmas;
 }
 
 }  // namespace nl
