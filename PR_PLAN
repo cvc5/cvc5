@@ -80,30 +80,30 @@ PR finished:
 (102) proof equality engine always proof
 (103) buffered proof manager [Haniel] (req 102)
 (104) lazy proof chain [Haniel]
+(105) fixes for theory engine proof generator
+(106) term conversion operators + term context operators
+(107) fmf fun def as preprocessing pass
 (108) generalizing mkScope to True assumptions [Haniel] (req 104)
 (109) clause normalization [Haniel]
 
 PRs ready:
 
 (29) arithmetic proof producing [Alex] (req 24, 25)
+(41) SharedTermDatabase uses pfee (req 24, cee-shs)
 (43) strings InferProofCons (req 13, 18, 26, 34, 42, 65, 86) *
 (53) CNF proof producing [Haniel] (req 109)
 (70) rewriter unit test [Andres] (req 36, 37)
 (85) SmtEngine check proofs (req 68, 82)
-(88) fixes for smt preprocess proof generator
+(88) fixes for smt preprocess proof generator *
 (91) Proof producing lemma TheoryEngine *
 (95) Arrays proof checker *
 (100) fixes for instantiate, quantifiers proof checker
 (101) strings misc changes to preprocess, base
-(105) fixes for theory engine proof generator
-(106) term conversion operators + term context operators
-(107) fmf fun def as preprocessing pass *
-(110) Sat proof manager [Haniel] (req 104)
+(110) Sat proof manager [Haniel] (req 104) *
 
 PRs future:
 
 (31) update strings inference manager to use ProofEqEngine (req 24, 26, 43, cee-strings)
-(41) SharedTermDatabase uses pfee (req 24, cee-shs)
 (44) TheoryEngine explanation proof producing (req 12, 40, 41, 87, 91)
 (54) DSL rewrite rule
 (55) DSL rewrite rule term processor
