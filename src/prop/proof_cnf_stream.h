@@ -30,6 +30,8 @@
 namespace CVC4 {
 namespace prop {
 
+class SatProofManager;
+
 /**
  * A proof generator for CNF transformation. It is a layer on top of CNF stream,
  * tracking the justifications for clauses added into the underlying SAT solver
