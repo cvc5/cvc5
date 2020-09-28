@@ -253,6 +253,18 @@ namespace prop {
  *
  * which has no more explainable literals as leaves.
  *
+ * The interfaces below provide ways for the SAT solver to register its
+ * assumptions (clausified assertions and lemmas) for the SAT proof
+ * (registerSatAssumption), register resolution steps (startResChain /
+ * addResolutionStep / endResChain), build the final refutation proof
+ * (finalizeProof) and retrieve the refutation proof (getProof). So in a given
+ * run of the SAT solver these interfaces are expected to be used in the
+ * following order:
+ *
+ * (registerSatAssumptions | (startResChain (addResolutionStep)+ endResChain)*)*
+ * finalizeProof
+ * getProof
+ *
  */
 class SatProofManager
 {
@@ -264,6 +276,9 @@ class SatProofManager
 
   /** Marks the start of a resolution chain.
    *
+   * This call is followed by *at least one* call to addResolution step and one
+   * call to endResChain.
+   *
    * The given clause, at the node level, is registered in d_resLinks with a
    * null pivot, since this is the first link in the chain.
    *
@@ -272,6 +287,10 @@ class SatProofManager
    */
   void startResChain(const Minisat::Clause& start);
   /** Adds a resolution step with a clause
+   *
+   * There must have been a call to startResChain before any call to
+   * addResolution step. After following calls to addResolution step there is
+   * one call to endResChain.
    *
    * The resolution step is added to d_resLinks with the clause, at the node
    * level, and the literal, at the node level, as the pivot.
@@ -282,8 +301,8 @@ class SatProofManager
   void addResolutionStep(const Minisat::Clause& clause, Minisat::Lit lit);
   /** Adds a resolution step with a unit clause
    *
-   * The resolution step is added to d_resLinks such that lit, at the node level, is the pivot and
-   * and the unit clause is ~lit, at the node level.
+   * The resolution step is added to d_resLinks such that lit, at the node
+   * level, is the pivot and and the unit clause is ~lit, at the node level.
    *
    * If the literal is marked as redundant, then a step is *not* is added to
    * d_resLinks. It is rather saved to d_redundandLits, whose components we will
@@ -297,6 +316,9 @@ class SatProofManager
   void addResolutionStep(Minisat::Lit lit, bool redundant = false);
   /** Ends resolution chain concluding a unit clause
    *
+   * This call must have been preceded by one call to startResChain and at least
+   * one call to addResolutionStep.
+   *
    * This and the version below both call the node version of this method,
    * described further below, which actually does the necessary processing.
    */
@@ -304,6 +326,9 @@ class SatProofManager
   /** Ends resolution chain concluding a clause */
   void endResChain(const Minisat::Clause& clause);
   /** Build refutation proof starting from conflict clause
+   *
+   * This method (or its variations) is only called when the SAT solver has
+   * reached an unsatisfiable state.
    *
    * This and the versions below call the node version of this method, described
    * further below, which actually does the necessary processing.
@@ -323,8 +348,8 @@ class SatProofManager
 
   /** Retrive the refutation proof
    *
-   * If there is no chain for false in d_resChains, an assumption proof node is
-   * produced.
+   * If there is no chain for false in d_resChains, meaning that this call was
+   * made before finalizeProof, an assumption proof node is produced.
    */
   std::shared_ptr<ProofNode> getProof();
 
