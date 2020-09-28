@@ -73,9 +73,6 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
   std::shared_ptr<ProofNode> cur;
   visit.push_back(pf);
   std::map<Node, std::shared_ptr<ProofNode>>::iterator itc;
-  // NOTE: temporary, debugging
-  unsigned counterReuse = 0;
-  unsigned counterNew = 0;
   // A cache from formulas to proof nodes that are in the current scope.
   // Notice that we make a fresh recursive call to process if the current
   // rule is SCOPE below.
@@ -92,14 +89,12 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
       itc = resCache.find(res);
       if (itc != resCache.end())
       {
-        counterReuse++;
         // already have a proof
         visited[cur] = true;
         d_pnm->updateNode(cur.get(), itc->second.get());
       }
       else
       {
-        counterNew++;
         visited[cur] = false;
         // run update to a fixed point
         bool continueUpdate = true;
@@ -142,8 +137,6 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
           visit.push_back(cp);
         }
       }
-      Trace("pf-process-debug")
-          << "Processing " << counterReuse << "/" << counterNew << std::endl;
     }
     else if (!it->second)
     {
