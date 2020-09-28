@@ -121,7 +121,7 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
       if (d_lemma_cache.find(lem) == d_lemma_cache.end())
       {
         Trace("sygus-inst") << "Evaluation unfolding: " << lem << std::endl;
-        d_quantEngine->getOutputChannel().lemma(lem);
+        d_quantEngine->addLemma(lem, false);
         d_lemma_cache.insert(lem);
       }
     }
@@ -402,7 +402,7 @@ void SygusInst::addCeLemma(Node q)
   if (d_ce_lemma_added.find(q) != d_ce_lemma_added.end()) return;
 
   Node lem = d_ce_lemmas[q];
-  d_quantEngine->getOutputChannel().lemma(lem);
+  d_quantEngine->addLemma(lem, false);
   d_ce_lemma_added.insert(q);
   Trace("sygus-inst") << "Add CE Lemma: " << lem << std::endl;
 }

@@ -981,8 +981,11 @@ void QuantifiersEngine::flushLemmas(){
     //take default output channel if none is provided
     d_hasAddedLemma = true;
     std::map<Node, ProofGenerator*>::iterator itp;
-    for (const Node& lemw : d_lemmas_waiting)
+    // Note: Do not use foreach loop here and do not cache size() call.
+    // New lemmas can be added while iterating over d_lemmas_waiting.
+    for (size_t i = 0; i < d_lemmas_waiting.size(); ++i)
     {
+      const Node& lemw = d_lemmas_waiting[i];
       Trace("qe-lemma") << "Lemma : " << lemw << std::endl;
       itp = d_lemmasWaitingPg.find(lemw);
       if (itp != d_lemmasWaitingPg.end())
