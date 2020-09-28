@@ -290,6 +290,8 @@ libcvc4_add_sources(
   theory/arith/attempt_solution_simplex.cpp
   theory/arith/attempt_solution_simplex.h
   theory/arith/bound_counts.h
+  theory/arith/bound_inference.cpp
+  theory/arith/bound_inference.h
   theory/arith/callbacks.cpp
   theory/arith/callbacks.h
   theory/arith/congruence_manager.cpp
@@ -343,8 +345,6 @@ libcvc4_add_sources(
   theory/arith/nl/icp/icp_solver.h
   theory/arith/nl/icp/intersection.cpp
   theory/arith/nl/icp/intersection.h
-  theory/arith/nl/icp/variable_bounds.cpp
-  theory/arith/nl/icp/variable_bounds.h
   theory/arith/nl/nl_constraint.cpp
   theory/arith/nl/nl_constraint.h
   theory/arith/nl/nl_lemma_utils.cpp
