@@ -115,11 +115,6 @@ class NonlinearExtension
    * constraints are satisfiable, it may "repair" the values in the argument
    * arithModel so that it satisfies certain nonlinear constraints. This may
    * involve e.g. solving for variables in nonlinear equations.
-   *
-   * Notice that in the former case, the lemmas it constructs are not sent out
-   * immediately. Instead, they are put in temporary vector d_cmiLemmas, which
-   * are then sent out (if necessary) when a last call
-   * effort check is issued to this class.
    */
   void interceptModel(std::map<Node, Node>& arithModel);
   /** Does this class need a call to check(...) at last call effort? */
@@ -151,7 +146,7 @@ class NonlinearExtension
    * may have information regarding how to construct a model, in the case that
    * we determined the problem is satisfiable.
    */
-  bool modelBasedRefinement(std::vector<NlLemma>& mlems);
+  bool modelBasedRefinement();
 
   /** check last call
    *
@@ -175,9 +170,7 @@ class NonlinearExtension
    */
   int checkLastCall(const std::vector<Node>& assertions,
                     const std::vector<Node>& false_asserts,
-                    const std::vector<Node>& xts,
-                    std::vector<NlLemma>& lems,
-                    std::vector<NlLemma>& wlems);
+                    const std::vector<Node>& xts);
 
   /** get assertions
    *
@@ -218,7 +211,6 @@ class NonlinearExtension
    * ensureLiteral respectively.
    */
   bool checkModel(const std::vector<Node>& assertions,
-                  std::vector<NlLemma>& lemmas,
                   std::vector<Node>& gs);
   //---------------------------end check model
   /** compute relevant assertions */
@@ -290,11 +282,6 @@ class NonlinearExtension
    * constraints involving integer and.
    */
   IAndSolver d_iandSlv;
-  /**
-   * The lemmas we computed during collectModelInfo, to be sent out on the
-   * output channel of TheoryArith.
-   */
-  std::vector<NlLemma> d_cmiLemmas;
   /**
    * The approximations computed during collectModelInfo. For details, see
    * NlModel::getModelValueRepair.
