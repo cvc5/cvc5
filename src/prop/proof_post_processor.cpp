@@ -28,15 +28,18 @@ ProofPostprocessCallback::ProofPostprocessCallback(
 
 void ProofPostprocessCallback::initializeUpdate() { d_assumpToProof.clear(); }
 
-bool ProofPostprocessCallback::shouldUpdate(ProofNode* pn)
+bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
+                                            bool& continueUpdate)
 {
-  return pn->getRule() == PfRule::ASSUME
-         && d_proofCnfStream->hasProofFor(pn->getResult());
-}
-
-bool ProofPostprocessCallback::shouldContinue(std::shared_ptr<ProofNode> pn)
-{
-  return !d_proofCnfStream->isBlocked(pn);
+  bool result = pn->getRule() == PfRule::ASSUME
+                && d_proofCnfStream->hasProofFor(pn->getResult());
+  // check if should continue traversing
+  if (d_proofCnfStream->isBlocked(pn))
+  {
+    continueUpdate = false;
+    result = false;
+  }
+  return result;
 }
 
 bool ProofPostprocessCallback::update(Node res,

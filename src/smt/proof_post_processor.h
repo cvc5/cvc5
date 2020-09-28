@@ -53,7 +53,8 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
    */
   void setEliminateRule(PfRule rule);
   /** Should proof pn be updated? */
-  bool shouldUpdate(ProofNode* pn) override;
+  bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                    bool& continueUpdate) override;
   /** Update the proof rule application. */
   bool update(Node res,
               PfRule id,
@@ -162,7 +163,8 @@ class ProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
    */
   void initializeUpdate();
   /** Should proof pn be updated? Returns false, adds to stats. */
-  bool shouldUpdate(ProofNode* pn) override;
+  bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                    bool& continueUpdate) override;
   /** was pedantic failure */
   bool wasPedanticFailure(std::ostream& out) const;
 
