@@ -66,7 +66,7 @@ class BagEnumerator : public TypeEnumeratorBase<BagEnumerator>
    *
    * This seems too expensive to implement.
    * For now we are implementing an obvious solution
-   * {(1,1)}, {(1,2)}, {(1,3)}, ... which works for both fininte and infinite
+   * {(1,1)}, {(1,2)}, {(1,3)}, ... which works for both finite and infinite
    * types
    */
   BagEnumerator& operator++() override;
