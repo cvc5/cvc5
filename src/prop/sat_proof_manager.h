@@ -39,11 +39,14 @@ namespace prop {
  * This class is responsible for managing the proof production of the SAT
  * solver. It tracks resolutions produced during solving and stores them,
  * independently, with the connection of the resolutions only made when the
- * empty clause is produced and the refutation is complete. These resolutions
- * are stored in a LazyCDProofChain, a user-context-dependent proof that takes
- * lazy steps and can connect them when generating a proof for a given fact. Its
- * use in this proof manager is so that, assuming the following lazy steps are
- * saved in the LazyCDProofChain:
+ * empty clause is produced and the refutation is complete. The expected
+ * assumptions of the refutation are the clausified preprocessed assertions and
+ * lemmas.
+ *
+ * These resolutions are stored in a LazyCDProofChain, a user-context-dependent
+ * proof that takes lazy steps and can connect them when generating a proof for
+ * a given fact. Its use in this proof manager is so that, assuming the
+ * following lazy steps are saved in the LazyCDProofChain:
  *
  * --- S0: (l4,          PG0)
  * --- S1: ((or l3 l4),  PG1)
