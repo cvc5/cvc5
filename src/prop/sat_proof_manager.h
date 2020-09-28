@@ -25,6 +25,7 @@
 #include "expr/proof.h"
 #include "expr/proof_node_manager.h"
 #include "prop/minisat/core/SolverTypes.h"
+#include "prop/cnf_stream.h"
 #include "prop/sat_solver_types.h"
 
 namespace Minisat {
@@ -254,7 +255,7 @@ class SatProofManager
 {
  public:
   SatProofManager(Minisat::Solver* solver,
-                  TheoryProxy* proxy,
+                  CnfStream* cnfStream,
                   context::UserContext* userContext,
                   ProofNodeManager* pnm);
 
@@ -494,9 +495,8 @@ class SatProofManager
 
   /** The SAT solver to which we are managing proofs */
   Minisat::Solver* d_solver;
-  /** A pointer to theory proxy.
-   * Used to access the CNF stream and its maps between nodes and literals. */
-  TheoryProxy* d_proxy;
+  /** Pointer to the underlying cnf stream. */
+  CnfStream* d_cnfStream;
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /** Resolution steps (links) accumulator for chain resolution.
