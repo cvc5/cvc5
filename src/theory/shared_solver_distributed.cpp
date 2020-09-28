@@ -26,7 +26,9 @@ SharedSolverDistributed::SharedSolverDistributed(TheoryEngine& te)
 
 bool SharedSolverDistributed::needsEqualityEngine(theory::EeSetupInfo& esi)
 {
-  return d_sharedTerms.needsEqualityEngine(esi);
+  esi.d_notify = &d_EENotify;
+  esi.d_name = "SharedTermsDatabase";
+  return true;
 }
 
 void SharedSolverDistributed::setEqualityEngine(eq::EqualityEngine* ee)
@@ -67,9 +69,8 @@ TrustNode SharedSolverDistributed::explain(TNode literal, TheoryId id)
   TrustNode texp;
   if (id == THEORY_BUILTIN)
   {
-    // explanation using the shared terms database
-    Node exp = d_sharedTerms.explain(literal);
-    texp = TrustNode::mkTrustPropExp(literal, exp, nullptr);
+    // explanation based on the specific solver
+    texp = d_sharedTerms.explain(literal);
     Trace("shared-solver")
         << "\tTerm was propagated by THEORY_BUILTIN. Explanation: "
         << texp.getNode() << std::endl;
@@ -77,6 +78,7 @@ TrustNode SharedSolverDistributed::explain(TNode literal, TheoryId id)
   else
   {
     // By default, we ask the individual theory for the explanation.
+    // It is possible that a centralized approach could preempt this.
     texp = d_te.theoryOf(id)->explain(literal);
     Trace("shared-solver") << "\tTerm was propagated by owner theory: " << id
                            << ". Explanation: " << texp.getNode() << std::endl;
