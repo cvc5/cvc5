@@ -26,9 +26,7 @@ SharedSolverDistributed::SharedSolverDistributed(TheoryEngine& te)
 
 bool SharedSolverDistributed::needsEqualityEngine(theory::EeSetupInfo& esi)
 {
-  esi.d_notify = &d_EENotify;
-  esi.d_name = "SharedTermsDatabase";
-  return true;
+  return d_sharedTerms.needsEqualityEngine(esi);
 }
 
 void SharedSolverDistributed::setEqualityEngine(eq::EqualityEngine* ee)
