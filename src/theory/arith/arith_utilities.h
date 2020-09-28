@@ -342,7 +342,7 @@ Rational leastIntGreaterThan(const Rational&);
 
 Rational greatestIntLessThan(const Rational&);
 
-// Negates a node in arithmetic proof normal form.
+/** Negates a node in arithmetic proof normal form. */
 Node negateProofLiteral(TNode n);
 
 }/* CVC4::theory::arith namespace */
