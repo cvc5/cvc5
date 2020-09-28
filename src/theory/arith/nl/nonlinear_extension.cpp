@@ -362,7 +362,8 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
   unsigned tdegree = d_trSlv.getTaylorDegree();
   std::vector<NlLemma> lemmas;
   bool ret = d_model.checkModel(passertions, tdegree, lemmas, gs);
-  for (const auto& al: lemmas) {
+  for (const auto& al: lemmas)
+  {
     d_im.addPendingArithLemma(al);
   }
   return ret;
