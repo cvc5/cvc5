@@ -39,7 +39,6 @@ class OutputManager;
 
 namespace prop {
 
-class PropEngine;
 class ProofCnfStream;
 
 /**
@@ -52,7 +51,6 @@ class ProofCnfStream;
  * substitute the new literal for the formula, and so on, recursively.
  */
 class CnfStream {
-  friend PropEngine;
   friend ProofCnfStream;
 
  public:
