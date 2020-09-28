@@ -1,35 +1,33 @@
 /*********************                                                        */
-/*! \file theory_bags_rewriter.cpp
+/*! \file bags_statistics.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Mudathir Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Bags theory rewriter.
+ ** \brief Statistics for the theory of bags
  **/
 
-#include "theory/bags/theory_bags_rewriter.h"
+#include "theory/bags/bags_statistics.h"
 
-using namespace CVC4::kind;
+#include "smt/smt_statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bags {
 
-RewriteResponse TheoryBagsRewriter::postRewrite(TNode node)
+BagsStatistics::BagsStatistics() : d_rewrites("theory::bags::rewrites")
 {
-  // TODO(projects#225): complete the code here
-  return RewriteResponse(REWRITE_DONE, node);
+  smtStatisticsRegistry()->registerStat(&d_rewrites);
 }
 
-RewriteResponse TheoryBagsRewriter::preRewrite(TNode node)
+BagsStatistics::~BagsStatistics()
 {
-  // TODO(projects#225): complete the code here
-  return RewriteResponse(REWRITE_DONE, node);
+  smtStatisticsRegistry()->unregisterStat(&d_rewrites);
 }
 
 }  // namespace bags

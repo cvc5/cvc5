@@ -2,7 +2,7 @@
 /*! \file sygus_grammar_cons.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
+ **   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -421,7 +421,25 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
     Node c = type.mkGroundTerm();
     ops.push_back(c);
   }
-  // TODO #1178 : add other missing types
+  else if (type.isRoundingMode())
+  {
+    ops.push_back(nm->mkConst(RoundingMode::roundNearestTiesToAway));
+    ops.push_back(nm->mkConst(RoundingMode::roundNearestTiesToEven));
+    ops.push_back(nm->mkConst(RoundingMode::roundTowardNegative));
+    ops.push_back(nm->mkConst(RoundingMode::roundTowardPositive));
+    ops.push_back(nm->mkConst(RoundingMode::roundTowardZero));
+  }
+  else if (type.isFloatingPoint())
+  {
+    FloatingPointType fp_type = static_cast<FloatingPointType>(type.toType());
+    FloatingPointSize fp_size(FloatingPointType(fp_type).getExponentSize(),
+                              FloatingPointType(fp_type).getSignificandSize());
+    ops.push_back(nm->mkConst(FloatingPoint::makeNaN(fp_size)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeInf(fp_size, true)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeInf(fp_size, false)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeZero(fp_size, true)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeZero(fp_size, false)));
+  }
 }
 
 void CegGrammarConstructor::collectSygusGrammarTypesFor(
@@ -471,6 +489,12 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor(
           collectSygusGrammarTypesFor(atypes[i], types);
         }
         collectSygusGrammarTypesFor(range.getRangeType(), types);
+      }
+      else if (range.isFloatingPoint())
+      {
+        // FP also includes RoundingMode type
+        TypeNode rmType = NodeManager::currentNM()->roundingModeType();
+        collectSygusGrammarTypesFor(rmType, types);
       }
     }
   }
@@ -773,7 +797,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     }
     else if (types[i].isBitVector())
     {
-      // unary apps
+      // unary ops
       std::vector<Kind> un_kinds = {BITVECTOR_NOT, BITVECTOR_NEG};
       std::vector<TypeNode> cargsUnary;
       cargsUnary.push_back(unres_t);
@@ -782,7 +806,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
         sdts[i].addConstructor(kind, cargsUnary);
       }
-      // binary apps
+      // binary ops
       std::vector<Kind> bin_kinds = {BITVECTOR_AND,
                                      BITVECTOR_OR,
                                      BITVECTOR_XOR,
@@ -803,6 +827,60 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       {
         Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
         sdts[i].addConstructor(kind, cargsBinary);
+      }
+    }
+    else if (types[i].isFloatingPoint())
+    {
+      // unary ops
+      std::vector<Kind> unary_kinds = {
+          FLOATINGPOINT_ABS,
+          FLOATINGPOINT_NEG,
+      };
+      std::vector<TypeNode> cargs = {unres_t};
+      for (const Kind kind : unary_kinds)
+      {
+        Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
+        sdts[i].addConstructor(kind, cargs);
+      }
+      // binary ops
+      {
+        const Kind kind = FLOATINGPOINT_REM;
+        cargs.push_back(unres_t);
+        Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
+        sdts[i].addConstructor(kind, cargs);
+      }
+      // binary ops with RM
+      std::vector<Kind> binary_rm_kinds = {
+          FLOATINGPOINT_SQRT,
+          FLOATINGPOINT_RTI,
+      };
+      TypeNode rmType = nm->roundingModeType();
+      Assert(std::find(types.begin(), types.end(), rmType) != types.end());
+      TypeNode unres_rm_t = type_to_unres[rmType];
+      std::vector<TypeNode> cargs_rm = {unres_rm_t, unres_t};
+      for (const Kind kind : binary_rm_kinds)
+      {
+        Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
+        sdts[i].addConstructor(kind, cargs_rm);
+      }
+      // ternary ops with RM
+      std::vector<Kind> ternary_rm_kinds = {
+          FLOATINGPOINT_PLUS,
+          FLOATINGPOINT_MULT,
+          FLOATINGPOINT_DIV,
+      };
+      cargs_rm.push_back(unres_t);
+      for (const Kind kind : ternary_rm_kinds)
+      {
+        Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
+        sdts[i].addConstructor(kind, cargs_rm);
+      }
+      // quaternary ops
+      {
+        cargs_rm.push_back(unres_t);
+        const Kind kind = FLOATINGPOINT_FMA;
+        Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
+        sdts[i].addConstructor(kind, cargs_rm);
       }
     }
     else if (types[i].isStringLike())
@@ -931,7 +1009,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         sdts[i].addConstructor(cop, dt[l].getName(), cargsCons);
       }
     }
-    else if (types[i].isSort() || types[i].isFunction())
+    else if (types[i].isSort() || types[i].isFunction()
+             || types[i].isRoundingMode())
     {
       // do nothing
     }
@@ -944,13 +1023,10 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
 
     if (sdts[i].d_sdt.getNumConstructors() == 0)
     {
-      // if there are no constructors yet by this point, we cannot make
-      // datatype, which can happen e.g. for unimplemented types
-      // that have no variables in the argument list of the
-      // function-to-synthesize.
-      std::stringstream ss;
-      ss << "Cannot make default grammar for " << types[i];
-      throw LogicException(ss.str());
+      // if there are not constructors yet by this point, which can happen,
+      // e.g. for unimplemented types that have no variables in the argument
+      // list of the function-to-synthesize, create a fresh ground term 
+      sdts[i].addConstructor(types[i].mkGroundTerm(), "", {});
     }
 
     // always add ITE
@@ -1291,6 +1367,28 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       else
       {
         cargs.push_back(unres_types[iuse]);
+        sdtBool.addConstructor(kind, cargs);
+      }
+    }
+    else if (types[i].isFloatingPoint())
+    {
+      Trace("sygus-grammar-def") << "...add FP predicates" << std::endl;
+      std::vector<Kind> fp_unary_predicates = {FLOATINGPOINT_ISN,
+                                               FLOATINGPOINT_ISSN,
+                                               FLOATINGPOINT_ISZ,
+                                               FLOATINGPOINT_ISINF,
+                                               FLOATINGPOINT_ISNAN,
+                                               FLOATINGPOINT_ISNEG,
+                                               FLOATINGPOINT_ISPOS};
+      for (const Kind kind : fp_unary_predicates)
+      {
+        sdtBool.addConstructor(kind, cargs);
+      }
+      std::vector<Kind> fp_binary_predicates = {FLOATINGPOINT_LEQ,
+                                                FLOATINGPOINT_LT};
+      cargs.push_back(unres_types[iuse]);
+      for (const Kind kind : fp_binary_predicates)
+      {
         sdtBool.addConstructor(kind, cargs);
       }
     }

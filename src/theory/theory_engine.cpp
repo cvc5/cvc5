@@ -176,6 +176,8 @@ void TheoryEngine::finishInit()
   // initialize the theory combination manager, which decides and allocates the
   // equality engines to use for all theories.
   d_tc->finishInit();
+  // get pointer to the shared solver
+  d_sharedSolver = d_tc->getSharedSolver();
 
   // set the core equality engine on quantifiers engine
   if (d_logicInfo.isQuantified())
@@ -238,13 +240,12 @@ TheoryEngine::TheoryEngine(context::Context* context,
                     d_pnm, nullptr, d_userContext, "TheoryEngine::LazyCDProof")
               : nullptr),
       d_tepg(new TheoryEngineProofGenerator(d_pnm, d_userContext)),
-      d_sharedTerms(this, context, userContext, d_pnm),
       d_tc(nullptr),
+      d_sharedSolver(nullptr),
       d_quantEngine(nullptr),
       d_decManager(new DecisionManager(userContext)),
       d_relManager(nullptr),
       d_preRegistrationVisitor(this, context),
-      d_sharedTermsVisitor(d_sharedTerms),
       d_eager_model_building(false),
       d_inConflict(context, false),
       d_inSatMode(false),
@@ -312,11 +313,6 @@ void TheoryEngine::preRegister(TNode preprocessed) {
       preprocessed = d_preregisterQueue.front();
       d_preregisterQueue.pop();
 
-      if (d_logicInfo.isSharingEnabled() && preprocessed.getKind() == kind::EQUAL) {
-        // When sharing is enabled, we propagate from the shared terms manager also
-        d_sharedTerms.addEqualityToPropagate(preprocessed);
-      }
-
       // the atom should not have free variables
       Debug("theory") << "TheoryEngine::preRegister: " << preprocessed
                       << std::endl;
@@ -358,11 +354,11 @@ void TheoryEngine::preRegister(TNode preprocessed) {
           }
         }
       }
-      if (multipleTheories) {
-        // Collect the shared terms if there are multiple theories
-        NodeVisitor<SharedTermsVisitor>::run(d_sharedTermsVisitor,
-                                             preprocessed);
-      }
+
+      // pre-register with the shared solver, which also handles
+      // calling prepregister on individual theories.
+      Assert(d_sharedSolver != nullptr);
+      d_sharedSolver->preRegisterShared(preprocessed, multipleTheories);
     }
 
     // Leaving pre-register
@@ -980,9 +976,8 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
                && assertion[0].getKind() == kind::EQUAL))
         << "atom should be an EQUALity, not `" << assertion << "'";
     if (markPropagation(assertion, originalAssertion, toTheoryId, fromTheoryId)) {
-      bool polarity = assertion.getKind() != kind::NOT;
-      TNode atom = polarity ? assertion : assertion[0];
-      d_sharedTerms.assertEquality(atom, polarity, assertion);
+      // assert to the shared solver
+      d_sharedSolver->assertSharedEquality(atom, polarity, assertion);
     }
     return;
   }
@@ -1075,23 +1070,7 @@ void TheoryEngine::assertFact(TNode literal)
 
   if (d_logicInfo.isSharingEnabled()) {
     // If any shared terms, it's time to do sharing work
-    if (d_sharedTerms.hasSharedTerms(atom)) {
-      // Notify the theories the shared terms
-      SharedTermsDatabase::shared_terms_iterator it = d_sharedTerms.begin(atom);
-      SharedTermsDatabase::shared_terms_iterator it_end = d_sharedTerms.end(atom);
-      for (; it != it_end; ++ it) {
-        TNode term = *it;
-        theory::TheoryIdSet theories =
-            d_sharedTerms.getTheoriesToNotify(atom, term);
-        for (TheoryId id = THEORY_FIRST; id != THEORY_LAST; ++ id) {
-          if (TheoryIdSetUtil::setContains(id, theories))
-          {
-            theoryOf(id)->addSharedTerm(term);
-          }
-        }
-        d_sharedTerms.markNotified(term, theories);
-      }
-    }
+    d_sharedSolver->preNotifySharedFact(atom);
 
     // If it's an equality, assert it to the shared term manager, even though the terms are not
     // yet shared. As the terms become shared later, the shared terms manager will then add them
@@ -1159,15 +1138,7 @@ const LogicInfo& TheoryEngine::getLogicInfo() const { return d_logicInfo; }
 
 theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b) {
   Assert(a.getType().isComparableTo(b.getType()));
-  if (d_sharedTerms.isShared(a) && d_sharedTerms.isShared(b)) {
-    if (d_sharedTerms.areEqual(a,b)) {
-      return EQUALITY_TRUE_AND_PROPAGATED;
-    }
-    else if (d_sharedTerms.areDisequal(a,b)) {
-      return EQUALITY_FALSE_AND_PROPAGATED;
-    }
-  }
-  return theoryOf(Theory::theoryOf(a.getType()))->getEqualityStatus(a, b);
+  return d_sharedSolver->getEqualityStatus(a, b);
 }
 
 Node TheoryEngine::getModelValue(TNode var) {
@@ -1176,7 +1147,7 @@ Node TheoryEngine::getModelValue(TNode var) {
     // the model value of a constant must be itself
     return var;
   }
-  Assert(d_sharedTerms.isShared(var));
+  Assert(d_sharedSolver->isShared(var));
   return theoryOf(Theory::theoryOf(var.getType()))->getModelValue(var);
 }
 
@@ -1829,22 +1800,7 @@ theory::TrustNode TheoryEngine::getExplanation(
       }
     }
     // It was produced by the theory, so ask for an explanation
-    TrustNode texplanation;
-    if (toExplain.d_theory == THEORY_BUILTIN)
-    {
-      texplanation = d_sharedTerms.explain(toExplain.d_node);
-      Debug("theory::explain")
-          << "\tTerm was propagated by THEORY_BUILTIN. Explanation: "
-          << texplanation.getNode() << std::endl;
-    }
-    else
-    {
-      texplanation = theoryOf(toExplain.d_theory)->explain(toExplain.d_node);
-      Debug("theory::explain")
-          << "\tTerm was propagated by owner theory: "
-          << theoryOf(toExplain.d_theory)->getId()
-          << ". Explanation: " << texplanation.getNode() << std::endl;
-    }
+    TrustNode texplanation = d_sharedSolver->explain(toExplain.d_node, toExplain.d_theory);
     if (lcp != nullptr)
     {
       texplanation.debugCheckClosed("te-proof-exp", "texplanation", false);

@@ -12,8 +12,9 @@
  ** \brief Normal form for bag constants.
  **/
 
-#include "cvc4_private.h"
 #include <expr/node.h>
+
+#include "cvc4_private.h"
 
 #ifndef CVC4__THEORY__BAGS__NORMAL_FORM_H
 #define CVC4__THEORY__BAGS__NORMAL_FORM_H
@@ -36,6 +37,14 @@ class NormalForm
    * Also handles the corner cases of empty bag and singleton bag.
    */
   static bool checkNormalConstant(TNode n);
+  /**
+   * check whether all children of the given node are in normal form
+   */
+  static bool AreChildrenConstants(TNode n);
+  /**
+   * evaluate the node n to a constant value
+   */
+  static Node evaluate(TNode n);
 };
 }  // namespace bags
 }  // namespace theory
