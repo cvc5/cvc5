@@ -18,18 +18,17 @@
 #include "options/smt_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/minisat/minisat.h"
-#include "prop/theory_proxy.h"
 #include "theory/theory_proof_step_buffer.h"
 
 namespace CVC4 {
 namespace prop {
 
 SatProofManager::SatProofManager(Minisat::Solver* solver,
-                                 CVC4::prop::TheoryProxy* proxy,
+                                 CnfStream* cnfStream,
                                  context::UserContext* userContext,
                                  ProofNodeManager* pnm)
     : d_solver(solver),
-      d_proxy(proxy),
+      d_cnfStream(cnfStream),
       d_pnm(pnm),
       d_resChains(pnm, true, userContext),
       d_resChainPg(userContext, pnm),
@@ -50,11 +49,11 @@ void SatProofManager::printClause(const Minisat::Clause& clause)
 
 Node SatProofManager::getClauseNode(SatLiteral satLit)
 {
-  Assert(d_proxy->getCnfStream()->getNodeCache().find(satLit)
-         != d_proxy->getCnfStream()->getNodeCache().end())
+  Assert(d_cnfStream->getNodeCache().find(satLit)
+         != d_cnfStream->getNodeCache().end())
       << "SatProofManager::getClauseNode: literal " << satLit
       << " undefined.\n";
-  return d_proxy->getCnfStream()->getNodeCache()[satLit];
+  return d_cnfStream->getNodeCache()[satLit];
 }
 
 Node SatProofManager::getClauseNode(const Minisat::Clause& clause)
@@ -63,11 +62,11 @@ Node SatProofManager::getClauseNode(const Minisat::Clause& clause)
   for (unsigned i = 0, size = clause.size(); i < size; ++i)
   {
     SatLiteral satLit = MinisatSatSolver::toSatLiteral(clause[i]);
-    Assert(d_proxy->getCnfStream()->getNodeCache().find(satLit)
-           != d_proxy->getCnfStream()->getNodeCache().end())
+    Assert(d_cnfStream->getNodeCache().find(satLit)
+           != d_cnfStream->getNodeCache().end())
         << "SatProofManager::getClauseNode: literal " << satLit
         << " undefined\n";
-    clauseNodes.push_back(d_proxy->getCnfStream()->getNodeCache()[satLit]);
+    clauseNodes.push_back(d_cnfStream->getNodeCache()[satLit]);
   }
   // order children by node id
   std::sort(clauseNodes.begin(), clauseNodes.end());
@@ -94,8 +93,8 @@ void SatProofManager::addResolutionStep(Minisat::Lit lit, bool redundant)
     Trace("sat-proof") << "SatProofManager::addResolutionStep: [" << satLit
                        << "] " << ~satLit << "\n";
     d_resLinks.push_back(
-        std::pair<Node, Node>(d_proxy->getCnfStream()->getNodeCache()[~satLit],
-                              d_proxy->getCnfStream()->getNodeCache()[satLit]));
+        std::pair<Node, Node>(d_cnfStream->getNodeCache()[~satLit],
+                              d_cnfStream->getNodeCache()[satLit]));
   }
   else
   {
@@ -113,8 +112,8 @@ void SatProofManager::addResolutionStep(const Minisat::Clause& clause,
   // in the second clause. Thus, we store its negation
   SatLiteral satLit = MinisatSatSolver::toSatLiteral(~lit);
   Node clauseNode = getClauseNode(clause);
-  d_resLinks.push_back(std::pair<Node, Node>(
-      clauseNode, d_proxy->getCnfStream()->getNodeCache()[satLit]));
+  d_resLinks.push_back(
+      std::pair<Node, Node>(clauseNode, d_cnfStream->getNodeCache()[satLit]));
   if (Trace.isOn("sat-proof"))
   {
     Trace("sat-proof") << "SatProofManager::addResolutionStep: [" << satLit
@@ -168,10 +167,9 @@ void SatProofManager::endResChain(Node conclusion,
     Trace("sat-proof") << "SatProofManager::endResChain:   ";
     if (i > 0)
     {
-      Trace("sat-proof") << "["
-                         << d_proxy->getCnfStream()
-                                ->getTranslationCache()[d_resLinks[i].second]
-                         << "] ";
+      Trace("sat-proof")
+          << "[" << d_cnfStream->getTranslationCache()[d_resLinks[i].second]
+          << "] ";
     }
     // special case for clause (or l1 ... ln) being a single literal
     // corresponding itself to a clause, which is indicated by the pivot being
@@ -186,8 +184,7 @@ void SatProofManager::endResChain(Node conclusion,
            ++j)
       {
         Trace("sat-proof")
-            << d_proxy->getCnfStream()
-                   ->getTranslationCache()[d_resLinks[i].first[j]];
+            << d_cnfStream->getTranslationCache()[d_resLinks[i].first[j]];
         if (j < sizeJ - 1)
         {
           Trace("sat-proof") << ", ";
@@ -196,14 +193,13 @@ void SatProofManager::endResChain(Node conclusion,
     }
     else
     {
-      Assert(d_proxy->getCnfStream()->getTranslationCache().find(
-                 d_resLinks[i].first)
-             != d_proxy->getCnfStream()->getTranslationCache().end())
+      Assert(d_cnfStream->getTranslationCache().find(d_resLinks[i].first)
+             != d_cnfStream->getTranslationCache().end())
           << "clause node " << d_resLinks[i].first
           << " treated as unit has no literal. Pivot is "
           << d_resLinks[i].second << "\n";
-      Trace("sat-proof") << d_proxy->getCnfStream()
-                                ->getTranslationCache()[d_resLinks[i].first];
+      Trace("sat-proof")
+          << d_cnfStream->getTranslationCache()[d_resLinks[i].first];
     }
     Trace("sat-proof") << " : ";
     if (i > 0)
@@ -287,10 +283,9 @@ void SatProofManager::processRedundantLit(
                        << "\n"
                        << pop;
     visited.insert(lit);
-    d_resLinks.insert(
-        d_resLinks.begin() + pos,
-        std::pair<Node, Node>(d_proxy->getCnfStream()->getNodeCache()[~lit],
-                              d_proxy->getCnfStream()->getNodeCache()[lit]));
+    d_resLinks.insert(d_resLinks.begin() + pos,
+                      std::pair<Node, Node>(d_cnfStream->getNodeCache()[~lit],
+                                            d_cnfStream->getNodeCache()[lit]));
     return;
   }
   Assert(reasonRef >= 0 && reasonRef < d_solver->ca.size())
@@ -326,8 +321,7 @@ void SatProofManager::processRedundantLit(
   Node clauseNode = getClauseNode(reason);
   d_resLinks.insert(
       d_resLinks.begin() + pos,
-      std::pair<Node, Node>(clauseNode,
-                            d_proxy->getCnfStream()->getNodeCache()[lit]));
+      std::pair<Node, Node>(clauseNode, d_cnfStream->getNodeCache()[lit]));
 }
 
 void SatProofManager::explainLit(
@@ -377,13 +371,13 @@ void SatProofManager::explainLit(
     std::unordered_set<TNode, TNodeHashFunction> childPremises;
     explainLit(~curr_lit, childPremises);
     // save to resolution chain premises / arguments
-    Assert(d_proxy->getCnfStream()->getNodeCache().find(curr_lit)
-           != d_proxy->getCnfStream()->getNodeCache().end());
-    children.push_back(d_proxy->getCnfStream()->getNodeCache()[~curr_lit]);
-    args.push_back(d_proxy->getCnfStream()->getNodeCache()[curr_lit]);
+    Assert(d_cnfStream->getNodeCache().find(curr_lit)
+           != d_cnfStream->getNodeCache().end());
+    children.push_back(d_cnfStream->getNodeCache()[~curr_lit]);
+    args.push_back(d_cnfStream->getNodeCache()[curr_lit]);
     // add child premises and the child itself
     premises.insert(childPremises.begin(), childPremises.end());
-    premises.insert(d_proxy->getCnfStream()->getNodeCache()[~curr_lit]);
+    premises.insert(d_cnfStream->getNodeCache()[~curr_lit]);
   }
   if (Trace.isOn("sat-proof"))
   {
@@ -442,8 +436,8 @@ void SatProofManager::finalizeProof(Node inConflictNode,
       {
         continue;
       }
-      auto it = d_proxy->getCnfStream()->getTranslationCache().find(link.first);
-      if (it != d_proxy->getCnfStream()->getTranslationCache().end())
+      auto it = d_cnfStream->getTranslationCache().find(link.first);
+      if (it != d_cnfStream->getTranslationCache().end())
       {
         Trace("sat-proof-debug2")
             << "SatProofManager::finalizeProof:  " << it->second;
@@ -460,8 +454,8 @@ void SatProofManager::finalizeProof(Node inConflictNode,
         Assert(link.first.getKind() == kind::OR) << link.first;
         for (const Node& n : link.first)
         {
-          it = d_proxy->getCnfStream()->getTranslationCache().find(n);
-          Assert(it != d_proxy->getCnfStream()->getTranslationCache().end());
+          it = d_cnfStream->getTranslationCache().find(n);
+          Assert(it != d_cnfStream->getTranslationCache().end());
           Trace("sat-proof-debug2") << it->second << " ";
         }
       }
@@ -490,8 +484,8 @@ void SatProofManager::finalizeProof(Node inConflictNode,
       for (const Node& fa : fassumps)
       {
         Trace("sat-proof-debug2") << "SatProofManager::finalizeProof:   - ";
-        it = d_proxy->getCnfStream()->getTranslationCache().find(fa);
-        if (it != d_proxy->getCnfStream()->getTranslationCache().end())
+        it = d_cnfStream->getTranslationCache().find(fa);
+        if (it != d_cnfStream->getTranslationCache().end())
         {
           Trace("sat-proof-debug2") << it->second << "\n";
           continue;
@@ -500,8 +494,8 @@ void SatProofManager::finalizeProof(Node inConflictNode,
         Assert(fa.getKind() == kind::OR);
         for (const Node& n : fa)
         {
-          it = d_proxy->getCnfStream()->getTranslationCache().find(n);
-          Assert(it != d_proxy->getCnfStream()->getTranslationCache().end());
+          it = d_cnfStream->getTranslationCache().find(n);
+          Assert(it != d_cnfStream->getTranslationCache().end());
           Trace("sat-proof-debug2") << it->second << " ";
         }
         Trace("sat-proof-debug2") << "\n";
@@ -522,15 +516,14 @@ void SatProofManager::finalizeProof(Node inConflictNode,
   std::unordered_set<TNode, TNodeHashFunction> premises;
   for (unsigned i = 0, size = inConflict.size(); i < size; ++i)
   {
-    Assert(d_proxy->getCnfStream()->getNodeCache().find(inConflict[i])
-           != d_proxy->getCnfStream()->getNodeCache().end());
+    Assert(d_cnfStream->getNodeCache().find(inConflict[i])
+           != d_cnfStream->getNodeCache().end());
     std::unordered_set<TNode, TNodeHashFunction> childPremises;
     explainLit(~inConflict[i], childPremises);
-    Node negatedLitNode =
-        d_proxy->getCnfStream()->getNodeCache()[~inConflict[i]];
+    Node negatedLitNode = d_cnfStream->getNodeCache()[~inConflict[i]];
     // save to resolution chain premises / arguments
     children.push_back(negatedLitNode);
-    args.push_back(d_proxy->getCnfStream()->getNodeCache()[inConflict[i]]);
+    args.push_back(d_cnfStream->getNodeCache()[inConflict[i]]);
     // add child premises and the child itself
     premises.insert(childPremises.begin(), childPremises.end());
     premises.insert(negatedLitNode);
@@ -572,8 +565,8 @@ void SatProofManager::finalizeProof(Node inConflictNode,
       for (const Node& fa : fassumps)
       {
         Trace("sat-proof") << "- ";
-        auto it = d_proxy->getCnfStream()->getTranslationCache().find(fa);
-        if (it != d_proxy->getCnfStream()->getTranslationCache().end())
+        auto it = d_cnfStream->getTranslationCache().find(fa);
+        if (it != d_cnfStream->getTranslationCache().end())
         {
           Trace("sat-proof") << it->second << "\n";
           Trace("sat-proof") << "- " << fa << "\n";
@@ -583,8 +576,8 @@ void SatProofManager::finalizeProof(Node inConflictNode,
         Assert(fa.getKind() == kind::OR);
         for (const Node& n : fa)
         {
-          it = d_proxy->getCnfStream()->getTranslationCache().find(n);
-          Assert(it != d_proxy->getCnfStream()->getTranslationCache().end());
+          it = d_cnfStream->getTranslationCache().find(n);
+          Assert(it != d_cnfStream->getTranslationCache().end());
           Trace("sat-proof") << it->second << " ";
         }
         Trace("sat-proof") << "\n";
@@ -613,8 +606,8 @@ void SatProofManager::finalizeProof(Node inConflictNode,
         continue;
       }
       // ignore non-literals
-      auto it = d_proxy->getCnfStream()->getTranslationCache().find(fa);
-      if (it == d_proxy->getCnfStream()->getTranslationCache().end())
+      auto it = d_cnfStream->getTranslationCache().find(fa);
+      if (it == d_cnfStream->getTranslationCache().end())
       {
         Trace("sat-proof") << "no lit assumption " << fa << "\n";
         premises.insert(fa);

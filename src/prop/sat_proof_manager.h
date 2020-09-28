@@ -25,6 +25,7 @@
 #include "expr/proof.h"
 #include "expr/proof_node_manager.h"
 #include "prop/minisat/core/SolverTypes.h"
+#include "prop/cnf_stream.h"
 #include "prop/sat_solver_types.h"
 
 namespace Minisat {
@@ -38,11 +39,14 @@ namespace prop {
  * This class is responsible for managing the proof production of the SAT
  * solver. It tracks resolutions produced during solving and stores them,
  * independently, with the connection of the resolutions only made when the
- * empty clause is produced and the refutation is complete. These resolutions
- * are stored in a LazyCDProofChain, a user-context-dependent proof that takes
- * lazy steps and can connect them when generating a proof for a given fact. Its
- * use in this proof manager is so that, assuming the following lazy steps are
- * saved in the LazyCDProofChain:
+ * empty clause is produced and the refutation is complete. The expected
+ * assumptions of the refutation are the clausified preprocessed assertions and
+ * lemmas.
+ *
+ * These resolutions are stored in a LazyCDProofChain, a user-context-dependent
+ * proof that takes lazy steps and can connect them when generating a proof for
+ * a given fact. Its use in this proof manager is so that, assuming the
+ * following lazy steps are saved in the LazyCDProofChain:
  *
  * --- S0: (l4,          PG0)
  * --- S1: ((or l3 l4),  PG1)
@@ -249,16 +253,31 @@ namespace prop {
  *
  * which has no more explainable literals as leaves.
  *
+ * The interfaces below provide ways for the SAT solver to register its
+ * assumptions (clausified assertions and lemmas) for the SAT proof
+ * (registerSatAssumption), register resolution steps (startResChain /
+ * addResolutionStep / endResChain), build the final refutation proof
+ * (finalizeProof) and retrieve the refutation proof (getProof). So in a given
+ * run of the SAT solver these interfaces are expected to be used in the
+ * following order:
+ *
+ * (registerSatAssumptions | (startResChain (addResolutionStep)+ endResChain)*)*
+ * finalizeProof
+ * getProof
+ *
  */
 class SatProofManager
 {
  public:
   SatProofManager(Minisat::Solver* solver,
-                  TheoryProxy* proxy,
+                  CnfStream* cnfStream,
                   context::UserContext* userContext,
                   ProofNodeManager* pnm);
 
   /** Marks the start of a resolution chain.
+   *
+   * This call is followed by *at least one* call to addResolution step and one
+   * call to endResChain.
    *
    * The given clause, at the node level, is registered in d_resLinks with a
    * null pivot, since this is the first link in the chain.
@@ -269,6 +288,10 @@ class SatProofManager
   void startResChain(const Minisat::Clause& start);
   /** Adds a resolution step with a clause
    *
+   * There must have been a call to startResChain before any call to
+   * addResolution step. After following calls to addResolution step there is
+   * one call to endResChain.
+   *
    * The resolution step is added to d_resLinks with the clause, at the node
    * level, and the literal, at the node level, as the pivot.
    *
@@ -278,8 +301,8 @@ class SatProofManager
   void addResolutionStep(const Minisat::Clause& clause, Minisat::Lit lit);
   /** Adds a resolution step with a unit clause
    *
-   * The resolution step is added to d_resLinks such that lit, at the node level, is the pivot and
-   * and the unit clause is ~lit, at the node level.
+   * The resolution step is added to d_resLinks such that lit, at the node
+   * level, is the pivot and and the unit clause is ~lit, at the node level.
    *
    * If the literal is marked as redundant, then a step is *not* is added to
    * d_resLinks. It is rather saved to d_redundandLits, whose components we will
@@ -293,6 +316,9 @@ class SatProofManager
   void addResolutionStep(Minisat::Lit lit, bool redundant = false);
   /** Ends resolution chain concluding a unit clause
    *
+   * This call must have been preceded by one call to startResChain and at least
+   * one call to addResolutionStep.
+   *
    * This and the version below both call the node version of this method,
    * described further below, which actually does the necessary processing.
    */
@@ -300,6 +326,9 @@ class SatProofManager
   /** Ends resolution chain concluding a clause */
   void endResChain(const Minisat::Clause& clause);
   /** Build refutation proof starting from conflict clause
+   *
+   * This method (or its variations) is only called when the SAT solver has
+   * reached an unsatisfiable state.
    *
    * This and the versions below call the node version of this method, described
    * further below, which actually does the necessary processing.
@@ -319,8 +348,8 @@ class SatProofManager
 
   /** Retrive the refutation proof
    *
-   * If there is no chain for false in d_resChains, an assumption proof node is
-   * produced.
+   * If there is no chain for false in d_resChains, meaning that this call was
+   * made before finalizeProof, an assumption proof node is produced.
    */
   std::shared_ptr<ProofNode> getProof();
 
@@ -494,9 +523,8 @@ class SatProofManager
 
   /** The SAT solver to which we are managing proofs */
   Minisat::Solver* d_solver;
-  /** A pointer to theory proxy.
-   * Used to access the CNF stream and its maps between nodes and literals. */
-  TheoryProxy* d_proxy;
+  /** Pointer to the underlying cnf stream. */
+  CnfStream* d_cnfStream;
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /** Resolution steps (links) accumulator for chain resolution.
@@ -531,7 +559,7 @@ class SatProofManager
   /** The false node */
   Node d_false;
 
-  /** All clauses added to the SAT solver, kept in a context-dependend manner.
+  /** All clauses added to the SAT solver, kept in a context-dependent manner.
    */
   context::CDHashSet<Node, NodeHashFunction> d_assumptions;
 
