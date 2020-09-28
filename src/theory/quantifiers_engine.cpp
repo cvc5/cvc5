@@ -370,6 +370,9 @@ void QuantifiersEngine::ppNotifyAssertions(
       sye->preregisterAssertion(a);
     }
   }
+  /* The SyGuS instantiation module needs a global view of all available
+   * assertions to collect global terms that get added to each grammar.
+   */
   if (options::sygusInst())
   {
     quantifiers::SygusInst* si = d_qmodules->d_sygus_inst.get();

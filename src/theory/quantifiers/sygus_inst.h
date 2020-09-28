@@ -82,6 +82,7 @@ class SygusInst : public QuantifiersModule
   /* Called once for every quantifier 'q' per context. */
   void preRegisterQuantifier(Node q) override;
 
+  /* For collecting global terms from all available assertions. */
   void ppNotifyAssertions(const std::vector<Node>& assertions);
 
   std::string identify() const override { return "SygusInst"; }

@@ -138,31 +138,25 @@ bool SygusInst::checkCompleteFor(Node q)
   return d_inactive_quant.find(q) != d_inactive_quant.end();
 }
 
-// TODO
-//
-// scope of terms
-//  (1) inside of quantifier body
-//  (2) outside of quantifier body
-//
-// granularity of ground terms
-//  (3) minimal (leafs)
-//  (4) maximal (top-most ground terms)
-//
-//
-// We are currently using (1)+(3), where (3) collects the symbols of a
-// quantifier.
-//
-// TODO
-//
-// - inside/maximal: (1)+(4)
-// - outside/minimal: (2)+(3)
-//
-
+/*
+ * Find maximal ground terms in node n.
+ * Note: We do not collect Boolean ground terms since this would always cut off
+ * other non-Boolean terms.
+ *
+ * @param: stop_at_quant: Do not traverse down quantifiers.
+ */
 static void getMaxGroundTerms(
     TNode n,
     std::unordered_set<Node, NodeHashFunction>& terms,
-    std::unordered_set<TNode, TNodeHashFunction> cache = {})
+    std::unordered_set<TNode, TNodeHashFunction>& cache,
+    bool stop_at_quant = false)
 {
+  if (options::sygusInstGranularity() != options::SygusInstGranularity::MAXIMAL
+      && options::sygusInstGranularity() != options::SygusInstGranularity::BOTH)
+  {
+    return;
+  }
+
   Node cur;
   std::vector<TNode> visit;
 
@@ -176,10 +170,14 @@ static void getMaxGroundTerms(
     {
       continue;
     }
+    cache.insert(cur);
 
     if (expr::hasBoundVar(cur) || cur.getType().isBoolean())
     {
-      visit.insert(visit.end(), cur.begin(), cur.end());
+      if (!stop_at_quant || cur.getKind() != kind::FORALL)
+      {
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
     }
     else
     {
@@ -188,10 +186,50 @@ static void getMaxGroundTerms(
   } while (!visit.empty());
 }
 
-static void getMinGroundTerms(Node n,
-                              std::unordered_set<Node, NodeHashFunction>& terms)
+/*
+ * Find minimal ground terms in node n, i.e., all symbols.
+ *
+ * @param: stop_at_quant: Do not traverse down quantifiers.
+ */
+static void getMinGroundTerms(
+    Node n,
+    std::unordered_set<Node, NodeHashFunction>& terms,
+    std::unordered_set<TNode, TNodeHashFunction>& cache,
+    bool stop_at_quant = false)
 {
-  expr::getSymbols(n, terms);
+  if (options::sygusInstGranularity() != options::SygusInstGranularity::MINIMAL
+      && options::sygusInstGranularity() != options::SygusInstGranularity::BOTH)
+  {
+    return;
+  }
+
+  Node cur;
+  std::vector<TNode> visit;
+
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+
+    if (cache.find(cur) != cache.end())
+    {
+      continue;
+    }
+    cache.insert(cur);
+
+    if (cur.isVar() && cur.getKind() != kind::BOUND_VARIABLE)
+    {
+      terms.insert(cur);
+    }
+    else
+    {
+      if (!stop_at_quant || cur.getKind() != kind::FORALL)
+      {
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
+    }
+  } while (!visit.empty());
 }
 
 void SygusInst::registerQuantifier(Node q)
@@ -217,22 +255,12 @@ void SygusInst::registerQuantifier(Node q)
   if (options::sygusInstScope() == options::SygusInstScope::INSIDE
       || options::sygusInstScope() == options::SygusInstScope::BOTH)
   {
-    std::unordered_set<Node, NodeHashFunction> syms;
-    if (options::sygusInstGranularity()
-            == options::SygusInstGranularity::MAXIMAL
-        || options::sygusInstGranularity()
-               == options::SygusInstGranularity::BOTH)
-    {
-      getMaxGroundTerms(q, syms);
-    }
-    if (options::sygusInstGranularity()
-            == options::SygusInstGranularity::MINIMAL
-        || options::sygusInstGranularity()
-               == options::SygusInstGranularity::BOTH)
-    {
-      getMinGroundTerms(q, syms);
-    }
-    for (const TNode& var : syms)
+    std::unordered_set<Node, NodeHashFunction> terms;
+    std::unordered_set<TNode, TNodeHashFunction> cache_min, cache_max;
+    getMinGroundTerms(q, terms, cache_min);
+    getMaxGroundTerms(q, terms, cache_max);
+
+    for (const Node& var : terms)
     {
       TypeNode tn = var.getType();
       extra_cons[tn].insert(var);
@@ -278,23 +306,11 @@ void SygusInst::ppNotifyAssertions(const std::vector<Node>& assertions)
     return;
   }
 
-  std::unordered_set<TNode, TNodeHashFunction> cache;
+  std::unordered_set<TNode, TNodeHashFunction> cache_min, cache_max;
   for (const Node& n : assertions)
   {
-    if (options::sygusInstGranularity()
-            == options::SygusInstGranularity::MAXIMAL
-        || options::sygusInstGranularity()
-               == options::SygusInstGranularity::BOTH)
-    {
-      getMaxGroundTerms(n, d_global_terms, cache);
-    }
-    if (options::sygusInstGranularity()
-            == options::SygusInstGranularity::MINIMAL
-        || options::sygusInstGranularity()
-               == options::SygusInstGranularity::BOTH)
-    {
-      getMinGroundTerms(n, d_global_terms);
-    }
+    getMinGroundTerms(n, d_global_terms, cache_min, true);
+    getMaxGroundTerms(n, d_global_terms, cache_max, true);
   }
 
   if (Trace.isOn("sygus-inst"))
