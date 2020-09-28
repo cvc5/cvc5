@@ -24,11 +24,15 @@
 #include "context/cdo.h"
 #include "context/cdtrail_queue.h"
 #include "context/context.h"
+#include "expr/proof_node_manager.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/constraint_forward.h"
 #include "theory/arith/partial_model.h"
+#include "theory/eager_proof_generator.h"
 #include "theory/ee_setup_info.h"
+#include "theory/trust_node.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/uf/proof_equality_engine.h"
 #include "util/dense_map.h"
 #include "util/statistics_registry.h"
 
@@ -96,10 +100,46 @@ private:
 
   /** The equality engine being used by this class */
   eq::EqualityEngine* d_ee;
+  /** The sat context */
+  context::Context* d_satContext;
+  /** The user context */
+  context::UserContext* d_userContext;
+
+  /** proof manager */
+  ProofNodeManager* d_pnm;
+  /** A proof generator for storing proofs of facts that are asserted to the EQ
+   * engine. Note that these proofs **are not closed**, and assume the
+   * explanation of these facts. This is why this generator is separate from the
+   * TheoryArithPrivate generator, which stores closed proofs.
+   */
+  std::unique_ptr<EagerProofGenerator> d_pfGenEe;
+  /** A proof generator for TrustNodes sent to TheoryArithPrivate.
+   *
+   * When TheoryArithPrivate requests an explanation from
+   * ArithCongruenceManager, it can request a TrustNode for that explanation.
+   * This proof generator is the one used in that TrustNode: it stores the
+   * (closed) proofs of implications proved by the
+   * ArithCongruenceManager/EqualityEngine.
+   *
+   * It is insufficient to just use the ProofGenerator from the ProofEqEngine,
+   * since sometimes the ArithCongruenceManager needs to add some
+   * arith-specific reasoning to extend the proof (e.g. rewriting the result
+   * into a normal form).
+   * */
+  std::unique_ptr<EagerProofGenerator> d_pfGenExplain;
+
+  /** Pointer to the proof equality engine of TheoryArith */
+  theory::eq::ProofEqEngine* d_pfee;
+
 
   void raiseConflict(Node conflict);
-public:
+  /**
+   * Are proofs enabled? This is true if a non-null proof manager was provided
+   * to the constructor of this class.
+   */
+  bool isProofEnabled() const;
 
+ public:
   bool inConflict() const;
 
   bool hasMorePropagations() const;
@@ -133,7 +173,14 @@ private:
   Node explainInternal(TNode internal);
 public:
 
-  ArithCongruenceManager(context::Context* satContext, ConstraintDatabase&, SetupLiteralCallBack, const ArithVariables&, RaiseEqualityEngineConflict raiseConflict);
+ public:
+  ArithCongruenceManager(context::Context* satContext,
+                         context::UserContext* u,
+                         ConstraintDatabase&,
+                         SetupLiteralCallBack,
+                         const ArithVariables&,
+                         RaiseEqualityEngineConflict raiseConflict,
+                         ProofNodeManager* pnm);
   ~ArithCongruenceManager();
 
   //--------------------------------- initialization
@@ -144,9 +191,9 @@ public:
   bool needsEqualityEngine(EeSetupInfo& esi);
   /**
    * Finish initialize. This class is instructed by TheoryArithPrivate to use
-   * the equality engine ee.
+   * the equality engine ee and proof equality engine pfee.
    */
-  void finishInit(eq::EqualityEngine* ee);
+  void finishInit(eq::EqualityEngine* ee, eq::ProofEqEngine* pfee);
   //--------------------------------- end initialization
 
   Node explain(TNode literal);
