@@ -404,18 +404,22 @@ libcvc4_add_sources(
   theory/assertion.h
   theory/atom_requests.cpp
   theory/atom_requests.h
+  theory/bags/bags_rewriter.cpp
+  theory/bags/bags_rewriter.h
+  theory/bags/bags_statistics.cpp
+  theory/bags/bags_statistics.h
   theory/bags/inference_manager.cpp
   theory/bags/inference_manager.h
   theory/bags/normal_form.cpp
   theory/bags/normal_form.h
+  theory/bags/rewrites.cpp
+  theory/bags/rewrites.h
   theory/bags/solver_state.cpp
   theory/bags/solver_state.h
   theory/bags/term_registry.cpp
   theory/bags/term_registry.h
   theory/bags/theory_bags.cpp
   theory/bags/theory_bags.h
-  theory/bags/theory_bags_rewriter.cpp
-  theory/bags/theory_bags_rewriter.h
   theory/bags/theory_bags_type_enumerator.cpp
   theory/bags/theory_bags_type_enumerator.h
   theory/bags/theory_bags_type_rules.h
