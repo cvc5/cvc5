@@ -184,13 +184,19 @@ void SynthEngine::assignConjecture(Node q)
       for (unsigned i = 0, size = all_vars.size(); i < size; i++)
       {
         Node v = all_vars[i];
-        if (std::find(si_vars.begin(), si_vars.end(), v) == si_vars.end())
+        if (std::find(funcs0.begin(), funcs0.end(), v) != funcs0.end())
+        {
+          Trace("cegqi-qep") << "- fun var: " << v << std::endl;
+        }
+        else if (std::find(si_vars.begin(), si_vars.end(), v) == si_vars.end())
         {
           qe_vars.push_back(v);
+          Trace("cegqi-qep") << "- qe var: " << v << std::endl;
         }
         else
         {
           nqe_vars.push_back(v);
+          Trace("cegqi-qep") << "- non qe var: " << v << std::endl;
         }
       }
       std::vector<Node> orig;
@@ -304,8 +310,6 @@ void SynthEngine::registerQuantifier(Node q)
 
 bool SynthEngine::checkConjecture(SynthConjecture* conj)
 {
-  Node q = conj->getEmbeddedConjecture();
-  Node aq = conj->getConjecture();
   if (Trace.isOn("sygus-engine-debug"))
   {
     conj->debugPrint("sygus-engine-debug");
@@ -340,46 +344,14 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
           << "  ...check for counterexample." << std::endl;
       return true;
     }
-    else
+    if (!conj->needsRefinement())
     {
-      if (conj->needsRefinement())
-      {
-        // immediately go to refine candidate
-        return checkConjecture(conj);
-      }
+      return ret;
     }
-    return ret;
+    // otherwise, immediately go to refine candidate
   }
-  else
-  {
-    Trace("sygus-engine-debug")
-        << "  *** Refine candidate phase..." << std::endl;
-    std::vector<Node> rlems;
-    conj->doRefine(rlems);
-    bool addedLemma = false;
-    for (unsigned i = 0; i < rlems.size(); i++)
-    {
-      Node lem = rlems[i];
-      Trace("cegqi-lemma") << "Cegqi::Lemma : candidate refinement : " << lem
-                           << std::endl;
-      bool res = d_quantEngine->addLemma(lem);
-      if (res)
-      {
-        ++(d_statistics.d_cegqi_lemmas_refine);
-        conj->incrementRefineCount();
-        addedLemma = true;
-      }
-      else
-      {
-        Trace("cegqi-warn") << "  ...FAILED to add refinement!" << std::endl;
-      }
-    }
-    if (addedLemma)
-    {
-      Trace("sygus-engine-debug") << "  ...refine candidate." << std::endl;
-    }
-  }
-  return true;
+  Trace("sygus-engine-debug") << "  *** Refine candidate phase..." << std::endl;
+  return conj->doRefine();
 }
 
 void SynthEngine::printSynthSolution(std::ostream& out)

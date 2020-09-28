@@ -25,7 +25,7 @@ namespace theory {
 InferenceManagerBuffered::InferenceManagerBuffered(Theory& t,
                                                    TheoryState& state,
                                                    ProofNodeManager* pnm)
-    : TheoryInferenceManager(t, state, pnm)
+    : TheoryInferenceManager(t, state, pnm), d_processingPendingLemmas(false)
 {
 }
 
@@ -94,12 +94,19 @@ void InferenceManagerBuffered::doPendingFacts()
 
 void InferenceManagerBuffered::doPendingLemmas()
 {
+  if (d_processingPendingLemmas)
+  {
+    // already processing
+    return;
+  }
+  d_processingPendingLemmas = true;
   for (const std::unique_ptr<TheoryInference>& plem : d_pendingLem)
   {
     // process this lemma
     plem->process(this, true);
   }
   d_pendingLem.clear();
+  d_processingPendingLemmas = false;
 }
 
 void InferenceManagerBuffered::doPendingPhaseRequirements()

@@ -180,7 +180,8 @@ void SolverBlack::testRecoverableException()
   d_solver->setOption("produce-models", "true");
   Term x = d_solver->mkConst(d_solver->getBooleanSort(), "x");
   d_solver->assertFormula(x.eqTerm(x).notTerm());
-  TS_ASSERT_THROWS(d_solver->printModel(std::cout), CVC4ApiRecoverableException&);
+  TS_ASSERT_THROWS(d_solver->printModel(std::cout),
+                   CVC4ApiRecoverableException&);
 }
 
 void SolverBlack::testSupportsFloatingPoint()
