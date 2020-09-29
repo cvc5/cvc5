@@ -5,7 +5,7 @@
  **   Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -28,7 +28,12 @@ PropPfManager::PropPfManager(context::UserContext* userContext,
       d_satPM(satPM),
       d_assertions(userContext)
 {
-  // add trivial assumption
+  // add trivial assumption. This is so that we can check the that the prop
+  // engine's proof is closed, as the SAT solver's refutation proof may use True
+  // as an assumption even when True is not given as an assumption. An example
+  // is when a propagated literal has an empty explanation (i.e., it is a valid
+  // literal), which leads to adding True as its explanation, since for creating
+  // a learned clause we need at least two literals.
   d_assertions.push_back(NodeManager::currentNM()->mkConst(true));
 }
 
@@ -45,7 +50,7 @@ void PropPfManager::checkProof(context::CDList<Node>* assertions)
   Assert(conflictProof);
   // connect it with CNF proof
   d_pfpp->process(conflictProof);
-  // convert to vector
+  // add given assertions d_assertions
   for (const Node& assertion : *assertions)
   {
     d_assertions.push_back(assertion);
@@ -57,7 +62,7 @@ void PropPfManager::checkProof(context::CDList<Node>* assertions)
 
 std::shared_ptr<ProofNode> PropPfManager::getProof()
 {
-  // retrieve the propositional conflict proof
+  // retrieve the SAT solver's refutation proof
   Trace("sat-proof")
       << "PropPfManager::getProof: Getting resolution proof of false\n";
   std::shared_ptr<ProofNode> conflictProof = d_satPM->getProof();
@@ -97,16 +102,6 @@ std::shared_ptr<ProofNode> PropPfManager::getProof()
     Trace("sat-proof-debug")
         << "PropPfManager::getProof: proof is " << *conflictProof.get() << "\n";
   }
-  // in incremental mode the connection with preprocessing will modify this
-  // proof node assumptions, which in future unsat cases would have the
-  // consequence that this proof node has as assumptions not the preprocessed
-  // assertions but its expansions, which can break the connection in the SMT
-  // proof, let alone the above closedeness check. So for now when in
-  // incremental we copy the proof node
-  // if (options::incrementalSolving())
-  // {
-  //   return conflictProof->clone();
-  // }
   return conflictProof;
 }
 
