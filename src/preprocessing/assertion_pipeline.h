@@ -71,7 +71,7 @@ class AssertionPipeline
                  ProofGenerator* pg = nullptr);
   /** Same as above, with TrustNode */
   void pushBackTrusted(theory::TrustNode trn);
-  
+
   /** TODO (projects #75): remove this */
   std::vector<Node>& ref() { return d_nodes; }
 
