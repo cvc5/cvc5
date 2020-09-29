@@ -75,6 +75,8 @@ class PreprocessProofGenerator : public ProofGenerator
    * remains alive in this user context. This feature is used to construct
    * helper proofs for preprocessing, e.g. to support the skeleton of proofs
    * that connect AssertionPipeline::conjoin steps.
+   *
+   * Internally, this adds a LazyCDProof to the list d_helperProofs below.
    */
   LazyCDProof* allocateHelperProof();
 
@@ -91,7 +93,7 @@ class PreprocessProofGenerator : public ProofGenerator
    */
   NodeTrustNodeMap d_src;
   /** A context-dependent list of LazyCDProof, allocated for conjoin steps */
-  LazyCDProofList d_helperProofs;
+  context::CDList<std::shared_ptr<LazyCDProof> > d_helperProofs;
 };
 
 }  // namespace smt

@@ -30,6 +30,9 @@ namespace prop {
 /**
  * This class is responsible for managing the proof output of PropEngine, both
  * building and checking it.
+ *
+ * The expected proof to be built is a refutation proof with preprocessed
+ * assertions as free assumptions.
  */
 class PropPfManager
 {
@@ -39,7 +42,11 @@ class PropPfManager
                 SatProofManager* satPM,
                 ProofCnfStream* cnfProof);
 
-  /** Saves assertion for later checking whether refutation proof is closed. */
+  /** Saves assertion for later checking whether refutation proof is closed.
+   *
+   * The assertions registered via this interface are preprocessed assertions
+   * from SMT engine as they are asserted to the prop engine.
+   */
   void registerAssertion(Node assertion);
   /**
    * Generates the prop engine proof: a proof of false resulting from the
@@ -54,7 +61,15 @@ class PropPfManager
 
   /**
    * Checks that the prop engine proof is closed w.r.t. the given assertions and
-   * previously registered assertions in d_assertions. */
+   * previously registered assertions in d_assertions.
+   *
+   * A common use of other assertions on top of the ones already registered on
+   * d_assertions is checking closedness w.r.t. preprocessed *and* input
+   * assertions. This is necessary if a prop engine's proof is modified
+   * externally (which can happen, for example, when connecting the prop
+   * engine's proof with the preprocessing proof) and these changes survive for
+   * a next check-sat call.
+   */
   void checkProof(context::CDList<Node>* assertions);
 
  private:
@@ -66,8 +81,10 @@ class PropPfManager
    * The SAT solver's proof manager, which will provide a refutation
    * proofresolution proof when requested */
   SatProofManager* d_satPM;
-  /**
-   * Assertions that should correspond to the leaves of the prop engine's proof.
+  /** Assertions corresponding to the leaves of the prop engine's proof.
+   *
+   * These are kept in a context-dependent manner since the prop engine's proof
+   * is also kept in a context-dependent manner.
    */
   context::CDList<Node> d_assertions;
 }; /* class PropPfManager */

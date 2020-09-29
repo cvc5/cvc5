@@ -31,8 +31,7 @@ void PreprocessProofGenerator::notifyNewAssert(Node n, ProofGenerator* pg)
 {
   Trace("smt-proof-pp-debug")
       << "PreprocessProofGenerator::notifyNewAssert: " << n << std::endl;
-  NodeTrustNodeMap::iterator it = d_src.find(n);
-  if (it == d_src.end())
+  if (d_src.find(n) == d_src.end())
   {
     d_src[n] = theory::TrustNode::mkTrustLemma(n, pg);
   }
@@ -52,8 +51,7 @@ void PreprocessProofGenerator::notifyPreprocessed(Node n,
     Trace("smt-proof-pp-debug")
         << "PreprocessProofGenerator::notifyPreprocessed: " << n << "..." << np
         << std::endl;
-    NodeTrustNodeMap::iterator it = d_src.find(np);
-    if (it == d_src.end())
+    if (d_src.find(np) == d_src.end())
     {
       d_src[np] = theory::TrustNode::mkTrustRewrite(n, np, pg);
     }
@@ -81,6 +79,9 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
   std::vector<Node> transChildren;
   std::unordered_set<Node, NodeHashFunction> processed;
   bool success;
+  // we connect the proof of f to its source via the map d_src until we
+  // discover that its source is a preprocessing lemma (a lemma stored in d_src)
+  // or otherwise it is assumed to be an input assumption.
   do
   {
     success = false;
