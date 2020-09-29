@@ -128,6 +128,7 @@ class SygusInst : public QuantifiersModule
    * formula in the current context. */
   context::CDHashSet<Node, NodeHashFunction> d_ce_lemma_added;
 
+  /* Set of global ground terms in assertions (outside of quantifiers). */
   std::unordered_set<Node, NodeHashFunction> d_global_terms;
 };
 
