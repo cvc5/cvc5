@@ -35,6 +35,7 @@
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/nl_solver.h"
 #include "theory/arith/nl/stats.h"
+#include "theory/arith/nl/strategy.h"
 #include "theory/arith/nl/transcendental_solver.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/ext_theory.h"
@@ -224,6 +225,12 @@ class NonlinearExtension
    */
   void sendLemmas(const std::vector<NlLemma>& out);
 
+  /** Run the strategy for the given effort. */
+  void runStrategy(Theory::Effort effort,
+                   const std::vector<Node>& assertions,
+                   const std::vector<Node>& false_asserts,
+                   const std::vector<Node>& xts);
+
   /** commonly used terms */
   Node d_zero;
   Node d_one;
@@ -275,6 +282,10 @@ class NonlinearExtension
    * constraints involving integer and.
    */
   IAndSolver d_iandSlv;
+
+  /** The strategy for the nonlinear extension. */
+  Strategy d_strategy;
+
   /**
    * The approximations computed during collectModelInfo. For details, see
    * NlModel::getModelValueRepair.

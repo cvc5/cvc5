@@ -722,7 +722,7 @@ bool NonlinearExtension::modelBasedRefinement()
     if (!false_asserts.empty() || num_shared_wrong_value > 0)
     {
       complete_status = num_shared_wrong_value > 0 ? -1 : 0;
-      checkLastCall(assertions, false_asserts, xts);
+      runStrategy(Theory::Effort::EFFORT_FULL, assertions, false_asserts, xts);
       if (d_im.hasSentLemma() || d_im.hasPendingLemma())
       {
         d_im.clearWaitingLemmas();
@@ -858,6 +858,85 @@ void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
 void NonlinearExtension::presolve()
 {
   Trace("nl-ext") << "NonlinearExtension::presolve" << std::endl;
+}
+
+void NonlinearExtension::runStrategy(Theory::Effort effort,
+                                     const std::vector<Node>& assertions,
+                                     const std::vector<Node>& false_asserts,
+                                     const std::vector<Node>& xts)
+{
+  if (!d_strategy.isStrategyInit())
+  {
+    d_strategy.initializeStrategy();
+  }
+
+  Assert(d_strategy.hasStrategyEffort(effort));
+  auto steps = d_strategy.getStrategy(effort);
+  bool stop = false;
+  while (!stop && steps.hasNext())
+  {
+    InferStep step = steps.next();
+    Trace("nl-ext") << "Step " << step << std::endl;
+    switch (step)
+    {
+      case InferStep::BREAK:
+        stop = d_im.hasPendingLemma();
+        break;
+      case InferStep::FLUSH_WAITING_LEMMAS: d_im.flushWaitingLemmas(); break;
+      case InferStep::CAD_FULL: d_cadSlv.checkFull(); break;
+      case InferStep::CAD_INIT: d_cadSlv.initLastCall(assertions); break;
+      case InferStep::NL_FACTORING:
+        d_nlSlv.checkFactoring(assertions, false_asserts);
+        break;
+      case InferStep::IAND_INIT:
+        d_iandSlv.initLastCall(assertions, false_asserts, xts);
+        break;
+      case InferStep::IAND_FULL: d_iandSlv.checkFullRefine(); break;
+      case InferStep::IAND_INITIAL: d_iandSlv.checkInitialRefine(); break;
+      case InferStep::ICP:
+        d_icpSlv.reset(assertions);
+        d_icpSlv.check();
+        break;
+      case InferStep::NL_INIT:
+        d_nlSlv.initLastCall(assertions, false_asserts, xts);
+        break;
+      case InferStep::NL_MONOMIAL_INFER_BOUNDS:
+        d_nlSlv.checkMonomialInferBounds(assertions, false_asserts);
+        break;
+      case InferStep::NL_MONOMIAL_MAGNITUDE0:
+        d_nlSlv.checkMonomialMagnitude(0);
+        break;
+      case InferStep::NL_MONOMIAL_MAGNITUDE1:
+        d_nlSlv.checkMonomialMagnitude(1);
+        break;
+      case InferStep::NL_MONOMIAL_MAGNITUDE2:
+        d_nlSlv.checkMonomialMagnitude(2);
+        break;
+      case InferStep::NL_MONOMIAL_SIGN: d_nlSlv.checkMonomialSign(); break;
+      case InferStep::NL_RESOLUTION_BOUNDS:
+        d_nlSlv.checkMonomialInferResBounds();
+        break;
+      case InferStep::NL_SPLIT_ZERO: d_nlSlv.checkSplitZero(); break;
+      case InferStep::NL_TANGENT_PLANES: d_nlSlv.checkTangentPlanes(false); break;
+      case InferStep::NL_TANGENT_PLANES_WAITING:
+        d_nlSlv.checkTangentPlanes(true);
+        break;
+      case InferStep::TRANS_INIT:
+        d_trSlv.initLastCall(assertions, false_asserts, xts);
+        break;
+      case InferStep::TRANS_INITIAL:
+        d_trSlv.checkTranscendentalInitialRefine();
+        break;
+      case InferStep::TRANS_MONOTONIC:
+        d_trSlv.checkTranscendentalMonotonic();
+        break;
+      case InferStep::TRANS_TANGENT_PLANES:
+        d_trSlv.checkTranscendentalTangentPlanes();
+        break;
+    }
+  }
+
+  Trace("nl-ext") << "Finished with " << d_im.numPendingLemmas() << " lemmas" << std::endl;
 }
 
 }  // namespace nl
