@@ -141,7 +141,7 @@ class NonlinearExtension
    * described in Reynolds et al. FroCoS 2017 that are based on ruling out
    * the current candidate model.
    *
-   * This function returns true if a lemma was added to the vector lems.
+   * This function returns true if a lemma was added to the inference manager.
    * Otherwise, it returns false. In the latter case, the model object d_model
    * may have information regarding how to construct a model, in the case that
    * we determined the problem is satisfiable.
