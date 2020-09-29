@@ -39,9 +39,6 @@ class OutputManager;
 
 namespace prop {
 
-class PropEngine;
-class ProofCnfStream;
-
 /**
  * Implements the following recursive algorithm
  * http://people.inf.ethz.ch/daniekro/classes/251-0247-00/f2007/readings/Tseitin70.pdf
