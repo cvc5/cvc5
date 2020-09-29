@@ -131,7 +131,8 @@ private:
   /** Pointer to the proof equality engine of TheoryArith */
   theory::eq::ProofEqEngine* d_pfee;
 
-  void raiseConflict(Node conflict);
+  void raiseConflict(Node conflict,
+                     std::shared_ptr<ProofNode> pf = nullptr);
   /**
    * Are proofs enabled? This is true if a non-null proof manager was provided
    * to the constructor of this class.
