@@ -317,6 +317,7 @@ private:
 
   /** This is only used by simplex at the moment. */
   context::CDO<Node> d_blackBoxConflict;
+  /** For holding the proof of the above conflict node. */
   context::CDO<std::shared_ptr<ProofNode>> d_blackBoxConflictPf;
 
  public:
