@@ -563,7 +563,7 @@ enum class PfRule : uint32_t
   // Conclusion: (= F true)
   TRUE_INTRO,
   // ======== True elim
-  // Children: (P:(= F true)
+  // Children: (P:(= F true))
   // Arguments: none
   // ----------------------------------------
   // Conclusion: F
@@ -575,7 +575,7 @@ enum class PfRule : uint32_t
   // Conclusion: (= F false)
   FALSE_INTRO,
   // ======== False elim
-  // Children: (P:(= F false)
+  // Children: (P:(= F false))
   // Arguments: none
   // ----------------------------------------
   // Conclusion: (not F)
@@ -630,11 +630,11 @@ enum class PfRule : uint32_t
 
   //================================================= Quantifiers rules
   // ======== Witness intro
-  // Children: (P:F[t])
-  // Arguments: (t)
+  // Children: (P:(exists ((x T)) F[x]))
+  // Arguments: none
   // ----------------------------------------
-  // Conclusion: (= t (witness ((x T)) F[x]))
-  // where x is a BOUND_VARIABLE unique to the pair F,t.
+  // Conclusion: (= k (witness ((x T)) F[x]))
+  // where k is the Skolem form of (witness ((x T)) F[x]).
   WITNESS_INTRO,
   // ======== Exists intro
   // Children: (P:F[t])
@@ -650,7 +650,7 @@ enum class PfRule : uint32_t
   // Conclusion: F*sigma
   // sigma maps x1 ... xn to their representative skolems obtained by
   // SkolemManager::mkSkolemize, returned in the skolems argument of that
-  // method.
+  // method. Alternatively, can use negated forall as a premise.
   SKOLEMIZE,
   // ======== Instantiate
   // Children: (P:(forall ((x1 T1) ... (xn Tn)) F))

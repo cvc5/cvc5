@@ -149,5 +149,7 @@ SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
   return d_decisionEngine->getPolarity(var);
 }
 
+CnfStream* TheoryProxy::getCnfStream() { return d_cnfStream; }
+
 }/* CVC4::prop namespace */
 }/* CVC4 namespace */
