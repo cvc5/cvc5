@@ -162,7 +162,7 @@ bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur,
                                  bool& continueUpdate)
 {
   // should it be updated?
-  if (!d_cb.shouldUpdate(cur.get()))
+  if (!d_cb.shouldUpdate(cur, continueUpdate))
   {
     return false;
   }
