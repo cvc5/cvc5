@@ -2028,6 +2028,7 @@ void SmtEngine::resetAssertions()
         getOutputManager().getDumpOut());
   }
 
+  d_asserts->clearCurrent();
   d_state->notifyResetAssertions();
   d_dumpm->resetAssertions();
   // push the state to maintain global context around everything
