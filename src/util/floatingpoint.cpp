@@ -645,62 +645,63 @@ FloatingPoint::FloatingPoint(const FloatingPointSize& size,
 {
 }
 
-FloatingPoint FloatingPoint::makeNaN(const FloatingPointSize& t)
+FloatingPoint FloatingPoint::makeNaN(const FloatingPointSize& size)
 {
 #ifdef CVC4_USE_SYMFPU
   return FloatingPoint(
-      t, symfpu::unpackedFloat<symfpuLiteral::traits>::makeNaN(t));
+      size, symfpu::unpackedFloat<symfpuLiteral::traits>::makeNaN(size));
 #else
   return FloatingPoint(2, 2, BitVector(4U, 0U));
 #endif
 }
 
-FloatingPoint FloatingPoint::makeInf(const FloatingPointSize& t, bool sign)
+FloatingPoint FloatingPoint::makeInf(const FloatingPointSize& size, bool sign)
 {
 #ifdef CVC4_USE_SYMFPU
   return FloatingPoint(
-      t, symfpu::unpackedFloat<symfpuLiteral::traits>::makeInf(t, sign));
+      size, symfpu::unpackedFloat<symfpuLiteral::traits>::makeInf(size, sign));
 #else
   return FloatingPoint(2, 2, BitVector(4U, 0U));
 #endif
 }
 
-FloatingPoint FloatingPoint::makeZero(const FloatingPointSize& t, bool sign)
+FloatingPoint FloatingPoint::makeZero(const FloatingPointSize& size, bool sign)
 {
 #ifdef CVC4_USE_SYMFPU
   return FloatingPoint(
-      t, symfpu::unpackedFloat<symfpuLiteral::traits>::makeZero(t, sign));
+      size, symfpu::unpackedFloat<symfpuLiteral::traits>::makeZero(size, sign));
 #else
   return FloatingPoint(2, 2, BitVector(4U, 0U));
 #endif
 }
 
-FloatingPoint FloatingPoint::makeMinSubnormal(const FloatingPointSize& t,
+FloatingPoint FloatingPoint::makeMinSubnormal(const FloatingPointSize& size,
                                               bool sign)
 {
   if (sign)
   {
-    return FloatingPoint(t,
-                         BitVector::mkMinSigned(t.exponent() + 1)
-                             .concat(BitVector(t.significand() - 1, 1u)));
+    return FloatingPoint(size,
+                         BitVector::mkMinSigned(size.exponent() + 1)
+                             .concat(BitVector(size.significand() - 1, 1u)));
   }
-  return FloatingPoint(
-      t,
-      BitVector(t.exponent() + 1).concat(BitVector(t.significand() - 1, 1u)));
+  return FloatingPoint(size,
+                       BitVector(size.exponent() + 1)
+                           .concat(BitVector(size.significand() - 1, 1u)));
 }
 
-FloatingPoint FloatingPoint::makeMaxSubnormal(const FloatingPointSize& t,
+FloatingPoint FloatingPoint::makeMaxSubnormal(const FloatingPointSize& size,
                                               bool sign)
 {
   if (sign)
   {
-    return FloatingPoint(t,
-                         BitVector::mkMinSigned(t.exponent() + 1)
-                             .concat(BitVector::mkOnes(t.significand() - 1)));
+    return FloatingPoint(
+        size,
+        BitVector::mkMinSigned(size.exponent() + 1)
+            .concat(BitVector::mkOnes(size.significand() - 1)));
   }
-  return FloatingPoint(t,
-                       BitVector(t.exponent() + 1)
-                           .concat(BitVector::mkOnes(t.significand() - 1)));
+  return FloatingPoint(size,
+                       BitVector(size.exponent() + 1)
+                           .concat(BitVector::mkOnes(size.significand() - 1)));
 }
 
   /* Operations implemented using symfpu */

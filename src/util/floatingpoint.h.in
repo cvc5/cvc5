@@ -341,35 +341,35 @@ namespace CVC4 {
      * Create a FP NaN value of given size.
      * t: The FP size (format).
      */
-    static FloatingPoint makeNaN (const FloatingPointSize &t);
+    static FloatingPoint makeNaN (const FloatingPointSize &size);
     /**
      * Create a FP infinity value of given size.
      * t:    The FP size (format).
      * sign: True for +oo, false otherwise.
      */
-    static FloatingPoint makeInf (const FloatingPointSize &t, bool sign);
+    static FloatingPoint makeInf(const FloatingPointSize& size, bool sign);
     /**
      * Create a FP zero value of given size.
      * t:    The FP size (format).
      * sign: True for +zero, false otherwise.
      */
-    static FloatingPoint makeZero (const FloatingPointSize &t, bool sign);
+    static FloatingPoint makeZero(const FloatingPointSize& size, bool sign);
     /**
      * Create the smallest subnormal FP size.
      * t:    The FP size (format).
      * sign: True for positive sign, false otherwise.
      */
-    static FloatingPoint makeMinSubnormal (const FloatingPointSize &t, bool sign);
+    static FloatingPoint makeMinSubnormal(const FloatingPointSize& size,
+                                          bool sign);
     /**
      * Create the largest subnormal FP value.
      * t:    The FP size (format).
      * sign: True for positive sign, false otherwise.
      */
-    static FloatingPoint makeMaxSubnormal (const FloatingPointSize &t, bool sign);
+    static FloatingPoint makeMaxSubnormal(const FloatingPointSize& size,
+                                          bool sign);
 
-    const FloatingPointLiteral & getLiteral (void) const {
-      return this->fpl;
-    }
+    const FloatingPointLiteral& getLiteral(void) const { return this->fpl; }
 
     /* Return string representation.
      *
