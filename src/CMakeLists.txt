@@ -139,6 +139,7 @@ libcvc4_add_sources(
   proof/sat_proof_implementation.h
   proof/unsat_core.cpp
   proof/unsat_core.h
+  prop/bv_sat_solver_notify.h
   prop/bvminisat/bvminisat.cpp
   prop/bvminisat/bvminisat.h
   prop/bvminisat/core/Dimacs.h
@@ -185,17 +186,18 @@ libcvc4_add_sources(
   prop/minisat/simp/SimpSolver.cc
   prop/minisat/simp/SimpSolver.h
   prop/minisat/utils/Options.h
-  prop/prop_engine.cpp
-  prop/prop_engine.h
-  prop/registrar.h
-  prop/sat_solver.h
-  prop/sat_solver_factory.cpp
-  prop/sat_solver_factory.h
-  prop/bv_sat_solver_notify.h
   prop/proof_post_processor.cpp
   prop/proof_post_processor.h
+  prop/prop_engine.cpp
+  prop/prop_engine.h
+  prop/prop_proof_manager.cpp
+  prop/prop_proof_manager.h
+  prop/registrar.h
+  prop/sat_solver.h
   prop/sat_proof_manager.cpp
   prop/sat_proof_manager.h
+  prop/sat_solver_factory.cpp
+  prop/sat_solver_factory.h
   prop/sat_solver_types.cpp
   prop/sat_solver_types.h
   prop/theory_proxy.cpp
