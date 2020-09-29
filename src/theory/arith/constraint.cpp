@@ -847,17 +847,25 @@ ConstraintP Constraint::makeNegation(ArithVar v, ConstraintType t, const DeltaRa
   }
 }
 
-ConstraintDatabase::ConstraintDatabase(context::Context* satContext, context::Context* userContext, const ArithVariables& avars, ArithCongruenceManager& cm, RaiseConflict raiseConflict)
-  : d_varDatabases()
-  , d_toPropagate(satContext)
-  , d_antecedents(satContext, false)
-  , d_watches(new Watches(satContext, userContext))
-  , d_avariables(avars)
-  , d_congruenceManager(cm)
-  , d_satContext(satContext)
-  , d_raiseConflict(raiseConflict)
-  , d_one(1)
-  , d_negOne(-1)
+ConstraintDatabase::ConstraintDatabase(context::Context* satContext,
+                                       context::Context* userContext,
+                                       const ArithVariables& avars,
+                                       ArithCongruenceManager& cm,
+                                       RaiseConflict raiseConflict,
+                                       EagerProofGenerator* pfGen,
+                                       ProofNodeManager* pnm)
+    : d_varDatabases(),
+      d_toPropagate(satContext),
+      d_antecedents(satContext, false),
+      d_watches(new Watches(satContext, userContext)),
+      d_avariables(avars),
+      d_congruenceManager(cm),
+      d_satContext(satContext),
+      d_pfGen(pfGen),
+      d_pnm(pnm),
+      d_raiseConflict(raiseConflict),
+      d_one(1),
+      d_negOne(-1)
 {
 }
 
@@ -1722,6 +1730,8 @@ ConstraintDatabase::Watches::Watches(context::Context* satContext, context::Cont
 
 
 void Constraint::setLiteral(Node n) {
+  Debug("arith::constraint") << "Mapping " << *this << " to " << n << std::endl;
+  Assert(Comparison::isNormalAtom(n));
   Assert(!hasLiteral());
   Assert(sanityChecking(n));
   d_literal = n;
