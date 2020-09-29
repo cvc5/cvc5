@@ -92,6 +92,8 @@ void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
   }
   Trace("smt-pppg-repl") << "Replace " << d_nodes[i] << " with " << n
                          << std::endl;
+  // NOTE: checks for replacing true with something (should use conjoin instead)
+  // Assert(!d_nodes[i].isConst());
   if (options::unsatCores())
   {
     ProofManager::currentPM()->addDependence(n, d_nodes[i]);

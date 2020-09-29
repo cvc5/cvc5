@@ -49,9 +49,6 @@ class AssertionPipeline
    */
   void clear();
 
-  /** TODO (projects #75): remove this */
-  Node& operator[](size_t i) { return d_nodes[i]; }
-  /** Get the assertion at index i */
   const Node& operator[](size_t i) const { return d_nodes[i]; }
 
   /**
@@ -71,9 +68,6 @@ class AssertionPipeline
                  ProofGenerator* pg = nullptr);
   /** Same as above, with TrustNode */
   void pushBackTrusted(theory::TrustNode trn);
-
-  /** TODO (projects #75): remove this */
-  std::vector<Node>& ref() { return d_nodes; }
 
   /**
    * Get the constant reference to the underlying assertions. It is only
@@ -128,21 +122,11 @@ class AssertionPipeline
 
   /**
    * Adds a substitution node of the form (= lhs rhs) to the assertions.
-   * This conjoins n to assertions at a distinguished index given by
-   * d_substsIndex.
-   *
-   * @param n The substitution node
-   * @param pg The proof generator that can provide a proof of n.
    */
   void addSubstitutionNode(Node n, ProofGenerator* pgen = nullptr);
 
   /**
-   * Conjoin n to the assertion vector at position i. This replaces
-   * d_nodes[i] with the rewritten form of (AND d_nodes[i] n).
-   *
-   * @param i The assertion to replace
-   * @param n The formula to conjoin at position i
-   * @param pg The proof generator that can provide a proof of n
+   * Conjoin
    */
   void conjoin(size_t i, Node n, ProofGenerator* pg = nullptr);
 

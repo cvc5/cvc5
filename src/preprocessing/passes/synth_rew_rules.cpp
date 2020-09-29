@@ -40,7 +40,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
 {
   Trace("srs-input") << "Synthesize rewrite rules from assertions..."
                      << std::endl;
-  std::vector<Node>& assertions = assertionsToPreprocess->ref();
+  const std::vector<Node>& assertions = assertionsToPreprocess->ref();
   if (assertions.empty())
   {
     return PreprocessingPassResult::NO_CONFLICT;
