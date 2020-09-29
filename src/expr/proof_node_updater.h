@@ -35,7 +35,12 @@ class ProofNodeUpdaterCallback
  public:
   ProofNodeUpdaterCallback();
   virtual ~ProofNodeUpdaterCallback();
-  /** Should proof pn be updated? */
+  /** Should proof pn be updated?
+   *
+   * @param pn the proof node that maybe should be updated
+   * @param continueUpdate whether we should continue recursively updating pn
+   * @return whether we should run the update method on pn
+   */
   virtual bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                             bool& continueUpdate) = 0;
   /**
