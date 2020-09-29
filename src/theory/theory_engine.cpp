@@ -1802,7 +1802,8 @@ theory::TrustNode TheoryEngine::getExplanation(
       }
     }
     // It was produced by the theory, so ask for an explanation
-    TrustNode texplanation = d_sharedSolver->explain(toExplain.d_node, toExplain.d_theory);
+    TrustNode texplanation =
+        d_sharedSolver->explain(toExplain.d_node, toExplain.d_theory);
     if (lcp != nullptr)
     {
       texplanation.debugCheckClosed("te-proof-exp", "texplanation", false);

@@ -112,7 +112,7 @@ class CombinationEngine
   /** Reference to the theory engine */
   TheoryEngine& d_te;
   /** The proof node manager */
-  ProofNodeManager * d_pnm;
+  ProofNodeManager* d_pnm;
   /** Logic info of theory engine (cached) */
   const LogicInfo& d_logicInfo;
   /** List of parametric theories of theory engine */
