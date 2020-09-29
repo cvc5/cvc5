@@ -218,7 +218,7 @@ static void getMinGroundTerms(
     }
     cache.insert(cur);
 
-    if (cur.isVar() && cur.getKind() != kind::BOUND_VARIABLE)
+    if ((cur.isVar() && cur.getKind() != kind::BOUND_VARIABLE) || cur.isConst())
     {
       terms.insert(cur);
     }
