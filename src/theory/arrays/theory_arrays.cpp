@@ -1188,8 +1188,6 @@ Node TheoryArrays::getSkolem(TNode ref)
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it = d_skolemCache.find(ref);
   if (it == d_skolemCache.end()) {
     Assert(ref.getKind() == kind::NOT && ref[0].getKind() == kind::EQUAL);
-    TNode a = ref[0][0];
-    TNode b = ref[0][1];
     // make the skolem using the skolem cache utility
     skolem = SkolemCache::getExtIndexSkolem(ref);
     d_skolemCache[ref] = skolem;
@@ -1341,7 +1339,7 @@ void TheoryArrays::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
   // if a disequality
   if (atom.getKind() == kind::EQUAL && !pol && !isInternal)
   {
-    // Notice that we this should be an external assertion, since we do not
+    // Notice that this should be an external assertion, since we do not
     // internally infer disequalities.
     // Apply ArrDiseq Rule if diseq is between arrays
     if (fact[0][0].getType().isArray() && !d_state.isInConflict())
@@ -2049,7 +2047,7 @@ void TheoryArrays::conflict(TNode a, TNode b) {
   Debug("pf::array") << "TheoryArrays::Conflict called" << std::endl;
   if (d_inCheckModel)
   {
-    // if in check model, don't send the conflict?
+    // if in check model, don't send the conflict
     d_state.notifyInConflict();
     return;
   }
