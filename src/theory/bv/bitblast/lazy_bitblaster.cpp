@@ -80,13 +80,13 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c,
       prop::SatSolverFactory::createMinisat(c, smtStatisticsRegistry(), name));
 
   ResourceManager* rm = smt::currentResourceManager();
-  d_cnfStream.reset(new prop::TseitinCnfStream(d_satSolver.get(),
-                                               d_nullRegistrar.get(),
-                                               d_nullContext.get(),
-                                               nullptr,
-                                               rm,
-                                               false,
-                                               "LazyBitblaster"));
+  d_cnfStream.reset(new prop::CnfStream(d_satSolver.get(),
+                                        d_nullRegistrar.get(),
+                                        d_nullContext.get(),
+                                        nullptr,
+                                        rm,
+                                        false,
+                                        "LazyBitblaster"));
 
   d_satSolverNotify.reset(
       d_emptyNotify
@@ -575,11 +575,11 @@ void TLazyBitblaster::clearSolver() {
   d_satSolver.reset(
       prop::SatSolverFactory::createMinisat(d_ctx, smtStatisticsRegistry()));
   ResourceManager* rm = smt::currentResourceManager();
-  d_cnfStream.reset(new prop::TseitinCnfStream(d_satSolver.get(),
-                                               d_nullRegistrar.get(),
-                                               d_nullContext.get(),
-                                               nullptr,
-                                               rm));
+  d_cnfStream.reset(new prop::CnfStream(d_satSolver.get(),
+                                        d_nullRegistrar.get(),
+                                        d_nullContext.get(),
+                                        nullptr,
+                                        rm));
   d_satSolverNotify.reset(
       d_emptyNotify
           ? (prop::BVSatSolverNotify*)new MinisatEmptyNotify()

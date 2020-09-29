@@ -15,13 +15,15 @@
 #include "theory/ee_manager_distributed.h"
 
 #include "theory/quantifiers_engine.h"
+#include "theory/shared_solver.h"
 #include "theory/theory_engine.h"
 
 namespace CVC4 {
 namespace theory {
 
-EqEngineManagerDistributed::EqEngineManagerDistributed(TheoryEngine& te)
-    : EqEngineManager(te), d_masterEENotify(nullptr)
+EqEngineManagerDistributed::EqEngineManagerDistributed(TheoryEngine& te,
+                                                       SharedSolver& shs)
+    : EqEngineManager(te, shs), d_masterEENotify(nullptr)
 {
 }
 
