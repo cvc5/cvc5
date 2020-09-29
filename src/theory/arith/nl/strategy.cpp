@@ -29,7 +29,6 @@ std::ostream& operator<<(std::ostream& os, InferStep step)
     case InferStep::FLUSH_WAITING_LEMMAS: return os << "FLUSH_WAITING_LEMMAS";
     case InferStep::CAD_INIT: return os << "CAD_INIT";
     case InferStep::CAD_FULL: return os << "CAD_FULL";
-    case InferStep::CAD_PARTIAL: return os << "CAD_PARTIAL";
     case InferStep::NL_FACTORING: return os << "NL_FACTORING";
     case InferStep::IAND_INIT: return os << "IAND_INIT";
     case InferStep::IAND_FULL: return os << "IAND_FULL";

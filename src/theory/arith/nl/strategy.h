@@ -37,8 +37,6 @@ enum class InferStep
   CAD_INIT,
   /** A full CAD check */
   CAD_FULL,
-  /** A partial CAD check */
-  CAD_PARTIAL,
 
   /** Initialize the IAND solver */
   IAND_INIT,
