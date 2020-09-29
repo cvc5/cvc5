@@ -155,22 +155,15 @@ class NonlinearExtension
    *
    * xts : the list of (non-reduced) extended terms in the current context.
    *
-   * This method adds lemmas to arguments lems and wlems, each of
-   * which are intended to be sent out on the output channel of TheoryArith
-   * under certain conditions.
+   * This method adds lemmas to d_im directly.
    *
    * If the set lems is non-empty, then no further processing is
    * necessary. The last call effort check should terminate and these
    * lemmas should be sent.
-   *
-   * The "waiting" lemmas wlems contain lemmas that should be sent on the
-   * output channel as a last resort. In other words, only if we are not
-   * able to establish SAT via a call to checkModel(...) should wlems be
-   * considered. This set typically contains tangent plane lemmas.
    */
-  int checkLastCall(const std::vector<Node>& assertions,
-                    const std::vector<Node>& false_asserts,
-                    const std::vector<Node>& xts);
+  void checkLastCall(const std::vector<Node>& assertions,
+                     const std::vector<Node>& false_asserts,
+                     const std::vector<Node>& xts);
 
   /** get assertions
    *

@@ -369,9 +369,9 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
   return ret;
 }
 
-int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
-                                      const std::vector<Node>& false_asserts,
-                                      const std::vector<Node>& xts)
+void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
+                                       const std::vector<Node>& false_asserts,
+                                       const std::vector<Node>& xts)
 {
   ++(d_stats.d_checkRuns);
 
@@ -393,7 +393,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       Trace("nl-ext") << "  ...finished with "
                       << d_im.numPendingLemmas() + d_im.numSentLemmas()
                       << " new lemmas from ICP." << std::endl;
-      return d_im.numPendingLemmas() + d_im.numSentLemmas();
+      return;
     }
     Trace("nl-ext") << "Done with ICP" << std::endl;
   }
@@ -411,10 +411,10 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
 
   if (d_im.hasUsed())
   {
-    unsigned count = d_im.numPendingLemmas() + d_im.numSentLemmas();
+    std::size_t count = d_im.numPendingLemmas() + d_im.numSentLemmas();
     Trace("nl-ext") << "  ...finished with " << count
                     << " new lemmas during registration." << std::endl;
-    return count;
+    return;
   }
 
   //----------------------------------- possibly split on zero
@@ -426,7 +426,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     {
       Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas() << " new lemmas."
                       << std::endl;
-      return d_im.numPendingLemmas();
+      return;
     }
   }
 
@@ -437,10 +437,10 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     d_trSlv.checkTranscendentalInitialRefine();
     if (d_im.hasUsed())
     {
-      unsigned count = d_im.numPendingLemmas() + d_im.numSentLemmas();
+      std::size_t count = d_im.numPendingLemmas() + d_im.numSentLemmas();
       Trace("nl-ext") << "  ...finished with " << count << " new lemmas."
                       << std::endl;
-      return count;
+      return;
     }
   }
   //-----------------------------------initial lemmas for iand
@@ -449,7 +449,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   {
     Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas() << " new lemmas."
                     << std::endl;
-    return d_im.numPendingLemmas();
+    return;
   }
 
   // main calls to nlExt
@@ -461,17 +461,17 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     {
       Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas() << " new lemmas."
                       << std::endl;
-      return d_im.numPendingLemmas();
+      return;
     }
 
     //-----------------------------------monotonicity of transdental functions
     d_trSlv.checkTranscendentalMonotonic();
     if (d_im.hasUsed())
     {
-      unsigned count = d_im.numPendingLemmas() + d_im.numSentLemmas();
+      std::size_t count = d_im.numPendingLemmas() + d_im.numSentLemmas();
       Trace("nl-ext") << "  ...finished with " << count << " new lemmas."
                       << std::endl;
-      return count;
+      return;
     }
 
     //------------------------lemmas based on magnitude of non-zero monomials
@@ -483,7 +483,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       {
         Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas()
                         << " new lemmas." << std::endl;
-        return d_im.numPendingLemmas();
+        return;
       }
     }
 
@@ -502,7 +502,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     {
       Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas() << " new lemmas."
                       << std::endl;
-      return d_im.numPendingLemmas();
+      return;
     }
 
     // from inferred bound inferences : now do ones that introduce new terms
@@ -511,7 +511,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     {
       Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas()
                       << " new (monomial-introducing) lemmas." << std::endl;
-      return d_im.numPendingLemmas();
+      return;
     }
 
     //------------------------------------factoring lemmas
@@ -523,7 +523,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       {
         Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas()
                         << " new lemmas." << std::endl;
-        return d_im.numPendingLemmas();
+        return;
       }
     }
 
@@ -536,7 +536,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       {
         Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas()
                         << " new lemmas." << std::endl;
-        return d_im.numPendingLemmas();
+        return;
       }
     }
 
@@ -562,7 +562,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     else
     {
       // checkFull() only adds a single conflict
-      return 1;
+      return;
     }
   }
   // run the full refinement in the IAND solver
@@ -572,7 +572,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                   << std::endl;
   Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas() << " lemmas."
                   << std::endl;
-  return 0;
+  return;
 }
 
 void NonlinearExtension::check(Theory::Effort e)
