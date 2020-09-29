@@ -29,6 +29,7 @@
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "proof/proof_manager.h"
+#include "prop/proof_cnf_stream.h"
 #include "prop/registrar.h"
 #include "prop/theory_proxy.h"
 
@@ -37,6 +38,8 @@ namespace CVC4 {
 class OutputManager;
 
 namespace prop {
+
+class ProofCnfStream;
 
 /**
  * Implements the following recursive algorithm
@@ -48,6 +51,9 @@ namespace prop {
  * substitute the new literal for the formula, and so on, recursively.
  */
 class CnfStream {
+  friend PropEngine;
+  friend ProofCnfStream;
+
  public:
   /** Cache of what nodes have been registered to a literal. */
   typedef context::CDInsertHashMap<SatLiteral, TNode, SatLiteralHashFunction>
