@@ -149,19 +149,6 @@ class NonlinearExtension
    */
   bool modelBasedRefinement();
 
-  /** check last call
-   *
-   * Check assertions for consistency in the effort LAST_CALL with a subset of
-   * the assertions, false_asserts, that evaluate to false in the current model.
-   *
-   * xts : the list of (non-reduced) extended terms in the current context.
-   *
-   * This method adds lemmas to d_im directly.
-   *
-   * If the set lems is non-empty, then no further processing is
-   * necessary. The last call effort check should terminate and these
-   * lemmas should be sent.
-   */
   void checkLastCall(const std::vector<Node>& assertions,
                      const std::vector<Node>& false_asserts,
                      const std::vector<Node>& xts);
@@ -225,7 +212,15 @@ class NonlinearExtension
    */
   void sendLemmas(const std::vector<NlLemma>& out);
 
-  /** Run the strategy for the given effort. */
+  /** run check strategy
+   *
+   * Check assertions for consistency in the effort LAST_CALL with a subset of
+   * the assertions, false_asserts, that evaluate to false in the current model.
+   *
+   * xts : the list of (non-reduced) extended terms in the current context.
+   *
+   * This method adds lemmas to d_im directly.
+   */
   void runStrategy(Theory::Effort effort,
                    const std::vector<Node>& assertions,
                    const std::vector<Node>& false_asserts,
