@@ -1081,10 +1081,12 @@ install(FILES
           expr/array.h
           expr/array_store_all.h
           expr/ascription_type.h
+          expr/emptybag.h
           expr/emptyset.h
           expr/expr_iomanip.h
           expr/record.h
           expr/sequence.h
+          expr/singleton_type.h
           expr/symbol_table.h
           expr/type.h
           expr/uninterpreted_constant.h

@@ -4041,9 +4041,20 @@ Term Solver::mkTerm(Kind kind, Term child) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!child.isNull(), child) << "non-null term";
   CVC4_API_SOLVER_CHECK_TERM(child);
-  checkMkTerm(kind, 1);
-
-  Node res = getNodeManager()->mkNode(extToIntKind(kind), *child.d_node);
+  Node res;
+  if (kind == SINGLETON)
+  {
+    checkMkTerm(kind, 2);
+    TypeNode typeNode = child.d_node->getType();
+    Node singleton = getNodeManager()->mkConst(SingletonType(typeNode));
+    res =
+        getNodeManager()->mkNode(extToIntKind(kind), singleton, *child.d_node);
+  }
+  else
+  {
+    checkMkTerm(kind, 1);
+    res = getNodeManager()->mkNode(extToIntKind(kind), *child.d_node);
+  }
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
 

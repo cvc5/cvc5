@@ -21,6 +21,12 @@ constant EMPTYSET \
     "expr/emptyset.h" \
     "the empty set constant; payload is an instance of the CVC4::EmptySet class"
 
+constant SINGLETON_TYPE \
+    ::CVC4::SingletonType \
+    ::CVC4::SingletonTypeHashFunction \
+    "expr/singleton_type.h" \
+    "the singleton type ; payload is an instance of the CVC4::SingletonType class"
+
 # the type
 operator SET_TYPE 1 "set type, takes as parameter the type of the elements"
 cardinality SET_TYPE \
@@ -40,7 +46,7 @@ operator INTERSECTION  2  "set intersection"
 operator SETMINUS      2  "set subtraction"
 operator SUBSET        2  "subset predicate; first parameter a subset of second"
 operator MEMBER        2  "set membership predicate; first parameter a member of second"
-operator SINGLETON     1  "the set of the single element given as a parameter"
+operator SINGLETON     2  "the set of the single element given as a parameter along with its type"
 operator INSERT        2: "set obtained by inserting elements (first N-1 parameters) into a set (the last parameter)"
 operator CARD          1  "set cardinality operator"
 operator COMPLEMENT    1  "set COMPLEMENT (with respect to finite universe)"
@@ -91,6 +97,7 @@ typerule UNIVERSE_SET   ::CVC4::theory::sets::UniverseSetTypeRule
 typerule COMPREHENSION  ::CVC4::theory::sets::ComprehensionTypeRule
 typerule CHOOSE         ::CVC4::theory::sets::ChooseTypeRule
 typerule IS_SINGLETON   ::CVC4::theory::sets::IsSingletonTypeRule
+typerule SINGLETON_TYPE ::CVC4::theory::sets::SingletonTypeTypingRule
 
 typerule JOIN 			::CVC4::theory::sets::RelBinaryOperatorTypeRule
 typerule PRODUCT 		::CVC4::theory::sets::RelBinaryOperatorTypeRule

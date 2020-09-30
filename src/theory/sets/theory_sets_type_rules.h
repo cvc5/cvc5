@@ -154,6 +154,18 @@ struct EmptySetTypeRule {
   }
 };/* struct EmptySetTypeRule */
 
+struct SingletonTypeTypingRule
+{
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::SINGLETON_TYPE);
+    SingletonType s = n.getConst<SingletonType>();
+    return s.getType();
+  }
+}; /* struct SingletonTypeTypingRule */
+
 struct CardTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
