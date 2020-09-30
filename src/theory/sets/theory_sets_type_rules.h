@@ -31,9 +31,8 @@ struct SetsBinaryOperatorTypeRule
                                      TNode n,
                                      bool check)
   {
-    Assert(n.getKind() == kind::UNION ||
-           n.getKind() == kind::INTERSECTION ||
-           n.getKind() == kind::SETMINUS);
+    Assert(n.getKind() == kind::UNION || n.getKind() == kind::INTERSECTION
+           || n.getKind() == kind::SETMINUS);
     TypeNode setType = n[0].getType(check);
     if (check)
     {
@@ -45,19 +44,11 @@ struct SetsBinaryOperatorTypeRule
       TypeNode secondSetType = n[1].getType(check);
       if (secondSetType != setType)
       {
-        if (n.getKind() == kind::INTERSECTION)
-        {
-          setType = TypeNode::mostCommonTypeNode(secondSetType, setType);
-        }
-        else
-        {
-          setType = TypeNode::leastCommonTypeNode(secondSetType, setType);
-        }
-        if (setType.isNull())
-        {
-          throw TypeCheckingExceptionPrivate(
-              n, "operator expects two sets of comparable types");
-        }
+        std::stringstream ss;
+        ss << "Operator " << n.getKind()
+           << " expects two sets of the same type. Found types '" << setType
+           << "' and '" << secondSetType << "'.";
+        throw TypeCheckingExceptionPrivate(n, ss.str());
       }
     }
     return setType;
