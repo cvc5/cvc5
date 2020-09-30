@@ -14,8 +14,8 @@
 
 #include "theory/arith/nl/strategy.h"
 
-#include "options/arith_options.h"
 #include "base/check.h"
+#include "options/arith_options.h"
 
 namespace CVC4 {
 namespace theory {
@@ -93,9 +93,7 @@ const StepSequence& Interleaving::get()
   Assert(false) << "Something went wrong.";
   return d_branches[0].d_steps;
 }
-bool Interleaving::empty() const {
-  return d_branches.empty();
-}
+bool Interleaving::empty() const { return d_branches.empty(); }
 
 bool StepGenerator::hasNext() const { return d_next < d_steps.size(); }
 InferStep StepGenerator::next() { return d_steps[d_next++]; }

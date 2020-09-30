@@ -681,9 +681,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
     Trace("nl-ext") << "Step " << step << std::endl;
     switch (step)
     {
-      case InferStep::BREAK:
-        stop = d_im.hasPendingLemma();
-        break;
+      case InferStep::BREAK: stop = d_im.hasPendingLemma(); break;
       case InferStep::FLUSH_WAITING_LEMMAS: d_im.flushWaitingLemmas(); break;
       case InferStep::CAD_FULL: d_cadSlv.checkFull(); break;
       case InferStep::CAD_INIT: d_cadSlv.initLastCall(assertions); break;
@@ -719,7 +717,9 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
         d_nlSlv.checkMonomialInferResBounds();
         break;
       case InferStep::NL_SPLIT_ZERO: d_nlSlv.checkSplitZero(); break;
-      case InferStep::NL_TANGENT_PLANES: d_nlSlv.checkTangentPlanes(false); break;
+      case InferStep::NL_TANGENT_PLANES:
+        d_nlSlv.checkTangentPlanes(false);
+        break;
       case InferStep::NL_TANGENT_PLANES_WAITING:
         d_nlSlv.checkTangentPlanes(true);
         break;
@@ -738,9 +738,10 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
     }
   }
 
-  Trace("nl-ext") << "  ...finished with " << d_im.numWaitingLemmas() << " waiting lemmas."
-                  << std::endl;
-  Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas() << " pending lemmas." << std::endl;
+  Trace("nl-ext") << "  ...finished with " << d_im.numWaitingLemmas()
+                  << " waiting lemmas." << std::endl;
+  Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas()
+                  << " pending lemmas." << std::endl;
 }
 
 }  // namespace nl
