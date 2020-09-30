@@ -9,10 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief [[ Add one-line brief description here ]]
+ ** \brief Black box testing of CVC4::FloatingPoint.
  **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
+ ** Black box testing of CVC4::FloatingPoint.
  **/
 #include <cxxtest/TestSuite.h>
 
