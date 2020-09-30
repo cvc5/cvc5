@@ -37,6 +37,8 @@ SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine,
       d_theoryEngine(theoryEngine),
       d_inConflict(context, false),
       d_conflictPolarity(),
+      d_satContext(context),
+      d_userContext(userContext),
       d_equalityEngine(nullptr),
       d_pfee(nullptr),
       d_pnm(pnm)
@@ -57,7 +59,7 @@ void SharedTermsDatabase::setEqualityEngine(eq::EqualityEngine* ee)
   if (d_pnm != nullptr)
   {
     d_pfee.reset(
-        new eq::ProofEqEngine(context, userContext, ee, d_pnm));
+        new eq::ProofEqEngine(d_satContext, d_userContext, *ee, d_pnm));
   }
 }
 
@@ -282,7 +284,7 @@ void SharedTermsDatabase::checkForConflict()
   {
     // standard explain
     std::vector<TNode> assumptions;
-    d_equalityEngine.explainEquality(d_conflictLHS, d_conflictRHS, d_conflictPolarity, assumptions);
+    d_equalityEngine->explainEquality(d_conflictLHS, d_conflictRHS, d_conflictPolarity, assumptions);
     Node conflictNode = NodeManager::currentNM()->mkAnd(assumptions);
     trnc = TrustNode::mkTrustConflict(conflictNode, nullptr);
   }
@@ -309,7 +311,7 @@ theory::TrustNode SharedTermsDatabase::explain(TNode literal) const
     return d_pfee->explain(literal);
   }
   // otherwise, explain without proofs
-  Node exp = d_equalityEngine.mkExplainLit(literal);
+  Node exp = d_equalityEngine->mkExplainLit(literal);
   // no proof generator
   return TrustNode::mkTrustPropExp(literal, exp, nullptr);
 }
