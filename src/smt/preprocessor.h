@@ -104,6 +104,7 @@ class Preprocessor
    * Set proof node manager. Enables proofs in this preprocessor.
    */
   void setProofNodeManager(ProofNodeManager* pnm);
+
  private:
   /**
    * Apply substitutions that have been inferred by preprocessing, return the
@@ -135,7 +136,7 @@ class Preprocessor
    */
   RemoveTermFormulas d_rtf;
   /** Proof node manager */
-  ProofNodeManager * d_pnm;
+  ProofNodeManager* d_pnm;
 };
 
 }  // namespace smt

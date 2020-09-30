@@ -256,8 +256,8 @@ void SmtSolver::processAssertions(Assertions& as)
   as.clearCurrent();
 }
 
-void SmtSolver::setProofNodeManager(ProofNodeManager* pnm) 
-{ 
+void SmtSolver::setProofNodeManager(ProofNodeManager* pnm)
+{
   d_pnm = pnm;
   d_pp.setProofNodeManager(pnm);
 }

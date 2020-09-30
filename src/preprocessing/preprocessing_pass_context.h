@@ -24,8 +24,8 @@
 #include "context/cdo.h"
 #include "context/context.h"
 #include "decision/decision_engine.h"
-#include "preprocessing/util/ite_utilities.h"
 #include "preprocessing/top_level_substitutions.h"
+#include "preprocessing/util/ite_utilities.h"
 #include "smt/smt_engine.h"
 #include "smt/term_formula_removal.h"
 #include "theory/booleans/circuit_propagator.h"
@@ -41,7 +41,8 @@ class PreprocessingPassContext
   PreprocessingPassContext(
       SmtEngine* smt,
       RemoveTermFormulas* iteRemover,
-      theory::booleans::CircuitPropagator* circuitPropagator, ProofNodeManager * pnm);
+      theory::booleans::CircuitPropagator* circuitPropagator,
+      ProofNodeManager* pnm);
 
   SmtEngine* getSmt() { return d_smt; }
   TheoryEngine* getTheoryEngine() { return d_smt->getTheoryEngine(); }

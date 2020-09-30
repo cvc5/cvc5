@@ -17,13 +17,17 @@
 namespace CVC4 {
 namespace preprocessing {
 
-TopLevelSubstitutions::TopLevelSubstitutions(
-    context::UserContext * u, ProofNodeManager * pnm)
-    :  d_subs(u), d_pnm(pnm), d_subsPg(pnm ? new TConvProofGenerator(pnm, u) : nullptr)
+TopLevelSubstitutions::TopLevelSubstitutions(context::UserContext* u,
+                                             ProofNodeManager* pnm)
+    : d_subs(u),
+      d_pnm(pnm),
+      d_subsPg(pnm ? new TConvProofGenerator(pnm, u) : nullptr)
 {
 }
 
-void TopLevelSubstitutions::addSubstitution(TNode x, TNode t, ProofGenerator * pg)
+void TopLevelSubstitutions::addSubstitution(TNode x,
+                                            TNode t,
+                                            ProofGenerator* pg)
 {
   d_subs.addSubstitution(x, t);
 }
@@ -33,10 +37,7 @@ theory::TrustNode TopLevelSubstitutions::apply(Node n)
   return theory::TrustNode::null();
 }
 
-theory::SubstitutionMap& TopLevelSubstitutions::get()
-{
-  return d_subs;
-}
+theory::SubstitutionMap& TopLevelSubstitutions::get() { return d_subs; }
 
 }  // namespace preprocessing
 }  // namespace CVC4
