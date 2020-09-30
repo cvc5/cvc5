@@ -41,7 +41,7 @@ class PreprocessingPassContext
   PreprocessingPassContext(
       SmtEngine* smt,
       RemoveTermFormulas* iteRemover,
-      theory::booleans::CircuitPropagator* circuitPropagator);
+      theory::booleans::CircuitPropagator* circuitPropagator, ProofNodeManager * pnm);
 
   SmtEngine* getSmt() { return d_smt; }
   TheoryEngine* getTheoryEngine() { return d_smt->getTheoryEngine(); }

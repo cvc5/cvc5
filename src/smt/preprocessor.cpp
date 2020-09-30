@@ -35,7 +35,8 @@ Preprocessor::Preprocessor(SmtEngine& smt,
       d_propagator(true, true),
       d_assertionsProcessed(u, false),
       d_processor(smt, *smt.getResourceManager()),
-      d_rtf(u)
+      d_rtf(u),
+      d_pnm(nullptr)
 {
 }
 
@@ -51,7 +52,7 @@ Preprocessor::~Preprocessor()
 void Preprocessor::finishInit()
 {
   d_ppContext.reset(new preprocessing::PreprocessingPassContext(
-      &d_smt, &d_rtf, &d_propagator));
+      &d_smt, &d_rtf, &d_propagator, d_pnm));
 
   // initialize the preprocessing passes
   d_processor.finishInit(d_ppContext.get());
@@ -152,6 +153,11 @@ Node Preprocessor::simplify(const Node& node, bool removeItes)
 Node Preprocessor::applySubstitutions(TNode node)
 {
   return Rewriter::rewrite(d_ppContext->getTopLevelSubstitutions().apply(node));
+}
+
+void Preprocessor::setProofNodeManager(ProofNodeManager* pnm)
+{
+  d_rtf.setProofNodeManager(pnm);
 }
 
 }  // namespace smt

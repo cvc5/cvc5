@@ -100,6 +100,10 @@ class Preprocessor
    */
   RemoveTermFormulas& getTermFormulaRemover();
 
+  /**
+   * Set proof node manager. Enables proofs in this preprocessor.
+   */
+  void setProofNodeManager(ProofNodeManager* pnm);
  private:
   /**
    * Apply substitutions that have been inferred by preprocessing, return the
@@ -130,6 +134,8 @@ class Preprocessor
    * in term contexts.
    */
   RemoveTermFormulas d_rtf;
+  /** Proof node manager */
+  ProofNodeManager * d_pnm;
 };
 
 }  // namespace smt

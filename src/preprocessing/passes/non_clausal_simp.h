@@ -45,9 +45,6 @@ class NonClausalSimp : public PreprocessingPass
   };
 
   Statistics d_statistics;
-
-  /** Learned literals */
-  std::vector<Node> d_nonClausalLearnedLiterals;
 };
 
 }  // namespace passes
