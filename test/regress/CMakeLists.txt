@@ -576,6 +576,7 @@ set(regress_0_tests
   regress0/issue2832-qualId.smt2
   regress0/issue4010-sort-inf-var.smt2
   regress0/issue4469-unc-no-reuse-var.smt2
+  regress0/issue5144-resetAssertions.smt2
   regress0/ite.cvc
   regress0/ite2.smt2
   regress0/ite3.smt2
@@ -835,7 +836,6 @@ set(regress_0_tests
   regress0/rels/rel_tc_2_1.cvc
   regress0/rels/rel_tc_3.cvc
   regress0/rels/rel_tc_3_1.cvc
-  regress0/rels/rel_tc_7.cvc
   regress0/rels/rel_tc_8.cvc
   regress0/rels/rel_tp_3_1.cvc
   regress0/rels/rel_tp_join_0.cvc
@@ -2379,6 +2379,8 @@ set(regression_disabled_tests
   regress0/quantifiers/qbv-test-invert-bvshl-0-neq.smt2
   regress0/quantifiers/qbv-test-invert-concat-0-neq.smt2
   regress0/quantifiers/qbv-test-invert-concat-1-neq.smt2
+  # times out on some CI configs after dt fact vs lemma update #5115
+  regress0/rels/rel_tc_7.cvc
   regress0/sets/mar2014/stacks0.hs.78.cvc4.smt2
   regress0/sets/setel-eq.smt2
   regress0/sets/sets-new.smt2

@@ -270,7 +270,7 @@ void SmtEngine::finishInit()
   ProofNodeManager* pnm = nullptr;
   if (options::proofNew())
   {
-    d_pfManager.reset(new PfManager(this));
+    d_pfManager.reset(new PfManager(getUserContext(), this));
     // use this proof node manager
     pnm = d_pfManager->getProofNodeManager();
     // enable proof support in the rewriter
@@ -2028,6 +2028,7 @@ void SmtEngine::resetAssertions()
         getOutputManager().getDumpOut());
   }
 
+  d_asserts->clearCurrent();
   d_state->notifyResetAssertions();
   d_dumpm->resetAssertions();
   // push the state to maintain global context around everything
