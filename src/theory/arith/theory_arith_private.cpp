@@ -34,6 +34,8 @@
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
+#include "expr/proof_generator.h"
+#include "expr/proof_node_manager.h"
 #include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "options/smt_options.h"  // for incrementalSolving()
@@ -92,8 +94,16 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
     : d_containing(containing),
       d_nlIncomplete(false),
       d_rowTracking(),
-      d_constraintDatabase(
-          c, u, d_partialModel, d_congruenceManager, RaiseConflict(*this)),
+      d_pnm(pnm),
+      d_checker(),
+      d_pfGen(new EagerProofGenerator(d_pnm, u)),
+      d_constraintDatabase(c,
+                           u,
+                           d_partialModel,
+                           d_congruenceManager,
+                           RaiseConflict(*this),
+                           d_pfGen.get(),
+                           d_pnm),
       d_qflraStatus(Result::SAT_UNKNOWN),
       d_unknownsInARow(0),
       d_hasDoneWorkSinceCut(false),
@@ -119,11 +129,14 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_tableauResetPeriod(10),
       d_conflicts(c),
       d_blackBoxConflict(c, Node::null()),
+      d_blackBoxConflictPf(c, std::shared_ptr<ProofNode>(nullptr)),
       d_congruenceManager(c,
+                          u,
                           d_constraintDatabase,
                           SetupLiteralCallBack(*this),
                           d_partialModel,
-                          RaiseEqualityEngineConflict(*this)),
+                          RaiseEqualityEngineConflict(*this),
+                          d_pnm),
       d_cmEnabled(c, true),
 
       d_dualSimplex(
@@ -159,6 +172,11 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_statistics(),
       d_opElim(pnm, logicInfo)
 {
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
+  if (pc != nullptr)
+  {
+    d_checker.registerTo(pc);
+  }
 }
 
 TheoryArithPrivate::~TheoryArithPrivate(){
@@ -174,8 +192,9 @@ bool TheoryArithPrivate::needsEqualityEngine(EeSetupInfo& esi)
 void TheoryArithPrivate::finishInit()
 {
   eq::EqualityEngine* ee = d_containing.getEqualityEngine();
+  eq::ProofEqEngine* pfee = d_containing.getProofEqEngine();
   Assert(ee != nullptr);
-  d_congruenceManager.finishInit(ee);
+  d_congruenceManager.finishInit(ee, pfee);
   d_nonlinearExtension = d_containing.d_nonlinearExtension.get();
 }
 

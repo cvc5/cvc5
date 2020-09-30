@@ -85,6 +85,7 @@
 #include "context/cdqueue.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "expr/proof_node_manager.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/callbacks.h"
 #include "theory/arith/congruence_manager.h"
@@ -1086,6 +1087,10 @@ private:
   ArithCongruenceManager& d_congruenceManager;
 
   const context::Context * const d_satContext;
+  /** Owned by the TheoryArithPrivate, used here. */
+  EagerProofGenerator* d_pfGen;
+  /** Owned by the TheoryArithPrivate, used here. */
+  ProofNodeManager* d_pnm;
 
   RaiseConflict d_raiseConflict;
 
@@ -1095,13 +1100,14 @@ private:
 
   friend class Constraint;
 
-public:
-
-  ConstraintDatabase( context::Context* satContext,
-                      context::Context* userContext,
-                      const ArithVariables& variables,
-                      ArithCongruenceManager& dm,
-                      RaiseConflict conflictCallBack);
+ public:
+  ConstraintDatabase(context::Context* satContext,
+                     context::Context* userContext,
+                     const ArithVariables& variables,
+                     ArithCongruenceManager& dm,
+                     RaiseConflict conflictCallBack,
+                     EagerProofGenerator* pfGen,
+                     ProofNodeManager* pnm);
 
   ~ConstraintDatabase();
 
