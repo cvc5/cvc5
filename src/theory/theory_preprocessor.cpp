@@ -48,7 +48,7 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
                                              TConvCachePolicy::NEVER,
                                              "TheoryPreprocessor::rewrite")
                    : nullptr),
-      d_tspgNoPp,
+      d_tspgNoPp(nullptr),
       d_lp(pnm ? new LazyCDProof(pnm,
                                  nullptr,
                                  &d_pfContext,
