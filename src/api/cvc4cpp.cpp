@@ -5679,6 +5679,68 @@ SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
 Options& Solver::getOptions(void) { return d_smtEngine->getOptions(); }
 
 /* -------------------------------------------------------------------------- */
+/* Optimization                                                               */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * makes a minimize objective
+ */
+
+objective make_minimize(Term t){};
+
+/**
+ * Calls maximization funtion for solver on objective
+ */
+objective make_maximize(Term t){};
+
+/**
+ * Asserts the objective to make the solver optimize it
+ **/
+void assert_objective(objective o){};
+
+/**
+ * Asserts the objective to make the solver optimize it
+ **/
+objective_type objective_get_type(objective o){return o.get_objective_type();}
+
+/**
+ * Asserts the objective to make the solver optimize it
+ **/
+opt_result objective_get_result(objective o){return o.get_opt_result();}
+
+/**
+ * Gets the term related to the objective
+ */
+Term objective_get_term(objective o){return o.get_term();}
+
+/**
+ * Gets statistics on the current optimization state
+ */
+//TermVec Solver::get_objectives(void){}
+
+/**
+ * Gets the lower bound on objective after solver:
+ *  finishes, hits resource limit, or gets intterupted
+ */
+Term Solver::objective_get_lower(objective o){}
+
+/**
+ * Gets the upper bound on objective after solver:
+ *  finishes, hits resource limit, or gets intterupted
+ */
+Term solver::objective_get_upper(objective o){}
+
+/**
+ * Sets the resource limit on our solver to prevent infinite recursion
+ */
+void Solver::set_resource_limit(int limit){}
+
+/**
+ * interrupts solver, allowing for approximation of objective
+ */
+//void Solver::interrupt(void){}
+
+/* -------------------------------------------------------------------------- */
 /* Conversions                                                                */
 /* -------------------------------------------------------------------------- */
 
