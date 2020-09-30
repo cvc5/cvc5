@@ -2021,7 +2021,7 @@ header = "options/quantifiers_options.h"
   type       = "SygusInstTermSelMode"
   default    = "MIN"
   help       = "granularity for ground terms"
-  help_mode  = "select granularity of ground terms."
+  help_mode  = "Ground term selection modes."
 [[option.mode.MIN]]
   name = "min"
   help = "collect minimal ground terms only."
