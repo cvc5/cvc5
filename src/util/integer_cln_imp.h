@@ -162,7 +162,7 @@ class CVC4_PUBLIC Integer
 
   bool isBitSet(uint32_t i) const { return !extractBitRange(1, i).isZero(); }
 
-  Integer setBit(uint32_t i, bool value = true) const;
+  Integer setBit(uint32_t i, bool value) const;
 
   Integer oneExtend(uint32_t size, uint32_t amount) const;
 

@@ -165,7 +165,7 @@ class CVC4_PUBLIC Integer
    * Returns the Integer obtained by setting the ith bit of the
    * current Integer to 1.
    */
-  Integer setBit(uint32_t i, bool value = true) const;
+  Integer setBit(uint32_t i, bool value) const;
 
   bool isBitSet(uint32_t i) const { return !extractBitRange(1, i).isZero(); }
 

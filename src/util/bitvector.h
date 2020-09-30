@@ -122,7 +122,7 @@ class CVC4_PUBLIC BitVector
    *
    * Note: Least significant bit is at index 0.
    */
-  BitVector setBit(uint32_t i, bool value = true) const;
+  BitVector setBit(uint32_t i, bool value) const;
 
   /** Return true if bit at index 'i' is 1, and false otherwise. */
   bool isBitSet(uint32_t i) const;

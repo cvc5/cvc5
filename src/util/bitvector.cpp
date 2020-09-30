@@ -362,7 +362,7 @@ BitVector BitVector::mkOnes(unsigned size)
 BitVector BitVector::mkMinSigned(unsigned size)
 {
   CheckArgument(size > 0, size);
-  return BitVector(size).setBit(size - 1);
+  return BitVector(size).setBit(size - 1, true);
 }
 
 BitVector BitVector::mkMaxSigned(unsigned size)
