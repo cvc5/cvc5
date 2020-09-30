@@ -149,10 +149,6 @@ class NonlinearExtension
    */
   bool modelBasedRefinement();
 
-  void checkLastCall(const std::vector<Node>& assertions,
-                     const std::vector<Node>& false_asserts,
-                     const std::vector<Node>& xts);
-
   /** get assertions
    *
    * Let M be the set of assertions known by THEORY_ARITH. This function adds a
