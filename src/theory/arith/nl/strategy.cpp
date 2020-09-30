@@ -14,6 +14,8 @@
 
 #include "theory/arith/nl/strategy.h"
 
+#include <iostream>
+
 #include "base/check.h"
 #include "options/arith_options.h"
 

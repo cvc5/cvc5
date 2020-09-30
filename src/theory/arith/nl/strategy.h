@@ -15,6 +15,7 @@
 #ifndef CVC4__THEORY__ARITH__NL__STRATEGY_H
 #define CVC4__THEORY__ARITH__NL__STRATEGY_H
 
+#include <iosfwd>
 #include <map>
 #include <vector>
 #include <iosfwd>
