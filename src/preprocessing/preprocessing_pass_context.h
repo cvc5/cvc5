@@ -25,6 +25,7 @@
 #include "context/context.h"
 #include "decision/decision_engine.h"
 #include "preprocessing/util/ite_utilities.h"
+#include "preprocessing/top_level_substitutions.h"
 #include "smt/smt_engine.h"
 #include "smt/term_formula_removal.h"
 #include "theory/booleans/circuit_propagator.h"
@@ -70,10 +71,7 @@ class PreprocessingPassContext
   void widenLogic(theory::TheoryId id);
 
   /** Gets a reference to the top-level substitution map */
-  theory::SubstitutionMap& getTopLevelSubstitutions()
-  {
-    return d_topLevelSubstitutions;
-  }
+  theory::SubstitutionMap& getTopLevelSubstitutions();
 
   /* Enable Integers. */
   void enableIntegers();
@@ -96,7 +94,7 @@ class PreprocessingPassContext
   RemoveTermFormulas* d_iteRemover;
 
   /* The top level substitutions */
-  theory::SubstitutionMap d_topLevelSubstitutions;
+  TopLevelSubstitutions d_topLevelSubstitutions;
 
   /** Instance of the circuit propagator */
   theory::booleans::CircuitPropagator* d_circuitPropagator;

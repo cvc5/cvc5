@@ -14,7 +14,7 @@
  ** The preprocessing pass context for passes.
  **/
 
-#include "preprocessing_pass_context.h"
+#include "preprocessing/preprocessing_pass_context.h"
 
 #include "expr/node_algorithm.h"
 
@@ -38,6 +38,11 @@ void PreprocessingPassContext::widenLogic(theory::TheoryId id)
 {
   LogicRequest req(*d_smt);
   req.widenLogic(id);
+}
+
+theory::SubstitutionMap& PreprocessingPassContext::getTopLevelSubstitutions()
+{
+  return d_topLevelSubstitutions.get();
 }
 
 void PreprocessingPassContext::enableIntegers()

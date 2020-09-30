@@ -116,6 +116,8 @@ libcvc4_add_sources(
   preprocessing/preprocessing_pass_context.h
   preprocessing/preprocessing_pass_registry.cpp
   preprocessing/preprocessing_pass_registry.h
+  preprocessing/top_level_substitutions.cpp
+  preprocessing/top_level_substitutions.h
   preprocessing/util/ite_utilities.cpp
   preprocessing/util/ite_utilities.h
   printer/ast/ast_printer.cpp
