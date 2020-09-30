@@ -178,14 +178,6 @@ private:
             n.getConst< ::CVC4::EmptySet>().getType().toType(), d_to, d_vmap);
         return d_to->mkConst(::CVC4::EmptySet(TypeNode::fromType(type)));
       }
-
-      if (n.getKind() == kind::EMPTYBAG)
-      {
-        Type type = d_from->exportType(
-            n.getConst< ::CVC4::EmptyBag>().getType().toType(), d_to, d_vmap);
-        return d_to->mkConst(::CVC4::EmptyBag(TypeNode::fromType(type)));
-      }
-
       return exportConstant(n, NodeManager::fromExprManager(d_to), d_vmap);
     } else if(n.getMetaKind() == metakind::NULLARY_OPERATOR ){
       Expr from_e(d_from, new Node(n));
