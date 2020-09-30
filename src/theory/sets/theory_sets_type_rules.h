@@ -132,18 +132,36 @@ struct MemberTypeRule {
   }
 };/* struct MemberTypeRule */
 
-struct SingletonTypeRule {
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+struct SingletonTypeRule
+{
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
   {
     Assert(n.getKind() == kind::SINGLETON);
+    TypeNode type1 = n[0].getType(check);
+    TypeNode type2 = n[1].getType(check);
+    TypeNode mostCommonType = TypeNode::mostCommonTypeNode(type1, type2);
+    TypeNode leastCommonType = TypeNode::leastCommonTypeNode(type1, type2);
+    // the type of the second operand should be a subtype of the first operand
+    // e.g. (singleton (singleton_type Real) 1) where 1 is an Int
+    if (leastCommonType.isNull() || leastCommonType != type1)
+    {
+      std::stringstream ss;
+      ss << "The type '" << type2
+         << "' of the second operand is not a subtype of '" << type1
+         << "' in term : " << n;
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
     return nodeManager->mkSetType(n[0].getType(check));
   }
 
-  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
+  inline static bool computeIsConst(NodeManager* nodeManager, TNode n)
+  {
     Assert(n.getKind() == kind::SINGLETON);
-    return n[0].isConst();
+    return n[1].isConst();
   }
-};/* struct SingletonTypeRule */
+}; /* struct SingletonTypeRule */
 
 struct EmptySetTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
