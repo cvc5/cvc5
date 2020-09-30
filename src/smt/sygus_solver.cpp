@@ -22,7 +22,8 @@
 #include "smt/preprocessor.h"
 #include "smt/smt_solver.h"
 #include "theory/smt_engine_subsolver.h"
-#include "theory/theory_engine.h"
+#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 
 using namespace CVC4::theory;
 using namespace CVC4::kind;
@@ -68,17 +69,17 @@ void SygusSolver::declareSynthFun(const std::string& id,
   if (!vars.empty())
   {
     Node bvl = nm->mkNode(BOUND_VAR_LIST, vars);
-    std::vector<Node> attr_val_bvl;
-    attr_val_bvl.push_back(bvl);
-    te->setUserAttribute("sygus-synth-fun-var-list", fn, attr_val_bvl, "");
+    // use an attribute to mark its bound variable list
+    SygusSynthFunVarListAttribute ssfvla;
+    fn.setAttribute(ssfvla, bvl);
   }
   // whether sygus type encodes syntax restrictions
   if (sygusType.isDatatype() && sygusType.getDType().isSygus())
   {
     Node sym = nm->mkBoundVar("sfproxy", sygusType);
-    std::vector<Node> attr_value;
-    attr_value.push_back(sym);
-    te->setUserAttribute("sygus-synth-grammar", fn, attr_value, "");
+    // use an attribute to mark its grammar
+    SygusSynthGrammarAttribute ssfga;
+    fn.setAttribute(ssfga, sym);
   }
 
   // sygus conjecture is now stale
@@ -207,8 +208,8 @@ Result SygusSolver::checkSynth(Assertions& as)
     Trace("smt") << "...constructed forall " << body << std::endl;
 
     // set attribute for synthesis conjecture
-    TheoryEngine* te = d_smtSolver.getTheoryEngine();
-    te->setUserAttribute("sygus", sygusVar, {}, "");
+    SygusAttribute sa;
+    sygusVar.setAttribute(sa,true);
 
     Trace("smt") << "Check synthesis conjecture: " << body << std::endl;
     if (Dump.isOn("raw-benchmark"))
