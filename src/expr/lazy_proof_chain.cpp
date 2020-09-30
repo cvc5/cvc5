@@ -29,6 +29,20 @@ LazyCDProofChain::LazyCDProofChain(ProofNodeManager* pnm,
 
 LazyCDProofChain::~LazyCDProofChain() {}
 
+const std::map<Node, std::shared_ptr<ProofNode>> LazyCDProofChain::getLinks()
+    const
+{
+  std::map<Node, std::shared_ptr<ProofNode>> links;
+  for (const std::pair<const Node, ProofGenerator*>& link : d_gens)
+  {
+    Assert(link.second);
+    std::shared_ptr<ProofNode> pfn = link.second->getProofFor(link.first);
+    Assert(pfn);
+    links[link.first] = pfn;
+  }
+  return links;
+}
+
 std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
 {
   Trace("lazy-cdproofchain")

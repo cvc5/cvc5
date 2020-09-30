@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Paul Meng, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -30,7 +30,8 @@ namespace quantifiers {
 
 bool QAttributes::isStandard() const
 {
-  return !d_sygus && !d_quant_elim && !isFunDef() && d_name.isNull();
+  return !d_sygus && !d_quant_elim && !isFunDef() && d_name.isNull()
+         && !d_isInternal;
 }
 
 QuantAttributes::QuantAttributes( QuantifiersEngine * qe ) : 
@@ -250,6 +251,11 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
           qa.d_quant_elim_partial = true;
           //don't set owner, should happen naturally
         }
+        if (avar.getAttribute(InternalQuantAttribute()))
+        {
+          Trace("quant-attr") << "Attribute : internal : " << q << std::endl;
+          qa.d_isInternal = true;
+        }
         if( avar.hasAttribute(QuantIdNumAttribute()) ){
           qa.d_qid_num = avar;
           Trace("quant-attr") << "Attribute : id number " << qa.d_qid_num.getAttribute(QuantIdNumAttribute()) << " : " << q << std::endl;
@@ -302,6 +308,16 @@ bool QuantAttributes::isQuantElimPartial( Node q ) {
   }else{
     return it->second.d_quant_elim_partial;
   }
+}
+
+bool QuantAttributes::isInternal(Node q) const
+{
+  std::map<Node, QAttributes>::const_iterator it = d_qattr.find(q);
+  if (it != d_qattr.end())
+  {
+    return it->second.d_isInternal;
+  }
+  return false;
 }
 
 Node QuantAttributes::getQuantName(Node q) const

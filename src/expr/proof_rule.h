@@ -2,10 +2,10 @@
 /*! \file proof_rule.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Haniel Barbosa, Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa, Alex Ozdemir
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -563,7 +563,7 @@ enum class PfRule : uint32_t
   // Conclusion: (= F true)
   TRUE_INTRO,
   // ======== True elim
-  // Children: (P:(= F true)
+  // Children: (P:(= F true))
   // Arguments: none
   // ----------------------------------------
   // Conclusion: F
@@ -575,7 +575,7 @@ enum class PfRule : uint32_t
   // Conclusion: (= F false)
   FALSE_INTRO,
   // ======== False elim
-  // Children: (P:(= F false)
+  // Children: (P:(= F false))
   // Arguments: none
   // ----------------------------------------
   // Conclusion: (not F)
@@ -595,13 +595,46 @@ enum class PfRule : uint32_t
   // Notice that this rule is only used when the application kinds are APPLY_UF.
   HO_CONG,
 
+  //================================================= Array rules
+  // ======== Read over write
+  // Children: (P:(not (= i1 i2)))
+  // Arguments: ((select (store a i2 e) i1))
+  // ----------------------------------------
+  // Conclusion: (= (select (store a i2 e) i1) (select a i1))
+  ARRAYS_READ_OVER_WRITE,
+  // ======== Read over write, contrapositive
+  // Children: (P:(not (= (select (store a i2 e) i1) (select a i1)))
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: (= i1 i2)
+  ARRAYS_READ_OVER_WRITE_CONTRA,
+  // ======== Read over write 1
+  // Children: none
+  // Arguments: ((select (store a i e) i))
+  // ----------------------------------------
+  // Conclusion: (= (select (store a i e) i) e)
+  ARRAYS_READ_OVER_WRITE_1,
+  // ======== Extensionality
+  // Children: (P:(not (= a b)))
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: (not (= (select a k) (select b k)))
+  // where k is arrays::SkolemCache::getExtIndexSkolem((not (= a b))).
+  ARRAYS_EXT,
+  // ======== Array Trust
+  // Children: (P1 ... Pn)
+  // Arguments: (F)
+  // ---------------------
+  // Conclusion: F
+  ARRAYS_TRUST,
+
   //================================================= Quantifiers rules
   // ======== Witness intro
-  // Children: (P:F[t])
-  // Arguments: (t)
+  // Children: (P:(exists ((x T)) F[x]))
+  // Arguments: none
   // ----------------------------------------
-  // Conclusion: (= t (witness ((x T)) F[x]))
-  // where x is a BOUND_VARIABLE unique to the pair F,t.
+  // Conclusion: (= k (witness ((x T)) F[x]))
+  // where k is the Skolem form of (witness ((x T)) F[x]).
   WITNESS_INTRO,
   // ======== Exists intro
   // Children: (P:F[t])
@@ -617,7 +650,7 @@ enum class PfRule : uint32_t
   // Conclusion: F*sigma
   // sigma maps x1 ... xn to their representative skolems obtained by
   // SkolemManager::mkSkolemize, returned in the skolems argument of that
-  // method.
+  // method. Alternatively, can use negated forall as a premise.
   SKOLEMIZE,
   // ======== Instantiate
   // Children: (P:(forall ((x1 T1) ... (xn Tn)) F))

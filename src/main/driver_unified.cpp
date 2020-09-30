@@ -5,7 +5,7 @@
  **   Morgan Deters, Liana Hadarean, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -450,7 +450,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       }
     }
 
-    Result result;
+    api::Result result;
     if(status) {
       result = pExecutor->getResult();
       returnValue = 0;
@@ -467,7 +467,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     _exit(returnValue);
 #endif /* CVC4_COMPETITION_MODE */
 
-    ReferenceStat< Result > s_statSatResult("sat/unsat", result);
+    ReferenceStat<api::Result> s_statSatResult("sat/unsat", result);
     RegisterStatistic statSatResultReg(&pExecutor->getStatisticsRegistry(),
                                        &s_statSatResult);
 
