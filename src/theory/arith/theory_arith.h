@@ -116,6 +116,7 @@ class TheoryArith : public Theory {
   eq::ProofEqEngine* getProofEqEngine();
   /** The state object wrapping TheoryArithPrivate  */
   ArithState d_astate;
+
   /** The arith::InferenceManager. */
   InferenceManager d_inferenceManager;
 

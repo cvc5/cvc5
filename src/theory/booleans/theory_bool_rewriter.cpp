@@ -33,7 +33,7 @@ RewriteResponse TheoryBoolRewriter::postRewrite(TNode node) {
  * flattenNode looks for children of same kind, and if found merges
  * them into the parent.
  *
- * It simultaneously handles a couple of other optimizations:
+ * It simultaneously handles a couple of other optimizations: 
  * - trivialNode - if found during exploration, return that node itself
  *    (like in case of OR, if "true" is found, makes sense to replace
  *     whole formula with "true")

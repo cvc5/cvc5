@@ -81,7 +81,6 @@ class PreprocessProofGenerator : public ProofGenerator
   LazyCDProof* allocateHelperProof();
 
  private:
-  typedef context::CDList<std::shared_ptr<LazyCDProof> > LazyCDProofList;
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /**
