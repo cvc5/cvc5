@@ -21,9 +21,9 @@
 #include "smt/dump.h"
 #include "smt/preprocessor.h"
 #include "smt/smt_solver.h"
-#include "theory/smt_engine_subsolver.h"
-#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/smt_engine_subsolver.h"
 
 using namespace CVC4::theory;
 using namespace CVC4::kind;
@@ -209,7 +209,7 @@ Result SygusSolver::checkSynth(Assertions& as)
 
     // set attribute for synthesis conjecture
     SygusAttribute sa;
-    sygusVar.setAttribute(sa,true);
+    sygusVar.setAttribute(sa, true);
 
     Trace("smt") << "Check synthesis conjecture: " << body << std::endl;
     if (Dump.isOn("raw-benchmark"))
