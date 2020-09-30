@@ -135,8 +135,10 @@ theory::TrustNode TConvSeqProofGenerator::mkTrustRewriteSequence(
     }
     else if (pg == nullptr)
     {
-      // maybe the i^th generator can explain it alone. We may overwrite pg
-      // with this class if another step is encountered in this loop.
+      // Maybe the i^th generator can explain it alone, which must be the case
+      // if there is only one position in the sequence where the term changes.
+      // We may overwrite pg with this class if another step is encountered in
+      // this loop.
       pg = d_tconvs[i];
     }
     else
