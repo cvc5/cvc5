@@ -105,8 +105,8 @@ libcvc4_add_sources(
   record.h
   sequence.cpp
   sequence.h
-  singleton_type.cpp
-  singleton_type.h
+  singleton_op.cpp
+  singleton_op.h
   sygus_datatype.cpp
   sygus_datatype.h
   uninterpreted_constant.cpp

@@ -130,9 +130,10 @@ struct SingletonTypeRule
                                      bool check)
   {
     Assert(n.getKind() == kind::SINGLETON);
-    TypeNode type1 = n[0].getType(check);
-    TypeNode type2 = n[1].getType(check);
-    TypeNode mostCommonType = TypeNode::mostCommonTypeNode(type1, type2);
+
+    SingletonOp op = n.getOperator().getConst<SingletonOp>();
+    TypeNode type1 = op.getType();
+    TypeNode type2 = n[0].getType(check);
     TypeNode leastCommonType = TypeNode::leastCommonTypeNode(type1, type2);
     // the type of the second operand should be a subtype of the first operand
     // e.g. (singleton (singleton_type Real) 1) where 1 is an Int
@@ -144,13 +145,13 @@ struct SingletonTypeRule
          << "' in term : " << n;
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
-    return nodeManager->mkSetType(n[0].getType(check));
+    return nodeManager->mkSetType(type1);
   }
 
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n)
   {
     Assert(n.getKind() == kind::SINGLETON);
-    return n[1].isConst();
+    return n[0].isConst();
   }
 }; /* struct SingletonTypeRule */
 
@@ -162,18 +163,6 @@ struct EmptySetTypeRule {
     return emptySet.getType();
   }
 };/* struct EmptySetTypeRule */
-
-struct SingletonTypeTypingRule
-{
-  inline static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
-  {
-    Assert(n.getKind() == kind::SINGLETON_TYPE);
-    SingletonType s = n.getConst<SingletonType>();
-    return s.getType();
-  }
-}; /* struct SingletonTypeTypingRule */
 
 struct CardTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)

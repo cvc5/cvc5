@@ -61,8 +61,8 @@ class SetsTypeRuleWhite : public CxxTest::TestSuite
 
   void testSingletonNode()
   {
-    Node singletonInt = d_nm->mkConst(SingletonType(d_nm->integerType()));
-    Node singletonReal = d_nm->mkConst(SingletonType(d_nm->realType()));
+    Node singletonInt = d_nm->mkConst(SingletonOp(d_nm->integerType()));
+    Node singletonReal = d_nm->mkConst(SingletonOp(d_nm->realType()));
     Node intConstant = d_nm->mkConst(Rational(1));
     Node realConstant = d_nm->mkConst(Rational(1, 5));
     // (singleton (singleton_type Real) 1)
