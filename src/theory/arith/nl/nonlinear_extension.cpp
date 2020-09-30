@@ -369,212 +369,6 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
   return ret;
 }
 
-void NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
-                                       const std::vector<Node>& false_asserts,
-                                       const std::vector<Node>& xts)
-{
-  ++(d_stats.d_checkRuns);
-
-  if (Trace.isOn("nl-ext"))
-  {
-    for (const auto& a : assertions)
-    {
-      Trace("nl-ext") << "Input assertion: " << a << std::endl;
-    }
-  }
-
-  if (options::nlICP())
-  {
-    d_icpSlv.reset(assertions);
-    d_icpSlv.check();
-
-    if (d_im.hasUsed())
-    {
-      Trace("nl-ext") << "  ...finished with "
-                      << d_im.numPendingLemmas() + d_im.numSentLemmas()
-                      << " new lemmas from ICP." << std::endl;
-      return;
-    }
-    Trace("nl-ext") << "Done with ICP" << std::endl;
-  }
-
-  if (options::nlExt())
-  {
-    // initialize the non-linear solver
-    d_nlSlv.initLastCall(assertions, false_asserts, xts);
-    // initialize the trancendental function solver
-    d_trSlv.initLastCall(assertions, false_asserts, xts);
-  }
-
-  // init last call with IAND
-  d_iandSlv.initLastCall(assertions, false_asserts, xts);
-
-  if (d_im.hasUsed())
-  {
-    std::size_t count = d_im.numPendingLemmas() + d_im.numSentLemmas();
-    Trace("nl-ext") << "  ...finished with " << count
-                    << " new lemmas during registration." << std::endl;
-    return;
-  }
-
-  //----------------------------------- possibly split on zero
-  if (options::nlExt() && options::nlExtSplitZero())
-  {
-    Trace("nl-ext") << "Get zero split lemmas..." << std::endl;
-    d_nlSlv.checkSplitZero();
-    if (d_im.hasUsed())
-    {
-      Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas() << " new lemmas."
-                      << std::endl;
-      return;
-    }
-  }
-
-  //-----------------------------------initial lemmas for transcendental
-  if (options::nlExt())
-  {
-    // functions
-    d_trSlv.checkTranscendentalInitialRefine();
-    if (d_im.hasUsed())
-    {
-      std::size_t count = d_im.numPendingLemmas() + d_im.numSentLemmas();
-      Trace("nl-ext") << "  ...finished with " << count << " new lemmas."
-                      << std::endl;
-      return;
-    }
-  }
-  //-----------------------------------initial lemmas for iand
-  d_iandSlv.checkInitialRefine();
-  if (d_im.hasUsed())
-  {
-    Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas() << " new lemmas."
-                    << std::endl;
-    return;
-  }
-
-  // main calls to nlExt
-  if (options::nlExt())
-  {
-    //---------------------------------lemmas based on sign (comparison to zero)
-    d_nlSlv.checkMonomialSign();
-    if (d_im.hasUsed())
-    {
-      Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas() << " new lemmas."
-                      << std::endl;
-      return;
-    }
-
-    //-----------------------------------monotonicity of transdental functions
-    d_trSlv.checkTranscendentalMonotonic();
-    if (d_im.hasUsed())
-    {
-      std::size_t count = d_im.numPendingLemmas() + d_im.numSentLemmas();
-      Trace("nl-ext") << "  ...finished with " << count << " new lemmas."
-                      << std::endl;
-      return;
-    }
-
-    //------------------------lemmas based on magnitude of non-zero monomials
-    for (unsigned c = 0; c < 3; c++)
-    {
-      // c is effort level
-      d_nlSlv.checkMonomialMagnitude(c);
-      if (d_im.hasUsed())
-      {
-        Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas()
-                        << " new lemmas." << std::endl;
-        return;
-      }
-    }
-
-    //-----------------------------------inferred bounds lemmas
-    //  e.g. x >= t => y*x >= y*t
-    d_nlSlv.checkMonomialInferBounds(assertions, false_asserts);
-    Trace("nl-ext") << "Bound lemmas : " << d_im.numPendingLemmas() << ", " << d_im.numWaitingLemmas() << std::endl;
-    // prioritize lemmas that do not introduce new monomials
-    if (options::nlExtTangentPlanes()
-        && options::nlExtTangentPlanesInterleave())
-    {
-      d_nlSlv.checkTangentPlanes(false);
-    }
-
-    if (d_im.hasUsed())
-    {
-      Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas() << " new lemmas."
-                      << std::endl;
-      return;
-    }
-
-    // from inferred bound inferences : now do ones that introduce new terms
-    d_im.flushWaitingLemmas();
-    if (d_im.hasUsed())
-    {
-      Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas()
-                      << " new (monomial-introducing) lemmas." << std::endl;
-      return;
-    }
-
-    //------------------------------------factoring lemmas
-    //   x*y + x*z >= t => exists k. k = y + z ^ x*k >= t
-    if (options::nlExtFactor())
-    {
-      d_nlSlv.checkFactoring(assertions, false_asserts);
-      if (d_im.hasUsed())
-      {
-        Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas()
-                        << " new lemmas." << std::endl;
-        return;
-      }
-    }
-
-    //------------------------------------resolution bound inferences
-    //  e.g. ( y>=0 ^ s <= x*z ^ x*y <= t ) => y*s <= z*t
-    if (options::nlExtResBound())
-    {
-      d_nlSlv.checkMonomialInferResBounds();
-      if (d_im.hasUsed())
-      {
-        Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas()
-                        << " new lemmas." << std::endl;
-        return;
-      }
-    }
-
-    //------------------------------------tangent planes
-    if (options::nlExtTangentPlanes()
-        && !options::nlExtTangentPlanesInterleave())
-    {
-      d_nlSlv.checkTangentPlanes(true);
-    }
-    if (options::nlExtTfTangentPlanes())
-    {
-      d_trSlv.checkTranscendentalTangentPlanes();
-    }
-  }
-  if (options::nlCad())
-  {
-    d_cadSlv.initLastCall(assertions);
-    d_cadSlv.checkFull();
-    if (!d_im.hasUsed())
-    {
-      Trace("nl-cad") << "nl-cad found SAT!" << std::endl;
-    }
-    else
-    {
-      // checkFull() only adds a single conflict
-      return;
-    }
-  }
-  // run the full refinement in the IAND solver
-  d_iandSlv.checkFullRefine();
-
-  Trace("nl-ext") << "  ...finished with " << d_im.numWaitingLemmas() << " waiting lemmas."
-                  << std::endl;
-  Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas() << " lemmas."
-                  << std::endl;
-  return;
-}
-
 void NonlinearExtension::check(Theory::Effort e)
 {
   Trace("nl-ext") << std::endl;
@@ -722,7 +516,7 @@ bool NonlinearExtension::modelBasedRefinement()
     if (!false_asserts.empty() || num_shared_wrong_value > 0)
     {
       complete_status = num_shared_wrong_value > 0 ? -1 : 0;
-      checkLastCall(assertions, false_asserts, xts);
+      runStrategy(Theory::Effort::EFFORT_FULL, assertions, false_asserts, xts);
       if (d_im.hasSentLemma() || d_im.hasPendingLemma())
       {
         d_im.clearWaitingLemmas();
@@ -858,6 +652,96 @@ void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
 void NonlinearExtension::presolve()
 {
   Trace("nl-ext") << "NonlinearExtension::presolve" << std::endl;
+}
+
+void NonlinearExtension::runStrategy(Theory::Effort effort,
+                                     const std::vector<Node>& assertions,
+                                     const std::vector<Node>& false_asserts,
+                                     const std::vector<Node>& xts)
+{
+  ++(d_stats.d_checkRuns);
+
+  if (Trace.isOn("nl-ext"))
+  {
+    for (const auto& a : assertions)
+    {
+      Trace("nl-ext") << "Input assertion: " << a << std::endl;
+    }
+  }
+  if (!d_strategy.isStrategyInit())
+  {
+    d_strategy.initializeStrategy();
+  }
+
+  auto steps = d_strategy.getStrategy();
+  bool stop = false;
+  while (!stop && steps.hasNext())
+  {
+    InferStep step = steps.next();
+    Trace("nl-ext") << "Step " << step << std::endl;
+    switch (step)
+    {
+      case InferStep::BREAK: stop = d_im.hasPendingLemma(); break;
+      case InferStep::FLUSH_WAITING_LEMMAS: d_im.flushWaitingLemmas(); break;
+      case InferStep::CAD_FULL: d_cadSlv.checkFull(); break;
+      case InferStep::CAD_INIT: d_cadSlv.initLastCall(assertions); break;
+      case InferStep::NL_FACTORING:
+        d_nlSlv.checkFactoring(assertions, false_asserts);
+        break;
+      case InferStep::IAND_INIT:
+        d_iandSlv.initLastCall(assertions, false_asserts, xts);
+        break;
+      case InferStep::IAND_FULL: d_iandSlv.checkFullRefine(); break;
+      case InferStep::IAND_INITIAL: d_iandSlv.checkInitialRefine(); break;
+      case InferStep::ICP:
+        d_icpSlv.reset(assertions);
+        d_icpSlv.check();
+        break;
+      case InferStep::NL_INIT:
+        d_nlSlv.initLastCall(assertions, false_asserts, xts);
+        break;
+      case InferStep::NL_MONOMIAL_INFER_BOUNDS:
+        d_nlSlv.checkMonomialInferBounds(assertions, false_asserts);
+        break;
+      case InferStep::NL_MONOMIAL_MAGNITUDE0:
+        d_nlSlv.checkMonomialMagnitude(0);
+        break;
+      case InferStep::NL_MONOMIAL_MAGNITUDE1:
+        d_nlSlv.checkMonomialMagnitude(1);
+        break;
+      case InferStep::NL_MONOMIAL_MAGNITUDE2:
+        d_nlSlv.checkMonomialMagnitude(2);
+        break;
+      case InferStep::NL_MONOMIAL_SIGN: d_nlSlv.checkMonomialSign(); break;
+      case InferStep::NL_RESOLUTION_BOUNDS:
+        d_nlSlv.checkMonomialInferResBounds();
+        break;
+      case InferStep::NL_SPLIT_ZERO: d_nlSlv.checkSplitZero(); break;
+      case InferStep::NL_TANGENT_PLANES:
+        d_nlSlv.checkTangentPlanes(false);
+        break;
+      case InferStep::NL_TANGENT_PLANES_WAITING:
+        d_nlSlv.checkTangentPlanes(true);
+        break;
+      case InferStep::TRANS_INIT:
+        d_trSlv.initLastCall(assertions, false_asserts, xts);
+        break;
+      case InferStep::TRANS_INITIAL:
+        d_trSlv.checkTranscendentalInitialRefine();
+        break;
+      case InferStep::TRANS_MONOTONIC:
+        d_trSlv.checkTranscendentalMonotonic();
+        break;
+      case InferStep::TRANS_TANGENT_PLANES:
+        d_trSlv.checkTranscendentalTangentPlanes();
+        break;
+    }
+  }
+
+  Trace("nl-ext") << "  ...finished with " << d_im.numWaitingLemmas()
+                  << " waiting lemmas." << std::endl;
+  Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas()
+                  << " pending lemmas." << std::endl;
 }
 
 }  // namespace nl
