@@ -18,7 +18,6 @@
 #include <iosfwd>
 #include <map>
 #include <vector>
-#include <iosfwd>
 
 namespace CVC4 {
 namespace theory {
