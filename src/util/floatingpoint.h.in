@@ -10,10 +10,10 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief [[ Utility functions for working with floating point theories. ]]
+ ** \brief A floating-point value.
  **
- ** [[ This file contains the data structures used by the constant and
- **    parametric types of the floating point theory. ]]
+ ** This file contains the data structures used by the constant and parametric
+ ** types of the floating point theory.
  **/
 #include "cvc4_public.h"
 
