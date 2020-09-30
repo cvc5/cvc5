@@ -894,7 +894,7 @@ RewriteResponse ArithRewriter::returnRewrite(TNode t, Node ret, Rewrite r)
 {
   Trace("arith-rewrite") << "ArithRewriter : " << t << " == " << ret << " by "
                          << r << std::endl;
-  return RewriteResponse(REWRITE_AGAIN, ret);
+  return RewriteResponse(REWRITE_AGAIN_FULL, ret);
 }
 
 }/* CVC4::theory::arith namespace */
