@@ -18,8 +18,6 @@
 #include <map>
 #include <vector>
 
-#include "theory/theory.h"
-
 namespace CVC4 {
 namespace theory {
 namespace arith {
@@ -109,6 +107,8 @@ class Interleaving
   void resetCounter();
   /** Retrieve the next branch */
   const StepSequence& get();
+  /** Check whether this interleaving is empty */
+  bool empty() const;
 
  private:
   /** Represents a single branch in an interleaving */
@@ -162,14 +162,12 @@ class Strategy
   bool isStrategyInit() const;
   /** Initialize this strategy */
   void initializeStrategy();
-  /** Do we have a strategy for effort e? */
-  bool hasStrategyEffort(Theory::Effort e) const;
   /** Retrieve the strategy for the given effort e */
-  StepGenerator getStrategy(Theory::Effort e);
+  StepGenerator getStrategy();
 
  private:
-  /** An interleaving for every effort */
-  std::map<Theory::Effort, Interleaving> d_strategies;
+  /** The interleaving for this strategy */
+  Interleaving d_interleaving;
 };
 
 }  // namespace nl

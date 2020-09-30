@@ -15,6 +15,7 @@
 #include "theory/arith/nl/strategy.h"
 
 #include "options/arith_options.h"
+#include "base/check.h"
 
 namespace CVC4 {
 namespace theory {
@@ -92,11 +93,14 @@ const StepSequence& Interleaving::get()
   Assert(false) << "Something went wrong.";
   return d_branches[0].d_steps;
 }
+bool Interleaving::empty() const {
+  return d_branches.empty();
+}
 
 bool StepGenerator::hasNext() const { return d_next < d_steps.size(); }
 InferStep StepGenerator::next() { return d_steps[d_next++]; }
 
-bool Strategy::isStrategyInit() const { return !d_strategies.empty(); }
+bool Strategy::isStrategyInit() const { return !d_interleaving.empty(); }
 void Strategy::initializeStrategy()
 {
   StepSequence one;
@@ -159,20 +163,11 @@ void Strategy::initializeStrategy()
     one << InferStep::CAD_FULL << InferStep::BREAK;
   }
 
-  Interleaving interleaving;
-  interleaving.add(one);
-
-  d_strategies.emplace(Theory::Effort::EFFORT_FULL, interleaving);
+  d_interleaving.add(one);
 }
-bool Strategy::hasStrategyEffort(Theory::Effort e) const
+StepGenerator Strategy::getStrategy()
 {
-  return d_strategies.find(e) != d_strategies.end();
-}
-StepGenerator Strategy::getStrategy(Theory::Effort e)
-{
-  Assert(hasStrategyEffort(e)) << "No strategy is configured for effort " << e;
-
-  return StepGenerator(d_strategies.find(e)->second.get());
+  return StepGenerator(d_interleaving.get());
 }
 
 }  // namespace nl

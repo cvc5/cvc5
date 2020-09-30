@@ -673,8 +673,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
     d_strategy.initializeStrategy();
   }
 
-  Assert(d_strategy.hasStrategyEffort(effort));
-  auto steps = d_strategy.getStrategy(effort);
+  auto steps = d_strategy.getStrategy();
   bool stop = false;
   while (!stop && steps.hasNext())
   {
