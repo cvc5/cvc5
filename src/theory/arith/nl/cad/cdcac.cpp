@@ -80,6 +80,7 @@ void CDCAC::computeVariableOrdering()
 
 void CDCAC::retrieveInitialAssignment(NlModel& model, const Node& ran_variable)
 {
+  if (!use_initial_assignment) return;
   d_initialAssignment.clear();
   Trace("cdcac") << "Retrieving initial assignment:" << std::endl;
   for (const auto& var : d_variableOrdering)
@@ -138,7 +139,7 @@ bool CDCAC::sampleOutsideWithInitial(const std::vector<CACInterval>& infeasible,
                                      poly::Value& sample,
                                      std::size_t cur_variable)
 {
-  if (cur_variable < d_initialAssignment.size())
+  if (use_initial_assignment && cur_variable < d_initialAssignment.size())
   {
     const poly::Value& suggested = d_initialAssignment[cur_variable];
     for (const auto& i : infeasible)

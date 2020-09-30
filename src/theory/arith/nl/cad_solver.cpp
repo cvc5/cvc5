@@ -59,6 +59,7 @@ void CadSolver::initLastCall(const std::vector<Node>& assertions)
     d_CAC.getConstraints().addConstraint(a);
   }
   d_CAC.computeVariableOrdering();
+  d_CAC.retrieveInitialAssignment(d_model, d_ranVariable);
 #else
   Warning() << "Tried to use CadSolver but libpoly is not available. Compile "
                "with --poly."
