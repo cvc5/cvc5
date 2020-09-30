@@ -151,8 +151,8 @@ static void getMaxGroundTerms(
     std::unordered_set<TNode, TNodeHashFunction>& cache,
     bool stop_at_quant = false)
 {
-  if (options::sygusInstGranularity() != options::SygusInstGranularity::MAXIMAL
-      && options::sygusInstGranularity() != options::SygusInstGranularity::BOTH)
+  if (options::sygusInstTermSel() != options::SygusInstTermSelMode::MAX
+      && options::sygusInstTermSel() != options::SygusInstTermSelMode::BOTH)
   {
     return;
   }
@@ -197,8 +197,8 @@ static void getMinGroundTerms(
     std::unordered_set<TNode, TNodeHashFunction>& cache,
     bool stop_at_quant = false)
 {
-  if (options::sygusInstGranularity() != options::SygusInstGranularity::MINIMAL
-      && options::sygusInstGranularity() != options::SygusInstGranularity::BOTH)
+  if (options::sygusInstTermSel() != options::SygusInstTermSelMode::MIN
+      && options::sygusInstTermSel() != options::SygusInstTermSelMode::BOTH)
   {
     return;
   }
@@ -252,7 +252,7 @@ void SygusInst::registerQuantifier(Node q)
       extra_cons[tn].insert(t);
     }
   }
-  if (options::sygusInstScope() == options::SygusInstScope::INSIDE
+  if (options::sygusInstScope() == options::SygusInstScope::IN
       || options::sygusInstScope() == options::SygusInstScope::BOTH)
   {
     std::unordered_set<Node, NodeHashFunction> terms;
@@ -301,7 +301,7 @@ void SygusInst::preRegisterQuantifier(Node q)
 
 void SygusInst::ppNotifyAssertions(const std::vector<Node>& assertions)
 {
-  if (options::sygusInstScope() == options::SygusInstScope::INSIDE)
+  if (options::sygusInstScope() == options::SygusInstScope::IN)
   {
     return;
   }
