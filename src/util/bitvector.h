@@ -240,6 +240,12 @@ class CVC4_PUBLIC BitVector
    ** Static helpers.
    * ----------------------------------------------------------------------- */
 
+  /* Create zero bit-vector of given size. */
+  static BitVector mkZero(unsigned size);
+
+  /* Create bit-vector representing value 1 of given size. */
+  static BitVector mkOne(unsigned size);
+
   /* Create bit-vector of ones of given size. */
   static BitVector mkOnes(unsigned size);
 
