@@ -68,14 +68,14 @@ class SetsTypeRuleWhite : public CxxTest::TestSuite
     // (singleton (singleton_type Real) 1)
     TS_ASSERT_THROWS_NOTHING(
         d_nm->mkNode(kind::SINGLETON, singletonReal, intConstant));
-    // (singleton (singleton_type Int) (/ 1 5))
+    // (singleton (singleton_op Int) (/ 1 5))
     TS_ASSERT_THROWS(d_nm->mkNode(kind::SINGLETON, singletonInt, realConstant),
                      Exception);
 
     Node n = d_nm->mkNode(kind::SINGLETON, singletonReal, intConstant);
-    // the type of (singleton (singleton_type Real) 1) is (Set Real)
+    // the type of (singleton (singleton_op Real) 1) is (Set Real)
     TS_ASSERT(n.getType() == d_nm->mkSetType(d_nm->realType()));
-    // (singleton (singleton_type Real) 1) is a constant in normal form
+    // (singleton (singleton_op Real) 1) is a constant in normal form
     TS_ASSERT(n.isConst());
   }
 

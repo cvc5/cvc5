@@ -135,8 +135,8 @@ struct SingletonTypeRule
     TypeNode type1 = op.getType();
     TypeNode type2 = n[0].getType(check);
     TypeNode leastCommonType = TypeNode::leastCommonTypeNode(type1, type2);
-    // the type of the second operand should be a subtype of the first operand
-    // e.g. (singleton (singleton_type Real) 1) where 1 is an Int
+    // the type of the element should be a subtype of the first operand
+    // e.g. (singleton (singleton_op Real) 1) where 1 is an Int
     if (leastCommonType.isNull() || leastCommonType != type1)
     {
       std::stringstream ss;
@@ -153,7 +153,7 @@ struct SingletonTypeRule
     Assert(n.getKind() == kind::SINGLETON);
     return n[0].isConst();
   }
-}; /* struct SingletonTypeRule */
+}; /* struct SingletonOp */
 
 struct EmptySetTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)

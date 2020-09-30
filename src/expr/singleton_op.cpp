@@ -32,7 +32,7 @@
 namespace CVC4 {
 
 std::ostream& operator<<(std::ostream& out, const SingletonOp& asa) {
-  return out << "(singleton_type " << asa.getType() << ')';
+  return out << "(singleton_op " << asa.getType() << ')';
 }
 
 size_t SingletonOpHashFunction::operator()(const SingletonOp& es) const {
