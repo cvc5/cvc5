@@ -355,14 +355,14 @@ namespace CVC4 {
      */
     static FloatingPoint makeZero(const FloatingPointSize& size, bool sign);
     /**
-     * Create the smallest subnormal FP size.
+     * Create the smallest subnormal FP value of given size.
      * t:    The FP size (format).
      * sign: True for positive sign, false otherwise.
      */
     static FloatingPoint makeMinSubnormal(const FloatingPointSize& size,
                                           bool sign);
     /**
-     * Create the largest subnormal FP value.
+     * Create the largest subnormal FP value of given size.
      * t:    The FP size (format).
      * sign: True for positive sign, false otherwise.
      */

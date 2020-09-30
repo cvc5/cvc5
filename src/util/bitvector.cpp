@@ -341,6 +341,18 @@ BitVector BitVector::arithRightShift(const BitVector& y) const
  ** Static helpers.
  * ----------------------------------------------------------------------- */
 
+BitVector BitVector::mkZero(unsigned size)
+{
+  CheckArgument(size > 0, size);
+  return BitVector(size);
+}
+
+BitVector BitVector::mkOne(unsigned size)
+{
+  CheckArgument(size > 0, size);
+  return BitVector(size, 1u);
+}
+
 BitVector BitVector::mkOnes(unsigned size)
 {
   CheckArgument(size > 0, size);

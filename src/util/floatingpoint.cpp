@@ -678,30 +678,19 @@ FloatingPoint FloatingPoint::makeZero(const FloatingPointSize& size, bool sign)
 FloatingPoint FloatingPoint::makeMinSubnormal(const FloatingPointSize& size,
                                               bool sign)
 {
-  if (sign)
-  {
-    return FloatingPoint(size,
-                         BitVector::mkMinSigned(size.exponent() + 1)
-                             .concat(BitVector(size.significand() - 1, 1u)));
-  }
-  return FloatingPoint(size,
-                       BitVector(size.exponent() + 1)
-                           .concat(BitVector(size.significand() - 1, 1u)));
+  BitVector bvsign = sign ? BitVector::mkOne(1) : BitVector::mkZero(1);
+  BitVector bvexp = BitVector::mkZero(size.packedExponentWidth());
+  BitVector bvsig = BitVector::mkOne(size.packedSignificandWidth());
+  return FloatingPoint(size, bvsign.concat(bvexp).concat(bvsig));
 }
 
 FloatingPoint FloatingPoint::makeMaxSubnormal(const FloatingPointSize& size,
                                               bool sign)
 {
-  if (sign)
-  {
-    return FloatingPoint(
-        size,
-        BitVector::mkMinSigned(size.exponent() + 1)
-            .concat(BitVector::mkOnes(size.significand() - 1)));
-  }
-  return FloatingPoint(size,
-                       BitVector(size.exponent() + 1)
-                           .concat(BitVector::mkOnes(size.significand() - 1)));
+  BitVector bvsign = sign ? BitVector::mkOne(1) : BitVector::mkZero(1);
+  BitVector bvexp = BitVector::mkZero(size.packedExponentWidth());
+  BitVector bvsig = BitVector::mkOnes(size.packedSignificandWidth());
+  return FloatingPoint(size, bvsign.concat(bvexp).concat(bvsig));
 }
 
   /* Operations implemented using symfpu */
