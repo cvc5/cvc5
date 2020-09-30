@@ -44,7 +44,7 @@ operator MEMBER         2  "set membership predicate; first parameter a member o
 constant SINGLETON_OP \
 	::CVC4::SingletonOp \
 	::CVC4::SingletonOpHashFunction \
-	"expr/singleton_op.h" \
+	"theory/sets/singleton_op.h" \
 	"operator for singletons; payload is an instance of the CVC4::SingletonOp class"
 parameterized SINGLETON SINGLETON_OP 1  \
 "constructs a set of a single element. First parameter is a SingletonOp. Second is a term"

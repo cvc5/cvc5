@@ -179,13 +179,6 @@ private:
         return d_to->mkConst(::CVC4::EmptySet(TypeNode::fromType(type)));
       }
 
-      if (n.getKind() == kind::SINGLETON_TYPE)
-      {
-        Type type = d_from->exportType(
-            n.getConst< ::CVC4::SingletonType>().getType().toType(), d_to, d_vmap);
-        return d_to->mkConst(::CVC4::SingletonType(TypeNode::fromType(type)));
-      }
-
       if (n.getKind() == kind::EMPTYBAG)
       {
         Type type = d_from->exportType(

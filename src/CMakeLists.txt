@@ -766,6 +766,8 @@ libcvc4_add_sources(
   theory/sets/inference_manager.h
   theory/sets/normal_form.h
   theory/sets/rels_utils.h
+  theory/sets/singleton_op.cpp
+  theory/sets/singleton_op.h
   theory/sets/skolem_cache.cpp
   theory/sets/skolem_cache.h
   theory/sets/solver_state.cpp
@@ -1081,12 +1083,10 @@ install(FILES
           expr/array.h
           expr/array_store_all.h
           expr/ascription_type.h
-          expr/emptybag.h
           expr/emptyset.h
           expr/expr_iomanip.h
           expr/record.h
           expr/sequence.h
-  expr/singleton_op.h
           expr/symbol_table.h
           expr/type.h
           expr/uninterpreted_constant.h
