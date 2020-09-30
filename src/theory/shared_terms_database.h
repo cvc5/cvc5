@@ -254,9 +254,9 @@ public:
   theory::eq::EqualityEngine* getEqualityEngine();
 
  protected:
-    /**
-    * This method gets called on backtracks from the context manager.
-    */
+  /**
+   * This method gets called on backtracks from the context manager.
+   */
   void contextNotifyPop() override { backtrack(); }
 
   /** Equality engine */
