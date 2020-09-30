@@ -82,7 +82,8 @@ class ProofNodeManager
   std::shared_ptr<ProofNode> mkAssume(Node fact);
   /**
    * Make transitivity proof, where children contains one or more proofs of
-   * equalities that form a chain.
+   * equalities that form an ordered chain. In other words, the vector children
+   * is a legal set of children for an application of TRANS.
    */
   std::shared_ptr<ProofNode> mkTrans(
       const std::vector<std::shared_ptr<ProofNode>>& children,

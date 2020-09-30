@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -29,7 +29,7 @@ namespace CVC4 {
  * The term conversion sequence proof generator. This is used for maintaining
  * a fixed sequence of proof generators that provide proofs for rewrites
  * (equalities). We call these the "component generators" of this sequence,
- * which are typically TConvSeqProofGenerator.
+ * which are typically TConvProofGenerator.
  */
 class TConvSeqProofGenerator : public ProofGenerator
 {
@@ -68,7 +68,7 @@ class TConvSeqProofGenerator : public ProofGenerator
    */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /**
-   * Get subsequence proof, with given start and end steps (inclusive).
+   * Get subsequence proof for f, with given start and end steps (inclusive).
    */
   std::shared_ptr<ProofNode> getSubsequenceProofFor(Node f,
                                                     size_t start,
@@ -84,7 +84,17 @@ class TConvSeqProofGenerator : public ProofGenerator
    * generator, or one of the component proof generators, if only one step
    * rewrote. In the former case, all steps are registered to this class.
    * Using a component generator is an optimization that saves having to
-   * save the conversion steps or use this class.
+   * save the conversion steps or use this class. For example, if we have 2 
+   * term conversion components, and call this method on:
+   *   { a, b, c }
+   * then this method calls:
+   *   registerConvertedTerm( a, b, 0 )
+   *   registerConvertedTerm( b, c, 1 )
+   * and returns a trust node proving (= a c) with this class as the proof
+   * generator. On the other hand, if we call this method on:
+   *   { d, d, e }
+   * then we return a trust node proving (= d e) with the 2nd component proof
+   * generator, as it alone is capable of proving this equality.
    */
   theory::TrustNode mkTrustRewriteSequence(const std::vector<Node>& cterms);
 
