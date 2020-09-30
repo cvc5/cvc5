@@ -29,6 +29,137 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+namespace {
+
+/**
+ * Collect maximal ground terms with type tn in node n.
+ *
+ * @param n: Node to traverse.
+ * @param tn: Collects only terms with type tn.
+ * @param terms: Collected terms.
+ * @param cache: Caches visited nodes.
+ * @param skip_quant: Do not traverse quantified formulas (skip quantifiers).
+ */
+void getMaxGroundTerms(TNode n,
+                       TypeNode tn,
+                       std::unordered_set<Node, NodeHashFunction>& terms,
+                       std::unordered_set<TNode, TNodeHashFunction>& cache,
+                       bool skip_quant = false)
+{
+  if (options::sygusInstTermSel() != options::SygusInstTermSelMode::MAX
+      && options::sygusInstTermSel() != options::SygusInstTermSelMode::BOTH)
+  {
+    return;
+  }
+
+  Trace("sygus-inst-term") << "Find maximal terms with type " << tn
+                           << " in: " << n << std::endl;
+
+  Node cur;
+  std::vector<TNode> visit;
+
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+
+    if (cache.find(cur) != cache.end())
+    {
+      continue;
+    }
+    cache.insert(cur);
+
+    if (expr::hasBoundVar(cur) || cur.getType() != tn)
+    {
+      if (!skip_quant || cur.getKind() != kind::FORALL)
+      {
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
+    }
+    else
+    {
+      terms.insert(cur);
+      Trace("sygus-inst-term") << "  found: " << cur << std::endl;
+    }
+  } while (!visit.empty());
+}
+
+/*
+ * Collect minimal ground terms with type tn in node n.
+ *
+ * @param n: Node to traverse.
+ * @param tn: Collects only terms with type tn.
+ * @param terms: Collected terms.
+ * @param cache: Caches visited nodes and flags indicating whether a minimal
+ *               term was already found in a subterm.
+ * @param skip_quant: Do not traverse quantified formulas (skip quantifiers).
+ */
+void getMinGroundTerms(
+    TNode n,
+    TypeNode tn,
+    std::unordered_set<Node, NodeHashFunction>& terms,
+    std::unordered_map<TNode, std::pair<bool, bool>, TNodeHashFunction>& cache,
+    bool skip_quant = false)
+{
+  if (options::sygusInstTermSel() != options::SygusInstTermSelMode::MIN
+      && options::sygusInstTermSel() != options::SygusInstTermSelMode::BOTH)
+  {
+    return;
+  }
+
+  Trace("sygus-inst-term") << "Find minimal terms with type " << tn
+                           << " in: " << n << std::endl;
+
+  Node cur;
+  std::vector<TNode> visit;
+
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+
+    auto it = cache.find(cur);
+    if (it == cache.end())
+    {
+      cache.emplace(cur, std::make_pair(false, false));
+      if (!skip_quant || cur.getKind() != kind::FORALL)
+      {
+        visit.push_back(cur);
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
+    }
+    /* up-traversal */
+    else if (!it->second.first)
+    {
+      bool found_min_term = false;
+
+      /* Check if we found a minimal term in one of the children. */
+      for (const Node& c : cur)
+      {
+        found_min_term |= cache[c].second;
+        if (found_min_term) break;
+      }
+
+      /* If we haven't found a minimal term yet, add this term if it has the
+       * right type. */
+      if (cur.getType() == tn && cur.getKind() != kind::BOUND_VARIABLE
+          && !found_min_term)
+      {
+        terms.insert(cur);
+        found_min_term = true;
+        Trace("sygus-inst-term") << "  found: " << cur << std::endl;
+      }
+
+      it->second.first = true;
+      it->second.second = found_min_term;
+    }
+  } while (!visit.empty());
+}
+
+}  // namespace
+
 SygusInst::SygusInst(QuantifiersEngine* qe)
     : QuantifiersModule(qe),
       d_lemma_cache(qe->getUserContext()),
@@ -138,100 +269,6 @@ bool SygusInst::checkCompleteFor(Node q)
   return d_inactive_quant.find(q) != d_inactive_quant.end();
 }
 
-/*
- * Find maximal ground terms in node n.
- * Note: We do not collect Boolean ground terms since this would always cut off
- * other non-Boolean terms.
- *
- * @param: stop_at_quant: Do not traverse down quantifiers.
- */
-static void getMaxGroundTerms(
-    TNode n,
-    std::unordered_set<Node, NodeHashFunction>& terms,
-    std::unordered_set<TNode, TNodeHashFunction>& cache,
-    bool stop_at_quant = false)
-{
-  if (options::sygusInstTermSel() != options::SygusInstTermSelMode::MAX
-      && options::sygusInstTermSel() != options::SygusInstTermSelMode::BOTH)
-  {
-    return;
-  }
-
-  Node cur;
-  std::vector<TNode> visit;
-
-  visit.push_back(n);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-
-    if (cache.find(cur) != cache.end())
-    {
-      continue;
-    }
-    cache.insert(cur);
-
-    if (expr::hasBoundVar(cur) || cur.getType().isBoolean())
-    {
-      if (!stop_at_quant || cur.getKind() != kind::FORALL)
-      {
-        visit.insert(visit.end(), cur.begin(), cur.end());
-      }
-    }
-    else
-    {
-      terms.insert(cur);
-    }
-  } while (!visit.empty());
-}
-
-/*
- * Find minimal ground terms in node n, i.e., all symbols.
- *
- * @param: stop_at_quant: Do not traverse down quantifiers.
- */
-static void getMinGroundTerms(
-    Node n,
-    std::unordered_set<Node, NodeHashFunction>& terms,
-    std::unordered_set<TNode, TNodeHashFunction>& cache,
-    bool stop_at_quant = false)
-{
-  if (options::sygusInstTermSel() != options::SygusInstTermSelMode::MIN
-      && options::sygusInstTermSel() != options::SygusInstTermSelMode::BOTH)
-  {
-    return;
-  }
-
-  Node cur;
-  std::vector<TNode> visit;
-
-  visit.push_back(n);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-
-    if (cache.find(cur) != cache.end())
-    {
-      continue;
-    }
-    cache.insert(cur);
-
-    if ((cur.isVar() && cur.getKind() != kind::BOUND_VARIABLE) || cur.isConst())
-    {
-      terms.insert(cur);
-    }
-    else
-    {
-      if (!stop_at_quant || cur.getKind() != kind::FORALL)
-      {
-        visit.insert(visit.end(), cur.begin(), cur.end());
-      }
-    }
-  } while (!visit.empty());
-}
-
 void SygusInst::registerQuantifier(Node q)
 {
   Assert(d_ce_lemmas.find(q) == d_ce_lemmas.end());
@@ -243,28 +280,74 @@ void SygusInst::registerQuantifier(Node q)
   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> include_cons;
   std::unordered_set<Node, NodeHashFunction> term_irrelevant;
 
-  /* Collect extra symbols in 'q' to be used in the grammar. */
-  if (!d_global_terms.empty())
-  {
-    for (const Node& t : d_global_terms)
-    {
-      TypeNode tn = t.getType();
-      extra_cons[tn].insert(t);
-    }
-  }
+  /* Collect relevant local ground terms for each variable type. */
   if (options::sygusInstScope() == options::SygusInstScope::IN
       || options::sygusInstScope() == options::SygusInstScope::BOTH)
   {
-    std::unordered_set<Node, NodeHashFunction> terms;
-    std::unordered_set<TNode, TNodeHashFunction> cache_min, cache_max;
-    getMinGroundTerms(q, terms, cache_min);
-    getMaxGroundTerms(q, terms, cache_max);
-
-    for (const Node& var : terms)
+    std::unordered_map<TypeNode,
+                       std::unordered_set<Node, NodeHashFunction>,
+                       TypeNodeHashFunction>
+        relevant_terms;
+    for (const Node& var : q[0])
     {
       TypeNode tn = var.getType();
-      extra_cons[tn].insert(var);
-      Trace("sygus-inst") << "Adding extra cons: " << var << std::endl;
+
+      /* Collect relevant ground terms for type tn. */
+      if (relevant_terms.find(tn) == relevant_terms.end())
+      {
+        std::unordered_set<Node, NodeHashFunction> terms;
+        std::unordered_set<TNode, TNodeHashFunction> cache_max;
+        std::unordered_map<TNode, std::pair<bool, bool>, TNodeHashFunction>
+            cache_min;
+
+        getMinGroundTerms(q, tn, terms, cache_min);
+        getMaxGroundTerms(q, tn, terms, cache_max);
+        relevant_terms.emplace(tn, terms);
+      }
+
+      /* Add relevant ground terms to grammar. */
+      auto& terms = relevant_terms[tn];
+      for (const auto& t : terms)
+      {
+        TypeNode ttn = t.getType();
+        extra_cons[ttn].insert(t);
+        Trace("sygus-inst") << "Adding (local) extra cons: " << t << std::endl;
+      }
+    }
+  }
+
+  /* Collect relevant global ground terms for each variable type. */
+  if (options::sygusInstScope() == options::SygusInstScope::OUT
+      || options::sygusInstScope() == options::SygusInstScope::BOTH)
+  {
+    for (const Node& var : q[0])
+    {
+      TypeNode tn = var.getType();
+
+      /* Collect relevant ground terms for type tn. */
+      if (d_global_terms.find(tn) == d_global_terms.end())
+      {
+        std::unordered_set<Node, NodeHashFunction> terms;
+        std::unordered_set<TNode, TNodeHashFunction> cache_max;
+        std::unordered_map<TNode, std::pair<bool, bool>, TNodeHashFunction>
+            cache_min;
+
+        for (const Node& a : d_notified_assertions)
+        {
+          getMinGroundTerms(a, tn, terms, cache_min, true);
+          getMaxGroundTerms(a, tn, terms, cache_max, true);
+        }
+        d_global_terms.emplace(tn, terms);
+      }
+
+      /* Add relevant ground terms to grammar. */
+      auto& terms = d_global_terms[tn];
+      for (const auto& t : terms)
+      {
+        TypeNode ttn = t.getType();
+        extra_cons[ttn].insert(t);
+        Trace("sygus-inst") << "Adding (global) extra cons: " << t << std::endl;
+      }
     }
   }
 
@@ -301,26 +384,9 @@ void SygusInst::preRegisterQuantifier(Node q)
 
 void SygusInst::ppNotifyAssertions(const std::vector<Node>& assertions)
 {
-  if (options::sygusInstScope() == options::SygusInstScope::IN)
-  {
-    return;
-  }
-
-  std::unordered_set<TNode, TNodeHashFunction> cache_min, cache_max;
-  for (const Node& n : assertions)
-  {
-    getMinGroundTerms(n, d_global_terms, cache_min, true);
-    getMaxGroundTerms(n, d_global_terms, cache_max, true);
-  }
-
-  if (Trace.isOn("sygus-inst"))
-  {
-    Trace("sygus-inst") << "Global terms collected:" << std::endl;
-    for (const auto& n : d_global_terms)
-    {
-      Trace("sygus-inst") << n << std::endl;
-    }
-  }
+  d_notified_assertions.clear();
+  d_notified_assertions.insert(
+      d_notified_assertions.end(), assertions.begin(), assertions.end());
 }
 
 /*****************************************************************************/

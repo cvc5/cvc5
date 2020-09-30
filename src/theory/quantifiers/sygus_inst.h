@@ -129,7 +129,13 @@ class SygusInst : public QuantifiersModule
   context::CDHashSet<Node, NodeHashFunction> d_ce_lemma_added;
 
   /* Set of global ground terms in assertions (outside of quantifiers). */
-  std::unordered_set<Node, NodeHashFunction> d_global_terms;
+  std::unordered_map<TypeNode,
+                     std::unordered_set<Node, NodeHashFunction>,
+                     TypeNodeHashFunction>
+      d_global_terms;
+
+  /* Assertions sent by ppNotifyAssertions. */
+  std::vector<Node> d_notified_assertions;
 };
 
 }  // namespace quantifiers
