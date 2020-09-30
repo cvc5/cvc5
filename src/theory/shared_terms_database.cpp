@@ -53,7 +53,7 @@ SharedTermsDatabase::~SharedTermsDatabase()
 
 void SharedTermsDatabase::setEqualityEngine(eq::EqualityEngine* ee)
 {
-  Assert (ee!=nullptr);
+  Assert(ee != nullptr);
   d_equalityEngine = ee;
   // if proofs are enabled, make the proof equality engine
   if (d_pnm != nullptr)
@@ -284,7 +284,8 @@ void SharedTermsDatabase::checkForConflict()
   {
     // standard explain
     std::vector<TNode> assumptions;
-    d_equalityEngine->explainEquality(d_conflictLHS, d_conflictRHS, d_conflictPolarity, assumptions);
+    d_equalityEngine->explainEquality(
+        d_conflictLHS, d_conflictRHS, d_conflictPolarity, assumptions);
     Node conflictNode = NodeManager::currentNM()->mkAnd(assumptions);
     trnc = TrustNode::mkTrustConflict(conflictNode, nullptr);
   }
