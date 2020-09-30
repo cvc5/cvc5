@@ -19,9 +19,10 @@
 
 #include <memory>
 
+#include "theory/bags/bags_rewriter.h"
+#include "theory/bags/bags_statistics.h"
 #include "theory/bags/inference_manager.h"
 #include "theory/bags/solver_state.h"
-#include "theory/bags/theory_bags_rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
 #include "theory/uf/equality_engine.h"
@@ -95,8 +96,10 @@ class TheoryBags : public Theory
   InferenceManager d_im;
   /** Instance of the above class */
   NotifyClass d_notify;
+  /** Statistics for the theory of bags. */
+  BagsStatistics d_statistics;
   /** The theory rewriter for this theory. */
-  TheoryBagsRewriter d_rewriter;
+  BagsRewriter d_rewriter;
 
   void eqNotifyNewClass(TNode t);
   void eqNotifyMerge(TNode t1, TNode t2);

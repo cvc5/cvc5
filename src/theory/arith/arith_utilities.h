@@ -338,6 +338,13 @@ Node arithSubstitute(Node n, std::vector<Node>& vars, std::vector<Node>& subs);
 /** Make the node u >= a ^ a >= l */
 Node mkBounded(Node l, Node a, Node u);
 
+Rational leastIntGreaterThan(const Rational&);
+
+Rational greatestIntLessThan(const Rational&);
+
+/** Negates a node in arithmetic proof normal form. */
+Node negateProofLiteral(TNode n);
+
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

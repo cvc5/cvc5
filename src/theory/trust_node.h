@@ -132,7 +132,7 @@ class TrustNode
    * Gets the proof node for this trust node, which is obtained by
    * calling the generator's getProofFor method on the proven node.
    */
-  std::shared_ptr<ProofNode> toProofNode();
+  std::shared_ptr<ProofNode> toProofNode() const;
 
   /** Get the proven formula corresponding to a conflict call */
   static Node getConflictProven(Node conf);

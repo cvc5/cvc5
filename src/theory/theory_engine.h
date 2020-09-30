@@ -154,14 +154,10 @@ class TheoryEngine {
   /** The proof generator */
   std::shared_ptr<TheoryEngineProofGenerator> d_tepg;
   //--------------------------------- end new proofs
-
-  /**
-   * The database of shared terms.
-   */
-  SharedTermsDatabase d_sharedTerms;
-
   /** The combination manager we are using */
   std::unique_ptr<theory::CombinationEngine> d_tc;
+  /** The shared solver of the above combination engine. */
+  theory::SharedSolver* d_sharedSolver;
   /**
    * The quantifiers engine
    */
@@ -175,9 +171,6 @@ class TheoryEngine {
 
   /** Default visitor for pre-registration */
   PreRegisterVisitor d_preRegistrationVisitor;
-
-  /** Visitor for collecting shared terms */
-  SharedTermsVisitor d_sharedTermsVisitor;
 
   /** are we in eager model building mode? (see setEagerModelBuilding). */
   bool d_eager_model_building;

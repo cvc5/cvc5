@@ -576,6 +576,7 @@ set(regress_0_tests
   regress0/issue2832-qualId.smt2
   regress0/issue4010-sort-inf-var.smt2
   regress0/issue4469-unc-no-reuse-var.smt2
+  regress0/issue5144-resetAssertions.smt2
   regress0/ite.cvc
   regress0/ite2.smt2
   regress0/ite3.smt2
@@ -835,7 +836,6 @@ set(regress_0_tests
   regress0/rels/rel_tc_2_1.cvc
   regress0/rels/rel_tc_3.cvc
   regress0/rels/rel_tc_3_1.cvc
-  regress0/rels/rel_tc_7.cvc
   regress0/rels/rel_tc_8.cvc
   regress0/rels/rel_tp_3_1.cvc
   regress0/rels/rel_tp_join_0.cvc
@@ -1942,6 +1942,7 @@ set(regress_1_tests
   regress1/sygus/fg_polynomial3.sy
   regress1/sygus/find_inv_eq_bvmul_4bit_withoutgrammar-v2.sy
   regress1/sygus/find_sc_bvult_bvnot.sy
+  regress1/sygus/ground-ite-free-constant-si.sy
   regress1/sygus/hd-01-d1-prog.sy
   regress1/sygus/hd-19-d1-prog-dup-op.sy
   regress1/sygus/hd-sdiv.sy
@@ -2022,6 +2023,7 @@ set(regress_1_tests
   regress1/sygus/rec-fun-while-infinite.sy
   regress1/sygus/re-concat.sy
   regress1/sygus/repair-const-rl.sy
+  regress1/sygus/replicate-mod.sy
   regress1/sygus/rex-strings-alarm.sy
   regress1/sygus/sets-pred-test.sy
   regress1/sygus/simple-regexp.sy
@@ -2377,6 +2379,8 @@ set(regression_disabled_tests
   regress0/quantifiers/qbv-test-invert-bvshl-0-neq.smt2
   regress0/quantifiers/qbv-test-invert-concat-0-neq.smt2
   regress0/quantifiers/qbv-test-invert-concat-1-neq.smt2
+  # times out on some CI configs after dt fact vs lemma update #5115
+  regress0/rels/rel_tc_7.cvc
   regress0/sets/mar2014/stacks0.hs.78.cvc4.smt2
   regress0/sets/setel-eq.smt2
   regress0/sets/sets-new.smt2

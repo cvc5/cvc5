@@ -236,7 +236,7 @@ struct BagsProperties
 {
   static Cardinality computeCardinality(TypeNode type)
   {
-    return Cardinality::UNKNOWN_CARD;
+    return Cardinality::INTEGERS;
   }
 
   static bool isWellFounded(TypeNode type) { return type[0].isWellFounded(); }
