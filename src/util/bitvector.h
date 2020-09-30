@@ -117,7 +117,7 @@ class CVC4_PUBLIC BitVector
   size_t hash() const;
 
   /* Set bit at index 'i'. */
-  BitVector setBit(uint32_t i) const;
+  BitVector setBit(uint32_t i, bool value = true) const;
   /* Return true if bit at index 'i' is set. */
   bool isBitSet(uint32_t i) const;
 

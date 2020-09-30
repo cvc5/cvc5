@@ -44,6 +44,15 @@ unsigned long Integer::s_signedLongMin = std::numeric_limits<signed long>::min()
 unsigned long Integer::s_signedLongMax = std::numeric_limits<signed long>::max();
 unsigned long Integer::s_unsignedLongMax = std::numeric_limits<unsigned long>::max();
 
+Integer Integer::setBit(uint32_t i, bool value) const
+{
+  cln::cl_I mask(1);
+  mask = mask << i;
+  if (value) return Integer(cln::logior(d_value, mask));
+  mask = cln::lognot(mask);
+  return Integer(cln::logand(d_value, mask));
+}
+
 Integer Integer::oneExtend(uint32_t size, uint32_t amount) const {
   DebugCheckArgument((*this) < Integer(1).multiplyByPow2(size), size);
   cln::cl_byte range(amount, size);
@@ -52,7 +61,6 @@ Integer Integer::oneExtend(uint32_t size, uint32_t amount) const {
 
   return Integer(cln::deposit_field(allones, d_value, range));
 }
-
 
 Integer Integer::exactQuotient(const Integer& y) const {
   DebugCheckArgument(y.divides(*this), y);

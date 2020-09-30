@@ -77,6 +77,9 @@ public:
   void testSetGetBit()
   {
     TS_ASSERT_EQUALS(one.setBit(1).setBit(2).setBit(3), negOne);
+    TS_ASSERT_EQUALS(
+        one.setBit(0, false).setBit(1, false).setBit(2, false).setBit(3, false),
+        zero);
 
     TS_ASSERT(negOne.isBitSet(3));
     TS_ASSERT(!two.isBitSet(3));
