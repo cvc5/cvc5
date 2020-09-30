@@ -144,8 +144,7 @@ void getMinGroundTerms(
 
       /* If we haven't found a minimal term yet, add this term if it has the
        * right type. */
-      if (cur.getType() == tn && cur.getKind() != kind::BOUND_VARIABLE
-          && !found_min_term)
+      if (cur.getType() == tn && !expr::hasBoundVar(cur) && !found_min_term)
       {
         terms.insert(cur);
         found_min_term = true;
