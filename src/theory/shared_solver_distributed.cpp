@@ -68,7 +68,11 @@ TrustNode SharedSolverDistributed::explain(TNode literal, TheoryId id)
   TrustNode texp;
   if (id == THEORY_BUILTIN)
   {
+<<<<<<< HEAD
     // explanation using the shared terms database
+=======
+    // explanation based on the specific solver
+>>>>>>> 7127be18692e2fd32bd2dfce53e50c105ed8a25d
     texp = d_sharedTerms.explain(literal);
     Trace("shared-solver")
         << "\tTerm was propagated by THEORY_BUILTIN. Explanation: "
@@ -77,6 +81,7 @@ TrustNode SharedSolverDistributed::explain(TNode literal, TheoryId id)
   else
   {
     // By default, we ask the individual theory for the explanation.
+    // It is possible that a centralized approach could preempt this.
     texp = d_te.theoryOf(id)->explain(literal);
     Trace("shared-solver") << "\tTerm was propagated by owner theory: " << id
                            << ". Explanation: " << texp.getNode() << std::endl;

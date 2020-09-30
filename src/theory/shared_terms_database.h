@@ -110,12 +110,6 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   /** The notify class for d_equalityEngine */
   EENotifyClass d_EENotify;
 
-  /** Equality engine */
-  theory::eq::EqualityEngine d_equalityEngine;
-
-  /** Proof equality engine */
-  std::unique_ptr<theory::eq::ProofEqEngine> d_pfee;
-
   /**
    * Method called by equalityEngine when a becomes (dis-)equal to b and a and b are shared with
    * the theory. Returns false if there is a direct conflict (via rewrite for example).
@@ -186,7 +180,7 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   /**
    * Returns an explanation of the propagation that came from the database.
    */
-  theory::TrustNode explain(TNode literal);
+  theory::TrustNode explain(TNode literal) const;
 
   /**
    * Add an equality to propagate.
@@ -258,13 +252,20 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   /**
    * get equality engine
    */
-  theory::eq::EqualityEngine* getEqualityEngine() { return &d_equalityEngine; }
+  theory::eq::EqualityEngine* getEqualityEngine();
 
  protected:
   /**
    * This method gets called on backtracks from the context manager.
    */
- void contextNotifyPop() override { backtrack(); }
+  void contextNotifyPop() override { backtrack(); }
+
+  /** Equality engine */
+  theory::eq::EqualityEngine* d_equalityEngine;
+  /** Proof equality engine */
+  std::unique_ptr<theory::eq::ProofEqEngine> d_pfee;
+  /** The proof node manager */
+  ProofNodeManager * d_pnm;
 };
 
 }
