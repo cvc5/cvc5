@@ -116,9 +116,15 @@ class CVC4_PUBLIC BitVector
   /* Return hash value. */
   size_t hash() const;
 
-  /* Set bit at index 'i'. */
+  /**
+   * Set bit at index 'i' to given value.
+   * value: True to set bit to 1, and false to set it to 0.
+   *
+   * Note: Least significant bit is at index 0.
+   */
   BitVector setBit(uint32_t i, bool value = true) const;
-  /* Return true if bit at index 'i' is set. */
+
+  /** Return true if bit at index 'i' is 1, and false otherwise. */
   bool isBitSet(uint32_t i) const;
 
   /* Return k if the value of this is equal to 2^{k-1}, and zero otherwise. */
