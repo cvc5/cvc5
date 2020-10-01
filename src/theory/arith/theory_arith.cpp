@@ -136,6 +136,11 @@ TrustNode TheoryArith::ppRewrite(TNode atom)
       return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
     }
   }
+  return ppRewriteTerms(atom);
+}
+
+TrustNode TheoryArith::ppRewriteTerms(TNode n)
+{
   if (Theory::theoryOf(atom) != THEORY_ARITH)
   {
     return TrustNode::null();
