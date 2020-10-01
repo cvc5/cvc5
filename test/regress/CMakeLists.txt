@@ -923,7 +923,6 @@ set(regress_0_tests
   regress0/sets/sets-extr.smt2
   regress0/sets/sets-inter.smt2
   regress0/sets/sets-of-sets-subtypes.smt2
-  regress0/sets/sets-poly-int-real.smt2
   regress0/sets/sets-poly-nonint.smt2
   regress0/sets/sets-sample.smt2
   regress0/sets/sets-sharing.smt2
@@ -2384,6 +2383,7 @@ set(regression_disabled_tests
   regress0/sets/mar2014/stacks0.hs.78.cvc4.smt2
   regress0/sets/setel-eq.smt2
   regress0/sets/sets-new.smt2
+  regress0/sets/sets-poly-int-real.smt2
   regress0/sets/sets-testlemma-ints.smt2
   regress0/sets/sets-testlemma-reals.smt2
   regress0/symmetric.smtv1.smt2
