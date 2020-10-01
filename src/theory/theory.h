@@ -2,10 +2,10 @@
 /*! \file theory.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Tim King
+ **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -32,8 +32,6 @@
 #include "expr/node.h"
 #include "options/options.h"
 #include "options/theory_options.h"
-#include "smt/command.h"
-#include "smt/dump.h"
 #include "smt/logic_request.h"
 #include "theory/assertion.h"
 #include "theory/care_graph.h"
@@ -897,30 +895,6 @@ class Theory {
    * E |= lit in the theory.
    */
   virtual std::pair<bool, Node> entailmentCheck(TNode lit);
-
-  /* get current substitution at an effort
-   *   input : vars
-   *   output : subs, exp
-   *   where ( exp[vars[i]] => vars[i] = subs[i] ) holds for all i
-   */
-  virtual bool getCurrentSubstitution(int effort, std::vector<Node>& vars,
-                                      std::vector<Node>& subs,
-                                      std::map<Node, std::vector<Node> >& exp) {
-    return false;
-  }
-
-  /* is extended function reduced */
-  virtual bool isExtfReduced( int effort, Node n, Node on, std::vector< Node >& exp ) { return n.isConst(); }
-
-  /**
-   * Get reduction for node
-   * If return value is not 0, then n is reduced.
-   * If return value <0 then n is reduced SAT-context-independently (e.g. by a
-   *  lemma that persists at this user-context level).
-   * If nr is non-null, then ( n = nr ) should be added as a lemma by caller,
-   *  and return value should be <0.
-   */
-  virtual int getReduction( int effort, Node n, Node& nr ) { return 0; }
 };/* class Theory */
 
 std::ostream& operator<<(std::ostream& os, theory::Theory::Effort level);
@@ -934,10 +908,6 @@ inline theory::Assertion Theory::get() {
   d_factsHead = d_factsHead + 1;
 
   Trace("theory") << "Theory::get() => " << fact << " (" << d_facts.size() - d_factsHead << " left)" << std::endl;
-
-  if(Dump.isOn("state")) {
-    Dump("state") << AssertCommand(fact.d_assertion.toExpr());
-  }
 
   return fact;
 }

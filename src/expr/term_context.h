@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -48,6 +48,11 @@ class TermContext
    * is the term context identifier of t.
    */
   virtual uint32_t computeValue(TNode t, uint32_t tval, size_t index) const = 0;
+  /**
+   * Returns the term context identifier of the operator of t, where tval
+   * is the term context identifier of t.
+   */
+  virtual uint32_t computeValueOp(TNode t, uint32_t tval) const;
 };
 
 /**

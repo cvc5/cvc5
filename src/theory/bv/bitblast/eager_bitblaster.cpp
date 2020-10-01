@@ -2,10 +2,10 @@
 /*! \file eager_bitblaster.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Mathias Preiner, Tim King
+ **   Liana Hadarean, Mathias Preiner, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,14 +14,15 @@
  ** Bitblaster for the eager bv solver.
  **/
 
-#include "cvc4_private.h"
-
 #include "theory/bv/bitblast/eager_bitblaster.h"
 
+#include "cvc4_private.h"
 #include "options/bv_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver_factory.h"
+#include "smt/smt_engine.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/bv/bv_solver_lazy.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/theory_model.h"
 
@@ -29,7 +30,7 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv, context::Context* c)
+EagerBitblaster::EagerBitblaster(BVSolverLazy* theory_bv, context::Context* c)
     : TBitblaster<Node>(),
       d_context(c),
       d_satSolver(),
@@ -68,12 +69,13 @@ EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv, context::Context* c)
   }
   d_satSolver.reset(solver);
   ResourceManager* rm = smt::currentResourceManager();
-  d_cnfStream.reset(new prop::TseitinCnfStream(d_satSolver.get(),
-                                               d_bitblastingRegistrar.get(),
-                                               d_nullContext.get(),
-                                               rm,
-                                               false,
-                                               "EagerBitblaster"));
+  d_cnfStream.reset(new prop::CnfStream(d_satSolver.get(),
+                                        d_bitblastingRegistrar.get(),
+                                        d_nullContext.get(),
+                                        nullptr,
+                                        rm,
+                                        false,
+                                        "EagerBitblaster"));
 }
 
 EagerBitblaster::~EagerBitblaster() {}

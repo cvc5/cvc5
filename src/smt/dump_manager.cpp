@@ -2,10 +2,10 @@
 /*! \file dump_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -17,6 +17,7 @@
 #include "expr/expr_manager.h"
 #include "options/smt_options.h"
 #include "smt/dump.h"
+#include "smt/node_command.h"
 
 namespace CVC4 {
 namespace smt {
@@ -98,11 +99,11 @@ void DumpManager::setPrintFuncInModel(Node f, bool p)
   Trace("setp-model") << "Set printInModel " << f << " to " << p << std::endl;
   for (std::unique_ptr<NodeCommand>& c : d_modelGlobalCommands)
   {
-    DeclareFunctionCommand* dfc =
-        dynamic_cast<DeclareFunctionCommand*>(c.get());
+    DeclareFunctionNodeCommand* dfc =
+        dynamic_cast<DeclareFunctionNodeCommand*>(c.get());
     if (dfc != NULL)
     {
-      Node df = Node::fromExpr(dfc->getFunction());
+      Node df = dfc->getFunction();
       if (df == f)
       {
         dfc->setPrintInModel(p);
@@ -111,10 +112,11 @@ void DumpManager::setPrintFuncInModel(Node f, bool p)
   }
   for (NodeCommand* c : d_modelCommands)
   {
-    DeclareFunctionCommand* dfc = dynamic_cast<DeclareFunctionCommand*>(c);
+    DeclareFunctionNodeCommand* dfc =
+        dynamic_cast<DeclareFunctionNodeCommand*>(c);
     if (dfc != NULL)
     {
-      Node df = Node::fromExpr(dfc->getFunction());
+      Node df = dfc->getFunction();
       if (df == f)
       {
         dfc->setPrintInModel(p);

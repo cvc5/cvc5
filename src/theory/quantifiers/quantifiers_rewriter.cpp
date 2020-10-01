@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -2052,8 +2052,8 @@ Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::v
   return n;
 }
 
-
-Node QuantifiersRewriter::preprocess( Node n, bool isInst ) {
+TrustNode QuantifiersRewriter::preprocess(Node n, bool isInst)
+{
   Node prev = n;
 
   if( options::preSkolemQuant() ){
@@ -2078,8 +2078,9 @@ Node QuantifiersRewriter::preprocess( Node n, bool isInst ) {
   if( n!=prev ){       
     Trace("quantifiers-preprocess") << "Preprocess " << prev << std::endl;
     Trace("quantifiers-preprocess") << "..returned " << n << std::endl;
+    return TrustNode::mkTrustRewrite(prev, n, nullptr);
   }
-  return n;
+  return TrustNode::null();
 }
 
 }/* CVC4::theory::quantifiers namespace */

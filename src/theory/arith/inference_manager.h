@@ -5,7 +5,7 @@
  **   Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -22,7 +22,7 @@
 
 #include "theory/arith/arith_lemma.h"
 #include "theory/arith/arith_state.h"
-#include "theory/arith/nl/inference.h"
+#include "theory/arith/inference_id.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/inference_manager_buffered.h"
 
@@ -69,7 +69,7 @@ class InferenceManager : public InferenceManagerBuffered
    * added as pending lemma when calling flushWaitingLemmas.
    */
   void addPendingArithLemma(const Node& lemma,
-                            nl::Inference inftype,
+                            InferenceId inftype,
                             bool isWaiting = false);
 
   /**
@@ -78,8 +78,22 @@ class InferenceManager : public InferenceManagerBuffered
    */
   void flushWaitingLemmas();
 
+  /**
+   * Removes all waiting lemmas without sending them anywhere.
+   */
+  void clearWaitingLemmas();
+
   /** Add a conflict to the this inference manager. */
-  void addConflict(const Node& conf, nl::Inference inftype);
+  void addConflict(const Node& conf, InferenceId inftype);
+
+  /**
+   * Checks whether we have made any progress, that is whether a conflict, lemma
+   * or fact was added or whether a lemma or fact is pending.
+   */
+  bool hasUsed() const;
+
+  /** Checks whether we have waiting lemmas. */
+  bool hasWaitingLemma() const;
 
   /** Returns the number of pending lemmas. */
   std::size_t numWaitingLemmas() const;

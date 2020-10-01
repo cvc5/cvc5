@@ -5,7 +5,7 @@
  **   Mathias Preiner, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -264,7 +264,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
                                     d_quantEngine->getValuation());
 
   d_dstrat[q].reset(ds);
-  d_quantEngine->getTheoryEngine()->getDecisionManager()->registerStrategy(
+  d_quantEngine->getDecisionManager()->registerStrategy(
       DecisionManager::STRAT_QUANT_CEGQI_FEASIBLE, ds);
 
   /* Add counterexample lemma (lit => ~P[x_i/eval_i]) */

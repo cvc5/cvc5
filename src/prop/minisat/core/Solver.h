@@ -33,6 +33,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/minisat/mtl/Heap.h"
 #include "prop/minisat/mtl/Vec.h"
 #include "prop/minisat/utils/Options.h"
+#include "prop/sat_proof_manager.h"
 #include "theory/theory.h"
 
 
@@ -55,6 +56,7 @@ class Solver {
 
   /** The only two CVC4 entry points to the private solver data */
   friend class CVC4::prop::TheoryProxy;
+  friend class CVC4::prop::SatProofManager;
   friend class CVC4::TSatProof<Minisat::Solver>;
 
 public:
@@ -572,10 +574,6 @@ inline void Solver::newDecisionLevel()
   trail_lim.push(trail.size());
   flipped.push(false);
   d_context->push();
-  if (Dump.isOn("state"))
-  {
-    Dump("state") << CVC4::PushCommand();
-  }
 }
 
 inline int      Solver::decisionLevel ()      const   { return trail_lim.size(); }

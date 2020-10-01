@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -132,7 +132,7 @@ class TrustNode
    * Gets the proof node for this trust node, which is obtained by
    * calling the generator's getProofFor method on the proven node.
    */
-  std::shared_ptr<ProofNode> toProofNode();
+  std::shared_ptr<ProofNode> toProofNode() const;
 
   /** Get the proven formula corresponding to a conflict call */
   static Node getConflictProven(Node conf);

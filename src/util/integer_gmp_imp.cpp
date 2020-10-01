@@ -5,7 +5,7 @@
  **   Tim King, Aina Niemetz, Liana Hadarean
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -27,8 +27,7 @@
 
 #ifndef CVC4_GMP_IMP
 #  error "This source should only ever be built if CVC4_GMP_IMP is on !"
-#endif /* CVC4_GMP_IMP */
-
+#endif
 
 using namespace std;
 
@@ -42,6 +41,19 @@ Integer::Integer(const std::string& s, unsigned base)
   : d_value(s, base)
 {}
 
+Integer Integer::setBit(uint32_t i, bool value) const
+{
+  mpz_class res = d_value;
+  if (value)
+  {
+    mpz_setbit(res.get_mpz_t(), i);
+  }
+  else
+  {
+    mpz_clrbit(res.get_mpz_t(), i);
+  }
+  return Integer(res);
+}
 
 bool Integer::fitsSignedInt() const {
   return d_value.fits_sint_p();

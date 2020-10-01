@@ -67,6 +67,9 @@ operator COMPREHENSION 3 "set comprehension specified by a bound variable list, 
 # If the set has cardinality > 1, then (choose A) will deterministically return an element in A.
 operator CHOOSE        1  "return an element in the set given as a parameter"
 
+# The operator is_singleton returns whether the given set is a singleton
+operator IS_SINGLETON  1  "return whether the given set is a singleton"
+
 operator JOIN 		   2  "set join"
 operator PRODUCT 	   2  "set cartesian product"
 operator TRANSPOSE 	   1  "set transpose"
@@ -87,6 +90,7 @@ typerule COMPLEMENT     ::CVC4::theory::sets::ComplementTypeRule
 typerule UNIVERSE_SET   ::CVC4::theory::sets::UniverseSetTypeRule
 typerule COMPREHENSION  ::CVC4::theory::sets::ComprehensionTypeRule
 typerule CHOOSE         ::CVC4::theory::sets::ChooseTypeRule
+typerule IS_SINGLETON   ::CVC4::theory::sets::IsSingletonTypeRule
 
 typerule JOIN 			::CVC4::theory::sets::RelBinaryOperatorTypeRule
 typerule PRODUCT 		::CVC4::theory::sets::RelBinaryOperatorTypeRule
@@ -96,19 +100,6 @@ typerule JOIN_IMAGE	    ::CVC4::theory::sets::JoinImageTypeRule
 typerule IDEN 			::CVC4::theory::sets::RelIdenTypeRule
 
 construle UNION         ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
-construle INTERSECTION  ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
-construle SETMINUS      ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 construle SINGLETON     ::CVC4::theory::sets::SingletonTypeRule
-construle INSERT        ::CVC4::theory::sets::InsertTypeRule
-construle CARD          ::CVC4::theory::sets::CardTypeRule
-construle COMPLEMENT    ::CVC4::theory::sets::ComplementTypeRule
-construle CHOOSE        ::CVC4::theory::sets::ChooseTypeRule
-
-construle JOIN 			::CVC4::theory::sets::RelBinaryOperatorTypeRule
-construle PRODUCT 		::CVC4::theory::sets::RelBinaryOperatorTypeRule
-construle TRANSPOSE 	::CVC4::theory::sets::RelTransposeTypeRule
-construle TCLOSURE 	    ::CVC4::theory::sets::RelTransClosureTypeRule
-construle JOIN_IMAGE 	::CVC4::theory::sets::JoinImageTypeRule
-construle IDEN 			::CVC4::theory::sets::RelIdenTypeRule
 
 endtheory

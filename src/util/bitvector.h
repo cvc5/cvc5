@@ -5,7 +5,7 @@
  **   Aina Niemetz, Andres Noetzli, Dejan Jovanovic
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -116,9 +116,15 @@ class CVC4_PUBLIC BitVector
   /* Return hash value. */
   size_t hash() const;
 
-  /* Set bit at index 'i'. */
-  BitVector setBit(uint32_t i) const;
-  /* Return true if bit at index 'i' is set. */
+  /**
+   * Set bit at index 'i' to given value.
+   * value: True to set bit to 1, and false to set it to 0.
+   *
+   * Note: Least significant bit is at index 0.
+   */
+  BitVector setBit(uint32_t i, bool value) const;
+
+  /** Return true if bit at index 'i' is 1, and false otherwise. */
   bool isBitSet(uint32_t i) const;
 
   /* Return k if the value of this is equal to 2^{k-1}, and zero otherwise. */
@@ -239,6 +245,12 @@ class CVC4_PUBLIC BitVector
   /* -----------------------------------------------------------------------
    ** Static helpers.
    * ----------------------------------------------------------------------- */
+
+  /* Create zero bit-vector of given size. */
+  static BitVector mkZero(unsigned size);
+
+  /* Create bit-vector representing value 1 of given size. */
+  static BitVector mkOne(unsigned size);
 
   /* Create bit-vector of ones of given size. */
   static BitVector mkOnes(unsigned size);

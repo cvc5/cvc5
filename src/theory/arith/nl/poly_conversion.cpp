@@ -5,7 +5,7 @@
  **   Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -200,6 +200,15 @@ poly::Polynomial as_poly_polynomial(const CVC4::Node& n, VariableMapper& vm)
 {
   poly::Integer denom;
   return as_poly_polynomial_impl(n, denom, vm);
+}
+poly::Polynomial as_poly_polynomial(const CVC4::Node& n,
+                                    VariableMapper& vm,
+                                    poly::Rational& denominator)
+{
+  poly::Integer denom;
+  auto res = as_poly_polynomial_impl(n, denom, vm);
+  denominator = poly::Rational(denom);
+  return res;
 }
 
 poly::SignCondition normalize_kind(CVC4::Kind kind,
@@ -704,6 +713,21 @@ std::size_t bitsize(const poly::Value& v)
   }
   Assert(false);
   return 0;
+}
+
+poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi) {
+  poly::IntervalAssignment res;
+  for (const auto& vb: bi.get()) {
+    poly::Variable v = vm(vb.first);
+    poly::Value l = vb.second.lower.isNull() ? poly::Value::minus_infty() : node_to_value(vb.second.lower, vb.first);
+    poly::Value u = vb.second.upper.isNull() ? poly::Value::plus_infty() : node_to_value(vb.second.upper, vb.first);
+    poly::Interval i(l,
+                     vb.second.lower_strict,
+                     u,
+                     vb.second.upper_strict);
+    res.set(v, i);
+  }
+  return res;
 }
 
 }  // namespace nl

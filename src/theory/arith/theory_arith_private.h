@@ -5,7 +5,7 @@
  **   Tim King, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -31,6 +31,7 @@
 #include "expr/metakind.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
+#include "expr/proof_generator.h"
 #include "options/arith_options.h"
 #include "smt/logic_exception.h"
 #include "smt_util/boolean_simplification.h"
@@ -51,10 +52,12 @@
 #include "theory/arith/normal_form.h"
 #include "theory/arith/operator_elim.h"
 #include "theory/arith/partial_model.h"
+#include "theory/arith/proof_checker.h"
 #include "theory/arith/simplex.h"
 #include "theory/arith/soi_simplex.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/theory_arith_private_forward.h"
+#include "theory/eager_proof_generator.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
@@ -100,6 +103,14 @@ private:
   //context::CDO<bool> d_nlIncomplete;
 
   BoundInfoMap d_rowTracking;
+
+  // For proofs
+  /** Manages the proof nodes of this theory. */
+  ProofNodeManager* d_pnm;
+  /** Checks the proof rules of this theory. */
+  ArithProofRuleChecker d_checker;
+  /** Stores proposition(node)/proof pairs. */
+  std::unique_ptr<EagerProofGenerator> d_pfGen;
 
   /**
    * The constraint database associated with the theory.
@@ -306,8 +317,10 @@ private:
 
   /** This is only used by simplex at the moment. */
   context::CDO<Node> d_blackBoxConflict;
-public:
+  /** For holding the proof of the above conflict node. */
+  context::CDO<std::shared_ptr<ProofNode>> d_blackBoxConflictPf;
 
+ public:
   /**
    * This adds the constraint a to the queue of conflicts in d_conflicts.
    * Both a and ~a must have a proof.
@@ -371,7 +384,7 @@ public:
   FCSimplexDecisionProcedure d_fcSimplex;
   SumOfInfeasibilitiesSPD d_soiSimplex;
   AttemptSolutionSDP d_attemptSolSimplex;
-  
+
   /** non-linear algebraic approach */
   nl::NonlinearExtension* d_nonlinearExtension;
 
@@ -452,12 +465,22 @@ public:
   bool needsCheckLastEffort();
   void propagate(Theory::Effort e);
   Node explain(TNode n);
-  bool getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp );
-  bool isExtfReduced( int effort, Node n, Node on, std::vector< Node >& exp );
 
   Rational deltaValueForTotalOrder() const;
 
   bool collectModelInfo(TheoryModel* m);
+  /**
+   * Collect model values. This is the main method for extracting information
+   * about how to construct the model. This method relies on the caller for
+   * processing the map, which is done so that other modules (e.g. the
+   * non-linear extension) can modify arithModel before it is sent to the model.
+   *
+   * @param termSet The set of relevant terms
+   * @param arithModel Mapping from terms (of real type) to their values. The
+   * caller should assert equalities to the model for each entry in this map.
+   */
+  void collectModelValues(const std::set<Node>& termSet,
+                          std::map<Node, Node>& arithModel);
 
   void shutdown(){ }
 

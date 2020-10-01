@@ -5,7 +5,7 @@
  **   Liana Hadarean, Mathias Preiner, Alex Ozdemir
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -62,7 +62,6 @@ void toInternalClause(SatClause& clause,
 CryptoMinisatSolver::CryptoMinisatSolver(StatisticsRegistry* registry,
                                          const std::string& name)
     : d_solver(new CMSat::SATSolver()),
-      d_bvp(nullptr),
       d_numVariables(0),
       d_okay(true),
       d_statistics(registry, name)

@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -557,7 +557,7 @@ void CegisUnifEnumDecisionStrategy::initialize(
   }
 
   // register this strategy
-  d_qe->getTheoryEngine()->getDecisionManager()->registerStrategy(
+  d_qe->getDecisionManager()->registerStrategy(
       DecisionManager::STRAT_QUANT_CEGIS_UNIF_NUM_ENUMS, this);
 
   // create single condition enumerator for each decision tree strategy

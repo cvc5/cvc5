@@ -2,10 +2,10 @@
 /*! \file proof_rule.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Haniel Barbosa, Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa, Alex Ozdemir
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -226,6 +226,45 @@ enum class PfRule : uint32_t
   WITNESS_AXIOM,
 
   //================================================= Boolean rules
+  // ======== Resolution
+  // Children:
+  //  (P1:(or F_1 ... F_i-1 F_i F_i+1 ... F_n),
+  //   P2:(or G_1 ... G_j-1 G_j G_j+1 ... G_m))
+  //
+  // Arguments: (F_i)
+  // ---------------------
+  // Conclusion: (or F_1 ... F_i-1 F_i+1 ... F_n G_1 ... G_j-1 G_j+1 ... G_m)
+  // where
+  //   G_j = (not F_i)
+  RESOLUTION,
+  // ======== Chain Resolution
+  // Children: (P1:(or F_{1,1} ... F_{1,n1}), ..., Pm:(or F_{m,1} ... F_{m,nm}))
+  // Arguments: (L_1, ..., L_{m-1})
+  // ---------------------
+  // Conclusion: C_m'
+  // where
+  //   let "C_1 <>_l C_2" represent the resolution of C_1 with C_2 with pivot l,
+  //   let C_1' = C_1 (from P_1),
+  //   for each i > 1, C_i' = C_i <>_L_i C_{i-1}'
+  CHAIN_RESOLUTION,
+  // ======== Factoring
+  // Children: (P:C1)
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: C2
+  // where
+  //  Set representations of C1 and C2 is the same and the number of literals in
+  //  C2 is smaller than that of C1
+  FACTORING,
+  // ======== Reordering
+  // Children: (P:C1)
+  // Arguments: (C2)
+  // ---------------------
+  // Conclusion: C2
+  // where
+  //  Set representations of C1 and C2 is the same but the number of literals in
+  //  C2 is the same of that of C1
+  REORDERING,
   // ======== Split
   // Children: none
   // Arguments: (F)
@@ -524,7 +563,7 @@ enum class PfRule : uint32_t
   // Conclusion: (= F true)
   TRUE_INTRO,
   // ======== True elim
-  // Children: (P:(= F true)
+  // Children: (P:(= F true))
   // Arguments: none
   // ----------------------------------------
   // Conclusion: F
@@ -536,7 +575,7 @@ enum class PfRule : uint32_t
   // Conclusion: (= F false)
   FALSE_INTRO,
   // ======== False elim
-  // Children: (P:(= F false)
+  // Children: (P:(= F false))
   // Arguments: none
   // ----------------------------------------
   // Conclusion: (not F)
@@ -556,13 +595,46 @@ enum class PfRule : uint32_t
   // Notice that this rule is only used when the application kinds are APPLY_UF.
   HO_CONG,
 
+  //================================================= Array rules
+  // ======== Read over write
+  // Children: (P:(not (= i1 i2)))
+  // Arguments: ((select (store a i2 e) i1))
+  // ----------------------------------------
+  // Conclusion: (= (select (store a i2 e) i1) (select a i1))
+  ARRAYS_READ_OVER_WRITE,
+  // ======== Read over write, contrapositive
+  // Children: (P:(not (= (select (store a i2 e) i1) (select a i1)))
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: (= i1 i2)
+  ARRAYS_READ_OVER_WRITE_CONTRA,
+  // ======== Read over write 1
+  // Children: none
+  // Arguments: ((select (store a i e) i))
+  // ----------------------------------------
+  // Conclusion: (= (select (store a i e) i) e)
+  ARRAYS_READ_OVER_WRITE_1,
+  // ======== Extensionality
+  // Children: (P:(not (= a b)))
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: (not (= (select a k) (select b k)))
+  // where k is arrays::SkolemCache::getExtIndexSkolem((not (= a b))).
+  ARRAYS_EXT,
+  // ======== Array Trust
+  // Children: (P1 ... Pn)
+  // Arguments: (F)
+  // ---------------------
+  // Conclusion: F
+  ARRAYS_TRUST,
+
   //================================================= Quantifiers rules
   // ======== Witness intro
-  // Children: (P:F[t])
-  // Arguments: (t)
+  // Children: (P:(exists ((x T)) F[x]))
+  // Arguments: none
   // ----------------------------------------
-  // Conclusion: (= t (witness ((x T)) F[x]))
-  // where x is a BOUND_VARIABLE unique to the pair F,t.
+  // Conclusion: (= k (witness ((x T)) F[x]))
+  // where k is the Skolem form of (witness ((x T)) F[x]).
   WITNESS_INTRO,
   // ======== Exists intro
   // Children: (P:F[t])
@@ -578,7 +650,7 @@ enum class PfRule : uint32_t
   // Conclusion: F*sigma
   // sigma maps x1 ... xn to their representative skolems obtained by
   // SkolemManager::mkSkolemize, returned in the skolems argument of that
-  // method.
+  // method. Alternatively, can use negated forall as a premise.
   SKOLEMIZE,
   // ======== Instantiate
   // Children: (P:(forall ((x1 T1) ... (xn Tn)) F))

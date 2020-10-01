@@ -1,3 +1,13 @@
+#####################
+## CMakeLists.txt
+## Top contributors (to current version):
+##   Mathias Preiner, Andrew Reynolds, Gereon Kremer
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
 #-----------------------------------------------------------------------------#
 # Collect libcvc4 source files
 
@@ -58,6 +68,8 @@ libcvc4_add_sources(
   preprocessing/passes/bv_to_int.h
   preprocessing/passes/extended_rewriter_pass.cpp
   preprocessing/passes/extended_rewriter_pass.h
+  preprocessing/passes/fun_def_fmf.cpp
+  preprocessing/passes/fun_def_fmf.h
   preprocessing/passes/global_negate.cpp
   preprocessing/passes/global_negate.h
   preprocessing/passes/ho_elim.cpp
@@ -127,6 +139,7 @@ libcvc4_add_sources(
   proof/sat_proof_implementation.h
   proof/unsat_core.cpp
   proof/unsat_core.h
+  prop/bv_sat_solver_notify.h
   prop/bvminisat/bvminisat.cpp
   prop/bvminisat/bvminisat.h
   prop/bvminisat/core/Dimacs.h
@@ -153,6 +166,8 @@ libcvc4_add_sources(
   prop/cryptominisat.h
   prop/kissat.cpp
   prop/kissat.h
+  prop/proof_cnf_stream.cpp
+  prop/proof_cnf_stream.h
   prop/minisat/core/Dimacs.h
   prop/minisat/core/Solver.cc
   prop/minisat/core/Solver.h
@@ -171,13 +186,18 @@ libcvc4_add_sources(
   prop/minisat/simp/SimpSolver.cc
   prop/minisat/simp/SimpSolver.h
   prop/minisat/utils/Options.h
+  prop/proof_post_processor.cpp
+  prop/proof_post_processor.h
   prop/prop_engine.cpp
   prop/prop_engine.h
+  prop/prop_proof_manager.cpp
+  prop/prop_proof_manager.h
   prop/registrar.h
   prop/sat_solver.h
+  prop/sat_proof_manager.cpp
+  prop/sat_proof_manager.h
   prop/sat_solver_factory.cpp
   prop/sat_solver_factory.h
-  prop/bv_sat_solver_notify.h
   prop/sat_solver_types.cpp
   prop/sat_solver_types.h
   prop/theory_proxy.cpp
@@ -202,6 +222,8 @@ libcvc4_add_sources(
   smt/logic_exception.h
   smt/logic_request.cpp
   smt/logic_request.h
+  smt/interpolation_solver.cpp
+  smt/interpolation_solver.h
   smt/managed_ostreams.cpp
   smt/managed_ostreams.h
   smt/model.cpp
@@ -214,6 +236,8 @@ libcvc4_add_sources(
   smt/node_command.h
   smt/options_manager.cpp
   smt/options_manager.h
+  smt/output_manager.cpp
+  smt/output_manager.h
   smt/quant_elim_solver.cpp
   smt/quant_elim_solver.h
   smt/preprocessor.cpp
@@ -222,6 +246,10 @@ libcvc4_add_sources(
   smt/preprocess_proof_generator.h
   smt/process_assertions.cpp
   smt/process_assertions.h
+  smt/proof_manager.cpp
+  smt/proof_manager.h
+  smt/proof_post_processor.cpp
+  smt/proof_post_processor.h
   smt/set_defaults.cpp
   smt/set_defaults.h
   smt/smt_engine.cpp
@@ -270,6 +298,8 @@ libcvc4_add_sources(
   theory/arith/attempt_solution_simplex.cpp
   theory/arith/attempt_solution_simplex.h
   theory/arith/bound_counts.h
+  theory/arith/bound_inference.cpp
+  theory/arith/bound_inference.h
   theory/arith/callbacks.cpp
   theory/arith/callbacks.h
   theory/arith/congruence_manager.cpp
@@ -291,6 +321,8 @@ libcvc4_add_sources(
   theory/arith/fc_simplex.h
   theory/arith/infer_bounds.cpp
   theory/arith/infer_bounds.h
+  theory/arith/inference_id.cpp
+  theory/arith/inference_id.h
   theory/arith/inference_manager.cpp
   theory/arith/inference_manager.h
   theory/arith/linear_equality.cpp
@@ -309,10 +341,18 @@ libcvc4_add_sources(
   theory/arith/nl/cad/projections.h
   theory/arith/nl/cad/variable_ordering.cpp
   theory/arith/nl/cad/variable_ordering.h
+  theory/arith/nl/ext_theory_callback.cpp
+  theory/arith/nl/ext_theory_callback.h
   theory/arith/nl/iand_solver.cpp
   theory/arith/nl/iand_solver.h
-  theory/arith/nl/inference.cpp
-  theory/arith/nl/inference.h
+  theory/arith/nl/icp/candidate.cpp
+  theory/arith/nl/icp/candidate.h
+  theory/arith/nl/icp/contraction_origins.cpp
+  theory/arith/nl/icp/contraction_origins.h
+  theory/arith/nl/icp/icp_solver.cpp
+  theory/arith/nl/icp/icp_solver.h
+  theory/arith/nl/icp/intersection.cpp
+  theory/arith/nl/icp/intersection.h
   theory/arith/nl/nl_constraint.cpp
   theory/arith/nl/nl_constraint.h
   theory/arith/nl/nl_lemma_utils.cpp
@@ -329,6 +369,8 @@ libcvc4_add_sources(
   theory/arith/nl/poly_conversion.h
   theory/arith/nl/stats.cpp
   theory/arith/nl/stats.h
+  theory/arith/nl/strategy.cpp
+  theory/arith/nl/strategy.h
   theory/arith/nl/transcendental_solver.cpp
   theory/arith/nl/transcendental_solver.h
   theory/arith/normal_form.cpp
@@ -337,6 +379,8 @@ libcvc4_add_sources(
   theory/arith/operator_elim.h
   theory/arith/partial_model.cpp
   theory/arith/partial_model.h
+  theory/arith/proof_checker.cpp
+  theory/arith/proof_checker.h
   theory/arith/simplex.cpp
   theory/arith/simplex.h
   theory/arith/simplex_update.cpp
@@ -356,6 +400,10 @@ libcvc4_add_sources(
   theory/arith/type_enumerator.h
   theory/arrays/array_info.cpp
   theory/arrays/array_info.h
+  theory/arrays/proof_checker.cpp
+  theory/arrays/proof_checker.h
+  theory/arrays/skolem_cache.cpp
+  theory/arrays/skolem_cache.h
   theory/arrays/theory_arrays.cpp
   theory/arrays/theory_arrays.h
   theory/arrays/theory_arrays_rewriter.cpp
@@ -368,6 +416,25 @@ libcvc4_add_sources(
   theory/assertion.h
   theory/atom_requests.cpp
   theory/atom_requests.h
+  theory/bags/bags_rewriter.cpp
+  theory/bags/bags_rewriter.h
+  theory/bags/bags_statistics.cpp
+  theory/bags/bags_statistics.h
+  theory/bags/inference_manager.cpp
+  theory/bags/inference_manager.h
+  theory/bags/normal_form.cpp
+  theory/bags/normal_form.h
+  theory/bags/rewrites.cpp
+  theory/bags/rewrites.h
+  theory/bags/solver_state.cpp
+  theory/bags/solver_state.h
+  theory/bags/term_registry.cpp
+  theory/bags/term_registry.h
+  theory/bags/theory_bags.cpp
+  theory/bags/theory_bags.h
+  theory/bags/theory_bags_type_enumerator.cpp
+  theory/bags/theory_bags_type_enumerator.h
+  theory/bags/theory_bags_type_rules.h
   theory/booleans/circuit_propagator.cpp
   theory/booleans/circuit_propagator.h
   theory/booleans/proof_checker.cpp
@@ -404,6 +471,11 @@ libcvc4_add_sources(
   theory/bv/bv_inequality_graph.h
   theory/bv/bv_quick_check.cpp
   theory/bv/bv_quick_check.h
+  theory/bv/bv_solver.h
+  theory/bv/bv_solver_lazy.cpp
+  theory/bv/bv_solver_lazy.h
+  theory/bv/bv_solver_simple.cpp
+  theory/bv/bv_solver_simple.h
   theory/bv/bv_subtheory.h
   theory/bv/bv_subtheory_algebraic.cpp
   theory/bv/bv_subtheory_algebraic.h
@@ -553,8 +625,6 @@ libcvc4_add_sources(
   theory/quantifiers/fmf/model_engine.h
   theory/quantifiers/fun_def_evaluator.cpp
   theory/quantifiers/fun_def_evaluator.h
-  theory/quantifiers/fun_def_process.cpp
-  theory/quantifiers/fun_def_process.h
   theory/quantifiers/inst_match.cpp
   theory/quantifiers/inst_match.h
   theory/quantifiers/inst_match_trie.cpp
@@ -583,6 +653,8 @@ libcvc4_add_sources(
   theory/quantifiers/quant_util.h
   theory/quantifiers/quantifiers_attributes.cpp
   theory/quantifiers/quantifiers_attributes.h
+  theory/quantifiers/quantifiers_modules.cpp
+  theory/quantifiers/quantifiers_modules.h
   theory/quantifiers/quantifiers_rewriter.cpp
   theory/quantifiers/quantifiers_rewriter.h
   theory/quantifiers/quantifiers_state.cpp
@@ -704,6 +776,8 @@ libcvc4_add_sources(
   theory/sets/skolem_cache.h
   theory/sets/solver_state.cpp
   theory/sets/solver_state.h
+  theory/sets/term_registry.cpp
+  theory/sets/term_registry.h
   theory/sets/theory_sets.cpp
   theory/sets/theory_sets.h
   theory/sets/theory_sets_private.cpp
@@ -715,6 +789,10 @@ libcvc4_add_sources(
   theory/sets/theory_sets_type_enumerator.cpp
   theory/sets/theory_sets_type_enumerator.h
   theory/sets/theory_sets_type_rules.h
+  theory/shared_solver.cpp
+  theory/shared_solver.h
+  theory/shared_solver_distributed.cpp
+  theory/shared_solver_distributed.h
   theory/shared_terms_database.cpp
   theory/shared_terms_database.h
   theory/smt_engine_subsolver.cpp
@@ -794,6 +872,7 @@ libcvc4_add_sources(
   theory/theory_engine_proof_generator.h
   theory/theory_id.cpp
   theory/theory_id.h
+  theory/theory_eq_notify.h
   theory/theory_inference.cpp
   theory/theory_inference.h
   theory/theory_inference_manager.cpp
@@ -864,6 +943,7 @@ set(KINDS_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/datatypes/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/sep/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/sets/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/bags/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/strings/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds)
 
@@ -893,8 +973,8 @@ target_include_directories(cvc4
 
 install(TARGETS cvc4
   EXPORT cvc4-targets
-  LIBRARY DESTINATION ${LIBRARY_INSTALL_DIR}
-  ARCHIVE DESTINATION ${LIBRARY_INSTALL_DIR})
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 set_target_properties(cvc4 PROPERTIES SOVERSION ${CVC4_SOVERSION})
 target_compile_definitions(cvc4
@@ -984,27 +1064,27 @@ install(FILES
           api/cvc4cpp.h
           api/cvc4cppkind.h
         DESTINATION
-          ${INCLUDE_INSTALL_DIR}/cvc4/api)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/api)
 install(FILES
           base/configuration.h
           base/exception.h
           base/listener.h
           base/modal_exception.h
         DESTINATION
-          ${INCLUDE_INSTALL_DIR}/cvc4/base)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/base)
 install(FILES
           context/cdhashmap_forward.h
           context/cdhashset_forward.h
           context/cdinsert_hashmap_forward.h
           context/cdlist_forward.h
         DESTINATION
-          ${INCLUDE_INSTALL_DIR}/cvc4/context)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/context)
 install(FILES
           include/cvc4.h
           include/cvc4_public.h
           include/cvc4parser_public.h
         DESTINATION
-          ${INCLUDE_INSTALL_DIR}/cvc4)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4)
 install(FILES
           expr/array.h
           expr/array_store_all.h
@@ -1021,7 +1101,7 @@ install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/expr/kind.h
           ${CMAKE_CURRENT_BINARY_DIR}/expr/expr_manager.h
         DESTINATION
-          ${INCLUDE_INSTALL_DIR}/cvc4/expr)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/expr)
 install(FILES
           options/language.h
           options/option_exception.h
@@ -1029,7 +1109,7 @@ install(FILES
           options/printer_modes.h
           options/set_language.h
         DESTINATION
-          ${INCLUDE_INSTALL_DIR}/cvc4/options)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/options)
 install(FILES
           parser/input.h
           parser/parser.h
@@ -1037,25 +1117,25 @@ install(FILES
           parser/parser_exception.h
           parser/parse_op.h
         DESTINATION
-          ${INCLUDE_INSTALL_DIR}/cvc4/parser)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/parser)
 install(FILES
         DESTINATION
-          ${INCLUDE_INSTALL_DIR}/cvc4/printer)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/printer)
 install(FILES
           proof/unsat_core.h
         DESTINATION
-          ${INCLUDE_INSTALL_DIR}/cvc4/proof)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/proof)
 install(FILES
           smt/command.h
           smt/logic_exception.h
           smt/smt_engine.h
         DESTINATION
-          ${INCLUDE_INSTALL_DIR}/cvc4/smt)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/smt)
 install(FILES
           theory/logic_info.h
           theory/theory_id.h
         DESTINATION
-          ${INCLUDE_INSTALL_DIR}/cvc4/theory)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/theory)
 install(FILES
           util/abstract_value.h
           util/bitvector.h
@@ -1085,7 +1165,7 @@ install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/util/rational.h
           ${CMAKE_CURRENT_BINARY_DIR}/util/real_algebraic_number.h
         DESTINATION
-          ${INCLUDE_INSTALL_DIR}/cvc4/util)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/util)
 
 # Fix include paths for all public headers.
 # Note: This is a temporary fix until the new C++ API is in place.

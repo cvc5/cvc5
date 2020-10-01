@@ -2,10 +2,10 @@
 /*! \file theory_datatypes.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -48,7 +48,6 @@ TheoryDatatypes::TheoryDatatypes(Context* c,
                                  ProofNodeManager* pnm)
     : Theory(THEORY_DATATYPES, c, u, out, valuation, logicInfo, pnm),
       d_term_sk(u),
-      d_notify(*this),
       d_labels(c),
       d_selector_apps(c),
       d_collectTermsCache(c),
@@ -58,7 +57,8 @@ TheoryDatatypes::TheoryDatatypes(Context* c,
       d_lemmas_produced_c(u),
       d_sygusExtension(nullptr),
       d_state(c, u, valuation),
-      d_im(*this, d_state, pnm)
+      d_im(*this, d_state, pnm),
+      d_notify(d_im, *this)
 {
 
   d_true = NodeManager::currentNM()->mkConst( true );
@@ -598,105 +598,9 @@ TrustNode TheoryDatatypes::ppRewrite(TNode in)
   return TrustNode::null();
 }
 
-bool TheoryDatatypes::propagateLit(TNode literal)
-{
-  Debug("dt::propagate") << "TheoryDatatypes::propagateLit(" << literal << ")"
-                         << std::endl;
-  // If already in conflict, no more propagation
-  if (d_state.isInConflict())
-  {
-    Debug("dt::propagate") << "TheoryDatatypes::propagateLit(" << literal
-                           << "): already in conflict" << std::endl;
-    return false;
-  }
-  Trace("dt-prop") << "dtPropagate " << literal << std::endl;
-  // Propagate out
-  bool ok = d_out->propagate(literal);
-  if (!ok) {
-    Trace("dt-conflict") << "CONFLICT: Eq engine propagate conflict " << std::endl;
-    d_state.notifyInConflict();
-  }
-  return ok;
-}
-
-void TheoryDatatypes::addAssumptions( std::vector<TNode>& assumptions, std::vector<TNode>& tassumptions ) {
-  std::vector<TNode> ntassumptions;
-  for( unsigned i=0; i<tassumptions.size(); i++ ){
-    //flatten AND
-    if( tassumptions[i].getKind()==AND ){
-      for( unsigned j=0; j<tassumptions[i].getNumChildren(); j++ ){
-        explain( tassumptions[i][j], ntassumptions );
-      }
-    }else{
-      if( std::find( assumptions.begin(), assumptions.end(), tassumptions[i] )==assumptions.end() ){
-        assumptions.push_back( tassumptions[i] );
-      }
-    }
-  }
-  if( !ntassumptions.empty() ){
-    addAssumptions( assumptions, ntassumptions );
-  }
-}
-
-void TheoryDatatypes::explainEquality( TNode a, TNode b, bool polarity, std::vector<TNode>& assumptions ) {
-  if( a!=b ){
-    std::vector<TNode> tassumptions;
-    d_equalityEngine->explainEquality(a, b, polarity, tassumptions);
-    addAssumptions( assumptions, tassumptions );
-  }
-}
-
-void TheoryDatatypes::explainPredicate( TNode p, bool polarity, std::vector<TNode>& assumptions ) {
-  std::vector<TNode> tassumptions;
-  d_equalityEngine->explainPredicate(p, polarity, tassumptions);
-  addAssumptions( assumptions, tassumptions );
-}
-
-/** explain */
-void TheoryDatatypes::explain(TNode literal, std::vector<TNode>& assumptions){
-  Debug("datatypes-explain") << "Explain " << literal << std::endl;
-  bool polarity = literal.getKind() != kind::NOT;
-  TNode atom = polarity ? literal : literal[0];
-  if (atom.getKind() == kind::EQUAL) {
-    explainEquality( atom[0], atom[1], polarity, assumptions );
-  } else if( atom.getKind() == kind::AND && polarity ){
-    for( unsigned i=0; i<atom.getNumChildren(); i++ ){
-      explain( atom[i], assumptions );
-    }
-  } else {
-    Assert(atom.getKind() != kind::AND);
-    explainPredicate( atom, polarity, assumptions );
-  }
-}
-
 TrustNode TheoryDatatypes::explain(TNode literal)
 {
-  Node exp = explainLit(literal);
-  return TrustNode::mkTrustPropExp(literal, exp, nullptr);
-}
-
-Node TheoryDatatypes::explainLit(TNode literal)
-{
-  std::vector< TNode > assumptions;
-  explain( literal, assumptions );
-  return mkAnd( assumptions );
-}
-
-Node TheoryDatatypes::explain( std::vector< Node >& lits ) {
-  std::vector< TNode > assumptions;
-  for( unsigned i=0; i<lits.size(); i++ ){
-    explain( lits[i], assumptions );
-  }
-  return mkAnd( assumptions );
-}
-
-/** Conflict when merging two constants */
-void TheoryDatatypes::conflict(TNode a, TNode b){
-  Node eq = a.eqNode(b);
-  d_conflictNode = explainLit(eq);
-  Trace("dt-conflict") << "CONFLICT: Eq engine conflict : " << d_conflictNode << std::endl;
-  d_out->conflict( d_conflictNode );
-  d_state.notifyInConflict();
+  return d_im.explainLit(literal);
 }
 
 /** called when a new equivalance class is created */
@@ -744,10 +648,11 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
           std::vector< Node > rew;
           if (utils::checkClash(cons1, cons2, rew))
           {
-            d_conflictNode = explainLit(unifEq);
-            Trace("dt-conflict") << "CONFLICT: Clash conflict : " << d_conflictNode << std::endl;
-            d_out->conflict( d_conflictNode );
-            d_state.notifyInConflict();
+            std::vector<Node> conf;
+            conf.push_back(unifEq);
+            Trace("dt-conflict")
+                << "CONFLICT: Clash conflict : " << conf << std::endl;
+            d_im.conflictExp(conf, nullptr);
             return;
           }
           else
@@ -946,13 +851,12 @@ void TheoryDatatypes::addTester(
     {
       if( !eqc->d_constructor.get().isNull() ){
         //conflict because equivalence class contains a constructor
-        std::vector< TNode > assumptions;
-        explain( t, assumptions );
-        explainEquality( eqc->d_constructor.get(), t_arg, true, assumptions );
-        d_conflictNode = mkAnd( assumptions );
-        Trace("dt-conflict") << "CONFLICT: Tester eq conflict : " << d_conflictNode << std::endl;
-        d_out->conflict( d_conflictNode );
-        d_state.notifyInConflict();
+        std::vector<Node> conf;
+        conf.push_back(t);
+        conf.push_back(eqc->d_constructor.get().eqNode(t_arg));
+        Trace("dt-conflict")
+            << "CONFLICT: Tester eq conflict " << conf << std::endl;
+        d_im.conflictExp(conf, nullptr);
         return;
       }else{
         makeConflict = true;
@@ -1051,15 +955,13 @@ void TheoryDatatypes::addTester(
     }
   }
   if( makeConflict ){
-    d_state.notifyInConflict();
     Debug("datatypes-labels") << "Explain " << j << " " << t << std::endl;
-    std::vector< TNode > assumptions;
-    explain( j, assumptions );
-    explain( t, assumptions );
-    explainEquality( jt[0], t_arg, true, assumptions );
-    d_conflictNode = mkAnd( assumptions );
-    Trace("dt-conflict") << "CONFLICT: Tester conflict : " << d_conflictNode << std::endl;
-    d_out->conflict( d_conflictNode );
+    std::vector<Node> conf;
+    conf.push_back(j);
+    conf.push_back(t);
+    conf.push_back(jt[0].eqNode(t_arg));
+    Trace("dt-conflict") << "CONFLICT: Tester conflict : " << conf << std::endl;
+    d_im.conflictExp(conf, nullptr);
   }
 }
 
@@ -1112,13 +1014,12 @@ void TheoryDatatypes::addConstructor( Node c, EqcInfo* eqc, Node n ){
         unsigned tindex = d_labels_tindex[n][i];
         if (tindex == constructorIndex)
         {
-          std::vector< TNode > assumptions;
-          explain( t, assumptions );
-          explainEquality( c, t[0][0], true, assumptions );
-          d_conflictNode = mkAnd( assumptions );
-          Trace("dt-conflict") << "CONFLICT: Tester merge eq conflict : " << d_conflictNode << std::endl;
-          d_out->conflict( d_conflictNode );
-          d_state.notifyInConflict();
+          std::vector<Node> conf;
+          conf.push_back(t);
+          conf.push_back(c.eqNode(t[0][0]));
+          Trace("dt-conflict")
+              << "CONFLICT: Tester merge eq conflict : " << conf << std::endl;
+          d_im.conflictExp(conf, nullptr);
           return;
         }
       }
@@ -1640,7 +1541,8 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
     exp = getLabel(n);
     tt = exp[0];
   }
-  const DType& dt = tt.getType().getDType();
+  TypeNode ttn = tt.getType();
+  const DType& dt = ttn.getDType();
   // instantiate this equivalence class
   eqc->d_inst = true;
   Node tt_cons = getInstantiateCons(tt, dt, index);
@@ -1650,10 +1552,17 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
     return;
   }
   eq = tt.eqNode(tt_cons);
-  Debug("datatypes-inst") << "DtInstantiate : " << eqc << " " << eq
-                          << std::endl;
-  d_im.addPendingInference(eq, exp);
-  Trace("datatypes-infer-debug") << "inst : " << eqc << " " << n << std::endl;
+  // Determine if the equality must be sent out as a lemma. Notice that
+  // we can keep new equalities from the instantiate rule internal as long as
+  // they are for datatype constructors that have no arguments that have
+  // finite external type. Such equalities must be sent because they introduce
+  // selector terms that may contribute to conflicts due to cardinality (good
+  // examples of this are regress0/datatypes/dt-param-card4-bool-sat.smt2 and
+  // regress0/datatypes/list-bool.smt2).
+  bool forceLemma = dt[index].hasFiniteExternalArgType(ttn);
+  Trace("datatypes-infer-debug") << "DtInstantiate : " << eqc << " " << eq
+                                 << " forceLemma = " << forceLemma << std::endl;
+  d_im.addPendingInference(eq, exp, nullptr, forceLemma);
   Trace("datatypes-infer") << "DtInfer : instantiate : " << eq << " by " << exp
                            << std::endl;
 }
@@ -1671,7 +1580,7 @@ void TheoryDatatypes::checkCycles() {
           //do cycle checks
           std::map< TNode, bool > visited;
           std::map< TNode, bool > proc;
-          std::vector< TNode > expl;
+          std::vector<Node> expl;
           Trace("datatypes-cycle-check") << "...search for cycle starting at " << eqc << std::endl;
           Node cn = searchForCycle( eqc, eqc, visited, proc, expl );
           Trace("datatypes-cycle-check") << "...finish." << std::endl;
@@ -1687,10 +1596,9 @@ void TheoryDatatypes::checkCycles() {
 
           if( !cn.isNull() ) {
             Assert(expl.size() > 0);
-            d_conflictNode = mkAnd( expl );
-            Trace("dt-conflict") << "CONFLICT: Cycle conflict : " << d_conflictNode << std::endl;
-            d_out->conflict( d_conflictNode );
-            d_state.notifyInConflict();
+            Trace("dt-conflict")
+                << "CONFLICT: Cycle conflict : " << expl << std::endl;
+            d_im.conflictExp(expl, nullptr);
             return;
           }
         }
@@ -1707,7 +1615,7 @@ void TheoryDatatypes::checkCycles() {
     printModelDebug("dt-cdt-debug");
     Trace("dt-cdt-debug") << "Process " << cdt_eqc.size() << " co-datatypes" << std::endl;
     std::vector< std::vector< Node > > part_out;
-    std::vector< TNode > exp;
+    std::vector<Node> exp;
     std::map< Node, Node > cn;
     std::map< Node, std::map< Node, int > > dni;
     for( unsigned i=0; i<cdt_eqc.size(); i++ ){
@@ -1739,7 +1647,7 @@ void TheoryDatatypes::checkCycles() {
           }
           Trace("dt-cdt") << std::endl;
           Node eq = part_out[i][0].eqNode( part_out[i][j] );
-          Node eqExp = mkAnd( exp );
+          Node eqExp = NodeManager::currentNM()->mkAnd(exp);
           d_im.addPendingInference(eq, eqExp);
           Trace("datatypes-infer") << "DtInfer : cdt-bisimilar : " << eq << " by " << eqExp << std::endl;
         }
@@ -1749,10 +1657,15 @@ void TheoryDatatypes::checkCycles() {
 }
 
 //everything is in terms of representatives
-void TheoryDatatypes::separateBisimilar( std::vector< Node >& part, std::vector< std::vector< Node > >& part_out,
-                                         std::vector< TNode >& exp,
-                                         std::map< Node, Node >& cn,
-                                         std::map< Node, std::map< Node, int > >& dni, int dniLvl, bool mkExp ){
+void TheoryDatatypes::separateBisimilar(
+    std::vector<Node>& part,
+    std::vector<std::vector<Node> >& part_out,
+    std::vector<Node>& exp,
+    std::map<Node, Node>& cn,
+    std::map<Node, std::map<Node, int> >& dni,
+    int dniLvl,
+    bool mkExp)
+{
   if( !mkExp ){
     Trace("dt-cdt-debug") << "Separate bisimilar : " << std::endl;
     for( unsigned i=0; i<part.size(); i++ ){
@@ -1779,7 +1692,7 @@ void TheoryDatatypes::separateBisimilar( std::vector< Node >& part, std::vector<
           Node cc = ncons.getOperator();
           cn_cons[part[j]] = ncons;
           if( mkExp ){
-            explainEquality( c, ncons, true, exp );
+            exp.push_back(c.eqNode(ncons));
           }
           new_part[cc].push_back( part[j] );
           if( !mkExp ){ Trace("dt-cdt-debug") << "  - " << part[j] << " is datatype " << ncons << "." << std::endl; }
@@ -1839,7 +1752,7 @@ void TheoryDatatypes::separateBisimilar( std::vector< Node >& part, std::vector<
             Node n = split_new_part[j][k];
             cn[n] = getRepresentative( cn_cons[n][cindex] );
             if( mkExp ){
-              explainEquality( cn[n], cn_cons[n][cindex], true, exp );
+              exp.push_back(cn[n].eqNode(cn_cons[n][cindex]));
             }
           }
           std::vector< std::vector< Node > > c_part_out;
@@ -1860,16 +1773,23 @@ void TheoryDatatypes::separateBisimilar( std::vector< Node >& part, std::vector<
 }
 
 //postcondition: if cycle detected, explanation is why n is a subterm of on
-Node TheoryDatatypes::searchForCycle( TNode n, TNode on,
-                                      std::map< TNode, bool >& visited, std::map< TNode, bool >& proc,
-                                      std::vector< TNode >& explanation, bool firstTime ) {
+Node TheoryDatatypes::searchForCycle(TNode n,
+                                     TNode on,
+                                     std::map<TNode, bool>& visited,
+                                     std::map<TNode, bool>& proc,
+                                     std::vector<Node>& explanation,
+                                     bool firstTime)
+{
   Trace("datatypes-cycle-check2") << "Search for cycle " << n << " " << on << endl;
   TNode ncons;
   TNode nn;
   if( !firstTime ){
     nn = getRepresentative( n );
     if( nn==on ){
-      explainEquality( n, nn, true, explanation );
+      if (n != nn)
+      {
+        explanation.push_back(n.eqNode(nn));
+      }
       return on;
     }
   }else{
@@ -1893,7 +1813,7 @@ Node TheoryDatatypes::searchForCycle( TNode n, TNode on,
           //add explanation for why the constructor is connected
           if (n != nncons)
           {
-            explainEquality(n, nncons, true, explanation);
+            explanation.push_back(n.eqNode(nncons));
           }
           return on;
         }else if( !cn.isNull() ){
@@ -1965,10 +1885,6 @@ TNode TheoryDatatypes::getRepresentative( TNode a ){
   }
 }
 
-bool TheoryDatatypes::getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) {
-  return false;
-}
-
 void TheoryDatatypes::printModelDebug( const char* c ){
   if(! (Trace.isOn(c))) {
     return;
@@ -2027,16 +1943,6 @@ void TheoryDatatypes::printModelDebug( const char* c ){
       }
     //}
     ++eqcs_i;
-  }
-}
-
-Node TheoryDatatypes::mkAnd( std::vector< TNode >& assumptions ) {
-  if( assumptions.empty() ){
-    return d_true;
-  }else if( assumptions.size()==1 ){
-    return assumptions[0];
-  }else{
-    return NodeManager::currentNM()->mkNode( AND, assumptions );
   }
 }
 
@@ -2099,16 +2005,18 @@ std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit)
       Trace("dt-entail") << "  Tester indices are " << t_index << " and " << l_index << std::endl;
       if( l_index!=-1 && (l_index==t_index)==pol ){
         std::vector< TNode > exp_c;
+        Node eqToExplain;
         if( ei && !ei->d_constructor.get().isNull() ){
-          explainEquality( n, ei->d_constructor.get(), true, exp_c );
+          eqToExplain = n.eqNode(ei->d_constructor.get());
         }else{
           Node lbl = getLabel( n );
           Assert(!lbl.isNull());
           exp_c.push_back( lbl );
           Assert(areEqual(n, lbl[0]));
-          explainEquality( n, lbl[0], true, exp_c );
+          eqToExplain = n.eqNode(lbl[0]);
         }
-        Node exp = mkAnd( exp_c );
+        d_equalityEngine->explainLit(eqToExplain, exp_c);
+        Node exp = NodeManager::currentNM()->mkAnd(exp_c);
         Trace("dt-entail") << "  entailed, explanation is " << exp << std::endl;
         return make_pair(true, exp);
       }

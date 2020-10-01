@@ -2,10 +2,10 @@
 /*! \file theory_arith_private.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Alex Ozdemir
+ **   Tim King, Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -34,6 +34,8 @@
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
+#include "expr/proof_generator.h"
+#include "expr/proof_node_manager.h"
 #include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "options/smt_options.h"  // for incrementalSolving()
@@ -92,8 +94,16 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
     : d_containing(containing),
       d_nlIncomplete(false),
       d_rowTracking(),
-      d_constraintDatabase(
-          c, u, d_partialModel, d_congruenceManager, RaiseConflict(*this)),
+      d_pnm(pnm),
+      d_checker(),
+      d_pfGen(new EagerProofGenerator(d_pnm, u)),
+      d_constraintDatabase(c,
+                           u,
+                           d_partialModel,
+                           d_congruenceManager,
+                           RaiseConflict(*this),
+                           d_pfGen.get(),
+                           d_pnm),
       d_qflraStatus(Result::SAT_UNKNOWN),
       d_unknownsInARow(0),
       d_hasDoneWorkSinceCut(false),
@@ -119,11 +129,14 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_tableauResetPeriod(10),
       d_conflicts(c),
       d_blackBoxConflict(c, Node::null()),
+      d_blackBoxConflictPf(c, std::shared_ptr<ProofNode>(nullptr)),
       d_congruenceManager(c,
+                          u,
                           d_constraintDatabase,
                           SetupLiteralCallBack(*this),
                           d_partialModel,
-                          RaiseEqualityEngineConflict(*this)),
+                          RaiseEqualityEngineConflict(*this),
+                          d_pnm),
       d_cmEnabled(c, true),
 
       d_dualSimplex(
@@ -159,12 +172,16 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_statistics(),
       d_opElim(pnm, logicInfo)
 {
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
+  if (pc != nullptr)
+  {
+    d_checker.registerTo(pc);
+  }
 }
 
 TheoryArithPrivate::~TheoryArithPrivate(){
   if(d_treeLog != NULL){ delete d_treeLog; }
   if(d_approxStats != NULL) { delete d_approxStats; }
-  if(d_nonlinearExtension != NULL) { delete d_nonlinearExtension; }
 }
 
 TheoryRewriter* TheoryArithPrivate::getTheoryRewriter() { return &d_rewriter; }
@@ -175,14 +192,10 @@ bool TheoryArithPrivate::needsEqualityEngine(EeSetupInfo& esi)
 void TheoryArithPrivate::finishInit()
 {
   eq::EqualityEngine* ee = d_containing.getEqualityEngine();
+  eq::ProofEqEngine* pfee = d_containing.getProofEqEngine();
   Assert(ee != nullptr);
-  d_congruenceManager.finishInit(ee);
-  const LogicInfo& logicInfo = getLogicInfo();
-  // only need to create nonlinear extension if non-linear logic
-  if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
-  {
-    d_nonlinearExtension = new nl::NonlinearExtension(d_containing, ee);
-  }
+  d_congruenceManager.finishInit(ee, pfee);
+  d_nonlinearExtension = d_containing.d_nonlinearExtension.get();
 }
 
 static bool contains(const ConstraintCPVec& v, ConstraintP con){
@@ -3877,31 +3890,6 @@ Node TheoryArithPrivate::explain(TNode n)
   }
 }
 
-bool TheoryArithPrivate::getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) {
-  if (d_nonlinearExtension != nullptr)
-  {
-    return d_nonlinearExtension->getCurrentSubstitution( effort, vars, subs, exp );
-  }else{
-    return false;
-  }
-}
-
-bool TheoryArithPrivate::isExtfReduced(int effort, Node n, Node on,
-                                       std::vector<Node>& exp) {
-  if (d_nonlinearExtension != nullptr)
-  {
-    std::pair<bool, Node> reduced =
-        d_nonlinearExtension->isExtfReduced(effort, n, on, exp);
-    if (!reduced.second.isNull()) {
-      exp.clear();
-      exp.push_back(reduced.second);
-    }
-    return reduced.first;
-  } else {
-    return false;  // d_containing.isExtfReduced( effort, n, on );
-  }
-}
-
 void TheoryArithPrivate::propagate(Theory::Effort e) {
   // This uses model values for safety. Disable for now.
   if (d_qflraStatus == Result::SAT
@@ -4099,7 +4087,8 @@ Rational TheoryArithPrivate::deltaValueForTotalOrder() const{
   return belowMin;
 }
 
-bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
+void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet,
+                                            std::map<Node, Node>& arithModel)
 {
   AlwaysAssert(d_qflraStatus == Result::SAT);
   //AlwaysAssert(!d_nlIncomplete, "Arithmetic solver cannot currently produce models for input with nonlinear arithmetic constraints");
@@ -4110,10 +4099,6 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
 
   Debug("arith::collectModelInfo") << "collectModelInfo() begin " << endl;
 
-  std::set<Node> termSet;
-  const std::set<Kind>& irrKinds = m->getIrrelevantKinds();
-  d_containing.computeAssertedTerms(termSet, irrKinds, true);
-
   // Delta lasts at least the duration of the function call
   const Rational& delta = d_partialModel.getDelta();
   std::unordered_set<TNode, TNodeHashFunction> shared = d_containing.currentlySharedTerms();
@@ -4121,8 +4106,6 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
   // TODO:
   // This is not very good for user push/pop....
   // Revisit when implementing push/pop
-  // Map of terms to values, constructed when non-linear arithmetic is active.
-  std::map<Node, Node> arithModel;
   for(var_iterator vi = var_begin(), vend = var_end(); vi != vend; ++vi){
     ArithVar v = *vi;
 
@@ -4137,46 +4120,11 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
 
         Node qNode = mkRationalNode(qmodel);
         Debug("arith::collectModelInfo") << "m->assertEquality(" << term << ", " << qmodel << ", true)" << endl;
-        if (d_nonlinearExtension != nullptr)
-        {
-          // Let non-linear extension inspect the values before they are sent
-          // to the theory model.
-          arithModel[term] = qNode;
-        }
-        else
-        {
-          if (!m->assertEquality(term, qNode, true))
-          {
-            return false;
-          }
-        }
+        // Add to the map
+        arithModel[term] = qNode;
       }else{
         Debug("arith::collectModelInfo") << "Skipping m->assertEquality(" << term << ", true)" << endl;
 
-      }
-    }
-  }
-  if (d_nonlinearExtension != nullptr)
-  {
-    // Non-linear may repair values to satisfy non-linear constraints (see
-    // documentation for NonlinearExtension::interceptModel).
-    d_nonlinearExtension->interceptModel(arithModel);
-    // We are now ready to assert the model.
-    for (std::pair<const Node, Node>& p : arithModel)
-    {
-      if (!m->assertEquality(p.first, p.second, true))
-      {
-        // If we failed to assert an equality, it is likely due to theory
-        // combination, namely the repaired model for non-linear changed
-        // an equality status that was agreed upon by both (linear) arithmetic
-        // and another theory. In this case, we must add a lemma, or otherwise
-        // we would terminate with an invalid model. Thus, we add a splitting
-        // lemma of the form ( x = v V x != v ) where v is the model value
-        // assigned by the non-linear solver to x.
-        Node eq = p.first.eqNode(p.second);
-        Node lem = NodeManager::currentNM()->mkNode(kind::OR, eq, eq.negate());
-        d_containing.d_out->lemma(lem);
-        return false;
       }
     }
   }
@@ -4186,7 +4134,6 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
   // m->assertEqualityEngine(&ee);
 
   Debug("arith::collectModelInfo") << "collectModelInfo() end " << endl;
-  return true;
 }
 
 bool TheoryArithPrivate::safeToReset() const {

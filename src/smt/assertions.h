@@ -2,10 +2,10 @@
 /*! \file assertions.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -109,6 +109,12 @@ class Assertions
   /** Flip the global negation flag. */
   void flipGlobalNegated();
 
+  //------------------------------------ for proofs
+  /** Set proof generator */
+  void setProofGenerator(smt::PreprocessProofGenerator* pppg);
+  /** Is proof enabled? */
+  bool isProofEnabled() const;
+  //------------------------------------ end for proofs
  private:
   /**
    * Fully type-check the argument, and also type-check that it's

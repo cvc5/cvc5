@@ -2,10 +2,10 @@
 /*! \file extf_solver.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ **   Andrew Reynolds, Tianyi Liang, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -698,6 +698,23 @@ bool ExtfSolver::hasExtendedFunctions() const { return d_hasExtf.get(); }
 std::vector<Node> ExtfSolver::getActive(Kind k) const
 {
   return d_extt.getActive(k);
+}
+
+bool StringsExtfCallback::getCurrentSubstitution(
+    int effort,
+    const std::vector<Node>& vars,
+    std::vector<Node>& subs,
+    std::map<Node, std::vector<Node> >& exp)
+{
+  Trace("strings-subs") << "getCurrentSubstitution, effort = " << effort
+                        << std::endl;
+  for (const Node& v : vars)
+  {
+    Trace("strings-subs") << "  get subs for " << v << "..." << std::endl;
+    Node s = d_esolver->getCurrentSubstitutionFor(effort, v, exp[v]);
+    subs.push_back(s);
+  }
+  return true;
 }
 
 }  // namespace strings

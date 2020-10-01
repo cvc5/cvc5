@@ -2,10 +2,10 @@
 /*! \file inference_manager_buffered.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -25,14 +25,13 @@ namespace theory {
 InferenceManagerBuffered::InferenceManagerBuffered(Theory& t,
                                                    TheoryState& state,
                                                    ProofNodeManager* pnm)
-    : TheoryInferenceManager(t, state, pnm)
+    : TheoryInferenceManager(t, state, pnm), d_processingPendingLemmas(false)
 {
 }
 
-bool InferenceManagerBuffered::hasProcessed() const
+bool InferenceManagerBuffered::hasPending() const
 {
-  return d_theoryState.isInConflict() || !d_pendingLem.empty()
-         || !d_pendingFact.empty();
+  return hasPendingFact() || hasPendingLemma();
 }
 
 bool InferenceManagerBuffered::hasPendingFact() const
@@ -87,7 +86,7 @@ void InferenceManagerBuffered::doPendingFacts()
   {
     // process this fact, which notice may enqueue more pending facts in this
     // loop.
-    d_pendingFact[i]->process(this);
+    d_pendingFact[i]->process(this, false);
     i++;
   }
   d_pendingFact.clear();
@@ -95,12 +94,19 @@ void InferenceManagerBuffered::doPendingFacts()
 
 void InferenceManagerBuffered::doPendingLemmas()
 {
+  if (d_processingPendingLemmas)
+  {
+    // already processing
+    return;
+  }
+  d_processingPendingLemmas = true;
   for (const std::unique_ptr<TheoryInference>& plem : d_pendingLem)
   {
     // process this lemma
-    plem->process(this);
+    plem->process(this, true);
   }
   d_pendingLem.clear();
+  d_processingPendingLemmas = false;
 }
 
 void InferenceManagerBuffered::doPendingPhaseRequirements()

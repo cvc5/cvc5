@@ -2,10 +2,10 @@
 /*! \file smt2_printer.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Morgan Deters
+ **   Abdalrhman Mohamed, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -178,7 +178,7 @@ class Smt2Printer : public CVC4::Printer
 
   /** Print set-info :status command */
   void toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                     BenchmarkStatus status) const override;
+                                     Result::Sat status) const override;
 
   /** Print set-logic command */
   void toStreamCmdSetBenchmarkLogic(std::ostream& out,

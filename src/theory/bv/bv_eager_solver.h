@@ -5,7 +5,7 @@
  **   Liana Hadarean, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -23,7 +23,7 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/bv/theory_bv.h"
+#include "theory/bv/bv_solver_lazy.h"
 #include "theory/theory_model.h"
 
 namespace CVC4 {
@@ -38,7 +38,7 @@ class AigBitblaster;
  */
 class EagerBitblastSolver {
  public:
-  EagerBitblastSolver(context::Context* c, theory::bv::TheoryBV* bv);
+  EagerBitblastSolver(context::Context* c, theory::bv::BVSolverLazy* bv);
   ~EagerBitblastSolver();
   bool checkSat();
   void assertFormula(TNode formula);
@@ -58,7 +58,7 @@ class EagerBitblastSolver {
   std::unique_ptr<AigBitblaster> d_aigBitblaster;
   bool d_useAig;
 
-  TheoryBV* d_bv;
+  BVSolverLazy* d_bv;
 };  // class EagerBitblastSolver
 
 }  // namespace bv

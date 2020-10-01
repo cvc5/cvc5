@@ -2,10 +2,10 @@
 /*! \file stats.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -18,7 +18,7 @@
 #define CVC4__THEORY__ARITH__NL__STATS_H
 
 #include "expr/kind.h"
-#include "theory/arith/nl/inference.h"
+#include "theory/arith/inference_id.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -42,7 +42,7 @@ class NlStats
   /** Number of calls to NonlinearExtension::checkLastCall */
   IntStat d_checkRuns;
   /** Counts the number of applications of each type of inference */
-  HistogramStat<Inference> d_inferences;
+  HistogramStat<InferenceId> d_inferences;
 };
 
 }  // namespace nl

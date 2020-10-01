@@ -2,10 +2,10 @@
 /*! \file process_assertions.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ **   Andrew Reynolds, Tim King, Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -27,10 +27,11 @@
 #include "options/uf_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_registry.h"
+#include "printer/printer.h"
 #include "smt/defined_function.h"
+#include "smt/dump.h"
 #include "smt/smt_engine.h"
 #include "theory/logic_info.h"
-#include "theory/quantifiers/fun_def_process.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4::preprocessing;
@@ -52,18 +53,13 @@ class ScopeCounter
 };
 
 ProcessAssertions::ProcessAssertions(SmtEngine& smt, ResourceManager& rm)
-    : d_smt(smt),
-      d_resourceManager(rm),
-      d_preprocessingPassContext(nullptr),
-      d_fmfRecFunctionsDefined(nullptr)
+    : d_smt(smt), d_resourceManager(rm), d_preprocessingPassContext(nullptr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
-  d_fmfRecFunctionsDefined = new (true) NodeList(d_smt.getUserContext());
 }
 
 ProcessAssertions::~ProcessAssertions()
 {
-  d_fmfRecFunctionsDefined->deleteSelf();
 }
 
 void ProcessAssertions::finishInit(PreprocessingPassContext* pc)
@@ -138,7 +134,11 @@ bool ProcessAssertions::apply(Assertions& as)
     unordered_map<Node, Node, NodeHashFunction> cache;
     for (size_t i = 0, nasserts = assertions.size(); i < nasserts; ++i)
     {
-      assertions.replace(i, expandDefinitions(assertions[i], cache));
+      Node expd = expandDefinitions(assertions[i], cache);
+      if (expd != assertions[i])
+      {
+        assertions.replace(i, expd);
+      }
     }
   }
   Trace("smt-proc")
@@ -245,38 +245,7 @@ bool ProcessAssertions::apply(Assertions& as)
     // to FMF
     if (options::fmfFunWellDefined())
     {
-      quantifiers::FunDefFmf fdf;
-      Assert(d_fmfRecFunctionsDefined != NULL);
-      // must carry over current definitions (in case of incremental)
-      for (context::CDList<Node>::const_iterator fit =
-               d_fmfRecFunctionsDefined->begin();
-           fit != d_fmfRecFunctionsDefined->end();
-           ++fit)
-      {
-        Node f = (*fit);
-        Assert(d_fmfRecFunctionsAbs.find(f) != d_fmfRecFunctionsAbs.end());
-        TypeNode ft = d_fmfRecFunctionsAbs[f];
-        fdf.d_sorts[f] = ft;
-        std::map<Node, std::vector<Node>>::iterator fcit =
-            d_fmfRecFunctionsConcrete.find(f);
-        Assert(fcit != d_fmfRecFunctionsConcrete.end());
-        for (const Node& fcc : fcit->second)
-        {
-          fdf.d_input_arg_inj[f].push_back(fcc);
-        }
-      }
-      fdf.simplify(assertions.ref());
-      // must store new definitions (in case of incremental)
-      for (const Node& f : fdf.d_funcs)
-      {
-        d_fmfRecFunctionsAbs[f] = fdf.d_sorts[f];
-        d_fmfRecFunctionsConcrete[f].clear();
-        for (const Node& fcc : fdf.d_input_arg_inj[f])
-        {
-          d_fmfRecFunctionsConcrete[f].push_back(fcc);
-        }
-        d_fmfRecFunctionsDefined->push_back(f);
-      }
+      d_passes["fun-def-fmf"]->apply(&assertions);
     }
   }
 
@@ -562,7 +531,8 @@ void ProcessAssertions::dumpAssertions(const char* key,
     for (unsigned i = 0; i < assertionList.size(); ++i)
     {
       TNode n = assertionList[i];
-      Dump("assertions") << AssertCommand(Expr(n.toExpr()));
+      d_smt.getOutputManager().getPrinter().toStreamCmdAssert(
+          d_smt.getOutputManager().getDumpOut(), n);
     }
   }
 }

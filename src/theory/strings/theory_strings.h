@@ -2,10 +2,10 @@
 /*! \file theory_strings.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tianyi Liang, Tim King
+ **   Andrew Reynolds, Tianyi Liang, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -86,11 +86,6 @@ class TheoryStrings : public Theory {
   std::string identify() const override;
   /** Explain */
   TrustNode explain(TNode literal) override;
-  /** Get current substitution */
-  bool getCurrentSubstitution(int effort,
-                              std::vector<Node>& vars,
-                              std::vector<Node>& subs,
-                              std::map<Node, std::vector<Node> >& exp) override;
   /** presolve */
   void presolve() override;
   /** shutdown */
@@ -262,6 +257,8 @@ class TheoryStrings : public Theory {
   SolverState d_state;
   /** The term registry for this theory */
   TermRegistry d_termReg;
+  /** The extended theory callback */
+  StringsExtfCallback d_extTheoryCb;
   /** Extended theory, responsible for context-dependent simplification. */
   ExtTheory d_extTheory;
   /** The (custom) output channel of the theory of strings */

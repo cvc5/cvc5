@@ -2,10 +2,10 @@
 /*! \file theory_arith.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Alex Ozdemir, Morgan Deters
+ **   Andrew Reynolds, Tim King, Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -19,17 +19,21 @@
 
 #include "expr/node.h"
 #include "theory/arith/arith_state.h"
+#include "theory/arith/inference_manager.h"
 #include "theory/arith/theory_arith_private_forward.h"
 #include "theory/theory.h"
 
 namespace CVC4 {
 namespace theory {
-
 namespace arith {
 
+namespace nl {
+class NonlinearExtension;
+}
+
 /**
- * Implementation of QF_LRA.
- * Based upon:
+ * Implementation of linear and non-linear integer and real arithmetic.
+ * The linear arithmetic solver is based upon:
  * http://research.microsoft.com/en-us/um/people/leonardo/cav06.pdf
  */
 class TheoryArith : public Theory {
@@ -75,16 +79,13 @@ class TheoryArith : public Theory {
   bool needsCheckLastEffort() override;
   void propagate(Effort e) override;
   TrustNode explain(TNode n) override;
-  bool getCurrentSubstitution(int effort,
-                              std::vector<Node>& vars,
-                              std::vector<Node>& subs,
-                              std::map<Node, std::vector<Node> >& exp) override;
-  bool isExtfReduced(int effort,
-                     Node n,
-                     Node on,
-                     std::vector<Node>& exp) override;
 
   bool collectModelInfo(TheoryModel* m) override;
+  /**
+   * Collect model values in m based on the relevant terms given by termSet.
+   */
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet) override;
 
   void shutdown() override {}
 
@@ -104,9 +105,26 @@ class TheoryArith : public Theory {
 
   std::pair<bool, Node> entailmentCheck(TNode lit) override;
 
+  /** Return a reference to the arith::InferenceManager. */
+  InferenceManager& getInferenceManager()
+  {
+    return d_inferenceManager;
+  }
+
  private:
+  /** Get the proof equality engine */
+  eq::ProofEqEngine* getProofEqEngine();
   /** The state object wrapping TheoryArithPrivate  */
   ArithState d_astate;
+
+  /** The arith::InferenceManager. */
+  InferenceManager d_inferenceManager;
+
+  /**
+   * The non-linear extension, responsible for all approaches for non-linear
+   * arithmetic.
+   */
+  std::unique_ptr<nl::NonlinearExtension> d_nonlinearExtension;
 };/* class TheoryArith */
 
 }/* CVC4::theory::arith namespace */

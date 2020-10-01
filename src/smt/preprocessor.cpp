@@ -2,10 +2,10 @@
 /*! \file preprocessor.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -15,9 +15,10 @@
 #include "smt/preprocessor.h"
 
 #include "options/smt_options.h"
+#include "printer/printer.h"
 #include "smt/abstract_values.h"
 #include "smt/assertions.h"
-#include "smt/command.h"
+#include "smt/dump.h"
 #include "smt/smt_engine.h"
 
 using namespace CVC4::theory;
@@ -128,7 +129,8 @@ Node Preprocessor::simplify(const Node& node, bool removeItes)
   Trace("smt") << "SMT simplify(" << node << ")" << endl;
   if (Dump.isOn("benchmark"))
   {
-    Dump("benchmark") << SimplifyCommand(node.toExpr());
+    d_smt.getOutputManager().getPrinter().toStreamCmdSimplify(
+        d_smt.getOutputManager().getDumpOut(), node);
   }
   Node nas = d_absValues.substituteAbstractValues(node);
   if (options::typeChecking())

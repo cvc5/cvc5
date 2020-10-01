@@ -2,10 +2,10 @@
 /*! \file theory_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Andrew Reynolds, Morgan Deters
+ **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -33,7 +33,6 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "prop/prop_engine.h"
-#include "smt/command.h"
 #include "theory/atom_requests.h"
 #include "theory/engine_output_channel.h"
 #include "theory/interrupted.h"
@@ -53,6 +52,7 @@
 namespace CVC4 {
 
 class ResourceManager;
+class TheoryEngineProofGenerator;
 
 /**
  * A pair of a theory and a node. This is used to mark the flow of
@@ -87,16 +87,13 @@ struct NodeTheoryPairHashFunction {
 namespace theory {
 class TheoryModel;
 class CombinationEngine;
+class SharedSolver;
 class DecisionManager;
 class RelevanceManager;
 
 namespace eq {
 class EqualityEngine;
 }  // namespace eq
-
-namespace quantifiers {
-class TermDb;
-}
 
 class EntailmentCheckParameters;
 class EntailmentCheckSideEffects;
@@ -115,9 +112,9 @@ class TheoryEngine {
   /** Shared terms database can use the internals notify the theories */
   friend class SharedTermsDatabase;
   friend class theory::CombinationEngine;
-  friend class theory::quantifiers::TermDb;
   friend class theory::EngineOutputChannel;
   friend class theory::CombinationEngine;
+  friend class theory::SharedSolver;
 
   /** Associated PropEngine engine */
   prop::PropEngine* d_propEngine;
@@ -143,18 +140,24 @@ class TheoryEngine {
    */
   const LogicInfo& d_logicInfo;
 
+  /** Reference to the output manager of the smt engine */
+  OutputManager& d_outMgr;
+
   //--------------------------------- new proofs
   /** Proof node manager used by this theory engine, if proofs are enabled */
   ProofNodeManager* d_pnm;
-  //--------------------------------- end new proofs
-
-  /**
-   * The database of shared terms.
+  /** The lazy proof object
+   *
+   * This stores instructions for how to construct proofs for all theory lemmas.
    */
-  SharedTermsDatabase d_sharedTerms;
-
+  std::shared_ptr<LazyCDProof> d_lazyProof;
+  /** The proof generator */
+  std::shared_ptr<TheoryEngineProofGenerator> d_tepg;
+  //--------------------------------- end new proofs
   /** The combination manager we are using */
   std::unique_ptr<theory::CombinationEngine> d_tc;
+  /** The shared solver of the above combination engine. */
+  theory::SharedSolver* d_sharedSolver;
   /**
    * The quantifiers engine
    */
@@ -169,27 +172,11 @@ class TheoryEngine {
   /** Default visitor for pre-registration */
   PreRegisterVisitor d_preRegistrationVisitor;
 
-  /** Visitor for collecting shared terms */
-  SharedTermsVisitor d_sharedTermsVisitor;
-
   /** are we in eager model building mode? (see setEagerModelBuilding). */
   bool d_eager_model_building;
 
   typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
   typedef std::unordered_map<TNode, Node, TNodeHashFunction> TNodeMap;
-
-  /**
-   * Used for "missed-t-propagations" dumping mode only.  A set of all
-   * theory-propagable literals.
-   */
-  context::CDList<TNode> d_possiblePropagations;
-
-  /**
-   * Used for "missed-t-propagations" dumping mode only.  A
-   * context-dependent set of those theory-propagable literals that
-   * have been propagated.
-   */
-  context::CDHashSet<Node, NodeHashFunction> d_hasPropagated;
 
   /**
    * Output channels for individual theories.
@@ -210,8 +197,12 @@ class TheoryEngine {
 
   /**
    * Called by the theories to notify of a conflict.
+   *
+   * @param conflict The trust node containing the conflict and its proof
+   * generator (if it exists),
+   * @param theoryId The theory that sent the conflict
    */
-  void conflict(TNode conflict, theory::TheoryId theoryId);
+  void conflict(theory::TrustNode conflict, theory::TheoryId theoryId);
 
   /**
    * Debugging flag to ensure that shutdown() is called before the
@@ -287,13 +278,16 @@ class TheoryEngine {
   /**
    * Adds a new lemma, returning its status.
    * @param node the lemma
-   * @param negated should the lemma be asserted negated
    * @param p the properties of the lemma.
+   * @param atomsTo the theory that atoms of the lemma should be sent to
+   * @param from the theory that sent the lemma
+   * @return a lemma status, containing the lemma and context information
+   * about when it was sent.
    */
-  theory::LemmaStatus lemma(TNode node,
-                            bool negated,
+  theory::LemmaStatus lemma(theory::TrustNode node,
                             theory::LemmaProperty p,
-                            theory::TheoryId atomsTo);
+                            theory::TheoryId atomsTo = theory::THEORY_LAST,
+                            theory::TheoryId from = theory::THEORY_LAST);
 
   /** Enusre that the given atoms are send to the given theory */
   void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);
@@ -320,7 +314,8 @@ class TheoryEngine {
                context::UserContext* userContext,
                ResourceManager* rm,
                RemoveTermFormulas& iteRemover,
-               const LogicInfo& logic);
+               const LogicInfo& logic,
+               OutputManager& outMgr);
 
   /** Destroys a theory engine */
   ~TheoryEngine();
@@ -373,16 +368,12 @@ class TheoryEngine {
   /**
    * Get a pointer to the underlying sat context.
    */
-  inline context::Context* getSatContext() const {
-    return d_context;
-  }
+  context::Context* getSatContext() const { return d_context; }
 
   /**
    * Get a pointer to the underlying user context.
    */
-  inline context::Context* getUserContext() const {
-    return d_userContext;
-  }
+  context::UserContext* getUserContext() const { return d_userContext; }
 
   /**
    * Get a pointer to the underlying quantifiers engine.
@@ -446,7 +437,11 @@ class TheoryEngine {
    * where the node is the one to be explained, and the theory is the
    * theory that sent the literal.
    */
-  void getExplanation(std::vector<NodeTheoryPair>& explanationVector);
+  theory::TrustNode getExplanation(
+      std::vector<NodeTheoryPair>& explanationVector);
+
+  /** Are proofs enabled? */
+  bool isProofEnabled() const;
 
  public:
   /**
@@ -564,7 +559,7 @@ class TheoryEngine {
   /**
    * Returns an explanation of the node propagated to the SAT solver.
    */
-  Node getExplanation(TNode node);
+  theory::TrustNode getExplanation(TNode node);
 
   /**
    * Get the pointer to the model object used by this theory engine.
