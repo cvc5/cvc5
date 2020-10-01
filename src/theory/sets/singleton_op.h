@@ -14,49 +14,50 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__SINGLETON_H
-#define CVC4__SINGLETON_H
+#ifndef CVC4__SINGLETON_OP_H
+#define CVC4__SINGLETON_OP_H
 
-#include <iosfwd>
 #include <memory>
 
 namespace CVC4 {
 
 class TypeNode;
 
-class CVC4_PUBLIC SingletonOp
+/**
+ * The class is an operator for kind SINGLETON used to construct singleton sets.
+ * It specifies the type of the single element especially when it is a constant.
+ * e.g. the type of rational 1 is Int, however
+ * (singleton (singleton_op Real) 1) is of type (Set Real), not (Set Int).
+ * Note that the type passed to the constructor is the element's type, not the
+ * set type.
+ */
+class SingletonOp
 {
  public:
-  /**
-   * Constructs an singleton of the specified type. Note that the argument
-   * is the type of the set itself, NOT the type of the elements.
-   */
-  SingletonOp(const TypeNode& setType);
-  ~SingletonOp();
-  SingletonOp(const SingletonOp& other);
-  SingletonOp& operator=(const SingletonOp& other);
+  SingletonOp(const TypeNode& elementType);
+  SingletonOp(const SingletonOp& op);
 
+  /** return the type of the current object */
   const TypeNode& getType() const;
-  bool operator==(const SingletonOp& es) const;
-  bool operator!=(const SingletonOp& es) const;
-  bool operator<(const SingletonOp& es) const;
-  bool operator<=(const SingletonOp& es) const;
-  bool operator>(const SingletonOp& es) const;
-  bool operator>=(const SingletonOp& es) const;
+
+  bool operator==(const SingletonOp& op) const;
 
  private:
   SingletonOp();
-
+  /** a pointer to the type of the singleton element */
   std::unique_ptr<TypeNode> d_type;
 }; /* class Singleton */
 
-std::ostream& operator<<(std::ostream& out, const SingletonOp& es) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const SingletonOp& op);
 
+/**
+ * Hash function for the SingletonHashFunction objects.
+ */
 struct CVC4_PUBLIC SingletonOpHashFunction
 {
-  size_t operator()(const SingletonOp& es) const;
+  size_t operator()(const SingletonOp& op) const;
 }; /* struct SingletonHashFunction */
 
 }  // namespace CVC4
 
-#endif /* CVC4__SINGLETON_H */
+#endif /* CVC4__SINGLETON_OP_H */
