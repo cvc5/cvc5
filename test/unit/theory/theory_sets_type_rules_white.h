@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file theory_bags_type_rules_black.h
+/*! \file theory_sets_type_rules_white.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Mudathir Mohamed
@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of bags typing rules
+ ** \brief White box testing of sets typing rules
  **/
 
 #include <cxxtest/TestSuite.h>

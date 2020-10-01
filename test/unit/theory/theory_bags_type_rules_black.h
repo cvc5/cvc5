@@ -28,7 +28,7 @@ using namespace std;
 
 typedef expr::Attribute<Node, Node> attribute;
 
-class SetsTypeRuleWhite : public CxxTest::TestSuite
+class BagsTypeRuleBlack : public CxxTest::TestSuite
 {
  public:
   void setUp() override

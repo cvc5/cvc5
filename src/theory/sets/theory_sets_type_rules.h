@@ -129,21 +129,25 @@ struct SingletonTypeRule
                                      TNode n,
                                      bool check)
   {
-    Assert(n.getKind() == kind::SINGLETON);
+    Assert(n.getKind() == kind::SINGLETON && n.hasOperator()
+           && n.getOperator().getKind() == kind::SINGLETON_OP);
 
     SingletonOp op = n.getOperator().getConst<SingletonOp>();
     TypeNode type1 = op.getType();
-    TypeNode type2 = n[0].getType(check);
-    TypeNode leastCommonType = TypeNode::leastCommonTypeNode(type1, type2);
-    // the type of the element should be a subtype of the first operand
-    // e.g. (singleton (singleton_op Real) 1) where 1 is an Int
-    if (leastCommonType.isNull() || leastCommonType != type1)
+    if (check)
     {
-      std::stringstream ss;
-      ss << "The type '" << type2
-         << "' of the second operand is not a subtype of '" << type1
-         << "' in term : " << n;
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      TypeNode type2 = n[0].getType(check);
+      TypeNode leastCommonType = TypeNode::leastCommonTypeNode(type1, type2);
+      // the type of the element should be a subtype of the type of the operator
+      // e.g. (singleton (singleton_op Real) 1) where 1 is an Int
+      if (leastCommonType.isNull() || leastCommonType != type1)
+      {
+        std::stringstream ss;
+        ss << "The type '" << type2
+           << "' of the second operand is not a subtype of '" << type1
+           << "' in term : " << n;
+        throw TypeCheckingExceptionPrivate(n, ss.str());
+      }
     }
     return nodeManager->mkSetType(type1);
   }
@@ -153,7 +157,7 @@ struct SingletonTypeRule
     Assert(n.getKind() == kind::SINGLETON);
     return n[0].isConst();
   }
-}; /* struct SingletonOp */
+}; /* struct SingletonTypeRule */
 
 struct EmptySetTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)

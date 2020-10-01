@@ -56,7 +56,7 @@ std::ostream& operator<<(std::ostream& out, const SingletonOp& op);
 struct CVC4_PUBLIC SingletonOpHashFunction
 {
   size_t operator()(const SingletonOp& op) const;
-}; /* struct SingletonHashFunction */
+}; /* struct SingletonOpHashFunction */
 
 }  // namespace CVC4
 

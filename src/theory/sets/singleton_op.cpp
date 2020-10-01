@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file singleton_op.h
+/*! \file singleton_op.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Mudathir Mohamed
