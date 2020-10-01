@@ -3312,7 +3312,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
     }
     outputConflicts();
     //cout << "unate conflict 1 " << effortLevel << std::endl;
-    return;
+    return true;
   }
 
 
@@ -3347,7 +3347,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
       revertOutOfConflict();
       d_errorSet.clear();
       outputConflicts();
-      return;
+      return true;
     }
   }
 
