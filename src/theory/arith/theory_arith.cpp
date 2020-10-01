@@ -45,6 +45,7 @@ TheoryArith::TheoryArith(context::Context* c,
       d_astate(*d_internal, c, u, valuation),
       d_inferenceManager(*this, d_astate, pnm),
       d_nonlinearExtension(nullptr)
+      d_opElim(pnm, logicInfo)
 {
   smtStatisticsRegistry()->registerStat(&d_ppRewriteTimer);
 
@@ -169,7 +170,24 @@ void TheoryArith::postCheck(Effort level)
     return;
   }
   // otherwise, check with the linear solver
-  d_internal->postCheck(level);
+  if (d_internal->postCheck(level))
+  {
+    // linear solver emitted a conflict or lemma, return
+    return;
+  }
+
+  if(Theory::fullEffort(level))
+  {
+    if (d_nonlinearExtension != nullptr)
+    {
+      d_nonlinearExtension->check(level);
+    }
+    else if (d_internal->isNonlinearIncomplete())
+    {
+      // set incomplete
+      d_inferenceManager.setIncomplete();
+    }
+  }
 }
 
 bool TheoryArith::preNotifyFact(

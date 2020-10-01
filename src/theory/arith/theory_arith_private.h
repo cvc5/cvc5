@@ -495,9 +495,20 @@ private:
   bool preCheck(Theory::Effort level);
   /** Pre-notify fact. */
   void preNotifyFact(TNode atom, bool pol, TNode fact);
-  /** Post-check, called after the fact queue of the theory is processed. */
-  void postCheck(Theory::Effort level);
+  /** 
+   * Post-check, called after the fact queue of the theory is processed. Returns
+   * true if a conflict or lemma was emitted.
+   */
+  bool postCheck(Theory::Effort level);
   //--------------------------------- end standard check
+  /** 
+   * Is non-linear incomplete? This returns true if this solver ever encountered
+   * any non-linear terms that were unhandled. Note that this class is not
+   * responsible for handling non-linear arithmetic. If the owner of this
+   * class does not handle non-linear arithmetic in another way, then
+   * setIncomplete should be called on the output channel of TheoryArith.
+   */
+  bool isNonlinearIncomplete() const;
  private:
   /** The constant zero. */
   DeltaRational d_DELTA_ZERO;

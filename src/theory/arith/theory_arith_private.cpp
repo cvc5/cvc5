@@ -171,8 +171,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_solveIntAttempts(0u),
       d_newFacts(false),
       d_previousStatus(Result::SAT_UNKNOWN),
-      d_statistics(),
-      d_opElim(pnm, logicInfo)
+      d_statistics()
 {
   ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
   if (pc != nullptr)
@@ -1253,11 +1252,7 @@ void TheoryArithPrivate::setupVariableList(const VarList& vl){
     if(getLogicInfo().isLinear()){
       throw LogicException("A non-linear fact was asserted to arithmetic in a linear logic.");
     }
-
-    if (d_nonlinearExtension == nullptr)
-    {
-      d_nlIncomplete = true;
-    }
+    d_nlIncomplete = true;
 
     ++(d_statistics.d_statUserVariables);
     requestArithVar(vlNode, false, false);
@@ -1265,16 +1260,11 @@ void TheoryArithPrivate::setupVariableList(const VarList& vl){
     //setupInitialValue(av);
 
     markSetup(vlNode);
-  }else{
-    if (d_nonlinearExtension == nullptr)
-    {
-      if (vlNode.getKind() == kind::EXPONENTIAL
-          || vlNode.getKind() == kind::SINE || vlNode.getKind() == kind::COSINE
-          || vlNode.getKind() == kind::TANGENT)
-      {
-        d_nlIncomplete = true;
-      }
-    }
+  }else if (vlNode.getKind() == kind::EXPONENTIAL
+        || vlNode.getKind() == kind::SINE || vlNode.getKind() == kind::COSINE
+        || vlNode.getKind() == kind::TANGENT)
+  {
+    d_nlIncomplete = true;
   }
 
   /* Note:
@@ -3289,7 +3279,7 @@ void TheoryArithPrivate::preNotifyFact(TNode atom, bool pol, TNode fact)
   }
 }
 
-void TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
+bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
 {
   if(!anyConflict()){
     while(!d_learnedBounds.empty()){
@@ -3598,24 +3588,10 @@ void TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
     }
   }//if !emmittedConflictOrSplit && fullEffort(effortLevel) && !hasIntegerModel()
 
-  if(!emmittedConflictOrSplit && effortLevel>=Theory::EFFORT_FULL){
-    if (d_nonlinearExtension != nullptr)
-    {
-      d_nonlinearExtension->check( effortLevel );
-    }
-  }
-
-  if(Theory::fullEffort(effortLevel) && d_nlIncomplete){
-    setIncomplete();
-  }
-
   if(Theory::fullEffort(effortLevel)){
     if(Debug.isOn("arith::consistency::final")){
       entireStateIsConsistent("arith::consistency::final");
     }
-    // cout << "fulleffort" << getSatContext()->getLevel() << endl;
-    // entireStateIsConsistent("arith::consistency::final");
-    // cout << "emmittedConflictOrSplit" << emmittedConflictOrSplit << endl;
   }
 
   if(Debug.isOn("paranoid:check_tableau")){ d_linEq.debugCheckTableau(); }
@@ -3623,6 +3599,12 @@ void TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
     debugPrintModel(Debug("arith::print_model"));
   }
   Debug("arith") << "TheoryArithPrivate::check end" << std::endl;
+  return emmittedConflictOrSplit;
+}
+
+bool TheoryArithPrivate::isNonlinearIncomplete() const
+{
+  return d_nlIncomplete;
 }
 
 Node TheoryArithPrivate::branchIntegerVariable(ArithVar x) const {
@@ -4032,7 +4014,6 @@ void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet,
                                             std::map<Node, Node>& arithModel)
 {
   AlwaysAssert(d_qflraStatus == Result::SAT);
-  //AlwaysAssert(!d_nlIncomplete, "Arithmetic solver cannot currently produce models for input with nonlinear arithmetic constraints");
 
   if(Debug.isOn("arith::collectModelInfo")){
     debugPrintFacts();
