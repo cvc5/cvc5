@@ -859,11 +859,8 @@ PreprocessingPassResult UnconstrainedSimplifier::applyInternal(
     {
       Node a = assertions[i];
       Node as = Rewriter::rewrite(d_substitutions.apply(a));
-      if (a != as)
-      {
-        // replace the assertion
-        assertionsToPreprocess->replace(i, as);
-      }
+      // replace the assertion
+      assertionsToPreprocess->replace(i, as);
     }
   }
 
