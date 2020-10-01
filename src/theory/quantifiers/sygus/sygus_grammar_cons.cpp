@@ -957,7 +957,13 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       Trace("sygus-grammar-def") << "...add for singleton" << std::endl;
       std::vector<TypeNode> cargsSingleton;
       cargsSingleton.push_back(unresElemType);
-      sdts[i].addConstructor(SINGLETON, cargsSingleton);
+
+      // lambda x . (singleton (singleton_op T) x) where T = x.getType()
+      Node x = nm->mkBoundVar(etype);
+      Node vars = nm->mkNode(BOUND_VAR_LIST, x);
+      Node singleton = nm->mkSingleton(x.getType(), x);
+      Node lambda = nm->mkNode(LAMBDA,vars, singleton);
+      sdts[i].addConstructor(lambda, "singleton", cargsSingleton);
 
       // add for union, difference, intersection
       std::vector<Kind> bin_kinds = {UNION, INTERSECTION, SETMINUS};

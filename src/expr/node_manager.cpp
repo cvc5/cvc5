@@ -950,6 +950,13 @@ Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k) {
   }
 }
 
+Node NodeManager::mkSingleton(const TypeNode& t, const TNode n)
+{
+  Node op = mkConst(SingletonOp(t));
+  Node singleton = mkNode(kind::SINGLETON, op, n);
+  return singleton;
+}
+
 Node NodeManager::mkAbstractValue(const TypeNode& type) {
   Node n = mkConst(AbstractValue(++d_abstractValueCount));
   n.setAttribute(TypeAttr(), type);

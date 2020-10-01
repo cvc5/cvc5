@@ -575,6 +575,9 @@ class NodeManager {
   /** make unique (per Type,Kind) variable. */
   Node mkNullaryOperator(const TypeNode& type, Kind k);
 
+  /** make singleton */
+  Node mkSingleton(const TypeNode& t, const TNode n);
+
   /**
    * Create a constant of type T.  It will have the appropriate
    * CONST_* kind defined for T.
