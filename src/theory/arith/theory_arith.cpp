@@ -61,7 +61,7 @@ TheoryArith::~TheoryArith(){
 
 TheoryRewriter* TheoryArith::getTheoryRewriter()
 {
-  return d_internal->getTheoryRewriter();
+  return &d_rewriter; 
 }
 
 bool TheoryArith::needsEqualityEngine(EeSetupInfo& esi)

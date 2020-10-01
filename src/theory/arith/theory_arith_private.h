@@ -35,7 +35,6 @@
 #include "options/arith_options.h"
 #include "smt/logic_exception.h"
 #include "smt_util/boolean_simplification.h"
-#include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/arithvar.h"
@@ -80,10 +79,6 @@ namespace inferbounds {
   class InferBoundAlgorithm;
 }
 class InferBoundsResult;
-
-namespace nl {
-class NonlinearExtension;
-}
 
 /**
  * Implementation of QF_LRA.
@@ -381,9 +376,6 @@ private:
   SumOfInfeasibilitiesSPD d_soiSimplex;
   AttemptSolutionSDP d_attemptSolSimplex;
 
-  /** non-linear algebraic approach */
-  nl::NonlinearExtension* d_nonlinearExtension;
-
   bool solveRealRelaxation(Theory::Effort effortLevel);
 
   /* Returns true if this is heuristically a good time to try
@@ -436,8 +428,6 @@ private:
   ~TheoryArithPrivate();
 
   //--------------------------------- initialization
-  /** get the official theory rewriter of this theory */
-  TheoryRewriter* getTheoryRewriter();
   /**
    * Returns true if we need an equality engine, see
    * Theory::needsEqualityEngine.
@@ -881,9 +871,6 @@ private:
 
 
   Statistics d_statistics;
-
-  /** The theory rewriter for this theory. */
-  ArithRewriter d_rewriter;
 };/* class TheoryArithPrivate */
 
 }/* CVC4::theory::arith namespace */

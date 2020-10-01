@@ -147,7 +147,6 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
           d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
       d_attemptSolSimplex(
           d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
-      d_nonlinearExtension(nullptr),
       d_pass1SDP(NULL),
       d_otherSDP(NULL),
       d_lastContextIntegerAttempted(c, -1),
@@ -185,7 +184,6 @@ TheoryArithPrivate::~TheoryArithPrivate(){
   if(d_approxStats != NULL) { delete d_approxStats; }
 }
 
-TheoryRewriter* TheoryArithPrivate::getTheoryRewriter() { return &d_rewriter; }
 bool TheoryArithPrivate::needsEqualityEngine(EeSetupInfo& esi)
 {
   return d_congruenceManager.needsEqualityEngine(esi);
@@ -196,7 +194,6 @@ void TheoryArithPrivate::finishInit()
   eq::ProofEqEngine* pfee = d_containing.getProofEqEngine();
   Assert(ee != nullptr);
   d_congruenceManager.finishInit(ee, pfee);
-  d_nonlinearExtension = d_containing.d_nonlinearExtension.get();
 }
 
 static bool contains(const ConstraintCPVec& v, ConstraintP con){

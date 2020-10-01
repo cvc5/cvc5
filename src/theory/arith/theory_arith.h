@@ -22,12 +22,14 @@
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nonlinear_extension.h"
 #include "theory/arith/operator_elim.h"
-#include "theory/arith/theory_arith_private_forward.h"
+#include "theory/arith/arith_rewriter.h"
 #include "theory/theory.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
+
+class TheoryArithPrivate;
 
 /**
  * Implementation of linear and non-linear integer and real arithmetic.
@@ -135,6 +137,8 @@ class TheoryArith : public Theory {
   std::unique_ptr<nl::NonlinearExtension> d_nonlinearExtension;
   /** The operator elimination utility */
   OperatorElim d_opElim;
+  /** The theory rewriter for this theory. */
+  ArithRewriter d_rewriter;
 };/* class TheoryArith */
 
 }/* CVC4::theory::arith namespace */
