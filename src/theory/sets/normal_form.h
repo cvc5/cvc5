@@ -49,7 +49,7 @@ class NormalForm {
       Node cur = nm->mkNode(kind::SINGLETON, op, *it);
       while (++it != elements.end())
       {
-        Node singletonOp = nm->mkConst(SingletonOp((*it).getType()));
+        Node singletonOp = nm->mkConst(SingletonOp(it->getType()));
         Node singleton = nm->mkNode(kind::SINGLETON, singletonOp, *it);
         cur = nm->mkNode(kind::UNION, singleton, cur);
       }
