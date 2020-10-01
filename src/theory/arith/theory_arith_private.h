@@ -343,9 +343,6 @@ private:
    */
   bool anyConflict() const;
 
-  /** External notification (e.g. from ArithState) that we are in conflict */
-  void notifyInConflict();
-
  private:
   inline bool conflictQueueEmpty() const {
     return d_conflicts.empty();
@@ -492,6 +489,7 @@ private:
 
   EqualityStatus getEqualityStatus(TNode a, TNode b);
 
+  /** Called when n is notified as being a shared term with TheoryArith. */
   void notifySharedTerm(TNode n);
 
   Node getModelValue(TNode var);

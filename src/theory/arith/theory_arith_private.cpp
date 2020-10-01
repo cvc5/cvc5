@@ -3305,6 +3305,7 @@ bool TheoryArithPrivate::hasFreshArithLiteral(Node n) const{
 
 bool TheoryArithPrivate::preCheck(Theory::Effort level)
 {
+  Assert(d_currentPropagationList.empty());
   if(Debug.isOn("arith::consistency")){
     Assert(unenqueuedVariablesAreConsistent());
   }
