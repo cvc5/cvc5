@@ -47,13 +47,10 @@ void InferProofCons::notifyFact(const InferInfo& ii)
     return;
   }
   Node symFact = CDProof::getSymmFact(fact);
-  if (!symFact.isNull())
+  if (!symFact.isNull() && d_lazyFactMap.find(symFact) != d_lazyFactMap.end())
   {
-    if (d_lazyFactMap.find(symFact) != d_lazyFactMap.end())
-    {
-      Trace("strings-ipc-debug") << "...duplicate (sym)!" << std::endl;
-      return;
-    }
+    Trace("strings-ipc-debug") << "...duplicate (sym)!" << std::endl;
+    return;
   }
   std::shared_ptr<InferInfo> iic = std::make_shared<InferInfo>(ii);
   d_lazyFactMap.insert(ii.d_conc, iic);
@@ -72,13 +69,11 @@ void InferProofCons::convert(Inference infer,
   // Must flatten children with respect to AND to be ready to explain.
   // We store the index where each flattened vector begins, since some
   // explanations are grouped together using AND.
-  size_t expIndex = 0;
-  std::map<size_t, size_t> startExpIndex;
+  std::vector<size_t> startExpIndex;
   for (const Node& ec : exp)
   {
     // store the index in the flattened vector
-    startExpIndex[expIndex] = ps.d_children.size();
-    expIndex++;
+    startExpIndex.push_back(ps.d_children.size());
     utils::flattenOp(AND, ec, ps.d_children);
   }
   // debug print
@@ -121,8 +116,7 @@ void InferProofCons::convert(Inference infer,
     {
       if (!ps.d_children.empty())
       {
-        std::vector<Node> exps;
-        exps.insert(exps.end(), ps.d_children.begin(), ps.d_children.end() - 1);
+        std::vector<Node> exps(ps.d_children.begin(), ps.d_children.end() - 1);
         Node src = ps.d_children[ps.d_children.size() - 1];
         if (psb.applyPredTransform(src, conc, exps))
         {
@@ -143,11 +137,7 @@ void InferProofCons::convert(Inference infer,
     {
       // the last child is the predicate we are operating on, move to front
       Node src = ps.d_children[ps.d_children.size() - 1];
-      std::vector<Node> expe;
-      if (ps.d_children.size() > 1)
-      {
-        expe.insert(expe.end(), ps.d_children.begin(), ps.d_children.end() - 1);
-      }
+      std::vector<Node> expe(ps.d_children.begin(), ps.d_children.end() - 1);
       // start with a default rewrite
       Node mainEqSRew = psb.applyPredElim(src, expe);
       if (mainEqSRew == conc)
@@ -188,9 +178,9 @@ void InferProofCons::convert(Inference infer,
       Trace("strings-ipc-core") << "Generate core rule for " << infer
                                 << " (rev=" << isRev << ")" << std::endl;
       // All of the above inferences have the form:
-      //   <explanation for why t and s have the same prefix/suffix> ^
+      //   (explanation for why t and s have the same prefix/suffix) ^
       //   t = s ^
-      //  <length constraint>?
+      //   (length constraint)?
       // We call t=s the "main equality" below. The length constraint is
       // optional, which we split on below.
       size_t nchild = ps.d_children.size();
@@ -206,29 +196,22 @@ void InferProofCons::convert(Inference infer,
       {
         if (exp.size() >= 2)
         {
-          std::map<size_t, size_t>::iterator itsei =
-              startExpIndex.find(exp.size() - 1);
-          if (itsei != startExpIndex.end())
-          {
-            // The index of the "main" equality is the last equality before
-            // the length explanation.
-            mainEqIndex = itsei->second - 1;
-            mainEqIndexSet = true;
-            // the remainder is the length constraint
-            lenConstraint.insert(lenConstraint.end(),
-                                 ps.d_children.begin() + mainEqIndex + 1,
-                                 ps.d_children.end());
-          }
+          Assert(exp.size() <= startExpIndex.size());
+          // The index of the "main" equality is the last equality before
+          // the length explanation.
+          mainEqIndex = startExpIndex[exp.size() - 1];
+          mainEqIndexSet = true;
+          // the remainder is the length constraint
+          lenConstraint.insert(lenConstraint.end(),
+                               ps.d_children.begin() + mainEqIndex + 1,
+                               ps.d_children.end());
         }
       }
-      else
+      else if (nchild >= 1)
       {
-        if (nchild >= 1)
-        {
-          // The index of the main equality is the last child.
-          mainEqIndex = nchild - 1;
-          mainEqIndexSet = true;
-        }
+        // The index of the main equality is the last child.
+        mainEqIndex = nchild - 1;
+        mainEqIndexSet = true;
       }
       Node mainEq;
       if (mainEqIndexSet)
@@ -241,7 +224,6 @@ void InferProofCons::convert(Inference infer,
       {
         Trace("strings-ipc-core")
             << "...failed to find main equality" << std::endl;
-        // Assert(false);
         break;
       }
       // apply MACRO_SR_PRED_ELIM using equalities up to the main eq
@@ -255,7 +237,7 @@ void InferProofCons::convert(Inference infer,
       if (CDProof::isSame(mainEqSRew, mainEq))
       {
         Trace("strings-ipc-core") << "...undo step" << std::endl;
-        // not necessary
+        // the rule added above was not necessary
         psb.popStep();
       }
       else if (mainEqSRew == conc)
@@ -310,7 +292,7 @@ void InferProofCons::convert(Inference infer,
           Trace("strings-ipc-core") << "...success!" << std::endl;
         }
         // Otherwise, note that EMP rules conclude ti = "" where
-        // t1 ++ ... ++ tn == "". However, these are very rare applied, let
+        // t1 ++ ... ++ tn == "". However, these are very rarely applied, let
         // alone for 2+ children. This case is intentionally unhandled here.
       }
       else if (infer == Inference::N_CONST || infer == Inference::F_CONST
@@ -476,7 +458,8 @@ void InferProofCons::convert(Inference infer,
         }
         else
         {
-          Assert(false);
+          // should always have given a rule to try above
+          Assert(false) << "No reconstruction rule given for " << infer;
         }
       }
     }
@@ -491,7 +474,7 @@ void InferProofCons::convert(Inference infer,
           || conc[1][0].getKind() != STRING_LENGTH)
       {
         Trace("strings-ipc-deq") << "malformed application" << std::endl;
-        Assert(false);
+        Assert(false) << "unexpected conclusion " << conc << " for " << infer;
       }
       else
       {
@@ -534,7 +517,7 @@ void InferProofCons::convert(Inference infer,
     {
       if (conc.getKind() != OR)
       {
-        Assert(false);
+        Assert(false) << "Expected OR conclusion for " << infer;
       }
       else
       {
@@ -625,7 +608,7 @@ void InferProofCons::convert(Inference infer,
       if (mainEq.isNull())
       {
         Trace("strings-ipc-red") << "Bad Reduction: " << conc << std::endl;
-        Assert(false);
+        Assert(false) << "Unexpected reduction " << conc;
         break;
       }
       std::vector<Node> argsRed;
@@ -701,7 +684,8 @@ void InferProofCons::convert(Inference infer,
                 << "--- and elim to " << eunfAE << std::endl;
             if (eunfAE.isNull() || eunfAE.getKind() != EQUAL)
             {
-              Assert(false);
+              Assert(false)
+                  << "Unexpected unfolded premise " << eunf << " for " << infer;
               continue;
             }
             Trace("strings-ipc-prefix")
@@ -717,7 +701,7 @@ void InferProofCons::convert(Inference infer,
         else
         {
           // not sure how to use this assumption
-          Assert(false);
+          Assert(false) << "Unexpected premise " << e << " for " << infer;
         }
       }
       if (eqs.empty())
@@ -838,7 +822,7 @@ void InferProofCons::convert(Inference infer,
     case Inference::CTN_TRANS:
     case Inference::CTN_DECOMPOSE:
     default:
-      // do nothing, these will be converted to STRINGS_TRUST below since the
+      // do nothing, these will be converted to STRING_TRUST below since the
       // rule is unknown.
       break;
   }
@@ -887,8 +871,7 @@ void InferProofCons::convert(Inference infer,
         Trace("strings-ipc-fail") << "    e: " << ec << std::endl;
       }
     }
-    // untrustworthy conversion
-    // argument is the conclusion
+    // untrustworthy conversion, the argument of STRING_TRUST is its conclusion
     ps.d_args.clear();
     ps.d_args.push_back(conc);
     // use the trust rule
