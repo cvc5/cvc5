@@ -543,7 +543,7 @@ void Theory::addSharedTerm(TNode n)
   Debug("theory::assertions")
       << "Theory::addSharedTerm<" << getId() << ">(" << n << ")" << std::endl;
   d_sharedTerms.push_back(n);
-  // now call theory-specific addSharedTerm
+  // now call theory-specific method notifySharedTerm
   notifySharedTerm(n);
   // if we have an equality engine, add the trigger term
   if (d_equalityEngine != nullptr)
