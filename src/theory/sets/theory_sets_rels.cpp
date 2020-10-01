@@ -1192,7 +1192,7 @@ void TheorySetsRels::check(Theory::Effort level)
     // force a proxy lemma to be sent for the singleton containing n
     NodeManager* nm = NodeManager::currentNM();
     Node singletonOp = nm->mkConst(SingletonOp(n.getType()));
-    Node ss = NodeManager::currentNM()->mkNode(SINGLETON, singletonOp, n);
+    Node ss = nm->mkNode(SINGLETON, singletonOp, n);
     d_treg.getProxy(ss);
     d_shared_terms.insert(n);
   }

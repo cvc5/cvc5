@@ -2162,7 +2162,7 @@ simpleTerm[CVC4::api::Term& f]
     ( COMMA formula[f] { args.push_back(f); } )* RBRACE
     { f = MK_SINGLETON(args[0].getSort(), args[0]);
       for(size_t i = 1; i < args.size(); ++i) {
-        f = MK_TERM(api::UNION, f, MK_TERM(api::SINGLETON, args[i]));
+        f = MK_TERM(api::UNION, f, MK_SINGLETON(args[i].getSort(), args[i]));
       }
     }
 
