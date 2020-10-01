@@ -20,6 +20,7 @@
 #include "expr/node.h"
 #include "theory/arith/arith_state.h"
 #include "theory/arith/inference_manager.h"
+#include "theory/arith/nl/nonlinear_extension.h"
 #include "theory/arith/theory_arith_private_forward.h"
 #include "theory/theory.h"
 
