@@ -502,8 +502,8 @@ private:
   //--------------------------------- standard check
   /** Pre-check, called before the fact queue of the theory is processed. */
   bool preCheck(Theory::Effort level);
-  /** Notify fact. */
-  void notifyFact(TNode atom, bool pol, TNode fact);
+  /** Pre-notify fact. */
+  void preNotifyFact(TNode atom, bool pol, TNode fact);
   /** Post-check, called after the fact queue of the theory is processed. */
   void postCheck(Theory::Effort level);
   //--------------------------------- end standard check
@@ -652,6 +652,9 @@ private:
    * Handles the case splitting for check() for a new assertion.
    * Returns a conflict if one was found.
    * Returns Node::null if no conflict was found.
+   * 
+   * @param assertion The assertion that was just popped from the fact queue
+   * of TheoryArith and given to this class via preNotifyFact.
    */
   ConstraintP constraintFromFactQueue(TNode assertion);
   bool assertionCases(ConstraintP c);

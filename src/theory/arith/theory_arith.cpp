@@ -140,7 +140,9 @@ void TheoryArith::postCheck(Effort level)
 bool TheoryArith::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
-  d_internal->notifyFact(atom, pol, fact);
+  d_internal->preNotifyFact(atom, pol, fact);
+  // We do not assert to the equality engine of arithmetic in the standard way,
+  // hence we return "true" to indicate we are finished with this fact.
   return true;
 }
 
