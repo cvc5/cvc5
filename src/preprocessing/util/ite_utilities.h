@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "util/hash.h"
 #include "util/statistics_registry.h"
 
@@ -74,7 +75,7 @@ class ITEUtilities
   bool simpIteDidALotOfWorkHeuristic() const;
 
   /* returns false if an assertion is discovered to be equal to false. */
-  bool compress(std::vector<Node>& assertions);
+  bool compress(AssertionPipeline* assertionsToPreprocess);
 
   Node simplifyWithCare(TNode e);
 
@@ -167,7 +168,7 @@ class ITECompressor
   ~ITECompressor();
 
   /* returns false if an assertion is discovered to be equal to false. */
-  bool compress(std::vector<Node>& assertions);
+  bool compress(AssertionPipeline* assertionsToPreprocess);
 
   /* garbage Collects the compressor. */
   void garbageCollect();
@@ -176,7 +177,7 @@ class ITECompressor
   Node d_true;  /* Copy of true. */
   Node d_false; /* Copy of false. */
   ContainsTermITEVisitor* d_contains;
-  std::vector<Node>* d_assertions;
+  AssertionPipeline* d_assertions;
   IncomingArcCounter d_incoming;
 
   typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;

@@ -13,12 +13,12 @@
  **/
 
 #include "cvc4_private.h"
-#include "theory/bags/rewrites.h"
 
 #ifndef CVC4__THEORY__BAGS__THEORY_BAGS_REWRITER_H
 #define CVC4__THEORY__BAGS__THEORY_BAGS_REWRITER_H
 
 #include "theory/rewriter.h"
+#include "theory/bags/rewrites.h"
 
 namespace CVC4 {
 namespace theory {

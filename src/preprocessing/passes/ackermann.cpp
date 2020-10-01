@@ -276,9 +276,13 @@ void usortsToBitVectors(const LogicInfo& d_logic,
     for (size_t i = 0, size = assertions->size(); i < size; ++i)
     {
       Node old = (*assertions)[i];
-      assertions->replace(i, usVarsToBVVars.apply((*assertions)[i]));
-      Trace("uninterpretedSorts-to-bv")
-          << "  " << old << " => " << (*assertions)[i] << "\n";
+      Node newA = usVarsToBVVars.apply((*assertions)[i]);
+      if (newA != old)
+      {
+        assertions->replace(i, newA);
+        Trace("uninterpretedSorts-to-bv")
+            << "  " << old << " => " << (*assertions)[i] << "\n";
+      }
     }
   }
 }
