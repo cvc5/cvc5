@@ -183,12 +183,6 @@ class CDCAC
 
   /** The linear assignment used as an initial guess. */
   std::vector<poly::Value> d_initialAssignment;
-
-  /**
-   * Decides whether we use the model from the linear solver as an initial
-   * assignment to guide the sampling process.
-   */
-  static constexpr bool use_initial_assignment = false;
 };
 
 }  // namespace cad
