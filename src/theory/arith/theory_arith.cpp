@@ -158,7 +158,6 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
   {
     // maps to constant of comparable type
     Assert(p.first.getType().isComparableTo(p.second.getType()));
-    Assert(p.second.isConst());
     if (m->assertEquality(p.first, p.second, true))
     {
       continue;
@@ -204,6 +203,10 @@ std::pair<bool, Node> TheoryArith::entailmentCheck(TNode lit)
   ArithEntailmentCheckSideEffects ase;
   std::pair<bool, Node> res = d_internal->entailmentCheck(lit, def, ase);
   return res;
+}
+eq::ProofEqEngine* TheoryArith::getProofEqEngine()
+{
+  return d_inferenceManager.getProofEqEngine();
 }
 
 }/* CVC4::theory::arith namespace */

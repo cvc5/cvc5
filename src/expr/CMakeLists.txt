@@ -75,6 +75,8 @@ libcvc4_add_sources(
   skolem_manager.h
   symbol_table.cpp
   symbol_table.h
+  tconv_seq_proof_generator.cpp
+  tconv_seq_proof_generator.h
   term_canonize.cpp
   term_canonize.h
   term_context.cpp

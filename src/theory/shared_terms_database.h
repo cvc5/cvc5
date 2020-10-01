@@ -111,9 +111,6 @@ private:
   /** The notify class for d_equalityEngine */
   EENotifyClass d_EENotify;
 
-  /** Equality engine */
-  theory::eq::EqualityEngine d_equalityEngine;
-
   /**
    * Method called by equalityEngine when a becomes (dis-)equal to b and a and b are shared with
    * the theory. Returns false if there is a direct conflict (via rewrite for example).
@@ -182,7 +179,7 @@ public:
   /**
    * Returns an explanation of the propagation that came from the database.
    */
-  Node explain(TNode literal) const;
+  theory::TrustNode explain(TNode literal) const;
 
   /**
    * Add an equality to propagate.
@@ -254,14 +251,16 @@ public:
   /**
    * get equality engine
    */
-  theory::eq::EqualityEngine* getEqualityEngine() { return &d_equalityEngine; }
+  theory::eq::EqualityEngine* getEqualityEngine();
 
-protected:
-
+ protected:
   /**
    * This method gets called on backtracks from the context manager.
    */
- void contextNotifyPop() override { backtrack(); }
+  void contextNotifyPop() override { backtrack(); }
+
+  /** Equality engine */
+  theory::eq::EqualityEngine* d_equalityEngine;
 };
 
 }
