@@ -158,7 +158,6 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
   {
     // maps to constant of comparable type
     Assert(p.first.getType().isComparableTo(p.second.getType()));
-    Assert(p.second.isConst());
     if (m->assertEquality(p.first, p.second, true))
     {
       continue;
