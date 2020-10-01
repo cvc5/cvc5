@@ -40,7 +40,7 @@ class TrustSubstitutionMap
    * in the remainder of this user context.
    */
   void addSubstitution(TNode x, TNode t, ProofGenerator* pg = nullptr);
-  /** 
+  /**
    * Add substitutions
    */
   void addSubstitutions(TrustSubstitutionMap& t);
@@ -50,9 +50,10 @@ class TrustSubstitutionMap
    * proofs are enabled).
    */
   TrustNode apply(Node n);
+
  private:
-   /** Are proofs enabled? */
-   bool isProofEnabled() const;
+  /** Are proofs enabled? */
+  bool isProofEnabled() const;
   /** The substitution map */
   SubstitutionMap d_subs;
   /** The term conversion proof generator */

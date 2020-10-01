@@ -18,17 +18,14 @@ namespace CVC4 {
 namespace theory {
 
 TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
-                                             ProofNodeManager* pnm)
-    : d_subs(c),
-      d_subsPg(pnm ? new TConvProofGenerator(pnm, c) : nullptr)
+                                           ProofNodeManager* pnm)
+    : d_subs(c), d_subsPg(pnm ? new TConvProofGenerator(pnm, c) : nullptr)
 {
   // Notice that d_subsPg uses the FIXPOINT policy, since SubstitutionMap
   // is applied to fixpoint.
 }
 
-void TrustSubstitutionMap::addSubstitution(TNode x,
-                                            TNode t,
-                                            ProofGenerator* pg)
+void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, ProofGenerator* pg)
 {
   d_subs.addSubstitution(x, t);
   if (isProofEnabled())
@@ -41,7 +38,10 @@ void TrustSubstitutionMap::addSubstitutions(TrustSubstitutionMap& t)
 {
   // TODO?
   SubstitutionMap& st = t.get();
-  for (SubstitutionMap::NodeMap::const_iterator it = st.begin(), it_end = st.end(); it != it_end; ++ it) 
+  for (SubstitutionMap::NodeMap::const_iterator it = st.begin(),
+                                                it_end = st.end();
+       it != it_end;
+       ++it)
   {
     Node x = (*it).first;
     // issue: cannot extract original proof generator from rewrite step for x.
@@ -58,7 +58,7 @@ SubstitutionMap& TrustSubstitutionMap::get() { return d_subs; }
 
 bool TrustSubstitutionMap::isProofEnabled() const
 {
-  return d_subsPg!=nullptr;
+  return d_subsPg != nullptr;
 }
 
 }  // namespace theory
