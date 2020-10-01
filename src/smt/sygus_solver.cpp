@@ -63,8 +63,6 @@ void SygusSolver::declareSynthFun(const std::string& id,
 {
   Trace("smt") << "SygusSolver::declareSynthFun: " << id << "\n";
   NodeManager* nm = NodeManager::currentNM();
-  TheoryEngine* te = d_smtSolver.getTheoryEngine();
-  Assert(te != nullptr);
   d_sygusFunSymbols.push_back(fn);
   if (!vars.empty())
   {
