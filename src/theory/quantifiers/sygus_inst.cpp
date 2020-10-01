@@ -163,6 +163,7 @@ SygusInst::SygusInst(QuantifiersEngine* qe)
     : QuantifiersModule(qe),
       d_lemma_cache(qe->getUserContext()),
       d_ce_lemma_added(qe->getUserContext()),
+      d_global_terms(qe->getUserContext()),
       d_notified_assertions(qe->getUserContext())
 {
 }
@@ -337,16 +338,20 @@ void SygusInst::registerQuantifier(Node q)
           getMinGroundTerms(a, tn, terms, cache_min, true);
           getMaxGroundTerms(a, tn, terms, cache_max, true);
         }
-        d_global_terms.emplace(tn, terms);
+        d_global_terms.insert(tn, terms);
       }
 
       /* Add relevant ground terms to grammar. */
-      auto& terms = d_global_terms[tn];
-      for (const auto& t : terms)
+      auto it = d_global_terms.find(tn);
+      if (it != d_global_terms.end())
       {
-        TypeNode ttn = t.getType();
-        extra_cons[ttn].insert(t);
-        Trace("sygus-inst") << "Adding (global) extra cons: " << t << std::endl;
+        for (const auto& t : (*it).second)
+        {
+          TypeNode ttn = t.getType();
+          extra_cons[ttn].insert(t);
+          Trace("sygus-inst")
+              << "Adding (global) extra cons: " << t << std::endl;
+        }
       }
     }
   }
