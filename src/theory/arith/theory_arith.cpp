@@ -2,10 +2,10 @@
 /*! \file theory_arith.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Dejan Jovanovic
+ **   Andrew Reynolds, Tim King, Dejan Jovanovic
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -48,8 +48,9 @@ TheoryArith::TheoryArith(context::Context* c,
 {
   smtStatisticsRegistry()->registerStat(&d_ppRewriteTimer);
 
-  // indicate we are using the theory state object
+  // indicate we are using the theory state object and inference manager
   d_theoryState = &d_astate;
+  d_inferManager = &d_inferenceManager;
 }
 
 TheoryArith::~TheoryArith(){
@@ -83,20 +84,27 @@ void TheoryArith::finishInit()
   if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
   {
     d_nonlinearExtension.reset(
-        new nl::NonlinearExtension(*this, d_equalityEngine));
+        new nl::NonlinearExtension(*this, d_astate, d_equalityEngine));
   }
   // finish initialize internally
   d_internal->finishInit();
 }
 
-void TheoryArith::preRegisterTerm(TNode n) { d_internal->preRegisterTerm(n); }
+void TheoryArith::preRegisterTerm(TNode n)
+{
+  if (d_nonlinearExtension != nullptr)
+  {
+    d_nonlinearExtension->preRegisterTerm(n);
+  }
+  d_internal->preRegisterTerm(n);
+}
 
 TrustNode TheoryArith::expandDefinition(Node node)
 {
   return d_internal->expandDefinition(node);
 }
 
-void TheoryArith::notifySharedTerm(TNode n) { d_internal->addSharedTerm(n); }
+void TheoryArith::notifySharedTerm(TNode n) { d_internal->notifySharedTerm(n); }
 
 TrustNode TheoryArith::ppRewrite(TNode atom)
 {
@@ -112,13 +120,38 @@ void TheoryArith::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
   d_internal->ppStaticLearn(n, learned);
 }
 
-void TheoryArith::check(Effort effortLevel){
-  getOutputChannel().spendResource(ResourceManager::Resource::TheoryCheckStep);
-  d_internal->check(effortLevel);
+bool TheoryArith::preCheck(Effort level) { return d_internal->preCheck(level); }
+
+void TheoryArith::postCheck(Effort level)
+{
+  // check with the non-linear solver at last call
+  if (level == Theory::EFFORT_LAST_CALL)
+  {
+    if (d_nonlinearExtension != nullptr)
+    {
+      d_nonlinearExtension->check(level);
+    }
+    return;
+  }
+  // otherwise, check with the linear solver
+  d_internal->postCheck(level);
+}
+
+bool TheoryArith::preNotifyFact(
+    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
+{
+  d_internal->preNotifyFact(atom, pol, fact);
+  // We do not assert to the equality engine of arithmetic in the standard way,
+  // hence we return "true" to indicate we are finished with this fact.
+  return true;
 }
 
 bool TheoryArith::needsCheckLastEffort() {
-  return d_internal->needsCheckLastEffort();
+  if (d_nonlinearExtension != nullptr)
+  {
+    return d_nonlinearExtension->needsCheckLastEffort();
+  }
+  return false;
 }
 
 TrustNode TheoryArith::explain(TNode n)
@@ -130,6 +163,7 @@ TrustNode TheoryArith::explain(TNode n)
 void TheoryArith::propagate(Effort e) {
   d_internal->propagate(e);
 }
+
 bool TheoryArith::collectModelInfo(TheoryModel* m)
 {
   std::set<Node> termSet;
@@ -158,7 +192,6 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
   {
     // maps to constant of comparable type
     Assert(p.first.getType().isComparableTo(p.second.getType()));
-    Assert(p.second.isConst());
     if (m->assertEquality(p.first, p.second, true))
     {
       continue;
@@ -187,6 +220,10 @@ void TheoryArith::notifyRestart(){
 
 void TheoryArith::presolve(){
   d_internal->presolve();
+  if (d_nonlinearExtension != nullptr)
+  {
+    d_nonlinearExtension->presolve();
+  }
 }
 
 EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
@@ -204,6 +241,10 @@ std::pair<bool, Node> TheoryArith::entailmentCheck(TNode lit)
   ArithEntailmentCheckSideEffects ase;
   std::pair<bool, Node> res = d_internal->entailmentCheck(lit, def, ase);
   return res;
+}
+eq::ProofEqEngine* TheoryArith::getProofEqEngine()
+{
+  return d_inferenceManager.getProofEqEngine();
 }
 
 }/* CVC4::theory::arith namespace */

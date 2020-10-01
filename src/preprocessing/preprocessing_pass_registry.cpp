@@ -5,7 +5,7 @@
  **   Andres Noetzli, Yoni Zohar, Justin Xu
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -33,6 +33,7 @@
 #include "preprocessing/passes/bv_to_bool.h"
 #include "preprocessing/passes/bv_to_int.h"
 #include "preprocessing/passes/extended_rewriter_pass.h"
+#include "preprocessing/passes/fun_def_fmf.h"
 #include "preprocessing/passes/global_negate.h"
 #include "preprocessing/passes/ho_elim.h"
 #include "preprocessing/passes/int_to_bv.h"
@@ -147,6 +148,7 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("nl-ext-purify", callCtor<NlExtPurify>);
   registerPassInfo("bool-to-bv", callCtor<BoolToBV>);
   registerPassInfo("ho-elim", callCtor<HoElim>);
+  registerPassInfo("fun-def-fmf", callCtor<FunDefFmf>);
 }
 
 }  // namespace preprocessing

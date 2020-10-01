@@ -2,10 +2,10 @@
 /*! \file sygus_inference.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
+ **   Andrew Reynolds, Mathias Preiner, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -80,7 +80,7 @@ PreprocessingPassResult SygusInference::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-bool SygusInference::solveSygus(std::vector<Node>& assertions,
+bool SygusInference::solveSygus(const std::vector<Node>& assertions,
                                 std::vector<Node>& funs,
                                 std::vector<Node>& sols)
 {

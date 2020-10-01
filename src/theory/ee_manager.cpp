@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -19,7 +19,10 @@
 namespace CVC4 {
 namespace theory {
 
-EqEngineManager::EqEngineManager(TheoryEngine& te) : d_te(te) {}
+EqEngineManager::EqEngineManager(TheoryEngine& te, SharedSolver& shs)
+    : d_te(te), d_sharedSolver(shs)
+{
+}
 
 const EeTheoryInfo* EqEngineManager::getEeTheoryInfo(TheoryId tid) const
 {

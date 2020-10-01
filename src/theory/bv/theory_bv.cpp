@@ -2,10 +2,10 @@
 /*! \file theory_bv.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Andrew Reynolds, Aina Niemetz
+ **   Mathias Preiner, Andrew Reynolds, Martin Brain
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -17,6 +17,7 @@
 
 #include "options/bv_options.h"
 #include "theory/bv/bv_solver_lazy.h"
+#include "theory/bv/bv_solver_simple.h"
 #include "theory/bv/theory_bv_utils.h"
 
 namespace CVC4 {
@@ -38,7 +39,16 @@ TheoryBV::TheoryBV(context::Context* c,
       d_state(c, u, valuation),
       d_inferMgr(*this, d_state, pnm)
 {
-  d_internal.reset(new BVSolverLazy(*this, c, u, pnm, name));
+  switch (options::bvSolver())
+  {
+    case options::BVSolver::LAZY:
+      d_internal.reset(new BVSolverLazy(*this, c, u, pnm, name));
+      break;
+
+    default:
+      AlwaysAssert(options::bvSolver() == options::BVSolver::SIMPLE);
+      d_internal.reset(new BVSolverSimple(d_state, d_inferMgr));
+  }
   d_theoryState = &d_state;
   d_inferManager = &d_inferMgr;
 }
@@ -158,6 +168,19 @@ void TheoryBV::preRegisterTerm(TNode node)
 }
 
 bool TheoryBV::preCheck(Effort e) { return d_internal->preCheck(e); }
+
+void TheoryBV::postCheck(Effort e) { d_internal->postCheck(e); }
+
+bool TheoryBV::preNotifyFact(
+    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
+{
+  return d_internal->preNotifyFact(atom, pol, fact, isPrereg, isInternal);
+}
+
+void TheoryBV::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
+{
+  d_internal->notifyFact(atom, pol, fact, isInternal);
+}
 
 bool TheoryBV::needsCheckLastEffort()
 {

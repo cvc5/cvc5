@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -80,6 +80,15 @@ class ProofNodeManager
    * @return The ASSUME proof of fact.
    */
   std::shared_ptr<ProofNode> mkAssume(Node fact);
+  /**
+   * Make transitivity proof, where children contains one or more proofs of
+   * equalities that form an ordered chain. In other words, the vector children
+   * is a legal set of children for an application of TRANS.
+   */
+  std::shared_ptr<ProofNode> mkTrans(
+      const std::vector<std::shared_ptr<ProofNode>>& children,
+      Node expected = Node::null());
+
   /**
    * Make scope having body pf and arguments (assumptions-to-close) assumps.
    * If ensureClosed is true, then this method throws an assertion failure if

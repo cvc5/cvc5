@@ -5,7 +5,7 @@
  **   Tim King, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -31,6 +31,7 @@
 #include "expr/metakind.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
+#include "expr/proof_generator.h"
 #include "options/arith_options.h"
 #include "smt/logic_exception.h"
 #include "smt_util/boolean_simplification.h"
@@ -51,10 +52,12 @@
 #include "theory/arith/normal_form.h"
 #include "theory/arith/operator_elim.h"
 #include "theory/arith/partial_model.h"
+#include "theory/arith/proof_checker.h"
 #include "theory/arith/simplex.h"
 #include "theory/arith/soi_simplex.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/theory_arith_private_forward.h"
+#include "theory/eager_proof_generator.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
@@ -100,6 +103,14 @@ private:
   //context::CDO<bool> d_nlIncomplete;
 
   BoundInfoMap d_rowTracking;
+
+  // For proofs
+  /** Manages the proof nodes of this theory. */
+  ProofNodeManager* d_pnm;
+  /** Checks the proof rules of this theory. */
+  ArithProofRuleChecker d_checker;
+  /** Stores proposition(node)/proof pairs. */
+  std::unique_ptr<EagerProofGenerator> d_pfGen;
 
   /**
    * The constraint database associated with the theory.
@@ -306,8 +317,10 @@ private:
 
   /** This is only used by simplex at the moment. */
   context::CDO<Node> d_blackBoxConflict;
-public:
+  /** For holding the proof of the above conflict node. */
+  context::CDO<std::shared_ptr<ProofNode>> d_blackBoxConflictPf;
 
+ public:
   /**
    * This adds the constraint a to the queue of conflicts in d_conflicts.
    * Both a and ~a must have a proof.
@@ -328,10 +341,7 @@ public:
    * Returns true iff a conflict has been raised. This method is public since
    * it is needed by the ArithState class to know whether we are in conflict.
    */
-  bool anyConflict() const
-  {
-    return !conflictQueueEmpty() || !d_blackBoxConflict.get().isNull();
-  }
+  bool anyConflict() const;
 
  private:
   inline bool conflictQueueEmpty() const {
@@ -448,8 +458,6 @@ public:
   void preRegisterTerm(TNode n);
   TrustNode expandDefinition(Node node);
 
-  void check(Theory::Effort e);
-  bool needsCheckLastEffort();
   void propagate(Theory::Effort e);
   Node explain(TNode n);
 
@@ -481,16 +489,23 @@ public:
 
   EqualityStatus getEqualityStatus(TNode a, TNode b);
 
-  void addSharedTerm(TNode n);
+  /** Called when n is notified as being a shared term with TheoryArith. */
+  void notifySharedTerm(TNode n);
 
   Node getModelValue(TNode var);
 
 
   std::pair<bool, Node> entailmentCheck(TNode lit, const ArithEntailmentCheckParameters& params, ArithEntailmentCheckSideEffects& out);
 
-
-private:
-
+  //--------------------------------- standard check
+  /** Pre-check, called before the fact queue of the theory is processed. */
+  bool preCheck(Theory::Effort level);
+  /** Pre-notify fact. */
+  void preNotifyFact(TNode atom, bool pol, TNode fact);
+  /** Post-check, called after the fact queue of the theory is processed. */
+  void postCheck(Theory::Effort level);
+  //--------------------------------- end standard check
+ private:
   /** The constant zero. */
   DeltaRational d_DELTA_ZERO;
 
@@ -635,8 +650,11 @@ private:
    * Handles the case splitting for check() for a new assertion.
    * Returns a conflict if one was found.
    * Returns Node::null if no conflict was found.
+   *
+   * @param assertion The assertion that was just popped from the fact queue
+   * of TheoryArith and given to this class via preNotifyFact.
    */
-  ConstraintP constraintFromFactQueue();
+  ConstraintP constraintFromFactQueue(TNode assertion);
   bool assertionCases(ConstraintP c);
 
   /**
@@ -749,6 +767,13 @@ private:
   uint32_t d_solveIntMaybeHelp, d_solveIntAttempts;
 
   RationalVector d_farkasBuffer;
+
+  //---------------- during check
+  /** Whether there were new facts during preCheck */
+  bool d_newFacts;
+  /** The previous status, computed during preCheck */
+  Result::Sat d_previousStatus;
+  //---------------- end during check
 
   /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {

@@ -2,10 +2,10 @@
 /*! \file command.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Haniel Barbosa
+ **   Tim King, Morgan Deters, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -200,8 +200,8 @@ class CVC4_PUBLIC Command
 
   virtual ~Command();
 
-  virtual void invoke(SmtEngine* smtEngine) = 0;
-  virtual void invoke(SmtEngine* smtEngine, std::ostream& out);
+  virtual void invoke(api::Solver* solver) = 0;
+  virtual void invoke(api::Solver* solver, std::ostream& out);
 
   virtual void toStream(
       std::ostream& out,
@@ -244,36 +244,9 @@ class CVC4_PUBLIC Command
   virtual void printResult(std::ostream& out, uint32_t verbosity = 2) const;
 
   /**
-   * Maps this Command into one for a different ExprManager, using
-   * variableMap for the translation and extending it with any new
-   * mappings.
-   */
-  virtual Command* exportTo(ExprManager* exprManager,
-                            ExprManagerMapCollection& variableMap) = 0;
-
-  /**
    * Clone this Command (make a shallow copy).
    */
   virtual Command* clone() const = 0;
-
- protected:
-  class ExportTransformer
-  {
-    ExprManager* d_exprManager;
-    ExprManagerMapCollection& d_variableMap;
-
-   public:
-    ExportTransformer(ExprManager* exprManager,
-                      ExprManagerMapCollection& variableMap)
-        : d_exprManager(exprManager), d_variableMap(variableMap)
-    {
-    }
-    Expr operator()(Expr e) { return e.exportTo(d_exprManager, d_variableMap); }
-    Type operator()(Type t) { return t.exportTo(d_exprManager, d_variableMap); }
-  }; /* class Command::ExportTransformer */
-
-  /** The solver instance that this command is associated with. */
-  const api::Solver* d_solver;
 
   /**
    * This field contains a command status if the command has been
@@ -301,9 +274,7 @@ class CVC4_PUBLIC EmptyCommand : public Command
  public:
   EmptyCommand(std::string name = "");
   std::string getName() const;
-  void invoke(SmtEngine* smtEngine) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -324,10 +295,9 @@ class CVC4_PUBLIC EchoCommand : public Command
 
   std::string getOutput() const;
 
-  void invoke(SmtEngine* smtEngine) override;
-  void invoke(SmtEngine* smtEngine, std::ostream& out) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, std::ostream& out) override;
+
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -344,17 +314,16 @@ class CVC4_PUBLIC EchoCommand : public Command
 class CVC4_PUBLIC AssertCommand : public Command
 {
  protected:
-  Expr d_expr;
+  api::Term d_term;
   bool d_inUnsatCore;
 
  public:
-  AssertCommand(const Expr& e, bool inUnsatCore = true);
+  AssertCommand(const api::Term& t, bool inUnsatCore = true);
 
-  Expr getExpr() const;
+  api::Term getTerm() const;
 
-  void invoke(SmtEngine* smtEngine) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
+
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -368,9 +337,7 @@ class CVC4_PUBLIC AssertCommand : public Command
 class CVC4_PUBLIC PushCommand : public Command
 {
  public:
-  void invoke(SmtEngine* smtEngine) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -384,9 +351,7 @@ class CVC4_PUBLIC PushCommand : public Command
 class CVC4_PUBLIC PopCommand : public Command
 {
  public:
-  void invoke(SmtEngine* smtEngine) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -405,29 +370,27 @@ class CVC4_PUBLIC DeclarationDefinitionCommand : public Command
  public:
   DeclarationDefinitionCommand(const std::string& id);
 
-  void invoke(SmtEngine* smtEngine) override = 0;
+  void invoke(api::Solver* solver) override = 0;
   std::string getSymbol() const;
 }; /* class DeclarationDefinitionCommand */
 
 class CVC4_PUBLIC DeclareFunctionCommand : public DeclarationDefinitionCommand
 {
  protected:
-  Expr d_func;
-  Type d_type;
+  api::Term d_func;
+  api::Sort d_sort;
   bool d_printInModel;
   bool d_printInModelSetByUser;
 
  public:
-  DeclareFunctionCommand(const std::string& id, Expr func, Type type);
-  Expr getFunction() const;
-  Type getType() const;
+  DeclareFunctionCommand(const std::string& id, api::Term func, api::Sort sort);
+  api::Term getFunction() const;
+  api::Sort getSort() const;
   bool getPrintInModel() const;
   bool getPrintInModelSetByUser() const;
   void setPrintInModel(bool p);
 
-  void invoke(SmtEngine* smtEngine) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -438,21 +401,19 @@ class CVC4_PUBLIC DeclareFunctionCommand : public DeclarationDefinitionCommand
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class DeclareFunctionCommand */
 
-class CVC4_PUBLIC DeclareTypeCommand : public DeclarationDefinitionCommand
+class CVC4_PUBLIC DeclareSortCommand : public DeclarationDefinitionCommand
 {
  protected:
   size_t d_arity;
-  Type d_type;
+  api::Sort d_sort;
 
  public:
-  DeclareTypeCommand(const std::string& id, size_t arity, Type t);
+  DeclareSortCommand(const std::string& id, size_t arity, api::Sort sort);
 
   size_t getArity() const;
-  Type getType() const;
+  api::Sort getSort() const;
 
-  void invoke(SmtEngine* smtEngine) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -461,26 +422,24 @@ class CVC4_PUBLIC DeclareTypeCommand : public DeclarationDefinitionCommand
       bool types = false,
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
-}; /* class DeclareTypeCommand */
+}; /* class DeclareSortCommand */
 
-class CVC4_PUBLIC DefineTypeCommand : public DeclarationDefinitionCommand
+class CVC4_PUBLIC DefineSortCommand : public DeclarationDefinitionCommand
 {
  protected:
-  std::vector<Type> d_params;
-  Type d_type;
+  std::vector<api::Sort> d_params;
+  api::Sort d_sort;
 
  public:
-  DefineTypeCommand(const std::string& id, Type t);
-  DefineTypeCommand(const std::string& id,
-                    const std::vector<Type>& params,
-                    Type t);
+  DefineSortCommand(const std::string& id, api::Sort sort);
+  DefineSortCommand(const std::string& id,
+                    const std::vector<api::Sort>& params,
+                    api::Sort sort);
 
-  const std::vector<Type>& getParameters() const;
-  Type getType() const;
+  const std::vector<api::Sort>& getParameters() const;
+  api::Sort getSort() const;
 
-  void invoke(SmtEngine* smtEngine) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -489,28 +448,26 @@ class CVC4_PUBLIC DefineTypeCommand : public DeclarationDefinitionCommand
       bool types = false,
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
-}; /* class DefineTypeCommand */
+}; /* class DefineSortCommand */
 
 class CVC4_PUBLIC DefineFunctionCommand : public DeclarationDefinitionCommand
 {
  public:
   DefineFunctionCommand(const std::string& id,
-                        Expr func,
-                        Expr formula,
+                        api::Term func,
+                        api::Term formula,
                         bool global);
   DefineFunctionCommand(const std::string& id,
-                        Expr func,
-                        const std::vector<Expr>& formals,
-                        Expr formula,
+                        api::Term func,
+                        const std::vector<api::Term>& formals,
+                        api::Term formula,
                         bool global);
 
-  Expr getFunction() const;
-  const std::vector<Expr>& getFormals() const;
-  Expr getFormula() const;
+  api::Term getFunction() const;
+  const std::vector<api::Term>& getFormals() const;
+  api::Term getFormula() const;
 
-  void invoke(SmtEngine* smtEngine) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -522,11 +479,11 @@ class CVC4_PUBLIC DefineFunctionCommand : public DeclarationDefinitionCommand
 
  protected:
   /** The function we are defining */
-  Expr d_func;
+  api::Term d_func;
   /** The formal arguments for the function we are defining */
-  std::vector<Expr> d_formals;
+  std::vector<api::Term> d_formals;
   /** The formula corresponding to the body of the function we are defining */
-  Expr d_formula;
+  api::Term d_formula;
   /**
    * Stores whether this definition is global (i.e. should persist when
    * popping the user context.
@@ -543,13 +500,11 @@ class CVC4_PUBLIC DefineNamedFunctionCommand : public DefineFunctionCommand
 {
  public:
   DefineNamedFunctionCommand(const std::string& id,
-                             Expr func,
-                             const std::vector<Expr>& formals,
-                             Expr formula,
+                             api::Term func,
+                             const std::vector<api::Term>& formals,
+                             api::Term formula,
                              bool global);
-  void invoke(SmtEngine* smtEngine) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
   Command* clone() const override;
   void toStream(
       std::ostream& out,
@@ -567,13 +522,11 @@ class CVC4_PUBLIC DefineNamedFunctionCommand : public DefineFunctionCommand
 class CVC4_PUBLIC DefineFunctionRecCommand : public Command
 {
  public:
-  DefineFunctionRecCommand(const api::Solver* solver,
-                           api::Term func,
+  DefineFunctionRecCommand(api::Term func,
                            const std::vector<api::Term>& formals,
                            api::Term formula,
                            bool global);
-  DefineFunctionRecCommand(const api::Solver* solver,
-                           const std::vector<api::Term>& funcs,
+  DefineFunctionRecCommand(const std::vector<api::Term>& funcs,
                            const std::vector<std::vector<api::Term> >& formals,
                            const std::vector<api::Term>& formula,
                            bool global);
@@ -582,9 +535,7 @@ class CVC4_PUBLIC DefineFunctionRecCommand : public Command
   const std::vector<std::vector<api::Term> >& getFormals() const;
   const std::vector<api::Term>& getFormulas() const;
 
-  void invoke(SmtEngine* smtEngine) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -615,17 +566,15 @@ class CVC4_PUBLIC DefineFunctionRecCommand : public Command
 class CVC4_PUBLIC SetUserAttributeCommand : public Command
 {
  public:
-  SetUserAttributeCommand(const std::string& attr, Expr expr);
+  SetUserAttributeCommand(const std::string& attr, api::Term term);
   SetUserAttributeCommand(const std::string& attr,
-                          Expr expr,
-                          const std::vector<Expr>& values);
+                          api::Term term,
+                          const std::vector<api::Term>& values);
   SetUserAttributeCommand(const std::string& attr,
-                          Expr expr,
+                          api::Term term,
                           const std::string& value);
 
-  void invoke(SmtEngine* smtEngine) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -637,14 +586,14 @@ class CVC4_PUBLIC SetUserAttributeCommand : public Command
 
  private:
   SetUserAttributeCommand(const std::string& attr,
-                          Expr expr,
-                          const std::vector<Expr>& expr_values,
-                          const std::string& str_value);
+                          api::Term term,
+                          const std::vector<api::Term>& termValues,
+                          const std::string& strValue);
 
   const std::string d_attr;
-  const Expr d_expr;
-  const std::vector<Expr> d_expr_values;
-  const std::string d_str_value;
+  const api::Term d_term;
+  const std::vector<api::Term> d_termValues;
+  const std::string d_strValue;
 }; /* class SetUserAttributeCommand */
 
 /**
@@ -655,14 +604,12 @@ class CVC4_PUBLIC CheckSatCommand : public Command
 {
  public:
   CheckSatCommand();
-  CheckSatCommand(const Expr& expr);
+  CheckSatCommand(const api::Term& term);
 
-  Expr getExpr() const;
-  Result getResult() const;
-  void invoke(SmtEngine* smtEngine) override;
+  api::Term getTerm() const;
+  api::Result getResult() const;
+  void invoke(api::Solver* solver) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -673,8 +620,8 @@ class CVC4_PUBLIC CheckSatCommand : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
  private:
-  Expr d_expr;
-  Result d_result;
+  api::Term d_term;
+  api::Result d_result;
 }; /* class CheckSatCommand */
 
 /**
@@ -685,15 +632,13 @@ class CVC4_PUBLIC CheckSatCommand : public Command
 class CVC4_PUBLIC CheckSatAssumingCommand : public Command
 {
  public:
-  CheckSatAssumingCommand(Expr term);
-  CheckSatAssumingCommand(const std::vector<Expr>& terms);
+  CheckSatAssumingCommand(api::Term term);
+  CheckSatAssumingCommand(const std::vector<api::Term>& terms);
 
-  const std::vector<Expr>& getTerms() const;
-  Result getResult() const;
-  void invoke(SmtEngine* smtEngine) override;
+  const std::vector<api::Term>& getTerms() const;
+  api::Result getResult() const;
+  void invoke(api::Solver* solver) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -704,26 +649,24 @@ class CVC4_PUBLIC CheckSatAssumingCommand : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
  private:
-  std::vector<Expr> d_terms;
-  Result d_result;
+  std::vector<api::Term> d_terms;
+  api::Result d_result;
 }; /* class CheckSatAssumingCommand */
 
 class CVC4_PUBLIC QueryCommand : public Command
 {
  protected:
-  Expr d_expr;
-  Result d_result;
+  api::Term d_term;
+  api::Result d_result;
   bool d_inUnsatCore;
 
  public:
-  QueryCommand(const Expr& e, bool inUnsatCore = true);
+  QueryCommand(const api::Term& t, bool inUnsatCore = true);
 
-  Expr getExpr() const;
-  Result getResult() const;
-  void invoke(SmtEngine* smtEngine) override;
+  api::Term getTerm() const;
+  api::Result getResult() const;
+  void invoke(api::Solver* solver) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -740,20 +683,17 @@ class CVC4_PUBLIC QueryCommand : public Command
 class CVC4_PUBLIC DeclareSygusVarCommand : public DeclarationDefinitionCommand
 {
  public:
-  DeclareSygusVarCommand(const std::string& id, Expr var, Type type);
+  DeclareSygusVarCommand(const std::string& id, api::Term var, api::Sort sort);
   /** returns the declared variable */
-  Expr getVar() const;
-  /** returns the declared variable's type */
-  Type getType() const;
+  api::Term getVar() const;
+  /** returns the declared variable's sort */
+  api::Sort getSort() const;
   /** invokes this command
    *
    * The declared sygus variable is communicated to the SMT engine in case a
    * synthesis conjecture is built later on.
    */
-  void invoke(SmtEngine* smtEngine) override;
-  /** exports command to given expression manager */
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
   /** creates a copy of this command */
   Command* clone() const override;
   /** returns this command's name */
@@ -768,9 +708,9 @@ class CVC4_PUBLIC DeclareSygusVarCommand : public DeclarationDefinitionCommand
 
  protected:
   /** the declared variable */
-  Expr d_var;
-  /** the declared variable's type */
-  Type d_type;
+  api::Term d_var;
+  /** the declared variable's sort */
+  api::Sort d_sort;
 };
 
 /** Declares a sygus function-to-synthesize
@@ -781,8 +721,7 @@ class CVC4_PUBLIC DeclareSygusVarCommand : public DeclarationDefinitionCommand
 class CVC4_PUBLIC SynthFunCommand : public DeclarationDefinitionCommand
 {
  public:
-  SynthFunCommand(const api::Solver* solver,
-                  const std::string& id,
+  SynthFunCommand(const std::string& id,
                   api::Term fun,
                   const std::vector<api::Term>& vars,
                   api::Sort sort,
@@ -804,10 +743,7 @@ class CVC4_PUBLIC SynthFunCommand : public DeclarationDefinitionCommand
    * The declared function-to-synthesize is communicated to the SMT engine in
    * case a synthesis conjecture is built later on.
    */
-  void invoke(SmtEngine* smtEngine) override;
-  /** exports command to given expression manager */
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
   /** creates a copy of this command */
   Command* clone() const override;
   /** returns this command's name */
@@ -837,18 +773,15 @@ class CVC4_PUBLIC SynthFunCommand : public DeclarationDefinitionCommand
 class CVC4_PUBLIC SygusConstraintCommand : public Command
 {
  public:
-  SygusConstraintCommand(const Expr& e);
+  SygusConstraintCommand(const api::Term& t);
   /** returns the declared constraint */
-  Expr getExpr() const;
+  api::Term getTerm() const;
   /** invokes this command
    *
    * The declared constraint is communicated to the SMT engine in case a
    * synthesis conjecture is built later on.
    */
-  void invoke(SmtEngine* smtEngine) override;
-  /** exports command to given expression manager */
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
   /** creates a copy of this command */
   Command* clone() const override;
   /** returns this command's name */
@@ -863,7 +796,7 @@ class CVC4_PUBLIC SygusConstraintCommand : public Command
 
  protected:
   /** the declared constraint */
-  Expr d_expr;
+  api::Term d_term;
 };
 
 /** Declares a sygus invariant constraint
@@ -879,23 +812,20 @@ class CVC4_PUBLIC SygusConstraintCommand : public Command
 class CVC4_PUBLIC SygusInvConstraintCommand : public Command
 {
  public:
-  SygusInvConstraintCommand(const std::vector<Expr>& predicates);
-  SygusInvConstraintCommand(const Expr& inv,
-                            const Expr& pre,
-                            const Expr& trans,
-                            const Expr& post);
+  SygusInvConstraintCommand(const std::vector<api::Term>& predicates);
+  SygusInvConstraintCommand(const api::Term& inv,
+                            const api::Term& pre,
+                            const api::Term& trans,
+                            const api::Term& post);
   /** returns the place holder predicates */
-  const std::vector<Expr>& getPredicates() const;
+  const std::vector<api::Term>& getPredicates() const;
   /** invokes this command
    *
    * The place holders are communicated to the SMT engine and the actual
    * invariant constraint is built, in case an actual synthesis conjecture is
    * built later on.
    */
-  void invoke(SmtEngine* smtEngine) override;
-  /** exports command to given expression manager */
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
   /** creates a copy of this command */
   Command* clone() const override;
   /** returns this command's name */
@@ -912,7 +842,7 @@ class CVC4_PUBLIC SygusInvConstraintCommand : public Command
   /** the place holder predicates with which to build the actual constraint
    * (i.e. the invariant, precondition, transition relation and postcondition)
    */
-  std::vector<Expr> d_predicates;
+  std::vector<api::Term> d_predicates;
 };
 
 /** Declares a synthesis conjecture */
@@ -921,7 +851,7 @@ class CVC4_PUBLIC CheckSynthCommand : public Command
  public:
   CheckSynthCommand(){};
   /** returns the result of the check-synth call */
-  Result getResult() const;
+  api::Result getResult() const;
   /** prints the result of the check-synth-call */
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   /** invokes this command
@@ -932,10 +862,7 @@ class CVC4_PUBLIC CheckSynthCommand : public Command
    * and then perform a satisfiability check, whose result is stored in
    * d_result.
    */
-  void invoke(SmtEngine* smtEngine) override;
-  /** exports command to given expression manager */
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
   /** creates a copy of this command */
   Command* clone() const override;
   /** returns this command's name */
@@ -950,7 +877,7 @@ class CVC4_PUBLIC CheckSynthCommand : public Command
 
  protected:
   /** result of the check-synth call */
-  Result d_result;
+  api::Result d_result;
   /** string stream that stores the output of the solution */
   std::stringstream d_solution;
 };
@@ -961,18 +888,16 @@ class CVC4_PUBLIC CheckSynthCommand : public Command
 class CVC4_PUBLIC SimplifyCommand : public Command
 {
  protected:
-  Expr d_term;
-  Expr d_result;
+  api::Term d_term;
+  api::Term d_result;
 
  public:
-  SimplifyCommand(Expr term);
+  SimplifyCommand(api::Term term);
 
-  Expr getTerm() const;
-  Expr getResult() const;
-  void invoke(SmtEngine* smtEngine) override;
+  api::Term getTerm() const;
+  api::Term getResult() const;
+  void invoke(api::Solver* solver) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -986,18 +911,16 @@ class CVC4_PUBLIC SimplifyCommand : public Command
 class CVC4_PUBLIC ExpandDefinitionsCommand : public Command
 {
  protected:
-  Expr d_term;
-  Expr d_result;
+  api::Term d_term;
+  api::Term d_result;
 
  public:
-  ExpandDefinitionsCommand(Expr term);
+  ExpandDefinitionsCommand(api::Term term);
 
-  Expr getTerm() const;
-  Expr getResult() const;
-  void invoke(SmtEngine* smtEngine) override;
+  api::Term getTerm() const;
+  api::Term getResult() const;
+  void invoke(api::Solver* solver) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1011,19 +934,17 @@ class CVC4_PUBLIC ExpandDefinitionsCommand : public Command
 class CVC4_PUBLIC GetValueCommand : public Command
 {
  protected:
-  std::vector<Expr> d_terms;
-  Expr d_result;
+  std::vector<api::Term> d_terms;
+  api::Term d_result;
 
  public:
-  GetValueCommand(Expr term);
-  GetValueCommand(const std::vector<Expr>& terms);
+  GetValueCommand(api::Term term);
+  GetValueCommand(const std::vector<api::Term>& terms);
 
-  const std::vector<Expr>& getTerms() const;
-  Expr getResult() const;
-  void invoke(SmtEngine* smtEngine) override;
+  const std::vector<api::Term>& getTerms() const;
+  api::Term getResult() const;
+  void invoke(api::Solver* solver) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1043,10 +964,8 @@ class CVC4_PUBLIC GetAssignmentCommand : public Command
   GetAssignmentCommand();
 
   SExpr getResult() const;
-  void invoke(SmtEngine* smtEngine) override;
+  void invoke(api::Solver* solver) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1064,10 +983,8 @@ class CVC4_PUBLIC GetModelCommand : public Command
 
   // Model is private to the library -- for now
   // Model* getResult() const ;
-  void invoke(SmtEngine* smtEngine) override;
+  void invoke(api::Solver* solver) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1088,9 +1005,7 @@ class CVC4_PUBLIC BlockModelCommand : public Command
  public:
   BlockModelCommand();
 
-  void invoke(SmtEngine* smtEngine) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1105,12 +1020,10 @@ class CVC4_PUBLIC BlockModelCommand : public Command
 class CVC4_PUBLIC BlockModelValuesCommand : public Command
 {
  public:
-  BlockModelValuesCommand(const std::vector<Expr>& terms);
+  BlockModelValuesCommand(const std::vector<api::Term>& terms);
 
-  const std::vector<Expr>& getTerms() const;
-  void invoke(SmtEngine* smtEngine) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  const std::vector<api::Term>& getTerms() const;
+  void invoke(api::Solver* solver) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1122,7 +1035,7 @@ class CVC4_PUBLIC BlockModelValuesCommand : public Command
 
  protected:
   /** The terms we are blocking */
-  std::vector<Expr> d_terms;
+  std::vector<api::Term> d_terms;
 }; /* class BlockModelValuesCommand */
 
 class CVC4_PUBLIC GetProofCommand : public Command
@@ -1130,9 +1043,7 @@ class CVC4_PUBLIC GetProofCommand : public Command
  public:
   GetProofCommand();
 
-  void invoke(SmtEngine* smtEngine) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1148,10 +1059,8 @@ class CVC4_PUBLIC GetInstantiationsCommand : public Command
  public:
   GetInstantiationsCommand();
 
-  void invoke(SmtEngine* smtEngine) override;
+  void invoke(api::Solver* solver) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1170,10 +1079,8 @@ class CVC4_PUBLIC GetSynthSolutionCommand : public Command
  public:
   GetSynthSolutionCommand();
 
-  void invoke(SmtEngine* smtEngine) override;
+  void invoke(api::Solver* solver) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1199,14 +1106,9 @@ class CVC4_PUBLIC GetSynthSolutionCommand : public Command
 class CVC4_PUBLIC GetInterpolCommand : public Command
 {
  public:
-  GetInterpolCommand(const api::Solver* solver,
-                     const std::string& name,
-                     api::Term conj);
+  GetInterpolCommand(const std::string& name, api::Term conj);
   /** The argument g is the grammar of the interpolation query */
-  GetInterpolCommand(const api::Solver* solver,
-                     const std::string& name,
-                     api::Term conj,
-                     api::Grammar* g);
+  GetInterpolCommand(const std::string& name, api::Term conj, api::Grammar* g);
 
   /** Get the conjecture of the interpolation query */
   api::Term getConjecture() const;
@@ -1216,10 +1118,8 @@ class CVC4_PUBLIC GetInterpolCommand : public Command
    * query. */
   api::Term getResult() const;
 
-  void invoke(SmtEngine* smtEngine) override;
+  void invoke(api::Solver* solver) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1257,13 +1157,8 @@ class CVC4_PUBLIC GetInterpolCommand : public Command
 class CVC4_PUBLIC GetAbductCommand : public Command
 {
  public:
-  GetAbductCommand(const api::Solver* solver,
-                   const std::string& name,
-                   api::Term conj);
-  GetAbductCommand(const api::Solver* solver,
-                   const std::string& name,
-                   api::Term conj,
-                   api::Grammar* g);
+  GetAbductCommand(const std::string& name, api::Term conj);
+  GetAbductCommand(const std::string& name, api::Term conj, api::Grammar* g);
 
   /** Get the conjecture of the abduction query */
   api::Term getConjecture() const;
@@ -1275,10 +1170,8 @@ class CVC4_PUBLIC GetAbductCommand : public Command
    */
   api::Term getResult() const;
 
-  void invoke(SmtEngine* smtEngine) override;
+  void invoke(api::Solver* solver) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1304,22 +1197,20 @@ class CVC4_PUBLIC GetAbductCommand : public Command
 class CVC4_PUBLIC GetQuantifierEliminationCommand : public Command
 {
  protected:
-  Expr d_expr;
+  api::Term d_term;
   bool d_doFull;
-  Expr d_result;
+  api::Term d_result;
 
  public:
   GetQuantifierEliminationCommand();
-  GetQuantifierEliminationCommand(const Expr& expr, bool doFull);
+  GetQuantifierEliminationCommand(const api::Term& term, bool doFull);
 
-  Expr getExpr() const;
+  api::Term getTerm() const;
   bool getDoFull() const;
-  void invoke(SmtEngine* smtEngine) override;
-  Expr getResult() const;
+  void invoke(api::Solver* solver) override;
+  api::Term getResult() const;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
 
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1334,11 +1225,9 @@ class CVC4_PUBLIC GetUnsatAssumptionsCommand : public Command
 {
  public:
   GetUnsatAssumptionsCommand();
-  void invoke(SmtEngine* smtEngine) override;
-  std::vector<Expr> getResult() const;
+  void invoke(api::Solver* solver) override;
+  std::vector<api::Term> getResult() const;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1349,7 +1238,7 @@ class CVC4_PUBLIC GetUnsatAssumptionsCommand : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
  protected:
-  std::vector<Expr> d_result;
+  std::vector<api::Term> d_result;
 }; /* class GetUnsatAssumptionsCommand */
 
 class CVC4_PUBLIC GetUnsatCoreCommand : public Command
@@ -1358,11 +1247,9 @@ class CVC4_PUBLIC GetUnsatCoreCommand : public Command
   GetUnsatCoreCommand();
   const UnsatCore& getUnsatCore() const;
 
-  void invoke(SmtEngine* smtEngine) override;
+  void invoke(api::Solver* solver) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
 
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1385,11 +1272,9 @@ class CVC4_PUBLIC GetAssertionsCommand : public Command
  public:
   GetAssertionsCommand();
 
-  void invoke(SmtEngine* smtEngine) override;
+  void invoke(api::Solver* solver) override;
   std::string getResult() const;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1410,9 +1295,7 @@ class CVC4_PUBLIC SetBenchmarkStatusCommand : public Command
 
   BenchmarkStatus getStatus() const;
 
-  void invoke(SmtEngine* smtEngine) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1432,9 +1315,7 @@ class CVC4_PUBLIC SetBenchmarkLogicCommand : public Command
   SetBenchmarkLogicCommand(std::string logic);
 
   std::string getLogic() const;
-  void invoke(SmtEngine* smtEngine) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1457,9 +1338,7 @@ class CVC4_PUBLIC SetInfoCommand : public Command
   std::string getFlag() const;
   SExpr getSExpr() const;
 
-  void invoke(SmtEngine* smtEngine) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1482,10 +1361,8 @@ class CVC4_PUBLIC GetInfoCommand : public Command
   std::string getFlag() const;
   std::string getResult() const;
 
-  void invoke(SmtEngine* smtEngine) override;
+  void invoke(api::Solver* solver) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1508,9 +1385,7 @@ class CVC4_PUBLIC SetOptionCommand : public Command
   std::string getFlag() const;
   SExpr getSExpr() const;
 
-  void invoke(SmtEngine* smtEngine) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1533,10 +1408,8 @@ class CVC4_PUBLIC GetOptionCommand : public Command
   std::string getFlag() const;
   std::string getResult() const;
 
-  void invoke(SmtEngine* smtEngine) override;
+  void invoke(api::Solver* solver) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1557,15 +1430,13 @@ class CVC4_PUBLIC GetOptionCommand : public Command
 class CVC4_PUBLIC SetExpressionNameCommand : public Command
 {
  protected:
-  Expr d_expr;
+  api::Term d_term;
   std::string d_name;
 
  public:
-  SetExpressionNameCommand(Expr expr, std::string name);
+  SetExpressionNameCommand(api::Term term, std::string name);
 
-  void invoke(SmtEngine* smtEngine) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1579,16 +1450,14 @@ class CVC4_PUBLIC SetExpressionNameCommand : public Command
 class CVC4_PUBLIC DatatypeDeclarationCommand : public Command
 {
  private:
-  std::vector<Type> d_datatypes;
+  std::vector<api::Sort> d_datatypes;
 
  public:
-  DatatypeDeclarationCommand(const Type& datatype);
+  DatatypeDeclarationCommand(const api::Sort& datatype);
 
-  DatatypeDeclarationCommand(const std::vector<Type>& datatypes);
-  const std::vector<Type>& getDatatypes() const;
-  void invoke(SmtEngine* smtEngine) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  DatatypeDeclarationCommand(const std::vector<api::Sort>& datatypes);
+  const std::vector<api::Sort>& getDatatypes() const;
+  void invoke(api::Solver* solver) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1603,9 +1472,7 @@ class CVC4_PUBLIC ResetCommand : public Command
 {
  public:
   ResetCommand() {}
-  void invoke(SmtEngine* smtEngine) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1620,9 +1487,7 @@ class CVC4_PUBLIC ResetAssertionsCommand : public Command
 {
  public:
   ResetAssertionsCommand() {}
-  void invoke(SmtEngine* smtEngine) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1637,9 +1502,7 @@ class CVC4_PUBLIC QuitCommand : public Command
 {
  public:
   QuitCommand() {}
-  void invoke(SmtEngine* smtEngine) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1659,9 +1522,7 @@ class CVC4_PUBLIC CommentCommand : public Command
 
   std::string getComment() const;
 
-  void invoke(SmtEngine* smtEngine) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
+  void invoke(api::Solver* solver) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1687,8 +1548,8 @@ class CVC4_PUBLIC CommandSequence : public Command
   void addCommand(Command* cmd);
   void clear();
 
-  void invoke(SmtEngine* smtEngine) override;
-  void invoke(SmtEngine* smtEngine, std::ostream& out) override;
+  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, std::ostream& out) override;
 
   typedef std::vector<Command*>::iterator iterator;
   typedef std::vector<Command*>::const_iterator const_iterator;
@@ -1699,8 +1560,6 @@ class CVC4_PUBLIC CommandSequence : public Command
   iterator begin();
   iterator end();
 
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(

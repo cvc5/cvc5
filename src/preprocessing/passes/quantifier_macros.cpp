@@ -2,10 +2,10 @@
 /*! \file quantifier_macros.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Yoni Zohar, Mathias Preiner
+ **   Andrew Reynolds, Yoni Zohar, Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -49,7 +49,7 @@ PreprocessingPassResult QuantifierMacros::applyInternal(
   bool success;
   do
   {
-    success = simplify(assertionsToPreprocess->ref(), true);
+    success = simplify(assertionsToPreprocess, true);
   } while (success);
   finalizeDefinitions();
   clearMaps();
@@ -67,7 +67,9 @@ void QuantifierMacros::clearMaps()
   d_ground_macros = false;
 }
 
-bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite ){
+bool QuantifierMacros::simplify(AssertionPipeline* ap, bool doRewrite)
+{
+  const std::vector<Node>& assertions = ap->ref();
   unsigned rmax =
       options::macrosQuantMode() == options::MacrosQuantMode::ALL ? 2 : 1;
   for( unsigned r=0; r<rmax; r++ ){
@@ -116,7 +118,7 @@ bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite
               }
             }
           }
-          assertions[i] = curr;
+          ap->replace(i, curr);
           retVal = true;
         }
       }

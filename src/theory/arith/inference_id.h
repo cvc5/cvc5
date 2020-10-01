@@ -2,10 +2,10 @@
 /*! \file inference_id.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -76,6 +76,11 @@ enum class InferenceId : uint32_t
   NL_CAD_CONFLICT,
   // excludes an interval for a single variable
   NL_CAD_EXCLUDED_INTERVAL,
+  //-------------------- icp solver
+  // conflict obtained from icp
+  NL_ICP_CONFLICT,
+  // propagation / contraction of variable bounds from icp
+  NL_ICP_PROPAGATION,
   //-------------------- unknown
   UNKNOWN,
 };
