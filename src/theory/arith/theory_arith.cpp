@@ -159,10 +159,13 @@ void TheoryArith::propagate(Effort e) {
   d_internal->propagate(e);
 }
 
-bool TheoryArith::collectModelInfo(TheoryModel* m,
-                                   const std::set<Node>& termSet)
+bool TheoryArith::collectModelInfo(TheoryModel* m)
 {
-  // overrides behavior to not assert the equality engine
+  std::set<Node> termSet;
+  // Work out which variables are needed
+  const std::set<Kind>& irrKinds = m->getIrrelevantKinds();
+  computeAssertedTerms(termSet, irrKinds);
+  // this override behavior to not assert equality engine
   return collectModelValues(m, termSet);
 }
 
