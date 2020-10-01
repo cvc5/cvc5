@@ -31,7 +31,7 @@
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/nl_monomial.h"
-#include "theory/arith/theory_arith.h"
+#include "theory/arith/inference_manager.h"
 
 namespace CVC4 {
 namespace theory {
