@@ -135,7 +135,8 @@ TrustNode TheoryArith::ppRewrite(TNode atom)
       return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
     }
   }
-  if(Theory::theoryOf(atom) != THEORY_ARITH) {
+  if (Theory::theoryOf(atom) != THEORY_ARITH)
+  {
     return TrustNode::null();
   }
   // Eliminate operators recursively. Notice we must do this here since other
