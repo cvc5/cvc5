@@ -43,18 +43,19 @@ class SetsTypeRuleWhite : public CxxTest::TestSuite
 
   void testSingletonTerm()
   {
-    Sort setSort = d_slv->mkSetSort(d_slv->getRealSort());
-    Term emptyReal = d_slv->mkEmptySet(setSort);
-    Term singletonInt = d_slv->mkTerm(SINGLETON, d_slv->mkReal(1));
-
-    Term singletonReal = d_slv->mkTerm(SINGLETON, d_slv->mkReal(1, 5));
+    Sort realSort = d_slv->getRealSort();
+    Sort intSort = d_slv->getIntegerSort();
+    Term emptyReal = d_slv->mkEmptySet(d_slv->mkSetSort(realSort));
+    Term one = d_slv->mkReal(1);
+    Term singletonInt = d_slv->mkSingleton(intSort, one);
+    Term singletonReal = d_slv->mkSingleton(realSort, one);
     // (union
     //    (singleton (singleton_op Int) 1)
     //    (as emptyset (Set Real)))
     TS_ASSERT_THROWS(d_slv->mkTerm(UNION, singletonInt, emptyReal),
                      CVC4ApiException);
     // (union
-    //    (singleton (singleton_op Real) (/ 1 5))
+    //    (singleton (singleton_op Real) 1)
     //    (as emptyset (Set Real)))
     TS_ASSERT_THROWS_NOTHING(d_slv->mkTerm(UNION, singletonReal, emptyReal));
   }

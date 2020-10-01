@@ -1145,7 +1145,8 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
         {
           for (const std::pair<const Node, Node>& itmm : emems)
           {
-            Node t = nm->mkNode(kind::SINGLETON, itmm.first);
+            Node op = nm->mkConst(SingletonOp(itmm.first.getType()));
+            Node t = nm->mkNode(kind::SINGLETON, op, itmm.first);
             els.push_back(t);
           }
         }
@@ -1358,7 +1359,8 @@ TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
 
   TypeNode setType = set.getType();
   Node boundVar = nm->mkBoundVar(setType.getSetElementType());
-  Node singleton = nm->mkNode(kind::SINGLETON, boundVar);
+  Node op = nm->mkConst(SingletonOp(boundVar.getType()));
+  Node singleton = nm->mkNode(kind::SINGLETON, op, boundVar);
   Node equal = set.eqNode(singleton);
   std::vector<Node> variables = {boundVar};
   Node boundVars = nm->mkNode(BOUND_VAR_LIST, variables);

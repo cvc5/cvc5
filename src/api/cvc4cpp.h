@@ -2600,6 +2600,15 @@ class CVC4_PUBLIC Solver
   Term mkEmptySet(Sort s) const;
 
   /**
+   * Create a singleton set from the given element t.
+   * @param s the element sort of the returned set.
+   * Note that the sort of t needs to be a subtype of s.
+   * @param t the single element in the singleton.
+   * @return a singleton set constructed from the element t.
+   */
+  Term mkSingleton(Sort s, Term t) const;
+
+  /**
    * Create a constant representing an empty bag of the given sort.
    * @param s the sort of the bag elements.
    * @return the empty bag constant

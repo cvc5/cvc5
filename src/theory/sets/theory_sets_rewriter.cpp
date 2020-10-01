@@ -488,12 +488,14 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
   }
   else if (k == kind::INSERT)
   {
-    Node insertedElements = nm->mkNode(kind::SINGLETON, node[0]);
+    Node op = nm->mkConst(SingletonOp(node[0].getType()));
+    Node insertedElements = nm->mkNode(kind::SINGLETON, op, node[0]);
     size_t setNodeIndex =  node.getNumChildren()-1;
-    for(size_t i = 1; i < setNodeIndex; ++i) {
-      insertedElements = nm->mkNode(kind::UNION, 
-                                    insertedElements,
-                                    nm->mkNode(kind::SINGLETON, node[i]));
+    for (size_t i = 1; i < setNodeIndex; ++i)
+    {
+      Node childOp = nm->mkConst(SingletonOp(node[i].getType()));
+      Node singleton = nm->mkNode(kind::SINGLETON, childOp, node[i]);
+      insertedElements = nm->mkNode(kind::UNION, insertedElements, singleton);
     }
     return RewriteResponse(REWRITE_AGAIN, 
                            nm->mkNode(kind::UNION,

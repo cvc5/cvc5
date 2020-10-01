@@ -89,7 +89,8 @@ SetEnumerator& SetEnumerator::operator++()
     // get a new element and return it as a singleton set
     Node element = *d_elementEnumerator;
     d_elementsSoFar.push_back(element);
-    d_currentSet = d_nodeManager->mkNode(kind::SINGLETON, element);
+    Node op = d_nodeManager->mkConst(SingletonOp(element.getType()));
+    d_currentSet = d_nodeManager->mkNode(kind::SINGLETON, op, element);
     d_elementEnumerator++;
   }
   else

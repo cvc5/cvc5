@@ -1190,7 +1190,9 @@ void TheorySetsRels::check(Theory::Effort level)
     }
     Trace("rels-share") << " [sets-rels] making shared term " << n << std::endl;
     // force a proxy lemma to be sent for the singleton containing n
-    Node ss = NodeManager::currentNM()->mkNode(SINGLETON, n);
+    NodeManager* nm = NodeManager::currentNM();
+    Node singletonOp = nm->mkConst(SingletonOp(n.getType()));
+    Node ss = NodeManager::currentNM()->mkNode(SINGLETON, singletonOp, n);
     d_treg.getProxy(ss);
     d_shared_terms.insert(n);
   }

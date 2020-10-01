@@ -412,7 +412,8 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
     }
     else if (satom.getKind() == SEP_PTO)
     {
-      Node ss = nm->mkNode(SINGLETON, satom[0]);
+      Node singletonOp = nm->mkConst(SingletonOp(satom[0].getType()));
+      Node ss = nm->mkNode(SINGLETON, singletonOp, satom[0]);
       if (slbl != ss)
       {
         conc = slbl.eqNode(ss);
@@ -1341,7 +1342,8 @@ Node TheorySep::mkUnion( TypeNode tn, std::vector< Node >& locs ) {
     for( unsigned i=0; i<locs.size(); i++ ){
       Node s = locs[i];
       Assert(!s.isNull());
-      s = NodeManager::currentNM()->mkNode( kind::SINGLETON, s );
+      Node op = NodeManager::currentNM()->mkConst(SingletonOp(s.getType()));
+      s = NodeManager::currentNM()->mkNode(kind::SINGLETON, op, s);
       if( u.isNull() ){
         u = s;
       }else{
@@ -1512,12 +1514,14 @@ Node TheorySep::instantiateLabel( Node n, Node o_lbl, Node lbl, Node lbl_v, std:
       //check if this pto reference is in the base label, if not, then it does not need to be added as an assumption
       Assert(d_label_model.find(o_lbl) != d_label_model.end());
       Node vr = d_valuation.getModel()->getRepresentative( n[0] );
-      Node svr = NodeManager::currentNM()->mkNode( kind::SINGLETON, vr );
+      Node vrOp = NodeManager::currentNM()->mkConst(SingletonOp(vr.getType()));
+      Node svr = NodeManager::currentNM()->mkNode(kind::SINGLETON, vrOp, vr);
       bool inBaseHeap = std::find( d_label_model[o_lbl].d_heap_locs_model.begin(), d_label_model[o_lbl].d_heap_locs_model.end(), svr )!=d_label_model[o_lbl].d_heap_locs_model.end();
       Trace("sep-inst-debug") << "Is in base (non-instantiating) heap : " << inBaseHeap << " for value ref " << vr << " in " << o_lbl << std::endl;
       std::vector< Node > children;
       if( inBaseHeap ){
-        Node s = NodeManager::currentNM()->mkNode( kind::SINGLETON, n[0] );
+        Node op = NodeManager::currentNM()->mkConst(SingletonOp(n[0].getType()));
+        Node s = NodeManager::currentNM()->mkNode(kind::SINGLETON, op,  n[0]);
         children.push_back( NodeManager::currentNM()->mkNode( kind::SEP_LABEL, NodeManager::currentNM()->mkNode( kind::SEP_PTO, n[0], n[1] ), s ) );
       }else{
         //look up value of data
@@ -1529,8 +1533,10 @@ Node TheorySep::instantiateLabel( Node n, Node o_lbl, Node lbl, Node lbl_v, std:
         }else{
           Trace("sep-inst-debug") << "Data for " << vr << " was not specified, do not add condition." << std::endl;
         }
-      } 
-      children.push_back( NodeManager::currentNM()->mkNode( kind::EQUAL, NodeManager::currentNM()->mkNode( kind::SINGLETON, n[0] ), lbl_v ) );
+      }
+      Node op = NodeManager::currentNM()->mkConst(SingletonOp(n[0].getType()));
+      Node singleton = NodeManager::currentNM()->mkNode(kind::SINGLETON, op, n[0]);
+      children.push_back(singleton.eqNode(lbl_v));
       Node ret = children.empty() ? NodeManager::currentNM()->mkConst( true ) : ( children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( kind::AND, children ) );
       Trace("sep-inst-debug") << "Return " << ret << std::endl;
       return ret;
@@ -1650,7 +1656,8 @@ void TheorySep::computeLabelModel( Node lbl ) {
       }else{
         tt = itm->second;
       }
-      Node stt = NodeManager::currentNM()->mkNode( kind::SINGLETON, tt );
+      Node op = NodeManager::currentNM()->mkConst(SingletonOp(tt.getType()));
+      Node stt = NodeManager::currentNM()->mkNode(kind::SINGLETON, op, tt);
       Trace("sep-process-debug") << "...model : add " << tt << " for " << u << " in lbl " << lbl << std::endl;
       d_label_model[lbl].d_heap_locs.push_back( stt );
     }
