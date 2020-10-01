@@ -72,7 +72,7 @@ class PreprocessingPassContext
   void widenLogic(theory::TheoryId id);
 
   /** Gets a reference to the top-level substitution map */
-  theory::SubstitutionMap& getTopLevelSubstitutions();
+  theory::TrustSubstitutionMap& getTopLevelSubstitutions();
 
   /* Enable Integers. */
   void enableIntegers();

@@ -141,18 +141,15 @@ Node Preprocessor::simplify(const Node& node, bool removeItes)
   }
   std::unordered_map<Node, Node, NodeHashFunction> cache;
   Node n = d_processor.expandDefinitions(nas, cache);
-  Node ns = applySubstitutions(n);
+  TrustNode ts = d_ppContext->getTopLevelSubstitutions().apply(node);
+  Node ns = ts.getNode();
+  ns = Rewriter::rewrite(ns);
   if (removeItes)
   {
     // also remove ites if asked
     ns = d_rtf.replace(ns);
   }
   return ns;
-}
-
-Node Preprocessor::applySubstitutions(TNode node)
-{
-  return Rewriter::rewrite(d_ppContext->getTopLevelSubstitutions().apply(node));
 }
 
 void Preprocessor::setProofNodeManager(ProofNodeManager* pnm)

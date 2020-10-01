@@ -41,9 +41,9 @@ void PreprocessingPassContext::widenLogic(theory::TheoryId id)
   req.widenLogic(id);
 }
 
-theory::SubstitutionMap& PreprocessingPassContext::getTopLevelSubstitutions()
+theory::TrustSubstitutionMap& PreprocessingPassContext::getTopLevelSubstitutions()
 {
-  return d_topLevelSubstitutions.get();
+  return d_topLevelSubstitutions;
 }
 
 void PreprocessingPassContext::enableIntegers()

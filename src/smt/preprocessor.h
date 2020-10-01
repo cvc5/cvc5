@@ -106,11 +106,6 @@ class Preprocessor
   void setProofNodeManager(ProofNodeManager* pnm);
 
  private:
-  /**
-   * Apply substitutions that have been inferred by preprocessing, return the
-   * substituted form of node.
-   */
-  Node applySubstitutions(TNode node);
   /** Reference to the parent SmtEngine */
   SmtEngine& d_smt;
   /** Reference to the abstract values utility */

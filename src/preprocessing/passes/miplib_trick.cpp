@@ -187,8 +187,9 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   const booleans::CircuitPropagator::BackEdgesMap& backEdges =
       propagator->getBackEdges();
   unordered_set<unsigned long> removeAssertions;
-  SubstitutionMap& top_level_substs =
-      d_preprocContext->getTopLevelSubstitutions();
+  
+  theory::TrustSubstitutionMap& tlsm = d_preprocContext->getTopLevelSubstitutions();
+  SubstitutionMap& top_level_substs = tlsm.get();
 
   NodeManager* nm = NodeManager::currentNM();
   Node zero = nm->mkConst(Rational(0)), one = nm->mkConst(Rational(1));
