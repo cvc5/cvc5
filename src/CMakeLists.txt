@@ -116,8 +116,6 @@ libcvc4_add_sources(
   preprocessing/preprocessing_pass_context.h
   preprocessing/preprocessing_pass_registry.cpp
   preprocessing/preprocessing_pass_registry.h
-  preprocessing/top_level_substitutions.cpp
-  preprocessing/top_level_substitutions.h
   preprocessing/util/ite_utilities.cpp
   preprocessing/util/ite_utilities.h
   printer/ast/ast_printer.cpp
@@ -910,6 +908,8 @@ libcvc4_add_sources(
   theory/theory_test_utils.h
   theory/trust_node.cpp
   theory/trust_node.h
+  theory/trust_substitutions.cpp
+  theory/trust_substitutions.h
   theory/type_enumerator.h
   theory/type_set.cpp
   theory/type_set.h

@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file top_level_substitutions.cpp
+/*! \file trust_substitutions.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,15 +9,15 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Top-level substitutions
+ ** \brief Trust substitutions
  **/
 
-#include "preprocessing/top_level_substitutions.h"
+#include "theory/trust_substitutions.h"
 
 namespace CVC4 {
-namespace preprocessing {
+namespace theory {
 
-TopLevelSubstitutions::TopLevelSubstitutions(context::UserContext* u,
+TrustSubstitutionMap::TrustSubstitutionMap(context::UserContext* u,
                                              ProofNodeManager* pnm)
     : d_subs(u),
       d_pnm(pnm),
@@ -25,19 +25,19 @@ TopLevelSubstitutions::TopLevelSubstitutions(context::UserContext* u,
 {
 }
 
-void TopLevelSubstitutions::addSubstitution(TNode x,
+void TrustSubstitutionMap::addSubstitution(TNode x,
                                             TNode t,
                                             ProofGenerator* pg)
 {
   d_subs.addSubstitution(x, t);
 }
 
-theory::TrustNode TopLevelSubstitutions::apply(Node n)
+TrustNode TrustSubstitutionMap::apply(Node n)
 {
-  return theory::TrustNode::null();
+  return TrustNode::null();
 }
 
-theory::SubstitutionMap& TopLevelSubstitutions::get() { return d_subs; }
+SubstitutionMap& TrustSubstitutionMap::get() { return d_subs; }
 
-}  // namespace preprocessing
+}  // namespace theory
 }  // namespace CVC4
