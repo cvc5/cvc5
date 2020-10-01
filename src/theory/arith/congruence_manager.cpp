@@ -387,10 +387,7 @@ TrustNode ArithCongruenceManager::explain(TNode external){
     auto pfOfImpl = d_pnm->mkNode(PfRule::INT_TRUST, {}, { impl });
     return d_pfGenExplain->mkTrustNode(impl, pfOfImpl);
   }
-  else
-  {
-    return TrustNode::mkTrustPropExp(external, exp, nullptr);
-  }
+  return TrustNode::mkTrustPropExp(external, exp, nullptr);
 }
 
 void ArithCongruenceManager::explain(TNode external, NodeBuilder<>& out){
@@ -496,13 +493,10 @@ std::vector<Node> andComponents(TNode an)
   {
     return {an};
   }
-  else
-  {
-    std::vector<Node> a{};
-    a.reserve(an.getNumChildren());
-    a.insert(a.end(), an.begin(), an.end());
-    return a;
-  }
+  std::vector<Node> a{};
+  a.reserve(an.getNumChildren());
+  a.insert(a.end(), an.begin(), an.end());
+  return a;
 }
 
 }/* CVC4::theory::arith namespace */
