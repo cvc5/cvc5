@@ -135,7 +135,7 @@ class SygusInst : public QuantifiersModule
       d_global_terms;
 
   /* Assertions sent by ppNotifyAssertions. */
-  std::vector<Node> d_notified_assertions;
+  context::CDHashSet<Node, NodeHashFunction> d_notified_assertions;
 };
 
 }  // namespace quantifiers

@@ -162,7 +162,8 @@ void getMinGroundTerms(
 SygusInst::SygusInst(QuantifiersEngine* qe)
     : QuantifiersModule(qe),
       d_lemma_cache(qe->getUserContext()),
-      d_ce_lemma_added(qe->getUserContext())
+      d_ce_lemma_added(qe->getUserContext()),
+      d_notified_assertions(qe->getUserContext())
 {
 }
 
@@ -383,9 +384,10 @@ void SygusInst::preRegisterQuantifier(Node q)
 
 void SygusInst::ppNotifyAssertions(const std::vector<Node>& assertions)
 {
-  d_notified_assertions.clear();
-  d_notified_assertions.insert(
-      d_notified_assertions.end(), assertions.begin(), assertions.end());
+  for (const Node& a : assertions)
+  {
+    d_notified_assertions.insert(a);
+  }
 }
 
 /*****************************************************************************/
