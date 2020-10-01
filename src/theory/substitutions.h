@@ -90,14 +90,14 @@ private:
   CacheInvalidator d_cacheInvalidator;
 
 public:
-
-  SubstitutionMap(context::Context* context, bool substituteUnderQuantifiers = true) :
-    d_substitutions(context),
-    d_substitutionCache(),
-    d_substituteUnderQuantifiers(substituteUnderQuantifiers),
-    d_cacheInvalidated(false),
-    d_cacheInvalidator(context, d_cacheInvalidated)
-    {
+ SubstitutionMap(context::Context* context,
+                 bool substituteUnderQuantifiers = true)
+     : d_substitutions(context),
+       d_substitutionCache(),
+       d_substituteUnderQuantifiers(substituteUnderQuantifiers),
+       d_cacheInvalidated(false),
+       d_cacheInvalidator(context, d_cacheInvalidated)
+ {
   }
 
   /**
