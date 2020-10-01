@@ -738,7 +738,7 @@ PreprocessingPassResult BVGauss::applyInternal(
 
   std::unordered_map<Node, Node, NodeHashFunction> subst;
 
-  NodeManager *nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   for (const auto& eq : equations)
   {
     if (eq.second.size() <= 1) { continue; }

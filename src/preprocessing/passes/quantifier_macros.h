@@ -64,10 +64,10 @@ class QuantifierMacros : public PreprocessingPass
                        bool reqComplete);
   void addMacro(Node op, Node n, std::vector<Node>& opc);
   void debugMacroDefinition(Node oo, Node n);
-  /** 
+  /**
    * This applies macro elimination to the given pipeline, which discovers
    * whether there are any quantified formulas corresponding to macros.
-   * 
+   *
    * @param ap The pipeline to apply macros to.
    * @param doRewrite Whether we also wish to rewrite the assertions based on
    * the discovered macro definitions.
