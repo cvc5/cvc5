@@ -1660,7 +1660,8 @@ void SmtEngine::checkModel(bool hardFailure) {
   for(size_t k = 0; k < m->getNumCommands(); ++k) {
     const DeclareFunctionNodeCommand* c =
         dynamic_cast<const DeclareFunctionNodeCommand*>(m->getCommand(k));
-    Notice() << "SmtEngine::checkModel(): model command " << k << " : " << m->getCommand(k) << endl;
+    Notice() << "SmtEngine::checkModel(): model command " << k << " : "
+             << m->getCommand(k)->toString() << endl;
     if(c == NULL) {
       // we don't care about DECLARE-DATATYPES, DECLARE-SORT, ...
       Notice() << "SmtEngine::checkModel(): skipping..." << endl;
