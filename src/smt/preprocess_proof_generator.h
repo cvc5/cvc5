@@ -19,8 +19,12 @@
 
 #include <map>
 
+#include "context/cdhashmap.h"
+#include "context/cdlist.h"
+#include "expr/lazy_proof.h"
 #include "expr/proof_generator.h"
 #include "expr/proof_node_manager.h"
+#include "theory/eager_proof_generator.h"
 #include "theory/trust_node.h"
 
 namespace CVC4 {
@@ -41,8 +45,11 @@ namespace smt {
  */
 class PreprocessProofGenerator : public ProofGenerator
 {
+  typedef context::CDHashMap<Node, theory::TrustNode, NodeHashFunction>
+      NodeTrustNodeMap;
+
  public:
-  PreprocessProofGenerator(ProofNodeManager* pnm);
+  PreprocessProofGenerator(context::UserContext* u, ProofNodeManager* pnm);
   ~PreprocessProofGenerator() {}
   /**
    * Notify that n is a new assertion, where pg can provide a proof of n.
@@ -61,6 +68,17 @@ class PreprocessProofGenerator : public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Identify */
   std::string identify() const override;
+  /** Get the proof manager */
+  ProofNodeManager* getManager();
+  /**
+   * Allocate a helper proof. This returns a fresh lazy proof object that
+   * remains alive in this user context. This feature is used to construct
+   * helper proofs for preprocessing, e.g. to support the skeleton of proofs
+   * that connect AssertionPipeline::conjoin steps.
+   *
+   * Internally, this adds a LazyCDProof to the list d_helperProofs below.
+   */
+  LazyCDProof* allocateHelperProof();
 
  private:
   /** The proof node manager */
@@ -72,7 +90,9 @@ class PreprocessProofGenerator : public ProofGenerator
    * (1) A trust node REWRITE proving (n_src = n) for some n_src, or
    * (2) A trust node LEMMA proving n.
    */
-  std::map<Node, theory::TrustNode> d_src;
+  NodeTrustNodeMap d_src;
+  /** A context-dependent list of LazyCDProof, allocated for conjoin steps */
+  context::CDList<std::shared_ptr<LazyCDProof> > d_helperProofs;
 };
 
 }  // namespace smt

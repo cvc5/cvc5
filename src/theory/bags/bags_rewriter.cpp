@@ -14,7 +14,7 @@
 
 #include "theory/bags/bags_rewriter.h"
 
-#include "normal_form.h"
+#include "theory/bags/normal_form.h"
 
 using namespace CVC4::kind;
 
