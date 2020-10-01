@@ -769,7 +769,9 @@ private:
   RationalVector d_farkasBuffer;
 
   //---------------- during check
+  /** Whether there were new facts during preCheck */
   bool d_newFacts;
+  /** The previous status, computed during preCheck */
   Result::Sat d_previousStatus;
   //---------------- end during check
 
@@ -880,8 +882,6 @@ private:
   ArithRewriter d_rewriter;
   /** The operator elimination utility */
   OperatorElim d_opElim;
-  /** Are we in conflict? */
-  context::CDO<bool> d_arithStateConflict;
 };/* class TheoryArithPrivate */
 
 }/* CVC4::theory::arith namespace */

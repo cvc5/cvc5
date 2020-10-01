@@ -128,7 +128,10 @@ bool TheoryArith::needsCheckLastEffort() {
   return d_internal->needsCheckLastEffort();
 }
 
-TrustNode TheoryArith::explain(TNode n) { return d_aim.explainLit(n); }
+TrustNode TheoryArith::explain(TNode n) {   
+  Node exp = d_internal->explain(n);	
+  return TrustNode::mkTrustPropExp(n, exp, nullptr); 
+}
 
 void TheoryArith::propagate(Effort e) {
   d_internal->propagate(e);
@@ -159,7 +162,6 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
   {
     // maps to constant of comparable type
     Assert(p.first.getType().isComparableTo(p.second.getType()));
-    Assert(p.second.isConst());
     if (m->assertEquality(p.first, p.second, true))
     {
       continue;

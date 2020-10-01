@@ -28,8 +28,6 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-class EqualitySolver;
-
 /**
  * Implementation of linear and non-linear integer and real arithmetic.
  * The linear arithmetic solver is based upon:

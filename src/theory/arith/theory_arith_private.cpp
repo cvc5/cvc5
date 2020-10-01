@@ -172,8 +172,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_newFacts(false),
       d_previousStatus(Result::SAT_UNKNOWN),
       d_statistics(),
-      d_opElim(pnm, logicInfo),
-      d_arithStateConflict(c, false)
+      d_opElim(pnm, logicInfo)
 {
   ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
   if (pc != nullptr)
@@ -551,8 +550,6 @@ bool TheoryArithPrivate::anyConflict() const
 {
   return !conflictQueueEmpty() || !d_blackBoxConflict.get().isNull();
 }
-
-void TheoryArithPrivate::notifyInConflict() { d_arithStateConflict = true; }
 
 void TheoryArithPrivate::revertOutOfConflict(){
   d_partialModel.revertAssignmentChanges();
@@ -1970,18 +1967,18 @@ void TheoryArithPrivate::outputConflicts(){
 
 void TheoryArithPrivate::outputLemma(TNode lem) {
   Debug("arith::channel") << "Arith lemma: " << lem << std::endl;
-  d_containing.d_out.lemma(lem);
+  (d_containing.d_out)->lemma(lem);
 }
 
 void TheoryArithPrivate::outputConflict(TNode lit) {
   Debug("arith::channel") << "Arith conflict: " << lit << std::endl;
-  d_containing.d_out.conflict(lit);
+  (d_containing.d_out)->conflict(lit);
 }
 
 void TheoryArithPrivate::outputPropagate(TNode lit) {
   Debug("arith::channel") << "Arith propagation: " << lit << std::endl;
   // call the propagate lit method of the
-  d_containing.d_out.propagate(lit);
+  (d_containing.d_out)->propagate(lit);
 }
 
 void TheoryArithPrivate::outputRestart() {
@@ -3892,7 +3889,7 @@ Node TheoryArithPrivate::explain(TNode n)
       return d_congruenceManager.explain(n);
     }
   }else{
-    // Assert(d_congruenceManager.canExplain(n));
+    Assert(d_congruenceManager.canExplain(n));
     Debug("arith::explain") << "dm explanation" << n << endl;
     return d_congruenceManager.explain(n);
   }
