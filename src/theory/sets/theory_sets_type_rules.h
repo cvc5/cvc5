@@ -143,9 +143,8 @@ struct SingletonTypeRule
       if (leastCommonType.isNull() || leastCommonType != type1)
       {
         std::stringstream ss;
-        ss << "The type '" << type2
-           << "' of the second operand is not a subtype of '" << type1
-           << "' in term : " << n;
+        ss << "The type '" << type2 << "' of the element is not a subtype of '"
+           << type1 << "' in term : " << n;
         throw TypeCheckingExceptionPrivate(n, ss.str());
       }
     }
