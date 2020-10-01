@@ -196,15 +196,16 @@ void InferProofCons::convert(Inference infer,
       {
         if (exp.size() >= 2)
         {
-          Assert(exp.size() <= startExpIndex.size());
+          Assert (exp.size() <= startExpIndex.size());
           // The index of the "main" equality is the last equality before
           // the length explanation.
-          mainEqIndex = startExpIndex[exp.size() - 1];
+          mainEqIndex = startExpIndex[exp.size() - 1] - 1;
           mainEqIndexSet = true;
           // the remainder is the length constraint
           lenConstraint.insert(lenConstraint.end(),
-                               ps.d_children.begin() + mainEqIndex + 1,
-                               ps.d_children.end());
+                                ps.d_children.begin() + mainEqIndex + 1,
+                                ps.d_children.end());
+          
         }
       }
       else if (nchild >= 1)
