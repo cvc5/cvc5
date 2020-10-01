@@ -1257,9 +1257,10 @@ void TheoryArithPrivate::setupVariableList(const VarList& vl){
     //setupInitialValue(av);
 
     markSetup(vlNode);
-  }else if (vlNode.getKind() == kind::EXPONENTIAL
-        || vlNode.getKind() == kind::SINE || vlNode.getKind() == kind::COSINE
-        || vlNode.getKind() == kind::TANGENT)
+  }
+  else if (vlNode.getKind() == kind::EXPONENTIAL
+           || vlNode.getKind() == kind::SINE || vlNode.getKind() == kind::COSINE
+           || vlNode.getKind() == kind::TANGENT)
   {
     d_nlIncomplete = true;
   }

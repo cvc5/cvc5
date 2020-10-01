@@ -18,11 +18,11 @@
 #pragma once
 
 #include "expr/node.h"
+#include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_state.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nonlinear_extension.h"
 #include "theory/arith/operator_elim.h"
-#include "theory/arith/arith_rewriter.h"
 #include "theory/theory.h"
 
 namespace CVC4 {
@@ -123,14 +123,14 @@ class TheoryArith : public Theory {
   }
 
  private:
-   /**
-    * Preprocess rewrite terms, return the trust node encapsulating the
-    * preprocessed form of n, and the proof generator that can provide the
-    * proof for the equivalence of n and this term.
-    *
-    * This calls the operator elimination utility to eliminate extended
-    * symbols.
-    */
+  /**
+   * Preprocess rewrite terms, return the trust node encapsulating the
+   * preprocessed form of n, and the proof generator that can provide the
+   * proof for the equivalence of n and this term.
+   *
+   * This calls the operator elimination utility to eliminate extended
+   * symbols.
+   */
   TrustNode ppRewriteTerms(TNode n);
   /** Get the proof equality engine */
   eq::ProofEqEngine* getProofEqEngine();

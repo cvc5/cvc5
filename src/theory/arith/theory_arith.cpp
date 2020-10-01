@@ -59,10 +59,7 @@ TheoryArith::~TheoryArith(){
   delete d_internal;
 }
 
-TheoryRewriter* TheoryArith::getTheoryRewriter()
-{
-  return &d_rewriter; 
-}
+TheoryRewriter* TheoryArith::getTheoryRewriter() { return &d_rewriter; }
 
 bool TheoryArith::needsEqualityEngine(EeSetupInfo& esi)
 {
@@ -181,7 +178,7 @@ void TheoryArith::postCheck(Effort level)
     return;
   }
 
-  if(Theory::fullEffort(level))
+  if (Theory::fullEffort(level))
   {
     if (d_nonlinearExtension != nullptr)
     {
