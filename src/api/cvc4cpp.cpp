@@ -3711,8 +3711,7 @@ Term Solver::mkSingleton(Sort s, Term t) const
   checkMkTerm(SINGLETON, 1);
 
   TypeNode typeNode = TypeNode::fromType(*s.d_type);
-  Node op = getNodeManager()->mkConst(SingletonOp(typeNode));
-  Node res = getNodeManager()->mkNode(kind::SINGLETON, op, *t.d_node);
+  Node res = getNodeManager()->mkSingleton(typeNode, *t.d_node);
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
 
