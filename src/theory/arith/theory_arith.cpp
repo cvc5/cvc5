@@ -90,12 +90,13 @@ void TheoryArith::finishInit()
   d_internal->finishInit();
 }
 
-void TheoryArith::preRegisterTerm(TNode n) { 
+void TheoryArith::preRegisterTerm(TNode n)
+{
   if (d_nonlinearExtension != nullptr)
   {
     d_nonlinearExtension->preRegisterTerm(n);
   }
-  d_internal->preRegisterTerm(n); 
+  d_internal->preRegisterTerm(n);
 }
 
 TrustNode TheoryArith::expandDefinition(Node node)
@@ -121,7 +122,8 @@ void TheoryArith::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
 
 bool TheoryArith::preCheck(Effort level) { return d_internal->preCheck(level); }
 
-void TheoryArith::postCheck(Effort level) { 
+void TheoryArith::postCheck(Effort level)
+{
   // check with the non-linear solver at last call
   if (level == Theory::EFFORT_LAST_CALL)
   {
@@ -132,7 +134,7 @@ void TheoryArith::postCheck(Effort level) {
     return;
   }
   // otherwise, check with the linear solver
-  d_internal->postCheck(level); 
+  d_internal->postCheck(level);
 }
 
 bool TheoryArith::preNotifyFact(
@@ -150,9 +152,10 @@ bool TheoryArith::needsCheckLastEffort() {
   return false;
 }
 
-TrustNode TheoryArith::explain(TNode n) {   
-  Node exp = d_internal->explain(n);	
-  return TrustNode::mkTrustPropExp(n, exp, nullptr); 
+TrustNode TheoryArith::explain(TNode n)
+{
+  Node exp = d_internal->explain(n);
+  return TrustNode::mkTrustPropExp(n, exp, nullptr);
 }
 
 void TheoryArith::propagate(Effort e) {
