@@ -48,8 +48,9 @@ TheoryArith::TheoryArith(context::Context* c,
 {
   smtStatisticsRegistry()->registerStat(&d_ppRewriteTimer);
 
-  // indicate we are using the theory state object
+  // indicate we are using the theory state object and inference manager
   d_theoryState = &d_astate;
+  d_inferManager = &d_inferenceManager;
 }
 
 TheoryArith::~TheoryArith(){
@@ -96,7 +97,7 @@ TrustNode TheoryArith::expandDefinition(Node node)
   return d_internal->expandDefinition(node);
 }
 
-void TheoryArith::notifySharedTerm(TNode n) { d_internal->addSharedTerm(n); }
+void TheoryArith::notifySharedTerm(TNode n) { d_internal->notifySharedTerm(n); }
 
 TrustNode TheoryArith::ppRewrite(TNode atom)
 {
@@ -112,31 +113,31 @@ void TheoryArith::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
   d_internal->ppStaticLearn(n, learned);
 }
 
-void TheoryArith::check(Effort effortLevel){
-  getOutputChannel().spendResource(ResourceManager::Resource::TheoryCheckStep);
-  d_internal->check(effortLevel);
+bool TheoryArith::preCheck(Effort level) { return d_internal->preCheck(level); }
+
+void TheoryArith::postCheck(Effort level) { d_internal->postCheck(level); }
+
+bool TheoryArith::preNotifyFact(
+    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
+{
+  d_internal->notifyFact(atom, pol, fact);
+  return true;
 }
 
 bool TheoryArith::needsCheckLastEffort() {
   return d_internal->needsCheckLastEffort();
 }
 
-TrustNode TheoryArith::explain(TNode n)
-{
-  Node exp = d_internal->explain(n);
-  return TrustNode::mkTrustPropExp(n, exp, nullptr);
-}
+TrustNode TheoryArith::explain(TNode n) { return d_aim.explainLit(n); }
 
 void TheoryArith::propagate(Effort e) {
   d_internal->propagate(e);
 }
-bool TheoryArith::collectModelInfo(TheoryModel* m)
+
+bool TheoryArith::collectModelInfo(TheoryModel* m,
+                                   const std::set<Node>& termSet)
 {
-  std::set<Node> termSet;
-  // Work out which variables are needed
-  const std::set<Kind>& irrKinds = m->getIrrelevantKinds();
-  computeAssertedTerms(termSet, irrKinds);
-  // this overrides behavior to not assert equality engine
+  // overrides behavior to not assert the equality engine
   return collectModelValues(m, termSet);
 }
 
@@ -158,6 +159,7 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
   {
     // maps to constant of comparable type
     Assert(p.first.getType().isComparableTo(p.second.getType()));
+    Assert(p.second.isConst());
     if (m->assertEquality(p.first, p.second, true))
     {
       continue;

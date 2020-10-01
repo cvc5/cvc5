@@ -341,10 +341,10 @@ private:
    * Returns true iff a conflict has been raised. This method is public since
    * it is needed by the ArithState class to know whether we are in conflict.
    */
-  bool anyConflict() const
-  {
-    return !conflictQueueEmpty() || !d_blackBoxConflict.get().isNull();
-  }
+  bool anyConflict() const;
+
+  /** External notification (e.g. from ArithState) that we are in conflict */
+  void notifyInConflict();
 
  private:
   inline bool conflictQueueEmpty() const {
@@ -461,7 +461,6 @@ private:
   void preRegisterTerm(TNode n);
   TrustNode expandDefinition(Node node);
 
-  void check(Theory::Effort e);
   bool needsCheckLastEffort();
   void propagate(Theory::Effort e);
   Node explain(TNode n);
@@ -494,16 +493,22 @@ private:
 
   EqualityStatus getEqualityStatus(TNode a, TNode b);
 
-  void addSharedTerm(TNode n);
+  void notifySharedTerm(TNode n);
 
   Node getModelValue(TNode var);
 
 
   std::pair<bool, Node> entailmentCheck(TNode lit, const ArithEntailmentCheckParameters& params, ArithEntailmentCheckSideEffects& out);
 
-
-private:
-
+  //--------------------------------- standard check
+  /** Pre-check, called before the fact queue of the theory is processed. */
+  bool preCheck(Theory::Effort level);
+  /** Notify fact. */
+  void notifyFact(TNode atom, bool pol, TNode fact);
+  /** Post-check, called after the fact queue of the theory is processed. */
+  void postCheck(Theory::Effort level);
+  //--------------------------------- end standard check
+ private:
   /** The constant zero. */
   DeltaRational d_DELTA_ZERO;
 
@@ -649,7 +654,7 @@ private:
    * Returns a conflict if one was found.
    * Returns Node::null if no conflict was found.
    */
-  ConstraintP constraintFromFactQueue();
+  ConstraintP constraintFromFactQueue(TNode assertion);
   bool assertionCases(ConstraintP c);
 
   /**
@@ -763,6 +768,11 @@ private:
 
   RationalVector d_farkasBuffer;
 
+  //---------------- during check
+  bool d_newFacts;
+  Result::Sat d_previousStatus;
+  //---------------- end during check
+
   /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {
   public:
@@ -870,6 +880,8 @@ private:
   ArithRewriter d_rewriter;
   /** The operator elimination utility */
   OperatorElim d_opElim;
+  /** Are we in conflict? */
+  context::CDO<bool> d_arithStateConflict;
 };/* class TheoryArithPrivate */
 
 }/* CVC4::theory::arith namespace */
