@@ -54,7 +54,6 @@
 #include "theory/arith/simplex.h"
 #include "theory/arith/soi_simplex.h"
 #include "theory/arith/theory_arith.h"
-#include "theory/arith/theory_arith_private_forward.h"
 #include "theory/eager_proof_generator.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"

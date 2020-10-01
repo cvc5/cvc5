@@ -38,11 +38,6 @@
 
 namespace CVC4 {
 namespace theory {
-
-namespace quantifiers {
-class EqualityInference;
-}
-
 namespace arith {
 
 class ArithCongruenceManager {
