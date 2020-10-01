@@ -138,7 +138,7 @@ TrustNode TheoryArith::ppRewrite(TNode atom)
 
 TrustNode TheoryArith::ppRewriteTerms(TNode n)
 {
-  if (Theory::theoryOf(atom) != THEORY_ARITH)
+  if (Theory::theoryOf(n) != THEORY_ARITH)
   {
     return TrustNode::null();
   }
@@ -147,7 +147,7 @@ TrustNode TheoryArith::ppRewriteTerms(TNode n)
   // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may
   // introduce non-standard arithmetic terms appearing in grammars.
   // call eliminate operators
-  return d_opElim.eliminate(atom);
+  return d_opElim.eliminate(n);
 }
 
 Theory::PPAssertStatus TheoryArith::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
