@@ -27,14 +27,12 @@ namespace CVC4 {
 namespace theory {
 
 /**
- * Stores a substitution corresponding to a set of equalities that have been
- * inferred from the input at the top level, e.g. the substitution holds
- * globally.
+ * A layer on top of SubstitutionMap that tracks proofs.
  */
 class TrustSubstitutionMap
 {
  public:
-  TrustSubstitutionMap(context::UserContext* u, ProofNodeManager* pnm);
+  TrustSubstitutionMap(context::Context* c, ProofNodeManager* pnm);
   /** Gets a reference to the top-level substitution map */
   SubstitutionMap& get();
   /**
@@ -42,18 +40,21 @@ class TrustSubstitutionMap
    * in the remainder of this user context.
    */
   void addSubstitution(TNode x, TNode t, ProofGenerator* pg = nullptr);
+  /** 
+   * Add substitutions
+   */
+  void addSubstitutions(TrustSubstitutionMap& t);
   /**
    * Apply substitutions in this class to node n. Returns a trust node
    * proving n = n*sigma, where the proof generator is this class (when
    * proofs are enabled).
    */
   TrustNode apply(Node n);
-
  private:
-  /** The top level substitutions */
+   /** Are proofs enabled? */
+   bool isProofEnabled() const;
+  /** The substitution map */
   SubstitutionMap d_subs;
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
   /** The term conversion proof generator */
   std::unique_ptr<TConvProofGenerator> d_subsPg;
 };
