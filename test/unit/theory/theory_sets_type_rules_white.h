@@ -49,12 +49,12 @@ class SetsTypeRuleWhite : public CxxTest::TestSuite
 
     Term singletonReal = d_slv->mkTerm(SINGLETON, d_slv->mkReal(1, 5));
     // (union
-    //    (singleton (singleton_type Int) 1)
+    //    (singleton (singleton_op Int) 1)
     //    (as emptyset (Set Real)))
     TS_ASSERT_THROWS(d_slv->mkTerm(UNION, singletonInt, emptyReal),
                      CVC4ApiException);
     // (union
-    //    (singleton (singleton_type Real) (/ 1 5))
+    //    (singleton (singleton_op Real) (/ 1 5))
     //    (as emptyset (Set Real)))
     TS_ASSERT_THROWS_NOTHING(d_slv->mkTerm(UNION, singletonReal, emptyReal));
   }
@@ -65,7 +65,7 @@ class SetsTypeRuleWhite : public CxxTest::TestSuite
     Node singletonReal = d_nm->mkConst(SingletonOp(d_nm->realType()));
     Node intConstant = d_nm->mkConst(Rational(1));
     Node realConstant = d_nm->mkConst(Rational(1, 5));
-    // (singleton (singleton_type Real) 1)
+    // (singleton (singleton_op Real) 1)
     TS_ASSERT_THROWS_NOTHING(
         d_nm->mkNode(kind::SINGLETON, singletonReal, intConstant));
     // (singleton (singleton_op Int) (/ 1 5))

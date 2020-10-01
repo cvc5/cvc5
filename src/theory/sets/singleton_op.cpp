@@ -20,63 +20,31 @@
 
 namespace CVC4 {
 
-std::ostream& operator<<(std::ostream& out, const SingletonOp& asa)
+std::ostream& operator<<(std::ostream& out, const SingletonOp& op)
 {
-  return out << "(singleton_op " << asa.getType() << ')';
+  return out << "(singleton_op " << op.getType() << ')';
 }
 
-size_t SingletonOpHashFunction::operator()(const SingletonOp& es) const
+size_t SingletonOpHashFunction::operator()(const SingletonOp& op) const
 {
-  return TypeNodeHashFunction()(es.getType());
+  return TypeNodeHashFunction()(op.getType());
 }
 
-/**
- * Constructs an singleton of the specified type. Note that the argument
- * is the type of the set itself, NOT the type of the elements.
- */
-SingletonOp::SingletonOp(const TypeNode& setType)
-    : d_type(new TypeNode(setType))
+SingletonOp::SingletonOp(const TypeNode& elementType)
+    : d_type(new TypeNode(elementType))
 {
 }
 
-SingletonOp::SingletonOp(const SingletonOp& es)
-    : d_type(new TypeNode(es.getType()))
+SingletonOp::SingletonOp(const SingletonOp& op)
+    : d_type(new TypeNode(op.getType()))
 {
 }
 
-SingletonOp& SingletonOp::operator=(const SingletonOp& es)
-{
-  (*d_type) = es.getType();
-  return *this;
-}
-
-SingletonOp::~SingletonOp() {}
 const TypeNode& SingletonOp::getType() const { return *d_type; }
-bool SingletonOp::operator==(const SingletonOp& es) const
+
+bool SingletonOp::operator==(const SingletonOp& op) const
 {
-  return getType() == es.getType();
+  return getType() == op.getType();
 }
 
-bool SingletonOp::operator!=(const SingletonOp& es) const
-{
-  return !(*this == es);
-}
-bool SingletonOp::operator<(const SingletonOp& es) const
-{
-  return getType() < es.getType();
-}
-
-bool SingletonOp::operator<=(const SingletonOp& es) const
-{
-  return getType() <= es.getType();
-}
-
-bool SingletonOp::operator>(const SingletonOp& es) const
-{
-  return !(*this <= es);
-}
-bool SingletonOp::operator>=(const SingletonOp& es) const
-{
-  return !(*this < es);
-}
 }  // namespace CVC4
