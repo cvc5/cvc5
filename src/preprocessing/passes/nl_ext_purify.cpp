@@ -117,16 +117,19 @@ PreprocessingPassResult NlExtPurify::applyInternal(
   for (unsigned i = 0; i < size; ++i)
   {
     Node a = (*assertionsToPreprocess)[i];
-    assertionsToPreprocess->replace(i, purifyNlTerms(a, cache, bcache, var_eq));
-    Trace("nl-ext-purify") << "Purify : " << a << " -> "
-                           << (*assertionsToPreprocess)[i] << "\n";
+    Node ap = purifyNlTerms(a, cache, bcache, var_eq);
+    if (a != ap)
+    {
+      assertionsToPreprocess->replace(i, ap);
+      Trace("nl-ext-purify")
+          << "Purify : " << a << " -> " << (*assertionsToPreprocess)[i] << "\n";
+    }
   }
   if (!var_eq.empty())
   {
     unsigned lastIndex = size - 1;
-    var_eq.insert(var_eq.begin(), (*assertionsToPreprocess)[lastIndex]);
-    assertionsToPreprocess->replace(
-        lastIndex, NodeManager::currentNM()->mkNode(kind::AND, var_eq));
+    Node veq = NodeManager::currentNM()->mkAnd(var_eq);
+    assertionsToPreprocess->conjoin(lastIndex, veq);
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
