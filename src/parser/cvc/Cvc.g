@@ -598,8 +598,6 @@ using namespace CVC4::parser;
 #define SOLVER PARSER_STATE->getSolver()
 #undef MK_TERM
 #define MK_TERM SOLVER->mkTerm
-#undef MK_SINGLETON
-#define MK_SINGLETON SOLVER->mkSingleton
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
 
 #define ENSURE_BV_SIZE(k, f)                                   \
@@ -2160,9 +2158,9 @@ simpleTerm[CVC4::api::Term& f]
     /* finite set literal */
   | LBRACE formula[f] { args.push_back(f); }
     ( COMMA formula[f] { args.push_back(f); } )* RBRACE
-    { f = MK_SINGLETON(args[0].getSort(), args[0]);
+    { f = SOLVER->mkSingleton(args[0].getSort(), args[0]);
       for(size_t i = 1; i < args.size(); ++i) {
-        f = MK_TERM(api::UNION, f, MK_SINGLETON(args[i].getSort(), args[i]));
+        f = MK_TERM(api::UNION, f, SOLVER->mkSingleton(args[i].getSort(), args[i]));
       }
     }
 
