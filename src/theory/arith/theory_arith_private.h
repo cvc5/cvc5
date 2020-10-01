@@ -461,7 +461,6 @@ private:
   void preRegisterTerm(TNode n);
   TrustNode expandDefinition(Node node);
 
-  bool needsCheckLastEffort();
   void propagate(Theory::Effort e);
   Node explain(TNode n);
 
