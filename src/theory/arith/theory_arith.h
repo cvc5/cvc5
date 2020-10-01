@@ -21,6 +21,7 @@
 #include "theory/arith/arith_state.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nonlinear_extension.h"
+#include "theory/arith/operator_elim.h"
 #include "theory/arith/theory_arith_private_forward.h"
 #include "theory/theory.h"
 
@@ -132,6 +133,8 @@ class TheoryArith : public Theory {
    * arithmetic.
    */
   std::unique_ptr<nl::NonlinearExtension> d_nonlinearExtension;
+  /** The operator elimination utility */
+  OperatorElim d_opElim;
 };/* class TheoryArith */
 
 }/* CVC4::theory::arith namespace */

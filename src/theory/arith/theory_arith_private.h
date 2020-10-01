@@ -50,7 +50,6 @@
 #include "theory/arith/linear_equality.h"
 #include "theory/arith/matrix.h"
 #include "theory/arith/normal_form.h"
-#include "theory/arith/operator_elim.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/proof_checker.h"
 #include "theory/arith/simplex.h"
@@ -426,10 +425,6 @@ private:
 
   Node axiomIteForTotalDivision(Node div_tot);
   Node axiomIteForTotalIntDivision(Node int_div_like);
-
-  // handle linear /, div, mod, and also is_int, to_int
-  TrustNode ppRewriteTerms(TNode atom);
-
  public:
   TheoryArithPrivate(TheoryArith& containing,
                      context::Context* c,
@@ -456,7 +451,6 @@ private:
    * Does non-context dependent setup for a node connected to a theory.
    */
   void preRegisterTerm(TNode n);
-  TrustNode expandDefinition(Node node);
 
   void propagate(Theory::Effort e);
   Node explain(TNode n);
@@ -482,7 +476,6 @@ private:
   void presolve();
   void notifyRestart();
   Theory::PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
-  TrustNode ppRewrite(TNode atom);
   void ppStaticLearn(TNode in, NodeBuilder<>& learned);
 
   std::string identify() const { return std::string("TheoryArith"); }
@@ -880,8 +873,6 @@ private:
 
   /** The theory rewriter for this theory. */
   ArithRewriter d_rewriter;
-  /** The operator elimination utility */
-  OperatorElim d_opElim;
 };/* class TheoryArithPrivate */
 
 }/* CVC4::theory::arith namespace */

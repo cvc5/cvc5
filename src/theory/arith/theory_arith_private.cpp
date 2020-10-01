@@ -1107,49 +1107,6 @@ Node TheoryArithPrivate::getModelValue(TNode term) {
   }
 }
 
-TrustNode TheoryArithPrivate::ppRewriteTerms(TNode n)
-{
-  if(Theory::theoryOf(n) != THEORY_ARITH) {
-    return TrustNode::null();
-  }
-  // Eliminate operators recursively. Notice we must do this here since other
-  // theories may generate lemmas that involve non-standard operators. For
-  // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may
-  // introduce non-standard arithmetic terms appearing in grammars.
-  // call eliminate operators
-  return d_opElim.eliminate(n);
-}
-
-TrustNode TheoryArithPrivate::ppRewrite(TNode atom)
-{
-  Debug("arith::preprocess") << "arith::preprocess() : " << atom << endl;
-
-  if (options::arithRewriteEq())
-  {
-    if (atom.getKind() == kind::EQUAL && atom[0].getType().isReal())
-    {
-      Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
-      Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
-      TrustNode tleq = ppRewriteTerms(leq);
-      TrustNode tgeq = ppRewriteTerms(geq);
-      if (!tleq.isNull())
-      {
-        leq = tleq.getNode();
-      }
-      if (!tgeq.isNull())
-      {
-        geq = tgeq.getNode();
-      }
-      Node rewritten = Rewriter::rewrite(leq.andNode(geq));
-      Debug("arith::preprocess")
-          << "arith::preprocess() : returning " << rewritten << endl;
-      // don't need to rewrite terms since rewritten is not a non-standard op
-      return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
-    }
-  }
-  return ppRewriteTerms(atom);
-}
-
 Theory::PPAssertStatus TheoryArithPrivate::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
   TimerStat::CodeTimer codeTimer(d_statistics.d_simplifyTimer);
   Debug("simplify") << "TheoryArithPrivate::solve(" << in << ")" << endl;
@@ -4685,12 +4642,6 @@ void TheoryArithPrivate::dumpUpdatedBoundsToRows(){
 const BoundsInfo& TheoryArithPrivate::boundsInfo(ArithVar basic) const{
   RowIndex ridx = d_tableau.basicToRowIndex(basic);
   return d_rowTracking[ridx];
-}
-
-TrustNode TheoryArithPrivate::expandDefinition(Node node)
-{
-  // call eliminate operators
-  return d_opElim.eliminate(node);
 }
 
 std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit, const ArithEntailmentCheckParameters& params, ArithEntailmentCheckSideEffects& out){
