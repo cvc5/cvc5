@@ -222,9 +222,6 @@ public:
   void equalsConstant(ConstraintCP eq);
   void equalsConstant(ConstraintCP lb, ConstraintCP ub);
 
-
-  void addSharedTerm(Node x);
-
  private:
   class Statistics {
   public:

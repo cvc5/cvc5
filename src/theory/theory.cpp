@@ -368,7 +368,7 @@ bool Theory::collectModelInfo(TheoryModel* m, const std::set<Node>& termSet)
 
 void Theory::computeRelevantTerms(std::set<Node>& termSet)
 {
-  // default, nothing
+  // by default, there are no additional relevant terms
 }
 
 bool Theory::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
@@ -556,25 +556,6 @@ eq::EqualityEngine* Theory::getEqualityEngine()
 {
   // get the assigned equality engine, which is a pointer stored in this class
   return d_equalityEngine;
-}
-
-bool Theory::usesCentralEqualityEngine() const
-{
-  return usesCentralEqualityEngine(d_id);
-}
-
-bool Theory::usesCentralEqualityEngine(TheoryId id)
-{
-  if (options::eeMode() == options::EqEngineMode::DISTRIBUTED)
-  {
-    return false;
-  }
-  else if (options::eeMode() == options::EqEngineMode::CENTRAL)
-  {
-    return true;
-  }
-  // test
-  return id == THEORY_UF; // || id==THEORY_DATATYPES;
 }
 
 }/* CVC4::theory namespace */
