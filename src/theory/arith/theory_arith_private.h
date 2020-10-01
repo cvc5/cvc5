@@ -652,7 +652,7 @@ private:
    * Handles the case splitting for check() for a new assertion.
    * Returns a conflict if one was found.
    * Returns Node::null if no conflict was found.
-   * 
+   *
    * @param assertion The assertion that was just popped from the fact queue
    * of TheoryArith and given to this class via preNotifyFact.
    */
