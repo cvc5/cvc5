@@ -44,9 +44,9 @@ class NormalForm {
     }
     else
     {
-      ElementsIterator it = elements.begin();
-      Node cur = nm->mkSingleton(it->getType(), *it);
       TypeNode elementType = setType.getSetElementType();
+      ElementsIterator it = elements.begin();
+      Node cur = nm->mkSingleton(elementType, *it);
       while (++it != elements.end())
       {
         Node singleton = nm->mkSingleton(elementType, *it);
