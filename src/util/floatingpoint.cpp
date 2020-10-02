@@ -695,6 +695,25 @@ FloatingPoint FloatingPoint::makeMaxSubnormal(const FloatingPointSize& size,
   return FloatingPoint(size, bvsign.concat(bvexp).concat(bvsig));
 }
 
+FloatingPoint FloatingPoint::makeMinNormal(const FloatingPointSize& size,
+                                           bool sign)
+{
+  BitVector bvsign = sign ? BitVector::mkOne(1) : BitVector::mkZero(1);
+  BitVector bvexp = BitVector::mkOne(size.packedExponentWidth());
+  BitVector bvsig = BitVector::mkZero(size.packedSignificandWidth());
+  return FloatingPoint(size, bvsign.concat(bvexp).concat(bvsig));
+}
+
+FloatingPoint FloatingPoint::makeMaxNormal(const FloatingPointSize& size,
+                                           bool sign)
+{
+  BitVector bvsign = sign ? BitVector::mkOne(1) : BitVector::mkZero(1);
+  BitVector bvexp =
+      BitVector::mkOnes(size.packedExponentWidth()).setBit(0, false);
+  BitVector bvsig = BitVector::mkOnes(size.packedSignificandWidth());
+  return FloatingPoint(size, bvsign.concat(bvexp).concat(bvsig));
+}
+
   /* Operations implemented using symfpu */
   FloatingPoint FloatingPoint::absolute (void) const {
 #ifdef CVC4_USE_SYMFPU

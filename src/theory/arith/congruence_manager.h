@@ -38,11 +38,6 @@
 
 namespace CVC4 {
 namespace theory {
-
-namespace quantifiers {
-class EqualityInference;
-}
-
 namespace arith {
 
 class ArithCongruenceManager {
@@ -196,7 +191,7 @@ public:
   void finishInit(eq::EqualityEngine* ee, eq::ProofEqEngine* pfee);
   //--------------------------------- end initialization
 
-  Node explain(TNode literal);
+  TrustNode explain(TNode literal);
   void explain(TNode lit, NodeBuilder<>& out);
 
   void addWatchedPair(ArithVar s, TNode x, TNode y);
@@ -243,6 +238,8 @@ public:
   } d_statistics;
 
 };/* class ArithCongruenceManager */
+
+std::vector<Node> andComponents(TNode an);
 
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
