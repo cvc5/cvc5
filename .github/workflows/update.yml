@@ -1,17 +1,14 @@
 name: Update Copyright Headers
 
-on: [pull_request, pull_request_target]
+on:
+  push:
+    branches-ignore: [master]
 
 jobs:
   update:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
-
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
