@@ -569,6 +569,14 @@ header = "options/arith_options.h"
   help       = "whether to use the cylindrical algebraic decomposition solver for non-linear arithmetic"
 
 [[option]]
+  name       = "nlCadUseInitial"
+  category   = "regular"
+  long       = "nl-cad-initial"
+  type       = "bool"
+  default    = "false"
+  help       = "whether to use the linear model as initial guess for the cylindrical algebraic decomposition solver"
+
+[[option]]
   name       = "nlICP"
   category   = "regular"
   long       = "nl-icp"

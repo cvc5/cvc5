@@ -1995,3 +1995,39 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   help       = "Enable SyGuS instantiation quantifiers module"
+
+[[option]]
+  name       = "sygusInstScope"
+  category   = "regular"
+  long       = "sygus-inst-scope=MODE"
+  type       = "SygusInstScope"
+  default    = "IN"
+  help       = "select scope of ground terms"
+  help_mode  = "scope for collecting ground terms for the grammar."
+[[option.mode.IN]]
+  name = "in"
+  help = "use ground terms inside given quantified formula only."
+[[option.mode.OUT]]
+  name = "out"
+  help = "use ground terms outside of quantified formulas only."
+[[option.mode.BOTH]]
+  name = "both"
+  help = "combines inside and outside."
+
+[[option]]
+  name       = "sygusInstTermSel"
+  category   = "regular"
+  long       = "sygus-inst-term-sel=MODE"
+  type       = "SygusInstTermSelMode"
+  default    = "MIN"
+  help       = "granularity for ground terms"
+  help_mode  = "Ground term selection modes."
+[[option.mode.MIN]]
+  name = "min"
+  help = "collect minimal ground terms only."
+[[option.mode.MAX]]
+  name = "max"
+  help = "collect maximal ground terms only."
+[[option.mode.BOTH]]
+  name = "both"
+  help = "combines minimal and maximal ."
