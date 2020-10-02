@@ -29,7 +29,6 @@ namespace CVC4 {
 namespace theory {
 namespace booleans {
 
-
 CircuitPropagator::CircuitPropagator(bool enableForward, bool enableBackward)
     : d_context(),
       d_propagationQueue(),
@@ -47,7 +46,7 @@ CircuitPropagator::CircuitPropagator(bool enableForward, bool enableBackward)
       d_epg(nullptr)
 {
 }
-  
+
 void CircuitPropagator::assertTrue(TNode assertion)
 {
   if (assertion.getKind() == kind::AND) {
@@ -419,16 +418,12 @@ bool CircuitPropagator::propagate() {
   return d_conflict;
 }
 
-
-void CircuitPropagator::setProofNodeManager(ProofNodeManager * pnm)
+void CircuitPropagator::setProofNodeManager(ProofNodeManager* pnm)
 {
   d_epg.reset(new EagerProofGenerator(pnm, &d_context));
 }
 
-bool CircuitPropagator::isProofEnabled() const
-{
-  return d_epg!=nullptr;
-}
+bool CircuitPropagator::isProofEnabled() const { return d_epg != nullptr; }
 
 }/* CVC4::theory::booleans namespace */
 }/* CVC4::theory namespace */

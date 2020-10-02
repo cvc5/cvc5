@@ -482,7 +482,8 @@ private:
 
   void presolve();
   void notifyRestart();
-  Theory::PPAssertStatus ppAssert(TNode in, TrustSubstitutionMap& outSubstitutions);
+  Theory::PPAssertStatus ppAssert(TNode in,
+                                  TrustSubstitutionMap& outSubstitutions);
   TrustNode ppRewrite(TNode atom);
   void ppStaticLearn(TNode in, NodeBuilder<>& learned);
 

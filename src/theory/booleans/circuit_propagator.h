@@ -28,10 +28,10 @@
 #include "context/cdo.h"
 #include "context/context.h"
 #include "expr/node.h"
-#include "theory/theory.h"
-#include "util/hash.h"
-#include "theory/trust_node.h"
 #include "theory/eager_proof_generator.h"
+#include "theory/theory.h"
+#include "theory/trust_node.h"
+#include "util/hash.h"
 
 namespace CVC4 {
 namespace theory {
@@ -130,7 +130,7 @@ class CircuitPropagator
     return false;
   }
   /** Set proof node manager */
-  void setProofNodeManager(ProofNodeManager * pnm);
+  void setProofNodeManager(ProofNodeManager* pnm);
 
  private:
   /** A context-notify object that clears out stale data. */
@@ -246,7 +246,7 @@ class CircuitPropagator
    * the children of "in".
    */
   void propagateBackward(TNode parent, bool assignment);
-  
+
   /** Are proofs enabled? */
   bool isProofEnabled() const;
 
@@ -298,7 +298,7 @@ class CircuitPropagator
 
   /* Does the current state require a call to finish()? */
   bool d_needsFinish;
-  
+
   /** Eager proof generator */
   std::unique_ptr<EagerProofGenerator> d_epg;
 

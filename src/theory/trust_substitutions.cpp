@@ -32,7 +32,7 @@ void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, ProofGenerator* pg)
   d_subs.addSubstitution(x, t);
   if (isProofEnabled())
   {
-    //d_subsPg->addRewriteStep(x, t, pg);
+    // d_subsPg->addRewriteStep(x, t, pg);
   }
 }
 

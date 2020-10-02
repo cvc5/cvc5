@@ -1165,7 +1165,9 @@ TrustNode TheoryArithPrivate::ppRewrite(TNode atom)
   return ppRewriteTerms(atom);
 }
 
-Theory::PPAssertStatus TheoryArithPrivate::ppAssert(TNode in, TrustSubstitutionMap& outSubstitutions) {
+Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
+    TNode in, TrustSubstitutionMap& outSubstitutions)
+{
   TimerStat::CodeTimer codeTimer(d_statistics.d_simplifyTimer);
   Debug("simplify") << "TheoryArithPrivate::solve(" << in << ")" << endl;
 

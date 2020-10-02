@@ -724,7 +724,8 @@ class Theory {
    * Given a literal, add the solved substitutions to the map, if any.
    * The method should return true if the literal can be safely removed.
    */
-  virtual PPAssertStatus ppAssert(TNode in, TrustSubstitutionMap& outSubstitutions);
+  virtual PPAssertStatus ppAssert(TNode in,
+                                  TrustSubstitutionMap& outSubstitutions);
 
   /**
    * Given an atom of the theory coming from the input formula, this

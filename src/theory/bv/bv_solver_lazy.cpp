@@ -439,8 +439,8 @@ void BVSolverLazy::propagate(Theory::Effort e)
   }
 }
 
-Theory::PPAssertStatus BVSolverLazy::ppAssert(TNode in,
-                                              TrustSubstitutionMap& outSubstitutions)
+Theory::PPAssertStatus BVSolverLazy::ppAssert(
+    TNode in, TrustSubstitutionMap& outSubstitutions)
 {
   switch (in.getKind())
   {

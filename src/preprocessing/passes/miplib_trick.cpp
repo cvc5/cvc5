@@ -22,8 +22,8 @@
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/booleans/circuit_propagator.h"
-#include "theory/trust_substitutions.h"
 #include "theory/theory_model.h"
+#include "theory/trust_substitutions.h"
 
 namespace CVC4 {
 namespace preprocessing {

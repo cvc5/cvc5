@@ -92,8 +92,8 @@ class BVSolverLazy : public BVSolver
 
   std::string identify() const override { return std::string("BVSolverLazy"); }
 
-  Theory::PPAssertStatus ppAssert(TNode in,
-                                  TrustSubstitutionMap& outSubstitutions) override;
+  Theory::PPAssertStatus ppAssert(
+      TNode in, TrustSubstitutionMap& outSubstitutions) override;
 
   TrustNode ppRewrite(TNode t) override;
 
