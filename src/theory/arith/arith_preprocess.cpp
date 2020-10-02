@@ -18,17 +18,16 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-ArithPreprocess::ArithPreprocess(ArithState& state, InferenceManager& im, ProofNodeManager* pnm, const LogicInfo& info) : d_im(im), d_opElim(pnm, info), d_reduced(state.getUserContext()){}
-bool ArithPreprocess::reduceAssertion(TNode atom)
+ArithPreprocess::ArithPreprocess(ArithState& state,
+                                 InferenceManager& im,
+                                 ProofNodeManager* pnm,
+                                 const LogicInfo& info)
+    : d_im(im), d_opElim(pnm, info), d_reduced(state.getUserContext())
 {
-  return false;
 }
-bool ArithPreprocess::isReduced(TNode atom) const
-{
-  return false;
-}
+bool ArithPreprocess::reduceAssertion(TNode atom) { return false; }
+bool ArithPreprocess::isReduced(TNode atom) const { return false; }
 
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
-
