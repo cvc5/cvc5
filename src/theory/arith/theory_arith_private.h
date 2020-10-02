@@ -91,9 +91,10 @@ private:
 
   TheoryArith& d_containing;
 
-  bool d_nlIncomplete;
-  // TODO A better would be:
-  //context::CDO<bool> d_nlIncomplete;
+  /**
+   * Whether we encountered non-linear arithmetic at any time during solving.
+   */
+  bool d_foundNl;
 
   BoundInfoMap d_rowTracking;
 
@@ -491,13 +492,13 @@ private:
   bool postCheck(Theory::Effort level);
   //--------------------------------- end standard check
   /**
-   * Is non-linear incomplete? This returns true if this solver ever encountered
+   * Found non-linear? This returns true if this solver ever encountered
    * any non-linear terms that were unhandled. Note that this class is not
    * responsible for handling non-linear arithmetic. If the owner of this
    * class does not handle non-linear arithmetic in another way, then
    * setIncomplete should be called on the output channel of TheoryArith.
    */
-  bool isNonlinearIncomplete() const;
+  bool foundNonlinear() const;
 
  private:
   /** The constant zero. */
@@ -686,10 +687,6 @@ private:
   inline TheoryId theoryOf(TNode x) const { return d_containing.theoryOf(x); }
   inline void debugPrintFacts() const { d_containing.debugPrintFacts(); }
   inline context::Context* getSatContext() const { return d_containing.getSatContext(); }
-  inline void setIncomplete() {
-    (d_containing.d_out)->setIncomplete();
-    d_nlIncomplete = true;
-  }
   void outputLemma(TNode lem);
   void outputConflict(TNode lit);
   void outputPropagate(TNode lit);

@@ -92,7 +92,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
                                        const LogicInfo& logicInfo,
                                        ProofNodeManager* pnm)
     : d_containing(containing),
-      d_nlIncomplete(false),
+      d_foundNl(false),
       d_rowTracking(),
       d_pnm(pnm),
       d_checker(),
@@ -1249,7 +1249,7 @@ void TheoryArithPrivate::setupVariableList(const VarList& vl){
     if(getLogicInfo().isLinear()){
       throw LogicException("A non-linear fact was asserted to arithmetic in a linear logic.");
     }
-    d_nlIncomplete = true;
+    d_foundNl = true;
 
     ++(d_statistics.d_statUserVariables);
     requestArithVar(vlNode, false, false);
@@ -1262,7 +1262,7 @@ void TheoryArithPrivate::setupVariableList(const VarList& vl){
            || vlNode.getKind() == kind::SINE || vlNode.getKind() == kind::COSINE
            || vlNode.getKind() == kind::TANGENT)
   {
-    d_nlIncomplete = true;
+    d_foundNl = true;
   }
 
   /* Note:
@@ -3600,9 +3600,9 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
   return emmittedConflictOrSplit;
 }
 
-bool TheoryArithPrivate::isNonlinearIncomplete() const
+bool TheoryArithPrivate::foundNonlinear() const
 {
-  return d_nlIncomplete;
+  return d_foundNl;
 }
 
 Node TheoryArithPrivate::branchIntegerVariable(ArithVar x) const {

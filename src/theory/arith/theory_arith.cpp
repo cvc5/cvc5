@@ -184,7 +184,7 @@ void TheoryArith::postCheck(Effort level)
     {
       d_nonlinearExtension->check(level);
     }
-    else if (d_internal->isNonlinearIncomplete())
+    else if (d_internal->foundNonlinear())
     {
       // set incomplete
       d_inferenceManager.setIncomplete();
