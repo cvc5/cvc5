@@ -29,9 +29,10 @@ public:
  void setUp() override
  {
    zero = BitVector(4);
-   one = zero.setBit(0);
+   one = zero.setBit(0, true);
    two = BitVector("0010", 2);
    negOne = BitVector(4, Integer(-1));
+   ones = BitVector::mkOnes(4);
  }
 
  void testStringConstructor()
@@ -76,16 +77,22 @@ public:
 
   void testSetGetBit()
   {
-    TS_ASSERT_EQUALS(one.setBit(1).setBit(2).setBit(3), negOne);
+    TS_ASSERT_EQUALS(one.setBit(1, true).setBit(2, true).setBit(3, true), ones);
+    TS_ASSERT_EQUALS(
+        ones.setBit(0, false).setBit(1, false).setBit(2, false).setBit(3,
+                                                                       false),
+        zero);
+    TS_ASSERT_EQUALS(ones.setBit(0, false).setBit(0, true), ones);
+    TS_ASSERT_EQUALS(ones.setBit(0, false), ~BitVector::mkOne(one.getSize()));
 
-    TS_ASSERT(negOne.isBitSet(3));
+    TS_ASSERT(ones.isBitSet(3));
     TS_ASSERT(!two.isBitSet(3));
 
     TS_ASSERT_EQUALS(one.getValue(), Integer(1));
     TS_ASSERT_EQUALS(zero.isPow2(), 0);
     TS_ASSERT_EQUALS(one.isPow2(), 1);
     TS_ASSERT_EQUALS(two.isPow2(), 2);
-    TS_ASSERT_EQUALS(negOne.isPow2(), 0);
+    TS_ASSERT_EQUALS(ones.isPow2(), 0);
   }
 
   void testConcatExtract()
@@ -177,6 +184,8 @@ public:
 
   void testStaticHelpers()
   {
+    TS_ASSERT_EQUALS(BitVector::mkZero(4), zero);
+    TS_ASSERT_EQUALS(BitVector::mkOne(4), one);
     TS_ASSERT_EQUALS(BitVector::mkOnes(4), negOne);
     TS_ASSERT_EQUALS(BitVector::mkMinSigned(4).toSignedInteger(), Integer(-8));
     TS_ASSERT_EQUALS(BitVector::mkMaxSigned(4).toSignedInteger(), Integer(7));
@@ -187,4 +196,5 @@ public:
   BitVector one;
   BitVector two;
   BitVector negOne;
+  BitVector ones;
 };

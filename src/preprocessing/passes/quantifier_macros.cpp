@@ -49,7 +49,7 @@ PreprocessingPassResult QuantifierMacros::applyInternal(
   bool success;
   do
   {
-    success = simplify(assertionsToPreprocess->ref(), true);
+    success = simplify(assertionsToPreprocess, true);
   } while (success);
   finalizeDefinitions();
   clearMaps();
@@ -67,7 +67,9 @@ void QuantifierMacros::clearMaps()
   d_ground_macros = false;
 }
 
-bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite ){
+bool QuantifierMacros::simplify(AssertionPipeline* ap, bool doRewrite)
+{
+  const std::vector<Node>& assertions = ap->ref();
   unsigned rmax =
       options::macrosQuantMode() == options::MacrosQuantMode::ALL ? 2 : 1;
   for( unsigned r=0; r<rmax; r++ ){
@@ -116,7 +118,7 @@ bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite
               }
             }
           }
-          assertions[i] = curr;
+          ap->replace(i, curr);
           retVal = true;
         }
       }
