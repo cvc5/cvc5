@@ -21,10 +21,12 @@
 
 #include "expr/kind.h"
 #include "expr/node_algorithm.h"
+#include "expr/proof_checker.h"
 #include "options/arrays_options.h"
 #include "options/smt_options.h"
 #include "smt/logic_exception.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/arrays/skolem_cache.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
@@ -78,6 +80,7 @@ TheoryArrays::TheoryArrays(context::Context* c,
       d_ppEqualityEngine(u, name + "theory::arrays::pp", true),
       d_ppFacts(u),
       d_state(c, u, valuation),
+      d_im(*this, d_state, pnm),
       d_literalsToPropagate(c),
       d_literalsToPropagateIndex(c, 0),
       d_isPreRegistered(c),
@@ -131,9 +134,10 @@ TheoryArrays::TheoryArrays(context::Context* c,
   {
     d_pchecker.registerTo(pc);
   }
-
-  // indicate we are using the default theory state object
+  // indicate we are using the default theory state object, and the arrays
+  // inference manager
   d_theoryState = &d_state;
+  d_inferManager = &d_im;
 }
 
 TheoryArrays::~TheoryArrays() {
@@ -758,10 +762,9 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
       {
         preRegisterTermInternal(ni);
       }
-
       // Apply RIntro1 Rule
-      d_equalityEngine->assertEquality(
-          ni.eqNode(v), true, d_true, theory::eq::MERGED_THROUGH_ROW1);
+      d_im.assertInference(
+          ni.eqNode(v), true, d_true, PfRule::ARRAYS_READ_OVER_WRITE_1);
 
       d_infoMap.addStore(node, node);
       d_infoMap.addInStore(a, node);
@@ -837,9 +840,7 @@ void TheoryArrays::explain(TNode literal, Node& explanation)
 
 TrustNode TheoryArrays::explain(TNode literal)
 {
-  Node explanation;
-  explain(literal, explanation);
-  return TrustNode::mkTrustPropExp(literal, explanation, nullptr);
+  return d_im.explainLit(literal);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1179,37 +1180,25 @@ void TheoryArrays::presolve()
 // MAIN SOLVER
 /////////////////////////////////////////////////////////////////////////////
 
-
-Node TheoryArrays::getSkolem(TNode ref, const string& name, const TypeNode& type, const string& comment, bool makeEqual)
+Node TheoryArrays::getSkolem(TNode ref)
 {
+  // the call to SkolemCache::getExtIndexSkolem should be deterministic, but use
+  // cache anyways for now
   Node skolem;
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it = d_skolemCache.find(ref);
   if (it == d_skolemCache.end()) {
-    NodeManager* nm = NodeManager::currentNM();
-    skolem = nm->mkSkolem(name, type, comment);
+    Assert(ref.getKind() == kind::NOT && ref[0].getKind() == kind::EQUAL);
+    // make the skolem using the skolem cache utility
+    skolem = SkolemCache::getExtIndexSkolem(ref);
     d_skolemCache[ref] = skolem;
   }
   else {
     skolem = (*it).second;
-    if (d_equalityEngine->hasTerm(ref) && d_equalityEngine->hasTerm(skolem)
-        && d_equalityEngine->areEqual(ref, skolem))
-    {
-      makeEqual = false;
-    }
   }
 
   Debug("pf::array") << "Pregistering a Skolem" << std::endl;
   preRegisterTermInternal(skolem);
   Debug("pf::array") << "Pregistering a Skolem DONE" << std::endl;
-
-  if (makeEqual) {
-    Node d = skolem.eqNode(ref);
-    Debug("arrays-model-based") << "Asserting skolem equality " << d << endl;
-    d_equalityEngine->assertEquality(d, true, d_true);
-    Assert(!d_state.isInConflict());
-    d_skolemAssertions.push_back(d);
-    d_skolemIndex = d_skolemIndex + 1;
-  }
 
   Debug("pf::array") << "getSkolem DONE" << std::endl;
   return skolem;
@@ -1294,7 +1283,8 @@ void TheoryArrays::postCheck(Effort level)
           weakEquivBuildCond(r2[0], r[1], conjunctions);
           lemma = mkAnd(conjunctions, true);
           // LSH FIXME: which kind of arrays lemma is this
-          Trace("arrays-lem") << "Arrays::addExtLemma " << lemma <<"\n";
+          Trace("arrays-lem")
+              << "Arrays::addExtLemma (weak-eq) " << lemma << "\n";
           d_out->lemma(lemma, LemmaProperty::SEND_ATOMS);
           d_readTableContext->pop();
           Trace("arrays") << spaces(getSatContext()->getLevel()) << "Arrays::check(): done" << endl;
@@ -1325,7 +1315,7 @@ void TheoryArrays::postCheck(Effort level)
 bool TheoryArrays::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
-  if (!isPrereg)
+  if (!isInternal && !isPrereg)
   {
     if (atom.getKind() == kind::EQUAL)
     {
@@ -1347,13 +1337,14 @@ bool TheoryArrays::preNotifyFact(
 void TheoryArrays::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
 {
   // if a disequality
-  if (atom.getKind() == kind::EQUAL && !pol)
+  if (atom.getKind() == kind::EQUAL && !pol && !isInternal)
   {
+    // Notice that this should be an external assertion, since we do not
+    // internally infer disequalities.
     // Apply ArrDiseq Rule if diseq is between arrays
     if (fact[0][0].getType().isArray() && !d_state.isInConflict())
     {
       NodeManager* nm = NodeManager::currentNM();
-      TypeNode indexType = fact[0][0].getType()[0];
 
       TNode k;
       // k is the skolem for this disequality.
@@ -1361,12 +1352,7 @@ void TheoryArrays::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
                           << std::endl;
 
       // If not in replay mode, generate a fresh skolem variable
-      k = getSkolem(
-          fact,
-          "array_ext_index",
-          indexType,
-          "an extensional lemma index variable from the theory of arrays",
-          false);
+      k = getSkolem(fact);
 
       Node ak = nm->mkNode(kind::SELECT, fact[0][0], k);
       Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
@@ -1377,19 +1363,17 @@ void TheoryArrays::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
           && d_equalityEngine->hasTerm(bk))
       {
         // Propagate witness disequality - might produce a conflict
-        d_permRef.push_back(lemma);
         Debug("pf::array") << "Asserting to the equality engine:" << std::endl
                            << "\teq = " << eq << std::endl
                            << "\treason = " << fact << std::endl;
-
-        d_equalityEngine->assertEquality(eq, false, fact);
+        d_im.assertInference(eq, false, fact, PfRule::ARRAYS_EXT);
         ++d_numProp;
       }
 
       // If this is the solution pass, generate the lemma. Otherwise, don't
       // generate it - as this is the lemma that we're reproving...
       Trace("arrays-lem") << "Arrays::addExtLemma " << lemma << "\n";
-      d_out->lemma(lemma);
+      d_im.arrayLemma(eq.notNode(), fact, PfRule::ARRAYS_EXT);
       ++d_numExt;
     }
     else
@@ -1669,7 +1653,8 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
     {
       preRegisterTermInternal(selConst);
     }
-    d_equalityEngine->assertEquality(selConst.eqNode(defValue), true, d_true);
+    d_im.assertInference(
+        selConst.eqNode(defValue), true, d_true, PfRule::ARRAYS_TRUST);
   }
 
   const CTNodeList* stores = d_infoMap.getStores(a);
@@ -1805,8 +1790,8 @@ void TheoryArrays::propagate(RowLemmaType lem)
       if (!bjExists) {
         preRegisterTermInternal(bj);
       }
-      d_equalityEngine->assertEquality(
-          aj_eq_bj, true, reason, theory::eq::MERGED_THROUGH_ROW);
+      d_im.assertInference(
+          aj_eq_bj, true, reason, PfRule::ARRAYS_READ_OVER_WRITE);
       ++d_numProp;
       return;
     }
@@ -1815,10 +1800,9 @@ void TheoryArrays::propagate(RowLemmaType lem)
       Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::queueRowLemma: propagating i = j ("<<i<<", "<<j<<")\n";
       Node reason =
           (aj.isConst() && bj.isConst()) ? d_true : aj.eqNode(bj).notNode();
-      Node i_eq_j = i.eqNode(j);
-      d_permRef.push_back(reason);
-      d_equalityEngine->assertEquality(
-          i_eq_j, true, reason, theory::eq::MERGED_THROUGH_ROW);
+      Node j_eq_i = j.eqNode(i);
+      d_im.assertInference(
+          j_eq_i, true, reason, PfRule::ARRAYS_READ_OVER_WRITE_CONTRA);
       ++d_numProp;
       return;
     }
@@ -1884,7 +1868,8 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
       {
         preRegisterTermInternal(aj2);
       }
-      d_equalityEngine->assertEquality(aj.eqNode(aj2), true, d_true);
+      d_im.assertInference(
+          aj.eqNode(aj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
     }
     Node bj2 = Rewriter::rewrite(bj);
     if (bj != bj2) {
@@ -1895,7 +1880,8 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
       {
         preRegisterTermInternal(bj2);
       }
-      d_equalityEngine->assertEquality(bj.eqNode(bj2), true, d_true);
+      d_im.assertInference(
+          bj.eqNode(bj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
     }
     if (aj2 == bj2) {
       return;
@@ -1913,22 +1899,24 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
       {
         preRegisterTermInternal(bj2);
       }
-      d_equalityEngine->assertEquality(eq1, true, d_true);
+      d_im.assertInference(eq1, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
       return;
     }
 
     Node eq2 = i.eqNode(j);
     Node eq2_r = Rewriter::rewrite(eq2);
     if (eq2_r == d_true) {
-      d_equalityEngine->assertEquality(eq2, true, d_true);
+      d_im.assertInference(eq2, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
       return;
     }
 
     Node lemma = nm->mkNode(kind::OR, eq2_r, eq1_r);
 
-    Trace("arrays-lem")<<"Arrays::addRowLemma adding "<<lemma<<"\n";
+    Trace("arrays-lem") << "Arrays::addRowLemma (1) adding " << lemma << "\n";
     d_RowAlreadyAdded.insert(lem);
-    d_out->lemma(lemma);
+    // use non-rewritten nodes
+    d_im.arrayLemma(
+        aj.eqNode(bj), eq2.notNode(), PfRule::ARRAYS_READ_OVER_WRITE);
     ++d_numRow;
   }
   else {
@@ -1997,7 +1985,8 @@ bool TheoryArrays::dischargeLemmas()
       {
         preRegisterTermInternal(aj2);
       }
-      d_equalityEngine->assertEquality(aj.eqNode(aj2), true, d_true);
+      d_im.assertInference(
+          aj.eqNode(aj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
     }
     Node bj2 = Rewriter::rewrite(bj);
     if (bj != bj2) {
@@ -2008,7 +1997,8 @@ bool TheoryArrays::dischargeLemmas()
       {
         preRegisterTermInternal(bj2);
       }
-      d_equalityEngine->assertEquality(bj.eqNode(bj2), true, d_true);
+      d_im.assertInference(
+          bj.eqNode(bj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
     }
     if (aj2 == bj2) {
       continue;
@@ -2026,22 +2016,24 @@ bool TheoryArrays::dischargeLemmas()
       {
         preRegisterTermInternal(bj2);
       }
-      d_equalityEngine->assertEquality(eq1, true, d_true);
+      d_im.assertInference(eq1, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
       continue;
     }
 
     Node eq2 = i.eqNode(j);
     Node eq2_r = Rewriter::rewrite(eq2);
     if (eq2_r == d_true) {
-      d_equalityEngine->assertEquality(eq2, true, d_true);
+      d_im.assertInference(eq2, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
       continue;
     }
 
     Node lem = nm->mkNode(kind::OR, eq2_r, eq1_r);
 
-    Trace("arrays-lem")<<"Arrays::addRowLemma adding "<<lem<<"\n";
+    Trace("arrays-lem") << "Arrays::addRowLemma (2) adding " << lem << "\n";
     d_RowAlreadyAdded.insert(l);
-    d_out->lemma(lem);
+    // use non-rewritten nodes, theory preprocessing will rewrite
+    d_im.arrayLemma(
+        aj.eqNode(bj), eq2.notNode(), PfRule::ARRAYS_READ_OVER_WRITE);
     ++d_numRow;
     lemmasAdded = true;
     if (options::arraysReduceSharing()) {
@@ -2053,14 +2045,13 @@ bool TheoryArrays::dischargeLemmas()
 
 void TheoryArrays::conflict(TNode a, TNode b) {
   Debug("pf::array") << "TheoryArrays::Conflict called" << std::endl;
-
-  explain(a.eqNode(b), d_conflictNode);
-
-  if (!d_inCheckModel) {
-    d_out->conflict(d_conflictNode);
+  if (d_inCheckModel)
+  {
+    // if in check model, don't send the conflict
+    d_state.notifyInConflict();
+    return;
   }
-
-  d_state.notifyInConflict();
+  d_im.conflictEqConstantMerge(a, b);
 }
 
 TheoryArrays::TheoryArraysDecisionStrategy::TheoryArraysDecisionStrategy(

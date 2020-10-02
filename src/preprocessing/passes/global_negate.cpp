@@ -27,7 +27,8 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
-Node GlobalNegate::simplify(std::vector<Node>& assertions, NodeManager* nm)
+Node GlobalNegate::simplify(const std::vector<Node>& assertions,
+                            NodeManager* nm)
 {
   Assert(!assertions.empty());
   Trace("cegqi-gn") << "Global negate : " << std::endl;

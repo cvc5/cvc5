@@ -439,6 +439,14 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
     ops.push_back(nm->mkConst(FloatingPoint::makeInf(fp_size, false)));
     ops.push_back(nm->mkConst(FloatingPoint::makeZero(fp_size, true)));
     ops.push_back(nm->mkConst(FloatingPoint::makeZero(fp_size, false)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMinSubnormal(fp_size, true)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMinSubnormal(fp_size, false)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMaxSubnormal(fp_size, true)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMaxSubnormal(fp_size, false)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMinNormal(fp_size, true)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMinNormal(fp_size, false)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMaxNormal(fp_size, true)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMaxNormal(fp_size, false)));
   }
 }
 
