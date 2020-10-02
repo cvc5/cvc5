@@ -1,8 +1,6 @@
 name: Update Copyright Headers
 
-on:
-  push:
-    branches-ignore: [master]
+on: pull_request
 
 jobs:
   update:
@@ -12,7 +10,8 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          ref: ${{ github.head_ref }}
+          #ref: ${{ github.head_ref }}
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - id: files
         uses: jitterbit/get-changed-files@v1
@@ -21,7 +20,15 @@ jobs:
         run: |
           contrib/update-copyright.pl ${{ steps.files.outputs.added_modified }}
 
-      - uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: 'Update copyright headers.'
+      - name: Commit
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add -u
+          git commit -m "Update copyright headers." || echo "No changes to commit"
+          git push origin || echo "No changes to commit"
 
+          #      - uses: stefanzweifel/git-auto-commit-action@v4
+          #        with:
+          #          commit_message: 'Update copyright headers.'
+          #
