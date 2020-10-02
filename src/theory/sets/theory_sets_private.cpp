@@ -1143,9 +1143,10 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
         const std::map<Node, Node>& emems = d_state.getMembers(eqc);
         if (!emems.empty())
         {
+          TypeNode elementType = eqc.getType().getSetElementType();
           for (const std::pair<const Node, Node>& itmm : emems)
           {
-            Node t = nm->mkSingleton(eqc.getType(), itmm.first);
+            Node t = nm->mkSingleton(elementType, itmm.first);
             els.push_back(t);
           }
         }

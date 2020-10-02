@@ -952,6 +952,10 @@ Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k) {
 
 Node NodeManager::mkSingleton(const TypeNode& t, const TNode n)
 {
+  Assert(n.getType().isSubtypeOf(t))
+      << "Invalid operands for mkSingleton. The type '" << n.getType()
+      << "' is not a subtype of '" << t << "' in node '" << n << "'"
+      << std::endl;
   Node op = mkConst(SingletonOp(t));
   Node singleton = mkNode(kind::SINGLETON, op, n);
   return singleton;
