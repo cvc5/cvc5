@@ -1218,7 +1218,7 @@ private:
 
   bool isProofEnabled() const { return d_pnm != nullptr; }
 
-private:
+ private:
   /** returns true if cons is now in conflict. */
   bool handleUnateProp(ConstraintP ant, ConstraintP cons);
 

@@ -375,7 +375,8 @@ Node ArithCongruenceManager::explainInternal(TNode internal){
   }
 }
 
-TrustNode ArithCongruenceManager::explain(TNode external){
+TrustNode ArithCongruenceManager::explain(TNode external)
+{
   Trace("arith-ee") << "Ask for explanation of " << external << std::endl;
   Node internal = externalToInternal(external);
   Trace("arith-ee") << "...internal = " << internal << std::endl;
@@ -384,7 +385,7 @@ TrustNode ArithCongruenceManager::explain(TNode external){
   {
     Node impl = NodeManager::currentNM()->mkNode(Kind::IMPLIES, exp, external);
     // For now, we just trust
-    auto pfOfImpl = d_pnm->mkNode(PfRule::INT_TRUST, {}, { impl });
+    auto pfOfImpl = d_pnm->mkNode(PfRule::INT_TRUST, {}, {impl});
     return d_pfGenExplain->mkTrustNode(impl, pfOfImpl);
   }
   return TrustNode::mkTrustPropExp(external, exp, nullptr);
