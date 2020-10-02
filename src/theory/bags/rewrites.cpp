@@ -54,6 +54,7 @@ const char* toString(Rewrite r)
     case Rewrite::SUBTRACT_RETURN_LEFT: return "SUBTRACT_RETURN_LEFT";
     case Rewrite::SUBTRACT_SAME: return "SUBTRACT_SAME";
     case Rewrite::UNION_DISJOINT_EMPTY_LEFT: return "UNION_DISJOINT_EMPTY_LEFT";
+    case Rewrite::TO_SINGLETON: return "TO_SINGLETON";
     case Rewrite::UNION_DISJOINT_EMPTY_RIGHT:
       return "UNION_DISJOINT_EMPTY_RIGHT";
     case Rewrite::UNION_DISJOINT_MAX_MIN: return "UNION_DISJOINT_MAX_MIN";
