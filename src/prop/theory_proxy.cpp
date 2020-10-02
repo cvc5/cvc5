@@ -2,10 +2,10 @@
 /*! \file theory_proxy.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Kshitij Bansal, Guy Katz
+ **   Tim King, Kshitij Bansal, Dejan Jovanovic
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -148,6 +148,8 @@ bool TheoryProxy::isDecisionEngineDone() {
 SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
   return d_decisionEngine->getPolarity(var);
 }
+
+CnfStream* TheoryProxy::getCnfStream() { return d_cnfStream; }
 
 }/* CVC4::prop namespace */
 }/* CVC4 namespace */

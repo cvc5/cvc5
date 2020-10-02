@@ -2,16 +2,18 @@
 /*! \file floatingpoint.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain, Haniel Barbosa, Mathias Preiner
+ **   Martin Brain, Aina Niemetz, Haniel Barbosa
  ** Copyright (c) 2013  University of Oxford
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief [[ Implementations of the utility functions for working with floating point theories. ]]
+ ** \brief A floating-point value.
  **
+ ** This file contains the data structures used by the constant and parametric
+ ** types of the floating point theory.
  **/
 
 #include "util/floatingpoint.h"
@@ -442,17 +444,17 @@ rm traits::RTZ(void) { return ::CVC4::roundTowardZero; };
 
 void traits::precondition(const prop &p)
 {
-  AlwaysAssert(p);
+  Assert(p);
   return;
 }
 void traits::postcondition(const prop &p)
 {
-  AlwaysAssert(p);
+  Assert(p);
   return;
 }
 void traits::invariant(const prop &p)
 {
-  AlwaysAssert(p);
+  Assert(p);
   return;
 }
 }
@@ -475,10 +477,21 @@ FloatingPoint::FloatingPoint(unsigned e, unsigned s, const BitVector &bv)
 {
 }
 
+FloatingPoint::FloatingPoint(const FloatingPointSize& size, const BitVector& bv)
+    :
+#ifdef CVC4_USE_SYMFPU
+      fpl(symfpu::unpack<symfpuLiteral::traits>(size, bv)),
+#else
+      fpl(size.exponent(), size.significand(), 0.0),
+#endif
+      t(size)
+{
+}
+
 static FloatingPointLiteral constructorHelperBitVector(
-    const FloatingPointSize &ct,
-    const RoundingMode &rm,
-    const BitVector &bv,
+    const FloatingPointSize& size,
+    const RoundingMode& rm,
+    const BitVector& bv,
     bool signedBV)
 {
 #ifdef CVC4_USE_SYMFPU
@@ -486,7 +499,7 @@ static FloatingPointLiteral constructorHelperBitVector(
   {
     return FloatingPointLiteral(
         symfpu::convertSBVToFloat<symfpuLiteral::traits>(
-            symfpuLiteral::fpt(ct),
+            symfpuLiteral::fpt(size),
             symfpuLiteral::rm(rm),
             symfpuLiteral::sbv(bv)));
   }
@@ -494,7 +507,7 @@ static FloatingPointLiteral constructorHelperBitVector(
   {
     return FloatingPointLiteral(
         symfpu::convertUBVToFloat<symfpuLiteral::traits>(
-            symfpuLiteral::fpt(ct),
+            symfpuLiteral::fpt(size),
             symfpuLiteral::rm(rm),
             symfpuLiteral::ubv(bv)));
   }
@@ -502,21 +515,27 @@ static FloatingPointLiteral constructorHelperBitVector(
   return FloatingPointLiteral(2, 2, 0.0);
 #endif
   Unreachable() << "Constructor helper broken";
-  }
-  
-  FloatingPoint::FloatingPoint (const FloatingPointSize &ct, const RoundingMode &rm, const BitVector &bv, bool signedBV) :
-    fpl(constructorHelperBitVector(ct, rm, bv, signedBV)),
-    t(ct) {}
+}
 
-  
-  static FloatingPointLiteral constructorHelperRational (const FloatingPointSize &ct, const RoundingMode &rm, const Rational &ri) {
-    Rational r(ri);
-    Rational two(2,1);
-    
-    if (r.isZero()) {
+FloatingPoint::FloatingPoint(const FloatingPointSize& size,
+                             const RoundingMode& rm,
+                             const BitVector& bv,
+                             bool signedBV)
+    : fpl(constructorHelperBitVector(size, rm, bv, signedBV)), t(size)
+{
+}
+
+static FloatingPointLiteral constructorHelperRational(
+    const FloatingPointSize& size, const RoundingMode& rm, const Rational& ri)
+{
+  Rational r(ri);
+  Rational two(2, 1);
+
+  if (r.isZero())
+  {
 #ifdef CVC4_USE_SYMFPU
-      return FloatingPointLiteral::makeZero(
-          ct, false);  // In keeping with the SMT-LIB standard
+    return FloatingPointLiteral::makeZero(
+        size, false);  // In keeping with the SMT-LIB standard
 #else
       return FloatingPointLiteral(2,2,0.0);
 #endif
@@ -572,10 +591,8 @@ static FloatingPointLiteral constructorHelperBitVector(
 
       BitVector exactExp(expBits, exp);
 
-      
-      
       // Compute the significand.
-      unsigned sigBits = ct.significandWidth() + 2;  // guard and sticky bits
+      unsigned sigBits = size.significandWidth() + 2;  // guard and sticky bits
       BitVector sig(sigBits, 0U);
       BitVector one(sigBits, 1U);
       Rational workingSig(0,1);
@@ -614,47 +631,88 @@ static FloatingPointLiteral constructorHelperBitVector(
 
       // Then cast...
       FloatingPointLiteral rounded(
-          symfpu::convertFloatToFloat(exactFormat, ct, rm, exactFloat));
+          symfpu::convertFloatToFloat(exactFormat, size, rm, exactFloat));
       return rounded;
 #else
       Unreachable() << "no concrete implementation of FloatingPointLiteral";
 #endif
     }
     Unreachable() << "Constructor helper broken";
-  }
-  
-  FloatingPoint::FloatingPoint (const FloatingPointSize &ct, const RoundingMode &rm, const Rational &r) :
-    fpl(constructorHelperRational(ct, rm, r)),
-    t(ct) {}
+}
 
-  
-  FloatingPoint FloatingPoint::makeNaN (const FloatingPointSize &t) {
+FloatingPoint::FloatingPoint(const FloatingPointSize& size,
+                             const RoundingMode& rm,
+                             const Rational& r)
+    : fpl(constructorHelperRational(size, rm, r)), t(size)
+{
+}
+
+FloatingPoint FloatingPoint::makeNaN(const FloatingPointSize& size)
+{
 #ifdef CVC4_USE_SYMFPU
-    return FloatingPoint(
-        t, symfpu::unpackedFloat<symfpuLiteral::traits>::makeNaN(t));
+  return FloatingPoint(
+      size, symfpu::unpackedFloat<symfpuLiteral::traits>::makeNaN(size));
 #else
-    return FloatingPoint(2, 2, BitVector(4U,0U));
+  return FloatingPoint(2, 2, BitVector(4U, 0U));
 #endif
-  }
+}
 
-  FloatingPoint FloatingPoint::makeInf (const FloatingPointSize &t, bool sign) {
+FloatingPoint FloatingPoint::makeInf(const FloatingPointSize& size, bool sign)
+{
 #ifdef CVC4_USE_SYMFPU
-    return FloatingPoint(
-        t, symfpu::unpackedFloat<symfpuLiteral::traits>::makeInf(t, sign));
+  return FloatingPoint(
+      size, symfpu::unpackedFloat<symfpuLiteral::traits>::makeInf(size, sign));
 #else
-    return FloatingPoint(2, 2, BitVector(4U,0U));
+  return FloatingPoint(2, 2, BitVector(4U, 0U));
 #endif
-  }
+}
 
-  FloatingPoint FloatingPoint::makeZero (const FloatingPointSize &t, bool sign) {
+FloatingPoint FloatingPoint::makeZero(const FloatingPointSize& size, bool sign)
+{
 #ifdef CVC4_USE_SYMFPU
-    return FloatingPoint(
-        t, symfpu::unpackedFloat<symfpuLiteral::traits>::makeZero(t, sign));
+  return FloatingPoint(
+      size, symfpu::unpackedFloat<symfpuLiteral::traits>::makeZero(size, sign));
 #else
-    return FloatingPoint(2, 2, BitVector(4U,0U));
+  return FloatingPoint(2, 2, BitVector(4U, 0U));
 #endif
-  }
+}
 
+FloatingPoint FloatingPoint::makeMinSubnormal(const FloatingPointSize& size,
+                                              bool sign)
+{
+  BitVector bvsign = sign ? BitVector::mkOne(1) : BitVector::mkZero(1);
+  BitVector bvexp = BitVector::mkZero(size.packedExponentWidth());
+  BitVector bvsig = BitVector::mkOne(size.packedSignificandWidth());
+  return FloatingPoint(size, bvsign.concat(bvexp).concat(bvsig));
+}
+
+FloatingPoint FloatingPoint::makeMaxSubnormal(const FloatingPointSize& size,
+                                              bool sign)
+{
+  BitVector bvsign = sign ? BitVector::mkOne(1) : BitVector::mkZero(1);
+  BitVector bvexp = BitVector::mkZero(size.packedExponentWidth());
+  BitVector bvsig = BitVector::mkOnes(size.packedSignificandWidth());
+  return FloatingPoint(size, bvsign.concat(bvexp).concat(bvsig));
+}
+
+FloatingPoint FloatingPoint::makeMinNormal(const FloatingPointSize& size,
+                                           bool sign)
+{
+  BitVector bvsign = sign ? BitVector::mkOne(1) : BitVector::mkZero(1);
+  BitVector bvexp = BitVector::mkOne(size.packedExponentWidth());
+  BitVector bvsig = BitVector::mkZero(size.packedSignificandWidth());
+  return FloatingPoint(size, bvsign.concat(bvexp).concat(bvsig));
+}
+
+FloatingPoint FloatingPoint::makeMaxNormal(const FloatingPointSize& size,
+                                           bool sign)
+{
+  BitVector bvsign = sign ? BitVector::mkOne(1) : BitVector::mkZero(1);
+  BitVector bvexp =
+      BitVector::mkOnes(size.packedExponentWidth()).setBit(0, false);
+  BitVector bvsig = BitVector::mkOnes(size.packedSignificandWidth());
+  return FloatingPoint(size, bvsign.concat(bvexp).concat(bvsig));
+}
 
   /* Operations implemented using symfpu */
   FloatingPoint FloatingPoint::absolute (void) const {

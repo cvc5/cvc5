@@ -2,10 +2,10 @@
 /*! \file congruence_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Dejan Jovanovic, Paul Meng
+ **   Tim King, Andrew Reynolds, Dejan Jovanovic
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -29,10 +29,12 @@ namespace arith {
 
 ArithCongruenceManager::ArithCongruenceManager(
     context::Context* c,
+    context::UserContext* u,
     ConstraintDatabase& cd,
     SetupLiteralCallBack setup,
     const ArithVariables& avars,
-    RaiseEqualityEngineConflict raiseConflict)
+    RaiseEqualityEngineConflict raiseConflict,
+    ProofNodeManager* pnm)
     : d_inConflict(c),
       d_raiseConflict(raiseConflict),
       d_notify(*this),
@@ -42,7 +44,15 @@ ArithCongruenceManager::ArithCongruenceManager(
       d_constraintDatabase(cd),
       d_setupLiteral(setup),
       d_avariables(avars),
-      d_ee(nullptr)
+      d_ee(nullptr),
+      d_satContext(c),
+      d_userContext(u),
+      d_pnm(pnm),
+      d_pfGenEe(
+          new EagerProofGenerator(pnm, c, "ArithCongruenceManager::pfGenEe")),
+      d_pfGenExplain(new EagerProofGenerator(
+          pnm, u, "ArithCongruenceManager::pfGenExplain")),
+      d_pfee(nullptr)
 {
 }
 
@@ -55,7 +65,8 @@ bool ArithCongruenceManager::needsEqualityEngine(EeSetupInfo& esi)
   return true;
 }
 
-void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee)
+void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee,
+                                        eq::ProofEqEngine* pfee)
 {
   Assert(ee != nullptr);
   d_ee = ee;
@@ -63,6 +74,9 @@ void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee)
   d_ee->addFunctionKind(kind::EXPONENTIAL);
   d_ee->addFunctionKind(kind::SINE);
   d_ee->addFunctionKind(kind::IAND);
+  // have proof equality engine only if proofs are enabled
+  Assert(isProofEnabled() == (pfee != nullptr));
+  d_pfee = pfee;
 }
 
 ArithCongruenceManager::Statistics::Statistics():
@@ -361,11 +375,20 @@ Node ArithCongruenceManager::explainInternal(TNode internal){
   }
 }
 
-Node ArithCongruenceManager::explain(TNode external){
+TrustNode ArithCongruenceManager::explain(TNode external)
+{
   Trace("arith-ee") << "Ask for explanation of " << external << std::endl;
   Node internal = externalToInternal(external);
   Trace("arith-ee") << "...internal = " << internal << std::endl;
-  return explainInternal(internal);
+  Node exp = explainInternal(internal);
+  if (isProofEnabled())
+  {
+    Node impl = NodeManager::currentNM()->mkNode(Kind::IMPLIES, exp, external);
+    // For now, we just trust
+    auto pfOfImpl = d_pnm->mkNode(PfRule::INT_TRUST, {}, {impl});
+    return d_pfGenExplain->mkTrustNode(impl, pfOfImpl);
+  }
+  return TrustNode::mkTrustPropExp(external, exp, nullptr);
 }
 
 void ArithCongruenceManager::explain(TNode external, NodeBuilder<>& out){
@@ -456,6 +479,25 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
 
 void ArithCongruenceManager::addSharedTerm(Node x){
   d_ee->addTriggerTerm(x, THEORY_ARITH);
+}
+
+bool ArithCongruenceManager::isProofEnabled() const { return d_pnm != nullptr; }
+
+std::vector<Node> andComponents(TNode an)
+{
+  auto nm = NodeManager::currentNM();
+  if (an == nm->mkConst(true))
+  {
+    return {};
+  }
+  else if (an.getKind() != Kind::AND)
+  {
+    return {an};
+  }
+  std::vector<Node> a{};
+  a.reserve(an.getNumChildren());
+  a.insert(a.end(), an.begin(), an.end());
+  return a;
 }
 
 }/* CVC4::theory::arith namespace */

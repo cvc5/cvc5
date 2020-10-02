@@ -5,7 +5,7 @@
  **   Yoni Zohar, Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -64,7 +64,17 @@ class QuantifierMacros : public PreprocessingPass
                        bool reqComplete);
   void addMacro(Node op, Node n, std::vector<Node>& opc);
   void debugMacroDefinition(Node oo, Node n);
-  bool simplify(std::vector<Node>& assertions, bool doRewrite = false);
+  /**
+   * This applies macro elimination to the given pipeline, which discovers
+   * whether there are any quantified formulas corresponding to macros.
+   *
+   * @param ap The pipeline to apply macros to.
+   * @param doRewrite Whether we also wish to rewrite the assertions based on
+   * the discovered macro definitions.
+   * @return Whether new definitions were inferred and we rewrote the assertions
+   * based on them.
+   */
+  bool simplify(AssertionPipeline* ap, bool doRewrite = false);
   Node simplify(Node n);
   void finalizeDefinitions();
   void clearMaps();

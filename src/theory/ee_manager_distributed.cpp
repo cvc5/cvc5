@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -15,13 +15,15 @@
 #include "theory/ee_manager_distributed.h"
 
 #include "theory/quantifiers_engine.h"
+#include "theory/shared_solver.h"
 #include "theory/theory_engine.h"
 
 namespace CVC4 {
 namespace theory {
 
-EqEngineManagerDistributed::EqEngineManagerDistributed(TheoryEngine& te)
-    : EqEngineManager(te), d_masterEENotify(nullptr)
+EqEngineManagerDistributed::EqEngineManagerDistributed(TheoryEngine& te,
+                                                       SharedSolver& shs)
+    : EqEngineManager(te, shs), d_masterEENotify(nullptr)
 {
 }
 
@@ -32,6 +34,18 @@ EqEngineManagerDistributed::~EqEngineManagerDistributed()
 void EqEngineManagerDistributed::initializeTheories()
 {
   context::Context* c = d_te.getSatContext();
+  // initialize the shared solver
+  EeSetupInfo esis;
+  if (d_sharedSolver.needsEqualityEngine(esis))
+  {
+    // allocate an equality engine for the shared terms database
+    d_stbEqualityEngine.reset(allocateEqualityEngine(esis, c));
+    d_sharedSolver.setEqualityEngine(d_stbEqualityEngine.get());
+  }
+  else
+  {
+    Unhandled() << "Expected shared solver to use equality engine";
+  }
 
   // allocate equality engines per theory
   for (TheoryId theoryId = theory::THEORY_FIRST;

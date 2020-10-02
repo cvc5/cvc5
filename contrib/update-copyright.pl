@@ -24,7 +24,7 @@
 # .deps, etc.)
 #
 # It ignores any file not ending with one of:
-#   .c .cc .cpp .C .h .hh .hpp .H .y .yy .ypp .Y .l .ll .lpp .L .g
+#   .c .cc .cpp .h .hh .hpp .g .py .cmake .cmake.in CMakeLists.txt
 #   [ or those with ".in" also suffixed, e.g., .cpp.in ]
 # (so, this includes emacs ~-backups, CVS detritus, etc.)
 #
@@ -37,7 +37,11 @@ my $excluded_directories = '^(CVS|generated)$';
 my $excluded_paths = '^(';
 # note: first excluded path regexp must not start with a '|'
 # different license
-$excluded_paths .= 'src/util/channel.h';
+$excluded_paths .= 'cmake/CodeCoverage.cmake';
+$excluded_paths .= '|cmake/FindCython.cmake';
+$excluded_paths .= '|cmake/FindPythonExtensions.cmake';
+$excluded_paths .= '|cmake/UseCython.cmake';
+$excluded_paths .= '|cmake/targetLinkLibrariesWithDynamicLookup.cmake';
 # minisat license
 $excluded_paths .= '|src/prop/(bv)?minisat/core/.*';
 $excluded_paths .= '|src/prop/(bv)?minisat/mtl/.*';
@@ -52,10 +56,25 @@ my $years = '2009-2020';
 my $standard_template = <<EOF;
  ** This file is part of the CVC4 project.
  ** Copyright (c) $years by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\\endverbatim
+ **
 EOF
+
+my $doc_template = <<EOF;
+ ** \\brief [[ Add one-line brief description here ]]
+ **
+ ** [[ Add lengthier description here ]]
+ ** \\todo document this file
+EOF
+
+my $standard_template_end = " **/\n";
+
+my $standard_template_hash = $standard_template;
+$standard_template_hash =~ s/ \*\*/\#\#/g;
+$standard_template_hash =~ s/\\endverbatim//;
+
 
 ## end config ##
 
@@ -95,6 +114,8 @@ comments, but this isn't guaranteed.  You should run this in a git working tree
 and run "git diff" after to ensure everything was correctly rewritten.
 
 The directories in which to search for and change sources is:
+  $pwd/CMakeLists.txt
+  $pwd/cmake
   $pwd/src
   $pwd/examples
   $pwd/test
@@ -105,9 +126,11 @@ EOF
   $_ = <STDIN>; chomp;
   die 'aborting operation' if !( $_ eq 'y' || $_ eq 'yes' || $_ eq 'Y' || $_ eq 'YES' );
 
-  $searchdirs[0] = 'src';
-  $searchdirs[1] = 'examples';
-  $searchdirs[2] = 'test';
+  $searchdirs[0] = 'CMakeLists.txt';
+  $searchdirs[1] = 'cmake';
+  $searchdirs[2] = 'src';
+  $searchdirs[3] = 'examples';
+  $searchdirs[4] = 'test';
 } else {
   @searchdirs = @ARGV;
 }
@@ -119,12 +142,12 @@ while($#searchdirs >= 0) {
   $dir =~ s,\/$,,;              # remove trailing slash from directory
   my $mode = (stat($dir))[2] || warn "file or directory \`$dir' does not exist!";
   my $is_directory = S_ISDIR($mode);
-  if($is_directory) {
+  if ($is_directory) {
     recurse($dir);
   } else {
-    if($dir =~ m,^(.*)\/([^/]*)$,) {
-      my($dir, $file) = ($1, $2);
-      if($dir eq "") {
+    if ($dir =~ m,^(.*)\/([^/]*)$,) {
+      my ($dir, $file) = ($1, $2);
+      if ($dir eq "") {
         $dir = "/";
       }
       handleFile($dir, $file);
@@ -134,12 +157,44 @@ while($#searchdirs >= 0) {
   }
 }
 
+sub reqHashPrefix {
+  my ($file) = @_;
+  return ($file =~ /\.(cmake|py)(\.in)?$/ or $file =~ /CMakeLists\.txt/);
+}
+
+sub printHeader {
+  my ($OUT, $file) = @_;
+  if (reqHashPrefix($file)) {
+    print $OUT "#####################\n";
+    print $OUT "## $file\n";
+  } elsif ($file =~ /\.g$/) {
+    # avoid javadoc-style comment here; antlr complains
+    print $OUT "/* *******************                                                        */\n";
+    print $OUT "/*! \\file $file\n";
+  } else {
+    print $OUT "/*********************                                                        */\n";
+    print $OUT "/*! \\file $file\n";
+  }
+}
+
+sub printTopContrib {
+  my ($OUT, $file, $authors) = @_;
+  my $comment_style = " **";
+  if (reqHashPrefix($file)) {
+    $comment_style = "##";
+  } else {
+    print $OUT "$comment_style \\verbatim\n";
+  }
+  print $OUT "$comment_style Top contributors (to current version):\n";
+  print $OUT "$comment_style   $authors\n";
+}
+
 sub handleFile {
   my ($srcdir, $file) = @_;
-  return if !($file =~ /\.(c|cc|cpp|C|h|hh|hpp|H|y|yy|ypp|Y|l|ll|lpp|L|g|java)(\.in)?$/);
+  return if !($file =~ /\.(c|cc|cpp|h|hh|hpp|g|java)(\.in)?$/ or reqHashPrefix($file));
   return if ($srcdir.'/'.$file) =~ /$excluded_paths/;
   return if $modonly && `git status -s "$srcdir/$file" 2>/dev/null` !~ /^(M|.M)/;
-  print "$srcdir/$file...";
+  print "$srcdir/$file... ";
   my $infile = $srcdir.'/'.$file;
   my $outfile = $srcdir.'/#'.$file.'.tmp';
   open(my $IN, $infile) || die "error opening $infile for reading";
@@ -147,93 +202,66 @@ sub handleFile {
   open(my $AUTHOR, "$dir/get-authors " . $infile . '|');
   my $authors = <$AUTHOR>; chomp $authors;
   close $AUTHOR;
-  $_ = <$IN>;
-  if(m,^(%\{)?/\*(\*| )\*\*\*,) {
+
+  # Read file into array
+  my @lines = <$IN>;
+  close $IN;
+
+  # Check if file contains a shebang and print it as first line.
+  if ($lines[0] =~ /^\#!/) {
+    print $OUT $lines[0];
+    shift @lines;
+  }
+
+  printHeader($OUT, $file);
+  printTopContrib($OUT, $file, $authors);
+
+  my $adding = 0;
+  # Copyright header already exists
+  if ($lines[0] =~ /^(%\{)?\/\*(\*| )\*{19}/ or $lines[0] =~ /^\#{21}$/) {
     print "updating\n";
-    if($file =~ /\.(y|yy|ypp|Y)$/) {
-      print $OUT "%{/*******************                                                        */\n";
-      print $OUT "/** $file\n";
-    } elsif($file =~ /\.g$/) {
-      # avoid javadoc-style comment here; antlr complains
-      print $OUT "/* *******************                                                        */\n";
-      print $OUT "/*! \\file $file\n";
-    } else {
-      print $OUT "/*********************                                                        */\n";
-      print $OUT "/*! \\file $file\n";
-    }
-    print $OUT " ** \\verbatim\n";
-    print $OUT " ** Top contributors (to current version):\n";
-    print $OUT " **   $authors\n";
-    my $comment_stub = "";
-    while(my $line = <$IN>) {
+
+    # Skip lines until copyright header end and preserve copyright of non CVC4
+    # authors.
+    my $found_header_end = 0;
+    while (my $line = shift @lines) {
+      # Check if someone else holds this copyright and keep it.
       if($line =~ /\b[Cc]opyright\b/ && $line !~ /\bby the authors listed in the file AUTHORS\b/) {
-        # someone else holds this copyright
         print $OUT $line;
       }
-      last if $line =~ /^ \*\*\s*$/;
-      if($line =~ /\*\//) {
-        $comment_stub = " ** [[ Add lengthier description here ]]\n\
- ** \\todo document this file\n\
-$line";
+      # Reached end of copyright header section
+      if ($line =~ /^ \*\*\s*$/ or $line =~ /^\#\#$/) {
+        $found_header_end = 1;
         last;
       }
     }
-    print $OUT $standard_template;
-    print $OUT " **\n";
-    if($comment_stub) {
-      print $OUT $comment_stub;
+    if (!$found_header_end) {
+      die "error: did not find end of copyright header secion (** or #)";
     }
+  # No header found
   } else {
-    my $line = $_;
     print "adding\n";
-    if($file =~ /\.(y|yy|ypp|Y)$/) {
-      print $OUT "%{/*******************                                                        */\n";
-      print $OUT "/*! \\file $file\n";
-    } elsif($file =~ /\.g$/) {
-      # avoid javadoc-style comment here; antlr complains
-      print $OUT "/* *******************                                                        */\n";
-      print $OUT "/*! \\file $file\n";
-    } else {
-      print $OUT "/*********************                                                        */\n";
-      print $OUT "/*! \\file $file\n";
-    }
-    print $OUT " ** \\verbatim\n";
-    print $OUT " ** Top contributors (to current version):\n";
-    print $OUT " **   $authors\n";
+    $adding = 1;
+  }
+  if (reqHashPrefix($file)) {
+    print $OUT $standard_template_hash;
+  } else {
     print $OUT $standard_template;
-    print $OUT " **\n";
-    print $OUT " ** \\brief [[ Add one-line brief description here ]]\n";
-    print $OUT " **\n";
-    print $OUT " ** [[ Add lengthier description here ]]\n";
-    print $OUT " ** \\todo document this file\n";
-    print $OUT " **/\n\n";
-    print $OUT $line;
-    if($file =~ /\.(y|yy|ypp|Y)$/) {
-      while(my $line = <$IN>) {
-        chomp $line;
-        if($line =~ '\s*%\{(.*)') {
-          print $OUT "$1\n";
-          last;
-        }
-        # just in case something's weird with the file ?
-        if(!($line =~ '\s*')) {
-          print $OUT "$line\n";
-          last;
-        }
-      }
+    if ($adding) {
+      print $OUT $doc_template;
+      print $OUT $standard_template_end;
     }
   }
-  while(my $line = <$IN>) {
-    print $OUT $line;
+  # Print remaining file
+  foreach (@lines) {
+    print $OUT $_;
   }
-  close $IN;
   close $OUT;
   rename($outfile, $infile) || die "can't rename working file \`$outfile' to \`$infile'";
 }
 
 sub recurse {
   my ($srcdir) = @_;
-  print "in dir $srcdir\n";
   opendir(my $DIR, $srcdir);
   while(my $file = readdir $DIR) {
     next if !($file =~ /^[a-zA-Z]/);

@@ -1,3 +1,13 @@
+#####################
+## CMakeLists.txt
+## Top contributors (to current version):
+##   Mathias Preiner, Aina Niemetz, Andrew Reynolds
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
 libcvc4_add_sources(
   array.h
   array_store_all.cpp
@@ -11,6 +21,8 @@ libcvc4_add_sources(
   buffered_proof_generator.h
   emptyset.cpp
   emptyset.h
+  emptybag.cpp
+  emptybag.h
   expr_iomanip.cpp
   expr_iomanip.h
   expr_manager_scope.h
@@ -63,6 +75,8 @@ libcvc4_add_sources(
   skolem_manager.h
   symbol_table.cpp
   symbol_table.h
+  tconv_seq_proof_generator.cpp
+  tconv_seq_proof_generator.h
   term_canonize.cpp
   term_canonize.h
   term_context.cpp
