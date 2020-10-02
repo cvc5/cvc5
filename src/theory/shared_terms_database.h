@@ -151,6 +151,13 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   void checkForConflict();
 
  public:
+  /**
+   * @param theoryEngine The parent theory engine
+   * @param context The SAT context
+   * @param userContext The user context
+   * @param pnm The proof node manager to use, which is non-null if proofs
+   * are enabled.
+   */
   SharedTermsDatabase(TheoryEngine* theoryEngine,
                       context::Context* context,
                       context::UserContext* userContext,

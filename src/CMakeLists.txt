@@ -398,7 +398,6 @@ libcvc4_add_sources(
   theory/arith/theory_arith.h
   theory/arith/theory_arith_private.cpp
   theory/arith/theory_arith_private.h
-  theory/arith/theory_arith_private_forward.h
   theory/arith/theory_arith_type_rules.h
   theory/arith/type_enumerator.h
   theory/arrays/array_info.cpp

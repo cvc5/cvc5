@@ -101,7 +101,8 @@ class TheoryPreprocessor
   /**
    * A term conversion proof generator storing rewriting steps, which is used
    * for calls to preprocess when doTheoryPreprocess is false. We store
-   * (top-level) rewrite steps independently of storing them in d_tpg.
+   * (top-level) rewrite steps only. Notice this is intentionally separate
+   * from d_tpg, which interleaves both preprocessing and rewriting.
    */
   std::unique_ptr<TConvProofGenerator> d_tpgRew;
   /**

@@ -41,25 +41,26 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
                       "TheoryPreprocessor::preprocess_rewrite",
                       &d_iqtc)
                 : nullptr),
+      d_tspg(nullptr),
       d_tpgRew(pnm ? new TConvProofGenerator(pnm,
                                              &d_pfContext,
                                              TConvPolicy::FIXPOINT,
                                              TConvCachePolicy::NEVER,
                                              "TheoryPreprocessor::rewrite")
                    : nullptr),
+      d_tspgNoPp(nullptr),
       d_lp(pnm ? new LazyCDProof(pnm,
                                  nullptr,
                                  &d_pfContext,
                                  "TheoryPreprocessor::LazyCDProof")
-               : nullptr),
-      d_tspg(nullptr)
+               : nullptr)
 {
   if (isProofEnabled())
   {
     // push the proof context, since proof steps may be cleared on calls to
     // clearCache() below.
     d_pfContext.push();
-    // now, make the term conversion sequence generator, which tracks up to
+    // Make the main term conversion sequence generator, which tracks up to
     // three conversions made in succession:
     // (1) theory preprocessing+rewriting
     // (2) term formula removal
@@ -71,6 +72,9 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
     ts.push_back(d_tpg.get());
     d_tspg.reset(new TConvSeqProofGenerator(
         pnm, ts, &d_pfContext, "TheoryPreprocessor::sequence"));
+    // Make the "no preprocess" term conversion sequence generator, which
+    // applies only steps (2) and (3), where notice (3) must use the
+    // "pure rewrite" term conversion (d_tpgRew).
     std::vector<ProofGenerator*> tsNoPp;
     tsNoPp.push_back(d_tfr.getTConvProofGenerator());
     tsNoPp.push_back(d_tpgRew.get());
