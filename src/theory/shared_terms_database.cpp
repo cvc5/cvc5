@@ -24,7 +24,9 @@ using namespace CVC4::theory;
 namespace CVC4 {
 
 SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine,
-                                         context::Context* context)
+                                         context::Context* context,
+                                         context::UserContext* userContext,
+                                         ProofNodeManager* pnm)
     : ContextNotifyObj(context),
       d_statSharedTerms("theory::shared_terms", 0),
       d_addedSharedTermsSize(context, 0),
@@ -35,7 +37,11 @@ SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine,
       d_theoryEngine(theoryEngine),
       d_inConflict(context, false),
       d_conflictPolarity(),
-      d_equalityEngine(nullptr)
+      d_satContext(context),
+      d_userContext(userContext),
+      d_equalityEngine(nullptr),
+      d_pfee(nullptr),
+      d_pnm(pnm)
 {
   smtStatisticsRegistry()->registerStat(&d_statSharedTerms);
 }
@@ -47,7 +53,14 @@ SharedTermsDatabase::~SharedTermsDatabase()
 
 void SharedTermsDatabase::setEqualityEngine(eq::EqualityEngine* ee)
 {
+  Assert(ee != nullptr);
   d_equalityEngine = ee;
+  // if proofs are enabled, make the proof equality engine
+  if (d_pnm != nullptr)
+  {
+    d_pfee.reset(
+        new eq::ProofEqEngine(d_satContext, d_userContext, *ee, d_pnm));
+  }
 }
 
 bool SharedTermsDatabase::needsEqualityEngine(EeSetupInfo& esi)
@@ -253,40 +266,31 @@ bool SharedTermsDatabase::propagateEquality(TNode equality, bool polarity) {
   return true;
 }
 
-static Node mkAnd(const std::vector<TNode>& conjunctions) {
-  Assert(conjunctions.size() > 0);
-
-  std::set<TNode> all;
-  all.insert(conjunctions.begin(), conjunctions.end());
-
-  if (all.size() == 1) {
-    // All the same, or just one
-    return conjunctions[0];
+void SharedTermsDatabase::checkForConflict()
+{
+  if (!d_inConflict)
+  {
+    return;
   }
-
-  NodeBuilder<> conjunction(kind::AND);
-  std::set<TNode>::const_iterator it = all.begin();
-  std::set<TNode>::const_iterator it_end = all.end();
-  while (it != it_end) {
-    conjunction << *it;
-    ++ it;
+  d_inConflict = false;
+  TrustNode trnc;
+  if (d_pfee != nullptr)
+  {
+    Node conflict = d_conflictLHS.eqNode(d_conflictRHS);
+    conflict = d_conflictPolarity ? conflict : conflict.notNode();
+    trnc = d_pfee->assertConflict(conflict);
   }
-
-  return conjunction;
-}
-
-void SharedTermsDatabase::checkForConflict() {
-  Assert(d_equalityEngine != nullptr);
-  if (d_inConflict) {
-    d_inConflict = false;
+  else
+  {
+    // standard explain
     std::vector<TNode> assumptions;
     d_equalityEngine->explainEquality(
         d_conflictLHS, d_conflictRHS, d_conflictPolarity, assumptions);
-    Node conflict = mkAnd(assumptions);
-    TrustNode tconf = TrustNode::mkTrustConflict(conflict);
-    d_theoryEngine->conflict(tconf, THEORY_BUILTIN);
-    d_conflictLHS = d_conflictRHS = Node::null();
+    Node conflictNode = NodeManager::currentNM()->mkAnd(assumptions);
+    trnc = TrustNode::mkTrustConflict(conflictNode, nullptr);
   }
+  d_theoryEngine->conflict(trnc, THEORY_BUILTIN);
+  d_conflictLHS = d_conflictRHS = Node::null();
 }
 
 bool SharedTermsDatabase::isKnown(TNode literal) const {
@@ -300,15 +304,16 @@ bool SharedTermsDatabase::isKnown(TNode literal) const {
   }
 }
 
-TrustNode SharedTermsDatabase::explain(TNode literal) const
+theory::TrustNode SharedTermsDatabase::explain(TNode literal) const
 {
-  Assert(d_equalityEngine != nullptr);
-  bool polarity = literal.getKind() != kind::NOT;
-  TNode atom = polarity ? literal : literal[0];
-  Assert(atom.getKind() == kind::EQUAL);
-  std::vector<TNode> assumptions;
-  d_equalityEngine->explainEquality(atom[0], atom[1], polarity, assumptions);
-  Node exp = mkAnd(assumptions);
+  if (d_pfee != nullptr)
+  {
+    // use the proof equality engine if it exists
+    return d_pfee->explain(literal);
+  }
+  // otherwise, explain without proofs
+  Node exp = d_equalityEngine->mkExplainLit(literal);
+  // no proof generator
   return TrustNode::mkTrustPropExp(literal, exp, nullptr);
 }
 
