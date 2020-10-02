@@ -375,11 +375,20 @@ Node ArithCongruenceManager::explainInternal(TNode internal){
   }
 }
 
-Node ArithCongruenceManager::explain(TNode external){
+TrustNode ArithCongruenceManager::explain(TNode external)
+{
   Trace("arith-ee") << "Ask for explanation of " << external << std::endl;
   Node internal = externalToInternal(external);
   Trace("arith-ee") << "...internal = " << internal << std::endl;
-  return explainInternal(internal);
+  Node exp = explainInternal(internal);
+  if (isProofEnabled())
+  {
+    Node impl = NodeManager::currentNM()->mkNode(Kind::IMPLIES, exp, external);
+    // For now, we just trust
+    auto pfOfImpl = d_pnm->mkNode(PfRule::INT_TRUST, {}, {impl});
+    return d_pfGenExplain->mkTrustNode(impl, pfOfImpl);
+  }
+  return TrustNode::mkTrustPropExp(external, exp, nullptr);
 }
 
 void ArithCongruenceManager::explain(TNode external, NodeBuilder<>& out){
@@ -473,6 +482,23 @@ void ArithCongruenceManager::addSharedTerm(Node x){
 }
 
 bool ArithCongruenceManager::isProofEnabled() const { return d_pnm != nullptr; }
+
+std::vector<Node> andComponents(TNode an)
+{
+  auto nm = NodeManager::currentNM();
+  if (an == nm->mkConst(true))
+  {
+    return {};
+  }
+  else if (an.getKind() != Kind::AND)
+  {
+    return {an};
+  }
+  std::vector<Node> a{};
+  a.reserve(an.getNumChildren());
+  a.insert(a.end(), an.begin(), an.end());
+  return a;
+}
 
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
