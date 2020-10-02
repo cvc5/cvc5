@@ -283,6 +283,11 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::EMPTYSET:
       out << "(as emptyset " << n.getConst<EmptySet>().getType() << ")";
       break;
+    case kind::SINGLETON_OP:
+    {
+      // do nothing. We don't print the operator for singleton nodes.
+    }
+    break;
 
     case kind::EMPTYBAG:
       out << "(as emptybag " << n.getConst<EmptyBag>().getType() << ")";
