@@ -195,7 +195,7 @@ bool TheoryBV::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 void TheoryBV::propagate(Effort e) { return d_internal->propagate(e); }
 
 Theory::PPAssertStatus TheoryBV::ppAssert(TNode in,
-                                          SubstitutionMap& outSubstitutions)
+                                          TrustSubstitutionMap& outSubstitutions)
 {
   return d_internal->ppAssert(in, outSubstitutions);
 }

@@ -440,7 +440,7 @@ bool Theory::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 }
 
 Theory::PPAssertStatus Theory::ppAssert(TNode in,
-                                        SubstitutionMap& outSubstitutions)
+                                        TrustSubstitutionMap& outSubstitutions)
 {
   if (in.getKind() == kind::EQUAL)
   {

@@ -30,6 +30,8 @@
 #include "expr/node.h"
 #include "theory/theory.h"
 #include "util/hash.h"
+#include "theory/trust_node.h"
+#include "theory/eager_proof_generator.h"
 
 namespace CVC4 {
 namespace theory {
@@ -63,22 +65,7 @@ class CircuitPropagator
   /**
    * Construct a new CircuitPropagator.
    */
-  CircuitPropagator(bool enableForward = true, bool enableBackward = true)
-      : d_context(),
-        d_propagationQueue(),
-        d_propagationQueueClearer(&d_context, d_propagationQueue),
-        d_conflict(&d_context, false),
-        d_learnedLiterals(),
-        d_learnedLiteralClearer(&d_context, d_learnedLiterals),
-        d_backEdges(),
-        d_backEdgesClearer(&d_context, d_backEdges),
-        d_seen(&d_context),
-        d_state(&d_context),
-        d_forwardPropagation(enableForward),
-        d_backwardPropagation(enableBackward),
-        d_needsFinish(false)
-  {
-  }
+  CircuitPropagator(bool enableForward = true, bool enableBackward = true);
 
   /** Get Node assignment in circuit.  Assert-fails if Node is unassigned. */
   bool getAssignment(TNode n) const
@@ -95,7 +82,7 @@ class CircuitPropagator
 
   bool getNeedsFinish() { return d_needsFinish; }
 
-  std::vector<Node>& getLearnedLiterals() { return d_learnedLiterals; }
+  std::vector<TrustNode>& getLearnedLiterals() { return d_learnedLiterals; }
 
   void finish() { d_context.pop(); }
 
@@ -142,6 +129,8 @@ class CircuitPropagator
     if (!value && ((*i).second == ASSIGNED_TO_FALSE)) return true;
     return false;
   }
+  /** Set proof node manager */
+  void setProofNodeManager(ProofNodeManager * pnm);
 
  private:
   /** A context-notify object that clears out stale data. */
@@ -257,6 +246,9 @@ class CircuitPropagator
    * the children of "in".
    */
   void propagateBackward(TNode parent, bool assignment);
+  
+  /** Are proofs enabled? */
+  bool isProofEnabled() const;
 
   context::Context d_context;
 
@@ -275,12 +267,12 @@ class CircuitPropagator
   context::CDO<bool> d_conflict;
 
   /** Map of substitutions */
-  std::vector<Node> d_learnedLiterals;
+  std::vector<TrustNode> d_learnedLiterals;
 
   /**
    * Similar data clearer for learned literals.
    */
-  DataClearer<std::vector<Node>> d_learnedLiteralClearer;
+  DataClearer<std::vector<TrustNode>> d_learnedLiteralClearer;
 
   /**
    * Back edges from nodes to where they are used.
@@ -306,6 +298,9 @@ class CircuitPropagator
 
   /* Does the current state require a call to finish()? */
   bool d_needsFinish;
+  
+  /** Eager proof generator */
+  std::unique_ptr<EagerProofGenerator> d_epg;
 
 }; /* class CircuitPropagator */
 

@@ -112,7 +112,7 @@ TrustNode TheoryArith::ppRewrite(TNode atom)
   return d_internal->ppRewrite(atom);
 }
 
-Theory::PPAssertStatus TheoryArith::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
+Theory::PPAssertStatus TheoryArith::ppAssert(TNode in, TrustSubstitutionMap& outSubstitutions) {
   return d_internal->ppAssert(in, outSubstitutions);
 }
 

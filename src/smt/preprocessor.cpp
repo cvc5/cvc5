@@ -154,6 +154,8 @@ Node Preprocessor::simplify(const Node& node, bool removeItes)
 
 void Preprocessor::setProofNodeManager(ProofNodeManager* pnm)
 {
+  d_pnm = pnm;
+  d_propagator.setProofNodeManager(pnm);
   d_rtf.setProofNodeManager(pnm);
 }
 
