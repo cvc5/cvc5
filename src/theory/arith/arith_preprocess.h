@@ -17,7 +17,7 @@
 #ifndef CVC4__THEORY__ARITH__ARITH_PREPROCESS_H
 #define CVC4__THEORY__ARITH__ARITH_PREPROCESS_H
 
-#include "context/cdhashset.h"
+#include "context/cdhashmap.h"
 #include "theory/arith/arith_state.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/operator_elim.h"
@@ -43,6 +43,9 @@ class ArithPreprocess
    * Reduce assertion. This sends a lemma via the inference manager if atom
    * contains any extended operators. When applicable, the lemma is of the form:
    *   atom == d_opElim.eliminate(atom)
+   * This method returns true if a lemma of the above form was added to
+   * the inference manager. Note this returns true even if this lemma was added
+   * on a previous call.
    */
   bool reduceAssertion(TNode atom);
   /**
@@ -58,7 +61,7 @@ class ArithPreprocess
   /** The operator elimination utility */
   OperatorElim d_opElim;
   /** The set of assertions that were reduced */
-  context::CDHashSet<Node, NodeHashFunction> d_reduced;
+  context::CDHashMap<Node, bool, NodeHashFunction> d_reduced;
 };
 
 }  // namespace arith
