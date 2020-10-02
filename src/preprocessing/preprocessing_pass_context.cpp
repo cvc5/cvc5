@@ -31,6 +31,7 @@ PreprocessingPassContext::PreprocessingPassContext(
       d_iteRemover(iteRemover),
       d_topLevelSubstitutions(smt->getUserContext(), pnm),
       d_circuitPropagator(circuitPropagator),
+      d_pnm(pnm),
       d_symsInAssertions(smt->getUserContext())
 {
 }
@@ -66,6 +67,11 @@ void PreprocessingPassContext::recordSymbolsInAssertions(
   {
     d_symsInAssertions.insert(s);
   }
+}
+
+ProofNodeManager * PreprocessingPassContext::getProofNodeManager()
+{
+  return d_pnm;
 }
 
 }  // namespace preprocessing

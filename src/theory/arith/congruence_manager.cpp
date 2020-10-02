@@ -58,25 +58,6 @@ ArithCongruenceManager::ArithCongruenceManager(
 
 ArithCongruenceManager::~ArithCongruenceManager() {}
 
-std::vector<Node> andComponents(TNode an)
-{
-  auto nm = NodeManager::currentNM();
-  if (an == nm->mkConst(true))
-  {
-    return {};
-  }
-  else if (an.getKind() != Kind::AND)
-  {
-    return {an};
-  }
-  else
-  {
-    std::vector<Node> a{};
-    a.reserve(an.getNumChildren());
-    a.insert(a.end(), an.begin(), an.end());
-    return a;
-  }
-}
 bool ArithCongruenceManager::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_notify;

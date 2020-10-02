@@ -49,7 +49,7 @@ class TrustSubstitutionMap
    * proving n = n*sigma, where the proof generator is this class (when
    * proofs are enabled).
    */
-  TrustNode apply(Node n);
+  TrustNode apply(Node n, bool doRewrite = true);
 
  private:
   /** Are proofs enabled? */

@@ -1658,13 +1658,6 @@ Node Constraint::externalExplain(const ConstraintCPVec& v, AssertionOrder order)
   return safeConstructNary(nb);
 }
 
-Node Constraint::externalExplain(AssertionOrder order) const
-{
-  NodeBuilder<> nb(kind::AND);
-  externalExplain(nb, order);
-  return safeConstructNary(nb);
-}
-
 std::shared_ptr<ProofNode> Constraint::externalExplain(
     NodeBuilder<>& nb, AssertionOrder order) const
 {
@@ -1988,7 +1981,7 @@ TrustNode ConstraintDatabase::eeExplain(const Constraint* const c) const
   return d_congruenceManager.explain(c->getLiteral());
 }
 
-TrustNode ConstraintDatabase::eeExplain(const Constraint* const c) const
+void ConstraintDatabase::eeExplain(ConstraintCP c, NodeBuilder<>& nb) const
 {
   Assert(c->hasLiteral());
   // NOTE: this is not a recommended method since it ignores proofs

@@ -84,6 +84,8 @@ class PreprocessingPassContext
    */
   void recordSymbolsInAssertions(const std::vector<Node>& assertions);
 
+  /** The the proof node manager associated with this context, if it exists */
+  ProofNodeManager * getProofNodeManager();
  private:
   /** Pointer to the SmtEngine that this context was created in. */
   SmtEngine* d_smt;
@@ -99,6 +101,8 @@ class PreprocessingPassContext
 
   /** Instance of the circuit propagator */
   theory::booleans::CircuitPropagator* d_circuitPropagator;
+  /** Pointer to the proof node manager, if it exists */
+  ProofNodeManager* d_pnm;
 
   /**
    * The (user-context-dependent) set of symbols that occur in at least one

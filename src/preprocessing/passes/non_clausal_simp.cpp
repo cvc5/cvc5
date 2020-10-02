@@ -113,10 +113,17 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       << "Iterate through " << propagator->getLearnedLiterals().size()
       << " learned literals." << std::endl;
   // No conflict, go through the literals and solve them
+  ProofNodeManager* pnm = d_preprocContext->getProofNodeManager();
+  context::Context* u = d_preprocContext->getUserContext();
   TrustSubstitutionMap& ttls = d_preprocContext->getTopLevelSubstitutions();
   SubstitutionMap& top_level_substs = ttls.get();
-  SubstitutionMap constantPropagations(d_preprocContext->getUserContext());
-  SubstitutionMap newSubstitutions(d_preprocContext->getUserContext());
+  // constant propagations
+  TrustSubstitutionMap constantPropagations(u, pnm);
+  SubstitutionMap& cps = constantPropagations.get();
+  // new substitutions
+  TrustSubstitutionMap newSubstitutions(u, pnm);
+  SubstitutionMap& nss = newSubstitutions.get();
+  
   SubstitutionMap::iterator pos;
   size_t j = 0;
   std::vector<Node>& learned_literals = propagator->getLearnedLiterals();
@@ -128,23 +135,20 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     Assert(top_level_substs.apply(learnedLiteral) == learnedLiteral);
     Trace("non-clausal-simplify")
         << "Process learnedLiteral : " << learnedLiteral << std::endl;
-    Node learnedLiteralNew = newSubstitutions.apply(learnedLiteral);
-    if (learnedLiteral != learnedLiteralNew)
-    {
-      learnedLiteral = Rewriter::rewrite(learnedLiteralNew);
-    }
+    TrustNode learnedLiteralNew = newSubstitutions.apply(learnedLiteral);
+    learnedLiteral = learnedLiteralNew.getNode();
     Trace("non-clausal-simplify")
         << "Process learnedLiteral, after newSubs : " << learnedLiteral
         << std::endl;
     for (;;)
     {
       learnedLiteralNew = constantPropagations.apply(learnedLiteral);
-      if (learnedLiteralNew == learnedLiteral)
+      if (learnedLiteralNew.getNode() == learnedLiteral)
       {
         break;
       }
+      learnedLiteral = learnedLiteralNew.getNode();
       d_statistics.d_numConstantProps += 1;
-      learnedLiteral = Rewriter::rewrite(learnedLiteralNew);
     }
     Trace("non-clausal-simplify")
         << "Process learnedLiteral, after constProp : " << learnedLiteral
@@ -181,7 +185,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 
     Theory::PPAssertStatus solveStatus =
         d_preprocContext->getTheoryEngine()->solve(learnedLiteral,
-                                                   newSubstitutions);
+                                                   newSubstitutions.get());
 
     switch (solveStatus)
     {
@@ -190,16 +194,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         // The literal should rewrite to true
         Trace("non-clausal-simplify")
             << "solved " << learnedLiteral << std::endl;
-        Assert(Rewriter::rewrite(newSubstitutions.apply(learnedLiteral))
-                   .isConst());
-        //        vector<pair<Node, Node> > equations;
-        //        constantPropagations.simplifyLHS(top_level_substs, equations,
-        //        true); if (equations.empty()) {
-        //          break;
-        //        }
-        //        Assert(equations[0].first.isConst() &&
-        //        equations[0].second.isConst() && equations[0].first !=
-        //        equations[0].second);
+        Assert(nss.apply(learnedLiteral).isConst());
         // else fall through
         break;
       }
@@ -237,21 +232,10 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
             c = learnedLiteral[1];
           }
           Assert(!t.isConst());
-          Assert(constantPropagations.apply(t) == t);
+          Assert(cps.apply(t) == t);
           Assert(top_level_substs.apply(t) == t);
-          Assert(newSubstitutions.apply(t) == t);
+          Assert(nss.apply(t) == t);
           constantPropagations.addSubstitution(t, c);
-          // vector<pair<Node,Node> > equations;
-          // constantPropagations.simplifyLHS(t, c, equations, true);
-          // if (!equations.empty()) {
-          //   Assert(equations[0].first.isConst() &&
-          //   equations[0].second.isConst() && equations[0].first !=
-          //   equations[0].second); assertionsToPreprocess->clear();
-          //   Node n = NodeManager::currentNM()->mkConst<bool>(false);
-          //   assertionsToPreprocess->push_back(n);
-          //   false); return;
-          // }
-          // top_level_substs.simplifyRHS(constantPropagations);
         }
         else
         {
@@ -275,34 +259,20 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   // r' another constant propagation, then l'[l/r] -> r' should be a
   //    constant propagation too
   // 4. each lhs of constantPropagations is different from each rhs
-  for (pos = newSubstitutions.begin(); pos != newSubstitutions.end(); ++pos)
+  for (pos = nss.begin(); pos != nss.end(); ++pos)
   {
     Assert((*pos).first.isVar());
     Assert(top_level_substs.apply((*pos).first) == (*pos).first);
     Assert(top_level_substs.apply((*pos).second) == (*pos).second);
-    Assert(newSubstitutions.apply(newSubstitutions.apply((*pos).second))
-           == newSubstitutions.apply((*pos).second));
+    Node app = nss.apply((*pos).second);
+    Assert(nss.apply(app)== app);
   }
-  for (pos = constantPropagations.begin(); pos != constantPropagations.end();
+  for (pos = cps.begin(); pos != cps.end();
        ++pos)
   {
     Assert((*pos).second.isConst());
     Assert(Rewriter::rewrite((*pos).first) == (*pos).first);
-    // Node newLeft = top_level_substs.apply((*pos).first);
-    // if (newLeft != (*pos).first) {
-    //   newLeft = Rewriter::rewrite(newLeft);
-    //   Assert(newLeft == (*pos).second ||
-    //          (constantPropagations.hasSubstitution(newLeft) &&
-    //          constantPropagations.apply(newLeft) == (*pos).second));
-    // }
-    // newLeft = constantPropagations.apply((*pos).first);
-    // if (newLeft != (*pos).first) {
-    //   newLeft = Rewriter::rewrite(newLeft);
-    //   Assert(newLeft == (*pos).second ||
-    //          (constantPropagations.hasSubstitution(newLeft) &&
-    //          constantPropagations.apply(newLeft) == (*pos).second));
-    // }
-    Assert(constantPropagations.apply((*pos).second) == (*pos).second);
+    Assert(cps.apply((*pos).second) == (*pos).second);
   }
 #endif /* CVC4_ASSERTIONS */
 
@@ -315,30 +285,23 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     Node assertion = (*assertionsToPreprocess)[i];
-    Node assertionNew = newSubstitutions.apply(assertion);
+    TrustNode assertionNew = newSubstitutions.apply(assertion);
     Trace("non-clausal-simplify") << "assertion = " << assertion << std::endl;
     Trace("non-clausal-simplify")
-        << "assertionNew = " << assertionNew << std::endl;
-    if (assertion != assertionNew)
-    {
-      assertion = Rewriter::rewrite(assertionNew);
-      Trace("non-clausal-simplify")
-          << "rewrite(assertion) = " << assertion << std::endl;
-    }
+        << "assertionNew = " << assertionNew.getNode() << std::endl;
+    assertion = assertionNew.getNode();
     Assert(Rewriter::rewrite(assertion) == assertion);
     for (;;)
     {
       assertionNew = constantPropagations.apply(assertion);
-      if (assertionNew == assertion)
+      if (assertionNew.getNode() == assertion)
       {
         break;
       }
+      assertion = assertionNew.getNode();
       d_statistics.d_numConstantProps += 1;
       Trace("non-clausal-simplify")
-          << "assertionNew = " << assertionNew << std::endl;
-      assertion = Rewriter::rewrite(assertionNew);
-      Trace("non-clausal-simplify")
-          << "assertionNew = " << assertionNew << std::endl;
+          << "assertionNew = " << assertion << std::endl;
     }
     s.insert(assertion);
     assertionsToPreprocess->replace(i, assertion);
@@ -350,10 +313,11 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   TheoryModel* m = d_preprocContext->getTheoryEngine()->getModel();
   Assert(m != nullptr);
   NodeManager* nm = NodeManager::currentNM();
-  for (pos = newSubstitutions.begin(); pos != newSubstitutions.end(); ++pos)
+  for (pos = nss.begin(); pos != nss.end(); ++pos)
   {
     Node lhs = (*pos).first;
-    Node rhs = newSubstitutions.apply((*pos).second);
+    TrustNode trhs = newSubstitutions.apply((*pos).second);
+    Node rhs = trhs.getNode();
     // If using incremental, we must check whether this variable has occurred
     // before now. If it hasn't we can add this as a substitution.
     if (!assertionsToPreprocess->storeSubstsInAsserts()
@@ -383,21 +347,19 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   {
     Node learned = learned_literals[i];
     Assert(top_level_substs.apply(learned) == learned);
-    Node learnedNew = newSubstitutions.apply(learned);
-    if (learned != learnedNew)
-    {
-      learned = Rewriter::rewrite(learnedNew);
-    }
+    TrustNode tlearnedNew = newSubstitutions.apply(learned);
+    learned = tlearnedNew.getNode();
     Assert(Rewriter::rewrite(learned) == learned);
     for (;;)
     {
-      learnedNew = constantPropagations.apply(learned);
+      tlearnedNew = constantPropagations.apply(learned);
+      Node learnedNew = tlearnedNew.getNode();
       if (learnedNew == learned)
       {
         break;
       }
+      learned = learnedNew;
       d_statistics.d_numConstantProps += 1;
-      learned = Rewriter::rewrite(learnedNew);
     }
     if (s.find(learned) != s.end())
     {
@@ -410,17 +372,14 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   }
   learned_literals.clear();
 
-  for (pos = constantPropagations.begin(); pos != constantPropagations.end();
+  for (pos = cps.begin(); pos != cps.end();
        ++pos)
   {
     Node cProp = (*pos).first.eqNode((*pos).second);
     Assert(top_level_substs.apply(cProp) == cProp);
-    Node cPropNew = newSubstitutions.apply(cProp);
-    if (cProp != cPropNew)
-    {
-      cProp = Rewriter::rewrite(cPropNew);
-      Assert(Rewriter::rewrite(cProp) == cProp);
-    }
+    TrustNode cPropNew = newSubstitutions.apply(cProp);
+    cProp = cPropNew.getNode();
+    Assert(Rewriter::rewrite(cProp) == cProp);
     if (s.find(cProp) != s.end())
     {
       continue;
@@ -435,7 +394,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   // Note that we don't have to keep rhs's in full solved form
   // because SubstitutionMap::apply does a fixed-point iteration when
   // substituting
-  top_level_substs.addSubstitutions(newSubstitutions);
+  top_level_substs.addSubstitutions(newSubstitutions.get());
 
   if (!learnedLitsToConjoin.empty())
   {

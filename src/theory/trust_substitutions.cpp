@@ -14,6 +14,8 @@
 
 #include "theory/trust_substitutions.h"
 
+#include "theory/rewriter.h"
+
 namespace CVC4 {
 namespace theory {
 
@@ -48,9 +50,13 @@ void TrustSubstitutionMap::addSubstitutions(TrustSubstitutionMap& t)
   }
 }
 
-TrustNode TrustSubstitutionMap::apply(Node n)
+TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
 {
   Node ns = d_subs.apply(n);
+  if (doRewrite)
+  {
+    ns = Rewriter::rewrite(ns);
+  }
   return TrustNode::mkTrustRewrite(n, ns, d_subsPg.get());
 }
 
