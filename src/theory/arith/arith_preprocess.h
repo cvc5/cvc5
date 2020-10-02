@@ -35,7 +35,7 @@ class ArithPreprocess
                   ProofNodeManager* pnm,
                   const LogicInfo& info);
   ~ArithPreprocess() {}
-  /** 
+  /**
    * Call eliminate operators on formula n, return the resulting trust node.
    */
   TrustNode eliminate(TNode n);
