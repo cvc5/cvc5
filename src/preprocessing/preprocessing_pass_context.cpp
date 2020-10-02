@@ -69,7 +69,7 @@ void PreprocessingPassContext::recordSymbolsInAssertions(
   }
 }
 
-ProofNodeManager * PreprocessingPassContext::getProofNodeManager()
+ProofNodeManager* PreprocessingPassContext::getProofNodeManager()
 {
   return d_pnm;
 }

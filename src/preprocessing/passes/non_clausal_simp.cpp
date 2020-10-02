@@ -123,7 +123,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   // new substitutions
   TrustSubstitutionMap newSubstitutions(u, pnm);
   SubstitutionMap& nss = newSubstitutions.get();
-  
+
   SubstitutionMap::iterator pos;
   size_t j = 0;
   std::vector<Node>& learned_literals = propagator->getLearnedLiterals();
@@ -265,10 +265,9 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     Assert(top_level_substs.apply((*pos).first) == (*pos).first);
     Assert(top_level_substs.apply((*pos).second) == (*pos).second);
     Node app = nss.apply((*pos).second);
-    Assert(nss.apply(app)== app);
+    Assert(nss.apply(app) == app);
   }
-  for (pos = cps.begin(); pos != cps.end();
-       ++pos)
+  for (pos = cps.begin(); pos != cps.end(); ++pos)
   {
     Assert((*pos).second.isConst());
     Assert(Rewriter::rewrite((*pos).first) == (*pos).first);
@@ -372,8 +371,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   }
   learned_literals.clear();
 
-  for (pos = cps.begin(); pos != cps.end();
-       ++pos)
+  for (pos = cps.begin(); pos != cps.end(); ++pos)
   {
     Node cProp = (*pos).first.eqNode((*pos).second);
     Assert(top_level_substs.apply(cProp) == cProp);

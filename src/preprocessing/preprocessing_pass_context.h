@@ -85,7 +85,8 @@ class PreprocessingPassContext
   void recordSymbolsInAssertions(const std::vector<Node>& assertions);
 
   /** The the proof node manager associated with this context, if it exists */
-  ProofNodeManager * getProofNodeManager();
+  ProofNodeManager* getProofNodeManager();
+
  private:
   /** Pointer to the SmtEngine that this context was created in. */
   SmtEngine* d_smt;
