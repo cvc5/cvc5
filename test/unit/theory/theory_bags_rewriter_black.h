@@ -584,6 +584,20 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
               && response2.d_status == REWRITE_AGAIN_FULL);
   }
 
+  void testFromSet()
+  {
+    Node x = d_nm->mkSkolem("x", d_nm->stringType());
+    Node singleton = d_nm->mkNode(SINGLETON, x);
+
+    // (bag.from_set (singleton (singleton_op Int) x)) = (mkBag x 1)
+    Node n = d_nm->mkNode(BAG_FROM_SET, singleton);
+    RewriteResponse response = d_rewriter->postRewrite(n);
+    Node one = d_nm->mkConst(Rational(1));
+    Node bag = d_nm->mkNode(MK_BAG, x, one);
+    TS_ASSERT(response.d_node == bag
+              && response.d_status == REWRITE_AGAIN_FULL);
+  }
+
  private:
   std::unique_ptr<ExprManager> d_em;
   std::unique_ptr<SmtEngine> d_smt;

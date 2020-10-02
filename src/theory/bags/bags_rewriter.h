@@ -181,6 +181,12 @@ class BagsRewriter : public TheoryRewriter
    */
   BagsRewriteResponse rewriteIsSingleton(const TNode& n) const;
 
+  /**
+   *  rewrites for n include:
+   *  - (bag.from_set (singleton (singleton_op Int) x)) = (mkBag x 1)
+   */
+  BagsRewriteResponse rewriteFromSet(const TNode& n) const;
+
  private:
   /** Reference to the rewriter statistics. */
   NodeManager* d_nm;
