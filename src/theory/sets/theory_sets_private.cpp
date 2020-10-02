@@ -1145,7 +1145,7 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
         {
           for (const std::pair<const Node, Node>& itmm : emems)
           {
-            Node t = nm->mkSingleton(itmm.first.getType(), itmm.first);
+            Node t = nm->mkSingleton(eqc.getType(), itmm.first);
             els.push_back(t);
           }
         }

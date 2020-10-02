@@ -412,6 +412,7 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
     }
     else if (satom.getKind() == SEP_PTO)
     {
+      // TODO(project##230): Find a safe type for the singleton operator
       Node ss = nm->mkSingleton(satom[0].getType(), satom[0]);
       if (slbl != ss)
       {

@@ -961,7 +961,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       // lambda x . (singleton (singleton_op T) x) where T = x.getType()
       Node x = nm->mkBoundVar(etype);
       Node vars = nm->mkNode(BOUND_VAR_LIST, x);
-      Node singleton = nm->mkSingleton(x.getType(), x);
+      Node singleton = nm->mkSingleton(etype, x);
       Node lambda = nm->mkNode(LAMBDA,vars, singleton);
       sdts[i].addConstructor(lambda, "singleton", cargsSingleton);
 
