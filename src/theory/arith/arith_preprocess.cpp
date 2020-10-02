@@ -25,6 +25,10 @@ ArithPreprocess::ArithPreprocess(ArithState& state,
     : d_im(im), d_opElim(pnm, info), d_reduced(state.getUserContext())
 {
 }
+TrustNode ArithPreprocess::eliminate(TNode n)
+{
+  return d_opElim.eliminate(n);
+}
 bool ArithPreprocess::reduceAssertion(TNode atom) { return false; }
 bool ArithPreprocess::isReduced(TNode atom) const { return false; }
 

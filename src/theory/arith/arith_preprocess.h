@@ -35,6 +35,10 @@ class ArithPreprocess
                   ProofNodeManager* pnm,
                   const LogicInfo& info);
   ~ArithPreprocess() {}
+  /** 
+   * Call eliminate operators on formula n, return the resulting trust node.
+   */
+  TrustNode eliminate(TNode n);
   /**
    * Reduce assertion. This sends a lemma via the inference manager if atom
    * contains any extended operators. When applicable, the lemma is of the form:

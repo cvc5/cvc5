@@ -21,6 +21,7 @@
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_state.h"
 #include "theory/arith/inference_manager.h"
+#include "theory/arith/arith_preprocess.h"
 #include "theory/arith/nl/nonlinear_extension.h"
 #include "theory/arith/operator_elim.h"
 #include "theory/theory.h"
@@ -145,7 +146,7 @@ class TheoryArith : public Theory {
    */
   std::unique_ptr<nl::NonlinearExtension> d_nonlinearExtension;
   /** The operator elimination utility */
-  OperatorElim d_opElim;
+  ArithPreprocess d_arithPreproc;
   /** The theory rewriter for this theory. */
   ArithRewriter d_rewriter;
 };/* class TheoryArith */
