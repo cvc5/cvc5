@@ -3600,10 +3600,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
   return emmittedConflictOrSplit;
 }
 
-bool TheoryArithPrivate::foundNonlinear() const
-{
-  return d_foundNl;
-}
+bool TheoryArithPrivate::foundNonlinear() const { return d_foundNl; }
 
 Node TheoryArithPrivate::branchIntegerVariable(ArithVar x) const {
   const DeltaRational& d = d_partialModel.getAssignment(x);
