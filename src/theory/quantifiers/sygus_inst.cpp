@@ -18,6 +18,7 @@
 #include <unordered_set>
 
 #include "expr/node_algorithm.h"
+#include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
@@ -155,6 +156,26 @@ void getMinGroundTerms(
       it->second.second = found_min_term;
     }
   } while (!visit.empty());
+}
+
+/*
+ * Add special values for a given type.
+ *
+ * @param tn: The type node.
+ * @param extra_cons: A map of TypeNode to constants, which are added in
+ *                    addition to the default grammar.
+ */
+void addSpecialValues(
+    const TypeNode& tn,
+    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& extra_cons)
+{
+  if (tn.isBitVector())
+  {
+    uint32_t size = tn.getBitVectorSize();
+    extra_cons[tn].insert(bv::utils::mkOnes(size));
+    extra_cons[tn].insert(bv::utils::mkMinSigned(size));
+    extra_cons[tn].insert(bv::utils::mkMaxSigned(size));
+  }
 }
 
 }  // namespace
@@ -361,6 +382,7 @@ void SygusInst::registerQuantifier(Node q)
   std::vector<TypeNode> types;
   for (const Node& var : q[0])
   {
+    addSpecialValues(var.getType(), extra_cons);
     TypeNode tn = CegGrammarConstructor::mkSygusDefaultType(var.getType(),
                                                             Node(),
                                                             var.toString(),

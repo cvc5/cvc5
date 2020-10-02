@@ -399,9 +399,6 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
     unsigned size = type.getBitVectorSize();
     ops.push_back(bv::utils::mkZero(size));
     ops.push_back(bv::utils::mkOne(size));
-    ops.push_back(bv::utils::mkOnes(size));
-    ops.push_back(bv::utils::mkMinSigned(size));
-    ops.push_back(bv::utils::mkMaxSigned(size));
   }
   else if (type.isBoolean())
   {
