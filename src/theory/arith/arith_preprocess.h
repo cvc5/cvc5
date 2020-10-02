@@ -27,6 +27,13 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
+/**
+ * This module can be used for (on demand) elimination of extended arithmetic
+ * operators like div, mod, to_int, is_int, sqrt, and so on. It uses the
+ * operator elimination utility for determining how to reduce formulas. It
+ * extends that utility with the ability to generate lemmas on demand via
+ * the provided inference manager.
+ */
 class ArithPreprocess
 {
  public:
@@ -36,7 +43,9 @@ class ArithPreprocess
                   const LogicInfo& info);
   ~ArithPreprocess() {}
   /**
-   * Call eliminate operators on formula n, return the resulting trust node.
+   * Call eliminate operators on formula n, return the resulting trust node,
+   * which is of TrustNodeKind REWRITE and whose node is the result of
+   * eliminating extended operators from n.
    */
   TrustNode eliminate(TNode n);
   /**
