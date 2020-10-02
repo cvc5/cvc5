@@ -145,7 +145,7 @@ class TheoryArith : public Theory {
    * arithmetic.
    */
   std::unique_ptr<nl::NonlinearExtension> d_nonlinearExtension;
-  /** The operator elimination utility */
+  /** The preprocess utility */
   ArithPreprocess d_arithPreproc;
   /** The theory rewriter for this theory. */
   ArithRewriter d_rewriter;
