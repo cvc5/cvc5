@@ -510,10 +510,7 @@ TrustNode ArithCongruenceManager::explain(TNode external)
     auto extPf = d_pnm->mkScope(litPf, assumptions);
     return d_pfGenExplain->mkTrustedPropagation(external, trn.getNode(), extPf);
   }
-  else
-  {
-    return trn;
-  }
+  return trn;
 }
 
 void ArithCongruenceManager::explain(TNode external, NodeBuilder<>& out){
@@ -687,6 +684,23 @@ void ArithCongruenceManager::addSharedTerm(Node x){
 }
 
 bool ArithCongruenceManager::isProofEnabled() const { return d_pnm != nullptr; }
+
+std::vector<Node> andComponents(TNode an)
+{
+  auto nm = NodeManager::currentNM();
+  if (an == nm->mkConst(true))
+  {
+    return {};
+  }
+  else if (an.getKind() != Kind::AND)
+  {
+    return {an};
+  }
+  std::vector<Node> a{};
+  a.reserve(an.getNumChildren());
+  a.insert(a.end(), an.begin(), an.end());
+  return a;
+}
 
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */

@@ -266,6 +266,8 @@ private:
 
 };/* class ArithCongruenceManager */
 
+std::vector<Node> andComponents(TNode an);
+
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
