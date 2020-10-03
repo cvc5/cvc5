@@ -444,7 +444,7 @@ bool TheoryModel::assertPredicate(TNode a, bool polarity)
 
 /** assert equality engine */
 bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
-                                       set<Node>* termSet)
+                                       const std::set<Node>* termSet)
 {
   Assert(d_equalityEngine->consistent());
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );

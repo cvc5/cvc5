@@ -21,9 +21,12 @@
 
 #include "context/cdhashset.h"
 #include "expr/node.h"
+#include "expr/proof_node_manager.h"
 #include "theory/ee_setup_info.h"
 #include "theory/theory_id.h"
+#include "theory/trust_node.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/uf/proof_equality_engine.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -31,17 +34,14 @@ namespace CVC4 {
 class TheoryEngine;
 
 class SharedTermsDatabase : public context::ContextNotifyObj {
-
-public:
-
+ public:
   /** A container for a list of shared terms */
   typedef std::vector<TNode> shared_terms_list;
 
   /** The iterator to go through the shared terms list */
   typedef shared_terms_list::const_iterator shared_terms_iterator;
 
-private:
-
+ private:
   /** Some statistics */
   IntStat d_statSharedTerms;
 
@@ -73,8 +73,7 @@ private:
   typedef context::CDHashSet<Node, NodeHashFunction> RegisteredEqualitiesSet;
   RegisteredEqualitiesSet d_registeredEqualities;
 
-private:
-
+ private:
   /** This method removes all the un-necessary stuff from the maps */
   void backtrack();
 
@@ -151,9 +150,18 @@ private:
    */
   void checkForConflict();
 
-public:
-
-  SharedTermsDatabase(TheoryEngine* theoryEngine, context::Context* context);
+ public:
+  /**
+   * @param theoryEngine The parent theory engine
+   * @param context The SAT context
+   * @param userContext The user context
+   * @param pnm The proof node manager to use, which is non-null if proofs
+   * are enabled.
+   */
+  SharedTermsDatabase(TheoryEngine* theoryEngine,
+                      context::Context* context,
+                      context::UserContext* userContext,
+                      ProofNodeManager* pnm);
   ~SharedTermsDatabase();
 
   //-------------------------------------------- initialization
@@ -258,9 +266,16 @@ public:
    * This method gets called on backtracks from the context manager.
    */
   void contextNotifyPop() override { backtrack(); }
-
+  /** The SAT search context. */
+  context::Context* d_satContext;
+  /** The user level assertion context. */
+  context::UserContext* d_userContext;
   /** Equality engine */
   theory::eq::EqualityEngine* d_equalityEngine;
+  /** Proof equality engine */
+  std::unique_ptr<theory::eq::ProofEqEngine> d_pfee;
+  /** The proof node manager */
+  ProofNodeManager* d_pnm;
 };
 
 }

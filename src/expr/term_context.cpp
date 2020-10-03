@@ -69,6 +69,22 @@ bool RtfTermContext::hasNestedTermChildren(TNode t)
          && k != kind::BITVECTOR_EAGER_ATOM;
 }
 
+uint32_t InQuantTermContext::initialValue() const { return 0; }
+
+uint32_t InQuantTermContext::computeValue(TNode t,
+                                          uint32_t tval,
+                                          size_t index) const
+{
+  return t.isClosure() ? 1 : tval;
+}
+
+uint32_t InQuantTermContext::getValue(bool inQuant) { return inQuant ? 1 : 0; }
+
+bool InQuantTermContext::inQuant(uint32_t val, bool& inQuant)
+{
+  return val == 1;
+}
+
 uint32_t PolarityTermContext::initialValue() const
 {
   // by default, we have true polarity
