@@ -1512,12 +1512,14 @@ Node TheorySep::instantiateLabel( Node n, Node o_lbl, Node lbl, Node lbl_v, std:
     }else if( n.getKind()==kind::SEP_PTO ){
       //check if this pto reference is in the base label, if not, then it does not need to be added as an assumption
       Assert(d_label_model.find(o_lbl) != d_label_model.end());
+      // TODO(project##230): Find a safe type for the singleton operator
       Node vr = d_valuation.getModel()->getRepresentative( n[0] );
       Node svr = NodeManager::currentNM()->mkSingleton(vr.getType(), vr);
       bool inBaseHeap = std::find( d_label_model[o_lbl].d_heap_locs_model.begin(), d_label_model[o_lbl].d_heap_locs_model.end(), svr )!=d_label_model[o_lbl].d_heap_locs_model.end();
       Trace("sep-inst-debug") << "Is in base (non-instantiating) heap : " << inBaseHeap << " for value ref " << vr << " in " << o_lbl << std::endl;
       std::vector< Node > children;
       if( inBaseHeap ){
+        // TODO(project##230): Find a safe type for the singleton operator
         Node s = NodeManager::currentNM()->mkSingleton(n[0].getType(),  n[0]);
         children.push_back( NodeManager::currentNM()->mkNode( kind::SEP_LABEL, NodeManager::currentNM()->mkNode( kind::SEP_PTO, n[0], n[1] ), s ) );
       }else{
@@ -1531,6 +1533,7 @@ Node TheorySep::instantiateLabel( Node n, Node o_lbl, Node lbl, Node lbl_v, std:
           Trace("sep-inst-debug") << "Data for " << vr << " was not specified, do not add condition." << std::endl;
         }
       }
+      // TODO(project##230): Find a safe type for the singleton operator
       Node singleton = NodeManager::currentNM()->mkSingleton(n[0].getType(), n[0]);
       children.push_back(singleton.eqNode(lbl_v));
       Node ret = children.empty() ? NodeManager::currentNM()->mkConst( true ) : ( children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( kind::AND, children ) );
@@ -1636,24 +1639,25 @@ void TheorySep::computeLabelModel( Node lbl ) {
     for( unsigned j=0; j<d_label_model[lbl].d_heap_locs_model.size(); j++ ){
       Node u = d_label_model[lbl].d_heap_locs_model[j];
       Assert(u.getKind() == kind::SINGLETON);
-      u = u[0];
+      TypeNode tn = u.getType().getSetElementType();
       Node tt;
-      std::map< Node, Node >::iterator itm = d_tmodel.find( u );
+      std::map< Node, Node >::iterator itm = d_tmodel.find( u[0] );
       if( itm==d_tmodel.end() ) {
-        //Trace("sep-process") << "WARNING: could not find symbolic term in model for " << u << std::endl;
+        //Trace("sep-process") << "WARNING: could not find symbolic term in model for " << u[0] << std::endl;
         //Assert( false );
-        //tt = u;
-        //TypeNode tn = u.getType().getRefConstituentType();
-        TypeNode tn = u.getType();
-        Trace("sep-process") << "WARNING: could not find symbolic term in model for " << u << ", cref type " << tn << std::endl;
+        //tt = u[0];
+        //TypeNode tn = u[0].getType().getRefConstituentType();
+
+        Trace("sep-process") << "WARNING: could not find symbolic term in model for " << u[0] << ", cref type " << tn << std::endl;
         Assert(d_type_references_all.find(tn) != d_type_references_all.end());
         Assert(!d_type_references_all[tn].empty());
         tt = d_type_references_all[tn][0];
       }else{
         tt = itm->second;
       }
-      Node stt = NodeManager::currentNM()->mkSingleton(tt.getType(), tt);
-      Trace("sep-process-debug") << "...model : add " << tt << " for " << u << " in lbl " << lbl << std::endl;
+      // TODO(project##230): Find a safe type for the singleton operator
+      Node stt = NodeManager::currentNM()->mkSingleton(tn, tt);
+      Trace("sep-process-debug") << "...model : add " << tt << " for " << u[0] << " in lbl " << lbl << std::endl;
       d_label_model[lbl].d_heap_locs.push_back( stt );
     }
   }
