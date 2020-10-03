@@ -1342,7 +1342,7 @@ Node TheorySep::mkUnion( TypeNode tn, std::vector< Node >& locs ) {
     for( unsigned i=0; i<locs.size(); i++ ){
       Node s = locs[i];
       Assert(!s.isNull());
-      s = NodeManager::currentNM()->mkSingleton(s.getType(), s);
+      s = NodeManager::currentNM()->mkSingleton(tn, s);
       if( u.isNull() ){
         u = s;
       }else{
