@@ -861,7 +861,7 @@ Node TheoryEngine::preprocess(TNode assertion)
     // no change
     return assertion;
   }
-  // TODO: return the trust node?
+  // notice that we could alternatively return the trust node here.
   return trn.getNode();
 }
 
