@@ -708,7 +708,7 @@ void InferProofCons::convert(Inference infer,
       {
         break;
       }
-      // connect via transitivity?
+      // connect via transitivity
       Node curr = eqs[0];
       for (size_t i = 1, esize = eqs.size(); i < esize; i++)
       {
@@ -776,7 +776,7 @@ void InferProofCons::convert(Inference infer,
       }
       // go back and justify each premise
       bool successChildren = true;
-      for (unsigned i = 0, nchild = reiChildren.size(); i < nchild; i++)
+      for (size_t i = 0, nchild = reiChildren.size(); i < nchild; i++)
       {
         if (!psb.applyPredTransform(reiChildrenOrig[i], reiChildren[i], reiExp))
         {
@@ -792,8 +792,6 @@ void InferProofCons::convert(Inference infer,
         break;
       }
       Node mem = psb.tryStep(PfRule::RE_INTER, reiChildren, {});
-      // Node rei = reis.size() == 1 ? reis[0] : nm->mkNode(REGEXP_INTER, reis);
-      // Node mem = nm->mkNode(STRING_IN_REGEXP, x, rei);
       Trace("strings-ipc-re")
           << "Regular expression summary: " << mem << std::endl;
       // the conclusion is rewritable to the premises via rewriting?
@@ -957,10 +955,10 @@ Node InferProofCons::convertTrans(Node eqa,
   {
     return Node::null();
   }
-  for (unsigned i = 0; i < 2; i++)
+  for (uint32_t i = 0; i < 2; i++)
   {
     Node eqaSym = i == 0 ? eqa[1].eqNode(eqa[0]) : eqa;
-    for (unsigned j = 0; j < 2; j++)
+    for (uint32_t j = 0; j < 2; j++)
     {
       Node eqbSym = j == 0 ? eqb : eqb[1].eqNode(eqb[1]);
       if (eqa[i] == eqb[j])
