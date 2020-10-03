@@ -2,7 +2,7 @@
 /*! \file trust_substitutions.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Mathias Preiner, Andrew Reynolds
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -19,7 +19,6 @@
 
 #include "context/context.h"
 #include "expr/proof_node_manager.h"
-#include "expr/term_conversion_proof_generator.h"
 #include "theory/substitutions.h"
 #include "theory/trust_node.h"
 
@@ -41,13 +40,9 @@ class TrustSubstitutionMap
    */
   void addSubstitution(TNode x, TNode t, ProofGenerator* pg = nullptr);
   /**
-   * Add substitutions
-   */
-  void addSubstitutions(TrustSubstitutionMap& t);
-  /**
    * Apply substitutions in this class to node n. Returns a trust node
-   * proving n = n*sigma, where the proof generator is this class (when
-   * proofs are enabled).
+   * proving n = n*sigma, where the proof generator is provided by this class
+   * (when proofs are enabled).
    */
   TrustNode apply(Node n, bool doRewrite = true);
 
@@ -56,8 +51,6 @@ class TrustSubstitutionMap
   bool isProofEnabled() const;
   /** The substitution map */
   SubstitutionMap d_subs;
-  /** The term conversion proof generator */
-  std::unique_ptr<TConvProofGenerator> d_subsPg;
 };
 
 }  // namespace theory
