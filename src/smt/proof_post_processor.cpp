@@ -483,7 +483,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       Assert(pfn != nullptr);
       if (pfn == nullptr)
       {
-        cdp->addStep(eq, PfRule::TRUST, {}, {eq});
+        cdp->addStep(eq, PfRule::TRUST_SUBS, {}, {eq});
       }
       else
       {
@@ -524,7 +524,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       if (pfn == nullptr)
       {
         // did not have a proof of rewriting, probably isExtEq is true
-        cdp->addStep(eq, PfRule::TRUST, {}, {eq});
+        cdp->addStep(eq, PfRule::TRUST_REWRITE, {}, {eq});
       }
       else
       {

@@ -75,6 +75,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerTrustedChecker(PfRule::THEORY_PREPROCESS_LEMMA, this, 2);
   pc->registerTrustedChecker(PfRule::WITNESS_AXIOM, this, 2);
   pc->registerTrustedChecker(PfRule::TRUST_REWRITE, this, 1);
+  pc->registerTrustedChecker(PfRule::TRUST_SUBS, this, 1);
 }
 
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(
@@ -354,7 +355,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   else if (id == PfRule::PREPROCESS || id == PfRule::THEORY_PREPROCESS
                || id == PfRule::WITNESS_AXIOM || id == PfRule::THEORY_LEMMA
                || id == PfRule::PREPROCESS_LEMMA || id == PfRule::THEORY_REWRITE
-               || id = PfRule::TRUST_REWRITE)
+               || id = PfRule::TRUST_REWRITE || id = PfRule::TRUST_SUBS)
   {
     // "trusted" rules
     Assert(children.empty());
