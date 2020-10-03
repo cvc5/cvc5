@@ -1359,7 +1359,7 @@ TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
 
   TypeNode setType = set.getType();
   Node boundVar = nm->mkBoundVar(setType.getSetElementType());
-  Node singleton = nm->mkSingleton(boundVar.getType(), boundVar);
+  Node singleton = nm->mkSingleton(setType.getSetElementType(), boundVar);
   Node equal = set.eqNode(singleton);
   std::vector<Node> variables = {boundVar};
   Node boundVars = nm->mkNode(BOUND_VAR_LIST, variables);
