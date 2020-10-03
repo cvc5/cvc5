@@ -29,7 +29,6 @@
 #include "base/check.h"
 #include "context/cdhashset.h"
 #include "expr/node.h"
-#include "expr/proof_checker.h"
 #include "options/options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
@@ -363,9 +362,6 @@ class TheoryEngine {
   inline prop::PropEngine* getPropEngine() const {
     return d_propEngine;
   }
-
-  /** Get the proof checker */
-  ProofChecker* getProofChecker() const;
 
   /** Get the proof node manager */
   ProofNodeManager* getProofNodeManager() const;
@@ -703,16 +699,6 @@ class TheoryEngine {
 
   /** Dump the assertions to the dump */
   void dumpAssertions(const char* tag);
-
-  /**
-   * Add theory lemma step for lemma to proof pf, where tid is the identifier
-   * of the theory responsible for that lemma. The argument c is a tag for
-   * debugging.
-   */
-  void addTheoryLemmaToProof(CDProof* pf,
-                             Node lemma,
-                             theory::TheoryId tid,
-                             const char* c);
 
   /** For preprocessing pass lifting bit-vectors of size 1 to booleans */
 public:

@@ -39,6 +39,7 @@ PR finished:
 (38) quantifiers proof checker (req 8)
 (39) Theory interface update for TrustNode, ProofChecker (req 27, 51)
 (40) theory engine proof generator (req 11, 13, 18, 23)
+(41) SharedTermDatabase uses pfee (req 24, cee-shs)
 (42) Strings proof checker (req 5, 17, 22, 45, 65)
 (45) regexp operation refactor (req 3, 7, 8)
 (46) term context core utilities
@@ -75,10 +76,12 @@ PR finished:
 (88) fixes for smt preprocess proof generator
 (89) combination engine proof producing
 (90) inference manager uses pfee
+(91) Proof producing lemma TheoryEngine
 (92) strings term registry proof preparation (req 75)
 (93) updates to proof node updater (req 86)
 (94) HO_CONG in eq proof conversion [Haniel]
 (95) Arrays proof checker
+(96) arrays proof producing (req 95)
 (97) term conversion sequence generator
 (99) SAT rules to Boolean checker [Haniel]
 (100) fixes for instantiate, quantifiers proof checker
@@ -93,24 +96,22 @@ PR finished:
 (110) Sat proof manager [Haniel] (req 104)
 (111) Prop engine proof post processor [Haniel] (req 53, 110)
 (112) Prop engine proof manager [Haniel] (req 111)
+(113) eliminate preprocessing passes non-const uses
 
 PRs ready:
 
 (29) arithmetic proof producing [Alex] (req 24, 25)
-(41) SharedTermDatabase uses pfee (req 24, cee-shs)
 (43) strings InferProofCons (req 13, 18, 26, 34, 42, 65, 86) *
+(44) TheoryEngine explanation proof producing (req 12, 40, 41, 87, 91)
 (68) PropEngine proof producing [Haniel] (req 53, 110, 111, 112)
 (70) rewriter unit test [Andres] (req 36, 37)
 (85) SmtEngine check proofs (req 68, 82)
-(91) Proof producing lemma TheoryEngine *
-(96) arrays proof producing (req 95) *
-(108) eliminate preprocessing passes non-const uses *
 (114) theory preprocess fixes (req 97)
+(115) trust substitution and ppAssert interface *
 
 PRs future:
 
 (31) update strings inference manager to use ProofEqEngine (req 24, 26, 43, cee-strings)
-(44) TheoryEngine explanation proof producing (req 12, 40, 41, 87, 91)
 (54) DSL rewrite rule
 (55) DSL rewrite rule term processor
 (56) DSL rewrite rule database (req 54)

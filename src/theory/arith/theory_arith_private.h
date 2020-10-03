@@ -689,14 +689,7 @@ private:
   inline TheoryId theoryOf(TNode x) const { return d_containing.theoryOf(x); }
   inline void debugPrintFacts() const { d_containing.debugPrintFacts(); }
   inline context::Context* getSatContext() const { return d_containing.getSatContext(); }
-<<<<<<< HEAD
-  inline void setIncomplete() {
-    (d_containing.d_out)->setIncomplete();
-    d_nlIncomplete = true;
-  }
   void outputTrustedLemma(TrustNode lem);
-=======
->>>>>>> 51b9c07af2001e961911e59f3e7e80728c88550a
   void outputLemma(TNode lem);
   void outputTrustedConflict(TrustNode conf);
   void outputConflict(TNode lit);

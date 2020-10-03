@@ -214,11 +214,6 @@ void TheoryEngine::finishInit()
   }
 }
 
-ProofChecker* TheoryEngine::getProofChecker() const
-{
-  return d_pnm ? d_pnm->getChecker() : nullptr;
-}
-
 ProofNodeManager* TheoryEngine::getProofNodeManager() const { return d_pnm; }
 
 TheoryEngine::TheoryEngine(context::Context* context,
@@ -450,16 +445,6 @@ void TheoryEngine::dumpAssertions(const char* tag) {
       }
     }
   }
-}
-
-void TheoryEngine::addTheoryLemmaToProof(CDProof* pf,
-                                         Node lemma,
-                                         TheoryId tid,
-                                         const char* c)
-{
-  Assert(pf != nullptr);
-  Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(tid);
-  pf->addStep(lemma, PfRule::THEORY_LEMMA, {}, {lemma, tidn});
 }
 
 /**
@@ -1261,10 +1246,9 @@ theory::TrustNode TheoryEngine::getExplanation(TNode node)
       if (texplanation.getGenerator() == nullptr)
       {
         Node proven = texplanation.getProven();
-        addTheoryLemmaToProof(d_lazyProof.get(),
-                              proven,
-                              theoryOf(atom)->getId(),
-                              "TheoryEngine::getExplanation (no sharing)");
+        TheoryId tid = theoryOf(atom)->getId();
+        Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(tid);
+        d_lazyProof->addStep(proven, PfRule::THEORY_LEMMA, {}, {proven, tidn});
         texplanation =
             TrustNode::mkTrustPropExp(node, explanation, d_lazyProof.get());
       }
@@ -1951,8 +1935,8 @@ theory::TrustNode TheoryEngine::getExplanation(
       {
         Trace("te-proof-exp") << "...via trust THEORY_LEMMA" << std::endl;
         // otherwise, trusted theory lemma
-        addTheoryLemmaToProof(
-            lcp.get(), proven, it->first, "TheoryEngine::getExplanation");
+        Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(it->first);
+        lcp->addStep(proven, PfRule::THEORY_LEMMA, {}, {proven, tidn});
       }
       std::vector<Node> pfChildren;
       pfChildren.push_back(proven);
