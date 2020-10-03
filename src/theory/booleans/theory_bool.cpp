@@ -50,8 +50,9 @@ TheoryBool::TheoryBool(context::Context* c,
   }
 }
 
-Theory::PPAssertStatus TheoryBool::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
-
+Theory::PPAssertStatus TheoryBool::ppAssert(
+    TNode in, TrustSubstitutionMap& outSubstitutions)
+{
   if (in.getKind() == kind::CONST_BOOLEAN && !in.getConst<bool>()) {
     // If we get a false literal, we're in conflict
     return PP_ASSERT_STATUS_CONFLICT;

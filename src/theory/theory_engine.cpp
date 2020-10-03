@@ -823,7 +823,7 @@ void TheoryEngine::shutdown() {
   d_tpp.clearCache();
 }
 
-theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMap& substitutionOut) {
+theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, TrustSubstitutionMap& substitutionOut) {
   // Reset the interrupt flag
   d_interrupted = false;
 
