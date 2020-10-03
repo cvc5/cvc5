@@ -651,7 +651,7 @@ void InferProofCons::convert(Inference infer,
     {
       Trace("strings-ipc-prefix") << "Prefix conflict..." << std::endl;
       std::vector<Node> eqs;
-      for (const Node e : ps.d_children)
+      for (const Node& e : ps.d_children)
       {
         Kind ek = e.getKind();
         if (ek == EQUAL)
