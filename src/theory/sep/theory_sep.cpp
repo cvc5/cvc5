@@ -1512,8 +1512,8 @@ Node TheorySep::instantiateLabel( Node n, Node o_lbl, Node lbl, Node lbl_v, std:
     }else if( n.getKind()==kind::SEP_PTO ){
       //check if this pto reference is in the base label, if not, then it does not need to be added as an assumption
       Assert(d_label_model.find(o_lbl) != d_label_model.end());
-      // TODO(project##230): Find a safe type for the singleton operator
       Node vr = d_valuation.getModel()->getRepresentative( n[0] );
+      // TODO(project##230): Find a safe type for the singleton operator
       Node svr = NodeManager::currentNM()->mkSingleton(vr.getType(), vr);
       bool inBaseHeap = std::find( d_label_model[o_lbl].d_heap_locs_model.begin(), d_label_model[o_lbl].d_heap_locs_model.end(), svr )!=d_label_model[o_lbl].d_heap_locs_model.end();
       Trace("sep-inst-debug") << "Is in base (non-instantiating) heap : " << inBaseHeap << " for value ref " << vr << " in " << o_lbl << std::endl;
