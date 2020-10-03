@@ -1102,7 +1102,7 @@ Node TheoryArithPrivate::getModelValue(TNode term) {
   }
 }
 
-Theory::PPAssertStatus TheoryArithPrivate::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
+Theory::PPAssertStatus TheoryArithPrivate::ppAssert(TNode in, TrustSubstitutionMap& outSubstitutions) {
   TimerStat::CodeTimer codeTimer(d_statistics.d_simplifyTimer);
   Debug("simplify") << "TheoryArithPrivate::solve(" << in << ")" << endl;
 

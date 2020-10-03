@@ -44,6 +44,7 @@
 #include "theory/theory_rewriter.h"
 #include "theory/theory_state.h"
 #include "theory/trust_node.h"
+#include "theory/trust_substitutions.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
 
@@ -702,7 +703,8 @@ class Theory {
    * Given a literal, add the solved substitutions to the map, if any.
    * The method should return true if the literal can be safely removed.
    */
-  virtual PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
+  virtual PPAssertStatus ppAssert(TNode in,
+                                  TrustSubstitutionMap& outSubstitutions);
 
   /**
    * Given an atom of the theory coming from the input formula, this

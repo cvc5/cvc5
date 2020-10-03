@@ -36,7 +36,7 @@ TheorySets::TheorySets(context::Context* c,
     : Theory(THEORY_SETS, c, u, out, valuation, logicInfo, pnm),
       d_skCache(),
       d_state(c, u, valuation, d_skCache),
-      d_im(*this, d_state, pnm),
+      d_im(*this, d_state, nullptr),
       d_internal(new TheorySetsPrivate(*this, d_state, d_im, d_skCache)),
       d_notify(*d_internal.get(), d_im)
 {
@@ -153,7 +153,9 @@ TrustNode TheorySets::expandDefinition(Node n)
   return d_internal->expandDefinition(n);
 }
 
-Theory::PPAssertStatus TheorySets::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
+Theory::PPAssertStatus TheorySets::ppAssert(
+    TNode in, TrustSubstitutionMap& outSubstitutions)
+{
   Debug("sets-proc") << "ppAssert : " << in << std::endl;
   Theory::PPAssertStatus status = Theory::PP_ASSERT_STATUS_UNSOLVED;
 
