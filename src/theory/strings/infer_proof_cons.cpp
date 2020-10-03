@@ -643,7 +643,8 @@ void InferProofCons::convert(Inference infer,
     }
     break;
     // ========================== unit injectivity
-    case Inference::UNIT_INJ: { ps.d_rule = PfRule::STRING_SEQ_UNIT_INJ;}
+    case Inference::UNIT_INJ: { ps.d_rule = PfRule::STRING_SEQ_UNIT_INJ;
+    }
     break;
     // ========================== prefix conflict
     case Inference::PREFIX_CONFLICT:
