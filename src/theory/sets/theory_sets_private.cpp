@@ -1275,7 +1275,6 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
       d_equalityEngine->addTriggerPredicate(node);
     }
     break;
-    case kind::CARD: d_equalityEngine->addTriggerTerm(node, THEORY_SETS); break;
     default: d_equalityEngine->addTerm(node); break;
   }
 }
