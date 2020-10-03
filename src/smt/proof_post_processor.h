@@ -198,14 +198,20 @@ class ProofPostproccess
   void process(std::shared_ptr<ProofNode> pf);
   /** set eliminate rule */
   void setEliminateRule(PfRule rule);
+  /** Set assertions (for debugging whether the final proof is closed) */
+  void setAssertions(const std::vector<Node>& assertions);
 
  private:
-  /** The post process callback */
-  ProofPostprocessCallback d_cb;
-  /** The post process callback for finalization */
-  ProofPostprocessFinalCallback d_finalCb;
   /** The proof node manager */
   ProofNodeManager* d_pnm;
+  /** The post process callback */
+  ProofPostprocessCallback d_cb;
+  /** The updater */
+  ProofNodeUpdater d_updater;
+  /** The post process callback for finalization */
+  ProofPostprocessFinalCallback d_finalCb;
+  /** The finalizer */
+  ProofNodeUpdater d_finalizer;
 };
 
 }  // namespace smt
