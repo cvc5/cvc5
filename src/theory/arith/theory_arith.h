@@ -18,15 +18,18 @@
 #pragma once
 
 #include "expr/node.h"
+#include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_state.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nonlinear_extension.h"
-#include "theory/arith/theory_arith_private_forward.h"
+#include "theory/arith/operator_elim.h"
 #include "theory/theory.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
+
+class TheoryArithPrivate;
 
 /**
  * Implementation of linear and non-linear integer and real arithmetic.
@@ -120,6 +123,15 @@ class TheoryArith : public Theory {
   }
 
  private:
+  /**
+   * Preprocess rewrite terms, return the trust node encapsulating the
+   * preprocessed form of n, and the proof generator that can provide the
+   * proof for the equivalence of n and this term.
+   *
+   * This calls the operator elimination utility to eliminate extended
+   * symbols.
+   */
+  TrustNode ppRewriteTerms(TNode n);
   /** Get the proof equality engine */
   eq::ProofEqEngine* getProofEqEngine();
   /** The state object wrapping TheoryArithPrivate  */
@@ -132,6 +144,10 @@ class TheoryArith : public Theory {
    * arithmetic.
    */
   std::unique_ptr<nl::NonlinearExtension> d_nonlinearExtension;
+  /** The operator elimination utility */
+  OperatorElim d_opElim;
+  /** The theory rewriter for this theory. */
+  ArithRewriter d_rewriter;
 };/* class TheoryArith */
 
 }/* CVC4::theory::arith namespace */
