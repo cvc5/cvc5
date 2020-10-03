@@ -37,7 +37,6 @@
 #include "theory/arith/nl/stats.h"
 #include "theory/arith/nl/strategy.h"
 #include "theory/arith/nl/transcendental_solver.h"
-#include "theory/arith/theory_arith.h"
 #include "theory/ext_theory.h"
 #include "theory/uf/equality_engine.h"
 

@@ -44,12 +44,14 @@ TheoryArith::TheoryArith(context::Context* c,
       d_ppRewriteTimer("theory::arith::ppRewriteTimer"),
       d_astate(*d_internal, c, u, valuation),
       d_inferenceManager(*this, d_astate, pnm),
-      d_nonlinearExtension(nullptr)
+      d_nonlinearExtension(nullptr),
+      d_opElim(pnm, logicInfo)
 {
   smtStatisticsRegistry()->registerStat(&d_ppRewriteTimer);
 
-  // indicate we are using the theory state object
+  // indicate we are using the theory state object and inference manager
   d_theoryState = &d_astate;
+  d_inferManager = &d_inferenceManager;
 }
 
 TheoryArith::~TheoryArith(){
@@ -57,10 +59,7 @@ TheoryArith::~TheoryArith(){
   delete d_internal;
 }
 
-TheoryRewriter* TheoryArith::getTheoryRewriter()
-{
-  return d_internal->getTheoryRewriter();
-}
+TheoryRewriter* TheoryArith::getTheoryRewriter() { return &d_rewriter; }
 
 bool TheoryArith::needsEqualityEngine(EeSetupInfo& esi)
 {
@@ -89,19 +88,66 @@ void TheoryArith::finishInit()
   d_internal->finishInit();
 }
 
-void TheoryArith::preRegisterTerm(TNode n) { d_internal->preRegisterTerm(n); }
+void TheoryArith::preRegisterTerm(TNode n)
+{
+  if (d_nonlinearExtension != nullptr)
+  {
+    d_nonlinearExtension->preRegisterTerm(n);
+  }
+  d_internal->preRegisterTerm(n);
+}
 
 TrustNode TheoryArith::expandDefinition(Node node)
 {
-  return d_internal->expandDefinition(node);
+  // call eliminate operators
+  return d_opElim.eliminate(node);
 }
 
-void TheoryArith::notifySharedTerm(TNode n) { d_internal->addSharedTerm(n); }
+void TheoryArith::notifySharedTerm(TNode n) { d_internal->notifySharedTerm(n); }
 
 TrustNode TheoryArith::ppRewrite(TNode atom)
 {
   CodeTimer timer(d_ppRewriteTimer, /* allow_reentrant = */ true);
-  return d_internal->ppRewrite(atom);
+  Debug("arith::preprocess") << "arith::preprocess() : " << atom << endl;
+
+  if (options::arithRewriteEq())
+  {
+    if (atom.getKind() == kind::EQUAL && atom[0].getType().isReal())
+    {
+      Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
+      Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
+      TrustNode tleq = ppRewriteTerms(leq);
+      TrustNode tgeq = ppRewriteTerms(geq);
+      if (!tleq.isNull())
+      {
+        leq = tleq.getNode();
+      }
+      if (!tgeq.isNull())
+      {
+        geq = tgeq.getNode();
+      }
+      Node rewritten = Rewriter::rewrite(leq.andNode(geq));
+      Debug("arith::preprocess")
+          << "arith::preprocess() : returning " << rewritten << endl;
+      // don't need to rewrite terms since rewritten is not a non-standard op
+      return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
+    }
+  }
+  return ppRewriteTerms(atom);
+}
+
+TrustNode TheoryArith::ppRewriteTerms(TNode n)
+{
+  if (Theory::theoryOf(n) != THEORY_ARITH)
+  {
+    return TrustNode::null();
+  }
+  // Eliminate operators recursively. Notice we must do this here since other
+  // theories may generate lemmas that involve non-standard operators. For
+  // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may
+  // introduce non-standard arithmetic terms appearing in grammars.
+  // call eliminate operators
+  return d_opElim.eliminate(n);
 }
 
 Theory::PPAssertStatus TheoryArith::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
@@ -112,13 +158,55 @@ void TheoryArith::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
   d_internal->ppStaticLearn(n, learned);
 }
 
-void TheoryArith::check(Effort effortLevel){
-  getOutputChannel().spendResource(ResourceManager::Resource::TheoryCheckStep);
-  d_internal->check(effortLevel);
+bool TheoryArith::preCheck(Effort level) { return d_internal->preCheck(level); }
+
+void TheoryArith::postCheck(Effort level)
+{
+  // check with the non-linear solver at last call
+  if (level == Theory::EFFORT_LAST_CALL)
+  {
+    if (d_nonlinearExtension != nullptr)
+    {
+      d_nonlinearExtension->check(level);
+    }
+    return;
+  }
+  // otherwise, check with the linear solver
+  if (d_internal->postCheck(level))
+  {
+    // linear solver emitted a conflict or lemma, return
+    return;
+  }
+
+  if (Theory::fullEffort(level))
+  {
+    if (d_nonlinearExtension != nullptr)
+    {
+      d_nonlinearExtension->check(level);
+    }
+    else if (d_internal->foundNonlinear())
+    {
+      // set incomplete
+      d_inferenceManager.setIncomplete();
+    }
+  }
+}
+
+bool TheoryArith::preNotifyFact(
+    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
+{
+  d_internal->preNotifyFact(atom, pol, fact);
+  // We do not assert to the equality engine of arithmetic in the standard way,
+  // hence we return "true" to indicate we are finished with this fact.
+  return true;
 }
 
 bool TheoryArith::needsCheckLastEffort() {
-  return d_internal->needsCheckLastEffort();
+  if (d_nonlinearExtension != nullptr)
+  {
+    return d_nonlinearExtension->needsCheckLastEffort();
+  }
+  return false;
 }
 
 TrustNode TheoryArith::explain(TNode n)
@@ -130,12 +218,10 @@ TrustNode TheoryArith::explain(TNode n)
 void TheoryArith::propagate(Effort e) {
   d_internal->propagate(e);
 }
-bool TheoryArith::collectModelInfo(TheoryModel* m)
+
+bool TheoryArith::collectModelInfo(TheoryModel* m,
+                                   const std::set<Node>& termSet)
 {
-  std::set<Node> termSet;
-  // Work out which variables are needed
-  const std::set<Kind>& irrKinds = m->getIrrelevantKinds();
-  computeAssertedTerms(termSet, irrKinds);
   // this overrides behavior to not assert equality engine
   return collectModelValues(m, termSet);
 }
@@ -186,6 +272,10 @@ void TheoryArith::notifyRestart(){
 
 void TheoryArith::presolve(){
   d_internal->presolve();
+  if (d_nonlinearExtension != nullptr)
+  {
+    d_nonlinearExtension->presolve();
+  }
 }
 
 EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {

@@ -21,6 +21,7 @@
 
 #include "expr/lazy_proof.h"
 #include "expr/node.h"
+#include "expr/tconv_seq_proof_generator.h"
 #include "expr/term_conversion_proof_generator.h"
 #include "theory/trust_node.h"
 
@@ -85,8 +86,31 @@ class TheoryPreprocessor
   RemoveTermFormulas& d_tfr;
   /** The context for the proof generator below */
   context::Context d_pfContext;
-  /** A term conversion proof generator */
+  /** The term context, which computes hash values for term contexts. */
+  InQuantTermContext d_iqtc;
+  /**
+   * A term conversion proof generator storing preprocessing and rewriting
+   * steps.
+   */
   std::unique_ptr<TConvProofGenerator> d_tpg;
+  /**
+   * A term conversion sequence generator, which applies theory preprocessing,
+   * term formula removal, and rewriting in sequence.
+   */
+  std::unique_ptr<TConvSeqProofGenerator> d_tspg;
+  /**
+   * A term conversion proof generator storing rewriting steps, which is used
+   * for calls to preprocess when doTheoryPreprocess is false. We store
+   * (top-level) rewrite steps only. Notice this is intentionally separate
+   * from d_tpg, which interleaves both preprocessing and rewriting.
+   */
+  std::unique_ptr<TConvProofGenerator> d_tpgRew;
+  /**
+   * A term conversion sequence generator, which applies term formula removal
+   * and rewriting in sequence. This is used for reconstruct proofs of
+   * calls to preprocess where doTheoryPreprocess is false.
+   */
+  std::unique_ptr<TConvSeqProofGenerator> d_tspgNoPp;
   /** A lazy proof, for additional lemmas. */
   std::unique_ptr<LazyCDProof> d_lp;
   /** Helper for theoryPreprocess */
