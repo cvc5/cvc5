@@ -23,6 +23,7 @@
 #include "smt_util/boolean_simplification.h"
 #include "theory/booleans/circuit_propagator.h"
 #include "theory/theory_model.h"
+#include "theory/trust_substitutions.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -187,6 +188,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   const booleans::CircuitPropagator::BackEdgesMap& backEdges =
       propagator->getBackEdges();
   unordered_set<unsigned long> removeAssertions;
+
   SubstitutionMap& top_level_substs =
       d_preprocContext->getTopLevelSubstitutions();
 
@@ -526,14 +528,15 @@ PreprocessingPassResult MipLibTrick::applyInternal(
               {
                 ProofManager::currentPM()->addDependence(n, Node::null());
               }
-              SubstitutionMap nullMap(&fakeContext);
+              TrustSubstitutionMap tnullMap(&fakeContext, nullptr);
+              SubstitutionMap& nullMap = tnullMap.get();
               Theory::PPAssertStatus status CVC4_UNUSED;  // just for assertions
-              status = te->solve(geq, nullMap);
+              status = te->solve(geq, tnullMap);
               Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED)
                   << "unexpected solution from arith's ppAssert()";
               Assert(nullMap.empty())
                   << "unexpected substitution from arith's ppAssert()";
-              status = te->solve(leq, nullMap);
+              status = te->solve(leq, tnullMap);
               Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED)
                   << "unexpected solution from arith's ppAssert()";
               Assert(nullMap.empty())
