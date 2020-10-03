@@ -209,11 +209,6 @@ TrustNode TheoryBV::explain(TNode node) { return d_internal->explain(node); }
 void TheoryBV::notifySharedTerm(TNode t)
 {
   d_internal->notifySharedTerm(t);
-  // temporary, will be built into Theory::addSharedTerm
-  if (d_equalityEngine != nullptr)
-  {
-    d_equalityEngine->addTriggerTerm(t, THEORY_BV);
-  }
 }
 
 void TheoryBV::ppStaticLearn(TNode in, NodeBuilder<>& learned)

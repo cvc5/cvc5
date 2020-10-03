@@ -91,7 +91,7 @@ class TheoryArith : public Theory {
   void propagate(Effort e) override;
   TrustNode explain(TNode n) override;
 
-  bool collectModelInfo(TheoryModel* m) override;
+  bool collectModelInfo(TheoryModel* m, const std::set<Node>& termSet) override;
   /**
    * Collect model values in m based on the relevant terms given by termSet.
    */

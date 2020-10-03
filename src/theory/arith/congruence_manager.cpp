@@ -660,10 +660,6 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
   assertLitToEqualityEngine(eq, reason, pf);
 }
 
-void ArithCongruenceManager::addSharedTerm(Node x){
-  d_ee->addTriggerTerm(x, THEORY_ARITH);
-}
-
 bool ArithCongruenceManager::isProofEnabled() const { return d_pnm != nullptr; }
 
 std::vector<Node> andComponents(TNode an)

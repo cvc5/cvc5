@@ -1091,7 +1091,6 @@ void TheoryArithPrivate::notifySharedTerm(TNode n)
   if(n.isConst()){
     d_partialModel.invalidateDelta();
   }
-  d_congruenceManager.addSharedTerm(n);
   if(!n.isConst() && !isSetup(n)){
     Polynomial poly = Polynomial::parsePolynomial(n);
     Polynomial::iterator it = poly.begin();
