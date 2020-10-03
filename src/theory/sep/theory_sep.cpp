@@ -1655,6 +1655,7 @@ void TheorySep::computeLabelModel( Node lbl ) {
       }else{
         tt = itm->second;
       }
+      // TODO(project##230): Find a safe type for the singleton operator
       Node stt = NodeManager::currentNM()->mkSingleton(tt.getType(), tt);
       Trace("sep-process-debug") << "...model : add " << tt << " for " << u << " in lbl " << lbl << std::endl;
       d_label_model[lbl].d_heap_locs.push_back( stt );
