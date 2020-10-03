@@ -1154,6 +1154,7 @@ void TheorySetsRels::check(Theory::Effort level)
       }
       return equal;
     } else if(!a.getType().isBoolean()){
+      // TODO(project##230): Find a safe type for the singleton operator
       makeSharedTerm(a, a.getType());
       makeSharedTerm(b, b.getType());
     }
