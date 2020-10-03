@@ -42,7 +42,7 @@
 #include "theory/theory.h"
 #include "theory/theory_preprocessor.h"
 #include "theory/trust_node.h"
-#include "theory/trust_substitutions.h"
+#include "theory/substitutions.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
 #include "util/hash.h"
