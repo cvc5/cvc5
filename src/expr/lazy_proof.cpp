@@ -83,8 +83,11 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
           // the current proof. Instead, it is only linked, and ignored on
           // future calls to getProofFor due to the check above.
           std::shared_ptr<ProofNode> pgc = pg->getProofFor(cfactGen);
-          // if the proof was null, then the update is not performed
-          // TODO: require/check this?
+          // If the proof was null, then the update is not performed. This is
+          // not considered an error, since this behavior is equivalent to
+          // if pg had provided the proof (ASSUME cfactGen). Ensuring the
+          // proper behavior wrt closed proofs should be done outside this
+          // method.
           if (pgc != nullptr)
           {
             Trace("lazy-cdproof-gen")

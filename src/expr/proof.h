@@ -233,7 +233,6 @@ class CDProof : public ProofGenerator
    * null if none exist.
    */
   static Node getSymmFact(TNode f);
-
   /** identify */
   std::string identify() const override;
 

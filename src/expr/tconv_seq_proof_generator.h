@@ -142,4 +142,4 @@ class TConvSubSeqGenerator : public ProofGenerator
 
 }  // namespace CVC4
 
-#endif /* CVC4__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H */
+#endif /* CVC4__EXPR__TCONV_SEQ_PROOF_GENERATOR_H */
