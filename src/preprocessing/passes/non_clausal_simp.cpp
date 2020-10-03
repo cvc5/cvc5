@@ -117,7 +117,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   SubstitutionMap& top_level_substs =
       d_preprocContext->getTopLevelSubstitutions();
   SubstitutionMap constantPropagations(d_preprocContext->getUserContext());
-  TrustSubstitutionMap tnewSubstituions(d_preprocContext->getUserContext(), nullptr);
+  TrustSubstitutionMap tnewSubstituions(d_preprocContext->getUserContext(),
+                                        nullptr);
   SubstitutionMap& newSubstitutions = tnewSubstituions.get();
   SubstitutionMap::iterator pos;
   size_t j = 0;

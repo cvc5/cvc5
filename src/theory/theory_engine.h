@@ -496,8 +496,8 @@ class TheoryEngine {
   /**
    * Solve the given literal with a theory that owns it.
    */
-  theory::Theory::PPAssertStatus solve(TNode literal,
-                                    theory::TrustSubstitutionMap& substitutionOut);
+  theory::Theory::PPAssertStatus solve(
+      TNode literal, theory::TrustSubstitutionMap& substitutionOut);
 
   /**
    * Preregister a Theory atom with the responsible theory (or

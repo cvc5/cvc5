@@ -42,10 +42,7 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
 
 SubstitutionMap& TrustSubstitutionMap::get() { return d_subs; }
 
-bool TrustSubstitutionMap::isProofEnabled() const
-{
-  return false;
-}
+bool TrustSubstitutionMap::isProofEnabled() const { return false; }
 
 }  // namespace theory
 }  // namespace CVC4
