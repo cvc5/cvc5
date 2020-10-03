@@ -1639,25 +1639,24 @@ void TheorySep::computeLabelModel( Node lbl ) {
     for( unsigned j=0; j<d_label_model[lbl].d_heap_locs_model.size(); j++ ){
       Node u = d_label_model[lbl].d_heap_locs_model[j];
       Assert(u.getKind() == kind::SINGLETON);
-      TypeNode tn = u.getType().getSetElementType();
+      u = u[0];
       Node tt;
-      std::map< Node, Node >::iterator itm = d_tmodel.find( u[0] );
+      std::map< Node, Node >::iterator itm = d_tmodel.find( u );
       if( itm==d_tmodel.end() ) {
-        //Trace("sep-process") << "WARNING: could not find symbolic term in model for " << u[0] << std::endl;
+        //Trace("sep-process") << "WARNING: could not find symbolic term in model for " << u << std::endl;
         //Assert( false );
-        //tt = u[0];
-        //TypeNode tn = u[0].getType().getRefConstituentType();
-
-        Trace("sep-process") << "WARNING: could not find symbolic term in model for " << u[0] << ", cref type " << tn << std::endl;
+        //tt = u;
+        //TypeNode tn = u.getType().getRefConstituentType();
+        TypeNode tn = u.getType();
+        Trace("sep-process") << "WARNING: could not find symbolic term in model for " << u << ", cref type " << tn << std::endl;
         Assert(d_type_references_all.find(tn) != d_type_references_all.end());
         Assert(!d_type_references_all[tn].empty());
         tt = d_type_references_all[tn][0];
       }else{
         tt = itm->second;
       }
-      // TODO(project##230): Find a safe type for the singleton operator
-      Node stt = NodeManager::currentNM()->mkSingleton(tn, tt);
-      Trace("sep-process-debug") << "...model : add " << tt << " for " << u[0] << " in lbl " << lbl << std::endl;
+      Node stt = NodeManager::currentNM()->mkSingleton(tt.getType(), tt);
+      Trace("sep-process-debug") << "...model : add " << tt << " for " << u << " in lbl " << lbl << std::endl;
       d_label_model[lbl].d_heap_locs.push_back( stt );
     }
   }
