@@ -73,9 +73,9 @@ int main()
     Term two = slv.mkReal(2);
     Term three = slv.mkReal(3);
 
-    Term singleton_one = slv.mkSingleton(set, one);
-    Term singleton_two = slv.mkSingleton(set, two);
-    Term singleton_three = slv.mkSingleton(set, three);
+    Term singleton_one = slv.mkSingleton(integer, one);
+    Term singleton_two = slv.mkSingleton(integer, two);
+    Term singleton_three = slv.mkSingleton(integer, three);
     Term one_two = slv.mkTerm(UNION, singleton_one, singleton_two);
     Term two_three = slv.mkTerm(UNION, singleton_two, singleton_three);
     Term intersection = slv.mkTerm(INTERSECTION, one_two, two_three);
