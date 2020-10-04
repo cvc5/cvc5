@@ -1117,6 +1117,12 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       options::cegqiPreRegInst.set(true);
     }
+    // use tangent planes by default, since we want to put effort into
+    // the verification step for sygus queries with non-linear arithmetic
+    if (!options::nlExtTangentPlanes.wasSetByUser())
+    {
+      options::nlExtTangentPlanes.set(true);
+    }
     // not compatible with proofs
     if (options::proofNew())
     {
