@@ -194,7 +194,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         // The literal should rewrite to true
         Trace("non-clausal-simplify")
             << "solved " << learnedLiteral << std::endl;
-        Assert(nss.apply(learnedLiteral).isConst());
+        Assert(Rewriter::rewrite(nss.apply(learnedLiteral)).isConst());
         // else fall through
         break;
       }

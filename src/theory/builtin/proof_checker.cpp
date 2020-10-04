@@ -153,17 +153,50 @@ bool BuiltinProofRuleChecker::getSubstitutionForLit(Node exp,
   return true;
 }
 
+bool BuiltinProofRuleChecker::getSubstitutionFor(Node exp,
+                                    std::vector<TNode>& vars,
+                                    std::vector<TNode>& subs,
+                                    MethodId ids)
+{
+  if (exp.getKind()==AND && ids==MethodId::SB_DEFAULT)
+  {
+    for (const Node& ec : exp)
+    {
+      if (!getSubstitutionFor(ec, vars, subs, ids))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+  TNode v;
+  TNode s;
+  bool ret = getSubstitutionForLit(exp, v, s, ids);
+  vars.push_back(v);
+  subs.push_back(s);
+  return ret;
+}
+
 Node BuiltinProofRuleChecker::applySubstitution(Node n, Node exp, MethodId ids)
 {
-  TNode var, subs;
-  if (!getSubstitutionForLit(exp, var, subs, ids))
+  std::vector<TNode> vars;
+  std::vector<TNode> subs;
+  if (!getSubstitutionFor(exp, vars, subs, ids))
   {
     return Node::null();
   }
-  Trace("builtin-pfcheck-debug")
-      << "applySubstitution (" << ids << "): " << var << " -> " << subs
-      << " (from " << exp << ")" << std::endl;
-  return n.substitute(var, subs);
+  Node ns = n;
+  // apply substitution one at a time, in reverse order
+  for (size_t i=0, nvars=vars.size(); i<nvars; i++)
+  {
+    TNode v = vars[nvars-1-i];
+    TNode s = subs[nvars-1-i];
+    Trace("builtin-pfcheck-debug")
+        << "applySubstitution (" << ids << "): " << v << " -> " << s
+        << " (from " << exp << ")" << std::endl;
+    ns = ns.substitute(v, s);
+  }
+  return ns;
 }
 
 Node BuiltinProofRuleChecker::applySubstitution(Node n,

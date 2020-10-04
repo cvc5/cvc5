@@ -91,6 +91,15 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
                                     TNode& var,
                                     TNode& subs,
                                     MethodId ids = MethodId::SB_DEFAULT);
+  /**
+   * Get substitution for formula exp. Adds to vars/subs to the substitution
+   * specified by exp for the substitution method ids, which may be multiple
+   * substitutions if exp is of kind AND.
+   */
+  static bool getSubstitutionFor(Node exp,
+                                    std::vector<TNode>& vars,
+                                    std::vector<TNode>& subs,
+                                    MethodId ids = MethodId::SB_DEFAULT);
 
   /**
    * Apply substitution on n in skolem form. This encapsulates the exact
