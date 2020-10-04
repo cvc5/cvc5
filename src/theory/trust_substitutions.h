@@ -17,15 +17,15 @@
 #ifndef CVC4__THEORY__TRUST_SUBSTITUTIONS_H
 #define CVC4__THEORY__TRUST_SUBSTITUTIONS_H
 
+#include "context/cdlist.h"
 #include "context/context.h"
+#include "expr/lazy_proof.h"
 #include "expr/proof_node_manager.h"
 #include "expr/term_conversion_proof_generator.h"
-#include "theory/substitutions.h"
-#include "theory/trust_node.h"
 #include "theory/eager_proof_generator.h"
-#include "context/cdlist.h"
+#include "theory/substitutions.h"
 #include "theory/theory_proof_step_buffer.h"
-#include "expr/lazy_proof.h"
+#include "theory/trust_node.h"
 
 namespace CVC4 {
 namespace theory {
@@ -58,7 +58,7 @@ class TrustSubstitutionMap
  private:
   /** Are proofs enabled? */
   bool isProofEnabled() const;
-  /** 
+  /**
    * Get current substitution. This returns a node of the form:
    *   (and (= x1 t1) ... (= xn tn))
    * where (x1, t1) ... (xn, tn) have been registered via addSubstitution above.

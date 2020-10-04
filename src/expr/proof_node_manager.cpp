@@ -68,17 +68,13 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkTrans(
   return mkNode(PfRule::TRANS, children, {}, expected);
 }
 
-
 std::shared_ptr<ProofNode> ProofNodeManager::mkAndElim(
-    std::shared_ptr<ProofNode>& child,
-    size_t i,
-    Node expected
-                                                      )
+    std::shared_ptr<ProofNode>& child, size_t i, Node expected)
 {
-  Assert (child->getResult().getKind()==AND);
-  if (child->getRule()==PfRule::AND_INTRO)
+  Assert(child->getResult().getKind() == AND);
+  if (child->getRule() == PfRule::AND_INTRO)
   {
-    Assert (i<child->d_children.size());
+    Assert(i < child->d_children.size());
     return child->d_children[i];
   }
   Node inode = NodeManager::currentNM()->mkConst(Rational(i));

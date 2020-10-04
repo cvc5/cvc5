@@ -91,10 +91,9 @@ class ProofNodeManager
   /**
    * Make AND elim with i. If child is an AND_INTRO, it takes the i^th child.
    */
-  std::shared_ptr<ProofNode> mkAndElim(
-      std::shared_ptr<ProofNode>& child,
-      size_t i,
-      Node expected = Node::null());
+  std::shared_ptr<ProofNode> mkAndElim(std::shared_ptr<ProofNode>& child,
+                                       size_t i,
+                                       Node expected = Node::null());
 
   /**
    * Make scope having body pf and arguments (assumptions-to-close) assumps.

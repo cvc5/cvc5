@@ -88,9 +88,9 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * specified by exp for the substitution method ids.
    */
   static bool getSubstitutionForLit(Node exp,
-                              TNode& var,
-                              TNode& subs,
-                              MethodId ids = MethodId::SB_DEFAULT);
+                                    TNode& var,
+                                    TNode& subs,
+                                    MethodId ids = MethodId::SB_DEFAULT);
 
   /**
    * Apply substitution on n in skolem form. This encapsulates the exact

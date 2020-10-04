@@ -21,7 +21,14 @@ namespace theory {
 
 TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
                                            ProofNodeManager* pnm)
-    : d_subs(c), d_tsubs(c), d_tspb(pnm ? new TheoryProofStepBuffer(pnm->getChecker()) : nullptr), d_subsPg(pnm ? new LazyCDProof(pnm, nullptr, c, "TrustSubstitutionMap::subsPg") : nullptr), d_applyPg(pnm ? new EagerProofGenerator(pnm, c) : nullptr), d_currentSubs(c)
+    : d_subs(c),
+      d_tsubs(c),
+      d_tspb(pnm ? new TheoryProofStepBuffer(pnm->getChecker()) : nullptr),
+      d_subsPg(
+          pnm ? new LazyCDProof(pnm, nullptr, c, "TrustSubstitutionMap::subsPg")
+              : nullptr),
+      d_applyPg(pnm ? new EagerProofGenerator(pnm, c) : nullptr),
+      d_currentSubs(c)
 {
 }
 
@@ -30,7 +37,7 @@ void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, ProofGenerator* pg)
   d_subs.addSubstitution(x, t);
   if (isProofEnabled())
   {
-    d_tsubs.push_back(TrustNode::mkTrustRewrite(x,t,pg));
+    d_tsubs.push_back(TrustNode::mkTrustRewrite(x, t, pg));
     // current substitution node is no longer valid.
     d_currentSubs = Node::null();
   }
@@ -55,7 +62,7 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   }
   // proof is a single application of MACRO_SR_PRED_TRANSFORM
   Node cs = getCurrentSubstitution();
-  
+
   return TrustNode::mkTrustRewrite(n, ns, nullptr);
 }
 

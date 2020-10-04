@@ -119,9 +119,9 @@ Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
 }
 
 bool BuiltinProofRuleChecker::getSubstitutionForLit(Node exp,
-                                              TNode& var,
-                                              TNode& subs,
-                                              MethodId ids)
+                                                    TNode& var,
+                                                    TNode& subs,
+                                                    MethodId ids)
 {
   if (ids == MethodId::SB_DEFAULT)
   {
@@ -360,7 +360,8 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::PREPROCESS || id == PfRule::THEORY_PREPROCESS
            || id == PfRule::WITNESS_AXIOM || id == PfRule::THEORY_LEMMA
-           || id == PfRule::PREPROCESS_LEMMA || id == PfRule::THEORY_REWRITE || id == PfRule::TRUST_REWRITE || id == PfRule::TRUST_SUBS)
+           || id == PfRule::PREPROCESS_LEMMA || id == PfRule::THEORY_REWRITE
+           || id == PfRule::TRUST_REWRITE || id == PfRule::TRUST_SUBS)
   {
     // "trusted" rules
     Assert(children.empty());
