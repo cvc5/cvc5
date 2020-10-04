@@ -400,7 +400,7 @@ bool CircuitPropagator::propagate() {
         // TODO
       }
       // make the trust node
-      tlit = TrustNode::mkTrustLemma(lit, d_epg.get());
+      tlit = TrustNode::mkTrustLemma(lit, nullptr);
       d_learnedLiterals.push_back(tlit);
     }
 

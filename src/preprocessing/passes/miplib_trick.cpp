@@ -530,7 +530,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
                 ProofManager::currentPM()->addDependence(n, Node::null());
               }
               TrustSubstitutionMap tnullMap(&fakeContext, nullptr);
-              SubstitutionMap& nullMap = tnullMap.get();
+              CVC4_UNUSED SubstitutionMap& nullMap = tnullMap.get();
               Theory::PPAssertStatus status CVC4_UNUSED;  // just for assertions
               status = te->solve(geq, tnullMap);
               Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED)

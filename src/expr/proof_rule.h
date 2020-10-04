@@ -244,6 +244,12 @@ enum class PfRule : uint32_t
   // where F is an existential (exists ((x T)) (P x)) used for introducing
   // a witness term (witness ((x T)) (P x)).
   WITNESS_AXIOM,
+  // where F is an equality (= t t') that holds by a form of rewriting that
+  // could not be replayed.
+  TRUST_REWRITE,
+  // where F is an equality (= t t') that holds by a form of substitution that
+  // could not be replayed.
+  TRUST_SUBS,
 
   //================================================= Boolean rules
   // ======== Resolution

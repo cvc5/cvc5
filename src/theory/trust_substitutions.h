@@ -22,6 +22,10 @@
 #include "expr/term_conversion_proof_generator.h"
 #include "theory/substitutions.h"
 #include "theory/trust_node.h"
+#include "theory/eager_proof_generator.h"
+#include "context/cdlist.h"
+#include "theory/theory_proof_step_buffer.h"
+#include "expr/lazy_proof.h"
 
 namespace CVC4 {
 namespace theory {
@@ -54,10 +58,25 @@ class TrustSubstitutionMap
  private:
   /** Are proofs enabled? */
   bool isProofEnabled() const;
+  /** 
+   * Get current substitution. This returns a node of the form:
+   *   (and (= x1 t1) ... (= xn tn))
+   * where (x1, t1) ... (xn, tn) have been registered via addSubstitution above.
+   * Moreover, it ensures that d_subsPg has a proof of the returned value.
+   */
+  Node getCurrentSubstitution();
   /** The substitution map */
   SubstitutionMap d_subs;
-  /** The term conversion proof generator */
-  std::unique_ptr<TConvProofGenerator> d_subsPg;
+  /** A context-dependent list of trust nodes */
+  context::CDList<TrustNode> d_tsubs;
+  /** Theory proof step buffer */
+  std::unique_ptr<TheoryProofStepBuffer> d_tspb;
+  /** A lazy proof for substitution steps */
+  std::unique_ptr<LazyCDProof> d_subsPg;
+  /** An eager proof generator for apply steps */
+  std::unique_ptr<EagerProofGenerator> d_applyPg;
+  /** Whether the substitution is up-to-date */
+  context::CDO<Node> d_currentSubs;
 };
 
 }  // namespace theory

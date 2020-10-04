@@ -21,10 +21,8 @@ namespace theory {
 
 TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
                                            ProofNodeManager* pnm)
-    : d_subs(c), d_subsPg(pnm ? new TConvProofGenerator(pnm, c) : nullptr)
+    : d_subs(c), d_tsubs(c), d_tspb(pnm ? new TheoryProofStepBuffer(pnm->getChecker()) : nullptr), d_subsPg(pnm ? new LazyCDProof(pnm, nullptr, c, "TrustSubstitutionMap::subsPg") : nullptr), d_applyPg(pnm ? new EagerProofGenerator(pnm, c) : nullptr), d_currentSubs(c)
 {
-  // Notice that d_subsPg uses the FIXPOINT policy, since SubstitutionMap
-  // is applied to fixpoint.
 }
 
 void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, ProofGenerator* pg)
@@ -32,22 +30,16 @@ void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, ProofGenerator* pg)
   d_subs.addSubstitution(x, t);
   if (isProofEnabled())
   {
-    // d_subsPg->addRewriteStep(x, t, pg);
+    d_tsubs.push_back(TrustNode::mkTrustRewrite(x,t,pg));
+    // current substitution node is no longer valid.
+    d_currentSubs = Node::null();
   }
 }
 
 void TrustSubstitutionMap::addSubstitutions(TrustSubstitutionMap& t)
 {
-  // TODO?
-  SubstitutionMap& st = t.get();
-  for (SubstitutionMap::NodeMap::const_iterator it = st.begin(),
-                                                it_end = st.end();
-       it != it_end;
-       ++it)
-  {
-    Node x = (*it).first;
-    // issue: cannot extract original proof generator from rewrite step for x.
-  }
+  d_subs.addSubstitutions(t.get());
+  // TODO: append trust node list?
 }
 
 TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
@@ -57,7 +49,14 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   {
     ns = Rewriter::rewrite(ns);
   }
-  return TrustNode::mkTrustRewrite(n, ns, d_subsPg.get());
+  if (!isProofEnabled())
+  {
+    return TrustNode::mkTrustRewrite(n, ns, nullptr);
+  }
+  // proof is a single application of MACRO_SR_PRED_TRANSFORM
+  Node cs = getCurrentSubstitution();
+  
+  return TrustNode::mkTrustRewrite(n, ns, nullptr);
 }
 
 SubstitutionMap& TrustSubstitutionMap::get() { return d_subs; }
@@ -65,6 +64,21 @@ SubstitutionMap& TrustSubstitutionMap::get() { return d_subs; }
 bool TrustSubstitutionMap::isProofEnabled() const
 {
   return d_subsPg != nullptr;
+}
+
+Node TrustSubstitutionMap::getCurrentSubstitution()
+{
+  if (!d_currentSubs.get().isNull())
+  {
+    return d_currentSubs;
+  }
+  std::vector<Node> csubsChildren;
+  for (const TrustNode& tns : d_tsubs)
+  {
+    csubsChildren.push_back(tns.getProven());
+  }
+  d_currentSubs = NodeManager::currentNM()->mkAnd(csubsChildren);
+  return d_currentSubs;
 }
 
 }  // namespace theory

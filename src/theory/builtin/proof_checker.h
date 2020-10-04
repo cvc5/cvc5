@@ -84,10 +84,10 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    */
   Node applyRewrite(Node n, MethodId idr = MethodId::RW_REWRITE);
   /**
-   * Get substitution. Updates vars/subs to the substitution specified by
-   * exp for the substitution method ids.
+   * Get substitution for literal exp. Updates vars/subs to the substitution
+   * specified by exp for the substitution method ids.
    */
-  static bool getSubstitution(Node exp,
+  static bool getSubstitutionForLit(Node exp,
                               TNode& var,
                               TNode& subs,
                               MethodId ids = MethodId::SB_DEFAULT);
