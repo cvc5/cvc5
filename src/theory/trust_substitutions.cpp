@@ -34,7 +34,8 @@ TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
 
 void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, ProofGenerator* pg)
 {
-  Trace("trust-subs") << "TrustSubstitutionMap::addSubstitution: add " << x << " -> " << t << std::endl;
+  Trace("trust-subs") << "TrustSubstitutionMap::addSubstitution: add " << x
+                      << " -> " << t << std::endl;
   d_subs.addSubstitution(x, t);
   if (isProofEnabled())
   {
@@ -43,7 +44,12 @@ void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, ProofGenerator* pg)
     // current substitution node is no longer valid.
     d_currentSubs = Node::null();
     // add to lazy proof
-    d_subsPg->addLazyStep(tnl.getProven(), pg, false, "TrustSubstitutionMap::addSubstitution", false, PfRule::TRUST);
+    d_subsPg->addLazyStep(tnl.getProven(),
+                          pg,
+                          false,
+                          "TrustSubstitutionMap::addSubstitution",
+                          false,
+                          PfRule::TRUST);
   }
 }
 
@@ -64,7 +70,8 @@ void TrustSubstitutionMap::addSubstitutions(TrustSubstitutionMap& t)
 
 TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
 {
-  Trace("trust-subs") << "TrustSubstitutionMap::addSubstitution: apply " << n << std::endl;
+  Trace("trust-subs") << "TrustSubstitutionMap::addSubstitution: apply " << n
+                      << std::endl;
   Node ns = d_subs.apply(n);
   Trace("trust-subs") << "...subs " << ns << std::endl;
   if (doRewrite)
@@ -78,7 +85,9 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   }
   // proof is a single application of MACRO_SR_PRED_TRANSFORM
   Node cs = getCurrentSubstitution();
-  Trace("trust-subs") << "TrustSubstitutionMap::addSubstitution: current substitution is " << cs << std::endl;
+  Trace("trust-subs")
+      << "TrustSubstitutionMap::addSubstitution: current substitution is " << cs
+      << std::endl;
   std::vector<Node> pfChildren;
   if (!cs.isConst())
   {
@@ -86,7 +95,8 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   }
   if (!d_tspb->applyEqIntro(n, ns, pfChildren))
   {
-    Assert(false) << "TrustSubstitutionMap::addSubstitution: failed to apply substitution";
+    Assert(false) << "TrustSubstitutionMap::addSubstitution: failed to apply "
+                     "substitution";
     return TrustNode::mkTrustRewrite(n, ns, nullptr);
   }
   return TrustNode::mkTrustRewrite(n, ns, nullptr);
@@ -101,7 +111,7 @@ bool TrustSubstitutionMap::isProofEnabled() const
 
 Node TrustSubstitutionMap::getCurrentSubstitution()
 {
-  Assert (isProofEnabled());
+  Assert(isProofEnabled());
   if (!d_currentSubs.get().isNull())
   {
     return d_currentSubs;

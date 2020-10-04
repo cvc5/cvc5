@@ -97,9 +97,9 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * substitutions if exp is of kind AND.
    */
   static bool getSubstitutionFor(Node exp,
-                                    std::vector<TNode>& vars,
-                                    std::vector<TNode>& subs,
-                                    MethodId ids = MethodId::SB_DEFAULT);
+                                 std::vector<TNode>& vars,
+                                 std::vector<TNode>& subs,
+                                 MethodId ids = MethodId::SB_DEFAULT);
 
   /**
    * Apply substitution on n in skolem form. This encapsulates the exact

@@ -27,10 +27,10 @@ TheoryProofStepBuffer::TheoryProofStepBuffer(ProofChecker* pc)
 }
 
 bool TheoryProofStepBuffer::applyEqIntro(Node src,
-                  Node tgt,
-                    const std::vector<Node>& exp,
-                    MethodId ids,
-                    MethodId idr)
+                                         Node tgt,
+                                         const std::vector<Node>& exp,
+                                         MethodId ids,
+                                         MethodId idr)
 {
   if (CDProof::isSame(src, tgt))
   {
@@ -47,7 +47,7 @@ bool TheoryProofStepBuffer::applyEqIntro(Node src,
   }
   // should have concluded the expected equality
   Node expected = src.eqNode(tgt);
-  if (res!=expected)
+  if (res != expected)
   {
     // did not provide the correct target
     popStep();

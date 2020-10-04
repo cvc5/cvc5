@@ -44,9 +44,9 @@ class TheoryProofStepBuffer : public ProofStepBuffer
    */
   bool applyEqIntro(Node src,
                     Node tgt,
-                      const std::vector<Node>& exp,
-                      MethodId ids = MethodId::SB_DEFAULT,
-                      MethodId idr = MethodId::RW_REWRITE);
+                    const std::vector<Node>& exp,
+                    MethodId ids = MethodId::SB_DEFAULT,
+                    MethodId idr = MethodId::RW_REWRITE);
   /**
    * Apply predicate transform. If this method returns true, it adds (at most
    * one) proof step to the buffer that conclude tgt from premises src, exp. In
