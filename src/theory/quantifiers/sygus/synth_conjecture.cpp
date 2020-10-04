@@ -662,6 +662,10 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       // solution, without adding a counterexample point. This should only
       // happen if the quantifier free logic is undecidable.
       excludeCurrentSolution(terms, candidate_values);
+      // We should set incomplete, since a "sat" answer should not be
+      // interpreted as "infeasible", which would make a difference in the rare
+      // case where e.g. we had a finite grammar and exhausted the grammar.
+      d_qe->getOutputChannel().setIncomplete();
       return false;
     }
   }
