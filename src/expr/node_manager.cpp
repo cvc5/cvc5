@@ -954,7 +954,7 @@ Node NodeManager::mkSingleton(const TypeNode& t, const TNode n)
 {
   Assert(n.getType().isSubtypeOf(t))
       << "Invalid operands for mkSingleton. The type '" << n.getType()
-      << "' is not a subtype of '" << t << "' in node '" << n << "'"
+      << "' of node '" << n << "' is not a subtype of '" << t << "'."
       << std::endl;
   Node op = mkConst(SingletonOp(t));
   Node singleton = mkNode(kind::SINGLETON, op, n);
