@@ -69,7 +69,7 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     Node node = d_nm->mkConst(Rational(10));
 
     // node of type Int is not compatible with bag of type (Bag String)
-    TS_ASSERT_THROWS(d_nm->mkNode(BAG_COUNT, node, bag),
+    TS_ASSERT_THROWS(d_nm->mkNode(BAG_COUNT, node, bag).getType(true),
                      TypeCheckingExceptionPrivate&);
   }
 
