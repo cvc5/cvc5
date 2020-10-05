@@ -150,7 +150,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       {
         break;
       }
-      Assert (learnedLiteral!=learnedLiteralNew.getNode());
+      Assert(learnedLiteral != learnedLiteralNew.getNode());
       learnedLiteral = learnedLiteralNew.getNode();
       d_statistics.d_numConstantProps += 1;
     }
@@ -304,7 +304,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       {
         break;
       }
-      Assert (assertionNew.getNode() != assertion);
+      Assert(assertionNew.getNode() != assertion);
       assertion = assertionNew.getNode();
       d_statistics.d_numConstantProps += 1;
       Trace("non-clausal-simplify")
@@ -367,7 +367,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       {
         break;
       }
-      Assert ( tlearnedNew.getNode() != learned);
+      Assert(tlearnedNew.getNode() != learned);
       learned = tlearnedNew.getNode();
       d_statistics.d_numConstantProps += 1;
     }

@@ -27,7 +27,9 @@ TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
       d_subsPg(
           pnm ? new LazyCDProof(pnm, nullptr, c, "TrustSubstitutionMap::subsPg")
               : nullptr),
-      d_applyPg(pnm ? new LazyCDProof(pnm, nullptr, c, "TrustSubstitutionMap::applyPg") : nullptr),
+      d_applyPg(pnm ? new LazyCDProof(
+                          pnm, nullptr, c, "TrustSubstitutionMap::applyPg")
+                    : nullptr),
       d_currentSubs(c)
 {
 }
@@ -80,7 +82,7 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
     ns = Rewriter::rewrite(ns);
     Trace("trust-subs") << "...rewrite " << ns << std::endl;
   }
-  if (n==ns)
+  if (n == ns)
   {
     // no change
     return TrustNode::null();
@@ -103,7 +105,7 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   {
     return TrustNode::mkTrustRewrite(n, ns, d_subsPg.get());
   }
-  Assert (eq!=cs);
+  Assert(eq != cs);
   std::vector<Node> pfChildren;
   if (!cs.isConst())
   {
@@ -111,7 +113,8 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   }
   if (!d_tspb->applyEqIntro(n, ns, pfChildren))
   {
-    //Assert(false) << "TrustSubstitutionMap::addSubstitution: failed to apply "
+    // Assert(false) << "TrustSubstitutionMap::addSubstitution: failed to apply
+    // "
     //                 "substitution";
     return TrustNode::mkTrustRewrite(n, ns, nullptr);
   }
@@ -147,7 +150,7 @@ Node TrustSubstitutionMap::getCurrentSubstitution()
     csubsChildren.push_back(tns.getProven());
   }
   d_currentSubs = NodeManager::currentNM()->mkAnd(csubsChildren);
-  if (d_currentSubs.get().getKind()==kind::AND)
+  if (d_currentSubs.get().getKind() == kind::AND)
   {
     d_subsPg->addStep(d_currentSubs, PfRule::AND_INTRO, csubsChildren, {});
   }
