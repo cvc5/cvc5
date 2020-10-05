@@ -27,7 +27,7 @@ TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
       d_subsPg(
           pnm ? new LazyCDProof(pnm, nullptr, c, "TrustSubstitutionMap::subsPg")
               : nullptr),
-      d_applyPg(pnm ? new EagerProofGenerator(pnm, c) : nullptr),
+      d_applyPg(pnm ? new LazyCDProof(pnm, nullptr, c, "TrustSubstitutionMap::applyPg") : nullptr),
       d_currentSubs(c)
 {
 }
@@ -57,6 +57,7 @@ void TrustSubstitutionMap::addSubstitutions(TrustSubstitutionMap& t)
 {
   if (!isProofEnabled())
   {
+    // just use the basic utility
     d_subs.addSubstitutions(t.get());
     return;
   }
@@ -64,7 +65,7 @@ void TrustSubstitutionMap::addSubstitutions(TrustSubstitutionMap& t)
   for (const TrustNode& tns : t.d_tsubs)
   {
     Node proven = tns.getProven();
-    addSubstitution(proven[0], proven[1],
+    addSubstitution(proven[0], proven[1], tns.getGenerator());
   }
 }
 
@@ -79,15 +80,30 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
     ns = Rewriter::rewrite(ns);
     Trace("trust-subs") << "...rewrite " << ns << std::endl;
   }
-  if (!isProofEnabled())
+  if (n==ns)
   {
+    // no change
+    return TrustNode::null();
+  }
+  // FIXME
+  if (true || !isProofEnabled())
+  {
+    // no proofs, use null generator
     return TrustNode::mkTrustRewrite(n, ns, nullptr);
   }
-  // proof is a single application of MACRO_SR_PRED_TRANSFORM
   Node cs = getCurrentSubstitution();
   Trace("trust-subs")
       << "TrustSubstitutionMap::addSubstitution: current substitution is " << cs
       << std::endl;
+  // Easy case: if n is in the domain of the substitution, maybe it is already
+  // a proof in the substitution proof generator. This is moreover required
+  // to avoid cyclic proofs below.
+  Node eq = n.eqNode(ns);
+  if (d_subsPg->hasStep(eq))
+  {
+    return TrustNode::mkTrustRewrite(n, ns, d_subsPg.get());
+  }
+  Assert (eq!=cs);
   std::vector<Node> pfChildren;
   if (!cs.isConst())
   {
@@ -95,11 +111,20 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   }
   if (!d_tspb->applyEqIntro(n, ns, pfChildren))
   {
-    Assert(false) << "TrustSubstitutionMap::addSubstitution: failed to apply "
-                     "substitution";
+    //Assert(false) << "TrustSubstitutionMap::addSubstitution: failed to apply "
+    //                 "substitution";
     return TrustNode::mkTrustRewrite(n, ns, nullptr);
   }
-  return TrustNode::mkTrustRewrite(n, ns, nullptr);
+  // -------        ------- from external proof generators
+  // x1 = t1 ...    xn = tn
+  // ----------------------- AND_INTRO
+  //   ...
+  // --------- MACRO_SR_EQ_INTRO
+  // n == ns
+  // add it to the apply proof generator
+  d_applyPg->addSteps(*d_tspb.get());
+  d_tspb->clear();
+  return TrustNode::mkTrustRewrite(n, ns, d_applyPg.get());
 }
 
 SubstitutionMap& TrustSubstitutionMap::get() { return d_subs; }
@@ -122,6 +147,10 @@ Node TrustSubstitutionMap::getCurrentSubstitution()
     csubsChildren.push_back(tns.getProven());
   }
   d_currentSubs = NodeManager::currentNM()->mkAnd(csubsChildren);
+  if (d_currentSubs.get().getKind()==kind::AND)
+  {
+    d_subsPg->addStep(d_currentSubs, PfRule::AND_INTRO, csubsChildren, {});
+  }
   return d_currentSubs;
 }
 

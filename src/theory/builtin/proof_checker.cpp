@@ -308,7 +308,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
-    Node res = applySubstitutionRewrite(args[0], children, idr);
+    Node res = applySubstitutionRewrite(args[0], children, ids, idr);
     return args[0].eqNode(res);
   }
   else if (id == PfRule::MACRO_SR_PRED_INTRO)

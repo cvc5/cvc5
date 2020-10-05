@@ -73,8 +73,8 @@ class TrustSubstitutionMap
   std::unique_ptr<TheoryProofStepBuffer> d_tspb;
   /** A lazy proof for substitution steps */
   std::unique_ptr<LazyCDProof> d_subsPg;
-  /** An eager proof generator for apply steps */
-  std::unique_ptr<EagerProofGenerator> d_applyPg;
+  /** A lazy proof for apply steps */
+  std::unique_ptr<LazyCDProof> d_applyPg;
   /** Whether the substitution is up-to-date */
   context::CDO<Node> d_currentSubs;
 };

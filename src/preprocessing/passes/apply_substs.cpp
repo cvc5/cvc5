@@ -43,7 +43,6 @@ PreprocessingPassResult ApplySubsts::applyInternal(
 
     theory::TrustSubstitutionMap& tlsm =
         d_preprocContext->getTopLevelSubstitutions();
-    theory::SubstitutionMap& substMap = tlsm.get();
     unsigned size = assertionsToPreprocess->size();
     for (unsigned i = 0; i < size; ++i)
     {
@@ -55,9 +54,9 @@ PreprocessingPassResult ApplySubsts::applyInternal(
                         << std::endl;
       d_preprocContext->spendResource(
           ResourceManager::Resource::PreprocessStep);
-      assertionsToPreprocess->replace(i,
-                                      theory::Rewriter::rewrite(substMap.apply(
-                                          (*assertionsToPreprocess)[i])));
+      assertionsToPreprocess->replaceTrusted(i,
+                                      tlsm.apply(
+                                          (*assertionsToPreprocess)[i]));
       Trace("apply-substs") << "  got " << (*assertionsToPreprocess)[i]
                         << std::endl;
     }
