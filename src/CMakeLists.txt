@@ -395,11 +395,12 @@ libcvc4_add_sources(
   theory/arith/theory_arith.h
   theory/arith/theory_arith_private.cpp
   theory/arith/theory_arith_private.h
-  theory/arith/theory_arith_private_forward.h
   theory/arith/theory_arith_type_rules.h
   theory/arith/type_enumerator.h
   theory/arrays/array_info.cpp
   theory/arrays/array_info.h
+  theory/arrays/inference_manager.cpp
+  theory/arrays/inference_manager.h
   theory/arrays/proof_checker.cpp
   theory/arrays/proof_checker.h
   theory/arrays/skolem_cache.cpp
@@ -772,6 +773,8 @@ libcvc4_add_sources(
   theory/sets/inference_manager.h
   theory/sets/normal_form.h
   theory/sets/rels_utils.h
+  theory/sets/singleton_op.cpp
+  theory/sets/singleton_op.h
   theory/sets/skolem_cache.cpp
   theory/sets/skolem_cache.h
   theory/sets/solver_state.cpp

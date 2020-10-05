@@ -552,6 +552,11 @@ void RemoveTermFormulas::setProofNodeManager(ProofNodeManager* pnm)
   }
 }
 
+ProofGenerator* RemoveTermFormulas::getTConvProofGenerator()
+{
+  return d_tpg.get();
+}
+
 bool RemoveTermFormulas::isProofEnabled() const { return d_pnm != nullptr; }
 
 }/* CVC4 namespace */

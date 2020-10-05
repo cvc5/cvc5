@@ -368,6 +368,20 @@ namespace CVC4 {
      */
     static FloatingPoint makeMaxSubnormal(const FloatingPointSize& size,
                                           bool sign);
+    /**
+     * Create the smallest normal FP value of given size.
+     * t:    The FP size (format).
+     * sign: True for positive sign, false otherwise.
+     */
+    static FloatingPoint makeMinNormal(const FloatingPointSize& size,
+                                       bool sign);
+    /**
+     * Create the largest normal FP value of given size.
+     * t:    The FP size (format).
+     * sign: True for positive sign, false otherwise.
+     */
+    static FloatingPoint makeMaxNormal(const FloatingPointSize& size,
+                                          bool sign);
 
     const FloatingPointLiteral& getLiteral(void) const { return this->fpl; }
 

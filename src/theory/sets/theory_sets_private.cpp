@@ -1143,9 +1143,10 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
         const std::map<Node, Node>& emems = d_state.getMembers(eqc);
         if (!emems.empty())
         {
+          TypeNode elementType = eqc.getType().getSetElementType();
           for (const std::pair<const Node, Node>& itmm : emems)
           {
-            Node t = nm->mkNode(kind::SINGLETON, itmm.first);
+            Node t = nm->mkSingleton(elementType, itmm.first);
             els.push_back(t);
           }
         }
@@ -1275,7 +1276,6 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
       d_equalityEngine->addTriggerPredicate(node);
     }
     break;
-    case kind::CARD: d_equalityEngine->addTriggerTerm(node, THEORY_SETS); break;
     default: d_equalityEngine->addTerm(node); break;
   }
 }
@@ -1358,7 +1358,7 @@ TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
 
   TypeNode setType = set.getType();
   Node boundVar = nm->mkBoundVar(setType.getSetElementType());
-  Node singleton = nm->mkNode(kind::SINGLETON, boundVar);
+  Node singleton = nm->mkSingleton(setType.getSetElementType(), boundVar);
   Node equal = set.eqNode(singleton);
   std::vector<Node> variables = {boundVar};
   Node boundVars = nm->mkNode(BOUND_VAR_LIST, variables);

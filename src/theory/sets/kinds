@@ -35,15 +35,23 @@ enumerator SET_TYPE \
     "theory/sets/theory_sets_type_enumerator.h"
 
 # operators
-operator UNION         2  "set union"
-operator INTERSECTION  2  "set intersection"
-operator SETMINUS      2  "set subtraction"
-operator SUBSET        2  "subset predicate; first parameter a subset of second"
-operator MEMBER        2  "set membership predicate; first parameter a member of second"
-operator SINGLETON     1  "the set of the single element given as a parameter"
-operator INSERT        2: "set obtained by inserting elements (first N-1 parameters) into a set (the last parameter)"
-operator CARD          1  "set cardinality operator"
-operator COMPLEMENT    1  "set COMPLEMENT (with respect to finite universe)"
+operator UNION          2  "set union"
+operator INTERSECTION   2  "set intersection"
+operator SETMINUS       2  "set subtraction"
+operator SUBSET         2  "subset predicate; first parameter a subset of second"
+operator MEMBER         2  "set membership predicate; first parameter a member of second"
+
+constant SINGLETON_OP \
+	::CVC4::SingletonOp \
+	::CVC4::SingletonOpHashFunction \
+	"theory/sets/singleton_op.h" \
+	"operator for singletons; payload is an instance of the CVC4::SingletonOp class"
+parameterized SINGLETON SINGLETON_OP 1  \
+"constructs a set of a single element. First parameter is a SingletonOp. Second is a term"
+
+operator INSERT         2: "set obtained by inserting elements (first N-1 parameters) into a set (the last parameter)"
+operator CARD           1  "set cardinality operator"
+operator COMPLEMENT     1  "set COMPLEMENT (with respect to finite universe)"
 nullaryoperator UNIVERSE_SET "(finite) universe set, all set variables must be interpreted as subsets of it."
 
 # A set comprehension is specified by:
@@ -82,6 +90,7 @@ typerule INTERSECTION   ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 typerule SETMINUS       ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 typerule SUBSET         ::CVC4::theory::sets::SubsetTypeRule
 typerule MEMBER         ::CVC4::theory::sets::MemberTypeRule
+typerule SINGLETON_OP   "SimpleTypeRule<RBuiltinOperator>"
 typerule SINGLETON      ::CVC4::theory::sets::SingletonTypeRule
 typerule EMPTYSET       ::CVC4::theory::sets::EmptySetTypeRule
 typerule INSERT         ::CVC4::theory::sets::InsertTypeRule
