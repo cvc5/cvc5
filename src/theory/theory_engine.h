@@ -499,7 +499,8 @@ class TheoryEngine {
    * take this proof into account (when proofs are enabled).
    */
   theory::Theory::PPAssertStatus solve(
-      theory::TrustNode tliteral, theory::TrustSubstitutionMap& substitutionOut);
+      theory::TrustNode tliteral,
+      theory::TrustSubstitutionMap& substitutionOut);
 
   /**
    * Preregister a Theory atom with the responsible theory (or

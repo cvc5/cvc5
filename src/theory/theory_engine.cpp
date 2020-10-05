@@ -844,7 +844,8 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
     throw LogicException(ss.str());
   }
 
-  Theory::PPAssertStatus solveStatus = theoryOf(atom)->ppAssert(tliteral, substitutionOut);
+  Theory::PPAssertStatus solveStatus =
+      theoryOf(atom)->ppAssert(tliteral, substitutionOut);
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << ") => " << solveStatus << endl;
   return solveStatus;
 }
