@@ -1106,6 +1106,7 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
     TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
   TimerStat::CodeTimer codeTimer(d_statistics.d_simplifyTimer);
+  TNode in = tin.getNode();
   Debug("simplify") << "TheoryArithPrivate::solve(" << in << ")" << endl;
 
 

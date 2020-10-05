@@ -181,9 +181,10 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     // Solve it with the corresponding theory, possibly adding new
     // substitutions to newSubstitutions
     Trace("non-clausal-simplify") << "solving " << learnedLiteral << std::endl;
-
+    TrustNode tlearnedLiteral =
+        TrustNode::mkTrustLemma(learnedLiteral, nullptr);
     Theory::PPAssertStatus solveStatus =
-        d_preprocContext->getTheoryEngine()->solve(learnedLiteral,
+        d_preprocContext->getTheoryEngine()->solve(tlearnedLiteral,
                                                    tnewSubstituions);
 
     switch (solveStatus)
