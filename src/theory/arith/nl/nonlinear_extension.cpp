@@ -2,10 +2,10 @@
 /*! \file nonlinear_extension.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Aina Niemetz
+ **   Andrew Reynolds, Gereon Kremer, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -19,6 +19,7 @@
 
 #include "options/arith_options.h"
 #include "options/theory_options.h"
+#include "theory/arith/arith_state.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/ext_theory.h"
@@ -32,6 +33,7 @@ namespace arith {
 namespace nl {
 
 NonlinearExtension::NonlinearExtension(TheoryArith& containing,
+                                       ArithState& state,
                                        eq::EqualityEngine* ee)
     : d_containing(containing),
       d_im(containing.getInferenceManager()),
@@ -45,9 +47,10 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
                   containing.getOutputChannel()),
       d_model(containing.getSatContext()),
       d_trSlv(d_im, d_model),
-      d_nlSlv(containing, d_model),
+      d_nlSlv(d_im, state, d_model),
       d_cadSlv(d_im, d_model),
-      d_iandSlv(containing, d_model),
+      d_icpSlv(d_im),
+      d_iandSlv(d_im, state, d_model),
       d_builtModel(containing.getSatContext(), false)
 {
   d_extTheory.addFunctionKind(kind::NONLINEAR_MULT);
@@ -331,7 +334,6 @@ std::vector<Node> NonlinearExtension::checkModelEval(
 }
 
 bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
-                                    std::vector<NlLemma>& lemmas,
                                     std::vector<Node>& gs)
 {
   Trace("nl-ext-cm") << "--- check-model ---" << std::endl;
@@ -358,223 +360,13 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
 
   Trace("nl-ext-cm") << "-----" << std::endl;
   unsigned tdegree = d_trSlv.getTaylorDegree();
-  bool ret =
-      d_model.checkModel(passertions, tdegree, lemmas, gs);
-  return ret;
-}
-
-int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
-                                      const std::vector<Node>& false_asserts,
-                                      const std::vector<Node>& xts,
-                                      std::vector<NlLemma>& lems,
-                                      std::vector<NlLemma>& wlems)
-{
   std::vector<NlLemma> lemmas;
-
-  ++(d_stats.d_checkRuns);
-
-  if (Trace.isOn("nl-ext"))
+  bool ret = d_model.checkModel(passertions, tdegree, lemmas, gs);
+  for (const auto& al: lemmas)
   {
-    for (const auto& a : assertions)
-    {
-      Trace("nl-ext") << "Input assertion: " << a << std::endl;
-    }
+    d_im.addPendingArithLemma(al);
   }
-
-  if (options::nlExt())
-  {
-    // initialize the non-linear solver
-    d_nlSlv.initLastCall(assertions, false_asserts, xts);
-    // initialize the trancendental function solver
-    d_trSlv.initLastCall(assertions, false_asserts, xts);
-  }
-  if (options::nlCad())
-  {
-    d_cadSlv.initLastCall(assertions);
-  }
-
-  // init last call with IAND
-  d_iandSlv.initLastCall(assertions, false_asserts, xts);
-
-  if (d_im.hasUsed() || !lems.empty())
-  {
-    unsigned count = lems.size() + d_im.numPendingLemmas() + d_im.numSentLemmas();
-    Trace("nl-ext") << "  ...finished with " << count
-                    << " new lemmas during registration." << std::endl;
-    return count;
-  }
-
-  //----------------------------------- possibly split on zero
-  if (options::nlExt() && options::nlExtSplitZero())
-  {
-    Trace("nl-ext") << "Get zero split lemmas..." << std::endl;
-    lemmas = d_nlSlv.checkSplitZero();
-    filterLemmas(lemmas, lems);
-    if (!lems.empty())
-    {
-      Trace("nl-ext") << "  ...finished with " << lems.size() << " new lemmas."
-                      << std::endl;
-      return lems.size();
-    }
-  }
-
-  //-----------------------------------initial lemmas for transcendental
-  if (options::nlExt())
-  {
-    // functions
-    d_trSlv.checkTranscendentalInitialRefine();
-    if (d_im.hasUsed())
-    {
-      unsigned count = lems.size() + d_im.numPendingLemmas() + d_im.numSentLemmas();
-      Trace("nl-ext") << "  ...finished with " << count << " new lemmas."
-                      << std::endl;
-      return count;
-    }
-  }
-  //-----------------------------------initial lemmas for iand
-  lemmas = d_iandSlv.checkInitialRefine();
-  filterLemmas(lemmas, lems);
-  if (!lems.empty())
-  {
-    Trace("nl-ext") << "  ...finished with " << lems.size() << " new lemmas."
-                    << std::endl;
-    return lems.size();
-  }
-
-  // main calls to nlExt
-  if (options::nlExt())
-  {
-    //---------------------------------lemmas based on sign (comparison to zero)
-    lemmas = d_nlSlv.checkMonomialSign();
-    filterLemmas(lemmas, lems);
-    if (!lems.empty())
-    {
-      Trace("nl-ext") << "  ...finished with " << lems.size() << " new lemmas."
-                      << std::endl;
-      return lems.size();
-    }
-
-    //-----------------------------------monotonicity of transdental functions
-    d_trSlv.checkTranscendentalMonotonic();
-    if (d_im.hasUsed())
-    {
-      unsigned count = lems.size() + d_im.numPendingLemmas() + d_im.numSentLemmas();
-      Trace("nl-ext") << "  ...finished with " << count << " new lemmas."
-                      << std::endl;
-      return count;
-    }
-
-    //------------------------lemmas based on magnitude of non-zero monomials
-    for (unsigned c = 0; c < 3; c++)
-    {
-      // c is effort level
-      lemmas = d_nlSlv.checkMonomialMagnitude(c);
-      unsigned nlem = lemmas.size();
-      filterLemmas(lemmas, lems);
-      if (!lems.empty())
-      {
-        Trace("nl-ext") << "  ...finished with " << lems.size()
-                        << " new lemmas (out of possible " << nlem << ")."
-                        << std::endl;
-        return lems.size();
-      }
-    }
-
-    //-----------------------------------inferred bounds lemmas
-    //  e.g. x >= t => y*x >= y*t
-    std::vector<NlLemma> nt_lemmas;
-    lemmas =
-        d_nlSlv.checkMonomialInferBounds(nt_lemmas, assertions, false_asserts);
-    // Trace("nl-ext") << "Bound lemmas : " << lemmas.size() << ", " <<
-    // nt_lemmas.size() << std::endl;  prioritize lemmas that do not
-    // introduce new monomials
-    filterLemmas(lemmas, lems);
-
-    if (options::nlExtTangentPlanes()
-        && options::nlExtTangentPlanesInterleave())
-    {
-      lemmas = d_nlSlv.checkTangentPlanes();
-      filterLemmas(lemmas, lems);
-    }
-
-    if (!lems.empty())
-    {
-      Trace("nl-ext") << "  ...finished with " << lems.size() << " new lemmas."
-                      << std::endl;
-      return lems.size();
-    }
-
-    // from inferred bound inferences : now do ones that introduce new terms
-    filterLemmas(nt_lemmas, lems);
-    if (!lems.empty())
-    {
-      Trace("nl-ext") << "  ...finished with " << lems.size()
-                      << " new (monomial-introducing) lemmas." << std::endl;
-      return lems.size();
-    }
-
-    //------------------------------------factoring lemmas
-    //   x*y + x*z >= t => exists k. k = y + z ^ x*k >= t
-    if (options::nlExtFactor())
-    {
-      lemmas = d_nlSlv.checkFactoring(assertions, false_asserts);
-      filterLemmas(lemmas, lems);
-      if (!lems.empty())
-      {
-        Trace("nl-ext") << "  ...finished with " << lems.size()
-                        << " new lemmas." << std::endl;
-        return lems.size();
-      }
-    }
-
-    //------------------------------------resolution bound inferences
-    //  e.g. ( y>=0 ^ s <= x*z ^ x*y <= t ) => y*s <= z*t
-    if (options::nlExtResBound())
-    {
-      lemmas = d_nlSlv.checkMonomialInferResBounds();
-      filterLemmas(lemmas, lems);
-      if (!lems.empty())
-      {
-        Trace("nl-ext") << "  ...finished with " << lems.size()
-                        << " new lemmas." << std::endl;
-        return lems.size();
-      }
-    }
-
-    //------------------------------------tangent planes
-    if (options::nlExtTangentPlanes()
-        && !options::nlExtTangentPlanesInterleave())
-    {
-      lemmas = d_nlSlv.checkTangentPlanes();
-      filterLemmas(lemmas, wlems);
-    }
-    if (options::nlExtTfTangentPlanes())
-    {
-      d_trSlv.checkTranscendentalTangentPlanes();
-    }
-  }
-  if (options::nlCad())
-  {
-    d_cadSlv.checkFull();
-    if (!d_im.hasUsed())
-    {
-      Trace("nl-cad") << "nl-cad found SAT!" << std::endl;
-    }
-    else
-    {
-      // checkFull() only adds a single conflict
-      return 1;
-    }
-  }
-  // run the full refinement in the IAND solver
-  lemmas = d_iandSlv.checkFullRefine();
-  filterLemmas(lemmas, wlems);
-
-  Trace("nl-ext") << "  ...finished with "
-                  << (wlems.size() + d_im.numWaitingLemmas())
-                  << " waiting lemmas." << std::endl;
-
-  return 0;
+  return ret;
 }
 
 void NonlinearExtension::check(Theory::Effort e)
@@ -607,9 +399,8 @@ void NonlinearExtension::check(Theory::Effort e)
   else
   {
     // If we computed lemmas during collectModelInfo, send them now.
-    if (!d_cmiLemmas.empty() || d_im.hasPendingLemma())
+    if (d_im.hasPendingLemma())
     {
-      sendLemmas(d_cmiLemmas);
       d_im.doPendingFacts();
       d_im.doPendingLemmas();
       d_im.doPendingPhaseRequirements();
@@ -637,7 +428,7 @@ void NonlinearExtension::check(Theory::Effort e)
   }
 }
 
-bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
+bool NonlinearExtension::modelBasedRefinement()
 {
   ++(d_stats.d_mbrRuns);
   d_checkCounter++;
@@ -720,16 +511,15 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
     // complete_status:
     //   1 : we may answer SAT, -1 : we may not answer SAT, 0 : unknown
     int complete_status = 1;
-    // lemmas that should be sent later
-    std::vector<NlLemma> wlems;
     // We require a check either if an assertion is false or a shared term has
     // a wrong value
     if (!false_asserts.empty() || num_shared_wrong_value > 0)
     {
       complete_status = num_shared_wrong_value > 0 ? -1 : 0;
-      checkLastCall(assertions, false_asserts, xts, mlems, wlems);
-      if (!mlems.empty() || d_im.hasSentLemma() || d_im.hasPendingLemma())
+      runStrategy(Theory::Effort::EFFORT_FULL, assertions, false_asserts, xts);
+      if (d_im.hasSentLemma() || d_im.hasPendingLemma())
       {
+        d_im.clearWaitingLemmas();
         return true;
       }
     }
@@ -744,9 +534,8 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
           << std::endl;
       // check the model based on simple solving of equalities and using
       // error bounds on the Taylor approximation of transcendental functions.
-      std::vector<NlLemma> lemmas;
       std::vector<Node> gs;
-      if (checkModel(assertions, lemmas, gs))
+      if (checkModel(assertions, gs))
       {
         complete_status = 1;
       }
@@ -757,9 +546,9 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
         d_containing.getOutputChannel().requirePhase(mgr, true);
         d_builtModel = true;
       }
-      filterLemmas(lemmas, mlems);
-      if (!mlems.empty())
+      if (d_im.hasUsed())
       {
+        d_im.clearWaitingLemmas();
         return true;
       }
     }
@@ -768,10 +557,9 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
     if (complete_status != 1)
     {
       // flush the waiting lemmas
-      if (!wlems.empty() || d_im.hasWaitingLemma())
+      if (d_im.hasWaitingLemma())
       {
-        std::size_t count = wlems.size() + d_im.numWaitingLemmas();
-        mlems.insert(mlems.end(), wlems.begin(), wlems.end());
+        std::size_t count = d_im.numWaitingLemmas();
         d_im.flushWaitingLemmas();
         Trace("nl-ext") << "...added " << count << " waiting lemmas."
                         << std::endl;
@@ -784,7 +572,6 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
         complete_status = -1;
         if (!shared_term_value_splits.empty())
         {
-          std::vector<NlLemma> stvLemmas;
           for (const Node& eq : shared_term_value_splits)
           {
             Node req = Rewriter::rewrite(eq);
@@ -793,12 +580,12 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
             Trace("nl-ext-debug") << "Split on : " << literal << std::endl;
             Node split = literal.orNode(literal.negate());
             NlLemma nsplit(split, InferenceId::NL_SHARED_TERM_VALUE_SPLIT);
-            filterLemma(nsplit, stvLemmas);
+            d_im.addPendingArithLemma(nsplit, true);
           }
-          if (!stvLemmas.empty())
+          if (d_im.hasWaitingLemma())
           {
-            mlems.insert(mlems.end(), stvLemmas.begin(), stvLemmas.end());
-            Trace("nl-ext") << "...added " << stvLemmas.size()
+            d_im.flushWaitingLemmas();
+            Trace("nl-ext") << "...added " << d_im.numPendingLemmas()
                             << " shared term value split lemmas." << std::endl;
             return true;
           }
@@ -830,6 +617,7 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
         d_containing.getOutputChannel().setIncomplete();
       }
     }
+    d_im.clearWaitingLemmas();
   } while (needsRecheck);
 
   // did not add lemmas
@@ -846,11 +634,10 @@ void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
   Trace("nl-ext") << "NonlinearExtension::interceptModel begin" << std::endl;
   d_model.reset(d_containing.getValuation().getModel(), arithModel);
   // run a last call effort check
-  d_cmiLemmas.clear();
   if (!d_builtModel.get())
   {
     Trace("nl-ext") << "interceptModel: do model-based refinement" << std::endl;
-    modelBasedRefinement(d_cmiLemmas);
+    modelBasedRefinement();
   }
   if (d_builtModel.get())
   {
@@ -865,6 +652,96 @@ void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
 void NonlinearExtension::presolve()
 {
   Trace("nl-ext") << "NonlinearExtension::presolve" << std::endl;
+}
+
+void NonlinearExtension::runStrategy(Theory::Effort effort,
+                                     const std::vector<Node>& assertions,
+                                     const std::vector<Node>& false_asserts,
+                                     const std::vector<Node>& xts)
+{
+  ++(d_stats.d_checkRuns);
+
+  if (Trace.isOn("nl-ext"))
+  {
+    for (const auto& a : assertions)
+    {
+      Trace("nl-ext") << "Input assertion: " << a << std::endl;
+    }
+  }
+  if (!d_strategy.isStrategyInit())
+  {
+    d_strategy.initializeStrategy();
+  }
+
+  auto steps = d_strategy.getStrategy();
+  bool stop = false;
+  while (!stop && steps.hasNext())
+  {
+    InferStep step = steps.next();
+    Trace("nl-ext") << "Step " << step << std::endl;
+    switch (step)
+    {
+      case InferStep::BREAK: stop = d_im.hasPendingLemma(); break;
+      case InferStep::FLUSH_WAITING_LEMMAS: d_im.flushWaitingLemmas(); break;
+      case InferStep::CAD_FULL: d_cadSlv.checkFull(); break;
+      case InferStep::CAD_INIT: d_cadSlv.initLastCall(assertions); break;
+      case InferStep::NL_FACTORING:
+        d_nlSlv.checkFactoring(assertions, false_asserts);
+        break;
+      case InferStep::IAND_INIT:
+        d_iandSlv.initLastCall(assertions, false_asserts, xts);
+        break;
+      case InferStep::IAND_FULL: d_iandSlv.checkFullRefine(); break;
+      case InferStep::IAND_INITIAL: d_iandSlv.checkInitialRefine(); break;
+      case InferStep::ICP:
+        d_icpSlv.reset(assertions);
+        d_icpSlv.check();
+        break;
+      case InferStep::NL_INIT:
+        d_nlSlv.initLastCall(assertions, false_asserts, xts);
+        break;
+      case InferStep::NL_MONOMIAL_INFER_BOUNDS:
+        d_nlSlv.checkMonomialInferBounds(assertions, false_asserts);
+        break;
+      case InferStep::NL_MONOMIAL_MAGNITUDE0:
+        d_nlSlv.checkMonomialMagnitude(0);
+        break;
+      case InferStep::NL_MONOMIAL_MAGNITUDE1:
+        d_nlSlv.checkMonomialMagnitude(1);
+        break;
+      case InferStep::NL_MONOMIAL_MAGNITUDE2:
+        d_nlSlv.checkMonomialMagnitude(2);
+        break;
+      case InferStep::NL_MONOMIAL_SIGN: d_nlSlv.checkMonomialSign(); break;
+      case InferStep::NL_RESOLUTION_BOUNDS:
+        d_nlSlv.checkMonomialInferResBounds();
+        break;
+      case InferStep::NL_SPLIT_ZERO: d_nlSlv.checkSplitZero(); break;
+      case InferStep::NL_TANGENT_PLANES:
+        d_nlSlv.checkTangentPlanes(false);
+        break;
+      case InferStep::NL_TANGENT_PLANES_WAITING:
+        d_nlSlv.checkTangentPlanes(true);
+        break;
+      case InferStep::TRANS_INIT:
+        d_trSlv.initLastCall(assertions, false_asserts, xts);
+        break;
+      case InferStep::TRANS_INITIAL:
+        d_trSlv.checkTranscendentalInitialRefine();
+        break;
+      case InferStep::TRANS_MONOTONIC:
+        d_trSlv.checkTranscendentalMonotonic();
+        break;
+      case InferStep::TRANS_TANGENT_PLANES:
+        d_trSlv.checkTranscendentalTangentPlanes();
+        break;
+    }
+  }
+
+  Trace("nl-ext") << "  ...finished with " << d_im.numWaitingLemmas()
+                  << " waiting lemmas." << std::endl;
+  Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas()
+                  << " pending lemmas." << std::endl;
 }
 
 }  // namespace nl

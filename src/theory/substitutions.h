@@ -5,7 +5,7 @@
  **   Morgan Deters, Dejan Jovanovic, Clark Barrett
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -66,9 +66,6 @@ private:
   /** Has the cache been invalidated? */
   bool d_cacheInvalidated;
 
-  /** Whether to keep substitutions in solved form */
-  bool d_solvedForm;
-
   /** Internal method that performs substitution */
   Node internalSubstitute(TNode t, NodeCache& cache);
 
@@ -93,15 +90,14 @@ private:
   CacheInvalidator d_cacheInvalidator;
 
 public:
-
-  SubstitutionMap(context::Context* context, bool substituteUnderQuantifiers = true, bool solvedForm = false) :
-    d_substitutions(context),
-    d_substitutionCache(),
-    d_substituteUnderQuantifiers(substituteUnderQuantifiers),
-    d_cacheInvalidated(false),
-    d_solvedForm(solvedForm),
-    d_cacheInvalidator(context, d_cacheInvalidated)
-    {
+ SubstitutionMap(context::Context* context,
+                 bool substituteUnderQuantifiers = true)
+     : d_substitutions(context),
+       d_substitutionCache(),
+       d_substituteUnderQuantifiers(substituteUnderQuantifiers),
+       d_cacheInvalidated(false),
+       d_cacheInvalidator(context, d_cacheInvalidated)
+ {
   }
 
   /**
@@ -165,20 +161,6 @@ public:
   bool empty() const {
     return d_substitutions.empty();
   }
-
-  // NOTE [MGD]: removed clear() and swap() from the interface
-  // when this data structure became context-dependent
-  // because they weren't used---and it's not clear how they
-  // should best interact with cache invalidation on context
-  // pops.
-
-  // Simplify right-hand sides of current map using the given substitutions
-  void simplifyRHS(const SubstitutionMap& subMap);
-
-  // Simplify right-hand sides of current map with lhs -> rhs
-  void simplifyRHS(TNode lhs, TNode rhs);
-
-  bool isSolvedForm() const { return d_solvedForm; }
 
   /**
    * Print to the output stream

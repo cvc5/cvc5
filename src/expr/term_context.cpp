@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -67,6 +67,22 @@ bool RtfTermContext::hasNestedTermChildren(TNode t)
   return theory::kindToTheoryId(k) != theory::THEORY_BOOL && k != kind::EQUAL
          && k != kind::SEP_STAR && k != kind::SEP_WAND && k != kind::SEP_LABEL
          && k != kind::BITVECTOR_EAGER_ATOM;
+}
+
+uint32_t InQuantTermContext::initialValue() const { return 0; }
+
+uint32_t InQuantTermContext::computeValue(TNode t,
+                                          uint32_t tval,
+                                          size_t index) const
+{
+  return t.isClosure() ? 1 : tval;
+}
+
+uint32_t InQuantTermContext::getValue(bool inQuant) { return inQuant ? 1 : 0; }
+
+bool InQuantTermContext::inQuant(uint32_t val, bool& inQuant)
+{
+  return val == 1;
 }
 
 uint32_t PolarityTermContext::initialValue() const

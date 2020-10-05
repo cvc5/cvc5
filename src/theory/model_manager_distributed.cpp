@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -78,7 +78,12 @@ bool ModelManagerDistributed::prepareModel()
     Theory* t = d_te.theoryOf(theoryId);
     Trace("model-builder") << "  CollectModelInfo on theory: " << theoryId
                            << std::endl;
-    if (!t->collectModelInfo(d_model))
+    // collect the asserted terms
+    std::set<Node> termSet;
+    collectAssertedTerms(theoryId, termSet);
+    // also get relevant terms
+    t->computeRelevantTerms(termSet);
+    if (!t->collectModelInfo(d_model, termSet))
     {
       Trace("model-builder")
           << "ModelManagerDistributed: fail collect model info" << std::endl;

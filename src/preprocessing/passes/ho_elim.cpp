@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -353,12 +353,10 @@ PreprocessingPassResult HoElim::applyInternal(
   // add lambda lifting axioms as a conjunction to the first assertion
   if (!axioms.empty())
   {
-    Node orig = (*assertionsToPreprocess)[0];
-    axioms.push_back(orig);
-    Node conj = nm->mkNode(AND, axioms);
+    Node conj = nm->mkAnd(axioms);
     conj = theory::Rewriter::rewrite(conj);
     Assert(!expr::hasFreeVar(conj));
-    assertionsToPreprocess->replace(0, conj);
+    assertionsToPreprocess->conjoin(0, conj);
   }
   axioms.clear();
 
@@ -450,12 +448,10 @@ PreprocessingPassResult HoElim::applyInternal(
   // add new axioms as a conjunction to the first assertion
   if (!axioms.empty())
   {
-    Node orig = (*assertionsToPreprocess)[0];
-    axioms.push_back(orig);
-    Node conj = nm->mkNode(AND, axioms);
+    Node conj = nm->mkAnd(axioms);
     conj = theory::Rewriter::rewrite(conj);
     Assert(!expr::hasFreeVar(conj));
-    assertionsToPreprocess->replace(0, conj);
+    assertionsToPreprocess->conjoin(0, conj);
   }
 
   return PreprocessingPassResult::NO_CONFLICT;

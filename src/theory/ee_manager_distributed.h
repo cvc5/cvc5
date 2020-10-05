@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -45,7 +45,7 @@ namespace theory {
 class EqEngineManagerDistributed : public EqEngineManager
 {
  public:
-  EqEngineManagerDistributed(TheoryEngine& te);
+  EqEngineManagerDistributed(TheoryEngine& te, SharedSolver& shs);
   ~EqEngineManagerDistributed();
   /**
    * Initialize theories. This method allocates unique equality engines
@@ -89,6 +89,8 @@ class EqEngineManagerDistributed : public EqEngineManager
   std::unique_ptr<MasterNotifyClass> d_masterEENotify;
   /** The master equality engine. */
   std::unique_ptr<eq::EqualityEngine> d_masterEqualityEngine;
+  /** The equality engine of the shared solver / shared terms database. */
+  std::unique_ptr<eq::EqualityEngine> d_stbEqualityEngine;
 };
 
 }  // namespace theory

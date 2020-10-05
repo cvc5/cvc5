@@ -5,7 +5,7 @@
  **   Tim King, Gereon Kremer, Liana Hadarean
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -165,12 +165,7 @@ class CVC4_PUBLIC Integer
    * Returns the Integer obtained by setting the ith bit of the
    * current Integer to 1.
    */
-  Integer setBit(uint32_t i) const
-  {
-    mpz_class res = d_value;
-    mpz_setbit(res.get_mpz_t(), i);
-    return Integer(res);
-  }
+  Integer setBit(uint32_t i, bool value) const;
 
   bool isBitSet(uint32_t i) const { return !extractBitRange(1, i).isZero(); }
 
