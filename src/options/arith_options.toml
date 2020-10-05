@@ -460,7 +460,6 @@ header = "options/arith_options.h"
   long       = "nl-ext-tplanes"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "use non-terminating tangent plane strategy for non-linear incremental linearization solver"
 
 [[option]]
