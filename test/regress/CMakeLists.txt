@@ -2213,6 +2213,7 @@ set(regress_3_tests
   regress3/bv_to_int_quant2.smt2
   regress3/bv_to_int_input_mouser_detect.c.smt2.minimized.smt2
   regress3/bv_to_int_5095.smt2
+  regress3/bv_to_int_5095_2.smt2
   regress3/eq_diamond14.smtv1.smt2
   regress3/friedman_n6_i4.smtv1.smt2
   regress3/hole9.cvc
