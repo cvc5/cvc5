@@ -2103,6 +2103,8 @@ set(regress_2_tests
   regress2/bug812.smt2
   regress2/bv/opStructure_MBA_6.scrambled.min.smt2
   regress2/bv_to_int2.smt2
+  regress2/bv_to_int_5095.smt2
+  regress2/bv_to_int_5095_2.smt2
   regress2/bv_to_int_ashr.smt2
   regress2/bv_to_int_bitwise.smt2
   regress2/bv_to_int_bvmul1.smt2
@@ -2212,8 +2214,6 @@ set(regress_3_tests
   regress3/bv_to_int_quant1.smt2
   regress3/bv_to_int_quant2.smt2
   regress3/bv_to_int_input_mouser_detect.c.smt2.minimized.smt2
-  regress3/bv_to_int_5095.smt2
-  regress3/bv_to_int_5095_2.smt2
   regress3/eq_diamond14.smtv1.smt2
   regress3/friedman_n6_i4.smtv1.smt2
   regress3/hole9.cvc
