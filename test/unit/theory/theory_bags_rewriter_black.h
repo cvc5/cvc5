@@ -587,7 +587,7 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
   void testFromSet()
   {
     Node x = d_nm->mkSkolem("x", d_nm->stringType());
-    Node singleton = d_nm->mkNode(SINGLETON, x);
+    Node singleton = d_nm->mkSingleton(d_nm->stringType(), x);
 
     // (bag.from_set (singleton (singleton_op Int) x)) = (mkBag x 1)
     Node n = d_nm->mkNode(BAG_FROM_SET, singleton);
@@ -606,7 +606,7 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     // (bag.to_set (mkBag x n)) = (singleton (singleton_op T) x)
     Node n = d_nm->mkNode(BAG_TO_SET, bag);
     RewriteResponse response = d_rewriter->postRewrite(n);
-    Node singleton = d_nm->mkNode(SINGLETON, x);
+    Node singleton = d_nm->mkSingleton(d_nm->stringType(), x);
     TS_ASSERT(response.d_node == singleton
               && response.d_status == REWRITE_AGAIN_FULL);
   }

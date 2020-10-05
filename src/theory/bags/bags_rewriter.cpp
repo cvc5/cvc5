@@ -452,9 +452,7 @@ BagsRewriteResponse BagsRewriter::rewriteToSet(const TNode& n) const
   {
     // (bag.to_set (mkBag x n)) = (singleton (singleton_op T) x)
     // where n is a positive constant and T is the type of the bag's elements
-    // TODO BEFORE MERGE: determine T from the bag operator
-    // and use mkSingleton
-    Node bag = d_nm->mkNode(SINGLETON, n[0][0]);
+    Node bag = d_nm->mkSingleton(n[0][0].getType(), n[0][0]);
     return BagsRewriteResponse(bag, Rewrite::TO_SINGLETON);
   }
   return BagsRewriteResponse(n, Rewrite::NONE);
