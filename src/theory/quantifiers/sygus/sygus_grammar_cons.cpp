@@ -874,6 +874,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       // ternary ops with RM
       std::vector<Kind> ternary_rm_kinds = {
           FLOATINGPOINT_PLUS,
+          FLOATINGPOINT_SUB,
           FLOATINGPOINT_MULT,
           FLOATINGPOINT_DIV,
       };
