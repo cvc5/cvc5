@@ -700,10 +700,15 @@ class Theory {
   };
 
   /**
-   * Given a literal, add the solved substitutions to the map, if any.
-   * The method should return true if the literal can be safely removed.
+   * Given a literal and its proof generator (tin), add the solved
+   * substitutions to the map, if any. The method should return true if the
+   * literal can be safely removed from the input problem.
+   *
+   * Note that tin has trude node kind LEMMA. Its proof generator should be
+   * take into account when adding a substitution to outSubstitutions when
+   * proofs are enabled.
    */
-  virtual PPAssertStatus ppAssert(TNode in,
+  virtual PPAssertStatus ppAssert(TrustNode tin,
                                   TrustSubstitutionMap& outSubstitutions);
 
   /**

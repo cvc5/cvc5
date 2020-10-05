@@ -358,8 +358,9 @@ TrustNode TheoryArrays::ppRewrite(TNode term)
 }
 
 Theory::PPAssertStatus TheoryArrays::ppAssert(
-    TNode in, TrustSubstitutionMap& outSubstitutions)
+    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
+  TNode in = tin.getNode();
   switch(in.getKind()) {
     case kind::EQUAL:
     {

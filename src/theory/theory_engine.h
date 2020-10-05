@@ -494,10 +494,12 @@ class TheoryEngine {
   void shutdown();
 
   /**
-   * Solve the given literal with a theory that owns it.
+   * Solve the given literal with a theory that owns it. The proof of tliteral
+   * is carried in the trust node. The proof added to substitutionOut should
+   * take this proof into account (when proofs are enabled).
    */
   theory::Theory::PPAssertStatus solve(
-      TNode literal, theory::TrustSubstitutionMap& substitutionOut);
+      theory::TrustNode tliteral, theory::TrustSubstitutionMap& substitutionOut);
 
   /**
    * Preregister a Theory atom with the responsible theory (or

@@ -87,7 +87,7 @@ class TheoryBV : public Theory
 
   std::string identify() const override { return std::string("TheoryBV"); }
 
-  PPAssertStatus ppAssert(TNode in,
+  PPAssertStatus ppAssert(TrustNode in,
                           TrustSubstitutionMap& outSubstitutions) override;
 
   TrustNode ppRewrite(TNode t) override;
