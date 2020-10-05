@@ -93,6 +93,24 @@ class RtfTermContext : public TermContext
 };
 
 /**
+ * Simpler version of above that only computes whether we are inside a
+ * quantifier.
+ */
+class InQuantTermContext : public TermContext
+{
+ public:
+  InQuantTermContext() {}
+  /** The initial value: not beneath a quantifier. */
+  uint32_t initialValue() const override;
+  /** Compute the value of the index^th child of t whose hash is tval */
+  uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override;
+  /** get hash value from the flags */
+  static uint32_t getValue(bool inQuant);
+  /** get flags from the hash value */
+  static bool inQuant(uint32_t val, bool& inQuant);
+};
+
+/**
  * Polarity term context.
  *
  * This class computes the polarity of a term-context-sensitive term, which is

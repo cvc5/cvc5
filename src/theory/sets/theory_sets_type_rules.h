@@ -31,9 +31,8 @@ struct SetsBinaryOperatorTypeRule
                                      TNode n,
                                      bool check)
   {
-    Assert(n.getKind() == kind::UNION ||
-           n.getKind() == kind::INTERSECTION ||
-           n.getKind() == kind::SETMINUS);
+    Assert(n.getKind() == kind::UNION || n.getKind() == kind::INTERSECTION
+           || n.getKind() == kind::SETMINUS);
     TypeNode setType = n[0].getType(check);
     if (check)
     {
@@ -45,19 +44,11 @@ struct SetsBinaryOperatorTypeRule
       TypeNode secondSetType = n[1].getType(check);
       if (secondSetType != setType)
       {
-        if (n.getKind() == kind::INTERSECTION)
-        {
-          setType = TypeNode::mostCommonTypeNode(secondSetType, setType);
-        }
-        else
-        {
-          setType = TypeNode::leastCommonTypeNode(secondSetType, setType);
-        }
-        if (setType.isNull())
-        {
-          throw TypeCheckingExceptionPrivate(
-              n, "operator expects two sets of comparable types");
-        }
+        std::stringstream ss;
+        ss << "Operator " << n.getKind()
+           << " expects two sets of the same type. Found types '" << setType
+           << "' and '" << secondSetType << "'.";
+        throw TypeCheckingExceptionPrivate(n, ss.str());
       }
     }
     return setType;
@@ -132,18 +123,40 @@ struct MemberTypeRule {
   }
 };/* struct MemberTypeRule */
 
-struct SingletonTypeRule {
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+struct SingletonTypeRule
+{
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
   {
-    Assert(n.getKind() == kind::SINGLETON);
-    return nodeManager->mkSetType(n[0].getType(check));
+    Assert(n.getKind() == kind::SINGLETON && n.hasOperator()
+           && n.getOperator().getKind() == kind::SINGLETON_OP);
+
+    SingletonOp op = n.getOperator().getConst<SingletonOp>();
+    TypeNode type1 = op.getType();
+    if (check)
+    {
+      TypeNode type2 = n[0].getType(check);
+      TypeNode leastCommonType = TypeNode::leastCommonTypeNode(type1, type2);
+      // the type of the element should be a subtype of the type of the operator
+      // e.g. (singleton (singleton_op Real) 1) where 1 is an Int
+      if (leastCommonType.isNull() || leastCommonType != type1)
+      {
+        std::stringstream ss;
+        ss << "The type '" << type2 << "' of the element is not a subtype of '"
+           << type1 << "' in term : " << n;
+        throw TypeCheckingExceptionPrivate(n, ss.str());
+      }
+    }
+    return nodeManager->mkSetType(type1);
   }
 
-  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
+  inline static bool computeIsConst(NodeManager* nodeManager, TNode n)
+  {
     Assert(n.getKind() == kind::SINGLETON);
     return n[0].isConst();
   }
-};/* struct SingletonTypeRule */
+}; /* struct SingletonTypeRule */
 
 struct EmptySetTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
