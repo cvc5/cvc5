@@ -258,8 +258,8 @@ as test target name.
 
 The unit tests are not built by default.
 
-To configure CVC4 with unit tests, assertions must be enabled, and building a
-non-static binary must be configured.
+Note that CVC4 can only be configured with unit tests in non-static builds with
+assertions enabled.
 
     make units                            # build and run all unit tests
     make <unit_test>                      # build test/unit/<subdir>/<unit_test>.<ext>
