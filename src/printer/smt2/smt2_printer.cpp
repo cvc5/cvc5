@@ -740,10 +740,10 @@ void Smt2Printer::toStream(std::ostream& out,
     out << smtKindString(k, d_variant) << " ";
     break;
   case kind::COMPREHENSION: out << smtKindString(k, d_variant) << " "; break;
+  case kind::SINGLETON: stillNeedToPrintParams = false; CVC4_FALLTHROUGH;
   case kind::MEMBER: typeChildren = true; CVC4_FALLTHROUGH;
   case kind::INSERT:
   case kind::SET_TYPE:
-  case kind::SINGLETON:
   case kind::COMPLEMENT:
   case kind::CHOOSE:
   case kind::IS_SINGLETON: out << smtKindString(k, d_variant) << " "; break;
@@ -976,7 +976,12 @@ void Smt2Printer::toStream(std::ostream& out,
       TypeNode elemType = TypeNode::leastCommonTypeNode( n[0].getType(), n[1].getType().getSetElementType() );
       force_child_type[0] = elemType;
       force_child_type[1] = NodeManager::currentNM()->mkSetType( elemType );
-    }else{
+    }
+    else if (n.getKind() == kind::SINGLETON)
+    {
+      force_child_type[0] = n.getType().getSetElementType();
+    }
+    else{
       // APPLY_UF, APPLY_CONSTRUCTOR, etc.
       Assert(n.hasOperator());
       TypeNode opt = n.getOperator().getType();
