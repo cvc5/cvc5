@@ -127,7 +127,7 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
   {
     if (options::compressItes())
     {
-      result = d_iteUtilities.compress(assertionsToPreprocess->ref());
+      result = d_iteUtilities.compress(assertionsToPreprocess);
     }
 
     if (result)
@@ -175,7 +175,8 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
           {
             Node more = aiteu.reduceConstantIteByGCD(res);
             Debug("arith::ite::red") << "  gcd->" << more << endl;
-            (*assertionsToPreprocess)[i] = Rewriter::rewrite(more);
+            Node morer = Rewriter::rewrite(more);
+            assertionsToPreprocess->replace(i, morer);
           }
         }
       }
@@ -214,7 +215,8 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
                                      << "   ->" << res << endl;
             Node more = aiteu.reduceConstantIteByGCD(res);
             Debug("arith::ite::red") << "  gcd->" << more << endl;
-            (*assertionsToPreprocess)[i] = Rewriter::rewrite(more);
+            Node morer = Rewriter::rewrite(more);
+            assertionsToPreprocess->replace(i, morer);
           }
         }
       }

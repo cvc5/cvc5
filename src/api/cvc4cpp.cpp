@@ -3705,6 +3705,23 @@ Term Solver::mkEmptySet(Sort s) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
+Term Solver::mkSingleton(Sort s, Term t) const
+{
+  NodeManagerScope scope(getNodeManager());
+
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_ARG_CHECK_EXPECTED(!t.isNull(), t) << "non-null term";
+  CVC4_API_SOLVER_CHECK_TERM(t);
+  checkMkTerm(SINGLETON, 1);
+
+  TypeNode typeNode = TypeNode::fromType(*s.d_type);
+  Node res = getNodeManager()->mkSingleton(typeNode, *t.d_node);
+  (void)res.getType(true); /* kick off type checking */
+  return Term(this, res);
+
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
 Term Solver::mkEmptyBag(Sort s) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;

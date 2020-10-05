@@ -1019,12 +1019,9 @@ Node TheoryFp::getModelValue(TNode var) {
   return d_conv.getValue(d_valuation, var);
 }
 
-bool TheoryFp::collectModelInfo(TheoryModel* m)
+bool TheoryFp::collectModelInfo(TheoryModel* m,
+                                const std::set<Node>& relevantTerms)
 {
-  std::set<Node> relevantTerms;
-  // Work out which variables are needed
-  const std::set<Kind>& irrKinds = m->getIrrelevantKinds();
-  computeAssertedTerms(relevantTerms, irrKinds);
   // this override behavior to not assert equality engine
   return collectModelValues(m, relevantTerms);
 }

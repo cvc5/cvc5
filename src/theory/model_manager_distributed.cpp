@@ -78,7 +78,12 @@ bool ModelManagerDistributed::prepareModel()
     Theory* t = d_te.theoryOf(theoryId);
     Trace("model-builder") << "  CollectModelInfo on theory: " << theoryId
                            << std::endl;
-    if (!t->collectModelInfo(d_model))
+    // collect the asserted terms
+    std::set<Node> termSet;
+    collectAssertedTerms(theoryId, termSet);
+    // also get relevant terms
+    t->computeRelevantTerms(termSet);
+    if (!t->collectModelInfo(d_model, termSet))
     {
       Trace("model-builder")
           << "ModelManagerDistributed: fail collect model info" << std::endl;

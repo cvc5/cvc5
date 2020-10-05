@@ -89,6 +89,8 @@ class EqEngineManagerDistributed : public EqEngineManager
   std::unique_ptr<MasterNotifyClass> d_masterEENotify;
   /** The master equality engine. */
   std::unique_ptr<eq::EqualityEngine> d_masterEqualityEngine;
+  /** The equality engine of the shared solver / shared terms database. */
+  std::unique_ptr<eq::EqualityEngine> d_stbEqualityEngine;
 };
 
 }  // namespace theory
