@@ -114,7 +114,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       << " learned literals." << std::endl;
   // No conflict, go through the literals and solve them
   ProofNodeManager* pnm = d_preprocContext->getProofNodeManager();
-  bool usingProofs = pnm!=nullptr;
+  bool usingProofs = pnm != nullptr;
   context::Context* u = d_preprocContext->getUserContext();
   TrustSubstitutionMap& ttls = d_preprocContext->getTopLevelSubstitutions();
   SubstitutionMap& top_level_substs = ttls.get();
@@ -193,7 +193,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     // substitutions to newSubstitutions
     Trace("non-clausal-simplify") << "solving " << learnedLiteral << std::endl;
 
-    TrustNode tlearnedLiteral = TrustNode::mkTrustLemma(learnedLiteral, nullptr);
+    TrustNode tlearnedLiteral =
+        TrustNode::mkTrustLemma(learnedLiteral, nullptr);
     Theory::PPAssertStatus solveStatus =
         d_preprocContext->getTheoryEngine()->solve(tlearnedLiteral,
                                                    newSubstitutions);
@@ -320,7 +321,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
           << "assertionNew = " << assertion << std::endl;
     }
     s.insert(assertion);
-    //assertionsToPreprocess->replace(i, assertion);
+    // assertionsToPreprocess->replace(i, assertion);
     Trace("non-clausal-simplify")
         << "non-clausal preprocessed: " << assertion << std::endl;
   }
