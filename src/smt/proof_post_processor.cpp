@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -49,7 +49,8 @@ void ProofPostprocessCallback::setEliminateRule(PfRule rule)
   d_elimRules.insert(rule);
 }
 
-bool ProofPostprocessCallback::shouldUpdate(ProofNode* pn)
+bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
+                                            bool& continueUpdate)
 {
   return d_elimRules.find(pn->getRule()) != d_elimRules.end();
 }
@@ -617,7 +618,8 @@ void ProofPostprocessFinalCallback::initializeUpdate()
   d_pedanticFailureOut.str("");
 }
 
-bool ProofPostprocessFinalCallback::shouldUpdate(ProofNode* pn)
+bool ProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
+                                                 bool& continueUpdate)
 {
   PfRule r = pn->getRule();
   if (Trace.isOn("final-pf-hole"))

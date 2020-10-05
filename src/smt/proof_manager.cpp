@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -22,10 +22,10 @@
 namespace CVC4 {
 namespace smt {
 
-PfManager::PfManager(SmtEngine* smte)
+PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
     : d_pchecker(new ProofChecker(options::proofNewPedantic())),
       d_pnm(new ProofNodeManager(d_pchecker.get())),
-      d_pppg(new PreprocessProofGenerator(d_pnm.get())),
+      d_pppg(new PreprocessProofGenerator(u, d_pnm.get())),
       d_pfpp(new ProofPostproccess(d_pnm.get(), smte, d_pppg.get())),
       d_finalProof(nullptr)
 {

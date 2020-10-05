@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -90,6 +90,24 @@ class RtfTermContext : public TermContext
    * connectives and bit-vector eager atoms.
    */
   static bool hasNestedTermChildren(TNode t);
+};
+
+/**
+ * Simpler version of above that only computes whether we are inside a
+ * quantifier.
+ */
+class InQuantTermContext : public TermContext
+{
+ public:
+  InQuantTermContext() {}
+  /** The initial value: not beneath a quantifier. */
+  uint32_t initialValue() const override;
+  /** Compute the value of the index^th child of t whose hash is tval */
+  uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override;
+  /** get hash value from the flags */
+  static uint32_t getValue(bool inQuant);
+  /** get flags from the hash value */
+  static bool inQuant(uint32_t val, bool& inQuant);
 };
 
 /**

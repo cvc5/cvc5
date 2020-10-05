@@ -5,7 +5,7 @@
  **   Clark Barrett, Andres Noetzli, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -842,7 +842,7 @@ PreprocessingPassResult UnconstrainedSimplifier::applyInternal(
 {
   d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
 
-  std::vector<Node>& assertions = assertionsToPreprocess->ref();
+  const std::vector<Node>& assertions = assertionsToPreprocess->ref();
 
   d_context->push();
 
@@ -855,9 +855,12 @@ PreprocessingPassResult UnconstrainedSimplifier::applyInternal(
   {
     processUnconstrained();
     //    d_substitutions.print(Message.getStream());
-    for (Node& assertion : assertions)
+    for (size_t i = 0, asize = assertions.size(); i < asize; ++i)
     {
-      assertion = Rewriter::rewrite(d_substitutions.apply(assertion));
+      Node a = assertions[i];
+      Node as = Rewriter::rewrite(d_substitutions.apply(a));
+      // replace the assertion
+      assertionsToPreprocess->replace(i, as);
     }
   }
 

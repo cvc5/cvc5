@@ -1,4 +1,5 @@
 ; COMMAND-LINE: --bitblast=eager
+; COMMAND-LINE: --bitblast=eager --bv-solver=simple
 (set-info :status sat)
 (set-logic QF_BV)
 (declare-fun x () Bool)

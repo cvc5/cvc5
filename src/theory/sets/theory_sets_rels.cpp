@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Paul Meng, Piotr Trojanek
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -247,12 +247,13 @@ void TheorySetsRels::check(Theory::Effort level)
         }
         else if (erType.isTuple() && !eqc_node.isConst() && !eqc_node.isVar())
         {
+          std::vector<TypeNode> tupleTypes = erType.getTupleTypes();
           for (unsigned i = 0, tlen = erType.getTupleLength(); i < tlen; i++)
           {
-            Node element = RelsUtils::nthElementOfTuple( eqc_node, i );
-
-            if( !element.isConst() ) {
-              makeSharedTerm( element );
+            Node element = RelsUtils::nthElementOfTuple(eqc_node, i);
+            if (!element.isConst())
+            {
+              makeSharedTerm(element, tupleTypes[i]);
             }
           }
         }
@@ -863,7 +864,7 @@ void TheorySetsRels::check(Theory::Effort level)
     sendInfer(fact, reason, "JOIN-Split-1");
     fact = NodeManager::currentNM()->mkNode(kind::MEMBER, mem2, join_rel[1]);
     sendInfer(fact, reason, "JOIN-Split-2");
-    makeSharedTerm( shared_x );
+    makeSharedTerm(shared_x, shared_type);
   }
 
   /*
@@ -1153,8 +1154,9 @@ void TheorySetsRels::check(Theory::Effort level)
       }
       return equal;
     } else if(!a.getType().isBoolean()){
-      makeSharedTerm(a);
-      makeSharedTerm(b);
+      // TODO(project##230): Find a safe type for the singleton operator
+      makeSharedTerm(a, a.getType());
+      makeSharedTerm(b, b.getType());
     }
     return false;
   }
@@ -1183,14 +1185,15 @@ void TheorySetsRels::check(Theory::Effort level)
     return false;
   }
 
-  void TheorySetsRels::makeSharedTerm( Node n ) {
+  void TheorySetsRels::makeSharedTerm(Node n, TypeNode t)
+  {
     if (d_shared_terms.find(n) != d_shared_terms.end())
     {
       return;
     }
     Trace("rels-share") << " [sets-rels] making shared term " << n << std::endl;
     // force a proxy lemma to be sent for the singleton containing n
-    Node ss = NodeManager::currentNM()->mkNode(SINGLETON, n);
+    Node ss = NodeManager::currentNM()->mkSingleton(t, n);
     d_treg.getProxy(ss);
     d_shared_terms.insert(n);
   }
@@ -1216,9 +1219,11 @@ void TheorySetsRels::check(Theory::Effort level)
       Trace("rels-debug") << "[Theory::Rels] Reduce tuple var: " << n[0] << " to a concrete one " << " node = " << n << std::endl;
       std::vector<Node> tuple_elements;
       tuple_elements.push_back((n[0].getType().getDType())[0].getConstructor());
-      for(unsigned int i = 0; i < n[0].getType().getTupleLength(); i++) {
+      std::vector<TypeNode> tupleTypes = n[0].getType().getTupleTypes();
+      for (unsigned int i = 0; i < n[0].getType().getTupleLength(); i++)
+      {
         Node element = RelsUtils::nthElementOfTuple(n[0], i);
-        makeSharedTerm(element);
+        makeSharedTerm(element, tupleTypes[i]);
         tuple_elements.push_back(element);
       }
       Node tuple_reduct = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, tuple_elements);

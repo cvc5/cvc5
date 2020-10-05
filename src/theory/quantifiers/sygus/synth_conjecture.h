@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -87,13 +87,10 @@ class SynthConjecture
   /** presolve */
   void presolve();
   /** get original version of conjecture */
-  Node getConjecture() { return d_quant; }
+  Node getConjecture() const { return d_quant; }
   /** get deep embedding version of conjecture */
-  Node getEmbeddedConjecture() { return d_embed_quant; }
+  Node getEmbeddedConjecture() const { return d_embed_quant; }
   //-------------------------------for counterexample-guided check/refine
-  /** increment the number of times we have successfully done candidate
-   * refinement */
-  void incrementRefineCount() { d_refine_count++; }
   /** whether the conjecture is waiting for a call to doCheck below */
   bool needsCheck();
   /** whether the conjecture is waiting for a call to doRefine below */
@@ -113,9 +110,24 @@ class SynthConjecture
    */
   bool doCheck(std::vector<Node>& lems);
   /** do refinement
+   *
    * This is step 2(b) of Figure 3 of Reynolds et al CAV 2015.
+   *
+   * This method is run when needsRefinement() returns true, indicating that
+   * the last call to doCheck found a counterexample to the last candidate.
+   *
+   * This method adds a refinement lemma on the output channel of quantifiers
+   * engine. If the refinement lemma is a duplicate, then we manually
+   * exclude the current candidate via excludeCurrentSolution. This should
+   * only occur when the synthesis conjecture for the current candidate fails
+   * to evaluate to false for a given counterexample point, but regardless its
+   * negation is satisfiable for the current candidate and that point. This is
+   * exclusive to theories with partial functions, e.g. (non-linear) division.
+   *
+   * This method returns true if a lemma was added on the output channel, and
+   * false otherwise.
    */
-  void doRefine(std::vector<Node>& lems);
+  bool doRefine();
   //-------------------------------end for counterexample-guided check/refine
   /**
    * Prints the synthesis solution to output stream out. This invokes solution

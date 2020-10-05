@@ -5,7 +5,7 @@
  **   Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -26,6 +26,7 @@
 #include <iostream>
 
 #include "expr/node.h"
+#include "theory/arith/bound_inference.h"
 #include "util/real_algebraic_number.h"
 
 namespace CVC4 {
@@ -61,10 +62,17 @@ poly::UPolynomial as_poly_upolynomial(const CVC4::Node& n,
  * While a Node may contain rationals, a Polynomial does not.
  * We therefore also store the denominator of the returned polynomial and
  * use it to construct the integer polynomial recursively.
- * Once the polynomial has been fully constructed, we can ignore the
+ * Once the polynomial has been fully constructed, we can oftentimes ignore the
  * denominator (except for its sign, which is always positive, though).
+ * This is the case if we are solely interested in the roots of the polynomials
+ * (like in the context of CAD). If we need the actual polynomial (for example
+ * in the context of ICP) the second overload provides the denominator in the
+ * third argument.
  */
 poly::Polynomial as_poly_polynomial(const CVC4::Node& n, VariableMapper& vm);
+poly::Polynomial as_poly_polynomial(const CVC4::Node& n,
+                                    VariableMapper& vm,
+                                    poly::Rational& denominator);
 
 /**
  * Constructs a constraints (a polynomial and a sign condition) from the given
@@ -135,6 +143,8 @@ poly::Value node_to_value(const Node& n, const Node& ran_variable);
  * example to avoid divergence or disallow huge lemmas.
  */
 std::size_t bitsize(const poly::Value& v);
+
+poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi);
 
 }  // namespace nl
 }  // namespace arith

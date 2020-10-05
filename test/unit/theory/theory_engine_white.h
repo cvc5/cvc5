@@ -2,10 +2,10 @@
 /*! \file theory_engine_white.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Andres Noetzli
+ **   Morgan Deters, Andres Noetzli, Dejan Jovanovic
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -151,7 +151,6 @@ class FakeTheory : public Theory
 
   void preRegisterTerm(TNode) override { Unimplemented(); }
   void registerTerm(TNode) { Unimplemented(); }
-  void check(Theory::Effort) override { Unimplemented(); }
   void propagate(Theory::Effort) override { Unimplemented(); }
   TrustNode explain(TNode) override
   {

@@ -2,10 +2,10 @@
 /*! \file sets.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz
+ **   Aina Niemetz, Kshitij Bansal
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -73,9 +73,9 @@ int main()
     Term two = slv.mkReal(2);
     Term three = slv.mkReal(3);
 
-    Term singleton_one = slv.mkTerm(SINGLETON, one);
-    Term singleton_two = slv.mkTerm(SINGLETON, two);
-    Term singleton_three = slv.mkTerm(SINGLETON, three);
+    Term singleton_one = slv.mkSingleton(integer, one);
+    Term singleton_two = slv.mkSingleton(integer, two);
+    Term singleton_three = slv.mkSingleton(integer, three);
     Term one_two = slv.mkTerm(UNION, singleton_one, singleton_two);
     Term two_three = slv.mkTerm(UNION, singleton_two, singleton_three);
     Term intersection = slv.mkTerm(INTERSECTION, one_two, two_three);

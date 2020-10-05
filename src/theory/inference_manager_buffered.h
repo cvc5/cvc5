@@ -2,10 +2,10 @@
 /*! \file inference_manager_buffered.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -134,6 +134,12 @@ class InferenceManagerBuffered : public TheoryInferenceManager
   std::vector<std::unique_ptr<TheoryInference>> d_pendingFact;
   /** A map from literals to their pending phase requirement */
   std::map<Node, bool> d_pendingReqPhase;
+  /**
+   * Whether we are currently processing pending lemmas. This flag ensures
+   * that we do not call pending lemmas recursively, which may lead to
+   * segfaults.
+   */
+  bool d_processingPendingLemmas;
 };
 
 }  // namespace theory

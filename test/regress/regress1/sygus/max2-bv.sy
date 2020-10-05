@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --cegqi-bv
 (set-logic BV)
 
 (synth-fun max2 ((x (_ BitVec 32)) (y (_ BitVec 32))) (_ BitVec 32))

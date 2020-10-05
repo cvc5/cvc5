@@ -5,7 +5,7 @@
  **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -453,6 +453,18 @@ Node NodeManager::mkSkolem(const std::string& prefix, const TypeNode& type, cons
     }
   }
   return n;
+}
+
+TypeNode NodeManager::mkBagType(TypeNode elementType)
+{
+  CheckArgument(
+      !elementType.isNull(), elementType, "unexpected NULL element type");
+  CheckArgument(elementType.isFirstClass(),
+                elementType,
+                "cannot store types that are not first-class in bags. Try "
+                "option --uf-ho.");
+  Debug("bags") << "making bags type " << elementType << std::endl;
+  return mkTypeNode(kind::BAG_TYPE, elementType);
 }
 
 TypeNode NodeManager::mkSequenceType(TypeNode elementType)
@@ -936,6 +948,17 @@ Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k) {
   }else{
     return it->second;
   }
+}
+
+Node NodeManager::mkSingleton(const TypeNode& t, const TNode n)
+{
+  Assert(n.getType().isSubtypeOf(t))
+      << "Invalid operands for mkSingleton. The type '" << n.getType()
+      << "' of node '" << n << "' is not a subtype of '" << t << "'."
+      << std::endl;
+  Node op = mkConst(SingletonOp(t));
+  Node singleton = mkNode(kind::SINGLETON, op, n);
+  return singleton;
 }
 
 Node NodeManager::mkAbstractValue(const TypeNode& type) {

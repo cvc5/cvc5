@@ -1,4 +1,6 @@
 ; COMMAND-LINE: --incremental --solve-bv-as-int=sum
+; COMMAND-LINE: --incremental --solve-bv-as-int=iand
+; COMMAND-LINE: --incremental --solve-bv-as-int=bv
 ; EXPECT sat
 ; EXPECT sat
 ; EXPECT unsat
