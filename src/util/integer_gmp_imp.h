@@ -106,7 +106,7 @@ class CVC4_PUBLIC Integer
   Integer bitwiseOr(const Integer& y) const;
   /** Return the bit-wise and of this and the given Integer. */
   Integer bitwiseAnd(const Integer& y) const;
-  /** Return the bit-wise or xof this and the given Integer. */
+  /** Return the bit-wise exclusive or of this and the given Integer. */
   Integer bitwiseXor(const Integer& y) const;
   /** Return the bit-wise not of this Integer. */
   Integer bitwiseNot() const;
