@@ -634,18 +634,19 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
         }
         Trace("sygus-engine") << std::endl;
       }
-#ifdef CVC4_ASSERTIONS
-      // the values for the query should be a complete model
-      Node squery = query.substitute(d_ce_sk_vars.begin(),
-                                      d_ce_sk_vars.end(),
-                                      d_ce_sk_var_mvs.begin(),
-                                      d_ce_sk_var_mvs.end());
-      Trace("cegqi-debug") << "...squery : " << squery << std::endl;
-      squery = Rewriter::rewrite(squery);
-      Trace("cegqi-debug") << "...rewrites to : " << squery << std::endl;
-      Assert(options::sygusRecFun()
-              || (squery.isConst() && squery.getConst<bool>()));
-#endif
+      if (Configuration::isAssertionBuild())
+      {
+        // the values for the query should be a complete model
+        Node squery = query.substitute(d_ce_sk_vars.begin(),
+                                        d_ce_sk_vars.end(),
+                                        d_ce_sk_var_mvs.begin(),
+                                        d_ce_sk_var_mvs.end());
+        Trace("cegqi-debug") << "...squery : " << squery << std::endl;
+        squery = Rewriter::rewrite(squery);
+        Trace("cegqi-debug") << "...rewrites to : " << squery << std::endl;
+        Assert(options::sygusRecFun()
+                || (squery.isConst() && squery.getConst<bool>()));
+      }
       return false;
     }
     else if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
