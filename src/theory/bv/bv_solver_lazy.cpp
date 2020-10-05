@@ -440,8 +440,9 @@ void BVSolverLazy::propagate(Theory::Effort e)
 }
 
 Theory::PPAssertStatus BVSolverLazy::ppAssert(
-    TNode in, TrustSubstitutionMap& outSubstitutions)
+    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
+  TNode in = tin.getNode();
   switch (in.getKind())
   {
     case kind::EQUAL:

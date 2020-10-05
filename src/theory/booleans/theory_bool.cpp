@@ -51,8 +51,9 @@ TheoryBool::TheoryBool(context::Context* c,
 }
 
 Theory::PPAssertStatus TheoryBool::ppAssert(
-    TNode in, TrustSubstitutionMap& outSubstitutions)
+    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
+  TNode in = tin.getNode();
   if (in.getKind() == kind::CONST_BOOLEAN && !in.getConst<bool>()) {
     // If we get a false literal, we're in conflict
     return PP_ASSERT_STATUS_CONFLICT;
@@ -73,7 +74,7 @@ Theory::PPAssertStatus TheoryBool::ppAssert(
     }
   }
 
-  return Theory::ppAssert(in, outSubstitutions);
+  return Theory::ppAssert(tin, outSubstitutions);
 }
 
 }/* CVC4::theory::booleans namespace */

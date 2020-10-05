@@ -54,7 +54,7 @@ class BVSolverSimple : public BVSolver
   std::string identify() const override { return "BVSolverSimple"; };
 
   Theory::PPAssertStatus ppAssert(
-      TNode in, TrustSubstitutionMap& outSubstitutions) override
+      TrustNode in, TrustSubstitutionMap& outSubstitutions) override
   {
     return Theory::PPAssertStatus::PP_ASSERT_STATUS_UNSOLVED;
   }

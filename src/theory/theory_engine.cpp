@@ -829,11 +829,12 @@ void TheoryEngine::shutdown() {
 }
 
 theory::Theory::PPAssertStatus TheoryEngine::solve(
-    TNode literal, TrustSubstitutionMap& substitutionOut)
+    TrustNode tliteral, TrustSubstitutionMap& substitutionOut)
 {
   // Reset the interrupt flag
   d_interrupted = false;
 
+  TNode literal = tliteral.getNode();
   TNode atom = literal.getKind() == kind::NOT ? literal[0] : literal;
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << "): solving with " << theoryOf(atom)->getId() << endl;
 
@@ -848,7 +849,7 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
     throw LogicException(ss.str());
   }
 
-  Theory::PPAssertStatus solveStatus = theoryOf(atom)->ppAssert(literal, substitutionOut);
+  Theory::PPAssertStatus solveStatus = theoryOf(atom)->ppAssert(tliteral, substitutionOut);
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << ") => " << solveStatus << endl;
   return solveStatus;
 }

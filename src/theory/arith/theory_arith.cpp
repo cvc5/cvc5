@@ -151,9 +151,9 @@ TrustNode TheoryArith::ppRewriteTerms(TNode n)
 }
 
 Theory::PPAssertStatus TheoryArith::ppAssert(
-    TNode in, TrustSubstitutionMap& outSubstitutions)
+    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
-  return d_internal->ppAssert(in, outSubstitutions);
+  return d_internal->ppAssert(tin, outSubstitutions);
 }
 
 void TheoryArith::ppStaticLearn(TNode n, NodeBuilder<>& learned) {

@@ -154,8 +154,9 @@ TrustNode TheorySets::expandDefinition(Node n)
 }
 
 Theory::PPAssertStatus TheorySets::ppAssert(
-    TNode in, TrustSubstitutionMap& outSubstitutions)
+    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
+  TNode in = tin.getNode();
   Debug("sets-proc") << "ppAssert : " << in << std::endl;
   Theory::PPAssertStatus status = Theory::PP_ASSERT_STATUS_UNSOLVED;
 

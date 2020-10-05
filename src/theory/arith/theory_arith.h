@@ -102,7 +102,7 @@ class TheoryArith : public Theory {
 
   void presolve() override;
   void notifyRestart() override;
-  PPAssertStatus ppAssert(TNode in,
+  PPAssertStatus ppAssert(TrustNode tin,
                           TrustSubstitutionMap& outSubstitutions) override;
   TrustNode ppRewrite(TNode atom) override;
   void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;

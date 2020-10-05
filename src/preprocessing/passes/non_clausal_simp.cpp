@@ -193,8 +193,9 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     // substitutions to newSubstitutions
     Trace("non-clausal-simplify") << "solving " << learnedLiteral << std::endl;
 
+    TrustNode tlearnedLiteral = TrustNode::mkTrustLemma(learnedLiteral, nullptr);
     Theory::PPAssertStatus solveStatus =
-        d_preprocContext->getTheoryEngine()->solve(learnedLiteral,
+        d_preprocContext->getTheoryEngine()->solve(tlearnedLiteral,
                                                    newSubstitutions);
 
     switch (solveStatus)
@@ -300,7 +301,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     {
       Trace("non-clausal-simplify")
           << "assertionNew = " << assertionNew.getNode() << std::endl;
-      //assertionsToPreprocess->replaceTrusted(i, assertionNew);
+      assertionsToPreprocess->replaceTrusted(i, assertionNew);
       assertion = assertionNew.getNode();
       Assert(Rewriter::rewrite(assertion) == assertion);
     }
@@ -312,14 +313,14 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         break;
       }
       Assert(assertionNew.getNode() != assertion);
-      //assertionsToPreprocess->replaceTrusted(i, assertionNew);
+      assertionsToPreprocess->replaceTrusted(i, assertionNew);
       assertion = assertionNew.getNode();
       d_statistics.d_numConstantProps += 1;
       Trace("non-clausal-simplify")
           << "assertionNew = " << assertion << std::endl;
     }
     s.insert(assertion);
-    assertionsToPreprocess->replace(i, assertion);
+    //assertionsToPreprocess->replace(i, assertion);
     Trace("non-clausal-simplify")
         << "non-clausal preprocessed: " << assertion << std::endl;
   }

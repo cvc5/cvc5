@@ -522,6 +522,8 @@ PreprocessingPassResult MipLibTrick::applyInternal(
                   NodeManager::SKOLEM_EXACT_NAME);
               Node geq = Rewriter::rewrite(nm->mkNode(kind::GEQ, newVar, zero));
               Node leq = Rewriter::rewrite(nm->mkNode(kind::LEQ, newVar, one));
+              TrustNode tgeq = TrustNode::mkTrustLemma(geq, nullptr);
+              TrustNode tleq = TrustNode::mkTrustLemma(leq, nullptr);
 
               Node n = Rewriter::rewrite(geq.andNode(leq));
               assertionsToPreprocess->push_back(n);
@@ -532,12 +534,12 @@ PreprocessingPassResult MipLibTrick::applyInternal(
               TrustSubstitutionMap tnullMap(&fakeContext, nullptr);
               CVC4_UNUSED SubstitutionMap& nullMap = tnullMap.get();
               Theory::PPAssertStatus status CVC4_UNUSED;  // just for assertions
-              status = te->solve(geq, tnullMap);
+              status = te->solve(tgeq, tnullMap);
               Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED)
                   << "unexpected solution from arith's ppAssert()";
               Assert(nullMap.empty())
                   << "unexpected substitution from arith's ppAssert()";
-              status = te->solve(leq, tnullMap);
+              status = te->solve(tleq, tnullMap);
               Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED)
                   << "unexpected solution from arith's ppAssert()";
               Assert(nullMap.empty())
