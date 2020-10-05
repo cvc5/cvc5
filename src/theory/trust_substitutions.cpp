@@ -87,8 +87,7 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
     // no change
     return TrustNode::null();
   }
-  // FIXME
-  if (true || !isProofEnabled())
+  if (!isProofEnabled())
   {
     // no proofs, use null generator
     return TrustNode::mkTrustRewrite(n, ns, nullptr);

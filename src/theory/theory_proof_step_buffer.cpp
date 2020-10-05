@@ -32,10 +32,6 @@ bool TheoryProofStepBuffer::applyEqIntro(Node src,
                                          MethodId ids,
                                          MethodId idr)
 {
-  if (CDProof::isSame(src, tgt))
-  {
-    return true;
-  }
   std::vector<Node> args;
   args.push_back(src);
   builtin::BuiltinProofRuleChecker::addMethodIds(args, ids, idr);

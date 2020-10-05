@@ -114,6 +114,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       << " learned literals." << std::endl;
   // No conflict, go through the literals and solve them
   ProofNodeManager* pnm = d_preprocContext->getProofNodeManager();
+  bool usingProofs = pnm!=nullptr;
   context::Context* u = d_preprocContext->getUserContext();
   TrustSubstitutionMap& ttls = d_preprocContext->getTopLevelSubstitutions();
   SubstitutionMap& top_level_substs = ttls.get();
@@ -127,6 +128,11 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   SubstitutionMap::iterator pos;
   size_t j = 0;
   std::vector<TrustNode>& learned_literals = propagator->getLearnedLiterals();
+  // if proofs are enabled, we will need to track the proofs of learned literals
+  if (usingProofs)
+  {
+    // TODO
+  }
   for (size_t i = 0, size = learned_literals.size(); i < size; ++i)
   {
     // Simplify the literal we learned wrt previous substitutions
@@ -294,6 +300,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     {
       Trace("non-clausal-simplify")
           << "assertionNew = " << assertionNew.getNode() << std::endl;
+      //assertionsToPreprocess->replaceTrusted(i, assertionNew);
       assertion = assertionNew.getNode();
       Assert(Rewriter::rewrite(assertion) == assertion);
     }
@@ -305,6 +312,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         break;
       }
       Assert(assertionNew.getNode() != assertion);
+      //assertionsToPreprocess->replaceTrusted(i, assertionNew);
       assertion = assertionNew.getNode();
       d_statistics.d_numConstantProps += 1;
       Trace("non-clausal-simplify")
