@@ -752,9 +752,34 @@ class CVC4ApiExceptionStream
   std::stringstream d_stream;
 };
 
+class CVC4ApiRecoverableExceptionStream
+{
+ public:
+  CVC4ApiRecoverableExceptionStream() {}
+  /* Note: This needs to be explicitly set to 'noexcept(false)' since it is
+   * a destructor that throws an exception and in C++11 all destructors
+   * default to noexcept(true) (else this triggers a call to std::terminate). */
+  ~CVC4ApiRecoverableExceptionStream() noexcept(false)
+  {
+    if (!std::uncaught_exception())
+    {
+      throw CVC4ApiRecoverableException(d_stream.str());
+    }
+  }
+
+  std::ostream& ostream() { return d_stream; }
+
+ private:
+  std::stringstream d_stream;
+};
+
 #define CVC4_API_CHECK(cond) \
   CVC4_PREDICT_TRUE(cond)    \
   ? (void)0 : OstreamVoider() & CVC4ApiExceptionStream().ostream()
+
+#define CVC4_API_RECOVERABLE_CHECK(cond) \
+  CVC4_PREDICT_TRUE(cond)                \
+  ? (void)0 : OstreamVoider() & CVC4ApiRecoverableExceptionStream().ostream()
 
 #define CVC4_API_CHECK_NOT_NULL                     \
   CVC4_API_CHECK(!isNullHelper())                   \
@@ -5075,7 +5100,7 @@ std::vector<Term> Solver::getUnsatCore(void) const
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::unsatCores])
       << "Cannot get unsat core unless explicitly enabled "
          "(try --produce-unsat-cores)";
-  CVC4_API_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT)
+  CVC4_API_RECOVERABLE_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT)
       << "Cannot get unsat core unless in unsat mode.";
   UnsatCore core = d_smtEngine->getUnsatCore();
   /* Can not use
