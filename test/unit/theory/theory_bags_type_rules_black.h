@@ -91,7 +91,7 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
   void testFromSetOperator()
   {
     vector<Node> elements = getNStrings(1);
-    Node set = d_nm->mkNode(SINGLETON, elements[0]);
+    Node set = d_nm->mkSingleton(d_nm->stringType(), elements[0]);
     TS_ASSERT_THROWS_NOTHING(d_nm->mkNode(BAG_FROM_SET, set));
     TS_ASSERT(d_nm->mkNode(BAG_FROM_SET, set).getType().isBag());
   }
