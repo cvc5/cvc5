@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Andres Noetzli, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -525,8 +525,8 @@ std::unique_ptr<Command> Smt2::SynthFunFactory::mkCommand(api::Grammar* grammar)
 {
   Debug("parser-sygus") << "...read synth fun " << d_id << std::endl;
   d_smt2->popScope();
-  return std::unique_ptr<Command>(new SynthFunCommand(
-      d_smt2->d_solver, d_id, d_fun, d_sygusVars, d_sort, d_isInv, grammar));
+  return std::unique_ptr<Command>(
+      new SynthFunCommand(d_id, d_fun, d_sygusVars, d_sort, d_isInv, grammar));
 }
 
 std::unique_ptr<Command> Smt2::invConstraint(
@@ -556,8 +556,7 @@ std::unique_ptr<Command> Smt2::invConstraint(
     terms.push_back(getVariable(name));
   }
 
-  return std::unique_ptr<Command>(
-      new SygusInvConstraintCommand(api::termVectorToExprs(terms)));
+  return std::unique_ptr<Command>(new SygusInvConstraintCommand(terms));
 }
 
 Command* Smt2::setLogic(std::string name, bool fromCommand)
@@ -691,6 +690,23 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::TCLOSURE, "tclosure");
   }
 
+  if (d_logic.isTheoryEnabled(theory::THEORY_BAGS))
+  {
+    defineVar("emptybag", d_solver->mkEmptyBag(d_solver->getNullSort()));
+    addOperator(api::UNION_MAX, "union_max");
+    addOperator(api::UNION_DISJOINT, "union_disjoint");
+    addOperator(api::INTERSECTION_MIN, "intersection_min");
+    addOperator(api::DIFFERENCE_SUBTRACT, "difference_subtract");
+    addOperator(api::DIFFERENCE_REMOVE, "difference_remove");
+    addOperator(api::BAG_IS_INCLUDED, "bag.is_included");
+    addOperator(api::BAG_COUNT, "bag.count");
+    addOperator(api::MK_BAG, "mkBag");
+    addOperator(api::BAG_CARD, "bag.card");
+    addOperator(api::BAG_CHOOSE, "bag.choose");
+    addOperator(api::BAG_IS_SINGLETON, "bag.is_singleton");
+    addOperator(api::BAG_FROM_SET, "bag.from_set");
+    addOperator(api::BAG_TO_SET, "bag.to_set");
+  }
   if(d_logic.isTheoryEnabled(theory::THEORY_STRINGS)) {
     defineType("String", d_solver->getStringSort());
     defineType("RegLan", d_solver->getRegExpSort());
@@ -761,8 +777,8 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
 api::Grammar* Smt2::mkGrammar(const std::vector<api::Term>& boundVars,
                               const std::vector<api::Term>& ntSymbols)
 {
-  d_allocGrammars.emplace_back(new api::Grammar(
-      std::move(d_solver->mkSygusGrammar(boundVars, ntSymbols))));
+  d_allocGrammars.emplace_back(
+      new api::Grammar(d_solver->mkSygusGrammar(boundVars, ntSymbols)));
   return d_allocGrammars.back().get();
 }
 
@@ -821,7 +837,8 @@ void Smt2::checkLogicAllowsFreeSorts()
   if (!d_logic.isTheoryEnabled(theory::THEORY_UF)
       && !d_logic.isTheoryEnabled(theory::THEORY_ARRAYS)
       && !d_logic.isTheoryEnabled(theory::THEORY_DATATYPES)
-      && !d_logic.isTheoryEnabled(theory::THEORY_SETS))
+      && !d_logic.isTheoryEnabled(theory::THEORY_SETS)
+      && !d_logic.isTheoryEnabled(theory::THEORY_BAGS))
   {
     parseErrorLogic("Free sort symbols not allowed in ");
   }
@@ -1200,6 +1217,13 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     {
       parseError(
           "eqrange predicate requires option --arrays-exp to be enabled.");
+    }
+    if (kind == api::SINGLETON && args.size() == 1)
+    {
+      api::Sort sort = args[0].getSort();
+      api::Term ret = d_solver->mkSingleton(sort, args[0]);
+      Debug("parser") << "applyParseOp: return singleton " << ret << std::endl;
+      return ret;
     }
     api::Term ret = d_solver->mkTerm(kind, args);
     Debug("parser") << "applyParseOp: return default builtin " << ret

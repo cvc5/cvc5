@@ -2,10 +2,10 @@
 /*! \file theory_bool_rewriter.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Dejan Jovanovic, Kshitij Bansal
+ **   Tim King, Dejan Jovanovic, Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -33,7 +33,7 @@ RewriteResponse TheoryBoolRewriter::postRewrite(TNode node) {
  * flattenNode looks for children of same kind, and if found merges
  * them into the parent.
  *
- * It simultaneously handles a couple of other optimizations:
+ * It simultaneously handles a couple of other optimizations: 
  * - trivialNode - if found during exploration, return that node itself
  *    (like in case of OR, if "true" is found, makes sense to replace
  *     whole formula with "true")

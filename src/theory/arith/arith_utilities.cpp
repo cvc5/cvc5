@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -287,16 +287,26 @@ Node negateProofLiteral(TNode n)
   auto nm = NodeManager::currentNM();
   switch (n.getKind())
   {
-    case Kind::GT: { return nm->mkNode(Kind::LEQ, n[0], n[1]);
+    case Kind::GT:
+    {
+      return nm->mkNode(Kind::LEQ, n[0], n[1]);
     }
-    case Kind::LT: { return nm->mkNode(Kind::GEQ, n[0], n[1]);
+    case Kind::LT:
+    {
+      return nm->mkNode(Kind::GEQ, n[0], n[1]);
     }
-    case Kind::LEQ: { return nm->mkNode(Kind::GT, n[0], n[1]);
+    case Kind::LEQ:
+    {
+      return nm->mkNode(Kind::GT, n[0], n[1]);
     }
-    case Kind::GEQ: { return nm->mkNode(Kind::LT, n[0], n[1]);
+    case Kind::GEQ:
+    {
+      return nm->mkNode(Kind::LT, n[0], n[1]);
     }
     case Kind::EQUAL:
-    case Kind::NOT: { return n.negate();
+    case Kind::NOT:
+    {
+      return n.negate();
     }
     default: Unhandled() << n;
   }

@@ -2,10 +2,10 @@
 /*! \file shared_terms_database.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Tim King
+ **   Dejan Jovanovic, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -34,19 +34,16 @@ SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine,
       d_alreadyNotifiedMap(context),
       d_registeredEqualities(context),
       d_EENotify(*this),
-      d_equalityEngine(d_EENotify, context, "SharedTermsDatabase", true),
       d_theoryEngine(theoryEngine),
       d_inConflict(context, false),
-      d_conflictPolarity()
+      d_conflictPolarity(),
+      d_satContext(context),
+      d_userContext(userContext),
+      d_equalityEngine(nullptr),
+      d_pfee(nullptr),
+      d_pnm(pnm)
 {
   smtStatisticsRegistry()->registerStat(&d_statSharedTerms);
-
-  // if proofs are enabled, make the proof equality engine
-  if (pnm != nullptr)
-  {
-    d_pfee.reset(
-        new eq::ProofEqEngine(context, userContext, d_equalityEngine, pnm));
-  }
 }
 
 SharedTermsDatabase::~SharedTermsDatabase()
@@ -56,7 +53,14 @@ SharedTermsDatabase::~SharedTermsDatabase()
 
 void SharedTermsDatabase::setEqualityEngine(eq::EqualityEngine* ee)
 {
-  // TODO (project #39): dynamic allocation of equality engine here
+  Assert(ee != nullptr);
+  d_equalityEngine = ee;
+  // if proofs are enabled, make the proof equality engine
+  if (d_pnm != nullptr)
+  {
+    d_pfee.reset(
+        new eq::ProofEqEngine(d_satContext, d_userContext, *ee, d_pnm));
+  }
 }
 
 bool SharedTermsDatabase::needsEqualityEngine(EeSetupInfo& esi)
@@ -67,8 +71,9 @@ bool SharedTermsDatabase::needsEqualityEngine(EeSetupInfo& esi)
 }
 
 void SharedTermsDatabase::addEqualityToPropagate(TNode equality) {
+  Assert(d_equalityEngine != nullptr);
   d_registeredEqualities.insert(equality);
-  d_equalityEngine.addTriggerPredicate(equality);
+  d_equalityEngine->addTriggerPredicate(equality);
   checkForConflict();
 }
 
@@ -193,12 +198,18 @@ void SharedTermsDatabase::markNotified(TNode term, TheoryIdSet theories)
   d_alreadyNotifiedMap[term] =
       TheoryIdSetUtil::setUnion(newlyNotified, alreadyNotified);
 
+  if (d_equalityEngine == nullptr)
+  {
+    // if we are not assigned an equality engine, there is nothing to do
+    return;
+  }
+
   // Mark the shared terms in the equality engine
   theory::TheoryId currentTheory;
   while ((currentTheory = TheoryIdSetUtil::setPop(newlyNotified))
          != THEORY_LAST)
   {
-    d_equalityEngine.addTriggerTerm(term, currentTheory);
+    d_equalityEngine->addTriggerTerm(term, currentTheory);
   }
 
   // Check for any conflits
@@ -206,32 +217,42 @@ void SharedTermsDatabase::markNotified(TNode term, TheoryIdSet theories)
 }
 
 bool SharedTermsDatabase::areEqual(TNode a, TNode b) const {
-  if (d_equalityEngine.hasTerm(a) && d_equalityEngine.hasTerm(b)) {
-    return d_equalityEngine.areEqual(a,b);
+  Assert(d_equalityEngine != nullptr);
+  if (d_equalityEngine->hasTerm(a) && d_equalityEngine->hasTerm(b))
+  {
+    return d_equalityEngine->areEqual(a, b);
   } else {
-    Assert(d_equalityEngine.hasTerm(a) || a.isConst());
-    Assert(d_equalityEngine.hasTerm(b) || b.isConst());
+    Assert(d_equalityEngine->hasTerm(a) || a.isConst());
+    Assert(d_equalityEngine->hasTerm(b) || b.isConst());
     // since one (or both) of them is a constant, and the other is in the equality engine, they are not same
     return false;
   }
 }
 
 bool SharedTermsDatabase::areDisequal(TNode a, TNode b) const {
-  if (d_equalityEngine.hasTerm(a) && d_equalityEngine.hasTerm(b)) {
-    return d_equalityEngine.areDisequal(a,b,false);
+  Assert(d_equalityEngine != nullptr);
+  if (d_equalityEngine->hasTerm(a) && d_equalityEngine->hasTerm(b))
+  {
+    return d_equalityEngine->areDisequal(a, b, false);
   } else {
-    Assert(d_equalityEngine.hasTerm(a) || a.isConst());
-    Assert(d_equalityEngine.hasTerm(b) || b.isConst());
+    Assert(d_equalityEngine->hasTerm(a) || a.isConst());
+    Assert(d_equalityEngine->hasTerm(b) || b.isConst());
     // one (or both) are in the equality engine
     return false;
   }
 }
 
+theory::eq::EqualityEngine* SharedTermsDatabase::getEqualityEngine()
+{
+  return d_equalityEngine;
+}
+
 void SharedTermsDatabase::assertEquality(TNode equality, bool polarity, TNode reason)
 {
+  Assert(d_equalityEngine != nullptr);
   Debug("shared-terms-database::assert") << "SharedTermsDatabase::assertEquality(" << equality << ", " << (polarity ? "true" : "false") << ", " << reason << ")" << endl;
   // Add it to the equality engine
-  d_equalityEngine.assertEquality(equality, polarity, reason);
+  d_equalityEngine->assertEquality(equality, polarity, reason);
   // Check for conflict
   checkForConflict();
 }
@@ -263,7 +284,8 @@ void SharedTermsDatabase::checkForConflict()
   {
     // standard explain
     std::vector<TNode> assumptions;
-    d_equalityEngine.explainEquality(d_conflictLHS, d_conflictRHS, d_conflictPolarity, assumptions);
+    d_equalityEngine->explainEquality(
+        d_conflictLHS, d_conflictRHS, d_conflictPolarity, assumptions);
     Node conflictNode = NodeManager::currentNM()->mkAnd(assumptions);
     trnc = TrustNode::mkTrustConflict(conflictNode, nullptr);
   }
@@ -272,16 +294,17 @@ void SharedTermsDatabase::checkForConflict()
 }
 
 bool SharedTermsDatabase::isKnown(TNode literal) const {
+  Assert(d_equalityEngine != nullptr);
   bool polarity = literal.getKind() != kind::NOT;
   TNode equality = polarity ? literal : literal[0];
   if (polarity) {
-    return d_equalityEngine.areEqual(equality[0], equality[1]);
+    return d_equalityEngine->areEqual(equality[0], equality[1]);
   } else {
-    return d_equalityEngine.areDisequal(equality[0], equality[1], false);
+    return d_equalityEngine->areDisequal(equality[0], equality[1], false);
   }
 }
 
-theory::TrustNode SharedTermsDatabase::explain(TNode literal)
+theory::TrustNode SharedTermsDatabase::explain(TNode literal) const
 {
   if (d_pfee != nullptr)
   {
@@ -289,7 +312,7 @@ theory::TrustNode SharedTermsDatabase::explain(TNode literal)
     return d_pfee->explain(literal);
   }
   // otherwise, explain without proofs
-  Node exp = d_equalityEngine.mkExplainLit(literal);
+  Node exp = d_equalityEngine->mkExplainLit(literal);
   // no proof generator
   return TrustNode::mkTrustPropExp(literal, exp, nullptr);
 }

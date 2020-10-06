@@ -24,7 +24,8 @@ namespace theory {
 namespace arrays {
 
 /**
- * The arrays inference manager.
+ * The arrays skolem cache, which provides static methods for constructing
+ * skolems with witness forms.
  */
 class SkolemCache
 {
@@ -34,13 +35,19 @@ class SkolemCache
 
   /**
    * Get the skolem correspoding to the index that witnesses the disequality
-   * between arrays a and b.
+   * deq between arrays a and b. The witness form of this skolem is:
+   * (witness ((x T)) (=> (not (= a b)) (not (= (select a x) (select b x)))))
+   * This skolem is unique for deq, calling this method will always return the
+   * same skolem over the lifetime of deq.
    */
-  static Node getExtIndexSkolem(Node a, Node b);
+  static Node getExtIndexSkolem(Node deq);
 
  private:
-  /** Get the bound variable */
-  static Node getExtIndexVar(Node a, Node b);
+  /**
+   * Get the bound variable x of the witness term above for disequality deq
+   * between arrays.
+   */
+  static Node getExtIndexVar(Node deq);
 };
 
 }  // namespace arrays

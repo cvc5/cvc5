@@ -2,10 +2,10 @@
 /*! \file shared_terms_database.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Mathias Preiner, Morgan Deters
+ **   Dejan Jovanovic, Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -110,12 +110,6 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   /** The notify class for d_equalityEngine */
   EENotifyClass d_EENotify;
 
-  /** Equality engine */
-  theory::eq::EqualityEngine d_equalityEngine;
-
-  /** Proof equality engine */
-  std::unique_ptr<theory::eq::ProofEqEngine> d_pfee;
-
   /**
    * Method called by equalityEngine when a becomes (dis-)equal to b and a and b are shared with
    * the theory. Returns false if there is a direct conflict (via rewrite for example).
@@ -157,6 +151,13 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   void checkForConflict();
 
  public:
+  /**
+   * @param theoryEngine The parent theory engine
+   * @param context The SAT context
+   * @param userContext The user context
+   * @param pnm The proof node manager to use, which is non-null if proofs
+   * are enabled.
+   */
   SharedTermsDatabase(TheoryEngine* theoryEngine,
                       context::Context* context,
                       context::UserContext* userContext,
@@ -186,7 +187,7 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   /**
    * Returns an explanation of the propagation that came from the database.
    */
-  theory::TrustNode explain(TNode literal);
+  theory::TrustNode explain(TNode literal) const;
 
   /**
    * Add an equality to propagate.
@@ -258,13 +259,23 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   /**
    * get equality engine
    */
-  theory::eq::EqualityEngine* getEqualityEngine() { return &d_equalityEngine; }
+  theory::eq::EqualityEngine* getEqualityEngine();
 
  protected:
   /**
    * This method gets called on backtracks from the context manager.
    */
- void contextNotifyPop() override { backtrack(); }
+  void contextNotifyPop() override { backtrack(); }
+  /** The SAT search context. */
+  context::Context* d_satContext;
+  /** The user level assertion context. */
+  context::UserContext* d_userContext;
+  /** Equality engine */
+  theory::eq::EqualityEngine* d_equalityEngine;
+  /** Proof equality engine */
+  std::unique_ptr<theory::eq::ProofEqEngine> d_pfee;
+  /** The proof node manager */
+  ProofNodeManager* d_pnm;
 };
 
 }

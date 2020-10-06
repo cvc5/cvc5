@@ -2,10 +2,10 @@
 /*! \file preprocessor.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -35,7 +35,8 @@ Preprocessor::Preprocessor(SmtEngine& smt,
       d_propagator(true, true),
       d_assertionsProcessed(u, false),
       d_processor(smt, *smt.getResourceManager()),
-      d_rtf(u)
+      d_rtf(u),
+      d_pnm(nullptr)
 {
 }
 
@@ -51,7 +52,7 @@ Preprocessor::~Preprocessor()
 void Preprocessor::finishInit()
 {
   d_ppContext.reset(new preprocessing::PreprocessingPassContext(
-      &d_smt, &d_rtf, &d_propagator));
+      &d_smt, &d_rtf, &d_propagator, d_pnm));
 
   // initialize the preprocessing passes
   d_processor.finishInit(d_ppContext.get());
@@ -140,7 +141,8 @@ Node Preprocessor::simplify(const Node& node, bool removeItes)
   }
   std::unordered_map<Node, Node, NodeHashFunction> cache;
   Node n = d_processor.expandDefinitions(nas, cache);
-  Node ns = applySubstitutions(n);
+  TrustNode ts = d_ppContext->getTopLevelSubstitutions().apply(node);
+  Node ns = ts.isNull() ? node : ts.getNode();
   if (removeItes)
   {
     // also remove ites if asked
@@ -149,9 +151,11 @@ Node Preprocessor::simplify(const Node& node, bool removeItes)
   return ns;
 }
 
-Node Preprocessor::applySubstitutions(TNode node)
+void Preprocessor::setProofNodeManager(ProofNodeManager* pnm)
 {
-  return Rewriter::rewrite(d_ppContext->getTopLevelSubstitutions().apply(node));
+  d_pnm = pnm;
+  d_propagator.setProofNodeManager(pnm);
+  d_rtf.setProofNodeManager(pnm);
 }
 
 }  // namespace smt

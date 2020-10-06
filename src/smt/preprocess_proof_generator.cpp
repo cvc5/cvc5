@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -21,9 +21,13 @@
 namespace CVC4 {
 namespace smt {
 
-PreprocessProofGenerator::PreprocessProofGenerator(context::UserContext* u,
-                                                   ProofNodeManager* pnm)
-    : d_pnm(pnm), d_src(u), d_helperEpg(pnm, u, "pppg::subsEpg")
+PreprocessProofGenerator::PreprocessProofGenerator(ProofNodeManager* pnm,
+                                                   context::Context* c,
+                                                   std::string name)
+    : d_pnm(pnm),
+      d_src(c ? c : &d_context),
+      d_helperProofs(c ? c : &d_context),
+      d_name(name)
 {
 }
 
@@ -31,8 +35,7 @@ void PreprocessProofGenerator::notifyNewAssert(Node n, ProofGenerator* pg)
 {
   Trace("smt-proof-pp-debug")
       << "PreprocessProofGenerator::notifyNewAssert: " << n << std::endl;
-  NodeTrustNodeMap::iterator it = d_src.find(n);
-  if (it == d_src.end())
+  if (d_src.find(n) == d_src.end())
   {
     d_src[n] = theory::TrustNode::mkTrustLemma(n, pg);
   }
@@ -42,25 +45,43 @@ void PreprocessProofGenerator::notifyNewAssert(Node n, ProofGenerator* pg)
   }
 }
 
+void PreprocessProofGenerator::notifyNewTrustedAssert(theory::TrustNode tn)
+{
+  notifyNewAssert(tn.getProven(), tn.getGenerator());
+}
+
 void PreprocessProofGenerator::notifyPreprocessed(Node n,
                                                   Node np,
                                                   ProofGenerator* pg)
 {
-  // only keep if indeed it rewrote
-  if (n != np)
+  // only do anything if indeed it rewrote
+  if (n == np)
   {
-    Trace("smt-proof-pp-debug")
-        << "PreprocessProofGenerator::notifyPreprocessed: " << n << "..." << np
-        << std::endl;
-    NodeTrustNodeMap::iterator it = d_src.find(np);
-    if (it == d_src.end())
-    {
-      d_src[np] = theory::TrustNode::mkTrustRewrite(n, np, pg);
-    }
-    else
-    {
-      Trace("smt-proof-pp-debug") << "...already proven" << std::endl;
-    }
+    return;
+  }
+  // call the trusted version
+  notifyTrustedPreprocessed(theory::TrustNode::mkTrustRewrite(n, np, pg));
+}
+
+void PreprocessProofGenerator::notifyTrustedPreprocessed(theory::TrustNode tnp)
+{
+  if (tnp.isNull())
+  {
+    // no rewrite, nothing to do
+    return;
+  }
+  Assert(tnp.getKind() == theory::TrustNodeKind::REWRITE);
+  Node np = tnp.getNode();
+  Trace("smt-proof-pp-debug")
+      << "PreprocessProofGenerator::notifyPreprocessed: " << tnp.getProven()
+      << std::endl;
+  if (d_src.find(np) == d_src.end())
+  {
+    d_src[np] = tnp;
+  }
+  else
+  {
+    Trace("smt-proof-pp-debug") << "...already proven" << std::endl;
   }
 }
 
@@ -75,12 +96,15 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
   // make CDProof to construct the proof below
   CDProof cdp(d_pnm);
 
-  Trace("smt-pppg") << "PreprocessProofGenerator::getProofFor: input " << f
-                    << std::endl;
+  Trace("smt-pppg") << "PreprocessProofGenerator::getProofFor: (" << d_name
+                    << ") input " << f << std::endl;
   Node curr = f;
   std::vector<Node> transChildren;
   std::unordered_set<Node, NodeHashFunction> processed;
   bool success;
+  // we connect the proof of f to its source via the map d_src until we
+  // discover that its source is a preprocessing lemma (a lemma stored in d_src)
+  // or otherwise it is assumed to be an input assumption.
   do
   {
     success = false;
@@ -183,15 +207,14 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
 
 ProofNodeManager* PreprocessProofGenerator::getManager() { return d_pnm; }
 
-theory::EagerProofGenerator* PreprocessProofGenerator::getHelperProofGenerator()
+LazyCDProof* PreprocessProofGenerator::allocateHelperProof()
 {
-  return &d_helperEpg;
+  std::shared_ptr<LazyCDProof> helperPf = std::make_shared<LazyCDProof>(d_pnm);
+  d_helperProofs.push_back(helperPf);
+  return helperPf.get();
 }
 
-std::string PreprocessProofGenerator::identify() const
-{
-  return "PreprocessProofGenerator";
-}
+std::string PreprocessProofGenerator::identify() const { return d_name; }
 
 }  // namespace smt
 }  // namespace CVC4

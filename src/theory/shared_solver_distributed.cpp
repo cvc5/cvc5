@@ -20,7 +20,7 @@ namespace CVC4 {
 namespace theory {
 
 SharedSolverDistributed::SharedSolverDistributed(TheoryEngine& te,
-                                         ProofNodeManager* pnm)
+                                                 ProofNodeManager* pnm)
     : SharedSolver(te, pnm)
 {
 }
@@ -77,6 +77,7 @@ TrustNode SharedSolverDistributed::explain(TNode literal, TheoryId id)
   else
   {
     // By default, we ask the individual theory for the explanation.
+    // It is possible that a centralized approach could preempt this.
     texp = d_te.theoryOf(id)->explain(literal);
     Trace("shared-solver") << "\tTerm was propagated by owner theory: " << id
                            << ". Explanation: " << texp.getNode() << std::endl;

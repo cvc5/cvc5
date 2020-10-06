@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -66,6 +66,19 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkTrans(
     return children[0];
   }
   return mkNode(PfRule::TRANS, children, {}, expected);
+}
+
+std::shared_ptr<ProofNode> ProofNodeManager::mkAndElim(
+    std::shared_ptr<ProofNode>& child, size_t i, Node expected)
+{
+  Assert(child->getResult().getKind() == AND);
+  if (child->getRule() == PfRule::AND_INTRO)
+  {
+    Assert(i < child->d_children.size());
+    return child->d_children[i];
+  }
+  Node inode = NodeManager::currentNM()->mkConst(Rational(i));
+  return mkNode(PfRule::AND_ELIM, {child}, {inode}, expected);
 }
 
 std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
@@ -254,6 +267,8 @@ bool ProofNodeManager::updateNode(
 
 bool ProofNodeManager::updateNode(ProofNode* pn, ProofNode* pnr)
 {
+  Assert(pn != nullptr);
+  Assert(pnr != nullptr);
   if (pn->getResult() != pnr->getResult())
   {
     return false;
@@ -296,6 +311,7 @@ bool ProofNodeManager::updateNodeInternal(
     const std::vector<Node>& args,
     bool needsCheck)
 {
+  Assert(pn != nullptr);
   // ---------------- check for cyclic
   std::unordered_map<const ProofNode*, bool> visited;
   std::unordered_map<const ProofNode*, bool>::iterator it;

@@ -224,7 +224,8 @@ Solver::Solver(CVC4::prop::TheoryProxy* proxy,
 {
   if (pnm)
   {
-    d_pfManager.reset(new SatProofManager(this, proxy, userContext, pnm));
+    d_pfManager.reset(
+        new SatProofManager(this, proxy->getCnfStream(), userContext, pnm));
   }
 
   if (options::unsatCores())
@@ -730,8 +731,8 @@ void Solver::removeClause(CRef cr) {
     Clause& c = ca[cr];
     if (Debug.isOn("minisat"))
     {
-      Debug("minisat")
-          << "Solver::removeClause(" << c << "), CRef " << cr << ", clause ";
+      Debug("minisat") << "Solver::removeClause(" << c << "), CRef " << cr
+                       << ", clause ";
       for (unsigned i = 0, size = c.size(); i < size; ++i)
       {
         Debug("minisat") << c[i] << " ";
@@ -753,7 +754,6 @@ void Solver::removeClause(CRef cr) {
         Trace("pf::sat")
             << "Solver::removeClause: eagerly compute propagation of " << c[0]
             << "\n";
-        // d_pfManager->tryJustifyingLit(MinisatSatSolver::toSatLiteral(c[0]));
         d_pfManager->startResChain(c);
         for (unsigned i = 1, size = c.size(); i < size; ++i)
         {
@@ -2333,7 +2333,7 @@ SatProofManager* Solver::getProofManager()
   return d_pfManager ? d_pfManager.get() : nullptr;
 }
 
-CDProof* Solver::getProof()
+std::shared_ptr<ProofNode> Solver::getProof()
 {
   return d_pfManager ? d_pfManager->getProof() : nullptr;
 }

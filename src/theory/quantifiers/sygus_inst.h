@@ -5,7 +5,7 @@
  **   Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -82,6 +82,9 @@ class SygusInst : public QuantifiersModule
   /* Called once for every quantifier 'q' per context. */
   void preRegisterQuantifier(Node q) override;
 
+  /* For collecting global terms from all available assertions. */
+  void ppNotifyAssertions(const std::vector<Node>& assertions);
+
   std::string identify() const override { return "SygusInst"; }
 
  private:
@@ -124,6 +127,15 @@ class SygusInst : public QuantifiersModule
   /* Indicates whether a counterexample lemma was added for a quantified
    * formula in the current context. */
   context::CDHashSet<Node, NodeHashFunction> d_ce_lemma_added;
+
+  /* Set of global ground terms in assertions (outside of quantifiers). */
+  context::CDHashMap<TypeNode,
+                     std::unordered_set<Node, NodeHashFunction>,
+                     TypeNodeHashFunction>
+      d_global_terms;
+
+  /* Assertions sent by ppNotifyAssertions. */
+  context::CDHashSet<Node, NodeHashFunction> d_notified_assertions;
 };
 
 }  // namespace quantifiers

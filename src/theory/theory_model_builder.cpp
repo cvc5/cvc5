@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Clark Barrett, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -1208,8 +1208,6 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
     if (childrenConst)
     {
       retNode = Rewriter::rewrite(retNode);
-      Assert(retNode.getKind() == kind::APPLY_UF
-             || !retNode.getType().isFirstClass() || retNode.isConst());
     }
   }
   d_normalizedCache[r] = retNode;

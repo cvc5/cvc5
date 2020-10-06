@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -53,7 +53,7 @@ void StringProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::STRING_CODE_INJ, this);
   pc->registerChecker(PfRule::STRING_SEQ_UNIT_INJ, this);
   // trusted rules
-  pc->registerTrustedChecker(PfRule::STRING_TRUST, this, 1);
+  pc->registerTrustedChecker(PfRule::STRING_TRUST, this, 2);
 }
 
 Node StringProofRuleChecker::checkInternal(PfRule id,

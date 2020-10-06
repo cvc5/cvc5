@@ -5,7 +5,7 @@
  **   Tim King, Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -342,7 +342,7 @@ Rational leastIntGreaterThan(const Rational&);
 
 Rational greatestIntLessThan(const Rational&);
 
-// Negates a node in arithmetic proof normal form.
+/** Negates a node in arithmetic proof normal form. */
 Node negateProofLiteral(TNode n);
 
 }/* CVC4::theory::arith namespace */

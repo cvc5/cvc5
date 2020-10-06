@@ -2,10 +2,10 @@
 /*! \file congruence_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Dejan Jovanovic, Paul Meng
+ **   Tim King, Andrew Reynolds, Dejan Jovanovic
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -48,8 +48,11 @@ ArithCongruenceManager::ArithCongruenceManager(
       d_satContext(c),
       d_userContext(u),
       d_pnm(pnm),
+      // Construct d_pfGenEe with the SAT context, since its proof include
+      // unclosed assumptions of theory literals.
       d_pfGenEe(
           new EagerProofGenerator(pnm, c, "ArithCongruenceManager::pfGenEe")),
+      // Construct d_pfGenEe with the USER context, since its proofs are closed.
       d_pfGenExplain(new EagerProofGenerator(
           pnm, u, "ArithCongruenceManager::pfGenExplain")),
       d_pfee(nullptr)
@@ -58,25 +61,6 @@ ArithCongruenceManager::ArithCongruenceManager(
 
 ArithCongruenceManager::~ArithCongruenceManager() {}
 
-std::vector<Node> andComponents(TNode an)
-{
-  auto nm = NodeManager::currentNM();
-  if (an == nm->mkConst(true))
-  {
-    return {};
-  }
-  else if (an.getKind() != Kind::AND)
-  {
-    return {an};
-  }
-  else
-  {
-    std::vector<Node> a{};
-    a.reserve(an.getNumChildren());
-    a.insert(a.end(), an.begin(), an.end());
-    return a;
-  }
-}
 bool ArithCongruenceManager::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_notify;
@@ -510,10 +494,7 @@ TrustNode ArithCongruenceManager::explain(TNode external)
     auto extPf = d_pnm->mkScope(litPf, assumptions);
     return d_pfGenExplain->mkTrustedPropagation(external, trn.getNode(), extPf);
   }
-  else
-  {
-    return trn;
-  }
+  return trn;
 }
 
 void ArithCongruenceManager::explain(TNode external, NodeBuilder<>& out){
@@ -682,11 +663,24 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
   assertLitToEqualityEngine(eq, reason, pf);
 }
 
-void ArithCongruenceManager::addSharedTerm(Node x){
-  d_ee->addTriggerTerm(x, THEORY_ARITH);
-}
-
 bool ArithCongruenceManager::isProofEnabled() const { return d_pnm != nullptr; }
+
+std::vector<Node> andComponents(TNode an)
+{
+  auto nm = NodeManager::currentNM();
+  if (an == nm->mkConst(true))
+  {
+    return {};
+  }
+  else if (an.getKind() != Kind::AND)
+  {
+    return {an};
+  }
+  std::vector<Node> a{};
+  a.reserve(an.getNumChildren());
+  a.insert(a.end(), an.begin(), an.end());
+  return a;
+}
 
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */

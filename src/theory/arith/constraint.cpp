@@ -2,10 +2,10 @@
 /*! \file constraint.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Alex Ozdemir, Mathias Preiner
+ **   Tim King, Alex Ozdemir, Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -1673,24 +1673,29 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
   Assert(!isInternalAssumption());
   std::shared_ptr<ProofNode> pf{};
 
-  if(assertedBefore(order)){
+  ProofNodeManager* pnm = d_database->d_pnm;
+
+  if (assertedBefore(order))
+  {
     Debug("pf::arith::explain") << "  already asserted" << std::endl;
     nb << getWitness();
-    if (options::proofNew())
+    if (d_database->isProofEnabled())
     {
-      pf = d_database->d_pnm->mkAssume(getWitness());
+      pf = pnm->mkAssume(getWitness());
       // If the witness and literal differ, prove the difference through a
       // rewrite.
       if (getWitness() != getProofLiteral())
       {
-        pf = d_database->d_pnm->mkNode(
+        pf = pnm->mkNode(
             PfRule::MACRO_SR_PRED_TRANSFORM, {pf}, {getProofLiteral()});
       }
     }
-  }else if(hasEqualityEngineProof()){
+  }
+  else if (hasEqualityEngineProof())
+  {
     Debug("pf::arith::explain") << "  going to ee:" << std::endl;
     TrustNode exp = d_database->eeExplain(this);
-    if (options::proofNew())
+    if (d_database->isProofEnabled())
     {
       Assert(exp.getProven().getKind() == Kind::IMPLIES);
       std::vector<std::shared_ptr<ProofNode>> hypotheses;
@@ -1699,18 +1704,16 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
       {
         for (const auto& h : exp.getNode())
         {
-          hypotheses.push_back(d_database->d_pnm->mkNode(
-              PfRule::TRUE_INTRO, {d_database->d_pnm->mkAssume(h)}, {}));
+          hypotheses.push_back(
+              pnm->mkNode(PfRule::TRUE_INTRO, {pnm->mkAssume(h)}, {}));
         }
       }
       else
       {
-        hypotheses.push_back(d_database->d_pnm->mkNode(
-            PfRule::TRUE_INTRO,
-            {d_database->d_pnm->mkAssume(exp.getNode())},
-            {}));
+        hypotheses.push_back(pnm->mkNode(
+            PfRule::TRUE_INTRO, {pnm->mkAssume(exp.getNode())}, {}));
       }
-      pf = d_database->d_pnm->mkNode(
+      pf = pnm->mkNode(
           PfRule::MACRO_SR_PRED_TRANSFORM, {hypotheses}, {getProofLiteral()});
     }
     Debug("pf::arith::explain")
@@ -1723,17 +1726,20 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
     {
       nb << exp.getNode();
     }
-  }else{
+  }
+  else
+  {
     Debug("pf::arith::explain") << "  recursion!" << std::endl;
     Assert(!isAssumption());
     AntecedentId p = getEndAntecedent();
     ConstraintCP antecedent = d_database->d_antecedents[p];
     std::vector<std::shared_ptr<ProofNode>> children;
 
-    while(antecedent != NullConstraint){
+    while (antecedent != NullConstraint)
+    {
       Debug("pf::arith::explain") << "Explain " << antecedent << std::endl;
       auto pn = antecedent->externalExplain(nb, order);
-      if (options::proofNew())
+      if (d_database->isProofEnabled())
       {
         children.push_back(pn);
       }
@@ -1741,7 +1747,7 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
       antecedent = d_database->d_antecedents[p];
     }
 
-    if (options::proofNew())
+    if (d_database->isProofEnabled())
     {
       switch (getProofType())
       {
@@ -1763,7 +1769,7 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
           // order
           std::vector<std::shared_ptr<ProofNode>> farkasChildren;
           farkasChildren.push_back(
-              d_database->d_pnm->mkAssume(getNegation()->getProofLiteral()));
+              pnm->mkAssume(getNegation()->getProofLiteral()));
           farkasChildren.insert(
               farkasChildren.end(), children.rbegin(), children.rend());
 
@@ -1778,27 +1784,26 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
 
           // Apply the scaled-sum rule.
           std::shared_ptr<ProofNode> sumPf =
-              d_database->d_pnm->mkNode(PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS,
-                                        farkasChildren,
-                                        farkasCoeffs);
+              pnm->mkNode(PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS,
+                          farkasChildren,
+                          farkasCoeffs);
 
           // Provable rewrite the result
-          auto botPf = d_database->d_pnm->mkNode(
+          auto botPf = pnm->mkNode(
               PfRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
 
           // Scope out the negated constraint, yielding a proof of the
           // constraint.
           std::vector<Node> assump{getNegation()->getProofLiteral()};
-          auto maybeDoubleNotPf =
-              d_database->d_pnm->mkScope(botPf, assump, false);
+          auto maybeDoubleNotPf = pnm->mkScope(botPf, assump, false);
 
           // No need to ensure that the expected node aggrees with `assump`
           // because we are not providing an expected node.
           //
           // Prove that this is the literal (may need to clean a double-not)
-          pf = d_database->d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
-                                         {maybeDoubleNotPf},
-                                         {getProofLiteral()});
+          pf = pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
+                           {maybeDoubleNotPf},
+                           {getProofLiteral()});
 
           break;
         }
@@ -1806,12 +1811,12 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
         {
           if (isUpperBound())
           {
-            pf = d_database->d_pnm->mkNode(
+            pf = pnm->mkNode(
                 PfRule::INT_TIGHT_UB, children, {}, getProofLiteral());
           }
           else if (isLowerBound())
           {
-            pf = d_database->d_pnm->mkNode(
+            pf = pnm->mkNode(
                 PfRule::INT_TIGHT_LB, children, {}, getProofLiteral());
           }
           else
@@ -1822,18 +1827,18 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
         }
         case ArithProofType::IntHoleAP:
         {
-          pf = d_database->d_pnm->mkNode(PfRule::INT_TRUST,
-                                         children,
-                                         {getProofLiteral()},
-                                         getProofLiteral());
+          pf = pnm->mkNode(PfRule::INT_TRUST,
+                           children,
+                           {getProofLiteral()},
+                           getProofLiteral());
           break;
         }
         case ArithProofType::TrichotomyAP:
         {
-          pf = d_database->d_pnm->mkNode(PfRule::ARITH_TRICHOTOMY,
-                                         children,
-                                         {getProofLiteral()},
-                                         getProofLiteral());
+          pf = pnm->mkNode(PfRule::ARITH_TRICHOTOMY,
+                           children,
+                           {getProofLiteral()},
+                           getProofLiteral());
           break;
         }
         case ArithProofType::InternalAssumeAP:
@@ -1976,7 +1981,8 @@ TrustNode ConstraintDatabase::eeExplain(const Constraint* const c) const
   return d_congruenceManager.explain(c->getLiteral());
 }
 
-void ConstraintDatabase::eeExplain(const Constraint* const c, NodeBuilder<>& nb) const{
+void ConstraintDatabase::eeExplain(ConstraintCP c, NodeBuilder<>& nb) const
+{
   Assert(c->hasLiteral());
   // NOTE: this is not a recommended method since it ignores proofs
   d_congruenceManager.explain(c->getLiteral(), nb);

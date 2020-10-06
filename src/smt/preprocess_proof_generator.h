@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -20,6 +20,8 @@
 #include <map>
 
 #include "context/cdhashmap.h"
+#include "context/cdlist.h"
+#include "expr/lazy_proof.h"
 #include "expr/proof_generator.h"
 #include "expr/proof_node_manager.h"
 #include "theory/eager_proof_generator.h"
@@ -47,17 +49,23 @@ class PreprocessProofGenerator : public ProofGenerator
       NodeTrustNodeMap;
 
  public:
-  PreprocessProofGenerator(context::UserContext* u, ProofNodeManager* pnm);
+  PreprocessProofGenerator(ProofNodeManager* pnm,
+                           context::Context* c = nullptr,
+                           std::string name = "PreprocessProofGenerator");
   ~PreprocessProofGenerator() {}
   /**
    * Notify that n is a new assertion, where pg can provide a proof of n.
    */
   void notifyNewAssert(Node n, ProofGenerator* pg);
+  /**  Notify a new assertion, trust node version. */
+  void notifyNewTrustedAssert(theory::TrustNode tn);
   /**
    * Notify that n was replaced by np due to preprocessing, where pg can
    * provide a proof of the equality n=np.
    */
   void notifyPreprocessed(Node n, Node np, ProofGenerator* pg);
+  /** Notify preprocessed, trust node version */
+  void notifyTrustedPreprocessed(theory::TrustNode tnp);
   /**
    * Get proof for f, which returns a proof based on proving an equality based
    * on transitivity of preprocessing steps, and then using the original
@@ -68,12 +76,21 @@ class PreprocessProofGenerator : public ProofGenerator
   std::string identify() const override;
   /** Get the proof manager */
   ProofNodeManager* getManager();
-  /** Get the helper proof generator */
-  theory::EagerProofGenerator* getHelperProofGenerator();
+  /**
+   * Allocate a helper proof. This returns a fresh lazy proof object that
+   * remains alive in this user context. This feature is used to construct
+   * helper proofs for preprocessing, e.g. to support the skeleton of proofs
+   * that connect AssertionPipeline::conjoin steps.
+   *
+   * Internally, this adds a LazyCDProof to the list d_helperProofs below.
+   */
+  LazyCDProof* allocateHelperProof();
 
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
+  /** A dummy context used by this class if none is provided */
+  context::Context d_context;
   /**
    * The trust node that was the source of each node constructed during
    * preprocessing. For each n, d_src[n] is a trust node whose node is n. This
@@ -82,11 +99,10 @@ class PreprocessProofGenerator : public ProofGenerator
    * (2) A trust node LEMMA proving n.
    */
   NodeTrustNodeMap d_src;
-  /**
-   * An helper eager proof generator. This is used for storing steps that
-   * transform substitution steps.
-   */
-  theory::EagerProofGenerator d_helperEpg;
+  /** A context-dependent list of LazyCDProof, allocated for conjoin steps */
+  context::CDList<std::shared_ptr<LazyCDProof> > d_helperProofs;
+  /** Name for debugging */
+  std::string d_name;
 };
 
 }  // namespace smt

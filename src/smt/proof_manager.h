@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -48,25 +48,24 @@ class PfManager
   /**
    * Print the proof on the output channel of the current options in scope.
    *
-   * The argument pg is the module that can provide a proof for false in the
-   * current context.
+   * The argument pfn is the proof for false in the current context.
    *
    * Throws an assertion failure if pg cannot provide a closed proof with
    * respect to assertions in as.
    */
-  void printProof(ProofGenerator* pg, Assertions& as);
+  void printProof(std::shared_ptr<ProofNode> pfn, Assertions& as);
   /**
    * Check proof, same as above, without printing.
    */
-  void checkProof(ProofGenerator* pg, Assertions& as);
+  void checkProof(std::shared_ptr<ProofNode> pfn, Assertions& as);
 
   /**
    * Get final proof.
    *
-   * The argument pg is the module that can provide a proof for false in the
-   * current context.
+   * The argument pfn is the proof for false in the current context.
    */
-  std::shared_ptr<ProofNode> getFinalProof(ProofGenerator* pg, Assertions& as);
+  std::shared_ptr<ProofNode> getFinalProof(std::shared_ptr<ProofNode> pfn,
+                                           Assertions& as);
   //--------------------------- access to utilities
   /** Get a pointer to the ProofChecker owned by this. */
   ProofChecker* getProofChecker() const;
@@ -79,10 +78,10 @@ class PfManager
   //--------------------------- end access to utilities
  private:
   /**
-   * Set final proof, which initializes d_finalProof to the proof of false
-   * from pg, postprocesses it, and stores it in d_finalProof.
+   * Set final proof, which initializes d_finalProof to the given proof node of
+   * false, postprocesses it, and stores it in d_finalProof.
    */
-  void setFinalProof(ProofGenerator* pg, context::CDList<Node>* al);
+  void setFinalProof(std::shared_ptr<ProofNode> pfn, context::CDList<Node>* al);
   /** The false node */
   Node d_false;
   /** For the new proofs module */

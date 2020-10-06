@@ -2,10 +2,10 @@
 /*! \file constraint.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Alex Ozdemir, Morgan Deters
+ **   Tim King, Alex Ozdemir, Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -1234,6 +1234,8 @@ private:
 
   /** AntecendentID must be in range. */
   ConstraintCP getAntecedent(AntecedentId p) const;
+
+  bool isProofEnabled() const { return d_pnm != nullptr; }
 
  private:
   /** returns true if cons is now in conflict. */

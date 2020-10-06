@@ -5,7 +5,7 @@
  **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -226,7 +226,11 @@ class PropEngine
   ProofCnfStream* getProofCnfStream() { return d_pfCnfStream.get(); }
 
   /** pieces together the prop engine proof and produce it */
-  CDProof* getProof();
+  std::shared_ptr<ProofNode> getProof();
+
+  /** Checks that the proof is closed w.r.t. asserted formulas to this engine as
+   * well as to the given assertions. */
+  void checkProof(context::CDList<Node>* assertions);
 
  private:
   /** Dump out the satisfying assignment (after SAT result) */

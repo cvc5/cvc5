@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -75,6 +75,8 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerTrustedChecker(PfRule::THEORY_PREPROCESS, this, 3);
   pc->registerTrustedChecker(PfRule::THEORY_PREPROCESS_LEMMA, this, 3);
   pc->registerTrustedChecker(PfRule::WITNESS_AXIOM, this, 3);
+  pc->registerTrustedChecker(PfRule::TRUST_REWRITE, this, 1);
+  pc->registerTrustedChecker(PfRule::TRUST_SUBS, this, 1);
 }
 
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(
@@ -116,10 +118,10 @@ Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
   return n;
 }
 
-bool BuiltinProofRuleChecker::getSubstitution(Node exp,
-                                              TNode& var,
-                                              TNode& subs,
-                                              MethodId ids)
+bool BuiltinProofRuleChecker::getSubstitutionForLit(Node exp,
+                                                    TNode& var,
+                                                    TNode& subs,
+                                                    MethodId ids)
 {
   if (ids == MethodId::SB_DEFAULT)
   {
@@ -151,17 +153,57 @@ bool BuiltinProofRuleChecker::getSubstitution(Node exp,
   return true;
 }
 
+bool BuiltinProofRuleChecker::getSubstitutionFor(Node exp,
+                                                 std::vector<TNode>& vars,
+                                                 std::vector<TNode>& subs,
+                                                 std::vector<TNode>& from,
+                                                 MethodId ids)
+{
+  TNode v;
+  TNode s;
+  if (exp.getKind() == AND && ids == MethodId::SB_DEFAULT)
+  {
+    for (const Node& ec : exp)
+    {
+      // non-recursive, do not use nested AND
+      if (!getSubstitutionForLit(ec, v, s, ids))
+      {
+        return false;
+      }
+      vars.push_back(v);
+      subs.push_back(s);
+      from.push_back(ec);
+    }
+    return true;
+  }
+  bool ret = getSubstitutionForLit(exp, v, s, ids);
+  vars.push_back(v);
+  subs.push_back(s);
+  from.push_back(exp);
+  return ret;
+}
+
 Node BuiltinProofRuleChecker::applySubstitution(Node n, Node exp, MethodId ids)
 {
-  TNode var, subs;
-  if (!getSubstitution(exp, var, subs, ids))
+  std::vector<TNode> vars;
+  std::vector<TNode> subs;
+  std::vector<TNode> from;
+  if (!getSubstitutionFor(exp, vars, subs, from, ids))
   {
     return Node::null();
   }
-  Trace("builtin-pfcheck-debug")
-      << "applySubstitution (" << ids << "): " << var << " -> " << subs
-      << " (from " << exp << ")" << std::endl;
-  return n.substitute(var, subs);
+  Node ns = n;
+  // apply substitution one at a time, in reverse order
+  for (size_t i = 0, nvars = vars.size(); i < nvars; i++)
+  {
+    TNode v = vars[nvars - 1 - i];
+    TNode s = subs[nvars - 1 - i];
+    Trace("builtin-pfcheck-debug")
+        << "applySubstitution (" << ids << "): " << v << " -> " << s
+        << " (from " << exp << ")" << std::endl;
+    ns = ns.substitute(v, s);
+  }
+  return ns;
 }
 
 Node BuiltinProofRuleChecker::applySubstitution(Node n,
@@ -273,7 +315,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
-    Node res = applySubstitutionRewrite(args[0], children, idr);
+    Node res = applySubstitutionRewrite(args[0], children, ids, idr);
     return args[0].eqNode(res);
   }
   else if (id == PfRule::MACRO_SR_PRED_INTRO)
@@ -358,7 +400,8 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::PREPROCESS || id == PfRule::THEORY_PREPROCESS
            || id == PfRule::WITNESS_AXIOM || id == PfRule::THEORY_LEMMA
-           || id == PfRule::PREPROCESS_LEMMA || id == PfRule::THEORY_REWRITE)
+           || id == PfRule::PREPROCESS_LEMMA || id == PfRule::THEORY_REWRITE
+           || id == PfRule::TRUST_REWRITE || id == PfRule::TRUST_SUBS)
   {
     // "trusted" rules
     Assert(children.empty());

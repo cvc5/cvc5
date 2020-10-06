@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -1536,8 +1536,12 @@ void SmtEngine::checkProof()
   // internal check the proof
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
+  if (options::proofNewEagerChecking())
+  {
+    pe->checkProof(d_asserts->getAssertionList());
+  }
   Assert(pe->getProof() != nullptr);
-  CDProof* pfpe = pe->getProof();
+  std::shared_ptr<ProofNode> pePfn = pe->getProof();
   // TEMPORARY for testing, this can be used to count how often checkProofs is
   // called
   if (options::checkProofsNewFail())
@@ -1546,7 +1550,7 @@ void SmtEngine::checkProof()
   }
   if (options ::checkProofsNew())
   {
-    d_pfManager->checkProof(pfpe, *d_asserts);
+    d_pfManager->checkProof(pePfn, *d_asserts);
   }
 }
 
@@ -1656,7 +1660,8 @@ void SmtEngine::checkModel(bool hardFailure) {
   for(size_t k = 0; k < m->getNumCommands(); ++k) {
     const DeclareFunctionNodeCommand* c =
         dynamic_cast<const DeclareFunctionNodeCommand*>(m->getCommand(k));
-    Notice() << "SmtEngine::checkModel(): model command " << k << " : " << m->getCommand(k) << endl;
+    Notice() << "SmtEngine::checkModel(): model command " << k << " : "
+             << m->getCommand(k)->toString() << endl;
     if(c == NULL) {
       // we don't care about DECLARE-DATATYPES, DECLARE-SORT, ...
       Notice() << "SmtEngine::checkModel(): skipping..." << endl;
@@ -2093,6 +2098,7 @@ void SmtEngine::resetAssertions()
         getOutputManager().getDumpOut());
   }
 
+  d_asserts->clearCurrent();
   d_state->notifyResetAssertions();
   d_dumpm->resetAssertions();
   // push the state to maintain global context around everything

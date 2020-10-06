@@ -5,7 +5,7 @@
  **   Dejan Jovanovic, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -28,6 +28,24 @@ using namespace std;
 namespace CVC4 {
 namespace theory {
 namespace booleans {
+
+CircuitPropagator::CircuitPropagator(bool enableForward, bool enableBackward)
+    : d_context(),
+      d_propagationQueue(),
+      d_propagationQueueClearer(&d_context, d_propagationQueue),
+      d_conflict(&d_context, false),
+      d_learnedLiterals(),
+      d_learnedLiteralClearer(&d_context, d_learnedLiterals),
+      d_backEdges(),
+      d_backEdgesClearer(&d_context, d_backEdges),
+      d_seen(&d_context),
+      d_state(&d_context),
+      d_forwardPropagation(enableForward),
+      d_backwardPropagation(enableBackward),
+      d_needsFinish(false),
+      d_epg(nullptr)
+{
+}
 
 void CircuitPropagator::assertTrue(TNode assertion)
 {
@@ -375,7 +393,15 @@ bool CircuitPropagator::propagate() {
     // If an atom, add to the list for simplification
     if (atom) {
       Debug("circuit-prop") << "CircuitPropagator::propagate(): adding to learned: " << (assignment ? (Node)current : current.notNode()) << std::endl;
-      d_learnedLiterals.push_back(assignment ? (Node)current : current.notNode());
+      Node lit = assignment ? Node(current) : current.notNode();
+      TrustNode tlit;
+      if (isProofEnabled())
+      {
+        // TODO
+      }
+      // make the trust node
+      tlit = TrustNode::mkTrustLemma(lit, nullptr);
+      d_learnedLiterals.push_back(tlit);
     }
 
     // Propagate this value to the children (if not an atom or a constant)
@@ -391,6 +417,13 @@ bool CircuitPropagator::propagate() {
   // No conflict
   return d_conflict;
 }
+
+void CircuitPropagator::setProofNodeManager(ProofNodeManager* pnm)
+{
+  d_epg.reset(new EagerProofGenerator(pnm, &d_context));
+}
+
+bool CircuitPropagator::isProofEnabled() const { return d_epg != nullptr; }
 
 }/* CVC4::theory::booleans namespace */
 }/* CVC4::theory namespace */

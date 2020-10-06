@@ -2,10 +2,10 @@
 /*! \file congruence_manager.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Mathias Preiner, Dejan Jovanovic
+ **   Tim King, Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -38,11 +38,6 @@
 
 namespace CVC4 {
 namespace theory {
-
-namespace quantifiers {
-class EqualityInference;
-}
-
 namespace arith {
 
 class ArithCongruenceManager {
@@ -108,9 +103,12 @@ private:
   /** proof manager */
   ProofNodeManager* d_pnm;
   /** A proof generator for storing proofs of facts that are asserted to the EQ
-   * engine. Note that these proofs **are not closed**, and assume the
-   * explanation of these facts. This is why this generator is separate from the
-   * TheoryArithPrivate generator, which stores closed proofs.
+   * engine. Note that these proofs **are not closed**; they may contain
+   * literals from the explanation of their fact as unclosed assumptions.
+   * This makes these proofs SAT-context depdent.
+   *
+   * This is why this generator is separate from the TheoryArithPrivate
+   * generator, which stores closed proofs.
    */
   std::unique_ptr<EagerProofGenerator> d_pfGenEe;
   /** A proof generator for TrustNodes sent to TheoryArithPrivate.
@@ -132,7 +130,6 @@ private:
   theory::eq::ProofEqEngine* d_pfee;
 
   void raiseConflict(Node conflict, std::shared_ptr<ProofNode> pf = nullptr);
-
   /**
    * Are proofs enabled? This is true if a non-null proof manager was provided
    * to the constructor of this class.
@@ -177,10 +174,18 @@ private:
 
   /** Check for proof for this or a symmetric fact
    *
+   * The proof submitted to this method are stored in `d_pfGenEe`, and should
+   * have closure properties consistent with the documentation for that member.
+   *
    * @returns whether this or a symmetric fact has a proof.
    */
   bool hasProofFor(TNode f) const;
-  /** Sets the proof for this fact and the symmetric one. */
+  /**
+   * Sets the proof for this fact and the symmetric one.
+   *
+   * The proof submitted to this method are stored in `d_pfGenEe`, and should
+   * have closure properties consistent with the documentation for that member.
+   * */
   void setProofFor(TNode f, std::shared_ptr<ProofNode> pf) const;
 
   /** Dequeues the delay queue and asserts these equalities.*/
@@ -245,9 +250,6 @@ private:
   void equalsConstant(ConstraintCP eq);
   void equalsConstant(ConstraintCP lb, ConstraintCP ub);
 
-
-  void addSharedTerm(Node x);
-
  private:
   class Statistics {
   public:
@@ -266,6 +268,8 @@ private:
   } d_statistics;
 
 };/* class ArithCongruenceManager */
+
+std::vector<Node> andComponents(TNode an);
 
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */

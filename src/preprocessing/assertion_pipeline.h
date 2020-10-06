@@ -2,10 +2,10 @@
 /*! \file assertion_pipeline.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli, Justin Xu, Morgan Deters
+ **   Andres Noetzli, Andrew Reynolds, Justin Xu
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -122,11 +122,21 @@ class AssertionPipeline
 
   /**
    * Adds a substitution node of the form (= lhs rhs) to the assertions.
+   * This conjoins n to assertions at a distinguished index given by
+   * d_substsIndex.
+   *
+   * @param n The substitution node
+   * @param pg The proof generator that can provide a proof of n.
    */
-  void addSubstitutionNode(Node n, ProofGenerator* pgen = nullptr);
+  void addSubstitutionNode(Node n, ProofGenerator* pg = nullptr);
 
   /**
-   * Conjoin
+   * Conjoin n to the assertion vector at position i. This replaces
+   * d_nodes[i] with the rewritten form of (AND d_nodes[i] n).
+   *
+   * @param i The assertion to replace
+   * @param n The formula to conjoin at position i
+   * @param pg The proof generator that can provide a proof of n
    */
   void conjoin(size_t i, Node n, ProofGenerator* pg = nullptr);
 

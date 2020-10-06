@@ -2,10 +2,10 @@
 /*! \file theory_arrays.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Clark Barrett, Andrew Reynolds
+ **   Morgan Deters, Andrew Reynolds, Clark Barrett
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -193,7 +193,8 @@ class TheoryArrays : public Theory {
   InferenceManager d_im;
 
  public:
-  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
+  PPAssertStatus ppAssert(TrustNode tin,
+                          TrustSubstitutionMap& outSubstitutions) override;
   TrustNode ppRewrite(TNode atom) override;
 
   /////////////////////////////////////////////////////////////////////////////

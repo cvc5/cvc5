@@ -5,7 +5,7 @@
  **   Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -28,10 +28,18 @@ ProofPostprocessCallback::ProofPostprocessCallback(
 
 void ProofPostprocessCallback::initializeUpdate() { d_assumpToProof.clear(); }
 
-bool ProofPostprocessCallback::shouldUpdate(ProofNode* pn)
+bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
+                                            bool& continueUpdate)
 {
-  return pn->getRule() == PfRule::ASSUME
-         && d_proofCnfStream->hasProofFor(pn->getResult());
+  bool result = pn->getRule() == PfRule::ASSUME
+                && d_proofCnfStream->hasProofFor(pn->getResult());
+  // check if should continue traversing
+  if (d_proofCnfStream->isBlocked(pn))
+  {
+    continueUpdate = false;
+    result = false;
+  }
+  return result;
 }
 
 bool ProofPostprocessCallback::update(Node res,
@@ -72,6 +80,9 @@ bool ProofPostprocessCallback::update(Node res,
   cdp->addProof(pfn);
   // do not recursively process the result
   continueUpdate = false;
+  // moreover block the fact f so that its proof node is not traversed if we run
+  // this post processor again (which can happen in incremental benchmarks)
+  d_proofCnfStream->addBlocked(pfn);
   return true;
 }
 

@@ -2,10 +2,10 @@
 /*! \file theory_sets.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Kshitij Bansal, Andres Noetzli
+ **   Andrew Reynolds, Mudathir Mohamed, Kshitij Bansal
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -153,7 +153,10 @@ TrustNode TheorySets::expandDefinition(Node n)
   return d_internal->expandDefinition(n);
 }
 
-Theory::PPAssertStatus TheorySets::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
+Theory::PPAssertStatus TheorySets::ppAssert(
+    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
+{
+  TNode in = tin.getNode();
   Debug("sets-proc") << "ppAssert : " << in << std::endl;
   Theory::PPAssertStatus status = Theory::PP_ASSERT_STATUS_UNSOLVED;
 
@@ -168,7 +171,7 @@ Theory::PPAssertStatus TheorySets::ppAssert(TNode in, SubstitutionMap& outSubsti
       // regress0/sets/pre-proc-univ.smt2
       if (!in[0].getType().isSet() || !options::setsExt())
       {
-        outSubstitutions.addSubstitution(in[0], in[1]);
+        outSubstitutions.addSubstitutionSolved(in[0], in[1], tin);
         status = Theory::PP_ASSERT_STATUS_SOLVED;
       }
     }
@@ -176,7 +179,7 @@ Theory::PPAssertStatus TheorySets::ppAssert(TNode in, SubstitutionMap& outSubsti
     {
       if (!in[0].getType().isSet() || !options::setsExt())
       {
-        outSubstitutions.addSubstitution(in[1], in[0]);
+        outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
         status = Theory::PP_ASSERT_STATUS_SOLVED;
       }
     }

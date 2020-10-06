@@ -2,10 +2,10 @@
 /*! \file proof_rule.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Haniel Barbosa, Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa, Alex Ozdemir
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -244,6 +244,12 @@ enum class PfRule : uint32_t
   // where F is an existential (exists ((x T)) (P x)) used for introducing
   // a witness term (witness ((x T)) (P x)).
   WITNESS_AXIOM,
+  // where F is an equality (= t t') that holds by a form of rewriting that
+  // could not be replayed.
+  TRUST_REWRITE,
+  // where F is an equality (= t t') that holds by a form of substitution that
+  // could not be replayed.
+  TRUST_SUBS,
 
   //================================================= Boolean rules
   // ======== Resolution
@@ -639,7 +645,7 @@ enum class PfRule : uint32_t
   // Arguments: none
   // ----------------------------------------
   // Conclusion: (not (= (select a k) (select b k)))
-  // where k is arrays::SkolemCache::getExtIndexSkolem(a,b).
+  // where k is arrays::SkolemCache::getExtIndexSkolem((not (= a b))).
   ARRAYS_EXT,
   // ======== Array Trust
   // Children: (P1 ... Pn)

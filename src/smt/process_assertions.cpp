@@ -2,10 +2,10 @@
 /*! \file process_assertions.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ **   Andrew Reynolds, Tim King, Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -104,9 +104,6 @@ bool ProcessAssertions::apply(Assertions& as)
     // nothing to do
     return true;
   }
-
-  SubstitutionMap& top_level_substs =
-      d_preprocessingPassContext->getTopLevelSubstitutions();
 
   if (options::bvGaussElim())
   {
@@ -326,6 +323,8 @@ bool ProcessAssertions::apply(Assertions& as)
       // First, find all skolems that appear in the substitution map - their
       // associated iteExpr will need to be moved to the main assertion set
       set<TNode> skolemSet;
+      SubstitutionMap& top_level_substs =
+          d_preprocessingPassContext->getTopLevelSubstitutions().get();
       SubstitutionMap::iterator pos = top_level_substs.begin();
       for (; pos != top_level_substs.end(); ++pos)
       {

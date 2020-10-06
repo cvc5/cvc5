@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -24,6 +24,33 @@ namespace theory {
 TheoryProofStepBuffer::TheoryProofStepBuffer(ProofChecker* pc)
     : ProofStepBuffer(pc)
 {
+}
+
+bool TheoryProofStepBuffer::applyEqIntro(Node src,
+                                         Node tgt,
+                                         const std::vector<Node>& exp,
+                                         MethodId ids,
+                                         MethodId idr)
+{
+  std::vector<Node> args;
+  args.push_back(src);
+  builtin::BuiltinProofRuleChecker::addMethodIds(args, ids, idr);
+  Node res = tryStep(PfRule::MACRO_SR_EQ_INTRO, exp, args);
+  if (res.isNull())
+  {
+    // failed to apply
+    return false;
+  }
+  // should have concluded the expected equality
+  Node expected = src.eqNode(tgt);
+  if (res != expected)
+  {
+    // did not provide the correct target
+    popStep();
+    return false;
+  }
+  // successfully proved src == tgt.
+  return true;
 }
 
 bool TheoryProofStepBuffer::applyPredTransform(Node src,

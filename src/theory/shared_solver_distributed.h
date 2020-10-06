@@ -30,8 +30,7 @@ namespace theory {
 class SharedSolverDistributed : public SharedSolver
 {
  public:
-  SharedSolverDistributed(TheoryEngine& te,
-                                         ProofNodeManager* pnm);
+  SharedSolverDistributed(TheoryEngine& te, ProofNodeManager* pnm);
   virtual ~SharedSolverDistributed() {}
   //------------------------------------- initialization
   /**

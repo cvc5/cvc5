@@ -5,7 +5,7 @@
  **   Clark Barrett, Andres Noetzli, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -859,11 +859,8 @@ PreprocessingPassResult UnconstrainedSimplifier::applyInternal(
     {
       Node a = assertions[i];
       Node as = Rewriter::rewrite(d_substitutions.apply(a));
-      if (a != as)
-      {
-        // replace the assertion
-        assertionsToPreprocess->replace(i, as);
-      }
+      // replace the assertion
+      assertionsToPreprocess->replace(i, as);
     }
   }
 

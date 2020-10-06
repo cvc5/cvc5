@@ -72,7 +72,6 @@
 
 (declare bvand bvop2)
 (declare bvor bvop2)
-(declare bvor bvop2)
 (declare bvxor bvop2)
 (declare bvnand bvop2)
 (declare bvnor bvop2)
@@ -88,7 +87,6 @@
 (declare bvshl bvop2)
 (declare bvlshr bvop2)
 (declare bvashr bvop2)
-(declare concat bvop2)
 
 ; bit vector unary operators
 (define bvop1

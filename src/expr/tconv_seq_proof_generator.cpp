@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -74,7 +74,7 @@ std::shared_ptr<ProofNode> TConvSeqProofGenerator::getSubsequenceProofFor(
   {
     currKey = std::pair<Node, size_t>(curr, i);
     itc = d_converted.find(currKey);
-    // if we provided a conversion at this index
+    // if we provided a conversion at this index via registerConvertedTerm
     if (itc != d_converted.end())
     {
       Node next = (*itc).second;
@@ -135,11 +135,15 @@ theory::TrustNode TConvSeqProofGenerator::mkTrustRewriteSequence(
     }
     else if (pg == nullptr)
     {
-      // maybe the i^th generator can explain it alone
+      // Maybe the i^th generator can explain it alone, which must be the case
+      // if there is only one position in the sequence where the term changes.
+      // We may overwrite pg with this class if another step is encountered in
+      // this loop.
       pg = d_tconvs[i];
     }
     else
     {
+      // need more than a single generator, use this class
       useThis = true;
       break;
     }

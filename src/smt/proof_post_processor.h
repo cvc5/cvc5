@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -53,7 +53,8 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
    */
   void setEliminateRule(PfRule rule);
   /** Should proof pn be updated? */
-  bool shouldUpdate(ProofNode* pn) override;
+  bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                    bool& continueUpdate) override;
   /** Update the proof rule application. */
   bool update(Node res,
               PfRule id,
@@ -162,7 +163,8 @@ class ProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
    */
   void initializeUpdate();
   /** Should proof pn be updated? Returns false, adds to stats. */
-  bool shouldUpdate(ProofNode* pn) override;
+  bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                    bool& continueUpdate) override;
   /** was pedantic failure */
   bool wasPedanticFailure(std::ostream& out) const;
 

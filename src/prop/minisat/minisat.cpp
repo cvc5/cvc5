@@ -5,7 +5,7 @@
  **   Liana Hadarean, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -226,7 +226,10 @@ SatProofManager* MinisatSatSolver::getProofManager()
   return d_minisat->getProofManager();
 }
 
-CDProof* MinisatSatSolver::getProof() { return d_minisat->getProof(); }
+std::shared_ptr<ProofNode> MinisatSatSolver::getProof()
+{
+  return d_minisat->getProof();
+}
 
 /** Incremental interface */
 

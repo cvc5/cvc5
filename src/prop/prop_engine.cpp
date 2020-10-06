@@ -5,7 +5,7 @@
  **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -93,7 +93,7 @@ PropEngine::PropEngine(TheoryEngine* te,
   d_satSolver = SatSolverFactory::createDPLLMinisat(smtStatisticsRegistry());
 
   d_registrar = new theory::TheoryRegistrar(d_theoryEngine);
-  d_cnfStream = new CVC4::prop::TseitinCnfStream(
+  d_cnfStream = new CVC4::prop::CnfStream(
       d_satSolver, d_registrar, userContext, &d_outMgr, rm, true);
   d_theoryProxy = new TheoryProxy(
       this, d_theoryEngine, d_decisionEngine.get(), d_context, d_cnfStream);
@@ -103,7 +103,8 @@ PropEngine::PropEngine(TheoryEngine* te,
   d_decisionEngine->setCnfStream(d_cnfStream);
   if (pnm)
   {
-    d_pfCnfStream.reset(new ProofCnfStream(userContext, *d_cnfStream, pnm));
+    d_pfCnfStream.reset(new ProofCnfStream(
+        userContext, *d_cnfStream, d_satSolver->getProofManager(), pnm));
     d_ppm.reset(new PropPfManager(
         userContext, pnm, d_satSolver->getProofManager(), d_pfCnfStream.get()));
   }
@@ -312,17 +313,7 @@ void PropEngine::getBooleanVariables(std::vector<TNode>& outputVariables) const
   d_cnfStream->getBooleanVariables(outputVariables);
 }
 
-void PropEngine::ensureLiteral(TNode n)
-{
-  if (d_pfCnfStream)
-  {
-    d_pfCnfStream->ensureLiteral(n);
-  }
-  else
-  {
-    d_cnfStream->ensureLiteral(n);
-  }
-}
+void PropEngine::ensureLiteral(TNode n) { d_cnfStream->ensureLiteral(n); }
 
 void PropEngine::push()
 {
@@ -428,15 +419,22 @@ bool PropEngine::properExplanation(TNode node, TNode expl) const
   return true;
 }
 
-CDProof* PropEngine::getProof()
+void PropEngine::checkProof(context::CDList<Node>* assertions)
+{
+  if (!d_pnm)
+  {
+    return;
+  }
+  return d_ppm->checkProof(assertions);
+}
+
+std::shared_ptr<ProofNode> PropEngine::getProof()
 {
   if (!d_pnm)
   {
     return nullptr;
   }
-  std::shared_ptr<ProofNode> conflictProofNode = d_ppm->getProof();
-  d_proof.addProof(conflictProofNode);
-  return &d_proof;
+  return d_ppm->getProof();
 }
 
 }  // namespace prop

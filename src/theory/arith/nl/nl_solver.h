@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Tim King, Tianyi Liang
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -31,7 +31,7 @@
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/nl_monomial.h"
-#include "theory/arith/theory_arith.h"
+#include "theory/arith/inference_manager.h"
 
 namespace CVC4 {
 namespace theory {
@@ -58,7 +58,7 @@ class NlSolver
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  NlSolver(TheoryArith& containing, NlModel& model);
+  NlSolver(InferenceManager& im, ArithState& astate, NlModel& model);
   ~NlSolver();
 
   /** init last call
@@ -79,7 +79,7 @@ class NlSolver
    *   t = 0 V t != 0
    * where t is a term that exists in the current context.
    */
-  std::vector<NlLemma> checkSplitZero();
+  void checkSplitZero();
 
   /** check monomial sign
    *
@@ -96,7 +96,7 @@ class NlSolver
    * x < 0 => x*y*y < 0
    * x = 0 => x*y*z = 0
    */
-  std::vector<NlLemma> checkMonomialSign();
+  void checkMonomialSign();
 
   /** check monomial magnitude
    *
@@ -118,7 +118,7 @@ class NlSolver
    * against 1, 1 : compare non-linear monomials against variables, 2 : compare
    * non-linear monomials against other non-linear monomials.
    */
-  std::vector<NlLemma> checkMonomialMagnitude(unsigned c);
+  void checkMonomialMagnitude(unsigned c);
 
   /** check monomial inferred bounds
    *
@@ -137,8 +137,7 @@ class NlSolver
    *   ...where (y > z + w) and x*y are a constraint and term
    *      that occur in the current context.
    */
-  std::vector<NlLemma> checkMonomialInferBounds(
-      std::vector<NlLemma>& nt_lemmas,
+  void checkMonomialInferBounds(
       const std::vector<Node>& asserts,
       const std::vector<Node>& false_asserts);
 
@@ -154,7 +153,7 @@ class NlSolver
    *   ...where k is fresh and x*z + y*z > t is a
    *      constraint that occurs in the current context.
    */
-  std::vector<NlLemma> checkFactoring(const std::vector<Node>& asserts,
+  void checkFactoring(const std::vector<Node>& asserts,
                                       const std::vector<Node>& false_asserts);
 
   /** check monomial infer resolution bounds
@@ -171,7 +170,7 @@ class NlSolver
    *  ...where s <= x*z and x*y <= t are constraints
    *     that occur in the current context.
    */
-  std::vector<NlLemma> checkMonomialInferResBounds();
+  void checkMonomialInferResBounds();
 
   /** check tangent planes
    *
@@ -197,12 +196,14 @@ class NlSolver
    * ( ( x>2 ^ y>5) ^ (x<2 ^ y<5) ) => x*y > 5*x + 2*y - 10
    * ( ( x>2 ^ y<5) ^ (x<2 ^ y>5) ) => x*y < 5*x + 2*y - 10
    */
-  std::vector<NlLemma> checkTangentPlanes();
+  void checkTangentPlanes(bool asWaitingLemmas);
 
   //-------------------------------------------- end lemma schemas
  private:
-  // The theory of arithmetic containing this extension.
-  TheoryArith& d_containing;
+  /** The inference manager that we push conflicts and lemmas to. */
+  InferenceManager& d_im;
+  /** Reference to the state. */
+  ArithState& d_astate;
   /** Reference to the non-linear model object */
   NlModel& d_model;
   /** commonly used terms */
@@ -294,8 +295,7 @@ class NlSolver
                   Node a,
                   unsigned a_index,
                   int status,
-                  std::vector<Node>& exp,
-                  std::vector<NlLemma>& lem);
+                  std::vector<Node>& exp);
   /** compare monomials a and b
    *
    * Initially, a call to this function is such that :
@@ -338,7 +338,7 @@ class NlSolver
       Node b,
       NodeMultiset& b_exp_proc,
       std::vector<Node>& exp,
-      std::vector<NlLemma>& lem,
+      std::vector<ArithLemma>& lem,
       std::map<int, std::map<Node, std::map<Node, Node> > >& cmp_infers);
   /** helper function for above
    *
@@ -356,10 +356,10 @@ class NlSolver
       NodeMultiset& b_exp_proc,
       int status,
       std::vector<Node>& exp,
-      std::vector<NlLemma>& lem,
+      std::vector<ArithLemma>& lem,
       std::map<int, std::map<Node, std::map<Node, Node> > >& cmp_infers);
   /** Get factor skolem for n, add resulting lemmas to lemmas */
-  Node getFactorSkolem(Node n, std::vector<NlLemma>& lemmas);
+  Node getFactorSkolem(Node n);
 }; /* class NlSolver */
 
 }  // namespace nl

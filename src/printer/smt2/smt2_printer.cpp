@@ -2,10 +2,10 @@
 /*! \file smt2_printer.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Morgan Deters, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -282,6 +282,10 @@ void Smt2Printer::toStream(std::ostream& out,
 
     case kind::EMPTYSET:
       out << "(as emptyset " << n.getConst<EmptySet>().getType() << ")";
+      break;
+
+    case kind::EMPTYBAG:
+      out << "(as emptybag " << n.getConst<EmptyBag>().getType() << ")";
       break;
     case kind::BITVECTOR_EXTRACT_OP:
     {
@@ -736,14 +740,17 @@ void Smt2Printer::toStream(std::ostream& out,
     out << smtKindString(k, d_variant) << " ";
     break;
   case kind::COMPREHENSION: out << smtKindString(k, d_variant) << " "; break;
+  case kind::SINGLETON: stillNeedToPrintParams = false; CVC4_FALLTHROUGH;
   case kind::MEMBER: typeChildren = true; CVC4_FALLTHROUGH;
   case kind::INSERT:
   case kind::SET_TYPE:
-  case kind::SINGLETON:
   case kind::COMPLEMENT:
   case kind::CHOOSE:
   case kind::IS_SINGLETON: out << smtKindString(k, d_variant) << " "; break;
   case kind::UNIVERSE_SET:out << "(as univset " << n.getType() << ")";break;
+
+  // bags
+  case kind::BAG_TYPE:  out << smtKindString(k, d_variant) << " "; break;
 
     // fp theory
   case kind::FLOATINGPOINT_FP:
@@ -969,7 +976,12 @@ void Smt2Printer::toStream(std::ostream& out,
       TypeNode elemType = TypeNode::leastCommonTypeNode( n[0].getType(), n[1].getType().getSetElementType() );
       force_child_type[0] = elemType;
       force_child_type[1] = NodeManager::currentNM()->mkSetType( elemType );
-    }else{
+    }
+    else if (n.getKind() == kind::SINGLETON)
+    {
+      force_child_type[0] = n.getType().getSetElementType();
+    }
+    else{
       // APPLY_UF, APPLY_CONSTRUCTOR, etc.
       Assert(n.hasOperator());
       TypeNode opt = n.getOperator().getType();
@@ -1151,8 +1163,10 @@ static string smtKindString(Kind k, Variant v)
   case kind::JOIN: return "join";
   case kind::PRODUCT: return "product";
   case kind::TRANSPOSE: return "transpose";
-  case kind::TCLOSURE:
-    return "tclosure";
+  case kind::TCLOSURE: return "tclosure";
+
+  // bag theory
+  case kind::BAG_TYPE: return "Bag";
 
     // fp theory
   case kind::FLOATINGPOINT_FP: return "fp";

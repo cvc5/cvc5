@@ -2,10 +2,10 @@
 /*! \file theory_inference_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -32,6 +32,7 @@ TheoryInferenceManager::TheoryInferenceManager(Theory& t,
       d_pnm(pnm),
       d_keep(t.getSatContext()),
       d_lemmasSent(t.getUserContext()),
+      d_numConflicts(0),
       d_numCurrentLemmas(0),
       d_numCurrentFacts(0)
 {
@@ -54,6 +55,7 @@ bool TheoryInferenceManager::isProofEnabled() const { return d_pnm != nullptr; }
 
 void TheoryInferenceManager::reset()
 {
+  d_numConflicts = 0;
   d_numCurrentLemmas = 0;
   d_numCurrentFacts = 0;
 }
@@ -85,6 +87,7 @@ void TheoryInferenceManager::conflict(TNode conf)
   {
     d_theoryState.notifyInConflict();
     d_out.conflict(conf);
+    ++d_numConflicts;
   }
 }
 

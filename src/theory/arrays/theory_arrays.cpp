@@ -2,10 +2,10 @@
 /*! \file theory_arrays.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Clark Barrett, Morgan Deters, Guy Katz
+ **   Clark Barrett, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -357,8 +357,10 @@ TrustNode TheoryArrays::ppRewrite(TNode term)
   return TrustNode::null();
 }
 
-
-Theory::PPAssertStatus TheoryArrays::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
+Theory::PPAssertStatus TheoryArrays::ppAssert(
+    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
+{
+  TNode in = tin.getNode();
   switch(in.getKind()) {
     case kind::EQUAL:
     {
@@ -366,12 +368,12 @@ Theory::PPAssertStatus TheoryArrays::ppAssert(TNode in, SubstitutionMap& outSubs
       d_ppEqualityEngine.assertEquality(in, true, in);
       if (in[0].isVar() && isLegalElimination(in[0], in[1]))
       {
-        outSubstitutions.addSubstitution(in[0], in[1]);
+        outSubstitutions.addSubstitutionSolved(in[0], in[1], tin);
         return PP_ASSERT_STATUS_SOLVED;
       }
       if (in[1].isVar() && isLegalElimination(in[1], in[0]))
       {
-        outSubstitutions.addSubstitution(in[1], in[0]);
+        outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
         return PP_ASSERT_STATUS_SOLVED;
       }
       break;
@@ -852,7 +854,6 @@ void TheoryArrays::notifySharedTerm(TNode t)
   Debug("arrays::sharing") << spaces(getSatContext()->getLevel())
                            << "TheoryArrays::notifySharedTerm(" << t << ")"
                            << std::endl;
-  d_equalityEngine->addTriggerTerm(t, THEORY_ARRAYS);
   if (t.getType().isArray()) {
     d_sharedArrays.insert(t);
   }
@@ -1188,10 +1189,8 @@ Node TheoryArrays::getSkolem(TNode ref)
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it = d_skolemCache.find(ref);
   if (it == d_skolemCache.end()) {
     Assert(ref.getKind() == kind::NOT && ref[0].getKind() == kind::EQUAL);
-    TNode a = ref[0][0];
-    TNode b = ref[0][1];
     // make the skolem using the skolem cache utility
-    skolem = SkolemCache::getExtIndexSkolem(a, b);
+    skolem = SkolemCache::getExtIndexSkolem(ref);
     d_skolemCache[ref] = skolem;
   }
   else {
@@ -1341,7 +1340,7 @@ void TheoryArrays::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
   // if a disequality
   if (atom.getKind() == kind::EQUAL && !pol && !isInternal)
   {
-    // Notice that we this should be an external assertion, since we do not
+    // Notice that this should be an external assertion, since we do not
     // internally infer disequalities.
     // Apply ArrDiseq Rule if diseq is between arrays
     if (fact[0][0].getType().isArray() && !d_state.isInConflict())
@@ -2049,7 +2048,7 @@ void TheoryArrays::conflict(TNode a, TNode b) {
   Debug("pf::array") << "TheoryArrays::Conflict called" << std::endl;
   if (d_inCheckModel)
   {
-    // if in check model, don't send the conflict?
+    // if in check model, don't send the conflict
     d_state.notifyInConflict();
     return;
   }

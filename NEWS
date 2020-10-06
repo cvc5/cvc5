@@ -29,6 +29,11 @@ Changes:
   SMT-LIB 2.6 semantics.
 * The `competition` build type includes the dependencies used for SMT-COMP by
   default. Note that this makes this build type produce GPL-licensed binaries.
+* Bit-vector operator bvxnor was previously mistakenly marked as
+  left-assoicative in SMT-LIB. This has recently been corrected in SMT-LIB. We
+  now restrict bvxnor to only allow two operands in order to avoid confusion
+  about the semantics, since the behavior of n-ary operands to bvxnor is now
+  undefined in SMT-LIB.
 
 
 Changes since 1.7

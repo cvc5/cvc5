@@ -2,10 +2,10 @@
 /*! \file proof_rule.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Haniel Barbosa, Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa, Alex Ozdemir
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -45,6 +45,8 @@ const char* toString(PfRule id)
     case PfRule::THEORY_PREPROCESS: return "THEORY_PREPROCESS";
     case PfRule::THEORY_PREPROCESS_LEMMA: return "THEORY_PREPROCESS_LEMMA";
     case PfRule::WITNESS_AXIOM: return "WITNESS_AXIOM";
+    case PfRule::TRUST_REWRITE: return "TRUST_REWRITE";
+    case PfRule::TRUST_SUBS: return "TRUST_SUBS";
     //================================================= Boolean rules
     case PfRule::RESOLUTION: return "RESOLUTION";
     case PfRule::CHAIN_RESOLUTION: return "CHAIN_RESOLUTION";

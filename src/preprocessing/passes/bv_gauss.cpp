@@ -5,7 +5,7 @@
  **   Aina Niemetz, Mathias Preiner, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -738,6 +738,7 @@ PreprocessingPassResult BVGauss::applyInternal(
 
   std::unordered_map<Node, Node, NodeHashFunction> subst;
 
+  NodeManager* nm = NodeManager::currentNM();
   for (const auto& eq : equations)
   {
     if (eq.second.size() <= 1) { continue; }
@@ -755,11 +756,10 @@ PreprocessingPassResult BVGauss::applyInternal(
                            << std::endl;
     if (ret != BVGauss::Result::INVALID)
     {
-      NodeManager *nm = NodeManager::currentNM();
       if (ret == BVGauss::Result::NONE)
       {
         assertionsToPreprocess->clear();
-        Node n = NodeManager::currentNM()->mkConst<bool>(false);
+        Node n = nm->mkConst<bool>(false);
         assertionsToPreprocess->push_back(n);
         return PreprocessingPassResult::CONFLICT;
       }
@@ -789,11 +789,8 @@ PreprocessingPassResult BVGauss::applyInternal(
     {
       Node a = aref[i];
       Node as = a.substitute(subst.begin(), subst.end());
-      if (a != as)
-      {
-        // replace the assertion
-        assertionsToPreprocess->replace(i, as);
-      }
+      // replace the assertion
+      assertionsToPreprocess->replace(i, as);
     }
   }
   return PreprocessingPassResult::NO_CONFLICT;
