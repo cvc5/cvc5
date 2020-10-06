@@ -40,11 +40,21 @@ class NormalForm
   /**
    * check whether all children of the given node are in normal form
    */
-  static bool AreChildrenConstants(TNode n);
+  static bool areChildrenConstants(TNode n);
   /**
    * evaluate the node n to a constant value
    */
   static Node evaluate(TNode n);
+
+ private:
+  /**
+  * evaluate n as follows:
+  * - (mkBag a 0) = (emptybag T) where T is the type of a
+  * - (mkBag a (-c)) = (emptybag T) where T is the type of a, and c > 0 is a
+  *   constant
+  * - otherwise = n
+  */
+  static Node evaluateMakeBag(TNode n);
 };
 }  // namespace bags
 }  // namespace theory
