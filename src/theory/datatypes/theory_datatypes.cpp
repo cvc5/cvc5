@@ -372,8 +372,8 @@ void TheoryDatatypes::notifyFact(TNode atom,
                                  TNode fact,
                                  bool isInternal)
 {
-  
-  Trace("datatypes-debug") << "TheoryDatatypes::assertFact : " << fact << ", isInternal = " << isInternal << std::endl;
+  Trace("datatypes-debug") << "TheoryDatatypes::assertFact : " << fact
+                           << ", isInternal = " << isInternal << std::endl;
   // could be sygus-specific
   if (d_sygusExtension)
   {
