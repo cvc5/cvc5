@@ -26,6 +26,7 @@
 #include "smt/preprocess_proof_generator.h"
 #include "smt/proof_post_processor.h"
 #include "theory/rewrite_db.h"
+#include "proof/lean/lean_post_processor.h"
 
 namespace CVC4 {
 
@@ -93,7 +94,8 @@ class PfManager
   /** The preprocess proof generator. */
   std::unique_ptr<smt::PreprocessProofGenerator> d_pppg;
   /** The proof post-processor */
-  std::unique_ptr<smt::ProofPostproccess> d_pfpp;
+  std::unique_ptr<smt::ProofPostprocess> d_pfpp;
+  std::unique_ptr<proof::LeanProofPostprocess> d_lpfpp;
   /**
    * The final proof produced by the SMT engine.
    * Combines the proofs of preprocessing, prop engine and theory engine, to be

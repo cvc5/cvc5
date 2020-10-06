@@ -701,7 +701,7 @@ bool ProofPostprocessFinalCallback::wasPedanticFailure(std::ostream& out) const
   return false;
 }
 
-ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,
+ProofPostprocess::ProofPostprocess(ProofNodeManager* pnm,
                                      SmtEngine* smte,
                                      ProofGenerator* pppg)
     : d_pnm(pnm),
@@ -712,9 +712,9 @@ ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,
 {
 }
 
-ProofPostproccess::~ProofPostproccess() {}
+ProofPostprocess::~ProofPostprocess() {}
 
-void ProofPostproccess::process(std::shared_ptr<ProofNode> pf)
+void ProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {
   // Initialize the callback, which computes necessary static information about
   // how to process, including how to process assumptions in pf.
@@ -730,17 +730,17 @@ void ProofPostproccess::process(std::shared_ptr<ProofNode> pf)
   if (wasPedanticFailure)
   {
     AlwaysAssert(!wasPedanticFailure)
-        << "ProofPostproccess::process: pedantic failure:" << std::endl
+        << "ProofPostprocess::process: pedantic failure:" << std::endl
         << serr.str();
   }
 }
 
-void ProofPostproccess::setEliminateRule(PfRule rule)
+void ProofPostprocess::setEliminateRule(PfRule rule)
 {
   d_cb.setEliminateRule(rule);
 }
 
-void ProofPostproccess::setAssertions(const std::vector<Node>& assertions)
+void ProofPostprocess::setAssertions(const std::vector<Node>& assertions)
 {
   // for debugging (slow)
   if (options::proofNewUpdateDebug())

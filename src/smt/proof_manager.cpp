@@ -18,6 +18,8 @@
 #include "options/base_options.h"
 #include "options/smt_options.h"
 #include "smt/assertions.h"
+#include "proof/lean/lean_printer.h"
+#include "proof/lean/lean_post_processor.h"
 
 namespace CVC4 {
 namespace smt {
@@ -27,8 +29,9 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
       d_pnm(new ProofNodeManager(d_pchecker.get())),
       d_rewriteDb(new theory::RewriteDb),
       d_pppg(new PreprocessProofGenerator(u, d_pnm.get())),
-      d_pfpp(new ProofPostproccess(d_pnm.get(), smte, d_pppg.get())),
-      d_finalProof(nullptr)
+      d_pfpp(new ProofPostprocess(d_pnm.get(), smte, d_pppg.get())),
+      d_finalProof(nullptr),
+      d_lpfpp(new proof::LeanProofPostprocess(d_pnm.get()))
 {
   // add rules to eliminate here
   if (options::proofGranularityMode() != options::ProofGranularityMode::OFF)
@@ -115,10 +118,11 @@ void PfManager::printProof(ProofGenerator* pg, Assertions& as)
 {
   Trace("smt-proof") << "PfManager::printProof: start" << std::endl;
   std::shared_ptr<ProofNode> fp = getFinalProof(pg, as);
-  // TODO (proj #37) according to the proof format, post process the proof node
-  // TODO (proj #37) according to the proof format, print the proof node
-  // leanPrinter(out, fp.get());
   std::ostream& out = *options::out();
+  if (options::proofFormatMode() == options::ProofFormatMode::LEAN) {
+    d_lpfpp->process(fp);
+    proof::leanPrinter(out, fp);
+  }
   out << "(proof\n";
   out << *fp;
   out << "\n)\n";
