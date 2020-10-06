@@ -267,6 +267,8 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {BAG_CARD, CVC4::Kind::BAG_CARD},
     {BAG_CHOOSE, CVC4::Kind::BAG_CHOOSE},
     {BAG_IS_SINGLETON, CVC4::Kind::BAG_IS_SINGLETON},
+    {BAG_FROM_SET, CVC4::Kind::BAG_FROM_SET},
+    {BAG_TO_SET, CVC4::Kind::BAG_TO_SET},
     /* Strings ------------------------------------------------------------- */
     {STRING_CONCAT, CVC4::Kind::STRING_CONCAT},
     {STRING_IN_REGEXP, CVC4::Kind::STRING_IN_REGEXP},
@@ -570,6 +572,8 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::BAG_CARD, BAG_CARD},
         {CVC4::Kind::BAG_CHOOSE, BAG_CHOOSE},
         {CVC4::Kind::BAG_IS_SINGLETON, BAG_IS_SINGLETON},
+        {CVC4::Kind::BAG_FROM_SET, BAG_FROM_SET},
+        {CVC4::Kind::BAG_TO_SET, BAG_TO_SET},
         /* Strings --------------------------------------------------------- */
         {CVC4::Kind::STRING_CONCAT, STRING_CONCAT},
         {CVC4::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},
