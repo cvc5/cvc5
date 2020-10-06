@@ -136,7 +136,10 @@ struct MkBagTypeRule
 {
   static TypeNode computeType(NodeManager* nm, TNode n, bool check)
   {
-    Assert(n.getKind() == kind::MK_BAG);
+    Assert(n.getKind() == kind::MK_BAG && n.hasOperator()
+           && n.getOperator().getKind() == kind::MK_BAG_OP);
+    MakeBagOp op = n.getOperator().getConst<MakeBagOp>();
+    TypeNode expectedElementType = op.getType();
     if (check)
     {
       if (n.getNumChildren() != 2)
@@ -153,9 +156,21 @@ struct MkBagTypeRule
         ss << "MK_BAG expects an integer for " << n[1] << ". Found" << type1;
         throw TypeCheckingExceptionPrivate(n, ss.str());
       }
+
+      TypeNode actualElementType = n[0].getType(check);
+      // the type of the element should be a subtype of the type of the operator
+      // e.g. (mkBag (mkBag_op Real) 1 1) where 1 is an Int
+      if (!actualElementType.isSubtypeOf(expectedElementType))
+      {
+        std::stringstream ss;
+        ss << "The type '" << actualElementType
+           << "' of the element is not a subtype of '" << expectedElementType
+           << "' in term : " << n;
+        throw TypeCheckingExceptionPrivate(n, ss.str());
+      }
     }
 
-    return nm->mkBagType(n[0].getType(check));
+    return nm->mkBagType(expectedElementType);
   }
 
   static bool computeIsConst(NodeManager* nodeManager, TNode n)
