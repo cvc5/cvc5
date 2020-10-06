@@ -32,7 +32,7 @@ class TrustSubstitutionMap
 {
  public:
   TrustSubstitutionMap(context::Context* c, ProofNodeManager* pnm);
-  /** Gets a reference to the top-level substitution map */
+  /** Gets a reference to the underlying substitution map */
   SubstitutionMap& get();
   /**
    * Add substitution x -> t, where pg can provide a closed proof of (= x t)
