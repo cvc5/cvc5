@@ -103,9 +103,12 @@ private:
   /** proof manager */
   ProofNodeManager* d_pnm;
   /** A proof generator for storing proofs of facts that are asserted to the EQ
-   * engine. Note that these proofs **are not closed**, and assume the
-   * explanation of these facts. This is why this generator is separate from the
-   * TheoryArithPrivate generator, which stores closed proofs.
+   * engine. Note that these proofs **are not closed**; they may contain
+   * literals from the explanation of their fact as unclosed assumptions.
+   * This makes these proofs SAT-context depdent.
+   *
+   * This is why this generator is separate from the TheoryArithPrivate
+   * generator, which stores closed proofs.
    */
   std::unique_ptr<EagerProofGenerator> d_pfGenEe;
   /** A proof generator for TrustNodes sent to TheoryArithPrivate.
@@ -155,9 +158,36 @@ private:
   bool propagate(TNode x);
   void explain(TNode literal, std::vector<TNode>& assumptions);
 
-
+  /** Assert this literal to the eq engine. Common functionality for
+   *   * assertionToEqualityEngine(..)
+   *   * equalsConstant(c)
+   *   * equalsConstant(lb, ub)
+   * If proofNew is off, then just asserts.
+   */
+  void assertLitToEqualityEngine(Node lit,
+                                 TNode reason,
+                                 std::shared_ptr<ProofNode> pf);
   /** This sends a shared term to the uninterpreted equality engine. */
-  void assertionToEqualityEngine(bool eq, ArithVar s, TNode reason);
+  void assertionToEqualityEngine(bool eq,
+                                 ArithVar s,
+                                 TNode reason,
+                                 std::shared_ptr<ProofNode> pf);
+
+  /** Check for proof for this or a symmetric fact
+   *
+   * The proof submitted to this method are stored in `d_pfGenEe`, and should
+   * have closure properties consistent with the documentation for that member.
+   *
+   * @returns whether this or a symmetric fact has a proof.
+   */
+  bool hasProofFor(TNode f) const;
+  /**
+   * Sets the proof for this fact and the symmetric one.
+   *
+   * The proof submitted to this method are stored in `d_pfGenEe`, and should
+   * have closure properties consistent with the documentation for that member.
+   * */
+  void setProofFor(TNode f, std::shared_ptr<ProofNode> pf) const;
 
   /** Dequeues the delay queue and asserts these equalities.*/
   void enableSharedTerms();
