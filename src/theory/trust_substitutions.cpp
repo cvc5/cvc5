@@ -61,6 +61,18 @@ void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, ProofGenerator* pg)
   }
 }
 
+void TrustSubstitutionMap::addSubstitutionSolved(TNode x, TNode t, TrustNode tn)
+{
+  if (!isProofEnabled() || tn.getGenerator()==nullptr)
+  {
+    // no generator or not proof enabled, nothing to do
+    addSubstitution(x, t, nullptr);
+    return;
+  }
+  // TODO: try via rewrite?
+  addSubstitution(x, t, nullptr);
+}
+
 void TrustSubstitutionMap::addSubstitutions(TrustSubstitutionMap& t)
 {
   if (!isProofEnabled())

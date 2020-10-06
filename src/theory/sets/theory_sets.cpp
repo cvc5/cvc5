@@ -171,7 +171,7 @@ Theory::PPAssertStatus TheorySets::ppAssert(
       // regress0/sets/pre-proc-univ.smt2
       if (!in[0].getType().isSet() || !options::setsExt())
       {
-        outSubstitutions.addSubstitution(in[0], in[1]);
+        outSubstitutions.addSubstitutionSolved(in[0], in[1], tin);
         status = Theory::PP_ASSERT_STATUS_SOLVED;
       }
     }
@@ -179,7 +179,7 @@ Theory::PPAssertStatus TheorySets::ppAssert(
     {
       if (!in[0].getType().isSet() || !options::setsExt())
       {
-        outSubstitutions.addSubstitution(in[1], in[0]);
+        outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
         status = Theory::PP_ASSERT_STATUS_SOLVED;
       }
     }
