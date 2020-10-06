@@ -450,7 +450,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
           std::shared_ptr<CDProof> pf = std::make_shared<CDProof>(d_pnm);
           pfs.push_back(pf);
           // prove the updated substitution
-          TConvProofGenerator tcg(d_pnm, nullptr, TConvPolicy::ONCE);
+          TConvProofGenerator tcg(d_pnm, nullptr, TConvPolicy::ONCE, TConvCachePolicy::NEVER, "nested_SUBS_TConvProofGenerator", nullptr, true);
           // add previous rewrite steps
           for (unsigned j = 0, nvars = vvec.size(); j < nvars; j++)
           {
@@ -491,7 +491,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     if (ts != t)
     {
       // should be implied by the substitution now
-      TConvProofGenerator tcpg(d_pnm, nullptr, TConvPolicy::ONCE);
+      TConvProofGenerator tcpg(d_pnm, nullptr, TConvPolicy::ONCE, TConvCachePolicy::NEVER, "SUBS_TConvProofGenerator", nullptr, true);
       for (unsigned j = 0, nvars = vvec.size(); j < nvars; j++)
       {
         // not necessarily closed
