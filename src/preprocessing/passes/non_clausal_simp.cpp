@@ -47,12 +47,14 @@ NonClausalSimp::Statistics::~Statistics()
 
 NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "non-clausal-simp"),
-      d_llpg(preprocContext->getProofNodeManager()
+    d_pnm(preprocContext->getProofNodeManager()),
+      d_llpg(d_pnm 
                  ? new smt::PreprocessProofGenerator(
-                       preprocContext->getProofNodeManager(),
+                       d_pnm,
                        preprocContext->getUserContext(),
                        "NonClausalSimp::llpg")
                  : nullptr),
+                 d_llRCons(d_pnm ? new theory::EagerProofGenerator(d_pnm, preprocContext->getUserContext(),"NonClausalSimp::llRCons") : nullptr),
       d_tsubsList(preprocContext->getUserContext())
 {
 }
@@ -120,33 +122,32 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       << "Iterate through " << propagator->getLearnedLiterals().size()
       << " learned literals." << std::endl;
   // No conflict, go through the literals and solve them
-  ProofNodeManager* pnm = d_preprocContext->getProofNodeManager();
-  bool usingProofs = pnm != nullptr;
   context::Context* u = d_preprocContext->getUserContext();
   TrustSubstitutionMap& ttls = d_preprocContext->getTopLevelSubstitutions();
   SubstitutionMap& top_level_substs = ttls.get();
   // constant propagations
   std::shared_ptr<TrustSubstitutionMap> constantPropagations =
       std::make_shared<TrustSubstitutionMap>(
-          u, pnm, "NonClausalSimp::cprop", PfRule::PREPROCESS_LEMMA);
+          u, d_pnm, "NonClausalSimp::cprop", PfRule::PREPROCESS_LEMMA);
   SubstitutionMap& cps = constantPropagations->get();
   // new substitutions
   std::shared_ptr<TrustSubstitutionMap> newSubstitutions =
       std::make_shared<TrustSubstitutionMap>(
-          u, pnm, "NonClausalSimp::newSubs", PfRule::PREPROCESS_LEMMA);
+          u, d_pnm, "NonClausalSimp::newSubs", PfRule::PREPROCESS_LEMMA);
   SubstitutionMap& nss = newSubstitutions->get();
 
   SubstitutionMap::iterator pos;
   size_t j = 0;
   std::vector<TrustNode>& learned_literals = propagator->getLearnedLiterals();
   // if proofs are enabled, we will need to track the proofs of learned literals
-  if (usingProofs)
+  if (isProofEnabled())
   {
     d_tsubsList.push_back(constantPropagations);
     d_tsubsList.push_back(newSubstitutions);
     for (const TrustNode& tll : learned_literals)
     {
-      d_llpg->notifyNewTrustedAssert(tll);
+      // assert learned literal
+      assertLearnedLiteral(assertionsToPreprocess->ref(), tll);
     }
   }
   for (size_t i = 0, size = learned_literals.size(); i < size; ++i)
@@ -160,7 +161,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     TrustNode learnedLiteralNew = newSubstitutions->apply(learnedLiteral);
     if (!learnedLiteralNew.isNull())
     {
-      if (usingProofs)
+      if (isProofEnabled())
       {
         d_llpg->notifyTrustedPreprocessed(learnedLiteralNew);
       }
@@ -177,7 +178,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         break;
       }
       Assert(learnedLiteral != learnedLiteralNew.getNode());
-      if (usingProofs)
+      if (isProofEnabled())
       {
         d_llpg->notifyTrustedPreprocessed(learnedLiteralNew);
       }
@@ -454,6 +455,34 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 }  // namespace passes
 
 
+bool NonClausalSimp::isProofEnabled() const
+{
+  return d_pnm!=nullptr;
+}
+void NonClausalSimp::assertLearnedLiteral(const std::vector<Node>& assertions, TrustNode tll)
+{
+  Assert (!tll.isNull());
+  Assert (isProofEnabled());
+  if (tll.getGenerator()!=nullptr)
+  {
+    // the module that generated the learned literal (e.g. the circuit
+    // propagator) provided a proof 
+    d_llpg->notifyNewTrustedAssert(tll);
+    return;
+  }
+  Assert (tll.getKind()==TrustNodeKind::LEMMA);
+  Node proven = tll.getProven();
+  // no proof generator provided
+  // maybe its just part of the assertions? If so, we are allowed to use an
+  // ASSUME.
+  if (std::find(assertions.begin(), assertions.end(), proven)!=assertions.end())
+  {
+    TrustNode tassume = d_llRCons->mkTrustNode(proven, PfRule::ASSUME, {}, {proven});
+    d_llpg->notifyNewTrustedAssert(tassume);
+    return;
+  }
+  d_llpg->notifyNewTrustedAssert(tll);
+}
 /* -------------------------------------------------------------------------- */
 
 }  // namespace passes

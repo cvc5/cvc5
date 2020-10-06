@@ -41,13 +41,17 @@ class TrustSubstitutionMap
                        std::string name = "TrustSubstitutionMap",
                        PfRule trustId = PfRule::TRUST,
                        MethodId ids = MethodId::SB_DEFAULT);
-  /** Gets a reference to the top-level substitution map */
+  /** Gets a reference to the underlying substitution map */
   SubstitutionMap& get();
   /**
    * Add substitution x -> t, where pg can provide a closed proof of (= x t)
    * in the remainder of this user context.
    */
   void addSubstitution(TNode x, TNode t, ProofGenerator* pg = nullptr);
+  /** 
+   * Add substitution x -> t from a single step.
+   */
+  void addSubstitution(TNode x, TNode t, PfRule id, std::vector<Node>& args);
   /**
    * Add substitution x -> t, which was derived from the proven field of
    * trust node tn. This ensures that we add a substitution with a proof
