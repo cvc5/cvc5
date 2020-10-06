@@ -71,7 +71,7 @@ void TrustSubstitutionMap::addSubstitution(TNode x,
     Node eq = x.eqNode(t);
     d_subsPg->addStep(eq, id, {}, args);
   }
-  addSubstitution(x, t, d_subPg.get());
+  addSubstitution(x, t, d_subsPg.get());
 }
 
 void TrustSubstitutionMap::addSubstitutionSolved(TNode x, TNode t, TrustNode tn)
@@ -150,7 +150,7 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   std::vector<Node> pfChildren;
   if (!cs.isConst())
   {
-    // TODO: use?
+    // TODO: we will get more proof reuse if we use AND here.
     if (cs.getKind() == kind::AND)
     {
       for (const Node& csc : cs)

@@ -223,7 +223,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     Trace("non-clausal-simplify") << "solving " << learnedLiteral << std::endl;
 
     TrustNode tlearnedLiteral =
-        TrustNode::mkTrustLemma(learnedLiteral, nullptr);
+        TrustNode::mkTrustLemma(learnedLiteral, d_llpg.get());
     Theory::PPAssertStatus solveStatus =
         d_preprocContext->getTheoryEngine()->solve(tlearnedLiteral,
                                                    *newSubstitutions.get());
