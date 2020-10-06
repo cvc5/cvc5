@@ -209,6 +209,11 @@ bool ProcessAssertions::apply(Assertions& as)
   if (options::solveBVAsInt() != options::SolveBVAsIntMode::OFF)
   {
     d_passes["bv-to-int"]->apply(&assertions);
+    // after running bv-to-int, we need to immediately run
+    // theory-preprocess and ite-removal so that newlly created
+    // terms and assertions are normalized (e.g., div is expanded).
+    d_passes["theory-preprocess"]->apply(&assertions);
+    d_passes["ite-removal"]->apply(&assertions);
   }
 
   // Since this pass is not robust for the information tracking necessary for
