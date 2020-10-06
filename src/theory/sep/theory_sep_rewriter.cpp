@@ -102,7 +102,9 @@ RewriteResponse TheorySepRewriter::postRewrite(TNode node) {
   switch (node.getKind()) {
     case kind::SEP_LABEL: {
       if( node[0].getKind()==kind::SEP_PTO ){
-        Node s = NodeManager::currentNM()->mkNode( kind::SINGLETON, node[0][0] );
+        // TODO(project##230): Find a safe type for the singleton operator
+        Node s = NodeManager::currentNM()->mkSingleton(node[0][0].getType(),
+                                                       node[0][0]);
         if( node[1]!=s ){
           Node c1 = node[1].eqNode( s );
           Node c2 = NodeManager::currentNM()->mkNode( kind::SEP_LABEL, NodeManager::currentNM()->mkNode( kind::SEP_PTO, node[0][0], node[0][1] ), s );

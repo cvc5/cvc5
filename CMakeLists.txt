@@ -289,6 +289,7 @@ endif()
 # Only enable unit testing if assertions are enabled. Otherwise, unit tests
 # that expect AssertionException to be thrown will fail.
 if(NOT ENABLE_ASSERTIONS)
+  message(WARNING "Disabling unit tests since assertions are disabled.")
   set(ENABLE_UNIT_TESTING OFF)
 endif()
 

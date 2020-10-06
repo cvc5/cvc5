@@ -21,6 +21,7 @@
 #include "context/cdo.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/theory_model.h"
+#include "theory/trust_substitutions.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -116,7 +117,9 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   SubstitutionMap& top_level_substs =
       d_preprocContext->getTopLevelSubstitutions();
   SubstitutionMap constantPropagations(d_preprocContext->getUserContext());
-  SubstitutionMap newSubstitutions(d_preprocContext->getUserContext());
+  TrustSubstitutionMap tnewSubstituions(d_preprocContext->getUserContext(),
+                                        nullptr);
+  SubstitutionMap& newSubstitutions = tnewSubstituions.get();
   SubstitutionMap::iterator pos;
   size_t j = 0;
   std::vector<Node>& learned_literals = propagator->getLearnedLiterals();
@@ -178,10 +181,11 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     // Solve it with the corresponding theory, possibly adding new
     // substitutions to newSubstitutions
     Trace("non-clausal-simplify") << "solving " << learnedLiteral << std::endl;
-
+    TrustNode tlearnedLiteral =
+        TrustNode::mkTrustLemma(learnedLiteral, nullptr);
     Theory::PPAssertStatus solveStatus =
-        d_preprocContext->getTheoryEngine()->solve(learnedLiteral,
-                                                   newSubstitutions);
+        d_preprocContext->getTheoryEngine()->solve(tlearnedLiteral,
+                                                   tnewSubstituions);
 
     switch (solveStatus)
     {

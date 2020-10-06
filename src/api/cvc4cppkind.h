@@ -2074,6 +2074,22 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child)
    */
   BAG_IS_SINGLETON,
+  /**
+   * Bag.from_set converts a set to a bag.
+   * Parameters: 1
+   *   -[1]: Term of set sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  BAG_FROM_SET,
+  /**
+   * Bag.to_set converts a bag to a set.
+   * Parameters: 1
+   *   -[1]: Term of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  BAG_TO_SET,
 
   /* Strings --------------------------------------------------------------- */
 

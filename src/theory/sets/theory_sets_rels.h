@@ -176,7 +176,7 @@ private:
 
   /** Helper functions */
   bool hasTerm( Node a );
-  void makeSharedTerm( Node );
+  void makeSharedTerm(Node, TypeNode t);
   void reduceTupleVar( Node );
   bool hasMember( Node, Node );
   void computeTupleReps( Node );

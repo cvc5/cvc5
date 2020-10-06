@@ -704,6 +704,8 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::BAG_CARD, "bag.card");
     addOperator(api::BAG_CHOOSE, "bag.choose");
     addOperator(api::BAG_IS_SINGLETON, "bag.is_singleton");
+    addOperator(api::BAG_FROM_SET, "bag.from_set");
+    addOperator(api::BAG_TO_SET, "bag.to_set");
   }
   if(d_logic.isTheoryEnabled(theory::THEORY_STRINGS)) {
     defineType("String", d_solver->getStringSort());
@@ -1215,6 +1217,13 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     {
       parseError(
           "eqrange predicate requires option --arrays-exp to be enabled.");
+    }
+    if (kind == api::SINGLETON && args.size() == 1)
+    {
+      api::Sort sort = args[0].getSort();
+      api::Term ret = d_solver->mkSingleton(sort, args[0]);
+      Debug("parser") << "applyParseOp: return singleton " << ret << std::endl;
+      return ret;
     }
     api::Term ret = d_solver->mkTerm(kind, args);
     Debug("parser") << "applyParseOp: return default builtin " << ret
