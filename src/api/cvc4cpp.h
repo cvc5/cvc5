@@ -3174,9 +3174,9 @@ class CVC4_PUBLIC Solver
    */
   void printModel(std::ostream& out) const;
 
-  api::Result blockModel() const;
+  Result blockModel() const;
 
-  api::Result blockModelValues(const std::vector<Term>& terms) const;
+  Result blockModelValues(const std::vector<Term>& terms) const;
 
   void printInstantiations(std::ostream& out) const;
 

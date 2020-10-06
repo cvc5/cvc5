@@ -2286,7 +2286,7 @@ Term DatatypeConstructor::getSpecializedConstructorTerm(Sort retSort) const
       << "Cannot get specialized constructor type for non-datatype type "
       << retSort;
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  
+
   NodeManager* nm = d_solver->getNodeManager();
   Node ret = nm->mkNode(
       kind::APPLY_TYPE_ASCRIPTION,
@@ -2297,9 +2297,7 @@ Term DatatypeConstructor::getSpecializedConstructorTerm(Sort retSort) const
       d_ctor->getConstructor());
   (void)ret.getType(true); /* kick off type checking */
   // apply type ascription to the operator
-  Term sctor =
-      api::Term(d_solver,
-                ret);
+  Term sctor = api::Term(d_solver, ret);
   return sctor;
   
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -4525,9 +4523,9 @@ Term Solver::simplify(const Term& term)
 Term Solver::expandDefinitions(Term t) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   CVC4_API_ARG_CHECK_NOT_NULL(t);
   CVC4_API_SOLVER_CHECK_TERM(t);
+  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
 
   return Term(this, d_smtEngine->expandDefinitions(*t.d_node));
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -5107,6 +5105,8 @@ api::Term Solver::getQuantifierElimination(api::Term q,
                                            bool strict)
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_ARG_CHECK_NOT_NULL(q);
+  CVC4_API_SOLVER_CHECK_TERM(q);
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   return Term(
       this, d_smtEngine->getQuantifierElimination(q.getNode(), doFull, strict));
@@ -5313,7 +5313,7 @@ void Solver::printModel(std::ostream& out) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-api::Result Solver::blockModel() const
+Result Solver::blockModel() const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
@@ -5321,9 +5321,18 @@ api::Result Solver::blockModel() const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-api::Result Solver::blockModelValues(const std::vector<Term>& terms) const
+Result Solver::blockModelValues(const std::vector<Term>& terms) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  for (int i = 0; i < terms.size(); ++i)
+  {
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        !terms[i].isNull(), "term", terms[i], i)
+        << "a non-null term";
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        this == terms[i].d_solver, "term", terms[i], i)
+        << "a term associated to this solver object";
+  }
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   return d_smtEngine->blockModelValues(termVectorToExprs(terms));
   CVC4_API_SOLVER_TRY_CATCH_END;

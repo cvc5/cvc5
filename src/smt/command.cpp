@@ -282,7 +282,7 @@ void AssertCommand::invoke(api::Solver* solver)
 {
   try
   {
-    solver->assertFormula(d_term.getExpr(), d_inUnsatCore);
+    solver->assertFormula(d_term, d_inUnsatCore);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (UnsafeInterruptException& e)
