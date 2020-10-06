@@ -41,7 +41,12 @@ class TrustSubstitutionMap
   void addSubstitution(TNode x, TNode t, ProofGenerator* pg = nullptr);
   /**
    * Add substitution x -> t, which was derived from the proven field of
-   * trust node tn. This ensures that we add a substitution with a proof
+   * trust node tn. In other words, (= x t) is the solved form of
+   * tn.getProven(). This method is a helper function for methods (e.g.
+   * ppAssert) that put literals into solved form. It should be the case
+   * that (= x t) and tn.getProven() can be shown equivalent by rewriting.
+   *
+   * This ensures that we add a substitution with a proof
    * based on transforming the tn.getProven() to (= x t) if tn has a
    * non-null proof generator; otherwise if tn has no proof generator
    * we simply add the substitution.
