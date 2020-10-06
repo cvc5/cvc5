@@ -996,7 +996,6 @@ class CVC4_PUBLIC GetModelCommand : public Command
 
  protected:
   Model* d_result;
-  SmtEngine* d_smtEngine;
 }; /* class GetModelCommand */
 
 /** The command to block models. */
@@ -1091,7 +1090,7 @@ class CVC4_PUBLIC GetSynthSolutionCommand : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
  protected:
-  SmtEngine* d_smtEngine;
+  api::Solver* d_solver;
 }; /* class GetSynthSolutionCommand */
 
 /** The command (get-interpol s B (G)?)

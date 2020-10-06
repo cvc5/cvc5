@@ -1,4 +1,4 @@
-; EXPECT: (error "Cannot get an unsat core unless immediately preceded by UNSAT/ENTAILED response.")
+; EXPECT: (error "Cannot get unsat core unless in unsat mode.")
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: unsat
