@@ -372,7 +372,9 @@ void SortBlack::testSortSubtyping()
 
   Sort setSortI = d_solver.mkSetSort(intSort);
   Sort setSortR = d_solver.mkSetSort(realSort);
-  // we support subtyping for sets
-  TS_ASSERT(setSortI.isSubsortOf(setSortR));
-  TS_ASSERT(setSortR.isComparableTo(setSortI));
+  // we don't support subtyping for sets
+  TS_ASSERT(!setSortI.isComparableTo(setSortR));
+  TS_ASSERT(!setSortI.isSubsortOf(setSortR));
+  TS_ASSERT(!setSortR.isComparableTo(setSortI));
+  TS_ASSERT(!setSortR.isSubsortOf(setSortI));
 }
