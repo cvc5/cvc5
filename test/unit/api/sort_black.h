@@ -17,6 +17,7 @@
 #include <cxxtest/TestSuite.h>
 
 #include "api/cvc4cpp.h"
+#include "base/configuration.h"
 
 using namespace CVC4::api;
 
@@ -271,18 +272,24 @@ void SortBlack::testGetBVSize()
 
 void SortBlack::testGetFPExponentSize()
 {
-  Sort fpSort = d_solver.mkFloatingPointSort(4, 8);
-  TS_ASSERT_THROWS_NOTHING(fpSort.getFPExponentSize());
-  Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
-  TS_ASSERT_THROWS(setSort.getFPExponentSize(), CVC4ApiException&);
+  if (CVC4::Configuration::isBuiltWithSymFPU())
+  {
+    Sort fpSort = d_solver.mkFloatingPointSort(4, 8);
+    TS_ASSERT_THROWS_NOTHING(fpSort.getFPExponentSize());
+    Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
+    TS_ASSERT_THROWS(setSort.getFPExponentSize(), CVC4ApiException&);
+  }
 }
 
 void SortBlack::testGetFPSignificandSize()
 {
-  Sort fpSort = d_solver.mkFloatingPointSort(4, 8);
-  TS_ASSERT_THROWS_NOTHING(fpSort.getFPSignificandSize());
-  Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
-  TS_ASSERT_THROWS(setSort.getFPSignificandSize(), CVC4ApiException&);
+  if (CVC4::Configuration::isBuiltWithSymFPU())
+  {
+    Sort fpSort = d_solver.mkFloatingPointSort(4, 8);
+    TS_ASSERT_THROWS_NOTHING(fpSort.getFPSignificandSize());
+    Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
+    TS_ASSERT_THROWS(setSort.getFPSignificandSize(), CVC4ApiException&);
+  }
 }
 
 void SortBlack::testGetDatatypeParamSorts()
