@@ -272,13 +272,13 @@ class ProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
  * (1) Connect proofs of preprocessing,
  * (2) Expand macro PfRule applications.
  */
-class ProofPostproccess
+class ProofPostprocess
 {
  public:
-  ProofPostproccess(ProofNodeManager* pnm,
+  ProofPostprocess(ProofNodeManager* pnm,
                     SmtEngine* smte,
                     ProofGenerator* pppg);
-  ~ProofPostproccess();
+  ~ProofPostprocess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
   /** set eliminate rule */

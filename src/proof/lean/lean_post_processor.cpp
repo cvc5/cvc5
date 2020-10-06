@@ -193,3 +193,4 @@ bool LeanProofPostprocessCallback::update(Node res,
 void LeanProofPostprocess::process(std::shared_ptr<ProofNode> pf){};
 }  // namespace proof
 }  // namespace CVC4
+

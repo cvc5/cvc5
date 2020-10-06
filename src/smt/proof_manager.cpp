@@ -25,6 +25,8 @@
 #include "proof/verit/verit_printer.h"
 #include "smt/assertions.h"
 #include "smt/defined_function.h"
+#include "proof/lean/lean_printer.h"
+#include "proof/lean/lean_post_processor.h"
 
 namespace CVC4 {
 namespace smt {
@@ -153,6 +155,10 @@ void PfManager::printProof(std::ostream& out,
     Trace("lfsc-debug") << "\n)\n";
 
     lp.print(out, assertions, fp.get());
+  }
+  else if (options::proofFormatMode() == options::ProofFormatMode::LEAN) {
+    d_lpfpp->process(fp);
+    proof::leanPrinter(out, fp);
   }
   else
   {

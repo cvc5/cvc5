@@ -28,6 +28,7 @@
 #include "smt/preprocess_proof_generator.h"
 #include "smt/proof_post_processor.h"
 #include "theory/rewrite_db.h"
+#include "proof/lean/lean_post_processor.h"
 
 namespace CVC4 {
 
