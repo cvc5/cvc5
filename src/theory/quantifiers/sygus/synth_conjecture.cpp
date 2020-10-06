@@ -617,26 +617,25 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     // either this conjecture does not have a solution, or candidate_values
     // is a solution for this conjecture.
     lem = nm->mkNode(OR, d_quant.negate(), query);
-    if (options::sygusVerifySubcall())
-    {
-      Trace("sygus-engine") << "  *** Verify with subcall..." << std::endl;
+    Trace("sygus-engine") << "  *** Verify with subcall..." << std::endl;
 
-      Result r =
-          checkWithSubsolver(query.toExpr(), d_ce_sk_vars, d_ce_sk_var_mvs);
-      Trace("sygus-engine") << "  ...got " << r << std::endl;
-      if (r.asSatisfiabilityResult().isSat() == Result::SAT)
+    Result r =
+        checkWithSubsolver(query.toExpr(), d_ce_sk_vars, d_ce_sk_var_mvs);
+    Trace("sygus-engine") << "  ...got " << r << std::endl;
+    if (r.asSatisfiabilityResult().isSat() == Result::SAT)
+    {
+      if (Trace.isOn("sygus-engine"))
       {
-        if (Trace.isOn("sygus-engine"))
+        Trace("sygus-engine") << "  * Verification lemma failed for:\n   ";
+        for (unsigned i = 0, size = d_ce_sk_vars.size(); i < size; i++)
         {
-          Trace("sygus-engine") << "  * Verification lemma failed for:\n   ";
-          for (unsigned i = 0, size = d_ce_sk_vars.size(); i < size; i++)
-          {
-            Trace("sygus-engine")
-                << d_ce_sk_vars[i] << " -> " << d_ce_sk_var_mvs[i] << " ";
-          }
-          Trace("sygus-engine") << std::endl;
+          Trace("sygus-engine")
+              << d_ce_sk_vars[i] << " -> " << d_ce_sk_var_mvs[i] << " ";
         }
-#ifdef CVC4_ASSERTIONS
+        Trace("sygus-engine") << std::endl;
+      }
+      if (Configuration::isAssertionBuild())
+      {
         // the values for the query should be a complete model
         Node squery = query.substitute(d_ce_sk_vars.begin(),
                                        d_ce_sk_vars.end(),
@@ -647,20 +646,28 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
         Trace("cegqi-debug") << "...rewrites to : " << squery << std::endl;
         Assert(options::sygusRecFun()
                || (squery.isConst() && squery.getConst<bool>()));
-#endif
-        return false;
       }
-      else if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
-      {
-        // if the result in the subcall was unsatisfiable, we avoid
-        // rechecking, hence we drop "query" from the verification lemma
-        lem = d_quant.negate();
-        // we can short circuit adding the lemma (for sygus stream)
-        success = true;
-      }
-      // In the rare case that the subcall is unknown, we add the verification
-      // lemma in the main solver. This should only happen if the quantifier
-      // free logic is undecidable.
+      return false;
+    }
+    else if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    {
+      // if the result in the subcall was unsatisfiable, we avoid
+      // rechecking, hence we drop "query" from the verification lemma
+      lem = d_quant.negate();
+      // we can short circuit adding the lemma (for sygus stream)
+      success = true;
+    }
+    else
+    {
+      // In the rare case that the subcall is unknown, we simply exclude the
+      // solution, without adding a counterexample point. This should only
+      // happen if the quantifier free logic is undecidable.
+      excludeCurrentSolution(terms, candidate_values);
+      // We should set incomplete, since a "sat" answer should not be
+      // interpreted as "infeasible", which would make a difference in the rare
+      // case where e.g. we had a finite grammar and exhausted the grammar.
+      d_qe->getOutputChannel().setIncomplete();
+      return false;
     }
   }
   if (success)

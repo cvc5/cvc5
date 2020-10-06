@@ -2,7 +2,11 @@
 /*! \file trust_substitutions.h
  ** \verbatim
  ** Top contributors (to current version):
+<<<<<<< HEAD
  **   Aina Niemetz, Mathias Preiner, Andrew Reynolds
+=======
+ **   Andrew Reynolds
+>>>>>>> 2d8889f935ca78ef4a5555f0e6bbed76dbc559d7
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -54,7 +58,12 @@ class TrustSubstitutionMap
   void addSubstitution(TNode x, TNode t, PfRule id, std::vector<Node>& args);
   /**
    * Add substitution x -> t, which was derived from the proven field of
-   * trust node tn. This ensures that we add a substitution with a proof
+   * trust node tn. In other words, (= x t) is the solved form of
+   * tn.getProven(). This method is a helper function for methods (e.g.
+   * ppAssert) that put literals into solved form. It should be the case
+   * that (= x t) and tn.getProven() can be shown equivalent by rewriting.
+   *
+   * This ensures that we add a substitution with a proof
    * based on transforming the tn.getProven() to (= x t) if tn has a
    * non-null proof generator; otherwise if tn has no proof generator
    * we simply add the substitution.
@@ -66,8 +75,8 @@ class TrustSubstitutionMap
   void addSubstitutions(TrustSubstitutionMap& t);
   /**
    * Apply substitutions in this class to node n. Returns a trust node
-   * proving n = n*sigma, where the proof generator is this class (when
-   * proofs are enabled).
+   * proving n = n*sigma, where the proof generator is provided by this class
+   * (when proofs are enabled).
    */
   TrustNode apply(Node n, bool doRewrite = true);
 

@@ -21,6 +21,7 @@
 #include "context/cdo.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/theory_model.h"
+#include "theory/trust_substitutions.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;

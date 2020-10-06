@@ -66,9 +66,9 @@ if __name__ == "__main__":
     two = slv.mkReal(2)
     three = slv.mkReal(3)
 
-    singleton_one = slv.mkTerm(kinds.Singleton, one)
-    singleton_two = slv.mkTerm(kinds.Singleton, two)
-    singleton_three = slv.mkTerm(kinds.Singleton, three)
+    singleton_one = slv.mkSingleton(integer, one)
+    singleton_two = slv.mkSingleton(integer, two)
+    singleton_three = slv.mkSingleton(integer, three)
     one_two = slv.mkTerm(kinds.Union, singleton_one, singleton_two)
     two_three = slv.mkTerm(kinds.Union, singleton_two, singleton_three)
     intersection = slv.mkTerm(kinds.Intersection, one_two, two_three)

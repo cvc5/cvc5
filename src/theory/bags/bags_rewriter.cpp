@@ -71,6 +71,8 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
       case BAG_CHOOSE: response = rewriteChoose(n); break;
       case BAG_CARD: response = rewriteCard(n); break;
       case BAG_IS_SINGLETON: response = rewriteIsSingleton(n); break;
+      case BAG_FROM_SET: response = rewriteFromSet(n); break;
+      case BAG_TO_SET: response = rewriteToSet(n); break;
       default: response = BagsRewriteResponse(n, Rewrite::NONE); break;
     }
   }
@@ -425,6 +427,33 @@ BagsRewriteResponse BagsRewriter::rewriteIsSingleton(const TNode& n) const
     Node one = d_nm->mkConst(Rational(1));
     Node equal = n[0][1].eqNode(one);
     return BagsRewriteResponse(equal, Rewrite::IS_SINGLETON_MK_BAG);
+  }
+  return BagsRewriteResponse(n, Rewrite::NONE);
+}
+
+BagsRewriteResponse BagsRewriter::rewriteFromSet(const TNode& n) const
+{
+  Assert(n.getKind() == BAG_FROM_SET);
+  if (n[0].getKind() == SINGLETON)
+  {
+    // (bag.from_set (singleton (singleton_op Int) x)) = (mkBag x 1)
+    Node one = d_nm->mkConst(Rational(1));
+    Node bag = d_nm->mkNode(MK_BAG, n[0][0], one);
+    return BagsRewriteResponse(bag, Rewrite::FROM_SINGLETON);
+  }
+  return BagsRewriteResponse(n, Rewrite::NONE);
+}
+
+BagsRewriteResponse BagsRewriter::rewriteToSet(const TNode& n) const
+{
+  Assert(n.getKind() == BAG_TO_SET);
+  if (n[0].getKind() == MK_BAG && n[0][1].isConst()
+      && n[0][1].getConst<Rational>().sgn() == 1)
+  {
+    // (bag.to_set (mkBag x n)) = (singleton (singleton_op T) x)
+    // where n is a positive constant and T is the type of the bag's elements
+    Node bag = d_nm->mkSingleton(n[0][0].getType(), n[0][0]);
+    return BagsRewriteResponse(bag, Rewrite::TO_SINGLETON);
   }
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
