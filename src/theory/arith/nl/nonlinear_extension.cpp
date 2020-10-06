@@ -34,7 +34,8 @@ namespace nl {
 
 NonlinearExtension::NonlinearExtension(TheoryArith& containing,
                                        ArithState& state,
-                                       eq::EqualityEngine* ee)
+                                       eq::EqualityEngine* ee,
+                                       ProofNodeManager* pnm)
     : d_containing(containing),
       d_im(containing.getInferenceManager()),
       d_ee(ee),

@@ -65,7 +65,6 @@ Theory::Theory(TheoryId id,
       d_satContext(satContext),
       d_userContext(userContext),
       d_logicInfo(logicInfo),
-      d_pnm(pnm),
       d_facts(satContext),
       d_factsHead(satContext, 0),
       d_sharedTermsIndex(satContext, 0),
@@ -82,7 +81,8 @@ Theory::Theory(TheoryId id,
       d_equalityEngine(nullptr),
       d_allocEqualityEngine(nullptr),
       d_theoryState(nullptr),
-      d_inferManager(nullptr)
+      d_inferManager(nullptr),
+      d_pnm(pnm)
 {
   smtStatisticsRegistry()->registerStat(&d_checkTime);
   smtStatisticsRegistry()->registerStat(&d_computeCareGraphTime);
