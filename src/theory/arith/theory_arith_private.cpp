@@ -1102,8 +1102,11 @@ Node TheoryArithPrivate::getModelValue(TNode term) {
   }
 }
 
-Theory::PPAssertStatus TheoryArithPrivate::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
+Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
+    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
+{
   TimerStat::CodeTimer codeTimer(d_statistics.d_simplifyTimer);
+  TNode in = tin.getNode();
   Debug("simplify") << "TheoryArithPrivate::solve(" << in << ")" << endl;
 
 
@@ -1154,7 +1157,7 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(TNode in, SubstitutionMap& o
         Debug("simplify") << "TheoryArithPrivate::solve(): substitution "
                           << minVar << " |-> " << elim << endl;
 
-        outSubstitutions.addSubstitution(minVar, elim);
+        outSubstitutions.addSubstitutionSolved(minVar, elim, tin);
         return Theory::PP_ASSERT_STATUS_SOLVED;
       }
       else

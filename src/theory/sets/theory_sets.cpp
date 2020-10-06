@@ -36,7 +36,7 @@ TheorySets::TheorySets(context::Context* c,
     : Theory(THEORY_SETS, c, u, out, valuation, logicInfo, pnm),
       d_skCache(),
       d_state(c, u, valuation, d_skCache),
-      d_im(*this, d_state, pnm),
+      d_im(*this, d_state, nullptr),
       d_internal(new TheorySetsPrivate(*this, d_state, d_im, d_skCache)),
       d_notify(*d_internal.get(), d_im)
 {
@@ -153,7 +153,10 @@ TrustNode TheorySets::expandDefinition(Node n)
   return d_internal->expandDefinition(n);
 }
 
-Theory::PPAssertStatus TheorySets::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
+Theory::PPAssertStatus TheorySets::ppAssert(
+    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
+{
+  TNode in = tin.getNode();
   Debug("sets-proc") << "ppAssert : " << in << std::endl;
   Theory::PPAssertStatus status = Theory::PP_ASSERT_STATUS_UNSOLVED;
 
@@ -168,7 +171,7 @@ Theory::PPAssertStatus TheorySets::ppAssert(TNode in, SubstitutionMap& outSubsti
       // regress0/sets/pre-proc-univ.smt2
       if (!in[0].getType().isSet() || !options::setsExt())
       {
-        outSubstitutions.addSubstitution(in[0], in[1]);
+        outSubstitutions.addSubstitutionSolved(in[0], in[1], tin);
         status = Theory::PP_ASSERT_STATUS_SOLVED;
       }
     }
@@ -176,7 +179,7 @@ Theory::PPAssertStatus TheorySets::ppAssert(TNode in, SubstitutionMap& outSubsti
     {
       if (!in[0].getType().isSet() || !options::setsExt())
       {
-        outSubstitutions.addSubstitution(in[1], in[0]);
+        outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
         status = Theory::PP_ASSERT_STATUS_SOLVED;
       }
     }
