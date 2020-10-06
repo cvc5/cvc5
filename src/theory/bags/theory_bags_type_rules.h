@@ -42,19 +42,11 @@ struct BinaryOperatorTypeRule
       TypeNode secondBagType = n[1].getType(check);
       if (secondBagType != bagType)
       {
-        if (n.getKind() == kind::INTERSECTION_MIN)
-        {
-          bagType = TypeNode::mostCommonTypeNode(secondBagType, bagType);
-        }
-        else
-        {
-          bagType = TypeNode::leastCommonTypeNode(secondBagType, bagType);
-        }
-        if (bagType.isNull())
-        {
-          throw TypeCheckingExceptionPrivate(
-              n, "operator expects two bags of comparable types");
-        }
+        std::stringstream ss;
+        ss << "Operator " << n.getKind()
+           << " expects two bags of the same type. Found types '" << bagType
+           << "' and '" << secondBagType << "'.";
+        throw TypeCheckingExceptionPrivate(n, ss.str());
       }
     }
     return bagType;
@@ -110,15 +102,9 @@ struct CountTypeRule
             n, "checking for membership in a non-bag");
       }
       TypeNode elementType = n[0].getType(check);
-      // TODO(projects#226): comments from sets
-      //
-      // T : (Bag Int)
-      // B : (Bag Real)
-      // (= (as T (Bag Real)) B)
-      // (= (bag-count 0.5 B) 1)
-      // ...where (bag-count 0.5 T) is inferred
-
-      if (!elementType.isComparableTo(bagType.getBagElementType()))
+      // e.g. (count 1 (mkBag (mkBag_op Real) 1.0 3))) is 3 whereas
+      // (count 1.0 (mkBag (mkBag_op Int) 1 3))) throws a typing error
+      if (!elementType.isSubtypeOf(bagType.getBagElementType()))
       {
         std::stringstream ss;
         ss << "member operating on bags of different types:\n"
