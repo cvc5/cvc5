@@ -161,6 +161,9 @@ bool TheoryDatatypes::preCheck(Effort level)
 
 void TheoryDatatypes::postCheck(Effort level)
 {
+  // Apply any last pending inferences, which may occur if the last processed
+  // fact was an internal one and triggered further internal inferences.
+  d_im.process();
   if (level == EFFORT_LAST_CALL)
   {
     Assert(d_sygusExtension != nullptr);
@@ -369,6 +372,8 @@ void TheoryDatatypes::notifyFact(TNode atom,
                                  TNode fact,
                                  bool isInternal)
 {
+  
+  Trace("datatypes-debug") << "TheoryDatatypes::assertFact : " << fact << ", isInternal = " << isInternal << std::endl;
   // could be sygus-specific
   if (d_sygusExtension)
   {
