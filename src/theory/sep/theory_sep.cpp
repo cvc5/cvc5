@@ -50,7 +50,7 @@ TheorySep::TheorySep(context::Context* c,
       d_lemmas_produced_c(u),
       d_bounds_init(false),
       d_state(c, u, valuation),
-      d_im(*this, d_state, pnm),
+      d_im(*this, d_state, nullptr),
       d_notify(*this),
       d_reduce(u),
       d_spatial_assertions(c)
@@ -94,16 +94,6 @@ Node TheorySep::mkAnd( std::vector< TNode >& assumptions ) {
   }else{
     return NodeManager::currentNM()->mkNode( kind::AND, assumptions );
   }
-}
-
-/////////////////////////////////////////////////////////////////////////////
-// PREPROCESSING
-/////////////////////////////////////////////////////////////////////////////
-
-
-Theory::PPAssertStatus TheorySep::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
-
-  return PP_ASSERT_STATUS_UNSOLVED;
 }
 
 

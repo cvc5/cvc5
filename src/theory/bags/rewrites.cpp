@@ -31,6 +31,7 @@ const char* toString(Rewrite r)
     case Rewrite::CONSTANT_EVALUATION: return "CONSTANT_EVALUATION";
     case Rewrite::COUNT_EMPTY: return "COUNT_EMPTY";
     case Rewrite::COUNT_MK_BAG: return "COUNT_MK_BAG";
+    case Rewrite::FROM_SINGLETON: return "FROM_SINGLETON";
     case Rewrite::IDENTICAL_NODES: return "IDENTICAL_NODES";
     case Rewrite::INTERSECTION_EMPTY_LEFT: return "INTERSECTION_EMPTY_LEFT";
     case Rewrite::INTERSECTION_EMPTY_RIGHT: return "INTERSECTION_EMPTY_RIGHT";
@@ -53,6 +54,7 @@ const char* toString(Rewrite r)
     case Rewrite::SUBTRACT_RETURN_LEFT: return "SUBTRACT_RETURN_LEFT";
     case Rewrite::SUBTRACT_SAME: return "SUBTRACT_SAME";
     case Rewrite::UNION_DISJOINT_EMPTY_LEFT: return "UNION_DISJOINT_EMPTY_LEFT";
+    case Rewrite::TO_SINGLETON: return "TO_SINGLETON";
     case Rewrite::UNION_DISJOINT_EMPTY_RIGHT:
       return "UNION_DISJOINT_EMPTY_RIGHT";
     case Rewrite::UNION_DISJOINT_MAX_MIN: return "UNION_DISJOINT_MAX_MIN";

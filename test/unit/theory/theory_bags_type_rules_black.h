@@ -76,14 +76,32 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
   void testMkBagOperator()
   {
     vector<Node> elements = getNStrings(1);
-    Node negative = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(-1)));
+    Node negative =
+        d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(-1)));
     Node zero = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(0)));
-    Node positive = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(1)));
+    Node positive =
+        d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(1)));
 
     // only positive multiplicity are constants
-    TS_ASSERT(! MkBagTypeRule::computeIsConst(d_nm.get(), negative));
-    TS_ASSERT(! MkBagTypeRule::computeIsConst(d_nm.get(), zero));
+    TS_ASSERT(!MkBagTypeRule::computeIsConst(d_nm.get(), negative));
+    TS_ASSERT(!MkBagTypeRule::computeIsConst(d_nm.get(), zero));
     TS_ASSERT(MkBagTypeRule::computeIsConst(d_nm.get(), positive));
+  }
+
+  void testFromSetOperator()
+  {
+    vector<Node> elements = getNStrings(1);
+    Node set = d_nm->mkSingleton(d_nm->stringType(), elements[0]);
+    TS_ASSERT_THROWS_NOTHING(d_nm->mkNode(BAG_FROM_SET, set));
+    TS_ASSERT(d_nm->mkNode(BAG_FROM_SET, set).getType().isBag());
+  }
+
+  void testToSetOperator()
+  {
+    vector<Node> elements = getNStrings(1);
+    Node bag = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(10)));
+    TS_ASSERT_THROWS_NOTHING(d_nm->mkNode(BAG_TO_SET, bag));
+    TS_ASSERT(d_nm->mkNode(BAG_TO_SET, bag).getType().isSet());
   }
 
  private:
