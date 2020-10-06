@@ -156,24 +156,30 @@ bool BuiltinProofRuleChecker::getSubstitutionForLit(Node exp,
 bool BuiltinProofRuleChecker::getSubstitutionFor(Node exp,
                                                  std::vector<TNode>& vars,
                                                  std::vector<TNode>& subs,
+                                                 std::vector<TNode>& from,
                                                  MethodId ids)
 {
+  TNode v;
+  TNode s;
   if (exp.getKind() == AND && ids == MethodId::SB_DEFAULT)
   {
     for (const Node& ec : exp)
     {
-      if (!getSubstitutionFor(ec, vars, subs, ids))
+      // non-recursive, do not use nested AND
+      if (!getSubstitutionForLit(ec, v, s, ids))
       {
         return false;
       }
+      vars.push_back(v);
+      subs.push_back(s);
+      from.push_back(ec);
     }
     return true;
   }
-  TNode v;
-  TNode s;
   bool ret = getSubstitutionForLit(exp, v, s, ids);
   vars.push_back(v);
   subs.push_back(s);
+  from.push_back(exp);
   return ret;
 }
 
@@ -181,7 +187,8 @@ Node BuiltinProofRuleChecker::applySubstitution(Node n, Node exp, MethodId ids)
 {
   std::vector<TNode> vars;
   std::vector<TNode> subs;
-  if (!getSubstitutionFor(exp, vars, subs, ids))
+  std::vector<TNode> from;
+  if (!getSubstitutionFor(exp, vars, subs, from, ids))
   {
     return Node::null();
   }

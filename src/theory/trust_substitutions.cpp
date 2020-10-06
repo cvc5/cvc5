@@ -20,7 +20,7 @@ namespace CVC4 {
 namespace theory {
 
 TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
-                                           ProofNodeManager* pnm)
+                                           ProofNodeManager* pnm, std::string name, PfRule trustId, MethodId ids)
     : d_subs(c),
       d_tsubs(c),
       d_tspb(pnm ? new TheoryProofStepBuffer(pnm->getChecker()) : nullptr),
@@ -30,7 +30,10 @@ TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
       d_applyPg(pnm ? new LazyCDProof(
                           pnm, nullptr, c, "TrustSubstitutionMap::applyPg")
                     : nullptr),
-      d_currentSubs(c)
+      d_currentSubs(c),
+      d_name(name),
+      d_trustId(trustId),
+      d_ids(ids)
 {
 }
 
@@ -51,7 +54,7 @@ void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, ProofGenerator* pg)
                           false,
                           "TrustSubstitutionMap::addSubstitution",
                           false,
-                          PfRule::TRUST);
+                          d_trustId);
   }
 }
 
@@ -63,7 +66,7 @@ void TrustSubstitutionMap::addSubstitutions(TrustSubstitutionMap& t)
     d_subs.addSubstitutions(t.get());
     return;
   }
-  // append trust node list
+  // call addSubstitution above in sequence
   for (const TrustNode& tns : t.d_tsubs)
   {
     Node proven = tns.getProven();
@@ -77,6 +80,7 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
                       << std::endl;
   Node ns = d_subs.apply(n);
   Trace("trust-subs") << "...subs " << ns << std::endl;
+  // rewrite if indicated
   if (doRewrite)
   {
     ns = Rewriter::rewrite(ns);
@@ -108,9 +112,24 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   std::vector<Node> pfChildren;
   if (!cs.isConst())
   {
-    pfChildren.push_back(cs);
+    // TODO: use?
+    if (cs.getKind()==kind::AND)
+    {
+      for (const Node& csc : cs)
+      {
+        pfChildren.push_back(csc);
+        // connect substitution generator into apply generator
+        d_applyPg->addLazyStep(csc, d_subsPg.get());
+      }
+    }
+    else
+    {
+      pfChildren.push_back(cs);
+      // connect substitution generator into apply generator
+      d_applyPg->addLazyStep(cs, d_subsPg.get());
+    }
   }
-  if (!d_tspb->applyEqIntro(n, ns, pfChildren))
+  if (!d_tspb->applyEqIntro(n, ns, pfChildren, d_ids))
   {
     // Assert(false) << "TrustSubstitutionMap::addSubstitution: failed to apply
     // "

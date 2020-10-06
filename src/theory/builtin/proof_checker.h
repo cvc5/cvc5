@@ -94,11 +94,15 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   /**
    * Get substitution for formula exp. Adds to vars/subs to the substitution
    * specified by exp for the substitution method ids, which may be multiple
-   * substitutions if exp is of kind AND.
+   * substitutions if exp is of kind AND. The vector from are the literals
+   * from exp that each substitution in vars/subs are based on. For example,
+   * if exp is (and (= x t) (= y s)), then vars = { x, y }, subs = { t, s },
+   * from = { (= x y), (= y s) }.
    */
   static bool getSubstitutionFor(Node exp,
                                  std::vector<TNode>& vars,
                                  std::vector<TNode>& subs,
+                                 std::vector<TNode>& from,
                                  MethodId ids = MethodId::SB_DEFAULT);
 
   /**
