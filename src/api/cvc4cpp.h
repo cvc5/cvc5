@@ -2144,9 +2144,9 @@ struct CVC4_PUBLIC RoundingModeHashFunction
   inline size_t operator()(const RoundingMode& rm) const;
 };
 
-/**
- * Class and Enums for optimization
- */
+/* -------------------------------------------------------------------------- */
+/* Class and enums for optimization                                           */
+/* -------------------------------------------------------------------------- */
 
 enum opt_result 
 {
@@ -2163,20 +2163,20 @@ enum objective_type
   OBJECTIVE_MAXIMIZE
 };
 
-class objective{
+class CVC4_PUBLIC Objective{
   friend class solver;
 
   public:
-  objective_type get_objective_type() {return type;}
-  opt_result get_opt_result() {return result;}
-  Term get_term() {return t;}
-  objective(Term t, objective_type type);
+  objective_type getObjectiveType() {return d_type;}
+  opt_result getOptResult() {return d_result;}
+  Term getTerm() {return d_term;}
+  objective(Term t, objective_type d_type);
   ~objective;
 
   private:
-  objective_type type;
-  opt_result result;
-  Term t;
+  objective_type d_type;
+  opt_result d_result;
+  Term d_term;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -3378,33 +3378,33 @@ class CVC4_PUBLIC Solver
   /* Optimization                                                         */
   /* .................................................................... */
 
-  objective make_minimize(Term t) const;
+  objective makeMinimize(Term t) const;
 
   /**
    * Calls maximization funtion for solver on objective
    */
-  objective make_maximize(Term t) const;
+  objective makeMaximize(Term t) const;
 
   /**
    * Asserts the objective to make the solver optimize it
    **/
-  void assert_objective(objective o) const;
+  void assertObjective(objective o) const;
 
   /**
    * Asserts the objective to make the solver optimize it
    **/
-  objective_type objective_get_type(objective o) const;
+  objective_type objectiveGetType(objective o) const;
 
 
   /**
    * Asserts the objective to make the solver optimize it
    **/
-  opt_result objective_get_result(objective o) const;
+  opt_result objectiveGetResult(objective o) const;
 
   /**
    * Get the term related to an objective
    */
-  Term objective_get_term(objective o) const;
+  Term objectiveGetTerm(objective o) const;
 
   /**
    * Gets statistics on the current optimization state
@@ -3415,23 +3415,23 @@ class CVC4_PUBLIC Solver
    * Gets the lower bound on objective after solver:
    *  finishes, hits resource limit, or gets intterupted
    */
-  Term objective_get_lower(objective o) const;
+  Term objectiveGetLower(objective o) const;
 
   /**
    * Gets the upper bound on objective after solver:
    *  finishes, hits resource limit, or gets intterupted
    */
-  Term objective_get_upper(objective o) const;
+  Term objectiveGetUpper(objective o) const;
 
   /**
    * Sets the resource limit on our solver to prevent infinite recursion
    */
-  void set_resource_limit(int limit) const;
+  //void set_resource_limit(int limit) const;
 
   /**
    * interrupts solver, allowing for approximation of objective
    */
-  void interrupt(void) const;
+  //void interrupt(void) const;
 
  private:
   /* Helper to convert a vector of internal types to sorts. */
