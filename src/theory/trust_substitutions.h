@@ -40,6 +40,14 @@ class TrustSubstitutionMap
    */
   void addSubstitution(TNode x, TNode t, ProofGenerator* pg = nullptr);
   /**
+   * Add substitution x -> t, which was derived from the proven field of
+   * trust node tn. This ensures that we add a substitution with a proof
+   * based on transforming the tn.getProven() to (= x t) if tn has a
+   * non-null proof generator; otherwise if tn has no proof generator
+   * we simply add the substitution.
+   */
+  void addSubstitutionSolved(TNode x, TNode t, TrustNode tn);
+  /**
    * Apply substitutions in this class to node n. Returns a trust node
    * proving n = n*sigma, where the proof generator is provided by this class
    * (when proofs are enabled).

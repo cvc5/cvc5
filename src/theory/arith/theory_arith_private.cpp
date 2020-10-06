@@ -1157,7 +1157,7 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
         Debug("simplify") << "TheoryArithPrivate::solve(): substitution "
                           << minVar << " |-> " << elim << endl;
 
-        outSubstitutions.addSubstitution(minVar, elim);
+        outSubstitutions.addSubstitutionSolved(minVar, elim, tin);
         return Theory::PP_ASSERT_STATUS_SOLVED;
       }
       else

@@ -63,13 +63,15 @@ Theory::PPAssertStatus TheoryBool::ppAssert(
   if (in.getKind() == kind::NOT) {
     if (in[0].isVar())
     {
-      outSubstitutions.addSubstitution(in[0], NodeManager::currentNM()->mkConst<bool>(false));
+      outSubstitutions.addSubstitutionSolved(
+          in[0], NodeManager::currentNM()->mkConst<bool>(false), tin);
       return PP_ASSERT_STATUS_SOLVED;
     }
   } else {
     if (in.isVar())
     {
-      outSubstitutions.addSubstitution(in, NodeManager::currentNM()->mkConst<bool>(true));
+      outSubstitutions.addSubstitutionSolved(
+          in, NodeManager::currentNM()->mkConst<bool>(true), tin);
       return PP_ASSERT_STATUS_SOLVED;
     }
   }

@@ -40,6 +40,18 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   return TrustNode::mkTrustRewrite(n, ns, nullptr);
 }
 
+void TrustSubstitutionMap::addSubstitutionSolved(TNode x, TNode t, TrustNode tn)
+{
+  if (!isProofEnabled() || tn.getGenerator() == nullptr)
+  {
+    // no generator or not proof enabled, nothing to do
+    addSubstitution(x, t, nullptr);
+    return;
+  }
+  // NOTE: can try to transform tn.getProven() to (= x t) here
+  addSubstitution(x, t, nullptr);
+}
+
 SubstitutionMap& TrustSubstitutionMap::get() { return d_subs; }
 
 bool TrustSubstitutionMap::isProofEnabled() const { return false; }
