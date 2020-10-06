@@ -12,6 +12,8 @@
 
 #include "normal_form.h"
 
+using namespace CVC4::kind;
+
 namespace CVC4 {
 namespace theory {
 namespace bags {
@@ -22,7 +24,7 @@ bool NormalForm::checkNormalConstant(TNode n)
   return false;
 }
 
-bool NormalForm::AreChildrenConstants(TNode n)
+bool NormalForm::areChildrenConstants(TNode n)
 {
   return std::all_of(n.begin(), n.end(), [](Node c) { return c.isConst(); });
 }
@@ -30,8 +32,33 @@ bool NormalForm::AreChildrenConstants(TNode n)
 Node NormalForm::evaluate(TNode n)
 {
   // TODO(projects#223): complete this function
-  return CVC4::Node();
+  // the caller of this function should provide a node with constant arguments
+  Assert(areChildrenConstants(n));
+  if (n.isConst())
+  {
+    // a constant node is already in a normal form
+    return n;
+  }
+  switch (n.getKind())
+  {
+    case MK_BAG: return evaluateMakeBag(n);
+    default:
+    {
+    }
+    break;
+  }
+  Unhandled() << "Unexpected kind '" << n.getKind() << "' in node " << n
+              << std::endl;
 }
+
+Node NormalForm::evaluateMakeBag(TNode n)
+{
+  Assert(!n.isConst());
+  // TODO: use the type operator for mkBag
+  Node emptybag = NodeManager::currentNM()->mkConst(EmptyBag(n.getType()));
+  return emptybag;
+}
+
 }  // namespace bags
 }  // namespace theory
 }  // namespace CVC4
