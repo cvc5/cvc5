@@ -326,7 +326,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     {
       Trace("non-clausal-simplify")
           << "assertionNew = " << assertionNew.getNode() << std::endl;
-      //assertionsToPreprocess->replaceTrusted(i, assertionNew);
+      // assertionsToPreprocess->replaceTrusted(i, assertionNew);
       assertion = assertionNew.getNode();
       Assert(Rewriter::rewrite(assertion) == assertion);
     }
@@ -338,7 +338,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         break;
       }
       Assert(assertionNew.getNode() != assertion);
-      //assertionsToPreprocess->replaceTrusted(i, assertionNew);
+      // assertionsToPreprocess->replaceTrusted(i, assertionNew);
       assertion = assertionNew.getNode();
       d_statistics.d_numConstantProps += 1;
       Trace("non-clausal-simplify")
