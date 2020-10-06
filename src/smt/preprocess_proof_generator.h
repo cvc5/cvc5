@@ -49,8 +49,9 @@ class PreprocessProofGenerator : public ProofGenerator
       NodeTrustNodeMap;
 
  public:
-  PreprocessProofGenerator(ProofNodeManager* pnm, context::Context* c = nullptr,
-                      std::string name = "PreprocessProofGenerator");
+  PreprocessProofGenerator(ProofNodeManager* pnm,
+                           context::Context* c = nullptr,
+                           std::string name = "PreprocessProofGenerator");
   ~PreprocessProofGenerator() {}
   /**
    * Notify that n is a new assertion, where pg can provide a proof of n.

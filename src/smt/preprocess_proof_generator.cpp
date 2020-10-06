@@ -21,10 +21,13 @@
 namespace CVC4 {
 namespace smt {
 
-PreprocessProofGenerator::PreprocessProofGenerator(
-                                                   ProofNodeManager* pnm, context::Context* c,
-                      std::string name)
-    : d_pnm(pnm), d_src(c ? c : &d_context), d_helperProofs(c ? c : &d_context), d_name(name)
+PreprocessProofGenerator::PreprocessProofGenerator(ProofNodeManager* pnm,
+                                                   context::Context* c,
+                                                   std::string name)
+    : d_pnm(pnm),
+      d_src(c ? c : &d_context),
+      d_helperProofs(c ? c : &d_context),
+      d_name(name)
 {
 }
 
@@ -67,7 +70,7 @@ void PreprocessProofGenerator::notifyTrustedPreprocessed(theory::TrustNode tnp)
     // no rewrite, nothing to do
     return;
   }
-  Assert (tnp.getKind()==theory::TrustNodeKind::REWRITE);
+  Assert(tnp.getKind() == theory::TrustNodeKind::REWRITE);
   Node np = tnp.getNode();
   Trace("smt-proof-pp-debug")
       << "PreprocessProofGenerator::notifyPreprocessed: " << tnp.getProven()
@@ -93,8 +96,8 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
   // make CDProof to construct the proof below
   CDProof cdp(d_pnm);
 
-  Trace("smt-pppg") << "PreprocessProofGenerator::getProofFor: (" << d_name << ") input " << f
-                    << std::endl;
+  Trace("smt-pppg") << "PreprocessProofGenerator::getProofFor: (" << d_name
+                    << ") input " << f << std::endl;
   Node curr = f;
   std::vector<Node> transChildren;
   std::unordered_set<Node, NodeHashFunction> processed;
@@ -211,10 +214,7 @@ LazyCDProof* PreprocessProofGenerator::allocateHelperProof()
   return helperPf.get();
 }
 
-std::string PreprocessProofGenerator::identify() const
-{
-  return d_name;
-}
+std::string PreprocessProofGenerator::identify() const { return d_name; }
 
 }  // namespace smt
 }  // namespace CVC4

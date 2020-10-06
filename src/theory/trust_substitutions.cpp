@@ -20,7 +20,10 @@ namespace CVC4 {
 namespace theory {
 
 TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
-                                           ProofNodeManager* pnm, std::string name, PfRule trustId, MethodId ids)
+                                           ProofNodeManager* pnm,
+                                           std::string name,
+                                           PfRule trustId,
+                                           MethodId ids)
     : d_subs(c),
       d_tsubs(c),
       d_tspb(pnm ? new TheoryProofStepBuffer(pnm->getChecker()) : nullptr),
@@ -113,7 +116,7 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   if (!cs.isConst())
   {
     // TODO: use?
-    if (cs.getKind()==kind::AND)
+    if (cs.getKind() == kind::AND)
     {
       for (const Node& csc : cs)
       {

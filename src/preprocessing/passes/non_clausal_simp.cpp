@@ -46,7 +46,14 @@ NonClausalSimp::Statistics::~Statistics()
 /* -------------------------------------------------------------------------- */
 
 NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "non-clausal-simp"), d_llpg(preprocContext->getProofNodeManager() ? new smt::PreprocessProofGenerator(preprocContext->getProofNodeManager(), preprocContext->getUserContext(), "NonClausalSimp::llpg") : nullptr ), d_tsubsList(preprocContext->getUserContext())
+    : PreprocessingPass(preprocContext, "non-clausal-simp"),
+      d_llpg(preprocContext->getProofNodeManager()
+                 ? new smt::PreprocessProofGenerator(
+                       preprocContext->getProofNodeManager(),
+                       preprocContext->getUserContext(),
+                       "NonClausalSimp::llpg")
+                 : nullptr),
+      d_tsubsList(preprocContext->getUserContext())
 {
 }
 
@@ -119,10 +126,14 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   TrustSubstitutionMap& ttls = d_preprocContext->getTopLevelSubstitutions();
   SubstitutionMap& top_level_substs = ttls.get();
   // constant propagations
-  std::shared_ptr<TrustSubstitutionMap> constantPropagations = std::make_shared<TrustSubstitutionMap>(u, pnm, "NonClausalSimp::cprop", PfRule::PREPROCESS_LEMMA);
+  std::shared_ptr<TrustSubstitutionMap> constantPropagations =
+      std::make_shared<TrustSubstitutionMap>(
+          u, pnm, "NonClausalSimp::cprop", PfRule::PREPROCESS_LEMMA);
   SubstitutionMap& cps = constantPropagations->get();
   // new substitutions
-  std::shared_ptr<TrustSubstitutionMap> newSubstitutions = std::make_shared<TrustSubstitutionMap>(u, pnm, "NonClausalSimp::newSubs", PfRule::PREPROCESS_LEMMA);
+  std::shared_ptr<TrustSubstitutionMap> newSubstitutions =
+      std::make_shared<TrustSubstitutionMap>(
+          u, pnm, "NonClausalSimp::newSubs", PfRule::PREPROCESS_LEMMA);
   SubstitutionMap& nss = newSubstitutions->get();
 
   SubstitutionMap::iterator pos;
@@ -315,7 +326,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     {
       Trace("non-clausal-simplify")
           << "assertionNew = " << assertionNew.getNode() << std::endl;
-      //assertionsToPreprocess->replaceTrusted(i, assertionNew);
+      // assertionsToPreprocess->replaceTrusted(i, assertionNew);
       assertion = assertionNew.getNode();
       Assert(Rewriter::rewrite(assertion) == assertion);
     }
@@ -327,7 +338,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         break;
       }
       Assert(assertionNew.getNode() != assertion);
-      //assertionsToPreprocess->replaceTrusted(i, assertionNew);
+      // assertionsToPreprocess->replaceTrusted(i, assertionNew);
       assertion = assertionNew.getNode();
       d_statistics.d_numConstantProps += 1;
       Trace("non-clausal-simplify")

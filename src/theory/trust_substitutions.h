@@ -36,8 +36,11 @@ namespace theory {
 class TrustSubstitutionMap
 {
  public:
-  TrustSubstitutionMap(context::Context* c, ProofNodeManager* pnm, std::string name="TrustSubstitutionMap", PfRule trustId=PfRule::TRUST,
-                    MethodId ids = MethodId::SB_DEFAULT);
+  TrustSubstitutionMap(context::Context* c,
+                       ProofNodeManager* pnm,
+                       std::string name = "TrustSubstitutionMap",
+                       PfRule trustId = PfRule::TRUST,
+                       MethodId ids = MethodId::SB_DEFAULT);
   /** Gets a reference to the top-level substitution map */
   SubstitutionMap& get();
   /**
@@ -80,7 +83,7 @@ class TrustSubstitutionMap
   context::CDO<Node> d_currentSubs;
   /** Name for debugging */
   std::string d_name;
-  /** 
+  /**
    * The placeholder trusted PfRule identifier for calls to addSubstitution
    * that are not given proof generators.
    */

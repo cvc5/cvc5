@@ -376,7 +376,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   }
   else if (id == PfRule::SUBS)
   {
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     // Notice that a naive way to reconstruct SUBS is to do a term conversion
     // proof for each substitution.
     // The proof of f(a) * { a -> g(b) } * { b -> c } = f(g(c)) is:
@@ -412,12 +412,14 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       builtin::BuiltinProofRuleChecker::getSubstitutionFor(
           children[i], vsList, ssList, fromList, ids);
       // ensure proofs for each formula in fromList
-      if (children[i].getKind()==AND && ids==MethodId::SB_DEFAULT)
+      if (children[i].getKind() == AND && ids == MethodId::SB_DEFAULT)
       {
-        for (size_t j=0, nchildi = children[i].getNumChildren(); j<nchildi; j++)
+        for (size_t j = 0, nchildi = children[i].getNumChildren(); j < nchildi;
+             j++)
         {
           Node nodej = nm->mkConst(Rational(j));
-          cdp->addStep(children[i][j], PfRule::AND_ELIM, {children[i]}, {nodej});
+          cdp->addStep(
+              children[i][j], PfRule::AND_ELIM, {children[i]}, {nodej});
         }
       }
     }
@@ -432,8 +434,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       TNode subs = ssList[i];
       TNode childFrom = fromList[i];
       Trace("smt-proof-pp-debug")
-          << "...process " << var << " -> " << subs << " (" << childFrom
-          << ", " << ids << ")" << std::endl;
+          << "...process " << var << " -> " << subs << " (" << childFrom << ", "
+          << ids << ")" << std::endl;
       // apply the current substitution to the range
       if (!vvec.empty())
       {

@@ -48,11 +48,11 @@ class NonClausalSimp : public PreprocessingPass
   Statistics d_statistics;
   /** the learned literal preprocess proof generator */
   std::unique_ptr<smt::PreprocessProofGenerator> d_llpg;
-  /** 
+  /**
    * A context-dependent list of trust substitution maps, which are required
    * for storing proofs.
    */
-  
+
   context::CDList<std::shared_ptr<theory::TrustSubstitutionMap> > d_tsubsList;
 };
 
