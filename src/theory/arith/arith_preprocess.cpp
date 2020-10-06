@@ -42,6 +42,7 @@ bool ArithPreprocess::reduceAssertion(TNode atom)
     d_reduced[atom] = false;
     return false;
   }
+  Assert (tn.getKind()==TrustNodeKind::REWRITE);
   // tn is of kind REWRITE, turn this into a LEMMA here
   TrustNode tlem = TrustNode::mkTrustLemma(tn.getProven(), tn.getGenerator());
   // must preprocess
