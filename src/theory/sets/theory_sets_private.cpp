@@ -361,8 +361,6 @@ void TheorySetsPrivate::fullEffortCheck()
         Trace("sets-mem") << std::endl;
       }
     }
-    // check subtypes
-    checkSubtypes();
     d_im.doPendingLemmas();
     if (d_im.hasSent())
     {
@@ -416,49 +414,6 @@ void TheorySetsPrivate::fullEffortCheck()
   Trace("sets") << "----- End full effort check, conflict="
                 << d_state.isInConflict() << ", lemma=" << d_im.hasSentLemma()
                 << std::endl;
-}
-
-void TheorySetsPrivate::checkSubtypes()
-{
-  Trace("sets") << "TheorySetsPrivate: check Subtypes..." << std::endl;
-  const std::vector<Node>& sec = d_state.getSetsEqClasses();
-  for (const Node& s : sec)
-  {
-    TypeNode mct = d_most_common_type[s];
-    Assert(!mct.isNull());
-    const std::map<Node, Node>& smems = d_state.getMembers(s);
-    if (!smems.empty())
-    {
-      for (const std::pair<const Node, Node>& it2 : smems)
-      {
-        Trace("sets") << "  check subtype " << it2.first << " " << it2.second
-                      << std::endl;
-        Trace("sets") << "    types : " << it2.first.getType() << " " << mct
-                      << std::endl;
-        if (!it2.first.getType().isSubtypeOf(mct))
-        {
-          Node mctt = d_most_common_type_term[s];
-          Assert(!mctt.isNull());
-          Trace("sets") << "    most common type term is " << mctt << std::endl;
-          std::vector<Node> exp;
-          exp.push_back(it2.second);
-          Assert(d_state.areEqual(mctt, it2.second[1]));
-          exp.push_back(mctt.eqNode(it2.second[1]));
-          Node tc_k = d_treg.getTypeConstraintSkolem(it2.first, mct);
-          if (!tc_k.isNull())
-          {
-            Node etc = tc_k.eqNode(it2.first);
-            d_im.assertInference(etc, exp, "subtype-clash");
-            if (d_state.isInConflict())
-            {
-              return;
-            }
-          }
-        }
-      }
-    }
-  }
-  Trace("sets") << "TheorySetsPrivate: finished." << std::endl;
 }
 
 void TheorySetsPrivate::checkDownwardsClosure()
@@ -1143,9 +1098,10 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
         const std::map<Node, Node>& emems = d_state.getMembers(eqc);
         if (!emems.empty())
         {
+          TypeNode elementType = eqc.getType().getSetElementType();
           for (const std::pair<const Node, Node>& itmm : emems)
           {
-            Node t = nm->mkNode(kind::SINGLETON, itmm.first);
+            Node t = nm->mkSingleton(elementType, itmm.first);
             els.push_back(t);
           }
         }
@@ -1275,7 +1231,6 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
       d_equalityEngine->addTriggerPredicate(node);
     }
     break;
-    case kind::CARD: d_equalityEngine->addTriggerTerm(node, THEORY_SETS); break;
     default: d_equalityEngine->addTerm(node); break;
   }
 }
@@ -1358,7 +1313,7 @@ TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
 
   TypeNode setType = set.getType();
   Node boundVar = nm->mkBoundVar(setType.getSetElementType());
-  Node singleton = nm->mkNode(kind::SINGLETON, boundVar);
+  Node singleton = nm->mkSingleton(setType.getSetElementType(), boundVar);
   Node equal = set.eqNode(singleton);
   std::vector<Node> variables = {boundVar};
   Node boundVars = nm->mkNode(BOUND_VAR_LIST, variables);

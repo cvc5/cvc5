@@ -107,9 +107,17 @@ class RemoveTermFormulas {
 
   /**
    * Set proof node manager, which signals this class to enable proofs using the
-   * given checker.
+   * given proof node manager.
    */
   void setProofNodeManager(ProofNodeManager* pnm);
+
+  /**
+   * Get proof generator that is responsible for all proofs for removing term
+   * formulas from nodes. When proofs are enabled, the returned trust node
+   * of the run method use this proof generator (the trust nodes in newAsserts
+   * do not use this generator).
+   */
+  ProofGenerator* getTConvProofGenerator();
 
   /**
    * Get axiom for term n. This returns the axiom that this class uses to

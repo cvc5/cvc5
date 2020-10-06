@@ -62,19 +62,6 @@ class TheorySetsPrivate {
    */
   void fullEffortReset();
   /**
-   * This ensures that subtype constraints are met for all set terms. In
-   * particular, for a set equivalence class E, let Set(T) be the most
-   * common type among the types of terms in that class. In other words,
-   * if E contains two terms of Set(Int) and Set(Real), then Set(Int) is the
-   * most common type. Then, for each membership x in S where S is a set in
-   * this equivalence class, we ensure x has type T by asserting:
-   *   x = k
-   * for a fresh constant k of type T. This is done only if the type of x is not
-   * a subtype of Int (e.g. if x is of type Real). We call k the "type
-   * constraint skolem for x of type Int".
-   */
-  void checkSubtypes();
-  /**
    * This implements an inference schema based on the "downwards closure" of
    * set membership. This roughly corresponds to the rules UNION DOWN I and II,
    * INTER DOWN I and II from Bansal et al IJCAR 2016, as well as rules for set
