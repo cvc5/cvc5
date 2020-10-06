@@ -86,8 +86,17 @@ class TrustSubstitutionMap
    * Moreover, it ensures that d_subsPg has a proof of the returned value.
    */
   Node getCurrentSubstitution();
+  /**
+   * Allocate a helper proof. This returns a fresh lazy proof object that
+   * remains alive in the context given by this class. This feature is used to construct
+   * helper proofs, e.g. to support the skeleton of proofs
+   * that connect solving steps in addSubstitutionSolved.
+   */
+  LazyCDProof* allocateHelperProof();
   /** The substitution map */
   SubstitutionMap d_subs;
+  /** The proof node manager */
+  ProofNodeManager * d_pnm;
   /** A context-dependent list of trust nodes */
   context::CDList<TrustNode> d_tsubs;
   /** Theory proof step buffer */
@@ -96,6 +105,8 @@ class TrustSubstitutionMap
   std::unique_ptr<LazyCDProof> d_subsPg;
   /** A lazy proof for apply steps */
   std::unique_ptr<LazyCDProof> d_applyPg;
+  /** A context-dependent list of LazyCDProof, allocated for solve steps */
+  context::CDList<std::shared_ptr<LazyCDProof> > d_solveProofs;
   /** Whether the substitution is up-to-date */
   context::CDO<Node> d_currentSubs;
   /** Name for debugging */

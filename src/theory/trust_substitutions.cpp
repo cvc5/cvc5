@@ -25,6 +25,7 @@ TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
                                            PfRule trustId,
                                            MethodId ids)
     : d_subs(c),
+      d_pnm(pnm),
       d_tsubs(c),
       d_tspb(pnm ? new TheoryProofStepBuffer(pnm->getChecker()) : nullptr),
       d_subsPg(
@@ -33,6 +34,7 @@ TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
       d_applyPg(pnm ? new LazyCDProof(
                           pnm, nullptr, c, "TrustSubstitutionMap::applyPg")
                     : nullptr),
+      d_solveProofs(c),
       d_currentSubs(c),
       d_name(name),
       d_trustId(trustId),
@@ -66,20 +68,26 @@ void TrustSubstitutionMap::addSubstitution(TNode x,
                                            PfRule id,
                                            std::vector<Node>& args)
 {
-  if (isProofEnabled())
+  if (!isProofEnabled())
   {
-    Node eq = x.eqNode(t);
-    d_subsPg->addStep(eq, id, {}, args);
+    addSubstitution(x, t, nullptr);
+    return;
   }
-  addSubstitution(x, t, d_subsPg.get());
+  LazyCDProof* stepPg = allocateHelperProof();
+  Node eq = x.eqNode(t);
+  stepPg->addStep(eq, id, {}, args);
+  addSubstitution(x, t, stepPg);
 }
 
 void TrustSubstitutionMap::addSubstitutionSolved(TNode x, TNode t, TrustNode tn)
 {
+  Trace("trust-subs") << "TrustSubstitutionMap::addSubstitutionSolved: add " << x
+                      << " -> " << t << " from " << tn.getProven() << std::endl;
   if (!isProofEnabled() || tn.getGenerator() == nullptr)
   {
     // no generator or not proof enabled, nothing to do
     addSubstitution(x, t, nullptr);
+    Trace("trust-subs") << "...no proof" << std::endl;
     return;
   }
   Node eq = x.eqNode(t);
@@ -90,10 +98,24 @@ void TrustSubstitutionMap::addSubstitutionSolved(TNode x, TNode t, TrustNode tn)
   {
     // no rewrite required, just use the generator
     addSubstitution(x, t, tn.getGenerator());
+    Trace("trust-subs") << "...use generator directly" << std::endl;
     return;
   }
-  // TODO: try via rewrite eq == proven.
-  addSubstitution(x, t, nullptr);
+  LazyCDProof* solvePg = allocateHelperProof();
+  // try via rewrite eq == proven, if necessary
+  if (!d_tspb->applyPredTransform(proven,eq,{}))
+  {
+    // failed to rewrite
+    addSubstitution(x, t, nullptr);
+    Trace("trust-subs") << "...failed to rewrite" << std::endl;
+    return;
+  }
+  Trace("trust-subs") << "...successful rewrite" << std::endl;
+  solvePg->addSteps(*d_tspb.get());
+  d_tspb->clear();
+  // link the given generator
+  solvePg->addLazyStep(proven, tn.getGenerator(), false);
+  addSubstitution(x, t, solvePg);
 }
 
 void TrustSubstitutionMap::addSubstitutions(TrustSubstitutionMap& t)
@@ -142,7 +164,7 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   // a proof in the substitution proof generator. This is moreover required
   // to avoid cyclic proofs below.
   Node eq = n.eqNode(ns);
-  if (d_subsPg->hasStep(eq))
+  if (d_subsPg->hasStep(eq) || d_subsPg->hasGenerator(eq))
   {
     return TrustNode::mkTrustRewrite(n, ns, d_subsPg.get());
   }
@@ -211,6 +233,13 @@ Node TrustSubstitutionMap::getCurrentSubstitution()
     d_subsPg->addStep(d_currentSubs, PfRule::AND_INTRO, csubsChildren, {});
   }
   return d_currentSubs;
+}
+
+LazyCDProof* TrustSubstitutionMap::allocateHelperProof()
+{
+  std::shared_ptr<LazyCDProof> helperPf = std::make_shared<LazyCDProof>(d_pnm);
+  d_solveProofs.push_back(helperPf);
+  return helperPf.get();
 }
 
 }  // namespace theory
