@@ -156,6 +156,7 @@ TNode TheoryDatatypes::getEqcConstructor( TNode r ) {
 bool TheoryDatatypes::preCheck(Effort level)
 {
   d_im.reset();
+  d_im.clearPending();
   return false;
 }
 
