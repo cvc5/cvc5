@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file theory_bags_rewriter_black.h
+/*! \file theory_bags_rewriter_white.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Mudathir Mohamed
@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of bags rewriter
+ ** \brief White box testing of bags rewriter
  **/
 
 #include <cxxtest/TestSuite.h>
@@ -28,7 +28,7 @@ using namespace std;
 
 typedef expr::Attribute<Node, Node> attribute;
 
-class BagsTypeRuleBlack : public CxxTest::TestSuite
+class BagsTypeRuleWhite : public CxxTest::TestSuite
 {
  public:
   void setUp() override
