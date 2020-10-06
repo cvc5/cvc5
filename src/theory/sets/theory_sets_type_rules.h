@@ -84,33 +84,26 @@ struct SubsetTypeRule {
   }
 };/* struct SetSubsetTypeRule */
 
-struct MemberTypeRule {
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+struct MemberTypeRule
+{
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
   {
     Assert(n.getKind() == kind::MEMBER);
     TypeNode setType = n[1].getType(check);
-    if( check ) {
-      if(!setType.isSet()) {
-        throw TypeCheckingExceptionPrivate(n, "checking for membership in a non-set");
+    if (check)
+    {
+      if (!setType.isSet())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "checking for membership in a non-set");
       }
       TypeNode elementType = n[0].getType(check);
-      // TODO : still need to be flexible here due to situations like:
-      //
-      // T : (Set Int)
-      // S : (Set Real)
-      // (= (as T (Set Real)) S)
-      // (member 0.5 S)
-      // ...where (member 0.5 T) is inferred
-      //
-      // or
-      //
-      // S : (Set Real)
-      // (not (member 0.5 s))
-      // (member 0.0 s)
-      // ...find model M where M( s ) = { 0 }, check model will generate (not (member 0.5 (singleton 0)))
-      //      
-      if(!elementType.isComparableTo(setType.getSetElementType())) {
-      //if(!elementType.isSubtypeOf(setType.getSetElementType())) {     //FIXME:typing
+      // e.g. (member 1 (singleton 1.0)) is true whereas
+      // (member 1.0 (singleton 1)) throws a typing error
+      if (!elementType.isSubtypeOf(setType.getSetElementType()))
+      {
         std::stringstream ss;
         ss << "member operating on sets of different types:\n"
            << "child type:  " << elementType << "\n"
@@ -121,7 +114,7 @@ struct MemberTypeRule {
     }
     return nodeManager->booleanType();
   }
-};/* struct MemberTypeRule */
+}; /* struct MemberTypeRule */
 
 struct SingletonTypeRule
 {

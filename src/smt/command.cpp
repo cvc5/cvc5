@@ -1661,12 +1661,8 @@ void GetValueCommand::invoke(api::Solver* solver)
   {
     NodeManager* nm = solver->getNodeManager();
     smt::SmtScope scope(solver->getSmtEngine());
-    std::vector<Node> result;
-    for (const Expr& e :
-         solver->getSmtEngine()->getValues(api::termVectorToExprs(d_terms)))
-    {
-      result.push_back(Node::fromExpr(e));
-    }
+    std::vector<Node> result =
+        api::termVectorToNodes(solver->getValue(d_terms));
     Assert(result.size() == d_terms.size());
     for (int i = 0, size = d_terms.size(); i < size; i++)
     {
@@ -1688,7 +1684,7 @@ void GetValueCommand::invoke(api::Solver* solver)
     d_result = api::Term(solver, nm->mkNode(kind::SEXPR, result));
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (RecoverableModalException& e)
+  catch (api::CVC4ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -1744,8 +1740,8 @@ void GetAssignmentCommand::invoke(api::Solver* solver)
 {
   try
   {
-    std::vector<std::pair<Expr, Expr>> assignments =
-        solver->getSmtEngine()->getAssignment();
+    std::vector<std::pair<api::Term, api::Term>> assignments =
+        solver->getAssignment();
     vector<SExpr> sexprs;
     for (const auto& p : assignments)
     {
@@ -1757,7 +1753,7 @@ void GetAssignmentCommand::invoke(api::Solver* solver)
     d_result = SExpr(sexprs);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (RecoverableModalException& e)
+  catch (api::CVC4ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -1810,13 +1806,12 @@ void GetAssignmentCommand::toStream(std::ostream& out,
 /* class GetModelCommand                                                      */
 /* -------------------------------------------------------------------------- */
 
-GetModelCommand::GetModelCommand() : d_result(nullptr), d_smtEngine(nullptr) {}
+GetModelCommand::GetModelCommand() : d_result(nullptr) {}
 void GetModelCommand::invoke(api::Solver* solver)
 {
   try
   {
     d_result = solver->getSmtEngine()->getModel();
-    d_smtEngine = solver->getSmtEngine();
     d_commandStatus = CommandSuccess::instance();
   }
   catch (RecoverableModalException& e)
@@ -1855,7 +1850,6 @@ Command* GetModelCommand::clone() const
 {
   GetModelCommand* c = new GetModelCommand();
   c->d_result = d_result;
-  c->d_smtEngine = d_smtEngine;
   return c;
 }
 
@@ -2056,12 +2050,12 @@ void GetInstantiationsCommand::toStream(std::ostream& out,
 /* class GetSynthSolutionCommand                                              */
 /* -------------------------------------------------------------------------- */
 
-GetSynthSolutionCommand::GetSynthSolutionCommand() : d_smtEngine(nullptr) {}
+GetSynthSolutionCommand::GetSynthSolutionCommand() : d_solver(nullptr) {}
 void GetSynthSolutionCommand::invoke(api::Solver* solver)
 {
   try
   {
-    d_smtEngine = solver->getSmtEngine();
+    d_solver = solver;
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -2079,14 +2073,14 @@ void GetSynthSolutionCommand::printResult(std::ostream& out,
   }
   else
   {
-    d_smtEngine->printSynthSolution(out);
+    d_solver->printSynthSolution(out);
   }
 }
 
 Command* GetSynthSolutionCommand::clone() const
 {
   GetSynthSolutionCommand* c = new GetSynthSolutionCommand();
-  c->d_smtEngine = d_smtEngine;
+  c->d_solver = d_solver;
   return c;
 }
 
@@ -2371,7 +2365,7 @@ void GetUnsatAssumptionsCommand::invoke(api::Solver* solver)
     d_result = solver->getUnsatAssumptions();
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (RecoverableModalException& e)
+  catch (api::CVC4ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -2429,10 +2423,12 @@ void GetUnsatCoreCommand::invoke(api::Solver* solver)
 {
   try
   {
-    d_result = solver->getSmtEngine()->getUnsatCore();
+    d_result = UnsatCore(solver->getSmtEngine(),
+                         api::termVectorToExprs(solver->getUnsatCore()));
+
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (RecoverableModalException& e)
+  catch (api::CVC4ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
