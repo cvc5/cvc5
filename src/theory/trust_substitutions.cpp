@@ -81,8 +81,9 @@ void TrustSubstitutionMap::addSubstitution(TNode x,
 
 void TrustSubstitutionMap::addSubstitutionSolved(TNode x, TNode t, TrustNode tn)
 {
-  Trace("trust-subs") << "TrustSubstitutionMap::addSubstitutionSolved: add " << x
-                      << " -> " << t << " from " << tn.getProven() << std::endl;
+  Trace("trust-subs") << "TrustSubstitutionMap::addSubstitutionSolved: add "
+                      << x << " -> " << t << " from " << tn.getProven()
+                      << std::endl;
   if (!isProofEnabled() || tn.getGenerator() == nullptr)
   {
     // no generator or not proof enabled, nothing to do
@@ -103,7 +104,7 @@ void TrustSubstitutionMap::addSubstitutionSolved(TNode x, TNode t, TrustNode tn)
   }
   LazyCDProof* solvePg = allocateHelperProof();
   // try via rewrite eq == proven, if necessary
-  if (!d_tspb->applyPredTransform(proven,eq,{}))
+  if (!d_tspb->applyPredTransform(proven, eq, {}))
   {
     // failed to rewrite
     addSubstitution(x, t, nullptr);

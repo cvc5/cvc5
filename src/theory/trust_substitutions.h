@@ -88,15 +88,15 @@ class TrustSubstitutionMap
   Node getCurrentSubstitution();
   /**
    * Allocate a helper proof. This returns a fresh lazy proof object that
-   * remains alive in the context given by this class. This feature is used to construct
-   * helper proofs, e.g. to support the skeleton of proofs
-   * that connect solving steps in addSubstitutionSolved.
+   * remains alive in the context given by this class. This feature is used to
+   * construct helper proofs, e.g. to support the skeleton of proofs that
+   * connect solving steps in addSubstitutionSolved.
    */
   LazyCDProof* allocateHelperProof();
   /** The substitution map */
   SubstitutionMap d_subs;
   /** The proof node manager */
-  ProofNodeManager * d_pnm;
+  ProofNodeManager* d_pnm;
   /** A context-dependent list of trust nodes */
   context::CDList<TrustNode> d_tsubs;
   /** Theory proof step buffer */
