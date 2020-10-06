@@ -285,6 +285,8 @@ libcvc4_add_sources(
   theory/arith/arith_lemma.h
   theory/arith/arith_msum.cpp
   theory/arith/arith_msum.h
+  theory/arith/arith_preprocess.cpp
+  theory/arith/arith_preprocess.h
   theory/arith/arith_rewriter.cpp
   theory/arith/arith_rewriter.h
   theory/arith/arith_state.cpp
@@ -773,6 +775,8 @@ libcvc4_add_sources(
   theory/sets/inference_manager.h
   theory/sets/normal_form.h
   theory/sets/rels_utils.h
+  theory/sets/singleton_op.cpp
+  theory/sets/singleton_op.h
   theory/sets/skolem_cache.cpp
   theory/sets/skolem_cache.h
   theory/sets/solver_state.cpp

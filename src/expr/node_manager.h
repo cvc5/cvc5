@@ -576,6 +576,15 @@ class NodeManager {
   Node mkNullaryOperator(const TypeNode& type, Kind k);
 
   /**
+  * Create a singleton set from the given element n.
+  * @param t the element type of the returned set.
+  * Note that the type of n needs to be a subtype of t.
+  * @param n the single element in the singleton.
+  * @return a singleton set constructed from the element n.
+  */
+  Node mkSingleton(const TypeNode& t, const TNode n);
+
+  /**
    * Create a constant of type T.  It will have the appropriate
    * CONST_* kind defined for T.
    */
