@@ -41,6 +41,16 @@ class SetsTypeRuleWhite : public CxxTest::TestSuite
     d_em.reset();
   }
 
+  void testIsisComparableTo()
+  {
+    TypeNode setRealType = d_nm->mkSetType(d_nm->realType());
+    TypeNode setIntType = d_nm->mkSetType(d_nm->integerType());
+    TS_ASSERT(!setIntType.isComparableTo(setRealType));
+    TS_ASSERT(!setIntType.isSubtypeOf(setRealType));
+    TS_ASSERT(!setRealType.isComparableTo(setIntType));
+    TS_ASSERT(!setRealType.isComparableTo(setIntType));
+  }
+
   void testSingletonTerm()
   {
     Sort realSort = d_slv->getRealSort();
