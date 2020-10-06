@@ -157,14 +157,14 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
       {
         pfChildren.push_back(csc);
         // connect substitution generator into apply generator
-        d_applyPg->addLazyStep(csc, d_subsPg.get());
+        d_applyPg->addLazyStep(csc, d_subsPg.get(), false);
       }
     }
     else
     {
       pfChildren.push_back(cs);
       // connect substitution generator into apply generator
-      d_applyPg->addLazyStep(cs, d_subsPg.get());
+      d_applyPg->addLazyStep(cs, d_subsPg.get(), false);
     }
   }
   if (!d_tspb->applyEqIntro(n, ns, pfChildren, d_ids))

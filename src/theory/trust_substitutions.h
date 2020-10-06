@@ -2,11 +2,7 @@
 /*! \file trust_substitutions.h
  ** \verbatim
  ** Top contributors (to current version):
-<<<<<<< HEAD
- **   Aina Niemetz, Mathias Preiner, Andrew Reynolds
-=======
  **   Andrew Reynolds
->>>>>>> 2d8889f935ca78ef4a5555f0e6bbed76dbc559d7
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
