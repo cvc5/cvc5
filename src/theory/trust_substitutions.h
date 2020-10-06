@@ -48,7 +48,7 @@ class TrustSubstitutionMap
    * in the remainder of this user context.
    */
   void addSubstitution(TNode x, TNode t, ProofGenerator* pg = nullptr);
-  /** 
+  /**
    * Add substitution x -> t from a single step.
    */
   void addSubstitution(TNode x, TNode t, PfRule id, std::vector<Node>& args);

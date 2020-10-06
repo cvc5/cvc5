@@ -61,7 +61,10 @@ void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, ProofGenerator* pg)
   }
 }
 
-void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, PfRule id, std::vector<Node>& args)
+void TrustSubstitutionMap::addSubstitution(TNode x,
+                                           TNode t,
+                                           PfRule id,
+                                           std::vector<Node>& args)
 {
   if (isProofEnabled())
   {
@@ -83,7 +86,7 @@ void TrustSubstitutionMap::addSubstitutionSolved(TNode x, TNode t, TrustNode tn)
   Node proven = tn.getProven();
   // notice that this checks syntactic equality, not CDProof::isSame since
   // tn.getGenerator() is not necessarily robust to symmetry.
-  if (eq==proven)
+  if (eq == proven)
   {
     // no rewrite required, just use the generator
     addSubstitution(x, t, tn.getGenerator());

@@ -47,14 +47,17 @@ NonClausalSimp::Statistics::~Statistics()
 
 NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "non-clausal-simp"),
-    d_pnm(preprocContext->getProofNodeManager()),
-      d_llpg(d_pnm 
-                 ? new smt::PreprocessProofGenerator(
-                       d_pnm,
-                       preprocContext->getUserContext(),
-                       "NonClausalSimp::llpg")
-                 : nullptr),
-                 d_llRCons(d_pnm ? new theory::EagerProofGenerator(d_pnm, preprocContext->getUserContext(),"NonClausalSimp::llRCons") : nullptr),
+      d_pnm(preprocContext->getProofNodeManager()),
+      d_llpg(d_pnm ? new smt::PreprocessProofGenerator(
+                         d_pnm,
+                         preprocContext->getUserContext(),
+                         "NonClausalSimp::llpg")
+                   : nullptr),
+      d_llRCons(d_pnm ? new theory::EagerProofGenerator(
+                            d_pnm,
+                            preprocContext->getUserContext(),
+                            "NonClausalSimp::llRCons")
+                      : nullptr),
       d_tsubsList(preprocContext->getUserContext())
 {
 }
@@ -454,30 +457,29 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }  // namespace passes
 
-
-bool NonClausalSimp::isProofEnabled() const
+bool NonClausalSimp::isProofEnabled() const { return d_pnm != nullptr; }
+void NonClausalSimp::assertLearnedLiteral(const std::vector<Node>& assertions,
+                                          TrustNode tll)
 {
-  return d_pnm!=nullptr;
-}
-void NonClausalSimp::assertLearnedLiteral(const std::vector<Node>& assertions, TrustNode tll)
-{
-  Assert (!tll.isNull());
-  Assert (isProofEnabled());
-  if (tll.getGenerator()!=nullptr)
+  Assert(!tll.isNull());
+  Assert(isProofEnabled());
+  if (tll.getGenerator() != nullptr)
   {
     // the module that generated the learned literal (e.g. the circuit
-    // propagator) provided a proof 
+    // propagator) provided a proof
     d_llpg->notifyNewTrustedAssert(tll);
     return;
   }
-  Assert (tll.getKind()==TrustNodeKind::LEMMA);
+  Assert(tll.getKind() == TrustNodeKind::LEMMA);
   Node proven = tll.getProven();
   // no proof generator provided
   // maybe its just part of the assertions? If so, we are allowed to use an
   // ASSUME.
-  if (std::find(assertions.begin(), assertions.end(), proven)!=assertions.end())
+  if (std::find(assertions.begin(), assertions.end(), proven)
+      != assertions.end())
   {
-    TrustNode tassume = d_llRCons->mkTrustNode(proven, PfRule::ASSUME, {}, {proven});
+    TrustNode tassume =
+        d_llRCons->mkTrustNode(proven, PfRule::ASSUME, {}, {proven});
     d_llpg->notifyNewTrustedAssert(tassume);
     return;
   }
