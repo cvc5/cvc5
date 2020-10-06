@@ -2868,12 +2868,14 @@ class CVC4_PUBLIC Solver
    */
   Term simplify(const Term& t);
 
+  Term expandDefinitions(Term t) const;
+
   /**
    * Assert a formula.
    * SMT-LIB: ( assert <term> )
    * @param term the formula to assert
    */
-  void assertFormula(Term term) const;
+  void assertFormula(Term term, bool isUnsatCore = true) const;
 
   /**
    * Check satisfiability.
@@ -3071,6 +3073,10 @@ class CVC4_PUBLIC Solver
    */
   std::vector<Term> getUnsatAssumptions() const;
 
+  api::Term getQuantifierElimination(api::Term q,
+                                     bool doFull,
+                                     bool strict = true);
+
   /**
    * Get the unsatisfiable core.
    * SMT-LIB: ( get-unsat-core )
@@ -3167,6 +3173,12 @@ class CVC4_PUBLIC Solver
    * @param out the output stream
    */
   void printModel(std::ostream& out) const;
+
+  api::Result blockModel() const;
+
+  api::Result blockModelValues(const std::vector<Term>& terms) const;
+
+  void printInstantiations(std::ostream& out) const;
 
   /**
    * Push (a) level(s) to the assertion stack.

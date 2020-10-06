@@ -79,6 +79,7 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {DISTINCT, CVC4::Kind::DISTINCT},
     {CONSTANT, CVC4::Kind::VARIABLE},
     {VARIABLE, CVC4::Kind::BOUND_VARIABLE},
+    {SEXPR, CVC4::Kind::SEXPR},
     {LAMBDA, CVC4::Kind::LAMBDA},
     {WITNESS, CVC4::Kind::WITNESS},
     /* Boolean ------------------------------------------------------------- */
@@ -4521,6 +4522,17 @@ Term Solver::simplify(const Term& term)
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
+Term Solver::expandDefinitions(Term t) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  CVC4_API_ARG_CHECK_NOT_NULL(t);
+  CVC4_API_SOLVER_CHECK_TERM(t);
+
+  return Term(this, d_smtEngine->expandDefinitions(*t.d_node));
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
 Result Solver::checkEntailed(Term term) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
@@ -4565,12 +4577,12 @@ Result Solver::checkEntailed(const std::vector<Term>& terms) const
 /**
  *  ( assert <term> )
  */
-void Solver::assertFormula(Term term) const
+void Solver::assertFormula(Term term, bool isUnsatCore) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_SOLVER_CHECK_TERM(term);
   CVC4_API_ARG_CHECK_NOT_NULL(term);
-  d_smtEngine->assertFormula(*term.d_node);
+  d_smtEngine->assertFormula(*term.d_node, isUnsatCore);
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
@@ -5090,6 +5102,17 @@ std::vector<Term> Solver::getUnsatAssumptions(void) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
+api::Term Solver::getQuantifierElimination(api::Term q,
+                                           bool doFull,
+                                           bool strict)
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  return Term(
+      this, d_smtEngine->getQuantifierElimination(q.getNode(), doFull, strict));
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
 /**
  *  ( get-unsat-core )
  */
@@ -5287,6 +5310,30 @@ void Solver::printModel(std::ostream& out) const
   CVC4_API_CHECK(d_smtEngine->getSmtMode() != SmtMode::UNSAT)
       << "Cannot get value when in unsat mode.";
   out << *d_smtEngine->getModel();
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+api::Result Solver::blockModel() const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  return d_smtEngine->blockModel();
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+api::Result Solver::blockModelValues(const std::vector<Term>& terms) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  return d_smtEngine->blockModelValues(termVectorToExprs(terms));
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+void Solver::printInstantiations(std::ostream& out) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  d_smtEngine->printInstantiations(out);
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 

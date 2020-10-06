@@ -120,9 +120,9 @@ enum CVC4_PUBLIC Kind : int32_t
 #if 0
   /* Skolem variable (internal only) */
   SKOLEM,
+#endif
   /* Symbolic expression (any arity) */
   SEXPR,
-#endif
   /**
    * Lambda expression.
    * Parameters: 2

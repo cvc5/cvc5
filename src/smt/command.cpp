@@ -282,7 +282,7 @@ void AssertCommand::invoke(api::Solver* solver)
 {
   try
   {
-    solver->getSmtEngine()->assertFormula(d_term.getExpr(), d_inUnsatCore);
+    solver->assertFormula(d_term.getExpr(), d_inUnsatCore);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (UnsafeInterruptException& e)
@@ -1594,9 +1594,15 @@ ExpandDefinitionsCommand::ExpandDefinitionsCommand(api::Term term)
 api::Term ExpandDefinitionsCommand::getTerm() const { return d_term; }
 void ExpandDefinitionsCommand::invoke(api::Solver* solver)
 {
-  Node t = d_term.getNode();
-  d_result = api::Term(solver, solver->getSmtEngine()->expandDefinitions(t));
-  d_commandStatus = CommandSuccess::instance();
+  try
+  {
+    d_result = solver->expandDefinitions(d_term);
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
 }
 
 api::Term ExpandDefinitionsCommand::getResult() const { return d_result; }
@@ -1659,29 +1665,26 @@ void GetValueCommand::invoke(api::Solver* solver)
 {
   try
   {
-    NodeManager* nm = solver->getNodeManager();
-    smt::SmtScope scope(solver->getSmtEngine());
-    std::vector<Node> result =
-        api::termVectorToNodes(solver->getValue(d_terms));
+    std::vector<api::Term> result = solver->getValue(d_terms);
     Assert(result.size() == d_terms.size());
     for (int i = 0, size = d_terms.size(); i < size; i++)
     {
       api::Term t = d_terms[i];
-      Node tNode = t.getNode();
-      Node request = options::expandDefinitions()
-                         ? solver->getSmtEngine()->expandDefinitions(tNode)
-                         : tNode;
-      Node value = result[i];
-      if (value.getType().isInteger() && request.getType() == nm->realType())
+      api::Term request = options::expandDefinitions()
+                         ? solver->expandDefinitions(t)
+                         : t;
+      api::Term value = result[i];
+      if (value.getSort().isInteger()
+          && request.getSort() == solver->getRealSort())
       {
         // Need to wrap in division-by-one so that output printers know this
         // is an integer-looking constant that really should be output as
         // a rational.  Necessary for SMT-LIB standards compliance.
-        value = nm->mkNode(kind::DIVISION, value, nm->mkConst(Rational(1)));
+        value = solver->mkTerm(api::DIVISION, value, solver->mkReal(1));
       }
-      result[i] = nm->mkNode(kind::SEXPR, request, value);
+      result[i] = solver->mkTerm(api::SEXPR, request, value);
     }
-    d_result = api::Term(solver, nm->mkNode(kind::SEXPR, result));
+    d_result = solver->mkTerm(api::SEXPR, result);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (api::CVC4ApiRecoverableException& e)
@@ -1873,10 +1876,10 @@ void BlockModelCommand::invoke(api::Solver* solver)
 {
   try
   {
-    solver->getSmtEngine()->blockModel();
+    solver->blockModel();
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (RecoverableModalException& e)
+  catch (api::CVC4ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -1928,7 +1931,7 @@ void BlockModelValuesCommand::invoke(api::Solver* solver)
 {
   try
   {
-    solver->getSmtEngine()->blockModelValues(api::termVectorToExprs(d_terms));
+    solver->blockModelValues(d_terms);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (RecoverableModalException& e)
@@ -1997,12 +2000,12 @@ void GetProofCommand::toStream(std::ostream& out,
 /* class GetInstantiationsCommand                                             */
 /* -------------------------------------------------------------------------- */
 
-GetInstantiationsCommand::GetInstantiationsCommand() : d_smtEngine(nullptr) {}
+GetInstantiationsCommand::GetInstantiationsCommand() : d_solver(nullptr) {}
 void GetInstantiationsCommand::invoke(api::Solver* solver)
 {
   try
   {
-    d_smtEngine = solver->getSmtEngine();
+    d_solver = solver;
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -2020,7 +2023,7 @@ void GetInstantiationsCommand::printResult(std::ostream& out,
   }
   else
   {
-    d_smtEngine->printInstantiations(out);
+    d_solver->printInstantiations(out);
   }
 }
 
@@ -2028,7 +2031,7 @@ Command* GetInstantiationsCommand::clone() const
 {
   GetInstantiationsCommand* c = new GetInstantiationsCommand();
   // c->d_result = d_result;
-  c->d_smtEngine = d_smtEngine;
+  c->d_solver = d_solver;
   return c;
 }
 
@@ -2301,9 +2304,7 @@ void GetQuantifierEliminationCommand::invoke(api::Solver* solver)
 {
   try
   {
-    d_result = api::Term(solver,
-                         solver->getSmtEngine()->getQuantifierElimination(
-                             d_term.getNode(), d_doFull));
+    d_result = solver->getQuantifierElimination(d_term, d_doFull);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
