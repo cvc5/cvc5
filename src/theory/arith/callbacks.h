@@ -178,7 +178,10 @@ private:
 public:
   RaiseEqualityEngineConflict(TheoryArithPrivate& ta);
 
-  /* If you are not an equality engine, don't use this! */
+  /* If you are not an equality engine, don't use this!
+   *
+   * The proof should prove that `n` is a conflict.
+   * */
   void raiseEEConflict(Node n, std::shared_ptr<ProofNode> pf) const;
 };
 

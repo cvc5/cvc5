@@ -129,6 +129,11 @@ private:
   /** Pointer to the proof equality engine of TheoryArith */
   theory::eq::ProofEqEngine* d_pfee;
 
+  /** Raise a conflict node `conflict` to the theory of arithmetic.
+   *
+   * When proofs are enabled, a (closed) proof of the conflict should be
+   * provided.
+   */
   void raiseConflict(Node conflict, std::shared_ptr<ProofNode> pf = nullptr);
   /**
    * Are proofs enabled? This is true if a non-null proof manager was provided
@@ -194,6 +199,12 @@ private:
 
   void enqueueIntoNB(const std::set<TNode> all, NodeBuilder<>& nb);
 
+  /**
+   * Determine an explaination for `internal`. That is a conjunction of theory
+   * literals which imply `internal`.
+   *
+   * The TrustNode here is a trusted propagation.
+   */
   TrustNode explainInternal(TNode internal);
 
  public:

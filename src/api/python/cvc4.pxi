@@ -1461,8 +1461,8 @@ cdef class Term:
     def isNull(self):
         return self.cterm.isNull()
 
-    def isConst(self):
-        return self.cterm.isConst()
+    def isValue(self):
+        return self.cterm.isValue()
 
     def getConstArrayBase(self):
         cdef Term term = Term(self.solver)
@@ -1515,7 +1515,7 @@ cdef class Term:
     def toPythonObj(self):
         '''
         Converts a constant value Term to a Python object.
-        Requires isConst to hold.
+        Requires isValue to hold.
 
         Currently supports:
           Boolean -- returns a Python bool
@@ -1527,7 +1527,7 @@ cdef class Term:
           String  -- returns a Python Unicode string
         '''
 
-        if not self.isConst():
+        if not self.isValue():
             raise RuntimeError("Cannot call toPythonObj on a non-const Term")
 
         string_repr = self.cterm.toString().decode()
