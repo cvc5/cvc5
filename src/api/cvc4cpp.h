@@ -2874,6 +2874,8 @@ class CVC4_PUBLIC Solver
    * Assert a formula.
    * SMT-LIB: ( assert <term> )
    * @param term the formula to assert
+   * @param isUnsatCore determines whether to include this asserted formula in
+   * an unsat core (if one is later requested)
    */
   void assertFormula(Term term, bool isUnsatCore = true) const;
 
@@ -3073,10 +3075,6 @@ class CVC4_PUBLIC Solver
    */
   std::vector<Term> getUnsatAssumptions() const;
 
-  api::Term getQuantifierElimination(api::Term q,
-                                     bool doFull,
-                                     bool strict = true);
-
   /**
    * Get the unsatisfiable core.
    * SMT-LIB: ( get-unsat-core )
@@ -3099,6 +3097,52 @@ class CVC4_PUBLIC Solver
    * @return the values of the given terms
    */
   std::vector<Term> getValue(const std::vector<Term>& terms) const;
+
+  /**
+   * Do quantifier elimination.
+   * SMT-LIB: ( get-qe <q> )
+   * Requires a logic that supports quantifier elimination. Currently, the only
+   * logics supported by quantifier elimination is LRA and LIA.
+   * @param q a quantified formula of the form:
+   *   Q x1...xn. P( x1...xn, y1...yn )
+   * where P( x1...xn, y1...yn ) is a quantifier-free formula
+   * @param strict whether to output warnings, such as when an unexpected logic
+   * is used
+   * @return a formula ret such that, given the current set of formulas A
+   * asserted to this solver:
+   *   - ( A ^ q ) and ( A ^ ret ) are equivalent
+   *   - ret is quantifier-free formula containing only free variables in
+   *     y1...yn.
+   */
+  Term getQuantifierElimination(api::Term q, bool strict = true) const;
+
+  /**
+   * Do partial quantifier elimination, which can be used for incrementally
+   * computing the result of a quantifier elimination.
+   * SMT-LIB: ( get-qe-disjunct <q> )
+   * Requires a logic that supports quantifier elimination. Currently, the only
+   * logics supported by quantifier elimination is LRA and LIA.
+   * @param q a quantified formula of the form:
+   *   Q x1...xn. P( x1...xn, y1...yn )
+   * where P( x1...xn, y1...yn ) is a quantifier-free formula
+   * @param strict whether to output warnings, such as when an unexpected logic
+   * is used
+   * @return a formula ret such that, given the current set of formulas A
+   * asserted to this solver:
+   *   - (A ^ q) => (A ^ ret) if Q is forall or (A ^ ret) => (A ^ q) if Q is
+   *     exists,
+   *   - ret is quantifier-free formula containing only free variables in
+   *     y1...yn,
+   *   - If Q is exists, let A^Q_n be the formula
+   *       A ^ ~ret^Q_1 ^ ... ^ ~ret^Q_n
+   *     where for each i=1,...n, formula ret^Q_i is the result of calling
+   *     getQuantifierEliminationDisjunct for q with the set of assertions
+   *     A^Q_{i-1}. Similarly, if Q is forall, then let A^Q_n be
+   *       A ^ ret^Q_1 ^ ... ^ ret^Q_n
+   *     where ret^Q_i is the same as above. In either case, we have
+   *     that ret^Q_j will eventually be true or false, for some finite j.
+   */
+  Term getQuantifierEliminationDisjunct(api::Term q, bool strict = true) const;
 
   /**
    * When using separation logic, obtain the term for the heap.
@@ -3174,10 +3218,28 @@ class CVC4_PUBLIC Solver
    */
   void printModel(std::ostream& out) const;
 
-  Result blockModel() const;
+  /**
+   * Block the current model. Can be called only if immediately preceded by a
+   * SAT or INVALID query.
+   * SMT-LIB: ( block-model )
+   * Requires enabling 'produce-models' option and setting 'block-models' option
+   * to a mode other than "none".
+   */
+  void blockModel() const;
 
-  Result blockModelValues(const std::vector<Term>& terms) const;
+  /**
+   * Block the current model values of (at least) the values in terms. Can be
+   * called only if immediately preceded by a SAT or NOT_ENTAILED query.
+   * SMT-LIB: ( block-model-values ( <terms>+ ) )
+   * Requires enabling 'produce-models' option and setting 'block-models' option
+   * to a mode other than "none".
+   */
+  void blockModelValues(const std::vector<Term>& terms) const;
 
+  /**
+   * Print all instantiations made by the quantifiers module.
+   * @param out the output stream
+   */
   void printInstantiations(std::ostream& out) const;
 
   /**

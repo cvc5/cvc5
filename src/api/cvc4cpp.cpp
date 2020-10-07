@@ -2286,7 +2286,7 @@ Term DatatypeConstructor::getSpecializedConstructorTerm(Sort retSort) const
       << "Cannot get specialized constructor type for non-datatype type "
       << retSort;
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-
+  
   NodeManager* nm = d_solver->getNodeManager();
   Node ret = nm->mkNode(
       kind::APPLY_TYPE_ASCRIPTION,
@@ -2299,7 +2299,7 @@ Term DatatypeConstructor::getSpecializedConstructorTerm(Sort retSort) const
   // apply type ascription to the operator
   Term sctor = api::Term(d_solver, ret);
   return sctor;
-  
+
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
@@ -5100,19 +5100,6 @@ std::vector<Term> Solver::getUnsatAssumptions(void) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-api::Term Solver::getQuantifierElimination(api::Term q,
-                                           bool doFull,
-                                           bool strict)
-{
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_ARG_CHECK_NOT_NULL(q);
-  CVC4_API_SOLVER_CHECK_TERM(q);
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  return Term(
-      this, d_smtEngine->getQuantifierElimination(q.getNode(), doFull, strict));
-  CVC4_API_SOLVER_TRY_CATCH_END;
-}
-
 /**
  *  ( get-unsat-core )
  */
@@ -5171,6 +5158,28 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
     res.push_back(Term(this, d_smtEngine->getValue(terms[i].d_node->toExpr())));
   }
   return res;
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+Term Solver::getQuantifierElimination(api::Term q, bool strict) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_ARG_CHECK_NOT_NULL(q);
+  CVC4_API_SOLVER_CHECK_TERM(q);
+  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  return Term(this,
+              d_smtEngine->getQuantifierElimination(q.getNode(), true, strict));
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+Term Solver::getQuantifierEliminationDisjunct(api::Term q, bool strict) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_ARG_CHECK_NOT_NULL(q);
+  CVC4_API_SOLVER_CHECK_TERM(q);
+  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  return Term(
+      this, d_smtEngine->getQuantifierElimination(q.getNode(), false, strict));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
@@ -5313,17 +5322,29 @@ void Solver::printModel(std::ostream& out) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Result Solver::blockModel() const
+void Solver::blockModel() const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  return d_smtEngine->blockModel();
+  CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
+      << "Cannot get value unless model generation is enabled "
+         "(try --produce-models)";
+  CVC4_API_CHECK(d_smtEngine->getSmtMode() != SmtMode::UNSAT)
+      << "Cannot get value when in unsat mode.";
+  d_smtEngine->blockModel();
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Result Solver::blockModelValues(const std::vector<Term>& terms) const
+void Solver::blockModelValues(const std::vector<Term>& terms) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
+      << "Cannot get value unless model generation is enabled "
+         "(try --produce-models)";
+  CVC4_API_CHECK(d_smtEngine->getSmtMode() != SmtMode::UNSAT)
+      << "Cannot get value when in unsat mode.";
+  CVC4_API_ARG_SIZE_CHECK_EXPECTED(!terms.empty(), terms)
+      << "a non-empty set of terms";
   for (int i = 0; i < terms.size(); ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
@@ -5334,7 +5355,7 @@ Result Solver::blockModelValues(const std::vector<Term>& terms) const
         << "a term associated to this solver object";
   }
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  return d_smtEngine->blockModelValues(termVectorToExprs(terms));
+  d_smtEngine->blockModelValues(termVectorToExprs(terms));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
