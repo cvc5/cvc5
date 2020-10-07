@@ -260,7 +260,16 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
        d_sel_index.back().pop_back();
      }
    }
-   d_size_limit = 0;
+   d_size_limit = 0;   
+   if (!d_zeroTermActive)	
+   {
+     // Set up initial conditions (should always succeed). Here, we are calling
+     // the increment function of this class, which ensures a term is ready to
+     // read via a dereference of this class. We use the same method for
+     // setting up the first term, if it is not already set up
+     // (d_zeroTermActive) using the increment function, for uniformity.
+     ++*this;
+   }
    AlwaysAssert(!isFinished());
  }
 
