@@ -20,7 +20,11 @@ cd "$GLPK_DIR"
 
 patch -p1 < ${patch_file}
 
-libtoolize
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    glibtoolize
+else
+    libtoolize
+fi
 aclocal
 autoheader
 autoconf

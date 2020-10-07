@@ -568,8 +568,10 @@ class Constraint {
    * This is not appropriate for propagation!
    * Use explainForPropagation() instead.
    */
-  void externalExplainByAssertions(NodeBuilder<>& nb) const{
-    externalExplain(nb, AssertionOrderSentinel);
+  std::shared_ptr<ProofNode> externalExplainByAssertions(
+      NodeBuilder<>& nb) const
+  {
+    return externalExplain(nb, AssertionOrderSentinel);
   }
 
   /* Equivalent to calling externalExplainByAssertions on all constraints in b */
