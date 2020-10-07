@@ -46,6 +46,8 @@ class TermBlack : public CxxTest::TestSuite
   void testConstArray();
   void testConstSequenceElements();
 
+  void testTermScopedToString();
+
  private:
   Solver d_solver;
 };
@@ -795,4 +797,13 @@ void TermBlack::testConstSequenceElements()
   // applied to a constant).
   Term su = d_solver.mkTerm(SEQ_UNIT, d_solver.mkReal(1));
   TS_ASSERT_THROWS(su.getConstSequenceElements(), CVC4ApiException&);
+}
+
+void TermBlack::testTermScopedToString()
+{
+  Sort intsort = d_solver.getIntegerSort();
+  Term x = d_solver.mkConst(intsort, "x");
+  TS_ASSERT_EQUALS(x.toString(), "x");
+  Solver solver2;
+  TS_ASSERT_EQUALS(x.toString(), "x");
 }

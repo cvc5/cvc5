@@ -53,6 +53,8 @@ class SortBlack : public CxxTest::TestSuite
   void testSortCompare();
   void testSortSubtyping();
 
+  void testSortScopedToString();
+
  private:
   Solver d_solver;
 };
@@ -377,4 +379,12 @@ void SortBlack::testSortSubtyping()
   TS_ASSERT(!setSortI.isSubsortOf(setSortR));
   TS_ASSERT(!setSortR.isComparableTo(setSortI));
   TS_ASSERT(!setSortR.isSubsortOf(setSortI));
+}
+
+void SortBlack::testSortScopedToString()
+{
+  Sort bvsort8 = d_solver.mkBitVectorSort(8);
+  TS_ASSERT_EQUALS(bvsort8.toString(), "(_ BitVec 8)");
+  Solver solver2;
+  TS_ASSERT_EQUALS(bvsort8.toString(), "(_ BitVec 8)");
 }
