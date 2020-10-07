@@ -541,28 +541,28 @@ public:
       info.arithOnlyLinear();
       info.disableIntegers();
       info.lock();
-     if (CVC4::Configuration::isBuiltWithSymFPU())
-     {
-       TS_ASSERT_EQUALS(info.getLogicString(), "SEP_AUFBVFPDTLRA");
-     }
-     else
-     {
-       TS_ASSERT_EQUALS(info.getLogicString(), "SEP_AUFBVDTLRA");
-     }
+      if (CVC4::Configuration::isBuiltWithSymFPU())
+      {
+        TS_ASSERT_EQUALS(info.getLogicString(), "SEP_AUFBVFPDTLRA");
+      }
+      else
+      {
+        TS_ASSERT_EQUALS(info.getLogicString(), "SEP_AUFBVDTLRA");
+      }
 
       info = info.getUnlockedCopy();
       TS_ASSERT(!info.isLocked());
       info.disableQuantifiers();
       info.disableTheory(THEORY_BAGS);
       info.lock();
-     if (CVC4::Configuration::isBuiltWithSymFPU())
-     {
-       TS_ASSERT_EQUALS(info.getLogicString(), "QF_SEP_AUFBVFPDTLRA");
-     }
-     else
-     {
-       TS_ASSERT_EQUALS(info.getLogicString(), "QF_SEP_AUFBVDTLRA");
-     }
+      if (CVC4::Configuration::isBuiltWithSymFPU())
+      {
+        TS_ASSERT_EQUALS(info.getLogicString(), "QF_SEP_AUFBVFPDTLRA");
+      }
+      else
+      {
+        TS_ASSERT_EQUALS(info.getLogicString(), "QF_SEP_AUFBVDTLRA");
+      }
 
       info = info.getUnlockedCopy();
       TS_ASSERT(!info.isLocked());
@@ -572,14 +572,14 @@ public:
       info.enableIntegers();
       info.disableReals();
       info.lock();
-     if (CVC4::Configuration::isBuiltWithSymFPU())
-     {
-       TS_ASSERT_EQUALS(info.getLogicString(), "QF_SEP_AUFFPLIA");
-     }
-     else
-     {
-       TS_ASSERT_EQUALS(info.getLogicString(), "QF_SEP_AUFLIA");
-     }
+      if (CVC4::Configuration::isBuiltWithSymFPU())
+      {
+        TS_ASSERT_EQUALS(info.getLogicString(), "QF_SEP_AUFFPLIA");
+      }
+      else
+      {
+        TS_ASSERT_EQUALS(info.getLogicString(), "QF_SEP_AUFLIA");
+      }
 
       info = info.getUnlockedCopy();
       TS_ASSERT(!info.isLocked());
