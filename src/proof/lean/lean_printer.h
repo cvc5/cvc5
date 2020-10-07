@@ -16,6 +16,26 @@
 
 #ifndef CVC4__PROOF__LEAN_PROOF_PRINTER_H
 #define CVC4__PROOF__LEAN_PROOF_PRINTER_H
+
+#include <iostream>
+#include "expr/proof_node.h"
+
+namespace CVC3 {
+namespace proof {
+
+enum LeanRule
+{
+  // in what format should I put these lean rules
+  // all the lean rules
+};
+
+static void leanPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn)
+{
+  // should print preamble
+  // should print sorts
+  // should print terms, letified
+
+  // should print theorem statement
   out << "hello world"
       << "\n";
   std::vector<Node> args = pfn->getArguments();
@@ -43,6 +63,7 @@
   for (Node ch : children) {
     leanPrinter(out, ch);
   }
+
   // should traverse proof node, print each as a proof step, according to the
   // LEAN_RULE id in the LeanRule enum
   out << pfn;
@@ -52,4 +73,3 @@
 }  // namespace CVC4
 
 #endif
-

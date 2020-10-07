@@ -26,7 +26,6 @@
 #include "smt/assertions.h"
 #include "smt/defined_function.h"
 #include "proof/lean/lean_printer.h"
-#include "proof/lean/lean_post_processor.h"
 
 namespace CVC4 {
 namespace smt {
@@ -132,6 +131,7 @@ void PfManager::printProof(std::ostream& out,
   // TODO (proj #37) according to the proof format, print the proof node
   if (options::proofFormatMode() == options::ProofFormatMode::LEAN)
   {
+<<<<<<< HEAD
     d_lpfpp->process(fp);
     proof::leanPrinter(out, fp);
   }
