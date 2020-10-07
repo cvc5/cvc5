@@ -207,7 +207,10 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
    // value of type enumerators for *other non-datatype* subfield types of
    // this datatype. Since datatypes can not be embedded in non-datatype
    // types (e.g. (Array D D) cannot be a subfield type of datatype D), this
-   // call is guaranteed to avoid infinite recursion.
+   // call is guaranteed to avoid infinite recursion. It is important that we
+   // start with this term, since it has the same shape as the one returned by
+   // TypeNode::mkGroundTerm for d_type, which avoids debug check model
+   // failures.
    d_zeroTerm = d_datatype.mkGroundValue(d_type);
    // Only use the zero term if it was successfully constructed. This may
    // fail for codatatype types whose only values are infinite.
