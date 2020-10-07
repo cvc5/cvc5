@@ -684,23 +684,30 @@ ProofPostprocessFinalCallback::ProofPostprocessFinalCallback(
     ProofNodeManager* pnm)
     : d_ruleCount("finalProof::ruleCount"),
       d_totalRuleCount("finalProof::totalRuleCount", 0),
+      d_minPedanticLevel("finalProof::minPedanticLevel", 10),
+      d_numFinalProofs("finalProofs::numFinalProofs", 0),
       d_pnm(pnm),
       d_pedanticFailure(false)
 {
   smtStatisticsRegistry()->registerStat(&d_ruleCount);
   smtStatisticsRegistry()->registerStat(&d_totalRuleCount);
+  smtStatisticsRegistry()->registerStat(&d_minPedanticLevel);
+  smtStatisticsRegistry()->registerStat(&d_numFinalProofs);
 }
 
 ProofPostprocessFinalCallback::~ProofPostprocessFinalCallback()
 {
   smtStatisticsRegistry()->unregisterStat(&d_ruleCount);
   smtStatisticsRegistry()->unregisterStat(&d_totalRuleCount);
+  smtStatisticsRegistry()->unregisterStat(&d_minPedanticLevel);
+  smtStatisticsRegistry()->unregisterStat(&d_numFinalProofs);
 }
 
 void ProofPostprocessFinalCallback::initializeUpdate()
 {
   d_pedanticFailure = false;
   d_pedanticFailureOut.str("");
+  ++d_numFinalProofs;
 }
 
 bool ProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
@@ -726,6 +733,11 @@ bool ProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
         d_pedanticFailure = true;
       }
     }
+  }
+  uint32_t plevel = d_pnm->getChecker()->getPedanticLevel(r);
+  if (plevel!=0)
+  {
+    d_minPedanticLevel.minAssign(plevel);
   }
   // record stats for the rule
   d_ruleCount << r;
