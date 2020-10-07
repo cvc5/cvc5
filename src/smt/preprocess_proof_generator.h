@@ -31,10 +31,18 @@ namespace CVC4 {
 namespace smt {
 
 /**
- * A proof generator storing proofs of preprocessing. This has two main
- * interfaces during solving:
+ * This is a proof generator that manages proofs for a set of formulas that
+ * may be replaced over time. This set of formulas is implicit; formulas that
+ * are not notified as assertions to this class are treated as assumptions.
+ * 
+ * The main use case of this proof generator is for proofs of preprocessing,
+ * although it can be used in other scenarios where proofs for an evolving set
+ * of formulas is maintained. In the remainder of the description here, we
+ * describe its role as a proof generator for proofs of preprocessing.
+ * 
+ * This class has two main interfaces during solving:
  * (1) notifyNewAssert, for assertions that are not part of the input and are
- * added by preprocessing passes,
+ * added to the assertion pipeline by preprocessing passes,
  * (2) notifyPreprocessed, which is called when a preprocessing pass rewrites
  * an assertion into another.
  * Notice that input assertions do not need to be provided to this class.

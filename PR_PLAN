@@ -41,6 +41,7 @@ PR finished:
 (40) theory engine proof generator (req 11, 13, 18, 23)
 (41) SharedTermDatabase uses pfee (req 24, cee-shs)
 (42) Strings proof checker (req 5, 17, 22, 45, 65)
+(43) strings InferProofCons (req 13, 18, 26, 34, 42, 65, 86)
 (45) regexp operation refactor (req 3, 7, 8)
 (46) term context core utilities
 (47) TheoryUF proof producing (req 24, 39, 90)
@@ -97,21 +98,20 @@ PR finished:
 (111) Prop engine proof post processor [Haniel] (req 53, 110)
 (112) Prop engine proof manager [Haniel] (req 111)
 (113) eliminate preprocessing passes non-const uses
+(114) theory preprocess fixes (req 97)
+(115) trust substitution and ppAssert interface
 
 PRs ready:
 
 (29) arithmetic proof producing [Alex] (req 24, 25)
-(43) strings InferProofCons (req 13, 18, 26, 34, 42, 65, 86) *
+(31) update strings inference manager to use ProofEqEngine (req 24, 26, 43, cee-strings)
 (44) TheoryEngine explanation proof producing (req 12, 40, 41, 87, 91)
 (68) PropEngine proof producing [Haniel] (req 53, 110, 111, 112)
 (70) rewriter unit test [Andres] (req 36, 37)
 (85) SmtEngine check proofs (req 68, 82)
-(114) theory preprocess fixes (req 97)
-(115) trust substitution and ppAssert interface *
 
 PRs future:
 
-(31) update strings inference manager to use ProofEqEngine (req 24, 26, 43, cee-strings)
 (54) DSL rewrite rule
 (55) DSL rewrite rule term processor
 (56) DSL rewrite rule database (req 54)
@@ -120,6 +120,9 @@ PRs future:
 (83) DSL rewrite rule compilation, including side condition utility [Andres] (req 56)
 (98) fixes in setDefaults
 (101) strings misc changes to preprocess, base (req 43)
+(116) general smt preprocess proof generator
+(117) trust substitution implementation
+(118) non-clausal simplification proof producing (req 116, 117)
 
 
 Wish list:
