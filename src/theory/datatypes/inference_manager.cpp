@@ -76,6 +76,8 @@ bool DatatypesInference::process(TheoryInferenceManager* im, bool asLemma)
     {
       exp.push_back(d_exp);
     }
+    Trace("dt-lemma-debug")
+        << "DatatypesInference : " << d_conc << " via " << exp << std::endl;
     return im->lemmaExp(d_conc, exp, {});
   }
   // assert the internal fact
