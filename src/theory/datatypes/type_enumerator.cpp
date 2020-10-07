@@ -260,8 +260,8 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
        d_sel_index.back().pop_back();
      }
    }
-   d_size_limit = 0;   
-   if (!d_zeroTermActive)	
+   d_size_limit = 0;
+   if (!d_zeroTermActive)
    {
      // Set up initial conditions (should always succeed). Here, we are calling
      // the increment function of this class, which ensures a term is ready to
