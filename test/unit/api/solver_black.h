@@ -1627,7 +1627,6 @@ void SolverBlack::testGetValue3()
 
 void SolverBlack::testGetQuantifierElimination()
 {
-  d_solver->setLogic("LIA");
   Term x = d_solver->mkVar(d_solver->getBooleanSort(), "x");
   Term forall =
       d_solver->mkTerm(FORALL,
@@ -1643,7 +1642,6 @@ void SolverBlack::testGetQuantifierElimination()
 
 void SolverBlack::testGetQuantifierEliminationDisjunct()
 {
-  d_solver->setLogic("LIA");
   Term x = d_solver->mkVar(d_solver->getBooleanSort(), "x");
   Term forall =
       d_solver->mkTerm(FORALL,

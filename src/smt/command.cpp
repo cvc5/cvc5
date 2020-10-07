@@ -2304,7 +2304,14 @@ void GetQuantifierEliminationCommand::invoke(api::Solver* solver)
 {
   try
   {
-    d_result = solver->getQuantifierElimination(d_term, d_doFull);
+    if (d_doFull)
+    {
+      d_result = solver->getQuantifierElimination(d_term);
+    }
+    else
+    {
+      d_result = solver->getQuantifierEliminationDisjunct(d_term);
+    }
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
