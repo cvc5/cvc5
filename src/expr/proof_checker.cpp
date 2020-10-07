@@ -335,7 +335,7 @@ bool ProofChecker::isPedanticFailure(PfRule id, std::ostream& out) const
     if (itp->second <= d_pclevel)
     {
       out << "pedantic level for " << id << " not met (rule level is "
-          << itp->second << " which is strictly below the required level "
+          << itp->second << " which is at or below the pedantic level "
           << d_pclevel << ")";
       return true;
     }
