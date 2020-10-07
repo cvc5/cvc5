@@ -201,7 +201,15 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
                     << d_datatype.isRecursiveSingleton(d_type);
    Debug("dt-enum") << " " << d_datatype.isInterpretedFinite(d_type)
                     << std::endl;
-
+    // Start with the ground term constructed via mkGroundValue, which does
+    // a traversal over the structure of the datatype to find a finite term.
+    // Notice that mkGroundValue may be dependent upon extracting the first
+    // value of type enumerators for *other non-datatype* subfield types of
+    // this datatype. Since datatypes can not be embedded in non-datatype
+    // types (e.g. (Array D D) cannot be a subfield type of datatype D), this
+    // call is guaranteed to avoid infinite recursion.
+    d_zeroTerm = d_datatype.mkGroundValue(d_type);
+    d_zeroTermActive = true;
    if (d_datatype.isCodatatype() && hasCyclesDt(d_datatype))
    {
      // start with uninterpreted constant
@@ -214,15 +222,6 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
    {
      // find the "zero" term via mkGroundTerm
      Debug("dt-enum-debug") << "make ground term..." << std::endl;
-     // Start with the ground term constructed via mkGroundValue, which does
-     // a traversal over the structure of the datatype to find a finite term.
-     // Notice that mkGroundValue may be dependent upon extracting the first
-     // value of type enumerators for *other non-datatype* subfield types of
-     // this datatype. Since datatypes can not be embedded in non-datatype
-     // types (e.g. (Array D D) cannot be a subfield type of datatype D), this
-     // call is guaranteed to avoid infinite recursion.
-     d_zeroTerm = d_datatype.mkGroundValue(d_type);
-     d_zeroTermActive = true;
      Debug("dt-enum-debug") << "done : " << d_zeroTerm << std::endl;
      Assert(d_zeroTerm.getKind() == kind::APPLY_CONSTRUCTOR);
      d_has_debruijn = 0;
@@ -260,15 +259,6 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
      }
    }
    d_size_limit = 0;
-   if (!d_zeroTermActive)
-   {
-     // Set up initial conditions (should always succeed). Here, we are calling
-     // the increment function of this class, which ensures a term is ready to
-     // read via a dereference of this class. We use the same method for
-     // setting up the first term, if it is not already set up
-     // (d_zeroTermActive) using the increment function, for uniformity.
-     ++*this;
-   }
    AlwaysAssert(!isFinished());
  }
 
