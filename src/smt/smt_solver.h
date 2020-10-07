@@ -2,10 +2,10 @@
 /*! \file smt_solver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -28,6 +28,7 @@ namespace CVC4 {
 class SmtEngine;
 class TheoryEngine;
 class ResourceManager;
+class ProofNodeManager;
 
 namespace prop {
 class PropEngine;
@@ -108,6 +109,11 @@ class SmtSolver
    * into the SMT solver, and clears the buffer.
    */
   void processAssertions(Assertions& as);
+  /**
+   * Set proof node manager. Enables proofs in this SmtSolver. Should be
+   * called before finishInit.
+   */
+  void setProofNodeManager(ProofNodeManager* pnm);
   //------------------------------------------ access methods
   /** Get a pointer to the TheoryEngine owned by this solver. */
   TheoryEngine* getTheoryEngine();
@@ -125,6 +131,11 @@ class SmtSolver
   Preprocessor& d_pp;
   /** Reference to the statistics of SmtEngine */
   SmtEngineStatistics& d_stats;
+  /**
+   * Pointer to the proof node manager used by this SmtSolver. A non-null
+   * proof node manager indicates that proofs are enabled.
+   */
+  ProofNodeManager* d_pnm;
   /** The theory engine */
   std::unique_ptr<TheoryEngine> d_theoryEngine;
   /** The propositional engine */

@@ -5,7 +5,7 @@
  **   Liana Hadarean, Aina Niemetz, Dejan Jovanovic
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -248,9 +248,10 @@ EqualityStatus BitblastSolver::getEqualityStatus(TNode a, TNode b) {
   return d_bitblaster->getEqualityStatus(a, b);
 }
 
-bool BitblastSolver::collectModelInfo(TheoryModel* m, bool fullModel)
+bool BitblastSolver::collectModelValues(TheoryModel* m,
+                                        const std::set<Node>& termSet)
 {
-  return d_bitblaster->collectModelInfo(m, fullModel);
+  return d_bitblaster->collectModelValues(m, termSet);
 }
 
 Node BitblastSolver::getModelValue(TNode node)
@@ -263,9 +264,8 @@ Node BitblastSolver::getModelValue(TNode node)
   return val;
 }
 
-
-
-void BitblastSolver::setConflict(TNode conflict) {
+void BitblastSolver::setConflict(TNode conflict)
+{
   Node final_conflict = conflict;
   if (options::bitvectorQuickXplain() &&
       conflict.getKind() == kind::AND) {

@@ -2,10 +2,10 @@
 /*! \file combination_care_graph.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Dejan Jovanovic
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -63,15 +63,15 @@ void CombinationCareGraph::combineTheories()
     Debug("combineTheories")
         << "TheoryEngine::combineTheories(): requesting a split " << std::endl;
 
-    Node split = equality.orNode(equality.notNode());
     TrustNode tsplit;
     if (isProofEnabled())
     {
       // make proof of splitting lemma
-      tsplit = d_cmbsPg->mkTrustNode(split, PfRule::SPLIT, {equality});
+      tsplit = d_cmbsPg->mkTrustNodeSplit(equality);
     }
     else
     {
+      Node split = equality.orNode(equality.notNode());
       tsplit = TrustNode::mkTrustLemma(split, nullptr);
     }
     sendLemma(tsplit, carePair.d_theory);

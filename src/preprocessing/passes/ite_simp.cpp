@@ -2,10 +2,10 @@
 /*! \file ite_simp.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Tim King, Liana Hadarean
+ **   Aina Niemetz, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -127,7 +127,7 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
   {
     if (options::compressItes())
     {
-      result = d_iteUtilities.compress(assertionsToPreprocess->ref());
+      result = d_iteUtilities.compress(assertionsToPreprocess);
     }
 
     if (result)
@@ -175,7 +175,8 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
           {
             Node more = aiteu.reduceConstantIteByGCD(res);
             Debug("arith::ite::red") << "  gcd->" << more << endl;
-            (*assertionsToPreprocess)[i] = Rewriter::rewrite(more);
+            Node morer = Rewriter::rewrite(more);
+            assertionsToPreprocess->replace(i, morer);
           }
         }
       }
@@ -214,7 +215,8 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
                                      << "   ->" << res << endl;
             Node more = aiteu.reduceConstantIteByGCD(res);
             Debug("arith::ite::red") << "  gcd->" << more << endl;
-            (*assertionsToPreprocess)[i] = Rewriter::rewrite(more);
+            Node morer = Rewriter::rewrite(more);
+            assertionsToPreprocess->replace(i, morer);
           }
         }
       }

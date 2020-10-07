@@ -2,10 +2,10 @@
 /*! \file bv_solver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Mathias Preiner
+ **   Mathias Preiner, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -68,7 +68,7 @@ class BVSolver
    */
   virtual void notifyFact(TNode atom, bool pol, TNode fact, bool isInternal) {}
 
-  virtual bool needsCheckLastEffort() = 0;
+  virtual bool needsCheckLastEffort() { return false; }
 
   virtual void propagate(Theory::Effort e){};
 
@@ -77,18 +77,16 @@ class BVSolver
     Unimplemented() << "BVSolver propagated a node but doesn't implement the "
                        "BVSolver::explain() interface!";
     return TrustNode::null();
-  };
+  }
 
-  /**
-   * This is temporary only and will be deprecated soon in favor of
-   * Theory::collectModelValues.
-   */
-  virtual bool collectModelInfo(TheoryModel* m) = 0;
+  /** Collect model values in m based on the relevant terms given by termSet */
+  virtual bool collectModelValues(TheoryModel* m,
+                                  const std::set<Node>& termSet) = 0;
 
   virtual std::string identify() const = 0;
 
   virtual Theory::PPAssertStatus ppAssert(
-      TNode in, SubstitutionMap& outSubstitutions) = 0;
+      TrustNode in, TrustSubstitutionMap& outSubstitutions) = 0;
 
   virtual TrustNode ppRewrite(TNode t) { return TrustNode::null(); };
 
@@ -96,7 +94,7 @@ class BVSolver
 
   virtual void presolve(){};
 
-  virtual void notifySharedTerm(TNode t) = 0;
+  virtual void notifySharedTerm(TNode t) {}
 
   virtual EqualityStatus getEqualityStatus(TNode a, TNode b)
   {
@@ -105,7 +103,12 @@ class BVSolver
 
   /** Called by abstraction preprocessing pass. */
   virtual bool applyAbstraction(const std::vector<Node>& assertions,
-                                std::vector<Node>& new_assertions) = 0;
+                                std::vector<Node>& new_assertions)
+  {
+    new_assertions.insert(
+        new_assertions.end(), assertions.begin(), assertions.end());
+    return false;
+  };
 
  protected:
   TheoryState& d_state;

@@ -2,10 +2,10 @@
 /*! \file bv_solver_lazy.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Andrew Reynolds, Tim King
+ **   Mathias Preiner, Liana Hadarean, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -87,12 +87,13 @@ class BVSolverLazy : public BVSolver
 
   TrustNode explain(TNode n) override;
 
-  bool collectModelInfo(TheoryModel* m) override;
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet) override;
 
   std::string identify() const override { return std::string("BVSolverLazy"); }
 
-  Theory::PPAssertStatus ppAssert(TNode in,
-                                  SubstitutionMap& outSubstitutions) override;
+  Theory::PPAssertStatus ppAssert(
+      TrustNode tin, TrustSubstitutionMap& outSubstitutions) override;
 
   TrustNode ppRewrite(TNode t) override;
 
@@ -207,13 +208,6 @@ class BVSolverLazy : public BVSolver
   }
 
   void checkForLemma(TNode node);
-
-  void computeAssertedTerms(std::set<Node>& termSet,
-                            const std::set<Kind>& irrKinds,
-                            bool includeShared) const
-  {
-    return d_bv.computeAssertedTerms(termSet, irrKinds, includeShared);
-  }
 
   size_t numAssertions() { return d_bv.numAssertions(); }
 

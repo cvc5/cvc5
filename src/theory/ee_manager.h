@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -25,7 +25,12 @@
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
+
+class TheoryEngine;
+
 namespace theory {
+
+class SharedSolver;
 
 /**
  * This is (theory-agnostic) information associated with the management of
@@ -48,9 +53,15 @@ struct EeTheoryInfo
 class EqEngineManager
 {
  public:
+   /**
+   * @param te Reference to the theory engine
+   * @param sharedSolver The shared solver that is being used in combination
+   * with this equality engine manager
+    */
+  EqEngineManager(TheoryEngine& te, SharedSolver& shs);
   virtual ~EqEngineManager() {}
   /**
-   * Finish initialize, called by TheoryEngine::finishInit after theory
+   * Initialize theories, called during TheoryEngine::finishInit after theory
    * objects have been created but prior to their final initialization. This
    * sets up equality engines for all theories.
    *
@@ -58,16 +69,6 @@ class EqEngineManager
    * the lifetime of TheoryEngine (during finishInit).
    */
   virtual void initializeTheories() = 0;
-  /**
-   * Finish initialize, called by TheoryEngine::finishInit after theory
-   * objects have been created but prior to their final initialization. This
-   * sets up equality engines for all theories.
-   *
-   * This method is context-independent, and is applied once during
-   * the lifetime of TheoryEngine (during finishInit).
-   */
-  virtual void initializeModel(TheoryModel* m,
-                               eq::EqualityEngineNotify* notify) = 0;
   /**
    * Get the equality engine theory information for theory with the given id.
    */
@@ -80,7 +81,15 @@ class EqEngineManager
    */
   virtual eq::EqualityEngine* getCoreEqualityEngine() = 0;
 
+  /** Allocate equality engine that is context-dependent on c with info esi */
+  eq::EqualityEngine* allocateEqualityEngine(EeSetupInfo& esi,
+                                             context::Context* c);
+
  protected:
+  /** Reference to the theory engine */
+  TheoryEngine& d_te;
+  /** Reference to the shared solver */
+  SharedSolver& d_sharedSolver;
   /** Information related to the equality engine, per theory. */
   std::map<TheoryId, EeTheoryInfo> d_einfo;
 };

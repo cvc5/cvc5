@@ -1,3 +1,13 @@
+#####################
+## FindLFSC.cmake
+## Top contributors (to current version):
+##   Mathias Preiner, Andres Noetzli
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
 # Find LFSC
 # LFSC_FOUND - system has LFSC lib
 # LFSC_INCLUDE_DIR - the LFSC include directory

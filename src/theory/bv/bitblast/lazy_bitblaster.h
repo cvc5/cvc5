@@ -2,10 +2,10 @@
 /*! \file lazy_bitblaster.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Mathias Preiner, Clark Barrett
+ **   Mathias Preiner, Liana Hadarean, Clark Barrett
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -72,10 +72,10 @@ class TLazyBitblaster : public TBitblaster<Node>
    * Adds a constant value for each bit-blasted variable in the model.
    *
    * @param m the model
-   * @param fullModel whether to create a "full model," i.e., add
-   * constants to equivalence classes that don't already have them
+   * @param termSet the set of relevant terms
    */
-  bool collectModelInfo(TheoryModel* m, bool fullModel);
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet);
 
   typedef TNodeSet::const_iterator vars_iterator;
   vars_iterator beginVars() { return d_variables.begin(); }

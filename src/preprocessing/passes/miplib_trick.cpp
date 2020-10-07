@@ -5,7 +5,7 @@
  **   Mathias Preiner, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -23,6 +23,7 @@
 #include "smt_util/boolean_simplification.h"
 #include "theory/booleans/circuit_propagator.h"
 #include "theory/theory_model.h"
+#include "theory/trust_substitutions.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -187,6 +188,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   const booleans::CircuitPropagator::BackEdgesMap& backEdges =
       propagator->getBackEdges();
   unordered_set<unsigned long> removeAssertions;
+
   SubstitutionMap& top_level_substs =
       d_preprocContext->getTopLevelSubstitutions();
 
@@ -519,6 +521,8 @@ PreprocessingPassResult MipLibTrick::applyInternal(
                   NodeManager::SKOLEM_EXACT_NAME);
               Node geq = Rewriter::rewrite(nm->mkNode(kind::GEQ, newVar, zero));
               Node leq = Rewriter::rewrite(nm->mkNode(kind::LEQ, newVar, one));
+              TrustNode tgeq = TrustNode::mkTrustLemma(geq, nullptr);
+              TrustNode tleq = TrustNode::mkTrustLemma(leq, nullptr);
 
               Node n = Rewriter::rewrite(geq.andNode(leq));
               assertionsToPreprocess->push_back(n);
@@ -526,14 +530,15 @@ PreprocessingPassResult MipLibTrick::applyInternal(
               {
                 ProofManager::currentPM()->addDependence(n, Node::null());
               }
-              SubstitutionMap nullMap(&fakeContext);
+              TrustSubstitutionMap tnullMap(&fakeContext, nullptr);
+              CVC4_UNUSED SubstitutionMap& nullMap = tnullMap.get();
               Theory::PPAssertStatus status CVC4_UNUSED;  // just for assertions
-              status = te->solve(geq, nullMap);
+              status = te->solve(tgeq, tnullMap);
               Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED)
                   << "unexpected solution from arith's ppAssert()";
               Assert(nullMap.empty())
                   << "unexpected substitution from arith's ppAssert()";
-              status = te->solve(leq, nullMap);
+              status = te->solve(tleq, tnullMap);
               Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED)
                   << "unexpected solution from arith's ppAssert()";
               Assert(nullMap.empty())

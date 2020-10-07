@@ -2,10 +2,10 @@
 /*! \file theory_sep.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Dejan Jovanovic, Tim King
+ **   Andrew Reynolds, Tim King, Dejan Jovanovic
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -50,10 +50,9 @@ TheorySep::TheorySep(context::Context* c,
       d_lemmas_produced_c(u),
       d_bounds_init(false),
       d_state(c, u, valuation),
+      d_im(*this, d_state, nullptr),
       d_notify(*this),
       d_reduce(u),
-      d_infer(c),
-      d_infer_exp(c),
       d_spatial_assertions(c)
 {
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
@@ -61,6 +60,7 @@ TheorySep::TheorySep(context::Context* c,
 
   // indicate we are using the default theory state object
   d_theoryState = &d_state;
+  d_inferManager = &d_im;
 }
 
 TheorySep::~TheorySep() {
@@ -96,16 +96,6 @@ Node TheorySep::mkAnd( std::vector< TNode >& assumptions ) {
   }
 }
 
-/////////////////////////////////////////////////////////////////////////////
-// PREPROCESSING
-/////////////////////////////////////////////////////////////////////////////
-
-
-Theory::PPAssertStatus TheorySep::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
-
-  return PP_ASSERT_STATUS_UNSOLVED;
-}
-
 
 /////////////////////////////////////////////////////////////////////////////
 // T-PROPAGATION / REGISTRATION
@@ -128,31 +118,10 @@ bool TheorySep::propagateLit(TNode literal)
   return ok;
 }
 
-void TheorySep::explain(TNode literal, std::vector<TNode>& assumptions) {
-  if( literal.getKind()==kind::SEP_LABEL ||
-      ( literal.getKind()==kind::NOT && literal[0].getKind()==kind::SEP_LABEL ) ){
-    //labelled assertions are never given to equality engine and should only come from the outside
-    assumptions.push_back( literal );
-  }else{
-    // Do the work
-    bool polarity = literal.getKind() != kind::NOT;
-    TNode atom = polarity ? literal : literal[0];
-    if (atom.getKind() == kind::EQUAL) {
-      d_equalityEngine->explainEquality(
-          atom[0], atom[1], polarity, assumptions, NULL);
-    } else {
-      d_equalityEngine->explainPredicate(atom, polarity, assumptions);
-    }
-  }
-}
-
 TrustNode TheorySep::explain(TNode literal)
 {
   Debug("sep") << "TheorySep::explain(" << literal << ")" << std::endl;
-  std::vector<TNode> assumptions;
-  explain(literal, assumptions);
-  Node exp = mkAnd(assumptions);
-  return TrustNode::mkTrustPropExp(literal, exp, nullptr);
+  return d_im.explainLit(literal);
 }
 
 
@@ -298,7 +267,7 @@ bool TheorySep::preNotifyFact(
     return false;
   }
   // otherwise, maybe propagate
-  doPendingFacts();
+  doPending();
   return true;
 }
 
@@ -316,7 +285,7 @@ void TheorySep::notifyFact(TNode atom,
     addPto(ei, r, atom, polarity);
   }
   // maybe propagate
-  doPendingFacts();
+  doPending();
 }
 
 void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
@@ -433,7 +402,8 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
     }
     else if (satom.getKind() == SEP_PTO)
     {
-      Node ss = nm->mkNode(SINGLETON, satom[0]);
+      // TODO(project##230): Find a safe type for the singleton operator
+      Node ss = nm->mkSingleton(satom[0].getType(), satom[0]);
       if (slbl != ss)
       {
         conc = slbl.eqNode(ss);
@@ -943,12 +913,7 @@ bool TheorySep::needsCheckLastEffort() {
 
 void TheorySep::conflict(TNode a, TNode b) {
   Trace("sep-conflict") << "Sep::conflict : " << a << " " << b << std::endl;
-  Node eq = a.eqNode(b);
-  std::vector<TNode> assumptions;
-  explain(eq, assumptions);
-  Node conflictNode = mkAnd(assumptions);
-  d_state.notifyInConflict();
-  d_out->conflict( conflictNode );
+  d_im.conflictEqConstantMerge(a, b);
 }
 
 
@@ -999,6 +964,22 @@ void TheorySep::ppNotifyAssertions(const std::vector<Node>& assertions) {
       d_type_data = NodeManager::currentNM()->mkSort("_sep_U");
       Trace("sep-type") << "Sep: assume data type " << d_type_data << std::endl;
       d_loc_to_data_type[d_type_ref] = d_type_data;
+    }
+  }
+  // initialize the EPR utility
+  QuantifiersEngine* qe = getQuantifiersEngine();
+  if (qe != nullptr)
+  {
+    quantifiers::QuantEPR* qepr = qe->getQuantEPR();
+    if (qepr != nullptr)
+    {
+      for (const Node& a : assertions)
+      {
+        qepr->registerAssertion(a);
+      }
+      // must handle sources of other new constants e.g. separation logic
+      initializeBounds();
+      qepr->finishInit();
     }
   }
 }
@@ -1351,7 +1332,7 @@ Node TheorySep::mkUnion( TypeNode tn, std::vector< Node >& locs ) {
     for( unsigned i=0; i<locs.size(); i++ ){
       Node s = locs[i];
       Assert(!s.isNull());
-      s = NodeManager::currentNM()->mkNode( kind::SINGLETON, s );
+      s = NodeManager::currentNM()->mkSingleton(tn, s);
       if( u.isNull() ){
         u = s;
       }else{
@@ -1522,12 +1503,14 @@ Node TheorySep::instantiateLabel( Node n, Node o_lbl, Node lbl, Node lbl_v, std:
       //check if this pto reference is in the base label, if not, then it does not need to be added as an assumption
       Assert(d_label_model.find(o_lbl) != d_label_model.end());
       Node vr = d_valuation.getModel()->getRepresentative( n[0] );
-      Node svr = NodeManager::currentNM()->mkNode( kind::SINGLETON, vr );
+      // TODO(project##230): Find a safe type for the singleton operator
+      Node svr = NodeManager::currentNM()->mkSingleton(vr.getType(), vr);
       bool inBaseHeap = std::find( d_label_model[o_lbl].d_heap_locs_model.begin(), d_label_model[o_lbl].d_heap_locs_model.end(), svr )!=d_label_model[o_lbl].d_heap_locs_model.end();
       Trace("sep-inst-debug") << "Is in base (non-instantiating) heap : " << inBaseHeap << " for value ref " << vr << " in " << o_lbl << std::endl;
       std::vector< Node > children;
       if( inBaseHeap ){
-        Node s = NodeManager::currentNM()->mkNode( kind::SINGLETON, n[0] );
+        // TODO(project##230): Find a safe type for the singleton operator
+        Node s = NodeManager::currentNM()->mkSingleton(n[0].getType(),  n[0]);
         children.push_back( NodeManager::currentNM()->mkNode( kind::SEP_LABEL, NodeManager::currentNM()->mkNode( kind::SEP_PTO, n[0], n[1] ), s ) );
       }else{
         //look up value of data
@@ -1539,8 +1522,10 @@ Node TheorySep::instantiateLabel( Node n, Node o_lbl, Node lbl, Node lbl_v, std:
         }else{
           Trace("sep-inst-debug") << "Data for " << vr << " was not specified, do not add condition." << std::endl;
         }
-      } 
-      children.push_back( NodeManager::currentNM()->mkNode( kind::EQUAL, NodeManager::currentNM()->mkNode( kind::SINGLETON, n[0] ), lbl_v ) );
+      }
+      // TODO(project##230): Find a safe type for the singleton operator
+      Node singleton = NodeManager::currentNM()->mkSingleton(n[0].getType(), n[0]);
+      children.push_back(singleton.eqNode(lbl_v));
       Node ret = children.empty() ? NodeManager::currentNM()->mkConst( true ) : ( children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( kind::AND, children ) );
       Trace("sep-inst-debug") << "Return " << ret << std::endl;
       return ret;
@@ -1630,9 +1615,9 @@ void TheorySep::computeLabelModel( Node lbl ) {
     Trace("sep-process") << "Model value (from valuation) for " << lbl << " : " << v_val << std::endl;
     if( v_val.getKind()!=kind::EMPTYSET ){
       while( v_val.getKind()==kind::UNION ){
-        Assert(v_val[1].getKind() == kind::SINGLETON);
-        d_label_model[lbl].d_heap_locs_model.push_back( v_val[1] );
-        v_val = v_val[0];
+        Assert(v_val[0].getKind() == kind::SINGLETON);
+        d_label_model[lbl].d_heap_locs_model.push_back(v_val[0]);
+        v_val = v_val[1];
       }
       if( v_val.getKind()==kind::SINGLETON ){
         d_label_model[lbl].d_heap_locs_model.push_back( v_val );
@@ -1660,7 +1645,8 @@ void TheorySep::computeLabelModel( Node lbl ) {
       }else{
         tt = itm->second;
       }
-      Node stt = NodeManager::currentNM()->mkNode( kind::SINGLETON, tt );
+      // TODO(project##230): Find a safe type for the singleton operator
+      Node stt = NodeManager::currentNM()->mkSingleton(tt.getType(), tt);
       Trace("sep-process-debug") << "...model : add " << tt << " for " << u << " in lbl " << lbl << std::endl;
       d_label_model[lbl].d_heap_locs.push_back( stt );
     }
@@ -1809,81 +1795,29 @@ void TheorySep::sendLemma( std::vector< Node >& ant, Node conc, const char * c, 
   Trace("sep-lemma-debug") << "Got : " << conc << std::endl;
   if( conc!=d_true ){
     if( infer && conc!=d_false ){
-      Node ant_n;
-      if( ant.empty() ){
-        ant_n = d_true;
-      }else if( ant.size()==1 ){
-        ant_n = ant[0];
-      }else{
-        ant_n = NodeManager::currentNM()->mkNode( kind::AND, ant );
-      }
+      Node ant_n = NodeManager::currentNM()->mkAnd(ant);
       Trace("sep-lemma") << "Sep::Infer: " << conc << " from " << ant_n << " by " << c << std::endl;
-      d_pending_exp.push_back( ant_n );
-      d_pending.push_back( conc );
-      d_infer.push_back( ant_n );
-      d_infer_exp.push_back( conc );
+      d_im.addPendingFact(conc, ant_n);
     }else{
-      std::vector< TNode > ant_e;
-      for( unsigned i=0; i<ant.size(); i++ ){
-        Trace("sep-lemma-debug") << "Explain : " << ant[i] << std::endl;
-        explain( ant[i], ant_e );
-      }
-      Node ant_n;
-      if( ant_e.empty() ){
-        ant_n = d_true;
-      }else if( ant_e.size()==1 ){
-        ant_n = ant_e[0];
-      }else{
-        ant_n = NodeManager::currentNM()->mkNode( kind::AND, ant_e );
-      }
       if( conc==d_false ){
-        Trace("sep-lemma") << "Sep::Conflict: " << ant_n << " by " << c << std::endl;
-        d_out->conflict( ant_n );
-        d_state.notifyInConflict();
+        Trace("sep-lemma") << "Sep::Conflict: " << ant << " by " << c
+                           << std::endl;
+        d_im.conflictExp(ant, nullptr);
       }else{
-        Trace("sep-lemma") << "Sep::Lemma: " << conc << " from " << ant_n << " by " << c << std::endl;
-        d_pending_exp.push_back( ant_n );
-        d_pending.push_back( conc );
-        d_pending_lem.push_back( d_pending.size()-1 );
+        Trace("sep-lemma") << "Sep::Lemma: " << conc << " from " << ant
+                           << " by " << c << std::endl;
+        TrustNode trn = d_im.mkLemmaExp(conc, ant, {});
+        d_im.addPendingLemma(
+            trn.getNode(), LemmaProperty::NONE, trn.getGenerator());
       }
     }
   }
 }
 
-void TheorySep::doPendingFacts() {
-  if( d_pending_lem.empty() ){
-    for( unsigned i=0; i<d_pending.size(); i++ ){
-      if (d_state.isInConflict())
-      {
-        break;
-      }
-      Node atom = d_pending[i].getKind()==kind::NOT ? d_pending[i][0] : d_pending[i];
-      bool pol = d_pending[i].getKind()!=kind::NOT;
-      Trace("sep-pending") << "Sep : Assert to EE : " << atom << ", pol = " << pol << std::endl;
-      if( atom.getKind()==kind::EQUAL ){
-        d_equalityEngine->assertEquality(atom, pol, d_pending_exp[i]);
-      }else{
-        d_equalityEngine->assertPredicate(atom, pol, d_pending_exp[i]);
-      }
-    }
-  }else{
-    for( unsigned i=0; i<d_pending_lem.size(); i++ ){
-      if (d_state.isInConflict())
-      {
-        break;
-      }
-      int index = d_pending_lem[i];
-      Node lem = NodeManager::currentNM()->mkNode( kind::IMPLIES, d_pending_exp[index], d_pending[index] );
-      if( d_lemmas_produced_c.find( lem )==d_lemmas_produced_c.end() ){
-        d_lemmas_produced_c.insert( lem );
-        d_out->lemma( lem );
-        Trace("sep-pending") << "Sep : Lemma : " << lem << std::endl;
-      }
-    }
-  }
-  d_pending_exp.clear();
-  d_pending.clear();
-  d_pending_lem.clear();
+void TheorySep::doPending()
+{
+  d_im.doPendingFacts();
+  d_im.doPendingLemmas();
 }
 
 void TheorySep::debugPrintHeap( HeapInfo& heap, const char * c ) {
@@ -1900,15 +1834,13 @@ Node TheorySep::HeapInfo::getValue( TypeNode tn ) {
   Assert(d_heap_locs.size() == d_heap_locs_model.size());
   if( d_heap_locs.empty() ){
     return NodeManager::currentNM()->mkConst(EmptySet(tn));
-  }else if( d_heap_locs.size()==1 ){
-    return d_heap_locs[0];
-  }else{
-    Node curr = NodeManager::currentNM()->mkNode( kind::UNION, d_heap_locs[0], d_heap_locs[1] );
-    for( unsigned j=2; j<d_heap_locs.size(); j++ ){
-      curr = NodeManager::currentNM()->mkNode( kind::UNION, curr, d_heap_locs[j] );
-    }
-    return curr;
   }
+  Node curr = d_heap_locs[0];
+  for (unsigned j = 1; j < d_heap_locs.size(); j++)
+  {
+    curr = NodeManager::currentNM()->mkNode(kind::UNION, d_heap_locs[j], curr);
+  }
+  return curr;
 }
 
 }/* CVC4::theory::sep namespace */

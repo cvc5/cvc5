@@ -2,10 +2,10 @@
 /*! \file theory.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Mathias Preiner, Dejan Jovanovic
+ **   Andrew Reynolds, Tim King, Dejan Jovanovic
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -273,13 +273,7 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
 
 void Theory::notifySharedTerm(TNode n)
 {
-  // TODO (project #39): this will move to addSharedTerm, as every theory with
-  // an equality does this in their notifySharedTerm method.
-  // if we have an equality engine, add the trigger term
-  if (d_equalityEngine != nullptr)
-  {
-    d_equalityEngine->addTriggerTerm(n, d_id);
-  }
+  // do nothing
 }
 
 void Theory::computeCareGraph() {
@@ -357,18 +351,8 @@ std::unordered_set<TNode, TNodeHashFunction> Theory::currentlySharedTerms() cons
   return currentlyShared;
 }
 
-bool Theory::collectModelInfo(TheoryModel* m)
+bool Theory::collectModelInfo(TheoryModel* m, const std::set<Node>& termSet)
 {
-  // NOTE: the computation of termSet will be moved to model manager
-  // and passed as an argument to collectModelInfo.
-  std::set<Node> termSet;
-  // Compute terms appearing in assertions and shared terms
-  TheoryModel* tm = d_valuation.getModel();
-  Assert(tm != nullptr);
-  const std::set<Kind>& irrKinds = tm->getIrrelevantKinds();
-  computeAssertedTerms(termSet, irrKinds, true);
-  // Compute additional relevant terms (theory-specific)
-  computeRelevantTerms(termSet);
   // if we are using an equality engine, assert it to the model
   if (d_equalityEngine != nullptr)
   {
@@ -381,54 +365,6 @@ bool Theory::collectModelInfo(TheoryModel* m)
   return collectModelValues(m, termSet);
 }
 
-void Theory::collectTerms(TNode n,
-                          const std::set<Kind>& irrKinds,
-                          set<Node>& termSet) const
-{
-  if (termSet.find(n) != termSet.end()) {
-    return;
-  }
-  Kind nk = n.getKind();
-  if (irrKinds.find(nk) == irrKinds.end())
-  {
-    Trace("theory::collectTerms")
-        << "Theory::collectTerms: adding " << n << endl;
-    termSet.insert(n);
-  }
-  if (nk == kind::NOT || nk == kind::EQUAL || !isLeaf(n))
-  {
-    for(TNode::iterator child_it = n.begin(); child_it != n.end(); ++child_it) {
-      collectTerms(*child_it, irrKinds, termSet);
-    }
-  }
-}
-
-void Theory::computeAssertedTerms(std::set<Node>& termSet,
-                                  const std::set<Kind>& irrKinds,
-                                  bool includeShared) const
-{
-  // Collect all terms appearing in assertions
-  context::CDList<Assertion>::const_iterator assert_it = facts_begin(),
-                                             assert_it_end = facts_end();
-  for (; assert_it != assert_it_end; ++assert_it)
-  {
-    collectTerms(*assert_it, irrKinds, termSet);
-  }
-
-  if (!includeShared)
-  {
-    return;
-  }
-  // Add terms that are shared terms
-  std::set<Kind> kempty;
-  context::CDList<TNode>::const_iterator shared_it = shared_terms_begin(),
-                                         shared_it_end = shared_terms_end();
-  for (; shared_it != shared_it_end; ++shared_it)
-  {
-    collectTerms(*shared_it, kempty, termSet);
-  }
-}
-
 void Theory::computeRelevantTerms(std::set<Node>& termSet)
 {
   // by default, there are no additional relevant terms
@@ -439,9 +375,10 @@ bool Theory::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
   return true;
 }
 
-Theory::PPAssertStatus Theory::ppAssert(TNode in,
-                                        SubstitutionMap& outSubstitutions)
+Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
+                                        TrustSubstitutionMap& outSubstitutions)
 {
+  TNode in = tin.getNode();
   if (in.getKind() == kind::EQUAL)
   {
     // (and (= x t) phi) can be replaced by phi[x/t] if
@@ -532,18 +469,24 @@ void Theory::check(Effort level)
   // standard calls for resource, stats
   d_out->spendResource(ResourceManager::Resource::TheoryCheckStep);
   TimerStat::CodeTimer checkTimer(d_checkTime);
+  Trace("theory-check") << "Theory::preCheck " << level << " " << d_id
+                        << std::endl;
   // pre-check at level
   if (preCheck(level))
   {
     // check aborted for a theory-specific reason
     return;
   }
+  Assert(d_theoryState != nullptr);
+  Trace("theory-check") << "Theory::process fact queue " << d_id << std::endl;
   // process the pending fact queue
   while (!done() && !d_theoryState->isInConflict())
   {
     // Get the next assertion from the fact queue
     Assertion assertion = get();
     TNode fact = assertion.d_assertion;
+    Trace("theory-check") << "Theory::preNotifyFact " << fact << " " << d_id
+                          << std::endl;
     bool polarity = fact.getKind() != kind::NOT;
     TNode atom = polarity ? fact : fact[0];
     // call the pre-notify method
@@ -552,6 +495,8 @@ void Theory::check(Effort level)
       // handled in theory-specific way that doesn't involve equality engine
       continue;
     }
+    Trace("theory-check") << "Theory::assert " << fact << " " << d_id
+                          << std::endl;
     // Theories that don't have an equality engine should always return true
     // for preNotifyFact
     Assert(d_equalityEngine != nullptr);
@@ -564,11 +509,15 @@ void Theory::check(Effort level)
     {
       d_equalityEngine->assertPredicate(atom, polarity, fact);
     }
+    Trace("theory-check") << "Theory::notifyFact " << fact << " " << d_id
+                          << std::endl;
     // notify the theory of the new fact, which is not internal
     notifyFact(atom, polarity, fact, false);
   }
+  Trace("theory-check") << "Theory::postCheck " << d_id << std::endl;
   // post-check at level
   postCheck(level);
+  Trace("theory-check") << "Theory::finish check " << d_id << std::endl;
 }
 
 bool Theory::preCheck(Effort level) { return false; }
@@ -596,6 +545,11 @@ void Theory::addSharedTerm(TNode n)
   d_sharedTerms.push_back(n);
   // now call theory-specific method notifySharedTerm
   notifySharedTerm(n);
+  // if we have an equality engine, add the trigger term
+  if (d_equalityEngine != nullptr)
+  {
+    d_equalityEngine->addTriggerTerm(n, d_id);
+  }
 }
 
 eq::EqualityEngine* Theory::getEqualityEngine()

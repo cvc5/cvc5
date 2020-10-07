@@ -2,10 +2,10 @@
 /*! \file theory_arith_private.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Alex Ozdemir
+ **   Tim King, Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -34,6 +34,8 @@
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
+#include "expr/proof_generator.h"
+#include "expr/proof_node_manager.h"
 #include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "options/smt_options.h"  // for incrementalSolving()
@@ -90,10 +92,18 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
                                        const LogicInfo& logicInfo,
                                        ProofNodeManager* pnm)
     : d_containing(containing),
-      d_nlIncomplete(false),
+      d_foundNl(false),
       d_rowTracking(),
-      d_constraintDatabase(
-          c, u, d_partialModel, d_congruenceManager, RaiseConflict(*this)),
+      d_pnm(pnm),
+      d_checker(),
+      d_pfGen(new EagerProofGenerator(d_pnm, u)),
+      d_constraintDatabase(c,
+                           u,
+                           d_partialModel,
+                           d_congruenceManager,
+                           RaiseConflict(*this),
+                           d_pfGen.get(),
+                           d_pnm),
       d_qflraStatus(Result::SAT_UNKNOWN),
       d_unknownsInARow(0),
       d_hasDoneWorkSinceCut(false),
@@ -119,11 +129,14 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_tableauResetPeriod(10),
       d_conflicts(c),
       d_blackBoxConflict(c, Node::null()),
+      d_blackBoxConflictPf(c, std::shared_ptr<ProofNode>(nullptr)),
       d_congruenceManager(c,
+                          u,
                           d_constraintDatabase,
                           SetupLiteralCallBack(*this),
                           d_partialModel,
-                          RaiseEqualityEngineConflict(*this)),
+                          RaiseEqualityEngineConflict(*this),
+                          d_pnm),
       d_cmEnabled(c, true),
 
       d_dualSimplex(
@@ -134,7 +147,6 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
           d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
       d_attemptSolSimplex(
           d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
-      d_nonlinearExtension(nullptr),
       d_pass1SDP(NULL),
       d_otherSDP(NULL),
       d_lastContextIntegerAttempted(c, -1),
@@ -156,18 +168,22 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_dioSolveResources(0),
       d_solveIntMaybeHelp(0u),
       d_solveIntAttempts(0u),
-      d_statistics(),
-      d_opElim(pnm, logicInfo)
+      d_newFacts(false),
+      d_previousStatus(Result::SAT_UNKNOWN),
+      d_statistics()
 {
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
+  if (pc != nullptr)
+  {
+    d_checker.registerTo(pc);
+  }
 }
 
 TheoryArithPrivate::~TheoryArithPrivate(){
   if(d_treeLog != NULL){ delete d_treeLog; }
   if(d_approxStats != NULL) { delete d_approxStats; }
-  if(d_nonlinearExtension != NULL) { delete d_nonlinearExtension; }
 }
 
-TheoryRewriter* TheoryArithPrivate::getTheoryRewriter() { return &d_rewriter; }
 bool TheoryArithPrivate::needsEqualityEngine(EeSetupInfo& esi)
 {
   return d_congruenceManager.needsEqualityEngine(esi);
@@ -175,14 +191,9 @@ bool TheoryArithPrivate::needsEqualityEngine(EeSetupInfo& esi)
 void TheoryArithPrivate::finishInit()
 {
   eq::EqualityEngine* ee = d_containing.getEqualityEngine();
+  eq::ProofEqEngine* pfee = d_containing.getProofEqEngine();
   Assert(ee != nullptr);
-  d_congruenceManager.finishInit(ee);
-  const LogicInfo& logicInfo = getLogicInfo();
-  // only need to create nonlinear extension if non-linear logic
-  if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
-  {
-    d_nonlinearExtension = new nl::NonlinearExtension(d_containing, ee);
-  }
+  d_congruenceManager.finishInit(ee, pfee);
 }
 
 static bool contains(const ConstraintCPVec& v, ConstraintP con){
@@ -529,6 +540,11 @@ void TheoryArithPrivate::raiseBlackBoxConflict(Node bb){
   if(d_blackBoxConflict.get().isNull()){
     d_blackBoxConflict = bb;
   }
+}
+
+bool TheoryArithPrivate::anyConflict() const
+{
+  return !conflictQueueEmpty() || !d_blackBoxConflict.get().isNull();
 }
 
 void TheoryArithPrivate::revertOutOfConflict(){
@@ -1054,13 +1070,12 @@ bool TheoryArithPrivate::AssertDisequality(ConstraintP constraint){
   return false;
 }
 
-void TheoryArithPrivate::addSharedTerm(TNode n){
-  Debug("arith::addSharedTerm") << "addSharedTerm: " << n << endl;
+void TheoryArithPrivate::notifySharedTerm(TNode n)
+{
+  Debug("arith::notifySharedTerm") << "notifySharedTerm: " << n << endl;
   if(n.isConst()){
     d_partialModel.invalidateDelta();
   }
-
-  d_congruenceManager.addSharedTerm(n);
   if(!n.isConst() && !isSetup(n)){
     Polynomial poly = Polynomial::parsePolynomial(n);
     Polynomial::iterator it = poly.begin();
@@ -1087,51 +1102,11 @@ Node TheoryArithPrivate::getModelValue(TNode term) {
   }
 }
 
-TrustNode TheoryArithPrivate::ppRewriteTerms(TNode n)
+Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
+    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
-  if(Theory::theoryOf(n) != THEORY_ARITH) {
-    return TrustNode::null();
-  }
-  // Eliminate operators recursively. Notice we must do this here since other
-  // theories may generate lemmas that involve non-standard operators. For
-  // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may
-  // introduce non-standard arithmetic terms appearing in grammars.
-  // call eliminate operators
-  return d_opElim.eliminate(n);
-}
-
-TrustNode TheoryArithPrivate::ppRewrite(TNode atom)
-{
-  Debug("arith::preprocess") << "arith::preprocess() : " << atom << endl;
-
-  if (options::arithRewriteEq())
-  {
-    if (atom.getKind() == kind::EQUAL && atom[0].getType().isReal())
-    {
-      Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
-      Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
-      TrustNode tleq = ppRewriteTerms(leq);
-      TrustNode tgeq = ppRewriteTerms(geq);
-      if (!tleq.isNull())
-      {
-        leq = tleq.getNode();
-      }
-      if (!tgeq.isNull())
-      {
-        geq = tgeq.getNode();
-      }
-      Node rewritten = Rewriter::rewrite(leq.andNode(geq));
-      Debug("arith::preprocess")
-          << "arith::preprocess() : returning " << rewritten << endl;
-      // don't need to rewrite terms since rewritten is not a non-standard op
-      return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
-    }
-  }
-  return ppRewriteTerms(atom);
-}
-
-Theory::PPAssertStatus TheoryArithPrivate::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
   TimerStat::CodeTimer codeTimer(d_statistics.d_simplifyTimer);
+  TNode in = tin.getNode();
   Debug("simplify") << "TheoryArithPrivate::solve(" << in << ")" << endl;
 
 
@@ -1182,7 +1157,7 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(TNode in, SubstitutionMap& o
         Debug("simplify") << "TheoryArithPrivate::solve(): substitution "
                           << minVar << " |-> " << elim << endl;
 
-        outSubstitutions.addSubstitution(minVar, elim);
+        outSubstitutions.addSubstitutionSolved(minVar, elim, tin);
         return Theory::PP_ASSERT_STATUS_SOLVED;
       }
       else
@@ -1276,11 +1251,7 @@ void TheoryArithPrivate::setupVariableList(const VarList& vl){
     if(getLogicInfo().isLinear()){
       throw LogicException("A non-linear fact was asserted to arithmetic in a linear logic.");
     }
-
-    if (d_nonlinearExtension == nullptr)
-    {
-      d_nlIncomplete = true;
-    }
+    d_foundNl = true;
 
     ++(d_statistics.d_statUserVariables);
     requestArithVar(vlNode, false, false);
@@ -1288,16 +1259,12 @@ void TheoryArithPrivate::setupVariableList(const VarList& vl){
     //setupInitialValue(av);
 
     markSetup(vlNode);
-  }else{
-    if (d_nonlinearExtension == nullptr)
-    {
-      if (vlNode.getKind() == kind::EXPONENTIAL
-          || vlNode.getKind() == kind::SINE || vlNode.getKind() == kind::COSINE
-          || vlNode.getKind() == kind::TANGENT)
-      {
-        d_nlIncomplete = true;
-      }
-    }
+  }
+  else if (vlNode.getKind() == kind::EXPONENTIAL
+           || vlNode.getKind() == kind::SINE || vlNode.getKind() == kind::COSINE
+           || vlNode.getKind() == kind::TANGENT)
+  {
+    d_foundNl = true;
   }
 
   /* Note:
@@ -1458,11 +1425,6 @@ void TheoryArithPrivate::setupAtom(TNode atom) {
 
 void TheoryArithPrivate::preRegisterTerm(TNode n) {
   Debug("arith::preregister") <<"begin arith::preRegisterTerm("<< n <<")"<< endl;
-
-  if (d_nonlinearExtension != nullptr)
-  {
-    d_nonlinearExtension->preRegisterTerm(n);
-  }
 
   try {
     if(isRelationOperator(n.getKind())){
@@ -1688,10 +1650,8 @@ Node TheoryArithPrivate::callDioSolver(){
   return d_diosolver.processEquationsForConflict();
 }
 
-ConstraintP TheoryArithPrivate::constraintFromFactQueue(){
-  Assert(!done());
-  TNode assertion = get();
-
+ConstraintP TheoryArithPrivate::constraintFromFactQueue(TNode assertion)
+{
   Kind simpleKind = Comparison::comparisonKind(assertion);
   ConstraintP constraint = d_constraintDatabase.lookup(assertion);
   if(constraint == NullConstraint){
@@ -1959,6 +1919,7 @@ void TheoryArithPrivate::outputConflict(TNode lit) {
 
 void TheoryArithPrivate::outputPropagate(TNode lit) {
   Debug("arith::channel") << "Arith propagation: " << lit << std::endl;
+  // call the propagate lit method of the
   (d_containing.d_out)->propagate(lit);
 }
 
@@ -1966,20 +1927,6 @@ void TheoryArithPrivate::outputRestart() {
   Debug("arith::channel") << "Arith restart!" << std::endl;
   (d_containing.d_out)->demandRestart();
 }
-
-// void TheoryArithPrivate::branchVector(const std::vector<ArithVar>& lemmas){
-//   //output the lemmas
-//   for(vector<ArithVar>::const_iterator i = lemmas.begin(); i != lemmas.end();
-//   ++i){
-//     ArithVar v = *i;
-//     Assert(!d_cutInContext.contains(v));
-//     d_cutInContext.insert(v);
-//     d_cutCount = d_cutCount + 1;
-//     Node lem = branchIntegerVariable(v);
-//     outputLemma(lem);
-//     ++(d_statistics.d_externalBranchAndBounds);
-//   }
-// }
 
 bool TheoryArithPrivate::attemptSolveInteger(Theory::Effort effortLevel, bool emmmittedLemmaOrSplit){
   int level = getSatContext()->getLevel();
@@ -3303,47 +3250,37 @@ bool TheoryArithPrivate::hasFreshArithLiteral(Node n) const{
   }
 }
 
-void TheoryArithPrivate::check(Theory::Effort effortLevel){
+bool TheoryArithPrivate::preCheck(Theory::Effort level)
+{
   Assert(d_currentPropagationList.empty());
-
-  if(done() && effortLevel < Theory::EFFORT_FULL && ( d_qflraStatus == Result::SAT) ){
-    return;
-  }
-
-  if(effortLevel == Theory::EFFORT_LAST_CALL){
-    if (d_nonlinearExtension != nullptr)
-    {
-      d_nonlinearExtension->check(effortLevel);
-    }
-    return;
-  }
-
-  TimerStat::CodeTimer checkTimer(d_containing.d_checkTime);
-  //cout << "TheoryArithPrivate::check " << effortLevel << std::endl;
-  Debug("effortlevel") << "TheoryArithPrivate::check " << effortLevel << std::endl;
-  Debug("arith") << "TheoryArithPrivate::check begun " << effortLevel << std::endl;
-
   if(Debug.isOn("arith::consistency")){
     Assert(unenqueuedVariablesAreConsistent());
   }
 
-  bool newFacts = !done();
-  //If previous == SAT, then reverts on conflicts are safe
-  //Otherwise, they are not and must be committed.
-  Result::Sat previous = d_qflraStatus;
-  if(newFacts){
+  d_newFacts = !done();
+  // If d_previousStatus == SAT, then reverts on conflicts are safe
+  // Otherwise, they are not and must be committed.
+  d_previousStatus = d_qflraStatus;
+  if (d_newFacts)
+  {
     d_qflraStatus = Result::SAT_UNKNOWN;
     d_hasDoneWorkSinceCut = true;
   }
+  return false;
+}
 
-  while(!done()){
-    ConstraintP curr = constraintFromFactQueue();
-    if(curr != NullConstraint){
-      bool res CVC4_UNUSED = assertionCases(curr);
-      Assert(!res || anyConflict());
-    }
-    if(anyConflict()){ break; }
+void TheoryArithPrivate::preNotifyFact(TNode atom, bool pol, TNode fact)
+{
+  ConstraintP curr = constraintFromFactQueue(fact);
+  if (curr != NullConstraint)
+  {
+    bool res CVC4_UNUSED = assertionCases(curr);
+    Assert(!res || anyConflict());
   }
+}
+
+bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
+{
   if(!anyConflict()){
     while(!d_learnedBounds.empty()){
       // we may attempt some constraints twice.  this is okay!
@@ -3360,20 +3297,25 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
 
   if(anyConflict()){
     d_qflraStatus = Result::UNSAT;
-    if(options::revertArithModels() && previous == Result::SAT){
+    if (options::revertArithModels() && d_previousStatus == Result::SAT)
+    {
       ++d_statistics.d_revertsOnConflicts;
-      Debug("arith::bt") << "clearing here " << " " << newFacts << " " << previous << " " << d_qflraStatus  << endl;
+      Debug("arith::bt") << "clearing here "
+                         << " " << d_newFacts << " " << d_previousStatus << " "
+                         << d_qflraStatus << endl;
       revertOutOfConflict();
       d_errorSet.clear();
     }else{
       ++d_statistics.d_commitsOnConflicts;
-      Debug("arith::bt") << "committing here " << " " << newFacts << " " << previous << " " << d_qflraStatus  << endl;
+      Debug("arith::bt") << "committing here "
+                         << " " << d_newFacts << " " << d_previousStatus << " "
+                         << d_qflraStatus << endl;
       d_partialModel.commitAssignmentChanges();
       revertOutOfConflict();
     }
     outputConflicts();
     //cout << "unate conflict 1 " << effortLevel << std::endl;
-    return;
+    return true;
   }
 
 
@@ -3402,11 +3344,13 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
     solveInteger(effortLevel);
     if(anyConflict()){
       ++d_statistics.d_commitsOnConflicts;
-      Debug("arith::bt") << "committing here " << " " << newFacts << " " << previous << " " << d_qflraStatus  << endl;
+      Debug("arith::bt") << "committing here "
+                         << " " << d_newFacts << " " << d_previousStatus << " "
+                         << d_qflraStatus << endl;
       revertOutOfConflict();
       d_errorSet.clear();
       outputConflicts();
-      return;
+      return true;
     }
   }
 
@@ -3415,11 +3359,14 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
 
   switch(d_qflraStatus){
   case Result::SAT:
-    if(newFacts){
+    if (d_newFacts)
+    {
       ++d_statistics.d_nontrivialSatChecks;
     }
 
-    Debug("arith::bt") << "committing sap inConflit"  << " " << newFacts << " " << previous << " " << d_qflraStatus  << endl;
+    Debug("arith::bt") << "committing sap inConflit"
+                       << " " << d_newFacts << " " << d_previousStatus << " "
+                       << d_qflraStatus << endl;
     d_partialModel.commitAssignmentChanges();
     d_unknownsInARow = 0;
     if(Debug.isOn("arith::consistency")){
@@ -3437,7 +3384,9 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
     ++d_unknownsInARow;
     ++(d_statistics.d_unknownChecks);
     Assert(!Theory::fullEffort(effortLevel));
-    Debug("arith::bt") << "committing unknown"  << " " << newFacts << " " << previous << " " << d_qflraStatus  << endl;
+    Debug("arith::bt") << "committing unknown"
+                       << " " << d_newFacts << " " << d_previousStatus << " "
+                       << d_qflraStatus << endl;
     d_partialModel.commitAssignmentChanges();
     d_statistics.d_maxUnknownsInARow.maxAssign(d_unknownsInARow);
 
@@ -3454,7 +3403,9 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
 
     ++d_statistics.d_commitsOnConflicts;
 
-    Debug("arith::bt") << "committing on conflict" << " " << newFacts << " " << previous << " " << d_qflraStatus  << endl;
+    Debug("arith::bt") << "committing on conflict"
+                       << " " << d_newFacts << " " << d_previousStatus << " "
+                       << d_qflraStatus << endl;
     d_partialModel.commitAssignmentChanges();
     revertOutOfConflict();
 
@@ -3551,7 +3502,9 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
       outputConflicts();
       emmittedConflictOrSplit = true;
       //cout << "unate conflict " << endl;
-      Debug("arith::bt") << "committing on unate conflict" << " " << newFacts << " " << previous << " " << d_qflraStatus  << endl;
+      Debug("arith::bt") << "committing on unate conflict"
+                         << " " << d_newFacts << " " << d_previousStatus << " "
+                         << d_qflraStatus << endl;
 
       Debug("arith::conflict") << "unate arith conflict" << endl;
     }
@@ -3635,24 +3588,10 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
     }
   }//if !emmittedConflictOrSplit && fullEffort(effortLevel) && !hasIntegerModel()
 
-  if(!emmittedConflictOrSplit && effortLevel>=Theory::EFFORT_FULL){
-    if (d_nonlinearExtension != nullptr)
-    {
-      d_nonlinearExtension->check( effortLevel );
-    }
-  }
-
-  if(Theory::fullEffort(effortLevel) && d_nlIncomplete){
-    setIncomplete();
-  }
-
   if(Theory::fullEffort(effortLevel)){
     if(Debug.isOn("arith::consistency::final")){
       entireStateIsConsistent("arith::consistency::final");
     }
-    // cout << "fulleffort" << getSatContext()->getLevel() << endl;
-    // entireStateIsConsistent("arith::consistency::final");
-    // cout << "emmittedConflictOrSplit" << emmittedConflictOrSplit << endl;
   }
 
   if(Debug.isOn("paranoid:check_tableau")){ d_linEq.debugCheckTableau(); }
@@ -3660,7 +3599,10 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
     debugPrintModel(Debug("arith::print_model"));
   }
   Debug("arith") << "TheoryArithPrivate::check end" << std::endl;
+  return emmittedConflictOrSplit;
 }
+
+bool TheoryArithPrivate::foundNonlinear() const { return d_foundNl; }
 
 Node TheoryArithPrivate::branchIntegerVariable(ArithVar x) const {
   const DeltaRational& d = d_partialModel.getAssignment(x);
@@ -3839,15 +3781,6 @@ void TheoryArithPrivate::debugPrintModel(std::ostream& out) const{
   }
 }
 
-bool TheoryArithPrivate::needsCheckLastEffort() {
-  if (d_nonlinearExtension != nullptr)
-  {
-    return d_nonlinearExtension->needsCheckLastEffort();
-  }else{
-    return false;
-  }
-}
-
 Node TheoryArithPrivate::explain(TNode n)
 {
   Debug("arith::explain") << "explain @" << getSatContext()->getLevel() << ": " << n << endl;
@@ -3868,12 +3801,12 @@ Node TheoryArithPrivate::explain(TNode n)
       Debug("arith::explain") << "this is a strange mismatch" << n << endl;
       Assert(d_congruenceManager.canExplain(n));
       Debug("arith::explain") << "this is a strange mismatch" << n << endl;
-      return d_congruenceManager.explain(n);
+      return d_congruenceManager.explain(n).getNode();
     }
   }else{
     Assert(d_congruenceManager.canExplain(n));
     Debug("arith::explain") << "dm explanation" << n << endl;
-    return d_congruenceManager.explain(n);
+    return d_congruenceManager.explain(n).getNode();
   }
 }
 
@@ -3933,7 +3866,7 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
 
       outputPropagate(toProp);
     }else if(constraint->negationHasProof()){
-      Node exp = d_congruenceManager.explain(toProp);
+      Node exp = d_congruenceManager.explain(toProp).getNode();
       Node notNormalized = normalized.getKind() == NOT ?
         normalized[0] : normalized.notNode();
       Node lp = flattenAnd(exp.andNode(notNormalized));
@@ -4074,20 +4007,16 @@ Rational TheoryArithPrivate::deltaValueForTotalOrder() const{
   return belowMin;
 }
 
-bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
+void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet,
+                                            std::map<Node, Node>& arithModel)
 {
   AlwaysAssert(d_qflraStatus == Result::SAT);
-  //AlwaysAssert(!d_nlIncomplete, "Arithmetic solver cannot currently produce models for input with nonlinear arithmetic constraints");
 
   if(Debug.isOn("arith::collectModelInfo")){
     debugPrintFacts();
   }
 
   Debug("arith::collectModelInfo") << "collectModelInfo() begin " << endl;
-
-  std::set<Node> termSet;
-  const std::set<Kind>& irrKinds = m->getIrrelevantKinds();
-  d_containing.computeAssertedTerms(termSet, irrKinds, true);
 
   // Delta lasts at least the duration of the function call
   const Rational& delta = d_partialModel.getDelta();
@@ -4096,8 +4025,6 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
   // TODO:
   // This is not very good for user push/pop....
   // Revisit when implementing push/pop
-  // Map of terms to values, constructed when non-linear arithmetic is active.
-  std::map<Node, Node> arithModel;
   for(var_iterator vi = var_begin(), vend = var_end(); vi != vend; ++vi){
     ArithVar v = *vi;
 
@@ -4112,46 +4039,11 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
 
         Node qNode = mkRationalNode(qmodel);
         Debug("arith::collectModelInfo") << "m->assertEquality(" << term << ", " << qmodel << ", true)" << endl;
-        if (d_nonlinearExtension != nullptr)
-        {
-          // Let non-linear extension inspect the values before they are sent
-          // to the theory model.
-          arithModel[term] = qNode;
-        }
-        else
-        {
-          if (!m->assertEquality(term, qNode, true))
-          {
-            return false;
-          }
-        }
+        // Add to the map
+        arithModel[term] = qNode;
       }else{
         Debug("arith::collectModelInfo") << "Skipping m->assertEquality(" << term << ", true)" << endl;
 
-      }
-    }
-  }
-  if (d_nonlinearExtension != nullptr)
-  {
-    // Non-linear may repair values to satisfy non-linear constraints (see
-    // documentation for NonlinearExtension::interceptModel).
-    d_nonlinearExtension->interceptModel(arithModel);
-    // We are now ready to assert the model.
-    for (std::pair<const Node, Node>& p : arithModel)
-    {
-      if (!m->assertEquality(p.first, p.second, true))
-      {
-        // If we failed to assert an equality, it is likely due to theory
-        // combination, namely the repaired model for non-linear changed
-        // an equality status that was agreed upon by both (linear) arithmetic
-        // and another theory. In this case, we must add a lemma, or otherwise
-        // we would terminate with an invalid model. Thus, we add a splitting
-        // lemma of the form ( x = v V x != v ) where v is the model value
-        // assigned by the non-linear solver to x.
-        Node eq = p.first.eqNode(p.second);
-        Node lem = NodeManager::currentNM()->mkNode(kind::OR, eq, eq.negate());
-        d_containing.d_out->lemma(lem);
-        return false;
       }
     }
   }
@@ -4161,7 +4053,6 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
   // m->assertEqualityEngine(&ee);
 
   Debug("arith::collectModelInfo") << "collectModelInfo() end " << endl;
-  return true;
 }
 
 bool TheoryArithPrivate::safeToReset() const {
@@ -4279,11 +4170,6 @@ void TheoryArithPrivate::presolve(){
     Node lem = *i;
     Debug("arith::oldprop") << " lemma lemma duck " <<lem << endl;
     outputLemma(lem);
-  }
-
-  if (d_nonlinearExtension != nullptr)
-  {
-    d_nonlinearExtension->presolve();
   }
 }
 
@@ -4734,12 +4620,6 @@ void TheoryArithPrivate::dumpUpdatedBoundsToRows(){
 const BoundsInfo& TheoryArithPrivate::boundsInfo(ArithVar basic) const{
   RowIndex ridx = d_tableau.basicToRowIndex(basic);
   return d_rowTracking[ridx];
-}
-
-TrustNode TheoryArithPrivate::expandDefinition(Node node)
-{
-  // call eliminate operators
-  return d_opElim.eliminate(node);
 }
 
 std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit, const ArithEntailmentCheckParameters& params, ArithEntailmentCheckSideEffects& out){

@@ -5,7 +5,7 @@
  **   Liana Hadarean, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -98,7 +98,8 @@ class BVQuickCheck
    * @return
    */
   uint64_t computeAtomWeight(TNode atom, NodeSet& seen);
-  bool collectModelInfo(theory::TheoryModel* model, bool fullModel);
+  bool collectModelValues(theory::TheoryModel* model,
+                          const std::set<Node>& termSet);
 
   typedef std::unordered_set<TNode, TNodeHashFunction>::const_iterator
       vars_iterator;

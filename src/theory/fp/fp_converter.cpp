@@ -5,7 +5,7 @@
  **   Martin Brain, Mathias Preiner, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -141,7 +141,6 @@ void probabilityAnnotation<traits, traits::prop>(const traits::prop &p,
 #endif
 
 #ifndef CVC4_USE_SYMFPU
-#define PRECONDITION(X) Assert((X))
 #define SYMFPU_NUMBER_OF_ROUNDING_MODES 5
 #endif
 
@@ -155,19 +154,20 @@ symbolicRoundingMode traits::RNA(void) { return symbolicRoundingMode(0x02); };
 symbolicRoundingMode traits::RTP(void) { return symbolicRoundingMode(0x04); };
 symbolicRoundingMode traits::RTN(void) { return symbolicRoundingMode(0x08); };
 symbolicRoundingMode traits::RTZ(void) { return symbolicRoundingMode(0x10); };
+
 void traits::precondition(const bool b)
 {
-  AlwaysAssert(b);
+  Assert(b);
   return;
 }
 void traits::postcondition(const bool b)
 {
-  AlwaysAssert(b);
+  Assert(b);
   return;
 }
 void traits::invariant(const bool b)
 {
-  AlwaysAssert(b);
+  Assert(b);
   return;
 }
 
@@ -186,18 +186,19 @@ bool symbolicProposition::checkNodeType(const TNode node)
 
 symbolicProposition::symbolicProposition(const Node n) : nodeWrapper(n)
 {
-  PRECONDITION(checkNodeType(*this));
+  Assert(checkNodeType(*this));
 }  // Only used within this header so could be friend'd
 symbolicProposition::symbolicProposition(bool v)
     : nodeWrapper(
           NodeManager::currentNM()->mkConst(BitVector(1U, (v ? 1U : 0U))))
 {
-  PRECONDITION(checkNodeType(*this));
+  Assert(checkNodeType(*this));
 }
+
 symbolicProposition::symbolicProposition(const symbolicProposition &old)
     : nodeWrapper(old)
 {
-  PRECONDITION(checkNodeType(*this));
+  Assert(checkNodeType(*this));
 }
 
 symbolicProposition symbolicProposition::operator!(void)const
@@ -245,7 +246,7 @@ bool symbolicRoundingMode::checkNodeType(const TNode n)
 
 symbolicRoundingMode::symbolicRoundingMode(const Node n) : nodeWrapper(n)
 {
-  PRECONDITION(checkNodeType(*this));
+  Assert(checkNodeType(*this));
 }
 
 #ifdef CVC4_USE_SYMFPU
@@ -253,8 +254,8 @@ symbolicRoundingMode::symbolicRoundingMode(const unsigned v)
     : nodeWrapper(NodeManager::currentNM()->mkConst(
           BitVector(SYMFPU_NUMBER_OF_ROUNDING_MODES, v)))
 {
-  PRECONDITION((v & (v - 1)) == 0 && v != 0);  // Exactly one bit set
-  PRECONDITION(checkNodeType(*this));
+  Assert((v & (v - 1)) == 0 && v != 0);  // Exactly one bit set
+  Assert(checkNodeType(*this));
 }
 #else
 symbolicRoundingMode::symbolicRoundingMode(const unsigned v)
@@ -268,7 +269,7 @@ symbolicRoundingMode::symbolicRoundingMode(const unsigned v)
 symbolicRoundingMode::symbolicRoundingMode(const symbolicRoundingMode &old)
     : nodeWrapper(old)
 {
-  PRECONDITION(checkNodeType(*this));
+  Assert(checkNodeType(*this));
 }
 
 symbolicProposition symbolicRoundingMode::valid(void) const
@@ -333,7 +334,7 @@ Node symbolicBitVector<isSigned>::toProposition(Node node) const
 template <bool isSigned>
 symbolicBitVector<isSigned>::symbolicBitVector(const Node n) : nodeWrapper(n)
 {
-  PRECONDITION(checkNodeType(*this));
+  Assert(checkNodeType(*this));
 }
 
 template <bool isSigned>
@@ -346,7 +347,7 @@ template <bool isSigned>
 symbolicBitVector<isSigned>::symbolicBitVector(const bwt w, const unsigned v)
     : nodeWrapper(NodeManager::currentNM()->mkConst(BitVector(w, v)))
 {
-  PRECONDITION(checkNodeType(*this));
+  Assert(checkNodeType(*this));
 }
 template <bool isSigned>
 symbolicBitVector<isSigned>::symbolicBitVector(const symbolicProposition &p)
@@ -358,13 +359,13 @@ symbolicBitVector<isSigned>::symbolicBitVector(
     const symbolicBitVector<isSigned> &old)
     : nodeWrapper(old)
 {
-  PRECONDITION(checkNodeType(*this));
+  Assert(checkNodeType(*this));
 }
 template <bool isSigned>
 symbolicBitVector<isSigned>::symbolicBitVector(const BitVector &old)
     : nodeWrapper(NodeManager::currentNM()->mkConst(old))
 {
-  PRECONDITION(checkNodeType(*this));
+  Assert(checkNodeType(*this));
 }
 
 template <bool isSigned>
@@ -670,7 +671,7 @@ template <bool isSigned>
 symbolicBitVector<isSigned> symbolicBitVector<isSigned>::contract(
     bwt reduction) const
 {
-  PRECONDITION(this->getWidth() > reduction);
+  Assert(this->getWidth() > reduction);
 
   NodeBuilder<> construct(kind::BITVECTOR_EXTRACT);
   construct << NodeManager::currentNM()->mkConst<BitVectorExtract>(
@@ -704,7 +705,7 @@ template <bool isSigned>
 symbolicBitVector<isSigned> symbolicBitVector<isSigned>::matchWidth(
     const symbolicBitVector<isSigned> &op) const
 {
-  PRECONDITION(this->getWidth() <= op.getWidth());
+  Assert(this->getWidth() <= op.getWidth());
   return this->extend(op.getWidth() - this->getWidth());
 }
 
@@ -721,7 +722,7 @@ template <bool isSigned>
 symbolicBitVector<isSigned> symbolicBitVector<isSigned>::extract(
     bwt upper, bwt lower) const
 {
-  PRECONDITION(upper >= lower);
+  Assert(upper >= lower);
 
   NodeBuilder<> construct(kind::BITVECTOR_EXTRACT);
   construct << NodeManager::currentNM()->mkConst<BitVectorExtract>(
@@ -734,7 +735,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::extract(
 floatingPointTypeInfo::floatingPointTypeInfo(const TypeNode type)
     : FloatingPointSize(type.getConst<FloatingPointSize>())
 {
-  PRECONDITION(type.isFloatingPoint());
+  Assert(type.isFloatingPoint());
 }
 floatingPointTypeInfo::floatingPointTypeInfo(unsigned exp, unsigned sig)
     : FloatingPointSize(exp, sig)

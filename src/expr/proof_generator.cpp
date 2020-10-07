@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -43,7 +43,10 @@ std::shared_ptr<ProofNode> ProofGenerator::getProofFor(Node f)
   return nullptr;
 }
 
-bool ProofGenerator::addProofTo(Node f, CDProof* pf, CDPOverwrite opolicy)
+bool ProofGenerator::addProofTo(Node f,
+                                CDProof* pf,
+                                CDPOverwrite opolicy,
+                                bool doCopy)
 {
   Trace("pfgen") << "ProofGenerator::addProofTo: " << f << "..." << std::endl;
   Assert(pf != nullptr);
@@ -52,8 +55,7 @@ bool ProofGenerator::addProofTo(Node f, CDProof* pf, CDPOverwrite opolicy)
   if (apf != nullptr)
   {
     Trace("pfgen") << "...got proof " << *apf.get() << std::endl;
-    // Add the proof, without deep copying.
-    if (pf->addProof(apf, opolicy, false))
+    if (pf->addProof(apf, opolicy, doCopy))
     {
       Trace("pfgen") << "...success!" << std::endl;
       return true;

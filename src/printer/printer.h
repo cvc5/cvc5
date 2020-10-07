@@ -2,10 +2,10 @@
 /*! \file printer.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Aina Niemetz
+ **   Abdalrhman Mohamed, Tim King, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -24,13 +24,16 @@
 
 #include "expr/node.h"
 #include "options/language.h"
-#include "smt/command.h"
 #include "smt/model.h"
+#include "util/result.h"
 #include "util/sexpr.h"
 
 namespace CVC4 {
 
+class Command;
+class CommandStatus;
 class NodeCommand;
+class UnsatCore;
 
 class Printer
 {
@@ -212,7 +215,7 @@ class Printer
 
   /** Print set-info :status command */
   virtual void toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                             BenchmarkStatus status) const;
+                                             Result::Sat status) const;
 
   /** Print set-logic command */
   virtual void toStreamCmdSetBenchmarkLogic(std::ostream& out,

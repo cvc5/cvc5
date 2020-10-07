@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Mudathir Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -21,6 +21,7 @@
 #include "context/context.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/solver_state.h"
+#include "theory/sets/term_registry.h"
 #include "theory/type_set.h"
 #include "theory/uf/equality_engine.h"
 
@@ -67,7 +68,9 @@ class CardinalityExtension
    * Constructs a new instance of the cardinality solver w.r.t. the provided
    * contexts.
    */
-  CardinalityExtension(SolverState& s, InferenceManager& im);
+  CardinalityExtension(SolverState& s,
+                       InferenceManager& im,
+                       TermRegistry& treg);
 
   ~CardinalityExtension() {}
   /** reset
@@ -160,6 +163,8 @@ class CardinalityExtension
   SolverState& d_state;
   /** Reference to the inference manager for the theory of sets */
   InferenceManager& d_im;
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
   /** register cardinality term
    *
    * This method add lemmas corresponding to the definition of

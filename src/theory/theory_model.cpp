@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Clark Barrett, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -44,22 +44,10 @@ TheoryModel::TheoryModel(context::Context* c,
 
 TheoryModel::~TheoryModel() {}
 
-void TheoryModel::setEqualityEngine(eq::EqualityEngine* ee)
+void TheoryModel::finishInit(eq::EqualityEngine* ee)
 {
+  Assert(ee != nullptr);
   d_equalityEngine = ee;
-}
-
-bool TheoryModel::needsEqualityEngine(EeSetupInfo& esi)
-{
-  // no notifications
-  esi.d_name = d_name;
-  esi.d_constantsAreTriggers = false;
-  return true;
-}
-
-void TheoryModel::finishInit()
-{
-  Assert(d_equalityEngine != nullptr);
   // The kinds we are treating as function application in congruence
   d_equalityEngine->addFunctionKind(kind::APPLY_UF, false, options::ufHo());
   d_equalityEngine->addFunctionKind(kind::HO_APPLY);
@@ -456,7 +444,7 @@ bool TheoryModel::assertPredicate(TNode a, bool polarity)
 
 /** assert equality engine */
 bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
-                                       set<Node>* termSet)
+                                       const std::set<Node>* termSet)
 {
   Assert(d_equalityEngine->consistent());
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
@@ -771,6 +759,8 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
   Trace("model-builder-fun") << "return " << funcs_to_assign.size() << " functions to assign..." << std::endl;
   return funcs_to_assign;
 }
+
+const std::string& TheoryModel::getName() const { return d_name; }
 
 } /* namespace CVC4::theory */
 } /* namespace CVC4 */

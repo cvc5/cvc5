@@ -5,7 +5,7 @@
  **   Liana Hadarean, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -236,7 +236,8 @@ class AlgebraicSolver : public SubtheorySolver
     Unreachable() << "AlgebraicSolver does not propagate.\n";
   }
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
-  bool collectModelInfo(TheoryModel* m, bool fullModel) override;
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet) override;
   Node getModelValue(TNode node) override;
   bool isComplete() override;
   void assertFact(TNode fact) override;

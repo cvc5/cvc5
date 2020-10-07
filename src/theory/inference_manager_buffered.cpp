@@ -2,10 +2,10 @@
 /*! \file inference_manager_buffered.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -25,7 +25,7 @@ namespace theory {
 InferenceManagerBuffered::InferenceManagerBuffered(Theory& t,
                                                    TheoryState& state,
                                                    ProofNodeManager* pnm)
-    : TheoryInferenceManager(t, state, pnm)
+    : TheoryInferenceManager(t, state, pnm), d_processingPendingLemmas(false)
 {
 }
 
@@ -86,7 +86,7 @@ void InferenceManagerBuffered::doPendingFacts()
   {
     // process this fact, which notice may enqueue more pending facts in this
     // loop.
-    d_pendingFact[i]->process(this);
+    d_pendingFact[i]->process(this, false);
     i++;
   }
   d_pendingFact.clear();
@@ -94,12 +94,19 @@ void InferenceManagerBuffered::doPendingFacts()
 
 void InferenceManagerBuffered::doPendingLemmas()
 {
+  if (d_processingPendingLemmas)
+  {
+    // already processing
+    return;
+  }
+  d_processingPendingLemmas = true;
   for (const std::unique_ptr<TheoryInference>& plem : d_pendingLem)
   {
     // process this lemma
-    plem->process(this);
+    plem->process(this, true);
   }
   d_pendingLem.clear();
+  d_processingPendingLemmas = false;
 }
 
 void InferenceManagerBuffered::doPendingPhaseRequirements()
@@ -109,6 +116,12 @@ void InferenceManagerBuffered::doPendingPhaseRequirements()
   {
     requirePhase(prp.first, prp.second);
   }
+  d_pendingReqPhase.clear();
+}
+void InferenceManagerBuffered::clearPending()
+{
+  d_pendingFact.clear();
+  d_pendingLem.clear();
   d_pendingReqPhase.clear();
 }
 void InferenceManagerBuffered::clearPendingFacts() { d_pendingFact.clear(); }

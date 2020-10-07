@@ -2,10 +2,10 @@
 /*! \file constraint.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Alex Ozdemir, Morgan Deters
+ **   Tim King, Alex Ozdemir, Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -85,12 +85,14 @@
 #include "context/cdqueue.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "expr/proof_node_manager.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/callbacks.h"
 #include "theory/arith/congruence_manager.h"
 #include "theory/arith/constraint_forward.h"
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/proof_macros.h"
+#include "theory/trust_node.h"
 
 namespace CVC4 {
 namespace theory {
@@ -462,6 +464,14 @@ class Constraint {
     return d_literal;
   }
 
+  /** Gets a literal in the normal form suitable for proofs.
+   * That is, (sum of non-const monomials) >< const.
+   *
+   * This is a sister method to `getLiteral`, which returns a normal form
+   * literal, suitable for external solving use.
+   */
+  Node getProofLiteral() const;
+
   /**
    * Set the node as having a proof and being an assumption.
    * The node must be assertedToTheTheory().
@@ -558,8 +568,10 @@ class Constraint {
    * This is not appropriate for propagation!
    * Use explainForPropagation() instead.
    */
-  void externalExplainByAssertions(NodeBuilder<>& nb) const{
-    externalExplain(nb, AssertionOrderSentinel);
+  std::shared_ptr<ProofNode> externalExplainByAssertions(
+      NodeBuilder<>& nb) const
+  {
+    return externalExplain(nb, AssertionOrderSentinel);
   }
 
   /* Equivalent to calling externalExplainByAssertions on all constraints in b */
@@ -847,7 +859,6 @@ class Constraint {
   static std::pair<int, int> unateFarkasSigns(ConstraintCP a, ConstraintCP b);
 
   Node externalExplain(AssertionOrder order) const;
-
   /**
    * Returns an explanation of that was assertedBefore(order).
    * The constraint must have a proof.
@@ -856,7 +867,8 @@ class Constraint {
    * This is the minimum fringe of the implication tree
    * s.t. every constraint is assertedBefore(order) or hasEqualityEngineProof().
    */
-  void externalExplain(NodeBuilder<>& nb, AssertionOrder order) const;
+  std::shared_ptr<ProofNode> externalExplain(NodeBuilder<>& nb,
+                                             AssertionOrder order) const;
 
   static Node externalExplain(const ConstraintCPVec& b, AssertionOrder order);
 
@@ -1086,6 +1098,10 @@ private:
   ArithCongruenceManager& d_congruenceManager;
 
   const context::Context * const d_satContext;
+  /** Owned by the TheoryArithPrivate, used here. */
+  EagerProofGenerator* d_pfGen;
+  /** Owned by the TheoryArithPrivate, used here. */
+  ProofNodeManager* d_pnm;
 
   RaiseConflict d_raiseConflict;
 
@@ -1095,13 +1111,14 @@ private:
 
   friend class Constraint;
 
-public:
-
-  ConstraintDatabase( context::Context* satContext,
-                      context::Context* userContext,
-                      const ArithVariables& variables,
-                      ArithCongruenceManager& dm,
-                      RaiseConflict conflictCallBack);
+ public:
+  ConstraintDatabase(context::Context* satContext,
+                     context::Context* userContext,
+                     const ArithVariables& variables,
+                     ArithCongruenceManager& dm,
+                     RaiseConflict conflictCallBack,
+                     EagerProofGenerator* pfGen,
+                     ProofNodeManager* pnm);
 
   ~ConstraintDatabase();
 
@@ -1138,8 +1155,7 @@ public:
   bool variableDatabaseIsSetup(ArithVar v) const;
   void removeVariable(ArithVar v);
 
-  Node eeExplain(ConstraintCP c) const;
-  void eeExplain(ConstraintCP c, NodeBuilder<>& nb) const;
+  TrustNode eeExplain(ConstraintCP c) const;
 
   /**
    * Returns a constraint with the variable v, the constraint type t, and a value
@@ -1202,7 +1218,9 @@ public:
   /** AntecendentID must be in range. */
   ConstraintCP getAntecedent(AntecedentId p) const;
 
-private:
+  bool isProofEnabled() const { return d_pnm != nullptr; }
+
+ private:
   /** returns true if cons is now in conflict. */
   bool handleUnateProp(ConstraintP ant, ConstraintP cons);
 

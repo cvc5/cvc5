@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -23,6 +23,7 @@
 #include "theory/eager_proof_generator.h"
 #include "theory/ee_manager.h"
 #include "theory/model_manager.h"
+#include "theory/shared_solver.h"
 
 namespace CVC4 {
 
@@ -83,6 +84,11 @@ class CombinationEngine
   TheoryModel* getModel();
   //-------------------------- end model
   /**
+   * Get the shared solver, which is the active component of theory combination
+   * that TheoryEngine interacts with prior to calling combineTheories.
+   */
+  SharedSolver* getSharedSolver();
+  /**
    * Called at the beginning of full effort
    */
   virtual void resetRound();
@@ -105,6 +111,8 @@ class CombinationEngine
   void sendLemma(TrustNode trn, TheoryId atomsTo);
   /** Reference to the theory engine */
   TheoryEngine& d_te;
+  /** The proof node manager */
+  ProofNodeManager* d_pnm;
   /** Logic info of theory engine (cached) */
   const LogicInfo& d_logicInfo;
   /** List of parametric theories of theory engine */
@@ -119,6 +127,11 @@ class CombinationEngine
    * model.
    */
   std::unique_ptr<ModelManager> d_mmanager;
+  /**
+   * The shared solver. This class is responsible for performing combination
+   * tasks (e.g. preregistration) during solving.
+   */
+  std::unique_ptr<SharedSolver> d_sharedSolver;
   /**
    * An eager proof generator, if proofs are enabled. This proof generator is
    * responsible for proofs of splitting lemmas generated in combineTheories.

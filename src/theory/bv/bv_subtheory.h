@@ -5,7 +5,7 @@
  **   Liana Hadarean, Tim King, Dejan Jovanovic
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -74,11 +74,11 @@ class SubtheorySolver {
   virtual void explain(TNode literal, std::vector<TNode>& assumptions) = 0;
   virtual void preRegister(TNode node) {}
   virtual void propagate(Theory::Effort e) {}
-  virtual bool collectModelInfo(TheoryModel* m, bool fullModel) = 0;
+  virtual bool collectModelValues(TheoryModel* m,
+                                  const std::set<Node>& termSet) = 0;
   virtual Node getModelValue(TNode var) = 0;
   virtual bool isComplete() = 0;
   virtual EqualityStatus getEqualityStatus(TNode a, TNode b) = 0;
-  virtual void addSharedTerm(TNode node) {}
   bool done() { return d_assertionQueue.size() == d_assertionIndex; }
   TNode get() {
     Assert(!done());

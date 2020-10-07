@@ -2,10 +2,10 @@
 /*! \file theory_inference_manager.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner, Martin Brain
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -96,7 +96,9 @@ class TheoryInferenceManager
    * Returns true if we are in conflict, or if we have sent a lemma or fact
    * since the last call to reset.
    */
-  bool hasProcessed() const;
+  bool hasSent() const;
+  /** Get the underlying proof equality engine */
+  eq::ProofEqEngine* getProofEqEngine();
   //--------------------------------------- propagations
   /**
    * T-propagate literal lit, possibly encountered by equality engine,
@@ -339,6 +341,11 @@ class TheoryInferenceManager
    * Forward to OutputChannel::safePoint() to spend resources.
    */
   void safePoint(ResourceManager::Resource r);
+  /**
+   * Notification from a theory that it realizes it is incomplete at
+   * this context level.
+   */
+  void setIncomplete();
 
  protected:
   /**
@@ -409,6 +416,8 @@ class TheoryInferenceManager
    * nodes. Notice that this cache does not depedent on lemma property.
    */
   NodeSet d_lemmasSent;
+  /** The number of conflicts sent since the last call to reset. */
+  uint32_t d_numConflicts;
   /** The number of lemmas sent since the last call to reset. */
   uint32_t d_numCurrentLemmas;
   /** The number of internal facts added since the last call to reset. */

@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -617,26 +617,25 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     // either this conjecture does not have a solution, or candidate_values
     // is a solution for this conjecture.
     lem = nm->mkNode(OR, d_quant.negate(), query);
-    if (options::sygusVerifySubcall())
-    {
-      Trace("sygus-engine") << "  *** Verify with subcall..." << std::endl;
+    Trace("sygus-engine") << "  *** Verify with subcall..." << std::endl;
 
-      Result r =
-          checkWithSubsolver(query.toExpr(), d_ce_sk_vars, d_ce_sk_var_mvs);
-      Trace("sygus-engine") << "  ...got " << r << std::endl;
-      if (r.asSatisfiabilityResult().isSat() == Result::SAT)
+    Result r =
+        checkWithSubsolver(query.toExpr(), d_ce_sk_vars, d_ce_sk_var_mvs);
+    Trace("sygus-engine") << "  ...got " << r << std::endl;
+    if (r.asSatisfiabilityResult().isSat() == Result::SAT)
+    {
+      if (Trace.isOn("sygus-engine"))
       {
-        if (Trace.isOn("sygus-engine"))
+        Trace("sygus-engine") << "  * Verification lemma failed for:\n   ";
+        for (unsigned i = 0, size = d_ce_sk_vars.size(); i < size; i++)
         {
-          Trace("sygus-engine") << "  * Verification lemma failed for:\n   ";
-          for (unsigned i = 0, size = d_ce_sk_vars.size(); i < size; i++)
-          {
-            Trace("sygus-engine")
-                << d_ce_sk_vars[i] << " -> " << d_ce_sk_var_mvs[i] << " ";
-          }
-          Trace("sygus-engine") << std::endl;
+          Trace("sygus-engine")
+              << d_ce_sk_vars[i] << " -> " << d_ce_sk_var_mvs[i] << " ";
         }
-#ifdef CVC4_ASSERTIONS
+        Trace("sygus-engine") << std::endl;
+      }
+      if (Configuration::isAssertionBuild())
+      {
         // the values for the query should be a complete model
         Node squery = query.substitute(d_ce_sk_vars.begin(),
                                        d_ce_sk_vars.end(),
@@ -647,20 +646,28 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
         Trace("cegqi-debug") << "...rewrites to : " << squery << std::endl;
         Assert(options::sygusRecFun()
                || (squery.isConst() && squery.getConst<bool>()));
-#endif
-        return false;
       }
-      else if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
-      {
-        // if the result in the subcall was unsatisfiable, we avoid
-        // rechecking, hence we drop "query" from the verification lemma
-        lem = d_quant.negate();
-        // we can short circuit adding the lemma (for sygus stream)
-        success = true;
-      }
-      // In the rare case that the subcall is unknown, we add the verification
-      // lemma in the main solver. This should only happen if the quantifier
-      // free logic is undecidable.
+      return false;
+    }
+    else if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    {
+      // if the result in the subcall was unsatisfiable, we avoid
+      // rechecking, hence we drop "query" from the verification lemma
+      lem = d_quant.negate();
+      // we can short circuit adding the lemma (for sygus stream)
+      success = true;
+    }
+    else
+    {
+      // In the rare case that the subcall is unknown, we simply exclude the
+      // solution, without adding a counterexample point. This should only
+      // happen if the quantifier free logic is undecidable.
+      excludeCurrentSolution(terms, candidate_values);
+      // We should set incomplete, since a "sat" answer should not be
+      // interpreted as "infeasible", which would make a difference in the rare
+      // case where e.g. we had a finite grammar and exhausted the grammar.
+      d_qe->getOutputChannel().setIncomplete();
+      return false;
     }
   }
   if (success)
@@ -700,9 +707,9 @@ bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals) const
   return true;
 }
 
-void SynthConjecture::doRefine(std::vector<Node>& lems)
+bool SynthConjecture::doRefine()
 {
-  Assert(lems.empty());
+  std::vector<Node> lems;
   Assert(d_set_ce_sk_vars);
 
   // first, make skolem substitution
@@ -768,6 +775,42 @@ void SynthConjecture::doRefine(std::vector<Node>& lems)
   d_set_ce_sk_vars = false;
   d_ce_sk_vars.clear();
   d_ce_sk_var_mvs.clear();
+
+  // now send the lemmas
+  bool addedLemma = false;
+  for (const Node& lem : lems)
+  {
+    Trace("cegqi-lemma") << "Cegqi::Lemma : candidate refinement : " << lem
+                         << std::endl;
+    bool res = d_qe->addLemma(lem);
+    if (res)
+    {
+      ++(d_stats.d_cegqi_lemmas_refine);
+      d_refine_count++;
+      addedLemma = true;
+    }
+    else
+    {
+      Trace("cegqi-warn") << "  ...FAILED to add refinement!" << std::endl;
+    }
+  }
+  if (addedLemma)
+  {
+    Trace("sygus-engine-debug") << "  ...refine candidate." << std::endl;
+  }
+  else
+  {
+    Trace("sygus-engine-debug") << "  ...(warning) failed to refine candidate, "
+                                   "manually exclude candidate."
+                                << std::endl;
+    // something went wrong, exclude the current candidate
+    excludeCurrentSolution(sk_vars, sk_subs);
+    // Note this happens when evaluation is incapable of disproving a candidate
+    // for counterexample point c, but satisfiability checking happened to find
+    // the the same point c is indeed a true counterexample. It is sound
+    // to exclude the candidate in this case.
+  }
+  return addedLemma;
 }
 
 void SynthConjecture::preregisterConjecture(Node q)

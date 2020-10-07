@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Tim King, Clark Barrett
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -82,17 +82,10 @@ class TheoryModel : public Model
 public:
   TheoryModel(context::Context* c, std::string name, bool enableFuncModels);
   ~TheoryModel() override;
-  //---------------------------- initialization
-  /** Called to set the equality engine. */
-  void setEqualityEngine(eq::EqualityEngine* ee);
   /**
-   * Returns true if we need an equality engine, this has the same contract
-   * as Theory::needsEqualityEngine.
+   * Finish init, where ee is the equality engine the model should use.
    */
-  bool needsEqualityEngine(EeSetupInfo& esi);
-  /** Finish init */
-  void finishInit();
-  //---------------------------- end initialization
+  void finishInit(eq::EqualityEngine* ee);
 
   /** reset the model */
   virtual void reset();
@@ -117,7 +110,7 @@ public:
    * is consistent after asserting the equality engine to this model.
    */
   bool assertEqualityEngine(const eq::EqualityEngine* ee,
-                            std::set<Node>* termSet = NULL);
+                            const std::set<Node>* termSet = NULL);
   /** assert skeleton
    *
    * This method gives a "skeleton" for the model value of the equivalence
@@ -355,6 +348,9 @@ public:
   */
   std::vector< Node > getFunctionsToAssign();
   //---------------------------- end function values
+  /** Get the name of this model */
+  const std::string& getName() const;
+
  protected:
   /** Unique name of this model */
   std::string d_name;

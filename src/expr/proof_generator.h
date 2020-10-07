@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -82,11 +82,13 @@ class ProofGenerator
    * @param f The fact to get the proof for.
    * @param pf The CDProof object to add the proof to.
    * @param opolicy The overwrite policy for adding to pf.
+   * @param doCopy Whether to do a deep copy of the proof steps into pf.
    * @return True if this call was sucessful.
    */
   virtual bool addProofTo(Node f,
                           CDProof* pf,
-                          CDPOverwrite opolicy = CDPOverwrite::ASSUME_ONLY);
+                          CDPOverwrite opolicy = CDPOverwrite::ASSUME_ONLY,
+                          bool doCopy = false);
   /**
    * Can we give the proof for formula f? This is used for debugging. This
    * returns false if the generator cannot provide a proof of formula f.

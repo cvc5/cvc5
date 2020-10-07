@@ -2,10 +2,10 @@
 /*! \file bv_quick_check.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Morgan Deters
+ **   Liana Hadarean, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -140,9 +140,10 @@ void BVQuickCheck::popToZero() {
   }
 }
 
-bool BVQuickCheck::collectModelInfo(theory::TheoryModel* model, bool fullModel)
+bool BVQuickCheck::collectModelValues(theory::TheoryModel* model,
+                                      const std::set<Node>& termSet)
 {
-  return d_bitblaster->collectModelInfo(model, fullModel);
+  return d_bitblaster->collectModelValues(model, termSet);
 }
 
 BVQuickCheck::~BVQuickCheck() {

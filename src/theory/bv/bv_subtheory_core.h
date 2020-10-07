@@ -2,10 +2,10 @@
 /*! \file bv_subtheory_core.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Mathias Preiner, Tim King
+ **   Andrew Reynolds, Liana Hadarean, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -110,8 +110,6 @@ class CoreSolver : public SubtheorySolver {
   ModelValue d_modelValues;
   void buildModel();
   bool assertFactToEqualityEngine(TNode fact, TNode reason);
-  bool decomposeFact(TNode fact);
-  Node getBaseDecomposition(TNode a);
   bool isCompleteForTerm(TNode term, TNodeBoolMap& seen);
   Statistics d_statistics;
 
@@ -154,9 +152,9 @@ class CoreSolver : public SubtheorySolver {
   void preRegister(TNode node) override;
   bool check(Theory::Effort e) override;
   void explain(TNode literal, std::vector<TNode>& assumptions) override;
-  bool collectModelInfo(TheoryModel* m, bool fullModel) override;
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet) override;
   Node getModelValue(TNode var) override;
-  void addSharedTerm(TNode t) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   bool hasTerm(TNode node) const;
   void addTermToEqualityEngine(TNode node);

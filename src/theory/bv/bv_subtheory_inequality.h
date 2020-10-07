@@ -2,10 +2,10 @@
 /*! \file bv_subtheory_inequality.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Mathias Preiner, Morgan Deters
+ **   Mathias Preiner, Liana Hadarean, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -79,7 +79,8 @@ class InequalitySolver : public SubtheorySolver
   void propagate(Theory::Effort e) override;
   void explain(TNode literal, std::vector<TNode>& assumptions) override;
   bool isComplete() override { return d_isComplete; }
-  bool collectModelInfo(TheoryModel* m, bool fullModel) override;
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet) override;
   Node getModelValue(TNode var) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   void assertFact(TNode fact) override;
