@@ -383,8 +383,12 @@ void SortBlack::testSortSubtyping()
 
 void SortBlack::testSortScopedToString()
 {
+  std::string name = "uninterp-sort";
   Sort bvsort8 = d_solver.mkBitVectorSort(8);
+  Sort uninterp_sort = d_solver.mkUninterpretedSort(name);
   TS_ASSERT_EQUALS(bvsort8.toString(), "(_ BitVec 8)");
+  TS_ASSERT_EQUALS(uninterp_sort.toString(), name);
   Solver solver2;
   TS_ASSERT_EQUALS(bvsort8.toString(), "(_ BitVec 8)");
+  TS_ASSERT_EQUALS(uninterp_sort.toString(), name);
 }
