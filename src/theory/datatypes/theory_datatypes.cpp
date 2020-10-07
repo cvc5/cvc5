@@ -1065,7 +1065,11 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
     if (wrong)
     {
       // Must use make ground term here instead of the rewriter, since we
-      // do not want to introduce arbitrary terms.
+      // do not want to introduce arbitrary values. This is important so that
+      // we avoid constants for types that are not "closed enumerable", e.g.
+      // uninterpreted sorts and arrays, where the solver does not fully
+      // handle values of the sort. The call to mkGroundTerm does not introduce
+      // values for these sorts.
       rrs = r.getType().mkGroundTerm();
       Trace("datatypes-wrong-sel")
           << "Bad apply " << r << " term = " << rrs
