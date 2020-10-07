@@ -430,8 +430,8 @@ bool InferenceManager::processLemma(InferInfo& ii)
                          << ii.d_id << std::endl;
   ++(d_statistics.d_lemmasInfer);
 
-  // call the trusted lemma, with caching
-  return trustedLemma(tlem, p);
+  // call the trusted lemma, without caching
+  return trustedLemma(tlem, p, false);
 }
 
 }  // namespace strings
