@@ -34,12 +34,12 @@ namespace smt {
  * This is a proof generator that manages proofs for a set of formulas that
  * may be replaced over time. This set of formulas is implicit; formulas that
  * are not notified as assertions to this class are treated as assumptions.
- * 
+ *
  * The main use case of this proof generator is for proofs of preprocessing,
  * although it can be used in other scenarios where proofs for an evolving set
  * of formulas is maintained. In the remainder of the description here, we
  * describe its role as a proof generator for proofs of preprocessing.
- * 
+ *
  * This class has two main interfaces during solving:
  * (1) notifyNewAssert, for assertions that are not part of the input and are
  * added to the assertion pipeline by preprocessing passes,
