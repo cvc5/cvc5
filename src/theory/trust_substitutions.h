@@ -100,8 +100,7 @@ class TrustSubstitutionMap
   /** A lazy proof for apply steps */
   std::unique_ptr<LazyCDProof> d_applyPg;
   /**
-   * A context-dependent list of LazyCDProof, allocated for internal steps for
-   * solving.
+   * A context-dependent list of LazyCDProof, allocated for internal steps.
    */
   LazyCDProofSet d_helperPf;
   /** Whether the substitution is up-to-date */
