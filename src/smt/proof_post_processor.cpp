@@ -556,7 +556,13 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       std::shared_ptr<ProofNode> pfn = trn.toProofNode();
       if (pfn == nullptr)
       {
+        Trace("smt-proof-pp-debug") << "Use TRUST_REWRITE for " << eq << std::endl;
         // did not have a proof of rewriting, probably isExtEq is true
+        if (isExtEq)
+        {
+          // don't update
+          return Node::null();
+        }
         cdp->addStep(eq, PfRule::TRUST_REWRITE, {}, {eq});
       }
       else
