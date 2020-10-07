@@ -1858,7 +1858,15 @@ Term Term::iteTerm(const Term& then_t, const Term& else_t) const
   }
 }
 
-std::string Term::toString() const { return d_node->toString(); }
+std::string Term::toString() const
+{
+  if (d_solver != nullptr)
+  {
+    NodeManagerScope scope(d_solver->getNodeManager());
+    return d_node->toString();
+  }
+  return d_node->toString();
+}
 
 Term::const_iterator::const_iterator()
     : d_solver(nullptr), d_origNode(nullptr), d_pos(0)
