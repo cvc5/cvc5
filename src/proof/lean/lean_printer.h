@@ -18,6 +18,7 @@
 #define CVC4__PROOF__LEAN_PROOF_PRINTER_H
 
 #include <iostream>
+
 #include "expr/proof_node.h"
 
 namespace CVC4 {
@@ -36,7 +37,8 @@ static void leanPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   // should print terms, letified
 
   // should print theorem statement
-  out << "hello world" << "\n";
+  out << "hello world"
+      << "\n";
 
   // should traverse proof node, print each as a proof step, according to the
   // LEAN_RULE id in the LeanRule enum
@@ -44,6 +46,5 @@ static void leanPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn)
 }
 
 #endif
-
 }
 }

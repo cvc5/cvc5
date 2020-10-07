@@ -17,9 +17,9 @@
 #include "expr/proof_node_algorithm.h"
 #include "options/base_options.h"
 #include "options/smt_options.h"
-#include "smt/assertions.h"
-#include "proof/lean/lean_printer.h"
 #include "proof/lean/lean_post_processor.h"
+#include "proof/lean/lean_printer.h"
+#include "smt/assertions.h"
 
 namespace CVC4 {
 namespace smt {
@@ -121,7 +121,8 @@ void PfManager::printProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
   // TODO (proj #37) according to the proof format, print the proof node
   // leanPrinter(out, fp.get());
   std::ostream& out = *options::out();
-  if (options::proofFormatMode() == options::ProofFormatMode::LEAN) {
+  if (options::proofFormatMode() == options::ProofFormatMode::LEAN)
+  {
     d_lpfpp->process(fp);
     proof::leanPrinter(out, fp);
   }

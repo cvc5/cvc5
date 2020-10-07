@@ -39,7 +39,8 @@ class LeanProofPostprocessCallback : public ProofNodeUpdaterCallback
    * static information to be used by successive calls to update.
    */
   void initializeUpdate();
-  bool shouldUpdate(ProofNode* pn) override;
+  bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                    bool& continueUpdate) override;
   /** Update the proof rule application. */
   bool update(Node res,
               PfRule id,
@@ -66,9 +67,9 @@ class LeanProofPostprocess
 
  private:
   /** The post process callback */
-  LeanProofPostprocessCallback d_cb;
+  std::unique_ptr<LeanProofPostprocessCallback> d_cb;
   /** The proof node manager */
-  ProofNodeManager* d_pnm;
+  std::unique_ptr<ProofNodeManager> d_pnm;
 };
 
 }  // namespace proof
