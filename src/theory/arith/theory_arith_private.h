@@ -465,7 +465,8 @@ private:
 
   void presolve();
   void notifyRestart();
-  Theory::PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
+  Theory::PPAssertStatus ppAssert(TrustNode tin,
+                                  TrustSubstitutionMap& outSubstitutions);
   void ppStaticLearn(TNode in, NodeBuilder<>& learned);
 
   std::string identify() const { return std::string("TheoryArith"); }

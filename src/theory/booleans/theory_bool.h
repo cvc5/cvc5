@@ -39,7 +39,8 @@ class TheoryBool : public Theory {
 
   TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
-  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
+  PPAssertStatus ppAssert(TrustNode tin,
+                          TrustSubstitutionMap& outSubstitutions) override;
 
   std::string identify() const override { return std::string("TheoryBool"); }
 

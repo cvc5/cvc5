@@ -90,6 +90,22 @@ class BagsTypeRuleWhite : public CxxTest::TestSuite
     TS_ASSERT(MkBagTypeRule::computeIsConst(d_nm.get(), positive));
   }
 
+  void testFromSetOperator()
+  {
+    vector<Node> elements = getNStrings(1);
+    Node set = d_nm->mkSingleton(d_nm->stringType(), elements[0]);
+    TS_ASSERT_THROWS_NOTHING(d_nm->mkNode(BAG_FROM_SET, set));
+    TS_ASSERT(d_nm->mkNode(BAG_FROM_SET, set).getType().isBag());
+  }
+
+  void testToSetOperator()
+  {
+    vector<Node> elements = getNStrings(1);
+    Node bag = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(10)));
+    TS_ASSERT_THROWS_NOTHING(d_nm->mkNode(BAG_TO_SET, bag));
+    TS_ASSERT(d_nm->mkNode(BAG_TO_SET, bag).getType().isSet());
+  }
+
  private:
   std::unique_ptr<ExprManager> d_em;
   std::unique_ptr<SmtEngine> d_smt;
