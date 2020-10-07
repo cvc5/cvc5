@@ -392,22 +392,19 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
     {
       // evaluates to the first ground value of type tn.
       Node gt = tn.mkGroundValue();
-      if (!gt.isNull())
+      Assert (!gt.isNull());
+      if (tn.isDatatype() && !tn.isInstantiatedDatatype())
       {
-        // Assert( gtt.isDatatype() || gtt.isParametricDatatype() );
-        if (tn.isDatatype() && !tn.isInstantiatedDatatype())
-        {
-          gt = NodeManager::currentNM()->mkNode(
-              kind::APPLY_TYPE_ASCRIPTION,
-              NodeManager::currentNM()->mkConst(AscriptionType(tn.toType())),
-              gt);
-        }
-        Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
-                                   << "Rewrite trivial selector " << in
-                                   << " to distinguished ground term " << gt
-                                   << std::endl;
-        return RewriteResponse(REWRITE_DONE, gt);
+        gt = NodeManager::currentNM()->mkNode(
+            kind::APPLY_TYPE_ASCRIPTION,
+            NodeManager::currentNM()->mkConst(AscriptionType(tn.toType())),
+            gt);
       }
+      Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
+                                  << "Rewrite trivial selector " << in
+                                  << " to distinguished ground term " << gt
+                                  << std::endl;
+      return RewriteResponse(REWRITE_DONE, gt);
     }
   }
   return RewriteResponse(REWRITE_DONE, in);
