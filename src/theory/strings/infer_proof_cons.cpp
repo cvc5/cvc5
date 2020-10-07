@@ -517,6 +517,8 @@ void InferProofCons::convert(Inference infer,
     {
       if (conc.getKind() != OR)
       {
+        // This should never happen. If it does, we resort to using
+        // STRING_TRUST below (in production mode).
         Assert(false) << "Expected OR conclusion for " << infer;
       }
       else
