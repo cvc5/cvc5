@@ -774,10 +774,8 @@ void TheoryStrings::conflict(TNode a, TNode b){
     // already in conflict
     return;
   }
-  Debug("strings-conflict") << "Making conflict..." << std::endl;
   d_im.conflictEqConstantMerge(a, b);
-  // Trace("strings-conflict")
-  //    << "CONFLICT: Eq engine conflict : " << conf.getNode() << std::endl;
+  Trace("strings-conflict") << "CONFLICT: Eq engine conflict" << std::endl;
   ++(d_statistics.d_conflictsEqEngine);
 }
 
