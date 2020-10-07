@@ -1061,7 +1061,17 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
     r = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, s.getOperator(), c );
   }
   if( !r.isNull() ){
-    Node rrs = Rewriter::rewrite( r );
+    Node rrs;
+    if( wrong )
+    {
+      // Must use make ground term here instead of the rewriter, since we
+      // do not want to introduce arbitrary terms.
+      rrs = r.getType().mkGroundTerm();
+    }
+    else
+    {
+      rrs = Rewriter::rewrite( r );
+    }
     if (s != rrs)
     {
       Node eq = s.eqNode(rrs);

@@ -390,9 +390,11 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
     }
     else if (k == kind::APPLY_SELECTOR_TOTAL)
     {
-      Node gt = tn.mkGroundTerm();
+      // evaluates to the first ground value of type tn.
+      Node gt = tn.mkGroundValue();
       if (!gt.isNull())
       {
+        // Assert( gtt.isDatatype() || gtt.isParametricDatatype() );
         if (tn.isDatatype() && !tn.isInstantiatedDatatype())
         {
           gt = NodeManager::currentNM()->mkNode(
