@@ -209,7 +209,9 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
    // types (e.g. (Array D D) cannot be a subfield type of datatype D), this
    // call is guaranteed to avoid infinite recursion.
    d_zeroTerm = d_datatype.mkGroundValue(d_type);
-   d_zeroTermActive = true;
+   // Only use the zero term if it was successfully constructed. This may
+   // fail for codatatype types whose only values are infinite.
+   d_zeroTermActive = !d_zeroTerm.isNull();
    if (d_datatype.isCodatatype() && hasCyclesDt(d_datatype))
    {
      // start with uninterpreted constant
