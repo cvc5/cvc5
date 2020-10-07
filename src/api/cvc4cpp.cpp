@@ -1489,6 +1489,11 @@ std::string Op::toString() const
   {
     CVC4_API_CHECK(!d_node->isNull())
         << "Expecting a non-null internal expression";
+    if (d_solver != nullptr)
+    {
+      NodeManagerScope scope(d_solver->getNodeManager());
+      return d_node->toString();
+    }
     return d_node->toString();
   }
 }
