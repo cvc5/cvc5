@@ -1101,7 +1101,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       parseError("Too many arguments to array constant.");
     }
     api::Term constVal = args[0];
-    if (!constVal.isConst())
+    if (!constVal.isValue())
     {
       // To parse array constants taking reals whose values are specified by
       // rationals, e.g. ((as const (Array Int Real)) (/ 1 3)), we must handle
@@ -1111,15 +1111,15 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       // like 5.0 which are converted to (/ 5 1) to distinguish them from
       // integer constants. We must ensure numerator and denominator are
       // constant and the denominator is non-zero.
-      if (constVal.getKind() == api::DIVISION && constVal[0].isConst()
-          && constVal[1].isConst()
+      if (constVal.getKind() == api::DIVISION && constVal[0].isValue()
+          && constVal[1].isValue()
           && !constVal[1].getExpr().getConst<Rational>().isZero())
       {
         std::stringstream sdiv;
         sdiv << constVal[0] << "/" << constVal[1];
         constVal = d_solver->mkReal(sdiv.str());
       }
-      if (!constVal.isConst())
+      if (!constVal.isValue())
       {
         std::stringstream ss;
         ss << "expected constant term inside array constant, but found "
