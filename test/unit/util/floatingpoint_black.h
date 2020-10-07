@@ -13,13 +13,9 @@
  **
  ** Black box testing of CVC4::FloatingPoint.
  **/
-
 #include <cxxtest/TestSuite.h>
 
 #include "util/floatingpoint.h"
-
-// ignore this test-file unless symfpu is available
-#ifdef CVC4_USE_SYMFPU
 
 using namespace CVC4;
 
@@ -143,5 +139,3 @@ void FloatingPointBlack::testMakeMaxNormal()
   FloatingPoint mfp128 = FloatingPoint::makeMaxNormal(size128, false);
   TS_ASSERT(mfp128.isNormal());
 }
-
-#endif
