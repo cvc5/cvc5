@@ -390,28 +390,9 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
     }
     else if (k == kind::APPLY_SELECTOR_TOTAL)
     {
-      Node gt;
-      bool useTe = true;
-      // if( !tn.isSort() ){
-      //  useTe = false;
-      //}
-      if (tn.isDatatype())
-      {
-        const DType& dta = tn.getDType();
-        useTe = !dta.isCodatatype();
-      }
-      if (useTe)
-      {
-        TypeEnumerator te(tn);
-        gt = *te;
-      }
-      else
-      {
-        gt = tn.mkGroundTerm();
-      }
+      Node gt = tn.mkGroundTerm();
       if (!gt.isNull())
       {
-        // Assert( gtt.isDatatype() || gtt.isParametricDatatype() );
         if (tn.isDatatype() && !tn.isInstantiatedDatatype())
         {
           gt = NodeManager::currentNM()->mkNode(
