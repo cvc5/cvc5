@@ -218,11 +218,11 @@ namespace {
  */
 struct CollectMonomialData
 {
-  VariableMapper& vm;
-  std::vector<Node> terms;
-  NodeManager* nm = NodeManager::currentNM();
+  CollectMonomialData(VariableMapper& v) : d_vm(v) {}
 
-  CollectMonomialData(VariableMapper& v) : vm(v) {}
+  VariableMapper& d_vm;
+  std::vector<Node> d_terms;
+  NodeManager* d_nm = NodeManager::currentNM();
 };
 /**
  * Callback for lp_polynomial_traverse. Assumes data is actually a
@@ -235,23 +235,23 @@ void collect_monomials(const lp_polynomial_context_t* ctx,
   CollectMonomialData* d = static_cast<CollectMonomialData*>(data);
   // constant
   Node term =
-      d->nm->mkConst<Rational>(poly_utils::toRational(poly::Integer(&m->a)));
+      d->d_nm->mkConst<Rational>(poly_utils::toRational(poly::Integer(&m->a)));
   for (std::size_t i = 0; i < m->n; ++i)
   {
     // variable exponent pair
-    Node var = d->vm(m->p[i].x);
+    Node var = d->d_vm(m->p[i].x);
     if (m->p[i].d > 1)
     {
-      Node exp = d->nm->mkConst<Rational>(m->p[i].d);
-      term = d->nm->mkNode(
-          Kind::NONLINEAR_MULT, term, d->nm->mkNode(Kind::POW, var, exp));
+      Node exp = d->d_nm->mkConst<Rational>(m->p[i].d);
+      term = d->d_nm->mkNode(
+          Kind::NONLINEAR_MULT, term, d->d_nm->mkNode(Kind::POW, var, exp));
     }
     else
     {
-      term = d->nm->mkNode(Kind::NONLINEAR_MULT, term, var);
+      term = d->d_nm->mkNode(Kind::NONLINEAR_MULT, term, var);
     }
   }
-  d->terms.emplace_back(term);
+  d->d_terms.emplace_back(term);
 }
 }  // namespace
 
@@ -261,15 +261,15 @@ CVC4::Node as_cvc_polynomial(const poly::Polynomial& p, VariableMapper& vm)
   // Do the actual conversion
   lp_polynomial_traverse(p.get_internal(), collect_monomials, &cmd);
 
-  if (cmd.terms.empty())
+  if (cmd.d_terms.empty())
   {
-    return cmd.nm->mkConst<Rational>(0);
+    return cmd.d_nm->mkConst<Rational>(0);
   }
-  if (cmd.terms.size() == 1)
+  if (cmd.d_terms.size() == 1)
   {
-    return cmd.terms.front();
+    return cmd.d_terms.front();
   }
-  return cmd.nm->mkNode(Kind::PLUS, cmd.terms);
+  return cmd.d_nm->mkNode(Kind::PLUS, cmd.d_terms);
 }
 
 poly::SignCondition normalize_kind(CVC4::Kind kind,
