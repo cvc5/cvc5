@@ -1,3 +1,4 @@
+; REQUIRES: poly
 ; COMMAND-LINE: --theoryof-mode=term --nl-ext --nl-icp
 ; EXPECT: unknown
 (set-logic QF_NRA)
