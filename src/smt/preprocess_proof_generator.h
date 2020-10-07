@@ -22,6 +22,7 @@
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "expr/lazy_proof.h"
+#include "expr/lazy_proof_set.h"
 #include "expr/proof_generator.h"
 #include "expr/proof_node_manager.h"
 #include "theory/eager_proof_generator.h"
@@ -86,11 +87,9 @@ class PreprocessProofGenerator : public ProofGenerator
   ProofNodeManager* getManager();
   /**
    * Allocate a helper proof. This returns a fresh lazy proof object that
-   * remains alive in this user context. This feature is used to construct
+   * remains alive in the context. This feature is used to construct
    * helper proofs for preprocessing, e.g. to support the skeleton of proofs
    * that connect AssertionPipeline::conjoin steps.
-   *
-   * Internally, this adds a LazyCDProof to the list d_helperProofs below.
    */
   LazyCDProof* allocateHelperProof();
 
@@ -108,7 +107,7 @@ class PreprocessProofGenerator : public ProofGenerator
    */
   NodeTrustNodeMap d_src;
   /** A context-dependent list of LazyCDProof, allocated for conjoin steps */
-  context::CDList<std::shared_ptr<LazyCDProof> > d_helperProofs;
+  LazyCDProofSet d_helperProofs;
   /** Name for debugging */
   std::string d_name;
 };

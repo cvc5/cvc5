@@ -34,7 +34,7 @@ TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
       d_applyPg(pnm ? new LazyCDProof(
                           pnm, nullptr, c, "TrustSubstitutionMap::applyPg")
                     : nullptr),
-      d_solveProofs(c),
+      d_helperPf(pnm, c),
       d_currentSubs(c),
       d_name(name),
       d_trustId(trustId),
@@ -73,7 +73,7 @@ void TrustSubstitutionMap::addSubstitution(TNode x,
     addSubstitution(x, t, nullptr);
     return;
   }
-  LazyCDProof* stepPg = allocateHelperProof();
+  LazyCDProof* stepPg = d_helperPf.allocateProof();
   Node eq = x.eqNode(t);
   stepPg->addStep(eq, id, {}, args);
   addSubstitution(x, t, stepPg);
@@ -102,7 +102,7 @@ void TrustSubstitutionMap::addSubstitutionSolved(TNode x, TNode t, TrustNode tn)
     Trace("trust-subs") << "...use generator directly" << std::endl;
     return;
   }
-  LazyCDProof* solvePg = allocateHelperProof();
+  LazyCDProof* solvePg = d_helperPf.allocateProof();
   // try via rewrite eq == proven, if necessary
   if (!d_tspb->applyPredTransform(proven, eq, {}))
   {
@@ -234,13 +234,6 @@ Node TrustSubstitutionMap::getCurrentSubstitution()
     d_subsPg->addStep(d_currentSubs, PfRule::AND_INTRO, csubsChildren, {});
   }
   return d_currentSubs;
-}
-
-LazyCDProof* TrustSubstitutionMap::allocateHelperProof()
-{
-  std::shared_ptr<LazyCDProof> helperPf = std::make_shared<LazyCDProof>(d_pnm);
-  d_solveProofs.push_back(helperPf);
-  return helperPf.get();
 }
 
 }  // namespace theory

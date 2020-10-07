@@ -26,7 +26,7 @@ PreprocessProofGenerator::PreprocessProofGenerator(ProofNodeManager* pnm,
                                                    std::string name)
     : d_pnm(pnm),
       d_src(c ? c : &d_context),
-      d_helperProofs(c ? c : &d_context),
+      d_helperProofs(pnm, c ? c : &d_context),
       d_name(name)
 {
 }
@@ -209,9 +209,7 @@ ProofNodeManager* PreprocessProofGenerator::getManager() { return d_pnm; }
 
 LazyCDProof* PreprocessProofGenerator::allocateHelperProof()
 {
-  std::shared_ptr<LazyCDProof> helperPf = std::make_shared<LazyCDProof>(d_pnm);
-  d_helperProofs.push_back(helperPf);
-  return helperPf.get();
+  return d_helperProofs.allocateProof();
 }
 
 std::string PreprocessProofGenerator::identify() const { return d_name; }

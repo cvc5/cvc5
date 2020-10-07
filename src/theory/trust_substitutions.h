@@ -20,6 +20,7 @@
 #include "context/cdlist.h"
 #include "context/context.h"
 #include "expr/lazy_proof.h"
+#include "expr/lazy_proof_set.h"
 #include "expr/proof_node_manager.h"
 #include "expr/term_conversion_proof_generator.h"
 #include "theory/eager_proof_generator.h"
@@ -86,13 +87,6 @@ class TrustSubstitutionMap
    * Moreover, it ensures that d_subsPg has a proof of the returned value.
    */
   Node getCurrentSubstitution();
-  /**
-   * Allocate a helper proof. This returns a fresh lazy proof object that
-   * remains alive in the context given by this class. This feature is used to
-   * construct helper proofs, e.g. to support the skeleton of proofs that
-   * connect solving steps in addSubstitutionSolved.
-   */
-  LazyCDProof* allocateHelperProof();
   /** The substitution map */
   SubstitutionMap d_subs;
   /** The proof node manager */
@@ -105,8 +99,11 @@ class TrustSubstitutionMap
   std::unique_ptr<LazyCDProof> d_subsPg;
   /** A lazy proof for apply steps */
   std::unique_ptr<LazyCDProof> d_applyPg;
-  /** A context-dependent list of LazyCDProof, allocated for solve steps */
-  context::CDList<std::shared_ptr<LazyCDProof> > d_solveProofs;
+  /** 
+   * A context-dependent list of LazyCDProof, allocated for internal steps for
+   * solving.
+   */
+  LazyCDProofSet d_helperPf;
   /** Whether the substitution is up-to-date */
   context::CDO<Node> d_currentSubs;
   /** Name for debugging */
