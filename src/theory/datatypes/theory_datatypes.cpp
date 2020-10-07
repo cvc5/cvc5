@@ -1062,7 +1062,7 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
   }
   if( !r.isNull() ){
     Node rrs;
-    if( wrong )
+    if (wrong)
     {
       // Must use make ground term here instead of the rewriter, since we
       // do not want to introduce arbitrary terms.
@@ -1070,7 +1070,7 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
     }
     else
     {
-      rrs = Rewriter::rewrite( r );
+      rrs = Rewriter::rewrite(r);
     }
     if (s != rrs)
     {
