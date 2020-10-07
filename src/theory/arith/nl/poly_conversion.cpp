@@ -211,6 +211,67 @@ poly::Polynomial as_poly_polynomial(const CVC4::Node& n,
   return res;
 }
 
+namespace {
+/**
+ * Utility class that collects the monomial terms (as nodes) from the polynomial
+ * we are converting.
+ */
+struct CollectMonomialData
+{
+  VariableMapper& vm;
+  std::vector<Node> terms;
+  NodeManager* nm = NodeManager::currentNM();
+
+  CollectMonomialData(VariableMapper& v) : vm(v) {}
+};
+/**
+ * Callback for lp_polynomial_traverse. Assumes data is actually a
+ * CollectMonomialData object and puts the polynomial into it.
+ */
+void collect_monomials(const lp_polynomial_context_t* ctx,
+                       lp_monomial_t* m,
+                       void* data)
+{
+  CollectMonomialData* d = static_cast<CollectMonomialData*>(data);
+  // constant
+  Node term =
+      d->nm->mkConst<Rational>(poly_utils::toRational(poly::Integer(&m->a)));
+  for (std::size_t i = 0; i < m->n; ++i)
+  {
+    // variable exponent pair
+    Node var = d->vm(m->p[i].x);
+    if (m->p[i].d > 1)
+    {
+      Node exp = d->nm->mkConst<Rational>(m->p[i].d);
+      term = d->nm->mkNode(
+          Kind::NONLINEAR_MULT, term, d->nm->mkNode(Kind::POW, var, exp));
+    }
+    else
+    {
+      term = d->nm->mkNode(Kind::NONLINEAR_MULT, term, var);
+    }
+  }
+  d->terms.emplace_back(term);
+}
+}  // namespace
+
+CVC4::Node as_cvc_polynomial(const poly::Polynomial& p, VariableMapper& vm)
+{
+  CollectMonomialData cmd(vm);
+  // Do the actual conversion
+  lp_polynomial_traverse(p.get_internal(), collect_monomials, &cmd);
+
+  if (cmd.terms.empty())
+  {
+    return cmd.nm->mkConst<Rational>(0);
+  }
+  if (cmd.terms.size() == 1)
+  {
+    return cmd.terms.front();
+  }
+  return cmd.nm->mkNode(Kind::PLUS, cmd.terms);
+}
+
 poly::SignCondition normalize_kind(CVC4::Kind kind,
                                    bool negated,
                                    poly::Polynomial& lhs)
