@@ -1067,7 +1067,9 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
       // Must use make ground term here instead of the rewriter, since we
       // do not want to introduce arbitrary terms.
       rrs = r.getType().mkGroundTerm();
-      Trace("datatypes-wrong-sel") << "Bad apply " << r << " term = " << rrs << ", value = " << r.getType().mkGroundValue() << std::endl;
+      Trace("datatypes-wrong-sel")
+          << "Bad apply " << r << " term = " << rrs
+          << ", value = " << r.getType().mkGroundValue() << std::endl;
     }
     else
     {
