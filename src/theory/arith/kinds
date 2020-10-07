@@ -85,7 +85,7 @@ constant INDEXED_ROOT_PREDICATE_OP \
 	::CVC4::IndexedRootPredicateHashFunction \
 	"util/arith.h" \
 	"operator for the indexed root predicate; payload is an instance of the CVC4::IndexedRootPredicate class"
-parameterized INDEXED_ROOT_PREDICATE INDEXED_ROOT_PREDICATE_OP 2 "indexed root predicate; first parameter is a INDEXED_ROOT_PREDICATE_OP, second is a real variable, third is a polynomial compared to zero"
+parameterized INDEXED_ROOT_PREDICATE INDEXED_ROOT_PREDICATE_OP 2 "indexed root predicate; first parameter is a INDEXED_ROOT_PREDICATE_OP, second is a real variable compared to zero, third is a polynomial"
 
 operator IS_INTEGER 1 "term-is-integer predicate (parameter is a real-sorted term)"
 operator TO_INTEGER 1 "convert term to integer by the floor function (parameter is a real-sorted term)"
