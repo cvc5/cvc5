@@ -19,8 +19,8 @@
 
 #include <memory>
 
-#include "context/context.h"
 #include "context/cdlist.h"
+#include "context/context.h"
 #include "expr/lazy_proof.h"
 
 namespace CVC4 {
@@ -33,28 +33,29 @@ class LazyCDProofSet
 {
  public:
   LazyCDProofSet(ProofNodeManager* pnm,
-              context::Context* c = nullptr,
-                std::string namePrefix="LazyCDProof");
+                 context::Context* c = nullptr,
+                 std::string namePrefix = "LazyCDProof");
   ~LazyCDProofSet() {}
   /**
    * Allocate a lazy proof. This returns a fresh lazy proof object that
    * remains alive in the context given to this class.  Internally, this adds a
    * LazyCDProof to the list d_pfs below.
-   * 
+   *
    * @param isCd Whether the proof is context-dependent (using the same context
    * that is provided to this class).
    */
   LazyCDProof* allocateProof(bool isCd = false);
+
  protected:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /** A dummy context used by this class if none is provided */
   context::Context d_context;
-  /** 
+  /**
    * The context we are using (either the one provided in the constructor or
    * d_context).
    */
-  context::Context * d_contextUse;
+  context::Context* d_contextUse;
   /** A context-dependent list of lazy proofs. */
   context::CDList<std::shared_ptr<LazyCDProof> > d_pfs;
   /** The name prefix of the lazy proofs */

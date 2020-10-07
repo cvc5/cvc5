@@ -16,18 +16,22 @@
 
 namespace CVC4 {
 
-
 LazyCDProofSet::LazyCDProofSet(ProofNodeManager* pnm,
-            context::Context* c, std::string namePrefix) : d_pnm(pnm), d_contextUse( c ? c : &d_context), d_pfs(d_contextUse), d_namePrefix(namePrefix)
+                               context::Context* c,
+                               std::string namePrefix)
+    : d_pnm(pnm),
+      d_contextUse(c ? c : &d_context),
+      d_pfs(d_contextUse),
+      d_namePrefix(namePrefix)
 {
-  
 }
 
 LazyCDProof* LazyCDProofSet::allocateProof(bool isCd)
 {
   std::stringstream ss;
   ss << d_namePrefix << "_" << d_pfs.size();
-  std::shared_ptr<LazyCDProof> pf = std::make_shared<LazyCDProof>(d_pnm, nullptr, isCd ? d_contextUse : nullptr, ss.str());
+  std::shared_ptr<LazyCDProof> pf = std::make_shared<LazyCDProof>(
+      d_pnm, nullptr, isCd ? d_contextUse : nullptr, ss.str());
   d_pfs.push_back(pf);
   return pf.get();
 }
