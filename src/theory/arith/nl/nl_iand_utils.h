@@ -17,6 +17,7 @@
 
 #include <tuple>
 #include <vector>
+
 #include "expr/node.h"
 
 namespace CVC4 {
@@ -24,8 +25,8 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-class IAndHelper {
-
+class IAndHelper
+{
  public:
   /**
    * A generic function that creates a node that represents a bitwise
@@ -95,7 +96,7 @@ class IAndHelper {
       uint64_t granularity,
       std::map<std::pair<uint64_t, uint64_t>, uint64_t> table);
 };
-  
+
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory

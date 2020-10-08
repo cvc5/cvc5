@@ -12,10 +12,12 @@
  ** \brief Implementation of utilities for the non-linear solver
  **/
 
-#include "cvc4_private.h"
 #include "theory/arith/nl/nl_iand_utils.h"
-#include "theory/arith/nl/nl_model.h"
+
 #include <cmath>
+
+#include "cvc4_private.h"
+#include "theory/arith/nl/nl_model.h"
 namespace CVC4 {
 namespace theory {
 namespace arith {
