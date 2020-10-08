@@ -17,6 +17,7 @@
 #include "expr/proof.h"
 #include "expr/proof_node_algorithm.h"
 #include "theory/rewriter.h"
+#include "options/smt_options.h"
 
 using namespace CVC4::kind;
 
@@ -313,26 +314,29 @@ bool ProofNodeManager::updateNodeInternal(
 {
   Assert(pn != nullptr);
   // ---------------- check for cyclic
-  std::unordered_set<const ProofNode*> visited;
-  for (const std::shared_ptr<ProofNode>& cpc : children)
+  if (options::proofNewEagerChecking())
   {
-    if (expr::containsSubproof(cpc.get(), pn, visited))
+    std::unordered_set<const ProofNode*> visited;
+    for (const std::shared_ptr<ProofNode>& cpc : children)
     {
-      std::stringstream ss;
-      ss << "ProofNodeManager::updateNode: attempting to make cyclic proof! "
-         << id << " " << pn->getResult() << ", children = " << std::endl;
-      for (const std::shared_ptr<ProofNode>& cp : children)
+      if (expr::containsSubproof(cpc.get(), pn, visited))
       {
-        ss << "  " << cp->getRule() << " " << cp->getResult() << std::endl;
+        std::stringstream ss;
+        ss << "ProofNodeManager::updateNode: attempting to make cyclic proof! "
+          << id << " " << pn->getResult() << ", children = " << std::endl;
+        for (const std::shared_ptr<ProofNode>& cp : children)
+        {
+          ss << "  " << cp->getRule() << " " << cp->getResult() << std::endl;
+        }
+        ss << "Full children:" << std::endl;
+        for (const std::shared_ptr<ProofNode>& cp : children)
+        {
+          ss << "  - ";
+          cp->printDebug(ss);
+          ss << std::endl;
+        }
+        Unreachable() << ss.str();
       }
-      ss << "Full children:" << std::endl;
-      for (const std::shared_ptr<ProofNode>& cp : children)
-      {
-        ss << "  - ";
-        cp->printDebug(ss);
-        ss << std::endl;
-      }
-      Unreachable() << ss.str();
     }
   }
   // ---------------- end check for cyclic
