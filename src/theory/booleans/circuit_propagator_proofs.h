@@ -212,6 +212,49 @@ struct CircuitPropagatorProver
                    {mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)})},
                    {mkRat(i)});
   }
+
+  std::shared_ptr<ProofNode> xorX(bool negated, bool x)
+  {
+    if (x)
+    {
+      return mkProof(
+          PfRule::RESOLUTION,
+          {mkProof(negated ? PfRule::NOT_XOR_ELIM2 : PfRule::XOR_ELIM2,
+                   {mkProof(d_parent)}),
+           mkProof(d_parent[0])},
+          {d_parent[0]});
+    }
+    else
+    {
+      return mkProof(
+          PfRule::RESOLUTION,
+          {mkProof(negated ? PfRule::NOT_XOR_ELIM1 : PfRule::XOR_ELIM1,
+                   {mkProof(d_parent)}),
+           mkProof(d_parent[0].negate())},
+          {d_parent[0]});
+    }
+  }
+  std::shared_ptr<ProofNode> xorY(bool negated, bool y)
+  {
+    if (y)
+    {
+      return mkProof(
+          PfRule::RESOLUTION,
+          {mkProof(negated ? PfRule::NOT_XOR_ELIM2 : PfRule::XOR_ELIM2,
+                   {mkProof(d_parent)}),
+           mkProof(d_parent[1])},
+          {d_parent[1]});
+    }
+    else
+    {
+      return mkProof(
+          PfRule::RESOLUTION,
+          {mkProof(negated ? PfRule::NOT_XOR_ELIM1 : PfRule::XOR_ELIM1,
+                   {mkProof(d_parent)}),
+           mkProof(d_parent[1].negate())},
+          {d_parent[1]});
+    }
+  }
   };
 
 }  // namespace booleans
