@@ -28,6 +28,30 @@ using namespace std;
 namespace CVC4 {
 namespace theory {
 namespace booleans {
+namespace {
+
+template <typename T>
+Node mkRat(T val)
+{
+  auto* nm = NodeManager::currentNM();
+  return nm->mkConst<Rational>(val);
+}
+inline std::shared_ptr<ProofNode> mkProof(Node n)
+{
+  return std::make_shared<ProofNode>(PfRule::ASSUME,
+                                     std::vector<std::shared_ptr<ProofNode>>(),
+                                     std::vector<Node>{n});
+}
+inline std::shared_ptr<ProofNode> mkProof(
+    PfRule rule,
+    std::initializer_list<std::shared_ptr<ProofNode>> children,
+    std::initializer_list<Node> args)
+{
+  return std::make_shared<ProofNode>(
+      rule, std::move(children), std::move(args));
+}
+
+}  // namespace  // namespace
 
 CircuitPropagator::CircuitPropagator(bool enableForward, bool enableBackward)
     : d_context(),
@@ -111,6 +135,9 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment) {
       // AND = TRUE: forall children c, assign(c = TRUE)
       for(TNode::iterator i = parent.begin(), i_end = parent.end(); i != i_end; ++i) {
         assignAndEnqueue(*i, true);
+        addProof(
+            *i,
+            mkProof(PfRule::AND_ELIM, {mkProof(parent)}, {mkRat(i - parent.begin())}));
       }
     } else {
       // AND = FALSE: if all children BUT ONE == TRUE, assign(c = FALSE)
@@ -131,6 +158,9 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment) {
       // OR = FALSE: forall children c, assign(c = FALSE)
       for(TNode::iterator i = parent.begin(), i_end = parent.end(); i != i_end; ++i) {
         assignAndEnqueue(*i, false);
+        addProof(
+            (*i).negate(),
+            mkProof(PfRule::NOT_OR_ELIM, {mkProof(parent.negate())}, {mkRat(i - parent.begin())}));
       }
     }
     break;
@@ -394,13 +424,7 @@ bool CircuitPropagator::propagate() {
     if (atom) {
       Debug("circuit-prop") << "CircuitPropagator::propagate(): adding to learned: " << (assignment ? (Node)current : current.notNode()) << std::endl;
       Node lit = assignment ? Node(current) : current.notNode();
-      TrustNode tlit;
-      if (isProofEnabled())
-      {
-        // TODO
-      }
-      // make the trust node
-      tlit = TrustNode::mkTrustLemma(lit, nullptr);
+      TrustNode tlit = TrustNode::mkTrustLemma(lit, d_epg.get());
       d_learnedLiterals.push_back(tlit);
     }
 

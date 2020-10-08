@@ -20,6 +20,7 @@
 #define CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
 
 #include <functional>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 
@@ -28,6 +29,8 @@
 #include "context/cdo.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "expr/proof_generator.h"
+#include "expr/proof_node.h"
 #include "theory/eager_proof_generator.h"
 #include "theory/theory.h"
 #include "theory/trust_node.h"
@@ -298,6 +301,14 @@ class CircuitPropagator
 
   /* Does the current state require a call to finish()? */
   bool d_needsFinish;
+
+  void addProof(TNode f, std::shared_ptr<ProofNode> pf)
+  {
+    if (isProofEnabled())
+    {
+      d_epg->setProofFor(f, std::move(pf));
+    }
+  }
 
   /** Eager proof generator */
   std::unique_ptr<EagerProofGenerator> d_epg;
