@@ -168,7 +168,7 @@ jobs:
     - name: ccache Statistics
       run: ccache -s
 
-    - name: Run CTest
+    - name: Run CTest (and Pytest if python bindings built)
       run: make -j2 check
       env:
         ARGS: --output-on-failure -LE regress[${{ matrix.exclude_regress }}]
@@ -187,12 +187,6 @@ jobs:
       run: |
        export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
        python3 -c "import pycvc4"
-
-    - name: Run Pytest
-      if: matrix.python-bindings
-      run: |
-       export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
-       python3 -m pytest ./test/unit/api/python
 
       # Examples are built for non-symfpu builds
     - name: Check Examples
