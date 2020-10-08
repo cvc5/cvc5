@@ -332,7 +332,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
           if (child == parent[0]) {
             if (getAssignment(parent)) {
               // IFF (x = b) y: if IFF is assigned to TRUE, assign(y = b)
-              assignAndEnqueue(parent[1], childAssignment);
+              assignAndEnqueue(parent[1], childAssignment, prover.eqYFromX());
             } else {
               // IFF (x = b) y: if IFF is assigned to FALSE, assign(y = !b)
               assignAndEnqueue(parent[1], !childAssignment);
@@ -341,9 +341,9 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
             Assert(child == parent[1]);
             if (getAssignment(parent)) {
               // IFF x y = b: if IFF is assigned to TRUE, assign(x = b)
-              assignAndEnqueue(parent[0], childAssignment);
+              assignAndEnqueue(parent[0], childAssignment, prover.eqXFromY());
             } else {
-              // IFF x y = b y: if IFF is assigned to TRUE, assign(x = !b)
+              // IFF x y = b y: if IFF is assigned to FALSE, assign(x = !b)
               assignAndEnqueue(parent[0], !childAssignment);
             }
           }

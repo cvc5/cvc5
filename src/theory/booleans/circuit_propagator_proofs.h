@@ -259,9 +259,9 @@ struct CircuitPropagatorBackwardProver
 
   struct CircuitPropagatorForwardProver
   {
-    TNode d_child;
+    Node d_child;
     bool d_childAssignment;
-    TNode d_parent;
+    Node d_parent;
 
     std::shared_ptr<ProofNode> andTrue()
     {
@@ -299,6 +299,20 @@ struct CircuitPropagatorBackwardProver
       std::vector<Node> children(d_parent.begin(), d_parent.end());
       return mkResolution(mkProof(PfRule::CNF_OR_POS, {}, {d_parent}),
                           children);
+    }
+    std::shared_ptr<ProofNode> eqYFromX()
+    {
+      Assert(d_parent[0] == d_child);
+      return mkProof(PfRule::EQ_RESOLVE,
+                     {mkProof(d_childAssignment ? d_child.negate() : d_child),
+                      mkProof(d_parent)});
+    }
+    std::shared_ptr<ProofNode> eqXFromY()
+    {
+      Assert(d_parent[1] == d_child);
+      return mkProof(PfRule::EQ_RESOLVE,
+                     {mkProof(d_childAssignment ? d_child.negate() : d_child),
+                      mkProof(PfRule::SYMM, {mkProof(d_parent)})});
     }
     std::shared_ptr<ProofNode> impEval(bool premise, bool conclusion)
     {
