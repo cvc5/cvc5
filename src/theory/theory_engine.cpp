@@ -1268,8 +1268,7 @@ TrustNode TheoryEngine::getExplanation(TNode node)
       << " is theory: " << nodeExplainerPair.d_theory << std::endl;
 
   // Create the workplace for explanations
-  std::vector<NodeTheoryPair> vec;
-  vec.push_back(d_propagationMap[toExplain]);
+  std::vector<NodeTheoryPair> vec{d_propagationMap[toExplain]};
   // Process the explanation
   TrustNode texplanation = getExplanation(vec);
   Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << ") => "
