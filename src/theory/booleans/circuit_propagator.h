@@ -198,7 +198,9 @@ class CircuitPropagator
    * Assign Node in circuit with the value and add it to the queue; note
    * conflicts.
    */
-  void assignAndEnqueue(TNode n, bool value)
+  void assignAndEnqueue(TNode n,
+                        bool value,
+                        std::shared_ptr<ProofNode> proof = nullptr)
   {
     Trace("circuit-prop") << "CircuitPropagator::assign(" << n << ", "
                           << (value ? "true" : "false") << ")" << std::endl;
@@ -230,6 +232,19 @@ class CircuitPropagator
       d_state[n] = value ? ASSIGNED_TO_TRUE : ASSIGNED_TO_FALSE;
       // Add for further propagation
       d_propagationQueue.push_back(n);
+
+      if (isProofEnabled())
+      {
+        if (proof == nullptr)
+        {
+          Warning() << "CircuitPropagator: Proof is missing for " << n
+                    << std::endl;
+        }
+        else
+        {
+          d_epg->setProofFor(value ? Node(n) : n.negate(), std::move(proof));
+        }
+      }
     }
   }
 

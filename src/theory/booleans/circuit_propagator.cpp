@@ -112,15 +112,13 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment) {
     if (parentAssignment) {
       // AND = TRUE: forall children c, assign(c = TRUE)
       for(TNode::iterator i = parent.begin(), i_end = parent.end(); i != i_end; ++i) {
-        assignAndEnqueue(*i, true);
-        addProof(*i, prover.andTrue(i));
+        assignAndEnqueue(*i, true, prover.andTrue(i));
       }
     } else {
       // AND = FALSE: if all children BUT ONE == TRUE, assign(c = FALSE)
       TNode::iterator holdout = find_if_unique(parent.begin(), parent.end(), not1(IsAssignedTo(*this, true)));
       if (holdout != parent.end()) {
-        assignAndEnqueue(*holdout, false);
-        addProof((*holdout).negate(), prover.andFalse(holdout));
+        assignAndEnqueue(*holdout, false, prover.andFalse(holdout));
       }
     }
     break;
@@ -129,42 +127,36 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment) {
       // OR = TRUE: if all children BUT ONE == FALSE, assign(c = TRUE)
       TNode::iterator holdout = find_if_unique(parent.begin(), parent.end(), not1(IsAssignedTo(*this, false)));
       if (holdout != parent.end()) {
-        assignAndEnqueue(*holdout, true);
-        addProof(*holdout, prover.orTrue(holdout));
+        assignAndEnqueue(*holdout, true, prover.orTrue(holdout));
       }
     } else {
       // OR = FALSE: forall children c, assign(c = FALSE)
       for(TNode::iterator i = parent.begin(), i_end = parent.end(); i != i_end; ++i) {
-        assignAndEnqueue(*i, false);
-        addProof((*i).negate(), prover.orFalse(i));
+        assignAndEnqueue(*i, false, prover.orFalse(i));
       }
     }
     break;
   case kind::NOT:
     // NOT = b: assign(c = !b)
-    assignAndEnqueue(parent[0], !parentAssignment);
     // TODO: I *think* we only need a dummy proof here
-    addProof(mkNot(parent, !parentAssignment),
-             mkProof(mkNot(parent, !parentAssignment)));
+    assignAndEnqueue(parent[0],
+                     !parentAssignment,
+                     mkProof(mkNot(parent, !parentAssignment)));
     break;
   case kind::ITE:
     if (isAssignedTo(parent[0], true)) {
       // ITE c x y = v: if c is assigned and TRUE, assign(x = v)
-      assignAndEnqueue(parent[1], parentAssignment);
-      addProof(mkNot(parent[1], !parentAssignment), prover.iteC());
+      assignAndEnqueue(parent[1], parentAssignment, prover.iteC());
     } else if (isAssignedTo(parent[0], false)) {
       // ITE c x y = v: if c is assigned and FALSE, assign(y = v)
-      assignAndEnqueue(parent[2], parentAssignment);
-      addProof(mkNot(parent[2], !parentAssignment), prover.iteNotC());
+      assignAndEnqueue(parent[2], parentAssignment, prover.iteNotC());
     } else if (isAssigned(parent[1]) && isAssigned(parent[2])) {
       if (getAssignment(parent[1]) == parentAssignment && getAssignment(parent[2]) != parentAssignment) {
         // ITE c x y = v: if c is unassigned, x and y are assigned, x==v and y!=v, assign(c = TRUE)
-        assignAndEnqueue(parent[0], true);
-        addProof(parent[0], prover.iteIsX());
+        assignAndEnqueue(parent[0], true, prover.iteIsX());
       } else if (getAssignment(parent[1]) != parentAssignment && getAssignment(parent[2]) == parentAssignment) {
         // ITE c x y = v: if c is unassigned, x and y are assigned, x!=v and y==v, assign(c = FALSE)
-        assignAndEnqueue(parent[0], false);
-        addProof(parent[0], prover.iteIsY());
+        assignAndEnqueue(parent[0], false, prover.iteIsY());
       }
     }
     break;
@@ -190,16 +182,16 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment) {
     if (parentAssignment) {
       if (isAssignedTo(parent[0], true)) {
         // IMPLIES x y = TRUE, and x == TRUE: assign(y = TRUE)
-        assignAndEnqueue(parent[1], true);
+        assignAndEnqueue(parent[1], true, prover.impTrue());
       }
       if (isAssignedTo(parent[1], false)) {
         // IMPLIES x y = TRUE, and y == FALSE: assign(x = FALSE)
-        assignAndEnqueue(parent[0], false);
+        assignAndEnqueue(parent[0], false, prover.impFalse());
       }
     } else {
       // IMPLIES x y = FALSE: assign(x = TRUE) and assign(y = FALSE)
-      assignAndEnqueue(parent[0], true);
-      assignAndEnqueue(parent[1], false);
+      assignAndEnqueue(parent[0], true, prover.impNeg(0));
+      assignAndEnqueue(parent[1], false, prover.impNeg(1));
     }
     break;
   case kind::XOR:

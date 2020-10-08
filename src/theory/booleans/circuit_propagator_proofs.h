@@ -23,6 +23,7 @@
 
 #include "expr/node.h"
 #include "expr/proof_node.h"
+#include "theory/booleans/circuit_propagator.h"
 
 namespace CVC4 {
 namespace theory {
@@ -190,7 +191,28 @@ struct CircuitPropagatorProver
           {d_parent[1]});
     }
   }
-};
+
+  std::shared_ptr<ProofNode> impTrue()
+  {
+    return mkProof(PfRule::RESOLUTION,
+                   {mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)}),
+                    mkProof(d_parent[0])},
+                   {d_parent[0]});
+  }
+  std::shared_ptr<ProofNode> impFalse()
+  {
+    return mkProof(PfRule::RESOLUTION,
+                   {mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)}),
+                    mkProof(d_parent[1].negate())},
+                   {d_parent[1]});
+  }
+  std::shared_ptr<ProofNode> impNeg(std::size_t i)
+  {
+    return mkProof(PfRule::NOT_OR_ELIM,
+                   {mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)})},
+                   {mkRat(i)});
+  }
+  };
 
 }  // namespace booleans
 }  // namespace theory
