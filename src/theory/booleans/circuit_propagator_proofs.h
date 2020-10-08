@@ -38,31 +38,6 @@ Node mkRat(T val)
   return nm->mkConst<Rational>(val);
 }
 Node mkNot(Node n, bool negated) { return negated ? n.negate() : n; }
-inline std::shared_ptr<ProofNode> mkProof(Node n)
-{
-  return std::make_shared<ProofNode>(PfRule::ASSUME,
-                                     std::vector<std::shared_ptr<ProofNode>>(),
-                                     std::vector<Node>{n});
-}
-inline std::shared_ptr<ProofNode> mkProof(
-    PfRule rule,
-    const std::vector<std::shared_ptr<ProofNode>>& children,
-    std::initializer_list<Node> args = {})
-{
-  return std::make_shared<ProofNode>(
-      rule, std::move(children), std::move(args));
-}
-inline std::shared_ptr<ProofNode> mkResolution(
-    std::shared_ptr<ProofNode> clause, const std::vector<Node>& negLits)
-{
-  std::vector<std::shared_ptr<ProofNode>> children = {clause};
-  for (const auto& n : negLits)
-  {
-    children.emplace_back(mkProof(n));
-  }
-  return std::make_shared<ProofNode>(
-      PfRule::CHAIN_RESOLUTION, children, negLits);
-}
 
 inline std::vector<Node> collectButHoldout(TNode parent,
                                            TNode::iterator holdout)
@@ -81,10 +56,44 @@ inline std::vector<Node> collectButHoldout(TNode parent,
 
 }  // namespace
 
-struct CircuitPropagatorBackwardProver
+struct CircuitPropagatorProver
+{
+  ProofNodeManager* d_pnm;
+
+  std::shared_ptr<ProofNode> mkProof(Node n)
+{
+  return std::make_shared<ProofNode>(PfRule::ASSUME,
+                                     std::vector<std::shared_ptr<ProofNode>>(),
+                                     std::vector<Node>{n});
+}
+std::shared_ptr<ProofNode> mkProof(
+    PfRule rule,
+    const std::vector<std::shared_ptr<ProofNode>>& children,
+    std::initializer_list<Node> args = {})
+{
+  return std::make_shared<ProofNode>(
+      rule, std::move(children), std::move(args));
+}
+std::shared_ptr<ProofNode> mkResolution(
+    std::shared_ptr<ProofNode> clause, const std::vector<Node>& negLits)
+{
+  std::vector<std::shared_ptr<ProofNode>> children = {clause};
+  for (const auto& n : negLits)
+  {
+    children.emplace_back(mkProof(n));
+  }
+  return std::make_shared<ProofNode>(
+      PfRule::CHAIN_RESOLUTION, children, negLits);
+}
+};
+
+struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
 {
   TNode d_parent;
   bool d_parentAssignment;
+
+  CircuitPropagatorBackwardProver(ProofNodeManager* pnm, TNode parent, bool parentAssignment):
+    CircuitPropagatorProver{pnm}, d_parent(parent), d_parentAssignment(parentAssignment) {}
 
   std::shared_ptr<ProofNode> andTrue(TNode::iterator i)
   {
@@ -255,13 +264,16 @@ struct CircuitPropagatorBackwardProver
           {d_parent[1]});
     }
   }
-  };
+};
 
-  struct CircuitPropagatorForwardProver
+  struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
   {
     Node d_child;
     bool d_childAssignment;
     Node d_parent;
+
+    CircuitPropagatorForwardProver(ProofNodeManager* pnm, Node child, bool childAssignment, Node parent):
+    CircuitPropagatorProver{pnm}, d_child(child), d_childAssignment(childAssignment), d_parent(parent) {}
 
     std::shared_ptr<ProofNode> andTrue()
     {
@@ -307,6 +319,21 @@ struct CircuitPropagatorBackwardProver
                      {mkProof(d_childAssignment ? d_child.negate() : d_child),
                       mkProof(d_parent)});
     }
+    std::shared_ptr<ProofNode> neqYFromX()
+    {
+      Assert(d_parent[0] == d_child);
+      if (d_childAssignment)
+      {
+        return mkResolution(
+            mkProof(PfRule::NOT_EQUIV_ELIM2, {mkProof(d_parent)}), {d_child});
+      }
+      else
+      {
+        return mkResolution(
+            mkProof(PfRule::NOT_EQUIV_ELIM1, {mkProof(d_parent)}),
+            {d_child.negate()});
+      }
+    }
     std::shared_ptr<ProofNode> eqXFromY()
     {
       Assert(d_parent[1] == d_child);
@@ -314,6 +341,25 @@ struct CircuitPropagatorBackwardProver
                      {mkProof(d_childAssignment ? d_child.negate() : d_child),
                       mkProof(PfRule::SYMM, {mkProof(d_parent)})});
     }
+    std::shared_ptr<ProofNode> neqXFromY()
+    {
+      Assert(d_parent[0] == d_child);
+      if (d_childAssignment)
+      {
+        return mkResolution(
+            mkProof(PfRule::NOT_EQUIV_ELIM2,
+                    {mkProof(PfRule::SYMM, {mkProof(d_parent)})}),
+            {d_child});
+      }
+      else
+      {
+        return mkResolution(
+            mkProof(PfRule::NOT_EQUIV_ELIM1,
+                    {mkProof(PfRule::SYMM, {mkProof(d_parent)})}),
+            {d_child.negate()});
+      }
+    }
+
     std::shared_ptr<ProofNode> impEval(bool premise, bool conclusion)
     {
       return nullptr;

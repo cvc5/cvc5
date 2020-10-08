@@ -44,6 +44,7 @@ CircuitPropagator::CircuitPropagator(bool enableForward, bool enableBackward)
       d_forwardPropagation(enableForward),
       d_backwardPropagation(enableBackward),
       d_needsFinish(false),
+      d_pnm(nullptr),
       d_epg(nullptr)
 {
 }
@@ -58,7 +59,7 @@ void CircuitPropagator::assertTrue(TNode assertion)
     // Analyze the assertion for back-edges and all that
     computeBackEdges(assertion);
     // Assign the given assertion to true
-    assignAndEnqueue(assertion, true, mkProof(assertion));
+    assignAndEnqueue(assertion, true, d_pnm->mkAssume(assertion));
   }
 }
 
@@ -104,7 +105,7 @@ void CircuitPropagator::computeBackEdges(TNode node) {
 void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment) {
 
   Debug("circuit-prop") << "CircuitPropagator::propagateBackward(" << parent << ", " << parentAssignment << ")" << endl;
-  CircuitPropagatorBackwardProver prover{parent, parentAssignment};
+  CircuitPropagatorBackwardProver prover{{d_pnm}, parent, parentAssignment};
 
   // backward rules
   switch(parent.getKind()) {
@@ -139,9 +140,7 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment) {
   case kind::NOT:
     // NOT = b: assign(c = !b)
     // TODO: I *think* we only need a dummy proof here
-    assignAndEnqueue(parent[0],
-                     !parentAssignment,
-                     mkProof(mkNot(parent, !parentAssignment)));
+    assignAndEnqueue(parent[0], !parentAssignment);
     break;
   case kind::ITE:
     if (isAssignedTo(parent[0], true)) {
@@ -243,7 +242,8 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
     TNode parent = *parent_it;
     Assert(expr::hasSubterm(parent, child));
 
-    CircuitPropagatorForwardProver prover{child, childAssignment, parent};
+    CircuitPropagatorForwardProver prover{
+        {d_pnm}, child, childAssignment, parent};
 
     // Forward rules
     switch(parent.getKind()) {
@@ -290,8 +290,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
 
     case kind::NOT:
       // NOT (x=b): assign(NOT = !b)
-      assignAndEnqueue(
-          parent, !childAssignment, mkProof(mkNot(parent, !childAssignment)));
+      assignAndEnqueue(parent, !childAssignment);
       break;
 
     case kind::ITE:
@@ -335,7 +334,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
               assignAndEnqueue(parent[1], childAssignment, prover.eqYFromX());
             } else {
               // IFF (x = b) y: if IFF is assigned to FALSE, assign(y = !b)
-              assignAndEnqueue(parent[1], !childAssignment);
+              assignAndEnqueue(parent[1], !childAssignment, prover.neqYFromX());
             }
           } else {
             Assert(child == parent[1]);
@@ -344,7 +343,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
               assignAndEnqueue(parent[0], childAssignment, prover.eqXFromY());
             } else {
               // IFF x y = b y: if IFF is assigned to FALSE, assign(x = !b)
-              assignAndEnqueue(parent[0], !childAssignment);
+              assignAndEnqueue(parent[0], !childAssignment, prover.neqXFromY());
             }
           }
         }
@@ -452,6 +451,7 @@ bool CircuitPropagator::propagate() {
 
 void CircuitPropagator::setProofNodeManager(ProofNodeManager* pnm)
 {
+  d_pnm = pnm;
   d_epg.reset(new EagerProofGenerator(pnm, &d_context));
 }
 

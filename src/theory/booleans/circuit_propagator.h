@@ -245,25 +245,15 @@ class CircuitPropagator
           }
           else
           {
-            if (!proof->getResult().isNull())
+            Assert(!proof->getResult().isNull());
+            Node expected = value ? Node(n) : n.negate();
+            if (proof->getResult() != expected)
             {
-              Node expected = value ? Node(n) : n.negate();
-              if (proof->getResult() != expected)
-              {
-                Warning() << "CircuitPropagator: Incorrect proof: " << expected
-                          << " vs. " << proof->getResult() << std::endl
-                          << *proof << std::endl;
-              }
-              d_epg->setProofFor(expected, std::move(proof));
+              Warning() << "CircuitPropagator: Incorrect proof: " << expected
+                        << " vs. " << proof->getResult() << std::endl
+                        << *proof << std::endl;
             }
-            else
-            {
-              Node expected = value ? Node(n) : n.negate();
-              Warning()
-                  << "CircuitPropagator: Ignored proof as its result is null: "
-                  << expected << std::endl
-                  << *proof << std::endl;
-            }
+            d_epg->setProofFor(expected, std::move(proof));
           }
         }
       }
@@ -347,6 +337,7 @@ class CircuitPropagator
     }
   }
 
+  ProofNodeManager* d_pnm;
   /** Eager proof generator */
   std::unique_ptr<EagerProofGenerator> d_epg;
 
