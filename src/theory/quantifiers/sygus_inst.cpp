@@ -249,8 +249,7 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
 
   for (const Node& q : d_active_quant)
   {
-    std::vector<Node> terms;
-    bool added_unfolding_lemma = false;
+    std::vector<Node> terms, unfold_lemmas;
     for (const Node& var : q[0])
     {
       Node dt_var = d_inst_constants[var];
@@ -258,8 +257,6 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
       Node value = model->getValue(dt_var);
       Node t = datatypes::utils::sygusToBuiltin(value);
       terms.push_back(t);
-
-      if (mode == options::SygusInstLemmaMode::INSTONLY) continue;
 
       std::vector<Node> exp;
       syexplain.getExplanationForEquality(dt_var, value, exp);
@@ -274,21 +271,25 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
                          exp.size() == 1 ? exp[0] : nm->mkNode(kind::AND, exp),
                          dt_eval.eqNode(t));
       }
-
-      if (d_lemma_cache.find(lem) == d_lemma_cache.end())
-      {
-        Trace("sygus-inst") << "Evaluation unfolding: " << lem << std::endl;
-        d_quantEngine->addLemma(lem, false);
-        d_lemma_cache.insert(lem);
-        added_unfolding_lemma = true;
-      }
+      unfold_lemmas.push_back(lem);
     }
 
-    if (!added_unfolding_lemma || mode == options::SygusInstLemmaMode::PARALLEL)
+    bool added_instantiation = inst->addInstantiation(q, terms);
+    if (added_instantiation)
     {
-      if (inst->addInstantiation(q, terms))
+      Trace("sygus-inst") << "Instantiate " << q << std::endl;
+    }
+
+    if (!added_instantiation || mode == options::SygusInstLemmaMode::PARALLEL)
+    {
+      for (const Node& lem : unfold_lemmas)
       {
-        Trace("sygus-inst") << "Instantiate " << q << std::endl;
+        if (d_lemma_cache.find(lem) == d_lemma_cache.end())
+        {
+          Trace("sygus-inst") << "Evaluation unfolding: " << lem << std::endl;
+          d_quantEngine->addLemma(lem, false);
+          d_lemma_cache.insert(lem);
+        }
       }
     }
   }

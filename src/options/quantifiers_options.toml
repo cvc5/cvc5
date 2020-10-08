@@ -2042,10 +2042,7 @@ header = "options/quantifiers_options.h"
   help_mode  = "SyGuS instantiation lemma modes."
 [[option.mode.STAGED]]
   name = "staged"
-  help = "add evaluation unfolding and instantiation lemmas in two separate steps."
-[[option.mode.INSTONLY]]
-  name = "inst"
-  help = "add only instantiation lemmas (no evaluation unfolding)."
+  help = "add instantiation lemma and evaluation unfolding in two separate steps."
 [[option.mode.PARALLEL]]
   name = "parallel"
   help = "add evaluation unfolding and in stantiation lemmas in same step."
