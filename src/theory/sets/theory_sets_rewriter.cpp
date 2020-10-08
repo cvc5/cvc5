@@ -161,7 +161,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       std::set_intersection(left.begin(), left.end(), right.begin(), right.end(),
                             std::inserter(newSet, newSet.begin()));
       Node newNode = NormalForm::elementsToSet(newSet, node.getType());
-      Assert(newNode.isConst());
+      Assert(newNode.isConst() && newNode.getType() == node.getType());
       Trace("sets-postrewrite") << "Sets::postRewrite returning " << newNode << std::endl;
       return RewriteResponse(REWRITE_DONE, newNode);
     }
@@ -488,12 +488,14 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
   }
   else if (k == kind::INSERT)
   {
-    Node insertedElements = nm->mkNode(kind::SINGLETON, node[0]);
     size_t setNodeIndex =  node.getNumChildren()-1;
-    for(size_t i = 1; i < setNodeIndex; ++i) {
-      insertedElements = nm->mkNode(kind::UNION, 
-                                    insertedElements,
-                                    nm->mkNode(kind::SINGLETON, node[i]));
+    TypeNode elementType = node[setNodeIndex].getType().getSetElementType();
+    Node insertedElements = nm->mkSingleton(elementType, node[0]);
+
+    for (size_t i = 1; i < setNodeIndex; ++i)
+    {
+      Node singleton = nm->mkSingleton(elementType, node[i]);
+      insertedElements = nm->mkNode(kind::UNION, insertedElements, singleton);
     }
     return RewriteResponse(REWRITE_AGAIN, 
                            nm->mkNode(kind::UNION,

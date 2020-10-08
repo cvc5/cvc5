@@ -45,7 +45,7 @@ TheoryArith::TheoryArith(context::Context* c,
       d_astate(*d_internal, c, u, valuation),
       d_inferenceManager(*this, d_astate, pnm),
       d_nonlinearExtension(nullptr),
-      d_opElim(pnm, logicInfo)
+      d_arithPreproc(d_astate, d_inferenceManager, pnm, logicInfo)
 {
   smtStatisticsRegistry()->registerStat(&d_ppRewriteTimer);
 
@@ -100,7 +100,7 @@ void TheoryArith::preRegisterTerm(TNode n)
 TrustNode TheoryArith::expandDefinition(Node node)
 {
   // call eliminate operators
-  return d_opElim.eliminate(node);
+  return d_arithPreproc.eliminate(node);
 }
 
 void TheoryArith::notifySharedTerm(TNode n) { d_internal->notifySharedTerm(n); }
@@ -147,11 +147,13 @@ TrustNode TheoryArith::ppRewriteTerms(TNode n)
   // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may
   // introduce non-standard arithmetic terms appearing in grammars.
   // call eliminate operators
-  return d_opElim.eliminate(n);
+  return d_arithPreproc.eliminate(n);
 }
 
-Theory::PPAssertStatus TheoryArith::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
-  return d_internal->ppAssert(in, outSubstitutions);
+Theory::PPAssertStatus TheoryArith::ppAssert(
+    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
+{
+  return d_internal->ppAssert(tin, outSubstitutions);
 }
 
 void TheoryArith::ppStaticLearn(TNode n, NodeBuilder<>& learned) {

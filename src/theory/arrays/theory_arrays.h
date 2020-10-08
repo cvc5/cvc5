@@ -193,7 +193,8 @@ class TheoryArrays : public Theory {
   InferenceManager d_im;
 
  public:
-  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
+  PPAssertStatus ppAssert(TrustNode tin,
+                          TrustSubstitutionMap& outSubstitutions) override;
   TrustNode ppRewrite(TNode atom) override;
 
   /////////////////////////////////////////////////////////////////////////////

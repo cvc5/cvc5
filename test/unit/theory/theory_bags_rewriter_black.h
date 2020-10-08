@@ -584,6 +584,33 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
               && response2.d_status == REWRITE_AGAIN_FULL);
   }
 
+  void testFromSet()
+  {
+    Node x = d_nm->mkSkolem("x", d_nm->stringType());
+    Node singleton = d_nm->mkSingleton(d_nm->stringType(), x);
+
+    // (bag.from_set (singleton (singleton_op Int) x)) = (mkBag x 1)
+    Node n = d_nm->mkNode(BAG_FROM_SET, singleton);
+    RewriteResponse response = d_rewriter->postRewrite(n);
+    Node one = d_nm->mkConst(Rational(1));
+    Node bag = d_nm->mkNode(MK_BAG, x, one);
+    TS_ASSERT(response.d_node == bag
+              && response.d_status == REWRITE_AGAIN_FULL);
+  }
+
+  void testToSet()
+  {
+    Node x = d_nm->mkSkolem("x", d_nm->stringType());
+    Node bag = d_nm->mkNode(MK_BAG, x, d_nm->mkConst(Rational(5)));
+
+    // (bag.to_set (mkBag x n)) = (singleton (singleton_op T) x)
+    Node n = d_nm->mkNode(BAG_TO_SET, bag);
+    RewriteResponse response = d_rewriter->postRewrite(n);
+    Node singleton = d_nm->mkSingleton(d_nm->stringType(), x);
+    TS_ASSERT(response.d_node == singleton
+              && response.d_status == REWRITE_AGAIN_FULL);
+  }
+
  private:
   std::unique_ptr<ExprManager> d_em;
   std::unique_ptr<SmtEngine> d_smt;

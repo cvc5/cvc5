@@ -375,9 +375,10 @@ bool Theory::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
   return true;
 }
 
-Theory::PPAssertStatus Theory::ppAssert(TNode in,
-                                        SubstitutionMap& outSubstitutions)
+Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
+                                        TrustSubstitutionMap& outSubstitutions)
 {
+  TNode in = tin.getNode();
   if (in.getKind() == kind::EQUAL)
   {
     // (and (= x t) phi) can be replaced by phi[x/t] if

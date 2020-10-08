@@ -254,6 +254,8 @@ bool ProofNodeManager::updateNode(
 
 bool ProofNodeManager::updateNode(ProofNode* pn, ProofNode* pnr)
 {
+  Assert(pn != nullptr);
+  Assert(pnr != nullptr);
   if (pn->getResult() != pnr->getResult())
   {
     return false;
@@ -296,6 +298,7 @@ bool ProofNodeManager::updateNodeInternal(
     const std::vector<Node>& args,
     bool needsCheck)
 {
+  Assert(pn != nullptr);
   // ---------------- check for cyclic
   std::unordered_map<const ProofNode*, bool> visited;
   std::unordered_map<const ProofNode*, bool>::iterator it;

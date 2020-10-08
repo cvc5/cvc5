@@ -958,11 +958,11 @@ class CVC4_PUBLIC Term
   bool isNull() const;
 
   /**
-   * Check if this is a Term representing a constant.
+   * Check if this is a Term representing a value.
    *
-   * @return true if a constant Term
+   * @return true if this is a Term representing a value
    */
-  bool isConst() const;
+  bool isValue() const;
 
   /**
    *  Return the base (element stored at all indices) of a constant array
@@ -2598,6 +2598,15 @@ class CVC4_PUBLIC Solver
    * @return the empty set constant
    */
   Term mkEmptySet(Sort s) const;
+
+  /**
+   * Create a singleton set from the given element t.
+   * @param s the element sort of the returned set.
+   * Note that the sort of t needs to be a subtype of s.
+   * @param t the single element in the singleton.
+   * @return a singleton set constructed from the element t.
+   */
+  Term mkSingleton(Sort s, Term t) const;
 
   /**
    * Create a constant representing an empty bag of the given sort.
