@@ -40,7 +40,8 @@ Node mkRat(T val)
 Node mkNot(Node n, bool negated) { return negated ? n.negate() : n; }
 
 inline std::vector<Node> collectButHoldout(TNode parent,
-                                           TNode::iterator holdout)
+                                           TNode::iterator holdout,
+                                           bool negate = false)
 {
   std::vector<Node> lits;
   for (TNode::iterator i = parent.begin(), i_end = parent.end(); i != i_end;
@@ -48,7 +49,7 @@ inline std::vector<Node> collectButHoldout(TNode parent,
   {
     if (i != holdout)
     {
-      lits.emplace_back(*i);
+      lits.emplace_back(negate ? (*i).negate() : Node(*i));
     }
   }
   return lits;
@@ -59,6 +60,7 @@ inline std::vector<Node> collectButHoldout(TNode parent,
 struct CircuitPropagatorProver
 {
   ProofNodeManager* d_pnm;
+  EagerProofGenerator* d_epg;
 
   std::shared_ptr<ProofNode> mkProof(Node n) { return d_pnm->mkAssume(n); }
   std::shared_ptr<ProofNode> mkProof(
@@ -87,7 +89,24 @@ struct CircuitPropagatorProver
       children.emplace_back(mkProof(n.negate()));
     }
     return mkProof(PfRule::CHAIN_RESOLUTION, children, lits);
-}
+  }
+  Node mkRewrite(Node n)
+  {
+    theory::TheoryProofStepBuffer psb;
+    Node res = psb.factorReorderElimDoubleNeg(n);
+    for (const auto& step : psb.getSteps())
+    {
+      std::vector<std::shared_ptr<ProofNode>> children;
+      for (const auto& c : step.second.d_children)
+      {
+        children.emplace_back(mkProof(c));
+      }
+      d_epg->setProofFor(
+          step.first,
+          mkProof(step.second.d_rule, children, step.second.d_args));
+    }
+    return res;
+  }
 };
 
 struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
@@ -95,8 +114,15 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
   TNode d_parent;
   bool d_parentAssignment;
 
-  CircuitPropagatorBackwardProver(ProofNodeManager* pnm, TNode parent, bool parentAssignment):
-    CircuitPropagatorProver{pnm}, d_parent(parent), d_parentAssignment(parentAssignment) {}
+  CircuitPropagatorBackwardProver(ProofNodeManager* pnm,
+                                  EagerProofGenerator* epg,
+                                  TNode parent,
+                                  bool parentAssignment)
+      : CircuitPropagatorProver{pnm, epg},
+        d_parent(parent),
+        d_parentAssignment(parentAssignment)
+  {
+  }
 
   std::shared_ptr<ProofNode> andTrue(TNode::iterator i)
   {
@@ -267,145 +293,151 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
   }
 };
 
-  struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
+struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
+{
+  Node d_child;
+  bool d_childAssignment;
+  Node d_parent;
+
+  CircuitPropagatorForwardProver(ProofNodeManager* pnm,
+                                 EagerProofGenerator* epg,
+                                 Node child,
+                                 bool childAssignment,
+                                 Node parent)
+      : CircuitPropagatorProver{pnm, epg},
+        d_child(child),
+        d_childAssignment(childAssignment),
+        d_parent(parent)
   {
-    Node d_child;
-    bool d_childAssignment;
-    Node d_parent;
+  }
 
-    CircuitPropagatorForwardProver(ProofNodeManager* pnm, Node child, bool childAssignment, Node parent):
-    CircuitPropagatorProver{pnm}, d_child(child), d_childAssignment(childAssignment), d_parent(parent) {}
+  std::shared_ptr<ProofNode> andTrue()
+  {
+    std::vector<std::shared_ptr<ProofNode>> children;
+    for (const auto& child : d_parent)
+    {
+      children.emplace_back(mkProof(child));
+    }
+    return mkProof(PfRule::AND_INTRO, children);
+  }
+  std::shared_ptr<ProofNode> andFalse(TNode::iterator holdout)
+  {
+    // AND ...(x=TRUE)...: if all children BUT ONE now assigned to TRUE, and
+    // AND == FALSE, assign(last_holdout = FALSE)
+    auto tmp = mkProof(PfRule::NOT_AND, {mkProof(d_parent.negate())});
+    d_epg->setProofFor(tmp->getResult(), tmp);
+    Node n = mkRewrite(tmp->getResult());
+    return mkResolution(mkProof(n), collectButHoldout(d_parent, holdout, true));
+  }
+  std::shared_ptr<ProofNode> andFalse()
+  {
+    auto it = std::find(d_parent.begin(), d_parent.end(), d_child);
+    return mkProof(PfRule::SCOPE,
+                   {mkContra(mkProof(PfRule::AND_ELIM,
+                                     {mkProof(d_parent)},
+                                     {mkRat(it - d_parent.begin())}),
+                             mkProof(d_child.negate()))},
+                   {d_parent});
+  }
 
-    std::shared_ptr<ProofNode> andTrue()
-    {
-      std::vector<std::shared_ptr<ProofNode>> children;
-      for (const auto& child : d_parent)
-      {
-        children.emplace_back(mkProof(child));
-      }
-      return mkProof(PfRule::AND_INTRO, children);
-    }
-    std::shared_ptr<ProofNode> andFalse(TNode::iterator holdout)
-    {
-      // AND ...(x=TRUE)...: if all children BUT ONE now assigned to TRUE, and
-      // AND == FALSE, assign(last_holdout = FALSE)
-      return mkResolution(
-          mkProof(PfRule::NOT_AND, {mkProof(d_parent.negate())}),
-          collectButHoldout(d_parent, holdout));
-    }
-    std::shared_ptr<ProofNode> andFalse()
-    {
-      auto it = std::find(d_parent.begin(), d_parent.end(), d_child);
-      return mkProof(PfRule::SCOPE,
-                     {mkContra(mkProof(PfRule::AND_ELIM,
-                                       {mkProof(d_parent)},
-                                       {mkRat(it - d_parent.begin())}),
-                               mkProof(d_child.negate()))},
-                     {d_parent});
-    }
+  std::shared_ptr<ProofNode> orTrue()
+  {
+    auto it = std::find(d_parent.begin(), d_parent.end(), d_child);
+    return mkProof(
+        PfRule::CHAIN_RESOLUTION,
+        {mkProof(
+             PfRule::CNF_OR_NEG, {}, {d_parent, mkRat(it - d_parent.begin())}),
+         mkProof(d_child)},
+        {d_child.negate()});
+  }
+  std::shared_ptr<ProofNode> orTrue(TNode::iterator holdout)
+  {
+    return mkResolution(mkProof(d_parent),
+                        collectButHoldout(d_parent, holdout));
+  }
+  std::shared_ptr<ProofNode> orFalse()
+  {
+    std::vector<Node> children(d_parent.begin(), d_parent.end());
+    return mkResolution(mkProof(PfRule::CNF_OR_POS, {}, {d_parent}), children);
+  }
 
-    std::shared_ptr<ProofNode> orTrue()
+  std::shared_ptr<ProofNode> eqEval()
+  {
+    if (d_childAssignment)
     {
-      auto it = std::find(d_parent.begin(), d_parent.end(), d_child);
       return mkProof(PfRule::CHAIN_RESOLUTION,
-                     {mkProof(PfRule::CNF_OR_NEG,
-                              {},
-                              {d_parent, mkRat(it - d_parent.begin())}),
-                      mkProof(d_child)},
-                     {d_child.negate()});
+                     {mkProof(PfRule::CNF_EQUIV_NEG2, {}, {d_parent}),
+                      mkProof(d_parent[0]),
+                      mkProof(d_parent[1])},
+                     {d_parent[0].negate(), d_parent[1].negate()});
     }
-    std::shared_ptr<ProofNode> orTrue(TNode::iterator holdout)
+    else
     {
-      return mkResolution(mkProof(d_parent),
-                          collectButHoldout(d_parent, holdout));
-    }
-    std::shared_ptr<ProofNode> orFalse()
-    {
-      std::vector<Node> children(d_parent.begin(), d_parent.end());
-      return mkResolution(mkProof(PfRule::CNF_OR_POS, {}, {d_parent}),
-                          children);
-    }
-
-    std::shared_ptr<ProofNode> eqEval()
-    {
-      if (d_childAssignment)
-      {
-        return mkProof(PfRule::CHAIN_RESOLUTION,
-                       {mkProof(PfRule::CNF_EQUIV_NEG2, {}, {d_parent}),
-                        mkProof(d_parent[0]),
-                        mkProof(d_parent[1])},
-                       {d_parent[0].negate(), d_parent[1].negate()});
-      }
-      else
-      {
-        return mkProof(PfRule::CHAIN_RESOLUTION,
-                       {mkProof(PfRule::CNF_EQUIV_NEG1, {}, {d_parent}),
-                        mkProof(d_parent[0].negate()),
-                        mkProof(d_parent[1].negate())},
-                       {d_parent[0], d_parent[1]});
-      }
-    }
-    std::shared_ptr<ProofNode> eqYFromX()
-    {
-      Assert(d_parent[0] == d_child);
-      return mkProof(PfRule::EQ_RESOLVE,
-                     {mkProof(d_childAssignment ? d_child.negate() : d_child),
-                      mkProof(d_parent)});
-    }
-    std::shared_ptr<ProofNode> neqYFromX()
-    {
-      Assert(d_parent[0] == d_child);
-      if (d_childAssignment)
-      {
-        return mkResolution(
-            mkProof(PfRule::NOT_EQUIV_ELIM2, {mkProof(d_parent)}), {d_child});
-      }
-      else
-      {
-        return mkResolution(
-            mkProof(PfRule::NOT_EQUIV_ELIM1, {mkProof(d_parent)}),
-            {d_child.negate()});
-      }
-    }
-    std::shared_ptr<ProofNode> eqXFromY()
-    {
-      Assert(d_parent[1] == d_child);
-      return mkProof(PfRule::EQ_RESOLVE,
-                     {mkProof(d_childAssignment ? d_child.negate() : d_child),
-                      mkProof(PfRule::SYMM, {mkProof(d_parent)})});
-    }
-    std::shared_ptr<ProofNode> neqXFromY()
-    {
-      Assert(d_parent[0] == d_child);
-      if (d_childAssignment)
-      {
-        return mkResolution(
-            mkProof(PfRule::NOT_EQUIV_ELIM2,
-                    {mkProof(PfRule::SYMM, {mkProof(d_parent)})}),
-            {d_child});
-      }
-      else
-      {
-        return mkResolution(
-            mkProof(PfRule::NOT_EQUIV_ELIM1,
-                    {mkProof(PfRule::SYMM, {mkProof(d_parent)})}),
-            {d_child.negate()});
-      }
-    }
-
-    std::shared_ptr<ProofNode> impEval(bool premise, bool conclusion)
-    {
-      return nullptr;
-    }
-    std::shared_ptr<ProofNode> impTrue()
-    {
-      // TRUE implies y
       return mkProof(PfRule::CHAIN_RESOLUTION,
-                     {mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)}),
-                      mkProof(d_child)},
-                     {d_child.negate()});
+                     {mkProof(PfRule::CNF_EQUIV_NEG1, {}, {d_parent}),
+                      mkProof(d_parent[0].negate()),
+                      mkProof(d_parent[1].negate())},
+                     {d_parent[0], d_parent[1]});
     }
-  };
+  }
+  std::shared_ptr<ProofNode> eqYFromX()
+  {
+    Assert(d_parent[0] == d_child);
+    return mkProof(PfRule::EQ_RESOLVE,
+                   {mkProof(d_childAssignment ? d_child.negate() : d_child),
+                    mkProof(d_parent)});
+  }
+  std::shared_ptr<ProofNode> neqYFromX()
+  {
+    Assert(d_parent[0] == d_child);
+    if (d_childAssignment)
+    {
+      return mkResolution(mkProof(PfRule::NOT_EQUIV_ELIM2, {mkProof(d_parent)}),
+                          {d_child});
+    }
+    else
+    {
+      return mkResolution(mkProof(PfRule::NOT_EQUIV_ELIM1, {mkProof(d_parent)}),
+                          {d_child.negate()});
+    }
+  }
+  std::shared_ptr<ProofNode> eqXFromY()
+  {
+    Assert(d_parent[1] == d_child);
+    return mkProof(PfRule::EQ_RESOLVE,
+                   {mkProof(d_childAssignment ? d_child.negate() : d_child),
+                    mkProof(PfRule::SYMM, {mkProof(d_parent)})});
+  }
+  std::shared_ptr<ProofNode> neqXFromY()
+  {
+    Assert(d_parent[0] == d_child);
+    if (d_childAssignment)
+    {
+      return mkResolution(mkProof(PfRule::NOT_EQUIV_ELIM2,
+                                  {mkProof(PfRule::SYMM, {mkProof(d_parent)})}),
+                          {d_child});
+    }
+    else
+    {
+      return mkResolution(mkProof(PfRule::NOT_EQUIV_ELIM1,
+                                  {mkProof(PfRule::SYMM, {mkProof(d_parent)})}),
+                          {d_child.negate()});
+    }
+  }
+
+  std::shared_ptr<ProofNode> impEval(bool premise, bool conclusion)
+  {
+    return nullptr;
+  }
+  std::shared_ptr<ProofNode> impTrue()
+  {
+    // TRUE implies y
+    return mkProof(
+        PfRule::CHAIN_RESOLUTION,
+        {mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)}), mkProof(d_child)},
+        {d_child.negate()});
+  }
+};
 
 }  // namespace booleans
 }  // namespace theory

@@ -112,7 +112,8 @@ void CircuitPropagator::computeBackEdges(TNode node) {
 void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment) {
 
   Debug("circuit-prop") << "CircuitPropagator::propagateBackward(" << parent << ", " << parentAssignment << ")" << endl;
-  CircuitPropagatorBackwardProver prover{{d_pnm}, parent, parentAssignment};
+  CircuitPropagatorBackwardProver prover{
+      d_pnm, d_epg.get(), parent, parentAssignment};
 
   // backward rules
   switch(parent.getKind()) {
@@ -253,7 +254,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
     Assert(expr::hasSubterm(parent, child));
 
     CircuitPropagatorForwardProver prover{
-        {d_pnm}, child, childAssignment, parent};
+        d_pnm, d_epg.get(), child, childAssignment, parent};
 
     // Forward rules
     switch(parent.getKind()) {
