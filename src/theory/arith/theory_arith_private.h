@@ -17,9 +17,10 @@
 
 #pragma once
 
+#include <stdint.h>
+
 #include <map>
 #include <queue>
-#include <stdint.h>
 #include <vector>
 
 #include "context/cdhashset.h"
@@ -57,6 +58,7 @@
 #include "theory/eager_proof_generator.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "theory/trust_node.h"
 #include "theory/valuation.h"
 #include "util/dense_map.h"
 #include "util/integer.h"
@@ -329,8 +331,7 @@ private:
   // void raiseConflict(ConstraintCP a, ConstraintCP b, ConstraintCP c);
 
   /** This is a conflict that is magically known to hold. */
-  void raiseBlackBoxConflict(Node bb);
-
+  void raiseBlackBoxConflict(Node bb, std::shared_ptr<ProofNode> pf = nullptr);
   /**
    * Returns true iff a conflict has been raised. This method is public since
    * it is needed by the ArithState class to know whether we are in conflict.
@@ -465,7 +466,8 @@ private:
 
   void presolve();
   void notifyRestart();
-  Theory::PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
+  Theory::PPAssertStatus ppAssert(TrustNode tin,
+                                  TrustSubstitutionMap& outSubstitutions);
   void ppStaticLearn(TNode in, NodeBuilder<>& learned);
 
   std::string identify() const { return std::string("TheoryArith"); }

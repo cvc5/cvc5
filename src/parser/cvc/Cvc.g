@@ -2158,9 +2158,9 @@ simpleTerm[CVC4::api::Term& f]
     /* finite set literal */
   | LBRACE formula[f] { args.push_back(f); }
     ( COMMA formula[f] { args.push_back(f); } )* RBRACE
-    { f = MK_TERM(api::SINGLETON, args[0]);
+    { f = SOLVER->mkSingleton(args[0].getSort(), args[0]);
       for(size_t i = 1; i < args.size(); ++i) {
-        f = MK_TERM(api::UNION, f, MK_TERM(api::SINGLETON, args[i]));
+        f = MK_TERM(api::UNION, f, SOLVER->mkSingleton(args[i].getSort(), args[i]));
       }
     }
 
@@ -2177,7 +2177,7 @@ simpleTerm[CVC4::api::Term& f]
        * literals, we can use the push/pop scope. */
       /* PARSER_STATE->popScope(); */
       t = SOLVER->mkArraySort(t, t2);
-      if(!f.isConst()) {
+      if(!f.isValue()) {
         std::stringstream ss;
         ss << "expected constant term inside array constant, but found "
            << "nonconstant term" << std::endl

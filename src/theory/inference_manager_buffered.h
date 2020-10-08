@@ -115,6 +115,8 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    * phase requirements and clears d_pendingReqPhase.
    */
   void doPendingPhaseRequirements();
+  /** Clear pending facts, lemmas, and phase requirements without processing */
+  void clearPending();
   /** Clear pending facts, without processing */
   void clearPendingFacts();
   /** Clear pending lemmas, without processing */

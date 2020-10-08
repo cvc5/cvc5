@@ -99,8 +99,6 @@ class TheorySep : public Theory {
   /////////////////////////////////////////////////////////////////////////////
 
  public:
-  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
-
   void ppNotifyAssertions(const std::vector<Node>& assertions) override;
   /////////////////////////////////////////////////////////////////////////////
   // T-PROPAGATION / REGISTRATION

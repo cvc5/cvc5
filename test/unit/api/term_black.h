@@ -42,9 +42,11 @@ class TermBlack : public CxxTest::TestSuite
   void testTermCompare();
   void testTermChildren();
   void testSubstitute();
-  void testIsConst();
+  void testIsValue();
   void testConstArray();
   void testConstSequenceElements();
+
+  void testTermScopedToString();
 
  private:
   Solver d_solver;
@@ -748,18 +750,18 @@ void TermBlack::testSubstitute()
   TS_ASSERT_THROWS(xpx.substitute(es, rs), CVC4ApiException&);
 }
 
-void TermBlack::testIsConst()
+void TermBlack::testIsValue()
 {
   Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
   Term one = d_solver.mkReal(1);
   Term xpone = d_solver.mkTerm(PLUS, x, one);
   Term onepone = d_solver.mkTerm(PLUS, one, one);
-  TS_ASSERT(!x.isConst());
-  TS_ASSERT(one.isConst());
-  TS_ASSERT(!xpone.isConst());
-  TS_ASSERT(!onepone.isConst());
+  TS_ASSERT(!x.isValue());
+  TS_ASSERT(one.isValue());
+  TS_ASSERT(!xpone.isValue());
+  TS_ASSERT(!onepone.isValue());
   Term tnull;
-  TS_ASSERT_THROWS(tnull.isConst(), CVC4ApiException&);
+  TS_ASSERT_THROWS(tnull.isValue(), CVC4ApiException&);
 }
 
 void TermBlack::testConstArray()
@@ -770,8 +772,8 @@ void TermBlack::testConstArray()
   Term one = d_solver.mkReal(1);
   Term constarr = d_solver.mkConstArray(arrsort, one);
 
-  TS_ASSERT(!a.isConst());
-  TS_ASSERT(constarr.isConst());
+  TS_ASSERT(!a.isValue());
+  TS_ASSERT(constarr.isValue());
 
   TS_ASSERT_EQUALS(constarr.getKind(), CONST_ARRAY);
   TS_ASSERT_EQUALS(constarr.getConstArrayBase(), one);
@@ -784,7 +786,7 @@ void TermBlack::testConstSequenceElements()
   Sort seqsort = d_solver.mkSequenceSort(realsort);
   Term s = d_solver.mkEmptySequence(seqsort);
 
-  TS_ASSERT(s.isConst());
+  TS_ASSERT(s.isValue());
 
   TS_ASSERT_EQUALS(s.getKind(), CONST_SEQUENCE);
   // empty sequence has zero elements
@@ -795,4 +797,13 @@ void TermBlack::testConstSequenceElements()
   // applied to a constant).
   Term su = d_solver.mkTerm(SEQ_UNIT, d_solver.mkReal(1));
   TS_ASSERT_THROWS(su.getConstSequenceElements(), CVC4ApiException&);
+}
+
+void TermBlack::testTermScopedToString()
+{
+  Sort intsort = d_solver.getIntegerSort();
+  Term x = d_solver.mkConst(intsort, "x");
+  TS_ASSERT_EQUALS(x.toString(), "x");
+  Solver solver2;
+  TS_ASSERT_EQUALS(x.toString(), "x");
 }
