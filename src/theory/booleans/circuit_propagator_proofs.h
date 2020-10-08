@@ -139,9 +139,9 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
 
   std::shared_ptr<ProofNode> orFalse(TNode::iterator i)
   {
-    return mkProof(PfRule::NOT_OR_ELIM,
-                   {mkProof(d_parent.negate())},
-                   {mkRat(i - d_parent.begin())});
+    return mkRewrite(mkProof(PfRule::NOT_OR_ELIM,
+                                       {mkProof(d_parent.negate())},
+                                       {mkRat(i - d_parent.begin())}));
   }
   std::shared_ptr<ProofNode> orTrue(TNode::iterator holdout)
   {
