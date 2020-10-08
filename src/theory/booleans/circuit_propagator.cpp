@@ -191,8 +191,8 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment) {
       }
     } else {
       // IMPLIES x y = FALSE: assign(x = TRUE) and assign(y = FALSE)
-      assignAndEnqueue(parent[0], true, prover.impNeg(0));
-      assignAndEnqueue(parent[1], false, prover.impNeg(1));
+      assignAndEnqueue(parent[0], true, prover.impNegX());
+      assignAndEnqueue(parent[1], false, prover.impNegY());
     }
     break;
   case kind::XOR:
