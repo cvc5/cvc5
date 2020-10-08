@@ -206,14 +206,14 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
 
   std::shared_ptr<ProofNode> impTrue()
   {
-    return mkProof(PfRule::RESOLUTION,
+    return mkProof(PfRule::CHAIN_RESOLUTION,
                    {mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)}),
                     mkProof(d_parent[0])},
-                   {d_parent[0]});
+                   {d_parent[0].negate()});
   }
   std::shared_ptr<ProofNode> impFalse()
   {
-    return mkProof(PfRule::RESOLUTION,
+    return mkProof(PfRule::CHAIN_RESOLUTION,
                    {mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)}),
                     mkProof(d_parent[1].negate())},
                    {d_parent[1]});
