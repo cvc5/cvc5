@@ -85,7 +85,21 @@ class CircuitPropagator
 
   bool getNeedsFinish() { return d_needsFinish; }
 
-  std::vector<TrustNode>& getLearnedLiterals() { return d_learnedLiterals; }
+  std::vector<TrustNode>& getLearnedLiterals()
+  {
+    if (isProofEnabled())
+    {
+      for (const auto& tn : d_learnedLiterals)
+      {
+        if (!d_epg->hasProofFor(tn.getNode()))
+        {
+          Warning() << "CircuitPropagator: Proof is missing for "
+                    << tn.getNode() << std::endl;
+        }
+      }
+    }
+    return d_learnedLiterals;
+  }
 
   void finish() { d_context.pop(); }
 

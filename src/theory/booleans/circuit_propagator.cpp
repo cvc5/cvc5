@@ -16,11 +16,12 @@
 
 #include "theory/booleans/circuit_propagator.h"
 
+#include <algorithm>
 #include <stack>
 #include <vector>
-#include <algorithm>
 
 #include "expr/node_algorithm.h"
+#include "theory/booleans/circuit_propagator_proofs.h"
 #include "util/utility.h"
 
 using namespace std;
@@ -28,30 +29,6 @@ using namespace std;
 namespace CVC4 {
 namespace theory {
 namespace booleans {
-namespace {
-
-template <typename T>
-Node mkRat(T val)
-{
-  auto* nm = NodeManager::currentNM();
-  return nm->mkConst<Rational>(val);
-}
-inline std::shared_ptr<ProofNode> mkProof(Node n)
-{
-  return std::make_shared<ProofNode>(PfRule::ASSUME,
-                                     std::vector<std::shared_ptr<ProofNode>>(),
-                                     std::vector<Node>{n});
-}
-inline std::shared_ptr<ProofNode> mkProof(
-    PfRule rule,
-    std::initializer_list<std::shared_ptr<ProofNode>> children,
-    std::initializer_list<Node> args)
-{
-  return std::make_shared<ProofNode>(
-      rule, std::move(children), std::move(args));
-}
-
-}  // namespace  // namespace
 
 CircuitPropagator::CircuitPropagator(bool enableForward, bool enableBackward)
     : d_context(),
@@ -127,6 +104,7 @@ void CircuitPropagator::computeBackEdges(TNode node) {
 void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment) {
 
   Debug("circuit-prop") << "CircuitPropagator::propagateBackward(" << parent << ", " << parentAssignment << ")" << endl;
+  CircuitPropagatorProver prover{parent, parentAssignment};
 
   // backward rules
   switch(parent.getKind()) {
@@ -135,15 +113,14 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment) {
       // AND = TRUE: forall children c, assign(c = TRUE)
       for(TNode::iterator i = parent.begin(), i_end = parent.end(); i != i_end; ++i) {
         assignAndEnqueue(*i, true);
-        addProof(
-            *i,
-            mkProof(PfRule::AND_ELIM, {mkProof(parent)}, {mkRat(i - parent.begin())}));
+        addProof(*i, prover.andTrue(i));
       }
     } else {
       // AND = FALSE: if all children BUT ONE == TRUE, assign(c = FALSE)
       TNode::iterator holdout = find_if_unique(parent.begin(), parent.end(), not1(IsAssignedTo(*this, true)));
       if (holdout != parent.end()) {
         assignAndEnqueue(*holdout, false);
+        addProof((*holdout).negate(), prover.andFalse(holdout));
       }
     }
     break;
@@ -153,28 +130,68 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment) {
       TNode::iterator holdout = find_if_unique(parent.begin(), parent.end(), not1(IsAssignedTo(*this, false)));
       if (holdout != parent.end()) {
         assignAndEnqueue(*holdout, true);
+        addProof(*holdout, prover.orTrue(holdout));
       }
     } else {
       // OR = FALSE: forall children c, assign(c = FALSE)
       for(TNode::iterator i = parent.begin(), i_end = parent.end(); i != i_end; ++i) {
         assignAndEnqueue(*i, false);
-        addProof(
-            (*i).negate(),
-            mkProof(PfRule::NOT_OR_ELIM, {mkProof(parent.negate())}, {mkRat(i - parent.begin())}));
+        addProof((*i).negate(), prover.orFalse(i));
       }
     }
     break;
   case kind::NOT:
     // NOT = b: assign(c = !b)
     assignAndEnqueue(parent[0], !parentAssignment);
+    // TODO: I *think* we only need a dummy proof here
+    addProof(mkNot(parent, !parentAssignment),
+             mkProof(mkNot(parent, !parentAssignment)));
     break;
   case kind::ITE:
     if (isAssignedTo(parent[0], true)) {
       // ITE c x y = v: if c is assigned and TRUE, assign(x = v)
       assignAndEnqueue(parent[1], parentAssignment);
+      if (parentAssignment)
+      {
+        // TODO: I guess we still need (or x) => x
+        addProof(parent[1],
+                 mkProof(PfRule::RESOLUTION,
+                         {mkProof(PfRule::ITE_ELIM1, {mkProof(parent)}),
+                          mkProof(parent[0])},
+                         {parent[0]}));
+      }
+      else
+      {
+        // TODO: I guess we still need (or (not x)) => x
+        addProof(
+            parent[1].negate(),
+            mkProof(PfRule::RESOLUTION,
+                    {mkProof(PfRule::NOT_ITE_ELIM1, {mkProof(parent.negate())}),
+                     mkProof(parent[0])},
+                    {parent[0]}));
+      }
     } else if (isAssignedTo(parent[0], false)) {
       // ITE c x y = v: if c is assigned and FALSE, assign(y = v)
       assignAndEnqueue(parent[2], parentAssignment);
+      if (parentAssignment)
+      {
+        // TODO: I guess we still need (or x) => x
+        addProof(parent[2],
+                 mkProof(PfRule::RESOLUTION,
+                         {mkProof(PfRule::ITE_ELIM2, {mkProof(parent)}),
+                          mkProof(parent[0].negate())},
+                         {parent[0]}));
+      }
+      else
+      {
+        // TODO: I guess we still need (or (not x)) => x
+        addProof(
+            parent[2].negate(),
+            mkProof(PfRule::RESOLUTION,
+                    {mkProof(PfRule::NOT_ITE_ELIM2, {mkProof(parent.negate())}),
+                     mkProof(parent[0].negate())},
+                    {parent[0]}));
+      }
     } else if (isAssigned(parent[1]) && isAssigned(parent[2])) {
       if (getAssignment(parent[1]) == parentAssignment && getAssignment(parent[2]) != parentAssignment) {
         // ITE c x y = v: if c is unassigned, x and y are assigned, x==v and y!=v, assign(c = TRUE)
@@ -449,6 +466,6 @@ void CircuitPropagator::setProofNodeManager(ProofNodeManager* pnm)
 
 bool CircuitPropagator::isProofEnabled() const { return d_epg != nullptr; }
 
-}/* CVC4::theory::booleans namespace */
+}  // namespace booleans
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
