@@ -433,7 +433,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
           // add previous rewrite steps
           for (unsigned j = 0, nvars = vvec.size(); j < nvars; j++)
           {
-            // not necessarily closed
+            // not necessarily closed, so we pass false to addRewriteStep.
             tcg.addRewriteStep(vvec[j], svec[j], pgs[j], false);
           }
           // get the proof for the update to the current substitution
@@ -473,7 +473,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       TConvProofGenerator tcpg(d_pnm, nullptr, TConvPolicy::ONCE);
       for (unsigned j = 0, nvars = vvec.size(); j < nvars; j++)
       {
-        // not necessarily closed
+        // not necessarily closed, so we pass false to addRewriteStep.
         tcpg.addRewriteStep(vvec[j], svec[j], pgs[j], false);
       }
       // add the proof constructed by the term conversion utility
