@@ -235,14 +235,17 @@ class CircuitPropagator
 
       if (isProofEnabled())
       {
-        if (proof == nullptr)
+        if (n.getKind() != Kind::CONST_BOOLEAN)
         {
-          Warning() << "CircuitPropagator: Proof is missing for " << n
-                    << std::endl;
-        }
-        else
-        {
-          d_epg->setProofFor(value ? Node(n) : n.negate(), std::move(proof));
+          if (proof == nullptr)
+          {
+            Warning() << "CircuitPropagator: Proof is missing for " << n
+                      << std::endl;
+          }
+          else
+          {
+            d_epg->setProofFor(value ? Node(n) : n.negate(), std::move(proof));
+          }
         }
       }
     }
