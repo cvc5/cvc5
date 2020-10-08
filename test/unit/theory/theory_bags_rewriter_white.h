@@ -167,10 +167,10 @@ class BagsTypeRuleWhite : public CxxTest::TestSuite
     vector<Node> elements = getNStrings(2);
     Node emptyBag =
         d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
-    Node A =
-        d_nm->mkBag(d_nm->stringType(), elements[0], d_nm->mkConst(Rational(n)));
-    Node B = d_nm->mkBag(d_nm->stringType(), elements[1],
-                         d_nm->mkConst(Rational(n + 1)));
+    Node A = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(n)));
+    Node B = d_nm->mkBag(
+        d_nm->stringType(), elements[1], d_nm->mkConst(Rational(n + 1)));
     Node unionMaxAB = d_nm->mkNode(UNION_MAX, A, B);
     Node unionMaxBA = d_nm->mkNode(UNION_MAX, B, A);
     Node unionDisjointAB = d_nm->mkNode(UNION_DISJOINT, A, B);
@@ -249,10 +249,10 @@ class BagsTypeRuleWhite : public CxxTest::TestSuite
     vector<Node> elements = getNStrings(2);
     Node emptyBag =
         d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
-    Node A =
-        d_nm->mkBag(d_nm->stringType(), elements[0], d_nm->mkConst(Rational(n)));
-    Node B = d_nm->mkBag(d_nm->stringType(), elements[1],
-                         d_nm->mkConst(Rational(n + 1)));
+    Node A = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(n)));
+    Node B = d_nm->mkBag(
+        d_nm->stringType(), elements[1], d_nm->mkConst(Rational(n + 1)));
     Node unionDisjointAB = d_nm->mkNode(UNION_DISJOINT, A, B);
     Node unionDisjointBA = d_nm->mkNode(UNION_DISJOINT, B, A);
     Node unionMaxAB = d_nm->mkNode(UNION_MAX, A, B);
@@ -295,10 +295,10 @@ class BagsTypeRuleWhite : public CxxTest::TestSuite
     vector<Node> elements = getNStrings(2);
     Node emptyBag =
         d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
-    Node A =
-        d_nm->mkBag(d_nm->stringType(), elements[0], d_nm->mkConst(Rational(n)));
-    Node B = d_nm->mkBag(d_nm->stringType(), elements[1],
-                         d_nm->mkConst(Rational(n + 1)));
+    Node A = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(n)));
+    Node B = d_nm->mkBag(
+        d_nm->stringType(), elements[1], d_nm->mkConst(Rational(n + 1)));
     Node unionMaxAB = d_nm->mkNode(UNION_MAX, A, B);
     Node unionMaxBA = d_nm->mkNode(UNION_MAX, B, A);
     Node unionDisjointAB = d_nm->mkNode(UNION_DISJOINT, A, B);
@@ -377,10 +377,10 @@ class BagsTypeRuleWhite : public CxxTest::TestSuite
     vector<Node> elements = getNStrings(2);
     Node emptyBag =
         d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
-    Node A =
-        d_nm->mkBag(d_nm->stringType(), elements[0], d_nm->mkConst(Rational(n)));
-    Node B = d_nm->mkBag(d_nm->stringType(), elements[1],
-                         d_nm->mkConst(Rational(n + 1)));
+    Node A = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(n)));
+    Node B = d_nm->mkBag(
+        d_nm->stringType(), elements[1], d_nm->mkConst(Rational(n + 1)));
     Node unionMaxAB = d_nm->mkNode(UNION_MAX, A, B);
     Node unionMaxBA = d_nm->mkNode(UNION_MAX, B, A);
     Node unionDisjointAB = d_nm->mkNode(UNION_DISJOINT, A, B);
@@ -461,10 +461,10 @@ class BagsTypeRuleWhite : public CxxTest::TestSuite
     vector<Node> elements = getNStrings(2);
     Node emptyBag =
         d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
-    Node A =
-        d_nm->mkBag(d_nm->stringType(), elements[0], d_nm->mkConst(Rational(n)));
-    Node B = d_nm->mkBag(d_nm->stringType(), elements[1],
-                         d_nm->mkConst(Rational(n + 1)));
+    Node A = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(n)));
+    Node B = d_nm->mkBag(
+        d_nm->stringType(), elements[1], d_nm->mkConst(Rational(n + 1)));
     Node unionMaxAB = d_nm->mkNode(UNION_MAX, A, B);
     Node unionMaxBA = d_nm->mkNode(UNION_MAX, B, A);
     Node unionDisjointAB = d_nm->mkNode(UNION_DISJOINT, A, B);
@@ -549,10 +549,10 @@ class BagsTypeRuleWhite : public CxxTest::TestSuite
     Node c = d_nm->mkConst(Rational(3));
     Node bag = d_nm->mkBag(d_nm->stringType(), x, c);
     vector<Node> elements = getNStrings(2);
-    Node A =
-        d_nm->mkBag(d_nm->stringType(), elements[0], d_nm->mkConst(Rational(4)));
-    Node B =
-        d_nm->mkBag(d_nm->stringType(), elements[1], d_nm->mkConst(Rational(5)));
+    Node A = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(4)));
+    Node B = d_nm->mkBag(
+        d_nm->stringType(), elements[1], d_nm->mkConst(Rational(5)));
     Node unionDisjointAB = d_nm->mkNode(UNION_DISJOINT, A, B);
 
     // TODO(projects#223): enable this test after implementing bags normal form
@@ -611,7 +611,7 @@ class BagsTypeRuleWhite : public CxxTest::TestSuite
     Node n = d_nm->mkNode(BAG_FROM_SET, singleton);
     RewriteResponse response = d_rewriter->postRewrite(n);
     Node one = d_nm->mkConst(Rational(1));
-    Node bag = d_nm->mkNode(MK_BAG, x, one);
+    Node bag = d_nm->mkBag(d_nm->stringType(), x, one);
     TS_ASSERT(response.d_node == bag
               && response.d_status == REWRITE_AGAIN_FULL);
   }
@@ -619,7 +619,7 @@ class BagsTypeRuleWhite : public CxxTest::TestSuite
   void testToSet()
   {
     Node x = d_nm->mkSkolem("x", d_nm->stringType());
-    Node bag = d_nm->mkNode(MK_BAG, x, d_nm->mkConst(Rational(5)));
+    Node bag = d_nm->mkBag(d_nm->stringType(), x, d_nm->mkConst(Rational(5)));
 
     // (bag.to_set (mkBag x n)) = (singleton (singleton_op T) x)
     Node n = d_nm->mkNode(BAG_TO_SET, bag);
