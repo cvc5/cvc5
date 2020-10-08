@@ -54,6 +54,8 @@ class SortBlack : public CxxTest::TestSuite
   void testSortCompare();
   void testSortSubtyping();
 
+  void testSortScopedToString();
+
  private:
   Solver d_solver;
 };
@@ -384,4 +386,16 @@ void SortBlack::testSortSubtyping()
   TS_ASSERT(!setSortI.isSubsortOf(setSortR));
   TS_ASSERT(!setSortR.isComparableTo(setSortI));
   TS_ASSERT(!setSortR.isSubsortOf(setSortI));
+}
+
+void SortBlack::testSortScopedToString()
+{
+  std::string name = "uninterp-sort";
+  Sort bvsort8 = d_solver.mkBitVectorSort(8);
+  Sort uninterp_sort = d_solver.mkUninterpretedSort(name);
+  TS_ASSERT_EQUALS(bvsort8.toString(), "(_ BitVec 8)");
+  TS_ASSERT_EQUALS(uninterp_sort.toString(), name);
+  Solver solver2;
+  TS_ASSERT_EQUALS(bvsort8.toString(), "(_ BitVec 8)");
+  TS_ASSERT_EQUALS(uninterp_sort.toString(), name);
 }
