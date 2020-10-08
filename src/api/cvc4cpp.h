@@ -2868,8 +2868,6 @@ class CVC4_PUBLIC Solver
    */
   Term simplify(const Term& t);
 
-  Term expandDefinitions(Term t) const;
-
   /**
    * Assert a formula.
    * SMT-LIB: ( assert <term> )
@@ -3106,15 +3104,13 @@ class CVC4_PUBLIC Solver
    * @param q a quantified formula of the form:
    *   Q x1...xn. P( x1...xn, y1...yn )
    * where P( x1...xn, y1...yn ) is a quantifier-free formula
-   * @param strict whether to output warnings, such as when an unexpected logic
-   * is used
    * @return a formula ret such that, given the current set of formulas A
    * asserted to this solver:
    *   - ( A ^ q ) and ( A ^ ret ) are equivalent
    *   - ret is quantifier-free formula containing only free variables in
    *     y1...yn.
    */
-  Term getQuantifierElimination(api::Term q, bool strict = true) const;
+  Term getQuantifierElimination(api::Term q) const;
 
   /**
    * Do partial quantifier elimination, which can be used for incrementally
@@ -3125,8 +3121,6 @@ class CVC4_PUBLIC Solver
    * @param q a quantified formula of the form:
    *   Q x1...xn. P( x1...xn, y1...yn )
    * where P( x1...xn, y1...yn ) is a quantifier-free formula
-   * @param strict whether to output warnings, such as when an unexpected logic
-   * is used
    * @return a formula ret such that, given the current set of formulas A
    * asserted to this solver:
    *   - (A ^ q) => (A ^ ret) if Q is forall or (A ^ ret) => (A ^ q) if Q is
@@ -3142,7 +3136,7 @@ class CVC4_PUBLIC Solver
    *     where ret^Q_i is the same as above. In either case, we have
    *     that ret^Q_j will eventually be true or false, for some finite j.
    */
-  Term getQuantifierEliminationDisjunct(api::Term q, bool strict = true) const;
+  Term getQuantifierEliminationDisjunct(api::Term q) const;
 
   /**
    * When using separation logic, obtain the term for the heap.

@@ -1669,10 +1669,7 @@ void GetValueCommand::invoke(api::Solver* solver)
     Assert(result.size() == d_terms.size());
     for (int i = 0, size = d_terms.size(); i < size; i++)
     {
-      api::Term t = d_terms[i];
-      api::Term request = options::expandDefinitions()
-                         ? solver->expandDefinitions(t)
-                         : t;
+      api::Term request = d_terms[i];
       api::Term value = result[i];
       if (value.getSort().isInteger()
           && request.getSort() == solver->getRealSort())

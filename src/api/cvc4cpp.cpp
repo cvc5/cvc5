@@ -4520,17 +4520,6 @@ Term Solver::simplify(const Term& term)
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::expandDefinitions(Term t) const
-{
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_ARG_CHECK_NOT_NULL(t);
-  CVC4_API_SOLVER_CHECK_TERM(t);
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-
-  return Term(this, d_smtEngine->expandDefinitions(*t.d_node));
-  CVC4_API_SOLVER_TRY_CATCH_END;
-}
-
 Result Solver::checkEntailed(Term term) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
@@ -5161,25 +5150,25 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::getQuantifierElimination(api::Term q, bool strict) const
+Term Solver::getQuantifierElimination(api::Term q) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_NOT_NULL(q);
   CVC4_API_SOLVER_CHECK_TERM(q);
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   return Term(this,
-              d_smtEngine->getQuantifierElimination(q.getNode(), true, strict));
+              d_smtEngine->getQuantifierElimination(q.getNode(), true, true));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::getQuantifierEliminationDisjunct(api::Term q, bool strict) const
+Term Solver::getQuantifierEliminationDisjunct(api::Term q) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_NOT_NULL(q);
   CVC4_API_SOLVER_CHECK_TERM(q);
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   return Term(
-      this, d_smtEngine->getQuantifierElimination(q.getNode(), false, strict));
+      this, d_smtEngine->getQuantifierElimination(q.getNode(), false, true));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
