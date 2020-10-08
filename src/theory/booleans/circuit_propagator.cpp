@@ -292,7 +292,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
           TNode::iterator other = find_if (holdout + 1, parent.end(), not1(IsAssignedTo(*this, false)));
           if (other == parent.end()) { // the holdout is unique
             // OR ...(x=FALSE)...: if all children BUT ONE now assigned to FALSE, and OR == TRUE, assign(last_holdout = TRUE)
-            assignAndEnqueue(*holdout, true);
+            assignAndEnqueue(*holdout, true, prover.orTrue(holdout));
           }
         }
       }

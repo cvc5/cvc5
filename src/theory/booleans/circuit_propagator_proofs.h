@@ -78,15 +78,15 @@ struct CircuitPropagatorProver
     }
     return mkProof(PfRule::CONTRA, {a, b});
   }
-std::shared_ptr<ProofNode> mkResolution(
-    std::shared_ptr<ProofNode> clause, const std::vector<Node>& negLits)
-{
-  std::vector<std::shared_ptr<ProofNode>> children = {clause};
-  for (const auto& n : negLits)
+  std::shared_ptr<ProofNode> mkResolution(std::shared_ptr<ProofNode> clause,
+                                          const std::vector<Node>& lits)
   {
-    children.emplace_back(mkProof(n));
-  }
-  return mkProof(PfRule::CHAIN_RESOLUTION, children, negLits);
+    std::vector<std::shared_ptr<ProofNode>> children = {clause};
+    for (const auto& n : lits)
+    {
+      children.emplace_back(mkProof(n.negate()));
+    }
+    return mkProof(PfRule::CHAIN_RESOLUTION, children, lits);
 }
 };
 
@@ -206,17 +206,13 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
 
   std::shared_ptr<ProofNode> impTrue()
   {
-    return mkProof(PfRule::CHAIN_RESOLUTION,
-                   {mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)}),
-                    mkProof(d_parent[0])},
-                   {d_parent[0].negate()});
+    return mkResolution(mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)}),
+                        {d_parent[0].negate()});
   }
   std::shared_ptr<ProofNode> impFalse()
   {
-    return mkProof(PfRule::CHAIN_RESOLUTION,
-                   {mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)}),
-                    mkProof(d_parent[1].negate())},
-                   {d_parent[1]});
+    return mkResolution(mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)}),
+                        {d_parent[1]});
   }
   std::shared_ptr<ProofNode> impNegX()
   {
@@ -317,6 +313,11 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
                               {d_parent, mkRat(it - d_parent.begin())}),
                       mkProof(d_child)},
                      {d_child.negate()});
+    }
+    std::shared_ptr<ProofNode> orTrue(TNode::iterator holdout)
+    {
+      return mkResolution(mkProof(d_parent),
+                          collectButHoldout(d_parent, holdout));
     }
     std::shared_ptr<ProofNode> orFalse()
     {
