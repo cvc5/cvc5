@@ -198,14 +198,23 @@ class ProofPostproccess
   void process(std::shared_ptr<ProofNode> pf);
   /** set eliminate rule */
   void setEliminateRule(PfRule rule);
-
  private:
-  /** The post process callback */
-  ProofPostprocessCallback d_cb;
-  /** The post process callback for finalization */
-  ProofPostprocessFinalCallback d_finalCb;
   /** The proof node manager */
   ProofNodeManager* d_pnm;
+  /** The post process callback */
+  ProofPostprocessCallback d_cb;
+  /**
+   * The updater, which is responsible for expanding macros in the final proof
+   * and connecting preprocessed assumptions to input assumptions.
+   */
+  ProofNodeUpdater d_updater;
+  /** The post process callback for finalization */
+  ProofPostprocessFinalCallback d_finalCb;
+  /**
+   * The finalizer, which is responsible for taking stats and checking for
+   * (lazy) pedantic failures.
+   */
+  ProofNodeUpdater d_finalizer;
 };
 
 }  // namespace smt
