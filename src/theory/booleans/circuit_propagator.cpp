@@ -147,10 +147,7 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment) {
     break;
   case kind::NOT:
     // NOT = b: assign(c = !b)
-    assignAndEnqueue(
-        parent[0],
-        !parentAssignment,
-        d_pnm->mkAssume(parentAssignment ? Node(parent) : parent.negate()));
+    assignAndEnqueue(parent[0], !parentAssignment, prover.Not());
     break;
   case kind::ITE:
     if (isAssignedTo(parent[0], true)) {
@@ -301,10 +298,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
 
     case kind::NOT:
       // NOT (x=b): assign(NOT = !b)
-      assignAndEnqueue(
-          parent,
-          !childAssignment,
-          d_pnm->mkAssume(childAssignment ? parent.negate() : Node(parent)));
+      assignAndEnqueue(parent, !childAssignment, prover.Not());
       break;
 
     case kind::ITE:

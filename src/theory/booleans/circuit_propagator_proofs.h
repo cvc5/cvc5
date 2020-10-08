@@ -62,6 +62,8 @@ struct CircuitPropagatorProver
   ProofNodeManager* d_pnm;
   EagerProofGenerator* d_epg;
 
+  bool disabled() const { return d_pnm == nullptr; }
+
   std::shared_ptr<ProofNode> mkProof(Node n) { return d_pnm->mkAssume(n); }
   std::shared_ptr<ProofNode> mkProof(
       PfRule rule,
@@ -148,6 +150,12 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
     // TODO: I guess we still need (or x) => x
     return mkResolution(mkProof(d_parent),
                         collectButHoldout(d_parent, holdout));
+  }
+
+  std::shared_ptr<ProofNode> Not()
+  {
+    if (disabled()) return nullptr;
+    return mkProof(d_parentAssignment ? Node(d_parent) : d_parent.negate());
   }
 
   std::shared_ptr<ProofNode> iteC()
@@ -361,6 +369,12 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
   {
     std::vector<Node> children(d_parent.begin(), d_parent.end());
     return mkResolution(mkProof(PfRule::CNF_OR_POS, {}, {d_parent}), children);
+  }
+
+  std::shared_ptr<ProofNode> Not()
+  {
+    if (disabled()) return nullptr;
+    return mkProof(d_childAssignment ? d_parent.negate() : Node(d_parent));
   }
 
   std::shared_ptr<ProofNode> eqEval()
