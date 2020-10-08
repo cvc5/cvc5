@@ -52,8 +52,9 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
         if (std::find(traversing.begin(), traversing.end(), cp.get())
             != traversing.end())
         {
-          Unhandled()
-              << "ProofNodeToSExpr::convertToSExpr: cyclic proof! (use --proof-new-eager-checking)" << std::endl;
+          Unhandled() << "ProofNodeToSExpr::convertToSExpr: cyclic proof! (use "
+                         "--proof-new-eager-checking)"
+                      << std::endl;
           return Node::null();
         }
         visit.push_back(cp.get());

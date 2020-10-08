@@ -99,10 +99,12 @@ void getFreeAssumptionsMap(
         const std::vector<std::shared_ptr<ProofNode>>& cs = cur->getChildren();
         for (const std::shared_ptr<ProofNode>& cp : cs)
         {
-          if (std::find(traversing.begin(), traversing.end(), cp)!=traversing.end())
+          if (std::find(traversing.begin(), traversing.end(), cp)
+              != traversing.end())
           {
-            Unhandled()
-              << "getFreeAssumptionsMap: cyclic proof! (use --proof-new-eager-checking)" << std::endl;
+            Unhandled() << "getFreeAssumptionsMap: cyclic proof! (use "
+                           "--proof-new-eager-checking)"
+                        << std::endl;
           }
           visit.push_back(cp);
         }
@@ -113,7 +115,7 @@ void getFreeAssumptionsMap(
       Assert(!traversing.empty());
       traversing.pop_back();
       visited[cur.get()] = true;
-      if(cur->getRule() == PfRule::SCOPE)
+      if (cur->getRule() == PfRule::SCOPE)
       {
         // unbind its assumptions
         for (const Node& a : cargs)
