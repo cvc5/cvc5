@@ -283,6 +283,12 @@ struct CircuitPropagatorBackwardProver
                       mkProof(d_child)},
                      {d_child});
     }
+    std::shared_ptr<ProofNode> orFalse()
+    {
+      std::vector<Node> children(d_parent.begin(), d_parent.end());
+      return mkResolution(mkProof(PfRule::CNF_OR_POS, {}, {d_parent}),
+                          children);
+    }
   };
 
 }  // namespace booleans

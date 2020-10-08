@@ -270,13 +270,13 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
     case kind::OR:
       if (childAssignment) {
         // OR ...(x=TRUE)...: assign(OR = TRUE)
-        assignAndEnqueue(parent, true);
+        assignAndEnqueue(parent, true, prover.orTrue());
       } else {
         TNode::iterator holdout;
         holdout = find_if (parent.begin(), parent.end(), not1(IsAssignedTo(*this, false)));
         if (holdout == parent.end()) { // all children are assigned FALSE
           // OR ...(x=FALSE)...: if all children now assigned to FALSE, assign(OR = FALSE)
-          assignAndEnqueue(parent, false);
+          assignAndEnqueue(parent, false, prover.orFalse());
         } else if (isAssignedTo(parent, true)) {// the OR is TRUE
           // is the holdout unique ?
           TNode::iterator other = find_if (holdout + 1, parent.end(), not1(IsAssignedTo(*this, false)));
