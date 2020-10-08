@@ -109,6 +109,87 @@ struct CircuitPropagatorProver
     return mkResolution(mkProof(d_parent),
                         collectButHoldout(d_parent, holdout));
   }
+
+  std::shared_ptr<ProofNode> iteC()
+  {
+    if (d_parentAssignment)
+    {
+      return mkProof(PfRule::RESOLUTION,
+                     {mkProof(PfRule::ITE_ELIM1, {mkProof(d_parent)}),
+                      mkProof(d_parent[0])},
+                     {d_parent[0]});
+    }
+    else
+    {
+      return mkProof(
+          PfRule::RESOLUTION,
+          {mkProof(PfRule::NOT_ITE_ELIM1, {mkProof(d_parent.negate())}),
+           mkProof(d_parent[0])},
+          {d_parent[0]});
+    }
+  }
+  std::shared_ptr<ProofNode> iteNotC()
+  {
+    if (d_parentAssignment)
+    {
+      return mkProof(PfRule::RESOLUTION,
+                     {mkProof(PfRule::ITE_ELIM2, {mkProof(d_parent)}),
+                      mkProof(d_parent[0].negate())},
+                     {d_parent[0]});
+    }
+    else
+    {
+      return mkProof(
+          PfRule::RESOLUTION,
+          {mkProof(PfRule::NOT_ITE_ELIM2, {mkProof(d_parent.negate())}),
+           mkProof(d_parent[0].negate())},
+          {d_parent[0]});
+    }
+  }
+  std::shared_ptr<ProofNode> iteIsX()
+  {
+    // ITE c x y = v: if c is unassigned, x and y are assigned, x==v and y!=v,
+    // assign(c = TRUE)
+    if (d_parentAssignment)
+    {
+      // Resolve(ITE_ELIM2 (or c y), !y) = c
+      return mkProof(PfRule::RESOLUTION,
+                     {mkProof(PfRule::ITE_ELIM2, {mkProof(d_parent)}),
+                      mkProof(d_parent[2].negate())},
+                     {d_parent[2]});
+    }
+    else
+    {
+      // Resolve(NOT_ITE_ELIM2 (or c !y), y) = c
+      return mkProof(
+          PfRule::RESOLUTION,
+          {mkProof(PfRule::NOT_ITE_ELIM2, {mkProof(d_parent.negate())}),
+           mkProof(d_parent[2])},
+          {d_parent[2]});
+    }
+  }
+  std::shared_ptr<ProofNode> iteIsY()
+  {
+    // ITE c x y = v: if c is unassigned, x and y are assigned, x!=v and y==v,
+    // assign(c = FALSE)
+    if (d_parentAssignment)
+    {
+      // Resolve(ITE_ELIM1 (or !c x), !x) = !c
+      return mkProof(PfRule::RESOLUTION,
+                     {mkProof(PfRule::ITE_ELIM1, {mkProof(d_parent)}),
+                      mkProof(d_parent[1].negate())},
+                     {d_parent[1]});
+    }
+    else
+    {
+      // Resolve(NOT_ITE_ELIM2 (or !c !x), x) = !c
+      return mkProof(
+          PfRule::RESOLUTION,
+          {mkProof(PfRule::NOT_ITE_ELIM2, {mkProof(d_parent.negate())}),
+           mkProof(d_parent[1])},
+          {d_parent[1]});
+    }
+  }
 };
 
 }  // namespace booleans

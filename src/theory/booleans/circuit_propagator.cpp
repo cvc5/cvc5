@@ -151,54 +151,20 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment) {
     if (isAssignedTo(parent[0], true)) {
       // ITE c x y = v: if c is assigned and TRUE, assign(x = v)
       assignAndEnqueue(parent[1], parentAssignment);
-      if (parentAssignment)
-      {
-        // TODO: I guess we still need (or x) => x
-        addProof(parent[1],
-                 mkProof(PfRule::RESOLUTION,
-                         {mkProof(PfRule::ITE_ELIM1, {mkProof(parent)}),
-                          mkProof(parent[0])},
-                         {parent[0]}));
-      }
-      else
-      {
-        // TODO: I guess we still need (or (not x)) => x
-        addProof(
-            parent[1].negate(),
-            mkProof(PfRule::RESOLUTION,
-                    {mkProof(PfRule::NOT_ITE_ELIM1, {mkProof(parent.negate())}),
-                     mkProof(parent[0])},
-                    {parent[0]}));
-      }
+      addProof(mkNot(parent[1], !parentAssignment), prover.iteC());
     } else if (isAssignedTo(parent[0], false)) {
       // ITE c x y = v: if c is assigned and FALSE, assign(y = v)
       assignAndEnqueue(parent[2], parentAssignment);
-      if (parentAssignment)
-      {
-        // TODO: I guess we still need (or x) => x
-        addProof(parent[2],
-                 mkProof(PfRule::RESOLUTION,
-                         {mkProof(PfRule::ITE_ELIM2, {mkProof(parent)}),
-                          mkProof(parent[0].negate())},
-                         {parent[0]}));
-      }
-      else
-      {
-        // TODO: I guess we still need (or (not x)) => x
-        addProof(
-            parent[2].negate(),
-            mkProof(PfRule::RESOLUTION,
-                    {mkProof(PfRule::NOT_ITE_ELIM2, {mkProof(parent.negate())}),
-                     mkProof(parent[0].negate())},
-                    {parent[0]}));
-      }
+      addProof(mkNot(parent[2], !parentAssignment), prover.iteNotC());
     } else if (isAssigned(parent[1]) && isAssigned(parent[2])) {
       if (getAssignment(parent[1]) == parentAssignment && getAssignment(parent[2]) != parentAssignment) {
         // ITE c x y = v: if c is unassigned, x and y are assigned, x==v and y!=v, assign(c = TRUE)
         assignAndEnqueue(parent[0], true);
+        addProof(parent[0], prover.iteIsX());
       } else if (getAssignment(parent[1]) != parentAssignment && getAssignment(parent[2]) == parentAssignment) {
         // ITE c x y = v: if c is unassigned, x and y are assigned, x!=v and y==v, assign(c = FALSE)
         assignAndEnqueue(parent[0], false);
+        addProof(parent[0], prover.iteIsY());
       }
     }
     break;
