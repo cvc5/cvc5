@@ -67,7 +67,17 @@ struct CircuitPropagatorProver
       const std::vector<Node>& args = {})
   {
     return d_pnm->mkNode(rule, children, args);
-}
+  }
+  std::shared_ptr<ProofNode> mkContra(const std::shared_ptr<ProofNode>& a,
+                                      const std::shared_ptr<ProofNode>& b)
+  {
+    Assert(a->getResult().negate() == b->getResult());
+    if (a->getResult().getKind() == Kind::NOT)
+    {
+      return mkProof(PfRule::CONTRA, {b, a});
+    }
+    return mkProof(PfRule::CONTRA, {a, b});
+  }
 std::shared_ptr<ProofNode> mkResolution(
     std::shared_ptr<ProofNode> clause, const std::vector<Node>& negLits)
 {
@@ -283,11 +293,10 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
     {
       auto it = std::find(d_parent.begin(), d_parent.end(), d_child);
       return mkProof(PfRule::SCOPE,
-                     {mkProof(PfRule::CONTRA,
-                              {mkProof(PfRule::AND_ELIM,
+                     {mkContra(mkProof(PfRule::AND_ELIM,
                                        {mkProof(d_parent)},
                                        {mkRat(it - d_parent.begin())}),
-                               mkProof(d_child.negate())})},
+                               mkProof(d_child.negate()))},
                      {d_parent});
     }
 
