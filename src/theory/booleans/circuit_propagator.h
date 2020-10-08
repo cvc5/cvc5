@@ -241,17 +241,29 @@ class CircuitPropagator
           {
             Warning() << "CircuitPropagator: Proof is missing for " << n
                       << std::endl;
+            Assert(false);
           }
           else
           {
-            Node expected = value ? Node(n) : n.negate();
-            if (proof->getResult() != expected)
+            if (!proof->getResult().isNull())
             {
-              Warning() << "CircuitPropagator: Incorrect proof: " << expected
-                        << " vs. " << proof->getResult() << std::endl
-                        << *proof << std::endl;
+              Node expected = value ? Node(n) : n.negate();
+              if (proof->getResult() != expected)
+              {
+                Warning() << "CircuitPropagator: Incorrect proof: " << expected
+                          << " vs. " << proof->getResult() << std::endl
+                          << *proof << std::endl;
+              }
+              d_epg->setProofFor(expected, std::move(proof));
             }
-            d_epg->setProofFor(expected, std::move(proof));
+            else
+            {
+              Node expected = value ? Node(n) : n.negate();
+              Warning()
+                  << "CircuitPropagator: Ignored proof as its result is null: "
+                  << expected << std::endl
+                  << *proof << std::endl;
+            }
           }
         }
       }

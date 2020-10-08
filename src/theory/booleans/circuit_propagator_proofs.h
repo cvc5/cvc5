@@ -300,6 +300,10 @@ struct CircuitPropagatorBackwardProver
       return mkResolution(mkProof(PfRule::CNF_OR_POS, {}, {d_parent}),
                           children);
     }
+    std::shared_ptr<ProofNode> impEval(bool premise, bool conclusion)
+    {
+      return nullptr;
+    }
   };
 
 }  // namespace booleans

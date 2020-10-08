@@ -58,7 +58,7 @@ void CircuitPropagator::assertTrue(TNode assertion)
     // Analyze the assertion for back-edges and all that
     computeBackEdges(assertion);
     // Assign the given assertion to true
-    assignAndEnqueue(assertion, true);
+    assignAndEnqueue(assertion, true, mkProof(assertion));
   }
 }
 
@@ -353,7 +353,10 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
     case kind::IMPLIES:
       if (isAssigned(parent[0]) && isAssigned(parent[1])) {
         // IMPLIES (x=v1) (y=v2): assign(IMPLIES = (!v1 || v2))
-        assignAndEnqueue(parent, !getAssignment(parent[0]) || getAssignment(parent[1]));
+        assignAndEnqueue(
+            parent,
+            !getAssignment(parent[0]) || getAssignment(parent[1]),
+            prover.impEval(getAssignment(parent[0]), getAssignment(parent[1])));
       } else {
         if (child == parent[0] && childAssignment && isAssignedTo(parent, true)) {
           // IMPLIES (x=TRUE) y [with IMPLIES == TRUE]: assign(y = TRUE)
@@ -413,14 +416,24 @@ bool CircuitPropagator::propagate() {
 
       if (isProofEnabled())
       {
-        if (!d_epg->hasProofFor(lit))
+        if (d_epg->hasProofFor(lit))
+        {
+          TrustNode tlit = TrustNode::mkTrustLemma(lit, d_epg.get());
+          d_learnedLiterals.push_back(tlit);
+        }
+        else
         {
           Warning() << "CircuitPropagator: Proof is missing for " << lit
                     << std::endl;
+          TrustNode tlit = TrustNode::mkTrustLemma(lit, nullptr);
+          d_learnedLiterals.push_back(tlit);
         }
       }
-      TrustNode tlit = TrustNode::mkTrustLemma(lit, d_epg.get());
-      d_learnedLiterals.push_back(tlit);
+      else
+      {
+        TrustNode tlit = TrustNode::mkTrustLemma(lit, nullptr);
+        d_learnedLiterals.push_back(tlit);
+      }
     }
 
     // Propagate this value to the children (if not an atom or a constant)
