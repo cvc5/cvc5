@@ -64,14 +64,14 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
       }
     }
   }
-  std::vector< std::shared_ptr<ProofNode> > traversing;
+  std::vector<std::shared_ptr<ProofNode>> traversing;
   processInternal(pf, d_freeAssumps, traversing);
 }
 
-void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
-                                       const std::vector<Node>& fa,
-                                       std::vector< std::shared_ptr<ProofNode> >& traversing
-                                      )
+void ProofNodeUpdater::processInternal(
+    std::shared_ptr<ProofNode> pf,
+    const std::vector<Node>& fa,
+    std::vector<std::shared_ptr<ProofNode>>& traversing)
 {
   Trace("pf-process") << "ProofNodeUpdater::process" << std::endl;
   std::unordered_map<std::shared_ptr<ProofNode>, bool> visited;
@@ -156,9 +156,10 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
         if (std::find(traversing.begin(), traversing.end(), cp)
             != traversing.end())
         {
-          Unhandled() << "ProofNodeUpdater::processInternal: cyclic proof! (use "
-                         "--proof-new-eager-checking)"
-                      << std::endl;
+          Unhandled()
+              << "ProofNodeUpdater::processInternal: cyclic proof! (use "
+                 "--proof-new-eager-checking)"
+              << std::endl;
         }
         visit.push_back(cp);
       }
@@ -233,10 +234,10 @@ bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur,
   return false;
 }
 
-void ProofNodeUpdater::runFinalize(std::shared_ptr<ProofNode> cur,
-                 const std::vector<Node>& fa,
-  std::map<Node, std::shared_ptr<ProofNode>>& resCache
-)
+void ProofNodeUpdater::runFinalize(
+    std::shared_ptr<ProofNode> cur,
+    const std::vector<Node>& fa,
+    std::map<Node, std::shared_ptr<ProofNode>>& resCache)
 {
   if (d_mergeSubproofs)
   {
