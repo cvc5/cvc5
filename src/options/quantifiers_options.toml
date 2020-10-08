@@ -2031,3 +2031,21 @@ header = "options/quantifiers_options.h"
 [[option.mode.BOTH]]
   name = "both"
   help = "combines minimal and maximal ."
+
+[[option]]
+  name       = "sygusInstLemmaMode"
+  category   = "regular"
+  long       = "sygus-inst-mode=MODE"
+  type       = "SygusInstLemmaMode"
+  default    = "STAGED"
+  help       = "select instantiation lemma mode"
+  help_mode  = "SyGuS instantiation lemma modes."
+[[option.mode.STAGED]]
+  name = "staged"
+  help = "add evaluation unfolding and instantiation lemmas in two separate steps."
+[[option.mode.INSTONLY]]
+  name = "inst"
+  help = "add only instantiation lemmas (no evaluation unfolding)."
+[[option.mode.PARALLEL]]
+  name = "parallel"
+  help = "add evaluation unfolding and in stantiation lemmas in same step."

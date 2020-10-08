@@ -245,10 +245,12 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
   TermDbSygus* db = d_quantEngine->getTermDatabaseSygus();
   SygusExplain syexplain(db);
   NodeManager* nm = NodeManager::currentNM();
+  options::SygusInstLemmaMode mode = options::sygusInstLemmaMode();
 
   for (const Node& q : d_active_quant)
   {
     std::vector<Node> terms;
+    bool added_unfolding_lemma = false;
     for (const Node& var : q[0])
     {
       Node dt_var = d_inst_constants[var];
@@ -256,6 +258,8 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
       Node value = model->getValue(dt_var);
       Node t = datatypes::utils::sygusToBuiltin(value);
       terms.push_back(t);
+
+      if (mode == options::SygusInstLemmaMode::INSTONLY) continue;
 
       std::vector<Node> exp;
       syexplain.getExplanationForEquality(dt_var, value, exp);
@@ -276,12 +280,16 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
         Trace("sygus-inst") << "Evaluation unfolding: " << lem << std::endl;
         d_quantEngine->addLemma(lem, false);
         d_lemma_cache.insert(lem);
+        added_unfolding_lemma = true;
       }
     }
 
-    if (inst->addInstantiation(q, terms))
+    if (!added_unfolding_lemma || mode == options::SygusInstLemmaMode::PARALLEL)
     {
-      Trace("sygus-inst") << "Instantiate " << q << std::endl;
+      if (inst->addInstantiation(q, terms))
+      {
+        Trace("sygus-inst") << "Instantiate " << q << std::endl;
+      }
     }
   }
 }
