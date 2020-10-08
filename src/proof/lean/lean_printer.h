@@ -45,6 +45,7 @@ static void leanPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   out << pfn;
 }
 
+}  // namespace proof
+}  // namespace CVC4
+
 #endif
-}
-}

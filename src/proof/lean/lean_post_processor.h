@@ -69,7 +69,7 @@ class LeanProofPostprocess
   /** The post process callback */
   std::unique_ptr<LeanProofPostprocessCallback> d_cb;
   /** The proof node manager */
-  std::unique_ptr<ProofNodeManager> d_pnm;
+  ProofNodeManager* d_pnm;
 };
 
 }  // namespace proof
