@@ -407,6 +407,15 @@ bool CircuitPropagator::propagate() {
     if (atom) {
       Debug("circuit-prop") << "CircuitPropagator::propagate(): adding to learned: " << (assignment ? (Node)current : current.notNode()) << std::endl;
       Node lit = assignment ? Node(current) : current.notNode();
+
+      if (isProofEnabled())
+      {
+        if (!d_epg->hasProofFor(lit))
+        {
+          Warning() << "CircuitPropagator: Proof is missing for " << lit
+                    << std::endl;
+        }
+      }
       TrustNode tlit = TrustNode::mkTrustLemma(lit, d_epg.get());
       d_learnedLiterals.push_back(tlit);
     }
