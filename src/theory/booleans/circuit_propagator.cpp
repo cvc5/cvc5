@@ -242,6 +242,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
   for(; parent_it != parent_it_end && !d_conflict; ++ parent_it) {
     // The current parent of the child
     TNode parent = *parent_it;
+    Debug("circuit-prop") << "Parent: " << parent << endl;
     Assert(expr::hasSubterm(parent, child));
 
     CircuitPropagatorForwardProver prover{
@@ -261,7 +262,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
           TNode::iterator other = find_if (holdout + 1, parent.end(), not1(IsAssignedTo(*this, true)));
           if (other == parent.end()) { // the holdout is unique
             // AND ...(x=TRUE)...: if all children BUT ONE now assigned to TRUE, and AND == FALSE, assign(last_holdout = FALSE)
-            assignAndEnqueue(*holdout, false);
+            assignAndEnqueue(*holdout, false, prover.andFalse(holdout));
           }
         }
       } else {
@@ -364,7 +365,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
       } else {
         if (child == parent[0] && childAssignment && isAssignedTo(parent, true)) {
           // IMPLIES (x=TRUE) y [with IMPLIES == TRUE]: assign(y = TRUE)
-          assignAndEnqueue(parent[1], true);
+          assignAndEnqueue(parent[1], true, prover.impTrue());
         }
         if (child == parent[1] && !childAssignment && isAssignedTo(parent, true)) {
           // IMPLIES x (y=FALSE) [with IMPLIES == TRUE]: assign(x = FALSE)

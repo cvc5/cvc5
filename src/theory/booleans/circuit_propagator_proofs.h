@@ -289,6 +289,14 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
       }
       return mkProof(PfRule::AND_INTRO, children);
     }
+    std::shared_ptr<ProofNode> andFalse(TNode::iterator holdout)
+    {
+      // AND ...(x=TRUE)...: if all children BUT ONE now assigned to TRUE, and
+      // AND == FALSE, assign(last_holdout = FALSE)
+      return mkResolution(
+          mkProof(PfRule::NOT_AND, {mkProof(d_parent.negate())}),
+          collectButHoldout(d_parent, holdout));
+    }
     std::shared_ptr<ProofNode> andFalse()
     {
       auto it = std::find(d_parent.begin(), d_parent.end(), d_child);
@@ -367,6 +375,14 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
     std::shared_ptr<ProofNode> impEval(bool premise, bool conclusion)
     {
       return nullptr;
+    }
+    std::shared_ptr<ProofNode> impTrue()
+    {
+      // TRUE implies y
+      return mkProof(PfRule::CHAIN_RESOLUTION,
+                     {mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)}),
+                      mkProof(d_child)},
+                     {d_child.negate()});
     }
   };
 

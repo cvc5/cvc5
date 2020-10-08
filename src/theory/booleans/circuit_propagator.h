@@ -253,6 +253,8 @@ class CircuitPropagator
                         << " vs. " << proof->getResult() << std::endl
                         << *proof << std::endl;
             }
+            Trace("circuit-prop") << "Adding proof " << *proof << std::endl
+                                  << "\t" << proof->getResult() << std::endl;
             d_epg->setProofFor(expected, std::move(proof));
           }
         }
