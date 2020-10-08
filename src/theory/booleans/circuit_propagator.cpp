@@ -59,7 +59,14 @@ void CircuitPropagator::assertTrue(TNode assertion)
     // Analyze the assertion for back-edges and all that
     computeBackEdges(assertion);
     // Assign the given assertion to true
-    assignAndEnqueue(assertion, true, d_pnm->mkAssume(assertion));
+    if (isProofEnabled())
+    {
+      assignAndEnqueue(assertion, true, d_pnm->mkAssume(assertion));
+    }
+    else
+    {
+      assignAndEnqueue(assertion, true, nullptr);
+    }
   }
 }
 
