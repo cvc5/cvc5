@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file nl_iand_utils.h
+/*! \file iand_table.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Yoni Zohar
@@ -9,11 +9,12 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Utilities for processing lemmas from the non-linear solver
+ ** \brief Utilities to maintain finite tables that represent
+ ** the value of iand.
  **/
 
-#ifndef CVC4__THEORY__ARITH__NL__NL_IAND_UTILS_H
-#define CVC4__THEORY__ARITH__NL__NL_IAND_UTILS_H
+#ifndef CVC4__THEORY__ARITH__IAND_TABLE_H
+#define CVC4__THEORY__ARITH__IAND_TABLE_H
 
 #include <tuple>
 #include <vector>
@@ -25,7 +26,11 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-class IAndUtils
+/**
+ * A class that computes tables for iand values
+ * with various bit-widths
+ */
+class IAndTable
 {
  public:
   /**
@@ -102,4 +107,4 @@ class IAndUtils
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* CVC4__THEORY__ARITH__NL_IAND_UTILS_H */
+#endif /* CVC4__THEORY__ARITH__IAND_TABLE_H */

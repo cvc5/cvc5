@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file nl_iand_utils.cpp
+/*! \file iand_table.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Yoni Zohar
@@ -9,10 +9,11 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of utilities for the non-linear solver
+ ** \brief Utilities to maintain finite tables that represent
+ ** the value of iand.
  **/
 
-#include "theory/arith/nl/nl_iand_utils.h"
+#include "theory/arith/nl/iand_table.h"
 
 #include <cmath>
 
@@ -37,7 +38,7 @@ Node pow2(uint64_t k)
 
 bool oneBitAnd(bool a, bool b) { return (a && b); }
 
-Node IAndUtils::createITEFromTable(
+Node IAndTable::createITEFromTable(
     Node x,
     Node y,
     uint64_t granularity,
@@ -70,10 +71,10 @@ Node IAndUtils::createITEFromTable(
   return ite;
 }
 
-Node IAndUtils::createBitwiseNode(Node x,
-                                   Node y,
-                                   uint64_t bvsize,
-                                   uint64_t granularity)
+Node IAndTable::createBitwiseNode(Node x,
+                                  Node y,
+                                  uint64_t bvsize,
+                                  uint64_t granularity)
 {
   NodeManager* nm = NodeManager::currentNM();
   /**
