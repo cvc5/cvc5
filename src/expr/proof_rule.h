@@ -304,6 +304,19 @@ enum class PfRule : uint32_t
   // Conclusion: (F2)
   // Note this can optionally be seen as a macro for EQUIV_ELIM1+RESOLUTION.
   EQ_RESOLVE,
+  // ======== Modus ponens
+  // Children: (P1:F1, P2:(=> F1 F2))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (F2)
+  // Note this can optionally be seen as a macro for IMPLIES_ELIM+RESOLUTION.
+  MODUS_PONENS,
+  // ======== Double negation elimination
+  // Children: (P:(not (not F)))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (F)
+  NOT_NOT_ELIM,
   // ======== Contradiction
   // Children: (P1:F P2:(not F))
   // Arguments: ()

@@ -28,6 +28,9 @@ void BoolProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::FACTORING, this);
   pc->registerChecker(PfRule::REORDERING, this);
   pc->registerChecker(PfRule::EQ_RESOLVE, this);
+  pc->registerChecker(PfRule::MODUS_PONENS, this);
+  pc->registerChecker(PfRule::NOT_NOT_ELIM, this);
+  pc->registerChecker(PfRule::CONTRA, this);
   pc->registerChecker(PfRule::AND_ELIM, this);
   pc->registerChecker(PfRule::AND_INTRO, this);
   pc->registerChecker(PfRule::NOT_OR_ELIM, this);
@@ -44,7 +47,6 @@ void BoolProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::NOT_XOR_ELIM2, this);
   pc->registerChecker(PfRule::ITE_ELIM1, this);
   pc->registerChecker(PfRule::ITE_ELIM2, this);
-  pc->registerChecker(PfRule::CONTRA, this);
   pc->registerChecker(PfRule::NOT_ITE_ELIM1, this);
   pc->registerChecker(PfRule::NOT_ITE_ELIM2, this);
   pc->registerChecker(PfRule::NOT_AND, this);
@@ -236,6 +238,26 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     return children[1][1];
+  }
+  if (id == PfRule::MODUS_PONENS)
+  {
+    Assert(children.size() == 2);
+    Assert(args.empty());
+    if (children[1].getKind() != kind::IMPLIES || children[0] != children[1][0])
+    {
+      return Node::null();
+    }
+    return children[1][1];
+  }
+  if (id == PfRule::NOT_NOT_ELIM)
+  {
+    Assert(children.size() == 1);
+    Assert(args.empty());
+    if (children[0].getKind() != kind::NOT || children[0][0].getKind() != kind::NOT)
+    {
+      return Node::null();
+    }
+    return children[0][0][0];
   }
   // natural deduction rules
   if (id == PfRule::AND_ELIM)
