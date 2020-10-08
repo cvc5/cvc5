@@ -33,8 +33,8 @@ bool ProofNodeUpdaterCallback::update(Node res,
 }
 
 ProofNodeUpdater::ProofNodeUpdater(ProofNodeManager* pnm,
-                                   ProofNodeUpdaterCallback& cb)
-    : d_pnm(pnm), d_cb(cb), d_debugFreeAssumps(false)
+                                   ProofNodeUpdaterCallback& cb, bool mergeSubproofs)
+    : d_pnm(pnm), d_cb(cb), d_debugFreeAssumps(false), d_mergeSubproofs(mergeSubproofs)
 {
 }
 
@@ -89,35 +89,39 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
     res = cur->getResult();
     if (it == visited.end())
     {
-      itc = resCache.find(res);
-      if (itc != resCache.end())
+      if (d_mergeSubproofs)
       {
-        counterReuse++;
-        // already have a proof
-        visited[cur] = true;
-        d_pnm->updateNode(cur.get(), itc->second.get());
-      }
-      else
-      {
-        counterNew++;
-        visited[cur] = false;
-        // run update to a fixed point
-        bool continueUpdate = true;
-        while (runUpdate(cur, fa, continueUpdate) && continueUpdate)
+        itc = resCache.find(res);
+        if (itc != resCache.end())
         {
-          Trace("pf-process-debug") << "...updated proof." << std::endl;
-        }
-        if (!continueUpdate)
-        {
-          // no further changes should be made to cur according to the callback
-          Trace("pf-process-debug")
-              << "...marked to not continue update." << std::endl;
+          counterReuse++;
+          // already have a proof, merge it into this one
+          visited[cur] = true;
+          d_pnm->updateNode(cur.get(), itc->second.get());
           continue;
         }
-        visit.push_back(cur);
+      }
+      counterNew++;
+      visited[cur] = false;
+      // run update to a fixed point
+      bool continueUpdate = true;
+      while (runUpdate(cur, fa, continueUpdate) && continueUpdate)
+      {
+        Trace("pf-process-debug") << "...updated proof." << std::endl;
+      }
+      if (!continueUpdate)
+      {
+        // no further changes should be made to cur according to the callback
+        Trace("pf-process-debug")
+            << "...marked to not continue update." << std::endl;
+        continue;
+      }
+      visit.push_back(cur);
+      if (d_mergeSubproofs)
+      {
         // If we are not the top-level proof, we were a scope, or became a
         // scope after updating, we need to make a separate recursive call to
-        // this method.
+        // this method. This is not necessary if we are not merging subproofs.
         if (cur->getRule() == PfRule::SCOPE && cur != pf)
         {
           std::vector<Node> nfa;
@@ -135,21 +139,25 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
           processInternal(cur, nfa);
           continue;
         }
-        const std::vector<std::shared_ptr<ProofNode>>& ccp = cur->getChildren();
-        // now, process children
-        for (const std::shared_ptr<ProofNode>& cp : ccp)
-        {
-          visit.push_back(cp);
-        }
       }
+      const std::vector<std::shared_ptr<ProofNode>>& ccp = cur->getChildren();
+      // now, process children
+      for (const std::shared_ptr<ProofNode>& cp : ccp)
+      {
+        visit.push_back(cp);
+      }
+      
       Trace("pf-process-debug")
           << "Processing " << counterReuse << "/" << counterNew << std::endl;
     }
     else if (!it->second)
     {
       visited[cur] = true;
-      // cache result
-      resCache[res] = cur;
+      if (d_mergeSubproofs)
+      {
+        // cache result if we are merging subproofs
+        resCache[res] = cur;
+      }
       if (d_debugFreeAssumps)
       {
         // We have that npn is a node we occurring the final updated version of

@@ -75,7 +75,13 @@ class ProofNodeUpdaterCallback
 class ProofNodeUpdater
 {
  public:
-  ProofNodeUpdater(ProofNodeManager* pnm, ProofNodeUpdaterCallback& cb);
+   /** 
+    * @param pnm The proof node manager we are using
+    * @param cb The callback to apply to each node
+    * @param mergeSubproofs Whether to automatically merge subproofs within
+    * the same SCOPE that prove the same fact.
+    */
+  ProofNodeUpdater(ProofNodeManager* pnm, ProofNodeUpdaterCallback& cb, bool mergeSubproofs = false);
   /**
    * Post-process, which performs the main post-processing technique described
    * above.
@@ -116,6 +122,8 @@ class ProofNodeUpdater
   bool d_debugFreeAssumps;
   /** The initial free assumptions */
   std::vector<Node> d_freeAssumps;
+  /** Whether we are merging subproofs */
+  bool d_mergeSubproofs;
 };
 
 }  // namespace CVC4

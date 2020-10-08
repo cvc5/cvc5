@@ -313,44 +313,26 @@ bool ProofNodeManager::updateNodeInternal(
 {
   Assert(pn != nullptr);
   // ---------------- check for cyclic
-  std::unordered_map<const ProofNode*, bool> visited;
-  std::unordered_map<const ProofNode*, bool>::iterator it;
-  std::vector<const ProofNode*> visit;
-  for (const std::shared_ptr<ProofNode>& cp : children)
+  std::unordered_set<const ProofNode*> visited;
+  for (const std::shared_ptr<ProofNode>& cpc : children)
   {
-    visit.push_back(cp.get());
-  }
-  const ProofNode* cur;
-  while (!visit.empty())
-  {
-    cur = visit.back();
-    visit.pop_back();
-    it = visited.find(cur);
-    if (it == visited.end())
+    if (expr::containsSubproof(cpc.get(), pn, visited))
     {
-      visited[cur] = true;
-      if (cur == pn)
+      std::stringstream ss;
+      ss << "ProofNodeManager::updateNode: attempting to make cyclic proof! "
+          << id << " " << pn->getResult() << ", children = " << std::endl;
+      for (const std::shared_ptr<ProofNode>& cp : children)
       {
-        std::stringstream ss;
-        ss << "ProofNodeManager::updateNode: attempting to make cyclic proof! "
-           << id << " " << pn->getResult() << ", children = " << std::endl;
-        for (const std::shared_ptr<ProofNode>& cp : children)
-        {
-          ss << "  " << cp->getRule() << " " << cp->getResult() << std::endl;
-        }
-        ss << "Full children:" << std::endl;
-        for (const std::shared_ptr<ProofNode>& cp : children)
-        {
-          ss << "  - ";
-          cp->printDebug(ss);
-          ss << std::endl;
-        }
-        Unreachable() << ss.str();
+        ss << "  " << cp->getRule() << " " << cp->getResult() << std::endl;
       }
-      for (const std::shared_ptr<ProofNode>& cp : cur->d_children)
+      ss << "Full children:" << std::endl;
+      for (const std::shared_ptr<ProofNode>& cp : children)
       {
-        visit.push_back(cp.get());
+        ss << "  - ";
+        cp->printDebug(ss);
+        ss << std::endl;
       }
+      Unreachable() << ss.str();
     }
   }
   // ---------------- end check for cyclic
