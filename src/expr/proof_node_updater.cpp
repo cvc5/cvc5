@@ -64,11 +64,14 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
       }
     }
   }
-  processInternal(pf, d_freeAssumps);
+  std::vector< std::shared_ptr<ProofNode> > traversing;
+  processInternal(pf, d_freeAssumps, traversing);
 }
 
 void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
-                                       const std::vector<Node>& fa)
+                                       const std::vector<Node>& fa,
+                                       std::vector< std::shared_ptr<ProofNode> >& traversing
+                                      )
 {
   Trace("pf-process") << "ProofNodeUpdater::process" << std::endl;
   std::unordered_map<std::shared_ptr<ProofNode>, bool> visited;
@@ -106,20 +109,22 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
         }
       }
       counterNew++;
-      visited[cur] = false;
       // run update to a fixed point
       bool continueUpdate = true;
       while (runUpdate(cur, fa, continueUpdate) && continueUpdate)
       {
         Trace("pf-process-debug") << "...updated proof." << std::endl;
       }
+      visited[cur] = !continueUpdate;
       if (!continueUpdate)
       {
         // no further changes should be made to cur according to the callback
         Trace("pf-process-debug")
             << "...marked to not continue update." << std::endl;
+        runFinalize(cur, fa, resCache);
         continue;
       }
+      traversing.push_back(cur);
       visit.push_back(cur);
       if (d_mergeSubproofs)
       {
@@ -140,7 +145,7 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
           }
           // Process in new call separately, since we should not cache
           // the results of proofs that have a different scope.
-          processInternal(cur, nfa);
+          processInternal(cur, nfa, traversing);
           continue;
         }
       }
@@ -148,6 +153,13 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
       // now, process children
       for (const std::shared_ptr<ProofNode>& cp : ccp)
       {
+        if (std::find(traversing.begin(), traversing.end(), cp)
+            != traversing.end())
+        {
+          Unhandled() << "ProofNodeUpdater::processInternal: cyclic proof! (use "
+                         "--proof-new-eager-checking)"
+                      << std::endl;
+        }
         visit.push_back(cp);
       }
 
@@ -156,21 +168,11 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
     }
     else if (!it->second)
     {
+      Assert(!traversing.empty());
+      traversing.pop_back();
       visited[cur] = true;
-      if (d_mergeSubproofs)
-      {
-        // cache result if we are merging subproofs
-        resCache[res] = cur;
-      }
-      if (d_debugFreeAssumps)
-      {
-        // We have that npn is a node we occurring the final updated version of
-        // the proof. We can now debug based on the expected set of free
-        // assumptions.
-        Trace("pfnu-debug") << "Ensure update closed..." << std::endl;
-        pfnEnsureClosedWrt(
-            cur.get(), fa, "pfnu-debug", "ProofNodeUpdater:finalize");
-      }
+      // finalize the node
+      runFinalize(cur, fa, resCache);
     }
   } while (!visit.empty());
   Trace("pf-process") << "ProofNodeUpdater::process: finished" << std::endl;
@@ -229,6 +231,28 @@ bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur,
   }
   Trace("pf-process-debug") << "..finished" << std::endl;
   return false;
+}
+
+void ProofNodeUpdater::runFinalize(std::shared_ptr<ProofNode> cur,
+                 const std::vector<Node>& fa,
+  std::map<Node, std::shared_ptr<ProofNode>>& resCache
+)
+{
+  if (d_mergeSubproofs)
+  {
+    Node res = cur->getResult();
+    // cache result if we are merging subproofs
+    resCache[res] = cur;
+  }
+  if (d_debugFreeAssumps)
+  {
+    // We have that npn is a node we occurring the final updated version of
+    // the proof. We can now debug based on the expected set of free
+    // assumptions.
+    Trace("pfnu-debug") << "Ensure update closed..." << std::endl;
+    pfnEnsureClosedWrt(
+        cur.get(), fa, "pfnu-debug", "ProofNodeUpdater:finalize");
+  }
 }
 
 void ProofNodeUpdater::setDebugFreeAssumptions(
