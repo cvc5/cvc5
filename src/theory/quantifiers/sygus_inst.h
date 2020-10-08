@@ -99,6 +99,11 @@ class SygusInst : public QuantifiersModule
    * preRegisterQuantifier() call.*/
   void addCeLemma(Node q);
 
+  /* Send evaluation unfolding lemmas and cache them.
+   * Returns true if a new lemma (not cached) was added, and false otherwise.
+   */
+  bool sendEvalUnfoldLemmas(const std::vector<Node>& lemmas);
+
   /* Maps bound variables to corresponding instantiation constants. */
   std::unordered_map<Node, Node, NodeHashFunction> d_inst_constants;
 

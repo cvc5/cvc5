@@ -245,11 +245,11 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
   TermDbSygus* db = d_quantEngine->getTermDatabaseSygus();
   SygusExplain syexplain(db);
   NodeManager* nm = NodeManager::currentNM();
-  options::SygusInstLemmaMode mode = options::sygusInstLemmaMode();
+  options::SygusInstMode mode = options::sygusInstMode();
 
   for (const Node& q : d_active_quant)
   {
-    std::vector<Node> terms, unfold_lemmas;
+    std::vector<Node> terms, eval_unfold_lemmas;
     for (const Node& var : q[0])
     {
       Node dt_var = d_inst_constants[var];
@@ -271,28 +271,46 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
                          exp.size() == 1 ? exp[0] : nm->mkNode(kind::AND, exp),
                          dt_eval.eqNode(t));
       }
-      unfold_lemmas.push_back(lem);
+      eval_unfold_lemmas.push_back(lem);
     }
 
-    bool added_instantiation = inst->addInstantiation(q, terms);
-    if (added_instantiation)
+    if (mode == options::SygusInstMode::PRIORITY_INST)
     {
-      Trace("sygus-inst") << "Instantiate " << q << std::endl;
-    }
-
-    if (!added_instantiation || mode == options::SygusInstLemmaMode::PARALLEL)
-    {
-      for (const Node& lem : unfold_lemmas)
+      if (!inst->addInstantiation(q, terms))
       {
-        if (d_lemma_cache.find(lem) == d_lemma_cache.end())
-        {
-          Trace("sygus-inst") << "Evaluation unfolding: " << lem << std::endl;
-          d_quantEngine->addLemma(lem, false);
-          d_lemma_cache.insert(lem);
-        }
+        sendEvalUnfoldLemmas(eval_unfold_lemmas);
       }
     }
+    else if (mode == options::SygusInstMode::PRIORITY_EVAL)
+    {
+      if (!sendEvalUnfoldLemmas(eval_unfold_lemmas))
+      {
+        inst->addInstantiation(q, terms);
+      }
+    }
+    else
+    {
+      Assert(mode == options::SygusInstMode::INTERLEAVE);
+      inst->addInstantiation(q, terms);
+      sendEvalUnfoldLemmas(eval_unfold_lemmas);
+    }
   }
+}
+
+bool SygusInst::sendEvalUnfoldLemmas(const std::vector<Node>& lemmas)
+{
+  bool added_lemma = false;
+  for (const Node& lem : lemmas)
+  {
+    if (d_lemma_cache.find(lem) == d_lemma_cache.end())
+    {
+      Trace("sygus-inst") << "Evaluation unfolding: " << lem << std::endl;
+      d_quantEngine->addLemma(lem, false);
+      d_lemma_cache.insert(lem);
+      added_lemma = true;
+    }
+  }
+  return added_lemma;
 }
 
 bool SygusInst::checkCompleteFor(Node q)
