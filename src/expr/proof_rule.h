@@ -135,7 +135,7 @@ enum class PfRule : uint32_t
   // More generally, this rule also holds when:
   //   Rewriter::rewrite(toWitness(F')) == true
   // where F' is the result of the left hand side of the equality above. Here,
-  // notice that we apply rewriting on the witness form of F, meaning that this
+  // notice that we apply rewriting on the witness form of F', meaning that this
   // rule may conclude an F whose Skolem form is justified by the definition of
   // its (fresh) Skolem variables. For example, this rule may justify the
   // conclusion (= k t) where k is the purification Skolem for t, whose
