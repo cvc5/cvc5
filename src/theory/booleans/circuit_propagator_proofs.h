@@ -243,11 +243,13 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
   }
   std::shared_ptr<ProofNode> impNegX()
   {
-    return mkProof(PfRule::NOT_IMPLIES_ELIM1, {mkProof(d_parent.negate())});
+    return mkRewrite(
+        mkProof(PfRule::NOT_IMPLIES_ELIM1, {mkProof(d_parent.negate())}));
   }
   std::shared_ptr<ProofNode> impNegY()
   {
-    return mkProof(PfRule::NOT_IMPLIES_ELIM2, {mkProof(d_parent.negate())});
+    return mkRewrite(
+        mkProof(PfRule::NOT_IMPLIES_ELIM2, {mkProof(d_parent.negate())}));
   }
 
   std::shared_ptr<ProofNode> xorX(bool negated, bool x)
