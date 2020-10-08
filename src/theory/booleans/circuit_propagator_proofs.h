@@ -46,7 +46,7 @@ inline std::shared_ptr<ProofNode> mkProof(Node n)
 }
 inline std::shared_ptr<ProofNode> mkProof(
     PfRule rule,
-    std::initializer_list<std::shared_ptr<ProofNode>> children,
+    const std::vector<std::shared_ptr<ProofNode>>& children,
     std::initializer_list<Node> args = {})
 {
   return std::make_shared<ProofNode>(
@@ -81,7 +81,7 @@ inline std::vector<Node> collectButHoldout(TNode parent,
 
 }  // namespace
 
-struct CircuitPropagatorProver
+struct CircuitPropagatorBackwardProver
 {
   TNode d_parent;
   bool d_parentAssignment;
@@ -255,6 +255,23 @@ struct CircuitPropagatorProver
           {d_parent[1]});
     }
   }
+  };
+
+  struct CircuitPropagatorForwardProver
+  {
+    TNode d_child;
+    bool d_childAssignment;
+    TNode d_parent;
+
+    std::shared_ptr<ProofNode> andTrue()
+    {
+      std::vector<std::shared_ptr<ProofNode>> children;
+      for (const auto& child : d_parent)
+      {
+        children.emplace_back(mkProof(child));
+      }
+      return mkProof(PfRule::AND_INTRO, children);
+    }
   };
 
 }  // namespace booleans

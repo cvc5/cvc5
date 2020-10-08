@@ -104,7 +104,7 @@ void CircuitPropagator::computeBackEdges(TNode node) {
 void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment) {
 
   Debug("circuit-prop") << "CircuitPropagator::propagateBackward(" << parent << ", " << parentAssignment << ")" << endl;
-  CircuitPropagatorProver prover{parent, parentAssignment};
+  CircuitPropagatorBackwardProver prover{parent, parentAssignment};
 
   // backward rules
   switch(parent.getKind()) {
@@ -243,6 +243,8 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
     TNode parent = *parent_it;
     Assert(expr::hasSubterm(parent, child));
 
+    CircuitPropagatorForwardProver prover{child, childAssignment, parent};
+
     // Forward rules
     switch(parent.getKind()) {
     case kind::AND:
@@ -251,7 +253,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
         holdout = find_if (parent.begin(), parent.end(), not1(IsAssignedTo(*this, true)));
         if (holdout == parent.end()) { // all children are assigned TRUE
           // AND ...(x=TRUE)...: if all children now assigned to TRUE, assign(AND = TRUE)
-          assignAndEnqueue(parent, true);
+          assignAndEnqueue(parent, true, prover.andTrue());
         } else if (isAssignedTo(parent, false)) {// the AND is FALSE
           // is the holdout unique ?
           TNode::iterator other = find_if (holdout + 1, parent.end(), not1(IsAssignedTo(*this, true)));
