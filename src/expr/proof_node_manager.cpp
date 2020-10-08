@@ -320,7 +320,7 @@ bool ProofNodeManager::updateNodeInternal(
     {
       std::stringstream ss;
       ss << "ProofNodeManager::updateNode: attempting to make cyclic proof! "
-          << id << " " << pn->getResult() << ", children = " << std::endl;
+         << id << " " << pn->getResult() << ", children = " << std::endl;
       for (const std::shared_ptr<ProofNode>& cp : children)
       {
         ss << "  " << cp->getRule() << " " << cp->getResult() << std::endl;

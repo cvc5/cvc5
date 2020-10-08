@@ -75,13 +75,15 @@ class ProofNodeUpdaterCallback
 class ProofNodeUpdater
 {
  public:
-   /** 
-    * @param pnm The proof node manager we are using
-    * @param cb The callback to apply to each node
-    * @param mergeSubproofs Whether to automatically merge subproofs within
-    * the same SCOPE that prove the same fact.
-    */
-  ProofNodeUpdater(ProofNodeManager* pnm, ProofNodeUpdaterCallback& cb, bool mergeSubproofs = false);
+  /**
+   * @param pnm The proof node manager we are using
+   * @param cb The callback to apply to each node
+   * @param mergeSubproofs Whether to automatically merge subproofs within
+   * the same SCOPE that prove the same fact.
+   */
+  ProofNodeUpdater(ProofNodeManager* pnm,
+                   ProofNodeUpdaterCallback& cb,
+                   bool mergeSubproofs = false);
   /**
    * Post-process, which performs the main post-processing technique described
    * above.

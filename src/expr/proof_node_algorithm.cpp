@@ -120,13 +120,15 @@ void getFreeAssumptionsMap(
   } while (!visit.empty());
 }
 
-bool containsSubproof(ProofNode * pn, ProofNode * pnc)
+bool containsSubproof(ProofNode* pn, ProofNode* pnc)
 {
   std::unordered_set<const ProofNode*> visited;
   return containsSubproof(pn, pnc, visited);
 }
 
-bool containsSubproof(ProofNode * pn, ProofNode * pnc, std::unordered_set<const ProofNode*>& visited)
+bool containsSubproof(ProofNode* pn,
+                      ProofNode* pnc,
+                      std::unordered_set<const ProofNode*>& visited)
 {
   std::unordered_map<const ProofNode*, bool>::iterator it;
   std::vector<const ProofNode*> visit;
@@ -136,14 +138,15 @@ bool containsSubproof(ProofNode * pn, ProofNode * pnc, std::unordered_set<const 
   {
     cur = visit.back();
     visit.pop_back();
-    if (visited.find(cur)==visited.end())
+    if (visited.find(cur) == visited.end())
     {
       visited.insert(cur);
       if (cur == pnc)
       {
         return true;
       }
-      const std::vector<std::shared_ptr<ProofNode>>& children = cur->getChildren();
+      const std::vector<std::shared_ptr<ProofNode>>& children =
+          cur->getChildren();
       for (const std::shared_ptr<ProofNode>& cp : children)
       {
         visit.push_back(cp.get());

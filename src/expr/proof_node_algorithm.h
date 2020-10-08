@@ -56,14 +56,16 @@ void getFreeAssumptionsMap(
 /**
  * @return true if pn contains pnc.
  */
-bool containsSubproof(ProofNode * pn, ProofNode * pnc);
+bool containsSubproof(ProofNode* pn, ProofNode* pnc);
 
 /**
  * Same as above, with a visited cache.
  *
  * @return true if pn contains pnc.
  */
-bool containsSubproof(ProofNode * pn, ProofNode * pnc, std::unordered_set<const ProofNode*>& visited);
+bool containsSubproof(ProofNode* pn,
+                      ProofNode* pnc,
+                      std::unordered_set<const ProofNode*>& visited);
 
 }  // namespace expr
 }  // namespace CVC4

@@ -735,7 +735,7 @@ bool ProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
     }
   }
   uint32_t plevel = d_pnm->getChecker()->getPedanticLevel(r);
-  if (plevel!=0)
+  if (plevel != 0)
   {
     d_minPedanticLevel.minAssign(plevel);
   }

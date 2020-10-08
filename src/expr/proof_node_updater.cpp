@@ -33,8 +33,12 @@ bool ProofNodeUpdaterCallback::update(Node res,
 }
 
 ProofNodeUpdater::ProofNodeUpdater(ProofNodeManager* pnm,
-                                   ProofNodeUpdaterCallback& cb, bool mergeSubproofs)
-    : d_pnm(pnm), d_cb(cb), d_debugFreeAssumps(false), d_mergeSubproofs(mergeSubproofs)
+                                   ProofNodeUpdaterCallback& cb,
+                                   bool mergeSubproofs)
+    : d_pnm(pnm),
+      d_cb(cb),
+      d_debugFreeAssumps(false),
+      d_mergeSubproofs(mergeSubproofs)
 {
 }
 
@@ -146,7 +150,7 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
       {
         visit.push_back(cp);
       }
-      
+
       Trace("pf-process-debug")
           << "Processing " << counterReuse << "/" << counterNew << std::endl;
     }
