@@ -60,19 +60,13 @@ struct CircuitPropagatorProver
 {
   ProofNodeManager* d_pnm;
 
-  std::shared_ptr<ProofNode> mkProof(Node n)
-{
-  return std::make_shared<ProofNode>(PfRule::ASSUME,
-                                     std::vector<std::shared_ptr<ProofNode>>(),
-                                     std::vector<Node>{n});
-}
-std::shared_ptr<ProofNode> mkProof(
-    PfRule rule,
-    const std::vector<std::shared_ptr<ProofNode>>& children,
-    std::initializer_list<Node> args = {})
-{
-  return std::make_shared<ProofNode>(
-      rule, std::move(children), std::move(args));
+  std::shared_ptr<ProofNode> mkProof(Node n) { return d_pnm->mkAssume(n); }
+  std::shared_ptr<ProofNode> mkProof(
+      PfRule rule,
+      const std::vector<std::shared_ptr<ProofNode>>& children,
+      const std::vector<Node>& args = {})
+  {
+    return d_pnm->mkNode(rule, children, args);
 }
 std::shared_ptr<ProofNode> mkResolution(
     std::shared_ptr<ProofNode> clause, const std::vector<Node>& negLits)
@@ -82,8 +76,7 @@ std::shared_ptr<ProofNode> mkResolution(
   {
     children.emplace_back(mkProof(n));
   }
-  return std::make_shared<ProofNode>(
-      PfRule::CHAIN_RESOLUTION, children, negLits);
+  return mkProof(PfRule::CHAIN_RESOLUTION, children, negLits);
 }
 };
 
