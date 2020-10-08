@@ -324,6 +324,26 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
       return mkResolution(mkProof(PfRule::CNF_OR_POS, {}, {d_parent}),
                           children);
     }
+
+    std::shared_ptr<ProofNode> eqEval()
+    {
+      if (d_childAssignment)
+      {
+        return mkProof(PfRule::CHAIN_RESOLUTION,
+                       {mkProof(PfRule::CNF_EQUIV_NEG2, {}, {d_parent}),
+                        mkProof(d_parent[0]),
+                        mkProof(d_parent[1])},
+                       {d_parent[0].negate(), d_parent[1].negate()});
+      }
+      else
+      {
+        return mkProof(PfRule::CHAIN_RESOLUTION,
+                       {mkProof(PfRule::CNF_EQUIV_NEG1, {}, {d_parent}),
+                        mkProof(d_parent[0].negate()),
+                        mkProof(d_parent[1].negate())},
+                       {d_parent[0], d_parent[1]});
+      }
+    }
     std::shared_ptr<ProofNode> eqYFromX()
     {
       Assert(d_parent[0] == d_child);
