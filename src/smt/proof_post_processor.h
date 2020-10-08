@@ -203,14 +203,14 @@ class ProofPostproccess
   ProofNodeManager* d_pnm;
   /** The post process callback */
   ProofPostprocessCallback d_cb;
-  /** 
+  /**
    * The updater, which is responsible for expanding macros in the final proof
    * and connecting preprocessed assumptions to input assumptions.
    */
   ProofNodeUpdater d_updater;
   /** The post process callback for finalization */
   ProofPostprocessFinalCallback d_finalCb;
-  /** 
+  /**
    * The finalizer, which is responsible for taking stats and checking for
    * (lazy) pedantic failures.
    */

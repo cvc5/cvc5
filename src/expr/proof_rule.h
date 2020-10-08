@@ -130,7 +130,7 @@ enum class PfRule : uint32_t
   // Conclusion: F
   // where
   //   Rewriter{idr}(F*sigma{ids}(Fn)*...*sigma{ids}(F1)) == true
-  // where ids and idr are method identifiers. 
+  // where ids and idr are method identifiers.
   //
   // More generally, this rule also holds when:
   //   Rewriter::rewrite(toWitness(F')) == true
