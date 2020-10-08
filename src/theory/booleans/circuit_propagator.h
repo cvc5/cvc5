@@ -244,7 +244,14 @@ class CircuitPropagator
           }
           else
           {
-            d_epg->setProofFor(value ? Node(n) : n.negate(), std::move(proof));
+            Node expected = value ? Node(n) : n.negate();
+            if (proof->getResult() != expected)
+            {
+              Warning() << "CircuitPropagator: Incorrect proof: " << expected
+                        << " vs. " << proof->getResult() << std::endl
+                        << *proof << std::endl;
+            }
+            d_epg->setProofFor(expected, std::move(proof));
           }
         }
       }

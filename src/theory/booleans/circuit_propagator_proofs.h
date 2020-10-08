@@ -106,7 +106,7 @@ struct CircuitPropagatorBackwardProver
   }
   std::shared_ptr<ProofNode> orTrue(TNode::iterator holdout)
   {
-    // TODO: I guess we still need (or (not x)) => x
+    // TODO: I guess we still need (or x) => x
     return mkResolution(mkProof(d_parent),
                         collectButHoldout(d_parent, holdout));
   }
@@ -271,6 +271,17 @@ struct CircuitPropagatorBackwardProver
         children.emplace_back(mkProof(child));
       }
       return mkProof(PfRule::AND_INTRO, children);
+    }
+    std::shared_ptr<ProofNode> andFalse()
+    {
+      auto it = std::find(d_parent.begin(), d_parent.end(), d_child);
+      return mkProof(PfRule::SCOPE,
+                     {mkProof(PfRule::CONTRA,
+                              {mkProof(PfRule::AND_ELIM,
+                                       {mkProof(d_parent)},
+                                       {mkRat(it - d_parent.begin())}),
+                               mkProof(d_child.negate())})},
+                     {d_parent});
     }
 
     std::shared_ptr<ProofNode> orTrue()

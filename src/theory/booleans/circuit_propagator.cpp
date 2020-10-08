@@ -264,7 +264,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
         }
       } else {
         // AND ...(x=FALSE)...: assign(AND = FALSE)
-        assignAndEnqueue(parent, false);
+        assignAndEnqueue(parent, false, prover.andFalse());
       }
       break;
     case kind::OR:
@@ -290,7 +290,8 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
 
     case kind::NOT:
       // NOT (x=b): assign(NOT = !b)
-      assignAndEnqueue(parent, !childAssignment);
+      assignAndEnqueue(
+          parent, !childAssignment, mkProof(mkNot(parent, !childAssignment)));
       break;
 
     case kind::ITE:
