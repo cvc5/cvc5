@@ -385,9 +385,16 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
   std::shared_ptr<ProofNode> eqYFromX()
   {
     Assert(d_parent[0] == d_child);
-    return mkProof(PfRule::EQ_RESOLVE,
-                   {mkProof(d_childAssignment ? d_child.negate() : d_child),
-                    mkProof(d_parent)});
+    if (d_childAssignment)
+    {
+      return mkProof(PfRule::EQ_RESOLVE, {mkProof(d_child), mkProof(d_parent)});
+    }
+    else
+    {
+      return mkProof(PfRule::CHAIN_RESOLUTION,
+                     {mkProof(PfRule::EQUIV_ELIM2, {mkProof(d_parent)})},
+                     {d_child});
+    }
   }
   std::shared_ptr<ProofNode> neqYFromX()
   {
@@ -406,9 +413,18 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
   std::shared_ptr<ProofNode> eqXFromY()
   {
     Assert(d_parent[1] == d_child);
-    return mkProof(PfRule::EQ_RESOLVE,
-                   {mkProof(d_childAssignment ? d_child.negate() : d_child),
-                    mkProof(PfRule::SYMM, {mkProof(d_parent)})});
+    if (d_childAssignment)
+    {
+      return mkProof(
+          PfRule::EQ_RESOLVE,
+          {mkProof(d_child), mkProof(PfRule::SYMM, {mkProof(d_parent)})});
+    }
+    else
+    {
+      return mkProof(PfRule::CHAIN_RESOLUTION,
+                     {mkProof(PfRule::EQUIV_ELIM1, {mkProof(d_parent)})},
+                     {d_child});
+    }
   }
   std::shared_ptr<ProofNode> neqXFromY()
   {
