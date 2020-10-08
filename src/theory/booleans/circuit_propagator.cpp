@@ -139,8 +139,10 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment) {
     break;
   case kind::NOT:
     // NOT = b: assign(c = !b)
-    // TODO: I *think* we only need a dummy proof here
-    assignAndEnqueue(parent[0], !parentAssignment);
+    assignAndEnqueue(
+        parent[0],
+        !parentAssignment,
+        d_pnm->mkAssume(parentAssignment ? Node(parent) : parent.negate()));
     break;
   case kind::ITE:
     if (isAssignedTo(parent[0], true)) {
