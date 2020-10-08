@@ -90,10 +90,11 @@ struct CircuitPropagatorProver
     }
     return mkProof(PfRule::CHAIN_RESOLUTION, children, lits);
   }
-  Node mkRewrite(Node n)
+  std::shared_ptr<ProofNode> mkRewrite(const std::shared_ptr<ProofNode>& n)
   {
+    d_epg->setProofFor(n->getResult(), n);
     theory::TheoryProofStepBuffer psb;
-    Node res = psb.factorReorderElimDoubleNeg(n);
+    Node res = psb.factorReorderElimDoubleNeg(n->getResult());
     for (const auto& step : psb.getSteps())
     {
       std::vector<std::shared_ptr<ProofNode>> children;
@@ -105,7 +106,7 @@ struct CircuitPropagatorProver
           step.first,
           mkProof(step.second.d_rule, children, step.second.d_args));
     }
-    return res;
+    return mkProof(res);
   }
 };
 
@@ -324,10 +325,9 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
   {
     // AND ...(x=TRUE)...: if all children BUT ONE now assigned to TRUE, and
     // AND == FALSE, assign(last_holdout = FALSE)
-    auto tmp = mkProof(PfRule::NOT_AND, {mkProof(d_parent.negate())});
-    d_epg->setProofFor(tmp->getResult(), tmp);
-    Node n = mkRewrite(tmp->getResult());
-    return mkResolution(mkProof(n), collectButHoldout(d_parent, holdout, true));
+    return mkResolution(
+        mkRewrite(mkProof(PfRule::NOT_AND, {mkProof(d_parent.negate())})),
+        collectButHoldout(d_parent, holdout, true));
   }
   std::shared_ptr<ProofNode> andFalse()
   {
