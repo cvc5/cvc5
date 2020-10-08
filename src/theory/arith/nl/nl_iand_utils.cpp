@@ -37,7 +37,7 @@ Node pow2(uint64_t k)
 
 bool oneBitAnd(bool a, bool b) { return (a && b); }
 
-Node IAndHelper::createITEFromTable(
+Node IAndUtils::createITEFromTable(
     Node x,
     Node y,
     uint64_t granularity,
@@ -70,7 +70,7 @@ Node IAndHelper::createITEFromTable(
   return ite;
 }
 
-Node IAndHelper::createBitwiseNode(Node x,
+Node IAndUtils::createBitwiseNode(Node x,
                                    Node y,
                                    uint64_t bvsize,
                                    uint64_t granularity)

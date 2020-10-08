@@ -284,7 +284,7 @@ class BVToInt : public PreprocessingPass
   Node d_one;
   
   // helper class for handeling bvand translation
-  theory::arith::nl::IAndHelper d_iandHelper;
+  theory::arith::nl::IAndUtils d_iandUtils;
 };
 
 }  // namespace passes

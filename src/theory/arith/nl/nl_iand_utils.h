@@ -25,7 +25,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-class IAndHelper
+class IAndUtils
 {
  public:
   /**
