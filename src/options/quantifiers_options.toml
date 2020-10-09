@@ -1311,14 +1311,6 @@ header = "options/quantifiers_options.h"
   help       = "enumerate a stream of solutions instead of terminating after the first one"
 
 [[option]]
-  name       = "sygusVerifySubcall"
-  category   = "regular"
-  long       = "sygus-verify-subcall"
-  type       = "bool"
-  default    = "true"
-  help       = "use separate copy of the SMT solver for verification lemmas in sygus"
-
-[[option]]
   name       = "sygusExtRew"
   category   = "regular"
   long       = "sygus-ext-rew"

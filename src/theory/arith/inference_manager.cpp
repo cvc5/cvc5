@@ -95,7 +95,7 @@ void InferenceManager::addConflict(const Node& conf, InferenceId inftype)
 {
   Trace("arith::infman") << "Adding conflict: " << inftype << " " << conf
                          << std::endl;
-  conflict(Rewriter::rewrite(conf));
+  conflict(conf);
 }
 
 bool InferenceManager::hasUsed() const

@@ -37,7 +37,7 @@ TheoryBV::TheoryBV(context::Context* c,
       d_ufRemByZero(),
       d_rewriter(),
       d_state(c, u, valuation),
-      d_inferMgr(*this, d_state, pnm)
+      d_inferMgr(*this, d_state, nullptr)
 {
   switch (options::bvSolver())
   {
@@ -194,10 +194,10 @@ bool TheoryBV::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 
 void TheoryBV::propagate(Effort e) { return d_internal->propagate(e); }
 
-Theory::PPAssertStatus TheoryBV::ppAssert(TNode in,
-                                          SubstitutionMap& outSubstitutions)
+Theory::PPAssertStatus TheoryBV::ppAssert(
+    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
-  return d_internal->ppAssert(in, outSubstitutions);
+  return d_internal->ppAssert(tin, outSubstitutions);
 }
 
 TrustNode TheoryBV::ppRewrite(TNode t) { return d_internal->ppRewrite(t); }

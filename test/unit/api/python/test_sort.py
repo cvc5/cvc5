@@ -347,6 +347,9 @@ def testSortSubtyping():
 
     setSortI = solver.mkSetSort(intSort)
     setSortR = solver.mkSetSort(realSort)
-    # we support subtyping for sets
-    assert setSortI.isSubsortOf(setSortR)
-    assert setSortR.isComparableTo(setSortI)
+    # we don't support subtyping for sets
+    assert not setSortI.isComparableTo(setSortR)
+    assert not setSortI.isSubsortOf(setSortR)
+    assert not setSortR.isComparableTo(setSortI)
+    assert not setSortR.isSubsortOf(setSortI)
+
