@@ -376,6 +376,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   }
   else if (id == PfRule::SUBS)
   {
+    NodeManager* nm = NodeManager::currentNM();
     // Notice that a naive way to reconstruct SUBS is to do a term conversion
     // proof for each substitution.
     // The proof of f(a) * { a -> g(b) } * { b -> c } = f(g(c)) is:
@@ -400,21 +401,41 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       builtin::BuiltinProofRuleChecker::getMethodId(args[1], ids);
     }
     std::vector<std::shared_ptr<CDProof>> pfs;
+    std::vector<TNode> vsList;
+    std::vector<TNode> ssList;
+    std::vector<TNode> fromList;
+    std::vector<ProofGenerator*> pgs;
+    // first, compute the entire substitution
+    for (size_t i = 0, nchild = children.size(); i < nchild; i++)
+    {
+      // get the substitution
+      builtin::BuiltinProofRuleChecker::getSubstitutionFor(
+          children[i], vsList, ssList, fromList, ids);
+      // ensure proofs for each formula in fromList
+      if (children[i].getKind() == AND && ids == MethodId::SB_DEFAULT)
+      {
+        for (size_t j = 0, nchildi = children[i].getNumChildren(); j < nchildi;
+             j++)
+        {
+          Node nodej = nm->mkConst(Rational(j));
+          cdp->addStep(
+              children[i][j], PfRule::AND_ELIM, {children[i]}, {nodej});
+        }
+      }
+    }
     std::vector<Node> vvec;
     std::vector<Node> svec;
-    std::vector<ProofGenerator*> pgs;
-    for (size_t i = 0, nchild = children.size(); i < nchild; i++)
+    for (size_t i = 0, nvs = vsList.size(); i < nvs; i++)
     {
       // Note we process in forward order, since later substitution should be
       // applied to earlier ones, and the last child of a SUBS is processed
       // first.
-      // get the substitution
-      TNode var, subs;
-      builtin::BuiltinProofRuleChecker::getSubstitution(
-          children[i], var, subs, ids);
+      TNode var = vsList[i];
+      TNode subs = ssList[i];
+      TNode childFrom = fromList[i];
       Trace("smt-proof-pp-debug")
-          << "...process " << var << " -> " << subs << " (" << children[i]
-          << ", " << ids << ")" << std::endl;
+          << "...process " << var << " -> " << subs << " (" << childFrom << ", "
+          << ids << ")" << std::endl;
       // apply the current substitution to the range
       if (!vvec.empty())
       {
@@ -429,7 +450,13 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
           std::shared_ptr<CDProof> pf = std::make_shared<CDProof>(d_pnm);
           pfs.push_back(pf);
           // prove the updated substitution
-          TConvProofGenerator tcg(d_pnm, nullptr, TConvPolicy::ONCE);
+          TConvProofGenerator tcg(d_pnm,
+                                  nullptr,
+                                  TConvPolicy::ONCE,
+                                  TConvCachePolicy::NEVER,
+                                  "nested_SUBS_TConvProofGenerator",
+                                  nullptr,
+                                  true);
           // add previous rewrite steps
           for (unsigned j = 0, nvars = vvec.size(); j < nvars; j++)
           {
@@ -442,11 +469,11 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
           Assert(pfn != nullptr);
           // add the proof
           pf->addProof(pfn);
-          // get proof for children[i] from cdp
-          pfn = cdp->getProofFor(children[i]);
+          // get proof for childFrom from cdp
+          pfn = cdp->getProofFor(childFrom);
           pf->addProof(pfn);
           // ensure we have a proof of var = subs
-          Node veqs = addProofForSubsStep(var, subs, children[i], pf.get());
+          Node veqs = addProofForSubsStep(var, subs, childFrom, pf.get());
           // transitivity
           pf->addStep(var.eqNode(ss), PfRule::TRANS, {veqs, seqss}, {});
           // add to the substitution
@@ -458,9 +485,9 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       }
       // Just use equality from CDProof, but ensure we have a proof in cdp.
       // This may involve a TRUE_INTRO/FALSE_INTRO if the substitution step
-      // uses the assumption children[i] as a Boolean assignment (e.g.
-      // children[i] = true if we are using MethodId::SB_LITERAL).
-      addProofForSubsStep(var, subs, children[i], cdp);
+      // uses the assumption childFrom as a Boolean assignment (e.g.
+      // childFrom = true if we are using MethodId::SB_LITERAL).
+      addProofForSubsStep(var, subs, childFrom, cdp);
       vvec.push_back(var);
       svec.push_back(subs);
       pgs.push_back(cdp);
@@ -470,7 +497,13 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     if (ts != t)
     {
       // should be implied by the substitution now
-      TConvProofGenerator tcpg(d_pnm, nullptr, TConvPolicy::ONCE);
+      TConvProofGenerator tcpg(d_pnm,
+                               nullptr,
+                               TConvPolicy::ONCE,
+                               TConvCachePolicy::NEVER,
+                               "SUBS_TConvProofGenerator",
+                               nullptr,
+                               true);
       for (unsigned j = 0, nvars = vvec.size(); j < nvars; j++)
       {
         // not necessarily closed, so we pass false to addRewriteStep.
@@ -523,7 +556,14 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       std::shared_ptr<ProofNode> pfn = trn.toProofNode();
       if (pfn == nullptr)
       {
+        Trace("smt-proof-pp-debug")
+            << "Use TRUST_REWRITE for " << eq << std::endl;
         // did not have a proof of rewriting, probably isExtEq is true
+        if (isExtEq)
+        {
+          // don't update
+          return Node::null();
+        }
         cdp->addStep(eq, PfRule::TRUST_REWRITE, {}, {eq});
       }
       else
@@ -644,23 +684,30 @@ ProofPostprocessFinalCallback::ProofPostprocessFinalCallback(
     ProofNodeManager* pnm)
     : d_ruleCount("finalProof::ruleCount"),
       d_totalRuleCount("finalProof::totalRuleCount", 0),
+      d_minPedanticLevel("finalProof::minPedanticLevel", 10),
+      d_numFinalProofs("finalProofs::numFinalProofs", 0),
       d_pnm(pnm),
       d_pedanticFailure(false)
 {
   smtStatisticsRegistry()->registerStat(&d_ruleCount);
   smtStatisticsRegistry()->registerStat(&d_totalRuleCount);
+  smtStatisticsRegistry()->registerStat(&d_minPedanticLevel);
+  smtStatisticsRegistry()->registerStat(&d_numFinalProofs);
 }
 
 ProofPostprocessFinalCallback::~ProofPostprocessFinalCallback()
 {
   smtStatisticsRegistry()->unregisterStat(&d_ruleCount);
   smtStatisticsRegistry()->unregisterStat(&d_totalRuleCount);
+  smtStatisticsRegistry()->unregisterStat(&d_minPedanticLevel);
+  smtStatisticsRegistry()->unregisterStat(&d_numFinalProofs);
 }
 
 void ProofPostprocessFinalCallback::initializeUpdate()
 {
   d_pedanticFailure = false;
   d_pedanticFailureOut.str("");
+  ++d_numFinalProofs;
 }
 
 bool ProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
@@ -687,6 +734,11 @@ bool ProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       }
     }
   }
+  uint32_t plevel = d_pnm->getChecker()->getPedanticLevel(r);
+  if (plevel != 0)
+  {
+    d_minPedanticLevel.minAssign(plevel);
+  }
   // record stats for the rule
   d_ruleCount << r;
   ++d_totalRuleCount;
@@ -708,7 +760,8 @@ ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,
                                      ProofGenerator* pppg)
     : d_pnm(pnm),
       d_cb(pnm, smte, pppg),
-      d_updater(d_pnm, d_cb),
+      // the update merges subproofs
+      d_updater(d_pnm, d_cb, true),
       d_finalCb(pnm),
       d_finalizer(d_pnm, d_finalCb)
 {
@@ -740,6 +793,15 @@ void ProofPostproccess::process(std::shared_ptr<ProofNode> pf)
 void ProofPostproccess::setEliminateRule(PfRule rule)
 {
   d_cb.setEliminateRule(rule);
+}
+
+void ProofPostproccess::setAssertions(const std::vector<Node>& assertions)
+{
+  // for debugging (slow)
+  if (options::proofNewUpdateDebug())
+  {
+    d_updater.setDebugFreeAssumptions(assertions);
+  }
 }
 
 }  // namespace smt

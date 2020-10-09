@@ -84,13 +84,26 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    */
   Node applyRewrite(Node n, MethodId idr = MethodId::RW_REWRITE);
   /**
-   * Get substitution. Updates vars/subs to the substitution specified by
-   * exp for the substitution method ids.
+   * Get substitution for literal exp. Updates vars/subs to the substitution
+   * specified by exp for the substitution method ids.
    */
-  static bool getSubstitution(Node exp,
-                              TNode& var,
-                              TNode& subs,
-                              MethodId ids = MethodId::SB_DEFAULT);
+  static bool getSubstitutionForLit(Node exp,
+                                    TNode& var,
+                                    TNode& subs,
+                                    MethodId ids = MethodId::SB_DEFAULT);
+  /**
+   * Get substitution for formula exp. Adds to vars/subs to the substitution
+   * specified by exp for the substitution method ids, which may be multiple
+   * substitutions if exp is of kind AND. The vector from are the literals
+   * from exp that each substitution in vars/subs are based on. For example,
+   * if exp is (and (= x t) (= y s)), then vars = { x, y }, subs = { t, s },
+   * from = { (= x y), (= y s) }.
+   */
+  static bool getSubstitutionFor(Node exp,
+                                 std::vector<TNode>& vars,
+                                 std::vector<TNode>& subs,
+                                 std::vector<TNode>& from,
+                                 MethodId ids = MethodId::SB_DEFAULT);
 
   /**
    * Apply substitution on n in skolem form. This encapsulates the exact
