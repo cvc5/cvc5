@@ -48,7 +48,7 @@ inline std::vector<Node> collectButHoldout(TNode parent,
   {
     if (i != holdout)
     {
-      lits.emplace_back(negate ? (*i).negate() : Node(*i));
+      lits.emplace_back(negate ? (*i).notNode() : Node(*i));
     }
   }
   return lits;
@@ -376,8 +376,9 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
     if (disabled()) return nullptr;
     // AND ...(x=TRUE)...: if all children BUT ONE now assigned to TRUE, and
     // AND == FALSE, assign(last_holdout = FALSE)
-    return mkResolution(mkProof(PfRule::NOT_AND, {mkProof(d_parent.negate())}),
-                        collectButHoldout(d_parent, holdout, true));
+    return mkNot(
+        mkResolution(mkProof(PfRule::NOT_AND, {mkProof(d_parent.negate())}),
+                     collectButHoldout(d_parent, holdout, true)));
   }
   std::shared_ptr<ProofNode> andFalse()
   {
