@@ -74,12 +74,12 @@ struct CircuitPropagatorProver
   std::shared_ptr<ProofNode> mkContra(const std::shared_ptr<ProofNode>& a,
                                       const std::shared_ptr<ProofNode>& b)
   {
-    Assert(a->getResult().negate() == b->getResult());
-    if (a->getResult().getKind() == Kind::NOT)
+    if (a->getResult().notNode() == b->getResult())
     {
-      return mkProof(PfRule::CONTRA, {b, a});
+      return mkProof(PfRule::CONTRA, {a, b});
     }
-    return mkProof(PfRule::CONTRA, {a, b});
+    Assert(a->getResult() == b->getResult().notNode());
+    return mkProof(PfRule::CONTRA, {b, a});
   }
   std::shared_ptr<ProofNode> mkResolution(std::shared_ptr<ProofNode> clause,
                                           const std::vector<Node>& lits)
