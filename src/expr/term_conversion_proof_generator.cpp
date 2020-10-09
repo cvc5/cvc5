@@ -214,7 +214,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getTranformProofFor(
   lpf.addLazyStep(f, pg);
   // ------ from pg  ------- from getProofForRewriting
   // f                f = f'
-  // ----------------------- MACRO_SR_PRED_TRANSFORM
+  // ----------------------- EQ_RESOLVE
   // f'
   Node conc = getProofForRewriting(f, lpf, d_tcontext);
   Assert(conc.getKind() == EQUAL);
@@ -226,9 +226,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getTranformProofFor(
     std::vector<Node> pfChildren;
     pfChildren.push_back(f);
     pfChildren.push_back(conc);
-    std::vector<Node> pfArgs;
-    pfArgs.push_back(fp);
-    lpf.addStep(fp, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
+    lpf.addStep(fp, PfRule::EQ_RESOLVE, pfChildren, {});
   }
   return lpf.getProofFor(fp);
 }

@@ -135,14 +135,21 @@ enum class PfRule : uint32_t
   // ---------------------------------------------------------------
   // Conclusion: F
   // where
-  //   Rewriter{idr}(toWitness(F)*sigma{ids}(Fn)*...*sigma{ids}(F1)) == true
+  //   Rewriter{idr}(F*sigma{ids}(Fn)*...*sigma{ids}(F1)) == true
   // where ids and idr are method identifiers.
   //
-  // Notice that we apply rewriting on the witness form of F, meaning that this
+  // More generally, this rule also holds when:
+  //   Rewriter::rewrite(toWitness(F')) == true
+  // where F' is the result of the left hand side of the equality above. Here,
+  // notice that we apply rewriting on the witness form of F', meaning that this
   // rule may conclude an F whose Skolem form is justified by the definition of
-  // its (fresh) Skolem variables. Furthermore, notice that the rewriting and
-  // substitution is applied only within the side condition, meaning the
-  // rewritten form of the witness form of F does not escape this rule.
+  // its (fresh) Skolem variables. For example, this rule may justify the
+  // conclusion (= k t) where k is the purification Skolem for t, whose
+  // witness form is (witness ((x T)) (= x t)).
+  //
+  // Furthermore, notice that the rewriting and substitution is applied only
+  // within the side condition, meaning the rewritten form of the witness form
+  // of F does not escape this rule.
   MACRO_SR_PRED_INTRO,
   // ======== Substitution + Rewriting predicate elimination
   //
@@ -171,11 +178,13 @@ enum class PfRule : uint32_t
   // ----------------------------------------
   // Conclusion: G
   // where
-  //   Rewriter{idr}(toWitness(F)*sigma{ids}(Fn)*...*sigma{ids}(F1)) ==
-  //   Rewriter{idr}(toWitness(G)*sigma{ids}(Fn)*...*sigma{ids}(F1))
+  //   Rewriter{idr}(F*sigma{ids}(Fn)*...*sigma{ids}(F1)) ==
+  //   Rewriter{idr}(G*sigma{ids}(Fn)*...*sigma{ids}(F1))
   //
-  // Notice that we apply rewriting on the witness form of F and G, similar to
-  // MACRO_SR_PRED_INTRO.
+  // More generally, this rule also holds when:
+  //   Rewriter::rewrite(toWitness(F')) == Rewriter::rewrite(toWitness(G'))
+  // where F' and G' are the result of each side of the equation above. Here,
+  // witness forms are used in a similar manner to MACRO_SR_PRED_INTRO above.
   MACRO_SR_PRED_TRANSFORM,
   // ======== DSL Rewrite
   // Children: (P1:F1 ... Pn:Fn)
@@ -304,6 +313,19 @@ enum class PfRule : uint32_t
   // Conclusion: (F2)
   // Note this can optionally be seen as a macro for EQUIV_ELIM1+RESOLUTION.
   EQ_RESOLVE,
+  // ======== Modus ponens
+  // Children: (P1:F1, P2:(=> F1 F2))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (F2)
+  // Note this can optionally be seen as a macro for IMPLIES_ELIM+RESOLUTION.
+  MODUS_PONENS,
+  // ======== Double negation elimination
+  // Children: (P:(not (not F)))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (F)
+  NOT_NOT_ELIM,
   // ======== Contradiction
   // Children: (P1:F P2:(not F))
   // Arguments: ()

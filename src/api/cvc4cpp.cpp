@@ -1060,7 +1060,15 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
                   .toType());
 }
 
-std::string Sort::toString() const { return d_type->toString(); }
+std::string Sort::toString() const
+{
+  if (d_solver != nullptr)
+  {
+    NodeManagerScope scope(d_solver->getNodeManager());
+    return d_type->toString();
+  }
+  return d_type->toString();
+}
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
@@ -1481,6 +1489,11 @@ std::string Op::toString() const
   {
     CVC4_API_CHECK(!d_node->isNull())
         << "Expecting a non-null internal expression";
+    if (d_solver != nullptr)
+    {
+      NodeManagerScope scope(d_solver->getNodeManager());
+      return d_node->toString();
+    }
     return d_node->toString();
   }
 }
@@ -1858,7 +1871,15 @@ Term Term::iteTerm(const Term& then_t, const Term& else_t) const
   }
 }
 
-std::string Term::toString() const { return d_node->toString(); }
+std::string Term::toString() const
+{
+  if (d_solver != nullptr)
+  {
+    NodeManagerScope scope(d_solver->getNodeManager());
+    return d_node->toString();
+  }
+  return d_node->toString();
+}
 
 Term::const_iterator::const_iterator()
     : d_solver(nullptr), d_origNode(nullptr), d_pos(0)
