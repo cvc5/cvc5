@@ -35,6 +35,13 @@ namespace strings {
  * Note: The order in this enum matters in certain cases (e.g. inferences
  * related to normal forms), inferences that come first are generally
  * preferred.
+ *
+ * Notice that an inference is intentionally distinct from PfRule. An
+ * inference captures *why* we performed a reasoning step, and a PfRule
+ * rule captures *what* reasoning step was used. For instance, the inference
+ * LEN_SPLIT translates to PfRule::SPLIT. The use of stats on inferences allows
+ * us to know that we performed N splits (PfRule::SPLIT) because we wanted
+ * to split on lengths for string equalities (Inference::LEN_SPLIT).
  */
 enum class Inference : uint32_t
 {
@@ -344,6 +351,22 @@ enum LengthStatus
  * An inference. This is a class to track an unprocessed call to either
  * send a fact, lemma, or conflict that is waiting to be asserted to the
  * equality engine or sent on the output channel.
+ *
+ * For the sake of proofs, the antecedants in InferInfo have a particular
+ * ordering for many of the core strings rules, which is expected by
+ * InferProofCons for constructing proofs of F_CONST, F_UNIFY, N_CONST, etc.
+ * which apply to a pair of string terms t and s. At a high level, the ordering
+ * expected in d_ant is:
+ * (1) (multiple) literals that explain why t and s have the same prefix/suffix,
+ * (2) t = s,
+ * (3) (optionally) a length constraint.
+ * For example, say we have:
+ *   { x ++ y ++ v1 = z ++ w ++ v2, x = z ++ u, u = "", len(y) = len(w) }
+ * We can conclude y = w by the N_UNIFY rule from the left side. The antecedant
+ * has the following form:
+ * - (prefix up to y/w equal) x = z ++ u, u = "",
+ * - (main equality) x ++ y ++ v1 = z ++ w ++ v2,
+ * - (length constraint) len(y) = len(w).
  */
 class InferInfo
 {

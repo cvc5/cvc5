@@ -531,11 +531,15 @@ public:
    * @param name The name of the type
    * @param type The type that should be associated with the name
    * @param levelZero If true, the type definition is considered global and
-   *                  cannot be removed by poppoing the user context
+   *                  cannot be removed by popping the user context
+   * @param skipExisting If true, the type definition is ignored if the same
+   *                     symbol has already been defined. It is assumed that
+   *                     the definition is the exact same as the existing one.
    */
   void defineType(const std::string& name,
                   const api::Sort& type,
-                  bool levelZero = false);
+                  bool levelZero = false,
+                  bool skipExisting = false);
 
   /**
    * Create a new (parameterized) type definition.

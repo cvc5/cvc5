@@ -536,8 +536,17 @@ void TheoryArithPrivate::raiseConflict(ConstraintCP a){
   d_conflicts.push_back(a);
 }
 
-void TheoryArithPrivate::raiseBlackBoxConflict(Node bb){
-  if(d_blackBoxConflict.get().isNull()){
+void TheoryArithPrivate::raiseBlackBoxConflict(Node bb,
+                                               std::shared_ptr<ProofNode> pf)
+{
+  Debug("arith::bb") << "raiseBlackBoxConflict: " << bb << std::endl;
+  if (d_blackBoxConflict.get().isNull())
+  {
+    if (options::proofNew())
+    {
+      Debug("arith::bb") << "  with proof " << pf << std::endl;
+      d_blackBoxConflictPf.set(pf);
+    }
     d_blackBoxConflict = bb;
   }
 }
@@ -1623,9 +1632,9 @@ Node TheoryArithPrivate::callDioSolver(){
 
     Node orig = Node::null();
     if(lb->isEquality()){
-      orig = lb->externalExplainByAssertions();
+      orig = lb->externalExplainByAssertions().getNode();
     }else if(ub->isEquality()){
-      orig = ub->externalExplainByAssertions();
+      orig = ub->externalExplainByAssertions().getNode();
     }else {
       orig = Constraint::externalExplainByAssertions(ub, lb);
     }
@@ -1879,7 +1888,7 @@ void TheoryArithPrivate::outputConflicts(){
         pf.print(std::cout);
         std::cout << std::endl;
       }
-      Node conflict = confConstraint->externalExplainConflict();
+      Node conflict = confConstraint->externalExplainConflict().getNode();
 
       ++conflicts;
       Debug("arith::conflict") << "d_conflicts[" << i << "] " << conflict
@@ -3788,13 +3797,13 @@ Node TheoryArithPrivate::explain(TNode n)
   ConstraintP c = d_constraintDatabase.lookup(n);
   if(c != NullConstraint){
     Assert(!c->isAssumption());
-    Node exp = c->externalExplainForPropagation();
+    Node exp = c->externalExplainForPropagation().getNode();
     Debug("arith::explain") << "constraint explanation" << n << ":" << exp << endl;
     return exp;
   }else if(d_assertionsThatDoNotMatchTheirLiterals.find(n) != d_assertionsThatDoNotMatchTheirLiterals.end()){
     c = d_assertionsThatDoNotMatchTheirLiterals[n];
     if(!c->isAssumption()){
-      Node exp = c->externalExplainForPropagation();
+      Node exp = c->externalExplainForPropagation().getNode();
       Debug("arith::explain") << "assertions explanation" << n << ":" << exp << endl;
       return exp;
     }else{
@@ -4997,7 +5006,7 @@ void TheoryArithPrivate::entailmentCheckBoundLookup(std::pair<Node, DeltaRationa
       ? d_partialModel.getUpperBoundConstraint(v)
       : d_partialModel.getLowerBoundConstraint(v);
     if(c != NullConstraint){
-      tmp.first = c->externalExplainByAssertions();
+      tmp.first = c->externalExplainByAssertions().getNode();
       tmp.second = c->getValue();
     }
   }
