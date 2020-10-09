@@ -138,25 +138,27 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
 
   std::shared_ptr<ProofNode> andTrue(TNode::iterator i)
   {
+    if (disabled()) return nullptr;
     return mkProof(
         PfRule::AND_ELIM, {mkProof(d_parent)}, {mkRat(i - d_parent.begin())});
   }
   std::shared_ptr<ProofNode> andFalse(TNode::iterator holdout)
   {
-    // TODO: I guess we still need (or (not x)) => x
+    if (disabled()) return nullptr;
     return mkResolution(mkProof(PfRule::NOT_AND, {mkProof(d_parent.negate())}),
                         collectButHoldout(d_parent, holdout));
   }
 
   std::shared_ptr<ProofNode> orFalse(TNode::iterator i)
   {
+    if (disabled()) return nullptr;
     return mkRewrite(mkProof(PfRule::NOT_OR_ELIM,
                                        {mkProof(d_parent.negate())},
                                        {mkRat(i - d_parent.begin())}));
   }
   std::shared_ptr<ProofNode> orTrue(TNode::iterator holdout)
   {
-    // TODO: I guess we still need (or x) => x
+    if (disabled()) return nullptr;
     return mkResolution(mkProof(d_parent),
                         collectButHoldout(d_parent, holdout));
   }
@@ -169,6 +171,7 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
 
   std::shared_ptr<ProofNode> iteC()
   {
+    if (disabled()) return nullptr;
     if (d_parentAssignment)
     {
       return mkProof(PfRule::RESOLUTION,
@@ -187,6 +190,7 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
   }
   std::shared_ptr<ProofNode> iteNotC()
   {
+    if (disabled()) return nullptr;
     if (d_parentAssignment)
     {
       return mkProof(PfRule::RESOLUTION,
@@ -205,6 +209,7 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
   }
   std::shared_ptr<ProofNode> iteIsX()
   {
+    if (disabled()) return nullptr;
     // ITE c x y = v: if c is unassigned, x and y are assigned, x==v and y!=v,
     // assign(c = TRUE)
     if (d_parentAssignment)
@@ -227,6 +232,7 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
   }
   std::shared_ptr<ProofNode> iteIsY()
   {
+    if (disabled()) return nullptr;
     // ITE c x y = v: if c is unassigned, x and y are assigned, x!=v and y==v,
     // assign(c = FALSE)
     if (d_parentAssignment)
@@ -250,27 +256,32 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
 
   std::shared_ptr<ProofNode> impTrue()
   {
+    if (disabled()) return nullptr;
     return mkResolution(mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)}),
                         {d_parent[0].negate()});
   }
   std::shared_ptr<ProofNode> impFalse()
   {
+    if (disabled()) return nullptr;
     return mkResolution(mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)}),
                         {d_parent[1]});
   }
   std::shared_ptr<ProofNode> impNegX()
   {
+    if (disabled()) return nullptr;
     return mkRewrite(
         mkProof(PfRule::NOT_IMPLIES_ELIM1, {mkProof(d_parent.negate())}));
   }
   std::shared_ptr<ProofNode> impNegY()
   {
+    if (disabled()) return nullptr;
     return mkRewrite(
         mkProof(PfRule::NOT_IMPLIES_ELIM2, {mkProof(d_parent.negate())}));
   }
 
   std::shared_ptr<ProofNode> xorX(bool negated, bool x)
   {
+    if (disabled()) return nullptr;
     if (x)
     {
       return mkProof(
@@ -292,6 +303,7 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
   }
   std::shared_ptr<ProofNode> xorY(bool negated, bool y)
   {
+    if (disabled()) return nullptr;
     if (y)
     {
       return mkProof(
@@ -333,6 +345,7 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
 
   std::shared_ptr<ProofNode> andTrue()
   {
+    if (disabled()) return nullptr;
     std::vector<std::shared_ptr<ProofNode>> children;
     for (const auto& child : d_parent)
     {
@@ -342,6 +355,7 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
   }
   std::shared_ptr<ProofNode> andFalse(TNode::iterator holdout)
   {
+    if (disabled()) return nullptr;
     // AND ...(x=TRUE)...: if all children BUT ONE now assigned to TRUE, and
     // AND == FALSE, assign(last_holdout = FALSE)
     return mkResolution(
@@ -350,6 +364,7 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
   }
   std::shared_ptr<ProofNode> andFalse()
   {
+    if (disabled()) return nullptr;
     auto it = std::find(d_parent.begin(), d_parent.end(), d_child);
     return mkProof(PfRule::SCOPE,
                    {mkContra(mkProof(PfRule::AND_ELIM,
@@ -361,6 +376,7 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
 
   std::shared_ptr<ProofNode> orTrue()
   {
+    if (disabled()) return nullptr;
     auto it = std::find(d_parent.begin(), d_parent.end(), d_child);
     return mkProof(
         PfRule::CHAIN_RESOLUTION,
@@ -371,11 +387,13 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
   }
   std::shared_ptr<ProofNode> orTrue(TNode::iterator holdout)
   {
+    if (disabled()) return nullptr;
     return mkResolution(mkProof(d_parent),
                         collectButHoldout(d_parent, holdout));
   }
   std::shared_ptr<ProofNode> orFalse()
   {
+    if (disabled()) return nullptr;
     std::vector<Node> children(d_parent.begin(), d_parent.end());
     return mkResolution(mkProof(PfRule::CNF_OR_POS, {}, {d_parent}), children);
   }
@@ -388,6 +406,7 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
 
   std::shared_ptr<ProofNode> eqEval()
   {
+    if (disabled()) return nullptr;
     if (d_childAssignment)
     {
       return mkProof(PfRule::CHAIN_RESOLUTION,
@@ -407,6 +426,7 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
   }
   std::shared_ptr<ProofNode> eqYFromX()
   {
+    if (disabled()) return nullptr;
     Assert(d_parent[0] == d_child);
     if (d_childAssignment)
     {
@@ -422,6 +442,7 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
   }
   std::shared_ptr<ProofNode> neqYFromX()
   {
+    if (disabled()) return nullptr;
     Assert(d_parent[0] == d_child);
     if (d_childAssignment)
     {
@@ -436,6 +457,7 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
   }
   std::shared_ptr<ProofNode> eqXFromY()
   {
+    if (disabled()) return nullptr;
     Assert(d_parent[1] == d_child);
     if (d_childAssignment)
     {
@@ -452,6 +474,7 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
   }
   std::shared_ptr<ProofNode> neqXFromY()
   {
+    if (disabled()) return nullptr;
     Assert(d_parent[0] == d_child);
     if (d_childAssignment)
     {
@@ -473,6 +496,7 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
   }
   std::shared_ptr<ProofNode> impTrue()
   {
+    if (disabled()) return nullptr;
     // TRUE implies y
     return mkProof(
         PfRule::CHAIN_RESOLUTION,
