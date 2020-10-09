@@ -104,11 +104,12 @@ class SygusInst : public QuantifiersModule
    */
   bool sendEvalUnfoldLemmas(const std::vector<Node>& lemmas);
 
-  /* Maps bound variables to corresponding instantiation constants. */
-  std::unordered_map<Node, Node, NodeHashFunction> d_inst_constants;
+  /* Maps quantifiers to a vector of instantiation constants. */
+  std::unordered_map<Node, std::vector<Node>, NodeHashFunction>
+      d_inst_constants;
 
-  /* Maps bound variables to corresponding DT_SYGUS_EVAL term. */
-  std::unordered_map<Node, Node, NodeHashFunction> d_var_eval;
+  /* Maps quantifiers to a vector of DT_SYGUS_EVAL terms. */
+  std::unordered_map<Node, std::vector<Node>, NodeHashFunction> d_var_eval;
 
   /* Maps quantified formulas to registered counterexample literals. */
   std::unordered_map<Node, Node, NodeHashFunction> d_ce_lits;

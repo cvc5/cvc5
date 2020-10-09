@@ -248,11 +248,16 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
 
   for (const Node& q : d_active_quant)
   {
+    const std::vector<Node>& inst_constants = d_inst_constants.at(q);
+    const std::vector<Node>& dt_evals = d_var_eval.at(q);
+    Assert(inst_constants.size() == dt_evals.size());
+    Assert(inst_constants.size() == q[0].getNumChildren());
+
     std::vector<Node> terms, eval_unfold_lemmas;
-    for (const Node& var : q[0])
+    for (size_t i = 0, size = q[0].getNumChildren(); i < size; ++i)
     {
-      Node dt_var = d_inst_constants[var];
-      Node dt_eval = d_var_eval[var];
+      Node dt_var = inst_constants[i];
+      Node dt_eval = dt_evals[i];
       Node value = model->getValue(dt_var);
       Node t = datatypes::utils::sygusToBuiltin(value);
       terms.push_back(t);
@@ -461,6 +466,10 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
 {
   Assert(q[0].getNumChildren() == types.size());
   Assert(d_ce_lemmas.find(q) == d_ce_lemmas.end());
+  Assert(d_inst_constants.find(q) == d_inst_constants.end());
+  Assert(d_var_eval.find(q) == d_var_eval.end());
+
+  Trace("sygus-inst") << "Register CE Lemma for " << q << std::endl;
 
   /* Generate counterexample lemma for 'q'. */
   NodeManager* nm = NodeManager::currentNM();
@@ -469,8 +478,8 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
   /* For each variable x_i of \forall x_i . P[x_i], create a fresh datatype
    * instantiation constant ic_i with type types[i] and wrap each ic_i in
    * DT_SYGUS_EVAL(ic_i), which will be used to instantiate x_i. */
-  std::vector<Node> vars;
   std::vector<Node> evals;
+  std::vector<Node> inst_constants;
   for (size_t i = 0, size = types.size(); i < size; ++i)
   {
     TypeNode tn = types[i];
@@ -480,6 +489,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
     Node ic = nm->mkInstConstant(tn);
     InstConstantAttribute ica;
     ic.setAttribute(ica, q);
+    Trace("sygus-inst") << "Create " << ic << " for " << var << std::endl;
 
     db->registerEnumerator(ic, ic, nullptr, ROLE_ENUM_MULTI_SOLUTION);
 
@@ -491,12 +501,12 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
     }
     Node eval = nm->mkNode(kind::DT_SYGUS_EVAL, args);
 
-    d_inst_constants.emplace(std::make_pair(var, ic));
-    d_var_eval.emplace(std::make_pair(var, eval));
-
-    vars.push_back(var);
+    inst_constants.push_back(ic);
     evals.push_back(eval);
   }
+
+  d_inst_constants.emplace(q, inst_constants);
+  d_var_eval.emplace(q, evals);
 
   Node lit = getCeLiteral(q);
   d_quantEngine->addRequirePhase(lit, true);
@@ -517,7 +527,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
 
   /* Add counterexample lemma (lit => ~P[x_i/eval_i]) */
   Node body =
-      q[1].substitute(vars.begin(), vars.end(), evals.begin(), evals.end());
+      q[1].substitute(q[0].begin(), q[0].end(), evals.begin(), evals.end());
   Node lem = nm->mkNode(kind::OR, lit.negate(), body.negate());
   lem = Rewriter::rewrite(lem);
 
