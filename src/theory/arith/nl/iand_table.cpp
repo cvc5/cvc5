@@ -50,7 +50,7 @@ Node IAndTable::createITEFromTable(
   // The table represents a function from pairs of integers to integers, where
   // all integers are between 0 (inclusive) and max_value (exclusive).
   Assert(table.size() == max_value * max_value);
-  Node ite = nm->mkConst<Rational>(table[std::make_pair(0, 0)]);
+  Node ite = nm->mkConst<Rational>(table.at(std::make_pair(0, 0)));
   for (uint64_t i = 0; i < max_value; i++)
   {
     for (uint64_t j = 0; j < max_value; j++)
@@ -64,7 +64,7 @@ Node IAndTable::createITEFromTable(
           nm->mkNode(kind::AND,
                      nm->mkNode(kind::EQUAL, x, nm->mkConst<Rational>(i)),
                      nm->mkNode(kind::EQUAL, y, nm->mkConst<Rational>(j))),
-          nm->mkConst<Rational>(table[std::make_pair(i, j)]),
+          nm->mkConst<Rational>(table.at(std::make_pair(i, j))),
           ite);
     }
   }
