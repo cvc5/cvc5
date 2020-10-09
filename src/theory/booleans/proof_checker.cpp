@@ -173,6 +173,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       // literal to be removed from "second" clause. They will be negated
       if (i > 0)
       {
+        elim.insert(args[i - 1].notNode());
         elim.insert(args[i - 1].negate());
       }
       Trace("bool-pfcheck") << i << ": elimination set: " << elim << "\n";
