@@ -560,15 +560,15 @@ Node excluding_interval_to_lemma(const Node& variable,
       if (allowNonlinearLemma)
       {
         Node poly = as_cvc_upolynomial(get_defining_polynomial(alg), variable);
-      return nm->mkNode(
-          Kind::OR,
+        return nm->mkNode(
+            Kind::OR,
             nm->mkNode(Kind::DISTINCT, poly, nm->mkConst(Rational(0))),
             nm->mkNode(Kind::LT,
                        variable,
                        nm->mkConst(poly_utils::toRationalBelow(lv))),
-          nm->mkNode(Kind::GT,
-                     variable,
-                     nm->mkConst(poly_utils::toRationalAbove(lv))));
+            nm->mkNode(Kind::GT,
+                       variable,
+                       nm->mkConst(poly_utils::toRationalAbove(lv))));
       }
       return Node();
     }
@@ -779,16 +779,19 @@ std::size_t bitsize(const poly::Value& v)
   return 0;
 }
 
-poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi) {
+poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi)
+{
   poly::IntervalAssignment res;
-  for (const auto& vb: bi.get()) {
+  for (const auto& vb : bi.get())
+  {
     poly::Variable v = vm(vb.first);
-    poly::Value l = vb.second.lower.isNull() ? poly::Value::minus_infty() : node_to_value(vb.second.lower, vb.first);
-    poly::Value u = vb.second.upper.isNull() ? poly::Value::plus_infty() : node_to_value(vb.second.upper, vb.first);
-    poly::Interval i(l,
-                     vb.second.lower_strict,
-                     u,
-                     vb.second.upper_strict);
+    poly::Value l = vb.second.lower.isNull()
+                        ? poly::Value::minus_infty()
+                        : node_to_value(vb.second.lower, vb.first);
+    poly::Value u = vb.second.upper.isNull()
+                        ? poly::Value::plus_infty()
+                        : node_to_value(vb.second.upper, vb.first);
+    poly::Interval i(l, vb.second.lower_strict, u, vb.second.upper_strict);
     res.set(v, i);
   }
   return res;
