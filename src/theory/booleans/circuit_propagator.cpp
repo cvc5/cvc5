@@ -171,9 +171,13 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment) {
     if (parentAssignment) {
       // IFF x y = TRUE: if x [resp y] is assigned, assign(y = x.assignment [resp x = y.assignment])
       if (isAssigned(parent[0])) {
-        assignAndEnqueue(parent[1], getAssignment(parent[0]));
+        assignAndEnqueue(parent[1],
+                         getAssignment(parent[0]),
+                         prover.eqYFromX(getAssignment(parent[0])));
       } else if (isAssigned(parent[1])) {
-        assignAndEnqueue(parent[0], getAssignment(parent[1]));
+        assignAndEnqueue(parent[0],
+                         getAssignment(parent[1]),
+                         prover.eqXFromY(getAssignment(parent[1])));
       }
     } else {
       // IFF x y = FALSE: if x [resp y] is assigned, assign(y = !x.assignment [resp x = !y.assignment])

@@ -254,6 +254,40 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
     }
   }
 
+  std::shared_ptr<ProofNode> eqXFromY(bool y)
+  {
+    if (disabled()) return nullptr;
+    if (y)
+    {
+      return mkProof(
+          PfRule::EQ_RESOLVE,
+          {mkProof(d_parent[0]), mkProof(PfRule::SYMM, {mkProof(d_parent)})});
+    }
+    else
+    {
+      return mkNot(mkProof(PfRule::CHAIN_RESOLUTION,
+                           {mkProof(PfRule::EQUIV_ELIM1, {mkProof(d_parent)}),
+                            mkProof(d_parent[1].notNode())},
+                           {d_parent[1]}));
+    }
+  }
+  std::shared_ptr<ProofNode> eqYFromX(bool x)
+  {
+    if (disabled()) return nullptr;
+    if (x)
+    {
+      return mkProof(PfRule::EQ_RESOLVE,
+                     {mkProof(d_parent[0]), mkProof(d_parent)});
+    }
+    else
+    {
+      return mkNot(mkProof(PfRule::CHAIN_RESOLUTION,
+                           {mkProof(PfRule::EQUIV_ELIM2, {mkProof(d_parent)}),
+                            mkProof(d_parent[0].notNode())},
+                           {d_parent[0]}));
+    }
+  }
+
   std::shared_ptr<ProofNode> impTrue()
   {
     if (disabled()) return nullptr;
