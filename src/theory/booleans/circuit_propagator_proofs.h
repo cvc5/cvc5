@@ -69,6 +69,25 @@ struct CircuitPropagatorProver
       const std::vector<std::shared_ptr<ProofNode>>& children,
       const std::vector<Node>& args = {})
   {
+    if (Trace.isOn("circuit-prop"))
+    {
+      std::stringstream ss;
+      ss << "Constructing (" << rule;
+      for (const auto& c : children)
+      {
+        ss << " " << *c;
+      }
+      if (!args.empty())
+      {
+        ss << " :args";
+        for (const auto& a : args)
+        {
+          ss << " " << a;
+        }
+      }
+      ss << ")";
+      Trace("circuit-prop") << ss.str() << std::endl;
+    }
     return d_pnm->mkNode(rule, children, args);
   }
   std::shared_ptr<ProofNode> mkContra(const std::shared_ptr<ProofNode>& a,
