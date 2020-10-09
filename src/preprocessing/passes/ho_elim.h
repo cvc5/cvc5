@@ -112,7 +112,7 @@ class HoElim : public PreprocessingPass
    * Stores the set of nodes we have current visited and their results
    * in steps [1] and [2] of this pass.
    */
-  std::unordered_map<TNode, Node, TNodeHashFunction> d_visited;
+  std::unordered_map<Node, Node, NodeHashFunction> d_visited;
   /**
    * Stores the mapping from functions f to their corresponding function H(f)
    * in the encoding for step [2] of this pass.
