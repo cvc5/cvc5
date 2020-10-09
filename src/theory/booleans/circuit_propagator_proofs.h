@@ -185,7 +185,8 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
   std::shared_ptr<ProofNode> Not()
   {
     if (disabled()) return nullptr;
-    return mkProof(d_parentAssignment ? Node(d_parent) : d_parent.notNode());
+    return mkNot(
+        mkProof(d_parentAssignment ? Node(d_parent) : d_parent.notNode()));
   }
 
   std::shared_ptr<ProofNode> iteC()
@@ -434,7 +435,8 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
   std::shared_ptr<ProofNode> Not()
   {
     if (disabled()) return nullptr;
-    return mkProof(d_childAssignment ? d_parent.notNode() : Node(d_parent));
+    return mkNot(
+        mkProof(d_childAssignment ? d_parent.notNode() : Node(d_parent)));
   }
 
   std::shared_ptr<ProofNode> eqEval()
