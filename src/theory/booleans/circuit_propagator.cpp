@@ -376,11 +376,11 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
       } else {
         if (child == parent[0] && childAssignment && isAssignedTo(parent, true)) {
           // IMPLIES (x=TRUE) y [with IMPLIES == TRUE]: assign(y = TRUE)
-          assignAndEnqueue(parent[1], true, prover.impTrue());
+          assignAndEnqueue(parent[1], true, prover.impInverse());
         }
         if (child == parent[1] && !childAssignment && isAssignedTo(parent, true)) {
           // IMPLIES x (y=FALSE) [with IMPLIES == TRUE]: assign(x = FALSE)
-          assignAndEnqueue(parent[0], false);
+          assignAndEnqueue(parent[0], false, prover.impInverse());
         }
         // Note that IMPLIES == FALSE doesn't need any cases here
         // because if that assignment has been done, we've already

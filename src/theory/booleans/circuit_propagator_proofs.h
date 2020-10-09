@@ -527,6 +527,7 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
 
   std::shared_ptr<ProofNode> impEval(bool premise, bool conclusion)
   {
+    if (disabled()) return nullptr;
     if (!premise)
     {
       return mkResolution(mkProof(PfRule::CNF_IMPLIES_NEG1, {}, {d_parent}),
@@ -540,14 +541,19 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
     return mkResolution(mkProof(PfRule::CNF_IMPLIES_POS, {}, {d_parent}),
                         {d_parent[0].notNode(), d_parent[1]});
   }
-  std::shared_ptr<ProofNode> impTrue()
+  std::shared_ptr<ProofNode> impInverse()
   {
     if (disabled()) return nullptr;
-    // TRUE implies y
-    return mkProof(
-        PfRule::CHAIN_RESOLUTION,
-        {mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)}), mkProof(d_child)},
-        {d_child.negate()});
+    if (d_child == d_parent[0])
+    {
+      return mkResolution(mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)}),
+                          {d_child.notNode()});
+    }
+    else
+    {
+      return mkNot(mkResolution(
+          mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)}), {d_child}));
+    }
   }
   std::shared_ptr<ProofNode> xorXFromY(bool negated)
   {
