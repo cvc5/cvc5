@@ -391,7 +391,9 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
       if (isAssigned(parent)) {
         if (child == parent[0]) {
           // XOR (x=v) y [with XOR assigned], assign(y = (v ^ XOR)
-          assignAndEnqueue(parent[1], childAssignment != getAssignment(parent));
+          assignAndEnqueue(parent[1],
+                           childAssignment != getAssignment(parent),
+                           prover.xorYFromX(!getAssignment(parent)));
         } else {
           Assert(child == parent[1]);
           // XOR x (y=v) [with XOR assigned], assign(x = (v ^ XOR))
