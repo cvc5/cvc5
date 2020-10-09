@@ -106,7 +106,7 @@ def test_get_op():
 def test_is_const():
     solver = pycvc4.Solver()
     intsort = solver.getIntegerSort()
-    one = solver.mkReal(1)
+    one = solver.mkInteger(1)
     x = solver.mkConst(intsort, 'x')
     xpone = solver.mkTerm(kinds.Plus, x, one)
     onepone = solver.mkTerm(kinds.Plus, one, one)

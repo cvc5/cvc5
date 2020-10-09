@@ -33,9 +33,9 @@ if __name__ == "__main__":
     y = slv.mkConst(real, "y")
 
     # Constants
-    three = slv.mkReal(3)
-    neg2 = slv.mkReal(-2)
-    two_thirds = slv.mkReal(2, 3)
+    three = slv.mkInteger(3)
+    neg2 = slv.mkInteger(-2)
+    two_thirds = slv.mkInteger(2, 3)
 
     # Terms
     three_y = slv.mkTerm(kinds.Mult, three, y)

@@ -74,8 +74,8 @@ int main()
   Term start_bool = slv.mkVar(boolean, "StartBool");
 
   // define the rules
-  Term zero = slv.mkReal(0);
-  Term one = slv.mkReal(1);
+  Term zero = slv.mkInteger(0);
+  Term one = slv.mkInteger(1);
 
   Term plus = slv.mkTerm(PLUS, start, start);
   Term minus = slv.mkTerm(MINUS, start, start);

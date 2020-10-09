@@ -15,7 +15,7 @@ def testGetBool():
 
 def testGetInt():
     solver = pycvc4.Solver()
-    two = solver.mkReal(2)
+    two = solver.mkInteger(2)
     assert two.toPythonObj() == 2
 
 

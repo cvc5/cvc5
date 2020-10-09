@@ -664,6 +664,14 @@ cdef class Solver:
         term.cterm = self.csolver.mkPi()
         return term
 
+    def mkInteger(self, val):
+        cdef Term term = Term(self)
+        if not isinstance(val, int):
+            raise ValueError("Expecting integer"
+                             " but got: {}".format((val)))
+        term.cterm = self.csolver.mkInteger("{}".format(val).encode())
+        return term
+
     def mkReal(self, val, den=None):
         cdef Term term = Term(self)
         if den is None:
