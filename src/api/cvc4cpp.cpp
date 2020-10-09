@@ -3671,24 +3671,56 @@ Term Solver::mkPi() const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
+Term Solver::mkInteger(const std::string& s) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  Term integer = mkRealFromStrHelper(s);
+  CVC4_API_ARG_CHECK_EXPECTED(integer.getSort() == getIntegerSort(), s)
+      << " an integer";
+  return integer;
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+Term Solver::mkInteger(int64_t val) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  Term integer = mkValHelper<CVC4::Rational>(CVC4::Rational(val));
+  Assert(integer.getSort() == getIntegerSort());
+  return integer;
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+Term Solver::mkInteger(int64_t num, int64_t den) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  Term integer = mkValHelper<CVC4::Rational>(CVC4::Rational(num, den));
+  CVC4_API_CHECK(integer.getSort() == getIntegerSort())
+      << "numerator " << num << " is not divisible by denominator " << den;
+  return integer;
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
 Term Solver::mkReal(const std::string& s) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  return mkRealFromStrHelper(s);
+  Term real = mkRealFromStrHelper(s);
+  return mkTerm(TO_REAL, real);
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
 Term Solver::mkReal(int64_t val) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  return mkValHelper<CVC4::Rational>(CVC4::Rational(val));
+  Term real = mkValHelper<CVC4::Rational>(CVC4::Rational(val));
+  return mkTerm(TO_REAL, real);
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
 Term Solver::mkReal(int64_t num, int64_t den) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  return mkValHelper<CVC4::Rational>(CVC4::Rational(num, den));
+  Term real = mkValHelper<CVC4::Rational>(CVC4::Rational(num, den));
+  return mkTerm(TO_REAL, real);
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
