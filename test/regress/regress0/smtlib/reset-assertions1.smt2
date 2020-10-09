@@ -1,5 +1,6 @@
 ; EXPECT: unsat
 ; EXPECT: sat
+(set-option :global-declarations true)
 (set-logic QF_BV)
 (declare-fun v0 () (_ BitVec 4))
 (set-option :produce-models true)
