@@ -87,7 +87,7 @@ struct CircuitPropagatorProver
     std::vector<std::shared_ptr<ProofNode>> children = {clause};
     for (const auto& n : lits)
     {
-      children.emplace_back(mkProof(n.negate()));
+      children.emplace_back(mkProof(n.notNode()));
     }
     return mkProof(PfRule::CHAIN_RESOLUTION, children, lits);
   }
@@ -172,7 +172,7 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
   {
     if (disabled()) return nullptr;
     return mkNot(mkProof(PfRule::NOT_OR_ELIM,
-                         {mkProof(d_parent.negate())},
+                         {mkProof(d_parent.notNode())},
                          {mkRat(i - d_parent.begin())}));
   }
   std::shared_ptr<ProofNode> orTrue(TNode::iterator holdout)
@@ -185,7 +185,7 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
   std::shared_ptr<ProofNode> Not()
   {
     if (disabled()) return nullptr;
-    return mkProof(d_parentAssignment ? Node(d_parent) : d_parent.negate());
+    return mkProof(d_parentAssignment ? Node(d_parent) : d_parent.notNode());
   }
 
   std::shared_ptr<ProofNode> iteC()
@@ -199,7 +199,7 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
     else
     {
       return mkResolution(
-          mkProof(PfRule::NOT_ITE_ELIM1, {mkProof(d_parent.negate())}),
+          mkProof(PfRule::NOT_ITE_ELIM1, {mkProof(d_parent.notNode())}),
           {d_parent[0]});
     }
   }
@@ -214,7 +214,7 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
     else
     {
       return mkResolution(
-          mkProof(PfRule::NOT_ITE_ELIM2, {mkProof(d_parent.negate())}),
+          mkProof(PfRule::NOT_ITE_ELIM2, {mkProof(d_parent.notNode())}),
           {d_parent[0]});
     }
   }
@@ -233,7 +233,7 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
     {
       // Resolve(NOT_ITE_ELIM2 (or c !y), y) = c
       return mkResolution(
-          mkProof(PfRule::NOT_ITE_ELIM2, {mkProof(d_parent.negate())}),
+          mkProof(PfRule::NOT_ITE_ELIM2, {mkProof(d_parent.notNode())}),
           {d_parent[2]});
     }
   }
@@ -252,7 +252,7 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
     {
       // Resolve(NOT_ITE_ELIM2 (or !c !x), x) = !c
       return mkResolution(
-          mkProof(PfRule::NOT_ITE_ELIM2, {mkProof(d_parent.negate())}),
+          mkProof(PfRule::NOT_ITE_ELIM2, {mkProof(d_parent.notNode())}),
           {d_parent[1]});
     }
   }
@@ -312,7 +312,7 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
   {
     if (disabled()) return nullptr;
     return mkResolution(mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)}),
-                        {d_parent[0].negate()});
+                        {d_parent[0].notNode()});
   }
   std::shared_ptr<ProofNode> impFalse()
   {
@@ -324,13 +324,13 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
   {
     if (disabled()) return nullptr;
     return mkNot(
-        mkProof(PfRule::NOT_IMPLIES_ELIM1, {mkProof(d_parent.negate())}));
+        mkProof(PfRule::NOT_IMPLIES_ELIM1, {mkProof(d_parent.notNode())}));
   }
   std::shared_ptr<ProofNode> impNegY()
   {
     if (disabled()) return nullptr;
     return mkNot(
-        mkProof(PfRule::NOT_IMPLIES_ELIM2, {mkProof(d_parent.negate())}));
+        mkProof(PfRule::NOT_IMPLIES_ELIM2, {mkProof(d_parent.notNode())}));
   }
 
   std::shared_ptr<ProofNode> xorX(bool x)
@@ -377,7 +377,7 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
     // AND ...(x=TRUE)...: if all children BUT ONE now assigned to TRUE, and
     // AND == FALSE, assign(last_holdout = FALSE)
     return mkNot(
-        mkResolution(mkProof(PfRule::NOT_AND, {mkProof(d_parent.negate())}),
+        mkResolution(mkProof(PfRule::NOT_AND, {mkProof(d_parent.notNode())}),
                      collectButHoldout(d_parent, holdout, true)));
   }
   std::shared_ptr<ProofNode> andFalse()
@@ -388,7 +388,7 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
                    {mkContra(mkProof(PfRule::AND_ELIM,
                                      {mkProof(d_parent)},
                                      {mkRat(it - d_parent.begin())}),
-                             mkProof(d_child.negate()))},
+                             mkProof(d_child.notNode()))},
                    {d_parent});
   }
 
@@ -419,7 +419,7 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
   std::shared_ptr<ProofNode> Not()
   {
     if (disabled()) return nullptr;
-    return mkProof(d_childAssignment ? d_parent.negate() : Node(d_parent));
+    return mkProof(d_childAssignment ? d_parent.notNode() : Node(d_parent));
   }
 
   std::shared_ptr<ProofNode> eqEval()
@@ -431,14 +431,14 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
                      {mkProof(PfRule::CNF_EQUIV_NEG2, {}, {d_parent}),
                       mkProof(d_parent[0]),
                       mkProof(d_parent[1])},
-                     {d_parent[0].negate(), d_parent[1].negate()});
+                     {d_parent[0].notNode(), d_parent[1].notNode()});
     }
     else
     {
       return mkProof(PfRule::CHAIN_RESOLUTION,
                      {mkProof(PfRule::CNF_EQUIV_NEG1, {}, {d_parent}),
-                      mkProof(d_parent[0].negate()),
-                      mkProof(d_parent[1].negate())},
+                      mkProof(d_parent[0].notNode()),
+                      mkProof(d_parent[1].notNode())},
                      {d_parent[0], d_parent[1]});
     }
   }
@@ -470,7 +470,7 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
     else
     {
       return mkResolution(mkProof(PfRule::NOT_EQUIV_ELIM1, {mkProof(d_parent)}),
-                          {d_child.negate()});
+                          {d_child.notNode()});
     }
   }
   std::shared_ptr<ProofNode> eqXFromY()
@@ -503,7 +503,7 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
     {
       return mkResolution(mkProof(PfRule::NOT_EQUIV_ELIM1,
                                   {mkProof(PfRule::SYMM, {mkProof(d_parent)})}),
-                          {d_child.negate()});
+                          {d_child.notNode()});
     }
   }
 
