@@ -527,7 +527,18 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
 
   std::shared_ptr<ProofNode> impEval(bool premise, bool conclusion)
   {
-    return nullptr;
+    if (!premise)
+    {
+      return mkResolution(mkProof(PfRule::CNF_IMPLIES_NEG1, {}, {d_parent}),
+                          {d_parent[0]});
+    }
+    if (conclusion)
+    {
+      return mkResolution(mkProof(PfRule::CNF_IMPLIES_NEG2, {}, {d_parent}),
+                          {d_parent[1].notNode()});
+    }
+    return mkResolution(mkProof(PfRule::CNF_IMPLIES_POS, {}, {d_parent}),
+                        {d_parent[0].notNode(), d_parent[1]});
   }
   std::shared_ptr<ProofNode> impTrue()
   {
