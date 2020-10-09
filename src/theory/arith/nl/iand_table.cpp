@@ -42,7 +42,7 @@ Node IAndTable::createITEFromTable(
     Node x,
     Node y,
     uint64_t granularity,
-    std::map<std::pair<uint64_t, uint64_t>, uint64_t> table)
+    const std::map<std::pair<uint64_t, uint64_t>, uint64_t>& table)
 {
   NodeManager* nm = NodeManager::currentNM();
   Assert(granularity <= 8);

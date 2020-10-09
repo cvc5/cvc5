@@ -99,7 +99,7 @@ class IAndTable
       Node x,
       Node y,
       uint64_t granularity,
-      std::map<std::pair<uint64_t, uint64_t>, uint64_t> table);
+      const std::map<std::pair<uint64_t, uint64_t>, uint64_t>& table);
 };
 
 }  // namespace nl

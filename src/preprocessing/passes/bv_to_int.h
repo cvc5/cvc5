@@ -283,7 +283,7 @@ class BVToInt : public PreprocessingPass
   Node d_zero;
   Node d_one;
   
-  // helper class for handeling bvand translation
+  /** helper class for handeling bvand translation */
   theory::arith::nl::IAndTable d_iandTable;
 };
 
