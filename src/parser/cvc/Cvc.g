@@ -2177,7 +2177,7 @@ simpleTerm[CVC4::api::Term& f]
        * literals, we can use the push/pop scope. */
       /* PARSER_STATE->popScope(); */
       t = SOLVER->mkArraySort(t, t2);
-      if(!f.isConst()) {
+      if(!f.isValue()) {
         std::stringstream ss;
         ss << "expected constant term inside array constant, but found "
            << "nonconstant term" << std::endl

@@ -52,7 +52,8 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
                                         d_rm,
                                         d_pp.getTermFormulaRemover(),
                                         logicInfo,
-                                        d_smt.getOutputManager()));
+                                        d_smt.getOutputManager(),
+                                        d_pnm));
 
   // Add the theories
   for (theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST;
