@@ -220,8 +220,11 @@ struct CollectMonomialData
 {
   CollectMonomialData(VariableMapper& v) : d_vm(v) {}
 
+  /** Mapper from poly variables to CVC4 variables */
   VariableMapper& d_vm;
+  /** Collections of the monomial terms */
   std::vector<Node> d_terms;
+  /** Caches the current node manager */
   NodeManager* d_nm = NodeManager::currentNM();
 };
 /**
