@@ -644,6 +644,7 @@ set(regress_0_tests
   regress0/parser/declarefun-emptyset-uf.smt2
   regress0/parser/force_logic_set_logic.smt2
   regress0/parser/force_logic_success.smt2
+  regress0/parser/issue5163.smt2
   regress0/parser/shadow_fun_symbol_all.smt2
   regress0/parser/shadow_fun_symbol_nirat.smt2
   regress0/parser/strings20.smt2

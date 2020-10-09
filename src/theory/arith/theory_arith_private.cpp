@@ -1638,9 +1638,9 @@ Node TheoryArithPrivate::callDioSolver(){
 
     Node orig = Node::null();
     if(lb->isEquality()){
-      orig = Constraint::externalExplainByAssertions({lb});
+      orig = lb->externalExplainByAssertions().getNode();
     }else if(ub->isEquality()){
-      orig = Constraint::externalExplainByAssertions({ub});
+      orig = ub->externalExplainByAssertions().getNode();
     }else {
       orig = Constraint::externalExplainByAssertions(ub, lb);
     }

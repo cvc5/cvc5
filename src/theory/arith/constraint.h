@@ -1152,7 +1152,10 @@ private:
   bool variableDatabaseIsSetup(ArithVar v) const;
   void removeVariable(ArithVar v);
 
+  /** Get an explanation and proof for this constraint from the equality engine
+   */
   TrustNode eeExplain(ConstraintCP c) const;
+  /** Get an explanation for this constraint from the equality engine */
   void eeExplain(ConstraintCP c, NodeBuilder<>& nb) const;
 
   /**
