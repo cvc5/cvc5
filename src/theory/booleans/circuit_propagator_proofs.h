@@ -92,6 +92,15 @@ struct CircuitPropagatorProver
     }
     return mkProof(PfRule::CHAIN_RESOLUTION, children, lits);
   }
+  std::shared_ptr<ProofNode> mkNot(const std::shared_ptr<ProofNode>& n)
+  {
+    Node m = n->getResult();
+    if (m.getKind() == Kind::NOT && m[0].getKind() == Kind::NOT)
+    {
+      return mkProof(PfRule::NOT_NOT_ELIM, {n});
+    }
+    return n;
+  }
   std::shared_ptr<ProofNode> mkRewrite(const std::shared_ptr<ProofNode>& n)
   {
     d_epg->setProofFor(n->getResult(), n);
@@ -405,9 +414,10 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
     }
     else
     {
-      return mkProof(PfRule::CHAIN_RESOLUTION,
-                     {mkProof(PfRule::EQUIV_ELIM2, {mkProof(d_parent)})},
-                     {d_child});
+      return mkNot(mkProof(PfRule::CHAIN_RESOLUTION,
+                           {mkProof(PfRule::EQUIV_ELIM2, {mkProof(d_parent)}),
+                            mkProof(d_child.notNode())},
+                           {d_child}));
     }
   }
   std::shared_ptr<ProofNode> neqYFromX()
