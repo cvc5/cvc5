@@ -865,7 +865,7 @@ Node TheoryEngine::preprocess(TNode assertion)
     // no change
     return assertion;
   }
-  // TODO: return the trust node?
+  // notice that we could alternatively return the trust node here.
   return trn.getNode();
 }
 
@@ -1221,7 +1221,7 @@ Node TheoryEngine::getInstantiatedConjunction( Node q ) {
   }
 }
 
-theory::TrustNode TheoryEngine::getExplanation(TNode node)
+TrustNode TheoryEngine::getExplanation(TNode node)
 {
   Debug("theory::explain") << "TheoryEngine::getExplanation(" << node
                            << "): current propagation index = "
@@ -1272,8 +1272,7 @@ theory::TrustNode TheoryEngine::getExplanation(TNode node)
       << " is theory: " << nodeExplainerPair.d_theory << std::endl;
 
   // Create the workplace for explanations
-  std::vector<NodeTheoryPair> vec;
-  vec.push_back(d_propagationMap[toExplain]);
+  std::vector<NodeTheoryPair> vec{d_propagationMap[toExplain]};
   // Process the explanation
   TrustNode texplanation = getExplanation(vec);
   Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << ") => "
@@ -1663,7 +1662,7 @@ theory::TrustNode TheoryEngine::getExplanation(
   Assert(explanationVector.size() == 1);
   Node conclusion = explanationVector[0].d_node;
   std::shared_ptr<LazyCDProof> lcp;
-  if (d_lazyProof != nullptr)
+  if (isProofEnabled())
   {
     Trace("te-proof-exp") << "=== TheoryEngine::getExplanation " << conclusion
                           << std::endl;
@@ -1704,6 +1703,7 @@ theory::TrustNode TheoryEngine::getExplanation(
             && !toExplain.d_node[0].getConst<bool>()))
     {
       ++ i;
+      // if we are building a proof
       if (lcp != nullptr)
       {
         Trace("te-proof-exp")
@@ -1849,6 +1849,8 @@ theory::TrustNode TheoryEngine::getExplanation(
     }
     expNode = conjunction;
   }
+  // if we are building a proof, go back through the explanations and
+  // build the proof
   if (lcp != nullptr)
   {
     if (Trace.isOn("te-proof-exp"))
@@ -1861,7 +1863,9 @@ theory::TrustNode TheoryEngine::getExplanation(
       Trace("te-proof-exp") << "=== Replay explanations..." << std::endl;
     }
     // Now, go back and add the necessary steps of theory explanations, i.e.
-    // add those that prove things that aren't in the final explanation.
+    // add those that prove things that aren't in the final explanation. We
+    // iterate in reverse order so that most recent steps take priority. This
+    // avoids cyclic proofs in the lazy proof we are building (lcp).
     for (std::vector<std::pair<TheoryId, TrustNode>>::reverse_iterator
              it = texplains.rbegin(),
              itEnd = texplains.rend();
@@ -1890,7 +1894,7 @@ theory::TrustNode TheoryEngine::getExplanation(
           continue;
         }
       }
-      // remember that we've explained this formula
+      // remember that we've explained this formula, to avoid cycles in lcp
       exp.insert(tConc);
       TheoryId ttid = it->first;
       Node tExp = proven[0];
@@ -1948,17 +1952,6 @@ theory::TrustNode TheoryEngine::getExplanation(
       pfArgs.push_back(mkMethodId(MethodId::SB_FORMULA));
       lcp->addStep(tConc, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
     }
-
-    // doesn't work currently due to reordering of assumptions
-    /*
-    if (simpleExplain)
-    {
-      // single call to a theory's explain method, skip the proof generator
-      Assert (!simpleTrn.isNull());
-      Trace("te-proof-exp") << "...simple explain " << simpleTrn.getNode() <<
-    std::endl; return simpleTrn;
-    }
-    */
     // store in the proof generator
     TrustNode trn = d_tepg->mkTrustExplain(conclusion, expNode, lcp);
     // return the trust node

@@ -171,7 +171,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         // apply SUBS proof rule if necessary
         if (!updateInternal(eq, PfRule::SUBS, children, sargs, cdp))
         {
-          // if we specified that we did not want to elimiante, add as step
+          // if we specified that we did not want to eliminate, add as step
           cdp->addStep(eq, PfRule::SUBS, children, sargs);
         }
         tchildren.push_back(eq);
@@ -253,7 +253,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       {
         // toWitness(apply_SR(t)) = apply_SR(toWitness(apply_SR(t)))
         // rewrite again, don't need substitution. Also we always use the
-        // default rewriter.
+        // default rewriter, due to the definition of MACRO_SR_PRED_INTRO.
         Node weqr = expandMacros(PfRule::MACRO_SR_EQ_INTRO, {}, {weq[1]}, cdp);
         addToTransChildren(weqr, tchildren);
       }
@@ -336,7 +336,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         {
           // toWitness(apply_SR(t)) = apply_SR(toWitness(apply_SR(t)))
           // rewrite again, don't need substitution. Also, we always use the
-          // default rewriter.
+          // default rewriter, due to the definition of MACRO_SR_PRED_TRANSFORM.
           Node weqr =
               expandMacros(PfRule::MACRO_SR_EQ_INTRO, {}, {weq[1]}, cdp);
           Trace("smt-proof-pp-debug") << "transform rewrite_witness (" << r
@@ -460,7 +460,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
           // add previous rewrite steps
           for (unsigned j = 0, nvars = vvec.size(); j < nvars; j++)
           {
-            // not necessarily closed
+            // not necessarily closed, so we pass false to addRewriteStep.
             tcg.addRewriteStep(vvec[j], svec[j], pgs[j], false);
           }
           // get the proof for the update to the current substitution
@@ -506,7 +506,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
                                true);
       for (unsigned j = 0, nvars = vvec.size(); j < nvars; j++)
       {
-        // not necessarily closed
+        // not necessarily closed, so we pass false to addRewriteStep.
         tcpg.addRewriteStep(vvec[j], svec[j], pgs[j], false);
       }
       // add the proof constructed by the term conversion utility
