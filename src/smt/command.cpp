@@ -282,7 +282,7 @@ void AssertCommand::invoke(api::Solver* solver)
 {
   try
   {
-    solver->assertFormula(d_term, d_inUnsatCore);
+    solver->getSmtEngine()->assertFormula(d_term.getNode(), d_inUnsatCore);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (UnsafeInterruptException& e)
@@ -1596,7 +1596,8 @@ void ExpandDefinitionsCommand::invoke(api::Solver* solver)
 {
   try
   {
-    d_result = solver->expandDefinitions(d_term);
+    d_result = api::Term(
+        solver, solver->getSmtEngine()->expandDefinitions(d_term.getNode()));
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)

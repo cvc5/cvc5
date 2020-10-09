@@ -2872,10 +2872,8 @@ class CVC4_PUBLIC Solver
    * Assert a formula.
    * SMT-LIB: ( assert <term> )
    * @param term the formula to assert
-   * @param isUnsatCore determines whether to include this asserted formula in
-   * an unsat core (if one is later requested)
    */
-  void assertFormula(Term term, bool isUnsatCore = true) const;
+  void assertFormula(Term term) const;
 
   /**
    * Check satisfiability.

@@ -4564,12 +4564,12 @@ Result Solver::checkEntailed(const std::vector<Term>& terms) const
 /**
  *  ( assert <term> )
  */
-void Solver::assertFormula(Term term, bool isUnsatCore) const
+void Solver::assertFormula(Term term) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_SOLVER_CHECK_TERM(term);
   CVC4_API_ARG_CHECK_NOT_NULL(term);
-  d_smtEngine->assertFormula(*term.d_node, isUnsatCore);
+  d_smtEngine->assertFormula(*term.d_node);
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
