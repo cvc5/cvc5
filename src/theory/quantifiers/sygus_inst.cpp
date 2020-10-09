@@ -182,7 +182,6 @@ void addSpecialValues(
 
 SygusInst::SygusInst(QuantifiersEngine* qe)
     : QuantifiersModule(qe),
-      d_lemma_cache(qe->getUserContext()),
       d_ce_lemma_added(qe->getUserContext()),
       d_global_terms(qe->getUserContext()),
       d_notified_assertions(qe->getUserContext())
@@ -302,13 +301,8 @@ bool SygusInst::sendEvalUnfoldLemmas(const std::vector<Node>& lemmas)
   bool added_lemma = false;
   for (const Node& lem : lemmas)
   {
-    if (d_lemma_cache.find(lem) == d_lemma_cache.end())
-    {
-      Trace("sygus-inst") << "Evaluation unfolding: " << lem << std::endl;
-      d_quantEngine->addLemma(lem, false);
-      d_lemma_cache.insert(lem);
-      added_lemma = true;
-    }
+    Trace("sygus-inst") << "Evaluation unfolding: " << lem << std::endl;
+    added_lemma |= d_quantEngine->addLemma(lem);
   }
   return added_lemma;
 }

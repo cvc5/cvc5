@@ -123,9 +123,6 @@ class SygusInst : public QuantifiersModule
   /* Currently inactive quantifiers. */
   std::unordered_set<Node, NodeHashFunction> d_inactive_quant;
 
-  /* Evaluation unfolding lemma. */
-  context::CDHashSet<Node, NodeHashFunction> d_lemma_cache;
-
   /* Registered counterexample lemma cache. */
   std::unordered_map<Node, Node, NodeHashFunction> d_ce_lemmas;
 
