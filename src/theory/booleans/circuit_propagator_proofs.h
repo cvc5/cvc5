@@ -100,24 +100,6 @@ struct CircuitPropagatorProver
     }
     return n;
   }
-  std::shared_ptr<ProofNode> mkRewrite(const std::shared_ptr<ProofNode>& n)
-  {
-    d_epg->setProofFor(n->getResult(), n);
-    theory::TheoryProofStepBuffer psb;
-    Node res = psb.factorReorderElimDoubleNeg(n->getResult());
-    for (const auto& step : psb.getSteps())
-    {
-      std::vector<std::shared_ptr<ProofNode>> children;
-      for (const auto& c : step.second.d_children)
-      {
-        children.emplace_back(mkProof(c));
-      }
-      d_epg->setProofFor(
-          step.first,
-          mkProof(step.second.d_rule, children, step.second.d_args));
-    }
-    return mkProof(res);
-  }
 
   std::shared_ptr<ProofNode> mkXorXFromY(bool negated, bool y, Node parent)
   {
@@ -189,9 +171,9 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
   std::shared_ptr<ProofNode> orFalse(TNode::iterator i)
   {
     if (disabled()) return nullptr;
-    return mkRewrite(mkProof(PfRule::NOT_OR_ELIM,
-                                       {mkProof(d_parent.negate())},
-                                       {mkRat(i - d_parent.begin())}));
+    return mkNot(mkProof(PfRule::NOT_OR_ELIM,
+                         {mkProof(d_parent.negate())},
+                         {mkRat(i - d_parent.begin())}));
   }
   std::shared_ptr<ProofNode> orTrue(TNode::iterator holdout)
   {
@@ -341,13 +323,13 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
   std::shared_ptr<ProofNode> impNegX()
   {
     if (disabled()) return nullptr;
-    return mkRewrite(
+    return mkNot(
         mkProof(PfRule::NOT_IMPLIES_ELIM1, {mkProof(d_parent.negate())}));
   }
   std::shared_ptr<ProofNode> impNegY()
   {
     if (disabled()) return nullptr;
-    return mkRewrite(
+    return mkNot(
         mkProof(PfRule::NOT_IMPLIES_ELIM2, {mkProof(d_parent.negate())}));
   }
 
@@ -394,9 +376,8 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
     if (disabled()) return nullptr;
     // AND ...(x=TRUE)...: if all children BUT ONE now assigned to TRUE, and
     // AND == FALSE, assign(last_holdout = FALSE)
-    return mkResolution(
-        mkRewrite(mkProof(PfRule::NOT_AND, {mkProof(d_parent.negate())})),
-        collectButHoldout(d_parent, holdout, true));
+    return mkResolution(mkProof(PfRule::NOT_AND, {mkProof(d_parent.negate())}),
+                        collectButHoldout(d_parent, holdout, true));
   }
   std::shared_ptr<ProofNode> andFalse()
   {
