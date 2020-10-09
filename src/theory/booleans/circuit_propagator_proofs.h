@@ -264,7 +264,7 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
     {
       return mkProof(
           PfRule::EQ_RESOLVE,
-          {mkProof(d_parent[0]), mkProof(PfRule::SYMM, {mkProof(d_parent)})});
+          {mkProof(d_parent[1]), mkProof(PfRule::SYMM, {mkProof(d_parent)})});
     }
     else
     {
@@ -305,6 +305,21 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
       return mkResolution(
           mkProof(PfRule::NOT_EQUIV_ELIM1, {mkProof(d_parent.notNode())}),
           {d_parent[1]});
+    }
+  }
+  std::shared_ptr<ProofNode> neqYFromX(bool x)
+  {
+    if (x)
+    {
+      return mkResolution(
+          mkProof(PfRule::NOT_EQUIV_ELIM2, {mkProof(d_parent.notNode())}),
+          {d_parent[0].notNode()});
+    }
+    else
+    {
+      return mkResolution(
+          mkProof(PfRule::NOT_EQUIV_ELIM1, {mkProof(d_parent.notNode())}),
+          {d_parent[0]});
     }
   }
 
