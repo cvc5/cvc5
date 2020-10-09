@@ -118,6 +118,25 @@ struct CircuitPropagatorProver
     }
     return mkProof(res);
   }
+
+  std::shared_ptr<ProofNode> mkXorXFromY(bool negated, bool y, Node parent)
+  {
+    if (disabled()) return nullptr;
+    if (y)
+    {
+      return mkResolution(
+          mkProof(negated ? PfRule::NOT_XOR_ELIM1 : PfRule::XOR_ELIM2,
+                  {mkProof(negated ? parent.notNode() : Node(parent))}),
+          {parent[1].notNode()});
+    }
+    else
+    {
+      return mkResolution(
+          mkProof(negated ? PfRule::NOT_XOR_ELIM2 : PfRule::XOR_ELIM1,
+                  {mkProof(negated ? parent.notNode() : Node(parent))}),
+          {parent[1]});
+    }
+  }
 };
 
 struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
@@ -286,6 +305,23 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
                            {d_parent[0]}));
     }
   }
+  std::shared_ptr<ProofNode> neqXFromY(bool y)
+  {
+    // IFF x y = FALSE: if x [resp y] is assigned, assign(y = !x.assignment
+    // [resp x = !y.assignment])
+    if (y)
+    {
+      return mkResolution(
+          mkProof(PfRule::NOT_EQUIV_ELIM2, {mkProof(d_parent.notNode())}),
+          {d_parent[1].notNode()});
+    }
+    else
+    {
+      return mkResolution(
+          mkProof(PfRule::NOT_EQUIV_ELIM1, {mkProof(d_parent.notNode())}),
+          {d_parent[1]});
+    }
+  }
 
   std::shared_ptr<ProofNode> impTrue()
   {
@@ -333,22 +369,7 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
   }
   std::shared_ptr<ProofNode> xorY(bool y)
   {
-    if (disabled()) return nullptr;
-    bool negated = !d_parentAssignment;
-    if (y)
-    {
-      return mkResolution(
-          mkProof(negated ? PfRule::NOT_XOR_ELIM1 : PfRule::XOR_ELIM2,
-                  {mkProof(negated ? d_parent.notNode() : Node(d_parent))}),
-          {d_parent[1].notNode()});
-    }
-    else
-    {
-      return mkResolution(
-          mkProof(negated ? PfRule::NOT_XOR_ELIM2 : PfRule::XOR_ELIM1,
-                  {mkProof(negated ? d_parent.notNode() : Node(d_parent))}),
-          {d_parent[1]});
-    }
+    return mkXorXFromY(!d_parentAssignment, y, d_parent);
   }
 };
 
@@ -530,7 +551,11 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
         {mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)}), mkProof(d_child)},
         {d_child.negate()});
   }
-};
+  std::shared_ptr<ProofNode> xorXFromY(bool negated)
+  {
+    return mkXorXFromY(negated, d_childAssignment, d_parent);
+  }
+  };
 
 }  // namespace booleans
 }  // namespace theory
