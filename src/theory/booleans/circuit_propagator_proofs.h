@@ -181,8 +181,9 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
   std::shared_ptr<ProofNode> andFalse(TNode::iterator holdout)
   {
     if (disabled()) return nullptr;
-    return mkResolution(mkProof(PfRule::NOT_AND, {mkProof(d_parent.notNode())}),
-                        collectButHoldout(d_parent, holdout, true));
+    return mkNot(
+        mkResolution(mkProof(PfRule::NOT_AND, {mkProof(d_parent.notNode())}),
+                     collectButHoldout(d_parent, holdout, true)));
   }
 
   std::shared_ptr<ProofNode> orFalse(TNode::iterator i)
