@@ -517,15 +517,14 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
     Assert(d_parent[1] == d_child);
     if (d_childAssignment)
     {
-      return mkProof(PfRule::EQ_RESOLVE,
-                     {mkProof(d_child),
-                      mkProof(PfRule::SYMM, {mkProof(d_parent.notNode())})});
+      return mkProof(
+          PfRule::EQ_RESOLVE,
+          {mkProof(d_child), mkProof(PfRule::SYMM, {mkProof(d_parent)})});
     }
     else
     {
-      return mkResolution(
-          mkProof(PfRule::EQUIV_ELIM1, {mkProof(d_parent.notNode())}),
-          {d_child});
+      return mkResolution(mkProof(PfRule::EQUIV_ELIM1, {mkProof(d_parent)}),
+                          {d_child});
     }
   }
   std::shared_ptr<ProofNode> neqXFromY()
