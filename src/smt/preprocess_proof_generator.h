@@ -22,6 +22,7 @@
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "expr/lazy_proof.h"
+#include "expr/lazy_proof_set.h"
 #include "expr/proof_generator.h"
 #include "expr/proof_node_manager.h"
 #include "theory/eager_proof_generator.h"
@@ -31,10 +32,18 @@ namespace CVC4 {
 namespace smt {
 
 /**
- * A proof generator storing proofs of preprocessing. This has two main
- * interfaces during solving:
+ * This is a proof generator that manages proofs for a set of formulas that
+ * may be replaced over time. This set of formulas is implicit; formulas that
+ * are not notified as assertions to this class are treated as assumptions.
+ *
+ * The main use case of this proof generator is for proofs of preprocessing,
+ * although it can be used in other scenarios where proofs for an evolving set
+ * of formulas is maintained. In the remainder of the description here, we
+ * describe its role as a proof generator for proofs of preprocessing.
+ *
+ * This class has two main interfaces during solving:
  * (1) notifyNewAssert, for assertions that are not part of the input and are
- * added by preprocessing passes,
+ * added to the assertion pipeline by preprocessing passes,
  * (2) notifyPreprocessed, which is called when a preprocessing pass rewrites
  * an assertion into another.
  * Notice that input assertions do not need to be provided to this class.
@@ -49,17 +58,23 @@ class PreprocessProofGenerator : public ProofGenerator
       NodeTrustNodeMap;
 
  public:
-  PreprocessProofGenerator(context::UserContext* u, ProofNodeManager* pnm);
+  PreprocessProofGenerator(ProofNodeManager* pnm,
+                           context::Context* c = nullptr,
+                           std::string name = "PreprocessProofGenerator");
   ~PreprocessProofGenerator() {}
   /**
    * Notify that n is a new assertion, where pg can provide a proof of n.
    */
   void notifyNewAssert(Node n, ProofGenerator* pg);
+  /**  Notify a new assertion, trust node version. */
+  void notifyNewTrustedAssert(theory::TrustNode tn);
   /**
    * Notify that n was replaced by np due to preprocessing, where pg can
    * provide a proof of the equality n=np.
    */
   void notifyPreprocessed(Node n, Node np, ProofGenerator* pg);
+  /** Notify preprocessed, trust node version */
+  void notifyTrustedPreprocessed(theory::TrustNode tnp);
   /**
    * Get proof for f, which returns a proof based on proving an equality based
    * on transitivity of preprocessing steps, and then using the original
@@ -72,17 +87,17 @@ class PreprocessProofGenerator : public ProofGenerator
   ProofNodeManager* getManager();
   /**
    * Allocate a helper proof. This returns a fresh lazy proof object that
-   * remains alive in this user context. This feature is used to construct
+   * remains alive in the context. This feature is used to construct
    * helper proofs for preprocessing, e.g. to support the skeleton of proofs
    * that connect AssertionPipeline::conjoin steps.
-   *
-   * Internally, this adds a LazyCDProof to the list d_helperProofs below.
    */
   LazyCDProof* allocateHelperProof();
 
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
+  /** A dummy context used by this class if none is provided */
+  context::Context d_context;
   /**
    * The trust node that was the source of each node constructed during
    * preprocessing. For each n, d_src[n] is a trust node whose node is n. This
@@ -92,7 +107,9 @@ class PreprocessProofGenerator : public ProofGenerator
    */
   NodeTrustNodeMap d_src;
   /** A context-dependent list of LazyCDProof, allocated for conjoin steps */
-  context::CDList<std::shared_ptr<LazyCDProof> > d_helperProofs;
+  LazyCDProofSet d_helperProofs;
+  /** Name for debugging */
+  std::string d_name;
 };
 
 }  // namespace smt
