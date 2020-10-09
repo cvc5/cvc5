@@ -253,8 +253,6 @@ private:
   void merge( Node t1, Node t2 );
   /** collapse selector, s is of the form sel( n ) where n = c */
   void collapseSelector( Node s, Node c );
-  /** remove uninterpreted constants */
-  Node removeUninterpretedConstants( Node n, std::map< Node, Node >& visited );
   /** for checking if cycles exist */
   void checkCycles();
   Node searchForCycle(TNode n,

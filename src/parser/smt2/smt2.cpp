@@ -37,11 +37,10 @@ Smt2::Smt2(api::Solver* solver, Input* input, bool strictMode, bool parseOnly)
       d_logicSet(false),
       d_seenSetLogic(false)
 {
-  if (!strictModeEnabled())
-  {
-    addCoreSymbols();
-  }
+  pushScope(true);
 }
+
+Smt2::~Smt2() { popScope(); }
 
 void Smt2::addArithmeticOperators() {
   addOperator(api::PLUS, "+");
@@ -288,9 +287,9 @@ void Smt2::addSepOperators() {
 
 void Smt2::addCoreSymbols()
 {
-  defineType("Bool", d_solver->getBooleanSort());
-  defineVar("true", d_solver->mkTrue());
-  defineVar("false", d_solver->mkFalse());
+  defineType("Bool", d_solver->getBooleanSort(), true, true);
+  defineVar("true", d_solver->mkTrue(), true, true);
+  defineVar("false", d_solver->mkFalse(), true, true);
   addOperator(api::AND, "and");
   addOperator(api::DISTINCT, "distinct");
   addOperator(api::EQUAL, "=");
@@ -472,10 +471,7 @@ void Smt2::reset() {
   operatorKindMap.clear();
   d_lastNamedTerm = std::pair<api::Term, std::string>();
   this->Parser::reset();
-
-  if( !strictModeEnabled() ) {
-    addCoreSymbols();
-  }
+  pushScope(true);
 }
 
 void Smt2::resetAssertions() {
@@ -483,6 +479,7 @@ void Smt2::resetAssertions() {
   while (this->scopeLevel() > 0) {
     this->popScope();
   }
+  pushScope(true);
 }
 
 Smt2::SynthFunFactory::SynthFunFactory(
@@ -604,7 +601,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
 
   if(d_logic.isTheoryEnabled(theory::THEORY_ARITH)) {
     if(d_logic.areIntegersUsed()) {
-      defineType("Int", d_solver->getIntegerSort());
+      defineType("Int", d_solver->getIntegerSort(), true, true);
       addArithmeticOperators();
       addOperator(api::INTS_DIVISION, "div");
       addOperator(api::INTS_MODULUS, "mod");
@@ -614,7 +611,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
 
     if (d_logic.areRealsUsed())
     {
-      defineType("Real", d_solver->getRealSort());
+      defineType("Real", d_solver->getRealSort(), true, true);
       addArithmeticOperators();
       addOperator(api::DIVISION, "/");
       if (!strictModeEnabled())
@@ -663,7 +660,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
 
   if(d_logic.isTheoryEnabled(theory::THEORY_DATATYPES)) {
     const std::vector<api::Sort> types;
-    defineType("Tuple", d_solver->mkTupleSort(types));
+    defineType("Tuple", d_solver->mkTupleSort(types), true, true);
     addDatatypesOperators();
   }
 
@@ -708,9 +705,9 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::BAG_TO_SET, "bag.to_set");
   }
   if(d_logic.isTheoryEnabled(theory::THEORY_STRINGS)) {
-    defineType("String", d_solver->getStringSort());
-    defineType("RegLan", d_solver->getRegExpSort());
-    defineType("Int", d_solver->getIntegerSort());
+    defineType("String", d_solver->getStringSort(), true, true);
+    defineType("RegLan", d_solver->getRegExpSort(), true, true);
+    defineType("Int", d_solver->getIntegerSort(), true, true);
 
     if (getLanguage() == language::input::LANG_SMTLIB_V2_6
         || getLanguage() == language::input::LANG_SYGUS_V2)
@@ -735,11 +732,11 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   }
 
   if (d_logic.isTheoryEnabled(theory::THEORY_FP)) {
-    defineType("RoundingMode", d_solver->getRoundingModeSort());
-    defineType("Float16", d_solver->mkFloatingPointSort(5, 11));
-    defineType("Float32", d_solver->mkFloatingPointSort(8, 24));
-    defineType("Float64", d_solver->mkFloatingPointSort(11, 53));
-    defineType("Float128", d_solver->mkFloatingPointSort(15, 113));
+    defineType("RoundingMode", d_solver->getRoundingModeSort(), true, true);
+    defineType("Float16", d_solver->mkFloatingPointSort(5, 11), true, true);
+    defineType("Float32", d_solver->mkFloatingPointSort(8, 24), true, true);
+    defineType("Float64", d_solver->mkFloatingPointSort(11, 53), true, true);
+    defineType("Float128", d_solver->mkFloatingPointSort(15, 113), true, true);
 
     defineVar("RNE", d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN));
     defineVar("roundNearestTiesToEven",

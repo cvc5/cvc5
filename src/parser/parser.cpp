@@ -291,8 +291,14 @@ void Parser::defineVar(const std::string& name,
 
 void Parser::defineType(const std::string& name,
                         const api::Sort& type,
-                        bool levelZero)
+                        bool levelZero,
+                        bool skipExisting)
 {
+  if (skipExisting && isDeclared(name, SYM_SORT))
+  {
+    assert(api::Sort(d_solver, d_symtab->lookupType(name)) == type);
+    return;
+  }
   d_symtab->bindType(name, type.getType(), levelZero);
   assert(isDeclared(name, SYM_SORT));
 }
