@@ -37,7 +37,6 @@ Node mkRat(T val)
   auto* nm = NodeManager::currentNM();
   return nm->mkConst<Rational>(val);
 }
-Node mkNot(Node n, bool negated) { return negated ? n.negate() : n; }
 
 inline std::vector<Node> collectButHoldout(TNode parent,
                                            TNode::iterator holdout,
@@ -412,12 +411,12 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
   {
     if (disabled()) return nullptr;
     auto it = std::find(d_parent.begin(), d_parent.end(), d_child);
-    return mkProof(
+    return mkNot(mkProof(
         PfRule::CHAIN_RESOLUTION,
         {mkProof(
              PfRule::CNF_OR_NEG, {}, {d_parent, mkRat(it - d_parent.begin())}),
          mkProof(d_child)},
-        {d_child.negate()});
+        {d_child.notNode()}));
   }
   std::shared_ptr<ProofNode> orTrue(TNode::iterator holdout)
   {
