@@ -312,8 +312,7 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
   }
   std::shared_ptr<ProofNode> neqXFromY(bool y)
   {
-    // IFF x y = FALSE: if x [resp y] is assigned, assign(y = !x.assignment
-    // [resp x = !y.assignment])
+    if (disabled()) return nullptr;
     if (y)
     {
       return mkResolution(
@@ -329,6 +328,7 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
   }
   std::shared_ptr<ProofNode> neqYFromX(bool x)
   {
+    if (disabled()) return nullptr;
     if (x)
     {
       return mkResolution(
