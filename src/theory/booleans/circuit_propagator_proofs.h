@@ -312,47 +312,41 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
         mkProof(PfRule::NOT_IMPLIES_ELIM2, {mkProof(d_parent.negate())}));
   }
 
-  std::shared_ptr<ProofNode> xorX(bool negated, bool x)
+  std::shared_ptr<ProofNode> xorX(bool x)
   {
     if (disabled()) return nullptr;
+    bool negated = !d_parentAssignment;
     if (x)
     {
-      return mkProof(
-          PfRule::RESOLUTION,
-          {mkProof(negated ? PfRule::NOT_XOR_ELIM2 : PfRule::XOR_ELIM2,
-                   {mkProof(d_parent)}),
-           mkProof(d_parent[0])},
-          {d_parent[0]});
+      return mkResolution(
+          mkProof(negated ? PfRule::NOT_XOR_ELIM2 : PfRule::XOR_ELIM1,
+                  {mkProof(negated ? d_parent.notNode() : Node(d_parent))}),
+          {d_parent[0].notNode()});
     }
     else
     {
-      return mkProof(
-          PfRule::RESOLUTION,
-          {mkProof(negated ? PfRule::NOT_XOR_ELIM1 : PfRule::XOR_ELIM1,
-                   {mkProof(d_parent)}),
-           mkProof(d_parent[0].negate())},
+      return mkResolution(
+          mkProof(negated ? PfRule::NOT_XOR_ELIM1 : PfRule::XOR_ELIM2,
+                  {mkProof(negated ? d_parent.notNode() : Node(d_parent))}),
           {d_parent[0]});
     }
   }
-  std::shared_ptr<ProofNode> xorY(bool negated, bool y)
+  std::shared_ptr<ProofNode> xorY(bool y)
   {
     if (disabled()) return nullptr;
+    bool negated = !d_parentAssignment;
     if (y)
     {
-      return mkProof(
-          PfRule::RESOLUTION,
-          {mkProof(negated ? PfRule::NOT_XOR_ELIM2 : PfRule::XOR_ELIM2,
-                   {mkProof(d_parent)}),
-           mkProof(d_parent[1])},
-          {d_parent[1]});
+      return mkResolution(
+          mkProof(negated ? PfRule::NOT_XOR_ELIM1 : PfRule::XOR_ELIM2,
+                  {mkProof(negated ? d_parent.notNode() : Node(d_parent))}),
+          {d_parent[1].notNode()});
     }
     else
     {
-      return mkProof(
-          PfRule::RESOLUTION,
-          {mkProof(negated ? PfRule::NOT_XOR_ELIM1 : PfRule::XOR_ELIM1,
-                   {mkProof(d_parent)}),
-           mkProof(d_parent[1].negate())},
+      return mkResolution(
+          mkProof(negated ? PfRule::NOT_XOR_ELIM2 : PfRule::XOR_ELIM1,
+                  {mkProof(negated ? d_parent.notNode() : Node(d_parent))}),
           {d_parent[1]});
     }
   }
