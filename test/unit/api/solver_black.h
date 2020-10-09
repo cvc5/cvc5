@@ -1632,7 +1632,7 @@ void SolverBlack::testGetQuantifierElimination()
       d_solver->mkTerm(FORALL,
                        d_solver->mkTerm(BOUND_VAR_LIST, x),
                        d_solver->mkTerm(OR, x, d_solver->mkTerm(NOT, x)));
-  TS_ASSERT_THROWS(d_solver->getQuantifierElimination(Term(), true),
+  TS_ASSERT_THROWS(d_solver->getQuantifierElimination(Term()),
                    CVC4ApiException&);
   TS_ASSERT_THROWS(
       d_solver->getQuantifierElimination(Solver().mkBoolean(false)),
@@ -1647,7 +1647,7 @@ void SolverBlack::testGetQuantifierEliminationDisjunct()
       d_solver->mkTerm(FORALL,
                        d_solver->mkTerm(BOUND_VAR_LIST, x),
                        d_solver->mkTerm(OR, x, d_solver->mkTerm(NOT, x)));
-  TS_ASSERT_THROWS(d_solver->getQuantifierEliminationDisjunct(Term(), true),
+  TS_ASSERT_THROWS(d_solver->getQuantifierEliminationDisjunct(Term()),
                    CVC4ApiException&);
   TS_ASSERT_THROWS(
       d_solver->getQuantifierEliminationDisjunct(Solver().mkBoolean(false)),
