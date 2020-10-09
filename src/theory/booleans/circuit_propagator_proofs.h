@@ -583,6 +583,31 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
   {
     return mkXorYFromX(negated, d_childAssignment, d_parent);
   }
+  std::shared_ptr<ProofNode> xorEval(bool x, bool y)
+  {
+    if (disabled()) return nullptr;
+    if (x && y)
+    {
+      return mkResolution(mkProof(PfRule::CNF_XOR_POS2, {}, {d_parent}),
+                          {d_parent[0].notNode(), d_parent[1].notNode()});
+    }
+    else if (x && !y)
+    {
+      return mkResolution(mkProof(PfRule::CNF_XOR_NEG1, {}, {d_parent}),
+                          {d_parent[0].notNode(), d_parent[1]});
+    }
+    else if (!x && y)
+    {
+      return mkResolution(mkProof(PfRule::CNF_XOR_NEG2, {}, {d_parent}),
+                          {d_parent[0], d_parent[1].notNode()});
+    }
+    else
+    {
+      Assert(!x && !y);
+      return mkResolution(mkProof(PfRule::CNF_XOR_POS1, {}, {d_parent}),
+                          {d_parent[0], d_parent[1]});
+    }
+  }
   };
 
 }  // namespace booleans

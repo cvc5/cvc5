@@ -405,7 +405,10 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
         }
       }
       if (isAssigned(parent[0]) && isAssigned(parent[1])) {
-        assignAndEnqueue(parent, getAssignment(parent[0]) != getAssignment(parent[1]));
+        assignAndEnqueue(
+            parent,
+            getAssignment(parent[0]) != getAssignment(parent[1]),
+            prover.xorEval(getAssignment(parent[0]), getAssignment(parent[1])));
       }
       break;
     default:
