@@ -391,7 +391,7 @@ class CVC4_PUBLIC SmtEngine
    *
    * @throw Exception
    */
-  Result checkEntailed(const Node& assumption = Node(),
+  Result checkEntailed(const Node& assumption,
                        bool inUnsatCore = true);
   Result checkEntailed(const std::vector<Node>& assumptions,
                        bool inUnsatCore = true);
@@ -402,7 +402,8 @@ class CVC4_PUBLIC SmtEngine
    *
    * @throw Exception
    */
-  Result checkSat(const Node& assumption = Node(), bool inUnsatCore = true);
+  Result checkSat();
+  Result checkSat(const Node& assumption, bool inUnsatCore = true);
   Result checkSat(const std::vector<Node>& assumptions,
                   bool inUnsatCore = true);
 

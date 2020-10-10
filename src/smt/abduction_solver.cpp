@@ -139,8 +139,8 @@ void AbductionSolver::checkAbduct(Node a)
   Trace("check-abduct") << "SmtEngine::checkAbduct: get expanded assertions"
                         << std::endl;
 
-  std::vector<Expr> asserts = d_parent->getExpandedAssertions();
-  asserts.push_back(a.toExpr());
+  std::vector<Node> asserts = d_parent->getExpandedAssertions();
+  asserts.push_back(a);
 
   // two checks: first, consistent with assertions, second, implies negated goal
   // is unsatisfiable.
@@ -153,7 +153,7 @@ void AbductionSolver::checkAbduct(Node a)
     initializeSubsolver(abdChecker);
     Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
                           << ": asserting formulas" << std::endl;
-    for (const Expr& e : asserts)
+    for (const Node& e : asserts)
     {
       abdChecker->assertFormula(e);
     }
@@ -177,7 +177,7 @@ void AbductionSolver::checkAbduct(Node a)
           << "SmtEngine::checkAbduct: goal is " << d_abdConj << std::endl;
       // add the goal to the set of assertions
       Assert(!d_abdConj.isNull());
-      asserts.push_back(d_abdConj.toExpr());
+      asserts.push_back(d_abdConj);
     }
     else
     {

@@ -941,7 +941,13 @@ void SmtEngine::notifyPostSolvePost()
   te->postsolve();
 }
 
-Result SmtEngine::checkSat(const Expr& assumption, bool inUnsatCore)
+Result SmtEngine::checkSat()
+{
+  Node nullNode;
+  return checkSat(nullNode);
+}
+
+Result SmtEngine::checkSat(const Node& assumption, bool inUnsatCore)
 {
   if (Dump.isOn("benchmark"))
   {
@@ -951,12 +957,12 @@ Result SmtEngine::checkSat(const Expr& assumption, bool inUnsatCore)
   std::vector<Node> assump;
   if (!assumption.isNull())
   {
-    assump.push_back(Node::fromExpr(assumption));
+    assump.push_back(assumption);
   }
   return checkSatInternal(assump, inUnsatCore, false);
 }
 
-Result SmtEngine::checkSat(const vector<Expr>& assumptions, bool inUnsatCore)
+Result SmtEngine::checkSat(const std::vector<Node>& assumptions, bool inUnsatCore)
 {
   if (Dump.isOn("benchmark"))
   {
@@ -971,15 +977,10 @@ Result SmtEngine::checkSat(const vector<Expr>& assumptions, bool inUnsatCore)
           getOutputManager().getDumpOut(), exprVectorToNodes(assumptions));
     }
   }
-  std::vector<Node> assumps;
-  for (const Expr& e : assumptions)
-  {
-    assumps.push_back(Node::fromExpr(e));
-  }
-  return checkSatInternal(assumps, inUnsatCore, false);
+  return checkSatInternal(assumptions, inUnsatCore, false);
 }
 
-Result SmtEngine::checkEntailed(const Expr& node, bool inUnsatCore)
+Result SmtEngine::checkEntailed(const Node& node, bool inUnsatCore)
 {
   if (Dump.isOn("benchmark"))
   {
@@ -988,23 +989,18 @@ Result SmtEngine::checkEntailed(const Expr& node, bool inUnsatCore)
   }
   return checkSatInternal(node.isNull()
                               ? std::vector<Node>()
-                              : std::vector<Node>{Node::fromExpr(node)},
+                              : std::vector<Node>{node},
                           inUnsatCore,
                           true)
       .asEntailmentResult();
 }
 
-Result SmtEngine::checkEntailed(const vector<Expr>& nodes, bool inUnsatCore)
+Result SmtEngine::checkEntailed(const std::vector<Node>& nodes, bool inUnsatCore)
 {
-  std::vector<Node> ns;
-  for (const Expr& e : nodes)
-  {
-    ns.push_back(Node::fromExpr(e));
-  }
-  return checkSatInternal(ns, inUnsatCore, true).asEntailmentResult();
+  return checkSatInternal(nodes, inUnsatCore, true).asEntailmentResult();
 }
 
-Result SmtEngine::checkSatInternal(const vector<Node>& assumptions,
+Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
                                    bool inUnsatCore,
                                    bool isEntailmentCheck)
 {
