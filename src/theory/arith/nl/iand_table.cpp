@@ -42,20 +42,21 @@ Node IAndTable::createITEFromTable(
     Node x,
     Node y,
     uint64_t granularity,
-    const std::map<std::pair<uint64_t, uint64_t>, uint64_t>& table)
+    const std::map<std::pair<int64_t, int64_t>, int64_t>& table)
 {
   NodeManager* nm = NodeManager::currentNM();
   Assert(granularity <= 8);
-  uint64_t max_value = ((uint64_t)pow(2, granularity));
+  int64_t num_of_values = ((int64_t)pow(2, granularity));
   // The table represents a function from pairs of integers to integers, where
-  // all integers are between 0 (inclusive) and max_value (exclusive).
-  Assert(table.size() == max_value * max_value);
-  Node ite = nm->mkConst<Rational>(table.at(std::make_pair(0, 0)));
-  for (uint64_t i = 0; i < max_value; i++)
+  // all integers are between 0 (inclusive) and num_of_values (exclusive).
+  Assert(table.size() == 1 + ((uint64_t)(num_of_values * num_of_values)));
+  // start with the default, most common value
+  Node ite = nm->mkConst<Rational>(table.at(std::make_pair(-1, -1)));
+  for (int64_t i = 0; i < num_of_values; i++)
   {
-    for (uint64_t j = 0; j < max_value; j++)
+    for (int64_t j = 0; j < num_of_values; j++)
     {
-      if ((i == 0) && (j == 0))
+      if (table.at(std::make_pair(i, j)) == table.at(std::make_pair(-1, -1)))
       {
         continue;
       }
@@ -94,29 +95,6 @@ Node IAndTable::createBitwiseNode(Node x,
       granularity = granularity - 1;
     }
   }
-  // transform f into a table
-  // f is defined over 1 bit, while the table is defined over `granularity` bits
-  std::map<std::pair<uint64_t, uint64_t>, uint64_t> table;
-  uint64_t max_value = ((uint64_t)pow(2, granularity));
-  for (uint64_t i = 0; i < max_value; i++)
-  {
-    for (uint64_t j = 0; j < max_value; j++)
-    {
-      uint64_t sum = 0;
-      for (uint64_t n = 0; n < granularity; n++)
-      {
-        // b is the result of f on the current bit
-        bool b = oneBitAnd((((i >> n) & 1) == 1), (((j >> n) & 1) == 1));
-        // add the corresponding power of 2 only if the result is 1
-        if (b)
-        {
-          sum += 1 << n;
-        }
-      }
-      table[std::make_pair(i, j)] = sum;
-    }
-  }
-  Assert(table.size() == max_value * max_value);
 
   /*
    * Create the sum.
@@ -143,12 +121,85 @@ Node IAndTable::createBitwiseNode(Node x,
         kind::INTS_MODULUS_TOTAL,
         nm->mkNode(kind::INTS_DIVISION_TOTAL, y, pow2(i * granularity)),
         pow2(granularity));
-    Node ite = createITEFromTable(xExtract, yExtract, granularity, table);
-    sumNode = nm->mkNode(kind::PLUS,
-                         sumNode,
-                         nm->mkNode(kind::MULT, pow2(i * granularity), ite));
+    Node sumPart = createPart(xExtract, yExtract, granularity);
+    sumNode =
+        nm->mkNode(kind::PLUS,
+                   sumNode,
+                   nm->mkNode(kind::MULT, pow2(i * granularity), sumPart));
   }
   return sumNode;
+}
+
+Node IAndTable::createPart(Node x, Node y, uint64_t granularity)
+{
+  std::map<std::pair<int64_t, int64_t>, int64_t> table =
+      getAndTable(granularity);
+  Node ite = createITEFromTable(x, y, granularity, table);
+  return ite;
+}
+
+std::map<std::pair<int64_t, int64_t>, int64_t> IAndTable::getAndTable(
+    uint64_t granularity)
+{
+  if (d_bvandTable.find(granularity) != d_bvandTable.end())
+  {
+    return d_bvandTable[granularity];
+  }
+  // the table was not yet computed
+  std::map<std::pair<int64_t, int64_t>, int64_t> table;
+  int64_t num_of_values = ((int64_t)pow(2, granularity));
+  bool (*fp)(bool, bool);
+  fp = oneBitAnd;
+  for (int64_t i = 0; i < num_of_values; i++)
+  {
+    for (int64_t j = 0; j < num_of_values; j++)
+    {
+      int64_t sum = 0;
+      for (uint64_t n = 0; n < granularity; n++)
+      {
+        // b is the result of f on the current bit
+        bool b = (*fp)((((i >> n) & 1) == 1), (((j >> n) & 1) == 1));
+        // add the corresponding power of 2 only if the result is 1
+        if (b)
+        {
+          sum += 1 << n;
+        }
+      }
+      table[std::make_pair(i, j)] = sum;
+    }
+  }
+  addDefaultValue(table, num_of_values);
+  Assert(table.size() == 1 + ((uint64_t)(num_of_values * num_of_values)));
+  d_bvandTable[granularity] = table;
+  return table;
+}
+
+void IAndTable::addDefaultValue(
+    std::map<std::pair<int64_t, int64_t>, int64_t>& table,
+    int64_t num_of_values)
+{
+  std::map<int64_t, int64_t> counters;
+  for (int64_t i = 0; i <= num_of_values; i++)
+  {
+    counters[i] = 0;
+  }
+  for (std::pair<std::pair<int64_t, int64_t>, int64_t> element : table)
+  {
+    int64_t result = element.second;
+    counters[result]++;
+  }
+  int64_t most_common_result = -1;
+  int64_t max_num_of_occ = -1;
+  for (int64_t i = 0; i <= num_of_values; i++)
+  {
+    if (counters[i] > max_num_of_occ)
+    {
+      max_num_of_occ = counters[i];
+      most_common_result = i;
+    }
+  }
+  //-1 is the default case of the table
+  table[std::make_pair(-1, -1)] = most_common_result;
 }
 
 }  // namespace nl

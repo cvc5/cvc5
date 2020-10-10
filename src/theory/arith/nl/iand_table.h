@@ -18,7 +18,6 @@
 
 #include <tuple>
 #include <vector>
-
 #include "expr/node.h"
 
 namespace CVC4 {
@@ -99,7 +98,16 @@ class IAndTable
       Node x,
       Node y,
       uint64_t granularity,
-      const std::map<std::pair<uint64_t, uint64_t>, uint64_t>& table);
+      const std::map<std::pair<int64_t, int64_t>, int64_t>& table);
+
+  Node createPart(Node x, Node y, uint64_t granularity);
+  std::map<std::pair<int64_t, int64_t>, int64_t> getAndTable(
+      uint64_t granularity);
+  void addDefaultValue(std::map<std::pair<int64_t, int64_t>, int64_t>& table,
+                       int64_t num_of_values);
+
+  std::map<int64_t, std::map<std::pair<int64_t, int64_t>, int64_t>>
+      d_bvandTable;
 };
 
 }  // namespace nl
