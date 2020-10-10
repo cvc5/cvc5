@@ -156,11 +156,15 @@ TNode TheoryDatatypes::getEqcConstructor( TNode r ) {
 bool TheoryDatatypes::preCheck(Effort level)
 {
   d_im.reset();
+  d_im.clearPending();
   return false;
 }
 
 void TheoryDatatypes::postCheck(Effort level)
 {
+  // Apply any last pending inferences, which may occur if the last processed
+  // fact was an internal one and triggered further internal inferences.
+  d_im.process();
   if (level == EFFORT_LAST_CALL)
   {
     Assert(d_sygusExtension != nullptr);
@@ -369,6 +373,8 @@ void TheoryDatatypes::notifyFact(TNode atom,
                                  TNode fact,
                                  bool isInternal)
 {
+  Trace("datatypes-debug") << "TheoryDatatypes::assertFact : " << fact
+                           << ", isInternal = " << isInternal << std::endl;
   // could be sygus-specific
   if (d_sygusExtension)
   {
@@ -1039,41 +1045,6 @@ void TheoryDatatypes::addConstructor( Node c, EqcInfo* eqc, Node n ){
   eqc->d_constructor.set( c );
 }
 
-Node TheoryDatatypes::removeUninterpretedConstants( Node n, std::map< Node, Node >& visited ){
-  std::map< Node, Node >::iterator it = visited.find( n );
-  if( it==visited.end() ){
-    Node ret = n;
-    if( n.getKind()==UNINTERPRETED_CONSTANT ){
-      std::map< Node, Node >::iterator itu = d_uc_to_fresh_var.find( n );
-      if( itu==d_uc_to_fresh_var.end() ){
-        Node k = NodeManager::currentNM()->mkSkolem( "w", n.getType(), "Skolem for wrongly applied selector." );
-        d_uc_to_fresh_var[n] = k;
-        ret = k;
-      }else{
-        ret = itu->second;
-      }
-    }else if( n.getNumChildren()>0 ){
-      std::vector< Node > children;
-      if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
-        children.push_back( n.getOperator() );
-      }
-      bool childChanged = false;
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        Node nc = removeUninterpretedConstants( n[i], visited ); 
-        childChanged = childChanged || nc!=n[i];
-        children.push_back( nc );
-      }
-      if( childChanged ){
-        ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
-      }
-    }
-    visited[n] = ret;
-    return ret;
-  }else{
-    return it->second;
-  }
-} 
-
 void TheoryDatatypes::collapseSelector( Node s, Node c ) {
   Assert(c.getKind() == APPLY_CONSTRUCTOR);
   Trace("dt-collapse-sel") << "collapse selector : " << s << " " << c << std::endl;
@@ -1090,14 +1061,23 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
     r = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, s.getOperator(), c );
   }
   if( !r.isNull() ){
-    Node rr = Rewriter::rewrite( r );
-    Node rrs = rr;
-    if( wrong ){
-      // we have inference S_i( C_j( t ) ) = t' for i != j, where t' is result of mkGroundTerm.
-      // we must eliminate uninterpreted constants for datatypes that have uninterpreted sort subfields,
-      // since uninterpreted constants should not appear in lemmas
-      std::map< Node, Node > visited;
-      rrs = removeUninterpretedConstants( rr, visited );
+    Node rrs;
+    if (wrong)
+    {
+      // Must use make ground term here instead of the rewriter, since we
+      // do not want to introduce arbitrary values. This is important so that
+      // we avoid constants for types that are not "closed enumerable", e.g.
+      // uninterpreted sorts and arrays, where the solver does not fully
+      // handle values of the sort. The call to mkGroundTerm does not introduce
+      // values for these sorts.
+      rrs = r.getType().mkGroundTerm();
+      Trace("datatypes-wrong-sel")
+          << "Bad apply " << r << " term = " << rrs
+          << ", value = " << r.getType().mkGroundValue() << std::endl;
+    }
+    else
+    {
+      rrs = Rewriter::rewrite(r);
     }
     if (s != rrs)
     {

@@ -268,6 +268,8 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {BAG_CARD, CVC4::Kind::BAG_CARD},
     {BAG_CHOOSE, CVC4::Kind::BAG_CHOOSE},
     {BAG_IS_SINGLETON, CVC4::Kind::BAG_IS_SINGLETON},
+    {BAG_FROM_SET, CVC4::Kind::BAG_FROM_SET},
+    {BAG_TO_SET, CVC4::Kind::BAG_TO_SET},
     /* Strings ------------------------------------------------------------- */
     {STRING_CONCAT, CVC4::Kind::STRING_CONCAT},
     {STRING_IN_REGEXP, CVC4::Kind::STRING_IN_REGEXP},
@@ -571,6 +573,8 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::BAG_CARD, BAG_CARD},
         {CVC4::Kind::BAG_CHOOSE, BAG_CHOOSE},
         {CVC4::Kind::BAG_IS_SINGLETON, BAG_IS_SINGLETON},
+        {CVC4::Kind::BAG_FROM_SET, BAG_FROM_SET},
+        {CVC4::Kind::BAG_TO_SET, BAG_TO_SET},
         /* Strings --------------------------------------------------------- */
         {CVC4::Kind::STRING_CONCAT, STRING_CONCAT},
         {CVC4::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},
@@ -1057,7 +1061,15 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
                   .toType());
 }
 
-std::string Sort::toString() const { return d_type->toString(); }
+std::string Sort::toString() const
+{
+  if (d_solver != nullptr)
+  {
+    NodeManagerScope scope(d_solver->getNodeManager());
+    return d_type->toString();
+  }
+  return d_type->toString();
+}
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
@@ -1478,6 +1490,11 @@ std::string Op::toString() const
   {
     CVC4_API_CHECK(!d_node->isNull())
         << "Expecting a non-null internal expression";
+    if (d_solver != nullptr)
+    {
+      NodeManagerScope scope(d_solver->getNodeManager());
+      return d_node->toString();
+    }
     return d_node->toString();
   }
 }
@@ -1712,7 +1729,7 @@ Op Term::getOp() const
 
 bool Term::isNull() const { return isNullHelper(); }
 
-bool Term::isConst() const
+bool Term::isValue() const
 {
   CVC4_API_CHECK_NOT_NULL;
   return d_node->isConst();
@@ -1855,7 +1872,15 @@ Term Term::iteTerm(const Term& then_t, const Term& else_t) const
   }
 }
 
-std::string Term::toString() const { return d_node->toString(); }
+std::string Term::toString() const
+{
+  if (d_solver != nullptr)
+  {
+    NodeManagerScope scope(d_solver->getNodeManager());
+    return d_node->toString();
+  }
+  return d_node->toString();
+}
 
 Term::const_iterator::const_iterator()
     : d_solver(nullptr), d_origNode(nullptr), d_pos(0)

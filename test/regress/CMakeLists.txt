@@ -49,6 +49,7 @@ set(regress_0_tests
   regress0/arith/issue3683.smt2
   regress0/arith/issue4367.smt2
   regress0/arith/issue4525.smt2
+  regress0/arith/issue5219-conflict-rewrite.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
   regress0/arith/miplib.cvc
@@ -643,6 +644,7 @@ set(regress_0_tests
   regress0/parser/declarefun-emptyset-uf.smt2
   regress0/parser/force_logic_set_logic.smt2
   regress0/parser/force_logic_success.smt2
+  regress0/parser/issue5163.smt2
   regress0/parser/shadow_fun_symbol_all.smt2
   regress0/parser/shadow_fun_symbol_nirat.smt2
   regress0/parser/strings20.smt2
@@ -2103,6 +2105,8 @@ set(regress_2_tests
   regress2/bug812.smt2
   regress2/bv/opStructure_MBA_6.scrambled.min.smt2
   regress2/bv_to_int2.smt2
+  regress2/bv_to_int_5095.smt2
+  regress2/bv_to_int_5095_2.smt2
   regress2/bv_to_int_ashr.smt2
   regress2/bv_to_int_bitwise.smt2
   regress2/bv_to_int_bvmul1.smt2

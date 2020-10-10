@@ -553,9 +553,7 @@ class Constraint {
    * This is the minimum fringe of the implication tree s.t.
    * every constraint is assertedToTheTheory() or hasEqualityEngineProof().
    */
-  Node externalExplainByAssertions() const {
-    return externalExplain(AssertionOrderSentinel);
-  }
+  TrustNode externalExplainByAssertions() const;
 
   /**
    * Writes an explanation of a constraint into the node builder.
@@ -568,8 +566,10 @@ class Constraint {
    * This is not appropriate for propagation!
    * Use explainForPropagation() instead.
    */
-  void externalExplainByAssertions(NodeBuilder<>& nb) const{
-    externalExplain(nb, AssertionOrderSentinel);
+  std::shared_ptr<ProofNode> externalExplainByAssertions(
+      NodeBuilder<>& nb) const
+  {
+    return externalExplain(nb, AssertionOrderSentinel);
   }
 
   /* Equivalent to calling externalExplainByAssertions on all constraints in b */
@@ -596,22 +596,19 @@ class Constraint {
    * The constraint must have a proof.
    * The constraint cannot be an assumption.
    *
-   * This is the minimum fringe of the implication tree (excluding the constraint itself)
-   * s.t. every constraint is assertedToTheTheory() or hasEqualityEngineProof().
+   * This is the minimum fringe of the implication tree (excluding the
+   * constraint itself) s.t. every constraint is assertedToTheTheory() or
+   * hasEqualityEngineProof().
+   *
+   * All return conjuncts were asserted before this constraint.
    */
-  Node externalExplainForPropagation() const {
-    Assert(hasProof());
-    Assert(!isAssumption());
-    Assert(!isInternalAssumption());
-    return externalExplain(d_assertionOrder);
-  }
+  TrustNode externalExplainForPropagation() const;
 
   /**
    * Explain the constraint and its negation in terms of assertions.
    * The constraint must be in conflict.
    */
-  Node externalExplainConflict() const;
-
+  TrustNode externalExplainConflict() const;
 
   /** The constraint is known to be true. */
   inline bool hasProof() const {
@@ -1153,7 +1150,11 @@ private:
   bool variableDatabaseIsSetup(ArithVar v) const;
   void removeVariable(ArithVar v);
 
+  /** Get an explanation and proof for this constraint from the equality engine
+   */
   TrustNode eeExplain(ConstraintCP c) const;
+  /** Get an explanation for this constraint from the equality engine */
+  void eeExplain(ConstraintCP c, NodeBuilder<>& nb) const;
 
   /**
    * Returns a constraint with the variable v, the constraint type t, and a value
