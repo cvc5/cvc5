@@ -56,6 +56,7 @@ void CircuitPropagator::assertTrue(TNode assertion)
       assertTrue(assertion[i]);
     }
   } else {
+    Trace("circuit-prop") << "TRUE: " << assertion << std::endl;
     // Analyze the assertion for back-edges and all that
     computeBackEdges(assertion);
     // Assign the given assertion to true
@@ -459,6 +460,7 @@ bool CircuitPropagator::propagate() {
         TrustNode tlit = TrustNode::mkTrustLemma(lit, nullptr);
         d_learnedLiterals.push_back(tlit);
       }
+      Trace("circuit-prop") << "Added proof for " << lit << std::endl;
     }
 
     // Propagate this value to the children (if not an atom or a constant)

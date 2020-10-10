@@ -106,7 +106,7 @@ struct CircuitPropagatorProver
     std::vector<std::shared_ptr<ProofNode>> children = {clause};
     for (const auto& n : lits)
     {
-      children.emplace_back(mkProof(n.notNode()));
+      children.emplace_back(mkProof(n.negate()));
     }
     return mkProof(PfRule::CHAIN_RESOLUTION, children, lits);
   }
@@ -347,7 +347,7 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
   {
     if (disabled()) return nullptr;
     return mkResolution(mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)}),
-                        {d_parent[0].notNode()});
+                        {d_parent[0].negate()});
   }
   std::shared_ptr<ProofNode> impFalse()
   {
@@ -567,7 +567,7 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
     if (d_child == d_parent[0])
     {
       return mkResolution(mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)}),
-                          {d_child.notNode()});
+                          {d_child.negate()});
     }
     else
     {

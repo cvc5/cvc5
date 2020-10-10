@@ -467,6 +467,9 @@ void NonClausalSimp::assertLearnedLiteral(const std::vector<Node>& assertions,
   {
     // the module that generated the learned literal (e.g. the circuit
     // propagator) provided a proof
+    Trace("circuit-prop") << "Actually Added proof for " << tll << ": "
+                          << *(tll.getGenerator()->getProofFor(tll.getNode()))
+                          << std::endl;
     d_llpg->notifyNewTrustedAssert(tll);
     return;
   }
