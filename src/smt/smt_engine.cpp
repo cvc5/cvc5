@@ -1377,7 +1377,7 @@ Model* SmtEngine::getModel() {
   {
     // If we enabled model cores, we compute a model core for m based on our
     // (expanded) assertions using the model core builder utility
-    std::vector<Expr> eassertsProc = getExpandedAssertions();
+    std::vector<Node> eassertsProc = getExpandedAssertions();
     ModelCoreBuilder::setModelCore(eassertsProc, m, options::modelCoresMode());
   }
   m->d_inputName = d_state->getFilename();
@@ -1424,7 +1424,7 @@ Result SmtEngine::blockModelValues(const std::vector<Node>& exprs)
   if (Dump.isOn("benchmark"))
   {
     getOutputManager().getPrinter().toStreamCmdBlockModelValues(
-        getOutputManager().getDumpOut(), exprVectorToNodes(exprs));
+        getOutputManager().getDumpOut(), exprs);
   }
 
   TheoryModel* m = getAvailableModel("block model values");
