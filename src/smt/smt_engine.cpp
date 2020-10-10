@@ -1447,8 +1447,8 @@ std::pair<Node, Node> SmtEngine::getSepHeapAndNilExpr(void)
     throw RecoverableModalException(msg);
   }
   NodeManagerScope nms(d_nodeManager);
-  Node heap;
-  Node nil;
+  Expr heap;
+  Expr nil;
   Model* m = getAvailableModel("get separation logic heap and nil");
   if (!m->getHeapModel(heap, nil))
   {
@@ -1456,7 +1456,7 @@ std::pair<Node, Node> SmtEngine::getSepHeapAndNilExpr(void)
         << "SmtEngine::getSepHeapAndNilExpr(): failed to obtain heap/nil "
            "expressions from theory model.";
   }
-  return std::make_pair(heap, nil);
+  return std::make_pair(Node::fromExpr(heap), Node::fromExpr(nil));
 }
 
 std::vector<Node> SmtEngine::getExpandedAssertions()
@@ -1610,7 +1610,7 @@ void SmtEngine::checkModel(bool hardFailure) {
         // [func->func2] and checking equality of the Nodes.
         // (this just a way to check if func is in n.)
         SubstitutionMap subs(&fakeContext);
-        Node func2 = NodeManager::currentNM()->mkSkolem("", TypeNode::fromType(func.getType()), "", NodeManager::SKOLEM_NO_NOTIFY);
+        Node func2 = NodeManager::currentNM()->mkSkolem("", func.getType(), "", NodeManager::SKOLEM_NO_NOTIFY);
         subs.addSubstitution(func, func2);
         if(subs.apply(n) != n) {
           Notice() << "SmtEngine::checkModel(): *** PROBLEM: MODEL VALUE DEFINED IN TERMS OF ITSELF ***" << endl;
@@ -1861,28 +1861,18 @@ bool SmtEngine::getAbduct(const Node& conj, Node& abd)
   return getAbduct(conj, grammarType, abd);
 }
 
-void SmtEngine::getInstantiatedQuantifiedFormulas( std::vector< Expr >& qs ) {
+void SmtEngine::getInstantiatedQuantifiedFormulas( std::vector< Node >& qs ) {
   SmtScope smts(this);
   TheoryEngine* te = getTheoryEngine();
   Assert(te != nullptr);
-  std::vector<Node> qs_n;
-  te->getInstantiatedQuantifiedFormulas(qs_n);
-  for (std::size_t i = 0, n = qs_n.size(); i < n; i++)
-  {
-    qs.push_back(qs_n[i].toExpr());
-  }
+  te->getInstantiatedQuantifiedFormulas(qs);
 }
 
 void SmtEngine::getInstantiations( Node q, std::vector< Node >& insts ) {
   SmtScope smts(this);
   TheoryEngine* te = getTheoryEngine();
   Assert(te != nullptr);
-  std::vector<Node> insts_n;
-  te->getInstantiations(q, insts_n);
-  for (std::size_t i = 0, n = insts_n.size(); i < n; i++)
-  {
-    insts.push_back(insts_n[i].toExpr());
-  }
+  te->getInstantiations(q, insts);
 }
 
 void SmtEngine::getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs ) {
