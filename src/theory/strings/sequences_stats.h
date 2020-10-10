@@ -109,8 +109,6 @@ class SequencesStatistics
   /** Number of lemmas added due to inferences */
   IntStat d_lemmasInfer;
   //--------------- end of lemmas
-  IntStat d_lcacheHit;
-  IntStat d_lcacheMiss;
 };
 
 }
