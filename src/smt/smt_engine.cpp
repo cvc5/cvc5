@@ -71,7 +71,6 @@
 #include "smt/abduction_solver.h"
 #include "smt/abstract_values.h"
 #include "smt/assertions.h"
-#include "smt/node_command.h"
 #include "smt/defined_function.h"
 #include "smt/dump_manager.h"
 #include "smt/expr_names.h"
@@ -80,6 +79,7 @@
 #include "smt/logic_request.h"
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
+#include "smt/node_command.h"
 #include "smt/options_manager.h"
 #include "smt/preprocessor.h"
 #include "smt/proof_manager.h"
@@ -94,12 +94,12 @@
 #include "smt_util/boolean_simplification.h"
 #include "smt_util/nary_builder.h"
 #include "theory/logic_info.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
 #include "theory/substitutions.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/theory_traits.h"
 #include "util/hash.h"
 #include "util/random.h"
@@ -653,7 +653,10 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
 
 void SmtEngine::debugCheckFormals(const std::vector<Node>& formals, Node func)
 {
-  for(std::vector<Node>::const_iterator i = formals.begin(); i != formals.end(); ++i) {
+  for (std::vector<Node>::const_iterator i = formals.begin();
+       i != formals.end();
+       ++i)
+  {
     if((*i).getKind() != kind::BOUND_VARIABLE) {
       stringstream ss;
       ss << "All formal arguments to defined functions must be BOUND_VARIABLEs, but in the\n"
@@ -723,8 +726,7 @@ void SmtEngine::defineFunction(Node func,
     nFormals.push_back(formal);
   }
 
-  DefineFunctionNodeCommand nc(
-      ss.str(), func, nFormals, formula);
+  DefineFunctionNodeCommand nc(ss.str(), func, nFormals, formula);
   d_dumpm->addToModelCommandAndDump(
       nc, ExprManager::VAR_FLAG_DEFINED, true, "declarations");
 
@@ -830,14 +832,15 @@ void SmtEngine::defineFunctionRec(Node func,
 {
   std::vector<Node> funcs;
   funcs.push_back(func);
-  std::vector<std::vector<Node> > formals_multi;
+  std::vector<std::vector<Node>> formals_multi;
   formals_multi.push_back(formals);
   std::vector<Node> formulas;
   formulas.push_back(formula);
   defineFunctionsRec(funcs, formals_multi, formulas, global);
 }
 
-bool SmtEngine::isDefinedFunction( Node func ){
+bool SmtEngine::isDefinedFunction(Node func)
+{
   Debug("smt") << "isDefined function " << func << "?" << std::endl;
   return d_definedFunctions->find(func) != d_definedFunctions->end();
 }
@@ -944,7 +947,8 @@ Result SmtEngine::checkSat(const Node& assumption, bool inUnsatCore)
   return checkSatInternal(assump, inUnsatCore, false);
 }
 
-Result SmtEngine::checkSat(const std::vector<Node>& assumptions, bool inUnsatCore)
+Result SmtEngine::checkSat(const std::vector<Node>& assumptions,
+                           bool inUnsatCore)
 {
   if (Dump.isOn("benchmark"))
   {
@@ -969,15 +973,15 @@ Result SmtEngine::checkEntailed(const Node& node, bool inUnsatCore)
     getOutputManager().getPrinter().toStreamCmdQuery(
         getOutputManager().getDumpOut(), node);
   }
-  return checkSatInternal(node.isNull()
-                              ? std::vector<Node>()
-                              : std::vector<Node>{node},
-                          inUnsatCore,
-                          true)
+  return checkSatInternal(
+             node.isNull() ? std::vector<Node>() : std::vector<Node>{node},
+             inUnsatCore,
+             true)
       .asEntailmentResult();
 }
 
-Result SmtEngine::checkEntailed(const std::vector<Node>& nodes, bool inUnsatCore)
+Result SmtEngine::checkEntailed(const std::vector<Node>& nodes,
+                                bool inUnsatCore)
 {
   return checkSatInternal(nodes, inUnsatCore, true).asEntailmentResult();
 }
@@ -1610,7 +1614,8 @@ void SmtEngine::checkModel(bool hardFailure) {
         // [func->func2] and checking equality of the Nodes.
         // (this just a way to check if func is in n.)
         SubstitutionMap subs(&fakeContext);
-        Node func2 = NodeManager::currentNM()->mkSkolem("", func.getType(), "", NodeManager::SKOLEM_NO_NOTIFY);
+        Node func2 = NodeManager::currentNM()->mkSkolem(
+            "", func.getType(), "", NodeManager::SKOLEM_NO_NOTIFY);
         subs.addSubstitution(func, func2);
         if(subs.apply(n) != n) {
           Notice() << "SmtEngine::checkModel(): *** PROBLEM: MODEL VALUE DEFINED IN TERMS OF ITSELF ***" << endl;
@@ -1861,21 +1866,25 @@ bool SmtEngine::getAbduct(const Node& conj, Node& abd)
   return getAbduct(conj, grammarType, abd);
 }
 
-void SmtEngine::getInstantiatedQuantifiedFormulas( std::vector< Node >& qs ) {
+void SmtEngine::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
+{
   SmtScope smts(this);
   TheoryEngine* te = getTheoryEngine();
   Assert(te != nullptr);
   te->getInstantiatedQuantifiedFormulas(qs);
 }
 
-void SmtEngine::getInstantiations( Node q, std::vector< Node >& insts ) {
+void SmtEngine::getInstantiations(Node q, std::vector<Node>& insts)
+{
   SmtScope smts(this);
   TheoryEngine* te = getTheoryEngine();
   Assert(te != nullptr);
   te->getInstantiations(q, insts);
 }
 
-void SmtEngine::getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs ) {
+void SmtEngine::getInstantiationTermVectors(
+    Node q, std::vector<std::vector<Node>>& tvecs)
+{
   SmtScope smts(this);
   Assert(options::trackInstLemmas());
   TheoryEngine* te = getTheoryEngine();

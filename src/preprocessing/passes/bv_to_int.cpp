@@ -851,8 +851,7 @@ void BVToInt::defineBVUFAsIntUF(Node bvUF, Node intUF)
   // If the result is BV, it needs to be casted back.
   result = castToType(result, resultType);
   // add the function definition to the smt engine.
-  d_preprocContext->getSmt()->defineFunction(
-      bvUF, args, result, true);
+  d_preprocContext->getSmt()->defineFunction(bvUF, args, result, true);
 }
 
 bool BVToInt::childrenTypesChanged(Node n)

@@ -391,8 +391,7 @@ class CVC4_PUBLIC SmtEngine
    *
    * @throw Exception
    */
-  Result checkEntailed(const Node& assumption,
-                       bool inUnsatCore = true);
+  Result checkEntailed(const Node& assumption, bool inUnsatCore = true);
   Result checkEntailed(const std::vector<Node>& assumptions,
                        bool inUnsatCore = true);
 
@@ -691,7 +690,7 @@ class CVC4_PUBLIC SmtEngine
    * instantiation lemmas above.
    */
   void getInstantiationTermVectors(Node q,
-                                   std::vector<std::vector<Node> >& tvecs);
+                                   std::vector<std::vector<Node>>& tvecs);
 
   /**
    * Get an unsatisfiable core (only if immediately preceded by an UNSAT or

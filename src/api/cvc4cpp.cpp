@@ -4811,8 +4811,7 @@ Term Solver::defineFun(Term fun,
   CVC4_API_SOLVER_CHECK_TERM(term);
 
   std::vector<Node> ebound_vars = termVectorToNodes(bound_vars);
-  d_smtEngine->defineFunction(
-      *fun.d_node, ebound_vars, *term.d_node, global);
+  d_smtEngine->defineFunction(*fun.d_node, ebound_vars, *term.d_node, global);
   return fun;
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -4862,7 +4861,7 @@ Term Solver::defineFunRec(const std::string& symbol,
       << "Invalid sort of function body '" << term << "', expected '" << sort
       << "'";
   CVC4_API_SOLVER_CHECK_TERM(term);
-  NodeManager * nm = getNodeManager();
+  NodeManager* nm = getNodeManager();
   TypeNode type = TypeNode::fromType(*sort.d_type);
   if (!domain_types.empty())
   {
