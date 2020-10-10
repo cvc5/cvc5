@@ -202,8 +202,6 @@ class ProofPostproccess
   void process(std::shared_ptr<ProofNode> pf);
   /** set eliminate rule */
   void setEliminateRule(PfRule rule);
-  /** Set assertions (for debugging whether the final proof is closed) */
-  void setAssertions(const std::vector<Node>& assertions);
 
  private:
   /** The proof node manager */
