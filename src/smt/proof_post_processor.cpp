@@ -760,8 +760,7 @@ ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,
                                      ProofGenerator* pppg)
     : d_pnm(pnm),
       d_cb(pnm, smte, pppg),
-      // the update merges subproofs
-      d_updater(d_pnm, d_cb, true),
+      d_updater(d_pnm, d_cb),
       d_finalCb(pnm),
       d_finalizer(d_pnm, d_finalCb)
 {
