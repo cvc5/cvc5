@@ -59,11 +59,11 @@ class ModelBlocker
    * our input. In other words, we do not return ~(x < 0) V ~(w < 0) since the
    * left disjunct is always false.
    */
-  static Expr getModelBlocker(
-      const std::vector<Expr>& assertions,
+  static Node getModelBlocker(
+      const std::vector<Node>& assertions,
       theory::TheoryModel* m,
       options::BlockModelsMode mode,
-      const std::vector<Expr>& exprToBlock = std::vector<Expr>());
+      const std::vector<Node>& exprToBlock = std::vector<Node>());
 }; /* class TheoryModelCoreBuilder */
 
 }  // namespace CVC4

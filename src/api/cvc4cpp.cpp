@@ -5361,7 +5361,7 @@ void Solver::blockModelValues(const std::vector<Term>& terms) const
       << "Cannot get value when in unsat mode.";
   CVC4_API_ARG_SIZE_CHECK_EXPECTED(!terms.empty(), terms)
       << "a non-empty set of terms";
-  for (int i = 0; i < terms.size(); ++i)
+  for (size_t i = 0, tsize = terms.size(); i < tsize; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
         !terms[i].isNull(), "term", terms[i], i)
@@ -5371,7 +5371,7 @@ void Solver::blockModelValues(const std::vector<Term>& terms) const
         << "a term associated to this solver object";
   }
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  d_smtEngine->blockModelValues(termVectorToExprs(terms));
+  d_smtEngine->blockModelValues(termVectorToNodes(terms));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 

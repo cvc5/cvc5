@@ -723,7 +723,7 @@ void SmtEngine::defineFunction(Node func,
   }
 
   DefineFunctionNodeCommand nc(
-      ss.str(), func.getNode(), nFormals, formula.getNode());
+      ss.str(), func, nFormals, formula);
   d_dumpm->addToModelCommandAndDump(
       nc, ExprManager::VAR_FLAG_DEFINED, true, "declarations");
 
@@ -731,17 +731,8 @@ void SmtEngine::defineFunction(Node func,
   debugCheckFunctionBody(formula, formals, func);
 
   // Substitute out any abstract values in formula
-  Node formNode = d_absValues->substituteAbstractValues(Node::fromExpr(formula));
-
-  TNode funcNode = func.getTNode();
-  vector<Node> formalsNodes;
-  for(vector<Expr>::const_iterator i = formals.begin(),
-        iend = formals.end();
-      i != iend;
-      ++i) {
-    formalsNodes.push_back((*i).getNode());
-  }
-  DefinedFunction def(funcNode, formalsNodes, formNode);
+  Node formNode = d_absValues->substituteAbstractValues(formula);
+  DefinedFunction def(func, formals, formNode);
   // Permit (check-sat) (define-fun ...) (get-value ...) sequences.
   // Otherwise, (check-sat) (get-value ((! foo :named bar))) breaks
   // d_haveAdditions = true;
@@ -789,15 +780,8 @@ void SmtEngine::defineFunctionsRec(
 
   if (Dump.isOn("raw-benchmark"))
   {
-    std::vector<Node> nFuncs = exprVectorToNodes(funcs);
-    std::vector<std::vector<Node>> nFormals;
-    for (const std::vector<Node>& formal : formals)
-    {
-      nFormals.emplace_back(exprVectorToNodes(formal));
-    }
-    std::vector<Node> nFormulas = exprVectorToNodes(formulas);
     getOutputManager().getPrinter().toStreamCmdDefineFunctionRec(
-        getOutputManager().getDumpOut(), nFuncs, nFormals, nFormulas);
+        getOutputManager().getDumpOut(), funcs, formals, formulas);
   }
 
   NodeManager* nm = getNodeManager();
@@ -855,9 +839,8 @@ void SmtEngine::defineFunctionRec(Node func,
 }
 
 bool SmtEngine::isDefinedFunction( Node func ){
-  Node nf = Node::fromExpr( func );
-  Debug("smt") << "isDefined function " << nf << "?" << std::endl;
-  return d_definedFunctions->find(nf) != d_definedFunctions->end();
+  Debug("smt") << "isDefined function " << func << "?" << std::endl;
+  return d_definedFunctions->find(func) != d_definedFunctions->end();
 }
 
 Result SmtEngine::quickCheck() {
@@ -985,7 +968,7 @@ Result SmtEngine::checkEntailed(const Node& node, bool inUnsatCore)
   if (Dump.isOn("benchmark"))
   {
     getOutputManager().getPrinter().toStreamCmdQuery(
-        getOutputManager().getDumpOut(), node.getNode());
+        getOutputManager().getDumpOut(), node);
   }
   return checkSatInternal(node.isNull()
                               ? std::vector<Node>()
@@ -1426,10 +1409,10 @@ Result SmtEngine::blockModel()
   }
 
   // get expanded assertions
-  std::vector<Expr> eassertsProc = getExpandedAssertions();
-  Expr eblocker = ModelBlocker::getModelBlocker(
+  std::vector<Node> eassertsProc = getExpandedAssertions();
+  Node eblocker = ModelBlocker::getModelBlocker(
       eassertsProc, m, options::blockModelsMode());
-  return assertFormula(Node::fromExpr(eblocker));
+  return assertFormula(eblocker);
 }
 
 Result SmtEngine::blockModelValues(const std::vector<Node>& exprs)
@@ -1485,9 +1468,8 @@ std::vector<Node> SmtEngine::getExpandedAssertions()
   std::unordered_map<Node, Node, NodeHashFunction> cache;
   for (const Node& e : easserts)
   {
-    Node ea = Node::fromExpr(e);
-    Node eae = d_pp->expandDefinitions(ea, cache);
-    eassertsProc.push_back(eae.toExpr());
+    Node eae = d_pp->expandDefinitions(e, cache);
+    eassertsProc.push_back(eae);
   }
   return eassertsProc;
 }
@@ -1848,6 +1830,7 @@ bool SmtEngine::getInterpol(const Node& conj,
                             const TypeNode& grammarType,
                             Node& interpol)
 {
+  SmtScope smts(this);
   bool success = d_interpolSolver->getInterpol(conj, grammarType, interpol);
   // notify the state of whether the get-interpol call was successfuly, which
   // impacts the SMT mode.
@@ -1865,6 +1848,7 @@ bool SmtEngine::getAbduct(const Node& conj,
                           const TypeNode& grammarType,
                           Node& abd)
 {
+  SmtScope smts(this);
   bool success = d_abductSolver->getAbduct(conj, grammarType, abd);
   // notify the state of whether the get-abduct call was successfuly, which
   // impacts the SMT mode.
@@ -1895,7 +1879,7 @@ void SmtEngine::getInstantiations( Node q, std::vector< Node >& insts ) {
   TheoryEngine* te = getTheoryEngine();
   Assert(te != nullptr);
   std::vector<Node> insts_n;
-  te->getInstantiations(Node::fromExpr(q), insts_n);
+  te->getInstantiations(q, insts_n);
   for (std::size_t i = 0, n = insts_n.size(); i < n; i++)
   {
     insts.push_back(insts_n[i].toExpr());
@@ -1907,17 +1891,7 @@ void SmtEngine::getInstantiationTermVectors( Node q, std::vector< std::vector< N
   Assert(options::trackInstLemmas());
   TheoryEngine* te = getTheoryEngine();
   Assert(te != nullptr);
-  std::vector<std::vector<Node>> tvecs_n;
-  te->getInstantiationTermVectors(Node::fromExpr(q), tvecs_n);
-  for (std::size_t i = 0, n = tvecs_n.size(); i < n; i++)
-  {
-    std::vector<Node> tvec;
-    for (std::size_t j = 0, m = tvecs_n[i].size(); j < m; j++)
-    {
-      tvec.push_back(tvecs_n[i][j].toExpr());
-    }
-    tvecs.push_back(tvec);
-  }
+  te->getInstantiationTermVectors(q, tvecs);
 }
 
 std::vector<Node> SmtEngine::getAssertions()
