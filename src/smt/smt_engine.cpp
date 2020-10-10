@@ -650,9 +650,9 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
   return SExpr::parseListOfListOfAtoms(current_options);
 }
 
-void SmtEngine::debugCheckFormals(const std::vector<Expr>& formals, Expr func)
+void SmtEngine::debugCheckFormals(const std::vector<Node>& formals, Node func)
 {
-  for(std::vector<Expr>::const_iterator i = formals.begin(); i != formals.end(); ++i) {
+  for(std::vector<Node>::const_iterator i = formals.begin(); i != formals.end(); ++i) {
     if((*i).getKind() != kind::BOUND_VARIABLE) {
       stringstream ss;
       ss << "All formal arguments to defined functions must be BOUND_VARIABLEs, but in the\n"
@@ -664,19 +664,19 @@ void SmtEngine::debugCheckFormals(const std::vector<Expr>& formals, Expr func)
   }
 }
 
-void SmtEngine::debugCheckFunctionBody(Expr formula,
-                                       const std::vector<Expr>& formals,
-                                       Expr func)
+void SmtEngine::debugCheckFunctionBody(Node formula,
+                                       const std::vector<Node>& formals,
+                                       Node func)
 {
-  Type formulaType = formula.getType(options::typeChecking());
-  Type funcType = func.getType();
+  TypeNode formulaType = formula.getType(options::typeChecking());
+  TypeNode funcType = func.getType();
   // We distinguish here between definitions of constants and functions,
   // because the type checking for them is subtly different.  Perhaps we
   // should instead have SmtEngine::defineFunction() and
   // SmtEngine::defineConstant() for better clarity, although then that
   // doesn't match the SMT-LIBv2 standard...
   if(formals.size() > 0) {
-    Type rangeType = FunctionType(funcType).getRangeType();
+    TypeNode rangeType = funcType.getRangeType();
     if(! formulaType.isComparableTo(rangeType)) {
       stringstream ss;
       ss << "Type of defined function does not match its declaration\n"
@@ -691,17 +691,17 @@ void SmtEngine::debugCheckFunctionBody(Expr formula,
       stringstream ss;
       ss << "Declared type of defined constant does not match its definition\n"
          << "The constant   : " << func << "\n"
-         << "Declared type  : " << funcType << " " << Type::getTypeNode(funcType)->getId() << "\n"
+         << "Declared type  : " << funcType << " " << funcType->getId() << "\n"
          << "The definition : " << formula << "\n"
-         << "Definition type: " << formulaType << " " << Type::getTypeNode(formulaType)->getId();
+         << "Definition type: " << formulaType << " " << formulaType->getId();
       throw TypeCheckingException(func, ss.str());
     }
   }
 }
 
-void SmtEngine::defineFunction(Expr func,
-                               const std::vector<Expr>& formals,
-                               Expr formula,
+void SmtEngine::defineFunction(Node func,
+                               const std::vector<Node>& formals,
+                               Node formula,
                                bool global)
 {
   SmtScope smts(this);
@@ -717,9 +717,9 @@ void SmtEngine::defineFunction(Expr func,
   std::vector<Node> nFormals;
   nFormals.reserve(formals.size());
 
-  for (const Expr& formal : formals)
+  for (const Node& formal : formals)
   {
-    nFormals.push_back(formal.getNode());
+    nFormals.push_back(formal);
   }
 
   DefineFunctionNodeCommand nc(
@@ -758,9 +758,9 @@ void SmtEngine::defineFunction(Expr func,
 }
 
 void SmtEngine::defineFunctionsRec(
-    const std::vector<Expr>& funcs,
-    const std::vector<std::vector<Expr>>& formals,
-    const std::vector<Expr>& formulas,
+    const std::vector<Node>& funcs,
+    const std::vector<std::vector<Node>>& formals,
+    const std::vector<Node>& formulas,
     bool global)
 {
   SmtScope smts(this);
@@ -791,7 +791,7 @@ void SmtEngine::defineFunctionsRec(
   {
     std::vector<Node> nFuncs = exprVectorToNodes(funcs);
     std::vector<std::vector<Node>> nFormals;
-    for (const std::vector<Expr>& formal : formals)
+    for (const std::vector<Node>& formal : formals)
     {
       nFormals.emplace_back(exprVectorToNodes(formal));
     }
@@ -800,11 +800,11 @@ void SmtEngine::defineFunctionsRec(
         getOutputManager().getDumpOut(), nFuncs, nFormals, nFormulas);
   }
 
-  ExprManager* em = getExprManager();
+  NodeManager* nm = getNodeManager();
   for (unsigned i = 0, size = funcs.size(); i < size; i++)
   {
     // we assert a quantified formula
-    Expr func_app;
+    Node func_app;
     // make the function application
     if (formals[i].empty())
     {
@@ -816,46 +816,45 @@ void SmtEngine::defineFunctionsRec(
       std::vector<Expr> children;
       children.push_back(funcs[i]);
       children.insert(children.end(), formals[i].begin(), formals[i].end());
-      func_app = em->mkExpr(kind::APPLY_UF, children);
+      func_app = nm->mkNode(kind::APPLY_UF, children);
     }
-    Expr lem = em->mkExpr(kind::EQUAL, func_app, formulas[i]);
+    Node lem = nm->mkNode(kind::EQUAL, func_app, formulas[i]);
     if (!formals[i].empty())
     {
       // set the attribute to denote this is a function definition
       std::string attr_name("fun-def");
-      Expr aexpr = em->mkExpr(kind::INST_ATTRIBUTE, func_app);
-      aexpr = em->mkExpr(kind::INST_PATTERN_LIST, aexpr);
-      std::vector<Expr> expr_values;
+      Node aexpr = nm->mkNode(kind::INST_ATTRIBUTE, func_app);
+      aexpr = nm->mkNode(kind::INST_PATTERN_LIST, aexpr);
+      std::vector<Node> expr_values;
       std::string str_value;
       setUserAttribute(attr_name, func_app, expr_values, str_value);
       // make the quantified formula
-      Expr boundVars = em->mkExpr(kind::BOUND_VAR_LIST, formals[i]);
-      lem = em->mkExpr(kind::FORALL, boundVars, lem, aexpr);
+      Node boundVars = nm->mkNode(kind::BOUND_VAR_LIST, formals[i]);
+      lem = nm->mkNode(kind::FORALL, boundVars, lem, aexpr);
     }
     // assert the quantified formula
     //   notice we don't call assertFormula directly, since this would
     //   duplicate the output on raw-benchmark.
-    Node lemn = Node::fromExpr(lem);
     // add define recursive definition to the assertions
-    d_asserts->addDefineFunRecDefinition(lemn, global);
+    d_asserts->addDefineFunRecDefinition(lem, global);
   }
 }
 
-void SmtEngine::defineFunctionRec(Expr func,
-                                  const std::vector<Expr>& formals,
-                                  Expr formula,
+void SmtEngine::defineFunctionRec(Node func,
+                                  const std::vector<Node>& formals,
+                                  Node formula,
                                   bool global)
 {
-  std::vector<Expr> funcs;
+  std::vector<Node> funcs;
   funcs.push_back(func);
-  std::vector<std::vector<Expr> > formals_multi;
+  std::vector<std::vector<Node> > formals_multi;
   formals_multi.push_back(formals);
-  std::vector<Expr> formulas;
+  std::vector<Node> formulas;
   formulas.push_back(formula);
   defineFunctionsRec(funcs, formals_multi, formulas, global);
 }
 
-bool SmtEngine::isDefinedFunction( Expr func ){
+bool SmtEngine::isDefinedFunction( Node func ){
   Node nf = Node::fromExpr( func );
   Debug("smt") << "isDefined function " << nf << "?" << std::endl;
   return d_definedFunctions->find(nf) != d_definedFunctions->end();
@@ -1437,7 +1436,7 @@ Result SmtEngine::blockModel()
   return assertFormula(Node::fromExpr(eblocker));
 }
 
-Result SmtEngine::blockModelValues(const std::vector<Expr>& exprs)
+Result SmtEngine::blockModelValues(const std::vector<Node>& exprs)
 {
   Trace("smt") << "SMT blockModelValues()" << endl;
   SmtScope smts(this);
@@ -1456,14 +1455,14 @@ Result SmtEngine::blockModelValues(const std::vector<Expr>& exprs)
   TheoryModel* m = getAvailableModel("block model values");
 
   // get expanded assertions
-  std::vector<Expr> eassertsProc = getExpandedAssertions();
+  std::vector<Node> eassertsProc = getExpandedAssertions();
   // we always do block model values mode here
-  Expr eblocker = ModelBlocker::getModelBlocker(
+  Node eblocker = ModelBlocker::getModelBlocker(
       eassertsProc, m, options::BlockModelsMode::VALUES, exprs);
-  return assertFormula(Node::fromExpr(eblocker));
+  return assertFormula(eblocker);
 }
 
-std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
+std::pair<Node, Node> SmtEngine::getSepHeapAndNilExpr(void)
 {
   if (!d_logic.isTheoryEnabled(THEORY_SEP))
   {
@@ -1473,8 +1472,8 @@ std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
     throw RecoverableModalException(msg);
   }
   NodeManagerScope nms(d_nodeManager);
-  Expr heap;
-  Expr nil;
+  Node heap;
+  Node nil;
   Model* m = getAvailableModel("get separation logic heap and nil");
   if (!m->getHeapModel(heap, nil))
   {
@@ -1485,13 +1484,13 @@ std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
   return std::make_pair(heap, nil);
 }
 
-std::vector<Expr> SmtEngine::getExpandedAssertions()
+std::vector<Node> SmtEngine::getExpandedAssertions()
 {
-  std::vector<Expr> easserts = getAssertions();
+  std::vector<Node> easserts = getAssertions();
   // must expand definitions
-  std::vector<Expr> eassertsProc;
+  std::vector<Node> eassertsProc;
   std::unordered_map<Node, Node, NodeHashFunction> cache;
-  for (const Expr& e : easserts)
+  for (const Node& e : easserts)
   {
     Node ea = Node::fromExpr(e);
     Node eae = d_pp->expandDefinitions(ea, cache);
@@ -1500,9 +1499,9 @@ std::vector<Expr> SmtEngine::getExpandedAssertions()
   return eassertsProc;
 }
 
-Expr SmtEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
+Node SmtEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
 
-Expr SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
+Node SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
 
 UnsatCore SmtEngine::getUnsatCoreInternal()
 {
@@ -1621,7 +1620,7 @@ void SmtEngine::checkModel(bool hardFailure) {
       // We'll first do some checks, then add to our substitution map
       // the mapping: function symbol |-> value
 
-      Expr func = c->getFunction().toExpr();
+      Node func = c->getFunction();
       Node val = m->getValue(func);
 
       Notice() << "SmtEngine::checkModel(): adding substitution: " << func << " |-> " << val << endl;
@@ -1898,7 +1897,7 @@ void SmtEngine::getInstantiatedQuantifiedFormulas( std::vector< Expr >& qs ) {
   }
 }
 
-void SmtEngine::getInstantiations( Expr q, std::vector< Expr >& insts ) {
+void SmtEngine::getInstantiations( Node q, std::vector< Node >& insts ) {
   SmtScope smts(this);
   TheoryEngine* te = getTheoryEngine();
   Assert(te != nullptr);
@@ -1910,7 +1909,7 @@ void SmtEngine::getInstantiations( Expr q, std::vector< Expr >& insts ) {
   }
 }
 
-void SmtEngine::getInstantiationTermVectors( Expr q, std::vector< std::vector< Expr > >& tvecs ) {
+void SmtEngine::getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs ) {
   SmtScope smts(this);
   Assert(options::trackInstLemmas());
   TheoryEngine* te = getTheoryEngine();
@@ -1919,7 +1918,7 @@ void SmtEngine::getInstantiationTermVectors( Expr q, std::vector< std::vector< E
   te->getInstantiationTermVectors(Node::fromExpr(q), tvecs_n);
   for (std::size_t i = 0, n = tvecs_n.size(); i < n; i++)
   {
-    std::vector<Expr> tvec;
+    std::vector<Node> tvec;
     for (std::size_t j = 0, m = tvecs_n[i].size(); j < m; j++)
     {
       tvec.push_back(tvecs_n[i][j].toExpr());
@@ -1928,7 +1927,7 @@ void SmtEngine::getInstantiationTermVectors( Expr q, std::vector< std::vector< E
   }
 }
 
-std::vector<Expr> SmtEngine::getAssertions()
+std::vector<Node> SmtEngine::getAssertions()
 {
   SmtScope smts(this);
   finishInit();
@@ -1945,10 +1944,10 @@ std::vector<Expr> SmtEngine::getAssertions()
   }
   context::CDList<Node>* al = d_asserts->getAssertionList();
   Assert(al != nullptr);
-  std::vector<Expr> res;
+  std::vector<Node> res;
   for (const Node& n : *al)
   {
-    res.emplace_back(n.toExpr());
+    res.emplace_back(n);
   }
   // copy the result out
   return res;
