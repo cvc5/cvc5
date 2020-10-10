@@ -99,6 +99,7 @@
 #include "theory/substitutions.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/theory_traits.h"
 #include "util/hash.h"
 #include "util/random.h"
@@ -659,7 +660,7 @@ void SmtEngine::debugCheckFormals(const std::vector<Node>& formals, Node func)
          << "definition of function " << func << ", formal\n"
          << "  " << *i << "\n"
          << "has kind " << (*i).getKind();
-      throw TypeCheckingException(func, ss.str());
+      throw TypeCheckingException(func.toExpr(), ss.str());
     }
   }
 }
@@ -684,17 +685,17 @@ void SmtEngine::debugCheckFunctionBody(Node formula,
          << "Declared type : " << rangeType << "\n"
          << "The body      : " << formula << "\n"
          << "Body type     : " << formulaType;
-      throw TypeCheckingException(func, ss.str());
+      throw TypeCheckingException(func.toExpr(), ss.str());
     }
   } else {
     if(! formulaType.isComparableTo(funcType)) {
       stringstream ss;
       ss << "Declared type of defined constant does not match its definition\n"
          << "The constant   : " << func << "\n"
-         << "Declared type  : " << funcType << " " << funcType->getId() << "\n"
+         << "Declared type  : " << funcType << "\n"
          << "The definition : " << formula << "\n"
-         << "Definition type: " << formulaType << " " << formulaType->getId();
-      throw TypeCheckingException(func, ss.str());
+         << "Definition type: " << formulaType;
+      throw TypeCheckingException(func.toExpr(), ss.str());
     }
   }
 }
@@ -736,15 +737,15 @@ void SmtEngine::defineFunction(Node func,
   // Permit (check-sat) (define-fun ...) (get-value ...) sequences.
   // Otherwise, (check-sat) (get-value ((! foo :named bar))) breaks
   // d_haveAdditions = true;
-  Debug("smt") << "definedFunctions insert " << funcNode << " " << formNode << endl;
+  Debug("smt") << "definedFunctions insert " << func << " " << formNode << endl;
 
   if (global)
   {
-    d_definedFunctions->insertAtContextLevelZero(funcNode, def);
+    d_definedFunctions->insertAtContextLevelZero(func, def);
   }
   else
   {
-    d_definedFunctions->insert(funcNode, def);
+    d_definedFunctions->insert(func, def);
   }
 }
 
@@ -797,7 +798,7 @@ void SmtEngine::defineFunctionsRec(
     }
     else
     {
-      std::vector<Expr> children;
+      std::vector<Node> children;
       children.push_back(funcs[i]);
       children.insert(children.end(), formals[i].begin(), formals[i].end());
       func_app = nm->mkNode(kind::APPLY_UF, children);
@@ -806,12 +807,10 @@ void SmtEngine::defineFunctionsRec(
     if (!formals[i].empty())
     {
       // set the attribute to denote this is a function definition
-      std::string attr_name("fun-def");
       Node aexpr = nm->mkNode(kind::INST_ATTRIBUTE, func_app);
       aexpr = nm->mkNode(kind::INST_PATTERN_LIST, aexpr);
-      std::vector<Node> expr_values;
-      std::string str_value;
-      setUserAttribute(attr_name, func_app, expr_values, str_value);
+      FunDefAttribute fda;
+      func_app.setAttribute(fda, true);
       // make the quantified formula
       Node boundVars = nm->mkNode(kind::BOUND_VAR_LIST, formals[i]);
       lem = nm->mkNode(kind::FORALL, boundVars, lem, aexpr);
@@ -957,7 +956,7 @@ Result SmtEngine::checkSat(const std::vector<Node>& assumptions, bool inUnsatCor
     else
     {
       getOutputManager().getPrinter().toStreamCmdCheckSatAssuming(
-          getOutputManager().getDumpOut(), exprVectorToNodes(assumptions));
+          getOutputManager().getDumpOut(), assumptions);
     }
   }
   return checkSatInternal(assumptions, inUnsatCore, false);
@@ -1250,12 +1249,12 @@ Node SmtEngine::getValue(const Node& ex) const
   return resultNode;
 }
 
-vector<Expr> SmtEngine::getValues(const vector<Expr>& exprs)
+std::vector<Node> SmtEngine::getValues(const std::vector<Node>& exprs)
 {
-  vector<Expr> result;
-  for (const Expr& e : exprs)
+  std::vector<Node> result;
+  for (const Node& e : exprs)
   {
-    result.push_back(getValue(e).toExpr());
+    result.push_back(getValue(e));
   }
   return result;
 }

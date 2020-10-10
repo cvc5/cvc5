@@ -540,7 +540,7 @@ class CVC4_PUBLIC SmtEngine
    * this function returns true if the expression was added and false
    * if this request was ignored.
    */
-  bool addToAssignment(const Node& e);
+  bool addToAssignment(const Expr& e);
 
   /**
    * Get the assignment (only if immediately preceded by a SAT or
