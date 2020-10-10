@@ -412,7 +412,6 @@ bool CegSingleInv::solve()
     {
       std::vector<Node>& inst = d_inst[i];
       Trace("sygus-si") << "  Instantiation: " << inst << std::endl;
-      d_inst.push_back(inst);
       // instantiation should have same arity since we are not allowed to
       // eliminate variables from quantifiers marked with QuantElimAttribute.
       Assert(inst.size() == vars.size());
