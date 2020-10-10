@@ -154,8 +154,6 @@ std::map<std::pair<int64_t, int64_t>, uint64_t> IAndTable::getAndTable(
   std::map<std::pair<int64_t, int64_t>, uint64_t> table;
   uint64_t num_of_values = ((uint64_t)pow(2, granularity));
   // populate the table with all the values
-  // at this point we do not take into account the most common value,
-  // but instead just put all values in the table.
   for (uint64_t i = 0; i < num_of_values; i++)
   {
     for (uint64_t j = 0; j < num_of_values; j++)
