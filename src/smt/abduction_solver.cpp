@@ -39,12 +39,7 @@ bool AbductionSolver::getAbduct(const Node& goal,
     throw ModalException(msg);
   }
   Trace("sygus-abduct") << "SmtEngine::getAbduct: goal " << goal << std::endl;
-  std::vector<Expr> easserts = d_parent->getExpandedAssertions();
-  std::vector<Node> axioms;
-  for (unsigned i = 0, size = easserts.size(); i < size; i++)
-  {
-    axioms.push_back(Node::fromExpr(easserts[i]));
-  }
+  std::vector<Node> axioms = d_parent->getExpandedAssertions();
   std::vector<Node> asserts(axioms.begin(), axioms.end());
   // must expand definitions
   Node conjn = d_parent->expandDefinitions(goal);
