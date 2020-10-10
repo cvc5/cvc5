@@ -1439,9 +1439,6 @@ Result SmtEngine::blockModelValues(const std::vector<Node>& exprs)
 
   finishInit();
 
-  PrettyCheckArgument(
-      !exprs.empty(),
-      "block model values must be called on non-empty set of terms");
   if (Dump.isOn("benchmark"))
   {
     getOutputManager().getPrinter().toStreamCmdBlockModelValues(
