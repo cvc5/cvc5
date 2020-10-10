@@ -38,6 +38,7 @@ Node pow2(uint64_t k)
 
 bool oneBitAnd(bool a, bool b) { return (a && b); }
 
+// computes (bv_to_int ((_ extract i+size-1 i) (int_to_bv x))))
 Node intExtract(Node x, uint64_t i, uint64_t size)
 {
   Assert(size > 0);
