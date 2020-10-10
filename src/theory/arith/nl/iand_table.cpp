@@ -60,16 +60,16 @@ Node IAndTable::createITEFromTable(
 {
   NodeManager* nm = NodeManager::currentNM();
   Assert(granularity <= 8);
-  int64_t num_of_values = ((int64_t)pow(2, granularity));
+  uint64_t num_of_values = ((int64_t)pow(2, granularity));
   // The table represents a function from pairs of integers to integers, where
   // all integers are between 0 (inclusive) and num_of_values (exclusive).
   Assert(table.size() == 1 + ((uint64_t)(num_of_values * num_of_values)));
   // start with the default, most common value.
   // this value is represented in the table by (-1, -1).
   Node ite = nm->mkConst<Rational>(table.at(std::make_pair(-1, -1)));
-  for (int64_t i = 0; i < num_of_values; i++)
+  for (uint64_t i = 0; i < num_of_values; i++)
   {
-    for (int64_t j = 0; j < num_of_values; j++)
+    for (uint64_t j = 0; j < num_of_values; j++)
     {
       // skip the most common value, as it was already stored.
       if (table.at(std::make_pair(i, j)) == table.at(std::make_pair(-1, -1)))
