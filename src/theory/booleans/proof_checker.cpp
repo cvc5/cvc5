@@ -253,7 +253,8 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    if (children[0].getKind() != kind::NOT || children[0][0].getKind() != kind::NOT)
+    if (children[0].getKind() != kind::NOT
+        || children[0][0].getKind() != kind::NOT)
     {
       return Node::null();
     }

@@ -14,8 +14,6 @@
  ** Some utils for arithmetic kinds, for example indexed root predicates.
  **/
 
-
-
 #include "cvc4_public.h"
 
 #ifndef CVC4__UTIL__ARITH_H
@@ -41,7 +39,8 @@ struct CVC4_PUBLIC IndexedRootPredicate
 
 inline std::ostream& operator<<(std::ostream& os,
                                 const IndexedRootPredicate& irp) CVC4_PUBLIC;
-inline std::ostream& operator<<(std::ostream& os, const IndexedRootPredicate& irp)
+inline std::ostream& operator<<(std::ostream& os,
+                                const IndexedRootPredicate& irp)
 {
   return os << "k=" << irp.d_index;
 }
@@ -54,6 +53,6 @@ struct CVC4_PUBLIC IndexedRootPredicateHashFunction
   }
 }; /* struct IndexedRootPredicateHashFunction */
 
-}
+}  // namespace CVC4
 
 #endif

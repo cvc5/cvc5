@@ -1473,8 +1473,7 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
           std::vector<Node> pfChildren;
           pfChildren.push_back(lemma);
           pfChildren.push_back(tplemma.getProven());
-          d_lazyProof->addStep(
-              lemmap, PfRule::EQ_RESOLVE, pfChildren, {});
+          d_lazyProof->addStep(lemmap, PfRule::EQ_RESOLVE, pfChildren, {});
         }
       }
       tlemma = TrustNode::mkTrustLemma(lemmap, d_lazyProof.get());

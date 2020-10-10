@@ -25,10 +25,10 @@
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
 #include "expr/proof_checker.h"
-#include "expr/proof_rule.h"
 #include "expr/proof_node_manager.h"
-#include "smt/smt_engine.h"
+#include "expr/proof_rule.h"
 #include "smt/proof_manager.h"
+#include "smt/smt_engine.h"
 #include "theory/booleans/proof_checker.h"
 
 using namespace CVC4;
