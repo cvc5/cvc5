@@ -60,9 +60,10 @@ Node IAndTable::createITEFromTable(
 {
   NodeManager* nm = NodeManager::currentNM();
   Assert(granularity <= 8);
-  uint64_t num_of_values = ((int64_t)pow(2, granularity));
+  uint64_t num_of_values = ((uint64_t)pow(2, granularity));
   // The table represents a function from pairs of integers to integers, where
   // all integers are between 0 (inclusive) and num_of_values (exclusive).
+  // additionally, there is a default value (-1, -1).
   Assert(table.size() == 1 + ((uint64_t)(num_of_values * num_of_values)));
   // start with the default, most common value.
   // this value is represented in the table by (-1, -1).
@@ -151,13 +152,13 @@ std::map<std::pair<int64_t, int64_t>, uint64_t> IAndTable::getAndTable(
   }
   // the table was not yet computed
   std::map<std::pair<int64_t, int64_t>, uint64_t> table;
-  int64_t num_of_values = ((int64_t)pow(2, granularity));
+  uint64_t num_of_values = ((uint64_t)pow(2, granularity));
   // populate the table with all the values
   // at this point we do not take into account the most common value,
   // but instead just put all values in the table.
-  for (int64_t i = 0; i < num_of_values; i++)
+  for (uint64_t i = 0; i < num_of_values; i++)
   {
-    for (int64_t j = 0; j < num_of_values; j++)
+    for (uint64_t j = 0; j < num_of_values; j++)
     {
       // compute
       // (bv_to_int (bvand ((int_to_bv granularity) i) ((int_to_bv granularity)
