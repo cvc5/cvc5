@@ -106,7 +106,11 @@ bool isTranscendentalKind(Kind k)
 
 Node getApproximateConstant(Node c, bool isLower, unsigned prec)
 {
-  Assert(c.isConst());
+  if (!c.isConst())
+  {
+    Assert(false);
+    return Node::null();
+  }
   Rational cr = c.getConst<Rational>();
 
   unsigned lower = 0;
@@ -178,7 +182,12 @@ Node getApproximateConstant(Node c, bool isLower, unsigned prec)
 
 void printRationalApprox(const char* c, Node cr, unsigned prec)
 {
-  Assert(cr.isConst());
+  if (!cr.isConst())
+  {
+    Assert(false);
+    Trace(c) << cr;
+    return;
+  }
   Node ca = getApproximateConstant(cr, true, prec);
   if (ca != cr)
   {
