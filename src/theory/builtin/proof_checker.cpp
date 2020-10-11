@@ -287,6 +287,10 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       exp.push_back(children[i]);
     }
     Node res = applySubstitution(args[0], exp, ids);
+    if (res.isNull())
+    {
+      return Node::null();
+    }
     return args[0].eqNode(res);
   }
   else if (id == PfRule::REWRITE)
@@ -299,6 +303,10 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     Node res = applyRewrite(args[0], idr);
+    if (res.isNull())
+    {
+      return Node::null();
+    }
     return args[0].eqNode(res);
   }
   else if (id == PfRule::EVALUATE)
@@ -306,6 +314,10 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(children.empty());
     Assert(args.size() == 1);
     Node res = applyRewrite(args[0], MethodId::RW_EVALUATE);
+    if (res.isNull())
+    {
+      return Node::null();
+    }
     return args[0].eqNode(res);
   }
   else if (id == PfRule::MACRO_SR_EQ_INTRO)
@@ -317,6 +329,10 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     Node res = applySubstitutionRewrite(args[0], children, ids, idr);
+    if (res.isNull())
+    {
+      return Node::null();
+    }
     return args[0].eqNode(res);
   }
   else if (id == PfRule::MACRO_SR_PRED_INTRO)
