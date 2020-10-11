@@ -245,7 +245,6 @@ Node IAndSolver::valueBasedLemma(Node i)
   return lem;
 }
 
-bool oneBitAnd(bool a, bool b) { return (a && b); }
 
 }  // namespace nl
 }  // namespace arith

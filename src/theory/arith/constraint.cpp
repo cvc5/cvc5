@@ -477,6 +477,29 @@ bool Constraint::isInternalAssumption() const {
   return getProofType() == InternalAssumeAP;
 }
 
+TrustNode Constraint::externalExplainByAssertions() const
+{
+  NodeBuilder<> nb(kind::AND);
+  auto pfFromAssumptions = externalExplain(nb, AssertionOrderSentinel);
+  Node exp = safeConstructNary(nb);
+  if (d_database->isProofEnabled())
+  {
+    std::vector<Node> assumptions;
+    if (exp.getKind() == Kind::AND)
+    {
+      assumptions.insert(assumptions.end(), exp.begin(), exp.end());
+    }
+    else
+    {
+      assumptions.push_back(exp);
+    }
+    auto pf = d_database->d_pnm->mkScope(pfFromAssumptions, assumptions);
+    return d_database->d_pfGen->mkTrustedPropagation(
+        getLiteral(), safeConstructNary(Kind::AND, assumptions), pf);
+  }
+  return TrustNode::mkTrustPropExp(getLiteral(), exp);
+}
+
 bool Constraint::isAssumption() const {
   return getProofType() == AssumeAP;
 }
@@ -1453,14 +1476,92 @@ Node Constraint::externalExplainByAssertions(const ConstraintCPVec& b){
   return externalExplain(b, AssertionOrderSentinel);
 }
 
-Node Constraint::externalExplainConflict() const{
+TrustNode Constraint::externalExplainForPropagation() const
+{
+  Assert(hasProof());
+  Assert(!isAssumption());
+  Assert(!isInternalAssumption());
+  NodeBuilder<> nb(Kind::AND);
+  auto pfFromAssumptions = externalExplain(nb, d_assertionOrder);
+  Node n = safeConstructNary(nb);
+  if (d_database->isProofEnabled())
+  {
+    std::vector<Node> assumptions;
+    if (n.getKind() == Kind::AND)
+    {
+      assumptions.insert(assumptions.end(), n.begin(), n.end());
+    }
+    else
+    {
+      assumptions.push_back(n);
+    }
+    if (getProofLiteral() != getLiteral())
+    {
+      pfFromAssumptions = d_database->d_pnm->mkNode(
+          PfRule::MACRO_SR_PRED_TRANSFORM, {pfFromAssumptions}, {getLiteral()});
+    }
+    auto pf = d_database->d_pnm->mkScope(pfFromAssumptions, assumptions);
+    return d_database->d_pfGen->mkTrustedPropagation(
+        getLiteral(), safeConstructNary(Kind::AND, assumptions), pf);
+  }
+  else
+  {
+    return TrustNode::mkTrustPropExp(getLiteral(), n);
+  }
+}
+
+TrustNode Constraint::externalExplainConflict() const
+{
   Debug("pf::arith::explain") << this << std::endl;
   Assert(inConflict());
   NodeBuilder<> nb(kind::AND);
-  externalExplainByAssertions(nb);
-  getNegation()->externalExplainByAssertions(nb);
-
-  return safeConstructNary(nb);
+  auto pf1 = externalExplainByAssertions(nb);
+  auto not2 = getNegation()->getProofLiteral().negate();
+  auto pf2 = getNegation()->externalExplainByAssertions(nb);
+  Node n = safeConstructNary(nb);
+  if (d_database->isProofEnabled())
+  {
+    auto pfNot2 = d_database->d_pnm->mkNode(
+        PfRule::MACRO_SR_PRED_TRANSFORM, {pf1}, {not2});
+    std::vector<Node> lits;
+    if (n.getKind() == Kind::AND)
+    {
+      lits.insert(lits.end(), n.begin(), n.end());
+    }
+    else
+    {
+      lits.push_back(n);
+    }
+    if (Debug.isOn("arith::pf::externalExplainConflict"))
+    {
+      Debug("arith::pf::externalExplainConflict") << "Lits:" << std::endl;
+      for (const auto& l : lits)
+      {
+        Debug("arith::pf::externalExplainConflict") << "  : " << l << std::endl;
+      }
+    }
+    std::vector<Node> contraLits = {getProofLiteral(),
+                                    getNegation()->getProofLiteral()};
+    auto bot =
+        not2.getKind() == Kind::NOT
+            ? d_database->d_pnm->mkNode(PfRule::CONTRA, {pf2, pfNot2}, {})
+            : d_database->d_pnm->mkNode(PfRule::CONTRA, {pfNot2, pf2}, {});
+    if (Debug.isOn("arith::pf::tree"))
+    {
+      Debug("arith::pf::tree") << *this << std::endl;
+      Debug("arith::pf::tree") << *getNegation() << std::endl;
+      Debug("arith::pf::tree") << "\n\nTree:\n";
+      printProofTree(Debug("arith::pf::tree"));
+      getNegation()->printProofTree(Debug("arith::pf::tree"));
+    }
+    auto confPf = d_database->d_pnm->mkScope(bot, lits);
+    return d_database->d_pfGen->mkTrustNode(
+        safeConstructNary(Kind::AND, lits), confPf, true);
+  }
+  else
+  {
+    return TrustNode::mkTrustConflict(n);
+  }
 }
 
 struct ConstraintCPHash {
@@ -1516,13 +1617,6 @@ Node Constraint::externalExplain(const ConstraintCPVec& v, AssertionOrder order)
     ConstraintCP v_i = *i;
     v_i->externalExplain(nb, order);
   }
-  return safeConstructNary(nb);
-}
-
-Node Constraint::externalExplain(AssertionOrder order) const
-{
-  NodeBuilder<> nb(kind::AND);
-  externalExplain(nb, order);
   return safeConstructNary(nb);
 }
 
@@ -1843,11 +1937,17 @@ ConstraintP ConstraintDatabase::getBestImpliedBound(ArithVar v, ConstraintType t
     }
   }
 }
-
 TrustNode ConstraintDatabase::eeExplain(const Constraint* const c) const
 {
   Assert(c->hasLiteral());
   return d_congruenceManager.explain(c->getLiteral());
+}
+
+void ConstraintDatabase::eeExplain(ConstraintCP c, NodeBuilder<>& nb) const
+{
+  Assert(c->hasLiteral());
+  // NOTE: this is not a recommended method since it ignores proofs
+  d_congruenceManager.explain(c->getLiteral(), nb);
 }
 
 bool ConstraintDatabase::variableDatabaseIsSetup(ArithVar v) const {

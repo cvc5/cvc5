@@ -115,6 +115,8 @@ class SolverBlack : public CxxTest::TestSuite
   void testGetValue1();
   void testGetValue2();
   void testGetValue3();
+  void testGetQuantifierElimination();
+  void testGetQuantifierEliminationDisjunct();
   void testGetSeparationHeapTerm1();
   void testGetSeparationHeapTerm2();
   void testGetSeparationHeapTerm3();
@@ -140,6 +142,16 @@ class SolverBlack : public CxxTest::TestSuite
   void testPrintModel1();
   void testPrintModel2();
   void testPrintModel3();
+
+  void testBlockModel1();
+  void testBlockModel2();
+  void testBlockModel3();
+  void testBlockModel4();
+  void testBlockModelValues1();
+  void testBlockModelValues2();
+  void testBlockModelValues3();
+  void testBlockModelValues4();
+  void testBlockModelValues5();
 
   void testSimplify();
 
@@ -1613,6 +1625,36 @@ void SolverBlack::testGetValue3()
   TS_ASSERT_THROWS(slv.getValue(x), CVC4ApiException&);
 }
 
+void SolverBlack::testGetQuantifierElimination()
+{
+  Term x = d_solver->mkVar(d_solver->getBooleanSort(), "x");
+  Term forall =
+      d_solver->mkTerm(FORALL,
+                       d_solver->mkTerm(BOUND_VAR_LIST, x),
+                       d_solver->mkTerm(OR, x, d_solver->mkTerm(NOT, x)));
+  TS_ASSERT_THROWS(d_solver->getQuantifierElimination(Term()),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(
+      d_solver->getQuantifierElimination(Solver().mkBoolean(false)),
+      CVC4ApiException&);
+  TS_ASSERT_THROWS_NOTHING(d_solver->getQuantifierElimination(forall));
+}
+
+void SolverBlack::testGetQuantifierEliminationDisjunct()
+{
+  Term x = d_solver->mkVar(d_solver->getBooleanSort(), "x");
+  Term forall =
+      d_solver->mkTerm(FORALL,
+                       d_solver->mkTerm(BOUND_VAR_LIST, x),
+                       d_solver->mkTerm(OR, x, d_solver->mkTerm(NOT, x)));
+  TS_ASSERT_THROWS(d_solver->getQuantifierEliminationDisjunct(Term()),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(
+      d_solver->getQuantifierEliminationDisjunct(Solver().mkBoolean(false)),
+      CVC4ApiException&);
+  TS_ASSERT_THROWS_NOTHING(d_solver->getQuantifierEliminationDisjunct(forall));
+}
+
 namespace {
 /**
  * Helper function for testGetSeparation{Heap,Nil}TermX. Asserts and checks
@@ -1791,6 +1833,93 @@ void SolverBlack::testPrintModel3()
   d_solver->assertFormula(x.eqTerm(x));
   d_solver->checkSat();
   TS_ASSERT_THROWS_NOTHING(d_solver->printModel(std::cout));
+}
+
+void SolverBlack::testBlockModel1()
+{
+  d_solver->setOption("produce-models", "true");
+  Term x = d_solver->mkConst(d_solver->getBooleanSort(), "x");
+  d_solver->assertFormula(x.eqTerm(x));
+  d_solver->checkSat();
+  TS_ASSERT_THROWS(d_solver->blockModel(), CVC4ApiException&);
+}
+
+void SolverBlack::testBlockModel2()
+{
+  d_solver->setOption("block-models", "literals");
+  Term x = d_solver->mkConst(d_solver->getBooleanSort(), "x");
+  d_solver->assertFormula(x.eqTerm(x));
+  d_solver->checkSat();
+  TS_ASSERT_THROWS(d_solver->blockModel(), CVC4ApiException&);
+}
+
+void SolverBlack::testBlockModel3()
+{
+  d_solver->setOption("produce-models", "true");
+  d_solver->setOption("block-models", "literals");
+  Term x = d_solver->mkConst(d_solver->getBooleanSort(), "x");
+  d_solver->assertFormula(x.eqTerm(x));
+  TS_ASSERT_THROWS(d_solver->blockModel(), CVC4ApiException&);
+}
+
+void SolverBlack::testBlockModel4()
+{
+  d_solver->setOption("produce-models", "true");
+  d_solver->setOption("block-models", "literals");
+  Term x = d_solver->mkConst(d_solver->getBooleanSort(), "x");
+  d_solver->assertFormula(x.eqTerm(x));
+  d_solver->checkSat();
+  TS_ASSERT_THROWS_NOTHING(d_solver->blockModel());
+}
+
+void SolverBlack::testBlockModelValues1()
+{
+  d_solver->setOption("produce-models", "true");
+  d_solver->setOption("block-models", "literals");
+  Term x = d_solver->mkConst(d_solver->getBooleanSort(), "x");
+  d_solver->assertFormula(x.eqTerm(x));
+  d_solver->checkSat();
+  TS_ASSERT_THROWS(d_solver->blockModelValues({}), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->blockModelValues({Term()}), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->blockModelValues({Solver().mkBoolean(false)}),
+                   CVC4ApiException&);
+}
+
+void SolverBlack::testBlockModelValues2()
+{
+  d_solver->setOption("produce-models", "true");
+  Term x = d_solver->mkConst(d_solver->getBooleanSort(), "x");
+  d_solver->assertFormula(x.eqTerm(x));
+  d_solver->checkSat();
+  TS_ASSERT_THROWS(d_solver->blockModelValues({x}), CVC4ApiException&);
+}
+
+void SolverBlack::testBlockModelValues3()
+{
+  d_solver->setOption("block-models", "literals");
+  Term x = d_solver->mkConst(d_solver->getBooleanSort(), "x");
+  d_solver->assertFormula(x.eqTerm(x));
+  d_solver->checkSat();
+  TS_ASSERT_THROWS(d_solver->blockModelValues({x}), CVC4ApiException&);
+}
+
+void SolverBlack::testBlockModelValues4()
+{
+  d_solver->setOption("produce-models", "true");
+  d_solver->setOption("block-models", "literals");
+  Term x = d_solver->mkConst(d_solver->getBooleanSort(), "x");
+  d_solver->assertFormula(x.eqTerm(x));
+  TS_ASSERT_THROWS(d_solver->blockModelValues({x}), CVC4ApiException&);
+}
+
+void SolverBlack::testBlockModelValues5()
+{
+  d_solver->setOption("produce-models", "true");
+  d_solver->setOption("block-models", "literals");
+  Term x = d_solver->mkConst(d_solver->getBooleanSort(), "x");
+  d_solver->assertFormula(x.eqTerm(x));
+  d_solver->checkSat();
+  TS_ASSERT_THROWS_NOTHING(d_solver->blockModelValues({x}));
 }
 
 void SolverBlack::testSetInfo()
