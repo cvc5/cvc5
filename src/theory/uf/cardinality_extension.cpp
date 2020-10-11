@@ -528,7 +528,7 @@ void SortModel::newEqClass( Node n ){
       if( options::ufssTotality() ){
         // Regions map will store whether we need to equate this term
         // with a constant equivalence class.
-        if( std::find( d_totality_terms[0].begin(), d_totality_terms[0].end(), n )==d_totality_terms[0].end() ){
+        if( std::find( d_totalityTerms.begin(), d_totalityTerms.end(), n )==d_totalityTerms.end() ){
           d_regions_map[n] = 0;
         }else{
           d_regions_map[n] = -1;
@@ -1078,9 +1078,9 @@ void SortModel::addCliqueLemma(std::vector<Node>& clique)
   }
 }
 
-void SortModel::addTotalityAxiom(Node n, int cardinality)
+void SortModel::addTotalityAxiom(Node n, size_t cardinality)
 {
-  if( std::find( d_totality_terms[0].begin(), d_totality_terms[0].end(), n )==d_totality_terms[0].end() ){
+  if( std::find( d_totalityTerms.begin(), d_totalityTerms.end(), n )==d_totalityTerms.end() ){
     if( std::find( d_totality_lems[n].begin(), d_totality_lems[n].end(), cardinality ) == d_totality_lems[n].end() ){
       NodeManager* nm = NodeManager::currentNM();
       d_totality_lems[n].push_back( cardinality );
@@ -1092,23 +1092,25 @@ void SortModel::addTotalityAxiom(Node n, int cardinality)
         sort_id = si->getSortId(n);
       }
       Trace("uf-ss-totality") << "Add totality lemma for " << n << " " << cardinality << ", sort id is " << sort_id << std::endl;
-      int use_cardinality = cardinality;
+      size_t use_cardinality = cardinality;
       if( options::ufssTotalitySymBreak() ){
+        TypeNode tn = n.getType();
+        std::vector< Node >& sbts = d_sym_break_terms[tn][sort_id];
         if( d_sym_break_index.find(n)!=d_sym_break_index.end() ){
           use_cardinality = d_sym_break_index[n];
-        }else if( (int)d_sym_break_terms[n.getType()][sort_id].size()<cardinality-1 ){
-          use_cardinality = d_sym_break_terms[n.getType()][sort_id].size() + 1;
-          d_sym_break_terms[n.getType()][sort_id].push_back( n );
+        }else if( sbts.size()+1<cardinality ){
+          use_cardinality = sbts.size() + 1;
+          sbts.push_back( n );
           d_sym_break_index[n] = use_cardinality;
           Trace("uf-ss-totality") << "Allocate symmetry breaking term " << n << ", index = " << use_cardinality << std::endl;
-          if( d_sym_break_terms[n.getType()][sort_id].size()>1 ){
+          if( sbts.size()>1 ){
             //enforce canonicity
             for( int i=2; i<use_cardinality; i++ ){
               //can only be assigned to domain constant d if someone has been assigned domain constant d-1
-              Node eq = n.eqNode( getTotalityLemmaTerm( cardinality, i ) );
+              Node eq = n.eqNode( getTotalityLemmaTerm(i ) );
               std::vector< Node > eqs;
-              for( unsigned j=0; j<(d_sym_break_terms[n.getType()][sort_id].size()-1); j++ ){
-                eqs.push_back( d_sym_break_terms[n.getType()][sort_id][j].eqNode( getTotalityLemmaTerm( cardinality, i-1 ) ) );
+              for( size_t j=0; j<(sbts.size()-1); j++ ){
+                eqs.push_back( sbts[j].eqNode( getTotalityLemmaTerm(i-1 ) ) );
               }
               Node ax = eqs.size()==1 ? eqs[0] : NodeManager::currentNM()->mkNode( OR, eqs );
               Node lem = NodeManager::currentNM()->mkNode( IMPLIES, eq, ax );
@@ -1121,7 +1123,7 @@ void SortModel::addTotalityAxiom(Node n, int cardinality)
 
       std::vector< Node > eqs;
       for( int i=0; i<use_cardinality; i++ ){
-        eqs.push_back( n.eqNode( getTotalityLemmaTerm( cardinality, i ) ) );
+        eqs.push_back( n.eqNode( getTotalityLemmaTerm(i ) ) );
       }
       Node ax = eqs.size() == 1 ? eqs[0] : nm->mkNode(OR, eqs);
       Node lem = NodeManager::currentNM()->mkNode( IMPLIES, cardLit, ax );
@@ -1139,8 +1141,9 @@ bool SortModel::applyTotality( int cardinality ){
 }
 
 /** get totality lemma terms */
-Node SortModel::getTotalityLemmaTerm( int cardinality, int i ){
-  return d_totality_terms[0][i];
+Node SortModel::getTotalityLemmaTerm( size_t i ){
+  Assert (i<d_totalityTerms.size());
+  return d_totalityTerms[i];
 }
 
 void SortModel::simpleCheckCardinality() {
@@ -1281,18 +1284,18 @@ Node SortModel::getCardinalityLiteral(unsigned c)
     ss << "_c_" << c;
     var = nm->mkSkolem(ss.str(), d_type, "is a cardinality lemma term");
   }
-  if ((c - 1) < d_totality_terms[0].size())
+  if ((c - 1) < d_totalityTerms.size())
   {
-    d_totality_terms[0][c - 1] = var;
+    d_totalityTerms[c - 1] = var;
   }
   else
   {
-    d_totality_terms[0].push_back(var);
+    d_totalityTerms.push_back(var);
   }
   // must be distinct from all other cardinality terms
-  for (unsigned i = 1, size = d_totality_terms[0].size(); i < size; i++)
+  for (unsigned i = 1, size = d_totalityTerms.size(); i < size; i++)
   {
-    Node lem = var.eqNode(d_totality_terms[0][i - 1]).notNode();
+    Node lem = var.eqNode(d_totalityTerms[i - 1]).notNode();
     Trace("uf-ss-lemma") << "Totality distinctness lemma : " << lem
                          << std::endl;
     d_im.lemma(lem, LemmaProperty::NONE, false);

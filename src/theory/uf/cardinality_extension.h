@@ -266,7 +266,7 @@ class CardinalityExtension
     /** add clique lemma */
     void addCliqueLemma(std::vector<Node>& clique);
     /** add totality axiom */
-    void addTotalityAxiom(Node n, int cardinality);
+    void addTotalityAxiom(Node n, size_t cardinality);
     /** cardinality */
     context::CDO< int > d_cardinality;
     /** cardinality lemma term */
@@ -289,7 +289,7 @@ class CardinalityExtension
     /** apply totality */
     bool applyTotality( int cardinality );
     /** get totality lemma terms */
-    Node getTotalityLemmaTerm( int cardinality, int i );
+    Node getTotalityLemmaTerm( size_t i );
     /** simple check cardinality */
     void simpleCheckCardinality();
 
