@@ -143,7 +143,7 @@ Node AlphaEquivalence::reduceQuantifier(Node q)
   if (ret != q)
   {
     // do not reduce annotated quantified formulas based on alpha equivalence
-    if (q.getNumChildren() == 2)
+    if (true || q.getNumChildren() == 2)
     {
       // lemma ( q <=> d_quant )
       Trace("alpha-eq") << "Alpha equivalent : " << std::endl;
