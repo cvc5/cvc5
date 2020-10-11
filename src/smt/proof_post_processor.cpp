@@ -591,16 +591,17 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   }
   else if (id == PfRule::THEORY_REWRITE)
   {
-    Assert (!args.empty());
+    Assert(!args.empty());
     Node eq = args[0];
-    Assert (eq.getKind()==EQUAL);
+    Assert(eq.getKind() == EQUAL);
     // try to replay theory rewrite
     // first, check that maybe its just an evaluation step
-    ProofChecker * pc = d_pnm->getChecker();
-    Node ceval = pc->checkDebug(PfRule::EVALUATE,{},{eq[0]}, eq, "smt-proof-pp-debug");
-    if (!ceval.isNull() && ceval==eq)
+    ProofChecker* pc = d_pnm->getChecker();
+    Node ceval =
+        pc->checkDebug(PfRule::EVALUATE, {}, {eq[0]}, eq, "smt-proof-pp-debug");
+    if (!ceval.isNull() && ceval == eq)
     {
-      cdp->addStep(eq, PfRule::EVALUATE,{},{eq[0]});
+      cdp->addStep(eq, PfRule::EVALUATE, {}, {eq[0]});
       return eq;
     }
     // otherwise no update
