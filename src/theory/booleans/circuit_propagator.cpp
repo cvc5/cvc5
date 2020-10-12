@@ -480,8 +480,9 @@ bool CircuitPropagator::propagate() {
 void CircuitPropagator::setProofNodeManager(ProofNodeManager* pnm,
                                             context::Context* ctx)
 {
-  d_pnm = pnm;
-  d_epg.reset(new EagerProofGenerator(pnm, ctx));
+  // TODO: this would enable proof production
+  // d_pnm = pnm;
+  // d_epg.reset(new EagerProofGenerator(pnm, ctx));
 }
 
 bool CircuitPropagator::isProofEnabled() const { return d_epg != nullptr; }
