@@ -289,7 +289,7 @@ class CardinalityExtension
     /** apply totality */
     bool applyTotality( int cardinality );
     /** get totality lemma terms */
-    Node getTotalityLemmaTerm( size_t i );
+    Node getTotalityLemmaTerm(size_t i);
     /** simple check cardinality */
     void simpleCheckCardinality();
 
