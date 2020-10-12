@@ -128,7 +128,7 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment) {
       // AND = FALSE: if all children BUT ONE == TRUE, assign(c = FALSE)
       TNode::iterator holdout = find_if_unique(parent.begin(), parent.end(), not1(IsAssignedTo(*this, true)));
       if (holdout != parent.end()) {
-        assignAndEnqueue(*holdout, false, prover.andFalse(holdout));
+        assignAndEnqueue(*holdout, false, prover.andFalse(parent, holdout));
       }
     }
     break;
@@ -137,7 +137,7 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment) {
       // OR = TRUE: if all children BUT ONE == FALSE, assign(c = TRUE)
       TNode::iterator holdout = find_if_unique(parent.begin(), parent.end(), not1(IsAssignedTo(*this, false)));
       if (holdout != parent.end()) {
-        assignAndEnqueue(*holdout, true, prover.orTrue(holdout));
+        assignAndEnqueue(*holdout, true, prover.orTrue(parent, holdout));
       }
     } else {
       // OR = FALSE: forall children c, assign(c = FALSE)
@@ -153,10 +153,10 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment) {
   case kind::ITE:
     if (isAssignedTo(parent[0], true)) {
       // ITE c x y = v: if c is assigned and TRUE, assign(x = v)
-      assignAndEnqueue(parent[1], parentAssignment, prover.iteC());
+      assignAndEnqueue(parent[1], parentAssignment, prover.iteC(true));
     } else if (isAssignedTo(parent[0], false)) {
       // ITE c x y = v: if c is assigned and FALSE, assign(y = v)
-      assignAndEnqueue(parent[2], parentAssignment, prover.iteNotC());
+      assignAndEnqueue(parent[2], parentAssignment, prover.iteC(false));
     } else if (isAssigned(parent[1]) && isAssigned(parent[2])) {
       if (getAssignment(parent[1]) == parentAssignment && getAssignment(parent[2]) != parentAssignment) {
         // ITE c x y = v: if c is unassigned, x and y are assigned, x==v and y!=v, assign(c = TRUE)
@@ -270,24 +270,24 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
         holdout = find_if (parent.begin(), parent.end(), not1(IsAssignedTo(*this, true)));
         if (holdout == parent.end()) { // all children are assigned TRUE
           // AND ...(x=TRUE)...: if all children now assigned to TRUE, assign(AND = TRUE)
-          assignAndEnqueue(parent, true, prover.andTrue());
+          assignAndEnqueue(parent, true, prover.andAllTrue());
         } else if (isAssignedTo(parent, false)) {// the AND is FALSE
           // is the holdout unique ?
           TNode::iterator other = find_if (holdout + 1, parent.end(), not1(IsAssignedTo(*this, true)));
           if (other == parent.end()) { // the holdout is unique
             // AND ...(x=TRUE)...: if all children BUT ONE now assigned to TRUE, and AND == FALSE, assign(last_holdout = FALSE)
-            assignAndEnqueue(*holdout, false, prover.andFalse(holdout));
+            assignAndEnqueue(*holdout, false, prover.andFalse(parent, holdout));
           }
         }
       } else {
         // AND ...(x=FALSE)...: assign(AND = FALSE)
-        assignAndEnqueue(parent, false, prover.andFalse());
+        assignAndEnqueue(parent, false, prover.andOneFalse());
       }
       break;
     case kind::OR:
       if (childAssignment) {
         // OR ...(x=TRUE)...: assign(OR = TRUE)
-        assignAndEnqueue(parent, true, prover.orTrue());
+        assignAndEnqueue(parent, true, prover.orOneTrue());
       } else {
         TNode::iterator holdout;
         holdout = find_if (parent.begin(), parent.end(), not1(IsAssignedTo(*this, false)));
@@ -299,7 +299,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
           TNode::iterator other = find_if (holdout + 1, parent.end(), not1(IsAssignedTo(*this, false)));
           if (other == parent.end()) { // the holdout is unique
             // OR ...(x=FALSE)...: if all children BUT ONE now assigned to FALSE, and OR == TRUE, assign(last_holdout = TRUE)
-            assignAndEnqueue(*holdout, true, prover.orTrue(holdout));
+            assignAndEnqueue(*holdout, true, prover.orTrue(parent, holdout));
           }
         }
       }

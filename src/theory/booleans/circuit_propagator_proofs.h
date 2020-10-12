@@ -120,6 +120,22 @@ struct CircuitPropagatorProver
     return n;
   }
 
+  /** (and true ... holdout true ...)  -->  holdout */
+  std::shared_ptr<ProofNode> andFalse(Node parent, TNode::iterator holdout)
+  {
+    if (disabled()) return nullptr;
+    return mkNot(
+        mkResolution(mkProof(PfRule::NOT_AND, {mkProof(parent.notNode())}),
+                     collectButHoldout(parent, holdout, true)));
+  }
+
+  /** (or false ... holdout false ...)  ->  holdout */
+  std::shared_ptr<ProofNode> orTrue(Node parent, TNode::iterator holdout)
+  {
+    if (disabled()) return nullptr;
+    return mkResolution(mkProof(parent), collectButHoldout(parent, holdout));
+  }
+
   /** (=> X false)  -->  (not X) */
   std::shared_ptr<ProofNode> impliesXFromY(Node parent)
   {
@@ -188,20 +204,15 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
   {
   }
 
+  /** and true  -->  child is true */
   std::shared_ptr<ProofNode> andTrue(TNode::iterator i)
   {
     if (disabled()) return nullptr;
     return mkProof(
         PfRule::AND_ELIM, {mkProof(d_parent)}, {mkRat(i - d_parent.begin())});
   }
-  std::shared_ptr<ProofNode> andFalse(TNode::iterator holdout)
-  {
-    if (disabled()) return nullptr;
-    return mkNot(
-        mkResolution(mkProof(PfRule::NOT_AND, {mkProof(d_parent.notNode())}),
-                     collectButHoldout(d_parent, holdout, true)));
-  }
 
+  /** or false  -->  child is false */
   std::shared_ptr<ProofNode> orFalse(TNode::iterator i)
   {
     if (disabled()) return nullptr;
@@ -209,13 +220,8 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
                          {mkProof(d_parent.notNode())},
                          {mkRat(i - d_parent.begin())}));
   }
-  std::shared_ptr<ProofNode> orTrue(TNode::iterator holdout)
-  {
-    if (disabled()) return nullptr;
-    return mkResolution(mkProof(d_parent),
-                        collectButHoldout(d_parent, holdout));
-  }
 
+  /** (not x) is true  -->  x is false (and vice versa) */
   std::shared_ptr<ProofNode> Not()
   {
     if (disabled()) return nullptr;
@@ -223,34 +229,28 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
         mkProof(d_parentAssignment ? Node(d_parent) : d_parent.notNode()));
   }
 
-  std::shared_ptr<ProofNode> iteC()
+  /**
+   * Propagate on ite with evaluate condition
+   * (ite true t e)  -->  t
+   * (not (ite true t e))  -->  (not t)
+   * (ite false t e)  -->  e
+   * (not (ite false t e))  -->  (not e)
+   */
+  std::shared_ptr<ProofNode> iteC(bool c)
   {
     if (disabled()) return nullptr;
     if (d_parentAssignment)
     {
-      return mkResolution(mkProof(PfRule::ITE_ELIM1, {mkProof(d_parent)}),
-                          {d_parent[0].notNode()});
+      return mkResolution(mkProof(c ? PfRule::ITE_ELIM1 : PfRule::ITE_ELIM2,
+                                  {mkProof(d_parent)}),
+                          {c ? d_parent[0].notNode() : Node(d_parent[0])});
     }
     else
     {
       return mkResolution(
-          mkProof(PfRule::NOT_ITE_ELIM1, {mkProof(d_parent.notNode())}),
-          {d_parent[0]});
-    }
-  }
-  std::shared_ptr<ProofNode> iteNotC()
-  {
-    if (disabled()) return nullptr;
-    if (d_parentAssignment)
-    {
-      return mkResolution(mkProof(PfRule::ITE_ELIM2, {mkProof(d_parent)}),
-                          {d_parent[0]});
-    }
-    else
-    {
-      return mkResolution(
-          mkProof(PfRule::NOT_ITE_ELIM2, {mkProof(d_parent.notNode())}),
-          {d_parent[0]});
+          mkProof(c ? PfRule::NOT_ITE_ELIM1 : PfRule::NOT_ITE_ELIM2,
+                  {mkProof(d_parent.notNode())}),
+          {c ? d_parent[0].notNode() : Node(d_parent[0])});
     }
   }
   std::shared_ptr<ProofNode> iteIsX()
@@ -401,7 +401,8 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
   {
   }
 
-  std::shared_ptr<ProofNode> andTrue()
+  /** All children are true  -->  and is true */
+  std::shared_ptr<ProofNode> andAllTrue()
   {
     if (disabled()) return nullptr;
     std::vector<std::shared_ptr<ProofNode>> children;
@@ -411,16 +412,8 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
     }
     return mkProof(PfRule::AND_INTRO, children);
   }
-  std::shared_ptr<ProofNode> andFalse(TNode::iterator holdout)
-  {
-    if (disabled()) return nullptr;
-    // AND ...(x=TRUE)...: if all children BUT ONE now assigned to TRUE, and
-    // AND == FALSE, assign(last_holdout = FALSE)
-    return mkNot(
-        mkResolution(mkProof(PfRule::NOT_AND, {mkProof(d_parent.notNode())}),
-                     collectButHoldout(d_parent, holdout, true)));
-  }
-  std::shared_ptr<ProofNode> andFalse()
+  /** One child is false  -->  and is false */
+  std::shared_ptr<ProofNode> andOneFalse()
   {
     if (disabled()) return nullptr;
     auto it = std::find(d_parent.begin(), d_parent.end(), d_child);
@@ -432,7 +425,8 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
                    {d_parent});
   }
 
-  std::shared_ptr<ProofNode> orTrue()
+  /** One child is true  -->  or is true */
+  std::shared_ptr<ProofNode> orOneTrue()
   {
     if (disabled()) return nullptr;
     auto it = std::find(d_parent.begin(), d_parent.end(), d_child);
@@ -443,12 +437,6 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
          mkProof(d_child)},
         {d_child.notNode()}));
   }
-  std::shared_ptr<ProofNode> orTrue(TNode::iterator holdout)
-  {
-    if (disabled()) return nullptr;
-    return mkResolution(mkProof(d_parent),
-                        collectButHoldout(d_parent, holdout));
-  }
   std::shared_ptr<ProofNode> orFalse()
   {
     if (disabled()) return nullptr;
@@ -456,6 +444,7 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
     return mkResolution(mkProof(PfRule::CNF_OR_POS, {}, {d_parent}), children);
   }
 
+  /** x is true  -->  (not x) is false (and vice versa) */
   std::shared_ptr<ProofNode> Not()
   {
     if (disabled()) return nullptr;

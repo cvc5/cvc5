@@ -87,7 +87,11 @@ class CircuitPropagator
 
   std::vector<TrustNode>& getLearnedLiterals() { return d_learnedLiterals; }
 
-  void finish() { d_context.pop(); }
+  void finish()
+  {
+    Trace("circuit-prop") << "FINISH" << std::endl;
+    d_context.pop();
+  }
 
   /** Assert for propagation */
   void assertTrue(TNode assertion);
