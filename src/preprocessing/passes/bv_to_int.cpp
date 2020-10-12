@@ -811,7 +811,7 @@ void BVToInt::defineBVUFAsIntUF(Node bvUF, Node intUF)
   // The type of the resulting term
   TypeNode resultType;
   // symbolic arguments of original function
-  vector<Expr> args;
+  vector<Node> args;
   if (!bvUF.getType().isFunction()) {
     // bvUF is a variable.
     // in this case, the result is just the original term
@@ -833,7 +833,7 @@ void BVToInt::defineBVUFAsIntUF(Node bvUF, Node intUF)
       // Each bit-vector argument is casted to a natural number
       // Other arguments are left intact.
       Node fresh_bound_var = d_nm->mkBoundVar(d);
-      args.push_back(fresh_bound_var.toExpr());
+      args.push_back(fresh_bound_var);
       Node castedArg = args[i];
       if (d.isBitVector())
       {
@@ -847,8 +847,7 @@ void BVToInt::defineBVUFAsIntUF(Node bvUF, Node intUF)
   // If the result is BV, it needs to be casted back.
   result = castToType(result, resultType);
   // add the function definition to the smt engine.
-  smt::currentSmtEngine()->defineFunction(
-      bvUF.toExpr(), args, result.toExpr(), true);
+  d_preprocContext->getSmt()->defineFunction(bvUF, args, result, true);
 }
 
 bool BVToInt::childrenTypesChanged(Node n)

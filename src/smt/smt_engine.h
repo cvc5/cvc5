@@ -306,13 +306,13 @@ class CVC4_PUBLIC SmtEngine
    *
    * The return value has the same meaning as that of assertFormula.
    */
-  Result blockModelValues(const std::vector<Expr>& exprs);
+  Result blockModelValues(const std::vector<Node>& exprs);
 
   /** When using separation logic, obtain the expression for the heap.  */
-  Expr getSepHeapExpr();
+  Node getSepHeapExpr();
 
   /** When using separation logic, obtain the expression for nil.  */
-  Expr getSepNilExpr();
+  Node getSepNilExpr();
 
   /**
    * Get an aspect of the current SMT execution environment.
@@ -333,13 +333,13 @@ class CVC4_PUBLIC SmtEngine
    * @param global True if this definition is global (i.e. should persist when
    *               popping the user context)
    */
-  void defineFunction(Expr func,
-                      const std::vector<Expr>& formals,
-                      Expr formula,
+  void defineFunction(Node func,
+                      const std::vector<Node>& formals,
+                      Node formula,
                       bool global = false);
 
   /** Return true if given expression is a defined function. */
-  bool isDefinedFunction(Expr func);
+  bool isDefinedFunction(Node func);
 
   /**
    * Define functions recursive
@@ -359,17 +359,17 @@ class CVC4_PUBLIC SmtEngine
    * @param global True if this definition is global (i.e. should persist when
    *               popping the user context)
    */
-  void defineFunctionsRec(const std::vector<Expr>& funcs,
-                          const std::vector<std::vector<Expr>>& formals,
-                          const std::vector<Expr>& formulas,
+  void defineFunctionsRec(const std::vector<Node>& funcs,
+                          const std::vector<std::vector<Node>>& formals,
+                          const std::vector<Node>& formulas,
                           bool global = false);
   /**
    * Define function recursive
    * Same as above, but for a single function.
    */
-  void defineFunctionRec(Expr func,
-                         const std::vector<Expr>& formals,
-                         Expr formula,
+  void defineFunctionRec(Node func,
+                         const std::vector<Node>& formals,
+                         Node formula,
                          bool global = false);
   /**
    * Add a formula to the current context: preprocess, do per-theory
@@ -391,9 +391,8 @@ class CVC4_PUBLIC SmtEngine
    *
    * @throw Exception
    */
-  Result checkEntailed(const Expr& assumption = Expr(),
-                       bool inUnsatCore = true);
-  Result checkEntailed(const std::vector<Expr>& assumptions,
+  Result checkEntailed(const Node& assumption, bool inUnsatCore = true);
+  Result checkEntailed(const std::vector<Node>& assumptions,
                        bool inUnsatCore = true);
 
   /**
@@ -402,8 +401,9 @@ class CVC4_PUBLIC SmtEngine
    *
    * @throw Exception
    */
-  Result checkSat(const Expr& assumption = Expr(), bool inUnsatCore = true);
-  Result checkSat(const std::vector<Expr>& assumptions,
+  Result checkSat();
+  Result checkSat(const Node& assumption, bool inUnsatCore = true);
+  Result checkSat(const std::vector<Node>& assumptions,
                   bool inUnsatCore = true);
 
   /**
@@ -528,7 +528,7 @@ class CVC4_PUBLIC SmtEngine
   /**
    * Same as getValue but for a vector of expressions
    */
-  std::vector<Expr> getValues(const std::vector<Expr>& exprs);
+  std::vector<Node> getValues(const std::vector<Node>& exprs);
 
   /**
    * Add a function to the set of expressions whose value is to be
@@ -666,7 +666,7 @@ class CVC4_PUBLIC SmtEngine
    * Get list of quantified formulas that were instantiated on the last call
    * to check-sat.
    */
-  void getInstantiatedQuantifiedFormulas(std::vector<Expr>& qs);
+  void getInstantiatedQuantifiedFormulas(std::vector<Node>& qs);
 
   /**
    * Get instantiations for quantified formula q.
@@ -679,7 +679,7 @@ class CVC4_PUBLIC SmtEngine
    * In particular, if q is of the form forall x. P(x), then insts is a list
    * of formulas of the form P(t1), ..., P(tn).
    */
-  void getInstantiations(Expr q, std::vector<Expr>& insts);
+  void getInstantiations(Node q, std::vector<Node>& insts);
   /**
    * Get instantiation term vectors for quantified formula q.
    *
@@ -689,8 +689,8 @@ class CVC4_PUBLIC SmtEngine
    * Notice that these are not guaranteed to come in the same order as the
    * instantiation lemmas above.
    */
-  void getInstantiationTermVectors(Expr q,
-                                   std::vector<std::vector<Expr> >& tvecs);
+  void getInstantiationTermVectors(Node q,
+                                   std::vector<std::vector<Node>>& tvecs);
 
   /**
    * Get an unsatisfiable core (only if immediately preceded by an UNSAT or
@@ -703,7 +703,7 @@ class CVC4_PUBLIC SmtEngine
    * Get the current set of assertions.  Only permitted if the
    * SmtEngine is set to operate interactively.
    */
-  std::vector<Expr> getAssertions();
+  std::vector<Node> getAssertions();
 
   /**
    * Push a user-level context.
@@ -879,7 +879,7 @@ class CVC4_PUBLIC SmtEngine
    *
    * Return the set of assertions, after expanding definitions.
    */
-  std::vector<Expr> getExpandedAssertions();
+  std::vector<Node> getExpandedAssertions();
   /* .......................................................................  */
  private:
   /* .......................................................................  */
@@ -949,8 +949,8 @@ class CVC4_PUBLIC SmtEngine
    * the interpolation problem (interpol), and the solution implies the goal
    * (conj). If these criteria are not met, an internal error is thrown.
    */
-  void checkInterpol(Expr interpol,
-                     const std::vector<Expr>& easserts,
+  void checkInterpol(Node interpol,
+                     const std::vector<Node>& easserts,
                      const Node& conj);
 
   /**
@@ -1037,23 +1037,23 @@ class CVC4_PUBLIC SmtEngine
    * the function that the formal argument list is for. This method is used
    * as a helper function when defining (recursive) functions.
    */
-  void debugCheckFormals(const std::vector<Expr>& formals, Expr func);
+  void debugCheckFormals(const std::vector<Node>& formals, Node func);
 
   /**
    * Checks whether formula is a valid function body for func whose formal
    * argument list is stored in formals. This method is
    * used as a helper function when defining (recursive) functions.
    */
-  void debugCheckFunctionBody(Expr formula,
-                              const std::vector<Expr>& formals,
-                              Expr func);
+  void debugCheckFunctionBody(Node formula,
+                              const std::vector<Node>& formals,
+                              Node func);
 
   /**
    * Helper method to obtain both the heap and nil from the solver. Returns a
    * std::pair where the first element is the heap expression and the second
    * element is the nil expression.
    */
-  std::pair<Expr, Expr> getSepHeapAndNilExpr();
+  std::pair<Node, Node> getSepHeapAndNilExpr();
 
   /* Members -------------------------------------------------------------- */
 

@@ -44,21 +44,21 @@ PreprocessingPassResult SygusInference::applyInternal(
   {
     Assert(funs.size() == sols.size());
     // if so, sygus gives us function definitions
-    SmtEngine* master_smte = smt::currentSmtEngine();
+    SmtEngine* master_smte = d_preprocContext->getSmt();
     for (unsigned i = 0, size = funs.size(); i < size; i++)
     {
-      std::vector<Expr> args;
+      std::vector<Node> args;
       Node sol = sols[i];
       // if it is a non-constant function
       if (sol.getKind() == LAMBDA)
       {
         for (const Node& v : sol[0])
         {
-          args.push_back(v.toExpr());
+          args.push_back(v);
         }
         sol = sol[1];
       }
-      master_smte->defineFunction(funs[i].toExpr(), args, sol.toExpr());
+      master_smte->defineFunction(funs[i], args, sol);
     }
 
     // apply substitution to everything, should result in SAT
