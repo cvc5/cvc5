@@ -123,9 +123,13 @@ Node IAndTable::createBitwiseNode(Node x,
   uint64_t sumSize = bvsize / granularity;
   // initialize the sum
   Node sumNode = nm->mkConst<Rational>(0);
-  // get the table for the current granularity
-  std::map<std::pair<int64_t, int64_t>, uint64_t> table =
-      getAndTable(granularity);
+  // compute the table for the current granularity if needed
+  if (d_bvandTable.find(granularity) == d_bvandTable.end())
+  {
+    computeAndTable(granularity);
+  }
+  const std::map<std::pair<int64_t, int64_t>, uint64_t>& table =
+      d_bvandTable[granularity];
   for (uint64_t i = 0; i < sumSize; i++)
   {
     // compute the current blocks of x and y
@@ -142,14 +146,9 @@ Node IAndTable::createBitwiseNode(Node x,
   return sumNode;
 }
 
-std::map<std::pair<int64_t, int64_t>, uint64_t> IAndTable::getAndTable(
-    uint64_t granularity)
+void IAndTable::computeAndTable(uint64_t granularity)
 {
-  if (d_bvandTable.find(granularity) != d_bvandTable.end())
-  {
-    // the table was already computed
-    return d_bvandTable[granularity];
-  }
+  Assert(d_bvandTable.find(granularity) == d_bvandTable.end());
   // the table was not yet computed
   std::map<std::pair<int64_t, int64_t>, uint64_t> table;
   uint64_t num_of_values = ((uint64_t)pow(2, granularity));
@@ -180,7 +179,6 @@ std::map<std::pair<int64_t, int64_t>, uint64_t> IAndTable::getAndTable(
   Assert(table.size() == 1 + (static_cast<uint64_t>(num_of_values * num_of_values)));
   // store the table in the cache and return it
   d_bvandTable[granularity] = table;
-  return table;
 }
 
 void IAndTable::addDefaultValue(

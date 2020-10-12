@@ -104,11 +104,9 @@ class IAndTable
       const std::map<std::pair<int64_t, int64_t>, uint64_t>& table);
 
   /**
-   * Returns d_bvandTable[granularity] if it was already computed.
-   * Otherwise, computes it and then returns it.
+   * updates  d_bvandTable[granularity] if it wasn't already computed.
    */
-  std::map<std::pair<int64_t, int64_t>, uint64_t> getAndTable(
-      uint64_t granularity);
+  void computeAndTable(uint64_t granularity);
 
   /**
    * @param table a table that represents integer conjunction
