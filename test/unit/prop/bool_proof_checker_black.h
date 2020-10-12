@@ -81,11 +81,31 @@ class BoolProofCheckerBlack : public CxxTest::TestSuite
     // chain resolution with pivots l0, l1
     std::vector<Node> resNodes{l0, l0, l2};
     Node res = d_nm->mkNode(kind::OR, resNodes);
-    // Node res = l2;
 
     std::vector<Node> children{c1, c2, c3};
-    std::vector<Node> args{l0, l1};
+    std::vector<Node> args{d_nm->mkConst(true), l0, d_nm->mkConst(true), l1};
     Node resChecker = d_checker->checkDebug(
+        PfRule::CHAIN_RESOLUTION, children, args, Node::null(), "");
+    TS_ASSERT(res == resChecker);
+
+    c1Nodes.clear();
+    c1Nodes.push_back(l0);
+    c1Nodes.push_back(l0);
+    c1Nodes.push_back(l0);
+    c1Nodes.push_back(l1.notNode());
+    c1Nodes.push_back(l2);
+
+    children.clear();
+    children.push_back(d_nm->mkNode(kind::OR, c1Nodes));
+    children.push_back(l0.notNode());
+    children.push_back(l1);
+
+    args.clear();
+    args.push_back(d_nm->mkConst(true));
+    args.push_back(l0);
+    args.push_back(d_nm->mkConst(false));
+    args.push_back(l1);
+    resChecker = d_checker->checkDebug(
         PfRule::CHAIN_RESOLUTION, children, args, Node::null(), "");
     TS_ASSERT(res == resChecker);
   }
