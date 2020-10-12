@@ -1237,7 +1237,7 @@ Node SmtEngine::getValue(const Node& ex) const
 
   // Ensure it's a constant, or a lambda (for uninterpreted functions). This
   // assertion only holds for models that do not have approximate values.
-  Assert(m->hasApproximations() || resultNode.getKind() == kind::LAMBDA
+  Assert(tm->hasApproximations() || resultNode.getKind() == kind::LAMBDA
          || resultNode.isConst());
 
   if(options::abstractValues() && resultNode.getType().isArray()) {
