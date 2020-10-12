@@ -150,8 +150,10 @@ const char* toString(PfRule id)
     case PfRule::INT_TIGHT_LB: return "INT_TIGHT_LB";
     case PfRule::INT_TIGHT_UB: return "INT_TIGHT_UB";
     case PfRule::ARITH_OP_ELIM_AXIOM: return "ARITH_OP_ELIM_AXIOM";
-    case PfRule::INT_TRUST:
-      return "INT_TRUST";
+    case PfRule::INT_TRUST: return "INT_TRUST";
+    case PfRule::ARITH_NL_CAD_DIRECT: return "ARITH_NL_CAD_DIRECT";
+    case PfRule::ARITH_NL_CAD_RECURSIVE:
+      return "ARITH_NL_CAD_RECURSIVE";
 
       //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
 
