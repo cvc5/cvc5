@@ -685,10 +685,6 @@ void SortModel::check(Theory::Effort level)
     if( level==Theory::EFFORT_FULL ){
       Debug("uf-ss-sat") << "We have " << d_reps << " representatives for type "
                          << d_type << ", <= " << d_cardinality << std::endl;
-      // Notice() << "We have " << d_reps << " representatives for type " <<
-      // d_type << ", <= " << cardinality << std::endl; Notice() << "Model size
-      // for " << d_type << " is " << cardinality << std::endl; Notice() <<
-      // cardinality << " ";
     }
     return;
   }
