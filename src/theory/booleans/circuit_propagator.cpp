@@ -51,6 +51,7 @@ CircuitPropagator::CircuitPropagator(bool enableForward, bool enableBackward)
 
 void CircuitPropagator::assertTrue(TNode assertion)
 {
+  d_assumptions.emplace_back(assertion);
   if (assertion.getKind() == kind::AND) {
     for (unsigned i = 0; i < assertion.getNumChildren(); ++ i) {
       assertTrue(assertion[i]);
@@ -446,6 +447,7 @@ bool CircuitPropagator::propagate() {
         {
           TrustNode tlit = TrustNode::mkTrustLemma(lit, d_epg.get());
           d_learnedLiterals.push_back(tlit);
+          ensureClosed();
         }
         else
         {
@@ -488,16 +490,33 @@ void CircuitPropagator::setProofNodeManager(ProofNodeManager* pnm,
 void CircuitPropagator::ensureClosed() const
 {
   if (!isProofEnabled()) return;
-  std::vector<Node> assumps;
-  for (const auto& tn : d_learnedLiterals)
+  std::vector<Node> assumps = d_assumptions;
+  for (const auto& n : d_propagationQueue)
   {
-    if (tn.toProofNode()->getRule() != PfRule::ASSUME)
+    if (n == d_learnedLiterals.back().getProven())
     {
       break;
     }
-    assumps.emplace_back(tn.getProven());
+    if (getAssignment(n))
+    {
+      assumps.emplace_back(n);
+    }
+    else
+    {
+      assumps.emplace_back(n.negate());
+    }
   }
-  pfgEnsureClosedWrt(d_propagationQueue.back(),
+  Trace("circuit-prop-check") << "***** Assumptions: " << std::endl;
+  for (const auto& a : assumps)
+  {
+    Trace("circuit-prop-check") << "\t" << a << std::endl;
+  }
+
+  Trace("circuit-prop-check")
+      << "**** Proof: " << std::endl
+      << *d_epg->getProofFor(d_learnedLiterals.back().getProven()) << std::endl;
+
+  pfgEnsureClosedWrt(d_learnedLiterals.back().getProven(),
                      d_epg.get(),
                      assumps,
                      "circuit-prop",
