@@ -44,12 +44,14 @@ CadSolver::CadSolver(InferenceManager& im,
                                          NodeManager::currentNM()->realType(),
                                          "",
                                          NodeManager::SKOLEM_EXACT_NAME);
+#ifdef CVC4_POLY_IMP
   ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
   if (pc != nullptr)
   {
     // add checkers
     d_proofChecker.registerTo(pc);
   }
+#endif
 }
 
 CadSolver::~CadSolver() {}
