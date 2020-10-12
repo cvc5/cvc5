@@ -75,6 +75,17 @@ poly::Polynomial as_poly_polynomial(const CVC4::Node& n,
                                     poly::Rational& denominator);
 
 /**
+ * Constructs a node from the given polynomial.
+ *
+ * This methods does the straight-forward conversion from a polynomial into Node
+ * representation, using the given variable mapper.
+ * The resulting node is not minimized in any form (it may contain spurious
+ * multiplications with one or use NONLINEAR_MULT where regular MULT may be
+ * sufficient), so it may be sensible to rewrite it afterwards.
+ */
+CVC4::Node as_cvc_polynomial(const poly::Polynomial& p, VariableMapper& vm);
+
+/**
  * Constructs a constraints (a polynomial and a sign condition) from the given
  * node.
  */
