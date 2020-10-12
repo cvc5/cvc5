@@ -233,16 +233,15 @@ Node TheoryModel::getModelValue(TNode n) const
     {
       Debug("model-getvalue-debug")
           << "get cardinality constraint " << ret[0].getType() << std::endl;
-      ret = nm->mkConst(
-          getCardinality(ret[0].getType()).getFiniteCardinality()
-          <= ret[1].getConst<Rational>().getNumerator());
+      ret = nm->mkConst(getCardinality(ret[0].getType()).getFiniteCardinality()
+                        <= ret[1].getConst<Rational>().getNumerator());
     }
     else if (ret.getKind() == kind::CARDINALITY_VALUE)
     {
       Debug("model-getvalue-debug")
           << "get cardinality value " << ret[0].getType() << std::endl;
-      ret = nm->mkConst(Rational(
-          getCardinality(ret[0].getType()).getFiniteCardinality()));
+      ret = nm->mkConst(
+          Rational(getCardinality(ret[0].getType()).getFiniteCardinality()));
     }
     d_modelCache[n] = ret;
     return ret;
@@ -596,10 +595,7 @@ void TheoryModel::setUsingModelCore()
   d_model_core.clear();
 }
 
-void TheoryModel::recordModelCoreSymbol(Node sym)
-{
-  d_model_core.insert(sym);
-}
+void TheoryModel::recordModelCoreSymbol(Node sym) { d_model_core.insert(sym); }
 
 void TheoryModel::setUnevaluatedKind(Kind k) { d_unevaluated_kinds.insert(k); }
 

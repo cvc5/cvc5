@@ -1221,7 +1221,7 @@ Node SmtEngine::getValue(const Node& ex) const
 
   Trace("smt") << "--- getting value of " << n << endl;
   Model* m = getAvailableModel("get-value");
-  Assert (m != nullptr);
+  Assert(m != nullptr);
   TheoryModel* tm = m->getTheoryModel();
   Node resultNode = tm->getValue(n);
   Trace("smt") << "--- got value " << n << " = " << resultNode << endl;
@@ -1335,7 +1335,7 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
       Node resultNode;
       if (m != nullptr)
       {
-        TheoryModel * tm = m->getTheoryModel();
+        TheoryModel* tm = m->getTheoryModel();
         resultNode = tm->getValue(n);
       }
 
@@ -1378,7 +1378,8 @@ Model* SmtEngine::getModel() {
     // If we enabled model cores, we compute a model core for m based on our
     // (expanded) assertions using the model core builder utility
     std::vector<Node> eassertsProc = getExpandedAssertions();
-    ModelCoreBuilder::setModelCore(eassertsProc, m->getTheoryModel(), options::modelCoresMode());
+    ModelCoreBuilder::setModelCore(
+        eassertsProc, m->getTheoryModel(), options::modelCoresMode());
   }
   // set the information on the SMT-level model
   Assert(m != nullptr);

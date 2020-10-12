@@ -1328,7 +1328,7 @@ void Smt2Printer::toStream(std::ostream& out, const smt::Model& m) const
   const theory::TheoryModel* tm = m.getTheoryModel();
   //print the model comments
   std::stringstream c;
-  tm->getComments( c );
+  tm->getComments(c);
   std::string ln;
   while( std::getline( c, ln ) ){
     out << "; " << ln << std::endl;

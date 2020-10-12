@@ -43,6 +43,7 @@ std::ostream& operator<<(std::ostream&, const Model&);
 class Model {
   friend std::ostream& operator<<(std::ostream&, const Model&);
   friend class ::CVC4::SmtEngine;
+
  public:
   /** construct */
   Model(SmtEngine& smt, theory::TheoryModel* tm);
