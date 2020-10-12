@@ -160,18 +160,25 @@ bool TheoryModel::isModelCoreSymbol(Node sym) const
   return d_model_core.find(s) != d_model_core.end();
 }
 
-Cardinality TheoryModel::getCardinality( TypeNode tn ) const{
+Cardinality TheoryModel::getCardinality(TypeNode tn) const
+{
   //for now, we only handle cardinalities for uninterpreted sorts
-  if( !tn.isSort() ){
-    Debug("model-getvalue-debug") << "Get cardinality other sort, unknown." << std::endl;
+  if (!tn.isSort())
+  {
+    Debug("model-getvalue-debug")
+        << "Get cardinality other sort, unknown." << std::endl;
     return Cardinality( CardinalityUnknown() );
   }
-  if( d_rep_set.hasType( tn ) ){
-    Debug("model-getvalue-debug") << "Get cardinality sort, #rep : " << d_rep_set.getNumRepresentatives( tn ) << std::endl;
-    return Cardinality( d_rep_set.getNumRepresentatives( tn ) );
+  if (d_rep_set.hasType(tn))
+  {
+    Debug("model-getvalue-debug")
+        << "Get cardinality sort, #rep : "
+        << d_rep_set.getNumRepresentatives(tn) << std::endl;
+    return Cardinality(d_rep_set.getNumRepresentatives(tn));
   }
-  Debug("model-getvalue-debug") << "Get cardinality sort, unconstrained, return 1." << std::endl;
-  return Cardinality( 1 );
+  Debug("model-getvalue-debug")
+      << "Get cardinality sort, unconstrained, return 1." << std::endl;
+  return Cardinality(1);
 }
 
 Node TheoryModel::getModelValue(TNode n) const

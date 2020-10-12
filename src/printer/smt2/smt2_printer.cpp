@@ -1340,8 +1340,9 @@ void Smt2Printer::toStream(std::ostream& out, const smt::Model& m) const
   out << ")" << endl;
   //print the heap model, if it exists
   Node h, neq;
-  const theory::TheoryModel * tm = m.getTheoryModel();
-  if( tm->getHeapModel( h, neq ) ){
+  const theory::TheoryModel* tm = m.getTheoryModel();
+  if (tm->getHeapModel(h, neq))
+  {
     // description of the heap+what nil is equal to fully describes model
     out << "(heap" << endl;
     out << h << endl;

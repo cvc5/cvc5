@@ -1089,7 +1089,7 @@ class CVC4_PUBLIC SmtEngine
 
   /** The (old) proof manager TODO (project #37): delete this */
   std::unique_ptr<ProofManager> d_proofManager;
-  /** 
+  /**
    * The SMT-level model object, which contains information about how to
    * print the model, as well as a pointer to the underlying TheoryModel
    * implementation maintained by the SmtSolver.

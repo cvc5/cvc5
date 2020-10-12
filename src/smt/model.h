@@ -21,19 +21,19 @@
 #include <vector>
 
 #include "expr/expr.h"
-#include "util/cardinality.h"
 #include "theory/theory_model.h"
+#include "util/cardinality.h"
 
 namespace CVC4 {
 namespace smt {
-  
+
 class NodeCommand;
 class SmtEngine;
 class Model;
 
 std::ostream& operator<<(std::ostream&, const Model&);
 
-/** 
+/**
  * This is the SMT-level model object, that is responsible for maintaining
  * the necessary information for how to print the model, as well as
  * holding a pointer to the underlying implementation of the theory model.
@@ -43,9 +43,9 @@ class Model {
   friend class SmtEngine;
  public:
   /** construct */
-  Model(SmtEngine& smt, theory::TheoryModel * tm);
+  Model(SmtEngine& smt, theory::TheoryModel* tm);
   /** virtual destructor */
-  ~Model() { }
+  ~Model() {}
   /** get number of commands to report */
   size_t getNumCommands() const;
   /** get command */
@@ -64,9 +64,9 @@ class Model {
    */
   bool isKnownSat() const { return d_isKnownSat; }
   /** Get the underlying theory model */
-  theory::TheoryModel * getTheoryModel();
+  theory::TheoryModel* getTheoryModel();
   //----------------------- helper methods
-  /** 
+  /**
    * Is the node n a model core symbol?
    */
   bool isModelCoreSymbol(Node sym) const;
@@ -81,14 +81,14 @@ class Model {
    * from the solver.
    */
   bool d_isKnownSat;
-  /** 
+  /**
    * Pointer to the underlying theory model, which maintains all data regarding
    * the values of sorts and terms.
    */
-  theory::TheoryModel * d_tmodel;
+  theory::TheoryModel* d_tmodel;
 };
 
-}/* smt namespace */
+}  // namespace smt
 }/* CVC4 namespace */
 
 #endif  /* CVC4__MODEL_H */
