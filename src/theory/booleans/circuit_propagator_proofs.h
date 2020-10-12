@@ -140,8 +140,8 @@ struct CircuitPropagatorProver
   std::shared_ptr<ProofNode> impliesXFromY(Node parent)
   {
     if (disabled()) return nullptr;
-    return mkResolution(mkProof(PfRule::IMPLIES_ELIM, {mkProof(parent)}),
-                        {parent[1]});
+    return mkNot(mkResolution(mkProof(PfRule::IMPLIES_ELIM, {mkProof(parent)}),
+                              {parent[1]}));
   }
   /** (=> true Y)  -->  Y */
   std::shared_ptr<ProofNode> impliesYFromX(Node parent)
