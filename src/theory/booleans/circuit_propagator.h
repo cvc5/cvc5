@@ -261,8 +261,14 @@ class CircuitPropagator
             }
             Trace("circuit-prop") << "Adding proof " << *proof << std::endl
                                   << "\t" << proof->getResult() << std::endl;
-            d_epg->setProofFor(expected, std::move(proof));
-            ensureClosed();
+            if (!d_epg->hasProofFor(expected))
+            {
+              d_epg->setProofFor(expected, std::move(proof));
+            }
+            else
+            {
+              Trace("circuit-prop") << "Ignoring proof" << std::endl;
+            }
           }
         }
       }
