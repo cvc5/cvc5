@@ -538,46 +538,56 @@ void SortModel::merge( Node a, Node b ){
   {
     return;
   }
-  Debug("uf-ss") << "CardinalityExtension: Merging " << a << " = " << b
-                  << "..." << std::endl;
-  if( a!=b ){
+  Debug("uf-ss") << "CardinalityExtension: Merging " << a << " = " << b << "..."
+                 << std::endl;
+  if (a != b)
+  {
     Assert(d_regions_map.find(a) != d_regions_map.end());
     Assert(d_regions_map.find(b) != d_regions_map.end());
     int ai = d_regions_map[a];
     int bi = d_regions_map[b];
     Debug("uf-ss") << "   regions: " << ai << " " << bi << std::endl;
-    if( ai!=bi ){
-      if( d_regions[ai]->getNumReps()==1  ){
-        int ri = combineRegions( bi, ai );
-        d_regions[ri]->setEqual( a, b );
-        checkRegion( ri );
-      }else if( d_regions[bi]->getNumReps()==1 ){
-        int ri = combineRegions( ai, bi );
-        d_regions[ri]->setEqual( a, b );
-        checkRegion( ri );
-      }else{
+    if (ai != bi)
+    {
+      if (d_regions[ai]->getNumReps() == 1)
+      {
+        int ri = combineRegions(bi, ai);
+        d_regions[ri]->setEqual(a, b);
+        checkRegion(ri);
+      }
+      else if (d_regions[bi]->getNumReps() == 1)
+      {
+        int ri = combineRegions(ai, bi);
+        d_regions[ri]->setEqual(a, b);
+        checkRegion(ri);
+      }
+      else
+      {
         // Either move a to d_regions[bi], or b to d_regions[ai].
         RegionNodeInfo* a_region_info = d_regions[ai]->getRegionInfo(a);
         RegionNodeInfo* b_region_info = d_regions[bi]->getRegionInfo(b);
-        int aex = ( a_region_info->getNumInternalDisequalities() -
-                    getNumDisequalitiesToRegion( a, bi ) );
-        int bex = ( b_region_info->getNumInternalDisequalities() -
-                    getNumDisequalitiesToRegion( b, ai ) );
+        int aex = (a_region_info->getNumInternalDisequalities()
+                   - getNumDisequalitiesToRegion(a, bi));
+        int bex = (b_region_info->getNumInternalDisequalities()
+                   - getNumDisequalitiesToRegion(b, ai));
         // Based on which would produce the fewest number of
         // external disequalities.
-        if( aex<bex ){
-          moveNode( a, bi );
-          d_regions[bi]->setEqual( a, b );
+        if (aex < bex)
+        {
+          moveNode(a, bi);
+          d_regions[bi]->setEqual(a, b);
         }else{
-          moveNode( b, ai );
+          moveNode(b, ai);
           d_regions[ai]->setEqual( a, b );
         }
-        checkRegion( ai );
-        checkRegion( bi );
+        checkRegion(ai);
+        checkRegion(bi);
       }
-    }else{
-      d_regions[ai]->setEqual( a, b );
-      checkRegion( ai );
+    }
+    else
+    {
+      d_regions[ai]->setEqual(a, b);
+      checkRegion(ai);
     }
     d_regions_map[b] = -1;
   }
@@ -590,43 +600,51 @@ void SortModel::assertDisequal( Node a, Node b, Node reason ){
   {
     return;
   }
-  //if they are not already disequal
+  // if they are not already disequal
   eq::EqualityEngine* ee = d_thss->getTheory()->getEqualityEngine();
   a = ee->getRepresentative(a);
   b = ee->getRepresentative(b);
   int ai = d_regions_map[a];
   int bi = d_regions_map[b];
-  if( d_regions[ai]->isDisequal( a, b, ai==bi ) ){
+  if (d_regions[ai]->isDisequal(a, b, ai == bi))
+  {
     // already disequal
     return;
   }
-  Debug("uf-ss") << "Assert disequal " << a << " != " << b << "..." << std::endl;
-  Debug("uf-ss-disequal") << "Assert disequal " << a << " != " << b << "..." << std::endl;
-  //add to list of disequalities
-  if( d_disequalities_index<d_disequalities.size() ){
+  Debug("uf-ss") << "Assert disequal " << a << " != " << b << "..."
+                 << std::endl;
+  Debug("uf-ss-disequal") << "Assert disequal " << a << " != " << b << "..."
+                          << std::endl;
+  // add to list of disequalities
+  if (d_disequalities_index < d_disequalities.size())
+  {
     d_disequalities[d_disequalities_index] = reason;
-  }else{
-    d_disequalities.push_back( reason );
+  }
+  else
+  {
+    d_disequalities.push_back(reason);
   }
   d_disequalities_index = d_disequalities_index + 1;
-  //now, add disequalities to regions
+  // now, add disequalities to regions
   Assert(d_regions_map.find(a) != d_regions_map.end());
   Assert(d_regions_map.find(b) != d_regions_map.end());
   Debug("uf-ss") << "   regions: " << ai << " " << bi << std::endl;
-  if( ai==bi ){
-    //internal disequality
-    d_regions[ai]->setDisequal( a, b, 1, true );
-    d_regions[ai]->setDisequal( b, a, 1, true );
-    //do not need to check if it needs to combine (no new ext. disequalities)
-    checkRegion( ai, false );  
-  }else{
-    //external disequality
-    d_regions[ai]->setDisequal( a, b, 0, true );
-    d_regions[bi]->setDisequal( b, a, 0, true );
-    checkRegion( ai );
-    checkRegion( bi );
+  if (ai == bi)
+  {
+    // internal disequality
+    d_regions[ai]->setDisequal(a, b, 1, true);
+    d_regions[ai]->setDisequal(b, a, 1, true);
+    // do not need to check if it needs to combine (no new ext. disequalities)
+    checkRegion(ai, false);
   }
-
+  else
+  {
+    // external disequality
+    d_regions[ai]->setDisequal(a, b, 0, true);
+    d_regions[bi]->setDisequal(b, a, 0, true);
+    checkRegion(ai);
+    checkRegion(bi);
+  }
 }
 
 bool SortModel::areDisequal( Node a, Node b ) {
@@ -651,34 +669,44 @@ void SortModel::check(Theory::Effort level)
     return;
   }
   Debug("uf-ss") << "CardinalityExtension: Check " << level << " " << d_type
-                  << std::endl;
-  if( level==Theory::EFFORT_FULL ){
+                 << std::endl;
+  if (level == Theory::EFFORT_FULL)
+  {
     Debug("fmf-full-check") << std::endl;
-    Debug("fmf-full-check") << "Full check for SortModel " << d_type << ", status : " << std::endl;
+    Debug("fmf-full-check")
+        << "Full check for SortModel " << d_type << ", status : " << std::endl;
     debugPrint("fmf-full-check");
     Debug("fmf-full-check") << std::endl;
   }
-  if( d_reps<=(unsigned)d_cardinality ){
-    Debug("uf-ss-debug") << "We have " << d_reps << " representatives for type " << d_type << ", <= " << d_cardinality << std::endl;
+  if (d_reps <= (unsigned)d_cardinality)
+  {
+    Debug("uf-ss-debug") << "We have " << d_reps << " representatives for type "
+                         << d_type << ", <= " << d_cardinality << std::endl;
     if( level==Theory::EFFORT_FULL ){
-      Debug("uf-ss-sat") << "We have " << d_reps << " representatives for type " << d_type << ", <= " << d_cardinality << std::endl;
-      //Notice() << "We have " << d_reps << " representatives for type " << d_type << ", <= " << cardinality << std::endl;
-      //Notice() << "Model size for " << d_type << " is " << cardinality << std::endl;
-      //Notice() << cardinality << " ";
+      Debug("uf-ss-sat") << "We have " << d_reps << " representatives for type "
+                         << d_type << ", <= " << d_cardinality << std::endl;
+      // Notice() << "We have " << d_reps << " representatives for type " <<
+      // d_type << ", <= " << cardinality << std::endl; Notice() << "Model size
+      // for " << d_type << " is " << cardinality << std::endl; Notice() <<
+      // cardinality << " ";
     }
     return;
   }
-  //first check if we can generate a clique conflict
-  //do a check within each region
+  // first check if we can generate a clique conflict
+  // do a check within each region
   for (size_t i = 0; i < d_regions_index; i++)
   {
-    if( d_regions[i]->valid() ){
-      std::vector< Node > clique;
-      if( d_regions[i]->check( level, d_cardinality, clique ) ){
-        //add clique lemma
+    if (d_regions[i]->valid())
+    {
+      std::vector<Node> clique;
+      if (d_regions[i]->check(level, d_cardinality, clique))
+      {
+        // add clique lemma
         addCliqueLemma(clique);
         return;
-      }else{
+      }
+      else
+      {
         Trace("uf-ss-debug") << "No clique in Region #" << i << std::endl;
       }
     }
@@ -691,8 +719,7 @@ void SortModel::check(Theory::Effort level)
     // see if we have any recommended splits from large regions
     for (size_t i = 0; i < d_regions_index; i++)
     {
-      if (d_regions[i]->valid()
-          && d_regions[i]->getNumReps() > d_cardinality)
+      if (d_regions[i]->valid() && d_regions[i]->getNumReps() > d_cardinality)
       {
         int sp = addSplit(d_regions[i]);
         if (sp == 1)
@@ -713,8 +740,7 @@ void SortModel::check(Theory::Effort level)
     return;
   }
   // check at full effort
-  Trace("uf-ss-debug")
-      << "No splits added. " << d_cardinality << std::endl;
+  Trace("uf-ss-debug") << "No splits added. " << d_cardinality << std::endl;
   Trace("uf-ss-si") << "Must combine region" << std::endl;
   bool recheck = false;
   SortInference* si = d_thss->getSortInference();
