@@ -1105,7 +1105,7 @@ void SortModel::addTotalityAxiom(Node n, size_t cardinality)
           Trace("uf-ss-totality") << "Allocate symmetry breaking term " << n << ", index = " << use_cardinality << std::endl;
           if( sbts.size()>1 ){
             //enforce canonicity
-            for( int i=2; i<use_cardinality; i++ ){
+            for( size_t i=2; i<use_cardinality; i++ ){
               //can only be assigned to domain constant d if someone has been assigned domain constant d-1
               Node eq = n.eqNode( getTotalityLemmaTerm(i ) );
               std::vector< Node > eqs;
@@ -1122,7 +1122,7 @@ void SortModel::addTotalityAxiom(Node n, size_t cardinality)
       }
 
       std::vector< Node > eqs;
-      for( int i=0; i<use_cardinality; i++ ){
+      for( size_t i=0; i<use_cardinality; i++ ){
         eqs.push_back( n.eqNode( getTotalityLemmaTerm(i ) ) );
       }
       Node ax = eqs.size() == 1 ? eqs[0] : nm->mkNode(OR, eqs);
