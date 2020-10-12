@@ -1298,14 +1298,14 @@ Node SortModel::getCardinalityLiteral(unsigned c)
       var = nm->mkSkolem(ss.str(), d_type, "is a cardinality lemma term");
     }
     d_totalityTerms.push_back(var);
-  }
-  // must be distinct from all other cardinality terms
-  for (size_t i = 1, size = d_totalityTerms.size(); i < size; i++)
-  {
-    Node lem = var.eqNode(d_totalityTerms[i - 1]).notNode();
-    Trace("uf-ss-lemma") << "Totality distinctness lemma : " << lem
-                         << std::endl;
-    d_im.lemma(lem, LemmaProperty::NONE, false);
+    // must be distinct from all other cardinality terms
+    for (size_t i = 1, size = d_totalityTerms.size(); i < size; i++)
+    {
+      Node lem = var.eqNode(d_totalityTerms[i - 1]).notNode();
+      Trace("uf-ss-lemma") << "Totality distinctness lemma : " << lem
+                          << std::endl;
+      d_im.lemma(lem, LemmaProperty::NONE, false);
+    }
   }
   // must send totality axioms for each existing term
   for (NodeIntMap::iterator it = d_regions_map.begin();
