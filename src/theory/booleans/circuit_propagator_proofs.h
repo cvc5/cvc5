@@ -567,12 +567,13 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
     if (d_child == d_parent[0])
     {
       return mkResolution(mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)}),
-                          {d_child.negate()});
+                          {d_parent[0].notNode()});
     }
     else
     {
-      return mkNot(mkResolution(
-          mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)}), {d_child}));
+      return mkNot(
+          mkResolution(mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)}),
+                       {d_parent[1].notNode()}));
     }
   }
   std::shared_ptr<ProofNode> xorXFromY(bool negated)
