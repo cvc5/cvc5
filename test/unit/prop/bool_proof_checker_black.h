@@ -87,7 +87,6 @@ class BoolProofCheckerBlack : public CxxTest::TestSuite
     std::vector<Node> args{l0, l1};
     Node resChecker = d_checker->checkDebug(
         PfRule::CHAIN_RESOLUTION, children, args, Node::null(), "");
-    // std::cout << "\nResult of checker: " << resChecker << "\n";
     TS_ASSERT(res == resChecker);
   }
 };
