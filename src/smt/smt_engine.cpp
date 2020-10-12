@@ -1221,12 +1221,9 @@ Node SmtEngine::getValue(const Node& ex) const
 
   Trace("smt") << "--- getting value of " << n << endl;
   Model* m = getAvailableModel("get-value");
-  Node resultNode;
-  if (m != nullptr)
-  {
-    TheoryModel* tm = m->getTheoryModel();
-    resultNode = tm->getValue(n);
-  }
+  Assert (m != nullptr);
+  TheoryModel* tm = m->getTheoryModel();
+  Node resultNode = tm->getValue(n);
   Trace("smt") << "--- got value " << n << " = " << resultNode << endl;
   Trace("smt") << "--- type " << resultNode.getType() << endl;
   Trace("smt") << "--- expected type " << expectedType << endl;
@@ -1313,7 +1310,7 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
   // Get the model here, regardless of whether d_assignments is null, since
   // we should throw errors related to model availability whether or not
   // assignments is null.
-  TheoryModel* m = getAvailableModel("get assignment");
+  Model* m = getAvailableModel("get assignment");
 
   vector<pair<Expr,Expr>> res;
   if (d_assignments != nullptr)
@@ -1338,7 +1335,8 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
       Node resultNode;
       if (m != nullptr)
       {
-        resultNode = m->getValue(n);
+        TheoryModel * tm = m->getTheoryModel();
+        resultNode = tm->getValue(n);
       }
 
       // type-check the result we got
@@ -1380,7 +1378,7 @@ Model* SmtEngine::getModel() {
     // If we enabled model cores, we compute a model core for m based on our
     // (expanded) assertions using the model core builder utility
     std::vector<Node> eassertsProc = getExpandedAssertions();
-    ModelCoreBuilder::setModelCore(eassertsProc, m, options::modelCoresMode());
+    ModelCoreBuilder::setModelCore(eassertsProc, m->getTheoryModel(), options::modelCoresMode());
   }
   // set the information on the SMT-level model
   Assert(m != nullptr);

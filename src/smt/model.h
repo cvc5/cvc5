@@ -25,10 +25,12 @@
 #include "util/cardinality.h"
 
 namespace CVC4 {
+
+class SmtEngine;
+class NodeCommand;
+
 namespace smt {
 
-class NodeCommand;
-class SmtEngine;
 class Model;
 
 std::ostream& operator<<(std::ostream&, const Model&);
@@ -40,7 +42,7 @@ std::ostream& operator<<(std::ostream&, const Model&);
  */
 class Model {
   friend std::ostream& operator<<(std::ostream&, const Model&);
-  friend class SmtEngine;
+  friend class ::CVC4::SmtEngine;
  public:
   /** construct */
   Model(SmtEngine& smt, theory::TheoryModel* tm);
@@ -65,11 +67,13 @@ class Model {
   bool isKnownSat() const { return d_isKnownSat; }
   /** Get the underlying theory model */
   theory::TheoryModel* getTheoryModel();
-  //----------------------- helper methods
-  /**
-   * Is the node n a model core symbol?
-   */
-  bool isModelCoreSymbol(Node sym) const;
+  /** Get the underlying theory model (const version) */
+  const theory::TheoryModel* getTheoryModel() const;
+  //----------------------- helper methods in the underlying theory model
+  /** Is the node n a model core symbol? */
+  bool isModelCoreSymbol(TNode sym) const;
+  /** Get value */
+  Node getValue(TNode n) const;
   //----------------------- end helper methods
  protected:
   /** The SmtEngine we're associated with */

@@ -149,13 +149,12 @@ Node TheoryModel::getValue(TNode n) const
   return nn;
 }
 
-bool TheoryModel::isModelCoreSymbol(Node sym) const
+bool TheoryModel::isModelCoreSymbol(Node s) const
 {
   if (!d_using_model_core)
   {
     return true;
   }
-  Node s = Node::fromNode(sym);
   Assert(s.isVar() && s.getKind() != BOUND_VARIABLE);
   return d_model_core.find(s) != d_model_core.end();
 }
@@ -235,7 +234,7 @@ Node TheoryModel::getModelValue(TNode n) const
       Debug("model-getvalue-debug")
           << "get cardinality constraint " << ret[0].getType() << std::endl;
       ret = nm->mkConst(
-          getCardinality(ret[0].getType().toType()).getFiniteCardinality()
+          getCardinality(ret[0].getType()).getFiniteCardinality()
           <= ret[1].getConst<Rational>().getNumerator());
     }
     else if (ret.getKind() == kind::CARDINALITY_VALUE)
@@ -243,7 +242,7 @@ Node TheoryModel::getModelValue(TNode n) const
       Debug("model-getvalue-debug")
           << "get cardinality value " << ret[0].getType() << std::endl;
       ret = nm->mkConst(Rational(
-          getCardinality(ret[0].getType().toType()).getFiniteCardinality()));
+          getCardinality(ret[0].getType()).getFiniteCardinality()));
     }
     d_modelCache[n] = ret;
     return ret;
@@ -599,7 +598,7 @@ void TheoryModel::setUsingModelCore()
 
 void TheoryModel::recordModelCoreSymbol(Node sym)
 {
-  d_model_core.insert(Node::fromNode(sym));
+  d_model_core.insert(sym);
 }
 
 void TheoryModel::setUnevaluatedKind(Kind k) { d_unevaluated_kinds.insert(k); }

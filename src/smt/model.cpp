@@ -26,7 +26,7 @@
 namespace CVC4 {
 namespace smt {
 
-Model::Model(SmtEngine& smt, theory::TheoryModel* tm) : d_smt(smt), d_tmodel(tm)
+Model::Model(SmtEngine& smt, theory::TheoryModel* tm) : d_smt(smt), d_isKnownSat(false), d_tmodel(tm)
 {
   Assert(d_tmodel != nullptr);
 }
@@ -38,8 +38,6 @@ std::ostream& operator<<(std::ostream& out, const Model& m) {
   return out;
 }
 
-Model::Model() : d_smt(*smt::currentSmtEngine()), d_isKnownSat(false) {}
-
 size_t Model::getNumCommands() const
 {
   return d_smt.getDumpManager()->getNumModelCommands();
@@ -50,11 +48,20 @@ const NodeCommand* Model::getCommand(size_t i) const
   return d_smt.getDumpManager()->getModelCommand(i);
 }
 
-theory::TheoryModel* Model::getTheoryModel() { return d_tmodel; }
+theory::TheoryModel* Model::getTheoryModel()
+{
+  return d_tmodel;
+}
 
-bool Model::isModelCoreSymbol(Node sym) const
+const theory::TheoryModel* Model::getTheoryModel() const { return d_tmodel; }
+
+bool Model::isModelCoreSymbol(TNode sym) const
 {
   return d_tmodel->isModelCoreSymbol(sym);
+}
+Node Model::getValue(TNode n) const
+{
+  return d_tmodel->getValue(n);
 }
 
 }  // namespace smt

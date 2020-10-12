@@ -45,7 +45,7 @@ class Smt2Printer : public CVC4::Printer
                 bool types,
                 size_t dag) const override;
   void toStream(std::ostream& out, const CommandStatus* s) const override;
-  void toStream(std::ostream& out, const Model& m) const override;
+  void toStream(std::ostream& out, const smt::Model& m) const override;
   /**
    * Writes the unsat core to the stream out.
    * We use the expression names that are stored in the SMT engine associated
