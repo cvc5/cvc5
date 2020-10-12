@@ -139,6 +139,8 @@ class CircuitPropagator
   /** Set proof node manager */
   void setProofNodeManager(ProofNodeManager* pnm, context::Context* ctx);
 
+  void ensureClosed() const;
+
  private:
   /** A context-notify object that clears out stale data. */
   template <class T>
@@ -260,6 +262,7 @@ class CircuitPropagator
             Trace("circuit-prop") << "Adding proof " << *proof << std::endl
                                   << "\t" << proof->getResult() << std::endl;
             d_epg->setProofFor(expected, std::move(proof));
+            ensureClosed();
           }
         }
       }

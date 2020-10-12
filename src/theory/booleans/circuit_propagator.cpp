@@ -481,8 +481,27 @@ void CircuitPropagator::setProofNodeManager(ProofNodeManager* pnm,
                                             context::Context* ctx)
 {
   // TODO: this would enable proof production
-  // d_pnm = pnm;
-  // d_epg.reset(new EagerProofGenerator(pnm, ctx));
+  d_pnm = pnm;
+  d_epg.reset(new EagerProofGenerator(pnm, ctx));
+}
+
+void CircuitPropagator::ensureClosed() const
+{
+  if (!isProofEnabled()) return;
+  std::vector<Node> assumps;
+  for (const auto& tn : d_learnedLiterals)
+  {
+    if (tn.toProofNode()->getRule() != PfRule::ASSUME)
+    {
+      break;
+    }
+    assumps.emplace_back(tn.getProven());
+  }
+  pfgEnsureClosedWrt(d_propagationQueue.back(),
+                     d_epg.get(),
+                     assumps,
+                     "circuit-prop",
+                     "circuit-prop");
 }
 
 bool CircuitPropagator::isProofEnabled() const { return d_epg != nullptr; }
