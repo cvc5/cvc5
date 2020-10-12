@@ -120,6 +120,21 @@ struct CircuitPropagatorProver
     return n;
   }
 
+  /** (=> X false)  -->  (not X) */
+  std::shared_ptr<ProofNode> impliesXFromY(Node parent)
+  {
+    if (disabled()) return nullptr;
+    return mkResolution(mkProof(PfRule::IMPLIES_ELIM, {mkProof(parent)}),
+                        {parent[1]});
+  }
+  /** (=> true Y)  -->  Y */
+  std::shared_ptr<ProofNode> impliesYFromX(Node parent)
+  {
+    if (disabled()) return nullptr;
+    return mkResolution(mkProof(PfRule::IMPLIES_ELIM, {mkProof(parent)}),
+                        {parent[0].notNode()});
+  }
+
   std::shared_ptr<ProofNode> mkXorXFromY(bool negated, bool y, Node parent)
   {
     if (disabled()) return nullptr;
@@ -343,25 +358,15 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
     }
   }
 
-  std::shared_ptr<ProofNode> impTrue()
-  {
-    if (disabled()) return nullptr;
-    return mkResolution(mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)}),
-                        {d_parent[0].negate()});
-  }
-  std::shared_ptr<ProofNode> impFalse()
-  {
-    if (disabled()) return nullptr;
-    return mkResolution(mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)}),
-                        {d_parent[1]});
-  }
-  std::shared_ptr<ProofNode> impNegX()
+  /** (not (=> X Y))  -->  X */
+  std::shared_ptr<ProofNode> impliesNegX()
   {
     if (disabled()) return nullptr;
     return mkNot(
         mkProof(PfRule::NOT_IMPLIES_ELIM1, {mkProof(d_parent.notNode())}));
   }
-  std::shared_ptr<ProofNode> impNegY()
+  /** (not (=> X Y))  -->  (not Y) */
+  std::shared_ptr<ProofNode> impliesNegY()
   {
     if (disabled()) return nullptr;
     return mkNot(
@@ -545,7 +550,8 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
     }
   }
 
-  std::shared_ptr<ProofNode> impEval(bool premise, bool conclusion)
+  /** Evaluate (=> X Y) from X,Y */
+  std::shared_ptr<ProofNode> impliesEval(bool premise, bool conclusion)
   {
     if (disabled()) return nullptr;
     if (!premise)
@@ -560,21 +566,6 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
     }
     return mkResolution(mkProof(PfRule::CNF_IMPLIES_POS, {}, {d_parent}),
                         {d_parent[0].notNode(), d_parent[1]});
-  }
-  std::shared_ptr<ProofNode> impInverse()
-  {
-    if (disabled()) return nullptr;
-    if (d_child == d_parent[0])
-    {
-      return mkResolution(mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)}),
-                          {d_parent[0].notNode()});
-    }
-    else
-    {
-      return mkNot(
-          mkResolution(mkProof(PfRule::IMPLIES_ELIM, {mkProof(d_parent)}),
-                       {d_parent[1].notNode()}));
-    }
   }
   std::shared_ptr<ProofNode> xorXFromY(bool negated)
   {

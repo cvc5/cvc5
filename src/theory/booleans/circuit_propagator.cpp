@@ -197,16 +197,16 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment) {
     if (parentAssignment) {
       if (isAssignedTo(parent[0], true)) {
         // IMPLIES x y = TRUE, and x == TRUE: assign(y = TRUE)
-        assignAndEnqueue(parent[1], true, prover.impTrue());
+        assignAndEnqueue(parent[1], true, prover.impliesYFromX(parent));
       }
       if (isAssignedTo(parent[1], false)) {
         // IMPLIES x y = TRUE, and y == FALSE: assign(x = FALSE)
-        assignAndEnqueue(parent[0], false, prover.impFalse());
+        assignAndEnqueue(parent[0], false, prover.impliesXFromY(parent));
       }
     } else {
       // IMPLIES x y = FALSE: assign(x = TRUE) and assign(y = FALSE)
-      assignAndEnqueue(parent[0], true, prover.impNegX());
-      assignAndEnqueue(parent[1], false, prover.impNegY());
+      assignAndEnqueue(parent[0], true, prover.impliesNegX());
+      assignAndEnqueue(parent[1], false, prover.impliesNegY());
     }
     break;
   case kind::XOR:
@@ -372,18 +372,18 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
     case kind::IMPLIES:
       if (isAssigned(parent[0]) && isAssigned(parent[1])) {
         // IMPLIES (x=v1) (y=v2): assign(IMPLIES = (!v1 || v2))
-        assignAndEnqueue(
-            parent,
-            !getAssignment(parent[0]) || getAssignment(parent[1]),
-            prover.impEval(getAssignment(parent[0]), getAssignment(parent[1])));
+        assignAndEnqueue(parent,
+                         !getAssignment(parent[0]) || getAssignment(parent[1]),
+                         prover.impliesEval(getAssignment(parent[0]),
+                                            getAssignment(parent[1])));
       } else {
         if (child == parent[0] && childAssignment && isAssignedTo(parent, true)) {
           // IMPLIES (x=TRUE) y [with IMPLIES == TRUE]: assign(y = TRUE)
-          assignAndEnqueue(parent[1], true, prover.impInverse());
+          assignAndEnqueue(parent[1], true, prover.impliesYFromX(parent));
         }
         if (child == parent[1] && !childAssignment && isAssignedTo(parent, true)) {
           // IMPLIES x (y=FALSE) [with IMPLIES == TRUE]: assign(x = FALSE)
-          assignAndEnqueue(parent[0], false, prover.impInverse());
+          assignAndEnqueue(parent[0], false, prover.impliesXFromY(parent));
         }
         // Note that IMPLIES == FALSE doesn't need any cases here
         // because if that assignment has been done, we've already
