@@ -30,16 +30,20 @@ namespace smt {
 class NodeCommand;
 class SmtEngine;
 class Model;
-class TheoryModel;
 
 std::ostream& operator<<(std::ostream&, const Model&);
 
+/** 
+ * This is the SMT-level model object, that is responsible for maintaining
+ * the necessary information for how to print the model, as well as
+ * holding a pointer to the underlying implementation of the theory model.
+ */
 class Model {
   friend std::ostream& operator<<(std::ostream&, const Model&);
   friend class SmtEngine;
  public:
   /** construct */
-  Model(SmtEngine& smt, TheoryModel * tm);
+  Model(SmtEngine& smt, theory::TheoryModel * tm);
   /** virtual destructor */
   ~Model() { }
   /** get number of commands to report */
@@ -60,7 +64,13 @@ class Model {
    */
   bool isKnownSat() const { return d_isKnownSat; }
   /** Get the underlying theory model */
-  TheoryModel * getTheoryModel();
+  theory::TheoryModel * getTheoryModel();
+  //----------------------- helper methods
+  /** 
+   * Is the node n a model core symbol?
+   */
+  bool isModelCoreSymbol(Node sym) const;
+  //----------------------- end helper methods
  protected:
   /** The SmtEngine we're associated with */
   SmtEngine& d_smt;
@@ -72,10 +82,11 @@ class Model {
    */
   bool d_isKnownSat;
   /** 
-   * Pointer to the theory model
+   * Pointer to the underlying theory model, which maintains all data regarding
+   * the values of sorts and terms.
    */
-  TheoryModel * d_tmodel;
-};/* class Model */
+  theory::TheoryModel * d_tmodel;
+};
 
 }/* smt namespace */
 }/* CVC4 namespace */

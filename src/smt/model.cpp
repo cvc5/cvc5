@@ -21,14 +21,14 @@
 #include "smt/node_command.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
-
-using namespace std;
+#include "theory/theory_model.h"
 
 namespace CVC4 {
 namespace smt {
 
-Model::Model(SmtEngine& smt, TheoryModel * tm) : d_smt(smt), d_tmodel(tm)
+Model::Model(SmtEngine& smt, theory::TheoryModel * tm) : d_smt(smt), d_tmodel(tm)
 {
+  Assert (d_tmodel!=nullptr);
 }
 
 std::ostream& operator<<(std::ostream& out, const Model& m) {
@@ -50,9 +50,14 @@ const NodeCommand* Model::getCommand(size_t i) const
   return d_smt.getDumpManager()->getModelCommand(i);
 }
 
-TheoryModel * Model::getTheoryModel()
+theory::TheoryModel * Model::getTheoryModel()
 {
   return d_tmodel;
+}
+
+bool Model::isModelCoreSymbol(Node sym) const
+{
+  return d_tmodel->isModelCoreSymbol(sym);
 }
 
 }/* smt namespace */

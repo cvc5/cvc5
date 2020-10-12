@@ -60,7 +60,6 @@ class TheoryEngine;
 
 class ProofManager;
 
-class Model;
 class LogicRequest;
 class StatisticsRegistry;
 
@@ -95,6 +94,7 @@ namespace prop {
 
 namespace smt {
 /** Utilities */
+class Model;
 class SmtEngineState;
 class AbstractValues;
 class Assertions;
@@ -280,7 +280,7 @@ class CVC4_PUBLIC SmtEngine
    * Get the model (only if immediately preceded by a SAT or NOT_ENTAILED
    * query).  Only permitted if produce-models is on.
    */
-  Model* getModel();
+  smt::Model* getModel();
 
   /**
    * Block the current model. Can be called only if immediately preceded by
@@ -979,7 +979,7 @@ class CVC4_PUBLIC SmtEngine
    * The flag c is used for giving an error message to indicate the context
    * this method was called.
    */
-  Model* getAvailableModel(const char* c) const;
+  smt::Model* getAvailableModel(const char* c) const;
 
   // --------------------------------------- callbacks from the state
   /**
@@ -1089,8 +1089,12 @@ class CVC4_PUBLIC SmtEngine
 
   /** The (old) proof manager TODO (project #37): delete this */
   std::unique_ptr<ProofManager> d_proofManager;
-  /** The model */
-  std::unique_ptr<Model> d_model;
+  /** 
+   * The SMT-level model object, which contains information about how to
+   * print the model, as well as a pointer to the underlying TheoryModel
+   * implementation maintained by the SmtSolver.
+   */
+  std::unique_ptr<smt::Model> d_model;
 
   /**
    * The proof manager, which manages all things related to checking,

@@ -1323,7 +1323,7 @@ void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core) const
   out << ")" << endl;
 }/* Smt2Printer::toStream(UnsatCore, map<Expr, string>) */
 
-void Smt2Printer::toStream(std::ostream& out, const Model& m) const
+void Smt2Printer::toStream(std::ostream& out, const smt::Model& m) const
 {
   //print the model comments
   std::stringstream c;
@@ -1339,8 +1339,9 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m) const
   this->Printer::toStream(out, m);
   out << ")" << endl;
   //print the heap model, if it exists
-  Expr h, neq;
-  if( m.getHeapModel( h, neq ) ){
+  Node h, neq;
+  const theory::TheoryModel * tm = m.getTheoryModel();
+  if( tm->getHeapModel( h, neq ) ){
     // description of the heap+what nil is equal to fully describes model
     out << "(heap" << endl;
     out << h << endl;
@@ -1350,11 +1351,10 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m) const
 }
 
 void Smt2Printer::toStream(std::ostream& out,
-                           const Model& model,
+                           const smt::Model& model,
                            const NodeCommand* command) const
 {
-  const theory::TheoryModel* theory_model =
-      dynamic_cast<const theory::TheoryModel*>(&model);
+  const theory::TheoryModel* theory_model = model.getTheoryModel();
   AlwaysAssert(theory_model != nullptr);
   if (const DeclareTypeNodeCommand* dtc =
           dynamic_cast<const DeclareTypeNodeCommand*>(command))
