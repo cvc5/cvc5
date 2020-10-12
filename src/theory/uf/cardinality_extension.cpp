@@ -1304,7 +1304,7 @@ Node SortModel::getCardinalityLiteral(unsigned c)
     d_totalityTerms.push_back(var);
   }
   // must be distinct from all other cardinality terms
-  for (unsigned i = 1, size = d_totalityTerms.size(); i < size; i++)
+  for (size_t i = 1, size = d_totalityTerms.size(); i < size; i++)
   {
     Node lem = var.eqNode(d_totalityTerms[i - 1]).notNode();
     Trace("uf-ss-lemma") << "Totality distinctness lemma : " << lem

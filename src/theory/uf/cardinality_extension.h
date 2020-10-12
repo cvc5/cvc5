@@ -272,7 +272,7 @@ class CardinalityExtension
     /** cardinality lemma term */
     Node d_cardinality_term;
     /** cardinality totality terms */
-    std::map< int, std::vector< Node > > d_totality_terms;
+    std::vector< Node > d_totalityTerms;
     /** cardinality literals */
     std::map< int, Node > d_cardinality_literal;
     /** whether a positive cardinality constraint has been asserted */
