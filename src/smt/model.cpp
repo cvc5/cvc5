@@ -14,8 +14,6 @@
 
 #include "smt/model.h"
 
-#include <vector>
-
 #include "expr/expr_iomanip.h"
 #include "options/base_options.h"
 #include "printer/printer.h"
@@ -27,6 +25,11 @@
 using namespace std;
 
 namespace CVC4 {
+namespace smt {
+
+Model::Model(SmtEngine& smt, TheoryModel * tm) : d_smt(smt), d_tmodel(tm)
+{
+}
 
 std::ostream& operator<<(std::ostream& out, const Model& m) {
   smt::SmtScope smts(&m.d_smt);
@@ -47,4 +50,10 @@ const NodeCommand* Model::getCommand(size_t i) const
   return d_smt.getDumpManager()->getModelCommand(i);
 }
 
+TheoryModel * Model::getTheoryModel()
+{
+  return d_tmodel;
+}
+
+}/* smt namespace */
 }/* CVC4 namespace */
