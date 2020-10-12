@@ -49,9 +49,9 @@ void removeDuplicates(std::vector<T>& v)
 }
 }  // namespace
 
-CDCAC::CDCAC() {}
+CDCAC::CDCAC(ProofNodeManager* pnm) {}
 
-CDCAC::CDCAC(const std::vector<poly::Variable>& ordering)
+CDCAC::CDCAC(const std::vector<poly::Variable>& ordering, ProofNodeManager* pnm)
     : d_variableOrdering(ordering)
 {
 }
