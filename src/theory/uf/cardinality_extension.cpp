@@ -1154,7 +1154,7 @@ bool SortModel::applyTotality( int cardinality ){
 Node SortModel::getTotalityLemmaTerm(size_t i)
 {
   NodeManager* nm = NodeManager::currentNM();
-  while (d_totalityTerms.size()<=i)
+  while (d_totalityTerms.size() <= i)
   {
     Node var;
     if (i == 0 && !options::ufssTotalitySymBreak())
@@ -1173,7 +1173,7 @@ Node SortModel::getTotalityLemmaTerm(size_t i)
     {
       Node lem = var.eqNode(d_totalityTerms[i]).notNode();
       Trace("uf-ss-lemma") << "Totality distinctness lemma : " << lem
-                          << std::endl;
+                           << std::endl;
       d_im.lemma(lem, LemmaProperty::NONE, false);
     }
     d_totalityTerms.push_back(var);
