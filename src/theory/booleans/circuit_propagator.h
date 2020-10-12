@@ -20,6 +20,7 @@
 #define CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
 
 #include <functional>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 
@@ -28,6 +29,8 @@
 #include "context/cdo.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "expr/proof_generator.h"
+#include "expr/proof_node.h"
 #include "theory/eager_proof_generator.h"
 #include "theory/theory.h"
 #include "theory/trust_node.h"
@@ -84,7 +87,11 @@ class CircuitPropagator
 
   std::vector<TrustNode>& getLearnedLiterals() { return d_learnedLiterals; }
 
-  void finish() { d_context.pop(); }
+  void finish()
+  {
+    Trace("circuit-prop") << "FINISH" << std::endl;
+    d_context.pop();
+  }
 
   /** Assert for propagation */
   void assertTrue(TNode assertion);
@@ -130,7 +137,7 @@ class CircuitPropagator
     return false;
   }
   /** Set proof node manager */
-  void setProofNodeManager(ProofNodeManager* pnm);
+  void setProofNodeManager(ProofNodeManager* pnm, context::Context* ctx);
 
  private:
   /** A context-notify object that clears out stale data. */
@@ -195,7 +202,9 @@ class CircuitPropagator
    * Assign Node in circuit with the value and add it to the queue; note
    * conflicts.
    */
-  void assignAndEnqueue(TNode n, bool value)
+  void assignAndEnqueue(TNode n,
+                        bool value,
+                        std::shared_ptr<ProofNode> proof = nullptr)
   {
     Trace("circuit-prop") << "CircuitPropagator::assign(" << n << ", "
                           << (value ? "true" : "false") << ")" << std::endl;
@@ -227,6 +236,33 @@ class CircuitPropagator
       d_state[n] = value ? ASSIGNED_TO_TRUE : ASSIGNED_TO_FALSE;
       // Add for further propagation
       d_propagationQueue.push_back(n);
+
+      if (isProofEnabled())
+      {
+        if (n.getKind() != Kind::CONST_BOOLEAN)
+        {
+          if (proof == nullptr)
+          {
+            Warning() << "CircuitPropagator: Proof is missing for " << n
+                      << std::endl;
+            Assert(false);
+          }
+          else
+          {
+            Assert(!proof->getResult().isNull());
+            Node expected = value ? Node(n) : n.negate();
+            if (proof->getResult() != expected)
+            {
+              Warning() << "CircuitPropagator: Incorrect proof: " << expected
+                        << " vs. " << proof->getResult() << std::endl
+                        << *proof << std::endl;
+            }
+            Trace("circuit-prop") << "Adding proof " << *proof << std::endl
+                                  << "\t" << proof->getResult() << std::endl;
+            d_epg->setProofFor(expected, std::move(proof));
+          }
+        }
+      }
     }
   }
 
@@ -299,6 +335,15 @@ class CircuitPropagator
   /* Does the current state require a call to finish()? */
   bool d_needsFinish;
 
+  void addProof(TNode f, std::shared_ptr<ProofNode> pf)
+  {
+    if (isProofEnabled())
+    {
+      d_epg->setProofFor(f, std::move(pf));
+    }
+  }
+
+  ProofNodeManager* d_pnm;
   /** Eager proof generator */
   std::unique_ptr<EagerProofGenerator> d_epg;
 
