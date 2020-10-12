@@ -87,12 +87,7 @@ class InferenceManager : public InferenceManagerBuffered
   void addConflict(const Node& conf, InferenceId inftype);
 
   /** Add a conflict with a proof to this inference manager. */
-  void addTrustedConflict(const TrustNode& tconf, InferenceId inftype)
-  {
-    Trace("arith::infman") << "Adding conflict: " << inftype << " " << tconf
-                           << std::endl;
-    trustedConflict(tconf);
-  }
+  void addTrustedConflict(const TrustNode& tconf, InferenceId inftype);
 
   /**
    * Checks whether we have made any progress, that is whether a conflict,
