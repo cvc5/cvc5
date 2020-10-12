@@ -417,6 +417,39 @@ Node StringsPreprocess::reduce(Node t,
     // is just an optimization.
 
     retNode = stoit;
+  } 
+  else if (t.getKind() == kind::SEQ_NTH)
+  {
+    // str.nth(s,i) --->
+    //   ite(0<=i<=len(s), witness k. 0<=i<=len(s)->unit(k) = seq.at(s,i),
+    //   uf(s,i))
+    Node s = t[0];
+    Node i = t[1];
+    Node len = nm->mkNode(STRING_LENGTH, s);
+    Node cond =
+        nm->mkNode(AND, nm->mkNode(LEQ, d_zero, i), nm->mkNode(LT, i, len));
+    TypeNode elemType = s.getType().getSequenceElementType();
+    Node k = nm->mkBoundVar(elemType);
+    Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
+    std::vector<TypeNode> argTypes;
+    argTypes.push_back(s.getType());
+    argTypes.push_back(nm->integerType());
+    TypeNode ufType = nm->mkFunctionType(argTypes, elemType);
+    SkolemCache* sc = d_termReg.getSkolemCache();
+    Node uf = sc->mkTypedSkolemCached(
+        ufType, Node::null(), Node::null(), SkolemCache::SK_NTH, "Uf");
+    Node ret = nm->mkNode(
+        ITE,
+        cond,
+        nm->mkNode(WITNESS,
+                   bvl,
+                   nm->mkNode(IMPLIES,
+                              cond,
+                              nm->mkNode(SEQ_UNIT, k)
+                                  .eqNode(nm->mkNode(STRING_CHARAT, s, i)))),
+        nm->mkNode(APPLY_UF, uf, s, i));
+
+
   }
   else if (t.getKind() == kind::STRING_STRREPL)
   {
@@ -478,7 +511,7 @@ Node StringsPreprocess::reduce(Node t,
 
     // Thus, replace( x, y, z ) = rpw.
     retNode = rpw;
-  }
+  } 
   else if (t.getKind() == kind::STRING_STRREPLALL)
   {
     // processing term: replaceall( x, y, z )
