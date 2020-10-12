@@ -1153,7 +1153,31 @@ bool SortModel::applyTotality( int cardinality ){
 /** get totality lemma terms */
 Node SortModel::getTotalityLemmaTerm(size_t i)
 {
-  Assert(i < d_totalityTerms.size());
+  NodeManager* nm = NodeManager::currentNM();
+  while (d_totalityTerms.size()<=i)
+  {
+    Node var;
+    if (i == 0 && !options::ufssTotalitySymBreak())
+    {
+      // get arbitrary ground term
+      var = d_cardinality_term;
+    }
+    else
+    {
+      std::stringstream ss;
+      ss << "_c_" << i;
+      var = nm->mkSkolem(ss.str(), d_type, "is a cardinality lemma term");
+    }
+    // must be distinct from all other cardinality terms
+    for (size_t i = 0, size = d_totalityTerms.size(); i < size; i++)
+    {
+      Node lem = var.eqNode(d_totalityTerms[i]).notNode();
+      Trace("uf-ss-lemma") << "Totality distinctness lemma : " << lem
+                          << std::endl;
+      d_im.lemma(lem, LemmaProperty::NONE, false);
+    }
+    d_totalityTerms.push_back(var);
+  }
   return d_totalityTerms[i];
 }
 
@@ -1280,32 +1304,6 @@ Node SortModel::getCardinalityLiteral(unsigned c)
   {
     // return if we are not using totality axioms
     return lit;
-  }
-
-  NodeManager* nm = NodeManager::currentNM();
-  while (d_totalityTerms.size()<c)
-  {
-    Node var;
-    if (c == 1 && !options::ufssTotalitySymBreak())
-    {
-      // get arbitrary ground term
-      var = d_cardinality_term;
-    }
-    else
-    {
-      std::stringstream ss;
-      ss << "_c_" << c;
-      var = nm->mkSkolem(ss.str(), d_type, "is a cardinality lemma term");
-    }
-    d_totalityTerms.push_back(var);
-    // must be distinct from all other cardinality terms
-    for (size_t i = 1, size = d_totalityTerms.size(); i < size; i++)
-    {
-      Node lem = var.eqNode(d_totalityTerms[i - 1]).notNode();
-      Trace("uf-ss-lemma") << "Totality distinctness lemma : " << lem
-                          << std::endl;
-      d_im.lemma(lem, LemmaProperty::NONE, false);
-    }
   }
   // must send totality axioms for each existing term
   for (NodeIntMap::iterator it = d_regions_map.begin();
