@@ -127,6 +127,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_snmListener(new SmtNodeManagerListener(*d_dumpm.get(), d_outMgr)),
       d_smtSolver(nullptr),
       d_proofManager(nullptr),
+      d_model(nullptr),
       d_pfManager(nullptr),
       d_rewriter(new theory::Rewriter()),
       d_definedFunctions(nullptr),
@@ -270,6 +271,15 @@ void SmtEngine::finishInit()
 
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
   d_smtSolver->finishInit(const_cast<const LogicInfo&>(d_logic));
+  
+  // now can construct the SMT-level model object
+  TheoryEngine* te = d_smtSolver->getTheoryEngine();
+  Assert (te!=nullptr);
+  TheoryModel* tm = te->getModel();
+  if (tm!=nullptr)
+  {
+    d_model.reset(new Model(*this, tm));
+  }
 
   // global push/pop around everything, to ensure proper destruction
   // of context-dependent data structures
@@ -839,7 +849,7 @@ Result SmtEngine::quickCheck() {
       Result::ENTAILMENT_UNKNOWN, Result::REQUIRES_FULL_CHECK, filename);
 }
 
-theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
+Model* SmtEngine::getAvailableModel(const char* c) const
 {
   if (!options::assignFunctionValues())
   {
@@ -878,7 +888,7 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
     throw RecoverableModalException(ss.str().c_str());
   }
 
-  return m;
+  return d_model.get();
 }
 
 void SmtEngine::notifyPushPre() { d_smtSolver->processAssertions(*d_asserts); }
@@ -1210,10 +1220,11 @@ Node SmtEngine::getValue(const Node& ex) const
   }
 
   Trace("smt") << "--- getting value of " << n << endl;
-  TheoryModel* m = getAvailableModel("get-value");
+  Model * m = getAvailableModel("get-value");
   Node resultNode;
-  if(m != NULL) {
-    resultNode = m->getValue(n);
+  if(m != nullptr) {
+    TheoryModel * tm = m->getTheoryModel();
+    resultNode = tm->getValue(n);
   }
   Trace("smt") << "--- got value " << n << " = " << resultNode << endl;
   Trace("smt") << "--- type " << resultNode.getType() << endl;
@@ -1354,7 +1365,7 @@ Model* SmtEngine::getModel() {
         getOutputManager().getDumpOut());
   }
 
-  TheoryModel* m = getAvailableModel("get model");
+  Model * m = getAvailableModel("get model");
 
   // Since model m is being returned to the user, we must ensure that this
   // model object remains valid with future check-sat calls. Hence, we set
@@ -1370,6 +1381,8 @@ Model* SmtEngine::getModel() {
     std::vector<Node> eassertsProc = getExpandedAssertions();
     ModelCoreBuilder::setModelCore(eassertsProc, m, options::modelCoresMode());
   }
+  // set the information on the SMT-level model
+  Assert (m!=nullptr);
   m->d_inputName = d_state->getFilename();
   m->d_isKnownSat = (d_state->getMode() == SmtMode::SAT);
   return m;
@@ -1388,7 +1401,7 @@ Result SmtEngine::blockModel()
         getOutputManager().getDumpOut());
   }
 
-  TheoryModel* m = getAvailableModel("block model");
+  Model* m = getAvailableModel("block model");
 
   if (options::blockModelsMode() == options::BlockModelsMode::NONE)
   {
@@ -1400,7 +1413,7 @@ Result SmtEngine::blockModel()
   // get expanded assertions
   std::vector<Node> eassertsProc = getExpandedAssertions();
   Node eblocker = ModelBlocker::getModelBlocker(
-      eassertsProc, m, options::blockModelsMode());
+      eassertsProc, m->getTheoryModel(), options::blockModelsMode());
   return assertFormula(eblocker);
 }
 
@@ -1417,13 +1430,13 @@ Result SmtEngine::blockModelValues(const std::vector<Node>& exprs)
         getOutputManager().getDumpOut(), exprs);
   }
 
-  TheoryModel* m = getAvailableModel("block model values");
+  Model* m = getAvailableModel("block model values");
 
   // get expanded assertions
   std::vector<Node> eassertsProc = getExpandedAssertions();
   // we always do block model values mode here
   Node eblocker = ModelBlocker::getModelBlocker(
-      eassertsProc, m, options::BlockModelsMode::VALUES, exprs);
+      eassertsProc, m->getTheoryModel(), options::BlockModelsMode::VALUES, exprs);
   return assertFormula(eblocker);
 }
 
@@ -1437,16 +1450,17 @@ std::pair<Node, Node> SmtEngine::getSepHeapAndNilExpr(void)
     throw RecoverableModalException(msg);
   }
   NodeManagerScope nms(d_nodeManager);
-  Expr heap;
-  Expr nil;
+  Node heap;
+  Node nil;
   Model* m = getAvailableModel("get separation logic heap and nil");
-  if (!m->getHeapModel(heap, nil))
+  TheoryModel * tm = m->getTheoryModel();
+  if (!tm->getHeapModel(heap, nil))
   {
     InternalError()
         << "SmtEngine::getSepHeapAndNilExpr(): failed to obtain heap/nil "
            "expressions from theory model.";
   }
-  return std::make_pair(Node::fromExpr(heap), Node::fromExpr(nil));
+  return std::make_pair(heap, nil);
 }
 
 std::vector<Node> SmtEngine::getExpandedAssertions()
@@ -1544,11 +1558,13 @@ void SmtEngine::checkModel(bool hardFailure) {
   // and if Notice() is on, the user gave --verbose (or equivalent).
 
   Notice() << "SmtEngine::checkModel(): generating model" << endl;
-  TheoryModel* m = getAvailableModel("check model");
+  Model* m = getAvailableModel("check model");
+  Assert (m!=nullptr);
+  TheoryModel * tm = m->getTheoryModel();
 
   // check-model is not guaranteed to succeed if approximate values were used.
   // Thus, we intentionally abort here.
-  if (m->hasApproximations())
+  if (tm->hasApproximations())
   {
     throw RecoverableModalException(
         "Cannot run check-model on a model with approximate values.");
@@ -1585,7 +1601,7 @@ void SmtEngine::checkModel(bool hardFailure) {
       // the mapping: function symbol |-> value
 
       Node func = c->getFunction();
-      Node val = m->getValue(func);
+      Node val = tm->getValue(func);
 
       Notice() << "SmtEngine::checkModel(): adding substitution: " << func << " |-> " << val << endl;
 

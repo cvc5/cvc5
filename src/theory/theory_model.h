@@ -80,7 +80,7 @@ class TheoryModel
   friend class TheoryEngineModelBuilder;
 public:
   TheoryModel(context::Context* c, std::string name, bool enableFuncModels);
-  ~TheoryModel();
+  virtual ~TheoryModel();
   /**
    * Finish init, where ee is the equality engine the model should use.
    */

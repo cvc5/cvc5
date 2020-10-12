@@ -969,16 +969,17 @@ class CVC4_PUBLIC SmtEngine
   Result quickCheck();
 
   /**
-   * Get the model, if it is available and return a pointer to it
+   * Get the (SMT-level) model pointer, if we are in SAT mode. Otherwise,
+   * return nullptr.
    *
-   * This ensures that the model is currently available, which means that
-   * CVC4 is producing models, and is in "SAT mode", otherwise an exception
-   * is thrown.
+   * This ensures that the underlying theory model of the SmtSolver maintained
+   * by this class is currently available, which means that CVC4 is producing
+   * models, and is in "SAT mode", otherwise a recoverable exception is thrown.
    *
    * The flag c is used for giving an error message to indicate the context
    * this method was called.
    */
-  theory::TheoryModel* getAvailableModel(const char* c) const;
+  Model* getAvailableModel(const char* c) const;
 
   // --------------------------------------- callbacks from the state
   /**
@@ -1088,6 +1089,8 @@ class CVC4_PUBLIC SmtEngine
 
   /** The (old) proof manager TODO (project #37): delete this */
   std::unique_ptr<ProofManager> d_proofManager;
+  /** The model */
+  std::unique_ptr<Model> d_model;
 
   /**
    * The proof manager, which manages all things related to checking,
