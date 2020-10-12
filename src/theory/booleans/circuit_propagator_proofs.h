@@ -253,42 +253,24 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
           {c ? d_parent[0].notNode() : Node(d_parent[0])});
     }
   }
-  std::shared_ptr<ProofNode> iteIsX()
+  /**
+   * For (ite c t e), we can derive the value for c
+   * c = 1: c = true
+   * c = 0: c = false
+   */
+  std::shared_ptr<ProofNode> iteIsCase(unsigned c)
   {
     if (disabled()) return nullptr;
-    // ITE c x y = v: if c is unassigned, x and y are assigned, x==v and y!=v,
-    // assign(c = TRUE)
     if (d_parentAssignment)
     {
-      // Resolve(ITE_ELIM2 (or c y), !y) = c
       return mkResolution(mkProof(PfRule::ITE_ELIM2, {mkProof(d_parent)}),
-                          {d_parent[2]});
+                          {d_parent[c + 1]});
     }
     else
     {
-      // Resolve(NOT_ITE_ELIM2 (or c !y), y) = c
       return mkResolution(
           mkProof(PfRule::NOT_ITE_ELIM2, {mkProof(d_parent.notNode())}),
-          {d_parent[2]});
-    }
-  }
-  std::shared_ptr<ProofNode> iteIsY()
-  {
-    if (disabled()) return nullptr;
-    // ITE c x y = v: if c is unassigned, x and y are assigned, x!=v and y==v,
-    // assign(c = FALSE)
-    if (d_parentAssignment)
-    {
-      // Resolve(ITE_ELIM1 (or !c x), !x) = !c
-      return mkResolution(mkProof(PfRule::ITE_ELIM1, {mkProof(d_parent)}),
-                          {d_parent[1]});
-    }
-    else
-    {
-      // Resolve(NOT_ITE_ELIM2 (or !c !x), x) = !c
-      return mkResolution(
-          mkProof(PfRule::NOT_ITE_ELIM2, {mkProof(d_parent.notNode())}),
-          {d_parent[1]});
+          {d_parent[c + 1]});
     }
   }
 

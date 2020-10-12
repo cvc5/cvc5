@@ -160,10 +160,10 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment) {
     } else if (isAssigned(parent[1]) && isAssigned(parent[2])) {
       if (getAssignment(parent[1]) == parentAssignment && getAssignment(parent[2]) != parentAssignment) {
         // ITE c x y = v: if c is unassigned, x and y are assigned, x==v and y!=v, assign(c = TRUE)
-        assignAndEnqueue(parent[0], true, prover.iteIsX());
+        assignAndEnqueue(parent[0], true, prover.iteIsCase(1));
       } else if (getAssignment(parent[1]) != parentAssignment && getAssignment(parent[2]) == parentAssignment) {
         // ITE c x y = v: if c is unassigned, x and y are assigned, x!=v and y==v, assign(c = FALSE)
-        assignAndEnqueue(parent[0], false, prover.iteIsY());
+        assignAndEnqueue(parent[0], false, prover.iteIsCase(0));
       }
     }
     break;
