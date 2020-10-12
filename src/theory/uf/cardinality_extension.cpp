@@ -1283,24 +1283,20 @@ Node SortModel::getCardinalityLiteral(unsigned c)
   }
 
   NodeManager* nm = NodeManager::currentNM();
-  Node var;
-  if (c == 1 && !options::ufssTotalitySymBreak())
+  while (d_totalityTerms.size()<c)
   {
-    // get arbitrary ground term
-    var = d_cardinality_term;
-  }
-  else
-  {
-    std::stringstream ss;
-    ss << "_c_" << c;
-    var = nm->mkSkolem(ss.str(), d_type, "is a cardinality lemma term");
-  }
-  if ((c - 1) < d_totalityTerms.size())
-  {
-    d_totalityTerms[c - 1] = var;
-  }
-  else
-  {
+    Node var;
+    if (c == 1 && !options::ufssTotalitySymBreak())
+    {
+      // get arbitrary ground term
+      var = d_cardinality_term;
+    }
+    else
+    {
+      std::stringstream ss;
+      ss << "_c_" << c;
+      var = nm->mkSkolem(ss.str(), d_type, "is a cardinality lemma term");
+    }
     d_totalityTerms.push_back(var);
   }
   // must be distinct from all other cardinality terms
