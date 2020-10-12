@@ -165,7 +165,7 @@ std::map<std::pair<int64_t, int64_t>, uint64_t> IAndTable::getAndTable(
       for (uint64_t n = 0; n < granularity; n++)
       {
         // b is the result of f on the current bit
-        bool b = (oneBitAnd)((((i >> n) & 1) == 1), (((j >> n) & 1) == 1));
+        bool b = oneBitAnd((((i >> n) & 1) == 1), (((j >> n) & 1) == 1));
         // add the corresponding power of 2 only if the result is 1
         if (b)
         {
@@ -177,7 +177,7 @@ std::map<std::pair<int64_t, int64_t>, uint64_t> IAndTable::getAndTable(
   }
   // optimize the table by identifying and adding the default value
   addDefaultValue(table, num_of_values);
-  Assert(table.size() == 1 + ((uint64_t)(num_of_values * num_of_values)));
+  Assert(table.size() == 1 + (static_cast<uint64_t>(num_of_values * num_of_values)));
   // store the table in the cache and return it
   d_bvandTable[granularity] = table;
   return table;
@@ -193,7 +193,7 @@ void IAndTable::addDefaultValue(
   {
     counters[i] = 0;
   }
-  for (std::pair<std::pair<int64_t, int64_t>, uint64_t> element : table)
+  for (const std::pair<std::pair<int64_t, int64_t>, uint64_t>& element : table)
   {
     uint64_t result = element.second;
     counters[result]++;
