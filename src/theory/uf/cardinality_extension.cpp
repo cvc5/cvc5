@@ -22,14 +22,9 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/theory_model.h"
 
-//#define ONE_SPLIT_REGION
-//#define COMBINE_REGIONS_SMALL_INTO_LARGE
-//#define LAZY_REL_EQC
-
 using namespace std;
 using namespace CVC4::kind;
 using namespace CVC4::context;
-
 
 namespace CVC4 {
 namespace theory {
@@ -517,40 +512,21 @@ void SortModel::newEqClass( Node n ){
   if (!d_state.isInConflict())
   {
     if( d_regions_map.find( n )==d_regions_map.end() ){
-      // Must generate totality axioms for every cardinality we have
-      // allocated thus far.
-      for( std::map< int, Node >::iterator it = d_cardinality_literal.begin();
-           it != d_cardinality_literal.end(); ++it ){
-        if( applyTotality( it->first ) ){
-          addTotalityAxiom(n, it->first);
-        }
-      }
-      if( options::ufssTotality() ){
-        // Regions map will store whether we need to equate this term
-        // with a constant equivalence class.
-        if (std::find(d_totalityTerms.begin(), d_totalityTerms.end(), n)
-            == d_totalityTerms.end())
-        {
-          d_regions_map[n] = 0;
-        }else{
-          d_regions_map[n] = -1;
-        }
+      d_regions_map[n] = d_regions_index;
+      Debug("uf-ss") << "CardinalityExtension: New Eq Class " << n
+                      << std::endl;
+      Debug("uf-ss-debug") << d_regions_index << " "
+                            << (int)d_regions.size() << std::endl;
+      if( d_regions_index<d_regions.size() ){
+        d_regions[ d_regions_index ]->debugPrint("uf-ss-debug",true);
+        d_regions[ d_regions_index ]->setValid(true);
+        Assert(d_regions[d_regions_index]->getNumReps() == 0);
       }else{
-        d_regions_map[n] = d_regions_index;
-        Debug("uf-ss") << "CardinalityExtension: New Eq Class " << n
-                       << std::endl;
-        Debug("uf-ss-debug") << d_regions_index << " "
-                             << (int)d_regions.size() << std::endl;
-        if( d_regions_index<d_regions.size() ){
-          d_regions[ d_regions_index ]->debugPrint("uf-ss-debug",true);
-          d_regions[ d_regions_index ]->setValid(true);
-          Assert(d_regions[d_regions_index]->getNumReps() == 0);
-        }else{
-          d_regions.push_back(new Region(this, d_state.getSatContext()));
-        }
-        d_regions[ d_regions_index ]->addRep( n );
-        d_regions_index = d_regions_index + 1;
+        d_regions.push_back(new Region(this, d_state.getSatContext()));
       }
+      d_regions[ d_regions_index ]->addRep( n );
+      d_regions_index = d_regions_index + 1;
+      
       d_reps = d_reps + 1;
     }
   }
@@ -702,7 +678,7 @@ void SortModel::check(Theory::Effort level)
       //first check if we can generate a clique conflict
       if( !options::ufssTotality() ){
         //do a check within each region
-        for( int i=0; i<(int)d_regions_index; i++ ){
+        for( size_t i=0; i<d_regions_index; i++ ){
           if( d_regions[i]->valid() ){
             std::vector< Node > clique;
             if( d_regions[i]->check( level, d_cardinality, clique ) ){
@@ -715,71 +691,66 @@ void SortModel::check(Theory::Effort level)
           }
         }
       }
-      if( !applyTotality( d_cardinality ) ){
-        //do splitting on demand
-        bool addedLemma = false;
-        if (level==Theory::EFFORT_FULL)
-        {
-          Trace("uf-ss-debug") << "Add splits?" << std::endl;
-          //see if we have any recommended splits from large regions
-          for( int i=0; i<(int)d_regions_index; i++ ){
-            if( d_regions[i]->valid() && d_regions[i]->getNumReps()>d_cardinality ){
-              int sp = addSplit(d_regions[i]);
-              if( sp==1 ){
-                addedLemma = true;
-#ifdef ONE_SPLIT_REGION
-                break;
-#endif
-              }else if( sp==-1 ){
-                check(level);
-                return;
-              }
+      //do splitting on demand
+      bool addedLemma = false;
+      if (level==Theory::EFFORT_FULL)
+      {
+        Trace("uf-ss-debug") << "Add splits?" << std::endl;
+        //see if we have any recommended splits from large regions
+        for( size_t i=0; i<d_regions_index; i++ ){
+          if( d_regions[i]->valid() && d_regions[i]->getNumReps()>d_cardinality ){
+            int sp = addSplit(d_regions[i]);
+            if( sp==1 ){
+              addedLemma = true;
+            }else if( sp==-1 ){
+              check(level);
+              return;
             }
           }
         }
-        //If no added lemmas, force continuation via combination of regions.
-        if( level==Theory::EFFORT_FULL ){
-          if( !addedLemma ){
-            Trace("uf-ss-debug") << "No splits added. " << d_cardinality
-                                 << std::endl;
-            Trace("uf-ss-si")  << "Must combine region" << std::endl;
-            bool recheck = false;
-            SortInference* si = d_thss->getSortInference();
-            if (si != nullptr)
-            {
-              //If sort inference is enabled, search for regions with same sort.
-              std::map< int, int > sortsFound;
-              for( int i=0; i<(int)d_regions_index; i++ ){
-                if( d_regions[i]->valid() ){
-                  Node op = d_regions[i]->frontKey();
-                  int sort_id = si->getSortId(op);
-                  if( sortsFound.find( sort_id )!=sortsFound.end() ){
-                    Debug("fmf-full-check") << "Combined regions " << i << " " << sortsFound[sort_id] << std::endl;
-                    combineRegions( sortsFound[sort_id], i );
-                    recheck = true;
-                    break;
-                  }else{
-                    sortsFound[sort_id] = i;
-                  }
-                }
-              }
-            }
-            if( !recheck ) {
-              //naive strategy, force region combination involving the first valid region
-              for( int i=0; i<(int)d_regions_index; i++ ){
-                if( d_regions[i]->valid() ){
-                  int fcr = forceCombineRegion( i, false );
-                  Debug("fmf-full-check") << "Combined regions " << i << " " << fcr << std::endl;
-                  Trace("uf-ss-debug") << "Combined regions " << i << " " << fcr << std::endl;
+      }
+      //If no added lemmas, force continuation via combination of regions.
+      if( level==Theory::EFFORT_FULL ){
+        if( !addedLemma ){
+          Trace("uf-ss-debug") << "No splits added. " << d_cardinality
+                                << std::endl;
+          Trace("uf-ss-si")  << "Must combine region" << std::endl;
+          bool recheck = false;
+          SortInference* si = d_thss->getSortInference();
+          if (si != nullptr)
+          {
+            //If sort inference is enabled, search for regions with same sort.
+            std::map< int, int > sortsFound;
+            for( size_t i=0; i<d_regions_index; i++ ){
+              if( d_regions[i]->valid() ){
+                Node op = d_regions[i]->frontKey();
+                int sort_id = si->getSortId(op);
+                if( sortsFound.find( sort_id )!=sortsFound.end() ){
+                  Debug("fmf-full-check") << "Combined regions " << i << " " << sortsFound[sort_id] << std::endl;
+                  combineRegions( sortsFound[sort_id], i );
                   recheck = true;
                   break;
+                }else{
+                  sortsFound[sort_id] = i;
                 }
               }
             }
-            if( recheck ){
-              Trace("uf-ss-debug") << "Must recheck." << std::endl;
-              check(level);
+          }
+          if( !recheck ) {
+            //naive strategy, force region combination involving the first valid region
+            for( size_t i=0; i<d_regions_index; i++ ){
+              if( d_regions[i]->valid() ){
+                int fcr = forceCombineRegion( i, false );
+                Debug("fmf-full-check") << "Combined regions " << i << " " << fcr << std::endl;
+                Trace("uf-ss-debug") << "Combined regions " << i << " " << fcr << std::endl;
+                recheck = true;
+                break;
+              }
             }
+          }
+          if( recheck ){
+            Trace("uf-ss-debug") << "Must recheck." << std::endl;
+            check(level);
           }
         }
       }
@@ -962,11 +933,6 @@ int SortModel::forceCombineRegion( int ri, bool useDensity ){
 
 
 int SortModel::combineRegions( int ai, int bi ){
-#ifdef COMBINE_REGIONS_SMALL_INTO_LARGE
-  if( d_regions[ai]->getNumReps()<d_regions[bi]->getNumReps() ){
-    return combineRegions( bi, ai );
-  }
-#endif
   Debug("uf-ss-region") << "uf-ss: Combine Region #" << bi << " with Region #" << ai << std::endl;
   Assert(isValid(ai) && isValid(bi));
   Region* region_bi = d_regions[bi];
@@ -1080,107 +1046,6 @@ void SortModel::addCliqueLemma(std::vector<Node>& clique)
   }
 }
 
-void SortModel::addTotalityAxiom(Node n, size_t cardinality)
-{
-  if (std::find(d_totalityTerms.begin(), d_totalityTerms.end(), n)
-      == d_totalityTerms.end())
-  {
-    if( std::find( d_totality_lems[n].begin(), d_totality_lems[n].end(), cardinality ) == d_totality_lems[n].end() ){
-      NodeManager* nm = NodeManager::currentNM();
-      d_totality_lems[n].push_back( cardinality );
-      Node cardLit = d_cardinality_literal[ cardinality ];
-      int sort_id = 0;
-      SortInference* si = d_thss->getSortInference();
-      if (si != nullptr)
-      {
-        sort_id = si->getSortId(n);
-      }
-      Trace("uf-ss-totality") << "Add totality lemma for " << n << " " << cardinality << ", sort id is " << sort_id << std::endl;
-      size_t use_cardinality = cardinality;
-      if( options::ufssTotalitySymBreak() ){
-        TypeNode tn = n.getType();
-        std::vector<Node>& sbts = d_sym_break_terms[tn][sort_id];
-        if( d_sym_break_index.find(n)!=d_sym_break_index.end() ){
-          use_cardinality = d_sym_break_index[n];
-        }
-        else if (sbts.size() + 1 < cardinality)
-        {
-          use_cardinality = sbts.size() + 1;
-          sbts.push_back(n);
-          d_sym_break_index[n] = use_cardinality;
-          Trace("uf-ss-totality") << "Allocate symmetry breaking term " << n << ", index = " << use_cardinality << std::endl;
-          if (sbts.size() > 1)
-          {
-            //enforce canonicity
-            for (size_t i = 2; i < use_cardinality; i++)
-            {
-              //can only be assigned to domain constant d if someone has been assigned domain constant d-1
-              Node eq = n.eqNode(getTotalityLemmaTerm(i));
-              std::vector< Node > eqs;
-              for (size_t j = 0; j < (sbts.size() - 1); j++)
-              {
-                eqs.push_back(sbts[j].eqNode(getTotalityLemmaTerm(i - 1)));
-              }
-              Node ax = eqs.size()==1 ? eqs[0] : NodeManager::currentNM()->mkNode( OR, eqs );
-              Node lem = NodeManager::currentNM()->mkNode( IMPLIES, eq, ax );
-              Trace("uf-ss-lemma") << "*** Add (canonicity) totality axiom " << lem << std::endl;
-              d_im.lemma(lem, LemmaProperty::NONE, false);
-            }
-          }
-        }
-      }
-
-      std::vector< Node > eqs;
-      for (size_t i = 0; i < use_cardinality; i++)
-      {
-        eqs.push_back(n.eqNode(getTotalityLemmaTerm(i)));
-      }
-      Node ax = eqs.size() == 1 ? eqs[0] : nm->mkNode(OR, eqs);
-      Node lem = NodeManager::currentNM()->mkNode( IMPLIES, cardLit, ax );
-      Trace("uf-ss-lemma") << "*** Add totality axiom " << lem << std::endl;
-      //send as lemma to the output channel
-      d_im.lemma(lem, LemmaProperty::NONE, false);
-      ++( d_thss->d_statistics.d_totality_lemmas );
-    }
-  }
-}
-
-/** apply totality */
-bool SortModel::applyTotality( int cardinality ){
-  return options::ufssTotality() || cardinality<=options::ufssTotalityLimited();
-}
-
-/** get totality lemma terms */
-Node SortModel::getTotalityLemmaTerm(size_t i)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  while (d_totalityTerms.size() <= i)
-  {
-    Node var;
-    if (i == 0 && !options::ufssTotalitySymBreak())
-    {
-      // get arbitrary ground term
-      var = d_cardinality_term;
-    }
-    else
-    {
-      std::stringstream ss;
-      ss << "_c_" << i;
-      var = nm->mkSkolem(ss.str(), d_type, "is a cardinality lemma term");
-    }
-    // must be distinct from all other cardinality terms
-    for (size_t i = 0, size = d_totalityTerms.size(); i < size; i++)
-    {
-      Node lem = var.eqNode(d_totalityTerms[i]).notNode();
-      Trace("uf-ss-lemma") << "Totality distinctness lemma : " << lem
-                           << std::endl;
-      d_im.lemma(lem, LemmaProperty::NONE, false);
-    }
-    d_totalityTerms.push_back(var);
-  }
-  return d_totalityTerms[i];
-}
-
 void SortModel::simpleCheckCardinality() {
   if( d_maxNegCard.get()!=0 && d_hasCard.get() && d_cardinality.get()<d_maxNegCard.get() ){
     Node lem = NodeManager::currentNM()->mkNode( AND, getCardinalityLiteral( d_cardinality.get() ),
@@ -1287,10 +1152,10 @@ int SortModel::getNumRegions(){
   return count;
 }
 
-Node SortModel::getCardinalityLiteral(unsigned c)
+Node SortModel::getCardinalityLiteral(size_t c)
 {
   Assert(c > 0);
-  std::map<int, Node>::iterator itcl = d_cardinality_literal.find(c);
+  std::map<size_t, Node>::iterator itcl = d_cardinality_literal.find(c);
   if (itcl != d_cardinality_literal.end())
   {
     return itcl->second;
@@ -1299,19 +1164,7 @@ Node SortModel::getCardinalityLiteral(unsigned c)
   Node lit = d_c_dec_strat->getLiteral(c - 1);
   d_cardinality_literal[c] = lit;
 
-  // Since we are reasoning about cardinality c, we invoke a totality axiom
-  if (!applyTotality(c))
-  {
-    // return if we are not using totality axioms
-    return lit;
-  }
-  // must send totality axioms for each existing term
-  for (NodeIntMap::iterator it = d_regions_map.begin();
-       it != d_regions_map.end();
-       ++it)
-  {
-    addTotalityAxiom((*it).first, c);
-  }
+  // return the literal
   return lit;
 }
 
@@ -1399,15 +1252,11 @@ void CardinalityExtension::newEqClass(Node a)
 {
   SortModel* c = getSortModel( a );
   if( c ){
-#ifdef LAZY_REL_EQC
-    //do nothing
-#else
     Trace("uf-ss-solver") << "CardinalityExtension: New eq class " << a << " : "
                           << a.getType() << std::endl;
     c->newEqClass( a );
     Trace("uf-ss-solver") << "CardinalityExtension: Done New eq class."
                           << std::endl;
-#endif
   }
 }
 
@@ -1417,23 +1266,10 @@ void CardinalityExtension::merge(Node a, Node b)
   //TODO: ensure they are relevant
   SortModel* c = getSortModel( a );
   if( c ){
-#ifdef LAZY_REL_EQC
-    ensureEqc( c, a );
-    if( hasEqc( b ) ){
-      Trace("uf-ss-solver") << "CardinalityExtension: Merge " << a << " " << b
-                            << " : " << a.getType() << std::endl;
-      c->merge( a, b );
-      Trace("uf-ss-solver") << "CardinalityExtension: Done Merge." << std::endl;
-    }else{
-      //c->assignEqClass( b, a );
-      d_rel_eqc[b] = true;
-    }
-#else
     Trace("uf-ss-solver") << "CardinalityExtension: Merge " << a << " " << b
                           << " : " << a.getType() << std::endl;
     c->merge( a, b );
     Trace("uf-ss-solver") << "CardinalityExtension: Done Merge." << std::endl;
-#endif
   }
 }
 
@@ -1442,10 +1278,6 @@ void CardinalityExtension::assertDisequal(Node a, Node b, Node reason)
 {
   SortModel* c = getSortModel( a );
   if( c ){
-#ifdef LAZY_REL_EQC
-    ensureEqc( c, a );
-    ensureEqc( c, b );
-#endif
     Trace("uf-ss-solver") << "CardinalityExtension: Assert disequal " << a
                           << " " << b << " : " << a.getType() << std::endl;
     c->assertDisequal( a, b, reason );
@@ -1458,9 +1290,6 @@ void CardinalityExtension::assertDisequal(Node a, Node b, Node reason)
 void CardinalityExtension::assertNode(Node n, bool isDecision)
 {
   Trace("uf-ss") << "Assert " << n << " " << isDecision << std::endl;
-#ifdef LAZY_REL_EQC
-  ensureEqcRec( n );
-#endif
   bool polarity = n.getKind() != kind::NOT;
   TNode lit = polarity ? n : n[0];
   if (options::ufssMode() == options::UfssMode::FULL)
@@ -1868,15 +1697,11 @@ CardinalityExtension::Statistics::Statistics()
     : d_clique_conflicts("CardinalityExtension::Clique_Conflicts", 0),
       d_clique_lemmas("CardinalityExtension::Clique_Lemmas", 0),
       d_split_lemmas("CardinalityExtension::Split_Lemmas", 0),
-      d_disamb_term_lemmas("CardinalityExtension::Disambiguate_Term_Lemmas", 0),
-      d_totality_lemmas("CardinalityExtension::Totality_Lemmas", 0),
       d_max_model_size("CardinalityExtension::Max_Model_Size", 1)
 {
   smtStatisticsRegistry()->registerStat(&d_clique_conflicts);
   smtStatisticsRegistry()->registerStat(&d_clique_lemmas);
   smtStatisticsRegistry()->registerStat(&d_split_lemmas);
-  smtStatisticsRegistry()->registerStat(&d_disamb_term_lemmas);
-  smtStatisticsRegistry()->registerStat(&d_totality_lemmas);
   smtStatisticsRegistry()->registerStat(&d_max_model_size);
 }
 
@@ -1885,8 +1710,6 @@ CardinalityExtension::Statistics::~Statistics()
   smtStatisticsRegistry()->unregisterStat(&d_clique_conflicts);
   smtStatisticsRegistry()->unregisterStat(&d_clique_lemmas);
   smtStatisticsRegistry()->unregisterStat(&d_split_lemmas);
-  smtStatisticsRegistry()->unregisterStat(&d_disamb_term_lemmas);
-  smtStatisticsRegistry()->unregisterStat(&d_totality_lemmas);
   smtStatisticsRegistry()->unregisterStat(&d_max_model_size);
 }
 

@@ -1,5 +1,4 @@
 (set-logic UFC)
-(set-option :uf-ss-totality true)
 (set-info :status sat)
 (declare-sort a 0)
 (declare-fun b () a)
