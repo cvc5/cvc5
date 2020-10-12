@@ -115,20 +115,6 @@ using namespace CVC4::theory;
 
 namespace CVC4 {
 
-// !!! Temporary until commands are migrated to the new API !!!
-std::vector<Node> exprVectorToNodes(const std::vector<Expr>& exprs)
-{
-  std::vector<Node> nodes;
-  nodes.reserve(exprs.size());
-
-  for (Expr e : exprs)
-  {
-    nodes.push_back(Node::fromExpr(e));
-  }
-
-  return nodes;
-}
-
 SmtEngine::SmtEngine(ExprManager* em, Options* optr)
     : d_state(new SmtEngineState(*this)),
       d_exprManager(em),
