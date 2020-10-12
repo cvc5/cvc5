@@ -513,20 +513,20 @@ void SortModel::newEqClass( Node n ){
   {
     if( d_regions_map.find( n )==d_regions_map.end() ){
       d_regions_map[n] = d_regions_index;
-      Debug("uf-ss") << "CardinalityExtension: New Eq Class " << n
-                      << std::endl;
-      Debug("uf-ss-debug") << d_regions_index << " "
-                            << (int)d_regions.size() << std::endl;
-      if( d_regions_index<d_regions.size() ){
-        d_regions[ d_regions_index ]->debugPrint("uf-ss-debug",true);
-        d_regions[ d_regions_index ]->setValid(true);
+      Debug("uf-ss") << "CardinalityExtension: New Eq Class " << n << std::endl;
+      Debug("uf-ss-debug") << d_regions_index << " " << (int)d_regions.size()
+                           << std::endl;
+      if (d_regions_index < d_regions.size())
+      {
+        d_regions[d_regions_index]->debugPrint("uf-ss-debug", true);
+        d_regions[d_regions_index]->setValid(true);
         Assert(d_regions[d_regions_index]->getNumReps() == 0);
       }else{
         d_regions.push_back(new Region(this, d_state.getSatContext()));
       }
-      d_regions[ d_regions_index ]->addRep( n );
+      d_regions[d_regions_index]->addRep(n);
       d_regions_index = d_regions_index + 1;
-      
+
       d_reps = d_reps + 1;
     }
   }
@@ -678,7 +678,8 @@ void SortModel::check(Theory::Effort level)
       //first check if we can generate a clique conflict
       if( !options::ufssTotality() ){
         //do a check within each region
-        for( size_t i=0; i<d_regions_index; i++ ){
+        for (size_t i = 0; i < d_regions_index; i++)
+        {
           if( d_regions[i]->valid() ){
             std::vector< Node > clique;
             if( d_regions[i]->check( level, d_cardinality, clique ) ){
@@ -691,64 +692,85 @@ void SortModel::check(Theory::Effort level)
           }
         }
       }
-      //do splitting on demand
+      // do splitting on demand
       bool addedLemma = false;
-      if (level==Theory::EFFORT_FULL)
+      if (level == Theory::EFFORT_FULL)
       {
         Trace("uf-ss-debug") << "Add splits?" << std::endl;
-        //see if we have any recommended splits from large regions
-        for( size_t i=0; i<d_regions_index; i++ ){
-          if( d_regions[i]->valid() && d_regions[i]->getNumReps()>d_cardinality ){
+        // see if we have any recommended splits from large regions
+        for (size_t i = 0; i < d_regions_index; i++)
+        {
+          if (d_regions[i]->valid()
+              && d_regions[i]->getNumReps() > d_cardinality)
+          {
             int sp = addSplit(d_regions[i]);
-            if( sp==1 ){
+            if (sp == 1)
+            {
               addedLemma = true;
-            }else if( sp==-1 ){
+            }
+            else if (sp == -1)
+            {
               check(level);
               return;
             }
           }
         }
       }
-      //If no added lemmas, force continuation via combination of regions.
-      if( level==Theory::EFFORT_FULL ){
-        if( !addedLemma ){
-          Trace("uf-ss-debug") << "No splits added. " << d_cardinality
-                                << std::endl;
-          Trace("uf-ss-si")  << "Must combine region" << std::endl;
+      // If no added lemmas, force continuation via combination of regions.
+      if (level == Theory::EFFORT_FULL)
+      {
+        if (!addedLemma)
+        {
+          Trace("uf-ss-debug")
+              << "No splits added. " << d_cardinality << std::endl;
+          Trace("uf-ss-si") << "Must combine region" << std::endl;
           bool recheck = false;
           SortInference* si = d_thss->getSortInference();
           if (si != nullptr)
           {
-            //If sort inference is enabled, search for regions with same sort.
-            std::map< int, int > sortsFound;
-            for( size_t i=0; i<d_regions_index; i++ ){
-              if( d_regions[i]->valid() ){
+            // If sort inference is enabled, search for regions with same sort.
+            std::map<int, int> sortsFound;
+            for (size_t i = 0; i < d_regions_index; i++)
+            {
+              if (d_regions[i]->valid())
+              {
                 Node op = d_regions[i]->frontKey();
                 int sort_id = si->getSortId(op);
-                if( sortsFound.find( sort_id )!=sortsFound.end() ){
-                  Debug("fmf-full-check") << "Combined regions " << i << " " << sortsFound[sort_id] << std::endl;
-                  combineRegions( sortsFound[sort_id], i );
+                if (sortsFound.find(sort_id) != sortsFound.end())
+                {
+                  Debug("fmf-full-check") << "Combined regions " << i << " "
+                                          << sortsFound[sort_id] << std::endl;
+                  combineRegions(sortsFound[sort_id], i);
                   recheck = true;
                   break;
-                }else{
+                }
+                else
+                {
                   sortsFound[sort_id] = i;
                 }
               }
             }
           }
-          if( !recheck ) {
-            //naive strategy, force region combination involving the first valid region
-            for( size_t i=0; i<d_regions_index; i++ ){
-              if( d_regions[i]->valid() ){
-                int fcr = forceCombineRegion( i, false );
-                Debug("fmf-full-check") << "Combined regions " << i << " " << fcr << std::endl;
-                Trace("uf-ss-debug") << "Combined regions " << i << " " << fcr << std::endl;
+          if (!recheck)
+          {
+            // naive strategy, force region combination involving the first
+            // valid region
+            for (size_t i = 0; i < d_regions_index; i++)
+            {
+              if (d_regions[i]->valid())
+              {
+                int fcr = forceCombineRegion(i, false);
+                Debug("fmf-full-check")
+                    << "Combined regions " << i << " " << fcr << std::endl;
+                Trace("uf-ss-debug")
+                    << "Combined regions " << i << " " << fcr << std::endl;
                 recheck = true;
                 break;
               }
             }
           }
-          if( recheck ){
+          if (recheck)
+          {
             Trace("uf-ss-debug") << "Must recheck." << std::endl;
             check(level);
           }
