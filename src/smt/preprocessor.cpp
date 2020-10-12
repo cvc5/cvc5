@@ -30,7 +30,8 @@ namespace smt {
 Preprocessor::Preprocessor(SmtEngine& smt,
                            context::UserContext* u,
                            AbstractValues& abs)
-    : d_smt(smt),
+    : d_context(u),
+      d_smt(smt),
       d_absValues(abs),
       d_propagator(true, true),
       d_assertionsProcessed(u, false),
@@ -154,7 +155,7 @@ Node Preprocessor::simplify(const Node& node, bool removeItes)
 void Preprocessor::setProofNodeManager(ProofNodeManager* pnm)
 {
   d_pnm = pnm;
-  d_propagator.setProofNodeManager(pnm);
+  d_propagator.setProofNodeManager(pnm, d_context);
   d_rtf.setProofNodeManager(pnm);
 }
 

@@ -137,7 +137,7 @@ class CircuitPropagator
     return false;
   }
   /** Set proof node manager */
-  void setProofNodeManager(ProofNodeManager* pnm);
+  void setProofNodeManager(ProofNodeManager* pnm, context::Context* ctx);
 
  private:
   /** A context-notify object that clears out stale data. */

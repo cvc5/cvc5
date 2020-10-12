@@ -477,10 +477,11 @@ bool CircuitPropagator::propagate() {
   return d_conflict;
 }
 
-void CircuitPropagator::setProofNodeManager(ProofNodeManager* pnm)
+void CircuitPropagator::setProofNodeManager(ProofNodeManager* pnm,
+                                            context::Context* ctx)
 {
   d_pnm = pnm;
-  d_epg.reset(new EagerProofGenerator(pnm, &d_context));
+  d_epg.reset(new EagerProofGenerator(pnm, ctx));
 }
 
 bool CircuitPropagator::isProofEnabled() const { return d_epg != nullptr; }
