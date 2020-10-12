@@ -430,8 +430,7 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
   std::shared_ptr<ProofNode> Not()
   {
     if (disabled()) return nullptr;
-    return mkNot(
-        mkProof(d_childAssignment ? d_parent.notNode() : Node(d_parent)));
+    return mkNot(mkProof(d_childAssignment ? d_parent[0] : Node(d_parent)));
   }
 
   std::shared_ptr<ProofNode> eqEval()
