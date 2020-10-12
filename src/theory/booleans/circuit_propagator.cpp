@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "expr/node_algorithm.h"
-#include "theory/booleans/circuit_propagator_proofs.h"
+#include "theory/booleans/proof_circuit_propagator.h"
 #include "util/utility.h"
 
 using namespace std;
@@ -113,7 +113,7 @@ void CircuitPropagator::computeBackEdges(TNode node) {
 void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment) {
 
   Debug("circuit-prop") << "CircuitPropagator::propagateBackward(" << parent << ", " << parentAssignment << ")" << endl;
-  CircuitPropagatorBackwardProver prover{
+  ProofCircuitPropagatorBackward prover{
       d_pnm, d_epg.get(), parent, parentAssignment};
 
   // backward rules
@@ -259,7 +259,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
     Debug("circuit-prop") << "Parent: " << parent << endl;
     Assert(expr::hasSubterm(parent, child));
 
-    CircuitPropagatorForwardProver prover{
+    ProofCircuitPropagatorForward prover{
         d_pnm, d_epg.get(), child, childAssignment, parent};
 
     // Forward rules

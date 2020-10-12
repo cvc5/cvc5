@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file circuit_propagator_proofs.h
+/*! \file proof_circuit_propagator.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Gereon Kremer
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_PROOFS_H
-#define CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_PROOFS_H
+#ifndef CVC4__THEORY__BOOLEANS__PROOF_CIRCUIT_PROPAGATOR_H
+#define CVC4__THEORY__BOOLEANS__PROOF_CIRCUIT_PROPAGATOR_H
 
 #include <memory>
 
@@ -56,7 +56,7 @@ inline std::vector<Node> collectButHoldout(TNode parent,
 
 }  // namespace
 
-struct CircuitPropagatorProver
+struct ProofCircuitPropagator
 {
   ProofNodeManager* d_pnm;
   EagerProofGenerator* d_epg;
@@ -189,16 +189,16 @@ struct CircuitPropagatorProver
   }
 };
 
-struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
+struct ProofCircuitPropagatorBackward : public ProofCircuitPropagator
 {
   TNode d_parent;
   bool d_parentAssignment;
 
-  CircuitPropagatorBackwardProver(ProofNodeManager* pnm,
-                                  EagerProofGenerator* epg,
-                                  TNode parent,
-                                  bool parentAssignment)
-      : CircuitPropagatorProver{pnm, epg},
+  ProofCircuitPropagatorBackward(ProofNodeManager* pnm,
+                                 EagerProofGenerator* epg,
+                                 TNode parent,
+                                 bool parentAssignment)
+      : ProofCircuitPropagator{pnm, epg},
         d_parent(parent),
         d_parentAssignment(parentAssignment)
   {
@@ -365,18 +365,18 @@ struct CircuitPropagatorBackwardProver : public CircuitPropagatorProver
   }
 };
 
-struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
+struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
 {
   Node d_child;
   bool d_childAssignment;
   Node d_parent;
 
-  CircuitPropagatorForwardProver(ProofNodeManager* pnm,
-                                 EagerProofGenerator* epg,
-                                 Node child,
-                                 bool childAssignment,
-                                 Node parent)
-      : CircuitPropagatorProver{pnm, epg},
+  ProofCircuitPropagatorForward(ProofNodeManager* pnm,
+                                EagerProofGenerator* epg,
+                                Node child,
+                                bool childAssignment,
+                                Node parent)
+      : ProofCircuitPropagator{pnm, epg},
         d_child(child),
         d_childAssignment(childAssignment),
         d_parent(parent)
@@ -571,7 +571,7 @@ struct CircuitPropagatorForwardProver : public CircuitPropagatorProver
                           {d_parent[0], d_parent[1]});
     }
   }
-  };
+};
 
 }  // namespace booleans
 }  // namespace theory
