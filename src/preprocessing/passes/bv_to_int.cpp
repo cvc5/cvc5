@@ -955,16 +955,15 @@ void BVToInt::addFinalizeRangeAssertions(
 {
   // collect the range assertions from d_rangeAssertions
   // (which is a context-dependent set)
-  // into a vector. 
+  // into a vector.
   vector<Node> vec_range;
   vec_range.assign(d_rangeAssertions.key_begin(), d_rangeAssertions.key_end());
   // conjoin all range assertions and add the conjunction
   // as a new assertion
-    Node rangeAssertions =
-        Rewriter::rewrite(d_nm->mkAnd(vec_range));
-    assertionsToPreprocess->push_back(rangeAssertions);
-    Trace("bv-to-int-debug")
-        << "range constraints: " << rangeAssertions.toString() << std::endl;
+  Node rangeAssertions = Rewriter::rewrite(d_nm->mkAnd(vec_range));
+  assertionsToPreprocess->push_back(rangeAssertions);
+  Trace("bv-to-int-debug") << "range constraints: "
+                           << rangeAssertions.toString() << std::endl;
 }
 
 Node BVToInt::createShiftNode(vector<Node> children,
