@@ -69,8 +69,6 @@ struct ProofCircuitPropagator
 {
   /** The proof node manager */
   ProofNodeManager* d_pnm;
-  /** The eager proof generator */
-  EagerProofGenerator* d_epg;
 
   /** Shorthand to check whether proof generation is disabled */
   bool disabled() const { return d_pnm == nullptr; }
@@ -258,10 +256,9 @@ struct ProofCircuitPropagatorBackward : public ProofCircuitPropagator
   bool d_parentAssignment;
 
   ProofCircuitPropagatorBackward(ProofNodeManager* pnm,
-                                 EagerProofGenerator* epg,
                                  TNode parent,
                                  bool parentAssignment)
-      : ProofCircuitPropagator{pnm, epg},
+      : ProofCircuitPropagator{pnm},
         d_parent(parent),
         d_parentAssignment(parentAssignment)
   {
@@ -437,11 +434,10 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
   Node d_parent;
 
   ProofCircuitPropagatorForward(ProofNodeManager* pnm,
-                                EagerProofGenerator* epg,
                                 Node child,
                                 bool childAssignment,
                                 Node parent)
-      : ProofCircuitPropagator{pnm, epg},
+      : ProofCircuitPropagator{pnm},
         d_child(child),
         d_childAssignment(childAssignment),
         d_parent(parent)
