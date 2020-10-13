@@ -59,10 +59,7 @@ bool Model::isModelCoreSymbol(TNode sym) const
 }
 Node Model::getValue(TNode n) const { return d_tmodel->getValue(n); }
 
-bool Model::hasApproximations() const
-{
-  return d_tmodel->hasApproximations();
-}
+bool Model::hasApproximations() const { return d_tmodel->hasApproximations(); }
 
 }  // namespace smt
 }/* CVC4 namespace */
