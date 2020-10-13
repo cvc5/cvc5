@@ -181,9 +181,8 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
           var_eq.push_back(n.eqNode(ret));
           // ensure that the original variable is defined to be the returned
           // one, which is important for models and for incremental solving.
-          std::vector<Expr> args;
-          smt::currentSmtEngine()->defineFunction(
-              n.toExpr(), args, ret.toExpr());
+          std::vector<Node> args;
+          d_preprocContext->getSmt()->defineFunction(n, args, ret);
         }
       }
     }
