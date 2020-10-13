@@ -107,7 +107,7 @@ void FarkasConflictBuilder::addConstraint(ConstraintCP c, const Rational& fc){
   } else {
     d_constraints.push_back(c);
   }
-  ARITH_PROOF(d_farkas.push_back(fc););
+  ARITH_PROOF(d_farkas.push_back(fc));
   Assert(!ARITH_PROOF_ON() || d_constraints.size() + 1 == d_farkas.size());
   Assert(ARITH_PROOF_ON() || d_farkas.empty());
 }

@@ -60,7 +60,6 @@
 #include "theory/arith/nl/nonlinear_extension.h"
 #include "theory/arith/normal_form.h"
 #include "theory/arith/partial_model.h"
-#include "theory/arith/proof_macros.h"
 #include "theory/arith/simplex.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/ext_theory.h"
@@ -734,7 +733,6 @@ bool TheoryArithPrivate::AssertLower(ConstraintP constraint){
     if(d_congruenceManager.isWatchedVariable(x_i)){
       int sgn = c_i.sgn();
       if(sgn > 0){
-        // Follows from a two-constraint FARKAS
         d_congruenceManager.watchedVariableCannotBeZero(constraint);
       }else if(sgn == 0 && d_partialModel.upperBoundIsZero(x_i)){
         zeroDifferenceDetected(x_i);
@@ -875,7 +873,6 @@ bool TheoryArithPrivate::AssertUpper(ConstraintP constraint){
     if(d_congruenceManager.isWatchedVariable(x_i)){
       int sgn = c_i.sgn();
       if(sgn < 0){
-        // Follows from a two-constraint farkas.
         d_congruenceManager.watchedVariableCannotBeZero(constraint);
       }else if(sgn == 0 && d_partialModel.lowerBoundIsZero(x_i)){
         zeroDifferenceDetected(x_i);
@@ -967,8 +964,6 @@ bool TheoryArithPrivate::AssertEquality(ConstraintP constraint){
       if(sgn == 0){
         zeroDifferenceDetected(x_i);
       }else{
-        // We're equal to something else, so we can't be equal to zero.
-        // True by Farkas.
         d_congruenceManager.watchedVariableCannotBeZero(constraint);
         d_congruenceManager.equalsConstant(constraint);
       }
@@ -1021,7 +1016,6 @@ bool TheoryArithPrivate::AssertDisequality(ConstraintP constraint){
     if(d_congruenceManager.isWatchedVariable(x_i)){
       int sgn = c_i.sgn();
       if(sgn == 0){
-        // Duh. This is what a disequality means.
         d_congruenceManager.watchedVariableCannotBeZero(constraint);
       }
     }
@@ -1719,7 +1713,7 @@ ConstraintP TheoryArithPrivate::constraintFromFactQueue(TNode assertion)
   } else {
     Debug("arith::constraint")
         << "already has proof: "
-        << Constraint::externalExplainByAssertions({constraint}) << endl;
+        << Constraint::externalExplainByAssertions({constraint});
   }
 
   if(Debug.isOn("arith::negatedassumption") && inConflict){
@@ -1781,8 +1775,6 @@ bool TheoryArithPrivate::assertionCases(ConstraintP constraint){
         bool inConflict = ceilingConstraint->negationHasProof();
         if (Debug.isOn("arith::intbound")) {
           Debug("arith::intbound") << "literal, before: " << constraint->getLiteral() << std::endl;
-          Debug("arith::intbound")
-              << "constraint, before: " << *constraint << std::endl;
           Debug("arith::intbound") << "constraint, after: " << ceilingConstraint << std::endl;
         }
         ceilingConstraint->impliedByIntTighten(constraint, inConflict);
@@ -3924,8 +3916,7 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
 
       outputPropagate(toProp);
     }else if(constraint->negationHasProof()){
-      TrustNode texp = d_congruenceManager.explain(toProp);
-      Node exp = texp.getNode();
+      Node exp = d_congruenceManager.explain(toProp).getNode();
       Node notNormalized = normalized.getKind() == NOT ?
         normalized[0] : normalized.notNode();
       Node lp = flattenAnd(exp.andNode(notNormalized));
@@ -4614,11 +4605,10 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
     //   * coeffs[i+1] is for explain[i]
     d_linEq.propagateRow(explain, ridx, rowUp, implied, coeffs);
     if(d_tableau.getRowLength(ridx) <= options::arithPropAsLemmaLength()){
-      if (Debug.isOn("arith::pf::tree"))
-      {
+      if (Debug.isOn("arith::prop::pf")) {
         for (const auto & constraint : explain) {
           Assert(constraint->hasProof());
-          constraint->printProofTree(Debug("arith::pf::tree"));
+          constraint->printProofTree(Debug("arith::prop::pf"));
         }
       }
       Node implication = implied->externalImplication(explain);

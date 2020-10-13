@@ -18,7 +18,7 @@
 #include "base/output.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/constraint.h"
-#include "theory/arith/proof_macros.h"
+
 
 using namespace std;
 
