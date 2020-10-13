@@ -270,7 +270,6 @@ class CircuitPropagator
             }
             Trace("circuit-prop") << "Adding proof " << *proof << std::endl
                                   << "\t" << proof->getResult() << std::endl;
-<<<<<<< HEAD
             if (!d_epg->hasProofFor(expected))
             {
               d_epg->setProofFor(expected, std::move(proof));
@@ -279,9 +278,6 @@ class CircuitPropagator
             {
               Trace("circuit-prop") << "Ignoring proof" << std::endl;
             }
-=======
-            d_epg->setProofFor(expected, std::move(proof));
->>>>>>> 53539fdb9250779c1bd58bea222890710b21a543
           }
         }
       }
