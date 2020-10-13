@@ -690,6 +690,7 @@ private:
   inline void debugPrintFacts() const { d_containing.debugPrintFacts(); }
   inline context::Context* getSatContext() const { return d_containing.getSatContext(); }
   void outputLemma(TNode lem);
+  void outputTrustedConflict(TrustNode conf);
   void outputConflict(TNode lit);
   void outputPropagate(TNode lit);
   void outputRestart();

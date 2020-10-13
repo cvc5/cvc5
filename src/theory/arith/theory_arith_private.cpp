@@ -1890,7 +1890,15 @@ void TheoryArithPrivate::outputConflicts(){
         pf.print(std::cout);
         std::cout << std::endl;
       }
-      Node conflict = confConstraint->externalExplainConflict().getNode();
+      if (Debug.isOn("arith::pf::tree"))
+      {
+        Debug("arith::pf::tree") << "\n\nTree:\n";
+        confConstraint->printProofTree(Debug("arith::pf::tree"));
+        confConstraint->getNegation()->printProofTree(Debug("arith::pf::tree"));
+      }
+
+      TrustNode trustedConflict = confConstraint->externalExplainConflict();
+      Node conflict = trustedConflict.getNode();
 
       ++conflicts;
       Debug("arith::conflict") << "d_conflicts[" << i << "] " << conflict
@@ -1900,7 +1908,14 @@ void TheoryArithPrivate::outputConflicts(){
         Debug("arith::conflict") << "(normalized to) " << conflict << endl;
       }
 
-      outputConflict(conflict);
+      if (options::proofNew())
+      {
+        outputTrustedConflict(trustedConflict);
+      }
+      else
+      {
+        outputConflict(conflict);
+      }
     }
   }
   if(!d_blackBoxConflict.get().isNull()){
@@ -1913,14 +1928,27 @@ void TheoryArithPrivate::outputConflicts(){
       bb = flattenAndSort(bb);
       Debug("arith::conflict") << "(normalized to) " << bb << endl;
     }
-
-    outputConflict(bb);
+    if (options::proofNew() && d_blackBoxConflictPf.get())
+    {
+      auto confPf = d_blackBoxConflictPf.get();
+      outputTrustedConflict(d_pfGen->mkTrustNode(bb, confPf, true));
+    }
+    else
+    {
+      outputConflict(bb);
+    }
   }
 }
 
 void TheoryArithPrivate::outputLemma(TNode lem) {
   Debug("arith::channel") << "Arith lemma: " << lem << std::endl;
   (d_containing.d_out)->lemma(lem);
+}
+
+void TheoryArithPrivate::outputTrustedConflict(TrustNode conf)
+{
+  Debug("arith::channel") << "Arith trusted conflict: " << conf << std::endl;
+  (d_containing.d_out)->conflict(conf.getNode());
 }
 
 void TheoryArithPrivate::outputConflict(TNode lit) {
