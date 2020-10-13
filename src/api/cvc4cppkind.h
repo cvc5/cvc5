@@ -120,9 +120,18 @@ enum CVC4_PUBLIC Kind : int32_t
 #if 0
   /* Skolem variable (internal only) */
   SKOLEM,
-  /* Symbolic expression (any arity) */
-  SEXPR,
 #endif
+  /*
+   * Symbolic expression.
+   * Parameters: n > 0
+   *   -[1]..[n]: terms
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEXPR,
   /**
    * Lambda expression.
    * Parameters: 2

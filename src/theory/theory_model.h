@@ -301,6 +301,8 @@ public:
   /** set the heap and value sep.nil is equal to */
   void setHeapModel(Node h, Node neq);
   /** get the heap and value sep.nil is equal to */
+  bool getHeapModel(Node& h, Node& neq) const;
+  /** get the heap and value sep.nil is equal to */
   bool getHeapModel(Expr& h, Expr& neq) const override;
   //---------------------------- end separation logic
 
