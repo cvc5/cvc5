@@ -16,8 +16,8 @@
 
 #include "expr/dtype.h"
 #include "options/datatypes_options.h"
-#include "theory/theory.h"
 #include "theory/datatypes/inference_manager.h"
+#include "theory/theory.h"
 
 using namespace CVC4::kind;
 
@@ -28,17 +28,17 @@ namespace datatypes {
 const char* toString(Inference i)
 {
   switch (i)
-  {  
+  {
     case Inference::UNIF: return "UNIF";
-  case Inference::INST: return "INST";
-  case Inference::SPLIT: return "SPLIT";
-  case Inference::LABEL_EXH: return "LABEL_EXH";
-  case Inference::COLLAPSE_SEL: return "COLLAPSE_SEL";
-  case Inference::CLASH_CONFLICT: return "CLASH_CONFLICT";
-  case Inference::TESTER_CONFLICT: return "TESTER_CONFLICT";
-  case Inference::TESTER_MERGE_CONFLICT: return "TESTER_MERGE_CONFLICT";
-  case Inference::BISIMILAR: return "BISIMILAR";
-  case Inference::CYCLE: return "CYCLE";
+    case Inference::INST: return "INST";
+    case Inference::SPLIT: return "SPLIT";
+    case Inference::LABEL_EXH: return "LABEL_EXH";
+    case Inference::COLLAPSE_SEL: return "COLLAPSE_SEL";
+    case Inference::CLASH_CONFLICT: return "CLASH_CONFLICT";
+    case Inference::TESTER_CONFLICT: return "TESTER_CONFLICT";
+    case Inference::TESTER_MERGE_CONFLICT: return "TESTER_MERGE_CONFLICT";
+    case Inference::BISIMILAR: return "BISIMILAR";
+    case Inference::CYCLE: return "CYCLE";
     default: return "?";
   }
 }
@@ -49,7 +49,10 @@ std::ostream& operator<<(std::ostream& out, Inference i)
   return out;
 }
 
-DatatypesInference::DatatypesInference(InferenceManager * im, Node conc, Node exp, Inference i)
+DatatypesInference::DatatypesInference(InferenceManager* im,
+                                       Node conc,
+                                       Node exp,
+                                       Inference i)
     : SimpleTheoryInternalFact(conc, exp, nullptr), d_im(im), d_infer(i)
 {
   // false is not a valid explanation
@@ -100,10 +103,7 @@ bool DatatypesInference::process(TheoryInferenceManager* im, bool asLemma)
   return d_im->processDtInference(*this, false);
 }
 
-Inference DatatypesInference::getInference() const
-{
-  return d_infer;
-}
+Inference DatatypesInference::getInference() const { return d_infer; }
 
 }  // namespace datatypes
 }  // namespace theory

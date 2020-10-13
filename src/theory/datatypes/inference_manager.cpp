@@ -33,7 +33,8 @@ InferenceManager::InferenceManager(Theory& t,
 
 void InferenceManager::addPendingInference(Node conc,
                                            Node exp,
-                                           bool forceLemma, Inference i )
+                                           bool forceLemma,
+                                           Inference i)
 {
   if (forceLemma)
   {
@@ -68,8 +69,9 @@ bool InferenceManager::sendLemmas(const std::vector<Node>& lemmas)
 
 bool InferenceManager::processDtInference(DatatypesInference& di, bool asLemma)
 {
-  Trace("dt-lemma-debug")
-      << "processDtInference : " << di.d_conc << " via " << di.d_exp << " by " << di.getInference() << ", asLemma = " << asLemma << std::endl;
+  Trace("dt-lemma-debug") << "processDtInference : " << di.d_conc << " via "
+                          << di.d_exp << " by " << di.getInference()
+                          << ", asLemma = " << asLemma << std::endl;
   if (asLemma)
   {
     // send it as an (explained) lemma

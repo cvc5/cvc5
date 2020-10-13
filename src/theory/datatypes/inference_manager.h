@@ -19,8 +19,8 @@
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
-#include "theory/inference_manager_buffered.h"
 #include "theory/datatypes/inference.h"
+#include "theory/inference_manager_buffered.h"
 
 namespace CVC4 {
 namespace theory {
@@ -33,6 +33,7 @@ namespace datatypes {
 class InferenceManager : public InferenceManagerBuffered
 {
   friend class DatatypesInference;
+
  public:
   InferenceManager(Theory& t, TheoryState& state, ProofNodeManager* pnm);
   ~InferenceManager() {}
@@ -50,7 +51,8 @@ class InferenceManager : public InferenceManagerBuffered
    */
   void addPendingInference(Node conc,
                            Node exp,
-                           bool forceLemma = false, Inference i = Inference::NONE);
+                           bool forceLemma = false,
+                           Inference i = Inference::NONE);
   /**
    * Process the current lemmas and facts. This is a custom method that can
    * be seen as overriding the behavior of calling both doPendingLemmas and
@@ -63,7 +65,8 @@ class InferenceManager : public InferenceManagerBuffered
    * Returns true if any lemma was sent.
    */
   bool sendLemmas(const std::vector<Node>& lemmas);
-private:
+
+ private:
   /** Process datatype inference */
   bool processDtInference(DatatypesInference& di, bool asLemma);
 };

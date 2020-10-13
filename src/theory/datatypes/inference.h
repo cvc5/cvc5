@@ -80,7 +80,10 @@ class InferenceManager;
 class DatatypesInference : public SimpleTheoryInternalFact
 {
  public:
-  DatatypesInference(InferenceManager * im, Node conc, Node exp, Inference i = Inference::NONE);
+  DatatypesInference(InferenceManager* im,
+                     Node conc,
+                     Node exp,
+                     Inference i = Inference::NONE);
   /**
    * Must communicate fact method.
    * The datatypes decision procedure makes "internal" inferences :
@@ -105,9 +108,10 @@ class DatatypesInference : public SimpleTheoryInternalFact
   bool process(TheoryInferenceManager* im, bool asLemma) override;
   /** Get the inference */
   Inference getInference() const;
-private:
+
+ private:
   /** Pointer to the inference manager */
-  InferenceManager * d_im;
+  InferenceManager* d_im;
   /** The inference */
   Inference d_infer;
 };
