@@ -124,6 +124,12 @@ struct ProofCircuitPropagator
     }
     return mkProof(PfRule::CHAIN_RESOLUTION, children, args);
   }
+  std::shared_ptr<ProofNode> mkResolution(std::shared_ptr<ProofNode> clause,
+                                          const std::vector<Node>& lits,
+                                          bool polarity)
+  {
+    return mkResolution(clause, lits, std::vector<bool>(lits.size(), polarity));
+  }
   std::shared_ptr<ProofNode> mkNot(const std::shared_ptr<ProofNode>& n)
   {
     Node m = n->getResult();
@@ -147,7 +153,8 @@ struct ProofCircuitPropagator
   std::shared_ptr<ProofNode> orTrue(Node parent, TNode::iterator holdout)
   {
     if (disabled()) return nullptr;
-    return mkResolution(mkProof(parent), collectButHoldout(parent, holdout));
+    return mkResolution(
+        mkProof(parent), collectButHoldout(parent, holdout), true);
   }
 
   /** (=> X false)  -->  (not X) */
