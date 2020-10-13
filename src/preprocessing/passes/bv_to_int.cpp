@@ -42,10 +42,6 @@ Rational intpow2(uint64_t b)
   return Rational(Integer(2).pow(b), Integer(1));
 }
 
-/**
- * Helper functions for createBitwiseNode
- */
-
 } //end empty namespace
 
 Node BVToInt::mkRangeConstraint(Node newVar, uint64_t k)
