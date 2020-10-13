@@ -57,10 +57,6 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
                      std::vector<std::shared_ptr<ProofNode>>,
                      NodeHashFunction>
       assumptionsToExpand;
-  // cache of free assumptions, in the limit, of a given fact. If a fact has
-  // been fully processed and does not occur in this map than it is itself a
-  // free assumption relative to this proof chain
-  std::unordered_map<Node, std::vector<Node>, NodeHashFunction> limitAssumptions;
   // invariant of the loop below, the first iteration notwhistanding:
   //   visit = domain(assumptionsToExpand) \ domain(toConnect)
   std::vector<Node> visit{fact};
@@ -123,12 +119,10 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
         visited[cur] = true;
       }
       // enqueue free assumptions to process
-      std::vector<Node> freeAssumptions;
       for (const std::pair<const Node, std::vector<std::shared_ptr<ProofNode>>>&
                fap : famap)
       {
         bool processed = false;
-        // freeAssumptions.push_back(fap.first);
         // check cycles
         if (d_cyclic)
         {
