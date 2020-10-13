@@ -339,6 +339,7 @@ struct ProofCircuitPropagatorBackward : public ProofCircuitPropagator
     }
   }
 
+  /** Derive X from (= X Y) */
   std::shared_ptr<ProofNode> eqXFromY(bool y)
   {
     if (disabled()) return nullptr;
@@ -356,6 +357,7 @@ struct ProofCircuitPropagatorBackward : public ProofCircuitPropagator
                        {true}));
     }
   }
+  /** Derive Y from (= X Y) */
   std::shared_ptr<ProofNode> eqYFromX(bool x)
   {
     if (disabled()) return nullptr;
@@ -372,6 +374,7 @@ struct ProofCircuitPropagatorBackward : public ProofCircuitPropagator
                        {true}));
     }
   }
+  /** Derive X from (not (= X Y)) */
   std::shared_ptr<ProofNode> neqXFromY(bool y)
   {
     if (disabled()) return nullptr;
@@ -390,6 +393,7 @@ struct ProofCircuitPropagatorBackward : public ProofCircuitPropagator
           {true});
     }
   }
+  /** Derive Y from (not (= X Y)) */
   std::shared_ptr<ProofNode> neqYFromX(bool x)
   {
     if (disabled()) return nullptr;
@@ -479,6 +483,7 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
         {d_child},
         {false}));
   }
+  /** or false  -->  all children are false */
   std::shared_ptr<ProofNode> orFalse()
   {
     if (disabled()) return nullptr;
@@ -494,6 +499,7 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
     return mkNot(mkProof(d_childAssignment ? d_parent[0] : Node(d_parent)));
   }
 
+  /** Evaluate (= X Y) from X,Y */
   std::shared_ptr<ProofNode> eqEval()
   {
     if (disabled()) return nullptr;
@@ -510,6 +516,7 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
                           {true, true});
     }
   }
+  /** Derive Y from (= X Y) */
   std::shared_ptr<ProofNode> eqYFromX()
   {
     if (disabled()) return nullptr;
@@ -526,6 +533,8 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
                        {true}));
     }
   }
+
+  /** Derive Y from (not (= X Y)) */
   std::shared_ptr<ProofNode> neqYFromX()
   {
     if (disabled()) return nullptr;
@@ -545,6 +554,8 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
           {true});
     }
   }
+
+  /** Derive X from (= X Y) */
   std::shared_ptr<ProofNode> eqXFromY()
   {
     if (disabled()) return nullptr;
@@ -561,6 +572,7 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
           mkProof(PfRule::EQUIV_ELIM1, {mkProof(d_parent)}), {d_child}, {true});
     }
   }
+  /** Derive X from (not (= X Y)) */
   std::shared_ptr<ProofNode> neqXFromY()
   {
     if (disabled()) return nullptr;
@@ -601,14 +613,7 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
                         {d_parent[0], d_parent[1]},
                         {false, true});
   }
-  std::shared_ptr<ProofNode> xorXFromY(bool negated)
-  {
-    return mkXorXFromY(negated, d_childAssignment, d_parent);
-  }
-  std::shared_ptr<ProofNode> xorYFromX(bool negated)
-  {
-    return mkXorYFromX(negated, d_childAssignment, d_parent);
-  }
+  /** Evaluate (xor X Y) from X,Y */
   std::shared_ptr<ProofNode> xorEval(bool x, bool y)
   {
     if (disabled()) return nullptr;
