@@ -309,8 +309,10 @@ struct ProofCircuitPropagatorBackward : public ProofCircuitPropagator
     }
     else
     {
-      return mkNot(mkResolution(mkProof(PfRule::EQUIV_ELIM1, {mkProof(d_parent)}),
-                           {d_parent[1]}, {false}));
+      return mkNot(
+          mkResolution(mkProof(PfRule::EQUIV_ELIM1, {mkProof(d_parent)}),
+                       {d_parent[1]},
+                       {true}));
     }
   }
   std::shared_ptr<ProofNode> eqYFromX(bool x)
