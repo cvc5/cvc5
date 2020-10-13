@@ -176,11 +176,11 @@ struct ProofCircuitPropagator
     if (disabled()) return nullptr;
     if (y)
     {
-      return mkResolution(
+      return mkNot(mkResolution(
           mkProof(negated ? PfRule::NOT_XOR_ELIM1 : PfRule::XOR_ELIM2,
                   {mkProof(negated ? parent.notNode() : Node(parent))}),
           {parent[1]},
-          {false});
+          {false}));
     }
     else
     {
@@ -204,11 +204,11 @@ struct ProofCircuitPropagator
     }
     else
     {
-      return mkResolution(
+      return mkNot(mkResolution(
           mkProof(negated ? PfRule::NOT_XOR_ELIM1 : PfRule::XOR_ELIM2,
                   {mkProof(negated ? parent.notNode() : Node(parent))}),
           {parent[0]},
-          {true});
+          {true}));
     }
   }
 };
