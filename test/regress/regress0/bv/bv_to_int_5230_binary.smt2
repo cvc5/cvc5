@@ -1,4 +1,4 @@
-; REQUIRES: proofs
+; REQUIRES: proof
 ; EXPECT: sat
 (set-logic QF_UFBV)
 (set-option :produce-unsat-cores true)
