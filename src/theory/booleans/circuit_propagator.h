@@ -28,6 +28,7 @@
 #include "context/cdhashset.h"
 #include "context/cdo.h"
 #include "context/context.h"
+#include "expr/lazy_proof_chain.h"
 #include "expr/node.h"
 #include "expr/proof_generator.h"
 #include "expr/proof_node.h"
@@ -35,7 +36,6 @@
 #include "theory/theory.h"
 #include "theory/trust_node.h"
 #include "util/hash.h"
-#include "expr/lazy_proof_chain.h"
 
 namespace CVC4 {
 namespace theory {
@@ -137,13 +137,15 @@ class CircuitPropagator
     if (!value && ((*i).second == ASSIGNED_TO_FALSE)) return true;
     return false;
   }
-  /** 
+  /**
    * Set proof node manager, context and parent proof generator.
    *
    * If parent is non-null, then it is responsible for the proofs provided
    * to this class.
    */
-  void setProof(ProofNodeManager* pnm, context::Context* ctx, ProofGenerator * defParent);
+  void setProof(ProofNodeManager* pnm,
+                context::Context* ctx,
+                ProofGenerator* defParent);
 
  private:
   /** A context-notify object that clears out stale data. */

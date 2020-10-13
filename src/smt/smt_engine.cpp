@@ -275,7 +275,7 @@ void SmtEngine::finishInit()
   if (options::proofNew())
   {
     d_pfManager.reset(new PfManager(getUserContext(), this));
-    PreprocessProofGenerator * pppg = d_pfManager->getPreprocessProofGenerator();
+    PreprocessProofGenerator* pppg = d_pfManager->getPreprocessProofGenerator();
     // use this proof node manager
     pnm = d_pfManager->getProofNodeManager();
     // enable proof support in the rewriter

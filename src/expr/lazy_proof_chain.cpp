@@ -21,11 +21,16 @@
 namespace CVC4 {
 
 LazyCDProofChain::LazyCDProofChain(ProofNodeManager* pnm,
-                   bool cyclic,
-                   context::Context* c,
-                   ProofGenerator * defGen,
-                   bool defRec)
-    : d_manager(pnm), d_cyclic(cyclic), d_defRec(defRec), d_context(), d_gens(c ? c : &d_context), d_defGen(defGen)
+                                   bool cyclic,
+                                   context::Context* c,
+                                   ProofGenerator* defGen,
+                                   bool defRec)
+    : d_manager(pnm),
+      d_cyclic(cyclic),
+      d_defRec(defRec),
+      d_context(),
+      d_gens(c ? c : &d_context),
+      d_defGen(defGen)
 {
 }
 
@@ -186,7 +191,7 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
     // update each assumption proof node
     for (std::shared_ptr<ProofNode> pfn : it->second)
     {
-      if (npfn.second!=nullptr)
+      if (npfn.second != nullptr)
       {
         d_manager->updateNode(pfn.get(), npfn.second.get());
       }
@@ -264,7 +269,7 @@ ProofGenerator* LazyCDProofChain::getGeneratorForInternal(Node fact, bool& rec)
     return (*it).second;
   }
   // otherwise, if no explicit generators, we use the default one
-  if (d_defGen!=nullptr)
+  if (d_defGen != nullptr)
   {
     rec = d_defRec;
     return d_defGen;

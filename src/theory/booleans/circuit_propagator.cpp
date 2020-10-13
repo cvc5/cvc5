@@ -447,8 +447,8 @@ bool CircuitPropagator::propagate() {
         {
           // if we have a parent proof generator that provides proofs of the
           // inputs to this class, we must use the lazy proof chain
-          ProofGenerator * pg = d_epg.get();
-          if (d_lpc!=nullptr)
+          ProofGenerator* pg = d_epg.get();
+          if (d_lpc != nullptr)
           {
             d_lpc->addLazyStep(lit, pg);
             pg = d_lpc.get();
@@ -487,7 +487,8 @@ bool CircuitPropagator::propagate() {
 }
 
 void CircuitPropagator::setProof(ProofNodeManager* pnm,
-                                            context::Context* ctx, ProofGenerator * defParent)
+                                 context::Context* ctx,
+                                 ProofGenerator* defParent)
 {
   // TODO: this would enable proof production
   /*

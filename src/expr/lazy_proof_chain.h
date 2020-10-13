@@ -51,7 +51,7 @@ class LazyCDProofChain : public ProofGenerator
   LazyCDProofChain(ProofNodeManager* pnm,
                    bool cyclic = true,
                    context::Context* c = nullptr,
-                   ProofGenerator * defGen = nullptr,
+                   ProofGenerator* defGen = nullptr,
                    bool defRec = true);
   ~LazyCDProofChain();
   /**
@@ -145,7 +145,7 @@ class LazyCDProofChain : public ProofGenerator
   /** Maps facts that can be proven to generators */
   context::CDHashMap<Node, ProofGenerator*, NodeHashFunction> d_gens;
   /** The default proof generator (if one exists) */
-  ProofGenerator * d_defGen;
+  ProofGenerator* d_defGen;
 };
 
 }  // namespace CVC4

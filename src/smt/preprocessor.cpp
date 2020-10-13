@@ -154,7 +154,7 @@ Node Preprocessor::simplify(const Node& node, bool removeItes)
 
 void Preprocessor::setProofGenerator(PreprocessProofGenerator* pppg)
 {
-  Assert (pppg!=nullptr);
+  Assert(pppg != nullptr);
   d_pnm = pppg->getManager();
   d_propagator.setProof(d_pnm, d_context, pppg);
   d_rtf.setProofNodeManager(d_pnm);
