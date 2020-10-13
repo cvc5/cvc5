@@ -24,6 +24,30 @@ namespace CVC4 {
 namespace theory {
 namespace datatypes {
 
+const char* toString(Inference i)
+{
+  switch (i)
+  {  
+    case Inference::UNIF: return "UNIF";
+  case Inference::INST: return "INST";
+  case Inference::SPLIT: return "SPLIT";
+  case Inference::LABEL_EXH: return "LABEL_EXH";
+  case Inference::COLLAPSE_SEL: return "COLLAPSE_SEL";
+  case Inference::CLASH_CONFLICT: return "CLASH_CONFLICT";
+  case Inference::TESTER_CONFLICT: return "TESTER_CONFLICT";
+  case Inference::TESTER_MERGE_CONFLICT: return "TESTER_MERGE_CONFLICT";
+  case Inference::BISIMILAR: return "BISIMILAR";
+  case Inference::CYCLE: return "CYCLE";
+    default: return "?";
+  }
+}
+
+std::ostream& operator<<(std::ostream& out, Inference i)
+{
+  out << toString(i);
+  return out;
+}
+
 DatatypesInference::DatatypesInference(Node conc, Node exp, ProofGenerator* pg)
     : SimpleTheoryInternalFact(conc, exp, pg)
 {

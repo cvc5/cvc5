@@ -54,7 +54,7 @@ class ModelCoreBuilder
    * If m is not a model for assertions, this method returns false and m is
    * left unchanged.
    */
-  static bool setModelCore(const std::vector<Expr>& assertions,
+  static bool setModelCore(const std::vector<Node>& assertions,
                            Model* m,
                            options::ModelCoresMode mode);
 }; /* class TheoryModelCoreBuilder */

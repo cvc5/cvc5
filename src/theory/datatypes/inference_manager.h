@@ -25,6 +25,50 @@ namespace CVC4 {
 namespace theory {
 namespace datatypes {
 
+enum class Inference : uint32_t
+{
+  // (= (C t1 ... tn) (C s1 .. sn)) => (= ti si)
+  UNIF,
+  // ((_ is Ci) t) => (= t (Ci (sel_1 t) ... (sel_n t)))
+  INST,
+  // (or ((_ is C1) t) V ... V ((_ is Cn) t))
+  SPLIT,
+  // (not ((_ is C1) t)) ^ ... [j] ... ^ (not ((_ is Cn) t)) => ((_ is Ci) t)
+  LABEL_EXH,
+  // (= t (Ci t1 ... tn)) => (= (sel_j t) rewrite((sel_j (Ci t1 ... tn))))
+  COLLAPSE_SEL,
+  // (= (Ci t1...tn) (Cj t1...tn)) => false
+  CLASH_CONFLICT,
+  // ((_ is Ci) t) ^ (= t (Cj t1 ... tn)) => false
+  TESTER_CONFLICT,
+  // ((_ is Ci) t) ^ (= t s) ^ ((_ is Cj) s) => false
+  TESTER_MERGE_CONFLICT,
+  // bisimilarity for codatatypes
+  BISIMILAR,
+  // cycle conflict for datatypes
+  CYCLE,
+};
+
+/**
+ * Converts an inference to a string. Note: This function is also used in
+ * `safe_print()`. Changing this functions name or signature will result in
+ * `safe_print()` printing "<unsupported>" instead of the proper strings for
+ * the enum values.
+ *
+ * @param i The inference
+ * @return The name of the inference
+ */
+const char* toString(Inference i);
+
+/**
+ * Writes an inference name to a stream.
+ *
+ * @param out The stream to write to
+ * @param i The inference to write to the stream
+ * @return The stream
+ */
+std::ostream& operator<<(std::ostream& out, Inference i);
+
 /**
  * A custom inference class. The main feature of this class is that it
  * dynamically decides whether to process itself as a fact or as a lemma,

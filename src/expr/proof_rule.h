@@ -689,6 +689,33 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: F
   ARRAYS_TRUST,
+  
+  //================================================= Datatype rules
+  // ======== Unification
+  // Children: (P:(= (C t1 ... tn) (C s1 ... sn)))
+  // Arguments: (i)
+  // ----------------------------------------
+  // Conclusion: (= ti si)
+  DT_UNIF,
+  // ======== Instantiate
+  // Children: (P:((_ is C) t))
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: (= t (C (sel_1 t) ... (sel_n t)))
+  DT_INST,
+  // ======== Split
+  // Children: none
+  // Arguments: (t)
+  // ----------------------------------------
+  // Conclusion: (or ((_ is C1) t) ... ((_ is Cn) t))
+  DT_SPLIT,
+  // ======== Clash
+  // Children: (P1:((_ is Ci) t), P2: ((_ is Cj) t))
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: false
+  // for i != j.
+  DT_CLASH,
 
   //================================================= Quantifiers rules
   // ======== Witness intro
