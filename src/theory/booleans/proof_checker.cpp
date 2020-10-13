@@ -80,17 +80,45 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
   if (id == PfRule::RESOLUTION)
   {
     Assert(children.size() == 2);
-    Assert(args.size() == 1);
+    Assert(args.size() == 2);
+    NodeManager* nm = NodeManager::currentNM();
     std::vector<Node> disjuncts;
+    Node pivots[2];
+    if (args[0] == nm->mkConst(true))
+    {
+      pivots[0] = args[1];
+      pivots[1] = args[1].notNode();
+    }
+    else
+    {
+      Assert(args[0] == nm->mkConst(false));
+      pivots[0] = args[1].notNode();
+      pivots[1] = args[1];
+    }
     for (unsigned i = 0; i < 2; ++i)
     {
-      // if first clause, eliminate pivot, otherwise its negation
-      Node elim = i == 0 ? args[0] : args[0].notNode();
-      for (unsigned j = 0, size = children[i].getNumChildren(); j < size; ++j)
+      // determine whether the clause is unit for effects of resolution, which
+      // is the case if it's not an OR node or it is an OR node but it is equal
+      // to the pivot
+      std::vector<Node> lits;
+      if (children[i].getKind() == kind::OR && pivots[i] != children[i])
       {
-        if (elim != children[i][j])
+        lits.insert(lits.end(), children[i].begin(), children[i].end());
+      }
+      else
+      {
+        lits.push_back(children[i]);
+      }
+      for (unsigned j = 0, size = lits.size(); j < size; ++j)
+      {
+        if (pivots[i] != lits[j])
         {
-          disjuncts.push_back(children[i][j]);
+          disjuncts.push_back(lits[j]);
+        }
+        else
+        {
+          // just eliminate first occurrence
+          pivots[i] = Node::null();
         }
       }
     }
@@ -159,8 +187,11 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
   if (id == PfRule::CHAIN_RESOLUTION)
   {
     Assert(children.size() > 1);
-    Assert(args.size() == children.size() - 1);
+    Assert(args.size() == 2 * (children.size() - 1));
     Trace("bool-pfcheck") << "chain_res:\n" << push;
+    NodeManager* nm = NodeManager::currentNM();
+    Node trueNode = nm->mkConst(true);
+    Node falseNode = nm->mkConst(false);
     std::vector<Node> clauseNodes;
     for (unsigned i = 0, childrenSize = children.size(); i < childrenSize; ++i)
     {
@@ -168,24 +199,36 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       // literals to be removed from "first" clause
       if (i < childrenSize - 1)
       {
-        for (unsigned j = i, argsSize = args.size(); j < argsSize; ++j)
+        for (unsigned j = (2*i), argsSize = args.size(); j < argsSize; j = j + 2)
         {
-          elim[args[j]]++;
+          // whether pivot should occur as is or negated depends on the id of
+          // each step in the chain
+          if (args[j] == trueNode)
+          {
+            elim[args[j + 1]]++;
+          }
+          else
+          {
+            Assert(args[j] == falseNode);
+            elim[args[j + 1].notNode()]++;
+          }
         }
       }
       // literal to be removed from "second" clause. They will be negated
       if (i > 0)
       {
-        Node pivot = args[i - 1].negate();
+        unsigned index = 2 * (i - 1);
+        Node pivot = args[index] == trueNode ? args[index + 1].notNode()
+                                             : args[index + 1];
         elim[pivot]++;
       }
       if (Trace.isOn("bool-pfcheck"))
       {
         Trace("bool-pfcheck") << i << ": elimination multiset:\n";
-        for (unsigned j = i, argsSize = args.size(); j < argsSize; ++j)
+        for (const std::pair<const Node&, unsigned>& pair : elim)
         {
           Trace("bool-pfcheck")
-              << "\t- " << args[j] << " {" << elim[args[j]] << "}\n";
+              << "\t- " << pair.first << " {" << pair.second << "}\n";
         }
       }
       // only add to conclusion nodes that are not in elimination set. First get
@@ -226,7 +269,6 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       Trace("bool-pfcheck") << i << ": added lits: " << added << "\n\n";
     }
     Trace("bool-pfcheck") << "clause: " << clauseNodes << "\n" << pop;
-    NodeManager* nm = NodeManager::currentNM();
     return clauseNodes.empty()
                ? nm->mkConst<bool>(false)
                : clauseNodes.size() == 1 ? clauseNodes[0]
