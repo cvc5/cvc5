@@ -224,10 +224,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     {
       return NodeManager::currentNM()->mkConst(false);
     }
-    else
-    {
-      return Node::null();
-    }
+    return Node::null();
   }
   if (id == PfRule::EQ_RESOLVE)
   {
