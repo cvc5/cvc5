@@ -1043,24 +1043,12 @@ Node BVToInt::translateQuantifiedFormula(Node quantifiedNode)
                              newBoundVars.begin(),
                              newBoundVars.end());
   // A node to represent all the range constraints.
-  Node ranges;
-  if (rangeConstraints.size() > 0)
-  {
-    if (rangeConstraints.size() == 1)
-    {
-      ranges = rangeConstraints[0];
-    }
-    else
-    {
-      ranges = d_nm->mkNode(kind::AND, rangeConstraints);
-    }
-    // Add the range constraints to the body of the quantifier.
-    // For "exists", this is added conjunctively
-    // For "forall", this is added to the left side of an implication.
-    matrix = d_nm->mkNode(
-        k == kind::FORALL ? kind::IMPLIES : kind::AND, ranges, matrix);
-  }
-
+  Node ranges = d_nm->mkAnd(rangeConstraints);
+  // Add the range constraints to the body of the quantifier.
+  // For "exists", this is added conjunctively
+  // For "forall", this is added to the left side of an implication.
+  matrix = d_nm->mkNode(
+      k == kind::FORALL ? kind::IMPLIES : kind::AND, ranges, matrix);
   // create the new quantified formula and return it.
   Node newBoundVarsList = d_nm->mkNode(kind::BOUND_VAR_LIST, newBoundVars);
   Node result = d_nm->mkNode(kind::FORALL, newBoundVarsList, matrix);
