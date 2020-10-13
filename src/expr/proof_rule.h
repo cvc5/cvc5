@@ -716,6 +716,12 @@ enum class PfRule : uint32_t
   // Conclusion: false
   // for i != j.
   DT_CLASH,
+  // ======== Datatype Trust
+  // Children: (P1 ... Pn)
+  // Arguments: (F)
+  // ---------------------
+  // Conclusion: F
+  DT_TRUST,
 
   //================================================= Quantifiers rules
   // ======== Witness intro

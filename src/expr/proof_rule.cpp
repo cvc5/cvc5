@@ -117,6 +117,12 @@ const char* toString(PfRule id)
     case PfRule::ARRAYS_READ_OVER_WRITE_1: return "ARRAYS_READ_OVER_WRITE_1";
     case PfRule::ARRAYS_EXT: return "ARRAYS_EXT";
     case PfRule::ARRAYS_TRUST: return "ARRAYS_TRUST";
+    //================================================= Datatype rules
+    case PfRule::DT_UNIF: return "DT_UNIF";
+    case PfRule::DT_INST: return "DT_INST";
+    case PfRule::DT_SPLIT: return "DT_SPLIT";
+    case PfRule::DT_CLASH: return "DT_CLASH";
+    case PfRule::DT_TRUST: return "DT_TRUST";
     //================================================= Quantifiers rules
     case PfRule::WITNESS_INTRO: return "WITNESS_INTRO";
     case PfRule::EXISTS_INTRO: return "EXISTS_INTRO";
