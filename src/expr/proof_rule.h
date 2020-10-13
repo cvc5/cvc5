@@ -243,24 +243,38 @@ enum class PfRule : uint32_t
   //================================================= Boolean rules
   // ======== Resolution
   // Children:
-  //  (P1:(or F_1 ... F_i-1 F_i F_i+1 ... F_n),
-  //   P2:(or G_1 ... G_j-1 G_j G_j+1 ... G_m))
-  //
-  // Arguments: (F_i)
+  //  (P1:C1, P2:C2)
+  // Arguments: (id, L)
   // ---------------------
-  // Conclusion: (or F_1 ... F_i-1 F_i+1 ... F_n G_1 ... G_j-1 G_j+1 ... G_m)
+  // Conclusion: C
   // where
-  //   G_j = (not F_i)
+  //   - C1 and C2 are nodes viewed as clauses, i.e., either an OR node with
+  //     each children viewed as a literal or a node viewed as a literal. Note
+  //     that an OR node could also be a literal.
+  //   - id is either true or false
+  //   - L is the pivot of the resolution, which occurs as is (resp. under a
+  //     NOT) in C1 and negatively (as is) in C2 if id = true (id = false).
+  //   C is a clause resulting from collecting all the literals in C1, minus the
+  //   first occurrence of the pivot, and C2, minus the first occurrence of the
+  //   pivot, according to the policy above.
+  //
+  //   Note that it may be the case that the pivot does not occur in the
+  //   clauses. In this case the rule is not unsound, but it does not correspond
+  //   to resolution but rather to an weakening of the clause that did not have
+  //   a literal eliminated.
   RESOLUTION,
   // ======== Chain Resolution
-  // Children: (P1:(or F_{1,1} ... F_{1,n1}), ..., Pm:(or F_{m,1} ... F_{m,nm}))
-  // Arguments: (L_1, ..., L_{m-1})
+  // Children: (P1:C_1, ..., Pm:C_n)
+  // Arguments: (id_1, L_1, ..., id_{n-1}, L_{n-1})
   // ---------------------
-  // Conclusion: C_m'
+  // Conclusion: C
   // where
-  //   let "C_1 <>_l C_2" represent the resolution of C_1 with C_2 with pivot l,
-  //   let C_1' = C_1 (from P_1),
-  //   for each i > 1, C_i' = C_i <>_L_i C_{i-1}'
+  //   - let C_1 ... C_n be nodes viewed as clauses, as defined above
+  //   - let "C_1 <>_{L,id} C_2" represent the resolution of C_1 with C_2 with
+  //     pivot L and policy id, as defined above
+  //   - let C_1' = C_1 (from P1),
+  //   - for each i > 1, let C_i' = C_{i-1} <>_{L_{i-1}, id_{i-1}} C_i'
+  //   The result of the chain resolution is C = C_n'
   CHAIN_RESOLUTION,
   // ======== Factoring
   // Children: (P:C1)
