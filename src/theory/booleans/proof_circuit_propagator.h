@@ -336,13 +336,15 @@ struct ProofCircuitPropagatorBackward : public ProofCircuitPropagator
     {
       return mkResolution(
           mkProof(PfRule::NOT_EQUIV_ELIM2, {mkProof(d_parent.notNode())}),
-          {d_parent[1].notNode()}, {false});
+          {d_parent[1]},
+          {false});
     }
     else
     {
       return mkResolution(
           mkProof(PfRule::NOT_EQUIV_ELIM1, {mkProof(d_parent.notNode())}),
-          {d_parent[1]}, {false});
+          {d_parent[1]},
+          {true});
     }
   }
   std::shared_ptr<ProofNode> neqYFromX(bool x)
@@ -352,13 +354,15 @@ struct ProofCircuitPropagatorBackward : public ProofCircuitPropagator
     {
       return mkResolution(
           mkProof(PfRule::NOT_EQUIV_ELIM2, {mkProof(d_parent.notNode())}),
-          {d_parent[0].notNode()}, {false});
+          {d_parent[0]},
+          {false});
     }
     else
     {
       return mkResolution(
           mkProof(PfRule::NOT_EQUIV_ELIM1, {mkProof(d_parent.notNode())}),
-          {d_parent[0]}, {false});
+          {d_parent[0]},
+          {true});
     }
   }
 
@@ -495,7 +499,7 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
     {
       return mkResolution(
           mkProof(PfRule::NOT_EQUIV_ELIM2, {mkProof(d_parent.notNode())}),
-          {d_child.notNode()},
+          {d_child},
           {false});
     }
     else
@@ -503,7 +507,7 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
       return mkResolution(
           mkProof(PfRule::NOT_EQUIV_ELIM1, {mkProof(d_parent.notNode())}),
           {d_child},
-          {false});
+          {true});
     }
   }
   std::shared_ptr<ProofNode> eqXFromY()
@@ -538,8 +542,8 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
     {
       return mkResolution(mkProof(PfRule::NOT_EQUIV_ELIM1,
                                   {mkProof(PfRule::SYMM, {mkProof(d_parent)})}),
-                          {d_child.notNode()},
-                          {false});
+                          {d_child},
+                          {true});
     }
   }
 
