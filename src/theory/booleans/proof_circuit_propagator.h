@@ -462,7 +462,7 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
     {
       return mkResolution(mkProof(PfRule::CNF_EQUIV_NEG1, {}, {d_parent}),
                           {d_parent[0], d_parent[1]},
-                          {false, false});
+                          {true, true});
     }
   }
   std::shared_ptr<ProofNode> eqYFromX()
