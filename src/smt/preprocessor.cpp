@@ -64,7 +64,8 @@ bool Preprocessor::process(Assertions& as)
   preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();
 
   // should not be called if empty
-  Assert(ap.size() != 0) << "Can only preprocess a non-empty list of assertions";
+  Assert(ap.size() != 0)
+      << "Can only preprocess a non-empty list of assertions";
 
   if (d_assertionsProcessed && options::incrementalSolving())
   {

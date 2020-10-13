@@ -92,6 +92,7 @@ class CircuitPropagator
   {
     Trace("circuit-prop") << "FINISH" << std::endl;
     d_context.pop();
+    d_assumptions.clear();
   }
 
   /** Assert for propagation */
@@ -146,6 +147,8 @@ class CircuitPropagator
   void setProof(ProofNodeManager* pnm,
                 context::Context* ctx,
                 ProofGenerator* defParent);
+
+  void ensureClosed() const;
 
  private:
   /** A context-notify object that clears out stale data. */
@@ -267,7 +270,17 @@ class CircuitPropagator
             }
             Trace("circuit-prop") << "Adding proof " << *proof << std::endl
                                   << "\t" << proof->getResult() << std::endl;
-            d_epg->setProofFor(expected, std::move(proof));
+            if (!d_epg->hasProofFor(expected))
+            {
+              d_epg->setProofFor(expected, std::move(proof));
+            }
+            else
+            {
+              Trace("circuit-prop")
+                  << "Ignoring proof" << std::endl
+                  << "We already have " << *d_epg->getProofFor(expected)
+                  << std::endl;
+            }
           }
         }
       }
@@ -299,13 +312,15 @@ class CircuitPropagator
   /** The propagation queue */
   std::vector<TNode> d_propagationQueue;
 
+  std::vector<Node> d_assumptions;
+
   /**
    * We have a propagation queue "clearer" object for when the user
    * context pops.  Normally the propagation queue should be empty,
    * but this keeps us safe in case there's still some rubbish around
    * on the queue.
    */
-  DataClearer<std::vector<TNode> > d_propagationQueueClearer;
+  DataClearer<std::vector<TNode>> d_propagationQueueClearer;
 
   /** Are we in conflict? */
   context::CDO<bool> d_conflict;
