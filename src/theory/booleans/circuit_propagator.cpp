@@ -782,7 +782,7 @@ void CircuitPropagator::addProof(TNode f, std::shared_ptr<ProofNode> pf)
     Trace("circuit-prop") << "Adding proof for " << f << std::endl
                           << "\t" << *pf << std::endl;
     d_epg->setProofFor(f, std::move(pf));
-    d_proofInternal->addLazyStep(f, d_epg.get());
+    // d_proofInternal->addLazyStep(f, d_epg.get());
   }
 }
 
