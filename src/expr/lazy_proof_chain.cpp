@@ -107,7 +107,10 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
           << "\n";
       // retrieve free assumptions and their respective proof nodes
       std::map<Node, std::vector<std::shared_ptr<ProofNode>>> famap;
-      expr::getFreeAssumptionsMap(curPfn, famap);
+      if (curPfn != nullptr)
+      {
+        expr::getFreeAssumptionsMap(curPfn, famap);
+      }
       if (Trace.isOn("lazy-cdproofchain"))
       {
         Trace("lazy-cdproofchain")
