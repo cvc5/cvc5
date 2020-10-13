@@ -17,7 +17,7 @@
 #include "expr/dtype.h"
 #include "options/datatypes_options.h"
 #include "theory/theory.h"
-#include "theory/datatype/inference_manager.h"
+#include "theory/datatypes/inference_manager.h"
 
 using namespace CVC4::kind;
 
