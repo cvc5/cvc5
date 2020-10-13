@@ -277,16 +277,20 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment)
         if (isAssigned(parent[0]))
         {
           // XOR x y = TRUE, and x assigned, assign(y = !assignment(x))
-          assignAndEnqueue(parent[1],
-                           !getAssignment(parent[0]),
-                           prover.xorX(getAssignment(parent[0])));
+          assignAndEnqueue(
+              parent[1],
+              !getAssignment(parent[0]),
+              prover.mkXorYFromX(
+                  !parentAssignment, getAssignment(parent[0]), parent));
         }
         else if (isAssigned(parent[1]))
         {
           // XOR x y = TRUE, and y assigned, assign(x = !assignment(y))
-          assignAndEnqueue(parent[0],
-                           !getAssignment(parent[1]),
-                           prover.xorY(getAssignment(parent[1])));
+          assignAndEnqueue(
+              parent[0],
+              !getAssignment(parent[1]),
+              prover.mkXorXFromY(
+                  !parentAssignment, getAssignment(parent[1]), parent));
         }
       }
       else
@@ -294,16 +298,20 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment)
         if (isAssigned(parent[0]))
         {
           // XOR x y = FALSE, and x assigned, assign(y = assignment(x))
-          assignAndEnqueue(parent[1],
-                           getAssignment(parent[0]),
-                           prover.xorX(getAssignment(parent[0])));
+          assignAndEnqueue(
+              parent[1],
+              getAssignment(parent[0]),
+              prover.mkXorYFromX(
+                  !parentAssignment, getAssignment(parent[0]), parent));
         }
         else if (isAssigned(parent[1]))
         {
           // XOR x y = FALSE, and y assigned, assign(x = assignment(y))
-          assignAndEnqueue(parent[0],
-                           getAssignment(parent[1]),
-                           prover.xorY(getAssignment(parent[1])));
+          assignAndEnqueue(
+              parent[0],
+              getAssignment(parent[1]),
+              prover.mkXorXFromY(
+                  !parentAssignment, getAssignment(parent[1]), parent));
         }
       }
       break;

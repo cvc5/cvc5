@@ -31,13 +31,18 @@ namespace booleans {
 
 namespace {
 
+/** Shorthand to create a Node from a constant number */
 template <typename T>
 Node mkRat(T val)
 {
-  auto* nm = NodeManager::currentNM();
-  return nm->mkConst<Rational>(val);
+  return NodeManager::currentNM()->mkConst<Rational>(val);
 }
 
+/**
+ * Collect all children from parent except for one particular child (the
+ * "holdout"). The holdout is given as iterator, and should be an iterator into
+ * the [parent.begin(),parent.end()] range.
+ */
 inline std::vector<Node> collectButHoldout(TNode parent,
                                            TNode::iterator holdout)
 {
@@ -55,14 +60,24 @@ inline std::vector<Node> collectButHoldout(TNode parent,
 
 }  // namespace
 
+/**
+ * Base class for for CircuitPropagatorProofs.
+ * This class collects common functionality for proofs of backward and forward
+ * propagation.
+ */
 struct ProofCircuitPropagator
 {
+  /** The proof node manager */
   ProofNodeManager* d_pnm;
+  /** The eager proof generator */
   EagerProofGenerator* d_epg;
 
+  /** Shorthand to check whether proof generation is disabled */
   bool disabled() const { return d_pnm == nullptr; }
 
+  /** Construct proof by assuming the given node */
   std::shared_ptr<ProofNode> mkProof(Node n) { return d_pnm->mkAssume(n); }
+  /** Construct proof using the given rule, children and args */
   std::shared_ptr<ProofNode> mkProof(
       PfRule rule,
       const std::vector<std::shared_ptr<ProofNode>>& children,
@@ -89,6 +104,7 @@ struct ProofCircuitPropagator
     }
     return d_pnm->mkNode(rule, children, args);
   }
+  /** Apply CONTRA rule. Takes care of switching a and b if necessary */
   std::shared_ptr<ProofNode> mkContra(const std::shared_ptr<ProofNode>& a,
                                       const std::shared_ptr<ProofNode>& b)
   {
@@ -99,6 +115,12 @@ struct ProofCircuitPropagator
     Assert(a->getResult() == b->getResult().notNode());
     return mkProof(PfRule::CONTRA, {b, a});
   }
+  /**
+   * Apply CHAIN_RESOLUTION rule.
+   * Constructs the args from the given literals and polarities (called ids in
+   * the proof rule). Automatically adds the clauses to resolve with as
+   * assumptions, depending on their polarity.
+   */
   std::shared_ptr<ProofNode> mkResolution(std::shared_ptr<ProofNode> clause,
                                           const std::vector<Node>& lits,
                                           const std::vector<bool>& polarity)
@@ -122,12 +144,14 @@ struct ProofCircuitPropagator
     }
     return mkProof(PfRule::CHAIN_RESOLUTION, children, args);
   }
+  /** Shorthand for mkResolution(clause, lits, {polarity, ...}) */
   std::shared_ptr<ProofNode> mkResolution(std::shared_ptr<ProofNode> clause,
                                           const std::vector<Node>& lits,
                                           bool polarity)
   {
     return mkResolution(clause, lits, std::vector<bool>(lits.size(), polarity));
   }
+  /** Apply NOT_NOT_ELIM rule if n.getResult() is a nested negation */
   std::shared_ptr<ProofNode> mkNot(const std::shared_ptr<ProofNode>& n)
   {
     Node m = n->getResult();
@@ -171,6 +195,13 @@ struct ProofCircuitPropagator
         mkProof(PfRule::IMPLIES_ELIM, {mkProof(parent)}), {parent[0]}, {false});
   }
 
+  /**
+   * Uses (xor X Y) to derive the value of X.
+   * (xor X false)  -->  X
+   * (xor X true)  -->  (not X)
+   * (not (xor X false))  -->  (not X)
+   * (not (xor X true))  -->  X
+   */
   std::shared_ptr<ProofNode> mkXorXFromY(bool negated, bool y, Node parent)
   {
     if (disabled()) return nullptr;
@@ -191,6 +222,13 @@ struct ProofCircuitPropagator
           {true});
     }
   }
+  /**
+   * Uses (xor X Y) to derive the value of Y.
+   * (xor false Y)  -->  Y
+   * (xor true Y)  -->  (not Y)
+   * (not (xor false Y))  -->  (not Y)
+   * (not (xor true Y))  -->  Y
+   */
   std::shared_ptr<ProofNode> mkXorYFromX(bool negated, bool x, Node parent)
   {
     if (disabled()) return nullptr;
@@ -213,6 +251,7 @@ struct ProofCircuitPropagator
   }
 };
 
+/** Proof generator for backward propagation */
 struct ProofCircuitPropagatorBackward : public ProofCircuitPropagator
 {
   TNode d_parent;
@@ -384,17 +423,9 @@ struct ProofCircuitPropagatorBackward : public ProofCircuitPropagator
     return mkNot(
         mkProof(PfRule::NOT_IMPLIES_ELIM2, {mkProof(d_parent.notNode())}));
   }
-
-  std::shared_ptr<ProofNode> xorX(bool x)
-  {
-    return mkXorYFromX(!d_parentAssignment, x, d_parent);
-  }
-  std::shared_ptr<ProofNode> xorY(bool y)
-  {
-    return mkXorXFromY(!d_parentAssignment, y, d_parent);
-  }
 };
 
+/** Proof generator for forward propagation */
 struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
 {
   Node d_child;
