@@ -558,17 +558,17 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
     {
       return mkResolution(mkProof(PfRule::CNF_IMPLIES_NEG1, {}, {d_parent}),
                           {d_parent[0]},
-                          {false});
+                          {true});
     }
     if (conclusion)
     {
       return mkResolution(mkProof(PfRule::CNF_IMPLIES_NEG2, {}, {d_parent}),
-                          {d_parent[1].notNode()},
+                          {d_parent[1]},
                           {false});
     }
     return mkResolution(mkProof(PfRule::CNF_IMPLIES_POS, {}, {d_parent}),
-                        {d_parent[0].notNode(), d_parent[1]},
-                        {false, false});
+                        {d_parent[0], d_parent[1]},
+                        {false, true});
   }
   std::shared_ptr<ProofNode> xorXFromY(bool negated)
   {
