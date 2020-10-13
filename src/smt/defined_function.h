@@ -34,7 +34,7 @@ class DefinedFunction
 {
  public:
   DefinedFunction() {}
-  DefinedFunction(Node func, std::vector<Node>& formals, Node formula)
+  DefinedFunction(Node func, const std::vector<Node>& formals, Node formula)
       : d_func(func), d_formals(formals), d_formula(formula)
   {
   }
