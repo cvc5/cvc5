@@ -133,14 +133,14 @@ class CardinalityExtension
       /** conflict find pointer */
       SortModel* d_cf;
 
-      context::CDO< unsigned > d_testCliqueSize;
+      context::CDO< size_t > d_testCliqueSize;
       context::CDO< unsigned > d_splitsSize;
       //a postulated clique
       NodeBoolMap d_testClique;
       //disequalities needed for this clique to happen
       NodeBoolMap d_splits;
       //number of valid representatives in this region
-      context::CDO< unsigned > d_reps_size;
+      context::CDO< size_t > d_reps_size;
       //total disequality size (external)
       context::CDO< unsigned > d_total_diseq_external;
       //total disequality size (internal)
@@ -188,9 +188,9 @@ class CardinalityExtension
       //set n1 != n2 to value 'valid', type is whether it is internal/external
       void setDisequal( Node n1, Node n2, int type, bool valid );
       //get num reps
-      int getNumReps() { return d_reps_size; }
+      size_t getNumReps() const { return d_reps_size; }
       //get test clique size
-      int getTestCliqueSize() { return d_testCliqueSize; }
+      size_t getTestCliqueSize() const { return d_testCliqueSize; }
       // has representative
       bool hasRep( Node n ) {
         return d_nodes.find(n) != d_nodes.end() && d_nodes[n]->valid();
@@ -305,7 +305,7 @@ class CardinalityExtension
     /** presolve */
     void presolve();
     /** assert cardinality */
-    void assertCardinality(int c, bool val);
+    void assertCardinality(unsigned c, bool val);
     /** get cardinality */
     int getCardinality() { return d_cardinality; }
     /** has cardinality */
@@ -315,7 +315,7 @@ class CardinalityExtension
     /** get cardinality literal */
     Node getCardinalityLiteral(size_t c);
     /** get maximum negative cardinality */
-    int getMaximumNegativeCardinality() { return d_maxNegCard.get(); }
+    size_t getMaximumNegativeCardinality() const { return d_maxNegCard.get(); }
     //print debug
     void debugPrint( const char* c );
     /**

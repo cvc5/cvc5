@@ -838,7 +838,7 @@ void SortModel::setSplitScore( Node n, int s ){
   }
 }
 
-void SortModel::assertCardinality(int c, bool val)
+void SortModel::assertCardinality(unsigned c, bool val)
 {
   if (!d_state.isInConflict())
   {
@@ -862,7 +862,7 @@ void SortModel::assertCardinality(int c, bool val)
       }
       //should check all regions now
       if( doCheckRegions ){
-        for( int i=0; i<(int)d_regions_index; i++ ){
+        for( size_t i=0; i<d_regions_index; i++ ){
           if( d_regions[i]->valid() ){
             checkRegion( i );
             if (d_state.isInConflict())
@@ -873,8 +873,8 @@ void SortModel::assertCardinality(int c, bool val)
         }
       }
       // we assert it positively, if its beyond the bound, abort
-      if (options::ufssAbortCardinality() != -1
-          && c >= options::ufssAbortCardinality())
+      if (options::ufssAbortCardinality() >= 0
+          && static_cast<int>(c) >= options::ufssAbortCardinality())
       {
         std::stringstream ss;
         ss << "Maximum cardinality (" << options::ufssAbortCardinality()
@@ -897,15 +897,6 @@ void SortModel::checkRegion( int ri, bool checkCombine ){
   if( isValid(ri) && d_hasCard ){
     Assert(d_cardinality > 0);
     if( checkCombine && d_regions[ri]->getMustCombine( d_cardinality ) ){
-      ////alternatively, check if we can reduce the number of external disequalities by moving single nodes
-      //for( std::map< Node, bool >::iterator it = d_regions[i]->d_reps.begin(); it != d_regions[i]->d_reps.end(); ++it ){
-      //  if( it->second ){
-      //    int inDeg = d_regions[i]->d_disequalities_size[1][ it-> first ];
-      //    int outDeg = d_regions[i]->d_disequalities_size[0][ it-> first ];
-      //    if( inDeg<outDeg ){
-      //    }
-      //  }
-      //}
       int riNew = forceCombineRegion( ri, true );
       if( riNew>=0 ){
         checkRegion( riNew, checkCombine );
@@ -1141,13 +1132,13 @@ bool SortModel::checkLastCall()
     }
   }
   RepSet* rs = m->getRepSetPtr();
-  int nReps = (int)rs->getNumRepresentatives(d_type);
+  size_t nReps = rs->getNumRepresentatives(d_type);
   if( nReps!=(d_maxNegCard+1) ){
     Trace("uf-ss-warn") << "WARNING : Model does not have same # representatives as cardinality for " << d_type << "." << std::endl;
     Trace("uf-ss-warn") << "   Max neg cardinality : " << d_maxNegCard << std::endl;
     Trace("uf-ss-warn") << "   # Reps : " << nReps << std::endl;
     if( d_maxNegCard>=nReps ){
-      while( (int)d_fresh_aloc_reps.size()<=d_maxNegCard ){
+      while( d_fresh_aloc_reps.size()<=d_maxNegCard ){
         std::stringstream ss;
         ss << "r_" << d_type << "_";
         Node nn = NodeManager::currentNM()->mkSkolem( ss.str(), d_type, "enumeration to meet negative card constraint" );
@@ -1158,8 +1149,8 @@ bool SortModel::checkLastCall()
       }else{
         //must add lemma
         std::vector< Node > force_cl;
-        for( int i=0; i<=d_maxNegCard; i++ ){
-          for( int j=(i+1); j<=d_maxNegCard; j++ ){
+        for( size_t i=0; i<=d_maxNegCard; i++ ){
+          for( size_t j=(i+1); j<=d_maxNegCard; j++ ){
             force_cl.push_back( d_fresh_aloc_reps[i].eqNode( d_fresh_aloc_reps[j] ).negate() );
           }
         }
@@ -1330,7 +1321,7 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
       TypeNode tn = lit[0].getType();
       Assert(tn.isSort());
       Assert(d_rep_model[tn]);
-      int nCard = lit[1].getConst<Rational>().getNumerator().getSignedInt();
+      unsigned nCard = lit[1].getConst<Rational>().getNumerator().getUnsignedInt();
       Node ct = d_rep_model[tn]->getCardinalityTerm();
       Trace("uf-ss-debug") << "...check cardinality terms : " << lit[0] << " " << ct << std::endl;
       if( lit[0]==ct ){
@@ -1387,7 +1378,7 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
     }else if( lit.getKind()==COMBINED_CARDINALITY_CONSTRAINT ){
       if( polarity ){
         //safe to assume int here
-        int nCard = lit[0].getConst<Rational>().getNumerator().getSignedInt();
+        unsigned nCard = lit[0].getConst<Rational>().getNumerator().getUnsignedInt();
         if( d_min_pos_com_card.get()==-1 || nCard<d_min_pos_com_card.get() ){
           d_min_pos_com_card.set( nCard );
           checkCombinedCardinality();
@@ -1655,7 +1646,7 @@ void CardinalityExtension::checkCombinedCardinality()
     int maxMonoSlave = 0;
     TypeNode maxSlaveType;
     for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
-      int max_neg = it->second->getMaximumNegativeCardinality();
+      size_t max_neg = it->second->getMaximumNegativeCardinality();
       if( !options::ufssFairnessMonotone() ){
         totalCombinedCard += max_neg;
       }else{
