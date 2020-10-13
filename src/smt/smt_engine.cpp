@@ -1459,8 +1459,9 @@ std::pair<Node, Node> SmtEngine::getSepHeapAndNilExpr(void)
   TheoryModel* tm = m->getTheoryModel();
   if (!tm->getHeapModel(heap, nil))
   {
-    const char* msg = "Failed to obtain heap/nil "
-           "expressions from theory model.";
+    const char* msg =
+        "Failed to obtain heap/nil "
+        "expressions from theory model.";
     throw RecoverableModalException(msg);
   }
   return std::make_pair(heap, nil);
