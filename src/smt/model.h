@@ -75,6 +75,8 @@ class Model {
   bool isModelCoreSymbol(TNode sym) const;
   /** Get value */
   Node getValue(TNode n) const;
+  /** Does this model have approximations? */
+  bool hasApproximations() const;
   //----------------------- end helper methods
  protected:
   /** The SmtEngine we're associated with */

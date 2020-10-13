@@ -1236,7 +1236,7 @@ Node SmtEngine::getValue(const Node& ex) const
 
   // Ensure it's a constant, or a lambda (for uninterpreted functions). This
   // assertion only holds for models that do not have approximate values.
-  Assert(tm->hasApproximations() || resultNode.getKind() == kind::LAMBDA
+  Assert(m->hasApproximations() || resultNode.getKind() == kind::LAMBDA
          || resultNode.isConst());
 
   if(options::abstractValues() && resultNode.getType().isArray()) {
@@ -1562,11 +1562,10 @@ void SmtEngine::checkModel(bool hardFailure) {
   Notice() << "SmtEngine::checkModel(): generating model" << endl;
   Model* m = getAvailableModel("check model");
   Assert(m != nullptr);
-  TheoryModel* tm = m->getTheoryModel();
 
   // check-model is not guaranteed to succeed if approximate values were used.
   // Thus, we intentionally abort here.
-  if (tm->hasApproximations())
+  if (m->hasApproximations())
   {
     throw RecoverableModalException(
         "Cannot run check-model on a model with approximate values.");
