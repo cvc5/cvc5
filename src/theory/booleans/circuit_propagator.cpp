@@ -720,20 +720,22 @@ void CircuitPropagator::setProof(ProofNodeManager* pnm,
                                  ProofGenerator* defParent)
 {
   // TODO: this would enable proof production
-  d_pnm = pnm;
-  d_epg.reset(new EagerProofGenerator(pnm, ctx));
-  d_proofInternal.reset(
-      new LazyCDProofChain(pnm, false, ctx, d_epg.get(), true));
-  if (defParent != nullptr)
-  {
-    // If we provide a parent proof generator (defParent), we want the ASSUME
-    // leafs of proofs provided by this class to call the getProofFor method on
-    // the parent. To do this, we use a LazyCDProofChain.
-    d_proofExternal.reset(
-        new LazyCDProofChain(pnm, false, ctx, defParent, false));
-  }
-  Trace("circuit-prop") << "Internal: " << d_proofInternal.get() << std::endl;
-  Trace("circuit-prop") << "External: " << d_proofExternal.get() << std::endl;
+  // d_pnm = pnm;
+  // d_epg.reset(new EagerProofGenerator(pnm, ctx));
+  // d_proofInternal.reset(
+  //    new LazyCDProofChain(pnm, false, ctx, d_epg.get(), true));
+  // if (defParent != nullptr)
+  //{
+  //  // If we provide a parent proof generator (defParent), we want the ASSUME
+  //  // leafs of proofs provided by this class to call the getProofFor method
+  //  on
+  //  // the parent. To do this, we use a LazyCDProofChain.
+  //  d_proofExternal.reset(
+  //      new LazyCDProofChain(pnm, false, ctx, defParent, false));
+  //}
+  // Trace("circuit-prop") << "Internal: " << d_proofInternal.get() <<
+  // std::endl; Trace("circuit-prop") << "External: " << d_proofExternal.get() <<
+  // std::endl;
 }
 
 void CircuitPropagator::ensureClosed() const
