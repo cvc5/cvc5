@@ -57,11 +57,15 @@ void CircuitPropagator::assertTrue(TNode assertion)
   d_assumptions.emplace_back(assertion);
   if (assertion.getKind() == kind::AND)
   {
-    ProofCircuitPropagatorForward prover{d_pnm, assertion[0], true, assertion};
-    addProof(assertion, prover.andAllTrue());
-    for (unsigned i = 0; i < assertion.getNumChildren(); ++i)
+    ProofCircuitPropagatorBackward prover{d_pnm, assertion, true};
+    if (isProofEnabled())
     {
-      assertTrue(assertion[i]);
+      addProof(assertion, prover.mkProof(assertion));
+    }
+    for (auto it = assertion.begin(); it != assertion.end(); ++it)
+    {
+      addProof(*it, prover.andTrue(it));
+      assertTrue(*it);
     }
   }
   else
