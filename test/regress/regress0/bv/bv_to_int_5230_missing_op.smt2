@@ -1,3 +1,4 @@
+; REQUIRES: proofs
 ; EXPECT: sat
 (set-logic ABV)
 (set-option :check-unsat-cores true)
