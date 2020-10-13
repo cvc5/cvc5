@@ -584,27 +584,27 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
     if (x && y)
     {
       return mkResolution(mkProof(PfRule::CNF_XOR_POS2, {}, {d_parent}),
-                          {d_parent[0].notNode(), d_parent[1].notNode()},
+                          {d_parent[0], d_parent[1]},
                           {false, false});
     }
     else if (x && !y)
     {
       return mkResolution(mkProof(PfRule::CNF_XOR_NEG1, {}, {d_parent}),
-                          {d_parent[0].notNode(), d_parent[1]},
-                          {false, false});
+                          {d_parent[0], d_parent[1]},
+                          {false, true});
     }
     else if (!x && y)
     {
       return mkResolution(mkProof(PfRule::CNF_XOR_NEG2, {}, {d_parent}),
-                          {d_parent[0], d_parent[1].notNode()},
-                          {false, false});
+                          {d_parent[0], d_parent[1]},
+                          {true, false});
     }
     else
     {
       Assert(!x && !y);
       return mkResolution(mkProof(PfRule::CNF_XOR_POS1, {}, {d_parent}),
                           {d_parent[0], d_parent[1]},
-                          {false, false});
+                          {true, true});
     }
   }
 };
