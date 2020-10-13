@@ -71,7 +71,7 @@ void SmtNodeManagerListener::nmNotifyNewDatatypes(
   {
     if (Configuration::isAssertionBuild())
     {
-      for (const TypeNode& dt : dtts)
+      for (CVC4_UNUSED const TypeNode& dt : dtts)
       {
         Assert(dt.isDatatype());
       }
