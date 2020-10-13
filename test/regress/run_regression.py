@@ -320,7 +320,7 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
         inv_feature = req_feature[len("no-"):] if is_negative else req_feature
         if inv_feature not in (cvc4_features + cvc4_non_features):
             print(
-                '1..0 # Illegal requirement in regression: {}\nAllowed requirements: {}'
+                'Illegal requirement in regression: {}\nAllowed requirements: {}'
                 .format(inv_feature, ' '.join(cvc4_features + cvc4_non_features)))
             return EXIT_FAILURE
         if is_negative:
