@@ -111,9 +111,16 @@ struct ProofCircuitPropagator
     Assert(lits.size() == polarity.size());
     for (std::size_t i = 0; i < lits.size(); ++i)
     {
-      children.emplace_back(mkProof(lits[i]));
       args.emplace_back(nm->mkConst<bool>(polarity[i]));
       args.emplace_back(lits[i]);
+      if (polarity[i])
+      {
+        children.emplace_back(mkProof(lits[i].notNode()));
+      }
+      else
+      {
+        children.emplace_back(mkProof(lits[i]));
+      }
     }
     return mkProof(PfRule::CHAIN_RESOLUTION, children, args);
   }
@@ -147,8 +154,8 @@ struct ProofCircuitPropagator
   std::shared_ptr<ProofNode> impliesXFromY(Node parent)
   {
     if (disabled()) return nullptr;
-    return mkNot(mkResolution(mkProof(PfRule::IMPLIES_ELIM, {mkProof(parent)}),
-                              {parent[1]}, {false}));
+    return mkNot(mkResolution(
+        mkProof(PfRule::IMPLIES_ELIM, {mkProof(parent)}), {parent[1]}, {true}));
   }
   /** (=> true Y)  -->  Y */
   std::shared_ptr<ProofNode> impliesYFromX(Node parent)
