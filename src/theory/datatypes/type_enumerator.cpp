@@ -201,7 +201,20 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
                     << d_datatype.isRecursiveSingleton(d_type);
    Debug("dt-enum") << " " << d_datatype.isInterpretedFinite(d_type)
                     << std::endl;
-
+   // Start with the ground term constructed via mkGroundValue, which does
+   // a traversal over the structure of the datatype to find a finite term.
+   // Notice that mkGroundValue may be dependent upon extracting the first
+   // value of type enumerators for *other non-datatype* subfield types of
+   // this datatype. Since datatypes can not be embedded in non-datatype
+   // types (e.g. (Array D D) cannot be a subfield type of datatype D), this
+   // call is guaranteed to avoid infinite recursion. It is important that we
+   // start with this term, since it has the same shape as the one returned by
+   // TypeNode::mkGroundTerm for d_type, which avoids debug check model
+   // failures.
+   d_zeroTerm = d_datatype.mkGroundValue(d_type);
+   // Only use the zero term if it was successfully constructed. This may
+   // fail for codatatype types whose only values are infinite.
+   d_zeroTermActive = !d_zeroTerm.isNull();
    if (d_datatype.isCodatatype() && hasCyclesDt(d_datatype))
    {
      // start with uninterpreted constant
@@ -214,15 +227,6 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
    {
      // find the "zero" term via mkGroundTerm
      Debug("dt-enum-debug") << "make ground term..." << std::endl;
-     // Start with the ground term constructed via mkGroundValue, which does
-     // a traversal over the structure of the datatype to find a finite term.
-     // Notice that mkGroundValue may be dependent upon extracting the first
-     // value of type enumerators for *other non-datatype* subfield types of
-     // this datatype. Since datatypes can not be embedded in non-datatype
-     // types (e.g. (Array D D) cannot be a subfield type of datatype D), this
-     // call is guaranteed to avoid infinite recursion.
-     d_zeroTerm = d_datatype.mkGroundValue(d_type);
-     d_zeroTermActive = true;
      Debug("dt-enum-debug") << "done : " << d_zeroTerm << std::endl;
      Assert(d_zeroTerm.getKind() == kind::APPLY_CONSTRUCTOR);
      d_has_debruijn = 0;

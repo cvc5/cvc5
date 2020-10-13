@@ -357,6 +357,8 @@ libcvc4_add_sources(
   theory/arith/nl/icp/intersection.h
   theory/arith/nl/nl_constraint.cpp
   theory/arith/nl/nl_constraint.h
+  theory/arith/nl/iand_table.cpp
+  theory/arith/nl/iand_table.h
   theory/arith/nl/nl_lemma_utils.cpp
   theory/arith/nl/nl_lemma_utils.h
   theory/arith/nl/nl_model.cpp
@@ -1163,6 +1165,7 @@ install(FILES
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/theory)
 install(FILES
           util/abstract_value.h
+          util/arith.h
           util/bitvector.h
           util/bool.h
           util/cardinality.h

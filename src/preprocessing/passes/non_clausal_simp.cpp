@@ -478,6 +478,7 @@ void NonClausalSimp::assertLearnedLiteral(const std::vector<Node>& assertions,
   // no proof generator provided
   // maybe its just part of the assertions? If so, we are allowed to use an
   // ASSUME.
+  /*
   if (std::find(assertions.begin(), assertions.end(), proven)
       != assertions.end())
   {
@@ -486,6 +487,7 @@ void NonClausalSimp::assertLearnedLiteral(const std::vector<Node>& assertions,
     d_llpg->notifyNewTrustedAssert(tassume);
     return;
   }
+  */
   d_llpg->notifyNewTrustedAssert(tll);
 }
 /* -------------------------------------------------------------------------- */

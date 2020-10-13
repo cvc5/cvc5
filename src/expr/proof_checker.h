@@ -54,17 +54,7 @@ class ProofRuleChecker
   Node check(PfRule id,
              const std::vector<Node>& children,
              const std::vector<Node>& args);
-  /** Single arg version */
-  Node checkChildrenArg(PfRule id, const std::vector<Node>& children, Node arg);
-  /** No arg version */
-  Node checkChildren(PfRule id, const std::vector<Node>& children);
-  /** Single child only version */
-  Node checkChild(PfRule id, Node child);
-  /** Single argument only version */
-  Node checkArg(PfRule id, Node arg);
 
-  /** Make AND-kinded node with children a */
-  static Node mkAnd(const std::vector<Node>& a);
   /** get an index from a node, return false if we fail */
   static bool getUInt32(TNode n, uint32_t& i);
   /** get a Boolean from a node, return false if we fail */

@@ -103,7 +103,7 @@ class Preprocessor
   /**
    * Set proof node manager. Enables proofs in this preprocessor.
    */
-  void setProofNodeManager(ProofNodeManager* pnm);
+  void setProofGenerator(PreprocessProofGenerator* pppg);
 
  private:
   /** A copy of the current context */

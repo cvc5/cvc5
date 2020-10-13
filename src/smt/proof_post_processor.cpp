@@ -546,13 +546,10 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     if (idr == MethodId::RW_REWRITE || idr == MethodId::RW_REWRITE_EQ_EXT)
     {
       // rewrites from theory::Rewriter
-      // automatically expand THEORY_REWRITE as well here if set
-      bool elimTR =
-          (d_elimRules.find(PfRule::THEORY_REWRITE) != d_elimRules.end());
       bool isExtEq = (idr == MethodId::RW_REWRITE_EQ_EXT);
       // use rewrite with proof interface
       Rewriter* rr = d_smte->getRewriter();
-      TrustNode trn = rr->rewriteWithProof(args[0], elimTR, isExtEq);
+      TrustNode trn = rr->rewriteWithProof(args[0], isExtEq);
       std::shared_ptr<ProofNode> pfn = trn.toProofNode();
       if (pfn == nullptr)
       {
@@ -591,6 +588,23 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       cdp->addStep(eq, PfRule::REFL, {}, {args[0]});
     }
     return eq;
+  }
+  else if (id == PfRule::THEORY_REWRITE)
+  {
+    Assert(!args.empty());
+    Node eq = args[0];
+    Assert(eq.getKind() == EQUAL);
+    // try to replay theory rewrite
+    // first, check that maybe its just an evaluation step
+    ProofChecker* pc = d_pnm->getChecker();
+    Node ceval =
+        pc->checkDebug(PfRule::EVALUATE, {}, {eq[0]}, eq, "smt-proof-pp-debug");
+    if (!ceval.isNull() && ceval == eq)
+    {
+      cdp->addStep(eq, PfRule::EVALUATE, {}, {eq[0]});
+      return eq;
+    }
+    // otherwise no update
   }
 
   // TRUST, PREPROCESS, THEORY_LEMMA, THEORY_PREPROCESS?

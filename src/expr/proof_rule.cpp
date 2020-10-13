@@ -54,9 +54,9 @@ const char* toString(PfRule id)
     case PfRule::REORDERING: return "REORDERING";
     case PfRule::SPLIT: return "SPLIT";
     case PfRule::EQ_RESOLVE: return "EQ_RESOLVE";
-    case PfRule::CONTRA: return "CONTRA";
     case PfRule::MODUS_PONENS: return "MODUS_PONENS";
     case PfRule::NOT_NOT_ELIM: return "NOT_NOT_ELIM";
+    case PfRule::CONTRA: return "CONTRA";
     case PfRule::AND_ELIM: return "AND_ELIM";
     case PfRule::AND_INTRO: return "AND_INTRO";
     case PfRule::NOT_OR_ELIM: return "NOT_OR_ELIM";

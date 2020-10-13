@@ -107,7 +107,6 @@ Node Rewriter::rewrite(TNode node) {
 }
 
 TrustNode Rewriter::rewriteWithProof(TNode node,
-                                     bool elimTheoryRewrite,
                                      bool isExtEq)
 {
   // must set the proof checker before calling this

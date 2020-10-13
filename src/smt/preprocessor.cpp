@@ -64,7 +64,8 @@ bool Preprocessor::process(Assertions& as)
   preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();
 
   // should not be called if empty
-  Assert(ap.size() != 0) << "Can only preprocess a non-empty list of assertions";
+  Assert(ap.size() != 0)
+      << "Can only preprocess a non-empty list of assertions";
 
   if (d_assertionsProcessed && options::incrementalSolving())
   {
@@ -152,11 +153,12 @@ Node Preprocessor::simplify(const Node& node, bool removeItes)
   return ns;
 }
 
-void Preprocessor::setProofNodeManager(ProofNodeManager* pnm)
+void Preprocessor::setProofGenerator(PreprocessProofGenerator* pppg)
 {
-  d_pnm = pnm;
-  d_propagator.setProofNodeManager(pnm, d_context);
-  d_rtf.setProofNodeManager(pnm);
+  Assert(pppg != nullptr);
+  d_pnm = pppg->getManager();
+  d_propagator.setProof(d_pnm, d_context, pppg);
+  d_rtf.setProofNodeManager(d_pnm);
 }
 
 }  // namespace smt

@@ -318,7 +318,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       std::vector<Node> conj;
       ret = StringsPreprocess::reduce(t, conj, &skc);
       conj.push_back(t.eqNode(ret));
-      ret = mkAnd(conj);
+      ret = nm->mkAnd(conj);
     }
     else if (id == PfRule::STRING_EAGER_REDUCTION)
     {
