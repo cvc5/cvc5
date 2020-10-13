@@ -522,9 +522,8 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
     }
     else
     {
-      return mkResolution(mkProof(PfRule::EQUIV_ELIM1, {mkProof(d_parent)}),
-                          {d_child},
-                          {false});
+      return mkResolution(
+          mkProof(PfRule::EQUIV_ELIM1, {mkProof(d_parent)}), {d_child}, {true});
     }
   }
   std::shared_ptr<ProofNode> neqXFromY()
