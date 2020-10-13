@@ -135,46 +135,29 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
       for (const std::pair<const Node, std::vector<std::shared_ptr<ProofNode>>>&
                fap : famap)
       {
-        bool processed = false;
         // check cycles
         if (d_cyclic)
         {
-          bool cyclic = false;
-          // cycles can only occur with assumptions whose proofs are being
-          // expanded or already have been
+          // cycles are assumptions being *currently* expanded and seen again,
+          // i.e. in toConnect and not yet post-visited
           auto itToConnect = toConnect.find(fap.first);
-          if (itToConnect != toConnect.end())
+          if (itToConnect != toConnect.end() && !visited[fap.first])
           {
-            processed = true;
-            // one possibility is that we are *currently* processing the proof
-            // of this assumption, i.e., this assumption has been
-            // pre-traversed but not yet post-traversed
-            if (!visited[fap.first])
-            {
-              cyclic = true;
-              toConnect.erase(itToConnect);
-            }
-            if (cyclic)
-            {
-              // Since we have a cycle with an assumption, this fact will be
-              // an assumption in the final proof node produced by this
-              // method. Thus we mark the proof node it results on, i.e. its
-              // value in the toConnect map, as an assumption proof node. Note
-              // that we don't assign visited[fap.first] to true so that we
-              // properly pop the traces previously pushed.
-              Trace("lazy-cdproofchain") << "LazyCDProofChain::getProofFor: "
-                                            "removing cyclic assumption "
-                                         << fap.first << " from expansion\n";
-              continue;
-            }
+            // Since we have a cycle with an assumption, this fact will be an
+            // assumption in the final proof node produced by this
+            // method. Thus we erase it as something to be connected, which
+            // will keep it as an assumption.
+            Trace("lazy-cdproofchain") << "LazyCDProofChain::getProofFor: "
+                                          "removing cyclic assumption "
+                                       << fap.first << " from expansion\n";
+            continue;
           }
         }
-        // if we are not checking cyclic proofs, we only process further the
-        // assumptions not already in the map. If we are checking cycles, note
-        // that we need to process assumptions previously marked for
-        // expansion. This is necessary because assumptions may occur in
-        // different branches in a proof and only lead to cycles in one of
-        // them. For example the cycle
+        // We always add assumptions to visit so that their last seen occurrence
+        // is expanded (rather than the first seen occurrence, if we were not
+        // adding assumptions, say, in assumptionsToExpand). This is so because
+        // in the case where we are checking cycles this is necessary (and
+        // harmless when we are not). For example the cycle
         //
         //                 a2
         //                ...
@@ -191,18 +174,7 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
         // would not be captured if we did not revisit a1, which is an
         // assumption of n and this already occur in assumptionsToExpand when
         // it shows up again as an assumption of a2.
-        if (!processed)
-        {
-          auto it = std::find(visit.begin(), visit.end(), fap.first);
-          if (it != visit.end())
-          {
-            Trace("lazy-cdproofchain")
-                << "LazyCDProofChain::getProofFor: revisit " << fap.first
-                << "\n";
-            visit.erase(it);
-          }
-          visit.push_back(fap.first);
-        }
+        visit.push_back(fap.first);
         // add assumption proof nodes to be updated
         assumptionsToExpand[fap.first].insert(
             assumptionsToExpand[fap.first].end(),
