@@ -100,15 +100,22 @@ struct ProofCircuitPropagator
     Assert(a->getResult() == b->getResult().notNode());
     return mkProof(PfRule::CONTRA, {b, a});
   }
-  std::shared_ptr<ProofNode> mkResolution(std::shared_ptr<ProofNode> clause,
-                                          const std::vector<Node>& lits)
+  std::shared_ptr<ProofNode> mkResolution(
+      std::shared_ptr<ProofNode> clause,
+      const std::vector<Node>& lits,
+      const std::vector<bool>& polarity = {})
   {
+    auto* nm = NodeManager::currentNM();
     std::vector<std::shared_ptr<ProofNode>> children = {clause};
-    for (const auto& n : lits)
+    std::vector<Node> args;
+    Assert(lits.size() == polarity.size());
+    for (std::size_t i = 0; i < lits.size(); ++i)
     {
-      children.emplace_back(mkProof(n.negate()));
+      children.emplace_back(mkProof(lits[i]));
+      args.emplace_back(nm->mkConst<bool>(polarity[i]));
+      args.emplace_back(lits[i]);
     }
-    return mkProof(PfRule::CHAIN_RESOLUTION, children, lits);
+    return mkProof(PfRule::CHAIN_RESOLUTION, children, args);
   }
   std::shared_ptr<ProofNode> mkNot(const std::shared_ptr<ProofNode>& n)
   {
@@ -141,14 +148,14 @@ struct ProofCircuitPropagator
   {
     if (disabled()) return nullptr;
     return mkNot(mkResolution(mkProof(PfRule::IMPLIES_ELIM, {mkProof(parent)}),
-                              {parent[1]}));
+                              {parent[1]}, {false}));
   }
   /** (=> true Y)  -->  Y */
   std::shared_ptr<ProofNode> impliesYFromX(Node parent)
   {
     if (disabled()) return nullptr;
-    return mkResolution(mkProof(PfRule::IMPLIES_ELIM, {mkProof(parent)}),
-                        {parent[0].notNode()});
+    return mkResolution(
+        mkProof(PfRule::IMPLIES_ELIM, {mkProof(parent)}), {parent[0]}, {false});
   }
 
   std::shared_ptr<ProofNode> mkXorXFromY(bool negated, bool y, Node parent)
@@ -159,14 +166,14 @@ struct ProofCircuitPropagator
       return mkResolution(
           mkProof(negated ? PfRule::NOT_XOR_ELIM1 : PfRule::XOR_ELIM2,
                   {mkProof(negated ? parent.notNode() : Node(parent))}),
-          {parent[1].notNode()});
+          {parent[1].notNode()}, {false});
     }
     else
     {
       return mkResolution(
           mkProof(negated ? PfRule::NOT_XOR_ELIM2 : PfRule::XOR_ELIM1,
                   {mkProof(negated ? parent.notNode() : Node(parent))}),
-          {parent[1]});
+          {parent[1]}, {false});
     }
   }
   std::shared_ptr<ProofNode> mkXorYFromX(bool negated, bool x, Node parent)
@@ -177,14 +184,14 @@ struct ProofCircuitPropagator
       return mkResolution(
           mkProof(negated ? PfRule::NOT_XOR_ELIM2 : PfRule::XOR_ELIM1,
                   {mkProof(negated ? parent.notNode() : Node(parent))}),
-          {parent[0].notNode()});
+          {parent[0].notNode()}, {false});
     }
     else
     {
       return mkResolution(
           mkProof(negated ? PfRule::NOT_XOR_ELIM1 : PfRule::XOR_ELIM2,
                   {mkProof(negated ? parent.notNode() : Node(parent))}),
-          {parent[0]});
+          {parent[0]}, {false});
     }
   }
 };
@@ -243,14 +250,14 @@ struct ProofCircuitPropagatorBackward : public ProofCircuitPropagator
     {
       return mkResolution(mkProof(c ? PfRule::ITE_ELIM1 : PfRule::ITE_ELIM2,
                                   {mkProof(d_parent)}),
-                          {c ? d_parent[0].notNode() : Node(d_parent[0])});
+                          {c ? d_parent[0].notNode() : Node(d_parent[0])}, {false});
     }
     else
     {
       return mkResolution(
           mkProof(c ? PfRule::NOT_ITE_ELIM1 : PfRule::NOT_ITE_ELIM2,
                   {mkProof(d_parent.notNode())}),
-          {c ? d_parent[0].notNode() : Node(d_parent[0])});
+          {c ? d_parent[0].notNode() : Node(d_parent[0])}, {false});
     }
   }
   /**
@@ -264,13 +271,13 @@ struct ProofCircuitPropagatorBackward : public ProofCircuitPropagator
     if (d_parentAssignment)
     {
       return mkResolution(mkProof(PfRule::ITE_ELIM2, {mkProof(d_parent)}),
-                          {d_parent[c + 1]});
+                          {d_parent[c + 1]}, {false});
     }
     else
     {
       return mkResolution(
           mkProof(PfRule::NOT_ITE_ELIM2, {mkProof(d_parent.notNode())}),
-          {d_parent[c + 1]});
+          {d_parent[c + 1]}, {false});
     }
   }
 
@@ -285,10 +292,8 @@ struct ProofCircuitPropagatorBackward : public ProofCircuitPropagator
     }
     else
     {
-      return mkNot(mkProof(PfRule::CHAIN_RESOLUTION,
-                           {mkProof(PfRule::EQUIV_ELIM1, {mkProof(d_parent)}),
-                            mkProof(d_parent[1].notNode())},
-                           {d_parent[1]}));
+      return mkNot(mkResolution(mkProof(PfRule::EQUIV_ELIM1, {mkProof(d_parent)}),
+                           {d_parent[1]}, {false}));
     }
   }
   std::shared_ptr<ProofNode> eqYFromX(bool x)
@@ -301,10 +306,8 @@ struct ProofCircuitPropagatorBackward : public ProofCircuitPropagator
     }
     else
     {
-      return mkNot(mkProof(PfRule::CHAIN_RESOLUTION,
-                           {mkProof(PfRule::EQUIV_ELIM2, {mkProof(d_parent)}),
-                            mkProof(d_parent[0].notNode())},
-                           {d_parent[0]}));
+      return mkNot(mkResolution(mkProof(PfRule::EQUIV_ELIM2, {mkProof(d_parent)}),
+                           {d_parent[0]}, {false}));
     }
   }
   std::shared_ptr<ProofNode> neqXFromY(bool y)
@@ -314,13 +317,13 @@ struct ProofCircuitPropagatorBackward : public ProofCircuitPropagator
     {
       return mkResolution(
           mkProof(PfRule::NOT_EQUIV_ELIM2, {mkProof(d_parent.notNode())}),
-          {d_parent[1].notNode()});
+          {d_parent[1].notNode()}, {false});
     }
     else
     {
       return mkResolution(
           mkProof(PfRule::NOT_EQUIV_ELIM1, {mkProof(d_parent.notNode())}),
-          {d_parent[1]});
+          {d_parent[1]}, {false});
     }
   }
   std::shared_ptr<ProofNode> neqYFromX(bool x)
@@ -330,13 +333,13 @@ struct ProofCircuitPropagatorBackward : public ProofCircuitPropagator
     {
       return mkResolution(
           mkProof(PfRule::NOT_EQUIV_ELIM2, {mkProof(d_parent.notNode())}),
-          {d_parent[0].notNode()});
+          {d_parent[0].notNode()}, {false});
     }
     else
     {
       return mkResolution(
           mkProof(PfRule::NOT_EQUIV_ELIM1, {mkProof(d_parent.notNode())}),
-          {d_parent[0]});
+          {d_parent[0]}, {false});
     }
   }
 
@@ -412,12 +415,9 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
   {
     if (disabled()) return nullptr;
     auto it = std::find(d_parent.begin(), d_parent.end(), d_child);
-    return mkNot(mkProof(
-        PfRule::CHAIN_RESOLUTION,
-        {mkProof(
+    return mkNot(mkResolution(mkProof(
              PfRule::CNF_OR_NEG, {}, {d_parent, mkRat(it - d_parent.begin())}),
-         mkProof(d_child)},
-        {d_child.notNode()}));
+        {d_child.notNode()}, {false}));
   }
   std::shared_ptr<ProofNode> orFalse()
   {
@@ -438,19 +438,15 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
     if (disabled()) return nullptr;
     if (d_childAssignment)
     {
-      return mkProof(PfRule::CHAIN_RESOLUTION,
-                     {mkProof(PfRule::CNF_EQUIV_NEG2, {}, {d_parent}),
-                      mkProof(d_parent[0]),
-                      mkProof(d_parent[1])},
-                     {d_parent[0].notNode(), d_parent[1].notNode()});
+      return mkResolution(mkProof(PfRule::CNF_EQUIV_NEG2, {}, {d_parent}),
+                          {d_parent[0].notNode(), d_parent[1].notNode()},
+                          {false, false});
     }
     else
     {
-      return mkProof(PfRule::CHAIN_RESOLUTION,
-                     {mkProof(PfRule::CNF_EQUIV_NEG1, {}, {d_parent}),
-                      mkProof(d_parent[0].notNode()),
-                      mkProof(d_parent[1].notNode())},
-                     {d_parent[0], d_parent[1]});
+      return mkResolution(mkProof(PfRule::CNF_EQUIV_NEG1, {}, {d_parent}),
+                          {d_parent[0], d_parent[1]},
+                          {false, false});
     }
   }
   std::shared_ptr<ProofNode> eqYFromX()
@@ -477,13 +473,15 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
     {
       return mkResolution(
           mkProof(PfRule::NOT_EQUIV_ELIM2, {mkProof(d_parent.notNode())}),
-          {d_child.notNode()});
+          {d_child.notNode()},
+          {false});
     }
     else
     {
       return mkResolution(
           mkProof(PfRule::NOT_EQUIV_ELIM1, {mkProof(d_parent.notNode())}),
-          {d_child});
+          {d_child},
+          {false});
     }
   }
   std::shared_ptr<ProofNode> eqXFromY()
@@ -499,7 +497,8 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
     else
     {
       return mkResolution(mkProof(PfRule::EQUIV_ELIM1, {mkProof(d_parent)}),
-                          {d_child});
+                          {d_child},
+                          {false});
     }
   }
   std::shared_ptr<ProofNode> neqXFromY()
@@ -510,13 +509,15 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
     {
       return mkResolution(mkProof(PfRule::NOT_EQUIV_ELIM2,
                                   {mkProof(PfRule::SYMM, {mkProof(d_parent)})}),
-                          {d_child});
+                          {d_child},
+                          {false});
     }
     else
     {
       return mkResolution(mkProof(PfRule::NOT_EQUIV_ELIM1,
                                   {mkProof(PfRule::SYMM, {mkProof(d_parent)})}),
-                          {d_child.notNode()});
+                          {d_child.notNode()},
+                          {false});
     }
   }
 
@@ -527,15 +528,18 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
     if (!premise)
     {
       return mkResolution(mkProof(PfRule::CNF_IMPLIES_NEG1, {}, {d_parent}),
-                          {d_parent[0]});
+                          {d_parent[0]},
+                          {false});
     }
     if (conclusion)
     {
       return mkResolution(mkProof(PfRule::CNF_IMPLIES_NEG2, {}, {d_parent}),
-                          {d_parent[1].notNode()});
+                          {d_parent[1].notNode()},
+                          {false});
     }
     return mkResolution(mkProof(PfRule::CNF_IMPLIES_POS, {}, {d_parent}),
-                        {d_parent[0].notNode(), d_parent[1]});
+                        {d_parent[0].notNode(), d_parent[1]},
+                        {false, false});
   }
   std::shared_ptr<ProofNode> xorXFromY(bool negated)
   {
@@ -551,23 +555,27 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
     if (x && y)
     {
       return mkResolution(mkProof(PfRule::CNF_XOR_POS2, {}, {d_parent}),
-                          {d_parent[0].notNode(), d_parent[1].notNode()});
+                          {d_parent[0].notNode(), d_parent[1].notNode()},
+                          {false, false});
     }
     else if (x && !y)
     {
       return mkResolution(mkProof(PfRule::CNF_XOR_NEG1, {}, {d_parent}),
-                          {d_parent[0].notNode(), d_parent[1]});
+                          {d_parent[0].notNode(), d_parent[1]},
+                          {false, false});
     }
     else if (!x && y)
     {
       return mkResolution(mkProof(PfRule::CNF_XOR_NEG2, {}, {d_parent}),
-                          {d_parent[0], d_parent[1].notNode()});
+                          {d_parent[0], d_parent[1].notNode()},
+                          {false, false});
     }
     else
     {
       Assert(!x && !y);
       return mkResolution(mkProof(PfRule::CNF_XOR_POS1, {}, {d_parent}),
-                          {d_parent[0], d_parent[1]});
+                          {d_parent[0], d_parent[1]},
+                          {false, false});
     }
   }
 };
