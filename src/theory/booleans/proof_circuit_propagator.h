@@ -466,10 +466,10 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
     }
     else
     {
-      return mkNot(mkProof(PfRule::CHAIN_RESOLUTION,
-                           {mkProof(PfRule::EQUIV_ELIM2, {mkProof(d_parent)}),
-                            mkProof(d_child.notNode())},
-                           {d_child}));
+      return mkNot(
+          mkResolution(mkProof(PfRule::EQUIV_ELIM2, {mkProof(d_parent)}),
+                       {d_child},
+                       {true}));
     }
   }
   std::shared_ptr<ProofNode> neqYFromX()
