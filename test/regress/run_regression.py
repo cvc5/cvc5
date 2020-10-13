@@ -316,7 +316,7 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
         return (EXIT_SKIP if use_skip_return_code else EXIT_OK)
 
     for req_feature in requires:
-        negative_feature = (req_feature.startswith("no-")
+        negative_feature = (req_feature.startswith("no-"))
         inv_feature = req_feature[len("no-")] if negative_feature else req_feature
         if inv_feature not in (cvc4_features + cvc4_non_features):
             print(
