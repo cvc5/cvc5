@@ -267,14 +267,16 @@ struct ProofCircuitPropagatorBackward : public ProofCircuitPropagator
     {
       return mkResolution(mkProof(c ? PfRule::ITE_ELIM1 : PfRule::ITE_ELIM2,
                                   {mkProof(d_parent)}),
-                          {c ? d_parent[0].notNode() : Node(d_parent[0])}, {false});
+                          {d_parent[0]},
+                          {!c});
     }
     else
     {
       return mkResolution(
           mkProof(c ? PfRule::NOT_ITE_ELIM1 : PfRule::NOT_ITE_ELIM2,
                   {mkProof(d_parent.notNode())}),
-          {c ? d_parent[0].notNode() : Node(d_parent[0])}, {false});
+          {d_parent[0]},
+          {c});
     }
   }
   /**
