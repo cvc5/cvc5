@@ -185,9 +185,12 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
     Trace("lazy-cdproofchain")
         << "LazyCDProofChain::getProofFor: expand assumption " << npfn.first
         << "\n";
-    Trace("lazy-cdproofchain-debug")
-        << "LazyCDProofChain::getProofFor: ...expand to " << *npfn.second.get()
-        << "\n";
+    if (npfn.second != nullptr)
+    {
+      Trace("lazy-cdproofchain-debug")
+          << "LazyCDProofChain::getProofFor: ...expand to "
+          << *npfn.second.get() << "\n";
+    }
     // update each assumption proof node
     for (std::shared_ptr<ProofNode> pfn : it->second)
     {
