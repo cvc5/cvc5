@@ -1222,8 +1222,7 @@ Node SmtEngine::getValue(const Node& ex) const
   Trace("smt") << "--- getting value of " << n << endl;
   Model* m = getAvailableModel("get-value");
   Assert(m != nullptr);
-  TheoryModel* tm = m->getTheoryModel();
-  Node resultNode = tm->getValue(n);
+  Node resultNode = m->getValue(n);
   Trace("smt") << "--- got value " << n << " = " << resultNode << endl;
   Trace("smt") << "--- type " << resultNode.getType() << endl;
   Trace("smt") << "--- expected type " << expectedType << endl;
@@ -1335,8 +1334,7 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
       Node resultNode;
       if (m != nullptr)
       {
-        TheoryModel* tm = m->getTheoryModel();
-        resultNode = tm->getValue(n);
+        resultNode = m->getValue(n);
       }
 
       // type-check the result we got
@@ -1605,7 +1603,7 @@ void SmtEngine::checkModel(bool hardFailure) {
       // the mapping: function symbol |-> value
 
       Node func = c->getFunction();
-      Node val = tm->getValue(func);
+      Node val = m->getValue(func);
 
       Notice() << "SmtEngine::checkModel(): adding substitution: " << func << " |-> " << val << endl;
 
