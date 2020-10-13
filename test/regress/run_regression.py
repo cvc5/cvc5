@@ -321,7 +321,7 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
             print(
                 '1..0 # Illegal requirement in regression: {}\nAllowed requirements: {}'
                 .format(inv_feature, ' '.join(cvc4_non_features)))
-          return EXIT_FAILURE
+            return EXIT_FAILURE
         if req_feature.startswith("no-"):
             if inv_feature in cvc4_features:
                 print('1..0 # Skipped regression: not valid with {}'.format(
