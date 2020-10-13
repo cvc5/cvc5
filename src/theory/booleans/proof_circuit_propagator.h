@@ -461,7 +461,7 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
     if (d_childAssignment)
     {
       return mkResolution(mkProof(PfRule::CNF_EQUIV_NEG2, {}, {d_parent}),
-                          {d_parent[0].notNode(), d_parent[1].notNode()},
+                          {d_parent[0], d_parent[1]},
                           {false, false});
     }
     else
