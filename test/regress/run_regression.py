@@ -115,14 +115,17 @@ def get_cvc4_features(cvc4_binary):
         output = output.decode()
 
     features = []
+    non_features = []
     for line in output.split('\n'):
         tokens = [t.strip() for t in line.split(':')]
         if len(tokens) == 2:
             key, value = tokens
             if value == 'yes':
                 features.append(key)
+            elif value == 'no':
+                non_features.append(key)
 
-    return features
+    return features, non_features
 
 
 def logic_supported_with_proofs(logic):
@@ -212,7 +215,7 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
     if not os.path.isfile(benchmark_path):
         sys.exit('"{}" does not exist or is not a file'.format(benchmark_path))
 
-    cvc4_features = get_cvc4_features(cvc4_binary)
+    cvc4_features, cvc4_non_features = get_cvc4_features(cvc4_binary)
 
     basic_command_line_args = []
 
@@ -313,8 +316,13 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
         return (EXIT_SKIP if use_skip_return_code else EXIT_OK)
 
     for req_feature in requires:
+        inv_feature = req_feature[len("no-")] if req_feature.startswith("no-") else req_feature
+        if inv_feature not in (cvc4_features + cvc4_non_features):
+            print(
+                '1..0 # Illegal requirement in regression: {}\nAllowed requirements: {}'
+                .format(inv_feature, ' '.join(cvc4_non_features)))
+          return EXIT_FAILURE
         if req_feature.startswith("no-"):
-            inv_feature = req_feature[len("no-"):]
             if inv_feature in cvc4_features:
                 print('1..0 # Skipped regression: not valid with {}'.format(
                     inv_feature))
