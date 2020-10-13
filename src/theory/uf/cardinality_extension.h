@@ -133,14 +133,14 @@ class CardinalityExtension
       /** conflict find pointer */
       SortModel* d_cf;
 
-      context::CDO< size_t > d_testCliqueSize;
+      context::CDO<size_t> d_testCliqueSize;
       context::CDO< unsigned > d_splitsSize;
       //a postulated clique
       NodeBoolMap d_testClique;
       //disequalities needed for this clique to happen
       NodeBoolMap d_splits;
       //number of valid representatives in this region
-      context::CDO< size_t > d_reps_size;
+      context::CDO<size_t> d_reps_size;
       //total disequality size (external)
       context::CDO< unsigned > d_total_diseq_external;
       //total disequality size (internal)
@@ -315,7 +315,10 @@ class CardinalityExtension
     /** get cardinality literal */
     Node getCardinalityLiteral(uint32_t c);
     /** get maximum negative cardinality */
-    uint32_t getMaximumNegativeCardinality() const { return d_maxNegCard.get(); }
+    uint32_t getMaximumNegativeCardinality() const
+    {
+      return d_maxNegCard.get();
+    }
     //print debug
     void debugPrint( const char* c );
     /**

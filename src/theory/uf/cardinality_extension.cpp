@@ -862,7 +862,8 @@ void SortModel::assertCardinality(uint32_t c, bool val)
       }
       //should check all regions now
       if( doCheckRegions ){
-        for( size_t i=0; i<d_regions_index; i++ ){
+        for (size_t i = 0; i < d_regions_index; i++)
+        {
           if( d_regions[i]->valid() ){
             checkRegion( i );
             if (d_state.isInConflict())
@@ -1047,7 +1048,8 @@ void SortModel::addCliqueLemma(std::vector<Node>& clique)
 {
   Assert(d_hasCard);
   Assert(d_cardinality > 0);
-  while( clique.size()>d_cardinality+1 ){
+  while (clique.size() > d_cardinality + 1)
+  {
     clique.pop_back();
   }
   // add as lemma
@@ -1138,7 +1140,8 @@ bool SortModel::checkLastCall()
     Trace("uf-ss-warn") << "   Max neg cardinality : " << d_maxNegCard << std::endl;
     Trace("uf-ss-warn") << "   # Reps : " << nReps << std::endl;
     if( d_maxNegCard>=nReps ){
-      while( d_fresh_aloc_reps.size()<=d_maxNegCard ){
+      while (d_fresh_aloc_reps.size() <= d_maxNegCard)
+      {
         std::stringstream ss;
         ss << "r_" << d_type << "_";
         Node nn = NodeManager::currentNM()->mkSkolem( ss.str(), d_type, "enumeration to meet negative card constraint" );
@@ -1149,8 +1152,10 @@ bool SortModel::checkLastCall()
       }else{
         //must add lemma
         std::vector< Node > force_cl;
-        for( size_t i=0; i<=d_maxNegCard; i++ ){
-          for( size_t j=(i+1); j<=d_maxNegCard; j++ ){
+        for (size_t i = 0; i <= d_maxNegCard; i++)
+        {
+          for (size_t j = (i + 1); j <= d_maxNegCard; j++)
+          {
             force_cl.push_back( d_fresh_aloc_reps[i].eqNode( d_fresh_aloc_reps[j] ).negate() );
           }
         }
@@ -1323,7 +1328,8 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
       TypeNode tn = lit[0].getType();
       Assert(tn.isSort());
       Assert(d_rep_model[tn]);
-      uint32_t nCard = lit[1].getConst<Rational>().getNumerator().getUnsignedInt();
+      uint32_t nCard =
+          lit[1].getConst<Rational>().getNumerator().getUnsignedInt();
       Node ct = d_rep_model[tn]->getCardinalityTerm();
       Trace("uf-ss-debug") << "...check cardinality terms : " << lit[0] << " " << ct << std::endl;
       if( lit[0]==ct ){
@@ -1358,7 +1364,9 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
           //set the minimum positive cardinality for master if necessary
           if( polarity && tn==d_tn_mono_master ){
             Trace("uf-ss-com-card-debug") << "...set min positive cardinality" << std::endl;
-            if( !d_min_pos_tn_master_card_set.get() || nCard<d_min_pos_tn_master_card.get() ){
+            if (!d_min_pos_tn_master_card_set.get()
+                || nCard < d_min_pos_tn_master_card.get())
+            {
               d_min_pos_tn_master_card_set.set(true);
               d_min_pos_tn_master_card.set( nCard );
             }
@@ -1381,8 +1389,10 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
     }else if( lit.getKind()==COMBINED_CARDINALITY_CONSTRAINT ){
       if( polarity ){
         //safe to assume int here
-        uint32_t nCard = lit[0].getConst<Rational>().getNumerator().getUnsignedInt();
-        if( !d_min_pos_com_card_set.get() || nCard<d_min_pos_com_card.get() ){
+        uint32_t nCard =
+            lit[0].getConst<Rational>().getNumerator().getUnsignedInt();
+        if (!d_min_pos_com_card_set.get() || nCard < d_min_pos_com_card.get())
+        {
           d_min_pos_com_card_set.set(true);
           d_min_pos_com_card.set( nCard );
           checkCombinedCardinality();
@@ -1668,7 +1678,9 @@ void CardinalityExtension::checkCombinedCardinality()
     Trace("uf-ss-com-card-debug") << "Check combined cardinality, total combined card : " << totalCombinedCard << std::endl;
     if( options::ufssFairnessMonotone() ){
       Trace("uf-ss-com-card-debug") << "Max slave monotonic negated cardinality : " << maxMonoSlave << std::endl;
-      if( !d_min_pos_tn_master_card_set.get() && maxMonoSlave>d_min_pos_tn_master_card.get() ){
+      if (!d_min_pos_tn_master_card_set.get()
+          && maxMonoSlave > d_min_pos_tn_master_card.get())
+      {
         uint32_t mc = d_min_pos_tn_master_card.get();
         std::vector< Node > conf;
         conf.push_back( d_rep_model[d_tn_mono_master]->getCardinalityLiteral( mc ) );
@@ -1683,7 +1695,8 @@ void CardinalityExtension::checkCombinedCardinality()
       }
     }
     uint32_t cc = d_min_pos_com_card.get();
-    if( d_min_pos_com_card_set.get() && totalCombinedCard > cc ){
+    if (d_min_pos_com_card_set.get() && totalCombinedCard > cc)
+    {
       //conflict
       Node com_lit = d_cc_dec_strat->getLiteral(cc);
       std::vector< Node > conf;
