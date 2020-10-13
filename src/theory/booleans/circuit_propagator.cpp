@@ -642,15 +642,16 @@ void CircuitPropagator::setProof(ProofNodeManager* pnm,
                                  ProofGenerator* defParent)
 {
   // TODO: this would enable proof production
-  d_pnm = pnm;
-  d_epg.reset(new EagerProofGenerator(pnm, ctx));
-  if (defParent != nullptr)
-  {
-    // If we provide a parent proof generator (defParent), we want the ASSUME
-    // leafs of proofs provided by this class to call the getProofFor method on
-    // the parent. To do this, we use a LazyCDProofChain.
-    d_lpc.reset(new LazyCDProofChain(pnm, false, ctx, defParent, false));
-  }
+  // d_pnm = pnm;
+  // d_epg.reset(new EagerProofGenerator(pnm, ctx));
+  // if (defParent != nullptr)
+  //{
+  //  // If we provide a parent proof generator (defParent), we want the ASSUME
+  //  // leafs of proofs provided by this class to call the getProofFor method
+  //  on
+  //  // the parent. To do this, we use a LazyCDProofChain.
+  //  d_lpc.reset(new LazyCDProofChain(pnm, false, ctx, defParent, false));
+  //}
 }
 
 void CircuitPropagator::ensureClosed() const
