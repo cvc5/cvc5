@@ -48,8 +48,8 @@ std::ostream& operator<<(std::ostream& out, Inference i)
   return out;
 }
 
-DatatypesInference::DatatypesInference(Node conc, Node exp, ProofGenerator* pg)
-    : SimpleTheoryInternalFact(conc, exp, pg)
+DatatypesInference::DatatypesInference(InferenceManager * im, Node conc, Node exp, Inference i)
+    : SimpleTheoryInternalFact(conc, exp, nullptr), d_im(im), d_infer(i)
 {
   // false is not a valid explanation
   Assert(d_exp.isNull() || !d_exp.isConst() || d_exp.getConst<bool>());
@@ -94,21 +94,14 @@ bool DatatypesInference::process(TheoryInferenceManager* im, bool asLemma)
   // sent as a lemma in addPendingInference below.
   if (asLemma || mustCommunicateFact(d_conc, d_exp))
   {
-    // send it as an (explained) lemma
-    std::vector<Node> exp;
-    if (!d_exp.isNull() && !d_exp.isConst())
-    {
-      exp.push_back(d_exp);
-    }
-    Trace("dt-lemma-debug")
-        << "DatatypesInference : " << d_conc << " via " << exp << std::endl;
-    return im->lemmaExp(d_conc, exp, {});
+    return d_im->processDtInference(*this, true);
   }
-  // assert the internal fact
-  bool polarity = d_conc.getKind() != NOT;
-  TNode atom = polarity ? d_conc : d_conc[0];
-  im->assertInternalFact(atom, polarity, d_exp);
-  return true;
+  return d_im->processDtInference(*this, false);
+}
+
+Inference DatatypesInference::getInference() const
+{
+  return d_infer;
 }
 
 InferenceManager::InferenceManager(Theory& t,
@@ -120,16 +113,15 @@ InferenceManager::InferenceManager(Theory& t,
 
 void InferenceManager::addPendingInference(Node conc,
                                            Node exp,
-                                           ProofGenerator* pg,
-                                           bool forceLemma)
+                                           bool forceLemma, Inference i )
 {
   if (forceLemma)
   {
-    d_pendingLem.emplace_back(new DatatypesInference(conc, exp, pg));
+    d_pendingLem.emplace_back(new DatatypesInference(this, conc, exp, i));
   }
   else
   {
-    d_pendingFact.emplace_back(new DatatypesInference(conc, exp, pg));
+    d_pendingFact.emplace_back(new DatatypesInference(this, conc, exp, i));
   }
 }
 
@@ -152,6 +144,27 @@ bool InferenceManager::sendLemmas(const std::vector<Node>& lemmas)
     }
   }
   return ret;
+}
+
+bool InferenceManager::processDtInference(DatatypesInference& di, bool asLemma)
+{
+  Trace("dt-lemma-debug")
+      << "processDtInference : " << di.d_conc << " via " << di.d_exp << " by " << di.getInference() << ", asLemma = " << asLemma << std::endl;
+  if (asLemma)
+  {
+    // send it as an (explained) lemma
+    std::vector<Node> expv;
+    if (!di.d_exp.isNull() && !di.d_exp.isConst())
+    {
+      expv.push_back(di.d_exp);
+    }
+    return lemmaExp(di.d_conc, expv, {});
+  }
+  // assert the internal fact
+  bool polarity = di.d_conc.getKind() != NOT;
+  TNode atom = polarity ? di.d_conc : di.d_conc[0];
+  assertInternalFact(atom, polarity, di.d_exp);
+  return true;
 }
 
 }  // namespace datatypes

@@ -27,6 +27,7 @@ namespace datatypes {
 
 enum class Inference : uint32_t
 {
+  NONE,
   // (= (C t1 ... tn) (C s1 .. sn)) => (= ti si)
   UNIF,
   // ((_ is Ci) t) => (= t (Ci (sel_1 t) ... (sel_n t)))
@@ -69,6 +70,8 @@ const char* toString(Inference i);
  */
 std::ostream& operator<<(std::ostream& out, Inference i);
 
+class InferenceManager;
+
 /**
  * A custom inference class. The main feature of this class is that it
  * dynamically decides whether to process itself as a fact or as a lemma,
@@ -77,7 +80,7 @@ std::ostream& operator<<(std::ostream& out, Inference i);
 class DatatypesInference : public SimpleTheoryInternalFact
 {
  public:
-  DatatypesInference(Node conc, Node exp, ProofGenerator* pg);
+  DatatypesInference(InferenceManager * im, Node conc, Node exp, Inference i = Inference::NONE);
   /**
    * Must communicate fact method.
    * The datatypes decision procedure makes "internal" inferences :
@@ -100,6 +103,13 @@ class DatatypesInference : public SimpleTheoryInternalFact
    * above method.
    */
   bool process(TheoryInferenceManager* im, bool asLemma) override;
+  /** Get the inference */
+  Inference getInference() const;
+private:
+  /** Pointer to the inference manager */
+  InferenceManager * d_im;
+  /** The inference */
+  Inference d_infer;
 };
 
 /**
@@ -108,8 +118,7 @@ class DatatypesInference : public SimpleTheoryInternalFact
  */
 class InferenceManager : public InferenceManagerBuffered
 {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-
+  friend class DatatypesInference;
  public:
   InferenceManager(Theory& t, TheoryState& state, ProofNodeManager* pnm);
   ~InferenceManager() {}
@@ -119,15 +128,15 @@ class InferenceManager : public InferenceManagerBuffered
    *
    * @param conc The conclusion of the inference
    * @param exp The explanation of the inference
-   * @param pg The proof generator who can provide a proof of (conc => exp)
    * @param forceLemma Whether this inference *must* be processed as a lemma.
    * Otherwise, it may be processed as a fact or lemma based on
    * mustCommunicateFact.
+   * @param i The inference, used for stats and as a hint for constructing
+   * the proof of (conc => exp)
    */
   void addPendingInference(Node conc,
                            Node exp,
-                           ProofGenerator* pg = nullptr,
-                           bool forceLemma = false);
+                           bool forceLemma = false, Inference i = Inference::NONE);
   /**
    * Process the current lemmas and facts. This is a custom method that can
    * be seen as overriding the behavior of calling both doPendingLemmas and
@@ -140,6 +149,9 @@ class InferenceManager : public InferenceManagerBuffered
    * Returns true if any lemma was sent.
    */
   bool sendLemmas(const std::vector<Node>& lemmas);
+private:
+  /** Process datatype inference */
+  bool processDtInference(DatatypesInference& di, bool asLemma);
 };
 
 }  // namespace datatypes
