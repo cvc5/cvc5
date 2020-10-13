@@ -3792,33 +3792,32 @@ void TheoryArithPrivate::debugPrintModel(std::ostream& out) const{
   }
 }
 
-Node TheoryArithPrivate::explain(TNode n)
+TrustNode TheoryArithPrivate::explain(TNode n)
 {
   Debug("arith::explain") << "explain @" << getSatContext()->getLevel() << ": " << n << endl;
 
   ConstraintP c = d_constraintDatabase.lookup(n);
+  TrustNode exp;
   if(c != NullConstraint){
     Assert(!c->isAssumption());
-    Node exp = c->externalExplainForPropagation().getNode();
+    exp = c->externalExplainForPropagation();
     Debug("arith::explain") << "constraint explanation" << n << ":" << exp << endl;
-    return exp;
   }else if(d_assertionsThatDoNotMatchTheirLiterals.find(n) != d_assertionsThatDoNotMatchTheirLiterals.end()){
     c = d_assertionsThatDoNotMatchTheirLiterals[n];
     if(!c->isAssumption()){
-      Node exp = c->externalExplainForPropagation().getNode();
+      exp = c->externalExplainForPropagation();
       Debug("arith::explain") << "assertions explanation" << n << ":" << exp << endl;
-      return exp;
     }else{
       Debug("arith::explain") << "this is a strange mismatch" << n << endl;
       Assert(d_congruenceManager.canExplain(n));
-      Debug("arith::explain") << "this is a strange mismatch" << n << endl;
-      return d_congruenceManager.explain(n).getNode();
+      exp = d_congruenceManager.explain(n);
     }
   }else{
     Assert(d_congruenceManager.canExplain(n));
     Debug("arith::explain") << "dm explanation" << n << endl;
-    return d_congruenceManager.explain(n).getNode();
+    exp = d_congruenceManager.explain(n);
   }
+  return exp;
 }
 
 void TheoryArithPrivate::propagate(Theory::Effort e) {
