@@ -75,7 +75,15 @@ class ProofNodeUpdaterCallback
 class ProofNodeUpdater
 {
  public:
-  ProofNodeUpdater(ProofNodeManager* pnm, ProofNodeUpdaterCallback& cb);
+  /**
+   * @param pnm The proof node manager we are using
+   * @param cb The callback to apply to each node
+   * @param mergeSubproofs Whether to automatically merge subproofs within
+   * the same SCOPE that prove the same fact.
+   */
+  ProofNodeUpdater(ProofNodeManager* pnm,
+                   ProofNodeUpdaterCallback& cb,
+                   bool mergeSubproofs = false);
   /**
    * Post-process, which performs the main post-processing technique described
    * above.
@@ -99,9 +107,17 @@ class ProofNodeUpdater
   /**
    * Post-process, which performs the main post-processing technique described
    * above.
+   *
+   * @param pf The proof to process
+   * @param fa The assumptions of the scope that fa is a subproof of with
+   * respect to the original proof. For example, if (SCOPE P :args (A B)), we
+   * may call this method on P with fa = { A, B }.
+   * @param traversing The list of proof nodes we are currently traversing
+   * beneath. This is used for checking for cycles in the overall proof.
    */
   void processInternal(std::shared_ptr<ProofNode> pf,
-                       const std::vector<Node>& fa);
+                       const std::vector<Node>& fa,
+                       std::vector<std::shared_ptr<ProofNode>>& traversing);
   /**
    * Update proof node cur based on the callback. This modifies curr using
    * ProofNodeManager::updateNode based on the proof node constructed to
@@ -112,10 +128,20 @@ class ProofNodeUpdater
   bool runUpdate(std::shared_ptr<ProofNode> cur,
                  const std::vector<Node>& fa,
                  bool& continueUpdate);
+  /**
+   * Finalize the node cur. This is called at the moment that it is established
+   * that cur will appear in the final proof. We do any final debug checking
+   * and add it to the results cache resCache if we are merging subproofs.
+   */
+  void runFinalize(std::shared_ptr<ProofNode> cur,
+                   const std::vector<Node>& fa,
+                   std::map<Node, std::shared_ptr<ProofNode>>& resCache);
   /** Are we debugging free assumptions? */
   bool d_debugFreeAssumps;
   /** The initial free assumptions */
   std::vector<Node> d_freeAssumps;
+  /** Whether we are merging subproofs */
+  bool d_mergeSubproofs;
 };
 
 }  // namespace CVC4
