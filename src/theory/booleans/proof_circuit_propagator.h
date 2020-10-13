@@ -428,9 +428,11 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
   {
     if (disabled()) return nullptr;
     auto it = std::find(d_parent.begin(), d_parent.end(), d_child);
-    return mkNot(mkResolution(mkProof(
-             PfRule::CNF_OR_NEG, {}, {d_parent, mkRat(it - d_parent.begin())}),
-        {d_child.notNode()}, {false}));
+    return mkNot(mkResolution(
+        mkProof(
+            PfRule::CNF_OR_NEG, {}, {d_parent, mkRat(it - d_parent.begin())}),
+        {d_child},
+        {false}));
   }
   std::shared_ptr<ProofNode> orFalse()
   {

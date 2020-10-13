@@ -276,7 +276,10 @@ class CircuitPropagator
             }
             else
             {
-              Trace("circuit-prop") << "Ignoring proof" << std::endl;
+              Trace("circuit-prop")
+                  << "Ignoring proof" << std::endl
+                  << "We already have " << *d_epg->getProofFor(expected)
+                  << std::endl;
             }
           }
         }
