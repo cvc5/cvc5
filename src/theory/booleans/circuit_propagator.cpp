@@ -45,7 +45,8 @@ CircuitPropagator::CircuitPropagator(bool enableForward, bool enableBackward)
       d_backwardPropagation(enableBackward),
       d_needsFinish(false),
       d_pnm(nullptr),
-      d_epg(nullptr)
+      d_epg(nullptr),
+      d_lpc(nullptr)
 {
 }
 
@@ -444,7 +445,15 @@ bool CircuitPropagator::propagate() {
       {
         if (d_epg->hasProofFor(lit))
         {
-          TrustNode tlit = TrustNode::mkTrustLemma(lit, d_epg.get());
+          // if we have a parent proof generator that provides proofs of the
+          // inputs to this class, we must use the lazy proof chain
+          ProofGenerator * pg = d_epg.get();
+          if (d_lpc!=nullptr)
+          {
+            d_lpc->addLazyStep(lit, pg);
+            pg = d_lpc.get();
+          }
+          TrustNode tlit = TrustNode::mkTrustLemma(lit, pg);
           d_learnedLiterals.push_back(tlit);
         }
         else
@@ -477,12 +486,21 @@ bool CircuitPropagator::propagate() {
   return d_conflict;
 }
 
-void CircuitPropagator::setProofNodeManager(ProofNodeManager* pnm,
-                                            context::Context* ctx)
+void CircuitPropagator::setProof(ProofNodeManager* pnm,
+                                            context::Context* ctx, ProofGenerator * defParent)
 {
   // TODO: this would enable proof production
-  // d_pnm = pnm;
-  // d_epg.reset(new EagerProofGenerator(pnm, ctx));
+  /*
+  d_pnm = pnm;
+  d_epg.reset(new EagerProofGenerator(pnm, ctx));
+  if (defParent!=nullptr)
+  {
+    // If we provide a parent proof generator (defParent), we want the ASSUME
+    // leafs of proofs provided by this class to call the getProofFor method on
+    // the parent. To do this, we use a LazyCDProofChain.
+    d_lpc.reset(new LazyCDProofChain(pnm, false, ctx, defParent, false));
+  }
+  */
 }
 
 bool CircuitPropagator::isProofEnabled() const { return d_epg != nullptr; }

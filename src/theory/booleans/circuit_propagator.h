@@ -35,6 +35,7 @@
 #include "theory/theory.h"
 #include "theory/trust_node.h"
 #include "util/hash.h"
+#include "expr/lazy_proof_chain.h"
 
 namespace CVC4 {
 namespace theory {
@@ -136,8 +137,13 @@ class CircuitPropagator
     if (!value && ((*i).second == ASSIGNED_TO_FALSE)) return true;
     return false;
   }
-  /** Set proof node manager */
-  void setProofNodeManager(ProofNodeManager* pnm, context::Context* ctx);
+  /** 
+   * Set proof node manager, context and parent proof generator.
+   *
+   * If parent is non-null, then it is responsible for the proofs provided
+   * to this class.
+   */
+  void setProof(ProofNodeManager* pnm, context::Context* ctx, ProofGenerator * defParent);
 
  private:
   /** A context-notify object that clears out stale data. */
@@ -346,7 +352,8 @@ class CircuitPropagator
   ProofNodeManager* d_pnm;
   /** Eager proof generator */
   std::unique_ptr<EagerProofGenerator> d_epg;
-
+  /** A lazy proof chain */
+  std::unique_ptr<LazyCDProofChain> d_lpc;
 }; /* class CircuitPropagator */
 
 }  // namespace booleans

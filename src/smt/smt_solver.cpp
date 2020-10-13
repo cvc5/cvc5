@@ -259,7 +259,6 @@ void SmtSolver::processAssertions(Assertions& as)
 void SmtSolver::setProofNodeManager(ProofNodeManager* pnm)
 {
   d_pnm = pnm;
-  d_pp.setProofNodeManager(pnm);
 }
 
 TheoryEngine* SmtSolver::getTheoryEngine() { return d_theoryEngine.get(); }
