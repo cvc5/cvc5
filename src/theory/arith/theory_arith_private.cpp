@@ -1632,9 +1632,9 @@ Node TheoryArithPrivate::callDioSolver(){
 
     Node orig = Node::null();
     if(lb->isEquality()){
-      orig = lb->externalExplainByAssertions().getNode();
+      orig = Constraint::externalExplainByAssertions({lb});
     }else if(ub->isEquality()){
-      orig = ub->externalExplainByAssertions().getNode();
+      orig = Constraint::externalExplainByAssertions({ub});
     }else {
       orig = Constraint::externalExplainByAssertions(ub, lb);
     }
@@ -1706,7 +1706,9 @@ ConstraintP TheoryArithPrivate::constraintFromFactQueue(TNode assertion)
     Debug("arith::constraint") << "marking as constraint as self explaining " << endl;
     constraint->setAssumption(inConflict);
   } else {
-    Debug("arith::constraint") << "already has proof: " << constraint->externalExplainByAssertions() << endl;
+    Debug("arith::constraint")
+        << "already has proof: "
+        << Constraint::externalExplainByAssertions({constraint});
   }
 
   if(Debug.isOn("arith::negatedassumption") && inConflict){
@@ -5006,7 +5008,7 @@ void TheoryArithPrivate::entailmentCheckBoundLookup(std::pair<Node, DeltaRationa
       ? d_partialModel.getUpperBoundConstraint(v)
       : d_partialModel.getLowerBoundConstraint(v);
     if(c != NullConstraint){
-      tmp.first = c->externalExplainByAssertions().getNode();
+      tmp.first = Constraint::externalExplainByAssertions({c});
       tmp.second = c->getValue();
     }
   }

@@ -509,6 +509,8 @@ set(regress_0_tests
   regress0/fmf/fmf-strange-bounds-2.smt2
   regress0/fmf/forall_unit_data2.smt2
   regress0/fmf/issue3661-ccard-dec.smt2
+  regress0/fmf/issue4872-qf_ufc.smt2
+  regress0/fmf/issue5239-uf-ss-tot.smt2
   regress0/fmf/krs-sat.smt2
   regress0/fmf/no-minimal-sat.smt2
   regress0/fmf/quant_real_univ.cvc
@@ -559,6 +561,7 @@ set(regress_0_tests
   regress0/ho/hoa0008.smt2
   regress0/ho/issue4477.smt2
   regress0/ho/issue4990-care-graph.smt2
+  regress0/ho/issue5233-part1-usort-owner.smt2
   regress0/ho/ite-apply-eq.smt2
   regress0/ho/lambda-equality-non-canon.smt2
   regress0/ho/match-middle.smt2
