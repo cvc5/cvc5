@@ -39,8 +39,7 @@ Node mkRat(T val)
 }
 
 inline std::vector<Node> collectButHoldout(TNode parent,
-                                           TNode::iterator holdout,
-                                           bool negate = false)
+                                           TNode::iterator holdout)
 {
   std::vector<Node> lits;
   for (TNode::iterator i = parent.begin(), i_end = parent.end(); i != i_end;
@@ -48,7 +47,7 @@ inline std::vector<Node> collectButHoldout(TNode parent,
   {
     if (i != holdout)
     {
-      lits.emplace_back(negate ? (*i).notNode() : Node(*i));
+      lits.emplace_back(*i);
     }
   }
   return lits;
@@ -100,10 +99,9 @@ struct ProofCircuitPropagator
     Assert(a->getResult() == b->getResult().notNode());
     return mkProof(PfRule::CONTRA, {b, a});
   }
-  std::shared_ptr<ProofNode> mkResolution(
-      std::shared_ptr<ProofNode> clause,
-      const std::vector<Node>& lits,
-      const std::vector<bool>& polarity = {})
+  std::shared_ptr<ProofNode> mkResolution(std::shared_ptr<ProofNode> clause,
+                                          const std::vector<Node>& lits,
+                                          const std::vector<bool>& polarity)
   {
     auto* nm = NodeManager::currentNM();
     std::vector<std::shared_ptr<ProofNode>> children = {clause};
@@ -146,7 +144,8 @@ struct ProofCircuitPropagator
     if (disabled()) return nullptr;
     return mkNot(
         mkResolution(mkProof(PfRule::NOT_AND, {mkProof(parent.notNode())}),
-                     collectButHoldout(parent, holdout, true)));
+                     collectButHoldout(parent, holdout),
+                     false));
   }
 
   /** (or false ... holdout false ...)  ->  holdout */
@@ -437,7 +436,8 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
   {
     if (disabled()) return nullptr;
     std::vector<Node> children(d_parent.begin(), d_parent.end());
-    return mkResolution(mkProof(PfRule::CNF_OR_POS, {}, {d_parent}), children);
+    return mkResolution(
+        mkProof(PfRule::CNF_OR_POS, {}, {d_parent}), children, true);
   }
 
   /** x is true  -->  (not x) is false (and vice versa) */
