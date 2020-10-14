@@ -1070,7 +1070,7 @@ class CVC4_PUBLIC GetInstantiationsCommand : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
  protected:
-  SmtEngine* d_smtEngine;
+  api::Solver* d_solver;
 }; /* class GetInstantiationsCommand */
 
 class CVC4_PUBLIC GetSynthSolutionCommand : public Command

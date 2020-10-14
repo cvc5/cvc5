@@ -139,7 +139,8 @@ std::string TrustNode::identifyGenerator() const
 
 std::ostream& operator<<(std::ostream& out, TrustNode n)
 {
-  out << "(" << n.getKind() << " " << n.getProven() << ")";
+  out << "(" << n.getKind() << " " << n.getProven() << " "
+      << n.identifyGenerator() << ")";
   return out;
 }
 

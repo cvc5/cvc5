@@ -23,24 +23,15 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
+Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
                                    theory::TheoryModel* m,
                                    options::BlockModelsMode mode,
-                                   const std::vector<Expr>& exprToBlock)
+                                   const std::vector<Node>& exprToBlock)
 {
   NodeManager* nm = NodeManager::currentNM();
   // convert to nodes
-  std::vector<Node> tlAsserts;
-  for (const Expr& a : assertions)
-  {
-    Node an = Node::fromExpr(a);
-    tlAsserts.push_back(an);
-  }
-  std::vector<Node> nodesToBlock;
-  for (const Expr& eb : exprToBlock)
-  {
-    nodesToBlock.push_back(Node::fromExpr(eb));
-  }
+  std::vector<Node> tlAsserts = assertions;
+  std::vector<Node> nodesToBlock = exprToBlock;
   Trace("model-blocker") << "Compute model blocker, assertions:" << std::endl;
   Node blocker;
   if (mode == options::BlockModelsMode::LITERALS)
@@ -117,7 +108,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
               // rewrite, this ensures that e.g. the propositional value of
               // quantified formulas can be queried
               n = theory::Rewriter::rewrite(n);
-              Node vn = Node::fromExpr(m->getValue(n.toExpr()));
+              Node vn = m->getValue(n);
               Assert(vn.isConst());
               if (vn.getConst<bool>() == cpol)
               {
@@ -139,7 +130,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
         }
         else if (catom.getKind() == ITE)
         {
-          Node vcond = Node::fromExpr(m->getValue(cur[0].toExpr()));
+          Node vcond = m->getValue(cur[0]);
           Assert(vcond.isConst());
           Node cond = cur[0];
           Node branch;
@@ -282,7 +273,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
     }
   }
   Trace("model-blocker") << "...model blocker is " << blocker << std::endl;
-  return blocker.toExpr();
+  return blocker;
 }
 
 } /* namespace CVC4 */
