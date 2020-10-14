@@ -488,7 +488,9 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
             if (isAssigned(parent[1]))
             {
               // ITE (c=TRUE) x y: if x is assigned, assign(ITE = x.assignment)
-              assignAndEnqueue(parent, getAssignment(parent[1]));
+              assignAndEnqueue(parent,
+                               getAssignment(parent[1]),
+                               prover.iteEvalThen(getAssignment(parent[1])));
             }
           }
           else
@@ -496,7 +498,9 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
             if (isAssigned(parent[2]))
             {
               // ITE (c=FALSE) x y: if y is assigned, assign(ITE = y.assignment)
-              assignAndEnqueue(parent, getAssignment(parent[2]));
+              assignAndEnqueue(parent,
+                               getAssignment(parent[2]),
+                               prover.iteEvalThen(getAssignment(parent[2])));
             }
           }
         }
@@ -505,7 +509,8 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
           if (isAssignedTo(parent[0], true))
           {
             // ITE c (x=v) y: if c is assigned and TRUE, assign(ITE = v)
-            assignAndEnqueue(parent, childAssignment);
+            assignAndEnqueue(
+                parent, childAssignment, prover.iteEvalThen(childAssignment));
           }
         }
         if (child == parent[2])
@@ -514,7 +519,8 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
           if (isAssignedTo(parent[0], false))
           {
             // ITE c x (y=v): if c is assigned and FALSE, assign(ITE = v)
-            assignAndEnqueue(parent, childAssignment);
+            assignAndEnqueue(
+                parent, childAssignment, prover.iteEvalElse(childAssignment));
           }
         }
         break;
