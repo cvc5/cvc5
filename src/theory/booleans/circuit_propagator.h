@@ -148,8 +148,6 @@ class CircuitPropagator
                 context::Context* ctx,
                 ProofGenerator* defParent);
 
-  void ensureClosed() const;
-
  private:
   /** A context-notify object that clears out stale data. */
   template <class T>

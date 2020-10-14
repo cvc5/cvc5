@@ -670,7 +670,6 @@ bool CircuitPropagator::propagate()
           }
           TrustNode tlit = TrustNode::mkTrustLemma(lit, pg);
           d_learnedLiterals.push_back(tlit);
-          ensureClosed();
         }
         else
         {
@@ -708,7 +707,6 @@ void CircuitPropagator::setProof(ProofNodeManager* pnm,
                                  context::Context* ctx,
                                  ProofGenerator* defParent)
 {
-  // TODO: this would enable proof production
   d_pnm = pnm;
   d_epg.reset(new EagerProofGenerator(pnm, ctx));
   d_proofInternal.reset(
@@ -721,44 +719,6 @@ void CircuitPropagator::setProof(ProofNodeManager* pnm,
     d_proofExternal.reset(
         new LazyCDProofChain(pnm, false, ctx, defParent, false));
   }
-}
-
-void CircuitPropagator::ensureClosed() const
-{
-  return;
-  if (!isProofEnabled()) return;
-  std::vector<Node> assumps = d_assumptions;
-  for (const auto& n : d_propagationQueue)
-  {
-    if (n == d_learnedLiterals.back().getProven())
-    {
-      break;
-    }
-    if (getAssignment(n))
-    {
-      assumps.emplace_back(n);
-    }
-    else
-    {
-      assumps.emplace_back(n.negate());
-    }
-  }
-  Trace("circuit-prop-check") << "***** Assumptions: " << std::endl;
-  for (const auto& a : assumps)
-  {
-    Trace("circuit-prop-check") << "\t" << a << std::endl;
-  }
-
-  Trace("circuit-prop-check")
-      << "**** Proof: " << std::endl
-      << *d_proofInternal->getProofFor(d_learnedLiterals.back().getProven())
-      << std::endl;
-
-  pfgEnsureClosedWrt(d_learnedLiterals.back().getProven(),
-                     d_epg.get(),
-                     assumps,
-                     "circuit-prop",
-                     "circuit-prop");
 }
 
 bool CircuitPropagator::isProofEnabled() const
