@@ -49,7 +49,7 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       d_model(containing.getSatContext()),
       d_trSlv(d_im, d_model),
       d_nlSlv(d_im, state, d_model),
-      d_cadSlv(d_im, d_model),
+      d_cadSlv(d_im, d_model, pnm),
       d_icpSlv(d_im),
       d_iandSlv(d_im, state, d_model),
       d_builtModel(containing.getSatContext(), false)
