@@ -448,12 +448,11 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::andOneFalse()
 {
   if (disabled()) return nullptr;
   auto it = std::find(d_parent.begin(), d_parent.end(), d_child);
-  return mkProof(PfRule::SCOPE,
-                 {mkContra(mkProof(PfRule::AND_ELIM,
-                                   {mkProof(d_parent)},
-                                   {mkRat(it - d_parent.begin())}),
-                           mkProof(d_child.notNode()))},
-                 {d_parent});
+  return mkResolution(
+      mkProof(
+          PfRule::CNF_AND_POS, {}, {d_parent, mkRat(it - d_parent.begin())}),
+      {d_child},
+      {true});
 }
 
 /** One child is true  -->  or is true */
