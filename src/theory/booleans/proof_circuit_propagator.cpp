@@ -200,6 +200,77 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::impliesYFromX(Node parent)
       mkProof(PfRule::IMPLIES_ELIM, {mkProof(parent)}), {parent[0]}, {false});
 }
 
+/** Derive X from (= X Y) */
+std::shared_ptr<ProofNode> ProofCircuitPropagator::eqXFromY(bool y, Node parent)
+{
+  if (disabled()) return nullptr;
+  if (y)
+  {
+    return mkProof(
+        PfRule::EQ_RESOLVE,
+        {mkProof(parent[1]), mkProof(PfRule::SYMM, {mkProof(parent)})});
+  }
+  else
+  {
+    return mkNot(mkResolution(
+        mkProof(PfRule::EQUIV_ELIM1, {mkProof(parent)}), {parent[1]}, {true}));
+  }
+}
+/** Derive Y from (= X Y) */
+std::shared_ptr<ProofNode> ProofCircuitPropagator::eqYFromX(bool x, Node parent)
+{
+  if (disabled()) return nullptr;
+  if (x)
+  {
+    return mkProof(PfRule::EQ_RESOLVE, {mkProof(parent[0]), mkProof(parent)});
+  }
+  else
+  {
+    return mkNot(mkResolution(
+        mkProof(PfRule::EQUIV_ELIM2, {mkProof(parent)}), {parent[0]}, {true}));
+  }
+}
+/** Derive X from (not (= X Y)) */
+std::shared_ptr<ProofNode> ProofCircuitPropagator::neqXFromY(bool y,
+                                                             Node parent)
+{
+  if (disabled()) return nullptr;
+  if (y)
+  {
+    return mkResolution(
+        mkProof(PfRule::NOT_EQUIV_ELIM2, {mkProof(parent.notNode())}),
+        {parent[1]},
+        {false});
+  }
+  else
+  {
+    return mkResolution(
+        mkProof(PfRule::NOT_EQUIV_ELIM1, {mkProof(parent.notNode())}),
+        {parent[1]},
+        {true});
+  }
+}
+/** Derive Y from (not (= X Y)) */
+std::shared_ptr<ProofNode> ProofCircuitPropagator::neqYFromX(bool x,
+                                                             Node parent)
+{
+  if (disabled()) return nullptr;
+  if (x)
+  {
+    return mkResolution(
+        mkProof(PfRule::NOT_EQUIV_ELIM2, {mkProof(parent.notNode())}),
+        {parent[0]},
+        {false});
+  }
+  else
+  {
+    return mkResolution(
+        mkProof(PfRule::NOT_EQUIV_ELIM1, {mkProof(parent.notNode())}),
+        {parent[0]},
+        {true});
+  }
+}
+
 /**
  * Uses (xor X Y) to derive the value of X.
  * (xor X false)  -->  X
@@ -336,78 +407,6 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::iteIsCase(unsigned c)
   }
 }
 
-/** Derive X from (= X Y) */
-std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::eqXFromY(bool y)
-{
-  if (disabled()) return nullptr;
-  if (y)
-  {
-    return mkProof(
-        PfRule::EQ_RESOLVE,
-        {mkProof(d_parent[1]), mkProof(PfRule::SYMM, {mkProof(d_parent)})});
-  }
-  else
-  {
-    return mkNot(mkResolution(mkProof(PfRule::EQUIV_ELIM1, {mkProof(d_parent)}),
-                              {d_parent[1]},
-                              {true}));
-  }
-}
-/** Derive Y from (= X Y) */
-std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::eqYFromX(bool x)
-{
-  if (disabled()) return nullptr;
-  if (x)
-  {
-    return mkProof(PfRule::EQ_RESOLVE,
-                   {mkProof(d_parent[0]), mkProof(d_parent)});
-  }
-  else
-  {
-    return mkNot(mkResolution(mkProof(PfRule::EQUIV_ELIM2, {mkProof(d_parent)}),
-                              {d_parent[0]},
-                              {true}));
-  }
-}
-/** Derive X from (not (= X Y)) */
-std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::neqXFromY(bool y)
-{
-  if (disabled()) return nullptr;
-  if (y)
-  {
-    return mkResolution(
-        mkProof(PfRule::NOT_EQUIV_ELIM2, {mkProof(d_parent.notNode())}),
-        {d_parent[1]},
-        {false});
-  }
-  else
-  {
-    return mkResolution(
-        mkProof(PfRule::NOT_EQUIV_ELIM1, {mkProof(d_parent.notNode())}),
-        {d_parent[1]},
-        {true});
-  }
-}
-/** Derive Y from (not (= X Y)) */
-std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::neqYFromX(bool x)
-{
-  if (disabled()) return nullptr;
-  if (x)
-  {
-    return mkResolution(
-        mkProof(PfRule::NOT_EQUIV_ELIM2, {mkProof(d_parent.notNode())}),
-        {d_parent[0]},
-        {false});
-  }
-  else
-  {
-    return mkResolution(
-        mkProof(PfRule::NOT_EQUIV_ELIM1, {mkProof(d_parent.notNode())}),
-        {d_parent[0]},
-        {true});
-  }
-}
-
 /** (not (=> X Y))  -->  X */
 std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::impliesNegX()
 {
@@ -524,80 +523,6 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::eqEval()
     return mkResolution(mkProof(PfRule::CNF_EQUIV_NEG1, {}, {d_parent}),
                         {d_parent[0], d_parent[1]},
                         {true, true});
-  }
-}
-/** Derive Y from (= X Y) */
-std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::eqYFromX()
-{
-  if (disabled()) return nullptr;
-  Assert(d_parent[0] == d_child);
-  if (d_childAssignment)
-  {
-    return mkProof(PfRule::EQ_RESOLVE, {mkProof(d_child), mkProof(d_parent)});
-  }
-  else
-  {
-    return mkNot(mkResolution(
-        mkProof(PfRule::EQUIV_ELIM2, {mkProof(d_parent)}), {d_child}, {true}));
-  }
-}
-
-/** Derive Y from (not (= X Y)) */
-std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::neqYFromX()
-{
-  if (disabled()) return nullptr;
-  Assert(d_parent[0] == d_child);
-  if (d_childAssignment)
-  {
-    return mkResolution(
-        mkProof(PfRule::NOT_EQUIV_ELIM2, {mkProof(d_parent.notNode())}),
-        {d_child},
-        {false});
-  }
-  else
-  {
-    return mkResolution(
-        mkProof(PfRule::NOT_EQUIV_ELIM1, {mkProof(d_parent.notNode())}),
-        {d_child},
-        {true});
-  }
-}
-
-/** Derive X from (= X Y) */
-std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::eqXFromY()
-{
-  if (disabled()) return nullptr;
-  Assert(d_parent[1] == d_child);
-  if (d_childAssignment)
-  {
-    return mkProof(
-        PfRule::EQ_RESOLVE,
-        {mkProof(d_child), mkProof(PfRule::SYMM, {mkProof(d_parent)})});
-  }
-  else
-  {
-    return mkResolution(
-        mkProof(PfRule::EQUIV_ELIM1, {mkProof(d_parent)}), {d_child}, {true});
-  }
-}
-/** Derive X from (not (= X Y)) */
-std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::neqXFromY()
-{
-  if (disabled()) return nullptr;
-  Assert(d_parent[0] == d_child);
-  if (d_childAssignment)
-  {
-    return mkResolution(mkProof(PfRule::NOT_EQUIV_ELIM2,
-                                {mkProof(PfRule::SYMM, {mkProof(d_parent)})}),
-                        {d_child},
-                        {false});
-  }
-  else
-  {
-    return mkResolution(mkProof(PfRule::NOT_EQUIV_ELIM1,
-                                {mkProof(PfRule::SYMM, {mkProof(d_parent)})}),
-                        {d_child},
-                        {true});
   }
 }
 

@@ -292,13 +292,13 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment)
         {
           assignAndEnqueue(parent[1],
                            getAssignment(parent[0]),
-                           prover.eqYFromX(getAssignment(parent[0])));
+                           prover.eqYFromX(getAssignment(parent[0]), parent));
         }
         else if (isAssigned(parent[1]))
         {
           assignAndEnqueue(parent[0],
                            getAssignment(parent[1]),
-                           prover.eqXFromY(getAssignment(parent[1])));
+                           prover.eqXFromY(getAssignment(parent[1]), parent));
         }
       }
       else
@@ -309,13 +309,13 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment)
         {
           assignAndEnqueue(parent[1],
                            !getAssignment(parent[0]),
-                           prover.neqYFromX(getAssignment(parent[0])));
+                           prover.neqYFromX(getAssignment(parent[0]), parent));
         }
         else if (isAssigned(parent[1]))
         {
           assignAndEnqueue(parent[0],
                            !getAssignment(parent[1]),
-                           prover.neqXFromY(getAssignment(parent[1])));
+                           prover.neqXFromY(getAssignment(parent[1]), parent));
         }
       }
       break;
@@ -545,13 +545,16 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
               if (getAssignment(parent))
               {
                 // IFF (x = b) y: if IFF is assigned to TRUE, assign(y = b)
-                assignAndEnqueue(parent[1], childAssignment, prover.eqYFromX());
+                assignAndEnqueue(parent[1],
+                                 childAssignment,
+                                 prover.eqYFromX(childAssignment, parent));
               }
               else
               {
                 // IFF (x = b) y: if IFF is assigned to FALSE, assign(y = !b)
-                assignAndEnqueue(
-                    parent[1], !childAssignment, prover.neqYFromX());
+                assignAndEnqueue(parent[1],
+                                 !childAssignment,
+                                 prover.neqYFromX(!childAssignment, parent));
               }
             }
             else
@@ -560,13 +563,16 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
               if (getAssignment(parent))
               {
                 // IFF x y = b: if IFF is assigned to TRUE, assign(x = b)
-                assignAndEnqueue(parent[0], childAssignment, prover.eqXFromY());
+                assignAndEnqueue(parent[0],
+                                 childAssignment,
+                                 prover.eqXFromY(childAssignment, parent));
               }
               else
               {
                 // IFF x y = b y: if IFF is assigned to FALSE, assign(x = !b)
-                assignAndEnqueue(
-                    parent[0], !childAssignment, prover.neqXFromY());
+                assignAndEnqueue(parent[0],
+                                 !childAssignment,
+                                 prover.neqXFromY(!childAssignment, parent));
               }
             }
           }

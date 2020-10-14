@@ -81,6 +81,15 @@ struct ProofCircuitPropagator
   /** (=> true Y)  -->  Y */
   std::shared_ptr<ProofNode> impliesYFromX(Node parent);
 
+  /** Derive X from (= X Y) */
+  std::shared_ptr<ProofNode> eqXFromY(bool y, Node Parent);
+  /** Derive Y from (= X Y) */
+  std::shared_ptr<ProofNode> eqYFromX(bool x, Node Parent);
+  /** Derive X from (not (= X Y)) */
+  std::shared_ptr<ProofNode> neqXFromY(bool y, Node parent);
+  /** Derive Y from (not (= X Y)) */
+  std::shared_ptr<ProofNode> neqYFromX(bool x, Node parent);
+
   /**
    * Uses (xor X Y) to derive the value of X.
    * (xor X false)  -->  X
@@ -130,15 +139,6 @@ struct ProofCircuitPropagatorBackward : public ProofCircuitPropagator
    */
   std::shared_ptr<ProofNode> iteIsCase(unsigned c);
 
-  /** Derive X from (= X Y) */
-  std::shared_ptr<ProofNode> eqXFromY(bool y);
-  /** Derive Y from (= X Y) */
-  std::shared_ptr<ProofNode> eqYFromX(bool x);
-  /** Derive X from (not (= X Y)) */
-  std::shared_ptr<ProofNode> neqXFromY(bool y);
-  /** Derive Y from (not (= X Y)) */
-  std::shared_ptr<ProofNode> neqYFromX(bool x);
-
   /** (not (=> X Y))  -->  X */
   std::shared_ptr<ProofNode> impliesNegX();
   /** (not (=> X Y))  -->  (not Y) */
@@ -174,16 +174,6 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
 
   /** Evaluate (= X Y) from X,Y */
   std::shared_ptr<ProofNode> eqEval();
-  /** Derive Y from (= X Y) */
-  std::shared_ptr<ProofNode> eqYFromX();
-
-  /** Derive Y from (not (= X Y)) */
-  std::shared_ptr<ProofNode> neqYFromX();
-
-  /** Derive X from (= X Y) */
-  std::shared_ptr<ProofNode> eqXFromY();
-  /** Derive X from (not (= X Y)) */
-  std::shared_ptr<ProofNode> neqXFromY();
 
   /** Evaluate (=> X Y) from X,Y */
   std::shared_ptr<ProofNode> impliesEval(bool premise, bool conclusion);
