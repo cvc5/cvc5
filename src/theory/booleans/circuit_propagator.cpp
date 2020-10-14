@@ -46,23 +46,30 @@ CircuitPropagator::CircuitPropagator(bool enableForward, bool enableBackward)
       d_needsFinish(false),
       d_pnm(nullptr),
       d_epg(nullptr),
-      d_lpc(nullptr)
+      d_proofInternal(nullptr),
+      d_proofExternal(nullptr)
 {
 }
 
 void CircuitPropagator::assertTrue(TNode assertion)
 {
+  Trace("circuit-prop") << "TRUE: " << assertion << std::endl;
   d_assumptions.emplace_back(assertion);
   if (assertion.getKind() == kind::AND)
   {
-    for (unsigned i = 0; i < assertion.getNumChildren(); ++i)
+    ProofCircuitPropagatorBackward prover{d_pnm, assertion, true};
+    if (isProofEnabled())
     {
-      assertTrue(assertion[i]);
+      addProof(assertion, prover.mkProof(assertion));
+    }
+    for (auto it = assertion.begin(); it != assertion.end(); ++it)
+    {
+      addProof(*it, prover.andTrue(it));
+      assertTrue(*it);
     }
   }
   else
   {
-    Trace("circuit-prop") << "TRUE: " << assertion << std::endl;
     // Analyze the assertion for back-edges and all that
     computeBackEdges(assertion);
     // Assign the given assertion to true
@@ -73,6 +80,68 @@ void CircuitPropagator::assertTrue(TNode assertion)
     else
     {
       assignAndEnqueue(assertion, true, nullptr);
+    }
+  }
+}
+
+void CircuitPropagator::assignAndEnqueue(TNode n,
+                                         bool value,
+                                         std::shared_ptr<ProofNode> proof)
+{
+  Trace("circuit-prop") << "CircuitPropagator::assign(" << n << ", "
+                        << (value ? "true" : "false") << ")" << std::endl;
+
+  if (n.getKind() == kind::CONST_BOOLEAN)
+  {
+    // Assigning a constant to the opposite value is dumb
+    if (value != n.getConst<bool>())
+    {
+      d_conflict = true;
+      return;
+    }
+  }
+
+  // Get the current assignment
+  AssignmentStatus state = d_state[n];
+
+  if (state != UNASSIGNED)
+  {
+    // If the node is already assigned we might have a conflict
+    if (value != (state == ASSIGNED_TO_TRUE))
+    {
+      d_conflict = true;
+    }
+  }
+  else
+  {
+    // If unassigned, mark it as assigned
+    d_state[n] = value ? ASSIGNED_TO_TRUE : ASSIGNED_TO_FALSE;
+    // Add for further propagation
+    d_propagationQueue.push_back(n);
+
+    if (isProofEnabled())
+    {
+      if (n.getKind() != Kind::CONST_BOOLEAN)
+      {
+        if (proof == nullptr)
+        {
+          Warning() << "CircuitPropagator: Proof is missing for " << n
+                    << std::endl;
+          Assert(false);
+        }
+        else
+        {
+          Assert(!proof->getResult().isNull());
+          Node expected = value ? Node(n) : n.negate();
+          if (proof->getResult() != expected)
+          {
+            Warning() << "CircuitPropagator: Incorrect proof: " << expected
+                      << " vs. " << proof->getResult() << std::endl
+                      << *proof << std::endl;
+          }
+          addProof(expected, std::move(proof));
+        }
+      }
     }
   }
 }
@@ -130,8 +199,7 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment)
 {
   Debug("circuit-prop") << "CircuitPropagator::propagateBackward(" << parent
                         << ", " << parentAssignment << ")" << endl;
-  ProofCircuitPropagatorBackward prover{
-      d_pnm, d_epg.get(), parent, parentAssignment};
+  ProofCircuitPropagatorBackward prover{d_pnm, parent, parentAssignment};
 
   // backward rules
   switch (parent.getKind())
@@ -338,8 +406,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
     Debug("circuit-prop") << "Parent: " << parent << endl;
     Assert(expr::hasSubterm(parent, child));
 
-    ProofCircuitPropagatorForward prover{
-        d_pnm, d_epg.get(), child, childAssignment, parent};
+    ProofCircuitPropagatorForward prover{d_pnm, child, childAssignment, parent};
 
     // Forward rules
     switch (parent.getKind())
@@ -595,15 +662,14 @@ bool CircuitPropagator::propagate()
         {
           // if we have a parent proof generator that provides proofs of the
           // inputs to this class, we must use the lazy proof chain
-          ProofGenerator* pg = d_epg.get();
-          if (d_lpc != nullptr)
+          ProofGenerator* pg = d_proofInternal.get();
+          if (d_proofExternal != nullptr)
           {
-            d_lpc->addLazyStep(lit, pg);
-            pg = d_lpc.get();
+            d_proofExternal->addLazyStep(lit, pg);
+            pg = d_proofExternal.get();
           }
           TrustNode tlit = TrustNode::mkTrustLemma(lit, pg);
           d_learnedLiterals.push_back(tlit);
-          ensureClosed();
         }
         else
         {
@@ -641,57 +707,43 @@ void CircuitPropagator::setProof(ProofNodeManager* pnm,
                                  context::Context* ctx,
                                  ProofGenerator* defParent)
 {
-  // TODO: this would enable proof production
-  // d_pnm = pnm;
-  // d_epg.reset(new EagerProofGenerator(pnm, ctx));
-  // if (defParent != nullptr)
-  //{
-  //  // If we provide a parent proof generator (defParent), we want the ASSUME
-  //  // leafs of proofs provided by this class to call the getProofFor method
-  //  on
-  //  // the parent. To do this, we use a LazyCDProofChain.
-  //  d_lpc.reset(new LazyCDProofChain(pnm, false, ctx, defParent, false));
-  //}
+  d_pnm = pnm;
+  d_epg.reset(new EagerProofGenerator(pnm, ctx));
+  d_proofInternal.reset(
+      new LazyCDProofChain(pnm, false, ctx, d_epg.get(), true));
+  if (defParent != nullptr)
+  {
+    // If we provide a parent proof generator (defParent), we want the ASSUME
+    // leafs of proofs provided by this class to call the getProofFor method on
+    // the parent. To do this, we use a LazyCDProofChain.
+    d_proofExternal.reset(
+        new LazyCDProofChain(pnm, false, ctx, defParent, false));
+  }
 }
 
-void CircuitPropagator::ensureClosed() const
+bool CircuitPropagator::isProofEnabled() const
 {
-  return;
-  if (!isProofEnabled()) return;
-  std::vector<Node> assumps = d_assumptions;
-  for (const auto& n : d_propagationQueue)
+  return d_proofInternal != nullptr;
+}
+
+void CircuitPropagator::addProof(TNode f, std::shared_ptr<ProofNode> pf)
+{
+  if (isProofEnabled())
   {
-    if (n == d_learnedLiterals.back().getProven())
+    if (!d_epg->hasProofFor(f))
     {
-      break;
-    }
-    if (getAssignment(n))
-    {
-      assumps.emplace_back(n);
+      Trace("circuit-prop") << "Adding proof for " << f << std::endl
+                            << "\t" << *pf << std::endl;
+      d_epg->setProofFor(f, std::move(pf));
     }
     else
     {
-      assumps.emplace_back(n.negate());
+      auto prf = d_epg->getProofFor(f);
+      Trace("circuit-prop") << "Ignoring proof, we already have" << std::endl
+                            << "\t" << *prf << std::endl;
     }
   }
-  Trace("circuit-prop-check") << "***** Assumptions: " << std::endl;
-  for (const auto& a : assumps)
-  {
-    Trace("circuit-prop-check") << "\t" << a << std::endl;
-  }
-
-  Trace("circuit-prop-check")
-      << "**** Proof: " << std::endl
-      << *d_epg->getProofFor(d_learnedLiterals.back().getProven()) << std::endl;
-
-  pfgEnsureClosedWrt(d_learnedLiterals.back().getProven(),
-                     d_epg.get(),
-                     assumps,
-                     "circuit-prop",
-                     "circuit-prop");
 }
-
-bool CircuitPropagator::isProofEnabled() const { return d_epg != nullptr; }
 
 }  // namespace booleans
 }  // namespace theory

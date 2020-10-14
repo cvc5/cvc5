@@ -148,8 +148,6 @@ class CircuitPropagator
                 context::Context* ctx,
                 ProofGenerator* defParent);
 
-  void ensureClosed() const;
-
  private:
   /** A context-notify object that clears out stale data. */
   template <class T>
@@ -215,77 +213,7 @@ class CircuitPropagator
    */
   void assignAndEnqueue(TNode n,
                         bool value,
-                        std::shared_ptr<ProofNode> proof = nullptr)
-  {
-    Trace("circuit-prop") << "CircuitPropagator::assign(" << n << ", "
-                          << (value ? "true" : "false") << ")" << std::endl;
-
-    if (n.getKind() == kind::CONST_BOOLEAN)
-    {
-      // Assigning a constant to the opposite value is dumb
-      if (value != n.getConst<bool>())
-      {
-        d_conflict = true;
-        return;
-      }
-    }
-
-    // Get the current assignment
-    AssignmentStatus state = d_state[n];
-
-    if (state != UNASSIGNED)
-    {
-      // If the node is already assigned we might have a conflict
-      if (value != (state == ASSIGNED_TO_TRUE))
-      {
-        d_conflict = true;
-      }
-    }
-    else
-    {
-      // If unassigned, mark it as assigned
-      d_state[n] = value ? ASSIGNED_TO_TRUE : ASSIGNED_TO_FALSE;
-      // Add for further propagation
-      d_propagationQueue.push_back(n);
-
-      if (isProofEnabled())
-      {
-        if (n.getKind() != Kind::CONST_BOOLEAN)
-        {
-          if (proof == nullptr)
-          {
-            Warning() << "CircuitPropagator: Proof is missing for " << n
-                      << std::endl;
-            Assert(false);
-          }
-          else
-          {
-            Assert(!proof->getResult().isNull());
-            Node expected = value ? Node(n) : n.negate();
-            if (proof->getResult() != expected)
-            {
-              Warning() << "CircuitPropagator: Incorrect proof: " << expected
-                        << " vs. " << proof->getResult() << std::endl
-                        << *proof << std::endl;
-            }
-            Trace("circuit-prop") << "Adding proof " << *proof << std::endl
-                                  << "\t" << proof->getResult() << std::endl;
-            if (!d_epg->hasProofFor(expected))
-            {
-              d_epg->setProofFor(expected, std::move(proof));
-            }
-            else
-            {
-              Trace("circuit-prop")
-                  << "Ignoring proof" << std::endl
-                  << "We already have " << *d_epg->getProofFor(expected)
-                  << std::endl;
-            }
-          }
-        }
-      }
-    }
-  }
+                        std::shared_ptr<ProofNode> proof = nullptr);
 
   /**
    * Compute the map from nodes to the nodes that use it.
@@ -358,19 +286,14 @@ class CircuitPropagator
   /* Does the current state require a call to finish()? */
   bool d_needsFinish;
 
-  void addProof(TNode f, std::shared_ptr<ProofNode> pf)
-  {
-    if (isProofEnabled())
-    {
-      d_epg->setProofFor(f, std::move(pf));
-    }
-  }
+  void addProof(TNode f, std::shared_ptr<ProofNode> pf);
 
   ProofNodeManager* d_pnm;
   /** Eager proof generator */
   std::unique_ptr<EagerProofGenerator> d_epg;
+  std::unique_ptr<LazyCDProofChain> d_proofInternal;
   /** A lazy proof chain */
-  std::unique_ptr<LazyCDProofChain> d_lpc;
+  std::unique_ptr<LazyCDProofChain> d_proofExternal;
 }; /* class CircuitPropagator */
 
 }  // namespace booleans

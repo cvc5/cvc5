@@ -95,6 +95,12 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
           << "LazyCDProofChain::getProofFor: Call generator " << pg->identify()
           << " for chain link " << cur << "\n";
       std::shared_ptr<ProofNode> curPfn = pg->getProofFor(cur);
+      if (curPfn == nullptr)
+      {
+        Trace("lazy-cdproofchain")
+            << "LazyCDProofChain::getProofFor: No proof found, skip\n";
+        continue;
+      }
       // map node whose proof node must be expanded to the respective poof node
       toConnect[cur] = curPfn;
       if (!rec)
