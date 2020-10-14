@@ -129,16 +129,27 @@ struct ProofCircuitPropagator
     Assert(lits.size() == polarity.size());
     for (std::size_t i = 0; i < lits.size(); ++i)
     {
-      args.emplace_back(nm->mkConst<bool>(polarity[i]));
-      args.emplace_back(lits[i]);
+      bool pol = polarity[i];
+      Node lit = lits[i];
       if (polarity[i])
       {
-        children.emplace_back(mkProof(lits[i].notNode()));
+        if (lits[i].getKind() == Kind::NOT)
+        {
+          lit = lit[0];
+          pol = !pol;
+          children.emplace_back(mkProof(lit));
+        }
+        else
+        {
+          children.emplace_back(mkProof(lits[i].notNode()));
+        }
       }
       else
       {
         children.emplace_back(mkProof(lits[i]));
       }
+      args.emplace_back(nm->mkConst<bool>(pol));
+      args.emplace_back(lit);
     }
     return mkProof(PfRule::CHAIN_RESOLUTION, children, args);
   }
@@ -285,8 +296,7 @@ struct ProofCircuitPropagatorBackward : public ProofCircuitPropagator
   std::shared_ptr<ProofNode> Not()
   {
     if (disabled()) return nullptr;
-    return mkNot(
-        mkProof(d_parentAssignment ? Node(d_parent) : d_parent.notNode()));
+    return mkNot(mkProof(d_parentAssignment ? d_parent : d_parent[0]));
   }
 
   /**
