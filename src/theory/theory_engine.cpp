@@ -1468,15 +1468,12 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
                                    PfRule::PREPROCESS_LEMMA);
           // ---------- from d_lazyProof -------------- from theory preprocess
           // lemma                       lemma = lemmap
-          // ------------------------------------------ MACRO_SR_PRED_TRANSFORM
+          // ------------------------------------------ EQ_RESOLVE
           // lemmap
           std::vector<Node> pfChildren;
           pfChildren.push_back(lemma);
           pfChildren.push_back(tplemma.getProven());
-          std::vector<Node> pfArgs;
-          pfArgs.push_back(lemmap);
-          d_lazyProof->addStep(
-              lemmap, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
+          d_lazyProof->addStep(lemmap, PfRule::EQ_RESOLVE, pfChildren, {});
         }
       }
       tlemma = TrustNode::mkTrustLemma(lemmap, d_lazyProof.get());
@@ -1520,10 +1517,10 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   }
 
   // now, send the lemmas to the prop engine
-  d_propEngine->assertLemma(tlemma.getProven(), false, removable);
+  d_propEngine->assertLemma(tlemma, removable);
   for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
   {
-    d_propEngine->assertLemma(newLemmas[i].getProven(), false, removable);
+    d_propEngine->assertLemma(newLemmas[i], removable);
   }
 
   // assert to decision engine
@@ -1630,8 +1627,8 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
         {
           // ------------------------- explained  ---------- from theory
           // fullConflict => conflict              ~conflict
-          // --------------------------------------------
-          // MACRO_SR_PRED_TRANSFORM ~fullConflict
+          // ------------------------------------------ MACRO_SR_PRED_TRANSFORM
+          // ~fullConflict
           children.push_back(conflict.notNode());
           args.push_back(mkMethodId(MethodId::SB_LITERAL));
           d_lazyProof->addStep(
@@ -1928,9 +1925,9 @@ theory::TrustNode TheoryEngine::getExplanation(
         Trace("te-proof-exp") << "...trivial" << std::endl;
         continue;
       }
-      // ------------- Via theory
-      // tExp => tConc              tExp
-      // ---------------------------------MACRO_SR_PRED_TRANSFORM
+      //       ------------- Via theory
+      // tExp  tExp => tConc
+      // ---------------------------------MODUS_PONENS
       // tConc
       if (trn.getGenerator() != nullptr)
       {
@@ -1945,12 +1942,9 @@ theory::TrustNode TheoryEngine::getExplanation(
         lcp->addStep(proven, PfRule::THEORY_LEMMA, {}, {proven, tidn});
       }
       std::vector<Node> pfChildren;
-      pfChildren.push_back(proven);
       pfChildren.push_back(trn.getNode());
-      std::vector<Node> pfArgs;
-      pfArgs.push_back(tConc);
-      pfArgs.push_back(mkMethodId(MethodId::SB_FORMULA));
-      lcp->addStep(tConc, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
+      pfChildren.push_back(proven);
+      lcp->addStep(tConc, PfRule::MODUS_PONENS, pfChildren, {});
     }
     // store in the proof generator
     TrustNode trn = d_tepg->mkTrustExplain(conclusion, expNode, lcp);
