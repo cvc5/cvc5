@@ -174,7 +174,7 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   if (!cs.isConst())
   {
     // note we will get more proof reuse if we do not special case AND here.
-    if (false && cs.getKind() == kind::AND)
+    if (cs.getKind() == kind::AND)
     {
       for (const Node& csc : cs)
       {

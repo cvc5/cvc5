@@ -29,14 +29,17 @@ InferenceManager::InferenceManager(Theory& t,
                                    TheoryState& state,
                                    ProofNodeManager* pnm)
     : InferenceManagerBuffered(t, state, nullptr),
-      d_inferences("theory::datatypes::inferences")
+      d_inferenceFacts("theory::datatypes::inferenceFacts"),
+      d_inferenceLemmas("theory::datatypes::inferenceLemmas")
 {
-  smtStatisticsRegistry()->registerStat(&d_inferences);
+  smtStatisticsRegistry()->registerStat(&d_inferenceFacts);
+  smtStatisticsRegistry()->registerStat(&d_inferenceLemmas);
 }
 
 InferenceManager::~InferenceManager()
 {
-  smtStatisticsRegistry()->unregisterStat(&d_inferences);
+  smtStatisticsRegistry()->unregisterStat(&d_inferenceFacts);
+  smtStatisticsRegistry()->unregisterStat(&d_inferenceLemmas);
 }
 
 void InferenceManager::addPendingInference(Node conc,
@@ -92,6 +95,7 @@ bool InferenceManager::processDtInference(DatatypesInference& di, bool asLemma)
     {
       return false;
     }
+    d_inferenceLemmas << di.getInference();
   }
   else
   {
@@ -99,8 +103,8 @@ bool InferenceManager::processDtInference(DatatypesInference& di, bool asLemma)
     bool polarity = di.d_conc.getKind() != NOT;
     TNode atom = polarity ? di.d_conc : di.d_conc[0];
     assertInternalFact(atom, polarity, di.d_exp);
+    d_inferenceFacts << di.getInference();
   }
-  d_inferences << di.getInference();
   return true;
 }
 
