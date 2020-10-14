@@ -72,7 +72,7 @@ enum class InferenceId : uint32_t
   // value refinements (IAndSolver::checkFullRefine)
   NL_IAND_VALUE_REFINE,
   // sum refinements (IAndSulver::checkFullRefine)
-  NL_IAND_SUM)REFINE,
+  NL_IAND_SUM_REFINE,
   //-------------------- cad solver
   // conflict / infeasible subset obtained from cad
   NL_CAD_CONFLICT,

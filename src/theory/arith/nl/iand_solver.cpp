@@ -148,7 +148,7 @@ void IAndSolver::checkFullRefine()
       // ************* additional lemma schemas go here
       if (options::iandMode() == options::IandMode::SUM)
       {
-        Node lem = bitwiseLemma(i);  // add lemmas based on sum mode
+        Node lem = sumBasedLemma(i);  // add lemmas based on sum mode
         Trace("iand-lemma")
             << "IAndSolver::Lemma: " << lem << " ; SUM_REFINE" << std::endl;
         d_im.addPendingArithLemma(lem, InferenceId::NL_IAND_SUM_REFINE, true);
