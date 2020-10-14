@@ -139,17 +139,7 @@ void CircuitPropagator::assignAndEnqueue(TNode n,
                       << " vs. " << proof->getResult() << std::endl
                       << *proof << std::endl;
           }
-          if (!d_epg->hasProofFor(expected))
-          {
-            addProof(expected, std::move(proof));
-          }
-          else
-          {
-            auto prf = d_epg->getProofFor(expected);
-            Trace("circuit-prop")
-                << "Ignoring proof, we already have" << std::endl
-                << "\t" << *prf << std::endl;
-          }
+          addProof(expected, std::move(proof));
         }
       }
     }
@@ -780,10 +770,18 @@ void CircuitPropagator::addProof(TNode f, std::shared_ptr<ProofNode> pf)
 {
   if (isProofEnabled())
   {
-    Trace("circuit-prop") << "Adding proof for " << f << std::endl
-                          << "\t" << *pf << std::endl;
-    d_epg->setProofFor(f, std::move(pf));
-    // d_proofInternal->addLazyStep(f, d_epg.get());
+    if (!d_epg->hasProofFor(f))
+    {
+      Trace("circuit-prop") << "Adding proof for " << f << std::endl
+                            << "\t" << *pf << std::endl;
+      d_epg->setProofFor(f, std::move(pf));
+    }
+    else
+    {
+      auto prf = d_epg->getProofFor(f);
+      Trace("circuit-prop") << "Ignoring proof, we already have" << std::endl
+                            << "\t" << *prf << std::endl;
+    }
   }
 }
 
