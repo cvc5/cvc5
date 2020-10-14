@@ -201,7 +201,7 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   // --------- MACRO_SR_EQ_INTRO
   // n == ns
   // add it to the apply proof generator.
-  // 
+  //
   // Notice that we use a single child to MACRO_SR_EQ_INTRO here. This is an
   // optimization motivated by the fact that n may be large and reused many
   // time. For instance, if this class is being used to track substitutions

@@ -16,8 +16,8 @@
 
 #include "expr/dtype.h"
 #include "options/datatypes_options.h"
-#include "theory/theory.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/theory.h"
 
 using namespace CVC4::kind;
 

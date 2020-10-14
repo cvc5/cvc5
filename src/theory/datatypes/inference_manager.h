@@ -68,12 +68,12 @@ class InferenceManager : public InferenceManagerBuffered
   bool sendLemmas(const std::vector<Node>& lemmas);
 
  private:
-  /** 
+  /**
    * Process datatype inference di. We send a lemma if asLemma is true, and
    * send an internal fact if asLemma is false.
    */
   bool processDtInference(DatatypesInference& di, bool asLemma);
-  /** 
+  /**
    * Counts the number of applications of each type of inference processed by
    * the above method.
    */
