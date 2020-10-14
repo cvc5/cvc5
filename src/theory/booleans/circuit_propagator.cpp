@@ -60,7 +60,7 @@ void CircuitPropagator::assertTrue(TNode assertion)
     ProofCircuitPropagatorBackward prover{d_pnm, assertion, true};
     if (isProofEnabled())
     {
-      addProof(assertion, prover.mkProof(assertion));
+      addProof(assertion, prover.assume(assertion));
     }
     for (auto it = assertion.begin(); it != assertion.end(); ++it)
     {
