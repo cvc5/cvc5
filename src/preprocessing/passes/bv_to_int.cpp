@@ -260,6 +260,8 @@ Node BVToInt::eliminationPass(Node n)
  */
 Node BVToInt::bvToInt(Node n)
 {
+  // make sure the node is re-written before processing it.
+  n = Rewriter::rewrite(n);
   n = makeBinary(n);
   n = eliminationPass(n);
   // binarize again, in case the elimination pass introduced
@@ -947,26 +949,17 @@ PreprocessingPassResult BVToInt::applyInternal(
 void BVToInt::addFinalizeRangeAssertions(
     AssertionPipeline* assertionsToPreprocess)
 {
+  // collect the range assertions from d_rangeAssertions
+  // (which is a context-dependent set)
+  // into a vector.
   vector<Node> vec_range;
   vec_range.assign(d_rangeAssertions.key_begin(), d_rangeAssertions.key_end());
-  if (vec_range.size() == 0)
-  {
-    return;
-  }
-  if (vec_range.size() == 1)
-  {
-    assertionsToPreprocess->push_back(vec_range[0]);
-    Trace("bv-to-int-debug")
-        << "range constraints: " << vec_range[0].toString() << std::endl;
-  }
-  else if (vec_range.size() >= 2)
-  {
-    Node rangeAssertions =
-        Rewriter::rewrite(d_nm->mkNode(kind::AND, vec_range));
-    assertionsToPreprocess->push_back(rangeAssertions);
-    Trace("bv-to-int-debug")
-        << "range constraints: " << rangeAssertions.toString() << std::endl;
-  }
+  // conjoin all range assertions and add the conjunction
+  // as a new assertion
+  Node rangeAssertions = Rewriter::rewrite(d_nm->mkAnd(vec_range));
+  assertionsToPreprocess->push_back(rangeAssertions);
+  Trace("bv-to-int-debug") << "range constraints: "
+                           << rangeAssertions.toString() << std::endl;
 }
 
 Node BVToInt::createShiftNode(vector<Node> children,
@@ -1046,24 +1039,12 @@ Node BVToInt::translateQuantifiedFormula(Node quantifiedNode)
                              newBoundVars.begin(),
                              newBoundVars.end());
   // A node to represent all the range constraints.
-  Node ranges;
-  if (rangeConstraints.size() > 0)
-  {
-    if (rangeConstraints.size() == 1)
-    {
-      ranges = rangeConstraints[0];
-    }
-    else
-    {
-      ranges = d_nm->mkNode(kind::AND, rangeConstraints);
-    }
-    // Add the range constraints to the body of the quantifier.
-    // For "exists", this is added conjunctively
-    // For "forall", this is added to the left side of an implication.
-    matrix = d_nm->mkNode(
-        k == kind::FORALL ? kind::IMPLIES : kind::AND, ranges, matrix);
-  }
-
+  Node ranges = d_nm->mkAnd(rangeConstraints);
+  // Add the range constraints to the body of the quantifier.
+  // For "exists", this is added conjunctively
+  // For "forall", this is added to the left side of an implication.
+  matrix = d_nm->mkNode(
+      k == kind::FORALL ? kind::IMPLIES : kind::AND, ranges, matrix);
   // create the new quantified formula and return it.
   Node newBoundVarsList = d_nm->mkNode(kind::BOUND_VAR_LIST, newBoundVars);
   Node result = d_nm->mkNode(kind::FORALL, newBoundVarsList, matrix);

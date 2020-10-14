@@ -531,6 +531,11 @@ bool complexityBelow(const DenseMap<Rational>& row, uint32_t cap){
   return true;
 }
 
+bool TheoryArithPrivate::isProofEnabled() const
+{
+  return d_pnm != nullptr;
+}
+
 void TheoryArithPrivate::raiseConflict(ConstraintCP a){
   Assert(a->inConflict());
   d_conflicts.push_back(a);
@@ -542,7 +547,7 @@ void TheoryArithPrivate::raiseBlackBoxConflict(Node bb,
   Debug("arith::bb") << "raiseBlackBoxConflict: " << bb << std::endl;
   if (d_blackBoxConflict.get().isNull())
   {
-    if (options::proofNew())
+    if (isProofEnabled())
     {
       Debug("arith::bb") << "  with proof " << pf << std::endl;
       d_blackBoxConflictPf.set(pf);
@@ -1890,7 +1895,15 @@ void TheoryArithPrivate::outputConflicts(){
         pf.print(std::cout);
         std::cout << std::endl;
       }
-      Node conflict = confConstraint->externalExplainConflict().getNode();
+      if (Debug.isOn("arith::pf::tree"))
+      {
+        Debug("arith::pf::tree") << "\n\nTree:\n";
+        confConstraint->printProofTree(Debug("arith::pf::tree"));
+        confConstraint->getNegation()->printProofTree(Debug("arith::pf::tree"));
+      }
+
+      TrustNode trustedConflict = confConstraint->externalExplainConflict();
+      Node conflict = trustedConflict.getNode();
 
       ++conflicts;
       Debug("arith::conflict") << "d_conflicts[" << i << "] " << conflict
@@ -1900,7 +1913,14 @@ void TheoryArithPrivate::outputConflicts(){
         Debug("arith::conflict") << "(normalized to) " << conflict << endl;
       }
 
-      outputConflict(conflict);
+      if (isProofEnabled())
+      {
+        outputTrustedConflict(trustedConflict);
+      }
+      else
+      {
+        outputConflict(conflict);
+      }
     }
   }
   if(!d_blackBoxConflict.get().isNull()){
@@ -1913,8 +1933,15 @@ void TheoryArithPrivate::outputConflicts(){
       bb = flattenAndSort(bb);
       Debug("arith::conflict") << "(normalized to) " << bb << endl;
     }
-
-    outputConflict(bb);
+    if (isProofEnabled() && d_blackBoxConflictPf.get())
+    {
+      auto confPf = d_blackBoxConflictPf.get();
+      outputTrustedConflict(d_pfGen->mkTrustNode(bb, confPf, true));
+    }
+    else
+    {
+      outputConflict(bb);
+    }
   }
 }
 
@@ -1927,6 +1954,12 @@ void TheoryArithPrivate::outputTrustedLemma(TrustNode lemma)
 void TheoryArithPrivate::outputLemma(TNode lem) {
   Debug("arith::channel") << "Arith lemma: " << lem << std::endl;
   (d_containing.d_out)->lemma(lem);
+}
+
+void TheoryArithPrivate::outputTrustedConflict(TrustNode conf)
+{
+  Debug("arith::channel") << "Arith trusted conflict: " << conf << std::endl;
+  (d_containing.d_out)->conflict(conf.getNode());
 }
 
 void TheoryArithPrivate::outputConflict(TNode lit) {
@@ -3799,33 +3832,32 @@ void TheoryArithPrivate::debugPrintModel(std::ostream& out) const{
   }
 }
 
-Node TheoryArithPrivate::explain(TNode n)
+TrustNode TheoryArithPrivate::explain(TNode n)
 {
   Debug("arith::explain") << "explain @" << getSatContext()->getLevel() << ": " << n << endl;
 
   ConstraintP c = d_constraintDatabase.lookup(n);
+  TrustNode exp;
   if(c != NullConstraint){
     Assert(!c->isAssumption());
-    Node exp = c->externalExplainForPropagation().getNode();
+    exp = c->externalExplainForPropagation();
     Debug("arith::explain") << "constraint explanation" << n << ":" << exp << endl;
-    return exp;
   }else if(d_assertionsThatDoNotMatchTheirLiterals.find(n) != d_assertionsThatDoNotMatchTheirLiterals.end()){
     c = d_assertionsThatDoNotMatchTheirLiterals[n];
     if(!c->isAssumption()){
-      Node exp = c->externalExplainForPropagation().getNode();
+      exp = c->externalExplainForPropagation();
       Debug("arith::explain") << "assertions explanation" << n << ":" << exp << endl;
-      return exp;
     }else{
       Debug("arith::explain") << "this is a strange mismatch" << n << endl;
       Assert(d_congruenceManager.canExplain(n));
-      Debug("arith::explain") << "this is a strange mismatch" << n << endl;
-      return d_congruenceManager.explain(n).getNode();
+      exp = d_congruenceManager.explain(n);
     }
   }else{
     Assert(d_congruenceManager.canExplain(n));
     Debug("arith::explain") << "dm explanation" << n << endl;
-    return d_congruenceManager.explain(n).getNode();
+    exp = d_congruenceManager.explain(n);
   }
+  return exp;
 }
 
 void TheoryArithPrivate::propagate(Theory::Effort e) {
