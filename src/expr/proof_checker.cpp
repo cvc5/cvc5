@@ -30,39 +30,6 @@ Node ProofRuleChecker::check(PfRule id,
   return checkInternal(id, children, args);
 }
 
-Node ProofRuleChecker::checkChildrenArg(PfRule id,
-                                        const std::vector<Node>& children,
-                                        Node arg)
-{
-  return check(id, children, {arg});
-}
-Node ProofRuleChecker::checkChildren(PfRule id,
-                                     const std::vector<Node>& children)
-{
-  return check(id, children, {});
-}
-Node ProofRuleChecker::checkChild(PfRule id, Node child)
-{
-  return check(id, {child}, {});
-}
-Node ProofRuleChecker::checkArg(PfRule id, Node arg)
-{
-  return check(id, {}, {arg});
-}
-
-Node ProofRuleChecker::mkAnd(const std::vector<Node>& a)
-{
-  if (a.empty())
-  {
-    return NodeManager::currentNM()->mkConst(true);
-  }
-  else if (a.size() == 1)
-  {
-    return a[0];
-  }
-  return NodeManager::currentNM()->mkNode(AND, a);
-}
-
 bool ProofRuleChecker::getUInt32(TNode n, uint32_t& i)
 {
   // must be a non-negative integer constant that fits an unsigned int
@@ -194,17 +161,20 @@ Node ProofChecker::checkDebug(PfRule id,
   // since we are debugging, we want to treat trusted (null) checkers as
   // a failure.
   Node res = checkInternal(id, cchildren, args, expected, out, false);
-  Trace(traceTag) << "ProofChecker::checkDebug: " << id;
-  if (res.isNull())
+  if (Trace.isOn(traceTag))
   {
-    Trace(traceTag) << " failed, " << out.str() << std::endl;
+    Trace(traceTag) << "ProofChecker::checkDebug: " << id;
+    if (res.isNull())
+    {
+      Trace(traceTag) << " failed, " << out.str() << std::endl;
+    }
+    else
+    {
+      Trace(traceTag) << " success" << std::endl;
+    }
+    Trace(traceTag) << "cchildren: " << cchildren << std::endl;
+    Trace(traceTag) << "     args: " << args << std::endl;
   }
-  else
-  {
-    Trace(traceTag) << " success" << std::endl;
-  }
-  Trace(traceTag) << "cchildren: " << cchildren << std::endl;
-  Trace(traceTag) << "     args: " << args << std::endl;
   return res;
 }
 
@@ -335,7 +305,7 @@ bool ProofChecker::isPedanticFailure(PfRule id, std::ostream& out) const
     if (itp->second <= d_pclevel)
     {
       out << "pedantic level for " << id << " not met (rule level is "
-          << itp->second << " which is strictly below the required level "
+          << itp->second << " which is at or below the pedantic level "
           << d_pclevel << ")";
       return true;
     }

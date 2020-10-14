@@ -26,6 +26,33 @@ TheoryProofStepBuffer::TheoryProofStepBuffer(ProofChecker* pc)
 {
 }
 
+bool TheoryProofStepBuffer::applyEqIntro(Node src,
+                                         Node tgt,
+                                         const std::vector<Node>& exp,
+                                         MethodId ids,
+                                         MethodId idr)
+{
+  std::vector<Node> args;
+  args.push_back(src);
+  builtin::BuiltinProofRuleChecker::addMethodIds(args, ids, idr);
+  Node res = tryStep(PfRule::MACRO_SR_EQ_INTRO, exp, args);
+  if (res.isNull())
+  {
+    // failed to apply
+    return false;
+  }
+  // should have concluded the expected equality
+  Node expected = src.eqNode(tgt);
+  if (res != expected)
+  {
+    // did not provide the correct target
+    popStep();
+    return false;
+  }
+  // successfully proved src == tgt.
+  return true;
+}
+
 bool TheoryProofStepBuffer::applyPredTransform(Node src,
                                                Node tgt,
                                                const std::vector<Node>& exp,
@@ -198,7 +225,7 @@ Node TheoryProofStepBuffer::elimDoubleNegLit(Node n)
   // eliminate double neg
   if (n.getKind() == kind::NOT && n[0].getKind() == kind::NOT)
   {
-    addStep(PfRule::MACRO_SR_PRED_TRANSFORM, {n}, {n[0][0]}, n[0][0]);
+    addStep(PfRule::NOT_NOT_ELIM, {n}, {}, n[0][0]);
     return n[0][0];
   }
   return n;

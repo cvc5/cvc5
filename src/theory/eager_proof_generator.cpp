@@ -30,7 +30,10 @@ EagerProofGenerator::EagerProofGenerator(ProofNodeManager* pnm,
 void EagerProofGenerator::setProofFor(Node f, std::shared_ptr<ProofNode> pf)
 {
   // pf should prove f
-  Assert(pf->getResult() == f);
+  Assert(pf->getResult() == f)
+      << "EagerProofGenerator::setProofFor: unexpected result" << std::endl
+      << "Expected: " << f << std::endl
+      << "Actual: " << pf->getResult() << std::endl;
   d_proofs[f] = pf;
 }
 void EagerProofGenerator::setProofForConflict(Node conf,
