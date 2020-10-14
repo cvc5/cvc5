@@ -1695,7 +1695,7 @@ void GetAssignmentCommand::invoke(api::Solver* solver)
     d_result = SExpr(sexprs);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC4ApiRecoverableException& e)
+  catch (RecoverableModalException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
