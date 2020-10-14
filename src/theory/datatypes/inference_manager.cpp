@@ -29,23 +29,23 @@ InferenceManager::InferenceManager(Theory& t,
                                    TheoryState& state,
                                    ProofNodeManager* pnm)
     : InferenceManagerBuffered(t, state, nullptr),
-      d_inferenceFacts("theory::datatypes::inferenceFacts"),
-      d_inferenceLemmas("theory::datatypes::inferenceLemmas")
+      d_inferenceLemmas("theory::datatypes::inferenceLemmas"),
+      d_inferenceFacts("theory::datatypes::inferenceFacts")
 {
-  smtStatisticsRegistry()->registerStat(&d_inferenceFacts);
   smtStatisticsRegistry()->registerStat(&d_inferenceLemmas);
+  smtStatisticsRegistry()->registerStat(&d_inferenceFacts);
 }
 
 InferenceManager::~InferenceManager()
 {
-  smtStatisticsRegistry()->unregisterStat(&d_inferenceFacts);
   smtStatisticsRegistry()->unregisterStat(&d_inferenceLemmas);
+  smtStatisticsRegistry()->unregisterStat(&d_inferenceFacts);
 }
 
 void InferenceManager::addPendingInference(Node conc,
                                            Node exp,
                                            bool forceLemma,
-                                           Inference i)
+                                           InferId i)
 {
   if (forceLemma)
   {
@@ -78,32 +78,33 @@ bool InferenceManager::sendLemmas(const std::vector<Node>& lemmas)
   return ret;
 }
 
-bool InferenceManager::processDtInference(DatatypesInference& di, bool asLemma)
+bool InferenceManager::processDtInference(Node conc, Node exp, InferId id, bool asLemma)
 {
-  Trace("dt-lemma-debug") << "processDtInference : " << di.d_conc << " via "
-                          << di.d_exp << " by " << di.getInference()
+  Trace("dt-lemma-debug") << "processDtInference : " << conc << " via "
+                          << exp << " by " << id
                           << ", asLemma = " << asLemma << std::endl;
   if (asLemma)
   {
     // send it as an (explained) lemma
     std::vector<Node> expv;
-    if (!di.d_exp.isNull() && !di.d_exp.isConst())
+    if (!exp.isNull() && !exp.isConst())
     {
-      expv.push_back(di.d_exp);
+      expv.push_back(exp);
     }
-    if (!lemmaExp(di.d_conc, expv, {}))
+    if (!lemmaExp(conc, expv, {}))
     {
+      Trace("dt-lemma-debug") << "...duplicate lemma" << std::endl;
       return false;
     }
-    d_inferenceLemmas << di.getInference();
+    d_inferenceLemmas << id;
   }
   else
   {
-    // assert the internal fact
-    bool polarity = di.d_conc.getKind() != NOT;
-    TNode atom = polarity ? di.d_conc : di.d_conc[0];
-    assertInternalFact(atom, polarity, di.d_exp);
-    d_inferenceFacts << di.getInference();
+    // assert the internal fact, which has the same issue as above
+    bool polarity = conc.getKind() != NOT;
+    TNode atom = polarity ? conc : conc[0];
+    assertInternalFact(atom, polarity, exp);
+    d_inferenceFacts << id;
   }
   return true;
 }
