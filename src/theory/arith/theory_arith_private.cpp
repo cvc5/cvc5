@@ -531,6 +531,11 @@ bool complexityBelow(const DenseMap<Rational>& row, uint32_t cap){
   return true;
 }
 
+bool TheoryArithPrivate::isProofEnabled() const
+{
+  return d_pnm != nullptr;
+}
+
 void TheoryArithPrivate::raiseConflict(ConstraintCP a){
   Assert(a->inConflict());
   d_conflicts.push_back(a);

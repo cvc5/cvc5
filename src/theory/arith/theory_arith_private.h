@@ -316,7 +316,7 @@ private:
   /** For holding the proof of the above conflict node. */
   context::CDO<std::shared_ptr<ProofNode>> d_blackBoxConflictPf;
 
-  bool isProofEnabled() const { return d_pnm != nullptr; }
+  bool isProofEnabled() const;
 
  public:
   /**
