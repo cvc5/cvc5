@@ -531,6 +531,11 @@ bool complexityBelow(const DenseMap<Rational>& row, uint32_t cap){
   return true;
 }
 
+bool TheoryArithPrivate::isProofEnabled() const
+{
+  return d_pnm != nullptr;
+}
+
 void TheoryArithPrivate::raiseConflict(ConstraintCP a){
   Assert(a->inConflict());
   d_conflicts.push_back(a);
@@ -542,7 +547,7 @@ void TheoryArithPrivate::raiseBlackBoxConflict(Node bb,
   Debug("arith::bb") << "raiseBlackBoxConflict: " << bb << std::endl;
   if (d_blackBoxConflict.get().isNull())
   {
-    if (options::proofNew())
+    if (isProofEnabled())
     {
       Debug("arith::bb") << "  with proof " << pf << std::endl;
       d_blackBoxConflictPf.set(pf);
@@ -1063,7 +1068,7 @@ bool TheoryArithPrivate::AssertDisequality(ConstraintP constraint){
 
   if(!split && c_i == d_partialModel.getAssignment(x_i)){
     Debug("arith::eq") << "lemma now! " << constraint << endl;
-    outputLemma(constraint->split());
+    outputTrustedLemma(constraint->split());
     return false;
   }else if(d_partialModel.strictlyLessThanLowerBound(x_i, c_i)){
     Debug("arith::eq") << "can drop as less than lb" << constraint << endl;
@@ -1890,7 +1895,15 @@ void TheoryArithPrivate::outputConflicts(){
         pf.print(std::cout);
         std::cout << std::endl;
       }
-      Node conflict = confConstraint->externalExplainConflict().getNode();
+      if (Debug.isOn("arith::pf::tree"))
+      {
+        Debug("arith::pf::tree") << "\n\nTree:\n";
+        confConstraint->printProofTree(Debug("arith::pf::tree"));
+        confConstraint->getNegation()->printProofTree(Debug("arith::pf::tree"));
+      }
+
+      TrustNode trustedConflict = confConstraint->externalExplainConflict();
+      Node conflict = trustedConflict.getNode();
 
       ++conflicts;
       Debug("arith::conflict") << "d_conflicts[" << i << "] " << conflict
@@ -1900,7 +1913,14 @@ void TheoryArithPrivate::outputConflicts(){
         Debug("arith::conflict") << "(normalized to) " << conflict << endl;
       }
 
-      outputConflict(conflict);
+      if (isProofEnabled())
+      {
+        outputTrustedConflict(trustedConflict);
+      }
+      else
+      {
+        outputConflict(conflict);
+      }
     }
   }
   if(!d_blackBoxConflict.get().isNull()){
@@ -1913,14 +1933,33 @@ void TheoryArithPrivate::outputConflicts(){
       bb = flattenAndSort(bb);
       Debug("arith::conflict") << "(normalized to) " << bb << endl;
     }
-
-    outputConflict(bb);
+    if (isProofEnabled() && d_blackBoxConflictPf.get())
+    {
+      auto confPf = d_blackBoxConflictPf.get();
+      outputTrustedConflict(d_pfGen->mkTrustNode(bb, confPf, true));
+    }
+    else
+    {
+      outputConflict(bb);
+    }
   }
+}
+
+void TheoryArithPrivate::outputTrustedLemma(TrustNode lemma)
+{
+  Debug("arith::channel") << "Arith trusted lemma: " << lemma << std::endl;
+  (d_containing.d_out)->lemma(lemma.getNode());
 }
 
 void TheoryArithPrivate::outputLemma(TNode lem) {
   Debug("arith::channel") << "Arith lemma: " << lem << std::endl;
   (d_containing.d_out)->lemma(lem);
+}
+
+void TheoryArithPrivate::outputTrustedConflict(TrustNode conf)
+{
+  Debug("arith::channel") << "Arith trusted conflict: " << conf << std::endl;
+  (d_containing.d_out)->conflict(conf.getNode());
 }
 
 void TheoryArithPrivate::outputConflict(TNode lit) {
@@ -3728,11 +3767,12 @@ bool TheoryArithPrivate::splitDisequalities(){
         Debug("arith::lemma") << "Splitting on " << front << endl;
         Debug("arith::lemma") << "LHS value = " << lhsValue << endl;
         Debug("arith::lemma") << "RHS value = " << rhsValue << endl;
-        Node lemma = front->split();
+        TrustNode lemma = front->split();
         ++(d_statistics.d_statDisequalitySplits);
 
-        Debug("arith::lemma") << "Now " << Rewriter::rewrite(lemma) << endl;
-        outputLemma(lemma);
+        Debug("arith::lemma")
+            << "Now " << Rewriter::rewrite(lemma.getNode()) << endl;
+        outputTrustedLemma(lemma);
         //cout << "Now " << Rewriter::rewrite(lemma) << endl;
         splitSomething = true;
       }else if(d_partialModel.strictlyLessThanLowerBound(lhsVar, rhsValue)){
@@ -4157,7 +4197,7 @@ void TheoryArithPrivate::presolve(){
     callCount = callCount + 1;
   }
 
-  vector<Node> lemmas;
+  vector<TrustNode> lemmas;
   if(!options::incrementalSolving()) {
     switch(options::arithUnateLemmaMode()){
       case options::ArithUnateLemmaMode::NO: break;
@@ -4175,11 +4215,11 @@ void TheoryArithPrivate::presolve(){
     }
   }
 
-  vector<Node>::const_iterator i = lemmas.begin(), i_end = lemmas.end();
+  vector<TrustNode>::const_iterator i = lemmas.begin(), i_end = lemmas.end();
   for(; i != i_end; ++i){
-    Node lem = *i;
+    TrustNode lem = *i;
     Debug("arith::oldprop") << " lemma lemma duck " <<lem << endl;
-    outputLemma(lem);
+    outputTrustedLemma(lem);
   }
 }
 
