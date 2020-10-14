@@ -25,7 +25,7 @@ namespace CVC4 {
 namespace theory {
 namespace datatypes {
 
-enum class Inference : uint32_t
+enum class InferId : uint32_t
 {
   NONE,
   // (= (C t1 ... tn) (C s1 .. sn)) => (= ti si)
@@ -59,7 +59,7 @@ enum class Inference : uint32_t
  * @param i The inference
  * @return The name of the inference
  */
-const char* toString(Inference i);
+const char* toString(InferId i);
 
 /**
  * Writes an inference name to a stream.
@@ -68,7 +68,7 @@ const char* toString(Inference i);
  * @param i The inference to write to the stream
  * @return The stream
  */
-std::ostream& operator<<(std::ostream& out, Inference i);
+std::ostream& operator<<(std::ostream& out, InferId i);
 
 class InferenceManager;
 
@@ -83,7 +83,7 @@ class DatatypesInference : public SimpleTheoryInternalFact
   DatatypesInference(InferenceManager* im,
                      Node conc,
                      Node exp,
-                     Inference i = Inference::NONE);
+                     InferId i = InferId::NONE);
   /**
    * Must communicate fact method.
    * The datatypes decision procedure makes "internal" inferences :
@@ -106,14 +106,14 @@ class DatatypesInference : public SimpleTheoryInternalFact
    * above method.
    */
   bool process(TheoryInferenceManager* im, bool asLemma) override;
-  /** Get the inference */
-  Inference getInference() const;
+  /** Get the inference identifier */
+  InferId getInferId() const;
 
  private:
   /** Pointer to the inference manager */
   InferenceManager* d_im;
   /** The inference */
-  Inference d_infer;
+  InferId d_id;
 };
 
 }  // namespace datatypes
