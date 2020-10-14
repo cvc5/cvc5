@@ -57,8 +57,6 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
 {
   if (isProofEnabled())
   {
-    // enable proofs in the term formula remover
-    d_tfr.setProofNodeManager(pnm);
     // push the proof context, since proof steps may be cleared on calls to
     // clearCache() below.
     d_pfContext.push();

@@ -18,7 +18,6 @@
 
 #include <tuple>
 #include <vector>
-
 #include "expr/node.h"
 
 namespace CVC4 {
@@ -34,10 +33,10 @@ class IAndTable
 {
  public:
   /**
-   * A generic function that creates a node that represents a bitwise
+   * A generic function that creates a node that represents a bvand
    * operation.
    *
-   * For example: Suppose bvsize is 4, granularity is 1, and f(x,y) = x && y.
+   * For example: Suppose bvsize is 4, granularity is 1.
    * Denote by ITE(a,b) the term: ite(a==0, 0, ite(b==1, 1, 0)).
    * The result of this function would be:
    * ITE(x[0], y[0])*2^0 + ... + ITE(x[3], y[3])*2^3
@@ -69,6 +68,9 @@ class IAndTable
    * The result of this function would be:
    * ITE(x[1:0], y[1:0])*2^0 + ITE(x[3:2], y[3:2])*2^2
    *
+   * More precisely, the ITE term is optimized so that the most common
+   * result is in the final "else" branch.
+   * Hence in practice, the generated ITEs will be shorter.
    *
    * @param x is an integer operand that correspond to the first original
    *        bit-vector operand.
@@ -77,8 +79,6 @@ class IAndTable
    * @param bvsize is the bit width of the original bit-vector variables.
    * @param granularity is specified in the options for this preprocessing
    *        pass.
-   * @param f is a pointer to a boolean function that corresponds
-   *        to the original bitwise operation.
    * @return A node that represents the operation, as described above.
    */
   Node createBitwiseNode(Node x, Node y, uint64_t bvsize, uint64_t granularity);
@@ -93,13 +93,39 @@ class IAndTable
    * @param table a function from pairs of integers to integers.
    *        The domain of this function consists of pairs of
    *        integers between 0 (inclusive) and 2^{bitwidth} (exclusive).
+   *        The domain also includes one additional pair (-1, -1), that
+   *        represents the default (most common) value.
    * @return An ite term that represents this table.
    */
   Node createITEFromTable(
       Node x,
       Node y,
       uint64_t granularity,
-      const std::map<std::pair<uint64_t, uint64_t>, uint64_t>& table);
+      const std::map<std::pair<int64_t, int64_t>, uint64_t>& table);
+
+  /**
+   * updates  d_bvandTable[granularity] if it wasn't already computed.
+   */
+  void computeAndTable(uint64_t granularity);
+
+  /**
+   * @param table a table that represents integer conjunction
+   * @param num_of_values the number of rows in the table
+   * The function will add a single row to the table.
+   * the key will be (-1, -1) and the value will be the most common
+   * value of the original table.
+   */
+  void addDefaultValue(std::map<std::pair<int64_t, int64_t>, uint64_t>& table,
+                       uint64_t num_of_values);
+
+  /**
+   * For each granularity between 1 and 8, we store a separate table
+   * in d_bvandTable[granularity].
+   * The definition of these tables is given in the description of
+   * createBitwiseNode.
+   */
+  std::map<uint64_t, std::map<std::pair<int64_t, int64_t>, uint64_t>>
+      d_bvandTable;
 };
 
 }  // namespace nl

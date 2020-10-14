@@ -64,9 +64,9 @@ class TypeNodeWhite : public CxxTest::TestSuite {
     Node xPos = d_nm->mkNode(GT, x, d_nm->mkConst(Rational(0)));
     TypeNode funtype = d_nm->mkFunctionType(integerType, booleanType);
     Node lambda = d_nm->mkVar("lambda", funtype);
-    vector<Expr> formals;
-    formals.push_back(x.toExpr());
-    d_smt->defineFunction(lambda.toExpr(), formals, xPos.toExpr());
+    vector<Node> formals;
+    formals.push_back(x);
+    d_smt->defineFunction(lambda, formals, xPos);
 
     TS_ASSERT( not realType.isComparableTo(booleanType) );
     TS_ASSERT( realType.isComparableTo(integerType) );
