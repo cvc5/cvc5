@@ -98,6 +98,17 @@ void TheoryModel::setHeapModel( Node h, Node neq ) {
   d_sep_nil_eq = neq;
 }
 
+bool TheoryModel::getHeapModel(Node& h, Node& neq) const
+{
+  if (d_sep_heap.isNull() || d_sep_nil_eq.isNull())
+  {
+    return false;
+  }
+  h = d_sep_heap;
+  neq = d_sep_nil_eq;
+  return true;
+}
+
 bool TheoryModel::getHeapModel( Expr& h, Expr& neq ) const {
   if( d_sep_heap.isNull() || d_sep_nil_eq.isNull() ){
     return false;

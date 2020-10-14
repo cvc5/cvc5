@@ -222,7 +222,7 @@ class CardinalityExtension
     /** Pointer to the cardinality extension that owns this. */
     CardinalityExtension* d_thss;
     /** regions used to d_region_index */
-    context::CDO< unsigned > d_regions_index;
+    context::CDO<size_t> d_regions_index;
     /** vector of regions */
     std::vector< Region* > d_regions;
     /** map from Nodes to index of d_regions they exist in, -1 means invalid */
@@ -265,31 +265,22 @@ class CardinalityExtension
     int addSplit(Region* r);
     /** add clique lemma */
     void addCliqueLemma(std::vector<Node>& clique);
-    /** add totality axiom */
-    void addTotalityAxiom(Node n, int cardinality);
     /** cardinality */
-    context::CDO< int > d_cardinality;
+    context::CDO<size_t> d_cardinality;
     /** cardinality lemma term */
     Node d_cardinality_term;
-    /** cardinality totality terms */
-    std::map< int, std::vector< Node > > d_totality_terms;
     /** cardinality literals */
-    std::map< int, Node > d_cardinality_literal;
+    std::map<size_t, Node> d_cardinality_literal;
     /** whether a positive cardinality constraint has been asserted */
     context::CDO< bool > d_hasCard;
     /** clique lemmas that have been asserted */
     std::map< int, std::vector< std::vector< Node > > > d_cliques;
     /** maximum negatively asserted cardinality */
-    context::CDO< int > d_maxNegCard;
+    context::CDO<size_t> d_maxNegCard;
     /** list of fresh representatives allocated */
     std::vector< Node > d_fresh_aloc_reps;
     /** whether we are initialized */
     context::CDO< bool > d_initialized;
-
-    /** apply totality */
-    bool applyTotality( int cardinality );
-    /** get totality lemma terms */
-    Node getTotalityLemmaTerm( int cardinality, int i );
     /** simple check cardinality */
     void simpleCheckCardinality();
 
@@ -322,7 +313,7 @@ class CardinalityExtension
     /** get cardinality term */
     Node getCardinalityTerm() { return d_cardinality_term; }
     /** get cardinality literal */
-    Node getCardinalityLiteral(unsigned c);
+    Node getCardinalityLiteral(size_t c);
     /** get maximum negative cardinality */
     int getMaximumNegativeCardinality() { return d_maxNegCard.get(); }
     //print debug
@@ -406,8 +397,6 @@ class CardinalityExtension
     IntStat d_clique_conflicts;
     IntStat d_clique_lemmas;
     IntStat d_split_lemmas;
-    IntStat d_disamb_term_lemmas;
-    IntStat d_totality_lemmas;
     IntStat d_max_model_size;
     Statistics();
     ~Statistics();

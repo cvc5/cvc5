@@ -2023,3 +2023,21 @@ header = "options/quantifiers_options.h"
 [[option.mode.BOTH]]
   name = "both"
   help = "combines minimal and maximal ."
+
+[[option]]
+  name       = "sygusInstMode"
+  category   = "regular"
+  long       = "sygus-inst-mode=MODE"
+  type       = "SygusInstMode"
+  default    = "PRIORITY_INST"
+  help       = "select instantiation lemma mode"
+  help_mode  = "SyGuS instantiation lemma modes."
+[[option.mode.PRIORITY_INST]]
+  name = "priority-inst"
+  help = "add instantiation lemmas first, add evaluation unfolding if instantiation fails."
+[[option.mode.PRIORITY_EVAL]]
+  name = "priority-eval"
+  help = "add evaluation unfolding lemma first, add instantiation lemma if unfolding lemmas already added."
+[[option.mode.INTERLEAVE]]
+  name = "interleave"
+  help = "add instantiation and evaluation unfolding lemmas in the same step."
