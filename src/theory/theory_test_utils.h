@@ -70,6 +70,8 @@ public:
   void safePoint(ResourceManager::Resource r) override {}
   void conflict(TNode n) override { push(CONFLICT, n); }
 
+  void trustedConflict(TrustNode n) override { push(CONFLICT, n.getNode()); }
+
   bool propagate(TNode n) override {
     push(PROPAGATE, n);
     return true;
@@ -78,6 +80,12 @@ public:
   LemmaStatus lemma(TNode n, LemmaProperty p) override
   {
     push(LEMMA, n);
+    return LemmaStatus(Node::null(), 0);
+  }
+
+  LemmaStatus trustedLemma(TrustNode n, LemmaProperty p) override
+  {
+    push(LEMMA, n.getNode());
     return LemmaStatus(Node::null(), 0);
   }
 
