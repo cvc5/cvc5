@@ -1584,65 +1584,6 @@ void SimplifyCommand::toStream(std::ostream& out,
 }
 
 /* -------------------------------------------------------------------------- */
-/* class ExpandDefinitionsCommand                                             */
-/* -------------------------------------------------------------------------- */
-
-ExpandDefinitionsCommand::ExpandDefinitionsCommand(api::Term term)
-    : d_term(term)
-{
-}
-api::Term ExpandDefinitionsCommand::getTerm() const { return d_term; }
-void ExpandDefinitionsCommand::invoke(api::Solver* solver)
-{
-  try
-  {
-    d_result = api::Term(
-        solver, solver->getSmtEngine()->expandDefinitions(d_term.getNode()));
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
-}
-
-api::Term ExpandDefinitionsCommand::getResult() const { return d_result; }
-void ExpandDefinitionsCommand::printResult(std::ostream& out,
-                                           uint32_t verbosity) const
-{
-  if (!ok())
-  {
-    this->Command::printResult(out, verbosity);
-  }
-  else
-  {
-    out << d_result << endl;
-  }
-}
-
-Command* ExpandDefinitionsCommand::clone() const
-{
-  ExpandDefinitionsCommand* c = new ExpandDefinitionsCommand(d_term);
-  c->d_result = d_result;
-  return c;
-}
-
-std::string ExpandDefinitionsCommand::getCommandName() const
-{
-  return "expand-definitions";
-}
-
-void ExpandDefinitionsCommand::toStream(std::ostream& out,
-                                        int toDepth,
-                                        bool types,
-                                        size_t dag,
-                                        OutputLanguage language) const
-{
-  Printer::getPrinter(language)->toStreamCmdExpandDefinitions(out,
-                                                              d_term.getNode());
-}
-
-/* -------------------------------------------------------------------------- */
 /* class GetValueCommand                                                      */
 /* -------------------------------------------------------------------------- */
 
@@ -1741,8 +1682,8 @@ void GetAssignmentCommand::invoke(api::Solver* solver)
 {
   try
   {
-    std::vector<std::pair<api::Term, api::Term>> assignments =
-        solver->getAssignment();
+    std::vector<std::pair<Expr, Expr>> assignments =
+        solver->getSmtEngine()->getAssignment();
     vector<SExpr> sexprs;
     for (const auto& p : assignments)
     {

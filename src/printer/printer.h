@@ -160,9 +160,6 @@ class Printer
   /** Print simplify command */
   virtual void toStreamCmdSimplify(std::ostream& out, Node n) const;
 
-  /** Print expand-definitions command */
-  void toStreamCmdExpandDefinitions(std::ostream& out, Node n) const;
-
   /** Print get-value command */
   virtual void toStreamCmdGetValue(std::ostream& out,
                                    const std::vector<Node>& nodes) const;
