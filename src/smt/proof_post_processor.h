@@ -276,8 +276,8 @@ class ProofPostprocess
 {
  public:
   ProofPostprocess(ProofNodeManager* pnm,
-                    SmtEngine* smte,
-                    ProofGenerator* pppg);
+                   SmtEngine* smte,
+                   ProofGenerator* pppg);
   ~ProofPostprocess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
