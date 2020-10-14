@@ -78,11 +78,14 @@ bool InferenceManager::sendLemmas(const std::vector<Node>& lemmas)
   return ret;
 }
 
-bool InferenceManager::processDtInference(Node conc, Node exp, InferId id, bool asLemma)
+bool InferenceManager::processDtInference(Node conc,
+                                          Node exp,
+                                          InferId id,
+                                          bool asLemma)
 {
-  Trace("dt-lemma-debug") << "processDtInference : " << conc << " via "
-                          << exp << " by " << id
-                          << ", asLemma = " << asLemma << std::endl;
+  Trace("dt-lemma-debug") << "processDtInference : " << conc << " via " << exp
+                          << " by " << id << ", asLemma = " << asLemma
+                          << std::endl;
   if (asLemma)
   {
     // send it as an (explained) lemma

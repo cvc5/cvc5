@@ -953,7 +953,8 @@ void TheoryDatatypes::addTester(
                              ? NodeManager::currentNM()->mkConst(false)
                              : utils::mkTester(t_arg, testerIndex, dt);
           Node t_concl_exp = ( nb.getNumChildren() == 1 ) ? nb.getChild( 0 ) : nb;
-          d_im.addPendingInference(t_concl, t_concl_exp, false, InferId::LABEL_EXH);
+          d_im.addPendingInference(
+              t_concl, t_concl_exp, false, InferId::LABEL_EXH);
           Trace("datatypes-infer") << "DtInfer : label : " << t_concl << " by " << t_concl_exp << std::endl;
           return;
         }
