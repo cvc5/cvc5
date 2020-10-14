@@ -1,13 +1,15 @@
 ; COMMAND-LINE: --iand-mode=value
-; COMMAND-LINE: --iand-mode=sum --bvand-integer-granularity=1 --finite-model-find
-; EXPECT: sat
+; COMMAND-LINE: --iand-mode=sum --bvand-integer-granularity=1
+; EXPECT: unsat
 (set-logic QF_NIA)
-(set-info :status sat)
+(set-info :status unsat)
 (declare-fun x () Int)
 (declare-fun y () Int)
 
 (assert (and (<= 0 x) (< x 16)))
 (assert (and (<= 0 y) (< y 16)))
 (assert (> ((_ iand 4) x y) 0))
+(assert (= (* x y) 0))
+(assert (= (+ x y) 15))
 
 (check-sat)

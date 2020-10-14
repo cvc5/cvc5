@@ -22,6 +22,7 @@
 #include "expr/node.h"
 #include "theory/arith/arith_state.h"
 #include "theory/arith/inference_manager.h"
+#include "theory/arith/nl/iand_table.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
 
@@ -88,6 +89,7 @@ class IAndSolver
   Node d_two;
   Node d_true;
   Node d_false;
+  IAndTable d_iandTable;
   /** IAND terms that have been given initial refinement lemmas */
   NodeSet d_initRefine;
   /** all IAND terms, for each bit-width */
@@ -118,6 +120,13 @@ class IAndSolver
    *     ((_ iand k) x y) = Rewriter::rewrite(((_ iand k) M(x) M(y)))
    */
   Node valueBasedLemma(Node i);
+  /**
+   * Sum-based refinement lemma for i of the form ((_ iand k) x y). Returns:
+   * i = 2^0*min(x[0],y[0])+...2^{k-1}*min(x[k-1],y[k-1])
+   * where x[i] is x div i mod 2
+   * and min is defined with an ite.
+   */
+  Node sumBasedLemma(Node i);
 }; /* class IAndSolver */
 
 }  // namespace nl
