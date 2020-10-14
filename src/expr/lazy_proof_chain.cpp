@@ -94,6 +94,12 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
           << "LazyCDProofChain::getProofFor: Call generator " << pg->identify()
           << " for chain link " << cur << "\n";
       std::shared_ptr<ProofNode> curPfn = pg->getProofFor(cur);
+      if (curPfn == nullptr)
+      {
+        Trace("lazy-cdproofchain")
+            << "LazyCDProofChain::getProofFor: No proof found, skip\n";
+        continue;
+      }
       // map node whose proof node must be expanded to the respective poof node
       toConnect[cur] = curPfn;
       if (!rec)
@@ -107,10 +113,7 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
           << "\n";
       // retrieve free assumptions and their respective proof nodes
       std::map<Node, std::vector<std::shared_ptr<ProofNode>>> famap;
-      if (curPfn != nullptr)
-      {
-        expr::getFreeAssumptionsMap(curPfn, famap);
-      }
+      expr::getFreeAssumptionsMap(curPfn, famap);
       if (Trace.isOn("lazy-cdproofchain"))
       {
         Trace("lazy-cdproofchain")
@@ -188,12 +191,9 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
     Trace("lazy-cdproofchain")
         << "LazyCDProofChain::getProofFor: expand assumption " << npfn.first
         << "\n";
-    if (npfn.second != nullptr)
-    {
-      Trace("lazy-cdproofchain-debug")
-          << "LazyCDProofChain::getProofFor: ...expand to "
-          << *npfn.second.get() << "\n";
-    }
+    Trace("lazy-cdproofchain-debug")
+        << "LazyCDProofChain::getProofFor: ...expand to " << *npfn.second.get()
+        << "\n";
     // update each assumption proof node
     for (std::shared_ptr<ProofNode> pfn : it->second)
     {
