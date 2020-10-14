@@ -532,6 +532,11 @@ bool complexityBelow(const DenseMap<Rational>& row, uint32_t cap){
   return true;
 }
 
+bool TheoryArithPrivate::isProofEnabled() const
+{
+  return d_pnm != nullptr;
+}
+
 void TheoryArithPrivate::raiseConflict(ConstraintCP a){
   Assert(a->inConflict());
   d_conflicts.push_back(a);
@@ -543,7 +548,7 @@ void TheoryArithPrivate::raiseBlackBoxConflict(Node bb,
   Debug("arith::bb") << "raiseBlackBoxConflict: " << bb << std::endl;
   if (d_blackBoxConflict.get().isNull())
   {
-    if (options::proofNew())
+    if (isProofEnabled())
     {
       Debug("arith::bb") << "  with proof " << pf << std::endl;
       d_blackBoxConflictPf.set(pf);
@@ -1916,7 +1921,7 @@ void TheoryArithPrivate::outputConflicts(){
         Debug("arith::conflict") << "(normalized to) " << conflict << endl;
       }
 
-      if (options::proofNew())
+      if (isProofEnabled())
       {
         outputTrustedConflict(trustedConflict);
       }
@@ -1936,7 +1941,7 @@ void TheoryArithPrivate::outputConflicts(){
       bb = flattenAndSort(bb);
       Debug("arith::conflict") << "(normalized to) " << bb << endl;
     }
-    if (options::proofNew() && d_blackBoxConflictPf.get())
+    if (isProofEnabled() && d_blackBoxConflictPf.get())
     {
       auto confPf = d_blackBoxConflictPf.get();
       outputTrustedConflict(d_pfGen->mkTrustNode(bb, confPf, true));

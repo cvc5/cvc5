@@ -316,6 +316,8 @@ private:
   /** For holding the proof of the above conflict node. */
   context::CDO<std::shared_ptr<ProofNode>> d_blackBoxConflictPf;
 
+  bool isProofEnabled() const;
+
  public:
   /**
    * This adds the constraint a to the queue of conflicts in d_conflicts.

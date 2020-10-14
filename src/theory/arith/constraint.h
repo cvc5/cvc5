@@ -1199,11 +1199,26 @@ private:
 
   void deleteConstraintAndNegation(ConstraintP c);
 
+  /** Given constraints `a` and `b` such that `a OR b` by unate reasoning,
+   *  adds a TrustNode to `out` which proves `a OR b` as a lemma.
+   *
+   *  Example: `x <= 5` OR `5 <= x`.
+   */
   void proveOr(std::vector<TrustNode>& out,
                ConstraintP a,
                ConstraintP b,
                bool negateSecond) const;
+  /** Given constraints `a` and `b` such that `a` implies `b` by unate
+   * reasoning, adds a TrustNode to `out` which proves `-a OR b` as a lemma.
+   *
+   *  Example: `x >= 5` -> `x >= 4`.
+   */
   void implies(std::vector<TrustNode>& out, ConstraintP a, ConstraintP b) const;
+  /** Given constraints `a` and `b` such that `not(a AND b)` by unate reasoning,
+   *  adds a TrustNode to `out` which proves `-a OR -b` as a lemma.
+   *
+   *  Example: `x >= 4` -> `x <= 3`.
+   */
   void mutuallyExclusive(std::vector<TrustNode>& out,
                          ConstraintP a,
                          ConstraintP b) const;
