@@ -316,6 +316,8 @@ private:
   /** For holding the proof of the above conflict node. */
   context::CDO<std::shared_ptr<ProofNode>> d_blackBoxConflictPf;
 
+  bool isProofEnabled() const;
+
  public:
   /**
    * This adds the constraint a to the queue of conflicts in d_conflicts.
@@ -691,6 +693,7 @@ private:
   inline context::Context* getSatContext() const { return d_containing.getSatContext(); }
   void outputTrustedLemma(TrustNode lem);
   void outputLemma(TNode lem);
+  void outputTrustedConflict(TrustNode conf);
   void outputConflict(TNode lit);
   void outputPropagate(TNode lit);
   void outputRestart();
