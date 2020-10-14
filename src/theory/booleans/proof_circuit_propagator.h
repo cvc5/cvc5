@@ -498,6 +498,41 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
         mkProof(PfRule::CNF_OR_POS, {}, {d_parent}), children, true);
   }
 
+  /** Evaluate (ite true X _) from X */
+  std::shared_ptr<ProofNode> iteEvalThen(bool x)
+  {
+    if (disabled()) return nullptr;
+    if (x)
+    {
+      return mkResolution(mkProof(PfRule::CNF_ITE_NEG1, {}, {d_parent}),
+                          {d_parent[0], d_parent[1]},
+                          {false, false});
+    }
+    else
+    {
+      return mkResolution(mkProof(PfRule::CNF_ITE_POS1, {}, {d_parent}),
+                          {d_parent[0], d_parent[1]},
+                          {false, true});
+    }
+  }
+  /** Evaluate (ite false _ Y) from Y */
+  std::shared_ptr<ProofNode> iteEvalElse(bool y)
+  {
+    if (disabled()) return nullptr;
+    if (y)
+    {
+      return mkResolution(mkProof(PfRule::CNF_ITE_NEG2, {}, {d_parent}),
+                          {d_parent[0], d_parent[2]},
+                          {true, false});
+    }
+    else
+    {
+      return mkResolution(mkProof(PfRule::CNF_ITE_POS2, {}, {d_parent}),
+                          {d_parent[0], d_parent[2]},
+                          {true, true});
+    }
+  }
+
   /** x is true  -->  (not x) is false (and vice versa) */
   std::shared_ptr<ProofNode> Not()
   {
