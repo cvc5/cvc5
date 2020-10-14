@@ -99,6 +99,7 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
       {
         Trace("lazy-cdproofchain")
             << "LazyCDProofChain::getProofFor: No proof found, skip\n";
+        visited[cur] = true;
         continue;
       }
       // map node whose proof node must be expanded to the respective poof node
@@ -219,6 +220,7 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
       Assert(npfn.first == fact);
       continue;
     }
+    Assert(npfn.second);
     Trace("lazy-cdproofchain")
         << "LazyCDProofChain::getProofFor: expand assumption " << npfn.first
         << "\n";
