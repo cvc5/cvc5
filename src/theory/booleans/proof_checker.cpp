@@ -288,10 +288,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     {
       return NodeManager::currentNM()->mkConst(false);
     }
-    else
-    {
-      return Node::null();
-    }
+    return Node::null();
   }
   if (id == PfRule::EQ_RESOLVE)
   {
@@ -317,8 +314,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    if (children[0].getKind() != kind::NOT
-        || children[0][0].getKind() != kind::NOT)
+    if (children[0].getKind() != kind::NOT || children[0][0].getKind() != kind::NOT)
     {
       return Node::null();
     }

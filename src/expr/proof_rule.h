@@ -314,6 +314,7 @@ enum class PfRule : uint32_t
   //  Set representations of C1 and C2 is the same but the number of literals in
   //  C2 is the same of that of C1
   REORDERING,
+
   // ======== Split
   // Children: none
   // Arguments: (F)
