@@ -225,7 +225,7 @@ Node TheoryProofStepBuffer::elimDoubleNegLit(Node n)
   // eliminate double neg
   if (n.getKind() == kind::NOT && n[0].getKind() == kind::NOT)
   {
-    addStep(PfRule::MACRO_SR_PRED_TRANSFORM, {n}, {n[0][0]}, n[0][0]);
+    addStep(PfRule::NOT_NOT_ELIM, {n}, {}, n[0][0]);
     return n[0][0];
   }
   return n;
