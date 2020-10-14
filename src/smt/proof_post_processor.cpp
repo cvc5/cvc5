@@ -737,8 +737,8 @@ bool ProofPostprocessFinalCallback::wasPedanticFailure(std::ostream& out) const
 }
 
 ProofPostprocess::ProofPostprocess(ProofNodeManager* pnm,
-                                     SmtEngine* smte,
-                                     ProofGenerator* pppg)
+                                   SmtEngine* smte,
+                                   ProofGenerator* pppg)
     : d_pnm(pnm),
       d_cb(pnm, smte, pppg),
       d_updater(d_pnm, d_cb),
