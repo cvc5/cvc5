@@ -75,9 +75,10 @@ class InferenceManager : public InferenceManagerBuffered
   bool processDtInference(DatatypesInference& di, bool asLemma);
   /**
    * Counts the number of applications of each type of inference processed by
-   * the above method.
+   * the above method as facts and lemmas.
    */
-  HistogramStat<Inference> d_inferences;
+  HistogramStat<Inference> d_inferenceFacts;
+  HistogramStat<Inference> d_inferenceLemmas;
 };
 
 }  // namespace datatypes

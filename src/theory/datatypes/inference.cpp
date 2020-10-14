@@ -29,6 +29,7 @@ const char* toString(Inference i)
 {
   switch (i)
   {
+    case Inference::NONE: return "NONE";
     case Inference::UNIF: return "UNIF";
     case Inference::INST: return "INST";
     case Inference::SPLIT: return "SPLIT";
