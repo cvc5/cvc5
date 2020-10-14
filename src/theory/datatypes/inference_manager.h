@@ -21,6 +21,7 @@
 #include "expr/node.h"
 #include "theory/datatypes/inference.h"
 #include "theory/inference_manager_buffered.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
@@ -36,7 +37,7 @@ class InferenceManager : public InferenceManagerBuffered
 
  public:
   InferenceManager(Theory& t, TheoryState& state, ProofNodeManager* pnm);
-  ~InferenceManager() {}
+  ~InferenceManager();
   /**
    * Add pending inference, which may be processed as either a fact or
    * a lemma based on mustCommunicateFact in DatatypesInference above.
@@ -67,8 +68,16 @@ class InferenceManager : public InferenceManagerBuffered
   bool sendLemmas(const std::vector<Node>& lemmas);
 
  private:
-  /** Process datatype inference */
+  /** 
+   * Process datatype inference di. We send a lemma if asLemma is true, and
+   * send an internal fact if asLemma is false.
+   */
   bool processDtInference(DatatypesInference& di, bool asLemma);
+  /** 
+   * Counts the number of applications of each type of inference processed by
+   * the above method.
+   */
+  HistogramStat<Inference> d_inferences;
 };
 
 }  // namespace datatypes

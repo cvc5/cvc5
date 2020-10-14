@@ -17,6 +17,7 @@
 #include "expr/dtype.h"
 #include "options/datatypes_options.h"
 #include "theory/theory.h"
+#include "smt/smt_statistics_registry.h"
 
 using namespace CVC4::kind;
 
@@ -27,8 +28,15 @@ namespace datatypes {
 InferenceManager::InferenceManager(Theory& t,
                                    TheoryState& state,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(t, state, nullptr)
+    : InferenceManagerBuffered(t, state, nullptr),
+      d_inferences("theory::datatypes::inferences")
 {
+  smtStatisticsRegistry()->registerStat(&d_inferences);
+}
+
+InferenceManager::~InferenceManager()
+{
+  smtStatisticsRegistry()->unregisterStat(&d_inferences);
 }
 
 void InferenceManager::addPendingInference(Node conc,
@@ -80,12 +88,19 @@ bool InferenceManager::processDtInference(DatatypesInference& di, bool asLemma)
     {
       expv.push_back(di.d_exp);
     }
-    return lemmaExp(di.d_conc, expv, {});
+    if (!lemmaExp(di.d_conc, expv, {}))
+    {
+      return false;
+    }
   }
-  // assert the internal fact
-  bool polarity = di.d_conc.getKind() != NOT;
-  TNode atom = polarity ? di.d_conc : di.d_conc[0];
-  assertInternalFact(atom, polarity, di.d_exp);
+  else
+  {
+    // assert the internal fact
+    bool polarity = di.d_conc.getKind() != NOT;
+    TNode atom = polarity ? di.d_conc : di.d_conc[0];
+    assertInternalFact(atom, polarity, di.d_exp);
+  }
+  d_inferences << di.getInference();
   return true;
 }
 
