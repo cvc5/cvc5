@@ -201,6 +201,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
                                             const std::vector<Node>& children,
                                             const std::vector<Node>& args)
 {
+  NodeManager * nm = NodeManager::currentNM();
   // compute what was proven
   if (id == PfRule::ASSUME)
   {
@@ -217,7 +218,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       // no antecedant
       return children[0];
     }
-    Node ant = mkAnd(args);
+    Node ant = nm->mkAnd(args);
     // if the conclusion is false, its the negated antencedant only
     if (children[0].isConst() && !children[0].getConst<bool>())
     {
