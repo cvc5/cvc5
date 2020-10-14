@@ -1,4 +1,3 @@
-; COMMAND-LINE: --proof-new-req --check-proofs-new
 ; EXPECT: unsat
 ; EXPECT: sat
 ; EXPECT: unsat
