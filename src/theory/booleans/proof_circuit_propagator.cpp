@@ -271,16 +271,9 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::neqYFromX(bool x,
   }
 }
 
-/**
- * Uses (xor X Y) to derive the value of X.
- * (xor X false)  -->  X
- * (xor X true)  -->  (not X)
- * (not (xor X false))  -->  (not X)
- * (not (xor X true))  -->  X
- */
-std::shared_ptr<ProofNode> ProofCircuitPropagator::mkXorXFromY(bool negated,
-                                                               bool y,
-                                                               Node parent)
+std::shared_ptr<ProofNode> ProofCircuitPropagator::xorXFromY(bool negated,
+                                                             bool y,
+                                                             Node parent)
 {
   if (disabled()) return nullptr;
   if (y)
@@ -300,16 +293,10 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::mkXorXFromY(bool negated,
         {true});
   }
 }
-/**
- * Uses (xor X Y) to derive the value of Y.
- * (xor false Y)  -->  Y
- * (xor true Y)  -->  (not Y)
- * (not (xor false Y))  -->  (not Y)
- * (not (xor true Y))  -->  Y
- */
-std::shared_ptr<ProofNode> ProofCircuitPropagator::mkXorYFromX(bool negated,
-                                                               bool x,
-                                                               Node parent)
+
+std::shared_ptr<ProofNode> ProofCircuitPropagator::xorYFromX(bool negated,
+                                                             bool x,
+                                                             Node parent)
 {
   if (disabled()) return nullptr;
   if (x)
