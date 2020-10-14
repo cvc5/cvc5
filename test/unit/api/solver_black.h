@@ -148,6 +148,7 @@ class SolverBlack : public CxxTest::TestSuite
   void testBlockModel3();
   void testBlockModel4();
   void testBlockModelValues1();
+  void testBlockModelValues2();
   void testBlockModelValues3();
   void testBlockModelValues4();
   void testBlockModelValues5();
@@ -1882,6 +1883,15 @@ void SolverBlack::testBlockModelValues1()
   TS_ASSERT_THROWS(d_solver->blockModelValues({Term()}), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->blockModelValues({Solver().mkBoolean(false)}),
                    CVC4ApiException&);
+}
+
+void SolverBlack::testBlockModelValues2()
+{
+  d_solver->setOption("produce-models", "true");
+  Term x = d_solver->mkConst(d_solver->getBooleanSort(), "x");
+  d_solver->assertFormula(x.eqTerm(x));
+  d_solver->checkSat();
+  TS_ASSERT_THROWS(d_solver->blockModelValues({x}), CVC4ApiException&);
 }
 
 void SolverBlack::testBlockModelValues3()
