@@ -314,6 +314,7 @@ enum class PfRule : uint32_t
   //  Set representations of C1 and C2 is the same but the number of literals in
   //  C2 is the same of that of C1
   REORDERING,
+
   // ======== Split
   // Children: none
   // Arguments: (F)
@@ -689,7 +690,7 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: F
   ARRAYS_TRUST,
-  
+
   //================================================= Datatype rules
   // ======== Unification
   // Children: (P:(= (C t1 ... tn) (C s1 ... sn)))
@@ -716,6 +717,12 @@ enum class PfRule : uint32_t
   // Conclusion: false
   // for i != j.
   DT_CLASH,
+  // ======== Datatype Trust
+  // Children: (P1 ... Pn)
+  // Arguments: (F)
+  // ---------------------
+  // Conclusion: F
+  DT_TRUST,
 
   //================================================= Quantifiers rules
   // ======== Witness intro

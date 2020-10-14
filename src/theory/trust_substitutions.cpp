@@ -173,8 +173,8 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   std::vector<Node> pfChildren;
   if (!cs.isConst())
   {
-    // TODO: we will get more proof reuse if we use AND here.
-    if (cs.getKind() == kind::AND)
+    // note we will get more proof reuse if we do not special case AND here.
+    if (false && cs.getKind() == kind::AND)
     {
       for (const Node& csc : cs)
       {
@@ -192,9 +192,6 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   }
   if (!d_tspb->applyEqIntro(n, ns, pfChildren, d_ids))
   {
-    // Assert(false) << "TrustSubstitutionMap::addSubstitution: failed to apply
-    // "
-    //                 "substitution";
     return TrustNode::mkTrustRewrite(n, ns, nullptr);
   }
   // -------        ------- from external proof generators
@@ -203,7 +200,15 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   //   ...
   // --------- MACRO_SR_EQ_INTRO
   // n == ns
-  // add it to the apply proof generator
+  // add it to the apply proof generator.
+  //
+  // Notice that we use a single child to MACRO_SR_EQ_INTRO here. This is an
+  // optimization motivated by the fact that n may be large and reused many
+  // time. For instance, if this class is being used to track substitutions
+  // derived during non-clausal simplification during preprocessing, it is
+  // a fixed (possibly) large substitution applied to many terms. Having
+  // a single child saves us from creating many proofs with n children, where
+  // notice this proof is reused.
   d_applyPg->addSteps(*d_tspb.get());
   d_tspb->clear();
   return TrustNode::mkTrustRewrite(n, ns, d_applyPg.get());

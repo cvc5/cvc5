@@ -50,7 +50,7 @@ class TrustSubstitutionMap
    */
   void addSubstitution(TNode x, TNode t, ProofGenerator* pg = nullptr);
   /**
-   * Add substitution x -> t from a single step.
+   * Add substitution x -> t from a single proof step.
    */
   void addSubstitution(TNode x, TNode t, PfRule id, std::vector<Node>& args);
   /**
@@ -67,7 +67,8 @@ class TrustSubstitutionMap
    */
   void addSubstitutionSolved(TNode x, TNode t, TrustNode tn);
   /**
-   * Add substitutions
+   * Add substitutions from trust substitution map t. This adds all
+   * substitutions for t and carries over its information about proofs.
    */
   void addSubstitutions(TrustSubstitutionMap& t);
   /**

@@ -517,6 +517,8 @@ libcvc4_add_sources(
   theory/combination_engine.h
   theory/datatypes/datatypes_rewriter.cpp
   theory/datatypes/datatypes_rewriter.h
+  theory/datatypes/inference.cpp
+  theory/datatypes/inference.h
   theory/datatypes/inference_manager.cpp
   theory/datatypes/inference_manager.h
   theory/datatypes/sygus_datatype_utils.cpp
