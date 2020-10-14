@@ -1152,6 +1152,10 @@ class CVC4_PUBLIC Term
   Kind getKindHelper() const;
 
   /**
+   * returns true if the current term is a casted real
+   */
+  bool isCastedReal() const;
+  /**
    * The internal expression wrapped by this term.
    * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
    * memory allocation (CVC4::Expr is already ref counted, so this could be

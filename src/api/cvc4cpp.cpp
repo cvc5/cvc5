@@ -1568,7 +1568,7 @@ Kind Term::getKindHelper() const
   // (string) versions back to sequence. All operators where this is
   // necessary are such that their first child is of sequence type, which
   // we check here.
-  if (getNumChildren() > 0 && (*this)[0].getSort().isSequence())
+  if (d_node->getNumChildren() > 0 && (*d_node)[0].getType().isSequence())
   {
     switch (d_node->getKind())
     {
@@ -1591,7 +1591,22 @@ Kind Term::getKindHelper() const
   }
   // Notice that kinds like APPLY_TYPE_ASCRIPTION will be converted to
   // INTERNAL_KIND.
+  if(isCastedReal())
+  {
+    return CONST_RATIONAL;
+  }
   return intToExtKind(d_node->getKind());
+}
+
+bool Term::isCastedReal() const
+{
+  if(d_node->getKind() == kind::TO_REAL)
+  {
+    // if the argument is an integer constant, then true
+    // otherwise false
+    return (*d_node)[0].isConst() && (*d_node)[0].getType().isInteger();
+  }
+  return false;
 }
 
 bool Term::operator==(const Term& t) const { return *d_node == *t.d_node; }
@@ -1614,12 +1629,20 @@ size_t Term::getNumChildren() const
   {
     return d_node->getNumChildren() + 1;
   }
+  if(isCastedReal())
+  {
+    return 0;
+  }
   return d_node->getNumChildren();
 }
 
 Term Term::operator[](size_t index) const
 {
   CVC4_API_CHECK_NOT_NULL;
+
+  // check the index within the number of children
+  CVC4_API_CHECK(index < getNumChildren()) << "index out of bound";
+
   // special cases for apply kinds
   if (isApplyKind(d_node->getKind()))
   {
@@ -1731,7 +1754,7 @@ bool Term::isNull() const { return isNullHelper(); }
 bool Term::isValue() const
 {
   CVC4_API_CHECK_NOT_NULL;
-  return d_node->isConst();
+  return d_node->isConst() || isCastedReal();
 }
 
 Term Term::getConstArrayBase() const
@@ -3725,6 +3748,10 @@ Term Solver::mkReal(const std::string& s) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   Term real = mkRealFromStrHelper(s);
+  if (real.getSort() == getIntegerSort())
+  {
+    return mkTerm(TO_REAL, real);
+  }
   return mkTerm(TO_REAL, real);
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -3741,7 +3768,11 @@ Term Solver::mkReal(int64_t num, int64_t den) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   Term real = mkValHelper<CVC4::Rational>(CVC4::Rational(num, den));
-  return mkTerm(TO_REAL, real);
+  if(real.getSort() == getIntegerSort())
+  {
+    return mkTerm(TO_REAL, real);
+  }
+  return real;
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
