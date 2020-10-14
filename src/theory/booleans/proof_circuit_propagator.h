@@ -73,6 +73,9 @@ struct ProofCircuitPropagator
   /** (or false ... holdout false ...)  ->  holdout */
   std::shared_ptr<ProofNode> orTrue(Node parent, TNode::iterator holdout);
 
+  /** (not x) is true  -->  x is false (and vice versa) */
+  std::shared_ptr<ProofNode> Not(bool negate, Node parent);
+
   /** (=> X false)  -->  (not X) */
   std::shared_ptr<ProofNode> impliesXFromY(Node parent);
   /** (=> true Y)  -->  Y */
@@ -111,9 +114,6 @@ struct ProofCircuitPropagatorBackward : public ProofCircuitPropagator
 
   /** or false  -->  child is false */
   std::shared_ptr<ProofNode> orFalse(TNode::iterator i);
-
-  /** (not x) is true  -->  x is false (and vice versa) */
-  std::shared_ptr<ProofNode> Not();
 
   /**
    * Propagate on ite with evaluate condition
@@ -171,9 +171,6 @@ struct ProofCircuitPropagatorForward : public ProofCircuitPropagator
   std::shared_ptr<ProofNode> iteEvalThen(bool x);
   /** Evaluate (ite false _ Y) from Y */
   std::shared_ptr<ProofNode> iteEvalElse(bool y);
-
-  /** x is true  -->  (not x) is false (and vice versa) */
-  std::shared_ptr<ProofNode> Not();
 
   /** Evaluate (= X Y) from X,Y */
   std::shared_ptr<ProofNode> eqEval();

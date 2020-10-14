@@ -158,7 +158,7 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::mkNot(
   return n;
 }
 
-/** (and true ... holdout true ...)  -->  holdout */
+/** (not (and true ... holdout true ...))  -->  (not holdout) */
 std::shared_ptr<ProofNode> ProofCircuitPropagator::andFalse(
     Node parent, TNode::iterator holdout)
 {
@@ -176,6 +176,13 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::orTrue(
   if (disabled()) return nullptr;
   return mkResolution(
       mkProof(parent), collectButHoldout(parent, holdout), true);
+}
+
+/** (not x) is true  -->  x is false (and vice versa) */
+std::shared_ptr<ProofNode> ProofCircuitPropagator::Not(bool negate, Node parent)
+{
+  if (disabled()) return nullptr;
+  return mkNot(mkProof(negate ? Node(parent[0]) : parent));
 }
 
 /** (=> X false)  -->  (not X) */
@@ -261,7 +268,7 @@ ProofCircuitPropagatorBackward::ProofCircuitPropagatorBackward(
 {
 }
 
-/** and true  -->  child is true */
+/** (and ...)  -->  child is true */
 std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::andTrue(
     TNode::iterator i)
 {
@@ -270,7 +277,7 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::andTrue(
       PfRule::AND_ELIM, {mkProof(d_parent)}, {mkRat(i - d_parent.begin())});
 }
 
-/** or false  -->  child is false */
+/** (not (or ...))  -->  child is false */
 std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::orFalse(
     TNode::iterator i)
 {
@@ -278,13 +285,6 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::orFalse(
   return mkNot(mkProof(PfRule::NOT_OR_ELIM,
                        {mkProof(d_parent.notNode())},
                        {mkRat(i - d_parent.begin())}));
-}
-
-/** (not x) is true  -->  x is false (and vice versa) */
-std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::Not()
-{
-  if (disabled()) return nullptr;
-  return mkNot(mkProof(d_parentAssignment ? d_parent : d_parent[0]));
 }
 
 /**
@@ -455,7 +455,7 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::andOneFalse()
       {true});
 }
 
-/** One child is true  -->  or is true */
+/** One child is true  -->  (or ...) */
 std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::orOneTrue()
 {
   if (disabled()) return nullptr;
@@ -465,7 +465,7 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::orOneTrue()
       {d_child},
       {false}));
 }
-/** or false  -->  all children are false */
+/** All children are false  -->  (not (or ...)) */
 std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::orFalse()
 {
   if (disabled()) return nullptr;
@@ -507,13 +507,6 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::iteEvalElse(bool y)
                         {d_parent[0], d_parent[2]},
                         {true, true});
   }
-}
-
-/** x is true  -->  (not x) is false (and vice versa) */
-std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::Not()
-{
-  if (disabled()) return nullptr;
-  return mkNot(mkProof(d_childAssignment ? d_parent[0] : Node(d_parent)));
 }
 
 /** Evaluate (= X Y) from X,Y */
