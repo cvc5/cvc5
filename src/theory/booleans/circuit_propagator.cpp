@@ -101,6 +101,27 @@ void CircuitPropagator::assignAndEnqueue(TNode n,
     }
   }
 
+  if (isProofEnabled())
+  {
+    if (proof == nullptr)
+    {
+      Warning() << "CircuitPropagator: Proof is missing for " << n << std::endl;
+      Assert(false);
+    }
+    else
+    {
+      Assert(!proof->getResult().isNull());
+      Node expected = value ? Node(n) : n.negate();
+      if (proof->getResult() != expected)
+      {
+        Warning() << "CircuitPropagator: Incorrect proof: " << expected
+                  << " vs. " << proof->getResult() << std::endl
+                  << *proof << std::endl;
+      }
+      addProof(expected, std::move(proof));
+    }
+  }
+
   // Get the current assignment
   AssignmentStatus state = d_state[n];
 
@@ -118,31 +139,6 @@ void CircuitPropagator::assignAndEnqueue(TNode n,
     d_state[n] = value ? ASSIGNED_TO_TRUE : ASSIGNED_TO_FALSE;
     // Add for further propagation
     d_propagationQueue.push_back(n);
-
-    if (isProofEnabled())
-    {
-      if (n.getKind() != Kind::CONST_BOOLEAN)
-      {
-        if (proof == nullptr)
-        {
-          Warning() << "CircuitPropagator: Proof is missing for " << n
-                    << std::endl;
-          Assert(false);
-        }
-        else
-        {
-          Assert(!proof->getResult().isNull());
-          Node expected = value ? Node(n) : n.negate();
-          if (proof->getResult() != expected)
-          {
-            Warning() << "CircuitPropagator: Incorrect proof: " << expected
-                      << " vs. " << proof->getResult() << std::endl
-                      << *proof << std::endl;
-          }
-          addProof(expected, std::move(proof));
-        }
-      }
-    }
   }
 }
 
