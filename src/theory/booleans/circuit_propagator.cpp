@@ -55,7 +55,11 @@ void CircuitPropagator::assertTrue(TNode assertion)
 {
   Trace("circuit-prop") << "TRUE: " << assertion << std::endl;
   d_assumptions.emplace_back(assertion);
-  if (assertion.getKind() == kind::AND)
+  if (assertion.getKind() == kind::CONST_BOOLEAN && !assertion.getConst<bool>())
+  {
+    d_conflict = makeConflict(assertion);
+  }
+  else if (assertion.getKind() == kind::AND)
   {
     ProofCircuitPropagatorBackward prover{d_pnm, assertion, true};
     if (isProofEnabled())
@@ -149,8 +153,15 @@ TrustNode CircuitPropagator::makeConflict(Node n)
   if (isProofEnabled())
   {
     ProofCircuitPropagator pcp(d_pnm);
-    d_epg->setProofFor(bfalse,
-                      pcp.conflict(pcp.assume(n), pcp.assume(n.negate())));
+    if (n == bfalse)
+    {
+      d_epg->setProofFor(bfalse, pcp.assume(bfalse));
+    }
+    else
+    {
+      d_epg->setProofFor(bfalse,
+                         pcp.conflict(pcp.assume(n), pcp.assume(n.negate())));
+    }
     g = d_proofInternal.get();
   }
   return TrustNode::mkTrustLemma(bfalse, g);
