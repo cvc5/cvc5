@@ -4596,7 +4596,63 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
       }
       Node implication = implied->externalImplication(explain);
       Node clause = flattenImplication(implication);
-      outputLemma(clause);
+      std::shared_ptr<ProofNode> clausePf{nullptr};
+
+      if (isProofEnabled())
+      {
+        // We can prove this lemma from Farkas...
+        std::vector<std::shared_ptr<ProofNode>> conflictPfs;
+        // Assume the negated getLiteral version of the implied constaint
+        // then rewrite it into proof normal form.
+        conflictPfs.push_back(
+            d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
+                          {d_pnm->mkAssume(implied->getLiteral().negate())},
+                          {implied->getNegation()->getProofLiteral()}));
+        // Add the explaination proofs.
+        for (const auto constraint : explain)
+        {
+          NodeBuilder<> nb;
+          conflictPfs.push_back(constraint->externalExplainByAssertions(nb));
+        }
+        // Collect the farkas coefficients, as nodes.
+        std::vector<Node> farkasCoefficients;
+        farkasCoefficients.reserve(coeffs->size());
+        auto nm = NodeManager::currentNM();
+        std::transform(
+            coeffs->begin(),
+            coeffs->end(),
+            std::back_inserter(farkasCoefficients),
+            [nm](const Rational& r) { return nm->mkConst<Rational>(r); });
+
+        // Prove bottom.
+        auto sumPf = d_pnm->mkNode(PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS,
+                                   conflictPfs,
+                                   farkasCoefficients);
+        auto botPf = d_pnm->mkNode(
+            PfRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
+
+        // Prove the conflict
+        std::vector<Node> assumptions;
+        assumptions.reserve(clause.getNumChildren());
+        std::transform(clause.begin(),
+                       clause.end(),
+                       std::back_inserter(assumptions),
+                       [](TNode r) { return r.negate(); });
+        auto notAndNotPf = d_pnm->mkScope(botPf, assumptions);
+
+        // Convert it to a clause
+        auto orNotNotPf = d_pnm->mkNode(PfRule::NOT_AND, {notAndNotPf}, {});
+        clausePf = d_pnm->mkNode(
+            PfRule::MACRO_SR_PRED_TRANSFORM, {orNotNotPf}, {clause});
+
+        // Output it
+        TrustNode trustedClause = d_pfGen->mkTrustNode(clause, clausePf);
+        outputTrustedLemma(trustedClause);
+      }
+      else
+      {
+        outputLemma(clause);
+      }
     }else{
       Assert(!implied->negationHasProof());
       implied->impliedByFarkas(explain, coeffs, false);
