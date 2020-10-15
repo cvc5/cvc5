@@ -23,7 +23,7 @@
 namespace CVC3 {
 namespace proof {
 
-enum LeanRule
+  enum class LeanRule : uint32_t
 {
   // in what format should I put these lean rules
   // all the lean rules
