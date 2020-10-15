@@ -446,7 +446,7 @@ private:
   void preRegisterTerm(TNode n);
 
   void propagate(Theory::Effort e);
-  Node explain(TNode n);
+  TrustNode explain(TNode n);
 
   Rational deltaValueForTotalOrder() const;
 

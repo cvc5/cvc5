@@ -1,7 +1,4 @@
 ; COMMAND-LINE: --solve-bv-as-int=sum --bvand-integer-granularity=1
-; COMMAND-LINE: --solve-bv-as-int=sum --bvand-integer-granularity=2
-; COMMAND-LINE: --solve-bv-as-int=sum --bvand-integer-granularity=3
-; COMMAND-LINE: --solve-bv-as-int=sum --bvand-integer-granularity=4
 ; EXPECT: unsat
 (set-logic QF_BV)
 (declare-fun x () (_ BitVec 4))
