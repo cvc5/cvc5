@@ -37,7 +37,7 @@ PreprocessingPassResult TheoryPreprocess::applyInternal(
   {
     TNode a = (*assertionsToPreprocess)[i];
     Assert(Rewriter::rewrite(a) == a);
-    assertionsToPreprocess->replace(i, te->preprocess(a));
+    assertionsToPreprocess->replaceTrusted(i, te->preprocess(a));
     a = (*assertionsToPreprocess)[i];
     Assert(Rewriter::rewrite(a) == a);
   }

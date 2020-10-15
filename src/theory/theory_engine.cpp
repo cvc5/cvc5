@@ -251,7 +251,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_propagatedLiterals(context),
       d_propagatedLiteralsIndex(context, 0),
       d_atomRequests(context),
-      d_tpp(*this, iteRemover, d_pnm),
+      d_tpp(*this, iteRemover, userContext, d_pnm),
       d_combineTheoriesTime("TheoryEngine::combineTheoriesTime"),
       d_true(),
       d_false(),
@@ -857,16 +857,9 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
 
 void TheoryEngine::preprocessStart() { d_tpp.clearCache(); }
 
-Node TheoryEngine::preprocess(TNode assertion)
+TrustNode TheoryEngine::preprocess(TNode assertion)
 {
-  TrustNode trn = d_tpp.theoryPreprocess(assertion);
-  if (trn.isNull())
-  {
-    // no change
-    return assertion;
-  }
-  // notice that we could alternatively return the trust node here.
-  return trn.getNode();
+  return d_tpp.theoryPreprocess(assertion);
 }
 
 void TheoryEngine::notifyPreprocessedAssertions(
@@ -1147,7 +1140,8 @@ Node TheoryEngine::ensureLiteral(TNode n) {
   Debug("ensureLiteral") << "rewriting: " << n << std::endl;
   Node rewritten = Rewriter::rewrite(n);
   Debug("ensureLiteral") << "      got: " << rewritten << std::endl;
-  Node preprocessed = preprocess(rewritten);
+  TrustNode tp = preprocess(rewritten);
+  Node preprocessed = tp.isNull() ? rewritten : tp.getNode();
   Debug("ensureLiteral") << "preprocessed: " << preprocessed << std::endl;
   d_propEngine->ensureLiteral(preprocessed);
   return preprocessed;
