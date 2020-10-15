@@ -499,7 +499,7 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::eqEval()
                               {},
                               {d_parent}),
                       {d_parent[0], d_parent[1]},
-                      {false, !d_childAssignment});
+                      {!d_childAssignment, !d_childAssignment});
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::impliesEval(
