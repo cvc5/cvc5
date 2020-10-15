@@ -113,11 +113,10 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         << "conflict in non-clausal propagation" << std::endl;
     Assert(!options::unsatCores());
     assertionsToPreprocess->clear();
-    Node n = NodeManager::currentNM()->mkConst<bool>(false);
-    assertionsToPreprocess->push_back(n);
+    assertionsToPreprocess->pushBackTrusted(conf);
     if (options::unsatCores())
     {
-      ProofManager::currentPM()->addDependence(n, Node::null());
+      ProofManager::currentPM()->addDependence(conf.getNode(), Node::null());
     }
     propagator->setNeedsFinish(true);
     return PreprocessingPassResult::CONFLICT;
