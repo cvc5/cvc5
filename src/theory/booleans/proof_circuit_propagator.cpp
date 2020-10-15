@@ -235,7 +235,7 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::mkResolution(
   std::vector<std::shared_ptr<ProofNode>> children = {clause};
   std::vector<Node> args;
   Assert(lits.size() == polarity.size());
-  for (std::size_t i = 0; i < lits.size(); ++i)
+  for (std::size_t i = 0, n = lits.size(); i < n; ++i)
   {
     bool pol = polarity[i];
     Node lit = lits[i];
@@ -256,7 +256,7 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::mkResolution(
     {
       children.emplace_back(assume(lits[i]));
     }
-    args.emplace_back(nm->mkConst<bool>(pol));
+    args.emplace_back(nm->mkConst(pol));
     args.emplace_back(lit);
   }
   return mkProof(PfRule::CHAIN_RESOLUTION, children, args);
