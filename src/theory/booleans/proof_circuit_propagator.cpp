@@ -488,18 +488,26 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::iteEvalElse(bool y)
       {true, !y});
 }
 
-std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::eqEval()
+std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::eqEval(bool x, bool y)
 {
   if (disabled())
   {
     return nullptr;
   }
-  return mkResolution(mkProof(d_childAssignment ? PfRule::CNF_EQUIV_NEG2
-                                                : PfRule::CNF_EQUIV_NEG1,
-                              {},
-                              {d_parent}),
-                      {d_parent[0], d_parent[1]},
-                      {!d_childAssignment, !d_childAssignment});
+  if (x == y)
+  {
+    return mkResolution(
+        mkProof(x ? PfRule::CNF_EQUIV_NEG2 : PfRule::CNF_EQUIV_NEG1,
+                {},
+                {d_parent}),
+        {d_parent[0], d_parent[1]},
+        {!x, !y});
+  }
+  return mkResolution(
+      mkProof(
+          x ? PfRule::CNF_EQUIV_POS1 : PfRule::CNF_EQUIV_POS2, {}, {d_parent}),
+      {d_parent[0], d_parent[1]},
+      {!x, !y});
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::impliesEval(

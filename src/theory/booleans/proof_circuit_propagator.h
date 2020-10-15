@@ -177,7 +177,7 @@ class ProofCircuitPropagatorForward : public ProofCircuitPropagator
   std::shared_ptr<ProofNode> iteEvalElse(bool y);
 
   /** Evaluate (= X Y) from X,Y */
-  std::shared_ptr<ProofNode> eqEval();
+  std::shared_ptr<ProofNode> eqEval(bool x, bool y);
 
   /** Evaluate (=> X Y) from X,Y */
   std::shared_ptr<ProofNode> impliesEval(bool premise, bool conclusion);

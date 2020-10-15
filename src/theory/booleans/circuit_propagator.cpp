@@ -544,7 +544,8 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
           // y.assignment))
           assignAndEnqueue(parent,
                            getAssignment(parent[0]) == getAssignment(parent[1]),
-                           prover.eqEval());
+                           prover.eqEval(getAssignment(parent[0]),
+                                         getAssignment(parent[1])));
         }
         else
         {
