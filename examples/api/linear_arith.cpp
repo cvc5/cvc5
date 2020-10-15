@@ -41,7 +41,7 @@ int main()
   // Constants
   Term three = slv.mkInteger(3);
   Term neg2 = slv.mkInteger(-2);
-  Term two_thirds = slv.mkInteger(2, 3);
+  Term two_thirds = slv.mkReal(2, 3);
 
   // Terms
   Term three_y = slv.mkTerm(MULT, three, y);
