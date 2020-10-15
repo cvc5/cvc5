@@ -103,9 +103,9 @@ class CircuitPropagator
    * discovered by the propagator are put in the substitutions vector used in
    * construction.
    *
-   * @return true iff conflict found
+   * @return a proof for a conflict, or nullptr otherwise
    */
-  bool propagate() CVC4_WARN_UNUSED_RESULT;
+  std::shared_ptr<ProofNode> propagate() CVC4_WARN_UNUSED_RESULT;
 
   /**
    * Get the back edges of this circuit.
@@ -216,6 +216,12 @@ class CircuitPropagator
                         std::shared_ptr<ProofNode> proof = nullptr);
 
   /**
+   * Return a conflict for the case that we have derived both n and n.negate()
+   * to be true.
+   */
+  std::shared_ptr<ProofNode> makeConflict(Node n);
+
+  /**
    * Compute the map from nodes to the nodes that use it.
    */
   void computeBackEdges(TNode node);
@@ -251,7 +257,7 @@ class CircuitPropagator
   DataClearer<std::vector<TNode>> d_propagationQueueClearer;
 
   /** Are we in conflict? */
-  context::CDO<bool> d_conflict;
+  context::CDO<std::shared_ptr<ProofNode>> d_conflict;
 
   /** Map of substitutions */
   std::vector<TrustNode> d_learnedLiterals;

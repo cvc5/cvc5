@@ -105,7 +105,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   }
 
   Trace("non-clausal-simplify") << "propagating" << std::endl;
-  if (propagator->propagate())
+  auto conf = propagator->propagate();
+  if (conf != nullptr)
   {
     // If in conflict, just return false
     Trace("non-clausal-simplify")

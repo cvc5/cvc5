@@ -34,7 +34,7 @@ CircuitPropagator::CircuitPropagator(bool enableForward, bool enableBackward)
     : d_context(),
       d_propagationQueue(),
       d_propagationQueueClearer(&d_context, d_propagationQueue),
-      d_conflict(&d_context, false),
+      d_conflict(&d_context, std::shared_ptr<ProofNode>(nullptr)),
       d_learnedLiterals(),
       d_learnedLiteralClearer(&d_context, d_learnedLiterals),
       d_backEdges(),
@@ -96,7 +96,7 @@ void CircuitPropagator::assignAndEnqueue(TNode n,
     // Assigning a constant to the opposite value is dumb
     if (value != n.getConst<bool>())
     {
-      d_conflict = true;
+      d_conflict = makeConflict(n);
       return;
     }
   }
@@ -109,7 +109,7 @@ void CircuitPropagator::assignAndEnqueue(TNode n,
     // If the node is already assigned we might have a conflict
     if (value != (state == ASSIGNED_TO_TRUE))
     {
-      d_conflict = true;
+      d_conflict = makeConflict(n);
     }
   }
   else
@@ -144,6 +144,15 @@ void CircuitPropagator::assignAndEnqueue(TNode n,
       }
     }
   }
+}
+
+std::shared_ptr<ProofNode> CircuitPropagator::makeConflict(Node n)
+{
+  ProofCircuitPropagator pcp(d_pnm);
+  auto bfalse = NodeManager::currentNM()->mkConst(false);
+  d_epg->setProofFor(bfalse,
+                     pcp.conflict(pcp.assume(n), pcp.assume(n.negate())));
+  return d_proofInternal->getProofFor(bfalse);
 }
 
 void CircuitPropagator::computeBackEdges(TNode node)
@@ -400,7 +409,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
   // Go through the parents and see if there is anything to propagate
   vector<Node>::const_iterator parent_it = parents.begin();
   vector<Node>::const_iterator parent_it_end = parents.end();
-  for (; parent_it != parent_it_end && !d_conflict; ++parent_it)
+  for (; parent_it != parent_it_end && d_conflict.get() == nullptr; ++parent_it)
   {
     // The current parent of the child
     TNode parent = *parent_it;
@@ -643,11 +652,13 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
   }
 }
 
-bool CircuitPropagator::propagate()
+std::shared_ptr<ProofNode> CircuitPropagator::propagate()
 {
   Debug("circuit-prop") << "CircuitPropagator::propagate()" << std::endl;
 
-  for (unsigned i = 0; i < d_propagationQueue.size() && !d_conflict; ++i)
+  for (unsigned i = 0;
+       i < d_propagationQueue.size() && d_conflict.get() == nullptr;
+       ++i)
   {
     // The current node we are propagating
     TNode current = d_propagationQueue[i];

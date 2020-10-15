@@ -65,6 +65,17 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::assume(Node n)
   return d_pnm->mkAssume(n);
 }
 
+std::shared_ptr<ProofNode> ProofCircuitPropagator::conflict(
+    const std::shared_ptr<ProofNode>& a, const std::shared_ptr<ProofNode>& b)
+{
+  if (a->getResult().notNode() == b->getResult())
+  {
+    return mkProof(PfRule::CONTRA, {a, b});
+  }
+  Assert(a->getResult() == b->getResult().notNode());
+  return mkProof(PfRule::CONTRA, {b, a});
+}
+
 std::shared_ptr<ProofNode> ProofCircuitPropagator::andFalse(
     Node parent, TNode::iterator holdout)
 {
@@ -243,17 +254,6 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::mkProof(
     Trace("circuit-prop") << ss.str() << std::endl;
   }
   return d_pnm->mkNode(rule, children, args);
-}
-
-std::shared_ptr<ProofNode> ProofCircuitPropagator::mkContra(
-    const std::shared_ptr<ProofNode>& a, const std::shared_ptr<ProofNode>& b)
-{
-  if (a->getResult().notNode() == b->getResult())
-  {
-    return mkProof(PfRule::CONTRA, {a, b});
-  }
-  Assert(a->getResult() == b->getResult().notNode());
-  return mkProof(PfRule::CONTRA, {b, a});
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagator::mkResolution(

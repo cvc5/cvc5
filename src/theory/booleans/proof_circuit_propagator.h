@@ -40,6 +40,9 @@ class ProofCircuitPropagator
   
   /** Assuming the given node */
   std::shared_ptr<ProofNode> assume(Node n);
+  /** Apply CONTRA rule. Takes care of switching a and b if necessary */
+  std::shared_ptr<ProofNode> conflict(const std::shared_ptr<ProofNode>& a,
+                                      const std::shared_ptr<ProofNode>& b);
 
   /** (and true ... holdout true ...)  -->  holdout */
   std::shared_ptr<ProofNode> andFalse(Node parent, TNode::iterator holdout);
@@ -90,9 +93,6 @@ class ProofCircuitPropagator
       PfRule rule,
       const std::vector<std::shared_ptr<ProofNode>>& children,
       const std::vector<Node>& args = {});
-  /** Apply CONTRA rule. Takes care of switching a and b if necessary */
-  std::shared_ptr<ProofNode> mkContra(const std::shared_ptr<ProofNode>& a,
-                                      const std::shared_ptr<ProofNode>& b);
   /**
    * Apply CHAIN_RESOLUTION rule.
    * Constructs the args from the given literals and polarities (called ids in
