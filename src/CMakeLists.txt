@@ -523,6 +523,8 @@ libcvc4_add_sources(
   theory/datatypes/inference.h
   theory/datatypes/inference_manager.cpp
   theory/datatypes/inference_manager.h
+  theory/datatypes/infer_proof_cons.cpp
+  theory/datatypes/infer_proof_cons.h
   theory/datatypes/sygus_datatype_utils.cpp
   theory/datatypes/sygus_datatype_utils.h
   theory/datatypes/sygus_extension.cpp
