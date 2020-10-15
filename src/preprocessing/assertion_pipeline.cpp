@@ -111,7 +111,7 @@ void AssertionPipeline::replaceTrusted(size_t i, theory::TrustNode trn)
     return;
   }
   Assert(trn.getKind() == theory::TrustNodeKind::REWRITE);
-  Assert(trn.getProven()[0]==d_nodes[i]);
+  Assert(trn.getProven()[0] == d_nodes[i]);
   replace(i, trn.getNode(), trn.getGenerator());
 }
 

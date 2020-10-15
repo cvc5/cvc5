@@ -28,8 +28,7 @@ namespace theory {
 TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
                                        RemoveTermFormulas& tfr,
                                        context::UserContext* userContext,
-                                       ProofNodeManager* pnm
-                                      )
+                                       ProofNodeManager* pnm)
     : d_engine(engine),
       d_logicInfo(engine.getLogicInfo()),
       d_ppCache(),
@@ -127,28 +126,24 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
   // Rewrite the main node, we rewrite and store the proof step, if necessary,
   // in d_tpg, which maintains the fact that d_tpg can prove the rewrite.
   Node retNode = rewriteWithProof(rtfNode);
-  
+
   if (Trace.isOn("tpp-proof-debug"))
   {
-    if (node!=ppNode)
+    if (node != ppNode)
     {
       Trace("tpp-proof-debug")
-          << "after preprocessing : " << ppNode
-          << std::endl;
+          << "after preprocessing : " << ppNode << std::endl;
     }
-    if (rtfNode!=ppNode)
+    if (rtfNode != ppNode)
     {
-      Trace("tpp-proof-debug")
-          << "after rtf : " << rtfNode
-          << std::endl;
+      Trace("tpp-proof-debug") << "after rtf : " << rtfNode << std::endl;
     }
     if (retNode != rtfNode)
     {
-      Trace("tpp-proof-debug")
-          << "after rewriting : " << retNode
-          << std::endl;
+      Trace("tpp-proof-debug") << "after rewriting : " << retNode << std::endl;
     }
-    Trace("tpp-proof-debug") << "TheoryPreprocessor::preprocess: finish" << std::endl;
+    Trace("tpp-proof-debug")
+        << "TheoryPreprocessor::preprocess: finish" << std::endl;
   }
   if (node == retNode)
   {

@@ -19,12 +19,12 @@
 
 #include <unordered_map>
 
+#include "context/context.h"
 #include "expr/lazy_proof.h"
 #include "expr/node.h"
 #include "expr/tconv_seq_proof_generator.h"
 #include "expr/term_conversion_proof_generator.h"
 #include "theory/trust_node.h"
-#include "context/context.h"
 
 namespace CVC4 {
 

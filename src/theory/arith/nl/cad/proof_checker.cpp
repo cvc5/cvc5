@@ -60,4 +60,3 @@ Node CADProofRuleChecker::checkInternal(PfRule id,
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
-
