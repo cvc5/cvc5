@@ -3752,7 +3752,7 @@ Term Solver::mkReal(const std::string& s) const
   {
     return mkTerm(TO_REAL, real);
   }
-  return mkTerm(TO_REAL, real);
+  return real;
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
