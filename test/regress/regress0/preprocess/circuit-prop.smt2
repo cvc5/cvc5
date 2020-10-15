@@ -50,3 +50,16 @@
 (assert (not c))
 (assert (or (ite a b c) d))
 (check-sat)
+
+(reset)
+
+(set-logic ALL)
+(declare-fun a () Bool)
+(declare-fun b () Bool)
+(declare-fun c () Bool)
+(declare-fun d () Bool)
+(assert a)
+(assert b)
+(assert (=> a c))
+(assert (=> b (not c)))
+(check-sat)

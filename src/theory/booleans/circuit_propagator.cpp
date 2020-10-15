@@ -34,7 +34,7 @@ CircuitPropagator::CircuitPropagator(bool enableForward, bool enableBackward)
     : d_context(),
       d_propagationQueue(),
       d_propagationQueueClearer(&d_context, d_propagationQueue),
-      d_conflict(&d_context, std::shared_ptr<ProofNode>(nullptr)),
+      d_conflict(&d_context, TrustNode()),
       d_learnedLiterals(),
       d_learnedLiteralClearer(&d_context, d_learnedLiterals),
       d_backEdges(),
@@ -146,13 +146,18 @@ void CircuitPropagator::assignAndEnqueue(TNode n,
   }
 }
 
-std::shared_ptr<ProofNode> CircuitPropagator::makeConflict(Node n)
+TrustNode CircuitPropagator::makeConflict(Node n)
 {
-  ProofCircuitPropagator pcp(d_pnm);
   auto bfalse = NodeManager::currentNM()->mkConst(false);
-  d_epg->setProofFor(bfalse,
-                     pcp.conflict(pcp.assume(n), pcp.assume(n.negate())));
-  return d_proofInternal->getProofFor(bfalse);
+  ProofGenerator* g = nullptr;
+  if (isProofEnabled())
+  {
+    ProofCircuitPropagator pcp(d_pnm);
+    d_epg->setProofFor(bfalse,
+                      pcp.conflict(pcp.assume(n), pcp.assume(n.negate())));
+    g = d_proofInternal.get();
+  }
+  return TrustNode::mkTrustLemma(bfalse, g);
 }
 
 void CircuitPropagator::computeBackEdges(TNode node)
@@ -409,7 +414,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
   // Go through the parents and see if there is anything to propagate
   vector<Node>::const_iterator parent_it = parents.begin();
   vector<Node>::const_iterator parent_it_end = parents.end();
-  for (; parent_it != parent_it_end && d_conflict.get() == nullptr; ++parent_it)
+  for (; parent_it != parent_it_end && d_conflict.get().isNull(); ++parent_it)
   {
     // The current parent of the child
     TNode parent = *parent_it;
@@ -652,12 +657,12 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
   }
 }
 
-std::shared_ptr<ProofNode> CircuitPropagator::propagate()
+TrustNode CircuitPropagator::propagate()
 {
   Debug("circuit-prop") << "CircuitPropagator::propagate()" << std::endl;
 
   for (unsigned i = 0;
-       i < d_propagationQueue.size() && d_conflict.get() == nullptr;
+       i < d_propagationQueue.size() && d_conflict.get().isNull();
        ++i)
   {
     // The current node we are propagating
