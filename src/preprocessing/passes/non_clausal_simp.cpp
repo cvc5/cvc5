@@ -113,7 +113,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         << "conflict in non-clausal propagation" << std::endl;
     Assert(!options::unsatCores());
     assertionsToPreprocess->clear();
-    assertionsToPreprocess->pushBackTrusted(conf);
+    assertionsToPreprocess->push_back(conf.getProven());
+    // assertionsToPreprocess->pushBackTrusted(conf);
     if (options::unsatCores())
     {
       ProofManager::currentPM()->addDependence(conf.getNode(), Node::null());
