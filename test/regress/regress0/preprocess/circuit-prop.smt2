@@ -2,6 +2,7 @@
 ; EXPECT: sat
 ; EXPECT: unsat
 ; EXPECT: sat
+; EXPECT: unsat
 
 ;;;;; iteEvalThen(true)
 (set-logic ALL)
