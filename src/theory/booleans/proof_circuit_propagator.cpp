@@ -79,7 +79,10 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::conflict(
 std::shared_ptr<ProofNode> ProofCircuitPropagator::andFalse(
     Node parent, TNode::iterator holdout)
 {
-  if (disabled()) return nullptr;
+  if (disabled())
+  {
+    return nullptr;
+  }
   return mkNot(
       mkResolution(mkProof(PfRule::NOT_AND, {assume(parent.notNode())}),
                    collectButHoldout(parent, holdout),
@@ -89,33 +92,48 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::andFalse(
 std::shared_ptr<ProofNode> ProofCircuitPropagator::orTrue(
     Node parent, TNode::iterator holdout)
 {
-  if (disabled()) return nullptr;
+  if (disabled())
+  {
+    return nullptr;
+  }
   return mkResolution(assume(parent), collectButHoldout(parent, holdout), true);
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagator::Not(bool negate, Node parent)
 {
-  if (disabled()) return nullptr;
+  if (disabled())
+  {
+    return nullptr;
+  }
   return mkNot(assume(negate ? Node(parent[0]) : parent));
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagator::impliesXFromY(Node parent)
 {
-  if (disabled()) return nullptr;
+  if (disabled())
+  {
+    return nullptr;
+  }
   return mkNot(mkResolution(
       mkProof(PfRule::IMPLIES_ELIM, {assume(parent)}), {parent[1]}, {true}));
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagator::impliesYFromX(Node parent)
 {
-  if (disabled()) return nullptr;
+  if (disabled())
+  {
+    return nullptr;
+  }
   return mkResolution(
       mkProof(PfRule::IMPLIES_ELIM, {assume(parent)}), {parent[0]}, {false});
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagator::eqXFromY(bool y, Node parent)
 {
-  if (disabled()) return nullptr;
+  if (disabled())
+  {
+    return nullptr;
+  }
   if (y)
   {
     return mkProof(
@@ -128,7 +146,10 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::eqXFromY(bool y, Node parent)
 
 std::shared_ptr<ProofNode> ProofCircuitPropagator::eqYFromX(bool x, Node parent)
 {
-  if (disabled()) return nullptr;
+  if (disabled())
+  {
+    return nullptr;
+  }
   if (x)
   {
     return mkProof(PfRule::EQ_RESOLVE, {assume(parent[0]), assume(parent)});
@@ -140,7 +161,10 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::eqYFromX(bool x, Node parent)
 std::shared_ptr<ProofNode> ProofCircuitPropagator::neqXFromY(bool y,
                                                              Node parent)
 {
-  if (disabled()) return nullptr;
+  if (disabled())
+  {
+    return nullptr;
+  }
   return mkResolution(
       mkProof(y ? PfRule::NOT_EQUIV_ELIM2 : PfRule::NOT_EQUIV_ELIM1,
               {assume(parent.notNode())}),
@@ -151,7 +175,10 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::neqXFromY(bool y,
 std::shared_ptr<ProofNode> ProofCircuitPropagator::neqYFromX(bool x,
                                                              Node parent)
 {
-  if (disabled()) return nullptr;
+  if (disabled())
+  {
+    return nullptr;
+  }
   return mkResolution(
       mkProof(x ? PfRule::NOT_EQUIV_ELIM2 : PfRule::NOT_EQUIV_ELIM1,
               {assume(parent.notNode())}),
@@ -163,7 +190,10 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::xorXFromY(bool negated,
                                                              bool y,
                                                              Node parent)
 {
-  if (disabled()) return nullptr;
+  if (disabled())
+  {
+    return nullptr;
+  }
   if (y)
   {
     return mkNot(mkResolution(
@@ -183,7 +213,10 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::xorYFromX(bool negated,
                                                              bool x,
                                                              Node parent)
 {
-  if (disabled()) return nullptr;
+  if (disabled())
+  {
+    return nullptr;
+  }
   if (x)
   {
     return mkResolution(
@@ -292,7 +325,10 @@ ProofCircuitPropagatorBackward::ProofCircuitPropagatorBackward(
 std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::andTrue(
     TNode::iterator i)
 {
-  if (disabled()) return nullptr;
+  if (disabled())
+  {
+    return nullptr;
+  }
   return mkProof(
       PfRule::AND_ELIM, {assume(d_parent)}, {mkRat(i - d_parent.begin())});
 }
@@ -300,7 +336,10 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::andTrue(
 std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::orFalse(
     TNode::iterator i)
 {
-  if (disabled()) return nullptr;
+  if (disabled())
+  {
+    return nullptr;
+  }
   return mkNot(mkProof(PfRule::NOT_OR_ELIM,
                        {assume(d_parent.notNode())},
                        {mkRat(i - d_parent.begin())}));
@@ -308,7 +347,10 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::orFalse(
 
 std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::iteC(bool c)
 {
-  if (disabled()) return nullptr;
+  if (disabled())
+  {
+    return nullptr;
+  }
   if (d_parentAssignment)
   {
     return mkResolution(
@@ -325,7 +367,10 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::iteC(bool c)
 
 std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::iteIsCase(unsigned c)
 {
-  if (disabled()) return nullptr;
+  if (disabled())
+  {
+    return nullptr;
+  }
   if (d_parentAssignment)
   {
     return mkResolution(mkProof(PfRule::ITE_ELIM2, {assume(d_parent)}),
@@ -340,14 +385,20 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::iteIsCase(unsigned c)
 
 std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::impliesNegX()
 {
-  if (disabled()) return nullptr;
+  if (disabled())
+  {
+    return nullptr;
+  }
   return mkNot(
       mkProof(PfRule::NOT_IMPLIES_ELIM1, {assume(d_parent.notNode())}));
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::impliesNegY()
 {
-  if (disabled()) return nullptr;
+  if (disabled())
+  {
+    return nullptr;
+  }
   return mkNot(
       mkProof(PfRule::NOT_IMPLIES_ELIM2, {assume(d_parent.notNode())}));
 }
@@ -363,7 +414,10 @@ ProofCircuitPropagatorForward::ProofCircuitPropagatorForward(
 
 std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::andAllTrue()
 {
-  if (disabled()) return nullptr;
+  if (disabled())
+  {
+    return nullptr;
+  }
   std::vector<std::shared_ptr<ProofNode>> children;
   for (const auto& child : d_parent)
   {
@@ -374,7 +428,10 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::andAllTrue()
 
 std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::andOneFalse()
 {
-  if (disabled()) return nullptr;
+  if (disabled())
+  {
+    return nullptr;
+  }
   auto it = std::find(d_parent.begin(), d_parent.end(), d_child);
   return mkResolution(
       mkProof(
@@ -385,7 +442,10 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::andOneFalse()
 
 std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::orOneTrue()
 {
-  if (disabled()) return nullptr;
+  if (disabled())
+  {
+    return nullptr;
+  }
   auto it = std::find(d_parent.begin(), d_parent.end(), d_child);
   return mkNot(mkResolution(
       mkProof(PfRule::CNF_OR_NEG, {}, {d_parent, mkRat(it - d_parent.begin())}),
@@ -395,7 +455,10 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::orOneTrue()
 
 std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::orFalse()
 {
-  if (disabled()) return nullptr;
+  if (disabled())
+  {
+    return nullptr;
+  }
   std::vector<Node> children(d_parent.begin(), d_parent.end());
   return mkResolution(
       mkProof(PfRule::CNF_OR_POS, {}, {d_parent}), children, true);
@@ -403,7 +466,10 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::orFalse()
 
 std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::iteEvalThen(bool x)
 {
-  if (disabled()) return nullptr;
+  if (disabled())
+  {
+    return nullptr;
+  }
   return mkResolution(
       mkProof(x ? PfRule::CNF_ITE_NEG1 : PfRule::CNF_ITE_POS1, {}, {d_parent}),
       {d_parent[0], d_parent[1]},
@@ -412,7 +478,10 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::iteEvalThen(bool x)
 
 std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::iteEvalElse(bool y)
 {
-  if (disabled()) return nullptr;
+  if (disabled())
+  {
+    return nullptr;
+  }
   return mkResolution(
       mkProof(y ? PfRule::CNF_ITE_NEG2 : PfRule::CNF_ITE_POS2, {}, {d_parent}),
       {d_parent[0], d_parent[2]},
@@ -421,7 +490,10 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::iteEvalElse(bool y)
 
 std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::eqEval()
 {
-  if (disabled()) return nullptr;
+  if (disabled())
+  {
+    return nullptr;
+  }
   return mkResolution(mkProof(d_childAssignment ? PfRule::CNF_EQUIV_NEG2
                                                 : PfRule::CNF_EQUIV_NEG1,
                               {},
@@ -433,7 +505,10 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::eqEval()
 std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::impliesEval(
     bool premise, bool conclusion)
 {
-  if (disabled()) return nullptr;
+  if (disabled())
+  {
+    return nullptr;
+  }
   if (!premise)
   {
     return mkResolution(mkProof(PfRule::CNF_IMPLIES_NEG1, {}, {d_parent}),
@@ -454,7 +529,10 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::impliesEval(
 std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::xorEval(bool x,
                                                                   bool y)
 {
-  if (disabled()) return nullptr;
+  if (disabled())
+  {
+    return nullptr;
+  }
   if (x && y)
   {
     return mkResolution(mkProof(PfRule::CNF_XOR_POS2, {}, {d_parent}),
