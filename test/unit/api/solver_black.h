@@ -781,10 +781,10 @@ void SolverBlack::testMkReal()
   TS_ASSERT_THROWS_NOTHING(d_solver->mkInteger(val3));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkInteger(val4));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkInteger(val4));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkInteger(val1, val1));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkInteger(val2, val2));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkInteger(val3, val3));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkInteger(val4, val4));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkReal(val1, val1));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkReal(val2, val2));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkReal(val3, val3));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkReal(val4, val4));
 }
 
 void SolverBlack::testMkRegexpEmpty()

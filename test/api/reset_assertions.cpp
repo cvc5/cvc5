@@ -31,7 +31,7 @@ int main()
 
   Sort real = slv.getRealSort();
   Term x = slv.mkConst(real, "x");
-  Term four = slv.mkReal(4);
+  Term four = slv.mkInteger(4);
   Term xEqFour = slv.mkTerm(Kind::EQUAL, x, four);
   slv.assertFormula(xEqFour);
   std::cout << slv.checkSat() << std::endl;
