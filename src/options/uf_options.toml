@@ -12,15 +12,6 @@ header = "options/uf_options.h"
   help       = "use UF symmetry breaker (Deharbe et al., CADE 2011)"
 
 [[option]]
-  name       = "ufssTotality"
-  category   = "regular"
-  long       = "uf-ss-totality"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "always use totality axioms for enforcing cardinality constraints"
-
-[[option]]
   name       = "ufssTotalityLimited"
   category   = "regular"
   long       = "uf-ss-totality-limited=N"
