@@ -2576,13 +2576,6 @@ class CVC4_PUBLIC Solver
   Term mkInteger(int64_t val) const;
 
   /**
-   * Create an integer constant from a rational.
-   * @param num the value of the numerator
-   * @param den the value of the denominator
-   * @return a constant of Integer assuming 'num' is divisible by 'den'
-   */
-  Term mkInteger(int64_t num, int64_t den) const;
-  /**
    * Create a real constant from a string.
    * @param s the string representation of the constant, may represent an
    *          integer (e.g., "123") or real constant (e.g., "12.34" or "12/34").

@@ -3734,16 +3734,6 @@ Term Solver::mkInteger(int64_t val) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::mkInteger(int64_t num, int64_t den) const
-{
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  Term integer = mkValHelper<CVC4::Rational>(CVC4::Rational(num, den));
-  CVC4_API_CHECK(integer.getSort() == getIntegerSort())
-      << "numerator " << num << " is not divisible by denominator " << den;
-  return integer;
-  CVC4_API_SOLVER_TRY_CATCH_END;
-}
-
 Term Solver::mkReal(const std::string& s) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
