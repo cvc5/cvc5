@@ -1747,7 +1747,15 @@ NUMBER
   : ( SIGN[pos]? num=DECIMAL
       { std::stringstream ss;
         ss << ( pos ? "" : "-" ) << AntlrInput::tokenText($num);
-        PARSER_STATE->d_tmp_expr = SOLVER->mkReal(ss.str());
+        std::string str = ss.str();
+        if (str.find(".") == std::string::npos)
+        {
+          PARSER_STATE->d_tmp_expr = SOLVER->mkInteger(str);
+        }
+        else
+        {
+          PARSER_STATE->d_tmp_expr = SOLVER->mkReal(str);
+        }
       }
     | SIGN[pos]? num=DECIMAL DOT den=DECIMAL (EXPONENT SIGN[posE]? e=DECIMAL)?
       {

@@ -476,10 +476,10 @@ void Smt2Printer::toStream(std::ostream& out,
   bool typeChildren = false;  // operators (op t1...tn) where at least one of t1...tn may require a type cast e.g. Int -> Real
   // operator
   Kind k = n.getKind();
-  if(n.getNumChildren() != 0 &&
-     k != kind::INST_PATTERN_LIST &&
-     k != kind::APPLY_TYPE_ASCRIPTION &&
-     k != kind::CONSTRUCTOR_TYPE) {
+  if (n.getNumChildren() != 0 && k != kind::INST_PATTERN_LIST
+      && k != kind::APPLY_TYPE_ASCRIPTION && k != kind::CONSTRUCTOR_TYPE
+      && k != kind::TO_REAL)
+  {
     out << '(';
   }
   switch(k) {
@@ -602,11 +602,16 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::ABS:
   case kind::IS_INTEGER:
   case kind::TO_INTEGER:
-  case kind::TO_REAL:
   case kind::POW: 
     parametricTypeChildren = true;
     out << smtKindString(k, d_variant) << " ";
     break;
+  case kind::TO_REAL:
+  {
+    // (to_real 5) is printed as 5.0
+    out << n[0] << ".0";
+    return;
+  }
   case kind::IAND:
     out << "(_ iand " << n.getOperator().getConst<IntAnd>().d_size << ") ";
     stillNeedToPrintParams = false;
@@ -1028,7 +1033,8 @@ void Smt2Printer::toStream(std::ostream& out,
       }
     }
   }
-  if(n.getNumChildren() != 0) {
+  if (n.getNumChildren() != 0)
+  {
     out << parens.str() << ')';
   }
 }/* Smt2Printer::toStream(TNode) */
