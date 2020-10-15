@@ -3950,8 +3950,15 @@ Term Solver::mkConstArray(Sort sort, Term val) const
   CVC4_API_CHECK(sort.isArray()) << "Not an array sort.";
   CVC4_API_CHECK(sort.getArrayElementSort().isComparableTo(val.getSort()))
       << "Value does not match element sort.";
-  Term res = mkValHelper<CVC4::ArrayStoreAll>(CVC4::ArrayStoreAll(
-      TypeNode::fromType(*sort.d_type), Node::fromExpr(val.d_node->toExpr())));
+  // handle the special case of (TO_REAL n) where n is an integer
+  Node n = *val.d_node;
+  if (val.isCastedReal())
+  {
+    // this is safe because the constant array stores its type
+    n = n[0];
+  }
+  Term res = mkValHelper<CVC4::ArrayStoreAll>(
+      CVC4::ArrayStoreAll(TypeNode::fromType(*sort.d_type), n));
   return res;
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
