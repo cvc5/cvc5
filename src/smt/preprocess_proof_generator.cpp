@@ -21,9 +21,13 @@
 namespace CVC4 {
 namespace smt {
 
-PreprocessProofGenerator::PreprocessProofGenerator(context::UserContext* u,
-                                                   ProofNodeManager* pnm)
-    : d_pnm(pnm), d_src(u), d_helperProofs(u)
+PreprocessProofGenerator::PreprocessProofGenerator(ProofNodeManager* pnm,
+                                                   context::Context* c,
+                                                   std::string name)
+    : d_pnm(pnm),
+      d_src(c ? c : &d_context),
+      d_helperProofs(pnm, c ? c : &d_context),
+      d_name(name)
 {
 }
 
@@ -41,24 +45,43 @@ void PreprocessProofGenerator::notifyNewAssert(Node n, ProofGenerator* pg)
   }
 }
 
+void PreprocessProofGenerator::notifyNewTrustedAssert(theory::TrustNode tn)
+{
+  notifyNewAssert(tn.getProven(), tn.getGenerator());
+}
+
 void PreprocessProofGenerator::notifyPreprocessed(Node n,
                                                   Node np,
                                                   ProofGenerator* pg)
 {
-  // only keep if indeed it rewrote
-  if (n != np)
+  // only do anything if indeed it rewrote
+  if (n == np)
   {
-    Trace("smt-proof-pp-debug")
-        << "PreprocessProofGenerator::notifyPreprocessed: " << n << "..." << np
-        << std::endl;
-    if (d_src.find(np) == d_src.end())
-    {
-      d_src[np] = theory::TrustNode::mkTrustRewrite(n, np, pg);
-    }
-    else
-    {
-      Trace("smt-proof-pp-debug") << "...already proven" << std::endl;
-    }
+    return;
+  }
+  // call the trusted version
+  notifyTrustedPreprocessed(theory::TrustNode::mkTrustRewrite(n, np, pg));
+}
+
+void PreprocessProofGenerator::notifyTrustedPreprocessed(theory::TrustNode tnp)
+{
+  if (tnp.isNull())
+  {
+    // no rewrite, nothing to do
+    return;
+  }
+  Assert(tnp.getKind() == theory::TrustNodeKind::REWRITE);
+  Node np = tnp.getNode();
+  Trace("smt-proof-pp-debug")
+      << "PreprocessProofGenerator::notifyPreprocessed: " << tnp.getProven()
+      << std::endl;
+  if (d_src.find(np) == d_src.end())
+  {
+    d_src[np] = tnp;
+  }
+  else
+  {
+    Trace("smt-proof-pp-debug") << "...already proven" << std::endl;
   }
 }
 
@@ -73,8 +96,8 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
   // make CDProof to construct the proof below
   CDProof cdp(d_pnm);
 
-  Trace("smt-pppg") << "PreprocessProofGenerator::getProofFor: input " << f
-                    << std::endl;
+  Trace("smt-pppg") << "PreprocessProofGenerator::getProofFor: (" << d_name
+                    << ") input " << f << std::endl;
   Node curr = f;
   std::vector<Node> transChildren;
   std::unordered_set<Node, NodeHashFunction> processed;
@@ -186,15 +209,10 @@ ProofNodeManager* PreprocessProofGenerator::getManager() { return d_pnm; }
 
 LazyCDProof* PreprocessProofGenerator::allocateHelperProof()
 {
-  std::shared_ptr<LazyCDProof> helperPf = std::make_shared<LazyCDProof>(d_pnm);
-  d_helperProofs.push_back(helperPf);
-  return helperPf.get();
+  return d_helperProofs.allocateProof();
 }
 
-std::string PreprocessProofGenerator::identify() const
-{
-  return "PreprocessProofGenerator";
-}
+std::string PreprocessProofGenerator::identify() const { return d_name; }
 
 }  // namespace smt
 }  // namespace CVC4
