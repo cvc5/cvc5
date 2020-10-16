@@ -103,7 +103,7 @@ void InferenceManagerBuffered::doPendingLemmas()
   size_t i = 0;
   while (i < d_pendingLem.size())
   {
-    // process this lemmas, which notice may enqueue more pending facts in this
+    // process this lemma, which notice may enqueue more pending lemmas in this
     // loop, or clear the lemmas.
     d_pendingLem[i]->process(this, true);
     i++;
