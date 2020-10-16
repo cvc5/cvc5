@@ -148,7 +148,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
   }
   else if (k == SEQ_UNIT)
   {
-    // never necessary to reduce seq.unit or seq.nth
+    // never necessary to reduce seq.unit
     return false;
   }
   else if (k != STRING_IN_REGEXP)
