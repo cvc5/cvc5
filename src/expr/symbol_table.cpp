@@ -251,16 +251,13 @@ bool OverloadedTypeTrie::markOverloaded(const string& name, api::Term obj)
   } else if (t.isConstructor()) {
     argTypes = t.getConstructorDomainSorts();
     rangeType = t.getConstructorCodomainSort();
-  }
-  /*
-   * else if (t.isTester()) {
-    argTypes.push_back(static_cast<TesterType>(t).getDomain());
-    rangeType = static_cast<TesterType>(t).getRangeType();
+  //}else if (t.isTester()) {
+    //argTypes.push_back(t.getTesterDomainSort());
+    //rangeType = static_cast<TesterType>(t).getRangeType();
   } else if (t.isSelector()) {
-    argTypes.push_back(static_cast<SelectorType>(t).getDomain());
-    rangeType = static_cast<SelectorType>(t).getRangeType();
+    argTypes.push_back(t.getSelectorDomainSort());
+    rangeType = t.getSelectorCodomainSort();
   }
-  */
   // add to the trie
   TypeArgTrie* tat = &d_overload_type_arg_trie[name];
   for (unsigned i = 0; i < argTypes.size(); i++) {

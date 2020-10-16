@@ -538,6 +538,9 @@ public:
 
   /** Get the return type (for selector types) */
   TypeNode getSelectorRangeType() const;
+  
+  /** Get the domain type (for tester types) */
+  TypeNode getTesterDomainType() const;
 
   /** Get the element type (for set types) */
   TypeNode getSetElementType() const;
