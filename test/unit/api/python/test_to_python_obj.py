@@ -40,10 +40,10 @@ def testGetBV():
 def testGetArray():
     solver = pycvc4.Solver()
     arrsort = solver.mkArraySort(solver.getRealSort(), solver.getRealSort())
-    zero_array = solver.mkConstArray(arrsort, solver.mkReal(0))
-    stores = solver.mkTerm(kinds.Store, zero_array, solver.mkReal(1), solver.mkReal(2))
-    stores = solver.mkTerm(kinds.Store, stores, solver.mkReal(2), solver.mkReal(3))
-    stores = solver.mkTerm(kinds.Store, stores, solver.mkReal(4), solver.mkReal(5))
+    zero_array = solver.mkConstArray(arrsort, solver.mkInteger(0))
+    stores = solver.mkTerm(kinds.Store, zero_array, solver.mkInteger(1), solver.mkInteger(2))
+    stores = solver.mkTerm(kinds.Store, stores, solver.mkInteger(2), solver.mkInteger(3))
+    stores = solver.mkTerm(kinds.Store, stores, solver.mkInteger(4), solver.mkInteger(5))
 
     assert stores.isValue()
 
