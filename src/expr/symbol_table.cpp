@@ -27,9 +27,8 @@
 #include "context/cdhashset.h"
 #include "context/context.h"
 #include "expr/dtype.h"
-#include "expr/expr.h"
-#include "expr/expr_manager_scope.h"
 #include "expr/type.h"
+#include "api/cvc4cpp.h"
 
 namespace CVC4 {
 
@@ -92,35 +91,35 @@ using ::std::vector;
  * 8. (declare-datatypes ((Enum 0)) ((c))) and
  *    (declare-fun c () Enum)
  */
-class OverloadedSortTrie {
+class OverloadedTypeTrie {
  public:
-  OverloadedSortTrie(Context* c, bool allowFunVariants = false)
-      : d_overloaded_symbols(new (true) CDHashSet<Term, TermHashFunction>(c)),
+  OverloadedTypeTrie(Context* c, bool allowFunVariants = false)
+      : d_overloaded_symbols(new (true) CDHashSet<api::Term, api::TermHashFunction>(c)),
         d_allowFunctionVariants(allowFunVariants)
   {
   }
-  ~OverloadedSortTrie() { d_overloaded_symbols->deleteSelf(); }
+  ~OverloadedTypeTrie() { d_overloaded_symbols->deleteSelf(); }
 
   /** is this function overloaded? */
-  bool isOverloadedFunction(Term fun) const;
+  bool isOverloadedFunction(api::Term fun) const;
 
   /** Get overloaded constant for type.
    * If possible, it returns a defined symbol with name
    * that has type t. Otherwise returns null expression.
    */
-  Term getOverloadedConstantForSort(const std::string& name, Sort t) const;
+  api::Term getOverloadedConstantForType(const std::string& name, api::Sort t) const;
 
   /**
    * If possible, returns a defined function for a name
    * and a vector of expected argument types. Otherwise returns
    * null expression.
    */
-  Term getOverloadedFunctionForSorts(const std::string& name,
-                                     const std::vector<Sort>& argSorts) const;
+  api::Term getOverloadedFunctionForTypes(const std::string& name,
+                                     const std::vector<api::Sort>& argTypes) const;
   /** called when obj is bound to name, and prev_bound_obj was already bound to
    * name Returns false if the binding is invalid.
    */
-  bool bind(const string& name, Term prev_bound_obj, Term obj);
+  bool bind(const string& name, api::Term prev_bound_obj, api::Term obj);
 
  private:
   /** Marks expression obj with name as overloaded.
@@ -138,25 +137,25 @@ class OverloadedSortTrie {
    * These are put in the same place in the trie but do not have identical type,
    * hence we return false.
    */
-  bool markOverloaded(const string& name, Term obj);
+  bool markOverloaded(const string& name, api::Term obj);
   /** the null expression */
-  Term d_nullTerm;
+  api::Term d_nullTerm;
   // The (context-independent) trie storing that maps expected argument
   // vectors to symbols. All expressions stored in d_symbols are only
   // interpreted as active if they also appear in the context-dependent
   // set d_overloaded_symbols.
-  class SortArgTrie {
+  class TypeArgTrie {
    public:
     // children of this node
-    std::map<Sort, SortArgTrie> d_children;
+    std::map<api::Sort, TypeArgTrie> d_children;
     // symbols at this node
-    std::map<Sort, Term> d_symbols;
+    std::map<api::Sort, api::Term> d_symbols;
   };
   /** for each string with operator overloading, this stores the data structure
    * above. */
-  std::unordered_map<std::string, SortArgTrie> d_overload_type_arg_trie;
+  std::unordered_map<std::string, TypeArgTrie> d_overload_type_arg_trie;
   /** The set of overloaded symbols. */
-  CDHashSet<Term, TermHashFunction>* d_overloaded_symbols;
+  CDHashSet<api::Term, api::TermHashFunction>* d_overloaded_symbols;
   /** allow function variants
    * This is true if we allow overloading (non-constant) functions that expect
    * the same argument types.
@@ -168,21 +167,21 @@ class OverloadedSortTrie {
   * if reqUnique=true.
   * Otherwise, it returns the null expression.
   */
-  Term getOverloadedFunctionAt(const SortArgTrie* tat, bool reqUnique=true) const;
+  api::Term getOverloadedFunctionAt(const TypeArgTrie* tat, bool reqUnique=true) const;
 };
 
-bool OverloadedSortTrie::isOverloadedFunction(Term fun) const {
+bool OverloadedTypeTrie::isOverloadedFunction(api::Term fun) const {
   return d_overloaded_symbols->find(fun) != d_overloaded_symbols->end();
 }
 
-Term OverloadedSortTrie::getOverloadedConstantForSort(const std::string& name,
-                                                      Sort t) const {
-  std::unordered_map<std::string, SortArgTrie>::const_iterator it =
+api::Term OverloadedTypeTrie::getOverloadedConstantForType(const std::string& name,
+                                                      api::Sort t) const {
+  std::unordered_map<std::string, TypeArgTrie>::const_iterator it =
       d_overload_type_arg_trie.find(name);
   if (it != d_overload_type_arg_trie.end()) {
-    std::map<Sort, Term>::const_iterator its = it->second.d_symbols.find(t);
+    std::map<api::Sort, api::Term>::const_iterator its = it->second.d_symbols.find(t);
     if (its != it->second.d_symbols.end()) {
-      Term expr = its->second;
+      api::Term expr = its->second;
       // must be an active symbol
       if (isOverloadedFunction(expr)) {
         return expr;
@@ -192,42 +191,24 @@ Term OverloadedSortTrie::getOverloadedConstantForSort(const std::string& name,
   return d_nullTerm;
 }
 
-Term OverloadedSortTrie::getOverloadedFunctionForSorts(
-    const std::string& name, const std::vector<Sort>& argSorts) const {
-  std::unordered_map<std::string, SortArgTrie>::const_iterator it =
+api::Term OverloadedTypeTrie::getOverloadedFunctionForTypes(
+    const std::string& name, const std::vector<api::Sort>& argTypes) const {
+  std::unordered_map<std::string, TypeArgTrie>::const_iterator it =
       d_overload_type_arg_trie.find(name);
   if (it != d_overload_type_arg_trie.end()) {
-    const SortArgTrie* tat = &it->second;
-    for (unsigned i = 0; i < argSorts.size(); i++) {
-      std::map<Sort, SortArgTrie>::const_iterator itc =
-          tat->d_children.find(argSorts[i]);
+    const TypeArgTrie* tat = &it->second;
+    for (unsigned i = 0; i < argTypes.size(); i++) {
+      std::map<api::Sort, TypeArgTrie>::const_iterator itc =
+          tat->d_children.find(argTypes[i]);
       if (itc != tat->d_children.end()) {
         tat = &itc->second;
       } else {
         Trace("parser-overloading")
             << "Could not find overloaded function " << name << std::endl;
-        // it may be a parametric datatype
-        SortNode tna = SortNode::fromSort(argSorts[i]);
-        if (tna.isParametricDatatype())
-        {
-          Trace("parser-overloading")
-              << "Parametric overloaded datatype selector " << name << " "
-              << tna << std::endl;
-          const DSort& dt = SortNode::fromSort(argSorts[i]).getDSort();
-          // tng is the "generalized" version of the instantiated parametric
-          // type tna
-          Sort tng = dt.getSortNode().toSort();
-          itc = tat->d_children.find(tng);
-          if (itc != tat->d_children.end())
-          {
-            tat = &itc->second;
-          }
-        }
-        if (tat == nullptr)
-        {
+
           // no functions match
           return d_nullTerm;
-        }
+        
       }
     }
     // we ensure that there is *only* one active symbol at this node
@@ -236,8 +217,8 @@ Term OverloadedSortTrie::getOverloadedFunctionForSorts(
   return d_nullTerm;
 }
 
-bool OverloadedSortTrie::bind(const string& name, Term prev_bound_obj,
-                              Term obj) {
+bool OverloadedTypeTrie::bind(const string& name, api::Term prev_bound_obj,
+                              api::Term obj) {
   bool retprev = true;
   if (!isOverloadedFunction(prev_bound_obj)) {
     // mark previous as overloaded
@@ -248,40 +229,43 @@ bool OverloadedSortTrie::bind(const string& name, Term prev_bound_obj,
   return retprev && retobj;
 }
 
-bool OverloadedSortTrie::markOverloaded(const string& name, Term obj) {
+bool OverloadedTypeTrie::markOverloaded(const string& name, api::Term obj) {
   Trace("parser-overloading") << "Overloaded function : " << name;
   Trace("parser-overloading") << " with type " << obj.getSort() << std::endl;
   // get the argument types
-  Sort t = obj.getSort();
-  Sort rangeSort = t;
-  std::vector<Sort> argSorts;
+  api::Sort t = obj.getSort();
+  api::Sort rangeType = t;
+  std::vector<api::Sort> argTypes;
   if (t.isFunction()) {
-    argSorts = static_cast<FunctionSort>(t).getArgSorts();
-    rangeSort = static_cast<FunctionSort>(t).getRangeSort();
+    argTypes = t.getFunctionDomainSorts();
+    rangeType = t.getFunctionCodomainSort();
   } else if (t.isConstructor()) {
-    argSorts = static_cast<ConstructorSort>(t).getArgSorts();
-    rangeSort = static_cast<ConstructorSort>(t).getRangeSort();
-  } else if (t.isTester()) {
-    argSorts.push_back(static_cast<TesterSort>(t).getDomain());
-    rangeSort = static_cast<TesterSort>(t).getRangeSort();
+    argTypes = t.getConstructorDomainSorts();
+    rangeType = t.getConstructorCodomainSort();
+  } 
+  /*
+   * else if (t.isTester()) {
+    argTypes.push_back(static_cast<TesterType>(t).getDomain());
+    rangeType = static_cast<TesterType>(t).getRangeType();
   } else if (t.isSelector()) {
-    argSorts.push_back(static_cast<SelectorSort>(t).getDomain());
-    rangeSort = static_cast<SelectorSort>(t).getRangeSort();
+    argTypes.push_back(static_cast<SelectorType>(t).getDomain());
+    rangeType = static_cast<SelectorType>(t).getRangeType();
   }
+  */
   // add to the trie
-  SortArgTrie* tat = &d_overload_type_arg_trie[name];
-  for (unsigned i = 0; i < argSorts.size(); i++) {
-    tat = &(tat->d_children[argSorts[i]]);
+  TypeArgTrie* tat = &d_overload_type_arg_trie[name];
+  for (unsigned i = 0; i < argTypes.size(); i++) {
+    tat = &(tat->d_children[argTypes[i]]);
   }
 
   // check if function variants are allowed here
-  if (d_allowFunctionVariants || argSorts.empty())
+  if (d_allowFunctionVariants || argTypes.empty())
   {
     // they are allowed, check for redefinition
-    std::map<Sort, Term>::iterator it = tat->d_symbols.find(rangeSort);
+    std::map<api::Sort, api::Term>::iterator it = tat->d_symbols.find(rangeType);
     if (it != tat->d_symbols.end())
     {
-      Term prev_obj = it->second;
+      api::Term prev_obj = it->second;
       // if there is already an active function with the same name and expects
       // the same argument types and has the same return type, we reject the 
       // re-declaration here.
@@ -294,7 +278,7 @@ bool OverloadedSortTrie::markOverloaded(const string& name, Term obj) {
   else
   {
     // they are not allowed, we cannot have any function defined here.
-    Term existingFun = getOverloadedFunctionAt(tat, false);
+    api::Term existingFun = getOverloadedFunctionAt(tat, false);
     if (!existingFun.isNull())
     {
       return false;
@@ -303,22 +287,22 @@ bool OverloadedSortTrie::markOverloaded(const string& name, Term obj) {
 
   // otherwise, update the symbols
   d_overloaded_symbols->insert(obj);
-  tat->d_symbols[rangeSort] = obj;
+  tat->d_symbols[rangeType] = obj;
   return true;
 }
 
-Term OverloadedSortTrie::getOverloadedFunctionAt(
-    const OverloadedSortTrie::SortArgTrie* tat, bool reqUnique) const
+api::Term OverloadedTypeTrie::getOverloadedFunctionAt(
+    const OverloadedTypeTrie::TypeArgTrie* tat, bool reqUnique) const
 {
-  Term retTerm;
-  for (std::map<Sort, Term>::const_iterator its = tat->d_symbols.begin();
+  api::Term retExpr;
+  for (std::map<api::Sort, api::Term>::const_iterator its = tat->d_symbols.begin();
        its != tat->d_symbols.end();
        ++its)
   {
-    Term expr = its->second;
+    api::Term expr = its->second;
     if (isOverloadedFunction(expr))
     {
-      if (retTerm.isNull())
+      if (retExpr.isNull())
       {
         if (!reqUnique) 
         {
@@ -326,7 +310,7 @@ Term OverloadedSortTrie::getOverloadedFunctionAt(
         }
         else 
         {
-          retTerm = expr;
+          retExpr = expr;
         }
       }
       else
@@ -336,17 +320,17 @@ Term OverloadedSortTrie::getOverloadedFunctionAt(
       }
     }
   }
-  return retTerm;
+  return retExpr;
 }
 
 class SymbolTable::Implementation {
  public:
   Implementation()
       : d_context(),
-        d_exprMap(new (true) CDHashMap<string, Term>(&d_context)),
-        d_typeMap(new (true) SortMap(&d_context))
+        d_exprMap(new (true) CDHashMap<string, api::Term>(&d_context)),
+        d_typeMap(new (true) TypeMap(&d_context))
   {
-    d_overload_trie = new OverloadedSortTrie(&d_context);
+    d_overload_trie = new OverloadedTypeTrie(&d_context);
   }
 
   ~Implementation() {
@@ -355,15 +339,15 @@ class SymbolTable::Implementation {
     delete d_overload_trie;
   }
 
-  bool bind(const string& name, Term obj, bool levelZero, bool doOverload);
-  void bindSort(const string& name, Sort t, bool levelZero = false);
-  void bindSort(const string& name, const vector<Sort>& params, Sort t,
+  bool bind(const string& name, api::Term obj, bool levelZero, bool doOverload);
+  void bindType(const string& name, api::Sort t, bool levelZero = false);
+  void bindType(const string& name, const vector<api::Sort>& params, api::Sort t,
                 bool levelZero = false);
   bool isBound(const string& name) const;
-  bool isBoundSort(const string& name) const;
-  Term lookup(const string& name) const;
-  Sort lookupSort(const string& name) const;
-  Sort lookupSort(const string& name, const vector<Sort>& params) const;
+  bool isBoundType(const string& name) const;
+  api::Term lookup(const string& name) const;
+  api::Sort lookupType(const string& name) const;
+  api::Sort lookupType(const string& name, const vector<api::Sort>& params) const;
   size_t lookupArity(const string& name);
   void popScope();
   void pushScope();
@@ -371,44 +355,43 @@ class SymbolTable::Implementation {
   void reset();
   //------------------------ operator overloading
   /** implementation of function from header */
-  bool isOverloadedFunction(Term fun) const;
+  bool isOverloadedFunction(api::Term fun) const;
 
   /** implementation of function from header */
-  Term getOverloadedConstantForSort(const std::string& name, Sort t) const;
+  api::Term getOverloadedConstantForType(const std::string& name, api::Sort t) const;
 
   /** implementation of function from header */
-  Term getOverloadedFunctionForSorts(const std::string& name,
-                                     const std::vector<Sort>& argSorts) const;
+  api::Term getOverloadedFunctionForTypes(const std::string& name,
+                                     const std::vector<api::Sort>& argTypes) const;
   //------------------------ end operator overloading
  private:
   /** The context manager for the scope maps. */
   Context d_context;
 
   /** A map for expressions. */
-  CDHashMap<string, Term>* d_exprMap;
+  CDHashMap<string, api::Term>* d_exprMap;
 
   /** A map for types. */
-  using SortMap = CDHashMap<string, std::pair<vector<Sort>, Sort>>;
-  SortMap* d_typeMap;
+  using TypeMap = CDHashMap<string, std::pair<vector<api::Sort>, api::Sort>>;
+  TypeMap* d_typeMap;
 
   //------------------------ operator overloading
   // the null expression
-  Term d_nullTerm;
+  api::Term d_nullTerm;
   // overloaded type trie, stores all information regarding overloading
-  OverloadedSortTrie* d_overload_trie;
+  OverloadedTypeTrie* d_overload_trie;
   /** bind with overloading
    * This is called whenever obj is bound to name where overloading symbols is
    * allowed. If a symbol is previously bound to that name, it marks both as
    * overloaded. Returns false if the binding was invalid.
    */
-  bool bindWithOverloading(const string& name, Term obj);
+  bool bindWithOverloading(const string& name, api::Term obj);
   //------------------------ end operator overloading
 }; /* SymbolTable::Implementation */
 
-bool SymbolTable::Implementation::bind(const string& name, Term obj,
+bool SymbolTable::Implementation::bind(const string& name, api::Term obj,
                                        bool levelZero, bool doOverload) {
-  PrettyCheckArgument(!obj.isNull(), obj, "cannot bind to a null Term");
-  TermManagerScope ems(obj);
+  PrettyCheckArgument(!obj.isNull(), obj, "cannot bind to a null api::Term");
   if (doOverload) {
     if (!bindWithOverloading(name, obj)) {
       return false;
@@ -426,9 +409,9 @@ bool SymbolTable::Implementation::isBound(const string& name) const {
   return d_exprMap->find(name) != d_exprMap->end();
 }
 
-Term SymbolTable::Implementation::lookup(const string& name) const {
+api::Term SymbolTable::Implementation::lookup(const string& name) const {
   Assert(isBound(name));
-  Term expr = (*d_exprMap->find(name)).second;
+  api::Term expr = (*d_exprMap->find(name)).second;
   if (isOverloadedFunction(expr)) {
     return d_nullTerm;
   } else {
@@ -436,23 +419,23 @@ Term SymbolTable::Implementation::lookup(const string& name) const {
   }
 }
 
-void SymbolTable::Implementation::bindSort(const string& name, Sort t,
+void SymbolTable::Implementation::bindType(const string& name, api::Sort t,
                                            bool levelZero) {
   if (levelZero) {
-    d_typeMap->insertAtContextLevelZero(name, make_pair(vector<Sort>(), t));
+    d_typeMap->insertAtContextLevelZero(name, make_pair(vector<api::Sort>(), t));
   } else {
-    d_typeMap->insert(name, make_pair(vector<Sort>(), t));
+    d_typeMap->insert(name, make_pair(vector<api::Sort>(), t));
   }
 }
 
-void SymbolTable::Implementation::bindSort(const string& name,
-                                           const vector<Sort>& params, Sort t,
+void SymbolTable::Implementation::bindType(const string& name,
+                                           const vector<api::Sort>& params, api::Sort t,
                                            bool levelZero) {
   if (Debug.isOn("sort")) {
-    Debug("sort") << "bindSort(" << name << ", [";
+    Debug("sort") << "bindType(" << name << ", [";
     if (params.size() > 0) {
       copy(params.begin(), params.end() - 1,
-           ostream_iterator<Sort>(Debug("sort"), ", "));
+           ostream_iterator<api::Sort>(Debug("sort"), ", "));
       Debug("sort") << params.back();
     }
     Debug("sort") << "], " << t << ")" << endl;
@@ -464,12 +447,12 @@ void SymbolTable::Implementation::bindSort(const string& name,
   }
 }
 
-bool SymbolTable::Implementation::isBoundSort(const string& name) const {
+bool SymbolTable::Implementation::isBoundType(const string& name) const {
   return d_typeMap->find(name) != d_typeMap->end();
 }
 
-Sort SymbolTable::Implementation::lookupSort(const string& name) const {
-  pair<vector<Sort>, Sort> p = (*d_typeMap->find(name)).second;
+api::Sort SymbolTable::Implementation::lookupType(const string& name) const {
+  pair<vector<api::Sort>, api::Sort> p = (*d_typeMap->find(name)).second;
   PrettyCheckArgument(p.first.size() == 0, name,
                       "type constructor arity is wrong: "
                       "`%s' requires %u parameters but was provided 0",
@@ -477,9 +460,9 @@ Sort SymbolTable::Implementation::lookupSort(const string& name) const {
   return p.second;
 }
 
-Sort SymbolTable::Implementation::lookupSort(const string& name,
-                                             const vector<Sort>& params) const {
-  pair<vector<Sort>, Sort> p = (*d_typeMap->find(name)).second;
+api::Sort SymbolTable::Implementation::lookupType(const string& name,
+                                             const vector<api::Sort>& params) const {
+  pair<vector<api::Sort>, api::Sort> p = (*d_typeMap->find(name)).second;
   PrettyCheckArgument(p.first.size() == params.size(), params,
                       "type constructor arity is wrong: "
                       "`%s' requires %u parameters but was provided %u",
@@ -493,39 +476,39 @@ Sort SymbolTable::Implementation::lookupSort(const string& name,
       Debug("sort") << "instantiating using a sort constructor" << endl;
       Debug("sort") << "have formals [";
       copy(p.first.begin(), p.first.end() - 1,
-           ostream_iterator<Sort>(Debug("sort"), ", "));
+           ostream_iterator<api::Sort>(Debug("sort"), ", "));
       Debug("sort") << p.first.back() << "]" << endl << "parameters   [";
       copy(params.begin(), params.end() - 1,
-           ostream_iterator<Sort>(Debug("sort"), ", "));
+           ostream_iterator<api::Sort>(Debug("sort"), ", "));
       Debug("sort") << params.back() << "]" << endl
                     << "type ctor    " << name << endl
                     << "type is      " << p.second << endl;
     }
 
-    Sort instantiation = SortConstructorSort(p.second).instantiate(params);
+    api::Sort instantiation = SortConstructorType(p.second).instantiate(params);
 
     Debug("sort") << "instance is  " << instantiation << endl;
 
     return instantiation;
   } else if (p.second.isDatatype()) {
-    PrettyCheckArgument(DatatypeSort(p.second).isParametric(), name,
+    PrettyCheckArgument(p.second.isParametricDatatype(), name,
                         "expected parametric datatype");
-    return DatatypeSort(p.second).instantiate(params);
+    return p.second.instantiate(params);
   } else {
     if (Debug.isOn("sort")) {
       Debug("sort") << "instantiating using a sort substitution" << endl;
       Debug("sort") << "have formals [";
       copy(p.first.begin(), p.first.end() - 1,
-           ostream_iterator<Sort>(Debug("sort"), ", "));
+           ostream_iterator<api::Sort>(Debug("sort"), ", "));
       Debug("sort") << p.first.back() << "]" << endl << "parameters   [";
       copy(params.begin(), params.end() - 1,
-           ostream_iterator<Sort>(Debug("sort"), ", "));
+           ostream_iterator<api::Sort>(Debug("sort"), ", "));
       Debug("sort") << params.back() << "]" << endl
                     << "type ctor    " << name << endl
                     << "type is      " << p.second << endl;
     }
 
-    Sort instantiation = p.second.substitute(p.first, params);
+    api::Sort instantiation = p.second.substitute(p.first, params);
 
     Debug("sort") << "instance is  " << instantiation << endl;
 
@@ -534,7 +517,7 @@ Sort SymbolTable::Implementation::lookupSort(const string& name,
 }
 
 size_t SymbolTable::Implementation::lookupArity(const string& name) {
-  pair<vector<Sort>, Sort> p = (*d_typeMap->find(name)).second;
+  pair<vector<api::Sort>, api::Sort> p = (*d_typeMap->find(name)).second;
   return p.first.size();
 }
 
@@ -556,25 +539,25 @@ void SymbolTable::Implementation::reset() {
   new (this) SymbolTable::Implementation();
 }
 
-bool SymbolTable::Implementation::isOverloadedFunction(Term fun) const {
+bool SymbolTable::Implementation::isOverloadedFunction(api::Term fun) const {
   return d_overload_trie->isOverloadedFunction(fun);
 }
 
-Term SymbolTable::Implementation::getOverloadedConstantForSort(
-    const std::string& name, Sort t) const {
-  return d_overload_trie->getOverloadedConstantForSort(name, t);
+api::Term SymbolTable::Implementation::getOverloadedConstantForType(
+    const std::string& name, api::Sort t) const {
+  return d_overload_trie->getOverloadedConstantForType(name, t);
 }
 
-Term SymbolTable::Implementation::getOverloadedFunctionForSorts(
-    const std::string& name, const std::vector<Sort>& argSorts) const {
-  return d_overload_trie->getOverloadedFunctionForSorts(name, argSorts);
+api::Term SymbolTable::Implementation::getOverloadedFunctionForTypes(
+    const std::string& name, const std::vector<api::Sort>& argTypes) const {
+  return d_overload_trie->getOverloadedFunctionForTypes(name, argTypes);
 }
 
 bool SymbolTable::Implementation::bindWithOverloading(const string& name,
-                                                      Term obj) {
-  CDHashMap<string, Term>::const_iterator it = d_exprMap->find(name);
+                                                      api::Term obj) {
+  CDHashMap<string, api::Term>::const_iterator it = d_exprMap->find(name);
   if (it != d_exprMap->end()) {
-    const Term& prev_bound_obj = (*it).second;
+    const api::Term& prev_bound_obj = (*it).second;
     if (prev_bound_obj != obj) {
       return d_overload_trie->bind(name, prev_bound_obj, obj);
     }
@@ -582,18 +565,18 @@ bool SymbolTable::Implementation::bindWithOverloading(const string& name,
   return true;
 }
 
-bool SymbolTable::isOverloadedFunction(Term fun) const {
+bool SymbolTable::isOverloadedFunction(api::Term fun) const {
   return d_implementation->isOverloadedFunction(fun);
 }
 
-Term SymbolTable::getOverloadedConstantForSort(const std::string& name,
-                                               Sort t) const {
-  return d_implementation->getOverloadedConstantForSort(name, t);
+api::Term SymbolTable::getOverloadedConstantForType(const std::string& name,
+                                               api::Sort t) const {
+  return d_implementation->getOverloadedConstantForType(name, t);
 }
 
-Term SymbolTable::getOverloadedFunctionForSorts(
-    const std::string& name, const std::vector<Sort>& argSorts) const {
-  return d_implementation->getOverloadedFunctionForSorts(name, argSorts);
+api::Term SymbolTable::getOverloadedFunctionForTypes(
+    const std::string& name, const std::vector<api::Sort>& argTypes) const {
+  return d_implementation->getOverloadedFunctionForTypes(name, argTypes);
 }
 
 SymbolTable::SymbolTable()
@@ -601,47 +584,47 @@ SymbolTable::SymbolTable()
 
 SymbolTable::~SymbolTable() {}
 bool SymbolTable::bind(const string& name,
-                       Term obj,
+                       api::Term obj,
                        bool levelZero,
                        bool doOverload)
 {
   return d_implementation->bind(name, obj, levelZero, doOverload);
 }
 
-void SymbolTable::bindSort(const string& name, Sort t, bool levelZero)
+void SymbolTable::bindType(const string& name, api::Sort t, bool levelZero)
 {
-  d_implementation->bindSort(name, t, levelZero);
+  d_implementation->bindType(name, t, levelZero);
 }
 
-void SymbolTable::bindSort(const string& name,
-                           const vector<Sort>& params,
-                           Sort t,
+void SymbolTable::bindType(const string& name,
+                           const vector<api::Sort>& params,
+                           api::Sort t,
                            bool levelZero)
 {
-  d_implementation->bindSort(name, params, t, levelZero);
+  d_implementation->bindType(name, params, t, levelZero);
 }
 
 bool SymbolTable::isBound(const string& name) const
 {
   return d_implementation->isBound(name);
 }
-bool SymbolTable::isBoundSort(const string& name) const
+bool SymbolTable::isBoundType(const string& name) const
 {
-  return d_implementation->isBoundSort(name);
+  return d_implementation->isBoundType(name);
 }
-Term SymbolTable::lookup(const string& name) const
+api::Term SymbolTable::lookup(const string& name) const
 {
   return d_implementation->lookup(name);
 }
-Sort SymbolTable::lookupSort(const string& name) const
+api::Sort SymbolTable::lookupType(const string& name) const
 {
-  return d_implementation->lookupSort(name);
+  return d_implementation->lookupType(name);
 }
 
-Sort SymbolTable::lookupSort(const string& name,
-                             const vector<Sort>& params) const
+api::Sort SymbolTable::lookupType(const string& name,
+                             const vector<api::Sort>& params) const
 {
-  return d_implementation->lookupSort(name, params);
+  return d_implementation->lookupType(name, params);
 }
 size_t SymbolTable::lookupArity(const string& name) {
   return d_implementation->lookupArity(name);

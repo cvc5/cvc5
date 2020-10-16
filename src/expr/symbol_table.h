@@ -29,6 +29,11 @@
 
 namespace CVC4 {
 
+namespace api {
+class Sort;
+class Term;
+}  // namespace api
+  
 class CVC4_PUBLIC ScopeException : public Exception {};
 
 /**
@@ -65,7 +70,7 @@ class CVC4_PUBLIC SymbolTable {
    * Returns false if the binding was invalid.
    */
   bool bind(const std::string& name,
-            Term obj,
+            api::Term obj,
             bool levelZero = false,
             bool doOverload = false);
 
@@ -80,7 +85,7 @@ class CVC4_PUBLIC SymbolTable {
    * @param t the type to bind to <code>name</code>
    * @param levelZero set if the binding must be done at level 0
    */
-  void bindSort(const std::string& name, Sort t, bool levelZero = false);
+  void bindType(const std::string& name, api::Sort t, bool levelZero = false);
 
   /**
    * Bind a type to a name in the current scope.  If <code>name</code>
@@ -95,9 +100,9 @@ class CVC4_PUBLIC SymbolTable {
    * @param levelZero true to bind it globally (default is to bind it
    * locally within the current scope)
    */
-  void bindSort(const std::string& name,
-                const std::vector<Sort>& params,
-                Sort t,
+  void bindType(const std::string& name,
+                const std::vector<api::Sort>& params,
+                api::Sort t,
                 bool levelZero = false);
 
   /**
@@ -114,7 +119,7 @@ class CVC4_PUBLIC SymbolTable {
    * @param name the identifier to check.
    * @returns true iff name is bound to a type in the current scope.
    */
-  bool isBoundSort(const std::string& name) const;
+  bool isBoundType(const std::string& name) const;
 
   /**
    * Lookup a bound expression.
@@ -125,7 +130,7 @@ class CVC4_PUBLIC SymbolTable {
    * It returns the null expression if there is not a unique expression bound to
    * <code>name</code> in the current scope (i.e. if there is not exactly one).
    */
-  Term lookup(const std::string& name) const;
+  api::Term lookup(const std::string& name) const;
 
   /**
    * Lookup a bound type.
@@ -133,7 +138,7 @@ class CVC4_PUBLIC SymbolTable {
    * @param name the type identifier to lookup
    * @returns the type bound to <code>name</code> in the current scope.
    */
-  Sort lookupSort(const std::string& name) const;
+  api::Sort lookupType(const std::string& name) const;
 
   /**
    * Lookup a bound parameterized type.
@@ -143,8 +148,8 @@ class CVC4_PUBLIC SymbolTable {
    * @returns the type bound to <code>name(<i>params</i>)</code> in
    * the current scope.
    */
-  Sort lookupSort(const std::string& name,
-                  const std::vector<Sort>& params) const;
+  api::Sort lookupType(const std::string& name,
+                  const std::vector<api::Sort>& params) const;
 
   /**
    * Lookup the arity of a bound parameterized type.
@@ -170,27 +175,27 @@ class CVC4_PUBLIC SymbolTable {
 
   //------------------------ operator overloading
   /** is this function overloaded? */
-  bool isOverloadedFunction(Term fun) const;
+  bool isOverloadedFunction(api::Term fun) const;
 
   /** Get overloaded constant for type.
    * If possible, it returns the defined symbol with name
    * that has type t. Otherwise returns null expression.
   */
-  Term getOverloadedConstantForSort(const std::string& name, Sort t) const;
+  api::Term getOverloadedConstantForType(const std::string& name, api::Sort t) const;
 
   /**
    * If possible, returns the unique defined function for a name
-   * that expects arguments with types "argSorts".
-   * For example, if argSorts = (T1, ..., Tn), then this may return an
+   * that expects arguments with types "argTypes".
+   * For example, if argTypes = (T1, ..., Tn), then this may return an
    * expression with type function(T1, ..., Tn), or constructor(T1, ...., Tn).
    *
-   * If there is not a unique defined function for the name and argSorts,
+   * If there is not a unique defined function for the name and argTypes,
    * this returns the null expression. This can happen either if there are
-   * no functions with name and expected argSorts, or alternatively there is
-   * more than one function with name and expected argSorts.
+   * no functions with name and expected argTypes, or alternatively there is
+   * more than one function with name and expected argTypes.
    */
-  Term getOverloadedFunctionForSorts(const std::string& name,
-                                     const std::vector< Sort >& argSorts) const;
+  api::Term getOverloadedFunctionForTypes(const std::string& name,
+                                     const std::vector< api::Sort >& argTypes) const;
   //------------------------ end operator overloading
 
  private:
