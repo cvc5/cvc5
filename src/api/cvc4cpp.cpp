@@ -1752,12 +1752,6 @@ Op Term::getOp() const
 
 bool Term::isNull() const { return isNullHelper(); }
 
-bool Term::isValue() const
-{
-  CVC4_API_CHECK_NOT_NULL;
-  return d_node->isConst() || isCastedReal();
-}
-
 Term Term::getConstArrayBase() const
 {
   CVC4::ExprManagerScope exmgrs(*(d_solver->getExprManager()));

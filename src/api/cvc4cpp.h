@@ -958,13 +958,6 @@ class CVC4_PUBLIC Term
   bool isNull() const;
 
   /**
-   * Check if this is a Term representing a value.
-   *
-   * @return true if this is a Term representing a value
-   */
-  bool isValue() const;
-
-  /**
    *  Return the base (element stored at all indices) of a constant array
    *  throws an exception if the kind is not CONST_ARRAY
    *  @return the base value

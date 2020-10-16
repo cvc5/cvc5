@@ -42,7 +42,6 @@ class TermBlack : public CxxTest::TestSuite
   void testTermCompare();
   void testTermChildren();
   void testSubstitute();
-  void testIsValue();
   void testConstArray();
   void testConstSequenceElements();
 
@@ -750,20 +749,6 @@ void TermBlack::testSubstitute()
   TS_ASSERT_THROWS(xpx.substitute(es, rs), CVC4ApiException&);
 }
 
-void TermBlack::testIsValue()
-{
-  Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
-  Term one = d_solver.mkInteger(1);
-  Term xpone = d_solver.mkTerm(PLUS, x, one);
-  Term onepone = d_solver.mkTerm(PLUS, one, one);
-  TS_ASSERT(!x.isValue());
-  TS_ASSERT(one.isValue());
-  TS_ASSERT(!xpone.isValue());
-  TS_ASSERT(!onepone.isValue());
-  Term tnull;
-  TS_ASSERT_THROWS(tnull.isValue(), CVC4ApiException&);
-}
-
 void TermBlack::testConstArray()
 {
   Sort intsort = d_solver.getIntegerSort();
@@ -771,9 +756,6 @@ void TermBlack::testConstArray()
   Term a = d_solver.mkConst(arrsort, "a");
   Term one = d_solver.mkInteger(1);
   Term constarr = d_solver.mkConstArray(arrsort, one);
-
-  TS_ASSERT(!a.isValue());
-  TS_ASSERT(constarr.isValue());
 
   TS_ASSERT_EQUALS(constarr.getKind(), CONST_ARRAY);
   TS_ASSERT_EQUALS(constarr.getConstArrayBase(), one);
@@ -788,8 +770,6 @@ void TermBlack::testConstArray()
       d_solver.mkTerm(STORE, stores, d_solver.mkReal(2), d_solver.mkReal(3));
   stores =
       d_solver.mkTerm(STORE, stores, d_solver.mkReal(4), d_solver.mkReal(5));
-
-  TS_ASSERT(stores.isValue());
 }
 
 void TermBlack::testConstSequenceElements()
@@ -798,7 +778,6 @@ void TermBlack::testConstSequenceElements()
   Sort seqsort = d_solver.mkSequenceSort(realsort);
   Term s = d_solver.mkEmptySequence(seqsort);
 
-  TS_ASSERT(s.isValue());
 
   TS_ASSERT_EQUALS(s.getKind(), CONST_SEQUENCE);
   // empty sequence has zero elements

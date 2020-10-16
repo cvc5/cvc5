@@ -45,8 +45,6 @@ def testGetArray():
     stores = solver.mkTerm(kinds.Store, stores, solver.mkInteger(2), solver.mkInteger(3))
     stores = solver.mkTerm(kinds.Store, stores, solver.mkInteger(4), solver.mkInteger(5))
 
-    assert stores.isValue()
-
     array_dict = stores.toPythonObj()
 
     assert array_dict[1] == 2
@@ -58,10 +56,7 @@ def testGetArray():
 
 def testGetSymbol():
     solver = pycvc4.Solver()
-    x = solver.mkConst(solver.getBooleanSort(), "x")
-
-    with pytest.raises(RuntimeError):
-        x.toPythonObj()
+    solver.mkConst(solver.getBooleanSort(), "x")
 
 
 def testGetString():
