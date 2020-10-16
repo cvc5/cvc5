@@ -27,7 +27,7 @@ def testGetReal():
     neg34 = solver.mkReal("-3/4")
     assert neg34.toPythonObj() == Fraction(-3, 4)
 
-    neg1 = solver.mkReal("-1")
+    neg1 = solver.mkInteger("-1")
     assert neg1.toPythonObj() == -1
 
 
@@ -45,6 +45,7 @@ def testGetArray():
     stores = solver.mkTerm(kinds.Store, stores, solver.mkReal(2), solver.mkReal(3))
     stores = solver.mkTerm(kinds.Store, stores, solver.mkReal(4), solver.mkReal(5))
 
+    print(stores)
     assert stores.isValue()
 
     array_dict = stores.toPythonObj()

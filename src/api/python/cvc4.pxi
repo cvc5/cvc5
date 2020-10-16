@@ -666,10 +666,8 @@ cdef class Solver:
 
     def mkInteger(self, val):
         cdef Term term = Term(self)
-        if not isinstance(val, int):
-            raise ValueError("Expecting integer"
-                             " but got: {}".format((val)))
-        term.cterm = self.csolver.mkInteger("{}".format(val).encode())
+        integer = int(val)
+        term.cterm = self.csolver.mkInteger("{}".format(integer).encode())
         return term
 
     def mkReal(self, val, den=None):
