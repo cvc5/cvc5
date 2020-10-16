@@ -260,10 +260,13 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
             {
               // set its exact model value in the substitution
               Node curv = computeConcreteModelValue(cur);
-              Trace("nl-ext-cm")
-                  << "check-model-bound : exact : " << cur << " = ";
-              printRationalApprox("nl-ext-cm", curv);
-              Trace("nl-ext-cm") << std::endl;
+              if (Trace.isOn("nl-ext-cm"))
+              {
+                Trace("nl-ext-cm")
+                    << "check-model-bound : exact : " << cur << " = ";
+                printRationalApprox("nl-ext-cm", curv);
+                Trace("nl-ext-cm") << std::endl;
+              }
               bool ret = addCheckModelSubstitution(cur, curv);
               AlwaysAssert(ret);
             }
@@ -591,9 +594,12 @@ bool NlModel::solveEqualitySimple(Node eq,
       if (uvf.isVar() && !hasCheckModelAssignment(uvf))
       {
         Node uvfv = computeConcreteModelValue(uvf);
-        Trace("nl-ext-cm") << "check-model-bound : exact : " << uvf << " = ";
-        printRationalApprox("nl-ext-cm", uvfv);
-        Trace("nl-ext-cm") << std::endl;
+        if (Trace.isOn("nl-ext-cm"))
+        {
+          Trace("nl-ext-cm") << "check-model-bound : exact : " << uvf << " = ";
+          printRationalApprox("nl-ext-cm", uvfv);
+          Trace("nl-ext-cm") << std::endl;
+        }
         bool ret = addCheckModelSubstitution(uvf, uvfv);
         // recurse
         return ret ? solveEqualitySimple(eq, d, lemmas) : false;
@@ -620,9 +626,12 @@ bool NlModel::solveEqualitySimple(Node eq,
       return false;
     }
     Node val = nm->mkConst(-c.getConst<Rational>() / b.getConst<Rational>());
-    Trace("nl-ext-cm") << "check-model-bound : exact : " << var << " = ";
-    printRationalApprox("nl-ext-cm", val);
-    Trace("nl-ext-cm") << std::endl;
+    if (Trace.isOn("nl-ext-cm"))
+    {
+      Trace("nl-ext-cm") << "check-model-bound : exact : " << var << " = ";
+      printRationalApprox("nl-ext-cm", val);
+      Trace("nl-ext-cm") << std::endl;
+    }
     bool ret = addCheckModelSubstitution(var, val);
     if (ret)
     {
@@ -701,31 +710,40 @@ bool NlModel::solveEqualitySimple(Node eq,
                    nm->mkNode(MULT,
                               nm->mkConst(Rational(1) / Rational(2)),
                               nm->mkNode(PLUS, bounds[r][0], bounds[r][1])));
-    Trace("nl-ext-cm-debug") << "Bound option #" << r << " : ";
-    printRationalApprox("nl-ext-cm-debug", bounds[r][0]);
-    Trace("nl-ext-cm-debug") << "...";
-    printRationalApprox("nl-ext-cm-debug", bounds[r][1]);
-    Trace("nl-ext-cm-debug") << std::endl;
+    if (Trace.isOn("nl-ext-cm-debug"))
+    {
+      Trace("nl-ext-cm-debug") << "Bound option #" << r << " : ";
+      printRationalApprox("nl-ext-cm-debug", bounds[r][0]);
+      Trace("nl-ext-cm-debug") << "...";
+      printRationalApprox("nl-ext-cm-debug", bounds[r][1]);
+      Trace("nl-ext-cm-debug") << std::endl;
+    }
     diff = Rewriter::rewrite(diff);
     Assert(diff.isConst());
     diff = nm->mkConst(diff.getConst<Rational>().abs());
     diff_bound[r] = diff;
-    Trace("nl-ext-cm-debug") << "...diff from model value (";
-    printRationalApprox("nl-ext-cm-debug", m_var);
-    Trace("nl-ext-cm-debug") << ") is ";
-    printRationalApprox("nl-ext-cm-debug", diff_bound[r]);
-    Trace("nl-ext-cm-debug") << std::endl;
+    if (Trace.isOn("nl-ext-cm-debug"))
+    {
+      Trace("nl-ext-cm-debug") << "...diff from model value (";
+      printRationalApprox("nl-ext-cm-debug", m_var);
+      Trace("nl-ext-cm-debug") << ") is ";
+      printRationalApprox("nl-ext-cm-debug", diff_bound[r]);
+      Trace("nl-ext-cm-debug") << std::endl;
+    }
   }
   // take the one that var is closer to in the model
   Node cmp = nm->mkNode(GEQ, diff_bound[0], diff_bound[1]);
   cmp = Rewriter::rewrite(cmp);
   Assert(cmp.isConst());
   unsigned r_use_index = cmp == d_true ? 1 : 0;
-  Trace("nl-ext-cm") << "check-model-bound : approximate (sqrt) : ";
-  printRationalApprox("nl-ext-cm", bounds[r_use_index][0]);
-  Trace("nl-ext-cm") << " <= " << var << " <= ";
-  printRationalApprox("nl-ext-cm", bounds[r_use_index][1]);
-  Trace("nl-ext-cm") << std::endl;
+  if (Trace.isOn("nl-ext-cm"))
+  {
+    Trace("nl-ext-cm") << "check-model-bound : approximate (sqrt) : ";
+    printRationalApprox("nl-ext-cm", bounds[r_use_index][0]);
+    Trace("nl-ext-cm") << " <= " << var << " <= ";
+    printRationalApprox("nl-ext-cm", bounds[r_use_index][1]);
+    Trace("nl-ext-cm") << std::endl;
+  }
   bool ret =
       addCheckModelBound(var, bounds[r_use_index][0], bounds[r_use_index][1]);
   if (ret)

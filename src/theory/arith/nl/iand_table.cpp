@@ -38,27 +38,46 @@ Node pow2(uint64_t k)
 
 bool oneBitAnd(bool a, bool b) { return (a && b); }
 
+// computes (bv_to_int ((_ extract i+size-1 i) (int_to_bv x))))
+Node intExtract(Node x, uint64_t i, uint64_t size)
+{
+  Assert(size > 0);
+  NodeManager* nm = NodeManager::currentNM();
+  // extract definition in integers is:
+  // (mod (div a (two_to_the j)) (two_to_the (+ (- i j) 1))))
+  Node extract =
+      nm->mkNode(kind::INTS_MODULUS_TOTAL,
+                 nm->mkNode(kind::INTS_DIVISION_TOTAL, x, pow2(i * size)),
+                 pow2(size));
+  return extract;
+}
+
 Node IAndTable::createITEFromTable(
     Node x,
     Node y,
     uint64_t granularity,
-    const std::map<std::pair<uint64_t, uint64_t>, uint64_t>& table)
+    const std::map<std::pair<int64_t, int64_t>, uint64_t>& table)
 {
   NodeManager* nm = NodeManager::currentNM();
   Assert(granularity <= 8);
-  uint64_t max_value = ((uint64_t)pow(2, granularity));
+  uint64_t num_of_values = ((uint64_t)pow(2, granularity));
   // The table represents a function from pairs of integers to integers, where
-  // all integers are between 0 (inclusive) and max_value (exclusive).
-  Assert(table.size() == max_value * max_value);
-  Node ite = nm->mkConst<Rational>(table.at(std::make_pair(0, 0)));
-  for (uint64_t i = 0; i < max_value; i++)
+  // all integers are between 0 (inclusive) and num_of_values (exclusive).
+  // additionally, there is a default value (-1, -1).
+  Assert(table.size() == 1 + ((uint64_t)(num_of_values * num_of_values)));
+  // start with the default, most common value.
+  // this value is represented in the table by (-1, -1).
+  Node ite = nm->mkConst<Rational>(table.at(std::make_pair(-1, -1)));
+  for (uint64_t i = 0; i < num_of_values; i++)
   {
-    for (uint64_t j = 0; j < max_value; j++)
+    for (uint64_t j = 0; j < num_of_values; j++)
     {
-      if ((i == 0) && (j == 0))
+      // skip the most common value, as it was already stored.
+      if (table.at(std::make_pair(i, j)) == table.at(std::make_pair(-1, -1)))
       {
         continue;
       }
+      // append the current value to the ite.
       ite = nm->mkNode(
           kind::ITE,
           nm->mkNode(kind::AND,
@@ -77,12 +96,10 @@ Node IAndTable::createBitwiseNode(Node x,
                                   uint64_t granularity)
 {
   NodeManager* nm = NodeManager::currentNM();
-  /**
-   * Standardize granularity.
-   * If it is greater than bvsize, it is set to bvsize.
-   * Otherwise, it is set to the closest (going down)  divider of bvsize.
-   */
   Assert(0 < granularity && granularity <= 8);
+  // Standardize granularity.
+  // If it is greater than bvsize, it is set to bvsize.
+  // Otherwise, it is set to the closest (going down)  divider of bvsize.
   if (granularity > bvsize)
   {
     granularity = bvsize;
@@ -94,15 +111,56 @@ Node IAndTable::createBitwiseNode(Node x,
       granularity = granularity - 1;
     }
   }
-  // transform f into a table
-  // f is defined over 1 bit, while the table is defined over `granularity` bits
-  std::map<std::pair<uint64_t, uint64_t>, uint64_t> table;
-  uint64_t max_value = ((uint64_t)pow(2, granularity));
-  for (uint64_t i = 0; i < max_value; i++)
+
+  // Create the sum.
+  // For granularity 1, the sum has bvsize elements.
+  // In contrast, if bvsize = granularity, sum has one element.
+  // Each element in the sum is an ite that corresponds to the generated table,
+  // multiplied by the appropriate power of two.
+  // More details are in bv_to_int.h .
+
+  // number of elements in the sum expression
+  uint64_t sumSize = bvsize / granularity;
+  // initialize the sum
+  Node sumNode = nm->mkConst<Rational>(0);
+  // compute the table for the current granularity if needed
+  if (d_bvandTable.find(granularity) == d_bvandTable.end())
   {
-    for (uint64_t j = 0; j < max_value; j++)
+    computeAndTable(granularity);
+  }
+  const std::map<std::pair<int64_t, int64_t>, uint64_t>& table =
+      d_bvandTable[granularity];
+  for (uint64_t i = 0; i < sumSize; i++)
+  {
+    // compute the current blocks of x and y
+    Node xExtract = intExtract(x, i, granularity);
+    Node yExtract = intExtract(y, i, granularity);
+    // compute the ite for this part
+    Node sumPart = createITEFromTable(xExtract, yExtract, granularity, table);
+    // append the current block to the sum
+    sumNode =
+        nm->mkNode(kind::PLUS,
+                   sumNode,
+                   nm->mkNode(kind::MULT, pow2(i * granularity), sumPart));
+  }
+  return sumNode;
+}
+
+void IAndTable::computeAndTable(uint64_t granularity)
+{
+  Assert(d_bvandTable.find(granularity) == d_bvandTable.end());
+  // the table was not yet computed
+  std::map<std::pair<int64_t, int64_t>, uint64_t> table;
+  uint64_t num_of_values = ((uint64_t)pow(2, granularity));
+  // populate the table with all the values
+  for (uint64_t i = 0; i < num_of_values; i++)
+  {
+    for (uint64_t j = 0; j < num_of_values; j++)
     {
-      uint64_t sum = 0;
+      // compute
+      // (bv_to_int (bvand ((int_to_bv granularity) i) ((int_to_bv granularity)
+      // j)))
+      int64_t sum = 0;
       for (uint64_t n = 0; n < granularity; n++)
       {
         // b is the result of f on the current bit
@@ -116,39 +174,46 @@ Node IAndTable::createBitwiseNode(Node x,
       table[std::make_pair(i, j)] = sum;
     }
   }
-  Assert(table.size() == max_value * max_value);
+  // optimize the table by identifying and adding the default value
+  addDefaultValue(table, num_of_values);
+  Assert(table.size() == 1 + (static_cast<uint64_t>(num_of_values * num_of_values)));
+  // store the table in the cache and return it
+  d_bvandTable[granularity] = table;
+}
 
-  /*
-   * Create the sum.
-   * For granularity 1, the sum has bvsize elements.
-   * In contrast, if bvsize = granularity, sum has one element.
-   * Each element in the sum is an ite that corresponds to the generated table,
-   * multiplied by the appropriate power of two.
-   * More details are in bv_to_int.h .
-   */
-  uint64_t sumSize = bvsize / granularity;
-  Node sumNode = nm->mkConst<Rational>(0);
-  /**
-   * extract definition in integers is:
-   * (define-fun intextract ((k Int) (i Int) (j Int) (a Int)) Int
-   * (mod (div a (two_to_the j)) (two_to_the (+ (- i j) 1))))
-   */
-  for (uint64_t i = 0; i < sumSize; i++)
+void IAndTable::addDefaultValue(
+    std::map<std::pair<int64_t, int64_t>, uint64_t>& table,
+    uint64_t num_of_values)
+{
+  // map each result to the number of times it occurs
+  std::map<uint64_t, uint64_t> counters;
+  for (uint64_t i = 0; i <= num_of_values; i++)
   {
-    Node xExtract = nm->mkNode(
-        kind::INTS_MODULUS_TOTAL,
-        nm->mkNode(kind::INTS_DIVISION_TOTAL, x, pow2(i * granularity)),
-        pow2(granularity));
-    Node yExtract = nm->mkNode(
-        kind::INTS_MODULUS_TOTAL,
-        nm->mkNode(kind::INTS_DIVISION_TOTAL, y, pow2(i * granularity)),
-        pow2(granularity));
-    Node ite = createITEFromTable(xExtract, yExtract, granularity, table);
-    sumNode = nm->mkNode(kind::PLUS,
-                         sumNode,
-                         nm->mkNode(kind::MULT, pow2(i * granularity), ite));
+    counters[i] = 0;
   }
-  return sumNode;
+  for (const std::pair<std::pair<int64_t, int64_t>, uint64_t>& element : table)
+  {
+    uint64_t result = element.second;
+    counters[result]++;
+  }
+
+  // compute the most common result
+  uint64_t most_common_result = 0;
+  uint64_t max_num_of_occ = 0;
+  for (uint64_t i = 0; i <= num_of_values; i++)
+  {
+    if (counters[i] >= max_num_of_occ)
+    {
+      max_num_of_occ = counters[i];
+      most_common_result = i;
+    }
+  }
+  // sanity check: some value appears at least once.
+  Assert(max_num_of_occ != 0);
+
+  // -1 is the default case of the table.
+  // add it to the table
+  table[std::make_pair(-1, -1)] = most_common_result;
 }
 
 }  // namespace nl

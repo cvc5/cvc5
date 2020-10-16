@@ -33,8 +33,12 @@ bool ProofNodeUpdaterCallback::update(Node res,
 }
 
 ProofNodeUpdater::ProofNodeUpdater(ProofNodeManager* pnm,
-                                   ProofNodeUpdaterCallback& cb)
-    : d_pnm(pnm), d_cb(cb), d_debugFreeAssumps(false)
+                                   ProofNodeUpdaterCallback& cb,
+                                   bool mergeSubproofs)
+    : d_pnm(pnm),
+      d_cb(cb),
+      d_debugFreeAssumps(false),
+      d_mergeSubproofs(mergeSubproofs)
 {
 }
 
@@ -60,11 +64,14 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
       }
     }
   }
-  processInternal(pf, d_freeAssumps);
+  std::vector<std::shared_ptr<ProofNode>> traversing;
+  processInternal(pf, d_freeAssumps, traversing);
 }
 
-void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
-                                       const std::vector<Node>& fa)
+void ProofNodeUpdater::processInternal(
+    std::shared_ptr<ProofNode> pf,
+    const std::vector<Node>& fa,
+    std::vector<std::shared_ptr<ProofNode>>& traversing)
 {
   Trace("pf-process") << "ProofNodeUpdater::process" << std::endl;
   std::unordered_map<std::shared_ptr<ProofNode>, bool> visited;
@@ -86,33 +93,39 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
     res = cur->getResult();
     if (it == visited.end())
     {
-      itc = resCache.find(res);
-      if (itc != resCache.end())
+      if (d_mergeSubproofs)
       {
-        // already have a proof
-        visited[cur] = true;
-        d_pnm->updateNode(cur.get(), itc->second.get());
-      }
-      else
-      {
-        visited[cur] = false;
-        // run update to a fixed point
-        bool continueUpdate = true;
-        while (runUpdate(cur, fa, continueUpdate) && continueUpdate)
+        itc = resCache.find(res);
+        if (itc != resCache.end())
         {
-          Trace("pf-process-debug") << "...updated proof." << std::endl;
-        }
-        if (!continueUpdate)
-        {
-          // no further changes should be made to cur according to the callback
-          Trace("pf-process-debug")
-              << "...marked to not continue update." << std::endl;
+          // already have a proof, merge it into this one
+          visited[cur] = true;
+          d_pnm->updateNode(cur.get(), itc->second.get());
           continue;
         }
-        visit.push_back(cur);
+      }
+      // run update to a fixed point
+      bool continueUpdate = true;
+      while (runUpdate(cur, fa, continueUpdate) && continueUpdate)
+      {
+        Trace("pf-process-debug") << "...updated proof." << std::endl;
+      }
+      visited[cur] = !continueUpdate;
+      if (!continueUpdate)
+      {
+        // no further changes should be made to cur according to the callback
+        Trace("pf-process-debug")
+            << "...marked to not continue update." << std::endl;
+        runFinalize(cur, fa, resCache);
+        continue;
+      }
+      traversing.push_back(cur);
+      visit.push_back(cur);
+      if (d_mergeSubproofs)
+      {
         // If we are not the top-level proof, we were a scope, or became a
         // scope after updating, we need to make a separate recursive call to
-        // this method.
+        // this method. This is not necessary if we are not merging subproofs.
         if (cur->getRule() == PfRule::SCOPE && cur != pf)
         {
           std::vector<Node> nfa;
@@ -127,31 +140,32 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
           }
           // Process in new call separately, since we should not cache
           // the results of proofs that have a different scope.
-          processInternal(cur, nfa);
+          processInternal(cur, nfa, traversing);
           continue;
         }
-        const std::vector<std::shared_ptr<ProofNode>>& ccp = cur->getChildren();
-        // now, process children
-        for (const std::shared_ptr<ProofNode>& cp : ccp)
+      }
+      const std::vector<std::shared_ptr<ProofNode>>& ccp = cur->getChildren();
+      // now, process children
+      for (const std::shared_ptr<ProofNode>& cp : ccp)
+      {
+        if (std::find(traversing.begin(), traversing.end(), cp)
+            != traversing.end())
         {
-          visit.push_back(cp);
+          Unhandled()
+              << "ProofNodeUpdater::processInternal: cyclic proof! (use "
+                 "--proof-new-eager-checking)"
+              << std::endl;
         }
+        visit.push_back(cp);
       }
     }
     else if (!it->second)
     {
+      Assert(!traversing.empty());
+      traversing.pop_back();
       visited[cur] = true;
-      // cache result
-      resCache[res] = cur;
-      if (d_debugFreeAssumps)
-      {
-        // We have that npn is a node we occurring the final updated version of
-        // the proof. We can now debug based on the expected set of free
-        // assumptions.
-        Trace("pfnu-debug") << "Ensure update closed..." << std::endl;
-        pfnEnsureClosedWrt(
-            cur.get(), fa, "pfnu-debug", "ProofNodeUpdater:finalize");
-      }
+      // finalize the node
+      runFinalize(cur, fa, resCache);
     }
   } while (!visit.empty());
   Trace("pf-process") << "ProofNodeUpdater::process: finished" << std::endl;
@@ -210,6 +224,28 @@ bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur,
   }
   Trace("pf-process-debug") << "..finished" << std::endl;
   return false;
+}
+
+void ProofNodeUpdater::runFinalize(
+    std::shared_ptr<ProofNode> cur,
+    const std::vector<Node>& fa,
+    std::map<Node, std::shared_ptr<ProofNode>>& resCache)
+{
+  if (d_mergeSubproofs)
+  {
+    Node res = cur->getResult();
+    // cache result if we are merging subproofs
+    resCache[res] = cur;
+  }
+  if (d_debugFreeAssumps)
+  {
+    // We have that npn is a node we occurring the final updated version of
+    // the proof. We can now debug based on the expected set of free
+    // assumptions.
+    Trace("pfnu-debug") << "Ensure update closed..." << std::endl;
+    pfnEnsureClosedWrt(
+        cur.get(), fa, "pfnu-debug", "ProofNodeUpdater:finalize");
+  }
 }
 
 void ProofNodeUpdater::setDebugFreeAssumptions(
