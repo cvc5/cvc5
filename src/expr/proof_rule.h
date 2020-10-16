@@ -278,8 +278,8 @@ enum class PfRule : uint32_t
   //   - L is the pivot of the resolution, which occurs as is (resp. under a
   //     NOT) in C1 and negatively (as is) in C2 if id = true (id = false).
   //   C is a clause resulting from collecting all the literals in C1, minus the
-  //   first occurrence of the pivot, and C2, minus the first occurrence of the
-  //   pivot, according to the policy above.
+  //   first occurrence of the pivot or its negation, and C2, minus the first
+  //   occurrence of the pivot or its negation, according to the policy above.
   //
   //   Note that it may be the case that the pivot does not occur in the
   //   clauses. In this case the rule is not unsound, but it does not correspond
@@ -1060,8 +1060,8 @@ enum class PfRule : uint32_t
   // A formula "Interval" describes that a variable (xn is none is given) is
   // within a particular interval whose bounds are given as IRPs. It is either
   // an open interval or a point interval:
-  //   (not (IRP k poly) < xn < (IRP k poly)
-  //   (not xn == (IRP k poly(A)))
+  //   (IRP k poly) < xn < (IRP k poly)
+  //   xn == (IRP k poly)
   //
   // A formula "Cell" describes a portion
   // of the real space in the following form:

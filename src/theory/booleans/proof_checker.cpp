@@ -122,7 +122,10 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
         }
       }
     }
-    return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
+    return disjuncts.empty()
+               ? nm->mkConst(false)
+               : disjuncts.size() == 1 ? disjuncts[0]
+                                       : nm->mkNode(kind::OR, disjuncts);
   }
   if (id == PfRule::FACTORING)
   {
@@ -271,7 +274,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     }
     Trace("bool-pfcheck") << "clause: " << clauseNodes << "\n" << pop;
     return clauseNodes.empty()
-               ? nm->mkConst<bool>(false)
+               ? nm->mkConst(false)
                : clauseNodes.size() == 1 ? clauseNodes[0]
                                          : nm->mkNode(kind::OR, clauseNodes);
   }

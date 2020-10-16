@@ -135,6 +135,9 @@ libcvc4_add_sources(
   proof/cnf_proof.h
   proof/proof_manager.cpp
   proof/proof_manager.h
+  proof/lean/lean_post_processor.cpp
+  proof/lean/lean_post_processor.h
+  proof/lean/lean_printer.h
   proof/sat_proof.h
   proof/sat_proof_implementation.h
   proof/unsat_core.cpp
@@ -343,6 +346,8 @@ libcvc4_add_sources(
   theory/arith/nl/cad/projections.h
   theory/arith/nl/cad/proof_checker.cpp
   theory/arith/nl/cad/proof_checker.h
+  theory/arith/nl/cad/proof_generator.cpp
+  theory/arith/nl/cad/proof_generator.h
   theory/arith/nl/cad/variable_ordering.cpp
   theory/arith/nl/cad/variable_ordering.h
   theory/arith/nl/ext_theory_callback.cpp

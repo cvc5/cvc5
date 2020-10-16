@@ -14,23 +14,38 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROOF__LEAN_PROOF_POST_PROCESSOR_H
-#define CVC4__PROOF__LEAN_PROOF_POST_PROCESSOR_H
+#ifndef CVC4__PROOF__LEAN_PROOF_PRINTER_H
+#define CVC4__PROOF__LEAN_PROOF_PRINTER_H
 
-enum LeanRule
+#include <iostream>
+
+#include "expr/proof_node.h"
+
+namespace CVC4 {
+namespace proof {
+
+enum class LeanRule : uint32_t
 {
+  // in what format should I put these lean rules
   // all the lean rules
 };
 
-static void leanPrinter(std::ostream& out, ProofNode* pfn)
+static void leanPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn)
 {
   // should print preamble
   // should print sorts
   // should print terms, letified
 
   // should print theorem statement
+  out << "hello world"
+      << "\n";
 
   // should traverse proof node, print each as a proof step, according to the
   // LEAN_RULE id in the LeanRule enum
   out << pfn;
 }
+
+}  // namespace proof
+}  // namespace CVC4
+
+#endif

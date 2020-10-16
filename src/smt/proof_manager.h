@@ -23,6 +23,7 @@
 #include "expr/proof_checker.h"
 #include "expr/proof_node.h"
 #include "expr/proof_node_manager.h"
+#include "proof/lean/lean_post_processor.h"
 #include "smt/preprocess_proof_generator.h"
 #include "smt/proof_post_processor.h"
 #include "theory/rewrite_db.h"
@@ -93,6 +94,7 @@ class PfManager
   std::unique_ptr<smt::PreprocessProofGenerator> d_pppg;
   /** The proof post-processor */
   std::unique_ptr<smt::ProofPostproccess> d_pfpp;
+  std::unique_ptr<proof::LeanProofPostprocess> d_lpfpp;
   /**
    * The final proof produced by the SMT engine.
    * Combines the proofs of preprocessing, prop engine and theory engine, to be
