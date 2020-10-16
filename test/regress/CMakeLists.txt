@@ -221,6 +221,10 @@ set(regress_0_tests
   regress0/bv/bv-to-bool1.smtv1.smt2
   regress0/bv/bv-to-bool2.smt2
   regress0/bv/bv_to_int1.smt2
+  regress0/bv/bv_to_int_5230_shift_const.smt2
+  regress0/bv/bv_to_int_5230_binary.smt2
+  regress0/bv/bv_to_int_5230_missing_op.smt2
+  regress0/bv/bv_to_int_5281.smt2
   regress0/bv/bv_to_int_bvmul2.smt2
   regress0/bv/bv_to_int_bvuf_to_intuf.smt2
   regress0/bv/bv_to_int_bvuf_to_intuf_sorts.smt2
@@ -1430,6 +1434,7 @@ set(regress_1_tests
   regress1/nl/exp_monotone.smt2
   regress1/nl/factor_agg_s.smt2
   regress1/nl/iand-native-1.smt2
+  regress1/nl/iand-native-2.smt2
   regress1/nl/issue3300-approx-sqrt-witness.smt2
   regress1/nl/issue3441.smt2
   regress1/nl/issue3617.smt2

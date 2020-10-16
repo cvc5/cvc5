@@ -280,6 +280,7 @@ enum class PfRule : uint32_t
   //  Set representations of C1 and C2 is the same but the number of literals in
   //  C2 is the same of that of C1
   REORDERING,
+
   // ======== Split
   // Children: none
   // Arguments: (F)
@@ -293,6 +294,25 @@ enum class PfRule : uint32_t
   // Conclusion: (F2)
   // Note this can optionally be seen as a macro for EQUIV_ELIM1+RESOLUTION.
   EQ_RESOLVE,
+  // ======== Modus ponens
+  // Children: (P1:F1, P2:(=> F1 F2))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (F2)
+  // Note this can optionally be seen as a macro for IMPLIES_ELIM+RESOLUTION.
+  MODUS_PONENS,
+  // ======== Double negation elimination
+  // Children: (P:(not (not F)))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (F)
+  NOT_NOT_ELIM,
+  // ======== Contradiction
+  // Children: (P1:F P2:(not F))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: false
+  CONTRA,
   // ======== And elimination
   // Children: (P:(and F1 ... Fn))
   // Arguments: (i)
@@ -401,12 +421,6 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (or C (not F2))
   NOT_ITE_ELIM2,
-  // ======== Not ITE elimination version 1
-  // Children: (P1:P P2:(not P))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (false)
-  CONTRA,
 
   //================================================= De Morgan rules
   // ======== Not And
