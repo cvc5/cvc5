@@ -33,13 +33,13 @@ namespace smt {
  * A callback class used by SmtEngine for post-processing proof nodes by
  * connecting proofs of preprocessing, and expanding macro PfRule applications.
  */
-class ProofPostproccessCallback : public ProofNodeUpdaterCallback
+class ProofPostprocessCallback : public ProofNodeUpdaterCallback
 {
  public:
-  ProofPostproccessCallback(ProofNodeManager* pnm,
+  ProofPostprocessCallback(ProofNodeManager* pnm,
                            SmtEngine* smte,
                            ProofGenerator* pppg);
-  ~ProofPostproccessCallback() {}
+  ~ProofPostprocessCallback() {}
   /**
    * Initialize, called once for each new ProofNode to process. This initializes
    * static information to be used by successive calls to update.
@@ -152,11 +152,11 @@ class ProofPostproccessCallback : public ProofNodeUpdaterCallback
 };
 
 /** Final callback class, for stats and pedantic checking */
-class ProofPostproccessFinalCallback : public ProofNodeUpdaterCallback
+class ProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
 {
  public:
-  ProofPostproccessFinalCallback(ProofNodeManager* pnm);
-  ~ProofPostproccessFinalCallback();
+  ProofPostprocessFinalCallback(ProofNodeManager* pnm);
+  ~ProofPostprocessFinalCallback();
   /**
    * Initialize, called once for each new ProofNode to process. This initializes
    * static information to be used by successive calls to update.
@@ -187,13 +187,13 @@ class ProofPostproccessFinalCallback : public ProofNodeUpdaterCallback
  * (1) Connect proofs of preprocessing,
  * (2) Expand macro PfRule applications.
  */
-class ProofPostproccess
+class ProofPostprocess
 {
  public:
-  ProofPostproccess(ProofNodeManager* pnm,
+  ProofPostprocess(ProofNodeManager* pnm,
                    SmtEngine* smte,
                    ProofGenerator* pppg);
-  ~ProofPostproccess();
+  ~ProofPostprocess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
   /** set eliminate rule */
@@ -205,11 +205,11 @@ class ProofPostproccess
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /** The post process callback */
-  ProofPostproccessCallback d_cb;
+  ProofPostprocessCallback d_cb;
   /** The updater */
   ProofNodeUpdater d_updater;
   /** The post process callback for finalization */
-  ProofPostproccessFinalCallback d_finalCb;
+  ProofPostprocessFinalCallback d_finalCb;
   /** The finalizer */
   ProofNodeUpdater d_finalizer;
 };
