@@ -417,7 +417,7 @@ Node StringsPreprocess::reduce(Node t,
     // is just an optimization.
 
     retNode = stoit;
-  } 
+  }
   else if (t.getKind() == kind::SEQ_NTH)
   {
     // processing term:  str.nth( s, n)
@@ -427,9 +427,9 @@ Node StringsPreprocess::reduce(Node t,
     Node skt = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "sst");
     Node t12 = nm->mkNode(PLUS, n, one);
     Node lt0 = nm->mkNode(STRING_LENGTH, s);
-    //start point is greater than or equal zero
+    // start point is greater than or equal zero
     Node c1 = nm->mkNode(GEQ, n, zero);
-    //start point is less than end of string
+    // start point is less than end of string
     Node c2 = nm->mkNode(GT, lt0, n);
     // check whether this application of seq.nth is defined.
     Node cond = nm->mkNode(AND, c1, c2);
@@ -439,10 +439,10 @@ Node StringsPreprocess::reduce(Node t,
     Node sk2 = sc->mkSkolemCached(s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
     Node unit = nm->mkNode(SEQ_UNIT, skt);
     Node b11 = s.eqNode(nm->mkNode(STRING_CONCAT, sk1, unit, sk2));
-    //length of first skolem is second argument
+    // length of first skolem is second argument
     Node b12 = nm->mkNode(STRING_LENGTH, sk1).eqNode(n);
     Node lsk2 = nm->mkNode(STRING_LENGTH, sk2);
-    Node b13 = nm->mkNode(EQUAL, lsk2, nm->mkNode(MINUS, lt0, t12)); 
+    Node b13 = nm->mkNode(EQUAL, lsk2, nm->mkNode(MINUS, lt0, t12));
     Node b1 = nm->mkNode(AND, b11, b12, b13);
 
     // nodes for the case where `seq.nth` is undefined.
@@ -451,7 +451,8 @@ Node StringsPreprocess::reduce(Node t,
     argTypes.push_back(nm->integerType());
     TypeNode elemType = s.getType().getSequenceElementType();
     TypeNode ufType = nm->mkFunctionType(argTypes, elemType);
-    Node uf = sc->mkTypedSkolemCached(ufType, Node::null(), Node::null(), SkolemCache::SK_NTH, "Uf");
+    Node uf = sc->mkTypedSkolemCached(
+        ufType, Node::null(), Node::null(), SkolemCache::SK_NTH, "Uf");
     Node b2 = nm->mkNode(EQUAL, skt, nm->mkNode(APPLY_UF, uf, s, n));
 
     // the full ite, split on definedness of `seq.nth`
@@ -526,7 +527,7 @@ Node StringsPreprocess::reduce(Node t,
 
     // Thus, replace( x, y, z ) = rpw.
     retNode = rpw;
-  } 
+  }
   else if (t.getKind() == kind::STRING_STRREPLALL)
   {
     // processing term: replaceall( x, y, z )
