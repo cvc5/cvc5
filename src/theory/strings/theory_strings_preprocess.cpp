@@ -454,12 +454,12 @@ Node StringsPreprocess::reduce(Node t,
     Node lemma = nm->mkNode(ITE, cond, b1, b2);
 
     // assert:
-    // IF    n >=0 AND n < len( s ) 
+    // IF    n >=0 AND n < len( s )
     // THEN: s = sk1 ++ unit(skt) ++ sk2 AND
     //       len( sk1 ) = n AND
     //       ( len( sk2 ) = len( s )- (n+1)
     // ELSE: skt = Uf(s, n), where Uf is a cached skolem function.
-    
+
     asserts.push_back(lemma);
     retNode = skt;
   }
