@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file lean_proof_post_processor.h
+/*! \file lean_post_processor.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Scott Viteri
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROOF__LEAN_PROOF_POST_PROCESSOR_H
-#define CVC4__PROOF__LEAN_PROOF_POST_PROCESSOR_H
+#ifndef CVC4__PROOF__LEAN_POST_PROCESSOR_H
+#define CVC4__PROOF__LEAN_POST_PROCESSOR_H
 
 #include <map>
 #include <unordered_set>
