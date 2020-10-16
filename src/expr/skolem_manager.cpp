@@ -33,6 +33,7 @@ struct SkolemFormAttributeId
 };
 typedef expr::Attribute<SkolemFormAttributeId, Node> SkolemFormAttribute;
 
+// Maps terms to their purify skolem variables
 struct PurifySkolemAttributeId
 {
 };
@@ -182,9 +183,9 @@ Node SkolemManager::mkBooleanTermVariable(Node t)
   return mkPurifySkolem(t, "", "", NodeManager::SKOLEM_BOOL_TERM_VAR);
 }
 
-ProofGenerator* SkolemManager::getProofGenerator(Node t)
+ProofGenerator* SkolemManager::getProofGenerator(Node t) const
 {
-  std::map<Node, ProofGenerator*>::iterator it = d_gens.find(t);
+  std::map<Node, ProofGenerator*>::const_iterator it = d_gens.find(t);
   if (it != d_gens.end())
   {
     return it->second;

@@ -737,7 +737,7 @@ enum class PfRule : uint32_t
   WITNESS_INTRO,
   // ======== Exists intro
   // Children: (P:F[t])
-  // Arguments: (exists ((x T)) F[x])
+  // Arguments: ((exists ((x T)) F[x]))
   // ----------------------------------------
   // Conclusion: (exists ((x T)) F[x])
   // This rule verifies that F[x] indeed matches F[t] with a substitution

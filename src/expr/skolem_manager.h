@@ -159,7 +159,7 @@ class SkolemManager
    * Get proof generator for existentially quantified formula q. This returns
    * the proof generator that was provided in a call to mkSkolem above.
    */
-  ProofGenerator* getProofGenerator(Node q);
+  ProofGenerator* getProofGenerator(Node q) const;
   /**
    * Convert to witness form, where notice this recursively replaces *all*
    * skolems in n by their corresponding witness term. This is intended to be

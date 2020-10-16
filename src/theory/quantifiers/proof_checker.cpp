@@ -50,7 +50,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
       return Node::null();
     }
     std::unordered_map<Node, Node, NodeHashFunction> subs;
-    if (!expr::match(exists, p, subs))
+    if (!expr::match(exists[1], p, subs))
     {
       return Node::null();
     }
