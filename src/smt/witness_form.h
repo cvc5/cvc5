@@ -84,7 +84,7 @@ class WitnessFormGenerator : public ProofGenerator
   /**
    * Return a proof generator that can prove the given axiom exists.
    */
-  ProofGenerator * convertExistsInternal(Node exists);
+  ProofGenerator* convertExistsInternal(Node exists);
   /** The term conversion proof generator */
   TConvProofGenerator d_tcpg;
   /** The nodes we have already added rewrite steps for in d_tcpg */

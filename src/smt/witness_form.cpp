@@ -97,7 +97,7 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
           {
             // it may be a purification skolem
             pg = convertExistsInternal(exists);
-            if (pg==nullptr)
+            if (pg == nullptr)
             {
               Trace("witness-form")
                   << "WitnessFormGenerator: No proof generator for " << exists
@@ -153,13 +153,15 @@ WitnessFormGenerator::getWitnessFormEqs() const
   return d_eqs;
 }
 
-ProofGenerator * WitnessFormGenerator::convertExistsInternal(Node exists)
+ProofGenerator* WitnessFormGenerator::convertExistsInternal(Node exists)
 {
-  Assert (exists.getKind()==kind::EXISTS);
-  if (exists[0].getNumChildren()==1 && exists[1].getKind()==kind::EQUAL && exists[1][0]==exists[0][0])
+  Assert(exists.getKind() == kind::EXISTS);
+  if (exists[0].getNumChildren() == 1 && exists[1].getKind() == kind::EQUAL
+      && exists[1][0] == exists[0][0])
   {
     Node tpurified = exists[1][1];
-    Trace("witness-form") << "convertExistsInternal: infer purification " << exists << " for " << tpurified << std::endl;
+    Trace("witness-form") << "convertExistsInternal: infer purification "
+                          << exists << " for " << tpurified << std::endl;
     Node teq = tpurified.eqNode(tpurified);
     d_pskPf.addStep(teq, PfRule::REFL, {}, {tpurified});
     d_pskPf.addStep(exists, PfRule::EXISTS_INTRO, {teq}, {exists});
