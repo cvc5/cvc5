@@ -420,36 +420,41 @@ Node StringsPreprocess::reduce(Node t,
   } 
   else if (t.getKind() == kind::SEQ_NTH)
   {
-    // str.nth(s,i) --->
-    //   ite(0<=i<=len(s), witness k. 0<=i<=len(s)->unit(k) = seq.at(s,i),
-    //   uf(s,i))
+    // processing term:  str.nth( s, n)
+    // similar to substr.
     Node s = t[0];
-    Node i = t[1];
-    Node len = nm->mkNode(STRING_LENGTH, s);
-    Node cond =
-        nm->mkNode(AND, nm->mkNode(LEQ, d_zero, i), nm->mkNode(LT, i, len));
-    TypeNode elemType = s.getType().getSequenceElementType();
-    Node k = nm->mkBoundVar(elemType);
-    Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
+    Node n = t[1];
+    Node skt = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "sst");
+    Node t12 = nm->mkNode(PLUS, n, one);
+    Node lt0 = nm->mkNode(STRING_LENGTH, s);
+    //start point is greater than or equal zero
+    Node c1 = nm->mkNode(GEQ, n, zero);
+    //start point is less than end of string
+    Node c2 = nm->mkNode(GT, lt0, n);
+    Node cond = nm->mkNode(AND, c1, c2);
+
+    Node sk1 = sc->mkSkolemCached(s, n, SkolemCache::SK_PREFIX, "sspre");
+    Node sk2 = sc->mkSkolemCached(s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
+    Node unit = nm->mkNode(SEQ_UNIT, skt);
+    Node b11 = s.eqNode(nm->mkNode(STRING_CONCAT, sk1, unit, sk2));
+    //length of first skolem is second argument
+    Node b12 = nm->mkNode(STRING_LENGTH, sk1).eqNode(n);
+    Node lsk2 = nm->mkNode(STRING_LENGTH, sk2);
+    Node b13 = nm->mkNode(EQUAL, lsk2, nm->mkNode(MINUS, lt0, t12)); 
+
+    Node b1 = nm->mkNode(AND, b11, b12, b13);
+
     std::vector<TypeNode> argTypes;
     argTypes.push_back(s.getType());
     argTypes.push_back(nm->integerType());
+    TypeNode elemType = s.getType().getSequenceElementType();
     TypeNode ufType = nm->mkFunctionType(argTypes, elemType);
-    SkolemCache* sc = d_termReg.getSkolemCache();
-    Node uf = sc->mkTypedSkolemCached(
-        ufType, Node::null(), Node::null(), SkolemCache::SK_NTH, "Uf");
-    Node ret = nm->mkNode(
-        ITE,
-        cond,
-        nm->mkNode(WITNESS,
-                   bvl,
-                   nm->mkNode(IMPLIES,
-                              cond,
-                              nm->mkNode(SEQ_UNIT, k)
-                                  .eqNode(nm->mkNode(STRING_CHARAT, s, i)))),
-        nm->mkNode(APPLY_UF, uf, s, i));
+    Node uf = sc->mkTypedSkolemCached(ufType, Node::null(), Node::null(), SkolemCache::SK_NTH, "Uf");
+    Node b2 = nm->mkNode(APPLY_UF, uf, s, n);
+    Node lemma = nm->mkNode(ITE, cond, b1, b2);
 
-
+    asserts.push_back(lemma);
+    retNode = skt;
   }
   else if (t.getKind() == kind::STRING_STRREPL)
   {
