@@ -3,6 +3,9 @@
 ; EXPECT: unsat
 ; EXPECT: sat
 ; EXPECT: unsat
+; EXPECT: unsat
+; EXPECT: unsat
+; EXPECT: unsat
 
 ;;;;; iteEvalThen(true)
 (set-logic ALL)
@@ -63,4 +66,29 @@
 (assert b)
 (assert (=> a c))
 (assert (=> b (not c)))
+(check-sat)
+
+(reset)
+
+(set-logic ALL)
+(assert false)
+(check-sat)
+
+(reset)
+
+(set-logic ALL)
+(declare-fun x () Bool)
+(declare-fun z () Bool)
+(assert (= x z))
+(assert (not x))
+(assert z)
+(check-sat)
+
+(reset)
+
+(set-logic ALL)
+(declare-fun x3 () Bool)
+(declare-fun x9 () Bool)
+(assert (not x3))
+(assert (or x3 (and x9 x3)))
 (check-sat)
