@@ -100,9 +100,8 @@ void CadSolver::checkFull()
     Assert(!mis.empty()) << "Infeasible subset can not be empty";
     Trace("nl-cad") << "UNSAT with MIS: " << mis << std::endl;
     Node conf = NodeManager::currentNM()->mkAnd(mis);
-    //    d_im.addTrustedConflict(TrustNode::mkTrustConflict(conf,
-    //    &d_CAC.getProof()),
-    //                            InferenceId::NL_CAD_CONFLICT);
+    d_im.addTrustedConflict(TrustNode::mkTrustConflict(conf, d_CAC.getProof()),
+                            InferenceId::NL_CAD_CONFLICT);
   }
 #else
   Warning() << "Tried to use CadSolver but libpoly is not available. Compile "
