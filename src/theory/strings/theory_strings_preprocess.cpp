@@ -431,8 +431,10 @@ Node StringsPreprocess::reduce(Node t,
     Node c1 = nm->mkNode(GEQ, n, zero);
     //start point is less than end of string
     Node c2 = nm->mkNode(GT, lt0, n);
+    // check whether this application of seq.nth is defined.
     Node cond = nm->mkNode(AND, c1, c2);
 
+    // nodes for the case where `seq.nth` is defined.
     Node sk1 = sc->mkSkolemCached(s, n, SkolemCache::SK_PREFIX, "sspre");
     Node sk2 = sc->mkSkolemCached(s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
     Node unit = nm->mkNode(SEQ_UNIT, skt);
@@ -441,9 +443,9 @@ Node StringsPreprocess::reduce(Node t,
     Node b12 = nm->mkNode(STRING_LENGTH, sk1).eqNode(n);
     Node lsk2 = nm->mkNode(STRING_LENGTH, sk2);
     Node b13 = nm->mkNode(EQUAL, lsk2, nm->mkNode(MINUS, lt0, t12)); 
-
     Node b1 = nm->mkNode(AND, b11, b12, b13);
 
+    // nodes for the case where `seq.nth` is undefined.
     std::vector<TypeNode> argTypes;
     argTypes.push_back(s.getType());
     argTypes.push_back(nm->integerType());
@@ -451,6 +453,8 @@ Node StringsPreprocess::reduce(Node t,
     TypeNode ufType = nm->mkFunctionType(argTypes, elemType);
     Node uf = sc->mkTypedSkolemCached(ufType, Node::null(), Node::null(), SkolemCache::SK_NTH, "Uf");
     Node b2 = nm->mkNode(EQUAL, skt, nm->mkNode(APPLY_UF, uf, s, n));
+
+    // the full ite, split on definedness of `seq.nth`
     Node lemma = nm->mkNode(ITE, cond, b1, b2);
 
     // assert:
@@ -459,7 +463,6 @@ Node StringsPreprocess::reduce(Node t,
     //       len( sk1 ) = n AND
     //       ( len( sk2 ) = len( s )- (n+1)
     // ELSE: skt = Uf(s, n), where Uf is a cached skolem function.
-
     asserts.push_back(lemma);
     retNode = skt;
   }
