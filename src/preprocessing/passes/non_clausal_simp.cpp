@@ -105,18 +105,19 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   }
 
   Trace("non-clausal-simplify") << "propagating" << std::endl;
-  if (propagator->propagate())
+  TrustNode conf = propagator->propagate();
+  if (!conf.isNull())
   {
     // If in conflict, just return false
     Trace("non-clausal-simplify")
         << "conflict in non-clausal propagation" << std::endl;
     Assert(!options::unsatCores());
     assertionsToPreprocess->clear();
-    Node n = NodeManager::currentNM()->mkConst<bool>(false);
-    assertionsToPreprocess->push_back(n);
+    assertionsToPreprocess->push_back(conf.getProven());
+    // assertionsToPreprocess->pushBackTrusted(conf);
     if (options::unsatCores())
     {
-      ProofManager::currentPM()->addDependence(n, Node::null());
+      ProofManager::currentPM()->addDependence(conf.getNode(), Node::null());
     }
     propagator->setNeedsFinish(true);
     return PreprocessingPassResult::CONFLICT;

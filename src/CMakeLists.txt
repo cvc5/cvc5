@@ -447,6 +447,7 @@ libcvc4_add_sources(
   theory/bags/theory_bags_type_rules.h
   theory/booleans/circuit_propagator.cpp
   theory/booleans/circuit_propagator.h
+  theory/booleans/proof_circuit_propagator.cpp
   theory/booleans/proof_circuit_propagator.h
   theory/booleans/proof_checker.cpp
   theory/booleans/proof_checker.h
@@ -523,6 +524,8 @@ libcvc4_add_sources(
   theory/datatypes/inference.h
   theory/datatypes/inference_manager.cpp
   theory/datatypes/inference_manager.h
+  theory/datatypes/infer_proof_cons.cpp
+  theory/datatypes/infer_proof_cons.h
   theory/datatypes/sygus_datatype_utils.cpp
   theory/datatypes/sygus_datatype_utils.h
   theory/datatypes/sygus_extension.cpp
