@@ -105,7 +105,7 @@ void InferenceManagerBuffered::doPendingLemmas()
   {
     // process this lemmas, which notice may enqueue more pending facts in this
     // loop, or clear the lemmas.
-    d_pendingLem[i]->process(this, false);
+    d_pendingLem[i]->process(this, true);
     i++;
   }
   d_pendingLem.clear();
