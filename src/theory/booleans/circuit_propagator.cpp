@@ -531,7 +531,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
               // ITE (c=FALSE) x y: if y is assigned, assign(ITE = y.assignment)
               assignAndEnqueue(parent,
                                getAssignment(parent[2]),
-                               prover.iteEvalThen(getAssignment(parent[2])));
+                               prover.iteEvalElse(getAssignment(parent[2])));
             }
           }
         }
