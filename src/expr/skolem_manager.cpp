@@ -125,7 +125,7 @@ Node SkolemManager::skolemize(Node q,
     // method deterministic ensures that the proof checker (e.g. for
     // quantifiers) is capable of proving the expected value for conclusions
     // of proof rules, instead of an alpha-equivalent variant of a conclusion.
-    Node avp = getOrMakeBoundVariable(av, av);
+    Node avp = getOrMakeBoundVariable(av);
     ovarsW.push_back(avp);
     ovars.push_back(av);
   }
@@ -180,16 +180,6 @@ Node SkolemManager::mkPurifySkolem(Node t,
 Node SkolemManager::mkBooleanTermVariable(Node t)
 {
   return mkPurifySkolem(t, "", "", NodeManager::SKOLEM_BOOL_TERM_VAR);
-}
-
-Node SkolemManager::mkExistential(Node t, Node p)
-{
-  Assert(p.getType().isBoolean());
-  NodeManager* nm = NodeManager::currentNM();
-  Node v = getOrMakeBoundVariable(t, p);
-  Node bvl = nm->mkNode(BOUND_VAR_LIST, v);
-  Node psubs = p.substitute(TNode(t), TNode(v));
-  return nm->mkNode(EXISTS, bvl, psubs);
 }
 
 ProofGenerator* SkolemManager::getProofGenerator(Node t)
@@ -353,18 +343,17 @@ Node SkolemManager::getOrMakeSkolem(Node w,
   return k;
 }
 
-Node SkolemManager::getOrMakeBoundVariable(Node t, Node s)
+Node SkolemManager::getOrMakeBoundVariable(Node t)
 {
-  std::pair<Node, Node> key(t, s);
-  std::map<std::pair<Node, Node>, Node>::iterator it =
-      d_witnessBoundVar.find(key);
+  std::map<Node, Node>::iterator it =
+      d_witnessBoundVar.find(t);
   if (it != d_witnessBoundVar.end())
   {
     return it->second;
   }
   TypeNode tt = t.getType();
   Node v = NodeManager::currentNM()->mkBoundVar(tt);
-  d_witnessBoundVar[key] = v;
+  d_witnessBoundVar[t] = v;
   return v;
 }
 
