@@ -3216,6 +3216,32 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
   Expr res;
   if (echildren.size() > 2)
   {
+    if (kind == STORE)
+    {
+      // convert casted real values in an array (which are not constants)
+      // to constants. Example:
+      // (store ((as const (Array Real Real)) 0) (to_real 1.0) (to_real 2.0))
+      // is converted to
+      // (store ((as const (Array Real Real)) 0) 1 2)) which is constant
+      if (children[1].isCastedReal() || children[2].isCastedReal())
+      {
+        Node array = *children[0].d_node;
+        Node index = *children[1].d_node;
+        Node value = *children[2].d_node;
+        if (children[1].isCastedReal())
+        {
+          index = index[0];
+        }
+        if (children[2].isCastedReal())
+        {
+          value = value[0];
+        }
+
+        Node n = getNodeManager()->mkNode(kind::STORE, array, index, value);
+        (void)n.getType(true); /* kick off type checking */
+        return Term(this, n);
+      }
+    }
     if (kind == INTS_DIVISION || kind == XOR || kind == MINUS
         || kind == DIVISION || kind == HO_APPLY)
     {

@@ -45,7 +45,6 @@ def testGetArray():
     stores = solver.mkTerm(kinds.Store, stores, solver.mkReal(2), solver.mkReal(3))
     stores = solver.mkTerm(kinds.Store, stores, solver.mkReal(4), solver.mkReal(5))
 
-    print(stores)
     assert stores.isValue()
 
     array_dict = stores.toPythonObj()
@@ -75,3 +74,29 @@ def testGetString():
     s2 = '❤️CVC4❤️'
     t2 = solver.mkString(s2)
     assert s2 == t2.toPythonObj()
+
+
+solver = pycvc4.Solver()
+arrsort = solver.mkArraySort(solver.getRealSort(), solver.getRealSort())
+zero_array = solver.mkConstArray(arrsort, solver.mkReal(0))
+print(zero_array)
+print(zero_array.isValue())
+stores = solver.mkTerm(kinds.Store, zero_array, solver.mkReal(1), solver.mkReal(2))
+print(stores)
+print(stores.isValue())
+stores = solver.mkTerm(kinds.Store, stores, solver.mkReal(2), solver.mkReal(3))
+print(stores)
+print(stores.isValue())
+stores = solver.mkTerm(kinds.Store, stores, solver.mkReal(4), solver.mkReal(5))
+print(stores)
+print(stores.isValue())
+
+assert stores.isValue()
+
+array_dict = stores.toPythonObj()
+
+assert array_dict[1] == 2
+assert array_dict[2] == 3
+assert array_dict[4] == 5
+# an index that wasn't stored at should give zero
+assert array_dict[8] == 0
