@@ -1060,8 +1060,8 @@ enum class PfRule : uint32_t
   // A formula "Interval" describes that a variable (xn is none is given) is
   // within a particular interval whose bounds are given as IRPs. It is either
   // an open interval or a point interval:
-  //   (not (IRP k poly) < xn < (IRP k poly)
-  //   (not xn == (IRP k poly(A)))
+  //   (IRP k poly) < xn < (IRP k poly)
+  //   xn == (IRP k poly)
   //
   // A formula "Cell" describes a portion
   // of the real space in the following form:
