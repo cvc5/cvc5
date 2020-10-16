@@ -779,19 +779,17 @@ void TermBlack::testConstArray()
   TS_ASSERT_EQUALS(constarr.getConstArrayBase(), one);
   TS_ASSERT_THROWS(a.getConstArrayBase(), CVC4ApiException&);
 
-  Sort realSort =
+  arrsort =
       d_solver.mkArraySort(d_solver.getRealSort(), d_solver.getRealSort());
-  Term realArray = d_solver.mkConstArray(realSort, d_solver.mkReal(0));
-  realArray =
-      d_solver.mkTerm(STORE, realArray, d_solver.mkReal(1), d_solver.mkReal(2));
+  Term zero_array = d_solver.mkConstArray(arrsort, d_solver.mkReal(0));
+  Term stores = d_solver.mkTerm(
+      STORE, zero_array, d_solver.mkReal(1), d_solver.mkReal(2));
+  stores =
+      d_solver.mkTerm(STORE, stores, d_solver.mkReal(2), d_solver.mkReal(3));
+  stores =
+      d_solver.mkTerm(STORE, stores, d_solver.mkReal(4), d_solver.mkReal(5));
 
-  realArray =
-      d_solver.mkTerm(STORE, realArray, d_solver.mkReal(2), d_solver.mkReal(3));
-
-  realArray =
-      d_solver.mkTerm(STORE, realArray, d_solver.mkReal(4), d_solver.mkReal(5));
-
-  TS_ASSERT(realArray.isValue());
+  TS_ASSERT(stores.isValue());
 }
 
 void TermBlack::testConstSequenceElements()

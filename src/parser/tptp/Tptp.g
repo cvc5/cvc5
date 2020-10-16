@@ -604,7 +604,7 @@ definedFun[CVC4::ParseOp& p]
       api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n, d);
       api::Term expr = MK_TERM(api::DIVISION, n, d);
       expr = MK_TERM(api::ITE,
-                     MK_TERM(api::GEQ, d, SOLVER->mkInteger(0)),
+                     MK_TERM(api::GEQ, d, SOLVER->mkReal(0)),
                      MK_TERM(api::TO_INTEGER, expr),
                      MK_TERM(api::UMINUS,
                              MK_TERM(api::TO_INTEGER,
@@ -627,7 +627,7 @@ definedFun[CVC4::ParseOp& p]
       api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n, d);
       api::Term expr = MK_TERM(api::DIVISION, n, d);
       expr = MK_TERM(api::ITE,
-                     MK_TERM(api::GEQ, expr, SOLVER->mkInteger(0)),
+                     MK_TERM(api::GEQ, expr, SOLVER->mkReal(0)),
                      MK_TERM(api::TO_INTEGER, expr),
                      MK_TERM(api::UMINUS,
                              MK_TERM(api::TO_INTEGER,
@@ -677,7 +677,7 @@ definedFun[CVC4::ParseOp& p]
       api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n);
       api::Term expr =
           MK_TERM(api::ITE,
-                  MK_TERM(api::GEQ, n, SOLVER->mkInteger(0)),
+                  MK_TERM(api::GEQ, n, SOLVER->mkReal(0)),
                   MK_TERM(api::TO_INTEGER, n),
                   MK_TERM(api::UMINUS,
                           MK_TERM(api::TO_INTEGER, MK_TERM(api::UMINUS, n))));
@@ -698,7 +698,7 @@ definedFun[CVC4::ParseOp& p]
                   MK_TERM(api::GT, decPart, SOLVER->mkReal(1, 2)),
                   // if decPart > 0.5, round up
                   MK_TERM(api::TO_INTEGER,
-                          MK_TERM(api::PLUS, n, SOLVER->mkInteger(1))),
+                          MK_TERM(api::PLUS, n, SOLVER->mkReal(1))),
                   // if decPart == 0.5, round to nearest even integer:
                   // result is: to_int(n/2 + .5) * 2
                   MK_TERM(api::MULT,
@@ -706,7 +706,7 @@ definedFun[CVC4::ParseOp& p]
                                   MK_TERM(api::PLUS,
                                           MK_TERM(api::DIVISION,
                                                   n,
-                                                  SOLVER->mkInteger(2)),
+                                                  SOLVER->mkReal(2)),
                                           SOLVER->mkReal(1, 2))),
                           SOLVER->mkInteger(2))));
       p.d_kind = api::LAMBDA;
