@@ -58,7 +58,7 @@ class Printer
   virtual void toStream(std::ostream& out, const CommandStatus* s) const = 0;
 
   /** Write a Model out to a stream with this Printer. */
-  virtual void toStream(std::ostream& out, const Model& m) const;
+  virtual void toStream(std::ostream& out, const smt::Model& m) const;
 
   /** Write an UnsatCore out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const UnsatCore& core) const;
@@ -272,13 +272,13 @@ class Printer
 
   /** write model response to command */
   virtual void toStream(std::ostream& out,
-                        const Model& m,
+                        const smt::Model& m,
                         const NodeCommand* c) const = 0;
 
   /** write model response to command using another language printer */
   void toStreamUsing(OutputLanguage lang,
                      std::ostream& out,
-                     const Model& m,
+                     const smt::Model& m,
                      const NodeCommand* c) const
   {
     getPrinter(lang)->toStream(out, m, c);

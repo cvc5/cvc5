@@ -21,30 +21,34 @@
 #include <vector>
 
 #include "expr/expr.h"
+#include "theory/theory_model.h"
 #include "util/cardinality.h"
 
 namespace CVC4 {
 
-class NodeCommand;
 class SmtEngine;
+class NodeCommand;
+
+namespace smt {
+
 class Model;
 
 std::ostream& operator<<(std::ostream&, const Model&);
 
+/**
+ * This is the SMT-level model object, that is responsible for maintaining
+ * the necessary information for how to print the model, as well as
+ * holding a pointer to the underlying implementation of the theory model.
+ */
 class Model {
   friend std::ostream& operator<<(std::ostream&, const Model&);
-  friend class SmtEngine;
-
- protected:
-  /** The SmtEngine we're associated with */
-  SmtEngine& d_smt;
-
-  /** construct the base class; users cannot do this, only CVC4 internals */
-  Model();
+  friend class ::CVC4::SmtEngine;
 
  public:
+  /** construct */
+  Model(SmtEngine& smt, theory::TheoryModel* tm);
   /** virtual destructor */
-  virtual ~Model() { }
+  ~Model() {}
   /** get number of commands to report */
   size_t getNumCommands() const;
   /** get command */
@@ -62,54 +66,21 @@ class Model {
    * only a candidate solution.
    */
   bool isKnownSat() const { return d_isKnownSat; }
-  //--------------------------- model cores
-  /** set using model core
-   *
-   * This sets that this model is minimized to be a "model core" for some
-   * formula (typically the input formula).
-   *
-   * For example, given formula ( a>5 OR b>5 ) AND f( c ) = 0,
-   * a model for this formula is: a -> 6, b -> 0, c -> 0, f -> lambda x. 0.
-   * A "model core" is a subset of this model that suffices to show the
-   * above formula is true, for example { a -> 6, f -> lambda x. 0 } is a
-   * model core for this formula.
-   */
-  virtual void setUsingModelCore() = 0;
-  /** record model core symbol
-   *
-   * This marks that sym is a "model core symbol". In other words, its value is
-   * critical to the satisfiability of the formula this model is for.
-   */
-  virtual void recordModelCoreSymbol(Expr sym) = 0;
-  /** Check whether this expr is in the model core */
-  virtual bool isModelCoreSymbol(Expr expr) const = 0;
-  //--------------------------- end model cores
-  /** get value for expression */
-  virtual Expr getValue(Expr expr) const = 0;
-  /** get cardinality for sort */
-  virtual Cardinality getCardinality(Type t) const = 0;
-  /** print comments */
-  virtual void getComments(std::ostream& out) const {}
-  /** get heap model (for separation logic) */
-  virtual bool getHeapModel( Expr& h, Expr& ne ) const { return false; }
-  /** are there any approximations in this model? */
-  virtual bool hasApproximations() const { return false; }
-  /** get the list of approximations
-   *
-   * This is a list of pairs of the form (t,p), where t is a term and p
-   * is a predicate over t that indicates a property that t satisfies.
-   */
-  virtual std::vector<std::pair<Expr, Expr> > getApproximations() const = 0;
-  /** get the domain elements for uninterpreted sort t
-   *
-   * This method gets the interpretation of an uninterpreted sort t.
-   * All models interpret uninterpreted sorts t as finite sets
-   * of domain elements v_1, ..., v_n. This method returns this list for t in
-   * this model.
-   */
-  virtual std::vector<Expr> getDomainElements(Type t) const = 0;
-
+  /** Get the underlying theory model */
+  theory::TheoryModel* getTheoryModel();
+  /** Get the underlying theory model (const version) */
+  const theory::TheoryModel* getTheoryModel() const;
+  //----------------------- helper methods in the underlying theory model
+  /** Is the node n a model core symbol? */
+  bool isModelCoreSymbol(TNode sym) const;
+  /** Get value */
+  Node getValue(TNode n) const;
+  /** Does this model have approximations? */
+  bool hasApproximations() const;
+  //----------------------- end helper methods
  protected:
+  /** The SmtEngine we're associated with */
+  SmtEngine& d_smt;
   /** the input name (file name, etc.) this model is associated to */
   std::string d_inputName;
   /**
@@ -117,8 +88,14 @@ class Model {
    * from the solver.
    */
   bool d_isKnownSat;
-};/* class Model */
+  /**
+   * Pointer to the underlying theory model, which maintains all data regarding
+   * the values of sorts and terms.
+   */
+  theory::TheoryModel* d_tmodel;
+};
 
+}  // namespace smt
 }/* CVC4 namespace */
 
 #endif  /* CVC4__MODEL_H */

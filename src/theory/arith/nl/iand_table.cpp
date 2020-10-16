@@ -198,7 +198,7 @@ void IAndTable::addDefaultValue(
   }
 
   // compute the most common result
-  uint64_t most_common_result;
+  uint64_t most_common_result = 0;
   uint64_t max_num_of_occ = 0;
   for (uint64_t i = 0; i <= num_of_values; i++)
   {
@@ -208,6 +208,9 @@ void IAndTable::addDefaultValue(
       most_common_result = i;
     }
   }
+  // sanity check: some value appears at least once.
+  Assert(max_num_of_occ != 0);
+
   // -1 is the default case of the table.
   // add it to the table
   table[std::make_pair(-1, -1)] = most_common_result;
