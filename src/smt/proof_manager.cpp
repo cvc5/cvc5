@@ -131,7 +131,6 @@ void PfManager::printProof(std::ostream& out,
   // TODO (proj #37) according to the proof format, print the proof node
   if (options::proofFormatMode() == options::ProofFormatMode::LEAN)
   {
-<<<<<<< HEAD
     d_lpfpp->process(fp);
     proof::leanPrinter(out, fp);
   }
