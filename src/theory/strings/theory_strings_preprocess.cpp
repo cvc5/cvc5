@@ -450,7 +450,7 @@ Node StringsPreprocess::reduce(Node t,
     TypeNode elemType = s.getType().getSequenceElementType();
     TypeNode ufType = nm->mkFunctionType(argTypes, elemType);
     Node uf = sc->mkTypedSkolemCached(ufType, Node::null(), Node::null(), SkolemCache::SK_NTH, "Uf");
-    Node b2 = nm->mkNode(APPLY_UF, uf, s, n);
+    Node b2 = nm->mkNode(EQUAL, skt, nm->mkNode(APPLY_UF, uf, s, n));
     Node lemma = nm->mkNode(ITE, cond, b1, b2);
 
     asserts.push_back(lemma);
