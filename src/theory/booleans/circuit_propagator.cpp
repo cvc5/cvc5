@@ -57,7 +57,7 @@ void CircuitPropagator::assertTrue(TNode assertion)
   d_assumptions.emplace_back(assertion);
   if (assertion.getKind() == kind::CONST_BOOLEAN && !assertion.getConst<bool>())
   {
-    d_conflict = makeConflict(assertion);
+    makeConflict(assertion);
   }
   else if (assertion.getKind() == kind::AND)
   {
@@ -100,7 +100,7 @@ void CircuitPropagator::assignAndEnqueue(TNode n,
     // Assigning a constant to the opposite value is dumb
     if (value != n.getConst<bool>())
     {
-      d_conflict = makeConflict(n);
+      makeConflict(n);
       return;
     }
   }
@@ -134,7 +134,7 @@ void CircuitPropagator::assignAndEnqueue(TNode n,
     // If the node is already assigned we might have a conflict
     if (value != (state == ASSIGNED_TO_TRUE))
     {
-      d_conflict = makeConflict(n);
+      makeConflict(n);
     }
   }
   else
@@ -146,12 +146,16 @@ void CircuitPropagator::assignAndEnqueue(TNode n,
   }
 }
 
-TrustNode CircuitPropagator::makeConflict(Node n)
+void CircuitPropagator::makeConflict(Node n)
 {
   auto bfalse = NodeManager::currentNM()->mkConst(false);
   ProofGenerator* g = nullptr;
   if (isProofEnabled())
   {
+    if (d_epg->hasProofFor(bfalse))
+    {
+      return;
+    }
     ProofCircuitPropagator pcp(d_pnm);
     if (n == bfalse)
     {
@@ -163,8 +167,12 @@ TrustNode CircuitPropagator::makeConflict(Node n)
                          pcp.conflict(pcp.assume(n), pcp.assume(n.negate())));
     }
     g = d_proofInternal.get();
+    Trace("circuit-prop") << "Added conflict " << *d_epg->getProofFor(bfalse)
+                          << std::endl;
+    Trace("circuit-prop") << "\texpanded " << *g->getProofFor(bfalse)
+                          << std::endl;
   }
-  return TrustNode::mkTrustLemma(bfalse, g);
+  d_conflict = TrustNode::mkTrustLemma(bfalse, g);
 }
 
 void CircuitPropagator::computeBackEdges(TNode node)
