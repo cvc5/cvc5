@@ -154,8 +154,8 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::eqYFromX(bool x, Node parent)
   {
     return mkProof(PfRule::EQ_RESOLVE, {assume(parent[0]), assume(parent)});
   }
-    return mkNot(mkResolution(
-        mkProof(PfRule::EQUIV_ELIM2, {assume(parent)}), {parent[0]}, {true}));
+  return mkNot(mkResolution(
+      mkProof(PfRule::EQUIV_ELIM2, {assume(parent)}), {parent[0]}, {true}));
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagator::neqXFromY(bool y,
@@ -376,10 +376,10 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::iteIsCase(unsigned c)
                         {d_parent[c + 1]},
                         {false});
   }
-    return mkResolution(
-        mkProof(PfRule::NOT_ITE_ELIM2, {assume(d_parent.notNode())}),
-        {d_parent[c + 1]},
-        {false});
+  return mkResolution(
+      mkProof(PfRule::NOT_ITE_ELIM2, {assume(d_parent.notNode())}),
+      {d_parent[c + 1]},
+      {false});
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::impliesNegX()
@@ -558,10 +558,10 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::xorEval(bool x,
                         {d_parent[0], d_parent[1]},
                         {true, false});
   }
-    Assert(!x && !y);
-    return mkResolution(mkProof(PfRule::CNF_XOR_POS1, {}, {d_parent}),
-                        {d_parent[0], d_parent[1]},
-                        {true, true});
+  Assert(!x && !y);
+  return mkResolution(mkProof(PfRule::CNF_XOR_POS1, {}, {d_parent}),
+                      {d_parent[0], d_parent[1]},
+                      {true, true});
 }
 
 }  // namespace booleans

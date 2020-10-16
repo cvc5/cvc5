@@ -37,7 +37,7 @@ class ProofCircuitPropagator
 {
  public:
   ProofCircuitPropagator(ProofNodeManager* pnm);
-  
+
   /** Assuming the given node */
   std::shared_ptr<ProofNode> assume(Node n);
   /** Apply CONTRA rule. Takes care of switching a and b if necessary */

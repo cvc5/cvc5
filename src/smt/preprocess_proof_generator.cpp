@@ -16,8 +16,8 @@
 #include "smt/preprocess_proof_generator.h"
 
 #include "expr/proof.h"
-#include "theory/rewriter.h"
 #include "options/smt_options.h"
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace smt {
@@ -26,8 +26,7 @@ PreprocessProofGenerator::PreprocessProofGenerator(ProofNodeManager* pnm,
                                                    context::Context* c,
                                                    std::string name,
                                                    PfRule ra,
-                                                   PfRule rpp
-                                                  )
+                                                   PfRule rpp)
     : d_pnm(pnm),
       d_src(c ? c : &d_context),
       d_helperProofs(pnm, c ? c : &d_context),
@@ -44,7 +43,7 @@ void PreprocessProofGenerator::notifyNewAssert(Node n, ProofGenerator* pg)
   if (d_src.find(n) == d_src.end())
   {
     // if no proof generator provided for (non-true) assertion
-    if (pg==nullptr && (!n.isConst() || !n.getConst<bool>()))
+    if (pg == nullptr && (!n.isConst() || !n.getConst<bool>()))
     {
       checkEagerPedantic(d_ra);
     }
@@ -88,7 +87,7 @@ void PreprocessProofGenerator::notifyTrustedPreprocessed(theory::TrustNode tnp)
       << std::endl;
   if (d_src.find(np) == d_src.end())
   {
-    if (tnp.getGenerator()==nullptr)
+    if (tnp.getGenerator() == nullptr)
     {
       checkEagerPedantic(d_rpp);
     }
@@ -182,9 +181,7 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
         Trace("smt-pppg") << "...add missing step" << std::endl;
         // add trusted step, the rule depends on the kind of trust node
         cdp.addStep(proven,
-                    tnk == theory::TrustNodeKind::LEMMA
-                        ? d_ra
-                        : d_rpp,
+                    tnk == theory::TrustNodeKind::LEMMA ? d_ra : d_rpp,
                     {},
                     {proven});
       }
@@ -235,14 +232,15 @@ void PreprocessProofGenerator::checkEagerPedantic(PfRule r)
   {
     // catch a pedantic failure now, which otherwise would not be
     // triggered since we are doing lazy proof generation
-    ProofChecker * pc = d_pnm->getChecker();
+    ProofChecker* pc = d_pnm->getChecker();
     std::stringstream serr;
     if (pc->isPedanticFailure(r, serr))
     {
-      Unhandled() << "PreprocessProofGenerator::checkEagerPedantic: " << serr.str();
+      Unhandled() << "PreprocessProofGenerator::checkEagerPedantic: "
+                  << serr.str();
     }
   }
 }
-   
+
 }  // namespace smt
 }  // namespace CVC4

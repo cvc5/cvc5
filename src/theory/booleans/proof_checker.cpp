@@ -199,7 +199,8 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       // literals to be removed from "first" clause
       if (i < childrenSize - 1)
       {
-        for (unsigned j = (2*i), argsSize = args.size(); j < argsSize; j = j + 2)
+        for (unsigned j = (2 * i), argsSize = args.size(); j < argsSize;
+             j = j + 2)
         {
           // whether pivot should occur as is or negated depends on the id of
           // each step in the chain

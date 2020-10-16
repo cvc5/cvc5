@@ -71,8 +71,7 @@ class PreprocessProofGenerator : public ProofGenerator
                            context::Context* c = nullptr,
                            std::string name = "PreprocessProofGenerator",
                            PfRule ra = PfRule::PREPROCESS_LEMMA,
-                           PfRule rpp = PfRule::PREPROCESS
-                          );
+                           PfRule rpp = PfRule::PREPROCESS);
   ~PreprocessProofGenerator() {}
   /**
    * Notify that n is a new assertion, where pg can provide a proof of n.
@@ -106,11 +105,11 @@ class PreprocessProofGenerator : public ProofGenerator
   LazyCDProof* allocateHelperProof();
 
  private:
-   /** 
-    * Possibly check pedantic failure for null proof generator provided
-    * to this class.
-    */
-   void checkEagerPedantic(PfRule r);
+  /**
+   * Possibly check pedantic failure for null proof generator provided
+   * to this class.
+   */
+  void checkEagerPedantic(PfRule r);
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /** A dummy context used by this class if none is provided */
