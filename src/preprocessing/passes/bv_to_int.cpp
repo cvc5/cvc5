@@ -328,8 +328,7 @@ Node BVToInt::bvToInt(Node n)
           {
             translated_children.push_back(d_bvToIntCache[current[i]]);
           }
-          translation =
-              translateWithChildren(current, translated_children);
+          translation = translateWithChildren(current, translated_children);
         }
         // Map the current node to its translation in the cache.
         d_bvToIntCache[current] = translation;
