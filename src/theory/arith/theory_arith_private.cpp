@@ -4625,7 +4625,7 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
       Node clause = flattenImplication(implication);
       std::shared_ptr<ProofNode> clausePf{nullptr};
 
-      if (options::proofNew())
+      if (isProofEnabled())
       {
         // We can prove this lemma from Farkas...
         std::vector<std::shared_ptr<ProofNode>> conflictPfs;

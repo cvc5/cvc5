@@ -455,7 +455,7 @@ class TheoryEngine {
    * the formula.  This is only called on input assertions, after ITEs
    * have been removed.
    */
-  Node preprocess(TNode node);
+  theory::TrustNode preprocess(TNode node);
 
   /** Notify (preprocessed) assertions. */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);

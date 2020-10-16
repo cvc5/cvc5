@@ -47,9 +47,9 @@ class CDCAC
 {
  public:
   /** Initialize without a variable ordering. */
-  CDCAC();
+  CDCAC(ProofNodeManager* pnm);
   /** Initialize this method with the given variable ordering. */
-  CDCAC(const std::vector<poly::Variable>& ordering);
+  CDCAC(const std::vector<poly::Variable>& ordering, ProofNodeManager* pnm);
 
   /** Reset this instance. */
   void reset();

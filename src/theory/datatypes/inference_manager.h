@@ -53,7 +53,7 @@ class InferenceManager : public InferenceManagerBuffered
   void addPendingInference(Node conc,
                            Node exp,
                            bool forceLemma = false,
-                           Inference i = Inference::NONE);
+                           InferId i = InferId::NONE);
   /**
    * Process the current lemmas and facts. This is a custom method that can
    * be seen as overriding the behavior of calling both doPendingLemmas and
@@ -69,16 +69,16 @@ class InferenceManager : public InferenceManagerBuffered
 
  private:
   /**
-   * Process datatype inference di. We send a lemma if asLemma is true, and
+   * Process datatype inference. We send a lemma if asLemma is true, and
    * send an internal fact if asLemma is false.
    */
-  bool processDtInference(DatatypesInference& di, bool asLemma);
+  bool processDtInference(Node conc, Node exp, InferId id, bool asLemma);
   /**
    * Counts the number of applications of each type of inference processed by
    * the above method as facts and lemmas.
    */
-  HistogramStat<Inference> d_inferenceFacts;
-  HistogramStat<Inference> d_inferenceLemmas;
+  HistogramStat<InferId> d_inferenceLemmas;
+  HistogramStat<InferId> d_inferenceFacts;
 };
 
 }  // namespace datatypes
