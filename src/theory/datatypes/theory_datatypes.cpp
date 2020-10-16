@@ -419,8 +419,33 @@ void TheoryDatatypes::notifyFact(TNode atom,
 
 void TheoryDatatypes::preRegisterTerm(TNode n)
 {
-  Debug("datatypes-prereg")
+  Trace("datatypes-prereg")
       << "TheoryDatatypes::preRegisterTerm() " << n << endl;
+  // must ensure the type is well founded and has no nested recursion if
+  // the option dtNestedRec is not set to true.
+  TypeNode tn = n.getType();
+  if (tn.isDatatype())
+  {
+    const DType& dt = tn.getDType();
+    Trace("dt-expand") << "Check properties of " << dt.getName() << std::endl;
+    if (!dt.isWellFounded())
+    {
+      std::stringstream ss;
+      ss << "Cannot handle non-well-founded datatype " << dt.getName();
+      throw LogicException(ss.str());
+    }
+    Trace("dt-expand") << "...well-founded ok" << std::endl;
+    if (!options::dtNestedRec())
+    {
+      if (dt.hasNestedRecursion())
+      {
+        std::stringstream ss;
+        ss << "Cannot handle nested-recursive datatype " << dt.getName();
+        throw LogicException(ss.str());
+      }
+      Trace("dt-expand") << "...nested recursion ok" << std::endl;
+    }
+  }
   collectTerms( n );
   switch (n.getKind()) {
   case kind::EQUAL:
@@ -446,28 +471,7 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
 TrustNode TheoryDatatypes::expandDefinition(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
-  // must ensure the type is well founded and has no nested recursion if
-  // the option dtNestedRec is not set to true.
   TypeNode tn = n.getType();
-  if (tn.isDatatype())
-  {
-    const DType& dt = tn.getDType();
-    if (!dt.isWellFounded())
-    {
-      std::stringstream ss;
-      ss << "Cannot handle non-well-founded datatype " << dt.getName();
-      throw LogicException(ss.str());
-    }
-    if (!options::dtNestedRec())
-    {
-      if (dt.hasNestedRecursion())
-      {
-        std::stringstream ss;
-        ss << "Cannot handle nested-recursive datatype " << dt.getName();
-        throw LogicException(ss.str());
-      }
-    }
-  }
   Node ret;
   switch (n.getKind())
   {
