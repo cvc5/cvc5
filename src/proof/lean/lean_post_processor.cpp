@@ -8,24 +8,24 @@ namespace CVC4 {
 
 namespace proof {
 
-LeanProofPostprocessCallback::LeanProofPostprocessCallback(
+LeanProofPostproccessCallback::LeanProofPostproccessCallback(
     ProofNodeManager* pnm)
     : d_pnm(pnm)
 {
 }
 
-LeanProofPostprocess::LeanProofPostprocess(ProofNodeManager* pnm)
-    : d_cb(new proof::LeanProofPostprocessCallback(pnm)), d_pnm(pnm)
+LeanProofPostproccess::LeanProofPostproccess(ProofNodeManager* pnm)
+    : d_cb(new proof::LeanProofPostproccessCallback(pnm)), d_pnm(pnm)
 {
 }
 
-bool LeanProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
+bool LeanProofPostproccessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                                 bool& continueUpdate)
 {
   return false;
 };
 
-bool LeanProofPostprocessCallback::update(Node res,
+bool LeanProofPostproccessCallback::update(Node res,
                                           PfRule id,
                                           const std::vector<Node>& children,
                                           const std::vector<Node>& args,
@@ -35,6 +35,6 @@ bool LeanProofPostprocessCallback::update(Node res,
   return true;
 };
 
-void LeanProofPostprocess::process(std::shared_ptr<ProofNode> pf){};
+void LeanProofPostproccess::process(std::shared_ptr<ProofNode> pf){};
 }  // namespace proof
 }  // namespace CVC4

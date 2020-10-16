@@ -93,8 +93,8 @@ class PfManager
   /** The preprocess proof generator. */
   std::unique_ptr<smt::PreprocessProofGenerator> d_pppg;
   /** The proof post-processor */
-  std::unique_ptr<smt::ProofPostprocess> d_pfpp;
-  std::unique_ptr<proof::LeanProofPostprocess> d_lpfpp;
+  std::unique_ptr<smt::ProofPostproccess> d_pfpp;
+  std::unique_ptr<proof::LeanProofPostproccess> d_lpfpp;
   /**
    * The final proof produced by the SMT engine.
    * Combines the proofs of preprocessing, prop engine and theory engine, to be
