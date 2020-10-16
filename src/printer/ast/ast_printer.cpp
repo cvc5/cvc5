@@ -150,13 +150,13 @@ void AstPrinter::toStream(std::ostream& out, const CommandStatus* s) const
 
 }/* AstPrinter::toStream(CommandStatus*) */
 
-void AstPrinter::toStream(std::ostream& out, const Model& m) const
+void AstPrinter::toStream(std::ostream& out, const smt::Model& m) const
 {
   out << "Model()";
 }
 
 void AstPrinter::toStream(std::ostream& out,
-                          const Model& m,
+                          const smt::Model& m,
                           const NodeCommand* c) const
 {
   // shouldn't be called; only the non-Command* version above should be
