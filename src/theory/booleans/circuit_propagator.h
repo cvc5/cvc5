@@ -216,10 +216,10 @@ class CircuitPropagator
                         std::shared_ptr<ProofNode> proof = nullptr);
 
   /**
-   * Return a conflict for the case that we have derived both n and n.negate()
+   * Store a conflict for the case that we have derived both n and n.negate()
    * to be true.
    */
-  TrustNode makeConflict(Node n);
+  void makeConflict(Node n);
 
   /**
    * Compute the map from nodes to the nodes that use it.
