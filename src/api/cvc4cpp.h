@@ -505,7 +505,7 @@ class CVC4_PUBLIC Sort
    * @return the codomain sort of a constructor sort
    */
   Sort getConstructorCodomainSort() const;
-  
+
   /* Selector sort ------------------------------------------------------- */
 
   /**
@@ -517,14 +517,14 @@ class CVC4_PUBLIC Sort
    * @return the codomain sort of a selector sort
    */
   Sort getSelectorCodomainSort() const;
-  
+
   /* Tester sort ------------------------------------------------------- */
 
   /**
    * @return the domain sort of a tester sort
    */
   Sort getTesterDomainSort() const;
-  
+
   /**
    * @return the codomain sort of a tester sort
    */
