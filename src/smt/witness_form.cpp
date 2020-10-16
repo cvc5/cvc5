@@ -96,6 +96,12 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
           // (exists ((x T)) (P x))
           // --------------------------- WITNESS_INTRO
           // k = (witness ((x T)) (P x))
+          if (pg == nullptr)
+          {
+            Trace("witness-form")
+                << "WitnessFormGenerator: No proof generator for " << exists
+                << std::endl;
+          }
           d_wintroPf.addLazyStep(
               exists,
               pg,

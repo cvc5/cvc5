@@ -20,7 +20,7 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-bool ModelCoreBuilder::setModelCore(const std::vector<Expr>& assertions,
+bool ModelCoreBuilder::setModelCore(const std::vector<Node>& assertions,
                                     Model* m,
                                     options::ModelCoresMode mode)
 {
@@ -34,14 +34,9 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Expr>& assertions,
   }
 
   // convert to nodes
-  std::vector<Node> asserts;
-  for (unsigned i = 0, size = assertions.size(); i < size; i++)
-  {
-    asserts.push_back(Node::fromExpr(assertions[i]));
-  }
   NodeManager* nm = NodeManager::currentNM();
 
-  Node formula = asserts.size() > 1? nm->mkNode(AND, asserts) : asserts[0];
+  Node formula = nm->mkAnd(assertions);
   std::vector<Node> vars;
   std::vector<Node> subs;
   Trace("model-core") << "Assignments: " << std::endl;

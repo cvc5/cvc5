@@ -47,6 +47,7 @@ const char* toString(PfRule id)
     case PfRule::WITNESS_AXIOM: return "WITNESS_AXIOM";
     case PfRule::TRUST_REWRITE: return "TRUST_REWRITE";
     case PfRule::TRUST_SUBS: return "TRUST_SUBS";
+    case PfRule::TRUST_SUBS_MAP: return "TRUST_SUBS_MAP";
     //================================================= Boolean rules
     case PfRule::RESOLUTION: return "RESOLUTION";
     case PfRule::CHAIN_RESOLUTION: return "CHAIN_RESOLUTION";
@@ -54,6 +55,8 @@ const char* toString(PfRule id)
     case PfRule::REORDERING: return "REORDERING";
     case PfRule::SPLIT: return "SPLIT";
     case PfRule::EQ_RESOLVE: return "EQ_RESOLVE";
+    case PfRule::MODUS_PONENS: return "MODUS_PONENS";
+    case PfRule::NOT_NOT_ELIM: return "NOT_NOT_ELIM";
     case PfRule::CONTRA: return "CONTRA";
     case PfRule::AND_ELIM: return "AND_ELIM";
     case PfRule::AND_INTRO: return "AND_INTRO";
@@ -115,6 +118,12 @@ const char* toString(PfRule id)
     case PfRule::ARRAYS_READ_OVER_WRITE_1: return "ARRAYS_READ_OVER_WRITE_1";
     case PfRule::ARRAYS_EXT: return "ARRAYS_EXT";
     case PfRule::ARRAYS_TRUST: return "ARRAYS_TRUST";
+    //================================================= Datatype rules
+    case PfRule::DT_UNIF: return "DT_UNIF";
+    case PfRule::DT_INST: return "DT_INST";
+    case PfRule::DT_SPLIT: return "DT_SPLIT";
+    case PfRule::DT_CLASH: return "DT_CLASH";
+    case PfRule::DT_TRUST: return "DT_TRUST";
     //================================================= Quantifiers rules
     case PfRule::WITNESS_INTRO: return "WITNESS_INTRO";
     case PfRule::EXISTS_INTRO: return "EXISTS_INTRO";
@@ -148,8 +157,10 @@ const char* toString(PfRule id)
     case PfRule::INT_TIGHT_LB: return "INT_TIGHT_LB";
     case PfRule::INT_TIGHT_UB: return "INT_TIGHT_UB";
     case PfRule::ARITH_OP_ELIM_AXIOM: return "ARITH_OP_ELIM_AXIOM";
-    case PfRule::INT_TRUST:
-      return "INT_TRUST";
+    case PfRule::INT_TRUST: return "INT_TRUST";
+    case PfRule::ARITH_NL_CAD_DIRECT: return "ARITH_NL_CAD_DIRECT";
+    case PfRule::ARITH_NL_CAD_RECURSIVE:
+      return "ARITH_NL_CAD_RECURSIVE";
 
       //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
 

@@ -77,6 +77,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerTrustedChecker(PfRule::WITNESS_AXIOM, this, 3);
   pc->registerTrustedChecker(PfRule::TRUST_REWRITE, this, 1);
   pc->registerTrustedChecker(PfRule::TRUST_SUBS, this, 1);
+  pc->registerTrustedChecker(PfRule::TRUST_SUBS_MAP, this, 3);
 }
 
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(
@@ -242,6 +243,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
                                             const std::vector<Node>& children,
                                             const std::vector<Node>& args)
 {
+  NodeManager * nm = NodeManager::currentNM();
   // compute what was proven
   if (id == PfRule::ASSUME)
   {
@@ -258,13 +260,13 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       // no antecedant
       return children[0];
     }
-    Node ant = mkAnd(args);
+    Node ant = nm->mkAnd(args);
     // if the conclusion is false, its the negated antencedant only
     if (children[0].isConst() && !children[0].getConst<bool>())
     {
       return ant.notNode();
     }
-    return NodeManager::currentNM()->mkNode(IMPLIES, ant, children[0]);
+    return nm->mkNode(IMPLIES, ant, children[0]);
   }
   else if (id == PfRule::TRUST)
   {
@@ -286,6 +288,10 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       exp.push_back(children[i]);
     }
     Node res = applySubstitution(args[0], exp, ids);
+    if (res.isNull())
+    {
+      return Node::null();
+    }
     return args[0].eqNode(res);
   }
   else if (id == PfRule::REWRITE)
@@ -298,6 +304,10 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     Node res = applyRewrite(args[0], idr);
+    if (res.isNull())
+    {
+      return Node::null();
+    }
     return args[0].eqNode(res);
   }
   else if (id == PfRule::EVALUATE)
@@ -305,6 +315,10 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(children.empty());
     Assert(args.size() == 1);
     Node res = applyRewrite(args[0], MethodId::RW_EVALUATE);
+    if (res.isNull())
+    {
+      return Node::null();
+    }
     return args[0].eqNode(res);
   }
   else if (id == PfRule::MACRO_SR_EQ_INTRO)
@@ -316,6 +330,10 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     Node res = applySubstitutionRewrite(args[0], children, ids, idr);
+    if (res.isNull())
+    {
+      return Node::null();
+    }
     return args[0].eqNode(res);
   }
   else if (id == PfRule::MACRO_SR_PRED_INTRO)
@@ -401,7 +419,8 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   else if (id == PfRule::PREPROCESS || id == PfRule::THEORY_PREPROCESS
            || id == PfRule::WITNESS_AXIOM || id == PfRule::THEORY_LEMMA
            || id == PfRule::PREPROCESS_LEMMA || id == PfRule::THEORY_REWRITE
-           || id == PfRule::TRUST_REWRITE || id == PfRule::TRUST_SUBS)
+           || id == PfRule::TRUST_REWRITE || id == PfRule::TRUST_SUBS
+           || id == PfRule::TRUST_SUBS_MAP)
   {
     // "trusted" rules
     Assert(children.empty());

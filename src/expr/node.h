@@ -1417,7 +1417,7 @@ NodeTemplate<ref_count>::substitute(Iterator1 nodesBegin,
   Assert(std::distance(nodesBegin, nodesEnd)
          == std::distance(replacementsBegin, replacementsEnd))
       << "Substitution iterator ranges must be equal size";
-  Iterator1 j = find(nodesBegin, nodesEnd, TNode(*this));
+  Iterator1 j = std::find(nodesBegin, nodesEnd, TNode(*this));
   if(j != nodesEnd) {
     Iterator2 b = replacementsBegin;
     std::advance(b, std::distance(nodesBegin, j));

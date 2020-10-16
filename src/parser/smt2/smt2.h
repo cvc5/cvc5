@@ -73,6 +73,8 @@ class Smt2 : public Parser
        bool parseOnly = false);
 
  public:
+  ~Smt2();
+
   /**
    * Add core theory symbols to the parser state.
    */

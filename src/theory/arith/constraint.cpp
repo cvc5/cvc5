@@ -482,7 +482,7 @@ TrustNode Constraint::externalExplainByAssertions() const
   NodeBuilder<> nb(kind::AND);
   auto pfFromAssumptions = externalExplain(nb, AssertionOrderSentinel);
   Node exp = safeConstructNary(nb);
-  if (options::proofNew())
+  if (d_database->isProofEnabled())
   {
     std::vector<Node> assumptions;
     if (exp.getKind() == Kind::AND)
@@ -1522,7 +1522,7 @@ TrustNode Constraint::externalExplainForPropagation() const
   NodeBuilder<> nb(Kind::AND);
   auto pfFromAssumptions = externalExplain(nb, d_assertionOrder);
   Node n = safeConstructNary(nb);
-  if (options::proofNew())
+  if (d_database->isProofEnabled())
   {
     std::vector<Node> assumptions;
     if (n.getKind() == Kind::AND)
@@ -1557,7 +1557,7 @@ TrustNode Constraint::externalExplainConflict() const
   auto not2 = getNegation()->getProofLiteral().negate();
   auto pf2 = getNegation()->externalExplainByAssertions(nb);
   Node n = safeConstructNary(nb);
-  if (options::proofNew())
+  if (d_database->isProofEnabled())
   {
     auto pfNot2 = d_database->d_pnm->mkNode(
         PfRule::MACRO_SR_PRED_TRANSFORM, {pf1}, {not2});

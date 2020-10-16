@@ -504,20 +504,21 @@ void QuantifierMacros::finalizeDefinitions() {
   if( options::incrementalSolving() || options::produceModels() || doDefs ){
     Trace("macros") << "Store as defined functions..." << std::endl;
     //also store as defined functions
+    SmtEngine* smt = d_preprocContext->getSmt();
     for( std::map< Node, Node >::iterator it = d_macro_defs.begin(); it != d_macro_defs.end(); ++it ){
       Trace("macros-def") << "Macro definition for " << it->first << " : " << it->second << std::endl;
       Trace("macros-def") << "  basis is : ";
       std::vector< Node > nargs;
-      std::vector< Expr > args;
+      std::vector<Node> args;
       for( unsigned i=0; i<d_macro_basis[it->first].size(); i++ ){
         Node bv = NodeManager::currentNM()->mkBoundVar( d_macro_basis[it->first][i].getType() );
         Trace("macros-def") << d_macro_basis[it->first][i] << " ";
         nargs.push_back( bv );
-        args.push_back( bv.toExpr() );
+        args.push_back(bv);
       }
       Trace("macros-def") << std::endl;
       Node sbody = it->second.substitute( d_macro_basis[it->first].begin(), d_macro_basis[it->first].end(), nargs.begin(), nargs.end() );
-      smt::currentSmtEngine()->defineFunction( it->first.toExpr(), args, sbody.toExpr() );
+      smt->defineFunction(it->first, args, sbody);
 
       if( Trace.isOn("macros-warn") ){
         debugMacroDefinition( it->first, sbody );

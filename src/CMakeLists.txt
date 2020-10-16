@@ -344,6 +344,8 @@ libcvc4_add_sources(
   theory/arith/nl/cad/constraints.h
   theory/arith/nl/cad/projections.cpp
   theory/arith/nl/cad/projections.h
+  theory/arith/nl/cad/proof_checker.cpp
+  theory/arith/nl/cad/proof_checker.h
   theory/arith/nl/cad/variable_ordering.cpp
   theory/arith/nl/cad/variable_ordering.h
   theory/arith/nl/ext_theory_callback.cpp
@@ -360,6 +362,8 @@ libcvc4_add_sources(
   theory/arith/nl/icp/intersection.h
   theory/arith/nl/nl_constraint.cpp
   theory/arith/nl/nl_constraint.h
+  theory/arith/nl/iand_table.cpp
+  theory/arith/nl/iand_table.h
   theory/arith/nl/nl_lemma_utils.cpp
   theory/arith/nl/nl_lemma_utils.h
   theory/arith/nl/nl_model.cpp
@@ -446,6 +450,8 @@ libcvc4_add_sources(
   theory/bags/theory_bags_type_rules.h
   theory/booleans/circuit_propagator.cpp
   theory/booleans/circuit_propagator.h
+  theory/booleans/proof_circuit_propagator.cpp
+  theory/booleans/proof_circuit_propagator.h
   theory/booleans/proof_checker.cpp
   theory/booleans/proof_checker.h
   theory/booleans/theory_bool.cpp
@@ -517,8 +523,12 @@ libcvc4_add_sources(
   theory/combination_engine.h
   theory/datatypes/datatypes_rewriter.cpp
   theory/datatypes/datatypes_rewriter.h
+  theory/datatypes/inference.cpp
+  theory/datatypes/inference.h
   theory/datatypes/inference_manager.cpp
   theory/datatypes/inference_manager.h
+  theory/datatypes/infer_proof_cons.cpp
+  theory/datatypes/infer_proof_cons.h
   theory/datatypes/sygus_datatype_utils.cpp
   theory/datatypes/sygus_datatype_utils.h
   theory/datatypes/sygus_extension.cpp
@@ -560,6 +570,8 @@ libcvc4_add_sources(
   theory/interrupted.h
   theory/inference_manager_buffered.cpp
   theory/inference_manager_buffered.h
+  theory/lazy_tree_proof_generator.cpp
+  theory/lazy_tree_proof_generator.h
   theory/logic_info.cpp
   theory/logic_info.h
   theory/model_manager.cpp
@@ -832,6 +844,8 @@ libcvc4_add_sources(
   theory/strings/eqc_info.h
   theory/strings/infer_info.cpp
   theory/strings/infer_info.h
+  theory/strings/infer_proof_cons.cpp
+  theory/strings/infer_proof_cons.h
   theory/strings/inference_manager.cpp
   theory/strings/inference_manager.h
   theory/strings/infer_proof_cons.cpp
@@ -1161,6 +1175,7 @@ install(FILES
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/theory)
 install(FILES
           util/abstract_value.h
+          util/arith.h
           util/bitvector.h
           util/bool.h
           util/cardinality.h

@@ -105,18 +105,19 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   }
 
   Trace("non-clausal-simplify") << "propagating" << std::endl;
-  if (propagator->propagate())
+  TrustNode conf = propagator->propagate();
+  if (!conf.isNull())
   {
     // If in conflict, just return false
     Trace("non-clausal-simplify")
         << "conflict in non-clausal propagation" << std::endl;
     Assert(!options::unsatCores());
     assertionsToPreprocess->clear();
-    Node n = NodeManager::currentNM()->mkConst<bool>(false);
-    assertionsToPreprocess->push_back(n);
+    assertionsToPreprocess->push_back(conf.getProven());
+    // assertionsToPreprocess->pushBackTrusted(conf);
     if (options::unsatCores())
     {
-      ProofManager::currentPM()->addDependence(n, Node::null());
+      ProofManager::currentPM()->addDependence(conf.getNode(), Node::null());
     }
     propagator->setNeedsFinish(true);
     return PreprocessingPassResult::CONFLICT;
@@ -467,6 +468,9 @@ void NonClausalSimp::assertLearnedLiteral(const std::vector<Node>& assertions,
   {
     // the module that generated the learned literal (e.g. the circuit
     // propagator) provided a proof
+    Trace("circuit-prop") << "Actually Added proof for " << tll << ": "
+                          << *(tll.getGenerator()->getProofFor(tll.getNode()))
+                          << std::endl;
     d_llpg->notifyNewTrustedAssert(tll);
     return;
   }
@@ -475,6 +479,7 @@ void NonClausalSimp::assertLearnedLiteral(const std::vector<Node>& assertions,
   // no proof generator provided
   // maybe its just part of the assertions? If so, we are allowed to use an
   // ASSUME.
+  /*
   if (std::find(assertions.begin(), assertions.end(), proven)
       != assertions.end())
   {
@@ -483,6 +488,7 @@ void NonClausalSimp::assertLearnedLiteral(const std::vector<Node>& assertions,
     d_llpg->notifyNewTrustedAssert(tassume);
     return;
   }
+  */
   d_llpg->notifyNewTrustedAssert(tll);
 }
 /* -------------------------------------------------------------------------- */

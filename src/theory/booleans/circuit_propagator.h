@@ -20,6 +20,7 @@
 #define CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
 
 #include <functional>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 
@@ -27,7 +28,10 @@
 #include "context/cdhashset.h"
 #include "context/cdo.h"
 #include "context/context.h"
+#include "expr/lazy_proof_chain.h"
 #include "expr/node.h"
+#include "expr/proof_generator.h"
+#include "expr/proof_node.h"
 #include "theory/eager_proof_generator.h"
 #include "theory/theory.h"
 #include "theory/trust_node.h"
@@ -84,7 +88,12 @@ class CircuitPropagator
 
   std::vector<TrustNode>& getLearnedLiterals() { return d_learnedLiterals; }
 
-  void finish() { d_context.pop(); }
+  void finish()
+  {
+    Trace("circuit-prop") << "FINISH" << std::endl;
+    d_context.pop();
+    d_assumptions.clear();
+  }
 
   /** Assert for propagation */
   void assertTrue(TNode assertion);
@@ -94,9 +103,9 @@ class CircuitPropagator
    * discovered by the propagator are put in the substitutions vector used in
    * construction.
    *
-   * @return true iff conflict found
+   * @return a proof for a conflict, or nullptr otherwise
    */
-  bool propagate() CVC4_WARN_UNUSED_RESULT;
+  TrustNode propagate() CVC4_WARN_UNUSED_RESULT;
 
   /**
    * Get the back edges of this circuit.
@@ -129,8 +138,15 @@ class CircuitPropagator
     if (!value && ((*i).second == ASSIGNED_TO_FALSE)) return true;
     return false;
   }
-  /** Set proof node manager */
-  void setProofNodeManager(ProofNodeManager* pnm);
+  /**
+   * Set proof node manager, context and parent proof generator.
+   *
+   * If parent is non-null, then it is responsible for the proofs provided
+   * to this class.
+   */
+  void setProof(ProofNodeManager* pnm,
+                context::Context* ctx,
+                ProofGenerator* defParent);
 
  private:
   /** A context-notify object that clears out stale data. */
@@ -195,40 +211,15 @@ class CircuitPropagator
    * Assign Node in circuit with the value and add it to the queue; note
    * conflicts.
    */
-  void assignAndEnqueue(TNode n, bool value)
-  {
-    Trace("circuit-prop") << "CircuitPropagator::assign(" << n << ", "
-                          << (value ? "true" : "false") << ")" << std::endl;
+  void assignAndEnqueue(TNode n,
+                        bool value,
+                        std::shared_ptr<ProofNode> proof = nullptr);
 
-    if (n.getKind() == kind::CONST_BOOLEAN)
-    {
-      // Assigning a constant to the opposite value is dumb
-      if (value != n.getConst<bool>())
-      {
-        d_conflict = true;
-        return;
-      }
-    }
-
-    // Get the current assignment
-    AssignmentStatus state = d_state[n];
-
-    if (state != UNASSIGNED)
-    {
-      // If the node is already assigned we might have a conflict
-      if (value != (state == ASSIGNED_TO_TRUE))
-      {
-        d_conflict = true;
-      }
-    }
-    else
-    {
-      // If unassigned, mark it as assigned
-      d_state[n] = value ? ASSIGNED_TO_TRUE : ASSIGNED_TO_FALSE;
-      // Add for further propagation
-      d_propagationQueue.push_back(n);
-    }
-  }
+  /**
+   * Return a conflict for the case that we have derived both n and n.negate()
+   * to be true.
+   */
+  TrustNode makeConflict(Node n);
 
   /**
    * Compute the map from nodes to the nodes that use it.
@@ -255,16 +246,18 @@ class CircuitPropagator
   /** The propagation queue */
   std::vector<TNode> d_propagationQueue;
 
+  std::vector<Node> d_assumptions;
+
   /**
    * We have a propagation queue "clearer" object for when the user
    * context pops.  Normally the propagation queue should be empty,
    * but this keeps us safe in case there's still some rubbish around
    * on the queue.
    */
-  DataClearer<std::vector<TNode> > d_propagationQueueClearer;
+  DataClearer<std::vector<TNode>> d_propagationQueueClearer;
 
   /** Are we in conflict? */
-  context::CDO<bool> d_conflict;
+  context::CDO<TrustNode> d_conflict;
 
   /** Map of substitutions */
   std::vector<TrustNode> d_learnedLiterals;
@@ -299,9 +292,14 @@ class CircuitPropagator
   /* Does the current state require a call to finish()? */
   bool d_needsFinish;
 
+  void addProof(TNode f, std::shared_ptr<ProofNode> pf);
+
+  ProofNodeManager* d_pnm;
   /** Eager proof generator */
   std::unique_ptr<EagerProofGenerator> d_epg;
-
+  std::unique_ptr<LazyCDProofChain> d_proofInternal;
+  /** A lazy proof chain */
+  std::unique_ptr<LazyCDProofChain> d_proofExternal;
 }; /* class CircuitPropagator */
 
 }  // namespace booleans

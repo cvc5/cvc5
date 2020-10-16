@@ -483,7 +483,7 @@ TrustNode ArithCongruenceManager::explain(TNode external)
                       << trn.getProven()[1] << std::endl;
     std::vector<std::shared_ptr<ProofNode>> assumptionPfs;
     std::vector<Node> assumptions = andComponents(trn.getNode());
-    assumptionPfs.push_back(trn.getGenerator()->getProofFor(trn.getProven()));
+    assumptionPfs.push_back(trn.toProofNode());
     for (const auto& a : assumptions)
     {
       assumptionPfs.push_back(

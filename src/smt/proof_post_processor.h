@@ -173,6 +173,10 @@ class ProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
   HistogramStat<PfRule> d_ruleCount;
   /** Total number of postprocessed rule applications */
   IntStat d_totalRuleCount;
+  /** The minimum pedantic level of any rule encountered */
+  IntStat d_minPedanticLevel;
+  /** The total number of final proofs */
+  IntStat d_numFinalProofs;
   /** Proof node manager (used for pedantic checking) */
   ProofNodeManager* d_pnm;
   /** Was there a pedantic failure? */
@@ -206,11 +210,17 @@ class ProofPostprocess
   ProofNodeManager* d_pnm;
   /** The post process callback */
   ProofPostprocessCallback d_cb;
-  /** The updater */
+  /**
+   * The updater, which is responsible for expanding macros in the final proof
+   * and connecting preprocessed assumptions to input assumptions.
+   */
   ProofNodeUpdater d_updater;
   /** The post process callback for finalization */
   ProofPostprocessFinalCallback d_finalCb;
-  /** The finalizer */
+  /**
+   * The finalizer, which is responsible for taking stats and checking for
+   * (lazy) pedantic failures.
+   */
   ProofNodeUpdater d_finalizer;
 };
 

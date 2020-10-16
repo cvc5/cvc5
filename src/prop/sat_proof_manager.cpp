@@ -82,19 +82,26 @@ void SatProofManager::startResChain(const Minisat::Clause& start)
     Trace("sat-proof") << "\n";
   }
   d_resLinks.push_back(
-      std::pair<Node, Node>(getClauseNode(start), Node::null()));
+      std::make_tuple(getClauseNode(start), Node::null(), true));
 }
 
 void SatProofManager::addResolutionStep(Minisat::Lit lit, bool redundant)
 {
   SatLiteral satLit = MinisatSatSolver::toSatLiteral(lit);
+  Node litNode = d_cnfStream->getNodeCache()[satLit];
+  bool negated = satLit.isNegated();
+  Assert(!negated || litNode.getKind() == kind::NOT);
   if (!redundant)
   {
-    Trace("sat-proof") << "SatProofManager::addResolutionStep: [" << satLit
-                       << "] " << ~satLit << "\n";
-    d_resLinks.push_back(
-        std::pair<Node, Node>(d_cnfStream->getNodeCache()[~satLit],
-                              d_cnfStream->getNodeCache()[satLit]));
+    Trace("sat-proof") << "SatProofManager::addResolutionStep: {"
+                       << satLit.isNegated() << "} [" << satLit << "] "
+                       << ~satLit << "\n";
+    // if lit is negated then the chain resolution construction will use it as a
+    // pivot occurring as is in the second clause and the node under the
+    // negation in the first clause
+    d_resLinks.push_back(std::make_tuple(d_cnfStream->getNodeCache()[~satLit],
+                                         negated ? litNode[0] : litNode,
+                                         !satLit.isNegated()));
   }
   else
   {
@@ -107,17 +114,21 @@ void SatProofManager::addResolutionStep(Minisat::Lit lit, bool redundant)
 void SatProofManager::addResolutionStep(const Minisat::Clause& clause,
                                         Minisat::Lit lit)
 {
-  // the given clause is supposed to be the second in a resolution, with the
-  // given literal as the pivot occurring positive in the first and negatively
-  // in the second clause. Thus, we store its negation
-  SatLiteral satLit = MinisatSatSolver::toSatLiteral(~lit);
+  SatLiteral satLit = MinisatSatSolver::toSatLiteral(lit);
+  Node litNode = d_cnfStream->getNodeCache()[satLit];
+  bool negated = satLit.isNegated();
+  Assert(!negated || litNode.getKind() == kind::NOT);
   Node clauseNode = getClauseNode(clause);
+  // if lit is negative then the chain resolution construction will use it as a
+  // pivot occurring as is in the second clause and the node under the
+  // negation in the first clause, which means that the third argument of the
+  // tuple must be false
   d_resLinks.push_back(
-      std::pair<Node, Node>(clauseNode, d_cnfStream->getNodeCache()[satLit]));
+      std::make_tuple(clauseNode, negated ? litNode[0] : litNode, negated));
   if (Trace.isOn("sat-proof"))
   {
-    Trace("sat-proof") << "SatProofManager::addResolutionStep: [" << satLit
-                       << "] ";
+    Trace("sat-proof") << "SatProofManager::addResolutionStep: {"
+                       << satLit.isNegated() << "} [" << ~satLit << "] ";
     printClause(clause);
     Trace("sat-proof") << "\nSatProofManager::addResolutionStep:\t"
                        << clauseNode << "\n";
@@ -160,31 +171,30 @@ void SatProofManager::endResChain(Node conclusion,
   }
   d_redundantLits.clear();
   // build resolution chain
+  NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> children, args;
   for (unsigned i = 0, size = d_resLinks.size(); i < size; ++i)
   {
-    children.push_back(d_resLinks[i].first);
+    Node clause, pivot;
+    bool posFirst;
+    std::tie(clause, pivot, posFirst) = d_resLinks[i];
+    children.push_back(clause);
     Trace("sat-proof") << "SatProofManager::endResChain:   ";
     if (i > 0)
     {
-      Trace("sat-proof")
-          << "[" << d_cnfStream->getTranslationCache()[d_resLinks[i].second]
-          << "] ";
+      Trace("sat-proof") << "{" << posFirst << "} ["
+                         << d_cnfStream->getTranslationCache()[pivot] << "] ";
     }
     // special case for clause (or l1 ... ln) being a single literal
     // corresponding itself to a clause, which is indicated by the pivot being
     // of the form (not (or l1 ... ln))
-    if (d_resLinks[i].first.getKind() == kind::OR
-        && !(d_resLinks[i].second.getKind() == kind::NOT
-             && d_resLinks[i].second[0].getKind() == kind::OR
-             && d_resLinks[i].second[0] == d_resLinks[i].first))
+    if (clause.getKind() == kind::OR
+        && !(pivot.getKind() == kind::NOT && pivot[0].getKind() == kind::OR
+             && pivot[0] == clause))
     {
-      for (unsigned j = 0, sizeJ = d_resLinks[i].first.getNumChildren();
-           j < sizeJ;
-           ++j)
+      for (unsigned j = 0, sizeJ = clause.getNumChildren(); j < sizeJ; ++j)
       {
-        Trace("sat-proof")
-            << d_cnfStream->getTranslationCache()[d_resLinks[i].first[j]];
+        Trace("sat-proof") << d_cnfStream->getTranslationCache()[clause[j]];
         if (j < sizeJ - 1)
         {
           Trace("sat-proof") << ", ";
@@ -193,21 +203,20 @@ void SatProofManager::endResChain(Node conclusion,
     }
     else
     {
-      Assert(d_cnfStream->getTranslationCache().find(d_resLinks[i].first)
+      Assert(d_cnfStream->getTranslationCache().find(clause)
              != d_cnfStream->getTranslationCache().end())
-          << "clause node " << d_resLinks[i].first
-          << " treated as unit has no literal. Pivot is "
-          << d_resLinks[i].second << "\n";
-      Trace("sat-proof")
-          << d_cnfStream->getTranslationCache()[d_resLinks[i].first];
+          << "clause node " << clause
+          << " treated as unit has no literal. Pivot is " << pivot << "\n";
+      Trace("sat-proof") << d_cnfStream->getTranslationCache()[clause];
     }
     Trace("sat-proof") << " : ";
     if (i > 0)
     {
-      args.push_back(d_resLinks[i].second);
-      Trace("sat-proof") << "[" << d_resLinks[i].second << "] ";
+      args.push_back(nm->mkConst(posFirst));
+      args.push_back(pivot);
+      Trace("sat-proof") << "{" << posFirst << "} [" << pivot << "] ";
     }
-    Trace("sat-proof") << d_resLinks[i].first << "\n";
+    Trace("sat-proof") << clause << "\n";
   }
   // clearing
   d_resLinks.clear();
@@ -283,9 +292,14 @@ void SatProofManager::processRedundantLit(
                        << "\n"
                        << pop;
     visited.insert(lit);
+    Node litNode = d_cnfStream->getNodeCache()[lit];
+    bool negated = lit.isNegated();
+    Assert(!negated || litNode.getKind() == kind::NOT);
+
     d_resLinks.insert(d_resLinks.begin() + pos,
-                      std::pair<Node, Node>(d_cnfStream->getNodeCache()[~lit],
-                                            d_cnfStream->getNodeCache()[lit]));
+                      std::make_tuple(d_cnfStream->getNodeCache()[~lit],
+                                      negated ? litNode[0] : litNode,
+                                      !negated));
     return;
   }
   Assert(reasonRef >= 0 && reasonRef < d_solver->ca.size())
@@ -319,9 +333,12 @@ void SatProofManager::processRedundantLit(
   // assumption that the redundant literal is removed via the resolution with
   // the explanation of its negation
   Node clauseNode = getClauseNode(reason);
+  Node litNode = d_cnfStream->getNodeCache()[lit];
+  bool negated = lit.isNegated();
+  Assert(!negated || litNode.getKind() == kind::NOT);
   d_resLinks.insert(
       d_resLinks.begin() + pos,
-      std::pair<Node, Node>(clauseNode, d_cnfStream->getNodeCache()[lit]));
+      std::make_tuple(clauseNode, negated ? litNode[0] : litNode, !negated));
 }
 
 void SatProofManager::explainLit(
@@ -359,6 +376,7 @@ void SatProofManager::explainLit(
   std::vector<Node> children{getClauseNode(reason)}, args;
   // save in the premises
   premises.insert(children.back());
+  NodeManager* nm = NodeManager::currentNM();
   Trace("sat-proof") << push;
   for (unsigned i = 0; i < size; ++i)
   {
@@ -374,7 +392,14 @@ void SatProofManager::explainLit(
     Assert(d_cnfStream->getNodeCache().find(curr_lit)
            != d_cnfStream->getNodeCache().end());
     children.push_back(d_cnfStream->getNodeCache()[~curr_lit]);
-    args.push_back(d_cnfStream->getNodeCache()[curr_lit]);
+    Node currLitNode = d_cnfStream->getNodeCache()[curr_lit];
+    bool negated = curr_lit.isNegated();
+    Assert(!negated || currLitNode.getKind() == kind::NOT);
+    // note this is the opposite of what is done in addResolutionStep. This is
+    // because here the clause, which contains the literal being analyzed, is
+    // the first clause rather than the second
+    args.push_back(nm->mkConst(!negated));
+    args.push_back(negated ? currLitNode[0] : currLitNode);
     // add child premises and the child itself
     premises.insert(childPremises.begin(), childPremises.end());
     premises.insert(d_cnfStream->getNodeCache()[~curr_lit]);
@@ -514,6 +539,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
   // arguments for the resolution step to conclude false.
   std::vector<Node> children{inConflictNode}, args;
   std::unordered_set<TNode, TNodeHashFunction> premises;
+  NodeManager* nm = NodeManager::currentNM();
   for (unsigned i = 0, size = inConflict.size(); i < size; ++i)
   {
     Assert(d_cnfStream->getNodeCache().find(inConflict[i])
@@ -523,7 +549,14 @@ void SatProofManager::finalizeProof(Node inConflictNode,
     Node negatedLitNode = d_cnfStream->getNodeCache()[~inConflict[i]];
     // save to resolution chain premises / arguments
     children.push_back(negatedLitNode);
-    args.push_back(d_cnfStream->getNodeCache()[inConflict[i]]);
+    Node litNode = d_cnfStream->getNodeCache()[inConflict[i]];
+    bool negated = inConflict[i].isNegated();
+    Assert(!negated || litNode.getKind() == kind::NOT);
+    // note this is the opposite of what is done in addResolutionStep. This is
+    // because here the clause, which contains the literal being analyzed, is
+    // the first clause rather than the second
+    args.push_back(nm->mkConst(!negated));
+    args.push_back(negated ? litNode[0] : litNode);
     // add child premises and the child itself
     premises.insert(childPremises.begin(), childPremises.end());
     premises.insert(negatedLitNode);

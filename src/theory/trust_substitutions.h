@@ -20,6 +20,7 @@
 #include "context/cdlist.h"
 #include "context/context.h"
 #include "expr/lazy_proof.h"
+#include "expr/lazy_proof_set.h"
 #include "expr/proof_node_manager.h"
 #include "expr/term_conversion_proof_generator.h"
 #include "theory/eager_proof_generator.h"
@@ -49,7 +50,7 @@ class TrustSubstitutionMap
    */
   void addSubstitution(TNode x, TNode t, ProofGenerator* pg = nullptr);
   /**
-   * Add substitution x -> t from a single step.
+   * Add substitution x -> t from a single proof step.
    */
   void addSubstitution(TNode x, TNode t, PfRule id, std::vector<Node>& args);
   /**
@@ -66,7 +67,8 @@ class TrustSubstitutionMap
    */
   void addSubstitutionSolved(TNode x, TNode t, TrustNode tn);
   /**
-   * Add substitutions
+   * Add substitutions from trust substitution map t. This adds all
+   * substitutions for t and carries over its information about proofs.
    */
   void addSubstitutions(TrustSubstitutionMap& t);
   /**
@@ -88,6 +90,8 @@ class TrustSubstitutionMap
   Node getCurrentSubstitution();
   /** The substitution map */
   SubstitutionMap d_subs;
+  /** The proof node manager */
+  ProofNodeManager* d_pnm;
   /** A context-dependent list of trust nodes */
   context::CDList<TrustNode> d_tsubs;
   /** Theory proof step buffer */
@@ -96,6 +100,10 @@ class TrustSubstitutionMap
   std::unique_ptr<LazyCDProof> d_subsPg;
   /** A lazy proof for apply steps */
   std::unique_ptr<LazyCDProof> d_applyPg;
+  /**
+   * A context-dependent list of LazyCDProof, allocated for internal steps.
+   */
+  LazyCDProofSet d_helperPf;
   /** Whether the substitution is up-to-date */
   context::CDO<Node> d_currentSubs;
   /** Name for debugging */

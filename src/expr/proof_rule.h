@@ -135,14 +135,21 @@ enum class PfRule : uint32_t
   // ---------------------------------------------------------------
   // Conclusion: F
   // where
-  //   Rewriter{idr}(toWitness(F)*sigma{ids}(Fn)*...*sigma{ids}(F1)) == true
+  //   Rewriter{idr}(F*sigma{ids}(Fn)*...*sigma{ids}(F1)) == true
   // where ids and idr are method identifiers.
   //
-  // Notice that we apply rewriting on the witness form of F, meaning that this
+  // More generally, this rule also holds when:
+  //   Rewriter::rewrite(toWitness(F')) == true
+  // where F' is the result of the left hand side of the equality above. Here,
+  // notice that we apply rewriting on the witness form of F', meaning that this
   // rule may conclude an F whose Skolem form is justified by the definition of
-  // its (fresh) Skolem variables. Furthermore, notice that the rewriting and
-  // substitution is applied only within the side condition, meaning the
-  // rewritten form of the witness form of F does not escape this rule.
+  // its (fresh) Skolem variables. For example, this rule may justify the
+  // conclusion (= k t) where k is the purification Skolem for t, whose
+  // witness form is (witness ((x T)) (= x t)).
+  //
+  // Furthermore, notice that the rewriting and substitution is applied only
+  // within the side condition, meaning the rewritten form of the witness form
+  // of F does not escape this rule.
   MACRO_SR_PRED_INTRO,
   // ======== Substitution + Rewriting predicate elimination
   //
@@ -171,11 +178,13 @@ enum class PfRule : uint32_t
   // ----------------------------------------
   // Conclusion: G
   // where
-  //   Rewriter{idr}(toWitness(F)*sigma{ids}(Fn)*...*sigma{ids}(F1)) ==
-  //   Rewriter{idr}(toWitness(G)*sigma{ids}(Fn)*...*sigma{ids}(F1))
+  //   Rewriter{idr}(F*sigma{ids}(Fn)*...*sigma{ids}(F1)) ==
+  //   Rewriter{idr}(G*sigma{ids}(Fn)*...*sigma{ids}(F1))
   //
-  // Notice that we apply rewriting on the witness form of F and G, similar to
-  // MACRO_SR_PRED_INTRO.
+  // More generally, this rule also holds when:
+  //   Rewriter::rewrite(toWitness(F')) == Rewriter::rewrite(toWitness(G'))
+  // where F' and G' are the result of each side of the equation above. Here,
+  // witness forms are used in a similar manner to MACRO_SR_PRED_INTRO above.
   MACRO_SR_PRED_TRANSFORM,
   // ======== DSL Rewrite
   // Children: (P1:F1 ... Pn:Fn)
@@ -245,33 +254,50 @@ enum class PfRule : uint32_t
   // a witness term (witness ((x T)) (P x)).
   WITNESS_AXIOM,
   // where F is an equality (= t t') that holds by a form of rewriting that
-  // could not be replayed.
+  // could not be replayed during proof postprocessing.
   TRUST_REWRITE,
   // where F is an equality (= t t') that holds by a form of substitution that
-  // could not be replayed.
+  // could not be replayed during proof postprocessing.
   TRUST_SUBS,
+  // where F is an equality (= t t') that holds by a form of substitution that
+  // could not be determined by the TrustSubstitutionMap.
+  TRUST_SUBS_MAP,
 
   //================================================= Boolean rules
   // ======== Resolution
   // Children:
-  //  (P1:(or F_1 ... F_i-1 F_i F_i+1 ... F_n),
-  //   P2:(or G_1 ... G_j-1 G_j G_j+1 ... G_m))
-  //
-  // Arguments: (F_i)
+  //  (P1:C1, P2:C2)
+  // Arguments: (id, L)
   // ---------------------
-  // Conclusion: (or F_1 ... F_i-1 F_i+1 ... F_n G_1 ... G_j-1 G_j+1 ... G_m)
+  // Conclusion: C
   // where
-  //   G_j = (not F_i)
+  //   - C1 and C2 are nodes viewed as clauses, i.e., either an OR node with
+  //     each children viewed as a literal or a node viewed as a literal. Note
+  //     that an OR node could also be a literal.
+  //   - id is either true or false
+  //   - L is the pivot of the resolution, which occurs as is (resp. under a
+  //     NOT) in C1 and negatively (as is) in C2 if id = true (id = false).
+  //   C is a clause resulting from collecting all the literals in C1, minus the
+  //   first occurrence of the pivot or its negation, and C2, minus the first
+  //   occurrence of the pivot or its negation, according to the policy above.
+  //
+  //   Note that it may be the case that the pivot does not occur in the
+  //   clauses. In this case the rule is not unsound, but it does not correspond
+  //   to resolution but rather to an weakening of the clause that did not have
+  //   a literal eliminated.
   RESOLUTION,
   // ======== Chain Resolution
-  // Children: (P1:(or F_{1,1} ... F_{1,n1}), ..., Pm:(or F_{m,1} ... F_{m,nm}))
-  // Arguments: (L_1, ..., L_{m-1})
+  // Children: (P1:C_1, ..., Pm:C_n)
+  // Arguments: (id_1, L_1, ..., id_{n-1}, L_{n-1})
   // ---------------------
-  // Conclusion: C_m'
+  // Conclusion: C
   // where
-  //   let "C_1 <>_l C_2" represent the resolution of C_1 with C_2 with pivot l,
-  //   let C_1' = C_1 (from P_1),
-  //   for each i > 1, C_i' = C_i <>_L_i C_{i-1}'
+  //   - let C_1 ... C_n be nodes viewed as clauses, as defined above
+  //   - let "C_1 <>_{L,id} C_2" represent the resolution of C_1 with C_2 with
+  //     pivot L and policy id, as defined above
+  //   - let C_1' = C_1 (from P1),
+  //   - for each i > 1, let C_i' = C_{i-1} <>_{L_{i-1}, id_{i-1}} C_i'
+  //   The result of the chain resolution is C = C_n'
   CHAIN_RESOLUTION,
   // ======== Factoring
   // Children: (P:C1)
@@ -291,6 +317,7 @@ enum class PfRule : uint32_t
   //  Set representations of C1 and C2 is the same but the number of literals in
   //  C2 is the same of that of C1
   REORDERING,
+
   // ======== Split
   // Children: none
   // Arguments: (F)
@@ -304,6 +331,19 @@ enum class PfRule : uint32_t
   // Conclusion: (F2)
   // Note this can optionally be seen as a macro for EQUIV_ELIM1+RESOLUTION.
   EQ_RESOLVE,
+  // ======== Modus ponens
+  // Children: (P1:F1, P2:(=> F1 F2))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (F2)
+  // Note this can optionally be seen as a macro for IMPLIES_ELIM+RESOLUTION.
+  MODUS_PONENS,
+  // ======== Double negation elimination
+  // Children: (P:(not (not F)))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (F)
+  NOT_NOT_ELIM,
   // ======== Contradiction
   // Children: (P1:F P2:(not F))
   // Arguments: ()
@@ -654,6 +694,39 @@ enum class PfRule : uint32_t
   // Conclusion: F
   ARRAYS_TRUST,
 
+  //================================================= Datatype rules
+  // ======== Unification
+  // Children: (P:(= (C t1 ... tn) (C s1 ... sn)))
+  // Arguments: (i)
+  // ----------------------------------------
+  // Conclusion: (= ti si)
+  DT_UNIF,
+  // ======== Instantiate
+  // Children: (P:((_ is C) t))
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: (= t (C (sel_1 t) ... (sel_n t)))
+  DT_INST,
+  // ======== Split
+  // Children: none
+  // Arguments: (t)
+  // ----------------------------------------
+  // Conclusion: (or ((_ is C1) t) ... ((_ is Cn) t))
+  DT_SPLIT,
+  // ======== Clash
+  // Children: (P1:((_ is Ci) t), P2: ((_ is Cj) t))
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: false
+  // for i != j.
+  DT_CLASH,
+  // ======== Datatype Trust
+  // Children: (P1 ... Pn)
+  // Arguments: (F)
+  // ---------------------
+  // Conclusion: F
+  DT_TRUST,
+
   //================================================= Quantifiers rules
   // ======== Witness intro
   // Children: (P:(exists ((x T)) F[x]))
@@ -664,10 +737,11 @@ enum class PfRule : uint32_t
   WITNESS_INTRO,
   // ======== Exists intro
   // Children: (P:F[t])
-  // Arguments: (t)
+  // Arguments: (exists ((x T)) F[x])
   // ----------------------------------------
   // Conclusion: (exists ((x T)) F[x])
-  // where x is a BOUND_VARIABLE unique to the pair F,t.
+  // This rule verifies that F[x] indeed matches F[t] with a substitution
+  // over x.
   EXISTS_INTRO,
   // ======== Skolemize
   // Children: (P:(exists ((x1 T1) ... (xn Tn)) F))
@@ -979,6 +1053,41 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (Q)
   INT_TRUST,
+
+  // ================ CAD Lemmas
+  // We use IRP for IndexedRootPredicate.
+  //
+  // A formula "Interval" describes that a variable (xn is none is given) is
+  // within a particular interval whose bounds are given as IRPs. It is either
+  // an open interval or a point interval:
+  //   (not (IRP k poly) < xn < (IRP k poly)
+  //   (not xn == (IRP k poly(A)))
+  //
+  // A formula "Cell" describes a portion
+  // of the real space in the following form:
+  //   Interval(x1) and Interval(x2) and ...
+  // We implicitly assume a Cell to go up to n-1 (and can be empty).
+  //
+  // A formula "Covering" is a set of Intervals, implying that xn can be in
+  // neither of these intervals. To be a covering (of the real line), the union
+  // of these intervals should be the real numbers.
+  // ======== CAD direct conflict
+  // Children (Cell, A)
+  // ---------------------
+  // Conclusion: (false)
+  // A direct interval is generated from an assumption A (in variables x1...xn)
+  // over a Cell (in variables x1...xn). It derives that A evaluates to false
+  // over the Cell. In the actual algorithm, it means that xn can not be in the
+  // topmost interval of the Cell.
+  ARITH_NL_CAD_DIRECT,
+  // ======== CAD recursive interval
+  // Children (Cell, Covering)
+  // ---------------------
+  // Conclusion: (false)
+  // A recursive interval is generated from a Covering (for xn) over a Cell
+  // (in variables x1...xn-1). It generates the conclusion that no xn exists
+  // that extends the Cell and satisfies all assumptions.
+  ARITH_NL_CAD_RECURSIVE,
 
   //================================================ Place holder for Lean rules
   // ======== Lean rule

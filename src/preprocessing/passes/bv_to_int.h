@@ -75,6 +75,7 @@
 #include "context/context.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
+#include "theory/arith/nl/iand_table.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -90,79 +91,6 @@ class BVToInt : public PreprocessingPass
  protected:
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
-
-  /**
-   * A generic function that creates a node that represents a bitwise
-   * operation.
-   *
-   * For example: Suppose bvsize is 4, granularity is 1, and f(x,y) = x && y.
-   * Denote by ITE(a,b) the term: ite(a==0, 0, ite(b==1, 1, 0)).
-   * The result of this function would be:
-   * ITE(x[0], y[0])*2^0 + ... + ITE(x[3], y[3])*2^3
-   *
-   * For another example: Suppose bvsize is 4, granularity is 2,
-   * and f(x,y) = x && y.
-   * Denote by ITE(a,b) the term that corresponds to the following table:
-   * a | b |  ITE(a,b)
-   * ----------------
-   * 0 | 0 | 0
-   * 0 | 1 | 0
-   * 0 | 2 | 0
-   * 0 | 3 | 0
-   * 1 | 0 | 0
-   * 1 | 1 | 1
-   * 1 | 2 | 0
-   * 1 | 3 | 1
-   * 2 | 0 | 0
-   * 2 | 1 | 0
-   * 2 | 2 | 2
-   * 2 | 3 | 2
-   * 3 | 0 | 0
-   * 3 | 1 | 1
-   * 3 | 2 | 2
-   * 3 | 3 | 3
-   *
-   * For example, 2 in binary is 10 and 1 in binary is 01, and so doing
-   * "bitwise f" on them gives 00.
-   * The result of this function would be:
-   * ITE(x[1:0], y[1:0])*2^0 + ITE(x[3:2], y[3:2])*2^2
-   *
-   *
-   * @param x is an integer operand that correspond to the first original
-   *        bit-vector operand.
-   * @param y is an integer operand that correspond to the second original
-   *        bit-vector operand.
-   * @param bvsize is the bit width of the original bit-vector variables.
-   * @param granularity is specified in the options for this preprocessing
-   *        pass.
-   * @param f is a pointer to a boolean function that corresponds
-   *        to the original bitwise operation.
-   * @return A node that represents the operation, as described above.
-   */
-  Node createBitwiseNode(Node x,
-                         Node y,
-                         uint64_t bvsize,
-                         uint64_t granularity,
-                         bool (*f)(bool, bool));
-
-  /**
-   * A helper function for createBitwiseNode
-   * @param x integer node corresponding to the original first bit-vector
-   *        argument
-   * @param y integer node corresponding to the original second bit-vector
-   *        argument nodes.
-   * @param granularity the bitwidth of the original bit-vector nodes.
-   * @param table a function from pairs of integers to integers.
-   *        The domain of this function consists of pairs of
-   *        integers between 0 (inclusive) and 2^{bitwidth} (exclusive).
-   * @return An ite term that represents this table.
-   */
-  Node createITEFromTable(
-      Node x,
-      Node y,
-      uint64_t granularity,
-      std::map<std::pair<uint64_t, uint64_t>, uint64_t> table);
-
   /**
    * A generic function that creates a logical shift node (either left or
    * right). a << b gets translated to a * 2^b mod 2^k, where k is the bit
@@ -354,6 +282,9 @@ class BVToInt : public PreprocessingPass
    */
   Node d_zero;
   Node d_one;
+  
+  /** helper class for handeling bvand translation */
+  theory::arith::nl::IAndTable d_iandTable;
 };
 
 }  // namespace passes

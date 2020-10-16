@@ -25,6 +25,7 @@ TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
                                            PfRule trustId,
                                            MethodId ids)
     : d_subs(c),
+      d_pnm(pnm),
       d_tsubs(c),
       d_tspb(pnm ? new TheoryProofStepBuffer(pnm->getChecker()) : nullptr),
       d_subsPg(
@@ -33,6 +34,7 @@ TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
       d_applyPg(pnm ? new LazyCDProof(
                           pnm, nullptr, c, "TrustSubstitutionMap::applyPg")
                     : nullptr),
+      d_helperPf(pnm, c),
       d_currentSubs(c),
       d_name(name),
       d_trustId(trustId),
@@ -66,20 +68,27 @@ void TrustSubstitutionMap::addSubstitution(TNode x,
                                            PfRule id,
                                            std::vector<Node>& args)
 {
-  if (isProofEnabled())
+  if (!isProofEnabled())
   {
-    Node eq = x.eqNode(t);
-    d_subsPg->addStep(eq, id, {}, args);
+    addSubstitution(x, t, nullptr);
+    return;
   }
-  addSubstitution(x, t, d_subsPg.get());
+  LazyCDProof* stepPg = d_helperPf.allocateProof();
+  Node eq = x.eqNode(t);
+  stepPg->addStep(eq, id, {}, args);
+  addSubstitution(x, t, stepPg);
 }
 
 void TrustSubstitutionMap::addSubstitutionSolved(TNode x, TNode t, TrustNode tn)
 {
+  Trace("trust-subs") << "TrustSubstitutionMap::addSubstitutionSolved: add "
+                      << x << " -> " << t << " from " << tn.getProven()
+                      << std::endl;
   if (!isProofEnabled() || tn.getGenerator() == nullptr)
   {
     // no generator or not proof enabled, nothing to do
     addSubstitution(x, t, nullptr);
+    Trace("trust-subs") << "...no proof" << std::endl;
     return;
   }
   Node eq = x.eqNode(t);
@@ -90,10 +99,24 @@ void TrustSubstitutionMap::addSubstitutionSolved(TNode x, TNode t, TrustNode tn)
   {
     // no rewrite required, just use the generator
     addSubstitution(x, t, tn.getGenerator());
+    Trace("trust-subs") << "...use generator directly" << std::endl;
     return;
   }
-  // TODO: try via rewrite eq == proven.
-  addSubstitution(x, t, nullptr);
+  LazyCDProof* solvePg = d_helperPf.allocateProof();
+  // try via rewrite eq == proven, if necessary
+  if (!d_tspb->applyPredTransform(proven, eq, {}))
+  {
+    // failed to rewrite
+    addSubstitution(x, t, nullptr);
+    Trace("trust-subs") << "...failed to rewrite" << std::endl;
+    return;
+  }
+  Trace("trust-subs") << "...successful rewrite" << std::endl;
+  solvePg->addSteps(*d_tspb.get());
+  d_tspb->clear();
+  // link the given generator
+  solvePg->addLazyStep(proven, tn.getGenerator(), false);
+  addSubstitution(x, t, solvePg);
 }
 
 void TrustSubstitutionMap::addSubstitutions(TrustSubstitutionMap& t)
@@ -142,7 +165,7 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   // a proof in the substitution proof generator. This is moreover required
   // to avoid cyclic proofs below.
   Node eq = n.eqNode(ns);
-  if (d_subsPg->hasStep(eq))
+  if (d_subsPg->hasStep(eq) || d_subsPg->hasGenerator(eq))
   {
     return TrustNode::mkTrustRewrite(n, ns, d_subsPg.get());
   }
@@ -150,7 +173,7 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   std::vector<Node> pfChildren;
   if (!cs.isConst())
   {
-    // TODO: we will get more proof reuse if we use AND here.
+    // note we will get more proof reuse if we do not special case AND here.
     if (cs.getKind() == kind::AND)
     {
       for (const Node& csc : cs)
@@ -169,9 +192,6 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   }
   if (!d_tspb->applyEqIntro(n, ns, pfChildren, d_ids))
   {
-    // Assert(false) << "TrustSubstitutionMap::addSubstitution: failed to apply
-    // "
-    //                 "substitution";
     return TrustNode::mkTrustRewrite(n, ns, nullptr);
   }
   // -------        ------- from external proof generators
@@ -180,7 +200,15 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   //   ...
   // --------- MACRO_SR_EQ_INTRO
   // n == ns
-  // add it to the apply proof generator
+  // add it to the apply proof generator.
+  //
+  // Notice that we use a single child to MACRO_SR_EQ_INTRO here. This is an
+  // optimization motivated by the fact that n may be large and reused many
+  // time. For instance, if this class is being used to track substitutions
+  // derived during non-clausal simplification during preprocessing, it is
+  // a fixed (possibly) large substitution applied to many terms. Having
+  // a single child saves us from creating many proofs with n children, where
+  // notice this proof is reused.
   d_applyPg->addSteps(*d_tspb.get());
   d_tspb->clear();
   return TrustNode::mkTrustRewrite(n, ns, d_applyPg.get());

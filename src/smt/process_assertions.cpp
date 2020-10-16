@@ -198,6 +198,20 @@ bool ProcessAssertions::apply(Assertions& as)
     d_passes["bv-intro-pow2"]->apply(&assertions);
   }
 
+  // Lift bit-vectors of size 1 to bool
+  if (options::bitvectorToBool())
+  {
+    d_passes["bv-to-bool"]->apply(&assertions);
+  }
+  if (options::solveBVAsInt() != options::SolveBVAsIntMode::OFF)
+  {
+    d_passes["bv-to-int"]->apply(&assertions);
+    // after running bv-to-int, we need to immediately run
+    // theory-preprocess and ite-removal so that newlly created
+    // terms and assertions are normalized (e.g., div is expanded).
+    d_passes["theory-preprocess"]->apply(&assertions);
+  }
+
   // Since this pass is not robust for the information tracking necessary for
   // unsat cores, it's only applied if we are not doing unsat core computation
   if (!options::unsatCores())
@@ -207,16 +221,6 @@ bool ProcessAssertions::apply(Assertions& as)
 
   // Assertions MUST BE guaranteed to be rewritten by this point
   d_passes["rewrite"]->apply(&assertions);
-
-  // Lift bit-vectors of size 1 to bool
-  if (options::bitvectorToBool())
-  {
-    d_passes["bv-to-bool"]->apply(&assertions);
-  }
-  if (options::solveBVAsInt() != options::SolveBVAsIntMode::OFF)
-  {
-    d_passes["bv-to-int"]->apply(&assertions);
-  }
 
   // Convert non-top-level Booleans to bit-vectors of size 1
   if (options::boolToBitvector() != options::BoolToBVMode::OFF)
