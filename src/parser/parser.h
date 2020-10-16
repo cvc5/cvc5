@@ -825,7 +825,7 @@ public:
   /** is this function overloaded? */
   bool isOverloadedFunction(api::Term fun)
   {
-    return d_symtab->isOverloadedFunction(fun.getExpr());
+    return d_symtab->isOverloadedFunction(fun);
   }
 
   /** Get overloaded constant for type.
@@ -834,8 +834,7 @@ public:
   */
   api::Term getOverloadedConstantForType(const std::string& name, api::Sort t)
   {
-    return api::Term(d_solver,
-                     d_symtab->getOverloadedConstantForType(name, t.getType()));
+    return d_symtab->getOverloadedConstantForType(name, t);
   }
 
   /**
@@ -846,9 +845,8 @@ public:
   api::Term getOverloadedFunctionForTypes(const std::string& name,
                                           std::vector<api::Sort>& argTypes)
   {
-    return api::Term(d_solver,
-                     d_symtab->getOverloadedFunctionForTypes(
-                         name, api::sortVectorToTypes(argTypes)));
+    return d_symtab->getOverloadedFunctionForTypes(
+                         name, argTypes);
   }
   //------------------------ end operator overloading
   /**

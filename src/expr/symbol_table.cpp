@@ -462,13 +462,13 @@ api::Sort SymbolTable::Implementation::lookupType(const string& name) const {
 
 api::Sort SymbolTable::Implementation::lookupType(const string& name,
                                              const vector<api::Sort>& params) const {
-  pair<vector<api::Sort>, api::Sort> p = (*d_typeMap->find(name)).second;
+  std::pair<std::vector<api::Sort>, api::Sort> p = (*d_typeMap->find(name)).second;
   PrettyCheckArgument(p.first.size() == params.size(), params,
                       "type constructor arity is wrong: "
                       "`%s' requires %u parameters but was provided %u",
                       name.c_str(), p.first.size(), params.size());
   if (p.first.size() == 0) {
-    PrettyCheckArgument(p.second.isSort(), name.c_str());
+    PrettyCheckArgument(p.second.isUninterpretedSort(), name.c_str());
     return p.second;
   }
   if (p.second.isSortConstructor()) {
@@ -485,7 +485,7 @@ api::Sort SymbolTable::Implementation::lookupType(const string& name,
                     << "type is      " << p.second << endl;
     }
 
-    api::Sort instantiation = SortConstructorType(p.second).instantiate(params);
+    api::Sort instantiation = p.second.instantiate(params);
 
     Debug("sort") << "instance is  " << instantiation << endl;
 
@@ -494,26 +494,10 @@ api::Sort SymbolTable::Implementation::lookupType(const string& name,
     PrettyCheckArgument(p.second.isParametricDatatype(), name,
                         "expected parametric datatype");
     return p.second.instantiate(params);
-  } else {
-    if (Debug.isOn("sort")) {
-      Debug("sort") << "instantiating using a sort substitution" << endl;
-      Debug("sort") << "have formals [";
-      copy(p.first.begin(), p.first.end() - 1,
-           ostream_iterator<api::Sort>(Debug("sort"), ", "));
-      Debug("sort") << p.first.back() << "]" << endl << "parameters   [";
-      copy(params.begin(), params.end() - 1,
-           ostream_iterator<api::Sort>(Debug("sort"), ", "));
-      Debug("sort") << params.back() << "]" << endl
-                    << "type ctor    " << name << endl
-                    << "type is      " << p.second << endl;
-    }
-
-    api::Sort instantiation = p.second.substitute(p.first, params);
-
-    Debug("sort") << "instance is  " << instantiation << endl;
-
-    return instantiation;
   }
+  // failed to instantiate
+  Unhandled() << "Could not instantiate sort";
+  return p.second;
 }
 
 size_t SymbolTable::Implementation::lookupArity(const string& name) {
