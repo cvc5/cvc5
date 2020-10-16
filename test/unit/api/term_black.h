@@ -782,25 +782,15 @@ void TermBlack::testConstArray()
   Sort realSort =
       d_solver.mkArraySort(d_solver.getRealSort(), d_solver.getRealSort());
   Term realArray = d_solver.mkConstArray(realSort, d_solver.mkReal(0));
-  std::cout << std::endl
-            << "term: " << realArray << ", isValue: " << realArray.isValue()
-            << std::endl;
   realArray =
       d_solver.mkTerm(STORE, realArray, d_solver.mkReal(1), d_solver.mkReal(2));
-  std::cout << std::endl
-            << "term: " << realArray << ", isValue: " << realArray.isValue()
-            << std::endl;
+
   realArray =
       d_solver.mkTerm(STORE, realArray, d_solver.mkReal(2), d_solver.mkReal(3));
-  std::cout << std::endl
-            << "term: " << realArray << ", isValue: " << realArray.isValue()
-            << std::endl;
+
   realArray =
       d_solver.mkTerm(STORE, realArray, d_solver.mkReal(4), d_solver.mkReal(5));
-  std::cout << std::endl
-            << "term: " << realArray << ", isValue: " << realArray.isValue()
-            << std::endl;
-  std::cout << realArray << std::endl;
+
   TS_ASSERT(realArray.isValue());
 }
 
