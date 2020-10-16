@@ -100,6 +100,7 @@ void InferenceManagerBuffered::doPendingLemmas()
     return;
   }
   d_processingPendingLemmas = true;
+  size_t i = 0;
   while (i < d_pendingLem.size())
   {
     // process this lemmas, which notice may enqueue more pending facts in this
