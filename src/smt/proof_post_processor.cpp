@@ -770,8 +770,8 @@ bool ProofPostprocessFinalCallback::wasPedanticFailure(std::ostream& out) const
 }
 
 ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,
-                                   SmtEngine* smte,
-                                   ProofGenerator* pppg)
+                                     SmtEngine* smte,
+                                     ProofGenerator* pppg)
     : d_pnm(pnm),
       d_cb(pnm, smte, pppg),
       // the update merges subproofs
