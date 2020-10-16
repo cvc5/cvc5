@@ -33,7 +33,7 @@ namespace api {
 class Sort;
 class Term;
 }  // namespace api
-  
+
 class CVC4_PUBLIC ScopeException : public Exception {};
 
 /**
@@ -149,7 +149,7 @@ class CVC4_PUBLIC SymbolTable {
    * the current scope.
    */
   api::Sort lookupType(const std::string& name,
-                  const std::vector<api::Sort>& params) const;
+                       const std::vector<api::Sort>& params) const;
 
   /**
    * Lookup the arity of a bound parameterized type.
@@ -181,7 +181,8 @@ class CVC4_PUBLIC SymbolTable {
    * If possible, it returns the defined symbol with name
    * that has type t. Otherwise returns null expression.
   */
-  api::Term getOverloadedConstantForType(const std::string& name, api::Sort t) const;
+  api::Term getOverloadedConstantForType(const std::string& name,
+                                         api::Sort t) const;
 
   /**
    * If possible, returns the unique defined function for a name
@@ -194,8 +195,8 @@ class CVC4_PUBLIC SymbolTable {
    * no functions with name and expected argTypes, or alternatively there is
    * more than one function with name and expected argTypes.
    */
-  api::Term getOverloadedFunctionForTypes(const std::string& name,
-                                     const std::vector< api::Sort >& argTypes) const;
+  api::Term getOverloadedFunctionForTypes(
+      const std::string& name, const std::vector<api::Sort>& argTypes) const;
   //------------------------ end operator overloading
 
  private:

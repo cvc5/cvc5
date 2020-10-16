@@ -845,8 +845,7 @@ public:
   api::Term getOverloadedFunctionForTypes(const std::string& name,
                                           std::vector<api::Sort>& argTypes)
   {
-    return d_symtab->getOverloadedFunctionForTypes(
-                         name, argTypes);
+    return d_symtab->getOverloadedFunctionForTypes(name, argTypes);
   }
   //------------------------ end operator overloading
   /**
