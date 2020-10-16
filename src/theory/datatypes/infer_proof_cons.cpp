@@ -22,8 +22,7 @@ namespace CVC4 {
 namespace theory {
 namespace datatypes {
 
-InferProofCons::InferProofCons(context::Context* c,
-                               ProofNodeManager* pnm)
+InferProofCons::InferProofCons(context::Context* c, ProofNodeManager* pnm)
     : d_pnm(pnm), d_lazyFactMap(c)
 {
   Assert(d_pnm != nullptr);
@@ -41,15 +40,12 @@ void InferProofCons::notifyFact(const DatatypesInference& di)
   {
     return;
   }
-  std::shared_ptr<DatatypesInference> dic = std::make_shared<DatatypesInference>(di);
+  std::shared_ptr<DatatypesInference> dic =
+      std::make_shared<DatatypesInference>(di);
   d_lazyFactMap.insert(di.d_conc, dic);
 }
 
-void InferProofCons::convert(InferId infer,
-                             Node conc,
-                             Node exp,
-                             CDProof * cdp
-                            )
+void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
 {
 }
 

@@ -345,8 +345,7 @@ Node SkolemManager::getOrMakeSkolem(Node w,
 
 Node SkolemManager::getOrMakeBoundVariable(Node t)
 {
-  std::map<Node, Node>::iterator it =
-      d_witnessBoundVar.find(t);
+  std::map<Node, Node>::iterator it = d_witnessBoundVar.find(t);
   if (it != d_witnessBoundVar.end())
   {
     return it->second;

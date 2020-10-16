@@ -40,12 +40,12 @@ namespace datatypes {
  */
 class InferProofCons : public ProofGenerator
 {
-  typedef context::CDHashMap<Node, std::shared_ptr<DatatypesInference>, NodeHashFunction>
-      NodeDatatypesInferenceMap;
+  typedef context::
+      CDHashMap<Node, std::shared_ptr<DatatypesInference>, NodeHashFunction>
+          NodeDatatypesInferenceMap;
 
  public:
-  InferProofCons(context::Context* c,
-                 ProofNodeManager* pnm);
+  InferProofCons(context::Context* c, ProofNodeManager* pnm);
   ~InferProofCons() {}
   /**
    * This is called to notify that di is an inference that may need a proof
@@ -83,10 +83,7 @@ class InferProofCons : public ProofGenerator
    * step(s) are for concluding the conclusion of the inference. This
    * information is stored in cdp.
    */
-  void convert(InferId infer,
-               Node conc,
-               Node exp,
-                             CDProof * cdp);
+  void convert(InferId infer, Node conc, Node exp, CDProof* cdp);
   /** the proof node manager */
   ProofNodeManager* d_pnm;
   /** The lazy fact map */

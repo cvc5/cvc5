@@ -14,9 +14,9 @@
 
 #include "theory/quantifiers/proof_checker.h"
 
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "theory/builtin/proof_checker.h"
-#include "expr/node_algorithm.h"
 
 using namespace CVC4::kind;
 
@@ -45,7 +45,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
     Assert(args.size() == 1);
     Node p = children[0];
     Node exists = args[0];
-    if (exists.getKind()!=kind::EXISTS || exists[0].getNumChildren()!=1)
+    if (exists.getKind() != kind::EXISTS || exists[0].getNumChildren() != 1)
     {
       return Node::null();
     }
@@ -57,7 +57,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
     // substitution must contain only the variable of the existential
     for (const std::pair<const Node, Node>& s : subs)
     {
-      if (s.first!=exists[0][0])
+      if (s.first != exists[0][0])
       {
         return Node::null();
       }
