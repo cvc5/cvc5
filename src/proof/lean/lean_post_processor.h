@@ -34,19 +34,20 @@ class LeanProofPostprocessCallback : public ProofNodeUpdaterCallback
 {
  public:
   LeanProofPostprocessCallback(ProofNodeManager* pnm);
-  ~LeanProofPostprocessCallback() {}
   /**
    * Initialize, called once for each new ProofNode to process. This initializes
    * static information to be used by successive calls to update.
    */
   void initializeUpdate();
-  bool shouldUpdate(ProofNode* pn) override;
+  bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                    bool& continueUpdate) override;
   /** Update the proof rule application. */
   bool update(Node res,
               PfRule id,
               const std::vector<Node>& children,
               const std::vector<Node>& args,
-              CDProof* cdp) override;
+              CDProof* cdp,
+              bool& continueUpdate) override;
 
  private:
   /** The proof node manager */
@@ -57,17 +58,16 @@ class LeanProofPostprocessCallback : public ProofNodeUpdaterCallback
  * The proof postprocessor module. This postprocesses a proof node into one
  * using the rules from the Lean calculus.
  */
-class LeanProofPostproccess
+class LeanProofPostprocess
 {
  public:
-  LeanProofPostproccess(ProofNodeManager* pnm);
-  ~LeanProofPostproccess();
+  LeanProofPostprocess(ProofNodeManager* pnm);
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
 
  private:
   /** The post process callback */
-  LeanProofPostprocessCallback d_cb;
+  std::unique_ptr<LeanProofPostprocessCallback> d_cb;
   /** The proof node manager */
   ProofNodeManager* d_pnm;
 };

@@ -278,8 +278,8 @@ enum class PfRule : uint32_t
   //   - L is the pivot of the resolution, which occurs as is (resp. under a
   //     NOT) in C1 and negatively (as is) in C2 if id = true (id = false).
   //   C is a clause resulting from collecting all the literals in C1, minus the
-  //   first occurrence of the pivot, and C2, minus the first occurrence of the
-  //   pivot, according to the policy above.
+  //   first occurrence of the pivot or its negation, and C2, minus the first
+  //   occurrence of the pivot or its negation, according to the policy above.
   //
   //   Note that it may be the case that the pivot does not occur in the
   //   clauses. In this case the rule is not unsound, but it does not correspond
