@@ -118,6 +118,7 @@ void TheoryStrings::finishInit()
   d_equalityEngine->addFunctionKind(kind::STRING_IN_REGEXP, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_TO_CODE, eagerEval);
   d_equalityEngine->addFunctionKind(kind::SEQ_UNIT, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::SEQ_NTH, false);
   // extended functions
   d_equalityEngine->addFunctionKind(kind::STRING_STRCTN, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_LEQ, eagerEval);
