@@ -100,10 +100,12 @@ void InferenceManagerBuffered::doPendingLemmas()
     return;
   }
   d_processingPendingLemmas = true;
-  for (const std::unique_ptr<TheoryInference>& plem : d_pendingLem)
+  while (i < d_pendingLem.size())
   {
-    // process this lemma
-    plem->process(this, true);
+    // process this lemmas, which notice may enqueue more pending facts in this
+    // loop, or clear the lemmas.
+    d_pendingLem[i]->process(this, false);
+    i++;
   }
   d_pendingLem.clear();
   d_processingPendingLemmas = false;
