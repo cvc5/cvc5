@@ -245,11 +245,11 @@ bool OverloadedTypeTrie::markOverloaded(const string& name, api::Term obj)
   api::Sort t = obj.getSort();
   api::Sort rangeType = t;
   std::vector<api::Sort> argTypes;
-  if (t.isFunction()) 
+  if (t.isFunction())
   {
     argTypes = t.getFunctionDomainSorts();
     rangeType = t.getFunctionCodomainSort();
-  } 
+  }
   else if (t.isConstructor())
   {
     argTypes = t.getConstructorDomainSorts();
@@ -260,7 +260,7 @@ bool OverloadedTypeTrie::markOverloaded(const string& name, api::Term obj)
     argTypes.push_back(t.getTesterDomainSort());
     rangeType = t.getTesterCodomainSort();
   }
-  else if (t.isSelector()) 
+  else if (t.isSelector())
   {
     argTypes.push_back(t.getSelectorDomainSort());
     rangeType = t.getSelectorCodomainSort();
