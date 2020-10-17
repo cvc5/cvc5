@@ -50,8 +50,6 @@ class TheoryPreprocessor
                      ProofNodeManager* pnm = nullptr);
   /** Destroys a theory preprocessor */
   ~TheoryPreprocessor();
-  /** Clear the cache of this class */
-  void clearCache();
   /**
    * Preprocesses the given assertion node. It returns a TrustNode of kind
    * TrustNodeKind::REWRITE indicating the preprocessed form of node. It stores

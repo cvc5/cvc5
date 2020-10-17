@@ -824,8 +824,6 @@ void TheoryEngine::shutdown() {
       theoryOf(theoryId)->shutdown();
     }
   }
-
-  d_tpp.clearCache();
 }
 
 theory::Theory::PPAssertStatus TheoryEngine::solve(
@@ -854,8 +852,6 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << ") => " << solveStatus << endl;
   return solveStatus;
 }
-
-void TheoryEngine::preprocessStart() { d_tpp.clearCache(); }
 
 TrustNode TheoryEngine::preprocess(TNode assertion)
 {

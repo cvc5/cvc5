@@ -32,7 +32,6 @@ PreprocessingPassResult TheoryPreprocess::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
   TheoryEngine* te = d_preprocContext->getTheoryEngine();
-  te->preprocessStart();
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     TNode a = (*assertionsToPreprocess)[i];

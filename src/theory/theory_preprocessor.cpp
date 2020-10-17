@@ -82,12 +82,6 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
 
 TheoryPreprocessor::~TheoryPreprocessor() {}
 
-void TheoryPreprocessor::clearCache()
-{
-  Trace("tpp-proof-debug") << "TheoryPreprocessor::clearCache" << std::endl;
-  // d_ppCache.clear();
-}
-
 TrustNode TheoryPreprocessor::preprocess(TNode node,
                                          std::vector<TrustNode>& newLemmas,
                                          std::vector<Node>& newSkolems,
