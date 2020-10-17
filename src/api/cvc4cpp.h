@@ -525,11 +525,6 @@ class CVC4_PUBLIC Sort
    */
   Sort getTesterDomainSort() const;
 
-  /**
-   * @return the codomain sort of a tester sort
-   */
-  Sort getTesterCodomainSort() const;
-
   /* Function sort ------------------------------------------------------- */
 
   /**

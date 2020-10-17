@@ -30,6 +30,7 @@
 namespace CVC4 {
 
 namespace api {
+  class Solver;
 class Sort;
 class Term;
 }  // namespace api
@@ -44,7 +45,7 @@ class CVC4_PUBLIC ScopeException : public Exception {};
 class CVC4_PUBLIC SymbolTable {
  public:
   /** Create a symbol table. */
-  SymbolTable();
+  SymbolTable(api::Solver * s);
   ~SymbolTable();
 
   /**
@@ -206,6 +207,8 @@ class CVC4_PUBLIC SymbolTable {
 
   class Implementation;
   std::unique_ptr<Implementation> d_implementation;
+  /** The API Solver object. */
+  api::Solver* d_solver;
 }; /* class SymbolTable */
 
 }  // namespace CVC4
