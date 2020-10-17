@@ -347,6 +347,12 @@ bool TypeNode::isComparableTo(TypeNode t) const {
   return false;
 }
 
+TypeNode TypeNode::getTesterDomainType() const
+{
+  Assert(isTester());
+  return (*this)[0];
+}
+
 TypeNode TypeNode::getSequenceElementType() const
 {
   Assert(isSequence());
