@@ -599,8 +599,7 @@ api::Term SymbolTable::getOverloadedFunctionForTypes(
   return d_implementation->getOverloadedFunctionForTypes(name, argTypes);
 }
 
-SymbolTable::SymbolTable()
-    : d_implementation(new SymbolTable::Implementation())
+SymbolTable::SymbolTable() : d_implementation(new SymbolTable::Implementation())
 {
 }
 

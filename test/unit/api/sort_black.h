@@ -114,16 +114,16 @@ void SortBlack::testDatatypeSorts()
   // get tester
   Term isConsTerm = dcons.getTesterTerm();
   TS_ASSERT(isConsTerm.getSort().isTester());
-  TS_ASSERT(isConsTerm.getSort().getTesterDomainSort()==dtypeSort);
+  TS_ASSERT(isConsTerm.getSort().getTesterDomainSort() == dtypeSort);
   Sort booleanSort = d_solver.getBooleanSort();
-  TS_ASSERT(isConsTerm.getSort().getTesterCodomainSort()==booleanSort);
+  TS_ASSERT(isConsTerm.getSort().getTesterCodomainSort() == booleanSort);
 
   // get selector
   DatatypeSelector dselTail = dcons[1];
   Term tailTerm = dselTail.getSelectorTerm();
   TS_ASSERT(tailTerm.getSort().isSelector());
-  TS_ASSERT(tailTerm.getSort().getSelectorDomainSort()==dtypeSort);
-  TS_ASSERT(tailTerm.getSort().getSelectorCodomainSort()==dtypeSort);
+  TS_ASSERT(tailTerm.getSort().getSelectorDomainSort() == dtypeSort);
+  TS_ASSERT(tailTerm.getSort().getSelectorCodomainSort() == dtypeSort);
 }
 
 void SortBlack::testInstantiate()
