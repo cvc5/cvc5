@@ -276,7 +276,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
           Assert(cps.apply(t) == t);
           Assert(top_level_substs.apply(t) == t);
           Assert(nss.apply(t) == t);
-          constantPropagations->addSubstitution(t, c);
+          constantPropagations->addSubstitutionSolved(t, c, tlearnedLiteral);
         }
         else
         {
