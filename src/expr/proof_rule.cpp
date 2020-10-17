@@ -168,7 +168,7 @@ const char* toString(PfRule id)
       // rules
 
     case PfRule::LEAN_RULE: return "LEAN_RULE";
-
+    case PfRule::VERIT_RULE: return "VERIT_RULE";
     //================================================= Unknown rule
     case PfRule::UNKNOWN: return "UNKNOWN";
     default: return "?";

@@ -1097,6 +1097,14 @@ enum class PfRule : uint32_t
   // Conclusion: (Q)
   LEAN_RULE,
 
+  //================================================ Place holder for veriT rules
+  // ======== veriT rule
+  // Children: (P1 ... Pn)
+  // Arguments: (id, Q, A1, ..., Am)
+  // ---------------------
+  // Conclusion: (Q)
+  VERIT_RULE,
+  
   //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
 
   //================================================= Unknown rule

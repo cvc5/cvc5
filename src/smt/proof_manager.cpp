@@ -19,6 +19,8 @@
 #include "options/smt_options.h"
 #include "proof/lean/lean_post_processor.h"
 #include "proof/lean/lean_printer.h"
+#include "proof/veriT/veriT_post_processor.h"
+#include "proof/veriT/veriT_printer.h"
 #include "smt/assertions.h"
 
 namespace CVC4 {
@@ -32,6 +34,8 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
           d_pnm.get(), u, "smt::PreprocessProofGenerator")),
       d_pfpp(new ProofPostproccess(d_pnm.get(), smte, d_pppg.get())),
       d_lpfpp(new proof::LeanProofPostprocess(d_pnm.get())),
+      d_vpfppcb(d_pnm.get()),
+      d_vpfpp(new proof::VeriTProofPostprocess(d_pnm.get(),d_vpfppcb)),
       d_finalProof(nullptr)
 {
   // add rules to eliminate here
@@ -125,6 +129,11 @@ void PfManager::printProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
   {
     d_lpfpp->process(fp);
     proof::leanPrinter(out, fp);
+  }
+  if (options::proofFormatMode() == options::ProofFormatMode::VERIT)
+  {
+    d_vpfpp->process(fp);
+    proof::veriTPrinter(out, fp);
   }
   out << "(proof\n";
   out << *fp;
