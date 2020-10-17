@@ -1517,10 +1517,10 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   }
 
   // now, send the lemmas to the prop engine
-  d_propEngine->assertLemma(tlemma, removable);
+  d_propEngine->assertLemma(tlemma.getProven(), false, removable);
   for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
   {
-    d_propEngine->assertLemma(newLemmas[i], removable);
+    d_propEngine->assertLemma(newLemmas[i].getProven(), false, removable);
   }
 
   // assert to decision engine
