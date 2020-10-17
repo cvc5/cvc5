@@ -29,5 +29,5 @@ endif()
 #   and run it with 'ctest -R "unit/<output_dir>/myunittest"'.
 add_test (NAME unit/api/python/python-tests
   COMMAND ${PYTHON_EXECUTABLE} -m pytest ${CMAKE_CURRENT_SOURCE_DIR}
-  WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/src/api/python
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/api/python
 )
