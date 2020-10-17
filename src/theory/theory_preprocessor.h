@@ -19,8 +19,8 @@
 
 #include <unordered_map>
 
-#include "context/context.h"
 #include "context/cdhashmap.h"
+#include "context/context.h"
 #include "expr/lazy_proof.h"
 #include "expr/node.h"
 #include "expr/tconv_seq_proof_generator.h"

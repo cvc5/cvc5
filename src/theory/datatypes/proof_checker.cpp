@@ -82,8 +82,7 @@ Node DatatypesProofRuleChecker::checkInternal(PfRule id,
     Assert(args.empty());
     if (children[0].getKind() != kind::APPLY_TESTER
         || children[1].getKind() != kind::APPLY_TESTER
-               || children[0][0] != children[1][0]
-               || children[0] == children[1])
+        || children[0][0] != children[1][0] || children[0] == children[1])
     {
       return Node::null();
     }

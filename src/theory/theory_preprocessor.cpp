@@ -85,7 +85,7 @@ TheoryPreprocessor::~TheoryPreprocessor() {}
 void TheoryPreprocessor::clearCache()
 {
   Trace("tpp-proof-debug") << "TheoryPreprocessor::clearCache" << std::endl;
-  //d_ppCache.clear();
+  // d_ppCache.clear();
 }
 
 TrustNode TheoryPreprocessor::preprocess(TNode node,
@@ -284,7 +284,8 @@ TrustNode TheoryPreprocessor::theoryPreprocess(TNode assertion)
     {
       Node ppRewritten = ppTheoryRewrite(current);
       d_ppCache[current] = ppRewritten;
-      Assert(Rewriter::rewrite(d_ppCache[current].get()) == d_ppCache[current].get());
+      Assert(Rewriter::rewrite(d_ppCache[current].get())
+             == d_ppCache[current].get());
       continue;
     }
 
