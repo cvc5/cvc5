@@ -17,26 +17,14 @@
 add_custom_target(build-tests)
 
 if (BUILD_BINDINGS_PYTHON)
-  # Check if the pytest Python module is installed.
-  execute_process(
-    COMMAND
-    ${PYTHON_EXECUTABLE} -c "import pytest"
-    RESULT_VARIABLE
-      RET_PYTEST
-    ERROR_QUIET
-  )
-
-  if(RET_PYTEST)
-      message(FATAL_ERROR
-        "Could not find Python module pytest. Install via `pip install pytest'.")
-  endif()
-
   set(PYTEST_COMMAND "${CMAKE_COMMAND}" "-E" "env" "PYTHONPATH=${PROJECT_SOURCE_DIR}/build/src/api/python"
                      "${PYTHON_EXECUTABLE}" "-m" "pytest" "${PROJECT_SOURCE_DIR}/test/unit/api/python")
 else()
   # No-Op if not building with Python bindings
   set(PYTEST_COMMAND ":")
 endif()
+
+message("PYTEST_COMMAND=${PYTEST_COMMAND}")
 
 # Note: Do not add custom targets for running tests (regress, apitests,
 # units) as dependencies to other run targets. This will result in executing
