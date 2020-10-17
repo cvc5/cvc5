@@ -53,6 +53,20 @@ void getFreeAssumptionsMap(
     std::shared_ptr<ProofNode> pn,
     std::map<Node, std::vector<std::shared_ptr<ProofNode>>>& amap);
 
+/**
+ * @return true if pn contains pnc.
+ */
+bool containsSubproof(ProofNode* pn, ProofNode* pnc);
+
+/**
+ * Same as above, with a visited cache.
+ *
+ * @return true if pn contains pnc.
+ */
+bool containsSubproof(ProofNode* pn,
+                      ProofNode* pnc,
+                      std::unordered_set<const ProofNode*>& visited);
+
 }  // namespace expr
 }  // namespace CVC4
 
