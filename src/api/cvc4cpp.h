@@ -506,6 +506,30 @@ class CVC4_PUBLIC Sort
    */
   Sort getConstructorCodomainSort() const;
 
+  /* Selector sort ------------------------------------------------------- */
+
+  /**
+   * @return the domain sort of a selector sort
+   */
+  Sort getSelectorDomainSort() const;
+
+  /**
+   * @return the codomain sort of a selector sort
+   */
+  Sort getSelectorCodomainSort() const;
+
+  /* Tester sort ------------------------------------------------------- */
+
+  /**
+   * @return the domain sort of a tester sort
+   */
+  Sort getTesterDomainSort() const;
+
+  /**
+   * @return the codomain sort of a tester sort, which is the Boolean sort
+   */
+  Sort getTesterCodomainSort() const;
+
   /* Function sort ------------------------------------------------------- */
 
   /**
