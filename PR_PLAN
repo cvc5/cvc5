@@ -107,6 +107,7 @@ PR finished:
 (121) proof rule checker simplify
 (123) proof node updater merge policy
 (124) miscellaneous updates
+(126) datatype inferences
 
 PRs ready:
 
@@ -116,7 +117,9 @@ PRs ready:
 (70) rewriter unit test [Andres] (req 36, 37)
 (117) trust substitution implementation (req 119) *
 (122) allow AND substitutions in proof post processor *
-(123) datatype inferences *
+(127) datatypes proof checker (req 126)
+(128) updates to lazy cd proof chain [Haniel]
+(129) refinements to cyclic checking policy
 
 PRs future:
 

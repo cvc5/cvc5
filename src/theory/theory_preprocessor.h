@@ -20,6 +20,7 @@
 #include <unordered_map>
 
 #include "context/context.h"
+#include "context/cdhashmap.h"
 #include "expr/lazy_proof.h"
 #include "expr/node.h"
 #include "expr/tconv_seq_proof_generator.h"
@@ -39,7 +40,7 @@ namespace theory {
  */
 class TheoryPreprocessor
 {
-  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
+  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
 
  public:
   /** Constructs a theory preprocessor */

@@ -47,6 +47,41 @@ void InferProofCons::notifyFact(const DatatypesInference& di)
 
 void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
 {
+  Trace("dt-ipc") << "convert: " << infer << ": " << conc << " by " << exp << std::endl;
+  PfRule r = PfRule::DT_TRUST;
+  switch (infer)
+  {
+    case InferId::UNIF:
+      break;
+    case InferId::INST:
+      break;
+    case InferId::SPLIT:
+      break;
+    case InferId::LABEL_EXH:
+      break;
+    case InferId::COLLAPSE_SEL:
+      break;
+    case InferId::CLASH_CONFLICT:
+      break;
+    case InferId::TESTER_CONFLICT:
+      break;
+    case InferId::TESTER_MERGE_CONFLICT:
+      break;
+    case InferId::BISIMILAR:
+      break;
+    case InferId::CYCLE:
+      break;
+    default:
+      Trace("dt-ipc") << "...no conversion for inference " << infer << std::endl;
+      break;
+  }
+  
+  if (r==PfRule::DT_TRUST)
+  {
+    // failed to reconstruct, add trust
+    Trace("dt-ipc") << "...failed " << infer << std::endl;
+    cdp->addStep(conc, r, {}, {conc});
+  }
 }
 
 std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)

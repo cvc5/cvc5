@@ -31,7 +31,7 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
                                        ProofNodeManager* pnm)
     : d_engine(engine),
       d_logicInfo(engine.getLogicInfo()),
-      d_ppCache(),
+      d_ppCache(userContext),
       d_tfr(tfr),
       d_tpg(pnm ? new TConvProofGenerator(
                       pnm,
@@ -85,7 +85,7 @@ TheoryPreprocessor::~TheoryPreprocessor() {}
 void TheoryPreprocessor::clearCache()
 {
   Trace("tpp-proof-debug") << "TheoryPreprocessor::clearCache" << std::endl;
-  d_ppCache.clear();
+  //d_ppCache.clear();
 }
 
 TrustNode TheoryPreprocessor::preprocess(TNode node,
@@ -284,7 +284,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(TNode assertion)
     {
       Node ppRewritten = ppTheoryRewrite(current);
       d_ppCache[current] = ppRewritten;
-      Assert(Rewriter::rewrite(d_ppCache[current]) == d_ppCache[current]);
+      Assert(Rewriter::rewrite(d_ppCache[current].get()) == d_ppCache[current].get());
       continue;
     }
 
@@ -300,7 +300,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(TNode assertion)
       for (unsigned i = 0; i < current.getNumChildren(); ++i)
       {
         Assert(d_ppCache.find(current[i]) != d_ppCache.end());
-        builder << d_ppCache[current[i]];
+        builder << d_ppCache[current[i]].get();
       }
       // Mark the substitution and continue
       Node result = builder;
