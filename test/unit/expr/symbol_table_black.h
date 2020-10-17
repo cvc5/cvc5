@@ -73,7 +73,7 @@ class SymbolTableBlack : public CxxTest::TestSuite {
     SymbolTable symtab;
     api::Sort booleanType = d_slv->getBooleanSort();
     // var name attribute shouldn't matter
-    api::Term y = d_slv->mkConst("y", booleanType);
+    api::Term y = d_slv->mkConst(booleanType, "y");
     symtab.bind("x",y);
     TS_ASSERT( symtab.isBound("x") );
     TS_ASSERT_EQUALS( symtab.lookup("x"), y );
@@ -97,7 +97,7 @@ class SymbolTableBlack : public CxxTest::TestSuite {
     api::Term x = d_slv->mkConst(booleanType);
     symtab.bind("x",x);
 
-    api::Sort t = d_slv->mkSort("T");
+    api::Sort t = d_slv->mkUninterpretedSort("T");
     // duplicate binding for type is OK
     symtab.bindType("x",t);
 
@@ -109,7 +109,7 @@ class SymbolTableBlack : public CxxTest::TestSuite {
 
   void testBindType() {
     SymbolTable symtab;
-    api::Sort s = d_slv->mkSort("S");
+    api::Sort s = d_slv->mkUninterpretedSort("S");
     symtab.bindType("S",s);
     TS_ASSERT( symtab.isBoundType("S") );
     TS_ASSERT_EQUALS( symtab.lookupType("S"), s );
@@ -118,7 +118,7 @@ class SymbolTableBlack : public CxxTest::TestSuite {
   void testBindType2() {
     SymbolTable symtab;
     // type name attribute shouldn't matter
-    api::Sort s = d_slv->mkSort("S");
+    api::Sort s = d_slv->mkUninterpretedSort("S");
     symtab.bindType("T",s);
     TS_ASSERT( symtab.isBoundType("T") );
     TS_ASSERT_EQUALS( symtab.lookupType("T"), s );
@@ -126,9 +126,9 @@ class SymbolTableBlack : public CxxTest::TestSuite {
 
   void testBindType3() {
     SymbolTable symtab;
-    api::Sort s = d_slv->mkSort("S");
+    api::Sort s = d_slv->mkUninterpretedSort("S");
     symtab.bindType("S",s);
-    api::Sort t = d_slv->mkSort("T");
+    api::Sort t = d_slv->mkUninterpretedSort("T");
     // new binding covers old
     symtab.bindType("S",t);
     TS_ASSERT( symtab.isBoundType("S") );
