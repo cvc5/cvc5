@@ -42,7 +42,7 @@ class DatatypesProofRuleChecker : public ProofRuleChecker
                      const std::vector<Node>& args) override;
 };
 
-}  // namespace arrays
+}  // namespace datatypes
 }  // namespace theory
 }  // namespace CVC4
 

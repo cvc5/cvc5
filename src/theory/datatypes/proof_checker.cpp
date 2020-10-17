@@ -31,26 +31,30 @@ void DatatypesProofRuleChecker::registerTo(ProofChecker* pc)
 }
 
 Node DatatypesProofRuleChecker::checkInternal(PfRule id,
-                                           const std::vector<Node>& children,
-                                           const std::vector<Node>& args)
+                                              const std::vector<Node>& children,
+                                              const std::vector<Node>& args)
 {
   NodeManager* nm = NodeManager::currentNM();
-  if (id==PfRule::DT_UNIF)
+  if (id == PfRule::DT_UNIF)
   {
-    Assert(children.size()==1);
-    Assert(args.size()==1);
+    Assert(children.size() == 1);
+    Assert(args.size() == 1);
     uint32_t i;
-    if (children[0].getKind() != kind::EQUAL || children[0][0].getKind()!=kind::APPLY_CONSTRUCTOR || children[0][1].getKind()!=kind::APPLY_CONSTRUCTOR || children[0][0][0].getOperator()!=children[0][1].getOperator() || !getUInt32(args[0], i))
+    if (children[0].getKind() != kind::EQUAL
+        || children[0][0].getKind() != kind::APPLY_CONSTRUCTOR
+        || children[0][1].getKind() != kind::APPLY_CONSTRUCTOR
+        || children[0][0][0].getOperator() != children[0][1].getOperator()
+        || !getUInt32(args[0], i))
     {
       return Node::null();
     }
     return children[0][0][i].eqNode(children[0][1][i]);
   }
-  else if (id==PfRule::DT_INST)
+  else if (id == PfRule::DT_INST)
   {
-    Assert(children.size()==1);
-    Assert(args.size()==1);
-    if (children[0].getKind()!=kind::APPLY_TESTER)
+    Assert(children.size() == 1);
+    Assert(args.size() == 1);
+    if (children[0].getKind() != kind::APPLY_TESTER)
     {
       return Node::null();
     }
@@ -60,10 +64,10 @@ Node DatatypesProofRuleChecker::checkInternal(PfRule id,
     Node ticons = utils::getInstCons(t, dt, i);
     return t.eqNode(ticons);
   }
-  else if (id==PfRule::DT_SPLIT)
+  else if (id == PfRule::DT_SPLIT)
   {
     Assert(children.empty());
-    Assert(args.size()==1);
+    Assert(args.size() == 1);
     TypeNode t = args[0].getType();
     if (!t.isDatatype())
     {
@@ -72,18 +76,20 @@ Node DatatypesProofRuleChecker::checkInternal(PfRule id,
     const DType& dt = t.getDType();
     return utils::mkSplit(args[0], dt);
   }
-  else if (id==PfRule::DT_CLASH)
+  else if (id == PfRule::DT_CLASH)
   {
-    Assert(children.size()==2);
+    Assert(children.size() == 2);
     Assert(args.empty());
-    if (children[0].getKind()!=kind::APPLY_TESTER || children[1].getKind()!=kind::APPLY_TESTER
-      && children[0][0]!=children[1][0] && children[0]==children[1])
+    if (children[0].getKind() != kind::APPLY_TESTER
+        || children[1].getKind() != kind::APPLY_TESTER
+               && children[0][0] != children[1][0]
+               && children[0] == children[1])
     {
       return Node::null();
     }
     return nm->mkConst(false);
   }
-  else if (id==PfRule::DT_TRUST)
+  else if (id == PfRule::DT_TRUST)
   {
     Assert(!args.empty());
     Assert(args[0].getType().isBoolean());
