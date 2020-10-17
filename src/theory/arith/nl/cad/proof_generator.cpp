@@ -202,7 +202,7 @@ std::vector<Node> CADProofGenerator::constructCell(Node var,
     if (ids.first == ids.second)
     {
       // Excludes a single point only
-    res.emplace_back(mkIRP(var, Kind::EQUAL, d_zero, ids.first, poly, vm));
+      res.emplace_back(mkIRP(var, Kind::EQUAL, d_zero, ids.first, poly, vm));
     }
     else
     {
