@@ -45,7 +45,7 @@ class CVC4_PUBLIC ScopeException : public Exception {};
 class CVC4_PUBLIC SymbolTable {
  public:
   /** Create a symbol table. */
-  SymbolTable(api::Solver* s);
+  SymbolTable();
   ~SymbolTable();
 
   /**
@@ -201,14 +201,9 @@ class CVC4_PUBLIC SymbolTable {
   //------------------------ end operator overloading
 
  private:
-  // Copying and assignment have not yet been implemented.
-  SymbolTable(const SymbolTable&);
-  SymbolTable& operator=(SymbolTable&);
-
+  /** The implementation of the symbol table */
   class Implementation;
   std::unique_ptr<Implementation> d_implementation;
-  /** The API Solver object. */
-  api::Solver* d_solver;
 }; /* class SymbolTable */
 
 }  // namespace CVC4

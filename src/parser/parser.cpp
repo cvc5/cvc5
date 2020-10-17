@@ -47,7 +47,7 @@ Parser::Parser(api::Solver* solver,
                bool strictMode,
                bool parseOnly)
     : d_input(input),
-      d_symtabAllocated(solver),
+      d_symtabAllocated(),
       d_symtab(&d_symtabAllocated),
       d_assertionLevel(0),
       d_globalDeclarations(false),

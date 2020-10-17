@@ -1120,6 +1120,12 @@ Sort Sort::getTesterDomainSort() const
   return Sort(d_solver, typeNode.getTesterDomainType().toType());
 }
 
+Sort Sort::getTesterCodomainSort() const
+{
+  CVC4_API_CHECK(isTester()) << "Not a tester sort: " << (*this);
+  return d_solver->getBooleanSort();
+}
+
 /* Function sort ------------------------------------------------------- */
 
 size_t Sort::getFunctionArity() const

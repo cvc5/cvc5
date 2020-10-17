@@ -255,7 +255,7 @@ bool OverloadedTypeTrie::markOverloaded(const string& name, api::Term obj)
   else if (t.isTester())
   {
     argTypes.push_back(t.getTesterDomainSort());
-    rangeType = d_solver->getBooleanSort();
+    rangeType = t.getTesterCodomainSort();
   } else if (t.isSelector()) {
     argTypes.push_back(t.getSelectorDomainSort());
     rangeType = t.getSelectorCodomainSort();
@@ -599,8 +599,8 @@ api::Term SymbolTable::getOverloadedFunctionForTypes(
   return d_implementation->getOverloadedFunctionForTypes(name, argTypes);
 }
 
-SymbolTable::SymbolTable(api::Solver* s)
-    : d_solver(s), d_implementation(new SymbolTable::Implementation())
+SymbolTable::SymbolTable()
+    : d_implementation(new SymbolTable::Implementation())
 {
 }
 
