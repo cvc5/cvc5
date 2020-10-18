@@ -122,8 +122,8 @@ struct MkBagTypeRule
 {
   static TypeNode computeType(NodeManager* nm, TNode n, bool check)
   {
-    Assert(n.getKind() == kind::MK_BAG && n.hasOperator()
-           && n.getOperator().getKind() == kind::MK_BAG_OP);
+    Assert(n.getKind() == kind::BAG_CONSTRUCTOR && n.hasOperator()
+           && n.getOperator().getKind() == kind::BAG_CONSTRUCTOR_OP);
     MakeBagOp op = n.getOperator().getConst<MakeBagOp>();
     TypeNode expectedElementType = op.getType();
     if (check)
@@ -132,14 +132,14 @@ struct MkBagTypeRule
       {
         std::stringstream ss;
         ss << "operands in term " << n << " are " << n.getNumChildren()
-           << ", but MK_BAG expects 2 operands.";
+           << ", but BAG_CONSTRUCTOR expects 2 operands.";
         throw TypeCheckingExceptionPrivate(n, ss.str());
       }
       TypeNode type1 = n[1].getType(check);
       if (!type1.isInteger())
       {
         std::stringstream ss;
-        ss << "MK_BAG expects an integer for " << n[1] << ". Found" << type1;
+        ss << "BAG_CONSTRUCTOR expects an integer for " << n[1] << ". Found" << type1;
         throw TypeCheckingExceptionPrivate(n, ss.str());
       }
 
@@ -161,7 +161,7 @@ struct MkBagTypeRule
 
   static bool computeIsConst(NodeManager* nodeManager, TNode n)
   {
-    Assert(n.getKind() == kind::MK_BAG);
+    Assert(n.getKind() == kind::BAG_CONSTRUCTOR);
     // for a bag to be a constant, both the element and its multiplicity should
     // be constants, and the multiplicity should be > 0.
     return n[0].isConst() && n[1].isConst()

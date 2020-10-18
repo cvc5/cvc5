@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief a class for MK_BAG operator
+ ** \brief a class for BAG_CONSTRUCTOR operator
  **/
 
 #include <iostream>

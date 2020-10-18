@@ -2054,7 +2054,7 @@ enum CVC4_PUBLIC Kind : int32_t
    * Create with:
    *   mkTerm(Kind kind, Term child)
    */
-  MK_BAG,
+  BAG_CONSTRUCTOR,
   /**
    * Bag cardinality.
    * Parameters: 1

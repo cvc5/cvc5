@@ -968,7 +968,7 @@ Node NodeManager::mkBag(const TypeNode& t, const TNode n, const TNode m)
       << "' of node '" << n << "' is not a subtype of '" << t << "'."
       << std::endl;
   Node op = mkConst(MakeBagOp(t));
-  Node bag = mkNode(kind::MK_BAG, op, n, m);
+  Node bag = mkNode(kind::BAG_CONSTRUCTOR, op, n, m);
   return bag;
 }
 
