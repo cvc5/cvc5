@@ -52,18 +52,20 @@ class NonClausalSimp : public PreprocessingPass
    * Transform learned literal lit. We apply substitutions in subs once and then
    * apply constant propagations cp to fixed point. Return the rewritten
    * form of lit.
-   * 
+   *
    * If proofs are enabled, then we require that the learned
    * literal preprocess proof generator has a proof of lit when this method
    * is called, and ensure that the return literal also has a proof in d_llpg.
    */
-  Node processLearnedLit(Node lit, theory::TrustSubstitutionMap* subs, theory::TrustSubstitutionMap* cp);
-  /** 
+  Node processLearnedLit(Node lit,
+                         theory::TrustSubstitutionMap* subs,
+                         theory::TrustSubstitutionMap* cp);
+  /**
    * Process rewritten learned literal. This is called when we have a
    * learned literal lit that is rewritten to litr based on the proof generator
    * contained in trn (if it exists). The trust node trn should be of kind
    * REWRITE and proving (= lit litr).
-   * 
+   *
    * This tracks the proof in the learned literal preprocess proof generator
    * d_llpg below and returns the rewritten learned literal.
    */

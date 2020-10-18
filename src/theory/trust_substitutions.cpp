@@ -74,7 +74,9 @@ void TrustSubstitutionMap::addSubstitution(TNode x,
   addSubstitution(x, t, stepPg);
 }
 
-ProofGenerator * TrustSubstitutionMap::addSubstitutionSolved(TNode x, TNode t, TrustNode tn)
+ProofGenerator* TrustSubstitutionMap::addSubstitutionSolved(TNode x,
+                                                            TNode t,
+                                                            TrustNode tn)
 {
   Trace("trust-subs") << "TrustSubstitutionMap::addSubstitutionSolved: add "
                       << x << " -> " << t << " from " << tn.getProven()

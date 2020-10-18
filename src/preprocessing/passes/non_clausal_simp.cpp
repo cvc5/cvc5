@@ -160,7 +160,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     Assert(Rewriter::rewrite(learnedLiteral) == learnedLiteral);
     Assert(top_level_substs.apply(learnedLiteral) == learnedLiteral);
     // process the learned literal with substitutions and const propagations
-    learnedLiteral = processLearnedLit(learnedLiteral, newSubstitutions.get(), constantPropagations.get());
+    learnedLiteral = processLearnedLit(
+        learnedLiteral, newSubstitutions.get(), constantPropagations.get());
     Trace("non-clausal-simplify")
         << "Process learnedLiteral, after constProp : " << learnedLiteral
         << std::endl;
@@ -249,7 +250,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
           Assert(top_level_substs.apply(t) == t);
           Assert(nss.apply(t) == t);
           // also add to learned literal
-          ProofGenerator * cpg = constantPropagations->addSubstitutionSolved(t, c, tlearnedLiteral);
+          ProofGenerator* cpg = constantPropagations->addSubstitutionSolved(
+              t, c, tlearnedLiteral);
           // We need to justify (= t c) as a literal, since it is reasserted
           // to the assertion pipeline below. We do this with the proof
           // generator returned by the above call.
@@ -361,7 +363,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
           << "substitute: will notify SAT layer of substitution: " << eq
           << std::endl;
       trhs = newSubstitutions->apply((*pos).first);
-      Assert (!trhs.isNull());
+      Assert(!trhs.isNull());
       // FIXME: needs proof
       assertionsToPreprocess->addSubstitutionNode(eq);
     }
@@ -378,7 +380,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     Node learned = learned_literals[i].getNode();
     Assert(top_level_substs.apply(learned) == learned);
     // process learned literal
-    learned = processLearnedLit(learned, newSubstitutions.get(), constantPropagations.get());
+    learned = processLearnedLit(
+        learned, newSubstitutions.get(), constantPropagations.get());
     if (s.find(learned) != s.end())
     {
       continue;
@@ -453,10 +456,12 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 
 bool NonClausalSimp::isProofEnabled() const { return d_pnm != nullptr; }
 
-Node NonClausalSimp::processLearnedLit(Node lit, theory::TrustSubstitutionMap* subs, theory::TrustSubstitutionMap* cp)
+Node NonClausalSimp::processLearnedLit(Node lit,
+                                       theory::TrustSubstitutionMap* subs,
+                                       theory::TrustSubstitutionMap* cp)
 {
   TrustNode tlit;
-  if (subs!=nullptr)
+  if (subs != nullptr)
   {
     tlit = subs->apply(lit);
     if (!tlit.isNull())
@@ -464,11 +469,10 @@ Node NonClausalSimp::processLearnedLit(Node lit, theory::TrustSubstitutionMap* s
       lit = processRewrittenLearnedLit(tlit);
     }
     Trace("non-clausal-simplify")
-        << "Process learnedLiteral, after newSubs : " << lit
-        << std::endl;
+        << "Process learnedLiteral, after newSubs : " << lit << std::endl;
   }
   // apply to fixed point
-  if (cp!=nullptr)
+  if (cp != nullptr)
   {
     for (;;)
     {

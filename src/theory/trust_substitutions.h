@@ -64,10 +64,10 @@ class TrustSubstitutionMap
    * based on transforming the tn.getProven() to (= x t) if tn has a
    * non-null proof generator; otherwise if tn has no proof generator
    * we simply add the substitution.
-   * 
+   *
    * @return The proof generator that can prove (= x t).
    */
-  ProofGenerator * addSubstitutionSolved(TNode x, TNode t, TrustNode tn);
+  ProofGenerator* addSubstitutionSolved(TNode x, TNode t, TrustNode tn);
   /**
    * Add substitutions from trust substitution map t. This adds all
    * substitutions for t and carries over its information about proofs.
