@@ -56,9 +56,6 @@ void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, ProofGenerator* pg)
     // add to lazy proof
     d_subsPg->addLazyStep(tnl.getProven(),
                           pg,
-                          false,
-                          "TrustSubstitutionMap::addSubstitution",
-                          false,
                           d_trustId);
   }
 }
@@ -115,7 +112,7 @@ void TrustSubstitutionMap::addSubstitutionSolved(TNode x, TNode t, TrustNode tn)
   solvePg->addSteps(*d_tspb.get());
   d_tspb->clear();
   // link the given generator
-  solvePg->addLazyStep(proven, tn.getGenerator(), false);
+  solvePg->addLazyStep(proven, tn.getGenerator());
   addSubstitution(x, t, solvePg);
 }
 
@@ -180,14 +177,14 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
       {
         pfChildren.push_back(csc);
         // connect substitution generator into apply generator
-        d_applyPg->addLazyStep(csc, d_subsPg.get(), false);
+        d_applyPg->addLazyStep(csc, d_subsPg.get());
       }
     }
     else
     {
       pfChildren.push_back(cs);
       // connect substitution generator into apply generator
-      d_applyPg->addLazyStep(cs, d_subsPg.get(), false);
+      d_applyPg->addLazyStep(cs, d_subsPg.get());
     }
   }
   if (!d_tspb->applyEqIntro(n, ns, pfChildren, d_ids))

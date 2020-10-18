@@ -63,12 +63,13 @@ TConvProofGenerator::TConvProofGenerator(ProofNodeManager* pnm,
 TConvProofGenerator::~TConvProofGenerator() {}
 
 void TConvProofGenerator::addRewriteStep(
-    Node t, Node s, ProofGenerator* pg, bool isClosed, uint32_t tctx)
+    Node t, Node s, ProofGenerator* pg,
+                      PfRule trustId, bool isClosed, uint32_t tctx)
 {
   Node eq = registerRewriteStep(t, s, tctx);
   if (!eq.isNull())
   {
-    d_proof.addLazyStep(eq, pg, isClosed);
+    d_proof.addLazyStep(eq, pg, trustId, isClosed);
   }
 }
 

@@ -24,6 +24,7 @@
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/preprocess_proof_generator.h"
 #include "theory/trust_node.h"
+#include "expr/lazy_proof.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -49,21 +50,15 @@ class NonClausalSimp : public PreprocessingPass
   Statistics d_statistics;
   /** Is proof enabled? */
   bool isProofEnabled() const;
-  /**
-   * Add learned literal to the preprocess proof generator maintained by this
-   * class.
-   */
-  void assertLearnedLiteral(const std::vector<Node>& assertions,
-                            theory::TrustNode tll);
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /** the learned literal preprocess proof generator */
   std::unique_ptr<smt::PreprocessProofGenerator> d_llpg;
   /**
-   * An eager proof generator for automatically inferred proofs of learned
-   * literals.
+   * An lazy proof for learned literals that are reasserted into the assertions
+   * pipeline by this class.
    */
-  std::unique_ptr<theory::EagerProofGenerator> d_llRCons;
+  std::unique_ptr<LazyCDProof> d_llra;
   /**
    * A context-dependent list of trust substitution maps, which are required
    * for storing proofs.

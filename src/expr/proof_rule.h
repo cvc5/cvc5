@@ -702,10 +702,11 @@ enum class PfRule : uint32_t
   // Conclusion: (= ti si)
   DT_UNIF,
   // ======== Instantiate
-  // Children: (P:((_ is C) t))
-  // Arguments: none
+  // Children: none
+  // Arguments: (t, n)
   // ----------------------------------------
-  // Conclusion: (= t (C (sel_1 t) ... (sel_n t)))
+  // Conclusion: (= ((_ is C) t) (= t (C (sel_1 t) ... (sel_n t))))
+  // where C is the n^th constructor of the type of T.
   DT_INST,
   // ======== Split
   // Children: none

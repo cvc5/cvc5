@@ -22,6 +22,7 @@
 #include "theory/datatypes/inference.h"
 #include "theory/inference_manager_buffered.h"
 #include "util/statistics_registry.h"
+#include "theory/datatypes/infer_proof_cons.h"
 
 namespace CVC4 {
 namespace theory {
@@ -79,6 +80,8 @@ class InferenceManager : public InferenceManagerBuffered
    */
   HistogramStat<InferId> d_inferenceLemmas;
   HistogramStat<InferId> d_inferenceFacts;
+  /** The inference to proof converter */
+  std::unique_ptr<InferProofCons> d_ipc;
 };
 
 }  // namespace datatypes

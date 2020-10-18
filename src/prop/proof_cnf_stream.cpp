@@ -82,7 +82,7 @@ void ProofCnfStream::convertAndAssert(TNode node,
                  << "\n";
     Node toJustify = negated ? node.notNode() : static_cast<Node>(node);
     d_proof.addLazyStep(
-        toJustify, pg, true, "ProofCnfStream::convertAndAssert:cnf");
+        toJustify, pg, PfRule::ASSUME, true, "ProofCnfStream::convertAndAssert:cnf");
   }
   convertAndAssert(node, negated);
   // process saved steps in buffer
@@ -520,7 +520,7 @@ void ProofCnfStream::convertPropagation(theory::TrustNode trn)
   Trace("cnf-steps") << proven << " by explainPropagation "
                      << trn.identifyGenerator() << std::endl;
   d_proof.addLazyStep(
-      proven, trn.getGenerator(), true, "ProofCnfStream::convertPropagation");
+      proven, trn.getGenerator(), PfRule::ASSUME, true, "ProofCnfStream::convertPropagation");
   // since the propagation is added directly to the SAT solver via theoryProxy,
   // do the transformation of the lemma E1 ^ ... ^ En => P into CNF here
   NodeManager* nm = NodeManager::currentNM();

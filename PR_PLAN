@@ -117,9 +117,10 @@ PRs ready:
 (70) rewriter unit test [Andres] (req 36, 37)
 (117) trust substitution implementation (req 119) *
 (122) allow AND substitutions in proof post processor *
+(125) proof producing circuit propagator [Gereon]
 (127) datatypes proof checker (req 126)
 (128) updates to lazy cd proof chain [Haniel]
-(129) refinements to cyclic checking policy
+(129) refinements to cyclic checking policy *
 
 PRs future:
 
@@ -131,9 +132,8 @@ PRs future:
 (83) DSL rewrite rule compilation, including side condition utility [Andres] (req 56)
 (85) SmtEngine check proofs [Haniel] (req 68, 82)
 (98) fixes in setDefaults
-(101) strings misc changes to preprocess, base (req 43)
+(101) strings misc changes to preprocess, base (req 31, 43)
 (118) non-clausal simplification proof producing (req 116, 117, 120, 125)
-(125) proof producing circuit propagator [Gereon]
 
 Wish list:
 
