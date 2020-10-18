@@ -159,35 +159,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     Node learnedLiteral = learned_literals[i].getNode();
     Assert(Rewriter::rewrite(learnedLiteral) == learnedLiteral);
     Assert(top_level_substs.apply(learnedLiteral) == learnedLiteral);
-    Trace("non-clausal-simplify")
-        << "Process learnedLiteral : " << learnedLiteral << std::endl;
-    TrustNode learnedLiteralNew = newSubstitutions->apply(learnedLiteral);
-    if (!learnedLiteralNew.isNull())
-    {
-      if (isProofEnabled())
-      {
-        d_llpg->notifyTrustedPreprocessed(learnedLiteralNew);
-      }
-      learnedLiteral = learnedLiteralNew.getNode();
-    }
-    Trace("non-clausal-simplify")
-        << "Process learnedLiteral, after newSubs : " << learnedLiteral
-        << std::endl;
-    for (;;)
-    {
-      learnedLiteralNew = constantPropagations->apply(learnedLiteral);
-      if (learnedLiteralNew.isNull())
-      {
-        break;
-      }
-      Assert(learnedLiteral != learnedLiteralNew.getNode());
-      if (isProofEnabled())
-      {
-        d_llpg->notifyTrustedPreprocessed(learnedLiteralNew);
-      }
-      learnedLiteral = learnedLiteralNew.getNode();
-      d_statistics.d_numConstantProps += 1;
-    }
+    // process the learned literal with substitutions and const propagations
+    learnedLiteral = processLearnedLit(learnedLiteral, newSubstitutions.get(), constantPropagations.get());
     Trace("non-clausal-simplify")
         << "Process learnedLiteral, after constProp : " << learnedLiteral
         << std::endl;
@@ -275,7 +248,15 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
           Assert(cps.apply(t) == t);
           Assert(top_level_substs.apply(t) == t);
           Assert(nss.apply(t) == t);
-          constantPropagations->addSubstitutionSolved(t, c, tlearnedLiteral);
+          // also add to learned literal
+          ProofGenerator * cpg = constantPropagations->addSubstitutionSolved(t, c, tlearnedLiteral);
+          // We need to justify (= t c) as a literal, since it is reasserted
+          // to the assertion pipeline below. We do this with the proof
+          // generator returned by the above call.
+          if (isProofEnabled())
+          {
+            d_llpg->notifyNewAssert(t.eqNode(c), cpg);
+          }
         }
         else
         {
@@ -379,6 +360,9 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       Trace("non-clausal-simplify")
           << "substitute: will notify SAT layer of substitution: " << eq
           << std::endl;
+      trhs = newSubstitutions->apply((*pos).first);
+      Assert (!trhs.isNull());
+      // FIXME: needs proof
       assertionsToPreprocess->addSubstitutionNode(eq);
     }
   }
@@ -393,33 +377,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   {
     Node learned = learned_literals[i].getNode();
     Assert(top_level_substs.apply(learned) == learned);
-    TrustNode tlearnedNew = newSubstitutions->apply(learned);
-    if (!tlearnedNew.isNull())
-    {
-      if (isProofEnabled())
-      {
-        // FIXME
-        // d_llpg->notifyTrustedPreprocessed(tlearnedNew);
-      }
-      learned = tlearnedNew.getNode();
-      Assert(Rewriter::rewrite(learned) == learned);
-    }
-    for (;;)
-    {
-      tlearnedNew = constantPropagations->apply(learned);
-      if (tlearnedNew.isNull())
-      {
-        break;
-      }
-      Assert(tlearnedNew.getNode() != learned);
-      if (isProofEnabled())
-      {
-        // FIXME
-        // d_llpg->notifyTrustedPreprocessed(tlearnedNew);
-      }
-      learned = tlearnedNew.getNode();
-      d_statistics.d_numConstantProps += 1;
-    }
+    // process learned literal
+    learned = processLearnedLit(learned, newSubstitutions.get(), constantPropagations.get());
     if (s.find(learned) != s.end())
     {
       continue;
@@ -435,17 +394,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   {
     Node cProp = (*pos).first.eqNode((*pos).second);
     Assert(top_level_substs.apply(cProp) == cProp);
-    TrustNode cPropNew = newSubstitutions->apply(cProp);
-    if (!cPropNew.isNull())
-    {
-      if (isProofEnabled())
-      {
-        // FIXME
-        // d_llpg->notifyTrustedPreprocessed(cPropNew);
-      }
-      cProp = cPropNew.getNode();
-      Assert(Rewriter::rewrite(cProp) == cProp);
-    }
+    // process learned literal (substitutions only)
+    cProp = processLearnedLit(cProp, newSubstitutions.get(), nullptr);
     if (s.find(cProp) != s.end())
     {
       continue;
@@ -489,6 +439,11 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     }
     // TODO: enable by removing this line
     pg = nullptr;
+    // ------- from d_llpg    --------- from d_llpg
+    //  conj[0]       ....    d_conj[n]
+    // -------------------------------- AND_INTRO
+    //  newConj
+    // where newConj is conjoined at the given index
     assertionsToPreprocess->conjoin(replIndex, newConj, pg);
   }
 
@@ -497,7 +452,48 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 }
 
 bool NonClausalSimp::isProofEnabled() const { return d_pnm != nullptr; }
-/* -------------------------------------------------------------------------- */
+
+Node NonClausalSimp::processLearnedLit(Node lit, theory::TrustSubstitutionMap* subs, theory::TrustSubstitutionMap* cp)
+{
+  TrustNode tlit;
+  if (subs!=nullptr)
+  {
+    tlit = subs->apply(lit);
+    if (!tlit.isNull())
+    {
+      lit = processRewrittenLearnedLit(tlit);
+    }
+    Trace("non-clausal-simplify")
+        << "Process learnedLiteral, after newSubs : " << lit
+        << std::endl;
+  }
+  // apply to fixed point
+  if (cp!=nullptr)
+  {
+    for (;;)
+    {
+      tlit = cp->apply(lit);
+      if (tlit.isNull())
+      {
+        break;
+      }
+      Assert(lit != tlit.getNode());
+      lit = processRewrittenLearnedLit(tlit);
+      d_statistics.d_numConstantProps += 1;
+    }
+  }
+  return lit;
+}
+
+Node NonClausalSimp::processRewrittenLearnedLit(theory::TrustNode trn)
+{
+  if (isProofEnabled())
+  {
+    d_llpg->notifyTrustedPreprocessed(trn);
+  }
+  // return the node
+  return trn.getNode();
+}
 
 }  // namespace passes
 }  // namespace preprocessing
