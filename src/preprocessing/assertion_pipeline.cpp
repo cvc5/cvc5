@@ -62,7 +62,8 @@ void AssertionPipeline::push_back(Node n,
     Assert(d_assumptionsStart + d_numAssumptions == d_nodes.size() - 1);
     d_numAssumptions++;
   }
-  Trace("assert-pipeline") << "Assertions: ...new assertion " << n << ", isInput=" << isInput << std::endl;
+  Trace("assert-pipeline") << "Assertions: ...new assertion " << n
+                           << ", isInput=" << isInput << std::endl;
   if (isProofEnabled())
   {
     if (!isInput)
@@ -87,8 +88,8 @@ void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
     // no change, skip
     return;
   }
-  Trace("assert-pipeline") << "Assertions: Replace " << d_nodes[i] << " with " << n
-                         << std::endl;
+  Trace("assert-pipeline") << "Assertions: Replace " << d_nodes[i] << " with "
+                           << n << std::endl;
   if (options::unsatCores())
   {
     ProofManager::currentPM()->addDependence(n, d_nodes[i]);
@@ -143,8 +144,10 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
   NodeManager* nm = NodeManager::currentNM();
   Node newConj = nm->mkNode(kind::AND, d_nodes[i], n);
   Node newConjr = theory::Rewriter::rewrite(newConj);
-  Trace("assert-pipeline") << "Assertions: conjoin " << n << " to " << d_nodes[i] << std::endl;
-  Trace("assert-pipeline-debug") << "conjoin " << n << " to " << d_nodes[i] << ", got " << newConjr << std::endl;
+  Trace("assert-pipeline") << "Assertions: conjoin " << n << " to "
+                           << d_nodes[i] << std::endl;
+  Trace("assert-pipeline-debug") << "conjoin " << n << " to " << d_nodes[i]
+                                 << ", got " << newConjr << std::endl;
   if (newConjr == d_nodes[i])
   {
     // trivial, skip
@@ -152,7 +155,7 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
   }
   if (isProofEnabled())
   {
-    if (newConjr==n)
+    if (newConjr == n)
     {
       // don't care about the previous proof and can simply plug in the
       // proof from pg if the resulting assertion is the same as n.
