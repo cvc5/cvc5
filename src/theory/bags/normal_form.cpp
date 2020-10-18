@@ -53,8 +53,8 @@ Node NormalForm::evaluate(TNode n)
 
 Node NormalForm::evaluateMakeBag(TNode n)
 {
-  Assert(!n.isConst());
-  // TODO: use the type operator for mkBag
+  Assert(n.getKind() == MK_BAG && !n.isConst()
+         && n[1].getConst<Rational>().sgn() < 1);
   Node emptybag = NodeManager::currentNM()->mkConst(EmptyBag(n.getType()));
   return emptybag;
 }
