@@ -64,7 +64,6 @@ class ProofChecker;
 class ProofNodeManager;
 class CDProof;
 
-class Model;
 class LogicRequest;
 class StatisticsRegistry;
 
@@ -99,6 +98,7 @@ namespace prop {
 
 namespace smt {
 /** Utilities */
+class Model;
 class SmtEngineState;
 class AbstractValues;
 class Assertions;
@@ -285,7 +285,7 @@ class CVC4_PUBLIC SmtEngine
    * Get the model (only if immediately preceded by a SAT or NOT_ENTAILED
    * query).  Only permitted if produce-models is on.
    */
-  Model* getModel();
+  smt::Model* getModel();
 
   /**
    * Block the current model. Can be called only if immediately preceded by
@@ -985,16 +985,17 @@ class CVC4_PUBLIC SmtEngine
   Result quickCheck();
 
   /**
-   * Get the model, if it is available and return a pointer to it
+   * Get the (SMT-level) model pointer, if we are in SAT mode. Otherwise,
+   * return nullptr.
    *
-   * This ensures that the model is currently available, which means that
-   * CVC4 is producing models, and is in "SAT mode", otherwise an exception
-   * is thrown.
+   * This ensures that the underlying theory model of the SmtSolver maintained
+   * by this class is currently available, which means that CVC4 is producing
+   * models, and is in "SAT mode", otherwise a recoverable exception is thrown.
    *
    * The flag c is used for giving an error message to indicate the context
    * this method was called.
    */
-  theory::TheoryModel* getAvailableModel(const char* c) const;
+  smt::Model* getAvailableModel(const char* c) const;
 
   // --------------------------------------- callbacks from the state
   /**
@@ -1104,6 +1105,12 @@ class CVC4_PUBLIC SmtEngine
 
   /** The (old) proof manager TODO (project #37): delete this */
   std::unique_ptr<ProofManager> d_proofManager;
+  /**
+   * The SMT-level model object, which contains information about how to
+   * print the model, as well as a pointer to the underlying TheoryModel
+   * implementation maintained by the SmtSolver.
+   */
+  std::unique_ptr<smt::Model> d_model;
 
   /**
    * The proof manager, which manages all things related to checking,

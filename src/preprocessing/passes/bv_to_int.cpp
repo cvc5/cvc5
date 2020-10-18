@@ -302,10 +302,10 @@ Node BVToInt::bvToInt(Node n)
       {
         // We are now visiting current on the way back up.
         // This is when we do the actual translation.
+        Node translation;
         if (currentNumChildren == 0)
         {
-          Node translation = translateNoChildren(current);
-          d_bvToIntCache[current] = translation;
+          translation = translateNoChildren(current);
         }
         else
         {
@@ -328,10 +328,12 @@ Node BVToInt::bvToInt(Node n)
           {
             translated_children.push_back(d_bvToIntCache[current[i]]);
           }
-          Node translation =
-              translateWithChildren(current, translated_children);
-          d_bvToIntCache[current] = translation;
+          translation = translateWithChildren(current, translated_children);
         }
+        // Map the current node to its translation in the cache.
+        d_bvToIntCache[current] = translation;
+        // Also map the translation to itself.
+        d_bvToIntCache[translation] = translation;
         toVisit.pop_back();
       }
     }
