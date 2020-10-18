@@ -32,16 +32,6 @@ bool NormalForm::checkNormalConstant(TNode n)
   }
   if (n.getKind() == UNION_DISJOINT)
   {
-    /**
-     * Returns true if n is considered a to be a (canonical) constant bag value.
-     * A canonical bag value is one whose AST is:
-     *   (union_disjoint (mkBag e1 c1) ...
-     *      (union_disjoint (mkBag e_{n-1} c_{n-1}) (mkBag e_n c_n))))
-     * where e1 ... en are constants, c1 ... cn are positive constants and the
-     * node identifier of these constants are such that: e1 < ... < en. Also
-     * handles the corner cases of empty bag and bag constructed from mkBag
-     */
-
     if (!(n[0].getKind() == kind::MK_BAG && n[0].isConst()))
     {
       return false;
@@ -59,8 +49,8 @@ bool NormalForm::checkNormalConstant(TNode n)
       {
         return false;
       }
-      current = current[1];
       previousElement = current[0][0];
+      current = current[1];
     }
     // check last element
     if (!(current.getKind() == kind::MK_BAG && current.isConst()))
@@ -116,24 +106,29 @@ Node NormalForm::evaluateMakeBag(TNode n)
 Node NormalForm::evaluateUnionDisjoint(TNode n)
 {
   Assert(n.getKind() == UNION_DISJOINT);
-  //e.g. (UNION_DISJOINT
-  //    (MK_BAG (mkBag_op String) "A" 3)
-  //    (UNION_DISJOINT
-  //      (MK_BAG (mkBag_op String) "B" 4)
-  //      (MK_BAG (mkBag_op String) "C" 2)))
+  // Example
+  // -------
+  // input: (union_disjoint A B)
+  //    where A = (union_disjoint (MK_BAG "x" 4) (MK_BAG "z" 2)))
+  //          B = (union_disjoint (MK_BAG "x" 3) (MK_BAG "y" 1)))
+  // output:
+  //    (union_disjoint A B)
+  //        where A = (MK_BAG "x" 7)
+  //              B = (union_disjoint (MK_BAG "y" 1) (MK_BAG "z" 2)))
+
   std::map<Node, Rational> elementsA = getBagElements(n[0]);
   std::map<Node, Rational> elementsB = getBagElements(n[1]);
   std::map<Node, Rational> elements;
 
-  std::map<Node, Rational>::const_reverse_iterator itA = elementsA.rbegin();
-  std::map<Node, Rational>::const_reverse_iterator itB = elementsB.rbegin();
+  std::map<Node, Rational>::const_iterator itA = elementsA.begin();
+  std::map<Node, Rational>::const_iterator itB = elementsB.begin();
 
   Trace("bags-evaluate") << "NormalForm::evaluateUnionDisjoint elements A: "
                          << elementsA << std::endl;
   Trace("bags-evaluate") << "NormalForm::evaluateUnionDisjoint elements B: "
                          << elementsA << std::endl;
 
-  while (itA != elementsA.rend() && itB != elementsB.rend())
+  while (itA != elementsA.end() && itB != elementsB.end())
   {
     if (itA->first == itB->first)
     {
@@ -141,7 +136,7 @@ Node NormalForm::evaluateUnionDisjoint(TNode n)
       itA++;
       itB++;
     }
-    else if (itA->first > itB->first)
+    else if (itA->first < itB->first)
     {
       elements[itA->first] = itA->second;
       itA++;
@@ -154,14 +149,14 @@ Node NormalForm::evaluateUnionDisjoint(TNode n)
   }
 
   // insert the remaining elements from A
-  while (itA != elementsA.rend())
+  while (itA != elementsA.end())
   {
     elements[itA->first] = itA->second;
     itA++;
   }
 
   // insert the remaining elements from B
-  while (itB != elementsB.rend())
+  while (itB != elementsB.end())
   {
     elements[itB->first] = itB->second;
     itB++;
