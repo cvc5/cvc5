@@ -60,7 +60,6 @@ void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, ProofGenerator* pg)
                           "TrustSubstitutionMap::addSubstitution",
                           false,
                           d_trustId);
-
   }
 }
 
