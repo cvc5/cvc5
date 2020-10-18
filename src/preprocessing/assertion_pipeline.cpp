@@ -73,7 +73,7 @@ void AssertionPipeline::push_back(Node n,
     }
     else
     {
-      Assert (pgen==nullptr);
+      Assert(pgen == nullptr);
       // n is an input assertion, whose proof should be ASSUME.
       d_pppg->notifyInput(n);
     }
