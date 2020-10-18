@@ -441,8 +441,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         pg = d_llpg.get();
       }
     }
-    // FIXME
-    pg = nullptr;
     // ------- from d_llpg    --------- from d_llpg
     //  conj[0]       ....    d_conj[n]
     // -------------------------------- AND_INTRO
