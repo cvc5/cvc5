@@ -1142,7 +1142,9 @@ void DeclareFunctionNodeCommandToStream(
   {
     out << tn;
   }
-  Node val = model.getSmtEngine()->getValue(n);
+  // We get the value from the theory model directly, which notice
+  // does not have to go through the standard SmtEngine::getValue interface.
+  Node val = model.getValue(n);
   if (options::modelUninterpDtEnum() && val.getKind() == kind::STORE)
   {
     TypeNode type_node = val[1].getType();
@@ -1162,11 +1164,12 @@ void DeclareFunctionNodeCommandToStream(
 
 }  // namespace
 
-void CvcPrinter::toStream(std::ostream& out, const Model& m) const
+void CvcPrinter::toStream(std::ostream& out, const smt::Model& m) const
 {
+  const theory::TheoryModel* tm = m.getTheoryModel();
   // print the model comments
   std::stringstream c;
-  m.getComments(c);
+  tm->getComments(c);
   std::string ln;
   while (std::getline(c, ln))
   {
@@ -1180,10 +1183,10 @@ void CvcPrinter::toStream(std::ostream& out, const Model& m) const
 }
 
 void CvcPrinter::toStream(std::ostream& out,
-                          const Model& model,
+                          const smt::Model& model,
                           const NodeCommand* command) const
 {
-  const auto* theory_model = dynamic_cast<const theory::TheoryModel*>(&model);
+  const auto* theory_model = model.getTheoryModel();
   AlwaysAssert(theory_model != nullptr);
   if (const auto* declare_type_command =
           dynamic_cast<const DeclareTypeNodeCommand*>(command))

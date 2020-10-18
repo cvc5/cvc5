@@ -159,13 +159,7 @@ class SkolemManager
    * Get proof generator for existentially quantified formula q. This returns
    * the proof generator that was provided in a call to mkSkolem above.
    */
-  ProofGenerator* getProofGenerator(Node q);
-  /**
-   * Make existential. Given t and p[t] where p is a formula, this returns
-   *   (exists ((x T)) p[x])
-   * where T is the type of t, and x is a variable unique to t,p.
-   */
-  Node mkExistential(Node t, Node p);
+  ProofGenerator* getProofGenerator(Node q) const;
   /**
    * Convert to witness form, where notice this recursively replaces *all*
    * skolems in n by their corresponding witness term. This is intended to be
@@ -197,7 +191,7 @@ class SkolemManager
    * Map to canonical bound variables. This is used for example by the method
    * mkExistential.
    */
-  std::map<std::pair<Node, Node>, Node> d_witnessBoundVar;
+  std::map<Node, Node> d_witnessBoundVar;
   /** Convert to witness or skolem form */
   static Node convertInternal(Node n, bool toWitness);
   /** Get or make skolem attribute for witness term w */
@@ -224,10 +218,11 @@ class SkolemManager
                  const std::string& comment = "",
                  int flags = NodeManager::SKOLEM_DEFAULT);
   /**
-   * Get or make bound variable unique to (s,t), for d_witnessBoundVar, where
-   * t and s are terms.
+   * Get or make bound variable unique to t whose type is the same as t. This
+   * is used to construct canonical bound variables e.g. for constructing
+   * bound variables for witness terms in the skolemize method above.
    */
-  Node getOrMakeBoundVariable(Node t, Node s);
+  Node getOrMakeBoundVariable(Node t);
 };
 
 }  // namespace CVC4
