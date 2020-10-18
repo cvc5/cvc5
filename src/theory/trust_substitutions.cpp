@@ -60,13 +60,14 @@ void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, ProofGenerator* pg)
                           "TrustSubstitutionMap::addSubstitution",
                           false,
                           d_trustId);
+
   }
 }
 
 void TrustSubstitutionMap::addSubstitution(TNode x,
                                            TNode t,
                                            PfRule id,
-                                           std::vector<Node>& args)
+                                           const std::vector<Node>& args)
 {
   if (!isProofEnabled())
   {
@@ -103,7 +104,7 @@ void TrustSubstitutionMap::addSubstitutionSolved(TNode x, TNode t, TrustNode tn)
     return;
   }
   LazyCDProof* solvePg = d_helperPf.allocateProof();
-  // try via rewrite eq == proven, if necessary
+  // Try to transform tn.getProven() to (= x t) here, if necessary
   if (!d_tspb->applyPredTransform(proven, eq, {}))
   {
     // failed to rewrite
@@ -115,7 +116,7 @@ void TrustSubstitutionMap::addSubstitutionSolved(TNode x, TNode t, TrustNode tn)
   solvePg->addSteps(*d_tspb.get());
   d_tspb->clear();
   // link the given generator
-  solvePg->addLazyStep(proven, tn.getGenerator(), false);
+  solvePg->addLazyStep(proven, tn.getGenerator());
   addSubstitution(x, t, solvePg);
 }
 
@@ -163,7 +164,16 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
       << std::endl;
   // Easy case: if n is in the domain of the substitution, maybe it is already
   // a proof in the substitution proof generator. This is moreover required
-  // to avoid cyclic proofs below.
+  // to avoid cyclic proofs below. For example, if { x -> 5 } is a substitution,
+  // and we are asked to transform x, resulting in 5, we hence must provide
+  // a proof of (= x 5) based on the substitution. However, it must be the
+  // case that (= x 5) is a proven fact of the substitution generator. Hence
+  // we avoid a proof that looks like:
+  // ---------- from d_subsPg
+  // (= x 5)
+  // ---------- MACRO_SR_EQ_INTRO{x}
+  // (= x 5)
+  // by taking the premise proof directly.
   Node eq = n.eqNode(ns);
   if (d_subsPg->hasStep(eq) || d_subsPg->hasGenerator(eq))
   {
@@ -174,20 +184,20 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   if (!cs.isConst())
   {
     // note we will get more proof reuse if we do not special case AND here.
-    if (false && cs.getKind() == kind::AND)
+    if (cs.getKind() == kind::AND)
     {
       for (const Node& csc : cs)
       {
         pfChildren.push_back(csc);
         // connect substitution generator into apply generator
-        d_applyPg->addLazyStep(csc, d_subsPg.get(), false);
+        d_applyPg->addLazyStep(csc, d_subsPg.get());
       }
     }
     else
     {
       pfChildren.push_back(cs);
       // connect substitution generator into apply generator
-      d_applyPg->addLazyStep(cs, d_subsPg.get(), false);
+      d_applyPg->addLazyStep(cs, d_subsPg.get());
     }
   }
   if (!d_tspb->applyEqIntro(n, ns, pfChildren, d_ids))
