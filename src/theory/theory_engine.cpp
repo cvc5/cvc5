@@ -824,8 +824,6 @@ void TheoryEngine::shutdown() {
       theoryOf(theoryId)->shutdown();
     }
   }
-
-  d_tpp.clearCache();
 }
 
 theory::Theory::PPAssertStatus TheoryEngine::solve(
