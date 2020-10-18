@@ -46,6 +46,16 @@ class NormalForm
   static Node evaluate(TNode n);
 
  private:
+  static std::map<Node, Rational> getBagElements(TNode n);
+  static Node constructBagFromElements(TypeNode t,
+                                       const std::map<Node, Rational>& map);
+  template <typename T1, typename T2, typename T3, typename T4, typename T5>
+  static Node evaluateBinaryOperation(const TNode& n,
+                                      T1&& lambda,
+                                      T2&& lessLambda,
+                                      T3&& geqLambda,
+                                      T4&& remainingA,
+                                      T5&& remainingB);
   /**
    * evaluate n as follows:
    * - (mkBag a 0) = (emptybag T) where T is the type of a
@@ -54,6 +64,17 @@ class NormalForm
    * - otherwise = n
    */
   static Node evaluateMakeBag(TNode n);
+
+  /**
+   * evaluate n as follows:
+   * - (bag.count "x" (emptybag String)) = 0
+   * - (bag.count "x" (mkBag "y" 5)) = 0
+   * - (bag.count "x" (mkBag "x" 4)) = 4
+   * - (bag.count "x" (union_disjoint (mkBag "x" 4) (mkBag "y" 5)) = 4
+   * - (bag.count "x" (union_disjoint (mkBag "y" 5) (mkBag "z" 5)) = 0
+   */
+  static Node evaluateBagCount(TNode n);
+
   /**
    * evaluate union disjoint node such that the returned node is a canonical bag
    * that has the form
@@ -63,10 +84,15 @@ class NormalForm
    * node identifier of these constants are such that: e1 < ... < en.
    */
   static Node evaluateUnionDisjoint(TNode n);
-
-  static std::map<Node, Rational> getBagElements(TNode n);
-  static Node constructBagFromElements(TypeNode t,
-                                       const std::map<Node, Rational>& map);
+  static Node evaluateUnionMax(TNode n);
+  static Node evaluateIntersectionMin(TNode n);
+  static Node evaluateDifferenceSubtract(TNode n);
+  static Node evaluateDifferenceRemove(TNode n);
+  static Node evaluateChoose(TNode n);
+  static Node evaluateCard(TNode n);
+  static Node evaluateIsSingleton(TNode n);
+  static Node evaluateFromSet(TNode n);
+  static Node evaluateToSet(TNode n);
 };
 }  // namespace bags
 }  // namespace theory
