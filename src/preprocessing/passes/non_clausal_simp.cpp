@@ -362,9 +362,9 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       Trace("non-clausal-simplify")
           << "substitute: will notify SAT layer of substitution: " << eq
           << std::endl;
-      trhs = newSubstitutions->apply((*pos).first);
-      Assert(!trhs.isNull());
-      // FIXME: needs proof
+      //trhs = newSubstitutions->apply((*pos).first);
+      //Assert(!trhs.isNull());
+      //assertionsToPreprocess->addSubstitutionNode(trhs.getProven(), trhs.getGenerator());
       assertionsToPreprocess->addSubstitutionNode(eq);
     }
   }
@@ -440,7 +440,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         pg = d_llpg.get();
       }
     }
-    // TODO: enable by removing this line
+    // FIXME
     pg = nullptr;
     // ------- from d_llpg    --------- from d_llpg
     //  conj[0]       ....    d_conj[n]
