@@ -97,29 +97,75 @@ class BagsNormalFormWhite : public CxxTest::TestSuite
 
   void testUnionMax() {}
 
-  void testUnionDisjoint()
+  void testUnionDisjoint1()
   {
-    int n = 3;
     vector<Node> elements = getNStrings(3);
     Node emptyBag =
         d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
     Node A = d_nm->mkBag(
-        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(n)));
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(2)));
     Node B = d_nm->mkBag(
-        d_nm->stringType(), elements[1], d_nm->mkConst(Rational(n + 1)));
+        d_nm->stringType(), elements[1], d_nm->mkConst(Rational(3)));
     Node C = d_nm->mkBag(
-        d_nm->stringType(), elements[2], d_nm->mkConst(Rational(n - 1)));
+        d_nm->stringType(), elements[2], d_nm->mkConst(Rational(4)));
+
     Node unionDisjointAB = d_nm->mkNode(UNION_DISJOINT, A, B);
-    Node unionDisjointABC = d_nm->mkNode(UNION_DISJOINT, unionDisjointAB, C);
-    std::cout << std::endl;
-    std::cout << unionDisjointABC <<std::endl;
-    std::cout << NormalForm::evaluate(unionDisjointABC) <<std::endl;
     // unionDisjointAB is already in a normal form
+    TS_ASSERT(unionDisjointAB.isConst());
     TS_ASSERT(unionDisjointAB == NormalForm::evaluate(unionDisjointAB));
 
     Node unionDisjointBA = d_nm->mkNode(UNION_DISJOINT, B, A);
     // unionDisjointAB is is the normal form of unionDisjointBA
+    TS_ASSERT(!unionDisjointBA.isConst());
     TS_ASSERT(unionDisjointAB == NormalForm::evaluate(unionDisjointBA));
+
+    Node unionDisjointAB_C = d_nm->mkNode(UNION_DISJOINT, unionDisjointAB, C);
+    Node unionDisjointBC = d_nm->mkNode(UNION_DISJOINT, B, C);
+    Node unionDisjointA_BC = d_nm->mkNode(UNION_DISJOINT, A, unionDisjointBC);
+    // unionDisjointA_BC is the normal form of unionDisjointAB_C
+    TS_ASSERT(!unionDisjointAB_C.isConst());
+    TS_ASSERT(unionDisjointA_BC.isConst());
+    TS_ASSERT(unionDisjointA_BC == NormalForm::evaluate(unionDisjointAB_C));
+
+    Node unionDisjointAA = d_nm->mkNode(UNION_DISJOINT, A, A);
+    Node AA = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(4)));
+    TS_ASSERT(!unionDisjointAA.isConst());
+    TS_ASSERT(AA.isConst());
+    TS_ASSERT(AA == NormalForm::evaluate(unionDisjointAA));
+  }
+
+  void testUnionDisjoint2()
+  {
+    // Example
+    // -------
+    // input: (union_disjoint A B)
+    //    where A = (union_disjoint (MK_BAG "x" 4) (MK_BAG "z" 2)))
+    //          B = (union_disjoint (MK_BAG "x" 3) (MK_BAG "y" 1)))
+    // output:
+    //    (union_disjoint A B)
+    //        where A = (MK_BAG "x" 7)
+    //              B = (union_disjoint (MK_BAG "y" 1) (MK_BAG "z" 2)))
+
+    Node x = d_nm->mkConst(String("x"));
+    Node y = d_nm->mkConst(String("y"));
+    Node z = d_nm->mkConst(String("z"));
+    Node x_4 = d_nm->mkBag(d_nm->stringType(), x, d_nm->mkConst(Rational(4)));
+    Node x_3 = d_nm->mkBag(d_nm->stringType(), x, d_nm->mkConst(Rational(3)));
+    Node x_7 = d_nm->mkBag(d_nm->stringType(), x, d_nm->mkConst(Rational(7)));
+    Node z_2 = d_nm->mkBag(d_nm->stringType(), z, d_nm->mkConst(Rational(2)));
+    Node y_1 = d_nm->mkBag(d_nm->stringType(), y, d_nm->mkConst(Rational(1)));
+
+    Node A = d_nm->mkNode(UNION_DISJOINT, x_4, z_2);
+    Node B = d_nm->mkNode(UNION_DISJOINT, x_3, y_1);
+    Node input = d_nm->mkNode(UNION_DISJOINT, A, B);
+
+    // output
+    Node output = d_nm->mkNode(
+        UNION_DISJOINT, x_7, d_nm->mkNode(UNION_DISJOINT, y_1, z_2));
+
+    TS_ASSERT(output.isConst());
+    TS_ASSERT(output == NormalForm::evaluate(input));
   }
 
   void testIntersectionMin() {}
