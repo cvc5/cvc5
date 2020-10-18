@@ -99,6 +99,9 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
             pg = convertExistsInternal(exists);
             if (pg == nullptr)
             {
+              // if no proof generator is provided, we justify the existential
+              // using the WITNESS_AXIOM trusted rule by providing it to the
+              // call to addLazyStep below.
               Trace("witness-form")
                   << "WitnessFormGenerator: No proof generator for " << exists
                   << std::endl;
