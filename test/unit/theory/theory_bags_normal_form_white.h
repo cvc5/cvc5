@@ -93,13 +93,34 @@ class BagsNormalFormWhite : public CxxTest::TestSuite
     TS_ASSERT(positive == NormalForm::evaluate(positive));
   }
 
-  void testMkBagVariableElement() {}
-
   void testBagCount() {}
 
   void testUnionMax() {}
 
-  void testUnionDisjoint() {}
+  void testUnionDisjoint()
+  {
+    int n = 3;
+    vector<Node> elements = getNStrings(3);
+    Node emptyBag =
+        d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
+    Node A = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(n)));
+    Node B = d_nm->mkBag(
+        d_nm->stringType(), elements[1], d_nm->mkConst(Rational(n + 1)));
+    Node C = d_nm->mkBag(
+        d_nm->stringType(), elements[2], d_nm->mkConst(Rational(n - 1)));
+    Node unionDisjointAB = d_nm->mkNode(UNION_DISJOINT, A, B);
+    Node unionDisjointABC = d_nm->mkNode(UNION_DISJOINT, unionDisjointAB, C);
+    std::cout << std::endl;
+    std::cout << unionDisjointABC <<std::endl;
+    std::cout << NormalForm::evaluate(unionDisjointABC) <<std::endl;
+    // unionDisjointAB is already in a normal form
+    TS_ASSERT(unionDisjointAB == NormalForm::evaluate(unionDisjointAB));
+
+    Node unionDisjointBA = d_nm->mkNode(UNION_DISJOINT, B, A);
+    // unionDisjointAB is is the normal form of unionDisjointBA
+    TS_ASSERT(unionDisjointAB == NormalForm::evaluate(unionDisjointBA));
+  }
 
   void testIntersectionMin() {}
 

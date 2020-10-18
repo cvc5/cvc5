@@ -48,13 +48,25 @@ class NormalForm
 
  private:
   /**
-  * evaluate n as follows:
-  * - (mkBag a 0) = (emptybag T) where T is the type of a
-  * - (mkBag a (-c)) = (emptybag T) where T is the type of a, and c > 0 is a
-  *   constant
-  * - otherwise = n
-  */
+   * evaluate n as follows:
+   * - (mkBag a 0) = (emptybag T) where T is the type of a
+   * - (mkBag a (-c)) = (emptybag T) where T is the type of a, and c > 0 is a
+   *   constant
+   * - otherwise = n
+   */
   static Node evaluateMakeBag(TNode n);
+  /**
+   * evaluate n as follows:
+   * - (mkBag a 0) = (emptybag T) where T is the type of a
+   * - (mkBag a (-c)) = (emptybag T) where T is the type of a, and c > 0 is a
+   *   constant
+   * - otherwise = n
+   */
+  static Node evaluateUnionDisjoint(TNode n);
+
+  static std::map<Node, Rational> getBagElements(TNode n);
+  static Node constructBagFromElements(TypeNode t,
+                                       const std::map<Node, Rational>& map);
 };
 }  // namespace bags
 }  // namespace theory
