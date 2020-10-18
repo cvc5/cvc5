@@ -48,11 +48,11 @@ Node DatatypesProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
-    if (i>=children[0][0].getNumChildren())
+    if (i >= children[0][0].getNumChildren())
     {
       return Node::null();
     }
-    Assert (children[0][0].getNumChildren()==children[0][1].getNumChildren());
+    Assert(children[0][0].getNumChildren() == children[0][1].getNumChildren());
     return children[0][0][i].eqNode(children[0][1][i]);
   }
   else if (id == PfRule::DT_INST)
@@ -67,7 +67,7 @@ Node DatatypesProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     const DType& dt = tn.getDType();
-    if (i>=dt.getNumConstructors())
+    if (i >= dt.getNumConstructors())
     {
       return Node::null();
     }

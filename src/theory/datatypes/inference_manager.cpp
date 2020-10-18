@@ -31,7 +31,8 @@ InferenceManager::InferenceManager(Theory& t,
     : InferenceManagerBuffered(t, state, nullptr),
       d_inferenceLemmas("theory::datatypes::inferenceLemmas"),
       d_inferenceFacts("theory::datatypes::inferenceFacts"),
-      d_ipc( pnm==nullptr ? nullptr : new InferProofCons(state.getSatContext(), pnm))
+      d_ipc(pnm == nullptr ? nullptr
+                           : new InferProofCons(state.getSatContext(), pnm))
 {
   smtStatisticsRegistry()->registerStat(&d_inferenceLemmas);
   smtStatisticsRegistry()->registerStat(&d_inferenceFacts);

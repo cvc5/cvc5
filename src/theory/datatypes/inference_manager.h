@@ -19,10 +19,10 @@
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
+#include "theory/datatypes/infer_proof_cons.h"
 #include "theory/datatypes/inference.h"
 #include "theory/inference_manager_buffered.h"
 #include "util/statistics_registry.h"
-#include "theory/datatypes/infer_proof_cons.h"
 
 namespace CVC4 {
 namespace theory {

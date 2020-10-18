@@ -208,8 +208,7 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
                           trn.getGenerator(),
                           PfRule::THEORY_PREPROCESS_LEMMA,
                           true,
-                          "TheoryPreprocessor::rewrite_lemma_new"
-                          );
+                          "TheoryPreprocessor::rewrite_lemma_new");
         d_lp->addStep(rewritten,
                       PfRule::MACRO_SR_PRED_TRANSFORM,
                       {assertion},
@@ -427,7 +426,8 @@ Node TheoryPreprocessor::preprocessWithProof(Node term)
       trn.debugCheckClosed("tpp-proof-debug",
                            "TheoryPreprocessor::preprocessWithProof");
       // always use term context hash 0 (default)
-      d_tpg->addRewriteStep(term, termr, trn.getGenerator(), PfRule::ASSUME, true);
+      d_tpg->addRewriteStep(
+          term, termr, trn.getGenerator(), PfRule::ASSUME, true);
     }
     else
     {

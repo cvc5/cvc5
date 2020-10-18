@@ -54,12 +54,11 @@ NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
                          preprocContext->getUserContext(),
                          "NonClausalSimp::llpg")
                    : nullptr),
-      d_llra(d_pnm ? new LazyCDProof(
-                            d_pnm,
-                            nullptr,
-                            preprocContext->getUserContext(),
-                            "NonClausalSimp::llra")
-                      : nullptr),
+      d_llra(d_pnm ? new LazyCDProof(d_pnm,
+                                     nullptr,
+                                     preprocContext->getUserContext(),
+                                     "NonClausalSimp::llra")
+                   : nullptr),
       d_tsubsList(preprocContext->getUserContext())
 {
 }
@@ -400,7 +399,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       if (isProofEnabled())
       {
         // FIXME
-        //d_llpg->notifyTrustedPreprocessed(tlearnedNew);
+        // d_llpg->notifyTrustedPreprocessed(tlearnedNew);
       }
       learned = tlearnedNew.getNode();
       Assert(Rewriter::rewrite(learned) == learned);
@@ -416,7 +415,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       if (isProofEnabled())
       {
         // FIXME
-        //d_llpg->notifyTrustedPreprocessed(tlearnedNew);
+        // d_llpg->notifyTrustedPreprocessed(tlearnedNew);
       }
       learned = tlearnedNew.getNode();
       d_statistics.d_numConstantProps += 1;
@@ -442,7 +441,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       if (isProofEnabled())
       {
         // FIXME
-        //d_llpg->notifyTrustedPreprocessed(cPropNew);
+        // d_llpg->notifyTrustedPreprocessed(cPropNew);
       }
       cProp = cPropNew.getNode();
       Assert(Rewriter::rewrite(cProp) == cProp);
@@ -467,8 +466,9 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   {
     size_t replIndex = assertionsToPreprocess->getRealAssertionsEnd() - 1;
     Node newConj = NodeManager::currentNM()->mkAnd(learnedLitsToConjoin);
-    Trace("non-clausal-simplify") << "non-clausal simplification, reassert: " << newConj << std::endl;
-    ProofGenerator * pg = nullptr;
+    Trace("non-clausal-simplify")
+        << "non-clausal simplification, reassert: " << newConj << std::endl;
+    ProofGenerator* pg = nullptr;
     if (isProofEnabled())
     {
       // justify in d_llra
@@ -476,7 +476,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       {
         d_llra->addLazyStep(lit, d_llpg.get());
       }
-      if (learnedLitsToConjoin.size()>1)
+      if (learnedLitsToConjoin.size() > 1)
       {
         d_llra->addStep(newConj, PfRule::AND_INTRO, learnedLitsToConjoin, {});
         pg = d_llra.get();

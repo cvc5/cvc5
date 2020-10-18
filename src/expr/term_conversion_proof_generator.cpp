@@ -62,9 +62,12 @@ TConvProofGenerator::TConvProofGenerator(ProofNodeManager* pnm,
 
 TConvProofGenerator::~TConvProofGenerator() {}
 
-void TConvProofGenerator::addRewriteStep(
-    Node t, Node s, ProofGenerator* pg,
-                      PfRule trustId, bool isClosed, uint32_t tctx)
+void TConvProofGenerator::addRewriteStep(Node t,
+                                         Node s,
+                                         ProofGenerator* pg,
+                                         PfRule trustId,
+                                         bool isClosed,
+                                         uint32_t tctx)
 {
   Node eq = registerRewriteStep(t, s, tctx);
   if (!eq.isNull())

@@ -54,9 +54,7 @@ void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, ProofGenerator* pg)
     // current substitution node is no longer valid.
     d_currentSubs = Node::null();
     // add to lazy proof
-    d_subsPg->addLazyStep(tnl.getProven(),
-                          pg,
-                          d_trustId);
+    d_subsPg->addLazyStep(tnl.getProven(), pg, d_trustId);
   }
 }
 

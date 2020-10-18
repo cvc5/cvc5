@@ -19,12 +19,12 @@
 
 #include <vector>
 
+#include "expr/lazy_proof.h"
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/preprocess_proof_generator.h"
 #include "theory/trust_node.h"
-#include "expr/lazy_proof.h"
 
 namespace CVC4 {
 namespace preprocessing {
