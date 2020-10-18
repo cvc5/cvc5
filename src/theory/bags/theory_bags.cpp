@@ -63,7 +63,7 @@ void TheoryBags::finishInit()
   d_equalityEngine->addFunctionKind(DIFFERENCE_SUBTRACT);
   d_equalityEngine->addFunctionKind(DIFFERENCE_REMOVE);
   d_equalityEngine->addFunctionKind(BAG_COUNT);
-  d_equalityEngine->addFunctionKind(BAG_CONSTRUCTOR);
+  d_equalityEngine->addFunctionKind(MK_BAG);
   d_equalityEngine->addFunctionKind(BAG_CARD);
   d_equalityEngine->addFunctionKind(BAG_FROM_SET);
   d_equalityEngine->addFunctionKind(BAG_TO_SET);
