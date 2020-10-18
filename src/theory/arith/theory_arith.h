@@ -18,6 +18,7 @@
 #pragma once
 
 #include "expr/node.h"
+#include "theory/arith/arith_preprocess.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_state.h"
 #include "theory/arith/inference_manager.h"
@@ -102,7 +103,8 @@ class TheoryArith : public Theory {
 
   void presolve() override;
   void notifyRestart() override;
-  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
+  PPAssertStatus ppAssert(TrustNode tin,
+                          TrustSubstitutionMap& outSubstitutions) override;
   TrustNode ppRewrite(TNode atom) override;
   void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
 
@@ -144,8 +146,8 @@ class TheoryArith : public Theory {
    * arithmetic.
    */
   std::unique_ptr<nl::NonlinearExtension> d_nonlinearExtension;
-  /** The operator elimination utility */
-  OperatorElim d_opElim;
+  /** The preprocess utility */
+  ArithPreprocess d_arithPreproc;
   /** The theory rewriter for this theory. */
   ArithRewriter d_rewriter;
 };/* class TheoryArith */

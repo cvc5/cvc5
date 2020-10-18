@@ -44,6 +44,7 @@
 #include "theory/theory_rewriter.h"
 #include "theory/theory_state.h"
 #include "theory/trust_node.h"
+#include "theory/trust_substitutions.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
 
@@ -121,9 +122,6 @@ class Theory {
 
   /** Information about the logic we're operating within. */
   const LogicInfo& d_logicInfo;
-
-  /** Pointer to proof node manager */
-  ProofNodeManager* d_pnm;
 
   /**
    * The assertFact() queue.
@@ -235,6 +233,9 @@ class Theory {
    * the equality engine are used properly.
    */
   TheoryInferenceManager* d_inferManager;
+
+  /** Pointer to proof node manager */
+  ProofNodeManager* d_pnm;
 
   /**
    * Returns the next assertion in the assertFact() queue.
@@ -699,10 +700,16 @@ class Theory {
   };
 
   /**
-   * Given a literal, add the solved substitutions to the map, if any.
-   * The method should return true if the literal can be safely removed.
+   * Given a literal and its proof generator (encapsulated by trust node tin),
+   * add the solved substitutions to the map, if any. The method should return
+   * true if the literal can be safely removed from the input problem.
+   *
+   * Note that tin has trude node kind LEMMA. Its proof generator should be
+   * take into account when adding a substitution to outSubstitutions when
+   * proofs are enabled.
    */
-  virtual PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
+  virtual PPAssertStatus ppAssert(TrustNode tin,
+                                  TrustSubstitutionMap& outSubstitutions);
 
   /**
    * Given an atom of the theory coming from the input formula, this

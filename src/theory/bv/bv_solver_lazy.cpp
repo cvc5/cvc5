@@ -439,9 +439,10 @@ void BVSolverLazy::propagate(Theory::Effort e)
   }
 }
 
-Theory::PPAssertStatus BVSolverLazy::ppAssert(TNode in,
-                                              SubstitutionMap& outSubstitutions)
+Theory::PPAssertStatus BVSolverLazy::ppAssert(
+    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
+  TNode in = tin.getNode();
   switch (in.getKind())
   {
     case kind::EQUAL:
@@ -449,13 +450,13 @@ Theory::PPAssertStatus BVSolverLazy::ppAssert(TNode in,
       if (in[0].isVar() && d_bv.isLegalElimination(in[0], in[1]))
       {
         ++(d_statistics.d_solveSubstitutions);
-        outSubstitutions.addSubstitution(in[0], in[1]);
+        outSubstitutions.addSubstitutionSolved(in[0], in[1], tin);
         return Theory::PP_ASSERT_STATUS_SOLVED;
       }
       if (in[1].isVar() && d_bv.isLegalElimination(in[1], in[0]))
       {
         ++(d_statistics.d_solveSubstitutions);
-        outSubstitutions.addSubstitution(in[1], in[0]);
+        outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
         return Theory::PP_ASSERT_STATUS_SOLVED;
       }
       Node node = Rewriter::rewrite(in);
@@ -502,7 +503,7 @@ Theory::PPAssertStatus BVSolverLazy::ppAssert(TNode in,
           Assert(utils::getSize(concat) == utils::getSize(extract[0]));
           if (d_bv.isLegalElimination(extract[0], concat))
           {
-            outSubstitutions.addSubstitution(extract[0], concat);
+            outSubstitutions.addSubstitutionSolved(extract[0], concat, tin);
             return Theory::PP_ASSERT_STATUS_SOLVED;
           }
         }

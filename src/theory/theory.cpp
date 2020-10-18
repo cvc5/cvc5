@@ -65,7 +65,6 @@ Theory::Theory(TheoryId id,
       d_satContext(satContext),
       d_userContext(userContext),
       d_logicInfo(logicInfo),
-      d_pnm(pnm),
       d_facts(satContext),
       d_factsHead(satContext, 0),
       d_sharedTermsIndex(satContext, 0),
@@ -82,7 +81,8 @@ Theory::Theory(TheoryId id,
       d_equalityEngine(nullptr),
       d_allocEqualityEngine(nullptr),
       d_theoryState(nullptr),
-      d_inferManager(nullptr)
+      d_inferManager(nullptr),
+      d_pnm(pnm)
 {
   smtStatisticsRegistry()->registerStat(&d_checkTime);
   smtStatisticsRegistry()->registerStat(&d_computeCareGraphTime);
@@ -375,9 +375,10 @@ bool Theory::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
   return true;
 }
 
-Theory::PPAssertStatus Theory::ppAssert(TNode in,
-                                        SubstitutionMap& outSubstitutions)
+Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
+                                        TrustSubstitutionMap& outSubstitutions)
 {
+  TNode in = tin.getNode();
   if (in.getKind() == kind::EQUAL)
   {
     // (and (= x t) phi) can be replaced by phi[x/t] if
@@ -387,13 +388,13 @@ Theory::PPAssertStatus Theory::ppAssert(TNode in,
     if (in[0].isVar() && isLegalElimination(in[0], in[1])
         && in[0].getKind() != kind::BOOLEAN_TERM_VARIABLE)
     {
-      outSubstitutions.addSubstitution(in[0], in[1]);
+      outSubstitutions.addSubstitutionSolved(in[0], in[1], tin);
       return PP_ASSERT_STATUS_SOLVED;
     }
     if (in[1].isVar() && isLegalElimination(in[1], in[0])
         && in[1].getKind() != kind::BOOLEAN_TERM_VARIABLE)
     {
-      outSubstitutions.addSubstitution(in[1], in[0]);
+      outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
       return PP_ASSERT_STATUS_SOLVED;
     }
     if (in[0].isConst() && in[1].isConst())

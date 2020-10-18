@@ -120,9 +120,18 @@ enum CVC4_PUBLIC Kind : int32_t
 #if 0
   /* Skolem variable (internal only) */
   SKOLEM,
-  /* Symbolic expression (any arity) */
-  SEXPR,
 #endif
+  /*
+   * Symbolic expression.
+   * Parameters: n > 0
+   *   -[1]..[n]: terms
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEXPR,
   /**
    * Lambda expression.
    * Parameters: 2
@@ -1832,7 +1841,8 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   MEMBER,
   /**
-   * The set of the single element given as a parameter.
+   * Construct a singleton set from an element given as a parameter.
+   * The returned set has same type of the element.
    * Parameters: 1
    *   -[1]: Single element
    * Create with:
@@ -2074,6 +2084,22 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child)
    */
   BAG_IS_SINGLETON,
+  /**
+   * Bag.from_set converts a set to a bag.
+   * Parameters: 1
+   *   -[1]: Term of set sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  BAG_FROM_SET,
+  /**
+   * Bag.to_set converts a bag to a set.
+   * Parameters: 1
+   *   -[1]: Term of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  BAG_TO_SET,
 
   /* Strings --------------------------------------------------------------- */
 

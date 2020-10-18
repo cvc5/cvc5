@@ -86,7 +86,7 @@ class BVSolver
   virtual std::string identify() const = 0;
 
   virtual Theory::PPAssertStatus ppAssert(
-      TNode in, SubstitutionMap& outSubstitutions) = 0;
+      TrustNode in, TrustSubstitutionMap& outSubstitutions) = 0;
 
   virtual TrustNode ppRewrite(TNode t) { return TrustNode::null(); };
 
