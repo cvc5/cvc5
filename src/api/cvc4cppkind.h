@@ -1841,23 +1841,12 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   MEMBER,
   /**
-   * From the API, use Term Solver::mkSingleton(Sort s, Term t)
-   * The SINGLETON operator here should not be used in the API.
-   * Using mkTerm(SINGLETON, Term child) would throw a typing error.
-   * It is not removed here because it is neede by the parser.
-   *
-   * Operator for singleton.
-   * Parameters: 1
-   *   -[1]: The type of the single element
-   * Create with:
-   *   NodeManager::mkConst(SingletonOp(t))
-   *
    * Construct a singleton set from an element given as a parameter.
-   * Parameters: 2
-   *   -[1]: SingletonOp
-   *   -[2]: Single element
+   * The returned set has same type of the element.
+   * Parameters: 1
+   *   -[1]: Single element
    * Create with:
-   *   mkNode(kind::SINGLETON, op, n);
+   *   mkTerm(Kind kind, Term child)
    */
   SINGLETON,
   /**
