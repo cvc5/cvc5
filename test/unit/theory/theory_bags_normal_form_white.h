@@ -77,11 +77,12 @@ class BagsNormalFormWhite : public CxxTest::TestSuite
   void testMkBagConstantElement()
   {
     vector<Node> elements = getNStrings(1);
-    Node negative =
-        d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(-1)));
-    Node zero = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(0)));
-    Node positive =
-        d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(1)));
+    Node negative = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(-1)));
+    Node zero = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(0)));
+    Node positive = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(1)));
     Node emptybag =
         d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
 
