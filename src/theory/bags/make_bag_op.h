@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief a class for MK_BAG operator
+ ** \brief a class for BAG_CONSTRUCTOR operator
  **/
 
 #include "cvc4_public.h"
@@ -24,7 +24,7 @@ namespace CVC4 {
 class TypeNode;
 
 /**
- * The class is an operator for kind MK_BAG used to construct bags.
+ * The class is an operator for kind BAG_CONSTRUCTOR used to construct bags.
  * It specifies the type of the element especially when it is a constant.
  * e.g. the type of rational 1 is Int, however
  * (mkBag (mkBag_op Real) 1) is of type (Bag Real), not (Bag Int).

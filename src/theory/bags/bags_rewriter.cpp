@@ -61,7 +61,7 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
     Kind k = n.getKind();
     switch (k)
     {
-      case MK_BAG: response = rewriteMakeBag(n); break;
+      case BAG_CONSTRUCTOR: response = rewriteMakeBag(n); break;
       case BAG_COUNT: response = rewriteBagCount(n); break;
       case UNION_MAX: response = rewriteUnionMax(n); break;
       case UNION_DISJOINT: response = rewriteUnionDisjoint(n); break;
@@ -140,13 +140,13 @@ BagsRewriteResponse BagsRewriter::rewriteIsIncluded(const TNode& n) const
 
 BagsRewriteResponse BagsRewriter::rewriteMakeBag(const TNode& n) const
 {
-  Assert(n.getKind() == MK_BAG);
+  Assert(n.getKind() == BAG_CONSTRUCTOR);
   // return emptybag for negative or zero multiplicity
   if (n[1].isConst() && n[1].getConst<Rational>().sgn() != 1)
   {
     // (mkBag x c) = emptybag where c <= 0
     Node emptybag = d_nm->mkConst(EmptyBag(n.getType()));
-    return BagsRewriteResponse(emptybag, Rewrite::MK_BAG_COUNT_NEGATIVE);
+    return BagsRewriteResponse(emptybag, Rewrite::BAG_CONSTRUCTOR_COUNT_NEGATIVE);
   }
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
@@ -160,10 +160,10 @@ BagsRewriteResponse BagsRewriter::rewriteBagCount(const TNode& n) const
     return BagsRewriteResponse(d_nm->mkConst(Rational(0)),
                                Rewrite::COUNT_EMPTY);
   }
-  if (n[1].getKind() == MK_BAG && n[0] == n[1][0])
+  if (n[1].getKind() == BAG_CONSTRUCTOR && n[0] == n[1][0])
   {
     // (bag.count x (mkBag x c) = c where c > 0 is a constant
-    return BagsRewriteResponse(n[1][1], Rewrite::COUNT_MK_BAG);
+    return BagsRewriteResponse(n[1][1], Rewrite::COUNT_BAG_CONSTRUCTOR);
   }
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
@@ -389,10 +389,10 @@ BagsRewriteResponse BagsRewriter::rewriteDifferenceRemove(const TNode& n) const
 BagsRewriteResponse BagsRewriter::rewriteChoose(const TNode& n) const
 {
   Assert(n.getKind() == BAG_CHOOSE);
-  if (n[0].getKind() == MK_BAG && n[0][1].isConst())
+  if (n[0].getKind() == BAG_CONSTRUCTOR && n[0][1].isConst())
   {
     // (bag.choose (mkBag x c)) = x where c is a constant > 0
-    return BagsRewriteResponse(n[0][0], Rewrite::CHOOSE_MK_BAG);
+    return BagsRewriteResponse(n[0][0], Rewrite::CHOOSE_BAG_CONSTRUCTOR);
   }
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
@@ -400,10 +400,10 @@ BagsRewriteResponse BagsRewriter::rewriteChoose(const TNode& n) const
 BagsRewriteResponse BagsRewriter::rewriteCard(const TNode& n) const
 {
   Assert(n.getKind() == BAG_CARD);
-  if (n[0].getKind() == MK_BAG && n[0][1].isConst())
+  if (n[0].getKind() == BAG_CONSTRUCTOR && n[0][1].isConst())
   {
     // (bag.card (mkBag x c)) = c where c is a constant > 0
-    return BagsRewriteResponse(n[0][1], Rewrite::CARD_MK_BAG);
+    return BagsRewriteResponse(n[0][1], Rewrite::CARD_BAG_CONSTRUCTOR);
   }
 
   if (n[0].getKind() == UNION_DISJOINT)
@@ -421,12 +421,12 @@ BagsRewriteResponse BagsRewriter::rewriteCard(const TNode& n) const
 BagsRewriteResponse BagsRewriter::rewriteIsSingleton(const TNode& n) const
 {
   Assert(n.getKind() == BAG_IS_SINGLETON);
-  if (n[0].getKind() == MK_BAG)
+  if (n[0].getKind() == BAG_CONSTRUCTOR)
   {
     // (bag.is_singleton (mkBag x c)) = (c == 1)
     Node one = d_nm->mkConst(Rational(1));
     Node equal = n[0][1].eqNode(one);
-    return BagsRewriteResponse(equal, Rewrite::IS_SINGLETON_MK_BAG);
+    return BagsRewriteResponse(equal, Rewrite::IS_SINGLETON_BAG_CONSTRUCTOR);
   }
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
@@ -448,7 +448,7 @@ BagsRewriteResponse BagsRewriter::rewriteFromSet(const TNode& n) const
 BagsRewriteResponse BagsRewriter::rewriteToSet(const TNode& n) const
 {
   Assert(n.getKind() == BAG_TO_SET);
-  if (n[0].getKind() == MK_BAG && n[0][1].isConst()
+  if (n[0].getKind() == BAG_CONSTRUCTOR && n[0][1].isConst()
       && n[0][1].getConst<Rational>().sgn() == 1)
   {
     // (bag.to_set (mkBag x n)) = (singleton (singleton_op T) x)
