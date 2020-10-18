@@ -241,6 +241,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
                                             const std::vector<Node>& children,
                                             const std::vector<Node>& args)
 {
+  NodeManager * nm = NodeManager::currentNM();
   // compute what was proven
   if (id == PfRule::ASSUME)
   {

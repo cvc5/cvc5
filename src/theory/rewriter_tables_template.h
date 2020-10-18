@@ -61,7 +61,7 @@ ${post_rewrite_set_cache}
   }
 }
 
-Rewriter::Rewriter()
+Rewriter::Rewriter() : d_tpg(nullptr)
 {
 for (size_t i = 0; i < kind::LAST_KIND; ++i)
 {

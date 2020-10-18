@@ -1,4 +1,5 @@
 ; COMMAND-LINE: --iand-mode=value
+; COMMAND-LINE: --iand-mode=sum --bvand-integer-granularity=1 --finite-model-find
 ; EXPECT: sat
 (set-logic QF_NIA)
 (set-info :status sat)

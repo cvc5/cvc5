@@ -357,6 +357,8 @@ libcvc4_add_sources(
   theory/arith/nl/icp/intersection.h
   theory/arith/nl/nl_constraint.cpp
   theory/arith/nl/nl_constraint.h
+  theory/arith/nl/iand_table.cpp
+  theory/arith/nl/iand_table.h
   theory/arith/nl/nl_lemma_utils.cpp
   theory/arith/nl/nl_lemma_utils.h
   theory/arith/nl/nl_model.cpp
@@ -511,6 +513,8 @@ libcvc4_add_sources(
   theory/combination_engine.h
   theory/datatypes/datatypes_rewriter.cpp
   theory/datatypes/datatypes_rewriter.h
+  theory/datatypes/inference.cpp
+  theory/datatypes/inference.h
   theory/datatypes/inference_manager.cpp
   theory/datatypes/inference_manager.h
   theory/datatypes/sygus_datatype_utils.cpp

@@ -71,8 +71,8 @@ class InterpolationSolver
    * the interpolation problem (interpol), and the solution implies the goal
    * (conj). If these criteria are not met, an internal error is thrown.
    */
-  void checkInterpol(Expr interpol,
-                     const std::vector<Expr>& easserts,
+  void checkInterpol(Node interpol,
+                     const std::vector<Node>& easserts,
                      const Node& conj);
 
  private:

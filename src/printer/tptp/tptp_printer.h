@@ -37,7 +37,7 @@ class TptpPrinter : public CVC4::Printer
                 bool types,
                 size_t dag) const override;
   void toStream(std::ostream& out, const CommandStatus* s) const override;
-  void toStream(std::ostream& out, const Model& m) const override;
+  void toStream(std::ostream& out, const smt::Model& m) const override;
   /** print unsat core to stream
    * We use the expression names stored in the SMT engine associated with the
    * unsat core with UnsatCore::getSmtEngine.
@@ -46,7 +46,7 @@ class TptpPrinter : public CVC4::Printer
 
  private:
   void toStream(std::ostream& out,
-                const Model& m,
+                const smt::Model& m,
                 const NodeCommand* c) const override;
 
 }; /* class TptpPrinter */

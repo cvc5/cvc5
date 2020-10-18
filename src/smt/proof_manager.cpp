@@ -25,7 +25,8 @@ namespace smt {
 PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
     : d_pchecker(new ProofChecker(options::proofNewPedantic())),
       d_pnm(new ProofNodeManager(d_pchecker.get())),
-      d_pppg(new PreprocessProofGenerator(u, d_pnm.get())),
+      d_pppg(new PreprocessProofGenerator(
+          d_pnm.get(), u, "smt::PreprocessProofGenerator")),
       d_pfpp(new ProofPostproccess(d_pnm.get(), smte, d_pppg.get())),
       d_finalProof(nullptr)
 {
