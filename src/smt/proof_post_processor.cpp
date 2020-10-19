@@ -542,10 +542,10 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     Node ret = builtinPfC->applyRewrite(args[0], idr);
     Node eq = args[0].eqNode(ret);
     if (idr == MethodId::RW_REWRITE || idr == MethodId::RW_REWRITE_EQ_EXT)
-    {    
+    {
       // automatically expand THEORY_REWRITE as well here if set
       bool elimTR =
-(d_elimRules.find(PfRule::THEORY_REWRITE) != d_elimRules.end());
+          (d_elimRules.find(PfRule::THEORY_REWRITE) != d_elimRules.end());
       // rewrites from theory::Rewriter
       bool isExtEq = (idr == MethodId::RW_REWRITE_EQ_EXT);
       // use rewrite with proof interface

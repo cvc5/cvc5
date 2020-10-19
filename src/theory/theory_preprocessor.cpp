@@ -433,7 +433,8 @@ Node TheoryPreprocessor::preprocessWithProof(Node term)
       trn.debugCheckClosed("tpp-proof-debug",
                            "TheoryPreprocessor::preprocessWithProof");
       // always use term context hash 0 (default)
-      d_tpg->addRewriteStep(term, termr, trn.getGenerator(), PfRule::ASSUME, true);
+      d_tpg->addRewriteStep(
+          term, termr, trn.getGenerator(), PfRule::ASSUME, true);
     }
     else
     {
