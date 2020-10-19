@@ -221,16 +221,17 @@ enum class PfRule : uint32_t
   THEORY_LEMMA,
   // ======== Theory Rewrite
   // Children: none
-  // Arguments: (F, tid, preRewrite?)
+  // Arguments: (F, tid, rid)
   // ----------------------------------------
   // Conclusion: F
   // where F is an equality of the form (= t t') where t' is obtained by
-  // applying the theory rewriter with identifier tid in either its prewrite
-  // (when preRewrite is true) or postrewrite method. Notice that the checker
-  // for this rule does not replay the rewrite to ensure correctness, since
-  // theory rewriter methods are not static. For example, the quantifiers
-  // rewriter involves constructing new bound variables that are not guaranteed
-  // to be consistent on each call.
+  // applying the kind of rewriting given by the method identifier rid, which
+  // is one of:
+  //  { RW_REWRITE_THEORY_PRE, RW_REWRITE_THEORY_POST, RW_REWRITE_EQ_EXT }
+  // Notice that the checker for this rule does not replay the rewrite to ensure
+  // correctness, since theory rewriter methods are not static. For example,
+  // the quantifiers rewriter involves constructing new bound variables that are
+  // not guaranteed to be consistent on each call.
   THEORY_REWRITE,
   // The remaining rules in this section have the signature of a "trusted rule":
   //

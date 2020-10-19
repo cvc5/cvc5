@@ -21,6 +21,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
+#include "theory/theory.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::theory;
@@ -556,10 +557,17 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         // did not have a proof of rewriting, probably isExtEq is true
         if (isExtEq)
         {
-          // don't update
-          return Node::null();
+          // update to THEORY_REWRITE with idr
+          Assert (args.size()>=1);
+          TheoryId theoryId = Theory::theoryOf(args[0].getType());
+          Node tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
+          cdp->addStep(eq, PfRule::THEORY_REWRITE, {}, {eq, tid, args[1]});
         }
-        cdp->addStep(eq, PfRule::TRUST_REWRITE, {}, {eq});
+        else
+        {
+          // this should never be applied
+          cdp->addStep(eq, PfRule::TRUST_REWRITE, {}, {eq});
+        }
       }
       else
       {
@@ -603,6 +611,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       return eq;
     }
     // otherwise no update
+    Trace("final-pf-hole") << "hole: " << id << " : " << eq
+                          << std::endl;
   }
 
   // TRUST, PREPROCESS, THEORY_LEMMA, THEORY_PREPROCESS?
@@ -726,14 +736,6 @@ bool ProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                                  bool& continueUpdate)
 {
   PfRule r = pn->getRule();
-  if (Trace.isOn("final-pf-hole"))
-  {
-    if (r == PfRule::THEORY_REWRITE)
-    {
-      Trace("final-pf-hole") << "hole: " << r << " : " << pn->getResult()
-                            << std::endl;
-    }
-  }
   // if not doing eager pedantic checking, fail if below threshold
   if (!options::proofNewPedanticEager())
   {

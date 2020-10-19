@@ -480,11 +480,12 @@ RewriteResponse Rewriter::processTrustRewriteResponse(
       Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
       // add small step trusted rewrite
       NodeManager* nm = NodeManager::currentNM();
+      Node rid = mkMethodId(isPre ? MethodId::RW_REWRITE_THEORY_PRE : MethodId::RW_REWRITE_THEORY_POST);
       tcpg->addRewriteStep(proven[0],
                            proven[1],
                            PfRule::THEORY_REWRITE,
                            {},
-                           {proven, tidn, nm->mkConst(isPre)});
+                           {proven, tidn, rid});
     }
     else
     {
