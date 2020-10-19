@@ -73,7 +73,7 @@ void CheckModels::checkModel(Model* m,
         dynamic_cast<const DeclareFunctionNodeCommand*>(m->getCommand(k));
     Notice() << "SmtEngine::checkModel(): model command " << k << " : "
              << m->getCommand(k)->toString() << std::endl;
-    if (c == NULL)
+    if (c == nullptr)
     {
       // we don't care about DECLARE-DATATYPES, DECLARE-SORT, ...
       Notice() << "SmtEngine::checkModel(): skipping..." << std::endl;
@@ -167,6 +167,7 @@ void CheckModels::checkModel(Model* m,
   }
 
   Trace("check-model") << "checkModel: Check assertions..." << std::endl;
+  std::unordered_map<Node, Node, NodeHashFunction> cache;
   // Now go through all our user assertions checking if they're satisfied.
   for (const Node& assertion : *al)
   {
@@ -179,10 +180,7 @@ void CheckModels::checkModel(Model* m,
       continue;
     }
     // Apply any define-funs from the problem.
-    {
-      std::unordered_map<Node, Node, NodeHashFunction> cache;
-      n = pp->expandDefinitions(n, cache);
-    }
+    n = pp->expandDefinitions(n, cache);
     Notice() << "SmtEngine::checkModel(): -- expands to " << n << std::endl;
 
     // Apply our model value substitutions.
@@ -215,13 +213,10 @@ void CheckModels::checkModel(Model* m,
     Notice() << "SmtEngine::checkModel(): -- model-substitutes to " << n
              << std::endl;
 
-    if (n.isConst())
+    if (n.isConst() && n.getConst<bool>())
     {
-      if (n.getConst<bool>())
-      {
-        // assertion is true, everything is fine
-        continue;
-      }
+      // assertion is true, everything is fine
+      continue;
     }
 
     // Otherwise, we did not succeed in showing the current assertion to be
