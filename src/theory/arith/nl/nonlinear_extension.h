@@ -31,6 +31,8 @@
 #include "theory/arith/nl/ext_theory_callback.h"
 #include "theory/arith/nl/iand_solver.h"
 #include "theory/arith/nl/icp/icp_solver.h"
+#include "theory/arith/nl/nl/factoring_check.h"
+#include "theory/arith/nl/nl/split_zero_check.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/nl_solver.h"
@@ -262,6 +264,10 @@ class NonlinearExtension
    * constraints involving nonlinear mulitplication, Cimatti et al., TACAS 2017.
    */
   NlSolver d_nlSlv;
+
+  SharedCheckData d_sharedCheckData;
+  FactoringCheck d_factoringSlv;
+  SplitZeroCheck d_splitZeroSlv;
   /** The CAD-based solver */
   CadSolver d_cadSlv;
   /** The ICP-based solver */

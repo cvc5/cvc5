@@ -27,11 +27,11 @@
 #include "context/context.h"
 #include "expr/kind.h"
 #include "expr/node.h"
+#include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_constraint.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/nl_monomial.h"
-#include "theory/arith/inference_manager.h"
 
 namespace CVC4 {
 namespace theory {
@@ -73,13 +73,6 @@ class NlSolver
                     const std::vector<Node>& false_asserts,
                     const std::vector<Node>& xts);
   //-------------------------------------------- lemma schemas
-  /** check split zero
-   *
-   * Returns a set of theory lemmas of the form
-   *   t = 0 V t != 0
-   * where t is a term that exists in the current context.
-   */
-  void checkSplitZero();
 
   /** check monomial sign
    *
@@ -140,21 +133,6 @@ class NlSolver
   void checkMonomialInferBounds(
       const std::vector<Node>& asserts,
       const std::vector<Node>& false_asserts);
-
-  /** check factoring
-   *
-   * Returns a set of valid theory lemmas, based on a
-   * lemma schema that states a relationship betwen monomials
-   * with common factors that occur in the same constraint.
-   *
-   * Examples:
-   *
-   * x*z+y*z > t => ( k = x + y ^ k*z > t )
-   *   ...where k is fresh and x*z + y*z > t is a
-   *      constraint that occurs in the current context.
-   */
-  void checkFactoring(const std::vector<Node>& asserts,
-                                      const std::vector<Node>& false_asserts);
 
   /** check monomial infer resolution bounds
    *
@@ -358,8 +336,6 @@ class NlSolver
       std::vector<Node>& exp,
       std::vector<ArithLemma>& lem,
       std::map<int, std::map<Node, std::map<Node, Node> > >& cmp_infers);
-  /** Get factor skolem for n, add resulting lemmas to lemmas */
-  Node getFactorSkolem(Node n);
 }; /* class NlSolver */
 
 }  // namespace nl

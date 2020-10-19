@@ -48,6 +48,9 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       d_model(containing.getSatContext()),
       d_trSlv(d_im, d_model),
       d_nlSlv(d_im, state, d_model),
+      d_sharedCheckData(d_im, d_model),
+      d_factoringSlv(d_im, d_model),
+      d_splitZeroSlv(&d_sharedCheckData, state.getUserContext()),
       d_cadSlv(d_im, d_model),
       d_icpSlv(d_im),
       d_iandSlv(d_im, state, d_model),
@@ -686,7 +689,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
       case InferStep::CAD_FULL: d_cadSlv.checkFull(); break;
       case InferStep::CAD_INIT: d_cadSlv.initLastCall(assertions); break;
       case InferStep::NL_FACTORING:
-        d_nlSlv.checkFactoring(assertions, false_asserts);
+        d_factoringSlv.check(assertions, false_asserts);
         break;
       case InferStep::IAND_INIT:
         d_iandSlv.initLastCall(assertions, false_asserts, xts);
@@ -716,7 +719,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
       case InferStep::NL_RESOLUTION_BOUNDS:
         d_nlSlv.checkMonomialInferResBounds();
         break;
-      case InferStep::NL_SPLIT_ZERO: d_nlSlv.checkSplitZero(); break;
+      case InferStep::NL_SPLIT_ZERO: d_splitZeroSlv.check(); break;
       case InferStep::NL_TANGENT_PLANES:
         d_nlSlv.checkTangentPlanes(false);
         break;

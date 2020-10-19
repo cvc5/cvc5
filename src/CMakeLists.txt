@@ -367,6 +367,11 @@ libcvc4_add_sources(
   theory/arith/nl/nl_monomial.h
   theory/arith/nl/nl_solver.cpp
   theory/arith/nl/nl_solver.h
+  theory/arith/nl/nl/factoring_check.cpp
+  theory/arith/nl/nl/factoring_check.h
+  theory/arith/nl/nl/shared_check_data.h
+  theory/arith/nl/nl/split_zero_check.cpp
+  theory/arith/nl/nl/split_zero_check.h
   theory/arith/nl/nonlinear_extension.cpp
   theory/arith/nl/nonlinear_extension.h
   theory/arith/nl/poly_conversion.cpp
