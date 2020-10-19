@@ -15,11 +15,11 @@
 #include "smt/check_models.h"
 
 #include "options/smt_options.h"
-#include "theory/substitutions.h"
-#include "theory/theory_engine.h"
-#include "theory/rewriter.h"
 #include "smt/node_command.h"
 #include "smt/preprocessor.h"
+#include "theory/rewriter.h"
+#include "theory/substitutions.h"
+#include "theory/theory_engine.h"
 
 using namespace CVC4::theory;
 
@@ -29,13 +29,15 @@ namespace smt {
 CheckModels::CheckModels(SmtSolver& s) : d_smt(s) {}
 CheckModels::~CheckModels() {}
 
-void CheckModels::checkModel(Model* m, context::CDList<Node>* al, bool hardFailure)
+void CheckModels::checkModel(Model* m,
+                             context::CDList<Node>* al,
+                             bool hardFailure)
 {
   // Throughout, we use Notice() to give diagnostic output.
   //
   // If this function is running, the user gave --check-model (or equivalent),
   // and if Notice() is on, the user gave --verbose (or equivalent).
-  
+
   // check-model is not guaranteed to succeed if approximate values were used.
   // Thus, we intentionally abort here.
   if (m->hasApproximations())
@@ -160,7 +162,7 @@ void CheckModels::checkModel(Model* m, context::CDList<Node>* al, bool hardFailu
 
     // (4) checks complete, add the substitution
     Trace("check-model") << "Substitution: " << func << " :=> " << val
-                           << std::endl;
+                         << std::endl;
     substitutions.addSubstitution(func, val);
   }
 
@@ -203,7 +205,8 @@ void CheckModels::checkModel(Model* m, context::CDList<Node>* al, bool hardFailu
     // Apply our model value substitutions (again), as things may have been
     // simplified.
     n = substitutions.apply(n);
-    Notice() << "SmtEngine::checkModel(): -- re-substitutes to " << n << std::endl;
+    Notice() << "SmtEngine::checkModel(): -- re-substitutes to " << n
+             << std::endl;
 
     // As a last-ditch effort, ask model to simplify it.
     // Presently, this is only an issue for quantifiers, which can have a value

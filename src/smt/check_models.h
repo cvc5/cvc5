@@ -35,7 +35,7 @@ class CheckModels
   ~CheckModels();
   /**
    * Check model m against the current set of input assertions al.
-   * 
+   *
    * This throws an exception if we fail to verify that m is a proper model
    * given assertion list al based on the model checking policy.
    */
