@@ -140,7 +140,7 @@ class CardinalityExtension
       //disequalities needed for this clique to happen
       NodeBoolMap d_splits;
       //number of valid representatives in this region
-      context::CDO< unsigned > d_reps_size;
+      context::CDO<size_t> d_reps_size;
       //total disequality size (external)
       context::CDO< unsigned > d_total_diseq_external;
       //total disequality size (internal)
@@ -188,7 +188,7 @@ class CardinalityExtension
       //set n1 != n2 to value 'valid', type is whether it is internal/external
       void setDisequal( Node n1, Node n2, int type, bool valid );
       //get num reps
-      int getNumReps() { return d_reps_size; }
+      size_t getNumReps() { return d_reps_size; }
       //get test clique size
       int getTestCliqueSize() { return d_testCliqueSize; }
       // has representative
@@ -305,7 +305,7 @@ class CardinalityExtension
     /** presolve */
     void presolve();
     /** assert cardinality */
-    void assertCardinality(int c, bool val);
+    void assertCardinality(size_t c, bool val);
     /** get cardinality */
     int getCardinality() { return d_cardinality; }
     /** has cardinality */

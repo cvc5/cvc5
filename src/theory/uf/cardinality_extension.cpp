@@ -838,7 +838,7 @@ void SortModel::setSplitScore( Node n, int s ){
   }
 }
 
-void SortModel::assertCardinality(int c, bool val)
+void SortModel::assertCardinality(size_t c, bool val)
 {
   if (!d_state.isInConflict())
   {
@@ -852,7 +852,8 @@ void SortModel::assertCardinality(int c, bool val)
       bool doCheckRegions = !d_hasCard;
       bool prevHasCard = d_hasCard;
       d_hasCard = true;
-      if( !prevHasCard || c<d_cardinality ){
+      if (!prevHasCard || c < d_cardinality)
+      {
         d_cardinality = c;
         simpleCheckCardinality();
         if (d_state.isInConflict())
@@ -874,7 +875,7 @@ void SortModel::assertCardinality(int c, bool val)
       }
       // we assert it positively, if its beyond the bound, abort
       if (options::ufssAbortCardinality() != -1
-          && c >= options::ufssAbortCardinality())
+          && c >= (size_t)options::ufssAbortCardinality())
       {
         std::stringstream ss;
         ss << "Maximum cardinality (" << options::ufssAbortCardinality()
@@ -884,9 +885,11 @@ void SortModel::assertCardinality(int c, bool val)
     }
     else
     {
-      if( c>d_maxNegCard.get() ){
-        Trace("uf-ss-com-card-debug") << "Maximum negative cardinality for " << d_type << " is now " << c << std::endl;
-        d_maxNegCard.set( c );
+      if (c > d_maxNegCard.get())
+      {
+        Trace("uf-ss-com-card-debug") << "Maximum negative cardinality for "
+                                      << d_type << " is now " << c << std::endl;
+        d_maxNegCard.set(c);
         simpleCheckCardinality();
       }
     }
@@ -1141,26 +1144,39 @@ bool SortModel::checkLastCall()
     }
   }
   RepSet* rs = m->getRepSetPtr();
-  int nReps = (int)rs->getNumRepresentatives(d_type);
-  if( nReps!=(d_maxNegCard+1) ){
-    Trace("uf-ss-warn") << "WARNING : Model does not have same # representatives as cardinality for " << d_type << "." << std::endl;
-    Trace("uf-ss-warn") << "   Max neg cardinality : " << d_maxNegCard << std::endl;
+  size_t nReps = rs->getNumRepresentatives(d_type);
+  if (nReps != (d_maxNegCard + 1))
+  {
+    Trace("uf-ss-warn") << "WARNING : Model does not have same # "
+                           "representatives as cardinality for "
+                        << d_type << "." << std::endl;
+    Trace("uf-ss-warn") << "   Max neg cardinality : " << d_maxNegCard
+                        << std::endl;
     Trace("uf-ss-warn") << "   # Reps : " << nReps << std::endl;
-    if( d_maxNegCard>=nReps ){
-      while( (int)d_fresh_aloc_reps.size()<=d_maxNegCard ){
+    if (d_maxNegCard >= nReps)
+    {
+      while (d_fresh_aloc_reps.size() <= d_maxNegCard)
+      {
         std::stringstream ss;
         ss << "r_" << d_type << "_";
-        Node nn = NodeManager::currentNM()->mkSkolem( ss.str(), d_type, "enumeration to meet negative card constraint" );
+        Node nn = NodeManager::currentNM()->mkSkolem(
+            ss.str(), d_type, "enumeration to meet negative card constraint");
         d_fresh_aloc_reps.push_back( nn );
       }
-      if( d_maxNegCard==0 ){
+      if (d_maxNegCard == 0)
+      {
         rs->d_type_reps[d_type].push_back(d_fresh_aloc_reps[0]);
-      }else{
+      }
+      else
+      {
         //must add lemma
         std::vector< Node > force_cl;
-        for( int i=0; i<=d_maxNegCard; i++ ){
-          for( int j=(i+1); j<=d_maxNegCard; j++ ){
-            force_cl.push_back( d_fresh_aloc_reps[i].eqNode( d_fresh_aloc_reps[j] ).negate() );
+        for (size_t i = 0; i <= d_maxNegCard; i++)
+        {
+          for (size_t j = (i + 1); j <= d_maxNegCard; j++)
+          {
+            force_cl.push_back(
+                d_fresh_aloc_reps[i].eqNode(d_fresh_aloc_reps[j]).negate());
           }
         }
         Node cl = getCardinalityLiteral( d_maxNegCard );
