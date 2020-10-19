@@ -259,14 +259,17 @@ void SmtEngine::finishInit()
   if (options::proofNew())
   {
     d_pfManager.reset(new PfManager(getUserContext(), this));
+    PreprocessProofGenerator* pppg = d_pfManager->getPreprocessProofGenerator();
     // use this proof node manager
     pnm = d_pfManager->getProofNodeManager();
     // enable proof support in the rewriter
     d_rewriter->setProofNodeManager(pnm);
     // enable it in the assertions pipeline
-    d_asserts->setProofGenerator(d_pfManager->getPreprocessProofGenerator());
+    d_asserts->setProofGenerator(pppg);
     // enable it in the SmtSolver
     d_smtSolver->setProofNodeManager(pnm);
+    // enabled proofs in the preprocessor
+    d_pp->setProofGenerator(pppg);
   }
 
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
