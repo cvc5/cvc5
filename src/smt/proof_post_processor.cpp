@@ -558,7 +558,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         if (isExtEq)
         {
           // update to THEORY_REWRITE with idr
-          Assert (args.size()>=1);
+          Assert(args.size() >= 1);
           TheoryId theoryId = Theory::theoryOf(args[0].getType());
           Node tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
           cdp->addStep(eq, PfRule::THEORY_REWRITE, {}, {eq, tid, args[1]});
@@ -611,8 +611,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       return eq;
     }
     // otherwise no update
-    Trace("final-pf-hole") << "hole: " << id << " : " << eq
-                          << std::endl;
+    Trace("final-pf-hole") << "hole: " << id << " : " << eq << std::endl;
   }
 
   // TRUST, PREPROCESS, THEORY_LEMMA, THEORY_PREPROCESS?
