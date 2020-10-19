@@ -21,9 +21,9 @@
 
 #include "context/context.h"
 #include "expr/node.h"
-#include "theory/substitutions.h"
 #include "smt/model.h"
 #include "smt/smt_solver.h"
+#include "theory/substitutions.h"
 
 namespace CVC4 {
 namespace smt {
@@ -39,7 +39,7 @@ class CheckModels
   /**
    * Check model m against assertion list al.
    */
-  void checkModel(Model * m, context::CDList<Node>* al);
+  void checkModel(Model* m, context::CDList<Node>* al);
 
  private:
   /** Reference to the SMT solver */

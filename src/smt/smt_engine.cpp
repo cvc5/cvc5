@@ -1567,7 +1567,7 @@ void SmtEngine::checkModel(bool hardFailure) {
   Assert(m != nullptr);
 
   // check models
-  Assert (d_checkModels!=nullptr);
+  Assert(d_checkModels != nullptr);
   d_checkModels->checkModel(m, al);
 }
 

@@ -1096,8 +1096,8 @@ class CVC4_PUBLIC SmtEngine
    * implementation maintained by the SmtSolver.
    */
   std::unique_ptr<smt::Model> d_model;
-  
-  /** 
+
+  /**
    * The utility used for checking models
    */
   std::unique_ptr<smt::CheckModels> d_checkModels;

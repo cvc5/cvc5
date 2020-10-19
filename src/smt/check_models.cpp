@@ -15,20 +15,16 @@
 #include "smt/check_models.h"
 
 #include "options/smt_options.h"
-#include "theory/theory_engine.h"
 #include "theory/substitutions.h"
+#include "theory/theory_engine.h"
 
 namespace CVC4 {
 namespace smt {
 
-CheckModels::CheckModels(SmtSolver& s)
-    : d_solver(s),
-{
-}
+CheckModels::CheckModels(SmtSolver& s) : d_solver(s), {}
 CheckModels::~CheckModels() {}
 
-
-void CheckModels::checkModel(Model * m, context::CDList<Node>* al)
+void CheckModels::checkModel(Model* m, context::CDList<Node>* al)
 {
   // check-model is not guaranteed to succeed if approximate values were used.
   // Thus, we intentionally abort here.
@@ -48,21 +44,24 @@ void CheckModels::checkModel(Model * m, context::CDList<Node>* al)
 
   // Output the model
   Notice() << *m;
-  
-  NodeManager * nm = NodeManager::currentNM();
-  Preprocessor * pp = d_solver.getPreprocessor();
+
+  NodeManager* nm = NodeManager::currentNM();
+  Preprocessor* pp = d_solver.getPreprocessor();
 
   // We have a "fake context" for the substitution map (we don't need it
   // to be context-dependent)
   context::Context fakeContext;
-  SubstitutionMap substitutions(&fakeContext, /* substituteUnderQuantifiers = */ false);
+  SubstitutionMap substitutions(&fakeContext,
+                                /* substituteUnderQuantifiers = */ false);
 
-  for(size_t k = 0, ncmd = m->getNumCommands(); k < ncmd; ++k) {
+  for (size_t k = 0, ncmd = m->getNumCommands(); k < ncmd; ++k)
+  {
     const DeclareFunctionNodeCommand* c =
         dynamic_cast<const DeclareFunctionNodeCommand*>(m->getCommand(k));
     Notice() << "SmtEngine::checkModel(): model command " << k << " : "
              << m->getCommand(k)->toString() << endl;
-    if(c == NULL) {
+    if (c == NULL)
+    {
       // we don't care about DECLARE-DATATYPES, DECLARE-SORT, ...
       Notice() << "SmtEngine::checkModel(): skipping..." << endl;
       continue;
@@ -75,11 +74,13 @@ void CheckModels::checkModel(Model * m, context::CDList<Node>* al)
     Node func = c->getFunction();
     Node val = m->getValue(func);
 
-    Notice() << "SmtEngine::checkModel(): adding substitution: " << func << " |-> " << val << endl;
+    Notice() << "SmtEngine::checkModel(): adding substitution: " << func
+             << " |-> " << val << endl;
 
     // (1) if the value is a lambda, ensure the lambda doesn't contain the
     // function symbol (since then the definition is recursive)
-    if (val.getKind() == kind::LAMBDA) {
+    if (val.getKind() == kind::LAMBDA)
+    {
       // first apply the model substitutions we have so far
       Debug("boolean-terms") << "applying subses to " << val[1] << endl;
       Node n = substitutions.apply(val[1]);
@@ -88,20 +89,26 @@ void CheckModels::checkModel(Model * m, context::CDList<Node>* al)
       // [func->func2] and checking equality of the Nodes.
       // (this just a way to check if func is in n.)
       SubstitutionMap subs(&fakeContext);
-      Node func2 = nm->mkSkolem(
-          "", func.getType(), "", NodeManager::SKOLEM_NO_NOTIFY);
+      Node func2 =
+          nm->mkSkolem("", func.getType(), "", NodeManager::SKOLEM_NO_NOTIFY);
       subs.addSubstitution(func, func2);
-      if(subs.apply(n) != n) {
-        Notice() << "SmtEngine::checkModel(): *** PROBLEM: MODEL VALUE DEFINED IN TERMS OF ITSELF ***" << endl;
+      if (subs.apply(n) != n)
+      {
+        Notice() << "SmtEngine::checkModel(): *** PROBLEM: MODEL VALUE DEFINED "
+                    "IN TERMS OF ITSELF ***"
+                 << endl;
         stringstream ss;
-        ss << "SmtEngine::checkModel(): ERRORS SATISFYING ASSERTIONS WITH MODEL:" << endl
-            << "considering model value for " << func << endl
-            << "body of lambda is:   " << val << endl;
-        if(n != val[1]) {
+        ss << "SmtEngine::checkModel(): ERRORS SATISFYING ASSERTIONS WITH "
+              "MODEL:"
+           << endl
+           << "considering model value for " << func << endl
+           << "body of lambda is:   " << val << endl;
+        if (n != val[1])
+        {
           ss << "body substitutes to: " << n << endl;
         }
         ss << "so " << func << " is defined in terms of itself." << endl
-            << "Run with `--check-models -v' for additional diagnostics.";
+           << "Run with `--check-models -v' for additional diagnostics.";
         InternalError() << ss.str();
       }
     }
@@ -123,13 +130,17 @@ void CheckModels::checkModel(Model * m, context::CDList<Node>* al)
     }
 
     // (3) check that it's the correct (sub)type
-    // This was intended to be a more general check, but for now we can't do that because
-    // e.g. "1" is an INT, which isn't a subrange type [1..10] (etc.).
-    else if(func.getType().isInteger() && !val.getType().isInteger()) {
-      Notice() << "SmtEngine::checkModel(): *** PROBLEM: MODEL VALUE NOT CORRECT TYPE ***" << endl;
+    // This was intended to be a more general check, but for now we can't do
+    // that because e.g. "1" is an INT, which isn't a subrange type [1..10]
+    // (etc.).
+    else if (func.getType().isInteger() && !val.getType().isInteger())
+    {
+      Notice() << "SmtEngine::checkModel(): *** PROBLEM: MODEL VALUE NOT "
+                  "CORRECT TYPE ***"
+               << endl;
       InternalError()
           << "SmtEngine::checkModel(): ERRORS SATISFYING ASSERTIONS WITH "
-              "MODEL:"
+             "MODEL:"
           << endl
           << "model value for " << func << endl
           << "             is " << val << endl
@@ -139,9 +150,9 @@ void CheckModels::checkModel(Model * m, context::CDList<Node>* al)
     }
 
     // (4) checks complete, add the substitution
-    Debug("boolean-terms") << "cm: adding subs " << func << " :=> " << val << endl;
+    Debug("boolean-terms") << "cm: adding subs " << func << " :=> " << val
+                           << endl;
     substitutions.addSubstitution(func, val);
-  
   }
 
   // Now go through all our user assertions checking if they're satisfied.
@@ -183,7 +194,8 @@ void CheckModels::checkModel(Model * m, context::CDList<Node>* al)
         << "SmtEngine::checkModel(): -- simplifies with ite replacement to  "
         << n << endl;
 
-    // Apply our model value substitutions (again), as things may have been simplified.
+    // Apply our model value substitutions (again), as things may have been
+    // simplified.
     Debug("boolean-terms") << "applying subses to " << n << endl;
     n = substitutions.apply(n);
     Debug("boolean-terms") << "++ got " << n << endl;
@@ -193,7 +205,8 @@ void CheckModels::checkModel(Model * m, context::CDList<Node>* al)
     // Presently, this is only an issue for quantifiers, which can have a value
     // but don't show up in our substitution map above.
     n = m->getValue(n);
-    Notice() << "SmtEngine::checkModel(): -- model-substitutes to " << n << endl;
+    Notice() << "SmtEngine::checkModel(): -- model-substitutes to " << n
+             << endl;
 
     if (n.isConst())
     {
@@ -247,7 +260,8 @@ void CheckModels::checkModel(Model * m, context::CDList<Node>* al)
       Warning() << ss.str() << endl;
     }
   }
-  Notice() << "SmtEngine::checkModel(): all assertions checked out OK !" << endl;
+  Notice() << "SmtEngine::checkModel(): all assertions checked out OK !"
+           << endl;
 }
 
 }  // namespace smt
