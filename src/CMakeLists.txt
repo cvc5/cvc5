@@ -355,18 +355,18 @@ libcvc4_add_sources(
   theory/arith/nl/icp/icp_solver.h
   theory/arith/nl/icp/intersection.cpp
   theory/arith/nl/icp/intersection.h
-  theory/arith/nl/nl_constraint.cpp
-  theory/arith/nl/nl_constraint.h
   theory/arith/nl/iand_table.cpp
   theory/arith/nl/iand_table.h
   theory/arith/nl/nl_lemma_utils.cpp
   theory/arith/nl/nl_lemma_utils.h
   theory/arith/nl/nl_model.cpp
   theory/arith/nl/nl_model.h
-  theory/arith/nl/nl_monomial.cpp
-  theory/arith/nl/nl_monomial.h
+  theory/arith/nl/nl/constraint.cpp
+  theory/arith/nl/nl/constraint.h
   theory/arith/nl/nl/factoring_check.cpp
   theory/arith/nl/nl/factoring_check.h
+  theory/arith/nl/nl/monomial.cpp
+  theory/arith/nl/nl/monomial.h
   theory/arith/nl/nl/monomial_bounds_check.cpp
   theory/arith/nl/nl/monomial_bounds_check.h
   theory/arith/nl/nl/monomial_check.cpp

@@ -12,7 +12,7 @@
  ** \brief Implementation of utilities for monomials
  **/
 
-#include "theory/arith/nl/nl_monomial.h"
+#include "theory/arith/nl/nl/monomial.h"
 
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/nl/nl_lemma_utils.h"

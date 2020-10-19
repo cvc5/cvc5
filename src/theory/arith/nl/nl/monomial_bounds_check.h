@@ -16,8 +16,8 @@
 #define CVC4__THEORY__ARITH__NL__NL__MONOMIAL_BOUNDS_CHECK_H
 
 #include "expr/node.h"
+#include "theory/arith/nl/nl/constraint.h"
 #include "theory/arith/nl/nl/shared_check_data.h"
-#include "theory/arith/nl/nl_constraint.h"
 
 namespace CVC4 {
 namespace theory {

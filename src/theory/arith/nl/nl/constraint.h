@@ -20,7 +20,7 @@
 
 #include "expr/kind.h"
 #include "expr/node.h"
-#include "theory/arith/nl/nl_monomial.h"
+#include "theory/arith/nl/nl/monomial.h"
 
 namespace CVC4 {
 namespace theory {

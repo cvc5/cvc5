@@ -12,7 +12,7 @@
  ** \brief Implementation of utilities for non-linear constraints
  **/
 
-#include "theory/arith/nl/nl_constraint.h"
+#include "theory/arith/nl/nl/constraint.h"
 
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"

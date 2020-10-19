@@ -19,8 +19,8 @@
 
 #include "expr/node.h"
 #include "theory/arith/inference_manager.h"
+#include "theory/arith/nl/nl/monomial.h"
 #include "theory/arith/nl/nl_model.h"
-#include "theory/arith/nl/nl_monomial.h"
 
 namespace CVC4 {
 namespace theory {
