@@ -29,9 +29,7 @@ class MonomialBoundsCheck
  public:
   MonomialBoundsCheck(SharedCheckData* data);
 
-  void init(const std::vector<Node>& assertions,
-            const std::vector<Node>& false_asserts,
-            const std::vector<Node>& xts);
+  void init();
 
   /** check monomial inferred bounds
    *

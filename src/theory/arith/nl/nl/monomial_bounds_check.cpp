@@ -69,9 +69,7 @@ MonomialBoundsCheck::MonomialBoundsCheck(SharedCheckData* data)
 {
 }
 
-void MonomialBoundsCheck::init(const std::vector<Node>& assertions,
-                               const std::vector<Node>& false_asserts,
-                               const std::vector<Node>& xts)
+void MonomialBoundsCheck::init()
 {
   d_ci.clear();
   d_ci_exp.clear();

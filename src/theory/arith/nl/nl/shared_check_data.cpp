@@ -26,9 +26,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-void SharedCheckData::init(const std::vector<Node>& assertions,
-                           const std::vector<Node>& false_asserts,
-                           const std::vector<Node>& xts)
+void SharedCheckData::init(const std::vector<Node>& xts)
 {
   d_ms_vars.clear();
   d_ms.clear();

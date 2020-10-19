@@ -48,7 +48,6 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       d_model(containing.getSatContext()),
       d_trSlv(d_im, d_model),
       d_sharedCheckData(d_im, d_model),
-      d_nlSlv(d_im, state, d_model, &d_sharedCheckData),
       d_factoringSlv(d_im, d_model),
       d_monomialBoundsSlv(&d_sharedCheckData),
       d_monomialSlv(&d_sharedCheckData),
@@ -704,10 +703,9 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
         d_icpSlv.check();
         break;
       case InferStep::NL_INIT:
-        d_sharedCheckData.init(assertions, false_asserts, xts);
-        d_nlSlv.initLastCall(assertions, false_asserts, xts);
-        d_monomialBoundsSlv.init(assertions, false_asserts, xts);
-        d_monomialSlv.init(assertions, false_asserts, xts);
+        d_sharedCheckData.init(xts);
+        d_monomialBoundsSlv.init();
+        d_monomialSlv.init(xts);
         break;
       case InferStep::NL_MONOMIAL_INFER_BOUNDS:
         d_monomialBoundsSlv.checkBounds(assertions, false_asserts);

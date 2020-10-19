@@ -38,7 +38,6 @@
 #include "theory/arith/nl/nl/tangent_plane_check.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
-#include "theory/arith/nl/nl_solver.h"
 #include "theory/arith/nl/stats.h"
 #include "theory/arith/nl/strategy.h"
 #include "theory/arith/nl/transcendental_solver.h"
@@ -267,8 +266,6 @@ class NonlinearExtension
    * This is the subsolver responsible for running the procedure for
    * constraints involving nonlinear mulitplication, Cimatti et al., TACAS 2017.
    */
-  NlSolver d_nlSlv;
-
   FactoringCheck d_factoringSlv;
   MonomialBoundsCheck d_monomialBoundsSlv;
   MonomialCheck d_monomialSlv;

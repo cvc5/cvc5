@@ -28,9 +28,7 @@ class MonomialCheck
  public:
   MonomialCheck(SharedCheckData* data);
 
-  void init(const std::vector<Node>& assertions,
-            const std::vector<Node>& false_asserts,
-            const std::vector<Node>& xts);
+  void init(const std::vector<Node>& xts);
 
   /** check monomial sign
    *

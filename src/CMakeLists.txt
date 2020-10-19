@@ -365,8 +365,6 @@ libcvc4_add_sources(
   theory/arith/nl/nl_model.h
   theory/arith/nl/nl_monomial.cpp
   theory/arith/nl/nl_monomial.h
-  theory/arith/nl/nl_solver.cpp
-  theory/arith/nl/nl_solver.h
   theory/arith/nl/nl/factoring_check.cpp
   theory/arith/nl/nl/factoring_check.h
   theory/arith/nl/nl/monomial_bounds_check.cpp

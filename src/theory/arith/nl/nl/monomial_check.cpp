@@ -31,9 +31,7 @@ MonomialCheck::MonomialCheck(SharedCheckData* data) : d_data(data)
   d_order_points.push_back(d_data->d_one);
 }
 
-void MonomialCheck::init(const std::vector<Node>& assertions,
-                         const std::vector<Node>& false_asserts,
-                         const std::vector<Node>& xts)
+void MonomialCheck::init(const std::vector<Node>& xts)
 {
   d_ms_proc.clear();
   d_m_nconst_factor.clear();
