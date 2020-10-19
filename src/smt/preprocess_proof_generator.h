@@ -58,10 +58,25 @@ class PreprocessProofGenerator : public ProofGenerator
       NodeTrustNodeMap;
 
  public:
+  /**
+   * @param pnm The proof node manager
+   * @param c The context this class depends on
+   * @param name The name of this generator (for debugging)
+   * @param ra The proof rule to use when no generator is provided for new
+   * assertions
+   * @param rpp The proof rule to use when no generator is provided for
+   * preprocessing steps.
+   */
   PreprocessProofGenerator(ProofNodeManager* pnm,
                            context::Context* c = nullptr,
-                           std::string name = "PreprocessProofGenerator");
+                           std::string name = "PreprocessProofGenerator",
+                           PfRule ra = PfRule::PREPROCESS_LEMMA,
+                           PfRule rpp = PfRule::PREPROCESS);
   ~PreprocessProofGenerator() {}
+  /**
+   * Notify that n is an input (its proof is ASSUME).
+   */
+  void notifyInput(Node n);
   /**
    * Notify that n is a new assertion, where pg can provide a proof of n.
    */
@@ -94,6 +109,11 @@ class PreprocessProofGenerator : public ProofGenerator
   LazyCDProof* allocateHelperProof();
 
  private:
+  /**
+   * Possibly check pedantic failure for null proof generator provided
+   * to this class.
+   */
+  void checkEagerPedantic(PfRule r);
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /** A dummy context used by this class if none is provided */
@@ -108,8 +128,17 @@ class PreprocessProofGenerator : public ProofGenerator
   NodeTrustNodeMap d_src;
   /** A context-dependent list of LazyCDProof, allocated for conjoin steps */
   LazyCDProofSet d_helperProofs;
+  /**
+   * A cd proof for input assertions, this is an empty proof that intentionally
+   * returns (ASSUME f) for all f.
+   */
+  CDProof d_inputPf;
   /** Name for debugging */
   std::string d_name;
+  /** The trust rule for new assertions with no provided proof generator */
+  PfRule d_ra;
+  /** The trust rule for rewrites with no provided proof generator */
+  PfRule d_rpp;
 };
 
 }  // namespace smt
