@@ -17,15 +17,25 @@
 #include "options/smt_options.h"
 #include "theory/substitutions.h"
 #include "theory/theory_engine.h"
+#include "theory/rewriter.h"
+#include "smt/node_command.h"
+#include "smt/preprocessor.h"
+
+using namespace CVC4::theory;
 
 namespace CVC4 {
 namespace smt {
 
-CheckModels::CheckModels(SmtSolver& s) : d_solver(s), {}
+CheckModels::CheckModels(SmtSolver& s) : d_smt(s) {}
 CheckModels::~CheckModels() {}
 
-void CheckModels::checkModel(Model* m, context::CDList<Node>* al)
+void CheckModels::checkModel(Model* m, context::CDList<Node>* al, bool hardFailure)
 {
+  // Throughout, we use Notice() to give diagnostic output.
+  //
+  // If this function is running, the user gave --check-model (or equivalent),
+  // and if Notice() is on, the user gave --verbose (or equivalent).
+  
   // check-model is not guaranteed to succeed if approximate values were used.
   // Thus, we intentionally abort here.
   if (m->hasApproximations())
@@ -37,7 +47,7 @@ void CheckModels::checkModel(Model* m, context::CDList<Node>* al)
   // Check individual theory assertions
   if (options::debugCheckModels())
   {
-    TheoryEngine* te = d_solver.getTheoryEngine();
+    TheoryEngine* te = d_smt.getTheoryEngine();
     Assert(te != nullptr);
     te->checkTheoryAssertionsWithModel(hardFailure);
   }
@@ -46,7 +56,7 @@ void CheckModels::checkModel(Model* m, context::CDList<Node>* al)
   Notice() << *m;
 
   NodeManager* nm = NodeManager::currentNM();
-  Preprocessor* pp = d_solver.getPreprocessor();
+  Preprocessor* pp = d_smt.getPreprocessor();
 
   // We have a "fake context" for the substitution map (we don't need it
   // to be context-dependent)
@@ -54,16 +64,17 @@ void CheckModels::checkModel(Model* m, context::CDList<Node>* al)
   SubstitutionMap substitutions(&fakeContext,
                                 /* substituteUnderQuantifiers = */ false);
 
+  Trace("check-model") << "checkModel: Collect substitution..." << std::endl;
   for (size_t k = 0, ncmd = m->getNumCommands(); k < ncmd; ++k)
   {
     const DeclareFunctionNodeCommand* c =
         dynamic_cast<const DeclareFunctionNodeCommand*>(m->getCommand(k));
     Notice() << "SmtEngine::checkModel(): model command " << k << " : "
-             << m->getCommand(k)->toString() << endl;
+             << m->getCommand(k)->toString() << std::endl;
     if (c == NULL)
     {
       // we don't care about DECLARE-DATATYPES, DECLARE-SORT, ...
-      Notice() << "SmtEngine::checkModel(): skipping..." << endl;
+      Notice() << "SmtEngine::checkModel(): skipping..." << std::endl;
       continue;
     }
     // We have a DECLARE-FUN:
@@ -75,16 +86,14 @@ void CheckModels::checkModel(Model* m, context::CDList<Node>* al)
     Node val = m->getValue(func);
 
     Notice() << "SmtEngine::checkModel(): adding substitution: " << func
-             << " |-> " << val << endl;
+             << " |-> " << val << std::endl;
 
     // (1) if the value is a lambda, ensure the lambda doesn't contain the
     // function symbol (since then the definition is recursive)
     if (val.getKind() == kind::LAMBDA)
     {
       // first apply the model substitutions we have so far
-      Debug("boolean-terms") << "applying subses to " << val[1] << endl;
       Node n = substitutions.apply(val[1]);
-      Debug("boolean-terms") << "++ got " << n << endl;
       // now check if n contains func by doing a substitution
       // [func->func2] and checking equality of the Nodes.
       // (this just a way to check if func is in n.)
@@ -96,18 +105,18 @@ void CheckModels::checkModel(Model* m, context::CDList<Node>* al)
       {
         Notice() << "SmtEngine::checkModel(): *** PROBLEM: MODEL VALUE DEFINED "
                     "IN TERMS OF ITSELF ***"
-                 << endl;
-        stringstream ss;
+                 << std::endl;
+        std::stringstream ss;
         ss << "SmtEngine::checkModel(): ERRORS SATISFYING ASSERTIONS WITH "
               "MODEL:"
-           << endl
-           << "considering model value for " << func << endl
-           << "body of lambda is:   " << val << endl;
+           << std::endl
+           << "considering model value for " << func << std::endl
+           << "body of lambda is:   " << val << std::endl;
         if (n != val[1])
         {
-          ss << "body substitutes to: " << n << endl;
+          ss << "body substitutes to: " << n << std::endl;
         }
-        ss << "so " << func << " is defined in terms of itself." << endl
+        ss << "so " << func << " is defined in terms of itself." << std::endl
            << "Run with `--check-models -v' for additional diagnostics.";
         InternalError() << ss.str();
       }
@@ -121,8 +130,8 @@ void CheckModels::checkModel(Model* m, context::CDList<Node>* al)
       // This parallels the behavior (warnings for non-constant expressions)
       // when checking whether assertions are satisfied below.
       Warning() << "Warning : SmtEngine::checkModel(): "
-                << "model value for " << func << endl
-                << "             is " << val << endl
+                << "model value for " << func << std::endl
+                << "             is " << val << std::endl
                 << "and that is not a constant (.isConst() == false)."
                 << std::endl
                 << "Run with `--check-models -v' for additional diagnostics."
@@ -137,49 +146,46 @@ void CheckModels::checkModel(Model* m, context::CDList<Node>* al)
     {
       Notice() << "SmtEngine::checkModel(): *** PROBLEM: MODEL VALUE NOT "
                   "CORRECT TYPE ***"
-               << endl;
+               << std::endl;
       InternalError()
           << "SmtEngine::checkModel(): ERRORS SATISFYING ASSERTIONS WITH "
              "MODEL:"
-          << endl
-          << "model value for " << func << endl
-          << "             is " << val << endl
-          << "value type is     " << val.getType() << endl
-          << "should be of type " << func.getType() << endl
+          << std::endl
+          << "model value for " << func << std::endl
+          << "             is " << val << std::endl
+          << "value type is     " << val.getType() << std::endl
+          << "should be of type " << func.getType() << std::endl
           << "Run with `--check-models -v' for additional diagnostics.";
     }
 
     // (4) checks complete, add the substitution
-    Debug("boolean-terms") << "cm: adding subs " << func << " :=> " << val
-                           << endl;
+    Trace("check-model") << "Substitution: " << func << " :=> " << val
+                           << std::endl;
     substitutions.addSubstitution(func, val);
   }
 
+  Trace("check-model") << "checkModel: Check assertions..." << std::endl;
   // Now go through all our user assertions checking if they're satisfied.
   for (const Node& assertion : *al)
   {
     Notice() << "SmtEngine::checkModel(): checking assertion " << assertion
-             << endl;
+             << std::endl;
     Node n = assertion;
     Node nr = Rewriter::rewrite(substitutions.apply(n));
-    Trace("boolean-terms") << "n: " << n << endl;
-    Trace("boolean-terms") << "nr: " << nr << endl;
     if (nr.isConst() && nr.getConst<bool>())
     {
       continue;
     }
     // Apply any define-funs from the problem.
     {
-      unordered_map<Node, Node, NodeHashFunction> cache;
+      std::unordered_map<Node, Node, NodeHashFunction> cache;
       n = pp->expandDefinitions(n, cache);
     }
-    Notice() << "SmtEngine::checkModel(): -- expands to " << n << endl;
+    Notice() << "SmtEngine::checkModel(): -- expands to " << n << std::endl;
 
     // Apply our model value substitutions.
-    Debug("boolean-terms") << "applying subses to " << n << endl;
     n = substitutions.apply(n);
-    Debug("boolean-terms") << "++ got " << n << endl;
-    Notice() << "SmtEngine::checkModel(): -- substitutes to " << n << endl;
+    Notice() << "SmtEngine::checkModel(): -- substitutes to " << n << std::endl;
 
     // We look up the value before simplifying. If n contains quantifiers,
     // this may increases the chance of finding its value before the node is
@@ -192,21 +198,19 @@ void CheckModels::checkModel(Model* m, context::CDList<Node>* al)
     n = pp->simplify(n, true);
     Notice()
         << "SmtEngine::checkModel(): -- simplifies with ite replacement to  "
-        << n << endl;
+        << n << std::endl;
 
     // Apply our model value substitutions (again), as things may have been
     // simplified.
-    Debug("boolean-terms") << "applying subses to " << n << endl;
     n = substitutions.apply(n);
-    Debug("boolean-terms") << "++ got " << n << endl;
-    Notice() << "SmtEngine::checkModel(): -- re-substitutes to " << n << endl;
+    Notice() << "SmtEngine::checkModel(): -- re-substitutes to " << n << std::endl;
 
     // As a last-ditch effort, ask model to simplify it.
     // Presently, this is only an issue for quantifiers, which can have a value
     // but don't show up in our substitution map above.
     n = m->getValue(n);
     Notice() << "SmtEngine::checkModel(): -- model-substitutes to " << n
-             << endl;
+             << std::endl;
 
     if (n.isConst())
     {
@@ -236,19 +240,19 @@ void CheckModels::checkModel(Model* m, context::CDList<Node>* al)
       // Not constant, print a less severe warning message here.
       Warning() << "Warning : SmtEngine::checkModel(): cannot check simplified "
                    "assertion : "
-                << n << endl;
+                << n << std::endl;
       continue;
     }
     // Assertions that simplify to false result in an InternalError or
     // Warning being thrown below (when hardFailure is false).
     Notice() << "SmtEngine::checkModel(): *** PROBLEM: EXPECTED `TRUE' ***"
-             << endl;
-    stringstream ss;
+             << std::endl;
+    std::stringstream ss;
     ss << "SmtEngine::checkModel(): "
-       << "ERRORS SATISFYING ASSERTIONS WITH MODEL:" << endl
-       << "assertion:     " << assertion << endl
-       << "simplifies to: " << n << endl
-       << "expected `true'." << endl
+       << "ERRORS SATISFYING ASSERTIONS WITH MODEL:" << std::endl
+       << "assertion:     " << assertion << std::endl
+       << "simplifies to: " << n << std::endl
+       << "expected `true'." << std::endl
        << "Run with `--check-models -v' for additional diagnostics.";
     if (hardFailure)
     {
@@ -257,11 +261,12 @@ void CheckModels::checkModel(Model* m, context::CDList<Node>* al)
     }
     else
     {
-      Warning() << ss.str() << endl;
+      Warning() << ss.str() << std::endl;
     }
   }
+  Trace("check-model") << "checkModel: Finish" << std::endl;
   Notice() << "SmtEngine::checkModel(): all assertions checked out OK !"
-           << endl;
+           << std::endl;
 }
 
 }  // namespace smt

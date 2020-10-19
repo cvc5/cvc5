@@ -17,13 +17,10 @@
 #ifndef CVC4__SMT__CHECK_MODELS_H
 #define CVC4__SMT__CHECK_MODELS_H
 
-#include <unordered_map>
-
-#include "context/context.h"
+#include "context/cdlist.h"
 #include "expr/node.h"
 #include "smt/model.h"
 #include "smt/smt_solver.h"
-#include "theory/substitutions.h"
 
 namespace CVC4 {
 namespace smt {
@@ -37,9 +34,12 @@ class CheckModels
   CheckModels(SmtSolver& s);
   ~CheckModels();
   /**
-   * Check model m against assertion list al.
+   * Check model m against the current set of input assertions al.
+   * 
+   * This throws an exception if we fail to verify that m is a proper model
+   * given assertion list al based on the model checking policy.
    */
-  void checkModel(Model* m, context::CDList<Node>* al);
+  void checkModel(Model* m, context::CDList<Node>* al, bool hardFailure);
 
  private:
   /** Reference to the SMT solver */

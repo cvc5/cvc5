@@ -16,19 +16,6 @@
 
 #include "smt/smt_engine.h"
 
-#include <algorithm>
-#include <cctype>
-#include <iterator>
-#include <memory>
-#include <sstream>
-#include <stack>
-#include <string>
-#include <tuple>
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
-#include <vector>
-
 #include "api/cvc4cpp.h"
 #include "base/check.h"
 #include "base/configuration.h"
@@ -36,35 +23,18 @@
 #include "base/exception.h"
 #include "base/modal_exception.h"
 #include "base/output.h"
-#include "context/cdhashmap.h"
-#include "context/cdhashset.h"
-#include "context/cdlist.h"
-#include "context/context.h"
 #include "decision/decision_engine.h"
-#include "expr/attribute.h"
-#include "expr/expr.h"
-#include "expr/kind.h"
-#include "expr/metakind.h"
 #include "expr/node.h"
-#include "expr/node_algorithm.h"
-#include "expr/node_builder.h"
 #include "expr/node_self_iterator.h"
 #include "expr/node_visitor.h"
 #include "options/base_options.h"
-#include "options/decision_options.h"
 #include "options/language.h"
 #include "options/main_options.h"
-#include "options/open_ostream.h"
 #include "options/option_exception.h"
-#include "options/printer_options.h"
-#include "options/prop_options.h"
-#include "options/quantifiers_options.h"
 #include "options/set_language.h"
 #include "options/smt_options.h"
+#include "options/printer_options.h"
 #include "options/theory_options.h"
-#include "preprocessing/preprocessing_pass.h"
-#include "preprocessing/preprocessing_pass_context.h"
-#include "preprocessing/preprocessing_pass_registry.h"
 #include "printer/printer.h"
 #include "proof/proof_manager.h"
 #include "proof/unsat_core.h"
@@ -91,16 +61,11 @@
 #include "smt/sygus_solver.h"
 #include "smt/term_formula_removal.h"
 #include "smt/update_ostream.h"
-#include "smt_util/boolean_simplification.h"
-#include "smt_util/nary_builder.h"
 #include "theory/logic_info.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/rewriter.h"
-#include "theory/sort_inference.h"
-#include "theory/substitutions.h"
+#include "smt/check_models.h"
 #include "theory/theory_engine.h"
-#include "theory/theory_model.h"
-#include "theory/theory_traits.h"
 #include "util/hash.h"
 #include "util/random.h"
 #include "util/resource_manager.h"
@@ -1557,18 +1522,13 @@ void SmtEngine::checkModel(bool hardFailure) {
 
   TimerStat::CodeTimer checkModelTimer(d_stats->d_checkModelTime);
 
-  // Throughout, we use Notice() to give diagnostic output.
-  //
-  // If this function is running, the user gave --check-model (or equivalent),
-  // and if Notice() is on, the user gave --verbose (or equivalent).
-
   Notice() << "SmtEngine::checkModel(): generating model" << endl;
   Model* m = getAvailableModel("check model");
   Assert(m != nullptr);
 
-  // check models
+  // check the model with the check models utility
   Assert(d_checkModels != nullptr);
-  d_checkModels->checkModel(m, al);
+  d_checkModels->checkModel(m, al, hardFailure);
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
