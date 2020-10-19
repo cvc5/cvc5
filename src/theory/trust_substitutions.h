@@ -40,7 +40,7 @@ class TrustSubstitutionMap
   TrustSubstitutionMap(context::Context* c,
                        ProofNodeManager* pnm,
                        std::string name = "TrustSubstitutionMap",
-                       PfRule trustId = PfRule::TRUST,
+                       PfRule trustId = PfRule::TRUST_SUBS_MAP,
                        MethodId ids = MethodId::SB_DEFAULT);
   /** Gets a reference to the underlying substitution map */
   SubstitutionMap& get();
@@ -50,9 +50,13 @@ class TrustSubstitutionMap
    */
   void addSubstitution(TNode x, TNode t, ProofGenerator* pg = nullptr);
   /**
-   * Add substitution x -> t from a single proof step.
+   * Add substitution x -> t from a single proof step with rule id, no children
+   * and arguments args.
    */
-  void addSubstitution(TNode x, TNode t, PfRule id, std::vector<Node>& args);
+  void addSubstitution(TNode x,
+                       TNode t,
+                       PfRule id,
+                       const std::vector<Node>& args);
   /**
    * Add substitution x -> t, which was derived from the proven field of
    * trust node tn. In other words, (= x t) is the solved form of
@@ -71,6 +75,11 @@ class TrustSubstitutionMap
   /**
    * Add substitutions from trust substitution map t. This adds all
    * substitutions for t and carries over its information about proofs.
+   */
+  void addSubstitutions(TrustSubstitutionMap& t);
+  /**
+   * Add substitutions from trust substitution map t. This adds all
+   * substitutions from the map t and carries over its information about proofs.
    */
   void addSubstitutions(TrustSubstitutionMap& t);
   /**
@@ -106,7 +115,14 @@ class TrustSubstitutionMap
    * A context-dependent list of LazyCDProof, allocated for internal steps.
    */
   LazyCDProofSet d_helperPf;
-  /** Whether the substitution is up-to-date */
+  /**
+   * The formula corresponding to the current substitution. This is of the form
+   *   (and (= x1 t1) ... (= xn tn))
+   * when the substitution map contains { x1 -> t1, ... xn -> tn }. This field
+   * is updated on demand. When this class applies a substitution to a node,
+   * this formula is computed and recorded as the premise of a
+   * MACRO_SR_EQ_INTRO step.
+   */
   context::CDO<Node> d_currentSubs;
   /** Name for debugging */
   std::string d_name;

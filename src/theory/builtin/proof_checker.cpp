@@ -254,6 +254,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::SCOPE)
   {
+    NodeManager * nm = NodeManager::currentNM();
     Assert(children.size() == 1);
     if (args.empty())
     {

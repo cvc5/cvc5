@@ -61,7 +61,7 @@ void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, ProofGenerator* pg)
 void TrustSubstitutionMap::addSubstitution(TNode x,
                                            TNode t,
                                            PfRule id,
-                                           std::vector<Node>& args)
+                                           const std::vector<Node>& args)
 {
   if (!isProofEnabled())
   {
@@ -161,7 +161,16 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
       << std::endl;
   // Easy case: if n is in the domain of the substitution, maybe it is already
   // a proof in the substitution proof generator. This is moreover required
-  // to avoid cyclic proofs below.
+  // to avoid cyclic proofs below. For example, if { x -> 5 } is a substitution,
+  // and we are asked to transform x, resulting in 5, we hence must provide
+  // a proof of (= x 5) based on the substitution. However, it must be the
+  // case that (= x 5) is a proven fact of the substitution generator. Hence
+  // we avoid a proof that looks like:
+  // ---------- from d_subsPg
+  // (= x 5)
+  // ---------- MACRO_SR_EQ_INTRO{x}
+  // (= x 5)
+  // by taking the premise proof directly.
   Node eq = n.eqNode(ns);
   if (d_subsPg->hasStep(eq) || d_subsPg->hasGenerator(eq))
   {

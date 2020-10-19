@@ -99,6 +99,9 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
             pg = convertExistsInternal(exists);
             if (pg == nullptr)
             {
+              // if no proof generator is provided, we justify the existential
+              // using the WITNESS_AXIOM trusted rule by providing it to the
+              // call to addLazyStep below.
               Trace("witness-form")
                   << "WitnessFormGenerator: No proof generator for " << exists
                   << std::endl;
@@ -161,6 +164,12 @@ ProofGenerator* WitnessFormGenerator::convertExistsInternal(Node exists)
     Node tpurified = exists[1][1];
     Trace("witness-form") << "convertExistsInternal: infer purification "
                           << exists << " for " << tpurified << std::endl;
+    // ------ REFL
+    // t = t
+    // ---------------- EXISTS_INTRO
+    // exists x. x = t
+    // The concluded existential is then used to construct the witness term
+    // via witness intro.
     Node teq = tpurified.eqNode(tpurified);
     d_pskPf.addStep(teq, PfRule::REFL, {}, {tpurified});
     d_pskPf.addStep(exists, PfRule::EXISTS_INTRO, {teq}, {exists});
