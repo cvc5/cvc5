@@ -34,6 +34,8 @@ const char* toString(MethodId id)
     case MethodId::RW_REWRITE_EQ_EXT: return "RW_REWRITE_EQ_EXT";
     case MethodId::RW_EVALUATE: return "RW_EVALUATE";
     case MethodId::RW_IDENTITY: return "RW_IDENTITY";
+    case MethodId::RW_REWRITE_THEORY_PRE: return "RW_REWRITE_THEORY_PRE";
+    case MethodId::RW_REWRITE_THEORY_POST: return "RW_REWRITE_THEORY_POST";
     case MethodId::SB_DEFAULT: return "SB_DEFAULT";
     case MethodId::SB_LITERAL: return "SB_LITERAL";
     case MethodId::SB_FORMULA: return "SB_FORMULA";
@@ -76,7 +78,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerTrustedChecker(PfRule::WITNESS_AXIOM, this, 3);
   pc->registerTrustedChecker(PfRule::TRUST_REWRITE, this, 1);
   pc->registerTrustedChecker(PfRule::TRUST_SUBS, this, 1);
-  pc->registerTrustedChecker(PfRule::TRUST_SUBS_MAP, this, 1);
+  pc->registerTrustedChecker(PfRule::TRUST_SUBS_MAP, this, 3);
 }
 
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(
@@ -268,6 +270,11 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     }
     return nm->mkNode(IMPLIES, ant, children[0]);
   }
+  else if (id == PfRule::TRUST)
+  {
+    Assert(args.size() == 1);
+    return args[0];
+  }
   else if (id == PfRule::SUBS)
   {
     Assert(children.size() > 0);
@@ -283,6 +290,10 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       exp.push_back(children[i]);
     }
     Node res = applySubstitution(args[0], exp, ids);
+    if (res.isNull())
+    {
+      return Node::null();
+    }
     return args[0].eqNode(res);
   }
   else if (id == PfRule::REWRITE)
@@ -295,6 +306,10 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     Node res = applyRewrite(args[0], idr);
+    if (res.isNull())
+    {
+      return Node::null();
+    }
     return args[0].eqNode(res);
   }
   else if (id == PfRule::EVALUATE)
@@ -302,6 +317,10 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(children.empty());
     Assert(args.size() == 1);
     Node res = applyRewrite(args[0], MethodId::RW_EVALUATE);
+    if (res.isNull())
+    {
+      return Node::null();
+    }
     return args[0].eqNode(res);
   }
   else if (id == PfRule::MACRO_SR_EQ_INTRO)
@@ -313,6 +332,10 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     Node res = applySubstitutionRewrite(args[0], children, ids, idr);
+    if (res.isNull())
+    {
+      return Node::null();
+    }
     return args[0].eqNode(res);
   }
   else if (id == PfRule::MACRO_SR_PRED_INTRO)
