@@ -64,11 +64,7 @@ bool hasNewMonomials(Node n, const std::vector<Node>& existing)
 }
 
 NlSolver::NlSolver(InferenceManager& im, ArithState& astate, NlModel& model)
-    : d_im(im),
-      d_astate(astate),
-      d_model(model),
-      d_cdb(d_mdb),
-      d_zero_split(d_astate.getUserContext())
+    : d_im(im), d_astate(astate), d_model(model), d_cdb(d_mdb)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);

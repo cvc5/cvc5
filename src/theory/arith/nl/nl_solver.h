@@ -161,9 +161,6 @@ class NlSolver
   // ( x*y, x*z, y ) for each pair of monomials ( x*y, x*z ) with common factors
   std::map<Node, std::map<Node, Node> > d_mono_diff;
 
-  /** cache of terms t for which we have added the lemma ( t = 0 V t != 0 ). */
-  NodeSet d_zero_split;
-
   // information about monomials
   std::vector<Node> d_ms;
   std::vector<Node> d_ms_vars;
