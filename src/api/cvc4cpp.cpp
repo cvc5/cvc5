@@ -1603,8 +1603,6 @@ bool Term::isCastedReal() const
 {
   if(d_node->getKind() == kind::TO_REAL)
   {
-    // if the argument is an integer constant, then true
-    // otherwise false
     return (*d_node)[0].isConst() && (*d_node)[0].getType().isInteger();
   }
   return false;
@@ -3730,32 +3728,34 @@ Term Solver::mkInteger(int64_t val) const
 Term Solver::mkReal(const std::string& s) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  Term real = mkRealFromStrHelper(s);
-  if (real.getSort() == getIntegerSort())
-  {
-    return mkTerm(TO_REAL, real);
-  }
-  return real;
+  Term rational = mkRealFromStrHelper(s);
+  return ensureRealSort(rational);
   CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+Term Solver::ensureRealSort(const Term t) const
+{
+  Assert(t.getSort() == getIntegerSort() || t.getSort() == getRealSort());
+  if (t.getSort() == getIntegerSort())
+  {
+    return mkTerm(TO_REAL, t);
+  }
+  return t;
 }
 
 Term Solver::mkReal(int64_t val) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  Term real = mkValHelper<CVC4::Rational>(CVC4::Rational(val));
-  return mkTerm(TO_REAL, real);
+  Term rational = mkValHelper<CVC4::Rational>(CVC4::Rational(val));
+  return mkTerm(TO_REAL, rational);
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
 Term Solver::mkReal(int64_t num, int64_t den) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  Term real = mkValHelper<CVC4::Rational>(CVC4::Rational(num, den));
-  if(real.getSort() == getIntegerSort())
-  {
-    return mkTerm(TO_REAL, real);
-  }
-  return real;
+  Term rational = mkValHelper<CVC4::Rational>(CVC4::Rational(num, den));
+  return ensureRealSort(rational);
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 

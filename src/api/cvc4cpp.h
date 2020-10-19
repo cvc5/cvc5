@@ -1145,7 +1145,8 @@ class CVC4_PUBLIC Term
   Kind getKindHelper() const;
 
   /**
-   * returns true if the current term is a casted real
+   * returns true if the current term is a constant integer that is casted into
+   * real using the operator TO_REAL, and returns false otherwise
    */
   bool isCastedReal() const;
   /**
@@ -3456,10 +3457,10 @@ class CVC4_PUBLIC Solver
   /**
    * Helper function that ensures that a given term is of sort real (as opposed
    * to being of sort integer).
-   * @param term a term of sort integer or real
+   * @param t a term of sort integer or real
    * @return a term of sort real
    */
-  Term ensureRealSort(Term expr) const;
+  Term ensureRealSort(Term t) const;
 
   /**
    * Create n-ary term of given kind. This handles the cases of left/right
