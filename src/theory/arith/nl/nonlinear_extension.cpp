@@ -703,6 +703,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
         d_icpSlv.check();
         break;
       case InferStep::NL_INIT:
+        d_sharedCheckData.init(assertions, false_asserts, xts);
         d_nlSlv.initLastCall(assertions, false_asserts, xts);
         d_monomialSlv.init(assertions, false_asserts, xts);
         break;

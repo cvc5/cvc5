@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file split_zero_check.h
+/*! \file shared_check_data.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Gereon Kremer
@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Check for split zero lemma
+ ** \brief Common data shared by multiple checks
  **/
 
 #ifndef CVC4__THEORY__ARITH__NL__NL__SHARED_CHECK_DATA_H
@@ -57,6 +57,10 @@ struct SharedCheckData
       : d_im(im), d_model(model)
   {
   }
+
+  void init(const std::vector<Node>& assertions,
+            const std::vector<Node>& false_asserts,
+            const std::vector<Node>& xts);
 };
 
 }  // namespace nl

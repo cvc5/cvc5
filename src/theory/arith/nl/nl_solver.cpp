@@ -87,60 +87,9 @@ void NlSolver::initLastCall(const std::vector<Node>& assertions,
                             const std::vector<Node>& false_asserts,
                             const std::vector<Node>& xts)
 {
-  d_data->d_ms_vars.clear();
-  d_data->d_ms.clear();
-  d_data->d_mterms.clear();
-  d_data->d_tplane_refine.clear();
   d_ci.clear();
   d_ci_exp.clear();
   d_ci_max.clear();
-
-  Trace("nl-ext-mv") << "Extended terms : " << std::endl;
-  // for computing congruence
-  std::map<Kind, ArgTrie> argTrie;
-  for (unsigned i = 0, xsize = xts.size(); i < xsize; i++)
-  {
-    Node a = xts[i];
-    d_model.computeConcreteModelValue(a);
-    d_model.computeAbstractModelValue(a);
-    d_model.printModelValue("nl-ext-mv", a);
-    Kind ak = a.getKind();
-    if (ak == NONLINEAR_MULT)
-    {
-      d_data->d_ms.push_back(a);
-
-      // context-independent registration
-      d_data->d_mdb.registerMonomial(a);
-
-      const std::vector<Node>& varList = d_data->d_mdb.getVariableList(a);
-      for (const Node& v : varList)
-      {
-        if (std::find(d_data->d_ms_vars.begin(), d_data->d_ms_vars.end(), v)
-            == d_data->d_ms_vars.end())
-        {
-          d_data->d_ms_vars.push_back(v);
-        }
-      }
-      // mark processed if has a "one" factor (will look at reduced monomial)?
-    }
-  }
-
-  // register constants
-  d_data->d_mdb.registerMonomial(d_one);
-
-  // register variables
-  Trace("nl-ext-mv") << "Variables in monomials : " << std::endl;
-  for (unsigned i = 0; i < d_data->d_ms_vars.size(); i++)
-  {
-    Node v = d_data->d_ms_vars[i];
-    d_data->d_mdb.registerMonomial(v);
-    d_model.computeConcreteModelValue(v);
-    d_model.computeAbstractModelValue(v);
-    d_model.printModelValue("nl-ext-mv", v);
-  }
-
-  Trace("nl-ext") << "We have " << d_data->d_ms.size() << " monomials."
-                  << std::endl;
 }
 
 void NlSolver::checkMonomialInferBounds(
