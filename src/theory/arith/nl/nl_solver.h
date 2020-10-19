@@ -112,32 +112,6 @@ class NlSolver
    */
   void checkMonomialInferResBounds();
 
-  /** check tangent planes
-   *
-   * Returns a set of valid theory lemmas, based on an
-   * "incremental linearization" of non-linear monomials.
-   * This linearization is accomplished by adding constraints
-   * corresponding to "tangent planes" at the current
-   * model value of each non-linear monomial. In particular
-   * consider the definition for constants a,b :
-   *   T_{a,b}( x*y ) = b*x + a*y - a*b.
-   * The lemmas added by this function are of the form :
-   *  ( ( x>a ^ y<b) ^ (x<a ^ y>b) ) => x*y < T_{a,b}( x*y )
-   *  ( ( x>a ^ y>b) ^ (x<a ^ y<b) ) => x*y > T_{a,b}( x*y )
-   * It is inspired by "Invariant Checking of NRA Transition
-   * Systems via Incremental Reduction to LRA with EUF" by
-   * Cimatti et al., TACAS 2017.
-   * This schema is not terminating in general.
-   * It is not enabled by default, and can
-   * be enabled by --nl-ext-tplanes.
-   *
-   * Examples:
-   *
-   * ( ( x>2 ^ y>5) ^ (x<2 ^ y<5) ) => x*y > 5*x + 2*y - 10
-   * ( ( x>2 ^ y<5) ^ (x<2 ^ y>5) ) => x*y < 5*x + 2*y - 10
-   */
-  void checkTangentPlanes(bool asWaitingLemmas);
-
   //-------------------------------------------- end lemma schemas
  private:
   /** The inference manager that we push conflicts and lemmas to. */
@@ -170,8 +144,6 @@ class NlSolver
   std::unordered_set<Node, NodeHashFunction> d_tplane_refine;
   /** maps nodes to their factor skolems */
   std::map<Node, Node> d_factor_skolem;
-  /** tangent plane bounds */
-  std::map<Node, std::map<Node, Node> > d_tangent_val_bound[4];
   // term -> coeff -> rhs -> ( status, exp, b ),
   //   where we have that : exp =>  ( coeff * term <status> rhs )
   //   b is true if degree( term ) >= degree( rhs )

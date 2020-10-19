@@ -52,6 +52,7 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       d_factoringSlv(d_im, d_model),
       d_monomialSlv(&d_sharedCheckData, state.getUserContext()),
       d_splitZeroSlv(&d_sharedCheckData, state.getUserContext()),
+      d_tangentPlaneSlv(&d_sharedCheckData, state.getUserContext()),
       d_cadSlv(d_im, d_model),
       d_icpSlv(d_im),
       d_iandSlv(d_im, state, d_model),
@@ -722,11 +723,9 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
         d_nlSlv.checkMonomialInferResBounds();
         break;
       case InferStep::NL_SPLIT_ZERO: d_splitZeroSlv.check(); break;
-      case InferStep::NL_TANGENT_PLANES:
-        d_nlSlv.checkTangentPlanes(false);
-        break;
+      case InferStep::NL_TANGENT_PLANES: d_tangentPlaneSlv.check(false); break;
       case InferStep::NL_TANGENT_PLANES_WAITING:
-        d_nlSlv.checkTangentPlanes(true);
+        d_tangentPlaneSlv.check(true);
         break;
       case InferStep::TRANS_INIT:
         d_trSlv.initLastCall(assertions, false_asserts, xts);

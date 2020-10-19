@@ -34,6 +34,7 @@
 #include "theory/arith/nl/nl/factoring_check.h"
 #include "theory/arith/nl/nl/monomial_check.h"
 #include "theory/arith/nl/nl/split_zero_check.h"
+#include "theory/arith/nl/nl/tangent_plane_check.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/nl_solver.h"
@@ -270,6 +271,7 @@ class NonlinearExtension
   FactoringCheck d_factoringSlv;
   MonomialCheck d_monomialSlv;
   SplitZeroCheck d_splitZeroSlv;
+  TangentPlaneCheck d_tangentPlaneSlv;
   /** The CAD-based solver */
   CadSolver d_cadSlv;
   /** The ICP-based solver */
