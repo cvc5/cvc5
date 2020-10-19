@@ -234,11 +234,14 @@ enum class PfRule : uint32_t
   // a witness term (witness ((x T)) (P x)).
   WITNESS_AXIOM,
   // where F is an equality (= t t') that holds by a form of rewriting that
-  // could not be replayed.
+  // could not be replayed during proof postprocessing.
   TRUST_REWRITE,
   // where F is an equality (= t t') that holds by a form of substitution that
-  // could not be replayed.
+  // could not be replayed during proof postprocessing.
   TRUST_SUBS,
+  // where F is an equality (= t t') that holds by a form of substitution that
+  // could not be determined by the TrustSubstitutionMap.
+  TRUST_SUBS_MAP,
 
   //================================================= Boolean rules
   // ======== Resolution
@@ -667,10 +670,11 @@ enum class PfRule : uint32_t
   WITNESS_INTRO,
   // ======== Exists intro
   // Children: (P:F[t])
-  // Arguments: (t)
+  // Arguments: ((exists ((x T)) F[x]))
   // ----------------------------------------
   // Conclusion: (exists ((x T)) F[x])
-  // where x is a BOUND_VARIABLE unique to the pair F,t.
+  // This rule verifies that F[x] indeed matches F[t] with a substitution
+  // over x.
   EXISTS_INTRO,
   // ======== Skolemize
   // Children: (P:(exists ((x1 T1) ... (xn Tn)) F))

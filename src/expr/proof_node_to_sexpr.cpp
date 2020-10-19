@@ -32,7 +32,7 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
   NodeManager* nm = NodeManager::currentNM();
   std::map<const ProofNode*, Node>::iterator it;
   std::vector<const ProofNode*> visit;
-  std::vector<const ProofNode*> constructing;
+  std::vector<const ProofNode*> traversing;
   const ProofNode* cur;
   visit.push_back(pn);
   do
@@ -44,16 +44,17 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
     if (it == d_pnMap.end())
     {
       d_pnMap[cur] = Node::null();
-      constructing.push_back(cur);
+      traversing.push_back(cur);
       visit.push_back(cur);
       const std::vector<std::shared_ptr<ProofNode>>& pc = cur->getChildren();
       for (const std::shared_ptr<ProofNode>& cp : pc)
       {
-        if (std::find(constructing.begin(), constructing.end(), cp.get())
-            != constructing.end())
+        if (std::find(traversing.begin(), traversing.end(), cp.get())
+            != traversing.end())
         {
-          AlwaysAssert(false)
-              << "ProofNodeToSExpr::convertToSExpr: cyclic proof!" << std::endl;
+          Unhandled() << "ProofNodeToSExpr::convertToSExpr: cyclic proof! (use "
+                         "--proof-new-eager-checking)"
+                      << std::endl;
           return Node::null();
         }
         visit.push_back(cp.get());
@@ -61,8 +62,8 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
     }
     else if (it->second.isNull())
     {
-      Assert(!constructing.empty());
-      constructing.pop_back();
+      Assert(!traversing.empty());
+      traversing.pop_back();
       std::vector<Node> children;
       // add proof rule
       children.push_back(getOrMkPfRuleVariable(cur->getRule()));
