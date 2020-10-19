@@ -32,6 +32,7 @@
 #include "theory/arith/nl/iand_solver.h"
 #include "theory/arith/nl/icp/icp_solver.h"
 #include "theory/arith/nl/nl/factoring_check.h"
+#include "theory/arith/nl/nl/monomial_check.h"
 #include "theory/arith/nl/nl/split_zero_check.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
@@ -267,6 +268,7 @@ class NonlinearExtension
 
   SharedCheckData d_sharedCheckData;
   FactoringCheck d_factoringSlv;
+  MonomialCheck d_monomialSlv;
   SplitZeroCheck d_splitZeroSlv;
   /** The CAD-based solver */
   CadSolver d_cadSlv;

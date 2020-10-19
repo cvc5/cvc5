@@ -50,6 +50,7 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       d_nlSlv(d_im, state, d_model),
       d_sharedCheckData(d_im, d_model),
       d_factoringSlv(d_im, d_model),
+      d_monomialSlv(&d_sharedCheckData, state.getUserContext()),
       d_splitZeroSlv(&d_sharedCheckData, state.getUserContext()),
       d_cadSlv(d_im, d_model),
       d_icpSlv(d_im),
@@ -702,20 +703,21 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
         break;
       case InferStep::NL_INIT:
         d_nlSlv.initLastCall(assertions, false_asserts, xts);
+        d_monomialSlv.init(assertions, false_asserts, xts);
         break;
       case InferStep::NL_MONOMIAL_INFER_BOUNDS:
         d_nlSlv.checkMonomialInferBounds(assertions, false_asserts);
         break;
       case InferStep::NL_MONOMIAL_MAGNITUDE0:
-        d_nlSlv.checkMonomialMagnitude(0);
+        d_monomialSlv.checkMagnitude(0);
         break;
       case InferStep::NL_MONOMIAL_MAGNITUDE1:
-        d_nlSlv.checkMonomialMagnitude(1);
+        d_monomialSlv.checkMagnitude(1);
         break;
       case InferStep::NL_MONOMIAL_MAGNITUDE2:
-        d_nlSlv.checkMonomialMagnitude(2);
+        d_monomialSlv.checkMagnitude(2);
         break;
-      case InferStep::NL_MONOMIAL_SIGN: d_nlSlv.checkMonomialSign(); break;
+      case InferStep::NL_MONOMIAL_SIGN: d_monomialSlv.checkSign(); break;
       case InferStep::NL_RESOLUTION_BOUNDS:
         d_nlSlv.checkMonomialInferResBounds();
         break;

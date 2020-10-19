@@ -33,6 +33,7 @@ struct SharedCheckData
   Node d_true = NodeManager::currentNM()->mkConst(true);
   Node d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   Node d_one = NodeManager::currentNM()->mkConst(Rational(1));
+  Node d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
 
   /** The inference manager that we push conflicts and lemmas to. */
   InferenceManager& d_im;
