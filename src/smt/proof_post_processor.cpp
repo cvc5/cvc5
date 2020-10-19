@@ -808,14 +808,5 @@ void ProofPostproccess::setEliminateRule(PfRule rule)
   d_cb.setEliminateRule(rule);
 }
 
-void ProofPostproccess::setAssertions(const std::vector<Node>& assertions)
-{
-  // for debugging (slow)
-  if (options::proofNewUpdateDebug())
-  {
-    d_updater.setDebugFreeAssumptions(assertions);
-  }
-}
-
 }  // namespace smt
 }  // namespace CVC4
