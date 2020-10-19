@@ -367,7 +367,7 @@ class BagsNormalFormWhite : public CxxTest::TestSuite
   void testBagCard()
   {
     // Examples
-    // -------
+    // --------
     //  - (card (emptybag String)) = 0
     //  - (choose (MK_BAG "x" 4)) = 4
     //  - (choose (union_disjoint (MK_BAG "x" 4) (MK_BAG "y" 1))) = 5
@@ -396,7 +396,7 @@ class BagsNormalFormWhite : public CxxTest::TestSuite
   void testIsSingleton()
   {
     // Examples
-    // -------
+    // --------
     //  - (bag.is_singleton (emptybag String)) = false
     //  - (bag.is_singleton (MK_BAG "x" 1)) = true
     //  - (bag.is_singleton (MK_BAG "x" 4)) = false
@@ -433,7 +433,7 @@ class BagsNormalFormWhite : public CxxTest::TestSuite
   void testFromSet()
   {
     // Examples
-    // -------
+    // --------
     //  - (bag.from_set (emptyset String)) = (emptybag String)
     //  - (bag.from_set (singleton "x")) = (mkBag "x" 1)
     //  - (bag.to_set (union (singleton "x") (singleton "y"))) =
