@@ -26,7 +26,7 @@ namespace nl {
 class TangentPlaneCheck
 {
  public:
-  TangentPlaneCheck(SharedCheckData* data, context::Context* ctx);
+  TangentPlaneCheck(SharedCheckData* data);
 
   /** check tangent planes
    *

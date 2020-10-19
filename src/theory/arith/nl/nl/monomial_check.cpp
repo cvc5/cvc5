@@ -24,8 +24,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-MonomialCheck::MonomialCheck(SharedCheckData* data, context::Context* ctx)
-    : d_data(data)
+MonomialCheck::MonomialCheck(SharedCheckData* data) : d_data(data)
 {
   d_order_points.push_back(d_data->d_neg_one);
   d_order_points.push_back(d_data->d_zero);

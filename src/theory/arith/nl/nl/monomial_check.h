@@ -26,7 +26,7 @@ namespace nl {
 class MonomialCheck
 {
  public:
-  MonomialCheck(SharedCheckData* data, context::Context* ctx);
+  MonomialCheck(SharedCheckData* data);
 
   void init(const std::vector<Node>& assertions,
             const std::vector<Node>& false_asserts,
