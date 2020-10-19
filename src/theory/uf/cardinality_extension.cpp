@@ -852,7 +852,7 @@ void SortModel::assertCardinality(uint32_t c, bool val)
       bool doCheckRegions = !d_hasCard;
       bool prevHasCard = d_hasCard;
       d_hasCard = true;
-      if( !prevHasCard || c<d_cardinality ){
+      if( !prevHasCard || c<static_cast<uint32_t>(d_cardinality) ){
         d_cardinality = c;
         simpleCheckCardinality();
         if (d_state.isInConflict())
