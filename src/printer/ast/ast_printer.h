@@ -37,7 +37,7 @@ class AstPrinter : public CVC4::Printer
                 bool types,
                 size_t dag) const override;
   void toStream(std::ostream& out, const CommandStatus* s) const override;
-  void toStream(std::ostream& out, const Model& m) const override;
+  void toStream(std::ostream& out, const smt::Model& m) const override;
 
   /** Print empty command */
   void toStreamCmdEmpty(std::ostream& out,
@@ -174,7 +174,7 @@ class AstPrinter : public CVC4::Printer
  private:
   void toStream(std::ostream& out, TNode n, int toDepth, bool types) const;
   void toStream(std::ostream& out,
-                const Model& m,
+                const smt::Model& m,
                 const NodeCommand* c) const override;
 }; /* class AstPrinter */
 

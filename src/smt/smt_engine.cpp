@@ -127,6 +127,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_snmListener(new SmtNodeManagerListener(*d_dumpm.get(), d_outMgr)),
       d_smtSolver(nullptr),
       d_proofManager(nullptr),
+      d_model(nullptr),
       d_pfManager(nullptr),
       d_rewriter(new theory::Rewriter()),
       d_definedFunctions(nullptr),
@@ -270,6 +271,15 @@ void SmtEngine::finishInit()
 
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
   d_smtSolver->finishInit(const_cast<const LogicInfo&>(d_logic));
+
+  // now can construct the SMT-level model object
+  TheoryEngine* te = d_smtSolver->getTheoryEngine();
+  Assert(te != nullptr);
+  TheoryModel* tm = te->getModel();
+  if (tm != nullptr)
+  {
+    d_model.reset(new Model(*this, tm));
+  }
 
   // global push/pop around everything, to ensure proper destruction
   // of context-dependent data structures
@@ -839,7 +849,7 @@ Result SmtEngine::quickCheck() {
       Result::ENTAILMENT_UNKNOWN, Result::REQUIRES_FULL_CHECK, filename);
 }
 
-theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
+Model* SmtEngine::getAvailableModel(const char* c) const
 {
   if (!options::assignFunctionValues())
   {
@@ -878,7 +888,7 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
     throw RecoverableModalException(ss.str().c_str());
   }
 
-  return m;
+  return d_model.get();
 }
 
 void SmtEngine::notifyPushPre() { d_smtSolver->processAssertions(*d_asserts); }
@@ -1210,11 +1220,9 @@ Node SmtEngine::getValue(const Node& ex) const
   }
 
   Trace("smt") << "--- getting value of " << n << endl;
-  TheoryModel* m = getAvailableModel("get-value");
-  Node resultNode;
-  if(m != NULL) {
-    resultNode = m->getValue(n);
-  }
+  Model* m = getAvailableModel("get-value");
+  Assert(m != nullptr);
+  Node resultNode = m->getValue(n);
   Trace("smt") << "--- got value " << n << " = " << resultNode << endl;
   Trace("smt") << "--- type " << resultNode.getType() << endl;
   Trace("smt") << "--- expected type " << expectedType << endl;
@@ -1301,7 +1309,7 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
   // Get the model here, regardless of whether d_assignments is null, since
   // we should throw errors related to model availability whether or not
   // assignments is null.
-  TheoryModel* m = getAvailableModel("get assignment");
+  Model* m = getAvailableModel("get assignment");
 
   vector<pair<Expr,Expr>> res;
   if (d_assignments != nullptr)
@@ -1354,7 +1362,7 @@ Model* SmtEngine::getModel() {
         getOutputManager().getDumpOut());
   }
 
-  TheoryModel* m = getAvailableModel("get model");
+  Model* m = getAvailableModel("get model");
 
   // Since model m is being returned to the user, we must ensure that this
   // model object remains valid with future check-sat calls. Hence, we set
@@ -1368,8 +1376,11 @@ Model* SmtEngine::getModel() {
     // If we enabled model cores, we compute a model core for m based on our
     // (expanded) assertions using the model core builder utility
     std::vector<Node> eassertsProc = getExpandedAssertions();
-    ModelCoreBuilder::setModelCore(eassertsProc, m, options::modelCoresMode());
+    ModelCoreBuilder::setModelCore(
+        eassertsProc, m->getTheoryModel(), options::modelCoresMode());
   }
+  // set the information on the SMT-level model
+  Assert(m != nullptr);
   m->d_inputName = d_state->getFilename();
   m->d_isKnownSat = (d_state->getMode() == SmtMode::SAT);
   return m;
@@ -1388,19 +1399,19 @@ Result SmtEngine::blockModel()
         getOutputManager().getDumpOut());
   }
 
-  TheoryModel* m = getAvailableModel("block model");
+  Model* m = getAvailableModel("block model");
 
   if (options::blockModelsMode() == options::BlockModelsMode::NONE)
   {
     std::stringstream ss;
     ss << "Cannot block model when block-models is set to none.";
-    throw ModalException(ss.str().c_str());
+    throw RecoverableModalException(ss.str().c_str());
   }
 
   // get expanded assertions
   std::vector<Node> eassertsProc = getExpandedAssertions();
   Node eblocker = ModelBlocker::getModelBlocker(
-      eassertsProc, m, options::blockModelsMode());
+      eassertsProc, m->getTheoryModel(), options::blockModelsMode());
   return assertFormula(eblocker);
 }
 
@@ -1417,13 +1428,16 @@ Result SmtEngine::blockModelValues(const std::vector<Node>& exprs)
         getOutputManager().getDumpOut(), exprs);
   }
 
-  TheoryModel* m = getAvailableModel("block model values");
+  Model* m = getAvailableModel("block model values");
 
   // get expanded assertions
   std::vector<Node> eassertsProc = getExpandedAssertions();
   // we always do block model values mode here
-  Node eblocker = ModelBlocker::getModelBlocker(
-      eassertsProc, m, options::BlockModelsMode::VALUES, exprs);
+  Node eblocker =
+      ModelBlocker::getModelBlocker(eassertsProc,
+                                    m->getTheoryModel(),
+                                    options::BlockModelsMode::VALUES,
+                                    exprs);
   return assertFormula(eblocker);
 }
 
@@ -1437,16 +1451,18 @@ std::pair<Node, Node> SmtEngine::getSepHeapAndNilExpr(void)
     throw RecoverableModalException(msg);
   }
   NodeManagerScope nms(d_nodeManager);
-  Expr heap;
-  Expr nil;
+  Node heap;
+  Node nil;
   Model* m = getAvailableModel("get separation logic heap and nil");
-  if (!m->getHeapModel(heap, nil))
+  TheoryModel* tm = m->getTheoryModel();
+  if (!tm->getHeapModel(heap, nil))
   {
-    InternalError()
-        << "SmtEngine::getSepHeapAndNilExpr(): failed to obtain heap/nil "
-           "expressions from theory model.";
+    const char* msg =
+        "Failed to obtain heap/nil "
+        "expressions from theory model.";
+    throw RecoverableModalException(msg);
   }
-  return std::make_pair(Node::fromExpr(heap), Node::fromExpr(nil));
+  return std::make_pair(heap, nil);
 }
 
 std::vector<Node> SmtEngine::getExpandedAssertions()
@@ -1544,7 +1560,8 @@ void SmtEngine::checkModel(bool hardFailure) {
   // and if Notice() is on, the user gave --verbose (or equivalent).
 
   Notice() << "SmtEngine::checkModel(): generating model" << endl;
-  TheoryModel* m = getAvailableModel("check model");
+  Model* m = getAvailableModel("check model");
+  Assert(m != nullptr);
 
   // check-model is not guaranteed to succeed if approximate values were used.
   // Thus, we intentionally abort here.
