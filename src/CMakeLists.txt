@@ -369,6 +369,8 @@ libcvc4_add_sources(
   theory/arith/nl/nl_solver.h
   theory/arith/nl/nl/factoring_check.cpp
   theory/arith/nl/nl/factoring_check.h
+  theory/arith/nl/nl/monomial_bounds_check.cpp
+  theory/arith/nl/nl/monomial_bounds_check.h
   theory/arith/nl/nl/monomial_check.cpp
   theory/arith/nl/nl/monomial_check.h
   theory/arith/nl/nl/shared_check_data.cpp

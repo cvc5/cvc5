@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of split zero check
+ ** \brief Check for some monomial lemmas
  **/
 
 #include "theory/arith/nl/nl/monomial_check.h"

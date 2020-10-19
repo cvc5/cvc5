@@ -50,6 +50,7 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       d_sharedCheckData(d_im, d_model),
       d_nlSlv(d_im, state, d_model, &d_sharedCheckData),
       d_factoringSlv(d_im, d_model),
+      d_monomialBoundsSlv(&d_sharedCheckData),
       d_monomialSlv(&d_sharedCheckData),
       d_splitZeroSlv(&d_sharedCheckData, state.getUserContext()),
       d_tangentPlaneSlv(&d_sharedCheckData),
@@ -705,10 +706,11 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
       case InferStep::NL_INIT:
         d_sharedCheckData.init(assertions, false_asserts, xts);
         d_nlSlv.initLastCall(assertions, false_asserts, xts);
+        d_monomialBoundsSlv.init(assertions, false_asserts, xts);
         d_monomialSlv.init(assertions, false_asserts, xts);
         break;
       case InferStep::NL_MONOMIAL_INFER_BOUNDS:
-        d_nlSlv.checkMonomialInferBounds(assertions, false_asserts);
+        d_monomialBoundsSlv.checkBounds(assertions, false_asserts);
         break;
       case InferStep::NL_MONOMIAL_MAGNITUDE0:
         d_monomialSlv.checkMagnitude(0);
@@ -721,7 +723,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
         break;
       case InferStep::NL_MONOMIAL_SIGN: d_monomialSlv.checkSign(); break;
       case InferStep::NL_RESOLUTION_BOUNDS:
-        d_nlSlv.checkMonomialInferResBounds();
+        d_monomialBoundsSlv.checkResBounds();
         break;
       case InferStep::NL_SPLIT_ZERO: d_splitZeroSlv.check(); break;
       case InferStep::NL_TANGENT_PLANES: d_tangentPlaneSlv.check(false); break;

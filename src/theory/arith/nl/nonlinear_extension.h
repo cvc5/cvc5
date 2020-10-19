@@ -32,6 +32,7 @@
 #include "theory/arith/nl/iand_solver.h"
 #include "theory/arith/nl/icp/icp_solver.h"
 #include "theory/arith/nl/nl/factoring_check.h"
+#include "theory/arith/nl/nl/monomial_bounds_check.h"
 #include "theory/arith/nl/nl/monomial_check.h"
 #include "theory/arith/nl/nl/split_zero_check.h"
 #include "theory/arith/nl/nl/tangent_plane_check.h"
@@ -269,6 +270,7 @@ class NonlinearExtension
   NlSolver d_nlSlv;
 
   FactoringCheck d_factoringSlv;
+  MonomialBoundsCheck d_monomialBoundsSlv;
   MonomialCheck d_monomialSlv;
   SplitZeroCheck d_splitZeroSlv;
   TangentPlaneCheck d_tangentPlaneSlv;
