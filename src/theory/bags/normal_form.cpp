@@ -21,7 +21,7 @@ namespace CVC4 {
 namespace theory {
 namespace bags {
 
-bool NormalForm::checkNormalConstant(TNode n)
+bool NormalForm::isConstant(TNode n)
 {
   if (n.getKind() == EMPTYBAG)
   {
@@ -30,26 +30,29 @@ bool NormalForm::checkNormalConstant(TNode n)
   }
   if (n.getKind() == MK_BAG)
   {
-    // see MkBagTypeRule::computeIsConst
+    // see the implementation in MkBagTypeRule::computeIsConst
     return n.isConst();
   }
   if (n.getKind() == UNION_DISJOINT)
   {
     if (!(n[0].getKind() == kind::MK_BAG && n[0].isConst()))
     {
+      // the first child is not a constant
       return false;
     }
-
+    // store the previous element to check the ordering of elements
     Node previousElement = n[0][0];
     Node current = n[1];
     while (current.getKind() == UNION_DISJOINT)
     {
       if (!(current[0].getKind() == kind::MK_BAG && current[0].isConst()))
       {
+        // the current element is not a constant
         return false;
       }
       if (previousElement >= current[0][0])
       {
+        // the ordering is violated
         return false;
       }
       previousElement = current[0][0];
@@ -58,17 +61,19 @@ bool NormalForm::checkNormalConstant(TNode n)
     // check last element
     if (!(current.getKind() == kind::MK_BAG && current.isConst()))
     {
+      // the last element is not a constant
       return false;
     }
     if (previousElement >= current[0])
     {
+      // the ordering is violated
       return false;
     }
     return true;
   }
 
-  // only emptybag, MK_BAG, and UNION_DISJOINT
-  // can be in normal form
+  // only nodes with kinds EMPTY_BAG, MK_BAG, and UNION_DISJOINT can be
+  // constants
   return false;
 }
 
@@ -104,17 +109,17 @@ Node NormalForm::evaluate(TNode n)
     }
     break;
   }
-  Unhandled() << "Unexpected kind '" << n.getKind() << "' in node " << n
+  Unhandled() << "Unexpected bag kind '" << n.getKind() << "' in node " << n
               << std::endl;
 }
 
 template <typename T1, typename T2, typename T3, typename T4, typename T5>
 Node NormalForm::evaluateBinaryOperation(const TNode& n,
-                                         T1&& equalLambda,
-                                         T2&& lessLambda,
-                                         T3&& gegLambda,
-                                         T4&& remainingA,
-                                         T5&& remainingB)
+                                         T1&& equal,
+                                         T2&& less,
+                                         T3&& greaterOrEqual,
+                                         T4&& remainderOfA,
+                                         T5&& remainderOfB)
 {
   std::map<Node, Rational> elementsA = getBagElements(n[0]);
   std::map<Node, Rational> elementsB = getBagElements(n[1]);
@@ -132,26 +137,26 @@ Node NormalForm::evaluateBinaryOperation(const TNode& n,
   {
     if (itA->first == itB->first)
     {
-      equalLambda(elements, itA, itB);
+      equal(elements, itA, itB);
       itA++;
       itB++;
     }
     else if (itA->first < itB->first)
     {
-      lessLambda(elements, itA, itB);
+      less(elements, itA, itB);
       itA++;
     }
     else
     {
-      gegLambda(elements, itA, itB);
+      greaterOrEqual(elements, itA, itB);
       itB++;
     }
   }
 
   // handle the remaining elements from A
-  remainingA(elements, elementsA, itA);
+  remainderOfA(elements, elementsA, itA);
   // handle the remaining elements from B
-  remainingA(elements, elementsB, itB);
+  remainderOfA(elements, elementsB, itB);
 
   Trace("bags-evaluate") << "elements: " << elements << std::endl;
   Node bag = constructBagFromElements(n.getType(), elements);
@@ -183,20 +188,20 @@ std::map<Node, Rational> NormalForm::getBagElements(TNode n)
   return elements;
 }
 
-Node NormalForm::constructBagFromElements(TypeNode t,
-                                          const std::map<Node, Rational>& map)
+Node NormalForm::constructBagFromElements(
+    TypeNode t, const std::map<Node, Rational>& elements)
 {
   Assert(t.isBag());
   NodeManager* nm = NodeManager::currentNM();
-  if (map.empty())
+  if (elements.empty())
   {
     return nm->mkConst(EmptyBag(t));
   }
   TypeNode elementType = t.getBagElementType();
-  std::map<Node, Rational>::const_reverse_iterator it = map.rbegin();
+  std::map<Node, Rational>::const_reverse_iterator it = elements.rbegin();
   Node bag =
       nm->mkBag(elementType, it->first, nm->mkConst<Rational>(it->second));
-  while (++it != map.rend())
+  while (++it != elements.rend())
   {
     Node n =
         nm->mkBag(elementType, it->first, nm->mkConst<Rational>(it->second));
@@ -249,27 +254,31 @@ Node NormalForm::evaluateUnionDisjoint(TNode n)
   //        where A = (MK_BAG "x" 7)
   //              B = (union_disjoint (MK_BAG "y" 1) (MK_BAG "z" 2)))
 
-  auto equalLambda = [](std::map<Node, Rational>& elements,
-                        std::map<Node, Rational>::const_iterator& itA,
-                        std::map<Node, Rational>::const_iterator& itB) {
+  auto equal = [](std::map<Node, Rational>& elements,
+                  std::map<Node, Rational>::const_iterator& itA,
+                  std::map<Node, Rational>::const_iterator& itB) {
+    // compute the sum of the multiplicities
     elements[itA->first] = itA->second + itB->second;
   };
 
-  auto lessLambda = [](std::map<Node, Rational>& elements,
-                       std::map<Node, Rational>::const_iterator& itA,
-                       std::map<Node, Rational>::const_iterator& itB) {
+  auto less = [](std::map<Node, Rational>& elements,
+                 std::map<Node, Rational>::const_iterator& itA,
+                 std::map<Node, Rational>::const_iterator& itB) {
+    // add the element to the result
     elements[itA->first] = itA->second;
   };
 
-  auto geqLambda = [](std::map<Node, Rational>& elements,
-                      std::map<Node, Rational>::const_iterator& itA,
-                      std::map<Node, Rational>::const_iterator& itB) {
+  auto greaterOrEqual = [](std::map<Node, Rational>& elements,
+                           std::map<Node, Rational>::const_iterator& itA,
+                           std::map<Node, Rational>::const_iterator& itB) {
+    // add the element to the result
     elements[itB->first] = itB->second;
   };
 
-  auto remainingA = [](std::map<Node, Rational>& elements,
-                       std::map<Node, Rational>& elementsA,
-                       std::map<Node, Rational>::const_iterator& itA) {
+  auto remainderOfA = [](std::map<Node, Rational>& elements,
+                         std::map<Node, Rational>& elementsA,
+                         std::map<Node, Rational>::const_iterator& itA) {
+    // append the remainder of A
     while (itA != elementsA.end())
     {
       elements[itA->first] = itA->second;
@@ -277,9 +286,10 @@ Node NormalForm::evaluateUnionDisjoint(TNode n)
     }
   };
 
-  auto remainingB = [](std::map<Node, Rational>& elements,
-                       std::map<Node, Rational>& elementsB,
-                       std::map<Node, Rational>::const_iterator& itB) {
+  auto remainderOfB = [](std::map<Node, Rational>& elements,
+                         std::map<Node, Rational>& elementsB,
+                         std::map<Node, Rational>::const_iterator& itB) {
+    // append the remainder of B
     while (itB != elementsB.end())
     {
       elements[itB->first] = itB->second;
@@ -288,7 +298,7 @@ Node NormalForm::evaluateUnionDisjoint(TNode n)
   };
 
   return evaluateBinaryOperation(
-      n, equalLambda, lessLambda, geqLambda, remainingA, remainingB);
+      n, equal, less, greaterOrEqual, remainderOfA, remainderOfB);
 }
 
 Node NormalForm::evaluateUnionMax(TNode n)
@@ -304,27 +314,31 @@ Node NormalForm::evaluateUnionMax(TNode n)
   //        where A = (MK_BAG "x" 4)
   //              B = (union_disjoint (MK_BAG "y" 1) (MK_BAG "z" 2)))
 
-  auto equalLambda = [](std::map<Node, Rational>& elements,
-                        std::map<Node, Rational>::const_iterator& itA,
-                        std::map<Node, Rational>::const_iterator& itB) {
+  auto equal = [](std::map<Node, Rational>& elements,
+                  std::map<Node, Rational>::const_iterator& itA,
+                  std::map<Node, Rational>::const_iterator& itB) {
+    // compute the maximum multiplicity
     elements[itA->first] = std::max(itA->second, itB->second);
   };
 
-  auto lessLambda = [](std::map<Node, Rational>& elements,
-                       std::map<Node, Rational>::const_iterator& itA,
-                       std::map<Node, Rational>::const_iterator& itB) {
+  auto less = [](std::map<Node, Rational>& elements,
+                 std::map<Node, Rational>::const_iterator& itA,
+                 std::map<Node, Rational>::const_iterator& itB) {
+    // add to the result
     elements[itA->first] = itA->second;
   };
 
-  auto geqLambda = [](std::map<Node, Rational>& elements,
-                      std::map<Node, Rational>::const_iterator& itA,
-                      std::map<Node, Rational>::const_iterator& itB) {
+  auto greaterOrEqual = [](std::map<Node, Rational>& elements,
+                           std::map<Node, Rational>::const_iterator& itA,
+                           std::map<Node, Rational>::const_iterator& itB) {
+    // add to the result
     elements[itB->first] = itB->second;
   };
 
-  auto remainingA = [](std::map<Node, Rational>& elements,
-                       std::map<Node, Rational>& elementsA,
-                       std::map<Node, Rational>::const_iterator& itA) {
+  auto remainderOfA = [](std::map<Node, Rational>& elements,
+                         std::map<Node, Rational>& elementsA,
+                         std::map<Node, Rational>::const_iterator& itA) {
+    // append the remainder of A
     while (itA != elementsA.end())
     {
       elements[itA->first] = itA->second;
@@ -332,9 +346,10 @@ Node NormalForm::evaluateUnionMax(TNode n)
     }
   };
 
-  auto remainingB = [](std::map<Node, Rational>& elements,
-                       std::map<Node, Rational>& elementsB,
-                       std::map<Node, Rational>::const_iterator& itB) {
+  auto remainderOfB = [](std::map<Node, Rational>& elements,
+                         std::map<Node, Rational>& elementsB,
+                         std::map<Node, Rational>::const_iterator& itB) {
+    // append the remainder of B
     while (itB != elementsB.end())
     {
       elements[itB->first] = itB->second;
@@ -343,7 +358,7 @@ Node NormalForm::evaluateUnionMax(TNode n)
   };
 
   return evaluateBinaryOperation(
-      n, equalLambda, lessLambda, geqLambda, remainingA, remainingB);
+      n, equal, less, greaterOrEqual, remainderOfA, remainderOfB);
 }
 
 Node NormalForm::evaluateIntersectionMin(TNode n)
@@ -357,39 +372,39 @@ Node NormalForm::evaluateIntersectionMin(TNode n)
   // output:
   //        (MK_BAG "x" 3)
 
-  auto equalLambda = [](std::map<Node, Rational>& elements,
-                        std::map<Node, Rational>::const_iterator& itA,
-                        std::map<Node, Rational>::const_iterator& itB) {
-    // take the minimum multiplicity
+  auto equal = [](std::map<Node, Rational>& elements,
+                  std::map<Node, Rational>::const_iterator& itA,
+                  std::map<Node, Rational>::const_iterator& itB) {
+    // compute the minimum multiplicity
     elements[itA->first] = std::min(itA->second, itB->second);
   };
 
-  auto lessLambda = [](std::map<Node, Rational>& elements,
-                       std::map<Node, Rational>::const_iterator& itA,
-                       std::map<Node, Rational>::const_iterator& itB) {
+  auto less = [](std::map<Node, Rational>& elements,
+                 std::map<Node, Rational>::const_iterator& itA,
+                 std::map<Node, Rational>::const_iterator& itB) {
     // do nothing
   };
 
-  auto geqLambda = [](std::map<Node, Rational>& elements,
-                      std::map<Node, Rational>::const_iterator& itA,
-                      std::map<Node, Rational>::const_iterator& itB) {
+  auto greaterOrEqual = [](std::map<Node, Rational>& elements,
+                           std::map<Node, Rational>::const_iterator& itA,
+                           std::map<Node, Rational>::const_iterator& itB) {
     // do nothing
   };
 
-  auto remainingA = [](std::map<Node, Rational>& elements,
-                       std::map<Node, Rational>& elementsA,
-                       std::map<Node, Rational>::const_iterator& itA) {
+  auto remainderOfA = [](std::map<Node, Rational>& elements,
+                         std::map<Node, Rational>& elementsA,
+                         std::map<Node, Rational>::const_iterator& itA) {
     // do nothing
   };
 
-  auto remainingB = [](std::map<Node, Rational>& elements,
-                       std::map<Node, Rational>& elementsB,
-                       std::map<Node, Rational>::const_iterator& itB) {
+  auto remainderOfB = [](std::map<Node, Rational>& elements,
+                         std::map<Node, Rational>& elementsB,
+                         std::map<Node, Rational>::const_iterator& itB) {
     // do nothing
   };
 
   return evaluateBinaryOperation(
-      n, equalLambda, lessLambda, geqLambda, remainingA, remainingB);
+      n, equal, less, greaterOrEqual, remainderOfA, remainderOfB);
 }
 
 Node NormalForm::evaluateDifferenceSubtract(TNode n)
@@ -403,30 +418,30 @@ Node NormalForm::evaluateDifferenceSubtract(TNode n)
   // output:
   //    (union_disjoint (MK_BAG "x" 1) (MK_BAG "z" 2))
 
-  auto equalLambda = [](std::map<Node, Rational>& elements,
-                        std::map<Node, Rational>::const_iterator& itA,
-                        std::map<Node, Rational>::const_iterator& itB) {
+  auto equal = [](std::map<Node, Rational>& elements,
+                  std::map<Node, Rational>::const_iterator& itA,
+                  std::map<Node, Rational>::const_iterator& itB) {
     // subtract the multiplicities
     elements[itA->first] = itA->second - itB->second;
   };
 
-  auto lessLambda = [](std::map<Node, Rational>& elements,
-                       std::map<Node, Rational>::const_iterator& itA,
-                       std::map<Node, Rational>::const_iterator& itB) {
+  auto less = [](std::map<Node, Rational>& elements,
+                 std::map<Node, Rational>::const_iterator& itA,
+                 std::map<Node, Rational>::const_iterator& itB) {
     // itA->first is not in B, so we add it to the difference subtract
     elements[itA->first] = itA->second;
   };
 
-  auto geqLambda = [](std::map<Node, Rational>& elements,
-                      std::map<Node, Rational>::const_iterator& itA,
-                      std::map<Node, Rational>::const_iterator& itB) {
+  auto greaterOrEqual = [](std::map<Node, Rational>& elements,
+                           std::map<Node, Rational>::const_iterator& itA,
+                           std::map<Node, Rational>::const_iterator& itB) {
     // itB->first is not in A, so we just skip it
   };
 
-  auto remainingA = [](std::map<Node, Rational>& elements,
-                       std::map<Node, Rational>& elementsA,
-                       std::map<Node, Rational>::const_iterator& itA) {
-    // add the remaining elements in A
+  auto remainderOfA = [](std::map<Node, Rational>& elements,
+                         std::map<Node, Rational>& elementsA,
+                         std::map<Node, Rational>::const_iterator& itA) {
+    // append the remainder of A
     while (itA != elementsA.end())
     {
       elements[itA->first] = itA->second;
@@ -434,14 +449,14 @@ Node NormalForm::evaluateDifferenceSubtract(TNode n)
     }
   };
 
-  auto remainingB = [](std::map<Node, Rational>& elements,
-                       std::map<Node, Rational>& elementsB,
-                       std::map<Node, Rational>::const_iterator& itB) {
+  auto remainderOfB = [](std::map<Node, Rational>& elements,
+                         std::map<Node, Rational>& elementsB,
+                         std::map<Node, Rational>::const_iterator& itB) {
     // do nothing
   };
 
   return evaluateBinaryOperation(
-      n, equalLambda, lessLambda, geqLambda, remainingA, remainingB);
+      n, equal, less, greaterOrEqual, remainderOfA, remainderOfB);
 }
 
 Node NormalForm::evaluateDifferenceRemove(TNode n)
@@ -455,44 +470,44 @@ Node NormalForm::evaluateDifferenceRemove(TNode n)
   // output:
   //    (MK_BAG "z" 2)
 
-  auto equalLambda = [](std::map<Node, Rational>& elements,
-                        std::map<Node, Rational>::const_iterator& itA,
-                        std::map<Node, Rational>::const_iterator& itB) {
+  auto equal = [](std::map<Node, Rational>& elements,
+                  std::map<Node, Rational>::const_iterator& itA,
+                  std::map<Node, Rational>::const_iterator& itB) {
     // skip the shared element by doing nothing
   };
 
-  auto lessLambda = [](std::map<Node, Rational>& elements,
-                       std::map<Node, Rational>::const_iterator& itA,
-                       std::map<Node, Rational>::const_iterator& itB) {
+  auto less = [](std::map<Node, Rational>& elements,
+                 std::map<Node, Rational>::const_iterator& itA,
+                 std::map<Node, Rational>::const_iterator& itB) {
     // itA->first is not in B, so we add it to the difference remove
     elements[itA->first] = itA->second;
   };
 
-  auto geqLambda = [](std::map<Node, Rational>& elements,
-                      std::map<Node, Rational>::const_iterator& itA,
-                      std::map<Node, Rational>::const_iterator& itB) {
+  auto greaterOrEqual = [](std::map<Node, Rational>& elements,
+                           std::map<Node, Rational>::const_iterator& itA,
+                           std::map<Node, Rational>::const_iterator& itB) {
     // itB->first is not in A, so we just skip it
   };
 
-  auto remainingA = [](std::map<Node, Rational>& elements,
-                       std::map<Node, Rational>& elementsA,
-                       std::map<Node, Rational>::const_iterator& itA) {
-    // add the remaining elements in A
+  auto remainderOfA = [](std::map<Node, Rational>& elements,
+                         std::map<Node, Rational>& elementsA,
+                         std::map<Node, Rational>::const_iterator& itA) {
+    // append the remainder of A
     while (itA != elementsA.end())
     {
-      elements[itA->first] = itA->second; /**/
+      elements[itA->first] = itA->second;
       itA++;
     }
   };
 
-  auto remainingB = [](std::map<Node, Rational>& elements,
-                       std::map<Node, Rational>& elementsB,
-                       std::map<Node, Rational>::const_iterator& itB) {
+  auto remainderOfB = [](std::map<Node, Rational>& elements,
+                         std::map<Node, Rational>& elementsB,
+                         std::map<Node, Rational>::const_iterator& itB) {
     // do nothing
   };
 
   return evaluateBinaryOperation(
-      n, equalLambda, lessLambda, geqLambda, remainingA, remainingB);
+      n, equal, less, greaterOrEqual, remainderOfA, remainderOfB);
 }
 
 Node NormalForm::evaluateChoose(TNode n)
@@ -550,11 +565,12 @@ Node NormalForm::evaluateIsSingleton(TNode n)
 {
   Assert(n.getKind() == BAG_IS_SINGLETON);
   // Examples
-  // -------
+  // --------
   // - (bag.is_singleton (emptyBag String)) = false
   // - (bag.is_singleton (MK_BAG "x" 1)) = true
   // - (bag.is_singleton (MK_BAG "x" 4)) = false
   // - (bag.is_singleton (union_disjoint (MK_BAG "x" 1) (MK_BAG "y" 1))) = false
+
   NodeManager* nm = NodeManager::currentNM();
   Node falseNode = nm->mkConst(false);
   Node trueNode = nm->mkConst(true);
@@ -572,6 +588,7 @@ Node NormalForm::evaluateIsSingleton(TNode n)
 Node NormalForm::evaluateFromSet(TNode n)
 {
   Assert(n.getKind() == BAG_FROM_SET);
+
   // Examples
   // --------
   //  - (bag.from_set (emptyset String)) = (emptybag String)
@@ -596,6 +613,7 @@ Node NormalForm::evaluateFromSet(TNode n)
 Node NormalForm::evaluateToSet(TNode n)
 {
   Assert(n.getKind() == BAG_TO_SET);
+
   // Examples
   // --------
   //  - (bag.to_set (emptybag String)) = (emptyset String)
