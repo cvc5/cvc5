@@ -495,7 +495,6 @@ inline NodeValue* NodeValue::getChild(int i) const {
   if(getMetaKind() == kind::metakind::PARAMETERIZED) {
     ++i;
   }
-
   Assert(i >= 0 && unsigned(i) < d_nchildren);
   return d_children[i];
 }
