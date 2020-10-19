@@ -67,18 +67,12 @@ NlSolver::NlSolver(InferenceManager& im,
                    ArithState& astate,
                    NlModel& model,
                    SharedCheckData* data)
-    : d_im(im),
-      d_astate(astate),
-      d_model(model),
-      d_data(data),
-      d_cdb(d_data->d_mdb)
+    : d_im(im), d_model(model), d_data(data), d_cdb(d_data->d_mdb)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
   d_zero = nm->mkConst(Rational(0));
-  d_one = nm->mkConst(Rational(1));
-  d_neg_one = nm->mkConst(Rational(-1));
 }
 
 NlSolver::~NlSolver() {}

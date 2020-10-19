@@ -120,16 +120,11 @@ class NlSolver
  private:
   /** The inference manager that we push conflicts and lemmas to. */
   InferenceManager& d_im;
-  /** Reference to the state. */
-  ArithState& d_astate;
   /** Reference to the non-linear model object */
   NlModel& d_model;
   SharedCheckData* d_data;
   /** commonly used terms */
   Node d_zero;
-  Node d_one;
-  Node d_neg_one;
-  Node d_two;
   Node d_true;
   Node d_false;
 
