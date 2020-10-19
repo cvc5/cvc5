@@ -28,6 +28,7 @@
 #include "expr/kind.h"
 #include "expr/node.h"
 #include "theory/arith/inference_manager.h"
+#include "theory/arith/nl/nl/shared_check_data.h"
 #include "theory/arith/nl/nl_constraint.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
@@ -58,7 +59,10 @@ class NlSolver
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  NlSolver(InferenceManager& im, ArithState& astate, NlModel& model);
+  NlSolver(InferenceManager& im,
+           ArithState& astate,
+           NlModel& model,
+           SharedCheckData* data);
   ~NlSolver();
 
   /** init last call
@@ -120,6 +124,7 @@ class NlSolver
   ArithState& d_astate;
   /** Reference to the non-linear model object */
   NlModel& d_model;
+  SharedCheckData* d_data;
   /** commonly used terms */
   Node d_zero;
   Node d_one;
@@ -127,23 +132,10 @@ class NlSolver
   Node d_two;
   Node d_true;
   Node d_false;
-  /** Context-independent database of monomial information */
-  MonomialDb d_mdb;
+
   /** Context-independent database of constraint information */
   ConstraintDb d_cdb;
 
-  // ( x*y, x*z, y ) for each pair of monomials ( x*y, x*z ) with common factors
-  std::map<Node, std::map<Node, Node> > d_mono_diff;
-
-  // information about monomials
-  std::vector<Node> d_ms;
-  std::vector<Node> d_ms_vars;
-  std::vector<Node> d_mterms;
-
-  /** the set of monomials we should apply tangent planes to */
-  std::unordered_set<Node, NodeHashFunction> d_tplane_refine;
-  /** maps nodes to their factor skolems */
-  std::map<Node, Node> d_factor_skolem;
   // term -> coeff -> rhs -> ( status, exp, b ),
   //   where we have that : exp =>  ( coeff * term <status> rhs )
   //   b is true if degree( term ) >= degree( rhs )

@@ -260,6 +260,7 @@ class NonlinearExtension
    * transcendental functions.
    */
   TranscendentalSolver d_trSlv;
+  SharedCheckData d_sharedCheckData;
   /** The nonlinear extension object
    *
    * This is the subsolver responsible for running the procedure for
@@ -267,7 +268,6 @@ class NonlinearExtension
    */
   NlSolver d_nlSlv;
 
-  SharedCheckData d_sharedCheckData;
   FactoringCheck d_factoringSlv;
   MonomialCheck d_monomialSlv;
   SplitZeroCheck d_splitZeroSlv;

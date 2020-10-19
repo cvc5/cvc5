@@ -63,8 +63,15 @@ bool hasNewMonomials(Node n, const std::vector<Node>& existing)
   return false;
 }
 
-NlSolver::NlSolver(InferenceManager& im, ArithState& astate, NlModel& model)
-    : d_im(im), d_astate(astate), d_model(model), d_cdb(d_mdb)
+NlSolver::NlSolver(InferenceManager& im,
+                   ArithState& astate,
+                   NlModel& model,
+                   SharedCheckData* data)
+    : d_im(im),
+      d_astate(astate),
+      d_model(model),
+      d_data(data),
+      d_cdb(d_data->d_mdb)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
@@ -80,10 +87,10 @@ void NlSolver::initLastCall(const std::vector<Node>& assertions,
                             const std::vector<Node>& false_asserts,
                             const std::vector<Node>& xts)
 {
-  d_ms_vars.clear();
-  d_ms.clear();
-  d_mterms.clear();
-  d_tplane_refine.clear();
+  d_data->d_ms_vars.clear();
+  d_data->d_ms.clear();
+  d_data->d_mterms.clear();
+  d_data->d_tplane_refine.clear();
   d_ci.clear();
   d_ci_exp.clear();
   d_ci_max.clear();
@@ -100,17 +107,18 @@ void NlSolver::initLastCall(const std::vector<Node>& assertions,
     Kind ak = a.getKind();
     if (ak == NONLINEAR_MULT)
     {
-      d_ms.push_back(a);
+      d_data->d_ms.push_back(a);
 
       // context-independent registration
-      d_mdb.registerMonomial(a);
+      d_data->d_mdb.registerMonomial(a);
 
-      const std::vector<Node>& varList = d_mdb.getVariableList(a);
+      const std::vector<Node>& varList = d_data->d_mdb.getVariableList(a);
       for (const Node& v : varList)
       {
-        if (std::find(d_ms_vars.begin(), d_ms_vars.end(), v) == d_ms_vars.end())
+        if (std::find(d_data->d_ms_vars.begin(), d_data->d_ms_vars.end(), v)
+            == d_data->d_ms_vars.end())
         {
-          d_ms_vars.push_back(v);
+          d_data->d_ms_vars.push_back(v);
         }
       }
       // mark processed if has a "one" factor (will look at reduced monomial)?
@@ -118,20 +126,21 @@ void NlSolver::initLastCall(const std::vector<Node>& assertions,
   }
 
   // register constants
-  d_mdb.registerMonomial(d_one);
+  d_data->d_mdb.registerMonomial(d_one);
 
   // register variables
   Trace("nl-ext-mv") << "Variables in monomials : " << std::endl;
-  for (unsigned i = 0; i < d_ms_vars.size(); i++)
+  for (unsigned i = 0; i < d_data->d_ms_vars.size(); i++)
   {
-    Node v = d_ms_vars[i];
-    d_mdb.registerMonomial(v);
+    Node v = d_data->d_ms_vars[i];
+    d_data->d_mdb.registerMonomial(v);
     d_model.computeConcreteModelValue(v);
     d_model.computeAbstractModelValue(v);
     d_model.printModelValue("nl-ext-mv", v);
   }
 
-  Trace("nl-ext") << "We have " << d_ms.size() << " monomials." << std::endl;
+  Trace("nl-ext") << "We have " << d_data->d_ms.size() << " monomials."
+                  << std::endl;
 }
 
 void NlSolver::checkMonomialInferBounds(
@@ -140,10 +149,13 @@ void NlSolver::checkMonomialInferBounds(
 {
   // sort monomials by degree
   Trace("nl-ext-proc") << "Sort monomials by degree..." << std::endl;
-  d_mdb.sortByDegree(d_ms);
+  d_data->d_mdb.sortByDegree(d_data->d_ms);
   // all monomials
-  d_mterms.insert(d_mterms.end(), d_ms_vars.begin(), d_ms_vars.end());
-  d_mterms.insert(d_mterms.end(), d_ms.begin(), d_ms.end());
+  d_data->d_mterms.insert(d_data->d_mterms.end(),
+                          d_data->d_ms_vars.begin(),
+                          d_data->d_ms_vars.end());
+  d_data->d_mterms.insert(
+      d_data->d_mterms.end(), d_data->d_ms.begin(), d_data->d_ms.end());
 
   const std::map<Node, std::map<Node, ConstraintInfo> >& cim =
       d_cdb.getConstraints();
@@ -263,16 +275,16 @@ void NlSolver::checkMonomialInferBounds(
       {
         if (is_false_lit)
         {
-          d_tplane_refine.insert(x);
+          d_data->d_tplane_refine.insert(x);
         }
       }
     }
   }
   // reflexive constraints
   Node null_coeff;
-  for (unsigned j = 0; j < d_mterms.size(); j++)
+  for (unsigned j = 0; j < d_data->d_mterms.size(); j++)
   {
-    Node n = d_mterms[j];
+    Node n = d_data->d_mterms[j];
     d_ci[n][null_coeff][n] = EQUAL;
     d_ci_exp[n][null_coeff][n] = d_true;
     d_ci_max[n][null_coeff][n] = false;
@@ -280,10 +292,10 @@ void NlSolver::checkMonomialInferBounds(
 
   Trace("nl-ext") << "Get inferred bound lemmas..." << std::endl;
   const std::map<Node, std::vector<Node> >& cpMap =
-      d_mdb.getContainsParentMap();
-  for (unsigned k = 0; k < d_mterms.size(); k++)
+      d_data->d_mdb.getContainsParentMap();
+  for (unsigned k = 0; k < d_data->d_mterms.size(); k++)
   {
-    Node x = d_mterms[k];
+    Node x = d_data->d_mterms[k];
     Trace("nl-ext-bound-debug")
         << "Process bounds for " << x << " : " << std::endl;
     std::map<Node, std::vector<Node> >::const_iterator itm = cpMap.find(x);
@@ -322,7 +334,7 @@ void NlSolver::checkMonomialInferBounds(
         for (unsigned j = 0; j < itm->second.size(); j++)
         {
           Node y = itm->second[j];
-          Node mult = d_mdb.getContainsDiff(x, y);
+          Node mult = d_data->d_mdb.getContainsDiff(x, y);
           // x <k> t => m*x <k'> t  where y = m*x
           // get the sign of mult
           Node mmv = d_model.computeConcreteModelValue(mult);
@@ -368,7 +380,7 @@ void NlSolver::checkMonomialInferBounds(
             Node iblem = nm->mkNode(IMPLIES, exp, infer);
             Node pr_iblem = iblem;
             iblem = Rewriter::rewrite(iblem);
-            bool introNewTerms = hasNewMonomials(iblem, d_ms);
+            bool introNewTerms = hasNewMonomials(iblem, d_data->d_ms);
             Trace("nl-ext-bound-lemma")
                 << "*** Bound inference lemma : " << iblem
                 << " (pre-rewrite : " << pr_iblem << ")" << std::endl;
@@ -387,10 +399,10 @@ void NlSolver::checkMonomialInferResBounds()
   NodeManager* nm = NodeManager::currentNM();
   Trace("nl-ext") << "Get monomial resolution inferred bound lemmas..."
                   << std::endl;
-  size_t nmterms = d_mterms.size();
+  size_t nmterms = d_data->d_mterms.size();
   for (unsigned j = 0; j < nmterms; j++)
   {
-    Node a = d_mterms[j];
+    Node a = d_data->d_mterms[j];
     std::map<Node, std::map<Node, std::map<Node, Kind> > >::iterator itca =
         d_ci.find(a);
     if (itca == d_ci.end())
@@ -399,7 +411,7 @@ void NlSolver::checkMonomialInferResBounds()
     }
     for (unsigned k = (j + 1); k < nmterms; k++)
     {
-      Node b = d_mterms[k];
+      Node b = d_data->d_mterms[k];
       std::map<Node, std::map<Node, std::map<Node, Kind> > >::iterator itcb =
           d_ci.find(b);
       if (itcb == d_ci.end())
@@ -409,15 +421,15 @@ void NlSolver::checkMonomialInferResBounds()
       Trace("nl-ext-rbound-debug") << "resolution inferences : compare " << a
                                    << " and " << b << std::endl;
       // if they have common factors
-      std::map<Node, Node>::iterator ita = d_mono_diff[a].find(b);
-      if (ita == d_mono_diff[a].end())
+      std::map<Node, Node>::iterator ita = d_data->d_mono_diff[a].find(b);
+      if (ita == d_data->d_mono_diff[a].end())
       {
         continue;
       }
       Trace("nl-ext-rbound") << "Get resolution inferences for [a] " << a
                              << " vs [b] " << b << std::endl;
-      std::map<Node, Node>::iterator itb = d_mono_diff[b].find(a);
-      Assert(itb != d_mono_diff[b].end());
+      std::map<Node, Node>::iterator itb = d_data->d_mono_diff[b].find(a);
+      Assert(itb != d_data->d_mono_diff[b].end());
       Node mv_a = d_model.computeAbstractModelValue(ita->second);
       Assert(mv_a.isConst());
       int mv_a_sgn = mv_a.getConst<Rational>().sgn();
@@ -454,7 +466,7 @@ void NlSolver::checkMonomialInferResBounds()
           Node rhs_a = itcar->first;
           Node rhs_a_res_base = nm->mkNode(MULT, itb->second, rhs_a);
           rhs_a_res_base = Rewriter::rewrite(rhs_a_res_base);
-          if (hasNewMonomials(rhs_a_res_base, d_ms))
+          if (hasNewMonomials(rhs_a_res_base, d_data->d_ms))
           {
             continue;
           }
@@ -477,7 +489,7 @@ void NlSolver::checkMonomialInferResBounds()
               Node rhs_b_res = nm->mkNode(MULT, ita->second, rhs_b);
               rhs_b_res = ArithMSum::mkCoeffTerm(coeff_a, rhs_b_res);
               rhs_b_res = Rewriter::rewrite(rhs_b_res);
-              if (hasNewMonomials(rhs_b_res, d_ms))
+              if (hasNewMonomials(rhs_b_res, d_data->d_ms))
               {
                 continue;
               }
