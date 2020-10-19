@@ -155,9 +155,8 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
     //   rewrite( d_nodes[i] ^ n )
     // allocate a fresh proof which will act as the proof generator
     LazyCDProof* lcp = d_pppg->allocateHelperProof();
-    lcp->addLazyStep(d_nodes[i], d_pppg, false);
-    lcp->addLazyStep(
-        n, pg, false, "AssertionPipeline::conjoin", false, PfRule::PREPROCESS);
+    lcp->addLazyStep(d_nodes[i], d_pppg);
+    lcp->addLazyStep(n, pg, PfRule::PREPROCESS);
     lcp->addStep(newConj, PfRule::AND_INTRO, {d_nodes[i], n}, {});
     if (newConjr != newConj)
     {
