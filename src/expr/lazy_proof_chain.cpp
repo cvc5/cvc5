@@ -73,12 +73,13 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
       Trace("lazy-cdproofchain")
           << "LazyCDProofChain::getProofFor: check " << cur << "\n";
       ProofGenerator* pg = getGeneratorFor(cur);
+      Assert(toConnect.find(cur) == toConnect.end());
       if (!pg)
       {
         Trace("lazy-cdproofchain")
             << "LazyCDProofChain::getProofFor: nothing to do\n";
-        // nothing to do for this fact, it'll be a leaf in the final proof node,
-        // don't post-traverse.
+        // nothing to do for this fact, it'll be a leaf in the final proof
+        // node, don't post-traverse.
         visited[cur] = true;
         continue;
       }
@@ -107,10 +108,10 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
       // mark for post-traversal if we are controlling cycles
       if (d_cyclic)
       {
+        Trace("lazy-cdproofchain") << "LazyCDProofChain::getProofFor: marking "
+                                   << cur << " for cycle check\n";
         visit.push_back(cur);
         visited[cur] = false;
-        Trace("lazy-cdproofchain") << push;
-        Trace("lazy-cdproofchain-debug") << push;
       }
       else
       {
@@ -120,35 +121,56 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
       for (const std::pair<const Node, std::vector<std::shared_ptr<ProofNode>>>&
                fap : famap)
       {
-        // check cycles, which are cases in which the assumption has already
-        // been marked to be connected but we have not finished processing the
-        // nodes it depends on
-        if (d_cyclic && toConnect.find(fap.first) != toConnect.end()
-            && std::find(visit.begin(), visit.end(), fap.first) != visit.end())
+        // check cycles
+        if (d_cyclic)
         {
-          // Since we have a cycle with an assumption, this fact will be an
-          // assumption in the final proof node produced by this method. This we
-          // mark the proof node it results on, i.e. its value in the toConnect
-          // map, as an assumption proof node. Note that we don't assign
-          // visited[fap.first] to true so that we properly pop the traces
-          // previously pushed.
-          Trace("lazy-cdproofchain")
-              << "LazyCDProofChain::getProofFor: removing cyclic assumption "
-              << fap.first << " from expansion\n";
-          toConnect[fap.first] = fap.second[0];
-          continue;
+          // cycles are assumptions being *currently* expanded and seen again,
+          // i.e. in toConnect and not yet post-visited
+          auto itToConnect = toConnect.find(fap.first);
+          if (itToConnect != toConnect.end() && !visited[fap.first])
+          {
+            // Since we have a cycle with an assumption, this fact will be an
+            // assumption in the final proof node produced by this
+            // method. Thus we erase it as something to be connected, which
+            // will keep it as an assumption.
+            Trace("lazy-cdproofchain") << "LazyCDProofChain::getProofFor: "
+                                          "removing cyclic assumption "
+                                       << fap.first << " from expansion\n";
+            continue;
+          }
         }
-        // only process further the assumptions not already in the map
-        auto it = assumptionsToExpand.find(fap.first);
-        if (it == assumptionsToExpand.end())
-        {
-          visit.push_back(fap.first);
-        }
+        // We always add assumptions to visit so that their last seen occurrence
+        // is expanded (rather than the first seen occurrence, if we were not
+        // adding assumptions, say, in assumptionsToExpand). This is so because
+        // in the case where we are checking cycles this is necessary (and
+        // harmless when we are not). For example the cycle
+        //
+        //                 a2
+        //                ...
+        //               ----
+        //                a1
+        //               ...
+        //             --------
+        //   a0   a1    a2
+        //       ...
+        //  ---------------
+        //       n
+        //
+        // in which a2 has a1 as an assumption, which has a2 an assumption,
+        // would not be captured if we did not revisit a1, which is an
+        // assumption of n and this already occur in assumptionsToExpand when
+        // it shows up again as an assumption of a2.
+        visit.push_back(fap.first);
         // add assumption proof nodes to be updated
         assumptionsToExpand[fap.first].insert(
             assumptionsToExpand[fap.first].end(),
             fap.second.begin(),
             fap.second.end());
+      }
+      if (d_cyclic)
+      {
+        Trace("lazy-cdproofchain") << push;
+        Trace("lazy-cdproofchain-debug") << push;
       }
     }
     else if (!itVisited->second)
@@ -156,8 +178,17 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
       visited[cur] = true;
       Trace("lazy-cdproofchain") << pop;
       Trace("lazy-cdproofchain-debug") << pop;
+      Trace("lazy-cdproofchain")
+          << "LazyCDProofChain::getProofFor: post-visited " << cur << "\n";
+    }
+    else
+    {
+      Trace("lazy-cdproofchain")
+          << "LazyCDProofChain::getProofFor: already fully processed " << cur
+          << "\n";
     }
   } while (!visit.empty());
+  // AlwaysAssert(false);
   // expand all assumptions marked to be connected
   for (const std::pair<const Node, std::shared_ptr<ProofNode>>& npfn :
        toConnect)
