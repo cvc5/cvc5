@@ -1,0 +1,254 @@
+/*********************                                                        */
+/*! \file check_models.cpp
+ ** \verbatim
+ ** Top contributors (to current version):
+ **   Andrew Reynolds
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
+ **
+ ** \brief Utility for constructing and maintaining abstract values.
+ **/
+
+#include "smt/check_models.h"
+
+#include "options/smt_options.h"
+#include "theory/theory_engine.h"
+#include "theory/substitutions.h"
+
+namespace CVC4 {
+namespace smt {
+
+CheckModels::CheckModels(SmtSolver& s)
+    : d_solver(s),
+{
+}
+CheckModels::~CheckModels() {}
+
+
+void CheckModels::checkModel(Model * m, context::CDList<Node>* al)
+{
+  // check-model is not guaranteed to succeed if approximate values were used.
+  // Thus, we intentionally abort here.
+  if (m->hasApproximations())
+  {
+    throw RecoverableModalException(
+        "Cannot run check-model on a model with approximate values.");
+  }
+
+  // Check individual theory assertions
+  if (options::debugCheckModels())
+  {
+    TheoryEngine* te = d_solver.getTheoryEngine();
+    Assert(te != nullptr);
+    te->checkTheoryAssertionsWithModel(hardFailure);
+  }
+
+  // Output the model
+  Notice() << *m;
+  
+  NodeManager * nm = NodeManager::currentNM();
+  Preprocessor * pp = d_solver.getPreprocessor();
+
+  // We have a "fake context" for the substitution map (we don't need it
+  // to be context-dependent)
+  context::Context fakeContext;
+  SubstitutionMap substitutions(&fakeContext, /* substituteUnderQuantifiers = */ false);
+
+  for(size_t k = 0, ncmd = m->getNumCommands(); k < ncmd; ++k) {
+    const DeclareFunctionNodeCommand* c =
+        dynamic_cast<const DeclareFunctionNodeCommand*>(m->getCommand(k));
+    Notice() << "SmtEngine::checkModel(): model command " << k << " : "
+             << m->getCommand(k)->toString() << endl;
+    if(c == NULL) {
+      // we don't care about DECLARE-DATATYPES, DECLARE-SORT, ...
+      Notice() << "SmtEngine::checkModel(): skipping..." << endl;
+      continue;
+    }
+    // We have a DECLARE-FUN:
+    //
+    // We'll first do some checks, then add to our substitution map
+    // the mapping: function symbol |-> value
+
+    Node func = c->getFunction();
+    Node val = m->getValue(func);
+
+    Notice() << "SmtEngine::checkModel(): adding substitution: " << func << " |-> " << val << endl;
+
+    // (1) if the value is a lambda, ensure the lambda doesn't contain the
+    // function symbol (since then the definition is recursive)
+    if (val.getKind() == kind::LAMBDA) {
+      // first apply the model substitutions we have so far
+      Debug("boolean-terms") << "applying subses to " << val[1] << endl;
+      Node n = substitutions.apply(val[1]);
+      Debug("boolean-terms") << "++ got " << n << endl;
+      // now check if n contains func by doing a substitution
+      // [func->func2] and checking equality of the Nodes.
+      // (this just a way to check if func is in n.)
+      SubstitutionMap subs(&fakeContext);
+      Node func2 = nm->mkSkolem(
+          "", func.getType(), "", NodeManager::SKOLEM_NO_NOTIFY);
+      subs.addSubstitution(func, func2);
+      if(subs.apply(n) != n) {
+        Notice() << "SmtEngine::checkModel(): *** PROBLEM: MODEL VALUE DEFINED IN TERMS OF ITSELF ***" << endl;
+        stringstream ss;
+        ss << "SmtEngine::checkModel(): ERRORS SATISFYING ASSERTIONS WITH MODEL:" << endl
+            << "considering model value for " << func << endl
+            << "body of lambda is:   " << val << endl;
+        if(n != val[1]) {
+          ss << "body substitutes to: " << n << endl;
+        }
+        ss << "so " << func << " is defined in terms of itself." << endl
+            << "Run with `--check-models -v' for additional diagnostics.";
+        InternalError() << ss.str();
+      }
+    }
+
+    // (2) check that the value is actually a value
+    else if (!val.isConst())
+    {
+      // This is only a warning since it could have been assigned an
+      // unevaluable term (e.g. an application of a transcendental function).
+      // This parallels the behavior (warnings for non-constant expressions)
+      // when checking whether assertions are satisfied below.
+      Warning() << "Warning : SmtEngine::checkModel(): "
+                << "model value for " << func << endl
+                << "             is " << val << endl
+                << "and that is not a constant (.isConst() == false)."
+                << std::endl
+                << "Run with `--check-models -v' for additional diagnostics."
+                << std::endl;
+    }
+
+    // (3) check that it's the correct (sub)type
+    // This was intended to be a more general check, but for now we can't do that because
+    // e.g. "1" is an INT, which isn't a subrange type [1..10] (etc.).
+    else if(func.getType().isInteger() && !val.getType().isInteger()) {
+      Notice() << "SmtEngine::checkModel(): *** PROBLEM: MODEL VALUE NOT CORRECT TYPE ***" << endl;
+      InternalError()
+          << "SmtEngine::checkModel(): ERRORS SATISFYING ASSERTIONS WITH "
+              "MODEL:"
+          << endl
+          << "model value for " << func << endl
+          << "             is " << val << endl
+          << "value type is     " << val.getType() << endl
+          << "should be of type " << func.getType() << endl
+          << "Run with `--check-models -v' for additional diagnostics.";
+    }
+
+    // (4) checks complete, add the substitution
+    Debug("boolean-terms") << "cm: adding subs " << func << " :=> " << val << endl;
+    substitutions.addSubstitution(func, val);
+  
+  }
+
+  // Now go through all our user assertions checking if they're satisfied.
+  for (const Node& assertion : *al)
+  {
+    Notice() << "SmtEngine::checkModel(): checking assertion " << assertion
+             << endl;
+    Node n = assertion;
+    Node nr = Rewriter::rewrite(substitutions.apply(n));
+    Trace("boolean-terms") << "n: " << n << endl;
+    Trace("boolean-terms") << "nr: " << nr << endl;
+    if (nr.isConst() && nr.getConst<bool>())
+    {
+      continue;
+    }
+    // Apply any define-funs from the problem.
+    {
+      unordered_map<Node, Node, NodeHashFunction> cache;
+      n = pp->expandDefinitions(n, cache);
+    }
+    Notice() << "SmtEngine::checkModel(): -- expands to " << n << endl;
+
+    // Apply our model value substitutions.
+    Debug("boolean-terms") << "applying subses to " << n << endl;
+    n = substitutions.apply(n);
+    Debug("boolean-terms") << "++ got " << n << endl;
+    Notice() << "SmtEngine::checkModel(): -- substitutes to " << n << endl;
+
+    // We look up the value before simplifying. If n contains quantifiers,
+    // this may increases the chance of finding its value before the node is
+    // altered by simplification below.
+    n = m->getValue(n);
+    Notice() << "SmtEngine::checkModel(): -- get value : " << n << std::endl;
+
+    // Simplify the result and replace the already-known ITEs (this is important
+    // for ground ITEs under quantifiers).
+    n = pp->simplify(n, true);
+    Notice()
+        << "SmtEngine::checkModel(): -- simplifies with ite replacement to  "
+        << n << endl;
+
+    // Apply our model value substitutions (again), as things may have been simplified.
+    Debug("boolean-terms") << "applying subses to " << n << endl;
+    n = substitutions.apply(n);
+    Debug("boolean-terms") << "++ got " << n << endl;
+    Notice() << "SmtEngine::checkModel(): -- re-substitutes to " << n << endl;
+
+    // As a last-ditch effort, ask model to simplify it.
+    // Presently, this is only an issue for quantifiers, which can have a value
+    // but don't show up in our substitution map above.
+    n = m->getValue(n);
+    Notice() << "SmtEngine::checkModel(): -- model-substitutes to " << n << endl;
+
+    if (n.isConst())
+    {
+      if (n.getConst<bool>())
+      {
+        // assertion is true, everything is fine
+        continue;
+      }
+    }
+
+    // Otherwise, we did not succeed in showing the current assertion to be
+    // true. This may either indicate that our model is wrong, or that we cannot
+    // check it. The latter may be the case for several reasons.
+    // For example, quantified formulas are not checkable, although we assign
+    // them to true/false based on the satisfying assignment. However,
+    // quantified formulas can be modified during preprocess, so they may not
+    // correspond to those in the satisfying assignment. Hence we throw
+    // warnings for assertions that do not simplify to either true or false.
+    // Other theories such as non-linear arithmetic (in particular,
+    // transcendental functions) also have the property of not being able to
+    // be checked precisely here.
+    // Note that warnings like these can be avoided for quantified formulas
+    // by making preprocessing passes explicitly record how they
+    // rewrite quantified formulas (see cvc4-wishues#43).
+    if (!n.isConst())
+    {
+      // Not constant, print a less severe warning message here.
+      Warning() << "Warning : SmtEngine::checkModel(): cannot check simplified "
+                   "assertion : "
+                << n << endl;
+      continue;
+    }
+    // Assertions that simplify to false result in an InternalError or
+    // Warning being thrown below (when hardFailure is false).
+    Notice() << "SmtEngine::checkModel(): *** PROBLEM: EXPECTED `TRUE' ***"
+             << endl;
+    stringstream ss;
+    ss << "SmtEngine::checkModel(): "
+       << "ERRORS SATISFYING ASSERTIONS WITH MODEL:" << endl
+       << "assertion:     " << assertion << endl
+       << "simplifies to: " << n << endl
+       << "expected `true'." << endl
+       << "Run with `--check-models -v' for additional diagnostics.";
+    if (hardFailure)
+    {
+      // internal error if hardFailure is true
+      InternalError() << ss.str();
+    }
+    else
+    {
+      Warning() << ss.str() << endl;
+    }
+  }
+  Notice() << "SmtEngine::checkModel(): all assertions checked out OK !" << endl;
+}
+
+}  // namespace smt
+}  // namespace CVC4
