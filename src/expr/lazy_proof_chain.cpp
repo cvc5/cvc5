@@ -188,7 +188,6 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
           << "\n";
     }
   } while (!visit.empty());
-  // AlwaysAssert(false);
   // expand all assumptions marked to be connected
   for (const std::pair<const Node, std::shared_ptr<ProofNode>>& npfn :
        toConnect)
