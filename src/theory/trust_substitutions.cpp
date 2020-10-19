@@ -100,7 +100,7 @@ ProofGenerator* TrustSubstitutionMap::addSubstitutionSolved(TNode x,
     return tn.getGenerator();
   }
   LazyCDProof* solvePg = d_helperPf.allocateProof();
-  // try via rewrite eq == proven, if necessary
+  // Try to transform tn.getProven() to (= x t) here, if necessary
   if (!d_tspb->applyPredTransform(proven, eq, {}))
   {
     // failed to rewrite
