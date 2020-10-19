@@ -548,7 +548,7 @@ void ProofCnfStream::convertPropagation(theory::TrustNode trn)
     d_proof.addStep(clauseExp,
                     PfRule::RESOLUTION,
                     {clauseAndNeg, clauseImpliesElim},
-                    {proven[0]});
+                    {nm->mkConst(true), proven[0]});
   }
   else
   {
