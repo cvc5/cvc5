@@ -1641,7 +1641,6 @@ void SmtEngine::getInstantiationTermVectors(
     Node q, std::vector<std::vector<Node>>& tvecs)
 {
   SmtScope smts(this);
-  Assert(options::trackInstLemmas());
   TheoryEngine* te = getTheoryEngine();
   Assert(te != nullptr);
   te->getInstantiationTermVectors(q, tvecs);
