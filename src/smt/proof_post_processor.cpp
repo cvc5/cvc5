@@ -611,7 +611,12 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       return eq;
     }
     // otherwise no update
-    Trace("final-pf-hole") << "hole: " << id << " : " << eq << std::endl;
+    if (Trace.isOn("final-pf-hole"))
+    {
+      TheoryId tid = THEORY_BUILTIN;
+      builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
+      Trace("final-pf-hole") << "hole " << id << " " << tid << " : " << eq << std::endl;
+    }
   }
 
   // TRUST, PREPROCESS, THEORY_LEMMA, THEORY_PREPROCESS?

@@ -34,6 +34,8 @@ const char* toString(MethodId id)
     case MethodId::RW_REWRITE_EQ_EXT: return "RW_REWRITE_EQ_EXT";
     case MethodId::RW_EVALUATE: return "RW_EVALUATE";
     case MethodId::RW_IDENTITY: return "RW_IDENTITY";
+    case MethodId::RW_REWRITE_THEORY_PRE: return "RW_REWRITE_THEORY_PRE";
+    case MethodId::RW_REWRITE_THEORY_POST: return "RW_REWRITE_THEORY_POST";
     case MethodId::SB_DEFAULT: return "SB_DEFAULT";
     case MethodId::SB_LITERAL: return "SB_LITERAL";
     case MethodId::SB_FORMULA: return "SB_FORMULA";
