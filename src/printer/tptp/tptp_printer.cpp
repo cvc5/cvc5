@@ -45,7 +45,7 @@ void TptpPrinter::toStream(std::ostream& out, const CommandStatus* s) const
   s->toStream(out, language::output::LANG_SMTLIB_V2_5);
 }/* TptpPrinter::toStream() */
 
-void TptpPrinter::toStream(std::ostream& out, const Model& m) const
+void TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
 {
   std::string statusName(m.isKnownSat() ? "FiniteModel"
                                         : "CandidateFiniteModel");
@@ -59,7 +59,7 @@ void TptpPrinter::toStream(std::ostream& out, const Model& m) const
 }
 
 void TptpPrinter::toStream(std::ostream& out,
-                           const Model& m,
+                           const smt::Model& m,
                            const NodeCommand* c) const
 {
   // shouldn't be called; only the non-Command* version above should be

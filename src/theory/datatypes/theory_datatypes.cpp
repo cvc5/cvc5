@@ -300,7 +300,7 @@ void TheoryDatatypes::postCheck(Effort level)
                   //this may not be necessary?
                   //if only one constructor, then this term must be this constructor
                   Node t = utils::mkTester(n, 0, dt);
-                  d_im.addPendingInference(t, d_true);
+                  d_im.addPendingInference(t, d_true, false, InferId::SPLIT);
                   Trace("datatypes-infer") << "DtInfer : 1-cons (full) : " << t << std::endl;
                 }else{
                   Assert(consIndex != -1 || dt.isSygus());
@@ -419,8 +419,33 @@ void TheoryDatatypes::notifyFact(TNode atom,
 
 void TheoryDatatypes::preRegisterTerm(TNode n)
 {
-  Debug("datatypes-prereg")
+  Trace("datatypes-prereg")
       << "TheoryDatatypes::preRegisterTerm() " << n << endl;
+  // must ensure the type is well founded and has no nested recursion if
+  // the option dtNestedRec is not set to true.
+  TypeNode tn = n.getType();
+  if (tn.isDatatype())
+  {
+    const DType& dt = tn.getDType();
+    Trace("dt-expand") << "Check properties of " << dt.getName() << std::endl;
+    if (!dt.isWellFounded())
+    {
+      std::stringstream ss;
+      ss << "Cannot handle non-well-founded datatype " << dt.getName();
+      throw LogicException(ss.str());
+    }
+    Trace("dt-expand") << "...well-founded ok" << std::endl;
+    if (!options::dtNestedRec())
+    {
+      if (dt.hasNestedRecursion())
+      {
+        std::stringstream ss;
+        ss << "Cannot handle nested-recursive datatype " << dt.getName();
+        throw LogicException(ss.str());
+      }
+      Trace("dt-expand") << "...nested recursion ok" << std::endl;
+    }
+  }
   collectTerms( n );
   switch (n.getKind()) {
   case kind::EQUAL:
@@ -446,28 +471,7 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
 TrustNode TheoryDatatypes::expandDefinition(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
-  // must ensure the type is well founded and has no nested recursion if
-  // the option dtNestedRec is not set to true.
   TypeNode tn = n.getType();
-  if (tn.isDatatype())
-  {
-    const DType& dt = tn.getDType();
-    if (!dt.isWellFounded())
-    {
-      std::stringstream ss;
-      ss << "Cannot handle non-well-founded datatype " << dt.getName();
-      throw LogicException(ss.str());
-    }
-    if (!options::dtNestedRec())
-    {
-      if (dt.hasNestedRecursion())
-      {
-        std::stringstream ss;
-        ss << "Cannot handle nested-recursive datatype " << dt.getName();
-        throw LogicException(ss.str());
-      }
-    }
-  }
   Node ret;
   switch (n.getKind())
   {
@@ -667,7 +671,7 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
             for( int i=0; i<(int)cons1.getNumChildren(); i++ ) {
               if( !areEqual( cons1[i], cons2[i] ) ){
                 Node eq = cons1[i].eqNode( cons2[i] );
-                d_im.addPendingInference(eq, unifEq);
+                d_im.addPendingInference(eq, unifEq, false, InferId::UNIF);
                 Trace("datatypes-infer") << "DtInfer : cons-inj : " << eq << " by " << unifEq << std::endl;
               }
             }
@@ -953,7 +957,8 @@ void TheoryDatatypes::addTester(
                              ? NodeManager::currentNM()->mkConst(false)
                              : utils::mkTester(t_arg, testerIndex, dt);
           Node t_concl_exp = ( nb.getNumChildren() == 1 ) ? nb.getChild( 0 ) : nb;
-          d_im.addPendingInference(t_concl, t_concl_exp);
+          d_im.addPendingInference(
+              t_concl, t_concl_exp, false, InferId::LABEL_EXH);
           Trace("datatypes-infer") << "DtInfer : label : " << t_concl << " by " << t_concl_exp << std::endl;
           return;
         }
@@ -1086,7 +1091,7 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
       Trace("datatypes-infer") << "DtInfer : collapse sel";
       //Trace("datatypes-infer") << ( wrong ? " wrong" : "");
       Trace("datatypes-infer") << " : " << eq << " by " << peq << std::endl;
-      d_im.addPendingInference(eq, peq);
+      d_im.addPendingInference(eq, peq, false, InferId::COLLAPSE_SEL);
     }
   }
 }
@@ -1542,7 +1547,7 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
   bool forceLemma = dt[index].hasFiniteExternalArgType(ttn);
   Trace("datatypes-infer-debug") << "DtInstantiate : " << eqc << " " << eq
                                  << " forceLemma = " << forceLemma << std::endl;
-  d_im.addPendingInference(eq, exp, nullptr, forceLemma);
+  d_im.addPendingInference(eq, exp, forceLemma, InferId::INST);
   Trace("datatypes-infer") << "DtInfer : instantiate : " << eq << " by " << exp
                            << std::endl;
 }
@@ -1628,7 +1633,7 @@ void TheoryDatatypes::checkCycles() {
           Trace("dt-cdt") << std::endl;
           Node eq = part_out[i][0].eqNode( part_out[i][j] );
           Node eqExp = NodeManager::currentNM()->mkAnd(exp);
-          d_im.addPendingInference(eq, eqExp);
+          d_im.addPendingInference(eq, eqExp, false, InferId::BISIMILAR);
           Trace("datatypes-infer") << "DtInfer : cdt-bisimilar : " << eq << " by " << eqExp << std::endl;
         }
       }
