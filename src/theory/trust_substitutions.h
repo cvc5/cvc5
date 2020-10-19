@@ -78,11 +78,6 @@ class TrustSubstitutionMap
    */
   void addSubstitutions(TrustSubstitutionMap& t);
   /**
-   * Add substitutions from trust substitution map t. This adds all
-   * substitutions from the map t and carries over its information about proofs.
-   */
-  void addSubstitutions(TrustSubstitutionMap& t);
-  /**
    * Apply substitutions in this class to node n. Returns a trust node
    * proving n = n*sigma, where the proof generator is provided by this class
    * (when proofs are enabled).
