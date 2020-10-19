@@ -100,12 +100,14 @@ class Preprocessor
    */
   RemoveTermFormulas& getTermFormulaRemover();
 
- private:
   /**
-   * Apply substitutions that have been inferred by preprocessing, return the
-   * substituted form of node.
+   * Set proof node manager. Enables proofs in this preprocessor.
    */
-  Node applySubstitutions(TNode node);
+  void setProofGenerator(PreprocessProofGenerator* pppg);
+
+ private:
+  /** A copy of the current context */
+  context::Context* d_context;
   /** Reference to the parent SmtEngine */
   SmtEngine& d_smt;
   /** Reference to the abstract values utility */
@@ -130,6 +132,8 @@ class Preprocessor
    * in term contexts.
    */
   RemoveTermFormulas d_rtf;
+  /** Proof node manager */
+  ProofNodeManager* d_pnm;
 };
 
 }  // namespace smt

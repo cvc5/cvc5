@@ -114,8 +114,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       << "Iterate through " << propagator->getLearnedLiterals().size()
       << " learned literals." << std::endl;
   // No conflict, go through the literals and solve them
-  SubstitutionMap& top_level_substs =
-      d_preprocContext->getTopLevelSubstitutions();
+  TrustSubstitutionMap& ttls = d_preprocContext->getTopLevelSubstitutions();
+  CVC4_UNUSED SubstitutionMap& top_level_substs = ttls.get();
   SubstitutionMap constantPropagations(d_preprocContext->getUserContext());
   TrustSubstitutionMap tnewSubstituions(d_preprocContext->getUserContext(),
                                         nullptr);
