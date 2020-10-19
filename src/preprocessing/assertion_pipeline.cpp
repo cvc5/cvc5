@@ -108,10 +108,10 @@ void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
 }
 
 void AssertionPipeline::replaceTrusted(size_t i, theory::TrustNode trn)
-{
+{  
   if (trn.isNull())
   {
-    // null trust node may denote no change, nothing to do
+    // null trust node denotes no change, nothing to do
     return;
   }
   Assert(trn.getKind() == theory::TrustNodeKind::REWRITE);

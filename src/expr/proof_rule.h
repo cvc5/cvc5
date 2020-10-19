@@ -280,11 +280,14 @@ enum class PfRule : uint32_t
   //   C is a clause resulting from collecting all the literals in C1, minus the
   //   first occurrence of the pivot or its negation, and C2, minus the first
   //   occurrence of the pivot or its negation, according to the policy above.
+  //   If the resulting clause has a single literal, that literal itself is the
+  //   result; if it has no literals, then the result is false; otherwise it's
+  //   an OR node of the resulting literals.
   //
   //   Note that it may be the case that the pivot does not occur in the
   //   clauses. In this case the rule is not unsound, but it does not correspond
-  //   to resolution but rather to an weakening of the clause that did not have
-  //   a literal eliminated.
+  //   to resolution but rather to a weakening of the clause that did not have a
+  //   literal eliminated.
   RESOLUTION,
   // ======== Chain Resolution
   // Children: (P1:C_1, ..., Pm:C_n)
