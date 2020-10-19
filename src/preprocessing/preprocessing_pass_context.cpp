@@ -14,7 +14,7 @@
  ** The preprocessing pass context for passes.
  **/
 
-#include "preprocessing_pass_context.h"
+#include "preprocessing/preprocessing_pass_context.h"
 
 #include "expr/node_algorithm.h"
 
@@ -24,12 +24,14 @@ namespace preprocessing {
 PreprocessingPassContext::PreprocessingPassContext(
     SmtEngine* smt,
     RemoveTermFormulas* iteRemover,
-    theory::booleans::CircuitPropagator* circuitPropagator)
+    theory::booleans::CircuitPropagator* circuitPropagator,
+    ProofNodeManager* pnm)
     : d_smt(smt),
       d_resourceManager(smt->getResourceManager()),
       d_iteRemover(iteRemover),
-      d_topLevelSubstitutions(smt->getUserContext()),
+      d_topLevelSubstitutions(smt->getUserContext(), pnm),
       d_circuitPropagator(circuitPropagator),
+      d_pnm(pnm),
       d_symsInAssertions(smt->getUserContext())
 {
 }
@@ -38,6 +40,12 @@ void PreprocessingPassContext::widenLogic(theory::TheoryId id)
 {
   LogicRequest req(*d_smt);
   req.widenLogic(id);
+}
+
+theory::TrustSubstitutionMap&
+PreprocessingPassContext::getTopLevelSubstitutions()
+{
+  return d_topLevelSubstitutions;
 }
 
 void PreprocessingPassContext::enableIntegers()
@@ -59,6 +67,11 @@ void PreprocessingPassContext::recordSymbolsInAssertions(
   {
     d_symsInAssertions.insert(s);
   }
+}
+
+ProofNodeManager* PreprocessingPassContext::getProofNodeManager()
+{
+  return d_pnm;
 }
 
 }  // namespace preprocessing

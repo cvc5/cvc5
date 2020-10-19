@@ -41,7 +41,7 @@ PreprocessingPassResult ApplySubsts::applyInternal(
     // TODO(#1255): Substitutions in incremental mode should be managed with a
     // proper data structure.
 
-    theory::SubstitutionMap& substMap =
+    theory::TrustSubstitutionMap& tlsm =
         d_preprocContext->getTopLevelSubstitutions();
     unsigned size = assertionsToPreprocess->size();
     for (unsigned i = 0; i < size; ++i)
@@ -54,9 +54,8 @@ PreprocessingPassResult ApplySubsts::applyInternal(
                         << std::endl;
       d_preprocContext->spendResource(
           ResourceManager::Resource::PreprocessStep);
-      assertionsToPreprocess->replace(i,
-                                      theory::Rewriter::rewrite(substMap.apply(
-                                          (*assertionsToPreprocess)[i])));
+      assertionsToPreprocess->replaceTrusted(
+          i, tlsm.apply((*assertionsToPreprocess)[i]));
       Trace("apply-substs") << "  got " << (*assertionsToPreprocess)[i]
                         << std::endl;
     }
