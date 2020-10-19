@@ -190,50 +190,23 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
   if (id == PfRule::CHAIN_RESOLUTION)
   {
     Assert(children.size() > 1);
-    Assert(args.size() == 2 * (children.size() - 1));
+    Assert(args.size() == children.size() - 1);
     Trace("bool-pfcheck") << "chain_res:\n" << push;
-    NodeManager* nm = NodeManager::currentNM();
-    Node trueNode = nm->mkConst(true);
-    Node falseNode = nm->mkConst(false);
     std::vector<Node> clauseNodes;
     for (unsigned i = 0, childrenSize = children.size(); i < childrenSize; ++i)
     {
-      std::unordered_map<Node, unsigned, NodeHashFunction> elim;
+      std::unordered_set<Node, NodeHashFunction> elim;
       // literals to be removed from "first" clause
       if (i < childrenSize - 1)
       {
-        for (unsigned j = (2*i), argsSize = args.size(); j < argsSize; j = j + 2)
-        {
-          // whether pivot should occur as is or negated depends on the id of
-          // each step in the chain
-          if (args[j] == trueNode)
-          {
-            elim[args[j + 1]]++;
-          }
-          else
-          {
-            Assert(args[j] == falseNode);
-            elim[args[j + 1].notNode()]++;
-          }
-        }
+        elim.insert(args.begin() + i, args.end());
       }
       // literal to be removed from "second" clause. They will be negated
       if (i > 0)
       {
-        unsigned index = 2 * (i - 1);
-        Node pivot = args[index] == trueNode ? args[index + 1].notNode()
-                                             : args[index + 1];
-        elim[pivot]++;
+        elim.insert(args[i - 1].negate());
       }
-      if (Trace.isOn("bool-pfcheck"))
-      {
-        Trace("bool-pfcheck") << i << ": elimination multiset:\n";
-        for (const std::pair<const Node&, unsigned>& pair : elim)
-        {
-          Trace("bool-pfcheck")
-              << "\t- " << pair.first << " {" << pair.second << "}\n";
-        }
-      }
+      Trace("bool-pfcheck") << i << ": elimination set: " << elim << "\n";
       // only add to conclusion nodes that are not in elimination set. First get
       // the nodes.
       //
@@ -253,27 +226,18 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       std::vector<Node> added;
       for (unsigned j = 0, size = lits.size(); j < size; ++j)
       {
-        auto it = elim.find(lits[j]);
-        if (it == elim.end())
+        if (elim.count(lits[j]) == 0)
         {
           clauseNodes.push_back(lits[j]);
           added.push_back(lits[j]);
-        }
-        else
-        {
-          // remove occurrence
-          it->second--;
-          if (it->second == 0)
-          {
-            elim.erase(it);
-          }
         }
       }
       Trace("bool-pfcheck") << i << ": added lits: " << added << "\n\n";
     }
     Trace("bool-pfcheck") << "clause: " << clauseNodes << "\n" << pop;
+    NodeManager* nm = NodeManager::currentNM();
     return clauseNodes.empty()
-               ? nm->mkConst(false)
+               ? nm->mkConst<bool>(false)
                : clauseNodes.size() == 1 ? clauseNodes[0]
                                          : nm->mkNode(kind::OR, clauseNodes);
   }
