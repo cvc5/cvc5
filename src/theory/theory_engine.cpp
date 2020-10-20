@@ -1454,8 +1454,7 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
                                    tplemma.getGenerator(),
                                    PfRule::PREPROCESS_LEMMA,
                                    true,
-                                   "TheoryEngine::lemma_pp",
-                                   false);
+                                   "TheoryEngine::lemma_pp");
           // ---------- from d_lazyProof -------------- from theory preprocess
           // lemma                       lemma = lemmap
           // ------------------------------------------ EQ_RESOLVE
