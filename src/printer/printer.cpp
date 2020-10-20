@@ -262,11 +262,6 @@ void Printer::toStreamCmdSimplify(std::ostream& out, Node n) const
   printUnknownCommand(out, "simplify");
 }
 
-void Printer::toStreamCmdExpandDefinitions(std::ostream& out, Node n) const
-{
-  printUnknownCommand(out, "expand-definitions");
-}
-
 void Printer::toStreamCmdGetValue(std::ostream& out,
                                   const std::vector<Node>& nodes) const
 {
