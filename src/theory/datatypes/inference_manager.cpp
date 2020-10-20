@@ -67,9 +67,10 @@ void InferenceManager::process()
   doPendingFacts();
 }
 
-void InferenceManager::sendDtLemma(Node lem, InferId id,
-             LemmaProperty p,
-             bool doCache)
+void InferenceManager::sendDtLemma(Node lem,
+                                   InferId id,
+                                   LemmaProperty p,
+                                   bool doCache)
 {
   if (isProofEnabled())
   {
@@ -92,14 +93,10 @@ bool InferenceManager::sendLemmas(const std::vector<Node>& lemmas)
   return ret;
 }
 
-bool InferenceManager::isProofEnabled() const
-{
-  return d_ipc != nullptr;
-}
+bool InferenceManager::isProofEnabled() const { return d_ipc != nullptr; }
 
-bool InferenceManager::processDtLemma(Node conc, Node exp, InferId id,
-            LemmaProperty p,
-            bool doCache)
+bool InferenceManager::processDtLemma(
+    Node conc, Node exp, InferId id, LemmaProperty p, bool doCache)
 {
   processDtInference(conc, exp, id, true);
   // send it as an (explained) lemma
@@ -128,7 +125,10 @@ bool InferenceManager::processDtFact(Node conc, Node exp, InferId id)
   return true;
 }
 
-void InferenceManager::processDtInference(Node conc, Node exp, InferId id, bool asLemma)
+void InferenceManager::processDtInference(Node conc,
+                                          Node exp,
+                                          InferId id,
+                                          bool asLemma)
 {
   Trace("dt-lemma-debug") << "processDtInference : " << conc << " via " << exp
                           << " by " << id << ", asLemma = " << asLemma
@@ -140,7 +140,8 @@ void InferenceManager::processDtInference(Node conc, Node exp, InferId id, bool 
     // because the inference in the pending vector may be destroyed as we are
     // processing this inference, if we triggered to backtrack based on the
     // call below, since it is a unique pointer.
-    std::shared_ptr<DatatypesInference> di = std::make_shared<DatatypesInference>(this, conc, exp, id);
+    std::shared_ptr<DatatypesInference> di =
+        std::make_shared<DatatypesInference>(this, conc, exp, id);
     d_ipc->notifyFact(di);
   }
 }

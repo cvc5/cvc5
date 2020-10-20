@@ -47,18 +47,20 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
 {
   Trace("dt-ipc") << "convert: " << infer << ": " << conc << " by " << exp
                   << std::endl;
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   bool success = false;
   switch (infer)
   {
-    case InferId::UNIF: 
+    case InferId::UNIF:
     {
-      Assert (exp.getKind()==EQUAL && exp[0].getKind()==APPLY_CONSTRUCTOR && exp[1].getKind()==APPLY_CONSTRUCTOR && exp[0].getOperator()==exp[1].getOperator());
-      Assert (conc.getKind()==EQUAL);
+      Assert(exp.getKind() == EQUAL && exp[0].getKind() == APPLY_CONSTRUCTOR
+             && exp[1].getKind() == APPLY_CONSTRUCTOR
+             && exp[0].getOperator() == exp[1].getOperator());
+      Assert(conc.getKind() == EQUAL);
       Node narg;
-      for (size_t i=0, nchild = exp[0].getNumChildren(); i<nchild; i++)
+      for (size_t i = 0, nchild = exp[0].getNumChildren(); i < nchild; i++)
       {
-        if (exp[0][i]==conc[0] && exp[1][i]==conc[1])
+        if (exp[0][i] == conc[0] && exp[1][i] == conc[1])
         {
           narg = nm->mkConst(Rational(i));
           break;
@@ -70,18 +72,17 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
         success = true;
       }
     }
-      break;
-    case InferId::INST: 
-    {
+    break;
+    case InferId::INST: {
     }
-      break;
-    case InferId::SPLIT: 
+    break;
+    case InferId::SPLIT:
     {
-      Assert (exp.isNull());
-      Node t = conc.getKind()==OR ? conc[0][0] : conc[0];
+      Assert(exp.isNull());
+      Node t = conc.getKind() == OR ? conc[0][0] : conc[0];
       cdp->addStep(conc, PfRule::DT_SPLIT, {}, {t});
     }
-      break;
+    break;
     case InferId::LABEL_EXH: break;
     case InferId::COLLAPSE_SEL: break;
     case InferId::CLASH_CONFLICT: break;

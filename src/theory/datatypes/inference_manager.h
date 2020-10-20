@@ -62,12 +62,13 @@ class InferenceManager : public InferenceManagerBuffered
    * or processed internally.
    */
   void process();
-  /** 
+  /**
    * Send lemma immediately on the output channel
    */
-  void sendDtLemma(Node lem, InferId i = InferId::NONE,
-             LemmaProperty p = LemmaProperty::NONE,
-             bool doCache = true);
+  void sendDtLemma(Node lem,
+                   InferId i = InferId::NONE,
+                   LemmaProperty p = LemmaProperty::NONE,
+                   bool doCache = true);
   /**
    * Send lemmas with property NONE on the output channel immediately.
    * Returns true if any lemma was sent.
@@ -80,16 +81,18 @@ class InferenceManager : public InferenceManagerBuffered
   /**
    * Process datatype inference as a lemma
    */
-  bool processDtLemma(Node conc, Node exp, InferId id,
-             LemmaProperty p = LemmaProperty::NONE,
-             bool doCache = true);
+  bool processDtLemma(Node conc,
+                      Node exp,
+                      InferId id,
+                      LemmaProperty p = LemmaProperty::NONE,
+                      bool doCache = true);
   /**
    * Process datatype inference as a fact
    */
   bool processDtFact(Node conc, Node exp, InferId id);
   /** Helper function for the above methods */
   void processDtInference(Node conc, Node exp, InferId id, bool asLemma);
-  
+
   /**
    * Counts the number of applications of each type of inference processed by
    * the above method as facts and lemmas.
