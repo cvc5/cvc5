@@ -1,0 +1,26 @@
+; EXPECT: unsat
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+
+(set-logic BV)
+
+(synth-fun inv ((s (_ BitVec 4)) (t (_ BitVec 4))) (_ BitVec 4))
+
+(declare-var s (_ BitVec 4))
+(declare-var t (_ BitVec 4))
+
+
+(define-fun l ( (s (_ BitVec 4)) (t (_ BitVec 4))) Bool 
+     (= (bvmul (inv s t) s) t)
+)
+(define-fun SC ((s (_ BitVec 4)) (t (_ BitVec 4))) Bool 
+    (= (bvand (bvor (bvneg s) s) t) t)
+)
+(constraint
+  (=> 
+    (SC s t)
+    (l s t)
+  )
+)
+
+; should not generate witness terms in solution
+(check-synth)

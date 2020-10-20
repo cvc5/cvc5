@@ -77,7 +77,8 @@ std::vector<Node> ICPSolver::collectVariables(const Node& n) const
 
 std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
 {
-  auto comp = Comparison::parseNormalForm(n).decompose(false);
+  auto comp =
+      Comparison::parseNormalForm(Rewriter::rewrite(n)).decompose(false);
   Kind k = std::get<1>(comp);
   if (k == Kind::DISTINCT)
   {
@@ -180,9 +181,9 @@ void ICPSolver::addCandidate(const Node& n)
 
 void ICPSolver::initOrigins()
 {
-  for (const auto& vars : d_mapper.mVarCVCpoly)
+  for (const auto& vars : d_state.d_bounds.get())
   {
-    auto& i = d_state.d_bounds.get(vars.first);
+    const Bounds& i = vars.second;
     Trace("nl-icp") << "Adding initial " << vars.first << " -> " << i
                     << std::endl;
     if (!i.lower_origin.isNull())
@@ -305,13 +306,12 @@ void ICPSolver::reset(const std::vector<Node>& assertions)
   d_state.reset();
   for (const auto& n : assertions)
   {
-    Node tmp = Rewriter::rewrite(n);
-    Trace("nl-icp") << "Adding " << tmp << std::endl;
-    if (tmp.getKind() != Kind::CONST_BOOLEAN)
+    Trace("nl-icp") << "Adding " << n << std::endl;
+    if (n.getKind() != Kind::CONST_BOOLEAN)
     {
-      if (!d_state.d_bounds.add(tmp))
+      if (!d_state.d_bounds.add(n))
       {
-        addCandidate(tmp);
+        addCandidate(n);
       }
     }
   }
@@ -320,7 +320,7 @@ void ICPSolver::reset(const std::vector<Node>& assertions)
 void ICPSolver::check()
 {
   initOrigins();
-  d_state.d_assignment = d_state.d_bounds.get();
+  d_state.d_assignment = getBounds(d_mapper, d_state.d_bounds);
   bool did_progress = false;
   bool progress = false;
   do

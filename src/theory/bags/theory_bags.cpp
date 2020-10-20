@@ -29,8 +29,9 @@ TheoryBags::TheoryBags(context::Context* c,
     : Theory(THEORY_BAGS, c, u, out, valuation, logicInfo, pnm),
       d_state(c, u, valuation),
       d_im(*this, d_state, pnm),
-      d_rewriter(),
-      d_notify(*this, d_im)
+      d_notify(*this, d_im),
+      d_statistics(),
+      d_rewriter(&d_statistics.d_rewrites)
 {
   // use the official theory state and inference manager objects
   d_theoryState = &d_state;
@@ -64,6 +65,8 @@ void TheoryBags::finishInit()
   d_equalityEngine->addFunctionKind(BAG_COUNT);
   d_equalityEngine->addFunctionKind(MK_BAG);
   d_equalityEngine->addFunctionKind(BAG_CARD);
+  d_equalityEngine->addFunctionKind(BAG_FROM_SET);
+  d_equalityEngine->addFunctionKind(BAG_TO_SET);
 }
 
 void TheoryBags::postCheck(Effort level) {}

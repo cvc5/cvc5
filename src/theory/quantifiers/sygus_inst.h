@@ -82,6 +82,9 @@ class SygusInst : public QuantifiersModule
   /* Called once for every quantifier 'q' per context. */
   void preRegisterQuantifier(Node q) override;
 
+  /* For collecting global terms from all available assertions. */
+  void ppNotifyAssertions(const std::vector<Node>& assertions);
+
   std::string identify() const override { return "SygusInst"; }
 
  private:
@@ -96,11 +99,17 @@ class SygusInst : public QuantifiersModule
    * preRegisterQuantifier() call.*/
   void addCeLemma(Node q);
 
-  /* Maps bound variables to corresponding instantiation constants. */
-  std::unordered_map<Node, Node, NodeHashFunction> d_inst_constants;
+  /* Send evaluation unfolding lemmas and cache them.
+   * Returns true if a new lemma (not cached) was added, and false otherwise.
+   */
+  bool sendEvalUnfoldLemmas(const std::vector<Node>& lemmas);
 
-  /* Maps bound variables to corresponding DT_SYGUS_EVAL term. */
-  std::unordered_map<Node, Node, NodeHashFunction> d_var_eval;
+  /* Maps quantifiers to a vector of instantiation constants. */
+  std::unordered_map<Node, std::vector<Node>, NodeHashFunction>
+      d_inst_constants;
+
+  /* Maps quantifiers to a vector of DT_SYGUS_EVAL terms. */
+  std::unordered_map<Node, std::vector<Node>, NodeHashFunction> d_var_eval;
 
   /* Maps quantified formulas to registered counterexample literals. */
   std::unordered_map<Node, Node, NodeHashFunction> d_ce_lits;
@@ -115,15 +124,21 @@ class SygusInst : public QuantifiersModule
   /* Currently inactive quantifiers. */
   std::unordered_set<Node, NodeHashFunction> d_inactive_quant;
 
-  /* Evaluation unfolding lemma. */
-  context::CDHashSet<Node, NodeHashFunction> d_lemma_cache;
-
   /* Registered counterexample lemma cache. */
   std::unordered_map<Node, Node, NodeHashFunction> d_ce_lemmas;
 
   /* Indicates whether a counterexample lemma was added for a quantified
    * formula in the current context. */
   context::CDHashSet<Node, NodeHashFunction> d_ce_lemma_added;
+
+  /* Set of global ground terms in assertions (outside of quantifiers). */
+  context::CDHashMap<TypeNode,
+                     std::unordered_set<Node, NodeHashFunction>,
+                     TypeNodeHashFunction>
+      d_global_terms;
+
+  /* Assertions sent by ppNotifyAssertions. */
+  context::CDHashSet<Node, NodeHashFunction> d_notified_assertions;
 };
 
 }  // namespace quantifiers

@@ -31,6 +31,8 @@ libcvc4_add_sources(
   lazy_proof.h
   lazy_proof_chain.cpp
   lazy_proof_chain.h
+  lazy_proof_set.cpp
+  lazy_proof_set.h
   match_trie.cpp
   match_trie.h
   node.cpp
@@ -75,6 +77,8 @@ libcvc4_add_sources(
   skolem_manager.h
   symbol_table.cpp
   symbol_table.h
+  tconv_seq_proof_generator.cpp
+  tconv_seq_proof_generator.h
   term_canonize.cpp
   term_canonize.h
   term_context.cpp

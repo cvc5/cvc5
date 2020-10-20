@@ -45,7 +45,7 @@ def testGetArray():
     stores = solver.mkTerm(kinds.Store, stores, solver.mkReal(2), solver.mkReal(3))
     stores = solver.mkTerm(kinds.Store, stores, solver.mkReal(4), solver.mkReal(5))
 
-    assert stores.isConst()
+    assert stores.isValue()
 
     array_dict = stores.toPythonObj()
 

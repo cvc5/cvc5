@@ -1082,7 +1082,7 @@ void TheoryEngineModelBuilder::computeAssignableInfo(
   }
 }
 
-void TheoryEngineModelBuilder::postProcessModel(bool incomplete, Model* m)
+void TheoryEngineModelBuilder::postProcessModel(bool incomplete, TheoryModel* m)
 {
   // if we are incomplete, there is no guarantee on the model.
   // thus, we do not check the model here.
@@ -1090,12 +1090,11 @@ void TheoryEngineModelBuilder::postProcessModel(bool incomplete, Model* m)
   {
     return;
   }
-  TheoryModel* tm = static_cast<TheoryModel*>(m);
-  Assert(tm != nullptr);
+  Assert(m != nullptr);
   // debug-check the model if the checkModels() is enabled.
   if (options::debugCheckModels())
   {
-    debugCheckModel(tm);
+    debugCheckModel(m);
   }
 }
 
@@ -1208,8 +1207,6 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
     if (childrenConst)
     {
       retNode = Rewriter::rewrite(retNode);
-      Assert(retNode.getKind() == kind::APPLY_UF
-             || !retNode.getType().isFirstClass() || retNode.isConst());
     }
   }
   d_normalizedCache[r] = retNode;

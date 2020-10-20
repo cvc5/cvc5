@@ -58,10 +58,10 @@ size_t BitVector::hash() const
   return d_value.hash() + d_size;
 }
 
-BitVector BitVector::setBit(uint32_t i) const
+BitVector BitVector::setBit(uint32_t i, bool value) const
 {
   CheckArgument(i < d_size, i);
-  Integer res = d_value.setBit(i);
+  Integer res = d_value.setBit(i, value);
   return BitVector(d_size, res);
 }
 
@@ -341,6 +341,18 @@ BitVector BitVector::arithRightShift(const BitVector& y) const
  ** Static helpers.
  * ----------------------------------------------------------------------- */
 
+BitVector BitVector::mkZero(unsigned size)
+{
+  CheckArgument(size > 0, size);
+  return BitVector(size);
+}
+
+BitVector BitVector::mkOne(unsigned size)
+{
+  CheckArgument(size > 0, size);
+  return BitVector(size, 1u);
+}
+
 BitVector BitVector::mkOnes(unsigned size)
 {
   CheckArgument(size > 0, size);
@@ -350,7 +362,7 @@ BitVector BitVector::mkOnes(unsigned size)
 BitVector BitVector::mkMinSigned(unsigned size)
 {
   CheckArgument(size > 0, size);
-  return BitVector(size).setBit(size - 1);
+  return BitVector(size).setBit(size - 1, true);
 }
 
 BitVector BitVector::mkMaxSigned(unsigned size)

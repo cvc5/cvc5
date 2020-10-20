@@ -118,6 +118,8 @@ void TheoryStrings::finishInit()
   d_equalityEngine->addFunctionKind(kind::STRING_IN_REGEXP, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_TO_CODE, eagerEval);
   d_equalityEngine->addFunctionKind(kind::SEQ_UNIT, eagerEval);
+  // `seq.nth` is not always defined, and so we do not evaluate it eagerly.
+  d_equalityEngine->addFunctionKind(kind::SEQ_NTH, false);
   // extended functions
   d_equalityEngine->addFunctionKind(kind::STRING_STRCTN, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_LEQ, eagerEval);
@@ -163,7 +165,6 @@ void TheoryStrings::notifySharedTerm(TNode t)
 {
   Debug("strings") << "TheoryStrings::notifySharedTerm(): " << t << " "
                    << t.getType().isBoolean() << endl;
-  d_equalityEngine->addTriggerTerm(t, THEORY_STRINGS);
   if (options::stringExp())
   {
     d_esolver.addSharedTerm(t);
@@ -579,41 +580,6 @@ TrustNode TheoryStrings::expandDefinition(Node node)
             ITE, cond, t.eqNode(nm->mkNode(STRING_TO_CODE, k)), k.eqNode(emp)));
     return TrustNode::mkTrustRewrite(node, ret, nullptr);
   }
-
-  if (node.getKind() == SEQ_NTH)
-  {
-    // str.nth(s,i) --->
-    //   ite(0<=i<=len(s), witness k. 0<=i<=len(s)->unit(k) = seq.at(s,i),
-    //   uf(s,i))
-    NodeManager* nm = NodeManager::currentNM();
-    Node s = node[0];
-    Node i = node[1];
-    Node len = nm->mkNode(STRING_LENGTH, s);
-    Node cond =
-        nm->mkNode(AND, nm->mkNode(LEQ, d_zero, i), nm->mkNode(LT, i, len));
-    TypeNode elemType = s.getType().getSequenceElementType();
-    Node k = nm->mkBoundVar(elemType);
-    Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
-    std::vector<TypeNode> argTypes;
-    argTypes.push_back(s.getType());
-    argTypes.push_back(nm->integerType());
-    TypeNode ufType = nm->mkFunctionType(argTypes, elemType);
-    SkolemCache* sc = d_termReg.getSkolemCache();
-    Node uf = sc->mkTypedSkolemCached(
-        ufType, Node::null(), Node::null(), SkolemCache::SK_NTH, "Uf");
-    Node ret = nm->mkNode(
-        ITE,
-        cond,
-        nm->mkNode(WITNESS,
-                   bvl,
-                   nm->mkNode(IMPLIES,
-                              cond,
-                              nm->mkNode(SEQ_UNIT, k)
-                                  .eqNode(nm->mkNode(STRING_CHARAT, s, i)))),
-        nm->mkNode(APPLY_UF, uf, s, i));
-    return TrustNode::mkTrustRewrite(node, ret, nullptr);
-  }
-
   return TrustNode::null();
 }
 

@@ -740,10 +740,10 @@ void Smt2Printer::toStream(std::ostream& out,
     out << smtKindString(k, d_variant) << " ";
     break;
   case kind::COMPREHENSION: out << smtKindString(k, d_variant) << " "; break;
+  case kind::SINGLETON: stillNeedToPrintParams = false; CVC4_FALLTHROUGH;
   case kind::MEMBER: typeChildren = true; CVC4_FALLTHROUGH;
   case kind::INSERT:
   case kind::SET_TYPE:
-  case kind::SINGLETON:
   case kind::COMPLEMENT:
   case kind::CHOOSE:
   case kind::IS_SINGLETON: out << smtKindString(k, d_variant) << " "; break;
@@ -976,7 +976,12 @@ void Smt2Printer::toStream(std::ostream& out,
       TypeNode elemType = TypeNode::leastCommonTypeNode( n[0].getType(), n[1].getType().getSetElementType() );
       force_child_type[0] = elemType;
       force_child_type[1] = NodeManager::currentNM()->mkSetType( elemType );
-    }else{
+    }
+    else if (n.getKind() == kind::SINGLETON)
+    {
+      force_child_type[0] = n.getType().getSetElementType();
+    }
+    else{
       // APPLY_UF, APPLY_CONSTRUCTOR, etc.
       Assert(n.hasOperator());
       TypeNode opt = n.getOperator().getType();
@@ -1318,11 +1323,12 @@ void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core) const
   out << ")" << endl;
 }/* Smt2Printer::toStream(UnsatCore, map<Expr, string>) */
 
-void Smt2Printer::toStream(std::ostream& out, const Model& m) const
+void Smt2Printer::toStream(std::ostream& out, const smt::Model& m) const
 {
+  const theory::TheoryModel* tm = m.getTheoryModel();
   //print the model comments
   std::stringstream c;
-  m.getComments( c );
+  tm->getComments(c);
   std::string ln;
   while( std::getline( c, ln ) ){
     out << "; " << ln << std::endl;
@@ -1334,8 +1340,9 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m) const
   this->Printer::toStream(out, m);
   out << ")" << endl;
   //print the heap model, if it exists
-  Expr h, neq;
-  if( m.getHeapModel( h, neq ) ){
+  Node h, neq;
+  if (tm->getHeapModel(h, neq))
+  {
     // description of the heap+what nil is equal to fully describes model
     out << "(heap" << endl;
     out << h << endl;
@@ -1345,11 +1352,10 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m) const
 }
 
 void Smt2Printer::toStream(std::ostream& out,
-                           const Model& model,
+                           const smt::Model& model,
                            const NodeCommand* command) const
 {
-  const theory::TheoryModel* theory_model =
-      dynamic_cast<const theory::TheoryModel*>(&model);
+  const theory::TheoryModel* theory_model = model.getTheoryModel();
   AlwaysAssert(theory_model != nullptr);
   if (const DeclareTypeNodeCommand* dtc =
           dynamic_cast<const DeclareTypeNodeCommand*>(command))
@@ -1362,7 +1368,7 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     else
     {
-      std::vector<Expr> elements = theory_model->getDomainElements(tn.toType());
+      std::vector<Node> elements = theory_model->getDomainElements(tn);
       if (options::modelUninterpDtEnum())
       {
         if (isVariant_2_6(d_variant))
@@ -1373,7 +1379,7 @@ void Smt2Printer::toStream(std::ostream& out,
         {
           out << "(declare-datatypes () ((" << (*dtc).getSymbol() << " ";
         }
-        for (const Expr& type_ref : elements)
+        for (const Node& type_ref : elements)
         {
           out << "(" << type_ref << ")";
         }
@@ -1385,9 +1391,8 @@ void Smt2Printer::toStream(std::ostream& out,
         out << "; cardinality of " << tn << " is " << elements.size() << endl;
         out << (*dtc) << endl;
         // print the representatives
-        for (const Expr& type_ref : elements)
+        for (const Node& trn : elements)
         {
-          Node trn = Node::fromExpr(type_ref);
           if (trn.isVar())
           {
             out << "(declare-fun " << quoteSymbol(trn) << " () " << tn << ")"
@@ -1418,7 +1423,9 @@ void Smt2Printer::toStream(std::ostream& out,
       // don't print out internal stuff
       return;
     }
-    Node val = theory_model->getSmtEngine()->getValue(n);
+    // We get the value from the theory model directly, which notice
+    // does not have to go through the standard SmtEngine::getValue interface.
+    Node val = theory_model->getValue(n);
     if (val.getKind() == kind::LAMBDA)
     {
       out << "(define-fun " << n << " " << val[0] << " "

@@ -101,7 +101,7 @@ ProofGenerator* TrustNode::getGenerator() const { return d_gen; }
 
 bool TrustNode::isNull() const { return d_proven.isNull(); }
 
-std::shared_ptr<ProofNode> TrustNode::toProofNode()
+std::shared_ptr<ProofNode> TrustNode::toProofNode() const
 {
   if (d_gen == nullptr)
   {
@@ -139,7 +139,8 @@ std::string TrustNode::identifyGenerator() const
 
 std::ostream& operator<<(std::ostream& out, TrustNode n)
 {
-  out << "(" << n.getKind() << " " << n.getProven() << ")";
+  out << "(" << n.getKind() << " " << n.getProven() << " "
+      << n.identifyGenerator() << ")";
   return out;
 }
 

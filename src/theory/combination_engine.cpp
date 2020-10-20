@@ -18,6 +18,7 @@
 #include "theory/care_graph.h"
 #include "theory/ee_manager_distributed.h"
 #include "theory/model_manager_distributed.h"
+#include "theory/shared_solver_distributed.h"
 #include "theory/theory_engine.h"
 
 namespace CVC4 {
@@ -27,10 +28,12 @@ CombinationEngine::CombinationEngine(TheoryEngine& te,
                                      const std::vector<Theory*>& paraTheories,
                                      ProofNodeManager* pnm)
     : d_te(te),
+      d_pnm(pnm),
       d_logicInfo(te.getLogicInfo()),
       d_paraTheories(paraTheories),
       d_eemanager(nullptr),
       d_mmanager(nullptr),
+      d_sharedSolver(nullptr),
       d_cmbsPg(pnm ? new EagerProofGenerator(pnm, te.getUserContext())
                    : nullptr)
 {
@@ -43,8 +46,11 @@ void CombinationEngine::finishInit()
   // create the equality engine, model manager, and shared solver
   if (options::eeMode() == options::EqEngineMode::DISTRIBUTED)
   {
+    // use the distributed shared solver
+    d_sharedSolver.reset(new SharedSolverDistributed(d_te, d_pnm));
     // make the distributed equality engine manager
-    d_eemanager.reset(new EqEngineManagerDistributed(d_te));
+    d_eemanager.reset(
+        new EqEngineManagerDistributed(d_te, *d_sharedSolver.get()));
     // make the distributed model manager
     d_mmanager.reset(new ModelManagerDistributed(d_te, *d_eemanager.get()));
   }
@@ -95,6 +101,10 @@ theory::TheoryModel* CombinationEngine::getModel()
   return d_mmanager->getModel();
 }
 
+SharedSolver* CombinationEngine::getSharedSolver()
+{
+  return d_sharedSolver.get();
+}
 bool CombinationEngine::isProofEnabled() const { return d_cmbsPg != nullptr; }
 
 eq::EqualityEngineNotify* CombinationEngine::getModelEqualityEngineNotify()

@@ -232,11 +232,51 @@ struct ChooseTypeRule
   }
 }; /* struct ChooseTypeRule */
 
+struct FromSetTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+  {
+    Assert(n.getKind() == kind::BAG_FROM_SET);
+    TypeNode setType = n[0].getType(check);
+    if (check)
+    {
+      if (!setType.isSet())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "bag.from_set operator expects a set, a non-set is found");
+      }
+    }
+    TypeNode elementType = setType.getSetElementType();
+    TypeNode bagType = nodeManager->mkBagType(elementType);
+    return bagType;
+  }
+}; /* struct FromSetTypeRule */
+
+struct ToSetTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+  {
+    Assert(n.getKind() == kind::BAG_TO_SET);
+    TypeNode bagType = n[0].getType(check);
+    if (check)
+    {
+      if (!bagType.isBag())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "bag.to_set operator expects a bag, a non-bag is found");
+      }
+    }
+    TypeNode elementType = bagType.getBagElementType();
+    TypeNode setType = nodeManager->mkSetType(elementType);
+    return setType;
+  }
+}; /* struct ToSetTypeRule */
+
 struct BagsProperties
 {
   static Cardinality computeCardinality(TypeNode type)
   {
-    return Cardinality::UNKNOWN_CARD;
+    return Cardinality::INTEGERS;
   }
 
   static bool isWellFounded(TypeNode type) { return type[0].isWellFounded(); }

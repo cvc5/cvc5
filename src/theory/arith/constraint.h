@@ -85,12 +85,14 @@
 #include "context/cdqueue.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "expr/proof_node_manager.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/callbacks.h"
 #include "theory/arith/congruence_manager.h"
 #include "theory/arith/constraint_forward.h"
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/proof_macros.h"
+#include "theory/trust_node.h"
 
 namespace CVC4 {
 namespace theory {
@@ -409,7 +411,7 @@ class Constraint {
    * Returns a lemma that is assumed to be true for the rest of the user context.
    * Constraint must be an equality or disequality.
    */
-  Node split();
+  TrustNode split();
 
   bool canBePropagated() const {
     return d_canBePropagated;
@@ -461,6 +463,14 @@ class Constraint {
     Assert(hasLiteral());
     return d_literal;
   }
+
+  /** Gets a literal in the normal form suitable for proofs.
+   * That is, (sum of non-const monomials) >< const.
+   *
+   * This is a sister method to `getLiteral`, which returns a normal form
+   * literal, suitable for external solving use.
+   */
+  Node getProofLiteral() const;
 
   /**
    * Set the node as having a proof and being an assumption.
@@ -543,9 +553,7 @@ class Constraint {
    * This is the minimum fringe of the implication tree s.t.
    * every constraint is assertedToTheTheory() or hasEqualityEngineProof().
    */
-  Node externalExplainByAssertions() const {
-    return externalExplain(AssertionOrderSentinel);
-  }
+  TrustNode externalExplainByAssertions() const;
 
   /**
    * Writes an explanation of a constraint into the node builder.
@@ -558,8 +566,10 @@ class Constraint {
    * This is not appropriate for propagation!
    * Use explainForPropagation() instead.
    */
-  void externalExplainByAssertions(NodeBuilder<>& nb) const{
-    externalExplain(nb, AssertionOrderSentinel);
+  std::shared_ptr<ProofNode> externalExplainByAssertions(
+      NodeBuilder<>& nb) const
+  {
+    return externalExplain(nb, AssertionOrderSentinel);
   }
 
   /* Equivalent to calling externalExplainByAssertions on all constraints in b */
@@ -586,22 +596,19 @@ class Constraint {
    * The constraint must have a proof.
    * The constraint cannot be an assumption.
    *
-   * This is the minimum fringe of the implication tree (excluding the constraint itself)
-   * s.t. every constraint is assertedToTheTheory() or hasEqualityEngineProof().
+   * This is the minimum fringe of the implication tree (excluding the
+   * constraint itself) s.t. every constraint is assertedToTheTheory() or
+   * hasEqualityEngineProof().
+   *
+   * All return conjuncts were asserted before this constraint.
    */
-  Node externalExplainForPropagation() const {
-    Assert(hasProof());
-    Assert(!isAssumption());
-    Assert(!isInternalAssumption());
-    return externalExplain(d_assertionOrder);
-  }
+  TrustNode externalExplainForPropagation() const;
 
   /**
    * Explain the constraint and its negation in terms of assertions.
    * The constraint must be in conflict.
    */
-  Node externalExplainConflict() const;
-
+  TrustNode externalExplainConflict() const;
 
   /** The constraint is known to be true. */
   inline bool hasProof() const {
@@ -847,7 +854,6 @@ class Constraint {
   static std::pair<int, int> unateFarkasSigns(ConstraintCP a, ConstraintCP b);
 
   Node externalExplain(AssertionOrder order) const;
-
   /**
    * Returns an explanation of that was assertedBefore(order).
    * The constraint must have a proof.
@@ -856,7 +862,8 @@ class Constraint {
    * This is the minimum fringe of the implication tree
    * s.t. every constraint is assertedBefore(order) or hasEqualityEngineProof().
    */
-  void externalExplain(NodeBuilder<>& nb, AssertionOrder order) const;
+  std::shared_ptr<ProofNode> externalExplain(NodeBuilder<>& nb,
+                                             AssertionOrder order) const;
 
   static Node externalExplain(const ConstraintCPVec& b, AssertionOrder order);
 
@@ -1086,6 +1093,10 @@ private:
   ArithCongruenceManager& d_congruenceManager;
 
   const context::Context * const d_satContext;
+  /** Owned by the TheoryArithPrivate, used here. */
+  EagerProofGenerator* d_pfGen;
+  /** Owned by the TheoryArithPrivate, used here. */
+  ProofNodeManager* d_pnm;
 
   RaiseConflict d_raiseConflict;
 
@@ -1095,13 +1106,14 @@ private:
 
   friend class Constraint;
 
-public:
-
-  ConstraintDatabase( context::Context* satContext,
-                      context::Context* userContext,
-                      const ArithVariables& variables,
-                      ArithCongruenceManager& dm,
-                      RaiseConflict conflictCallBack);
+ public:
+  ConstraintDatabase(context::Context* satContext,
+                     context::Context* userContext,
+                     const ArithVariables& variables,
+                     ArithCongruenceManager& dm,
+                     RaiseConflict conflictCallBack,
+                     EagerProofGenerator* pfGen,
+                     ProofNodeManager* pnm);
 
   ~ConstraintDatabase();
 
@@ -1138,7 +1150,10 @@ public:
   bool variableDatabaseIsSetup(ArithVar v) const;
   void removeVariable(ArithVar v);
 
-  Node eeExplain(ConstraintCP c) const;
+  /** Get an explanation and proof for this constraint from the equality engine
+   */
+  TrustNode eeExplain(ConstraintCP c) const;
+  /** Get an explanation for this constraint from the equality engine */
   void eeExplain(ConstraintCP c, NodeBuilder<>& nb) const;
 
   /**
@@ -1176,14 +1191,39 @@ public:
 
   void deleteConstraintAndNegation(ConstraintP c);
 
+  /** Given constraints `a` and `b` such that `a OR b` by unate reasoning,
+   *  adds a TrustNode to `out` which proves `a OR b` as a lemma.
+   *
+   *  Example: `x <= 5` OR `5 <= x`.
+   */
+  void proveOr(std::vector<TrustNode>& out,
+               ConstraintP a,
+               ConstraintP b,
+               bool negateSecond) const;
+  /** Given constraints `a` and `b` such that `a` implies `b` by unate
+   * reasoning, adds a TrustNode to `out` which proves `-a OR b` as a lemma.
+   *
+   *  Example: `x >= 5` -> `x >= 4`.
+   */
+  void implies(std::vector<TrustNode>& out, ConstraintP a, ConstraintP b) const;
+  /** Given constraints `a` and `b` such that `not(a AND b)` by unate reasoning,
+   *  adds a TrustNode to `out` which proves `-a OR -b` as a lemma.
+   *
+   *  Example: `x >= 4` -> `x <= 3`.
+   */
+  void mutuallyExclusive(std::vector<TrustNode>& out,
+                         ConstraintP a,
+                         ConstraintP b) const;
+
   /**
    * Outputs a minimal set of unate implications onto the vector for the variable.
    * This outputs lemmas of the general forms
    *     (= p c) implies (<= p d) for c < d, or
    *     (= p c) implies (not (= p d)) for c != d.
    */
-  void outputUnateEqualityLemmas(std::vector<Node>& lemmas) const;
-  void outputUnateEqualityLemmas(std::vector<Node>& lemmas, ArithVar v) const;
+  void outputUnateEqualityLemmas(std::vector<TrustNode>& lemmas) const;
+  void outputUnateEqualityLemmas(std::vector<TrustNode>& lemmas,
+                                 ArithVar v) const;
 
   /**
    * Outputs a minimal set of unate implications onto the vector for the variable.
@@ -1191,9 +1231,9 @@ public:
    * If ineqs is true, this outputs lemmas of the general form
    *     (<= p c) implies (<= p d) for c < d.
    */
-  void outputUnateInequalityLemmas(std::vector<Node>& lemmas) const;
-  void outputUnateInequalityLemmas(std::vector<Node>& lemmas, ArithVar v) const;
-
+  void outputUnateInequalityLemmas(std::vector<TrustNode>& lemmas) const;
+  void outputUnateInequalityLemmas(std::vector<TrustNode>& lemmas,
+                                   ArithVar v) const;
 
   void unatePropLowerBound(ConstraintP curr, ConstraintP prev);
   void unatePropUpperBound(ConstraintP curr, ConstraintP prev);
@@ -1202,7 +1242,9 @@ public:
   /** AntecendentID must be in range. */
   ConstraintCP getAntecedent(AntecedentId p) const;
 
-private:
+  bool isProofEnabled() const { return d_pnm != nullptr; }
+
+ private:
   /** returns true if cons is now in conflict. */
   bool handleUnateProp(ConstraintP ant, ConstraintP cons);
 

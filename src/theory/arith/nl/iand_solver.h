@@ -20,9 +20,11 @@
 
 #include "context/cdhashset.h"
 #include "expr/node.h"
+#include "theory/arith/arith_state.h"
+#include "theory/arith/inference_manager.h"
+#include "theory/arith/nl/iand_table.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
-#include "theory/arith/theory_arith.h"
 
 namespace CVC4 {
 namespace theory {
@@ -37,7 +39,7 @@ class IAndSolver
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  IAndSolver(TheoryArith& containing, NlModel& model);
+  IAndSolver(InferenceManager& im, ArithState& state, NlModel& model);
   ~IAndSolver();
 
   /** init last call
@@ -66,18 +68,18 @@ class IAndSolver
    * This should be a heuristic incomplete check that only introduces a
    * small number of new terms in the lemmas it returns.
    */
-  std::vector<NlLemma> checkInitialRefine();
+  void checkInitialRefine();
   /** check full refine
    *
    * This should be a complete check that returns at least one lemma to
    * rule out the current model.
    */
-  std::vector<NlLemma> checkFullRefine();
+  void checkFullRefine();
 
   //-------------------------------------------- end lemma schemas
  private:
-  // The theory of arithmetic containing this extension.
-  TheoryArith& d_containing;
+  // The inference manager that we push conflicts and lemmas to.
+  InferenceManager& d_im;
   /** Reference to the non-linear model object */
   NlModel& d_model;
   /** commonly used terms */
@@ -87,6 +89,7 @@ class IAndSolver
   Node d_two;
   Node d_true;
   Node d_false;
+  IAndTable d_iandTable;
   /** IAND terms that have been given initial refinement lemmas */
   NodeSet d_initRefine;
   /** all IAND terms, for each bit-width */
@@ -117,6 +120,13 @@ class IAndSolver
    *     ((_ iand k) x y) = Rewriter::rewrite(((_ iand k) M(x) M(y)))
    */
   Node valueBasedLemma(Node i);
+  /**
+   * Sum-based refinement lemma for i of the form ((_ iand k) x y). Returns:
+   * i = 2^0*min(x[0],y[0])+...2^{k-1}*min(x[k-1],y[k-1])
+   * where x[i] is x div i mod 2
+   * and min is defined with an ite.
+   */
+  Node sumBasedLemma(Node i);
 }; /* class IAndSolver */
 
 }  // namespace nl

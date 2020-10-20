@@ -26,6 +26,7 @@
 #include <iostream>
 
 #include "expr/node.h"
+#include "theory/arith/bound_inference.h"
 #include "util/real_algebraic_number.h"
 
 namespace CVC4 {
@@ -72,6 +73,17 @@ poly::Polynomial as_poly_polynomial(const CVC4::Node& n, VariableMapper& vm);
 poly::Polynomial as_poly_polynomial(const CVC4::Node& n,
                                     VariableMapper& vm,
                                     poly::Rational& denominator);
+
+/**
+ * Constructs a node from the given polynomial.
+ *
+ * This methods does the straight-forward conversion from a polynomial into Node
+ * representation, using the given variable mapper.
+ * The resulting node is not minimized in any form (it may contain spurious
+ * multiplications with one or use NONLINEAR_MULT where regular MULT may be
+ * sufficient), so it may be sensible to rewrite it afterwards.
+ */
+CVC4::Node as_cvc_polynomial(const poly::Polynomial& p, VariableMapper& vm);
 
 /**
  * Constructs a constraints (a polynomial and a sign condition) from the given
@@ -142,6 +154,8 @@ poly::Value node_to_value(const Node& n, const Node& ran_variable);
  * example to avoid divergence or disallow huge lemmas.
  */
 std::size_t bitsize(const poly::Value& v);
+
+poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi);
 
 }  // namespace nl
 }  // namespace arith

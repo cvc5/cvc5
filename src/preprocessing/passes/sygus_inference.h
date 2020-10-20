@@ -59,7 +59,7 @@ class SygusInference : public PreprocessingPass
    * If this function returns true, then we add all uninterpreted symbols s in
    * assertions to funs and their corresponding solution to sols.
    */
-  bool solveSygus(std::vector<Node>& assertions,
+  bool solveSygus(const std::vector<Node>& assertions,
                   std::vector<Node>& funs,
                   std::vector<Node>& sols);
 };

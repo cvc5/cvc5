@@ -38,10 +38,11 @@
 #include "theory/interrupted.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
-#include "theory/substitutions.h"
 #include "theory/term_registration_visitor.h"
 #include "theory/theory.h"
 #include "theory/theory_preprocessor.h"
+#include "theory/trust_node.h"
+#include "theory/trust_substitutions.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
 #include "util/hash.h"
@@ -111,7 +112,6 @@ class TheoryEngine {
 
   /** Shared terms database can use the internals notify the theories */
   friend class SharedTermsDatabase;
-  friend class theory::CombinationEngine;
   friend class theory::EngineOutputChannel;
   friend class theory::CombinationEngine;
   friend class theory::SharedSolver;
@@ -154,14 +154,10 @@ class TheoryEngine {
   /** The proof generator */
   std::shared_ptr<TheoryEngineProofGenerator> d_tepg;
   //--------------------------------- end new proofs
-
-  /**
-   * The database of shared terms.
-   */
-  SharedTermsDatabase d_sharedTerms;
-
   /** The combination manager we are using */
   std::unique_ptr<theory::CombinationEngine> d_tc;
+  /** The shared solver of the above combination engine. */
+  theory::SharedSolver* d_sharedSolver;
   /**
    * The quantifiers engine
    */
@@ -176,14 +172,8 @@ class TheoryEngine {
   /** Default visitor for pre-registration */
   PreRegisterVisitor d_preRegistrationVisitor;
 
-  /** Visitor for collecting shared terms */
-  SharedTermsVisitor d_sharedTermsVisitor;
-
   /** are we in eager model building mode? (see setEagerModelBuilding). */
   bool d_eager_model_building;
-
-  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
-  typedef std::unordered_map<TNode, Node, TNodeHashFunction> TNodeMap;
 
   /**
    * Output channels for individual theories.
@@ -322,7 +312,8 @@ class TheoryEngine {
                ResourceManager* rm,
                RemoveTermFormulas& iteRemover,
                const LogicInfo& logic,
-               OutputManager& outMgr);
+               OutputManager& outMgr,
+               ProofNodeManager* pnm);
 
   /** Destroys a theory engine */
   ~TheoryEngine();
@@ -346,7 +337,7 @@ class TheoryEngine {
                                               *d_theoryOut[theoryId],
                                               theory::Valuation(this),
                                               d_logicInfo,
-                                              nullptr);
+                                              d_pnm);
     theory::Rewriter::registerTheoryRewriter(
         theoryId, d_theoryTable[theoryId]->getTheoryRewriter());
   }
@@ -371,6 +362,9 @@ class TheoryEngine {
   inline prop::PropEngine* getPropEngine() const {
     return d_propEngine;
   }
+
+  /** Get the proof node manager */
+  ProofNodeManager* getProofNodeManager() const;
 
   /**
    * Get a pointer to the underlying sat context.
@@ -501,10 +495,13 @@ class TheoryEngine {
   void shutdown();
 
   /**
-   * Solve the given literal with a theory that owns it.
+   * Solve the given literal with a theory that owns it. The proof of tliteral
+   * is carried in the trust node. The proof added to substitutionOut should
+   * take this proof into account (when proofs are enabled).
    */
-  theory::Theory::PPAssertStatus solve(TNode literal,
-                                    theory::SubstitutionMap& substitutionOut);
+  theory::Theory::PPAssertStatus solve(
+      theory::TrustNode tliteral,
+      theory::TrustSubstitutionMap& substitutionOut);
 
   /**
    * Preregister a Theory atom with the responsible theory (or
@@ -744,7 +741,6 @@ private:
 
  private:
   IntStat d_arithSubstitutionsAdded;
-
 };/* class TheoryEngine */
 
 }/* CVC4 namespace */

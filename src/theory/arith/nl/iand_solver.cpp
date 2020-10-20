@@ -28,10 +28,10 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-IAndSolver::IAndSolver(TheoryArith& containing, NlModel& model)
-    : d_containing(containing),
+IAndSolver::IAndSolver(InferenceManager& im, ArithState& state, NlModel& model)
+    : d_im(im),
       d_model(model),
-      d_initRefine(containing.getUserContext())
+      d_initRefine(state.getUserContext())
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
@@ -66,10 +66,9 @@ void IAndSolver::initLastCall(const std::vector<Node>& assertions,
   Trace("iand") << "We have " << d_iands.size() << " IAND terms." << std::endl;
 }
 
-std::vector<NlLemma> IAndSolver::checkInitialRefine()
+void IAndSolver::checkInitialRefine()
 {
   Trace("iand-check") << "IAndSolver::checkInitialRefine" << std::endl;
-  std::vector<NlLemma> lems;
   NodeManager* nm = NodeManager::currentNM();
   for (const std::pair<const unsigned, std::vector<Node> >& is : d_iands)
   {
@@ -101,17 +100,15 @@ std::vector<NlLemma> IAndSolver::checkInitialRefine()
       Node lem = conj.size() == 1 ? conj[0] : nm->mkNode(AND, conj);
       Trace("iand-lemma") << "IAndSolver::Lemma: " << lem << " ; INIT_REFINE"
                           << std::endl;
-      lems.emplace_back(lem, InferenceId::NL_IAND_INIT_REFINE);
+      d_im.addPendingArithLemma(lem, InferenceId::NL_IAND_INIT_REFINE);
     }
   }
-  return lems;
 }
 
-std::vector<NlLemma> IAndSolver::checkFullRefine()
+void IAndSolver::checkFullRefine()
 {
   Trace("iand-check") << "IAndSolver::checkFullRefine";
   Trace("iand-check") << "IAND terms: " << std::endl;
-  std::vector<NlLemma> lems;
   for (const std::pair<const unsigned, std::vector<Node> >& is : d_iands)
   {
     // the reference bitwidth
@@ -151,7 +148,10 @@ std::vector<NlLemma> IAndSolver::checkFullRefine()
       // ************* additional lemma schemas go here
       if (options::iandMode() == options::IandMode::SUM)
       {
-        // add lemmas based on sum mode
+        Node lem = sumBasedLemma(i);  // add lemmas based on sum mode
+        Trace("iand-lemma")
+            << "IAndSolver::Lemma: " << lem << " ; SUM_REFINE" << std::endl;
+        d_im.addPendingArithLemma(lem, InferenceId::NL_IAND_SUM_REFINE, true);
       }
       else if (options::iandMode() == options::IandMode::BITWISE)
       {
@@ -163,12 +163,10 @@ std::vector<NlLemma> IAndSolver::checkFullRefine()
         Node lem = valueBasedLemma(i);
         Trace("iand-lemma")
             << "IAndSolver::Lemma: " << lem << " ; VALUE_REFINE" << std::endl;
-        lems.emplace_back(lem, InferenceId::NL_IAND_VALUE_REFINE);
+        d_im.addPendingArithLemma(lem, InferenceId::NL_IAND_VALUE_REFINE, true);
       }
     }
   }
-
-  return lems;
 }
 
 Node IAndSolver::convertToBvK(unsigned k, Node n) const
@@ -250,7 +248,18 @@ Node IAndSolver::valueBasedLemma(Node i)
   return lem;
 }
 
-bool oneBitAnd(bool a, bool b) { return (a && b); }
+Node IAndSolver::sumBasedLemma(Node i)
+{
+  Assert(i.getKind() == IAND);
+  Node x = i[0];
+  Node y = i[1];
+  size_t bvsize = i.getOperator().getConst<IntAnd>().d_size;
+  uint64_t granularity = options::BVAndIntegerGranularity();
+  NodeManager* nm = NodeManager::currentNM();
+  Node lem = nm->mkNode(
+      EQUAL, i, d_iandTable.createBitwiseNode(x, y, bvsize, granularity));
+  return lem;
+}
 
 }  // namespace nl
 }  // namespace arith
