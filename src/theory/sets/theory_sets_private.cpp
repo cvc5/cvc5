@@ -1096,13 +1096,21 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
             << "Collect elements of base eqc " << eqc << std::endl;
         // members that must be in eqc
         const std::map<Node, Node>& emems = d_state.getMembers(eqc);
+        Trace("sets-model") << "eqc members: " << emems << std::endl;
         if (!emems.empty())
         {
           TypeNode elementType = eqc.getType().getSetElementType();
           for (const std::pair<const Node, Node>& itmm : emems)
           {
-            Node t = nm->mkSingleton(elementType, itmm.first);
-            els.push_back(t);
+            Node value = m->getValue(itmm.first);
+            Trace("sets-model") << "TheoryModel::getValue(" << itmm.first
+                                << ") = " << value << std::endl;
+            Node t = nm->mkSingleton(elementType, value);
+
+            if (std::find(els.begin(), els.end(), t) == els.end())
+            {
+              els.push_back(t);
+            }
           }
         }
       }
@@ -1133,6 +1141,8 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
   {
     const std::map<TypeNode, std::vector<TNode> >& slackElements =
         d_cardSolver->getFiniteTypeSlackElements();
+    Trace("sets-model") << "slackElements size: " << slackElements.size()
+                        << std::endl;
     for (const std::pair<TypeNode, std::vector<TNode> >& pair : slackElements)
     {
       const std::vector<Node>& members =

@@ -307,15 +307,19 @@ Node TheoryModel::getModelValue(TNode n) const
   {
     Debug("model-getvalue-debug")
         << "get value from representative " << ret << "..." << std::endl;
-    ret = d_equalityEngine->getRepresentative(ret);
-    Assert(d_reps.find(ret) != d_reps.end());
-    std::map<Node, Node>::const_iterator it2 = d_reps.find(ret);
-    if (it2 != d_reps.end())
+    Node representative = d_equalityEngine->getRepresentative(ret);
+    // Assert(d_reps.find(ret) != d_reps.end());
+    std::map<Node, Node>::const_iterator it2 = d_reps.find(representative);
+    if (it2 == d_reps.end())
+    {
+      ret = representative;
+    }
+    else
     {
       ret = it2->second;
-      d_modelCache[n] = ret;
-      return ret;
     }
+    d_modelCache[n] = ret;
+    return ret;
   }
 
   // if we are a evaluated or semi-evaluated kind, return an arbitrary value

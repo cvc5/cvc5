@@ -361,7 +361,7 @@ bool Theory::collectModelInfo(TheoryModel* m, const std::set<Node>& termSet)
       return false;
     }
   }
-  // now, collect theory-specific value assigments
+  // now, collect theory-specific value assignments
   return collectModelValues(m, termSet);
 }
 
