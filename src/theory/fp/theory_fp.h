@@ -2,10 +2,10 @@
 /*! \file theory_fp.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain, Mathias Preiner, Tim King
+ **   Martin Brain, Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -75,7 +75,8 @@ class TheoryFp : public Theory {
   //--------------------------------- end standard check
 
   Node getModelValue(TNode var) override;
-  bool collectModelInfo(TheoryModel* m) override;
+  bool collectModelInfo(TheoryModel* m,
+                        const std::set<Node>& relevantTerms) override;
   /** Collect model values in m based on the relevant terms given by
    * relevantTerms */
   bool collectModelValues(TheoryModel* m,

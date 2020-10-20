@@ -2,18 +2,18 @@
 /*! \file floatingpoint.h.in
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain, Haniel Barbosa, Tim King
+ **   Martin Brain, Aina Niemetz, Haniel Barbosa
  ** Copyright (c) 2013  University of Oxford
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief [[ Utility functions for working with floating point theories. ]]
+ ** \brief A floating-point value.
  **
- ** [[ This file contains the data structures used by the constant and
- **    parametric types of the floating point theory. ]]
+ ** This file contains the data structures used by the constant and parametric
+ ** types of the floating point theory.
  **/
 #include "cvc4_public.h"
 
@@ -89,9 +89,9 @@ namespace CVC4 {
       return (((X) << (N)) | ((X) >> (8*sizeof((X)) - (N)) ));
     }
 
-    inline size_t operator() (const FloatingPointSize& fpt) const {
-      return size_t(ROLL(fpt.exponent(), 4*sizeof(unsigned)) |
-		    fpt.significand());
+    inline size_t operator() (const FloatingPointSize& t) const {
+      return size_t(ROLL(t.exponent(), 4*sizeof(unsigned)) |
+		    t.significand());
     }
   }; /* struct FloatingPointSizeHashFunction */
 
@@ -132,12 +132,12 @@ namespace CVC4 {
   {
    public:
     // The six key types that symfpu uses.
-    typedef unsigned bwt;
-    typedef bool prop;
-    typedef ::CVC4::RoundingMode rm;
-    typedef ::CVC4::FloatingPointSize fpt;
-    typedef wrappedBitVector<true> sbv;
-    typedef wrappedBitVector<false> ubv;
+    using bwt = uint32_t;
+    using prop = bool;
+    using rm = ::CVC4::RoundingMode;
+    using fpt = ::CVC4::FloatingPointSize;
+    using sbv = wrappedBitVector<true>;
+    using ubv = wrappedBitVector<false>;
 
     // Give concrete instances of each rounding mode, mainly for comparisons.
     static rm RNE(void);
@@ -153,12 +153,12 @@ namespace CVC4 {
   };
 
   // Use the same type names as symfpu.
-  typedef traits::bwt bwt;
-  typedef traits::prop prop;
-  typedef traits::rm rm;
-  typedef traits::fpt fpt;
-  typedef traits::ubv ubv;
-  typedef traits::sbv sbv;
+  using bwt = traits::bwt;
+  using prop = traits::prop;
+  using rm = traits::rm;
+  using fpt = traits::fpt;
+  using ubv = traits::ubv;
+  using sbv = traits::sbv;
 
   // Type function for mapping between types
   template <bool T>
@@ -167,12 +167,12 @@ namespace CVC4 {
   template <>
   struct signedToLiteralType<true>
   {
-    typedef int literalType;
+    using literalType = int32_t;
   };
   template <>
   struct signedToLiteralType<false>
   {
-    typedef unsigned int literalType;
+    using literalType = uint32_t;
   };
 
   // This is an additional interface for CVC4::BitVector.
@@ -182,7 +182,7 @@ namespace CVC4 {
   class wrappedBitVector : public BitVector
   {
    protected:
-    typedef typename signedToLiteralType<isSigned>::literalType literalType;
+    using literalType = typename signedToLiteralType<isSigned>::literalType;
 
     friend wrappedBitVector<!isSigned>;  // To allow conversion between the
                                          // types
@@ -288,7 +288,7 @@ namespace CVC4 {
    * A concrete floating point number
    */
 #if @CVC4_USE_SYMFPU@
-  typedef ::symfpu::unpackedFloat<symfpuLiteral::traits> FloatingPointLiteral;
+  using FloatingPointLiteral = ::symfpu::unpackedFloat<symfpuLiteral::traits>;
 #else
   class CVC4_PUBLIC FloatingPointLiteral {
   public :
@@ -318,20 +318,72 @@ namespace CVC4 {
   public :
     FloatingPointSize t;
 
-    FloatingPoint (unsigned e, unsigned s, const BitVector &bv);
-    FloatingPoint (const FloatingPointSize &oldt, const FloatingPointLiteral &oldfpl) : fpl(oldfpl), t(oldt) {}
-    FloatingPoint (const FloatingPoint &fp) : fpl(fp.fpl), t(fp.t) {}
-    FloatingPoint (const FloatingPointSize &ct, const RoundingMode &rm, const BitVector &bv, bool signedBV);
-    FloatingPoint (const FloatingPointSize &ct, const RoundingMode &rm, const Rational &r);
+    /** Constructors. */
+    FloatingPoint(unsigned e, unsigned s, const BitVector& bv);
+    FloatingPoint(const FloatingPointSize& size, const BitVector& bv);
 
-
-    static FloatingPoint makeNaN (const FloatingPointSize &t);
-    static FloatingPoint makeInf (const FloatingPointSize &t, bool sign);
-    static FloatingPoint makeZero (const FloatingPointSize &t, bool sign);
-
-    const FloatingPointLiteral & getLiteral (void) const {
-      return this->fpl;
+    FloatingPoint(const FloatingPointSize& oldt,
+                  const FloatingPointLiteral& oldfpl)
+        : fpl(oldfpl), t(oldt)
+    {
     }
+
+    FloatingPoint(const FloatingPoint& fp) : fpl(fp.fpl), t(fp.t) {}
+    FloatingPoint(const FloatingPointSize& size,
+                  const RoundingMode& rm,
+                  const BitVector& bv,
+                  bool signedBV);
+    FloatingPoint(const FloatingPointSize& size,
+                  const RoundingMode& rm,
+                  const Rational& r);
+
+    /**
+     * Create a FP NaN value of given size.
+     * t: The FP size (format).
+     */
+    static FloatingPoint makeNaN (const FloatingPointSize &size);
+    /**
+     * Create a FP infinity value of given size.
+     * t:    The FP size (format).
+     * sign: True for +oo, false otherwise.
+     */
+    static FloatingPoint makeInf(const FloatingPointSize& size, bool sign);
+    /**
+     * Create a FP zero value of given size.
+     * t:    The FP size (format).
+     * sign: True for +zero, false otherwise.
+     */
+    static FloatingPoint makeZero(const FloatingPointSize& size, bool sign);
+    /**
+     * Create the smallest subnormal FP value of given size.
+     * t:    The FP size (format).
+     * sign: True for positive sign, false otherwise.
+     */
+    static FloatingPoint makeMinSubnormal(const FloatingPointSize& size,
+                                          bool sign);
+    /**
+     * Create the largest subnormal FP value of given size.
+     * t:    The FP size (format).
+     * sign: True for positive sign, false otherwise.
+     */
+    static FloatingPoint makeMaxSubnormal(const FloatingPointSize& size,
+                                          bool sign);
+    /**
+     * Create the smallest normal FP value of given size.
+     * t:    The FP size (format).
+     * sign: True for positive sign, false otherwise.
+     */
+    static FloatingPoint makeMinNormal(const FloatingPointSize& size,
+                                       bool sign);
+    /**
+     * Create the largest normal FP value of given size.
+     * t:    The FP size (format).
+     * sign: True for positive sign, false otherwise.
+     */
+    static FloatingPoint makeMaxNormal(const FloatingPointSize& size,
+                                          bool sign);
+
+    const FloatingPointLiteral& getLiteral(void) const { return this->fpl; }
 
     /* Return string representation.
      *

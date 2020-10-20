@@ -2,10 +2,10 @@
 /*! \file smt_solver.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Aina Niemetz, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -52,7 +52,8 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
                                         d_rm,
                                         d_pp.getTermFormulaRemover(),
                                         logicInfo,
-                                        d_smt.getOutputManager()));
+                                        d_smt.getOutputManager(),
+                                        d_pnm));
 
   // Add the theories
   for (theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST;
@@ -258,6 +259,8 @@ void SmtSolver::setProofNodeManager(ProofNodeManager* pnm) { d_pnm = pnm; }
 TheoryEngine* SmtSolver::getTheoryEngine() { return d_theoryEngine.get(); }
 
 prop::PropEngine* SmtSolver::getPropEngine() { return d_propEngine.get(); }
+
+Preprocessor* SmtSolver::getPreprocessor() { return &d_pp; }
 
 }  // namespace smt
 }  // namespace CVC4

@@ -1,3 +1,13 @@
+#####################
+## test_term.py
+## Top contributors (to current version):
+##   Makai Mann, Andres Noetzli
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
 import pytest
 
 import pycvc4
@@ -100,10 +110,10 @@ def test_is_const():
     x = solver.mkConst(intsort, 'x')
     xpone = solver.mkTerm(kinds.Plus, x, one)
     onepone = solver.mkTerm(kinds.Plus, one, one)
-    assert not x.isConst()
-    assert one.isConst()
-    assert not xpone.isConst()
-    assert not onepone.isConst()
+    assert not x.isValue()
+    assert one.isValue()
+    assert not xpone.isValue()
+    assert not onepone.isValue()
 
 def test_const_sequence_elements():
     solver = pycvc4.Solver()
@@ -111,7 +121,7 @@ def test_const_sequence_elements():
     seqsort = solver.mkSequenceSort(realsort)
     s = solver.mkEmptySequence(seqsort)
 
-    assert s.isConst()
+    assert s.isValue()
 
     assert s.getKind() == kinds.ConstSequence
     # empty sequence has zero elements

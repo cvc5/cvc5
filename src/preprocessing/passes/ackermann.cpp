@@ -5,7 +5,7 @@
  **   Ying Sheng, Yoni Zohar, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -276,9 +276,13 @@ void usortsToBitVectors(const LogicInfo& d_logic,
     for (size_t i = 0, size = assertions->size(); i < size; ++i)
     {
       Node old = (*assertions)[i];
-      assertions->replace(i, usVarsToBVVars.apply((*assertions)[i]));
-      Trace("uninterpretedSorts-to-bv")
-          << "  " << old << " => " << (*assertions)[i] << "\n";
+      Node newA = usVarsToBVVars.apply((*assertions)[i]);
+      if (newA != old)
+      {
+        assertions->replace(i, newA);
+        Trace("uninterpretedSorts-to-bv")
+            << "  " << old << " => " << (*assertions)[i] << "\n";
+      }
     }
   }
 }

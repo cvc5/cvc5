@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Mudathir Mohamed, Kshitij Bansal
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -111,7 +111,7 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
             // singleton equal to emptyset, conflict
             Trace("sets-prop")
                 << "Propagate conflict : " << s1 << " == " << s2 << std::endl;
-            conflict(s1, s2);
+            d_im.conflictEqConstantMerge(s1, s2);
             return;
           }
         }
@@ -361,8 +361,6 @@ void TheorySetsPrivate::fullEffortCheck()
         Trace("sets-mem") << std::endl;
       }
     }
-    // check subtypes
-    checkSubtypes();
     d_im.doPendingLemmas();
     if (d_im.hasSent())
     {
@@ -416,49 +414,6 @@ void TheorySetsPrivate::fullEffortCheck()
   Trace("sets") << "----- End full effort check, conflict="
                 << d_state.isInConflict() << ", lemma=" << d_im.hasSentLemma()
                 << std::endl;
-}
-
-void TheorySetsPrivate::checkSubtypes()
-{
-  Trace("sets") << "TheorySetsPrivate: check Subtypes..." << std::endl;
-  const std::vector<Node>& sec = d_state.getSetsEqClasses();
-  for (const Node& s : sec)
-  {
-    TypeNode mct = d_most_common_type[s];
-    Assert(!mct.isNull());
-    const std::map<Node, Node>& smems = d_state.getMembers(s);
-    if (!smems.empty())
-    {
-      for (const std::pair<const Node, Node>& it2 : smems)
-      {
-        Trace("sets") << "  check subtype " << it2.first << " " << it2.second
-                      << std::endl;
-        Trace("sets") << "    types : " << it2.first.getType() << " " << mct
-                      << std::endl;
-        if (!it2.first.getType().isSubtypeOf(mct))
-        {
-          Node mctt = d_most_common_type_term[s];
-          Assert(!mctt.isNull());
-          Trace("sets") << "    most common type term is " << mctt << std::endl;
-          std::vector<Node> exp;
-          exp.push_back(it2.second);
-          Assert(d_state.areEqual(mctt, it2.second[1]));
-          exp.push_back(mctt.eqNode(it2.second[1]));
-          Node tc_k = d_treg.getTypeConstraintSkolem(it2.first, mct);
-          if (!tc_k.isNull())
-          {
-            Node etc = tc_k.eqNode(it2.first);
-            d_im.assertInference(etc, exp, "subtype-clash");
-            if (d_state.isInConflict())
-            {
-              return;
-            }
-          }
-        }
-      }
-    }
-  }
-  Trace("sets") << "TheorySetsPrivate: finished." << std::endl;
 }
 
 void TheorySetsPrivate::checkDownwardsClosure()
@@ -829,7 +784,7 @@ void TheorySetsPrivate::postCheck(Theory::Effort level)
         if (!d_state.isInConflict() && !d_im.hasSentLemma()
             && d_full_check_incomplete)
         {
-          d_external.d_out->setIncomplete();
+          d_im.setIncomplete();
         }
       }
     }
@@ -1143,9 +1098,10 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
         const std::map<Node, Node>& emems = d_state.getMembers(eqc);
         if (!emems.empty())
         {
+          TypeNode elementType = eqc.getType().getSetElementType();
           for (const std::pair<const Node, Node>& itmm : emems)
           {
-            Node t = nm->mkNode(kind::SINGLETON, itmm.first);
+            Node t = nm->mkSingleton(elementType, itmm.first);
             els.push_back(t);
           }
         }
@@ -1234,43 +1190,7 @@ Node mkAnd(const std::vector<TNode>& conjunctions)
   return conjunction;
 } /* mkAnd() */
 
-bool TheorySetsPrivate::propagate(TNode literal)
-{
-  Debug("sets-prop") << " propagate(" << literal << ")" << std::endl;
-
-  // If already in conflict, no more propagation
-  if (d_state.isInConflict())
-  {
-    Debug("sets-prop") << "TheoryUF::propagate(" << literal
-                       << "): already in conflict" << std::endl;
-    return false;
-  }
-
-  // Propagate out
-  bool ok = d_external.d_out->propagate(literal);
-  if (!ok)
-  {
-    d_state.notifyInConflict();
-  }
-
-  return ok;
-} /* TheorySetsPrivate::propagate(TNode) */
-
-OutputChannel* TheorySetsPrivate::getOutputChannel()
-{
-  return d_external.d_out;
-}
-
 Valuation& TheorySetsPrivate::getValuation() { return d_external.d_valuation; }
-
-void TheorySetsPrivate::conflict(TNode a, TNode b)
-{
-  Node conf = explain(a.eqNode(b));
-  d_im.conflict(conf);
-  Debug("sets") << "[sets] conflict: " << a << " iff " << b << ", explanation "
-                << conf << std::endl;
-  Trace("sets-lemma") << "Equality Conflict : " << conf << std::endl;
-}
 
 Node TheorySetsPrivate::explain(TNode literal)
 {
@@ -1311,7 +1231,6 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
       d_equalityEngine->addTriggerPredicate(node);
     }
     break;
-    case kind::CARD: d_equalityEngine->addTriggerTerm(node, THEORY_SETS); break;
     default: d_equalityEngine->addTerm(node); break;
   }
 }
@@ -1394,7 +1313,7 @@ TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
 
   TypeNode setType = set.getType();
   Node boundVar = nm->mkBoundVar(setType.getSetElementType());
-  Node singleton = nm->mkNode(kind::SINGLETON, boundVar);
+  Node singleton = nm->mkSingleton(setType.getSetElementType(), boundVar);
   Node equal = set.eqNode(singleton);
   std::vector<Node> variables = {boundVar};
   Node boundVars = nm->mkNode(BOUND_VAR_LIST, variables);

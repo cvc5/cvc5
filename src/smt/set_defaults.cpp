@@ -2,10 +2,10 @@
 /*! \file set_defaults.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ **   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -124,6 +124,14 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
   }
 
+  /* BVSolver::SIMPLE does not natively support int2bv and nat2bv, they need to
+   * to be eliminated eagerly. */
+  if (options::bvSolver() == options::BVSolver::SIMPLE)
+  {
+    options::bvLazyReduceExtf.set(false);
+    options::bvLazyRewriteExtf.set(false);
+  }
+
   if (options::solveIntAsBV() > 0)
   {
     // not compatible with incremental
@@ -231,13 +239,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       options::fmfBound.set(true);
       Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
     }
-    // Turn off E-matching, since some bounded quantifiers introduced by strings
-    // (e.g. for replaceall) admit matching loops.
-    if (!options::eMatching.wasSetByUser())
-    {
-      options::eMatching.set(false);
-      Trace("smt") << "turning off E-matching, for strings-exp" << std::endl;
-    }
     // Do not eliminate extended arithmetic symbols from quantified formulas,
     // since some strategies, e.g. --re-elim-agg, introduce them.
     if (!options::elimExtArithQuant.wasSetByUser())
@@ -246,6 +247,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       Trace("smt") << "turning off elim-ext-arith-quant, for strings-exp"
                    << std::endl;
     }
+    // Note we allow E-matching by default to support combinations of sequences
+    // and quantifiers.
   }
   if (options::arraysExp())
   {
@@ -543,8 +546,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     LogicInfo log(logic.getUnlockedCopy());
     // Strings requires arith for length constraints, and also UF
     needsUf = true;
-    if (!logic.isTheoryEnabled(THEORY_ARITH) || logic.isDifferenceLogic()
-        || !logic.areIntegersUsed())
+    if (!logic.isTheoryEnabled(THEORY_ARITH) || logic.isDifferenceLogic())
     {
       Notice()
           << "Enabling linear integer arithmetic because strings are enabled"
@@ -552,6 +554,12 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       log.enableTheory(THEORY_ARITH);
       log.enableIntegers();
       log.arithOnlyLinear();
+    }
+    else if (!logic.areIntegersUsed())
+    {
+      Notice() << "Enabling integer arithmetic because strings are enabled"
+               << std::endl;
+      log.enableIntegers();
     }
     logic = log;
     logic.lock();
@@ -561,6 +569,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       || logic.isTheoryEnabled(THEORY_ARRAYS)
       || logic.isTheoryEnabled(THEORY_DATATYPES)
       || logic.isTheoryEnabled(THEORY_SETS)
+      || logic.isTheoryEnabled(THEORY_BAGS)
       // Non-linear arithmetic requires UF to deal with division/mod because
       // their expansion introduces UFs for the division/mod-by-zero case.
       // If we are eliminating non-linear arithmetic via solve-int-as-bv,
@@ -594,7 +603,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     if (logic.isSharingEnabled() && !logic.isTheoryEnabled(THEORY_BV)
         && !logic.isTheoryEnabled(THEORY_STRINGS)
-        && !logic.isTheoryEnabled(THEORY_SETS))
+        && !logic.isTheoryEnabled(THEORY_SETS)
+        && !logic.isTheoryEnabled(THEORY_BAGS))
     {
       Trace("smt") << "setting theoryof-mode to term-based" << std::endl;
       options::theoryOfMode.set(options::TheoryOfMode::THEORY_OF_TERM_BASED);
@@ -613,7 +623,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
 
   // If in arrays, set the UF handler to arrays
-  if (logic.isTheoryEnabled(THEORY_ARRAYS)
+  if (logic.isTheoryEnabled(THEORY_ARRAYS) && !options::ufHo()
+      && !options::finiteModelFind()
       && (!logic.isQuantified()
           || (logic.isQuantified() && !logic.isTheoryEnabled(THEORY_UF))))
   {
@@ -958,6 +969,12 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       options::cegqiMidpoint.set(true);
     }
+    // must disable cegqi-bv since it may introduce witness terms, which
+    // cannot appear in synthesis solutions
+    if (!options::cegqiBv.wasSetByUser())
+    {
+      options::cegqiBv.set(false);
+    }
     if (options::sygusRepairConst())
     {
       if (!options::cegqi.wasSetByUser())
@@ -1100,6 +1117,12 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     if (!options::cegqiPreRegInst.wasSetByUser())
     {
       options::cegqiPreRegInst.set(true);
+    }
+    // use tangent planes by default, since we want to put effort into
+    // the verification step for sygus queries with non-linear arithmetic
+    if (!options::nlExtTangentPlanes.wasSetByUser())
+    {
+      options::nlExtTangentPlanes.set(true);
     }
     // not compatible with proofs
     if (options::proofNew())
@@ -1274,7 +1297,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // introduces new literals into the search. This includes quantifiers
     // (quantifier instantiation), and the lemma schemas used in non-linear
     // and sets. We also can't use it if models are enabled.
-    if (logic.isTheoryEnabled(THEORY_SETS) || logic.isQuantified()
+    if (logic.isTheoryEnabled(THEORY_SETS)
+        || logic.isTheoryEnabled(THEORY_BAGS)
+        || logic.isQuantified()
         || options::produceModels() || options::produceAssignments()
         || options::checkModels()
         || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()))

@@ -2,10 +2,10 @@
 /*! \file extf_solver.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ **   Andrew Reynolds, Tianyi Liang, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -65,6 +65,7 @@ ExtfSolver::ExtfSolver(SolverState& s,
   d_extt.addFunctionKind(kind::STRING_TOUPPER);
   d_extt.addFunctionKind(kind::STRING_REV);
   d_extt.addFunctionKind(kind::SEQ_UNIT);
+  d_extt.addFunctionKind(kind::SEQ_NTH);
 
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -188,7 +189,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
     NodeManager* nm = NodeManager::currentNM();
     Assert(k == STRING_SUBSTR || k == STRING_UPDATE || k == STRING_STRCTN
            || k == STRING_STRIDOF || k == STRING_ITOS || k == STRING_STOI
-           || k == STRING_STRREPL || k == STRING_STRREPLALL
+           || k == STRING_STRREPL || k == STRING_STRREPLALL || k == SEQ_NTH
            || k == STRING_REPLACE_RE || k == STRING_REPLACE_RE_ALL
            || k == STRING_LEQ || k == STRING_TOLOWER || k == STRING_TOUPPER
            || k == STRING_REV);

@@ -2,10 +2,10 @@
 /*! \file theory_bv.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -65,6 +65,16 @@ class TheoryBV : public Theory
 
   bool preCheck(Effort e) override;
 
+  void postCheck(Effort e) override;
+
+  bool preNotifyFact(TNode atom,
+                     bool pol,
+                     TNode fact,
+                     bool isPrereg,
+                     bool isInternal) override;
+
+  void notifyFact(TNode atom, bool pol, TNode fact, bool isInternal) override;
+
   bool needsCheckLastEffort() override;
 
   void propagate(Effort e) override;
@@ -77,7 +87,8 @@ class TheoryBV : public Theory
 
   std::string identify() const override { return std::string("TheoryBV"); }
 
-  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
+  PPAssertStatus ppAssert(TrustNode in,
+                          TrustSubstitutionMap& outSubstitutions) override;
 
   TrustNode ppRewrite(TNode t) override;
 

@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,13 +16,18 @@
 
 #include "expr/proof.h"
 #include "expr/proof_node_algorithm.h"
+#include "options/smt_options.h"
 #include "theory/rewriter.h"
 
 using namespace CVC4::kind;
 
 namespace CVC4 {
 
-ProofNodeManager::ProofNodeManager(ProofChecker* pc) : d_checker(pc) {}
+ProofNodeManager::ProofNodeManager(ProofChecker* pc)
+    : d_checker(pc)
+{
+  d_true = NodeManager::currentNM()->mkConst(true);
+}
 
 std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
     PfRule id,
@@ -50,6 +55,18 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkAssume(Node fact)
   Assert(!fact.isNull());
   Assert(fact.getType().isBoolean());
   return mkNode(PfRule::ASSUME, {}, {fact}, fact);
+}
+
+std::shared_ptr<ProofNode> ProofNodeManager::mkTrans(
+    const std::vector<std::shared_ptr<ProofNode>>& children, Node expected)
+{
+  Assert(!children.empty());
+  if (children.size() == 1)
+  {
+    Assert(expected.isNull() || children[0]->getResult() == expected);
+    return children[0];
+  }
+  return mkNode(PfRule::TRANS, children, {}, expected);
 }
 
 std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
@@ -85,6 +102,19 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     if (ac.find(a) != ac.end())
     {
       // already covered by an assumption
+      acu.insert(a);
+      continue;
+    }
+    // trivial assumption
+    if (a == d_true)
+    {
+      Trace("pnm-scope") << "- justify trivial True assumption\n";
+      for (std::shared_ptr<ProofNode> pfs : fa.second)
+      {
+        Assert(pfs->getResult() == a);
+        updateNode(pfs.get(), PfRule::MACRO_SR_PRED_INTRO, {}, {a});
+      }
+      Trace("pnm-scope") << "...finished" << std::endl;
       acu.insert(a);
       continue;
     }
@@ -225,6 +255,8 @@ bool ProofNodeManager::updateNode(
 
 bool ProofNodeManager::updateNode(ProofNode* pn, ProofNode* pnr)
 {
+  Assert(pn != nullptr);
+  Assert(pnr != nullptr);
   if (pn->getResult() != pnr->getResult())
   {
     return false;
@@ -267,24 +299,14 @@ bool ProofNodeManager::updateNodeInternal(
     const std::vector<Node>& args,
     bool needsCheck)
 {
+  Assert(pn != nullptr);
   // ---------------- check for cyclic
-  std::unordered_map<const ProofNode*, bool> visited;
-  std::unordered_map<const ProofNode*, bool>::iterator it;
-  std::vector<const ProofNode*> visit;
-  for (const std::shared_ptr<ProofNode>& cp : children)
+  if (options::proofNewEagerChecking())
   {
-    visit.push_back(cp.get());
-  }
-  const ProofNode* cur;
-  while (!visit.empty())
-  {
-    cur = visit.back();
-    visit.pop_back();
-    it = visited.find(cur);
-    if (it == visited.end())
+    std::unordered_set<const ProofNode*> visited;
+    for (const std::shared_ptr<ProofNode>& cpc : children)
     {
-      visited[cur] = true;
-      if (cur == pn)
+      if (expr::containsSubproof(cpc.get(), pn, visited))
       {
         std::stringstream ss;
         ss << "ProofNodeManager::updateNode: attempting to make cyclic proof! "
@@ -301,10 +323,6 @@ bool ProofNodeManager::updateNodeInternal(
           ss << std::endl;
         }
         Unreachable() << ss.str();
-      }
-      for (const std::shared_ptr<ProofNode>& cp : cur->d_children)
-      {
-        visit.push_back(cp.get());
       }
     }
   }

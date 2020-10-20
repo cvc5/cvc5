@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -50,8 +50,10 @@ TheoryBool::TheoryBool(context::Context* c,
   }
 }
 
-Theory::PPAssertStatus TheoryBool::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
-
+Theory::PPAssertStatus TheoryBool::ppAssert(
+    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
+{
+  TNode in = tin.getNode();
   if (in.getKind() == kind::CONST_BOOLEAN && !in.getConst<bool>()) {
     // If we get a false literal, we're in conflict
     return PP_ASSERT_STATUS_CONFLICT;
@@ -61,18 +63,20 @@ Theory::PPAssertStatus TheoryBool::ppAssert(TNode in, SubstitutionMap& outSubsti
   if (in.getKind() == kind::NOT) {
     if (in[0].isVar())
     {
-      outSubstitutions.addSubstitution(in[0], NodeManager::currentNM()->mkConst<bool>(false));
+      outSubstitutions.addSubstitutionSolved(
+          in[0], NodeManager::currentNM()->mkConst<bool>(false), tin);
       return PP_ASSERT_STATUS_SOLVED;
     }
   } else {
     if (in.isVar())
     {
-      outSubstitutions.addSubstitution(in, NodeManager::currentNM()->mkConst<bool>(true));
+      outSubstitutions.addSubstitutionSolved(
+          in, NodeManager::currentNM()->mkConst<bool>(true), tin);
       return PP_ASSERT_STATUS_SOLVED;
     }
   }
 
-  return Theory::ppAssert(in, outSubstitutions);
+  return Theory::ppAssert(tin, outSubstitutions);
 }
 
 }/* CVC4::theory::booleans namespace */

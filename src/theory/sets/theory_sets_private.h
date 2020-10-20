@@ -2,10 +2,10 @@
 /*! \file theory_sets_private.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Kshitij Bansal, Mathias Preiner
+ **   Andrew Reynolds, Kshitij Bansal, Mudathir Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -61,19 +61,6 @@ class TheorySetsPrivate {
    * Reset the information for a full effort check.
    */
   void fullEffortReset();
-  /**
-   * This ensures that subtype constraints are met for all set terms. In
-   * particular, for a set equivalence class E, let Set(T) be the most
-   * common type among the types of terms in that class. In other words,
-   * if E contains two terms of Set(Int) and Set(Real), then Set(Int) is the
-   * most common type. Then, for each membership x in S where S is a set in
-   * this equivalence class, we ensure x has type T by asserting:
-   *   x = k
-   * for a fresh constant k of type T. This is done only if the type of x is not
-   * a subtype of Int (e.g. if x is of type Real). We call k the "type
-   * constraint skolem for x of type Int".
-   */
-  void checkSubtypes();
   /**
    * This implements an inference schema based on the "downwards closure" of
    * set membership. This roughly corresponds to the rules UNION DOWN I and II,
@@ -213,17 +200,8 @@ class TheorySetsPrivate {
 
   void presolve();
 
-  /** get default output channel */
-  OutputChannel* getOutputChannel();
   /** get the valuation */
   Valuation& getValuation();
-
-  /** Proagate out to output channel */
-  bool propagate(TNode);
-
-  /** generate and send out conflict node */
-  void conflict(TNode, TNode);
-
  private:
   TheorySets& d_external;
   /** The state of the sets solver at full effort */

@@ -2,10 +2,10 @@
 /*! \file theory_arith.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Alex Ozdemir, Morgan Deters
+ **   Andrew Reynolds, Tim King, Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -18,18 +18,19 @@
 #pragma once
 
 #include "expr/node.h"
+#include "theory/arith/arith_preprocess.h"
+#include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_state.h"
 #include "theory/arith/inference_manager.h"
-#include "theory/arith/theory_arith_private_forward.h"
+#include "theory/arith/nl/nonlinear_extension.h"
+#include "theory/arith/operator_elim.h"
 #include "theory/theory.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 
-namespace nl {
-class NonlinearExtension;
-}
+class TheoryArithPrivate;
 
 /**
  * Implementation of linear and non-linear integer and real arithmetic.
@@ -75,12 +76,23 @@ class TheoryArith : public Theory {
 
   TrustNode expandDefinition(Node node) override;
 
-  void check(Effort e) override;
+  //--------------------------------- standard check
+  /** Pre-check, called before the fact queue of the theory is processed. */
+  bool preCheck(Effort level) override;
+  /** Post-check, called after the fact queue of the theory is processed. */
+  void postCheck(Effort level) override;
+  /** Pre-notify fact, return true if processed. */
+  bool preNotifyFact(TNode atom,
+                     bool pol,
+                     TNode fact,
+                     bool isPrereg,
+                     bool isInternal) override;
+  //--------------------------------- end standard check
   bool needsCheckLastEffort() override;
   void propagate(Effort e) override;
   TrustNode explain(TNode n) override;
 
-  bool collectModelInfo(TheoryModel* m) override;
+  bool collectModelInfo(TheoryModel* m, const std::set<Node>& termSet) override;
   /**
    * Collect model values in m based on the relevant terms given by termSet.
    */
@@ -91,7 +103,8 @@ class TheoryArith : public Theory {
 
   void presolve() override;
   void notifyRestart() override;
-  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
+  PPAssertStatus ppAssert(TrustNode tin,
+                          TrustSubstitutionMap& outSubstitutions) override;
   TrustNode ppRewrite(TNode atom) override;
   void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
 
@@ -112,9 +125,19 @@ class TheoryArith : public Theory {
   }
 
  private:
+  /**
+   * Preprocess rewrite terms, return the trust node encapsulating the
+   * preprocessed form of n, and the proof generator that can provide the
+   * proof for the equivalence of n and this term.
+   *
+   * This calls the operator elimination utility to eliminate extended
+   * symbols.
+   */
+  TrustNode ppRewriteTerms(TNode n);
+  /** Get the proof equality engine */
+  eq::ProofEqEngine* getProofEqEngine();
   /** The state object wrapping TheoryArithPrivate  */
   ArithState d_astate;
-
   /** The arith::InferenceManager. */
   InferenceManager d_inferenceManager;
 
@@ -123,6 +146,10 @@ class TheoryArith : public Theory {
    * arithmetic.
    */
   std::unique_ptr<nl::NonlinearExtension> d_nonlinearExtension;
+  /** The preprocess utility */
+  ArithPreprocess d_arithPreproc;
+  /** The theory rewriter for this theory. */
+  ArithRewriter d_rewriter;
 };/* class TheoryArith */
 
 }/* CVC4::theory::arith namespace */

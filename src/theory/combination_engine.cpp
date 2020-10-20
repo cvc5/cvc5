@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -18,8 +18,7 @@
 #include "theory/care_graph.h"
 #include "theory/ee_manager_distributed.h"
 #include "theory/model_manager_distributed.h"
-#include "theory/shared_terms_database.h"
-#include "theory/term_registration_visitor.h"
+#include "theory/shared_solver_distributed.h"
 #include "theory/theory_engine.h"
 
 namespace CVC4 {
@@ -29,10 +28,12 @@ CombinationEngine::CombinationEngine(TheoryEngine& te,
                                      const std::vector<Theory*>& paraTheories,
                                      ProofNodeManager* pnm)
     : d_te(te),
+      d_pnm(pnm),
       d_logicInfo(te.getLogicInfo()),
       d_paraTheories(paraTheories),
       d_eemanager(nullptr),
       d_mmanager(nullptr),
+      d_sharedSolver(nullptr),
       d_cmbsPg(pnm ? new EagerProofGenerator(pnm, te.getUserContext())
                    : nullptr)
 {
@@ -45,12 +46,13 @@ void CombinationEngine::finishInit()
   // create the equality engine, model manager, and shared solver
   if (options::eeMode() == options::EqEngineMode::DISTRIBUTED)
   {
+    // use the distributed shared solver
+    d_sharedSolver.reset(new SharedSolverDistributed(d_te, d_pnm));
     // make the distributed equality engine manager
-    std::unique_ptr<EqEngineManagerDistributed> eeDistributed(
-        new EqEngineManagerDistributed(d_te));
+    d_eemanager.reset(
+        new EqEngineManagerDistributed(d_te, *d_sharedSolver.get()));
     // make the distributed model manager
-    d_mmanager.reset(new ModelManagerDistributed(d_te, *eeDistributed.get()));
-    d_eemanager = std::move(eeDistributed);
+    d_mmanager.reset(new ModelManagerDistributed(d_te, *d_eemanager.get()));
   }
   else
   {
@@ -65,13 +67,9 @@ void CombinationEngine::finishInit()
   d_eemanager->initializeTheories();
 
   Assert(d_mmanager != nullptr);
-  // initialize the model manager
-  d_mmanager->finishInit();
-
-  // initialize equality engine of the model using the equality engine manager
-  TheoryModel* m = d_mmanager->getModel();
+  // initialize the model manager, based on the notify object of this class
   eq::EqualityEngineNotify* meen = getModelEqualityEngineNotify();
-  d_eemanager->initializeModel(m, meen);
+  d_mmanager->finishInit(meen);
 }
 
 const EeTheoryInfo* CombinationEngine::getEeTheoryInfo(TheoryId tid) const
@@ -103,6 +101,10 @@ theory::TheoryModel* CombinationEngine::getModel()
   return d_mmanager->getModel();
 }
 
+SharedSolver* CombinationEngine::getSharedSolver()
+{
+  return d_sharedSolver.get();
+}
 bool CombinationEngine::isProofEnabled() const { return d_cmbsPg != nullptr; }
 
 eq::EqualityEngineNotify* CombinationEngine::getModelEqualityEngineNotify()
@@ -118,7 +120,7 @@ void CombinationEngine::sendLemma(TrustNode trn, TheoryId atomsTo)
 
 void CombinationEngine::resetRound()
 {
-  // do nothing
+  // compute the relevant terms?
 }
 
 }  // namespace theory

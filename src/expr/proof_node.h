@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -25,6 +25,12 @@
 namespace CVC4 {
 
 class ProofNodeManager;
+class ProofNode;
+
+struct ProofNodeHashFunction
+{
+  inline size_t operator()(std::shared_ptr<ProofNode> pfn) const;
+}; /* struct ProofNodeHashFunction */
 
 /** A node in a proof
  *
@@ -116,6 +122,12 @@ class ProofNode
   /** The cache of the fact that has been proven, modifiable by ProofChecker */
   Node d_proven;
 };
+
+inline size_t ProofNodeHashFunction::operator()(
+    std::shared_ptr<ProofNode> pfn) const
+{
+  return pfn->getResult().getId() + static_cast<unsigned>(pfn->getRule());
+}
 
 /**
  * Serializes a given proof node to the given stream.

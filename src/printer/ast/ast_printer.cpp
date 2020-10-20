@@ -2,10 +2,10 @@
 /*! \file ast_printer.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Andrew Reynolds
+ **   Morgan Deters, Abdalrhman Mohamed, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -150,13 +150,13 @@ void AstPrinter::toStream(std::ostream& out, const CommandStatus* s) const
 
 }/* AstPrinter::toStream(CommandStatus*) */
 
-void AstPrinter::toStream(std::ostream& out, const Model& m) const
+void AstPrinter::toStream(std::ostream& out, const smt::Model& m) const
 {
   out << "Model()";
 }
 
 void AstPrinter::toStream(std::ostream& out,
-                          const Model& m,
+                          const smt::Model& m,
                           const NodeCommand* c) const
 {
   // shouldn't be called; only the non-Command* version above should be

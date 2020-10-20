@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Tim King, Clark Barrett
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -20,7 +20,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "smt/model.h"
 #include "theory/ee_setup_info.h"
 #include "theory/rep_set.h"
 #include "theory/substitutions.h"
@@ -76,23 +75,16 @@ namespace theory {
  * above functions such as getRepresentative() when assigning total
  * interpretations for uninterpreted functions.
  */
-class TheoryModel : public Model
+class TheoryModel
 {
   friend class TheoryEngineModelBuilder;
 public:
   TheoryModel(context::Context* c, std::string name, bool enableFuncModels);
-  ~TheoryModel() override;
-  //---------------------------- initialization
-  /** Called to set the equality engine. */
-  void setEqualityEngine(eq::EqualityEngine* ee);
+  virtual ~TheoryModel();
   /**
-   * Returns true if we need an equality engine, this has the same contract
-   * as Theory::needsEqualityEngine.
+   * Finish init, where ee is the equality engine the model should use.
    */
-  bool needsEqualityEngine(EeSetupInfo& esi);
-  /** Finish init */
-  void finishInit();
-  //---------------------------- end initialization
+  void finishInit(eq::EqualityEngine* ee);
 
   /** reset the model */
   virtual void reset();
@@ -117,7 +109,7 @@ public:
    * is consistent after asserting the equality engine to this model.
    */
   bool assertEqualityEngine(const eq::EqualityEngine* ee,
-                            std::set<Node>* termSet = NULL);
+                            const std::set<Node>* termSet = NULL);
   /** assert skeleton
    *
    * This method gives a "skeleton" for the model value of the equivalence
@@ -302,21 +294,21 @@ public:
    */
   Node getValue(TNode n) const;
   /** get comments */
-  void getComments(std::ostream& out) const override;
+  void getComments(std::ostream& out) const;
 
   //---------------------------- separation logic
   /** set the heap and value sep.nil is equal to */
   void setHeapModel(Node h, Node neq);
   /** get the heap and value sep.nil is equal to */
-  bool getHeapModel(Expr& h, Expr& neq) const override;
+  bool getHeapModel(Node& h, Node& neq) const;
   //---------------------------- end separation logic
 
   /** is the list of approximations non-empty? */
-  bool hasApproximations() const override;
+  bool hasApproximations() const;
   /** get approximations */
-  std::vector<std::pair<Expr, Expr> > getApproximations() const override;
+  std::vector<std::pair<Node, Node> > getApproximations() const;
   /** get domain elements for uninterpreted sort t */
-  std::vector<Expr> getDomainElements(Type t) const override;
+  std::vector<Node> getDomainElements(TypeNode t) const;
   /** get the representative set object */
   const RepSet* getRepSet() const { return &d_rep_set; }
   /** get the representative set object (FIXME: remove this, see #1199) */
@@ -324,17 +316,15 @@ public:
 
   //---------------------------- model cores
   /** set using model core */
-  void setUsingModelCore() override;
+  void setUsingModelCore();
   /** record model core symbol */
-  void recordModelCoreSymbol(Expr sym) override;
+  void recordModelCoreSymbol(Node sym);
   /** Return whether symbol expr is in the model core. */
-  bool isModelCoreSymbol(Expr sym) const override;
+  bool isModelCoreSymbol(Node sym) const;
   //---------------------------- end model cores
 
-  /** get value function for Exprs. */
-  Expr getValue(Expr expr) const override;
   /** get cardinality for sort */
-  Cardinality getCardinality(Type t) const override;
+  Cardinality getCardinality(TypeNode t) const;
 
   //---------------------------- function values
   /** a map from functions f to a list of all APPLY_UF terms with operator f */
@@ -355,6 +345,9 @@ public:
   */
   std::vector< Node > getFunctionsToAssign();
   //---------------------------- end function values
+  /** Get the name of this model */
+  const std::string& getName() const;
+
  protected:
   /** Unique name of this model */
   std::string d_name;

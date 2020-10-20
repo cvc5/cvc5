@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Morgan Deters, Christopher L. Conway
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -531,11 +531,15 @@ public:
    * @param name The name of the type
    * @param type The type that should be associated with the name
    * @param levelZero If true, the type definition is considered global and
-   *                  cannot be removed by poppoing the user context
+   *                  cannot be removed by popping the user context
+   * @param skipExisting If true, the type definition is ignored if the same
+   *                     symbol has already been defined. It is assumed that
+   *                     the definition is the exact same as the existing one.
    */
   void defineType(const std::string& name,
                   const api::Sort& type,
-                  bool levelZero = false);
+                  bool levelZero = false,
+                  bool skipExisting = false);
 
   /**
    * Create a new (parameterized) type definition.
@@ -680,6 +684,7 @@ public:
    * Return term t with a type ascription applied to it. This is used for
    * syntax like (as t T) in smt2 and t::T in the CVC language. This includes:
    * - (as emptyset (Set T))
+   * - (as emptybag (Bag T))
    * - (as univset (Set T))
    * - (as sep.nil T)
    * - (cons T)

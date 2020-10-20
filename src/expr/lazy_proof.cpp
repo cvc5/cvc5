@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -83,16 +83,27 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
           // the current proof. Instead, it is only linked, and ignored on
           // future calls to getProofFor due to the check above.
           std::shared_ptr<ProofNode> pgc = pg->getProofFor(cfactGen);
-          if (isSym)
+          // If the proof was null, then the update is not performed. This is
+          // not considered an error, since this behavior is equivalent to
+          // if pg had provided the proof (ASSUME cfactGen). Ensuring the
+          // proper behavior wrt closed proofs should be done outside this
+          // method.
+          if (pgc != nullptr)
           {
-            d_manager->updateNode(cur, PfRule::SYMM, {pgc}, {});
+            Trace("lazy-cdproof-gen")
+                << "LazyCDProof: stored proof: " << *pgc.get() << std::endl;
+
+            if (isSym)
+            {
+              d_manager->updateNode(cur, PfRule::SYMM, {pgc}, {});
+            }
+            else
+            {
+              d_manager->updateNode(cur, pgc.get());
+            }
+            Trace("lazy-cdproof") << "LazyCDProof: Successfully added fact for "
+                                  << cfactGen << std::endl;
           }
-          else
-          {
-            d_manager->updateNode(cur, pgc.get());
-          }
-          Trace("lazy-cdproof") << "LazyCDProof: Successfully added fact for "
-                                << cfactGen << std::endl;
         }
         else
         {

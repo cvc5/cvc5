@@ -2,10 +2,10 @@
 /*! \file theory.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Tim King
+ **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -44,6 +44,7 @@
 #include "theory/theory_rewriter.h"
 #include "theory/theory_state.h"
 #include "theory/trust_node.h"
+#include "theory/trust_substitutions.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
 
@@ -122,9 +123,6 @@ class Theory {
   /** Information about the logic we're operating within. */
   const LogicInfo& d_logicInfo;
 
-  /** Pointer to proof node manager */
-  ProofNodeManager* d_pnm;
-
   /**
    * The assertFact() queue.
    *
@@ -178,15 +176,6 @@ class Theory {
    * A list of shared terms that the theory has.
    */
   context::CDList<TNode> d_sharedTerms;
-
-  //---------------------------------- private collect model info
-  /**
-   * Helper function for computeRelevantTerms
-   */
-  void collectTerms(TNode n,
-                    const std::set<Kind>& irrKinds,
-                    std::set<Node>& termSet) const;
-  //---------------------------------- end private collect model info
 
   /**
    * Construct a Theory.
@@ -244,6 +233,9 @@ class Theory {
    * the equality engine are used properly.
    */
   TheoryInferenceManager* d_inferManager;
+
+  /** Pointer to proof node manager */
+  ProofNodeManager* d_pnm;
 
   /**
    * Returns the next assertion in the assertFact() queue.
@@ -492,6 +484,16 @@ class Theory {
   DecisionManager* getDecisionManager() { return d_decManager; }
 
   /**
+   * @return The theory state associated with this theory.
+   */
+  TheoryState* getTheoryState() { return d_theoryState; }
+
+  /**
+   * @return The theory inference manager associated with this theory.
+   */
+  TheoryInferenceManager* getInferenceManager() { return d_inferManager; }
+
+  /**
    * Expand definitions in the term node. This returns a term that is
    * equivalent to node. It wraps this term in a TrustNode of kind
    * TrustNodeKind::REWRITE. If node is unchanged by this method, the
@@ -600,11 +602,8 @@ class Theory {
    *
    * Theories that use this check method must use an official theory
    * state object (d_theoryState).
-   *
-   * TODO (project #39): this method should be non-virtual, once all theories
-   * conform to the new standard
    */
-  virtual void check(Effort level = EFFORT_FULL);
+  void check(Effort level = EFFORT_FULL);
   /**
    * Pre-check, called before the fact queue of the theory is processed.
    * If this method returns false, then the theory will process its fact
@@ -662,28 +661,9 @@ class Theory {
    * then calls computeModelValues.
    *
    * TODO (project #39): this method should be non-virtual, once all theories
-   * conform to the new standard
+   * conform to the new standard, delete, move to model manager distributed.
    */
-  virtual bool collectModelInfo(TheoryModel* m);
-  /**
-   * Scans the current set of assertions and shared terms top-down
-   * until a theory-leaf is reached, and adds all terms found to
-   * termSet.  This is used by collectModelInfo to delimit the set of
-   * terms that should be used when constructing a model.
-   *
-   * @param irrKinds The kinds of terms that appear in assertions that should *not*
-   * be included in termSet. Note that the kinds EQUAL and NOT are always
-   * treated as irrelevant kinds.
-   *
-   * @param includeShared Whether to include shared terms in termSet. Notice that
-   * shared terms are not influenced by irrKinds.
-   *
-   * TODO (project #39): this method will be deleted. The version in
-   * model manager will be used.
-   */
-  void computeAssertedTerms(std::set<Node>& termSet,
-                            const std::set<Kind>& irrKinds,
-                            bool includeShared = true) const;
+  virtual bool collectModelInfo(TheoryModel* m, const std::set<Node>& termSet);
   /**
    * Compute terms that are not necessarily part of the assertions or
    * shared terms that should be considered relevant, add them to termSet.
@@ -720,10 +700,16 @@ class Theory {
   };
 
   /**
-   * Given a literal, add the solved substitutions to the map, if any.
-   * The method should return true if the literal can be safely removed.
+   * Given a literal and its proof generator (encapsulated by trust node tin),
+   * add the solved substitutions to the map, if any. The method should return
+   * true if the literal can be safely removed from the input problem.
+   *
+   * Note that tin has trude node kind LEMMA. Its proof generator should be
+   * take into account when adding a substitution to outSubstitutions when
+   * proofs are enabled.
    */
-  virtual PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
+  virtual PPAssertStatus ppAssert(TrustNode tin,
+                                  TrustSubstitutionMap& outSubstitutions);
 
   /**
    * Given an atom of the theory coming from the input formula, this

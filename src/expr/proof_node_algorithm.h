@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -52,6 +52,20 @@ void getFreeAssumptions(ProofNode* pn, std::vector<Node>& assump);
 void getFreeAssumptionsMap(
     std::shared_ptr<ProofNode> pn,
     std::map<Node, std::vector<std::shared_ptr<ProofNode>>>& amap);
+
+/**
+ * @return true if pn contains pnc.
+ */
+bool containsSubproof(ProofNode* pn, ProofNode* pnc);
+
+/**
+ * Same as above, with a visited cache.
+ *
+ * @return true if pn contains pnc.
+ */
+bool containsSubproof(ProofNode* pn,
+                      ProofNode* pnc,
+                      std::unordered_set<const ProofNode*>& visited);
 
 }  // namespace expr
 }  // namespace CVC4
