@@ -877,7 +877,7 @@ void SortModel::assertCardinality(uint32_t c, bool val)
       }
       // we assert it positively, if its beyond the bound, abort
       if (options::ufssAbortCardinality() >= 0
-          && static_cast<int>(c) >= options::ufssAbortCardinality())
+          && c >= static_cast<uint32_t>(options::ufssAbortCardinality()))
       {
         std::stringstream ss;
         ss << "Maximum cardinality (" << options::ufssAbortCardinality()
