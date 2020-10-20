@@ -275,7 +275,6 @@ bool AlgebraicSolver::check(Theory::Effort e)
 
   uint64_t original_bb_cost = 0;
 
-  NodeManager* nm = NodeManager::currentNM();
   NodeSet seen_assertions;
   // Processing assertions from scratch
   for (AssertionQueue::const_iterator it = assertionsBegin(); it != assertionsEnd(); ++it) {
