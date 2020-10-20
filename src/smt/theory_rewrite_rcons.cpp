@@ -26,16 +26,39 @@ bool TheoryRewriteRCons::reconstruct(CDProof* cdp,
                                      theory::TheoryId tid,
                                      theory::MethodId mid)
 {
-  // first, check that maybe its just an evaluation step
-  ProofChecker* pc = d_pnm->getChecker();
-  Node ceval =
-      pc->checkDebug(PfRule::EVALUATE, {}, {eq[0]}, eq, "trewrite-rcons");
-  if (!ceval.isNull() && ceval == eq)
+  Assert (eq.getKind()==EQUAL);
+  Trace("trewrite-rcons") << "Reconstruct " << eq << " (from " << tid << ", " << mid << ")" << std::endl;
+  Node lhs = eq[0];
+  Node rhs = eq[1];
+  // this probably should never happen
+  if (eq[0]==eq[1])
   {
-    cdp->addStep(eq, PfRule::EVALUATE, {}, {eq[0]});
+    Trace("trewrite-rcons") << "...REFL" << std::endl;
+    cdp->addStep(eq, PfRule::REFL, {}, {eq[0]});
     return true;
   }
+  // first, check that maybe its just an evaluation step
+  if (tryRule(cdp, eq, PfRule::EVALUATE, {eq[0]}))
+  {
+    Trace("trewrite-rcons") << "...EVALUATE" << std::endl;
+    return true;
+  }
+  
 
+
+  return false;
+}
+
+bool TheoryRewriteRCons::tryRule(CDProof* cdp, Node eq, PfRule r, const std::vector<Node>& args)
+{
+  ProofChecker* pc = d_pnm->getChecker();
+  Node res =
+      pc->checkDebug(r, {}, args, eq, "trewrite-rcons");
+  if (!res.isNull() && res == eq)
+  {
+    cdp->addStep(eq, r, {}, args);
+    return true;
+  }
   return false;
 }
 

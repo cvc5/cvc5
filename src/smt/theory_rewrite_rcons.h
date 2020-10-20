@@ -43,6 +43,8 @@ class TheoryRewriteRCons
                    theory::MethodId mid);
 
  private:
+  /** Try rule */
+  bool tryRule(CDProof* cdp, Node eq, PfRule r, const std::vector<Node>& args);
   /** Proof node manager */
   ProofNodeManager* d_pnm;
 };
