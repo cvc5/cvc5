@@ -211,6 +211,8 @@ libcvc4_add_sources(
   smt/abstract_values.h
   smt/assertions.cpp
   smt/assertions.h
+  smt/check_models.cpp
+  smt/check_models.h
   smt/command.cpp
   smt/command.h
   smt/defined_function.h

@@ -262,5 +262,7 @@ TheoryEngine* SmtSolver::getTheoryEngine() { return d_theoryEngine.get(); }
 
 prop::PropEngine* SmtSolver::getPropEngine() { return d_propEngine.get(); }
 
+Preprocessor* SmtSolver::getPreprocessor() { return &d_pp; }
+
 }  // namespace smt
 }  // namespace CVC4
