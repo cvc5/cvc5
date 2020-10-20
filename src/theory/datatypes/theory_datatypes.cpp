@@ -317,7 +317,7 @@ void TheoryDatatypes::postCheck(Effort level)
                     Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
                     Node lemma = utils::mkSplit(n, dt);
                     Trace("dt-split-debug") << "Split lemma is : " << lemma << std::endl;
-                    d_im.lemma(lemma, LemmaProperty::SEND_ATOMS, false);
+                    d_im.sendDtLemma(lemma, InferId::SPLIT, LemmaProperty::SEND_ATOMS, false);
                   }
                   if( !options::dtBlastSplits() ){
                     break;

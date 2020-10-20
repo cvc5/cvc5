@@ -67,6 +67,18 @@ void InferenceManager::process()
   doPendingFacts();
 }
 
+void InferenceManager::sendDtLemma(Node lem, InferId id,
+             LemmaProperty p,
+             bool doCache)
+{
+  if (isProofEnabled())
+  {
+    processDtLemma(lem, Node::null(), id);
+    return;
+  }
+  lemma(lem, p, doCache);
+}
+
 bool InferenceManager::sendLemmas(const std::vector<Node>& lemmas)
 {
   bool ret = false;
@@ -80,38 +92,57 @@ bool InferenceManager::sendLemmas(const std::vector<Node>& lemmas)
   return ret;
 }
 
-bool InferenceManager::processDtInference(Node conc,
-                                          Node exp,
-                                          InferId id,
-                                          bool asLemma)
+bool InferenceManager::isProofEnabled() const
+{
+  return d_ipc != nullptr;
+}
+
+bool InferenceManager::processDtLemma(Node conc, Node exp, InferId id,
+            LemmaProperty p,
+            bool doCache)
+{
+  processDtInference(conc, exp, id, true);
+  // send it as an (explained) lemma
+  std::vector<Node> expv;
+  if (!exp.isNull() && !exp.isConst())
+  {
+    expv.push_back(exp);
+  }
+  if (!lemmaExp(conc, expv, {}))
+  {
+    Trace("dt-lemma-debug") << "...duplicate lemma" << std::endl;
+    return false;
+  }
+  d_inferenceLemmas << id;
+  return true;
+}
+
+bool InferenceManager::processDtFact(Node conc, Node exp, InferId id)
+{
+  processDtInference(conc, exp, id, false);
+  // assert the internal fact, which has the same issue as above
+  bool polarity = conc.getKind() != NOT;
+  TNode atom = polarity ? conc : conc[0];
+  assertInternalFact(atom, polarity, exp);
+  d_inferenceFacts << id;
+  return true;
+}
+
+void InferenceManager::processDtInference(Node conc, Node exp, InferId id, bool asLemma)
 {
   Trace("dt-lemma-debug") << "processDtInference : " << conc << " via " << exp
                           << " by " << id << ", asLemma = " << asLemma
                           << std::endl;
-  if (asLemma)
+  if (isProofEnabled())
   {
-    // send it as an (explained) lemma
-    std::vector<Node> expv;
-    if (!exp.isNull() && !exp.isConst())
-    {
-      expv.push_back(exp);
-    }
-    if (!lemmaExp(conc, expv, {}))
-    {
-      Trace("dt-lemma-debug") << "...duplicate lemma" << std::endl;
-      return false;
-    }
-    d_inferenceLemmas << id;
+    // If proofs are enabled, notify the proof constructor.
+    // Notice that we have to reconstruct a datatypes inference here. This is
+    // because the inference in the pending vector may be destroyed as we are
+    // processing this inference, if we triggered to backtrack based on the
+    // call below, since it is a unique pointer.
+    std::shared_ptr<DatatypesInference> di = std::make_shared<DatatypesInference>(this, conc, exp, id);
+    d_ipc->notifyFact(di);
   }
-  else
-  {
-    // assert the internal fact, which has the same issue as above
-    bool polarity = conc.getKind() != NOT;
-    TNode atom = polarity ? conc : conc[0];
-    assertInternalFact(atom, polarity, exp);
-    d_inferenceFacts << id;
-  }
-  return true;
 }
 
 }  // namespace datatypes

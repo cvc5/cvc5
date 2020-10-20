@@ -16,6 +16,8 @@
 
 #include "expr/proof_checker.h"
 
+using namespace CVC4::kind;
+
 namespace CVC4 {
 namespace smt {
 

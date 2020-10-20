@@ -62,6 +62,12 @@ class InferenceManager : public InferenceManagerBuffered
    * or processed internally.
    */
   void process();
+  /** 
+   * Send lemma immediately on the output channel
+   */
+  void sendDtLemma(Node lem, InferId i = InferId::NONE,
+             LemmaProperty p = LemmaProperty::NONE,
+             bool doCache = true);
   /**
    * Send lemmas with property NONE on the output channel immediately.
    * Returns true if any lemma was sent.
@@ -69,11 +75,21 @@ class InferenceManager : public InferenceManagerBuffered
   bool sendLemmas(const std::vector<Node>& lemmas);
 
  private:
+  /** Are proofs enabled? */
+  bool isProofEnabled() const;
   /**
-   * Process datatype inference. We send a lemma if asLemma is true, and
-   * send an internal fact if asLemma is false.
+   * Process datatype inference as a lemma
    */
-  bool processDtInference(Node conc, Node exp, InferId id, bool asLemma);
+  bool processDtLemma(Node conc, Node exp, InferId id,
+             LemmaProperty p = LemmaProperty::NONE,
+             bool doCache = true);
+  /**
+   * Process datatype inference as a fact
+   */
+  bool processDtFact(Node conc, Node exp, InferId id);
+  /** Helper function for the above methods */
+  void processDtInference(Node conc, Node exp, InferId id, bool asLemma);
+  
   /**
    * Counts the number of applications of each type of inference processed by
    * the above method as facts and lemmas.

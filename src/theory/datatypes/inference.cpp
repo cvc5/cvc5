@@ -99,9 +99,9 @@ bool DatatypesInference::process(TheoryInferenceManager* im, bool asLemma)
   // sent as a lemma in addPendingInference below.
   if (asLemma || mustCommunicateFact(d_conc, d_exp))
   {
-    return d_im->processDtInference(d_conc, d_exp, d_id, true);
+    return d_im->processDtLemma(d_conc, d_exp, d_id);
   }
-  return d_im->processDtInference(d_conc, d_exp, d_id, false);
+  return d_im->processDtFact(d_conc, d_exp, d_id);
 }
 
 InferId DatatypesInference::getInferId() const { return d_id; }

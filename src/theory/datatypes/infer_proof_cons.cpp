@@ -28,9 +28,9 @@ InferProofCons::InferProofCons(context::Context* c, ProofNodeManager* pnm)
   Assert(d_pnm != nullptr);
 }
 
-void InferProofCons::notifyFact(const DatatypesInference& di)
+void InferProofCons::notifyFact(std::shared_ptr<DatatypesInference> di)
 {
-  Node fact = di.d_conc;
+  Node fact = di->d_conc;
   if (d_lazyFactMap.find(fact) != d_lazyFactMap.end())
   {
     return;
@@ -40,21 +40,48 @@ void InferProofCons::notifyFact(const DatatypesInference& di)
   {
     return;
   }
-  std::shared_ptr<DatatypesInference> dic =
-      std::make_shared<DatatypesInference>(di);
-  d_lazyFactMap.insert(di.d_conc, dic);
+  d_lazyFactMap.insert(fact, di);
 }
 
 void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
 {
   Trace("dt-ipc") << "convert: " << infer << ": " << conc << " by " << exp
                   << std::endl;
-  PfRule r = PfRule::DT_TRUST;
+  NodeManager * nm = NodeManager::currentNM();
+  bool success = false;
   switch (infer)
   {
-    case InferId::UNIF: break;
-    case InferId::INST: break;
-    case InferId::SPLIT: break;
+    case InferId::UNIF: 
+    {
+      Assert (exp.getKind()==EQUAL && exp[0].getKind()==APPLY_CONSTRUCTOR && exp[1].getKind()==APPLY_CONSTRUCTOR && exp[0].getOperator()==exp[1].getOperator());
+      Assert (conc.getKind()==EQUAL);
+      Node narg;
+      for (size_t i=0, nchild = exp[0].getNumChildren(); i<nchild; i++)
+      {
+        if (exp[0][i]==conc[0] && exp[1][i]==conc[1])
+        {
+          narg = nm->mkConst(Rational(i));
+          break;
+        }
+      }
+      if (!narg.isNull())
+      {
+        cdp->addStep(conc, PfRule::DT_UNIF, {exp}, {narg});
+        success = true;
+      }
+    }
+      break;
+    case InferId::INST: 
+    {
+    }
+      break;
+    case InferId::SPLIT: 
+    {
+      Assert (exp.isNull());
+      Node t = conc.getKind()==OR ? conc[0][0] : conc[0];
+      cdp->addStep(conc, PfRule::DT_SPLIT, {}, {t});
+    }
+      break;
     case InferId::LABEL_EXH: break;
     case InferId::COLLAPSE_SEL: break;
     case InferId::CLASH_CONFLICT: break;
@@ -68,11 +95,11 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
       break;
   }
 
-  if (r == PfRule::DT_TRUST)
+  if (!success)
   {
     // failed to reconstruct, add trust
     Trace("dt-ipc") << "...failed " << infer << std::endl;
-    cdp->addStep(conc, r, {}, {conc});
+    cdp->addStep(conc, PfRule::DT_TRUST, {}, {conc});
   }
 }
 
