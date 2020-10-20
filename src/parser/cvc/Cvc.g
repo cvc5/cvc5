@@ -2200,13 +2200,6 @@ simpleTerm[CVC4::api::Term& f]
       std::stringstream strRat;
       strRat << r;
       f = SOLVER->mkReal(strRat.str());
-      // This is no longer required
-      if(f.getSort().isInteger()) {
-        // Must cast to Real to ensure correct type is passed to parametric type constructors.
-        // We do this cast using division with 1.
-        // This has the advantage wrt using TO_REAL since (constant) division is always included in the theory.
-        f = MK_TERM(api::DIVISION, f, SOLVER->mkInteger(1));
-      }
     }
   | INTEGER_LITERAL {
       Rational r = AntlrInput::tokenToRational($INTEGER_LITERAL);
