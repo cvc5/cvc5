@@ -30,12 +30,14 @@ namespace smt {
 Preprocessor::Preprocessor(SmtEngine& smt,
                            context::UserContext* u,
                            AbstractValues& abs)
-    : d_smt(smt),
+    : d_context(u),
+      d_smt(smt),
       d_absValues(abs),
       d_propagator(true, true),
       d_assertionsProcessed(u, false),
       d_processor(smt, *smt.getResourceManager()),
-      d_rtf(u)
+      d_rtf(u),
+      d_pnm(nullptr)
 {
 }
 
@@ -51,7 +53,7 @@ Preprocessor::~Preprocessor()
 void Preprocessor::finishInit()
 {
   d_ppContext.reset(new preprocessing::PreprocessingPassContext(
-      &d_smt, &d_rtf, &d_propagator));
+      &d_smt, &d_rtf, &d_propagator, d_pnm));
 
   // initialize the preprocessing passes
   d_processor.finishInit(d_ppContext.get());
@@ -62,7 +64,8 @@ bool Preprocessor::process(Assertions& as)
   preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();
 
   // should not be called if empty
-  Assert(ap.size() != 0) << "Can only preprocess a non-empty list of assertions";
+  Assert(ap.size() != 0)
+      << "Can only preprocess a non-empty list of assertions";
 
   if (d_assertionsProcessed && options::incrementalSolving())
   {
@@ -140,7 +143,8 @@ Node Preprocessor::simplify(const Node& node, bool removeItes)
   }
   std::unordered_map<Node, Node, NodeHashFunction> cache;
   Node n = d_processor.expandDefinitions(nas, cache);
-  Node ns = applySubstitutions(n);
+  TrustNode ts = d_ppContext->getTopLevelSubstitutions().apply(n);
+  Node ns = ts.isNull() ? n : ts.getNode();
   if (removeItes)
   {
     // also remove ites if asked
@@ -149,9 +153,11 @@ Node Preprocessor::simplify(const Node& node, bool removeItes)
   return ns;
 }
 
-Node Preprocessor::applySubstitutions(TNode node)
+void Preprocessor::setProofGenerator(PreprocessProofGenerator* pppg)
 {
-  return Rewriter::rewrite(d_ppContext->getTopLevelSubstitutions().apply(node));
+  Assert(pppg != nullptr);
+  d_pnm = pppg->getManager();
+  d_rtf.setProofNodeManager(d_pnm);
 }
 
 }  // namespace smt
