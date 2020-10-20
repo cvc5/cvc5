@@ -40,25 +40,28 @@ class RegExpElimination
    * @param pnm The proof node manager to use (for proofs)
    * @param c The context to use (for proofs)
    */
-  RegExpElimination(bool isAgg=false, ProofNodeManager * pnm = nullptr, context::Context* c = nullptr);
+  RegExpElimination(bool isAgg = false,
+                    ProofNodeManager* pnm = nullptr,
+                    context::Context* c = nullptr);
   /** eliminate membership
    *
    * This method takes as input a regular expression membership atom of the
    * form (str.in.re x R). If this method returns a non-null node ret, then ret
    * is equivalent to atom.
-   * 
+   *
    * @param atom The node to eliminate
    * @param isAgg Whether we apply aggressive elimination techniques
    * @return The node with regular expressions eliminated, or null if atom
    * was unchanged.
    */
   static Node eliminate(Node atom, bool isAgg);
-  
+
   /**
    * Return the trust node corresponding to rewriting n based on eliminate
    * above.
    */
   TrustNode eliminateTrusted(Node atom);
+
  private:
   /** return elimination
    *
@@ -75,7 +78,7 @@ class RegExpElimination
   /** Are aggressive eliminations enabled? */
   bool d_isAggressive;
   /** Pointer to the proof node manager */
-  ProofNodeManager * d_pnm;
+  ProofNodeManager* d_pnm;
   /** An eager proof generator for storing proofs in eliminate trusted above */
   std::unique_ptr<EagerProofGenerator> d_epg;
 }; /* class RegExpElimination */

@@ -439,7 +439,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
   else if (id == PfRule::RE_ELIM)
   {
     Assert(children.empty());
-    Assert(args.size()==2);
+    Assert(args.size() == 2);
     bool isAgg;
     if (!getBool(args[1], isAgg))
     {

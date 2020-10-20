@@ -25,9 +25,15 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace strings {
-  
-RegExpElimination::RegExpElimination(bool isAgg, ProofNodeManager * pnm, context::Context* c) : d_isAggressive(isAgg), d_pnm(pnm),
-d_epg(pnm==nullptr ? nullptr : new EagerProofGenerator(pnm, c, "RegExpElimination::epg"))
+
+RegExpElimination::RegExpElimination(bool isAgg,
+                                     ProofNodeManager* pnm,
+                                     context::Context* c)
+    : d_isAggressive(isAgg),
+      d_pnm(pnm),
+      d_epg(pnm == nullptr
+                ? nullptr
+                : new EagerProofGenerator(pnm, c, "RegExpElimination::epg"))
 {
 }
 
@@ -47,7 +53,6 @@ Node RegExpElimination::eliminate(Node atom, bool isAgg)
 
 TrustNode RegExpElimination::eliminateTrusted(Node atom)
 {
-  
   Node eatom = eliminate(atom, d_isAggressive);
   if (!eatom.isNull())
   {
@@ -56,7 +61,8 @@ TrustNode RegExpElimination::eliminateTrusted(Node atom)
     {
       Node eq = atom.eqNode(eatom);
       Node aggn = NodeManager::currentNM()->mkConst(d_isAggressive);
-      std::shared_ptr<ProofNode> pn = d_pnm->mkNode(PfRule::RE_ELIM, {}, {atom, aggn}, eq);
+      std::shared_ptr<ProofNode> pn =
+          d_pnm->mkNode(PfRule::RE_ELIM, {}, {atom, aggn}, eq);
       d_epg->setProofFor(eq, pn);
       return TrustNode::mkTrustRewrite(atom, eatom, d_epg.get());
     }
@@ -602,11 +608,8 @@ Node RegExpElimination::returnElim(Node atom, Node atomElim, const char* id)
                    << "." << std::endl;
   return atomElim;
 }
-bool RegExpElimination::isProofEnabled() const
-{
-  return d_pnm!=nullptr;
-}
+bool RegExpElimination::isProofEnabled() const { return d_pnm != nullptr; }
 
-}
-}
-}
+}  // namespace strings
+}  // namespace theory
+}  // namespace CVC4
