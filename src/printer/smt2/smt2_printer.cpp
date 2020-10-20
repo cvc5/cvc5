@@ -478,7 +478,7 @@ void Smt2Printer::toStream(std::ostream& out,
   Kind k = n.getKind();
   if (n.getNumChildren() != 0 && k != kind::INST_PATTERN_LIST
       && k != kind::APPLY_TYPE_ASCRIPTION && k != kind::CONSTRUCTOR_TYPE
-      && k != kind::TO_REAL)
+      && k != kind::CAST_TO_REAL)
   {
     out << '(';
   }
@@ -607,6 +607,7 @@ void Smt2Printer::toStream(std::ostream& out,
     out << smtKindString(k, d_variant) << " ";
     break;
   case kind::TO_REAL:
+  case kind::CAST_TO_REAL:
   {
     // (to_real 5) is printed as 5.0
     out << n[0] << ".0";

@@ -1601,7 +1601,7 @@ Kind Term::getKindHelper() const
 
 bool Term::isCastedReal() const
 {
-  if(d_node->getKind() == kind::TO_REAL)
+  if(d_node->getKind() == kind::CAST_TO_REAL)
   {
     return (*d_node)[0].isConst() && (*d_node)[0].getType().isInteger();
   }
@@ -3738,7 +3738,8 @@ Term Solver::ensureRealSort(const Term t) const
   Assert(t.getSort() == getIntegerSort() || t.getSort() == getRealSort());
   if (t.getSort() == getIntegerSort())
   {
-    return mkTerm(TO_REAL, t);
+    Node n = getNodeManager()->mkNode(kind::CAST_TO_REAL, *t.d_node);
+    return Term(this, n);
   }
   return t;
 }
@@ -3747,7 +3748,7 @@ Term Solver::mkReal(int64_t val) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   Term rational = mkValHelper<CVC4::Rational>(CVC4::Rational(val));
-  return mkTerm(TO_REAL, rational);
+  return ensureRealSort(rational);
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 

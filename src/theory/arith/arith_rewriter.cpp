@@ -139,7 +139,7 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
     case kind::TO_INTEGER:
       return RewriteResponse(REWRITE_DONE, t);
     case kind::TO_REAL:
-      return RewriteResponse(REWRITE_DONE, t[0]);
+    case kind::CAST_TO_REAL: return RewriteResponse(REWRITE_DONE, t[0]);
     case kind::POW:
       return RewriteResponse(REWRITE_DONE, t);
     case kind::PI:
@@ -200,7 +200,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       }
       return RewriteResponse(REWRITE_DONE, t);
     case kind::TO_REAL:
-      return RewriteResponse(REWRITE_DONE, t[0]);
+    case kind::CAST_TO_REAL: return RewriteResponse(REWRITE_DONE, t[0]);
     case kind::TO_INTEGER:
       if(t[0].isConst()) {
         return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(Rational(t[0].getConst<Rational>().floor())));
