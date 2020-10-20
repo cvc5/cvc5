@@ -114,12 +114,11 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
           d_wintroPf.addLazyStep(
               exists,
               pg,
+              PfRule::WITNESS_AXIOM,
               true,
-              "WitnessFormGenerator::convertToWitnessForm:witness_axiom",
-              false,
-              PfRule::WITNESS_AXIOM);
+              "WitnessFormGenerator::convertToWitnessForm:witness_axiom");
           d_wintroPf.addStep(eq, PfRule::WITNESS_INTRO, {exists}, {});
-          d_tcpg.addRewriteStep(cur, curw, &d_wintroPf);
+          d_tcpg.addRewriteStep(cur, curw, &d_wintroPf, PfRule::ASSUME, true);
         }
         else
         {
