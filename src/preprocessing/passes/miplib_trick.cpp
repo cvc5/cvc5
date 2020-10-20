@@ -189,8 +189,9 @@ PreprocessingPassResult MipLibTrick::applyInternal(
       propagator->getBackEdges();
   unordered_set<unsigned long> removeAssertions;
 
-  SubstitutionMap& top_level_substs =
+  theory::TrustSubstitutionMap& tlsm =
       d_preprocContext->getTopLevelSubstitutions();
+  SubstitutionMap& top_level_substs = tlsm.get();
 
   NodeManager* nm = NodeManager::currentNM();
   Node zero = nm->mkConst(Rational(0)), one = nm->mkConst(Rational(1));
