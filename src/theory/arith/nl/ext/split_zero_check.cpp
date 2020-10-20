@@ -12,7 +12,7 @@
  ** \brief Implementation of split zero check
  **/
 
-#include "theory/arith/nl/nl/split_zero_check.h"
+#include "theory/arith/nl/ext/split_zero_check.h"
 
 #include "expr/node.h"
 #include "theory/arith/arith_msum.h"

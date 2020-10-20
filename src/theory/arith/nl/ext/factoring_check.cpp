@@ -12,7 +12,7 @@
  ** \brief Implementation of factoring check
  **/
 
-#include "theory/arith/nl/nl/factoring_check.h"
+#include "theory/arith/nl/ext/factoring_check.h"
 
 #include "expr/node.h"
 #include "theory/arith/arith_msum.h"

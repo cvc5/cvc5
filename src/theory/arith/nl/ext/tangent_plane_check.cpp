@@ -12,7 +12,7 @@
  ** \brief Implementation of tangent_plane check
  **/
 
-#include "theory/arith/nl/nl/tangent_plane_check.h"
+#include "theory/arith/nl/ext/tangent_plane_check.h"
 
 #include "expr/node.h"
 #include "theory/arith/arith_msum.h"

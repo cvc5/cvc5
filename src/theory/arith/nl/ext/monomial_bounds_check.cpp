@@ -12,7 +12,7 @@
  ** \brief Check for monomial bound inference lemmas
  **/
 
-#include "theory/arith/nl/nl/monomial_bounds_check.h"
+#include "theory/arith/nl/ext/monomial_bounds_check.h"
 
 #include "expr/node.h"
 #include "options/arith_options.h"

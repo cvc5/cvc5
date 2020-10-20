@@ -345,6 +345,22 @@ libcvc4_add_sources(
   theory/arith/nl/cad/projections.h
   theory/arith/nl/cad/variable_ordering.cpp
   theory/arith/nl/cad/variable_ordering.h
+  theory/arith/nl/ext/constraint.cpp
+  theory/arith/nl/ext/constraint.h
+  theory/arith/nl/ext/factoring_check.cpp
+  theory/arith/nl/ext/factoring_check.h
+  theory/arith/nl/ext/monomial.cpp
+  theory/arith/nl/ext/monomial.h
+  theory/arith/nl/ext/monomial_bounds_check.cpp
+  theory/arith/nl/ext/monomial_bounds_check.h
+  theory/arith/nl/ext/monomial_check.cpp
+  theory/arith/nl/ext/monomial_check.h
+  theory/arith/nl/ext/shared_check_data.cpp
+  theory/arith/nl/ext/shared_check_data.h
+  theory/arith/nl/ext/split_zero_check.cpp
+  theory/arith/nl/ext/split_zero_check.h
+  theory/arith/nl/ext/tangent_plane_check.cpp
+  theory/arith/nl/ext/tangent_plane_check.h
   theory/arith/nl/ext_theory_callback.cpp
   theory/arith/nl/ext_theory_callback.h
   theory/arith/nl/iand_solver.cpp
@@ -363,22 +379,6 @@ libcvc4_add_sources(
   theory/arith/nl/nl_lemma_utils.h
   theory/arith/nl/nl_model.cpp
   theory/arith/nl/nl_model.h
-  theory/arith/nl/nl/constraint.cpp
-  theory/arith/nl/nl/constraint.h
-  theory/arith/nl/nl/factoring_check.cpp
-  theory/arith/nl/nl/factoring_check.h
-  theory/arith/nl/nl/monomial.cpp
-  theory/arith/nl/nl/monomial.h
-  theory/arith/nl/nl/monomial_bounds_check.cpp
-  theory/arith/nl/nl/monomial_bounds_check.h
-  theory/arith/nl/nl/monomial_check.cpp
-  theory/arith/nl/nl/monomial_check.h
-  theory/arith/nl/nl/shared_check_data.cpp
-  theory/arith/nl/nl/shared_check_data.h
-  theory/arith/nl/nl/split_zero_check.cpp
-  theory/arith/nl/nl/split_zero_check.h
-  theory/arith/nl/nl/tangent_plane_check.cpp
-  theory/arith/nl/nl/tangent_plane_check.h
   theory/arith/nl/nonlinear_extension.cpp
   theory/arith/nl/nonlinear_extension.h
   theory/arith/nl/poly_conversion.cpp

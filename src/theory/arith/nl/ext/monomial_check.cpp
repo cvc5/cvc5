@@ -12,7 +12,7 @@
  ** \brief Check for some monomial lemmas
  **/
 
-#include "theory/arith/nl/nl/monomial_check.h"
+#include "theory/arith/nl/ext/monomial_check.h"
 
 #include "expr/node.h"
 #include "theory/arith/arith_msum.h"

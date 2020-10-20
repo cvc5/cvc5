@@ -12,14 +12,14 @@
  ** \brief Common data shared by multiple checks
  **/
 
-#ifndef CVC4__THEORY__ARITH__NL__NL__SHARED_CHECK_DATA_H
-#define CVC4__THEORY__ARITH__NL__NL__SHARED_CHECK_DATA_H
+#ifndef CVC4__THEORY__ARITH__NL__EXT__SHARED_CHECK_DATA_H
+#define CVC4__THEORY__ARITH__NL__EXT__SHARED_CHECK_DATA_H
 
 #include <vector>
 
 #include "expr/node.h"
 #include "theory/arith/inference_manager.h"
-#include "theory/arith/nl/nl/monomial.h"
+#include "theory/arith/nl/ext/monomial.h"
 #include "theory/arith/nl/nl_model.h"
 
 namespace CVC4 {

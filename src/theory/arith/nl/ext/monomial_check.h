@@ -12,11 +12,11 @@
  ** \brief Check for some monomial lemmas
  **/
 
-#ifndef CVC4__THEORY__ARITH__NL__NL__MONOMIAL_CHECK_H
-#define CVC4__THEORY__ARITH__NL__NL__MONOMIAL_CHECK_H
+#ifndef CVC4__THEORY__ARITH__NL__EXT__MONOMIAL_CHECK_H
+#define CVC4__THEORY__ARITH__NL__EXT__MONOMIAL_CHECK_H
 
 #include "expr/node.h"
-#include "theory/arith/nl/nl/shared_check_data.h"
+#include "theory/arith/nl/ext/shared_check_data.h"
 
 namespace CVC4 {
 namespace theory {
