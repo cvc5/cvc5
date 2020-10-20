@@ -229,7 +229,6 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Term defineFunsRec(vector[Term]& funs, vector[vector[Term]]& bound_vars,
                            vector[Term]& terms, bint glbl) except +
         vector[Term] getAssertions() except +
-        vector[pair[Term, Term]] getAssignment() except +
         string getInfo(const string& flag) except +
         string getOption(string& option) except +
         vector[Term] getUnsatAssumptions() except +
