@@ -17,11 +17,11 @@
 
 #include "theory/quantifiers_engine.h"
 
-using namespace CVC4;
-using namespace std;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
 using namespace CVC4::kind;
+
+namespace CVC4 {
+namespace theory {
+namespace quantifiers {
 
 struct sortTypeOrder {
   expr::TermCanonize* d_tu;
@@ -142,15 +142,15 @@ Node AlphaEquivalence::reduceQuantifier(Node q)
   Node lem;
   if (ret != q)
   {
-    // do not reduce annotated quantified formulas based on alpha equivalence
-    if (true || q.getNumChildren() == 2)
-    {
-      // lemma ( q <=> d_quant )
-      Trace("alpha-eq") << "Alpha equivalent : " << std::endl;
-      Trace("alpha-eq") << "  " << q << std::endl;
-      Trace("alpha-eq") << "  " << ret << std::endl;
-      lem = q.eqNode(ret);
-    }
+    // lemma ( q <=> d_quant )
+    Trace("alpha-eq") << "Alpha equivalent : " << std::endl;
+    Trace("alpha-eq") << "  " << q << std::endl;
+    Trace("alpha-eq") << "  " << ret << std::endl;
+    lem = q.eqNode(ret);
   }
   return lem;
+}
+
+}
+}
 }
