@@ -58,6 +58,10 @@ class CVC4_PUBLIC Integer
     parseInt(std::string(sp), base);
   }
 
+  /**
+   * Constructs a Integer from a C++ string.
+   * Throws std::invalid_argument if the string is not a valid integer.
+   */
   explicit Integer(const std::string& s, unsigned base = 10)
   {
     parseInt(s, base);
@@ -75,149 +79,96 @@ class CVC4_PUBLIC Integer
   Integer(uint64_t z) : d_value(static_cast<unsigned long>(z)) {}
 #endif /* CVC4_NEED_INT64_T_OVERLOADS */
 
+  /** Destructor. */
   ~Integer() {}
 
-  /**
-   * Returns a copy of d_value to enable public access of CLN data.
-   */
+  /** Returns a copy of d_value to enable public access of CLN data. */
   const cln::cl_I& getValue() const { return d_value; }
 
-  Integer& operator=(const Integer& x)
-  {
-    if (this == &x) return *this;
-    d_value = x.d_value;
-    return *this;
-  }
+  /** Overload copy assignment operator. */
+  Integer& operator=(const Integer& x);
 
-  bool operator==(const Integer& y) const { return d_value == y.d_value; }
+  /** Overload equality comparison operator. */
+  bool operator==(const Integer& y) const;
+  /** Overload disequality comparison operator. */
+  bool operator!=(const Integer& y) const;
+  /** Overload less than comparison operator. */
+  bool operator<(const Integer& y) const;
+  /** Overload less than or equal comparison operator. */
+  bool operator<=(const Integer& y) const;
+  /** Overload greater than comparison operator. */
+  bool operator>(const Integer& y) const;
+  /** Overload greater than or equal comparison operator. */
+  bool operator>=(const Integer& y) const;
 
-  Integer operator-() const { return Integer(-(d_value)); }
+  /** Overload negation operator. */
+  Integer operator-() const;
+  /** Overload addition operator. */
+  Integer operator+(const Integer& y) const;
+  /** Overload addition assignment operator. */
+  Integer& operator+=(const Integer& y);
+  /** Overload subtraction operator. */
+  Integer operator-(const Integer& y) const;
+  /** Overload subtraction assignment operator. */
+  Integer& operator-=(const Integer& y);
+  /** Overload multiplication operator. */
+  Integer operator*(const Integer& y) const;
+  /** Overload multiplication assignment operator. */
+  Integer& operator*=(const Integer& y);
 
-  bool operator!=(const Integer& y) const { return d_value != y.d_value; }
+  /** Return the bit-wise or of this and the given Integer. */
+  Integer bitwiseOr(const Integer& y) const;
+  /** Return the bit-wise and of this and the given Integer. */
+  Integer bitwiseAnd(const Integer& y) const;
+  /** Return the bit-wise exclusive or of this and the given Integer. */
+  Integer bitwiseXor(const Integer& y) const;
+  /** Return the bit-wise not of this Integer. */
+  Integer bitwiseNot() const;
 
-  bool operator<(const Integer& y) const { return d_value < y.d_value; }
+  /** Return this*(2^pow). */
+  Integer multiplyByPow2(uint32_t pow) const;
 
-  bool operator<=(const Integer& y) const { return d_value <= y.d_value; }
-
-  bool operator>(const Integer& y) const { return d_value > y.d_value; }
-
-  bool operator>=(const Integer& y) const { return d_value >= y.d_value; }
-
-  Integer operator+(const Integer& y) const
-  {
-    return Integer(d_value + y.d_value);
-  }
-  Integer& operator+=(const Integer& y)
-  {
-    d_value += y.d_value;
-    return *this;
-  }
-
-  Integer operator-(const Integer& y) const
-  {
-    return Integer(d_value - y.d_value);
-  }
-  Integer& operator-=(const Integer& y)
-  {
-    d_value -= y.d_value;
-    return *this;
-  }
-
-  Integer operator*(const Integer& y) const
-  {
-    return Integer(d_value * y.d_value);
-  }
-
-  Integer& operator*=(const Integer& y)
-  {
-    d_value *= y.d_value;
-    return *this;
-  }
-
-  Integer bitwiseOr(const Integer& y) const
-  {
-    return Integer(cln::logior(d_value, y.d_value));
-  }
-
-  Integer bitwiseAnd(const Integer& y) const
-  {
-    return Integer(cln::logand(d_value, y.d_value));
-  }
-
-  Integer bitwiseXor(const Integer& y) const
-  {
-    return Integer(cln::logxor(d_value, y.d_value));
-  }
-
-  Integer bitwiseNot() const { return Integer(cln::lognot(d_value)); }
+  /** Return true if bit at index 'i' is 1, and false otherwise. */
+  bool isBitSet(uint32_t i) const;
 
   /**
-   * Return this*(2^pow).
+   * Returns the Integer obtained by setting the ith bit of the
+   * current Integer to 1.
    */
-  Integer multiplyByPow2(uint32_t pow) const
-  {
-    cln::cl_I ipow(pow);
-    return Integer(d_value << ipow);
-  }
-
-  bool isBitSet(uint32_t i) const { return !extractBitRange(1, i).isZero(); }
-
   Integer setBit(uint32_t i, bool value) const;
 
+  /**
+   * Returns the integer with the binary representation of 'size' bits
+   * extended with 'amount' 1's.
+   */
   Integer oneExtend(uint32_t size, uint32_t amount) const;
 
-  uint32_t toUnsignedInt() const { return cln::cl_I_to_uint(d_value); }
-
-  /** See CLN Documentation. */
-  Integer extractBitRange(uint32_t bitCount, uint32_t low) const
-  {
-    cln::cl_byte range(bitCount, low);
-    return Integer(cln::ldb(d_value, range));
-  }
+  /** Return a 32 bit unsigned integer representation of this Integer. */
+  uint32_t toUnsignedInt() const;
 
   /**
-   * Returns the floor(this / y)
+   * Extract a range of bits from index 'low' to (excluding) 'low + bitCount'.
+   * Note: corresponds to the extract operator of theory BV.
    */
-  Integer floorDivideQuotient(const Integer& y) const
-  {
-    return Integer(cln::floor1(d_value, y.d_value));
-  }
+  Integer extractBitRange(uint32_t bitCount, uint32_t low) const;
 
-  /**
-   * Returns r == this - floor(this/y)*y
-   */
-  Integer floorDivideRemainder(const Integer& y) const
-  {
-    return Integer(cln::floor2(d_value, y.d_value).remainder);
-  }
-  /**
-   * Computes a floor quoient and remainder for x divided by y.
-   */
+  /** Returns the floor(this / y). */
+  Integer floorDivideQuotient(const Integer& y) const;
+
+  /** Returns r == this - floor(this/y)*y. */
+  Integer floorDivideRemainder(const Integer& y) const;
+
+  /** Computes a floor quoient and remainder for x divided by y.  */
   static void floorQR(Integer& q,
                       Integer& r,
                       const Integer& x,
-                      const Integer& y)
-  {
-    cln::cl_I_div_t res = cln::floor2(x.d_value, y.d_value);
-    q.d_value = res.quotient;
-    r.d_value = res.remainder;
-  }
+                      const Integer& y);
 
-  /**
-   * Returns the ceil(this / y)
-   */
-  Integer ceilingDivideQuotient(const Integer& y) const
-  {
-    return Integer(cln::ceiling1(d_value, y.d_value));
-  }
+  /** Returns the ceil(this / y). */
+  Integer ceilingDivideQuotient(const Integer& y) const;
 
-  /**
-   * Returns the ceil(this / y)
-   */
-  Integer ceilingDivideRemainder(const Integer& y) const
-  {
-    return Integer(cln::ceiling2(d_value, y.d_value).remainder);
-  }
+  /** Returns the ceil(this / y). */
+  Integer ceilingDivideRemainder(const Integer& y) const;
 
   /**
    * Computes a quoitent and remainder according to Boute's Euclidean
@@ -231,71 +182,28 @@ class CVC4_PUBLIC Integer
   static void euclidianQR(Integer& q,
                           Integer& r,
                           const Integer& x,
-                          const Integer& y)
-  {
-    // compute the floor and then fix the value up if needed.
-    floorQR(q, r, x, y);
-
-    if (r.strictlyNegative())
-    {
-      // if r < 0
-      // abs(r) < abs(y)
-      // - abs(y) < r < 0, then 0 < r + abs(y) < abs(y)
-      // n = y * q + r
-      // n = y * q - abs(y) + r + abs(y)
-      if (r.sgn() >= 0)
-      {
-        // y = abs(y)
-        // n = y * q - y + r + y
-        // n = y * (q-1) + (r+y)
-        q -= 1;
-        r += y;
-      }
-      else
-      {
-        // y = -abs(y)
-        // n = y * q + y + r - y
-        // n = y * (q+1) + (r-y)
-        q += 1;
-        r -= y;
-      }
-    }
-  }
+                          const Integer& y);
 
   /**
    * Returns the quoitent according to Boute's Euclidean definition.
    * See the documentation for euclidianQR.
    */
-  Integer euclidianDivideQuotient(const Integer& y) const
-  {
-    Integer q, r;
-    euclidianQR(q, r, *this, y);
-    return q;
-  }
+  Integer euclidianDivideQuotient(const Integer& y) const;
 
   /**
    * Returns the remainfing according to Boute's Euclidean definition.
    * See the documentation for euclidianQR.
    */
-  Integer euclidianDivideRemainder(const Integer& y) const
-  {
-    Integer q, r;
-    euclidianQR(q, r, *this, y);
-    return r;
-  }
+  Integer euclidianDivideRemainder(const Integer& y) const;
 
-  /**
-   * If y divides *this, then exactQuotient returns (this/y)
-   */
+  /** If y divides *this, then exactQuotient returns (this/y). */
   Integer exactQuotient(const Integer& y) const;
 
-  Integer modByPow2(uint32_t exp) const
-  {
-    cln::cl_byte range(exp, 0);
-    return Integer(cln::ldb(d_value, range));
-  }
+  /** Return y mod 2^exp. */
+  Integer modByPow2(uint32_t exp) const;
 
-  Integer divByPow2(uint32_t exp) const { return d_value >> exp; }
+  /** Returns y / 2^exp. */
+  Integer divByPow2(uint32_t exp) const;
 
   /**
    * Raise this Integer to the power <code>exp</code>.
@@ -304,32 +212,16 @@ class CVC4_PUBLIC Integer
    */
   Integer pow(unsigned long int exp) const;
 
-  /**
-   * Return the greatest common divisor of this integer with another.
-   */
-  Integer gcd(const Integer& y) const
-  {
-    cln::cl_I result = cln::gcd(d_value, y.d_value);
-    return Integer(result);
-  }
+  /** Return the greatest common divisor of this integer with another.  */
+  Integer gcd(const Integer& y) const;
 
-  /**
-   * Return the least common multiple of this integer with another.
-   */
-  Integer lcm(const Integer& y) const
-  {
-    cln::cl_I result = cln::lcm(d_value, y.d_value);
-    return Integer(result);
-  }
+  /** Return the least common multiple of this integer with another.  */
+  Integer lcm(const Integer& y) const;
 
-  /**
-   * Compute addition of this Integer x + y modulo m.
-   */
+  /** Compute addition of this Integer x + y modulo m.  */
   Integer modAdd(const Integer& y, const Integer& m) const;
 
-  /**
-   * Compute multiplication of this Integer x * y modulo m.
-   */
+  /** Compute multiplication of this Integer x * y modulo m.  */
   Integer modMultiply(const Integer& y, const Integer& m) const;
 
   /**
@@ -346,102 +238,62 @@ class CVC4_PUBLIC Integer
    */
   Integer modInverse(const Integer& m) const;
 
-  /**
-   * Return true if *this exactly divides y.
-   */
-  bool divides(const Integer& y) const
-  {
-    cln::cl_I result = cln::rem(y.d_value, d_value);
-    return cln::zerop(result);
-  }
+  /** Return true if *this exactly divides y.  */
+  bool divides(const Integer& y) const;
 
-  /**
-   * Return the absolute value of this integer.
-   */
-  Integer abs() const { return d_value >= 0 ? *this : -*this; }
+  /** Return the absolute value of this integer.  */
+  Integer abs() const;
 
-  std::string toString(int base = 10) const
-  {
-    std::stringstream ss;
-    switch (base)
-    {
-      case 2: fprintbinary(ss, d_value); break;
-      case 8: fprintoctal(ss, d_value); break;
-      case 10: fprintdecimal(ss, d_value); break;
-      case 16: fprinthexadecimal(ss, d_value); break;
-      default: throw Exception("Unhandled base in Integer::toString()");
-    }
-    std::string output = ss.str();
-    for (unsigned i = 0; i <= output.length(); ++i)
-    {
-      if (isalpha(output[i]))
-      {
-        output.replace(i, 1, 1, tolower(output[i]));
-      }
-    }
+  /** Return a string representation of this Integer. */
+  std::string toString(int base = 10) const;
 
-    return output;
-  }
+  /** Return 1 if this is > 0, 0 if it is 0, and -1 if it is < 0. */
+  int sgn() const;
 
-  int sgn() const
-  {
-    cln::cl_I sgn = cln::signum(d_value);
-    return cln::cl_I_to_int(sgn);
-  }
+  /** Return true if this is > 0. */
+  bool strictlyPositive() const;
 
-  inline bool strictlyPositive() const { return sgn() > 0; }
+  /** Return true if this is < 0. */
+  bool strictlyNegative() const;
 
-  inline bool strictlyNegative() const { return sgn() < 0; }
+  /** Return true if this is 0. */
+  bool isZero() const;
 
-  inline bool isZero() const { return sgn() == 0; }
+  /** Return true if this is 1. */
+  bool isOne() const;
 
-  inline bool isOne() const { return d_value == 1; }
+  /** Return true if this is -1. */
+  bool isNegativeOne() const;
 
-  inline bool isNegativeOne() const { return d_value == -1; }
-
-  /** fits the C "signed int" primitive */
+  /** Return true if this Integer fits into a signed int. */
   bool fitsSignedInt() const;
 
-  /** fits the C "unsigned int" primitive */
+  /** Return true if this Integer fits into an unsigned int. */
   bool fitsUnsignedInt() const;
 
+  /** Return the signed int representation of this Integer. */
   int getSignedInt() const;
 
+  /** Return the unsigned int representation of this Integer. */
   unsigned int getUnsignedInt() const;
 
+  /** Return true if this Integer fits into a signed long. */
   bool fitsSignedLong() const;
 
+  /** Return true if this Integer fits into an unsigned long. */
   bool fitsUnsignedLong() const;
 
-  long getLong() const
-  {
-    // ensure there isn't overflow
-    CheckArgument(d_value <= std::numeric_limits<long>::max(),
-                  this,
-                  "Overflow detected in Integer::getLong()");
-    CheckArgument(d_value >= std::numeric_limits<long>::min(),
-                  this,
-                  "Overflow detected in Integer::getLong()");
-    return cln::cl_I_to_long(d_value);
-  }
+  /** Return the signed long representation of this Integer. */
+  long getLong() const;
 
-  unsigned long getUnsignedLong() const
-  {
-    // ensure there isn't overflow
-    CheckArgument(d_value <= std::numeric_limits<unsigned long>::max(),
-                  this,
-                  "Overflow detected in Integer::getUnsignedLong()");
-    CheckArgument(d_value >= std::numeric_limits<unsigned long>::min(),
-                  this,
-                  "Overflow detected in Integer::getUnsignedLong()");
-    return cln::cl_I_to_ulong(d_value);
-  }
+  /** Return the unsigned long representation of this Integer. */
+  unsigned long getUnsignedLong() const;
 
   /**
    * Computes the hash of the node from the first word of the
    * numerator, the denominator.
    */
-  size_t hash() const { return equal_hashcode(d_value); }
+  size_t hash() const;
 
   /**
    * Returns true iff bit n is set.
@@ -449,46 +301,19 @@ class CVC4_PUBLIC Integer
    * @param n the bit to test (0 == least significant bit)
    * @return true if bit n is set in this integer; false otherwise
    */
-  bool testBit(unsigned n) const { return cln::logbitp(n, d_value); }
+  bool testBit(unsigned n) const;
 
   /**
    * Returns k if the integer is equal to 2^(k-1)
    * @return k if the integer is equal to 2^(k-1) and 0 otherwise
    */
-  unsigned isPow2() const
-  {
-    if (d_value <= 0) return 0;
-    // power2p returns n such that d_value = 2^(n-1)
-    return cln::power2p(d_value);
-  }
+  unsigned isPow2() const;
 
   /**
    * If x != 0, returns the unique n s.t. 2^{n-1} <= abs(x) < 2^{n}.
    * If x == 0, returns 1.
    */
-  size_t length() const
-  {
-    int s = sgn();
-    if (s == 0)
-    {
-      return 1;
-    }
-    else if (s < 0)
-    {
-      size_t len = cln::integer_length(d_value);
-      /*If this is -2^n, return len+1 not len to stay consistent with the
-       * definition above! From CLN's documentation of integer_length: This is
-       * the smallest n >= 0 such that -2^n <= x < 2^n. If x > 0, this is the
-       * unique n > 0 such that 2^(n-1) <= x < 2^n.
-       */
-      size_t ord2 = cln::ord2(d_value);
-      return (len == ord2) ? (len + 1) : len;
-    }
-    else
-    {
-      return cln::integer_length(d_value);
-    }
-  }
+  size_t length() const;
 
   /*   cl_I xgcd (const cl_I& a, const cl_I& b, cl_I* u, cl_I* v) */
   /* This function ("extended gcd") returns the greatest common divisor g of a
@@ -498,22 +323,13 @@ class CVC4_PUBLIC Integer
    * sense: If a and b are non-zero, and abs(a) != abs(b), u and v will satisfy
    * the inequalities abs(u) <= abs(b)/(2*g), abs(v) <= abs(a)/(2*g). */
   static void extendedGcd(
-      Integer& g, Integer& s, Integer& t, const Integer& a, const Integer& b)
-  {
-    g.d_value = cln::xgcd(a.d_value, b.d_value, &s.d_value, &t.d_value);
-  }
+      Integer& g, Integer& s, Integer& t, const Integer& a, const Integer& b);
 
   /** Returns a reference to the minimum of two integers. */
-  static const Integer& min(const Integer& a, const Integer& b)
-  {
-    return (a <= b) ? a : b;
-  }
+  static const Integer& min(const Integer& a, const Integer& b);
 
   /** Returns a reference to the maximum of two integers. */
-  static const Integer& max(const Integer& a, const Integer& b)
-  {
-    return (a >= b) ? a : b;
-  }
+  static const Integer& max(const Integer& a, const Integer& b);
 
  private:
   /**
@@ -521,45 +337,55 @@ class CVC4_PUBLIC Integer
    * Only accessible to friend classes.
    */
   const cln::cl_I& get_cl_I() const { return d_value; }
-  // Throws a std::invalid_argument on invalid input `s` for the given base.
+
+  /**
+   * Helper for parseInt.
+   * Throws a std::invalid_argument on invalid input `s` for the given base.
+   */
   void readInt(const cln::cl_read_flags& flags,
                const std::string& s,
                unsigned base);
 
-  // Throws a std::invalid_argument on invalid inputs.
+  /**
+   * Parse string representation of integer into this Integer.
+   * Throws a std::invalid_argument on invalid inputs.
+   */
   void parseInt(const std::string& s, unsigned base);
 
-  // These constants are to help with CLN conversion in 32 bit.
-  // See http://www.ginac.de/CLN/cln.html#Conversions
-  static signed int s_fastSignedIntMax;     /*  2^29 - 1 */
-  static signed int s_fastSignedIntMin;     /* -2^29 */
-  static unsigned int s_fastUnsignedIntMax; /* 2^29 - 1 */
+  /**
+   * The following constants are to help with CLN conversion in 32 bit.
+   * See http://www.ginac.de/CLN/cln.html#Conversions.
+   */
 
-  static signed long
-      s_slowSignedIntMax; /*  std::numeric_limits<signed int>::max() */
-  static signed long
-      s_slowSignedIntMin; /*  std::numeric_limits<signed int>::min() */
-  static unsigned long
-      s_slowUnsignedIntMax; /*  std::numeric_limits<unsigned int>::max() */
+  /**  2^29 - 1 */
+  static signed int s_fastSignedIntMax;
+  /** -2^29 */
+  static signed int s_fastSignedIntMin;
+  /** 2^29 - 1 */
+  static unsigned int s_fastUnsignedIntMax;
+  /** std::numeric_limits<signed int>::max() */
+  static signed long s_slowSignedIntMax;
+  /** std::numeric_limits<signed int>::min() */
+  static signed long s_slowSignedIntMin;
+  /** std::numeric_limits<unsigned int>::max() */
+  static unsigned long s_slowUnsignedIntMax;
+  /** std::numeric_limits<signed long>::min() */
   static unsigned long s_signedLongMin;
+  /** std::numeric_limits<signed long>::max() */
   static unsigned long s_signedLongMax;
+  /** std::numeric_limits<unsigned long>::max() */
   static unsigned long s_unsignedLongMax;
 
-  /**
-   * Stores the value of the rational is stored in a C++ CLN integer class.
-   */
+  /** Value of the rational is stored in a C++ CLN integer class. */
   cln::cl_I d_value;
 }; /* class Integer */
 
 struct IntegerHashFunction
 {
-  inline size_t operator()(const CVC4::Integer& i) const { return i.hash(); }
+  size_t operator()(const CVC4::Integer& i) const { return i.hash(); }
 }; /* struct IntegerHashFunction */
 
-inline std::ostream& operator<<(std::ostream& os, const Integer& n)
-{
-  return os << n.toString();
-}
+std::ostream& operator<<(std::ostream& os, const Integer& n);
 
 }  // namespace CVC4
 
