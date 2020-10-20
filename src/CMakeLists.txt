@@ -208,6 +208,8 @@ libcvc4_add_sources(
   smt/abstract_values.h
   smt/assertions.cpp
   smt/assertions.h
+  smt/check_models.cpp
+  smt/check_models.h
   smt/command.cpp
   smt/command.h
   smt/defined_function.h
@@ -442,6 +444,8 @@ libcvc4_add_sources(
   theory/bags/theory_bags_type_rules.h
   theory/booleans/circuit_propagator.cpp
   theory/booleans/circuit_propagator.h
+  theory/booleans/proof_circuit_propagator.cpp
+  theory/booleans/proof_circuit_propagator.h
   theory/booleans/proof_checker.cpp
   theory/booleans/proof_checker.h
   theory/booleans/theory_bool.cpp
