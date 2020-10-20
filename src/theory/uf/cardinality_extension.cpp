@@ -1141,7 +1141,7 @@ bool SortModel::checkLastCall()
     Trace("uf-ss-warn") << "WARNING : Model does not have same # representatives as cardinality for " << d_type << "." << std::endl;
     Trace("uf-ss-warn") << "   Max neg cardinality : " << d_maxNegCard << std::endl;
     Trace("uf-ss-warn") << "   # Reps : " << nReps << std::endl;
-    if (d_maxNegCard>=nReps)
+    if (d_maxNegCard >= nReps)
     {
       while (d_fresh_aloc_reps.size() <= d_maxNegCard)
       {
