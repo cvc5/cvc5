@@ -99,13 +99,18 @@ class ProofCircuitPropagator
    * the proof rule). Automatically adds the clauses to resolve with as
    * assumptions, depending on their polarity.
    */
-  std::shared_ptr<ProofNode> mkResolution(std::shared_ptr<ProofNode> clause,
-                                          const std::vector<Node>& lits,
-                                          const std::vector<bool>& polarity);
-  /** Shorthand for mkResolution(clause, lits, {polarity, ...}) */
-  std::shared_ptr<ProofNode> mkResolution(std::shared_ptr<ProofNode> clause,
-                                          const std::vector<Node>& lits,
-                                          bool polarity);
+  std::shared_ptr<ProofNode> mkCResolution(
+      const std::shared_ptr<ProofNode>& clause,
+      const std::vector<Node>& lits,
+      const std::vector<bool>& polarity);
+  /** Shorthand for mkCResolution(clause, lits, {polarity, ...}) */
+  std::shared_ptr<ProofNode> mkCResolution(
+      const std::shared_ptr<ProofNode>& clause,
+      const std::vector<Node>& lits,
+      bool polarity);
+  /** Apply RESOLUTION rule */
+  std::shared_ptr<ProofNode> mkResolution(
+      const std::shared_ptr<ProofNode>& clause, const Node& lit, bool polarity);
   /** Apply NOT_NOT_ELIM rule if n.getResult() is a nested negation */
   std::shared_ptr<ProofNode> mkNot(const std::shared_ptr<ProofNode>& n);
 
