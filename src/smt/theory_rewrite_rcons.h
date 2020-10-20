@@ -34,10 +34,14 @@ class TheoryRewriteRCons
  public:
   TheoryRewriteRCons(ProofNodeManager* pnm);
   ~TheoryRewriteRCons() {}
-  /** 
+  /**
    * Reconstruct
    */
-  bool reconstruct(CDProof* cdp, Node eq, theory::TheoryId tid, theory::MethodId mid);
+  bool reconstruct(CDProof* cdp,
+                   Node eq,
+                   theory::TheoryId tid,
+                   theory::MethodId mid);
+
  private:
   /** Proof node manager */
   ProofNodeManager* d_pnm;

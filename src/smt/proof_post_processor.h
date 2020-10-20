@@ -21,8 +21,8 @@
 #include <unordered_set>
 
 #include "expr/proof_node_updater.h"
-#include "smt/witness_form.h"
 #include "smt/theory_rewrite_rcons.h"
+#include "smt/witness_form.h"
 
 namespace CVC4 {
 

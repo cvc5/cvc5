@@ -757,13 +757,14 @@ bool ProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   if (Trace.isOn("final-pf-hole"))
   {
     // currently only track theory rewrites
-    if (r==PfRule::THEORY_REWRITE)
+    if (r == PfRule::THEORY_REWRITE)
     {
       const std::vector<Node>& args = pn->getArguments();
       Node eq = args[0];
       TheoryId tid = THEORY_BUILTIN;
       builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
-      Trace("final-pf-hole") << "hole " << r << " " << tid << " : " << eq << std::endl;
+      Trace("final-pf-hole")
+          << "hole " << r << " " << tid << " : " << eq << std::endl;
     }
   }
   return false;

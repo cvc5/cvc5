@@ -19,9 +19,12 @@
 namespace CVC4 {
 namespace smt {
 
-TheoryRewriteRCons::TheoryRewriteRCons(ProofNodeManager* pnm) : d_pnm(pnm){}
+TheoryRewriteRCons::TheoryRewriteRCons(ProofNodeManager* pnm) : d_pnm(pnm) {}
 
-bool TheoryRewriteRCons::reconstruct(CDProof* cdp, Node eq, theory::TheoryId tid, theory::MethodId mid)
+bool TheoryRewriteRCons::reconstruct(CDProof* cdp,
+                                     Node eq,
+                                     theory::TheoryId tid,
+                                     theory::MethodId mid)
 {
   // first, check that maybe its just an evaluation step
   ProofChecker* pc = d_pnm->getChecker();
@@ -32,8 +35,7 @@ bool TheoryRewriteRCons::reconstruct(CDProof* cdp, Node eq, theory::TheoryId tid
     cdp->addStep(eq, PfRule::EVALUATE, {}, {eq[0]});
     return true;
   }
-  
-  
+
   return false;
 }
 
