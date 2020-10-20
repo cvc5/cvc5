@@ -852,7 +852,7 @@ void SortModel::assertCardinality(uint32_t c, bool val)
       bool doCheckRegions = !d_hasCard;
       bool prevHasCard = d_hasCard;
       d_hasCard = true;
-      if (!prevHasCard || c < static_cast<uint32_t>(d_cardinality))
+      if (!prevHasCard || c < d_cardinality)
       {
         d_cardinality = c;
         simpleCheckCardinality();
@@ -862,7 +862,8 @@ void SortModel::assertCardinality(uint32_t c, bool val)
         }
       }
       //should check all regions now
-      if( doCheckRegions ){
+      if (doCheckRegions)
+      {
         for (size_t i = 0; i < d_regions_index; i++)
         {
           if( d_regions[i]->valid() ){
@@ -1140,7 +1141,8 @@ bool SortModel::checkLastCall()
     Trace("uf-ss-warn") << "WARNING : Model does not have same # representatives as cardinality for " << d_type << "." << std::endl;
     Trace("uf-ss-warn") << "   Max neg cardinality : " << d_maxNegCard << std::endl;
     Trace("uf-ss-warn") << "   # Reps : " << nReps << std::endl;
-    if( d_maxNegCard>=nReps ){
+    if (d_maxNegCard>=nReps)
+    {
       while (d_fresh_aloc_reps.size() <= d_maxNegCard)
       {
         std::stringstream ss;
