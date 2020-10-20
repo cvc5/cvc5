@@ -306,12 +306,13 @@ void ICPSolver::reset(const std::vector<Node>& assertions)
   d_state.reset();
   for (const auto& n : assertions)
   {
+    Node tmp = Rewriter::rewrite(n);
     Trace("nl-icp") << "Adding " << n << std::endl;
-    if (n.getKind() != Kind::CONST_BOOLEAN)
+    if (tmp.getKind() != Kind::CONST_BOOLEAN)
     {
-      if (!d_state.d_bounds.add(n))
+      if (!d_state.d_bounds.add(tmp))
       {
-        addCandidate(n);
+        addCandidate(tmp);
       }
     }
   }
