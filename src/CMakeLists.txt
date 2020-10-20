@@ -273,6 +273,8 @@ libcvc4_add_sources(
   smt/sygus_solver.h
   smt/term_formula_removal.cpp
   smt/term_formula_removal.h
+  smt/theory_rewrite_rcons.cpp
+  smt/theory_rewrite_rcons.h
   smt/update_ostream.h
   smt/witness_form.cpp
   smt/witness_form.h

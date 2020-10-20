@@ -22,6 +22,7 @@
 
 #include "expr/proof_node_updater.h"
 #include "smt/witness_form.h"
+#include "smt/theory_rewrite_rcons.h"
 
 namespace CVC4 {
 
@@ -74,6 +75,8 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   ProofGenerator* d_pppg;
   /** The witness form proof generator */
   WitnessFormGenerator d_wfpm;
+  /** The theory rewrite reconstruction proof generator */
+  TheoryRewriteRCons d_trrc;
   /** The witness form assumptions used in the proof */
   std::vector<Node> d_wfAssumptions;
   /** Kinds of proof rules we are eliminating */
