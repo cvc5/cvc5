@@ -970,11 +970,13 @@ enum class PfRule : uint32_t
   // fixed length of component i of the regular expression concatenation R.
   RE_UNFOLD_NEG_CONCAT_FIXED,
   // ======== Regular expression elimination
-  // Children: (P:F)
-  // Arguments: none
+  // Children: none
+  // Arguments: (F, b)
   // ---------------------
-  // Conclusion: R
-  // where R = strings::RegExpElimination::eliminate(F).
+  // Conclusion: (= F strings::RegExpElimination::eliminate(F, b))
+  // where b is a Boolean indicating whether we are using aggressive
+  // eliminations. Notice this rule concludes (= F F) if no eliminations
+  // are performed for F.
   RE_ELIM,
   //======================== Code points
   // Children: none
