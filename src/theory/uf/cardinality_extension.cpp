@@ -1137,7 +1137,7 @@ bool SortModel::checkLastCall()
   }
   RepSet* rs = m->getRepSetPtr();
   size_t nReps = rs->getNumRepresentatives(d_type);
-  if (nReps!=d_maxNegCard+1)
+  if (nReps != d_maxNegCard + 1)
   {
     Trace("uf-ss-warn") << "WARNING : Model does not have same # representatives as cardinality for " << d_type << "." << std::endl;
     Trace("uf-ss-warn") << "   Max neg cardinality : " << d_maxNegCard << std::endl;
@@ -1151,7 +1151,7 @@ bool SortModel::checkLastCall()
         Node nn = NodeManager::currentNM()->mkSkolem( ss.str(), d_type, "enumeration to meet negative card constraint" );
         d_fresh_aloc_reps.push_back( nn );
       }
-      if (d_maxNegCard==0) 
+      if (d_maxNegCard == 0)
       {
         rs->d_type_reps[d_type].push_back(d_fresh_aloc_reps[0]);
       }
