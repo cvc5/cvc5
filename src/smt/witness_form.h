@@ -81,6 +81,10 @@ class WitnessFormGenerator : public ProofGenerator
    * of this class (d_tcpg).
    */
   Node convertToWitnessForm(Node t);
+  /**
+   * Return a proof generator that can prove the given axiom exists.
+   */
+  ProofGenerator* convertExistsInternal(Node exists);
   /** The term conversion proof generator */
   TConvProofGenerator d_tcpg;
   /** The nodes we have already added rewrite steps for in d_tcpg */
@@ -89,6 +93,8 @@ class WitnessFormGenerator : public ProofGenerator
   std::unordered_set<Node, NodeHashFunction> d_eqs;
   /** Lazy proof storing witness intro steps */
   LazyCDProof d_wintroPf;
+  /** CDProof for justifying purification existentials */
+  CDProof d_pskPf;
 };
 
 }  // namespace smt

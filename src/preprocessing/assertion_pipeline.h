@@ -88,7 +88,10 @@ class AssertionPipeline
    * where d_nodes[i] is the assertion at position i prior to this call.
    */
   void replace(size_t i, Node n, ProofGenerator* pg = nullptr);
-  /** Same as above, with TrustNode */
+  /**
+   * Same as above, with TrustNode trn, which is of kind REWRITE and proves
+   * d_nodes[i] = n for some n.
+   */
   void replaceTrusted(size_t i, theory::TrustNode trn);
 
   IteSkolemMap& getIteSkolemMap() { return d_iteSkolemMap; }
