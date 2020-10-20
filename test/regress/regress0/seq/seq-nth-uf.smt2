@@ -1,3 +1,4 @@
+; COMMAND-LINE: --strings-exp
 (set-logic QF_UFSLIA)
 (set-info :status unsat)
 (declare-fun a () (Seq Int))

@@ -2,10 +2,10 @@
 /*! \file non_clausal_simp.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Andrew Reynolds, Andres Noetzli
+ **   Aina Niemetz, Haniel Barbosa, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -19,9 +19,9 @@
 #include <vector>
 
 #include "context/cdo.h"
-#include "options/proof_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/theory_model.h"
+#include "theory/trust_substitutions.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -54,7 +54,7 @@ NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult NonClausalSimp::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  Assert(!options::unsatCores() && !options::fewerPreprocessingHoles());
+  Assert(!options::unsatCores());
 
   d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
 
@@ -98,11 +98,14 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     // If in conflict, just return false
     Trace("non-clausal-simplify")
         << "conflict in non-clausal propagation" << std::endl;
-    Assert(!options::unsatCores() && !options::fewerPreprocessingHoles());
+    Assert(!options::unsatCores());
     assertionsToPreprocess->clear();
     Node n = NodeManager::currentNM()->mkConst<bool>(false);
     assertionsToPreprocess->push_back(n);
-    PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
+    if (options::unsatCores())
+    {
+      ProofManager::currentPM()->addDependence(n, Node::null());
+    }
     propagator->setNeedsFinish(true);
     return PreprocessingPassResult::CONFLICT;
   }
@@ -111,10 +114,12 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       << "Iterate through " << propagator->getLearnedLiterals().size()
       << " learned literals." << std::endl;
   // No conflict, go through the literals and solve them
-  SubstitutionMap& top_level_substs =
-      d_preprocContext->getTopLevelSubstitutions();
+  TrustSubstitutionMap& ttls = d_preprocContext->getTopLevelSubstitutions();
+  CVC4_UNUSED SubstitutionMap& top_level_substs = ttls.get();
   SubstitutionMap constantPropagations(d_preprocContext->getUserContext());
-  SubstitutionMap newSubstitutions(d_preprocContext->getUserContext());
+  TrustSubstitutionMap tnewSubstituions(d_preprocContext->getUserContext(),
+                                        nullptr);
+  SubstitutionMap& newSubstitutions = tnewSubstituions.get();
   SubstitutionMap::iterator pos;
   size_t j = 0;
   std::vector<Node>& learned_literals = propagator->getLearnedLiterals();
@@ -164,7 +169,10 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         assertionsToPreprocess->clear();
         Node n = NodeManager::currentNM()->mkConst<bool>(false);
         assertionsToPreprocess->push_back(n);
-        PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
+        if (options::unsatCores())
+        {
+          ProofManager::currentPM()->addDependence(n, Node::null());
+        }
         propagator->setNeedsFinish(true);
         return PreprocessingPassResult::CONFLICT;
       }
@@ -173,10 +181,11 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     // Solve it with the corresponding theory, possibly adding new
     // substitutions to newSubstitutions
     Trace("non-clausal-simplify") << "solving " << learnedLiteral << std::endl;
-
+    TrustNode tlearnedLiteral =
+        TrustNode::mkTrustLemma(learnedLiteral, nullptr);
     Theory::PPAssertStatus solveStatus =
-        d_preprocContext->getTheoryEngine()->solve(learnedLiteral,
-                                                   newSubstitutions);
+        d_preprocContext->getTheoryEngine()->solve(tlearnedLiteral,
+                                                   tnewSubstituions);
 
     switch (solveStatus)
     {
@@ -207,7 +216,10 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         assertionsToPreprocess->clear();
         Node n = NodeManager::currentNM()->mkConst<bool>(false);
         assertionsToPreprocess->push_back(n);
-        PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
+        if (options::unsatCores())
+        {
+          ProofManager::currentPM()->addDependence(n, Node::null());
+        }
         propagator->setNeedsFinish(true);
         return PreprocessingPassResult::CONFLICT;
       }
@@ -241,7 +253,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
           //   equations[0].second); assertionsToPreprocess->clear();
           //   Node n = NodeManager::currentNM()->mkConst<bool>(false);
           //   assertionsToPreprocess->push_back(n);
-          //   PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
           //   false); return;
           // }
           // top_level_substs.simplifyRHS(constantPropagations);
@@ -368,11 +379,9 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     }
   }
 
-  NodeBuilder<> learnedBuilder(kind::AND);
   Assert(assertionsToPreprocess->getRealAssertionsEnd()
          <= assertionsToPreprocess->size());
-  learnedBuilder << (*assertionsToPreprocess)
-          [assertionsToPreprocess->getRealAssertionsEnd() - 1];
+  std::vector<Node> learnedLitsToConjoin;
 
   for (size_t i = 0; i < learned_literals.size(); ++i)
   {
@@ -399,7 +408,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       continue;
     }
     s.insert(learned);
-    learnedBuilder << learned;
+    learnedLitsToConjoin.push_back(learned);
     Trace("non-clausal-simplify")
         << "non-clausal learned : " << learned << std::endl;
   }
@@ -421,7 +430,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       continue;
     }
     s.insert(cProp);
-    learnedBuilder << cProp;
+    learnedLitsToConjoin.push_back(cProp);
     Trace("non-clausal-simplify")
         << "non-clausal constant propagation : " << cProp << std::endl;
   }
@@ -432,11 +441,11 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   // substituting
   top_level_substs.addSubstitutions(newSubstitutions);
 
-  if (learnedBuilder.getNumChildren() > 1)
+  if (!learnedLitsToConjoin.empty())
   {
-    assertionsToPreprocess->replace(
-        assertionsToPreprocess->getRealAssertionsEnd() - 1,
-        Rewriter::rewrite(Node(learnedBuilder)));
+    size_t replIndex = assertionsToPreprocess->getRealAssertionsEnd() - 1;
+    Node newConj = NodeManager::currentNM()->mkAnd(learnedLitsToConjoin);
+    assertionsToPreprocess->conjoin(replIndex, newConj);
   }
 
   propagator->setNeedsFinish(true);

@@ -5,7 +5,7 @@
  **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -207,6 +207,8 @@ size_t NodeManager::registerDatatype(std::shared_ptr<DType> dt)
 
 const DType& NodeManager::getDTypeForIndex(size_t index) const
 {
+  // if this assertion fails, it is likely due to not managing datatypes
+  // properly w.r.t. multiple NodeManagers.
   Assert(index < d_registeredDTypes.size());
   return *d_registeredDTypes[index];
 }
@@ -453,6 +455,18 @@ Node NodeManager::mkSkolem(const std::string& prefix, const TypeNode& type, cons
   return n;
 }
 
+TypeNode NodeManager::mkBagType(TypeNode elementType)
+{
+  CheckArgument(
+      !elementType.isNull(), elementType, "unexpected NULL element type");
+  CheckArgument(elementType.isFirstClass(),
+                elementType,
+                "cannot store types that are not first-class in bags. Try "
+                "option --uf-ho.");
+  Debug("bags") << "making bags type " << elementType << std::endl;
+  return mkTypeNode(kind::BAG_TYPE, elementType);
+}
+
 TypeNode NodeManager::mkSequenceType(TypeNode elementType)
 {
   CheckArgument(
@@ -635,18 +649,19 @@ TypeNode NodeManager::TupleTypeCache::getTupleType( NodeManager * nm, std::vecto
       for (unsigned i = 0; i < types.size(); ++ i) {
         sst << "_" << types[i];
       }
-      Datatype dt(nm->toExprManager(), sst.str());
+      DType dt(sst.str());
       dt.setTuple();
       std::stringstream ssc;
       ssc << sst.str() << "_ctor";
-      DatatypeConstructor c(ssc.str());
+      std::shared_ptr<DTypeConstructor> c =
+          std::make_shared<DTypeConstructor>(ssc.str());
       for (unsigned i = 0; i < types.size(); ++ i) {
         std::stringstream ss;
         ss << sst.str() << "_stor_" << i;
-        c.addArg(ss.str().c_str(), types[i].toType());
+        c->addArg(ss.str().c_str(), types[i]);
       }
       dt.addConstructor(c);
-      d_data = TypeNode::fromType(nm->toExprManager()->mkDatatypeType(dt));
+      d_data = nm->mkDatatypeType(dt);
       Debug("tuprec-debug") << "Return type : " << d_data << std::endl;
     }
     return d_data;
@@ -664,16 +679,17 @@ TypeNode NodeManager::RecTypeCache::getRecordType( NodeManager * nm, const Recor
       for(Record::FieldVector::const_iterator i = fields.begin(); i != fields.end(); ++i) {
         sst << "_" << (*i).first << "_" << (*i).second;
       }
-      Datatype dt(nm->toExprManager(), sst.str());
+      DType dt(sst.str());
       dt.setRecord();
       std::stringstream ssc;
       ssc << sst.str() << "_ctor";
-      DatatypeConstructor c(ssc.str());
+      std::shared_ptr<DTypeConstructor> c =
+          std::make_shared<DTypeConstructor>(ssc.str());
       for(Record::FieldVector::const_iterator i = fields.begin(); i != fields.end(); ++i) {
-        c.addArg((*i).first, (*i).second);
+        c->addArg((*i).first, TypeNode::fromType((*i).second));
       }
       dt.addConstructor(c);
-      d_data = TypeNode::fromType(nm->toExprManager()->mkDatatypeType(dt));
+      d_data = nm->mkDatatypeType(dt);
       Debug("tuprec-debug") << "Return type : " << d_data << std::endl;
     }
     return d_data;
@@ -932,6 +948,17 @@ Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k) {
   }else{
     return it->second;
   }
+}
+
+Node NodeManager::mkSingleton(const TypeNode& t, const TNode n)
+{
+  Assert(n.getType().isSubtypeOf(t))
+      << "Invalid operands for mkSingleton. The type '" << n.getType()
+      << "' of node '" << n << "' is not a subtype of '" << t << "'."
+      << std::endl;
+  Node op = mkConst(SingletonOp(t));
+  Node singleton = mkNode(kind::SINGLETON, op, n);
+  return singleton;
 }
 
 Node NodeManager::mkAbstractValue(const TypeNode& type) {

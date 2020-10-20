@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Mathias Preiner, Dejan Jovanovic
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -25,7 +25,7 @@
 #include "context/cdlist.h"
 #include "context/cdo.h"
 #include "context/context.h"
-#include "expr/datatype.h"
+#include "expr/dtype.h"
 #include "expr/node.h"
 #include "theory/datatypes/sygus_simple_sym.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"

@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Clark Barrett, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -372,30 +372,10 @@ void TheoryEngineModelBuilder::addToTypeList(
   }
 }
 
-bool TheoryEngineModelBuilder::buildModel(Model* m)
+bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
 {
   Trace("model-builder") << "TheoryEngineModelBuilder: buildModel" << std::endl;
-  TheoryModel* tm = (TheoryModel*)m;
-
-  // buildModel should only be called once per check
-  Assert(!tm->isBuilt());
-
-  // Reset model
-  tm->reset();
-
-  // mark as built
-  tm->d_modelBuilt = true;
-  tm->d_modelBuiltSuccess = false;
-
-  // Collect model info from the theories
-  Trace("model-builder") << "TheoryEngineModelBuilder: Collect model info..."
-                         << std::endl;
-  if (!d_te->collectModelInfo(tm))
-  {
-    Trace("model-builder")
-        << "TheoryEngineModelBuilder: fail collect model info" << std::endl;
-    return false;
-  }
+  eq::EqualityEngine* ee = tm->d_equalityEngine;
 
   Trace("model-builder")
       << "TheoryEngineModelBuilder: Preprocess build model..." << std::endl;
@@ -941,7 +921,6 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     return false;
   }
   Trace("model-builder") << "TheoryEngineModelBuilder: success" << std::endl;
-  tm->d_modelBuiltSuccess = true;
   return true;
 }
 void TheoryEngineModelBuilder::computeAssignableInfo(
@@ -1102,7 +1081,7 @@ void TheoryEngineModelBuilder::computeAssignableInfo(
   }
 }
 
-void TheoryEngineModelBuilder::postProcessModel(bool incomplete, Model* m)
+void TheoryEngineModelBuilder::postProcessModel(bool incomplete, TheoryModel* m)
 {
   // if we are incomplete, there is no guarantee on the model.
   // thus, we do not check the model here.
@@ -1110,19 +1089,17 @@ void TheoryEngineModelBuilder::postProcessModel(bool incomplete, Model* m)
   {
     return;
   }
-  TheoryModel* tm = static_cast<TheoryModel*>(m);
-  Assert(tm != nullptr);
+  Assert(m != nullptr);
   // debug-check the model if the checkModels() is enabled.
   if (options::debugCheckModels())
   {
-    debugCheckModel(tm);
+    debugCheckModel(m);
   }
 }
 
 void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
 {
 #ifdef CVC4_ASSERTIONS
-  Assert(tm->isBuilt());
   if (tm->hasApproximations())
   {
     // models with approximations may fail the assertions below
@@ -1229,8 +1206,6 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
     if (childrenConst)
     {
       retNode = Rewriter::rewrite(retNode);
-      Assert(retNode.getKind() == kind::APPLY_UF
-             || !retNode.getType().isFirstClass() || retNode.isConst());
     }
   }
   d_normalizedCache[r] = retNode;

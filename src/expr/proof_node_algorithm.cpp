@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -19,22 +19,27 @@ namespace expr {
 
 void getFreeAssumptions(ProofNode* pn, std::vector<Node>& assump)
 {
-  std::map<Node, std::vector<ProofNode*>> amap;
-  getFreeAssumptionsMap(pn, amap);
-  for (const std::pair<const Node, std::vector<ProofNode*>>& p : amap)
+  std::map<Node, std::vector<std::shared_ptr<ProofNode>>> amap;
+  std::shared_ptr<ProofNode> spn = std::make_shared<ProofNode>(
+      pn->getRule(), pn->getChildren(), pn->getArguments());
+  getFreeAssumptionsMap(spn, amap);
+  for (const std::pair<const Node, std::vector<std::shared_ptr<ProofNode>>>& p :
+       amap)
   {
     assump.push_back(p.first);
   }
 }
 
-void getFreeAssumptionsMap(ProofNode* pn,
-                           std::map<Node, std::vector<ProofNode*>>& amap)
+void getFreeAssumptionsMap(
+    std::shared_ptr<ProofNode> pn,
+    std::map<Node, std::vector<std::shared_ptr<ProofNode>>>& amap)
 {
   // proof should not be cyclic
   // visited set false after preorder traversal, true after postorder traversal
   std::unordered_map<ProofNode*, bool> visited;
   std::unordered_map<ProofNode*, bool>::iterator it;
-  std::vector<ProofNode*> visit;
+  std::vector<std::shared_ptr<ProofNode>> visit;
+  std::vector<std::shared_ptr<ProofNode>> traversing;
   // Maps a bound assumption to the number of bindings it is under
   // e.g. in (SCOPE (SCOPE (ASSUME x) (x y)) (y)), y would be mapped to 2 at
   // (ASSUME x), and x would be mapped to 1.
@@ -54,20 +59,20 @@ void getFreeAssumptionsMap(ProofNode* pn,
   //   after postvisiting SCOPE2: {}
   //
   std::unordered_map<Node, uint32_t, NodeHashFunction> scopeDepth;
-  ProofNode* cur;
+  std::shared_ptr<ProofNode> cur;
   visit.push_back(pn);
   do
   {
     cur = visit.back();
     visit.pop_back();
-    it = visited.find(cur);
+    it = visited.find(cur.get());
     const std::vector<Node>& cargs = cur->getArguments();
     if (it == visited.end())
     {
-      visited[cur] = true;
       PfRule id = cur->getRule();
       if (id == PfRule::ASSUME)
       {
+        visited[cur.get()] = true;
         Assert(cargs.size() == 1);
         Node f = cargs[0];
         if (!scopeDepth.count(f))
@@ -85,35 +90,83 @@ void getFreeAssumptionsMap(ProofNode* pn,
             scopeDepth[a] += 1;
           }
           // will need to unbind the variables below
-          visited[cur] = false;
-          visit.push_back(cur);
         }
         // The following loop cannot be merged with the loop above because the
         // same subproof
+        visited[cur.get()] = false;
+        visit.push_back(cur);
+        traversing.push_back(cur);
         const std::vector<std::shared_ptr<ProofNode>>& cs = cur->getChildren();
         for (const std::shared_ptr<ProofNode>& cp : cs)
         {
-          visit.push_back(cp.get());
+          if (std::find(traversing.begin(), traversing.end(), cp)
+              != traversing.end())
+          {
+            Unhandled() << "getFreeAssumptionsMap: cyclic proof! (use "
+                           "--proof-new-eager-checking)"
+                        << std::endl;
+          }
+          visit.push_back(cp);
         }
       }
     }
     else if (!it->second)
     {
-      visited[cur] = true;
-      Assert(cur->getRule() == PfRule::SCOPE);
-      // unbind its assumptions
-      for (const Node& a : cargs)
+      Assert(!traversing.empty());
+      traversing.pop_back();
+      visited[cur.get()] = true;
+      if (cur->getRule() == PfRule::SCOPE)
       {
-        auto scopeCt = scopeDepth.find(a);
-        Assert(scopeCt != scopeDepth.end());
-        scopeCt->second -= 1;
-        if (scopeCt->second == 0)
+        // unbind its assumptions
+        for (const Node& a : cargs)
         {
-          scopeDepth.erase(scopeCt);
+          auto scopeCt = scopeDepth.find(a);
+          Assert(scopeCt != scopeDepth.end());
+          scopeCt->second -= 1;
+          if (scopeCt->second == 0)
+          {
+            scopeDepth.erase(scopeCt);
+          }
         }
       }
     }
   } while (!visit.empty());
+}
+
+bool containsSubproof(ProofNode* pn, ProofNode* pnc)
+{
+  std::unordered_set<const ProofNode*> visited;
+  return containsSubproof(pn, pnc, visited);
+}
+
+bool containsSubproof(ProofNode* pn,
+                      ProofNode* pnc,
+                      std::unordered_set<const ProofNode*>& visited)
+{
+  std::unordered_map<const ProofNode*, bool>::iterator it;
+  std::vector<const ProofNode*> visit;
+  visit.push_back(pn);
+  const ProofNode* cur;
+  while (!visit.empty())
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+      if (cur == pnc)
+      {
+        return true;
+      }
+      const std::vector<std::shared_ptr<ProofNode>>& children =
+          cur->getChildren();
+      for (const std::shared_ptr<ProofNode>& cp : children)
+      {
+        visit.push_back(cp.get());
+      }
+    }
+  }
+  return false;
 }
 
 }  // namespace expr

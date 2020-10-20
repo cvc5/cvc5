@@ -1,4 +1,3 @@
-; COMMAND-LINE: --no-check-proofs
 (set-option :incremental false)
 (set-info :source "MathSat group")
 (set-info :status unsat)

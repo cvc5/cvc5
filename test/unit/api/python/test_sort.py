@@ -1,3 +1,13 @@
+#####################
+## test_sort.py
+## Top contributors (to current version):
+##   Makai Mann, Andres Noetzli
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
 import pytest
 
 import pycvc4
@@ -223,21 +233,31 @@ def testGetBVSize():
 
 def testGetFPExponentSize():
     solver = pycvc4.Solver()
-    fpSort = solver.mkFloatingPointSort(4, 8)
-    fpSort.getFPExponentSize()
-    setSort = solver.mkSetSort(solver.getIntegerSort())
 
-    with pytest.raises(Exception):
-        setSort.getFPExponentSize()
+    if solver.supportsFloatingPoint():
+        fpSort = solver.mkFloatingPointSort(4, 8)
+        fpSort.getFPExponentSize()
+        setSort = solver.mkSetSort(solver.getIntegerSort())
+
+        with pytest.raises(Exception):
+            setSort.getFPExponentSize()
+    else:
+        with pytest.raises(Exception):
+            solver.mkFloatingPointSort(4, 8)
 
 def testGetFPSignificandSize():
     solver = pycvc4.Solver()
-    fpSort = solver.mkFloatingPointSort(4, 8)
-    fpSort.getFPSignificandSize()
-    setSort = solver.mkSetSort(solver.getIntegerSort())
 
-    with pytest.raises(Exception):
-        setSort.getFPSignificandSize()
+    if solver.supportsFloatingPoint():
+        fpSort = solver.mkFloatingPointSort(4, 8)
+        fpSort.getFPSignificandSize()
+        setSort = solver.mkSetSort(solver.getIntegerSort())
+
+        with pytest.raises(Exception):
+            setSort.getFPSignificandSize()
+    else:
+        with pytest.raises(Exception):
+            solver.mkFloatingPointSort(4, 8)
 
 def testGetDatatypeParamSorts():
     solver = pycvc4.Solver()
@@ -327,6 +347,9 @@ def testSortSubtyping():
 
     setSortI = solver.mkSetSort(intSort)
     setSortR = solver.mkSetSort(realSort)
-    # we support subtyping for sets
-    assert setSortI.isSubsortOf(setSortR)
-    assert setSortR.isComparableTo(setSortI)
+    # we don't support subtyping for sets
+    assert not setSortI.isComparableTo(setSortR)
+    assert not setSortI.isSubsortOf(setSortR)
+    assert not setSortR.isComparableTo(setSortI)
+    assert not setSortR.isSubsortOf(setSortI)
+

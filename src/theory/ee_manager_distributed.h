@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -21,44 +21,11 @@
 #include <map>
 #include <memory>
 
-#include "theory/ee_setup_info.h"
-#include "theory/theory.h"
+#include "theory/ee_manager.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
-
-class TheoryEngine;
-
 namespace theory {
-
-/**
- * This is (theory-agnostic) information associated with the management of
- * an equality engine for a single theory. This information is maintained
- * by the manager class below.
- *
- * Currently, this simply is the equality engine itself, which is a unique_ptr
- * for memory management purposes.
- */
-struct EeTheoryInfo
-{
-  /** The equality engine allocated by this theory (if it exists) */
-  std::unique_ptr<eq::EqualityEngine> d_allocEe;
-};
-
-/** Virtual base class for equality engine managers */
-class EqEngineManager
-{
- public:
-  virtual ~EqEngineManager() {}
-  /**
-   * Get the equality engine theory information for theory with the given id.
-   */
-  const EeTheoryInfo* getEeTheoryInfo(TheoryId tid) const;
-
- protected:
-  /** Information related to the equality engine, per theory. */
-  std::map<TheoryId, EeTheoryInfo> d_einfo;
-};
 
 /**
  * The (distributed) equality engine manager. This encapsulates an architecture
@@ -78,20 +45,15 @@ class EqEngineManager
 class EqEngineManagerDistributed : public EqEngineManager
 {
  public:
-  EqEngineManagerDistributed(TheoryEngine& te);
+  EqEngineManagerDistributed(TheoryEngine& te, SharedSolver& shs);
   ~EqEngineManagerDistributed();
   /**
-   * Finish initialize, called by TheoryEngine::finishInit after theory
-   * objects have been created but prior to their final initialization. This
-   * sets up equality engines for all theories.
-   *
-   * This method is context-independent, and is applied once during
-   * the lifetime of TheoryEngine (during finishInit).
+   * Initialize theories. This method allocates unique equality engines
+   * per theories and connects them to a master equality engine.
    */
-  void finishInit();
-  /** get the master equality engine */
-  eq::EqualityEngine* getMasterEqualityEngine();
-
+  void initializeTheories() override;
+  /** get the core equality engine */
+  eq::EqualityEngine* getCoreEqualityEngine() override;
  private:
   /** notify class for master equality engine */
   class MasterNotifyClass : public theory::eq::EqualityEngineNotify
@@ -104,10 +66,6 @@ class EqEngineManagerDistributed : public EqEngineManager
      */
     void eqNotifyNewClass(TNode t) override;
 
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override
-    {
-      return true;
-    }
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
       return true;
@@ -127,15 +85,12 @@ class EqEngineManagerDistributed : public EqEngineManager
     /** Pointer to quantifiers engine */
     QuantifiersEngine* d_quantEngine;
   };
-  /** Allocate equality engine that is context-dependent on c with info esi */
-  eq::EqualityEngine* allocateEqualityEngine(EeSetupInfo& esi,
-                                             context::Context* c);
-  /** Reference to the theory engine */
-  TheoryEngine& d_te;
   /** The master equality engine notify class */
   std::unique_ptr<MasterNotifyClass> d_masterEENotify;
   /** The master equality engine. */
   std::unique_ptr<eq::EqualityEngine> d_masterEqualityEngine;
+  /** The equality engine of the shared solver / shared terms database. */
+  std::unique_ptr<eq::EqualityEngine> d_stbEqualityEngine;
 };
 
 }  // namespace theory

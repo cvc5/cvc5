@@ -1,3 +1,13 @@
+#####################
+## CMakeLists.txt
+## Top contributors (to current version):
+##   Mathias Preiner, Aina Niemetz, Andrew Reynolds
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
 libcvc4_add_sources(
   array.h
   array_store_all.cpp
@@ -7,14 +17,22 @@ libcvc4_add_sources(
   attribute.cpp
   attribute_internals.h
   attribute_unique_id.h
+  buffered_proof_generator.cpp
+  buffered_proof_generator.h
   emptyset.cpp
   emptyset.h
+  emptybag.cpp
+  emptybag.h
   expr_iomanip.cpp
   expr_iomanip.h
   expr_manager_scope.h
   kind_map.h
   lazy_proof.cpp
   lazy_proof.h
+  lazy_proof_chain.cpp
+  lazy_proof_chain.h
+  lazy_proof_set.cpp
+  lazy_proof_set.h
   match_trie.cpp
   match_trie.h
   node.cpp
@@ -59,8 +77,16 @@ libcvc4_add_sources(
   skolem_manager.h
   symbol_table.cpp
   symbol_table.h
+  tconv_seq_proof_generator.cpp
+  tconv_seq_proof_generator.h
   term_canonize.cpp
   term_canonize.h
+  term_context.cpp
+  term_context.h
+  term_context_node.cpp
+  term_context_node.h
+  term_context_stack.cpp
+  term_context_stack.h
   term_conversion_proof_generator.cpp
   term_conversion_proof_generator.h
   type.cpp
@@ -71,8 +97,6 @@ libcvc4_add_sources(
   type_node.cpp
   type_node.h
   variable_type_map.h
-  datatype.h
-  datatype.cpp
   datatype_index.h
   datatype_index.cpp
   dtype.h

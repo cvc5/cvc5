@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Paul Meng, Piotr Trojanek
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -15,7 +15,6 @@
  **/
 
 #include "theory/sets/theory_sets_rels.h"
-#include "expr/datatype.h"
 #include "theory/sets/theory_sets_private.h"
 #include "theory/sets/theory_sets.h"
 
@@ -34,8 +33,13 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
 
 TheorySetsRels::TheorySetsRels(SolverState& s,
                                InferenceManager& im,
-                               context::UserContext* u)
-    : d_state(s), d_im(im), d_shared_terms(u)
+                               SkolemCache& skc,
+                               TermRegistry& treg)
+    : d_state(s),
+      d_im(im),
+      d_skCache(skc),
+      d_treg(treg),
+      d_shared_terms(s.getUserContext())
 {
   d_trueNode = NodeManager::currentNM()->mkConst(true);
   d_falseNode = NodeManager::currentNM()->mkConst(false);
@@ -243,12 +247,13 @@ void TheorySetsRels::check(Theory::Effort level)
         }
         else if (erType.isTuple() && !eqc_node.isConst() && !eqc_node.isVar())
         {
+          std::vector<TypeNode> tupleTypes = erType.getTupleTypes();
           for (unsigned i = 0, tlen = erType.getTupleLength(); i < tlen; i++)
           {
-            Node element = RelsUtils::nthElementOfTuple( eqc_node, i );
-
-            if( !element.isConst() ) {
-              makeSharedTerm( element );
+            Node element = RelsUtils::nthElementOfTuple(eqc_node, i);
+            if (!element.isConst())
+            {
+              makeSharedTerm(element, tupleTypes[i]);
             }
           }
         }
@@ -545,17 +550,16 @@ void TheorySetsRels::check(Theory::Effort level)
     }
     Node fst_element = RelsUtils::nthElementOfTuple( exp[0], 0 );
     Node snd_element = RelsUtils::nthElementOfTuple( exp[0], 1 );
-    SkolemCache& sc = d_state.getSkolemCache();
-    Node sk_1 = sc.mkTypedSkolemCached(fst_element.getType(),
-                                       exp[0],
-                                       tc_rel[0],
-                                       SkolemCache::SK_TCLOSURE_DOWN1,
-                                       "stc1");
-    Node sk_2 = sc.mkTypedSkolemCached(fst_element.getType(),
-                                       exp[0],
-                                       tc_rel[0],
-                                       SkolemCache::SK_TCLOSURE_DOWN2,
-                                       "stc2");
+    Node sk_1 = d_skCache.mkTypedSkolemCached(fst_element.getType(),
+                                              exp[0],
+                                              tc_rel[0],
+                                              SkolemCache::SK_TCLOSURE_DOWN1,
+                                              "stc1");
+    Node sk_2 = d_skCache.mkTypedSkolemCached(fst_element.getType(),
+                                              exp[0],
+                                              tc_rel[0],
+                                              SkolemCache::SK_TCLOSURE_DOWN2,
+                                              "stc2");
     Node mem_of_r = nm->mkNode(MEMBER, exp[0], tc_rel[0]);
     Node sk_eq = nm->mkNode(EQUAL, sk_1, sk_2);
     Node reason   = exp;
@@ -818,7 +822,7 @@ void TheorySetsRels::check(Theory::Effort level)
     Node r1_rep = getRepresentative(join_rel[0]);
     Node r2_rep = getRepresentative(join_rel[1]);
     TypeNode     shared_type    = r2_rep.getType().getSetElementType().getTupleTypes()[0];
-    Node shared_x = d_state.getSkolemCache().mkTypedSkolemCached(
+    Node shared_x = d_skCache.mkTypedSkolemCached(
         shared_type, mem, join_rel, SkolemCache::SK_JOIN, "srj");
     const DType& dt1 = join_rel[0].getType().getSetElementType().getDType();
     unsigned int s1_len         = join_rel[0].getType().getSetElementType().getTupleLength();
@@ -860,7 +864,7 @@ void TheorySetsRels::check(Theory::Effort level)
     sendInfer(fact, reason, "JOIN-Split-1");
     fact = NodeManager::currentNM()->mkNode(kind::MEMBER, mem2, join_rel[1]);
     sendInfer(fact, reason, "JOIN-Split-2");
-    makeSharedTerm( shared_x );
+    makeSharedTerm(shared_x, shared_type);
   }
 
   /*
@@ -1036,8 +1040,14 @@ void TheorySetsRels::check(Theory::Effort level)
         Node r2_lmost = RelsUtils::nthElementOfTuple( r2_rep_exps[j][0], 0 );
         tuple_elements.push_back(tn.getDType()[0].getConstructor());
 
-        if( (areEqual(r1_rmost, r2_lmost) && rel.getKind() == kind::JOIN) ||
-            rel.getKind() == kind::PRODUCT ) {
+        Trace("rels-debug") << "[Theory::Rels] r1_rmost: " << r1_rmost
+                            << " of type " << r1_rmost.getType() << std::endl;
+        Trace("rels-debug") << "[Theory::Rels] r2_lmost: " << r2_lmost
+                            << " of type " << r2_lmost.getType() << std::endl;
+
+        if (rel.getKind() == kind::PRODUCT
+            || (rel.getKind() == kind::JOIN && areEqual(r1_rmost, r2_lmost)))
+        {
           bool isProduct = rel.getKind() == kind::PRODUCT;
           unsigned int k = 0;
           unsigned int l = 1;
@@ -1104,7 +1114,7 @@ void TheorySetsRels::check(Theory::Effort level)
       // if we are still not in conflict, send lemmas
       if (!d_state.isInConflict())
       {
-        d_im.flushPendingLemmas();
+        d_im.doPendingLemmas();
       }
     }
     d_pending.clear();
@@ -1150,8 +1160,9 @@ void TheorySetsRels::check(Theory::Effort level)
       }
       return equal;
     } else if(!a.getType().isBoolean()){
-      makeSharedTerm(a);
-      makeSharedTerm(b);
+      // TODO(project##230): Find a safe type for the singleton operator
+      makeSharedTerm(a, a.getType());
+      makeSharedTerm(b, b.getType());
     }
     return false;
   }
@@ -1180,15 +1191,16 @@ void TheorySetsRels::check(Theory::Effort level)
     return false;
   }
 
-  void TheorySetsRels::makeSharedTerm( Node n ) {
+  void TheorySetsRels::makeSharedTerm(Node n, TypeNode t)
+  {
     if (d_shared_terms.find(n) != d_shared_terms.end())
     {
       return;
     }
     Trace("rels-share") << " [sets-rels] making shared term " << n << std::endl;
     // force a proxy lemma to be sent for the singleton containing n
-    Node ss = NodeManager::currentNM()->mkNode(SINGLETON, n);
-    d_state.getProxy(ss);
+    Node ss = NodeManager::currentNM()->mkSingleton(t, n);
+    d_treg.getProxy(ss);
     d_shared_terms.insert(n);
   }
 
@@ -1213,9 +1225,11 @@ void TheorySetsRels::check(Theory::Effort level)
       Trace("rels-debug") << "[Theory::Rels] Reduce tuple var: " << n[0] << " to a concrete one " << " node = " << n << std::endl;
       std::vector<Node> tuple_elements;
       tuple_elements.push_back((n[0].getType().getDType())[0].getConstructor());
-      for(unsigned int i = 0; i < n[0].getType().getTupleLength(); i++) {
+      std::vector<TypeNode> tupleTypes = n[0].getType().getTupleTypes();
+      for (unsigned int i = 0; i < n[0].getType().getTupleLength(); i++)
+      {
         Node element = RelsUtils::nthElementOfTuple(n[0], i);
-        makeSharedTerm(element);
+        makeSharedTerm(element, tupleTypes[i]);
         tuple_elements.push_back(element);
       }
       Node tuple_reduct = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, tuple_elements);

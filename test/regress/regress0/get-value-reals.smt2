@@ -1,4 +1,3 @@
-; COMMAND-LINE:
 ; EXPECT: sat
 ; EXPECT: ((pos_int (/ 3 1)) (pos_rat (/ 1 3)) (zero (/ 0 1)) (neg_rat (/ (- 2) 3)) (neg_int (/ (- 2) 1)))
 (set-info :smt-lib-version 2.0)

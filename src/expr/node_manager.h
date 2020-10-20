@@ -2,10 +2,10 @@
 /*! \file node_manager.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Christopher L. Conway, Dejan Jovanovic
+ **   Morgan Deters, Christopher L. Conway, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -90,10 +90,6 @@ class NodeManager {
   // friends so they can access mkVar() here, which is private
   friend Expr ExprManager::mkVar(const std::string&, Type, uint32_t flags);
   friend Expr ExprManager::mkVar(Type, uint32_t flags);
-
-  // friend so it can access NodeManager's d_listeners and notify clients
-  friend std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
-      std::vector<Datatype>&, std::set<Type>&, uint32_t);
 
   /** Predicate for use with STL algorithms */
   struct NodeValueReferenceCountNonZero {
@@ -380,8 +376,8 @@ class NodeManager {
   /** Create a variable with the given type. */
   Node mkVar(const TypeNode& type, uint32_t flags = ExprManager::VAR_FLAG_NONE);
   Node* mkVarPtr(const TypeNode& type, uint32_t flags = ExprManager::VAR_FLAG_NONE);
-  
-public:
+
+ public:
 
   explicit NodeManager(ExprManager* exprManager);
   ~NodeManager();
@@ -477,6 +473,17 @@ public:
   template <bool ref_count>
   Node* mkNodePtr(Kind kind, const std::vector<NodeTemplate<ref_count> >& children);
 
+  /**
+   * Create an AND node with arbitrary number of children. This returns the
+   * true node if children is empty, or the single node in children if
+   * it contains only one node.
+   *
+   * We define construction of AND as a special case here since it is widely
+   * used for e.g. constructing explanations.
+   */
+  template <bool ref_count>
+  Node mkAnd(const std::vector<NodeTemplate<ref_count> >& children);
+
   /** Create a node (with no children) by operator. */
   Node mkNode(TNode opNode);
   Node* mkNodePtr(TNode opNode);
@@ -558,15 +565,24 @@ public:
 
   /** Create a instantiation constant with the given type. */
   Node mkInstConstant(const TypeNode& type);
-  
+
   /** Create a boolean term variable. */
   Node mkBooleanTermVariable();
 
   /** Make a new abstract value with the given type. */
   Node mkAbstractValue(const TypeNode& type);
-  
+
   /** make unique (per Type,Kind) variable. */
   Node mkNullaryOperator(const TypeNode& type, Kind k);
+
+  /**
+  * Create a singleton set from the given element n.
+  * @param t the element type of the returned set.
+  * Note that the type of n needs to be a subtype of t.
+  * @param n the single element in the singleton.
+  * @return a singleton set constructed from the element n.
+  */
+  Node mkSingleton(const TypeNode& t, const TNode n);
 
   /**
    * Create a constant of type T.  It will have the appropriate
@@ -869,7 +885,7 @@ public:
 
   /** Make the type of floating-point with <code>exp</code> bit exponent and
       <code>sig</code> bit significand */
-  inline TypeNode mkFloatingPointType(unsigned exp, unsigned sig);  
+  inline TypeNode mkFloatingPointType(unsigned exp, unsigned sig);
   inline TypeNode mkFloatingPointType(FloatingPointSize fs);
 
   /** Make the type of bitvectors of size <code>size</code> */
@@ -880,6 +896,9 @@ public:
 
   /** Make the type of set with the given parameterization */
   inline TypeNode mkSetType(TypeNode elementType);
+
+  /** Make the type of bags with the given parameterization */
+  TypeNode mkBagType(TypeNode elementType);
 
   /** Make the type of sequences with the given parameterization */
   TypeNode mkSequenceType(TypeNode elementType);
@@ -1361,6 +1380,20 @@ inline Node NodeManager::mkNode(Kind kind,
   NodeBuilder<> nb(this, kind);
   nb.append(children);
   return nb.constructNode();
+}
+
+template <bool ref_count>
+Node NodeManager::mkAnd(const std::vector<NodeTemplate<ref_count> >& children)
+{
+  if (children.empty())
+  {
+    return mkConst(true);
+  }
+  else if (children.size() == 1)
+  {
+    return children[0];
+  }
+  return mkNode(kind::AND, children);
 }
 
 template <bool ref_count>

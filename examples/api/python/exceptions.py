@@ -1,55 +1,54 @@
 #!/usr/bin/env python
-
 #####################
-## \file exceptions.py
-## \verbatim
+## exceptions.py
 ## Top contributors (to current version):
 ##   Andres Noetzli
 ## This file is part of the CVC4 project.
 ## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
-## in the top-level source directory) and their institutional affiliations.
+## in the top-level source directory and their institutional affiliations.
 ## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.\endverbatim
+## directory for licensing information.
 ##
-## \brief Catching CVC4 exceptions with the legacy Python API.
+## Catching CVC4 exceptions with the legacy Python API.
 ##
 ## A simple demonstration of catching CVC4 execptions with the legacy Python
 ## API.
+##
 
-import CVC4
+import pycvc4
+from pycvc4 import kinds
 import sys
 
 
 def main():
-    em = CVC4.ExprManager()
-    smt = CVC4.SmtEngine(em)
+    slv = pycvc4.Solver()
 
-    smt.setOption("produce-models", CVC4.SExpr("true"))
+    slv.setOption("produce-models", "true")
 
     # Setting an invalid option
     try:
-        smt.setOption("non-existing", CVC4.SExpr("true"))
+        slv.setOption("non-existing", "true")
         return 1
-    except CVC4.Exception as e:
-        print(e.toString())
+    except:
+        pass
 
     # Creating a term with an invalid type
     try:
-        integer = em.integerType()
-        x = em.mkVar("x", integer)
-        invalidExpr = em.mkExpr(CVC4.AND, x, x)
-        smt.checkSat(invalidExpr)
+        integer = slv.getIntegerSort()
+        x = slv.mkConst("x", integer)
+        invalidTerm = em.mkTerm(AND, x, x)
+        slv.checkSat(invalidTerm)
         return 1
-    except CVC4.Exception as e:
-        print(e.toString())
+    except:
+        pass
 
     # Asking for a model after unsat result
     try:
-        smt.checkSat(em.mkBoolConst(False))
-        smt.getModel()
+        slv.checkSat(slv.mkBoolean(False))
+        slv.getModel()
         return 1
-    except CVC4.Exception as e:
-        print(e.toString())
+    except:
+        pass
 
     return 0
 

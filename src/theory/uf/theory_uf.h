@@ -2,10 +2,10 @@
 /*! \file theory_uf.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Andrew Reynolds, Morgan Deters
+ **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -24,8 +24,10 @@
 #include "expr/node.h"
 #include "expr/node_trie.h"
 #include "theory/theory.h"
+#include "theory/theory_eq_notify.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_checker.h"
+#include "theory/uf/proof_equality_engine.h"
 #include "theory/uf/symmetry_breaker.h"
 #include "theory/uf/theory_uf_rewriter.h"
 
@@ -37,57 +39,19 @@ class CardinalityExtension;
 class HoExtension;
 
 class TheoryUF : public Theory {
-
-public:
-
-  class NotifyClass : public eq::EqualityEngineNotify {
-    TheoryUF& d_uf;
-  public:
-    NotifyClass(TheoryUF& uf): d_uf(uf) {}
-
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override
+ public:
+  class NotifyClass : public TheoryEqNotifyClass
+  {
+   public:
+    NotifyClass(TheoryInferenceManager& im, TheoryUF& uf)
+        : TheoryEqNotifyClass(im), d_uf(uf)
     {
-      Debug("uf") << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false" )<< ")" << std::endl;
-      if (value) {
-        return d_uf.propagate(equality);
-      } else {
-        // We use only literal triggers so taking not is safe
-        return d_uf.propagate(equality.notNode());
-      }
-    }
-
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
-    {
-      Debug("uf") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
-      if (value) {
-        return d_uf.propagate(predicate);
-      } else {
-       return d_uf.propagate(predicate.notNode());
-      }
-    }
-
-    bool eqNotifyTriggerTermEquality(TheoryId tag,
-                                     TNode t1,
-                                     TNode t2,
-                                     bool value) override
-    {
-      Debug("uf") << "NotifyClass::eqNotifyTriggerTermMerge(" << tag << ", " << t1 << ", " << t2 << ")" << std::endl;
-      if (value) {
-        return d_uf.propagate(t1.eqNode(t2));
-      } else {
-        return d_uf.propagate(t1.eqNode(t2).notNode());
-      }
-    }
-
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
-    {
-      Debug("uf-notify") << "NotifyClass::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << ")" << std::endl;
-      d_uf.conflict(t1, t2);
     }
 
     void eqNotifyNewClass(TNode t) override
     {
-      Debug("uf-notify") << "NotifyClass::eqNotifyNewClass(" << t << ")" << std::endl;
+      Debug("uf-notify") << "NotifyClass::eqNotifyNewClass(" << t << ")"
+                         << std::endl;
       d_uf.eqNotifyNewClass(t);
     }
 
@@ -104,56 +68,25 @@ public:
       d_uf.eqNotifyDisequal(t1, t2, reason);
     }
 
+   private:
+    /** Reference to the parent theory */
+    TheoryUF& d_uf;
   };/* class TheoryUF::NotifyClass */
 
 private:
-
-  /** The notify class */
-  NotifyClass d_notify;
-
   /** The associated cardinality extension (or nullptr if it does not exist) */
   std::unique_ptr<CardinalityExtension> d_thss;
   /** the higher-order solver extension (or nullptr if it does not exist) */
   std::unique_ptr<HoExtension> d_ho;
 
-  /** Equaltity engine */
-  eq::EqualityEngine d_equalityEngine;
-
-  /** Are we in conflict */
-  context::CDO<bool> d_conflict;
-
-  /** The conflict node */
-  Node d_conflictNode;
-
-
   /** node for true */
   Node d_true;
-
-  /**
-   * Should be called to propagate the literal. We use a node here
-   * since some of the propagated literals are not kept anywhere.
-   */
-  bool propagate(TNode literal);
-
-  /**
-   * Explain why this literal is true by adding assumptions
-   * with proof (if "pf" is non-NULL).
-   */
-  void explain(TNode literal, std::vector<TNode>& assumptions, eq::EqProof* pf);
-
-  /**
-   * Explain a literal, with proof (if "pf" is non-NULL).
-   */
-  Node explain(TNode literal, eq::EqProof* pf);
 
   /** All the function terms that the theory has seen */
   context::CDList<TNode> d_functionsTerms;
 
   /** Symmetry analyzer */
   SymmetryBreaker d_symb;
-
-  /** Conflict when merging two constants */
-  void conflict(TNode a, TNode b);
 
   /** called when a new equivalance class is created */
   void eqNotifyNewClass(TNode t);
@@ -163,15 +96,6 @@ private:
 
   /** called when two equivalence classes are made disequal */
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
-
- private:
-  /** get the operator for this node (node should be either APPLY_UF or
-   * HO_APPLY)
-   */
-  Node getOperatorForApplyTerm(TNode node);
-  /** get the starting index of the arguments for node (node should be either
-   * APPLY_UF or HO_APPLY) */
-  unsigned getArgumentStartIndexForApplyTerm(TNode node);
 
  public:
 
@@ -186,47 +110,70 @@ private:
 
   ~TheoryUF();
 
-  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
-
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+  /**
+   * Returns true if we need an equality engine. If so, we initialize the
+   * information regarding how it should be setup. For details, see the
+   * documentation in Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
+  /** finish initialization */
   void finishInit() override;
+  //--------------------------------- end initialization
 
-  void check(Effort) override;
+  //--------------------------------- standard check
+  /** Do we need a check call at last call effort? */
+  bool needsCheckLastEffort() override;
+  /** Post-check, called after the fact queue of the theory is processed. */
+  void postCheck(Effort level) override;
+  /** Pre-notify fact, return true if processed. */
+  bool preNotifyFact(TNode atom,
+                     bool pol,
+                     TNode fact,
+                     bool isPrereg,
+                     bool isInternal) override;
+  /** Notify fact */
+  void notifyFact(TNode atom, bool pol, TNode fact, bool isInternal) override;
+  //--------------------------------- end standard check
+
+  /** Collect model values in m based on the relevant terms given by termSet */
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet) override;
+
   TrustNode expandDefinition(Node node) override;
   void preRegisterTerm(TNode term) override;
   TrustNode explain(TNode n) override;
 
-  bool collectModelInfo(TheoryModel* m) override;
 
   void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
   void presolve() override;
 
-  void addSharedTerm(TNode n) override;
   void computeCareGraph() override;
-
-  void propagate(Effort effort) override;
 
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
   std::string identify() const override { return "THEORY_UF"; }
-
-  eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
-
-  /** get a pointer to the uf with cardinality */
-  CardinalityExtension* getCardinalityExtension() const { return d_thss.get(); }
-  /** are we in conflict? */
-  bool inConflict() const { return d_conflict; }
-
  private:
+  /** Explain why this literal is true by building an explanation */
+  void explain(TNode literal, Node& exp);
+
   bool areCareDisequal(TNode x, TNode y);
-  void addCarePairs(TNodeTrie* t1,
-                    TNodeTrie* t2,
+  void addCarePairs(const TNodeTrie* t1,
+                    const TNodeTrie* t2,
                     unsigned arity,
                     unsigned depth);
 
   TheoryUfRewriter d_rewriter;
   /** Proof rule checker */
   UfProofRuleChecker d_ufProofChecker;
+  /** A (default) theory state object */
+  TheoryState d_state;
+  /** A (default) inference manager */
+  TheoryInferenceManager d_im;
+  /** The notify class */
+  NotifyClass d_notify;
 };/* class TheoryUF */
 
 }/* CVC4::theory::uf namespace */

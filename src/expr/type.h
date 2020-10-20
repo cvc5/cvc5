@@ -5,7 +5,7 @@
  **   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -615,9 +615,6 @@ class CVC4_PUBLIC DatatypeType : public Type {
  public:
   /** Construct from the base type */
   DatatypeType(const Type& type = Type());
-
-  /** Get the underlying datatype */
-  const Datatype& getDatatype() const;
 
   /** Is this datatype parametric? */
   bool isParametric() const;

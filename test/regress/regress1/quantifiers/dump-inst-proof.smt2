@@ -1,5 +1,5 @@
 ; REQUIRES: proof
-; COMMAND-LINE: --dump-instantiations --proof --print-inst-full
+; COMMAND-LINE: --dump-instantiations --produce-unsat-cores --print-inst-full
 ; EXPECT: unsat
 ; EXPECT: (instantiations (forall ((x Int)) (or (P x) (Q x)) )
 ; EXPECT:   ( 2 )
@@ -21,7 +21,7 @@
 (assert (forall ((x Int)) (or (not (S x)) (not (Q x)))))
 (assert (and (not (R 0)) (not (R 10)) (not (S 1)) (not (P 2))))
 (assert (S 2))
-; This tests that --proof minimizes the instantiations printed out.
-; This regression should require only the 2 instantiations above, but
-; may try more.
+; This tests that --produce-unsat-cores minimizes the instantiations
+; printed out.  This regression should require only the 2
+; instantiations above, but may try more.
 (check-sat)

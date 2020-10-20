@@ -2,11 +2,10 @@
 ; EXPECT: success
 ; EXPECT: success
 ; EXPECT: success
+; EXPECT: unsupported
 ; EXPECT: success
 ; EXPECT: success
 ; EXPECT: success
-; EXPECT: success
-; EXPECT: (error "")
 ; EXPECT: (error "")
 ; EXPECT: (error "")
 ; EXPECT: (error "")
@@ -22,7 +21,6 @@
 (declare-fun p () Bool)
 (get-unsat-core)
 (get-value (p))
-(get-proof)
 (get-model)
 (get-assignment)
 (assert true)

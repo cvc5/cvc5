@@ -1,4 +1,3 @@
-; COMMAND-LINE: --fewer-preprocessing-holes
 ; EXPECT: unsat
 (set-logic QF_UF)
 (set-info :status unsat)

@@ -460,7 +460,6 @@ header = "options/arith_options.h"
   long       = "nl-ext-tplanes"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "use non-terminating tangent plane strategy for non-linear incremental linearization solver"
 
 [[option]]
@@ -534,6 +533,24 @@ header = "options/arith_options.h"
   help       = "whether to increment the precision for irrational function constraints"
 
 [[option]]
+  name       = "nlRlvMode"
+  category   = "regular"
+  long       = "nl-rlv=MODE"
+  type       = "NlRlvMode"
+  default    = "NONE"
+  help       = "choose mode for using relevance of assertoins in non-linear arithmetic"
+  help_mode  = "Modes for using relevance of assertoins in non-linear arithmetic."
+[[option.mode.NONE]]
+  name = "none"
+  help = "Do not use relevance."
+[[option.mode.INTERLEAVE]]
+  name = "interleave"
+  help = "Alternate rounds using relevance."
+[[option.mode.ALWAYS]]
+  name = "always"
+  help = "Always use relevance."
+  
+[[option]]
   name       = "brabTest"
   category   = "regular"
   long       = "arith-brab"
@@ -549,4 +566,20 @@ header = "options/arith_options.h"
   type       = "bool"
   default    = "false"
   help       = "whether to use the cylindrical algebraic decomposition solver for non-linear arithmetic"
+
+[[option]]
+  name       = "nlCadUseInitial"
+  category   = "regular"
+  long       = "nl-cad-initial"
+  type       = "bool"
+  default    = "false"
+  help       = "whether to use the linear model as initial guess for the cylindrical algebraic decomposition solver"
+
+[[option]]
+  name       = "nlICP"
+  category   = "regular"
+  long       = "nl-icp"
+  type       = "bool"
+  default    = "false"
+  help       = "whether to use ICP-style propagations for non-linear arithmetic"
 

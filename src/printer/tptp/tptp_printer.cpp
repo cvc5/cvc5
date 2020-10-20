@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -20,12 +20,13 @@
 #include <typeinfo>
 #include <vector>
 
-#include "expr/expr.h" // for ExprSetDepth etc..
-#include "expr/node_manager.h" // for VarNameAttr
-#include "options/language.h" // for LANG_AST
-#include "options/smt_options.h" // for unsat cores
-#include "smt/smt_engine.h"
+#include "expr/expr.h"            // for ExprSetDepth etc..
+#include "expr/node_manager.h"    // for VarNameAttr
+#include "options/language.h"     // for LANG_AST
+#include "options/smt_options.h"  // for unsat cores
 #include "smt/command.h"
+#include "smt/node_command.h"
+#include "smt/smt_engine.h"
 
 using namespace std;
 
@@ -39,21 +40,12 @@ void TptpPrinter::toStream(
   n.toStream(out, toDepth, types, dag, language::output::LANG_SMTLIB_V2_5);
 }/* TptpPrinter::toStream() */
 
-void TptpPrinter::toStream(std::ostream& out,
-                           const Command* c,
-                           int toDepth,
-                           bool types,
-                           size_t dag) const
-{
-  c->toStream(out, toDepth, types, dag, language::output::LANG_SMTLIB_V2_5);
-}/* TptpPrinter::toStream() */
-
 void TptpPrinter::toStream(std::ostream& out, const CommandStatus* s) const
 {
   s->toStream(out, language::output::LANG_SMTLIB_V2_5);
 }/* TptpPrinter::toStream() */
 
-void TptpPrinter::toStream(std::ostream& out, const Model& m) const
+void TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
 {
   std::string statusName(m.isKnownSat() ? "FiniteModel"
                                         : "CandidateFiniteModel");
@@ -67,8 +59,8 @@ void TptpPrinter::toStream(std::ostream& out, const Model& m) const
 }
 
 void TptpPrinter::toStream(std::ostream& out,
-                           const Model& m,
-                           const Command* c) const
+                           const smt::Model& m,
+                           const NodeCommand* c) const
 {
   // shouldn't be called; only the non-Command* version above should be
   Unreachable();

@@ -1,4 +1,3 @@
-; COMMAND-LINE:
 ; SCRUBBER: sed -e 's/(not (>= (+ .* (\* (- 1) .*)) 1))$/(not (>= (+ TERMA (\* (- 1) TERMB)) 1))/'
 ; EXPECT: (not (>= (+ TERMA (* (- 1) TERMB)) 1))
 (set-logic LIA)

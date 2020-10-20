@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -15,31 +15,38 @@
 #include "theory/ee_manager_distributed.h"
 
 #include "theory/quantifiers_engine.h"
+#include "theory/shared_solver.h"
 #include "theory/theory_engine.h"
 
 namespace CVC4 {
 namespace theory {
 
-const EeTheoryInfo* EqEngineManager::getEeTheoryInfo(TheoryId tid) const
-{
-  std::map<TheoryId, EeTheoryInfo>::const_iterator it = d_einfo.find(tid);
-  if (it != d_einfo.end())
-  {
-    return &it->second;
-  }
-  return nullptr;
-}
-
-EqEngineManagerDistributed::EqEngineManagerDistributed(TheoryEngine& te)
-    : d_te(te), d_masterEENotify(nullptr)
+EqEngineManagerDistributed::EqEngineManagerDistributed(TheoryEngine& te,
+                                                       SharedSolver& shs)
+    : EqEngineManager(te, shs), d_masterEENotify(nullptr)
 {
 }
 
-EqEngineManagerDistributed::~EqEngineManagerDistributed() {}
+EqEngineManagerDistributed::~EqEngineManagerDistributed()
+{
+}
 
-void EqEngineManagerDistributed::finishInit()
+void EqEngineManagerDistributed::initializeTheories()
 {
   context::Context* c = d_te.getSatContext();
+  // initialize the shared solver
+  EeSetupInfo esis;
+  if (d_sharedSolver.needsEqualityEngine(esis))
+  {
+    // allocate an equality engine for the shared terms database
+    d_stbEqualityEngine.reset(allocateEqualityEngine(esis, c));
+    d_sharedSolver.setEqualityEngine(d_stbEqualityEngine.get());
+  }
+  else
+  {
+    Unhandled() << "Expected shared solver to use equality engine";
+  }
+
   // allocate equality engines per theory
   for (TheoryId theoryId = theory::THEORY_FIRST;
        theoryId != theory::THEORY_LAST;
@@ -61,6 +68,8 @@ void EqEngineManagerDistributed::finishInit()
     }
     // allocate the equality engine
     eet.d_allocEe.reset(allocateEqualityEngine(esi, c));
+    // the theory uses the equality engine
+    eet.d_usedEe = eet.d_allocEe.get();
   }
 
   const LogicInfo& logicInfo = d_te.getLogicInfo();
@@ -105,21 +114,9 @@ void EqEngineManagerDistributed::MasterNotifyClass::eqNotifyNewClass(TNode t)
   d_quantEngine->eqNotifyNewClass(t);
 }
 
-eq::EqualityEngine* EqEngineManagerDistributed::getMasterEqualityEngine()
+eq::EqualityEngine* EqEngineManagerDistributed::getCoreEqualityEngine()
 {
   return d_masterEqualityEngine.get();
-}
-
-eq::EqualityEngine* EqEngineManagerDistributed::allocateEqualityEngine(
-    EeSetupInfo& esi, context::Context* c)
-{
-  if (esi.d_notify != nullptr)
-  {
-    return new eq::EqualityEngine(
-        *esi.d_notify, c, esi.d_name, esi.d_constantsAreTriggers);
-  }
-  // the theory doesn't care about explicit notifications
-  return new eq::EqualityEngine(c, esi.d_name, esi.d_constantsAreTriggers);
 }
 
 }  // namespace theory

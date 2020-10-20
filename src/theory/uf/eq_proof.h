@@ -2,10 +2,10 @@
 /*! \file eq_proof.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Haniel Barbosa
+ **   Haniel Barbosa, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -35,36 +35,21 @@ namespace eq {
 class EqProof
 {
  public:
-  /** A custom pretty printer used for custom rules being those in
-   * MergeReasonType. */
-  class PrettyPrinter
-  {
-   public:
-    virtual ~PrettyPrinter() {}
-    virtual std::string printTag(unsigned tag) = 0;
-  };
-
   EqProof() : d_id(MERGED_THROUGH_REFLEXIVITY) {}
   /** The proof rule for concluding d_node */
-  unsigned d_id;
+  MergeReasonType d_id;
   /** The conclusion of this EqProof */
   Node d_node;
   /** The proofs of the premises for deriving d_node with d_id */
   std::vector<std::shared_ptr<EqProof>> d_children;
   /**
-   * Debug print this proof on debug trace c with tabulation tb and pretty
-   * printer prettyPrinter.
+   * Debug print this proof on debug trace c with tabulation tb.
    */
-  void debug_print(const char* c,
-                   unsigned tb = 0,
-                   PrettyPrinter* prettyPrinter = nullptr) const;
+  void debug_print(const char* c, unsigned tb = 0) const;
   /**
-   * Debug print this proof on output stream os with tabulation tb and pretty
-   * printer prettyPrinter.
+   * Debug print this proof on output stream os with tabulation tb.
    */
-  void debug_print(std::ostream& os,
-                   unsigned tb = 0,
-                   PrettyPrinter* prettyPrinter = nullptr) const;
+  void debug_print(std::ostream& os, unsigned tb = 0) const;
 
   /** Add to proof
    *

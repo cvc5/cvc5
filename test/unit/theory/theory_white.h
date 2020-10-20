@@ -5,7 +5,7 @@
  **   Tim King, Morgan Deters, Clark Barrett
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -26,7 +26,6 @@
 #include "smt/smt_engine_scope.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
-#include "util/proof.h"
 #include "util/resource_manager.h"
 
 using namespace CVC4;
@@ -48,10 +47,7 @@ class TestOutputChannel : public OutputChannel {
   ~TestOutputChannel() override {}
 
   void safePoint(ResourceManager::Resource r) override {}
-  void conflict(TNode n, std::unique_ptr<Proof> pf) override
-  {
-    push(CONFLICT, n);
-  }
+  void conflict(TNode n) override { push(CONFLICT, n); }
 
   bool propagate(TNode n) override {
     push(PROPAGATE, n);
@@ -59,7 +55,6 @@ class TestOutputChannel : public OutputChannel {
   }
 
   LemmaStatus lemma(TNode n,
-                    ProofRule rule,
                     LemmaProperty p = LemmaProperty::NONE) override
   {
     push(LEMMA, n);
@@ -105,9 +100,18 @@ class DummyTheory : public Theory {
               Valuation valuation,
               const LogicInfo& logicInfo,
               ProofNodeManager* pnm)
-      : Theory(
-            theory::THEORY_BUILTIN, ctxt, uctxt, out, valuation, logicInfo, pnm)
-  {}
+      : Theory(theory::THEORY_BUILTIN,
+               ctxt,
+               uctxt,
+               out,
+               valuation,
+               logicInfo,
+               pnm),
+        d_state(ctxt, uctxt, valuation)
+  {
+    // use a default theory state object
+    d_theoryState = &d_state;
+  }
 
   TheoryRewriter* getTheoryRewriter() { return nullptr; }
 
@@ -133,19 +137,20 @@ class DummyTheory : public Theory {
     return done();
   }
 
-  void check(Effort e) override
-  {
-    while(!done()) {
-      getWrapper();
-    }
-  }
-
   void presolve() override { Unimplemented(); }
   void preRegisterTerm(TNode n) override {}
   void propagate(Effort level) override {}
+  bool preNotifyFact(
+      TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal) override
+  {
+    // do not assert to equality engine, since this theory does not use one
+    return true;
+  }
   TrustNode explain(TNode n) override { return TrustNode::null(); }
   Node getValue(TNode n) { return Node::null(); }
   string identify() const override { return "DummyTheory"; }
+  /** Default theory state object */
+  TheoryState d_state;
 };/* class DummyTheory */
 
 class TheoryBlack : public CxxTest::TestSuite {
@@ -298,7 +303,7 @@ class TheoryBlack : public CxxTest::TestSuite {
 
   void testOutputChannel() {
     Node n = atom0.orNode(atom1);
-    d_outputChannel.lemma(n, RULE_INVALID);
+    d_outputChannel.lemma(n);
     d_outputChannel.split(atom0);
     Node s = atom0.orNode(atom0.notNode());
     TS_ASSERT_EQUALS(d_outputChannel.d_callHistory.size(), 2u);

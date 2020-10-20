@@ -5,7 +5,7 @@
  **   Morgan Deters, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -28,12 +28,6 @@
 #include "expr/variable_type_map.h"
 
 ${includes}
-
-// This is a hack, but an important one: if there's an error, the
-// compiler directs the user to the template file instead of the
-// generated one.  We don't want the user to modify the generated one,
-// since it'll get overwritten on a later build.
-#line 37 "${template}"
 
 using namespace CVC4::kind;
 using namespace std;

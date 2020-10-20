@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -23,6 +23,7 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "context/cdqueue.h"
+#include "theory/inference_manager_buffered.h"
 #include "theory/sep/theory_sep_rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
@@ -58,6 +59,10 @@ class TheorySep : public Theory {
   bool d_bounds_init;
 
   TheorySepRewriter d_rewriter;
+  /** A (default) theory state object */
+  TheoryState d_state;
+  /** A buffered inference manager */
+  InferenceManagerBuffered d_im;
 
   Node mkAnd( std::vector< TNode >& assumptions );
 
@@ -74,9 +79,18 @@ class TheorySep : public Theory {
             ProofNodeManager* pnm = nullptr);
   ~TheorySep();
 
-  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
-
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+  /**
+   * Returns true if we need an equality engine. If so, we initialize the
+   * information regarding how it should be setup. For details, see the
+   * documentation in Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
+  /** finish initialization */
+  void finishInit() override;
+  //--------------------------------- end initialization
 
   std::string identify() const override { return std::string("TheorySep"); }
 
@@ -85,8 +99,6 @@ class TheorySep : public Theory {
   /////////////////////////////////////////////////////////////////////////////
 
  public:
-  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
-
   void ppNotifyAssertions(const std::vector<Node>& assertions) override;
   /////////////////////////////////////////////////////////////////////////////
   // T-PROPAGATION / REGISTRATION
@@ -94,18 +106,14 @@ class TheorySep : public Theory {
 
  private:
   /** Should be called to propagate the literal.  */
-  bool propagate(TNode literal);
-
-  /** Explain why this literal is true by adding assumptions */
-  void explain(TNode literal, std::vector<TNode>& assumptions);
+  bool propagateLit(TNode literal);
+  /** Conflict when merging constants */
+  void conflict(TNode a, TNode b);
 
  public:
-  void propagate(Effort e) override;
   TrustNode explain(TNode n) override;
 
  public:
-  void addSharedTerm(TNode t) override;
-  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   void computeCareGraph() override;
 
   /////////////////////////////////////////////////////////////////////////////
@@ -113,7 +121,6 @@ class TheorySep : public Theory {
   /////////////////////////////////////////////////////////////////////////////
 
  public:
-  bool collectModelInfo(TheoryModel* m) override;
   void postProcessModel(TheoryModel* m) override;
 
   /////////////////////////////////////////////////////////////////////////////
@@ -128,12 +135,27 @@ class TheorySep : public Theory {
   /////////////////////////////////////////////////////////////////////////////
   // MAIN SOLVER
   /////////////////////////////////////////////////////////////////////////////
- public:
-  void check(Effort e) override;
 
+  //--------------------------------- standard check
+  /** Do we need a check call at last call effort? */
   bool needsCheckLastEffort() override;
+  /** Post-check, called after the fact queue of the theory is processed. */
+  void postCheck(Effort level) override;
+  /** Pre-notify fact, return true if processed. */
+  bool preNotifyFact(TNode atom,
+                     bool pol,
+                     TNode fact,
+                     bool isPrereg,
+                     bool isInternal) override;
+  /** Notify fact */
+  void notifyFact(TNode atom, bool pol, TNode fact, bool isInternal) override;
+  //--------------------------------- end standard check
 
  private:
+  /** Ensures that the reduction has been added for the given fact */
+  void reduceFact(TNode atom, bool polarity, TNode fact);
+  /** Is spatial kind? */
+  bool isSpatialKind(Kind k) const;
   // NotifyClass: template helper class for d_equalityEngine - handles
   // call-back from congruence closure module
   class NotifyClass : public eq::EqualityEngineNotify
@@ -143,27 +165,19 @@ class TheorySep : public Theory {
    public:
     NotifyClass(TheorySep& sep) : d_sep(sep) {}
 
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override
+    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
       Debug("sep::propagate")
-          << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", "
+          << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", "
           << (value ? "true" : "false") << ")" << std::endl;
+      Assert(predicate.getKind() == kind::EQUAL);
       // Just forward to sep
       if (value)
       {
-        return d_sep.propagate(equality);
+        return d_sep.propagateLit(predicate);
       }
-      else
-      {
-        return d_sep.propagate(equality.notNode());
-      }
+      return d_sep.propagateLit(predicate.notNode());
     }
-
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
-    {
-      Unreachable();
-    }
-
     bool eqNotifyTriggerTermEquality(TheoryId tag,
                                      TNode t1,
                                      TNode t2,
@@ -175,13 +189,9 @@ class TheorySep : public Theory {
       if (value)
       {
         // Propagate equality between shared terms
-        return d_sep.propagate(t1.eqNode(t2));
+        return d_sep.propagateLit(t1.eqNode(t2));
       }
-      else
-      {
-        return d_sep.propagate(t1.eqNode(t2).notNode());
-      }
-      return true;
+      return d_sep.propagateLit(t1.eqNode(t2).notNode());
     }
 
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
@@ -202,20 +212,8 @@ class TheorySep : public Theory {
   /** The notify class for d_equalityEngine */
   NotifyClass d_notify;
 
-  /** Equaltity engine */
-  eq::EqualityEngine d_equalityEngine;
-
-  /** Are we in conflict? */
-  context::CDO<bool> d_conflict;
-  std::vector< Node > d_pending_exp;
-  std::vector< Node > d_pending;
-  std::vector< int > d_pending_lem;
-
   /** list of all refinement lemms */
   std::map< Node, std::map< Node, std::vector< Node > > > d_refinement_lem;
-
-  /** Conflict when merging constants */
-  void conflict(TNode a, TNode b);
 
   //cache for positive polarity start reduction
   NodeSet d_reduce;
@@ -226,9 +224,6 @@ class TheorySep : public Theory {
   std::map<Node, std::unique_ptr<DecisionStrategySingleton> >
       d_neg_guard_strategy;
   std::map< Node, Node > d_guard_to_assertion;
-  /** inferences: maintained to ensure ref count for internally introduced nodes */
-  NodeList d_infer;
-  NodeList d_infer_exp;
   NodeList d_spatial_assertions;
 
   //data,ref type (globally fixed)
@@ -323,10 +318,9 @@ class TheorySep : public Theory {
   void eqNotifyMerge(TNode t1, TNode t2);
 
   void sendLemma( std::vector< Node >& ant, Node conc, const char * c, bool infer = false );
-  void doPendingFacts();
+  void doPending();
 
  public:
-  eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
 
   void initializeBounds();
 };/* class TheorySep */

@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -318,9 +318,6 @@ bool TypeNode::isSubtypeOf(TypeNode t) const {
       return false;
     }
   }
-  if(isSet() && t.isSet()) {
-    return getSetElementType().isSubtypeOf(t.getSetElementType());
-  }
   if (isFunction() && t.isFunction())
   {
     if (!isComparableTo(t))
@@ -341,9 +338,6 @@ bool TypeNode::isComparableTo(TypeNode t) const {
   }
   if(isSubtypeOf(NodeManager::currentNM()->realType())) {
     return t.isSubtypeOf(NodeManager::currentNM()->realType());
-  }
-  if(isSet() && t.isSet()) {
-    return getSetElementType().isComparableTo(t.getSetElementType());
   }
   if (isFunction() && t.isFunction())
   {
@@ -583,24 +577,15 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
     case kind::SEQUENCE_TYPE: return TypeNode();
     case kind::SET_TYPE:
     {
-      // take the least common subtype of element types
-      TypeNode elementType;
-      if (t1.isSet()
-          && !(elementType = commonTypeNode(t0[0], t1[0], isLeast)).isNull())
-      {
-        return NodeManager::currentNM()->mkSetType(elementType);
-      }
-      else
-      {
-        return TypeNode();
-      }
+      // we don't support subtyping for sets
+      return TypeNode(); // return null type
     }
-  case kind::SEXPR_TYPE:
-    Unimplemented()
-        << "haven't implemented leastCommonType for symbolic expressions yet";
-  default:
-    Unimplemented() << "don't have a commonType for types `" << t0 << "' and `"
-                    << t1 << "'";
+    case kind::SEXPR_TYPE:
+      Unimplemented()
+          << "haven't implemented leastCommonType for symbolic expressions yet";
+    default:
+      Unimplemented() << "don't have a commonType for types `" << t0
+                      << "' and `" << t1 << "'";
   }
 }
 
@@ -690,6 +675,17 @@ const DType& TypeNode::getDType() const
   }
   Assert(getKind() == kind::PARAMETRIC_DATATYPE);
   return (*this)[0].getDType();
+}
+
+bool TypeNode::isBag() const
+{
+  return getKind() == kind::BAG_TYPE;
+}
+
+TypeNode TypeNode::getBagElementType() const
+{
+  Assert(isBag());
+  return (*this)[0];
 }
 
 }/* CVC4 namespace */

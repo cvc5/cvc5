@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,12 +16,18 @@
 
 #include "expr/proof.h"
 #include "expr/proof_node_algorithm.h"
+#include "options/smt_options.h"
+#include "theory/rewriter.h"
 
 using namespace CVC4::kind;
 
 namespace CVC4 {
 
-ProofNodeManager::ProofNodeManager(ProofChecker* pc) : d_checker(pc) {}
+ProofNodeManager::ProofNodeManager(ProofChecker* pc)
+    : d_checker(pc)
+{
+  d_true = NodeManager::currentNM()->mkConst(true);
+}
 
 std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
     PfRule id,
@@ -29,6 +35,8 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
     const std::vector<Node>& args,
     Node expected)
 {
+  Trace("pnm") << "ProofNodeManager::mkNode " << id << " {" << expected.getId()
+               << "} " << expected << "\n";
   Node res = checkInternal(id, children, args, expected);
   if (res.isNull())
   {
@@ -49,6 +57,18 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkAssume(Node fact)
   return mkNode(PfRule::ASSUME, {}, {fact}, fact);
 }
 
+std::shared_ptr<ProofNode> ProofNodeManager::mkTrans(
+    const std::vector<std::shared_ptr<ProofNode>>& children, Node expected)
+{
+  Assert(!children.empty());
+  if (children.size() == 1)
+  {
+    Assert(expected.isNull() || children[0]->getResult() == expected);
+    return children[0];
+  }
+  return mkNode(PfRule::TRANS, children, {}, expected);
+}
+
 std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     std::shared_ptr<ProofNode> pf,
     std::vector<Node>& assumps,
@@ -63,12 +83,20 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
   Trace("pnm-scope") << "ProofNodeManager::mkScope " << assumps << std::endl;
   // we first ensure the assumptions are flattened
   std::unordered_set<Node, NodeHashFunction> ac{assumps.begin(), assumps.end()};
+  // map from the rewritten form of assumptions to the original. This is only
+  // computed in the rare case when we need rewriting to match the
+  // assumptions. An example of this is for Boolean constant equalities in
+  // scoped proofs from the proof equality engine.
+  std::unordered_map<Node, Node, NodeHashFunction> acr;
+  // whether we have compute the map above
+  bool computedAcr = false;
 
   // The free assumptions of the proof
-  std::map<Node, std::vector<ProofNode*>> famap;
-  expr::getFreeAssumptionsMap(pf.get(), famap);
+  std::map<Node, std::vector<std::shared_ptr<ProofNode>>> famap;
+  expr::getFreeAssumptionsMap(pf, famap);
   std::unordered_set<Node, NodeHashFunction> acu;
-  for (const std::pair<const Node, std::vector<ProofNode*>>& fa : famap)
+  for (const std::pair<const Node, std::vector<std::shared_ptr<ProofNode>>>&
+           fa : famap)
   {
     Node a = fa.first;
     if (ac.find(a) != ac.end())
@@ -77,40 +105,93 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
       acu.insert(a);
       continue;
     }
+    // trivial assumption
+    if (a == d_true)
+    {
+      Trace("pnm-scope") << "- justify trivial True assumption\n";
+      for (std::shared_ptr<ProofNode> pfs : fa.second)
+      {
+        Assert(pfs->getResult() == a);
+        updateNode(pfs.get(), PfRule::MACRO_SR_PRED_INTRO, {}, {a});
+      }
+      Trace("pnm-scope") << "...finished" << std::endl;
+      acu.insert(a);
+      continue;
+    }
     Trace("pnm-scope") << "- try matching free assumption " << a << "\n";
     // otherwise it may be due to symmetry?
     Node aeqSym = CDProof::getSymmFact(a);
     Trace("pnm-scope") << "  - try sym " << aeqSym << "\n";
-    if (!aeqSym.isNull())
+    Node aMatch;
+    if (!aeqSym.isNull() && ac.count(aeqSym))
     {
-      if (ac.count(aeqSym))
+      Trace("pnm-scope") << "- reorient assumption " << aeqSym << " via " << a
+                         << " for " << fa.second.size() << " proof nodes"
+                         << std::endl;
+      aMatch = aeqSym;
+    }
+    else
+    {
+      // Otherwise, may be derivable by rewriting. Note this is used in
+      // ensuring that proofs from the proof equality engine that involve
+      // equality with Boolean constants are closed.
+      if (!computedAcr)
       {
-        Trace("pnm-scope") << "- reorient assumption " << aeqSym << " via " << a
-                           << " for " << fa.second.size() << " proof nodes"
-                           << std::endl;
-        std::shared_ptr<ProofNode> pfaa = mkAssume(aeqSym);
-        for (ProofNode* pfs : fa.second)
+        computedAcr = true;
+        for (const Node& acc : ac)
         {
-          Assert(pfs->getResult() == a);
-          // must correct the orientation on this leaf
-          std::vector<std::shared_ptr<ProofNode>> children;
-          children.push_back(pfaa);
-          std::vector<Node> args;
-          args.push_back(a);
-          updateNode(pfs, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
+          Node accr = theory::Rewriter::rewrite(acc);
+          if (accr != acc)
+          {
+            acr[accr] = acc;
+          }
         }
-        Trace("pnm-scope") << "...finished" << std::endl;
-        acu.insert(aeqSym);
-        continue;
+      }
+      Node ar = theory::Rewriter::rewrite(a);
+      std::unordered_map<Node, Node, NodeHashFunction>::iterator itr =
+          acr.find(ar);
+      if (itr != acr.end())
+      {
+        aMatch = itr->second;
       }
     }
-    // All free assumptions should be arguments to SCOPE.
+
+    // if we found a match either by symmetry or rewriting, then we connect
+    // the assumption here.
+    if (!aMatch.isNull())
+    {
+      std::shared_ptr<ProofNode> pfaa = mkAssume(aMatch);
+      // must correct the orientation on this leaf
+      std::vector<std::shared_ptr<ProofNode>> children;
+      children.push_back(pfaa);
+      std::vector<Node> args;
+      args.push_back(a);
+      for (std::shared_ptr<ProofNode> pfs : fa.second)
+      {
+        Assert(pfs->getResult() == a);
+        updateNode(pfs.get(), PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
+      }
+      Trace("pnm-scope") << "...finished" << std::endl;
+      acu.insert(aMatch);
+      continue;
+    }
+    // If we did not find a match, it is an error, since all free assumptions
+    // should be arguments to SCOPE.
     std::stringstream ss;
-    pf->printDebug(ss);
+
+    bool dumpProofTraceOn = Trace.isOn("dump-proof-error");
+    if (dumpProofTraceOn)
+    {
+      ss << "The proof : " << *pf << std::endl;
+    }
     ss << std::endl << "Free assumption: " << a << std::endl;
     for (const Node& aprint : ac)
     {
       ss << "- assumption: " << aprint << std::endl;
+    }
+    if (!dumpProofTraceOn)
+    {
+      ss << "Use -t dump-proof-error for details on proof" << std::endl;
     }
     Unreachable() << "Generated a proof that is not closed by the scope: "
                   << ss.str() << std::endl;
@@ -174,6 +255,8 @@ bool ProofNodeManager::updateNode(
 
 bool ProofNodeManager::updateNode(ProofNode* pn, ProofNode* pnr)
 {
+  Assert(pn != nullptr);
+  Assert(pnr != nullptr);
   if (pn->getResult() != pnr->getResult())
   {
     return false;
@@ -216,24 +299,14 @@ bool ProofNodeManager::updateNodeInternal(
     const std::vector<Node>& args,
     bool needsCheck)
 {
+  Assert(pn != nullptr);
   // ---------------- check for cyclic
-  std::unordered_map<const ProofNode*, bool> visited;
-  std::unordered_map<const ProofNode*, bool>::iterator it;
-  std::vector<const ProofNode*> visit;
-  for (const std::shared_ptr<ProofNode>& cp : children)
+  if (options::proofNewEagerChecking())
   {
-    visit.push_back(cp.get());
-  }
-  const ProofNode* cur;
-  while (!visit.empty())
-  {
-    cur = visit.back();
-    visit.pop_back();
-    it = visited.find(cur);
-    if (it == visited.end())
+    std::unordered_set<const ProofNode*> visited;
+    for (const std::shared_ptr<ProofNode>& cpc : children)
     {
-      visited[cur] = true;
-      if (cur == pn)
+      if (expr::containsSubproof(cpc.get(), pn, visited))
       {
         std::stringstream ss;
         ss << "ProofNodeManager::updateNode: attempting to make cyclic proof! "
@@ -250,10 +323,6 @@ bool ProofNodeManager::updateNodeInternal(
           ss << std::endl;
         }
         Unreachable() << ss.str();
-      }
-      for (const std::shared_ptr<ProofNode>& cp : cur->d_children)
-      {
-        visit.push_back(cp.get());
       }
     }
   }

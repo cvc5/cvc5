@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Morgan Deters, Christopher L. Conway
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -291,8 +291,14 @@ void Parser::defineVar(const std::string& name,
 
 void Parser::defineType(const std::string& name,
                         const api::Sort& type,
-                        bool levelZero)
+                        bool levelZero,
+                        bool skipExisting)
 {
+  if (skipExisting && isDeclared(name, SYM_SORT))
+  {
+    assert(api::Sort(d_solver, d_symtab->lookupType(name)) == type);
+    return;
+  }
   d_symtab->bindType(name, type.getType(), levelZero);
   assert(isDeclared(name, SYM_SORT));
 }
@@ -560,6 +566,10 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
   if (k == api::EMPTYSET)
   {
     t = d_solver->mkEmptySet(s);
+  }
+  else if (k == api::EMPTYBAG)
+  {
+    t = d_solver->mkEmptyBag(s);
   }
   else if (k == api::CONST_SEQUENCE)
   {

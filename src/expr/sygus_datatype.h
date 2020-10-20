@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -20,7 +20,7 @@
 #include <vector>
 
 #include "expr/attribute.h"
-#include "expr/datatype.h"
+#include "expr/dtype.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
 
@@ -122,7 +122,7 @@ class SygusDatatype
                           bool allowConst,
                           bool allowAll);
   /** Get the sygus datatype initialized by this class */
-  const Datatype& getDatatype() const;
+  const DType& getDatatype() const;
 
   /** is initialized */
   bool isInitialized() const;
@@ -131,7 +131,7 @@ class SygusDatatype
   /** Information for each constructor. */
   std::vector<SygusDatatypeConstructor> d_cons;
   /** Datatype to represent type's structure */
-  Datatype d_dt;
+  DType d_dt;
 };
 
 }  // namespace CVC4

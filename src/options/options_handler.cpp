@@ -2,10 +2,10 @@
 /*! \file options_handler.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Aina Niemetz, Mathias Preiner
+ **   Aina Niemetz, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -171,17 +171,6 @@ void OptionsHandler::checkBitblastMode(std::string option, BitblastMode m)
     if (!options::bitvectorEqualitySolver.wasSetByUser())
     {
       options::bitvectorEqualitySolver.set(true);
-    }
-    if (!options::bitvectorEqualitySlicer.wasSetByUser())
-    {
-      if (options::incrementalSolving() || options::produceModels())
-      {
-        options::bitvectorEqualitySlicer.set(options::BvSlicerMode::OFF);
-      }
-      else
-      {
-        options::bitvectorEqualitySlicer.set(options::BvSlicerMode::AUTO);
-      }
     }
 
     if (!options::bitvectorInequalitySolver.wasSetByUser())

@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 #####################
-#! \file sygus-fun.py
-## \verbatim
+## sygus-fun.py
 ## Top contributors (to current version):
-##   Yoni Zohar
-## This file is part of the CVC4 project.
+##   Yoni Zohar, Andres Noetzli
 ## Copyright (c) 2009-2018 by the authors listed in the file AUTHkinds.OrS
-## in the top-level source directory) and their institutional affiliations.
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
 ## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.\endverbatim
+## directory for licensing information.
 ##
-## \brief A simple demonstration of the solving capabilities of the CVC4
+## A simple demonstration of the solving capabilities of the CVC4
 ## sygus solver through the Python API. This is a direct
 ## translation of sygus-fun.cpp.
-#####################
+##
 
 import copy
 import pycvc4
@@ -53,7 +53,7 @@ if __name__ == "__main__":
   leq = slv.mkTerm(kinds.Leq, start, start)
 
   # create the grammar object
-  g = slv.mkSygusGrammar({x, y}, {start, start_bool})
+  g = slv.mkSygusGrammar([x, y], [start, start_bool])
 
   # bind each non-terminal to its rules
   g.addRules(start, {zero, one, x, y, plus, minus, ite})
@@ -61,8 +61,8 @@ if __name__ == "__main__":
 
   # declare the functions-to-synthesize. Optionally, provide the grammar
   # constraints
-  max = slv.synthFun("max", {x, y}, integer, g)
-  min = slv.synthFun("min", {x, y}, integer)
+  max = slv.synthFun("max", [x, y], integer, g)
+  min = slv.synthFun("min", [x, y], integer)
 
   # declare universal variables.
   varX = slv.mkSygusVar(integer, "x")

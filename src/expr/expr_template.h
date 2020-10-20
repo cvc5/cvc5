@@ -5,7 +5,7 @@
  **   Morgan Deters, Dejan Jovanovic, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -38,12 +38,6 @@ ${includes}
 #include "base/exception.h"
 #include "options/language.h"
 #include "util/hash.h"
-
-// This is a hack, but an important one: if there's an error, the
-// compiler directs the user to the template file instead of the
-// generated one.  We don't want the user to modify the generated one,
-// since it'll get overwritten on a later build.
-#line 47 "${template}"
 
 namespace CVC4 {
 
@@ -620,8 +614,6 @@ private:
 };/* class Expr */
 
 ${getConst_instantiations}
-
-#line 625 "${template}"
 
 inline size_t ExprHashFunction::operator()(CVC4::Expr e) const {
   return (size_t) e.getId();

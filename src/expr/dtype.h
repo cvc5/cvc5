@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -77,7 +77,6 @@ typedef expr::Attribute<DTypeUFiniteComputedTag, bool> DTypeUFiniteComputedAttr;
 // ----------------------- end datatype attributes
 
 class NodeManager;
-class Datatype;
 
 /**
  * The Node-level representation of an inductive datatype, which currently
@@ -141,7 +140,6 @@ class Datatype;
  */
 class DType
 {
-  friend class Datatype;
   friend class DTypeConstructor;
   friend class NodeManager;  // for access to resolve()
 

@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,6 +14,7 @@
 
 #include "theory/eager_proof_generator.h"
 
+#include "expr/proof.h"
 #include "expr/proof_node_manager.h"
 
 namespace CVC4 {
@@ -29,7 +30,10 @@ EagerProofGenerator::EagerProofGenerator(ProofNodeManager* pnm,
 void EagerProofGenerator::setProofFor(Node f, std::shared_ptr<ProofNode> pf)
 {
   // pf should prove f
-  Assert(pf->getResult() == f);
+  Assert(pf->getResult() == f)
+      << "EagerProofGenerator::setProofFor: unexpected result" << std::endl
+      << "Expected: " << f << std::endl
+      << "Actual: " << pf->getResult() << std::endl;
   d_proofs[f] = pf;
 }
 void EagerProofGenerator::setProofForConflict(Node conf,
@@ -93,13 +97,27 @@ TrustNode EagerProofGenerator::mkTrustNode(Node n,
   return TrustNode::mkTrustLemma(n, this);
 }
 
-TrustNode EagerProofGenerator::mkTrustNode(Node n,
+TrustNode EagerProofGenerator::mkTrustNode(Node conc,
                                            PfRule id,
+                                           const std::vector<Node>& exp,
                                            const std::vector<Node>& args,
                                            bool isConflict)
 {
-  std::shared_ptr<ProofNode> pf = d_pnm->mkNode(id, {}, args, n);
-  return mkTrustNode(n, pf, isConflict);
+  // if no children, its easy
+  if (exp.empty())
+  {
+    std::shared_ptr<ProofNode> pf = d_pnm->mkNode(id, {}, args, conc);
+    return mkTrustNode(conc, pf, isConflict);
+  }
+  // otherwise, we use CDProof + SCOPE
+  CDProof cdp(d_pnm);
+  cdp.addStep(conc, id, exp, args);
+  std::shared_ptr<ProofNode> pf = cdp.getProofFor(conc);
+  // We use mkNode instead of mkScope, since there is no reason to check
+  // whether the free assumptions of pf are in exp, since they are by the
+  // construction above.
+  std::shared_ptr<ProofNode> pfs = d_pnm->mkNode(PfRule::SCOPE, {pf}, exp);
+  return mkTrustNode(pfs->getResult(), pfs, isConflict);
 }
 
 TrustNode EagerProofGenerator::mkTrustedPropagation(
@@ -117,7 +135,7 @@ TrustNode EagerProofGenerator::mkTrustNodeSplit(Node f)
 {
   // make the lemma
   Node lem = f.orNode(f.notNode());
-  return mkTrustNode(lem, PfRule::SPLIT, {f}, false);
+  return mkTrustNode(lem, PfRule::SPLIT, {}, {f}, false);
 }
 
 std::string EagerProofGenerator::identify() const { return d_name; }

@@ -5,7 +5,7 @@
  **   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -583,19 +583,6 @@ std::vector<Type> ConstructorType::getArgTypes() const {
     args.push_back(makeType(*it));
   }
   return args;
-}
-
-const Datatype& DatatypeType::getDatatype() const
-{
-  NodeManagerScope nms(d_nodeManager);
-  Assert(isDatatype());
-  if (d_typeNode->getKind() == kind::DATATYPE_TYPE)
-  {
-    DatatypeIndexConstant dic = d_typeNode->getConst<DatatypeIndexConstant>();
-    return d_nodeManager->toExprManager()->getDatatypeForIndex(dic.getIndex());
-  }
-  Assert(d_typeNode->getKind() == kind::PARAMETRIC_DATATYPE);
-  return DatatypeType((*d_typeNode)[0].toType()).getDatatype();
 }
 
 bool DatatypeType::isParametric() const {

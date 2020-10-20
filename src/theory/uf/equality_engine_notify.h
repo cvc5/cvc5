@@ -2,10 +2,10 @@
 /*! \file equality_engine_notify.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Andrew Reynolds, Morgan Deters
+ **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -33,15 +33,8 @@ class EqualityEngineNotify
   virtual ~EqualityEngineNotify(){};
 
   /**
-   * Notifies about a trigger equality that became true or false.
-   *
-   * @param equality the equality that became true or false
-   * @param value the value of the equality
-   */
-  virtual bool eqNotifyTriggerEquality(TNode equality, bool value) = 0;
-
-  /**
-   * Notifies about a trigger predicate that became true or false.
+   * Notifies about a trigger predicate that became true or false. Notice that
+   * predicate can be an equality.
    *
    * @param predicate the trigger predicate that became true or false
    * @param value the value of the predicate
@@ -103,10 +96,6 @@ class EqualityEngineNotify
 class EqualityEngineNotifyNone : public EqualityEngineNotify
 {
  public:
-  bool eqNotifyTriggerEquality(TNode equality, bool value) override
-  {
-    return true;
-  }
   bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
   {
     return true;

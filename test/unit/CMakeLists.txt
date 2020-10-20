@@ -1,3 +1,13 @@
+#####################
+## CMakeLists.txt
+## Top contributors (to current version):
+##   Aina Niemetz, Mathias Preiner, Alex Ozdemir
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
 # Note: We use our custom CxxTest finder here to specify custom directories and
 # fail if it is not found in the specified directory (similar to the other
 # custom finder modules).
@@ -107,7 +117,6 @@ add_subdirectory(expr)
 add_subdirectory(main)
 add_subdirectory(parser)
 add_subdirectory(prop)
-add_subdirectory(proof)
 add_subdirectory(theory)
 add_subdirectory(preprocessing)
 add_subdirectory(util)

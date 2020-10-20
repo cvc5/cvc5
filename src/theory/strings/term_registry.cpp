@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -37,12 +37,10 @@ typedef expr::Attribute<StringsProxyVarAttributeId, bool>
     StringsProxyVarAttribute;
 
 TermRegistry::TermRegistry(SolverState& s,
-                           eq::EqualityEngine& ee,
                            OutputChannel& out,
                            SequencesStatistics& statistics,
                            ProofNodeManager* pnm)
     : d_state(s),
-      d_ee(ee),
       d_out(out),
       d_statistics(statistics),
       d_hasStrCode(false),
@@ -54,7 +52,11 @@ TermRegistry::TermRegistry(SolverState& s,
       d_proxyVar(s.getUserContext()),
       d_proxyVarToLength(s.getUserContext()),
       d_lengthLemmaTermsCache(s.getUserContext()),
-      d_epg(nullptr)
+      d_epg(pnm ? new EagerProofGenerator(
+                      pnm,
+                      s.getUserContext(),
+                      "strings::TermRegistry::EagerProofGenerator")
+                : nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
@@ -129,6 +131,7 @@ void TermRegistry::preRegisterTerm(TNode n)
   {
     return;
   }
+  eq::EqualityEngine* ee = d_state.getEqualityEngine();
   d_preregisteredTerms.insert(n);
   Trace("strings-preregister")
       << "TheoryString::preregister : " << n << std::endl;
@@ -137,8 +140,8 @@ void TermRegistry::preRegisterTerm(TNode n)
   if (!options::stringExp())
   {
     if (k == STRING_STRIDOF || k == STRING_ITOS || k == STRING_STOI
-        || k == STRING_STRREPL || k == STRING_STRREPLALL
-        || k == STRING_REPLACE_RE || k == STRING_REPLACE_RE_ALL
+        || k == STRING_STRREPL || k == STRING_SUBSTR || k == STRING_STRREPLALL
+        || k == SEQ_NTH || k == STRING_REPLACE_RE || k == STRING_REPLACE_RE_ALL
         || k == STRING_STRCTN || k == STRING_LEQ || k == STRING_TOLOWER
         || k == STRING_TOUPPER || k == STRING_REV || k == STRING_UPDATE)
     {
@@ -156,15 +159,15 @@ void TermRegistry::preRegisterTerm(TNode n)
       ss << "Equality between regular expressions is not supported";
       throw LogicException(ss.str());
     }
-    d_ee.addTriggerEquality(n);
+    ee->addTriggerPredicate(n);
     return;
   }
   else if (k == STRING_IN_REGEXP)
   {
     d_out.requirePhase(n, true);
-    d_ee.addTriggerPredicate(n);
-    d_ee.addTerm(n[0]);
-    d_ee.addTerm(n[1]);
+    ee->addTriggerPredicate(n);
+    ee->addTerm(n[0]);
+    ee->addTerm(n[1]);
     return;
   }
   else if (k == STRING_TO_CODE)
@@ -196,17 +199,17 @@ void TermRegistry::preRegisterTerm(TNode n)
         }
       }
     }
-    d_ee.addTerm(n);
+    ee->addTerm(n);
   }
   else if (tn.isBoolean())
   {
     // Get triggered for both equal and dis-equal
-    d_ee.addTriggerPredicate(n);
+    ee->addTriggerPredicate(n);
   }
   else
   {
     // Function applications/predicates
-    d_ee.addTerm(n);
+    ee->addTerm(n);
   }
   // Set d_functionsTerms stores all function applications that are
   // relevant to theory combination. Notice that this is a subset of
@@ -216,7 +219,7 @@ void TermRegistry::preRegisterTerm(TNode n)
   // Concatenation terms do not need to be considered here because
   // their arguments have string type and do not introduce any shared
   // terms.
-  if (n.hasOperator() && d_ee.isFunctionKind(k) && k != STRING_CONCAT)
+  if (n.hasOperator() && ee->isFunctionKind(k) && k != STRING_CONCAT)
   {
     d_functionsTerms.push_back(n);
   }
@@ -283,7 +286,7 @@ void TermRegistry::registerTerm(Node n, int effort)
       if (d_epg != nullptr)
       {
         regTermLem = d_epg->mkTrustNode(
-            eagerRedLemma, PfRule::STRING_EAGER_REDUCTION, {n});
+            eagerRedLemma, PfRule::STRING_EAGER_REDUCTION, {}, {n});
       }
       else
       {
@@ -313,7 +316,7 @@ void TermRegistry::registerType(TypeNode tn)
   {
     // preregister the empty word for the type
     Node emp = Word::mkEmptyWord(tn);
-    if (!d_ee.hasTerm(emp))
+    if (!d_state.hasTerm(emp))
     {
       preRegisterTerm(emp);
     }
@@ -385,7 +388,7 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
   // it is a simple rewrite to justify this
   if (d_epg != nullptr)
   {
-    return d_epg->mkTrustNode(ret, PfRule::MACRO_SR_PRED_INTRO, {ret});
+    return d_epg->mkTrustNode(ret, PfRule::MACRO_SR_PRED_INTRO, {}, {ret});
   }
   return TrustNode::mkTrustLemma(ret, nullptr);
 }
@@ -509,7 +512,7 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
 
   if (d_epg != nullptr)
   {
-    return d_epg->mkTrustNode(lenLemma, PfRule::STRING_LENGTH_POS, {n});
+    return d_epg->mkTrustNode(lenLemma, PfRule::STRING_LENGTH_POS, {}, {n});
   }
   return TrustNode::mkTrustLemma(lenLemma, nullptr);
 }

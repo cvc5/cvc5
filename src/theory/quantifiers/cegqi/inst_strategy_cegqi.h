@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -43,12 +43,13 @@ class InstRewriterCegqi : public InstantiationRewriter
   ~InstRewriterCegqi() {}
   /**
    * Rewrite the instantiation via d_parent, based on virtual term substitution
-   * and nested quantifier elimination.
+   * and nested quantifier elimination. Returns a TrustNode of kind REWRITE,
+   * corresponding to the rewrite and its proof generator.
    */
-  Node rewriteInstantiation(Node q,
-                            std::vector<Node>& terms,
-                            Node inst,
-                            bool doVts) override;
+  TrustNode rewriteInstantiation(Node q,
+                                 std::vector<Node>& terms,
+                                 Node inst,
+                                 bool doVts) override;
 
  private:
   /** pointer to the parent of this class */
@@ -106,11 +107,14 @@ class InstStrategyCegqi : public QuantifiersModule
    * We rewrite inst based on virtual term substitution and nested quantifier
    * elimination. For details, see "Solving Quantified Linear Arithmetic via
    * Counterexample-Guided Instantiation" FMSD 2017, Reynolds et al.
+   *
+   * Returns a TrustNode of kind REWRITE, corresponding to the rewrite and its
+   * proof generator.
    */
-  Node rewriteInstantiation(Node q,
-                            std::vector<Node>& terms,
-                            Node inst,
-                            bool doVts);
+  TrustNode rewriteInstantiation(Node q,
+                                 std::vector<Node>& terms,
+                                 Node inst,
+                                 bool doVts);
   /** get the instantiation rewriter object */
   InstantiationRewriter* getInstRewriter() const;
 

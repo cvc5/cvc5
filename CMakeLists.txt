@@ -1,9 +1,21 @@
+#####################
+## CMakeLists.txt
+## Top contributors (to current version):
+##   Mathias Preiner, Aina Niemetz, Gereon Kremer
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
 cmake_minimum_required(VERSION 3.4)
 
 #-----------------------------------------------------------------------------#
 # Project configuration
 
 project(cvc4)
+
+include(GNUInstallDirs)
 
 set(CVC4_MAJOR   1) # Major component of the version of CVC4.
 set(CVC4_MINOR   9) # Minor component of the version of CVC4.
@@ -82,12 +94,6 @@ endif()
 
 # By default the contrib/get-* scripts install dependencies to deps/install.
 list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/install")
-
-#-----------------------------------------------------------------------------#
-
-set(INCLUDE_INSTALL_DIR include)
-set(LIBRARY_INSTALL_DIR lib)
-set(RUNTIME_INSTALL_DIR bin)
 
 #-----------------------------------------------------------------------------#
 
@@ -283,6 +289,7 @@ endif()
 # Only enable unit testing if assertions are enabled. Otherwise, unit tests
 # that expect AssertionException to be thrown will fail.
 if(NOT ENABLE_ASSERTIONS)
+  message(WARNING "Disabling unit tests since assertions are disabled.")
   set(ENABLE_UNIT_TESTING OFF)
 endif()
 
@@ -315,7 +322,7 @@ if(ENABLE_SHARED)
   #
   # More information on RPATH in CMake:
   # https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
-  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIBRARY_INSTALL_DIR};${PROJECT_SOURCE_DIR}/deps/install/lib")
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR};${PROJECT_SOURCE_DIR}/deps/install/lib")
 else()
   # When building statically, we *only* want static archives/libraries
   if (WIN32)
@@ -331,6 +338,11 @@ else()
   if(ENABLE_UNIT_TESTING)
     message(WARNING "Disabling unit tests since static build is enabled.")
     set(ENABLE_UNIT_TESTING OFF)
+  endif()
+
+  if (BUILD_BINDINGS_PYTHON)
+    message(FATAL_ERROR "Building Python bindings is not possible "
+                        "when building statically")
   endif()
 endif()
 
@@ -571,6 +583,7 @@ add_subdirectory(src)
 add_subdirectory(test)
 
 if(BUILD_BINDINGS_PYTHON)
+  set(BUILD_BINDINGS_PYTHON_VERSION ${PYTHON_VERSION_MAJOR})
   add_subdirectory(src/api/python)
 endif()
 
@@ -635,13 +648,13 @@ endif()
 install(EXPORT cvc4-targets
   FILE CVC4Targets.cmake
   NAMESPACE CVC4::
-  DESTINATION ${LIBRARY_INSTALL_DIR}/cmake/CVC4)
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CVC4)
 
 configure_package_config_file(
   ${CMAKE_SOURCE_DIR}/cmake/CVC4Config.cmake.in
   ${CMAKE_BINARY_DIR}/cmake/CVC4Config.cmake
-  INSTALL_DESTINATION ${LIBRARY_INSTALL_DIR}/cmake/CVC4
-  PATH_VARS LIBRARY_INSTALL_DIR
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CVC4
+  PATH_VARS CMAKE_INSTALL_LIBDIR
 )
 
 write_basic_package_version_file(
@@ -653,7 +666,7 @@ write_basic_package_version_file(
 install(FILES
   ${CMAKE_BINARY_DIR}/cmake/CVC4Config.cmake
   ${CMAKE_BINARY_DIR}/CVC4ConfigVersion.cmake
-  DESTINATION ${LIBRARY_INSTALL_DIR}/cmake/CVC4
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CVC4
 )
 
 
@@ -767,7 +780,7 @@ message("")
 
 if(GPL_LIBS)
   message(
-  "CVC4 license             : GPLv3 (due to optional libraries; see below)"
+  "CVC4 license             : ${Yellow}GPLv3 (due to optional libraries; see below)${ResetColor}"
   "\n"
   "\n"
   "Please note that CVC4 will be built against the following GPLed libraries:"

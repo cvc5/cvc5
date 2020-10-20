@@ -1,4 +1,4 @@
-; COMMAND-LINE: --nl-ext-tf-tplanes --no-check-models
+; COMMAND-LINE: --nl-ext-tf-tplanes --no-check-models --nl-rlv=always
 ; EXPECT: sat
 (set-logic QF_NRAT)
 (set-info :status sat)

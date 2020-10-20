@@ -5,7 +5,7 @@
  **   Mathias Preiner, Liana Hadarean, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -23,8 +23,6 @@
 
 #include "theory/bv/bitblast/bitblaster.h"
 
-#include "proof/bitvector_proof.h"
-#include "proof/resolution_bitvector_proof.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 
@@ -33,12 +31,12 @@ namespace theory {
 namespace bv {
 
 class BitblastingRegistrar;
-class TheoryBV;
+class BVSolverLazy;
 
 class EagerBitblaster : public TBitblaster<Node>
 {
  public:
-  EagerBitblaster(TheoryBV* theory_bv, context::Context* context);
+  EagerBitblaster(BVSolverLazy* theory_bv, context::Context* context);
   ~EagerBitblaster();
 
   void addAtom(TNode atom);
@@ -63,7 +61,7 @@ class EagerBitblaster : public TBitblaster<Node>
   std::unique_ptr<prop::SatSolver> d_satSolver;
   std::unique_ptr<BitblastingRegistrar> d_bitblastingRegistrar;
 
-  TheoryBV* d_bv;
+  BVSolverLazy* d_bv;
   TNodeSet d_bbAtoms;
   TNodeSet d_variables;
 

@@ -2,10 +2,10 @@
 /*! \file term_registry.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Tianyi Liang
+ **   Andrew Reynolds, Andres Noetzli, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -50,7 +50,6 @@ class TermRegistry
 
  public:
   TermRegistry(SolverState& s,
-               eq::EqualityEngine& ee,
                OutputChannel& out,
                SequencesStatistics& statistics,
                ProofNodeManager* pnm);
@@ -220,8 +219,6 @@ class TermRegistry
   uint32_t d_cardSize;
   /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
-  /** Reference to equality engine of the theory of strings. */
-  eq::EqualityEngine& d_ee;
   /** Reference to the output channel of the theory of strings. */
   OutputChannel& d_out;
   /** Reference to the statistics for the theory of strings/sequences. */

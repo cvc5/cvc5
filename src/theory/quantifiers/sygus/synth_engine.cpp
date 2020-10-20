@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -184,13 +184,19 @@ void SynthEngine::assignConjecture(Node q)
       for (unsigned i = 0, size = all_vars.size(); i < size; i++)
       {
         Node v = all_vars[i];
-        if (std::find(si_vars.begin(), si_vars.end(), v) == si_vars.end())
+        if (std::find(funcs0.begin(), funcs0.end(), v) != funcs0.end())
+        {
+          Trace("cegqi-qep") << "- fun var: " << v << std::endl;
+        }
+        else if (std::find(si_vars.begin(), si_vars.end(), v) == si_vars.end())
         {
           qe_vars.push_back(v);
+          Trace("cegqi-qep") << "- qe var: " << v << std::endl;
         }
         else
         {
           nqe_vars.push_back(v);
+          Trace("cegqi-qep") << "- non qe var: " << v << std::endl;
         }
       }
       std::vector<Node> orig;
@@ -233,27 +239,26 @@ void SynthEngine::assignConjecture(Node q)
 
       Trace("cegqi-qep") << "Run quantifier elimination on "
                          << conj_se_ngsi_subs << std::endl;
-      Expr qe_res = smt_qe->doQuantifierElimination(
-          conj_se_ngsi_subs.toExpr(), true, false);
-      Trace("cegqi-qep") << "Result : " << qe_res << std::endl;
+      Node qeRes =
+          smt_qe->getQuantifierElimination(conj_se_ngsi_subs, true, false);
+      Trace("cegqi-qep") << "Result : " << qeRes << std::endl;
 
       // create single invocation conjecture, if QE was successful
-      Node qe_res_n = Node::fromExpr(qe_res);
-      if (!expr::hasBoundVar(qe_res_n))
+      if (!expr::hasBoundVar(qeRes))
       {
-        qe_res_n = qe_res_n.substitute(
+        qeRes = qeRes.substitute(
             subs.begin(), subs.end(), orig.begin(), orig.end());
         if (!nqe_vars.empty())
         {
-          qe_res_n = nm->mkNode(
-              EXISTS, nm->mkNode(BOUND_VAR_LIST, nqe_vars), qe_res_n);
+          qeRes =
+              nm->mkNode(EXISTS, nm->mkNode(BOUND_VAR_LIST, nqe_vars), qeRes);
         }
         Assert(q.getNumChildren() == 3);
-        qe_res_n = nm->mkNode(FORALL, q[0], qe_res_n, q[2]);
-        Trace("cegqi-qep") << "Converted conjecture after QE : " << qe_res_n
+        qeRes = nm->mkNode(FORALL, q[0], qeRes, q[2]);
+        Trace("cegqi-qep") << "Converted conjecture after QE : " << qeRes
                            << std::endl;
-        qe_res_n = Rewriter::rewrite(qe_res_n);
-        Node nq = qe_res_n;
+        qeRes = Rewriter::rewrite(qeRes);
+        Node nq = qeRes;
         // must assert it is equivalent to the original
         Node lem = q.eqNode(nq);
         Trace("cegqi-lemma")
@@ -305,8 +310,6 @@ void SynthEngine::registerQuantifier(Node q)
 
 bool SynthEngine::checkConjecture(SynthConjecture* conj)
 {
-  Node q = conj->getEmbeddedConjecture();
-  Node aq = conj->getConjecture();
   if (Trace.isOn("sygus-engine-debug"))
   {
     conj->debugPrint("sygus-engine-debug");
@@ -341,46 +344,14 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
           << "  ...check for counterexample." << std::endl;
       return true;
     }
-    else
+    if (!conj->needsRefinement())
     {
-      if (conj->needsRefinement())
-      {
-        // immediately go to refine candidate
-        return checkConjecture(conj);
-      }
+      return ret;
     }
-    return ret;
+    // otherwise, immediately go to refine candidate
   }
-  else
-  {
-    Trace("sygus-engine-debug")
-        << "  *** Refine candidate phase..." << std::endl;
-    std::vector<Node> rlems;
-    conj->doRefine(rlems);
-    bool addedLemma = false;
-    for (unsigned i = 0; i < rlems.size(); i++)
-    {
-      Node lem = rlems[i];
-      Trace("cegqi-lemma") << "Cegqi::Lemma : candidate refinement : " << lem
-                           << std::endl;
-      bool res = d_quantEngine->addLemma(lem);
-      if (res)
-      {
-        ++(d_statistics.d_cegqi_lemmas_refine);
-        conj->incrementRefineCount();
-        addedLemma = true;
-      }
-      else
-      {
-        Trace("cegqi-warn") << "  ...FAILED to add refinement!" << std::endl;
-      }
-    }
-    if (addedLemma)
-    {
-      Trace("sygus-engine-debug") << "  ...refine candidate." << std::endl;
-    }
-  }
-  return true;
+  Trace("sygus-engine-debug") << "  *** Refine candidate phase..." << std::endl;
+  return conj->doRefine();
 }
 
 void SynthEngine::printSynthSolution(std::ostream& out)

@@ -1,3 +1,13 @@
+#####################
+## CMakeLists.txt
+## Top contributors (to current version):
+##   Mathias Preiner, Aina Niemetz, Andrew Reynolds
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
 set(ANTLR_HOME ${ANTLR_DIR})
 find_package(ANTLR REQUIRED)
 
@@ -99,7 +109,7 @@ target_link_libraries(cvc4parser cvc4 ${ANTLR_LIBRARIES})
 target_include_directories(cvc4parser PRIVATE ${ANTLR_INCLUDE_DIR})
 install(TARGETS cvc4parser
   EXPORT cvc4-targets
-  DESTINATION ${LIBRARY_INSTALL_DIR})
+  DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 # The generated lexer/parser files define some functions as
 # __declspec(dllexport) via the ANTLR3_API macro, which leads to lots of

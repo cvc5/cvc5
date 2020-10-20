@@ -2,10 +2,10 @@
 /*! \file abduction_solver.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -39,12 +39,7 @@ bool AbductionSolver::getAbduct(const Node& goal,
     throw ModalException(msg);
   }
   Trace("sygus-abduct") << "SmtEngine::getAbduct: goal " << goal << std::endl;
-  std::vector<Expr> easserts = d_parent->getExpandedAssertions();
-  std::vector<Node> axioms;
-  for (unsigned i = 0, size = easserts.size(); i < size; i++)
-  {
-    axioms.push_back(Node::fromExpr(easserts[i]));
-  }
+  std::vector<Node> axioms = d_parent->getExpandedAssertions();
   std::vector<Node> asserts(axioms.begin(), axioms.end());
   // must expand definitions
   Node conjn = d_parent->expandDefinitions(goal);
@@ -89,16 +84,15 @@ bool AbductionSolver::getAbductInternal(Node& abd)
   if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
   {
     // get the synthesis solution
-    std::map<Expr, Expr> sols;
+    std::map<Node, Node> sols;
     d_subsolver->getSynthSolutions(sols);
     Assert(sols.size() == 1);
-    Expr essf = d_sssf.toExpr();
-    std::map<Expr, Expr>::iterator its = sols.find(essf);
+    std::map<Node, Node>::iterator its = sols.find(d_sssf);
     if (its != sols.end())
     {
       Trace("sygus-abduct")
           << "SmtEngine::getAbduct: solution is " << its->second << std::endl;
-      abd = Node::fromExpr(its->second);
+      abd = its->second;
       if (abd.getKind() == kind::LAMBDA)
       {
         abd = abd[1];
@@ -140,8 +134,8 @@ void AbductionSolver::checkAbduct(Node a)
   Trace("check-abduct") << "SmtEngine::checkAbduct: get expanded assertions"
                         << std::endl;
 
-  std::vector<Expr> asserts = d_parent->getExpandedAssertions();
-  asserts.push_back(a.toExpr());
+  std::vector<Node> asserts = d_parent->getExpandedAssertions();
+  asserts.push_back(a);
 
   // two checks: first, consistent with assertions, second, implies negated goal
   // is unsatisfiable.
@@ -154,7 +148,7 @@ void AbductionSolver::checkAbduct(Node a)
     initializeSubsolver(abdChecker);
     Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
                           << ": asserting formulas" << std::endl;
-    for (const Expr& e : asserts)
+    for (const Node& e : asserts)
     {
       abdChecker->assertFormula(e);
     }
@@ -178,7 +172,7 @@ void AbductionSolver::checkAbduct(Node a)
           << "SmtEngine::checkAbduct: goal is " << d_abdConj << std::endl;
       // add the goal to the set of assertions
       Assert(!d_abdConj.isNull());
-      asserts.push_back(d_abdConj.toExpr());
+      asserts.push_back(d_abdConj);
     }
     else
     {
