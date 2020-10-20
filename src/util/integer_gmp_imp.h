@@ -124,11 +124,12 @@ class CVC4_PUBLIC Integer
   bool isBitSet(uint32_t i) const;
 
   /**
-   * Returns the integer with the binary representation of size bits
-   * extended with amount 1's
+   * Returns the integer with the binary representation of 'size' bits
+   * extended with 'amount' 1's.
    */
   Integer oneExtend(uint32_t size, uint32_t amount) const;
 
+  /** Return a 32 bit unsigned integer representation of this Integer. */
   uint32_t toUnsignedInt() const;
 
   /**
@@ -149,10 +150,10 @@ class CVC4_PUBLIC Integer
                       const Integer& x,
                       const Integer& y);
 
-  /** Returns the ceil(this / y) */
+  /** Returns the ceil(this / y). */
   Integer ceilingDivideQuotient(const Integer& y) const;
 
-  /** Returns the ceil(this / y) */
+  /** Returns the ceil(this / y). */
   Integer ceilingDivideRemainder(const Integer& y) const;
 
   /**
@@ -324,7 +325,7 @@ class CVC4_PUBLIC Integer
   const mpz_class& get_mpz() const { return d_value; }
 
   /**
-   * Stores the value of the rational is stored in a C++ GMP integer class.
+   * The value of the rational is stored in a C++ GMP integer class.
    * Using this instead of mpz_t allows for easier destruction.
    */
   mpz_class d_value;
