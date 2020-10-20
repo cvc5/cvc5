@@ -270,11 +270,6 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     }
     return nm->mkNode(IMPLIES, ant, children[0]);
   }
-  else if (id == PfRule::TRUST)
-  {
-    Assert(args.size() == 1);
-    return args[0];
-  }
   else if (id == PfRule::SUBS)
   {
     Assert(children.size() > 0);
