@@ -21,6 +21,7 @@
 #include <unordered_set>
 
 #include "expr/proof_node_updater.h"
+#include "proof/veriT/veriT_proof_rule.h"
 
 namespace CVC4 {
 
@@ -40,9 +41,8 @@ class VeriTProofPostprocessCallback : public ProofNodeUpdaterCallback
    * static information to be used by successive calls to update.
    */
   void initializeUpdate();
-  bool shouldUpdate(std::shared_ptr<ProofNode> pn, 
-			
-	bool& continueUpdate) override;
+  bool shouldUpdate(std::shared_ptr<ProofNode> pn, 	
+										bool& continueUpdate) override;
   /** Update the proof rule application. */
   bool update(Node res,
               PfRule id,
@@ -50,10 +50,25 @@ class VeriTProofPostprocessCallback : public ProofNodeUpdaterCallback
               const std::vector<Node>& args,
               CDProof* cdp,
 	      			bool& continueUpdate) override;
-
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
+	NodeManager* d_nm;
+  /**
+	 * This method adds a new step to the proof applying the veriT rule.
+	 *
+	 * @param res The expected result of the application,
+	 * @param rule The id of the veriT rule,
+	 * @param children The children of the application,
+	 * @param args The arguments of the application
+	 * @param cdp The proof to add to
+	 * @return True if the step could be added, or null if not.
+	 */
+  bool addVeriTStep(Node res,
+								 	  VeriTRule new_rule,
+										const std::vector<Node>& children,
+								 	  const std::vector<Node>& args,
+								 	  CDProof& cdp);
 };
 
 /**
@@ -70,12 +85,13 @@ class VeriTProofPostprocess : public ProofNodeUpdater
 
  private:
   /** The post process callback */
-//	std::unique_ptr<VeriTProofPostprocessCallback> dd_cb;
+  //	std::unique_ptr<VeriTProofPostprocessCallback> dd_cb;
   /** The proof node manager */
   //ProofNodeManager* dd_pnm;
 };
 
 }  // namespace proof
+
 }  // namespace CVC4
 
 #endif
