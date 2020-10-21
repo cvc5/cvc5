@@ -172,8 +172,9 @@ class ProofChecker
    * Is pedantic failure? If so, we return true and write a debug message on the
    * output stream out if enableOutput is true.
    */
-  bool isPedanticFailure(PfRule id, std::ostream& out,
-                     bool enableOutput = true) const;
+  bool isPedanticFailure(PfRule id,
+                         std::ostream& out,
+                         bool enableOutput = true) const;
 
  private:
   /** statistics class */
@@ -196,8 +197,7 @@ class ProofChecker
                      Node expected,
                      std::stringstream& out,
                      bool useTrustedChecker,
-                     bool enableOutput
-                    );
+                     bool enableOutput);
 };
 
 }  // namespace CVC4

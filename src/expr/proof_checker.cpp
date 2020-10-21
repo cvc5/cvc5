@@ -159,10 +159,11 @@ Node ProofChecker::checkDebug(PfRule id,
                               const char* traceTag)
 {
   std::stringstream out;
-  bool traceEnabled = Trace.isOn(traceTag); 
+  bool traceEnabled = Trace.isOn(traceTag);
   // Since we are debugging, we want to treat trusted (null) checkers as
   // a failure. We only enable output if the trace is enabled for efficiency.
-  Node res = checkInternal(id, cchildren, args, expected, out, false, traceEnabled);
+  Node res =
+      checkInternal(id, cchildren, args, expected, out, false, traceEnabled);
   if (traceEnabled)
   {
     Trace(traceTag) << "ProofChecker::checkDebug: " << id;
@@ -186,7 +187,7 @@ Node ProofChecker::checkInternal(PfRule id,
                                  Node expected,
                                  std::stringstream& out,
                                  bool useTrustedChecker,
-                     bool enableOutput)
+                                 bool enableOutput)
 {
   std::map<PfRule, ProofRuleChecker*>::iterator it = d_checker.find(id);
   if (it == d_checker.end())
@@ -252,7 +253,8 @@ Node ProofChecker::checkInternal(PfRule id,
         out << serr.str() << std::endl;
         if (Trace.isOn("proof-new-pedantic"))
         {
-          Trace("proof-new-pedantic") << "Failed pedantic check for " << id << std::endl;
+          Trace("proof-new-pedantic")
+              << "Failed pedantic check for " << id << std::endl;
           Trace("proof-new-pedantic") << "Expected: " << expected << std::endl;
           out << "Expected: " << expected << std::endl;
         }
@@ -314,7 +316,9 @@ uint32_t ProofChecker::getPedanticLevel(PfRule id) const
   return 0;
 }
 
-bool ProofChecker::isPedanticFailure(PfRule id, std::ostream& out, bool enableOutput) const
+bool ProofChecker::isPedanticFailure(PfRule id,
+                                     std::ostream& out,
+                                     bool enableOutput) const
 {
   if (d_pclevel == 0)
   {

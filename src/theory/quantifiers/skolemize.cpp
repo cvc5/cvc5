@@ -291,7 +291,8 @@ Node Skolemize::mkSkolemizedBody(Node f,
 Node Skolemize::getSkolemizedBody(Node f)
 {
   Assert(f.getKind() == FORALL);
-  std::unordered_map<Node, Node, NodeHashFunction>::iterator it = d_skolem_body.find(f);
+  std::unordered_map<Node, Node, NodeHashFunction>::iterator it =
+      d_skolem_body.find(f);
   if (it == d_skolem_body.end())
   {
     std::vector<TypeNode> fvTypes;
