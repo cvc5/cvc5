@@ -212,6 +212,8 @@ Node NormalForm::constructBagFromElements(
 
 Node NormalForm::evaluateMakeBag(TNode n)
 {
+  // the case where n is const should be handled earlier.
+  // here we handle the case where the multiplicity is zero or negative
   Assert(n.getKind() == MK_BAG && !n.isConst()
          && n[1].getConst<Rational>().sgn() < 1);
   Node emptybag = NodeManager::currentNM()->mkConst(EmptyBag(n.getType()));
