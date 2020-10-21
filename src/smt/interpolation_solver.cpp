@@ -50,7 +50,7 @@ bool InterpolationSolver::getInterpol(const Node& conj,
   std::string name("A");
 
   quantifiers::SygusInterpol interpolSolver;
-  if (interpolSolver.SolveInterpolation(
+  if (interpolSolver.solveInterpolation(
           name, axioms, conjn, grammarType, interpol))
   {
     if (options::checkInterpols())

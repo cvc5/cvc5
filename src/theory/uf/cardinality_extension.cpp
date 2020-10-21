@@ -887,9 +887,11 @@ void SortModel::assertCardinality(uint32_t c, bool val)
     }
     else
     {
-      if( c>d_maxNegCard.get() ){
-        Trace("uf-ss-com-card-debug") << "Maximum negative cardinality for " << d_type << " is now " << c << std::endl;
-        d_maxNegCard.set( c );
+      if (c > d_maxNegCard.get())
+      {
+        Trace("uf-ss-com-card-debug") << "Maximum negative cardinality for "
+                                      << d_type << " is now " << c << std::endl;
+        d_maxNegCard.set(c);
         simpleCheckCardinality();
       }
     }
@@ -1139,8 +1141,11 @@ bool SortModel::checkLastCall()
   size_t nReps = rs->getNumRepresentatives(d_type);
   if (nReps != d_maxNegCard + 1)
   {
-    Trace("uf-ss-warn") << "WARNING : Model does not have same # representatives as cardinality for " << d_type << "." << std::endl;
-    Trace("uf-ss-warn") << "   Max neg cardinality : " << d_maxNegCard << std::endl;
+    Trace("uf-ss-warn") << "WARNING : Model does not have same # "
+                           "representatives as cardinality for "
+                        << d_type << "." << std::endl;
+    Trace("uf-ss-warn") << "   Max neg cardinality : " << d_maxNegCard
+                        << std::endl;
     Trace("uf-ss-warn") << "   # Reps : " << nReps << std::endl;
     if (d_maxNegCard >= nReps)
     {
@@ -1148,7 +1153,8 @@ bool SortModel::checkLastCall()
       {
         std::stringstream ss;
         ss << "r_" << d_type << "_";
-        Node nn = NodeManager::currentNM()->mkSkolem( ss.str(), d_type, "enumeration to meet negative card constraint" );
+        Node nn = NodeManager::currentNM()->mkSkolem(
+            ss.str(), d_type, "enumeration to meet negative card constraint");
         d_fresh_aloc_reps.push_back( nn );
       }
       if (d_maxNegCard == 0)
@@ -1163,7 +1169,8 @@ bool SortModel::checkLastCall()
         {
           for (size_t j = (i + 1); j <= d_maxNegCard; j++)
           {
-            force_cl.push_back( d_fresh_aloc_reps[i].eqNode( d_fresh_aloc_reps[j] ).negate() );
+            force_cl.push_back(
+                d_fresh_aloc_reps[i].eqNode(d_fresh_aloc_reps[j]).negate());
           }
         }
         Node cl = getCardinalityLiteral( d_maxNegCard );

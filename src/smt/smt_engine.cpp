@@ -1662,6 +1662,7 @@ bool SmtEngine::getInterpol(const Node& conj,
                             Node& interpol)
 {
   SmtScope smts(this);
+  finishInit();
   bool success = d_interpolSolver->getInterpol(conj, grammarType, interpol);
   // notify the state of whether the get-interpol call was successfuly, which
   // impacts the SMT mode.
@@ -1680,6 +1681,7 @@ bool SmtEngine::getAbduct(const Node& conj,
                           Node& abd)
 {
   SmtScope smts(this);
+  finishInit();
   bool success = d_abductSolver->getAbduct(conj, grammarType, abd);
   // notify the state of whether the get-abduct call was successfuly, which
   // impacts the SMT mode.

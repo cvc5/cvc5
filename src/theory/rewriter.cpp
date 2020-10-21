@@ -383,10 +383,12 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
             Trace("rewriter-proof")
                 << "with proofs: " << rewriteStackTop.d_node << std::endl;
             Trace("rewriter-proof") << " w/o proofs: " << cached << std::endl;
-            // TODO: prove equivalence
             Node eq = rewriteStackTop.d_node.eqNode(cached);
-            tcpg->addRewriteStep(
-                rewriteStackTop.d_node, cached, PfRule::TRUST, {}, {eq});
+            tcpg->addRewriteStep(rewriteStackTop.d_node,
+                                 cached,
+                                 PfRule::TRUST_REWRITE,
+                                 {},
+                                 {eq});
             // don't overwrite the cache, should be the same
             rewriteStackTop.d_node = cached;
           }

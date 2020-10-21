@@ -226,11 +226,11 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::xorYFromX(bool negated,
         parent[0],
         false);
   }
-  return mkNot(mkResolution(
-      mkProof(negated ? PfRule::NOT_XOR_ELIM1 : PfRule::XOR_ELIM1,
-              {assume(negated ? parent.notNode() : Node(parent))}),
-      parent[0],
-      true));
+  return mkNot(
+      mkResolution(mkProof(negated ? PfRule::NOT_XOR_ELIM1 : PfRule::XOR_ELIM1,
+                           {assume(negated ? parent.notNode() : Node(parent))}),
+                   parent[0],
+                   true));
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagator::mkProof(
@@ -312,12 +312,16 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::mkResolution(
   {
     if (lit.getKind() == Kind::NOT)
     {
-      return mkProof(PfRule::RESOLUTION, {clause, assume(lit[0])}, {nm->mkConst(false), lit[0]});
+      return mkProof(PfRule::RESOLUTION,
+                     {clause, assume(lit[0])},
+                     {nm->mkConst(false), lit[0]});
     }
-    return mkProof(
-        PfRule::RESOLUTION, {clause, assume(lit.notNode())}, {nm->mkConst(true), lit});
+    return mkProof(PfRule::RESOLUTION,
+                   {clause, assume(lit.notNode())},
+                   {nm->mkConst(true), lit});
   }
-  return mkProof(PfRule::RESOLUTION, {clause, assume(lit)}, {nm->mkConst(false), lit});
+  return mkProof(
+      PfRule::RESOLUTION, {clause, assume(lit)}, {nm->mkConst(false), lit});
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagator::mkNot(
@@ -375,11 +379,10 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::iteC(bool c)
         d_parent[0],
         !c);
   }
-  return mkResolution(
-      mkProof(c ? PfRule::NOT_ITE_ELIM1 : PfRule::NOT_ITE_ELIM2,
-              {assume(d_parent.notNode())}),
-      d_parent[0],
-      !c);
+  return mkResolution(mkProof(c ? PfRule::NOT_ITE_ELIM1 : PfRule::NOT_ITE_ELIM2,
+                              {assume(d_parent.notNode())}),
+                      d_parent[0],
+                      !c);
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::iteIsCase(unsigned c)
@@ -390,9 +393,8 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::iteIsCase(unsigned c)
   }
   if (d_parentAssignment)
   {
-    return mkResolution(mkProof(PfRule::ITE_ELIM2, {assume(d_parent)}),
-                         d_parent[c + 1],
-                         false);
+    return mkResolution(
+        mkProof(PfRule::ITE_ELIM2, {assume(d_parent)}), d_parent[c + 1], false);
   }
   return mkResolution(
       mkProof(PfRule::NOT_ITE_ELIM2, {assume(d_parent.notNode())}),
@@ -536,15 +538,13 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::impliesEval(
   }
   if (!premise)
   {
-    return mkResolution(mkProof(PfRule::CNF_IMPLIES_NEG1, {}, {d_parent}),
-                         d_parent[0],
-                         true);
+    return mkResolution(
+        mkProof(PfRule::CNF_IMPLIES_NEG1, {}, {d_parent}), d_parent[0], true);
   }
   if (conclusion)
   {
-    return mkResolution(mkProof(PfRule::CNF_IMPLIES_NEG2, {}, {d_parent}),
-                         d_parent[1],
-                         false);
+    return mkResolution(
+        mkProof(PfRule::CNF_IMPLIES_NEG2, {}, {d_parent}), d_parent[1], false);
   }
   return mkCResolution(mkProof(PfRule::CNF_IMPLIES_POS, {}, {d_parent}),
                        {d_parent[0], d_parent[1]},
