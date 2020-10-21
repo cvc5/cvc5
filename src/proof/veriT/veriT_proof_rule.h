@@ -27,21 +27,21 @@ namespace proof {
 enum class VeriTRule : uint32_t
 { 
   //================================================= Special Rules: Commands
-	//======================== Anchor and Assume
-	//These rules should be printed as commands
-	// ======== Anchor
-	// Children: (P:F)
-	// Arguments:
-	// --------------
-	// Conclusion: F
-	//
-	//Each subproof in veriT begins with an anchor command. The outermost application of 
-	//anchor will not be printed.
-	ANCHOR,
-	ASSUME,
-	UNDEFINED, //TODO: delete later
+  //======================== Anchor and Assume
+  //These rules should be printed as commands
+  // ======== Anchor
+  // Children: (P:F)
+  // Arguments:
+  // --------------
+  // Conclusion: F
+  //
+  //Each subproof in veriT begins with an anchor command. The outermost application of 
+  //anchor will not be printed.
+  ANCHOR,
+  ASSUME,
+  UNDEFINED, //TODO: delete later
  
-	INPUT,
+  INPUT,
   TRUE,
   FALSE,
   NOT_NOT,

@@ -68,7 +68,7 @@ class VeriTProofPostprocessCallback : public ProofNodeUpdaterCallback
 								 	  VeriTRule new_rule,
 										const std::vector<Node>& children,
 								 	  const std::vector<Node>& args,
-								 	  CDProof& cdp);
+								 	  CDProof* cdp);
 };
 
 /**
