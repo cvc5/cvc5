@@ -57,7 +57,7 @@ struct BinaryOperatorTypeRule
     // only UNION_DISJOINT has a const rule in kinds.
     // Other binary operators do not have const rules in kinds
     Assert(n.getKind() == kind::UNION_DISJOINT);
-    return NormalForm::checkNormalConstant(n);
+    return NormalForm::isConstant(n);
   }
 }; /* struct BinaryOperatorTypeRule */
 
