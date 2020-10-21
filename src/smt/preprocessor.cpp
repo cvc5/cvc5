@@ -2,10 +2,10 @@
 /*! \file preprocessor.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -15,9 +15,10 @@
 #include "smt/preprocessor.h"
 
 #include "options/smt_options.h"
+#include "printer/printer.h"
 #include "smt/abstract_values.h"
 #include "smt/assertions.h"
-#include "smt/command.h"
+#include "smt/dump.h"
 #include "smt/smt_engine.h"
 
 using namespace CVC4::theory;
@@ -29,12 +30,14 @@ namespace smt {
 Preprocessor::Preprocessor(SmtEngine& smt,
                            context::UserContext* u,
                            AbstractValues& abs)
-    : d_smt(smt),
+    : d_context(u),
+      d_smt(smt),
       d_absValues(abs),
       d_propagator(true, true),
       d_assertionsProcessed(u, false),
       d_processor(smt, *smt.getResourceManager()),
-      d_rtf(u)
+      d_rtf(u),
+      d_pnm(nullptr)
 {
 }
 
@@ -50,7 +53,7 @@ Preprocessor::~Preprocessor()
 void Preprocessor::finishInit()
 {
   d_ppContext.reset(new preprocessing::PreprocessingPassContext(
-      &d_smt, &d_rtf, &d_propagator));
+      &d_smt, &d_rtf, &d_propagator, d_pnm));
 
   // initialize the preprocessing passes
   d_processor.finishInit(d_ppContext.get());
@@ -61,7 +64,8 @@ bool Preprocessor::process(Assertions& as)
   preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();
 
   // should not be called if empty
-  Assert(ap.size() != 0) << "Can only preprocess a non-empty list of assertions";
+  Assert(ap.size() != 0)
+      << "Can only preprocess a non-empty list of assertions";
 
   if (d_assertionsProcessed && options::incrementalSolving())
   {
@@ -128,7 +132,8 @@ Node Preprocessor::simplify(const Node& node, bool removeItes)
   Trace("smt") << "SMT simplify(" << node << ")" << endl;
   if (Dump.isOn("benchmark"))
   {
-    Dump("benchmark") << SimplifyCommand(node.toExpr());
+    d_smt.getOutputManager().getPrinter().toStreamCmdSimplify(
+        d_smt.getOutputManager().getDumpOut(), node);
   }
   Node nas = d_absValues.substituteAbstractValues(node);
   if (options::typeChecking())
@@ -138,7 +143,8 @@ Node Preprocessor::simplify(const Node& node, bool removeItes)
   }
   std::unordered_map<Node, Node, NodeHashFunction> cache;
   Node n = d_processor.expandDefinitions(nas, cache);
-  Node ns = applySubstitutions(n);
+  TrustNode ts = d_ppContext->getTopLevelSubstitutions().apply(n);
+  Node ns = ts.isNull() ? n : ts.getNode();
   if (removeItes)
   {
     // also remove ites if asked
@@ -147,9 +153,11 @@ Node Preprocessor::simplify(const Node& node, bool removeItes)
   return ns;
 }
 
-Node Preprocessor::applySubstitutions(TNode node)
+void Preprocessor::setProofGenerator(PreprocessProofGenerator* pppg)
 {
-  return Rewriter::rewrite(d_ppContext->getTopLevelSubstitutions().apply(node));
+  Assert(pppg != nullptr);
+  d_pnm = pppg->getManager();
+  d_rtf.setProofNodeManager(d_pnm);
 }
 
 }  // namespace smt

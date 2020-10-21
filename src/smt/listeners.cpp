@@ -2,10 +2,10 @@
 /*! \file listeners.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -18,9 +18,10 @@
 #include "expr/expr.h"
 #include "expr/node_manager_attributes.h"
 #include "options/smt_options.h"
-#include "smt/node_command.h"
+#include "printer/printer.h"
 #include "smt/dump.h"
 #include "smt/dump_manager.h"
+#include "smt/node_command.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 
@@ -36,7 +37,11 @@ void ResourceOutListener::notify()
   d_smt.interrupt();
 }
 
-SmtNodeManagerListener::SmtNodeManagerListener(DumpManager& dm) : d_dm(dm) {}
+SmtNodeManagerListener::SmtNodeManagerListener(DumpManager& dm,
+                                               OutputManager& outMgr)
+    : d_dm(dm), d_outMgr(outMgr)
+{
+}
 
 void SmtNodeManagerListener::nmNotifyNewSort(TypeNode tn, uint32_t flags)
 {
@@ -64,10 +69,12 @@ void SmtNodeManagerListener::nmNotifyNewDatatypes(
 {
   if ((flags & NodeManager::DATATYPE_FLAG_PLACEHOLDER) == 0)
   {
-    std::vector<Type> types;
-    for (const TypeNode& dt : dtts)
+    if (Configuration::isAssertionBuild())
     {
-      Assert(dt.isDatatype());
+      for (CVC4_UNUSED const TypeNode& dt : dtts)
+      {
+        Assert(dt.isDatatype());
+      }
     }
     DeclareDatatypeNodeCommand c(dtts);
     d_dm.addToModelCommandAndDump(c);
@@ -92,7 +99,8 @@ void SmtNodeManagerListener::nmNotifyNewSkolem(TNode n,
   DeclareFunctionNodeCommand c(id, n, n.getType());
   if (Dump.isOn("skolems") && comment != "")
   {
-    Dump("skolems") << CommentCommand(id + " is " + comment);
+    d_outMgr.getPrinter().toStreamCmdComment(d_outMgr.getDumpOut(),
+                                             id + " is " + comment);
   }
   if ((flags & ExprManager::VAR_FLAG_DEFINED) == 0)
   {

@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -106,7 +106,11 @@ bool isTranscendentalKind(Kind k)
 
 Node getApproximateConstant(Node c, bool isLower, unsigned prec)
 {
-  Assert(c.isConst());
+  if (!c.isConst())
+  {
+    Assert(false) << "getApproximateConstant: non-constant input " << c;
+    return Node::null();
+  }
   Rational cr = c.getConst<Rational>();
 
   unsigned lower = 0;
@@ -178,7 +182,12 @@ Node getApproximateConstant(Node c, bool isLower, unsigned prec)
 
 void printRationalApprox(const char* c, Node cr, unsigned prec)
 {
-  Assert(cr.isConst());
+  if (!cr.isConst())
+  {
+    Assert(false) << "printRationalApprox: non-constant input " << cr;
+    Trace(c) << cr;
+    return;
+  }
   Node ca = getApproximateConstant(cr, true, prec);
   if (ca != cr)
   {
@@ -276,6 +285,40 @@ Node mkBounded(Node l, Node a, Node u)
 {
   NodeManager* nm = NodeManager::currentNM();
   return nm->mkNode(AND, nm->mkNode(GEQ, a, l), nm->mkNode(LEQ, a, u));
+}
+
+Rational leastIntGreaterThan(const Rational& q) { return q.floor() + 1; }
+
+Rational greatestIntLessThan(const Rational& q) { return q.ceiling() - 1; }
+
+Node negateProofLiteral(TNode n)
+{
+  auto nm = NodeManager::currentNM();
+  switch (n.getKind())
+  {
+    case Kind::GT:
+    {
+      return nm->mkNode(Kind::LEQ, n[0], n[1]);
+    }
+    case Kind::LT:
+    {
+      return nm->mkNode(Kind::GEQ, n[0], n[1]);
+    }
+    case Kind::LEQ:
+    {
+      return nm->mkNode(Kind::GT, n[0], n[1]);
+    }
+    case Kind::GEQ:
+    {
+      return nm->mkNode(Kind::LT, n[0], n[1]);
+    }
+    case Kind::EQUAL:
+    case Kind::NOT:
+    {
+      return n.negate();
+    }
+    default: Unhandled() << n;
+  }
 }
 
 }  // namespace arith

@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -21,7 +21,7 @@
 
 #include "expr/expr.h"
 #include "options/smt_options.h"
-#include "smt/model.h"
+#include "theory/theory_model.h"
 
 namespace CVC4 {
 
@@ -54,8 +54,8 @@ class ModelCoreBuilder
    * If m is not a model for assertions, this method returns false and m is
    * left unchanged.
    */
-  static bool setModelCore(const std::vector<Expr>& assertions,
-                           Model* m,
+  static bool setModelCore(const std::vector<Node>& assertions,
+                           theory::TheoryModel* m,
                            options::ModelCoresMode mode);
 }; /* class TheoryModelCoreBuilder */
 

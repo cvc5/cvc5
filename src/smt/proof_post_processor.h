@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -53,13 +53,15 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
    */
   void setEliminateRule(PfRule rule);
   /** Should proof pn be updated? */
-  bool shouldUpdate(ProofNode* pn) override;
+  bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                    bool& continueUpdate) override;
   /** Update the proof rule application. */
   bool update(Node res,
               PfRule id,
               const std::vector<Node>& children,
               const std::vector<Node>& args,
-              CDProof* cdp) override;
+              CDProof* cdp,
+              bool& continueUpdate) override;
 
  private:
   /** Common constants */
@@ -96,6 +98,16 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
                     const std::vector<Node>& children,
                     const std::vector<Node>& args,
                     CDProof* cdp);
+  /**
+   * Update the proof rule application, called during expand macros when
+   * we wish to apply the update method. This method has the same behavior
+   * as update apart from ignoring the continueUpdate flag.
+   */
+  bool updateInternal(Node res,
+                      PfRule id,
+                      const std::vector<Node>& children,
+                      const std::vector<Node>& args,
+                      CDProof* cdp);
   /**
    * Add proof for witness form. This returns the equality t = toWitness(t)
    * and ensures that the proof of this equality has been added to cdp.
@@ -151,7 +163,8 @@ class ProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
    */
   void initializeUpdate();
   /** Should proof pn be updated? Returns false, adds to stats. */
-  bool shouldUpdate(ProofNode* pn) override;
+  bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                    bool& continueUpdate) override;
   /** was pedantic failure */
   bool wasPedanticFailure(std::ostream& out) const;
 
@@ -160,6 +173,10 @@ class ProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
   HistogramStat<PfRule> d_ruleCount;
   /** Total number of postprocessed rule applications */
   IntStat d_totalRuleCount;
+  /** The minimum pedantic level of any rule encountered */
+  IntStat d_minPedanticLevel;
+  /** The total number of final proofs */
+  IntStat d_numFinalProofs;
   /** Proof node manager (used for pedantic checking) */
   ProofNodeManager* d_pnm;
   /** Was there a pedantic failure? */
@@ -187,12 +204,22 @@ class ProofPostproccess
   void setEliminateRule(PfRule rule);
 
  private:
-  /** The post process callback */
-  ProofPostprocessCallback d_cb;
-  /** The post process callback for finalization */
-  ProofPostprocessFinalCallback d_finalCb;
   /** The proof node manager */
   ProofNodeManager* d_pnm;
+  /** The post process callback */
+  ProofPostprocessCallback d_cb;
+  /**
+   * The updater, which is responsible for expanding macros in the final proof
+   * and connecting preprocessed assumptions to input assumptions.
+   */
+  ProofNodeUpdater d_updater;
+  /** The post process callback for finalization */
+  ProofPostprocessFinalCallback d_finalCb;
+  /**
+   * The finalizer, which is responsible for taking stats and checking for
+   * (lazy) pedantic failures.
+   */
+  ProofNodeUpdater d_finalizer;
 };
 
 }  // namespace smt

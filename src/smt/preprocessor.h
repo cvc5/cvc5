@@ -2,10 +2,10 @@
 /*! \file preprocessor.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters, Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -100,12 +100,14 @@ class Preprocessor
    */
   RemoveTermFormulas& getTermFormulaRemover();
 
- private:
   /**
-   * Apply substitutions that have been inferred by preprocessing, return the
-   * substituted form of node.
+   * Set proof node manager. Enables proofs in this preprocessor.
    */
-  Node applySubstitutions(TNode node);
+  void setProofGenerator(PreprocessProofGenerator* pppg);
+
+ private:
+  /** A copy of the current context */
+  context::Context* d_context;
   /** Reference to the parent SmtEngine */
   SmtEngine& d_smt;
   /** Reference to the abstract values utility */
@@ -130,6 +132,8 @@ class Preprocessor
    * in term contexts.
    */
   RemoveTermFormulas d_rtf;
+  /** Proof node manager */
+  ProofNodeManager* d_pnm;
 };
 
 }  // namespace smt

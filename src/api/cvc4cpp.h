@@ -5,7 +5,7 @@
  **   Aina Niemetz, Andrew Reynolds, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -50,6 +50,7 @@ class NodeManager;
 class SmtEngine;
 class SynthFunCommand;
 class Type;
+class TypeNode;
 class Options;
 class Random;
 class Result;
@@ -72,6 +73,16 @@ class CVC4_PUBLIC CVC4ApiException : public std::exception
 
  private:
   std::string d_msg;
+};
+
+class CVC4_PUBLIC CVC4ApiRecoverableException : public CVC4ApiException
+{
+ public:
+  CVC4ApiRecoverableException(const std::string& str) : CVC4ApiException(str) {}
+  CVC4ApiRecoverableException(const std::stringstream& stream)
+      : CVC4ApiException(stream.str())
+  {
+  }
 };
 
 /* -------------------------------------------------------------------------- */
@@ -387,6 +398,12 @@ class CVC4_PUBLIC Sort
   bool isSet() const;
 
   /**
+   * Is this a Bag sort?
+   * @return true if the sort is a Bag sort
+   */
+  bool isBag() const;
+
+  /**
    * Is this a Sequence sort?
    * @return true if the sort is a Sequence sort
    */
@@ -524,6 +541,13 @@ class CVC4_PUBLIC Sort
    * @return the element sort of a set sort
    */
   Sort getSetElementSort() const;
+
+  /* Bag sort ------------------------------------------------------------ */
+
+  /**
+   * @return the element sort of a bag sort
+   */
+  Sort getBagElementSort() const;
 
   /* Sequence sort ------------------------------------------------------- */
 
@@ -934,11 +958,11 @@ class CVC4_PUBLIC Term
   bool isNull() const;
 
   /**
-   * Check if this is a Term representing a constant.
+   * Check if this is a Term representing a value.
    *
-   * @return true if a constant Term
+   * @return true if this is a Term representing a value
    */
-  bool isConst() const;
+  bool isValue() const;
 
   /**
    *  Return the base (element stored at all indices) of a constant array
@@ -2304,6 +2328,13 @@ class CVC4_PUBLIC Solver
   Sort mkSetSort(Sort elemSort) const;
 
   /**
+   * Create a bag sort.
+   * @param elemSort the sort of the bag elements
+   * @return the bag sort
+   */
+  Sort mkBagSort(Sort elemSort) const;
+
+  /**
    * Create a sequence sort.
    * @param elemSort the sort of the sequence elements
    * @return the sequence sort
@@ -2567,6 +2598,22 @@ class CVC4_PUBLIC Solver
    * @return the empty set constant
    */
   Term mkEmptySet(Sort s) const;
+
+  /**
+   * Create a singleton set from the given element t.
+   * @param s the element sort of the returned set.
+   * Note that the sort of t needs to be a subtype of s.
+   * @param t the single element in the singleton.
+   * @return a singleton set constructed from the element t.
+   */
+  Term mkSingleton(Sort s, Term t) const;
+
+  /**
+   * Create a constant representing an empty bag of the given sort.
+   * @param s the sort of the bag elements.
+   * @return the empty bag constant
+   */
+  Term mkEmptyBag(Sort s) const;
 
   /**
    * Create a separation logic nil term.
@@ -2994,14 +3041,6 @@ class CVC4_PUBLIC Solver
   std::vector<Term> getAssertions() const;
 
   /**
-   * Get the assignment of asserted formulas.
-   * SMT-LIB: ( get-assignment )
-   * Requires to enable option 'produce-assignments'.
-   * @return a list of formula-assignment pairs
-   */
-  std::vector<std::pair<Term, Term>> getAssignment() const;
-
-  /**
    * Get info from the solver.
    * SMT-LIB: ( get-info <info_flag> )
    * @return the info
@@ -3046,6 +3085,48 @@ class CVC4_PUBLIC Solver
    * @return the values of the given terms
    */
   std::vector<Term> getValue(const std::vector<Term>& terms) const;
+
+  /**
+   * Do quantifier elimination.
+   * SMT-LIB: ( get-qe <q> )
+   * Requires a logic that supports quantifier elimination. Currently, the only
+   * logics supported by quantifier elimination is LRA and LIA.
+   * @param q a quantified formula of the form:
+   *   Q x1...xn. P( x1...xn, y1...yn )
+   * where P( x1...xn, y1...yn ) is a quantifier-free formula
+   * @return a formula ret such that, given the current set of formulas A
+   * asserted to this solver:
+   *   - ( A ^ q ) and ( A ^ ret ) are equivalent
+   *   - ret is quantifier-free formula containing only free variables in
+   *     y1...yn.
+   */
+  Term getQuantifierElimination(api::Term q) const;
+
+  /**
+   * Do partial quantifier elimination, which can be used for incrementally
+   * computing the result of a quantifier elimination.
+   * SMT-LIB: ( get-qe-disjunct <q> )
+   * Requires a logic that supports quantifier elimination. Currently, the only
+   * logics supported by quantifier elimination is LRA and LIA.
+   * @param q a quantified formula of the form:
+   *   Q x1...xn. P( x1...xn, y1...yn )
+   * where P( x1...xn, y1...yn ) is a quantifier-free formula
+   * @return a formula ret such that, given the current set of formulas A
+   * asserted to this solver:
+   *   - (A ^ q) => (A ^ ret) if Q is forall or (A ^ ret) => (A ^ q) if Q is
+   *     exists,
+   *   - ret is quantifier-free formula containing only free variables in
+   *     y1...yn,
+   *   - If Q is exists, let A^Q_n be the formula
+   *       A ^ ~ret^Q_1 ^ ... ^ ~ret^Q_n
+   *     where for each i=1,...n, formula ret^Q_i is the result of calling
+   *     getQuantifierEliminationDisjunct for q with the set of assertions
+   *     A^Q_{i-1}. Similarly, if Q is forall, then let A^Q_n be
+   *       A ^ ret^Q_1 ^ ... ^ ret^Q_n
+   *     where ret^Q_i is the same as above. In either case, we have
+   *     that ret^Q_j will eventually be true or false, for some finite j.
+   */
+  Term getQuantifierEliminationDisjunct(api::Term q) const;
 
   /**
    * When using separation logic, obtain the term for the heap.
@@ -3120,6 +3201,30 @@ class CVC4_PUBLIC Solver
    * @param out the output stream
    */
   void printModel(std::ostream& out) const;
+
+  /**
+   * Block the current model. Can be called only if immediately preceded by a
+   * SAT or INVALID query.
+   * SMT-LIB: ( block-model )
+   * Requires enabling 'produce-models' option and setting 'block-models' option
+   * to a mode other than "none".
+   */
+  void blockModel() const;
+
+  /**
+   * Block the current model values of (at least) the values in terms. Can be
+   * called only if immediately preceded by a SAT or NOT_ENTAILED query.
+   * SMT-LIB: ( block-model-values ( <terms>+ ) )
+   * Requires enabling 'produce-models' option and setting 'block-models' option
+   * to a mode other than "none".
+   */
+  void blockModelValues(const std::vector<Term>& terms) const;
+
+  /**
+   * Print all instantiations made by the quantifiers module.
+   * @param out the output stream
+   */
+  void printInstantiations(std::ostream& out) const;
 
   /**
    * Push (a) level(s) to the assertion stack.
@@ -3386,6 +3491,7 @@ class CVC4_PUBLIC Solver
 std::vector<Expr> termVectorToExprs(const std::vector<Term>& terms);
 std::vector<Node> termVectorToNodes(const std::vector<Term>& terms);
 std::vector<Type> sortVectorToTypes(const std::vector<Sort>& sorts);
+std::vector<TypeNode> sortVectorToTypeNodes(const std::vector<Sort>& sorts);
 std::set<Type> sortSetToTypes(const std::set<Sort>& sorts);
 std::vector<Term> exprVectorToTerms(const Solver* slv,
                                     const std::vector<Expr>& terms);

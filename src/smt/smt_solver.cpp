@@ -2,10 +2,10 @@
 /*! \file smt_solver.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Aina Niemetz, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -35,6 +35,7 @@ SmtSolver::SmtSolver(SmtEngine& smt,
       d_rm(rm),
       d_pp(pp),
       d_stats(stats),
+      d_pnm(nullptr),
       d_theoryEngine(nullptr),
       d_propEngine(nullptr)
 {
@@ -50,7 +51,9 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
                                         d_smt.getUserContext(),
                                         d_rm,
                                         d_pp.getTermFormulaRemover(),
-                                        logicInfo));
+                                        logicInfo,
+                                        d_smt.getOutputManager(),
+                                        d_pnm));
 
   // Add the theories
   for (theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST;
@@ -64,8 +67,11 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
    * are unregistered by the obsolete PropEngine object before registered
    * again by the new PropEngine object */
   d_propEngine.reset(nullptr);
-  d_propEngine.reset(new PropEngine(
-      d_theoryEngine.get(), d_smt.getContext(), d_smt.getUserContext(), d_rm));
+  d_propEngine.reset(new PropEngine(d_theoryEngine.get(),
+                                    d_smt.getContext(),
+                                    d_smt.getUserContext(),
+                                    d_rm,
+                                    d_smt.getOutputManager()));
 
   Trace("smt-debug") << "Setting up theory engine..." << std::endl;
   d_theoryEngine->setPropEngine(getPropEngine());
@@ -81,8 +87,11 @@ void SmtSolver::resetAssertions()
    * statistics are unregistered by the obsolete PropEngine object before
    * registered again by the new PropEngine object */
   d_propEngine.reset(nullptr);
-  d_propEngine.reset(new PropEngine(
-      d_theoryEngine.get(), d_smt.getContext(), d_smt.getUserContext(), d_rm));
+  d_propEngine.reset(new PropEngine(d_theoryEngine.get(),
+                                    d_smt.getContext(),
+                                    d_smt.getUserContext(),
+                                    d_rm,
+                                    d_smt.getOutputManager()));
   d_theoryEngine->setPropEngine(getPropEngine());
   // Notice that we do not reset TheoryEngine, nor does it require calling
   // finishInit again. In particular, TheoryEngine::finishInit does not
@@ -245,9 +254,13 @@ void SmtSolver::processAssertions(Assertions& as)
   as.clearCurrent();
 }
 
+void SmtSolver::setProofNodeManager(ProofNodeManager* pnm) { d_pnm = pnm; }
+
 TheoryEngine* SmtSolver::getTheoryEngine() { return d_theoryEngine.get(); }
 
 prop::PropEngine* SmtSolver::getPropEngine() { return d_propEngine.get(); }
+
+Preprocessor* SmtSolver::getPreprocessor() { return &d_pp; }
 
 }  // namespace smt
 }  // namespace CVC4

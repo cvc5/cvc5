@@ -2,10 +2,10 @@
 /*! \file instantiate.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -268,11 +268,10 @@ bool Instantiate::addInstantiation(
       // add the transformation proof, or THEORY_PREPROCESS if none provided
       pfTmp->addLazyStep(proven,
                          tpBody.getGenerator(),
+                         PfRule::THEORY_PREPROCESS,
                          true,
-                         "Instantiate::getInstantiation:qpreprocess",
-                         false,
-                         PfRule::THEORY_PREPROCESS);
-      pfTmp->addStep(body, PfRule::EQ_RESOLVE, {orig_body, proven}, {body});
+                         "Instantiate::getInstantiation:qpreprocess");
+      pfTmp->addStep(body, PfRule::EQ_RESOLVE, {orig_body, proven}, {});
     }
   }
   Trace("inst-debug") << "...preprocess to " << body << std::endl;
@@ -477,10 +476,9 @@ Node Instantiate::getInstantiation(Node q,
         Node proven = trn.getProven();
         pf->addLazyStep(proven,
                         trn.getGenerator(),
+                        PfRule::THEORY_PREPROCESS,
                         true,
-                        "Instantiate::getInstantiation:rewrite_inst",
-                        false,
-                        PfRule::THEORY_PREPROCESS);
+                        "Instantiate::getInstantiation:rewrite_inst");
         pf->addStep(newBody, PfRule::EQ_RESOLVE, {body, proven}, {});
       }
       body = newBody;

@@ -5,7 +5,7 @@
  **   Liana Hadarean, Dejan Jovanovic, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -22,7 +22,10 @@
 #include <sstream>
 
 #include "context/context.h"
-#include "smt/command.h"
+#include "printer/printer.h"
+#include "smt/dump.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory.h"
 #include "util/statistics_registry.h"
@@ -200,6 +203,7 @@ enum RewriteRuleId
   ConcatToMult,
   IsPowerOfTwo,
   MultSltMult,
+  BitOfConst,
 };
 
 inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
@@ -364,6 +368,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case IsPowerOfTwo: out << "IsPowerOfTwo"; return out;
   case MultSltMult: out << "MultSltMult"; return out;
   case NormalizeEqPlusNeg: out << "NormalizeEqPlusNeg"; return out;
+  case BitOfConst: out << "BitOfConst"; return out;
   default:
     Unreachable();
   }
@@ -449,9 +454,13 @@ public:
 
           Node condition = node.eqNode(result).notNode();
 
-          Dump("bv-rewrites")
-            << CommentCommand(os.str())
-            << CheckSatCommand(condition.toExpr());
+          const Printer& printer =
+              smt::currentSmtEngine()->getOutputManager().getPrinter();
+          std::ostream& out =
+              smt::currentSmtEngine()->getOutputManager().getDumpOut();
+
+          printer.toStreamCmdComment(out, os.str());
+          printer.toStreamCmdCheckSat(out, condition);
         }
       }
       Debug("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node << ") => " << result << std::endl;

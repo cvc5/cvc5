@@ -2,10 +2,10 @@
 /*! \file theory_sets_private.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Kshitij Bansal, Mathias Preiner
+ **   Andrew Reynolds, Kshitij Bansal, Mudathir Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -40,7 +40,6 @@ class TheorySets;
 
 class TheorySetsPrivate {
   typedef context::CDHashMap< Node, bool, NodeHashFunction> NodeBoolMap;
-  typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
@@ -51,8 +50,6 @@ class TheorySetsPrivate {
  private:
   /** Are a and b trigger terms in the equality engine that may be disequal? */
   bool areCareDisequal(Node a, Node b);
-  NodeIntMap d_members;
-  std::map< Node, std::vector< Node > > d_members_data;
   /**
    * Invoke the decision procedure for this theory, which is run at
    * full effort. This will either send a lemma or conflict on the output
@@ -64,19 +61,6 @@ class TheorySetsPrivate {
    * Reset the information for a full effort check.
    */
   void fullEffortReset();
-  /**
-   * This ensures that subtype constraints are met for all set terms. In
-   * particular, for a set equivalence class E, let Set(T) be the most
-   * common type among the types of terms in that class. In other words,
-   * if E contains two terms of Set(Int) and Set(Real), then Set(Int) is the
-   * most common type. Then, for each membership x in S where S is a set in
-   * this equivalence class, we ensure x has type T by asserting:
-   *   x = k
-   * for a fresh constant k of type T. This is done only if the type of x is not
-   * a subtype of Int (e.g. if x is of type Real). We call k the "type
-   * constraint skolem for x of type Int".
-   */
-  void checkSubtypes();
   /**
    * This implements an inference schema based on the "downwards closure" of
    * set membership. This roughly corresponds to the rules UNION DOWN I and II,
@@ -216,17 +200,8 @@ class TheorySetsPrivate {
 
   void presolve();
 
-  /** get default output channel */
-  OutputChannel* getOutputChannel();
   /** get the valuation */
   Valuation& getValuation();
-
-  /** Proagate out to output channel */
-  bool propagate(TNode);
-
-  /** generate and send out conflict node */
-  void conflict(TNode, TNode);
-
  private:
   TheorySets& d_external;
   /** The state of the sets solver at full effort */
@@ -246,8 +221,6 @@ class TheorySetsPrivate {
  public:
   /** Is formula n entailed to have polarity pol in the current context? */
   bool isEntailed(Node n, bool pol) { return d_state.isEntailed(n, pol); }
-  /** Is x entailed to be a member of set s in the current context? */
-  bool isMember(Node x, Node s);
 
  private:
   /** get choose function

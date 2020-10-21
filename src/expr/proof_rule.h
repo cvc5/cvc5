@@ -2,10 +2,10 @@
 /*! \file proof_rule.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Haniel Barbosa, Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa, Alex Ozdemir
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -129,14 +129,21 @@ enum class PfRule : uint32_t
   // ---------------------------------------------------------------
   // Conclusion: F
   // where
-  //   Rewriter{idr}(toWitness(F)*sigma{ids}(Fn)*...*sigma{ids}(F1)) == true
+  //   Rewriter{idr}(F*sigma{ids}(Fn)*...*sigma{ids}(F1)) == true
   // where ids and idr are method identifiers.
   //
-  // Notice that we apply rewriting on the witness form of F, meaning that this
+  // More generally, this rule also holds when:
+  //   Rewriter::rewrite(toWitness(F')) == true
+  // where F' is the result of the left hand side of the equality above. Here,
+  // notice that we apply rewriting on the witness form of F', meaning that this
   // rule may conclude an F whose Skolem form is justified by the definition of
-  // its (fresh) Skolem variables. Furthermore, notice that the rewriting and
-  // substitution is applied only within the side condition, meaning the
-  // rewritten form of the witness form of F does not escape this rule.
+  // its (fresh) Skolem variables. For example, this rule may justify the
+  // conclusion (= k t) where k is the purification Skolem for t, whose
+  // witness form is (witness ((x T)) (= x t)).
+  //
+  // Furthermore, notice that the rewriting and substitution is applied only
+  // within the side condition, meaning the rewritten form of the witness form
+  // of F does not escape this rule.
   MACRO_SR_PRED_INTRO,
   // ======== Substitution + Rewriting predicate elimination
   //
@@ -165,11 +172,13 @@ enum class PfRule : uint32_t
   // ----------------------------------------
   // Conclusion: G
   // where
-  //   Rewriter{idr}(toWitness(F)*sigma{ids}(Fn)*...*sigma{ids}(F1)) ==
-  //   Rewriter{idr}(toWitness(G)*sigma{ids}(Fn)*...*sigma{ids}(F1))
+  //   Rewriter{idr}(F*sigma{ids}(Fn)*...*sigma{ids}(F1)) ==
+  //   Rewriter{idr}(G*sigma{ids}(Fn)*...*sigma{ids}(F1))
   //
-  // Notice that we apply rewriting on the witness form of F and G, similar to
-  // MACRO_SR_PRED_INTRO.
+  // More generally, this rule also holds when:
+  //   Rewriter::rewrite(toWitness(F')) == Rewriter::rewrite(toWitness(G'))
+  // where F' and G' are the result of each side of the equation above. Here,
+  // witness forms are used in a similar manner to MACRO_SR_PRED_INTRO above.
   MACRO_SR_PRED_TRANSFORM,
 
   //================================================= Processing rules
@@ -192,16 +201,17 @@ enum class PfRule : uint32_t
   THEORY_LEMMA,
   // ======== Theory Rewrite
   // Children: none
-  // Arguments: (F, tid, preRewrite?)
+  // Arguments: (F, tid, rid)
   // ----------------------------------------
   // Conclusion: F
   // where F is an equality of the form (= t t') where t' is obtained by
-  // applying the theory rewriter with identifier tid in either its prewrite
-  // (when preRewrite is true) or postrewrite method. Notice that the checker
-  // for this rule does not replay the rewrite to ensure correctness, since
-  // theory rewriter methods are not static. For example, the quantifiers
-  // rewriter involves constructing new bound variables that are not guaranteed
-  // to be consistent on each call.
+  // applying the kind of rewriting given by the method identifier rid, which
+  // is one of:
+  //  { RW_REWRITE_THEORY_PRE, RW_REWRITE_THEORY_POST, RW_REWRITE_EQ_EXT }
+  // Notice that the checker for this rule does not replay the rewrite to ensure
+  // correctness, since theory rewriter methods are not static. For example,
+  // the quantifiers rewriter involves constructing new bound variables that are
+  // not guaranteed to be consistent on each call.
   THEORY_REWRITE,
   // The rules in this section have the signature of a "trusted rule":
   //
@@ -224,8 +234,71 @@ enum class PfRule : uint32_t
   // where F is an existential (exists ((x T)) (P x)) used for introducing
   // a witness term (witness ((x T)) (P x)).
   WITNESS_AXIOM,
+  // where F is an equality (= t t') that holds by a form of rewriting that
+  // could not be replayed during proof postprocessing.
+  TRUST_REWRITE,
+  // where F is an equality (= t t') that holds by a form of substitution that
+  // could not be replayed during proof postprocessing.
+  TRUST_SUBS,
+  // where F is an equality (= t t') that holds by a form of substitution that
+  // could not be determined by the TrustSubstitutionMap.
+  TRUST_SUBS_MAP,
 
   //================================================= Boolean rules
+  // ======== Resolution
+  // Children:
+  //  (P1:C1, P2:C2)
+  // Arguments: (id, L)
+  // ---------------------
+  // Conclusion: C
+  // where
+  //   - C1 and C2 are nodes viewed as clauses, i.e., either an OR node with
+  //     each children viewed as a literal or a node viewed as a literal. Note
+  //     that an OR node could also be a literal.
+  //   - id is either true or false
+  //   - L is the pivot of the resolution, which occurs as is (resp. under a
+  //     NOT) in C1 and negatively (as is) in C2 if id = true (id = false).
+  //   C is a clause resulting from collecting all the literals in C1, minus the
+  //   first occurrence of the pivot or its negation, and C2, minus the first
+  //   occurrence of the pivot or its negation, according to the policy above.
+  //   If the resulting clause has a single literal, that literal itself is the
+  //   result; if it has no literals, then the result is false; otherwise it's
+  //   an OR node of the resulting literals.
+  //
+  //   Note that it may be the case that the pivot does not occur in the
+  //   clauses. In this case the rule is not unsound, but it does not correspond
+  //   to resolution but rather to a weakening of the clause that did not have a
+  //   literal eliminated.
+  RESOLUTION,
+  // ======== Chain Resolution
+  // Children: (P1:(or F_{1,1} ... F_{1,n1}), ..., Pm:(or F_{m,1} ... F_{m,nm}))
+  // Arguments: (L_1, ..., L_{m-1})
+  // ---------------------
+  // Conclusion: C_m'
+  // where
+  //   let "C_1 <>_l C_2" represent the resolution of C_1 with C_2 with pivot l,
+  //   let C_1' = C_1 (from P_1),
+  //   for each i > 1, C_i' = C_i <>_L_i C_{i-1}'
+  CHAIN_RESOLUTION,
+  // ======== Factoring
+  // Children: (P:C1)
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: C2
+  // where
+  //  Set representations of C1 and C2 is the same and the number of literals in
+  //  C2 is smaller than that of C1
+  FACTORING,
+  // ======== Reordering
+  // Children: (P:C1)
+  // Arguments: (C2)
+  // ---------------------
+  // Conclusion: C2
+  // where
+  //  Set representations of C1 and C2 is the same but the number of literals in
+  //  C2 is the same of that of C1
+  REORDERING,
+
   // ======== Split
   // Children: none
   // Arguments: (F)
@@ -239,6 +312,25 @@ enum class PfRule : uint32_t
   // Conclusion: (F2)
   // Note this can optionally be seen as a macro for EQUIV_ELIM1+RESOLUTION.
   EQ_RESOLVE,
+  // ======== Modus ponens
+  // Children: (P1:F1, P2:(=> F1 F2))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (F2)
+  // Note this can optionally be seen as a macro for IMPLIES_ELIM+RESOLUTION.
+  MODUS_PONENS,
+  // ======== Double negation elimination
+  // Children: (P:(not (not F)))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (F)
+  NOT_NOT_ELIM,
+  // ======== Contradiction
+  // Children: (P1:F P2:(not F))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: false
+  CONTRA,
   // ======== And elimination
   // Children: (P:(and F1 ... Fn))
   // Arguments: (i)
@@ -347,12 +439,6 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (or C (not F2))
   NOT_ITE_ELIM2,
-  // ======== Not ITE elimination version 1
-  // Children: (P1:P P2:(not P))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (false)
-  CONTRA,
 
   //================================================= De Morgan rules
   // ======== Not And
@@ -524,7 +610,7 @@ enum class PfRule : uint32_t
   // Conclusion: (= F true)
   TRUE_INTRO,
   // ======== True elim
-  // Children: (P:(= F true)
+  // Children: (P:(= F true))
   // Arguments: none
   // ----------------------------------------
   // Conclusion: F
@@ -536,7 +622,7 @@ enum class PfRule : uint32_t
   // Conclusion: (= F false)
   FALSE_INTRO,
   // ======== False elim
-  // Children: (P:(= F false)
+  // Children: (P:(= F false))
   // Arguments: none
   // ----------------------------------------
   // Conclusion: (not F)
@@ -556,20 +642,54 @@ enum class PfRule : uint32_t
   // Notice that this rule is only used when the application kinds are APPLY_UF.
   HO_CONG,
 
+  //================================================= Array rules
+  // ======== Read over write
+  // Children: (P:(not (= i1 i2)))
+  // Arguments: ((select (store a i2 e) i1))
+  // ----------------------------------------
+  // Conclusion: (= (select (store a i2 e) i1) (select a i1))
+  ARRAYS_READ_OVER_WRITE,
+  // ======== Read over write, contrapositive
+  // Children: (P:(not (= (select (store a i2 e) i1) (select a i1)))
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: (= i1 i2)
+  ARRAYS_READ_OVER_WRITE_CONTRA,
+  // ======== Read over write 1
+  // Children: none
+  // Arguments: ((select (store a i e) i))
+  // ----------------------------------------
+  // Conclusion: (= (select (store a i e) i) e)
+  ARRAYS_READ_OVER_WRITE_1,
+  // ======== Extensionality
+  // Children: (P:(not (= a b)))
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: (not (= (select a k) (select b k)))
+  // where k is arrays::SkolemCache::getExtIndexSkolem((not (= a b))).
+  ARRAYS_EXT,
+  // ======== Array Trust
+  // Children: (P1 ... Pn)
+  // Arguments: (F)
+  // ---------------------
+  // Conclusion: F
+  ARRAYS_TRUST,
+
   //================================================= Quantifiers rules
   // ======== Witness intro
-  // Children: (P:F[t])
-  // Arguments: (t)
+  // Children: (P:(exists ((x T)) F[x]))
+  // Arguments: none
   // ----------------------------------------
-  // Conclusion: (= t (witness ((x T)) F[x]))
-  // where x is a BOUND_VARIABLE unique to the pair F,t.
+  // Conclusion: (= k (witness ((x T)) F[x]))
+  // where k is the Skolem form of (witness ((x T)) F[x]).
   WITNESS_INTRO,
   // ======== Exists intro
   // Children: (P:F[t])
-  // Arguments: (t)
+  // Arguments: ((exists ((x T)) F[x]))
   // ----------------------------------------
   // Conclusion: (exists ((x T)) F[x])
-  // where x is a BOUND_VARIABLE unique to the pair F,t.
+  // This rule verifies that F[x] indeed matches F[t] with a substitution
+  // over x.
   EXISTS_INTRO,
   // ======== Skolemize
   // Children: (P:(exists ((x1 T1) ... (xn Tn)) F))
@@ -578,7 +698,7 @@ enum class PfRule : uint32_t
   // Conclusion: F*sigma
   // sigma maps x1 ... xn to their representative skolems obtained by
   // SkolemManager::mkSkolemize, returned in the skolems argument of that
-  // method.
+  // method. Alternatively, can use negated forall as a premise.
   SKOLEMIZE,
   // ======== Instantiate
   // Children: (P:(forall ((x1 T1) ... (xn Tn)) F))

@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -141,7 +141,7 @@ void TermRegistry::preRegisterTerm(TNode n)
   {
     if (k == STRING_STRIDOF || k == STRING_ITOS || k == STRING_STOI
         || k == STRING_STRREPL || k == STRING_SUBSTR || k == STRING_STRREPLALL
-        || k == STRING_REPLACE_RE || k == STRING_REPLACE_RE_ALL
+        || k == SEQ_NTH || k == STRING_REPLACE_RE || k == STRING_REPLACE_RE_ALL
         || k == STRING_STRCTN || k == STRING_LEQ || k == STRING_TOLOWER
         || k == STRING_TOUPPER || k == STRING_REV || k == STRING_UPDATE)
     {

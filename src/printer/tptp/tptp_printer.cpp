@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -45,7 +45,7 @@ void TptpPrinter::toStream(std::ostream& out, const CommandStatus* s) const
   s->toStream(out, language::output::LANG_SMTLIB_V2_5);
 }/* TptpPrinter::toStream() */
 
-void TptpPrinter::toStream(std::ostream& out, const Model& m) const
+void TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
 {
   std::string statusName(m.isKnownSat() ? "FiniteModel"
                                         : "CandidateFiniteModel");
@@ -59,7 +59,7 @@ void TptpPrinter::toStream(std::ostream& out, const Model& m) const
 }
 
 void TptpPrinter::toStream(std::ostream& out,
-                           const Model& m,
+                           const smt::Model& m,
                            const NodeCommand* c) const
 {
   // shouldn't be called; only the non-Command* version above should be

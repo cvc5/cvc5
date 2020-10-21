@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -138,11 +138,14 @@ class TConvProofGenerator : public ProofGenerator
                       TConvPolicy pol = TConvPolicy::FIXPOINT,
                       TConvCachePolicy cpol = TConvCachePolicy::NEVER,
                       std::string name = "TConvProofGenerator",
-                      TermContext* tccb = nullptr);
+                      TermContext* tccb = nullptr,
+                      bool rewriteOps = false);
   ~TConvProofGenerator();
   /**
    * Add rewrite step t --> s based on proof generator.
    *
+   * @param trustId If a null proof generator is provided, we add a step to
+   * the proof that has trustId as the rule and expected as the sole argument.
    * @param isClosed whether to expect that pg can provide a closed proof for
    * this fact.
    * @param tctx The term context identifier for the rewrite step. This
@@ -153,7 +156,8 @@ class TConvProofGenerator : public ProofGenerator
   void addRewriteStep(Node t,
                       Node s,
                       ProofGenerator* pg,
-                      bool isClosed = true,
+                      PfRule trustId = PfRule::ASSUME,
+                      bool isClosed = false,
                       uint32_t tctx = 0);
   /** Same as above, for a single step */
   void addRewriteStep(Node t, Node s, ProofStep ps, uint32_t tctx = 0);
@@ -209,6 +213,12 @@ class TConvProofGenerator : public ProofGenerator
   std::map<Node, std::shared_ptr<ProofNode> > d_cache;
   /** An (optional) term context object */
   TermContext* d_tcontext;
+  /**
+   * Whether we rewrite operators. If this flag is true, then the main
+   * traversal algorithm of this proof generator traverses operators of
+   * APPLY_UF and uses HO_CONG to justify rewriting of subterms when necessary.
+   */
+  bool d_rewriteOps;
   /** Get rewrite step for (hash value of) term. */
   Node getRewriteStepInternal(Node thash) const;
   /**

@@ -2,10 +2,10 @@
 /*! \file cvc_printer.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Tim King
+ **   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -317,6 +317,13 @@ void CvcPrinter::toStream(
       out << ")";
       return;
       break;
+    case kind::WITNESS:
+      out << "(WITNESS";
+      toStream(out, n[0], depth, types, false);
+      out << " : ";
+      toStream(out, n[1], depth, types, false);
+      out << ')';
+      return;
     case kind::DISTINCT:
       // distinct not supported directly, blast it away with the rewriter
       toStream(out, theory::Rewriter::rewrite(n), depth, types, true);
@@ -1135,7 +1142,9 @@ void DeclareFunctionNodeCommandToStream(
   {
     out << tn;
   }
-  Node val = model.getSmtEngine()->getValue(n);
+  // We get the value from the theory model directly, which notice
+  // does not have to go through the standard SmtEngine::getValue interface.
+  Node val = model.getValue(n);
   if (options::modelUninterpDtEnum() && val.getKind() == kind::STORE)
   {
     TypeNode type_node = val[1].getType();
@@ -1155,11 +1164,12 @@ void DeclareFunctionNodeCommandToStream(
 
 }  // namespace
 
-void CvcPrinter::toStream(std::ostream& out, const Model& m) const
+void CvcPrinter::toStream(std::ostream& out, const smt::Model& m) const
 {
+  const theory::TheoryModel* tm = m.getTheoryModel();
   // print the model comments
   std::stringstream c;
-  m.getComments(c);
+  tm->getComments(c);
   std::string ln;
   while (std::getline(c, ln))
   {
@@ -1173,10 +1183,10 @@ void CvcPrinter::toStream(std::ostream& out, const Model& m) const
 }
 
 void CvcPrinter::toStream(std::ostream& out,
-                          const Model& model,
+                          const smt::Model& model,
                           const NodeCommand* command) const
 {
-  const auto* theory_model = dynamic_cast<const theory::TheoryModel*>(&model);
+  const auto* theory_model = model.getTheoryModel();
   AlwaysAssert(theory_model != nullptr);
   if (const auto* declare_type_command =
           dynamic_cast<const DeclareTypeNodeCommand*>(command))
@@ -1196,12 +1206,18 @@ void CvcPrinter::toStream(std::ostream& out,
 
 void CvcPrinter::toStreamCmdAssert(std::ostream& out, Node n) const
 {
-  out << "ASSERT " << n << ';';
+  out << "ASSERT " << n << ';' << std::endl;
 }
 
-void CvcPrinter::toStreamCmdPush(std::ostream& out) const { out << "PUSH;"; }
+void CvcPrinter::toStreamCmdPush(std::ostream& out) const
+{
+  out << "PUSH;" << std::endl;
+}
 
-void CvcPrinter::toStreamCmdPop(std::ostream& out) const { out << "POP;"; }
+void CvcPrinter::toStreamCmdPop(std::ostream& out) const
+{
+  out << "POP;" << std::endl;
+}
 
 void CvcPrinter::toStreamCmdCheckSat(std::ostream& out, Node n) const
 {
@@ -1221,6 +1237,7 @@ void CvcPrinter::toStreamCmdCheckSat(std::ostream& out, Node n) const
   {
     out << " POP;";
   }
+  out << std::endl;
 }
 
 void CvcPrinter::toStreamCmdCheckSatAssuming(
@@ -1244,6 +1261,7 @@ void CvcPrinter::toStreamCmdCheckSatAssuming(
   {
     out << " POP;";
   }
+  out << std::endl;
 }
 
 void CvcPrinter::toStreamCmdQuery(std::ostream& out, Node n) const
@@ -1264,18 +1282,22 @@ void CvcPrinter::toStreamCmdQuery(std::ostream& out, Node n) const
   {
     out << " POP;";
   }
+  out << std::endl;
 }
 
-void CvcPrinter::toStreamCmdReset(std::ostream& out) const { out << "RESET;"; }
+void CvcPrinter::toStreamCmdReset(std::ostream& out) const
+{
+  out << "RESET;" << std::endl;
+}
 
 void CvcPrinter::toStreamCmdResetAssertions(std::ostream& out) const
 {
-  out << "RESET ASSERTIONS;";
+  out << "RESET ASSERTIONS;" << std::endl;
 }
 
 void CvcPrinter::toStreamCmdQuit(std::ostream& out) const
 {
-  // out << "EXIT;";
+  // out << "EXIT;" << std::endl;
 }
 
 void CvcPrinter::toStreamCmdCommandSequence(
@@ -1285,7 +1307,7 @@ void CvcPrinter::toStreamCmdCommandSequence(
        i != sequence.cend();
        ++i)
   {
-    out << *i << endl;
+    out << *i;
   }
 }
 
@@ -1307,13 +1329,14 @@ void CvcPrinter::toStreamCmdDeclarationSequence(
       break;
     }
   }
+  out << std::endl;
 }
 
 void CvcPrinter::toStreamCmdDeclareFunction(std::ostream& out,
                                             const std::string& id,
                                             TypeNode type) const
 {
-  out << id << " : " << type << ';';
+  out << id << " : " << type << ';' << std::endl;
 }
 
 void CvcPrinter::toStreamCmdDefineFunction(std::ostream& out,
@@ -1346,7 +1369,7 @@ void CvcPrinter::toStreamCmdDefineFunction(std::ostream& out,
     }
     out << "): ";
   }
-  out << formula << ';';
+  out << formula << ';' << std::endl;
 }
 
 void CvcPrinter::toStreamCmdDeclareType(std::ostream& out,
@@ -1363,7 +1386,7 @@ void CvcPrinter::toStreamCmdDeclareType(std::ostream& out,
   }
   else
   {
-    out << id << " : TYPE;";
+    out << id << " : TYPE;" << std::endl;
   }
 }
 
@@ -1380,7 +1403,7 @@ void CvcPrinter::toStreamCmdDefineType(std::ostream& out,
   }
   else
   {
-    out << id << " : TYPE = " << t << ';';
+    out << id << " : TYPE = " << t << ';' << std::endl;
   }
 }
 
@@ -1396,7 +1419,7 @@ void CvcPrinter::toStreamCmdDefineNamedFunction(
 
 void CvcPrinter::toStreamCmdSimplify(std::ostream& out, Node n) const
 {
-  out << "TRANSFORM " << n << ';';
+  out << "TRANSFORM " << n << ';' << std::endl;
 }
 
 void CvcPrinter::toStreamCmdGetValue(std::ostream& out,
@@ -1407,44 +1430,44 @@ void CvcPrinter::toStreamCmdGetValue(std::ostream& out,
   copy(nodes.begin(),
        nodes.end() - 1,
        ostream_iterator<Node>(out, ";\nGET_VALUE "));
-  out << nodes.back() << ';';
+  out << nodes.back() << ';' << std::endl;
 }
 
 void CvcPrinter::toStreamCmdGetModel(std::ostream& out) const
 {
-  out << "COUNTERMODEL;";
+  out << "COUNTERMODEL;" << std::endl;
 }
 
 void CvcPrinter::toStreamCmdGetAssignment(std::ostream& out) const
 {
-  out << "% (get-assignment)";
+  out << "% (get-assignment)" << std::endl;
 }
 
 void CvcPrinter::toStreamCmdGetAssertions(std::ostream& out) const
 {
-  out << "WHERE;";
+  out << "WHERE;" << std::endl;
 }
 
 void CvcPrinter::toStreamCmdGetProof(std::ostream& out) const
 {
-  out << "DUMP_PROOF;";
+  out << "DUMP_PROOF;" << std::endl;
 }
 
 void CvcPrinter::toStreamCmdGetUnsatCore(std::ostream& out) const
 {
-  out << "DUMP_UNSAT_CORE;";
+  out << "DUMP_UNSAT_CORE;" << std::endl;
 }
 
 void CvcPrinter::toStreamCmdSetBenchmarkStatus(std::ostream& out,
                                                Result::Sat status) const
 {
-  out << "% (set-info :status " << status << ')';
+  out << "% (set-info :status " << status << ')' << std::endl;
 }
 
 void CvcPrinter::toStreamCmdSetBenchmarkLogic(std::ostream& out,
                                               const std::string& logic) const
 {
-  out << "OPTION \"logic\" \"" << logic << "\";";
+  out << "OPTION \"logic\" \"" << logic << "\";" << std::endl;
 }
 
 void CvcPrinter::toStreamCmdSetInfo(std::ostream& out,
@@ -1455,13 +1478,13 @@ void CvcPrinter::toStreamCmdSetInfo(std::ostream& out,
   OutputLanguage language =
       d_cvc3Mode ? language::output::LANG_CVC3 : language::output::LANG_CVC4;
   SExpr::toStream(out, sexpr, language);
-  out << ')';
+  out << ')' << std::endl;
 }
 
 void CvcPrinter::toStreamCmdGetInfo(std::ostream& out,
                                     const std::string& flag) const
 {
-  out << "% (get-info " << flag << ')';
+  out << "% (get-info " << flag << ')' << std::endl;
 }
 
 void CvcPrinter::toStreamCmdSetOption(std::ostream& out,
@@ -1470,13 +1493,13 @@ void CvcPrinter::toStreamCmdSetOption(std::ostream& out,
 {
   out << "OPTION \"" << flag << "\" ";
   SExpr::toStream(out, sexpr, language::output::LANG_CVC4);
-  out << ';';
+  out << ';' << std::endl;
 }
 
 void CvcPrinter::toStreamCmdGetOption(std::ostream& out,
                                       const std::string& flag) const
 {
-  out << "% (get-option " << flag << ')';
+  out << "% (get-option " << flag << ')' << std::endl;
 }
 
 void CvcPrinter::toStreamCmdDatatypeDeclaration(
@@ -1545,25 +1568,26 @@ void CvcPrinter::toStreamCmdDatatypeDeclaration(
       }
       firstDatatype = false;
     }
-    out << endl << "END;";
+    out << endl << "END;" << std::endl;
   }
 }
 
 void CvcPrinter::toStreamCmdComment(std::ostream& out,
                                     const std::string& comment) const
 {
-  out << "% " << comment;
+  out << "% " << comment << std::endl;
 }
 
 void CvcPrinter::toStreamCmdEmpty(std::ostream& out,
                                   const std::string& name) const
 {
+  out << std::endl;
 }
 
 void CvcPrinter::toStreamCmdEcho(std::ostream& out,
                                  const std::string& output) const
 {
-  out << "ECHO \"" << output << "\";";
+  out << "ECHO \"" << output << "\";" << std::endl;
 }
 
 template <class T>

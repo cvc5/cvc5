@@ -5,7 +5,7 @@
  **   Aina Niemetz, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -17,6 +17,7 @@
 #include <cxxtest/TestSuite.h>
 
 #include "api/cvc4cpp.h"
+#include "base/configuration.h"
 
 using namespace CVC4::api;
 
@@ -35,6 +36,7 @@ class SortBlack : public CxxTest::TestSuite
   void testGetArrayIndexSort();
   void testGetArrayElementSort();
   void testGetSetElementSort();
+  void testGetBagElementSort();
   void testGetSequenceElementSort();
   void testGetUninterpretedSortName();
   void testIsUninterpretedSortParameterized();
@@ -51,6 +53,8 @@ class SortBlack : public CxxTest::TestSuite
 
   void testSortCompare();
   void testSortSubtyping();
+
+  void testSortScopedToString();
 
  private:
   Solver d_solver;
@@ -193,8 +197,20 @@ void SortBlack::testGetSetElementSort()
 {
   Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
   TS_ASSERT_THROWS_NOTHING(setSort.getSetElementSort());
+  Sort elementSort = setSort.getSetElementSort();
+  TS_ASSERT(elementSort == d_solver.getIntegerSort());
   Sort bvSort = d_solver.mkBitVectorSort(32);
   TS_ASSERT_THROWS(bvSort.getSetElementSort(), CVC4ApiException&);
+}
+
+void SortBlack::testGetBagElementSort()
+{
+  Sort bagSort = d_solver.mkBagSort(d_solver.getIntegerSort());
+  TS_ASSERT_THROWS_NOTHING(bagSort.getBagElementSort());
+  Sort elementSort = bagSort.getBagElementSort();
+  TS_ASSERT(elementSort == d_solver.getIntegerSort());
+  Sort bvSort = d_solver.mkBitVectorSort(32);
+  TS_ASSERT_THROWS(bvSort.getBagElementSort(), CVC4ApiException&);
 }
 
 void SortBlack::testGetSequenceElementSort()
@@ -258,18 +274,24 @@ void SortBlack::testGetBVSize()
 
 void SortBlack::testGetFPExponentSize()
 {
-  Sort fpSort = d_solver.mkFloatingPointSort(4, 8);
-  TS_ASSERT_THROWS_NOTHING(fpSort.getFPExponentSize());
-  Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
-  TS_ASSERT_THROWS(setSort.getFPExponentSize(), CVC4ApiException&);
+  if (CVC4::Configuration::isBuiltWithSymFPU())
+  {
+    Sort fpSort = d_solver.mkFloatingPointSort(4, 8);
+    TS_ASSERT_THROWS_NOTHING(fpSort.getFPExponentSize());
+    Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
+    TS_ASSERT_THROWS(setSort.getFPExponentSize(), CVC4ApiException&);
+  }
 }
 
 void SortBlack::testGetFPSignificandSize()
 {
-  Sort fpSort = d_solver.mkFloatingPointSort(4, 8);
-  TS_ASSERT_THROWS_NOTHING(fpSort.getFPSignificandSize());
-  Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
-  TS_ASSERT_THROWS(setSort.getFPSignificandSize(), CVC4ApiException&);
+  if (CVC4::Configuration::isBuiltWithSymFPU())
+  {
+    Sort fpSort = d_solver.mkFloatingPointSort(4, 8);
+    TS_ASSERT_THROWS_NOTHING(fpSort.getFPSignificandSize());
+    Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
+    TS_ASSERT_THROWS(setSort.getFPSignificandSize(), CVC4ApiException&);
+  }
 }
 
 void SortBlack::testGetDatatypeParamSorts()
@@ -359,7 +381,21 @@ void SortBlack::testSortSubtyping()
 
   Sort setSortI = d_solver.mkSetSort(intSort);
   Sort setSortR = d_solver.mkSetSort(realSort);
-  // we support subtyping for sets
-  TS_ASSERT(setSortI.isSubsortOf(setSortR));
-  TS_ASSERT(setSortR.isComparableTo(setSortI));
+  // we don't support subtyping for sets
+  TS_ASSERT(!setSortI.isComparableTo(setSortR));
+  TS_ASSERT(!setSortI.isSubsortOf(setSortR));
+  TS_ASSERT(!setSortR.isComparableTo(setSortI));
+  TS_ASSERT(!setSortR.isSubsortOf(setSortI));
+}
+
+void SortBlack::testSortScopedToString()
+{
+  std::string name = "uninterp-sort";
+  Sort bvsort8 = d_solver.mkBitVectorSort(8);
+  Sort uninterp_sort = d_solver.mkUninterpretedSort(name);
+  TS_ASSERT_EQUALS(bvsort8.toString(), "(_ BitVec 8)");
+  TS_ASSERT_EQUALS(uninterp_sort.toString(), name);
+  Solver solver2;
+  TS_ASSERT_EQUALS(bvsort8.toString(), "(_ BitVec 8)");
+  TS_ASSERT_EQUALS(uninterp_sort.toString(), name);
 }

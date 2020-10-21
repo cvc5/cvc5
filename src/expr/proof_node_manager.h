@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -81,6 +81,15 @@ class ProofNodeManager
    */
   std::shared_ptr<ProofNode> mkAssume(Node fact);
   /**
+   * Make transitivity proof, where children contains one or more proofs of
+   * equalities that form an ordered chain. In other words, the vector children
+   * is a legal set of children for an application of TRANS.
+   */
+  std::shared_ptr<ProofNode> mkTrans(
+      const std::vector<std::shared_ptr<ProofNode>>& children,
+      Node expected = Node::null());
+
+  /**
    * Make scope having body pf and arguments (assumptions-to-close) assumps.
    * If ensureClosed is true, then this method throws an assertion failure if
    * the returned proof is not closed. This is the case if a free assumption
@@ -118,7 +127,6 @@ class ProofNodeManager
                                      bool ensureClosed = true,
                                      bool doMinimize = false,
                                      Node expected = Node::null());
-
   /**
    * This method updates pn to be a proof of the form <id>( children, args ),
    * while maintaining its d_proven field. This method returns false if this
@@ -150,6 +158,8 @@ class ProofNodeManager
  private:
   /** The (optional) proof checker */
   ProofChecker* d_checker;
+  /** the true node */
+  Node d_true;
   /** Check internal
    *
    * This returns the result of proof checking a ProofNode with the provided

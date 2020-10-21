@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -408,7 +408,8 @@ bool CDProof::isSame(TNode f, TNode g)
     // symmetric equality
     return true;
   }
-  if (fk == NOT && gk == NOT && f[0][0] == g[0][1] && f[0][1] == g[0][0])
+  if (fk == NOT && gk == NOT && f[0].getKind() == EQUAL
+      && g[0].getKind() == EQUAL && f[0][0] == g[0][1] && f[0][1] == g[0][0])
   {
     // symmetric disequality
     return true;

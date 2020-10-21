@@ -5,7 +5,7 @@
  **   Aina Niemetz, Kshitij Bansal, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -21,11 +21,12 @@
 #include "api/cvc4cpp.h"
 #include "expr/expr_manager.h"
 #include "options/options.h"
-#include "smt/command.h"
 #include "smt/smt_engine.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
+
+class Command;
 
 namespace api {
 class Solver;
@@ -43,7 +44,7 @@ class CommandExecutor
   SmtEngine* d_smtEngine;
   Options& d_options;
   StatisticsRegistry d_stats;
-  Result d_result;
+  api::Result d_result;
 
  public:
   CommandExecutor(Options& options);
@@ -66,7 +67,7 @@ class CommandExecutor
   /** Get a pointer to the solver object owned by this CommandExecutor. */
   api::Solver* getSolver() { return d_solver.get(); }
 
-  Result getResult() const { return d_result; }
+  api::Result getResult() const { return d_result; }
   void reset();
 
   StatisticsRegistry& getStatisticsRegistry() {
@@ -100,7 +101,7 @@ private:
 
 }; /* class CommandExecutor */
 
-bool smtEngineInvoke(SmtEngine* smt, Command* cmd, std::ostream *out);
+bool solverInvoke(api::Solver* solver, Command* cmd, std::ostream* out);
 
 }/* CVC4::main namespace */
 }/* CVC4 namespace */

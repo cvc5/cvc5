@@ -5,7 +5,7 @@
  **   Morgan Deters, Dejan Jovanovic, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -1417,7 +1417,7 @@ NodeTemplate<ref_count>::substitute(Iterator1 nodesBegin,
   Assert(std::distance(nodesBegin, nodesEnd)
          == std::distance(replacementsBegin, replacementsEnd))
       << "Substitution iterator ranges must be equal size";
-  Iterator1 j = find(nodesBegin, nodesEnd, TNode(*this));
+  Iterator1 j = std::find(nodesBegin, nodesEnd, TNode(*this));
   if(j != nodesEnd) {
     Iterator2 b = replacementsBegin;
     std::advance(b, std::distance(nodesBegin, j));

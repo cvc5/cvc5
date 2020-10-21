@@ -2,10 +2,10 @@
 /*! \file rewriter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli, Dejan Jovanovic, Morgan Deters
+ **   Andres Noetzli, Andrew Reynolds, Dejan Jovanovic
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -83,15 +83,12 @@ class Rewriter {
    * to setProofNodeManager prior to this call.
    *
    * @param node The node to rewrite.
-   * @param elimTheoryRewrite Whether we also want fine-grained proofs for
-   * THEORY_REWRITE steps.
    * @param isExtEq Whether node is an equality which we are applying
    * rewriteEqualityExt on.
    * @return The trust node of kind TrustNodeKind::REWRITE that contains the
    * rewritten form of node.
    */
   TrustNode rewriteWithProof(TNode node,
-                             bool elimTheoryRewrite = false,
                              bool isExtEq = false);
 
   /** Set proof node manager */

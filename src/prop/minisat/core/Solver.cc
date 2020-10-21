@@ -669,9 +669,6 @@ void Solver::cancelUntil(int level) {
         // Pop the SMT context
         for (int l = trail_lim.size() - level; l > 0; --l) {
           d_context->pop();
-          if(Dump.isOn("state")) {
-            d_proxy->dumpStatePop();
-          }
         }
         for (int c = trail.size()-1; c >= trail_lim[level]; c--){
             Var      x  = var(trail[c]);

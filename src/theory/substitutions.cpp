@@ -5,7 +5,7 @@
  **   Dejan Jovanovic, Clark Barrett, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -147,36 +147,6 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
 }/* SubstitutionMap::internalSubstitute() */
 
 
-void SubstitutionMap::simplifyRHS(const SubstitutionMap& subMap)
-{
-  // Put the new substitutions into the old ones
-  NodeMap::iterator it = d_substitutions.begin();
-  NodeMap::iterator it_end = d_substitutions.end();
-  for(; it != it_end; ++ it) {
-    d_substitutions[(*it).first] = subMap.apply((*it).second);
-  }  
-}
-
-
-void SubstitutionMap::simplifyRHS(TNode x, TNode t) {
-  // Temporary substitution cache
-  NodeCache tempCache;
-  tempCache[x] = t;
-
-  // Put the new substitution into the old ones
-  NodeMap::iterator it = d_substitutions.begin();
-  NodeMap::iterator it_end = d_substitutions.end();
-  for(; it != it_end; ++ it) {
-    d_substitutions[(*it).first] = internalSubstitute((*it).second, tempCache);
-  }  
-  // it = d_substitutionsLazy.begin();
-  // it_end = d_substitutionsLazy.end();
-  // for(; it != it_end; ++ it) {
-  //   d_substitutionsLazy[(*it).first] = internalSubstitute((*it).second, tempCache);
-  // }  
-}
-
-
 void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache)
 {
   Debug("substitution") << "SubstitutionMap::addSubstitution(" << x << ", " << t << ")" << endl;
@@ -214,26 +184,6 @@ void SubstitutionMap::addSubstitutions(SubstitutionMap& subMap, bool invalidateC
   }
 }
 
-static bool check(TNode node,
-                  const SubstitutionMap::NodeMap& substitutions) CVC4_UNUSED;
-static bool check(TNode node, const SubstitutionMap::NodeMap& substitutions)
-{
-  SubstitutionMap::NodeMap::const_iterator it = substitutions.begin();
-  SubstitutionMap::NodeMap::const_iterator it_end = substitutions.end();
-  Debug("substitution") << "checking " << node << endl;
-  for (; it != it_end; ++it)
-  {
-    Debug("substitution") << "-- hasSubterm( " << (*it).first << " ) ?" << endl;
-    if (expr::hasSubterm(node, (*it).first))
-    {
-      Debug("substitution") << "-- FAIL" << endl;
-      return false;
-    }
-  }
-  Debug("substitution") << "-- SUCCEED" << endl;
-  return true;
-}
-
 Node SubstitutionMap::apply(TNode t) {
 
   Debug("substitution") << "SubstitutionMap::apply(" << t << ")" << endl;
@@ -248,8 +198,6 @@ Node SubstitutionMap::apply(TNode t) {
   // Perform the substitution
   Node result = internalSubstitute(t, d_substitutionCache);
   Debug("substitution") << "SubstitutionMap::apply(" << t << ") => " << result << endl;
-
-  //  Assert(check(result, d_substitutions));
 
   return result;
 }

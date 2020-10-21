@@ -5,7 +5,7 @@
  **   Tim King, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -70,6 +70,8 @@ public:
   void safePoint(ResourceManager::Resource r) override {}
   void conflict(TNode n) override { push(CONFLICT, n); }
 
+  void trustedConflict(TrustNode n) override { push(CONFLICT, n.getNode()); }
+
   bool propagate(TNode n) override {
     push(PROPAGATE, n);
     return true;
@@ -78,6 +80,12 @@ public:
   LemmaStatus lemma(TNode n, LemmaProperty p) override
   {
     push(LEMMA, n);
+    return LemmaStatus(Node::null(), 0);
+  }
+
+  LemmaStatus trustedLemma(TrustNode n, LemmaProperty p) override
+  {
+    push(LEMMA, n.getNode());
     return LemmaStatus(Node::null(), 0);
   }
 

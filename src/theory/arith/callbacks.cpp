@@ -2,10 +2,10 @@
 /*! \file callbacks.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Mathias Preiner
+ **   Tim King, Haniel Barbosa, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -172,10 +172,11 @@ RaiseEqualityEngineConflict::RaiseEqualityEngineConflict(TheoryArithPrivate& ta)
 {}
 
 /* If you are not an equality engine, don't use this! */
-void RaiseEqualityEngineConflict::raiseEEConflict(Node n) const{
-  d_ta.raiseBlackBoxConflict(n);
+void RaiseEqualityEngineConflict::raiseEEConflict(
+    Node n, std::shared_ptr<ProofNode> pf) const
+{
+  d_ta.raiseBlackBoxConflict(n, pf);
 }
-
 
 BoundCountingLookup::BoundCountingLookup(TheoryArithPrivate& ta)
 : d_ta(ta)

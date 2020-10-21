@@ -5,7 +5,7 @@
  **   Yoni Zohar
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -75,6 +75,7 @@
 #include "context/context.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
+#include "theory/arith/nl/iand_table.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -90,79 +91,6 @@ class BVToInt : public PreprocessingPass
  protected:
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
-
-  /**
-   * A generic function that creates a node that represents a bitwise
-   * operation.
-   *
-   * For example: Suppose bvsize is 4, granularity is 1, and f(x,y) = x && y.
-   * Denote by ITE(a,b) the term: ite(a==0, 0, ite(b==1, 1, 0)).
-   * The result of this function would be:
-   * ITE(x[0], y[0])*2^0 + ... + ITE(x[3], y[3])*2^3
-   *
-   * For another example: Suppose bvsize is 4, granularity is 2,
-   * and f(x,y) = x && y.
-   * Denote by ITE(a,b) the term that corresponds to the following table:
-   * a | b |  ITE(a,b)
-   * ----------------
-   * 0 | 0 | 0
-   * 0 | 1 | 0
-   * 0 | 2 | 0
-   * 0 | 3 | 0
-   * 1 | 0 | 0
-   * 1 | 1 | 1
-   * 1 | 2 | 0
-   * 1 | 3 | 1
-   * 2 | 0 | 0
-   * 2 | 1 | 0
-   * 2 | 2 | 2
-   * 2 | 3 | 2
-   * 3 | 0 | 0
-   * 3 | 1 | 1
-   * 3 | 2 | 2
-   * 3 | 3 | 3
-   *
-   * For example, 2 in binary is 10 and 1 in binary is 01, and so doing
-   * "bitwise f" on them gives 00.
-   * The result of this function would be:
-   * ITE(x[1:0], y[1:0])*2^0 + ITE(x[3:2], y[3:2])*2^2
-   *
-   *
-   * @param x is an integer operand that correspond to the first original
-   *        bit-vector operand.
-   * @param y is an integer operand that correspond to the second original
-   *        bit-vector operand.
-   * @param bvsize is the bit width of the original bit-vector variables.
-   * @param granularity is specified in the options for this preprocessing
-   *        pass.
-   * @param f is a pointer to a boolean function that corresponds
-   *        to the original bitwise operation.
-   * @return A node that represents the operation, as described above.
-   */
-  Node createBitwiseNode(Node x,
-                         Node y,
-                         uint64_t bvsize,
-                         uint64_t granularity,
-                         bool (*f)(bool, bool));
-
-  /**
-   * A helper function for createBitwiseNode
-   * @param x integer node corresponding to the original first bit-vector
-   *        argument
-   * @param y integer node corresponding to the original second bit-vector
-   *        argument nodes.
-   * @param granularity the bitwidth of the original bit-vector nodes.
-   * @param table a function from pairs of integers to integers.
-   *        The domain of this function consists of pairs of
-   *        integers between 0 (inclusive) and 2^{bitwidth} (exclusive).
-   * @return An ite term that represents this table.
-   */
-  Node createITEFromTable(
-      Node x,
-      Node y,
-      uint64_t granularity,
-      std::map<std::pair<uint64_t, uint64_t>, uint64_t> table);
-
   /**
    * A generic function that creates a logical shift node (either left or
    * right). a << b gets translated to a * 2^b mod 2^k, where k is the bit
@@ -254,6 +182,16 @@ class BVToInt : public PreprocessingPass
   void addFinalizeRangeAssertions(AssertionPipeline* assertionsToPreprocess);
 
   /**
+   * @param quantifiedNode a node whose main operator is forall/exists.
+   * @return a node opbtained from quantifiedNode by:
+   * 1. Replacing all bound BV variables by new bound integer variables.
+   * 2. Add range constraints for the new variables, induced by the original
+   * bit-width. These range constraints are added with "AND" in case of exists
+   * and with "IMPLIES" in case of forall.
+   */
+  Node translateQuantifiedFormula(Node quantifiedNode);
+
+  /**
    * Reconstructs a node whose main operator cannot be
    * translated to integers.
    * Reconstruction is done by casting to integers/bit-vectors
@@ -289,11 +227,37 @@ class BVToInt : public PreprocessingPass
    * When a UF f is translated to a UF g,
    * we add a define-fun command to the smt-engine
    * to relate between f and g.
+   * We do the same when f and g are just variables.
    * This is useful, for example, when asking
    * for a model-value of a term that includes the
    * original UF f.
+   * @param bvUF the original function or variable
+   * @param intUF the translated function or variable
    */
-  void defineBVUFAsIntUF(Node bvUF);
+  void defineBVUFAsIntUF(Node bvUF, Node intUF);
+
+  /**
+   * @param bvUF is an uninterpreted function symbol from the original formula
+   * @return a fresh uninterpreted function symbol, obtained from bvUF
+     by replacing every argument of type BV to an argument of type Integer,
+     and the return type becomes integer in case it was BV.
+   */
+  Node translateFunctionSymbol(Node bvUF);
+
+  /**
+   * Performs the actual translation to integers for nodes
+   * that have children.
+   */
+  Node translateWithChildren(Node original,
+                             const vector<Node>& translated_children);
+
+  /**
+   * Performs the actual translation to integers for nodes
+   * that don't have children (variables, constants, uninterpreted function
+   * symbols).
+   */
+  Node translateNoChildren(Node original);
+
   /**
    * Caches for the different functions
    */
@@ -318,6 +282,9 @@ class BVToInt : public PreprocessingPass
    */
   Node d_zero;
   Node d_one;
+  
+  /** helper class for handeling bvand translation */
+  theory::arith::nl::IAndTable d_iandTable;
 };
 
 }  // namespace passes

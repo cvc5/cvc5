@@ -2,10 +2,10 @@
 /*! \file cardinality_extension.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mudathir Mohamed, Mathias Preiner
+ **   Andrew Reynolds, Mudathir Mohamed, Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -1028,7 +1028,7 @@ void CardinalityExtension::mkModelValueElementsFor(
           // the current members of this finite type.
 
           Node slack = nm->mkSkolem("slack", elementType);
-          Node singleton = nm->mkNode(SINGLETON, slack);
+          Node singleton = nm->mkSingleton(elementType, slack);
           els.push_back(singleton);
           d_finite_type_slack_elements[elementType].push_back(slack);
           Trace("sets-model") << "Added slack element " << slack << " to set "
@@ -1037,7 +1037,7 @@ void CardinalityExtension::mkModelValueElementsFor(
         else
         {
           els.push_back(
-              nm->mkNode(SINGLETON, nm->mkSkolem("msde", elementType)));
+              nm->mkSingleton(elementType, nm->mkSkolem("msde", elementType)));
         }
       }
     }
