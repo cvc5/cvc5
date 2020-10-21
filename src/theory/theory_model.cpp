@@ -109,48 +109,27 @@ bool TheoryModel::getHeapModel(Node& h, Node& neq) const
   return true;
 }
 
-bool TheoryModel::getHeapModel( Expr& h, Expr& neq ) const {
-  if( d_sep_heap.isNull() || d_sep_nil_eq.isNull() ){
-    return false;
-  }else{
-    h = d_sep_heap.toExpr();
-    neq = d_sep_nil_eq.toExpr();
-    return true;
-  }
-}
-
 bool TheoryModel::hasApproximations() const { return !d_approx_list.empty(); }
 
-std::vector<std::pair<Expr, Expr> > TheoryModel::getApproximations() const
+std::vector<std::pair<Node, Node> > TheoryModel::getApproximations() const
 {
-  std::vector<std::pair<Expr, Expr> > approx;
-  for (const std::pair<Node, Node>& ap : d_approx_list)
-  {
-    approx.push_back(
-        std::pair<Expr, Expr>(ap.first.toExpr(), ap.second.toExpr()));
-  }
-  return approx;
+  return d_approx_list;
 }
 
-std::vector<Expr> TheoryModel::getDomainElements(Type t) const
+std::vector<Node> TheoryModel::getDomainElements(TypeNode tn) const
 {
   // must be an uninterpreted sort
-  Assert(t.isSort());
-  std::vector<Expr> elements;
-  TypeNode tn = TypeNode::fromType(t);
+  Assert(tn.isSort());
+  std::vector<Node> elements;
   const std::vector<Node>* type_refs = d_rep_set.getTypeRepsOrNull(tn);
   if (type_refs == nullptr || type_refs->empty())
   {
     // This is called when t is a sort that does not occur in this model.
     // Sorts are always interpreted as non-empty, thus we add a single element.
-    elements.push_back(t.mkGroundTerm());
+    elements.push_back(tn.mkGroundTerm());
     return elements;
   }
-  for (const Node& n : *type_refs)
-  {
-    elements.push_back(n.toExpr());
-  }
-  return elements;
+  return *type_refs;
 }
 
 Node TheoryModel::getValue(TNode n) const
@@ -170,39 +149,35 @@ Node TheoryModel::getValue(TNode n) const
   return nn;
 }
 
-bool TheoryModel::isModelCoreSymbol(Expr sym) const
+bool TheoryModel::isModelCoreSymbol(Node s) const
 {
   if (!d_using_model_core)
   {
     return true;
   }
-  Node s = Node::fromExpr(sym);
   Assert(s.isVar() && s.getKind() != BOUND_VARIABLE);
   return d_model_core.find(s) != d_model_core.end();
 }
 
-Expr TheoryModel::getValue( Expr expr ) const{
-  Node n = Node::fromExpr( expr );
-  Node ret = getValue( n );
-  return ret.toExpr();
-}
-
-/** get cardinality for sort */
-Cardinality TheoryModel::getCardinality( Type t ) const{
-  TypeNode tn = TypeNode::fromType( t );
+Cardinality TheoryModel::getCardinality(TypeNode tn) const
+{
   //for now, we only handle cardinalities for uninterpreted sorts
-  if( tn.isSort() ){
-    if( d_rep_set.hasType( tn ) ){
-      Debug("model-getvalue-debug") << "Get cardinality sort, #rep : " << d_rep_set.getNumRepresentatives( tn ) << std::endl;
-      return Cardinality( d_rep_set.getNumRepresentatives( tn ) );
-    }else{
-      Debug("model-getvalue-debug") << "Get cardinality sort, unconstrained, return 1." << std::endl;
-      return Cardinality( 1 );
-    }
-  }else{
-      Debug("model-getvalue-debug") << "Get cardinality other sort, unknown." << std::endl;
+  if (!tn.isSort())
+  {
+    Debug("model-getvalue-debug")
+        << "Get cardinality other sort, unknown." << std::endl;
     return Cardinality( CardinalityUnknown() );
   }
+  if (d_rep_set.hasType(tn))
+  {
+    Debug("model-getvalue-debug")
+        << "Get cardinality sort, #rep : "
+        << d_rep_set.getNumRepresentatives(tn) << std::endl;
+    return Cardinality(d_rep_set.getNumRepresentatives(tn));
+  }
+  Debug("model-getvalue-debug")
+      << "Get cardinality sort, unconstrained, return 1." << std::endl;
+  return Cardinality(1);
 }
 
 Node TheoryModel::getModelValue(TNode n) const
@@ -258,16 +233,15 @@ Node TheoryModel::getModelValue(TNode n) const
     {
       Debug("model-getvalue-debug")
           << "get cardinality constraint " << ret[0].getType() << std::endl;
-      ret = nm->mkConst(
-          getCardinality(ret[0].getType().toType()).getFiniteCardinality()
-          <= ret[1].getConst<Rational>().getNumerator());
+      ret = nm->mkConst(getCardinality(ret[0].getType()).getFiniteCardinality()
+                        <= ret[1].getConst<Rational>().getNumerator());
     }
     else if (ret.getKind() == kind::CARDINALITY_VALUE)
     {
       Debug("model-getvalue-debug")
           << "get cardinality value " << ret[0].getType() << std::endl;
-      ret = nm->mkConst(Rational(
-          getCardinality(ret[0].getType().toType()).getFiniteCardinality()));
+      ret = nm->mkConst(
+          Rational(getCardinality(ret[0].getType()).getFiniteCardinality()));
     }
     d_modelCache[n] = ret;
     return ret;
@@ -621,10 +595,7 @@ void TheoryModel::setUsingModelCore()
   d_model_core.clear();
 }
 
-void TheoryModel::recordModelCoreSymbol(Expr sym)
-{
-  d_model_core.insert(Node::fromExpr(sym));
-}
+void TheoryModel::recordModelCoreSymbol(Node sym) { d_model_core.insert(sym); }
 
 void TheoryModel::setUnevaluatedKind(Kind k) { d_unevaluated_kinds.insert(k); }
 

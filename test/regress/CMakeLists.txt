@@ -431,6 +431,7 @@ set(regress_0_tests
   regress0/datatypes/is_test.smt2
   regress0/datatypes/issue1433.smt2
   regress0/datatypes/issue2838.cvc
+  regress0/datatypes/issue5280-no-nrec.smt2
   regress0/datatypes/jsat-2.6.smt2
   regress0/datatypes/list-bool.smt2
   regress0/datatypes/model-subterms-min.smt2
@@ -893,8 +894,9 @@ set(regress_0_tests
   regress0/seq/seq-nth.smt2
   regress0/seq/seq-nth-uf.smt2
   regress0/seq/seq-nth-uf-z.smt2
-  regress0/seq/seq-nth-undef.smt2
+  regress0/seq/seq-nth-undef-unsat.smt2
   regress0/seq/seq-rewrites.smt2
+  regress0/seq/seq-types.smt2
   regress0/sets/abt-min.smt2
   regress0/sets/abt-te-exh.smt2
   regress0/sets/abt-te-exh2.smt2
