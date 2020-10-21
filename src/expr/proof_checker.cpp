@@ -334,7 +334,8 @@ bool ProofChecker::isPedanticFailure(PfRule id,
         out << "pedantic level for " << id << " not met (rule level is "
             << itp->second << " which is at or below the pedantic level "
             << d_pclevel << ")";
-        if (!Trace.isOn("proof-new-pedantic"))
+        bool pedanticTraceEnabled = Trace.isOn("proof-new-pedantic");
+        if (!pedanticTraceEnabled)
         {
           out << ", use -t proof-new-pedantic for details";
         }
