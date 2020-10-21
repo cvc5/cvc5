@@ -357,11 +357,11 @@ int Integer::sgn() const
   return cln::cl_I_to_int(sgn);
 }
 
-bool Integer::strictlyPositive() const { return sgn() > 0; }
+bool Integer::strictlyPositive() const { return cln::plusp(d_value); }
 
-bool Integer::strictlyNegative() const { return sgn() < 0; }
+bool Integer::strictlyNegative() const { return cln::minusp(d_value); }
 
-bool Integer::isZero() const { return sgn() == 0; }
+bool Integer::isZero() const { return cln::zerop(d_value); }
 
 bool Integer::isOne() const { return d_value == 1; }
 
@@ -417,14 +417,14 @@ void Integer::readInt(const cln::cl_read_flags& flags,
     size_t pos = s.find_first_not_of('0');
     if (pos == std::string::npos)
     {
-      d_value = read_integer(flags, "0", NULL, NULL);
+      d_value = cln::read_integer(flags, "0", NULL, NULL);
     }
     else
     {
       const char* cstr = s.c_str();
       const char* start = cstr + pos;
       const char* end = cstr + s.length();
-      d_value = read_integer(flags, start, end, NULL);
+      d_value = cln::read_integer(flags, start, end, NULL);
     }
   }
   catch (...)

@@ -3053,14 +3053,6 @@ class CVC4_PUBLIC Solver
   std::vector<Term> getAssertions() const;
 
   /**
-   * Get the assignment of asserted formulas.
-   * SMT-LIB: ( get-assignment )
-   * Requires to enable option 'produce-assignments'.
-   * @return a list of formula-assignment pairs
-   */
-  std::vector<std::pair<Term, Term>> getAssignment() const;
-
-  /**
    * Get info from the solver.
    * SMT-LIB: ( get-info <info_flag> )
    * @return the info

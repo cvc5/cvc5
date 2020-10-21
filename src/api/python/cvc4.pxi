@@ -1094,19 +1094,6 @@ cdef class Solver:
             assertions.append(term)
         return assertions
 
-    def getAssignment(self):
-        '''
-        Gives the assignment of *named* formulas as a dictionary.
-        '''
-        assignments = {}
-        for a in self.csolver.getAssignment():
-            varterm = Term(self)
-            valterm = Term(self)
-            varterm.cterm = a.first
-            valterm.cterm = a.second
-            assignments[varterm] = valterm
-        return assignments
-
     def getInfo(self, str flag):
         return self.csolver.getInfo(flag.encode())
 
