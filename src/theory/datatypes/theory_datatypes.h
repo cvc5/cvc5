@@ -27,12 +27,12 @@
 #include "expr/node_trie.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/inference_manager.h"
+#include "theory/datatypes/proof_checker.h"
 #include "theory/datatypes/sygus_extension.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
 #include "theory/uf/equality_engine.h"
 #include "util/hash.h"
-#include "theory/datatypes/proof_checker.h"
 
 namespace CVC4 {
 namespace theory {

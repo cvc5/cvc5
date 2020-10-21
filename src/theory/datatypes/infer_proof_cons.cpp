@@ -14,8 +14,8 @@
 
 #include "theory/datatypes/infer_proof_cons.h"
 
-#include "theory/rewriter.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
+#include "theory/rewriter.h"
 
 using namespace CVC4::kind;
 
@@ -52,7 +52,7 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
   std::vector<Node> expv;
   if (!exp.isNull() && !exp.isConst())
   {
-    if (exp.getKind()==AND)
+    if (exp.getKind() == AND)
     {
       for (const Node& ec : exp)
       {
@@ -70,7 +70,7 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
   {
     case InferId::UNIF:
     {
-      Assert (expv.size()==1);
+      Assert(expv.size() == 1);
       Assert(exp.getKind() == EQUAL && exp[0].getKind() == APPLY_CONSTRUCTOR
              && exp[1].getKind() == APPLY_CONSTRUCTOR
              && exp[0].getOperator() == exp[1].getOperator());
@@ -91,12 +91,13 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
       }
     }
     break;
-    case InferId::INST: {
-      if (expv.size()==1)
+    case InferId::INST:
+    {
+      if (expv.size() == 1)
       {
-        Assert (conc.getKind()==EQUAL);
+        Assert(conc.getKind() == EQUAL);
         int n = utils::isTester(exp);
-        if (n>=0)
+        if (n >= 0)
         {
           Node t = exp[0];
           Node nn = nm->mkConst(Rational(n));
@@ -116,7 +117,7 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
       success = true;
     }
     break;
-    case InferId::LABEL_EXH: 
+    case InferId::LABEL_EXH:
     {
       // TODO
     }
@@ -126,7 +127,7 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
       // TODO
     }
     break;
-    case InferId::CLASH_CONFLICT: 
+    case InferId::CLASH_CONFLICT:
     {
       cdp->addStep(conc, PfRule::MACRO_SR_PRED_ELIM, {exp}, {});
       success = true;

@@ -86,7 +86,6 @@ void InferenceManager::sendDtLemma(Node lem,
   {
     d_inferenceLemmas << id;
   }
-  
 }
 
 void InferenceManager::sendDtConflict(const std::vector<Node>& conf, InferId id)
@@ -150,9 +149,7 @@ bool InferenceManager::processDtFact(Node conc, Node exp, InferId id)
   return true;
 }
 
-void InferenceManager::processDtInference(Node conc,
-                                          Node exp,
-                                          InferId id)
+void InferenceManager::processDtInference(Node conc, Node exp, InferId id)
 {
   Trace("dt-lemma-debug") << "processDtInference : " << conc << " via " << exp
                           << " by " << id << std::endl;

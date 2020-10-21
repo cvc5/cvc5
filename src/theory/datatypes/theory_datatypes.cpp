@@ -68,7 +68,7 @@ TheoryDatatypes::TheoryDatatypes(Context* c,
   // indicate we are using the default theory state object
   d_theoryState = &d_state;
   d_inferManager = &d_im;
-  
+
   ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
   if (pc != nullptr)
   {
