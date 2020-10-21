@@ -24,6 +24,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 #include "theory/quantifiers/quant_util.h"
+#include "theory/trust_node.h"
 
 namespace CVC4 {
 
@@ -66,12 +67,11 @@ class Skolemize
   Skolemize(QuantifiersEngine* qe, context::UserContext* u);
   ~Skolemize() {}
   /** skolemize quantified formula q
-   * If the return value ret of this function
-   * is non-null, then ret is a new skolemization lemma
-   * we generated for q. These lemmas are constructed
-   * once per user-context.
+   * If the return value ret of this function is non-null, then ret is a trust
+   * node corresponding to a new skolemization lemma we generated for q. These
+   * lemmas are constructed once per user-context.
    */
-  Node process(Node q);
+  TrustNode process(Node q);
   /** get skolem constants for quantified formula q */
   bool getSkolemConstants(Node q, std::vector<Node>& skolems);
   /** get the i^th skolem constant for quantified formula q */

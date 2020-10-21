@@ -32,7 +32,7 @@ Skolemize::Skolemize(QuantifiersEngine* qe, context::UserContext* u)
 {
 }
 
-Node Skolemize::process(Node q)
+TrustNode Skolemize::process(Node q)
 {
   // do skolemization
   if (d_skolemized.find(q) == d_skolemized.end())
@@ -42,9 +42,9 @@ Node Skolemize::process(Node q)
     nb << q << body.notNode();
     Node lem = nb;
     d_skolemized[q] = lem;
-    return lem;
+    return TrustNode::mkTrustLemma(lem, nullptr);
   }
-  return Node::null();
+  return TrustNode::null();
 }
 
 bool Skolemize::getSkolemConstants(Node q, std::vector<Node>& skolems)
@@ -291,7 +291,8 @@ Node Skolemize::mkSkolemizedBody(Node f,
 Node Skolemize::getSkolemizedBody(Node f)
 {
   Assert(f.getKind() == FORALL);
-  if (d_skolem_body.find(f) == d_skolem_body.end())
+  std::unordered_map<Node, Node, NodeHashFunction>::iterator it = d_skolem_body.find(f);
+  if (it == d_skolem_body.end())
   {
     std::vector<TypeNode> fvTypes;
     std::vector<TNode> fvs;
@@ -321,7 +322,7 @@ Node Skolemize::getSkolemizedBody(Node f)
       }
     }
   }
-  return d_skolem_body[f];
+  return it->second;
 }
 
 bool Skolemize::isInductionTerm(Node n)
