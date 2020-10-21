@@ -573,18 +573,11 @@ Node NormalForm::evaluateIsSingleton(TNode n)
   // - (bag.is_singleton (MK_BAG "x" 4)) = false
   // - (bag.is_singleton (union_disjoint (MK_BAG "x" 1) (MK_BAG "y" 1))) = false
 
-  NodeManager* nm = NodeManager::currentNM();
-  Node falseNode = nm->mkConst(false);
-  Node trueNode = nm->mkConst(true);
-  if (n[0].getKind() == EMPTYBAG)
-  {
-    return falseNode;
-  }
   if (n[0].getKind() == MK_BAG && n[0][1].getConst<Rational>().isOne())
   {
-    return trueNode;
+    return NodeManager::currentNM()->mkConst(true);
   }
-  return falseNode;
+  return NodeManager::currentNM()->mkConst(false);
 }
 
 Node NormalForm::evaluateFromSet(TNode n)
