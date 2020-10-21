@@ -429,6 +429,8 @@ libcvc4_add_sources(
   theory/bags/bags_statistics.h
   theory/bags/inference_manager.cpp
   theory/bags/inference_manager.h
+  theory/bags/make_bag_op.cpp
+  theory/bags/make_bag_op.h
   theory/bags/normal_form.cpp
   theory/bags/normal_form.h
   theory/bags/rewrites.cpp
@@ -444,6 +446,8 @@ libcvc4_add_sources(
   theory/bags/theory_bags_type_rules.h
   theory/booleans/circuit_propagator.cpp
   theory/booleans/circuit_propagator.h
+  theory/booleans/proof_circuit_propagator.cpp
+  theory/booleans/proof_circuit_propagator.h
   theory/booleans/proof_checker.cpp
   theory/booleans/proof_checker.h
   theory/booleans/theory_bool.cpp

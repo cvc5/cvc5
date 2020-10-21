@@ -961,6 +961,17 @@ Node NodeManager::mkSingleton(const TypeNode& t, const TNode n)
   return singleton;
 }
 
+Node NodeManager::mkBag(const TypeNode& t, const TNode n, const TNode m)
+{
+  Assert(n.getType().isSubtypeOf(t))
+      << "Invalid operands for mkBag. The type '" << n.getType()
+      << "' of node '" << n << "' is not a subtype of '" << t << "'."
+      << std::endl;
+  Node op = mkConst(MakeBagOp(t));
+  Node bag = mkNode(kind::MK_BAG, op, n, m);
+  return bag;
+}
+
 Node NodeManager::mkAbstractValue(const TypeNode& type) {
   Node n = mkConst(AbstractValue(++d_abstractValueCount));
   n.setAttribute(TypeAttr(), type);
