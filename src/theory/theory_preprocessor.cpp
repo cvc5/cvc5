@@ -57,8 +57,6 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
 {
   if (isProofEnabled())
   {
-    // enable proofs in the term formula remover
-    d_tfr.setProofNodeManager(pnm);
     // push the proof context, since proof steps may be cleared on calls to
     // clearCache() below.
     d_pfContext.push();
@@ -215,10 +213,9 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
         // store in the lazy proof
         d_lp->addLazyStep(assertion,
                           trn.getGenerator(),
+                          PfRule::THEORY_PREPROCESS_LEMMA,
                           true,
-                          "TheoryPreprocessor::rewrite_lemma_new",
-                          false,
-                          PfRule::THEORY_PREPROCESS_LEMMA);
+                          "TheoryPreprocessor::rewrite_lemma_new");
         d_lp->addStep(rewritten,
                       PfRule::MACRO_SR_PRED_TRANSFORM,
                       {assertion},
@@ -435,7 +432,8 @@ Node TheoryPreprocessor::preprocessWithProof(Node term)
       trn.debugCheckClosed("tpp-proof-debug",
                            "TheoryPreprocessor::preprocessWithProof");
       // always use term context hash 0 (default)
-      d_tpg->addRewriteStep(term, termr, trn.getGenerator());
+      d_tpg->addRewriteStep(
+          term, termr, trn.getGenerator(), PfRule::ASSUME, true);
     }
     else
     {

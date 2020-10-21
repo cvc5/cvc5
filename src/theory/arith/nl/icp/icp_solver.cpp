@@ -77,8 +77,12 @@ std::vector<Node> ICPSolver::collectVariables(const Node& n) const
 
 std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
 {
-  auto comp =
-      Comparison::parseNormalForm(Rewriter::rewrite(n)).decompose(false);
+  Node tmp = Rewriter::rewrite(n);
+  if (tmp.isConst())
+  {
+    return {};
+  }
+  auto comp = Comparison::parseNormalForm(tmp).decompose(false);
   Kind k = std::get<1>(comp);
   if (k == Kind::DISTINCT)
   {

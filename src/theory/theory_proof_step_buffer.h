@@ -37,6 +37,17 @@ class TheoryProofStepBuffer : public ProofStepBuffer
   ~TheoryProofStepBuffer() {}
   //---------------------------- utilities builtin proof rules
   /**
+   * Apply equality introduction. If this method returns true, it adds proof
+   * step(s) to the buffer that conclude (= src tgt) from premises exp. In
+   * particular, it may attempt to apply the rule MACRO_SR_EQ_INTRO. This
+   * method should be applied when tgt is equivalent to src assuming exp.
+   */
+  bool applyEqIntro(Node src,
+                    Node tgt,
+                    const std::vector<Node>& exp,
+                    MethodId ids = MethodId::SB_DEFAULT,
+                    MethodId idr = MethodId::RW_REWRITE);
+  /**
    * Apply predicate transform. If this method returns true, it adds (at most
    * one) proof step to the buffer that conclude tgt from premises src, exp. In
    * particular, it may attempt to apply MACRO_SR_PRED_TRANSFORM. This method
