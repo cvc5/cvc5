@@ -299,8 +299,9 @@ Node Skolemize::getSkolemizedBody(Node f)
     std::vector<TNode> fvs;
     Node sub;
     std::vector<unsigned> sub_vars;
-    d_skolem_body[f] = mkSkolemizedBody(
+    Node ret = mkSkolemizedBody(
         f, f[1], fvTypes, fvs, d_skolem_constants[f], sub, sub_vars);
+    d_skolem_body[f] = ret;
     // store sub quantifier information
     if (!sub.isNull())
     {
@@ -322,6 +323,7 @@ Node Skolemize::getSkolemizedBody(Node f)
             f, f[0][i], d_skolem_constants[f][i]);
       }
     }
+    return ret;
   }
   return it->second;
 }
