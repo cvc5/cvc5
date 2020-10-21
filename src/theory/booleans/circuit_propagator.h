@@ -88,11 +88,8 @@ class CircuitPropagator
 
   std::vector<TrustNode>& getLearnedLiterals() { return d_learnedLiterals; }
 
-  void finish()
-  {
-    Trace("circuit-prop") << "FINISH" << std::endl;
-    d_context.pop();
-  }
+  /** Finish the computation and pop the internal context */
+  void finish();
 
   /** Assert for propagation */
   void assertTrue(TNode assertion);
@@ -102,7 +99,8 @@ class CircuitPropagator
    * discovered by the propagator are put in the substitutions vector used in
    * construction.
    *
-   * @return a proof for a conflict, or nullptr otherwise
+   * @return a trust node encapsulating the proof for a conflict as a lemma that
+   * proves false, or the null trust node otherwise
    */
   TrustNode propagate() CVC4_WARN_UNUSED_RESULT;
 

@@ -51,6 +51,12 @@ CircuitPropagator::CircuitPropagator(bool enableForward, bool enableBackward)
 {
 }
 
+void CircuitPropagator::finish()
+{
+  Trace("circuit-prop") << "FINISH" << std::endl;
+  d_context.pop();
+}
+
 void CircuitPropagator::assertTrue(TNode assertion)
 {
   Trace("circuit-prop") << "TRUE: " << assertion << std::endl;
