@@ -1146,7 +1146,7 @@ class CVC4_PUBLIC Term
 
   /**
    * returns true if the current term is a constant integer that is casted into
-   * real using the operator TO_REAL, and returns false otherwise
+   * real using the operator CAST_TO_REAL, and returns false otherwise
    */
   bool isCastedReal() const;
   /**

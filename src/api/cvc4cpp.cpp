@@ -3934,7 +3934,7 @@ Term Solver::mkConstArray(Sort sort, Term val) const
   CVC4_API_CHECK(sort.isArray()) << "Not an array sort.";
   CVC4_API_CHECK(val.getSort().isSubsortOf(sort.getArrayElementSort()))
       << "Value does not match element sort.";
-  // handle the special case of (TO_REAL n) where n is an integer
+  // handle the special case of (CAST_TO_REAL n) where n is an integer
   Node n = *val.d_node;
   if (val.isCastedReal())
   {
