@@ -408,9 +408,17 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
       scopeAssumps.push_back(a);
     }
   }
-  // scope the proof constructed above, and connect the formula with the proof
-  // minimize the assumptions
-  pf = d_pnm->mkScope(pfBody, scopeAssumps, true, true);
+  // Scope the proof constructed above, and connect the formula with the proof
+  // minimize the assumptions. If we have no assumptions, SCOPE is a no-op and
+  // hence we omit its application.
+  if (scopeAssumps.empty())
+  {
+    pf = pfBody;
+  }
+  else
+  {
+    pf = d_pnm->mkScope(pfBody, scopeAssumps, true, true);
+  }
   exp = nm->mkAnd(scopeAssumps);
   // Make the lemma or conflict node. This must exactly match the conclusion
   // of SCOPE below.

@@ -28,20 +28,24 @@ namespace datatypes {
 InferenceManager::InferenceManager(Theory& t,
                                    TheoryState& state,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(t, state, nullptr),
+    : InferenceManagerBuffered(t, state, nullptr),  // TODO: enable here
       d_inferenceLemmas("theory::datatypes::inferenceLemmas"),
       d_inferenceFacts("theory::datatypes::inferenceFacts"),
+      d_inferenceConflicts("theory::datatypes::inferenceConflicts"),
       d_ipc(pnm == nullptr ? nullptr
                            : new InferProofCons(state.getSatContext(), pnm))
 {
+  d_false = NodeManager::currentNM()->mkConst(false);
   smtStatisticsRegistry()->registerStat(&d_inferenceLemmas);
   smtStatisticsRegistry()->registerStat(&d_inferenceFacts);
+  smtStatisticsRegistry()->registerStat(&d_inferenceConflicts);
 }
 
 InferenceManager::~InferenceManager()
 {
   smtStatisticsRegistry()->unregisterStat(&d_inferenceLemmas);
   smtStatisticsRegistry()->unregisterStat(&d_inferenceFacts);
+  smtStatisticsRegistry()->unregisterStat(&d_inferenceConflicts);
 }
 
 void InferenceManager::addPendingInference(Node conc,
@@ -77,7 +81,23 @@ void InferenceManager::sendDtLemma(Node lem,
     processDtLemma(lem, Node::null(), id);
     return;
   }
-  lemma(lem, p, doCache);
+  // otherwise send as a normal lemma
+  if (lemma(lem, p, doCache))
+  {
+    d_inferenceLemmas << id;
+  }
+  
+}
+
+void InferenceManager::sendDtConflict(const std::vector<Node>& conf, InferId id)
+{
+  if (isProofEnabled())
+  {
+    Node exp = NodeManager::currentNM()->mkAnd(conf);
+    processDtInference(d_false, exp, id);
+  }
+  conflictExp(conf, d_ipc.get());
+  d_inferenceConflicts << id;
 }
 
 bool InferenceManager::sendLemmas(const std::vector<Node>& lemmas)
@@ -98,14 +118,14 @@ bool InferenceManager::isProofEnabled() const { return d_ipc != nullptr; }
 bool InferenceManager::processDtLemma(
     Node conc, Node exp, InferId id, LemmaProperty p, bool doCache)
 {
-  processDtInference(conc, exp, id, true);
+  processDtInference(conc, exp, id);
   // send it as an (explained) lemma
   std::vector<Node> expv;
   if (!exp.isNull() && !exp.isConst())
   {
     expv.push_back(exp);
   }
-  if (!lemmaExp(conc, expv, {}))
+  if (!lemmaExp(conc, expv, {}, d_ipc.get(), p, doCache))
   {
     Trace("dt-lemma-debug") << "...duplicate lemma" << std::endl;
     return false;
@@ -116,23 +136,26 @@ bool InferenceManager::processDtLemma(
 
 bool InferenceManager::processDtFact(Node conc, Node exp, InferId id)
 {
-  processDtInference(conc, exp, id, false);
+  processDtInference(conc, exp, id);
   // assert the internal fact, which has the same issue as above
   bool polarity = conc.getKind() != NOT;
   TNode atom = polarity ? conc : conc[0];
-  assertInternalFact(atom, polarity, exp);
+  std::vector<Node> expv;
+  if (!exp.isNull() && !exp.isConst())
+  {
+    expv.push_back(exp);
+  }
+  assertInternalFact(atom, polarity, expv, d_ipc.get());
   d_inferenceFacts << id;
   return true;
 }
 
 void InferenceManager::processDtInference(Node conc,
                                           Node exp,
-                                          InferId id,
-                                          bool asLemma)
+                                          InferId id)
 {
   Trace("dt-lemma-debug") << "processDtInference : " << conc << " via " << exp
-                          << " by " << id << ", asLemma = " << asLemma
-                          << std::endl;
+                          << " by " << id << std::endl;
   if (isProofEnabled())
   {
     // If proofs are enabled, notify the proof constructor.

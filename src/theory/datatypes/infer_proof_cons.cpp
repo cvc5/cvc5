@@ -15,6 +15,7 @@
 #include "theory/datatypes/infer_proof_cons.h"
 
 #include "theory/rewriter.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 
 using namespace CVC4::kind;
 
@@ -47,12 +48,29 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
 {
   Trace("dt-ipc") << "convert: " << infer << ": " << conc << " by " << exp
                   << std::endl;
+  // split into vector
+  std::vector<Node> expv;
+  if (!exp.isNull() && !exp.isConst())
+  {
+    if (exp.getKind()==AND)
+    {
+      for (const Node& ec : exp)
+      {
+        expv.push_back(ec);
+      }
+    }
+    else
+    {
+      expv.push_back(exp);
+    }
+  }
   NodeManager* nm = NodeManager::currentNM();
   bool success = false;
   switch (infer)
   {
     case InferId::UNIF:
     {
+      Assert (expv.size()==1);
       Assert(exp.getKind() == EQUAL && exp[0].getKind() == APPLY_CONSTRUCTOR
              && exp[1].getKind() == APPLY_CONSTRUCTOR
              && exp[0].getOperator() == exp[1].getOperator());
@@ -74,20 +92,56 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
     }
     break;
     case InferId::INST: {
+      if (expv.size()==1)
+      {
+        Assert (conc.getKind()==EQUAL);
+        int n = utils::isTester(exp);
+        if (n>=0)
+        {
+          Node t = exp[0];
+          Node nn = nm->mkConst(Rational(n));
+          Node eq = exp.eqNode(conc);
+          cdp->addStep(eq, PfRule::DT_INST, {}, {t, nn});
+          cdp->addStep(conc, PfRule::EQ_RESOLVE, {exp, eq}, {});
+          success = true;
+        }
+      }
     }
     break;
     case InferId::SPLIT:
     {
-      Assert(exp.isNull());
+      Assert(expv.empty());
       Node t = conc.getKind() == OR ? conc[0][0] : conc[0];
       cdp->addStep(conc, PfRule::DT_SPLIT, {}, {t});
+      success = true;
     }
     break;
-    case InferId::LABEL_EXH: break;
-    case InferId::COLLAPSE_SEL: break;
-    case InferId::CLASH_CONFLICT: break;
-    case InferId::TESTER_CONFLICT: break;
-    case InferId::TESTER_MERGE_CONFLICT: break;
+    case InferId::LABEL_EXH: 
+    {
+      // TODO
+    }
+    break;
+    case InferId::COLLAPSE_SEL:
+    {
+      // TODO
+    }
+    break;
+    case InferId::CLASH_CONFLICT: 
+    {
+      cdp->addStep(conc, PfRule::MACRO_SR_PRED_ELIM, {exp}, {});
+      success = true;
+    }
+    break;
+    case InferId::TESTER_CONFLICT:
+    {
+      // TODO
+    }
+    break;
+    case InferId::TESTER_MERGE_CONFLICT:
+    {
+      // TODO
+    }
+    break;
     case InferId::BISIMILAR: break;
     case InferId::CYCLE: break;
     default:
@@ -100,7 +154,7 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
   {
     // failed to reconstruct, add trust
     Trace("dt-ipc") << "...failed " << infer << std::endl;
-    cdp->addStep(conc, PfRule::DT_TRUST, {}, {conc});
+    cdp->addStep(conc, PfRule::DT_TRUST, expv, {conc});
   }
 }
 

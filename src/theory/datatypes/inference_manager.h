@@ -70,6 +70,11 @@ class InferenceManager : public InferenceManagerBuffered
                    LemmaProperty p = LemmaProperty::NONE,
                    bool doCache = true);
   /**
+   * Send conflict immediately on the output channel
+   */
+  void sendDtConflict(const std::vector<Node>& conf,
+                   InferId i = InferId::NONE);
+  /**
    * Send lemmas with property NONE on the output channel immediately.
    * Returns true if any lemma was sent.
    */
@@ -91,14 +96,16 @@ class InferenceManager : public InferenceManagerBuffered
    */
   bool processDtFact(Node conc, Node exp, InferId id);
   /** Helper function for the above methods */
-  void processDtInference(Node conc, Node exp, InferId id, bool asLemma);
-
+  void processDtInference(Node conc, Node exp, InferId id);
+  /** The false node */
+  Node d_false;
   /**
    * Counts the number of applications of each type of inference processed by
-   * the above method as facts and lemmas.
+   * the above method as facts, lemmas and conflicts.
    */
   HistogramStat<InferId> d_inferenceLemmas;
   HistogramStat<InferId> d_inferenceFacts;
+  HistogramStat<InferId> d_inferenceConflicts;
   /** The inference to proof converter */
   std::unique_ptr<InferProofCons> d_ipc;
 };

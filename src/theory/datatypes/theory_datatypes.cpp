@@ -68,6 +68,13 @@ TheoryDatatypes::TheoryDatatypes(Context* c,
   // indicate we are using the default theory state object
   d_theoryState = &d_state;
   d_inferManager = &d_im;
+  
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
+  if (pc != nullptr)
+  {
+    // add checkers
+    d_pchecker.registerTo(pc);
+  }
 }
 
 TheoryDatatypes::~TheoryDatatypes() {
@@ -665,7 +672,7 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
             conf.push_back(unifEq);
             Trace("dt-conflict")
                 << "CONFLICT: Clash conflict : " << conf << std::endl;
-            d_im.conflictExp(conf, nullptr);
+            d_im.sendDtConflict(conf, InferId::CLASH_CONFLICT);
             return;
           }
           else
@@ -866,10 +873,10 @@ void TheoryDatatypes::addTester(
         //conflict because equivalence class contains a constructor
         std::vector<Node> conf;
         conf.push_back(t);
-        conf.push_back(eqc->d_constructor.get().eqNode(t_arg));
+        conf.push_back(t_arg.eqNode(eqc->d_constructor.get()));
         Trace("dt-conflict")
             << "CONFLICT: Tester eq conflict " << conf << std::endl;
-        d_im.conflictExp(conf, nullptr);
+        d_im.sendDtConflict(conf, InferId::TESTER_CONFLICT);
         return;
       }else{
         makeConflict = true;
@@ -975,7 +982,7 @@ void TheoryDatatypes::addTester(
     conf.push_back(t);
     conf.push_back(jt[0].eqNode(t_arg));
     Trace("dt-conflict") << "CONFLICT: Tester conflict : " << conf << std::endl;
-    d_im.conflictExp(conf, nullptr);
+    d_im.sendDtConflict(conf, InferId::TESTER_MERGE_CONFLICT);
   }
 }
 
@@ -1033,7 +1040,7 @@ void TheoryDatatypes::addConstructor( Node c, EqcInfo* eqc, Node n ){
           conf.push_back(c.eqNode(t[0][0]));
           Trace("dt-conflict")
               << "CONFLICT: Tester merge eq conflict : " << conf << std::endl;
-          d_im.conflictExp(conf, nullptr);
+          d_im.sendDtConflict(conf, InferId::TESTER_CONFLICT);
           return;
         }
       }
@@ -1586,7 +1593,7 @@ void TheoryDatatypes::checkCycles() {
             Assert(expl.size() > 0);
             Trace("dt-conflict")
                 << "CONFLICT: Cycle conflict : " << expl << std::endl;
-            d_im.conflictExp(expl, nullptr);
+            d_im.sendDtConflict(expl, InferId::CYCLE);
             return;
           }
         }

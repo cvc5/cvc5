@@ -32,6 +32,7 @@
 #include "theory/theory_eq_notify.h"
 #include "theory/uf/equality_engine.h"
 #include "util/hash.h"
+#include "theory/datatypes/proof_checker.h"
 
 namespace CVC4 {
 namespace theory {
@@ -308,6 +309,8 @@ private:
   InferenceManager d_im;
   /** The notify class */
   NotifyClass d_notify;
+  /** Proof checker for datatypes */
+  DatatypesProofRuleChecker d_pchecker;
 };/* class TheoryDatatypes */
 
 }/* CVC4::theory::datatypes namespace */

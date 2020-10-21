@@ -15,6 +15,7 @@
 #include "theory/datatypes/proof_checker.h"
 
 #include "theory/datatypes/theory_datatypes_utils.h"
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace theory {
@@ -43,7 +44,7 @@ Node DatatypesProofRuleChecker::checkInternal(PfRule id,
     if (children[0].getKind() != kind::EQUAL
         || children[0][0].getKind() != kind::APPLY_CONSTRUCTOR
         || children[0][1].getKind() != kind::APPLY_CONSTRUCTOR
-        || children[0][0][0].getOperator() != children[0][1].getOperator()
+        || children[0][0].getOperator() != children[0][1].getOperator()
         || !getUInt32(args[0], i))
     {
       return Node::null();
@@ -72,7 +73,7 @@ Node DatatypesProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     Node tester = utils::mkTester(t, i, dt);
-    Node ticons = utils::getInstCons(t, dt, i);
+    Node ticons = Rewriter::rewrite(utils::getInstCons(t, dt, i));
     return tester.eqNode(t.eqNode(ticons));
   }
   else if (id == PfRule::DT_SPLIT)
