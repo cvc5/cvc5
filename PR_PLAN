@@ -102,12 +102,15 @@ PR finished:
 (114) theory preprocess fixes (req 97)
 (115) trust substitution and ppAssert interface
 (116) general smt preprocess proof generator (req 119)
-(120) new miscellaneous proof rules + Boolean checker
+(117) trust substitution implementation (req 119)
 (119) Lazy proof set
+(120) new miscellaneous proof rules + Boolean checker
 (121) proof rule checker simplify
 (123) proof node updater merge policy
 (124) miscellaneous updates
 (126) datatype inferences
+(128) updates to lazy cd proof chain [Haniel]
+(129) refinements to cyclic checking policy
 
 PRs ready:
 
@@ -115,12 +118,11 @@ PRs ready:
 (31) update strings inference manager to use ProofEqEngine (req 24, 26, 43, cee-strings) *
 (68) PropEngine proof producing [Haniel] (req 53, 110, 111, 112)
 (70) rewriter unit test [Andres] (req 36, 37)
-(117) trust substitution implementation (req 119) *
 (122) allow AND substitutions in proof post processor *
-(125) proof producing circuit propagator [Gereon]
+(125) [x2] proof producing circuit propagator [Gereon] *
 (127) datatypes proof checker (req 126)
-(128) updates to lazy cd proof chain [Haniel]
-(129) refinements to cyclic checking policy *
+(131) Updates to Boolean proof checker [Haniel]
+(133) Boolean proof checker unit test [Haniel]
 
 PRs future:
 
@@ -134,12 +136,14 @@ PRs future:
 (98) fixes in setDefaults
 (101) strings misc changes to preprocess, base (req 31, 43)
 (118) non-clausal simplification proof producing (req 116, 117, 120, 125)
+(130) regexp elimination proofs (req 101)
+(132) Datatypes proof producing (req 127)
 
 Wish list:
 
 (57) compilation of rewrite DSL into DSL rewrite rule database initialization [Andres] (req 56)
-- datatype proofs
 - CAD proofs [Gereon]
+- nl-ext proofs
 - BV simple solver proof producing [Mathias]
 - SEXPR simply typed
 - Proof kinds infrastructure?

@@ -74,7 +74,7 @@ class TrustSubstitutionMap
   ProofGenerator* addSubstitutionSolved(TNode x, TNode t, TrustNode tn);
   /**
    * Add substitutions from trust substitution map t. This adds all
-   * substitutions for t and carries over its information about proofs.
+   * substitutions from the map t and carries over its information about proofs.
    */
   void addSubstitutions(TrustSubstitutionMap& t);
   /**

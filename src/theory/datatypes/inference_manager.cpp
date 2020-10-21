@@ -139,12 +139,20 @@ bool InferenceManager::processDtFact(Node conc, Node exp, InferId id)
   // assert the internal fact, which has the same issue as above
   bool polarity = conc.getKind() != NOT;
   TNode atom = polarity ? conc : conc[0];
-  std::vector<Node> expv;
-  if (!exp.isNull() && !exp.isConst())
+  if (isProofEnabled())
   {
-    expv.push_back(exp);
+    std::vector<Node> expv;
+    if (!exp.isNull() && !exp.isConst())
+    {
+      expv.push_back(exp);
+    }
+    assertInternalFact(atom, polarity, expv, d_ipc.get());
   }
-  assertInternalFact(atom, polarity, expv, d_ipc.get());
+  else
+  {
+    // use version without proofs
+    assertInternalFact(atom, polarity, exp);
+  }
   d_inferenceFacts << id;
   return true;
 }
