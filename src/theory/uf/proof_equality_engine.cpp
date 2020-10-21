@@ -411,7 +411,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   // Scope the proof constructed above, and connect the formula with the proof
   // minimize the assumptions. If we have no assumptions, SCOPE is a no-op and
   // hence we omit its application.
-  if (scopeAssumps.empty() && tnk==TrustNodeKind::PROP_EXP)
+  if (scopeAssumps.empty() && tnk == TrustNodeKind::PROP_EXP)
   {
     // must add true as an explicit argument. This is to ensure that the
     // propagation F from true proves (=> true F) instead of F.
