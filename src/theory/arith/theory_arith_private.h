@@ -328,7 +328,7 @@ private:
   // inline void raiseConflict(const ConstraintCPVec& cv){
   //   d_conflicts.push_back(cv);
   // }
-
+  
   // void raiseConflict(ConstraintCP a, ConstraintCP b);
   // void raiseConflict(ConstraintCP a, ConstraintCP b, ConstraintCP c);
 
@@ -751,7 +751,7 @@ private:
 
   static ConstraintCP vectorToIntHoleConflict(const ConstraintCPVec& conflict);
   static void intHoleConflictToVector(ConstraintCP conflicting, ConstraintCPVec& conflict);
-
+  
   // Returns true if the node contains a literal
   // that is an arithmetic literal and is not a sat literal
   // No caching is done so this should likely only

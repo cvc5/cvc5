@@ -24,7 +24,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/normal_form.h"
-#include "theory/arith/proof_macros.h"
+
 
 using namespace std;
 using namespace CVC4::kind;
@@ -671,10 +671,10 @@ ConstraintCP ConstraintDatabase::getAntecedent (AntecedentId p) const {
 
 void ConstraintRule::print(std::ostream& out) const {
   RationalVectorCP coeffs = ARITH_NULLPROOF(d_farkasCoefficients);
-  out << "ConstraintRule {\n";
-  out << "  constraint: " << d_constraint << std::endl;
-  out << "  d_proofType: " << d_proofType << ", " << std::endl;
-  out << "  d_antecedentEnd: " << d_antecedentEnd << std::endl;
+  out << "{ConstraintRule, ";
+  out << d_constraint << std::endl;
+  out << "d_proofType= " << d_proofType << ", " << std::endl;
+  out << "d_antecedentEnd= "<< d_antecedentEnd << std::endl;
 
   if (d_constraint != NullConstraint && d_antecedentEnd != AntecedentIdSentinel)
   {
@@ -685,7 +685,6 @@ void ConstraintRule::print(std::ostream& out) const {
     // must have at least one antecedent
     ConstraintCP antecedent = database.getAntecedent(p);
     while(antecedent != NullConstraint){
-      out << "    ";
       if(coeffs != RationalVectorCPSentinel){
         out << coeffs->at(coeffIterator);
       } else {
@@ -699,7 +698,7 @@ void ConstraintRule::print(std::ostream& out) const {
       antecedent = database.getAntecedent(p);
     }
     if(coeffs != RationalVectorCPSentinel){
-      out << "    " << coeffs->front();
+      out << coeffs->front();
     } else {
       out << "_";
     }
@@ -1409,25 +1408,22 @@ void Constraint::impliedByIntHole(const ConstraintCPVec& b, bool nowInConflict){
  *   coeff.back() corresponds to the current constraint.
  */
 void Constraint::impliedByFarkas(const ConstraintCPVec& a, RationalVectorCP coeffs, bool nowInConflict){
+  Debug("constraints::pf") << "impliedByFarkas(" << this;
   if (Debug.isOn("constraints::pf")) {
-    Debug("constraints::pf") << "impliedByFarkas(" << this;
     for (const ConstraintCP& p : a)
     {
-      Debug("constraints::pf") << ",\n  " << p;
+      Debug("constraints::pf") << ", " << p;
     }
-    Debug("constraints::pf") << ",\ncoeffs:\n";
-    for (const auto c : *coeffs)
-    {
-      Debug("constraints::pf") << "  " << c << std::endl;
-    }
-  Debug("constraints::pf") << ")" << std::endl;
   }
+  Debug("constraints::pf") << ", <coeffs>";
+  Debug("constraints::pf") << ")" << std::endl;
   Assert(!hasProof());
   Assert(negationHasProof() == nowInConflict);
   Assert(allHaveProof(a));
 
   Assert(ARITH_PROOF_ON() == (coeffs != RationalVectorCPSentinel));
   Assert(!ARITH_PROOF_ON() || coeffs->size() == a.size() + 1);
+
   Assert(a.size() >= 1);
 
   d_database->d_antecedents.push_back(NullConstraint);
@@ -1999,6 +1995,7 @@ ConstraintDatabase::Watches::Watches(context::Context* satContext, context::Cont
   d_assertionOrderWatches(satContext),
   d_splitWatches(userContext)
 {}
+
 
 void Constraint::setLiteral(Node n) {
   Debug("arith::constraint") << "Mapping " << *this << " to " << n << std::endl;
