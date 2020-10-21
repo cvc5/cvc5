@@ -101,7 +101,6 @@ class NormalForm
                                       T5&& remainderOfB);
   /**
    * evaluate n as follows:
-   * - (mkBag a c) = n where a is a constant and c is a positive integer.
    * - (mkBag a 0) = (emptybag T) where T is the type of the original bag
    * - (mkBag a (-c)) = (emptybag T) where T is the type the original bag,
    *                                and c > 0 is a constant
