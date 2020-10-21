@@ -229,10 +229,7 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
     // update each assumption proof node
     for (std::shared_ptr<ProofNode> pfn : it->second)
     {
-      if (npfn.second != nullptr)
-      {
-        d_manager->updateNode(pfn.get(), npfn.second.get());
-      }
+      d_manager->updateNode(pfn.get(), npfn.second.get());
     }
   }
   // final proof of fact
