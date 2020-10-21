@@ -258,6 +258,11 @@ static int veriTPrintInternal(std::ostream& out,
 		childIds.push_back(i);
 		i = veriTPrintInternal(out,child,i);
 	}
+  
+	if (static_cast<VeriTRule>(std::stoul(pfn->getArguments()[0].toString())) == VeriTRule::ASSUME){
+		out << "(assume t" << temp << " " << pfn->getArguments()[1] << ")" << std::endl;
+		return i;
+	}
 
 	if (pfn->getArguments().size() == 2) {
 		out << "(step t" << temp << " " << pfn->getArguments()[1] << " :rule " 
@@ -300,7 +305,8 @@ static void veriTPrinter(std::ostream& out,
 	out <<"\n";
 	out <<"\n";
 	out <<"Print VeriT proof: " << std::endl;
-	veriTPrintInternal(out,pfn,0);
+	//Do not print outermost scope
+	veriTPrintInternal(out,pfn->getChildren()[0],0);
 	out <<"\n";
 }
 
