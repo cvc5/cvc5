@@ -133,14 +133,14 @@ class CardinalityExtension
       /** conflict find pointer */
       SortModel* d_cf;
 
-      context::CDO< unsigned > d_testCliqueSize;
+      context::CDO<size_t> d_testCliqueSize;
       context::CDO< unsigned > d_splitsSize;
       //a postulated clique
       NodeBoolMap d_testClique;
       //disequalities needed for this clique to happen
       NodeBoolMap d_splits;
       //number of valid representatives in this region
-      context::CDO< unsigned > d_reps_size;
+      context::CDO<size_t> d_reps_size;
       //total disequality size (external)
       context::CDO< unsigned > d_total_diseq_external;
       //total disequality size (internal)
@@ -188,9 +188,9 @@ class CardinalityExtension
       //set n1 != n2 to value 'valid', type is whether it is internal/external
       void setDisequal( Node n1, Node n2, int type, bool valid );
       //get num reps
-      int getNumReps() { return d_reps_size; }
+      size_t getNumReps() const { return d_reps_size; }
       //get test clique size
-      int getTestCliqueSize() { return d_testCliqueSize; }
+      size_t getTestCliqueSize() const { return d_testCliqueSize; }
       // has representative
       bool hasRep( Node n ) {
         return d_nodes.find(n) != d_nodes.end() && d_nodes[n]->valid();
@@ -266,17 +266,17 @@ class CardinalityExtension
     /** add clique lemma */
     void addCliqueLemma(std::vector<Node>& clique);
     /** cardinality */
-    context::CDO<size_t> d_cardinality;
+    context::CDO<uint32_t> d_cardinality;
     /** cardinality lemma term */
     Node d_cardinality_term;
     /** cardinality literals */
-    std::map<size_t, Node> d_cardinality_literal;
+    std::map<uint32_t, Node> d_cardinality_literal;
     /** whether a positive cardinality constraint has been asserted */
     context::CDO< bool > d_hasCard;
     /** clique lemmas that have been asserted */
     std::map< int, std::vector< std::vector< Node > > > d_cliques;
     /** maximum negatively asserted cardinality */
-    context::CDO<size_t> d_maxNegCard;
+    context::CDO<uint32_t> d_maxNegCard;
     /** list of fresh representatives allocated */
     std::vector< Node > d_fresh_aloc_reps;
     /** whether we are initialized */
@@ -305,17 +305,20 @@ class CardinalityExtension
     /** presolve */
     void presolve();
     /** assert cardinality */
-    void assertCardinality(int c, bool val);
+    void assertCardinality(uint32_t c, bool val);
     /** get cardinality */
-    int getCardinality() { return d_cardinality; }
+    uint32_t getCardinality() const { return d_cardinality; }
     /** has cardinality */
-    bool hasCardinalityAsserted() { return d_hasCard; }
+    bool hasCardinalityAsserted() const { return d_hasCard; }
     /** get cardinality term */
-    Node getCardinalityTerm() { return d_cardinality_term; }
+    Node getCardinalityTerm() const { return d_cardinality_term; }
     /** get cardinality literal */
-    Node getCardinalityLiteral(size_t c);
+    Node getCardinalityLiteral(uint32_t c);
     /** get maximum negative cardinality */
-    int getMaximumNegativeCardinality() { return d_maxNegCard.get(); }
+    uint32_t getMaximumNegativeCardinality() const
+    {
+      return d_maxNegCard.get();
+    }
     //print debug
     void debugPrint( const char* c );
     /**
@@ -426,7 +429,9 @@ class CardinalityExtension
   std::map<TypeNode, SortModel*> d_rep_model;
 
   /** minimum positive combined cardinality */
-  context::CDO<int> d_min_pos_com_card;
+  context::CDO<uint32_t> d_min_pos_com_card;
+  /** Whether the field above has been set */
+  context::CDO<bool> d_min_pos_com_card_set;
   /**
    * Decision strategy for combined cardinality constraints. This asserts
    * the minimal combined cardinality constraint positively in the SAT
@@ -454,7 +459,10 @@ class CardinalityExtension
   /** the master monotone type (if ufssFairnessMonotone enabled) */
   TypeNode d_tn_mono_master;
   std::map<TypeNode, bool> d_tn_mono_slave;
-  context::CDO<int> d_min_pos_tn_master_card;
+  /** The minimum positive asserted master cardinality */
+  context::CDO<uint32_t> d_min_pos_tn_master_card;
+  /** Whether the field above has been set */
+  context::CDO<bool> d_min_pos_tn_master_card_set;
   /** relevant eqc */
   NodeBoolMap d_rel_eqc;
 }; /* class CardinalityExtension */
