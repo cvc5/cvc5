@@ -104,10 +104,7 @@ Node NormalForm::evaluate(TNode n)
     case BAG_IS_SINGLETON: return evaluateIsSingleton(n);
     case BAG_FROM_SET: return evaluateFromSet(n);
     case BAG_TO_SET: return evaluateToSet(n);
-    default:
-    {
-    }
-    break;
+    default: break;
   }
   Unhandled() << "Unexpected bag kind '" << n.getKind() << "' in node " << n
               << std::endl;
