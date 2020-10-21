@@ -1841,7 +1841,8 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   MEMBER,
   /**
-   * The set of the single element given as a parameter.
+   * Construct a singleton set from an element given as a parameter.
+   * The returned set has same type of the element.
    * Parameters: 1
    *   -[1]: Single element
    * Create with:

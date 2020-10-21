@@ -438,7 +438,8 @@ BagsRewriteResponse BagsRewriter::rewriteFromSet(const TNode& n) const
   {
     // (bag.from_set (singleton (singleton_op Int) x)) = (mkBag x 1)
     Node one = d_nm->mkConst(Rational(1));
-    Node bag = d_nm->mkNode(MK_BAG, n[0][0], one);
+    TypeNode type = n[0].getType().getSetElementType();
+    Node bag = d_nm->mkBag(type, n[0][0], one);
     return BagsRewriteResponse(bag, Rewrite::FROM_SINGLETON);
   }
   return BagsRewriteResponse(n, Rewrite::NONE);
