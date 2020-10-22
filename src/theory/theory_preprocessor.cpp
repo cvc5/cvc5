@@ -27,15 +27,15 @@ namespace theory {
 
 TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
                                        RemoveTermFormulas& tfr,
+                                       context::UserContext* userContext,
                                        ProofNodeManager* pnm)
     : d_engine(engine),
       d_logicInfo(engine.getLogicInfo()),
-      d_ppCache(),
+      d_ppCache(userContext),
       d_tfr(tfr),
-      d_pfContext(),
       d_tpg(pnm ? new TConvProofGenerator(
                       pnm,
-                      &d_pfContext,
+                      userContext,
                       TConvPolicy::FIXPOINT,
                       TConvCachePolicy::NEVER,
                       "TheoryPreprocessor::preprocess_rewrite",
@@ -43,7 +43,7 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
                 : nullptr),
       d_tspg(nullptr),
       d_tpgRew(pnm ? new TConvProofGenerator(pnm,
-                                             &d_pfContext,
+                                             userContext,
                                              TConvPolicy::FIXPOINT,
                                              TConvCachePolicy::NEVER,
                                              "TheoryPreprocessor::rewrite")
@@ -51,15 +51,12 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
       d_tspgNoPp(nullptr),
       d_lp(pnm ? new LazyCDProof(pnm,
                                  nullptr,
-                                 &d_pfContext,
+                                 userContext,
                                  "TheoryPreprocessor::LazyCDProof")
                : nullptr)
 {
   if (isProofEnabled())
   {
-    // push the proof context, since proof steps may be cleared on calls to
-    // clearCache() below.
-    d_pfContext.push();
     // Make the main term conversion sequence generator, which tracks up to
     // three conversions made in succession:
     // (1) theory preprocessing+rewriting
@@ -71,7 +68,7 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
     ts.push_back(d_tfr.getTConvProofGenerator());
     ts.push_back(d_tpg.get());
     d_tspg.reset(new TConvSeqProofGenerator(
-        pnm, ts, &d_pfContext, "TheoryPreprocessor::sequence"));
+        pnm, ts, userContext, "TheoryPreprocessor::sequence"));
     // Make the "no preprocess" term conversion sequence generator, which
     // applies only steps (2) and (3), where notice (3) must use the
     // "pure rewrite" term conversion (d_tpgRew).
@@ -79,23 +76,11 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
     tsNoPp.push_back(d_tfr.getTConvProofGenerator());
     tsNoPp.push_back(d_tpgRew.get());
     d_tspgNoPp.reset(new TConvSeqProofGenerator(
-        pnm, tsNoPp, &d_pfContext, "TheoryPreprocessor::sequence_no_pp"));
+        pnm, tsNoPp, userContext, "TheoryPreprocessor::sequence_no_pp"));
   }
 }
 
 TheoryPreprocessor::~TheoryPreprocessor() {}
-
-void TheoryPreprocessor::clearCache()
-{
-  Trace("tpp-proof-debug") << "TheoryPreprocessor::clearCache" << std::endl;
-  d_ppCache.clear();
-  // clear proofs from d_tpg, d_tspg and d_lp using internal push/pop context
-  if (isProofEnabled())
-  {
-    d_pfContext.pop();
-    d_pfContext.push();
-  }
-}
 
 TrustNode TheoryPreprocessor::preprocess(TNode node,
                                          std::vector<TrustNode>& newLemmas,
@@ -115,18 +100,10 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
     TrustNode tpp = theoryPreprocess(node);
     ppNode = tpp.getNode();
   }
-  Trace("tpp-proof-debug")
-      << "TheoryPreprocessor::preprocess: after preprocessing " << ppNode
-      << std::endl;
 
   // Remove the ITEs
-  Trace("te-tform-rm") << "Remove term formulas from " << ppNode << std::endl;
   TrustNode ttfr = d_tfr.run(ppNode, newLemmas, newSkolems, false);
-  Trace("te-tform-rm") << "..done " << ttfr.getNode() << std::endl;
   Node rtfNode = ttfr.getNode();
-  Trace("tpp-proof-debug")
-      << "TheoryPreprocessor::preprocess: rtf returned node " << rtfNode
-      << std::endl;
 
   if (Debug.isOn("lemma-ites"))
   {
@@ -143,9 +120,25 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
   // Rewrite the main node, we rewrite and store the proof step, if necessary,
   // in d_tpg, which maintains the fact that d_tpg can prove the rewrite.
   Node retNode = rewriteWithProof(rtfNode);
-  Trace("tpp-proof-debug")
-      << "TheoryPreprocessor::preprocess: after rewriting is " << retNode
-      << std::endl;
+
+  if (Trace.isOn("tpp-proof-debug"))
+  {
+    if (node != ppNode)
+    {
+      Trace("tpp-proof-debug")
+          << "after preprocessing : " << ppNode << std::endl;
+    }
+    if (rtfNode != ppNode)
+    {
+      Trace("tpp-proof-debug") << "after rtf : " << rtfNode << std::endl;
+    }
+    if (retNode != rtfNode)
+    {
+      Trace("tpp-proof-debug") << "after rewriting : " << retNode << std::endl;
+    }
+    Trace("tpp-proof-debug")
+        << "TheoryPreprocessor::preprocess: finish" << std::endl;
+  }
   if (node == retNode)
   {
     // no change
@@ -284,7 +277,8 @@ TrustNode TheoryPreprocessor::theoryPreprocess(TNode assertion)
     {
       Node ppRewritten = ppTheoryRewrite(current);
       d_ppCache[current] = ppRewritten;
-      Assert(Rewriter::rewrite(d_ppCache[current]) == d_ppCache[current]);
+      Assert(Rewriter::rewrite(d_ppCache[current].get())
+             == d_ppCache[current].get());
       continue;
     }
 
@@ -300,7 +294,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(TNode assertion)
       for (unsigned i = 0; i < current.getNumChildren(); ++i)
       {
         Assert(d_ppCache.find(current[i]) != d_ppCache.end());
-        builder << d_ppCache[current[i]];
+        builder << d_ppCache[current[i]].get();
       }
       // Mark the substitution and continue
       Node result = builder;
