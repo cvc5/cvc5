@@ -143,6 +143,8 @@ Node AlphaEquivalence::reduceQuantifier(Node q)
   if (ret != q)
   {
     // lemma ( q <=> d_quant )
+    // Notice that we infer this equivalence regardless of whether q or ret
+    // have annotations (e.g. user patterns, names, etc.).
     Trace("alpha-eq") << "Alpha equivalent : " << std::endl;
     Trace("alpha-eq") << "  " << q << std::endl;
     Trace("alpha-eq") << "  " << ret << std::endl;
