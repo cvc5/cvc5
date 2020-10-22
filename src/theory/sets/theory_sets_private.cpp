@@ -1112,6 +1112,7 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
         // cardinality
         d_cardSolver->mkModelValueElementsFor(val, eqc, els, mvals, m);
       }
+
       Node rep = NormalForm::mkBop(kind::UNION, els, eqc.getType());
       rep = Rewriter::rewrite(rep);
       Trace("sets-model") << "* Assign representative of " << eqc << " to "
@@ -1122,6 +1123,21 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
         return false;
       }
       m->assertSkeleton(rep);
+
+      // we add the element terms (singletons) as representatives to tell the
+      // model builder to evaluate them along with their union (rep).
+      // This is needed to account for cases when members and rep are not enough
+      // for the model builder to evaluate set terms.
+      // e.g.
+      // eqc(rep) = [(union (singleton skolem) (singleton 0))]
+      // eqc(skolem) = [0]
+      // The model builder would fail to evaluate rep as (singleton 0)
+      // if (singleton skolem) is not registered as a representative in the
+      // model
+      for (const Node& el : els)
+      {
+        m->assertSkeleton(el);
+      }
 
       Trace("sets-model") << "Set " << eqc << " = { " << traceElements(rep)
                           << " }" << std::endl;
@@ -1311,12 +1327,15 @@ TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
   }
 
   TypeNode setType = set.getType();
-  Node skolem = nm->mkSkolem("is_singleton", setType.getSetElementType());
-  Node singleton = nm->mkSingleton(setType.getSetElementType(), skolem);
+  Node boundVar = nm->mkBoundVar(setType.getSetElementType());
+  Node singleton = nm->mkSingleton(setType.getSetElementType(), boundVar);
   Node equal = set.eqNode(singleton);
-  d_isSingletonNodes[rewritten] = equal;
+  std::vector<Node> variables = {boundVar};
+  Node boundVars = nm->mkNode(BOUND_VAR_LIST, variables);
+  Node exists = nm->mkNode(kind::EXISTS, boundVars, equal);
+  d_isSingletonNodes[rewritten] = exists;
 
-  return TrustNode::mkTrustRewrite(node, equal, nullptr);
+  return TrustNode::mkTrustRewrite(node, exists, nullptr);
 }
 
 Node TheorySetsPrivate::getChooseFunction(const TypeNode& setType)
