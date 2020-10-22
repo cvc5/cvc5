@@ -64,31 +64,24 @@ bool DatatypesInference::mustCommunicateFact(Node n, Node exp)
 {
   Trace("dt-lemma-debug") << "Compute for " << exp << " => " << n << std::endl;
   bool addLemma = false;
-  if (options::dtInferAsLemmas() && !exp.isConst())
+  // Force lemmas if option is set
+  if (options::dtInferAsLemmas())
   {
-    // all units are lemmas
-    addLemma = true;
-  }
-  else if (n.getKind() == EQUAL)
-  {
-    // Note that equalities due to instantiate are forced as lemmas if
-    // necessary as they are created. This ensures that terms are shared with
-    // external theories when necessary. We send the lemma here only if
-    // the equality is not for datatype terms, which can happen for collapse
-    // selector / term size or unification.
-    TypeNode tn = n[0].getType();
-    addLemma = !tn.isDatatype();
-  }
-  else if (n.getKind() == LEQ || n.getKind() == OR)
-  {
-    addLemma = true;
-  }
-  if (addLemma)
-  {
-    Trace("dt-lemma-debug") << "Communicate " << n << std::endl;
+    Trace("dt-lemma-debug") << "Communicate " << n << " due to option" << std::endl;
     return true;
   }
-  Trace("dt-lemma-debug") << "Do not need to communicate " << n << std::endl;
+  // Note that equalities due to instantiate are forced as lemmas if
+  // necessary as they are created. This ensures that terms are shared with
+  // external theories when necessary. We send the lemma here only if the
+  // conclusion has kind LEQ (for datatypes size) or OR. Notice that
+  // all equalities are kept internal, apart from those forced as lemmas
+  // via instantiate.
+  else if (n.getKind() == LEQ || n.getKind() == OR)
+  {
+    Trace("dt-lemma-debug") << "Communicate " << n << " due to kind" << std::endl;
+    return true;
+  }
+  Trace("dt-lemma-debug") << "Do not communicate " << n << std::endl;
   return false;
 }
 
