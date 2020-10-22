@@ -31,7 +31,7 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
                                        ProofNodeManager* pnm)
     : d_engine(engine),
       d_logicInfo(engine.getLogicInfo()),
-      d_ppCache(),
+      d_ppCache(userContext),
       d_tfr(tfr),
       d_tpg(pnm ? new TConvProofGenerator(
                       pnm,
@@ -81,12 +81,6 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
 }
 
 TheoryPreprocessor::~TheoryPreprocessor() {}
-
-void TheoryPreprocessor::clearCache()
-{
-  Trace("tpp-proof-debug") << "TheoryPreprocessor::clearCache" << std::endl;
-  d_ppCache.clear();
-}
 
 TrustNode TheoryPreprocessor::preprocess(TNode node,
                                          std::vector<TrustNode>& newLemmas,
@@ -212,10 +206,9 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
         // store in the lazy proof
         d_lp->addLazyStep(assertion,
                           trn.getGenerator(),
+                          PfRule::THEORY_PREPROCESS_LEMMA,
                           true,
-                          "TheoryPreprocessor::rewrite_lemma_new",
-                          false,
-                          PfRule::THEORY_PREPROCESS_LEMMA);
+                          "TheoryPreprocessor::rewrite_lemma_new");
         d_lp->addStep(rewritten,
                       PfRule::MACRO_SR_PRED_TRANSFORM,
                       {assertion},
@@ -284,7 +277,8 @@ TrustNode TheoryPreprocessor::theoryPreprocess(TNode assertion)
     {
       Node ppRewritten = ppTheoryRewrite(current);
       d_ppCache[current] = ppRewritten;
-      Assert(Rewriter::rewrite(d_ppCache[current]) == d_ppCache[current]);
+      Assert(Rewriter::rewrite(d_ppCache[current].get())
+             == d_ppCache[current].get());
       continue;
     }
 
@@ -300,7 +294,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(TNode assertion)
       for (unsigned i = 0; i < current.getNumChildren(); ++i)
       {
         Assert(d_ppCache.find(current[i]) != d_ppCache.end());
-        builder << d_ppCache[current[i]];
+        builder << d_ppCache[current[i]].get();
       }
       // Mark the substitution and continue
       Node result = builder;
@@ -432,7 +426,8 @@ Node TheoryPreprocessor::preprocessWithProof(Node term)
       trn.debugCheckClosed("tpp-proof-debug",
                            "TheoryPreprocessor::preprocessWithProof");
       // always use term context hash 0 (default)
-      d_tpg->addRewriteStep(term, termr, trn.getGenerator());
+      d_tpg->addRewriteStep(
+          term, termr, trn.getGenerator(), PfRule::ASSUME, true);
     }
     else
     {

@@ -344,7 +344,6 @@ struct ConstraintRule {
 class Constraint {
 
   friend class ConstraintDatabase;
-  friend class ArithCongruenceManager;
 
  public:
   /**
@@ -854,12 +853,11 @@ class Constraint {
   /** Returns coefficients for the proofs for farkas cancellation. */
   static std::pair<int, int> unateFarkasSigns(ConstraintCP a, ConstraintCP b);
 
+  Node externalExplain(AssertionOrder order) const;
   /**
    * Returns an explanation of that was assertedBefore(order).
    * The constraint must have a proof.
    * The constraint cannot be selfExplaining().
-   *
-   * If `buildProof` is set, then proof steps are added for the explanation.
    *
    * This is the minimum fringe of the implication tree
    * s.t. every constraint is assertedBefore(order) or hasEqualityEngineProof().
@@ -1131,15 +1129,15 @@ private:
   /**
    * Returns true if the literal has been added to the database.
    * This is a hash table lookup.
-   * It does not look in the database for an equivalent corresponding
-   * constraint.
+   * It does not look in the database for an equivalent corresponding constraint.
    */
   bool hasLiteral(TNode literal) const;
 
-  bool hasMorePropagations() const { return !d_toPropagate.empty(); }
+  bool hasMorePropagations() const{
+    return !d_toPropagate.empty();
+  }
 
-  ConstraintCP nextPropagation()
-  {
+  ConstraintCP nextPropagation(){
     Assert(hasMorePropagations());
 
     ConstraintCP p = d_toPropagate.front();
@@ -1159,9 +1157,9 @@ private:
   void eeExplain(ConstraintCP c, NodeBuilder<>& nb) const;
 
   /**
-   * Returns a constraint with the variable v, the constraint type t, and a
-   * value dominated by r (explained below) if such a constraint exists in the
-   * database. If no such constraint exists, NullConstraint is returned.
+   * Returns a constraint with the variable v, the constraint type t, and a value
+   * dominated by r (explained below) if such a constraint exists in the database.
+   * If no such constraint exists, NullConstraint is returned.
    *
    * t must be either UpperBound or LowerBound.
    * The returned value v is dominated:
@@ -1170,25 +1168,18 @@ private:
    *
    * variableDatabaseIsSetup(v) must be true.
    */
-  ConstraintP getBestImpliedBound(ArithVar v,
-                                  ConstraintType t,
-                                  const DeltaRational& r) const;
+  ConstraintP getBestImpliedBound(ArithVar v, ConstraintType t, const DeltaRational& r) const;
 
   /** Returns the constraint, if it exists */
-  ConstraintP lookupConstraint(ArithVar v,
-                               ConstraintType t,
-                               const DeltaRational& r) const;
+  ConstraintP lookupConstraint(ArithVar v, ConstraintType t, const DeltaRational& r) const;
 
   /**
-   * Returns a constraint with the variable v, the constraint type t and the
-   * value r. If there is such a constraint in the database already, it is
-   * returned. If there is no such constraint, this constraint is added to the
-   * database.
+   * Returns a constraint with the variable v, the constraint type t and the value r.
+   * If there is such a constraint in the database already, it is returned.
+   * If there is no such constraint, this constraint is added to the database.
    *
    */
-  ConstraintP getConstraint(ArithVar v,
-                            ConstraintType t,
-                            const DeltaRational& r);
+  ConstraintP getConstraint(ArithVar v, ConstraintType t, const DeltaRational& r);
 
   /**
    * Returns a constraint of the given type for the value and variable
@@ -1196,6 +1187,7 @@ private:
    * This is made if there is no such constraint.
    */
   ConstraintP ensureConstraint(ValueCollection& vc, ConstraintType t);
+
 
   void deleteConstraintAndNegation(ConstraintP c);
 
@@ -1224,8 +1216,8 @@ private:
                          ConstraintP b) const;
 
   /**
-   * Outputs a minimal set of unate implications onto the vector for the
-   * variable. This outputs lemmas of the general forms
+   * Outputs a minimal set of unate implications onto the vector for the variable.
+   * This outputs lemmas of the general forms
    *     (= p c) implies (<= p d) for c < d, or
    *     (= p c) implies (not (= p d)) for c != d.
    */
@@ -1234,8 +1226,7 @@ private:
                                  ArithVar v) const;
 
   /**
-   * Outputs a minimal set of unate implications onto the vector for the
-   * variable.
+   * Outputs a minimal set of unate implications onto the vector for the variable.
    *
    * If ineqs is true, this outputs lemmas of the general form
    *     (<= p c) implies (<= p d) for c < d.
@@ -1246,9 +1237,7 @@ private:
 
   void unatePropLowerBound(ConstraintP curr, ConstraintP prev);
   void unatePropUpperBound(ConstraintP curr, ConstraintP prev);
-  void unatePropEquality(ConstraintP curr,
-                         ConstraintP prevLB,
-                         ConstraintP prevUB);
+  void unatePropEquality(ConstraintP curr, ConstraintP prevLB, ConstraintP prevUB);
 
   /** AntecendentID must be in range. */
   ConstraintCP getAntecedent(AntecedentId p) const;

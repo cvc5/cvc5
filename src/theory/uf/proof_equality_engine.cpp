@@ -68,7 +68,7 @@ bool ProofEqEngine::assertFact(Node lit,
   ps.d_args = args;
   d_factPg.addStep(lit, ps);
   // add lazy step to proof
-  d_proof.addLazyStep(lit, &d_factPg, false);
+  d_proof.addLazyStep(lit, &d_factPg);
   // second, assert it to the equality engine
   Node reason = NodeManager::currentNM()->mkAnd(exp);
   return assertFactInternal(atom, polarity, reason);
@@ -116,7 +116,7 @@ bool ProofEqEngine::assertFact(Node lit,
   ps.d_args = args;
   d_factPg.addStep(lit, ps);
   // add lazy step to proof
-  d_proof.addLazyStep(lit, &d_factPg, false);
+  d_proof.addLazyStep(lit, &d_factPg);
   // second, assert it to the equality engine
   return assertFactInternal(atom, polarity, exp);
 }
@@ -140,7 +140,7 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofStepBuffer& psb)
     d_factPg.addStep(step.first, step.second);
   }
   // add lazy step to proof
-  d_proof.addLazyStep(lit, &d_factPg, false);
+  d_proof.addLazyStep(lit, &d_factPg);
   // second, assert it to the equality engine
   return assertFactInternal(atom, polarity, exp);
 }
@@ -157,7 +157,7 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofGenerator* pg)
     return false;
   }
   // note the proof generator is responsible for remembering the explanation
-  d_proof.addLazyStep(lit, pg, false);
+  d_proof.addLazyStep(lit, pg);
   // second, assert it to the equality engine
   return assertFactInternal(atom, polarity, exp);
 }
@@ -408,8 +408,15 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
       scopeAssumps.push_back(a);
     }
   }
-  // scope the proof constructed above, and connect the formula with the proof
-  // minimize the assumptions
+  // Scope the proof constructed above, and connect the formula with the proof
+  // minimize the assumptions. If we have no assumptions, SCOPE is a no-op and
+  // hence we omit its application.
+  if (scopeAssumps.empty() && tnk == TrustNodeKind::PROP_EXP)
+  {
+    // must add true as an explicit argument. This is to ensure that the
+    // propagation F from true proves (=> true F) instead of F.
+    scopeAssumps.push_back(nm->mkConst(true));
+  }
   pf = d_pnm->mkScope(pfBody, scopeAssumps, true, true);
   exp = nm->mkAnd(scopeAssumps);
   // Make the lemma or conflict node. This must exactly match the conclusion

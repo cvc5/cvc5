@@ -59,7 +59,7 @@ class InferProofCons : public ProofGenerator
    * This is used for lazy proof construction, where proofs are constructed
    * only for facts that are explained.
    */
-  void notifyFact(const DatatypesInference& di);
+  void notifyFact(std::shared_ptr<DatatypesInference> di);
 
   /**
    * This returns the proof for fact. This is required for using this class as

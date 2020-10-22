@@ -30,10 +30,16 @@ PreprocessProofGenerator::PreprocessProofGenerator(ProofNodeManager* pnm,
     : d_pnm(pnm),
       d_src(c ? c : &d_context),
       d_helperProofs(pnm, c ? c : &d_context),
+      d_inputPf(pnm, nullptr),
       d_name(name),
       d_ra(ra),
       d_rpp(rpp)
 {
+}
+
+void PreprocessProofGenerator::notifyInput(Node n)
+{
+  notifyNewAssert(n, &d_inputPf);
 }
 
 void PreprocessProofGenerator::notifyNewAssert(Node n, ProofGenerator* pg)

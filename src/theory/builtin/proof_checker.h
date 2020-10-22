@@ -50,6 +50,12 @@ enum class MethodId : uint32_t
   RW_EVALUATE,
   // identity
   RW_IDENTITY,
+  // theory preRewrite, note this is only intended to be used as an argument
+  // to THEORY_REWRITE in the final proof. It is not implemented in
+  // applyRewrite below, see documentation in proof_rule.h for THEORY_REWRITE.
+  RW_REWRITE_THEORY_PRE,
+  // same as above, for theory postRewrite
+  RW_REWRITE_THEORY_POST,
   //---------------------------- Substitutions
   // (= x y) is interpreted as x -> y, using Node::substitute
   SB_DEFAULT,
@@ -94,10 +100,11 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   /**
    * Get substitution for formula exp. Adds to vars/subs to the substitution
    * specified by exp for the substitution method ids, which may be multiple
-   * substitutions if exp is of kind AND. The vector from are the literals
-   * from exp that each substitution in vars/subs are based on. For example,
-   * if exp is (and (= x t) (= y s)), then vars = { x, y }, subs = { t, s },
-   * from = { (= x y), (= y s) }.
+   * substitutions if exp is of kind AND and ids is SB_DEFAULT (note the other
+   * substitution types always interpret applications of AND as a formula).
+   * The vector "from" are the literals from exp that each substitution in
+   * vars/subs are based on. For example, if exp is (and (= x t) (= y s)), then
+   * vars = { x, y }, subs = { t, s }, from = { (= x y), (= y s) }.
    */
   static bool getSubstitutionFor(Node exp,
                                  std::vector<TNode>& vars,

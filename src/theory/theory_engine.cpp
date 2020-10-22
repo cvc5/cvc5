@@ -824,8 +824,6 @@ void TheoryEngine::shutdown() {
       theoryOf(theoryId)->shutdown();
     }
   }
-
-  d_tpp.clearCache();
 }
 
 theory::Theory::PPAssertStatus TheoryEngine::solve(
@@ -854,8 +852,6 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << ") => " << solveStatus << endl;
   return solveStatus;
 }
-
-void TheoryEngine::preprocessStart() { d_tpp.clearCache(); }
 
 TrustNode TheoryEngine::preprocess(TNode assertion)
 {
@@ -1456,10 +1452,9 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
         {
           d_lazyProof->addLazyStep(tplemma.getProven(),
                                    tplemma.getGenerator(),
+                                   PfRule::PREPROCESS_LEMMA,
                                    true,
-                                   "TheoryEngine::lemma_pp",
-                                   false,
-                                   PfRule::PREPROCESS_LEMMA);
+                                   "TheoryEngine::lemma_pp");
           // ---------- from d_lazyProof -------------- from theory preprocess
           // lemma                       lemma = lemmap
           // ------------------------------------------ EQ_RESOLVE

@@ -19,6 +19,7 @@
 
 #include <vector>
 
+#include "expr/lazy_proof.h"
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
@@ -47,23 +48,39 @@ class NonClausalSimp : public PreprocessingPass
   };
 
   Statistics d_statistics;
+  /**
+   * Transform learned literal lit. We apply substitutions in subs once and then
+   * apply constant propagations cp to fixed point. Return the rewritten
+   * form of lit.
+   *
+   * If proofs are enabled, then we require that the learned
+   * literal preprocess proof generator has a proof of lit when this method
+   * is called, and ensure that the return literal also has a proof in d_llpg.
+   */
+  Node processLearnedLit(Node lit,
+                         theory::TrustSubstitutionMap* subs,
+                         theory::TrustSubstitutionMap* cp);
+  /**
+   * Process rewritten learned literal. This is called when we have a
+   * learned literal lit that is rewritten to litr based on the proof generator
+   * contained in trn (if it exists). The trust node trn should be of kind
+   * REWRITE and proving (= lit litr).
+   *
+   * This tracks the proof in the learned literal preprocess proof generator
+   * d_llpg below and returns the rewritten learned literal.
+   */
+  Node processRewrittenLearnedLit(theory::TrustNode trn);
   /** Is proof enabled? */
   bool isProofEnabled() const;
-  /**
-   * Add learned literal to the preprocess proof generator maintained by this
-   * class.
-   */
-  void assertLearnedLiteral(const std::vector<Node>& assertions,
-                            theory::TrustNode tll);
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /** the learned literal preprocess proof generator */
   std::unique_ptr<smt::PreprocessProofGenerator> d_llpg;
   /**
-   * An eager proof generator for automatically inferred proofs of learned
-   * literals.
+   * An lazy proof for learned literals that are reasserted into the assertions
+   * pipeline by this class.
    */
-  std::unique_ptr<theory::EagerProofGenerator> d_llRCons;
+  std::unique_ptr<LazyCDProof> d_llra;
   /**
    * A context-dependent list of trust substitution maps, which are required
    * for storing proofs.

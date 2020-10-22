@@ -214,6 +214,8 @@ libcvc4_add_sources(
   smt/abstract_values.h
   smt/assertions.cpp
   smt/assertions.h
+  smt/check_models.cpp
+  smt/check_models.h
   smt/command.cpp
   smt/command.h
   smt/defined_function.h
@@ -276,6 +278,8 @@ libcvc4_add_sources(
   smt/sygus_solver.h
   smt/term_formula_removal.cpp
   smt/term_formula_removal.h
+  smt/theory_rewrite_rcons.cpp
+  smt/theory_rewrite_rcons.h
   smt/update_ostream.h
   smt/witness_form.cpp
   smt/witness_form.h
@@ -387,9 +391,6 @@ libcvc4_add_sources(
   theory/arith/nl/strategy.h
   theory/arith/nl/transcendental_solver.cpp
   theory/arith/nl/transcendental_solver.h
-  theory/arith/proof_checker.cpp
-  theory/arith/proof_checker.h
-  theory/arith/proof_macros.h
   theory/arith/normal_form.cpp
   theory/arith/normal_form.h
   theory/arith/operator_elim.cpp
@@ -398,6 +399,7 @@ libcvc4_add_sources(
   theory/arith/partial_model.h
   theory/arith/proof_checker.cpp
   theory/arith/proof_checker.h
+  theory/arith/proof_macros.h
   theory/arith/simplex.cpp
   theory/arith/simplex.h
   theory/arith/simplex_update.cpp
@@ -440,6 +442,8 @@ libcvc4_add_sources(
   theory/bags/bags_statistics.h
   theory/bags/inference_manager.cpp
   theory/bags/inference_manager.h
+  theory/bags/make_bag_op.cpp
+  theory/bags/make_bag_op.h
   theory/bags/normal_form.cpp
   theory/bags/normal_form.h
   theory/bags/rewrites.cpp
@@ -534,6 +538,8 @@ libcvc4_add_sources(
   theory/datatypes/inference_manager.h
   theory/datatypes/infer_proof_cons.cpp
   theory/datatypes/infer_proof_cons.h
+  theory/datatypes/proof_checker.cpp
+  theory/datatypes/proof_checker.h
   theory/datatypes/sygus_datatype_utils.cpp
   theory/datatypes/sygus_datatype_utils.h
   theory/datatypes/sygus_extension.cpp
@@ -853,8 +859,6 @@ libcvc4_add_sources(
   theory/strings/infer_proof_cons.h
   theory/strings/inference_manager.cpp
   theory/strings/inference_manager.h
-  theory/strings/infer_proof_cons.cpp
-  theory/strings/infer_proof_cons.h
   theory/strings/normal_form.cpp
   theory/strings/normal_form.h
   theory/strings/proof_checker.cpp

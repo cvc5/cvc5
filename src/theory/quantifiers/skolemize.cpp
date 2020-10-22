@@ -27,24 +27,28 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-Skolemize::Skolemize(QuantifiersEngine* qe, context::UserContext* u)
-    : d_quantEngine(qe), d_skolemized(u)
+Skolemize::Skolemize(QuantifiersEngine* qe, context::UserContext* u, ProofNodeManager* pnm)
+    : d_quantEngine(qe), d_skolemized(u), d_epg(pnm==nullptr ? nullptr : new EagerProofGenerator(pnm, u, "Skolemize::epg"))
 {
 }
 
-Node Skolemize::process(Node q)
+TrustNode Skolemize::process(Node q)
 {
   // do skolemization
   if (d_skolemized.find(q) == d_skolemized.end())
   {
+    if (isProofEnabled())
+    {
+      // TODO
+    }
     Node body = getSkolemizedBody(q);
     NodeBuilder<> nb(kind::OR);
     nb << q << body.notNode();
     Node lem = nb;
     d_skolemized[q] = lem;
-    return lem;
+    return TrustNode::mkTrustLemma(lem, nullptr);
   }
-  return Node::null();
+  return TrustNode::null();
 }
 
 bool Skolemize::getSkolemConstants(Node q, std::vector<Node>& skolems)
@@ -291,14 +295,17 @@ Node Skolemize::mkSkolemizedBody(Node f,
 Node Skolemize::getSkolemizedBody(Node f)
 {
   Assert(f.getKind() == FORALL);
-  if (d_skolem_body.find(f) == d_skolem_body.end())
+  std::unordered_map<Node, Node, NodeHashFunction>::iterator it =
+      d_skolem_body.find(f);
+  if (it == d_skolem_body.end())
   {
     std::vector<TypeNode> fvTypes;
     std::vector<TNode> fvs;
     Node sub;
     std::vector<unsigned> sub_vars;
-    d_skolem_body[f] = mkSkolemizedBody(
+    Node ret = mkSkolemizedBody(
         f, f[1], fvTypes, fvs, d_skolem_constants[f], sub, sub_vars);
+    d_skolem_body[f] = ret;
     // store sub quantifier information
     if (!sub.isNull())
     {
@@ -320,8 +327,9 @@ Node Skolemize::getSkolemizedBody(Node f)
             f, f[0][i], d_skolem_constants[f][i]);
       }
     }
+    return ret;
   }
-  return d_skolem_body[f];
+  return it->second;
 }
 
 bool Skolemize::isInductionTerm(Node n)
@@ -362,6 +370,11 @@ bool Skolemize::printSkolemization(std::ostream& out)
     out << ")" << std::endl;
   }
   return printed;
+}
+
+bool Skolemize::isProofEnabled() const
+{
+  return d_epg!=nullptr;
 }
 
 } /* CVC4::theory::quantifiers namespace */

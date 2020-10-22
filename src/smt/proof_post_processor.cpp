@@ -21,6 +21,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
+#include "theory/theory.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::theory;
@@ -31,7 +32,7 @@ namespace smt {
 ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm,
                                                    SmtEngine* smte,
                                                    ProofGenerator* pppg)
-    : d_pnm(pnm), d_smte(smte), d_pppg(pppg), d_wfpm(pnm)
+    : d_pnm(pnm), d_smte(smte), d_pppg(pppg), d_wfpm(pnm), d_trrc(pnm)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   // always check whether to update ASSUME
@@ -460,8 +461,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
           // add previous rewrite steps
           for (unsigned j = 0, nvars = vvec.size(); j < nvars; j++)
           {
-            // not necessarily closed, so we pass false to addRewriteStep.
-            tcg.addRewriteStep(vvec[j], svec[j], pgs[j], false);
+            tcg.addRewriteStep(vvec[j], svec[j], pgs[j]);
           }
           // get the proof for the update to the current substitution
           Node seqss = subs.eqNode(ss);
@@ -506,8 +506,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
                                true);
       for (unsigned j = 0, nvars = vvec.size(); j < nvars; j++)
       {
-        // not necessarily closed, so we pass false to addRewriteStep.
-        tcpg.addRewriteStep(vvec[j], svec[j], pgs[j], false);
+        tcpg.addRewriteStep(vvec[j], svec[j], pgs[j]);
       }
       // add the proof constructed by the term conversion utility
       std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(eq);
@@ -558,10 +557,17 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         // did not have a proof of rewriting, probably isExtEq is true
         if (isExtEq)
         {
-          // don't update
-          return Node::null();
+          // update to THEORY_REWRITE with idr
+          Assert(args.size() >= 1);
+          TheoryId theoryId = Theory::theoryOf(args[0].getType());
+          Node tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
+          cdp->addStep(eq, PfRule::THEORY_REWRITE, {}, {eq, tid, args[1]});
         }
-        cdp->addStep(eq, PfRule::TRUST_REWRITE, {}, {eq});
+        else
+        {
+          // this should never be applied
+          cdp->addStep(eq, PfRule::TRUST_REWRITE, {}, {eq});
+        }
       }
       else
       {
@@ -594,14 +600,13 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     Assert(!args.empty());
     Node eq = args[0];
     Assert(eq.getKind() == EQUAL);
-    // try to replay theory rewrite
-    // first, check that maybe its just an evaluation step
-    ProofChecker* pc = d_pnm->getChecker();
-    Node ceval =
-        pc->checkDebug(PfRule::EVALUATE, {}, {eq[0]}, eq, "smt-proof-pp-debug");
-    if (!ceval.isNull() && ceval == eq)
+    TheoryId tid = THEORY_BUILTIN;
+    builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
+    theory::MethodId mid = MethodId::RW_REWRITE;
+    builtin::BuiltinProofRuleChecker::getMethodId(args[2], mid);
+    // first, try to replay the rewrite using the standard reconstruction module
+    if (d_trrc.reconstruct(cdp, eq, tid, mid))
     {
-      cdp->addStep(eq, PfRule::EVALUATE, {}, {eq[0]});
       return eq;
     }
     // otherwise no update
@@ -728,16 +733,8 @@ bool ProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                                  bool& continueUpdate)
 {
   PfRule r = pn->getRule();
-  if (Trace.isOn("final-pf-hole"))
-  {
-    if (r == PfRule::THEORY_REWRITE)
-    {
-      Trace("final-pf-hole") << "hole: " << r << " : " << pn->getResult()
-                            << std::endl;
-    }
-  }
   // if not doing eager pedantic checking, fail if below threshold
-  if (!options::proofNewPedanticEager())
+  if (!options::proofNewEagerChecking())
   {
     if (!d_pedanticFailure)
     {
@@ -756,6 +753,20 @@ bool ProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   // record stats for the rule
   d_ruleCount << r;
   ++d_totalRuleCount;
+  // print for debugging
+  if (Trace.isOn("final-pf-hole"))
+  {
+    // currently only track theory rewrites
+    if (r == PfRule::THEORY_REWRITE)
+    {
+      const std::vector<Node>& args = pn->getArguments();
+      Node eq = args[0];
+      TheoryId tid = THEORY_BUILTIN;
+      builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
+      Trace("final-pf-hole")
+          << "hole " << r << " " << tid << " : " << eq << std::endl;
+    }
+  }
   return false;
 }
 

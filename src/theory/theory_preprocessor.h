@@ -19,6 +19,7 @@
 
 #include <unordered_map>
 
+#include "context/cdhashmap.h"
 #include "context/context.h"
 #include "expr/lazy_proof.h"
 #include "expr/node.h"
@@ -39,7 +40,7 @@ namespace theory {
  */
 class TheoryPreprocessor
 {
-  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
+  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
 
  public:
   /** Constructs a theory preprocessor */
@@ -49,8 +50,6 @@ class TheoryPreprocessor
                      ProofNodeManager* pnm = nullptr);
   /** Destroys a theory preprocessor */
   ~TheoryPreprocessor();
-  /** Clear the cache of this class */
-  void clearCache();
   /**
    * Preprocesses the given assertion node. It returns a TrustNode of kind
    * TrustNodeKind::REWRITE indicating the preprocessed form of node. It stores

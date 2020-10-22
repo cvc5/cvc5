@@ -59,9 +59,9 @@ class ProofCircuitPropagator
   std::shared_ptr<ProofNode> impliesYFromX(Node parent);
 
   /** Derive X from (= X Y) */
-  std::shared_ptr<ProofNode> eqXFromY(bool y, Node Parent);
+  std::shared_ptr<ProofNode> eqXFromY(bool y, Node parent);
   /** Derive Y from (= X Y) */
-  std::shared_ptr<ProofNode> eqYFromX(bool x, Node Parent);
+  std::shared_ptr<ProofNode> eqYFromX(bool x, Node parent);
   /** Derive X from (not (= X Y)) */
   std::shared_ptr<ProofNode> neqXFromY(bool y, Node parent);
   /** Derive Y from (not (= X Y)) */
@@ -99,13 +99,18 @@ class ProofCircuitPropagator
    * the proof rule). Automatically adds the clauses to resolve with as
    * assumptions, depending on their polarity.
    */
-  std::shared_ptr<ProofNode> mkResolution(std::shared_ptr<ProofNode> clause,
-                                          const std::vector<Node>& lits,
-                                          const std::vector<bool>& polarity);
-  /** Shorthand for mkResolution(clause, lits, {polarity, ...}) */
-  std::shared_ptr<ProofNode> mkResolution(std::shared_ptr<ProofNode> clause,
-                                          const std::vector<Node>& lits,
-                                          bool polarity);
+  std::shared_ptr<ProofNode> mkCResolution(
+      const std::shared_ptr<ProofNode>& clause,
+      const std::vector<Node>& lits,
+      const std::vector<bool>& polarity);
+  /** Shorthand for mkCResolution(clause, lits, {polarity, ...}) */
+  std::shared_ptr<ProofNode> mkCResolution(
+      const std::shared_ptr<ProofNode>& clause,
+      const std::vector<Node>& lits,
+      bool polarity);
+  /** Apply RESOLUTION rule */
+  std::shared_ptr<ProofNode> mkResolution(
+      const std::shared_ptr<ProofNode>& clause, const Node& lit, bool polarity);
   /** Apply NOT_NOT_ELIM rule if n.getResult() is a nested negation */
   std::shared_ptr<ProofNode> mkNot(const std::shared_ptr<ProofNode>& n);
 
@@ -113,7 +118,10 @@ class ProofCircuitPropagator
   ProofNodeManager* d_pnm;
 };
 
-/** Proof generator for backward propagation */
+/**
+ * Proof generator for backward propagation
+ * A backward propagation is triggered by the assignment of the parent node.
+ */
 class ProofCircuitPropagatorBackward : public ProofCircuitPropagator
 {
  public:
@@ -148,11 +156,16 @@ class ProofCircuitPropagatorBackward : public ProofCircuitPropagator
   std::shared_ptr<ProofNode> impliesNegY();
 
  private:
+  /** The parent node */
   TNode d_parent;
+  /** The assignment of d_parent */
   bool d_parentAssignment;
 };
 
-/** Proof generator for forward propagation */
+/**
+ * Proof generator for forward propagation
+ * A forward propagation is triggered by the assignment of a child node.
+ */
 class ProofCircuitPropagatorForward : public ProofCircuitPropagator
 {
  public:
@@ -185,8 +198,11 @@ class ProofCircuitPropagatorForward : public ProofCircuitPropagator
   std::shared_ptr<ProofNode> xorEval(bool x, bool y);
 
  private:
+  /** The current child that triggered the propagations */
   Node d_child;
+  /** The assignment of d_child */
   bool d_childAssignment;
+  /** The parent node used for propagation */
   Node d_parent;
 };
 

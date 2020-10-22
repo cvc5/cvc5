@@ -221,16 +221,17 @@ enum class PfRule : uint32_t
   THEORY_LEMMA,
   // ======== Theory Rewrite
   // Children: none
-  // Arguments: (F, tid, preRewrite?)
+  // Arguments: (F, tid, rid)
   // ----------------------------------------
   // Conclusion: F
   // where F is an equality of the form (= t t') where t' is obtained by
-  // applying the theory rewriter with identifier tid in either its prewrite
-  // (when preRewrite is true) or postrewrite method. Notice that the checker
-  // for this rule does not replay the rewrite to ensure correctness, since
-  // theory rewriter methods are not static. For example, the quantifiers
-  // rewriter involves constructing new bound variables that are not guaranteed
-  // to be consistent on each call.
+  // applying the kind of rewriting given by the method identifier rid, which
+  // is one of:
+  //  { RW_REWRITE_THEORY_PRE, RW_REWRITE_THEORY_POST, RW_REWRITE_EQ_EXT }
+  // Notice that the checker for this rule does not replay the rewrite to ensure
+  // correctness, since theory rewriter methods are not static. For example,
+  // the quantifiers rewriter involves constructing new bound variables that are
+  // not guaranteed to be consistent on each call.
   THEORY_REWRITE,
   // The remaining rules in this section have the signature of a "trusted rule":
   //
@@ -280,11 +281,14 @@ enum class PfRule : uint32_t
   //   C is a clause resulting from collecting all the literals in C1, minus the
   //   first occurrence of the pivot or its negation, and C2, minus the first
   //   occurrence of the pivot or its negation, according to the policy above.
+  //   If the resulting clause has a single literal, that literal itself is the
+  //   result; if it has no literals, then the result is false; otherwise it's
+  //   an OR node of the resulting literals.
   //
   //   Note that it may be the case that the pivot does not occur in the
   //   clauses. In this case the rule is not unsound, but it does not correspond
-  //   to resolution but rather to an weakening of the clause that did not have
-  //   a literal eliminated.
+  //   to resolution but rather to a weakening of the clause that did not have a
+  //   literal eliminated.
   RESOLUTION,
   // ======== Chain Resolution
   // Children: (P1:C_1, ..., Pm:C_n)
@@ -702,10 +706,11 @@ enum class PfRule : uint32_t
   // Conclusion: (= ti si)
   DT_UNIF,
   // ======== Instantiate
-  // Children: (P:((_ is C) t))
-  // Arguments: none
+  // Children: none
+  // Arguments: (t, n)
   // ----------------------------------------
-  // Conclusion: (= t (C (sel_1 t) ... (sel_n t)))
+  // Conclusion: (= ((_ is C) t) (= t (C (sel_1 t) ... (sel_n t))))
+  // where C is the n^th constructor of the type of T.
   DT_INST,
   // ======== Split
   // Children: none
@@ -965,11 +970,13 @@ enum class PfRule : uint32_t
   // fixed length of component i of the regular expression concatenation R.
   RE_UNFOLD_NEG_CONCAT_FIXED,
   // ======== Regular expression elimination
-  // Children: (P:F)
-  // Arguments: none
+  // Children: none
+  // Arguments: (F, b)
   // ---------------------
-  // Conclusion: R
-  // where R = strings::RegExpElimination::eliminate(F).
+  // Conclusion: (= F strings::RegExpElimination::eliminate(F, b))
+  // where b is a Boolean indicating whether we are using aggressive
+  // eliminations. Notice this rule concludes (= F F) if no eliminations
+  // are performed for F.
   RE_ELIM,
   //======================== Code points
   // Children: none

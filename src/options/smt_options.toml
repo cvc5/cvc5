@@ -184,14 +184,6 @@ header = "options/smt_options.h"
   help       = "check proofs eagerly with proof-new for local debugging"
 
 [[option]]
-  name       = "proofNewPedanticEager"
-  category   = "regular"
-  long       = "proof-new-pedantic-eager"
-  type       = "bool"
-  default    = "false"
-  help       = "check pedantic levels eagerly (during proof rule construction) instead of during final proof construction"
-
-[[option]]
   name       = "checkProofsNewFail"
   category   = "regular"
   long       = "check-proofs-new-fail"

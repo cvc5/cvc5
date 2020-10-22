@@ -177,12 +177,18 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
       // must correct the orientation on this leaf
       std::vector<std::shared_ptr<ProofNode>> children;
       children.push_back(pfaa);
-      std::vector<Node> args;
-      args.push_back(a);
       for (std::shared_ptr<ProofNode> pfs : fa.second)
       {
         Assert(pfs->getResult() == a);
-        updateNode(pfs.get(), PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
+        // use SYMM if possible
+        if (aMatch==aeqSym)
+        {
+          updateNode(pfs.get(), PfRule::SYMM, children, {});
+        }
+        else
+        {
+          updateNode(pfs.get(), PfRule::MACRO_SR_PRED_TRANSFORM, children, {a});
+        }
       }
       Trace("pnm-scope") << "...finished" << std::endl;
       acu.insert(aMatch);

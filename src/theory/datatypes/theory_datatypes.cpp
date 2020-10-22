@@ -68,6 +68,13 @@ TheoryDatatypes::TheoryDatatypes(Context* c,
   // indicate we are using the default theory state object
   d_theoryState = &d_state;
   d_inferManager = &d_im;
+
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
+  if (pc != nullptr)
+  {
+    // add checkers
+    d_pchecker.registerTo(pc);
+  }
 }
 
 TheoryDatatypes::~TheoryDatatypes() {
@@ -317,7 +324,10 @@ void TheoryDatatypes::postCheck(Effort level)
                     Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
                     Node lemma = utils::mkSplit(n, dt);
                     Trace("dt-split-debug") << "Split lemma is : " << lemma << std::endl;
-                    d_im.lemma(lemma, LemmaProperty::SEND_ATOMS, false);
+                    d_im.sendDtLemma(lemma,
+                                     InferId::SPLIT,
+                                     LemmaProperty::SEND_ATOMS,
+                                     false);
                   }
                   if( !options::dtBlastSplits() ){
                     break;
@@ -419,8 +429,33 @@ void TheoryDatatypes::notifyFact(TNode atom,
 
 void TheoryDatatypes::preRegisterTerm(TNode n)
 {
-  Debug("datatypes-prereg")
+  Trace("datatypes-prereg")
       << "TheoryDatatypes::preRegisterTerm() " << n << endl;
+  // must ensure the type is well founded and has no nested recursion if
+  // the option dtNestedRec is not set to true.
+  TypeNode tn = n.getType();
+  if (tn.isDatatype())
+  {
+    const DType& dt = tn.getDType();
+    Trace("dt-expand") << "Check properties of " << dt.getName() << std::endl;
+    if (!dt.isWellFounded())
+    {
+      std::stringstream ss;
+      ss << "Cannot handle non-well-founded datatype " << dt.getName();
+      throw LogicException(ss.str());
+    }
+    Trace("dt-expand") << "...well-founded ok" << std::endl;
+    if (!options::dtNestedRec())
+    {
+      if (dt.hasNestedRecursion())
+      {
+        std::stringstream ss;
+        ss << "Cannot handle nested-recursive datatype " << dt.getName();
+        throw LogicException(ss.str());
+      }
+      Trace("dt-expand") << "...nested recursion ok" << std::endl;
+    }
+  }
   collectTerms( n );
   switch (n.getKind()) {
   case kind::EQUAL:
@@ -446,28 +481,7 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
 TrustNode TheoryDatatypes::expandDefinition(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
-  // must ensure the type is well founded and has no nested recursion if
-  // the option dtNestedRec is not set to true.
   TypeNode tn = n.getType();
-  if (tn.isDatatype())
-  {
-    const DType& dt = tn.getDType();
-    if (!dt.isWellFounded())
-    {
-      std::stringstream ss;
-      ss << "Cannot handle non-well-founded datatype " << dt.getName();
-      throw LogicException(ss.str());
-    }
-    if (!options::dtNestedRec())
-    {
-      if (dt.hasNestedRecursion())
-      {
-        std::stringstream ss;
-        ss << "Cannot handle nested-recursive datatype " << dt.getName();
-        throw LogicException(ss.str());
-      }
-    }
-  }
   Node ret;
   switch (n.getKind())
   {
@@ -658,7 +672,7 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
             conf.push_back(unifEq);
             Trace("dt-conflict")
                 << "CONFLICT: Clash conflict : " << conf << std::endl;
-            d_im.conflictExp(conf, nullptr);
+            d_im.sendDtConflict(conf, InferId::CLASH_CONFLICT);
             return;
           }
           else
@@ -859,10 +873,10 @@ void TheoryDatatypes::addTester(
         //conflict because equivalence class contains a constructor
         std::vector<Node> conf;
         conf.push_back(t);
-        conf.push_back(eqc->d_constructor.get().eqNode(t_arg));
+        conf.push_back(t_arg.eqNode(eqc->d_constructor.get()));
         Trace("dt-conflict")
             << "CONFLICT: Tester eq conflict " << conf << std::endl;
-        d_im.conflictExp(conf, nullptr);
+        d_im.sendDtConflict(conf, InferId::TESTER_CONFLICT);
         return;
       }else{
         makeConflict = true;
@@ -968,7 +982,7 @@ void TheoryDatatypes::addTester(
     conf.push_back(t);
     conf.push_back(jt[0].eqNode(t_arg));
     Trace("dt-conflict") << "CONFLICT: Tester conflict : " << conf << std::endl;
-    d_im.conflictExp(conf, nullptr);
+    d_im.sendDtConflict(conf, InferId::TESTER_MERGE_CONFLICT);
   }
 }
 
@@ -1026,7 +1040,7 @@ void TheoryDatatypes::addConstructor( Node c, EqcInfo* eqc, Node n ){
           conf.push_back(c.eqNode(t[0][0]));
           Trace("dt-conflict")
               << "CONFLICT: Tester merge eq conflict : " << conf << std::endl;
-          d_im.conflictExp(conf, nullptr);
+          d_im.sendDtConflict(conf, InferId::TESTER_CONFLICT);
           return;
         }
       }
@@ -1579,7 +1593,7 @@ void TheoryDatatypes::checkCycles() {
             Assert(expl.size() > 0);
             Trace("dt-conflict")
                 << "CONFLICT: Cycle conflict : " << expl << std::endl;
-            d_im.conflictExp(expl, nullptr);
+            d_im.sendDtConflict(expl, InferId::CYCLE);
             return;
           }
         }

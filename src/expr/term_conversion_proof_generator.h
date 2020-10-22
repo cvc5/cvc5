@@ -144,6 +144,8 @@ class TConvProofGenerator : public ProofGenerator
   /**
    * Add rewrite step t --> s based on proof generator.
    *
+   * @param trustId If a null proof generator is provided, we add a step to
+   * the proof that has trustId as the rule and expected as the sole argument.
    * @param isClosed whether to expect that pg can provide a closed proof for
    * this fact.
    * @param tctx The term context identifier for the rewrite step. This
@@ -154,7 +156,8 @@ class TConvProofGenerator : public ProofGenerator
   void addRewriteStep(Node t,
                       Node s,
                       ProofGenerator* pg,
-                      bool isClosed = true,
+                      PfRule trustId = PfRule::ASSUME,
+                      bool isClosed = false,
                       uint32_t tctx = 0);
   /** Same as above, for a single step */
   void addRewriteStep(Node t, Node s, ProofStep ps, uint32_t tctx = 0);
@@ -181,16 +184,6 @@ class TConvProofGenerator : public ProofGenerator
    * @return The proof for f.
    */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
-  /**
-   * Get tranform proof for f. Called when proof generator pg has a proof for
-   * f. Returns a proof for f' where f' is the result of rewriting f based on
-   * the steps registered to this class.
-   *
-   * @param f The equality fact to get the tranform proof for.
-   * @param pg The proof generator that can prove f.
-   * @return The proof for f', where f' is the rewritten form of f.
-   */
-  std::shared_ptr<ProofNode> getTranformProofFor(Node f, ProofGenerator* pg);
   /** Identify this generator (for debugging, etc..) */
   std::string identify() const override;
 

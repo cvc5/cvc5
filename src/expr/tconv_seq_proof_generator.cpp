@@ -164,18 +164,4 @@ theory::TrustNode TConvSeqProofGenerator::mkTrustRewriteSequence(
 
 std::string TConvSeqProofGenerator::identify() const { return d_name; }
 
-TConvSubSeqGenerator::TConvSubSeqGenerator(TConvSeqProofGenerator* tref,
-                                           size_t start,
-                                           size_t end,
-                                           std::string name)
-    : d_tref(tref), d_start(start), d_end(end), d_name(name)
-{
-}
-
-std::shared_ptr<ProofNode> TConvSubSeqGenerator::getProofFor(Node f)
-{
-  return d_tref->getSubsequenceProofFor(f, d_start, d_end);
-}
-std::string TConvSubSeqGenerator::identify() const { return d_name; }
-
 }  // namespace CVC4

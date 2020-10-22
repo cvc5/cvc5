@@ -62,13 +62,17 @@ TConvProofGenerator::TConvProofGenerator(ProofNodeManager* pnm,
 
 TConvProofGenerator::~TConvProofGenerator() {}
 
-void TConvProofGenerator::addRewriteStep(
-    Node t, Node s, ProofGenerator* pg, bool isClosed, uint32_t tctx)
+void TConvProofGenerator::addRewriteStep(Node t,
+                                         Node s,
+                                         ProofGenerator* pg,
+                                         PfRule trustId,
+                                         bool isClosed,
+                                         uint32_t tctx)
 {
   Node eq = registerRewriteStep(t, s, tctx);
   if (!eq.isNull())
   {
-    d_proof.addLazyStep(eq, pg, isClosed);
+    d_proof.addLazyStep(eq, pg, trustId, isClosed);
   }
 }
 
@@ -203,32 +207,6 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
   Assert (pfn!=nullptr);
   Trace("tconv-pf-gen-debug") << "... proof is " << *pfn << std::endl;
   return pfn;
-}
-
-std::shared_ptr<ProofNode> TConvProofGenerator::getTranformProofFor(
-    Node f, ProofGenerator* pg)
-{
-  // we use the existing proofs
-  LazyCDProof lpf(
-      d_proof.getManager(), &d_proof, nullptr, d_name + "::LazyCDProof");
-  lpf.addLazyStep(f, pg);
-  // ------ from pg  ------- from getProofForRewriting
-  // f                f = f'
-  // ----------------------- EQ_RESOLVE
-  // f'
-  Node conc = getProofForRewriting(f, lpf, d_tcontext);
-  Assert(conc.getKind() == EQUAL);
-  Node fp = f;
-  // if it doesn't rewrite, don't have to add any step
-  if (conc[0] != conc[1])
-  {
-    fp = conc[1];
-    std::vector<Node> pfChildren;
-    pfChildren.push_back(f);
-    pfChildren.push_back(conc);
-    lpf.addStep(fp, PfRule::EQ_RESOLVE, pfChildren, {});
-  }
-  return lpf.getProofFor(fp);
 }
 
 Node TConvProofGenerator::getProofForRewriting(Node t,

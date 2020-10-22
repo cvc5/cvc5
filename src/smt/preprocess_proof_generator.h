@@ -74,6 +74,10 @@ class PreprocessProofGenerator : public ProofGenerator
                            PfRule rpp = PfRule::PREPROCESS);
   ~PreprocessProofGenerator() {}
   /**
+   * Notify that n is an input (its proof is ASSUME).
+   */
+  void notifyInput(Node n);
+  /**
    * Notify that n is a new assertion, where pg can provide a proof of n.
    */
   void notifyNewAssert(Node n, ProofGenerator* pg);
@@ -124,6 +128,11 @@ class PreprocessProofGenerator : public ProofGenerator
   NodeTrustNodeMap d_src;
   /** A context-dependent list of LazyCDProof, allocated for conjoin steps */
   LazyCDProofSet d_helperProofs;
+  /**
+   * A cd proof for input assertions, this is an empty proof that intentionally
+   * returns (ASSUME f) for all f.
+   */
+  CDProof d_inputPf;
   /** Name for debugging */
   std::string d_name;
   /** The trust rule for new assertions with no provided proof generator */
