@@ -48,7 +48,7 @@
  ** Sigma_{i=0}^{b-1}(bvand s[(i+1)*g, i*g] t[(i+1)*g, i*g])*2^(i*g)
  **
  ** More details and examples for this case are described next to
- ** the function createBitwiseNode.
+ ** the function createSumNode.
  ** Similar transformations are done for bvor, bvxor, bvxnor, bvnand, bvnor.
  **
  ** Tr((bvshl a b)) = ite(Tr(b) >= k, 0, Tr(a)*ITE), where k is the bit width of

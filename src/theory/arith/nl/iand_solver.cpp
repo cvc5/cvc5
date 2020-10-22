@@ -257,7 +257,7 @@ Node IAndSolver::sumBasedLemma(Node i)
   uint64_t granularity = options::BVAndIntegerGranularity();
   NodeManager* nm = NodeManager::currentNM();
   Node lem = nm->mkNode(
-      EQUAL, i, d_iandTable.createBitwiseNode(x, y, bvsize, granularity));
+      EQUAL, i, d_iandTable.createSumNode(x, y, bvsize, granularity));
   return lem;
 }
 

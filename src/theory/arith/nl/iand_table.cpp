@@ -90,7 +90,7 @@ Node IAndTable::createITEFromTable(
   return ite;
 }
 
-Node IAndTable::createBitwiseNode(Node x,
+Node IAndTable::createSumNode(Node x,
                                   Node y,
                                   uint64_t bvsize,
                                   uint64_t granularity)

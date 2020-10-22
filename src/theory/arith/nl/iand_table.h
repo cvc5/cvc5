@@ -81,10 +81,10 @@ class IAndTable
    *        pass.
    * @return A node that represents the operation, as described above.
    */
-  Node createBitwiseNode(Node x, Node y, uint64_t bvsize, uint64_t granularity);
+  Node createSumNode(Node x, Node y, uint64_t bvsize, uint64_t granularity);
 
   /**
-   * A helper function for createBitwiseNode
+   * A helper function for createSumNode
    * @param x integer node corresponding to the original first bit-vector
    *        argument
    * @param y integer node corresponding to the original second bit-vector
@@ -122,7 +122,7 @@ class IAndTable
    * For each granularity between 1 and 8, we store a separate table
    * in d_bvandTable[granularity].
    * The definition of these tables is given in the description of
-   * createBitwiseNode.
+   * createSumNode.
    */
   std::map<uint64_t, std::map<std::pair<int64_t, int64_t>, uint64_t>>
       d_bvandTable;
