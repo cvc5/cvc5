@@ -51,10 +51,15 @@ CircuitPropagator::CircuitPropagator(bool enableForward, bool enableBackward)
 {
 }
 
+void CircuitPropagator::finish()
+{
+  Trace("circuit-prop") << "FINISH" << std::endl;
+  d_context.pop();
+}
+
 void CircuitPropagator::assertTrue(TNode assertion)
 {
   Trace("circuit-prop") << "TRUE: " << assertion << std::endl;
-  d_assumptions.emplace_back(assertion);
   if (assertion.getKind() == kind::CONST_BOOLEAN && !assertion.getConst<bool>())
   {
     makeConflict(assertion);

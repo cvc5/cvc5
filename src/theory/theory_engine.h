@@ -445,7 +445,6 @@ class TheoryEngine {
   bool isProofEnabled() const;
 
  public:
-
   /**
    * Runs theory specific preprocessing on the non-Boolean parts of
    * the formula.  This is only called on input assertions, after ITEs
