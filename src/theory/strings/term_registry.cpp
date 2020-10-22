@@ -203,8 +203,11 @@ void TermRegistry::preRegisterTerm(TNode n)
   }
   else if (tn.isBoolean())
   {
-    // Get triggered for both equal and dis-equal
-    ee->addTriggerPredicate(n);
+    if (k==STRING_STRCTN || k == STRING_LEQ)
+    {
+      // Get triggered for both equal and dis-equal
+      ee->addTriggerPredicate(n);
+    }
   }
   else
   {

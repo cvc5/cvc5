@@ -1739,7 +1739,7 @@ void EqualityEngine::addTriggerPredicate(TNode predicate) {
     return addTriggerEquality(predicate);
   }
   Assert(d_congruenceKinds.tst(predicate.getKind()))
-      << "No point in adding non-congruence predicates";
+      << "No point in adding non-congruence predicates, kind is " << predicate.getKind();
 
   if (d_done) {
     return;
