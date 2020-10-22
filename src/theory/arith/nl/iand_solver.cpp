@@ -34,12 +34,11 @@ IAndSolver::IAndSolver(InferenceManager& im, ArithState& state, NlModel& model)
       d_initRefine(state.getUserContext())
 {
   NodeManager* nm = NodeManager::currentNM();
-  d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
+  d_true = nm->mkConst(true);
   d_zero = nm->mkConst(Rational(0));
   d_one = nm->mkConst(Rational(1));
   d_two = nm->mkConst(Rational(2));
-  d_neg_one = nm->mkConst(Rational(-1));
 }
 
 IAndSolver::~IAndSolver() {}
@@ -90,7 +89,7 @@ void IAndSolver::checkInitialRefine()
       // conj.push_back(i.eqNode(nm->mkNode(IAND, op, i[1], i[0])));
       // 0 <= iand(x,y) < 2^k
       conj.push_back(nm->mkNode(LEQ, d_zero, i));
-      conj.push_back(nm->mkNode(LT, i, twoToK(k)));
+      conj.push_back(nm->mkNode(LT, i, d_iandTable.twoToK(k)));
       // iand(x,y)<=x
       conj.push_back(nm->mkNode(LEQ, i, i[0]));
       // iand(x,y)<=y
@@ -178,24 +177,6 @@ Node IAndSolver::convertToBvK(unsigned k, Node n) const
   return Rewriter::rewrite(bn);
 }
 
-Node IAndSolver::twoToK(unsigned k) const
-{
-  // could be faster
-  NodeManager* nm = NodeManager::currentNM();
-  Node ret = nm->mkNode(POW, d_two, nm->mkConst(Rational(k)));
-  ret = Rewriter::rewrite(ret);
-  return ret;
-}
-
-Node IAndSolver::twoToKMinusOne(unsigned k) const
-{
-  // could be faster
-  NodeManager* nm = NodeManager::currentNM();
-  Node ret = nm->mkNode(MINUS, twoToK(k), d_one);
-  ret = Rewriter::rewrite(ret);
-  return ret;
-}
-
 Node IAndSolver::mkIAnd(unsigned k, Node x, Node y) const
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -215,17 +196,7 @@ Node IAndSolver::mkIOr(unsigned k, Node x, Node y) const
 Node IAndSolver::mkINot(unsigned k, Node x) const
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node ret = nm->mkNode(MINUS, twoToKMinusOne(k), x);
-  ret = Rewriter::rewrite(ret);
-  return ret;
-}
-
-Node IAndSolver::iextract(unsigned i, unsigned j, Node n) const
-{
-  NodeManager* nm = NodeManager::currentNM();
-  //  ((_ extract i j) n) is n / 2^j mod 2^{i-j+1}
-  Node n2j = nm->mkNode(INTS_DIVISION_TOTAL, n, twoToK(j));
-  Node ret = nm->mkNode(INTS_MODULUS_TOTAL, n2j, twoToK(i - j + 1));
+  Node ret = nm->mkNode(MINUS, d_iandTable.twoToKMinusOne(k), x);
   ret = Rewriter::rewrite(ret);
   return ret;
 }

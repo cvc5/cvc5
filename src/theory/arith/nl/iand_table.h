@@ -32,6 +32,8 @@ namespace nl {
 class IAndTable
 {
  public:
+  IAndTable();
+
   /**
    * A generic function that creates a node that represents a bvand
    * operation.
@@ -83,6 +85,13 @@ class IAndTable
    */
   Node createSumNode(Node x, Node y, uint64_t bvsize, uint64_t granularity);
 
+  /** extract from integer
+   *  ((_ extract i j) n) is n / 2^j mod 2^{i-j+1}
+   */
+  Node iextract(unsigned i, unsigned j, Node n) const;
+
+  // Helpers
+
   /**
    * A helper function for createSumNode
    * @param x integer node corresponding to the original first bit-vector
@@ -118,6 +127,12 @@ class IAndTable
   void addDefaultValue(std::map<std::pair<int64_t, int64_t>, uint64_t>& table,
                        uint64_t num_of_values);
 
+  /** 2^k */
+  Node twoToK(unsigned k) const;
+
+  /** 2^k-1 */
+  Node twoToKMinusOne(unsigned k) const;
+
   /**
    * For each granularity between 1 and 8, we store a separate table
    * in d_bvandTable[granularity].
@@ -126,6 +141,11 @@ class IAndTable
    */
   std::map<uint64_t, std::map<std::pair<int64_t, int64_t>, uint64_t>>
       d_bvandTable;
+
+ private:
+  /** commonly used terms */
+  Node d_one;
+  Node d_two;
 };
 
 }  // namespace nl
