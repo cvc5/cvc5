@@ -1313,8 +1313,9 @@ TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
     return TrustNode::mkTrustRewrite(node, rewritten, nullptr);
   }
 
-  // (is_singleton A) is expanded as (= A (singleton x)))
-  // where x: T is a skolem and T is the sort of elements of A
+  // (is_singleton A) is expanded as
+  // (exists ((x: T)) (= A (singleton x)))
+  // where T is the sort of elements of A
 
   NodeManager* nm = NodeManager::currentNM();
   Node set = rewritten[0];
