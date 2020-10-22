@@ -177,7 +177,7 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
       //   rewrite( d_nodes[i] ^ n )
       // allocate a fresh proof which will act as the proof generator
       LazyCDProof* lcp = d_pppg->allocateHelperProof();
-      lcp->addLazyStep(n, pg, false);
+      lcp->addLazyStep(n, pg, PfRule::PREPROCESS);
       if (d_nodes[i].isConst() && d_nodes[i].getConst<bool>())
       {
         // skip the AND_INTRO if the previous d_nodes[i] was true
