@@ -1,3 +1,4 @@
+; COMMAND-LINE: --strings-exp
 (set-logic ALL)
 (set-info :status sat)
 (declare-datatypes ((a 0)) (((b))))
