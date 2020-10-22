@@ -27,8 +27,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-Skolemize::Skolemize(QuantifiersEngine* qe, context::UserContext* u)
-    : d_quantEngine(qe), d_skolemized(u)
+Skolemize::Skolemize(QuantifiersEngine* qe, context::UserContext* u, ProofNodeManager* pnm)
+    : d_quantEngine(qe), d_skolemized(u), d_epg(pnm==nullptr ? nullptr : new EagerProofGenerator(pnm, u, "Skolemize::epg"))
 {
 }
 
@@ -37,6 +37,10 @@ TrustNode Skolemize::process(Node q)
   // do skolemization
   if (d_skolemized.find(q) == d_skolemized.end())
   {
+    if (isProofEnabled())
+    {
+      // TODO
+    }
     Node body = getSkolemizedBody(q);
     NodeBuilder<> nb(kind::OR);
     nb << q << body.notNode();
@@ -366,6 +370,11 @@ bool Skolemize::printSkolemization(std::ostream& out)
     out << ")" << std::endl;
   }
   return printed;
+}
+
+bool Skolemize::isProofEnabled() const
+{
+  return d_epg!=nullptr;
 }
 
 } /* CVC4::theory::quantifiers namespace */
