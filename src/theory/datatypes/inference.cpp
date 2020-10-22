@@ -63,7 +63,6 @@ DatatypesInference::DatatypesInference(InferenceManager* im,
 bool DatatypesInference::mustCommunicateFact(Node n, Node exp)
 {
   Trace("dt-lemma-debug") << "Compute for " << exp << " => " << n << std::endl;
-  bool addLemma = false;
   // Force lemmas if option is set
   if (options::dtInferAsLemmas())
   {
