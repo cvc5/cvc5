@@ -154,7 +154,11 @@ void IAndSolver::checkFullRefine()
       }
       else if (options::iandMode() == options::IandMode::BITWISE)
       {
-        // add lemmas based on sum mode
+        Node lem = bitwiseLemma(i);  // check for violated bitwise axioms
+        Trace("iand-lemma")
+            << "IAndSolver::Lemma: " << lem << " ; BITWISE_REFINE" << std::endl;
+        d_im.addPendingArithLemma(
+            lem, InferenceId::NL_IAND_BITWISE_REFINE, true);
       }
       else
       {
@@ -229,6 +233,45 @@ Node IAndSolver::sumBasedLemma(Node i)
   NodeManager* nm = NodeManager::currentNM();
   Node lem = nm->mkNode(
       EQUAL, i, d_iandTable.createSumNode(x, y, bvsize, granularity));
+  return lem;
+}
+
+Node IAndSolver::bitwiseLemma(Node i)
+{
+  Assert(i.getKind() == IAND);
+  Node x = i[0];
+  Node y = i[1];
+
+  unsigned k = i.getOperator().getConst<IntAnd>().d_size;
+
+  Rational absI = d_model.computeAbstractModelValue(i).getConst<Rational>();
+  Rational concI = d_model.computeConcreteModelValue(i).getConst<Rational>();
+
+  Assert(absI.isIntegral());
+  Assert(concI.isIntegral());
+
+  BitVector bvAbsI = BitVector(k, absI.getNumerator());
+  BitVector bvConcI = BitVector(k, concI.getNumerator());
+
+  NodeManager* nm = NodeManager::currentNM();
+  Node lem = d_true;
+
+  // compare each bit to bvI
+  Node cond;
+  Node bitIAnd;
+  for (unsigned j = 0; j < k; j++)
+  {
+    if (bvAbsI.extract(j, j) != bvConcI.extract(j, j))
+    {
+      // x[j] & y[j] == ite(x[j] == 1 /\ y[j] == 1, 1, 0)
+      cond = nm->mkNode(AND,
+                        d_iandTable.iextract(j, j, x).eqNode(d_one),
+                        d_iandTable.iextract(j, j, y).eqNode(d_one));
+      bitIAnd = nm->mkNode(ITE, cond, d_one, d_zero);
+      // enforce bitwise equality
+      lem = nm->mkNode(AND, lem, d_iandTable.iextract(j, j, i).eqNode(bitIAnd));
+    }
+  }
   return lem;
 }
 

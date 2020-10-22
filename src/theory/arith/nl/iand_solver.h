@@ -119,6 +119,12 @@ class IAndSolver
    * and min is defined with an ite.
    */
   Node sumBasedLemma(Node i);
+  /** Bitwise refinement lemma for i of the form ((_ iand k) x y). Returns:
+   *   x[j] & y[j] == ite(x[j] == 1 /\ y[j] == 1, 1, 0)
+   *   for all j where M(x)[j] ^ M(y)[j]
+   *   does not match M(((_ iand k) x y))
+   */
+  Node bitwiseLemma(Node i);
 }; /* class IAndSolver */
 
 }  // namespace nl
