@@ -334,10 +334,9 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
           ProofGenerator* expg = sm->getProofGenerator(existsAssertion);
           d_lp->addLazyStep(existsAssertion,
                             expg,
+                            PfRule::WITNESS_AXIOM,
                             true,
-                            "RemoveTermFormulas::run:skolem_pf",
-                            false,
-                            PfRule::WITNESS_AXIOM);
+                            "RemoveTermFormulas::run:skolem_pf");
           d_lp->addStep(newAssertion, PfRule::SKOLEMIZE, {existsAssertion}, {});
           newAssertionPg = d_lp.get();
         }

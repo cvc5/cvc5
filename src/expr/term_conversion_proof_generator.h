@@ -144,6 +144,8 @@ class TConvProofGenerator : public ProofGenerator
   /**
    * Add rewrite step t --> s based on proof generator.
    *
+   * @param trustId If a null proof generator is provided, we add a step to
+   * the proof that has trustId as the rule and expected as the sole argument.
    * @param isClosed whether to expect that pg can provide a closed proof for
    * this fact.
    * @param tctx The term context identifier for the rewrite step. This
@@ -154,7 +156,8 @@ class TConvProofGenerator : public ProofGenerator
   void addRewriteStep(Node t,
                       Node s,
                       ProofGenerator* pg,
-                      bool isClosed = true,
+                      PfRule trustId = PfRule::ASSUME,
+                      bool isClosed = false,
                       uint32_t tctx = 0);
   /** Same as above, for a single step */
   void addRewriteStep(Node t, Node s, ProofStep ps, uint32_t tctx = 0);

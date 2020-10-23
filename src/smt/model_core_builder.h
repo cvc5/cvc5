@@ -21,7 +21,7 @@
 
 #include "expr/expr.h"
 #include "options/smt_options.h"
-#include "smt/model.h"
+#include "theory/theory_model.h"
 
 namespace CVC4 {
 
@@ -55,7 +55,7 @@ class ModelCoreBuilder
    * left unchanged.
    */
   static bool setModelCore(const std::vector<Node>& assertions,
-                           Model* m,
+                           theory::TheoryModel* m,
                            options::ModelCoresMode mode);
 }; /* class TheoryModelCoreBuilder */
 

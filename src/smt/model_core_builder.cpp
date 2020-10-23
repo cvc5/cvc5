@@ -21,7 +21,7 @@ using namespace CVC4::kind;
 namespace CVC4 {
 
 bool ModelCoreBuilder::setModelCore(const std::vector<Node>& assertions,
-                                    Model* m,
+                                    theory::TheoryModel* m,
                                     options::ModelCoresMode mode)
 {
   if (Trace.isOn("model-core"))
@@ -53,7 +53,7 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Node>& assertions,
       visited.insert(cur);
       if (cur.isVar())
       {
-        Node vcur = Node::fromExpr(m->getValue(cur.toExpr()));
+        Node vcur = m->getValue(cur);
         Trace("model-core") << "  " << cur << " -> " << vcur << std::endl;
         vars.push_back(cur);
         subs.push_back(vcur);
@@ -95,7 +95,7 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Node>& assertions,
 
     for (const Node& cv : coreVars)
     {
-      m->recordModelCoreSymbol(cv.toExpr());
+      m->recordModelCoreSymbol(cv);
     }
     return true;
   }

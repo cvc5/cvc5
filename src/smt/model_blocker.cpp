@@ -66,7 +66,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
       Node blockTriv = nm->mkConst(false);
       Trace("model-blocker")
           << "...model blocker is (trivially) " << blockTriv << std::endl;
-      return blockTriv.toExpr();
+      return blockTriv;
     }
 
     Node formula = asserts.size() > 1 ? nm->mkNode(AND, asserts) : asserts[0];
@@ -152,7 +152,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
           std::vector<Node> children;
           for (const Node& cn : catom)
           {
-            Node vn = Node::fromExpr(m->getValue(cn.toExpr()));
+            Node vn = m->getValue(cn);
             Assert(vn.isConst());
             children.push_back(vn.getConst<bool>() ? cn : cn.negate());
           }

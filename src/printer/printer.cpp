@@ -71,13 +71,13 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
   }
 }
 
-void Printer::toStream(std::ostream& out, const Model& m) const
+void Printer::toStream(std::ostream& out, const smt::Model& m) const
 {
   for(size_t i = 0; i < m.getNumCommands(); ++i) {
     const NodeCommand* cmd = m.getCommand(i);
     const DeclareFunctionNodeCommand* dfc =
         dynamic_cast<const DeclareFunctionNodeCommand*>(cmd);
-    if (dfc != NULL && !m.isModelCoreSymbol(dfc->getFunction().toExpr()))
+    if (dfc != NULL && !m.isModelCoreSymbol(dfc->getFunction()))
     {
       continue;
     }
@@ -260,11 +260,6 @@ void Printer::toStreamCmdCheckSynth(std::ostream& out) const
 void Printer::toStreamCmdSimplify(std::ostream& out, Node n) const
 {
   printUnknownCommand(out, "simplify");
-}
-
-void Printer::toStreamCmdExpandDefinitions(std::ostream& out, Node n) const
-{
-  printUnknownCommand(out, "expand-definitions");
 }
 
 void Printer::toStreamCmdGetValue(std::ostream& out,

@@ -38,11 +38,11 @@
 #include "theory/interrupted.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
-#include "theory/substitutions.h"
 #include "theory/term_registration_visitor.h"
 #include "theory/theory.h"
 #include "theory/theory_preprocessor.h"
 #include "theory/trust_node.h"
+#include "theory/trust_substitutions.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
 #include "util/hash.h"
@@ -446,16 +446,11 @@ class TheoryEngine {
 
  public:
   /**
-   * Signal the start of a new round of assertion preprocessing
-   */
-  void preprocessStart();
-
-  /**
    * Runs theory specific preprocessing on the non-Boolean parts of
    * the formula.  This is only called on input assertions, after ITEs
    * have been removed.
    */
-  Node preprocess(TNode node);
+  theory::TrustNode preprocess(TNode node);
 
   /** Notify (preprocessed) assertions. */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);

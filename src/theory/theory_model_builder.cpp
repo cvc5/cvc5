@@ -1082,7 +1082,7 @@ void TheoryEngineModelBuilder::computeAssignableInfo(
   }
 }
 
-void TheoryEngineModelBuilder::postProcessModel(bool incomplete, Model* m)
+void TheoryEngineModelBuilder::postProcessModel(bool incomplete, TheoryModel* m)
 {
   // if we are incomplete, there is no guarantee on the model.
   // thus, we do not check the model here.
@@ -1090,12 +1090,11 @@ void TheoryEngineModelBuilder::postProcessModel(bool incomplete, Model* m)
   {
     return;
   }
-  TheoryModel* tm = static_cast<TheoryModel*>(m);
-  Assert(tm != nullptr);
+  Assert(m != nullptr);
   // debug-check the model if the checkModels() is enabled.
   if (options::debugCheckModels())
   {
-    debugCheckModel(tm);
+    debugCheckModel(m);
   }
 }
 
@@ -1186,12 +1185,18 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
           if (itMap != d_constantReps.end())
           {
             ri = (*itMap).second;
+            Trace("model-builder-debug") << i << ": const child " << ri << std::endl;
             recurse = false;
           }
           else if (!evalOnly)
           {
             recurse = false;
+            Trace("model-builder-debug") << i << ": keep " << ri << std::endl;
           }
+        }
+        else
+        {
+          Trace("model-builder-debug") << i << ": no hasTerm " << ri << std::endl;
         }
         if (recurse)
         {
