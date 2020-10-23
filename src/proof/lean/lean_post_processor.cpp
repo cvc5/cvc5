@@ -36,7 +36,7 @@ LeanProofPostprocess::LeanProofPostprocess(ProofNodeManager* pnm)
 bool LeanProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                                 bool& continueUpdate)
 {
-  return false;
+  return true;
 };
 
 bool LeanProofPostprocessCallback::update(Node res,
@@ -46,7 +46,12 @@ bool LeanProofPostprocessCallback::update(Node res,
                                           CDProof* cdp,
                                           bool& continueUpdate)
 {
-  return true;
+
+  std::vector<Node> lean_args = args;
+  Node rn = d_pnm->mkConst(static_cast<unsigned>(proof::LeanRule::R0));
+  lean_args.insert(args.begin(), rn);
+  cdp->addStep(res, PfRule::LEAN_RULE, children, lean_args);
+  return true; // return true if updated
 };
 
 void LeanProofPostprocess::process(std::shared_ptr<ProofNode> pf){};
