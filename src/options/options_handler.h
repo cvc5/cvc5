@@ -88,6 +88,8 @@ public:
   void proofEnabledBuild(std::string option, bool value);
   void LFSCEnabledBuild(std::string option, bool value);
 
+  void checkNlCad(std::string option, bool value);
+
   void statsEnabledBuild(std::string option, bool value);
 
   unsigned long limitHandler(std::string option, std::string optarg);

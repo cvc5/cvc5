@@ -29,6 +29,7 @@
 #include "base/modal_exception.h"
 #include "base/output.h"
 #include "lib/strtok_r.h"
+#include "options/arith_options.h"
 #include "options/base_options.h"
 #include "options/bv_options.h"
 #include "options/decision_options.h"
@@ -280,6 +281,21 @@ void OptionsHandler::LFSCEnabledBuild(std::string option, bool value) {
     throw OptionException(ss.str());
   }
 #endif /* CVC4_USE_LFSC */
+}
+
+void OptionsHandler::checkNlCad(std::string option, bool value)
+{
+#ifndef CVC4_USE_POLY
+  if (value)
+  {
+    std::stringstream ss;
+    ss << "option `" << option
+       << "' requires a libpoly-enabled build of CVC4; this binary was not "
+          "built "
+          "with libpoly support";
+    throw OptionException(ss.str());
+  }
+#endif /* CVC4_USE_POLY */
 }
 
 void OptionsHandler::statsEnabledBuild(std::string option, bool value)

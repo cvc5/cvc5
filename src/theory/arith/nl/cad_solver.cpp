@@ -18,6 +18,7 @@
 #include <poly/polyxx.h>
 #endif
 
+#include "options/arith_options.h"
 #include "theory/arith/inference_id.h"
 #include "theory/arith/nl/cad/cdcac.h"
 #include "theory/arith/nl/poly_conversion.h"
@@ -61,9 +62,18 @@ void CadSolver::initLastCall(const std::vector<Node>& assertions)
   d_CAC.computeVariableOrdering();
   d_CAC.retrieveInitialAssignment(d_model, d_ranVariable);
 #else
-  Warning() << "Tried to use CadSolver but libpoly is not available. Compile "
-               "with --poly."
-            << std::endl;
+  if (options::nlCad.wasSetByUser())
+  {
+    Warning() << "Tried to use CadSolver but libpoly is not available. Compile "
+                 "with --poly."
+              << std::endl;
+  }
+  else
+  {
+    Notice() << "Tried to use CadSolver but libpoly is not available. Compile "
+                "with --poly."
+             << std::endl;
+  }
 #endif
 }
 
@@ -87,9 +97,18 @@ void CadSolver::checkFull()
                      InferenceId::NL_CAD_CONFLICT);
   }
 #else
-  Warning() << "Tried to use CadSolver but libpoly is not available. Compile "
-               "with --poly."
-            << std::endl;
+  if (options::nlCad.wasSetByUser())
+  {
+    Warning() << "Tried to use CadSolver but libpoly is not available. Compile "
+                 "with --poly."
+              << std::endl;
+  }
+  else
+  {
+    Notice() << "Tried to use CadSolver but libpoly is not available. Compile "
+                "with --poly."
+             << std::endl;
+  }
 #endif
 }
 
@@ -132,9 +151,18 @@ void CadSolver::checkPartial()
     }
   }
 #else
-  Warning() << "Tried to use CadSolver but libpoly is not available. Compile "
-               "with --poly."
-            << std::endl;
+  if (options::nlCad.wasSetByUser())
+  {
+    Warning() << "Tried to use CadSolver but libpoly is not available. Compile "
+                 "with --poly."
+              << std::endl;
+  }
+  else
+  {
+    Notice() << "Tried to use CadSolver but libpoly is not available. Compile "
+                "with --poly."
+             << std::endl;
+  }
 #endif
 }
 
@@ -162,9 +190,18 @@ bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
   }
   return true;
 #else
-  Warning() << "Tried to use CadSolver but libpoly is not available. Compile "
-               "with --poly."
-            << std::endl;
+  if (options::nlCad.wasSetByUser())
+  {
+    Warning() << "Tried to use CadSolver but libpoly is not available. Compile "
+                 "with --poly."
+              << std::endl;
+  }
+  else
+  {
+    Notice() << "Tried to use CadSolver but libpoly is not available. Compile "
+                "with --poly."
+             << std::endl;
+  }
   return false;
 #endif
 }
