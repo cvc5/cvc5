@@ -23,12 +23,6 @@
 namespace CVC3 {
 namespace proof {
 
-  enum class LeanRule : uint32_t
-{
-  // in what format should I put these lean rules
-  // all the lean rules
-};
-
 static void leanPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn)
 {
   // should print preamble
