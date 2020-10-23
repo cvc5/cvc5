@@ -138,7 +138,7 @@ Node TConvProofGenerator::registerRewriteStep(Node t, Node s, uint32_t tctx)
   // should not rewrite term to two different things
   if (!getRewriteStepInternal(thash).isNull())
   {
-    Assert(getRewriteStepInternal(thash) == s);
+    Assert(getRewriteStepInternal(thash) == s) << identify() << " rewriting " << t << " to both " << s << " and " << getRewriteStepInternal(thash);
     return Node::null();
   }
   d_rewriteMap[thash] = s;

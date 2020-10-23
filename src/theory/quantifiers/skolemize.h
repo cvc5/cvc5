@@ -141,6 +141,8 @@ class Skolemize
       d_skolem_constants;
   /** map from quantified formulas to their skolemized body */
   std::unordered_map<Node, Node, NodeHashFunction> d_skolem_body;
+  /** Pointer to the proof node manager */
+  ProofNodeManager * d_pnm;
   /** Eager proof generator for skolemization lemmas */
   std::unique_ptr<EagerProofGenerator> d_epg;
 };
