@@ -1686,7 +1686,7 @@ void TheoryDatatypes::separateBisimilar(
         if( ncons.getKind()==APPLY_CONSTRUCTOR ) {
           Node cc = ncons.getOperator();
           cn_cons[part[j]] = ncons;
-          if( mkExp ){
+          if( mkExp && c !=ncons ){
             exp.push_back(c.eqNode(ncons));
           }
           new_part[cc].push_back( part[j] );
@@ -1745,9 +1745,12 @@ void TheoryDatatypes::separateBisimilar(
           //set current node
           for( unsigned k=0; k<split_new_part[j].size(); k++ ){
             Node n = split_new_part[j][k];
-            cn[n] = getRepresentative( cn_cons[n][cindex] );
-            if( mkExp ){
-              exp.push_back(cn[n].eqNode(cn_cons[n][cindex]));
+            Node cnc = cn_cons[n][cindex];
+            Node nr = getRepresentative( cnc );
+            cn[n] = nr;
+            if( mkExp && cnc!=nr )
+            {
+              exp.push_back(nr.eqNode(cnc));
             }
           }
           std::vector< std::vector< Node > > c_part_out;
