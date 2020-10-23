@@ -262,6 +262,7 @@ void SygusInterpol::mkSygusConjecture(Node itp,
   constraint = constraint.substitute(
       d_syms.begin(), d_syms.end(), d_vars.begin(), d_vars.end());
   Trace("sygus-interpol-debug") << constraint << "...finish" << std::endl;
+  constraint = Rewriter::rewrite(constraint);
 
   d_sygusConj = constraint;
   Trace("sygus-interpol") << "Generate: " << d_sygusConj << std::endl;
@@ -322,6 +323,9 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
   createVariables(itpGType.isNull());
   TypeNode grammarType = setSynthGrammar(itpGType, axioms, conj);
 
+  Node itp = mkPredicate(name);
+  mkSygusConjecture(itp, axioms, conj);
+
   std::unique_ptr<SmtEngine> subSolver;
   initializeSubsolver(subSolver);
   // get the logic
@@ -335,9 +339,7 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
     subSolver->declareSygusVar(name, var, var.getType());
   }
   std::vector<Node> vars_empty;
-  Node itp = mkPredicate(name);
   subSolver->declareSynthFun(name, itp, grammarType, false, vars_empty);
-  mkSygusConjecture(itp, axioms, conj);
   Trace("sygus-interpol") << "SmtEngine::getInterpol: made conjecture : "
                           << d_sygusConj << ", solving for "
                           << d_sygusConj[0][0] << std::endl;
