@@ -173,10 +173,15 @@ bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
   {
     return false;
   }
-  assertions.clear();
+  bool foundNonVariable = false;
   for (const auto& v : d_CAC.getVariableOrdering())
   {
     Node variable = d_CAC.getConstraints().varMapper()(v);
+    if (!variable.isVar())
+    {
+      Trace("nl-cad") << "Not a variable: " << variable << std::endl;
+      foundNonVariable = true;
+    }
     Node value = value_to_node(d_CAC.getModel().get(v), d_ranVariable);
     if (value.isConst())
     {
@@ -188,6 +193,11 @@ bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
     }
     Trace("nl-cad") << "-> " << v << " = " << value << std::endl;
   }
+  if (foundNonVariable)
+  {
+    return false;
+  }
+  assertions.clear();
   return true;
 #else
   if (options::nlCad.wasSetByUser())
