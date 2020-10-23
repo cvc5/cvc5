@@ -278,6 +278,107 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
                : clauseNodes.size() == 1 ? clauseNodes[0]
                                          : nm->mkNode(kind::OR, clauseNodes);
   }
+  if (id == PfRule::MACRO_RESOLUTION)
+  {
+    Assert(children.size() > 1);
+    Assert(args.size() == 2 * (children.size() - 1) + 1);
+    Trace("bool-pfcheck") << "chain_res:\n" << push;
+    NodeManager* nm = NodeManager::currentNM();
+    Node trueNode = nm->mkConst(true);
+    Node falseNode = nm->mkConst(false);
+    std::vector<Node> clauseNodes;
+    for (unsigned i = 0, childrenSize = children.size(); i < childrenSize; ++i)
+    {
+      std::unordered_set<Node, NodeHashFunction> elim;
+      // literals to be removed from "first" clause
+      if (i < childrenSize - 1)
+      {
+        for (unsigned j = (2 * i) + 1, argsSize = args.size(); j < argsSize;
+             j = j + 2)
+        {
+          // whether pivot should occur as is or negated depends on the id of
+          // each step in the chain
+          if (args[j] == trueNode)
+          {
+            elim.insert(args[j + 1]);
+          }
+          else
+          {
+            Assert(args[j] == falseNode);
+            elim.insert(args[j + 1.notNode()]);
+          }
+        }
+      }
+      // literal to be removed from "second" clause. They will be negated
+      if (i > 0)
+      {
+        unsigned index = 2 * (i - 1) + 1;
+        Node pivot = args[index] == trueNode ? args[index + 1].notNode()
+                                             : args[index + 1];
+        elim.insert(pivot);
+      }
+      Trace("bool-pfcheck") << i << ": elimination set: " << elim << "\n";
+      // only add to conclusion nodes that are not in elimination set. First get
+      // the nodes.
+      //
+      // Since unit clauses can also be OR nodes, we rely on the invariant that
+      // non-unit clauses will not occur themselves in their elimination sets.
+      // If they do then they must be unit.
+      std::vector<Node> lits;
+      if (children[i].getKind() == kind::OR && !elim.count(children[i]))
+      {
+        lits.insert(lits.end(), children[i].begin(), children[i].end());
+      }
+      else
+      {
+        lits.push_back(children[i]);
+      }
+      Trace("bool-pfcheck") << i << ": clause lits: " << lits << "\n";
+      std::vector<Node> added;
+      for (unsigned j = 0, size = lits.size(); j < size; ++j)
+      {
+        // only add if literal does not occur in elimination set
+        if (!elim.count(lits[j]))
+        {
+          clauseNodes.push_back(lits[j]);
+          added.push_back(lits[j]);
+          // eliminate duplicates
+          elim.insert(lits[j]);
+        }
+      }
+      Trace("bool-pfcheck") << i << ": added lits: " << added << "\n\n";
+    }
+    Trace("bool-pfcheck") << "clause: " << clauseNodes << "\n" << pop;
+    // check that set representation is the same as of the given conclusion
+    if (clauseNodes.empty())
+    {
+      // conclusion differ
+      if (args[0] != falseNode)
+      {
+        return Node::null();
+      }
+      return args[0];
+    }
+    if (clauseNodes.size() == 1)
+    {
+      // conclusion differ
+      if (args[0] != clauseNodes[0])
+      {
+        return Node::null();
+      }
+      return args[0];
+    }
+    // At this point, should amount to them differing only on order. So the
+    // original result can't be a unit clause
+    if (args[0].getKind() != kind::OR || clauseNodes.size() != args[0].getNumChildren())
+    {
+      return Node::null();
+    }
+    std::unordered_set<Node, NodeHashFunction> clauseComputed{clauseNodes.begin(), clauseNodes.end()};
+    std::unordered_set<Node, NodeHashFunction> clauseGiven{args[0].begin(), args[0].end()};
+
+    return clauseComputed == clauseGiven? args[0] : Node::null();
+  }
   if (id == PfRule::SPLIT)
   {
     Assert(children.empty());
