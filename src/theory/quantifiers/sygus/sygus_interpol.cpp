@@ -318,6 +318,10 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
                                        const TypeNode& itpGType,
                                        Node& interpol)
 {
+  collectSymbols(axioms, conj);
+  createVariables(itpGType.isNull());
+  TypeNode grammarType = setSynthGrammar(itpGType, axioms, conj);
+
   std::unique_ptr<SmtEngine> subSolver;
   initializeSubsolver(subSolver);
   // get the logic
@@ -326,14 +330,11 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
   l.enableSygus();
   subSolver->setLogic(l);
 
-  collectSymbols(axioms, conj);
-  createVariables(itpGType.isNull());
   for (Node var : d_vars)
   {
     subSolver->declareSygusVar(name, var, var.getType());
   }
   std::vector<Node> vars_empty;
-  TypeNode grammarType = setSynthGrammar(itpGType, axioms, conj);
   Node itp = mkPredicate(name);
   subSolver->declareSynthFun(name, itp, grammarType, false, vars_empty);
   mkSygusConjecture(itp, axioms, conj);
