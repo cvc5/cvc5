@@ -650,7 +650,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     if (logic.isSharingEnabled() && !logic.isTheoryEnabled(THEORY_BV)
         && !logic.isTheoryEnabled(THEORY_STRINGS)
         && !logic.isTheoryEnabled(THEORY_SETS)
-        && !logic.isTheoryEnabled(THEORY_BAGS))
+        && !logic.isTheoryEnabled(THEORY_BAGS)
+        && !(logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()
+             && !logic.isQuantified()))
     {
       Trace("smt") << "setting theoryof-mode to term-based" << std::endl;
       options::theoryOfMode.set(options::TheoryOfMode::THEORY_OF_TERM_BASED);
