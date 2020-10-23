@@ -446,16 +446,11 @@ class TheoryEngine {
 
  public:
   /**
-   * Signal the start of a new round of assertion preprocessing
-   */
-  void preprocessStart();
-
-  /**
    * Runs theory specific preprocessing on the non-Boolean parts of
    * the formula.  This is only called on input assertions, after ITEs
    * have been removed.
    */
-  Node preprocess(TNode node);
+  theory::TrustNode preprocess(TNode node);
 
   /** Notify (preprocessed) assertions. */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);

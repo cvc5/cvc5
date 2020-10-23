@@ -1185,12 +1185,18 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
           if (itMap != d_constantReps.end())
           {
             ri = (*itMap).second;
+            Trace("model-builder-debug") << i << ": const child " << ri << std::endl;
             recurse = false;
           }
           else if (!evalOnly)
           {
             recurse = false;
+            Trace("model-builder-debug") << i << ": keep " << ri << std::endl;
           }
+        }
+        else
+        {
+          Trace("model-builder-debug") << i << ": no hasTerm " << ri << std::endl;
         }
         if (recurse)
         {

@@ -883,6 +883,7 @@ set(regress_0_tests
   regress0/sep/wand-crash.smt2
   regress0/seq/intseq.smt2
   regress0/seq/intseq_dt.smt2
+  regress0/seq/issue4370-bool-terms.smt2
   regress0/seq/seq-2var.smt2
   regress0/seq/seq-ex1.smt2
   regress0/seq/seq-ex2.smt2
@@ -1790,6 +1791,7 @@ set(regress_1_tests
   regress1/sets/issue2568.smt2
   regress1/sets/issue2904.smt2
   regress1/sets/issue4391-card-lasso.smt2
+  regress1/sets/issue5309.smt2
   regress1/sets/lemmabug-ListElts317minimized.smt2
   regress1/sets/remove_check_free_31_6.smt2
   regress1/sets/sets-disequal.smt2
