@@ -316,21 +316,23 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
         return (EXIT_SKIP if use_skip_return_code else EXIT_OK)
 
     for req_feature in requires:
-        is_negative = req_feature.startswith("no-")
-        inv_feature = req_feature[len("no-"):] if is_negative else req_feature
-        if inv_feature not in (cvc4_features + cvc4_disabled_features):
+        is_negative = False
+        if req_feature.startswith("no-"):
+          req_feature = req_feature[len("no-"):]
+          is_negative = True
+        if req_feature not in (cvc4_features + cvc4_disabled_features):
             print(
                 'Illegal requirement in regression: {}\nAllowed requirements: {}'
-                .format(inv_feature, ' '.join(cvc4_features + cvc4_disabled_features)))
+                .format(req_feature, ' '.join(cvc4_features + cvc4_disabled_features)))
             return EXIT_FAILURE
         if is_negative:
-            if inv_feature in cvc4_features:
+            if req_feature in cvc4_features:
                 print('1..0 # Skipped regression: not valid with {}'.format(
-                    inv_feature))
+                    req_feature))
                 return (EXIT_SKIP if use_skip_return_code else EXIT_OK)
-        elif inv_feature not in cvc4_features:
+        elif req_feature not in cvc4_features:
             print('1..0 # Skipped regression: {} not supported'.format(
-                inv_feature))
+                req_feature))
             return (EXIT_SKIP if use_skip_return_code else EXIT_OK)
 
     if not command_lines:
