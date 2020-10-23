@@ -41,7 +41,7 @@ bool RepSet::hasRep(TypeNode tn, Node n) const
   }
 }
 
-unsigned RepSet::getNumRepresentatives(TypeNode tn) const
+size_t RepSet::getNumRepresentatives(TypeNode tn) const
 {
   const std::vector<Node>* reps = getTypeRepsOrNull(tn);
   return (reps != nullptr) ? reps->size() : 0;

@@ -42,10 +42,6 @@ Rational intpow2(uint64_t b)
   return Rational(Integer(2).pow(b), Integer(1));
 }
 
-/**
- * Helper functions for createBitwiseNode
- */
-
 } //end empty namespace
 
 Node BVToInt::mkRangeConstraint(Node newVar, uint64_t k)
@@ -264,6 +260,8 @@ Node BVToInt::eliminationPass(Node n)
  */
 Node BVToInt::bvToInt(Node n)
 {
+  // make sure the node is re-written before processing it.
+  n = Rewriter::rewrite(n);
   n = makeBinary(n);
   n = eliminationPass(n);
   // binarize again, in case the elimination pass introduced
@@ -304,10 +302,10 @@ Node BVToInt::bvToInt(Node n)
       {
         // We are now visiting current on the way back up.
         // This is when we do the actual translation.
+        Node translation;
         if (currentNumChildren == 0)
         {
-          Node translation = translateNoChildren(current);
-          d_bvToIntCache[current] = translation;
+          translation = translateNoChildren(current);
         }
         else
         {
@@ -330,10 +328,12 @@ Node BVToInt::bvToInt(Node n)
           {
             translated_children.push_back(d_bvToIntCache[current[i]]);
           }
-          Node translation =
-              translateWithChildren(current, translated_children);
-          d_bvToIntCache[current] = translation;
+          translation = translateWithChildren(current, translated_children);
         }
+        // Map the current node to its translation in the cache.
+        d_bvToIntCache[current] = translation;
+        // Also map the translation to itself.
+        d_bvToIntCache[translation] = translation;
         toVisit.pop_back();
       }
     }
@@ -815,7 +815,7 @@ void BVToInt::defineBVUFAsIntUF(Node bvUF, Node intUF)
   // The type of the resulting term
   TypeNode resultType;
   // symbolic arguments of original function
-  vector<Expr> args;
+  vector<Node> args;
   if (!bvUF.getType().isFunction()) {
     // bvUF is a variable.
     // in this case, the result is just the original term
@@ -837,7 +837,7 @@ void BVToInt::defineBVUFAsIntUF(Node bvUF, Node intUF)
       // Each bit-vector argument is casted to a natural number
       // Other arguments are left intact.
       Node fresh_bound_var = d_nm->mkBoundVar(d);
-      args.push_back(fresh_bound_var.toExpr());
+      args.push_back(fresh_bound_var);
       Node castedArg = args[i];
       if (d.isBitVector())
       {
@@ -851,8 +851,7 @@ void BVToInt::defineBVUFAsIntUF(Node bvUF, Node intUF)
   // If the result is BV, it needs to be casted back.
   result = castToType(result, resultType);
   // add the function definition to the smt engine.
-  smt::currentSmtEngine()->defineFunction(
-      bvUF.toExpr(), args, result.toExpr(), true);
+  d_preprocContext->getSmt()->defineFunction(bvUF, args, result, true);
 }
 
 bool BVToInt::childrenTypesChanged(Node n)
@@ -952,26 +951,17 @@ PreprocessingPassResult BVToInt::applyInternal(
 void BVToInt::addFinalizeRangeAssertions(
     AssertionPipeline* assertionsToPreprocess)
 {
+  // collect the range assertions from d_rangeAssertions
+  // (which is a context-dependent set)
+  // into a vector.
   vector<Node> vec_range;
   vec_range.assign(d_rangeAssertions.key_begin(), d_rangeAssertions.key_end());
-  if (vec_range.size() == 0)
-  {
-    return;
-  }
-  if (vec_range.size() == 1)
-  {
-    assertionsToPreprocess->push_back(vec_range[0]);
-    Trace("bv-to-int-debug")
-        << "range constraints: " << vec_range[0].toString() << std::endl;
-  }
-  else if (vec_range.size() >= 2)
-  {
-    Node rangeAssertions =
-        Rewriter::rewrite(d_nm->mkNode(kind::AND, vec_range));
-    assertionsToPreprocess->push_back(rangeAssertions);
-    Trace("bv-to-int-debug")
-        << "range constraints: " << rangeAssertions.toString() << std::endl;
-  }
+  // conjoin all range assertions and add the conjunction
+  // as a new assertion
+  Node rangeAssertions = Rewriter::rewrite(d_nm->mkAnd(vec_range));
+  assertionsToPreprocess->push_back(rangeAssertions);
+  Trace("bv-to-int-debug") << "range constraints: "
+                           << rangeAssertions.toString() << std::endl;
 }
 
 Node BVToInt::createShiftNode(vector<Node> children,
@@ -1051,24 +1041,12 @@ Node BVToInt::translateQuantifiedFormula(Node quantifiedNode)
                              newBoundVars.begin(),
                              newBoundVars.end());
   // A node to represent all the range constraints.
-  Node ranges;
-  if (rangeConstraints.size() > 0)
-  {
-    if (rangeConstraints.size() == 1)
-    {
-      ranges = rangeConstraints[0];
-    }
-    else
-    {
-      ranges = d_nm->mkNode(kind::AND, rangeConstraints);
-    }
-    // Add the range constraints to the body of the quantifier.
-    // For "exists", this is added conjunctively
-    // For "forall", this is added to the left side of an implication.
-    matrix = d_nm->mkNode(
-        k == kind::FORALL ? kind::IMPLIES : kind::AND, ranges, matrix);
-  }
-
+  Node ranges = d_nm->mkAnd(rangeConstraints);
+  // Add the range constraints to the body of the quantifier.
+  // For "exists", this is added conjunctively
+  // For "forall", this is added to the left side of an implication.
+  matrix = d_nm->mkNode(
+      k == kind::FORALL ? kind::IMPLIES : kind::AND, ranges, matrix);
   // create the new quantified formula and return it.
   Node newBoundVarsList = d_nm->mkNode(kind::BOUND_VAR_LIST, newBoundVars);
   Node result = d_nm->mkNode(kind::FORALL, newBoundVarsList, matrix);

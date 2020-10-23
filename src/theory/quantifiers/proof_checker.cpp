@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/proof_checker.h"
 
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "theory/builtin/proof_checker.h"
 
@@ -43,8 +44,25 @@ Node QuantifiersProofRuleChecker::checkInternal(
     Assert(children.size() == 1);
     Assert(args.size() == 1);
     Node p = children[0];
-    Node t = args[0];
-    return sm->mkExistential(t, p);
+    Node exists = args[0];
+    if (exists.getKind() != kind::EXISTS || exists[0].getNumChildren() != 1)
+    {
+      return Node::null();
+    }
+    std::unordered_map<Node, Node, NodeHashFunction> subs;
+    if (!expr::match(exists[1], p, subs))
+    {
+      return Node::null();
+    }
+    // substitution must contain only the variable of the existential
+    for (const std::pair<const Node, Node>& s : subs)
+    {
+      if (s.first != exists[0][0])
+      {
+        return Node::null();
+      }
+    }
+    return exists;
   }
   else if (id == PfRule::WITNESS_INTRO)
   {
