@@ -262,7 +262,6 @@ void SygusInterpol::mkSygusConjecture(Node itp,
   constraint = constraint.substitute(
       d_syms.begin(), d_syms.end(), d_vars.begin(), d_vars.end());
   Trace("sygus-interpol-debug") << constraint << "...finish" << std::endl;
-  constraint = Rewriter::rewrite(constraint);
 
   d_sygusConj = constraint;
   Trace("sygus-interpol") << "Generate: " << d_sygusConj << std::endl;
