@@ -86,7 +86,7 @@ bool DatatypesInference::mustCommunicateFact(Node n, Node exp)
   {
     Trace("dt-lemma-debug")
         << "Communicate " << n << " due to Boolean equalities" << std::endl;
-    //return true;
+    // return true;
   }
   Trace("dt-lemma-debug") << "Do not communicate " << n << std::endl;
   return false;
