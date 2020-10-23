@@ -181,7 +181,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
       {
         Assert(pfs->getResult() == a);
         // use SYMM if possible
-        if (aMatch==aeqSym)
+        if (aMatch == aeqSym)
         {
           updateNode(pfs.get(), PfRule::SYMM, children, {});
         }

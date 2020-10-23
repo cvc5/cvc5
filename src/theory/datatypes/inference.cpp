@@ -66,7 +66,8 @@ bool DatatypesInference::mustCommunicateFact(Node n, Node exp)
   // Force lemmas if option is set
   if (options::dtInferAsLemmas())
   {
-    Trace("dt-lemma-debug") << "Communicate " << n << " due to option" << std::endl;
+    Trace("dt-lemma-debug")
+        << "Communicate " << n << " due to option" << std::endl;
     return true;
   }
   // Note that equalities due to instantiate are forced as lemmas if
@@ -77,7 +78,8 @@ bool DatatypesInference::mustCommunicateFact(Node n, Node exp)
   // via instantiate.
   else if (n.getKind() == LEQ || n.getKind() == OR)
   {
-    Trace("dt-lemma-debug") << "Communicate " << n << " due to kind" << std::endl;
+    Trace("dt-lemma-debug")
+        << "Communicate " << n << " due to kind" << std::endl;
     return true;
   }
   Trace("dt-lemma-debug") << "Do not communicate " << n << std::endl;

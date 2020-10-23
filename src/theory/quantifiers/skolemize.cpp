@@ -14,13 +14,13 @@
 
 #include "theory/quantifiers/skolemize.h"
 
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/sort_inference.h"
 #include "theory/theory_engine.h"
-#include "expr/skolem_manager.h"
 
 using namespace CVC4::kind;
 
@@ -28,26 +28,34 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-Skolemize::Skolemize(QuantifiersEngine* qe, context::UserContext* u, ProofNodeManager* pnm)
-    : d_quantEngine(qe), d_skolemized(u), d_pnm(pnm), d_epg(pnm==nullptr ? nullptr : new EagerProofGenerator(pnm, u, "Skolemize::epg"))
+Skolemize::Skolemize(QuantifiersEngine* qe,
+                     context::UserContext* u,
+                     ProofNodeManager* pnm)
+    : d_quantEngine(qe),
+      d_skolemized(u),
+      d_pnm(pnm),
+      d_epg(pnm == nullptr ? nullptr
+                           : new EagerProofGenerator(pnm, u, "Skolemize::epg"))
 {
 }
 
 TrustNode Skolemize::process(Node q)
 {
-  Assert (q.getKind()==FORALL);
+  Assert(q.getKind() == FORALL);
   // do skolemization
   if (d_skolemized.find(q) != d_skolemized.end())
   {
     return TrustNode::null();
   }
   Node lem;
-  ProofGenerator * pg = nullptr;
-  if (isProofEnabled() && !options::dtStcInduction() && !options::intWfInduction())
+  ProofGenerator* pg = nullptr;
+  if (isProofEnabled() && !options::dtStcInduction()
+      && !options::intWfInduction())
   {
-    // if using proofs and not using induction, we use the justified skolemization
-    NodeManager * nm = NodeManager::currentNM();
-    SkolemManager * skm = nm->getSkolemManager();
+    // if using proofs and not using induction, we use the justified
+    // skolemization
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* skm = nm->getSkolemManager();
     std::vector<Node> echildren(q.begin(), q.end());
     echildren[1] = echildren[1].notNode();
     Node existsq = nm->mkNode(EXISTS, echildren);
@@ -61,8 +69,10 @@ TrustNode Skolemize::process(Node q)
     std::shared_ptr<ProofNode> pfs = d_pnm->mkScope({pf}, assumps);
     lem = nm->mkNode(IMPLIES, qnot, res);
     d_epg->setProofFor(lem, pfs);
-    pg = d_epg.get();  
-    Trace("quantifiers-sk") << "Skolemize (with proofs) : " << d_skolem_constants[q] << " for " << std::endl;
+    pg = d_epg.get();
+    Trace("quantifiers-sk")
+        << "Skolemize (with proofs) : " << d_skolem_constants[q] << " for "
+        << std::endl;
     Trace("quantifiers-sk") << "   " << q << std::endl;
     Trace("quantifiers-sk") << "   " << res << std::endl;
   }
@@ -392,10 +402,7 @@ bool Skolemize::printSkolemization(std::ostream& out)
   return printed;
 }
 
-bool Skolemize::isProofEnabled() const
-{
-  return d_epg!=nullptr;
-}
+bool Skolemize::isProofEnabled() const { return d_epg != nullptr; }
 
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */
