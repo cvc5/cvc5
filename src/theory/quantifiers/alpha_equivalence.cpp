@@ -149,14 +149,16 @@ Node AlphaEquivalence::reduceQuantifier(Node q)
     Trace("alpha-eq") << "  " << q << std::endl;
     Trace("alpha-eq") << "  " << ret << std::endl;
     lem = q.eqNode(ret);
-    if (q.getNumChildren()==3)
+    if (q.getNumChildren() == 3)
     {
-      Notice() << "Ignoring annotated quantified formula based on alpha equivalence: " << q << std::endl;
+      Notice() << "Ignoring annotated quantified formula based on alpha "
+                  "equivalence: "
+               << q << std::endl;
     }
   }
   return lem;
 }
 
-}
-}
-}
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
