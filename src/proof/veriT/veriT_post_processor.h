@@ -85,7 +85,7 @@ class VeriTProofPostprocess : public ProofNodeUpdater
 
  private:
   /** The post process callback */
-  //	std::unique_ptr<VeriTProofPostprocessCallback> dd_cb;
+  //std::unique_ptr<VeriTProofPostprocessCallback> dd_cb;
   /** The proof node manager */
   //ProofNodeManager* dd_pnm;
 };

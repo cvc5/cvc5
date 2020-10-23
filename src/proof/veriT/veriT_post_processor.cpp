@@ -26,9 +26,7 @@ VeriTProofPostprocessCallback::VeriTProofPostprocessCallback(ProofNodeManager* p
   d_nm = NodeManager::currentNM();
 }
 
-void VeriTProofPostprocessCallback::initializeUpdate(){
-  //d_nm = NodeManager::currentNM();
-}
+void VeriTProofPostprocessCallback::initializeUpdate(){}
 
 bool VeriTProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
 				 		 bool& continueUpdate){
@@ -51,11 +49,11 @@ bool VeriTProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
 	
   switch(pn->getRule()){
     case PfRule::VERIT_RULE: return false;
+    default: return true;
   }
-  return true;
 } 
 
-//Temp code for printing the current proof node 
+//TEMP: ad-hoc code for printing the current proof node 
 static void printCurrentNode(Node res,
 			     PfRule id,
 			     const std::vector<Node>& children,
@@ -91,8 +89,7 @@ bool VeriTProofPostprocessCallback::addVeriTStep(Node res,
   new_args.push_back(d_nm->mkConst<Rational>(static_cast<unsigned>(rule)));
   new_args.push_back(res);
   new_args.insert(new_args.end(),args.begin(),args.end());
-  cdp.addStep(res,PfRule::VERIT_RULE,children,new_args);
-  return true;
+  return cdp.addStep(res,PfRule::VERIT_RULE,children,new_args);
 }
 
 bool VeriTProofPostprocessCallback::update(Node res,
@@ -109,8 +106,7 @@ bool VeriTProofPostprocessCallback::update(Node res,
   std::cout << res.toExpr() << std::endl;	
 
 
-  //TODO: or and cl have to be exchanged while printing?
-  //TODO: the result of resolution could be an empty clause (i.e. not false but Node::null)
+  //TODO: add SEXPR to solve or and cl issue
 
   switch(id){  
     //================================================= Core rules
@@ -126,6 +122,7 @@ bool VeriTProofPostprocessCallback::update(Node res,
     // premises: ()
     // args: ()
     case PfRule::ASSUME:{				
+      //TODO Assumes should only be printed once in the end
       return addVeriTStep(res,VeriTRule::ASSUME,children,{},*cdp);
     }
     // ======== Scope (a binder for assumptions)
@@ -139,15 +136,14 @@ bool VeriTProofPostprocessCallback::update(Node res,
     // premises: 
     // args: (F1, ..., Fn)
     /*case PfRule::SCOPE:{
-      //TODO: Ask Haniel about anchor in veriT
 
       for(int i = 0; i < args.size(); i++){
         addVeriTStep(args[i],VeriTRule::ASSUME,{},{},*cdp);	
       }
 
-      addVeriTStep(res,VeriTRule::ANCHOR,children,args,*cdp);
+      addVeriTStep(res,VeriTRule::ANCHOR,args,args,*cdp);
 
-      //TODO: Adding the last step (introducing the implication) is not feasible. It is better to print it when the scope statement comes up
+      //Note: Adding the last step (introducing the implication) is not feasible. It is better to print it when the scope statement comes up
       //Add this to the final version of printer. 		
       return true;
     }*/
@@ -170,7 +166,6 @@ bool VeriTProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::RESOLUTION:{
       return addVeriTStep(res,VeriTRule::RESOLUTION,children,{},*cdp);
-      //TODO: Is a reordering step needed? It is not clear from the onomicon how this works in veriT
     }
     // ======== Chain Resolution
     // Children: (P1:(or F_{1,1} ... F_{1,n1}), ..., Pm:(or F_{m,1} ... F_{m,nm}))
@@ -219,7 +214,7 @@ bool VeriTProofPostprocessCallback::update(Node res,
     // premises:
     // args: 
     case PfRule::REORDERING:{
-      //TODO
+      //TODO skip
     }  
     // ======== Split
     // Children: none
@@ -243,24 +238,32 @@ bool VeriTProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::SPLIT:{
       Node vp1 = d_nm->mkNode(kind::OR,(d_nm->mkNode(kind::NOT,d_nm->mkNode(kind::NOT,d_nm->mkNode(kind::NOT,args[0]))),args[0]));
-      addVeriTStep(vp1,VeriTRule::NOT_NOT,{},{},*cdp);	
-
-    Node vp2 = d_nm->mkNode(kind::OR,(d_nm->mkNode(d_nm->mkNode(kind::NOT,d_nm->mkNode(kind::NOT,d_nm->mkNode(kind::NOT,args[0]))),d_nm->mkNode(kind::NOT,args[0])))); 
-      addVeriTStep(vp2,VeriTRule::NOT_NOT,{},{},*cdp);
-
-      addVeriTStep(res,VeriTRule::RESOLUTION,{vp1,vp2},{},*cdp);
-
-      return true;							 
+      Node vp2 = d_nm->mkNode(kind::OR,(d_nm->mkNode(d_nm->mkNode(kind::NOT,d_nm->mkNode(kind::NOT,d_nm->mkNode(kind::NOT,args[0]))),d_nm->mkNode(kind::NOT,args[0])))); 
+      
+      return addVeriTStep(vp2,VeriTRule::NOT_NOT,{},{},*cdp) 
+	     && addVeriTStep(vp1,VeriTRule::NOT_NOT,{},{},*cdp) 
+             && addVeriTStep(res,VeriTRule::RESOLUTION,{vp1,vp2},{},*cdp);
     }
     // ======== Equality resolution
     // Children: (P1:F1, P2:(= F1 F2))
     // Arguments: none
     // ---------------------
     // Conclusion: (F2)
-    // 
+    //
+    // proof rule: equiv_pos2
+    // proof term: (VP1:(or (not (= F1 F2)) (not F1) (F2)))
+    // premises: () 
+    // args: ()
+    //
+    // proof rule: resolution
+    // proof term: (F2)
+    // premises: (VP1:(or (not (= F1 F2)) (not F1) (F2))) (P1:F1) (P2:(= F1 F2))
+    // args: ()
     case PfRule::EQ_RESOLVE:{
-      //TODO Equiv elim + resolution		
-      //Find out more about difference terms and formulae in cvc4	
+      Node vp1 = d_nm->mkNode(kind::OR,d_nm->mkNode(kind::NOT,children[1]),res);
+      
+      return addVeriTStep(vp1,VeriTRule::EQUIV_POS2,{},{},*cdp)
+	     && addVeriTStep(res,VeriTRule::RESOLUTION,{vp1,children[0],children[1]},{},*cdp);
     }
     // ======== Modus ponens
     // Children: (P1:F1, P2:(=> F1 F2))
@@ -279,9 +282,8 @@ bool VeriTProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::MODUS_PONENS:{
       Node vp = d_nm->mkNode(kind::OR,d_nm->mkNode(kind::NOT,children[0]),res);
-      addVeriTStep(vp,VeriTRule::IMPLIES,{children[1]},{},*cdp);	
-      addVeriTStep(res,VeriTRule::RESOLUTION,{vp,children[0]},{},*cdp);
-      return true;											
+      return addVeriTStep(vp,VeriTRule::IMPLIES,{children[1]},{},*cdp)
+      	     && addVeriTStep(res,VeriTRule::RESOLUTION,{vp,children[0]},{},*cdp);									
     }
     // ======== Double negation elimination
     // Children: (P:(not (not F)))
@@ -300,9 +302,8 @@ bool VeriTProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::NOT_NOT_ELIM:{
       Node vp = d_nm->mkNode(kind::OR,d_nm->mkNode(kind::NOT,children[0]),res);
-      addVeriTStep(vp,VeriTRule::NOT_NOT,{},{},*cdp);
-      addVeriTStep(res,VeriTRule::RESOLUTION,{children[0],vp},{},*cdp);
-      return true;
+      return addVeriTStep(vp,VeriTRule::NOT_NOT,{},{},*cdp)
+             && addVeriTStep(res,VeriTRule::RESOLUTION,{children[0],vp},{},*cdp);
     }  
     // ======== Contradiction
     // Children: (P1:F P2:(not F))
@@ -358,7 +359,7 @@ bool VeriTProofPostprocessCallback::update(Node res,
     // premises: (VPn:(or (and F1 ... Fn) (not Fn))) Fn
     // args: () 
     case PfRule::AND_INTRO:{
-
+      bool success = true;
       std::vector<Node> neg_Nodes;
       neg_Nodes.push_back(d_nm->mkNode(kind::AND,children));
       for(int i = 0; i < children.size(); i++){
@@ -366,8 +367,11 @@ bool VeriTProofPostprocessCallback::update(Node res,
       }
 
       Node and_neg_Node = d_nm->mkNode(kind::OR,neg_Nodes);	
-      addVeriTStep(and_neg_Node,VeriTRule::AND_NEG,{},{},*cdp);
+      success = success && addVeriTStep(and_neg_Node,VeriTRule::AND_NEG,{},{},*cdp);
 
+      //TODO: It seems as if all this is unnecessary since the resolution rule in VeriT can do a 
+      //chain or resolution steps. Thus, this simplifies to a single resolution step and there is no need 
+      //to build up all these clauses.
       for(int i = 0; i < children.size(); i++){
         neg_Nodes.erase(neg_Nodes.begin()+1);
         Node new_and_neg_Node; 
@@ -377,11 +381,11 @@ bool VeriTProofPostprocessCallback::update(Node res,
         else{
           new_and_neg_Node = neg_Nodes[0];
         }
-        addVeriTStep(new_and_neg_Node,VeriTRule::RESOLUTION,{children[i],and_neg_Node},{},*cdp);
+        success = success && addVeriTStep(new_and_neg_Node,VeriTRule::RESOLUTION,{children[i],and_neg_Node},{},*cdp);
         and_neg_Node = new_and_neg_Node;
       }
 
-      return true;
+      return success;
     }
     // ======== Not Or elimination
     // Children: (P:(not (or F1 ... Fn)))
@@ -856,16 +860,13 @@ bool VeriTProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_ITE_POS3:{ 		
       Node vp1 = d_nm->mkNode(kind::OR,res[0],args[0][0],res[2]);
-      addVeriTStep(vp1,VeriTRule::ITE_POS1,{},{},*cdp);		
-
       Node vp2 = d_nm->mkNode(kind::OR,res[0],d_nm->mkNode(kind::NOT,args[0][0]),res[1]);	
-      addVeriTStep(vp2,VeriTRule::ITE_POS2,{},{},*cdp);
-
-      Node vp3 = d_nm->mkNode(kind::OR,res[0],res[1],res[0],res[2]);//TODO: Find out ordering after resolution
-      addVeriTStep(vp3,VeriTRule::RESOLUTION,{vp1,vp2},{},*cdp);
-
-      addVeriTStep(res,VeriTRule::DUPLICATE_LITERALS,{vp3},{},*cdp);
-      return true;
+      Node vp3 = d_nm->mkNode(kind::OR,res[0],res[1],res[0],res[2]);    
+      
+      return addVeriTStep(vp1,VeriTRule::ITE_POS1,{},{},*cdp)		
+             && addVeriTStep(vp2,VeriTRule::ITE_POS2,{},{},*cdp)
+             && addVeriTStep(vp3,VeriTRule::RESOLUTION,{vp1,vp2},{},*cdp)
+             && addVeriTStep(res,VeriTRule::DUPLICATE_LITERALS,{vp3},{},*cdp);
     }
     // ======== CNF ITE Neg version 1
     // Children: ()
@@ -918,26 +919,228 @@ bool VeriTProofPostprocessCallback::update(Node res,
     // proof term: (or (ite C F1 F2) C (not F2))
     // premises: (VP3:(or (ite C F1 F2) (not F2) (ite C F1 F2) (not F1)))
     // args: ()
-    case PfRule::CNF_ITE_NEG3:{//TODO
+    case PfRule::CNF_ITE_NEG3:{
       Node vp1 = d_nm->mkNode(kind::OR,res[0],args[0][0],res[2]);
-      addVeriTStep(vp1,VeriTRule::ITE_NEG1,{},{},*cdp);		
-
       Node vp2 = d_nm->mkNode(kind::OR,res[0],d_nm->mkNode(kind::NOT,args[0][0]),res[1]);	
-      addVeriTStep(vp2,VeriTRule::ITE_NEG2,{},{},*cdp);
+      Node vp3 = d_nm->mkNode(kind::OR,res[0],res[1],res[0],res[2]);
 
-      Node vp3 = d_nm->mkNode(kind::OR,res[0],res[1],res[0],res[2]);//TODO: Find out ordering after resolution
-      addVeriTStep(vp3,VeriTRule::RESOLUTION,{vp1,vp2},{},*cdp);
+      return addVeriTStep(vp1,VeriTRule::ITE_NEG1,{},{},*cdp)	
+             && addVeriTStep(vp2,VeriTRule::ITE_NEG2,{},{},*cdp)
+             && addVeriTStep(vp3,VeriTRule::RESOLUTION,{vp1,vp2},{},*cdp)
+	     && addVeriTStep(res,VeriTRule::DUPLICATE_LITERALS,{vp3},{},*cdp);
+    }
 
-      addVeriTStep(res,VeriTRule::DUPLICATE_LITERALS,{vp3},{},*cdp);
+    //================================================= Equality rules
+    // ======== Reflexive
+    // Children: none
+    // Arguments: (t)
+    // ---------------------
+    // Conclusion: (= t t)
+    //
+    // proof rule: refl
+    // proof term: (= t t)
+    // premises: ()
+    // args: ()
+    case PfRule::REFL:{
+	return addVeriTStep(res,VeriTRule::REFL,children,args,*cdp);	      	      
+    }
+    // ======== Symmetric
+    // Children: (P:(= t1 t2)) or (P:(not (= t1 t2)))
+    // Arguments: none
+    // -----------------------
+    // Conclusion: (= t2 t1) or (not (= t2 t1))
+    //
+    // proof rule:
+    // proof term:
+    // premises:
+    // args:
+    case PfRule::SYMM:{
+      //TODO: veriT implicitly reorders equalities, without generating steps
+      //However, it might not be okay to just delete these nodes.
       return true;
     }
-
-
-
-    case PfRule::CONG:{
+    // ======== Transitivity
+    // Children: (P1:(= t1 t2), ..., Pn:(= t{n-1} tn))
+    // Arguments: none
+    // -----------------------
+    // Conclusion: (= t1 tn)
+    // 
+    // proof rule: trans
+    // proof term: (= t1 tn)
+    // premises: (P1:(= t1 t2), ..., Pn:(= t{n-1} tn))
+    // args: ()
+    case PfRule::TRANS:{
+      return addVeriTStep(res,VeriTRule::TRANS,children,{},*cdp);
+    }
+    // ======== Congruence
+    // Children: (P1:(= t1 s1), ..., Pn:(= tn sn))
+    // Arguments: (<kind> f?)
+    // ---------------------------------------------
+    // Conclusion: (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn))
+    // Notice that f must be provided iff <kind> is a parameterized kind, e.g.
+    // APPLY_UF. The actual node for <kind> is constructible via
+    // ProofRuleChecker::mkKindNode.
+    // 
+    // proof rule:
+    // proof term:
+    // premises:
+    // args: ()
+    case PfRule::CONG:{//TODO: check this seems to have changed since last pull		      
       return addVeriTStep(res,VeriTRule::CONG,children,{},*cdp);
     }
+    // ======== True intro
+    // Children: (P:F)
+    // Arguments: none
+    // ----------------------------------------
+    // Conclusion: (= F true)
+    // 
+    // proof rule: equiv_simplify
+    // proof term: (VP1:(= (= F true) F))
+    // premises: ()
+    // args: ()
+    //
+    // proof rule: equiv2
+    // proof term: (VP2:(or (= F true) (not F)))
+    // premises: (VP1:(= (= F true) F))
+    // args: ()
+    //
+    // proof rule: resolution
+    // proof term: (= F true)
+    // premises: (P:F) (VP2:(or (= F true) (not F)))
+    // args: ()
+    case PfRule::TRUE_INTRO:{
+      Node vp1 = d_nm->mkNode(kind::EQUAL,res,children[0]);
+      Node vp2 = d_nm->mkNode(kind::OR,res,d_nm->mkNode(kind::NOT,children[0]));
+      return addVeriTStep(vp1,VeriTRule::EQUIV_SIMPLIFY,{},{},*cdp) 
+	     && addVeriTStep(vp2,VeriTRule::EQUIV2,{vp1},{},*cdp)
+      	     && addVeriTStep(res,VeriTRule::RESOLUTION,{vp2,children[0]},{},*cdp); 
+    }
+    // ======== True elim
+    // Children: (P:(= F true))
+    // Arguments: none
+    // ----------------------------------------
+    // Conclusion: F
+    //  
+    // proof rule: equiv_simplify
+    // proof term: (VP1:(= (= F true) F))
+    // premises: ()
+    // args: ()
+    // 
+    // proof rule: equiv2
+    // proof term: (VP2:(or (not (= F true)) F))
+    // premises: (VP1:(= (= F true) F))
+    // args: ()
+    //
+    // proof rule: resolution
+    // proof term: (F)
+    // premises: (VP2:(or (not (= F true)) F)) (P:(= F true))
+    // args: ()
+    case PfRule::TRUE_ELIM:{			   
+      Node vp1 = d_nm->mkNode(kind::EQUAL,children[0],res);
+      Node vp2 = d_nm->mkNode(kind::OR,d_nm->mkNode(kind::NOT,children[0]),res);
+      return addVeriTStep(vp1,VeriTRule::EQUIV_SIMPLIFY,{},{},*cdp) 
+      	     && addVeriTStep(vp2,VeriTRule::EQUIV2,{vp1},{},*cdp)
+	     && addVeriTStep(res,VeriTRule::RESOLUTION,{vp2,children[0]},{},*cdp);
+    }
+    // ======== False intro
+    // Children: (P:(not F))
+    // Arguments: none
+    // ----------------------------------------
+    // Conclusion: (= F false)
+    //  
+    // proof rule: equiv_simplify
+    // proof term: (VP1:(= (= F false) (not F)))
+    // premises: ()
+    // args: ()
+    //
+    // proof rule: equiv2
+    // proof term: (VP2:(or (= F false) (not (not F))))
+    // premises: (VP1:(= (= F false) (not F)))
+    // args: ()
+    //
+    // proof rule: not_not
+    // proof term: (VP3:(or (not (not (not F))) F))
+    // premises: ()
+    // args: ()
+    //
+    // proof rule: resolution
+    // proof term: (VP4:(or (= F false) F))
+    // premises: (VP2:(or (= F false) (not (not F)))) (VP3:(or (not (not (not F))) F))
+    // args: ()
+    //
+    // proof rule: resolution 
+    // proof term: (= F false)
+    // premises: (VP4:(or (= F false) F)) (P:(not F))
+    // args: ()
+    case PfRule::FALSE_INTRO:{
+      Node vp1 = d_nm->mkNode(kind::EQUAL,res,children[0]);
+      Node vp2 = d_nm->mkNode(kind::OR,res,d_nm->mkNode(kind::NOT,children[0]));
+      Node vp3 = d_nm->mkNode(kind::OR,d_nm->mkNode(kind::NOT,d_nm->mkNode(kind::NOT,children[0])),children[0][0]);
+      Node vp4 = d_nm->mkNode(kind::OR,res,children[0][0]); 
 
+      return addVeriTStep(vp1,VeriTRule::EQUIV_SIMPLIFY,{},{},*cdp) 
+	     && addVeriTStep(vp2,VeriTRule::EQUIV2,{vp1},{},*cdp)
+	     && addVeriTStep(vp3,VeriTRule::NOT_NOT,{},{},*cdp)
+	     && addVeriTStep(vp4,VeriTRule::RESOLUTION,{vp2,vp3},{},*cdp)
+	     && addVeriTStep(res,VeriTRule::RESOLUTION,{vp4},{},*cdp);
+    }
+    // ======== False elim
+    // Children: (P:(= F false))
+    // Arguments: none
+    // ----------------------------------------
+    // Conclusion: (not F)
+    //
+    // proof rule: equiv_simplify
+    // proof term: (VP1:(= (= F false) (not F)))
+    // premises: ()
+    // args: ()
+    //
+    // proof rule: equiv1
+    // proof term: (VP2:(or (not (= F false)) (not F)))
+    // premises: (VP1:(= (= F false) (not F)))
+    // args: ()
+    //
+    // proof rule: resolution
+    // proof term: (not F)
+    // premises: (VP1:(= (= F false) (not F))) (P:(= F false))
+    // args: ()
+    case PfRule::FALSE_ELIM:{
+      Node vp1 = d_nm->mkNode(kind::EQUAL,children[0],res);
+      Node vp2 = d_nm->mkNode(kind::OR,d_nm->mkNode(kind::NOT,children[0]),res);
+
+      return addVeriTStep(vp1,VeriTRule::EQUIV_SIMPLIFY,{},{},*cdp)
+	     && addVeriTStep(vp2,VeriTRule::EQUIV1,{vp1},{},*cdp)
+	     && addVeriTStep(res,VeriTRule::RESOLUTION,{vp1,children[0]},{},*cdp);
+    }
+    // ======== HO trust
+    // Children: none
+    // Arguments: (t)
+    // ---------------------
+    // Conclusion: (= t TheoryUfRewriter::getHoApplyForApplyUf(t))
+    // For example, this rule concludes (f x y) = (HO_APPLY (HO_APPLY f x) y)
+    //
+    // proof rule:
+    // proof term:
+    // premises:
+    // args:
+    case PfRule::HO_APP_ENCODE:{
+      //TODO
+    }
+    // ======== Congruence
+    // Children: (P1:(= f g), P2:(= t1 s1), ..., Pn+1:(= tn sn))
+    // Arguments: ()
+    // ---------------------------------------------
+    // Conclusion: (= (f t1 ... tn) (g s1 ... sn))
+    // Notice that this rule is only used when the application kinds are APPLY_UF.
+    //
+    // proof rule:
+    // proof term:
+    // premises:
+    // args:
+    case PfRule::HO_CONG:{
+      //TODO
+    }
+   
     default:
       return addVeriTStep(res,VeriTRule::UNDEFINED,children,args,*cdp);
   }

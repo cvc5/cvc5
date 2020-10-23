@@ -22,17 +22,12 @@
 
 #include<iostream>
 
-//TODO:delete
-#include<string>
-
 namespace CVC4 {
 
 namespace proof {
 
 
-
-//TODO: Delete, temp ad-hoc code to test conversion
-//There are cases when the childrens are not the premises? If that is true change this code
+//TEMP ad-hoc code to test conversion
 static int veriTPrintInternal(std::ostream& out,
 			      std::shared_ptr<ProofNode> pfn, int i){
   int temp = i;
@@ -105,14 +100,12 @@ static void veriTPrinter(std::ostream& out,
   out <<"\n";
   out <<"\n";
   out <<"Print VeriT proof: " << std::endl;
-  //Do not print outermost scope TODO: replace after SCOPE rule works
+  //Do not print outermost scope   
   veriTPrintInternal(out,pfn->getChildren()[0],0);
-  //For test purposes print outermost scope
+  //Print outermost scope
   //veriTPrintInternal(out,pfn,0);
   out <<"\n";
 }
-
-
 
 
 }

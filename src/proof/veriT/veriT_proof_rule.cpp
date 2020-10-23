@@ -25,8 +25,8 @@ const char* veriTRuletoString(VeriTRule id)
   switch (id)
   {
   case VeriTRule::UNDEFINED: return "undefined";
-	case VeriTRule::ASSUME: return "assume";
-	case VeriTRule::ANCHOR: return "anchor";	
+  case VeriTRule::ASSUME: return "assume";
+  case VeriTRule::ANCHOR: return "anchor";	
   case VeriTRule::INPUT: return "input";
   case VeriTRule::TRUE: return "true";
   case VeriTRule::FALSE: return "false";
