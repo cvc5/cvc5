@@ -195,8 +195,13 @@ bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
   }
   if (foundNonVariable)
   {
+    Trace("nl-cad")
+        << "Some variable was an extended term, don't clear list of assertions."
+        << std::endl;
     return false;
   }
+  Trace("nl-cad") << "Constructed a full assignment, clear list of assertions."
+                  << std::endl;
   assertions.clear();
   return true;
 #else
