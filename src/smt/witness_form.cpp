@@ -28,7 +28,8 @@ WitnessFormGenerator::WitnessFormGenerator(ProofNodeManager* pnm)
              "WfGenerator::TConvProofGenerator",
              nullptr,
              true),
-      d_wintroPf(pnm, nullptr, nullptr, "WfGenerator::LazyCDProof")
+      d_wintroPf(pnm, nullptr, nullptr, "WfGenerator::LazyCDProof"),
+      d_pskPf(pnm, nullptr, "WfGenerator::PurifySkolemProof")
 {
 }
 
@@ -92,6 +93,20 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
           Node skBody = SkolemManager::getSkolemForm(curw[1]);
           Node exists = nm->mkNode(kind::EXISTS, curw[0], skBody);
           ProofGenerator* pg = skm->getProofGenerator(exists);
+          if (pg == nullptr)
+          {
+            // it may be a purification skolem
+            pg = convertExistsInternal(exists);
+            if (pg == nullptr)
+            {
+              // if no proof generator is provided, we justify the existential
+              // using the WITNESS_AXIOM trusted rule by providing it to the
+              // call to addLazyStep below.
+              Trace("witness-form")
+                  << "WitnessFormGenerator: No proof generator for " << exists
+                  << std::endl;
+            }
+          }
           // --------------------------- from pg
           // (exists ((x T)) (P x))
           // --------------------------- WITNESS_INTRO
@@ -99,12 +114,11 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
           d_wintroPf.addLazyStep(
               exists,
               pg,
+              PfRule::WITNESS_AXIOM,
               true,
-              "WitnessFormGenerator::convertToWitnessForm:witness_axiom",
-              false,
-              PfRule::WITNESS_AXIOM);
+              "WitnessFormGenerator::convertToWitnessForm:witness_axiom");
           d_wintroPf.addStep(eq, PfRule::WITNESS_INTRO, {exists}, {});
-          d_tcpg.addRewriteStep(cur, curw, &d_wintroPf);
+          d_tcpg.addRewriteStep(cur, curw, &d_wintroPf, PfRule::ASSUME, true);
         }
         else
         {
@@ -139,6 +153,29 @@ const std::unordered_set<Node, NodeHashFunction>&
 WitnessFormGenerator::getWitnessFormEqs() const
 {
   return d_eqs;
+}
+
+ProofGenerator* WitnessFormGenerator::convertExistsInternal(Node exists)
+{
+  Assert(exists.getKind() == kind::EXISTS);
+  if (exists[0].getNumChildren() == 1 && exists[1].getKind() == kind::EQUAL
+      && exists[1][0] == exists[0][0])
+  {
+    Node tpurified = exists[1][1];
+    Trace("witness-form") << "convertExistsInternal: infer purification "
+                          << exists << " for " << tpurified << std::endl;
+    // ------ REFL
+    // t = t
+    // ---------------- EXISTS_INTRO
+    // exists x. x = t
+    // The concluded existential is then used to construct the witness term
+    // via witness intro.
+    Node teq = tpurified.eqNode(tpurified);
+    d_pskPf.addStep(teq, PfRule::REFL, {}, {tpurified});
+    d_pskPf.addStep(exists, PfRule::EXISTS_INTRO, {teq}, {exists});
+    return &d_pskPf;
+  }
+  return nullptr;
 }
 
 }  // namespace smt

@@ -574,11 +574,12 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
     case kind::ARRAY_TYPE:
     case kind::DATATYPE_TYPE:
     case kind::PARAMETRIC_DATATYPE:
-    case kind::SEQUENCE_TYPE: return TypeNode();
+    case kind::SEQUENCE_TYPE:
     case kind::SET_TYPE:
+    case kind::BAG_TYPE:
     {
-      // we don't support subtyping for sets
-      return TypeNode(); // return null type
+      // we don't support subtyping except for built in types Int and Real.
+      return TypeNode();  // return null type
     }
     case kind::SEXPR_TYPE:
       Unimplemented()

@@ -13,6 +13,8 @@
  **/
 
 #include "theory/booleans/proof_checker.h"
+#include "expr/skolem_manager.h"
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace theory {
@@ -26,6 +28,9 @@ void BoolProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::FACTORING, this);
   pc->registerChecker(PfRule::REORDERING, this);
   pc->registerChecker(PfRule::EQ_RESOLVE, this);
+  pc->registerChecker(PfRule::MODUS_PONENS, this);
+  pc->registerChecker(PfRule::NOT_NOT_ELIM, this);
+  pc->registerChecker(PfRule::CONTRA, this);
   pc->registerChecker(PfRule::AND_ELIM, this);
   pc->registerChecker(PfRule::AND_INTRO, this);
   pc->registerChecker(PfRule::NOT_OR_ELIM, this);
@@ -75,21 +80,52 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
   if (id == PfRule::RESOLUTION)
   {
     Assert(children.size() == 2);
-    Assert(args.size() == 1);
+    Assert(args.size() == 2);
+    NodeManager* nm = NodeManager::currentNM();
     std::vector<Node> disjuncts;
+    Node pivots[2];
+    if (args[0] == nm->mkConst(true))
+    {
+      pivots[0] = args[1];
+      pivots[1] = args[1].notNode();
+    }
+    else
+    {
+      Assert(args[0] == nm->mkConst(false));
+      pivots[0] = args[1].notNode();
+      pivots[1] = args[1];
+    }
     for (unsigned i = 0; i < 2; ++i)
     {
-      // if first clause, eliminate pivot, otherwise its negation
-      Node elim = i == 0 ? args[0] : args[0].notNode();
-      for (unsigned j = 0, size = children[i].getNumChildren(); j < size; ++j)
+      // determine whether the clause is unit for effects of resolution, which
+      // is the case if it's not an OR node or it is an OR node but it is equal
+      // to the pivot
+      std::vector<Node> lits;
+      if (children[i].getKind() == kind::OR && pivots[i] != children[i])
       {
-        if (elim != children[i][j])
+        lits.insert(lits.end(), children[i].begin(), children[i].end());
+      }
+      else
+      {
+        lits.push_back(children[i]);
+      }
+      for (unsigned j = 0, size = lits.size(); j < size; ++j)
+      {
+        if (pivots[i] != lits[j])
         {
-          disjuncts.push_back(children[i][j]);
+          disjuncts.push_back(lits[j]);
+        }
+        else
+        {
+          // just eliminate first occurrence
+          pivots[i] = Node::null();
         }
       }
     }
-    return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
+    return disjuncts.empty()
+               ? nm->mkConst(false)
+               : disjuncts.size() == 1 ? disjuncts[0]
+                                       : nm->mkNode(kind::OR, disjuncts);
   }
   if (id == PfRule::FACTORING)
   {
@@ -212,6 +248,15 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     return NodeManager::currentNM()->mkNode(
         kind::OR, args[0], args[0].notNode());
   }
+  if (id == PfRule::CONTRA)
+  {
+    Assert(children.size() == 2);
+    if (children[1].getKind() == Kind::NOT && children[0] == children[1][0])
+    {
+      return NodeManager::currentNM()->mkConst(false);
+    }
+    return Node::null();
+  }
   if (id == PfRule::EQ_RESOLVE)
   {
     Assert(children.size() == 2);
@@ -221,6 +266,26 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     return children[1][1];
+  }
+  if (id == PfRule::MODUS_PONENS)
+  {
+    Assert(children.size() == 2);
+    Assert(args.empty());
+    if (children[1].getKind() != kind::IMPLIES || children[0] != children[1][0])
+    {
+      return Node::null();
+    }
+    return children[1][1];
+  }
+  if (id == PfRule::NOT_NOT_ELIM)
+  {
+    Assert(children.size() == 1);
+    Assert(args.empty());
+    if (children[0].getKind() != kind::NOT || children[0][0].getKind() != kind::NOT)
+    {
+      return Node::null();
+    }
+    return children[0][0][0];
   }
   // natural deduction rules
   if (id == PfRule::AND_ELIM)
