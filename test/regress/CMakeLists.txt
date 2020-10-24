@@ -431,6 +431,7 @@ set(regress_0_tests
   regress0/datatypes/is_test.smt2
   regress0/datatypes/issue1433.smt2
   regress0/datatypes/issue2838.cvc
+  regress0/datatypes/issue5280-no-nrec.smt2
   regress0/datatypes/jsat-2.6.smt2
   regress0/datatypes/list-bool.smt2
   regress0/datatypes/model-subterms-min.smt2
@@ -882,6 +883,7 @@ set(regress_0_tests
   regress0/sep/wand-crash.smt2
   regress0/seq/intseq.smt2
   regress0/seq/intseq_dt.smt2
+  regress0/seq/issue4370-bool-terms.smt2
   regress0/seq/seq-2var.smt2
   regress0/seq/seq-ex1.smt2
   regress0/seq/seq-ex2.smt2
@@ -893,8 +895,9 @@ set(regress_0_tests
   regress0/seq/seq-nth.smt2
   regress0/seq/seq-nth-uf.smt2
   regress0/seq/seq-nth-uf-z.smt2
-  regress0/seq/seq-nth-undef.smt2
+  regress0/seq/seq-nth-undef-unsat.smt2
   regress0/seq/seq-rewrites.smt2
+  regress0/seq/seq-types.smt2
   regress0/sets/abt-min.smt2
   regress0/sets/abt-te-exh.smt2
   regress0/sets/abt-te-exh2.smt2
@@ -1788,6 +1791,8 @@ set(regress_1_tests
   regress1/sets/issue2568.smt2
   regress1/sets/issue2904.smt2
   regress1/sets/issue4391-card-lasso.smt2
+  regress1/sets/issue5271.smt2
+  regress1/sets/issue5309.smt2
   regress1/sets/lemmabug-ListElts317minimized.smt2
   regress1/sets/remove_check_free_31_6.smt2
   regress1/sets/sets-disequal.smt2

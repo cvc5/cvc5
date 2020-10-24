@@ -71,7 +71,7 @@ class RepSet {
   /** does this set have representative n of type tn? */
   bool hasRep(TypeNode tn, Node n) const;
   /** get the number of representatives for type */
-  unsigned getNumRepresentatives(TypeNode tn) const;
+  size_t getNumRepresentatives(TypeNode tn) const;
   /** get representative at index */
   Node getRepresentative(TypeNode tn, unsigned i) const;
   /**

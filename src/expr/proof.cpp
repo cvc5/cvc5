@@ -408,7 +408,8 @@ bool CDProof::isSame(TNode f, TNode g)
     // symmetric equality
     return true;
   }
-  if (fk == NOT && gk == NOT && f[0][0] == g[0][1] && f[0][1] == g[0][0])
+  if (fk == NOT && gk == NOT && f[0].getKind() == EQUAL
+      && g[0].getKind() == EQUAL && f[0][0] == g[0][1] && f[0][1] == g[0][0])
   {
     // symmetric disequality
     return true;
