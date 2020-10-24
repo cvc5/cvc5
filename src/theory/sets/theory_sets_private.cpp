@@ -1103,7 +1103,7 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
           {
             Trace("sets-model")
                 << "m->getRepresentative(" << itmm.first
-                << m->getRepresentative(itmm.first) << std::endl;
+                << ")= " << m->getRepresentative(itmm.first) << std::endl;
             Node t = nm->mkSingleton(elementType, itmm.first);
             els.push_back(t);
           }
