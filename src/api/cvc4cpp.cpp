@@ -1095,6 +1095,7 @@ Sort Sort::getConstructorCodomainSort() const
   CVC4_API_CHECK(isConstructor()) << "Not a constructor sort: " << (*this);
   return Sort(d_solver, ConstructorType(*d_type).getRangeType());
 }
+
 /* Selector sort ------------------------------------------------------- */
 
 Sort Sort::getSelectorDomainSort() const
