@@ -850,6 +850,16 @@ void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
     {
       Node f1 = t1->getData();
       Node f2 = t2->getData();
+
+      // Usually when (= (f x) (f y)), we don't care whether (= x y) is true or
+      // not for the shared variables x, y in the care graph.
+      // However, this does not apply to the membership operator since the
+      // equality or disequality between members affects the number of elements
+      // in a set. Therefore we need to split on (= x y) for kind MEMBER.
+      // Example:
+      // Suppose (= (member x S) member( y, S)) is true and there are
+      // no other members in S. We would get S = {x} if (= x y) is true.
+      // Otherwise we would get S = {x, y}.
       if (f1.getKind() == MEMBER || !d_state.areEqual(f1, f2))
       {
         Trace("sets-cg") << "Check " << f1 << " and " << f2 << std::endl;
