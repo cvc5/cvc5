@@ -408,9 +408,20 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
       scopeAssumps.push_back(a);
     }
   }
-  // scope the proof constructed above, and connect the formula with the proof
-  // minimize the assumptions
+  // Scope the proof constructed above, and connect the formula with the proof
+  // minimize the assumptions.
   pf = d_pnm->mkScope(pfBody, scopeAssumps, true, true);
+  // If we have no assumptions, and are proving an explanation for propagation
+  if (scopeAssumps.empty() && tnk == TrustNodeKind::PROP_EXP)
+  {
+    // Must add "true" as an explicit argument. This is to ensure that the
+    // propagation F from true proves (=> true F) instead of F. We do not
+    // ensure closed or minimize here, since we already ensured the proof
+    // was closed above, and we do not want to minimize, or else "true" would
+    // be omitted.
+    scopeAssumps.push_back(nm->mkConst(true));
+    pf = d_pnm->mkScope(pf, scopeAssumps, false);
+  }
   exp = nm->mkAnd(scopeAssumps);
   // Make the lemma or conflict node. This must exactly match the conclusion
   // of SCOPE below.
