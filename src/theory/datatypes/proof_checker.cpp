@@ -25,6 +25,7 @@ void DatatypesProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(PfRule::DT_UNIF, this);
   pc->registerChecker(PfRule::DT_INST, this);
+  pc->registerChecker(PfRule::DT_COLLAPSE, this);
   pc->registerChecker(PfRule::DT_SPLIT, this);
   pc->registerChecker(PfRule::DT_CLASH, this);
   // trusted rules
@@ -75,6 +76,23 @@ Node DatatypesProofRuleChecker::checkInternal(PfRule id,
     Node tester = utils::mkTester(t, i, dt);
     Node ticons = Rewriter::rewrite(utils::getInstCons(t, dt, i));
     return tester.eqNode(t.eqNode(ticons));
+  }
+  else if (id == PfRule::DT_COLLAPSE)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    Node t = args[0];
+    if (t.getKind()!=kind::APPLY_SELECTOR_TOTAL || t[0].getKind()!=kind::APPLY_CONSTRUCTOR)
+    {
+      return Node::null();
+    }
+    Node selector = t.getOperator();
+    size_t constructorIndex = utils::indexOf(t[0].getOperator());
+    const DType& dt = utils::datatypeOf(selector);
+    const DTypeConstructor& dtc = dt[constructorIndex];
+    int selectorIndex = dtc.getSelectorIndexInternal(selector);
+    Node r = selectorIndex<0 ? t.getType().mkGroundTerm() : t[0][selectorIndex];
+    return t.eqNode(r);
   }
   else if (id == PfRule::DT_SPLIT)
   {

@@ -79,7 +79,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerTrustedChecker(PfRule::WITNESS_AXIOM, this, 3);
   pc->registerTrustedChecker(PfRule::TRUST_REWRITE, this, 1);
   pc->registerTrustedChecker(PfRule::TRUST_SUBS, this, 1);
-  pc->registerTrustedChecker(PfRule::TRUST_SUBS_MAP, this, 3);
+  pc->registerTrustedChecker(PfRule::TRUST_SUBS_MAP, this, 1);
 }
 
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(

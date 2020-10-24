@@ -712,6 +712,15 @@ enum class PfRule : uint32_t
   // Conclusion: (= ((_ is C) t) (= t (C (sel_1 t) ... (sel_n t))))
   // where C is the n^th constructor of the type of T.
   DT_INST,
+  // ======== Collapse
+  // Children: none
+  // Arguments: ((sel_i (C_j t_1 ... t_n)))
+  // ----------------------------------------
+  // Conclusion: (= (sel_i (C_j t_1 ... t_n)) r)
+  // where r is t_i if sel_i is a correctly applied selector, or
+  // TypeNode::mkGroundTerm() of the proper type otherwise. Notice that the
+  // use of mkGroundTerm differs from the rewriter which returns mkGroundValue.
+  DT_COLLAPSE,
   // ======== Split
   // Children: none
   // Arguments: (t)

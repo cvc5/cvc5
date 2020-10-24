@@ -121,6 +121,7 @@ const char* toString(PfRule id)
     //================================================= Datatype rules
     case PfRule::DT_UNIF: return "DT_UNIF";
     case PfRule::DT_INST: return "DT_INST";
+    case PfRule::DT_COLLAPSE: return "DT_COLLAPSE";
     case PfRule::DT_SPLIT: return "DT_SPLIT";
     case PfRule::DT_CLASH: return "DT_CLASH";
     case PfRule::DT_TRUST: return "DT_TRUST";

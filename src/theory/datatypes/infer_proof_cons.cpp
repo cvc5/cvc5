@@ -154,12 +154,29 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
     break;
     case InferId::LABEL_EXH:
     {
-      // TODO
+      // TODO: resolution
     }
     break;
     case InferId::COLLAPSE_SEL:
     {
-      // TODO
+      Assert (exp.getKind()==EQUAL);
+      Assert (conc.getKind()==EQUAL && conc[0].getKind()==APPLY_SELECTOR_TOTAL);
+      Assert (exp[0].getType().isDatatype());
+      Node sop = conc[0].getOperator();
+      Node sl = nm->mkNode(APPLY_SELECTOR_TOTAL, sop, exp[0]);
+      Node sr = nm->mkNode(APPLY_SELECTOR_TOTAL, sop, exp[1]);
+      // exp[0] = exp[1]
+      // --------------------- CONG        ----------------- DT_COLLAPSE
+      // s(exp[0]) = s(exp[1])             s(exp[1]) = r
+      // --------------------------------------------------- TRANS
+      // s(exp[0]) = r
+      Node asn = ProofRuleChecker::mkKindNode(APPLY_SELECTOR_TOTAL);
+      Node seq = sl.eqNode(sr);
+      cdp->addStep(seq, PfRule::CONG, {exp}, {asn, sop});
+      Node sceq = sr.eqNode(conc[1]);
+      cdp->addStep(sceq, PfRule::DT_COLLAPSE, {}, {sr});
+      cdp->addStep(sl.eqNode(conc[1]), PfRule::TRANS, {seq, sceq}, {});
+      success = true;
     }
     break;
     case InferId::CLASH_CONFLICT:
@@ -170,12 +187,21 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
     break;
     case InferId::TESTER_CONFLICT:
     {
-      // TODO
+      // rewrites to false under substitution
+      Node fn = nm->mkConst(false);
+      cdp->addStep(fn, PfRule::MACRO_SR_PRED_ELIM, expv, {});
+      success = true;
     }
     break;
     case InferId::TESTER_MERGE_CONFLICT:
     {
-      // TODO
+      Assert (expv.size()==3);
+      Node tester1 = expv[0];
+      Node tester1c = nm->mkNode(APPLY_TESTER, expv[1].getOperator(), expv[0][0]);
+      cdp->addStep(tester1c, PfRule::MACRO_SR_PRED_TRANSFORM, {expv[1], expv[2]}, {tester1c});
+      Node fn = nm->mkConst(false);
+      cdp->addStep(fn, PfRule::DT_CLASH, {tester1, tester1c}, {});
+      success = true;
     }
     break;
     case InferId::BISIMILAR: break;

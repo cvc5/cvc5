@@ -1065,7 +1065,7 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
   Trace("dt-collapse-sel") << "collapse selector : " << s << " " << c << std::endl;
   Node r;
   bool wrong = false;
-  Node eq_exp = c.eqNode(s[0]);
+  Node eq_exp = s[0].eqNode(c);
   if( s.getKind()==kind::APPLY_SELECTOR_TOTAL ){
     Node selector = s.getOperator();
     size_t constructorIndex = utils::indexOf(c.getOperator());
@@ -1097,11 +1097,10 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
     if (s != rrs)
     {
       Node eq = s.eqNode(rrs);
-      Node peq = c.eqNode(s[0]);
       Trace("datatypes-infer") << "DtInfer : collapse sel";
       //Trace("datatypes-infer") << ( wrong ? " wrong" : "");
-      Trace("datatypes-infer") << " : " << eq << " by " << peq << std::endl;
-      d_im.addPendingInference(eq, peq, false, InferId::COLLAPSE_SEL);
+      Trace("datatypes-infer") << " : " << eq << " by " << eq_exp << std::endl;
+      d_im.addPendingInference(eq, eq_exp, false, InferId::COLLAPSE_SEL);
     }
   }
 }
