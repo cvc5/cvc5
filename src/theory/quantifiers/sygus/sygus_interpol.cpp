@@ -319,6 +319,11 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
                                        const TypeNode& itpGType,
                                        Node& interpol)
 {
+  // Some instructions in setSynthGrammar and mkSygusConjecture need a fully
+  // initialized solver to work properly. Notice, however, that the sub-solver
+  // created below is not fully initialized by the time those two methods are
+  // needed. Therefore, we call them while the current parent solver is in scope
+  // (i.e., before creating the sub-solver).
   collectSymbols(axioms, conj);
   createVariables(itpGType.isNull());
   TypeNode grammarType = setSynthGrammar(itpGType, axioms, conj);
