@@ -94,6 +94,7 @@ Node NormalForm::evaluate(TNode n)
   {
     case MK_BAG: return evaluateMakeBag(n);
     case BAG_COUNT: return evaluateBagCount(n);
+    case DUPLICATE_REMOVAL: return evaluateDuplicateRemoval(n);
     case UNION_DISJOINT: return evaluateUnionDisjoint(n);
     case UNION_MAX: return evaluateUnionMax(n);
     case INTERSECTION_MIN: return evaluateIntersectionMin(n);
@@ -238,6 +239,30 @@ Node NormalForm::evaluateBagCount(TNode n)
     return count;
   }
   return nm->mkConst(Rational(0));
+}
+
+Node NormalForm::evaluateDuplicateRemoval(TNode n)
+{
+  Assert(n.getKind() == DUPLICATE_REMOVAL);
+
+  // Examples
+  // --------
+  //  - (duplicate_removal (emptybag String)) = (emptybag String)
+  //  - (duplicate_removal (mkBag "x" 4)) = (emptybag "x" 1)
+  //  - (duplicate_removal (disjoint_union (mkBag "x" 3) (mkBag "y" 5)) =
+  //     (disjoint_union (mkBag "x" 1) (mkBag "y" 1)
+
+  std::map<Node, Rational> oldElements = getBagElements(n[0]);
+  // copy elements from the old bag
+  std::map<Node, Rational> newElements(oldElements);
+  Rational one = Rational(1);
+  std::map<Node, Rational>::iterator it;
+  for (it = newElements.begin(); it != newElements.end(); it++)
+  {
+    it->second = one;
+  }
+  Node bag = constructBagFromElements(n[0].getType(), newElements);
+  return bag;
 }
 
 Node NormalForm::evaluateUnionDisjoint(TNode n)

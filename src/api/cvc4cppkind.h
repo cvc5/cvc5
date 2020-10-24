@@ -2048,6 +2048,16 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   BAG_COUNT,
   /**
+   * Eliminate duplicates in a given bag. The returned bag contains exactly the
+   * same elements in the given bag, but with multiplicity one.
+   * Parameters: 1
+   *   -[1]: a term of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  DUPLICATE_REMOVAL,
+  /**
    * The bag of the single element given as a parameter.
    * Parameters: 1
    *   -[1]: Single element

@@ -71,8 +71,7 @@ struct SubBagTypeRule
     {
       if (!bagType.isBag())
       {
-        throw TypeCheckingExceptionPrivate(
-            n, "SUBBAG operating on non-bag");
+        throw TypeCheckingExceptionPrivate(n, "SUBBAG operating on non-bag");
       }
       TypeNode secondBagType = n[1].getType(check);
       if (secondBagType != bagType)
@@ -117,6 +116,25 @@ struct CountTypeRule
     return nodeManager->integerType();
   }
 }; /* struct CountTypeRule */
+
+struct DuplicateRemovalTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+  {
+    Assert(n.getKind() == kind::DUPLICATE_REMOVAL);
+    TypeNode bagType = n[0].getType(check);
+    if (check)
+    {
+      if (!bagType.isBag())
+      {
+        std::stringstream ss;
+        ss << "Applying DUPLICATE_REMOVAL on a non-bag argument in term " << n;
+        throw TypeCheckingExceptionPrivate(n, ss.str());
+      }
+    }
+    return bagType;
+  }
+}; /* struct DuplicateRemovalTypeRule */
 
 struct MkBagTypeRule
 {

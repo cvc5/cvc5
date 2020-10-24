@@ -63,6 +63,7 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
     {
       case MK_BAG: response = rewriteMakeBag(n); break;
       case BAG_COUNT: response = rewriteBagCount(n); break;
+      case DUPLICATE_REMOVAL: response = rewriteDuplicateRemoval(n); break;
       case UNION_MAX: response = rewriteUnionMax(n); break;
       case UNION_DISJOINT: response = rewriteUnionDisjoint(n); break;
       case INTERSECTION_MIN: response = rewriteIntersectionMin(n); break;
@@ -164,6 +165,21 @@ BagsRewriteResponse BagsRewriter::rewriteBagCount(const TNode& n) const
   {
     // (bag.count x (mkBag x c) = c where c > 0 is a constant
     return BagsRewriteResponse(n[1][1], Rewrite::COUNT_MK_BAG);
+  }
+  return BagsRewriteResponse(n, Rewrite::NONE);
+}
+
+BagsRewriteResponse BagsRewriter::rewriteDuplicateRemoval(const TNode& n) const
+{
+  Assert(n.getKind() == DUPLICATE_REMOVAL);
+  if (n[0].getKind() == MK_BAG && n[0][1].isConst()
+      && n[0][1].getConst<Rational>().sgn() == 1)
+  {
+    // (duplicate_removal (mkBag x n)) = (mkBag x 1)
+    //  where n is a positive constant
+    Node one = NodeManager::currentNM()->mkConst(Rational(1));
+    Node bag = d_nm->mkBag(n[0][0].getType(), n[0][0], one);
+    return BagsRewriteResponse(bag, Rewrite::DUPLICATE_REMOVAL_MK_BAG);
   }
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
@@ -453,8 +469,8 @@ BagsRewriteResponse BagsRewriter::rewriteToSet(const TNode& n) const
   {
     // (bag.to_set (mkBag x n)) = (singleton (singleton_op T) x)
     // where n is a positive constant and T is the type of the bag's elements
-    Node bag = d_nm->mkSingleton(n[0][0].getType(), n[0][0]);
-    return BagsRewriteResponse(bag, Rewrite::TO_SINGLETON);
+    Node set = d_nm->mkSingleton(n[0][0].getType(), n[0][0]);
+    return BagsRewriteResponse(set, Rewrite::TO_SINGLETON);
   }
   return BagsRewriteResponse(n, Rewrite::NONE);
 }

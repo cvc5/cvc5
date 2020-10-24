@@ -17,8 +17,8 @@
 #ifndef CVC4__THEORY__BAGS__THEORY_BAGS_REWRITER_H
 #define CVC4__THEORY__BAGS__THEORY_BAGS_REWRITER_H
 
-#include "theory/rewriter.h"
 #include "theory/bags/rewrites.h"
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace theory {
@@ -76,6 +76,7 @@ class BagsRewriter : public TheoryRewriter
    * - otherwise = n
    */
   BagsRewriteResponse rewriteMakeBag(const TNode& n) const;
+
   /**
    * rewrites for n include:
    * - (bag.count x emptybag) = 0
@@ -83,6 +84,13 @@ class BagsRewriter : public TheoryRewriter
    * - otherwise = n
    */
   BagsRewriteResponse rewriteBagCount(const TNode& n) const;
+
+  /**
+   *  rewrites for n include:
+   *  - (duplicate_removal (mkBag x n)) = (mkBag x 1)
+   *     where n is a positive constant
+   */
+  BagsRewriteResponse rewriteDuplicateRemoval(const TNode& n) const;
 
   /**
    * rewrites for n include:
