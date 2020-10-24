@@ -850,7 +850,7 @@ void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
     {
       Node f1 = t1->getData();
       Node f2 = t2->getData();
-      if (!d_state.areEqual(f1, f2))
+      if (f1.getKind() == MEMBER || !d_state.areEqual(f1, f2))
       {
         Trace("sets-cg") << "Check " << f1 << " and " << f2 << std::endl;
         vector<pair<TNode, TNode> > currentPairs;
@@ -1101,6 +1101,9 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
           TypeNode elementType = eqc.getType().getSetElementType();
           for (const std::pair<const Node, Node>& itmm : emems)
           {
+            Trace("sets-model")
+                << "m->getRepresentative(" << itmm.first
+                << m->getRepresentative(itmm.first) << std::endl;
             Node t = nm->mkSingleton(elementType, itmm.first);
             els.push_back(t);
           }
