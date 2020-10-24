@@ -82,7 +82,8 @@ Node DatatypesProofRuleChecker::checkInternal(PfRule id,
     Assert(children.empty());
     Assert(args.size() == 1);
     Node t = args[0];
-    if (t.getKind()!=kind::APPLY_SELECTOR_TOTAL || t[0].getKind()!=kind::APPLY_CONSTRUCTOR)
+    if (t.getKind() != kind::APPLY_SELECTOR_TOTAL
+        || t[0].getKind() != kind::APPLY_CONSTRUCTOR)
     {
       return Node::null();
     }
@@ -91,7 +92,8 @@ Node DatatypesProofRuleChecker::checkInternal(PfRule id,
     const DType& dt = utils::datatypeOf(selector);
     const DTypeConstructor& dtc = dt[constructorIndex];
     int selectorIndex = dtc.getSelectorIndexInternal(selector);
-    Node r = selectorIndex<0 ? t.getType().mkGroundTerm() : t[0][selectorIndex];
+    Node r =
+        selectorIndex < 0 ? t.getType().mkGroundTerm() : t[0][selectorIndex];
     return t.eqNode(r);
   }
   else if (id == PfRule::DT_SPLIT)

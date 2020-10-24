@@ -159,9 +159,10 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
     break;
     case InferId::COLLAPSE_SEL:
     {
-      Assert (exp.getKind()==EQUAL);
-      Assert (conc.getKind()==EQUAL && conc[0].getKind()==APPLY_SELECTOR_TOTAL);
-      Assert (exp[0].getType().isDatatype());
+      Assert(exp.getKind() == EQUAL);
+      Assert(conc.getKind() == EQUAL
+             && conc[0].getKind() == APPLY_SELECTOR_TOTAL);
+      Assert(exp[0].getType().isDatatype());
       Node sop = conc[0].getOperator();
       Node sl = nm->mkNode(APPLY_SELECTOR_TOTAL, sop, exp[0]);
       Node sr = nm->mkNode(APPLY_SELECTOR_TOTAL, sop, exp[1]);
@@ -195,10 +196,14 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
     break;
     case InferId::TESTER_MERGE_CONFLICT:
     {
-      Assert (expv.size()==3);
+      Assert(expv.size() == 3);
       Node tester1 = expv[0];
-      Node tester1c = nm->mkNode(APPLY_TESTER, expv[1].getOperator(), expv[0][0]);
-      cdp->addStep(tester1c, PfRule::MACRO_SR_PRED_TRANSFORM, {expv[1], expv[2]}, {tester1c});
+      Node tester1c =
+          nm->mkNode(APPLY_TESTER, expv[1].getOperator(), expv[0][0]);
+      cdp->addStep(tester1c,
+                   PfRule::MACRO_SR_PRED_TRANSFORM,
+                   {expv[1], expv[2]},
+                   {tester1c});
       Node fn = nm->mkConst(false);
       cdp->addStep(fn, PfRule::DT_CLASH, {tester1, tester1c}, {});
       success = true;
