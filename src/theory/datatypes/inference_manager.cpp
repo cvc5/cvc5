@@ -161,7 +161,7 @@ Node InferenceManager::processDtInference(Node conc, Node exp, InferId id)
 {
   Trace("dt-lemma-debug") << "processDtInference : " << conc << " via " << exp
                           << " by " << id << std::endl;
-  if (conc.getKind()==EQUAL && conc[0].getType().isBoolean())
+  if (conc.getKind() == EQUAL && conc[0].getType().isBoolean())
   {
     // must turn (= conc false) into (not conc)
     conc = Rewriter::rewrite(conc);

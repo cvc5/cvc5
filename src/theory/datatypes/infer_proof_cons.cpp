@@ -77,21 +77,22 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
       Node narg;
       // we may be asked for a proof of (not P) coming from (= P false) or
       // (= false P) or P from (= P true) from (= true P).
-      bool concPol = conc.getKind()!=NOT;
+      bool concPol = conc.getKind() != NOT;
       Node concAtom = concPol ? conc : conc[0];
       Node unifConc = conc;
       for (size_t i = 0, nchild = exp[0].getNumChildren(); i < nchild; i++)
       {
         bool argSuccess = false;
-        if (conc.getKind()==EQUAL)
+        if (conc.getKind() == EQUAL)
         {
           argSuccess = (exp[0][i] == conc[0] && exp[1][i] == conc[1]);
         }
         else
         {
-          for (size_t j=0; j<2; j++)
+          for (size_t j = 0; j < 2; j++)
           {
-            if (exp[j][i]==concAtom && exp[1-j][i].isConst() && exp[1-j][i].getConst<bool>()==concPol)
+            if (exp[j][i] == concAtom && exp[1 - j][i].isConst()
+                && exp[1 - j][i].getConst<bool>() == concPol)
             {
               argSuccess = true;
               unifConc = exp[0][i].eqNode(exp[1][i]);
@@ -107,7 +108,7 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
       }
       if (!narg.isNull())
       {
-        if (conc.getKind()==EQUAL)
+        if (conc.getKind() == EQUAL)
         {
           // normal case where we conclude an equality
           cdp->addStep(conc, PfRule::DT_UNIF, {exp}, {narg});
@@ -118,7 +119,8 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
           cdp->addStep(unifConc, PfRule::DT_UNIF, {exp}, {narg});
           // may use symmetry
           Node eq = concAtom.eqNode(nm->mkConst(concPol));
-          cdp->addStep(conc, concPol ? PfRule::TRUE_ELIM : PfRule::FALSE_ELIM, {eq}, {});
+          cdp->addStep(
+              conc, concPol ? PfRule::TRUE_ELIM : PfRule::FALSE_ELIM, {eq}, {});
         }
         success = true;
       }
