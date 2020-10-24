@@ -2030,9 +2030,10 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   DIFFERENCE_REMOVE,
   /**
-   * Bag is included (first multiplicities <= second multiplicities).
+   * Inclusion predicate for bags
+   * (multiplicities of the first bag <= multiplicities of the second bag).
    * Parameters: 2
-   *   -[1]..[2]: Terms of set sort
+   *   -[1]..[2]: Terms of bag sort
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
