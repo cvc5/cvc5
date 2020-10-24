@@ -30,7 +30,8 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 
-QuantifiersEngine::QuantifiersEngine(TheoryEngine* te, DecisionManager& dm,
+QuantifiersEngine::QuantifiersEngine(TheoryEngine* te,
+                                     DecisionManager& dm,
                                      ProofNodeManager* pnm)
     : d_te(te),
       d_context(te->getSatContext()),
@@ -49,7 +50,7 @@ QuantifiersEngine::QuantifiersEngine(TheoryEngine* te, DecisionManager& dm,
       d_sygus_tdb(nullptr),
       d_quant_attr(new quantifiers::QuantAttributes(this)),
       d_instantiate(new quantifiers::Instantiate(this, d_userContext, pnm)),
-      d_skolemize(new quantifiers::Skolemize(this, d_userContext)),
+      d_skolemize(new quantifiers::Skolemize(this, d_userContext, pnm)),
       d_term_enum(new quantifiers::TermEnumeration),
       d_conflict_c(d_context, false),
       d_quants_prereg(d_userContext),
@@ -809,16 +810,16 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
   }
   if( !pol ){
     // do skolemization
-    Node lem = d_skolemize->process(f);
+    TrustNode lem = d_skolemize->process(f);
     if (!lem.isNull())
     {
       if (Trace.isOn("quantifiers-sk-debug"))
       {
-        Node slem = Rewriter::rewrite(lem);
+        Node slem = Rewriter::rewrite(lem.getNode());
         Trace("quantifiers-sk-debug")
             << "Skolemize lemma : " << slem << std::endl;
       }
-      getOutputChannel().lemma(
+      getOutputChannel().trustedLemma(
           lem, LemmaProperty::PREPROCESS | LemmaProperty::NEEDS_JUSTIFY);
     }
     return;
