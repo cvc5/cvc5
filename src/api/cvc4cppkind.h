@@ -2037,7 +2037,7 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
-  BAG_IS_INCLUDED,
+  SUBBAG,
   /**
    * Element multiplicity in a bag
    * Parameters: 2

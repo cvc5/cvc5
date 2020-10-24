@@ -98,7 +98,7 @@ RewriteResponse BagsRewriter::preRewrite(TNode n)
   switch (k)
   {
     case EQUAL: response = rewriteEqual(n); break;
-    case BAG_IS_INCLUDED: response = rewriteIsIncluded(n); break;
+    case SUBBAG: response = rewriteSubBag(n); break;
     default: response = BagsRewriteResponse(n, Rewrite::NONE);
   }
 
@@ -127,9 +127,9 @@ BagsRewriteResponse BagsRewriter::rewriteEqual(const TNode& n) const
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
 
-BagsRewriteResponse BagsRewriter::rewriteIsIncluded(const TNode& n) const
+BagsRewriteResponse BagsRewriter::rewriteSubBag(const TNode& n) const
 {
-  Assert(n.getKind() == BAG_IS_INCLUDED);
+  Assert(n.getKind() == SUBBAG);
 
   // (bag.is_included A B) = ((difference_subtract A B) == emptybag)
   Node emptybag = d_nm->mkConst(EmptyBag(n[0].getType()));

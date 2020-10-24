@@ -61,18 +61,18 @@ struct BinaryOperatorTypeRule
   }
 }; /* struct BinaryOperatorTypeRule */
 
-struct IsIncludedTypeRule
+struct SubBagTypeRule
 {
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    Assert(n.getKind() == kind::BAG_IS_INCLUDED);
+    Assert(n.getKind() == kind::SUBBAG);
     TypeNode bagType = n[0].getType(check);
     if (check)
     {
       if (!bagType.isBag())
       {
         throw TypeCheckingExceptionPrivate(
-            n, "BAG_IS_INCLUDED operating on non-bag");
+            n, "SUBBAG operating on non-bag");
       }
       TypeNode secondBagType = n[1].getType(check);
       if (secondBagType != bagType)
@@ -80,13 +80,13 @@ struct IsIncludedTypeRule
         if (!bagType.isComparableTo(secondBagType))
         {
           throw TypeCheckingExceptionPrivate(
-              n, "BAG_IS_INCLUDED operating on bags of different types");
+              n, "SUBBAG operating on bags of different types");
         }
       }
     }
     return nodeManager->booleanType();
   }
-}; /* struct IsIncludedTypeRule */
+}; /* struct SubBagTypeRule */
 
 struct CountTypeRule
 {

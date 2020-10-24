@@ -45,8 +45,8 @@ operator DIFFERENCE_SUBTRACT    2  "bag difference1 (subtracts multiplicities)"
 # {("a", 2), ("b", 3)} \\ {("a", 1)} = {("b", 3)}
 operator DIFFERENCE_REMOVE 2  "bag difference remove (removes shared elements)"
 
-operator BAG_IS_INCLUDED   2  "inclusion predicate for bags (less than or equal multiplicities)"
-operator BAG_COUNT         2  "multiplicity of an element in a bag"
+operator SUBBAG     2  "inclusion predicate for bags (less than or equal multiplicities)"
+operator BAG_COUNT  2  "multiplicity of an element in a bag"
 
 constant MK_BAG_OP \
 	::CVC4::MakeBagOp \
@@ -74,7 +74,7 @@ typerule UNION_DISJOINT      ::CVC4::theory::bags::BinaryOperatorTypeRule
 typerule INTERSECTION_MIN    ::CVC4::theory::bags::BinaryOperatorTypeRule
 typerule DIFFERENCE_SUBTRACT ::CVC4::theory::bags::BinaryOperatorTypeRule
 typerule DIFFERENCE_REMOVE   ::CVC4::theory::bags::BinaryOperatorTypeRule
-typerule BAG_IS_INCLUDED     ::CVC4::theory::bags::IsIncludedTypeRule
+typerule SUBBAG              ::CVC4::theory::bags::SubBagTypeRule
 typerule BAG_COUNT           ::CVC4::theory::bags::CountTypeRule
 typerule MK_BAG_OP           "SimpleTypeRule<RBuiltinOperator>"
 typerule MK_BAG              ::CVC4::theory::bags::MkBagTypeRule

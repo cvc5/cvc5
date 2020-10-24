@@ -695,9 +695,9 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::INTERSECTION_MIN, "intersection_min");
     addOperator(api::DIFFERENCE_SUBTRACT, "difference_subtract");
     addOperator(api::DIFFERENCE_REMOVE, "difference_remove");
-    addOperator(api::BAG_IS_INCLUDED, "bag.is_included");
+    addOperator(api::SUBBAG, "bag.is_included");
     addOperator(api::BAG_COUNT, "bag.count");
-    addOperator(api::MK_BAG, "mkBag");
+    addOperator(api::MK_BAG, "bag");
     addOperator(api::BAG_CARD, "bag.card");
     addOperator(api::BAG_CHOOSE, "bag.choose");
     addOperator(api::BAG_IS_SINGLETON, "bag.is_singleton");

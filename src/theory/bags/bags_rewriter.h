@@ -50,7 +50,7 @@ class BagsRewriter : public TheoryRewriter
    */
   RewriteResponse postRewrite(TNode n) override;
   /**
-   * preRewrite nodes with kinds: EQUAL, BAG_IS_INCLUDED.
+   * preRewrite nodes with kinds: EQUAL, SUBBAG.
    * See the rewrite rules for these kinds below.
    */
   RewriteResponse preRewrite(TNode n) override;
@@ -66,7 +66,7 @@ class BagsRewriter : public TheoryRewriter
    * rewrites for n include:
    * - (bag.is_included A B) = ((difference_subtract A B) == emptybag)
    */
-  BagsRewriteResponse rewriteIsIncluded(const TNode& n) const;
+  BagsRewriteResponse rewriteSubBag(const TNode& n) const;
 
   /**
    * rewrites for n include:
