@@ -28,7 +28,7 @@ namespace datatypes {
 InferenceManager::InferenceManager(Theory& t,
                                    TheoryState& state,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(t, state, nullptr),  // TODO: enable here
+    : InferenceManagerBuffered(t, state, pnm),
       d_inferenceLemmas("theory::datatypes::inferenceLemmas"),
       d_inferenceFacts("theory::datatypes::inferenceFacts"),
       d_inferenceConflicts("theory::datatypes::inferenceConflicts"),
@@ -117,7 +117,7 @@ bool InferenceManager::isProofEnabled() const { return d_ipc != nullptr; }
 bool InferenceManager::processDtLemma(
     Node conc, Node exp, InferId id, LemmaProperty p, bool doCache)
 {
-  processDtInference(conc, exp, id);
+  conc = processDtInference(conc, exp, id);
   // send it as an (explained) lemma
   std::vector<Node> expv;
   if (!exp.isNull() && !exp.isConst())
@@ -135,7 +135,7 @@ bool InferenceManager::processDtLemma(
 
 bool InferenceManager::processDtFact(Node conc, Node exp, InferId id)
 {
-  processDtInference(conc, exp, id);
+  conc = processDtInference(conc, exp, id);
   // assert the internal fact, which has the same issue as above
   bool polarity = conc.getKind() != NOT;
   TNode atom = polarity ? conc : conc[0];
@@ -157,10 +157,15 @@ bool InferenceManager::processDtFact(Node conc, Node exp, InferId id)
   return true;
 }
 
-void InferenceManager::processDtInference(Node conc, Node exp, InferId id)
+Node InferenceManager::processDtInference(Node conc, Node exp, InferId id)
 {
   Trace("dt-lemma-debug") << "processDtInference : " << conc << " via " << exp
                           << " by " << id << std::endl;
+  if (conc.getKind()==EQUAL && conc[0].getType().isBoolean())
+  {
+    // must turn (= conc false) into (not conc)
+    conc = Rewriter::rewrite(conc);
+  }
   if (isProofEnabled())
   {
     // If proofs are enabled, notify the proof constructor.
@@ -172,6 +177,7 @@ void InferenceManager::processDtInference(Node conc, Node exp, InferId id)
         std::make_shared<DatatypesInference>(this, conc, exp, id);
     d_ipc->notifyFact(di);
   }
+  return conc;
 }
 
 }  // namespace datatypes

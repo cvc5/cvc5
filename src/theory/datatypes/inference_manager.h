@@ -94,8 +94,17 @@ class InferenceManager : public InferenceManagerBuffered
    * Process datatype inference as a fact
    */
   bool processDtFact(Node conc, Node exp, InferId id);
-  /** Helper function for the above methods */
-  void processDtInference(Node conc, Node exp, InferId id);
+  /** 
+   * Helper function for the above methods. Returns the conclusion, which
+   * may be modified so that it is compatible with proofs.
+   * 
+   * In particular, if conc is a Boolean equality, it is rewritten. This is
+   * to ensure that we do not assert equalities of the form (= t true)
+   * or (= t false) to the equality engine, which have a reserved internal
+   * status for proof generation. If this is not done, then it is possible
+   * to have proofs with missing connections and hence free assumptions.
+   */
+  Node processDtInference(Node conc, Node exp, InferId id);
   /** The false node */
   Node d_false;
   /**

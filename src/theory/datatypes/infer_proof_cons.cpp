@@ -74,11 +74,32 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
       Assert(exp.getKind() == EQUAL && exp[0].getKind() == APPLY_CONSTRUCTOR
              && exp[1].getKind() == APPLY_CONSTRUCTOR
              && exp[0].getOperator() == exp[1].getOperator());
-      Assert(conc.getKind() == EQUAL);
       Node narg;
+      // we may be asked for a proof of (not P) coming from (= P false) or
+      // (= false P) or P from (= P true) from (= true P).
+      bool concPol = conc.getKind()!=NOT;
+      Node concAtom = concPol ? conc : conc[0];
+      Node unifConc = conc;
       for (size_t i = 0, nchild = exp[0].getNumChildren(); i < nchild; i++)
       {
-        if (exp[0][i] == conc[0] && exp[1][i] == conc[1])
+        bool argSuccess = false;
+        if (conc.getKind()==EQUAL)
+        {
+          argSuccess = (exp[0][i] == conc[0] && exp[1][i] == conc[1]);
+        }
+        else
+        {
+          for (size_t j=0; j<2; j++)
+          {
+            if (exp[j][i]==concAtom && exp[1-j][i].isConst() && exp[1-j][i].getConst<bool>()==concPol)
+            {
+              argSuccess = true;
+              unifConc = exp[0][i].eqNode(exp[1][i]);
+              break;
+            }
+          }
+        }
+        if (argSuccess)
         {
           narg = nm->mkConst(Rational(i));
           break;
@@ -86,7 +107,19 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
       }
       if (!narg.isNull())
       {
-        cdp->addStep(conc, PfRule::DT_UNIF, {exp}, {narg});
+        if (conc.getKind()==EQUAL)
+        {
+          // normal case where we conclude an equality
+          cdp->addStep(conc, PfRule::DT_UNIF, {exp}, {narg});
+        }
+        else
+        {
+          // must use true or false elim to prove the final
+          cdp->addStep(unifConc, PfRule::DT_UNIF, {exp}, {narg});
+          // may use symmetry
+          Node eq = concAtom.eqNode(nm->mkConst(concPol));
+          cdp->addStep(conc, concPol ? PfRule::TRUE_ELIM : PfRule::FALSE_ELIM, {eq}, {});
+        }
         success = true;
       }
     }
@@ -161,6 +194,7 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
 
 std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
 {
+  Trace("dt-ipc") << "dt-ipc: Ask proof for " << fact << std::endl;
   // temporary proof
   CDProof pf(d_pnm);
   // get the inference

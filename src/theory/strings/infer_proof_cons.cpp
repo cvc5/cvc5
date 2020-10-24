@@ -878,17 +878,6 @@ void InferProofCons::convert(Inference infer,
     ps.d_rule = PfRule::STRING_TRUST;
     // add to stats
     d_statistics.d_inferencesNoPf << infer;
-    if (options::proofNewPedantic() > 0)
-    {
-      std::stringstream serr;
-      serr << "InferProofCons::convert: Failed " << infer
-           << (isRev ? " :rev " : " ") << conc << std::endl;
-      for (const Node& ec : exp)
-      {
-        serr << "    e: " << ec << std::endl;
-      }
-      Unhandled() << serr.str();
-    }
   }
   if (Trace.isOn("strings-ipc-debug"))
   {
