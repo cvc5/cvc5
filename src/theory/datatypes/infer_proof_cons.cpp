@@ -76,7 +76,7 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
              && exp[0].getOperator() == exp[1].getOperator());
       Node narg;
       // we may be asked for a proof of (not P) coming from (= P false) or
-      // (= false P) or P from (= P true) from (= true P).
+      // (= false P), or similarly P from (= P true) or (= true P).
       bool concPol = conc.getKind() != NOT;
       Node concAtom = concPol ? conc : conc[0];
       Node unifConc = conc;

@@ -106,10 +106,12 @@ PR finished:
 (119) Lazy proof set
 (120) new miscellaneous proof rules + Boolean checker
 (121) proof rule checker simplify
+(122) allow AND substitutions in proof post processor
 (123) proof node updater merge policy
 (124) miscellaneous updates
 (125) [x2] proof producing circuit propagator [Gereon]
 (126) datatype inferences
+(127) datatypes proof checker (req 126)
 (128) updates to lazy cd proof chain [Haniel]
 (129) refinements to cyclic checking policy
 
@@ -120,11 +122,9 @@ PRs ready:
 (68) PropEngine proof producing [Haniel] (req 53, 110, 111, 112)
 (70) rewriter unit test [Andres] (req 36, 37)
 (118) non-clausal simplification proof producing (req 116, 117, 120, 125)
-(122) allow AND substitutions in proof post processor *
-(127) datatypes proof checker (req 126)
 (131) Updates to Boolean proof checker [Haniel]
 (133) Boolean proof checker unit test [Haniel]
-(134) proofs for skolemization
+(134) proofs for skolemization *
 
 PRs future:
 
