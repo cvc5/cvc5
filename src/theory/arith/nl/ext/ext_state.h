@@ -30,6 +30,20 @@ namespace nl {
 
 struct ExtState
 {
+  ExtState(InferenceManager& im,
+           NlModel& model,
+           ProofNodeManager* pnm,
+           context::Context* c);
+
+  bool proofsEnabled() const;
+  bool addProof(Node expected,
+                PfRule id,
+                const std::vector<Node>& children,
+                const std::vector<Node>& args);
+  std::shared_ptr<ProofNode> getProof(Node expected);
+
+  void init(const std::vector<Node>& xts);
+
   Node d_false = NodeManager::currentNM()->mkConst(false);
   Node d_true = NodeManager::currentNM()->mkConst(true);
   Node d_zero = NodeManager::currentNM()->mkConst(Rational(0));
@@ -55,35 +69,6 @@ struct ExtState
   std::unordered_set<Node, NodeHashFunction> d_tplane_refine;
 
   std::unique_ptr<CDProof> d_proof;
-
-  ExtState(InferenceManager& im,
-           NlModel& model,
-           ProofNodeManager* pnm,
-           context::Context* c)
-      : d_im(im), d_model(model)
-  {
-    if (pnm != nullptr)
-    {
-      d_proof.reset(new CDProof(pnm, c));
-    }
-  }
-
-  void init(const std::vector<Node>& xts);
-
-  bool proofsEnabled() const { return d_proof != nullptr; }
-  bool addProof(Node expected,
-                PfRule id,
-                const std::vector<Node>& children,
-                const std::vector<Node>& args)
-  {
-    if (!proofsEnabled()) return false;
-    return d_proof->addStep(expected, id, children, args);
-  }
-  std::shared_ptr<ProofNode> getProof(Node expected)
-  {
-    if (!proofsEnabled()) return nullptr;
-    return d_proof->getProofFor(expected);
-  }
 };
 
 }  // namespace nl
