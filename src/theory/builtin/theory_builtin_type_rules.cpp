@@ -18,6 +18,10 @@
 
 #include "expr/attribute.h"
 
+namespace CVC4 {
+namespace theory {
+namespace builtin {
+
 /**
  * Attribute for caching the ground term for each type. Maps TypeNode to the
  * skolem to return for mkGroundTerm.
@@ -27,10 +31,7 @@ struct GroundTermAttributeId
 };
 typedef expr::Attribute<GroundTermAttributeId, Node> GroundTermAttribute;
 
-namespace CVC4 {
-namespace theory {
-namespace builtin {
-
+  
 Node SortProperties::mkGroundTerm(TypeNode type) {
   Assert(type.getKind() == kind::SORT_TYPE);
   GroundTermAttribute gta;
