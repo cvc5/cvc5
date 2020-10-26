@@ -16,7 +16,7 @@
 #define CVC4__THEORY__ARITH__NL__EXT__SPLIT_ZERO_CHECK_H
 
 #include "expr/node.h"
-#include "theory/arith/nl/ext/shared_check_data.h"
+#include "theory/arith/nl/ext/ext_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -26,7 +26,7 @@ namespace nl {
 class SplitZeroCheck
 {
  public:
-  SplitZeroCheck(SharedCheckData* data, context::Context* ctx);
+  SplitZeroCheck(ExtState* data, context::Context* ctx);
 
   /** check split zero
    *
@@ -40,7 +40,7 @@ class SplitZeroCheck
   using NodeSet = context::CDHashSet<Node, NodeHashFunction>;
 
   /** Basic data that is shared with other checks */
-  SharedCheckData* d_data;
+  ExtState* d_data;
   /** cache of terms t for which we have added the lemma ( t = 0 V t != 0 ). */
   NodeSet d_zero_split;
 };

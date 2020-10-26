@@ -16,7 +16,7 @@
 #define CVC4__THEORY__ARITH__NL__EXT__TANGENT_PLANE_CHECK_H
 
 #include "expr/node.h"
-#include "theory/arith/nl/ext/shared_check_data.h"
+#include "theory/arith/nl/ext/ext_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -26,7 +26,7 @@ namespace nl {
 class TangentPlaneCheck
 {
  public:
-  TangentPlaneCheck(SharedCheckData* data);
+  TangentPlaneCheck(ExtState* data);
 
   /** check tangent planes
    *
@@ -56,7 +56,7 @@ class TangentPlaneCheck
 
  private:
   /** Basic data that is shared with other checks */
-  SharedCheckData* d_data;
+  ExtState* d_data;
   /** tangent plane bounds */
   std::map<Node, std::map<Node, Node> > d_tangent_val_bound[4];
 };

@@ -24,7 +24,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-TangentPlaneCheck::TangentPlaneCheck(SharedCheckData* data) : d_data(data) {}
+TangentPlaneCheck::TangentPlaneCheck(ExtState* data) : d_data(data) {}
 
 void TangentPlaneCheck::check(bool asWaitingLemmas)
 {

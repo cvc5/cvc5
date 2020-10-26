@@ -16,7 +16,7 @@
 #define CVC4__THEORY__ARITH__NL__EXT__MONOMIAL_CHECK_H
 
 #include "expr/node.h"
-#include "theory/arith/nl/ext/shared_check_data.h"
+#include "theory/arith/nl/ext/ext_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -26,7 +26,7 @@ namespace nl {
 class MonomialCheck
 {
  public:
-  MonomialCheck(SharedCheckData* data);
+  MonomialCheck(ExtState* data);
 
   void init(const std::vector<Node>& xts);
 
@@ -176,7 +176,7 @@ class MonomialCheck
   void setMonomialFactor(Node a, Node b, const NodeMultiset& common);
 
   /** Basic data that is shared with other checks */
-  SharedCheckData* d_data;
+  ExtState* d_data;
 
   std::map<Node, bool> d_ms_proc;
   // ordering, stores variables and 0,1,-1

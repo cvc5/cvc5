@@ -24,7 +24,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-SplitZeroCheck::SplitZeroCheck(SharedCheckData* data, context::Context* ctx)
+SplitZeroCheck::SplitZeroCheck(ExtState* data, context::Context* ctx)
     : d_data(data), d_zero_split(ctx)
 {
 }

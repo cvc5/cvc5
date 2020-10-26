@@ -47,12 +47,12 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
                   containing.getOutputChannel()),
       d_model(containing.getSatContext()),
       d_trSlv(d_im, d_model),
-      d_sharedCheckData(d_im, d_model),
+      d_extState(d_im, d_model, nullptr, containing.getSatContext()),
       d_factoringSlv(d_im, d_model),
-      d_monomialBoundsSlv(&d_sharedCheckData),
-      d_monomialSlv(&d_sharedCheckData),
-      d_splitZeroSlv(&d_sharedCheckData, state.getUserContext()),
-      d_tangentPlaneSlv(&d_sharedCheckData),
+      d_monomialBoundsSlv(&d_extState),
+      d_monomialSlv(&d_extState),
+      d_splitZeroSlv(&d_extState, state.getUserContext()),
+      d_tangentPlaneSlv(&d_extState),
       d_cadSlv(d_im, d_model),
       d_icpSlv(d_im),
       d_iandSlv(d_im, state, d_model),
@@ -703,7 +703,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
         d_icpSlv.check();
         break;
       case InferStep::NL_INIT:
-        d_sharedCheckData.init(xts);
+        d_extState.init(xts);
         d_monomialBoundsSlv.init();
         d_monomialSlv.init(xts);
         break;

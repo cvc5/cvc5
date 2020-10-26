@@ -64,7 +64,7 @@ bool hasNewMonomials(Node n, const std::vector<Node>& existing)
 }
 }  // namespace
 
-MonomialBoundsCheck::MonomialBoundsCheck(SharedCheckData* data)
+MonomialBoundsCheck::MonomialBoundsCheck(ExtState* data)
     : d_data(data), d_cdb(d_data->d_mdb)
 {
 }

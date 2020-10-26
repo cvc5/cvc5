@@ -17,7 +17,7 @@
 
 #include "expr/node.h"
 #include "theory/arith/nl/ext/constraint.h"
-#include "theory/arith/nl/ext/shared_check_data.h"
+#include "theory/arith/nl/ext/ext_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -27,7 +27,7 @@ namespace nl {
 class MonomialBoundsCheck
 {
  public:
-  MonomialBoundsCheck(SharedCheckData* data);
+  MonomialBoundsCheck(ExtState* data);
 
   void init();
 
@@ -69,7 +69,7 @@ class MonomialBoundsCheck
 
  private:
   /** Basic data that is shared with other checks */
-  SharedCheckData* d_data;
+  ExtState* d_data;
 
   /** Context-independent database of constraint information */
   ConstraintDb d_cdb;

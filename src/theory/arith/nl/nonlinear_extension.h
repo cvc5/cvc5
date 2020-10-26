@@ -260,7 +260,7 @@ class NonlinearExtension
    * transcendental functions.
    */
   TranscendentalSolver d_trSlv;
-  SharedCheckData d_sharedCheckData;
+  ExtState d_extState;
   /** The nonlinear extension object
    *
    * This is the subsolver responsible for running the procedure for

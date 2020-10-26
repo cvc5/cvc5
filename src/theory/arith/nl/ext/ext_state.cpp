@@ -12,7 +12,7 @@
  ** \brief Common data shared by multiple checks
  **/
 
-#include "theory/arith/nl/ext/shared_check_data.h"
+#include "theory/arith/nl/ext/ext_state.h"
 
 #include <vector>
 
@@ -26,7 +26,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-void SharedCheckData::init(const std::vector<Node>& xts)
+void ExtState::init(const std::vector<Node>& xts)
 {
   d_ms_vars.clear();
   d_ms.clear();
