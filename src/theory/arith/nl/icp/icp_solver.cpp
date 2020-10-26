@@ -210,7 +210,7 @@ PropagationResult ICPSolver::doPropagationRound()
     Trace("nl-icp") << "ICP budget exceeded" << std::endl;
     return PropagationResult::NOT_CHANGED;
   }
-  d_state.d_conflict = Node();
+  d_state.d_conflict.clear();
   Trace("nl-icp") << "Starting propagation with "
                   << IAWrapper{d_state.d_assignment, d_mapper} << std::endl;
   Trace("nl-icp") << "Current budget: " << d_budget << std::endl;
@@ -267,7 +267,7 @@ std::vector<Node> ICPSolver::generateLemmas() const
       Node c = nm->mkNode(rel, v, value_to_node(get_lower(i), v));
       if (!d_state.d_origins.isInOrigins(v, c))
       {
-        Node premise = d_state.d_origins.getOrigins(v);
+        Node premise = nm->mkAnd(d_state.d_origins.getOrigins(v));
         Trace("nl-icp") << premise << " => " << c << std::endl;
         Node lemma = Rewriter::rewrite(nm->mkNode(Kind::IMPLIES, premise, c));
         if (lemma.isConst())
@@ -287,7 +287,7 @@ std::vector<Node> ICPSolver::generateLemmas() const
       Node c = nm->mkNode(rel, v, value_to_node(get_upper(i), v));
       if (!d_state.d_origins.isInOrigins(v, c))
       {
-        Node premise = d_state.d_origins.getOrigins(v);
+        Node premise = nm->mkAnd(d_state.d_origins.getOrigins(v));
         Trace("nl-icp") << premise << " => " << c << std::endl;
         Node lemma = Rewriter::rewrite(nm->mkNode(Kind::IMPLIES, premise, c));
         if (lemma.isConst())
