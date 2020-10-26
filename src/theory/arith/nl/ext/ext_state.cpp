@@ -26,31 +26,9 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-ExtState::ExtState(InferenceManager& im,
-                   NlModel& model,
-                   ProofNodeManager* pnm,
-                   context::Context* c)
+ExtState::ExtState(InferenceManager& im, NlModel& model, context::Context* c)
     : d_im(im), d_model(model)
 {
-  if (pnm != nullptr)
-  {
-    d_proof.reset(new CDProof(pnm, c));
-  }
-}
-
-bool ExtState::proofsEnabled() const { return d_proof != nullptr; }
-bool ExtState::addProof(Node expected,
-                        PfRule id,
-                        const std::vector<Node>& children,
-                        const std::vector<Node>& args)
-{
-  if (!proofsEnabled()) return false;
-  return d_proof->addStep(expected, id, children, args);
-}
-std::shared_ptr<ProofNode> ExtState::getProof(Node expected)
-{
-  if (!proofsEnabled()) return nullptr;
-  return d_proof->getProofFor(expected);
 }
 
 void ExtState::init(const std::vector<Node>& xts)

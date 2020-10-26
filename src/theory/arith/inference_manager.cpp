@@ -35,9 +35,6 @@ void InferenceManager::addPendingArithLemma(std::unique_ptr<ArithLemma> lemma,
   Trace("arith::infman") << "Add " << lemma->d_inference << " " << lemma->d_node
                          << (isWaiting ? " as waiting" : "") << std::endl;
   lemma->d_node = Rewriter::rewrite(lemma->d_node);
-  Trace("arith::infman") << "After rewriting: " << lemma->d_inference << " "
-                         << lemma->d_node << (isWaiting ? " as waiting" : "")
-                         << std::endl;
   if (hasCachedLemma(lemma->d_node, lemma->d_property))
   {
     return;

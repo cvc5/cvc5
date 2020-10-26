@@ -30,17 +30,7 @@ namespace nl {
 
 struct ExtState
 {
-  ExtState(InferenceManager& im,
-           NlModel& model,
-           ProofNodeManager* pnm,
-           context::Context* c);
-
-  bool proofsEnabled() const;
-  bool addProof(Node expected,
-                PfRule id,
-                const std::vector<Node>& children,
-                const std::vector<Node>& args);
-  std::shared_ptr<ProofNode> getProof(Node expected);
+  ExtState(InferenceManager& im, NlModel& model, context::Context* c);
 
   void init(const std::vector<Node>& xts);
 
@@ -67,8 +57,6 @@ struct ExtState
   std::map<Node, std::map<Node, Node> > d_mono_diff;
   /** the set of monomials we should apply tangent planes to */
   std::unordered_set<Node, NodeHashFunction> d_tplane_refine;
-
-  std::unique_ptr<CDProof> d_proof;
 };
 
 }  // namespace nl
