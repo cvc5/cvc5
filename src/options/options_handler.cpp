@@ -283,21 +283,6 @@ void OptionsHandler::LFSCEnabledBuild(std::string option, bool value) {
 #endif /* CVC4_USE_LFSC */
 }
 
-void OptionsHandler::checkNlCad(std::string option, bool value)
-{
-#ifndef CVC4_USE_POLY
-  if (value)
-  {
-    std::stringstream ss;
-    ss << "option `" << option
-       << "' requires a libpoly-enabled build of CVC4; this binary was not "
-          "built "
-          "with libpoly support";
-    throw OptionException(ss.str());
-  }
-#endif /* CVC4_USE_POLY */
-}
-
 void OptionsHandler::statsEnabledBuild(std::string option, bool value)
 {
 #ifndef CVC4_STATISTICS_ON

@@ -433,7 +433,6 @@ header = "options/arith_options.h"
   long       = "nl-ext"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "incremental linearization approach to non-linear"
 
 [[option]]
@@ -565,7 +564,6 @@ header = "options/arith_options.h"
   long       = "nl-cad"
   type       = "bool"
   default    = "true"
-  predicates = ["checkNlCad"]
   help       = "whether to use the cylindrical algebraic decomposition solver for non-linear arithmetic"
 
 [[option]]
