@@ -33,6 +33,7 @@ bool SimpleTheoryLemma::process(TheoryInferenceManager* im, bool asLemma)
   Assert(!d_node.isNull());
   Assert(asLemma);
   // send (trusted) lemma on the output channel with property p
+  Assert(d_pg != nullptr) << "Lemma without proof: " << d_node;
   return im->trustedLemma(TrustNode::mkTrustLemma(d_node, d_pg), d_property);
 }
 

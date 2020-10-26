@@ -39,8 +39,11 @@ void SplitZeroCheck::check()
       Node eq = v.eqNode(d_data->d_zero);
       eq = Rewriter::rewrite(eq);
       d_data->d_im.addPendingPhaseRequirement(eq, true);
-      Node lem = eq.orNode(eq.negate());
-      d_data->d_im.addPendingArithLemma(lem, InferenceId::NL_SPLIT_ZERO);
+      ArithLemma lem(eq.orNode(eq.negate()),
+                     LemmaProperty::NONE,
+                     d_data->d_proof.get(),
+                     InferenceId::NL_SPLIT_ZERO);
+      d_data->d_im.addPendingArithLemma(lem);
     }
   }
 }
