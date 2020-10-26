@@ -160,10 +160,18 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
     case InferId::COLLAPSE_SEL:
     {
       Assert(exp.getKind() == EQUAL);
-      Assert(conc.getKind() == EQUAL
-             && conc[0].getKind() == APPLY_SELECTOR_TOTAL);
+      Node concEq = conc;
+      // might be a Boolean conclusion
+      if (conc.getKind()!=EQUAL)
+      {
+        bool concPol = conc.getKind()!=NOT;
+        Node concAtom = concPol ? conc : conc[0];
+        concEq = concAtom.eqNode(nm->mkConst(concPol));
+      }
+      Assert(concEq.getKind() == EQUAL
+             && concEq[0].getKind() == APPLY_SELECTOR_TOTAL);
       Assert(exp[0].getType().isDatatype());
-      Node sop = conc[0].getOperator();
+      Node sop = concEq[0].getOperator();
       Node sl = nm->mkNode(APPLY_SELECTOR_TOTAL, sop, exp[0]);
       Node sr = nm->mkNode(APPLY_SELECTOR_TOTAL, sop, exp[1]);
       // exp[0] = exp[1]
@@ -174,9 +182,14 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
       Node asn = ProofRuleChecker::mkKindNode(APPLY_SELECTOR_TOTAL);
       Node seq = sl.eqNode(sr);
       cdp->addStep(seq, PfRule::CONG, {exp}, {asn, sop});
-      Node sceq = sr.eqNode(conc[1]);
+      Node sceq = sr.eqNode(concEq[1]);
       cdp->addStep(sceq, PfRule::DT_COLLAPSE, {}, {sr});
-      cdp->addStep(sl.eqNode(conc[1]), PfRule::TRANS, {seq, sceq}, {});
+      cdp->addStep(sl.eqNode(concEq[1]), PfRule::TRANS, {seq, sceq}, {});
+      if (conc.getKind()!=EQUAL)
+      {
+        PfRule eid = conc.getKind()==NOT ? PfRule::FALSE_ELIM : PfRule::TRUE_ELIM;
+        cdp->addStep(conc, eid, {concEq}, {});
+      }
       success = true;
     }
     break;
@@ -222,6 +235,10 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
     // failed to reconstruct, add trust
     Trace("dt-ipc") << "...failed " << infer << std::endl;
     cdp->addStep(conc, PfRule::DT_TRUST, expv, {conc});
+  }
+  else
+  {
+    Trace("dt-ipc")  << "...success" << std::endl;
   }
 }
 
