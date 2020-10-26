@@ -744,49 +744,6 @@ enum class PfRule : uint32_t
   // Conclusion: F
   DT_TRUST,
 
-  //================================================= Datatype rules
-  // ======== Unification
-  // Children: (P:(= (C t1 ... tn) (C s1 ... sn)))
-  // Arguments: (i)
-  // ----------------------------------------
-  // Conclusion: (= ti si)
-  DT_UNIF,
-  // ======== Instantiate
-  // Children: none
-  // Arguments: (t, n)
-  // ----------------------------------------
-  // Conclusion: (= ((_ is C) t) (= t (C (sel_1 t) ... (sel_n t))))
-  // where C is the n^th constructor of the type of T.
-  DT_INST,
-  // ======== Collapse
-  // Children: none
-  // Arguments: ((sel_i (C_j t_1 ... t_n)))
-  // ----------------------------------------
-  // Conclusion: (= (sel_i (C_j t_1 ... t_n)) r)
-  // where r is t_i if sel_i is a correctly applied selector, or
-  // TypeNode::mkGroundTerm() of the proper type otherwise. Notice that the
-  // use of mkGroundTerm differs from the rewriter which returns mkGroundValue.
-  DT_COLLAPSE,
-  // ======== Split
-  // Children: none
-  // Arguments: (t)
-  // ----------------------------------------
-  // Conclusion: (or ((_ is C1) t) ... ((_ is Cn) t))
-  DT_SPLIT,
-  // ======== Clash
-  // Children: (P1:((_ is Ci) t), P2: ((_ is Cj) t))
-  // Arguments: none
-  // ----------------------------------------
-  // Conclusion: false
-  // for i != j.
-  DT_CLASH,
-  // ======== Datatype Trust
-  // Children: (P1 ... Pn)
-  // Arguments: (F)
-  // ---------------------
-  // Conclusion: F
-  DT_TRUST,
-
   //================================================= Quantifiers rules
   // ======== Witness intro
   // Children: (P:(exists ((x T)) F[x]))
