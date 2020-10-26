@@ -34,11 +34,11 @@ struct ExtState
 
   void init(const std::vector<Node>& xts);
 
-  Node d_false = NodeManager::currentNM()->mkConst(false);
-  Node d_true = NodeManager::currentNM()->mkConst(true);
-  Node d_zero = NodeManager::currentNM()->mkConst(Rational(0));
-  Node d_one = NodeManager::currentNM()->mkConst(Rational(1));
-  Node d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
+  Node d_false;
+  Node d_true;
+  Node d_zero;
+  Node d_one;
+  Node d_neg_one;
 
   /** The inference manager that we push conflicts and lemmas to. */
   InferenceManager& d_im;

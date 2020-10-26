@@ -29,6 +29,11 @@ namespace nl {
 ExtState::ExtState(InferenceManager& im, NlModel& model, context::Context* c)
     : d_im(im), d_model(model)
 {
+  d_false = NodeManager::currentNM()->mkConst(false);
+  d_true = NodeManager::currentNM()->mkConst(true);
+  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
+  d_one = NodeManager::currentNM()->mkConst(Rational(1));
+  d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
 }
 
 void ExtState::init(const std::vector<Node>& xts)
