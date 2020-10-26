@@ -1088,9 +1088,12 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
     {
       Node eq = s.eqNode(rrs);
       Node peq = c.eqNode(s[0]);
+      // Since collapsing selectors may generate new terms, we must send
+      // this out as a lemma if it is of an external type, or otherwise we
+      // may ask for the equality status of terms that only datatypes knows
+      // about, see issue #5344.
       bool forceLemma = !s.getType().isDatatype();
       Trace("datatypes-infer") << "DtInfer : collapse sel";
-      //Trace("datatypes-infer") << ( wrong ? " wrong" : "");
       Trace("datatypes-infer") << " : " << eq << " by " << peq << std::endl;
       d_im.addPendingInference(eq, peq, forceLemma, InferId::COLLAPSE_SEL);
     }
