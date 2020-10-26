@@ -1040,8 +1040,14 @@ void TheorySetsRels::check(Theory::Effort level)
         Node r2_lmost = RelsUtils::nthElementOfTuple( r2_rep_exps[j][0], 0 );
         tuple_elements.push_back(tn.getDType()[0].getConstructor());
 
-        if( (areEqual(r1_rmost, r2_lmost) && rel.getKind() == kind::JOIN) ||
-            rel.getKind() == kind::PRODUCT ) {
+        Trace("rels-debug") << "[Theory::Rels] r1_rmost: " << r1_rmost
+                            << " of type " << r1_rmost.getType() << std::endl;
+        Trace("rels-debug") << "[Theory::Rels] r2_lmost: " << r2_lmost
+                            << " of type " << r2_lmost.getType() << std::endl;
+
+        if (rel.getKind() == kind::PRODUCT
+            || (rel.getKind() == kind::JOIN && areEqual(r1_rmost, r2_lmost)))
+        {
           bool isProduct = rel.getKind() == kind::PRODUCT;
           unsigned int k = 0;
           unsigned int l = 1;

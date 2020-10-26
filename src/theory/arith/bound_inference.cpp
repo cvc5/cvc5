@@ -15,6 +15,7 @@
 #include "theory/arith/bound_inference.h"
 
 #include "theory/arith/normal_form.h"
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace theory {
@@ -94,8 +95,13 @@ Bounds BoundInference::get(const Node& v) const
 const std::map<Node, Bounds>& BoundInference::get() const { return d_bounds; }
 bool BoundInference::add(const Node& n)
 {
+  Node tmp = Rewriter::rewrite(n);
+  if (tmp.getKind() == Kind::CONST_BOOLEAN)
+  {
+    return false;
+  }
   // Parse the node as a comparison
-  auto comp = Comparison::parseNormalForm(n);
+  auto comp = Comparison::parseNormalForm(tmp);
   auto dec = comp.decompose(true);
   if (std::get<0>(dec).isVariable())
   {

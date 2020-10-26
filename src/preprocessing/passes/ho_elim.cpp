@@ -33,8 +33,8 @@ HoElim::HoElim(PreprocessingPassContext* preprocContext)
 Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
 {
   NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
-  std::vector<TNode> visit;
+  std::unordered_map<Node, Node, TNodeHashFunction>::iterator it;
+  std::vector<Node> visit;
   TNode cur;
   visit.push_back(n);
   do
@@ -148,7 +148,7 @@ Node HoElim::eliminateHo(Node n)
 {
   Trace("ho-elim-assert") << "Ho-elim assertion: " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::unordered_map<Node, Node, NodeHashFunction>::iterator it;
   std::map<Node, Node> preReplace;
   std::map<Node, Node>::iterator itr;
   std::vector<TNode> visit;
@@ -319,7 +319,7 @@ PreprocessingPassResult HoElim::applyInternal(
   {
     std::map<Node, Node> lproc = newLambda;
     newLambda.clear();
-    for (const std::pair<Node, Node>& l : lproc)
+    for (const std::pair<const Node, Node>& l : lproc)
     {
       Node lambda = l.second;
       std::vector<Node> vars;

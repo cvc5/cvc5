@@ -81,7 +81,7 @@ class TheoryEngineModelBuilder
    * method checks the internal consistency of the model if we are in a debug
    * build.
    */
-  void postProcessModel(bool incomplete, Model* m);
+  void postProcessModel(bool incomplete, TheoryModel* m);
 
  protected:
   /** pointer to theory engine */

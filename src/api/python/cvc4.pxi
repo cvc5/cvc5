@@ -1088,19 +1088,6 @@ cdef class Solver:
             assertions.append(term)
         return assertions
 
-    def getAssignment(self):
-        '''
-        Gives the assignment of *named* formulas as a dictionary.
-        '''
-        assignments = {}
-        for a in self.csolver.getAssignment():
-            varterm = Term(self)
-            valterm = Term(self)
-            varterm.cterm = a.first
-            valterm.cterm = a.second
-            assignments[varterm] = valterm
-        return assignments
-
     def getInfo(self, str flag):
         return self.csolver.getInfo(flag.encode())
 
@@ -1461,8 +1448,8 @@ cdef class Term:
     def isNull(self):
         return self.cterm.isNull()
 
-    def isConst(self):
-        return self.cterm.isConst()
+    def isValue(self):
+        return self.cterm.isValue()
 
     def getConstArrayBase(self):
         cdef Term term = Term(self.solver)
@@ -1515,7 +1502,7 @@ cdef class Term:
     def toPythonObj(self):
         '''
         Converts a constant value Term to a Python object.
-        Requires isConst to hold.
+        Requires isValue to hold.
 
         Currently supports:
           Boolean -- returns a Python bool
@@ -1527,7 +1514,7 @@ cdef class Term:
           String  -- returns a Python Unicode string
         '''
 
-        if not self.isConst():
+        if not self.isValue():
             raise RuntimeError("Cannot call toPythonObj on a non-const Term")
 
         string_repr = self.cterm.toString().decode()

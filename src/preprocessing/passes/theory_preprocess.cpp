@@ -32,12 +32,11 @@ PreprocessingPassResult TheoryPreprocess::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
   TheoryEngine* te = d_preprocContext->getTheoryEngine();
-  te->preprocessStart();
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     TNode a = (*assertionsToPreprocess)[i];
     Assert(Rewriter::rewrite(a) == a);
-    assertionsToPreprocess->replace(i, te->preprocess(a));
+    assertionsToPreprocess->replaceTrusted(i, te->preprocess(a));
     a = (*assertionsToPreprocess)[i];
     Assert(Rewriter::rewrite(a) == a);
   }

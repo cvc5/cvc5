@@ -49,6 +49,7 @@ set(regress_0_tests
   regress0/arith/issue3683.smt2
   regress0/arith/issue4367.smt2
   regress0/arith/issue4525.smt2
+  regress0/arith/issue5219-conflict-rewrite.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
   regress0/arith/miplib.cvc
@@ -220,6 +221,10 @@ set(regress_0_tests
   regress0/bv/bv-to-bool1.smtv1.smt2
   regress0/bv/bv-to-bool2.smt2
   regress0/bv/bv_to_int1.smt2
+  regress0/bv/bv_to_int_5230_shift_const.smt2
+  regress0/bv/bv_to_int_5230_binary.smt2
+  regress0/bv/bv_to_int_5230_missing_op.smt2
+  regress0/bv/bv_to_int_5281.smt2
   regress0/bv/bv_to_int_bvmul2.smt2
   regress0/bv/bv_to_int_bvuf_to_intuf.smt2
   regress0/bv/bv_to_int_bvuf_to_intuf_sorts.smt2
@@ -426,6 +431,7 @@ set(regress_0_tests
   regress0/datatypes/is_test.smt2
   regress0/datatypes/issue1433.smt2
   regress0/datatypes/issue2838.cvc
+  regress0/datatypes/issue5280-no-nrec.smt2
   regress0/datatypes/jsat-2.6.smt2
   regress0/datatypes/list-bool.smt2
   regress0/datatypes/model-subterms-min.smt2
@@ -508,6 +514,8 @@ set(regress_0_tests
   regress0/fmf/fmf-strange-bounds-2.smt2
   regress0/fmf/forall_unit_data2.smt2
   regress0/fmf/issue3661-ccard-dec.smt2
+  regress0/fmf/issue4872-qf_ufc.smt2
+  regress0/fmf/issue5239-uf-ss-tot.smt2
   regress0/fmf/krs-sat.smt2
   regress0/fmf/no-minimal-sat.smt2
   regress0/fmf/quant_real_univ.cvc
@@ -558,6 +566,7 @@ set(regress_0_tests
   regress0/ho/hoa0008.smt2
   regress0/ho/issue4477.smt2
   regress0/ho/issue4990-care-graph.smt2
+  regress0/ho/issue5233-part1-usort-owner.smt2
   regress0/ho/ite-apply-eq.smt2
   regress0/ho/lambda-equality-non-canon.smt2
   regress0/ho/match-middle.smt2
@@ -643,6 +652,7 @@ set(regress_0_tests
   regress0/parser/declarefun-emptyset-uf.smt2
   regress0/parser/force_logic_set_logic.smt2
   regress0/parser/force_logic_success.smt2
+  regress0/parser/issue5163.smt2
   regress0/parser/shadow_fun_symbol_all.smt2
   regress0/parser/shadow_fun_symbol_nirat.smt2
   regress0/parser/strings20.smt2
@@ -873,6 +883,7 @@ set(regress_0_tests
   regress0/sep/wand-crash.smt2
   regress0/seq/intseq.smt2
   regress0/seq/intseq_dt.smt2
+  regress0/seq/issue4370-bool-terms.smt2
   regress0/seq/seq-2var.smt2
   regress0/seq/seq-ex1.smt2
   regress0/seq/seq-ex2.smt2
@@ -884,8 +895,9 @@ set(regress_0_tests
   regress0/seq/seq-nth.smt2
   regress0/seq/seq-nth-uf.smt2
   regress0/seq/seq-nth-uf-z.smt2
-  regress0/seq/seq-nth-undef.smt2
+  regress0/seq/seq-nth-undef-unsat.smt2
   regress0/seq/seq-rewrites.smt2
+  regress0/seq/seq-types.smt2
   regress0/sets/abt-min.smt2
   regress0/sets/abt-te-exh.smt2
   regress0/sets/abt-te-exh2.smt2
@@ -1425,6 +1437,7 @@ set(regress_1_tests
   regress1/nl/exp_monotone.smt2
   regress1/nl/factor_agg_s.smt2
   regress1/nl/iand-native-1.smt2
+  regress1/nl/iand-native-2.smt2
   regress1/nl/issue3300-approx-sqrt-witness.smt2
   regress1/nl/issue3441.smt2
   regress1/nl/issue3617.smt2
@@ -1778,6 +1791,8 @@ set(regress_1_tests
   regress1/sets/issue2568.smt2
   regress1/sets/issue2904.smt2
   regress1/sets/issue4391-card-lasso.smt2
+  regress1/sets/issue5271.smt2
+  regress1/sets/issue5309.smt2
   regress1/sets/lemmabug-ListElts317minimized.smt2
   regress1/sets/remove_check_free_31_6.smt2
   regress1/sets/sets-disequal.smt2
