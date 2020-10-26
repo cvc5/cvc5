@@ -91,11 +91,22 @@ void InferenceManager::clearWaitingLemmas()
   d_waitingLem.clear();
 }
 
-void InferenceManager::addConflict(const Node& conf, InferenceId inftype)
+void InferenceManager::addConflict(std::vector<Node>& conf, InferenceId inftype)
 {
-  Trace("arith::infman") << "Adding conflict: " << inftype << " " << conf
+  for (const auto& cp : d_conflictProcessors)
+  {
+    cp(conf);
+  }
+  auto* nm = NodeManager::currentNM();
+  Node c = nm->mkAnd(conf);
+  Trace("arith::infman") << "Adding conflict: " << inftype << " " << c
                          << std::endl;
-  conflict(conf);
+  conflict(c);
+}
+
+void InferenceManager::addConflictProcessor(ConflictProcessor&& cp)
+{
+  d_conflictProcessors.emplace_back(std::move(cp));
 }
 
 bool InferenceManager::hasUsed() const

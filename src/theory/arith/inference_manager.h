@@ -48,6 +48,8 @@ class InferenceManager : public InferenceManagerBuffered
   using NodeSet = context::CDHashSet<Node, NodeHashFunction>;
 
  public:
+  using ConflictProcessor = std::function<void(std::vector<Node>&)>;
+
   InferenceManager(TheoryArith& ta, ArithState& astate, ProofNodeManager* pnm);
 
   /**
@@ -84,7 +86,10 @@ class InferenceManager : public InferenceManagerBuffered
   void clearWaitingLemmas();
 
   /** Add a conflict to the this inference manager. */
-  void addConflict(const Node& conf, InferenceId inftype);
+  void addConflict(std::vector<Node>& conf, InferenceId inftype);
+
+  /** Add a conflict processor. */
+  void addConflictProcessor(ConflictProcessor&& cp);
 
   /**
    * Checks whether we have made any progress, that is whether a conflict, lemma
@@ -121,6 +126,8 @@ class InferenceManager : public InferenceManagerBuffered
   /** cache of all preprocessed lemmas sent on the output channel
    * (user-context-dependent) */
   NodeSet d_lemmasPp;
+
+  std::vector<ConflictProcessor> d_conflictProcessors;
 };
 
 }  // namespace arith
