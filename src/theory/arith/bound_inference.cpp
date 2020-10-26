@@ -46,18 +46,20 @@ void BoundInference::update_lower_bound(const Node& origin,
 
     if (!b.lower_strict && !b.upper_strict && b.lower_value == b.upper_value)
     {
-      b.lower_bound = b.upper_bound = nm->mkNode(Kind::EQUAL, lhs, value);
+      b.lower_bound = b.upper_bound =
+          Rewriter::rewrite(nm->mkNode(Kind::EQUAL, lhs, value));
     }
     else
     {
-      b.lower_bound = nm->mkNode(strict ? Kind::GT : Kind::GEQ, lhs, value);
+      b.lower_bound = Rewriter::rewrite(
+          nm->mkNode(strict ? Kind::GT : Kind::GEQ, lhs, value));
     }
   }
   else if (strict && b.lower_value == value)
   {
     auto* nm = NodeManager::currentNM();
     b.lower_strict = strict;
-    b.lower_bound = nm->mkNode(Kind::GT, lhs, value);
+    b.lower_bound = Rewriter::rewrite(nm->mkNode(Kind::GT, lhs, value));
     b.lower_origin = origin;
   }
 }
@@ -79,18 +81,20 @@ void BoundInference::update_upper_bound(const Node& origin,
     b.upper_origin = origin;
     if (!b.lower_strict && !b.upper_strict && b.lower_value == b.upper_value)
     {
-      b.lower_bound = b.upper_bound = nm->mkNode(Kind::EQUAL, lhs, value);
+      b.lower_bound = b.upper_bound =
+          Rewriter::rewrite(nm->mkNode(Kind::EQUAL, lhs, value));
     }
     else
     {
-      b.upper_bound = nm->mkNode(strict ? Kind::LT : Kind::LEQ, lhs, value);
+      b.upper_bound = Rewriter::rewrite(
+          nm->mkNode(strict ? Kind::LT : Kind::LEQ, lhs, value));
     }
   }
   else if (strict && b.upper_value == value)
   {
     auto* nm = NodeManager::currentNM();
     b.upper_strict = strict;
-    b.upper_bound = nm->mkNode(Kind::LT, lhs, value);
+    b.upper_bound = Rewriter::rewrite(nm->mkNode(Kind::LT, lhs, value));
     b.upper_origin = origin;
   }
 }

@@ -97,8 +97,7 @@ void InferenceManager::addConflict(std::vector<Node>& conf, InferenceId inftype)
   {
     cp(conf);
   }
-  auto* nm = NodeManager::currentNM();
-  Node c = nm->mkAnd(conf);
+  Node c = NodeManager::currentNM()->mkAnd(conf);
   Trace("arith::infman") << "Adding conflict: " << inftype << " " << c
                          << std::endl;
   conflict(c);
