@@ -29,7 +29,6 @@
 #include "base/modal_exception.h"
 #include "base/output.h"
 #include "lib/strtok_r.h"
-#include "options/arith_options.h"
 #include "options/base_options.h"
 #include "options/bv_options.h"
 #include "options/decision_options.h"
