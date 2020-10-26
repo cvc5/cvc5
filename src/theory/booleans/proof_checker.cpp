@@ -196,44 +196,50 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     Node trueNode = nm->mkConst(true);
     Node falseNode = nm->mkConst(false);
     std::vector<Node> clauseNodes;
+    // literals to be removed from the virtual lhs clause of the resolution
+    std::unordered_map<Node, unsigned, NodeHashFunction> lhsElim;
+    for (unsigned i = 0, argsSize = args.size(); i < argsSize; i = i + 2)
+    {
+      // whether pivot should occur as is or negated depends on the id of
+      // each step in the chain
+      if (args[i] == trueNode)
+      {
+        lhsElim[args[i + 1]]++;
+      }
+      else
+      {
+        Assert(args[i] == falseNode);
+        lhsElim[args[i + 1].notNode()]++;
+      }
+    }
+    if (Trace.isOn("bool-pfcheck"))
+    {
+      Trace("bool-pfcheck") << "Original elimination multiset for lhs clause:\n";
+      for (const std::pair<const Node&, unsigned>& pair : lhsElim)
+      {
+        Trace("bool-pfcheck")
+            << "\t- " << pair.first << " {" << pair.second << "}\n";
+      }
+    }
     for (unsigned i = 0, childrenSize = children.size(); i < childrenSize; ++i)
     {
-      std::unordered_map<Node, unsigned, NodeHashFunction> elim;
-      // literals to be removed from "first" clause
-      if (i < childrenSize - 1)
-      {
-        for (unsigned j = (2 * i), argsSize = args.size(); j < argsSize;
-             j = j + 2)
-        {
-          // whether pivot should occur as is or negated depends on the id of
-          // each step in the chain
-          if (args[j] == trueNode)
-          {
-            elim[args[j + 1]]++;
-          }
-          else
-          {
-            Assert(args[j] == falseNode);
-            elim[args[j + 1].notNode()]++;
-          }
-        }
-      }
-      // literal to be removed from "second" clause. They will be negated
-      if (i > 0)
-      {
-        unsigned index = 2 * (i - 1);
-        Node pivot = args[index] == trueNode ? args[index + 1].notNode()
-                                             : args[index + 1];
-        elim[pivot]++;
-      }
+      // literal to be removed from rhs clause. They will be negated
+      Node rhsElim = Node::null();
       if (Trace.isOn("bool-pfcheck"))
       {
-        Trace("bool-pfcheck") << i << ": elimination multiset:\n";
-        for (const std::pair<const Node&, unsigned>& pair : elim)
+        Trace("bool-pfcheck") << i << ": current lhsElim:\n";
+        for (const std::pair<const Node&, unsigned>& pair : lhsElim)
         {
           Trace("bool-pfcheck")
               << "\t- " << pair.first << " {" << pair.second << "}\n";
         }
+      }
+      if (i > 0)
+      {
+        unsigned index = 2 * (i - 1);
+        rhsElim = args[index] == trueNode ? args[index + 1].notNode()
+                                          : args[index + 1];
+        Trace("bool-pfcheck") << i << ": rhs elim: " << rhsElim << "\n";
       }
       // only add to conclusion nodes that are not in elimination set. First get
       // the nodes.
@@ -242,7 +248,8 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       // non-unit clauses will not occur themselves in their elimination sets.
       // If they do then they must be unit.
       std::vector<Node> lits;
-      if (children[i].getKind() == kind::OR && elim.count(children[i]) == 0)
+      if (children[i].getKind() == kind::OR && lhsElim.count(children[i]) == 0
+          && children[i] != rhsElim)
       {
         lits.insert(lits.end(), children[i].begin(), children[i].end());
       }
@@ -254,8 +261,13 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       std::vector<Node> added;
       for (unsigned j = 0, size = lits.size(); j < size; ++j)
       {
-        auto it = elim.find(lits[j]);
-        if (it == elim.end())
+        if (lits[j] == rhsElim)
+        {
+          rhsElim == Node::null();
+          continue;
+        }
+        auto it = lhsElim.find(lits[j]);
+        if (it == lhsElim.end())
         {
           clauseNodes.push_back(lits[j]);
           added.push_back(lits[j]);
@@ -266,7 +278,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
           it->second--;
           if (it->second == 0)
           {
-            elim.erase(it);
+            lhsElim.erase(it);
           }
         }
       }
@@ -305,7 +317,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
           else
           {
             Assert(args[j] == falseNode);
-            elim.insert(args[j + 1.notNode()]);
+            elim.insert(args[j + 1].notNode());
           }
         }
       }
