@@ -1088,10 +1088,14 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
     {
       Node eq = s.eqNode(rrs);
       Node peq = c.eqNode(s[0]);
+      // Since collapsing selectors may generate new terms, we must send
+      // this out as a lemma if it is of an external type, or otherwise we
+      // may ask for the equality status of terms that only datatypes knows
+      // about, see issue #5344.
+      bool forceLemma = !s.getType().isDatatype();
       Trace("datatypes-infer") << "DtInfer : collapse sel";
-      //Trace("datatypes-infer") << ( wrong ? " wrong" : "");
       Trace("datatypes-infer") << " : " << eq << " by " << peq << std::endl;
-      d_im.addPendingInference(eq, peq, false, InferId::COLLAPSE_SEL);
+      d_im.addPendingInference(eq, peq, forceLemma, InferId::COLLAPSE_SEL);
     }
   }
 }
@@ -1845,6 +1849,7 @@ bool TheoryDatatypes::areDisequal( TNode a, TNode b ){
 }
 
 bool TheoryDatatypes::areCareDisequal( TNode x, TNode y ) {
+  Trace("datatypes-cg") << "areCareDisequal: " << x << " " << y << std::endl;
   Assert(d_equalityEngine->hasTerm(x));
   Assert(d_equalityEngine->hasTerm(y));
   if (d_equalityEngine->isTriggerTerm(x, THEORY_DATATYPES)
