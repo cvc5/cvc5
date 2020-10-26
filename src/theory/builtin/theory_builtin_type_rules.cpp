@@ -31,19 +31,20 @@ struct GroundTermAttributeId
 };
 typedef expr::Attribute<GroundTermAttributeId, Node> GroundTermAttribute;
 
-  
-Node SortProperties::mkGroundTerm(TypeNode type) {
+Node SortProperties::mkGroundTerm(TypeNode type)
+{
   Assert(type.getKind() == kind::SORT_TYPE);
   GroundTermAttribute gta;
   if (type.hasAttribute(gta))
   {
     return type.getAttribute(gta);
   }
-  Node k = NodeManager::currentNM()->mkSkolem("groundTerm", type, "a ground term created for type " + type.toString());
+  Node k = NodeManager::currentNM()->mkSkolem(
+      "groundTerm", type, "a ground term created for type " + type.toString());
   type.setAttribute(gta, k);
   return k;
 }
 
-}/* CVC4::theory::builtin namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace builtin
+}  // namespace theory
+}  // namespace CVC4
