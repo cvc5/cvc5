@@ -1455,13 +1455,13 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     if (options::nlCad.wasSetByUser())
     {
       std::stringstream ss;
-      ss << "Cannot use " << options::nlCad.getName() << " without --poly.";
+      ss << "Cannot use " << options::nlCad.getName() << " without configuring with --poly.";
       throw OptionException(ss.str());
     }
     else
     {
       Notice() << "Cannot use --" << options::nlCad.getName()
-               << " without --poly." << std::endl;
+               << " without configuring with --poly." << std::endl;
       options::nlCad.set(false);
       options::nlExt.set(true);
     }
