@@ -41,7 +41,7 @@ void SplitZeroCheck::check()
       d_data->d_im.addPendingPhaseRequirement(eq, true);
       ArithLemma lem(eq.orNode(eq.negate()),
                      LemmaProperty::NONE,
-                     d_data->d_proof.get(),
+                     nullptr,
                      InferenceId::NL_SPLIT_ZERO);
       d_data->d_im.addPendingArithLemma(lem);
     }
