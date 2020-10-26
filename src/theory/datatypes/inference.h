@@ -96,9 +96,9 @@ class DatatypesInference : public SimpleTheoryInternalFact
    * size( tn )
    *  (6) non-negative size : 0 <= size(t)
    * This method returns true if the fact must be sent out as a lemma. If it
-   * returns false, then we assert the fact internally. We may need to
-   * communicate outwards if the conclusions involve other theories.  Also
-   * communicate (6) and OR conclusions.
+   * returns false, then we assert the fact internally. We return true for (6)
+   * and OR conclusions. We also return true if the option dtInferAsLemmas is
+   * set to true.
    */
   static bool mustCommunicateFact(Node n, Node exp);
   /**

@@ -82,12 +82,6 @@ bool DatatypesInference::mustCommunicateFact(Node n, Node exp)
         << "Communicate " << n << " due to kind" << std::endl;
     return true;
   }
-  else if (n.getKind() == EQUAL && n[0].getType().isBoolean())
-  {
-    Trace("dt-lemma-debug")
-        << "Communicate " << n << " due to Boolean equalities" << std::endl;
-    // return true;
-  }
   Trace("dt-lemma-debug") << "Do not communicate " << n << std::endl;
   return false;
 }
