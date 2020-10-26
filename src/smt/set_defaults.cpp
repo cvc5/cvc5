@@ -1447,25 +1447,26 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       options::nlExt.set(false);
       options::nlRlvMode.set(options::NlRlvMode::INTERLEAVE);
     }
-#else
-    if (options::nlCad())
-    {
-      if (options::nlCad.wasSetByUser())
-      {
-        std::stringstream ss;
-        ss << "Cannot use " << options::nlCad.getName() << " without --poly.";
-        throw OptionException(ss.str());
-      }
-      else
-      {
-        Notice() << "Cannot use --" << options::nlCad.getName()
-                 << " without --poly." << std::endl;
-        options::nlCad.set(false);
-        options::nlExt.set(true);
-      }
-    }
 #endif
   }
+#ifndef CVC4_USE_POLY
+  if (options::nlCad())
+  {
+    if (options::nlCad.wasSetByUser())
+    {
+      std::stringstream ss;
+      ss << "Cannot use " << options::nlCad.getName() << " without --poly.";
+      throw OptionException(ss.str());
+    }
+    else
+    {
+      Notice() << "Cannot use --" << options::nlCad.getName()
+               << " without --poly." << std::endl;
+      options::nlCad.set(false);
+      options::nlExt.set(true);
+    }
+  }
+#endif
 }
 
 }  // namespace smt
