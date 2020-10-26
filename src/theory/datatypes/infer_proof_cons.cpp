@@ -162,9 +162,9 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
       Assert(exp.getKind() == EQUAL);
       Node concEq = conc;
       // might be a Boolean conclusion
-      if (conc.getKind()!=EQUAL)
+      if (conc.getKind() != EQUAL)
       {
-        bool concPol = conc.getKind()!=NOT;
+        bool concPol = conc.getKind() != NOT;
         Node concAtom = concPol ? conc : conc[0];
         concEq = concAtom.eqNode(nm->mkConst(concPol));
       }
@@ -185,9 +185,10 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
       Node sceq = sr.eqNode(concEq[1]);
       cdp->addStep(sceq, PfRule::DT_COLLAPSE, {}, {sr});
       cdp->addStep(sl.eqNode(concEq[1]), PfRule::TRANS, {seq, sceq}, {});
-      if (conc.getKind()!=EQUAL)
+      if (conc.getKind() != EQUAL)
       {
-        PfRule eid = conc.getKind()==NOT ? PfRule::FALSE_ELIM : PfRule::TRUE_ELIM;
+        PfRule eid =
+            conc.getKind() == NOT ? PfRule::FALSE_ELIM : PfRule::TRUE_ELIM;
         cdp->addStep(conc, eid, {concEq}, {});
       }
       success = true;
@@ -238,7 +239,7 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
   }
   else
   {
-    Trace("dt-ipc")  << "...success" << std::endl;
+    Trace("dt-ipc") << "...success" << std::endl;
   }
 }
 
