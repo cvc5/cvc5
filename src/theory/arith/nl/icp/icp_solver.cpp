@@ -107,7 +107,7 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
     if (isolated == 1)
     {
       poly::Variable lhs = d_mapper(v);
-      poly::SignCondition rel;
+      poly::SignCondition rel = poly::SignCondition::EQ;
       switch (k)
       {
         case Kind::LT: rel = poly::SignCondition::LT; break;
@@ -133,7 +133,7 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
     else if (isolated == -1)
     {
       poly::Variable lhs = d_mapper(v);
-      poly::SignCondition rel;
+      poly::SignCondition rel = poly::SignCondition::EQ;
       switch (k)
       {
         case Kind::LT: rel = poly::SignCondition::GT; break;

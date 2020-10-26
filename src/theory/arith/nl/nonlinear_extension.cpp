@@ -174,10 +174,11 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
   {
     useRelevance = true;
   }
-  d_boundInference.reset();
   Valuation v = d_containing.getValuation();
   NodeManager* nm = NodeManager::currentNM();
 
+#if 1
+  d_boundInference.reset();
   std::unordered_set<Node, NodeHashFunction> init_assertions;
 
   for (Theory::assertions_iterator it = d_containing.facts_begin();
@@ -222,6 +223,7 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
     auto iait = init_assertions.find(lit);
     if (iait != init_assertions.end())
     {
+      Trace("nl-ext") << "Adding " << lit << std::endl;
       assertions.push_back(lit);
       init_assertions.erase(iait);
     }
@@ -230,152 +232,151 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
   // function by the code above.
   for (const Node& a : init_assertions)
   {
+    Trace("nl-ext") << "Adding " << a << std::endl;
     assertions.push_back(a);
   }
   Trace("nl-ext") << "...keep " << assertions.size() << " / "
                   << d_containing.numAssertions() << " assertions."
                   << std::endl;
-  return;
-      /*
-        // get the assertions
-        std::map<Node, Rational> init_bounds[2];
-        std::map<Node, Node> init_bounds_lit[2];
-        unsigned nassertions = 0;
-        std::unordered_set<Node, NodeHashFunction> init_assertions;
-        for (Theory::assertions_iterator it = d_containing.facts_begin();
-             it != d_containing.facts_end();
-             ++it)
-        {
-          nassertions++;
-          const Assertion& assertion = *it;
-          Trace("nl-ext") << "Loaded " << assertion.d_assertion << " from theory"
-                          << std::endl;
-          Node lit = assertion.d_assertion;
-          if (useRelevance && !v.isRelevant(lit))
-          {
-            // not relevant, skip
-            continue;
-          }
-          d_boundInference.add(lit, false);
-          init_assertions.insert(lit);
-          // check for concrete bounds
-          bool pol = lit.getKind() != NOT;
-          Node atom_orig = lit.getKind() == NOT ? lit[0] : lit;
+#else
+  // get the assertions
+  std::map<Node, Rational> init_bounds[2];
+  std::map<Node, Node> init_bounds_lit[2];
+  unsigned nassertions = 0;
+  std::unordered_set<Node, NodeHashFunction> init_assertions;
+  for (Theory::assertions_iterator it = d_containing.facts_begin();
+       it != d_containing.facts_end();
+       ++it)
+  {
+    nassertions++;
+    const Assertion& assertion = *it;
+    Trace("nl-ext") << "Loaded " << assertion.d_assertion << " from theory"
+                    << std::endl;
+    Node lit = assertion.d_assertion;
+    if (useRelevance && !v.isRelevant(lit))
+    {
+      // not relevant, skip
+      continue;
+    }
+    d_boundInference.add(lit, false);
+    init_assertions.insert(lit);
+    // check for concrete bounds
+    bool pol = lit.getKind() != NOT;
+    Node atom_orig = lit.getKind() == NOT ? lit[0] : lit;
 
-          std::vector<Node> atoms;
-          if (atom_orig.getKind() == EQUAL)
+    std::vector<Node> atoms;
+    if (atom_orig.getKind() == EQUAL)
+    {
+      if (pol)
+      {
+        // t = s  is ( t >= s ^ t <= s )
+        for (unsigned i = 0; i < 2; i++)
+        {
+          Node atom_new = nm->mkNode(GEQ, atom_orig[i], atom_orig[1 - i]);
+          atom_new = Rewriter::rewrite(atom_new);
+          atoms.push_back(atom_new);
+        }
+      }
+    }
+    else
+    {
+      atoms.push_back(atom_orig);
+    }
+
+    for (const Node& atom : atoms)
+    {
+      // non-strict bounds only
+      if (atom.getKind() == GEQ || (!pol && atom.getKind() == GT))
+      {
+        Node p = atom[0];
+        Assert(atom[1].isConst());
+        Rational bound = atom[1].getConst<Rational>();
+        if (!pol)
+        {
+          if (atom[0].getType().isInteger())
           {
-            if (pol)
-            {
-              // t = s  is ( t >= s ^ t <= s )
-              for (unsigned i = 0; i < 2; i++)
-              {
-                Node atom_new = nm->mkNode(GEQ, atom_orig[i], atom_orig[1 - i]);
-                atom_new = Rewriter::rewrite(atom_new);
-                atoms.push_back(atom_new);
-              }
-            }
+            // ~( p >= c ) ---> ( p <= c-1 )
+            bound = bound - Rational(1);
+          }
+        }
+        unsigned bindex = pol ? 0 : 1;
+        bool setBound = true;
+        std::map<Node, Rational>::iterator itb = init_bounds[bindex].find(p);
+        if (itb != init_bounds[bindex].end())
+        {
+          if (itb->second == bound)
+          {
+            setBound = atom_orig.getKind() == EQUAL;
           }
           else
           {
-            atoms.push_back(atom_orig);
+            setBound = pol ? itb->second < bound : itb->second > bound;
           }
+          if (setBound)
+          {
+            // the bound is subsumed
+            init_assertions.erase(init_bounds_lit[bindex][p]);
+          }
+        }
+        if (setBound)
+        {
+          Trace("nl-ext-init") << (pol ? "Lower" : "Upper") << " bound for "
+                               << p << " : " << bound << std::endl;
+          init_bounds[bindex][p] = bound;
+          init_bounds_lit[bindex][p] = lit;
+        }
+      }
+    }
+  }
+  // for each bound that is the same, ensure we've inferred the equality
+  for (std::pair<const Node, Rational>& ib : init_bounds[0])
+  {
+    Node p = ib.first;
+    Node lit1 = init_bounds_lit[0][p];
+    if (lit1.getKind() != EQUAL)
+    {
+      std::map<Node, Rational>::iterator itb = init_bounds[1].find(p);
+      if (itb != init_bounds[1].end())
+      {
+        if (ib.second == itb->second)
+        {
+          Node eq = p.eqNode(nm->mkConst(ib.second));
+          eq = Rewriter::rewrite(eq);
+          Node lit2 = init_bounds_lit[1][p];
+          Assert(lit2.getKind() != EQUAL);
+          // use the equality instead, thus these are redundant
+          init_assertions.erase(lit1);
+          init_assertions.erase(lit2);
+          init_assertions.insert(eq);
+        }
+      }
+    }
+  }
 
-          for (const Node& atom : atoms)
-          {
-            // non-strict bounds only
-            if (atom.getKind() == GEQ || (!pol && atom.getKind() == GT))
-            {
-              Node p = atom[0];
-              Assert(atom[1].isConst());
-              Rational bound = atom[1].getConst<Rational>();
-              if (!pol)
-              {
-                if (atom[0].getType().isInteger())
-                {
-                  // ~( p >= c ) ---> ( p <= c-1 )
-                  bound = bound - Rational(1);
-                }
-              }
-              unsigned bindex = pol ? 0 : 1;
-              bool setBound = true;
-              std::map<Node, Rational>::iterator itb = init_bounds[bindex].find(p);
-              if (itb != init_bounds[bindex].end())
-              {
-                if (itb->second == bound)
-                {
-                  setBound = atom_orig.getKind() == EQUAL;
-                }
-                else
-                {
-                  setBound = pol ? itb->second < bound : itb->second > bound;
-                }
-                if (setBound)
-                {
-                  // the bound is subsumed
-                  init_assertions.erase(init_bounds_lit[bindex][p]);
-                }
-              }
-              if (setBound)
-              {
-                Trace("nl-ext-init") << (pol ? "Lower" : "Upper") << " bound for "
-                                     << p << " : " << bound << std::endl;
-                init_bounds[bindex][p] = bound;
-                init_bounds_lit[bindex][p] = lit;
-              }
-            }
-          }
-        }
-        // for each bound that is the same, ensure we've inferred the equality
-        for (std::pair<const Node, Rational>& ib : init_bounds[0])
-        {
-          Node p = ib.first;
-          Node lit1 = init_bounds_lit[0][p];
-          if (lit1.getKind() != EQUAL)
-          {
-            std::map<Node, Rational>::iterator itb = init_bounds[1].find(p);
-            if (itb != init_bounds[1].end())
-            {
-              if (ib.second == itb->second)
-              {
-                Node eq = p.eqNode(nm->mkConst(ib.second));
-                eq = Rewriter::rewrite(eq);
-                Node lit2 = init_bounds_lit[1][p];
-                Assert(lit2.getKind() != EQUAL);
-                // use the equality instead, thus these are redundant
-                init_assertions.erase(lit1);
-                init_assertions.erase(lit2);
-                init_assertions.insert(eq);
-              }
-            }
-          }
-        }
-
-        // Try to be "more deterministic" by adding assertions in the order they
-   
-   
-    were
-        // given
-        for (auto it = d_containing.facts_begin(); it != d_containing.facts_end();
-             ++it)
-        {
-          Node lit = (*it).d_assertion;
-          auto iait = init_assertions.find(lit);
-          if (iait != init_assertions.end())
-          {
-            assertions.push_back(lit);
-            init_assertions.erase(iait);
-          }
-        }
-        // Now add left over assertions that have been newly created within this
-        // function by the code above.
-        for (const Node& a : init_assertions)
-        {
-          assertions.push_back(a);
-        }
-        Trace("nl-ext") << "...keep " << assertions.size() << " / " << nassertions
-                        << " assertions." << std::endl;
-                        */
+  // Try to be "more deterministic" by adding assertions in the order they were
+  // given
+  for (auto it = d_containing.facts_begin(); it != d_containing.facts_end();
+       ++it)
+  {
+    Node lit = (*it).d_assertion;
+    auto iait = init_assertions.find(lit);
+    if (iait != init_assertions.end())
+    {
+      Trace("nl-ext") << "Adding " << lit << std::endl;
+      assertions.push_back(lit);
+      init_assertions.erase(iait);
+    }
+  }
+  // Now add left over assertions that have been newly created within this
+  // function by the code above.
+  for (const Node& a : init_assertions)
+  {
+    Trace("nl-ext") << "Adding " << a << std::endl;
+    assertions.push_back(a);
+  }
+  Trace("nl-ext") << "...keep " << assertions.size() << " / " << nassertions
+                  << " assertions." << std::endl;
+#endif
 }
 
 std::vector<Node> NonlinearExtension::checkModelEval(

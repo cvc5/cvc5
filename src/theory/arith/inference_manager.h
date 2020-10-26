@@ -127,6 +127,11 @@ class InferenceManager : public InferenceManagerBuffered
    * (user-context-dependent) */
   NodeSet d_lemmasPp;
 
+  /**
+   * Stores conflict processors. They are used to post-process all conflicts,
+   * usually to replace assertions that were derived internally by
+   * pre-processings by their origins.
+   */
   std::vector<ConflictProcessor> d_conflictProcessors;
 };
 
