@@ -563,7 +563,7 @@ header = "options/arith_options.h"
   category   = "regular"
   long       = "nl-cad"
   type       = "bool"
-  default    = "true"
+  default    = "false"
   help       = "whether to use the cylindrical algebraic decomposition solver for non-linear arithmetic"
 
 [[option]]
