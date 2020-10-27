@@ -1065,7 +1065,6 @@ Result SmtEngine::assertFormula(const Node& formula, bool inUnsatCore)
 void SmtEngine::declareSygusVar(const std::string& id, Node var, TypeNode type)
 {
   SmtScope smts(this);
-  finishInit();
   d_sygusSolver->declareSygusVar(id, var, type);
   if (Dump.isOn("raw-benchmark"))
   {
@@ -1082,7 +1081,6 @@ void SmtEngine::declareSynthFun(const std::string& id,
                                 const std::vector<Node>& vars)
 {
   SmtScope smts(this);
-  finishInit();
   d_state->doPendingPops();
   d_sygusSolver->declareSynthFun(id, func, sygusType, isInv, vars);
 
@@ -1593,6 +1591,7 @@ bool SmtEngine::getInterpol(const Node& conj,
                             Node& interpol)
 {
   SmtScope smts(this);
+  finishInit();
   bool success = d_interpolSolver->getInterpol(conj, grammarType, interpol);
   // notify the state of whether the get-interpol call was successfuly, which
   // impacts the SMT mode.
@@ -1611,6 +1610,7 @@ bool SmtEngine::getAbduct(const Node& conj,
                           Node& abd)
 {
   SmtScope smts(this);
+  finishInit();
   bool success = d_abductSolver->getAbduct(conj, grammarType, abd);
   // notify the state of whether the get-abduct call was successfuly, which
   // impacts the SMT mode.

@@ -262,8 +262,9 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {INTERSECTION_MIN, CVC4::Kind::INTERSECTION_MIN},
     {DIFFERENCE_SUBTRACT, CVC4::Kind::DIFFERENCE_SUBTRACT},
     {DIFFERENCE_REMOVE, CVC4::Kind::DIFFERENCE_REMOVE},
-    {BAG_IS_INCLUDED, CVC4::Kind::BAG_IS_INCLUDED},
+    {SUBBAG, CVC4::Kind::SUBBAG},
     {BAG_COUNT, CVC4::Kind::BAG_COUNT},
+    {DUPLICATE_REMOVAL, CVC4::Kind::DUPLICATE_REMOVAL},
     {MK_BAG, CVC4::Kind::MK_BAG},
     {EMPTYBAG, CVC4::Kind::EMPTYBAG},
     {BAG_CARD, CVC4::Kind::BAG_CARD},
@@ -567,8 +568,9 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::INTERSECTION_MIN, INTERSECTION_MIN},
         {CVC4::Kind::DIFFERENCE_SUBTRACT, DIFFERENCE_SUBTRACT},
         {CVC4::Kind::DIFFERENCE_REMOVE, DIFFERENCE_REMOVE},
-        {CVC4::Kind::BAG_IS_INCLUDED, BAG_IS_INCLUDED},
+        {CVC4::Kind::SUBBAG, SUBBAG},
         {CVC4::Kind::BAG_COUNT, BAG_COUNT},
+        {CVC4::Kind::DUPLICATE_REMOVAL, DUPLICATE_REMOVAL},
         {CVC4::Kind::MK_BAG, MK_BAG},
         {CVC4::Kind::EMPTYBAG, EMPTYBAG},
         {CVC4::Kind::BAG_CARD, BAG_CARD},
@@ -1095,6 +1097,37 @@ Sort Sort::getConstructorCodomainSort() const
 {
   CVC4_API_CHECK(isConstructor()) << "Not a constructor sort: " << (*this);
   return Sort(d_solver, ConstructorType(*d_type).getRangeType());
+}
+
+/* Selector sort ------------------------------------------------------- */
+
+Sort Sort::getSelectorDomainSort() const
+{
+  CVC4_API_CHECK(isSelector()) << "Not a selector sort: " << (*this);
+  TypeNode typeNode = TypeNode::fromType(*d_type);
+  return Sort(d_solver, typeNode.getSelectorDomainType().toType());
+}
+
+Sort Sort::getSelectorCodomainSort() const
+{
+  CVC4_API_CHECK(isSelector()) << "Not a selector sort: " << (*this);
+  TypeNode typeNode = TypeNode::fromType(*d_type);
+  return Sort(d_solver, typeNode.getSelectorRangeType().toType());
+}
+
+/* Tester sort ------------------------------------------------------- */
+
+Sort Sort::getTesterDomainSort() const
+{
+  CVC4_API_CHECK(isTester()) << "Not a tester sort: " << (*this);
+  TypeNode typeNode = TypeNode::fromType(*d_type);
+  return Sort(d_solver, typeNode.getTesterDomainType().toType());
+}
+
+Sort Sort::getTesterCodomainSort() const
+{
+  CVC4_API_CHECK(isTester()) << "Not a tester sort: " << (*this);
+  return d_solver->getBooleanSort();
 }
 
 /* Function sort ------------------------------------------------------- */
@@ -5626,9 +5659,6 @@ Term Solver::synthFunHelper(const std::string& symbol,
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_NOT_NULL(sort);
-
-  CVC4_API_ARG_CHECK_EXPECTED(sort.d_type->isFirstClass(), sort)
-      << "first-class codomain sort for function";
 
   std::vector<Type> varTypes;
   for (size_t i = 0, n = boundVars.size(); i < n; ++i)

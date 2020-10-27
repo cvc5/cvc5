@@ -387,6 +387,7 @@ libcvc4_add_sources(
   theory/arith/partial_model.h
   theory/arith/proof_checker.cpp
   theory/arith/proof_checker.h
+  theory/arith/proof_macros.h
   theory/arith/simplex.cpp
   theory/arith/simplex.h
   theory/arith/simplex_update.cpp
@@ -429,6 +430,8 @@ libcvc4_add_sources(
   theory/bags/bags_statistics.h
   theory/bags/inference_manager.cpp
   theory/bags/inference_manager.h
+  theory/bags/make_bag_op.cpp
+  theory/bags/make_bag_op.h
   theory/bags/normal_form.cpp
   theory/bags/normal_form.h
   theory/bags/rewrites.cpp

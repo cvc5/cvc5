@@ -1841,7 +1841,8 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   MEMBER,
   /**
-   * The set of the single element given as a parameter.
+   * Construct a singleton set from an element given as a parameter.
+   * The returned set has same type of the element.
    * Parameters: 1
    *   -[1]: Single element
    * Create with:
@@ -2029,14 +2030,15 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   DIFFERENCE_REMOVE,
   /**
-   * Bag is included (first multiplicities <= second multiplicities).
+   * Inclusion predicate for bags
+   * (multiplicities of the first bag <= multiplicities of the second bag).
    * Parameters: 2
-   *   -[1]..[2]: Terms of set sort
+   *   -[1]..[2]: Terms of bag sort
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
-  BAG_IS_INCLUDED,
+  SUBBAG,
   /**
    * Element multiplicity in a bag
    * Parameters: 2
@@ -2046,6 +2048,16 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   BAG_COUNT,
+  /**
+   * Eliminate duplicates in a given bag. The returned bag contains exactly the
+   * same elements in the given bag, but with multiplicity one.
+   * Parameters: 1
+   *   -[1]: a term of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  DUPLICATE_REMOVAL,
   /**
    * The bag of the single element given as a parameter.
    * Parameters: 1
