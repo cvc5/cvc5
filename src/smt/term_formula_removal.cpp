@@ -334,10 +334,9 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
           ProofGenerator* expg = sm->getProofGenerator(existsAssertion);
           d_lp->addLazyStep(existsAssertion,
                             expg,
+                            PfRule::WITNESS_AXIOM,
                             true,
-                            "RemoveTermFormulas::run:skolem_pf",
-                            false,
-                            PfRule::WITNESS_AXIOM);
+                            "RemoveTermFormulas::run:skolem_pf");
           d_lp->addStep(newAssertion, PfRule::SKOLEMIZE, {existsAssertion}, {});
           newAssertionPg = d_lp.get();
         }
@@ -550,6 +549,11 @@ void RemoveTermFormulas::setProofNodeManager(ProofNodeManager* pnm)
     d_lp.reset(new LazyCDProof(
         d_pnm, nullptr, nullptr, "RemoveTermFormulas::LazyCDProof"));
   }
+}
+
+ProofGenerator* RemoveTermFormulas::getTConvProofGenerator()
+{
+  return d_tpg.get();
 }
 
 bool RemoveTermFormulas::isProofEnabled() const { return d_pnm != nullptr; }

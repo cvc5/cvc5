@@ -81,8 +81,11 @@ void ProofCnfStream::convertAndAssert(TNode node,
     Trace("cnf") << "ProofCnfStream::convertAndAssert: pg: " << pg->identify()
                  << "\n";
     Node toJustify = negated ? node.notNode() : static_cast<Node>(node);
-    d_proof.addLazyStep(
-        toJustify, pg, true, "ProofCnfStream::convertAndAssert:cnf");
+    d_proof.addLazyStep(toJustify,
+                        pg,
+                        PfRule::ASSUME,
+                        true,
+                        "ProofCnfStream::convertAndAssert:cnf");
   }
   convertAndAssert(node, negated);
   // process saved steps in buffer
@@ -110,13 +113,10 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
       // track double negation elimination
       if (negated)
       {
-        d_proof.addStep(node[0],
-                        PfRule::MACRO_SR_PRED_TRANSFORM,
-                        {node.notNode()},
-                        {node[0]});
-        Trace("cnf") << "ProofCnfStream::convertAndAssert: "
-                        "MACRO_SR_PRED_TRANSFORM added norm "
-                     << node[0] << "\n";
+        d_proof.addStep(node[0], PfRule::NOT_NOT_ELIM, {node.notNode()}, {});
+        Trace("cnf")
+            << "ProofCnfStream::convertAndAssert: NOT_NOT_ELIM added norm "
+            << node[0] << "\n";
       }
       convertAndAssert(node[0], !negated);
       break;
@@ -139,13 +139,12 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
       {
         // track double negation elimination
         //    (not (not n))
-        //   -------------- MACRO_SR_PRED_TRANSFORM
+        //   -------------- NOT_NOT_ELIM
         //        n
-        d_proof.addStep(
-            nnode, PfRule::MACRO_SR_PRED_TRANSFORM, {node.notNode()}, {nnode});
-        Trace("cnf") << "ProofCnfStream::convertAndAssert: "
-                        "MACRO_SR_PRED_TRANSFORM added norm "
-                     << nnode << "\n";
+        d_proof.addStep(nnode, PfRule::NOT_NOT_ELIM, {node.notNode()}, {});
+        Trace("cnf")
+            << "ProofCnfStream::convertAndAssert: NOT_NOT_ELIM added norm "
+            << nnode << "\n";
       }
       if (added)
       {
@@ -523,8 +522,11 @@ void ProofCnfStream::convertPropagation(theory::TrustNode trn)
   Assert(trn.getGenerator()->getProofFor(proven)->isClosed());
   Trace("cnf-steps") << proven << " by explainPropagation "
                      << trn.identifyGenerator() << std::endl;
-  d_proof.addLazyStep(
-      proven, trn.getGenerator(), true, "ProofCnfStream::convertPropagation");
+  d_proof.addLazyStep(proven,
+                      trn.getGenerator(),
+                      PfRule::ASSUME,
+                      true,
+                      "ProofCnfStream::convertPropagation");
   // since the propagation is added directly to the SAT solver via theoryProxy,
   // do the transformation of the lemma E1 ^ ... ^ En => P into CNF here
   NodeManager* nm = NodeManager::currentNM();
@@ -552,7 +554,7 @@ void ProofCnfStream::convertPropagation(theory::TrustNode trn)
     d_proof.addStep(clauseExp,
                     PfRule::RESOLUTION,
                     {clauseAndNeg, clauseImpliesElim},
-                    {proven[0]});
+                    {nm->mkConst(true), proven[0]});
   }
   else
   {

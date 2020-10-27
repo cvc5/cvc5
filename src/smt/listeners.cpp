@@ -69,10 +69,12 @@ void SmtNodeManagerListener::nmNotifyNewDatatypes(
 {
   if ((flags & NodeManager::DATATYPE_FLAG_PLACEHOLDER) == 0)
   {
-    std::vector<Type> types;
-    for (const TypeNode& dt : dtts)
+    if (Configuration::isAssertionBuild())
     {
-      Assert(dt.isDatatype());
+      for (CVC4_UNUSED const TypeNode& dt : dtts)
+      {
+        Assert(dt.isDatatype());
+      }
     }
     DeclareDatatypeNodeCommand c(dtts);
     d_dm.addToModelCommandAndDump(c);

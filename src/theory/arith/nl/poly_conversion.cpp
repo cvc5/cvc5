@@ -211,6 +211,70 @@ poly::Polynomial as_poly_polynomial(const CVC4::Node& n,
   return res;
 }
 
+namespace {
+/**
+ * Utility class that collects the monomial terms (as nodes) from the polynomial
+ * we are converting.
+ */
+struct CollectMonomialData
+{
+  CollectMonomialData(VariableMapper& v) : d_vm(v) {}
+
+  /** Mapper from poly variables to CVC4 variables */
+  VariableMapper& d_vm;
+  /** Collections of the monomial terms */
+  std::vector<Node> d_terms;
+  /** Caches the current node manager */
+  NodeManager* d_nm = NodeManager::currentNM();
+};
+/**
+ * Callback for lp_polynomial_traverse. Assumes data is actually a
+ * CollectMonomialData object and puts the polynomial into it.
+ */
+void collect_monomials(const lp_polynomial_context_t* ctx,
+                       lp_monomial_t* m,
+                       void* data)
+{
+  CollectMonomialData* d = static_cast<CollectMonomialData*>(data);
+  // constant
+  Node term =
+      d->d_nm->mkConst<Rational>(poly_utils::toRational(poly::Integer(&m->a)));
+  for (std::size_t i = 0; i < m->n; ++i)
+  {
+    // variable exponent pair
+    Node var = d->d_vm(m->p[i].x);
+    if (m->p[i].d > 1)
+    {
+      Node exp = d->d_nm->mkConst<Rational>(m->p[i].d);
+      term = d->d_nm->mkNode(
+          Kind::NONLINEAR_MULT, term, d->d_nm->mkNode(Kind::POW, var, exp));
+    }
+    else
+    {
+      term = d->d_nm->mkNode(Kind::NONLINEAR_MULT, term, var);
+    }
+  }
+  d->d_terms.emplace_back(term);
+}
+}  // namespace
+
+CVC4::Node as_cvc_polynomial(const poly::Polynomial& p, VariableMapper& vm)
+{
+  CollectMonomialData cmd(vm);
+  // Do the actual conversion
+  lp_polynomial_traverse(p.get_internal(), collect_monomials, &cmd);
+
+  if (cmd.d_terms.empty())
+  {
+    return cmd.d_nm->mkConst<Rational>(0);
+  }
+  if (cmd.d_terms.size() == 1)
+  {
+    return cmd.d_terms.front();
+  }
+  return cmd.d_nm->mkNode(Kind::PLUS, cmd.d_terms);
+}
+
 poly::SignCondition normalize_kind(CVC4::Kind kind,
                                    bool negated,
                                    poly::Polynomial& lhs)
@@ -496,15 +560,15 @@ Node excluding_interval_to_lemma(const Node& variable,
       if (allowNonlinearLemma)
       {
         Node poly = as_cvc_upolynomial(get_defining_polynomial(alg), variable);
-      return nm->mkNode(
-          Kind::OR,
+        return nm->mkNode(
+            Kind::OR,
             nm->mkNode(Kind::DISTINCT, poly, nm->mkConst(Rational(0))),
             nm->mkNode(Kind::LT,
                        variable,
                        nm->mkConst(poly_utils::toRationalBelow(lv))),
-          nm->mkNode(Kind::GT,
-                     variable,
-                     nm->mkConst(poly_utils::toRationalAbove(lv))));
+            nm->mkNode(Kind::GT,
+                       variable,
+                       nm->mkConst(poly_utils::toRationalAbove(lv))));
       }
       return Node();
     }
@@ -715,16 +779,19 @@ std::size_t bitsize(const poly::Value& v)
   return 0;
 }
 
-poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi) {
+poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi)
+{
   poly::IntervalAssignment res;
-  for (const auto& vb: bi.get()) {
+  for (const auto& vb : bi.get())
+  {
     poly::Variable v = vm(vb.first);
-    poly::Value l = vb.second.lower.isNull() ? poly::Value::minus_infty() : node_to_value(vb.second.lower, vb.first);
-    poly::Value u = vb.second.upper.isNull() ? poly::Value::plus_infty() : node_to_value(vb.second.upper, vb.first);
-    poly::Interval i(l,
-                     vb.second.lower_strict,
-                     u,
-                     vb.second.upper_strict);
+    poly::Value l = vb.second.lower.isNull()
+                        ? poly::Value::minus_infty()
+                        : node_to_value(vb.second.lower, vb.first);
+    poly::Value u = vb.second.upper.isNull()
+                        ? poly::Value::plus_infty()
+                        : node_to_value(vb.second.upper, vb.first);
+    poly::Interval i(l, vb.second.lower_strict, u, vb.second.upper_strict);
     res.set(v, i);
   }
   return res;

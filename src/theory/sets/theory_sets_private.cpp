@@ -361,8 +361,6 @@ void TheorySetsPrivate::fullEffortCheck()
         Trace("sets-mem") << std::endl;
       }
     }
-    // check subtypes
-    checkSubtypes();
     d_im.doPendingLemmas();
     if (d_im.hasSent())
     {
@@ -416,49 +414,6 @@ void TheorySetsPrivate::fullEffortCheck()
   Trace("sets") << "----- End full effort check, conflict="
                 << d_state.isInConflict() << ", lemma=" << d_im.hasSentLemma()
                 << std::endl;
-}
-
-void TheorySetsPrivate::checkSubtypes()
-{
-  Trace("sets") << "TheorySetsPrivate: check Subtypes..." << std::endl;
-  const std::vector<Node>& sec = d_state.getSetsEqClasses();
-  for (const Node& s : sec)
-  {
-    TypeNode mct = d_most_common_type[s];
-    Assert(!mct.isNull());
-    const std::map<Node, Node>& smems = d_state.getMembers(s);
-    if (!smems.empty())
-    {
-      for (const std::pair<const Node, Node>& it2 : smems)
-      {
-        Trace("sets") << "  check subtype " << it2.first << " " << it2.second
-                      << std::endl;
-        Trace("sets") << "    types : " << it2.first.getType() << " " << mct
-                      << std::endl;
-        if (!it2.first.getType().isSubtypeOf(mct))
-        {
-          Node mctt = d_most_common_type_term[s];
-          Assert(!mctt.isNull());
-          Trace("sets") << "    most common type term is " << mctt << std::endl;
-          std::vector<Node> exp;
-          exp.push_back(it2.second);
-          Assert(d_state.areEqual(mctt, it2.second[1]));
-          exp.push_back(mctt.eqNode(it2.second[1]));
-          Node tc_k = d_treg.getTypeConstraintSkolem(it2.first, mct);
-          if (!tc_k.isNull())
-          {
-            Node etc = tc_k.eqNode(it2.first);
-            d_im.assertInference(etc, exp, "subtype-clash");
-            if (d_state.isInConflict())
-            {
-              return;
-            }
-          }
-        }
-      }
-    }
-  }
-  Trace("sets") << "TheorySetsPrivate: finished." << std::endl;
 }
 
 void TheorySetsPrivate::checkDownwardsClosure()
@@ -895,7 +850,17 @@ void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
     {
       Node f1 = t1->getData();
       Node f2 = t2->getData();
-      if (!d_state.areEqual(f1, f2))
+
+      // Usually when (= (f x) (f y)), we don't care whether (= x y) is true or
+      // not for the shared variables x, y in the care graph.
+      // However, this does not apply to the membership operator since the
+      // equality or disequality between members affects the number of elements
+      // in a set. Therefore we need to split on (= x y) for kind MEMBER.
+      // Example:
+      // Suppose (= (member x S) member( y, S)) is true and there are
+      // no other members in S. We would get S = {x} if (= x y) is true.
+      // Otherwise we would get S = {x, y}.
+      if (f1.getKind() == MEMBER || !d_state.areEqual(f1, f2))
       {
         Trace("sets-cg") << "Check " << f1 << " and " << f2 << std::endl;
         vector<pair<TNode, TNode> > currentPairs;
@@ -1143,9 +1108,13 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
         const std::map<Node, Node>& emems = d_state.getMembers(eqc);
         if (!emems.empty())
         {
+          TypeNode elementType = eqc.getType().getSetElementType();
           for (const std::pair<const Node, Node>& itmm : emems)
           {
-            Node t = nm->mkNode(kind::SINGLETON, itmm.first);
+            Trace("sets-model")
+                << "m->getRepresentative(" << itmm.first
+                << ")= " << m->getRepresentative(itmm.first) << std::endl;
+            Node t = nm->mkSingleton(elementType, itmm.first);
             els.push_back(t);
           }
         }
@@ -1156,6 +1125,7 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
         // cardinality
         d_cardSolver->mkModelValueElementsFor(val, eqc, els, mvals, m);
       }
+
       Node rep = NormalForm::mkBop(kind::UNION, els, eqc.getType());
       rep = Rewriter::rewrite(rep);
       Trace("sets-model") << "* Assign representative of " << eqc << " to "
@@ -1166,6 +1136,21 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
         return false;
       }
       m->assertSkeleton(rep);
+
+      // we add the element terms (singletons) as representatives to tell the
+      // model builder to evaluate them along with their union (rep).
+      // This is needed to account for cases when members and rep are not enough
+      // for the model builder to evaluate set terms.
+      // e.g.
+      // eqc(rep) = [(union (singleton skolem) (singleton 0))]
+      // eqc(skolem) = [0]
+      // The model builder would fail to evaluate rep as (singleton 0)
+      // if (singleton skolem) is not registered as a representative in the
+      // model
+      for (const Node& el : els)
+      {
+        m->assertSkeleton(el);
+      }
 
       Trace("sets-model") << "Set " << eqc << " = { " << traceElements(rep)
                           << " }" << std::endl;
@@ -1275,7 +1260,6 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
       d_equalityEngine->addTriggerPredicate(node);
     }
     break;
-    case kind::CARD: d_equalityEngine->addTriggerTerm(node, THEORY_SETS); break;
     default: d_equalityEngine->addTerm(node); break;
   }
 }
@@ -1358,7 +1342,7 @@ TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
 
   TypeNode setType = set.getType();
   Node boundVar = nm->mkBoundVar(setType.getSetElementType());
-  Node singleton = nm->mkNode(kind::SINGLETON, boundVar);
+  Node singleton = nm->mkSingleton(setType.getSetElementType(), boundVar);
   Node equal = set.eqNode(singleton);
   std::vector<Node> variables = {boundVar};
   Node boundVars = nm->mkNode(BOUND_VAR_LIST, variables);

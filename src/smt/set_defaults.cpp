@@ -546,8 +546,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     LogicInfo log(logic.getUnlockedCopy());
     // Strings requires arith for length constraints, and also UF
     needsUf = true;
-    if (!logic.isTheoryEnabled(THEORY_ARITH) || logic.isDifferenceLogic()
-        || !logic.areIntegersUsed())
+    if (!logic.isTheoryEnabled(THEORY_ARITH) || logic.isDifferenceLogic())
     {
       Notice()
           << "Enabling linear integer arithmetic because strings are enabled"
@@ -555,6 +554,12 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       log.enableTheory(THEORY_ARITH);
       log.enableIntegers();
       log.arithOnlyLinear();
+    }
+    else if (!logic.areIntegersUsed())
+    {
+      Notice() << "Enabling integer arithmetic because strings are enabled"
+               << std::endl;
+      log.enableIntegers();
     }
     logic = log;
     logic.lock();
@@ -599,7 +604,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     if (logic.isSharingEnabled() && !logic.isTheoryEnabled(THEORY_BV)
         && !logic.isTheoryEnabled(THEORY_STRINGS)
         && !logic.isTheoryEnabled(THEORY_SETS)
-        && !logic.isTheoryEnabled(THEORY_BAGS))
+        && !logic.isTheoryEnabled(THEORY_BAGS)
+        && !(logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()
+             && !logic.isQuantified()))
     {
       Trace("smt") << "setting theoryof-mode to term-based" << std::endl;
       options::theoryOfMode.set(options::TheoryOfMode::THEORY_OF_TERM_BASED);
@@ -618,7 +625,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
 
   // If in arrays, set the UF handler to arrays
-  if (logic.isTheoryEnabled(THEORY_ARRAYS)
+  if (logic.isTheoryEnabled(THEORY_ARRAYS) && !options::ufHo()
+      && !options::finiteModelFind()
       && (!logic.isQuantified()
           || (logic.isQuantified() && !logic.isTheoryEnabled(THEORY_UF))))
   {
@@ -1112,6 +1120,12 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       options::cegqiPreRegInst.set(true);
     }
+    // use tangent planes by default, since we want to put effort into
+    // the verification step for sygus queries with non-linear arithmetic
+    if (!options::nlExtTangentPlanes.wasSetByUser())
+    {
+      options::nlExtTangentPlanes.set(true);
+    }
     // not compatible with proofs
     if (options::proofNew())
     {
@@ -1423,6 +1437,36 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     throw OptionException("--proof-new is not yet supported.");
   }
+
+  if (logic == LogicInfo("QF_UFNRA"))
+  {
+#ifdef CVC4_USE_POLY
+    if (!options::nlCad() && !options::nlCad.wasSetByUser())
+    {
+      options::nlCad.set(true);
+      options::nlExt.set(false);
+      options::nlRlvMode.set(options::NlRlvMode::INTERLEAVE);
+    }
+#endif
+  }
+#ifndef CVC4_USE_POLY
+  if (options::nlCad())
+  {
+    if (options::nlCad.wasSetByUser())
+    {
+      std::stringstream ss;
+      ss << "Cannot use " << options::nlCad.getName() << " without configuring with --poly.";
+      throw OptionException(ss.str());
+    }
+    else
+    {
+      Notice() << "Cannot use --" << options::nlCad.getName()
+               << " without configuring with --poly." << std::endl;
+      options::nlCad.set(false);
+      options::nlExt.set(true);
+    }
+  }
+#endif
 }
 
 }  // namespace smt

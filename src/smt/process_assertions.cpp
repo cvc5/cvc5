@@ -105,9 +105,6 @@ bool ProcessAssertions::apply(Assertions& as)
     return true;
   }
 
-  SubstitutionMap& top_level_substs =
-      d_preprocessingPassContext->getTopLevelSubstitutions();
-
   if (options::bvGaussElim())
   {
     d_passes["bv-gauss"]->apply(&assertions);
@@ -201,6 +198,20 @@ bool ProcessAssertions::apply(Assertions& as)
     d_passes["bv-intro-pow2"]->apply(&assertions);
   }
 
+  // Lift bit-vectors of size 1 to bool
+  if (options::bitvectorToBool())
+  {
+    d_passes["bv-to-bool"]->apply(&assertions);
+  }
+  if (options::solveBVAsInt() != options::SolveBVAsIntMode::OFF)
+  {
+    d_passes["bv-to-int"]->apply(&assertions);
+    // after running bv-to-int, we need to immediately run
+    // theory-preprocess and ite-removal so that newlly created
+    // terms and assertions are normalized (e.g., div is expanded).
+    d_passes["theory-preprocess"]->apply(&assertions);
+  }
+
   // Since this pass is not robust for the information tracking necessary for
   // unsat cores, it's only applied if we are not doing unsat core computation
   if (!options::unsatCores())
@@ -210,16 +221,6 @@ bool ProcessAssertions::apply(Assertions& as)
 
   // Assertions MUST BE guaranteed to be rewritten by this point
   d_passes["rewrite"]->apply(&assertions);
-
-  // Lift bit-vectors of size 1 to bool
-  if (options::bitvectorToBool())
-  {
-    d_passes["bv-to-bool"]->apply(&assertions);
-  }
-  if (options::solveBVAsInt() != options::SolveBVAsIntMode::OFF)
-  {
-    d_passes["bv-to-int"]->apply(&assertions);
-  }
 
   // Convert non-top-level Booleans to bit-vectors of size 1
   if (options::boolToBitvector() != options::BoolToBVMode::OFF)
@@ -326,6 +327,8 @@ bool ProcessAssertions::apply(Assertions& as)
       // First, find all skolems that appear in the substitution map - their
       // associated iteExpr will need to be moved to the main assertion set
       set<TNode> skolemSet;
+      SubstitutionMap& top_level_substs =
+          d_preprocessingPassContext->getTopLevelSubstitutions().get();
       SubstitutionMap::iterator pos = top_level_substs.begin();
       for (; pos != top_level_substs.end(); ++pos)
       {
@@ -339,8 +342,7 @@ bool ProcessAssertions::apply(Assertions& as)
       // assertion
       IteSkolemMap::iterator it = iskMap.begin();
       IteSkolemMap::iterator iend = iskMap.end();
-      NodeBuilder<> builder(AND);
-      builder << assertions[assertions.getRealAssertionsEnd() - 1];
+      std::vector<Node> newConj;
       vector<TNode> toErase;
       for (; it != iend; ++it)
       {
@@ -367,19 +369,20 @@ bool ProcessAssertions::apply(Assertions& as)
           }
         }
         // Move this iteExpr into the main assertions
-        builder << assertions[(*it).second];
-        assertions[(*it).second] = d_true;
+        newConj.push_back(assertions[(*it).second]);
+        assertions.replace((*it).second, d_true);
         toErase.push_back((*it).first);
       }
-      if (builder.getNumChildren() > 1)
+      if (!newConj.empty())
       {
         while (!toErase.empty())
         {
           iskMap.erase(toErase.back());
           toErase.pop_back();
         }
-        assertions[assertions.getRealAssertionsEnd() - 1] =
-            Rewriter::rewrite(Node(builder));
+        size_t index = assertions.getRealAssertionsEnd() - 1;
+        Node newAssertion = NodeManager::currentNM()->mkAnd(newConj);
+        assertions.conjoin(index, newAssertion);
       }
       // TODO(b/1256): For some reason this is needed for some benchmarks, such
       // as

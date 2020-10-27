@@ -439,6 +439,14 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
     ops.push_back(nm->mkConst(FloatingPoint::makeInf(fp_size, false)));
     ops.push_back(nm->mkConst(FloatingPoint::makeZero(fp_size, true)));
     ops.push_back(nm->mkConst(FloatingPoint::makeZero(fp_size, false)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMinSubnormal(fp_size, true)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMinSubnormal(fp_size, false)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMaxSubnormal(fp_size, true)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMaxSubnormal(fp_size, false)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMinNormal(fp_size, true)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMinNormal(fp_size, false)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMaxNormal(fp_size, true)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMaxNormal(fp_size, false)));
   }
 }
 
@@ -866,6 +874,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       // ternary ops with RM
       std::vector<Kind> ternary_rm_kinds = {
           FLOATINGPOINT_PLUS,
+          FLOATINGPOINT_SUB,
           FLOATINGPOINT_MULT,
           FLOATINGPOINT_DIV,
       };
@@ -957,7 +966,13 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       Trace("sygus-grammar-def") << "...add for singleton" << std::endl;
       std::vector<TypeNode> cargsSingleton;
       cargsSingleton.push_back(unresElemType);
-      sdts[i].addConstructor(SINGLETON, cargsSingleton);
+
+      // lambda x . (singleton (singleton_op T) x) where T = x.getType()
+      Node x = nm->mkBoundVar(etype);
+      Node vars = nm->mkNode(BOUND_VAR_LIST, x);
+      Node singleton = nm->mkSingleton(etype, x);
+      Node lambda = nm->mkNode(LAMBDA,vars, singleton);
+      sdts[i].addConstructor(lambda, "singleton", cargsSingleton);
 
       // add for union, difference, intersection
       std::vector<Kind> bin_kinds = {UNION, INTERSECTION, SETMINUS};

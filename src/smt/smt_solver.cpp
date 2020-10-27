@@ -52,7 +52,8 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
                                         d_rm,
                                         d_pp.getTermFormulaRemover(),
                                         logicInfo,
-                                        d_smt.getOutputManager()));
+                                        d_smt.getOutputManager(),
+                                        d_pnm));
 
   // Add the theories
   for (theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST;
@@ -258,6 +259,8 @@ void SmtSolver::setProofNodeManager(ProofNodeManager* pnm) { d_pnm = pnm; }
 TheoryEngine* SmtSolver::getTheoryEngine() { return d_theoryEngine.get(); }
 
 prop::PropEngine* SmtSolver::getPropEngine() { return d_propEngine.get(); }
+
+Preprocessor* SmtSolver::getPreprocessor() { return &d_pp; }
 
 }  // namespace smt
 }  // namespace CVC4

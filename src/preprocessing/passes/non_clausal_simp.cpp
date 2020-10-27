@@ -21,6 +21,7 @@
 #include "context/cdo.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/theory_model.h"
+#include "theory/trust_substitutions.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -92,7 +93,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   }
 
   Trace("non-clausal-simplify") << "propagating" << std::endl;
-  if (propagator->propagate())
+  TrustNode conf = propagator->propagate();
+  if (!conf.isNull())
   {
     // If in conflict, just return false
     Trace("non-clausal-simplify")
@@ -113,17 +115,19 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       << "Iterate through " << propagator->getLearnedLiterals().size()
       << " learned literals." << std::endl;
   // No conflict, go through the literals and solve them
-  SubstitutionMap& top_level_substs =
-      d_preprocContext->getTopLevelSubstitutions();
+  TrustSubstitutionMap& ttls = d_preprocContext->getTopLevelSubstitutions();
+  CVC4_UNUSED SubstitutionMap& top_level_substs = ttls.get();
   SubstitutionMap constantPropagations(d_preprocContext->getUserContext());
-  SubstitutionMap newSubstitutions(d_preprocContext->getUserContext());
+  TrustSubstitutionMap tnewSubstituions(d_preprocContext->getUserContext(),
+                                        nullptr);
+  SubstitutionMap& newSubstitutions = tnewSubstituions.get();
   SubstitutionMap::iterator pos;
   size_t j = 0;
-  std::vector<Node>& learned_literals = propagator->getLearnedLiterals();
+  std::vector<TrustNode>& learned_literals = propagator->getLearnedLiterals();
   for (size_t i = 0, size = learned_literals.size(); i < size; ++i)
   {
     // Simplify the literal we learned wrt previous substitutions
-    Node learnedLiteral = learned_literals[i];
+    Node learnedLiteral = learned_literals[i].getNode();
     Assert(Rewriter::rewrite(learnedLiteral) == learnedLiteral);
     Assert(top_level_substs.apply(learnedLiteral) == learnedLiteral);
     Trace("non-clausal-simplify")
@@ -161,7 +165,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       {
         // If the learned literal simplifies to false, we're in conflict
         Trace("non-clausal-simplify")
-            << "conflict with " << learned_literals[i] << std::endl;
+            << "conflict with " << learned_literals[i].getNode() << std::endl;
         Assert(!options::unsatCores());
         assertionsToPreprocess->clear();
         Node n = NodeManager::currentNM()->mkConst<bool>(false);
@@ -178,10 +182,11 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     // Solve it with the corresponding theory, possibly adding new
     // substitutions to newSubstitutions
     Trace("non-clausal-simplify") << "solving " << learnedLiteral << std::endl;
-
+    TrustNode tlearnedLiteral =
+        TrustNode::mkTrustLemma(learnedLiteral, nullptr);
     Theory::PPAssertStatus solveStatus =
-        d_preprocContext->getTheoryEngine()->solve(learnedLiteral,
-                                                   newSubstitutions);
+        d_preprocContext->getTheoryEngine()->solve(tlearnedLiteral,
+                                                   tnewSubstituions);
 
     switch (solveStatus)
     {
@@ -375,15 +380,13 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     }
   }
 
-  NodeBuilder<> learnedBuilder(kind::AND);
   Assert(assertionsToPreprocess->getRealAssertionsEnd()
          <= assertionsToPreprocess->size());
-  learnedBuilder << (*assertionsToPreprocess)
-          [assertionsToPreprocess->getRealAssertionsEnd() - 1];
+  std::vector<Node> learnedLitsToConjoin;
 
   for (size_t i = 0; i < learned_literals.size(); ++i)
   {
-    Node learned = learned_literals[i];
+    Node learned = learned_literals[i].getNode();
     Assert(top_level_substs.apply(learned) == learned);
     Node learnedNew = newSubstitutions.apply(learned);
     if (learned != learnedNew)
@@ -406,7 +409,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       continue;
     }
     s.insert(learned);
-    learnedBuilder << learned;
+    learnedLitsToConjoin.push_back(learned);
     Trace("non-clausal-simplify")
         << "non-clausal learned : " << learned << std::endl;
   }
@@ -428,7 +431,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       continue;
     }
     s.insert(cProp);
-    learnedBuilder << cProp;
+    learnedLitsToConjoin.push_back(cProp);
     Trace("non-clausal-simplify")
         << "non-clausal constant propagation : " << cProp << std::endl;
   }
@@ -439,17 +442,16 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   // substituting
   top_level_substs.addSubstitutions(newSubstitutions);
 
-  if (learnedBuilder.getNumChildren() > 1)
+  if (!learnedLitsToConjoin.empty())
   {
-    assertionsToPreprocess->replace(
-        assertionsToPreprocess->getRealAssertionsEnd() - 1,
-        Rewriter::rewrite(Node(learnedBuilder)));
+    size_t replIndex = assertionsToPreprocess->getRealAssertionsEnd() - 1;
+    Node newConj = NodeManager::currentNM()->mkAnd(learnedLitsToConjoin);
+    assertionsToPreprocess->conjoin(replIndex, newConj);
   }
 
   propagator->setNeedsFinish(true);
   return PreprocessingPassResult::NO_CONFLICT;
 }  // namespace passes
-
 
 /* -------------------------------------------------------------------------- */
 

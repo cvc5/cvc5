@@ -17,9 +17,10 @@
 
 #pragma once
 
+#include <stdint.h>
+
 #include <map>
 #include <queue>
-#include <stdint.h>
 #include <vector>
 
 #include "context/cdhashset.h"
@@ -35,7 +36,6 @@
 #include "options/arith_options.h"
 #include "smt/logic_exception.h"
 #include "smt_util/boolean_simplification.h"
-#include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/arithvar.h"
@@ -50,16 +50,15 @@
 #include "theory/arith/linear_equality.h"
 #include "theory/arith/matrix.h"
 #include "theory/arith/normal_form.h"
-#include "theory/arith/operator_elim.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/proof_checker.h"
 #include "theory/arith/simplex.h"
 #include "theory/arith/soi_simplex.h"
 #include "theory/arith/theory_arith.h"
-#include "theory/arith/theory_arith_private_forward.h"
 #include "theory/eager_proof_generator.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "theory/trust_node.h"
 #include "theory/valuation.h"
 #include "util/dense_map.h"
 #include "util/integer.h"
@@ -82,10 +81,6 @@ namespace inferbounds {
 }
 class InferBoundsResult;
 
-namespace nl {
-class NonlinearExtension;
-}
-
 /**
  * Implementation of QF_LRA.
  * Based upon:
@@ -98,9 +93,10 @@ private:
 
   TheoryArith& d_containing;
 
-  bool d_nlIncomplete;
-  // TODO A better would be:
-  //context::CDO<bool> d_nlIncomplete;
+  /**
+   * Whether we encountered non-linear arithmetic at any time during solving.
+   */
+  bool d_foundNl;
 
   BoundInfoMap d_rowTracking;
 
@@ -320,6 +316,8 @@ private:
   /** For holding the proof of the above conflict node. */
   context::CDO<std::shared_ptr<ProofNode>> d_blackBoxConflictPf;
 
+  bool isProofEnabled() const;
+
  public:
   /**
    * This adds the constraint a to the queue of conflicts in d_conflicts.
@@ -335,16 +333,12 @@ private:
   // void raiseConflict(ConstraintCP a, ConstraintCP b, ConstraintCP c);
 
   /** This is a conflict that is magically known to hold. */
-  void raiseBlackBoxConflict(Node bb);
-
+  void raiseBlackBoxConflict(Node bb, std::shared_ptr<ProofNode> pf = nullptr);
   /**
    * Returns true iff a conflict has been raised. This method is public since
    * it is needed by the ArithState class to know whether we are in conflict.
    */
-  bool anyConflict() const
-  {
-    return !conflictQueueEmpty() || !d_blackBoxConflict.get().isNull();
-  }
+  bool anyConflict() const;
 
  private:
   inline bool conflictQueueEmpty() const {
@@ -384,9 +378,6 @@ private:
   FCSimplexDecisionProcedure d_fcSimplex;
   SumOfInfeasibilitiesSPD d_soiSimplex;
   AttemptSolutionSDP d_attemptSolSimplex;
-
-  /** non-linear algebraic approach */
-  nl::NonlinearExtension* d_nonlinearExtension;
 
   bool solveRealRelaxation(Theory::Effort effortLevel);
 
@@ -429,10 +420,6 @@ private:
 
   Node axiomIteForTotalDivision(Node div_tot);
   Node axiomIteForTotalIntDivision(Node int_div_like);
-
-  // handle linear /, div, mod, and also is_int, to_int
-  TrustNode ppRewriteTerms(TNode atom);
-
  public:
   TheoryArithPrivate(TheoryArith& containing,
                      context::Context* c,
@@ -444,8 +431,6 @@ private:
   ~TheoryArithPrivate();
 
   //--------------------------------- initialization
-  /** get the official theory rewriter of this theory */
-  TheoryRewriter* getTheoryRewriter();
   /**
    * Returns true if we need an equality engine, see
    * Theory::needsEqualityEngine.
@@ -459,12 +444,9 @@ private:
    * Does non-context dependent setup for a node connected to a theory.
    */
   void preRegisterTerm(TNode n);
-  TrustNode expandDefinition(Node node);
 
-  void check(Theory::Effort e);
-  bool needsCheckLastEffort();
   void propagate(Theory::Effort e);
-  Node explain(TNode n);
+  TrustNode explain(TNode n);
 
   Rational deltaValueForTotalOrder() const;
 
@@ -486,24 +468,43 @@ private:
 
   void presolve();
   void notifyRestart();
-  Theory::PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
-  TrustNode ppRewrite(TNode atom);
+  Theory::PPAssertStatus ppAssert(TrustNode tin,
+                                  TrustSubstitutionMap& outSubstitutions);
   void ppStaticLearn(TNode in, NodeBuilder<>& learned);
 
   std::string identify() const { return std::string("TheoryArith"); }
 
   EqualityStatus getEqualityStatus(TNode a, TNode b);
 
-  void addSharedTerm(TNode n);
+  /** Called when n is notified as being a shared term with TheoryArith. */
+  void notifySharedTerm(TNode n);
 
   Node getModelValue(TNode var);
 
 
   std::pair<bool, Node> entailmentCheck(TNode lit, const ArithEntailmentCheckParameters& params, ArithEntailmentCheckSideEffects& out);
 
+  //--------------------------------- standard check
+  /** Pre-check, called before the fact queue of the theory is processed. */
+  bool preCheck(Theory::Effort level);
+  /** Pre-notify fact. */
+  void preNotifyFact(TNode atom, bool pol, TNode fact);
+  /**
+   * Post-check, called after the fact queue of the theory is processed. Returns
+   * true if a conflict or lemma was emitted.
+   */
+  bool postCheck(Theory::Effort level);
+  //--------------------------------- end standard check
+  /**
+   * Found non-linear? This returns true if this solver ever encountered
+   * any non-linear terms that were unhandled. Note that this class is not
+   * responsible for handling non-linear arithmetic. If the owner of this
+   * class does not handle non-linear arithmetic in another way, then
+   * setIncomplete should be called on the output channel of TheoryArith.
+   */
+  bool foundNonlinear() const;
 
-private:
-
+ private:
   /** The constant zero. */
   DeltaRational d_DELTA_ZERO;
 
@@ -648,8 +649,11 @@ private:
    * Handles the case splitting for check() for a new assertion.
    * Returns a conflict if one was found.
    * Returns Node::null if no conflict was found.
+   *
+   * @param assertion The assertion that was just popped from the fact queue
+   * of TheoryArith and given to this class via preNotifyFact.
    */
-  ConstraintP constraintFromFactQueue();
+  ConstraintP constraintFromFactQueue(TNode assertion);
   bool assertionCases(ConstraintP c);
 
   /**
@@ -687,11 +691,9 @@ private:
   inline TheoryId theoryOf(TNode x) const { return d_containing.theoryOf(x); }
   inline void debugPrintFacts() const { d_containing.debugPrintFacts(); }
   inline context::Context* getSatContext() const { return d_containing.getSatContext(); }
-  inline void setIncomplete() {
-    (d_containing.d_out)->setIncomplete();
-    d_nlIncomplete = true;
-  }
+  void outputTrustedLemma(TrustNode lem);
   void outputLemma(TNode lem);
+  void outputTrustedConflict(TrustNode conf);
   void outputConflict(TNode lit);
   void outputPropagate(TNode lit);
   void outputRestart();
@@ -762,6 +764,13 @@ private:
   uint32_t d_solveIntMaybeHelp, d_solveIntAttempts;
 
   RationalVector d_farkasBuffer;
+
+  //---------------- during check
+  /** Whether there were new facts during preCheck */
+  bool d_newFacts;
+  /** The previous status, computed during preCheck */
+  Result::Sat d_previousStatus;
+  //---------------- end during check
 
   /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {
@@ -865,11 +874,6 @@ private:
 
 
   Statistics d_statistics;
-
-  /** The theory rewriter for this theory. */
-  ArithRewriter d_rewriter;
-  /** The operator elimination utility */
-  OperatorElim d_opElim;
 };/* class TheoryArithPrivate */
 
 }/* CVC4::theory::arith namespace */
