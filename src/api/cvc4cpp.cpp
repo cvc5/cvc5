@@ -3090,12 +3090,6 @@ Term Solver::mkValHelper(T t) const
 
 Term Solver::mkRealFromStrHelper(const std::string& s) const
 {
-  /* CLN and GMP handle this case differently, CLN interprets it as 0, GMP
-   * throws an std::invalid_argument exception. For consistency, we treat it
-   * as invalid. */
-  CVC4_API_ARG_CHECK_EXPECTED(s != ".", s)
-      << "a string representing an integer, real or rational value.";
-
   CVC4::Rational r = s.find('/') != std::string::npos
                          ? CVC4::Rational(s)
                          : CVC4::Rational::fromDecimal(s);
@@ -3709,6 +3703,8 @@ Term Solver::mkPi() const
 Term Solver::mkInteger(const std::string& s) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_ARG_CHECK_EXPECTED(s.find('.') == std::string::npos, s)
+  << "integer without a decimal point";
   Term integer = mkRealFromStrHelper(s);
   CVC4_API_ARG_CHECK_EXPECTED(integer.getSort() == getIntegerSort(), s)
       << " an integer";
@@ -3728,6 +3724,11 @@ Term Solver::mkInteger(int64_t val) const
 Term Solver::mkReal(const std::string& s) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  /* CLN and GMP handle this case differently, CLN interprets it as 0, GMP
+   * throws an std::invalid_argument exception. For consistency, we treat it
+   * as invalid. */
+  CVC4_API_ARG_CHECK_EXPECTED(s != ".", s)
+      << "a string representing a real or rational value.";
   Term rational = mkRealFromStrHelper(s);
   return ensureRealSort(rational);
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -3735,7 +3736,9 @@ Term Solver::mkReal(const std::string& s) const
 
 Term Solver::ensureRealSort(const Term t) const
 {
-  Assert(t.getSort() == getIntegerSort() || t.getSort() == getRealSort());
+  CVC4_API_ARG_CHECK_EXPECTED(
+      t.getSort() == getIntegerSort() || t.getSort() == getRealSort(),
+      " an integer or real term");
   if (t.getSort() == getIntegerSort())
   {
     Node n = getNodeManager()->mkNode(kind::CAST_TO_REAL, *t.d_node);
