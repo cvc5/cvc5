@@ -1444,8 +1444,14 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     if (!options::nlCad() && !options::nlCad.wasSetByUser())
     {
       options::nlCad.set(true);
-      options::nlExt.set(false);
-      options::nlRlvMode.set(options::NlRlvMode::INTERLEAVE);
+      if (!options::nlExt.wasSetByUser())
+      {
+        options::nlExt.set(false);
+      }
+      if (!options::nlRlvMode.wasSetByUser())
+      {
+        options::nlRlvMode.set(options::NlRlvMode::INTERLEAVE);
+      }
     }
 #endif
   }
