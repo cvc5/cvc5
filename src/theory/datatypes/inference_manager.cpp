@@ -28,7 +28,7 @@ namespace datatypes {
 InferenceManager::InferenceManager(Theory& t,
                                    TheoryState& state,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(t, state, nullptr),
+    : InferenceManagerBuffered(t, state, pnm),
       d_inferenceLemmas("theory::datatypes::inferenceLemmas"),
       d_inferenceFacts("theory::datatypes::inferenceFacts"),
       d_inferenceConflicts("theory::datatypes::inferenceConflicts"),
@@ -93,7 +93,7 @@ void InferenceManager::sendDtConflict(const std::vector<Node>& conf, InferId id)
   if (isProofEnabled())
   {
     Node exp = NodeManager::currentNM()->mkAnd(conf);
-    processDtInference(d_false, exp, id);
+    prepareDtInference(d_false, exp, id);
   }
   conflictExp(conf, d_ipc.get());
   d_inferenceConflicts << id;
@@ -117,7 +117,20 @@ bool InferenceManager::isProofEnabled() const { return d_ipc != nullptr; }
 bool InferenceManager::processDtLemma(
     Node conc, Node exp, InferId id, LemmaProperty p, bool doCache)
 {
-  conc = processDtInference(conc, exp, id);
+  conc = prepareDtInference(conc, exp, id);
+  if (conc.getKind()==EQUAL)
+  {
+    // Also process it as a fact first. Some lemmas concluding equalities
+    // should be processed as both internal facts and as lemmas. 
+    // In particular, notice that lemmas that conclude non-datatype equalities
+    // are not guaranteed to send the conclusion back to the datatypes solver.
+    // We assert them also as facts both for performance reasons and so that
+    // the explanations are consistent with our proofs. If this were not the
+    // case, the explanation for the lemma could be stored here and supercede
+    // a future fact concluding conc via a different explanation, which would
+    // cause free assumptions in our proofs.
+    processDtFactInternal(conc, exp);
+  }
   // send it as an (explained) lemma
   std::vector<Node> expv;
   if (!exp.isNull() && !exp.isConst())
@@ -135,31 +148,16 @@ bool InferenceManager::processDtLemma(
 
 bool InferenceManager::processDtFact(Node conc, Node exp, InferId id)
 {
-  conc = processDtInference(conc, exp, id);
+  conc = prepareDtInference(conc, exp, id);
   // assert the internal fact, which has the same issue as above
-  bool polarity = conc.getKind() != NOT;
-  TNode atom = polarity ? conc : conc[0];
-  if (isProofEnabled())
-  {
-    std::vector<Node> expv;
-    if (!exp.isNull() && !exp.isConst())
-    {
-      expv.push_back(exp);
-    }
-    assertInternalFact(atom, polarity, expv, d_ipc.get());
-  }
-  else
-  {
-    // use version without proofs
-    assertInternalFact(atom, polarity, exp);
-  }
+  processDtFactInternal(conc, exp);
   d_inferenceFacts << id;
   return true;
 }
 
-Node InferenceManager::processDtInference(Node conc, Node exp, InferId id)
+Node InferenceManager::prepareDtInference(Node conc, Node exp, InferId id)
 {
-  Trace("dt-lemma-debug") << "processDtInference : " << conc << " via " << exp
+  Trace("dt-lemma-debug") << "prepareDtInference : " << conc << " via " << exp
                           << " by " << id << std::endl;
   if (conc.getKind() == EQUAL && conc[0].getType().isBoolean())
   {
@@ -178,6 +176,26 @@ Node InferenceManager::processDtInference(Node conc, Node exp, InferId id)
     d_ipc->notifyFact(di);
   }
   return conc;
+}
+
+void InferenceManager::processDtFactInternal(Node conc, Node exp)
+{
+  bool polarity = conc.getKind() != NOT;
+  TNode atom = polarity ? conc : conc[0];
+  if (isProofEnabled())
+  {
+    std::vector<Node> expv;
+    if (!exp.isNull() && !exp.isConst())
+    {
+      expv.push_back(exp);
+    }
+    assertInternalFact(atom, polarity, expv, d_ipc.get());
+  }
+  else
+  {
+    // use version without proofs
+    assertInternalFact(atom, polarity, exp);
+  }
 }
 
 }  // namespace datatypes

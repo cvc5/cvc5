@@ -16,6 +16,7 @@
 
 #include "theory/rewriter.h"
 #include "theory/uf/proof_checker.h"
+#include "expr/lazy_proof_chain.h"
 
 using namespace CVC4::kind;
 
@@ -197,14 +198,6 @@ TrustNode ProofEqEngine::assertConflict(PfRule id,
 }
 
 TrustNode ProofEqEngine::assertConflict(const std::vector<Node>& exp,
-                                        ProofStepBuffer& psb)
-{
-  Trace("pfee") << "pfee::assertConflict " << exp << " via buffer with "
-                << psb.getNumSteps() << " steps" << std::endl;
-  return assertLemma(d_false, exp, {}, psb);
-}
-
-TrustNode ProofEqEngine::assertConflict(const std::vector<Node>& exp,
                                         ProofGenerator* pg)
 {
   Assert(pg != nullptr);
@@ -225,58 +218,32 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
   Assert(conc != d_true);
   LazyCDProof tmpProof(d_pnm, &d_proof);
   LazyCDProof* curr;
+  TrustNodeKind tnk;
+  // same policy as above: for conflicts, use existing lazy proof
   if (conc == d_false)
   {
-    // optimization: we can use the main lazy proof directly, because we
-    // know we will backtrack immediately after this call.
     curr = &d_proof;
+    tnk = TrustNodeKind::CONFLICT;
   }
   else
   {
-    // use a lazy proof that always links to d_proof
     curr = &tmpProof;
+    tnk = TrustNodeKind::LEMMA;
   }
-  // Register the proof step.
-  if (!curr->addStep(conc, id, exp, args))
+  // explain each literal in the vector
+  std::vector<TNode> assumps;
+  explainVecWithProof(tnk, assumps, exp, noExplain, curr);
+  // Register the proof step. We use a separate lazy CDProof which will make
+  // calls to curr above for the proofs of the literals in exp.
+  LazyCDProof outer(d_pnm, curr);
+  if (!outer.addStep(conc, id, exp, args))
   {
     // a step went wrong, e.g. during checking
     Assert(false) << "pfee::assertConflict: register proof step";
     return TrustNode::null();
   }
-  // We've now decided which lazy proof to use (curr), now get the proof
-  // for conc.
-  return assertLemmaInternal(conc, exp, noExplain, curr);
-}
-
-TrustNode ProofEqEngine::assertLemma(Node conc,
-                                     const std::vector<Node>& exp,
-                                     const std::vector<Node>& noExplain,
-                                     ProofStepBuffer& psb)
-{
-  Trace("pfee") << "pfee::assertLemma " << conc << ", exp = " << exp
-                << ", noExplain = " << noExplain << " via buffer with "
-                << psb.getNumSteps() << " steps" << std::endl;
-  LazyCDProof tmpProof(d_pnm, &d_proof);
-  LazyCDProof* curr;
-  // same policy as above: for conflicts, use existing lazy proof
-  if (conc == d_false)
-  {
-    curr = &d_proof;
-  }
-  else
-  {
-    curr = &tmpProof;
-  }
-  // add all steps to the proof
-  const std::vector<std::pair<Node, ProofStep>>& steps = psb.getSteps();
-  for (const std::pair<Node, ProofStep>& ps : steps)
-  {
-    if (!curr->addStep(ps.first, ps.second))
-    {
-      return TrustNode::null();
-    }
-  }
-  return assertLemmaInternal(conc, exp, noExplain, curr);
+  // Now get the proof for conc.
+  return ensureProofForFact(conc, assumps, tnk, &outer);
 }
 
 TrustNode ProofEqEngine::assertLemma(Node conc,
@@ -290,29 +257,28 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
                 << std::endl;
   LazyCDProof tmpProof(d_pnm, &d_proof);
   LazyCDProof* curr;
+  TrustNodeKind tnk;
   // same policy as above: for conflicts, use existing lazy proof
   if (conc == d_false)
   {
     curr = &d_proof;
+    tnk = TrustNodeKind::CONFLICT;
   }
   else
   {
     curr = &tmpProof;
+    tnk = TrustNodeKind::LEMMA;
   }
-  // Register the proof. Notice we do a deep copy here because the CDProof
-  // curr should take ownership of the proof steps that pg provided for conc.
-  // In other words, this sets up the "skeleton" of proof that is the base
-  // of the proof we are constructing. The call to assertLemmaInternal below
-  // will expand the leaves of this proof. If we used a shallow copy, then
-  // the connection to these leaves would be lost since they would not be
-  // owned by curr.
-  if (!pg->addProofTo(conc, curr, CDPOverwrite::ASSUME_ONLY, true))
-  {
-    // a step went wrong, e.g. during checking
-    Assert(false) << "pfee::assertConflict: register proof step";
-    return TrustNode::null();
-  }
-  return assertLemmaInternal(conc, exp, noExplain, curr);
+  // explain each literal in the vector
+  std::vector<TNode> assumps;
+  explainVecWithProof(tnk, assumps, exp, noExplain, curr);
+  // We use a lazy proof chain here. The provided proof generator sets up the
+  // "skeleton" that is the base of the proof we are constructing. The call to
+  // LazyCDProofChain::getProofFor will expand the leaves of this proof via
+  // calls to curr.
+  LazyCDProofChain outer(d_pnm, true, nullptr, curr, false);
+  outer.addLazyStep(conc, pg);
+  return ensureProofForFact(conc, assumps, tnk, &outer);
 }
 
 TrustNode ProofEqEngine::explain(Node conc)
@@ -324,18 +290,12 @@ TrustNode ProofEqEngine::explain(Node conc)
   return ensureProofForFact(conc, assumps, TrustNodeKind::PROP_EXP, &tmpProof);
 }
 
-TrustNode ProofEqEngine::assertLemmaInternal(Node conc,
-                                             const std::vector<Node>& exp,
-                                             const std::vector<Node>& noExplain,
-                                             LazyCDProof* curr)
+void ProofEqEngine::explainVecWithProof(TrustNodeKind& tnk,
+                                std::vector<TNode>& assumps,
+                              const std::vector<Node>& exp,
+                              const std::vector<Node>& noExplain,
+                              LazyCDProof* curr)
 {
-  // We are a conflict if the conclusion is false and all literals are
-  // explained.
-  TrustNodeKind tnk =
-      conc == d_false ? TrustNodeKind::CONFLICT : TrustNodeKind::LEMMA;
-
-  // get the explanation, with proofs
-  std::vector<TNode> assumps;
   std::vector<Node> expn;
   for (const Node& e : exp)
   {
@@ -351,13 +311,12 @@ TrustNode ProofEqEngine::assertLemmaInternal(Node conc,
       tnk = TrustNodeKind::LEMMA;
     }
   }
-  return ensureProofForFact(conc, assumps, tnk, curr);
 }
 
 TrustNode ProofEqEngine::ensureProofForFact(Node conc,
                                             const std::vector<TNode>& assumps,
                                             TrustNodeKind tnk,
-                                            LazyCDProof* curr)
+                                            ProofGenerator* curr)
 {
   Trace("pfee-proof") << std::endl;
   Trace("pfee-proof") << "pfee::ensureProofForFact: input " << conc << " via "

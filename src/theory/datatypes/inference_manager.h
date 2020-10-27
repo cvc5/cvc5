@@ -96,7 +96,9 @@ class InferenceManager : public InferenceManagerBuffered
   bool processDtFact(Node conc, Node exp, InferId id);
   /**
    * Helper function for the above methods. Returns the conclusion, which
-   * may be modified so that it is compatible with proofs.
+   * may be modified so that it is compatible with proofs. If proofs are
+   * enabled, it ensures the proof constructor is ready to provide a proof
+   * of (=> exp conc).
    *
    * In particular, if conc is a Boolean equality, it is rewritten. This is
    * to ensure that we do not assert equalities of the form (= t true)
@@ -104,7 +106,12 @@ class InferenceManager : public InferenceManagerBuffered
    * status for proof generation. If this is not done, then it is possible
    * to have proofs with missing connections and hence free assumptions.
    */
-  Node processDtInference(Node conc, Node exp, InferId id);
+  Node prepareDtInference(Node conc, Node exp, InferId id);
+  /**
+   * Process datatype fact internal. Makes the appropriate call to assert
+   * fact conc from exp based on whether proofs are enabled.
+   */
+  void processDtFactInternal(Node conc, Node exp);
   /** The false node */
   Node d_false;
   /**
