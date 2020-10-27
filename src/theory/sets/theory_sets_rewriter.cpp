@@ -203,11 +203,19 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     // we don't merge non-constant unions
     break;
   }//kind::UNION
-  case kind::COMPLEMENT: {
-    Node univ = NodeManager::currentNM()->mkNullaryOperator( node[0].getType(), kind::UNIVERSE_SET );
-    return RewriteResponse( REWRITE_AGAIN, NodeManager::currentNM()->mkNode( kind::SETMINUS, univ, node[0] ) );
+  case kind::COMPLEMENT:
+  {
+    if (node[0].getKind() == COMPLEMENT)
+    {
+      // (complement (complement A)) = A
+      return RewriteResponse(REWRITE_AGAIN, node[0]);
+    }
+    Node univ = NodeManager::currentNM()->mkNullaryOperator(node[0].getType(),
+                                                            kind::UNIVERSE_SET);
+    return RewriteResponse(
+        REWRITE_AGAIN,
+        NodeManager::currentNM()->mkNode(kind::SETMINUS, univ, node[0]));
   }
-    break;
   case kind::CARD: {
     if(node[0].isConst()) {
       std::set<Node> elements = NormalForm::getElementsFromNormalConstant(node[0]);

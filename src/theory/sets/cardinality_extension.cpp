@@ -234,6 +234,8 @@ void CardinalityExtension::checkRegister()
         // if setminus, do for intersection instead
         if (n.getKind() == SETMINUS)
         {
+          // ensure that the cardinality of node n is added to the graph
+          registerTerm(nm->mkNode(CARD, n));
           n = Rewriter::rewrite(nm->mkNode(INTERSECTION, n[0], n[1]));
         }
         registerCardinalityTerm(n);
@@ -308,6 +310,9 @@ void CardinalityExtension::checkCardCycles()
       return;
     }
   }
+
+  Trace("sets") << "d_card_parent: " << d_card_parent << std::endl;
+  Trace("sets") << "d_oSetEqc: " << d_oSetEqc << std::endl;
   Trace("sets") << "Done check cardinality cycles" << std::endl;
 }
 
