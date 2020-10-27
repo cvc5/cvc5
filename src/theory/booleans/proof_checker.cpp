@@ -295,7 +295,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
   {
     Assert(children.size() > 1);
     Assert(args.size() == 2 * (children.size() - 1) + 1);
-    Trace("bool-pfcheck") << "macro_res:\n" << push;
+    Trace("bool-pfcheck") << "macro_res: " << args[0] << "\n" << push;
     NodeManager* nm = NodeManager::currentNM();
     Node trueNode = nm->mkConst(true);
     Node falseNode = nm->mkConst(false);
@@ -365,37 +365,33 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     // check that set representation is the same as of the given conclusion
     std::unordered_set<Node, NodeHashFunction> clauseComputed{
         clauseNodes.begin(), clauseNodes.end()};
-    Trace("bool-pfcheck") << "clauseSet: " << clauseComputed << "\n";
+    Trace("bool-pfcheck") << "clauseSet: " << clauseComputed << "\n" << pop;
     if (clauseComputed.empty())
     {
       // conclusion differ
-      Trace("bool-pfcheck") << "clauseSet is empty\n";
       if (args[0] != falseNode)
       {
-        Trace("bool-pfcheck") << "conclusion is not false!\n" << pop;
         return Node::null();
       }
       return args[0];
     }
     if (clauseComputed.size() == 1)
     {
-      Trace("bool-pfcheck") << "clauseSet is singleton\n";
       // conclusion differ
       if (args[0] != *clauseComputed.begin())
       {
-        Trace("bool-pfcheck") << "conclusions differ!\n" << pop;
         return Node::null();
       }
       return args[0];
     }
     // At this point, should amount to them differing only on order. So the
     // original result can't be a unit clause
-    if (args[0].getKind() != kind::OR || clauseComputed.size() != args[0].getNumChildren())
+    if (args[0].getKind() != kind::OR
+        || clauseComputed.size() != args[0].getNumChildren())
     {
       return Node::null();
     }
     std::unordered_set<Node, NodeHashFunction> clauseGiven{args[0].begin(), args[0].end()};
-    Trace("bool-pfcheck") << "expected clauseSet: " << clauseGiven << "\n" << pop;
     return clauseComputed == clauseGiven? args[0] : Node::null();
   }
   if (id == PfRule::SPLIT)
