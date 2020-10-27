@@ -1223,7 +1223,7 @@ class CVC4_PUBLIC GetUnsatCoreCommand : public Command
 {
  public:
   GetUnsatCoreCommand();
-  const UnsatCore& getUnsatCore() const;
+  const std::vector<api::Term>& getUnsatCore() const;
 
   void invoke(api::Solver* solver) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
@@ -1238,8 +1238,10 @@ class CVC4_PUBLIC GetUnsatCoreCommand : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
  protected:
-  // the result of the unsat core call
-  UnsatCore d_result;
+   /** The solver we were invoked with */
+  api::Solver* d_solver;
+  /** the result of the unsat core call */
+  std::vector<api::Term> d_result;
 }; /* class GetUnsatCoreCommand */
 
 class CVC4_PUBLIC GetAssertionsCommand : public Command

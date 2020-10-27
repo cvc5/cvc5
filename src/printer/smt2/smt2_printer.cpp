@@ -41,6 +41,7 @@
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"
 #include "util/smt2_quote_string.h"
+#include "proof/unsat_core.h"
 
 using namespace std;
 

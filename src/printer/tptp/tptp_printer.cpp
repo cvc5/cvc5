@@ -27,6 +27,7 @@
 #include "smt/command.h"
 #include "smt/node_command.h"
 #include "smt/smt_engine.h"
+#include "proof/unsat_core.h"
 
 using namespace std;
 

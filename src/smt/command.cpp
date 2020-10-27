@@ -38,6 +38,7 @@
 #include "smt/smt_engine_scope.h"
 #include "util/sexpr.h"
 #include "util/utility.h"
+#include "proof/unsat_core.h"
 
 using namespace std;
 
@@ -2341,8 +2342,8 @@ void GetUnsatCoreCommand::invoke(api::Solver* solver)
 {
   try
   {
-    d_result = UnsatCore(solver->getSmtEngine(),
-                         api::termVectorToNodes(solver->getUnsatCore()));
+    d_solver = solver;
+    d_result = solver->getUnsatCore();
 
     d_commandStatus = CommandSuccess::instance();
   }
@@ -2365,11 +2366,13 @@ void GetUnsatCoreCommand::printResult(std::ostream& out,
   }
   else
   {
-    d_result.toStream(out);
+    UnsatCore ucr(d_solver->getSmtEngine(),
+                         api::termVectorToNodes(d_result));
+    ucr.toStream(out);
   }
 }
 
-const UnsatCore& GetUnsatCoreCommand::getUnsatCore() const
+const std::vector<api::Term>& GetUnsatCoreCommand::getUnsatCore() const
 {
   // of course, this will be empty if the command hasn't been invoked yet
   return d_result;
@@ -2378,6 +2381,7 @@ const UnsatCore& GetUnsatCoreCommand::getUnsatCore() const
 Command* GetUnsatCoreCommand::clone() const
 {
   GetUnsatCoreCommand* c = new GetUnsatCoreCommand;
+  c->d_solver = d_solver;
   c->d_result = d_result;
   return c;
 }
