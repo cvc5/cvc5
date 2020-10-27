@@ -23,9 +23,9 @@
 #include "printer/cvc/cvc_printer.h"
 #include "printer/smt2/smt2_printer.h"
 #include "printer/tptp/tptp_printer.h"
+#include "proof/unsat_core.h"
 #include "smt/command.h"
 #include "smt/node_command.h"
-#include "proof/unsat_core.h"
 
 using namespace std;
 

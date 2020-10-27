@@ -32,13 +32,13 @@
 #include "options/options.h"
 #include "options/smt_options.h"
 #include "printer/printer.h"
+#include "proof/unsat_core.h"
 #include "smt/dump.h"
 #include "smt/model.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "util/sexpr.h"
 #include "util/utility.h"
-#include "proof/unsat_core.h"
 
 using namespace std;
 
@@ -2366,8 +2366,7 @@ void GetUnsatCoreCommand::printResult(std::ostream& out,
   }
   else
   {
-    UnsatCore ucr(d_solver->getSmtEngine(),
-                         api::termVectorToNodes(d_result));
+    UnsatCore ucr(d_solver->getSmtEngine(), api::termVectorToNodes(d_result));
     ucr.toStream(out);
   }
 }

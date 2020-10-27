@@ -1238,7 +1238,7 @@ class CVC4_PUBLIC GetUnsatCoreCommand : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
  protected:
-   /** The solver we were invoked with */
+  /** The solver we were invoked with */
   api::Solver* d_solver;
   /** the result of the unsat core call */
   std::vector<api::Term> d_result;
