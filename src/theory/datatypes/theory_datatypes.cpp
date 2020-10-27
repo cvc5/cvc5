@@ -419,8 +419,33 @@ void TheoryDatatypes::notifyFact(TNode atom,
 
 void TheoryDatatypes::preRegisterTerm(TNode n)
 {
-  Debug("datatypes-prereg")
+  Trace("datatypes-prereg")
       << "TheoryDatatypes::preRegisterTerm() " << n << endl;
+  // must ensure the type is well founded and has no nested recursion if
+  // the option dtNestedRec is not set to true.
+  TypeNode tn = n.getType();
+  if (tn.isDatatype())
+  {
+    const DType& dt = tn.getDType();
+    Trace("dt-expand") << "Check properties of " << dt.getName() << std::endl;
+    if (!dt.isWellFounded())
+    {
+      std::stringstream ss;
+      ss << "Cannot handle non-well-founded datatype " << dt.getName();
+      throw LogicException(ss.str());
+    }
+    Trace("dt-expand") << "...well-founded ok" << std::endl;
+    if (!options::dtNestedRec())
+    {
+      if (dt.hasNestedRecursion())
+      {
+        std::stringstream ss;
+        ss << "Cannot handle nested-recursive datatype " << dt.getName();
+        throw LogicException(ss.str());
+      }
+      Trace("dt-expand") << "...nested recursion ok" << std::endl;
+    }
+  }
   collectTerms( n );
   switch (n.getKind()) {
   case kind::EQUAL:
@@ -446,28 +471,7 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
 TrustNode TheoryDatatypes::expandDefinition(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
-  // must ensure the type is well founded and has no nested recursion if
-  // the option dtNestedRec is not set to true.
   TypeNode tn = n.getType();
-  if (tn.isDatatype())
-  {
-    const DType& dt = tn.getDType();
-    if (!dt.isWellFounded())
-    {
-      std::stringstream ss;
-      ss << "Cannot handle non-well-founded datatype " << dt.getName();
-      throw LogicException(ss.str());
-    }
-    if (!options::dtNestedRec())
-    {
-      if (dt.hasNestedRecursion())
-      {
-        std::stringstream ss;
-        ss << "Cannot handle nested-recursive datatype " << dt.getName();
-        throw LogicException(ss.str());
-      }
-    }
-  }
   Node ret;
   switch (n.getKind())
   {
@@ -1084,10 +1088,14 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
     {
       Node eq = s.eqNode(rrs);
       Node peq = c.eqNode(s[0]);
+      // Since collapsing selectors may generate new terms, we must send
+      // this out as a lemma if it is of an external type, or otherwise we
+      // may ask for the equality status of terms that only datatypes knows
+      // about, see issue #5344.
+      bool forceLemma = !s.getType().isDatatype();
       Trace("datatypes-infer") << "DtInfer : collapse sel";
-      //Trace("datatypes-infer") << ( wrong ? " wrong" : "");
       Trace("datatypes-infer") << " : " << eq << " by " << peq << std::endl;
-      d_im.addPendingInference(eq, peq, false, InferId::COLLAPSE_SEL);
+      d_im.addPendingInference(eq, peq, forceLemma, InferId::COLLAPSE_SEL);
     }
   }
 }
@@ -1841,6 +1849,7 @@ bool TheoryDatatypes::areDisequal( TNode a, TNode b ){
 }
 
 bool TheoryDatatypes::areCareDisequal( TNode x, TNode y ) {
+  Trace("datatypes-cg") << "areCareDisequal: " << x << " " << y << std::endl;
   Assert(d_equalityEngine->hasTerm(x));
   Assert(d_equalityEngine->hasTerm(y));
   if (d_equalityEngine->isTriggerTerm(x, THEORY_DATATYPES)

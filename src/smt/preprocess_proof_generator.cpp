@@ -16,6 +16,7 @@
 #include "smt/preprocess_proof_generator.h"
 
 #include "expr/proof.h"
+#include "options/smt_options.h"
 #include "theory/rewriter.h"
 
 namespace CVC4 {
@@ -23,12 +24,22 @@ namespace smt {
 
 PreprocessProofGenerator::PreprocessProofGenerator(ProofNodeManager* pnm,
                                                    context::Context* c,
-                                                   std::string name)
+                                                   std::string name,
+                                                   PfRule ra,
+                                                   PfRule rpp)
     : d_pnm(pnm),
       d_src(c ? c : &d_context),
       d_helperProofs(pnm, c ? c : &d_context),
-      d_name(name)
+      d_inputPf(pnm, nullptr),
+      d_name(name),
+      d_ra(ra),
+      d_rpp(rpp)
 {
+}
+
+void PreprocessProofGenerator::notifyInput(Node n)
+{
+  notifyNewAssert(n, &d_inputPf);
 }
 
 void PreprocessProofGenerator::notifyNewAssert(Node n, ProofGenerator* pg)
@@ -37,6 +48,11 @@ void PreprocessProofGenerator::notifyNewAssert(Node n, ProofGenerator* pg)
       << "PreprocessProofGenerator::notifyNewAssert: " << n << std::endl;
   if (d_src.find(n) == d_src.end())
   {
+    // if no proof generator provided for (non-true) assertion
+    if (pg == nullptr && (!n.isConst() || !n.getConst<bool>()))
+    {
+      checkEagerPedantic(d_ra);
+    }
     d_src[n] = theory::TrustNode::mkTrustLemma(n, pg);
   }
   else
@@ -77,6 +93,10 @@ void PreprocessProofGenerator::notifyTrustedPreprocessed(theory::TrustNode tnp)
       << std::endl;
   if (d_src.find(np) == d_src.end())
   {
+    if (tnp.getGenerator() == nullptr)
+    {
+      checkEagerPedantic(d_rpp);
+    }
     d_src[np] = tnp;
   }
   else
@@ -167,9 +187,7 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
         Trace("smt-pppg") << "...add missing step" << std::endl;
         // add trusted step, the rule depends on the kind of trust node
         cdp.addStep(proven,
-                    tnk == theory::TrustNodeKind::LEMMA
-                        ? PfRule::PREPROCESS_LEMMA
-                        : PfRule::PREPROCESS,
+                    tnk == theory::TrustNodeKind::LEMMA ? d_ra : d_rpp,
                     {},
                     {proven});
       }
@@ -213,6 +231,22 @@ LazyCDProof* PreprocessProofGenerator::allocateHelperProof()
 }
 
 std::string PreprocessProofGenerator::identify() const { return d_name; }
+
+void PreprocessProofGenerator::checkEagerPedantic(PfRule r)
+{
+  if (options::proofNewEagerChecking())
+  {
+    // catch a pedantic failure now, which otherwise would not be
+    // triggered since we are doing lazy proof generation
+    ProofChecker* pc = d_pnm->getChecker();
+    std::stringstream serr;
+    if (pc->isPedanticFailure(r, serr))
+    {
+      Unhandled() << "PreprocessProofGenerator::checkEagerPedantic: "
+                  << serr.str();
+    }
+  }
+}
 
 }  // namespace smt
 }  // namespace CVC4

@@ -4541,23 +4541,40 @@ bool TheoryArithPrivate::tryToPropagate(RowIndex ridx, bool rowUp, ArithVar v, b
 
 Node flattenImplication(Node imp){
   NodeBuilder<> nb(kind::OR);
+  std::unordered_set<Node, NodeHashFunction> included;
   Node left = imp[0];
   Node right = imp[1];
 
   if(left.getKind() == kind::AND){
     for(Node::iterator i = left.begin(), iend = left.end(); i != iend; ++i) {
-      nb << (*i).negate();
+      if (!included.count((*i).negate()))
+      {
+        nb << (*i).negate();
+        included.insert((*i).negate());
+      }
     }
   }else{
-    nb << left.negate();
+    if (!included.count(left.negate()))
+    {
+      nb << left.negate();
+      included.insert(left.negate());
+    }
   }
 
   if(right.getKind() == kind::OR){
     for(Node::iterator i = right.begin(), iend = right.end(); i != iend; ++i) {
-      nb << *i;
+      if (!included.count(*i))
+      {
+        nb << *i;
+        included.insert(*i);
+      }
     }
   }else{
-    nb << right;
+    if (!included.count(right))
+    {
+      nb << right;
+      included.insert(right);
+    }
   }
 
   return nb;

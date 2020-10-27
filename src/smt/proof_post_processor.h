@@ -173,6 +173,10 @@ class ProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
   HistogramStat<PfRule> d_ruleCount;
   /** Total number of postprocessed rule applications */
   IntStat d_totalRuleCount;
+  /** The minimum pedantic level of any rule encountered */
+  IntStat d_minPedanticLevel;
+  /** The total number of final proofs */
+  IntStat d_numFinalProofs;
   /** Proof node manager (used for pedantic checking) */
   ProofNodeManager* d_pnm;
   /** Was there a pedantic failure? */
@@ -198,6 +202,7 @@ class ProofPostproccess
   void process(std::shared_ptr<ProofNode> pf);
   /** set eliminate rule */
   void setEliminateRule(PfRule rule);
+
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;

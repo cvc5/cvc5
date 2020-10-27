@@ -19,6 +19,8 @@
 
 #include <unordered_map>
 
+#include "context/cdhashmap.h"
+#include "context/context.h"
 #include "expr/lazy_proof.h"
 #include "expr/node.h"
 #include "expr/tconv_seq_proof_generator.h"
@@ -38,17 +40,16 @@ namespace theory {
  */
 class TheoryPreprocessor
 {
-  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
+  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
 
  public:
   /** Constructs a theory preprocessor */
   TheoryPreprocessor(TheoryEngine& engine,
                      RemoveTermFormulas& tfr,
+                     context::UserContext* userContext,
                      ProofNodeManager* pnm = nullptr);
   /** Destroys a theory preprocessor */
   ~TheoryPreprocessor();
-  /** Clear the cache of this class */
-  void clearCache();
   /**
    * Preprocesses the given assertion node. It returns a TrustNode of kind
    * TrustNodeKind::REWRITE indicating the preprocessed form of node. It stores
@@ -84,8 +85,6 @@ class TheoryPreprocessor
   NodeMap d_ppCache;
   /** The term formula remover */
   RemoveTermFormulas& d_tfr;
-  /** The context for the proof generator below */
-  context::Context d_pfContext;
   /** The term context, which computes hash values for term contexts. */
   InQuantTermContext d_iqtc;
   /**
