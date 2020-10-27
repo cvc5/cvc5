@@ -1286,7 +1286,7 @@ void NlModel::getModelValueRepair(
   Trace("nl-model") << "NlModel::getModelValueRepair:" << std::endl;
   // If we extended the model with entries x -> 0 for unconstrained values,
   // we first update the map to the extended one.
-  if (d_arithVal.size()>arithModel.size())
+  if (d_arithVal.size() > arithModel.size())
   {
     arithModel = d_arithVal;
   }
