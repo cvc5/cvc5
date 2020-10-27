@@ -25,6 +25,7 @@ void BoolProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::SPLIT, this);
   pc->registerChecker(PfRule::RESOLUTION, this);
   pc->registerChecker(PfRule::CHAIN_RESOLUTION, this);
+  pc->registerChecker(PfRule::MACRO_RESOLUTION, this);
   pc->registerChecker(PfRule::FACTORING, this);
   pc->registerChecker(PfRule::REORDERING, this);
   pc->registerChecker(PfRule::EQ_RESOLVE, this);
@@ -294,7 +295,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
   {
     Assert(children.size() > 1);
     Assert(args.size() == 2 * (children.size() - 1) + 1);
-    Trace("bool-pfcheck") << "chain_res:\n" << push;
+    Trace("bool-pfcheck") << "macro_res:\n" << push;
     NodeManager* nm = NodeManager::currentNM();
     Node trueNode = nm->mkConst(true);
     Node falseNode = nm->mkConst(false);
@@ -309,7 +310,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
              j = j + 2)
         {
           // whether pivot should occur as is or negated depends on the id of
-          // each step in the chain
+          // each step in the macro
           if (args[j] == trueNode)
           {
             elim.insert(args[j + 1]);
@@ -360,35 +361,41 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       }
       Trace("bool-pfcheck") << i << ": added lits: " << added << "\n\n";
     }
-    Trace("bool-pfcheck") << "clause: " << clauseNodes << "\n" << pop;
+    Trace("bool-pfcheck") << "clause: " << clauseNodes << "\n";
     // check that set representation is the same as of the given conclusion
-    if (clauseNodes.empty())
+    std::unordered_set<Node, NodeHashFunction> clauseComputed{
+        clauseNodes.begin(), clauseNodes.end()};
+    Trace("bool-pfcheck") << "clauseSet: " << clauseComputed << "\n";
+    if (clauseComputed.empty())
     {
       // conclusion differ
+      Trace("bool-pfcheck") << "clauseSet is empty\n";
       if (args[0] != falseNode)
       {
+        Trace("bool-pfcheck") << "conclusion is not false!\n" << pop;
         return Node::null();
       }
       return args[0];
     }
-    if (clauseNodes.size() == 1)
+    if (clauseComputed.size() == 1)
     {
+      Trace("bool-pfcheck") << "clauseSet is singleton\n";
       // conclusion differ
-      if (args[0] != clauseNodes[0])
+      if (args[0] != *clauseComputed.begin())
       {
+        Trace("bool-pfcheck") << "conclusions differ!\n" << pop;
         return Node::null();
       }
       return args[0];
     }
     // At this point, should amount to them differing only on order. So the
     // original result can't be a unit clause
-    if (args[0].getKind() != kind::OR || clauseNodes.size() != args[0].getNumChildren())
+    if (args[0].getKind() != kind::OR || clauseComputed.size() != args[0].getNumChildren())
     {
       return Node::null();
     }
-    std::unordered_set<Node, NodeHashFunction> clauseComputed{clauseNodes.begin(), clauseNodes.end()};
     std::unordered_set<Node, NodeHashFunction> clauseGiven{args[0].begin(), args[0].end()};
-
+    Trace("bool-pfcheck") << "expected clauseSet: " << clauseGiven << "\n" << pop;
     return clauseComputed == clauseGiven? args[0] : Node::null();
   }
   if (id == PfRule::SPLIT)
