@@ -257,10 +257,10 @@ class ProofEqEngine : public EagerProofGenerator
    * are any literals in exp that are not in noExplain.
    */
   void explainVecWithProof(TrustNodeKind& tnk,
-                                 std::vector<TNode>& assumps,
-                                const std::vector<Node>& exp,
-                                const std::vector<Node>& noExplain,
-                                LazyCDProof* curr);
+                           std::vector<TNode>& assumps,
+                           const std::vector<Node>& exp,
+                           const std::vector<Node>& noExplain,
+                           LazyCDProof* curr);
   /** Explain
    *
    * This adds to assumps the set of facts that were asserted to this

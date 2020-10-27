@@ -118,10 +118,10 @@ bool InferenceManager::processDtLemma(
     Node conc, Node exp, InferId id, LemmaProperty p, bool doCache)
 {
   conc = prepareDtInference(conc, exp, id);
-  if (conc.getKind()==EQUAL)
+  if (conc.getKind() == EQUAL)
   {
     // Also process it as a fact first. Some lemmas concluding equalities
-    // should be processed as both internal facts and as lemmas. 
+    // should be processed as both internal facts and as lemmas.
     // In particular, notice that lemmas that conclude non-datatype equalities
     // are not guaranteed to send the conclusion back to the datatypes solver.
     // We assert them also as facts both for performance reasons and so that

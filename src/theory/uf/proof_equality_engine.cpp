@@ -14,9 +14,9 @@
 
 #include "theory/uf/proof_equality_engine.h"
 
+#include "expr/lazy_proof_chain.h"
 #include "theory/rewriter.h"
 #include "theory/uf/proof_checker.h"
-#include "expr/lazy_proof_chain.h"
 
 using namespace CVC4::kind;
 
@@ -291,10 +291,10 @@ TrustNode ProofEqEngine::explain(Node conc)
 }
 
 void ProofEqEngine::explainVecWithProof(TrustNodeKind& tnk,
-                                std::vector<TNode>& assumps,
-                              const std::vector<Node>& exp,
-                              const std::vector<Node>& noExplain,
-                              LazyCDProof* curr)
+                                        std::vector<TNode>& assumps,
+                                        const std::vector<Node>& exp,
+                                        const std::vector<Node>& noExplain,
+                                        LazyCDProof* curr)
 {
   std::vector<Node> expn;
   for (const Node& e : exp)
