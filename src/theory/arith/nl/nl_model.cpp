@@ -159,7 +159,7 @@ Node NlModel::getRepresentative(Node n) const
   return d_model->getRepresentative(n);
 }
 
-Node NlModel::getValueInternal(Node n) const
+Node NlModel::getValueInternal(Node n)
 {
   if (n.isConst())
   {
@@ -171,7 +171,11 @@ Node NlModel::getValueInternal(Node n) const
     AlwaysAssert(it->second.isConst());
     return it->second;
   }
-  // It is unconstrained in the model, return 0.
+  // It is unconstrained in the model, return 0. We additionally add it
+  // to mapping from the linear solver. This ensures that if the nonlinear
+  // solver assumes that n = 0, then this assumption is recorded in the overall
+  // model.
+  d_arithVal[n] = d_zero;
   return d_zero;
 }
 
@@ -1280,7 +1284,12 @@ void NlModel::getModelValueRepair(
     std::map<Node, Node>& witnesses)
 {
   Trace("nl-model") << "NlModel::getModelValueRepair:" << std::endl;
-
+  // If we extended the model with entries x -> 0 for unconstrained values,
+  // we first update the map to the extended one.
+  if (d_arithVal.size()>arithModel.size())
+  {
+    arithModel = d_arithVal;
+  }
   // Record the approximations we used. This code calls the
   // recordApproximation method of the model, which overrides the model
   // values for variables that we solved for, using techniques specific to

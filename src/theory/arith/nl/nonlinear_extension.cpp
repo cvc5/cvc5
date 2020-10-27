@@ -544,7 +544,6 @@ bool NonlinearExtension::modelBasedRefinement()
         Node mgr = Rewriter::rewrite(mg);
         mgr = d_containing.getValuation().ensureLiteral(mgr);
         d_containing.getOutputChannel().requirePhase(mgr, true);
-        d_builtModel = true;
       }
       if (d_im.hasUsed())
       {
@@ -616,6 +615,11 @@ bool NonlinearExtension::modelBasedRefinement()
                         << std::endl;
         d_containing.getOutputChannel().setIncomplete();
       }
+    }
+    else
+    {
+      // we have built a model
+      d_builtModel = true;
     }
     d_im.clearWaitingLemmas();
   } while (needsRecheck);
