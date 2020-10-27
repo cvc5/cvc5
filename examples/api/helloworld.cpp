@@ -24,7 +24,6 @@ int main()
 {
   Solver slv;
   Term helloworld = slv.mkVar(slv.getBooleanSort(), "Hello World!");
-  slv.mkReal("ab");
   std::cout << helloworld << " is " << slv.checkEntailed(helloworld)
             << std::endl;
   return 0;

@@ -3090,10 +3090,20 @@ Term Solver::mkValHelper(T t) const
 
 Term Solver::mkRealFromStrHelper(const std::string& s) const
 {
-  CVC4::Rational r = s.find('/') != std::string::npos
-                         ? CVC4::Rational(s)
-                         : CVC4::Rational::fromDecimal(s);
-  return mkValHelper<CVC4::Rational>(r);
+  try
+  {
+    CVC4::Rational r = s.find('/') != std::string::npos
+                           ? CVC4::Rational(s)
+                           : CVC4::Rational::fromDecimal(s);
+    return mkValHelper<CVC4::Rational>(r);
+  }
+  catch (const std::invalid_argument& e)
+  {
+    std::stringstream message;
+    message << "Could not construct a number from string argument '" << s << "'"
+            << std::endl;
+    throw std::invalid_argument(message.str());
+  }
 }
 
 Term Solver::mkBVFromIntHelper(uint32_t size, uint64_t val) const
