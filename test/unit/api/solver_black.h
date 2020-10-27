@@ -749,7 +749,7 @@ void SolverBlack::testMkReal()
   TS_ASSERT_THROWS_NOTHING(d_solver->mkReal("1/23"));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkReal(".2"));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkReal("2."));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkReal("-2/-2"));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkReal("-2/2"));
   TS_ASSERT_THROWS(d_solver->mkInteger("12/3"), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkReal(""), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkReal("asdf"), CVC4ApiException&);
