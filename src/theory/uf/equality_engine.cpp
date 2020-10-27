@@ -1011,13 +1011,19 @@ void EqualityEngine::buildEqConclusion(EqualityNodeId id1,
   Kind k2 = d_nodes[id2].getKind();
   // only try to build if ids do not correspond to internal nodes. If they do,
   // only try to build build if full applications corresponding to the given ids
-  // have the same congruence n-ary non-APPLY_UF kind, since the internal nodes
+  // have the same congruence n-ary non-APPLY_* kind, since the internal nodes
   // may be full nodes.
   if ((d_isInternal[id1] || d_isInternal[id2])
-      && (k1 != k2 || k1 == kind::APPLY_UF || !ExprManager::isNAryKind(k1)))
+      && (k1 != k2 || k1 == kind::APPLY_UF || k1 == kind::APPLY_CONSTRUCTOR
+          || k1 == kind::APPLY_SELECTOR || k1 == kind::APPLY_TESTER
+          || !ExprManager::isNAryKind(k1)))
   {
     return;
   }
+  Debug("equality") << "buildEqConclusion: {" << id1 << "} " << d_nodes[id1]
+                    << "\n";
+  Debug("equality") << "buildEqConclusion: {" << id2 << "} " << d_nodes[id2]
+                    << "\n";
   Node eq[2];
   NodeManager* nm = NodeManager::currentNM();
   for (unsigned i = 0; i < 2; ++i)
@@ -1739,7 +1745,7 @@ void EqualityEngine::addTriggerPredicate(TNode predicate) {
     return addTriggerEquality(predicate);
   }
   Assert(d_congruenceKinds.tst(predicate.getKind()))
-      << "No point in adding non-congruence predicates";
+      << "No point in adding non-congruence predicates, kind is " << predicate.getKind();
 
   if (d_done) {
     return;
