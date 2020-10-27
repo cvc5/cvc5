@@ -51,6 +51,7 @@
 #include "options/main_options.h"
 #include "options/options.h"
 #include "options/smt_options.h"
+#include "proof/unsat_core.h"
 #include "smt/model.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_mode.h"
@@ -58,7 +59,6 @@
 #include "theory/theory_model.h"
 #include "util/random.h"
 #include "util/result.h"
-#include "proof/unsat_core.h"
 #include "util/utility.h"
 
 namespace CVC4 {
