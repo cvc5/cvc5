@@ -423,7 +423,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       options::preSkolemQuant.set(false);
     }
 
-
     if (options::bitvectorToBool())
     {
       if (options::bitvectorToBool.wasSetByUser())
@@ -766,50 +765,49 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
             logic.hasEverything()
                 ? options::DecisionMode::JUSTIFICATION
                 : (  // QF_BV
-                      (not logic.isQuantified() && logic.isPure(THEORY_BV)) ||
-                              // QF_AUFBV or QF_ABV or QF_UFBV
-                              (not logic.isQuantified()
-                               && (logic.isTheoryEnabled(THEORY_ARRAYS)
-                                   || logic.isTheoryEnabled(THEORY_UF))
-                               && logic.isTheoryEnabled(THEORY_BV))
-                              ||
-                              // QF_AUFLIA (and may be ends up enabling
-                              // QF_AUFLRA?)
-                              (not logic.isQuantified()
-                               && logic.isTheoryEnabled(THEORY_ARRAYS)
-                               && logic.isTheoryEnabled(THEORY_UF)
-                               && logic.isTheoryEnabled(THEORY_ARITH))
-                              ||
-                              // QF_LRA
-                              (not logic.isQuantified()
-                               && logic.isPure(THEORY_ARITH) && logic.isLinear()
-                               && !logic.isDifferenceLogic()
-                               && !logic.areIntegersUsed())
-                              ||
-                              // Quantifiers
-                              logic.isQuantified() ||
-                              // Strings
-                              logic.isTheoryEnabled(THEORY_STRINGS)
-                          ? options::DecisionMode::JUSTIFICATION
-                          : options::DecisionMode::INTERNAL);
+                    (not logic.isQuantified() && logic.isPure(THEORY_BV)) ||
+                            // QF_AUFBV or QF_ABV or QF_UFBV
+                            (not logic.isQuantified()
+                             && (logic.isTheoryEnabled(THEORY_ARRAYS)
+                                 || logic.isTheoryEnabled(THEORY_UF))
+                             && logic.isTheoryEnabled(THEORY_BV))
+                            ||
+                            // QF_AUFLIA (and may be ends up enabling
+                            // QF_AUFLRA?)
+                            (not logic.isQuantified()
+                             && logic.isTheoryEnabled(THEORY_ARRAYS)
+                             && logic.isTheoryEnabled(THEORY_UF)
+                             && logic.isTheoryEnabled(THEORY_ARITH))
+                            ||
+                            // QF_LRA
+                            (not logic.isQuantified()
+                             && logic.isPure(THEORY_ARITH) && logic.isLinear()
+                             && !logic.isDifferenceLogic()
+                             && !logic.areIntegersUsed())
+                            ||
+                            // Quantifiers
+                            logic.isQuantified() ||
+                            // Strings
+                            logic.isTheoryEnabled(THEORY_STRINGS)
+                        ? options::DecisionMode::JUSTIFICATION
+                        : options::DecisionMode::INTERNAL);
 
     bool stoponly =
         // ALL
         logic.hasEverything() || logic.isTheoryEnabled(THEORY_STRINGS)
             ? false
             : (  // QF_AUFLIA
-                  (not logic.isQuantified()
-                   && logic.isTheoryEnabled(THEORY_ARRAYS)
-                   && logic.isTheoryEnabled(THEORY_UF)
-                   && logic.isTheoryEnabled(THEORY_ARITH))
-                          ||
-                          // QF_LRA
-                          (not logic.isQuantified()
-                           && logic.isPure(THEORY_ARITH) && logic.isLinear()
-                           && !logic.isDifferenceLogic()
-                           && !logic.areIntegersUsed())
-                      ? true
-                      : false);
+                (not logic.isQuantified()
+                 && logic.isTheoryEnabled(THEORY_ARRAYS)
+                 && logic.isTheoryEnabled(THEORY_UF)
+                 && logic.isTheoryEnabled(THEORY_ARITH))
+                        ||
+                        // QF_LRA
+                        (not logic.isQuantified() && logic.isPure(THEORY_ARITH)
+                         && logic.isLinear() && !logic.isDifferenceLogic()
+                         && !logic.areIntegersUsed())
+                    ? true
+                    : false);
 
     Trace("smt") << "setting decision mode to " << decMode << std::endl;
     options::decisionMode.set(decMode);
@@ -1299,11 +1297,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // introduces new literals into the search. This includes quantifiers
     // (quantifier instantiation), and the lemma schemas used in non-linear
     // and sets. We also can't use it if models are enabled.
-    if (logic.isTheoryEnabled(THEORY_SETS)
-        || logic.isTheoryEnabled(THEORY_BAGS)
-        || logic.isQuantified()
-        || options::produceModels() || options::produceAssignments()
-        || options::checkModels()
+    if (logic.isTheoryEnabled(THEORY_SETS) || logic.isTheoryEnabled(THEORY_BAGS)
+        || logic.isQuantified() || options::produceModels()
+        || options::produceAssignments() || options::checkModels()
         || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()))
     {
       options::minisatUseElim.set(false);
@@ -1444,8 +1440,14 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     if (!options::nlCad() && !options::nlCad.wasSetByUser())
     {
       options::nlCad.set(true);
-      options::nlExt.set(false);
-      options::nlRlvMode.set(options::NlRlvMode::INTERLEAVE);
+      if (!options::nlExt.wasSetByUser())
+      {
+        options::nlExt.set(false);
+      }
+      if (!options::nlRlvMode.wasSetByUser())
+      {
+        options::nlRlvMode.set(options::NlRlvMode::INTERLEAVE);
+      }
     }
 #endif
   }
@@ -1455,7 +1457,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     if (options::nlCad.wasSetByUser())
     {
       std::stringstream ss;
-      ss << "Cannot use " << options::nlCad.getName() << " without configuring with --poly.";
+      ss << "Cannot use " << options::nlCad.getName()
+         << " without configuring with --poly.";
       throw OptionException(ss.str());
     }
     else
