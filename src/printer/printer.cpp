@@ -88,7 +88,7 @@ void Printer::toStream(std::ostream& out, const smt::Model& m) const
 void Printer::toStream(std::ostream& out, const UnsatCore& core) const
 {
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
-    toStreamCmdAssert(out, Node::fromExpr(*i));
+    toStreamCmdAssert(out, *i);
     out << std::endl;
   }
 }/* Printer::toStream(UnsatCore) */

@@ -5145,7 +5145,7 @@ std::vector<Term> Solver::getUnsatCore(void) const
    *   return std::vector<Term>(core.begin(), core.end());
    * here since constructor is private */
   std::vector<Term> res;
-  for (const Expr& e : core)
+  for (const Node& e : core)
   {
     res.push_back(Term(this, e));
   }

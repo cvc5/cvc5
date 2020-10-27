@@ -28,10 +28,8 @@
 namespace CVC4 {
 
 class SmtEngine;
-class UnsatCore;
 
 class UnsatCore {
-  friend std::ostream& operator<<(std::ostream&, const UnsatCore&);
 
   /** The SmtEngine we're associated with */
   SmtEngine* d_smt;
@@ -66,6 +64,9 @@ public:
   void toStream(std::ostream& out) const;
 
 };/* class UnsatCore */
+
+/** Print the unsat core to stream out */
+std::ostream& operator<<(std::ostream& out, const UnsatCore& core);
 
 }/* CVC4 namespace */
 

@@ -2342,7 +2342,7 @@ void GetUnsatCoreCommand::invoke(api::Solver* solver)
   try
   {
     d_result = UnsatCore(solver->getSmtEngine(),
-                         api::termVectorToExprs(solver->getUnsatCore()));
+                         api::termVectorToNodes(solver->getUnsatCore()));
 
     d_commandStatus = CommandSuccess::instance();
   }
