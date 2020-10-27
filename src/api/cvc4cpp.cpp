@@ -58,6 +58,7 @@
 #include "theory/theory_model.h"
 #include "util/random.h"
 #include "util/result.h"
+#include "proof/unsat_core.h"
 #include "util/utility.h"
 
 namespace CVC4 {

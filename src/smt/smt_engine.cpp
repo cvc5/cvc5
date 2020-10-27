@@ -69,6 +69,7 @@
 #include "util/hash.h"
 #include "util/random.h"
 #include "util/resource_manager.h"
+#include "proof/unsat_core.h"
 
 using namespace std;
 using namespace CVC4;

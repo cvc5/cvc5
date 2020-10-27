@@ -31,8 +31,6 @@
 #include "api/cvc4cpp.h"
 #include "expr/expr.h"
 #include "expr/type.h"
-#include "expr/variable_type_map.h"
-#include "proof/unsat_core.h"
 #include "util/result.h"
 #include "util/sexpr.h"
 
@@ -43,6 +41,7 @@ class Solver;
 class Term;
 }  // namespace api
 
+class UnsatCore;
 class SmtEngine;
 class Command;
 class CommandStatus;
