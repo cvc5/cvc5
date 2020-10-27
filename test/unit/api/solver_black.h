@@ -744,12 +744,13 @@ void SolverBlack::testMkPi() { TS_ASSERT_THROWS_NOTHING(d_solver->mkPi()); }
 
 void SolverBlack::testMkReal()
 {
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkInteger("123"));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkInteger("-123"));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkReal("1.23"));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkReal("1/23"));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkInteger("12/3"));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkReal(".2"));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkReal("2."));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkReal("-2/-2"));
+  TS_ASSERT_THROWS(d_solver->mkInteger("12/3"), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkReal(""), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkReal("asdf"), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkReal("1.2/3"), CVC4ApiException&);
@@ -761,7 +762,7 @@ void SolverBlack::testMkReal()
   TS_ASSERT_THROWS_NOTHING(d_solver->mkInteger(std::string("123")));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkReal(std::string("1.23")));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkReal(std::string("1/23")));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkInteger(std::string("12/3")));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkReal(std::string("12/3")));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkReal(std::string(".2")));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkReal(std::string("2.")));
   TS_ASSERT_THROWS(d_solver->mkInteger(std::string("2.")), CVC4ApiException&);

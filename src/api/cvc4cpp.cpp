@@ -34,6 +34,7 @@
 #include "api/cvc4cpp.h"
 
 #include <cstring>
+#include <regex>
 #include <sstream>
 
 #include "base/check.h"
@@ -3713,8 +3714,8 @@ Term Solver::mkPi() const
 Term Solver::mkInteger(const std::string& s) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_ARG_CHECK_EXPECTED(s.find('.') == std::string::npos, s)
-  << "integer without a decimal point";
+  CVC4_API_ARG_CHECK_EXPECTED(std::regex_match(s, std::regex("-?\\d+")), s)
+      << " an integer ";
   Term integer = mkRealFromStrHelper(s);
   CVC4_API_ARG_CHECK_EXPECTED(integer.getSort() == getIntegerSort(), s)
       << " an integer";
