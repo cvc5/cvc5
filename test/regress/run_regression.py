@@ -197,8 +197,8 @@ def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc4_binary,
     return (output.strip(), error.strip(), exit_status)
 
 
-def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
-                   cvc4_binary, benchmark_path, timeout):
+def run_regression(unsat_cores, proofs, dump, use_skip_return_code,
+                   skip_timeout, wrapper, cvc4_binary, benchmark_path, timeout):
     """Determines the expected output for a benchmark, runs CVC4 on it and then
     checks whether the output corresponds to the expected output. Optionally
     uses a wrapper `wrapper`, tests unsat cores (if unsat_cores is true),
@@ -381,7 +381,7 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
         output = re.sub(r'^[ \t]*', '', output, flags=re.MULTILINE)
         error = re.sub(r'^[ \t]*', '', error, flags=re.MULTILINE)
         if exit_status == STATUS_TIMEOUT:
-            exit_code = EXIT_SKIP if use_skip_return_code else EXIT_FAILURE
+            exit_code = EXIT_SKIP if skip_timeout else EXIT_FAILURE
             print('Timeout - Flags: {}'.format(command_line_args))
         elif output != expected_output:
             exit_code = EXIT_FAILURE
@@ -444,6 +444,7 @@ def main():
     parser.add_argument('--with-lfsc', action='store_true')
     parser.add_argument('--dump', action='store_true')
     parser.add_argument('--use-skip-return-code', action='store_true')
+    parser.add_argument('--skip-timeout', action='store_true')
     parser.add_argument('wrapper', nargs='*')
     parser.add_argument('cvc4_binary')
     parser.add_argument('benchmark')
@@ -454,10 +455,11 @@ def main():
     if os.environ.get('VALGRIND') == '1' and not wrapper:
         wrapper = ['libtool', '--mode=execute', 'valgrind']
 
-    timeout = float(os.getenv('TEST_TIMEOUT', 1200.0))
+    timeout = float(os.getenv('TEST_TIMEOUT', 600.0))
 
     return run_regression(args.enable_proof, args.with_lfsc, args.dump,
-                          args.use_skip_return_code, wrapper, cvc4_binary,
+                          args.use_skip_return_code, args.skip_timeout,
+                          wrapper, cvc4_binary,
                           args.benchmark, timeout)
 
 
