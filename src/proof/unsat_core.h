@@ -29,8 +29,8 @@ namespace CVC4 {
 
 class SmtEngine;
 
-class UnsatCore {
-
+class UnsatCore
+{
   /** The SmtEngine we're associated with */
   SmtEngine* d_smt;
 
@@ -41,7 +41,9 @@ class UnsatCore {
 public:
   UnsatCore() : d_smt(NULL) {}
 
-  UnsatCore(SmtEngine* smt, const std::vector<Node>& core) : d_smt(smt), d_core(core) {
+  UnsatCore(SmtEngine* smt, const std::vector<Node>& core)
+      : d_smt(smt), d_core(core)
+  {
     initMessage();
   }
 

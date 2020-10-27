@@ -68,8 +68,8 @@ class ProofManager {
   std::unique_ptr<CnfProof> d_cnfProof;
 
   // information that will need to be shared across proofs
-  CDNodeSet    d_inputCoreFormulas;
-  CDNodeSet    d_outputCoreFormulas;
+  CDNodeSet d_inputCoreFormulas;
+  CDNodeSet d_outputCoreFormulas;
 
   int d_nextId;
 
