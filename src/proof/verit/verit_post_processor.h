@@ -28,7 +28,7 @@ namespace CVC4 {
 namespace proof {
 
 /**
- * A callback class used by the veriT convereter for post-processing proof nodes
+ * A callback class used by the veriT converter for post-processing proof nodes
  * by replacing internal rules by the rules in the veriT calculus.
  */
 class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
@@ -95,4 +95,3 @@ class VeritProofPostprocess : public ProofNodeUpdater
 }  // namespace CVC4
 
 #endif
-
