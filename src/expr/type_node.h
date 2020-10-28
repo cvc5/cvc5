@@ -700,7 +700,7 @@ public:
   /** 
    * Get name, for uninterpreted sorts and uninterpreted sort constructors.
    */
-  const std::string& getName() const;
+  std::string getName() const;
 
   /**
    * Instantiate a sort constructor type. The type on which this method is

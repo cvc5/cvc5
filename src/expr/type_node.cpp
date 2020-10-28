@@ -475,7 +475,7 @@ uint64_t TypeNode::getSortConstructorArity() const
   return getAttribute(expr::SortArityAttr());
 }
 
-const std::string& getSortName() const
+std::string TypeNode::getName() const
 {
   Assert(isSort() || isSortConstructor());
   return getAttribute(expr::VarNameAttr());
