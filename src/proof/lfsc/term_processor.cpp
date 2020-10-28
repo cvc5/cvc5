@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of term processor
+ ** \brief Implementation of term processor utilities
  **/
 
 #include "proof/lfsc/term_processor.h"
@@ -53,7 +53,7 @@ Node TermProcessor::convert(Node n, bool toInternal)
   size_t cachei = toInternal ? 0 : 1;
   std::unordered_map<Node, Node, NodeHashFunction>& cache = d_cache[cachei];
   NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<Node, Node, TNodeHashFunction>::iterator it;
+  std::unordered_map<Node, Node, NodeHashFunction>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -118,8 +118,54 @@ TypeNode TermProcessor::toExternalType(TypeNode tn)
 
 TypeNode TermProcessor::convertType(TypeNode tn, bool toInternal)
 {
-  // TODO
-  return tn;
+  if (tn.isNull())
+  {
+    return tn;
+  }
+  Trace("term-process-debug")
+      << "TermProcessor::convertType: " << toInternal << " " << tn << std::endl;
+  size_t cachei = toInternal ? 0 : 1;
+  std::unordered_map<TypeNode, TypeNode, TypeNodeHashFunction>& cache = d_tcache[cachei];
+  std::unordered_map<TypeNode, TypeNode, TypeNodeHashFunction>::iterator it;
+  std::vector<TypeNode> visit;
+  TypeNode cur;
+  visit.push_back(tn);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = cache.find(cur);
+    if (it == cache.end())
+    {
+      cache[cur] = TypeNode::null();
+      visit.push_back(cur);
+      visit.insert(visit.end(), cur.begin(), cur.end());
+    }
+    else if (it->second.isNull())
+    {
+      // reconstruct using a node builder
+      NodeBuilder<> nb(cur.getKind());
+      if(cur.getMetaKind() == kind::metakind::PARAMETERIZED) {
+        // push the operator
+        nb << cur.getOperator();
+      }
+      for (TypeNode::const_iterator j = cur.begin(), iend = cur.end(); j != iend; ++j)
+      {
+        it = cache.find(*j);
+        Assert(it != cache.end());
+        Assert(!it->second.isNull());
+        nb << it->second;
+      }
+      // construct the type node
+      TypeNode ret = nb.constructTypeNode();
+      // run the callback for the current application
+      ret = d_cb->convertType(ret, toInternal);
+      cache[cur] = ret;
+    }
+  } while (!visit.empty());
+  Assert(cache.find(n) != cache.end());
+  Assert(!cache.find(tn)->second.isNull());
+  return cache[tn];
 }
 
 }  // namespace proof

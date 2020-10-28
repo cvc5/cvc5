@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file lfsc_term_process.h
+/*! \file term_processor.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief The module for printing Lfsc proof nodes
+ ** \brief Term processing utilities
  **/
 
 #include "cvc4_private.h"
@@ -26,19 +26,46 @@
 namespace CVC4 {
 namespace proof {
 
+/** 
+  * Generic term processor callback. This is a postrewrite callback that
+  * converts terms into an "internal" form.
+  */
 class TermProcessCallback
 {
  public:
   TermProcessCallback() {}
   virtual ~TermProcessCallback() {}
+  /** Convert to/from internal */
   Node convert(Node n, bool toInternal);
+  /** 
+   * Convert internal, where n is a term of the form:
+   *   (f i_1 ... i_m)
+   * where i_1, ..., i_m are "internal" terms. In particular, these terms
+   * have been returned by this class on a previous call to convertInternal.
+   */
   virtual Node convertInternal(Node n);
+  /**
+   * Intended to perform the inverse of the above transformation.
+   * Convert external, where n is a term of the form:
+   *   (f e_1 ... e_m)
+   * where e_1, ..., e_m are "external" terms. In particular, these terms
+   * have been returned by this class on a previous call to convertExternal.
+   *
+   * This method is optional.
+   */
   virtual Node convertExternal(Node n);
+  /** Same as above, for types. */
   TypeNode convertType(TypeNode n, bool toInternal);
+  /** Convert type to internal representation */
   virtual TypeNode convertInternalType(TypeNode n);
+  /** Convert type to external representation */
   virtual TypeNode convertExternalType(TypeNode n);
 };
 
+/**
+ * A term processor for terms and types. Implements a term traversal,
+ * calling the provided process callback at postrewrite (at post-traversal).
+ */
 class TermProcessor
 {
  public:
