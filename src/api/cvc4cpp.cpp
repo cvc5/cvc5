@@ -1073,7 +1073,7 @@ const CVC4::TypeNode& Sort::getTypeNode(void) const { return *d_type; }
 size_t Sort::getConstructorArity() const
 {
   CVC4_API_CHECK(isConstructor()) << "Not a constructor sort: " << (*this);
-  return d_type->getNumChildren()-1;
+  return d_type->getNumChildren() - 1;
 }
 
 std::vector<Sort> Sort::getConstructorDomainSorts() const
@@ -2318,11 +2318,11 @@ Term DatatypeConstructor::getSpecializedConstructorTerm(Sort retSort) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   
   NodeManager* nm = d_solver->getNodeManager();
-  Node ret = nm->mkNode(
-      kind::APPLY_TYPE_ASCRIPTION,
-      nm->mkConst(AscriptionType(
-          d_ctor->getSpecializedConstructorType(*retSort.d_type))),
-      d_ctor->getConstructor());
+  Node ret =
+      nm->mkNode(kind::APPLY_TYPE_ASCRIPTION,
+                 nm->mkConst(AscriptionType(
+                     d_ctor->getSpecializedConstructorType(*retSort.d_type))),
+                 d_ctor->getConstructor());
   (void)ret.getType(true); /* kick off type checking */
   // apply type ascription to the operator
   Term sctor = api::Term(d_solver, ret);
@@ -3152,7 +3152,7 @@ Term Solver::mkTermFromKind(Kind kind) const
       kind == PI || kind == REGEXP_EMPTY || kind == REGEXP_SIGMA, kind)
       << "PI or REGEXP_EMPTY or REGEXP_SIGMA";
 
-  NodeManager * nm = getNodeManager();
+  NodeManager* nm = getNodeManager();
   Node res;
   if (kind == REGEXP_EMPTY || kind == REGEXP_SIGMA)
   {
@@ -3399,8 +3399,8 @@ Sort Solver::mkArraySort(Sort indexSort, Sort elemSort) const
   CVC4_API_SOLVER_CHECK_SORT(indexSort);
   CVC4_API_SOLVER_CHECK_SORT(elemSort);
 
-  return Sort(this,
-              getNodeManager()->mkArrayType(*indexSort.d_type, *elemSort.d_type));
+  return Sort(
+      this, getNodeManager()->mkArrayType(*indexSort.d_type, *elemSort.d_type));
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -3473,8 +3473,8 @@ Sort Solver::mkFunctionSort(Sort domain, Sort codomain) const
       << "first-class sort as codomain sort for function sort";
   Assert(!codomain.isFunction()); /* A function sort is not first-class. */
 
-  return Sort(this,
-              getNodeManager()->mkFunctionType(*domain.d_type, *codomain.d_type));
+  return Sort(
+      this, getNodeManager()->mkFunctionType(*domain.d_type, *codomain.d_type));
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -3504,7 +3504,8 @@ Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts, Sort codomain) const
   Assert(!codomain.isFunction()); /* A function sort is not first-class. */
 
   std::vector<TypeNode> argTypes = sortVectorToTypeNodes(sorts);
-  return Sort(this, getNodeManager()->mkFunctionType(argTypes, *codomain.d_type));
+  return Sort(this,
+              getNodeManager()->mkFunctionType(argTypes, *codomain.d_type));
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -3512,8 +3513,9 @@ Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts, Sort codomain) const
 Sort Solver::mkParamSort(const std::string& symbol) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  return Sort(this,
-              getNodeManager()->mkSort(symbol, ExprManager::SORT_FLAG_PLACEHOLDER));
+  return Sort(
+      this,
+      getNodeManager()->mkSort(symbol, ExprManager::SORT_FLAG_PLACEHOLDER));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
@@ -3669,8 +3671,7 @@ Term Solver::mkPi() const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
 
   NodeManager* nm = getNodeManager();
-  Node res =
-      nm->mkNullaryOperator(nm->realType(), CVC4::kind::PI);
+  Node res = nm->mkNullaryOperator(nm->realType(), CVC4::kind::PI);
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
 
@@ -3771,7 +3772,8 @@ Term Solver::mkSepNil(Sort sort) const
   CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
   CVC4_API_SOLVER_CHECK_SORT(sort);
 
-  Node res = getNodeManager()->mkNullaryOperator(*sort.d_type, CVC4::kind::SEP_NIL);
+  Node res =
+      getNodeManager()->mkNullaryOperator(*sort.d_type, CVC4::kind::SEP_NIL);
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
 
@@ -3825,8 +3827,8 @@ Term Solver::mkUniverseSet(Sort sort) const
   CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
   CVC4_API_SOLVER_CHECK_SORT(sort);
 
-  Node res =
-      getNodeManager()->mkNullaryOperator(*sort.d_type, CVC4::kind::UNIVERSE_SET);
+  Node res = getNodeManager()->mkNullaryOperator(*sort.d_type,
+                                                 CVC4::kind::UNIVERSE_SET);
   // TODO(#2771): Reenable?
   // (void)res->getType(true); /* kick off type checking */
   return Term(this, res);
@@ -4030,7 +4032,7 @@ Term Solver::mkVar(Sort sort, const std::string& symbol) const
   CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
   CVC4_API_SOLVER_CHECK_SORT(sort);
 
-  NodeManager * nm = getNodeManager();
+  NodeManager* nm = getNodeManager();
   Node res = symbol.empty() ? nm->mkBoundVar(*sort.d_type)
                             : nm->mkBoundVar(symbol, *sort.d_type);
   (void)res.getType(true); /* kick off type checking */

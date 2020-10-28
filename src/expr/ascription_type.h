@@ -23,7 +23,7 @@
 #include <memory>
 
 namespace CVC4 {
-  
+
 class TypeNode;
 
 /**
@@ -42,7 +42,8 @@ class CVC4_PUBLIC AscriptionType {
   TypeNode getType() const;
   bool operator==(const AscriptionType& other) const;
   bool operator!=(const AscriptionType& other) const;
-private:
+
+ private:
   /** The type */
   std::unique_ptr<TypeNode> d_type;
 };/* class AscriptionType */

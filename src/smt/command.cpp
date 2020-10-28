@@ -2099,10 +2099,7 @@ void GetInterpolCommand::toStream(std::ostream& out,
                                   OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetInterpol(
-      out,
-      d_name,
-      d_conj.getNode(),
-      d_sygus_grammar->resolve().getTypeNode());
+      out, d_name, d_conj.getNode(), d_sygus_grammar->resolve().getTypeNode());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2188,10 +2185,7 @@ void GetAbductCommand::toStream(std::ostream& out,
                                 OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetAbduct(
-      out,
-      d_name,
-      d_conj.getNode(),
-      d_sygus_grammar->resolve().getTypeNode());
+      out, d_name, d_conj.getNode(), d_sygus_grammar->resolve().getTypeNode());
 }
 
 /* -------------------------------------------------------------------------- */

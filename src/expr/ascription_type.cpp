@@ -22,9 +22,13 @@ namespace CVC4 {
 
 AscriptionType::AscriptionType(TypeNode t) : d_type(new TypeNode(t)) {}
 
-AscriptionType::AscriptionType(const AscriptionType& at) : d_type(new TypeNode(at.getType())) {}
+AscriptionType::AscriptionType(const AscriptionType& at)
+    : d_type(new TypeNode(at.getType()))
+{
+}
 
-AscriptionType& AscriptionType::operator=(const AscriptionType& at) {
+AscriptionType& AscriptionType::operator=(const AscriptionType& at)
+{
   (*d_type) = at.getType();
   return *this;
 }
@@ -40,14 +44,15 @@ bool AscriptionType::operator!=(const AscriptionType& other) const
   return d_type != other.d_type;
 }
 
-size_t AscriptionTypeHashFunction::operator()(const AscriptionType& at) const {
-    return TypeNodeHashFunction()(at.getType());
-  }
+size_t AscriptionTypeHashFunction::operator()(const AscriptionType& at) const
+{
+  return TypeNodeHashFunction()(at.getType());
+}
 
-std::ostream& operator<<(std::ostream& out, AscriptionType at) {
+std::ostream& operator<<(std::ostream& out, AscriptionType at)
+{
   out << at.getType();
   return out;
 }
 
-}/* CVC4 namespace */
-
+}  // namespace CVC4
