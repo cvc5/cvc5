@@ -29,15 +29,29 @@ namespace arith {
 enum class Rewrite : uint32_t
 {
   NONE,
+  // constant evaluation
   CONST_EVAL,
+  // (mod x c) replaced by total (mod x c) if c != 0
   MOD_TOTAL_BY_CONST,
+  // (div x c) replaced by total (div x c) if c != 0
   DIV_TOTAL_BY_CONST,
+  // Total versions choose arbitrary values for 0 denominator:
+  // (div x 0) ---> 0 
+  // (mod x 0) ---> 0
   DIV_MOD_BY_ZERO,
+      // (mod x 1) --> 0
   MOD_BY_ONE,
+    // (div x 1) --> x
   DIV_BY_ONE,
+  // (div x (- c)) ---> (- (div x c))
+  // (mod x (- c)) ---> (mod x c)
   DIV_MOD_PULL_NEG_DEN,
+  // (mod (mod x c) c) --> (mod x c)
   MOD_OVER_MOD,
+  // (mod (op ... (mod x c) ...) c) ---> (mod (op ... x ...) c) where
+  // op is one of { NONLINEAR_MULT, MULT, PLUS }.
   MOD_CHILD_MOD,
+      // (div (mod x c) c) --> 0
   DIV_OVER_MOD
 };
 
