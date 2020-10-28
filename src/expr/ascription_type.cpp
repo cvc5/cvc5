@@ -20,8 +20,17 @@
 
 namespace CVC4 {
 
-AscriptionType::AscriptionType(TypeNode t) : d_type(t) {}
-TypeNode AscriptionType::getType() const { return d_type; }
+AscriptionType::AscriptionType(TypeNode t) : d_type(new TypeNode(t)) {}
+
+AscriptionType::AscriptionType(const AscriptionType& at) : d_type(new TypeNode(at.getType())) {}
+
+AscriptionType& AscriptionType::operator=(const AscriptionType& at) {
+  (*d_type) = at.getType();
+  return *this;
+}
+
+AscriptionType::~AscriptionType() {}
+TypeNode AscriptionType::getType() const { return *d_type.get(); }
 bool AscriptionType::operator==(const AscriptionType& other) const
 {
   return d_type == other.d_type;

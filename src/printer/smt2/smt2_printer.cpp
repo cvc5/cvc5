@@ -398,8 +398,8 @@ void Smt2Printer::toStream(std::ostream& out,
   Node type_asc_arg;
   if (n.getKind() == kind::APPLY_TYPE_ASCRIPTION)
   {
-    force_nt = TypeNode::fromType(
-        n.getOperator().getConst<AscriptionType>().getType());
+    force_nt = 
+        n.getOperator().getConst<AscriptionType>().getType();
     type_asc_arg = n[0];
   }
   else if (!force_nt.isNull() && n.getType() != force_nt)

@@ -696,6 +696,11 @@ public:
 
   /** Get sort constructor arity */
   uint64_t getSortConstructorArity() const;
+  
+  /** 
+   * Get name, for uninterpreted sorts and uninterpreted sort constructors.
+   */
+  const std::string& getName() const;
 
   /**
    * Instantiate a sort constructor type. The type on which this method is

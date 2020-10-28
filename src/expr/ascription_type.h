@@ -34,13 +34,17 @@ class TypeNode;
  * coerce a Type into the expression tree.)
  */
 class CVC4_PUBLIC AscriptionType {
-  TypeNode d_type;
-
  public:
   AscriptionType(TypeNode t);
+  ~AscriptionType();
+  AscriptionType(const AscriptionType& other);
+  AscriptionType& operator=(const AscriptionType& other);
   TypeNode getType() const;
   bool operator==(const AscriptionType& other) const;
   bool operator!=(const AscriptionType& other) const;
+private:
+  /** The type */
+  std::unique_ptr<TypeNode> d_type;
 };/* class AscriptionType */
 
 /**
@@ -51,7 +55,7 @@ struct CVC4_PUBLIC AscriptionTypeHashFunction {
 };/* struct AscriptionTypeHashFunction */
 
 /** An output routine for AscriptionTypes */
-std::ostream& operator<<(std::ostream& out, AscriptionType at);
+std::ostream& operator<<(std::ostream& out, AscriptionType at) CVC4_PUBLIC;
 
 }/* CVC4 namespace */
 

@@ -475,6 +475,12 @@ uint64_t TypeNode::getSortConstructorArity() const
   return getAttribute(expr::SortArityAttr());
 }
 
+const std::string& getSortName() const
+{
+  Assert(isSort() || isSortConstructor());
+  return getAttribute(expr::VarNameAttr());
+}
+
 TypeNode TypeNode::instantiateSortConstructor(
     const std::vector<TypeNode>& params) const
 {

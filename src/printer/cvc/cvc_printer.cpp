@@ -409,7 +409,7 @@ void CvcPrinter::toStream(
     case kind::APPLY_TYPE_ASCRIPTION: {
         toStream(out, n[0], depth, types, false);
         out << "::";
-        TypeNode t = TypeNode::fromType(n.getOperator().getConst<AscriptionType>().getType());
+        TypeNode t = n.getOperator().getConst<AscriptionType>().getType();
         out << (t.isFunctionLike() ? t.getRangeType() : t);
       }
       return;
