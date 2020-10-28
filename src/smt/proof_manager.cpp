@@ -35,7 +35,7 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
       d_pfpp(new ProofPostproccess(d_pnm.get(), smte, d_pppg.get())),
       d_lpfpp(new proof::LeanProofPostprocess(d_pnm.get())),
       d_vpfppcb(d_pnm.get()),
-      d_vpfpp(new proof::VeritProofPostprocess(d_pnm.get(),d_vpfppcb)),
+      d_vpfpp(new proof::VeritProofPostprocess(d_pnm.get(), d_vpfppcb)),
       d_finalProof(nullptr)
 {
   // add rules to eliminate here

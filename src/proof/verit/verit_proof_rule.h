@@ -12,35 +12,35 @@
  ** \brief Enumeration of veriT proof rules
  **/
 
-#include <memory>
-#include "cvc4_private.h"
 #include <iostream>
+#include <memory>
+
+#include "cvc4_private.h"
 
 #ifndef CVC4__PROOF__VERIT_PROOF_RULE_H
 #define CVC4__PROOF__VERIT_PROOF_RULE_H
-
 
 namespace CVC4 {
 
 namespace proof {
 
 enum class VeritRule : uint32_t
-{ 
+{
   //================================================= Special Rules: Commands
   //======================== Anchor and Assume
-  //These rules should be printed as commands
+  // These rules should be printed as commands
   // ======== Anchor
   // Children: (P:F)
   // Arguments:
   // --------------
   // Conclusion: F
   //
-  //Each subproof in veriT begins with an anchor command. The outermost application of 
-  //anchor will not be printed.
+  // Each subproof in veriT begins with an anchor command. The outermost
+  // application of anchor will not be printed.
   ANCHOR,
   ASSUME,
-  UNDEFINED, //TODO: delete later
- 
+  UNDEFINED,  // TODO: delete later
+
   INPUT,
   TRUE,
   FALSE,
@@ -124,7 +124,7 @@ enum class VeritRule : uint32_t
   NARY_ELIM,
   TMP_AC_SIMP,
   TMP_BFUN_ELIM,
-  TMP_SKOLEMIZE, //SHOULD NOT BE USED, SO DELETE IT AT SOME POINT?
+  TMP_SKOLEMIZE,  // SHOULD NOT BE USED, SO DELETE IT AT SOME POINT?
   TEMP_QUANTIFIER_CNF,
   SUBPROOF,
   BIND,
@@ -134,8 +134,8 @@ enum class VeritRule : uint32_t
   SKO_FORALL
 };
 
-} // namespace proof
+}  // namespace proof
 
-} // namespace CVC4
+}  // namespace CVC4
 
 #endif /* CVC4__PROOF__VERIT_PROOF_RULE_H */

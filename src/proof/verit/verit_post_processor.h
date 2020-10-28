@@ -41,15 +41,16 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
    * static information to be used by successive calls to update.
    */
   void initializeUpdate();
-  bool shouldUpdate(std::shared_ptr<ProofNode> pn, 	
-		    bool& continueUpdate) override;
+  bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                    bool& continueUpdate) override;
   /** Update the proof rule application. */
   bool update(Node res,
               PfRule id,
               const std::vector<Node>& children,
               const std::vector<Node>& args,
               CDProof* cdp,
-	      bool& continueUpdate) override;
+              bool& continueUpdate) override;
+
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
@@ -63,31 +64,31 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
    * @param args The arguments of the application
    * @param cdp The proof to add to
    * @return True if the step could be added, or null if not.
-  */
+   */
   bool addVeritStep(Node res,
-		    VeritRule rule,
-		    const std::vector<Node>& children,
-		    const std::vector<Node>& args,
-		    CDProof& cdp);
+                    VeritRule rule,
+                    const std::vector<Node>& children,
+                    const std::vector<Node>& args,
+                    CDProof& cdp);
 };
 
 /**
  * The proof postprocessor module. This postprocesses a proof node into one
  * using the rules from the veriT calculus.
  */
-class VeritProofPostprocess : public ProofNodeUpdater 
+class VeritProofPostprocess : public ProofNodeUpdater
 {
  public:
-  VeritProofPostprocess(ProofNodeManager* pnm, ProofNodeUpdaterCallback &cb);
+  VeritProofPostprocess(ProofNodeManager* pnm, ProofNodeUpdaterCallback& cb);
   ~VeritProofPostprocess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
 
  private:
   /** The post process callback */
-  //std::unique_ptr<VeritProofPostprocessCallback> dd_cb;
+  // std::unique_ptr<VeritProofPostprocessCallback> dd_cb;
   /** The proof node manager */
-  //ProofNodeManager* dd_pnm;
+  // ProofNodeManager* dd_pnm;
 };
 
 }  // namespace proof
