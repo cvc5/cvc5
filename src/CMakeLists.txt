@@ -138,6 +138,12 @@ libcvc4_add_sources(
   proof/lean/lean_post_processor.cpp
   proof/lean/lean_post_processor.h
   proof/lean/lean_printer.h
+  proof/lfsc/lfsc_post_processor.cpp
+  proof/lfsc/lfsc_post_processor.h
+  proof/lfsc/lfsc_printer.cpp
+  proof/lfsc/lfsc_printer.h
+  proof/lfsc/lfsc_term_process.cpp
+  proof/lfsc/lfsc_term_process.h
   proof/sat_proof.h
   proof/sat_proof_implementation.h
   proof/unsat_core.cpp
