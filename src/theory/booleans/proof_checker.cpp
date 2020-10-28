@@ -215,7 +215,8 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     }
     if (Trace.isOn("bool-pfcheck"))
     {
-      Trace("bool-pfcheck") << "Original elimination multiset for lhs clause:\n";
+      Trace("bool-pfcheck")
+          << "Original elimination multiset for lhs clause:\n";
       for (const std::pair<const Node&, unsigned>& pair : lhsElim)
       {
         Trace("bool-pfcheck")
@@ -391,8 +392,9 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
-    std::unordered_set<Node, NodeHashFunction> clauseGiven{args[0].begin(), args[0].end()};
-    return clauseComputed == clauseGiven? args[0] : Node::null();
+    std::unordered_set<Node, NodeHashFunction> clauseGiven{args[0].begin(),
+                                                           args[0].end()};
+    return clauseComputed == clauseGiven ? args[0] : Node::null();
   }
   if (id == PfRule::SPLIT)
   {

@@ -48,11 +48,7 @@ bool LfscProofPostprocessCallback::update(Node res,
   return true;
 }
 
-void LfscProofPostprocess::process(std::shared_ptr<ProofNode> pf)
-{
-  
-}
+void LfscProofPostprocess::process(std::shared_ptr<ProofNode> pf) {}
 
 }  // namespace proof
 }  // namespace CVC4
-

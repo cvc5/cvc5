@@ -54,6 +54,7 @@ class LfscTermProcess
    * Inverse of the above translation
    */
   static TypeNode toExternalType(TypeNode tn);
+
  private:
   /** convert */
   static Node convert(Node n, bool toInternal);

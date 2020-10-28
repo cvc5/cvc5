@@ -40,8 +40,8 @@ Node LfscTermProcess::convert(Node n, bool toInternal)
   {
     return n;
   }
-  Trace("rdtp-debug") << "LfscTermProcess::convert: " << toInternal << " "
-                      << n << std::endl;
+  Trace("rdtp-debug") << "LfscTermProcess::convert: " << toInternal << " " << n
+                      << std::endl;
   LfscInternalAttribute ria;
   LfscExternalAttribute rea;
   NodeManager* nm = NodeManager::currentNM();
@@ -196,7 +196,7 @@ Node LfscTermProcess::computeExternal(Node n)
   return n;
 }
 TypeNode LfscTermProcess::toInternalType(TypeNode tn)
-{ 
+{
   return convertType(tn, true);
 }
 TypeNode LfscTermProcess::toExternalType(TypeNode tn)

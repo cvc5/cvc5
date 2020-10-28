@@ -64,6 +64,7 @@ class LfscProofPostprocess
   LfscProofPostprocess(ProofNodeManager* pnm);
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
+
  private:
   /** The post process callback */
   std::unique_ptr<LfscProofPostprocessCallback> d_cb;
