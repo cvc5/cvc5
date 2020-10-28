@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file veriT_post_processor.h
+/*! \file verit_post_processor.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Hanna Lachnitt
@@ -21,7 +21,7 @@
 #include <unordered_set>
 
 #include "expr/proof_node_updater.h"
-#include "proof/veriT/veriT_proof_rule.h"
+#include "proof/verit/verit_proof_rule.h"
 
 namespace CVC4 {
 
@@ -31,11 +31,11 @@ namespace proof {
  * A callback class used by the veriT convereter for post-processing proof nodes
  * by replacing internal rules by the rules in the veriT calculus.
  */
-class VeriTProofPostprocessCallback : public ProofNodeUpdaterCallback
+class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
 {
  public:
-  VeriTProofPostprocessCallback(ProofNodeManager* pnm);
-  ~VeriTProofPostprocessCallback() {}
+  VeritProofPostprocessCallback(ProofNodeManager* pnm);
+  ~VeritProofPostprocessCallback() {}
   /**
    * Initialize, called once for each new ProofNode to process. This initializes
    * static information to be used by successive calls to update.
@@ -64,8 +64,8 @@ class VeriTProofPostprocessCallback : public ProofNodeUpdaterCallback
    * @param cdp The proof to add to
    * @return True if the step could be added, or null if not.
   */
-  bool addVeriTStep(Node res,
-		    VeriTRule rule,
+  bool addVeritStep(Node res,
+		    VeritRule rule,
 		    const std::vector<Node>& children,
 		    const std::vector<Node>& args,
 		    CDProof& cdp);
@@ -75,17 +75,17 @@ class VeriTProofPostprocessCallback : public ProofNodeUpdaterCallback
  * The proof postprocessor module. This postprocesses a proof node into one
  * using the rules from the veriT calculus.
  */
-class VeriTProofPostprocess : public ProofNodeUpdater 
+class VeritProofPostprocess : public ProofNodeUpdater 
 {
  public:
-  VeriTProofPostprocess(ProofNodeManager* pnm, ProofNodeUpdaterCallback &cb);
-  ~VeriTProofPostprocess();
+  VeritProofPostprocess(ProofNodeManager* pnm, ProofNodeUpdaterCallback &cb);
+  ~VeritProofPostprocess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
 
  private:
   /** The post process callback */
-  //std::unique_ptr<VeriTProofPostprocessCallback> dd_cb;
+  //std::unique_ptr<VeritProofPostprocessCallback> dd_cb;
   /** The proof node manager */
   //ProofNodeManager* dd_pnm;
 };

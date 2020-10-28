@@ -109,7 +109,7 @@ header = "options/smt_options.h"
   name       = "lean"
   help       = "Output Lean proof"
 [[option.mode.VERIT]]
-  name       = "veriT"
+  name       = "verit"
   help       = "Output veriT proof"
 
 

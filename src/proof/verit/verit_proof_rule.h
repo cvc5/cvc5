@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file veriT_proof_rule.h
+/*! \file verit_proof_rule.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Hanna Lachnitt
@@ -24,7 +24,7 @@ namespace CVC4 {
 
 namespace proof {
 
-enum class VeriTRule : uint32_t
+enum class VeritRule : uint32_t
 { 
   //================================================= Special Rules: Commands
   //======================== Anchor and Assume
