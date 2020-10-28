@@ -38,6 +38,8 @@ enum class LfscRule : uint32_t
 class LfscPrinter
 {
  public:
+   LfscPrinter();
+   ~LfscPrinter(){}
   /**
    * Print the full proof of assertions => false by pn.
    */
@@ -70,6 +72,13 @@ class LfscPrinter
                      Node n,
                      const std::map<Node, uint32_t>& letMap);
   /**
+   * print let list, prints definitions of letList on out in order based on the
+   * identifiers in letMap, and closing parentheses on cparen.
+   */
+  void printLetList(std::ostream& out, std::ostream& cparen, 
+                    const std::vector<Node>& letList,
+                    const std::map<Node, uint32_t>& letMap);
+  /**
    * Print type node to stream in the expected format of LFSC.
    */
   void printInternal(std::ostream& out, TypeNode n);
@@ -86,8 +95,6 @@ class LfscPrinter
     Node d_node;
     const ProofNode* d_pnode;
   };
-  /** A hole */
-  PExpr d_hole;
   /**
    * Print proof internal, after term lets and proofs for assumptions have
    * been computed.
@@ -110,60 +117,6 @@ class LfscPrinter
   void computeProofArgs(const ProofNode* pn, std::vector<PExpr>& pargs);
   //------------------------------ end printing proofs
 
-  //------------------- letification of terms
-  /** stores nodes in map that require letification */
-  static void computeLet(Node n,
-                         std::vector<Node>& letList,
-                         std::map<Node, uint32_t>& letMap,
-                         uint32_t& counter);
-  /**
-   * Compute the count of sub nodes in pn, store in pcount. Additionally,
-   * store each node in the domain of pcount in an order in visitList
-   * such that visitList[i] does not contain sub visitList[j] for j>i.
-   */
-  static void computeCounts(Node n,
-                            std::vector<Node>& visitList,
-                            std::map<Node, uint32_t>& count);
-  /**
-   * Convert a count to a let list
-   */
-  static void convertCountToLet(const std::vector<Node>& visitList,
-                                const std::map<Node, uint32_t>& count,
-                                std::vector<Node>& letList,
-                                std::map<Node, uint32_t>& pletMap,
-                                uint32_t& counter);
-  //------------------- end letification of terms
-
-  //------------------- letification of proofs
-  /**
-   * Stores proofs in map that require letification, mapping them to a unique
-   * identifier, allocated in pcounter. For store each proof node in the domain
-   * of pletMap in the list pletList such that pletList[i] does not contain sub
-   * proof pletList[j] for j>i.
-   */
-  static void computeProofLet(const ProofNode* pn,
-                              std::vector<const ProofNode*>& pletList,
-                              std::map<const ProofNode*, uint32_t>& pletMap,
-                              uint32_t& pcounter);
-  /**
-   * Compute the count of sub proof nodes in pn, store in pcount. Additionally,
-   * store each proof node in the domain of pcount in an order in visitList
-   * such that visitList[i] does not contain sub proof visitList[j] for j>i.
-   */
-  static void computeProofCounts(const ProofNode* pn,
-                                 std::vector<const ProofNode*>& visitList,
-                                 std::map<const ProofNode*, uint32_t>& pcount);
-  /**
-   * Convert a count to a let list
-   */
-  static void convertProofCountToLet(
-      const std::vector<const ProofNode*>& visitList,
-      const std::map<const ProofNode*, uint32_t>& pcount,
-      std::vector<const ProofNode*>& pletList,
-      std::map<const ProofNode*, uint32_t>& pletMap,
-      uint32_t& pcounter);
-  //------------------- end letification of proofs
-
   //------------------- atomic printing
   void printRule(std::ostream& out, const ProofNode*);
   void printId(std::ostream& out, uint32_t id);
@@ -171,8 +124,12 @@ class LfscPrinter
   void printAssumeId(std::ostream& out, uint32_t id);
   //------------------- end atomic printing
 
-  /** The null term, which is used as a hole */
-  Node d_null;
+  /** The LFSC term processor callback */
+  LfscTermProcessCallback d_lcb;
+  /** The term processor */
+  TermProcessor d_tproc;
+  /** A hole */
+  PExpr d_hole;
 };
 
 }  // namespace proof

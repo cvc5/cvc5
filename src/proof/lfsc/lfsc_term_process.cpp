@@ -14,113 +14,18 @@
 
 #include "proof/lfsc/lfsc_term_process.h"
 
-#include "expr/attribute.h"
 
 using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace proof {
 
-struct LfscInternalAttributeId
+LfscTermProcessCallback::LfscTermProcessCallback() : TermProcessCallback()
 {
-};
-typedef expr::Attribute<LfscInternalAttributeId, Node> LfscInternalAttribute;
-
-struct LfscExternalAttributeId
-{
-};
-typedef expr::Attribute<LfscExternalAttributeId, Node> LfscExternalAttribute;
-
-Node LfscTermProcess::toInternal(Node n) { return convert(n, true); }
-Node LfscTermProcess::toExternal(Node n) { return convert(n, false); }
-
-Node LfscTermProcess::convert(Node n, bool toInternal)
-{
-  if (n.isNull())
-  {
-    return n;
-  }
-  Trace("rdtp-debug") << "LfscTermProcess::convert: " << toInternal << " " << n
-                      << std::endl;
-  LfscInternalAttribute ria;
-  LfscExternalAttribute rea;
-  NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(n);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    it = visited.find(cur);
-
-    if (it == visited.end())
-    {
-      if (toInternal && cur.hasAttribute(ria))
-      {
-        visited[cur] = cur.getAttribute(ria);
-      }
-      else if (!toInternal && cur.hasAttribute(rea))
-      {
-        visited[cur] = cur.getAttribute(rea);
-      }
-      else
-      {
-        visited[cur] = Node::null();
-        visit.push_back(cur);
-        if (cur.getMetaKind() == metakind::PARAMETERIZED)
-        {
-          visit.push_back(cur.getOperator());
-        }
-        visit.insert(visit.end(), cur.begin(), cur.end());
-      }
-    }
-    else if (it->second.isNull())
-    {
-      Node ret = cur;
-      bool childChanged = false;
-      std::vector<Node> children;
-      if (cur.getMetaKind() == metakind::PARAMETERIZED)
-      {
-        it = visited.find(cur.getOperator());
-        Assert(it != visited.end());
-        Assert(!it->second.isNull());
-        childChanged = childChanged || cur.getOperator() != it->second;
-        children.push_back(it->second);
-      }
-      for (const Node& cn : cur)
-      {
-        it = visited.find(cn);
-        Assert(it != visited.end());
-        Assert(!it->second.isNull());
-        childChanged = childChanged || cn != it->second;
-        children.push_back(it->second);
-      }
-      if (childChanged)
-      {
-        ret = nm->mkNode(cur.getKind(), children);
-      }
-      if (toInternal)
-      {
-        ret = computeInternal(ret);
-        cur.setAttribute(ria, ret);
-      }
-      else
-      {
-        ret = computeExternal(ret);
-        cur.setAttribute(rea, ret);
-      }
-      visited[cur] = ret;
-    }
-  } while (!visit.empty());
-  Assert(visited.find(n) != visited.end());
-  Assert(!visited.find(n)->second.isNull());
-  return visited[n];
+  
 }
 
-Node LfscTermProcess::computeInternal(Node n)
+Node LfscTermProcessCallback::convertInternal(Node n)
 {
   Kind ck = n.getKind();
   if (ck == CONST_STRING)
@@ -163,7 +68,7 @@ Node LfscTermProcess::computeInternal(Node n)
   return n;
 }
 
-Node LfscTermProcess::computeExternal(Node n)
+Node LfscTermProcessCallback::convertExternal(Node n)
 {
   Kind ck = n.getKind();
   if (ExprManager::isNAryKind(ck))
@@ -195,26 +100,13 @@ Node LfscTermProcess::computeExternal(Node n)
   }
   return n;
 }
-TypeNode LfscTermProcess::toInternalType(TypeNode tn)
-{
-  return convertType(tn, true);
-}
-TypeNode LfscTermProcess::toExternalType(TypeNode tn)
-{
-  return convertType(tn, false);
-}
 
-TypeNode LfscTermProcess::convertType(TypeNode tn, bool toInternal)
+TypeNode LfscTermProcessCallback::convertInternalType(TypeNode tn)
 {
   // TODO
   return tn;
 }
-TypeNode LfscTermProcess::computeInternalType(TypeNode tn)
-{
-  // TODO
-  return tn;
-}
-TypeNode LfscTermProcess::computeExternalType(TypeNode tn)
+TypeNode LfscTermProcessCallback::convertExternalType(TypeNode tn)
 {
   // TODO
   return tn;

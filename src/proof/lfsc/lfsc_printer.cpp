@@ -15,10 +15,13 @@
 #include "proof/lfsc/lfsc_printer.h"
 
 #include "expr/node_algorithm.h"
+#include "proof/lfsc/letify.h"
 
 namespace CVC4 {
 namespace proof {
 
+ LfscPrinter::LfscPrinter() : d_lcb(), d_tproc(&d_lcb){}
+ 
 void LfscPrinter::print(std::ostream& out,
                         const std::vector<Node>& assertions,
                         const ProofNode* pn)
@@ -33,7 +36,7 @@ void LfscPrinter::print(std::ostream& out,
   for (const Node& a : assertions)
   {
     expr::getSymbols(a, syms, visited);
-    iasserts.push_back(LfscTermProcess::toInternal(a));
+    iasserts.push_back(d_tproc.toInternal(a));
   }
   // [1a] user declared sorts
   std::unordered_set<TypeNode, TypeNodeHashFunction> sts;
@@ -54,16 +57,25 @@ void LfscPrinter::print(std::ostream& out,
     out << ")";
   }
 
-  // TODO: compute the term lets
-  uint32_t counter = 0;
-  std::map<Node, uint32_t> letMap;
-
-  // the assumption identifier mapping
-  std::map<Node, uint32_t> passumeMap;
-
-  // [2] print the assertions, with letification
+  // [2] print the check command and term lets
   out << "(check" << std::endl;
   cparen << ")";
+  // compute the term lets
+  std::vector<Node> visitList;
+  std::map<Node, uint32_t> count;
+  for (const Node& ia : iasserts)
+  {
+    Letify::updateCounts(ia, visitList, count);
+  }
+  uint32_t counter = 0;
+  std::vector<Node> letList;
+  std::map<Node, uint32_t> letMap;
+  Letify::convertCountToLet(visitList, count, letList, letMap, counter);
+  printLetList(out, cparen, letList, letMap);
+
+  // [3] print the assertions, with letification
+  // the assumption identifier mapping
+  std::map<Node, uint32_t> passumeMap;
   for (size_t i = 0, nasserts = iasserts.size(); i < nasserts; i++)
   {
     Node ia = iasserts[i];
@@ -73,15 +85,15 @@ void LfscPrinter::print(std::ostream& out,
     printInternal(out, ia, letMap);
     out << std::endl;
     cparen << ")";
-    // mark as an assumption
+    // remember the assumption name
     passumeMap[ia] = i;
   }
 
-  // [3] print the annotation
+  // [4] print the annotation
   out << "(: (holds false)" << std::endl;
   cparen << ")";
 
-  // [4] print the proof body
+  // [5] print the proof body
   printProofLetify(out, pn, letMap, passumeMap);
 
   out << cparen.str();
@@ -89,7 +101,7 @@ void LfscPrinter::print(std::ostream& out,
 
 void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
 {
-  // TODO: compute term lets
+  // TODO: compute term lets?
   std::map<Node, uint32_t> letMap;
   // empty passume map
   std::map<Node, uint32_t> passumeMap;
@@ -108,9 +120,9 @@ void LfscPrinter::printProofLetify(std::ostream& out,
   uint32_t pcounter = 0;
   std::vector<const ProofNode*> pletList;
   std::map<const ProofNode*, uint32_t> pletMap;
-  computeProofLet(pn, pletList, pletMap, pcounter);
+  Letify::computeProofLet(pn, pletList, pletMap, pcounter);
   // define the let proofs
-  out << "; Let-ified proofs:" << std::endl;
+  out << "; Let proofs:" << std::endl;
   std::map<const ProofNode*, uint32_t>::iterator itp;
   for (const ProofNode* p : pletList)
   {
@@ -154,7 +166,7 @@ void LfscPrinter::printProofInternal(
     curn = visit.back().d_node;
     cur = visit.back().d_pnode;
     visit.pop_back();
-    // proofs
+    // case 1: printing a proof
     if (cur != nullptr)
     {
       pit = processedChildren.find(cur);
@@ -190,13 +202,14 @@ void LfscPrinter::printProofInternal(
         out << ")" << std::endl;
       }
     }
+    // case 2: printing a node
     else if (!curn.isNull())
     {
       printInternal(out, curn, letMap);
     }
+    // case 3: a hole
     else
     {
-      // a hole
       out << "_ ";
     }
   } while (!visit.empty());
@@ -210,7 +223,7 @@ void LfscPrinter::computeProofArgs(const ProofNode* pn,
 
 void LfscPrinter::print(std::ostream& out, Node n)
 {
-  Node ni = LfscTermProcess::toInternal(n);
+  Node ni = d_tproc.toInternal(n);
   printLetify(out, ni);
 }
 
@@ -222,16 +235,10 @@ void LfscPrinter::printLetify(std::ostream& out, Node n)
   std::vector<Node> letList;
   std::map<Node, uint32_t> letMap;
   uint32_t counter = 0;
-  computeLet(n, letList, letMap, counter);
+  Letify::computeLet(n, letList, letMap, counter);
 
   // [1] print the letification
-  std::map<Node, uint32_t>::iterator it;
-  for (size_t i = 0, nlets = letList.size(); i < nlets; i++)
-  {
-    Node nl = letList[i];
-    it = letMap.find(nl);
-    Assert(it != letMap.end());
-  }
+  printLetList(out, cparen, letList, letMap);
 
   // [2] print the body
   printInternal(out, n, letMap);
@@ -239,149 +246,40 @@ void LfscPrinter::printLetify(std::ostream& out, Node n)
   out << cparen.str();
 }
 
+void LfscPrinter::printLetList(std::ostream& out, std::ostream& cparen, 
+                  const std::vector<Node>& letList,
+                  const std::map<Node, uint32_t>& letMap)
+{
+  std::map<Node, uint32_t>::const_iterator it;
+  for (size_t i = 0, nlets = letList.size(); i < nlets; i++)
+  {
+    Node nl = letList[i];
+    it = letMap.find(nl);
+    Assert(it != letMap.end());
+    out << "(@ ";
+    printId(out, it->second);
+    out << " ";
+    printInternal(out, nl, letMap);
+    out << std::endl;
+    cparen << ")";
+  }
+}
+
 void LfscPrinter::printInternal(std::ostream& out,
                                 Node n,
                                 const std::map<Node, uint32_t>& letMap)
 {
+  // TODO: substitution + dag thresh 0 print?
 }
 
-void LfscPrinter::print(std::ostream& out, TypeNode n) {}
-
-void LfscPrinter::printInternal(std::ostream& out, TypeNode n) {}
-
-void LfscPrinter::computeLet(Node n,
-                             std::vector<Node>& letList,
-                             std::map<Node, uint32_t>& letMap,
-                             uint32_t& counter)
-{
-  Assert(letList.empty() && letMap.empty());
-  std::vector<Node> visitList;
-  std::map<Node, uint32_t> count;
-  computeCounts(n, visitList, count);
-  // Now populate the letList and letMap
-  convertCountToLet(visitList, count, letList, letMap, counter);
+void LfscPrinter::print(std::ostream& out, TypeNode tn) {
+  TypeNode tni = d_tproc.toInternalType(tn);
+  printInternal(out, tni);
 }
 
-void LfscPrinter::computeCounts(Node n,
-                                std::vector<Node>& visitList,
-                                std::map<Node, uint32_t>& count)
-{
-  std::map<Node, uint32_t>::iterator it;
-  std::vector<Node> visit;
-  TNode cur;
-  visit.push_back(n);
-  do
-  {
-    cur = visit.back();
-    it = count.find(cur);
-    if (it == count.end())
-    {
-      count[cur] = 0;
-      visitList.push_back(cur);
-      visit.insert(visit.end(), cur.begin(), cur.end());
-    }
-    else
-    {
-      count[cur]++;
-      visit.pop_back();
-    }
-  } while (!visit.empty());
-}
-
-void LfscPrinter::convertCountToLet(const std::vector<Node>& visitList,
-                                    const std::map<Node, uint32_t>& count,
-                                    std::vector<Node>& letList,
-                                    std::map<Node, uint32_t>& letMap,
-                                    uint32_t& counter)
-{
-  Assert(letList.empty() && letMap.empty());
-  // Assign ids for those whose count is > 1, traverse in reverse order
-  // so that deeper proofs are assigned lower identifiers
-  std::map<Node, uint32_t>::const_iterator itc;
-  for (std::vector<Node>::const_reverse_iterator it = visitList.rbegin();
-       it != visitList.rend();
-       ++it)
-  {
-    itc = count.find(*it);
-    Assert(itc != count.end());
-    if (itc->second > 1)
-    {
-      letList.push_back(*it);
-      letMap[*it] = counter;
-      counter++;
-    }
-  }
-}
-
-void LfscPrinter::computeProofLet(const ProofNode* pn,
-                                  std::vector<const ProofNode*>& pletList,
-                                  std::map<const ProofNode*, uint32_t>& pletMap,
-                                  uint32_t& pcounter)
-{
-  Assert(pletList.empty() && pletMap.empty());
-  std::vector<const ProofNode*> visitList;
-  std::map<const ProofNode*, uint32_t> pcount;
-  computeProofCounts(pn, visitList, pcount);
-  // Now populate the pletList and pletMap
-  convertProofCountToLet(visitList, pcount, pletList, pletMap, pcounter);
-}
-
-void LfscPrinter::computeProofCounts(
-    const ProofNode* pn,
-    std::vector<const ProofNode*>& visitList,
-    std::map<const ProofNode*, uint32_t>& pcount)
-{
-  std::map<const ProofNode*, uint32_t>::iterator it;
-  std::vector<const ProofNode*> visit;
-  const ProofNode* cur;
-  visit.push_back(pn);
-  do
-  {
-    cur = visit.back();
-    it = pcount.find(cur);
-    if (it == pcount.end())
-    {
-      pcount[cur] = 0;
-      visitList.push_back(cur);
-      const std::vector<std::shared_ptr<ProofNode>>& pc = cur->getChildren();
-      for (const std::shared_ptr<ProofNode>& cp : pc)
-      {
-        visit.push_back(cp.get());
-      }
-    }
-    else
-    {
-      pcount[cur]++;
-      visit.pop_back();
-    }
-  } while (!visit.empty());
-}
-
-void LfscPrinter::convertProofCountToLet(
-    const std::vector<const ProofNode*>& visitList,
-    const std::map<const ProofNode*, uint32_t>& pcount,
-    std::vector<const ProofNode*>& pletList,
-    std::map<const ProofNode*, uint32_t>& pletMap,
-    uint32_t& pcounter)
-{
-  Assert(pletList.empty() && pletMap.empty());
-  // Assign ids for those whose count is > 1, traverse in reverse order
-  // so that deeper proofs are assigned lower identifiers
-  std::map<const ProofNode*, uint32_t>::const_iterator itc;
-  for (std::vector<const ProofNode*>::const_reverse_iterator itp =
-           visitList.rbegin();
-       itp != visitList.rend();
-       ++itp)
-  {
-    itc = pcount.find(*itp);
-    Assert(itc != pcount.end());
-    if (itc->second > 1)
-    {
-      pletList.push_back(*itp);
-      pletMap[*itp] = pcounter;
-      pcounter++;
-    }
-  }
+void LfscPrinter::printInternal(std::ostream& out, TypeNode tn) {
+  // types are always printed as-is
+  out << tn;
 }
 
 void LfscPrinter::printRule(std::ostream& out, const ProofNode* pn)
