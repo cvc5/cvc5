@@ -260,16 +260,20 @@ class NonlinearExtension
    * transcendental functions.
    */
   TranscendentalSolver d_trSlv;
-  ExtState d_extState;
-  /** The nonlinear extension object
-   *
-   * This is the subsolver responsible for running the procedure for
-   * constraints involving nonlinear mulitplication, Cimatti et al., TACAS 2017.
+  /**
+   * Holds common lookup data for the checks implemented in the "nl-ext"
+   * solvers (from Cimatti et al., TACAS 2017).
    */
+  ExtState d_extState;
+  /** Solver for factoring lemmas. */
   FactoringCheck d_factoringSlv;
+  /** Solver for lemmas about monomial bounds. */
   MonomialBoundsCheck d_monomialBoundsSlv;
+  /** Solver for lemmas about monomials. */
   MonomialCheck d_monomialSlv;
+  /** Solver for lemmas that split multiplication at zero. */
   SplitZeroCheck d_splitZeroSlv;
+  /** Solver for tangent plane lemmas. */
   TangentPlaneCheck d_tangentPlaneSlv;
   /** The CAD-based solver */
   CadSolver d_cadSlv;

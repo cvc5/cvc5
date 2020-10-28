@@ -27,6 +27,8 @@ namespace nl {
 FactoringCheck::FactoringCheck(InferenceManager& im, NlModel& model)
     : d_im(im), d_model(model)
 {
+  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
+  d_one = NodeManager::currentNM()->mkConst(Rational(1));
 }
 
 void FactoringCheck::check(const std::vector<Node>& asserts,

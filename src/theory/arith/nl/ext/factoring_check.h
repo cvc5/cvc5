@@ -54,8 +54,8 @@ class FactoringCheck
   /** maps nodes to their factor skolems */
   std::map<Node, Node> d_factor_skolem;
 
-  Node d_zero = NodeManager::currentNM()->mkConst(Rational(0));
-  Node d_one = NodeManager::currentNM()->mkConst(Rational(1));
+  Node d_zero;
+  Node d_one;
 
   Node getFactorSkolem(Node n);
 };
