@@ -34,12 +34,12 @@ class LfscTermProcessCallback : public TermProcessCallback
   ~LfscTermProcessCallback(){}
   /** convert to internal */
   Node convertInternal(Node n) override;
-  /** convert to external */
-  Node convertExternal(Node n) override;
   /** convert to internal */
   TypeNode convertInternalType(TypeNode tn) override;
-  /** convert to external */
-  TypeNode convertExternalType(TypeNode tn) override;
+private:
+  //--------------------------- terms with different syntax than smt2
+  /** Empty string */
+  //--------------------------- terms with different syntax than smt2
 };
 
 }  // namespace proof

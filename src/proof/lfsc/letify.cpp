@@ -17,6 +17,66 @@
 namespace CVC4 {
 namespace proof {
 
+Node Letify::convert(Node n, const std::map<Node, uint32_t>& letMap, const std::string& prefix)
+{
+  std::map<Node, uint32_t>::const_iterator itl;
+  NodeManager * nm = NodeManager::currentNM();
+  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
+  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do 
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+
+    if (it == visited.end()) 
+    {
+      itl = letMap.find(n);
+      if (itl!=letMap.end())
+      {
+        // make the let variable
+        std::stringstream ss;
+        ss << prefix << itl->second;
+        visited[cur] = nm->mkBoundVar(ss.str(),n.getType());
+      }
+      else
+      {
+        visited[cur] = Node::null();
+        visit.push_back(cur);
+        visit.insert(visit.end(),cur.begin(),cur.end());
+      }
+    } 
+    else if (it->second.isNull()) 
+    {
+      Node ret = cur;
+      bool childChanged = false;
+      std::vector<Node> children;
+      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED) {
+        children.push_back(cur.getOperator());
+      }
+      for (const Node& cn : cur )
+      {
+        it = visited.find(cn);
+        Assert(it != visited.end());
+        Assert(!it->second.isNull());
+        childChanged = childChanged || cn != it->second;
+        children.push_back(it->second);
+      }
+      if (childChanged) 
+      {
+        ret = nm->mkNode(cur.getKind(), children);
+      }
+      visited[cur] = ret;
+    }
+  } while (!visit.empty());
+  Assert(visited.find(n) != visited.end());
+  Assert(!visited.find(n)->second.isNull());
+  return visited[n];
+}
+  
 void Letify::computeLet(Node n,
                              std::vector<Node>& letList,
                              std::map<Node, uint32_t>& letMap,

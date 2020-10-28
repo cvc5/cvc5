@@ -29,6 +29,11 @@ namespace proof {
 class Letify
 {
  public:
+  /** 
+   * Convert n to a form that is printed assuming definitions in letMap
+   * with the given prefix.
+   */
+  static Node convert(Node n, const std::map<Node, uint32_t>& letMap, const std::string& prefix);
   //------------------- letification of terms
   /** stores nodes in map that require letification */
   static void computeLet(Node n,

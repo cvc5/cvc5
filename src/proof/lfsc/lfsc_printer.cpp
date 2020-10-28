@@ -269,7 +269,8 @@ void LfscPrinter::printInternal(std::ostream& out,
                                 Node n,
                                 const std::map<Node, uint32_t>& letMap)
 {
-  // TODO: substitution + dag thresh 0 print?
+  // TODO: dag thresh 0 print?
+  out << Letify::convert(n, letMap, "@t");
 }
 
 void LfscPrinter::print(std::ostream& out, TypeNode tn) {

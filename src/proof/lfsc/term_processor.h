@@ -32,11 +32,11 @@ public:
   TermProcessCallback(){}
   virtual ~TermProcessCallback(){}
   Node convert(Node n, bool toInternal);
-  virtual Node convertInternal(Node n) = 0;
-  virtual Node convertExternal(Node n) = 0;
+  virtual Node convertInternal(Node n);
+  virtual Node convertExternal(Node n);
   TypeNode convertType(TypeNode n, bool toInternal);
-  virtual TypeNode convertInternalType(TypeNode n) = 0;
-  virtual TypeNode convertExternalType(TypeNode n) = 0;
+  virtual TypeNode convertInternalType(TypeNode n);
+  virtual TypeNode convertExternalType(TypeNode n);
 };
 
 class TermProcessor

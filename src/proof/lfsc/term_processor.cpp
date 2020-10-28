@@ -25,9 +25,28 @@ Node TermProcessCallback::convert(Node n, bool toInternal)
 {
   return toInternal ? convertInternal(n) : convertExternal(n);
 }
+
+Node TermProcessCallback::convertInternal(Node n)
+{
+  return n;
+}
+
+Node TermProcessCallback::convertExternal(Node n)
+{
+  return n;
+}
+
 TypeNode TermProcessCallback::convertType(TypeNode tn, bool toInternal)
 {
   return toInternal ? convertInternalType(tn) : convertExternalType(tn);
+}
+TypeNode TermProcessCallback::convertInternalType(TypeNode tn)
+{
+  return tn;
+}
+TypeNode TermProcessCallback::convertExternalType(TypeNode tn)
+{
+  return tn;
 }
 
 TermProcessor::TermProcessor(TermProcessCallback * cb) : d_cb(cb)

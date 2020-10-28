@@ -68,49 +68,12 @@ Node LfscTermProcessCallback::convertInternal(Node n)
   return n;
 }
 
-Node LfscTermProcessCallback::convertExternal(Node n)
-{
-  Kind ck = n.getKind();
-  if (ExprManager::isNAryKind(ck))
-  {
-    Assert(n.getNumChildren() == 2);
-    if (n[1].getKind() == ck)
-    {
-      // flatten to n-ary
-      std::vector<Node> children;
-      children.push_back(n[0]);
-      children.insert(children.end(), n[1].begin(), n[1].end());
-      NodeManager* nm = NodeManager::currentNM();
-      return nm->mkNode(ck, children);
-    }
-    else if (n[1].getKind() == CONST_STRING && n[0].getKind() == CONST_STRING)
-    {
-      // flatten (non-empty) constants
-      const std::vector<unsigned>& v0 = n[0].getConst<String>().getVec();
-      const std::vector<unsigned>& v1 = n[1].getConst<String>().getVec();
-      if (v0.size() == 1 && !v1.empty())
-      {
-        std::vector<unsigned> vres;
-        vres.push_back(v0[0]);
-        vres.insert(vres.end(), v1.begin(), v1.end());
-        NodeManager* nm = NodeManager::currentNM();
-        return nm->mkConst(String(vres));
-      }
-    }
-  }
-  return n;
-}
-
 TypeNode LfscTermProcessCallback::convertInternalType(TypeNode tn)
 {
   // TODO
   return tn;
 }
-TypeNode LfscTermProcessCallback::convertExternalType(TypeNode tn)
-{
-  // TODO
-  return tn;
-}
+
 
 }  // namespace proof
 }  // namespace CVC4
