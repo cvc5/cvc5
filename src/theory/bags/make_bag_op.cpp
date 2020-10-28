@@ -12,10 +12,11 @@
  ** \brief a class for MK_BAG operator
  **/
 
+#include "make_bag_op.h"
+
 #include <iostream>
 
 #include "expr/type_node.h"
-#include "make_bag_op.h"
 
 namespace CVC4 {
 

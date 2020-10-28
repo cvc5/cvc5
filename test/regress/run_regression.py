@@ -81,12 +81,11 @@ def run_process(args, cwd, timeout, s_input=None):
     output and the exit code of the process. If the process times out, the
     output and the error output are empty and the exit code is 124."""
 
-    proc = subprocess.Popen(
-        args,
-        cwd=cwd,
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE)
+    proc = subprocess.Popen(args,
+                            cwd=cwd,
+                            stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE)
 
     out = ''
     err = ''
@@ -131,26 +130,27 @@ def get_cvc4_features(cvc4_binary):
 def logic_supported_with_proofs(logic):
     assert logic is None or isinstance(logic, str)
     return logic in [
-            #single theories
-            "QF_BV",
-            "QF_UF",
-            "QF_A",
-            "QF_LRA",
-            #two theories
-            "QF_UFBV",
-            "QF_UFLRA",
-            "QF_AUF",
-            "QF_ALRA",
-            "QF_ABV",
-            "QF_BVLRA"
-            #three theories
-            "QF_AUFBV",
-            "QF_ABVLRA",
-            "QF_UFBVLRA",
-            "QF_AUFLRA",
-            #four theories
-            "QF_AUFBVLRA"
-            ]
+        #single theories
+        "QF_BV",
+        "QF_UF",
+        "QF_A",
+        "QF_LRA",
+        #two theories
+        "QF_UFBV",
+        "QF_UFLRA",
+        "QF_AUF",
+        "QF_ALRA",
+        "QF_ABV",
+        "QF_BVLRA"
+        #three theories
+        "QF_AUFBV",
+        "QF_ABVLRA",
+        "QF_UFBVLRA",
+        "QF_AUFLRA",
+        #four theories
+        "QF_AUFBVLRA"
+    ]
+
 
 def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc4_binary,
                   command_line, benchmark_dir, benchmark_filename, timeout):
@@ -185,11 +185,11 @@ def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc4_binary,
 
     # If a scrubber command has been specified then apply it to the output.
     if scrubber:
-        output, _, _ = run_process(
-            shlex.split(scrubber), benchmark_dir, timeout, output)
+        output, _, _ = run_process(shlex.split(scrubber), benchmark_dir,
+                                   timeout, output)
     if error_scrubber:
-        error, _, _ = run_process(
-            shlex.split(error_scrubber), benchmark_dir, timeout, error)
+        error, _, _ = run_process(shlex.split(error_scrubber), benchmark_dir,
+                                  timeout, error)
 
     # Popen in Python 3 returns a bytes object instead of a string for
     # stdout/stderr.
@@ -200,8 +200,9 @@ def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc4_binary,
     return (output.strip(), error.strip(), exit_status)
 
 
-def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
-                   cvc4_binary, benchmark_path, timeout):
+def run_regression(unsat_cores, proofs, dump, use_skip_return_code,
+                   skip_timeout, wrapper, cvc4_binary, benchmark_path,
+                   timeout):
     """Determines the expected output for a benchmark, runs CVC4 on it and then
     checks whether the output corresponds to the expected output. Optionally
     uses a wrapper `wrapper`, tests unsat cores (if unsat_cores is true),
@@ -237,7 +238,8 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
         pass
     elif benchmark_ext == '.p':
         status_regex = r'% Status\s*:\s*(Theorem|Unsatisfiable|CounterSatisfiable|Satisfiable)'
-        status_to_output = lambda s: '% SZS status {} for {}'.format(s, benchmark_filename)
+        status_to_output = lambda s: '% SZS status {} for {}'.format(
+            s, benchmark_filename)
     elif benchmark_ext == '.sy':
         comment_char = ';'
         # Do not use proofs/unsat-cores with .sy files
@@ -387,13 +389,15 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
     print('# Starting')
     exit_code = EXIT_OK
     for command_line_args in command_line_args_configs:
-        output, error, exit_status = run_benchmark(
-            dump, wrapper, scrubber, error_scrubber, cvc4_binary,
-            command_line_args, benchmark_dir, benchmark_basename, timeout)
+        output, error, exit_status = run_benchmark(dump, wrapper, scrubber,
+                                                   error_scrubber, cvc4_binary,
+                                                   command_line_args,
+                                                   benchmark_dir,
+                                                   benchmark_basename, timeout)
         output = re.sub(r'^[ \t]*', '', output, flags=re.MULTILINE)
         error = re.sub(r'^[ \t]*', '', error, flags=re.MULTILINE)
         if exit_status == STATUS_TIMEOUT:
-            exit_code = EXIT_SKIP if use_skip_return_code else EXIT_FAILURE
+            exit_code = EXIT_SKIP if skip_timeout else EXIT_FAILURE
             print('Timeout - Flags: {}'.format(command_line_args))
         elif output != expected_output:
             exit_code = EXIT_FAILURE
@@ -456,6 +460,7 @@ def main():
     parser.add_argument('--with-lfsc', action='store_true')
     parser.add_argument('--dump', action='store_true')
     parser.add_argument('--use-skip-return-code', action='store_true')
+    parser.add_argument('--skip-timeout', action='store_true')
     parser.add_argument('wrapper', nargs='*')
     parser.add_argument('cvc4_binary')
     parser.add_argument('benchmark')
@@ -466,11 +471,11 @@ def main():
     if os.environ.get('VALGRIND') == '1' and not wrapper:
         wrapper = ['libtool', '--mode=execute', 'valgrind']
 
-    timeout = float(os.getenv('TEST_TIMEOUT', 1200.0))
+    timeout = float(os.getenv('TEST_TIMEOUT', 600.0))
 
     return run_regression(args.enable_proof, args.with_lfsc, args.dump,
-                          args.use_skip_return_code, wrapper, cvc4_binary,
-                          args.benchmark, timeout)
+                          args.use_skip_return_code, args.skip_timeout,
+                          wrapper, cvc4_binary, args.benchmark, timeout)
 
 
 if __name__ == "__main__":
