@@ -154,8 +154,7 @@ class NlModel
    */
   bool checkModel(const std::vector<Node>& assertions,
                   unsigned d,
-                  std::vector<NlLemma>& lemmas,
-                  std::vector<Node>& gs);
+                  std::vector<NlLemma>& lemmas);
   /**
    * Set that we have used an approximation during this check. This flag is
    * reset on a call to resetCheck. It is set when we use reasoning that

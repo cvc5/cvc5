@@ -219,8 +219,7 @@ int NlModel::compareValue(Node i, Node j, bool isAbsolute) const
 
 bool NlModel::checkModel(const std::vector<Node>& assertions,
                          unsigned d,
-                         std::vector<NlLemma>& lemmas,
-                         std::vector<Node>& gs)
+                         std::vector<NlLemma>& lemmas)
 {
   Trace("nl-ext-cm-debug") << "  solve for equalities..." << std::endl;
   for (const Node& atom : assertions)
@@ -316,26 +315,6 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
     return false;
   }
   Trace("nl-ext-cm") << "...simple check succeeded!" << std::endl;
-
-  // must assert and re-check if produce models is true
-  if (options::produceModels())
-  {
-    NodeManager* nm = NodeManager::currentNM();
-    // model guard whose semantics is "the model we constructed holds"
-    Node mg = nm->mkSkolem("model", nm->booleanType());
-    gs.push_back(mg);
-    // assert the constructed model as assertions
-    for (const std::pair<const Node, std::pair<Node, Node>> cb :
-         d_check_model_bounds)
-    {
-      Node l = cb.second.first;
-      Node u = cb.second.second;
-      Node v = cb.first;
-      Node pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
-      pred = nm->mkNode(OR, mg.negate(), pred);
-      lemmas.emplace_back(pred);
-    }
-  }
   return true;
 }
 
