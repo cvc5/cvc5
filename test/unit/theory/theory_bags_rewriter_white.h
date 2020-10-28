@@ -161,6 +161,20 @@ class BagsTypeRuleWhite : public CxxTest::TestSuite
               && response2.d_node == d_nm->mkConst(Rational(n)));
   }
 
+  void testDuplicateRemoval()
+  {
+    Node x = d_nm->mkSkolem("x", d_nm->stringType());
+    Node bag = d_nm->mkBag(d_nm->stringType(), x, d_nm->mkConst(Rational(5)));
+
+    // (duplicate_removal (mkBag x n)) = (mkBag x 1)
+    Node n = d_nm->mkNode(DUPLICATE_REMOVAL, bag);
+    RewriteResponse response = d_rewriter->postRewrite(n);
+    Node noDuplicate =
+        d_nm->mkBag(d_nm->stringType(), x, d_nm->mkConst(Rational(1)));
+    TS_ASSERT(response.d_node == noDuplicate
+              && response.d_status == REWRITE_AGAIN_FULL);
+  }
+
   void testUnionMax()
   {
     int n = 3;

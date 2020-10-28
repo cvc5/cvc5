@@ -74,6 +74,15 @@ class BagsTypeRuleWhite : public CxxTest::TestSuite
                      TypeCheckingExceptionPrivate&);
   }
 
+  void testDuplicateRemovalOperator()
+  {
+    vector<Node> elements = getNStrings(1);
+    Node bag = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(10)));
+    TS_ASSERT_THROWS_NOTHING(d_nm->mkNode(DUPLICATE_REMOVAL, bag));
+    TS_ASSERT(d_nm->mkNode(DUPLICATE_REMOVAL, bag).getType() == bag.getType());
+  }
+
   void testMkBagOperator()
   {
     vector<Node> elements = getNStrings(1);
@@ -101,16 +110,10 @@ class BagsTypeRuleWhite : public CxxTest::TestSuite
   void testToSetOperator()
   {
     vector<Node> elements = getNStrings(1);
-    Node bag = d_nm->mkBag(d_nm->stringType(), elements[0], d_nm->mkConst(Rational(10)));
+    Node bag = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(10)));
     TS_ASSERT_THROWS_NOTHING(d_nm->mkNode(BAG_TO_SET, bag));
     TS_ASSERT(d_nm->mkNode(BAG_TO_SET, bag).getType().isSet());
-    std::cout<<"Rational(4, 4).isIntegral() " << d_nm->mkConst(Rational(4,4)).getType()<<  std::endl;
-    std::cout<<"Rational(8, 4).isIntegral() " << d_nm->mkConst(Rational(8,4)).getType()<<  std::endl;
-    std::cout<<"Rational(1, 4).isIntegral() " << d_nm->mkConst(Rational(1,4)).getType()<<  std::endl;
-
-    std::cout<<"Rational(4, 4).isIntegral() " << d_nm->mkNode(TO_REAL, d_nm->mkConst(Rational(4,4))).getType()<<  std::endl;
-    std::cout<<"Rational(8, 4).isIntegral() " << d_nm->mkNode(TO_REAL, d_nm->mkConst(Rational(8,4))).getType()<<  std::endl;
-    std::cout<<"Rational(1, 4).isIntegral() " << d_nm->mkNode(TO_REAL, d_nm->mkConst(Rational(1,4))).getType()<<  std::endl;
   }
 
  private:
