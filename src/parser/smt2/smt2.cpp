@@ -482,50 +482,6 @@ void Smt2::resetAssertions() {
   pushScope(true);
 }
 
-Smt2::SynthFunFactory::SynthFunFactory(
-    Smt2* smt2,
-    const std::string& id,
-    bool isInv,
-    api::Sort range,
-    std::vector<std::pair<std::string, api::Sort>>& sortedVarNames)
-    : d_smt2(smt2), d_id(id), d_sort(range), d_isInv(isInv)
-{
-  if (range.isNull())
-  {
-    smt2->parseError("Must supply return type for synth-fun.");
-  }
-  if (range.isFunction())
-  {
-    smt2->parseError("Cannot use synth-fun with function return type.");
-  }
-
-  std::vector<api::Sort> varSorts;
-  for (const std::pair<std::string, api::Sort>& p : sortedVarNames)
-  {
-    varSorts.push_back(p.second);
-  }
-
-  api::Sort funSort = varSorts.empty()
-                          ? range
-                          : d_smt2->d_solver->mkFunctionSort(varSorts, range);
-
-  // we do not allow overloading for synth fun
-  d_fun = d_smt2->bindBoundVar(id, funSort);
-
-  Debug("parser-sygus") << "Define synth fun : " << id << std::endl;
-
-  d_smt2->pushScope(true);
-  d_sygusVars = d_smt2->bindBoundVars(sortedVarNames);
-}
-
-std::unique_ptr<Command> Smt2::SynthFunFactory::mkCommand(api::Grammar* grammar)
-{
-  Debug("parser-sygus") << "...read synth fun " << d_id << std::endl;
-  d_smt2->popScope();
-  return std::unique_ptr<Command>(
-      new SynthFunCommand(d_id, d_fun, d_sygusVars, d_sort, d_isInv, grammar));
-}
-
 std::unique_ptr<Command> Smt2::invConstraint(
     const std::vector<std::string>& names)
 {
@@ -695,9 +651,10 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::INTERSECTION_MIN, "intersection_min");
     addOperator(api::DIFFERENCE_SUBTRACT, "difference_subtract");
     addOperator(api::DIFFERENCE_REMOVE, "difference_remove");
-    addOperator(api::BAG_IS_INCLUDED, "bag.is_included");
+    addOperator(api::SUBBAG, "bag.is_included");
     addOperator(api::BAG_COUNT, "bag.count");
-    addOperator(api::MK_BAG, "mkBag");
+    addOperator(api::DUPLICATE_REMOVAL, "duplicate_removal");
+    addOperator(api::MK_BAG, "bag");
     addOperator(api::BAG_CARD, "bag.card");
     addOperator(api::BAG_CHOOSE, "bag.choose");
     addOperator(api::BAG_IS_SINGLETON, "bag.is_singleton");

@@ -1091,7 +1091,6 @@ Result SmtEngine::assertFormula(const Node& formula, bool inUnsatCore)
 void SmtEngine::declareSygusVar(const std::string& id, Node var, TypeNode type)
 {
   SmtScope smts(this);
-  finishInit();
   d_sygusSolver->declareSygusVar(id, var, type);
   if (Dump.isOn("raw-benchmark"))
   {
@@ -1108,7 +1107,6 @@ void SmtEngine::declareSynthFun(const std::string& id,
                                 const std::vector<Node>& vars)
 {
   SmtScope smts(this);
-  finishInit();
   d_state->doPendingPops();
   d_sygusSolver->declareSynthFun(id, func, sygusType, isInv, vars);
 

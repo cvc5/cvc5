@@ -136,6 +136,40 @@ class BagsNormalFormWhite : public CxxTest::TestSuite
     TS_ASSERT(output4 == NormalForm::evaluate(input4));
   }
 
+  void testDuplicateRemoval()
+  {
+    // Examples
+    // --------
+    //  - (duplicate_removal (emptybag String)) = (emptybag String)
+    //  - (duplicate_removal (mkBag "x" 4)) = (emptybag "x" 1)
+    //  - (duplicate_removal (disjoint_union (mkBag "x" 3) (mkBag "y" 5)) =
+    //     (disjoint_union (mkBag "x" 1) (mkBag "y" 1)
+
+    Node emptybag =
+        d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
+    Node input1 = d_nm->mkNode(DUPLICATE_REMOVAL, emptybag);
+    Node output1 = emptybag;
+    TS_ASSERT(output1 == NormalForm::evaluate(input1));
+
+    Node x = d_nm->mkConst(String("x"));
+    Node y = d_nm->mkConst(String("y"));
+
+    Node x_1 = d_nm->mkBag(d_nm->stringType(), x, d_nm->mkConst(Rational(1)));
+    Node y_1 = d_nm->mkBag(d_nm->stringType(), y, d_nm->mkConst(Rational(1)));
+
+    Node x_4 = d_nm->mkBag(d_nm->stringType(), x, d_nm->mkConst(Rational(4)));
+    Node y_5 = d_nm->mkBag(d_nm->stringType(), y, d_nm->mkConst(Rational(5)));
+
+    Node input2 = d_nm->mkNode(DUPLICATE_REMOVAL, x_4);
+    Node output2 = x_1;
+    TS_ASSERT(output2 == NormalForm::evaluate(input2));
+
+    Node normalBag = d_nm->mkNode(UNION_DISJOINT, x_4, y_5);
+    Node input3 = d_nm->mkNode(DUPLICATE_REMOVAL, normalBag);
+    Node output3 = d_nm->mkNode(UNION_DISJOINT, x_1, y_1);
+    TS_ASSERT(output3 == NormalForm::evaluate(input3));
+  }
+
   void testUnionMax()
   {
     // Example

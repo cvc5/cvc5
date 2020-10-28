@@ -28,12 +28,16 @@
 #include "expr/node.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/cad_solver.h"
+#include "theory/arith/nl/ext/factoring_check.h"
+#include "theory/arith/nl/ext/monomial_bounds_check.h"
+#include "theory/arith/nl/ext/monomial_check.h"
+#include "theory/arith/nl/ext/split_zero_check.h"
+#include "theory/arith/nl/ext/tangent_plane_check.h"
 #include "theory/arith/nl/ext_theory_callback.h"
 #include "theory/arith/nl/iand_solver.h"
 #include "theory/arith/nl/icp/icp_solver.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
-#include "theory/arith/nl/nl_solver.h"
 #include "theory/arith/nl/stats.h"
 #include "theory/arith/nl/strategy.h"
 #include "theory/arith/nl/transcendental_solver.h"
@@ -259,12 +263,21 @@ class NonlinearExtension
    * transcendental functions.
    */
   TranscendentalSolver d_trSlv;
-  /** The nonlinear extension object
-   *
-   * This is the subsolver responsible for running the procedure for
-   * constraints involving nonlinear mulitplication, Cimatti et al., TACAS 2017.
+  /**
+   * Holds common lookup data for the checks implemented in the "nl-ext"
+   * solvers (from Cimatti et al., TACAS 2017).
    */
-  NlSolver d_nlSlv;
+  ExtState d_extState;
+  /** Solver for factoring lemmas. */
+  FactoringCheck d_factoringSlv;
+  /** Solver for lemmas about monomial bounds. */
+  MonomialBoundsCheck d_monomialBoundsSlv;
+  /** Solver for lemmas about monomials. */
+  MonomialCheck d_monomialSlv;
+  /** Solver for lemmas that split multiplication at zero. */
+  SplitZeroCheck d_splitZeroSlv;
+  /** Solver for tangent plane lemmas. */
+  TangentPlaneCheck d_tangentPlaneSlv;
   /** The CAD-based solver */
   CadSolver d_cadSlv;
   /** The ICP-based solver */

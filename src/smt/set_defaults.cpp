@@ -1458,6 +1458,42 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
         "division. "
         "Try --bv-div-zero-const to interpret division by zero as a constant.");
   }
+
+  if (logic == LogicInfo("QF_UFNRA"))
+  {
+#ifdef CVC4_USE_POLY
+    if (!options::nlCad() && !options::nlCad.wasSetByUser())
+    {
+      options::nlCad.set(true);
+      if (!options::nlExt.wasSetByUser())
+      {
+        options::nlExt.set(false);
+      }
+      if (!options::nlRlvMode.wasSetByUser())
+      {
+        options::nlRlvMode.set(options::NlRlvMode::INTERLEAVE);
+      }
+    }
+#endif
+  }
+#ifndef CVC4_USE_POLY
+  if (options::nlCad())
+  {
+    if (options::nlCad.wasSetByUser())
+    {
+      std::stringstream ss;
+      ss << "Cannot use " << options::nlCad.getName() << " without configuring with --poly.";
+      throw OptionException(ss.str());
+    }
+    else
+    {
+      Notice() << "Cannot use --" << options::nlCad.getName()
+               << " without configuring with --poly." << std::endl;
+      options::nlCad.set(false);
+      options::nlExt.set(true);
+    }
+  }
+#endif
 }
 
 }  // namespace smt

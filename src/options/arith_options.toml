@@ -433,7 +433,6 @@ header = "options/arith_options.h"
   long       = "nl-ext"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "incremental linearization approach to non-linear"
 
 [[option]]

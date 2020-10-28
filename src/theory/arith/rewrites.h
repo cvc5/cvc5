@@ -2,69 +2,57 @@
 /*! \file rewrites.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Mudathir Mohamed
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Type for rewrites for bags.
+ ** \brief Type for rewrites for arithmetic.
  **/
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BAGS__REWRITES_H
-#define CVC4__THEORY__BAGS__REWRITES_H
+#ifndef CVC4__THEORY__ARITH__REWRITES_H
+#define CVC4__THEORY__ARITH__REWRITES_H
 
 #include <iosfwd>
 
 namespace CVC4 {
 namespace theory {
-namespace bags {
+namespace arith {
 
-/** Types of rewrites used by bags
- *
- * This rewrites are documented where they are used in the rewriter.
+/**
+ * Types of rewrites used by arithmetic
  */
 enum class Rewrite : uint32_t
 {
-  NONE,  // no rewrite happened
-  CARD_DISJOINT,
-  CARD_MK_BAG,
-  CHOOSE_MK_BAG,
-  CONSTANT_EVALUATION,
-  COUNT_EMPTY,
-  COUNT_MK_BAG,
-  DUPLICATE_REMOVAL_MK_BAG,
-  FROM_SINGLETON,
-  IDENTICAL_NODES,
-  INTERSECTION_EMPTY_LEFT,
-  INTERSECTION_EMPTY_RIGHT,
-  INTERSECTION_SAME,
-  INTERSECTION_SHARED_LEFT,
-  INTERSECTION_SHARED_RIGHT,
-  IS_SINGLETON_MK_BAG,
-  MK_BAG_COUNT_NEGATIVE,
-  REMOVE_FROM_UNION,
-  REMOVE_MIN,
-  REMOVE_RETURN_LEFT,
-  REMOVE_SAME,
-  SUB_BAG,
-  SUBTRACT_DISJOINT_SHARED_LEFT,
-  SUBTRACT_DISJOINT_SHARED_RIGHT,
-  SUBTRACT_FROM_UNION,
-  SUBTRACT_MIN,
-  SUBTRACT_RETURN_LEFT,
-  SUBTRACT_SAME,
-  TO_SINGLETON,
-  UNION_DISJOINT_EMPTY_LEFT,
-  UNION_DISJOINT_EMPTY_RIGHT,
-  UNION_DISJOINT_MAX_MIN,
-  UNION_MAX_EMPTY,
-  UNION_MAX_SAME_OR_EMPTY,
-  UNION_MAX_UNION_LEFT,
-  UNION_MAX_UNION_RIGHT
+  NONE,
+  // constant evaluation
+  CONST_EVAL,
+  // (mod x c) replaced by total (mod x c) if c != 0
+  MOD_TOTAL_BY_CONST,
+  // (div x c) replaced by total (div x c) if c != 0
+  DIV_TOTAL_BY_CONST,
+  // Total versions choose arbitrary values for 0 denominator:
+  // (div x 0) ---> 0
+  // (mod x 0) ---> 0
+  DIV_MOD_BY_ZERO,
+  // (mod x 1) --> 0
+  MOD_BY_ONE,
+  // (div x 1) --> x
+  DIV_BY_ONE,
+  // (div x (- c)) ---> (- (div x c))
+  // (mod x (- c)) ---> (mod x c)
+  DIV_MOD_PULL_NEG_DEN,
+  // (mod (mod x c) c) --> (mod x c)
+  MOD_OVER_MOD,
+  // (mod (op ... (mod x c) ...) c) ---> (mod (op ... x ...) c) where
+  // op is one of { NONLINEAR_MULT, MULT, PLUS }.
+  MOD_CHILD_MOD,
+  // (div (mod x c) c) --> 0
+  DIV_OVER_MOD
 };
 
 /**
@@ -87,8 +75,8 @@ const char* toString(Rewrite r);
  */
 std::ostream& operator<<(std::ostream& out, Rewrite r);
 
-}  // namespace bags
+}  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* CVC4__THEORY__BAGS__REWRITES_H */
+#endif /* CVC4__THEORY__ARITH__REWRITES_H */
