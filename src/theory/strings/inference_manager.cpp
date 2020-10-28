@@ -315,7 +315,7 @@ void InferenceManager::processConflict(const InferInfo& ii)
 
 bool InferenceManager::processFact(InferInfo& ii)
 {
-  // get the fact(s), where there are multiple if the conclusion is an AND
+  // Get the fact(s). There are multiple facts if the conclusion is an AND
   std::vector<Node> facts;
   if (ii.d_conc.getKind() == AND)
   {
