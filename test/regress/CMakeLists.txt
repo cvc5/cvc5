@@ -442,7 +442,6 @@ set(regress_0_tests
   regress0/datatypes/rec1.cvc
   regress0/datatypes/rec2.cvc
   regress0/datatypes/rec4.cvc
-  regress0/datatypes/repeated-selectors-2769.smt2
   regress0/datatypes/rewriter.cvc
   regress0/datatypes/sc-cdt1.smt2
   regress0/datatypes/some-boolean-tests.cvc
@@ -2385,6 +2384,8 @@ set(regression_disabled_tests
   regress0/cvc3-bug15.cvc
   # regress0/datatypes/datatype-dump.cvc (FIXME #1649)
   regress0/datatypes/datatype-dump.cvc
+  # no longer support overloaded symbols across multiple parametric datatypes
+  regress0/datatypes/repeated-selectors-2769.smt2
   regress0/decision/uflia-xs-09-16-3-4-1-5.smtv1.smt2
   regress0/decision/wchains010ue.smtv1.smt2
   regress0/incorrect1.smtv1.smt2
