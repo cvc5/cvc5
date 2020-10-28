@@ -205,11 +205,6 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   }//kind::UNION
   case kind::COMPLEMENT:
   {
-    if (node[0].getKind() == COMPLEMENT)
-    {
-      // (complement (complement A)) = A
-      return RewriteResponse(REWRITE_AGAIN, node[0]);
-    }
     Node univ = NodeManager::currentNM()->mkNullaryOperator(node[0].getType(),
                                                             kind::UNIVERSE_SET);
     return RewriteResponse(
@@ -517,6 +512,14 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
                            nm->mkNode(kind::EQUAL,
                                       nm->mkNode(kind::UNION, node[0], node[1]),
                                       node[1]) );
+  }
+  else if (k == kind::COMPLEMENT)
+  {
+    if (node[0].getKind() == COMPLEMENT)
+    {
+      // (complement (complement A)) = A
+      return RewriteResponse(REWRITE_AGAIN, node[0][0]);
+    }
   }
   // could have an efficient normalizer for union here
 
