@@ -57,7 +57,7 @@ namespace prop {
 }/* CVC4::prop namespace */
 
 typedef std::unordered_map<ClauseId, prop::SatClause*> IdToSatClause;
-typedef context::CDHashSet<Expr, ExprHashFunction> CDExprSet;
+typedef context::CDHashSet<Node, NodeHashFunction> CDNodeSet;
 typedef context::CDHashMap<Node, std::vector<Node>, NodeHashFunction> CDNodeToNodes;
 typedef std::unordered_set<ClauseId> IdHashSet;
 
@@ -68,8 +68,8 @@ class ProofManager {
   std::unique_ptr<CnfProof> d_cnfProof;
 
   // information that will need to be shared across proofs
-  CDExprSet    d_inputCoreFormulas;
-  CDExprSet    d_outputCoreFormulas;
+  CDNodeSet d_inputCoreFormulas;
+  CDNodeSet d_outputCoreFormulas;
 
   int d_nextId;
 
@@ -90,16 +90,16 @@ public:
  static CnfProof* getCnfProof();
 
  /** Public unsat core methods **/
- void addCoreAssertion(Expr formula);
+ void addCoreAssertion(Node formula);
 
  void addDependence(TNode n, TNode dep);
- void addUnsatCore(Expr formula);
+ void addUnsatCore(Node formula);
 
  // trace dependences back to unsat core
- void traceDeps(TNode n, CDExprSet* coreAssertions);
+ void traceDeps(TNode n, CDNodeSet* coreAssertions);
  void traceUnsatCore();
 
- typedef CDExprSet::const_iterator output_core_iterator;
+ typedef CDNodeSet::const_iterator output_core_iterator;
 
  output_core_iterator begin_unsat_core() const
  {
@@ -110,7 +110,7 @@ public:
    return d_outputCoreFormulas.end();
  }
  size_t size_unsat_core() const { return d_outputCoreFormulas.size(); }
- std::vector<Expr> extractUnsatCore();
+ std::vector<Node> extractUnsatCore();
 
  bool unsatCoreAvailable() const;
  void getLemmasInUnsatCore(std::vector<Node>& lemmas);

@@ -40,7 +40,6 @@ class SymbolTableBlack : public CxxTest::TestSuite {
     try
     {
       d_slv = new api::Solver();
-      d_exprManager = d_slv->getExprManager();
     }
     catch (Exception& e)
     {
@@ -63,8 +62,8 @@ class SymbolTableBlack : public CxxTest::TestSuite {
 
   void testBind() {
     SymbolTable symtab;
-    Type booleanType = d_exprManager->booleanType();
-    Expr x = d_exprManager->mkVar(booleanType);
+    api::Sort booleanType = d_slv->getBooleanSort();
+    api::Term x = d_slv->mkConst(booleanType);
     symtab.bind("x",x);
     TS_ASSERT( symtab.isBound("x") );
     TS_ASSERT_EQUALS( symtab.lookup("x"), x );
@@ -72,9 +71,9 @@ class SymbolTableBlack : public CxxTest::TestSuite {
 
   void testBind2() {
     SymbolTable symtab;
-    Type booleanType = d_exprManager->booleanType();
+    api::Sort booleanType = d_slv->getBooleanSort();
     // var name attribute shouldn't matter
-    Expr y = d_exprManager->mkVar("y", booleanType);
+    api::Term y = d_slv->mkConst(booleanType, "y");
     symtab.bind("x",y);
     TS_ASSERT( symtab.isBound("x") );
     TS_ASSERT_EQUALS( symtab.lookup("x"), y );
@@ -82,10 +81,10 @@ class SymbolTableBlack : public CxxTest::TestSuite {
 
   void testBind3() {
     SymbolTable symtab;
-    Type booleanType = d_exprManager->booleanType();
-    Expr x = d_exprManager->mkVar(booleanType);
+    api::Sort booleanType = d_slv->getBooleanSort();
+    api::Term x = d_slv->mkConst(booleanType);
     symtab.bind("x",x);
-    Expr y = d_exprManager->mkVar(booleanType);
+    api::Term y = d_slv->mkConst(booleanType);
     // new binding covers old
     symtab.bind("x",y);
     TS_ASSERT( symtab.isBound("x") );
@@ -94,11 +93,11 @@ class SymbolTableBlack : public CxxTest::TestSuite {
 
   void testBind4() {
     SymbolTable symtab;
-    Type booleanType = d_exprManager->booleanType();
-    Expr x = d_exprManager->mkVar(booleanType);
+    api::Sort booleanType = d_slv->getBooleanSort();
+    api::Term x = d_slv->mkConst(booleanType);
     symtab.bind("x",x);
 
-    Type t = d_exprManager->mkSort("T");
+    api::Sort t = d_slv->mkUninterpretedSort("T");
     // duplicate binding for type is OK
     symtab.bindType("x",t);
 
@@ -110,7 +109,7 @@ class SymbolTableBlack : public CxxTest::TestSuite {
 
   void testBindType() {
     SymbolTable symtab;
-    Type s = d_exprManager->mkSort("S");
+    api::Sort s = d_slv->mkUninterpretedSort("S");
     symtab.bindType("S",s);
     TS_ASSERT( symtab.isBoundType("S") );
     TS_ASSERT_EQUALS( symtab.lookupType("S"), s );
@@ -119,7 +118,7 @@ class SymbolTableBlack : public CxxTest::TestSuite {
   void testBindType2() {
     SymbolTable symtab;
     // type name attribute shouldn't matter
-    Type s = d_exprManager->mkSort("S");
+    api::Sort s = d_slv->mkUninterpretedSort("S");
     symtab.bindType("T",s);
     TS_ASSERT( symtab.isBoundType("T") );
     TS_ASSERT_EQUALS( symtab.lookupType("T"), s );
@@ -127,9 +126,9 @@ class SymbolTableBlack : public CxxTest::TestSuite {
 
   void testBindType3() {
     SymbolTable symtab;
-    Type s = d_exprManager->mkSort("S");
+    api::Sort s = d_slv->mkUninterpretedSort("S");
     symtab.bindType("S",s);
-    Type t = d_exprManager->mkSort("T");
+    api::Sort t = d_slv->mkUninterpretedSort("T");
     // new binding covers old
     symtab.bindType("S",t);
     TS_ASSERT( symtab.isBoundType("S") );
@@ -138,15 +137,15 @@ class SymbolTableBlack : public CxxTest::TestSuite {
 
   void testPushScope() {
     SymbolTable symtab;
-    Type booleanType = d_exprManager->booleanType();
-    Expr x = d_exprManager->mkVar(booleanType);
+    api::Sort booleanType = d_slv->getBooleanSort();
+    api::Term x = d_slv->mkConst(booleanType);
     symtab.bind("x",x);
     symtab.pushScope();
 
     TS_ASSERT( symtab.isBound("x") );
     TS_ASSERT_EQUALS( symtab.lookup("x"), x );
 
-    Expr y = d_exprManager->mkVar(booleanType);
+    api::Term y = d_slv->mkConst(booleanType);
     symtab.bind("x",y);
 
     TS_ASSERT( symtab.isBound("x") );
@@ -165,5 +164,4 @@ class SymbolTableBlack : public CxxTest::TestSuite {
 
  private:
   api::Solver* d_slv;
-  ExprManager* d_exprManager;
 };/* class SymbolTableBlack */
