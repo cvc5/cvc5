@@ -36,12 +36,12 @@ enum class Rewrite : uint32_t
   // (div x c) replaced by total (div x c) if c != 0
   DIV_TOTAL_BY_CONST,
   // Total versions choose arbitrary values for 0 denominator:
-  // (div x 0) ---> 0 
+  // (div x 0) ---> 0
   // (mod x 0) ---> 0
   DIV_MOD_BY_ZERO,
-      // (mod x 1) --> 0
+  // (mod x 1) --> 0
   MOD_BY_ONE,
-    // (div x 1) --> x
+  // (div x 1) --> x
   DIV_BY_ONE,
   // (div x (- c)) ---> (- (div x c))
   // (mod x (- c)) ---> (mod x c)
@@ -51,7 +51,7 @@ enum class Rewrite : uint32_t
   // (mod (op ... (mod x c) ...) c) ---> (mod (op ... x ...) c) where
   // op is one of { NONLINEAR_MULT, MULT, PLUS }.
   MOD_CHILD_MOD,
-      // (div (mod x c) c) --> 0
+  // (div (mod x c) c) --> 0
   DIV_OVER_MOD
 };
 
