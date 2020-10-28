@@ -122,7 +122,7 @@ bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
   return true;
 }
 
-void InferenceManager::sendInference(const std::vector<Node>& exp,
+bool InferenceManager::sendInference(const std::vector<Node>& exp,
                                      const std::vector<Node>& noExplain,
                                      Node eq,
                                      Inference infer,
@@ -136,7 +136,7 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
   else if (Rewriter::rewrite(eq) == d_true)
   {
     // if trivial, return
-    return;
+    return false;
   }
   // wrap in infer info and send below
   InferInfo ii;
@@ -146,6 +146,7 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
   ii.d_ant = exp;
   ii.d_noExplain = noExplain;
   sendInference(ii, asLemma);
+  return true;
 }
 
 void InferenceManager::sendInference(const std::vector<Node>& exp,
@@ -155,7 +156,7 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
                                      bool asLemma)
 {
   std::vector<Node> noExplain;
-  sendInference(exp, noExplain, eq, infer, isRev, asLemma);
+  return sendInference(exp, noExplain, eq, infer, isRev, asLemma);
 }
 
 void InferenceManager::sendInference(InferInfo& ii, bool asLemma)
