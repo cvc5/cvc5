@@ -1075,7 +1075,7 @@ std::string Sort::toString() const
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
-CVC4::Type Sort::getType(void) const { return *d_type; }
+CVC4::TypeNode Sort::getTypeNode(void) const { return *d_type; }
 
 /* Constructor sort ------------------------------------------------------- */
 
@@ -5837,7 +5837,7 @@ std::vector<Type> sortVectorToTypes(const std::vector<Sort>& sorts)
   std::vector<Type> types;
   for (size_t i = 0, ssize = sorts.size(); i < ssize; i++)
   {
-    types.push_back(sorts[i].getType());
+    types.push_back(sorts[i].getTypeNode().toType());
   }
   return types;
 }
@@ -5847,7 +5847,7 @@ std::vector<TypeNode> sortVectorToTypeNodes(const std::vector<Sort>& sorts)
   std::vector<TypeNode> typeNodes;
   for (const Sort& sort : sorts)
   {
-    typeNodes.push_back(TypeNode::fromType(sort.getType()));
+    typeNodes.push_back(sort.getTypeNode());
   }
   return typeNodes;
 }
@@ -5857,7 +5857,7 @@ std::set<Type> sortSetToTypes(const std::set<Sort>& sorts)
   std::set<Type> types;
   for (const Sort& s : sorts)
   {
-    types.insert(s.getType());
+    types.insert(s.getTypeNode().toType());
   }
   return types;
 }
@@ -5879,7 +5879,7 @@ std::vector<Sort> typeVectorToSorts(const Solver* slv,
   std::vector<Sort> sorts;
   for (size_t i = 0, tsize = types.size(); i < tsize; i++)
   {
-    sorts.push_back(Sort(slv, types[i]));
+    sorts.push_back(Sort(slv, TypeNode::fromType(types[i])));
   }
   return sorts;
 }
