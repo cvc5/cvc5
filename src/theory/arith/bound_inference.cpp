@@ -26,79 +26,6 @@ std::ostream& operator<<(std::ostream& os, const Bounds& b) {
             << b.upper_value << (b.upper_strict ? ')' : ']');
 }
 
-void BoundInference::update_lower_bound(const Node& origin,
-                                        const Node& lhs,
-                                        const Node& value,
-                                        bool strict)
-{
-  // lhs > or >= value because of origin
-  Trace("bound-inf") << "\tNew bound " << lhs << (strict ? ">" : ">=") << value
-                     << " due to " << origin << std::endl;
-  Bounds& b = get_or_add(lhs);
-  if (b.lower_value.isNull()
-      || b.lower_value.getConst<Rational>() < value.getConst<Rational>())
-  {
-    auto* nm = NodeManager::currentNM();
-    b.lower_value = value;
-    b.lower_strict = strict;
-
-    b.lower_origin = origin;
-
-    if (!b.lower_strict && !b.upper_strict && b.lower_value == b.upper_value)
-    {
-      b.lower_bound = b.upper_bound =
-          Rewriter::rewrite(nm->mkNode(Kind::EQUAL, lhs, value));
-    }
-    else
-    {
-      b.lower_bound = Rewriter::rewrite(
-          nm->mkNode(strict ? Kind::GT : Kind::GEQ, lhs, value));
-    }
-  }
-  else if (strict && b.lower_value == value)
-  {
-    auto* nm = NodeManager::currentNM();
-    b.lower_strict = strict;
-    b.lower_bound = Rewriter::rewrite(nm->mkNode(Kind::GT, lhs, value));
-    b.lower_origin = origin;
-  }
-}
-void BoundInference::update_upper_bound(const Node& origin,
-                                        const Node& lhs,
-                                        const Node& value,
-                                        bool strict)
-{
-  // lhs < or <= value because of origin
-  Trace("bound-inf") << "\tNew bound " << lhs << (strict ? "<" : "<=") << value
-                     << " due to " << origin << std::endl;
-  Bounds& b = get_or_add(lhs);
-  if (b.upper_value.isNull()
-      || b.upper_value.getConst<Rational>() > value.getConst<Rational>())
-  {
-    auto* nm = NodeManager::currentNM();
-    b.upper_value = value;
-    b.upper_strict = strict;
-    b.upper_origin = origin;
-    if (!b.lower_strict && !b.upper_strict && b.lower_value == b.upper_value)
-    {
-      b.lower_bound = b.upper_bound =
-          Rewriter::rewrite(nm->mkNode(Kind::EQUAL, lhs, value));
-    }
-    else
-    {
-      b.upper_bound = Rewriter::rewrite(
-          nm->mkNode(strict ? Kind::LT : Kind::LEQ, lhs, value));
-    }
-  }
-  else if (strict && b.upper_value == value)
-  {
-    auto* nm = NodeManager::currentNM();
-    b.upper_strict = strict;
-    b.upper_bound = Rewriter::rewrite(nm->mkNode(Kind::LT, lhs, value));
-    b.upper_origin = origin;
-  }
-}
-
 void BoundInference::reset() { d_bounds.clear(); }
 
 Bounds& BoundInference::get_or_add(const Node& lhs)
@@ -218,6 +145,79 @@ void BoundInference::replaceByOrigins(std::vector<Node>& nodes) const
     }
   }
   nodes.insert(nodes.end(), toAdd.begin(), toAdd.end());
+}
+
+void BoundInference::update_lower_bound(const Node& origin,
+                                        const Node& lhs,
+                                        const Node& value,
+                                        bool strict)
+{
+  // lhs > or >= value because of origin
+  Trace("bound-inf") << "\tNew bound " << lhs << (strict ? ">" : ">=") << value
+                     << " due to " << origin << std::endl;
+  Bounds& b = get_or_add(lhs);
+  if (b.lower_value.isNull()
+      || b.lower_value.getConst<Rational>() < value.getConst<Rational>())
+  {
+    auto* nm = NodeManager::currentNM();
+    b.lower_value = value;
+    b.lower_strict = strict;
+
+    b.lower_origin = origin;
+
+    if (!b.lower_strict && !b.upper_strict && b.lower_value == b.upper_value)
+    {
+      b.lower_bound = b.upper_bound =
+          Rewriter::rewrite(nm->mkNode(Kind::EQUAL, lhs, value));
+    }
+    else
+    {
+      b.lower_bound = Rewriter::rewrite(
+          nm->mkNode(strict ? Kind::GT : Kind::GEQ, lhs, value));
+    }
+  }
+  else if (strict && b.lower_value == value)
+  {
+    auto* nm = NodeManager::currentNM();
+    b.lower_strict = strict;
+    b.lower_bound = Rewriter::rewrite(nm->mkNode(Kind::GT, lhs, value));
+    b.lower_origin = origin;
+  }
+}
+void BoundInference::update_upper_bound(const Node& origin,
+                                        const Node& lhs,
+                                        const Node& value,
+                                        bool strict)
+{
+  // lhs < or <= value because of origin
+  Trace("bound-inf") << "\tNew bound " << lhs << (strict ? "<" : "<=") << value
+                     << " due to " << origin << std::endl;
+  Bounds& b = get_or_add(lhs);
+  if (b.upper_value.isNull()
+      || b.upper_value.getConst<Rational>() > value.getConst<Rational>())
+  {
+    auto* nm = NodeManager::currentNM();
+    b.upper_value = value;
+    b.upper_strict = strict;
+    b.upper_origin = origin;
+    if (!b.lower_strict && !b.upper_strict && b.lower_value == b.upper_value)
+    {
+      b.lower_bound = b.upper_bound =
+          Rewriter::rewrite(nm->mkNode(Kind::EQUAL, lhs, value));
+    }
+    else
+    {
+      b.upper_bound = Rewriter::rewrite(
+          nm->mkNode(strict ? Kind::LT : Kind::LEQ, lhs, value));
+    }
+  }
+  else if (strict && b.upper_value == value)
+  {
+    auto* nm = NodeManager::currentNM();
+    b.upper_strict = strict;
+    b.upper_bound = Rewriter::rewrite(nm->mkNode(Kind::LT, lhs, value));
+    b.upper_origin = origin;
+  }
 }
 
 std::ostream& operator<<(std::ostream& os, const BoundInference& bi)

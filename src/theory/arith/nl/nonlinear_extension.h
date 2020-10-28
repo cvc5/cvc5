@@ -251,6 +251,14 @@ class NonlinearExtension
    */
   NlModel d_model;
 
+  /**
+   * This utility is used to compute the strictest bounds on arbitrary terms to
+   * identify redundant constraints in getAssertions(). It also allows to
+   * construct an equality from two weak inequalities. It keeps this information
+   * so that we can replace such an equality by the original inequalities when
+   * generating conflicts.
+   * It is only reset at the beginning of getAssertions().
+   */
   BoundInference d_boundInference;
 
   /** The transcendental extension object

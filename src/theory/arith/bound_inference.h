@@ -54,20 +54,6 @@ namespace arith {
    */
   class BoundInference
   {
-    /** The currently strictest bounds for every lhs. */
-    std::map<Node, Bounds> d_bounds;
-
-    /** Updates the lower bound for the given lhs */
-    void update_lower_bound(const Node& origin,
-                            const Node& lhs,
-                            const Node& value,
-                            bool strict);
-    /** Updates the upper bound for the given lhs */
-    void update_upper_bound(const Node& origin,
-                            const Node& lhs,
-                            const Node& value,
-                            bool strict);
-
    public:
     void reset();
 
@@ -94,7 +80,22 @@ namespace arith {
     bool add(const Node& n, bool onlyVariables = true);
 
     void replaceByOrigins(std::vector<Node>& nodes) const;
-};
+
+   private:
+    /** The currently strictest bounds for every lhs. */
+    std::map<Node, Bounds> d_bounds;
+
+    /** Updates the lower bound for the given lhs */
+    void update_lower_bound(const Node& origin,
+                            const Node& lhs,
+                            const Node& value,
+                            bool strict);
+    /** Updates the upper bound for the given lhs */
+    void update_upper_bound(const Node& origin,
+                            const Node& lhs,
+                            const Node& value,
+                            bool strict);
+  };
 
 /** Print the current variable bounds. */
 std::ostream& operator<<(std::ostream& os, const BoundInference& bi);
