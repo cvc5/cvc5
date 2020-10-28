@@ -38,9 +38,16 @@ class LfscTermProcessCallback : public TermProcessCallback
   TypeNode convertInternalType(TypeNode tn) override;
 
  private:
-  //--------------------------- terms with different syntax than smt2
-  /** Empty string */
-  //--------------------------- terms with different syntax than smt2
+   /** Get symbol for term */
+   Node getSymbolInternalFor(Node n,const std::string& name, uint32_t v=0);
+  /** Get symbol internal */
+  Node getSymbolInternal(Kind k, TypeNode tn, const std::string& name, uint32_t v=0);
+  /** terms with different syntax than smt2 */
+  std::map<std::tuple<Kind, TypeNode, uint32_t>, Node> d_symbols;
+  /** arrow type constructor */
+  TypeNode d_arrow;
+  /** the type of LFSC sorts, which can appear in terms */
+  TypeNode d_sortType;
 };
 
 }  // namespace proof

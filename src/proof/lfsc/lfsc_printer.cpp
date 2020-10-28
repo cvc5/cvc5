@@ -101,7 +101,7 @@ void LfscPrinter::print(std::ostream& out,
 
 void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
 {
-  // TODO: compute term lets?
+  // TODO: compute term lets across all terms in the proof?
   std::map<Node, uint32_t> letMap;
   // empty passume map
   std::map<Node, uint32_t> passumeMap;
@@ -218,7 +218,7 @@ void LfscPrinter::printProofInternal(
 void LfscPrinter::computeProofArgs(const ProofNode* pn,
                                    std::vector<PExpr>& pargs)
 {
-  // TODO
+  // TODO: what arguments does the proof rule take?
 }
 
 void LfscPrinter::print(std::ostream& out, Node n)
@@ -282,7 +282,7 @@ void LfscPrinter::print(std::ostream& out, TypeNode tn)
 
 void LfscPrinter::printInternal(std::ostream& out, TypeNode tn)
 {
-  // types are always printed as-is
+  // (internal) types are always printed as-is
   out << tn;
 }
 
