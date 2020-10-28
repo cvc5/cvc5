@@ -3521,6 +3521,8 @@ std::vector<Term> exprVectorToTerms(const Solver* slv,
                                     const std::vector<Expr>& terms);
 std::vector<Sort> typeVectorToSorts(const Solver* slv,
                                     const std::vector<Type>& sorts);
+std::vector<Sort> typeNodeVectorToSorts(const Solver* slv,
+                                    const std::vector<TypeNode>& types);
 
 }  // namespace api
 
