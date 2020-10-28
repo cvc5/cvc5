@@ -119,32 +119,53 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     break;
   }
 
-  case kind::SETMINUS: {
-    if(node[0] == node[1]) {
+  case kind::SETMINUS:
+  {
+    if (node[0] == node[1])
+    {
       Node newNode = nm->mkConst(EmptySet(node[0].getType()));
-      Trace("sets-postrewrite") << "Sets::postRewrite returning " << newNode << std::endl;
+      Trace("sets-postrewrite")
+          << "Sets::postRewrite returning " << newNode << std::endl;
       return RewriteResponse(REWRITE_DONE, newNode);
-    } else if(node[0].getKind() == kind::EMPTYSET ||
-              node[1].getKind() == kind::EMPTYSET) {
-      Trace("sets-postrewrite") << "Sets::postRewrite returning " << node[0] << std::endl;
+    }
+    else if (node[0].getKind() == kind::EMPTYSET
+             || node[1].getKind() == kind::EMPTYSET)
+    {
+      Trace("sets-postrewrite")
+          << "Sets::postRewrite returning " << node[0] << std::endl;
       return RewriteResponse(REWRITE_AGAIN, node[0]);
-    }else if( node[1].getKind() == kind::UNIVERSE_SET ){
+    }
+    else if (node[0].getKind() == kind::UNIVERSE_SET
+             && node[1].getKind() == kind::SETMINUS
+             && node[1][0].getKind() == kind::UNIVERSE_SET)
+    {
+      // (setminus (as univset (Set T)) (setminus (as univset (Set T)) A)) = A
+      return RewriteResponse(REWRITE_AGAIN, node[1][1]);
+    }
+    else if (node[1].getKind() == kind::UNIVERSE_SET)
+    {
       return RewriteResponse(
           REWRITE_AGAIN,
           NodeManager::currentNM()->mkConst(EmptySet(node[1].getType())));
-    } else if(node[0].isConst() && node[1].isConst()) {
+    }
+    else if (node[0].isConst() && node[1].isConst())
+    {
       std::set<Node> left = NormalForm::getElementsFromNormalConstant(node[0]);
       std::set<Node> right = NormalForm::getElementsFromNormalConstant(node[1]);
       std::set<Node> newSet;
-      std::set_difference(left.begin(), left.end(), right.begin(), right.end(),
-        std::inserter(newSet, newSet.begin()));
+      std::set_difference(left.begin(),
+                          left.end(),
+                          right.begin(),
+                          right.end(),
+                          std::inserter(newSet, newSet.begin()));
       Node newNode = NormalForm::elementsToSet(newSet, node.getType());
       Assert(newNode.isConst());
-      Trace("sets-postrewrite") << "Sets::postRewrite returning " << newNode << std::endl;
+      Trace("sets-postrewrite")
+          << "Sets::postRewrite returning " << newNode << std::endl;
       return RewriteResponse(REWRITE_DONE, newNode);
     }
     break;
-  }//kind::SETMINUS
+  }  // kind::SETMINUS
 
   case kind::INTERSECTION: {
     if(node[0] == node[1]) {
