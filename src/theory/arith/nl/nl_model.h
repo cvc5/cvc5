@@ -154,8 +154,7 @@ class NlModel
    */
   bool checkModel(const std::vector<Node>& assertions,
                   unsigned d,
-                  std::vector<NlLemma>& lemmas,
-                  std::vector<Node>& gs);
+                  std::vector<NlLemma>& lemmas);
   /**
    * Set that we have used an approximation during this check. This flag is
    * reset on a call to resetCheck. It is set when we use reasoning that
@@ -195,7 +194,7 @@ class NlModel
   /** The current model */
   TheoryModel* d_model;
   /** Get the model value of n from the model object above */
-  Node getValueInternal(Node n) const;
+  Node getValueInternal(Node n);
   /** Does the equality engine of the model have term n? */
   bool hasTerm(Node n) const;
   /** Get the representative of n in the model */
@@ -263,8 +262,10 @@ class NlModel
   Node d_null;
   /**
    * The values that the arithmetic theory solver assigned in the model. This
-   * corresponds to exactly the set of equalities that TheoryArith is currently
-   * sending to TheoryModel during collectModelInfo.
+   * corresponds to the set of equalities that linear solver (via TheoryArith)
+   * is currently sending to TheoryModel during collectModelValues, plus
+   * additional entries x -> 0 for variables that were unassigned by the linear
+   * solver.
    */
   std::map<Node, Node> d_arithVal;
   /**
