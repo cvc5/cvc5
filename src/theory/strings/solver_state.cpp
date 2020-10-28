@@ -228,7 +228,6 @@ bool SolverState::isEqualEmptyWord(Node s, Node& emps)
   return false;
 }
 
-
 void SolverState::setPendingPrefixConflictWhen(Node conf)
 {
   if (conf.isNull() || d_pendingConflictSet.get())
@@ -241,7 +240,7 @@ void SolverState::setPendingPrefixConflictWhen(Node conf)
   utils::flattenOp(AND, conf, iiPrefixConf.d_ant);
   setPendingConflict(iiPrefixConf);
 }
-      
+
 void SolverState::setPendingConflict(InferInfo& ii)
 {
   if (!d_pendingConflictSet.get())
