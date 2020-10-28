@@ -611,17 +611,14 @@ void TheoryStrings::notifyFact(TNode atom,
   // process pending conflicts due to reasoning about endpoints
   if (!d_state.isInConflict())
   {
-    Node pc = d_state.getPendingConflict();
-    if (!pc.isNull())
+    // we currently assume its a prefix conflict
+    InferInfo iiPrefixConf;
+    if (d_state.getPendingConflict(iiPrefixConf))
     {
       Trace("strings-pending")
-          << "Process pending conflict " << pc << std::endl;
-      InferInfo iiPrefixConf;
-      iiPrefixConf.d_id = Inference::PREFIX_CONFLICT;
-      iiPrefixConf.d_conc = d_false;
-      utils::flattenOp(AND, pc, iiPrefixConf.d_ant);
+          << "Process pending conflict " << iiPrefixConf.d_ant << std::endl;
       Trace("strings-conflict")
-          << "CONFLICT: Eager prefix : " << pc << std::endl;
+          << "CONFLICT: Eager prefix : " << iiPrefixConf.d_ant << std::endl;
       ++(d_statistics.d_conflictsEagerPrefix);
       // call the inference manager to send the conflict
       d_im.processConflict(iiPrefixConf);
