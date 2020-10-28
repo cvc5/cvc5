@@ -1098,6 +1098,37 @@ Sort Sort::getConstructorCodomainSort() const
   return Sort(d_solver, ConstructorType(*d_type).getRangeType());
 }
 
+/* Selector sort ------------------------------------------------------- */
+
+Sort Sort::getSelectorDomainSort() const
+{
+  CVC4_API_CHECK(isSelector()) << "Not a selector sort: " << (*this);
+  TypeNode typeNode = TypeNode::fromType(*d_type);
+  return Sort(d_solver, typeNode.getSelectorDomainType().toType());
+}
+
+Sort Sort::getSelectorCodomainSort() const
+{
+  CVC4_API_CHECK(isSelector()) << "Not a selector sort: " << (*this);
+  TypeNode typeNode = TypeNode::fromType(*d_type);
+  return Sort(d_solver, typeNode.getSelectorRangeType().toType());
+}
+
+/* Tester sort ------------------------------------------------------- */
+
+Sort Sort::getTesterDomainSort() const
+{
+  CVC4_API_CHECK(isTester()) << "Not a tester sort: " << (*this);
+  TypeNode typeNode = TypeNode::fromType(*d_type);
+  return Sort(d_solver, typeNode.getTesterDomainType().toType());
+}
+
+Sort Sort::getTesterCodomainSort() const
+{
+  CVC4_API_CHECK(isTester()) << "Not a tester sort: " << (*this);
+  return d_solver->getBooleanSort();
+}
+
 /* Function sort ------------------------------------------------------- */
 
 size_t Sort::getFunctionArity() const
@@ -5559,9 +5590,6 @@ Term Solver::synthFunHelper(const std::string& symbol,
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_NOT_NULL(sort);
-
-  CVC4_API_ARG_CHECK_EXPECTED(sort.d_type->isFirstClass(), sort)
-      << "first-class codomain sort for function";
 
   std::vector<Type> varTypes;
   for (size_t i = 0, n = boundVars.size(); i < n; ++i)

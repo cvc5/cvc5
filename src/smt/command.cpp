@@ -581,16 +581,7 @@ api::Sort DeclareSygusVarCommand::getSort() const { return d_sort; }
 
 void DeclareSygusVarCommand::invoke(api::Solver* solver)
 {
-  try
-  {
-    solver->getSmtEngine()->declareSygusVar(
-        d_symbol, d_var.getNode(), TypeNode::fromType(d_sort.getType()));
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
+  d_commandStatus = CommandSuccess::instance();
 }
 
 Command* DeclareSygusVarCommand::clone() const
@@ -646,27 +637,7 @@ const api::Grammar* SynthFunCommand::getGrammar() const { return d_grammar; }
 
 void SynthFunCommand::invoke(api::Solver* solver)
 {
-  try
-  {
-    std::vector<Node> vns;
-    for (const api::Term& t : d_vars)
-    {
-      vns.push_back(Node::fromExpr(t.getExpr()));
-    }
-    solver->getSmtEngine()->declareSynthFun(
-        d_symbol,
-        Node::fromExpr(d_fun.getExpr()),
-        TypeNode::fromType(d_grammar == nullptr
-                               ? d_sort.getType()
-                               : d_grammar->resolve().getType()),
-        d_isInv,
-        vns);
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
+  d_commandStatus = CommandSuccess::instance();
 }
 
 Command* SynthFunCommand::clone() const
