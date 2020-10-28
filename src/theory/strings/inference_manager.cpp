@@ -149,7 +149,7 @@ bool InferenceManager::sendInference(const std::vector<Node>& exp,
   return true;
 }
 
-void InferenceManager::sendInference(const std::vector<Node>& exp,
+bool InferenceManager::sendInference(const std::vector<Node>& exp,
                                      Node eq,
                                      Inference infer,
                                      bool isRev,
