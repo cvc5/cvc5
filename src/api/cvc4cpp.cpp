@@ -1071,7 +1071,11 @@ std::string Sort::toString() const
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
-const CVC4::Type& Sort::getType(void) const { return d_type->toType(); }
+CVC4::Type Sort::getType(void) const { 
+  if (d_type->isNull()) return Type();
+  NodeManagerScope scope(d_solver->getNodeManager());
+  return d_type->toType(); 
+}
 const CVC4::TypeNode& Sort::getTypeNode(void) const { return *d_type; }
 
 /* Constructor sort ------------------------------------------------------- */

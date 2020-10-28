@@ -489,7 +489,7 @@ class CVC4_PUBLIC Sort
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  const CVC4::Type& getType(void) const;
+  CVC4::Type getType(void) const;
   const CVC4::TypeNode& getTypeNode(void) const;
 
   /* Constructor sort ------------------------------------------------------- */
