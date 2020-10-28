@@ -32,8 +32,8 @@ void BoundInference::update_lower_bound(const Node& origin,
                                         bool strict)
 {
   // lhs > or >= value because of origin
-  Trace("nl-icp") << "\tNew bound " << lhs << (strict ? ">" : ">=") << value
-                  << " due to " << origin << std::endl;
+  Trace("bound-inf") << "\tNew bound " << lhs << (strict ? ">" : ">=") << value
+                     << " due to " << origin << std::endl;
   Bounds& b = get_or_add(lhs);
   if (b.lower_value.isNull()
       || b.lower_value.getConst<Rational>() < value.getConst<Rational>())
@@ -69,8 +69,8 @@ void BoundInference::update_upper_bound(const Node& origin,
                                         bool strict)
 {
   // lhs < or <= value because of origin
-  Trace("nl-icp") << "\tNew bound " << lhs << (strict ? "<" : "<=") << value
-                  << " due to " << origin << std::endl;
+  Trace("bound-inf") << "\tNew bound " << lhs << (strict ? "<" : "<=") << value
+                     << " due to " << origin << std::endl;
   Bounds& b = get_or_add(lhs);
   if (b.upper_value.isNull()
       || b.upper_value.getConst<Rational>() > value.getConst<Rational>())
@@ -186,18 +186,34 @@ void BoundInference::replaceByOrigins(std::vector<Node>& nodes) const
   {
     for (const auto& b : d_bounds)
     {
-      if (n == b.second.lower_bound)
+      if (n == b.second.lower_bound && n == b.second.upper_bound)
       {
-        n = b.second.lower_origin;
-        if (n == b.second.upper_bound)
-        {  // lower == upper. Make sure we do not trigger a reallocation in
-           // nodes.
+        if (n != b.second.lower_origin && n != b.second.upper_origin)
+        {
+          Trace("bound-inf")
+              << "Replace " << n << " by origins " << b.second.lower_origin
+              << " and " << b.second.upper_origin << std::endl;
+          n = b.second.lower_origin;
           toAdd.emplace_back(b.second.upper_origin);
+        }
+      }
+      else if (n == b.second.lower_bound)
+      {
+        if (n != b.second.lower_origin)
+        {
+          Trace("bound-inf") << "Replace " << n << " by origin "
+                             << b.second.lower_origin << std::endl;
+          n = b.second.lower_origin;
         }
       }
       else if (n == b.second.upper_bound)
       {
-        n = b.second.upper_origin;
+        if (n != b.second.upper_origin)
+        {
+          Trace("bound-inf") << "Replace " << n << " by origin "
+                             << b.second.upper_origin << std::endl;
+          n = b.second.upper_origin;
+        }
       }
     }
   }
