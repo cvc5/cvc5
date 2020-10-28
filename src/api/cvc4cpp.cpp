@@ -1047,13 +1047,10 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
   std::vector<CVC4::TypeNode> tparams = sortVectorToTypeNodes(params);
   if (d_type->isDatatype())
   {
-    return Sort(d_solver,
-                d_type->instantiateParametricDatatype(tparams));
+    return Sort(d_solver, d_type->instantiateParametricDatatype(tparams));
   }
   Assert(d_type->isSortConstructor());
-  return Sort(d_solver,
-              d_solver->getNodeManager()
-                  ->mkSort(*d_type, tparams));
+  return Sort(d_solver, d_solver->getNodeManager()->mkSort(*d_type, tparams));
 }
 
 std::string Sort::toString() const
@@ -1124,7 +1121,7 @@ Sort Sort::getTesterCodomainSort() const
 size_t Sort::getFunctionArity() const
 {
   CVC4_API_CHECK(isFunction()) << "Not a function sort: " << (*this);
-  return d_type->getNumChildren()-1;
+  return d_type->getNumChildren() - 1;
 }
 
 std::vector<Sort> Sort::getFunctionDomainSorts() const
@@ -1240,8 +1237,7 @@ uint32_t Sort::getFPSignificandSize() const
 std::vector<Sort> Sort::getDatatypeParamSorts() const
 {
   CVC4_API_CHECK(isParametricDatatype()) << "Not a parametric datatype sort.";
-  std::vector<CVC4::TypeNode> typeNodes =
-      d_type->getParamTypes();
+  std::vector<CVC4::TypeNode> typeNodes = d_type->getParamTypes();
   return typeNodeVectorToSorts(d_solver, typeNodes);
 }
 
@@ -1262,8 +1258,7 @@ size_t Sort::getTupleLength() const
 std::vector<Sort> Sort::getTupleSorts() const
 {
   CVC4_API_CHECK(isTuple()) << "Not a tuple sort.";
-  std::vector<CVC4::TypeNode> typeNodes =
-      d_type->getTupleTypes();
+  std::vector<CVC4::TypeNode> typeNodes = d_type->getTupleTypes();
   return typeNodeVectorToSorts(d_solver, typeNodes);
 }
 
@@ -2149,9 +2144,7 @@ DatatypeDecl::DatatypeDecl(const Solver* slv,
                            bool isCoDatatype)
     : d_solver(slv),
       d_dtype(new CVC4::DType(
-          name,
-          std::vector<TypeNode>{*param.d_type},
-          isCoDatatype))
+          name, std::vector<TypeNode>{*param.d_type}, isCoDatatype))
 {
 }
 
@@ -2326,10 +2319,8 @@ Term DatatypeConstructor::getSpecializedConstructorTerm(Sort retSort) const
   NodeManager* nm = d_solver->getNodeManager();
   Node ret = nm->mkNode(
       kind::APPLY_TYPE_ASCRIPTION,
-      nm->mkConst(AscriptionType(d_ctor
-                                     ->getSpecializedConstructorType(
-                                      *retSort.d_type)
-                                     .toType())),
+      nm->mkConst(AscriptionType(
+          d_ctor->getSpecializedConstructorType(*retSort.d_type).toType())),
       d_ctor->getConstructor());
   (void)ret.getType(true); /* kick off type checking */
   // apply type ascription to the operator
@@ -2883,8 +2874,8 @@ Sort Grammar::resolve()
 
     if (d_allowVars.find(ntSym) != d_allowVars.cend())
     {
-      addSygusConstructorVariables(
-          dtDecl, Sort(d_solver, ntSym.d_node->getType()));
+      addSygusConstructorVariables(dtDecl,
+                                   Sort(d_solver, ntSym.d_node->getType()));
     }
 
     bool aci = d_allowConst.find(ntSym) != d_allowConst.end();
@@ -3273,7 +3264,7 @@ std::vector<Sort> Solver::mkDatatypeSortsInternal(
   {
     CVC4_API_SOLVER_CHECK_SORT(sort);
   }
-  
+
   std::set<TypeNode> utypes = sortVectorToTypeNodes(unresolvedSorts);
   std::vector<CVC4::TypeNode> dtypes =
       getNodeManager()->mkMutualDatatypeTypes(datatypes, utypes);
@@ -3444,8 +3435,7 @@ Sort Solver::mkDatatypeSort(DatatypeDecl dtypedecl) const
   CVC4_API_ARG_CHECK_EXPECTED(dtypedecl.getNumConstructors() > 0, dtypedecl)
       << "a datatype declaration with at least one constructor";
 
-  return Sort(this,
-              getNodeManager()->mkDatatypeType(*dtypedecl.d_dtype));
+  return Sort(this, getNodeManager()->mkDatatypeType(*dtypedecl.d_dtype));
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -3737,8 +3727,7 @@ Term Solver::mkEmptySet(Sort s) const
   CVC4_API_ARG_CHECK_EXPECTED(s.isNull() || this == s.d_solver, s)
       << "set sort associated to this solver object";
 
-  return mkValHelper<CVC4::EmptySet>(
-      CVC4::EmptySet(*s.d_type));
+  return mkValHelper<CVC4::EmptySet>(CVC4::EmptySet(*s.d_type));
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -3768,8 +3757,7 @@ Term Solver::mkEmptyBag(Sort s) const
   CVC4_API_ARG_CHECK_EXPECTED(s.isNull() || this == s.d_solver, s)
       << "bag sort associated to this solver object";
 
-  return mkValHelper<CVC4::EmptyBag>(
-      CVC4::EmptyBag(*s.d_type));
+  return mkValHelper<CVC4::EmptyBag>(CVC4::EmptyBag(*s.d_type));
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -3822,8 +3810,7 @@ Term Solver::mkEmptySequence(Sort sort) const
   CVC4_API_SOLVER_CHECK_SORT(sort);
 
   std::vector<Node> seq;
-  Expr res =
-      d_exprMgr->mkConst(Sequence(*sort.d_type, seq));
+  Expr res = d_exprMgr->mkConst(Sequence(*sort.d_type, seq));
   return Term(this, res);
 
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -3878,8 +3865,8 @@ Term Solver::mkConstArray(Sort sort, Term val) const
   CVC4_API_CHECK(sort.isArray()) << "Not an array sort.";
   CVC4_API_CHECK(sort.getArrayElementSort().isComparableTo(val.getSort()))
       << "Value does not match element sort.";
-  Term res = mkValHelper<CVC4::ArrayStoreAll>(CVC4::ArrayStoreAll(
-      *sort.d_type, *val.d_node));
+  Term res = mkValHelper<CVC4::ArrayStoreAll>(
+      CVC4::ArrayStoreAll(*sort.d_type, *val.d_node));
   return res;
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -5243,8 +5230,8 @@ bool Solver::getInterpolant(Term conj, Grammar& g, Term& output) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   Node result;
-  bool success = d_smtEngine->getInterpol(
-      *conj.d_node, *g.resolve().d_type, result);
+  bool success =
+      d_smtEngine->getInterpol(*conj.d_node, *g.resolve().d_type, result);
   if (success)
   {
     output = Term(this, result);
@@ -5272,8 +5259,8 @@ bool Solver::getAbduct(Term conj, Grammar& g, Term& output) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   Node result;
-  bool success = d_smtEngine->getAbduct(
-      *conj.d_node, *g.resolve().d_type, result);
+  bool success =
+      d_smtEngine->getAbduct(*conj.d_node, *g.resolve().d_type, result);
   if (success)
   {
     output = Term(this, result);
@@ -5576,9 +5563,9 @@ Term Solver::synthFunHelper(const std::string& symbol,
         << *sort.d_type << " but found " << g->d_ntSyms[0].d_node->getType();
   }
 
-  TypeNode funType = varTypes.empty()
-                     ? *sort.d_type
-                     : getNodeManager()->mkFunctionType(varTypes, *sort.d_type);
+  TypeNode funType = varTypes.empty() ? *sort.d_type
+                                      : getNodeManager()->mkFunctionType(
+                                            varTypes, *sort.d_type);
 
   Node fun = getNodeManager()->mkBoundVar(symbol, funType);
   (void)fun.getType(true); /* kick off type checking */
@@ -5586,11 +5573,7 @@ Term Solver::synthFunHelper(const std::string& symbol,
   std::vector<Node> bvns = termVectorToNodes(boundVars);
 
   d_smtEngine->declareSynthFun(
-      symbol,
-      fun,
-      g == nullptr ? funType : *g->resolve().d_type,
-      isInv,
-      bvns);
+      symbol, fun, g == nullptr ? funType : *g->resolve().d_type, isInv, bvns);
 
   return Term(this, fun);
 
@@ -5657,10 +5640,8 @@ void Solver::addSygusInvConstraint(Term inv,
   CVC4_API_CHECK(trans.d_node->getType() == expectedTransType)
       << "Expected trans's sort to be " << invType;
 
-  d_smtEngine->assertSygusInvConstraint(*inv.d_node,
-                                        *pre.d_node,
-                                        *trans.d_node,
-                                        *post.d_node);
+  d_smtEngine->assertSygusInvConstraint(
+      *inv.d_node, *pre.d_node, *trans.d_node, *post.d_node);
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
@@ -5839,7 +5820,7 @@ std::vector<Sort> typeVectorToSorts(const Solver* slv,
   return sorts;
 }
 std::vector<Sort> typeNodeVectorToSorts(const Solver* slv,
-                                    const std::vector<TypeNode>& types)
+                                        const std::vector<TypeNode>& types)
 {
   std::vector<Sort> sorts;
   for (size_t i = 0, tsize = types.size(); i < tsize; i++)
