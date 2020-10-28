@@ -20,38 +20,24 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace proof {
-  
+
 Node TermProcessCallback::convert(Node n, bool toInternal)
 {
   return toInternal ? convertInternal(n) : convertExternal(n);
 }
 
-Node TermProcessCallback::convertInternal(Node n)
-{
-  return n;
-}
+Node TermProcessCallback::convertInternal(Node n) { return n; }
 
-Node TermProcessCallback::convertExternal(Node n)
-{
-  return n;
-}
+Node TermProcessCallback::convertExternal(Node n) { return n; }
 
 TypeNode TermProcessCallback::convertType(TypeNode tn, bool toInternal)
 {
   return toInternal ? convertInternalType(tn) : convertExternalType(tn);
 }
-TypeNode TermProcessCallback::convertInternalType(TypeNode tn)
-{
-  return tn;
-}
-TypeNode TermProcessCallback::convertExternalType(TypeNode tn)
-{
-  return tn;
-}
+TypeNode TermProcessCallback::convertInternalType(TypeNode tn) { return tn; }
+TypeNode TermProcessCallback::convertExternalType(TypeNode tn) { return tn; }
 
-TermProcessor::TermProcessor(TermProcessCallback * cb) : d_cb(cb)
-{
-}
+TermProcessor::TermProcessor(TermProcessCallback* cb) : d_cb(cb) {}
 
 Node TermProcessor::toInternal(Node n) { return convert(n, true); }
 Node TermProcessor::toExternal(Node n) { return convert(n, false); }
@@ -62,8 +48,8 @@ Node TermProcessor::convert(Node n, bool toInternal)
   {
     return n;
   }
-  Trace("term-process-debug") << "TermProcessor::convert: " << toInternal << " " << n
-                      << std::endl;
+  Trace("term-process-debug")
+      << "TermProcessor::convert: " << toInternal << " " << n << std::endl;
   size_t cachei = toInternal ? 0 : 1;
   std::unordered_map<Node, Node, NodeHashFunction>& cache = d_cache[cachei];
   NodeManager* nm = NodeManager::currentNM();

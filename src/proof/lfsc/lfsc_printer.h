@@ -38,8 +38,8 @@ enum class LfscRule : uint32_t
 class LfscPrinter
 {
  public:
-   LfscPrinter();
-   ~LfscPrinter(){}
+  LfscPrinter();
+  ~LfscPrinter() {}
   /**
    * Print the full proof of assertions => false by pn.
    */
@@ -75,7 +75,8 @@ class LfscPrinter
    * print let list, prints definitions of letList on out in order based on the
    * identifiers in letMap, and closing parentheses on cparen.
    */
-  void printLetList(std::ostream& out, std::ostream& cparen, 
+  void printLetList(std::ostream& out,
+                    std::ostream& cparen,
                     const std::vector<Node>& letList,
                     const std::map<Node, uint32_t>& letMap);
   /**

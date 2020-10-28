@@ -17,47 +17,50 @@
 namespace CVC4 {
 namespace proof {
 
-Node Letify::convert(Node n, const std::map<Node, uint32_t>& letMap, const std::string& prefix)
+Node Letify::convert(Node n,
+                     const std::map<Node, uint32_t>& letMap,
+                     const std::string& prefix)
 {
   std::map<Node, uint32_t>::const_iterator itl;
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
-  do 
+  do
   {
     cur = visit.back();
     visit.pop_back();
     it = visited.find(cur);
 
-    if (it == visited.end()) 
+    if (it == visited.end())
     {
       itl = letMap.find(n);
-      if (itl!=letMap.end())
+      if (itl != letMap.end())
       {
         // make the let variable
         std::stringstream ss;
         ss << prefix << itl->second;
-        visited[cur] = nm->mkBoundVar(ss.str(),n.getType());
+        visited[cur] = nm->mkBoundVar(ss.str(), n.getType());
       }
       else
       {
         visited[cur] = Node::null();
         visit.push_back(cur);
-        visit.insert(visit.end(),cur.begin(),cur.end());
+        visit.insert(visit.end(), cur.begin(), cur.end());
       }
-    } 
-    else if (it->second.isNull()) 
+    }
+    else if (it->second.isNull())
     {
       Node ret = cur;
       bool childChanged = false;
       std::vector<Node> children;
-      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED) {
+      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
         children.push_back(cur.getOperator());
       }
-      for (const Node& cn : cur )
+      for (const Node& cn : cur)
       {
         it = visited.find(cn);
         Assert(it != visited.end());
@@ -65,7 +68,7 @@ Node Letify::convert(Node n, const std::map<Node, uint32_t>& letMap, const std::
         childChanged = childChanged || cn != it->second;
         children.push_back(it->second);
       }
-      if (childChanged) 
+      if (childChanged)
       {
         ret = nm->mkNode(cur.getKind(), children);
       }
@@ -76,11 +79,11 @@ Node Letify::convert(Node n, const std::map<Node, uint32_t>& letMap, const std::
   Assert(!visited.find(n)->second.isNull());
   return visited[n];
 }
-  
+
 void Letify::computeLet(Node n,
-                             std::vector<Node>& letList,
-                             std::map<Node, uint32_t>& letMap,
-                             uint32_t& counter)
+                        std::vector<Node>& letList,
+                        std::map<Node, uint32_t>& letMap,
+                        uint32_t& counter)
 {
   Assert(letList.empty() && letMap.empty());
   std::vector<Node> visitList;
@@ -91,8 +94,8 @@ void Letify::computeLet(Node n,
 }
 
 void Letify::updateCounts(Node n,
-                                std::vector<Node>& visitList,
-                                std::map<Node, uint32_t>& count)
+                          std::vector<Node>& visitList,
+                          std::map<Node, uint32_t>& count)
 {
   std::map<Node, uint32_t>::iterator it;
   std::vector<Node> visit;
@@ -117,17 +120,17 @@ void Letify::updateCounts(Node n,
 }
 
 void Letify::updateCounts(const ProofNode* pn,
-                            std::vector<Node>& visitList,
-                            std::map<Node, uint32_t>& count)
+                          std::vector<Node>& visitList,
+                          std::map<Node, uint32_t>& count)
 {
   // TODO?
 }
 
 void Letify::convertCountToLet(const std::vector<Node>& visitList,
-                                    const std::map<Node, uint32_t>& count,
-                                    std::vector<Node>& letList,
-                                    std::map<Node, uint32_t>& letMap,
-                                    uint32_t& counter)
+                               const std::map<Node, uint32_t>& count,
+                               std::vector<Node>& letList,
+                               std::map<Node, uint32_t>& letMap,
+                               uint32_t& counter)
 {
   Assert(letList.empty() && letMap.empty());
   // Assign ids for those whose count is > 1, traverse in reverse order
@@ -149,9 +152,9 @@ void Letify::convertCountToLet(const std::vector<Node>& visitList,
 }
 
 void Letify::computeProofLet(const ProofNode* pn,
-                                  std::vector<const ProofNode*>& pletList,
-                                  std::map<const ProofNode*, uint32_t>& pletMap,
-                                  uint32_t& pcounter)
+                             std::vector<const ProofNode*>& pletList,
+                             std::map<const ProofNode*, uint32_t>& pletMap,
+                             uint32_t& pcounter)
 {
   Assert(pletList.empty() && pletMap.empty());
   std::vector<const ProofNode*> visitList;
@@ -161,10 +164,9 @@ void Letify::computeProofLet(const ProofNode* pn,
   convertProofCountToLet(visitList, pcount, pletList, pletMap, pcounter);
 }
 
-void Letify::computeProofCounts(
-    const ProofNode* pn,
-    std::vector<const ProofNode*>& visitList,
-    std::map<const ProofNode*, uint32_t>& pcount)
+void Letify::computeProofCounts(const ProofNode* pn,
+                                std::vector<const ProofNode*>& visitList,
+                                std::map<const ProofNode*, uint32_t>& pcount)
 {
   std::map<const ProofNode*, uint32_t>::iterator it;
   std::vector<const ProofNode*> visit;
@@ -218,7 +220,6 @@ void Letify::convertProofCountToLet(
     }
   }
 }
-
 
 }  // namespace proof
 }  // namespace CVC4

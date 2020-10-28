@@ -25,12 +25,12 @@
 
 namespace CVC4 {
 namespace proof {
-  
+
 class TermProcessCallback
 {
-public:
-  TermProcessCallback(){}
-  virtual ~TermProcessCallback(){}
+ public:
+  TermProcessCallback() {}
+  virtual ~TermProcessCallback() {}
   Node convert(Node n, bool toInternal);
   virtual Node convertInternal(Node n);
   virtual Node convertExternal(Node n);
@@ -42,8 +42,8 @@ public:
 class TermProcessor
 {
  public:
-   TermProcessor(TermProcessCallback * cb);
-   ~TermProcessor(){}
+  TermProcessor(TermProcessCallback* cb);
+  ~TermProcessor() {}
   /** convert to internal
    *
    * This converts the node n to the internal shape that it would be in
@@ -76,7 +76,7 @@ class TermProcessor
   /** convert */
   TypeNode convertType(TypeNode tn, bool toInternal);
   /** The callback */
-  TermProcessCallback * d_cb;
+  TermProcessCallback* d_cb;
   /** Node caches */
   std::unordered_map<Node, Node, NodeHashFunction> d_cache[2];
   /** TypeNode caches */

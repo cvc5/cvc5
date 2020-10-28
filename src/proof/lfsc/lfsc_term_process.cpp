@@ -14,16 +14,12 @@
 
 #include "proof/lfsc/lfsc_term_process.h"
 
-
 using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace proof {
 
-LfscTermProcessCallback::LfscTermProcessCallback() : TermProcessCallback()
-{
-  
-}
+LfscTermProcessCallback::LfscTermProcessCallback() : TermProcessCallback() {}
 
 Node LfscTermProcessCallback::convertInternal(Node n)
 {
@@ -73,7 +69,6 @@ TypeNode LfscTermProcessCallback::convertInternalType(TypeNode tn)
   // TODO
   return tn;
 }
-
 
 }  // namespace proof
 }  // namespace CVC4

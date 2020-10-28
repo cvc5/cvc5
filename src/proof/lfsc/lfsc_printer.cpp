@@ -20,8 +20,8 @@
 namespace CVC4 {
 namespace proof {
 
- LfscPrinter::LfscPrinter() : d_lcb(), d_tproc(&d_lcb){}
- 
+LfscPrinter::LfscPrinter() : d_lcb(), d_tproc(&d_lcb) {}
+
 void LfscPrinter::print(std::ostream& out,
                         const std::vector<Node>& assertions,
                         const ProofNode* pn)
@@ -246,9 +246,10 @@ void LfscPrinter::printLetify(std::ostream& out, Node n)
   out << cparen.str();
 }
 
-void LfscPrinter::printLetList(std::ostream& out, std::ostream& cparen, 
-                  const std::vector<Node>& letList,
-                  const std::map<Node, uint32_t>& letMap)
+void LfscPrinter::printLetList(std::ostream& out,
+                               std::ostream& cparen,
+                               const std::vector<Node>& letList,
+                               const std::map<Node, uint32_t>& letMap)
 {
   std::map<Node, uint32_t>::const_iterator it;
   for (size_t i = 0, nlets = letList.size(); i < nlets; i++)
@@ -273,12 +274,14 @@ void LfscPrinter::printInternal(std::ostream& out,
   out << Letify::convert(n, letMap, "@t");
 }
 
-void LfscPrinter::print(std::ostream& out, TypeNode tn) {
+void LfscPrinter::print(std::ostream& out, TypeNode tn)
+{
   TypeNode tni = d_tproc.toInternalType(tn);
   printInternal(out, tni);
 }
 
-void LfscPrinter::printInternal(std::ostream& out, TypeNode tn) {
+void LfscPrinter::printInternal(std::ostream& out, TypeNode tn)
+{
   // types are always printed as-is
   out << tn;
 }

@@ -29,11 +29,13 @@ namespace proof {
 class Letify
 {
  public:
-  /** 
+  /**
    * Convert n to a form that is printed assuming definitions in letMap
    * with the given prefix.
    */
-  static Node convert(Node n, const std::map<Node, uint32_t>& letMap, const std::string& prefix);
+  static Node convert(Node n,
+                      const std::map<Node, uint32_t>& letMap,
+                      const std::string& prefix);
   //------------------- letification of terms
   /** stores nodes in map that require letification */
   static void computeLet(Node n,
@@ -46,14 +48,14 @@ class Letify
    * such that visitList[i] does not contain sub visitList[j] for j>i.
    */
   static void updateCounts(Node n,
-                            std::vector<Node>& visitList,
-                            std::map<Node, uint32_t>& count);
+                           std::vector<Node>& visitList,
+                           std::map<Node, uint32_t>& count);
   /**
    * Same as above, for each node printed in proof pn
    */
   static void updateCounts(const ProofNode* pn,
-                            std::vector<Node>& visitList,
-                            std::map<Node, uint32_t>& count);
+                           std::vector<Node>& visitList,
+                           std::map<Node, uint32_t>& count);
   /**
    * Convert a count to a let list
    */

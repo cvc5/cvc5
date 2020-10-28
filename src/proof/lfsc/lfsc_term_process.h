@@ -31,12 +31,13 @@ class LfscTermProcessCallback : public TermProcessCallback
 {
  public:
   LfscTermProcessCallback();
-  ~LfscTermProcessCallback(){}
+  ~LfscTermProcessCallback() {}
   /** convert to internal */
   Node convertInternal(Node n) override;
   /** convert to internal */
   TypeNode convertInternalType(TypeNode tn) override;
-private:
+
+ private:
   //--------------------------- terms with different syntax than smt2
   /** Empty string */
   //--------------------------- terms with different syntax than smt2
