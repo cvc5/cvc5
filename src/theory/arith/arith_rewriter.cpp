@@ -791,6 +791,7 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre)
 {
   if (pre)
   {
+    // do not rewrite at prewrite.
     return RewriteResponse(REWRITE_DONE, t);
   }
   NodeManager* nm = NodeManager::currentNM();
