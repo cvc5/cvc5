@@ -2056,7 +2056,7 @@ std::ostream& operator<<(
 
 size_t TermHashFunction::operator()(const Term& t) const
 {
-  return ExprHashFunction()(t.d_node->toExpr());
+  return NodeHashFunction()(*t.d_node);
 }
 
 /* -------------------------------------------------------------------------- */
