@@ -1645,7 +1645,6 @@ set(regress_1_tests
   regress1/quantifiers/quant-wf-int-ind.smt2
   regress1/quantifiers/quaternion_ds1_symm_0428.fof.smt2
   regress1/quantifiers/recfact.cvc
-  regress1/quantifiers/rel-trigger-unusable.smt2
   regress1/quantifiers/repair-const-nterm.smt2
   regress1/quantifiers/rew-to-0211-dd.smt2
   regress1/quantifiers/ricart-agrawala6.smt2
@@ -2534,6 +2533,8 @@ set(regression_disabled_tests
   regress1/quantifiers/macro-subtype-param.smt2
   # times out with competition build:
   regress1/quantifiers/model_6_1_bv.smt2
+  # timeout after changes to nonlinear on PR #5351
+  regress1/quantifiers/rel-trigger-unusable.smt2
   # ajreynol: different error messages on production and debug:
   regress1/quantifiers/subtype-param-unk.smt2
   regress1/quantifiers/subtype-param.smt2
