@@ -48,6 +48,7 @@
 #include "expr/node_manager.h"
 #include "expr/sequence.h"
 #include "expr/type.h"
+#include "expr/type_node.h"
 #include "options/main_options.h"
 #include "options/options.h"
 #include "options/smt_options.h"
@@ -2320,7 +2321,7 @@ Term DatatypeConstructor::getSpecializedConstructorTerm(Sort retSort) const
   Node ret = nm->mkNode(
       kind::APPLY_TYPE_ASCRIPTION,
       nm->mkConst(AscriptionType(
-          d_ctor->getSpecializedConstructorType(*retSort.d_type).toType())),
+          d_ctor->getSpecializedConstructorType(*retSort.d_type))),
       d_ctor->getConstructor());
   (void)ret.getType(true); /* kick off type checking */
   // apply type ascription to the operator
