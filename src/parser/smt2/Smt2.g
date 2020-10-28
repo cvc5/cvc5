@@ -537,12 +537,12 @@ command [std::unique_ptr<CVC4::Command>* cmd]
 
 sygusCommand returns [std::unique_ptr<CVC4::Command> cmd]
 @declarations {
-  CVC4::api::Term expr, expr2;
+  CVC4::api::Term expr, expr2, fun;
   CVC4::api::Sort t, range;
   std::vector<std::string> names;
   std::vector<std::pair<std::string, CVC4::api::Sort> > sortedVarNames;
-  std::unique_ptr<Smt2::SynthFunFactory> synthFunFactory;
-  std::string name, fun;
+  std::vector<CVC4::api::Term> sygusVars;
+  std::string name;
   bool isInv;
   CVC4::api::Grammar* grammar = nullptr;
 }
@@ -552,7 +552,8 @@ sygusCommand returns [std::unique_ptr<CVC4::Command> cmd]
     { PARSER_STATE->checkUserSymbol(name); }
     sortSymbol[t,CHECK_DECLARED]
     {
-      api::Term var = PARSER_STATE->bindBoundVar(name, t);
+      api::Term var = SOLVER->mkSygusVar(t, name);
+      PARSER_STATE->defineVar(name, var);
       cmd.reset(new DeclareSygusVarCommand(name, var, t));
     }
   | /* synth-fun */
@@ -560,22 +561,36 @@ sygusCommand returns [std::unique_ptr<CVC4::Command> cmd]
       | SYNTH_INV_TOK { isInv = true; range = SOLVER->getBooleanSort(); }
     )
     { PARSER_STATE->checkThatLogicIsSet(); }
-    symbol[fun,CHECK_UNDECLARED,SYM_VARIABLE]
+    symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     ( sortSymbol[range,CHECK_DECLARED] )?
     {
-      synthFunFactory.reset(new Smt2::SynthFunFactory(
-          PARSER_STATE, fun, isInv, range, sortedVarNames));
+      PARSER_STATE->pushScope(true);
+      sygusVars = PARSER_STATE->bindBoundVars(sortedVarNames);
     }
     (
       // optionally, read the sygus grammar
       //
       // `grammar` specifies the required grammar for the function to
       // synthesize, expressed as a type
-      sygusGrammar[grammar, synthFunFactory->getSygusVars(), fun]
+      sygusGrammar[grammar, sygusVars, name]
     )?
     {
-      cmd = synthFunFactory->mkCommand(grammar);
+      Debug("parser-sygus") << "Define synth fun : " << name << std::endl;
+
+      fun = isInv ? (grammar == nullptr
+                         ? SOLVER->synthInv(name, sygusVars)
+                         : SOLVER->synthInv(name, sygusVars, *grammar))
+                  : (grammar == nullptr
+                         ? SOLVER->synthFun(name, sygusVars, range)
+                         : SOLVER->synthFun(name, sygusVars, range, *grammar));
+
+      Debug("parser-sygus") << "...read synth fun " << name << std::endl;
+      PARSER_STATE->popScope();
+      // we do not allow overloading for synth fun
+      PARSER_STATE->defineVar(name, fun);
+      cmd = std::unique_ptr<Command>(
+          new SynthFunCommand(name, fun, sygusVars, range, isInv, grammar));
     }
   | /* constraint */
     CONSTRAINT_TOK {
