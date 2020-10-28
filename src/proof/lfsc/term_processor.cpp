@@ -125,7 +125,8 @@ TypeNode TermProcessor::convertType(TypeNode tn, bool toInternal)
   Trace("term-process-debug")
       << "TermProcessor::convertType: " << toInternal << " " << tn << std::endl;
   size_t cachei = toInternal ? 0 : 1;
-  std::unordered_map<TypeNode, TypeNode, TypeNodeHashFunction>& cache = d_tcache[cachei];
+  std::unordered_map<TypeNode, TypeNode, TypeNodeHashFunction>& cache =
+      d_tcache[cachei];
   std::unordered_map<TypeNode, TypeNode, TypeNodeHashFunction>::iterator it;
   std::vector<TypeNode> visit;
   TypeNode cur;
@@ -145,11 +146,14 @@ TypeNode TermProcessor::convertType(TypeNode tn, bool toInternal)
     {
       // reconstruct using a node builder
       NodeBuilder<> nb(cur.getKind());
-      if(cur.getMetaKind() == kind::metakind::PARAMETERIZED) {
+      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
         // push the operator
         nb << cur.getOperator();
       }
-      for (TypeNode::const_iterator j = cur.begin(), iend = cur.end(); j != iend; ++j)
+      for (TypeNode::const_iterator j = cur.begin(), iend = cur.end();
+           j != iend;
+           ++j)
       {
         it = cache.find(*j);
         Assert(it != cache.end());

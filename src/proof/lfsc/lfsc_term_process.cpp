@@ -19,7 +19,8 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace proof {
 
-LfscTermProcessCallback::LfscTermProcessCallback() : TermProcessCallback() {
+LfscTermProcessCallback::LfscTermProcessCallback() : TermProcessCallback()
+{
   d_arrow = NodeManager::currentNM()->mkSortConstructor("arrow", 2);
   d_sortType = NodeManager::currentNM()->mkSort("sortType");
 }
@@ -54,7 +55,7 @@ Node LfscTermProcessCallback::convertInternal(Node n)
     // "A" is (char 65)
     // "ABC" is (str.++ (char 65) (str.++ (char 66) (char 67)))
     const std::vector<unsigned>& vec = n.getConst<String>().getVec();
-    if (vec.size()==0)
+    if (vec.size() == 0)
     {
       return getSymbolInternalFor(n, "emptystr");
     }
@@ -74,12 +75,13 @@ Node LfscTermProcessCallback::convertInternal(Node n)
     {
       tmp.push_back(v[i]);
       // also convert internal
-      ret = nm->mkNode(STRING_CONCAT, convertInternal(nm->mkConst(String(tmp))), ret);
+      ret = nm->mkNode(
+          STRING_CONCAT, convertInternal(nm->mkConst(String(tmp))), ret);
       tmp.pop_back();
     }
     return ret;
   }
-  else if (k==ITE)
+  else if (k == ITE)
   {
     // TODO: indexed type argument
     std::vector<TypeNode> argTypes;
@@ -109,13 +111,15 @@ Node LfscTermProcessCallback::convertInternal(Node n)
 TypeNode LfscTermProcessCallback::convertInternalType(TypeNode tn)
 {
   Kind k = tn.getKind();
-  if (k==FUNCTION_TYPE)
+  if (k == FUNCTION_TYPE)
   {
     NodeManager* nm = NodeManager::currentNM();
     // (-> T1 ... Tn T) is (arrow T1 .... (arrow Tn T))
     std::vector<TypeNode> argTypes = tn.getArgTypes();
     TypeNode cur = tn.getRangeType();
-    for (std::vector<TypeNode>::reverse_iterator it = argTypes.rbegin(); it != argTypes.rend(); ++it)
+    for (std::vector<TypeNode>::reverse_iterator it = argTypes.rbegin();
+         it != argTypes.rend();
+         ++it)
     {
       std::vector<TypeNode> aargs;
       aargs.push_back(*it);
@@ -127,16 +131,22 @@ TypeNode LfscTermProcessCallback::convertInternalType(TypeNode tn)
   return tn;
 }
 
-Node LfscTermProcessCallback::getSymbolInternalFor(Node n, const std::string& name, uint32_t v)
+Node LfscTermProcessCallback::getSymbolInternalFor(Node n,
+                                                   const std::string& name,
+                                                   uint32_t v)
 {
   return getSymbolInternal(n.getKind(), n.getType(), name, v);
 }
 
-Node LfscTermProcessCallback::getSymbolInternal(Kind k, TypeNode tn, const std::string& name, uint32_t v)
+Node LfscTermProcessCallback::getSymbolInternal(Kind k,
+                                                TypeNode tn,
+                                                const std::string& name,
+                                                uint32_t v)
 {
   std::tuple<Kind, TypeNode, uint32_t> key(k, tn, v);
-  std::map<std::tuple<Kind, TypeNode, uint32_t>, Node>::iterator it = d_symbols.find(key);
-  if (it!=d_symbols.end())
+  std::map<std::tuple<Kind, TypeNode, uint32_t>, Node>::iterator it =
+      d_symbols.find(key);
+  if (it != d_symbols.end())
   {
     return it->second;
   }

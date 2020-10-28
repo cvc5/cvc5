@@ -26,10 +26,10 @@
 namespace CVC4 {
 namespace proof {
 
-/** 
-  * Generic term processor callback. This is a postrewrite callback that
-  * converts terms into an "internal" form.
-  */
+/**
+ * Generic term processor callback. This is a postrewrite callback that
+ * converts terms into an "internal" form.
+ */
 class TermProcessCallback
 {
  public:
@@ -37,7 +37,7 @@ class TermProcessCallback
   virtual ~TermProcessCallback() {}
   /** Convert to/from internal */
   Node convert(Node n, bool toInternal);
-  /** 
+  /**
    * Convert internal, where n is a term of the form:
    *   (f i_1 ... i_m)
    * where i_1, ..., i_m are "internal" terms. In particular, these terms
