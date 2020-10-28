@@ -3557,7 +3557,7 @@ Sort Solver::mkRecordSort(
         this == p.second.d_solver, "parameter sort", p.second, i)
         << "sort associated to this solver object";
     i += 1;
-    f.emplace_back(p.first, *p.second.d_type);
+    f.emplace_back(p.first, p.second.d_type->toType());
   }
 
   return Sort(this, getNodeManager()->mkRecordType(Record(f)));
