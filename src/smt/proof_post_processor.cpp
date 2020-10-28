@@ -375,6 +375,67 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     cdp->addStep(args[0], PfRule::EQ_RESOLVE, {children[0], eq}, {});
     return args[0];
   }
+  else if (id == PfRule::MACRO_RESOLUTION)
+  {
+    // first generate the naive chain_resolution
+    std::vector<Node> chainResArgs{args.begin()+1, args.end()};
+    Node chainConclusion = d_pnm->getChecker()->checkDebug(
+        PfRule::CHAIN_RESOLUTION, children, chainResArgs, Node::null(), "");
+    Trace("smt-proof-pp-debug") << "Original conclusion: " << args[0] << "\n";
+    Trace("smt-proof-pp-debug") << "chainRes conclusion: " << chainConclusion << "\n";
+    // There are n cases:
+    // - if the conclusion is the same, just replace
+    // - if they have the same literals but in different quantity, add a FACTORING step
+    // - if the order is not the same, add a REORDERING step
+    // - if there are literals in chainConclusion that are not in the original
+    //   conclusion, we need to transform the MACRO_RESOLUTION into a series of
+    //   CHAIN_RESOLUTION + FACTORING steps, so that we explicitly eliminate all
+    //   literals that must be eliminated while not adding an exponential number
+    //   of premises
+    if (chainConclusion == args[0])
+    {
+      cdp->addStep(
+          chainConclusion, PfRule::CHAIN_RESOLUTION, children, chainResArgs);
+      return chainConclusion;
+    }
+    // get the literals in the chain conclusion
+    std::vector<Node> chainConclusionLits{chainConclusion.begin(),
+                                          chainConclusion.end()};
+    std::unordered_set<Node, NodeHashFunction> chainConclusionLitsSet{
+        chainConclusion.begin(), chainConclusion.end()};
+    // is args[0] a unit clause? If it's not an OR node, then yes. Otherwise,
+    // it's only a unit if it occurs in chainConclusionLitsSet
+    std::vector<Node> conclusionLits;
+    // whether conclusion is unit
+    if (chainConclusionLitsSet.count(args[0]))
+    {
+      conclusionLits.push_back(args[0]);
+    }
+    else
+    {
+      Assert(args[0].getKind() == kind::OR);
+      conclusionLits.insert(
+          conclusionLits.end(), args[0].begin(), args[0].end());
+    }
+    std::unordered_set<Node, NodeHashFunction> conclusionLitsSet{
+        conclusionLits.begin(), conclusionLits.end()};
+    Assert(chainConclusionLitsSet != conclusionLitsSet
+           || chainConclusionLits.size() != conclusionLits.size());
+    // whether same literals
+    if (chainConclusionLitsSet == conclusionLitsSet)
+    {
+      // factoring
+      if (chainConclusionLits.size() != conclusionLits.size())
+      {
+
+      }
+    }
+    // there are "crowding" literals
+    else
+    {
+      Trace("smt-proof-pp-debug") << "... crowding literals\n";
+    }
+  }
   else if (id == PfRule::SUBS)
   {
     NodeManager* nm = NodeManager::currentNM();
