@@ -943,6 +943,11 @@ std::ostream& operator<<(std::ostream& out, const Result& r)
 /* Sort                                                                       */
 /* -------------------------------------------------------------------------- */
 
+Sort::Sort(const Solver* slv, const CVC4::Type& t)
+    : d_solver(slv), d_type(new CVC4::TypeNode(TypeNode::fromType(t)))
+{
+  
+}
 Sort::Sort(const Solver* slv, const CVC4::TypeNode& t)
     : d_solver(slv), d_type(new CVC4::TypeNode(t))
 {
@@ -1066,6 +1071,7 @@ std::string Sort::toString() const
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
+const CVC4::Type& Sort::getType(void) const { return d_type->toType(); }
 const CVC4::TypeNode& Sort::getTypeNode(void) const { return *d_type; }
 
 /* Constructor sort ------------------------------------------------------- */

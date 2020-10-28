@@ -224,6 +224,7 @@ class CVC4_PUBLIC Sort
    * @param t the internal type that is to be wrapped by this sort
    * @return the Sort
    */
+  Sort(const Solver* slv, const CVC4::Type& t);
   Sort(const Solver* slv, const CVC4::TypeNode& t);
 
   /**
@@ -488,6 +489,7 @@ class CVC4_PUBLIC Sort
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
+  const CVC4::Type& getType(void) const;
   const CVC4::TypeNode& getTypeNode(void) const;
 
   /* Constructor sort ------------------------------------------------------- */
