@@ -343,7 +343,22 @@ void ICPSolver::check()
         Trace("nl-icp") << "Found a conflict: " << d_state.d_conflict
                         << std::endl;
 
-        d_im.addConflict(d_state.d_conflict, InferenceId::NL_ICP_CONFLICT);
+        // d_im.addConflict(d_state.d_conflict, InferenceId::NL_ICP_CONFLICT);
+        std::vector<Node> mis;
+        for (const auto& n : d_state.d_conflict)
+        {
+          mis.emplace_back(n.negate());
+        }
+        if (mis.size() == 1)
+        {
+          d_im.addPendingArithLemma(mis.front(), InferenceId::NL_ICP_CONFLICT);
+        }
+        else
+        {
+          d_im.addPendingArithLemma(
+              NodeManager::currentNM()->mkNode(Kind::OR, mis),
+              InferenceId::NL_ICP_CONFLICT);
+        }
         did_progress = true;
         progress = false;
         break;
