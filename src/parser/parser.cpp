@@ -229,8 +229,7 @@ std::vector<api::Term> Parser::bindBoundVars(
   std::vector<api::Term> vars;
   for (std::pair<std::string, api::Sort>& i : sortedVarNames)
   {
-    vars.push_back(
-        bindBoundVar(i.first, i.second));
+    vars.push_back(bindBoundVar(i.first, i.second));
   }
   return vars;
 }
