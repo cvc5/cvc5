@@ -3684,8 +3684,8 @@ Term Solver::mkPi() const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
 
-  NodeManager* nm = getNodeManager();
-  Node res = nm->mkNullaryOperator(nm->realType(), CVC4::kind::PI);
+  Expr res =
+      d_exprMgr->mkNullaryOperator(d_exprMgr->realType(), CVC4::kind::PI);
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
 
