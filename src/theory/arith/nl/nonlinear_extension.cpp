@@ -339,8 +339,7 @@ std::vector<Node> NonlinearExtension::checkModelEval(
   return false_asserts;
 }
 
-bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
-                                    std::vector<Node>& gs)
+bool NonlinearExtension::checkModel(const std::vector<Node>& assertions)
 {
   Trace("nl-ext-cm") << "--- check-model ---" << std::endl;
 
@@ -367,7 +366,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
   Trace("nl-ext-cm") << "-----" << std::endl;
   unsigned tdegree = d_trSlv.getTaylorDegree();
   std::vector<NlLemma> lemmas;
-  bool ret = d_model.checkModel(passertions, tdegree, lemmas, gs);
+  bool ret = d_model.checkModel(passertions, tdegree, lemmas);
   for (const auto& al: lemmas)
   {
     d_im.addPendingArithLemma(al);
@@ -540,17 +539,9 @@ bool NonlinearExtension::modelBasedRefinement()
           << std::endl;
       // check the model based on simple solving of equalities and using
       // error bounds on the Taylor approximation of transcendental functions.
-      std::vector<Node> gs;
-      if (checkModel(assertions, gs))
+      if (checkModel(assertions))
       {
         complete_status = 1;
-      }
-      for (const Node& mg : gs)
-      {
-        Node mgr = Rewriter::rewrite(mg);
-        mgr = d_containing.getValuation().ensureLiteral(mgr);
-        d_containing.getOutputChannel().requirePhase(mgr, true);
-        d_builtModel = true;
       }
       if (d_im.hasUsed())
       {
@@ -622,6 +613,11 @@ bool NonlinearExtension::modelBasedRefinement()
                         << std::endl;
         d_containing.getOutputChannel().setIncomplete();
       }
+    }
+    else
+    {
+      // we have built a model
+      d_builtModel = true;
     }
     d_im.clearWaitingLemmas();
   } while (needsRecheck);

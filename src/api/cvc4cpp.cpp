@@ -51,6 +51,7 @@
 #include "options/main_options.h"
 #include "options/options.h"
 #include "options/smt_options.h"
+#include "proof/unsat_core.h"
 #include "smt/model.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_mode.h"
@@ -2082,7 +2083,7 @@ std::ostream& operator<<(
 
 size_t TermHashFunction::operator()(const Term& t) const
 {
-  return ExprHashFunction()(t.d_node->toExpr());
+  return NodeHashFunction()(*t.d_node);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -5145,7 +5146,7 @@ std::vector<Term> Solver::getUnsatCore(void) const
    *   return std::vector<Term>(core.begin(), core.end());
    * here since constructor is private */
   std::vector<Term> res;
-  for (const Expr& e : core)
+  for (const Node& e : core)
   {
     res.push_back(Term(this, e));
   }

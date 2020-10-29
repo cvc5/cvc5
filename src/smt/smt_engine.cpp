@@ -1054,7 +1054,7 @@ std::vector<Node> SmtEngine::getUnsatAssumptions(void)
   std::vector<Node>& assumps = d_asserts->getAssumptions();
   for (const Node& e : assumps)
   {
-    if (std::find(core.begin(), core.end(), e.toExpr()) != core.end())
+    if (std::find(core.begin(), core.end(), e) != core.end())
     {
       res.push_back(e);
     }
@@ -1540,7 +1540,7 @@ void SmtEngine::checkUnsatCore() {
 
   Notice() << "SmtEngine::checkUnsatCore(): pushing core assertions (size == " << core.size() << ")" << endl;
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
-    Node assertionAfterExpansion = expandDefinitions(Node::fromExpr(*i));
+    Node assertionAfterExpansion = expandDefinitions(*i);
     Notice() << "SmtEngine::checkUnsatCore(): pushing core member " << *i
              << ", expanded to " << assertionAfterExpansion << "\n";
     coreChecker.assertFormula(assertionAfterExpansion);
