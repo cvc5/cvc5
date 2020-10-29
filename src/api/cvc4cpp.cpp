@@ -954,7 +954,15 @@ Sort::Sort(const Solver* slv, const CVC4::TypeNode& t)
 
 Sort::Sort() : d_solver(nullptr), d_type(new CVC4::TypeNode()) {}
 
-Sort::~Sort() {}
+Sort::~Sort() {
+  if (d_solver != nullptr)
+  {
+    // Ensure that the correct node manager is in scope when the node is
+    // destroyed.
+    NodeManagerScope scope(d_solver->getNodeManager());
+    d_type.reset();
+  }
+}
 
 /* Helpers                                                                    */
 /* -------------------------------------------------------------------------- */
@@ -2165,11 +2173,7 @@ DatatypeDecl::DatatypeDecl(const Solver* slv,
                            bool isCoDatatype)
     : d_solver(slv)
 {
-  std::vector<TypeNode> tparams;
-  for (const Sort& p : params)
-  {
-    tparams.push_back(*p.d_type);
-  }
+  std::vector<TypeNode> tparams = sortVectorToTypeNodes(params);
   d_dtype = std::shared_ptr<CVC4::DType>(
       new CVC4::DType(name, tparams, isCoDatatype));
 }
