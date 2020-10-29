@@ -24,7 +24,6 @@
 
 #include "expr/expr_manager.h"
 #include "expr/node.h"
-#include "expr/variable_type_map.h"
 #include "smt/smt_engine.h"
 
 namespace CVC4 {

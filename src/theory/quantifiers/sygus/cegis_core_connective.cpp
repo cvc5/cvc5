@@ -611,7 +611,7 @@ bool CegisCoreConnective::getUnsatCore(
   bool hasQuery = false;
   for (UnsatCore::const_iterator i = uc.begin(); i != uc.end(); ++i)
   {
-    Node uassert = Node::fromExpr(*i);
+    Node uassert = *i;
     Trace("sygus-ccore-debug") << "  uc " << uassert << std::endl;
     if (queryAsserts.find(uassert) != queryAsserts.end())
     {
