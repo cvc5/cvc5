@@ -1204,16 +1204,22 @@ std::string Sort::getUninterpretedSortName() const
 bool Sort::isUninterpretedSortParameterized() const
 {
   CVC4_API_CHECK(isUninterpretedSort()) << "Not an uninterpreted sort.";
-  // FIXME?
-  return false;
+  // This method is not implemented in the NodeManager, since whether a
+  // uninterpreted sort is parametrized is irrelevant for solving.
+  return d_type->getNumChildren()>0;
 }
 
 std::vector<Sort> Sort::getUninterpretedSortParamSorts() const
 {
   CVC4_API_CHECK(isUninterpretedSort()) << "Not an uninterpreted sort.";
-  // FIXME?
-  std::vector<Sort> emptyList;
-  return emptyList;
+  // This method is not implemented in the NodeManager, since whether a
+  // uninterpreted sort is parametrized is irrelevant for solving.
+  std::vector<TypeNode> params;
+  for (size_t i=0, nchildren = d_type->getNumChildren(); i<nchildren(); i++)
+  {
+    params.push_back((*d_type)[i]);
+  }
+  return typeNodeVectorToSorts(d_solver, params);
 }
 
 /* Sort constructor sort ----------------------------------------------- */
