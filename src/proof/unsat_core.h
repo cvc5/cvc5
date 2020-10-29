@@ -15,7 +15,7 @@
  ** \todo document this file
  **/
 
-#include "cvc4_public.h"
+#include "cvc4_private.h"
 
 #ifndef CVC4__UNSAT_CORE_H
 #define CVC4__UNSAT_CORE_H
@@ -23,29 +23,27 @@
 #include <iosfwd>
 #include <vector>
 
-#include "expr/expr.h"
+#include "expr/node.h"
 
 namespace CVC4 {
 
 class SmtEngine;
-class UnsatCore;
 
-std::ostream& operator<<(std::ostream& out, const UnsatCore& core) CVC4_PUBLIC;
-
-class CVC4_PUBLIC UnsatCore {
-  friend std::ostream& operator<<(std::ostream&, const UnsatCore&);
-
+class UnsatCore
+{
   /** The SmtEngine we're associated with */
   SmtEngine* d_smt;
 
-  std::vector<Expr> d_core;
+  std::vector<Node> d_core;
 
   void initMessage() const;
 
 public:
   UnsatCore() : d_smt(NULL) {}
 
-  UnsatCore(SmtEngine* smt, std::vector<Expr> core) : d_smt(smt), d_core(core) {
+  UnsatCore(SmtEngine* smt, const std::vector<Node>& core)
+      : d_smt(smt), d_core(core)
+  {
     initMessage();
   }
 
@@ -56,8 +54,8 @@ public:
 
   size_t size() const { return d_core.size(); }
 
-  typedef std::vector<Expr>::const_iterator iterator;
-  typedef std::vector<Expr>::const_iterator const_iterator;
+  typedef std::vector<Node>::const_iterator iterator;
+  typedef std::vector<Node>::const_iterator const_iterator;
 
   const_iterator begin() const;
   const_iterator end() const;
@@ -68,6 +66,9 @@ public:
   void toStream(std::ostream& out) const;
 
 };/* class UnsatCore */
+
+/** Print the unsat core to stream out */
+std::ostream& operator<<(std::ostream& out, const UnsatCore& core);
 
 }/* CVC4 namespace */
 

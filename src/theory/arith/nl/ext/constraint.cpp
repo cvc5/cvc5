@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file nl_constraint.cpp
+/*! \file constraint.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King
@@ -12,7 +12,7 @@
  ** \brief Implementation of utilities for non-linear constraints
  **/
 
-#include "theory/arith/nl/nl_constraint.h"
+#include "theory/arith/nl/ext/constraint.h"
 
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
