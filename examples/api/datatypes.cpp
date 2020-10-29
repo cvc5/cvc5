@@ -39,7 +39,7 @@ void test(Solver& slv, Sort& consListSort)
   Term t = slv.mkTerm(
       APPLY_CONSTRUCTOR,
       consList.getConstructorTerm("cons"),
-      slv.mkReal(0),
+      slv.mkInteger(0),
       slv.mkTerm(APPLY_CONSTRUCTOR, consList.getConstructorTerm("nil")));
 
   std::cout << "t is " << t << std::endl
@@ -124,7 +124,7 @@ void test(Solver& slv, Sort& consListSort)
             << "sort of cons is "
             << paramConsList.getConstructorTerm("cons").getSort() << std::endl
             << std::endl;
-  Term assertion = slv.mkTerm(GT, head_a, slv.mkReal(50));
+  Term assertion = slv.mkTerm(GT, head_a, slv.mkInteger(50));
   std::cout << "Assert " << assertion << std::endl;
   slv.assertFormula(assertion);
   std::cout << "Expect sat." << std::endl;

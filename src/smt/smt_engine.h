@@ -29,7 +29,6 @@
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "options/options.h"
-#include "proof/unsat_core.h"
 #include "smt/logic_exception.h"
 #include "smt/output_manager.h"
 #include "smt/smt_mode.h"
@@ -59,6 +58,7 @@ class DecisionEngine;
 class TheoryEngine;
 
 class ProofManager;
+class UnsatCore;
 
 class LogicRequest;
 class StatisticsRegistry;

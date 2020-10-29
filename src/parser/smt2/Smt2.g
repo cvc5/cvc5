@@ -1710,7 +1710,7 @@ identifier[CVC4::ParseOp& p]
         // we adopt a special syntax (_ tupSel n)
         p.d_kind = api::APPLY_SELECTOR;
         // put m in expr so that the caller can deal with this case
-        p.d_expr = SOLVER->mkReal(AntlrInput::tokenToUnsigned($m));
+        p.d_expr = SOLVER->mkInteger(AntlrInput::tokenToUnsigned($m));
       }
     | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
       {
@@ -1735,7 +1735,7 @@ termAtomic[CVC4::api::Term& atomTerm]
   : INTEGER_LITERAL
     {
       std::string intStr = AntlrInput::tokenText($INTEGER_LITERAL);
-      atomTerm = SOLVER->mkReal(intStr);
+      atomTerm = SOLVER->mkInteger(intStr);
     }
   | DECIMAL_LITERAL
     {
@@ -1830,7 +1830,7 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
     {
       std::stringstream sIntLit;
       sIntLit << $INTEGER_LITERAL;
-      api::Term n = SOLVER->mkReal(sIntLit.str());
+      api::Term n = SOLVER->mkInteger(sIntLit.str());
       std::vector<api::Term> values;
       values.push_back( n );
       std::string attr_name(AntlrInput::tokenText($tok));
