@@ -48,7 +48,12 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
                   containing.getOutputChannel()),
       d_model(containing.getSatContext()),
       d_trSlv(d_im, d_model),
-      d_nlSlv(d_im, state, d_model),
+      d_extState(d_im, d_model, containing.getSatContext()),
+      d_factoringSlv(d_im, d_model),
+      d_monomialBoundsSlv(&d_extState),
+      d_monomialSlv(&d_extState),
+      d_splitZeroSlv(&d_extState, state.getUserContext()),
+      d_tangentPlaneSlv(&d_extState),
       d_cadSlv(d_im, d_model),
       d_icpSlv(d_im),
       d_iandSlv(d_im, state, d_model),
@@ -262,8 +267,7 @@ std::vector<Node> NonlinearExtension::checkModelEval(
   return false_asserts;
 }
 
-bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
-                                    std::vector<Node>& gs)
+bool NonlinearExtension::checkModel(const std::vector<Node>& assertions)
 {
   Trace("nl-ext-cm") << "--- check-model ---" << std::endl;
 
@@ -290,7 +294,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
   Trace("nl-ext-cm") << "-----" << std::endl;
   unsigned tdegree = d_trSlv.getTaylorDegree();
   std::vector<NlLemma> lemmas;
-  bool ret = d_model.checkModel(passertions, tdegree, lemmas, gs);
+  bool ret = d_model.checkModel(passertions, tdegree, lemmas);
   for (const auto& al: lemmas)
   {
     d_im.addPendingArithLemma(al);
@@ -463,17 +467,9 @@ bool NonlinearExtension::modelBasedRefinement()
           << std::endl;
       // check the model based on simple solving of equalities and using
       // error bounds on the Taylor approximation of transcendental functions.
-      std::vector<Node> gs;
-      if (checkModel(assertions, gs))
+      if (checkModel(assertions))
       {
         complete_status = 1;
-      }
-      for (const Node& mg : gs)
-      {
-        Node mgr = Rewriter::rewrite(mg);
-        mgr = d_containing.getValuation().ensureLiteral(mgr);
-        d_containing.getOutputChannel().requirePhase(mgr, true);
-        d_builtModel = true;
       }
       if (d_im.hasUsed())
       {
@@ -546,6 +542,11 @@ bool NonlinearExtension::modelBasedRefinement()
         d_containing.getOutputChannel().setIncomplete();
       }
     }
+    else
+    {
+      // we have built a model
+      d_builtModel = true;
+    }
     d_im.clearWaitingLemmas();
   } while (needsRecheck);
 
@@ -615,7 +616,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
       case InferStep::CAD_FULL: d_cadSlv.checkFull(); break;
       case InferStep::CAD_INIT: d_cadSlv.initLastCall(assertions); break;
       case InferStep::NL_FACTORING:
-        d_nlSlv.checkFactoring(assertions, false_asserts);
+        d_factoringSlv.check(assertions, false_asserts);
         break;
       case InferStep::IAND_INIT:
         d_iandSlv.initLastCall(assertions, false_asserts, xts);
@@ -627,30 +628,30 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
         d_icpSlv.check();
         break;
       case InferStep::NL_INIT:
-        d_nlSlv.initLastCall(assertions, false_asserts, xts);
+        d_extState.init(xts);
+        d_monomialBoundsSlv.init();
+        d_monomialSlv.init(xts);
         break;
       case InferStep::NL_MONOMIAL_INFER_BOUNDS:
-        d_nlSlv.checkMonomialInferBounds(assertions, false_asserts);
+        d_monomialBoundsSlv.checkBounds(assertions, false_asserts);
         break;
       case InferStep::NL_MONOMIAL_MAGNITUDE0:
-        d_nlSlv.checkMonomialMagnitude(0);
+        d_monomialSlv.checkMagnitude(0);
         break;
       case InferStep::NL_MONOMIAL_MAGNITUDE1:
-        d_nlSlv.checkMonomialMagnitude(1);
+        d_monomialSlv.checkMagnitude(1);
         break;
       case InferStep::NL_MONOMIAL_MAGNITUDE2:
-        d_nlSlv.checkMonomialMagnitude(2);
+        d_monomialSlv.checkMagnitude(2);
         break;
-      case InferStep::NL_MONOMIAL_SIGN: d_nlSlv.checkMonomialSign(); break;
+      case InferStep::NL_MONOMIAL_SIGN: d_monomialSlv.checkSign(); break;
       case InferStep::NL_RESOLUTION_BOUNDS:
-        d_nlSlv.checkMonomialInferResBounds();
+        d_monomialBoundsSlv.checkResBounds();
         break;
-      case InferStep::NL_SPLIT_ZERO: d_nlSlv.checkSplitZero(); break;
-      case InferStep::NL_TANGENT_PLANES:
-        d_nlSlv.checkTangentPlanes(false);
-        break;
+      case InferStep::NL_SPLIT_ZERO: d_splitZeroSlv.check(); break;
+      case InferStep::NL_TANGENT_PLANES: d_tangentPlaneSlv.check(false); break;
       case InferStep::NL_TANGENT_PLANES_WAITING:
-        d_nlSlv.checkTangentPlanes(true);
+        d_tangentPlaneSlv.check(true);
         break;
       case InferStep::TRANS_INIT:
         d_trSlv.initLastCall(assertions, false_asserts, xts);
