@@ -173,6 +173,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Term mkFalse() except +
         Term mkBoolean(bint val) except +
         Term mkPi() except +
+        Term mkInteger(const string& s) except +
         Term mkReal(const string& s) except +
         Term mkRegexpEmpty() except +
         Term mkRegexpSigma() except +
@@ -329,7 +330,6 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         bint hasOp() except +
         Op getOp() except +
         bint isNull() except +
-        bint isValue() except +
         Term getConstArrayBase() except +
         vector[Term] getConstSequenceElements() except +
         Term notTerm() except +

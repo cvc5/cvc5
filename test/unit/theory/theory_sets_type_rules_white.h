@@ -56,7 +56,7 @@ class SetsTypeRuleWhite : public CxxTest::TestSuite
     Sort realSort = d_slv->getRealSort();
     Sort intSort = d_slv->getIntegerSort();
     Term emptyReal = d_slv->mkEmptySet(d_slv->mkSetSort(realSort));
-    Term one = d_slv->mkReal(1);
+    Term one = d_slv->mkInteger(1);
     Term singletonInt = d_slv->mkSingleton(intSort, one);
     Term singletonReal = d_slv->mkSingleton(realSort, one);
     // (union
