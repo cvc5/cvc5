@@ -176,7 +176,8 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
   Valuation v = d_containing.getValuation();
   NodeManager* nm = NodeManager::currentNM();
 
-  d_boundInference.reset();
+  BoundInference bounds;
+
   std::unordered_set<Node, NodeHashFunction> init_assertions;
 
   for (Theory::assertions_iterator it = d_containing.facts_begin();
@@ -192,14 +193,14 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
       // not relevant, skip
       continue;
     }
-    if (d_boundInference.add(lit, false))
+    if (bounds.add(lit, false))
     {
       continue;
     }
     init_assertions.insert(lit);
   }
 
-  for (const auto& vb : d_boundInference.get())
+  for (const auto& vb : bounds.get())
   {
     const Bounds& b = vb.second;
     if (!b.lower_bound.isNull())
