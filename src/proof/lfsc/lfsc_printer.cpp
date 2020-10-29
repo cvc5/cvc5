@@ -16,9 +16,25 @@
 
 #include "expr/node_algorithm.h"
 #include "proof/lfsc/letify.h"
+#include "expr/proof_checker.h"
 
 namespace CVC4 {
 namespace proof {
+
+const char* toString(LfscRule id)
+{
+  switch (id)
+  {
+    case LfscRule::NEG_SYM: return "neg_sym";
+    case LfscRule::CONG: return "cong";
+    default: return "?";
+  }
+}
+std::ostream& operator<<(std::ostream& out, LfscRule id)
+{
+  out << toString(id);
+  return out;
+}
 
 LfscPrinter::LfscPrinter() : d_lcb(), d_tproc(&d_lcb) {}
 
@@ -218,10 +234,42 @@ void LfscPrinter::printProofInternal(
   } while (!visit.empty());
 }
 
-void LfscPrinter::computeProofArgs(const ProofNode* pn,
+bool LfscPrinter::computeProofArgs(const ProofNode* pn,
                                    std::vector<PExpr>& pargs)
 {
+  const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
+  std::vector<const ProofNode *> cs;
+  for (const std::shared_ptr<ProofNode>& c : children)
+  {
+    cs.push_back(c.get());
+  }
+  const std::vector<Node>& as = pn->getArguments();
+                
+  PExprStream pf(pargs);
+  // hole
+  PExpr h;
   // TODO: what arguments does the proof rule take?
+  switch (pn->getRule())
+  {
+    case PfRule::TRANS:
+      pf << h << h << h << cs[0] << cs[1];
+      break;
+    case PfRule::LFSC_RULE:
+    {
+      LfscRule lr = getLfscRule(as[0]);
+      switch(lr)
+      {
+        
+        default:
+          return false;
+          break;
+      }
+    }
+    default:
+      return false;
+      break;
+  }
+  return true;
 }
 
 void LfscPrinter::print(std::ostream& out, Node n)
@@ -277,8 +325,9 @@ void LfscPrinter::printInternal(std::ostream& out,
                                 Node n,
                                 const std::map<Node, uint32_t>& letMap)
 {
-  // TODO: dag thresh 0 print?
-  out << Letify::convert(n, letMap, "@t");
+  // TODO: smt2 printer, dag thresh 0 print?
+  Node nc = Letify::convert(n, letMap, "@t"); 
+  out << nc;
 }
 
 void LfscPrinter::print(std::ostream& out, TypeNode tn)
@@ -290,14 +339,37 @@ void LfscPrinter::print(std::ostream& out, TypeNode tn)
 void LfscPrinter::printInternal(std::ostream& out, TypeNode tn)
 {
   // (internal) types are always printed as-is
+  // TODO: smt2 printer
   out << tn;
+}
+
+bool LfscPrinter::getLfscRule(Node n, LfscRule& lr)
+{
+  uint32_t id;
+  if (ProofRuleChecker::getUInt32(n,id))
+  {
+    lr = static_cast<LfscRule>(id);
+    return true;
+  }
+  return false;
+}
+
+LfscRule LfscPrinter::getLfscRule(Node n)
+{
+  LfscRule lr = LfscRule::NONE;
+  getLfscRule(n, lr);
+  return lr;
 }
 
 void LfscPrinter::printRule(std::ostream& out, const ProofNode* pn)
 {
-  // TODO: proper conversion
-
-  // By default, convert to lower case?
+  if (pn->getRule()==PfRule::LFSC_RULE)
+  {
+    const std::vector<Node>& args = pn->getArguments();
+    out << getLfscRule(args[0]);
+    return;
+  }
+  // Otherwise, convert to lower case
   std::stringstream ss;
   ss << pn->getRule();
   std::string rname = ss.str();

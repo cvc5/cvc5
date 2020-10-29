@@ -83,14 +83,20 @@ Node Letify::convert(Node n,
 void Letify::computeLet(Node n,
                         std::vector<Node>& letList,
                         std::map<Node, uint32_t>& letMap,
-                        uint32_t& counter)
+                        uint32_t& counter,
+                         uint32_t thresh)
 {
   Assert(letList.empty() && letMap.empty());
+  if (thresh==0)
+  {
+    // value of 0 means do not introduce let
+    return;
+  }
   std::vector<Node> visitList;
   std::map<Node, uint32_t> count;
   updateCounts(n, visitList, count);
   // Now populate the letList and letMap
-  convertCountToLet(visitList, count, letList, letMap, counter);
+  convertCountToLet(visitList, count, letList, letMap, counter, thresh);
 }
 
 void Letify::updateCounts(Node n,
@@ -130,9 +136,15 @@ void Letify::convertCountToLet(const std::vector<Node>& visitList,
                                const std::map<Node, uint32_t>& count,
                                std::vector<Node>& letList,
                                std::map<Node, uint32_t>& letMap,
-                               uint32_t& counter)
+                               uint32_t& counter,
+                         uint32_t thresh)
 {
   Assert(letList.empty() && letMap.empty());
+  if (thresh==0)
+  {
+    // value of 0 means do not introduce let
+    return;
+  }
   // Assign ids for those whose count is > 1, traverse in reverse order
   // so that deeper proofs are assigned lower identifiers
   std::map<Node, uint32_t>::const_iterator itc;
@@ -142,7 +154,7 @@ void Letify::convertCountToLet(const std::vector<Node>& visitList,
   {
     itc = count.find(*it);
     Assert(itc != count.end());
-    if (itc->second > 1)
+    if (itc->second >= thresh)
     {
       letList.push_back(*it);
       letMap[*it] = counter;
@@ -154,14 +166,20 @@ void Letify::convertCountToLet(const std::vector<Node>& visitList,
 void Letify::computeProofLet(const ProofNode* pn,
                              std::vector<const ProofNode*>& pletList,
                              std::map<const ProofNode*, uint32_t>& pletMap,
-                             uint32_t& pcounter)
+                             uint32_t& pcounter,
+                         uint32_t thresh)
 {
   Assert(pletList.empty() && pletMap.empty());
+  if (thresh==0)
+  {
+    // value of 0 means do not introduce let
+    return;
+  }
   std::vector<const ProofNode*> visitList;
   std::map<const ProofNode*, uint32_t> pcount;
   computeProofCounts(pn, visitList, pcount);
   // Now populate the pletList and pletMap
-  convertProofCountToLet(visitList, pcount, pletList, pletMap, pcounter);
+  convertProofCountToLet(visitList, pcount, pletList, pletMap, pcounter, thresh);
 }
 
 void Letify::computeProofCounts(const ProofNode* pn,
@@ -199,9 +217,15 @@ void Letify::convertProofCountToLet(
     const std::map<const ProofNode*, uint32_t>& pcount,
     std::vector<const ProofNode*>& pletList,
     std::map<const ProofNode*, uint32_t>& pletMap,
-    uint32_t& pcounter)
+    uint32_t& pcounter,
+                         uint32_t thresh)
 {
   Assert(pletList.empty() && pletMap.empty());
+  if (thresh==0)
+  {
+    // value of 0 means do not introduce let
+    return;
+  }
   // Assign ids for those whose count is > 1, traverse in reverse order
   // so that deeper proofs are assigned lower identifiers
   std::map<const ProofNode*, uint32_t>::const_iterator itc;
@@ -212,7 +236,7 @@ void Letify::convertProofCountToLet(
   {
     itc = pcount.find(*itp);
     Assert(itc != pcount.end());
-    if (itc->second > 1)
+    if (itc->second >= thresh)
     {
       pletList.push_back(*itp);
       pletMap[*itp] = pcounter;

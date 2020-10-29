@@ -166,9 +166,8 @@ const char* toString(PfRule id)
 
       //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
 
-      //================================================= Place holder for Lean
-      // rules
-
+    //================================================= External rules
+    case PfRule::LFSC_RULE: return "LFSC_RULE";
     case PfRule::LEAN_RULE: return "LEAN_RULE";
 
     //================================================= Unknown rule

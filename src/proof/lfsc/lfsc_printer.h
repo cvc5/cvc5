@@ -32,8 +32,30 @@ namespace proof {
  */
 enum class LfscRule : uint32_t
 {
-  NONE,
+  NEG_SYM,
+  CONG,
+  UNKNOWN,
 };
+
+/**
+ * Converts a lfsc rule to a string. Note: This function is also used in
+ * `safe_print()`. Changing this function name or signature will result in
+ * `safe_print()` printing "<unsupported>" instead of the proper strings for
+ * the enum values.
+ *
+ * @param id The lfsc rule
+ * @return The name of the lfsc rule
+ */
+const char* toString(LfscRule id);
+
+/**
+ * Writes a lfsc rule name to a stream.
+ *
+ * @param out The stream to write to
+ * @param id The lfsc rule to write to the stream
+ * @return The stream
+ */
+std::ostream& operator<<(std::ostream& out, LfscRule id);
 
 class LfscPrinter
 {
@@ -93,8 +115,36 @@ class LfscPrinter
     PExpr(Node n) : d_node(n), d_pnode(nullptr) {}
     PExpr(const ProofNode* pn) : d_node(), d_pnode(pn) {}
     ~PExpr() {}
+    /** The node */
     Node d_node;
+    /** The proof node */
     const ProofNode* d_pnode;
+  };
+  class PExprStream
+  {
+  public:
+    PExprStream(std::vector<PExpr>& stream) : d_stream(stream){}
+    /** Append a proof node */
+    PExprStream& operator<<(const ProofNode* pn)
+    {
+      d_stream.push_back(PExpr(pn));
+      return *this;
+    }
+    /** Append a node */
+    PExprStream& operator<<(Node n)
+    {
+      d_stream.push_back(PExpr(n));
+      return *this;
+    }
+    /** Append a pexpr */
+    PExprStream& operator<<(PExpr p)
+    {
+      d_stream.push_back(p);
+      return *this;
+    }
+  private:
+    /** Reference to the stream */
+    std::vector<PExpr>& d_stream;
   };
   /**
    * Print proof internal, after term lets and proofs for assumptions have
@@ -118,19 +168,19 @@ class LfscPrinter
   void computeProofArgs(const ProofNode* pn, std::vector<PExpr>& pargs);
   //------------------------------ end printing proofs
 
-  //------------------- atomic printing
-  void printRule(std::ostream& out, const ProofNode*);
-  void printId(std::ostream& out, uint32_t id);
-  void printProofId(std::ostream& out, uint32_t id);
-  void printAssumeId(std::ostream& out, uint32_t id);
-  //------------------- end atomic printing
+  //------------------- helper methods
+  static bool getLfscRule(Node n, LfscRule& lr);
+  static LfscRule getLfscRule(Node n);
+  static void printRule(std::ostream& out, const ProofNode*);
+  static void printId(std::ostream& out, uint32_t id);
+  static void printProofId(std::ostream& out, uint32_t id);
+  static void printAssumeId(std::ostream& out, uint32_t id);
+  //------------------- end helper methods
 
   /** The LFSC term processor callback */
   LfscTermProcessCallback d_lcb;
   /** The term processor */
   TermProcessor d_tproc;
-  /** A hole */
-  PExpr d_hole;
 };
 
 }  // namespace proof
