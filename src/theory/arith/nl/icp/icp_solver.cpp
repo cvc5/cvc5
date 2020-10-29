@@ -348,16 +348,8 @@ void ICPSolver::check()
         {
           mis.emplace_back(n.negate());
         }
-        if (mis.size() == 1)
-        {
-          d_im.addPendingArithLemma(mis.front(), InferenceId::NL_ICP_CONFLICT);
-        }
-        else
-        {
-          d_im.addPendingArithLemma(
-              NodeManager::currentNM()->mkNode(Kind::OR, mis),
-              InferenceId::NL_ICP_CONFLICT);
-        }
+        d_im.addPendingArithLemma(NodeManager::currentNM()->mkOr(mis),
+                                  InferenceId::NL_ICP_CONFLICT);
         did_progress = true;
         progress = false;
         break;
