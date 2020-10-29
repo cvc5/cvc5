@@ -3166,18 +3166,17 @@ Term Solver::mkTermFromKind(Kind kind) const
       kind == PI || kind == REGEXP_EMPTY || kind == REGEXP_SIGMA, kind)
       << "PI or REGEXP_EMPTY or REGEXP_SIGMA";
 
-  NodeManager* nm = getNodeManager();
-  Node res;
+  Expr res;
   if (kind == REGEXP_EMPTY || kind == REGEXP_SIGMA)
   {
     CVC4::Kind k = extToIntKind(kind);
     Assert(isDefinedIntKind(k));
-    res = nm->mkNode(k, std::vector<Node>());
+    res = d_exprMgr->mkExpr(k, std::vector<Expr>());
   }
   else
   {
     Assert(kind == PI);
-    res = nm->mkNullaryOperator(nm->realType(), CVC4::kind::PI);
+    res = d_exprMgr->mkNullaryOperator(d_exprMgr->realType(), CVC4::kind::PI);
   }
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);

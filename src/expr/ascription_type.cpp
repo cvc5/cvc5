@@ -37,11 +37,11 @@ AscriptionType::~AscriptionType() {}
 TypeNode AscriptionType::getType() const { return *d_type.get(); }
 bool AscriptionType::operator==(const AscriptionType& other) const
 {
-  return d_type == other.d_type;
+  return getType() == other.getType();
 }
 bool AscriptionType::operator!=(const AscriptionType& other) const
 {
-  return d_type != other.d_type;
+  return getType() != other.getType();
 }
 
 size_t AscriptionTypeHashFunction::operator()(const AscriptionType& at) const
