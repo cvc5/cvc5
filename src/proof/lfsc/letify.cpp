@@ -84,10 +84,10 @@ void Letify::computeLet(Node n,
                         std::vector<Node>& letList,
                         std::map<Node, uint32_t>& letMap,
                         uint32_t& counter,
-                         uint32_t thresh)
+                        uint32_t thresh)
 {
   Assert(letList.empty() && letMap.empty());
-  if (thresh==0)
+  if (thresh == 0)
   {
     // value of 0 means do not introduce let
     return;
@@ -137,10 +137,10 @@ void Letify::convertCountToLet(const std::vector<Node>& visitList,
                                std::vector<Node>& letList,
                                std::map<Node, uint32_t>& letMap,
                                uint32_t& counter,
-                         uint32_t thresh)
+                               uint32_t thresh)
 {
   Assert(letList.empty() && letMap.empty());
-  if (thresh==0)
+  if (thresh == 0)
   {
     // value of 0 means do not introduce let
     return;
@@ -167,10 +167,10 @@ void Letify::computeProofLet(const ProofNode* pn,
                              std::vector<const ProofNode*>& pletList,
                              std::map<const ProofNode*, uint32_t>& pletMap,
                              uint32_t& pcounter,
-                         uint32_t thresh)
+                             uint32_t thresh)
 {
   Assert(pletList.empty() && pletMap.empty());
-  if (thresh==0)
+  if (thresh == 0)
   {
     // value of 0 means do not introduce let
     return;
@@ -179,7 +179,8 @@ void Letify::computeProofLet(const ProofNode* pn,
   std::map<const ProofNode*, uint32_t> pcount;
   computeProofCounts(pn, visitList, pcount);
   // Now populate the pletList and pletMap
-  convertProofCountToLet(visitList, pcount, pletList, pletMap, pcounter, thresh);
+  convertProofCountToLet(
+      visitList, pcount, pletList, pletMap, pcounter, thresh);
 }
 
 void Letify::computeProofCounts(const ProofNode* pn,
@@ -218,10 +219,10 @@ void Letify::convertProofCountToLet(
     std::vector<const ProofNode*>& pletList,
     std::map<const ProofNode*, uint32_t>& pletMap,
     uint32_t& pcounter,
-                         uint32_t thresh)
+    uint32_t thresh)
 {
   Assert(pletList.empty() && pletMap.empty());
-  if (thresh==0)
+  if (thresh == 0)
   {
     // value of 0 means do not introduce let
     return;

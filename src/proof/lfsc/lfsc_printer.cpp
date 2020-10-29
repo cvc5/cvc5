@@ -15,8 +15,8 @@
 #include "proof/lfsc/lfsc_printer.h"
 
 #include "expr/node_algorithm.h"
-#include "proof/lfsc/letify.h"
 #include "expr/proof_checker.h"
+#include "proof/lfsc/letify.h"
 
 namespace CVC4 {
 namespace proof {
@@ -238,36 +238,29 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
                                    std::vector<PExpr>& pargs)
 {
   const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
-  std::vector<const ProofNode *> cs;
+  std::vector<const ProofNode*> cs;
   for (const std::shared_ptr<ProofNode>& c : children)
   {
     cs.push_back(c.get());
   }
   const std::vector<Node>& as = pn->getArguments();
-                
+
   PExprStream pf(pargs);
   // hole
   PExpr h;
   // TODO: what arguments does the proof rule take?
   switch (pn->getRule())
   {
-    case PfRule::TRANS:
-      pf << h << h << h << cs[0] << cs[1];
-      break;
+    case PfRule::TRANS: pf << h << h << h << cs[0] << cs[1]; break;
     case PfRule::LFSC_RULE:
     {
       LfscRule lr = getLfscRule(as[0]);
-      switch(lr)
+      switch (lr)
       {
-        
-        default:
-          return false;
-          break;
+        default: return false; break;
       }
     }
-    default:
-      return false;
-      break;
+    default: return false; break;
   }
   return true;
 }
@@ -326,7 +319,7 @@ void LfscPrinter::printInternal(std::ostream& out,
                                 const std::map<Node, uint32_t>& letMap)
 {
   // TODO: smt2 printer, dag thresh 0 print?
-  Node nc = Letify::convert(n, letMap, "@t"); 
+  Node nc = Letify::convert(n, letMap, "@t");
   out << nc;
 }
 
@@ -346,7 +339,7 @@ void LfscPrinter::printInternal(std::ostream& out, TypeNode tn)
 bool LfscPrinter::getLfscRule(Node n, LfscRule& lr)
 {
   uint32_t id;
-  if (ProofRuleChecker::getUInt32(n,id))
+  if (ProofRuleChecker::getUInt32(n, id))
   {
     lr = static_cast<LfscRule>(id);
     return true;
@@ -363,7 +356,7 @@ LfscRule LfscPrinter::getLfscRule(Node n)
 
 void LfscPrinter::printRule(std::ostream& out, const ProofNode* pn)
 {
-  if (pn->getRule()==PfRule::LFSC_RULE)
+  if (pn->getRule() == PfRule::LFSC_RULE)
   {
     const std::vector<Node>& args = pn->getArguments();
     out << getLfscRule(args[0]);

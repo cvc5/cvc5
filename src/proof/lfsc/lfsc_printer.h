@@ -122,8 +122,8 @@ class LfscPrinter
   };
   class PExprStream
   {
-  public:
-    PExprStream(std::vector<PExpr>& stream) : d_stream(stream){}
+   public:
+    PExprStream(std::vector<PExpr>& stream) : d_stream(stream) {}
     /** Append a proof node */
     PExprStream& operator<<(const ProofNode* pn)
     {
@@ -142,7 +142,8 @@ class LfscPrinter
       d_stream.push_back(p);
       return *this;
     }
-  private:
+
+   private:
     /** Reference to the stream */
     std::vector<PExpr>& d_stream;
   };
