@@ -83,6 +83,7 @@ void NormalForm::addToExplanation(Node exp,
                                   unsigned new_val,
                                   unsigned new_rev_val)
 {
+  Assert(!exp.isConst());
   if (std::find(d_exp.begin(), d_exp.end(), exp) == d_exp.end())
   {
     d_exp.push_back(exp);
@@ -177,11 +178,9 @@ void NormalForm::getExplanationForPrefixEq(NormalForm& nfi,
   Trace("strings-explain-prefix")
       << "Included " << curr_exp.size() << " / "
       << (nfi.d_exp.size() + nfj.d_exp.size()) << std::endl;
-  if (nfi.d_base != nfj.d_base)
-  {
-    Node eq = nfi.d_base.eqNode(nfj.d_base);
-    curr_exp.push_back(eq);
-  }
+  // add explanation for why they are equal
+  Node eq = nfi.d_base.eqNode(nfj.d_base);
+  curr_exp.push_back(eq);
 }
 
 }  // namespace strings
