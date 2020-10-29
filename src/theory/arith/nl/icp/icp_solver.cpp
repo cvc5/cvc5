@@ -343,7 +343,6 @@ void ICPSolver::check()
         Trace("nl-icp") << "Found a conflict: " << d_state.d_conflict
                         << std::endl;
 
-        // d_im.addConflict(d_state.d_conflict, InferenceId::NL_ICP_CONFLICT);
         std::vector<Node> mis;
         for (const auto& n : d_state.d_conflict)
         {

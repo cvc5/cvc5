@@ -85,12 +85,6 @@ class InferenceManager : public InferenceManagerBuffered
    */
   void clearWaitingLemmas();
 
-  /** Add a conflict to the this inference manager. */
-  void addConflict(std::vector<Node>& conf, InferenceId inftype);
-
-  /** Add a conflict processor. */
-  void addConflictProcessor(ConflictProcessor&& cp);
-
   /**
    * Checks whether we have made any progress, that is whether a conflict, lemma
    * or fact was added or whether a lemma or fact is pending.
@@ -126,13 +120,6 @@ class InferenceManager : public InferenceManagerBuffered
   /** cache of all preprocessed lemmas sent on the output channel
    * (user-context-dependent) */
   NodeSet d_lemmasPp;
-
-  /**
-   * Stores conflict processors. They are used to post-process all conflicts,
-   * usually to replace assertions that were derived internally by
-   * pre-processings by their origins.
-   */
-  std::vector<ConflictProcessor> d_conflictProcessors;
 };
 
 }  // namespace arith

@@ -63,7 +63,6 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
-  d_im.addConflictProcessor([this](std::vector<Node>& conf){ d_boundInference.replaceByOrigins(conf); });
 }
 
 NonlinearExtension::~NonlinearExtension() {}
