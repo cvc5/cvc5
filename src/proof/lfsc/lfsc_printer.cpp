@@ -50,11 +50,13 @@ void LfscPrinter::print(std::ostream& out,
     }
   }
   // [1b] user declare function symbols
+  uint32_t vidCounter = 0;
   for (const Node& s : syms)
   {
-    out << "(declare " << s << " ";
+    out << "(define " << s << " (var " << vidCounter << " ";
     print(out, s.getType());
-    out << ")";
+    out << "))";
+    vidCounter++;
   }
 
   // [2] print the check command and term lets
@@ -71,6 +73,7 @@ void LfscPrinter::print(std::ostream& out,
   std::vector<Node> letList;
   std::map<Node, uint32_t> letMap;
   Letify::convertCountToLet(visitList, count, letList, letMap, counter);
+  // print the let list
   printLetList(out, cparen, letList, letMap);
 
   // [3] print the assertions, with letification
@@ -81,9 +84,9 @@ void LfscPrinter::print(std::ostream& out,
     Node ia = iasserts[i];
     out << "(% ";
     printAssumeId(out, i);
-    out << " ";
+    out << " (holds ";
     printInternal(out, ia, letMap);
-    out << std::endl;
+    out << ")" << std::endl;
     cparen << ")";
     // remember the assumption name
     passumeMap[ia] = i;
@@ -258,9 +261,13 @@ void LfscPrinter::printLetList(std::ostream& out,
     it = letMap.find(nl);
     Assert(it != letMap.end());
     out << "(@ ";
-    printId(out, it->second);
+    uint32_t id = it->second;
+    printId(out, id);
     out << " ";
+    // remove, print, insert again
+    letMap.erase(nl);
     printInternal(out, nl, letMap);
+    letMap[nl] = id;
     out << std::endl;
     cparen << ")";
   }
@@ -289,7 +296,15 @@ void LfscPrinter::printInternal(std::ostream& out, TypeNode tn)
 void LfscPrinter::printRule(std::ostream& out, const ProofNode* pn)
 {
   // TODO: proper conversion
-  out << pn->getRule();
+  
+  
+  // By default, convert to lower case?
+  std::stringstream ss;
+  ss << pn->getRule();
+  std::string rname = ss.str();
+  std::transform(rname.begin(), rname.end(), rname.begin(),
+      [](unsigned char c){ return std::tolower(c); });
+  out << rname;
 }
 
 void LfscPrinter::printId(std::ostream& out, uint32_t id) { out << "@t" << id; }

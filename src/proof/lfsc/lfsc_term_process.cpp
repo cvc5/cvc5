@@ -14,6 +14,8 @@
 
 #include "proof/lfsc/lfsc_term_process.h"
 
+#include "theory/uf/theory_uf_rewriter.h"
+
 using namespace CVC4::kind;
 
 namespace CVC4 {
@@ -30,7 +32,20 @@ Node LfscTermProcessCallback::convertInternal(Node n)
   NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
   TypeNode tn = n.getType();
-  if (k == CONST_RATIONAL)
+  if (k == APPLY_UF)
+  {
+    return convertInternal(theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n));
+  }
+  else if (k == HO_APPLY)
+  {
+    std::vector<TypeNode> argTypes;
+    argTypes.push_back(n[0].getType());
+    argTypes.push_back(n[1].getType());
+    TypeNode tnh = nm->mkFunctionType(argTypes, tn);
+    Node hconstf = getSymbolInternal(k, tnh, "apply");
+    return nm->mkNode(APPLY_UF, hconstf, n[0], n[1]);
+  }
+  else if (k == CONST_RATIONAL)
   {
     TypeNode tnv = nm->mkFunctionType(tn, tn);
     // FIXME: subtyping makes this incorrect
@@ -91,6 +106,14 @@ Node LfscTermProcessCallback::convertInternal(Node n)
     argTypes.push_back(tn);
     TypeNode tni = nm->mkFunctionType(argTypes, tn);
     Node itep = getSymbolInternal(k, tni, "ite");
+    std::vector<Node> args;
+    args.push_back(itep);
+    args.push_back(n[0]);
+    Node tv; // TODO
+    args.push_back(tv);
+    args.push_back(n[1]);
+    args.push_back(n[2]);
+    return nm->mkNode(APPLY_UF, args);
   }
   else if (ExprManager::isNAryKind(k) && n.getNumChildren() >= 2)
   {
