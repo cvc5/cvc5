@@ -167,7 +167,7 @@ TypeNode TermProcessor::convertType(TypeNode tn, bool toInternal)
       cache[cur] = ret;
     }
   } while (!visit.empty());
-  Assert(cache.find(n) != cache.end());
+  Assert(cache.find(tn) != cache.end());
   Assert(!cache.find(tn)->second.isNull());
   return cache[tn];
 }
