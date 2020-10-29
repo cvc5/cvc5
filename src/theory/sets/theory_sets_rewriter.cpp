@@ -135,13 +135,13 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
           << "Sets::postRewrite returning " << node[0] << std::endl;
       return RewriteResponse(REWRITE_AGAIN, node[0]);
     }
-    else if (node[0].getKind() == kind::UNIVERSE_SET
-             && node[1].getKind() == kind::SETMINUS
-             && node[1][0].getKind() == kind::UNIVERSE_SET)
-    {
-      // (setminus (as univset (Set T)) (setminus (as univset (Set T)) A)) = A
-      return RewriteResponse(REWRITE_AGAIN, node[1][1]);
-    }
+//    else if (node[0].getKind() == kind::UNIVERSE_SET
+//             && node[1].getKind() == kind::SETMINUS
+//             && node[1][0].getKind() == kind::UNIVERSE_SET)
+//    {
+//      // (setminus (as univset (Set T)) (setminus (as univset (Set T)) A)) = A
+//      // return RewriteResponse(REWRITE_AGAIN, node[1][1]);
+//    }
     else if (node[1].getKind() == kind::UNIVERSE_SET)
     {
       return RewriteResponse(
@@ -534,14 +534,14 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
                                       nm->mkNode(kind::UNION, node[0], node[1]),
                                       node[1]) );
   }
-  else if (k == kind::COMPLEMENT)
-  {
-    if (node[0].getKind() == COMPLEMENT)
-    {
-      // (complement (complement A)) = A
-      return RewriteResponse(REWRITE_AGAIN, node[0][0]);
-    }
-  }
+//  else if (k == kind::COMPLEMENT)
+//  {
+//    if (node[0].getKind() == COMPLEMENT)
+//    {
+//      // (complement (complement A)) = A
+//      // return RewriteResponse(REWRITE_AGAIN, node[0][0]);
+//    }
+//  }
   // could have an efficient normalizer for union here
 
   return RewriteResponse(REWRITE_DONE, node);

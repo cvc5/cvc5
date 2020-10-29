@@ -85,6 +85,12 @@ class TheorySetsPrivate {
    * in the current context.
    */
   void checkReduceComprehensions();
+  /**
+   * Check complements adds the following lemma:
+   * - (and (= A univset) (= B univset) (setminus A (setminus B S)))
+        => (= S (setminus A (setminus B S))
+   */
+  void checkComplements();
 
   void addCarePairs(TNodeTrie* t1,
                     TNodeTrie* t2,

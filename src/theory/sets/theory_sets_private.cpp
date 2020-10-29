@@ -389,6 +389,8 @@ void TheorySetsPrivate::fullEffortCheck()
     }
     // check reduce comprehensions
     checkReduceComprehensions();
+    // check complements
+    checkComplements();
     d_im.doPendingLemmas();
     if (d_im.hasSent())
     {
@@ -1372,6 +1374,48 @@ Node TheorySetsPrivate::getChooseFunction(const TypeNode& setType)
 }
 
 void TheorySetsPrivate::presolve() { d_state.reset(); }
+
+void TheorySetsPrivate::checkComplements()
+{
+  if (!options::setsExt())
+  {
+    return;
+  }
+  const std::map<Node, std::map<Node, Node> >& map =
+      d_state.getBinaryOpIndex(SETMINUS);
+  for (const auto& pair1 : map)
+  {
+    // look for the pattern (setminus A (setminus B S)) where A, B are
+    // equivalent to the universe set
+    Node A = pair1.first;
+    for (const auto& pair2 : pair1.second)
+    {
+      Node child1 = pair2.first;
+      if (child1.getKind() != SETMINUS)
+      {
+        continue;
+      }
+      Node B = child1[0];
+      Node univ = d_state.getUnivSetEqClass(pair1.first.getType());
+      if (!(d_state.areEqual(univ, A) && d_state.areEqual(univ, B)))
+      {
+        continue;
+      }
+      // add the following lemma
+      // (and (= A univset) (= B univset) (setminus A (setminus B S)))
+      // =>
+      // (= S (setminus A (setminus B S))
+      Node S = child1[1];
+      Node parent = pair2.second;
+      Node equal = Rewriter::rewrite(S.eqNode(parent));
+      NodeManager* nm = NodeManager::currentNM();
+      Node AisUniv = nm->mkNode(EQUAL, A, univ);
+      Node BisUniv = nm->mkNode(EQUAL, B, univ);
+      Node explanation = AisUniv.andNode(BisUniv);
+      d_im.assertInference(equal, explanation, "complement of a complement", 1);
+    }
+  }
+}
 
 }  // namespace sets
 }  // namespace theory

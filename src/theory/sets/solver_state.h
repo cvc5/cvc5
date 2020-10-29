@@ -146,6 +146,13 @@ class SolverState : public TheoryState
    */
   const std::map<Kind, std::map<Node, std::map<Node, Node> > >&
   getBinaryOpIndex() const;
+
+  /** Get binary operator index
+   *
+   * This returns the binary operator index of the given kind.
+   * See getBinaryOpIndex() above.
+   */
+  const std::map<Node, std::map<Node, Node> >& getBinaryOpIndex(Kind k);
   /** get operator list
    *
    * This returns a mapping from set kinds to a list of terms of that kind
