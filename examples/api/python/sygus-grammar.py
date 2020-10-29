@@ -38,7 +38,7 @@ if __name__ == "__main__":
   start = slv.mkVar(integer, "Start")
 
   # define the rules
-  zero = slv.mkReal(0)
+  zero = slv.mkInteger(0)
   neg_x = slv.mkTerm(kinds.Uminus, x)
   plus = slv.mkTerm(kinds.Plus, x, start)
 
