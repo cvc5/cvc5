@@ -32,6 +32,7 @@
 #include "options/options.h"
 #include "options/smt_options.h"
 #include "printer/printer.h"
+#include "proof/unsat_core.h"
 #include "smt/dump.h"
 #include "smt/model.h"
 #include "smt/smt_engine.h"
@@ -581,16 +582,7 @@ api::Sort DeclareSygusVarCommand::getSort() const { return d_sort; }
 
 void DeclareSygusVarCommand::invoke(api::Solver* solver)
 {
-  try
-  {
-    solver->getSmtEngine()->declareSygusVar(
-        d_symbol, d_var.getNode(), TypeNode::fromType(d_sort.getType()));
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
+  d_commandStatus = CommandSuccess::instance();
 }
 
 Command* DeclareSygusVarCommand::clone() const
@@ -646,27 +638,7 @@ const api::Grammar* SynthFunCommand::getGrammar() const { return d_grammar; }
 
 void SynthFunCommand::invoke(api::Solver* solver)
 {
-  try
-  {
-    std::vector<Node> vns;
-    for (const api::Term& t : d_vars)
-    {
-      vns.push_back(Node::fromExpr(t.getExpr()));
-    }
-    solver->getSmtEngine()->declareSynthFun(
-        d_symbol,
-        Node::fromExpr(d_fun.getExpr()),
-        TypeNode::fromType(d_grammar == nullptr
-                               ? d_sort.getType()
-                               : d_grammar->resolve().getType()),
-        d_isInv,
-        vns);
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
+  d_commandStatus = CommandSuccess::instance();
 }
 
 Command* SynthFunCommand::clone() const
@@ -2370,8 +2342,8 @@ void GetUnsatCoreCommand::invoke(api::Solver* solver)
 {
   try
   {
-    d_result = UnsatCore(solver->getSmtEngine(),
-                         api::termVectorToExprs(solver->getUnsatCore()));
+    d_solver = solver;
+    d_result = solver->getUnsatCore();
 
     d_commandStatus = CommandSuccess::instance();
   }
@@ -2394,11 +2366,12 @@ void GetUnsatCoreCommand::printResult(std::ostream& out,
   }
   else
   {
-    d_result.toStream(out);
+    UnsatCore ucr(d_solver->getSmtEngine(), api::termVectorToNodes(d_result));
+    ucr.toStream(out);
   }
 }
 
-const UnsatCore& GetUnsatCoreCommand::getUnsatCore() const
+const std::vector<api::Term>& GetUnsatCoreCommand::getUnsatCore() const
 {
   // of course, this will be empty if the command hasn't been invoked yet
   return d_result;
@@ -2407,6 +2380,7 @@ const UnsatCore& GetUnsatCoreCommand::getUnsatCore() const
 Command* GetUnsatCoreCommand::clone() const
 {
   GetUnsatCoreCommand* c = new GetUnsatCoreCommand;
+  c->d_solver = d_solver;
   c->d_result = d_result;
   return c;
 }

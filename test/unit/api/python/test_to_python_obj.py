@@ -15,7 +15,7 @@ def testGetBool():
 
 def testGetInt():
     solver = pycvc4.Solver()
-    two = solver.mkReal(2)
+    two = solver.mkInteger(2)
     assert two.toPythonObj() == 2
 
 
@@ -27,7 +27,7 @@ def testGetReal():
     neg34 = solver.mkReal("-3/4")
     assert neg34.toPythonObj() == Fraction(-3, 4)
 
-    neg1 = solver.mkReal("-1")
+    neg1 = solver.mkInteger("-1")
     assert neg1.toPythonObj() == -1
 
 
@@ -40,12 +40,10 @@ def testGetBV():
 def testGetArray():
     solver = pycvc4.Solver()
     arrsort = solver.mkArraySort(solver.getRealSort(), solver.getRealSort())
-    zero_array = solver.mkConstArray(arrsort, solver.mkReal(0))
-    stores = solver.mkTerm(kinds.Store, zero_array, solver.mkReal(1), solver.mkReal(2))
-    stores = solver.mkTerm(kinds.Store, stores, solver.mkReal(2), solver.mkReal(3))
-    stores = solver.mkTerm(kinds.Store, stores, solver.mkReal(4), solver.mkReal(5))
-
-    assert stores.isValue()
+    zero_array = solver.mkConstArray(arrsort, solver.mkInteger(0))
+    stores = solver.mkTerm(kinds.Store, zero_array, solver.mkInteger(1), solver.mkInteger(2))
+    stores = solver.mkTerm(kinds.Store, stores, solver.mkInteger(2), solver.mkInteger(3))
+    stores = solver.mkTerm(kinds.Store, stores, solver.mkInteger(4), solver.mkInteger(5))
 
     array_dict = stores.toPythonObj()
 
@@ -58,10 +56,7 @@ def testGetArray():
 
 def testGetSymbol():
     solver = pycvc4.Solver()
-    x = solver.mkConst(solver.getBooleanSort(), "x")
-
-    with pytest.raises(RuntimeError):
-        x.toPythonObj()
+    solver.mkConst(solver.getBooleanSort(), "x")
 
 
 def testGetString():

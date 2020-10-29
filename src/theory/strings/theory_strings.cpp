@@ -610,24 +610,18 @@ void TheoryStrings::notifyFact(TNode atom,
     }
   }
   // process pending conflicts due to reasoning about endpoints
-  if (!d_state.isInConflict())
+  if (!d_state.isInConflict() && d_state.hasPendingConflict())
   {
-    Node pc = d_state.getPendingConflict();
-    if (!pc.isNull())
-    {
-      Trace("strings-pending")
-          << "Process pending conflict " << pc << std::endl;
-      InferInfo iiPrefixConf;
-      iiPrefixConf.d_id = Inference::PREFIX_CONFLICT;
-      iiPrefixConf.d_conc = d_false;
-      utils::flattenOp(AND, pc, iiPrefixConf.d_ant);
-      Trace("strings-conflict")
-          << "CONFLICT: Eager prefix : " << pc << std::endl;
-      ++(d_statistics.d_conflictsEagerPrefix);
-      // call the inference manager to send the conflict
-      d_im.processConflict(iiPrefixConf);
-      return;
-    }
+    InferInfo iiPendingConf;
+    d_state.getPendingConflict(iiPendingConf);
+    Trace("strings-pending")
+        << "Process pending conflict " << iiPendingConf.d_ant << std::endl;
+    Trace("strings-conflict")
+        << "CONFLICT: Eager : " << iiPendingConf.d_ant << std::endl;
+    ++(d_statistics.d_conflictsEager);
+    // call the inference manager to send the conflict
+    d_im.processConflict(iiPendingConf);
+    return;
   }
   Trace("strings-pending-debug") << "  Now collect terms" << std::endl;
   // Collect extended function terms in the atom. Notice that we must register
@@ -742,10 +736,8 @@ void TheoryStrings::conflict(TNode a, TNode b){
     // already in conflict
     return;
   }
-  Debug("strings-conflict") << "Making conflict..." << std::endl;
   d_im.conflictEqConstantMerge(a, b);
-  // Trace("strings-conflict")
-  //    << "CONFLICT: Eq engine conflict : " << conf.getNode() << std::endl;
+  Trace("strings-conflict") << "CONFLICT: Eq engine conflict" << std::endl;
   ++(d_statistics.d_conflictsEqEngine);
 }
 

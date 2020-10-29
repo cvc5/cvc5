@@ -442,7 +442,6 @@ set(regress_0_tests
   regress0/datatypes/rec1.cvc
   regress0/datatypes/rec2.cvc
   regress0/datatypes/rec4.cvc
-  regress0/datatypes/repeated-selectors-2769.smt2
   regress0/datatypes/rewriter.cvc
   regress0/datatypes/sc-cdt1.smt2
   regress0/datatypes/some-boolean-tests.cvc
@@ -609,6 +608,7 @@ set(regress_0_tests
   regress0/model-core.smt2
   regress0/nl/coeff-sat.smt2
   regress0/nl/ext-rew-aggr-test.smt2
+  regress0/nl/iand-no-init.smt2
   regress0/nl/issue3003.smt2
   regress0/nl/issue3407.smt2
   regress0/nl/issue3411.smt2
@@ -884,6 +884,7 @@ set(regress_0_tests
   regress0/sep/wand-crash.smt2
   regress0/seq/intseq.smt2
   regress0/seq/intseq_dt.smt2
+  regress0/seq/issue4370-bool-terms.smt2
   regress0/seq/seq-2var.smt2
   regress0/seq/seq-ex1.smt2
   regress0/seq/seq-ex2.smt2
@@ -1644,7 +1645,6 @@ set(regress_1_tests
   regress1/quantifiers/quant-wf-int-ind.smt2
   regress1/quantifiers/quaternion_ds1_symm_0428.fof.smt2
   regress1/quantifiers/recfact.cvc
-  regress1/quantifiers/rel-trigger-unusable.smt2
   regress1/quantifiers/repair-const-nterm.smt2
   regress1/quantifiers/rew-to-0211-dd.smt2
   regress1/quantifiers/ricart-agrawala6.smt2
@@ -1791,6 +1791,8 @@ set(regress_1_tests
   regress1/sets/issue2568.smt2
   regress1/sets/issue2904.smt2
   regress1/sets/issue4391-card-lasso.smt2
+  regress1/sets/issue5271.smt2
+  regress1/sets/issue5309.smt2
   regress1/sets/lemmabug-ListElts317minimized.smt2
   regress1/sets/remove_check_free_31_6.smt2
   regress1/sets/sets-disequal.smt2
@@ -2385,6 +2387,8 @@ set(regression_disabled_tests
   regress0/cvc3-bug15.cvc
   # regress0/datatypes/datatype-dump.cvc (FIXME #1649)
   regress0/datatypes/datatype-dump.cvc
+  # no longer support overloaded symbols across multiple parametric datatypes
+  regress0/datatypes/repeated-selectors-2769.smt2
   regress0/decision/uflia-xs-09-16-3-4-1-5.smtv1.smt2
   regress0/decision/wchains010ue.smtv1.smt2
   regress0/incorrect1.smtv1.smt2
@@ -2533,6 +2537,8 @@ set(regression_disabled_tests
   regress1/quantifiers/macro-subtype-param.smt2
   # times out with competition build:
   regress1/quantifiers/model_6_1_bv.smt2
+  # timeout after changes to nonlinear on PR #5351
+  regress1/quantifiers/rel-trigger-unusable.smt2
   # ajreynol: different error messages on production and debug:
   regress1/quantifiers/subtype-param-unk.smt2
   regress1/quantifiers/subtype-param.smt2

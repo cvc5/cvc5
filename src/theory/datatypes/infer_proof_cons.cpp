@@ -74,11 +74,33 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
       Assert(exp.getKind() == EQUAL && exp[0].getKind() == APPLY_CONSTRUCTOR
              && exp[1].getKind() == APPLY_CONSTRUCTOR
              && exp[0].getOperator() == exp[1].getOperator());
-      Assert(conc.getKind() == EQUAL);
       Node narg;
+      // we may be asked for a proof of (not P) coming from (= P false) or
+      // (= false P), or similarly P from (= P true) or (= true P).
+      bool concPol = conc.getKind() != NOT;
+      Node concAtom = concPol ? conc : conc[0];
+      Node unifConc = conc;
       for (size_t i = 0, nchild = exp[0].getNumChildren(); i < nchild; i++)
       {
-        if (exp[0][i] == conc[0] && exp[1][i] == conc[1])
+        bool argSuccess = false;
+        if (conc.getKind() == EQUAL)
+        {
+          argSuccess = (exp[0][i] == conc[0] && exp[1][i] == conc[1]);
+        }
+        else
+        {
+          for (size_t j = 0; j < 2; j++)
+          {
+            if (exp[j][i] == concAtom && exp[1 - j][i].isConst()
+                && exp[1 - j][i].getConst<bool>() == concPol)
+            {
+              argSuccess = true;
+              unifConc = exp[0][i].eqNode(exp[1][i]);
+              break;
+            }
+          }
+        }
+        if (argSuccess)
         {
           narg = nm->mkConst(Rational(i));
           break;
@@ -86,7 +108,20 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
       }
       if (!narg.isNull())
       {
-        cdp->addStep(conc, PfRule::DT_UNIF, {exp}, {narg});
+        if (conc.getKind() == EQUAL)
+        {
+          // normal case where we conclude an equality
+          cdp->addStep(conc, PfRule::DT_UNIF, {exp}, {narg});
+        }
+        else
+        {
+          // must use true or false elim to prove the final
+          cdp->addStep(unifConc, PfRule::DT_UNIF, {exp}, {narg});
+          // may use symmetry
+          Node eq = concAtom.eqNode(nm->mkConst(concPol));
+          cdp->addStep(
+              conc, concPol ? PfRule::TRUE_ELIM : PfRule::FALSE_ELIM, {eq}, {});
+        }
         success = true;
       }
     }
@@ -119,12 +154,44 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
     break;
     case InferId::LABEL_EXH:
     {
-      // TODO
+      // TODO: resolution
     }
     break;
     case InferId::COLLAPSE_SEL:
     {
-      // TODO
+      Assert(exp.getKind() == EQUAL);
+      Node concEq = conc;
+      // might be a Boolean conclusion
+      if (conc.getKind() != EQUAL)
+      {
+        bool concPol = conc.getKind() != NOT;
+        Node concAtom = concPol ? conc : conc[0];
+        concEq = concAtom.eqNode(nm->mkConst(concPol));
+      }
+      Assert(concEq.getKind() == EQUAL
+             && concEq[0].getKind() == APPLY_SELECTOR_TOTAL);
+      Assert(exp[0].getType().isDatatype());
+      Node sop = concEq[0].getOperator();
+      Node sl = nm->mkNode(APPLY_SELECTOR_TOTAL, sop, exp[0]);
+      Node sr = nm->mkNode(APPLY_SELECTOR_TOTAL, sop, exp[1]);
+      // exp[0] = exp[1]
+      // --------------------- CONG        ----------------- DT_COLLAPSE
+      // s(exp[0]) = s(exp[1])             s(exp[1]) = r
+      // --------------------------------------------------- TRANS
+      // s(exp[0]) = r
+      Node asn = ProofRuleChecker::mkKindNode(APPLY_SELECTOR_TOTAL);
+      Node seq = sl.eqNode(sr);
+      cdp->addStep(seq, PfRule::CONG, {exp}, {asn, sop});
+      Node sceq = sr.eqNode(concEq[1]);
+      cdp->addStep(sceq, PfRule::DT_COLLAPSE, {}, {sr});
+      cdp->addStep(sl.eqNode(concEq[1]), PfRule::TRANS, {seq, sceq}, {});
+      if (conc.getKind() != EQUAL)
+      {
+        PfRule eid =
+            conc.getKind() == NOT ? PfRule::FALSE_ELIM : PfRule::TRUE_ELIM;
+        cdp->addStep(conc, eid, {concEq}, {});
+      }
+      success = true;
     }
     break;
     case InferId::CLASH_CONFLICT:
@@ -135,12 +202,25 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
     break;
     case InferId::TESTER_CONFLICT:
     {
-      // TODO
+      // rewrites to false under substitution
+      Node fn = nm->mkConst(false);
+      cdp->addStep(fn, PfRule::MACRO_SR_PRED_ELIM, expv, {});
+      success = true;
     }
     break;
     case InferId::TESTER_MERGE_CONFLICT:
     {
-      // TODO
+      Assert(expv.size() == 3);
+      Node tester1 = expv[0];
+      Node tester1c =
+          nm->mkNode(APPLY_TESTER, expv[1].getOperator(), expv[0][0]);
+      cdp->addStep(tester1c,
+                   PfRule::MACRO_SR_PRED_TRANSFORM,
+                   {expv[1], expv[2]},
+                   {tester1c});
+      Node fn = nm->mkConst(false);
+      cdp->addStep(fn, PfRule::DT_CLASH, {tester1, tester1c}, {});
+      success = true;
     }
     break;
     case InferId::BISIMILAR: break;
@@ -157,10 +237,15 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
     Trace("dt-ipc") << "...failed " << infer << std::endl;
     cdp->addStep(conc, PfRule::DT_TRUST, expv, {conc});
   }
+  else
+  {
+    Trace("dt-ipc") << "...success" << std::endl;
+  }
 }
 
 std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
 {
+  Trace("dt-ipc") << "dt-ipc: Ask proof for " << fact << std::endl;
   // temporary proof
   CDProof pf(d_pnm);
   // get the inference

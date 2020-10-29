@@ -122,7 +122,7 @@ bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
   return true;
 }
 
-void InferenceManager::sendInference(const std::vector<Node>& exp,
+bool InferenceManager::sendInference(const std::vector<Node>& exp,
                                      const std::vector<Node>& noExplain,
                                      Node eq,
                                      Inference infer,
@@ -136,7 +136,7 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
   else if (Rewriter::rewrite(eq) == d_true)
   {
     // if trivial, return
-    return;
+    return false;
   }
   // wrap in infer info and send below
   InferInfo ii;
@@ -146,16 +146,17 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
   ii.d_ant = exp;
   ii.d_noExplain = noExplain;
   sendInference(ii, asLemma);
+  return true;
 }
 
-void InferenceManager::sendInference(const std::vector<Node>& exp,
+bool InferenceManager::sendInference(const std::vector<Node>& exp,
                                      Node eq,
                                      Inference infer,
                                      bool isRev,
                                      bool asLemma)
 {
   std::vector<Node> noExplain;
-  sendInference(exp, noExplain, eq, infer, isRev, asLemma);
+  return sendInference(exp, noExplain, eq, infer, isRev, asLemma);
 }
 
 void InferenceManager::sendInference(InferInfo& ii, bool asLemma)
@@ -315,7 +316,7 @@ void InferenceManager::processConflict(const InferInfo& ii)
 
 bool InferenceManager::processFact(InferInfo& ii)
 {
-  // get the fact(s), where there are multiple if the conclusion is an AND
+  // Get the fact(s). There are multiple facts if the conclusion is an AND
   std::vector<Node> facts;
   if (ii.d_conc.getKind() == AND)
   {
@@ -430,8 +431,8 @@ bool InferenceManager::processLemma(InferInfo& ii)
                          << ii.d_id << std::endl;
   ++(d_statistics.d_lemmasInfer);
 
-  // call the trusted lemma, with caching
-  return trustedLemma(tlem, p);
+  // call the trusted lemma, without caching
+  return trustedLemma(tlem, p, false);
 }
 
 }  // namespace strings

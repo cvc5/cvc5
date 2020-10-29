@@ -30,7 +30,8 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 
-QuantifiersEngine::QuantifiersEngine(TheoryEngine* te, DecisionManager& dm,
+QuantifiersEngine::QuantifiersEngine(TheoryEngine* te,
+                                     DecisionManager& dm,
                                      ProofNodeManager* pnm)
     : d_te(te),
       d_context(te->getSatContext()),

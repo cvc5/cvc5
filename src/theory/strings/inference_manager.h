@@ -158,15 +158,17 @@ class InferenceManager : public InferenceManagerBuffered
    * is used as a hint for proof reconstruction.
    * @param asLemma If true, then this method will send a lemma instead
    * of a fact whenever applicable.
+   * @return true if the inference was not trivial (e.g. its conclusion did
+   * not rewrite to true).
    */
-  void sendInference(const std::vector<Node>& exp,
+  bool sendInference(const std::vector<Node>& exp,
                      const std::vector<Node>& noExplain,
                      Node eq,
                      Inference infer,
                      bool isRev = false,
                      bool asLemma = false);
   /** same as above, but where noExplain is empty */
-  void sendInference(const std::vector<Node>& exp,
+  bool sendInference(const std::vector<Node>& exp,
                      Node eq,
                      Inference infer,
                      bool isRev = false,

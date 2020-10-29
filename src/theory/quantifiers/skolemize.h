@@ -64,7 +64,9 @@ class Skolemize
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
 
  public:
-  Skolemize(QuantifiersEngine* qe, context::UserContext* u, ProofNodeManager* pnm);
+  Skolemize(QuantifiersEngine* qe,
+            context::UserContext* u,
+            ProofNodeManager* pnm);
   ~Skolemize() {}
   /** skolemize quantified formula q
    * If the return value ret of this function is non-null, then ret is a trust
@@ -119,8 +121,8 @@ class Skolemize
   bool printSkolemization(std::ostream& out);
 
  private:
-   /** Are proofs enabled? */
-   bool isProofEnabled() const;
+  /** Are proofs enabled? */
+  bool isProofEnabled() const;
   /** get self selectors
    * For datatype constructor dtc with type dt,
    * this collects the set of datatype selector applications,
@@ -141,6 +143,8 @@ class Skolemize
       d_skolem_constants;
   /** map from quantified formulas to their skolemized body */
   std::unordered_map<Node, Node, NodeHashFunction> d_skolem_body;
+  /** Pointer to the proof node manager */
+  ProofNodeManager* d_pnm;
   /** Eager proof generator for skolemization lemmas */
   std::unique_ptr<EagerProofGenerator> d_epg;
 };

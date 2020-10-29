@@ -53,6 +53,7 @@ const char* toString(PfRule id)
     case PfRule::CHAIN_RESOLUTION: return "CHAIN_RESOLUTION";
     case PfRule::FACTORING: return "FACTORING";
     case PfRule::REORDERING: return "REORDERING";
+    case PfRule::MACRO_RESOLUTION: return "MACRO_RESOLUTION";
     case PfRule::SPLIT: return "SPLIT";
     case PfRule::EQ_RESOLVE: return "EQ_RESOLVE";
     case PfRule::MODUS_PONENS: return "MODUS_PONENS";
@@ -121,6 +122,7 @@ const char* toString(PfRule id)
     //================================================= Datatype rules
     case PfRule::DT_UNIF: return "DT_UNIF";
     case PfRule::DT_INST: return "DT_INST";
+    case PfRule::DT_COLLAPSE: return "DT_COLLAPSE";
     case PfRule::DT_SPLIT: return "DT_SPLIT";
     case PfRule::DT_CLASH: return "DT_CLASH";
     case PfRule::DT_TRUST: return "DT_TRUST";
@@ -164,9 +166,8 @@ const char* toString(PfRule id)
 
       //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
 
-      //================================================= Place holder for Lean
-      // rules
-
+    //================================================= External rules
+    case PfRule::LFSC_RULE: return "LFSC_RULE";
     case PfRule::LEAN_RULE: return "LEAN_RULE";
     case PfRule::VERIT_RULE: return "VERIT_RULE";
     //================================================= Unknown rule
