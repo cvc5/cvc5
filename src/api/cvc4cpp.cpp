@@ -1326,7 +1326,7 @@ Op::~Op()
 {
   if (d_solver != nullptr)
   {
-    // Ensure that the correct node manager is in scope when the node is
+    // Ensure that the correct node manager is in scope when the type node is
     // destroyed.
     NodeManagerScope scope(d_solver->getNodeManager());
     d_node.reset();
