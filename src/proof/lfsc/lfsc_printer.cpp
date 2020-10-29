@@ -25,7 +25,7 @@ const char* toString(LfscRule id)
 {
   switch (id)
   {
-    case LfscRule::NEG_SYM: return "neg_sym";
+    case LfscRule::NEG_SYMM: return "neg_symm";
     case LfscRule::CONG: return "cong";
     default: return "?";
   }
@@ -207,12 +207,23 @@ void LfscPrinter::printProofInternal(
         }
         else
         {
+          // will revisit this
+          visit.push_back(PExpr(cur));
           // a normal rule application, compute the proof arguments
           processedChildren[cur] = false;
-          computeProofArgs(cur, visit);
-          // print the rule name
-          out << "(";
-          printRule(out, cur);
+          if (computeProofArgs(cur, visit))
+          {
+            // print the rule name
+            out << "(";
+            printRule(out, cur);
+          }
+          else
+          {
+            // could not print the rule, trust for now
+            out << "(trust ";
+            printInternal(out, cur->getResult(), letMap);
+            out << ")";
+          }
         }
       }
       else if (!pit->second)
@@ -251,12 +262,20 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
   // TODO: what arguments does the proof rule take?
   switch (pn->getRule())
   {
+    case PfRule::REFL: pf << as[0]; break;
+    case PfRule::SYMM: pf << h << cs[0]; break;
     case PfRule::TRANS: pf << h << h << h << cs[0] << cs[1]; break;
+    case PfRule::TRUE_INTRO:
+    case PfRule::FALSE_INTRO:
+    case PfRule::TRUE_ELIM:
+    case PfRule::FALSE_ELIM: pf << h << cs[0]; break;
     case PfRule::LFSC_RULE:
     {
       LfscRule lr = getLfscRule(as[0]);
       switch (lr)
       {
+        case LfscRule::NEG_SYMM: pf << h << cs[0]; break;
+        case LfscRule::CONG: pf << h << h << h << h << cs[0] << cs[1]; break;
         default: return false; break;
       }
     }
@@ -349,7 +368,7 @@ bool LfscPrinter::getLfscRule(Node n, LfscRule& lr)
 
 LfscRule LfscPrinter::getLfscRule(Node n)
 {
-  LfscRule lr = LfscRule::NONE;
+  LfscRule lr = LfscRule::UNKNOWN;
   getLfscRule(n, lr);
   return lr;
 }

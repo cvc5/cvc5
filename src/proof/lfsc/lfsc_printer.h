@@ -32,7 +32,7 @@ namespace proof {
  */
 enum class LfscRule : uint32_t
 {
-  NEG_SYM,
+  NEG_SYMM,
   CONG,
   UNKNOWN,
 };
@@ -166,7 +166,7 @@ class LfscPrinter
   /**
    * Get the arguments for the proof node application
    */
-  void computeProofArgs(const ProofNode* pn, std::vector<PExpr>& pargs);
+  bool computeProofArgs(const ProofNode* pn, std::vector<PExpr>& pargs);
   //------------------------------ end printing proofs
 
   //------------------- helper methods
