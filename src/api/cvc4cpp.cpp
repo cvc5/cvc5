@@ -4045,9 +4045,8 @@ Term Solver::mkVar(Sort sort, const std::string& symbol) const
   CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
   CVC4_API_SOLVER_CHECK_SORT(sort);
 
-  NodeManager* nm = getNodeManager();
-  Node res = symbol.empty() ? nm->mkBoundVar(*sort.d_type)
-                            : nm->mkBoundVar(symbol, *sort.d_type);
+  Expr res = symbol.empty() ? d_exprMgr->mkBoundVar(sort.d_type->toType())
+                            : d_exprMgr->mkBoundVar(symbol, sort.d_type->toType());
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
 
