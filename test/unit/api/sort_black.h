@@ -243,7 +243,10 @@ void SortBlack::testGetUninterpretedSortName()
 void SortBlack::testIsUninterpretedSortParameterized()
 {
   Sort uSort = d_solver.mkUninterpretedSort("u");
-  TS_ASSERT_THROWS_NOTHING(uSort.isUninterpretedSortParameterized());
+  TS_ASSERT(!uSort.isUninterpretedSortParameterized());
+  Sort sSort = d_solver.mkSortConstructorSort("s", 1);
+  Sort siSort = sSort.instantiate({uSort});
+  TS_ASSERT(siSort.isUninterpretedSortParameterized());
   Sort bvSort = d_solver.mkBitVectorSort(32);
   TS_ASSERT_THROWS(bvSort.isUninterpretedSortParameterized(),
                    CVC4ApiException&);
@@ -253,6 +256,9 @@ void SortBlack::testGetUninterpretedSortParamSorts()
 {
   Sort uSort = d_solver.mkUninterpretedSort("u");
   TS_ASSERT_THROWS_NOTHING(uSort.getUninterpretedSortParamSorts());
+  Sort sSort = d_solver.mkSortConstructorSort("s", 2);
+  Sort siSort = sSort.instantiate({uSort, uSort});
+  TS_ASSERT(siSort.getUninterpretedSortParamSorts().size()==2);
   Sort bvSort = d_solver.mkBitVectorSort(32);
   TS_ASSERT_THROWS(bvSort.getUninterpretedSortParamSorts(), CVC4ApiException&);
 }

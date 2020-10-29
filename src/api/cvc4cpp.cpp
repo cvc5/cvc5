@@ -1215,7 +1215,7 @@ std::vector<Sort> Sort::getUninterpretedSortParamSorts() const
   // This method is not implemented in the NodeManager, since whether a
   // uninterpreted sort is parametrized is irrelevant for solving.
   std::vector<TypeNode> params;
-  for (size_t i = 0, nchildren = d_type->getNumChildren(); i < nchildren(); i++)
+  for (size_t i = 0, nchildren = d_type->getNumChildren(); i < nchildren; i++)
   {
     params.push_back((*d_type)[i]);
   }
