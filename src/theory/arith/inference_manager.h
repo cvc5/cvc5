@@ -48,8 +48,6 @@ class InferenceManager : public InferenceManagerBuffered
   using NodeSet = context::CDHashSet<Node, NodeHashFunction>;
 
  public:
-  using ConflictProcessor = std::function<void(std::vector<Node>&)>;
-
   InferenceManager(TheoryArith& ta, ArithState& astate, ProofNodeManager* pnm);
 
   /**
