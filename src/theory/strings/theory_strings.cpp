@@ -996,27 +996,28 @@ void TheoryStrings::checkRegisterTermsNormalForms()
 TrustNode TheoryStrings::ppRewrite(TNode atom)
 {
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
+  TrustNode ret;
   Node atomRet = atom;
   if (options::regExpElim() && atom.getKind() == STRING_IN_REGEXP)
   {
     // aggressive elimination of regular expression membership
-    Node atomElim = d_regexp_elim.eliminate(atomRet);
-    if (!atomElim.isNull())
+    ret = d_regexp_elim.eliminateTrusted(atomRet);
+    if (!ret.isNull())
     {
-      Trace("strings-ppr") << "  rewrote " << atom << " -> " << atomElim
+      Trace("strings-ppr") << "  rewrote " << atom << " -> " << ret.getNode()
                            << " via regular expression elimination."
                            << std::endl;
-      atomRet = atomElim;
+      atomRet = ret.getNode();
     }
   }
   if( !options::stringLazyPreproc() ){
     //eager preprocess here
     std::vector< Node > new_nodes;
     StringsPreprocess* p = d_esolver.getPreprocess();
-    Node ret = p->processAssertion(atomRet, new_nodes);
-    if (ret != atomRet)
+    Node pret = p->processAssertion(atomRet, new_nodes);
+    if (pret != atomRet)
     {
-      Trace("strings-ppr") << "  rewrote " << atomRet << " -> " << ret
+      Trace("strings-ppr") << "  rewrote " << atomRet << " -> " << pret
                            << ", with " << new_nodes.size() << " lemmas."
                            << std::endl;
       for (const Node& lem : new_nodes)
@@ -1025,16 +1026,16 @@ TrustNode TheoryStrings::ppRewrite(TNode atom)
         ++(d_statistics.d_lemmasEagerPreproc);
         d_out->lemma(lem);
       }
-      atomRet = ret;
+      atomRet = pret;
+      // Don't support proofs yet, thus we must return nullptr. This is the
+      // case even if we had proven the elimination via regexp elimination
+      // above.
+      ret = TrustNode::mkTrustRewrite(atom, atomRet, nullptr);
     }else{
       Assert(new_nodes.empty());
     }
   }
-  if (atomRet != atom)
-  {
-    return TrustNode::mkTrustRewrite(atom, atomRet, nullptr);
-  }
-  return TrustNode::null();
+  return ret;
 }
 
 /** run the given inference step */
