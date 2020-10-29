@@ -57,7 +57,7 @@ void GrammarBlack::testAddRule()
   TS_ASSERT_THROWS(g.addRule(start, nullTerm), CVC4ApiException&);
   TS_ASSERT_THROWS(g.addRule(nts, d_solver->mkBoolean(false)),
                    CVC4ApiException&);
-  TS_ASSERT_THROWS(g.addRule(start, d_solver->mkReal(0)), CVC4ApiException&);
+  TS_ASSERT_THROWS(g.addRule(start, d_solver->mkInteger(0)), CVC4ApiException&);
 
   d_solver->synthFun("f", {}, boolean, g);
 
@@ -83,7 +83,7 @@ void GrammarBlack::testAddRules()
   TS_ASSERT_THROWS(g.addRules(start, {nullTerm}), CVC4ApiException&);
   TS_ASSERT_THROWS(g.addRules(nts, {d_solver->mkBoolean(false)}),
                    CVC4ApiException&);
-  TS_ASSERT_THROWS(g.addRules(start, {d_solver->mkReal(0)}), CVC4ApiException&);
+  TS_ASSERT_THROWS(g.addRules(start, {d_solver->mkInteger(0)}), CVC4ApiException&);
 
   d_solver->synthFun("f", {}, boolean, g);
 

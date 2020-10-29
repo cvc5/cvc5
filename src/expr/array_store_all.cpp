@@ -45,7 +45,8 @@ ArrayStoreAll::ArrayStoreAll(const TypeNode& type, const Node& value)
       "expr type `%s' does not match constituent type of array type `%s'",
       value.getType().toString().c_str(),
       type.toString().c_str());
-
+  Trace("arrays") << "constructing constant array of type: '" << type
+                  << "' and value: '" << value << "'" << std::endl;
   PrettyCheckArgument(
       value.isConst(), value, "ArrayStoreAll requires a constant expression");
 
