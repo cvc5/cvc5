@@ -79,6 +79,15 @@ namespace arith {
      */
     bool add(const Node& n, bool onlyVariables = true);
 
+    /**
+     * Post-processes a set of nodes and replaces bounds by their origins.
+     * This utility sometimes creates new bounds, either due to tightening of
+     * integer terms or because an equality was derived from two weak
+     * inequalities. While the origins of these new bounds are recorded in
+     * lower_origin and upper_origin, this method can be used to conveniently
+     * replace these new nodes by their origins.
+     * This can be used, for example, when constructing conflicts.
+     */
     void replaceByOrigins(std::vector<Node>& nodes) const;
 
    private:
