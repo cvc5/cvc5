@@ -34,7 +34,8 @@ Node LfscTermProcessCallback::convertInternal(Node n)
   TypeNode tn = n.getType();
   if (k == APPLY_UF)
   {
-    return convertInternal(theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n));
+    return convertInternal(
+        theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n));
   }
   else if (k == HO_APPLY)
   {
@@ -109,7 +110,7 @@ Node LfscTermProcessCallback::convertInternal(Node n)
     std::vector<Node> args;
     args.push_back(itep);
     args.push_back(n[0]);
-    Node tv; // TODO
+    Node tv;  // TODO
     args.push_back(tv);
     args.push_back(n[1]);
     args.push_back(n[2]);

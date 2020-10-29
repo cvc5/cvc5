@@ -296,14 +296,15 @@ void LfscPrinter::printInternal(std::ostream& out, TypeNode tn)
 void LfscPrinter::printRule(std::ostream& out, const ProofNode* pn)
 {
   // TODO: proper conversion
-  
-  
+
   // By default, convert to lower case?
   std::stringstream ss;
   ss << pn->getRule();
   std::string rname = ss.str();
-  std::transform(rname.begin(), rname.end(), rname.begin(),
-      [](unsigned char c){ return std::tolower(c); });
+  std::transform(
+      rname.begin(), rname.end(), rname.begin(), [](unsigned char c) {
+        return std::tolower(c);
+      });
   out << rname;
 }
 
