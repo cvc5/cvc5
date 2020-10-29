@@ -34,6 +34,7 @@
 #include "api/cvc4cpp.h"
 
 #include <cstring>
+#include <regex>
 #include <sstream>
 
 #include "base/check.h"
@@ -52,6 +53,7 @@
 #include "options/main_options.h"
 #include "options/options.h"
 #include "options/smt_options.h"
+#include "proof/unsat_core.h"
 #include "smt/model.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_mode.h"
@@ -1601,7 +1603,7 @@ Kind Term::getKindHelper() const
   // (string) versions back to sequence. All operators where this is
   // necessary are such that their first child is of sequence type, which
   // we check here.
-  if (getNumChildren() > 0 && (*this)[0].getSort().isSequence())
+  if (d_node->getNumChildren() > 0 && (*d_node)[0].getType().isSequence())
   {
     switch (d_node->getKind())
     {
@@ -1624,7 +1626,20 @@ Kind Term::getKindHelper() const
   }
   // Notice that kinds like APPLY_TYPE_ASCRIPTION will be converted to
   // INTERNAL_KIND.
+  if(isCastedReal())
+  {
+    return CONST_RATIONAL;
+  }
   return intToExtKind(d_node->getKind());
+}
+
+bool Term::isCastedReal() const
+{
+  if(d_node->getKind() == kind::CAST_TO_REAL)
+  {
+    return (*d_node)[0].isConst() && (*d_node)[0].getType().isInteger();
+  }
+  return false;
 }
 
 bool Term::operator==(const Term& t) const { return *d_node == *t.d_node; }
@@ -1647,12 +1662,20 @@ size_t Term::getNumChildren() const
   {
     return d_node->getNumChildren() + 1;
   }
+  if(isCastedReal())
+  {
+    return 0;
+  }
   return d_node->getNumChildren();
 }
 
 Term Term::operator[](size_t index) const
 {
   CVC4_API_CHECK_NOT_NULL;
+
+  // check the index within the number of children
+  CVC4_API_CHECK(index < getNumChildren()) << "index out of bound";
+
   // special cases for apply kinds
   if (isApplyKind(d_node->getKind()))
   {
@@ -1760,12 +1783,6 @@ Op Term::getOp() const
 }
 
 bool Term::isNull() const { return isNullHelper(); }
-
-bool Term::isValue() const
-{
-  CVC4_API_CHECK_NOT_NULL;
-  return d_node->isConst();
-}
 
 Term Term::getConstArrayBase() const
 {
@@ -3095,16 +3112,20 @@ Term Solver::mkValHelper(T t) const
 
 Term Solver::mkRealFromStrHelper(const std::string& s) const
 {
-  /* CLN and GMP handle this case differently, CLN interprets it as 0, GMP
-   * throws an std::invalid_argument exception. For consistency, we treat it
-   * as invalid. */
-  CVC4_API_ARG_CHECK_EXPECTED(s != ".", s)
-      << "a string representing an integer, real or rational value.";
-
-  CVC4::Rational r = s.find('/') != std::string::npos
-                         ? CVC4::Rational(s)
-                         : CVC4::Rational::fromDecimal(s);
-  return mkValHelper<CVC4::Rational>(r);
+  try
+  {
+    CVC4::Rational r = s.find('/') != std::string::npos
+                           ? CVC4::Rational(s)
+                           : CVC4::Rational::fromDecimal(s);
+    return mkValHelper<CVC4::Rational>(r);
+  }
+  catch (const std::invalid_argument& e)
+  {
+    std::stringstream message;
+    message << "Cannot construct Real or Int from string argument '" << s << "'"
+            << std::endl;
+    throw std::invalid_argument(message.str());
+  }
 }
 
 Term Solver::mkBVFromIntHelper(uint32_t size, uint64_t val) const
@@ -3698,24 +3719,66 @@ Term Solver::mkPi() const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
+Term Solver::mkInteger(const std::string& s) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_ARG_CHECK_EXPECTED(std::regex_match(s, std::regex("-?\\d+")), s)
+      << " an integer ";
+  Term integer = mkRealFromStrHelper(s);
+  CVC4_API_ARG_CHECK_EXPECTED(integer.getSort() == getIntegerSort(), s)
+      << " an integer";
+  return integer;
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+Term Solver::mkInteger(int64_t val) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  Term integer = mkValHelper<CVC4::Rational>(CVC4::Rational(val));
+  Assert(integer.getSort() == getIntegerSort());
+  return integer;
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
 Term Solver::mkReal(const std::string& s) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  return mkRealFromStrHelper(s);
+  /* CLN and GMP handle this case differently, CLN interprets it as 0, GMP
+   * throws an std::invalid_argument exception. For consistency, we treat it
+   * as invalid. */
+  CVC4_API_ARG_CHECK_EXPECTED(s != ".", s)
+      << "a string representing a real or rational value.";
+  Term rational = mkRealFromStrHelper(s);
+  return ensureRealSort(rational);
   CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+Term Solver::ensureRealSort(const Term t) const
+{
+  CVC4_API_ARG_CHECK_EXPECTED(
+      t.getSort() == getIntegerSort() || t.getSort() == getRealSort(),
+      " an integer or real term");
+  if (t.getSort() == getIntegerSort())
+  {
+    Node n = getNodeManager()->mkNode(kind::CAST_TO_REAL, *t.d_node);
+    return Term(this, n);
+  }
+  return t;
 }
 
 Term Solver::mkReal(int64_t val) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  return mkValHelper<CVC4::Rational>(CVC4::Rational(val));
+  Term rational = mkValHelper<CVC4::Rational>(CVC4::Rational(val));
+  return ensureRealSort(rational);
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
 Term Solver::mkReal(int64_t num, int64_t den) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  return mkValHelper<CVC4::Rational>(CVC4::Rational(num, den));
+  Term rational = mkValHelper<CVC4::Rational>(CVC4::Rational(num, den));
+  return ensureRealSort(rational);
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
@@ -3888,10 +3951,17 @@ Term Solver::mkConstArray(Sort sort, Term val) const
   CVC4_API_SOLVER_CHECK_SORT(sort);
   CVC4_API_SOLVER_CHECK_TERM(val);
   CVC4_API_CHECK(sort.isArray()) << "Not an array sort.";
-  CVC4_API_CHECK(sort.getArrayElementSort().isComparableTo(val.getSort()))
+  CVC4_API_CHECK(val.getSort().isSubsortOf(sort.getArrayElementSort()))
       << "Value does not match element sort.";
+  // handle the special case of (CAST_TO_REAL n) where n is an integer
+  Node n = *val.d_node;
+  if (val.isCastedReal())
+  {
+    // this is safe because the constant array stores its type
+    n = n[0];
+  }
   Term res = mkValHelper<CVC4::ArrayStoreAll>(
-      CVC4::ArrayStoreAll(*sort.d_type, *val.d_node));
+      CVC4::ArrayStoreAll(*sort.d_type, n));
   return res;
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -5120,7 +5190,7 @@ std::vector<Term> Solver::getUnsatCore(void) const
    *   return std::vector<Term>(core.begin(), core.end());
    * here since constructor is private */
   std::vector<Term> res;
-  for (const Expr& e : core)
+  for (const Node& e : core)
   {
     res.push_back(Term(this, e));
   }

@@ -32,6 +32,7 @@
 #include "options/options.h"
 #include "options/smt_options.h"
 #include "printer/printer.h"
+#include "proof/unsat_core.h"
 #include "smt/dump.h"
 #include "smt/model.h"
 #include "smt/smt_engine.h"
@@ -2335,8 +2336,8 @@ void GetUnsatCoreCommand::invoke(api::Solver* solver)
 {
   try
   {
-    d_result = UnsatCore(solver->getSmtEngine(),
-                         api::termVectorToExprs(solver->getUnsatCore()));
+    d_solver = solver;
+    d_result = solver->getUnsatCore();
 
     d_commandStatus = CommandSuccess::instance();
   }
@@ -2359,11 +2360,12 @@ void GetUnsatCoreCommand::printResult(std::ostream& out,
   }
   else
   {
-    d_result.toStream(out);
+    UnsatCore ucr(d_solver->getSmtEngine(), api::termVectorToNodes(d_result));
+    ucr.toStream(out);
   }
 }
 
-const UnsatCore& GetUnsatCoreCommand::getUnsatCore() const
+const std::vector<api::Term>& GetUnsatCoreCommand::getUnsatCore() const
 {
   // of course, this will be empty if the command hasn't been invoked yet
   return d_result;
@@ -2372,6 +2374,7 @@ const UnsatCore& GetUnsatCoreCommand::getUnsatCore() const
 Command* GetUnsatCoreCommand::clone() const
 {
   GetUnsatCoreCommand* c = new GetUnsatCoreCommand;
+  c->d_solver = d_solver;
   c->d_result = d_result;
   return c;
 }

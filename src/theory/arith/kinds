@@ -80,9 +80,16 @@ operator LEQ 2 "less than or equal, x <= y"
 operator GT 2 "greater than, x > y"
 operator GEQ 2 "greater than or equal, x >= y"
 
-operator IS_INTEGER 1 "term-is-integer predicate (parameter is a real-sorted term)"
-operator TO_INTEGER 1 "convert term to integer by the floor function (parameter is a real-sorted term)"
-operator TO_REAL 1 "cast term to real (parameter is an integer-sorted term; this is a no-op in CVC4, as integer is a subtype of real)"
+operator IS_INTEGER   1 "term-is-integer predicate (parameter is a real-sorted term)"
+operator TO_INTEGER   1 "convert term to integer by the floor function (parameter is a real-sorted term)"
+operator TO_REAL      1 "cast term to real (parameter is an integer-sorted term; this is a no-op in CVC4, as integer is a subtype of real)"
+
+# CAST_TO_REAL is added to distinguish between integers casted to reals internally, and
+# integers casted to reals or using the API \
+# Solver::mkReal(int val) would return an internal node (CAST_TO_REAL val), but in the api it appears as term (val) \
+# Solver::mkTerm(TO_REAL, Solver::mkInteger(int val)) would return both term and node (TO_REAL val) \
+# This way, we avoid having 2 nested TO_REAL nodess as a result of Solver::mkTerm(TO_REAL, Solver::mkReal(int val))
+operator CAST_TO_REAL 1 "cast term to real same as TO_REAL, but it is used internally, whereas TO_REAL is accessible in the API"
 
 typerule PLUS ::CVC4::theory::arith::ArithOperatorTypeRule
 typerule MULT ::CVC4::theory::arith::ArithOperatorTypeRule
@@ -99,9 +106,10 @@ typerule LEQ "SimpleTypeRule<RBool, AReal, AReal>"
 typerule GT "SimpleTypeRule<RBool, AReal, AReal>"
 typerule GEQ "SimpleTypeRule<RBool, AReal, AReal>"
 
-typerule TO_REAL ::CVC4::theory::arith::ArithOperatorTypeRule
-typerule TO_INTEGER ::CVC4::theory::arith::ArithOperatorTypeRule
-typerule IS_INTEGER "SimpleTypeRule<RBool, AReal>"
+typerule TO_REAL      ::CVC4::theory::arith::ArithOperatorTypeRule
+typerule CAST_TO_REAL ::CVC4::theory::arith::ArithOperatorTypeRule
+typerule TO_INTEGER   ::CVC4::theory::arith::ArithOperatorTypeRule
+typerule IS_INTEGER   "SimpleTypeRule<RBool, AReal>"
 
 typerule ABS "SimpleTypeRule<RInteger, AInteger>"
 typerule INTS_DIVISION "SimpleTypeRule<RInteger, AInteger, AInteger>"

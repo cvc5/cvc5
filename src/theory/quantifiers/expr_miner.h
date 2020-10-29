@@ -23,7 +23,6 @@
 
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
-#include "expr/variable_type_map.h"
 #include "smt/smt_engine.h"
 #include "theory/quantifiers/sygus_sampler.h"
 

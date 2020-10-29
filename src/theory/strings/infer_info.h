@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "theory/theory_inference.h"
 #include "util/safe_print.h"
 
 namespace CVC4 {
@@ -347,6 +348,8 @@ enum LengthStatus
   LENGTH_GEQ_ONE
 };
 
+class InferenceManager;
+
 /**
  * An inference. This is a class to track an unprocessed call to either
  * send a fact, lemma, or conflict that is waiting to be asserted to the
@@ -368,11 +371,15 @@ enum LengthStatus
  * - (main equality) x ++ y ++ v1 = z ++ w ++ v2,
  * - (length constraint) len(y) = len(w).
  */
-class InferInfo
+class InferInfo : public TheoryInference
 {
  public:
   InferInfo();
   ~InferInfo() {}
+  /** Process this inference */
+  bool process(TheoryInferenceManager* im, bool asLemma) override;
+  /** Pointer to the class used for processing this info */
+  InferenceManager* d_sim;
   /** The inference identifier */
   Inference d_id;
   /** Whether it is the reverse form of the above id */

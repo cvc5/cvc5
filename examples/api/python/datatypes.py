@@ -33,7 +33,7 @@ def test(slv, consListSort):
     # "nil" is a constructor too
 
     t = slv.mkTerm(kinds.ApplyConstructor, consList.getConstructorTerm("cons"),
-                   slv.mkReal(0),
+                   slv.mkInteger(0),
                    slv.mkTerm(kinds.ApplyConstructor, consList.getConstructorTerm("nil")))
 
     print("t is {}\nsort of cons is {}\n sort of nil is {}".format(
@@ -82,7 +82,7 @@ def test(slv, consListSort):
     print("head_a is {} of sort {}".format(head_a, head_a.getSort()))
     print("sort of cons is", paramConsList.getConstructorTerm("cons").getSort())
 
-    assertion = slv.mkTerm(kinds.Gt, head_a, slv.mkReal(50))
+    assertion = slv.mkTerm(kinds.Gt, head_a, slv.mkInteger(50))
     print("Assert", assertion)
     slv.assertFormula(assertion)
     print("Expect sat.")

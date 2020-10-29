@@ -2177,13 +2177,6 @@ simpleTerm[CVC4::api::Term& f]
        * literals, we can use the push/pop scope. */
       /* PARSER_STATE->popScope(); */
       t = SOLVER->mkArraySort(t, t2);
-      if(!f.isValue()) {
-        std::stringstream ss;
-        ss << "expected constant term inside array constant, but found "
-           << "nonconstant term" << std::endl
-           << "the term: " << f;
-        PARSER_STATE->parseError(ss.str());
-      }
       if(!t2.isComparableTo(f.getSort())) {
         std::stringstream ss;
         ss << "type mismatch inside array constant term:" << std::endl
@@ -2207,18 +2200,12 @@ simpleTerm[CVC4::api::Term& f]
       std::stringstream strRat;
       strRat << r;
       f = SOLVER->mkReal(strRat.str());
-      if(f.getSort().isInteger()) {
-        // Must cast to Real to ensure correct type is passed to parametric type constructors.
-        // We do this cast using division with 1.
-        // This has the advantage wrt using TO_REAL since (constant) division is always included in the theory.
-        f = MK_TERM(api::DIVISION, f, SOLVER->mkReal(1));
-      }
     }
   | INTEGER_LITERAL {
       Rational r = AntlrInput::tokenToRational($INTEGER_LITERAL);
       std::stringstream strRat;
       strRat << r;
-      f = SOLVER->mkReal(strRat.str());
+      f = SOLVER->mkInteger(strRat.str());
     }
     /* bitvector literals */
   | HEX_LITERAL
