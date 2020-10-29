@@ -954,7 +954,8 @@ Sort::Sort(const Solver* slv, const CVC4::TypeNode& t)
 
 Sort::Sort() : d_solver(nullptr), d_type(new CVC4::TypeNode()) {}
 
-Sort::~Sort() {
+Sort::~Sort()
+{
   if (d_solver != nullptr)
   {
     // Ensure that the correct node manager is in scope when the node is
@@ -4045,8 +4046,9 @@ Term Solver::mkVar(Sort sort, const std::string& symbol) const
   CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
   CVC4_API_SOLVER_CHECK_SORT(sort);
 
-  Expr res = symbol.empty() ? d_exprMgr->mkBoundVar(sort.d_type->toType())
-                            : d_exprMgr->mkBoundVar(symbol, sort.d_type->toType());
+  Expr res = symbol.empty()
+                 ? d_exprMgr->mkBoundVar(sort.d_type->toType())
+                 : d_exprMgr->mkBoundVar(symbol, sort.d_type->toType());
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
 
