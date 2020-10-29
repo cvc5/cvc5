@@ -252,7 +252,7 @@ void LfscPrinter::printLetify(std::ostream& out, Node n)
 void LfscPrinter::printLetList(std::ostream& out,
                                std::ostream& cparen,
                                const std::vector<Node>& letList,
-                               const std::map<Node, uint32_t>& letMap)
+                               std::map<Node, uint32_t>& letMap)
 {
   std::map<Node, uint32_t>::const_iterator it;
   for (size_t i = 0, nlets = letList.size(); i < nlets; i++)

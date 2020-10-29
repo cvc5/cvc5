@@ -78,7 +78,7 @@ class LfscPrinter
   void printLetList(std::ostream& out,
                     std::ostream& cparen,
                     const std::vector<Node>& letList,
-                    const std::map<Node, uint32_t>& letMap);
+                    std::map<Node, uint32_t>& letMap);
   /**
    * Print type node to stream in the expected format of LFSC.
    */
