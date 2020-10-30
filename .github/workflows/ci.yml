@@ -168,7 +168,7 @@ jobs:
     - name: ccache Statistics
       run: ccache -s
 
-    - name: Run CTest (and Pytest if python bindings built)
+    - name: Run CTest
       run: make -j2 check
       env:
         ARGS: --output-on-failure -LE regress[${{ matrix.exclude_regress }}]
