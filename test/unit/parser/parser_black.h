@@ -70,6 +70,7 @@ class ParserBlack
       //         Debug.on("parser-extra");
       //        cerr << "Testing good input: <<" << goodInput << ">>" << endl;
       //        istringstream stream(goodInputs[i]);
+      d_symman.reset(new parser::SymbolManager(d_solver.get()));
       Parser* parser = ParserBuilder(d_solver.get(), d_symman.get(), "test")
                            .withStringInput(goodInput)
                            .withOptions(d_options)
@@ -101,6 +102,7 @@ class ParserBlack
     //      cerr << "Testing bad input: '" << badInput << "'\n";
     //      Debug.on("parser");
 
+    d_symman.reset(new parser::SymbolManager(d_solver.get()));
     Parser* parser = ParserBuilder(d_solver.get(), d_symman.get(), "test")
                          .withStringInput(badInput)
                          .withOptions(d_options)
@@ -132,6 +134,7 @@ class ParserBlack
       // Debug.on("parser");
       //        istringstream stream(context + goodBooleanExprs[i]);
 
+      d_symman.reset(new parser::SymbolManager(d_solver.get()));
       Parser* parser = ParserBuilder(d_solver.get(), d_symman.get(), "test")
                            .withStringInput(goodExpr)
                            .withOptions(d_options)
@@ -179,6 +182,7 @@ class ParserBlack
     //    Debug.on("parser-extra");
     //      cout << "Testing bad expr: '" << badExpr << "'\n";
 
+    d_symman.reset(new parser::SymbolManager(d_solver.get()));
     Parser* parser = ParserBuilder(d_solver.get(), d_symman.get(), "test")
                          .withStringInput(badExpr)
                          .withOptions(d_options)
@@ -209,7 +213,6 @@ class ParserBlack
     // ensure the old symbol manager is deleted
     d_symman.reset(nullptr);
     d_solver.reset(new api::Solver(&d_options));
-    d_symman.reset(new parser::SymbolManager(d_solver.get()));
   }
 
   void tearDown() { d_solver.reset(nullptr); }
