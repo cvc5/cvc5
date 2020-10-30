@@ -2,7 +2,7 @@
 /*! \file lfsc_post_processor.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Scott Viteri
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -35,6 +35,15 @@ LfscProofPostprocess::LfscProofPostprocess(ProofNodeManager* pnm)
 bool LfscProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                                 bool& continueUpdate)
 {
+  switch (pn->getRule())
+  {
+    case PfRule::CONG:
+    case PfRule::SYMM:
+    return true;
+    break;
+    default: return false;
+    break;
+  }
   return false;
 }
 

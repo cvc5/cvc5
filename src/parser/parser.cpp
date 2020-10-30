@@ -229,8 +229,7 @@ std::vector<api::Term> Parser::bindBoundVars(
   std::vector<api::Term> vars;
   for (std::pair<std::string, api::Sort>& i : sortedVarNames)
   {
-    vars.push_back(
-        bindBoundVar(i.first, api::Sort(d_solver, i.second.getType())));
+    vars.push_back(bindBoundVar(i.first, i.second));
   }
   return vars;
 }
@@ -244,7 +243,7 @@ api::Term Parser::mkAnonymousFunction(const std::string& prefix,
   }
   stringstream name;
   name << prefix << "_anon_" << ++d_anonymousFunctionCount;
-  return mkVar(name.str(), api::Sort(d_solver, type.getType()), flags);
+  return mkVar(name.str(), type, flags);
 }
 
 std::vector<api::Term> Parser::bindVars(const std::vector<std::string> names,
