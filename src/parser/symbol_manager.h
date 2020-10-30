@@ -19,6 +19,7 @@
 
 #include <map>
 #include <string>
+#include <set>
 
 #include "api/cvc4cpp.h"
 
@@ -81,6 +82,8 @@ class CVC4_PUBLIC SymbolManager
   api::Solver* d_solver;
   /** Map terms to names */
   std::map<api::Term, std::string> d_names;
+  /** The set of terms with assertion names */
+  std::set<api::Term> d_namedAsserts;
 };
 
 }  // namespace parser

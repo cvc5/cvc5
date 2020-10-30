@@ -55,6 +55,8 @@ set(libcvc4parser_src_files
   smt2/smt2_input.h
   smt2/sygus_input.cpp
   smt2/sygus_input.h
+  symbol_table.cpp
+  symbol_table.h
   tptp/TptpLexer.c
   tptp/TptpParser.c
   tptp/tptp.cpp
