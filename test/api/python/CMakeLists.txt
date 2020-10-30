@@ -9,7 +9,7 @@
 ## directory for licensing information.
 ##
 #-----------------------------------------------------------------------------#
-# Add Python bindings unit tests
+# Add Python bindings API tests
 
 # Check if the pytest Python module is installed.
 execute_process(
@@ -25,19 +25,19 @@ if(RET_PYTEST)
       "Could not find Python module pytest. Install via `pip install pytest'.")
 endif()
 
-macro(cvc4_add_unit_pytest name filename)
+macro(cvc4_add_python_api_test name filename)
 
-  #   we create test target 'unit/<output_dir>/myunittest'
-  #   and run it with 'ctest -R "unit/<output_dir>/myunittest"'.
-  add_test (NAME unit/api/python/${name}
+  #   we create test target 'api/<output_dir>/myapitest'
+  #   and run it with 'ctest -R "api/<output_dir>/myapitest"'.
+  add_test (NAME api/api/python/${name}
     COMMAND ${PYTHON_EXECUTABLE} -m pytest ${CMAKE_CURRENT_SOURCE_DIR}/${filename}
     # directory for importing the python bindings
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/api/python)
 
 endmacro()
 
-cvc4_add_unit_pytest(pytest_datatype_api test_datatype_api.py)
-cvc4_add_unit_pytest(pytest_grammar test_grammar.py)
-cvc4_add_unit_pytest(pytest_sort test_sort.py)
-cvc4_add_unit_pytest(pytest_term test_term.py)
-cvc4_add_unit_pytest(pytest_to_python_obj test_to_python_obj.py)
+cvc4_add_python_api_test(pytest_datatype_api test_datatype_api.py)
+cvc4_add_python_api_test(pytest_grammar test_grammar.py)
+cvc4_add_python_api_test(pytest_sort test_sort.py)
+cvc4_add_python_api_test(pytest_term test_term.py)
+cvc4_add_python_api_test(pytest_to_python_obj test_to_python_obj.py)

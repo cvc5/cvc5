@@ -19,8 +19,3 @@ cvc4_add_unit_test_black(sort_black api)
 cvc4_add_unit_test_black(term_black api)
 cvc4_add_unit_test_black(grammar_black api)
 
-
-# add Python bindings tests if building with Python bindings
-if (BUILD_BINDINGS_PYTHON)
-  add_subdirectory(python)
-endif()
