@@ -38,7 +38,8 @@ using namespace std;
 class ParserBuilderBlack : public CxxTest::TestSuite
 {
  public:
-  void setUp() override { 
+  void setUp() override
+  {
     // ensure the old symbol manager is deleted
     d_symman.reset(nullptr);
     d_solver.reset(new api::Solver());
@@ -51,8 +52,8 @@ class ParserBuilderBlack : public CxxTest::TestSuite
   {
     char *filename = mkTemp();
 
-    checkEmptyInput(
-        ParserBuilder(d_solver.get(), d_symman.get(), filename).withInputLanguage(LANG_CVC4));
+    checkEmptyInput(ParserBuilder(d_solver.get(), d_symman.get(), filename)
+                        .withInputLanguage(LANG_CVC4));
 
     remove(filename);
     free(filename);
@@ -65,8 +66,8 @@ class ParserBuilderBlack : public CxxTest::TestSuite
     fs << "TRUE" << std::endl;
     fs.close();
 
-    checkTrueInput(
-        ParserBuilder(d_solver.get(), d_symman.get(), filename).withInputLanguage(LANG_CVC4));
+    checkTrueInput(ParserBuilder(d_solver.get(), d_symman.get(), filename)
+                       .withInputLanguage(LANG_CVC4));
 
     remove(filename);
     free(filename);

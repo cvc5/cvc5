@@ -29,9 +29,8 @@
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "parser/smt2/smt2.h"
-#include "smt/command.h"
 #include "parser/symbol_manager.h"
-
+#include "smt/command.h"
 
 using namespace CVC4;
 using namespace CVC4::parser;
@@ -102,7 +101,7 @@ class ParserBlack
     //      cerr << "Testing bad input: '" << badInput << "'\n";
     //      Debug.on("parser");
 
-    Parser* parser = ParserBuilder(d_solver.get(), d_symman.get(),  "test")
+    Parser* parser = ParserBuilder(d_solver.get(), d_symman.get(), "test")
                          .withStringInput(badInput)
                          .withOptions(d_options)
                          .withInputLanguage(d_lang)
@@ -133,7 +132,7 @@ class ParserBlack
       // Debug.on("parser");
       //        istringstream stream(context + goodBooleanExprs[i]);
 
-      Parser* parser = ParserBuilder(d_solver.get(), d_symman.get(),  "test")
+      Parser* parser = ParserBuilder(d_solver.get(), d_symman.get(), "test")
                            .withStringInput(goodExpr)
                            .withOptions(d_options)
                            .withInputLanguage(d_lang)
@@ -180,7 +179,7 @@ class ParserBlack
     //    Debug.on("parser-extra");
     //      cout << "Testing bad expr: '" << badExpr << "'\n";
 
-    Parser* parser = ParserBuilder(d_solver.get(), d_symman.get(),  "test")
+    Parser* parser = ParserBuilder(d_solver.get(), d_symman.get(), "test")
                          .withStringInput(badExpr)
                          .withOptions(d_options)
                          .withInputLanguage(d_lang)
