@@ -20,7 +20,6 @@ namespace CVC4 {
 
 namespace proof {
 
-// TODO: Put in cpp, rename, change static
 const char* veritRuletoString(VeritRule id)
 {
   switch (id)
@@ -111,7 +110,6 @@ const char* veritRuletoString(VeritRule id)
     case VeritRule::NARY_ELIM: return "nary_elim";
     case VeritRule::TMP_AC_SIMP: return "tmp_ac_simp";
     case VeritRule::TMP_BFUN_ELIM: return "tmp_bfun-elim";
-    case VeritRule::TMP_SKOLEMIZE: return "tmp_skolemize";
     case VeritRule::TEMP_QUANTIFIER_CNF: return "tmp_quantifier_cnf";
     case VeritRule::SUBPROOF: return "subproof";
     case VeritRule::BIND: return "bind";

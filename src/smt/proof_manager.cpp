@@ -34,8 +34,7 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
           d_pnm.get(), u, "smt::PreprocessProofGenerator")),
       d_pfpp(new ProofPostproccess(d_pnm.get(), smte, d_pppg.get())),
       d_lpfpp(new proof::LeanProofPostprocess(d_pnm.get())),
-      d_vpfppcb(d_pnm.get()),
-      d_vpfpp(new proof::VeritProofPostprocess(d_pnm.get(), d_vpfppcb)),
+      d_vpfpp(nullptr),
       d_finalProof(nullptr)
 {
   // add rules to eliminate here
@@ -132,6 +131,7 @@ void PfManager::printProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
   }
   if (options::proofFormatMode() == options::ProofFormatMode::VERIT)
   {
+    d_vpfpp.reset(new proof::VeritProofPostprocess(d_pnm.get()));
     d_vpfpp->process(fp);
     proof::veritPrinter(out, fp);
   }

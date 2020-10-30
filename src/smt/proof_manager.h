@@ -96,7 +96,6 @@ class PfManager
   /** The proof post-processor */
   std::unique_ptr<smt::ProofPostproccess> d_pfpp;
   std::unique_ptr<proof::LeanProofPostprocess> d_lpfpp;
-  proof::VeritProofPostprocessCallback d_vpfppcb;
   std::unique_ptr<proof::VeritProofPostprocess> d_vpfpp;
   /**
    * The final proof produced by the SMT engine.

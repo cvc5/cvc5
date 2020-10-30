@@ -43,7 +43,17 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
   void initializeUpdate();
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                     bool& continueUpdate) override;
-  /** Update the proof rule application. */
+  /**
+   * This method updates the proof rule application by splitting on the given
+   * rule and translating it into a proof node in terms of the veriT rules.
+   *
+   * @param res The expected result of the application,
+   * @param rule The id of the veriT rule,
+   * @param children The children of the application,
+   * @param args The arguments of the application,
+   * @param cdp The proof to add to,
+   * @return True if the step could be added, or null if not.
+   */
   bool update(Node res,
               PfRule id,
               const std::vector<Node>& children,
@@ -61,8 +71,8 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
    * @param res The expected result of the application,
    * @param rule The id of the veriT rule,
    * @param children The children of the application,
-   * @param args The arguments of the application
-   * @param cdp The proof to add to
+   * @param args The arguments of the application,
+   * @param cdp The proof to add to,
    * @return True if the step could be added, or null if not.
    */
   bool addVeritStep(Node res,
@@ -76,19 +86,29 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
  * The proof postprocessor module. This postprocesses a proof node into one
  * using the rules from the veriT calculus.
  */
-class VeritProofPostprocess : public ProofNodeUpdater
+class VeritProofPostprocess
 {
  public:
-  VeritProofPostprocess(ProofNodeManager* pnm, ProofNodeUpdaterCallback& cb);
+  VeritProofPostprocess(ProofNodeManager* pnm);
   ~VeritProofPostprocess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
 
  private:
   /** The post process callback */
-  // std::unique_ptr<VeritProofPostprocessCallback> dd_cb;
+  std::unique_ptr<ProofNodeUpdaterCallback> d_cb;
   /** The proof node manager */
-  // ProofNodeManager* dd_pnm;
+  ProofNodeManager* d_pnm;
+
+  // TODO: infrastructure from ProofNodeUpdater
+  void processInternal(std::shared_ptr<ProofNode> pf,
+                       const std::vector<Node>& fa);
+  bool runUpdate(std::shared_ptr<ProofNode> cur,
+                 const std::vector<Node>& fa,
+                 bool& continueUpdate);
+
+  bool d_debugFreeAssumps;
+  std::vector<Node> d_freeAssumps;
 };
 
 }  // namespace proof
