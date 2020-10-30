@@ -37,9 +37,21 @@ class CommandExecutor
   std::string d_lastStatistics;
 
  protected:
-  /** The solver object */
+  /**
+   * The solver object, which is allocated by this class and is used for
+   * executing most commands (e.g. check-sat).
+   */
   std::unique_ptr<api::Solver> d_solver;
-  /** The symbol manager */
+  /**
+   * The symbol manager, which is allocated by this class. This manages
+   * all things related to definitions of symbols and their impact on behaviors
+   * for commands (e.g. get-unsat-core, get-model, get-assignment), as well
+   * as tracking expression names. Note the symbol manager is independent from
+   * the parser, which uses this symbol manager given a text input.
+   *
+   * Certain commands (e.g. reset-assertions) have a specific impact on the
+   * symbol manager.
+   */
   std::unique_ptr<parser::SymbolManager> d_symman;
   SmtEngine* d_smtEngine;
   Options& d_options;
