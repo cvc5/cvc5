@@ -284,8 +284,9 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
       for( std::map< Node, bool >::iterator it = d_active_quant.begin(); it != d_active_quant.end(); ++it ){
         Node q = it->first;
         Trace("cegqi") << "CBQI : Process quantifier " << q[0] << " at effort " << ee << std::endl;
-        process( q, e, ee );
-        if( d_quantEngine->inConflict() ){
+        process(q, e, ee);
+        if (d_quantEngine->inConflict())
+        {
           break;
         }
       }
