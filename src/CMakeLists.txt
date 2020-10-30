@@ -1146,7 +1146,7 @@ install(FILES
           parser/parser_builder.h
           parser/parser_exception.h
           parser/parse_op.h
-          parser/symbol_table.h
+          parser/symbol_manager.h
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/parser)
 install(FILES
