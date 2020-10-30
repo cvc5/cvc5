@@ -205,32 +205,6 @@ class InstStrategyCegqi : public QuantifiersModule
   /** map from universal quantifiers to their counterexample literals */
   std::map<Node, Node> d_ce_lit;
 
-  //for identification
-  uint64_t d_qid_count;
-  //nested qe map
-  std::map< Node, Node > d_nested_qe;
-  //mark ids on quantifiers 
-  Node getIdMarkedQuantNode( Node n, std::map< Node, Node >& visited );
-  // id to ce quant
-  std::map< Node, Node > d_id_to_ce_quant;
-  std::map< Node, Node > d_ce_quant_to_id;
-  //do nested quantifier elimination recursive
-  Node doNestedQENode( Node q, Node ceq, Node n, std::vector< Node >& inst_terms, bool doVts );
-  Node doNestedQERec( Node q, Node n, std::map< Node, Node >& visited, std::vector< Node >& inst_terms, bool doVts );
-  //elimination information (for delayed elimination)
-  class NestedQEInfo {
-  public:
-    NestedQEInfo() : d_doVts(false){}
-    ~NestedQEInfo(){}
-    Node d_q;
-    std::vector< Node > d_inst_terms;
-    bool d_doVts;
-  };
-  std::map< Node, NestedQEInfo > d_nested_qe_info;
-  NodeIntMap d_nested_qe_waitlist_size;
-  NodeIntMap d_nested_qe_waitlist_proc;
-  std::map< Node, std::vector< Node > > d_nested_qe_waitlist;
-
   /** Do nested quantifier elimination.
    *
    * This rewrites the quantified formulas in inst based on nested quantifier

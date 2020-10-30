@@ -56,13 +56,9 @@ InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe)
       d_cbqi_set_quant_inactive(false),
       d_incomplete_check(false),
       d_added_cbqi_lemma(qe->getUserContext()),
-      d_elim_quants(qe->getSatContext()),
       d_vtsCache(new VtsTermCache(qe)),
-      d_bv_invert(nullptr),
-      d_nested_qe_waitlist_size(qe->getUserContext()),
-      d_nested_qe_waitlist_proc(qe->getUserContext())
+      d_bv_invert(nullptr)
 {
-  d_qid_count = 0;
   d_small_const =
       NodeManager::currentNM()->mkConst(Rational(1) / Rational(1000000));
   d_check_vts_lemma_lc = false;
@@ -177,16 +173,6 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
         if( doCbqi( quants[i] ) ){
           registerCbqiLemma( quants[i] );
         }
-        if( options::cegqiNestedQE() ){
-          //record these as counterexample quantifiers
-          QAttributes qa;
-          QuantAttributes::computeQuantAttributes( quants[i], qa );
-          if( !qa.d_qid_num.isNull() ){
-            d_id_to_ce_quant[ qa.d_qid_num ] = quants[i];
-            d_ce_quant_to_id[ quants[i] ] = qa.d_qid_num;
-            Trace("cegqi-nqe") << "CE quant id = " << qa.d_qid_num << " is " << quants[i] << std::endl;
-          }
-        }
       }
     }
     // The decision strategy for this quantified formula ensures that its
@@ -242,20 +228,6 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
               d_quantEngine->getModel()->setQuantifierActive( q, false );
               d_cbqi_set_quant_inactive = true;
               d_active_quant.erase( q );
-              d_elim_quants.insert( q );
-              Trace("cegqi-nqe") << "Inactive, waitlist proc/size = " << d_nested_qe_waitlist_proc[q].get() << "/" << d_nested_qe_waitlist_size[q].get() << std::endl;
-              //process from waitlist
-              while( d_nested_qe_waitlist_proc[q]<d_nested_qe_waitlist_size[q] ){
-                int index = d_nested_qe_waitlist_proc[q];
-                Assert(index >= 0);
-                Assert(index < (int)d_nested_qe_waitlist[q].size());
-                Node nq = d_nested_qe_waitlist[q][index];
-                Node nqeqn = doNestedQENode( d_nested_qe_info[nq].d_q, q, nq, d_nested_qe_info[nq].d_inst_terms, d_nested_qe_info[nq].d_doVts );
-                Node dqelem = nq.eqNode( nqeqn ); 
-                Trace("cegqi-lemma") << "Delayed nested quantifier elimination lemma : " << dqelem << std::endl;
-                d_quantEngine->getOutputChannel().lemma( dqelem );
-                d_nested_qe_waitlist_proc[q] = index + 1;
-              }
             }
           }
         }else{
@@ -355,55 +327,6 @@ bool InstStrategyCegqi::checkCompleteFor(Node q)
   }
 }
 
-Node InstStrategyCegqi::getIdMarkedQuantNode(Node n,
-                                             std::map<Node, Node>& visited)
-{
-  std::map< Node, Node >::iterator it = visited.find( n );
-  if( it==visited.end() ){
-    Node ret = n;
-    if( n.getKind()==FORALL ){
-      QAttributes qa;
-      QuantAttributes::computeQuantAttributes( n, qa );
-      if( qa.d_qid_num.isNull() ){
-        std::vector< Node > rc;
-        rc.push_back( n[0] );
-        rc.push_back( getIdMarkedQuantNode( n[1], visited ) );
-        Node avar = NodeManager::currentNM()->mkSkolem( "id", NodeManager::currentNM()->booleanType() );
-        QuantIdNumAttribute ida;
-        avar.setAttribute(ida,d_qid_count);
-        d_qid_count++;
-        std::vector< Node > iplc;
-        iplc.push_back( NodeManager::currentNM()->mkNode( INST_ATTRIBUTE, avar ) );
-        if( n.getNumChildren()==3 ){
-          for( unsigned i=0; i<n[2].getNumChildren(); i++ ){
-            iplc.push_back( n[2][i] );
-          }
-        }
-        rc.push_back( NodeManager::currentNM()->mkNode( INST_PATTERN_LIST, iplc ) );
-        ret = NodeManager::currentNM()->mkNode( FORALL, rc );
-      }
-    }else if( n.getNumChildren()>0 ){
-      std::vector< Node > children;
-      if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
-        children.push_back( n.getOperator() );
-      }
-      bool childChanged = false;
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        Node nc = getIdMarkedQuantNode( n[i], visited );
-        childChanged = childChanged || nc!=n[i];
-        children.push_back( nc );
-      }
-      if( childChanged ){
-        ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
-      }
-    }
-    visited[n] = ret;
-    return ret;
-  }else{
-    return it->second;
-  }
-}
-
 void InstStrategyCegqi::checkOwnership(Node q)
 {
   if( d_quantEngine->getOwner( q )==NULL && doCbqi( q ) ){
@@ -417,33 +340,6 @@ void InstStrategyCegqi::checkOwnership(Node q)
 
 void InstStrategyCegqi::preRegisterQuantifier(Node q)
 {
-  // mark all nested quantifiers with id
-  if (options::cegqiNestedQE())
-  {
-    if( d_quantEngine->getOwner(q)==this )
-    {
-      std::map<Node, Node> visited;
-      Node mq = getIdMarkedQuantNode(q[1], visited);
-      if (mq != q[1])
-      {
-        // do not do cbqi, we are reducing this quantified formula to a marked
-        // one
-        d_do_cbqi[q] = CEG_UNHANDLED;
-        // instead do reduction
-        std::vector<Node> qqc;
-        qqc.push_back(q[0]);
-        qqc.push_back(mq);
-        if (q.getNumChildren() == 3)
-        {
-          qqc.push_back(q[2]);
-        }
-        Node qq = NodeManager::currentNM()->mkNode(FORALL, qqc);
-        Node mlem = NodeManager::currentNM()->mkNode(IMPLIES, q, qq);
-        Trace("cegqi-lemma") << "Mark quant id lemma : " << mlem << std::endl;
-        d_quantEngine->addLemma(mlem);
-      }
-    }
-  }
   if( doCbqi( q ) ){
     // get the instantiator
     if (options::cegqiPreRegInst())
@@ -470,10 +366,6 @@ TrustNode InstStrategyCegqi::rewriteInstantiation(Node q,
     inst = d_vtsCache->rewriteVtsSymbols(inst);
     Trace("quant-vts-debug") << "...got " << inst << std::endl;
   }
-  if (options::cegqiNestedQE())
-  {
-    inst = doNestedQE(q, terms, inst, doVts);
-  }
   if (prevInst != inst)
   {
     // not proof producing yet
@@ -485,110 +377,6 @@ TrustNode InstStrategyCegqi::rewriteInstantiation(Node q,
 InstantiationRewriter* InstStrategyCegqi::getInstRewriter() const
 {
   return d_irew.get();
-}
-
-Node InstStrategyCegqi::doNestedQENode(
-    Node q, Node ceq, Node n, std::vector<Node>& inst_terms, bool doVts)
-{
-  // there is a nested quantified formula (forall y. nq[y,x]) such that 
-  //    q is (forall y. nq[y,t]) for ground terms t,
-  //    ceq is (forall y. nq[y,e]) for CE variables e.
-  // we call this function when we know (forall y. nq[y,e]) is equivalent to quantifier-free formula C[e].
-  // in this case, q is equivalent to the quantifier-free formula C[t].
-  if( d_nested_qe.find( ceq )==d_nested_qe.end() ){
-    d_nested_qe[ceq] = d_quantEngine->getInstantiatedConjunction( ceq );
-    Trace("cegqi-nqe") << "CE quantifier elimination : " << std::endl;
-    Trace("cegqi-nqe") << "  " << ceq << std::endl; 
-    Trace("cegqi-nqe") << "  " << d_nested_qe[ceq] << std::endl;
-    //should not contain quantifiers
-    Assert(!expr::hasClosure(d_nested_qe[ceq]));
-  }
-  Assert(d_quantEngine->getTermUtil()->d_inst_constants[q].size()
-         == inst_terms.size());
-  //replace inst constants with instantiation
-  Node ret = d_nested_qe[ceq].substitute( d_quantEngine->getTermUtil()->d_inst_constants[q].begin(),
-                                          d_quantEngine->getTermUtil()->d_inst_constants[q].end(),
-                                          inst_terms.begin(), inst_terms.end() );
-  if( doVts ){
-    //do virtual term substitution
-    ret = Rewriter::rewrite( ret );
-    ret = d_vtsCache->rewriteVtsSymbols(ret);
-  }
-  Trace("cegqi-nqe") << "Nested quantifier elimination: " << std::endl;
-  Trace("cegqi-nqe") << "  " << n << std::endl; 
-  Trace("cegqi-nqe") << "  " << ret << std::endl;
-  return ret;
-}
-
-Node InstStrategyCegqi::doNestedQERec(Node q,
-                                      Node n,
-                                      std::map<Node, Node>& visited,
-                                      std::vector<Node>& inst_terms,
-                                      bool doVts)
-{
-  if( visited.find( n )==visited.end() ){
-    Node ret = n;
-    if( n.getKind()==FORALL ){
-      QAttributes qa;
-      QuantAttributes::computeQuantAttributes( n, qa );
-      if( !qa.d_qid_num.isNull() ){
-        //if it has an id, check whether we have done quantifier elimination for this id
-        std::map< Node, Node >::iterator it = d_id_to_ce_quant.find( qa.d_qid_num );
-        if( it!=d_id_to_ce_quant.end() ){
-          Node ceq = it->second;
-          bool doNestedQe = d_elim_quants.contains( ceq );
-          if( doNestedQe ){
-            ret = doNestedQENode( q, ceq, n, inst_terms, doVts );
-          }else{
-            Trace("cegqi-nqe") << "Add to nested qe waitlist : " << std::endl;
-            Node nr = Rewriter::rewrite( n );
-            Trace("cegqi-nqe") << "  " << ceq << std::endl;
-            Trace("cegqi-nqe") << "  " << nr << std::endl;
-            int wlsize = d_nested_qe_waitlist_size[ceq] + 1;
-            d_nested_qe_waitlist_size[ceq] = wlsize;
-            if( wlsize<(int)d_nested_qe_waitlist[ceq].size() ){
-              d_nested_qe_waitlist[ceq][wlsize] = nr;
-            }else{
-              d_nested_qe_waitlist[ceq].push_back( nr );
-            }
-            d_nested_qe_info[nr].d_q = q;
-            d_nested_qe_info[nr].d_inst_terms.clear();
-            d_nested_qe_info[nr].d_inst_terms.insert( d_nested_qe_info[nr].d_inst_terms.end(), inst_terms.begin(), inst_terms.end() );
-            d_nested_qe_info[nr].d_doVts = doVts;
-            //TODO: ensure this holds by restricting prenex when cbqiNestedQe is true.
-            Assert(!options::cegqiInnermost());
-          }
-        } 
-      } 
-    }else if( n.getNumChildren()>0 ){
-      std::vector< Node > children;
-      if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
-        children.push_back( n.getOperator() );
-      }
-      bool childChanged = false;
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        Node nc = doNestedQERec( q, n[i], visited, inst_terms, doVts );
-        childChanged = childChanged || nc!=n[i];
-        children.push_back( nc );
-      }
-      if( childChanged ){
-        ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
-      }
-    }
-    visited[n] = ret;
-    return ret;
-  }else{
-    return n;
-  }  
-}
-
-Node InstStrategyCegqi::doNestedQE(Node q,
-                                   std::vector<Node>& inst_terms,
-                                   Node lem,
-                                   bool doVts)
-{
-  std::map< Node, Node > visited;
-  return doNestedQERec( q, lem, visited, inst_terms, doVts );
 }
 
 void InstStrategyCegqi::registerCounterexampleLemma(Node q, Node lem)
