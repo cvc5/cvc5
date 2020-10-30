@@ -48,10 +48,12 @@ class CVC4_PUBLIC SymbolManager
    * @param isAssertion Whether t is being given a name in an assertion
    * context. In particular, this is true if and only if there was an assertion
    * command of the form (assert (! t :named name)).
+   * @return true if the name was set. This method may return false if t
+   * already has a name that takes precedence over the name set by this method.
    *
    * Notice that assertion names take priority over ordinary names.
    */
-  void setName(api::Term t, const std::string& name, bool isAssertion = false);
+  bool setName(api::Term t, const std::string& name, bool isAssertion = false);
   /** Get name for term t
    *
    * @param t The term

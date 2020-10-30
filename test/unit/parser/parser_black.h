@@ -30,6 +30,7 @@
 #include "parser/parser_builder.h"
 #include "parser/smt2/smt2.h"
 #include "smt/command.h"
+#include "parser/symbol_manager.h"
 
 
 using namespace CVC4;
@@ -70,7 +71,7 @@ class ParserBlack
       //         Debug.on("parser-extra");
       //        cerr << "Testing good input: <<" << goodInput << ">>" << endl;
       //        istringstream stream(goodInputs[i]);
-      Parser* parser = ParserBuilder(d_solver.get(), "test")
+      Parser* parser = ParserBuilder(d_solver.get(), d_symman.get(), "test")
                            .withStringInput(goodInput)
                            .withOptions(d_options)
                            .withInputLanguage(d_lang)
@@ -101,7 +102,7 @@ class ParserBlack
     //      cerr << "Testing bad input: '" << badInput << "'\n";
     //      Debug.on("parser");
 
-    Parser* parser = ParserBuilder(d_solver.get(), "test")
+    Parser* parser = ParserBuilder(d_solver.get(), d_symman.get(),  "test")
                          .withStringInput(badInput)
                          .withOptions(d_options)
                          .withInputLanguage(d_lang)
@@ -132,7 +133,7 @@ class ParserBlack
       // Debug.on("parser");
       //        istringstream stream(context + goodBooleanExprs[i]);
 
-      Parser* parser = ParserBuilder(d_solver.get(), "test")
+      Parser* parser = ParserBuilder(d_solver.get(), d_symman.get(),  "test")
                            .withStringInput(goodExpr)
                            .withOptions(d_options)
                            .withInputLanguage(d_lang)
@@ -179,7 +180,7 @@ class ParserBlack
     //    Debug.on("parser-extra");
     //      cout << "Testing bad expr: '" << badExpr << "'\n";
 
-    Parser* parser = ParserBuilder(d_solver.get(), "test")
+    Parser* parser = ParserBuilder(d_solver.get(), d_symman.get(),  "test")
                          .withStringInput(badExpr)
                          .withOptions(d_options)
                          .withInputLanguage(d_lang)
@@ -206,7 +207,10 @@ class ParserBlack
   void setUp()
   {
     d_options.set(options::parseOnly, true);
+    // ensure the old symbol manager is deleted
+    d_symman.reset(nullptr);
     d_solver.reset(new api::Solver(&d_options));
+    d_symman.reset(new parser::SymbolManager(d_solver.get()));
   }
 
   void tearDown() { d_solver.reset(nullptr); }
@@ -214,6 +218,7 @@ class ParserBlack
  private:
   InputLanguage d_lang;
   std::unique_ptr<api::Solver> d_solver;
+  std::unique_ptr<parser::SymbolManager> d_symman;
 
 }; /* class ParserBlack */
 

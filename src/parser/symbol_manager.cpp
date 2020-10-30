@@ -21,7 +21,7 @@ SymbolManager::SymbolManager(api::Solver* s) : d_solver(s) {}
 
 SymbolTable* SymbolManager::getSymbolTable() { return &d_symtabAllocated; }
 
-void SymbolManager::setName(api::Term t,
+bool SymbolManager::setName(api::Term t,
                             const std::string& name,
                             bool isAssertion)
 {
@@ -30,11 +30,12 @@ void SymbolManager::setName(api::Term t,
     // already named assertion, or we are not naming an assertion
     if (!isAssertion || d_namedAsserts.find(t) != d_namedAsserts.end())
     {
-      return;
+      return false;
     }
   }
   d_namedAsserts.insert(t);
   d_names[t] = name;
+  return true;
 }
 
 bool SymbolManager::getName(api::Term t,
