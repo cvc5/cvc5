@@ -134,6 +134,19 @@ using namespace CVC4::parser;
 }/* parser::postinclude */
 
 /**
+ * Parses an expression.
+ * @return the parsed expression, or the Null Expr if we've reached the
+ * end of the input
+ */
+parseExpr returns [CVC4::api::Term expr = CVC4::api::Term()]
+@declarations {
+  CVC4::api::Term expr2;
+}
+  : term[expr, expr2]
+  | EOF
+  ;
+
+/**
  * Parses a command
  * @return the parsed command, or NULL if we've reached the end of the input
  */
