@@ -28,59 +28,62 @@ namespace parser {
 /**
  * Symbol manager, which manages:
  * (1) Information related to the (! ... :named s) feature in SMT-LIB version 2,
- * 
+ *
  */
-class CVC4_PUBLIC SymbolManager 
+class CVC4_PUBLIC SymbolManager
 {
-public:
+ public:
   SymbolManager(api::Solver* s);
-  ~SymbolManager(){}
+  ~SymbolManager() {}
   //---------------------------- named expressions
-  /** Set name of term t to name 
-   * 
-   * @param t The term to name 
+  /** Set name of term t to name
+   *
+   * @param t The term to name
    * @param name The given name
    * @param isAssertion Whether t is being given a name in an assertion
    * context. In particular, this is true if and only if there was an assertion
    * command of the form (assert (! t :named name)).
    */
-  void setName(api::Term t, const std::string& name, bool isAssertion=false);
+  void setName(api::Term t, const std::string& name, bool isAssertion = false);
   /** Get name for term t
-   * 
+   *
    * @param t The term
    * @param name The argument to update with the name of t
    * @param isAssertion Whether we only wish to get the assertion name of t
    * @return true if t has a name. If so, name is updated to that name.
    * Otherwise, name is unchanged.
    */
-  bool getName(api::Term t, std::string& name, bool isAssertion=false) const;
-  /** 
+  bool getName(api::Term t, std::string& name, bool isAssertion = false) const;
+  /**
    * Convert list of terms to list of names. This adds to names the names of
    * all terms in ts that has names. Terms that do not have names are not
    * included.
-   * 
+   *
    * @param ts The terms
    * @param names The name list
    * @param areAssertions Whether we only wish to include assertion names
    */
-  void getNames(const std::vector<api::Term>& ts, std::vector<std::string>& names, bool areAssertions=false) const;
+  void getNames(const std::vector<api::Term>& ts,
+                std::vector<std::string>& names,
+                bool areAssertions = false) const;
   //---------------------------- end named expressions
-  
+
   /** Bits for use in mkVar() flags. */
-  enum {
+  enum
+  {
     VAR_FLAG_NONE = 0,
     VAR_FLAG_GLOBAL = 1,
     VAR_FLAG_DEFINED = 2
   };
-  
-private:
- /** The API Solver object. */
- api::Solver* d_solver;
- /** Map terms to names */
- std::map<api::Term, std::string> d_names;
+
+ private:
+  /** The API Solver object. */
+  api::Solver* d_solver;
+  /** Map terms to names */
+  std::map<api::Term, std::string> d_names;
 };
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace CVC4
 
 #endif /* CVC4__PARSER__SYMBOL_MANAGER_H */
