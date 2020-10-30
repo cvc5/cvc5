@@ -158,7 +158,7 @@ private:
   * The symbol manager
   */
  SymbolManager d_symman;
- 
+
  /**
   * The level of the assertions in the declaration scope.  Things declared
   * after this level are bindings from e.g. a let, a quantifier, or a

@@ -17,17 +17,21 @@
 namespace CVC4 {
 namespace parser {
 
-SymbolManager::SymbolManager(api::Solver* s) : d_solver(s){}
-void SymbolManager::setName(api::Term t, const std::string& name, bool isAssertion )
+SymbolManager::SymbolManager(api::Solver* s) : d_solver(s) {}
+void SymbolManager::setName(api::Term t,
+                            const std::string& name,
+                            bool isAssertion)
 {
 }
-bool SymbolManager::getName(api::Term t, std::string& name, bool isAssertion ) const
+bool SymbolManager::getName(api::Term t,
+                            std::string& name,
+                            bool isAssertion) const
 {
-return false;
+  return false;
 }
 void SymbolManager::getNames(const std::vector<api::Term>& ts,
-std::vector<std::string>& names,
-bool areAssertions ) const
+                             std::vector<std::string>& names,
+                             bool areAssertions) const
 {
 }
 

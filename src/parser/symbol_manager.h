@@ -18,8 +18,8 @@
 #define CVC4__PARSER__SYMBOL_MANAGER_H
 
 #include <map>
-#include <string>
 #include <set>
+#include <string>
 
 #include "api/cvc4cpp.h"
 
