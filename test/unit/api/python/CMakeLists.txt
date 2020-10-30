@@ -9,7 +9,7 @@
 ## directory for licensing information.
 ##
 #-----------------------------------------------------------------------------#
-# Add python bindings unit tests
+# Add Python bindings unit tests
 
 # Check if the pytest Python module is installed.
 execute_process(
