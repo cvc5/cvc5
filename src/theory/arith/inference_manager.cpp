@@ -91,13 +91,6 @@ void InferenceManager::clearWaitingLemmas()
   d_waitingLem.clear();
 }
 
-void InferenceManager::addConflict(const Node& conf, InferenceId inftype)
-{
-  Trace("arith::infman") << "Adding conflict: " << inftype << " " << conf
-                         << std::endl;
-  conflict(conf);
-}
-
 bool InferenceManager::hasUsed() const
 {
   return hasSent() || hasPending();
