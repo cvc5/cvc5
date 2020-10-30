@@ -130,6 +130,11 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::RESOLUTION:
     {
+      if(res == d_nm->mkConst(false)){
+        new_args.push_back(d_nm->mkConst<Rational>(static_cast<unsigned>(VeritRule::RESOLUTION)));
+        new_args.push_back(Node::null());
+        return cdp->addStep(res, PfRule::VERIT_RULE, children, new_args);
+      }
       return addVeritStep(res, VeritRule::RESOLUTION, children, {}, *cdp);
     }
     // ======== Chain Resolution
@@ -207,19 +212,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::SPLIT:
     {
-      Node vp1 = d_nm->mkNode(
-          kind::OR,
-          (d_nm->mkNode(
-               kind::NOT,
-               d_nm->mkNode(kind::NOT, d_nm->mkNode(kind::NOT, args[0]))),
-           args[0]));
-      Node vp2 = d_nm->mkNode(
-          kind::OR,
-          (d_nm->mkNode(
-              d_nm->mkNode(
-                  kind::NOT,
-                  d_nm->mkNode(kind::NOT, d_nm->mkNode(kind::NOT, args[0]))),
-              d_nm->mkNode(kind::NOT, args[0]))));
+      Node vp1 = d_nm->mkNode(kind::OR, args[0].notNode().notNode().notNode(), args[0]);
+      Node vp2 = d_nm->mkNode(kind::OR, args[0].notNode().notNode().notNode().notNode(), args[0].notNode());
 
       return addVeritStep(vp2, VeritRule::NOT_NOT, {}, {}, *cdp)
              && addVeritStep(vp1, VeritRule::NOT_NOT, {}, {}, *cdp)
@@ -313,8 +307,7 @@ bool VeritProofPostprocessCallback::update(Node res,
       new_args.push_back(d_nm->mkConst<Rational>(
           static_cast<unsigned>(VeritRule::RESOLUTION)));
       new_args.push_back(Node::null());  // print this as empty
-      cdp->addStep(res, PfRule::VERIT_RULE, children, new_args);
-      return true;
+      return cdp->addStep(res, PfRule::VERIT_RULE, children, new_args);
     }
     // ======== And elimination
     // Children: (P:(and F1 ... Fn))
@@ -336,67 +329,32 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (and P1 ... Pn)
     //
-    // First the tautology (or (and F1 ... Fn) (not F1) ... (not Fn))) is
-    // introduced. Then, the resolution rule is applied n times where Vpi+1 is
-    // obtained by applying resolution to VPi:(or (and F1 ... Fn) (not Fi) ...
-    // (not Fn))) and Fi.
-    //
     // proof rule: and_neg
     // proof term: (VP1:(or (and F1 ... Fn) (not F1) ... (not Fn)))
     // premises: ()
     // args: ()
     //
     // proof rule: resolution
-    // proof term: (VP2:(or (and F1 ... Fn) (not F2) ... (not Fn)))
-    // premises: (VP1:(or (and F1 ... Fn) (not F1) ... (not Fn))) P1
-    // args: ()
-    //
-    // ...
-    //
-    // proof rule: resolution
-    // proof term: (VP:(or (and F1 ... Fn))
-    // premises: (VPn:(or (and F1 ... Fn) (not Fn))) Fn
+    // proof term: (and P1 ... Pn)
+    // premises: (P1:F1 ... Pn:Fn) (VP1:(or (and F1 ... Fn) (not F1) ... (not Fn)))
     // args: ()
     case PfRule::AND_INTRO:
     {
-      /*bool success = true;
       std::vector<Node> neg_Nodes;
       neg_Nodes.push_back(d_nm->mkNode(kind::AND, children));
       for (int i = 0; i < children.size(); i++)
       {
-        neg_Nodes.push_back(d_nm->mkNode(kind::NOT, children[i]));
+        neg_Nodes.push_back(children[i].notNode());
       }
 
-      Node and_neg_Node = d_nm->mkNode(kind::OR, neg_Nodes);
-      success = success
-                && addVeritStep(and_neg_Node, VeritRule::AND_NEG, {}, {}, *cdp);
+      Node vp1 = d_nm->mkNode(kind::OR, neg_Nodes);
+      std::vector<Node> new_children;
+      new_children.insert(new_children.end(),children.begin(),children.end());
+      new_children.push_back(vp1);
 
-      // TODO: It seems as if all this is unnecessary since the resolution rule
-      // in Verit can do a chain or resolution steps. Thus, this simplifies to a
-      // single resolution step and there is no need to build up all these
-      // clauses.
-      for (int i = 0; i < children.size(); i++)
-      {
-        neg_Nodes.erase(neg_Nodes.begin() + 1);
-        Node new_and_neg_Node;
-        if (i < children.size() - 1)
-        {
-          new_and_neg_Node = d_nm->mkNode(kind::OR, neg_Nodes);
-        }
-        else
-        {
-          new_and_neg_Node = neg_Nodes[0];
-        }
-        success = success
-                  && addVeritStep(new_and_neg_Node,
-                                  VeritRule::RESOLUTION,
-                                  {children[i], and_neg_Node},
-                                  {},
-                                  *cdp);
-        and_neg_Node = new_and_neg_Node;
-      }
+      return addVeritStep(vp1, VeritRule::AND_NEG, {}, {}, *cdp)
+	     && addVeritStep(res, VeritRule::RESOLUTION, new_children, {}, *cdp);
 
-      return success;*/
     }
     // ======== Not Or elimination
     // Children: (P:(not (or F1 ... Fn)))
@@ -996,7 +954,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::REFL:
     {
-      return addVeritStep(res, VeritRule::REFL, children, args, *cdp);
+      return addVeritStep(res, VeritRule::REFL, children, {}, *cdp);
     }
     // ======== Symmetric
     // Children: (P:(= t1 t2)) or (P:(not (= t1 t2)))
@@ -1037,12 +995,12 @@ bool VeritProofPostprocessCallback::update(Node res,
     // APPLY_UF. The actual node for <kind> is constructible via
     // ProofRuleChecker::mkKindNode.
     //
-    // proof rule:
-    // proof term:
-    // premises:
+    // proof rule: cong
+    // proof term: (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn))
+    // premises: (P1:(= t1 s1), ..., Pn:(= tn sn))
     // args: ()
     case PfRule::CONG:
-    {  // TODO: check this seems to have changed since last pull
+    {
       return addVeritStep(res, VeritRule::CONG, children, {}, *cdp);
     }
     // ======== True intro
