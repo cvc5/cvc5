@@ -23,14 +23,11 @@
 #include "options/options.h"
 #include "smt/smt_engine.h"
 #include "util/statistics_registry.h"
+#include "parser/symbol_manager.h"
 
 namespace CVC4 {
 
 class Command;
-
-namespace api {
-class Solver;
-}
 
 namespace main {
 
@@ -40,7 +37,10 @@ class CommandExecutor
   std::string d_lastStatistics;
 
  protected:
+  /** The solver object */
   std::unique_ptr<api::Solver> d_solver;
+  /** The symbol manager */
+  std::unique_ptr<parser::SymbolManager> d_symman;
   SmtEngine* d_smtEngine;
   Options& d_options;
   StatisticsRegistry d_stats;
@@ -66,6 +66,9 @@ class CommandExecutor
 
   /** Get a pointer to the solver object owned by this CommandExecutor. */
   api::Solver* getSolver() { return d_solver.get(); }
+  
+  /** Get a pointer to the symbol manager owned by this CommandExecutor */
+  parser::SymbolManager * getSymbolManager() { return d_symman.get(); }
 
   api::Result getResult() const { return d_result; }
   void reset();

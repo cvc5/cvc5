@@ -141,23 +141,15 @@ private:
  Input* d_input;
 
  /**
-  * The declaration scope that is "owned" by this parser.  May or
-  * may not be the current declaration scope in use.
+  * Reference to the symbol manager, which manages the symbol table used by
+  * this parser.
   */
- SymbolTable d_symtabAllocated;
-
+ SymbolManager* d_symman;
+ 
  /**
-  * This current symbol table used by this parser.  Initially points
-  * to d_symtabAllocated, but can be changed (making this parser
-  * delegate its definitions and lookups to another parser).
-  * See useDeclarationsFrom().
+  * This current symbol table used by this parser, from symbol manager.
   */
  SymbolTable* d_symtab;
-
- /**
-  * The symbol manager
-  */
- SymbolManager d_symman;
 
  /**
   * The level of the assertions in the declaration scope.  Things declared
@@ -252,7 +244,8 @@ protected:
   * @attention The parser takes "ownership" of the given
   * input and will delete it on destruction.
   *
-  * @param the solver API object
+  * @param solver solver API object
+  * @param symm reference to the symbol manager
   * @param input the parser input
   * @param strictMode whether to incorporate strict(er) compliance checks
   * @param parseOnly whether we are parsing only (and therefore certain checks
@@ -260,6 +253,7 @@ protected:
   * unimplementedFeature())
   */
  Parser(api::Solver* solver,
+        SymbolManager* sm,
         Input* input,
         bool strictMode = false,
         bool parseOnly = false);

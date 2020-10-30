@@ -22,13 +22,15 @@
 #include <string>
 
 #include "api/cvc4cpp.h"
+#include "expr/symbol_table.h"
 
 namespace CVC4 {
 namespace parser {
 
 /**
  * Symbol manager, which manages:
- * (1) Information related to the (! ... :named s) feature in SMT-LIB version 2,
+ * (1) The symbol table used by the parser
+ * (2) Information related to the (! ... :named s) feature in SMT-LIB version 2,
  *
  */
 class CVC4_PUBLIC SymbolManager
@@ -36,6 +38,8 @@ class CVC4_PUBLIC SymbolManager
  public:
   SymbolManager(api::Solver* s);
   ~SymbolManager() {}
+  /** Get the underlying symbol table */
+  SymbolTable * getSymbolTable();
   //---------------------------- named expressions
   /** Set name of term t to name
    *
@@ -44,6 +48,8 @@ class CVC4_PUBLIC SymbolManager
    * @param isAssertion Whether t is being given a name in an assertion
    * context. In particular, this is true if and only if there was an assertion
    * command of the form (assert (! t :named name)).
+   * 
+   * Notice that assertion names take priority over ordinary names.
    */
   void setName(api::Term t, const std::string& name, bool isAssertion = false);
   /** Get name for term t
@@ -80,6 +86,10 @@ class CVC4_PUBLIC SymbolManager
  private:
   /** The API Solver object. */
   api::Solver* d_solver;
+  /**
+    * The declaration scope that is "owned" by this symbol manager.
+    */
+  SymbolTable d_symtabAllocated;
   /** Map terms to names */
   std::map<api::Term, std::string> d_names;
   /** The set of terms with assertion names */
