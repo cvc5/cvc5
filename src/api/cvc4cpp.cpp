@@ -3273,7 +3273,23 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
   {
     // default case, same as above
     checkMkTerm(kind, children.size());
-    res = d_exprMgr->mkExpr(k, echildren);
+    if (kind == api::SINGLETON)
+    {
+      // the type of the term is the same as the type of the internal node
+      // see Term::getSort()
+      TypeNode type = children[0].d_node->getType();
+      // Internally NodeManager::mkSingleton needs a type argument
+      // to construct a singleton since there is no difference between a
+      // integers and reals (both are Rationals).
+      // At the API, mkReal and mkInteger are different and therefore the
+      // element type can be used safely here.
+      Node singleton = getNodeManager()->mkSingleton(type, *children[0].d_node);
+      res = Term(this, singleton).getExpr();
+    }
+    else
+    {
+      res = d_exprMgr->mkExpr(k, echildren);
+    }
   }
 
   (void)res.getType(true); /* kick off type checking */
@@ -4162,34 +4178,7 @@ Term Solver::mkTerm(Kind kind) const
 
 Term Solver::mkTerm(Kind kind, Term child) const
 {
-  return mkTermHelper(kind, child);
-}
-
-Term Solver::mkTermHelper(Kind kind, Term child) const
-{
-  NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_ARG_CHECK_EXPECTED(!child.isNull(), child) << "non-null term";
-  CVC4_API_SOLVER_CHECK_TERM(child);
-  checkMkTerm(kind, 1);
-  Node res;
-  switch (kind)
-  {
-    case SINGLETON:
-    {
-      TypeNode type = (*child.d_node).getType();
-      res = getNodeManager()->mkSingleton(type, *child.d_node);
-      break;
-    }
-    default:
-    {
-      res = getNodeManager()->mkNode(extToIntKind(kind), *child.d_node);
-      break;
-    }
-  }
-  (void)res.getType(true); /* kick off type checking */
-  return Term(this, res);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  return mkTermHelper(kind, std::vector<Term>{child});
 }
 
 Term Solver::mkTerm(Kind kind, Term child1, Term child2) const

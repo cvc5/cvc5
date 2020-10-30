@@ -3483,14 +3483,6 @@ class CVC4_PUBLIC Solver
   Term mkTermHelper(Kind kind, const std::vector<Term>& children) const;
 
   /**
-   * Create a unary term of given kind.
-   * @param kind the kind of the term
-   * @param child the child of the term
-   * @return the Term
-   */
-  Term mkTermHelper(Kind kind, Term child) const;
-
-  /**
    * Create a vector of datatype sorts, using unresolved sorts.
    * @param dtypedecls the datatype declarations from which the sort is created
    * @param unresolvedSorts the list of unresolved sorts
