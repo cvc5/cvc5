@@ -3819,22 +3819,6 @@ Term Solver::mkEmptySet(Sort s) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::mkSingleton(Sort s, Term t) const
-{
-  NodeManagerScope scope(getNodeManager());
-
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_ARG_CHECK_EXPECTED(!t.isNull(), t) << "non-null term";
-  CVC4_API_SOLVER_CHECK_TERM(t);
-  checkMkTerm(SINGLETON, 1);
-
-  Node res = getNodeManager()->mkSingleton(*s.d_type, *t.d_node);
-  (void)res.getType(true); /* kick off type checking */
-  return Term(this, res);
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
-}
-
 Term Solver::mkEmptyBag(Sort s) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
@@ -4178,16 +4162,33 @@ Term Solver::mkTerm(Kind kind) const
 
 Term Solver::mkTerm(Kind kind, Term child) const
 {
+  return mkTermHelper(kind, child);
+}
+
+Term Solver::mkTermHelper(Kind kind, const Term& child) const
+{
   NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!child.isNull(), child) << "non-null term";
   CVC4_API_SOLVER_CHECK_TERM(child);
   checkMkTerm(kind, 1);
-
-  Node res = getNodeManager()->mkNode(extToIntKind(kind), *child.d_node);
+  Node res;
+  switch (kind)
+  {
+    case SINGLETON:
+    {
+      TypeNode type = (*child.d_node).getType();
+      res = getNodeManager()->mkSingleton(type, *child.d_node);
+      break;
+    }
+    default:
+    {
+      res = getNodeManager()->mkNode(extToIntKind(kind), *child.d_node);
+      break;
+    }
+  }
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
-
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 

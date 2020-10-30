@@ -2639,15 +2639,6 @@ class CVC4_PUBLIC Solver
   Term mkEmptySet(Sort s) const;
 
   /**
-   * Create a singleton set from the given element t.
-   * @param s the element sort of the returned set.
-   * Note that the sort of t needs to be a subtype of s.
-   * @param t the single element in the singleton.
-   * @return a singleton set constructed from the element t.
-   */
-  Term mkSingleton(Sort s, Term t) const;
-
-  /**
    * Create a constant representing an empty bag of the given sort.
    * @param s the sort of the bag elements.
    * @return the empty bag constant
@@ -3490,6 +3481,14 @@ class CVC4_PUBLIC Solver
    * @return the Term
    */
   Term mkTermHelper(Kind kind, const std::vector<Term>& children) const;
+
+  /**
+   * Create unary term of given kind.
+   * @param kind the kind of the term
+   * @param children the children of the term
+   * @return the Term
+   */
+  Term mkTermHelper(Kind kind, const Term & child) const;
 
   /**
    * Create a vector of datatype sorts, using unresolved sorts.
