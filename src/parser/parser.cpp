@@ -43,7 +43,7 @@ namespace CVC4 {
 namespace parser {
 
 Parser::Parser(api::Solver* solver,
-        SymbolManager* sm,
+               SymbolManager* sm,
                Input* input,
                bool strictMode,
                bool parseOnly)

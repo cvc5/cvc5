@@ -19,19 +19,16 @@ namespace parser {
 
 SymbolManager::SymbolManager(api::Solver* s) : d_solver(s) {}
 
-SymbolTable * SymbolManager::getSymbolTable()
-{
-  return &d_symtabAllocated;
-}
+SymbolTable* SymbolManager::getSymbolTable() { return &d_symtabAllocated; }
 
 void SymbolManager::setName(api::Term t,
                             const std::string& name,
                             bool isAssertion)
 {
-  if (d_names.find(t)!=d_names.end())
+  if (d_names.find(t) != d_names.end())
   {
     // already named assertion, or we are not naming an assertion
-    if (!isAssertion || d_namedAsserts.find(t)!=d_namedAsserts.end())
+    if (!isAssertion || d_namedAsserts.find(t) != d_namedAsserts.end())
     {
       return;
     }
@@ -45,14 +42,14 @@ bool SymbolManager::getName(api::Term t,
                             bool isAssertion) const
 {
   std::map<api::Term, std::string>::const_iterator it = d_names.find(t);
-  if (it==d_names.end())
+  if (it == d_names.end())
   {
     return false;
   }
   if (isAssertion)
   {
     // must be an assertion name
-    if (d_namedAsserts.find(t)==d_namedAsserts.end())
+    if (d_namedAsserts.find(t) == d_namedAsserts.end())
     {
       return false;
     }

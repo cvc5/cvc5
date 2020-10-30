@@ -21,9 +21,9 @@
 #include "api/cvc4cpp.h"
 #include "expr/expr_manager.h"
 #include "options/options.h"
+#include "parser/symbol_manager.h"
 #include "smt/smt_engine.h"
 #include "util/statistics_registry.h"
-#include "parser/symbol_manager.h"
 
 namespace CVC4 {
 
@@ -66,9 +66,9 @@ class CommandExecutor
 
   /** Get a pointer to the solver object owned by this CommandExecutor. */
   api::Solver* getSolver() { return d_solver.get(); }
-  
+
   /** Get a pointer to the symbol manager owned by this CommandExecutor */
-  parser::SymbolManager * getSymbolManager() { return d_symman.get(); }
+  parser::SymbolManager* getSymbolManager() { return d_symman.get(); }
 
   api::Result getResult() const { return d_result; }
   void reset();

@@ -33,15 +33,16 @@
 namespace CVC4 {
 namespace parser {
 
-ParserBuilder::ParserBuilder(api::Solver* solver, 
-        SymbolManager* sm, const std::string& filename)
+ParserBuilder::ParserBuilder(api::Solver* solver,
+                             SymbolManager* sm,
+                             const std::string& filename)
     : d_filename(filename), d_solver(solver), d_symman(sm)
 {
   init(solver, sm, filename);
 }
 
 ParserBuilder::ParserBuilder(api::Solver* solver,
-        SymbolManager* sm,
+                             SymbolManager* sm,
                              const std::string& filename,
                              const Options& options)
     : d_filename(filename), d_solver(solver), d_symman(sm)
@@ -50,8 +51,9 @@ ParserBuilder::ParserBuilder(api::Solver* solver,
   withOptions(options);
 }
 
-void ParserBuilder::init(api::Solver* solver, 
-        SymbolManager* sm, const std::string& filename)
+void ParserBuilder::init(api::Solver* solver,
+                         SymbolManager* sm,
+                         const std::string& filename)
 {
   d_inputType = FILE_INPUT;
   d_lang = language::input::LANG_AUTO;

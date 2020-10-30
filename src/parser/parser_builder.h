@@ -67,7 +67,7 @@ class CVC4_PUBLIC ParserBuilder {
 
   /** The API Solver object. */
   api::Solver* d_solver;
-  
+
   /** The symbol manager */
   SymbolManager* d_symman;
 
@@ -93,16 +93,18 @@ class CVC4_PUBLIC ParserBuilder {
   std::string d_forcedLogic;
 
   /** Initialize this parser builder */
-  void init(api::Solver* solver, 
-        SymbolManager* sm, const std::string& filename);
+  void init(api::Solver* solver,
+            SymbolManager* sm,
+            const std::string& filename);
 
  public:
   /** Create a parser builder using the given Solver and filename. */
-  ParserBuilder(api::Solver* solver, 
-        SymbolManager* sm, const std::string& filename);
+  ParserBuilder(api::Solver* solver,
+                SymbolManager* sm,
+                const std::string& filename);
 
   ParserBuilder(api::Solver* solver,
-        SymbolManager* sm,
+                SymbolManager* sm,
                 const std::string& filename,
                 const Options& options);
 

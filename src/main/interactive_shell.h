@@ -20,8 +20,8 @@
 
 #include "options/language.h"
 #include "options/options.h"
-#include "util/unsafe_interrupt_exception.h"
 #include "parser/symbol_manager.h"
+#include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
 
@@ -52,7 +52,7 @@ class CVC4_PUBLIC InteractiveShell
   static const unsigned s_historyLimit = 500;
 
 public:
- InteractiveShell(api::Solver* solver, parser::SymbolManager * sm);
+ InteractiveShell(api::Solver* solver, parser::SymbolManager* sm);
 
  /**
   * Close out the interactive session.

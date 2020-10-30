@@ -145,7 +145,7 @@ private:
   * this parser.
   */
  SymbolManager* d_symman;
- 
+
  /**
   * This current symbol table used by this parser, from symbol manager.
   */

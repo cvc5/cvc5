@@ -39,7 +39,7 @@ class CVC4_PUBLIC SymbolManager
   SymbolManager(api::Solver* s);
   ~SymbolManager() {}
   /** Get the underlying symbol table */
-  SymbolTable * getSymbolTable();
+  SymbolTable* getSymbolTable();
   //---------------------------- named expressions
   /** Set name of term t to name
    *
@@ -48,7 +48,7 @@ class CVC4_PUBLIC SymbolManager
    * @param isAssertion Whether t is being given a name in an assertion
    * context. In particular, this is true if and only if there was an assertion
    * command of the form (assert (! t :named name)).
-   * 
+   *
    * Notice that assertion names take priority over ordinary names.
    */
   void setName(api::Term t, const std::string& name, bool isAssertion = false);
@@ -87,8 +87,8 @@ class CVC4_PUBLIC SymbolManager
   /** The API Solver object. */
   api::Solver* d_solver;
   /**
-    * The declaration scope that is "owned" by this symbol manager.
-    */
+   * The declaration scope that is "owned" by this symbol manager.
+   */
   SymbolTable d_symtabAllocated;
   /** Map terms to names */
   std::map<api::Term, std::string> d_names;

@@ -84,7 +84,8 @@ static set<string> s_declarations;
 
 #endif /* HAVE_LIBEDITLINE */
 
-InteractiveShell::InteractiveShell(api::Solver* solver, parser::SymbolManager * sm)
+InteractiveShell::InteractiveShell(api::Solver* solver,
+                                   parser::SymbolManager* sm)
     : d_options(solver->getOptions()),
       d_in(*d_options.getIn()),
       d_out(*d_options.getOutConst()),

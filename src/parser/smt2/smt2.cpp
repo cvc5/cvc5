@@ -32,8 +32,11 @@
 namespace CVC4 {
 namespace parser {
 
-Smt2::Smt2(api::Solver* solver, 
-        SymbolManager* sm,Input* input, bool strictMode, bool parseOnly)
+Smt2::Smt2(api::Solver* solver,
+           SymbolManager* sm,
+           Input* input,
+           bool strictMode,
+           bool parseOnly)
     : Parser(solver, sm, input, strictMode, parseOnly),
       d_logicSet(false),
       d_seenSetLogic(false)
