@@ -143,8 +143,6 @@ class InstStrategyCegqi : public QuantifiersModule
   bool d_incomplete_check;
   /** whether we have added cbqi lemma */
   NodeSet d_added_cbqi_lemma;
-  /** whether we have added cbqi lemma */
-  NodeSet d_elim_quants;
   /** parent guards */
   std::map< Node, std::vector< Node > > d_parent_quant;
   std::map< Node, std::vector< Node > > d_children_quant;
@@ -204,15 +202,6 @@ class InstStrategyCegqi : public QuantifiersModule
   Node getCounterexampleLiteral(Node q);
   /** map from universal quantifiers to their counterexample literals */
   std::map<Node, Node> d_ce_lit;
-
-  /** Do nested quantifier elimination.
-   *
-   * This rewrites the quantified formulas in inst based on nested quantifier
-   * elimination. In this method, inst is the instantiation of quantified
-   * formula q for the vector terms. The flag doVts indicates whether we must
-   * apply virtual term substitution (if terms contains virtual terms).
-   */
-  Node doNestedQE(Node q, std::vector<Node>& terms, Node inst, bool doVts);
 };
 
 
