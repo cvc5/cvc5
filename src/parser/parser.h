@@ -16,8 +16,8 @@
 
 #include "cvc4parser_public.h"
 
-#ifndef CVC4__PARSER__PARSER_STATE_H
-#define CVC4__PARSER__PARSER_STATE_H
+#ifndef CVC4__PARSER__PARSER_H
+#define CVC4__PARSER__PARSER_H
 
 #include <cassert>
 #include <list>
