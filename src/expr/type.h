@@ -30,7 +30,7 @@ namespace CVC4 {
 
 class NodeManager;
 class CVC4_PUBLIC ExprManager;
-class CVC4_PUBLIC Expr;
+class Expr;
 class TypeNode;
 struct CVC4_PUBLIC ExprManagerMapCollection;
 
