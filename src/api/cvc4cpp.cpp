@@ -4165,7 +4165,7 @@ Term Solver::mkTerm(Kind kind, Term child) const
   return mkTermHelper(kind, child);
 }
 
-Term Solver::mkTermHelper(Kind kind, const Term& child) const
+Term Solver::mkTermHelper(Kind kind, Term child) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
