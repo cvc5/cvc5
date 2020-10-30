@@ -409,7 +409,7 @@ void CvcPrinter::toStream(
     case kind::APPLY_TYPE_ASCRIPTION: {
         toStream(out, n[0], depth, types, false);
         out << "::";
-        TypeNode t = TypeNode::fromType(n.getOperator().getConst<AscriptionType>().getType());
+        TypeNode t = n.getOperator().getConst<AscriptionType>().getType();
         out << (t.isFunctionLike() ? t.getRangeType() : t);
       }
       return;
@@ -644,6 +644,8 @@ void CvcPrinter::toStream(
       opType = PREFIX;
       break;
     case kind::TO_REAL:
+    case kind::CAST_TO_REAL:
+    {
       if (n[0].getKind() == kind::CONST_RATIONAL)
       {
         // print the constant as a rational
@@ -655,6 +657,7 @@ void CvcPrinter::toStream(
         toStream(out, n[0], depth, types, false);
       }
       return;
+    }
     case kind::DIVISIBLE:
       out << "DIVISIBLE(";
       toStream(out, n[0], depth, types, false);
@@ -1142,7 +1145,9 @@ void DeclareFunctionNodeCommandToStream(
   {
     out << tn;
   }
-  Node val = model.getSmtEngine()->getValue(n);
+  // We get the value from the theory model directly, which notice
+  // does not have to go through the standard SmtEngine::getValue interface.
+  Node val = model.getValue(n);
   if (options::modelUninterpDtEnum() && val.getKind() == kind::STORE)
   {
     TypeNode type_node = val[1].getType();
@@ -1162,11 +1167,12 @@ void DeclareFunctionNodeCommandToStream(
 
 }  // namespace
 
-void CvcPrinter::toStream(std::ostream& out, const Model& m) const
+void CvcPrinter::toStream(std::ostream& out, const smt::Model& m) const
 {
+  const theory::TheoryModel* tm = m.getTheoryModel();
   // print the model comments
   std::stringstream c;
-  m.getComments(c);
+  tm->getComments(c);
   std::string ln;
   while (std::getline(c, ln))
   {
@@ -1180,10 +1186,10 @@ void CvcPrinter::toStream(std::ostream& out, const Model& m) const
 }
 
 void CvcPrinter::toStream(std::ostream& out,
-                          const Model& model,
+                          const smt::Model& model,
                           const NodeCommand* command) const
 {
-  const auto* theory_model = dynamic_cast<const theory::TheoryModel*>(&model);
+  const auto* theory_model = model.getTheoryModel();
   AlwaysAssert(theory_model != nullptr);
   if (const auto* declare_type_command =
           dynamic_cast<const DeclareTypeNodeCommand*>(command))

@@ -196,8 +196,7 @@ struct DatatypeAscriptionTypeRule {
                                      bool check) {
     Debug("typecheck-idt") << "typechecking ascription: " << n << std::endl;
     Assert(n.getKind() == kind::APPLY_TYPE_ASCRIPTION);
-    TypeNode t = TypeNode::fromType(
-        n.getOperator().getConst<AscriptionType>().getType());
+    TypeNode t = n.getOperator().getConst<AscriptionType>().getType();
     if (check) {
       TypeNode childType = n[0].getType(check);
 

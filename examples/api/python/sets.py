@@ -62,9 +62,9 @@ if __name__ == "__main__":
 
     # Find me an element in 1, 2 intersection 2, 3, if there is one.
 
-    one = slv.mkReal(1)
-    two = slv.mkReal(2)
-    three = slv.mkReal(3)
+    one = slv.mkInteger(1)
+    two = slv.mkInteger(2)
+    three = slv.mkInteger(3)
 
     singleton_one = slv.mkSingleton(integer, one)
     singleton_two = slv.mkSingleton(integer, two)

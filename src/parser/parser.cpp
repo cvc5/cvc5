@@ -82,7 +82,7 @@ api::Term Parser::getSymbol(const std::string& name, SymbolType type)
   assert(isDeclared(name, type));
   assert(type == SYM_VARIABLE);
   // Functions share var namespace
-  return api::Term(d_solver, d_symtab->lookup(name));
+  return d_symtab->lookup(name);
 }
 
 api::Term Parser::getVariable(const std::string& name)
@@ -159,7 +159,7 @@ api::Sort Parser::getSort(const std::string& name)
 {
   checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
   assert(isDeclared(name, SYM_SORT));
-  api::Sort t = api::Sort(d_solver, d_symtab->lookupType(name));
+  api::Sort t = d_symtab->lookupType(name);
   return t;
 }
 
@@ -168,8 +168,7 @@ api::Sort Parser::getSort(const std::string& name,
 {
   checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
   assert(isDeclared(name, SYM_SORT));
-  api::Sort t = api::Sort(
-      d_solver, d_symtab->lookupType(name, api::sortVectorToTypes(params)));
+  api::Sort t = d_symtab->lookupType(name, params);
   return t;
 }
 
@@ -230,8 +229,7 @@ std::vector<api::Term> Parser::bindBoundVars(
   std::vector<api::Term> vars;
   for (std::pair<std::string, api::Sort>& i : sortedVarNames)
   {
-    vars.push_back(
-        bindBoundVar(i.first, api::Sort(d_solver, i.second.getType())));
+    vars.push_back(bindBoundVar(i.first, i.second));
   }
   return vars;
 }
@@ -245,7 +243,7 @@ api::Term Parser::mkAnonymousFunction(const std::string& prefix,
   }
   stringstream name;
   name << prefix << "_anon_" << ++d_anonymousFunctionCount;
-  return mkVar(name.str(), api::Sort(d_solver, type.getType()), flags);
+  return mkVar(name.str(), type, flags);
 }
 
 std::vector<api::Term> Parser::bindVars(const std::vector<std::string> names,
@@ -279,7 +277,7 @@ void Parser::defineVar(const std::string& name,
                        bool doOverload)
 {
   Debug("parser") << "defineVar( " << name << " := " << val << ")" << std::endl;
-  if (!d_symtab->bind(name, val.getExpr(), levelZero, doOverload))
+  if (!d_symtab->bind(name, val, levelZero, doOverload))
   {
     std::stringstream ss;
     ss << "Cannot bind " << name << " to symbol of type " << val.getSort();
@@ -291,9 +289,15 @@ void Parser::defineVar(const std::string& name,
 
 void Parser::defineType(const std::string& name,
                         const api::Sort& type,
-                        bool levelZero)
+                        bool levelZero,
+                        bool skipExisting)
 {
-  d_symtab->bindType(name, type.getType(), levelZero);
+  if (skipExisting && isDeclared(name, SYM_SORT))
+  {
+    assert(d_symtab->lookupType(name) == type);
+    return;
+  }
+  d_symtab->bindType(name, type, levelZero);
   assert(isDeclared(name, SYM_SORT));
 }
 
@@ -302,8 +306,7 @@ void Parser::defineType(const std::string& name,
                         const api::Sort& type,
                         bool levelZero)
 {
-  d_symtab->bindType(
-      name, api::sortVectorToTypes(params), type.getType(), levelZero);
+  d_symtab->bindType(name, params, type, levelZero);
   assert(isDeclared(name, SYM_SORT));
 }
 

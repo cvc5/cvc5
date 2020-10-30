@@ -206,6 +206,7 @@ class Datatype;
  */
 class CVC4_PUBLIC Sort
 {
+  friend class DatatypeConstructor;
   friend class DatatypeConstructorDecl;
   friend class DatatypeDecl;
   friend class Op;
@@ -224,6 +225,7 @@ class CVC4_PUBLIC Sort
    * @return the Sort
    */
   Sort(const Solver* slv, const CVC4::Type& t);
+  Sort(const Solver* slv, const CVC4::TypeNode& t);
 
   /**
    * Constructor.
@@ -488,6 +490,7 @@ class CVC4_PUBLIC Sort
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
   CVC4::Type getType(void) const;
+  const CVC4::TypeNode& getTypeNode(void) const;
 
   /* Constructor sort ------------------------------------------------------- */
 
@@ -505,6 +508,30 @@ class CVC4_PUBLIC Sort
    * @return the codomain sort of a constructor sort
    */
   Sort getConstructorCodomainSort() const;
+
+  /* Selector sort ------------------------------------------------------- */
+
+  /**
+   * @return the domain sort of a selector sort
+   */
+  Sort getSelectorDomainSort() const;
+
+  /**
+   * @return the codomain sort of a selector sort
+   */
+  Sort getSelectorCodomainSort() const;
+
+  /* Tester sort ------------------------------------------------------- */
+
+  /**
+   * @return the domain sort of a tester sort
+   */
+  Sort getTesterDomainSort() const;
+
+  /**
+   * @return the codomain sort of a tester sort, which is the Boolean sort
+   */
+  Sort getTesterCodomainSort() const;
 
   /* Function sort ------------------------------------------------------- */
 
@@ -646,7 +673,7 @@ class CVC4_PUBLIC Sort
    * memory allocation (CVC4::Type is already ref counted, so this could be
    * a unique_ptr instead).
    */
-  std::shared_ptr<CVC4::Type> d_type;
+  std::shared_ptr<CVC4::TypeNode> d_type;
 };
 
 /**
@@ -958,13 +985,6 @@ class CVC4_PUBLIC Term
   bool isNull() const;
 
   /**
-   * Check if this is a Term representing a value.
-   *
-   * @return true if this is a Term representing a value
-   */
-  bool isValue() const;
-
-  /**
    *  Return the base (element stored at all indices) of a constant array
    *  throws an exception if the kind is not CONST_ARRAY
    *  @return the base value
@@ -1151,6 +1171,11 @@ class CVC4_PUBLIC Term
    */
   Kind getKindHelper() const;
 
+  /**
+   * returns true if the current term is a constant integer that is casted into
+   * real using the operator CAST_TO_REAL, and returns false otherwise
+   */
+  bool isCastedReal() const;
   /**
    * The internal expression wrapped by this term.
    * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
@@ -2556,12 +2581,26 @@ class CVC4_PUBLIC Solver
    * @return a constant representing Pi
    */
   Term mkPi() const;
+  /**
+   * Create an integer constant from a string.
+   * @param s the string representation of the constant, may represent an
+   *          integer (e.g., "123").
+   * @return a constant of sort Integer assuming 's' represents an integer)
+   */
+  Term mkInteger(const std::string& s) const;
+
+  /**
+   * Create an integer constant from a c++ int.
+   * @param val the value of the constant
+   * @return a constant of sort Integer
+   */
+  Term mkInteger(int64_t val) const;
 
   /**
    * Create a real constant from a string.
    * @param s the string representation of the constant, may represent an
    *          integer (e.g., "123") or real constant (e.g., "12.34" or "12/34").
-   * @return a constant of sort Real or Integer (if 's' represents an integer)
+   * @return a constant of sort Real
    */
   Term mkReal(const std::string& s) const;
 
@@ -2576,7 +2615,7 @@ class CVC4_PUBLIC Solver
    * Create a real constant from a rational.
    * @param num the value of the numerator
    * @param den the value of the denominator
-   * @return a constant of sort Real or Integer (if 'num' is divisible by 'den')
+   * @return a constant of sort Real
    */
   Term mkReal(int64_t num, int64_t den) const;
 
@@ -3041,14 +3080,6 @@ class CVC4_PUBLIC Solver
   std::vector<Term> getAssertions() const;
 
   /**
-   * Get the assignment of asserted formulas.
-   * SMT-LIB: ( get-assignment )
-   * Requires to enable option 'produce-assignments'.
-   * @return a list of formula-assignment pairs
-   */
-  std::vector<std::pair<Term, Term>> getAssignment() const;
-
-  /**
    * Get info from the solver.
    * SMT-LIB: ( get-info <info_flag> )
    * @return the info
@@ -3093,6 +3124,48 @@ class CVC4_PUBLIC Solver
    * @return the values of the given terms
    */
   std::vector<Term> getValue(const std::vector<Term>& terms) const;
+
+  /**
+   * Do quantifier elimination.
+   * SMT-LIB: ( get-qe <q> )
+   * Requires a logic that supports quantifier elimination. Currently, the only
+   * logics supported by quantifier elimination is LRA and LIA.
+   * @param q a quantified formula of the form:
+   *   Q x1...xn. P( x1...xn, y1...yn )
+   * where P( x1...xn, y1...yn ) is a quantifier-free formula
+   * @return a formula ret such that, given the current set of formulas A
+   * asserted to this solver:
+   *   - ( A ^ q ) and ( A ^ ret ) are equivalent
+   *   - ret is quantifier-free formula containing only free variables in
+   *     y1...yn.
+   */
+  Term getQuantifierElimination(api::Term q) const;
+
+  /**
+   * Do partial quantifier elimination, which can be used for incrementally
+   * computing the result of a quantifier elimination.
+   * SMT-LIB: ( get-qe-disjunct <q> )
+   * Requires a logic that supports quantifier elimination. Currently, the only
+   * logics supported by quantifier elimination is LRA and LIA.
+   * @param q a quantified formula of the form:
+   *   Q x1...xn. P( x1...xn, y1...yn )
+   * where P( x1...xn, y1...yn ) is a quantifier-free formula
+   * @return a formula ret such that, given the current set of formulas A
+   * asserted to this solver:
+   *   - (A ^ q) => (A ^ ret) if Q is forall or (A ^ ret) => (A ^ q) if Q is
+   *     exists,
+   *   - ret is quantifier-free formula containing only free variables in
+   *     y1...yn,
+   *   - If Q is exists, let A^Q_n be the formula
+   *       A ^ ~ret^Q_1 ^ ... ^ ~ret^Q_n
+   *     where for each i=1,...n, formula ret^Q_i is the result of calling
+   *     getQuantifierEliminationDisjunct for q with the set of assertions
+   *     A^Q_{i-1}. Similarly, if Q is forall, then let A^Q_n be
+   *       A ^ ret^Q_1 ^ ... ^ ret^Q_n
+   *     where ret^Q_i is the same as above. In either case, we have
+   *     that ret^Q_j will eventually be true or false, for some finite j.
+   */
+  Term getQuantifierEliminationDisjunct(api::Term q) const;
 
   /**
    * When using separation logic, obtain the term for the heap.
@@ -3167,6 +3240,30 @@ class CVC4_PUBLIC Solver
    * @param out the output stream
    */
   void printModel(std::ostream& out) const;
+
+  /**
+   * Block the current model. Can be called only if immediately preceded by a
+   * SAT or INVALID query.
+   * SMT-LIB: ( block-model )
+   * Requires enabling 'produce-models' option and setting 'block-models' option
+   * to a mode other than "none".
+   */
+  void blockModel() const;
+
+  /**
+   * Block the current model values of (at least) the values in terms. Can be
+   * called only if immediately preceded by a SAT or NOT_ENTAILED query.
+   * SMT-LIB: ( block-model-values ( <terms>+ ) )
+   * Requires enabling 'produce-models' option and setting 'block-models' option
+   * to a mode other than "none".
+   */
+  void blockModelValues(const std::vector<Term>& terms) const;
+
+  /**
+   * Print all instantiations made by the quantifiers module.
+   * @param out the output stream
+   */
+  void printInstantiations(std::ostream& out) const;
 
   /**
    * Push (a) level(s) to the assertion stack.
@@ -3379,10 +3476,10 @@ class CVC4_PUBLIC Solver
   /**
    * Helper function that ensures that a given term is of sort real (as opposed
    * to being of sort integer).
-   * @param term a term of sort integer or real
+   * @param t a term of sort integer or real
    * @return a term of sort real
    */
-  Term ensureRealSort(Term expr) const;
+  Term ensureRealSort(Term t) const;
 
   /**
    * Create n-ary term of given kind. This handles the cases of left/right
@@ -3434,11 +3531,13 @@ std::vector<Expr> termVectorToExprs(const std::vector<Term>& terms);
 std::vector<Node> termVectorToNodes(const std::vector<Term>& terms);
 std::vector<Type> sortVectorToTypes(const std::vector<Sort>& sorts);
 std::vector<TypeNode> sortVectorToTypeNodes(const std::vector<Sort>& sorts);
-std::set<Type> sortSetToTypes(const std::set<Sort>& sorts);
+std::set<TypeNode> sortSetToTypeNodes(const std::set<Sort>& sorts);
 std::vector<Term> exprVectorToTerms(const Solver* slv,
                                     const std::vector<Expr>& terms);
 std::vector<Sort> typeVectorToSorts(const Solver* slv,
                                     const std::vector<Type>& sorts);
+std::vector<Sort> typeNodeVectorToSorts(const Solver* slv,
+                                        const std::vector<TypeNode>& types);
 
 }  // namespace api
 

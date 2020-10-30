@@ -72,7 +72,7 @@ jobs:
         python3 -m pip install toml
         python3 -m pip install setuptools
         python3 -m pip install pexpect
-        echo "::add-path::/usr/lib/ccache"
+        echo "/usr/lib/ccache" >> $GITHUB_PATH
 
     # Note: macOS comes with a libedit; it does not need to brew-installed
     - name: Install Packages (macOS)
@@ -88,14 +88,14 @@ jobs:
         python3 -m pip install toml
         python3 -m pip install setuptools
         python3 -m pip install pexpect
-        echo "::add-path::/usr/local/opt/ccache/libexec"
+        echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
 
     - name: Install Cython
       if: matrix.python-bindings && runner.os == 'Linux'
       run: |
         python3 -m pip install \
           Cython==0.29.* --install-option="--no-cython-compile"
-        echo "::add-path::$(python3 -m site --user-base)/bin"
+        echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
 
     - name: Install Cython (macOS)
       if: matrix.python-bindings && runner.os == 'macOS'

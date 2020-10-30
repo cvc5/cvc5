@@ -62,6 +62,8 @@ void AssertionPipeline::push_back(Node n,
     Assert(d_assumptionsStart + d_numAssumptions == d_nodes.size() - 1);
     d_numAssumptions++;
   }
+  Trace("assert-pipeline") << "Assertions: ...new assertion " << n
+                           << ", isInput=" << isInput << std::endl;
   if (isProofEnabled())
   {
     if (!isInput)
@@ -71,7 +73,9 @@ void AssertionPipeline::push_back(Node n,
     }
     else
     {
-      Trace("smt-pppg") << "...input assertion " << n << std::endl;
+      Assert(pgen == nullptr);
+      // n is an input assertion, whose proof should be ASSUME.
+      d_pppg->notifyInput(n);
     }
   }
 }
@@ -90,8 +94,8 @@ void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
     // no change, skip
     return;
   }
-  Trace("smt-pppg-repl") << "Replace " << d_nodes[i] << " with " << n
-                         << std::endl;
+  Trace("assert-pipeline") << "Assertions: Replace " << d_nodes[i] << " with "
+                           << n << std::endl;
   if (options::unsatCores())
   {
     ProofManager::currentPM()->addDependence(n, d_nodes[i]);
@@ -104,8 +108,14 @@ void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
 }
 
 void AssertionPipeline::replaceTrusted(size_t i, theory::TrustNode trn)
-{
+{  
+  if (trn.isNull())
+  {
+    // null trust node denotes no change, nothing to do
+    return;
+  }
   Assert(trn.getKind() == theory::TrustNodeKind::REWRITE);
+  Assert(trn.getProven()[0] == d_nodes[i]);
   replace(i, trn.getNode(), trn.getGenerator());
 }
 
@@ -140,6 +150,10 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
   NodeManager* nm = NodeManager::currentNM();
   Node newConj = nm->mkNode(kind::AND, d_nodes[i], n);
   Node newConjr = theory::Rewriter::rewrite(newConj);
+  Trace("assert-pipeline") << "Assertions: conjoin " << n << " to "
+                           << d_nodes[i] << std::endl;
+  Trace("assert-pipeline-debug") << "conjoin " << n << " to " << d_nodes[i]
+                                 << ", got " << newConjr << std::endl;
   if (newConjr == d_nodes[i])
   {
     // trivial, skip
@@ -147,29 +161,45 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
   }
   if (isProofEnabled())
   {
-    // ---------- from pppg   --------- from pg
-    // d_nodes[i]                n
-    // -------------------------------- AND_INTRO
-    //      d_nodes[i] ^ n
-    // -------------------------------- MACRO_SR_PRED_TRANSFORM
-    //   rewrite( d_nodes[i] ^ n )
-    // allocate a fresh proof which will act as the proof generator
-    LazyCDProof* lcp = d_pppg->allocateHelperProof();
-    lcp->addLazyStep(d_nodes[i], d_pppg, false);
-    lcp->addLazyStep(
-        n, pg, false, "AssertionPipeline::conjoin", false, PfRule::PREPROCESS);
-    lcp->addStep(newConj, PfRule::AND_INTRO, {d_nodes[i], n}, {});
-    if (newConjr != newConj)
+    if (newConjr == n)
     {
-      lcp->addStep(
-          newConjr, PfRule::MACRO_SR_PRED_TRANSFORM, {newConj}, {newConjr});
+      // don't care about the previous proof and can simply plug in the
+      // proof from pg if the resulting assertion is the same as n.
+      d_pppg->notifyNewAssert(newConjr, pg);
     }
-    // Notice we have constructed a proof of a new assertion, where d_pppg
-    // is referenced in the lazy proof above. If alternatively we had
-    // constructed a proof of d_nodes[i] = rewrite( d_nodes[i] ^ n ), we would
-    // have used notifyPreprocessed. However, it is simpler to make the
-    // above proof.
-    d_pppg->notifyNewAssert(newConjr, lcp);
+    else
+    {
+      // ---------- from pppg   --------- from pg
+      // d_nodes[i]                n
+      // -------------------------------- AND_INTRO
+      //      d_nodes[i] ^ n
+      // -------------------------------- MACRO_SR_PRED_TRANSFORM
+      //   rewrite( d_nodes[i] ^ n )
+      // allocate a fresh proof which will act as the proof generator
+      LazyCDProof* lcp = d_pppg->allocateHelperProof();
+      lcp->addLazyStep(n, pg, PfRule::PREPROCESS);
+      if (d_nodes[i].isConst() && d_nodes[i].getConst<bool>())
+      {
+        // skip the AND_INTRO if the previous d_nodes[i] was true
+        newConj = n;
+      }
+      else
+      {
+        lcp->addLazyStep(d_nodes[i], d_pppg);
+        lcp->addStep(newConj, PfRule::AND_INTRO, {d_nodes[i], n}, {});
+      }
+      if (newConjr != newConj)
+      {
+        lcp->addStep(
+            newConjr, PfRule::MACRO_SR_PRED_TRANSFORM, {newConj}, {newConjr});
+      }
+      // Notice we have constructed a proof of a new assertion, where d_pppg
+      // is referenced in the lazy proof above. If alternatively we had
+      // constructed a proof of d_nodes[i] = rewrite( d_nodes[i] ^ n ), we would
+      // have used notifyPreprocessed. However, it is simpler to make the
+      // above proof.
+      d_pppg->notifyNewAssert(newConjr, lcp);
+    }
   }
   if (options::unsatCores())
   {

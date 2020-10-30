@@ -12,7 +12,6 @@
 (declare-fun clk@1 () (_ BitVec 1))
 (declare-fun a@1 () (_ BitVec 16))
 (declare-fun b@1 () (_ BitVec 16))
-(reset-assertions)
 (declare-fun cfg@0 () (_ BitVec 1))
 (declare-fun witness_0@0 () Bool)
 (declare-fun counter@0 () (_ BitVec 16))

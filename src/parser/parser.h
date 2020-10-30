@@ -531,11 +531,15 @@ public:
    * @param name The name of the type
    * @param type The type that should be associated with the name
    * @param levelZero If true, the type definition is considered global and
-   *                  cannot be removed by poppoing the user context
+   *                  cannot be removed by popping the user context
+   * @param skipExisting If true, the type definition is ignored if the same
+   *                     symbol has already been defined. It is assumed that
+   *                     the definition is the exact same as the existing one.
    */
   void defineType(const std::string& name,
                   const api::Sort& type,
-                  bool levelZero = false);
+                  bool levelZero = false,
+                  bool skipExisting = false);
 
   /**
    * Create a new (parameterized) type definition.
@@ -821,7 +825,7 @@ public:
   /** is this function overloaded? */
   bool isOverloadedFunction(api::Term fun)
   {
-    return d_symtab->isOverloadedFunction(fun.getExpr());
+    return d_symtab->isOverloadedFunction(fun);
   }
 
   /** Get overloaded constant for type.
@@ -830,8 +834,7 @@ public:
   */
   api::Term getOverloadedConstantForType(const std::string& name, api::Sort t)
   {
-    return api::Term(d_solver,
-                     d_symtab->getOverloadedConstantForType(name, t.getType()));
+    return d_symtab->getOverloadedConstantForType(name, t);
   }
 
   /**
@@ -842,9 +845,7 @@ public:
   api::Term getOverloadedFunctionForTypes(const std::string& name,
                                           std::vector<api::Sort>& argTypes)
   {
-    return api::Term(d_solver,
-                     d_symtab->getOverloadedFunctionForTypes(
-                         name, api::sortVectorToTypes(argTypes)));
+    return d_symtab->getOverloadedFunctionForTypes(name, argTypes);
   }
   //------------------------ end operator overloading
   /**

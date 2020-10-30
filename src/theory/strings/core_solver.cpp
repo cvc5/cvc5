@@ -2577,7 +2577,8 @@ bool CoreSolver::processInferInfo(CoreInferInfo& cii)
   // send phase requirements
   for (const std::pair<const Node, bool> pp : cii.d_pendingPhase)
   {
-    d_im.sendPhaseRequirement(pp.first, pp.second);
+    Node ppr = Rewriter::rewrite(pp.first);
+    d_im.addPendingPhaseRequirement(ppr, pp.second);
   }
 
   // send the inference, which is a lemma

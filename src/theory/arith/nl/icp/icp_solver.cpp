@@ -77,8 +77,12 @@ std::vector<Node> ICPSolver::collectVariables(const Node& n) const
 
 std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
 {
-  auto comp =
-      Comparison::parseNormalForm(Rewriter::rewrite(n)).decompose(false);
+  Node tmp = Rewriter::rewrite(n);
+  if (tmp.isConst())
+  {
+    return {};
+  }
+  auto comp = Comparison::parseNormalForm(tmp).decompose(false);
   Kind k = std::get<1>(comp);
   if (k == Kind::DISTINCT)
   {
@@ -103,7 +107,7 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
     if (isolated == 1)
     {
       poly::Variable lhs = d_mapper(v);
-      poly::SignCondition rel;
+      poly::SignCondition rel = poly::SignCondition::EQ;
       switch (k)
       {
         case Kind::LT: rel = poly::SignCondition::LT; break;
@@ -129,7 +133,7 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
     else if (isolated == -1)
     {
       poly::Variable lhs = d_mapper(v);
-      poly::SignCondition rel;
+      poly::SignCondition rel = poly::SignCondition::EQ;
       switch (k)
       {
         case Kind::LT: rel = poly::SignCondition::GT; break;
@@ -206,7 +210,7 @@ PropagationResult ICPSolver::doPropagationRound()
     Trace("nl-icp") << "ICP budget exceeded" << std::endl;
     return PropagationResult::NOT_CHANGED;
   }
-  d_state.d_conflict = Node();
+  d_state.d_conflict.clear();
   Trace("nl-icp") << "Starting propagation with "
                   << IAWrapper{d_state.d_assignment, d_mapper} << std::endl;
   Trace("nl-icp") << "Current budget: " << d_budget << std::endl;
@@ -263,7 +267,7 @@ std::vector<Node> ICPSolver::generateLemmas() const
       Node c = nm->mkNode(rel, v, value_to_node(get_lower(i), v));
       if (!d_state.d_origins.isInOrigins(v, c))
       {
-        Node premise = d_state.d_origins.getOrigins(v);
+        Node premise = nm->mkAnd(d_state.d_origins.getOrigins(v));
         Trace("nl-icp") << premise << " => " << c << std::endl;
         Node lemma = Rewriter::rewrite(nm->mkNode(Kind::IMPLIES, premise, c));
         if (lemma.isConst())
@@ -283,7 +287,7 @@ std::vector<Node> ICPSolver::generateLemmas() const
       Node c = nm->mkNode(rel, v, value_to_node(get_upper(i), v));
       if (!d_state.d_origins.isInOrigins(v, c))
       {
-        Node premise = d_state.d_origins.getOrigins(v);
+        Node premise = nm->mkAnd(d_state.d_origins.getOrigins(v));
         Trace("nl-icp") << premise << " => " << c << std::endl;
         Node lemma = Rewriter::rewrite(nm->mkNode(Kind::IMPLIES, premise, c));
         if (lemma.isConst())
@@ -339,7 +343,13 @@ void ICPSolver::check()
         Trace("nl-icp") << "Found a conflict: " << d_state.d_conflict
                         << std::endl;
 
-        d_im.addConflict(d_state.d_conflict, InferenceId::NL_ICP_CONFLICT);
+        std::vector<Node> mis;
+        for (const auto& n : d_state.d_conflict)
+        {
+          mis.emplace_back(n.negate());
+        }
+        d_im.addPendingArithLemma(NodeManager::currentNM()->mkOr(mis),
+                                  InferenceId::NL_ICP_CONFLICT);
         did_progress = true;
         progress = false;
         break;

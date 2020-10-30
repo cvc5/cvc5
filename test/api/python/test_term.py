@@ -103,25 +103,11 @@ def test_get_op():
     assert fx.getOp() == solver.mkOp(kinds.ApplyUf)
 
 
-def test_is_const():
-    solver = pycvc4.Solver()
-    intsort = solver.getIntegerSort()
-    one = solver.mkReal(1)
-    x = solver.mkConst(intsort, 'x')
-    xpone = solver.mkTerm(kinds.Plus, x, one)
-    onepone = solver.mkTerm(kinds.Plus, one, one)
-    assert not x.isValue()
-    assert one.isValue()
-    assert not xpone.isValue()
-    assert not onepone.isValue()
-
 def test_const_sequence_elements():
     solver = pycvc4.Solver()
     realsort = solver.getRealSort()
     seqsort = solver.mkSequenceSort(realsort)
     s = solver.mkEmptySequence(seqsort)
-
-    assert s.isValue()
 
     assert s.getKind() == kinds.ConstSequence
     # empty sequence has zero elements

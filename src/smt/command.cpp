@@ -32,6 +32,7 @@
 #include "options/options.h"
 #include "options/smt_options.h"
 #include "printer/printer.h"
+#include "proof/unsat_core.h"
 #include "smt/dump.h"
 #include "smt/model.h"
 #include "smt/smt_engine.h"
@@ -282,7 +283,7 @@ void AssertCommand::invoke(api::Solver* solver)
 {
   try
   {
-    solver->getSmtEngine()->assertFormula(d_term.getExpr(), d_inUnsatCore);
+    solver->getSmtEngine()->assertFormula(d_term.getNode(), d_inUnsatCore);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (UnsafeInterruptException& e)
@@ -581,16 +582,7 @@ api::Sort DeclareSygusVarCommand::getSort() const { return d_sort; }
 
 void DeclareSygusVarCommand::invoke(api::Solver* solver)
 {
-  try
-  {
-    solver->getSmtEngine()->declareSygusVar(
-        d_symbol, d_var.getNode(), TypeNode::fromType(d_sort.getType()));
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
+  d_commandStatus = CommandSuccess::instance();
 }
 
 Command* DeclareSygusVarCommand::clone() const
@@ -610,7 +602,7 @@ void DeclareSygusVarCommand::toStream(std::ostream& out,
                                       OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdDeclareVar(
-      out, d_var.getNode(), TypeNode::fromType(d_sort.getType()));
+      out, d_var.getNode(), d_sort.getTypeNode());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -646,27 +638,7 @@ const api::Grammar* SynthFunCommand::getGrammar() const { return d_grammar; }
 
 void SynthFunCommand::invoke(api::Solver* solver)
 {
-  try
-  {
-    std::vector<Node> vns;
-    for (const api::Term& t : d_vars)
-    {
-      vns.push_back(Node::fromExpr(t.getExpr()));
-    }
-    solver->getSmtEngine()->declareSynthFun(
-        d_symbol,
-        Node::fromExpr(d_fun.getExpr()),
-        TypeNode::fromType(d_grammar == nullptr
-                               ? d_sort.getType()
-                               : d_grammar->resolve().getType()),
-        d_isInv,
-        vns);
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
+  d_commandStatus = CommandSuccess::instance();
 }
 
 Command* SynthFunCommand::clone() const
@@ -691,9 +663,9 @@ void SynthFunCommand::toStream(std::ostream& out,
       out,
       d_symbol,
       nodeVars,
-      TypeNode::fromType(d_sort.getType()),
+      d_sort.getTypeNode(),
       d_isInv,
-      TypeNode::fromType(d_grammar->resolve().getType()));
+      d_grammar->resolve().getTypeNode());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1158,7 +1130,7 @@ void DeclareFunctionCommand::toStream(std::ostream& out,
                                       OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdDeclareFunction(
-      out, d_func.toString(), TypeNode::fromType(d_sort.getType()));
+      out, d_func.toString(), d_sort.getTypeNode());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1196,7 +1168,7 @@ void DeclareSortCommand::toStream(std::ostream& out,
                                   OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdDeclareType(
-      out, d_sort.toString(), d_arity, TypeNode::fromType(d_sort.getType()));
+      out, d_sort.toString(), d_arity, d_sort.getTypeNode());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1243,7 +1215,7 @@ void DefineSortCommand::toStream(std::ostream& out,
       out,
       d_symbol,
       api::sortVectorToTypeNodes(d_params),
-      TypeNode::fromType(d_sort.getType()));
+      d_sort.getTypeNode());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1365,7 +1337,7 @@ void DefineNamedFunctionCommand::toStream(std::ostream& out,
       out,
       d_func.toString(),
       api::termVectorToNodes(d_formals),
-      TypeNode::fromType(d_func.getSort().getFunctionCodomainSort().getType()),
+      d_func.getSort().getFunctionCodomainSort().getTypeNode(),
       d_formula.getNode());
 }
 
@@ -1584,58 +1556,6 @@ void SimplifyCommand::toStream(std::ostream& out,
 }
 
 /* -------------------------------------------------------------------------- */
-/* class ExpandDefinitionsCommand                                             */
-/* -------------------------------------------------------------------------- */
-
-ExpandDefinitionsCommand::ExpandDefinitionsCommand(api::Term term)
-    : d_term(term)
-{
-}
-api::Term ExpandDefinitionsCommand::getTerm() const { return d_term; }
-void ExpandDefinitionsCommand::invoke(api::Solver* solver)
-{
-  Node t = d_term.getNode();
-  d_result = api::Term(solver, solver->getSmtEngine()->expandDefinitions(t));
-  d_commandStatus = CommandSuccess::instance();
-}
-
-api::Term ExpandDefinitionsCommand::getResult() const { return d_result; }
-void ExpandDefinitionsCommand::printResult(std::ostream& out,
-                                           uint32_t verbosity) const
-{
-  if (!ok())
-  {
-    this->Command::printResult(out, verbosity);
-  }
-  else
-  {
-    out << d_result << endl;
-  }
-}
-
-Command* ExpandDefinitionsCommand::clone() const
-{
-  ExpandDefinitionsCommand* c = new ExpandDefinitionsCommand(d_term);
-  c->d_result = d_result;
-  return c;
-}
-
-std::string ExpandDefinitionsCommand::getCommandName() const
-{
-  return "expand-definitions";
-}
-
-void ExpandDefinitionsCommand::toStream(std::ostream& out,
-                                        int toDepth,
-                                        bool types,
-                                        size_t dag,
-                                        OutputLanguage language) const
-{
-  Printer::getPrinter(language)->toStreamCmdExpandDefinitions(out,
-                                                              d_term.getNode());
-}
-
-/* -------------------------------------------------------------------------- */
 /* class GetValueCommand                                                      */
 /* -------------------------------------------------------------------------- */
 
@@ -1659,29 +1579,23 @@ void GetValueCommand::invoke(api::Solver* solver)
 {
   try
   {
-    NodeManager* nm = solver->getNodeManager();
-    smt::SmtScope scope(solver->getSmtEngine());
-    std::vector<Node> result =
-        api::termVectorToNodes(solver->getValue(d_terms));
+    std::vector<api::Term> result = solver->getValue(d_terms);
     Assert(result.size() == d_terms.size());
     for (int i = 0, size = d_terms.size(); i < size; i++)
     {
-      api::Term t = d_terms[i];
-      Node tNode = t.getNode();
-      Node request = options::expandDefinitions()
-                         ? solver->getSmtEngine()->expandDefinitions(tNode)
-                         : tNode;
-      Node value = result[i];
-      if (value.getType().isInteger() && request.getType() == nm->realType())
+      api::Term request = d_terms[i];
+      api::Term value = result[i];
+      if (value.getSort().isInteger()
+          && request.getSort() == solver->getRealSort())
       {
         // Need to wrap in division-by-one so that output printers know this
         // is an integer-looking constant that really should be output as
         // a rational.  Necessary for SMT-LIB standards compliance.
-        value = nm->mkNode(kind::DIVISION, value, nm->mkConst(Rational(1)));
+        value = solver->mkTerm(api::DIVISION, value, solver->mkReal(1));
       }
-      result[i] = nm->mkNode(kind::SEXPR, request, value);
+      result[i] = solver->mkTerm(api::SEXPR, request, value);
     }
-    d_result = api::Term(solver, nm->mkNode(kind::SEXPR, result));
+    d_result = solver->mkTerm(api::SEXPR, result);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (api::CVC4ApiRecoverableException& e)
@@ -1740,8 +1654,8 @@ void GetAssignmentCommand::invoke(api::Solver* solver)
 {
   try
   {
-    std::vector<std::pair<api::Term, api::Term>> assignments =
-        solver->getAssignment();
+    std::vector<std::pair<Expr, Expr>> assignments =
+        solver->getSmtEngine()->getAssignment();
     vector<SExpr> sexprs;
     for (const auto& p : assignments)
     {
@@ -1753,7 +1667,7 @@ void GetAssignmentCommand::invoke(api::Solver* solver)
     d_result = SExpr(sexprs);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC4ApiRecoverableException& e)
+  catch (RecoverableModalException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -1873,10 +1787,10 @@ void BlockModelCommand::invoke(api::Solver* solver)
 {
   try
   {
-    solver->getSmtEngine()->blockModel();
+    solver->blockModel();
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (RecoverableModalException& e)
+  catch (api::CVC4ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -1928,7 +1842,7 @@ void BlockModelValuesCommand::invoke(api::Solver* solver)
 {
   try
   {
-    solver->getSmtEngine()->blockModelValues(api::termVectorToExprs(d_terms));
+    solver->blockModelValues(d_terms);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (RecoverableModalException& e)
@@ -1997,12 +1911,12 @@ void GetProofCommand::toStream(std::ostream& out,
 /* class GetInstantiationsCommand                                             */
 /* -------------------------------------------------------------------------- */
 
-GetInstantiationsCommand::GetInstantiationsCommand() : d_smtEngine(nullptr) {}
+GetInstantiationsCommand::GetInstantiationsCommand() : d_solver(nullptr) {}
 void GetInstantiationsCommand::invoke(api::Solver* solver)
 {
   try
   {
-    d_smtEngine = solver->getSmtEngine();
+    d_solver = solver;
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -2020,7 +1934,7 @@ void GetInstantiationsCommand::printResult(std::ostream& out,
   }
   else
   {
-    d_smtEngine->printInstantiations(out);
+    d_solver->printInstantiations(out);
   }
 }
 
@@ -2028,7 +1942,7 @@ Command* GetInstantiationsCommand::clone() const
 {
   GetInstantiationsCommand* c = new GetInstantiationsCommand();
   // c->d_result = d_result;
-  c->d_smtEngine = d_smtEngine;
+  c->d_solver = d_solver;
   return c;
 }
 
@@ -2186,10 +2100,7 @@ void GetInterpolCommand::toStream(std::ostream& out,
                                   OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetInterpol(
-      out,
-      d_name,
-      d_conj.getNode(),
-      TypeNode::fromType(d_sygus_grammar->resolve().getType()));
+      out, d_name, d_conj.getNode(), d_sygus_grammar->resolve().getTypeNode());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2275,10 +2186,7 @@ void GetAbductCommand::toStream(std::ostream& out,
                                 OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetAbduct(
-      out,
-      d_name,
-      d_conj.getNode(),
-      TypeNode::fromType(d_sygus_grammar->resolve().getType()));
+      out, d_name, d_conj.getNode(), d_sygus_grammar->resolve().getTypeNode());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2301,9 +2209,14 @@ void GetQuantifierEliminationCommand::invoke(api::Solver* solver)
 {
   try
   {
-    d_result = api::Term(solver,
-                         solver->getSmtEngine()->getQuantifierElimination(
-                             d_term.getNode(), d_doFull));
+    if (d_doFull)
+    {
+      d_result = solver->getQuantifierElimination(d_term);
+    }
+    else
+    {
+      d_result = solver->getQuantifierEliminationDisjunct(d_term);
+    }
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -2423,8 +2336,8 @@ void GetUnsatCoreCommand::invoke(api::Solver* solver)
 {
   try
   {
-    d_result = UnsatCore(solver->getSmtEngine(),
-                         api::termVectorToExprs(solver->getUnsatCore()));
+    d_solver = solver;
+    d_result = solver->getUnsatCore();
 
     d_commandStatus = CommandSuccess::instance();
   }
@@ -2447,11 +2360,12 @@ void GetUnsatCoreCommand::printResult(std::ostream& out,
   }
   else
   {
-    d_result.toStream(out);
+    UnsatCore ucr(d_solver->getSmtEngine(), api::termVectorToNodes(d_result));
+    ucr.toStream(out);
   }
 }
 
-const UnsatCore& GetUnsatCoreCommand::getUnsatCore() const
+const std::vector<api::Term>& GetUnsatCoreCommand::getUnsatCore() const
 {
   // of course, this will be empty if the command hasn't been invoked yet
   return d_result;
@@ -2460,6 +2374,7 @@ const UnsatCore& GetUnsatCoreCommand::getUnsatCore() const
 Command* GetUnsatCoreCommand::clone() const
 {
   GetUnsatCoreCommand* c = new GetUnsatCoreCommand;
+  c->d_solver = d_solver;
   c->d_result = d_result;
   return c;
 }

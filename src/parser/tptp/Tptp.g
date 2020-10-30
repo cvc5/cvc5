@@ -477,7 +477,7 @@ definedPred[CVC4::ParseOp& p]
       api::Term body =
           MK_TERM(api::AND,
                   MK_TERM(api::NOT,
-                          MK_TERM(api::EQUAL, r, SOLVER->mkReal(0))),
+                          MK_TERM(api::EQUAL, r, SOLVER->mkInteger(0))),
                   MK_TERM(api::EQUAL, qr, MK_TERM(api::MULT, n, rr)));
       api::Term bvl = MK_TERM(api::BOUND_VAR_LIST, q, r);
       body = MK_TERM(api::EXISTS, bvl, body);
@@ -537,7 +537,7 @@ thfDefinedPred[CVC4::ParseOp& p]
       api::Term body = MK_TERM(
           api::AND,
           MK_TERM(api::NOT,
-                  MK_TERM(api::EQUAL, r, SOLVER->mkReal(0))),
+                  MK_TERM(api::EQUAL, r, SOLVER->mkInteger(0))),
           MK_TERM(api::EQUAL, qr, MK_TERM(api::MULT, n, rr)));
       api::Term bvl = MK_TERM(api::BOUND_VAR_LIST, q, r);
       body = MK_TERM(api::EXISTS, bvl, body);
@@ -708,7 +708,7 @@ definedFun[CVC4::ParseOp& p]
                                                   n,
                                                   SOLVER->mkReal(2)),
                                           SOLVER->mkReal(1, 2))),
-                          SOLVER->mkReal(2))));
+                          SOLVER->mkInteger(2))));
       p.d_kind = api::LAMBDA;
       p.d_expr = MK_TERM(api::LAMBDA, formals, expr);
       }
@@ -1747,7 +1747,15 @@ NUMBER
   : ( SIGN[pos]? num=DECIMAL
       { std::stringstream ss;
         ss << ( pos ? "" : "-" ) << AntlrInput::tokenText($num);
-        PARSER_STATE->d_tmp_expr = SOLVER->mkReal(ss.str());
+        std::string str = ss.str();
+        if (str.find(".") == std::string::npos)
+        {
+          PARSER_STATE->d_tmp_expr = SOLVER->mkInteger(str);
+        }
+        else
+        {
+          PARSER_STATE->d_tmp_expr = SOLVER->mkReal(str);
+        }
       }
     | SIGN[pos]? num=DECIMAL DOT den=DECIMAL (EXPONENT SIGN[posE]? e=DECIMAL)?
       {

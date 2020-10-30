@@ -386,7 +386,7 @@ bool CegSingleInv::solve()
     return false;
   }
   // now, get the instantiations
-  std::vector<Expr> qs;
+  std::vector<Node> qs;
   siSmt->getInstantiatedQuantifiedFormulas(qs);
   Assert(qs.size() <= 1);
   // track the instantiations, as solution construction is based on this
@@ -394,15 +394,13 @@ bool CegSingleInv::solve()
                     << std::endl;
   d_inst.clear();
   d_instConds.clear();
-  for (const Expr& q : qs)
+  for (const Node& q : qs)
   {
-    TNode qn = Node::fromExpr(q);
-    Assert(qn.getKind() == FORALL);
-    std::vector<std::vector<Expr> > tvecs;
-    siSmt->getInstantiationTermVectors(q, tvecs);
-    Trace("sygus-si") << "#instantiations of " << q << "=" << tvecs.size()
+    Assert(q.getKind() == FORALL);
+    siSmt->getInstantiationTermVectors(q, d_inst);
+    Trace("sygus-si") << "#instantiations of " << q << "=" << d_inst.size()
                       << std::endl;
-    // We use the original synthesis conjecture siq, since qn may contain
+    // We use the original synthesis conjecture siq, since q may contain
     // internal symbols e.g. termITE skolem after preprocessing.
     std::vector<Node> vars;
     for (const Node& v : siq[0])
@@ -410,16 +408,10 @@ bool CegSingleInv::solve()
       vars.push_back(v);
     }
     Node body = siq[1];
-    for (unsigned i = 0, ninsts = tvecs.size(); i < ninsts; i++)
+    for (unsigned i = 0, ninsts = d_inst.size(); i < ninsts; i++)
     {
-      std::vector<Expr>& tvi = tvecs[i];
-      std::vector<Node> inst;
-      for (const Expr& t : tvi)
-      {
-        inst.push_back(Node::fromExpr(t));
-      }
+      std::vector<Node>& inst = d_inst[i];
       Trace("sygus-si") << "  Instantiation: " << inst << std::endl;
-      d_inst.push_back(inst);
       // instantiation should have same arity since we are not allowed to
       // eliminate variables from quantifiers marked with QuantElimAttribute.
       Assert(inst.size() == vars.size());

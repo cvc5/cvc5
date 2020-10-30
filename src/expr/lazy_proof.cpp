@@ -133,10 +133,10 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
 
 void LazyCDProof::addLazyStep(Node expected,
                               ProofGenerator* pg,
+                              PfRule idNull,
                               bool isClosed,
                               const char* ctx,
-                              bool forceOverwrite,
-                              PfRule idNull)
+                              bool forceOverwrite)
 {
   if (pg == nullptr)
   {

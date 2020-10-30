@@ -604,7 +604,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     if (logic.isSharingEnabled() && !logic.isTheoryEnabled(THEORY_BV)
         && !logic.isTheoryEnabled(THEORY_STRINGS)
         && !logic.isTheoryEnabled(THEORY_SETS)
-        && !logic.isTheoryEnabled(THEORY_BAGS))
+        && !logic.isTheoryEnabled(THEORY_BAGS)
+        && !(logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()
+             && !logic.isQuantified()))
     {
       Trace("smt") << "setting theoryof-mode to term-based" << std::endl;
       options::theoryOfMode.set(options::TheoryOfMode::THEORY_OF_TERM_BASED);
@@ -623,7 +625,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
 
   // If in arrays, set the UF handler to arrays
-  if (logic.isTheoryEnabled(THEORY_ARRAYS)
+  if (logic.isTheoryEnabled(THEORY_ARRAYS) && !options::ufHo()
+      && !options::finiteModelFind()
       && (!logic.isQuantified()
           || (logic.isQuantified() && !logic.isTheoryEnabled(THEORY_UF))))
   {
@@ -1434,6 +1437,42 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     throw OptionException("--proof-new is not yet supported.");
   }
+
+  if (logic == LogicInfo("QF_UFNRA"))
+  {
+#ifdef CVC4_USE_POLY
+    if (!options::nlCad() && !options::nlCad.wasSetByUser())
+    {
+      options::nlCad.set(true);
+      if (!options::nlExt.wasSetByUser())
+      {
+        options::nlExt.set(false);
+      }
+      if (!options::nlRlvMode.wasSetByUser())
+      {
+        options::nlRlvMode.set(options::NlRlvMode::INTERLEAVE);
+      }
+    }
+#endif
+  }
+#ifndef CVC4_USE_POLY
+  if (options::nlCad())
+  {
+    if (options::nlCad.wasSetByUser())
+    {
+      std::stringstream ss;
+      ss << "Cannot use " << options::nlCad.getName() << " without configuring with --poly.";
+      throw OptionException(ss.str());
+    }
+    else
+    {
+      Notice() << "Cannot use --" << options::nlCad.getName()
+               << " without configuring with --poly." << std::endl;
+      options::nlCad.set(false);
+      options::nlExt.set(true);
+    }
+  }
+#endif
 }
 
 }  // namespace smt

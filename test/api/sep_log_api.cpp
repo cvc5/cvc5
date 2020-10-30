@@ -135,10 +135,10 @@ int validate_getters(void)
   Sort integer = slv.getIntegerSort();
 
   /* A "random" constant */
-  Term random_constant = slv.mkReal(0xDEADBEEF);
+  Term random_constant = slv.mkInteger(0xDEADBEEF);
 
   /* Another random constant */
-  Term expr_nil_val = slv.mkReal(0xFBADBEEF);
+  Term expr_nil_val = slv.mkInteger(0xFBADBEEF);
 
   /* Our nil term */
   Term nil = slv.mkSepNil(integer);

@@ -24,6 +24,7 @@
 #include "expr/node_manager.h"    // for VarNameAttr
 #include "options/language.h"     // for LANG_AST
 #include "options/smt_options.h"  // for unsat cores
+#include "proof/unsat_core.h"
 #include "smt/command.h"
 #include "smt/node_command.h"
 #include "smt/smt_engine.h"
@@ -45,7 +46,7 @@ void TptpPrinter::toStream(std::ostream& out, const CommandStatus* s) const
   s->toStream(out, language::output::LANG_SMTLIB_V2_5);
 }/* TptpPrinter::toStream() */
 
-void TptpPrinter::toStream(std::ostream& out, const Model& m) const
+void TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
 {
   std::string statusName(m.isKnownSat() ? "FiniteModel"
                                         : "CandidateFiniteModel");
@@ -59,7 +60,7 @@ void TptpPrinter::toStream(std::ostream& out, const Model& m) const
 }
 
 void TptpPrinter::toStream(std::ostream& out,
-                           const Model& m,
+                           const smt::Model& m,
                            const NodeCommand* c) const
 {
   // shouldn't be called; only the non-Command* version above should be

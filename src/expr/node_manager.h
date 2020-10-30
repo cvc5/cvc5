@@ -484,6 +484,17 @@ class NodeManager {
   template <bool ref_count>
   Node mkAnd(const std::vector<NodeTemplate<ref_count> >& children);
 
+  /**
+   * Create an OR node with arbitrary number of children. This returns the
+   * false node if children is empty, or the single node in children if
+   * it contains only one node.
+   *
+   * We define construction of OR as a special case here since it is widely
+   * used for e.g. constructing explanations or lemmas.
+   */
+  template <bool ref_count>
+  Node mkOr(const std::vector<NodeTemplate<ref_count> >& children);
+
   /** Create a node (with no children) by operator. */
   Node mkNode(TNode opNode);
   Node* mkNodePtr(TNode opNode);
@@ -578,11 +589,21 @@ class NodeManager {
   /**
   * Create a singleton set from the given element n.
   * @param t the element type of the returned set.
-  * Note that the type of n needs to be a subtype of t.
+  *          Note that the type of n needs to be a subtype of t.
   * @param n the single element in the singleton.
   * @return a singleton set constructed from the element n.
   */
   Node mkSingleton(const TypeNode& t, const TNode n);
+
+  /**
+  * Create a bag from the given element n along with its multiplicity m.
+  * @param t the element type of the returned bag.
+  *          Note that the type of n needs to be a subtype of t.
+  * @param n the element that is used to to construct the bag
+  * @param m the multiplicity of the element n
+  * @return a bag that contains m occurrences of n.
+  */
+  Node mkBag(const TypeNode& t, const TNode n, const TNode m);
 
   /**
    * Create a constant of type T.  It will have the appropriate
@@ -1394,6 +1415,20 @@ Node NodeManager::mkAnd(const std::vector<NodeTemplate<ref_count> >& children)
     return children[0];
   }
   return mkNode(kind::AND, children);
+}
+
+template <bool ref_count>
+Node NodeManager::mkOr(const std::vector<NodeTemplate<ref_count> >& children)
+{
+  if (children.empty())
+  {
+    return mkConst(false);
+  }
+  else if (children.size() == 1)
+  {
+    return children[0];
+  }
+  return mkNode(kind::OR, children);
 }
 
 template <bool ref_count>

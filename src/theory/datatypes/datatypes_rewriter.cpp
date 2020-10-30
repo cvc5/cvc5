@@ -280,7 +280,7 @@ RewriteResponse DatatypesRewriter::preRewrite(TNode in)
         const DTypeConstructor& dtc = utils::datatypeOf(op)[utils::indexOf(op)];
         // create ascribed constructor type
         Node tc = NodeManager::currentNM()->mkConst(
-            AscriptionType(dtc.getSpecializedConstructorType(tn).toType()));
+            AscriptionType(dtc.getSpecializedConstructorType(tn)));
         Node op_new = NodeManager::currentNM()->mkNode(
             kind::APPLY_TYPE_ASCRIPTION, tc, op);
         // make new node
@@ -390,41 +390,21 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
     }
     else if (k == kind::APPLY_SELECTOR_TOTAL)
     {
-      Node gt;
-      bool useTe = true;
-      // if( !tn.isSort() ){
-      //  useTe = false;
-      //}
-      if (tn.isDatatype())
+      // evaluates to the first ground value of type tn.
+      Node gt = tn.mkGroundValue();
+      Assert(!gt.isNull());
+      if (tn.isDatatype() && !tn.isInstantiatedDatatype())
       {
-        const DType& dta = tn.getDType();
-        useTe = !dta.isCodatatype();
+        gt = NodeManager::currentNM()->mkNode(
+            kind::APPLY_TYPE_ASCRIPTION,
+            NodeManager::currentNM()->mkConst(AscriptionType(tn)),
+            gt);
       }
-      if (useTe)
-      {
-        TypeEnumerator te(tn);
-        gt = *te;
-      }
-      else
-      {
-        gt = tn.mkGroundTerm();
-      }
-      if (!gt.isNull())
-      {
-        // Assert( gtt.isDatatype() || gtt.isParametricDatatype() );
-        if (tn.isDatatype() && !tn.isInstantiatedDatatype())
-        {
-          gt = NodeManager::currentNM()->mkNode(
-              kind::APPLY_TYPE_ASCRIPTION,
-              NodeManager::currentNM()->mkConst(AscriptionType(tn.toType())),
-              gt);
-        }
-        Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
-                                   << "Rewrite trivial selector " << in
-                                   << " to distinguished ground term " << gt
-                                   << std::endl;
-        return RewriteResponse(REWRITE_DONE, gt);
-      }
+      Trace("datatypes-rewrite")
+          << "DatatypesRewriter::postRewrite: "
+          << "Rewrite trivial selector " << in
+          << " to distinguished ground term " << gt << std::endl;
+      return RewriteResponse(REWRITE_DONE, gt);
     }
   }
   return RewriteResponse(REWRITE_DONE, in);

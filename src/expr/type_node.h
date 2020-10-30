@@ -539,6 +539,9 @@ public:
   /** Get the return type (for selector types) */
   TypeNode getSelectorRangeType() const;
 
+  /** Get the domain type (for tester types) */
+  TypeNode getTesterDomainType() const;
+
   /** Get the element type (for set types) */
   TypeNode getSetElementType() const;
 
@@ -693,6 +696,11 @@ public:
 
   /** Get sort constructor arity */
   uint64_t getSortConstructorArity() const;
+
+  /**
+   * Get name, for uninterpreted sorts and uninterpreted sort constructors.
+   */
+  std::string getName() const;
 
   /**
    * Instantiate a sort constructor type. The type on which this method is

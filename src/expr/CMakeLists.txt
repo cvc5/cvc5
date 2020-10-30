@@ -12,6 +12,7 @@ libcvc4_add_sources(
   array.h
   array_store_all.cpp
   array_store_all.h
+  ascription_type.cpp
   ascription_type.h
   attribute.h
   attribute.cpp
@@ -31,6 +32,8 @@ libcvc4_add_sources(
   lazy_proof.h
   lazy_proof_chain.cpp
   lazy_proof_chain.h
+  lazy_proof_set.cpp
+  lazy_proof_set.h
   match_trie.cpp
   match_trie.h
   node.cpp

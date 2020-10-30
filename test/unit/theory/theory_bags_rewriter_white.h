@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file theory_bags_rewriter_black.h
+/*! \file theory_bags_rewriter_white.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Mudathir Mohamed
@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of bags rewriter
+ ** \brief White box testing of bags rewriter
  **/
 
 #include <cxxtest/TestSuite.h>
@@ -28,7 +28,7 @@ using namespace std;
 
 typedef expr::Attribute<Node, Node> attribute;
 
-class BagsTypeRuleBlack : public CxxTest::TestSuite
+class BagsTypeRuleWhite : public CxxTest::TestSuite
 {
  public:
   void setUp() override
@@ -74,8 +74,8 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     Node y = elements[1];
     Node c = d_nm->mkSkolem("c", d_nm->integerType());
     Node d = d_nm->mkSkolem("d", d_nm->integerType());
-    Node bagX = d_nm->mkNode(MK_BAG, x, c);
-    Node bagY = d_nm->mkNode(MK_BAG, y, d);
+    Node bagX = d_nm->mkBag(d_nm->stringType(), x, c);
+    Node bagY = d_nm->mkBag(d_nm->stringType(), y, d);
     Node emptyBag =
         d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
 
@@ -89,11 +89,12 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
   void testMkBagConstantElement()
   {
     vector<Node> elements = getNStrings(1);
-    Node negative =
-        d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(-1)));
-    Node zero = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(0)));
-    Node positive =
-        d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(1)));
+    Node negative = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(-1)));
+    Node zero = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(0)));
+    Node positive = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(1)));
     Node emptybag =
         d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
     RewriteResponse negativeResponse = d_rewriter->postRewrite(negative);
@@ -114,10 +115,14 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
   void testMkBagVariableElement()
   {
     Node skolem = d_nm->mkSkolem("x", d_nm->stringType());
-    Node variable = d_nm->mkNode(MK_BAG, skolem, d_nm->mkConst(Rational(-1)));
-    Node negative = d_nm->mkNode(MK_BAG, skolem, d_nm->mkConst(Rational(-1)));
-    Node zero = d_nm->mkNode(MK_BAG, skolem, d_nm->mkConst(Rational(0)));
-    Node positive = d_nm->mkNode(MK_BAG, skolem, d_nm->mkConst(Rational(1)));
+    Node variable =
+        d_nm->mkBag(d_nm->stringType(), skolem, d_nm->mkConst(Rational(-1)));
+    Node negative =
+        d_nm->mkBag(d_nm->stringType(), skolem, d_nm->mkConst(Rational(-1)));
+    Node zero =
+        d_nm->mkBag(d_nm->stringType(), skolem, d_nm->mkConst(Rational(0)));
+    Node positive =
+        d_nm->mkBag(d_nm->stringType(), skolem, d_nm->mkConst(Rational(1)));
     Node emptybag =
         d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
     RewriteResponse negativeResponse = d_rewriter->postRewrite(negative);
@@ -140,7 +145,8 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     int n = 3;
     Node skolem = d_nm->mkSkolem("x", d_nm->stringType());
     Node emptyBag = d_nm->mkConst(EmptyBag(d_nm->mkBagType(skolem.getType())));
-    Node bag = d_nm->mkNode(MK_BAG, skolem, d_nm->mkConst(Rational(n)));
+    Node bag =
+        d_nm->mkBag(d_nm->stringType(), skolem, d_nm->mkConst(Rational(n)));
 
     // (bag.count x emptybag) = 0
     Node n1 = d_nm->mkNode(BAG_COUNT, skolem, emptyBag);
@@ -155,14 +161,30 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
               && response2.d_node == d_nm->mkConst(Rational(n)));
   }
 
+  void testDuplicateRemoval()
+  {
+    Node x = d_nm->mkSkolem("x", d_nm->stringType());
+    Node bag = d_nm->mkBag(d_nm->stringType(), x, d_nm->mkConst(Rational(5)));
+
+    // (duplicate_removal (mkBag x n)) = (mkBag x 1)
+    Node n = d_nm->mkNode(DUPLICATE_REMOVAL, bag);
+    RewriteResponse response = d_rewriter->postRewrite(n);
+    Node noDuplicate =
+        d_nm->mkBag(d_nm->stringType(), x, d_nm->mkConst(Rational(1)));
+    TS_ASSERT(response.d_node == noDuplicate
+              && response.d_status == REWRITE_AGAIN_FULL);
+  }
+
   void testUnionMax()
   {
     int n = 3;
     vector<Node> elements = getNStrings(2);
     Node emptyBag =
         d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
-    Node A = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(n)));
-    Node B = d_nm->mkNode(MK_BAG, elements[1], d_nm->mkConst(Rational(n + 1)));
+    Node A = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(n)));
+    Node B = d_nm->mkBag(
+        d_nm->stringType(), elements[1], d_nm->mkConst(Rational(n + 1)));
     Node unionMaxAB = d_nm->mkNode(UNION_MAX, A, B);
     Node unionMaxBA = d_nm->mkNode(UNION_MAX, B, A);
     Node unionDisjointAB = d_nm->mkNode(UNION_DISJOINT, A, B);
@@ -241,8 +263,10 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     vector<Node> elements = getNStrings(2);
     Node emptyBag =
         d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
-    Node A = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(n)));
-    Node B = d_nm->mkNode(MK_BAG, elements[1], d_nm->mkConst(Rational(n + 1)));
+    Node A = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(n)));
+    Node B = d_nm->mkBag(
+        d_nm->stringType(), elements[1], d_nm->mkConst(Rational(n + 1)));
     Node unionDisjointAB = d_nm->mkNode(UNION_DISJOINT, A, B);
     Node unionDisjointBA = d_nm->mkNode(UNION_DISJOINT, B, A);
     Node unionMaxAB = d_nm->mkNode(UNION_MAX, A, B);
@@ -285,8 +309,10 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     vector<Node> elements = getNStrings(2);
     Node emptyBag =
         d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
-    Node A = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(n)));
-    Node B = d_nm->mkNode(MK_BAG, elements[1], d_nm->mkConst(Rational(n + 1)));
+    Node A = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(n)));
+    Node B = d_nm->mkBag(
+        d_nm->stringType(), elements[1], d_nm->mkConst(Rational(n + 1)));
     Node unionMaxAB = d_nm->mkNode(UNION_MAX, A, B);
     Node unionMaxBA = d_nm->mkNode(UNION_MAX, B, A);
     Node unionDisjointAB = d_nm->mkNode(UNION_DISJOINT, A, B);
@@ -365,8 +391,10 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     vector<Node> elements = getNStrings(2);
     Node emptyBag =
         d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
-    Node A = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(n)));
-    Node B = d_nm->mkNode(MK_BAG, elements[1], d_nm->mkConst(Rational(n + 1)));
+    Node A = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(n)));
+    Node B = d_nm->mkBag(
+        d_nm->stringType(), elements[1], d_nm->mkConst(Rational(n + 1)));
     Node unionMaxAB = d_nm->mkNode(UNION_MAX, A, B);
     Node unionMaxBA = d_nm->mkNode(UNION_MAX, B, A);
     Node unionDisjointAB = d_nm->mkNode(UNION_DISJOINT, A, B);
@@ -447,8 +475,10 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     vector<Node> elements = getNStrings(2);
     Node emptyBag =
         d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
-    Node A = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(n)));
-    Node B = d_nm->mkNode(MK_BAG, elements[1], d_nm->mkConst(Rational(n + 1)));
+    Node A = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(n)));
+    Node B = d_nm->mkBag(
+        d_nm->stringType(), elements[1], d_nm->mkConst(Rational(n + 1)));
     Node unionMaxAB = d_nm->mkNode(UNION_MAX, A, B);
     Node unionMaxBA = d_nm->mkNode(UNION_MAX, B, A);
     Node unionDisjointAB = d_nm->mkNode(UNION_DISJOINT, A, B);
@@ -515,7 +545,7 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
   {
     Node x = d_nm->mkSkolem("x", d_nm->stringType());
     Node c = d_nm->mkConst(Rational(3));
-    Node bag = d_nm->mkNode(MK_BAG, x, c);
+    Node bag = d_nm->mkBag(d_nm->stringType(), x, c);
 
     // (bag.choose (mkBag x c)) = x where c is a constant > 0
     Node n1 = d_nm->mkNode(BAG_CHOOSE, bag);
@@ -531,10 +561,12 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
         d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
     Node zero = d_nm->mkConst(Rational(0));
     Node c = d_nm->mkConst(Rational(3));
-    Node bag = d_nm->mkNode(MK_BAG, x, c);
+    Node bag = d_nm->mkBag(d_nm->stringType(), x, c);
     vector<Node> elements = getNStrings(2);
-    Node A = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(4)));
-    Node B = d_nm->mkNode(MK_BAG, elements[1], d_nm->mkConst(Rational(5)));
+    Node A = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(4)));
+    Node B = d_nm->mkBag(
+        d_nm->stringType(), elements[1], d_nm->mkConst(Rational(5)));
     Node unionDisjointAB = d_nm->mkNode(UNION_DISJOINT, A, B);
 
     // TODO(projects#223): enable this test after implementing bags normal form
@@ -566,7 +598,7 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
         d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
     Node x = d_nm->mkSkolem("x", d_nm->stringType());
     Node c = d_nm->mkSkolem("c", d_nm->integerType());
-    Node bag = d_nm->mkNode(MK_BAG, x, c);
+    Node bag = d_nm->mkBag(d_nm->stringType(), x, c);
 
     // TODO(projects#223): complete this function
     // (bag.is_singleton emptybag) = false
@@ -593,7 +625,7 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
     Node n = d_nm->mkNode(BAG_FROM_SET, singleton);
     RewriteResponse response = d_rewriter->postRewrite(n);
     Node one = d_nm->mkConst(Rational(1));
-    Node bag = d_nm->mkNode(MK_BAG, x, one);
+    Node bag = d_nm->mkBag(d_nm->stringType(), x, one);
     TS_ASSERT(response.d_node == bag
               && response.d_status == REWRITE_AGAIN_FULL);
   }
@@ -601,7 +633,7 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
   void testToSet()
   {
     Node x = d_nm->mkSkolem("x", d_nm->stringType());
-    Node bag = d_nm->mkNode(MK_BAG, x, d_nm->mkConst(Rational(5)));
+    Node bag = d_nm->mkBag(d_nm->stringType(), x, d_nm->mkConst(Rational(5)));
 
     // (bag.to_set (mkBag x n)) = (singleton (singleton_op T) x)
     Node n = d_nm->mkNode(BAG_TO_SET, bag);
