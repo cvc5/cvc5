@@ -34,7 +34,7 @@ enum class InferId : uint32_t
   INST,
   // (or ((_ is C1) t) V ... V ((_ is Cn) t))
   SPLIT,
-  // (not ((_ is C1) t)) ^ ... [j] ... ^ (not ((_ is Cn) t)) => ((_ is Ci) t)
+  // (not ((_ is C1) t)) ^ ... [j] ... ^ (not ((_ is Cn) t)) => ((_ is Cj) t)
   LABEL_EXH,
   // (= t (Ci t1 ... tn)) => (= (sel_j t) rewrite((sel_j (Ci t1 ... tn))))
   COLLAPSE_SEL,
@@ -42,7 +42,7 @@ enum class InferId : uint32_t
   CLASH_CONFLICT,
   // ((_ is Ci) t) ^ (= t (Cj t1 ... tn)) => false
   TESTER_CONFLICT,
-  // ((_ is Ci) t) ^ (= t s) ^ ((_ is Cj) s) => false
+  // ((_ is Ci) t) ^ ((_ is Cj) s) ^ (= t s) => false
   TESTER_MERGE_CONFLICT,
   // bisimilarity for codatatypes
   BISIMILAR,
@@ -96,9 +96,9 @@ class DatatypesInference : public SimpleTheoryInternalFact
    * size( tn )
    *  (6) non-negative size : 0 <= size(t)
    * This method returns true if the fact must be sent out as a lemma. If it
-   * returns false, then we assert the fact internally. We may need to
-   * communicate outwards if the conclusions involve other theories.  Also
-   * communicate (6) and OR conclusions.
+   * returns false, then we assert the fact internally. We return true for (6)
+   * and OR conclusions. We also return true if the option dtInferAsLemmas is
+   * set to true.
    */
   static bool mustCommunicateFact(Node n, Node exp);
   /**

@@ -484,6 +484,17 @@ class NodeManager {
   template <bool ref_count>
   Node mkAnd(const std::vector<NodeTemplate<ref_count> >& children);
 
+  /**
+   * Create an OR node with arbitrary number of children. This returns the
+   * false node if children is empty, or the single node in children if
+   * it contains only one node.
+   *
+   * We define construction of OR as a special case here since it is widely
+   * used for e.g. constructing explanations or lemmas.
+   */
+  template <bool ref_count>
+  Node mkOr(const std::vector<NodeTemplate<ref_count> >& children);
+
   /** Create a node (with no children) by operator. */
   Node mkNode(TNode opNode);
   Node* mkNodePtr(TNode opNode);
@@ -1404,6 +1415,20 @@ Node NodeManager::mkAnd(const std::vector<NodeTemplate<ref_count> >& children)
     return children[0];
   }
   return mkNode(kind::AND, children);
+}
+
+template <bool ref_count>
+Node NodeManager::mkOr(const std::vector<NodeTemplate<ref_count> >& children)
+{
+  if (children.empty())
+  {
+    return mkConst(false);
+  }
+  else if (children.size() == 1)
+  {
+    return children[0];
+  }
+  return mkNode(kind::OR, children);
 }
 
 template <bool ref_count>

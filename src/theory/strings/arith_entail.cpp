@@ -15,6 +15,7 @@
 #include "theory/strings/arith_entail.h"
 
 #include "expr/attribute.h"
+#include "expr/node_algorithm.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
@@ -555,6 +556,8 @@ bool ArithEntail::checkWithEqAssumption(Node assumption, Node a, bool strict)
 {
   Assert(assumption.getKind() == kind::EQUAL);
   Assert(Rewriter::rewrite(assumption) == assumption);
+  Trace("strings-entail") << "checkWithEqAssumption: " << assumption << " " << a
+                          << ", strict=" << strict << std::endl;
 
   // Find candidates variables to compute substitutions for
   std::unordered_set<Node, NodeHashFunction> candVars;
@@ -615,8 +618,11 @@ bool ArithEntail::checkWithEqAssumption(Node assumption, Node a, bool strict)
     // Could not solve for v
     return false;
   }
+  Trace("strings-entail") << "checkWithEqAssumption: subs " << v << " -> "
+                          << solution << std::endl;
 
-  a = a.substitute(TNode(v), TNode(solution));
+  // use capture avoiding substitution
+  a = expr::substituteCaptureAvoiding(a, v, solution);
   return check(a, strict);
 }
 

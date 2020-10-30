@@ -60,12 +60,13 @@ public:
         }
       }
     }
-    switch(Kind k = n.getKind()) {
+    switch (Kind k = n.getKind())
+    {
       case kind::TO_REAL:
-        return realType;
-      case kind::TO_INTEGER:
-        return integerType;
-      default: {
+      case kind::CAST_TO_REAL: return realType;
+      case kind::TO_INTEGER: return integerType;
+      default:
+      {
         bool isDivision = k == kind::DIVISION || k == kind::DIVISION_TOTAL;
         return (isInteger && !isDivision ? integerType : realType);
       }

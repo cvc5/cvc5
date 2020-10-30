@@ -1054,7 +1054,7 @@ std::vector<Node> SmtEngine::getUnsatAssumptions(void)
   std::vector<Node>& assumps = d_asserts->getAssumptions();
   for (const Node& e : assumps)
   {
-    if (std::find(core.begin(), core.end(), e.toExpr()) != core.end())
+    if (std::find(core.begin(), core.end(), e) != core.end())
     {
       res.push_back(e);
     }
@@ -1091,7 +1091,6 @@ Result SmtEngine::assertFormula(const Node& formula, bool inUnsatCore)
 void SmtEngine::declareSygusVar(const std::string& id, Node var, TypeNode type)
 {
   SmtScope smts(this);
-  finishInit();
   d_sygusSolver->declareSygusVar(id, var, type);
   if (Dump.isOn("raw-benchmark"))
   {
@@ -1108,7 +1107,6 @@ void SmtEngine::declareSynthFun(const std::string& id,
                                 const std::vector<Node>& vars)
 {
   SmtScope smts(this);
-  finishInit();
   d_state->doPendingPops();
   d_sygusSolver->declareSynthFun(id, func, sygusType, isInv, vars);
 
@@ -1542,7 +1540,7 @@ void SmtEngine::checkUnsatCore() {
 
   Notice() << "SmtEngine::checkUnsatCore(): pushing core assertions (size == " << core.size() << ")" << endl;
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
-    Node assertionAfterExpansion = expandDefinitions(Node::fromExpr(*i));
+    Node assertionAfterExpansion = expandDefinitions(*i);
     Notice() << "SmtEngine::checkUnsatCore(): pushing core member " << *i
              << ", expanded to " << assertionAfterExpansion << "\n";
     coreChecker.assertFormula(assertionAfterExpansion);

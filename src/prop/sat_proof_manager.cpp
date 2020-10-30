@@ -172,7 +172,9 @@ void SatProofManager::endResChain(Node conclusion,
   d_redundantLits.clear();
   // build resolution chain
   NodeManager* nm = NodeManager::currentNM();
-  std::vector<Node> children, args;
+  // the conclusion is stored already in the arguments because of the
+  // possibility of reordering
+  std::vector<Node> children, args{conclusion};
   for (unsigned i = 0, size = d_resLinks.size(); i < size; ++i)
   {
     Node clause, pivot;
@@ -234,40 +236,15 @@ void SatProofManager::endResChain(Node conclusion,
                        << conclusion << "\n";
   }
   // since the conclusion can be both reordered and without duplicates and the
-  // SAT solver does not record this information, we must recompute it here so
-  // the proper CHAIN_RESOLUTION step can be created
-  // compute chain resolution conclusion
-  Node chainConclusion = d_pnm->getChecker()->checkDebug(
-      PfRule::CHAIN_RESOLUTION, children, args, Node::null(), "");
-  Trace("sat-proof")
-      << "SatProofManager::endResChain: creating step for computed conclusion "
-      << chainConclusion << "\n";
-  // buffer steps
-  theory::TheoryProofStepBuffer psb;
-  psb.addStep(PfRule::CHAIN_RESOLUTION, children, args, chainConclusion);
-  if (chainConclusion != conclusion)
-  {
-    // if this happens that chainConclusion needs to be factored and/or
-    // reordered, which in either case can be done only if it's not a unit
-    // clause.
-    CVC4_UNUSED Node reducedChainConclusion =
-        psb.factorReorderElimDoubleNeg(chainConclusion);
-    Assert(reducedChainConclusion == conclusion)
-        << "original conclusion " << conclusion
-        << "\nis different from computed conclusion " << chainConclusion
-        << "\nafter factorReorderElimDoubleNeg " << reducedChainConclusion;
-  }
-  // buffer the steps in the resolution chain proof generator
-  const std::vector<std::pair<Node, ProofStep>>& steps = psb.getSteps();
-  for (const std::pair<Node, ProofStep>& step : steps)
-  {
-    Trace("sat-proof") << "SatProofManager::endResChain: adding for "
-                       << step.first << " step " << step.second << "\n";
-    d_resChainPg.addStep(step.first, step.second);
-    // the premises of this resolution may not have been justified yet, so we do
-    // not pass assumptions to check closedness
-    d_resChains.addLazyStep(step.first, &d_resChainPg);
-  }
+  // SAT solver does not record this information, we use a MACRO_RESOLUTION
+  // step, which bypasses these. Note that we could generate a chain resolution
+  // rule here by explicitly computing the detailed steps, but leave this for
+  // post-processing.
+  ProofStep ps(PfRule::MACRO_RESOLUTION, children, args);
+  d_resChainPg.addStep(conclusion, ps);
+  // the premises of this resolution may not have been justified yet, so we do
+  // not pass assumptions to check closedness
+  d_resChains.addLazyStep(conclusion, &d_resChainPg);
 }
 
 void SatProofManager::processRedundantLit(
@@ -429,7 +406,8 @@ void SatProofManager::explainLit(
   }
   Trace("sat-proof") << pop;
   // create step
-  ProofStep ps(PfRule::CHAIN_RESOLUTION, children, args);
+  args.insert(args.begin(), litNode);
+  ProofStep ps(PfRule::MACRO_RESOLUTION, children, args);
   d_resChainPg.addStep(litNode, ps);
   // the premises in the limit of the justification may correspond to other
   // links in the chain which have, themselves, literals yet to be justified. So
@@ -490,7 +468,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
       // get resolution
       Node cur = link.first;
       std::shared_ptr<ProofNode> pfn = link.second;
-      while (pfn->getRule() != PfRule::CHAIN_RESOLUTION)
+      while (pfn->getRule() != PfRule::MACRO_RESOLUTION)
       {
         Assert(pfn->getChildren().size() == 1
                && pfn->getChildren()[0]->getRule() == PfRule::ASSUME)
@@ -577,7 +555,8 @@ void SatProofManager::finalizeProof(Node inConflictNode,
     }
   }
   // create step
-  ProofStep ps(PfRule::CHAIN_RESOLUTION, children, args);
+  args.insert(args.begin(), d_false);
+  ProofStep ps(PfRule::MACRO_RESOLUTION, children, args);
   d_resChainPg.addStep(d_false, ps);
   // not yet ready to check closedness because maybe only now we will justify
   // literals used in resolutions

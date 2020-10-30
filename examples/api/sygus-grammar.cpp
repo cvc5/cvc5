@@ -69,7 +69,7 @@ int main()
   Term start = slv.mkVar(integer, "Start");
 
   // define the rules
-  Term zero = slv.mkReal(0);
+  Term zero = slv.mkInteger(0);
   Term neg_x = slv.mkTerm(UMINUS, x);
   Term plus = slv.mkTerm(PLUS, x, start);
 

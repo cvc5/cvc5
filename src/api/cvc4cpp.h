@@ -506,6 +506,30 @@ class CVC4_PUBLIC Sort
    */
   Sort getConstructorCodomainSort() const;
 
+  /* Selector sort ------------------------------------------------------- */
+
+  /**
+   * @return the domain sort of a selector sort
+   */
+  Sort getSelectorDomainSort() const;
+
+  /**
+   * @return the codomain sort of a selector sort
+   */
+  Sort getSelectorCodomainSort() const;
+
+  /* Tester sort ------------------------------------------------------- */
+
+  /**
+   * @return the domain sort of a tester sort
+   */
+  Sort getTesterDomainSort() const;
+
+  /**
+   * @return the codomain sort of a tester sort, which is the Boolean sort
+   */
+  Sort getTesterCodomainSort() const;
+
   /* Function sort ------------------------------------------------------- */
 
   /**
@@ -958,13 +982,6 @@ class CVC4_PUBLIC Term
   bool isNull() const;
 
   /**
-   * Check if this is a Term representing a value.
-   *
-   * @return true if this is a Term representing a value
-   */
-  bool isValue() const;
-
-  /**
    *  Return the base (element stored at all indices) of a constant array
    *  throws an exception if the kind is not CONST_ARRAY
    *  @return the base value
@@ -1151,6 +1168,11 @@ class CVC4_PUBLIC Term
    */
   Kind getKindHelper() const;
 
+  /**
+   * returns true if the current term is a constant integer that is casted into
+   * real using the operator CAST_TO_REAL, and returns false otherwise
+   */
+  bool isCastedReal() const;
   /**
    * The internal expression wrapped by this term.
    * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
@@ -2556,12 +2578,26 @@ class CVC4_PUBLIC Solver
    * @return a constant representing Pi
    */
   Term mkPi() const;
+  /**
+   * Create an integer constant from a string.
+   * @param s the string representation of the constant, may represent an
+   *          integer (e.g., "123").
+   * @return a constant of sort Integer assuming 's' represents an integer)
+   */
+  Term mkInteger(const std::string& s) const;
+
+  /**
+   * Create an integer constant from a c++ int.
+   * @param val the value of the constant
+   * @return a constant of sort Integer
+   */
+  Term mkInteger(int64_t val) const;
 
   /**
    * Create a real constant from a string.
    * @param s the string representation of the constant, may represent an
    *          integer (e.g., "123") or real constant (e.g., "12.34" or "12/34").
-   * @return a constant of sort Real or Integer (if 's' represents an integer)
+   * @return a constant of sort Real
    */
   Term mkReal(const std::string& s) const;
 
@@ -2576,7 +2612,7 @@ class CVC4_PUBLIC Solver
    * Create a real constant from a rational.
    * @param num the value of the numerator
    * @param den the value of the denominator
-   * @return a constant of sort Real or Integer (if 'num' is divisible by 'den')
+   * @return a constant of sort Real
    */
   Term mkReal(int64_t num, int64_t den) const;
 
@@ -3437,10 +3473,10 @@ class CVC4_PUBLIC Solver
   /**
    * Helper function that ensures that a given term is of sort real (as opposed
    * to being of sort integer).
-   * @param term a term of sort integer or real
+   * @param t a term of sort integer or real
    * @return a term of sort real
    */
-  Term ensureRealSort(Term expr) const;
+  Term ensureRealSort(Term t) const;
 
   /**
    * Create n-ary term of given kind. This handles the cases of left/right

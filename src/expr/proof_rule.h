@@ -290,7 +290,7 @@ enum class PfRule : uint32_t
   //   to resolution but rather to a weakening of the clause that did not have a
   //   literal eliminated.
   RESOLUTION,
-  // ======== Chain Resolution
+  // ======== N-ary Resolution
   // Children: (P1:C_1, ..., Pm:C_n)
   // Arguments: (id_1, L_1, ..., id_{n-1}, L_{n-1})
   // ---------------------
@@ -321,6 +321,21 @@ enum class PfRule : uint32_t
   //  Set representations of C1 and C2 is the same but the number of literals in
   //  C2 is the same of that of C1
   REORDERING,
+  // ======== N-ary Resolution + Factoring + Reordering
+  // Children: (P1:C_1, ..., Pm:C_n)
+  // Arguments: (C, id_1, L_1, ..., id_{n-1}, L_{n-1})
+  // ---------------------
+  // Conclusion: C
+  // where
+  //   - let C_1 ... C_n be nodes viewed as clauses, as defined in RESOLUTION
+  //   - let "C_1 <>_{L,id} C_2" represent the resolution of C_1 with C_2 with
+  //     pivot L and policy id, as defined in RESOLUTION
+  //   - let C_1' be equal, in its set representation, to C_1 (from P1),
+  //   - for each i > 1, let C_i' be equal, it its set representation, to
+  //     C_{i-1} <>_{L_{i-1}, id_{i-1}} C_i'
+  //   The result of the chain resolution is C, which is equal, in its set
+  //   representation, to C_n'
+  MACRO_RESOLUTION,
 
   // ======== Split
   // Children: none
@@ -704,14 +719,26 @@ enum class PfRule : uint32_t
   // Arguments: (i)
   // ----------------------------------------
   // Conclusion: (= ti si)
+  // where C is a constructor.
   DT_UNIF,
   // ======== Instantiate
   // Children: none
   // Arguments: (t, n)
   // ----------------------------------------
   // Conclusion: (= ((_ is C) t) (= t (C (sel_1 t) ... (sel_n t))))
-  // where C is the n^th constructor of the type of T.
+  // where C is the n^th constructor of the type of T, and (_ is C) is the
+  // discriminator (tester) for C.
   DT_INST,
+  // ======== Collapse
+  // Children: none
+  // Arguments: ((sel_i (C_j t_1 ... t_n)))
+  // ----------------------------------------
+  // Conclusion: (= (sel_i (C_j t_1 ... t_n)) r)
+  // where C_j is a constructor, r is t_i if sel_i is a correctly applied
+  // selector, or TypeNode::mkGroundTerm() of the proper type otherwise. Notice
+  // that the use of mkGroundTerm differs from the rewriter which uses
+  // mkGroundValue in this case.
+  DT_COLLAPSE,
   // ======== Split
   // Children: none
   // Arguments: (t)
@@ -1095,6 +1122,14 @@ enum class PfRule : uint32_t
   // (in variables x1...xn-1). It generates the conclusion that no xn exists
   // that extends the Cell and satisfies all assumptions.
   ARITH_NL_CAD_RECURSIVE,
+
+  //================================================ Place holder for Lfsc rules
+  // ======== Lfsc rule
+  // Children: (P1 ... Pn)
+  // Arguments: (id, Q, A1, ..., Am)
+  // ---------------------
+  // Conclusion: (Q)
+  LFSC_RULE,
 
   //================================================ Place holder for Lean rules
   // ======== Lean rule

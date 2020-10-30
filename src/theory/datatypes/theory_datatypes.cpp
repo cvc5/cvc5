@@ -1065,7 +1065,7 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
   Trace("dt-collapse-sel") << "collapse selector : " << s << " " << c << std::endl;
   Node r;
   bool wrong = false;
-  Node eq_exp = c.eqNode(s[0]);
+  Node eq_exp = s[0].eqNode(c);
   if( s.getKind()==kind::APPLY_SELECTOR_TOTAL ){
     Node selector = s.getOperator();
     size_t constructorIndex = utils::indexOf(c.getOperator());
@@ -1097,11 +1097,14 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
     if (s != rrs)
     {
       Node eq = s.eqNode(rrs);
-      Node peq = c.eqNode(s[0]);
+      // Since collapsing selectors may generate new terms, we must send
+      // this out as a lemma if it is of an external type, or otherwise we
+      // may ask for the equality status of terms that only datatypes knows
+      // about, see issue #5344.
+      bool forceLemma = !s.getType().isDatatype();
       Trace("datatypes-infer") << "DtInfer : collapse sel";
-      //Trace("datatypes-infer") << ( wrong ? " wrong" : "");
-      Trace("datatypes-infer") << " : " << eq << " by " << peq << std::endl;
-      d_im.addPendingInference(eq, peq, false, InferId::COLLAPSE_SEL);
+      Trace("datatypes-infer") << " : " << eq << " by " << eq_exp << std::endl;
+      d_im.addPendingInference(eq, eq_exp, forceLemma, InferId::COLLAPSE_SEL);
     }
   }
 }
@@ -1686,7 +1689,8 @@ void TheoryDatatypes::separateBisimilar(
         if( ncons.getKind()==APPLY_CONSTRUCTOR ) {
           Node cc = ncons.getOperator();
           cn_cons[part[j]] = ncons;
-          if( mkExp ){
+          if (mkExp && c != ncons)
+          {
             exp.push_back(c.eqNode(ncons));
           }
           new_part[cc].push_back( part[j] );
@@ -1745,9 +1749,12 @@ void TheoryDatatypes::separateBisimilar(
           //set current node
           for( unsigned k=0; k<split_new_part[j].size(); k++ ){
             Node n = split_new_part[j][k];
-            cn[n] = getRepresentative( cn_cons[n][cindex] );
-            if( mkExp ){
-              exp.push_back(cn[n].eqNode(cn_cons[n][cindex]));
+            Node cnc = cn_cons[n][cindex];
+            Node nr = getRepresentative(cnc);
+            cn[n] = nr;
+            if (mkExp && cnc != nr)
+            {
+              exp.push_back(nr.eqNode(cnc));
             }
           }
           std::vector< std::vector< Node > > c_part_out;
@@ -1855,6 +1862,7 @@ bool TheoryDatatypes::areDisequal( TNode a, TNode b ){
 }
 
 bool TheoryDatatypes::areCareDisequal( TNode x, TNode y ) {
+  Trace("datatypes-cg") << "areCareDisequal: " << x << " " << y << std::endl;
   Assert(d_equalityEngine->hasTerm(x));
   Assert(d_equalityEngine->hasTerm(y));
   if (d_equalityEngine->isTriggerTerm(x, THEORY_DATATYPES)

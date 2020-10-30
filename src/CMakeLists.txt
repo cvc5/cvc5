@@ -141,6 +141,16 @@ libcvc4_add_sources(
   proof/verit/verit_post_processor.cpp
   proof/verit/verit_post_processor.h
   proof/verit/verit_printer.h
+  proof/lfsc/letify.cpp
+  proof/lfsc/letify.h
+  proof/lfsc/lfsc_post_processor.cpp
+  proof/lfsc/lfsc_post_processor.h
+  proof/lfsc/lfsc_printer.cpp
+  proof/lfsc/lfsc_printer.h
+  proof/lfsc/lfsc_term_process.cpp
+  proof/lfsc/lfsc_term_process.h
+  proof/lfsc/term_processor.cpp
+  proof/lfsc/term_processor.h
   proof/sat_proof.h
   proof/sat_proof_implementation.h
   proof/unsat_core.cpp
@@ -357,6 +367,22 @@ libcvc4_add_sources(
   theory/arith/nl/cad/proof_generator.h
   theory/arith/nl/cad/variable_ordering.cpp
   theory/arith/nl/cad/variable_ordering.h
+  theory/arith/nl/ext/constraint.cpp
+  theory/arith/nl/ext/constraint.h
+  theory/arith/nl/ext/factoring_check.cpp
+  theory/arith/nl/ext/factoring_check.h
+  theory/arith/nl/ext/monomial.cpp
+  theory/arith/nl/ext/monomial.h
+  theory/arith/nl/ext/monomial_bounds_check.cpp
+  theory/arith/nl/ext/monomial_bounds_check.h
+  theory/arith/nl/ext/monomial_check.cpp
+  theory/arith/nl/ext/monomial_check.h
+  theory/arith/nl/ext/ext_state.cpp
+  theory/arith/nl/ext/ext_state.h
+  theory/arith/nl/ext/split_zero_check.cpp
+  theory/arith/nl/ext/split_zero_check.h
+  theory/arith/nl/ext/tangent_plane_check.cpp
+  theory/arith/nl/ext/tangent_plane_check.h
   theory/arith/nl/ext_theory_callback.cpp
   theory/arith/nl/ext_theory_callback.h
   theory/arith/nl/iand_solver.cpp
@@ -369,18 +395,12 @@ libcvc4_add_sources(
   theory/arith/nl/icp/icp_solver.h
   theory/arith/nl/icp/intersection.cpp
   theory/arith/nl/icp/intersection.h
-  theory/arith/nl/nl_constraint.cpp
-  theory/arith/nl/nl_constraint.h
   theory/arith/nl/iand_table.cpp
   theory/arith/nl/iand_table.h
   theory/arith/nl/nl_lemma_utils.cpp
   theory/arith/nl/nl_lemma_utils.h
   theory/arith/nl/nl_model.cpp
   theory/arith/nl/nl_model.h
-  theory/arith/nl/nl_monomial.cpp
-  theory/arith/nl/nl_monomial.h
-  theory/arith/nl/nl_solver.cpp
-  theory/arith/nl/nl_solver.h
   theory/arith/nl/nonlinear_extension.cpp
   theory/arith/nl/nonlinear_extension.h
   theory/arith/nl/poly_conversion.cpp
@@ -400,6 +420,8 @@ libcvc4_add_sources(
   theory/arith/proof_checker.cpp
   theory/arith/proof_checker.h
   theory/arith/proof_macros.h
+  theory/arith/rewrites.cpp
+  theory/arith/rewrites.h
   theory/arith/simplex.cpp
   theory/arith/simplex.h
   theory/arith/simplex_update.cpp
@@ -475,6 +497,7 @@ libcvc4_add_sources(
   theory/builtin/theory_builtin.h
   theory/builtin/theory_builtin_rewriter.cpp
   theory/builtin/theory_builtin_rewriter.h
+  theory/builtin/theory_builtin_type_rules.cpp
   theory/builtin/theory_builtin_type_rules.h
   theory/builtin/type_enumerator.cpp
   theory/builtin/type_enumerator.h

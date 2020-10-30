@@ -69,19 +69,6 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkTrans(
   return mkNode(PfRule::TRANS, children, {}, expected);
 }
 
-std::shared_ptr<ProofNode> ProofNodeManager::mkAndElim(
-    std::shared_ptr<ProofNode>& child, size_t i, Node expected)
-{
-  Assert(child->getResult().getKind() == AND);
-  if (child->getRule() == PfRule::AND_INTRO)
-  {
-    Assert(i < child->d_children.size());
-    return child->d_children[i];
-  }
-  Node inode = NodeManager::currentNM()->mkConst(Rational(i));
-  return mkNode(PfRule::AND_ELIM, {child}, {inode}, expected);
-}
-
 std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     std::shared_ptr<ProofNode> pf,
     std::vector<Node>& assumps,
@@ -181,7 +168,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
       {
         Assert(pfs->getResult() == a);
         // use SYMM if possible
-        if (aMatch==aeqSym)
+        if (aMatch == aeqSym)
         {
           updateNode(pfs.get(), PfRule::SYMM, children, {});
         }
@@ -242,23 +229,20 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
   Node minExpected;
   NodeManager* nm = NodeManager::currentNM();
   Node exp;
-  Node conc = pf->getResult();
   if (assumps.empty())
   {
-    Assert(!conc.isConst());
-    minExpected = conc;
+    // SCOPE with no arguments is a no-op, just return original
+    return pf;
+  }
+  Node conc = pf->getResult();
+  exp = assumps.size() == 1 ? assumps[0] : nm->mkNode(AND, assumps);
+  if (conc.isConst() && !conc.getConst<bool>())
+  {
+    minExpected = exp.notNode();
   }
   else
   {
-    exp = assumps.size() == 1 ? assumps[0] : nm->mkNode(AND, assumps);
-    if (conc.isConst() && !conc.getConst<bool>())
-    {
-      minExpected = exp.notNode();
-    }
-    else
-    {
-      minExpected = nm->mkNode(IMPLIES, exp, conc);
-    }
+    minExpected = nm->mkNode(IMPLIES, exp, conc);
   }
   return mkNode(PfRule::SCOPE, {pf}, assumps, minExpected);
 }
