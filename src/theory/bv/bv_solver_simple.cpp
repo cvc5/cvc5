@@ -60,6 +60,8 @@ class BBSimple : public TBitblaster<Node>
 
   prop::SatSolver* getSatSolver() override { Unreachable(); }
 
+  static Node bbTerm(TNode n, std::unordered_map<Node, Bits>& cache);
+
  private:
   /** Query SAT solver for assignment of node 'a'. */
   Node getModelFromSatSolver(TNode a, bool fullModel) override;
@@ -73,6 +75,11 @@ class BBSimple : public TBitblaster<Node>
 };
 
 BBSimple::BBSimple(TheoryState& s) : TBitblaster<Node>(), d_state(s) {}
+
+Node BBSimple::bbTerm(TNode n, std::unordered_map<Node, Bits>& cache)
+{
+  return Node();
+}
 
 void BBSimple::bbAtom(TNode node)
 {
@@ -237,8 +244,13 @@ void collectBVAtoms(TNode n, std::unordered_set<Node, NodeHashFunction>& atoms)
 
 }  // namespace
 
-BVSolverSimple::BVSolverSimple(TheoryState& s, TheoryInferenceManager& inferMgr)
-    : BVSolver(s, inferMgr), d_bitblaster(new BBSimple(s))
+BVSolverSimple::BVSolverSimple(TheoryState& s,
+                               TheoryInferenceManager& inferMgr,
+                               ProofNodeManager* pnm)
+    : BVSolver(s, inferMgr),
+      d_bitblaster(new BBSimple(s)),
+      d_epg(pnm ? new EagerProofGenerator(pnm, s.getUserContext(), "")
+                : nullptr)
 {
 }
 
@@ -249,9 +261,20 @@ void BVSolverSimple::addBBLemma(TNode fact)
     d_bitblaster->bbAtom(fact);
   }
   NodeManager* nm = NodeManager::currentNM();
-  Node atom_bb = Rewriter::rewrite(d_bitblaster->getStoredBBAtom(fact));
+
+  Node atom_bb = d_bitblaster->getStoredBBAtom(fact);
   Node lemma = nm->mkNode(kind::EQUAL, fact, atom_bb);
-  d_inferManager.lemma(lemma);
+
+  if (d_epg == nullptr)
+  {
+    d_inferManager.lemma(lemma);
+  }
+  else
+  {
+    TrustNode tlem =
+        d_epg->mkTrustNode(lemma, PfRule::BV_BITBLAST_SIMPLE, {}, {fact});
+    d_inferManager.trustedLemma(tlem);
+  }
 }
 
 bool BVSolverSimple::preNotifyFact(

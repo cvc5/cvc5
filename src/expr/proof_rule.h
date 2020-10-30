@@ -713,6 +713,10 @@ enum class PfRule : uint32_t
   // Conclusion: F
   ARRAYS_TRUST,
 
+  //================================================= Bit-Vector rules
+  // ======== Bitblast with simple BB solver
+  BV_BITBLAST_SIMPLE,
+
   //================================================= Datatype rules
   // ======== Unification
   // Children: (P:(= (C t1 ... tn) (C s1 ... sn)))

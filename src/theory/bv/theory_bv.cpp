@@ -47,7 +47,7 @@ TheoryBV::TheoryBV(context::Context* c,
 
     default:
       AlwaysAssert(options::bvSolver() == options::BVSolver::SIMPLE);
-      d_internal.reset(new BVSolverSimple(d_state, d_inferMgr));
+      d_internal.reset(new BVSolverSimple(d_state, d_inferMgr, pnm));
   }
   d_theoryState = &d_state;
   d_inferManager = &d_inferMgr;
