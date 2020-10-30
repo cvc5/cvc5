@@ -342,13 +342,16 @@ class SymbolTable::Implementation {
  public:
   Implementation()
       : d_context(),
-        d_exprMap(&d_context),
-        d_typeMap(&d_context),
-        d_overload_trie(&d_context)
+        d_exprMap(new (true) CDHashMap<string, api::Term>(&d_context)),
+        d_typeMap(new (true) TypeMap(&d_context))
   {
+    d_overload_trie = new OverloadedTypeTrie(&d_context);
   }
 
   ~Implementation() {
+    d_exprMap->deleteSelf();
+    d_typeMap->deleteSelf();
+    delete d_overload_trie;
   }
 
   bool bind(const string& name, api::Term obj, bool levelZero, bool doOverload);
@@ -385,17 +388,17 @@ class SymbolTable::Implementation {
   Context d_context;
 
   /** A map for expressions. */
-  CDHashMap<string, api::Term> d_exprMap;
+  CDHashMap<string, api::Term>* d_exprMap;
 
   /** A map for types. */
   using TypeMap = CDHashMap<string, std::pair<vector<api::Sort>, api::Sort>>;
-  TypeMap d_typeMap;
+  TypeMap* d_typeMap;
 
   //------------------------ operator overloading
   // the null expression
   api::Term d_nullTerm;
   // overloaded type trie, stores all information regarding overloading
-  OverloadedTypeTrie d_overload_trie;
+  OverloadedTypeTrie* d_overload_trie;
   /** bind with overloading
    * This is called whenever obj is bound to name where overloading symbols is
    * allowed. If a symbol is previously bound to that name, it marks both as
@@ -417,21 +420,21 @@ bool SymbolTable::Implementation::bind(const string& name,
     }
   }
   if (levelZero) {
-    d_exprMap.insertAtContextLevelZero(name, obj);
+    d_exprMap->insertAtContextLevelZero(name, obj);
   } else {
-    d_exprMap.insert(name, obj);
+    d_exprMap->insert(name, obj);
   }
   return true;
 }
 
 bool SymbolTable::Implementation::isBound(const string& name) const {
-  return d_exprMap.find(name) != d_exprMap.end();
+  return d_exprMap->find(name) != d_exprMap->end();
 }
 
 api::Term SymbolTable::Implementation::lookup(const string& name) const
 {
   Assert(isBound(name));
-  api::Term expr = (*d_exprMap.find(name)).second;
+  api::Term expr = (*d_exprMap->find(name)).second;
   if (isOverloadedFunction(expr)) {
     return d_nullTerm;
   } else {
@@ -444,9 +447,10 @@ void SymbolTable::Implementation::bindType(const string& name,
                                            bool levelZero)
 {
   if (levelZero) {
-    d_typeMap.insertAtContextLevelZero(name, make_pair(vector<api::Sort>(), t));
+    d_typeMap->insertAtContextLevelZero(name,
+                                        make_pair(vector<api::Sort>(), t));
   } else {
-    d_typeMap.insert(name, make_pair(vector<api::Sort>(), t));
+    d_typeMap->insert(name, make_pair(vector<api::Sort>(), t));
   }
 }
 
@@ -466,20 +470,19 @@ void SymbolTable::Implementation::bindType(const string& name,
     Debug("sort") << "], " << t << ")" << endl;
   }
   if (levelZero) {
-    d_typeMap.insertAtContextLevelZero(name, make_pair(params, t));
+    d_typeMap->insertAtContextLevelZero(name, make_pair(params, t));
   } else {
-    d_typeMap.insert(name, make_pair(params, t));
+    d_typeMap->insert(name, make_pair(params, t));
   }
 }
 
 bool SymbolTable::Implementation::isBoundType(const string& name) const {
-  return d_typeMap.find(name) != d_typeMap.end();
+  return d_typeMap->find(name) != d_typeMap->end();
 }
 
 api::Sort SymbolTable::Implementation::lookupType(const string& name) const
 {
-  std::pair<std::vector<api::Sort>, api::Sort> p =
-      (*d_typeMap.find(name)).second;
+  pair<vector<api::Sort>, api::Sort> p = (*d_typeMap->find(name)).second;
   PrettyCheckArgument(p.first.size() == 0, name,
                       "type constructor arity is wrong: "
                       "`%s' requires %u parameters but was provided 0",
@@ -491,7 +494,7 @@ api::Sort SymbolTable::Implementation::lookupType(
     const string& name, const vector<api::Sort>& params) const
 {
   std::pair<std::vector<api::Sort>, api::Sort> p =
-      (*d_typeMap.find(name)).second;
+      (*d_typeMap->find(name)).second;
   PrettyCheckArgument(p.first.size() == params.size(), params,
                       "type constructor arity is wrong: "
                       "`%s' requires %u parameters but was provided %u",
@@ -532,8 +535,7 @@ api::Sort SymbolTable::Implementation::lookupType(
 }
 
 size_t SymbolTable::Implementation::lookupArity(const string& name) {
-  std::pair<std::vector<api::Sort>, api::Sort> p =
-      (*d_typeMap.find(name)).second;
+  pair<vector<api::Sort>, api::Sort> p = (*d_typeMap->find(name)).second;
   return p.first.size();
 }
 
@@ -557,30 +559,29 @@ void SymbolTable::Implementation::reset() {
 
 bool SymbolTable::Implementation::isOverloadedFunction(api::Term fun) const
 {
-  return d_overload_trie.isOverloadedFunction(fun);
+  return d_overload_trie->isOverloadedFunction(fun);
 }
 
 api::Term SymbolTable::Implementation::getOverloadedConstantForType(
     const std::string& name, api::Sort t) const
 {
-  return d_overload_trie.getOverloadedConstantForType(name, t);
+  return d_overload_trie->getOverloadedConstantForType(name, t);
 }
 
 api::Term SymbolTable::Implementation::getOverloadedFunctionForTypes(
     const std::string& name, const std::vector<api::Sort>& argTypes) const
 {
-  return d_overload_trie.getOverloadedFunctionForTypes(name, argTypes);
+  return d_overload_trie->getOverloadedFunctionForTypes(name, argTypes);
 }
 
 bool SymbolTable::Implementation::bindWithOverloading(const string& name,
                                                       api::Term obj)
 {
-  CDHashMap<string, api::Term>::const_iterator it = d_exprMap.find(name);
-  if (it != d_exprMap.end())
-  {
+  CDHashMap<string, api::Term>::const_iterator it = d_exprMap->find(name);
+  if (it != d_exprMap->end()) {
     const api::Term& prev_bound_obj = (*it).second;
     if (prev_bound_obj != obj) {
-      return d_overload_trie.bind(name, prev_bound_obj, obj);
+      return d_overload_trie->bind(name, prev_bound_obj, obj);
     }
   }
   return true;
