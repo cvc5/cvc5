@@ -106,6 +106,13 @@ void InferenceManager::addTrustedConflict(const TrustNode& tconf,
   trustedConflict(tconf);
 }
 
+void InferenceManager::addTrustedLemma(const TrustNode& tlem, InferenceId inftype)
+{
+  Trace("arith::infman") << "Adding lemma: " << inftype << " " << tlem
+                         << std::endl;
+  trustedLemma(tlem);
+}
+
 bool InferenceManager::hasUsed() const
 {
   return hasSent() || hasPending();

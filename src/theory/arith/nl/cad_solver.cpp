@@ -100,8 +100,8 @@ void CadSolver::checkFull()
     Trace("nl-cad") << "Collected MIS: " << mis << std::endl;
     Assert(!mis.empty()) << "Infeasible subset can not be empty";
     Trace("nl-cad") << "UNSAT with MIS: " << mis << std::endl;
-    Node conf = NodeManager::currentNM()->mkAnd(mis);
-    d_im.addTrustedConflict(TrustNode::mkTrustConflict(conf, d_CAC.getProof()),
+    Node lem = NodeManager::currentNM()->mkAnd(mis).negate();
+    d_im.addTrustedLemma(TrustNode::mkTrustLemma(lem, d_CAC.getProof()),
                             InferenceId::NL_CAD_CONFLICT);
   }
 #else

@@ -602,7 +602,7 @@ void DeclareSygusVarCommand::toStream(std::ostream& out,
                                       OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdDeclareVar(
-      out, d_var.getNode(), TypeNode::fromType(d_sort.getType()));
+      out, d_var.getNode(), d_sort.getTypeNode());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -663,9 +663,9 @@ void SynthFunCommand::toStream(std::ostream& out,
       out,
       d_symbol,
       nodeVars,
-      TypeNode::fromType(d_sort.getType()),
+      d_sort.getTypeNode(),
       d_isInv,
-      TypeNode::fromType(d_grammar->resolve().getType()));
+      d_grammar->resolve().getTypeNode());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1130,7 +1130,7 @@ void DeclareFunctionCommand::toStream(std::ostream& out,
                                       OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdDeclareFunction(
-      out, d_func.toString(), TypeNode::fromType(d_sort.getType()));
+      out, d_func.toString(), d_sort.getTypeNode());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1168,7 +1168,7 @@ void DeclareSortCommand::toStream(std::ostream& out,
                                   OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdDeclareType(
-      out, d_sort.toString(), d_arity, TypeNode::fromType(d_sort.getType()));
+      out, d_sort.toString(), d_arity, d_sort.getTypeNode());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1215,7 +1215,7 @@ void DefineSortCommand::toStream(std::ostream& out,
       out,
       d_symbol,
       api::sortVectorToTypeNodes(d_params),
-      TypeNode::fromType(d_sort.getType()));
+      d_sort.getTypeNode());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1337,7 +1337,7 @@ void DefineNamedFunctionCommand::toStream(std::ostream& out,
       out,
       d_func.toString(),
       api::termVectorToNodes(d_formals),
-      TypeNode::fromType(d_func.getSort().getFunctionCodomainSort().getType()),
+      d_func.getSort().getFunctionCodomainSort().getTypeNode(),
       d_formula.getNode());
 }
 
@@ -2100,10 +2100,7 @@ void GetInterpolCommand::toStream(std::ostream& out,
                                   OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetInterpol(
-      out,
-      d_name,
-      d_conj.getNode(),
-      TypeNode::fromType(d_sygus_grammar->resolve().getType()));
+      out, d_name, d_conj.getNode(), d_sygus_grammar->resolve().getTypeNode());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2189,10 +2186,7 @@ void GetAbductCommand::toStream(std::ostream& out,
                                 OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetAbduct(
-      out,
-      d_name,
-      d_conj.getNode(),
-      TypeNode::fromType(d_sygus_grammar->resolve().getType()));
+      out, d_name, d_conj.getNode(), d_sygus_grammar->resolve().getTypeNode());
 }
 
 /* -------------------------------------------------------------------------- */
