@@ -119,6 +119,8 @@ const char* toString(PfRule id)
     case PfRule::ARRAYS_READ_OVER_WRITE_1: return "ARRAYS_READ_OVER_WRITE_1";
     case PfRule::ARRAYS_EXT: return "ARRAYS_EXT";
     case PfRule::ARRAYS_TRUST: return "ARRAYS_TRUST";
+    //================================================= Bit-Vector rules
+    case PfRule::BV_BITBLAST_SIMPLE: return "BV_BITBLAST_SIMPLE";
     //================================================= Datatype rules
     case PfRule::DT_UNIF: return "DT_UNIF";
     case PfRule::DT_INST: return "DT_INST";
