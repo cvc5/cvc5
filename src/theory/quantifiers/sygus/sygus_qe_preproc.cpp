@@ -15,9 +15,9 @@
 #include "theory/quantifiers/sygus/sygus_qe_preproc.h"
 
 #include "expr/node_algorithm.h"
-#include "theory/smt_engine_subsolver.h"
 #include "theory/quantifiers/single_inv_partition.h"
 #include "theory/rewriter.h"
+#include "theory/smt_engine_subsolver.h"
 
 using namespace CVC4::kind;
 
