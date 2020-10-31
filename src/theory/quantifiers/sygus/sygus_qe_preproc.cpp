@@ -16,6 +16,10 @@
 
 #include "expr/node_algorithm.h"
 #include "theory/smt_engine_subsolver.h"
+#include "theory/quantifiers/single_inv_partition.h"
+#include "theory/rewriter.h"
+
+using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {

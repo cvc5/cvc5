@@ -22,6 +22,7 @@
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/sygus/sygus_stats.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
+#include "theory/quantifiers/sygus/sygus_qe_preproc.h"
 
 namespace CVC4 {
 namespace theory {
@@ -89,7 +90,7 @@ class SynthEngine : public QuantifiersModule
   /**
    * The quantifier elimination preprocess module.
    */
-  SygusQePreprocress d_sqp;
+  SygusQePreproc d_sqp;
   /** The statistics */
   SygusStatistics d_statistics;
   /** assign quantified formula q as a conjecture
