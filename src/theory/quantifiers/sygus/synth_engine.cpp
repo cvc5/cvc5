@@ -31,7 +31,10 @@ namespace theory {
 namespace quantifiers {
 
 SynthEngine::SynthEngine(QuantifiersEngine* qe, context::Context* c)
-    : QuantifiersModule(qe), d_tds(qe->getTermDatabaseSygus()), d_conj(nullptr), d_sqp(qe)
+    : QuantifiersModule(qe),
+      d_tds(qe->getTermDatabaseSygus()),
+      d_conj(nullptr),
+      d_sqp(qe)
 {
   d_conjs.push_back(std::unique_ptr<SynthConjecture>(
       new SynthConjecture(d_quantEngine, this, d_statistics)));
@@ -142,12 +145,11 @@ void SynthEngine::assignConjecture(Node q)
   Trace("sygus-engine") << "SynthEngine::assignConjecture " << q << std::endl;
   if (options::sygusQePreproc())
   {
-    
     Node lem = d_sqp.preprocess(q);
     if (!lem.isNull())
     {
-      Trace("cegqi-lemma")
-          << "Cegqi::Lemma : qe-preprocess : " << lem << std::endl;
+      Trace("cegqi-lemma") << "Cegqi::Lemma : qe-preprocess : " << lem
+                           << std::endl;
       d_quantEngine->getOutputChannel().lemma(lem);
       // we've reduced the original to a preprocessed version, return
       return;

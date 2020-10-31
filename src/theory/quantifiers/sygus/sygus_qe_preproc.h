@@ -22,12 +22,12 @@
 
 namespace CVC4 {
 namespace theory {
-  
+
 class QuantifiersEngine;
 
 namespace quantifiers {
 
-/** 
+/**
  * This module does quantifier elimination as a preprocess step
  * for "non-ground single invocation synthesis conjectures":
  *   exists f. forall xy. P[ f(x), x, y ]
@@ -40,16 +40,17 @@ namespace quantifiers {
 class SygusQePreproc
 {
  public:
-  SygusQePreproc(QuantifiersEngine * qe);
-  ~SygusQePreproc(){}
+  SygusQePreproc(QuantifiersEngine* qe);
+  ~SygusQePreproc() {}
   /**
    * Preprocess. Returns a lemma of the form q = nq where nq is obtained
    * by the quantifier elimination technique outlined above.
    */
   Node preprocess(Node q);
-private:
+
+ private:
   /** Pointer to quantifiers engine */
-  QuantifiersEngine * d_quantEngine;
+  QuantifiersEngine* d_quantEngine;
 };
 
 }  // namespace quantifiers
