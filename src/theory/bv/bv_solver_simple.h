@@ -21,7 +21,7 @@
 
 #include <unordered_map>
 
-#include "theory/bv/bitblast/lazy_bitblaster.h"
+#include "theory/bv/bitblast/simple_bitblaster.h"
 #include "theory/bv/bv_solver.h"
 #include "theory/bv/proof_checker.h"
 #include "theory/eager_proof_generator.h"
@@ -30,55 +30,6 @@ namespace CVC4 {
 
 namespace theory {
 namespace bv {
-
-/**
- * Implementation of a simple Node-based bit-blaster.
- *
- * Implements the bare minimum to bit-blast bit-vector atoms/terms.
- */
-class BBSimple : public TBitblaster<Node>
-{
-  using Bits = std::vector<Node>;
-
- public:
-  BBSimple(TheoryState* state);
-  ~BBSimple() = default;
-
-  /** Bit-blast term 'node' and return bit-blasted 'bits'. */
-  void bbTerm(TNode node, Bits& bits) override;
-  /** Bit-blast atom 'node'. */
-  void bbAtom(TNode node) override;
-  /** Get bit-blasted atom, returns 'atom' itself since it's Boolean. */
-  Node getBBAtom(TNode atom) const override;
-  /** Store Boolean node representing the bit-blasted atom. */
-  void storeBBAtom(TNode atom, Node atom_bb) override;
-  /** Store bits of bit-blasted term. */
-  void storeBBTerm(TNode node, const Bits& bits) override;
-  /** Check if atom was already bit-blasted. */
-  bool hasBBAtom(TNode atom) const override;
-  /** Get bit-blasted node stored for atom. */
-  Node getStoredBBAtom(TNode node);
-  /** Create 'bits' for variable 'var'. */
-  void makeVariable(TNode var, Bits& bits) override;
-
-  /** Collect model values for all relevant terms given in 'relevantTerms'. */
-  bool collectModelValues(TheoryModel* m, const std::set<Node>& relevantTerms);
-
-  prop::SatSolver* getSatSolver() override { Unreachable(); }
-
-  static Node bbTerm(TNode n, std::unordered_map<Node, Bits>& cache);
-
- private:
-  /** Query SAT solver for assignment of node 'a'. */
-  Node getModelFromSatSolver(TNode a, bool fullModel) override;
-
-  /** Caches variables for which we already created bits. */
-  TNodeSet d_variables;
-  /** Stores bit-blasted atoms. */
-  std::unordered_map<Node, Node, NodeHashFunction> d_bbAtoms;
-  /** Theory state. */
-  TheoryState* d_state;
-};
 
 /**
  * Simple bit-blasting solver that sends bit-blasting lemmas directly to the

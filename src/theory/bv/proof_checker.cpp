@@ -13,7 +13,6 @@
  **/
 
 #include "theory/bv/proof_checker.h"
-#include "theory/bv/bv_solver_simple.h"
 
 namespace CVC4 {
 namespace theory {

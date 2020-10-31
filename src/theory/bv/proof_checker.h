@@ -20,12 +20,11 @@
 #include "expr/node.h"
 #include "expr/proof_checker.h"
 #include "expr/proof_node.h"
+#include "theory/bv/bitblast/simple_bitblaster.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bv {
-
-class BBSimple;
 
 /** A checker for array reasoning in proofs */
 class BVProofRuleChecker : public ProofRuleChecker
