@@ -45,14 +45,14 @@ bool LfscProofPostprocessCallback::update(Node res,
                                           CDProof* cdp,
                                           bool& continueUpdate)
 {
-  Assert (id != PfRule::LFSC_RULE);
+  Assert(id != PfRule::LFSC_RULE);
   // convert arguments to internal form
   std::vector<Node> ias;
   for (const Node& a : args)
   {
-    //ias.push_back(
+    // ias.push_back(
   }
-  
+
   switch (id)
   {
     case PfRule::TRANS:

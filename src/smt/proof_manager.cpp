@@ -61,8 +61,7 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
 
 PfManager::~PfManager() {}
 
-void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn,
-                              Assertions& as)
+void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
 {
   // Note this assumes that setFinalProof is only called once per unsat
   // response. This method would need to cache its result otherwise.
@@ -75,7 +74,7 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn,
     Trace("smt-proof-debug") << *pfn.get() << std::endl;
     Trace("smt-proof-debug") << "=====" << std::endl;
   }
-  
+
   std::vector<Node> assertions;
   getAssertions(as, assertions);
 
@@ -126,7 +125,7 @@ void PfManager::printProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
     d_lpfpp->process(fp);
     proof::leanPrinter(out, fp);
   }
-  else if (options::proofFormatMode()== options::ProofFormatMode::LFSC)
+  else if (options::proofFormatMode() == options::ProofFormatMode::LFSC)
   {
     std::vector<Node> assertions;
     getAssertions(as, assertions);
@@ -178,7 +177,7 @@ std::shared_ptr<ProofNode> PfManager::getFinalProof(
 void PfManager::getAssertions(Assertions& as, std::vector<Node>& assertions)
 {
   context::CDList<Node>* al = as.getAssertionList();
-  Assert (al!=nullptr);
+  Assert(al != nullptr);
   for (context::CDList<Node>::const_iterator i = al->begin(); i != al->end();
        ++i)
   {

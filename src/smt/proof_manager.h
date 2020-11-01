@@ -82,7 +82,7 @@ class PfManager
    * false, postprocesses it, and stores it in d_finalProof.
    */
   void setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as);
-  /** 
+  /**
    * Get assertions from the assertions
    */
   void getAssertions(Assertions& as, std::vector<Node>& assertions);
