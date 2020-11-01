@@ -18,7 +18,7 @@
 (synth-fun pW ((p Pair) (q Pair)) Pair
   ((StartPair Pair) (StartInt Int)) (
   (StartPair Pair ((pair StartInt StartInt)))
-  (StartInt Int ((+ StartInt StartInt) 0 1 (pmin p) (pmax p) (pmin q) (pmax q) (intMax StartInt StartInt) (intMin StartInt StartInt) (midpoint StartInt StartInt)))
+  (StartInt Int ((pmin p) (pmax p) (pmin q) (pmax q) (intMax StartInt StartInt) (intMin StartInt StartInt) (midpoint StartInt StartInt)))
 ))
 (synth-fun pL ((p Pair) (q Pair)) Pair
   ((StartPair Pair) (StartInt Int)) (
