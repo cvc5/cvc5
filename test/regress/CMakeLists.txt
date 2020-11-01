@@ -2024,6 +2024,7 @@ set(regress_1_tests
   regress1/sygus/pbe_multi.sy
   regress1/sygus/phone-1-long.sy
   regress1/sygus/planning-unif.sy
+  regress1/sygus/policyM.sy
   regress1/sygus/process-10-vars.sy
   regress1/sygus/pLTL_5_trace.sy
   regress1/sygus/qe.sy
