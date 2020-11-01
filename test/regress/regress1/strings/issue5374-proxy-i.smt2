@@ -1,4 +1,4 @@
-; EXPECT: sat
+; COMMAND-LINE: -i
 ; EXPECT: sat
 (set-logic QF_UFSLIA)
 (set-option :strings-lazy-pp false)
