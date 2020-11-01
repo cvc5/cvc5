@@ -35,16 +35,7 @@ LfscProofPostprocess::LfscProofPostprocess(ProofNodeManager* pnm)
 bool LfscProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                                 bool& continueUpdate)
 {
-  switch (pn->getRule())
-  {
-    case PfRule::CONG:
-    case PfRule::SYMM:
-    return true;
-    break;
-    default: return false;
-    break;
-  }
-  return false;
+  return pn->getRule() != PfRule::LFSC_RULE;
 }
 
 bool LfscProofPostprocessCallback::update(Node res,
@@ -54,6 +45,27 @@ bool LfscProofPostprocessCallback::update(Node res,
                                           CDProof* cdp,
                                           bool& continueUpdate)
 {
+  Assert (id != PfRule::LFSC_RULE);
+  // convert arguments to internal form
+  std::vector<Node> ias;
+  for (const Node& a : args)
+  {
+    //ias.push_back(
+  }
+  
+  switch (id)
+  {
+    case PfRule::TRANS:
+    {
+      // nested
+    }
+    break;
+    case PfRule::CONG:
+    {
+      // nested
+    }
+    break;
+  }
   return true;
 }
 

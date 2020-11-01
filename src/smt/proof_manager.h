@@ -81,7 +81,11 @@ class PfManager
    * Set final proof, which initializes d_finalProof to the given proof node of
    * false, postprocesses it, and stores it in d_finalProof.
    */
-  void setFinalProof(std::shared_ptr<ProofNode> pfn, context::CDList<Node>* al);
+  void setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as);
+  /** 
+   * Get assertions from the assertions
+   */
+  void getAssertions(Assertions& as, std::vector<Node>& assertions);
   /** The false node */
   Node d_false;
   /** For the new proofs module */

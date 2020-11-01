@@ -36,7 +36,7 @@ Node Letify::convert(Node n,
 
     if (it == visited.end())
     {
-      itl = letMap.find(n);
+      itl = letMap.find(cur);
       if (itl != letMap.end())
       {
         // make the let variable
@@ -152,12 +152,18 @@ void Letify::convertCountToLet(const std::vector<Node>& visitList,
        it != visitList.rend();
        ++it)
   {
-    itc = count.find(*it);
+    Node n = *it;
+    if (n.isVar())
+    {
+      // do not letify variables
+      continue;
+    }
+    itc = count.find(n);
     Assert(itc != count.end());
     if (itc->second >= thresh)
     {
-      letList.push_back(*it);
-      letMap[*it] = counter;
+      letList.push_back(n);
+      letMap[n] = counter;
       counter++;
     }
   }

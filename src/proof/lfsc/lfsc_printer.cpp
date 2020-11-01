@@ -25,8 +25,10 @@ const char* toString(LfscRule id)
 {
   switch (id)
   {
+    case LfscRule::SYMM: return "symm";
     case LfscRule::NEG_SYMM: return "neg_symm";
     case LfscRule::CONG: return "cong";
+    case LfscRule::TRANS: return "trans";
     default: return "?";
   }
 }
@@ -71,7 +73,7 @@ void LfscPrinter::print(std::ostream& out,
   {
     out << "(define " << s << " (var " << vidCounter << " ";
     print(out, s.getType());
-    out << "))";
+    out << "))" << std::endl;
     vidCounter++;
   }
 
@@ -141,20 +143,26 @@ void LfscPrinter::printProofLetify(std::ostream& out,
   std::map<const ProofNode*, uint32_t> pletMap;
   Letify::computeProofLet(pn, pletList, pletMap, pcounter);
   // define the let proofs
-  out << "; Let proofs:" << std::endl;
-  std::map<const ProofNode*, uint32_t>::iterator itp;
-  for (const ProofNode* p : pletList)
+  if (!pletList.empty())
   {
-    itp = pletMap.find(p);
-    Assert(itp != pletMap.end());
-    out << "(plet _ _ ";
-    printProofInternal(out, p, letMap, pletMap, passumeMap);
-    out << " (\\ ";
-    printProofId(out, itp->second);
+    out << "; Let proofs:" << std::endl;
+    std::map<const ProofNode*, uint32_t>::iterator itp;
+    for (const ProofNode* p : pletList)
+    {
+      itp = pletMap.find(p);
+      Assert(itp != pletMap.end());
+      uint32_t pid = itp->second;
+      out << "(plet _ _ ";
+      pletMap.erase(p);
+      printProofInternal(out, p, letMap, pletMap, passumeMap);
+      pletMap[p] = pid;
+      out << " (\\ ";
+      printProofId(out, pid);
+      out << std::endl;
+      cparen << "))";
+    }
     out << std::endl;
-    cparen << "))";
   }
-  out << std::endl;
 
   // [2] print the proof body
   printProofInternal(out, pn, letMap, pletMap, passumeMap);
@@ -196,6 +204,10 @@ void LfscPrinter::printProofInternal(
         if (pletIt != pletMap.end())
         {
           // a letified proof
+          if (visit.empty())
+          {
+            out << " ";
+          }
           printProofId(out, pletIt->second);
         }
         else if (cur->getRule() == PfRule::ASSUME)
@@ -203,44 +215,50 @@ void LfscPrinter::printProofInternal(
           // an assumption, must have a name
           passumeIt = passumeMap.find(cur->getResult());
           Assert(passumeIt != passumeMap.end());
+          if (visit.empty())
+          {
+            out << " ";
+          }
           printAssumeId(out, passumeIt->second);
         }
         else
         {
-          // will revisit this
-          visit.push_back(PExpr(cur));
           // a normal rule application, compute the proof arguments
-          processedChildren[cur] = false;
           if (computeProofArgs(cur, visit))
           {
+            processedChildren[cur] = false;
+            // will revisit this proof node to close parentheses
+            visit.push_back(PExpr(cur));
             // print the rule name
-            out << "(";
+            out << std::endl << "(";
             printRule(out, cur);
           }
           else
           {
+            processedChildren[cur] = true;
             // could not print the rule, trust for now
-            out << "(trust ";
+            out << std::endl << "(trust ";
             printInternal(out, cur->getResult(), letMap);
-            out << ")";
+            out << ") ; from " << pn->getRule() << std::endl;
           }
         }
       }
       else if (!pit->second)
       {
         processedChildren[cur] = true;
-        out << ")" << std::endl;
+        out << ")";
       }
     }
     // case 2: printing a node
     else if (!curn.isNull())
     {
+      out << " ";
       printInternal(out, curn, letMap);
     }
     // case 3: a hole
     else
     {
-      out << "_ ";
+      out << " _";
     }
   } while (!visit.empty());
 }
@@ -254,30 +272,32 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
   {
     cs.push_back(c.get());
   }
+  PfRule r = pn->getRule();
   const std::vector<Node>& as = pn->getArguments();
-
+  LfscRule lr = getLfscRule(as[0]);
   PExprStream pf(pargs);
   // hole
   PExpr h;
-  // TODO: what arguments does the proof rule take?
-  switch (pn->getRule())
+  switch (r)
   {
     case PfRule::REFL: pf << as[0]; break;
-    case PfRule::SYMM: pf << h << cs[0]; break;
-    case PfRule::TRANS: pf << h << h << h << cs[0] << cs[1]; break;
     case PfRule::TRUE_INTRO:
     case PfRule::FALSE_INTRO:
     case PfRule::TRUE_ELIM:
     case PfRule::FALSE_ELIM: pf << h << cs[0]; break;
+    // ---------- arguments of non-translated rules go here
     case PfRule::LFSC_RULE:
     {
-      LfscRule lr = getLfscRule(as[0]);
       switch (lr)
       {
+        case LfscRule::SYMM: pf << h << cs[0]; break;
         case LfscRule::NEG_SYMM: pf << h << cs[0]; break;
+        case LfscRule::TRANS: pf << h << h << h << cs[0] << cs[1]; break;
         case LfscRule::CONG: pf << h << h << h << h << cs[0] << cs[1]; break;
+        // ---------- arguments of translated rules go here
         default: return false; break;
       }
+      break;
     }
     default: return false; break;
   }

@@ -19,6 +19,8 @@
 #include "options/smt_options.h"
 #include "proof/lean/lean_post_processor.h"
 #include "proof/lean/lean_printer.h"
+#include "proof/lfsc/lfsc_post_processor.h"
+#include "proof/lfsc/lfsc_printer.h"
 #include "smt/assertions.h"
 
 namespace CVC4 {
@@ -60,9 +62,8 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
 PfManager::~PfManager() {}
 
 void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn,
-                              context::CDList<Node>* al)
+                              Assertions& as)
 {
-  Assert(al != nullptr);
   // Note this assumes that setFinalProof is only called once per unsat
   // response. This method would need to cache its result otherwise.
   Trace("smt-proof") << "SmtEngine::setFinalProof(): get proof body...\n";
@@ -74,6 +75,9 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn,
     Trace("smt-proof-debug") << *pfn.get() << std::endl;
     Trace("smt-proof-debug") << "=====" << std::endl;
   }
+  
+  std::vector<Node> assertions;
+  getAssertions(as, assertions);
 
   if (Trace.isOn("smt-proof"))
   {
@@ -87,18 +91,14 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn,
     {
       Trace("smt-proof") << "- " << a << std::endl;
     }
-  }
 
-  std::vector<Node> assertions;
-  Trace("smt-proof") << "SmtEngine::setFinalProof(): assertions are:\n";
-  for (context::CDList<Node>::const_iterator i = al->begin(); i != al->end();
-       ++i)
-  {
-    Node n = *i;
-    Trace("smt-proof") << "- " << n << std::endl;
-    assertions.push_back(n);
+    Trace("smt-proof") << "SmtEngine::setFinalProof(): assertions are:\n";
+    for (const Node& n : assertions)
+    {
+      Trace("smt-proof") << "- " << n << std::endl;
+    }
+    Trace("smt-proof") << "=====" << std::endl;
   }
-  Trace("smt-proof") << "=====" << std::endl;
 
   Trace("smt-proof") << "SmtEngine::setFinalProof(): postprocess...\n";
   Assert(d_pfpp != nullptr);
@@ -126,9 +126,23 @@ void PfManager::printProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
     d_lpfpp->process(fp);
     proof::leanPrinter(out, fp);
   }
-  out << "(proof\n";
-  out << *fp;
-  out << "\n)\n";
+  else if (options::proofFormatMode()== options::ProofFormatMode::LFSC)
+  {
+    std::vector<Node> assertions;
+    getAssertions(as, assertions);
+    // NOTE: update permanent to fp, which could be reused in incremental mode
+    proof::LfscProofPostprocess lpp(d_pnm.get());
+    lpp.process(fp);
+    proof::LfscPrinter lp;
+    // print the proof for assertions
+    lp.print(out, assertions, fp.get());
+  }
+  else
+  {
+    out << "(proof\n";
+    out << *fp;
+    out << "\n)\n";
+  }
 }
 
 void PfManager::checkProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
@@ -156,10 +170,20 @@ smt::PreprocessProofGenerator* PfManager::getPreprocessProofGenerator() const
 std::shared_ptr<ProofNode> PfManager::getFinalProof(
     std::shared_ptr<ProofNode> pfn, Assertions& as)
 {
-  context::CDList<Node>* al = as.getAssertionList();
-  setFinalProof(pfn, al);
+  setFinalProof(pfn, as);
   Assert(d_finalProof);
   return d_finalProof;
+}
+
+void PfManager::getAssertions(Assertions& as, std::vector<Node>& assertions)
+{
+  context::CDList<Node>* al = as.getAssertionList();
+  Assert (al!=nullptr);
+  for (context::CDList<Node>::const_iterator i = al->begin(); i != al->end();
+       ++i)
+  {
+    assertions.push_back(*i);
+  }
 }
 
 }  // namespace smt
