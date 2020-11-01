@@ -565,7 +565,7 @@ Node TermRegistry::getSymbolicDefinition(Node n, std::vector<Node>& exp) const
 
 Node TermRegistry::getProxyVariableFor(Node n) const
 {
-  std::map<Node, Node >::const_iterator it = d_proxyVar.find(n);
+  std::map<Node, Node>::const_iterator it = d_proxyVar.find(n);
   if (it != d_proxyVar.end())
   {
     return (*it).second;
