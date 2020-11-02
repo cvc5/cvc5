@@ -80,14 +80,6 @@ class CVC4_PUBLIC SymbolManager
                           bool areAssertions = false) const;
   //---------------------------- end named expressions
 
-  /** Bits for use in mkVar() flags. */
-  enum
-  {
-    VAR_FLAG_NONE = 0,
-    VAR_FLAG_GLOBAL = 1,
-    VAR_FLAG_DEFINED = 2
-  };
-
  private:
   /** The API Solver object. */
   api::Solver* d_solver;
