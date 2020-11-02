@@ -113,9 +113,16 @@ void Letify::updateCounts(Node n,
     it = count.find(cur);
     if (it == count.end())
     {
-      count[cur] = 0;
       visitList.push_back(cur);
-      visit.insert(visit.end(), cur.begin(), cur.end());
+      if (cur.getNumChildren()==0 || cur.isClosure())
+      {
+        count[cur] = 1;
+      }
+      else
+      {
+        count[cur] = 0;
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
     }
     else
     {
@@ -153,9 +160,9 @@ void Letify::convertCountToLet(const std::vector<Node>& visitList,
        ++it)
   {
     Node n = *it;
-    if (n.isVar())
+    if (n.getNumChildren()==0)
     {
-      // do not letify variables
+      // do not letify terms with no children
       continue;
     }
     itc = count.find(n);

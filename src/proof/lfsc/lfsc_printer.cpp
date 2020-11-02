@@ -115,7 +115,10 @@ void LfscPrinter::print(std::ostream& out,
   cparen << ")";
 
   // [5] print the proof body
-  printProofLetify(out, pn, letMap, passumeMap);
+  Assert (pn->getRule()==PfRule::SCOPE);
+  // the outermost scope can be ignored (it is the scope of the assertions,
+  // which are already printed above).
+  printProofLetify(out, pn->getChildren()[0].get(), letMap, passumeMap);
 
   out << cparen.str();
 }
