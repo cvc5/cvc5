@@ -23,8 +23,10 @@
 #include "expr/proof_checker.h"
 #include "expr/proof_node.h"
 #include "expr/proof_node_manager.h"
+#include "proof/lean/lean_post_processor.h"
 #include "smt/preprocess_proof_generator.h"
 #include "smt/proof_post_processor.h"
+#include "theory/rewrite_db.h"
 
 namespace CVC4 {
 
@@ -46,49 +48,57 @@ class PfManager
   /**
    * Print the proof on the output channel of the current options in scope.
    *
-   * The argument pg is the module that can provide a proof for false in the
-   * current context.
+   * The argument pfn is the proof for false in the current context.
    *
    * Throws an assertion failure if pg cannot provide a closed proof with
    * respect to assertions in as.
    */
-  void printProof(ProofGenerator* pg, Assertions& as);
+  void printProof(std::shared_ptr<ProofNode> pfn, Assertions& as);
   /**
    * Check proof, same as above, without printing.
    */
-  void checkProof(ProofGenerator* pg, Assertions& as);
+  void checkProof(std::shared_ptr<ProofNode> pfn, Assertions& as);
 
   /**
    * Get final proof.
    *
-   * The argument pg is the module that can provide a proof for false in the
-   * current context.
+   * The argument pfn is the proof for false in the current context.
    */
-  std::shared_ptr<ProofNode> getFinalProof(ProofGenerator* pg, Assertions& as);
+  std::shared_ptr<ProofNode> getFinalProof(std::shared_ptr<ProofNode> pfn,
+                                           Assertions& as);
   //--------------------------- access to utilities
   /** Get a pointer to the ProofChecker owned by this. */
   ProofChecker* getProofChecker() const;
   /** Get a pointer to the ProofNodeManager owned by this. */
   ProofNodeManager* getProofNodeManager() const;
+  /** Get the rewrite database, containing definitions of rewrites from DSL. */
+  theory::RewriteDb* getRewriteDatabase() const;
   /** Get the proof generator for proofs of preprocessing. */
   smt::PreprocessProofGenerator* getPreprocessProofGenerator() const;
   //--------------------------- end access to utilities
  private:
   /**
-   * Set final proof, which initializes d_finalProof to the proof of false
-   * from pg, postprocesses it, and stores it in d_finalProof.
+   * Set final proof, which initializes d_finalProof to the given proof node of
+   * false, postprocesses it, and stores it in d_finalProof.
    */
-  void setFinalProof(ProofGenerator* pg, context::CDList<Node>* al);
+  void setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as);
+  /**
+   * Get assertions from the assertions
+   */
+  void getAssertions(Assertions& as, std::vector<Node>& assertions);
   /** The false node */
   Node d_false;
   /** For the new proofs module */
   std::unique_ptr<ProofChecker> d_pchecker;
   /** A proof node manager based on the above checker */
   std::unique_ptr<ProofNodeManager> d_pnm;
+  /** The rewrite proof database. */
+  std::unique_ptr<theory::RewriteDb> d_rewriteDb;
   /** The preprocess proof generator. */
   std::unique_ptr<smt::PreprocessProofGenerator> d_pppg;
   /** The proof post-processor */
   std::unique_ptr<smt::ProofPostproccess> d_pfpp;
+  std::unique_ptr<proof::LeanProofPostprocess> d_lpfpp;
   /**
    * The final proof produced by the SMT engine.
    * Combines the proofs of preprocessing, prop engine and theory engine, to be

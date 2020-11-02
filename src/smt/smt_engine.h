@@ -57,7 +57,10 @@ class SmtEngine;
 class DecisionEngine;
 class TheoryEngine;
 
+class ProofNode;
 class ProofManager;
+class ProofChecker;
+class ProofNodeManager;
 class UnsatCore;
 
 class LogicRequest;
@@ -132,6 +135,7 @@ ProofManager* currentProofManager();
 namespace theory {
   class TheoryModel;
   class Rewriter;
+  class RewriteDb;
 }/* CVC4::theory namespace */
 
 // TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
@@ -551,7 +555,10 @@ class CVC4_PUBLIC SmtEngine
 
   /** Print all instantiations made by the quantifiers module.  */
   void printInstantiations(std::ostream& out);
-
+  /**
+   * Print the current proof.
+   */
+  void printProof();
   /**
    * Print solution for synthesis conjectures found by counter-example guided
    * instantiation module.
@@ -912,6 +919,9 @@ class CVC4_PUBLIC SmtEngine
   /** Get a pointer to the PropEngine owned by this SmtEngine. */
   prop::PropEngine* getPropEngine();
 
+  /** Get a pointer to the (new) PfManager owned by this SmtEngine. */
+  smt::PfManager* getPfManager() { return d_pfManager.get(); };
+
   /**
    * Get a pointer to the ProofManager owned by this SmtEngine.
    * TODO (project #37): this is the old proof manager and will be deleted
@@ -931,6 +941,11 @@ class CVC4_PUBLIC SmtEngine
    * command.
    */
   UnsatCore getUnsatCoreInternal();
+
+  /**
+   * Check that a generated proof checks.
+   */
+  void checkProof();
 
   /**
    * Check that an unsatisfiable core is indeed unsatisfiable.

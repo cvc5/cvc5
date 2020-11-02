@@ -26,9 +26,10 @@
 #include "context/cdlist.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "expr/proof_node_manager.h"
 #include "proof/clause_id.h"
-#include "prop/sat_solver_types.h"
 #include "prop/bv_sat_solver_notify.h"
+#include "prop/sat_solver_types.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -130,7 +131,9 @@ class DPLLSatSolverInterface : public SatSolver
   virtual ~DPLLSatSolverInterface(){};
 
   virtual void initialize(context::Context* context,
-                          prop::TheoryProxy* theoryProxy) = 0;
+                          prop::TheoryProxy* theoryProxy,
+                          CVC4::context::UserContext* userContext,
+                          ProofNodeManager* pnm) = 0;
 
   virtual void push() = 0;
 

@@ -95,6 +95,24 @@ header = "options/smt_options.h"
   help       = "output models after every SAT/INVALID/UNKNOWN response"
 
 [[option]]
+  name       = "proofFormatMode"
+  category   = "regular"
+  long       = "proof-format-mode=MODE"
+  type       = "ProofFormatMode"
+  default    = "NONE"
+  help       = "select language of proof output"
+  help_mode  = "Proof format modes."
+[[option.mode.NONE]]
+  name       = "none"
+  help       = "Do not translate proof output"
+[[option.mode.LEAN]]
+  name       = "lean"
+  help       = "Output Lean proof"
+[[option.mode.LFSC]]
+  name       = "lfsc"
+  help       = "Output LFSC proof"
+
+[[option]]
   name       = "modelCoresMode"
   category   = "regular"
   long       = "model-cores=MODE"
@@ -144,7 +162,7 @@ header = "options/smt_options.h"
   category   = "regular"
   long       = "proof-new"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "do proof production using the new infrastructure"
 
 [[option]]
@@ -157,21 +175,36 @@ header = "options/smt_options.h"
   help       = "assertion failure for any incorrect rule application or untrusted lemma having pedantic level <=N with proof-new"
 
 [[option]]
-  name       = "proofNewPedanticEager"
-  category   = "regular"
-  long       = "proof-new-pedantic-eager"
-  type       = "bool"
-  default    = "false"
-  help       = "check pedantic levels eagerly (during proof rule construction) instead of during final proof construction"
-
-[[option]]
   name       = "proofNewEagerChecking"
   category   = "regular"
   long       = "proof-new-eager-checking"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "check proofs eagerly with proof-new for local debugging"
+
+[[option]]
+  name       = "checkProofsNewFail"
+  category   = "regular"
+  long       = "check-proofs-new-fail"
+  type       = "bool"
+  default    = "false"
+  help       = "always fail when the checkProof method is invoked (dummy option)"
+
+[[option]]
+  name       = "proofNewReq"
+  category   = "regular"
+  long       = "proof-new-req"
+  type       = "bool"
+  default    = "false"
+  help       = "always fail during setDefaults if proof-new is not enabled (dummy option)"
+
+[[option]]
+  name       = "proofNewUpdateDebug"
+  category   = "regular"
+  long       = "proof-new-update-debug"
+  type       = "bool"
+  default    = "false"
+  help       = "debug proof node updater"
 
 [[option]]
   name       = "proofGranularityMode"
@@ -186,10 +219,10 @@ header = "options/smt_options.h"
   help = "Do not improve the granularity of proofs."
 [[option.mode.REWRITE]]
   name = "rewrite"
-  help = "allow rewrite or substitution steps, expand macros."
+  help = "Allow rewrite or substitution steps, expand macros."
 [[option.mode.THEORY_REWRITE]]
   name = "theory-rewrite"
-  help = "allow theory rewrite steps, expand macros, rewrite and substitution steps."
+  help = "Allow theory rewrite steps, expand macros, rewrite and substitution steps."
 [[option.mode.DSL_REWRITE]]
   name = "dsl-rewrite"
   help = "Allow DSL rewrites and evaluation steps, expand macros, rewrite, substitution, and theory rewrite steps."

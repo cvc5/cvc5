@@ -71,7 +71,8 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
                                     d_smt.getContext(),
                                     d_smt.getUserContext(),
                                     d_rm,
-                                    d_smt.getOutputManager()));
+                                    d_smt.getOutputManager(),
+                                    d_pnm));
 
   Trace("smt-debug") << "Setting up theory engine..." << std::endl;
   d_theoryEngine->setPropEngine(getPropEngine());
@@ -91,7 +92,8 @@ void SmtSolver::resetAssertions()
                                     d_smt.getContext(),
                                     d_smt.getUserContext(),
                                     d_rm,
-                                    d_smt.getOutputManager()));
+                                    d_smt.getOutputManager(),
+                                    d_pnm));
   d_theoryEngine->setPropEngine(getPropEngine());
   // Notice that we do not reset TheoryEngine, nor does it require calling
   // finishInit again. In particular, TheoryEngine::finishInit does not

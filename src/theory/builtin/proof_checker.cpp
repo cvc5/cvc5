@@ -70,6 +70,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::THEORY_REWRITE, this);
   pc->registerChecker(PfRule::REMOVE_TERM_FORMULA_AXIOM, this);
   // trusted rules
+  pc->registerTrustedChecker(PfRule::TRUST, this, 1);
   pc->registerTrustedChecker(PfRule::THEORY_LEMMA, this, 1);
   pc->registerTrustedChecker(PfRule::PREPROCESS, this, 3);
   pc->registerTrustedChecker(PfRule::PREPROCESS_LEMMA, this, 3);
@@ -78,7 +79,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerTrustedChecker(PfRule::WITNESS_AXIOM, this, 3);
   pc->registerTrustedChecker(PfRule::TRUST_REWRITE, this, 1);
   pc->registerTrustedChecker(PfRule::TRUST_SUBS, this, 1);
-  pc->registerTrustedChecker(PfRule::TRUST_SUBS_MAP, this, 3);
+  pc->registerTrustedChecker(PfRule::TRUST_SUBS_MAP, this, 1);
 }
 
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(
@@ -269,6 +270,11 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     }
     return nm->mkNode(IMPLIES, ant, children[0]);
   }
+  else if (id == PfRule::TRUST)
+  {
+    Assert(args.size() == 1);
+    return args[0];
+  }
   else if (id == PfRule::SUBS)
   {
     Assert(children.size() > 0);
@@ -335,7 +341,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   else if (id == PfRule::MACRO_SR_PRED_INTRO)
   {
     Trace("builtin-pfcheck") << "Check " << id << " " << children.size() << " "
-                             << args.size() << std::endl;
+                             << args[0] << std::endl;
     Assert(1 <= args.size() && args.size() <= 3);
     MethodId ids, idr;
     if (!getMethodIds(args, ids, idr, 1))
@@ -347,6 +353,9 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
+    Trace("builtin-pfcheck") << "Result is " << res << std::endl;
+    Trace("builtin-pfcheck") << "Witness form is "
+                             << SkolemManager::getWitnessForm(res) << std::endl;
     // **** NOTE: can rewrite the witness form here. This enables certain lemmas
     // to be provable, e.g. (= k t) where k is a purification Skolem for t.
     res = Rewriter::rewrite(SkolemManager::getWitnessForm(res));
@@ -356,6 +365,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
           << "Failed to rewrite to true, res=" << res << std::endl;
       return Node::null();
     }
+    Trace("builtin-pfcheck") << "...success" << std::endl;
     return args[0];
   }
   else if (id == PfRule::MACRO_SR_PRED_ELIM)

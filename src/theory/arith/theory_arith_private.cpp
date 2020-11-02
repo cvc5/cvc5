@@ -1948,7 +1948,7 @@ void TheoryArithPrivate::outputConflicts(){
 void TheoryArithPrivate::outputTrustedLemma(TrustNode lemma)
 {
   Debug("arith::channel") << "Arith trusted lemma: " << lemma << std::endl;
-  (d_containing.d_out)->lemma(lemma.getNode());
+  (d_containing.d_out)->trustedLemma(lemma);
 }
 
 void TheoryArithPrivate::outputLemma(TNode lem) {
@@ -1959,7 +1959,7 @@ void TheoryArithPrivate::outputLemma(TNode lem) {
 void TheoryArithPrivate::outputTrustedConflict(TrustNode conf)
 {
   Debug("arith::channel") << "Arith trusted conflict: " << conf << std::endl;
-  (d_containing.d_out)->conflict(conf.getNode());
+  (d_containing.d_out)->trustedConflict(conf);
 }
 
 void TheoryArithPrivate::outputConflict(TNode lit) {

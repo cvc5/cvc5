@@ -243,6 +243,8 @@ class CircuitPropagator
   /** The propagation queue */
   std::vector<TNode> d_propagationQueue;
 
+  std::vector<Node> d_assumptions;
+
   /**
    * We have a propagation queue "clearer" object for when the user
    * context pops.  Normally the propagation queue should be empty,

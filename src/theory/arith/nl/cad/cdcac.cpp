@@ -49,11 +49,13 @@ void removeDuplicates(std::vector<T>& v)
 }
 }  // namespace
 
-CDCAC::CDCAC() {}
-
-CDCAC::CDCAC(const std::vector<poly::Variable>& ordering)
+CDCAC::CDCAC(ProofNodeManager* pnm, const std::vector<poly::Variable>& ordering)
     : d_variableOrdering(ordering)
 {
+  if (pnm != nullptr)
+  {
+    d_proof.reset(new CADProofGenerator(pnm));
+  }
 }
 
 void CDCAC::reset()
@@ -103,8 +105,7 @@ const std::vector<poly::Variable>& CDCAC::getVariableOrdering() const
   return d_variableOrdering;
 }
 
-std::vector<CACInterval> CDCAC::getUnsatIntervals(
-    std::size_t cur_variable) const
+std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
 {
   std::vector<CACInterval> res;
   for (const auto& c : d_constraints.getConstraints())
@@ -130,6 +131,17 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(
       if (!is_plus_infinity(get_upper(i))) u.emplace_back(p);
       m.emplace_back(p);
       res.emplace_back(CACInterval{i, l, u, m, d, {n}});
+      if (d_proof != nullptr)
+      {
+        d_proof->addDirect(
+            d_constraints.varMapper()(d_variableOrdering[cur_variable]),
+            d_constraints.varMapper(),
+            p,
+            d_assignment,
+            sc,
+            i,
+            n);
+      }
     }
   }
   cleanIntervals(res);
@@ -181,7 +193,6 @@ std::vector<poly::Polynomial> CDCAC::constructCharacterization(
   Assert(!intervals.empty()) << "A covering can not be empty";
   Trace("cdcac") << "Constructing characterization now" << std::endl;
   std::vector<poly::Polynomial> res;
-
 
   for (std::size_t i = 0, n = intervals.size(); i < n - 1; ++i)
   {
@@ -353,6 +364,10 @@ CACInterval CDCAC::intervalFromCharacterization(
 std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
                                               bool returnFirstInterval)
 {
+  if (d_proof != nullptr)
+  {
+    d_proof->startRecursive();
+  }
   Trace("cdcac") << "Looking for unsat cover for "
                  << d_variableOrdering[curVariable] << std::endl;
   std::vector<CACInterval> intervals = getUnsatIntervals(curVariable);
@@ -391,6 +406,10 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
       Trace("cdcac") << "Found full assignment: " << d_assignment << std::endl;
       return {};
     }
+    if (d_proof != nullptr)
+    {
+      d_proof->startScope();
+    }
     // Recurse to next variable
     auto cov = getUnsatCover(curVariable + 1);
     if (cov.empty())
@@ -409,6 +428,16 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
         intervalFromCharacterization(characterization, curVariable, sample);
     newInterval.d_origins = collectConstraints(cov);
     intervals.emplace_back(newInterval);
+    if (d_proof != nullptr)
+    {
+      auto cell = d_proof->constructCell(
+          d_constraints.varMapper()(d_variableOrdering[curVariable]),
+          newInterval,
+          d_assignment,
+          sample,
+          d_constraints.varMapper());
+      d_proof->endScope(cell);
+    }
 
     if (returnFirstInterval)
     {

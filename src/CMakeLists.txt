@@ -135,6 +135,19 @@ libcvc4_add_sources(
   proof/cnf_proof.h
   proof/proof_manager.cpp
   proof/proof_manager.h
+  proof/lean/lean_post_processor.cpp
+  proof/lean/lean_post_processor.h
+  proof/lean/lean_printer.h
+  proof/lfsc/letify.cpp
+  proof/lfsc/letify.h
+  proof/lfsc/lfsc_post_processor.cpp
+  proof/lfsc/lfsc_post_processor.h
+  proof/lfsc/lfsc_printer.cpp
+  proof/lfsc/lfsc_printer.h
+  proof/lfsc/lfsc_term_process.cpp
+  proof/lfsc/lfsc_term_process.h
+  proof/lfsc/term_processor.cpp
+  proof/lfsc/term_processor.h
   proof/sat_proof.h
   proof/sat_proof_implementation.h
   proof/unsat_core.cpp
@@ -272,6 +285,8 @@ libcvc4_add_sources(
   smt/sygus_solver.h
   smt/term_formula_removal.cpp
   smt/term_formula_removal.h
+  smt/theory_rewrite_rcons.cpp
+  smt/theory_rewrite_rcons.h
   smt/update_ostream.h
   smt/witness_form.cpp
   smt/witness_form.h
@@ -343,6 +358,10 @@ libcvc4_add_sources(
   theory/arith/nl/cad/constraints.h
   theory/arith/nl/cad/projections.cpp
   theory/arith/nl/cad/projections.h
+  theory/arith/nl/cad/proof_checker.cpp
+  theory/arith/nl/cad/proof_checker.h
+  theory/arith/nl/cad/proof_generator.cpp
+  theory/arith/nl/cad/proof_generator.h
   theory/arith/nl/cad/variable_ordering.cpp
   theory/arith/nl/cad/variable_ordering.h
   theory/arith/nl/ext/constraint.cpp
@@ -475,6 +494,7 @@ libcvc4_add_sources(
   theory/builtin/theory_builtin.h
   theory/builtin/theory_builtin_rewriter.cpp
   theory/builtin/theory_builtin_rewriter.h
+  theory/builtin/theory_builtin_type_rules.cpp
   theory/builtin/theory_builtin_type_rules.h
   theory/builtin/type_enumerator.cpp
   theory/builtin/type_enumerator.h
@@ -536,6 +556,10 @@ libcvc4_add_sources(
   theory/datatypes/inference.h
   theory/datatypes/inference_manager.cpp
   theory/datatypes/inference_manager.h
+  theory/datatypes/infer_proof_cons.cpp
+  theory/datatypes/infer_proof_cons.h
+  theory/datatypes/proof_checker.cpp
+  theory/datatypes/proof_checker.h
   theory/datatypes/sygus_datatype_utils.cpp
   theory/datatypes/sygus_datatype_utils.h
   theory/datatypes/sygus_extension.cpp
@@ -577,6 +601,8 @@ libcvc4_add_sources(
   theory/interrupted.h
   theory/inference_manager_buffered.cpp
   theory/inference_manager_buffered.h
+  theory/lazy_tree_proof_generator.cpp
+  theory/lazy_tree_proof_generator.h
   theory/logic_info.cpp
   theory/logic_info.h
   theory/model_manager.cpp
@@ -784,6 +810,16 @@ libcvc4_add_sources(
   theory/relevance_manager.h
   theory/rep_set.cpp
   theory/rep_set.h
+  theory/rewrite_db.cpp
+  theory/rewrite_db.h
+  theory/rewrite_db_proof_generator.cpp
+  theory/rewrite_db_proof_generator.h
+  theory/rewrite_db_sc.cpp
+  theory/rewrite_db_sc.h
+  theory/rewrite_db_term_process.cpp
+  theory/rewrite_db_term_process.h
+  theory/rewrite_proof_rule.cpp
+  theory/rewrite_proof_rule.h
   theory/rewriter.cpp
   theory/rewriter.h
   theory/rewriter_attributes.h
@@ -1168,6 +1204,7 @@ install(FILES
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/theory)
 install(FILES
           util/abstract_value.h
+          util/arith.h
           util/bitvector.h
           util/bool.h
           util/cardinality.h

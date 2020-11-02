@@ -40,6 +40,10 @@ namespace CVC4 {
  * (2) SCOPE, which closes the scope of assumptions.
  * The core rules additionally correspond to generic operations that are done
  * internally on nodes, e.g. calling Rewriter::rewrite.
+ *
+ * Rules with prefix MACRO_ are those that can be defined in terms of other
+ * rules. These exist for convienience. We provide their definition in the line
+ * "Macro:".
  */
 enum class PfRule : uint32_t
 {
@@ -71,6 +75,8 @@ enum class PfRule : uint32_t
   // has the conclusion (=> F F) and has no free assumptions. More generally, a
   // proof with no free assumptions always concludes a valid formula.
   SCOPE,
+
+  //%%%%%%%%%%%%%  BEGIN SHOULD BE AUTO GENERATED
 
   //======================== Builtin theory (common node operations)
   // ======== Substitution
@@ -180,7 +186,15 @@ enum class PfRule : uint32_t
   // where F' and G' are the result of each side of the equation above. Here,
   // witness forms are used in a similar manner to MACRO_SR_PRED_INTRO above.
   MACRO_SR_PRED_TRANSFORM,
-
+  // ======== DSL Rewrite
+  // Children: (P1:F1 ... Pn:Fn)
+  // Arguments: (id, F)
+  // ----------------------------------------
+  // Conclusion: F
+  // Where (G1, ..., Gn) => G is DSL rewrite rule # id, and
+  //  G1*sigma = F1, ..., Gn*sigma = Fn, G*sigma = F
+  // for some substitution sigma.
+  DSL_REWRITE,
   //================================================= Processing rules
   // ======== Remove Term Formulas Axiom
   // Children: none
@@ -190,6 +204,12 @@ enum class PfRule : uint32_t
   REMOVE_TERM_FORMULA_AXIOM,
 
   //================================================= Trusted rules
+  // ======== Uncategorized trust (not recommended, instead use new identifier)
+  // Children: (P1:F1 ... Pn:Fn)
+  // Arguments: (F)
+  // --------------
+  // F
+  TRUST,
   // ======== Theory lemma
   // Children: none
   // Arguments: (F, tid)
@@ -213,7 +233,7 @@ enum class PfRule : uint32_t
   // the quantifiers rewriter involves constructing new bound variables that are
   // not guaranteed to be consistent on each call.
   THEORY_REWRITE,
-  // The rules in this section have the signature of a "trusted rule":
+  // The remaining rules in this section have the signature of a "trusted rule":
   //
   // Children: none
   // Arguments: (F)
@@ -270,15 +290,18 @@ enum class PfRule : uint32_t
   //   to resolution but rather to a weakening of the clause that did not have a
   //   literal eliminated.
   RESOLUTION,
-  // ======== Chain Resolution
-  // Children: (P1:(or F_{1,1} ... F_{1,n1}), ..., Pm:(or F_{m,1} ... F_{m,nm}))
-  // Arguments: (L_1, ..., L_{m-1})
+  // ======== N-ary Resolution
+  // Children: (P1:C_1, ..., Pm:C_n)
+  // Arguments: (id_1, L_1, ..., id_{n-1}, L_{n-1})
   // ---------------------
-  // Conclusion: C_m'
+  // Conclusion: C
   // where
-  //   let "C_1 <>_l C_2" represent the resolution of C_1 with C_2 with pivot l,
-  //   let C_1' = C_1 (from P_1),
-  //   for each i > 1, C_i' = C_i <>_L_i C_{i-1}'
+  //   - let C_1 ... C_n be nodes viewed as clauses, as defined above
+  //   - let "C_1 <>_{L,id} C_2" represent the resolution of C_1 with C_2 with
+  //     pivot L and policy id, as defined above
+  //   - let C_1' = C_1 (from P1),
+  //   - for each i > 1, let C_i' = C_{i-1} <>_{L_{i-1}, id_{i-1}} C_i'
+  //   The result of the chain resolution is C = C_n'
   CHAIN_RESOLUTION,
   // ======== Factoring
   // Children: (P:C1)
@@ -298,6 +321,21 @@ enum class PfRule : uint32_t
   //  Set representations of C1 and C2 is the same but the number of literals in
   //  C2 is the same of that of C1
   REORDERING,
+  // ======== N-ary Resolution + Factoring + Reordering
+  // Children: (P1:C_1, ..., Pm:C_n)
+  // Arguments: (C, id_1, L_1, ..., id_{n-1}, L_{n-1})
+  // ---------------------
+  // Conclusion: C
+  // where
+  //   - let C_1 ... C_n be nodes viewed as clauses, as defined in RESOLUTION
+  //   - let "C_1 <>_{L,id} C_2" represent the resolution of C_1 with C_2 with
+  //     pivot L and policy id, as defined in RESOLUTION
+  //   - let C_1' be equal, in its set representation, to C_1 (from P1),
+  //   - for each i > 1, let C_i' be equal, it its set representation, to
+  //     C_{i-1} <>_{L_{i-1}, id_{i-1}} C_i'
+  //   The result of the chain resolution is C, which is equal, in its set
+  //   representation, to C_n'
+  MACRO_RESOLUTION,
 
   // ======== Split
   // Children: none
@@ -674,7 +712,7 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: F
   ARRAYS_TRUST,
-  
+
   //================================================= Datatype rules
   // ======== Unification
   // Children: (P:(= (C t1 ... tn) (C s1 ... sn)))
@@ -959,11 +997,13 @@ enum class PfRule : uint32_t
   // fixed length of component i of the regular expression concatenation R.
   RE_UNFOLD_NEG_CONCAT_FIXED,
   // ======== Regular expression elimination
-  // Children: (P:F)
-  // Arguments: none
+  // Children: none
+  // Arguments: (F, b)
   // ---------------------
-  // Conclusion: R
-  // where R = strings::RegExpElimination::eliminate(F).
+  // Conclusion: (= F strings::RegExpElimination::eliminate(F, b))
+  // where b is a Boolean indicating whether we are using aggressive
+  // eliminations. Notice this rule concludes (= F F) if no eliminations
+  // are performed for F.
   RE_ELIM,
   //======================== Code points
   // Children: none
@@ -1010,7 +1050,6 @@ enum class PfRule : uint32_t
   //    t1 is the sum of the polynomials.
   //    t2 is the sum of the constants.
   ARITH_SCALE_SUM_UPPER_BOUNDS,
-
   // ======== Tightening Strict Integer Upper Bounds
   // Children: (P:(< i c))
   //         where i has integer type.
@@ -1018,7 +1057,6 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (<= i greatestIntLessThan(c)})
   INT_TIGHT_UB,
-
   // ======== Tightening Strict Integer Lower Bounds
   // Children: (P:(> i c))
   //         where i has integer type.
@@ -1026,7 +1064,6 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (>= i leastIntGreaterThan(c)})
   INT_TIGHT_LB,
-
   // ======== Trichotomy of the reals
   // Children: (A B)
   // Arguments: (C)
@@ -1038,20 +1075,71 @@ enum class PfRule : uint32_t
   //                 note that "not" here denotes arithmetic negation, flipping
   //                 >= to <, etc.
   ARITH_TRICHOTOMY,
-
   // ======== Arithmetic operator elimination
   // Children: none
   // Arguments: (t)
   // ---------------------
   // Conclusion: arith::OperatorElim::getAxiomFor(t)
   ARITH_OP_ELIM_AXIOM,
-
   // ======== Int Trust
   // Children: (P1 ... Pn)
   // Arguments: (Q)
   // ---------------------
   // Conclusion: (Q)
   INT_TRUST,
+
+  // ================ CAD Lemmas
+  // We use IRP for IndexedRootPredicate.
+  //
+  // A formula "Interval" describes that a variable (xn is none is given) is
+  // within a particular interval whose bounds are given as IRPs. It is either
+  // an open interval or a point interval:
+  //   (IRP k poly) < xn < (IRP k poly)
+  //   xn == (IRP k poly)
+  //
+  // A formula "Cell" describes a portion
+  // of the real space in the following form:
+  //   Interval(x1) and Interval(x2) and ...
+  // We implicitly assume a Cell to go up to n-1 (and can be empty).
+  //
+  // A formula "Covering" is a set of Intervals, implying that xn can be in
+  // neither of these intervals. To be a covering (of the real line), the union
+  // of these intervals should be the real numbers.
+  // ======== CAD direct conflict
+  // Children (Cell, A)
+  // ---------------------
+  // Conclusion: (false)
+  // A direct interval is generated from an assumption A (in variables x1...xn)
+  // over a Cell (in variables x1...xn). It derives that A evaluates to false
+  // over the Cell. In the actual algorithm, it means that xn can not be in the
+  // topmost interval of the Cell.
+  ARITH_NL_CAD_DIRECT,
+  // ======== CAD recursive interval
+  // Children (Cell, Covering)
+  // ---------------------
+  // Conclusion: (false)
+  // A recursive interval is generated from a Covering (for xn) over a Cell
+  // (in variables x1...xn-1). It generates the conclusion that no xn exists
+  // that extends the Cell and satisfies all assumptions.
+  ARITH_NL_CAD_RECURSIVE,
+
+  //================================================ Place holder for Lfsc rules
+  // ======== Lfsc rule
+  // Children: (P1 ... Pn)
+  // Arguments: (id, Q, A1, ..., Am)
+  // ---------------------
+  // Conclusion: (Q)
+  LFSC_RULE,
+
+  //================================================ Place holder for Lean rules
+  // ======== Lean rule
+  // Children: (P1 ... Pn)
+  // Arguments: (id, Q, A1, ..., Am)
+  // ---------------------
+  // Conclusion: (Q)
+  LEAN_RULE,
+
+  //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
 
   //================================================= Unknown rule
   UNKNOWN,

@@ -25,6 +25,8 @@ const char* toString(PfRule id)
     //================================================= Core rules
     case PfRule::ASSUME: return "ASSUME";
     case PfRule::SCOPE: return "SCOPE";
+
+    //%%%%%%%%%%%%%  BEGIN SHOULD BE AUTO GENERATED
     case PfRule::SUBS: return "SUBS";
     case PfRule::REWRITE: return "REWRITE";
     case PfRule::EVALUATE: return "EVALUATE";
@@ -32,10 +34,12 @@ const char* toString(PfRule id)
     case PfRule::MACRO_SR_PRED_INTRO: return "MACRO_SR_PRED_INTRO";
     case PfRule::MACRO_SR_PRED_ELIM: return "MACRO_SR_PRED_ELIM";
     case PfRule::MACRO_SR_PRED_TRANSFORM: return "MACRO_SR_PRED_TRANSFORM";
+    case PfRule::DSL_REWRITE: return "DSL_REWRITE";
     case PfRule::REMOVE_TERM_FORMULA_AXIOM: return "REMOVE_TERM_FORMULA_AXIOM";
     //================================================= Trusted rules
     case PfRule::THEORY_LEMMA: return "THEORY_LEMMA";
     case PfRule::THEORY_REWRITE: return "THEORY_REWRITE";
+    case PfRule::TRUST: return "TRUST";
     case PfRule::PREPROCESS: return "PREPROCESS";
     case PfRule::PREPROCESS_LEMMA: return "PREPROCESS_LEMMA";
     case PfRule::THEORY_PREPROCESS: return "THEORY_PREPROCESS";
@@ -49,6 +53,7 @@ const char* toString(PfRule id)
     case PfRule::CHAIN_RESOLUTION: return "CHAIN_RESOLUTION";
     case PfRule::FACTORING: return "FACTORING";
     case PfRule::REORDERING: return "REORDERING";
+    case PfRule::MACRO_RESOLUTION: return "MACRO_RESOLUTION";
     case PfRule::SPLIT: return "SPLIT";
     case PfRule::EQ_RESOLVE: return "EQ_RESOLVE";
     case PfRule::MODUS_PONENS: return "MODUS_PONENS";
@@ -153,8 +158,18 @@ const char* toString(PfRule id)
     case PfRule::ARITH_TRICHOTOMY: return "ARITH_TRICHOTOMY";
     case PfRule::INT_TIGHT_LB: return "INT_TIGHT_LB";
     case PfRule::INT_TIGHT_UB: return "INT_TIGHT_UB";
-    case PfRule::INT_TRUST: return "INT_TRUST";
     case PfRule::ARITH_OP_ELIM_AXIOM: return "ARITH_OP_ELIM_AXIOM";
+    case PfRule::INT_TRUST: return "INT_TRUST";
+    case PfRule::ARITH_NL_CAD_DIRECT: return "ARITH_NL_CAD_DIRECT";
+    case PfRule::ARITH_NL_CAD_RECURSIVE:
+      return "ARITH_NL_CAD_RECURSIVE";
+
+      //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
+
+    //================================================= External rules
+    case PfRule::LFSC_RULE: return "LFSC_RULE";
+    case PfRule::LEAN_RULE: return "LEAN_RULE";
+
     //================================================= Unknown rule
     case PfRule::UNKNOWN: return "UNKNOWN";
     default: return "?";

@@ -44,6 +44,13 @@ namespace smt {
 
 void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 {
+  // TEMPORARY for testing
+  if (options::proofNewReq() && !options::proofNew())
+  {
+    AlwaysAssert(false) << "Fail due to --proof-new-req "
+                        << options::proofNew.wasSetByUser();
+  }
+
   // implied options
   if (options::debugCheckModels())
   {
@@ -250,6 +257,23 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // Note we allow E-matching by default to support combinations of sequences
     // and quantifiers.
   }
+  //!!!!!!!!!!!! temporary on proof-new, whether it is ok to disable proof-new
+  bool disableProofNewOk = false;
+  if (options::globalNegate())
+  {
+    // When global negate answers "unsat", it is not due to showing a set of
+    // formulas is unsat. Thus, proofs do not apply.
+    disableProofNewOk = true;
+  }
+  // !!!!!!!!!!!!!!!! temporary, to facilitate development of new prop engine
+  // with new proof system
+  if (options::unsatCores())
+  {
+    // set proofNewReq/proofNewEagerChecking/checkProofsNew to false, since we
+    // don't want CI failures
+    disableProofNewOk = true;
+  }
+
   if (options::arraysExp())
   {
     if (!logic.isQuantified())
@@ -286,6 +310,27 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     logic = logic.getUnlockedCopy();
     logic.enableSygus();
     logic.lock();
+    // When sygus answers "unsat", it is not due to showing a set of
+    // formulas is unsat in the standard way. Thus, proofs do not apply.
+    disableProofNewOk = true;
+  }
+
+  //!!!!!!!!!!!! temporary on proof-new
+  if (disableProofNewOk && options::proofNew())
+  {
+    options::proofNew.set(false);
+    options::proofNewReq.set(false);
+    options::checkProofsNew.set(false);
+    options::proofNewEagerChecking.set(false);
+  }
+
+  if (options::proofNew())
+  {
+    if (!options::stringLenConc.wasSetByUser())
+    {
+      options::stringLenConc.set(true);
+      Trace("smt") << "turning on string-len-conc, for proof-new" << std::endl;
+    }
   }
 
   // sygus core connective requires unsat cores
@@ -298,7 +343,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
        || options::produceAbducts()
        || options::produceInterpols() != options::ProduceInterpols::NONE
        || options::modelCoresMode() != options::ModelCoresMode::NONE
-       || options::blockModelsMode() != options::BlockModelsMode::NONE)
+       || options::blockModelsMode() != options::BlockModelsMode::NONE
+       || options::proofNew())
       && !options::produceAssertions())
   {
     Notice() << "SmtEngine: turning on produce-assertions to support "
@@ -869,16 +915,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
   if (options::ufHo())
   {
-    // if higher-order, disable proof production
-    if (options::proofNew())
-    {
-      if (options::proofNew.wasSetByUser())
-      {
-        Warning() << "SmtEngine: turning off proof production (not yet "
-                     "supported with --uf-ho)\n";
-      }
-      options::proofNew.set(false);
-    }
     // if higher-order, then current variants of model-based instantiation
     // cannot be used
     if (options::mbqiMode() != options::MbqiMode::NONE)
@@ -1125,16 +1161,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     if (!options::nlExtTangentPlanes.wasSetByUser())
     {
       options::nlExtTangentPlanes.set(true);
-    }
-    // not compatible with proofs
-    if (options::proofNew())
-    {
-      if (options::proofNew.wasSetByUser())
-      {
-        Notice() << "SmtEngine: setting proof-new to false to support SyGuS"
-                 << std::endl;
-      }
-      options::proofNew.set(false);
     }
   }
   // counterexample-guided instantiation for non-sygus
@@ -1431,11 +1457,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
         "Note that in a QF_BV problem UF symbols can be introduced for "
         "division. "
         "Try --bv-div-zero-const to interpret division by zero as a constant.");
-  }
-  // !!!!!!!!!!!!!!!! temporary, until proof-new is functional
-  if (options::proofNew())
-  {
-    throw OptionException("--proof-new is not yet supported.");
   }
 
   if (logic == LogicInfo("QF_UFNRA"))

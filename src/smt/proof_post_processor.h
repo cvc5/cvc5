@@ -21,6 +21,7 @@
 #include <unordered_set>
 
 #include "expr/proof_node_updater.h"
+#include "smt/theory_rewrite_rcons.h"
 #include "smt/witness_form.h"
 
 namespace CVC4 {
@@ -74,6 +75,8 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   ProofGenerator* d_pppg;
   /** The witness form proof generator */
   WitnessFormGenerator d_wfpm;
+  /** The theory rewrite reconstruction proof generator */
+  TheoryRewriteRCons d_trrc;
   /** The witness form assumptions used in the proof */
   std::vector<Node> d_wfAssumptions;
   /** Kinds of proof rules we are eliminating */
@@ -202,6 +205,8 @@ class ProofPostproccess
   void process(std::shared_ptr<ProofNode> pf);
   /** set eliminate rule */
   void setEliminateRule(PfRule rule);
+  /** Set assertions (for debugging whether the final proof is closed) */
+  void setAssertions(const std::vector<Node>& assertions);
 
  private:
   /** The proof node manager */

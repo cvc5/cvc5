@@ -155,7 +155,8 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
     {
       getterCommands.emplace_back(new GetModelCommand());
     }
-    if (d_options.getDumpProofs() && res.isUnsat())
+    // for now only use this route for old proof
+    if (d_options.getDumpProofs() && res.isUnsat() && !d_options.getProofNew())
     {
       getterCommands.emplace_back(new GetProofCommand());
     }

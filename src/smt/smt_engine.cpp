@@ -27,6 +27,10 @@
 #include "expr/node.h"
 #include "expr/node_self_iterator.h"
 #include "expr/node_visitor.h"
+#include "expr/proof_checker.h"
+#include "expr/proof_node_manager.h"
+#include "options/arith_options.h"
+#include "options/arrays_options.h"
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/main_options.h"
@@ -336,6 +340,8 @@ SmtEngine::~SmtEngine()
 #ifdef CVC4_PROOF
     d_proofManager.reset(nullptr);
 #endif
+    d_rewriter.reset(nullptr);
+    d_pfManager.reset(nullptr);
 
     d_absValues.reset(nullptr);
     d_asserts.reset(nullptr);
@@ -972,11 +978,31 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
     Trace("smt") << "SmtEngine::" << (isEntailmentCheck ? "query" : "checkSat")
                  << "(" << assumptions << ") => " << r << endl;
 
+    if (options::dumpProofs() && options::proofNew()
+        && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    {
+      printProof();
+    }
+
     // Check that SAT results generate a model correctly.
     if(options::checkModels()) {
       if (r.asSatisfiabilityResult().isSat() == Result::SAT)
       {
         checkModel();
+      }
+    }
+    // Check that UNSAT results generate a proof correctly.
+    if (options::checkProofsNew() || options::proofNewEagerChecking())
+    {
+      if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+      {
+        if ((options::checkProofsNew() || options::proofNewEagerChecking())
+            && !options::proofNew())
+        {
+          throw ModalException(
+              "Cannot check-proofs-new because proof-new was disabled.");
+        }
+        checkProof();
       }
     }
     // Check that UNSAT results generate an unsat core correctly.
@@ -1452,6 +1478,30 @@ Node SmtEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
 
 Node SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
 
+void SmtEngine::checkProof()
+{
+  Assert(options::proofNew());
+  // internal check the proof
+  PropEngine* pe = getPropEngine();
+  Assert(pe != nullptr);
+  if (options::proofNewEagerChecking())
+  {
+    pe->checkProof(d_asserts->getAssertionList());
+  }
+  Assert(pe->getProof() != nullptr);
+  std::shared_ptr<ProofNode> pePfn = pe->getProof();
+  // TEMPORARY for testing, this can be used to count how often checkProofs is
+  // called
+  if (options::checkProofsNewFail())
+  {
+    AlwaysAssert(false) << "Fail due to --check-proofs-new-fail";
+  }
+  if (options ::checkProofsNew())
+  {
+    d_pfManager->checkProof(pePfn, *d_asserts);
+  }
+}
+
 UnsatCore SmtEngine::getUnsatCoreInternal()
 {
 #if IS_PROOFS_BUILD
@@ -1542,6 +1592,25 @@ UnsatCore SmtEngine::getUnsatCore() {
         getOutputManager().getDumpOut());
   }
   return getUnsatCoreInternal();
+}
+
+void SmtEngine::printProof()
+{
+  if (d_pfManager == nullptr)
+  {
+    throw RecoverableModalException("Cannot print proof, no proof manager.");
+  }
+  if (getSmtMode() != SmtMode::UNSAT)
+  {
+    throw RecoverableModalException(
+        "Cannot print proof unless immediately preceded by "
+        "UNSAT/ENTAILED.");
+  }
+  PropEngine* pe = getPropEngine();
+  Assert(pe != nullptr);
+  Assert(pe->getProof() != nullptr);
+  // the prop engine has the proof of false
+  d_pfManager->printProof(pe->getProof(), *d_asserts);
 }
 
 void SmtEngine::printInstantiations( std::ostream& out ) {
@@ -1756,6 +1825,7 @@ void SmtEngine::resetAssertions()
   // push the state to maintain global context around everything
   d_state->setup();
 
+  // reset SmtSolver, which will construct a new prop engine
   d_smtSolver->resetAssertions();
 }
 

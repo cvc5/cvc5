@@ -120,6 +120,8 @@ bool Options::getProduceModels() const{
   return (*this)[options::produceModels];
 }
 
+bool Options::getProofNew() const { return (*this)[options::proofNew]; }
+
 bool Options::getSegvSpin() const{
   return (*this)[options::segvSpin];
 }

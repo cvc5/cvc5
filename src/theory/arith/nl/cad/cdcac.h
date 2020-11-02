@@ -30,6 +30,7 @@
 
 #include "theory/arith/nl/cad/cdcac_utils.h"
 #include "theory/arith/nl/cad/constraints.h"
+#include "theory/arith/nl/cad/proof_generator.h"
 #include "theory/arith/nl/cad/variable_ordering.h"
 #include "theory/arith/nl/nl_model.h"
 
@@ -46,10 +47,9 @@ namespace cad {
 class CDCAC
 {
  public:
-  /** Initialize without a variable ordering. */
-  CDCAC();
   /** Initialize this method with the given variable ordering. */
-  CDCAC(const std::vector<poly::Variable>& ordering);
+  CDCAC(ProofNodeManager* pnm,
+        const std::vector<poly::Variable>& ordering = {});
 
   /** Reset this instance. */
   void reset();
@@ -87,7 +87,7 @@ class CDCAC
    * Combines unsatisfiable regions from d_constraints evaluated over
    * d_assignment. Implements Algorithm 2.
    */
-  std::vector<CACInterval> getUnsatIntervals(std::size_t cur_variable) const;
+  std::vector<CACInterval> getUnsatIntervals(std::size_t cur_variable);
 
   /**
    * Sample outside of the set of intervals.
@@ -140,6 +140,8 @@ class CDCAC
    */
   std::vector<CACInterval> getUnsatCover(std::size_t curVariable = 0,
                                          bool returnFirstInterval = false);
+  /** Get the proof generator */
+  CADProofGenerator* getProof() { return d_proof.get(); }
 
  private:
   /**
@@ -183,6 +185,9 @@ class CDCAC
 
   /** The linear assignment used as an initial guess. */
   std::vector<poly::Value> d_initialAssignment;
+
+  /** The proof generator */
+  std::unique_ptr<CADProofGenerator> d_proof;
 };
 
 }  // namespace cad
