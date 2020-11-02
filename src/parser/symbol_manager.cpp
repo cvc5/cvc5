@@ -21,7 +21,7 @@ SymbolManager::SymbolManager(api::Solver* s) : d_solver(s) {}
 
 SymbolTable* SymbolManager::getSymbolTable() { return &d_symtabAllocated; }
 
-bool SymbolManager::setName(api::Term t,
+bool SymbolManager::setExpressionName(api::Term t,
                             const std::string& name,
                             bool isAssertion)
 {
@@ -38,7 +38,7 @@ bool SymbolManager::setName(api::Term t,
   return true;
 }
 
-bool SymbolManager::getName(api::Term t,
+bool SymbolManager::getExpressionName(api::Term t,
                             std::string& name,
                             bool isAssertion) const
 {
@@ -59,14 +59,14 @@ bool SymbolManager::getName(api::Term t,
   return true;
 }
 
-void SymbolManager::getNames(const std::vector<api::Term>& ts,
+void SymbolManager::getExpressionNames(const std::vector<api::Term>& ts,
                              std::vector<std::string>& names,
                              bool areAssertions) const
 {
   for (const api::Term& t : ts)
   {
     std::string name;
-    if (getName(t, name, areAssertions))
+    if (getExpressionName(t, name, areAssertions))
     {
       names.push_back(name);
     }
