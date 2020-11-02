@@ -53,7 +53,9 @@ class CVC4_PUBLIC SymbolManager
    *
    * Notice that assertion names take priority over ordinary names.
    */
-  bool setExpressionName(api::Term t, const std::string& name, bool isAssertion = false);
+  bool setExpressionName(api::Term t,
+                         const std::string& name,
+                         bool isAssertion = false);
   /** Get name for term t
    *
    * @param t The term
@@ -62,7 +64,9 @@ class CVC4_PUBLIC SymbolManager
    * @return true if t has a name. If so, name is updated to that name.
    * Otherwise, name is unchanged.
    */
-  bool getExpressionName(api::Term t, std::string& name, bool isAssertion = false) const;
+  bool getExpressionName(api::Term t,
+                         std::string& name,
+                         bool isAssertion = false) const;
   /**
    * Convert list of terms to list of names. This adds to names the names of
    * all terms in ts that has names. Terms that do not have names are not
@@ -73,8 +77,8 @@ class CVC4_PUBLIC SymbolManager
    * @param areAssertions Whether we only wish to include assertion names
    */
   void getExpressionNames(const std::vector<api::Term>& ts,
-                std::vector<std::string>& names,
-                bool areAssertions = false) const;
+                          std::vector<std::string>& names,
+                          bool areAssertions = false) const;
   //---------------------------- end named expressions
 
   /** Bits for use in mkVar() flags. */
