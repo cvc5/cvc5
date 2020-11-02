@@ -25,7 +25,6 @@
 #include <string>
 
 #include "api/cvc4cpp.h"
-#include "expr/expr.h"
 #include "expr/kind.h"
 #include "expr/symbol_table.h"
 #include "parser/input.h"
@@ -37,38 +36,8 @@
 namespace CVC4 {
 
 // Forward declarations
-class BooleanType;
 class Command;
-class FunctionType;
-class Type;
 class ResourceManager;
-
-//for sygus gterm two-pass parsing
-class CVC4_PUBLIC SygusGTerm {
-public:
-  enum{
-    gterm_op,
-    gterm_constant,
-    gterm_variable,
-    gterm_input_variable,
-    gterm_local_variable,
-    gterm_nested_sort,
-    gterm_unresolved,
-    gterm_ignore,
-  };
-  api::Sort d_type;
-  /** The parsed operator */
-  ParseOp d_op;
-  std::vector<api::Term> d_let_vars;
-  unsigned d_gterm_type;
-  std::string d_name;
-  std::vector< SygusGTerm > d_children;
-  
-  unsigned getNumChildren() { return d_children.size(); }
-  void addChild(){
-    d_children.push_back( SygusGTerm() );
-  }
-};
 
 namespace parser {
 
