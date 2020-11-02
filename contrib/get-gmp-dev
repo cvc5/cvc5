@@ -17,8 +17,6 @@ source "$(dirname "$0")/get-script-header.sh"
 
 GMP_DIR="$DEPS_DIR/gmp-$GMPVERSION"
 
-check_dep_dir "$GMP_DIR"
-
 echo =============================================================================
 echo
 echo "This script should only be used if your distribution does not ship with the"
