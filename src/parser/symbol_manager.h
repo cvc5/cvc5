@@ -30,8 +30,7 @@ namespace parser {
 /**
  * Symbol manager, which manages:
  * (1) The symbol table used by the parser
- * (2) Information related to the (! ... :named s) feature in SMT-LIB version 2,
- *
+ * (2) Information related to the (! ... :named s) feature in SMT-LIB version 2.
  */
 class CVC4_PUBLIC SymbolManager
 {
