@@ -167,7 +167,7 @@ void LfscPrinter::printProofLetify(std::ostream& out,
   // [2] print the proof body
   printProofInternal(out, pn, letMap, pletMap, passumeMap);
 
-  out << cparen.str();
+  out << cparen.str() << std::endl;
 }
 
 void LfscPrinter::printProofInternal(
