@@ -42,7 +42,7 @@ Node BVProofRuleChecker::checkInternal(PfRule id,
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    Assert(args[0].getKind() == kinds::BITVECTOR_EAGER_ATOM);
+    Assert(args[0].getKind() == kind::BITVECTOR_EAGER_ATOM);
     return args[0].eqNode(args[0][0]);
   }
   // no rule
