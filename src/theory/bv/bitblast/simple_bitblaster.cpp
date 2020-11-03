@@ -22,11 +22,6 @@ namespace bv {
 
 BBSimple::BBSimple(TheoryState* s) : TBitblaster<Node>(), d_state(s) {}
 
-Node BBSimple::bbTerm(TNode n, std::unordered_map<Node, Bits>& cache)
-{
-  return Node();
-}
-
 void BBSimple::bbAtom(TNode node)
 {
   node = node.getKind() == kind::NOT ? node[0] : node;
