@@ -65,6 +65,11 @@ void SygusTemplateInfer::initialize(Node q)
   {
     qq = TermUtil::simpleNegate(q[1]);
   }
+  if (qq.isConst())
+  {
+    // trivial, do not use transition inference
+    return;
+  }
 
   // if we are doing invariant templates, then construct the template
   Trace("sygus-si") << "- Do transition inference..." << std::endl;
@@ -163,6 +168,7 @@ void SygusTemplateInfer::initialize(Node q)
   {
     std::vector<Node> prog_vars(sfvl.begin(), sfvl.end());
     // subsitute the template arguments
+    Trace("cegqi-inv") << "vars : " << prog_templ_vars << " " << prog_vars << std::endl;
     Assert(prog_templ_vars.size() == prog_vars.size());
     templ = templ.substitute(prog_templ_vars.begin(),
                              prog_templ_vars.end(),
