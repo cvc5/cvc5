@@ -26,6 +26,8 @@ namespace quantifiers {
 
 void SygusTemplateInfer::initialize(Node q)
 {
+  Assert (d_quant.isNull());
+  d_quant = q;
   // We are processing without single invocation techniques, now check if
   // we should fix an invariant template (post-condition strengthening or
   // pre-condition weakening).
@@ -65,10 +67,10 @@ void SygusTemplateInfer::initialize(Node q)
 
   // if we are doing invariant templates, then construct the template
   Trace("sygus-si") << "- Do transition inference..." << std::endl;
-  d_ti[q].process(qq, q[0][0]);
+  d_ti.process(qq, q[0][0]);
   Trace("cegqi-inv") << std::endl;
-  Node prog = d_ti[q].getFunction();
-  if (!d_ti[q].isComplete())
+  Node prog = d_ti.getFunction();
+  if (!d_ti.isComplete())
   {
     // the invariant could not be inferred
     return;
@@ -77,9 +79,9 @@ void SygusTemplateInfer::initialize(Node q)
   NodeManager* nm = NodeManager::currentNM();
   // map the program back via non-single invocation map
   std::vector<Node> prog_templ_vars;
-  d_ti[q].getVariables(prog_templ_vars);
-  d_trans_pre[prog] = d_ti[q].getPreCondition();
-  d_trans_post[prog] = d_ti[q].getPostCondition();
+  d_ti.getVariables(prog_templ_vars);
+  d_trans_pre[prog] = d_ti.getPreCondition();
+  d_trans_post[prog] = d_ti.getPostCondition();
   Trace("cegqi-inv") << "   precondition : " << d_trans_pre[prog] << std::endl;
   Trace("cegqi-inv") << "  postcondition : " << d_trans_post[prog] << std::endl;
 
@@ -87,13 +89,13 @@ void SygusTemplateInfer::initialize(Node q)
   Node templ;
   if (options::sygusInvAutoUnfold())
   {
-    if (d_ti[q].isComplete())
+    if (d_ti.isComplete())
     {
       Trace("cegqi-inv-auto-unfold")
           << "Automatic deterministic unfolding... " << std::endl;
       // auto-unfold
       DetTrace dt;
-      int init_dt = d_ti[q].initializeTrace(dt);
+      int init_dt = d_ti.initializeTrace(dt);
       if (init_dt == 0)
       {
         Trace("cegqi-inv-auto-unfold") << "  Init : ";
@@ -103,7 +105,7 @@ void SygusTemplateInfer::initialize(Node q)
         unsigned status = 0;
         while (counter < 100 && status == 0)
         {
-          status = d_ti[q].incrementTrace(dt);
+          status = d_ti.incrementTrace(dt);
           counter++;
           Trace("cegqi-inv-auto-unfold") << "  #" << counter << " : ";
           dt.print("cegqi-inv-auto-unfold");
@@ -113,7 +115,7 @@ void SygusTemplateInfer::initialize(Node q)
         if (status == 1)
         {
           // we have a trivial invariant
-          templ = d_ti[q].constructFormulaTrace(dt);
+          templ = d_ti.constructFormulaTrace(dt);
           Trace("cegqi-inv") << "By finite deterministic terminating trace, a "
                                 "solution invariant is : "
                              << std::endl;

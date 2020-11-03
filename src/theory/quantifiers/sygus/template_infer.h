@@ -53,6 +53,8 @@ class SygusTemplateInfer
   Node getTemplateArg(Node prog) const;
 
  private:
+  /** The quantified formula we initialized with */
+  Node d_quant;
   /** transition relation pre and post version per function to synthesize  */
   std::map<Node, Node> d_trans_pre;
   std::map<Node, Node> d_trans_post;
@@ -63,8 +65,8 @@ class SygusTemplateInfer
    * one position of its template)
    */
   std::map<Node, Node> d_templ_arg;
-  /** transition inference module for each function to synthesize */
-  std::map<Node, TransitionInference> d_ti;
+  /** transition inference module */
+  TransitionInference d_ti;
 };
 
 }  // namespace quantifiers
