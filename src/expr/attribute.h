@@ -63,6 +63,11 @@ namespace attr {
  * n.getAttribute(InstLevelAttribute());
  * ```
  *
+ * To check whether the attribute has been set:
+ * ```
+ * n.hasAttribute(InstLevelAttribute());
+ * ```
+ *
  * To separate Attributes of the same type in the same table each of the
  * structures struct InstLevelAttributeId {}; is given a different unique value
  * at load time. An example is the empty struct InstLevelAttributeId. These
