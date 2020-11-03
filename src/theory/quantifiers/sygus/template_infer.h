@@ -35,7 +35,7 @@ class SygusTemplateInfer
  public:
   SygusTemplateInfer() {}
   ~SygusTemplateInfer() {}
-  /** 
+  /**
    * Initialize this class for synthesis conjecture q. If applicable, the
    * templates for functions-to-synthesize for q are accessible by the
    * calls below afterwards.
@@ -51,6 +51,7 @@ class SygusTemplateInfer
    * indicates the position of the function/predicate to synthesize.
    */
   Node getTemplateArg(Node prog) const;
+
  private:
   /** transition relation pre and post version per function to synthesize  */
   std::map<Node, Node> d_trans_pre;
