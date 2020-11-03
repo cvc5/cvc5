@@ -105,55 +105,68 @@ NodeManager::NodeManager(ExprManager* exprManager)
   init();
 }
 
-TypeNode NodeManager::booleanType() {
+TypeNode NodeManager::booleanType()
+{
   return mkTypeConst<TypeConstant>(BOOLEAN_TYPE);
 }
 
-TypeNode NodeManager::integerType() {
+TypeNode NodeManager::integerType()
+{
   return mkTypeConst<TypeConstant>(INTEGER_TYPE);
 }
 
-TypeNode NodeManager::realType() {
+TypeNode NodeManager::realType()
+{
   return mkTypeConst<TypeConstant>(REAL_TYPE);
 }
 
-TypeNode NodeManager::stringType() {
+TypeNode NodeManager::stringType()
+{
   return mkTypeConst<TypeConstant>(STRING_TYPE);
 }
 
-TypeNode NodeManager::regExpType() {
+TypeNode NodeManager::regExpType()
+{
   return mkTypeConst<TypeConstant>(REGEXP_TYPE);
 }
 
-TypeNode NodeManager::roundingModeType() {
+TypeNode NodeManager::roundingModeType()
+{
   return mkTypeConst<TypeConstant>(ROUNDINGMODE_TYPE);
 }
 
-TypeNode NodeManager::boundVarListType() {
+TypeNode NodeManager::boundVarListType()
+{
   return mkTypeConst<TypeConstant>(BOUND_VAR_LIST_TYPE);
 }
 
-TypeNode NodeManager::instPatternType() {
+TypeNode NodeManager::instPatternType()
+{
   return mkTypeConst<TypeConstant>(INST_PATTERN_TYPE);
 }
 
-TypeNode NodeManager::instPatternListType() {
+TypeNode NodeManager::instPatternListType()
+{
   return mkTypeConst<TypeConstant>(INST_PATTERN_LIST_TYPE);
 }
 
-TypeNode NodeManager::builtinOperatorType() {
+TypeNode NodeManager::builtinOperatorType()
+{
   return mkTypeConst<TypeConstant>(BUILTIN_OPERATOR_TYPE);
 }
 
-TypeNode NodeManager::mkBitVectorType(unsigned size) {
+TypeNode NodeManager::mkBitVectorType(unsigned size)
+{
   return mkTypeConst<BitVectorSize>(BitVectorSize(size));
 }
 
-TypeNode NodeManager::mkFloatingPointType(unsigned exp, unsigned sig) {
-  return mkTypeConst<FloatingPointSize>(FloatingPointSize(exp,sig));
+TypeNode NodeManager::mkFloatingPointType(unsigned exp, unsigned sig)
+{
+  return mkTypeConst<FloatingPointSize>(FloatingPointSize(exp, sig));
 }
 
-TypeNode NodeManager::mkFloatingPointType(FloatingPointSize fs) {
+TypeNode NodeManager::mkFloatingPointType(FloatingPointSize fs)
+{
   return mkTypeConst<FloatingPointSize>(fs);
 }
 
