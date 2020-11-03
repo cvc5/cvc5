@@ -27,6 +27,7 @@ namespace quantifiers {
 void SygusTemplateInfer::initialize(Node q)
 {
   Assert (d_quant.isNull());
+  Assert (q.getKind()==FORALL);
   d_quant = q;
   // We are processing without single invocation techniques, now check if
   // we should fix an invariant template (post-condition strengthening or
@@ -84,6 +85,14 @@ void SygusTemplateInfer::initialize(Node q)
   d_trans_post[prog] = d_ti.getPostCondition();
   Trace("cegqi-inv") << "   precondition : " << d_trans_pre[prog] << std::endl;
   Trace("cegqi-inv") << "  postcondition : " << d_trans_post[prog] << std::endl;
+
+  // construct template argument
+  TypeNode atn = prog.getType();
+  if (atn.isFunction())
+  {
+    atn = atn.getRangeType();
+  }
+  d_templ_arg[prog] = nm->mkSkolem("I", atn);
 
   // construct template
   Node templ;
