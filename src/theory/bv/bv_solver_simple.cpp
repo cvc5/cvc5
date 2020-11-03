@@ -97,8 +97,7 @@ void BVSolverSimple::addBBLemma(TNode fact)
   }
   else
   {
-    TrustNode tlem =
-        d_epg->mkTrustNode(lemma, PfRule::BV_BITBLAST_SIMPLE, {}, {fact});
+    TrustNode tlem = d_epg->mkTrustNode(lemma, PfRule::BV_BITBLAST, {}, {fact});
     d_inferManager.trustedLemma(tlem);
   }
 }
@@ -121,7 +120,17 @@ bool BVSolverSimple::preNotifyFact(
 
     NodeManager* nm = NodeManager::currentNM();
     Node lemma = nm->mkNode(kind::EQUAL, fact, n);
-    d_inferManager.lemma(lemma);
+
+    if (d_epg == nullptr)
+    {
+      d_inferManager.lemma(lemma);
+    }
+    else
+    {
+      TrustNode tlem =
+          d_epg->mkTrustNode(lemma, PfRule::BV_EAGER_ATOM, {}, {fact});
+      d_inferManager.trustedLemma(tlem);
+    }
 
     std::unordered_set<Node, NodeHashFunction> bv_atoms;
     collectBVAtoms(n, bv_atoms);

@@ -22,20 +22,28 @@ BVProofRuleChecker::BVProofRuleChecker() : d_bb(new BBSimple(nullptr)) {}
 
 void BVProofRuleChecker::registerTo(ProofChecker* pc)
 {
-  pc->registerChecker(PfRule::BV_BITBLAST_SIMPLE, this);
+  pc->registerChecker(PfRule::BV_BITBLAST, this);
+  pc->registerChecker(PfRule::BV_EAGER_ATOM, this);
 }
 
 Node BVProofRuleChecker::checkInternal(PfRule id,
                                        const std::vector<Node>& children,
                                        const std::vector<Node>& args)
 {
-  if (id == PfRule::BV_BITBLAST_SIMPLE)
+  if (id == PfRule::BV_BITBLAST)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
     d_bb->bbAtom(args[0]);
     Node bb = d_bb->getStoredBBAtom(args[0]);
     return args[0].eqNode(bb);
+  }
+  else if (id == PfRule::BV_EAGER_ATOM)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    Assert(args[0].getKind() == kinds::BITVECTOR_EAGER_ATOM);
+    return args[0].eqNode(args[0][0]);
   }
   // no rule
   return Node::null();
