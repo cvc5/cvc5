@@ -21,6 +21,10 @@ Node Letify::convert(Node n,
                      const std::map<Node, uint32_t>& letMap,
                      const std::string& prefix)
 {
+  if (letMap.empty())
+  {
+    return n;
+  }
   std::map<Node, uint32_t>::const_iterator itl;
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
@@ -42,7 +46,7 @@ Node Letify::convert(Node n,
         // make the let variable
         std::stringstream ss;
         ss << prefix << itl->second;
-        visited[cur] = nm->mkBoundVar(ss.str(), n.getType());
+        visited[cur] = nm->mkBoundVar(ss.str(), cur.getType());
       }
       else
       {
@@ -113,9 +117,9 @@ void Letify::updateCounts(Node n,
     it = count.find(cur);
     if (it == count.end())
     {
-      visitList.push_back(cur);
       if (cur.getNumChildren()==0 || cur.isClosure())
       {
+        visitList.push_back(cur);
         count[cur] = 1;
       }
       else
@@ -126,6 +130,10 @@ void Letify::updateCounts(Node n,
     }
     else
     {
+      if (it->second==0)
+      {
+        visitList.push_back(cur);
+      }
       count[cur]++;
       visit.pop_back();
     }
@@ -155,11 +163,8 @@ void Letify::convertCountToLet(const std::vector<Node>& visitList,
   // Assign ids for those whose count is > 1, traverse in reverse order
   // so that deeper proofs are assigned lower identifiers
   std::map<Node, uint32_t>::const_iterator itc;
-  for (std::vector<Node>::const_reverse_iterator it = visitList.rbegin();
-       it != visitList.rend();
-       ++it)
+  for (const Node& n : visitList)
   {
-    Node n = *it;
     if (n.getNumChildren()==0)
     {
       // do not letify terms with no children
@@ -211,7 +216,6 @@ void Letify::computeProofCounts(const ProofNode* pn,
     if (it == pcount.end())
     {
       pcount[cur] = 0;
-      visitList.push_back(cur);
       const std::vector<std::shared_ptr<ProofNode>>& pc = cur->getChildren();
       for (const std::shared_ptr<ProofNode>& cp : pc)
       {
@@ -220,6 +224,10 @@ void Letify::computeProofCounts(const ProofNode* pn,
     }
     else
     {
+      if (it->second==0)
+      {
+        visitList.push_back(cur);
+      }
       pcount[cur]++;
       visit.pop_back();
     }
@@ -243,17 +251,14 @@ void Letify::convertProofCountToLet(
   // Assign ids for those whose count is > 1, traverse in reverse order
   // so that deeper proofs are assigned lower identifiers
   std::map<const ProofNode*, uint32_t>::const_iterator itc;
-  for (std::vector<const ProofNode*>::const_reverse_iterator itp =
-           visitList.rbegin();
-       itp != visitList.rend();
-       ++itp)
+  for (const ProofNode* pn : visitList)
   {
-    itc = pcount.find(*itp);
+    itc = pcount.find(pn);
     Assert(itc != pcount.end());
     if (itc->second >= thresh)
     {
-      pletList.push_back(*itp);
-      pletMap[*itp] = pcounter;
+      pletList.push_back(pn);
+      pletMap[pn] = pcounter;
       pcounter++;
     }
   }

@@ -42,6 +42,7 @@
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"
 #include "util/smt2_quote_string.h"
+#include "proof/lfsc/letify.h"
 
 using namespace std;
 
@@ -65,6 +66,39 @@ void Smt2Printer::toStream(
     std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const
 {
   if(dag != 0) {
+#if 0
+    // NOTE: if we use this form of dagification, we should change
+    // how closures are printed, which should force re-letifying bodies
+    std::vector<Node> letList;
+    std::map<Node, uint32_t> letMap;
+    uint32_t counter = 0;
+    proof::Letify::computeLet(n, letList, letMap, counter, dag+1);
+    std::stringstream cparen;
+    if (!letList.empty())
+    {
+      std::map<Node, uint32_t>::const_iterator it;
+      for (size_t i = 0, nlets = letList.size(); i < nlets; i++)
+      {
+        Node nl = letList[i];
+        it = letMap.find(nl);
+        Assert(it != letMap.end());
+        out << "(let ((";
+        uint32_t id = it->second;
+        out << "_let_" << id << " ";
+        // remove, print, insert again
+        letMap.erase(nl);
+        Node nlc = proof::Letify::convert(nl, letMap, "_let_");
+        toStream(out, nlc, toDepth, types, TypeNode::null());
+        letMap[nl] = id;
+        out << "))";
+        cparen << ")";
+      }
+    }
+    // print the body
+    Node nc = proof::Letify::convert(n, letMap, "_let_");
+    toStream(out, nc, toDepth, types, TypeNode::null());
+    out << cparen.str();
+#else
     DagificationVisitor dv(dag);
     NodeVisitor<DagificationVisitor> visitor;
     visitor.run(dv, n);
@@ -89,6 +123,7 @@ void Smt2Printer::toStream(
         out << ")";
       }
     }
+#endif
   } else {
     toStream(out, n, toDepth, types, TypeNode::null());
   }
