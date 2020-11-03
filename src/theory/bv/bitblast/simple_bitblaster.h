@@ -58,8 +58,6 @@ class BBSimple : public TBitblaster<Node>
 
   prop::SatSolver* getSatSolver() override { Unreachable(); }
 
-  static Node bbTerm(TNode n, std::unordered_map<Node, Bits>& cache);
-
  private:
   /** Query SAT solver for assignment of node 'a'. */
   Node getModelFromSatSolver(TNode a, bool fullModel) override;
