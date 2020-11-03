@@ -356,8 +356,8 @@ class SynthConjecture
   unsigned d_refine_count;
   /** get candidadate */
   Node getCandidate(unsigned int i) { return d_candidates[i]; }
-  /** record instantiation (this is used to construct solutions later) */
-  void recordInstantiation(std::vector<Node>& vs)
+  /** record solution (this is used to construct solutions later) */
+  void recordSolution(std::vector<Node>& vs)
   {
     Assert(vs.size() == d_candidates.size());
     for (unsigned i = 0; i < vs.size(); i++)

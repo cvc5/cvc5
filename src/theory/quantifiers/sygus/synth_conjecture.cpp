@@ -494,7 +494,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       // since we trust sampling in this mode, we assert there is no
       // counterexample to the conjecture here.
       lems.push_back(d_quant.negate());
-      recordInstantiation(candidate_values);
+      recordSolution(candidate_values);
       d_hasSolution = true;
       return true;
     }
@@ -566,9 +566,6 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   query = d_tds->rewriteNode(query);
   // eagerly unfold applications of evaluation function
   Trace("cegqi-debug") << "pre-unfold counterexample : " << query << std::endl;
-  // record the instantiation
-  // this is used for remembering the solution
-  recordInstantiation(candidate_values);
 
   if (!query.isConst() || query.getConst<bool>())
   {
@@ -615,7 +612,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       d_qe->getOutputChannel().setIncomplete();
       return false;
     }
-    // otherwise we are
+    // otherwise we are unsat, and we will process the solution below
   }
   d_hasSolution = true;
   if (options::sygusStream())
@@ -627,7 +624,10 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     d_hasSolution = false;
     return false;
   }
-  // mark lemma to terminate with "unsat"
+  // record the solution
+  recordSolution(candidate_values);
+  // Use lemma to terminate with "unsat", this is justified by the verification
+  // check above, which confirms the synthesis conjecture is solved.
   lems.push_back(d_quant.negate());
   return true;
 }
