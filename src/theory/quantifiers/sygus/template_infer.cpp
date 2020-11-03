@@ -26,8 +26,8 @@ namespace quantifiers {
 
 void SygusTemplateInfer::initialize(Node q)
 {
-  Assert (d_quant.isNull());
-  Assert (q.getKind()==FORALL);
+  Assert(d_quant.isNull());
+  Assert(q.getKind() == FORALL);
   d_quant = q;
   // We are processing without single invocation techniques, now check if
   // we should fix an invariant template (post-condition strengthening or
@@ -168,7 +168,8 @@ void SygusTemplateInfer::initialize(Node q)
   {
     std::vector<Node> prog_vars(sfvl.begin(), sfvl.end());
     // subsitute the template arguments
-    Trace("cegqi-inv") << "vars : " << prog_templ_vars << " " << prog_vars << std::endl;
+    Trace("cegqi-inv") << "vars : " << prog_templ_vars << " " << prog_vars
+                       << std::endl;
     Assert(prog_templ_vars.size() == prog_vars.size());
     templ = templ.substitute(prog_templ_vars.begin(),
                              prog_templ_vars.end(),
