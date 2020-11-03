@@ -62,8 +62,13 @@ namespace attr {
  * ```
  * n.getAttribute(InstLevelAttribute());
  * ```
- * 
- * To separate Attributes of the same type in the same table each of the structures struct InstLevelAttributeId {}; is given a different unique value at load time. An example is the empty struct InstLevelAttributeId. These should be unique for each Attribute. Then via some template messiness when InstLevelAttribute() is passed as the argument to getAttribute(...) the load time id is instantiated. 
+ *
+ * To separate Attributes of the same type in the same table each of the
+ * structures struct InstLevelAttributeId {}; is given a different unique value
+ * at load time. An example is the empty struct InstLevelAttributeId. These
+ * should be unique for each Attribute. Then via some template messiness when
+ * InstLevelAttribute() is passed as the argument to getAttribute(...) the load
+ * time id is instantiated.
  */
 // ATTRIBUTE MANAGER ===========================================================
 
