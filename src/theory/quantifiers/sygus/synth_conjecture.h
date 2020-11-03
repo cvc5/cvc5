@@ -38,7 +38,6 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-class SynthEngine;
 class SygusStatistics;
 
 /**
@@ -82,7 +81,7 @@ class EnumValGenerator
 class SynthConjecture
 {
  public:
-  SynthConjecture(QuantifiersEngine* qe, SynthEngine* p, SygusStatistics& s);
+  SynthConjecture(QuantifiersEngine* qe, SygusStatistics& s);
   ~SynthConjecture();
   /** presolve */
   void presolve();
@@ -199,8 +198,6 @@ class SynthConjecture
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
-  /** pointer to the synth engine that owns this */
-  SynthEngine* d_parent;
   /** reference to the statistics of parent */
   SygusStatistics& d_stats;
   /** term database sygus of d_qe */
@@ -389,31 +386,6 @@ class SynthConjecture
   bool getSynthSolutionsInternal(std::vector<Node>& sols,
                                  std::vector<int>& status);
   //-------------------------------- sygus stream
-  /** current stream guard */
-  Node d_current_stream_guard;
-  /** the decision strategy for streaming solutions */
-  class SygusStreamDecisionStrategy : public DecisionStrategyFmf
-  {
-   public:
-    SygusStreamDecisionStrategy(context::Context* satContext,
-                                Valuation valuation);
-    /** make literal */
-    Node mkLiteral(unsigned i) override;
-    /** identify */
-    std::string identify() const override
-    {
-      return std::string("sygus_stream");
-    }
-  };
-  std::unique_ptr<SygusStreamDecisionStrategy> d_stream_strategy;
-  /** get current stream guard */
-  Node getCurrentStreamGuard() const;
-  /** get stream guarded lemma
-   *
-   * If sygusStream is enabled, this returns ( G V n ) where G is the guard
-   * returned by getCurrentStreamGuard, otherwise this returns n.
-   */
-  Node getStreamGuardedLemma(Node n) const;
   /**
    * Prints the current synthesis solution to the output stream indicated by
    * the Options object, send a lemma blocking the current solution to the
