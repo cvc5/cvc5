@@ -31,6 +31,7 @@
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
+#include "theory/quantifiers/sygus/template_infer.h"
 #include "theory/quantifiers/sygus/sygus_repair_const.h"
 #include "theory/quantifiers/sygus/sygus_stats.h"
 
@@ -216,6 +217,8 @@ class SynthConjecture
   std::unique_ptr<DecisionStrategy> d_feasible_strategy;
   /** single invocation utility */
   std::unique_ptr<CegSingleInv> d_ceg_si;
+  /** template inference utility */
+  std::unique_ptr<SygusTemplateInfer> d_templInfer;
   /** utility for static preprocessing and analysis of conjectures */
   std::unique_ptr<SynthConjectureProcess> d_ceg_proc;
   /** grammar utility */

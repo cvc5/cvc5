@@ -26,18 +26,17 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-class TemplateInfer
+  /**
+   * This class infers templates for an invariant-to-synthesize based on the
+   * template mode. It uses the transition inference to choose a template.
+   */
+class SygusTemplateInfer
 {
  public:
-  TemplateInfer() {}
-  ~TemplateInfer() {}
-  // get simplified conjecture
-  Node getSimplifiedConjecture() { return d_simp_quant; }
+  SygusTemplateInfer() {}
+  ~SygusTemplateInfer() {}
   /** initialize this class for synthesis conjecture q */
   void initialize(Node q);
-
-  Node getTransPre(Node prog) const;
-  Node getTransPost(Node prog) const;
   /**
    * Get template for program prog. This returns a term of the form t[x] where
    * x is the template argument (see below)

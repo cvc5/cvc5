@@ -15,6 +15,8 @@
 #include "theory/quantifiers/sygus/template_infer.h"
 
 #include "options/quantifiers_options.h"
+#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/term_util.h"
 
 using namespace CVC4::kind;
 
@@ -22,7 +24,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-void TemplateInfer::initialize(Node q)
+void SygusTemplateInfer::initialize(Node q)
 {
   // We are processing without single invocation techniques, now check if
   // we should fix an invariant template (post-condition strengthening or
@@ -50,6 +52,17 @@ void TemplateInfer::initialize(Node q)
     // not processing invariant templates
     return;
   }
+  
+  Node qq;
+  if (q[1].getKind() == NOT && q[1][0].getKind() == FORALL)
+  {
+    qq = q[1][0][1];
+  }
+  else
+  {
+    qq = TermUtil::simpleNegate(q[1]);
+  }
+  
   // if we are doing invariant templates, then construct the template
   Trace("sygus-si") << "- Do transition inference..." << std::endl;
   d_ti[q].process(qq, q[0][0]);
@@ -132,30 +145,29 @@ void TemplateInfer::initialize(Node q)
   Trace("cegqi-inv") << "       template (pre-substitution) : " << templ
                      << std::endl;
   Assert(!templ.isNull());
-  // subsitute the template arguments
-  Assert(prog_templ_vars.size() == prog_vars[prog].size());
-  templ = templ.substitute(prog_templ_vars.begin(),
-                           prog_templ_vars.end(),
-                           prog_vars[prog].begin(),
-                           prog_vars[prog].end());
+
+  // get the variables
+  Node sfvl = CegGrammarConstructor::getSygusVarList(prog);
+  if (!sfvl.isNull())
+  {
+    std::vector< Node > prog_vars;
+    prog_vars.insert(prog_vars.end(), sfvl.begin(), sfvl.end());
+    for (const Node& sfv : sfvl)
+    {
+      prog_vars.push_back(sfv);
+    }
+    // subsitute the template arguments
+    Assert(prog_templ_vars.size() == prog_vars.size());
+    templ = templ.substitute(prog_templ_vars.begin(),
+                            prog_templ_vars.end(),
+                            prog_vars.begin(),
+                            prog_vars.end());
+  }
   Trace("cegqi-inv") << "       template : " << templ << std::endl;
   d_templ[prog] = templ;
 }
 
-Node getTransPre(Node prog) const
-{
-  std::map<Node, Node>::const_iterator location = d_trans_pre.find(prog);
-  return location->second;
-}
-
-Node getTransPost(Node prog) const
-{
-  std::map<Node, Node>::const_iterator location = d_trans_post.find(prog);
-  return location->second;
-}
-// get template for program prog. This returns a term of the form t[x] where x
-// is the template argument (see below)
-Node getTemplate(Node prog) const
+Node SygusTemplateInfer::getTemplate(Node prog) const
 {
   std::map<Node, Node>::const_iterator tmpl = d_templ.find(prog);
   if (tmpl != d_templ.end())
@@ -164,7 +176,8 @@ Node getTemplate(Node prog) const
   }
   return Node::null();
 }
-Node getTemplateArg(Node prog) const
+
+Node SygusTemplateInfer::getTemplateArg(Node prog) const
 {
   std::map<Node, Node>::const_iterator tmpla = d_templ_arg.find(prog);
   if (tmpla != d_templ_arg.end())
