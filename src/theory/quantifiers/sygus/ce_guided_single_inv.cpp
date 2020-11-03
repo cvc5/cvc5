@@ -60,7 +60,7 @@ void CegSingleInv::initialize(Node q)
   // infer single invocation-ness
 
   // get the variables
-  std::vector< Node > progs(q[0].begin(), q[0].end());
+  std::vector<Node> progs(q[0].begin(), q[0].end());
   // compute single invocation partition
   Node qq;
   if (q[1].getKind() == NOT && q[1][0].getKind() == FORALL)

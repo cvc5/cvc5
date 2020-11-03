@@ -52,7 +52,7 @@ void SygusTemplateInfer::initialize(Node q)
     // not processing invariant templates
     return;
   }
-  
+
   Node qq;
   if (q[1].getKind() == NOT && q[1][0].getKind() == FORALL)
   {
@@ -62,7 +62,7 @@ void SygusTemplateInfer::initialize(Node q)
   {
     qq = TermUtil::simpleNegate(q[1]);
   }
-  
+
   // if we are doing invariant templates, then construct the template
   Trace("sygus-si") << "- Do transition inference..." << std::endl;
   d_ti[q].process(qq, q[0][0]);
@@ -150,7 +150,7 @@ void SygusTemplateInfer::initialize(Node q)
   Node sfvl = CegGrammarConstructor::getSygusVarList(prog);
   if (!sfvl.isNull())
   {
-    std::vector< Node > prog_vars;
+    std::vector<Node> prog_vars;
     prog_vars.insert(prog_vars.end(), sfvl.begin(), sfvl.end());
     for (const Node& sfv : sfvl)
     {
@@ -159,9 +159,9 @@ void SygusTemplateInfer::initialize(Node q)
     // subsitute the template arguments
     Assert(prog_templ_vars.size() == prog_vars.size());
     templ = templ.substitute(prog_templ_vars.begin(),
-                            prog_templ_vars.end(),
-                            prog_vars.begin(),
-                            prog_vars.end());
+                             prog_templ_vars.end(),
+                             prog_vars.begin(),
+                             prog_vars.end());
   }
   Trace("cegqi-inv") << "       template : " << templ << std::endl;
   d_templ[prog] = templ;

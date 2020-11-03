@@ -26,10 +26,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-  /**
-   * This class infers templates for an invariant-to-synthesize based on the
-   * template mode. It uses the transition inference to choose a template.
-   */
+/**
+ * This class infers templates for an invariant-to-synthesize based on the
+ * template mode. It uses the transition inference to choose a template.
+ */
 class SygusTemplateInfer
 {
  public:
