@@ -354,17 +354,8 @@ class SynthConjecture
   unsigned d_repair_index;
   /** number of times we have called doRefine */
   unsigned d_refine_count;
-  /** get candidadate */
-  Node getCandidate(unsigned int i) { return d_candidates[i]; }
   /** record solution (this is used to construct solutions later) */
-  void recordSolution(std::vector<Node>& vs)
-  {
-    Assert(vs.size() == d_candidates.size());
-    for (unsigned i = 0; i < vs.size(); i++)
-    {
-      d_cinfo[d_candidates[i]].d_inst.push_back(vs[i]);
-    }
-  }
+  void recordSolution(std::vector<Node>& vs);
   /** get synth solutions internal
    *
    * This function constructs the body of solutions for all

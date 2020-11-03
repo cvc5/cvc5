@@ -495,7 +495,6 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       // counterexample to the conjecture here.
       lems.push_back(d_quant.negate());
       recordSolution(candidate_values);
-      d_hasSolution = true;
       return true;
     }
     Assert(!d_set_ce_sk_vars);
@@ -616,7 +615,6 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   }
   // record the solution
   recordSolution(candidate_values);
-  d_hasSolution = true;
   if (options::sygusStream())
   {
     // if we were successful, we immediately print the current solution.
@@ -1200,6 +1198,17 @@ bool SynthConjecture::getSynthSolutions(
   return true;
 }
 
+void SynthConjecture::recordSolution(std::vector<Node>& vs)
+{
+  Assert(vs.size() == d_candidates.size());
+  d_cinfo.clear();
+  for (unsigned i = 0; i < vs.size(); i++)
+  {
+    d_cinfo[d_candidates[i]].d_inst.push_back(vs[i]);
+  }
+  d_hasSolution = true;
+}
+
 bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
                                                 std::vector<int>& statuses)
 {
@@ -1228,7 +1237,7 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
     }
     else
     {
-      Node cprog = getCandidate(i);
+      Node cprog = d_candidates[i];
       if (!d_cinfo[cprog].d_inst.empty())
       {
         // the solution is just the last instantiated term
