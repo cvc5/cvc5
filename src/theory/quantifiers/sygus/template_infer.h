@@ -29,40 +29,43 @@ namespace quantifiers {
 class TemplateInfer
 {
  public:
-  TemplateInfer(){}
-  ~TemplateInfer(){}
+  TemplateInfer() {}
+  ~TemplateInfer() {}
   // get simplified conjecture
   Node getSimplifiedConjecture() { return d_simp_quant; }
   /** initialize this class for synthesis conjecture q */
-  void initialize( Node q );
+  void initialize(Node q);
 
   Node getTransPre(Node prog) const;
   Node getTransPost(Node prog) const;
-  /** 
+  /**
    * Get template for program prog. This returns a term of the form t[x] where
    * x is the template argument (see below)
    */
   Node getTemplate(Node prog) const;
   /**
-   * Get the template argument for program prog. This is a variable which indicates the position of the function/predicate to synthesize.
+   * Get the template argument for program prog. This is a variable which
+   * indicates the position of the function/predicate to synthesize.
    */
   Node getTemplateArg(Node prog) const;
-private:
+
+ private:
   /** transition relation pre and post version per function to synthesize  */
-  std::map< Node, Node > d_trans_pre;
-  std::map< Node, Node > d_trans_post;
+  std::map<Node, Node> d_trans_pre;
+  std::map<Node, Node> d_trans_post;
   /** the template for each function to synthesize */
-  std::map< Node, Node > d_templ;
-  /** 
-   * The template argument for each function to synthesize (occurs in exactly one position of its template) 
+  std::map<Node, Node> d_templ;
+  /**
+   * The template argument for each function to synthesize (occurs in exactly
+   * one position of its template)
    */
-  std::map< Node, Node > d_templ_arg;
+  std::map<Node, Node> d_templ_arg;
   /** transition inference module for each function to synthesize */
-  std::map< Node, TransitionInference > d_ti;
+  std::map<Node, TransitionInference> d_ti;
 };
 
-}/* namespace CVC4::theory::quantifiers */
-}/* namespace CVC4::theory */
-}/* namespace CVC4 */
+}  // namespace quantifiers
+}  // namespace theory
+} /* namespace CVC4 */
 
 #endif

@@ -142,26 +142,33 @@ void TemplateInfer::initialize(Node q)
   d_templ[prog] = templ;
 }
 
-Node getTransPre(Node prog) const {
+Node getTransPre(Node prog) const
+{
   std::map<Node, Node>::const_iterator location = d_trans_pre.find(prog);
   return location->second;
 }
 
-Node getTransPost(Node prog) const {
+Node getTransPost(Node prog) const
+{
   std::map<Node, Node>::const_iterator location = d_trans_post.find(prog);
   return location->second;
 }
-// get template for program prog. This returns a term of the form t[x] where x is the template argument (see below)
-Node getTemplate(Node prog) const {
+// get template for program prog. This returns a term of the form t[x] where x
+// is the template argument (see below)
+Node getTemplate(Node prog) const
+{
   std::map<Node, Node>::const_iterator tmpl = d_templ.find(prog);
-  if( tmpl!=d_templ.end() ){
+  if (tmpl != d_templ.end())
+  {
     return tmpl->second;
   }
   return Node::null();
 }
-Node getTemplateArg(Node prog) const {
+Node getTemplateArg(Node prog) const
+{
   std::map<Node, Node>::const_iterator tmpla = d_templ_arg.find(prog);
-  if( tmpla != d_templ_arg.end() ){
+  if (tmpla != d_templ_arg.end())
+  {
     return tmpla->second;
   }
   return Node::null();
