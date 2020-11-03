@@ -37,6 +37,24 @@ namespace CVC4 {
 namespace expr {
 namespace attr {
 
+  
+/**
+ * Attributes are roughly speaking [almost] global hash tables from Nodes (TNodes) to data. Attributes can be thought of as additional fields used to extend NodeValues. Attributes are mutable, and come in both sat context-dependent and non-context dependent varieties. Attributes live only as long as the node itself does. If a Node is garbage-collected Attribute's associated with it will automatically be garbage collected. (Being in the domain of an Attribute does not increase a Node's reference count.) To achieve this special relationship with Nodes, Attributes are mapped by hash tables (AttrHash<> and CDAttrHash<>) that live in the AttributeManager. The AttributeManager is owned by the NodeManager.
+ * 
+ * Example:
+ * 
+ * Attributes tend to be defined in a fixed pattern:
+ * 
+ * ```
+ * struct InstLevelAttributeId {};
+ * typedef expr::Attribute<InstLevelAttributeId, uint64_t> InstLevelAttribute;
+ * ```
+ * 
+ * To get the value of an Attribute InstLevelAttribute on a Node n, use
+ * ```
+ * n.getAttribute(InstLevelAttribute());
+ * ```
+*/
 // ATTRIBUTE MANAGER ===========================================================
 
 /**
