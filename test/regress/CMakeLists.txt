@@ -1845,6 +1845,7 @@ set(regress_1_tests
   regress1/strings/issue4735.smt2
   regress1/strings/issue4735_2.smt2
   regress1/strings/issue4759-comp-delta.smt2
+  regress1/strings/issue5374-proxy-i.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
