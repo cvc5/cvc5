@@ -615,7 +615,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       d_qe->getOutputChannel().setIncomplete();
       return false;
     }
-    // otherwise we are 
+    // otherwise we are
   }
   d_hasSolution = true;
   if (options::sygusStream())
