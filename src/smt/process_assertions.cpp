@@ -411,6 +411,7 @@ bool ProcessAssertions::apply(Assertions& as)
   Debug("smt") << " assertions     : " << assertions.size() << endl;
 
   d_passes["theory-preprocess"]->apply(&assertions);
+  // must remove ITEs again since theory preprocessing may introduce them
   d_passes["ite-removal"]->apply(&assertions);
 
   if (options::bitblastMode() == options::BitblastMode::EAGER)
