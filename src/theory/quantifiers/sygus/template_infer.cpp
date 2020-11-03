@@ -161,12 +161,7 @@ void SygusTemplateInfer::initialize(Node q)
   Node sfvl = CegGrammarConstructor::getSygusVarList(prog);
   if (!sfvl.isNull())
   {
-    std::vector<Node> prog_vars;
-    prog_vars.insert(prog_vars.end(), sfvl.begin(), sfvl.end());
-    for (const Node& sfv : sfvl)
-    {
-      prog_vars.push_back(sfv);
-    }
+    std::vector<Node> prog_vars(sfvl.begin(), sfvl.end());
     // subsitute the template arguments
     Assert(prog_templ_vars.size() == prog_vars.size());
     templ = templ.substitute(prog_templ_vars.begin(),
