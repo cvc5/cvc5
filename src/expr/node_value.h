@@ -235,7 +235,6 @@ class NodeValue
 
   void toStream(std::ostream& out,
                 int toDepth = -1,
-                bool types = false,
                 size_t dag = 1,
                 OutputLanguage = language::output::LANG_AUTO) const;
 

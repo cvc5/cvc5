@@ -26,10 +26,7 @@ namespace CVC4 {
 namespace expr {
 
 const int ExprSetDepth::s_iosIndex = std::ios_base::xalloc();
-const int ExprPrintTypes::s_iosIndex = std::ios_base::xalloc();
 const int ExprDag::s_iosIndex = std::ios_base::xalloc();
-
-
 
 ExprSetDepth::ExprSetDepth(long depth) : d_depth(depth) {}
 

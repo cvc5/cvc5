@@ -385,7 +385,7 @@ public:
    * @param language the language in which to output
    */
   inline void toStream(std::ostream& out, OutputLanguage language = language::output::LANG_AUTO) const {
-    d_nv->toStream(out, -1, false, 0, language);
+    d_nv->toStream(out, -1, 0, language);
   }
 
   /**

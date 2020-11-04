@@ -821,19 +821,16 @@ public:
    * @param out the stream to serialize this node to
    * @param toDepth the depth to which to print this expression, or -1 to
    * print it fully
-   * @param types set to true to ascribe types to the output expressions
-   * (might break language compliance, but good for debugging expressions)
    * @param language the language in which to output
    */
   inline void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
       size_t dagThreshold = 1,
       OutputLanguage language = language::output::LANG_AUTO) const
   {
     assertTNodeNotExpired();
-    d_nv->toStream(out, toDepth, types, dagThreshold, language);
+    d_nv->toStream(out, toDepth, dagThreshold, language);
   }
 
   /**
