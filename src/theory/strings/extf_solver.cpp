@@ -81,11 +81,13 @@ bool ExtfSolver::doReduction(int effort, Node n)
   if (!d_extfInfoTmp[n].d_modelActive)
   {
     // n is not active in the model, no need to reduce
+  Trace("strings-extf-debug") << "...skip due to model active" << std::endl;
     return false;
   }
   if (d_reduced.find(n)!=d_reduced.end())
   {
     // already sent a reduction lemma
+  Trace("strings-extf-debug") << "...skip due to reduced" << std::endl;
     return false;
   }
   // determine the effort level to process the extf at
@@ -157,6 +159,8 @@ bool ExtfSolver::doReduction(int effort, Node n)
   }
   if (effort != r_effort)
   {
+    
+  Trace("strings-extf-debug") << "...skip due to effort" << std::endl;
     // not the right effort level to reduce
     return false;
   }
@@ -202,6 +206,8 @@ bool ExtfSolver::doReduction(int effort, Node n)
     Trace("strings-red-lemma")
         << "Reduction_" << effort << " lemma : " << nnlem << std::endl;
     Trace("strings-red-lemma") << "...from " << n << std::endl;
+    Trace("strings-red-lemma")
+        << "Reduction_" << effort << " rewritten : " << Rewriter::rewrite(nnlem) << std::endl;
     d_im.sendInference(d_emptyVec, nnlem, Inference::REDUCTION, false, true);
     Trace("strings-extf-debug")
         << "  resolve extf : " << n << " based on reduction." << std::endl;
