@@ -36,9 +36,9 @@ namespace printer {
 namespace tptp {
 
 void TptpPrinter::toStream(
-    std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const
+    std::ostream& out, TNode n, int toDepth, size_t dag) const
 {
-  n.toStream(out, toDepth, types, dag, language::output::LANG_SMTLIB_V2_5);
+  n.toStream(out, toDepth, dag, language::output::LANG_SMTLIB_V2_5);
 }/* TptpPrinter::toStream() */
 
 void TptpPrinter::toStream(std::ostream& out, const CommandStatus* s) const

@@ -517,7 +517,6 @@ inline T NodeValue::iterator<T>::operator*() const {
 inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv) {
   nv.toStream(out,
               Node::setdepth::getDepth(out),
-              Node::printtypes::getPrintTypes(out),
               Node::dag::getDag(out),
               Node::setlanguage::getLanguage(out));
   return out;
@@ -533,7 +532,6 @@ inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv) {
  */
 static void __attribute__((used)) debugPrintNodeValue(const expr::NodeValue* nv) {
   Warning() << Node::setdepth(-1)
-            << Node::printtypes(false)
             << Node::dag(true)
             << Node::setlanguage(language::output::LANG_AST)
             << *nv << std::endl;
@@ -541,7 +539,6 @@ static void __attribute__((used)) debugPrintNodeValue(const expr::NodeValue* nv)
 }
 static void __attribute__((used)) debugPrintNodeValueNoDag(const expr::NodeValue* nv) {
   Warning() << Node::setdepth(-1)
-            << Node::printtypes(false)
             << Node::dag(false)
             << Node::setlanguage(language::output::LANG_AST)
             << *nv << std::endl;
