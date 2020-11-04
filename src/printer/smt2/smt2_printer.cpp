@@ -71,8 +71,7 @@ void Smt2Printer::toStream(
     // how closures are printed, which should force re-letifying bodies
     std::vector<Node> letList;
     std::map<Node, uint32_t> letMap;
-    uint32_t counter = 0;
-    proof::Letify::computeLet(n, letList, letMap, counter, dag+1);
+    proof::Letify::computeLet(n, letList, letMap, dag+1);
     std::stringstream cparen;
     if (!letList.empty())
     {

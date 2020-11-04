@@ -87,7 +87,6 @@ Node Letify::convert(Node n,
 void Letify::computeLet(Node n,
                         std::vector<Node>& letList,
                         std::map<Node, uint32_t>& letMap,
-                        uint32_t& counter,
                         uint32_t thresh)
 {
   Assert(letList.empty() && letMap.empty());
@@ -100,7 +99,7 @@ void Letify::computeLet(Node n,
   std::map<Node, uint32_t> count;
   updateCounts(n, visitList, count);
   // Now populate the letList and letMap
-  convertCountToLet(visitList, count, letList, letMap, counter, thresh);
+  convertCountToLet(visitList, count, letList, letMap, thresh);
 }
 
 void Letify::updateCounts(Node n,
@@ -151,7 +150,6 @@ void Letify::convertCountToLet(const std::vector<Node>& visitList,
                                const std::map<Node, uint32_t>& count,
                                std::vector<Node>& letList,
                                std::map<Node, uint32_t>& letMap,
-                               uint32_t& counter,
                                uint32_t thresh)
 {
   Assert(letList.empty() && letMap.empty());
@@ -175,8 +173,8 @@ void Letify::convertCountToLet(const std::vector<Node>& visitList,
     if (itc->second >= thresh)
     {
       letList.push_back(n);
-      letMap[n] = counter;
-      counter++;
+      size_t id = letMap.size();
+      letMap[n] = id;
     }
   }
 }
@@ -184,7 +182,6 @@ void Letify::convertCountToLet(const std::vector<Node>& visitList,
 void Letify::computeProofLet(const ProofNode* pn,
                              std::vector<const ProofNode*>& pletList,
                              std::map<const ProofNode*, uint32_t>& pletMap,
-                             uint32_t& pcounter,
                              uint32_t thresh)
 {
   Assert(pletList.empty() && pletMap.empty());
@@ -198,7 +195,7 @@ void Letify::computeProofLet(const ProofNode* pn,
   computeProofCounts(pn, visitList, pcount);
   // Now populate the pletList and pletMap
   convertProofCountToLet(
-      visitList, pcount, pletList, pletMap, pcounter, thresh);
+      visitList, pcount, pletList, pletMap, thresh);
 }
 
 void Letify::computeProofCounts(const ProofNode* pn,
@@ -239,7 +236,6 @@ void Letify::convertProofCountToLet(
     const std::map<const ProofNode*, uint32_t>& pcount,
     std::vector<const ProofNode*>& pletList,
     std::map<const ProofNode*, uint32_t>& pletMap,
-    uint32_t& pcounter,
     uint32_t thresh)
 {
   Assert(pletList.empty() && pletMap.empty());
@@ -258,8 +254,8 @@ void Letify::convertProofCountToLet(
     if (itc->second >= thresh)
     {
       pletList.push_back(pn);
-      pletMap[pn] = pcounter;
-      pcounter++;
+      size_t id = pletMap.size();
+      pletMap[pn] = id;
     }
   }
 }
