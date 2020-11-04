@@ -39,10 +39,6 @@ OptionsManager::OptionsManager(Options* opts, ResourceManager* rm)
   {
     notifySetOption(options::defaultDagThresh.getName());
   }
-  if (opts->wasSetByUser(options::printExprTypes))
-  {
-    notifySetOption(options::printExprTypes.getName());
-  }
   if (opts->wasSetByUser(options::dumpModeString))
   {
     notifySetOption(options::dumpModeString.getName());
@@ -94,17 +90,6 @@ void OptionsManager::notifySetOption(const std::string& key)
     Message.getStream() << expr::ExprDag(dag);
     Warning.getStream() << expr::ExprDag(dag);
     Dump.getStream() << expr::ExprDag(dag);
-  }
-  else if (key == options::printExprTypes.getName())
-  {
-    bool value = (*d_options)[options::printExprTypes];
-    Debug.getStream() << expr::ExprPrintTypes(value);
-    Trace.getStream() << expr::ExprPrintTypes(value);
-    Notice.getStream() << expr::ExprPrintTypes(value);
-    Chat.getStream() << expr::ExprPrintTypes(value);
-    Message.getStream() << expr::ExprPrintTypes(value);
-    Warning.getStream() << expr::ExprPrintTypes(value);
-    // intentionally exclude Dump stream from this list
   }
   else if (key == options::dumpModeString.getName())
   {

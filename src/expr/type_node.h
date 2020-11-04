@@ -1121,7 +1121,6 @@ inline unsigned TypeNode::getBitVectorSize() const {
  */
 static void __attribute__((used)) debugPrintTypeNode(const TypeNode& n) {
   Warning() << Node::setdepth(-1)
-            << Node::printtypes(false)
             << Node::dag(true)
             << Node::setlanguage(language::output::LANG_AST)
             << n << std::endl;
@@ -1129,7 +1128,6 @@ static void __attribute__((used)) debugPrintTypeNode(const TypeNode& n) {
 }
 static void __attribute__((used)) debugPrintTypeNodeNoDag(const TypeNode& n) {
   Warning() << Node::setdepth(-1)
-            << Node::printtypes(false)
             << Node::dag(false)
             << Node::setlanguage(language::output::LANG_AST)
             << n << std::endl;
