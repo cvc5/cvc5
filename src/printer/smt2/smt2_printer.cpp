@@ -61,8 +61,10 @@ static void toStreamRational(std::ostream& out,
                              bool decimal,
                              Variant v);
 
-void Smt2Printer::toStream(
-    std::ostream& out, TNode n, int toDepth, size_t dag) const
+void Smt2Printer::toStream(std::ostream& out,
+                           TNode n,
+                           int toDepth,
+                           size_t dag) const
 {
   if(dag != 0) {
     DagificationVisitor dv(dag);
@@ -393,7 +395,7 @@ void Smt2Printer::toStream(std::ostream& out,
     if(n.getNumChildren() != 0) {
       for(unsigned i = 0; i < n.getNumChildren(); ++i) {
 	      out << ' ';
-	      toStream(out, n[i], toDepth, TypeNode::null());
+              toStream(out, n[i], toDepth, TypeNode::null());
       }
       out << ')';
     }
@@ -937,7 +939,10 @@ void Smt2Printer::toStream(std::ostream& out,
                    TypeNode::null());
         }
       }else{
-        toStream(out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, TypeNode::null());
+        toStream(out,
+                 n.getOperator(),
+                 toDepth < 0 ? toDepth : toDepth - 1,
+                 TypeNode::null());
       }
     } else {
       out << "(...)";
@@ -1019,7 +1024,8 @@ void Smt2Printer::toStream(std::ostream& out,
       if( itfc!=force_child_type.end() ){
         toStream(out, cn, toDepth < 0 ? toDepth : toDepth - c, itfc->second);
       }else{
-        toStream(out, cn, toDepth < 0 ? toDepth : toDepth - c, TypeNode::null());
+        toStream(
+            out, cn, toDepth < 0 ? toDepth : toDepth - c, TypeNode::null());
       }
     } else {
       out << "(...)";

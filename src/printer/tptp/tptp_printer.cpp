@@ -35,8 +35,10 @@ namespace CVC4 {
 namespace printer {
 namespace tptp {
 
-void TptpPrinter::toStream(
-    std::ostream& out, TNode n, int toDepth, size_t dag) const
+void TptpPrinter::toStream(std::ostream& out,
+                           TNode n,
+                           int toDepth,
+                           size_t dag) const
 {
   n.toStream(out, toDepth, dag, language::output::LANG_SMTLIB_V2_5);
 }/* TptpPrinter::toStream() */

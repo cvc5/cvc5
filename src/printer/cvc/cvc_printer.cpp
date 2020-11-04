@@ -45,8 +45,10 @@ namespace CVC4 {
 namespace printer {
 namespace cvc {
 
-void CvcPrinter::toStream(
-    std::ostream& out, TNode n, int toDepth, size_t dag) const
+void CvcPrinter::toStream(std::ostream& out,
+                          TNode n,
+                          int toDepth,
+                          size_t dag) const
 {
   if(dag != 0) {
     DagificationVisitor dv(dag);
@@ -91,8 +93,10 @@ void toStreamRational(std::ostream& out, Node n, bool forceRational)
   }
 }
 
-void CvcPrinter::toStream(
-    std::ostream& out, TNode n, int depth, bool bracket) const
+void CvcPrinter::toStream(std::ostream& out,
+                          TNode n,
+                          int depth,
+                          bool bracket) const
 {
   if (depth == 0) {
     out << "(...)";
@@ -356,9 +360,7 @@ void CvcPrinter::toStream(
       break;
 
     // UF
-    case kind::APPLY_UF:
-      toStream(op, n.getOperator(), depth, false);
-      break;
+    case kind::APPLY_UF: toStream(op, n.getOperator(), depth, false); break;
     case kind::CARDINALITY_CONSTRAINT:
     case kind::COMBINED_CARDINALITY_CONSTRAINT:
       out << "CARDINALITY_CONSTRAINT";
@@ -402,10 +404,10 @@ void CvcPrinter::toStream(
       return;
       break;
     case kind::APPLY_TYPE_ASCRIPTION: {
-        toStream(out, n[0], depth, false);
-        out << "::";
-        TypeNode t = n.getOperator().getConst<AscriptionType>().getType();
-        out << (t.isFunctionLike() ? t.getRangeType() : t);
+      toStream(out, n[0], depth, false);
+      out << "::";
+      TypeNode t = n.getOperator().getConst<AscriptionType>().getType();
+      out << (t.isFunctionLike() ? t.getRangeType() : t);
       }
       return;
       break;

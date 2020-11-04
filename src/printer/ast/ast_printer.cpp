@@ -35,8 +35,10 @@ namespace CVC4 {
 namespace printer {
 namespace ast {
 
-void AstPrinter::toStream(
-    std::ostream& out, TNode n, int toDepth, size_t dag) const
+void AstPrinter::toStream(std::ostream& out,
+                          TNode n,
+                          int toDepth,
+                          size_t dag) const
 {
   if(dag != 0) {
     DagificationVisitor dv(dag);
@@ -70,9 +72,7 @@ void AstPrinter::toStream(
   }
 }
 
-void AstPrinter::toStream(std::ostream& out,
-                          TNode n,
-                          int toDepth) const
+void AstPrinter::toStream(std::ostream& out, TNode n, int toDepth) const
 {
   // null
   if(n.getKind() == kind::NULL_EXPR) {

@@ -172,8 +172,7 @@ class CvcPrinter : public CVC4::Printer
       std::ostream& out, const std::vector<Command*>& sequence) const override;
 
  private:
-  void toStream(
-      std::ostream& out, TNode n, int toDepth, bool bracket) const;
+  void toStream(std::ostream& out, TNode n, int toDepth, bool bracket) const;
   void toStream(std::ostream& out,
                 const smt::Model& m,
                 const NodeCommand* c) const override;
