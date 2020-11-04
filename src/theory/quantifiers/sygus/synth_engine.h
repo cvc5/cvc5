@@ -20,6 +20,7 @@
 
 #include "context/cdhashmap.h"
 #include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/sygus/sygus_qe_preproc.h"
 #include "theory/quantifiers/sygus/sygus_stats.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 
@@ -86,6 +87,10 @@ class SynthEngine : public QuantifiersModule
    * preregisterAssertion.
    */
   SynthConjecture* d_conj;
+  /**
+   * The quantifier elimination preprocess module.
+   */
+  SygusQePreproc d_sqp;
   /** The statistics */
   SygusStatistics d_statistics;
   /** assign quantified formula q as a conjecture

@@ -49,8 +49,6 @@ TermRegistry::TermRegistry(SolverState& s,
       d_preregisteredTerms(s.getUserContext()),
       d_registeredTerms(s.getUserContext()),
       d_registeredTypes(s.getUserContext()),
-      d_proxyVar(s.getUserContext()),
-      d_proxyVarToLength(s.getUserContext()),
       d_lengthLemmaTermsCache(s.getUserContext()),
       d_epg(pnm ? new EagerProofGenerator(
                       pnm,
@@ -557,7 +555,7 @@ Node TermRegistry::getSymbolicDefinition(Node n, std::vector<Node>& exp) const
 
 Node TermRegistry::getProxyVariableFor(Node n) const
 {
-  NodeNodeMap::const_iterator it = d_proxyVar.find(n);
+  std::map<Node, Node>::const_iterator it = d_proxyVar.find(n);
   if (it != d_proxyVar.end())
   {
     return (*it).second;
