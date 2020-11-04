@@ -116,7 +116,7 @@ void Letify::updateCounts(Node n,
     it = count.find(cur);
     if (it == count.end())
     {
-      if (cur.getNumChildren()==0 || cur.isClosure())
+      if (cur.getNumChildren() == 0 || cur.isClosure())
       {
         visitList.push_back(cur);
         count[cur] = 1;
@@ -129,7 +129,7 @@ void Letify::updateCounts(Node n,
     }
     else
     {
-      if (it->second==0)
+      if (it->second == 0)
       {
         visitList.push_back(cur);
       }
@@ -163,7 +163,7 @@ void Letify::convertCountToLet(const std::vector<Node>& visitList,
   std::map<Node, uint32_t>::const_iterator itc;
   for (const Node& n : visitList)
   {
-    if (n.getNumChildren()==0)
+    if (n.getNumChildren() == 0)
     {
       // do not letify terms with no children
       continue;
@@ -194,8 +194,7 @@ void Letify::computeProofLet(const ProofNode* pn,
   std::map<const ProofNode*, uint32_t> pcount;
   computeProofCounts(pn, visitList, pcount);
   // Now populate the pletList and pletMap
-  convertProofCountToLet(
-      visitList, pcount, pletList, pletMap, thresh);
+  convertProofCountToLet(visitList, pcount, pletList, pletMap, thresh);
 }
 
 void Letify::computeProofCounts(const ProofNode* pn,
@@ -221,7 +220,7 @@ void Letify::computeProofCounts(const ProofNode* pn,
     }
     else
     {
-      if (it->second==0)
+      if (it->second == 0)
       {
         visitList.push_back(cur);
       }

@@ -31,6 +31,7 @@
 #include "options/printer_options.h"
 #include "options/smt_options.h"
 #include "printer/dagification_visitor.h"
+#include "proof/lfsc/letify.h"
 #include "proof/unsat_core.h"
 #include "smt/command.h"
 #include "smt/node_command.h"
@@ -42,7 +43,6 @@
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"
 #include "util/smt2_quote_string.h"
-#include "proof/lfsc/letify.h"
 
 using namespace std;
 

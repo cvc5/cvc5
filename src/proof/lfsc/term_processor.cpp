@@ -144,7 +144,7 @@ TypeNode TermProcessor::convertType(TypeNode tn, bool toInternal)
     it = cache.find(cur);
     if (it == cache.end())
     {
-      if (cur.getNumChildren()==0)
+      if (cur.getNumChildren() == 0)
       {
         TypeNode ret = d_cb->convertType(cur, toInternal);
         cache[cur] = ret;
@@ -179,7 +179,8 @@ TypeNode TermProcessor::convertType(TypeNode tn, bool toInternal)
       Trace("term-process-debug") << cur << " <- " << ret << std::endl;
       // run the callback for the current application
       ret = d_cb->convertType(ret, toInternal);
-      Trace("term-process-debug") << cur << " <- " << ret << " (post-convert)" << std::endl;
+      Trace("term-process-debug")
+          << cur << " <- " << ret << " (post-convert)" << std::endl;
       cache[cur] = ret;
     }
   } while (!visit.empty());

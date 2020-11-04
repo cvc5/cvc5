@@ -65,9 +65,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       // nested
     }
     break;
-    default:
-      return false;
-      break;
+    default: return false; break;
   }
   return true;
 }
