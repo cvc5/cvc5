@@ -17,6 +17,7 @@
 
 #include "expr/node_algorithm.h"
 #include "theory/smt_engine_subsolver.h"
+#include "expr/subs.h"
 
 namespace CVC4 {
 namespace theory {
@@ -24,7 +25,7 @@ namespace quantifiers {
 
 bool NestedQe::registerQuantifiedFormula(Node q)
 { 
-  // TODO ?
+  // TODO dynamic module?
   return false;
 }
 
@@ -34,18 +35,41 @@ bool NestedQe::getNestedQuantification(Node q, std::vector<Node>& nqs)
   return !nqs.empty();
 }
 
-Node NestedQe::doNestedQe(Node q)
+Node NestedQe::doNestedQe(Node q, bool keepTopLevel)
 {
   Assert (q.getKind()==FORALL);
   std::vector<Node> nqs;
   if( !getNestedQuantification(q, nqs))
   {
-    // just do ordinary quantifier elimination
-    return doQe(q);
+    if (!keepTopLevel)
+    {
+      // just do ordinary quantifier elimination
+      return doQe(q);
+    }
+    return q;
   }
   // otherwise, skolemize the arguments of this and apply
-  
-  
+  std::vector<Node> vars(q[0].begin(), q[0].end());
+  Subs sk;
+  sk.add(vars);
+  Subs snqe;
+  for (const Node& nq : nqs)
+  {
+    Node nqk = sk.apply(nq);
+    Node nqqe = doNestedQe(q);
+    snqe.add(nqk, nqqe);
+  }
+  Node qeBody = sk.apply(q[1]);
+  qeBody = snqe.apply(qeBody);
+  qeBody = sk.rapply(qeBody, true);
+  std::vector<Node> qargs;
+  qargs.push_back(q[0]);
+  qargs.push_back(qeBody);
+  if (q.getNumChildren()==3)
+  {
+    qargs.push_back(q[2]);
+  }
+  return nm->mkNode(FORALL, qargs);
 }
 
 Node NestedQe::doQe(Node q)

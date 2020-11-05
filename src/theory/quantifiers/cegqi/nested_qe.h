@@ -18,6 +18,9 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__CEQGI__NESTED_QE_H
 #define CVC4__THEORY__QUANTIFIERS__CEQGI__NESTED_QE_H
 
+#include <vector>
+
+#include "expr/node.h"
 
 namespace CVC4 {
 namespace theory {
@@ -45,7 +48,7 @@ public:
   /** 
    * Do nested quantifier elimination.
    */
-  static Node doNestedQe(Node q);
+  static Node doNestedQe(Node q, bool keepTopLevel=false);
 private:
   /** Map from quantified formula q to its nested quantifiers */
   
