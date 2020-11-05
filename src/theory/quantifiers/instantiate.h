@@ -235,57 +235,21 @@ class Instantiate : public QuantifiersUtil
    * Get the list of quantified formulas that were instantiated in the current
    * user context, store them in qs.
    */
-  void getInstantiatedQuantifiedFormulas(std::vector<Node>& qs);
-  /** get instantiations
-   *
-   * Get the body of all instantiation lemmas added in the current user context
-   * for quantified formula q, store them in insts.
-   */
-  void getInstantiations(Node q, std::vector<Node>& insts);
-  /** get instantiations
-   *
-   * Get the body of all instantiation lemmas added in the current user context
-   * for all quantified formulas stored in the domain of insts, store them in
-   * the range of insts.
-   */
-  void getInstantiations(std::map<Node, std::vector<Node> >& insts);
+  void getInstantiatedQuantifiedFormulas(std::vector<Node>& qs) const;
   /** get instantiation term vectors
    *
    * Get term vectors corresponding to for all instantiations lemmas added in
    * the current user context for quantified formula q, store them in tvecs.
    */
   void getInstantiationTermVectors(Node q,
-                                   std::vector<std::vector<Node> >& tvecs);
+                                   std::vector<std::vector<Node> >& tvecs) const;
   /** get instantiation term vectors
    *
    * Get term vectors for all instantiations lemmas added in the current user
    * context for quantified formula q, store them in tvecs.
    */
   void getInstantiationTermVectors(
-      std::map<Node, std::vector<std::vector<Node> > >& insts);
-  /** get instantiated conjunction
-   *
-   * This gets a conjunction of the bodies of instantiation lemmas added in the
-   * current user context for quantified formula q.  For example, if we added:
-   *   ~forall x. P( x ) V P( a )
-   *   ~forall x. P( x ) V P( b )
-   * Then, this method returns P( a ) ^ P( b ).
-   */
-  Node getInstantiatedConjunction(Node q);
-  /** get unsat core lemmas
-   *
-   * If this method returns true, then it appends to active_lemmas all lemmas
-   * that are in the unsat core that originated from the theory of quantifiers.
-   * This method returns false if the unsat core is not available.
-   */
-  bool getUnsatCoreLemmas(std::vector<Node>& active_lemmas);
-  /** get explanation for instantiation lemmas
-   *
-   *
-   */
-  void getExplanationForInstLemmas(const std::vector<Node>& lems,
-                                   std::map<Node, Node>& quant,
-                                   std::map<Node, std::vector<Node> >& tvec);
+      std::map<Node, std::vector<std::vector<Node> > >& insts) const;
   //--------------------------------------end user-level interface utilities
 
   /** Are proofs enabled for this object? */

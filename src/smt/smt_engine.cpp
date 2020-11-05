@@ -1632,14 +1632,6 @@ void SmtEngine::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
   te->getInstantiatedQuantifiedFormulas(qs);
 }
 
-void SmtEngine::getInstantiations(Node q, std::vector<Node>& insts)
-{
-  SmtScope smts(this);
-  TheoryEngine* te = getTheoryEngine();
-  Assert(te != nullptr);
-  te->getInstantiations(q, insts);
-}
-
 void SmtEngine::getInstantiationTermVectors(
     Node q, std::vector<std::vector<Node>>& tvecs)
 {

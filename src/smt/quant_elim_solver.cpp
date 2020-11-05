@@ -34,7 +34,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
                                                Node q,
                                                bool doFull)
 {
-  Trace("smt-qe") << "Do quantifier elimination " << q << std::endl;
+  Trace("smt-qe") << "QuantElimSolver: get qe : " << q << std::endl;
   if (q.getKind() != EXISTS && q.getKind() != FORALL)
   {
     throw ModalException(
@@ -85,7 +85,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
     {
       Node topq = inst_qs[0];
       Assert(topq.getKind() == FORALL);
-      Trace("smt-qe") << "Get qe for " << topq << std::endl;
+      Trace("smt-qe") << "Get qe based on preprocessed quantified formula " << topq << std::endl;
       std::vector<std::vector<Node>> insts;
       te->getInstantiationTermVectors(topq, insts);
       std::vector<Node> vars(ne[0].begin(), ne[0].end());
@@ -99,7 +99,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
         conjs.push_back(c);
       }
       ret = nm->mkAnd(conjs);
-      Trace("smt-qe") << "Returned : " << ret << std::endl;
+      Trace("smt-qe") << "QuantElimSolver returned : " << ret << std::endl;
       if (q.getKind() == EXISTS)
       {
         ret = Rewriter::rewrite(ret.negate());

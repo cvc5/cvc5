@@ -342,7 +342,7 @@ void InstStrategyCegqi::preRegisterQuantifier(Node q)
 {
   if (doCbqi(q))
   {
-    if (processNestedQe(q))
+    if (processNestedQe(q, true))
     {
       // processed using nested quantifier elimination
       return;
@@ -426,7 +426,7 @@ bool InstStrategyCegqi::doCbqi(Node q)
 void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
   // If we are doing nested quantifier elimination, check if q was already
   // processed.
-  if (processNestedQe(q))
+  if (processNestedQe(q, false))
   {
     // don't need to process this, since it has been reduced
     return;
@@ -543,10 +543,17 @@ void InstStrategyCegqi::presolve() {
   }
 }
 
-bool InstStrategyCegqi::processNestedQe(Node q)
+bool InstStrategyCegqi::processNestedQe(Node q, bool isPreregister)
 {
   if (d_nestedQe != nullptr)
   {
+    if (isPreregister)
+    {
+      // if at preregister, we are done if we have nested quantification
+      return NestedQe::hasNestedQuantification(q);
+    }
+    // if not a preregister, we process, which may trigger quantifier
+    // elimination in subsolvers.
     std::vector<Node> lems;
     if (d_nestedQe->process(q, lems))
     {

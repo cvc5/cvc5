@@ -49,11 +49,22 @@ bool NestedQe::process(Node q, std::vector<Node>& lems)
   return true;
 }
 
+bool NestedQe::hasProcessed(Node q) const
+{
+  return d_qnqe.find(q)!=d_qnqe.end();
+}
+
 bool NestedQe::getNestedQuantification(
     Node q, std::unordered_set<Node, NodeHashFunction>& nqs)
 {
   expr::getKindSubterms(q[1], kind::FORALL, true, nqs);
   return !nqs.empty();
+}
+
+bool NestedQe::hasNestedQuantification(Node q)
+{
+  std::vector<Node> nqs;
+  return getNestedQuantification(q, nqs);
 }
 
 Node NestedQe::doNestedQe(Node q, bool keepTopLevel)

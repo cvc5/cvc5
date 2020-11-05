@@ -43,13 +43,18 @@ class NestedQe
    * on q.
    */
   bool process(Node q, std::vector<Node>& lems);
-
   /**
-   * Get quantifier elimination for q.
+   * Have we processed q using the above method?
    */
+  bool hasProcessed(Node q) const;
+
   /** Get nested quantification */
   static bool getNestedQuantification(
       Node q, std::unordered_set<Node, NodeHashFunction>& nqs);
+  /** 
+   * Does quantified formula q have nested quantification?
+   */
+  static bool hasNestedQuantification(Node q);
   /**
    * Does q have nested quantification?
    */
