@@ -74,7 +74,6 @@ int main()
     Term three = slv.mkInteger(3);
 
     Term singleton_one = slv.mkTerm(SINGLETON, one);
-    std::cout << "Singleton one: "<<singleton_one<<std::endl;
     Term singleton_two = slv.mkTerm(SINGLETON, two);
     Term singleton_three = slv.mkTerm(SINGLETON, three);
     Term one_two = slv.mkTerm(UNION, singleton_one, singleton_two);

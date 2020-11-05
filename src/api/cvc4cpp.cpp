@@ -3279,7 +3279,7 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
       // see Term::getSort()
       TypeNode type = children[0].d_node->getType();
       // Internally NodeManager::mkSingleton needs a type argument
-      // to construct a singleton since there is no difference between a
+      // to construct a singleton, since there is no difference between
       // integers and reals (both are Rationals).
       // At the API, mkReal and mkInteger are different and therefore the
       // element type can be used safely here.
