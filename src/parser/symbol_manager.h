@@ -70,7 +70,7 @@ class CVC4_PUBLIC SymbolManager
    * Convert list of terms to list of names. This adds to names the names of
    * all terms in ts that has names. Terms that do not have names are not
    * included.
-   * 
+   *
    * Notice that we do not distinguish what terms among those in ts have names.
    * If the caller of this method wants more fine-grained information about what
    * specific terms had names, then use the more fine grained interface above,
