@@ -33,7 +33,10 @@ bool SymbolManager::setExpressionName(api::Term t,
       return false;
     }
   }
-  d_namedAsserts.insert(t);
+  if (isAssertion)
+  {
+    d_namedAsserts.insert(t);
+  }
   d_names[t] = name;
   return true;
 }

@@ -20,7 +20,6 @@
 
 #include "options/language.h"
 #include "options/options.h"
-#include "parser/symbol_manager.h"
 #include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
