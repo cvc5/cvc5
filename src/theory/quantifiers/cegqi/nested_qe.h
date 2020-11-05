@@ -18,7 +18,7 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__CEQGI__NESTED_QE_H
 #define CVC4__THEORY__QUANTIFIERS__CEQGI__NESTED_QE_H
 
-#include <vector>
+#include <unordered_set>
 
 #include "expr/node.h"
 
@@ -29,19 +29,13 @@ namespace quantifiers {
 class NestedQe
 {
 public:
-  NestedQe();
+  NestedQe(){}
   ~NestedQe(){}
-  /**
-   * Register quantified formula
-   *
-   * Return true if q has nested quantified formulas.
-   */
-  bool registerQuantifiedFormula(Node q);
   /**
    * Get quantifier elimination for q.
    */
   /** Get nested quantification */
-  static bool getNestedQuantification(Node q, std::vector<Node>& nqs);
+  static bool getNestedQuantification(Node q, std::unordered_set<Node, NodeHashFunction>& nqs);
   /** 
    * Does q have nested quantification?
    */

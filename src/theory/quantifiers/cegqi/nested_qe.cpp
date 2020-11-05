@@ -23,13 +23,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-bool NestedQe::registerQuantifiedFormula(Node q)
-{ 
-  // TODO dynamic module?
-  return false;
-}
-
-bool NestedQe::getNestedQuantification(Node q, std::vector<Node>& nqs)
+bool NestedQe::getNestedQuantification(Node q, std::unordered_set<Node, NodeHashFunction>& nqs)
 {
   expr::getKindSubterms(q[1], kind::FORALL, true, nqs);
   return !nqs.empty();
@@ -37,16 +31,16 @@ bool NestedQe::getNestedQuantification(Node q, std::vector<Node>& nqs)
 
 Node NestedQe::doNestedQe(Node q, bool keepTopLevel)
 {
-  Assert (q.getKind()==FORALL);
-  std::vector<Node> nqs;
+  Assert (q.getKind()==kind::FORALL);
+  std::unordered_set<Node, NodeHashFunction> nqs;
   if( !getNestedQuantification(q, nqs))
   {
-    if (!keepTopLevel)
+    if (keepTopLevel)
     {
-      // just do ordinary quantifier elimination
-      return doQe(q);
+      return q;
     }
-    return q;
+    // just do ordinary quantifier elimination
+    return doQe(q);
   }
   // otherwise, skolemize the arguments of this and apply
   std::vector<Node> vars(q[0].begin(), q[0].end());
@@ -69,14 +63,15 @@ Node NestedQe::doNestedQe(Node q, bool keepTopLevel)
   {
     qargs.push_back(q[2]);
   }
-  return nm->mkNode(FORALL, qargs);
+  NodeManager * nm = NodeManager::currentNM();
+  return nm->mkNode(kind::FORALL, qargs);
 }
 
 Node NestedQe::doQe(Node q)
 {
-  Assert (q.getKind()==FORALL);
+  Assert (q.getKind()==kind::FORALL);
   NodeManager * nm = NodeManager::currentNM();
-  q = nm->mkNode(EXISTS, q[0], q[1].negate());
+  q = nm->mkNode(kind::EXISTS, q[0], q[1].negate());
   std::unique_ptr<SmtEngine> smt_qe;
   initializeSubsolver(smt_qe);
   return smt_qe->getQuantifierElimination(q, true, false);
