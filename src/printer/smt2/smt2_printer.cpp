@@ -367,6 +367,13 @@ void Smt2Printer::toStream(std::ostream& out,
       out << "(_ fp.to_sbv_total "
           << n.getConst<FloatingPointToSBVTotal>().bvs.d_size << ")";
       break;
+    case kind::REGEXP_REPEAT_OP:
+      out << "(_ re.^ " << n.getConst<RegExpRepeat>().d_repeatAmount << ")";
+      break;
+    case kind::REGEXP_LOOP_OP:
+      out << "(_ re.loop " << n.getConst<RegExpLoop>().d_loopMinOcc << " "
+          << n.getConst<RegExpLoop>().d_loopMaxOcc << ")";
+      break;
     default:
       // fall back on whatever operator<< does on underlying type; we
       // might luck out and be SMT-LIB v2 compliant
@@ -669,7 +676,6 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::REGEXP_PLUS:
   case kind::REGEXP_OPT:
   case kind::REGEXP_RANGE:
-  case kind::REGEXP_LOOP:
   case kind::REGEXP_COMPLEMENT:
   case kind::REGEXP_DIFF:
   case kind::REGEXP_EMPTY:
@@ -677,6 +683,13 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::SEQ_UNIT:
   case kind::SEQ_NTH:
   case kind::SEQUENCE_TYPE: out << smtKindString(k, d_variant) << " "; break;
+  case kind::REGEXP_REPEAT:
+  case kind::REGEXP_LOOP:
+  {
+    out << n.getOperator() << ' ';
+    stillNeedToPrintParams = false;
+    break;
+  }
 
   case kind::CARDINALITY_CONSTRAINT: out << "fmf.card "; break;
   case kind::CARDINALITY_VALUE: out << "fmf.card.val "; break;
@@ -1262,6 +1275,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::REGEXP_PLUS: return "re.+";
   case kind::REGEXP_OPT: return "re.opt";
   case kind::REGEXP_RANGE: return "re.range";
+  case kind::REGEXP_REPEAT: return "re.^";
   case kind::REGEXP_LOOP: return "re.loop";
   case kind::REGEXP_COMPLEMENT: return "re.comp";
   case kind::REGEXP_DIFF: return "re.diff";

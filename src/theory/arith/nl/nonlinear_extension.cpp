@@ -581,6 +581,7 @@ void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
 void NonlinearExtension::presolve()
 {
   Trace("nl-ext") << "NonlinearExtension::presolve" << std::endl;
+  d_builtModel = false;
 }
 
 void NonlinearExtension::runStrategy(Theory::Effort effort,
