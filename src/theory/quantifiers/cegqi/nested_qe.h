@@ -37,8 +37,23 @@ public:
   /**
    * Get quantifier elimination for q.
    */
+  /** Get nested quantification */
+  static bool getNestedQuantification(Node q, std::vector<Node>& nqs);
+  /** 
+   * Does q have nested quantification?
+   */
+  /** 
+   * Do nested quantifier elimination.
+   */
+  static Node doNestedQe(Node q);
 private:
   /** Map from quantified formula q to its nested quantifiers */
+  
+  /**
+   * Run quantifier free formula for quantified formula q with no nested
+   * quantification.
+   */
+  static Node doQe(Node q);
 };
 
 }
