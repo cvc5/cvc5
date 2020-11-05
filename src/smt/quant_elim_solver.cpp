@@ -14,11 +14,11 @@
 
 #include "smt/quant_elim_solver.h"
 
+#include "expr/subs.h"
 #include "smt/smt_solver.h"
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
-#include "expr/subs.h"
 
 using namespace CVC4::theory;
 using namespace CVC4::kind;
