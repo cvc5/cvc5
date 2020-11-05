@@ -130,8 +130,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::RESOLUTION:
     {
-      if(res == d_nm->mkConst(false)){
-        new_args.push_back(d_nm->mkConst<Rational>(static_cast<unsigned>(VeritRule::RESOLUTION)));
+      if (res == d_nm->mkConst(false))
+      {
+        new_args.push_back(d_nm->mkConst<Rational>(
+            static_cast<unsigned>(VeritRule::RESOLUTION)));
         new_args.push_back(Node::null());
         return cdp->addStep(res, PfRule::VERIT_RULE, children, new_args);
       }
@@ -213,7 +215,9 @@ bool VeritProofPostprocessCallback::update(Node res,
     case PfRule::SPLIT:
     {
       Node vp1 = d_nm->mkNode(kind::OR, args[0].notNode().notNode().notNode(), args[0]);
-      Node vp2 = d_nm->mkNode(kind::OR, args[0].notNode().notNode().notNode().notNode(), args[0].notNode());
+      Node vp2 = d_nm->mkNode(kind::OR,
+                              args[0].notNode().notNode().notNode().notNode(),
+                              args[0].notNode());
 
       return addVeritStep(vp2, VeritRule::NOT_NOT, {}, {}, *cdp)
              && addVeritStep(vp1, VeritRule::NOT_NOT, {}, {}, *cdp)
@@ -336,8 +340,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     //
     // proof rule: resolution
     // proof term: (and P1 ... Pn)
-    // premises: (P1:F1 ... Pn:Fn) (VP1:(or (and F1 ... Fn) (not F1) ... (not Fn)))
-    // args: ()
+    // premises: (P1:F1 ... Pn:Fn) (VP1:(or (and F1 ... Fn) (not F1) ... (not
+    // Fn))) args: ()
     case PfRule::AND_INTRO:
     {
       std::vector<Node> neg_Nodes;
@@ -349,12 +353,12 @@ bool VeritProofPostprocessCallback::update(Node res,
 
       Node vp1 = d_nm->mkNode(kind::OR, neg_Nodes);
       std::vector<Node> new_children;
-      new_children.insert(new_children.end(),children.begin(),children.end());
+      new_children.insert(new_children.end(), children.begin(), children.end());
       new_children.push_back(vp1);
 
       return addVeritStep(vp1, VeritRule::AND_NEG, {}, {}, *cdp)
-	     && addVeritStep(res, VeritRule::RESOLUTION, new_children, {}, *cdp);
-
+             && addVeritStep(
+                 res, VeritRule::RESOLUTION, new_children, {}, *cdp);
     }
     // ======== Not Or elimination
     // Children: (P:(not (or F1 ... Fn)))
