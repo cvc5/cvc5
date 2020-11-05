@@ -67,3 +67,9 @@ if (USE_EDITLINE)
     )
   endif()
 endif()
+
+
+# add Python bindings tests if building with Python bindings
+if (BUILD_BINDINGS_PYTHON)
+  add_subdirectory(python)
+endif()
