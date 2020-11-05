@@ -2440,7 +2440,7 @@ class CVC4_PUBLIC Solver
    * @param the operator
    * @return the Term
    */
-  Term mkTermFromOp(Op op) const;
+  Term mkTerm(Op op) const;
 
   /**
    * Create unary term of given kind from a given operator.
@@ -2449,7 +2449,7 @@ class CVC4_PUBLIC Solver
    * @child the child of the term
    * @return the Term
    */
-  Term mkTermFromOp(Op op, Term child) const;
+  Term mkTerm(Op op, Term child) const;
 
   /**
    * Create binary term of given kind from a given operator.
@@ -2459,7 +2459,7 @@ class CVC4_PUBLIC Solver
    * @child2 the second child of the term
    * @return the Term
    */
-  Term mkTermFromOp(Op op, Term child1, Term child2) const;
+  Term mkTerm(Op op, Term child1, Term child2) const;
 
   /**
    * Create ternary term of given kind from a given operator.
@@ -2470,7 +2470,7 @@ class CVC4_PUBLIC Solver
    * @child3 the third child of the term
    * @return the Term
    */
-  Term mkTermFromOp(Op op, Term child1, Term child2, Term child3) const;
+  Term mkTerm(Op op, Term child1, Term child2, Term child3) const;
 
   /**
    * Create n-ary term of given kind from a given operator.
@@ -2480,7 +2480,7 @@ class CVC4_PUBLIC Solver
    * @children the children of the term
    * @return the Term
    */
-  Term mkTermFromOp(Op op, const std::vector<Term>& children) const;
+  Term mkTerm(Op op, const std::vector<Term>& children) const;
 
   /**
    * Create a tuple term. Terms are automatically converted if sorts are

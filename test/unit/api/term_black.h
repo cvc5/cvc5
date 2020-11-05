@@ -182,7 +182,7 @@ void TermBlack::testGetOp()
 
   Term ab = d_solver.mkTerm(SELECT, a, b);
   Op ext = d_solver.mkOp(BITVECTOR_EXTRACT, 4, 0);
-  Term extb = d_solver.mkTermFromOp(ext, b);
+  Term extb = d_solver.mkTerm(ext, b);
 
   TS_ASSERT(ab.hasOp());
   TS_ASSERT_EQUALS(ab.getOp(), Op(&d_solver, SELECT));
@@ -202,7 +202,7 @@ void TermBlack::testGetOp()
   TS_ASSERT_EQUALS(fx.getOp(), Op(&d_solver, APPLY_UF));
   std::vector<Term> children(fx.begin(), fx.end());
   // testing rebuild from op and children
-  TS_ASSERT_EQUALS(fx, d_solver.mkTermFromOp(fx.getOp(), children));
+  TS_ASSERT_EQUALS(fx, d_solver.mkTerm(fx.getOp(), children));
 
   // Test Datatypes Ops
   Sort sort = d_solver.mkParamSort("T");
@@ -243,7 +243,7 @@ void TermBlack::testGetOp()
   // Test rebuilding
   children.clear();
   children.insert(children.begin(), headTerm.begin(), headTerm.end());
-  TS_ASSERT_EQUALS(headTerm, d_solver.mkTermFromOp(headTerm.getOp(), children));
+  TS_ASSERT_EQUALS(headTerm, d_solver.mkTerm(headTerm.getOp(), children));
 }
 
 void TermBlack::testIsNull()

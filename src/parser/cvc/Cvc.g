@@ -604,9 +604,9 @@ using namespace CVC4::parser;
 {                                                              \
   unsigned size = f.getSort().getBVSize();        \
   if(k > size) {                                               \
-    f = SOLVER->mkTermFromOp(SOLVER->mkOp(api::BITVECTOR_ZERO_EXTEND,k - size), f); \
+    f = SOLVER->mkTerm(SOLVER->mkOp(api::BITVECTOR_ZERO_EXTEND,k - size), f); \
   } else if (k < size) {                                       \
-    f = SOLVER->mkTermFromOp(SOLVER->mkOp(api::BITVECTOR_EXTRACT, k - 1, 0), f); \
+    f = SOLVER->mkTerm(SOLVER->mkOp(api::BITVECTOR_EXTRACT, k - 1, 0), f); \
   }                                                            \
 }
 
@@ -1650,7 +1650,7 @@ tupleStore[CVC4::api::Term& f]
       | DOT ( tupleStore[f2]
             | recordStore[f2] ) )
     | ASSIGN_TOK term[f2] )
-    { f = SOLVER->mkTermFromOp(SOLVER->mkOp(api::TUPLE_UPDATE,k), f, f2); }
+    { f = SOLVER->mkTerm(SOLVER->mkOp(api::TUPLE_UPDATE,k), f, f2); }
   ;
 
 /**
@@ -1679,7 +1679,7 @@ recordStore[CVC4::api::Term& f]
       | DOT ( tupleStore[f2]
             | recordStore[f2] ) )
     | ASSIGN_TOK term[f2] )
-    { f = SOLVER->mkTermFromOp(SOLVER->mkOp(api::RECORD_UPDATE,id), f, f2); }
+    { f = SOLVER->mkTerm(SOLVER->mkOp(api::RECORD_UPDATE,id), f, f2); }
   ;
 
 /** Parses a unary minus term. */
@@ -1772,7 +1772,7 @@ postfixTerm[CVC4::api::Term& f]
       RBRACKET
       { if(extract) {
           /* bitvector extract */
-          f = SOLVER->mkTermFromOp(SOLVER->mkOp(api::BITVECTOR_EXTRACT,k1,k2), f);
+          f = SOLVER->mkTerm(SOLVER->mkOp(api::BITVECTOR_EXTRACT,k1,k2), f);
         } else {
           /* array select */
           f = MK_TERM(CVC4::api::SELECT, f, f2);
@@ -1788,7 +1788,7 @@ postfixTerm[CVC4::api::Term& f]
           unsigned bv_size = f.getSort().getBVSize();
           f = MK_TERM(api::BITVECTOR_CONCAT,
                       SOLVER->mkBitVector(k),
-                      SOLVER->mkTermFromOp(
+                      SOLVER->mkTerm(
                           SOLVER->mkOp(api::BITVECTOR_EXTRACT, bv_size - 1, k), f));
         }
       }
@@ -1843,7 +1843,7 @@ postfixTerm[CVC4::api::Term& f]
     | ABS_TOK LPAREN formula[f] RPAREN
       { f = MK_TERM(CVC4::api::ABS, f); }
     | DIVISIBLE_TOK LPAREN formula[f] COMMA n=numeral RPAREN
-      { f = SOLVER->mkTermFromOp(SOLVER->mkOp(CVC4::api::DIVISIBLE, n), f); }
+      { f = MK_TERM(SOLVER->mkOp(CVC4::api::DIVISIBLE, n), f); }
     | DISTINCT_TOK LPAREN
       formula[f] { args.push_back(f); }
       ( COMMA formula[f] { args.push_back(f); } )* RPAREN
@@ -1963,7 +1963,7 @@ bvTerm[CVC4::api::Term& f]
       // which is different than in the CVC language
       // SX(BITVECTOR(k), n) in CVC language extends to n bits
       // In SMT-LIB, such a thing expands to k + n bits
-      f = SOLVER->mkTermFromOp(SOLVER->mkOp(api::BITVECTOR_SIGN_EXTEND,k-n), f);
+      f = SOLVER->mkTerm(SOLVER->mkOp(api::BITVECTOR_SIGN_EXTEND,k-n), f);
     }
     /* BV zero extension */
   | BVZEROEXTEND_TOK LPAREN formula[f] COMMA k=numeral RPAREN
@@ -1972,17 +1972,17 @@ bvTerm[CVC4::api::Term& f]
       // which is the same as in CVC3, but different than SX!
       // SX(BITVECTOR(k), n) in CVC language extends to n bits
       // BVZEROEXTEND(BITVECTOR(k), n) in CVC language extends to k + n bits
-      f = SOLVER->mkTermFromOp(SOLVER->mkOp(api::BITVECTOR_ZERO_EXTEND,k), f);
+      f = SOLVER->mkTerm(SOLVER->mkOp(api::BITVECTOR_ZERO_EXTEND,k), f);
     }
     /* BV repeat operation */
   | BVREPEAT_TOK LPAREN formula[f] COMMA k=numeral RPAREN
-    { f = SOLVER->mkTermFromOp(SOLVER->mkOp(api::BITVECTOR_REPEAT,k), f); }
+    { f = SOLVER->mkTerm(SOLVER->mkOp(api::BITVECTOR_REPEAT,k), f); }
     /* BV rotate right */
   | BVROTR_TOK LPAREN formula[f] COMMA k=numeral RPAREN
-    { f = SOLVER->mkTermFromOp(SOLVER->mkOp(api::BITVECTOR_ROTATE_RIGHT,k), f); }
+    { f = SOLVER->mkTerm(SOLVER->mkOp(api::BITVECTOR_ROTATE_RIGHT,k), f); }
     /* BV rotate left */
   | BVROTL_TOK LPAREN formula[f] COMMA k=numeral RPAREN
-    { f = SOLVER->mkTermFromOp(SOLVER->mkOp(api::BITVECTOR_ROTATE_LEFT,k), f); }
+    { f = SOLVER->mkTerm(SOLVER->mkOp(api::BITVECTOR_ROTATE_LEFT,k), f); }
 
     /* BV comparisons */
   | BVLT_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
@@ -2065,7 +2065,7 @@ stringTerm[CVC4::api::Term& f]
   | REGEXP_LOOP_TOK LPAREN formula[f] COMMA lo=numeral COMMA hi=numeral RPAREN
     {
       api::Op lop = SOLVER->mkOp(CVC4::api::REGEXP_LOOP, lo, hi);
-      f = SOLVER->mkTermFromOp(lop, f);
+      f = MK_TERM(lop, f); 
     }
   | REGEXP_COMPLEMENT_TOK LPAREN formula[f] RPAREN
     { f = MK_TERM(CVC4::api::REGEXP_COMPLEMENT, f); }

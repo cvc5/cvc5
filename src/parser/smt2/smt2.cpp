@@ -1199,7 +1199,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   }
   if (!op.isNull())
   {
-    api::Term ret = d_solver->mkTermFromOp(op, args);
+    api::Term ret = d_solver->mkTerm(op, args);
     Debug("parser") << "applyParseOp: return op : " << ret << std::endl;
     return ret;
   }

@@ -58,8 +58,7 @@ class SetsTypeRuleWhite : public CxxTest::TestSuite
     Term emptyReal = d_slv->mkEmptySet(d_slv->mkSetSort(realSort));
     Term integerOne = d_slv->mkInteger(1);
     Term realOne = d_slv->mkReal(1);
-    std::vector<Term> terms = {integerOne};
-    Term singletonInt = d_slv->mkTerm(api::SINGLETON, terms);
+    Term singletonInt = d_slv->mkTerm(api::SINGLETON, integerOne);
     Term singletonReal = d_slv->mkTerm(api::SINGLETON, realOne);
     // (union
     //    (singleton (singleton_op Int) 1)

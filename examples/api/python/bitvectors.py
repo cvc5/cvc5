@@ -111,7 +111,7 @@ if __name__ == "__main__":
 
     # Assert that a is odd
     extract_op = slv.mkOp(kinds.BVExtract, 0, 0)
-    lsb_of_a = slv.mkTermFromOp(extract_op, a)
+    lsb_of_a = slv.mkTerm(extract_op, a)
     print("Sort of {} is {}".format(lsb_of_a, lsb_of_a.getSort()))
     a_odd = slv.mkTerm(kinds.Equal, lsb_of_a, slv.mkBitVector(1, 1))
     print("Assert", a_odd)

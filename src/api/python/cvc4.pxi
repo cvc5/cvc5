@@ -586,41 +586,28 @@ cdef class Solver:
         return sort
 
     @expand_list_arg(num_req_args=1)
-    def mkTermFromOp(self, op, *args):
-        '''
-            Supports the following arguments:
-                    Term mkTermFromOp(Op op)
-                    Term mkTermFromOp(Op op, List[Term] children)
-            where List[Term] can also be comma-separated arguments
-        '''
-        cdef Term term = Term(self)
-        cdef vector[c_Term] c_terms
-
-        if len(args) == 0:
-            term.cterm = self.csolver.mkTermFromOp((<Op?> op).cop)
-        else:
-            for a in args:
-                c_terms.push_back((<Term?> a).cterm)
-            term.cterm = self.csolver.mkTermFromOp((<Op?> op).cop, c_terms)
-        return term
-
-    @expand_list_arg(num_req_args=1)
-    def mkTerm(self, k, *args):
+    def mkTerm(self, kind_or_op, *args):
         '''
             Supports the following arguments:
                     Term mkTerm(Kind kind)
+                    Term mkTerm(Kind kind, Op child1, List[Term] children)
                     Term mkTerm(Kind kind, List[Term] children)
-            where List[Term] can also be comma-separated arguments
+
+                where List[Term] can also be comma-separated arguments
         '''
         cdef Term term = Term(self)
-        cdef vector[c_Term] c_terms
+        cdef vector[c_Term] v
+
+        op = kind_or_op
+        if isinstance(kind_or_op, kind):
+            op = self.mkOp(kind_or_op)
 
         if len(args) == 0:
-            term.cterm = self.csolver.mkTerm((<kind?> k).k)
+            term.cterm = self.csolver.mkTerm((<Op?> op).cop)
         else:
             for a in args:
-                c_terms.push_back((<Term?> a).cterm)
-            term.cterm = self.csolver.mkTerm((<kind?> k).k, c_terms)
+                v.push_back((<Term?> a).cterm)
+            term.cterm = self.csolver.mkTerm((<Op?> op).cop, v)
         return term
 
     def mkOp(self, kind k, arg0=None, arg1 = None):
