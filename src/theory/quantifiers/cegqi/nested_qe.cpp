@@ -30,11 +30,21 @@ bool NestedQe::registerQuantifiedFormula(Node q)
 
 bool NestedQe::getNestedQuantification(Node q, std::vector<Node>& nqs)
 {
-  
+  expr::getKindSubterms(q[1], kind::FORALL, true, nqs);
+  return !nqs.empty();
 }
 
 Node NestedQe::doNestedQe(Node q)
 {
+  Assert (q.getKind()==FORALL);
+  std::vector<Node> nqs;
+  if( !getNestedQuantification(q, nqs))
+  {
+    // just do ordinary quantifier elimination
+    return doQe(q);
+  }
+  // otherwise, skolemize the arguments of this and apply
+  
   
 }
 
