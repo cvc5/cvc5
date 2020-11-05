@@ -138,13 +138,13 @@ void getSymbols(TNode n,
  * @param n The node under investigation
  * @param k The kind we are considering
  * @param topLevel If true, we collect only the top-level subterms with kind
- * k. Subterms 
+ * k. Subterms
  * @param ts The set which the symbols of n are added to
  */
-void getKindSubterms(TNode n, 
-                 Kind k,
-                 bool topLevel,
-                std::unordered_set<Node, NodeHashFunction>& ts);
+void getKindSubterms(TNode n,
+                     Kind k,
+                     bool topLevel,
+                     std::unordered_set<Node, NodeHashFunction>& ts);
 
 /**
  * For term n, this function collects the operators that occur in n.

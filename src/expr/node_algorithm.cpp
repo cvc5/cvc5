@@ -452,10 +452,10 @@ void getSymbols(TNode n,
   } while (!visit.empty());
 }
 
-void getKindSubterms(TNode n, 
-                 Kind k,
-                 bool topLevel,
-                std::unordered_set<Node, NodeHashFunction>& ts)
+void getKindSubterms(TNode n,
+                     Kind k,
+                     bool topLevel,
+                     std::unordered_set<Node, NodeHashFunction>& ts)
 {
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::vector<TNode> visit;

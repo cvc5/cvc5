@@ -16,14 +16,15 @@
 #include "theory/quantifiers/cegqi/nested_qe.h"
 
 #include "expr/node_algorithm.h"
-#include "theory/smt_engine_subsolver.h"
 #include "expr/subs.h"
+#include "theory/smt_engine_subsolver.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-bool NestedQe::getNestedQuantification(Node q, std::unordered_set<Node, NodeHashFunction>& nqs)
+bool NestedQe::getNestedQuantification(
+    Node q, std::unordered_set<Node, NodeHashFunction>& nqs)
 {
   expr::getKindSubterms(q[1], kind::FORALL, true, nqs);
   return !nqs.empty();
@@ -31,9 +32,9 @@ bool NestedQe::getNestedQuantification(Node q, std::unordered_set<Node, NodeHash
 
 Node NestedQe::doNestedQe(Node q, bool keepTopLevel)
 {
-  Assert (q.getKind()==kind::FORALL);
+  Assert(q.getKind() == kind::FORALL);
   std::unordered_set<Node, NodeHashFunction> nqs;
-  if( !getNestedQuantification(q, nqs))
+  if (!getNestedQuantification(q, nqs))
   {
     if (keepTopLevel)
     {
@@ -59,25 +60,24 @@ Node NestedQe::doNestedQe(Node q, bool keepTopLevel)
   std::vector<Node> qargs;
   qargs.push_back(q[0]);
   qargs.push_back(qeBody);
-  if (q.getNumChildren()==3)
+  if (q.getNumChildren() == 3)
   {
     qargs.push_back(q[2]);
   }
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   return nm->mkNode(kind::FORALL, qargs);
 }
 
 Node NestedQe::doQe(Node q)
 {
-  Assert (q.getKind()==kind::FORALL);
-  NodeManager * nm = NodeManager::currentNM();
+  Assert(q.getKind() == kind::FORALL);
+  NodeManager* nm = NodeManager::currentNM();
   q = nm->mkNode(kind::EXISTS, q[0], q[1].negate());
   std::unique_ptr<SmtEngine> smt_qe;
   initializeSubsolver(smt_qe);
   return smt_qe->getQuantifierElimination(q, true, false);
 }
 
-}
-}
-}
-
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
