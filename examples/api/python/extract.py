@@ -26,16 +26,16 @@ if __name__ == "__main__":
     x = slv.mkConst(bitvector32, "a")
 
     ext_31_1 = slv.mkOp(BVExtract, 31, 1)
-    x_31_1 = slv.mkTerm(ext_31_1, x)
+    x_31_1 = slv.mkTermFromOp(ext_31_1, x)
 
     ext_30_0 = slv.mkOp(BVExtract, 30, 0)
-    x_30_0 = slv.mkTerm(ext_30_0, x)
+    x_30_0 = slv.mkTermFromOp(ext_30_0, x)
 
     ext_31_31 = slv.mkOp(BVExtract, 31, 31)
-    x_31_31 = slv.mkTerm(ext_31_31, x)
+    x_31_31 = slv.mkTermFromOp(ext_31_31, x)
 
     ext_0_0 = slv.mkOp(BVExtract, 0, 0)
-    x_0_0 = slv.mkTerm(ext_0_0, x)
+    x_0_0 = slv.mkTermFromOp(ext_0_0, x)
 
     # test getting indices
     assert ext_30_0.getIndices() == (30, 0)

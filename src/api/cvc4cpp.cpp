@@ -4210,7 +4210,7 @@ Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
   return mkTermHelper(kind, children);
 }
 
-Term Solver::mkTerm(Op op) const
+Term Solver::mkTermFromOp(Op op) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
@@ -4234,7 +4234,7 @@ Term Solver::mkTerm(Op op) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::mkTerm(Op op, Term child) const
+Term Solver::mkTermFromOp(Op op, Term child) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
@@ -4260,7 +4260,7 @@ Term Solver::mkTerm(Op op, Term child) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::mkTerm(Op op, Term child1, Term child2) const
+Term Solver::mkTermFromOp(Op op, Term child1, Term child2) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
@@ -4288,7 +4288,7 @@ Term Solver::mkTerm(Op op, Term child1, Term child2) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::mkTerm(Op op, Term child1, Term child2, Term child3) const
+Term Solver::mkTermFromOp(Op op, Term child1, Term child2, Term child3) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
@@ -4320,7 +4320,7 @@ Term Solver::mkTerm(Op op, Term child1, Term child2, Term child3) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::mkTerm(Op op, const std::vector<Term>& children) const
+Term Solver::mkTermFromOp(Op op, const std::vector<Term>& children) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;

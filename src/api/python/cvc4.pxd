@@ -146,8 +146,10 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Sort mkUninterpretedSort(const string& symbol) except +
         Sort mkSortConstructorSort(const string& symbol, size_t arity) except +
         Sort mkTupleSort(const vector[Sort]& sorts) except +
-        Term mkTerm(Op op) except +
-        Term mkTerm(Op op, const vector[Term]& children) except +
+        Term mkTermFromOp(Op op) except +
+        Term mkTerm(Kind kind) except +
+        Term mkTermFromOp(Op op, const vector[Term]& children) except +
+        Term mkTerm(Kind kind, const vector[Term]& children) except +
         Op mkOp(Kind kind) except +
         Op mkOp(Kind kind, Kind k) except +
         Op mkOp(Kind kind, const string& arg) except +
