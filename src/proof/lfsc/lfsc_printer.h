@@ -32,8 +32,12 @@ namespace proof {
  */
 enum class LfscRule : uint32_t
 {
+  //----------- translated rules
+  SYMM,
   NEG_SYMM,
+  TRANS,
   CONG,
+  //----------- unknown
   UNKNOWN,
 };
 

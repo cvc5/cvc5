@@ -102,7 +102,7 @@ void CadSolver::checkFull()
     Trace("nl-cad") << "UNSAT with MIS: " << mis << std::endl;
     Node lem = NodeManager::currentNM()->mkAnd(mis).negate();
     d_im.addTrustedLemma(TrustNode::mkTrustLemma(lem, d_CAC.getProof()),
-                            InferenceId::NL_CAD_CONFLICT);
+                         InferenceId::NL_CAD_CONFLICT);
   }
 #else
   Warning() << "Tried to use CadSolver but libpoly is not available. Compile "

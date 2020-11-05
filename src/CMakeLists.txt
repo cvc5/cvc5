@@ -512,6 +512,8 @@ libcvc4_add_sources(
   theory/bv/bitblast/eager_bitblaster.h
   theory/bv/bitblast/lazy_bitblaster.cpp
   theory/bv/bitblast/lazy_bitblaster.h
+  theory/bv/bitblast/simple_bitblaster.cpp
+  theory/bv/bitblast/simple_bitblaster.h
   theory/bv/bv_eager_solver.cpp
   theory/bv/bv_eager_solver.h
   theory/bv/bv_inequality_graph.cpp
@@ -532,6 +534,8 @@ libcvc4_add_sources(
   theory/bv/bv_subtheory_core.h
   theory/bv/bv_subtheory_inequality.cpp
   theory/bv/bv_subtheory_inequality.h
+  theory/bv/proof_checker.cpp
+  theory/bv/proof_checker.h
   theory/bv/slicer.cpp
   theory/bv/slicer.h
   theory/bv/theory_bv.cpp
@@ -772,6 +776,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/sygus_pbe.h
   theory/quantifiers/sygus/sygus_process_conj.cpp
   theory/quantifiers/sygus/sygus_process_conj.h
+  theory/quantifiers/sygus/sygus_qe_preproc.cpp
+  theory/quantifiers/sygus/sygus_qe_preproc.h
   theory/quantifiers/sygus/sygus_repair_const.cpp
   theory/quantifiers/sygus/sygus_repair_const.h
   theory/quantifiers/sygus/sygus_stats.cpp

@@ -31,6 +31,7 @@
 #include "options/printer_options.h"
 #include "options/smt_options.h"
 #include "printer/dagification_visitor.h"
+#include "proof/lfsc/letify.h"
 #include "proof/unsat_core.h"
 #include "smt/command.h"
 #include "smt/node_command.h"
@@ -65,6 +66,38 @@ void Smt2Printer::toStream(
     std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const
 {
   if(dag != 0) {
+#if 0
+    // NOTE: if we use this form of dagification, we should change
+    // how closures are printed, which should force re-letifying bodies
+    std::vector<Node> letList;
+    std::map<Node, uint32_t> letMap;
+    proof::Letify::computeLet(n, letList, letMap, dag+1);
+    std::stringstream cparen;
+    if (!letList.empty())
+    {
+      std::map<Node, uint32_t>::const_iterator it;
+      for (size_t i = 0, nlets = letList.size(); i < nlets; i++)
+      {
+        Node nl = letList[i];
+        it = letMap.find(nl);
+        Assert(it != letMap.end());
+        out << "(let ((";
+        uint32_t id = it->second;
+        out << "_let_" << id << " ";
+        // remove, print, insert again
+        letMap.erase(nl);
+        Node nlc = proof::Letify::convert(nl, letMap, "_let_");
+        toStream(out, nlc, toDepth, types, TypeNode::null());
+        letMap[nl] = id;
+        out << "))";
+        cparen << ")";
+      }
+    }
+    // print the body
+    Node nc = proof::Letify::convert(n, letMap, "_let_");
+    toStream(out, nc, toDepth, types, TypeNode::null());
+    out << cparen.str();
+#else
     DagificationVisitor dv(dag);
     NodeVisitor<DagificationVisitor> visitor;
     visitor.run(dv, n);
@@ -89,6 +122,7 @@ void Smt2Printer::toStream(
         out << ")";
       }
     }
+#endif
   } else {
     toStream(out, n, toDepth, types, TypeNode::null());
   }
@@ -366,6 +400,13 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::FLOATINGPOINT_TO_SBV_TOTAL_OP:
       out << "(_ fp.to_sbv_total "
           << n.getConst<FloatingPointToSBVTotal>().bvs.d_size << ")";
+      break;
+    case kind::REGEXP_REPEAT_OP:
+      out << "(_ re.^ " << n.getConst<RegExpRepeat>().d_repeatAmount << ")";
+      break;
+    case kind::REGEXP_LOOP_OP:
+      out << "(_ re.loop " << n.getConst<RegExpLoop>().d_loopMinOcc << " "
+          << n.getConst<RegExpLoop>().d_loopMaxOcc << ")";
       break;
     default:
       // fall back on whatever operator<< does on underlying type; we
@@ -675,7 +716,6 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::REGEXP_PLUS:
   case kind::REGEXP_OPT:
   case kind::REGEXP_RANGE:
-  case kind::REGEXP_LOOP:
   case kind::REGEXP_COMPLEMENT:
   case kind::REGEXP_DIFF:
   case kind::REGEXP_EMPTY:
@@ -683,6 +723,13 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::SEQ_UNIT:
   case kind::SEQ_NTH:
   case kind::SEQUENCE_TYPE: out << smtKindString(k, d_variant) << " "; break;
+  case kind::REGEXP_REPEAT:
+  case kind::REGEXP_LOOP:
+  {
+    out << n.getOperator() << ' ';
+    stillNeedToPrintParams = false;
+    break;
+  }
 
   case kind::CARDINALITY_CONSTRAINT: out << "fmf.card "; break;
   case kind::CARDINALITY_VALUE: out << "fmf.card.val "; break;
@@ -1268,6 +1315,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::REGEXP_PLUS: return "re.+";
   case kind::REGEXP_OPT: return "re.opt";
   case kind::REGEXP_RANGE: return "re.range";
+  case kind::REGEXP_REPEAT: return "re.^";
   case kind::REGEXP_LOOP: return "re.loop";
   case kind::REGEXP_COMPLEMENT: return "re.comp";
   case kind::REGEXP_DIFF: return "re.diff";
