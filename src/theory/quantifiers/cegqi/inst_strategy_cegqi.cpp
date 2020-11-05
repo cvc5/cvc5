@@ -65,7 +65,11 @@ InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe)
   if (options::cegqiBv())
   {
     // if doing instantiation for BV, need the inverter class
-    d_bv_invert.reset(new quantifiers::BvInverter);
+    d_bv_invert.reset(new BvInverter);
+  }
+  if (options::cegqiNestedQE())
+  {
+    d_nestedQe.reset(new NestedQe(qe->getUserContext()));
   }
 }
 
@@ -337,6 +341,11 @@ void InstStrategyCegqi::checkOwnership(Node q)
 void InstStrategyCegqi::preRegisterQuantifier(Node q)
 {
   if( doCbqi( q ) ){
+    if (processNestedQe(q))
+    {
+      // processed using nested quantifier elimination
+      return;
+    }
     // get the instantiator
     if (options::cegqiPreRegInst())
     {
@@ -414,6 +423,13 @@ bool InstStrategyCegqi::doCbqi(Node q)
 }
 
 void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
+  // If we are doing nested quantifier elimination, check if q was already
+  // processed.
+  if (processNestedQe(q))
+  {
+    // don't need to process this, since it has been reduced
+    return;
+  }  
   if( e==0 ){
     CegInstantiator * cinst = getInstantiator( q );
     Trace("inst-alg") << "-> Run cegqi for " << q << std::endl;
@@ -524,6 +540,25 @@ void InstStrategyCegqi::presolve() {
     Trace("cegqi-presolve") << "Presolve " << ci.first << std::endl;
     ci.second->presolve(ci.first);
   }
+}
+
+bool InstStrategyCegqi::processNestedQe(Node q)
+{
+  if (d_nestedQe!=nullptr)
+  {
+    std::vector<Node> lems;
+    if (d_nestedQe->process(q, lems))
+    {
+      // add lemmas to process
+      for (const Node& lem : lems)
+      {
+        d_quantEngine->addLemma(lem);
+      }
+      // don't need to process this, since it has been reduced
+      return true;
+    }
+  }  
+  return false;
 }
 
 }  // namespace quantifiers

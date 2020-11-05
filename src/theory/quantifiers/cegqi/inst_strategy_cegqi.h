@@ -24,6 +24,7 @@
 #include "theory/quantifiers/cegqi/vts_term_cache.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/cegqi/nested_qe.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -191,6 +192,11 @@ class InstStrategyCegqi : public QuantifiersModule
   void registerCounterexampleLemma(Node q, Node lem);
   /** has added cbqi lemma */
   bool hasAddedCbqiLemma( Node q ) { return d_added_cbqi_lemma.find( q )!=d_added_cbqi_lemma.end(); }
+  /**
+   * Return true if q can be processed with nested quantifier elimination.
+   * This may add a lemma on the output channel of quantifiers engine if so.
+   */
+  bool processNestedQe(Node q);
   /** process functions */
   void process(Node q, Theory::Effort effort, int e);
   /**
@@ -202,8 +208,9 @@ class InstStrategyCegqi : public QuantifiersModule
   Node getCounterexampleLiteral(Node q);
   /** map from universal quantifiers to their counterexample literals */
   std::map<Node, Node> d_ce_lit;
+  /** The nested quantifier elimination utility */
+  std::unique_ptr<NestedQe> d_nestedQe;
 };
-
 
 }
 }

@@ -22,6 +22,32 @@
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
+  
+NestedQe::NestedQe(context::UserContext* u) : d_qnqe(u){}
+
+bool NestedQe::process(Node q, std::vector<Node>& lems)
+{
+  NodeNodeMap::iterator it = d_qnqe.find(q);
+  if (it !=d_qnqe.end())
+  {
+    // already processed
+    return (*it).second!=q;
+  }
+  Trace("cegqi-nested-qe") << "Do nested QE on " << q << std::endl;
+  Node qqe = doNestedQe(q, true);
+  d_qnqe[q] = qqe;
+  if (qqe==q)
+  {
+    Trace("cegqi-nested-qe") << "Did not apply nested QE to " << qqe << std::endl;
+    return false;
+  }
+  Trace("cegqi-nested-qe") << "Applied nested QE to " << q << std::endl;
+  Trace("cegqi-nested-qe") << "Result is " << qqe << std::endl;
+  
+  // add as lemma
+  lems.push_back(q.eqNode(qqe));
+  return true;
+}
 
 bool NestedQe::getNestedQuantification(
     Node q, std::unordered_set<Node, NodeHashFunction>& nqs)
@@ -36,27 +62,41 @@ Node NestedQe::doNestedQe(Node q, bool keepTopLevel)
   std::unordered_set<Node, NodeHashFunction> nqs;
   if (!getNestedQuantification(q, nqs))
   {
+    Trace("cegqi-nested-qe-debug") << "...no nested quantification" << std::endl;
     if (keepTopLevel)
     {
       return q;
     }
     // just do ordinary quantifier elimination
-    return doQe(q);
+    Node qqe = doQe(q);
+    Trace("cegqi-nested-qe-debug") << "...did ordinary qe" << std::endl;
+    return qqe;
   }
+  Trace("cegqi-nested-qe-debug") << "..." << nqs.size() << " nested quantifiers" << std::endl;
   // otherwise, skolemize the arguments of this and apply
   std::vector<Node> vars(q[0].begin(), q[0].end());
   Subs sk;
   sk.add(vars);
+  // do nested quantifier elimination on each nested quantifier, skolemizing the free variables
   Subs snqe;
   for (const Node& nq : nqs)
   {
     Node nqk = sk.apply(nq);
-    Node nqqe = doNestedQe(q);
+    Node nqqe = doNestedQe(nqk);
+    if (nqqe==nqk)
+    {
+      // failed
+      Trace("cegqi-nested-qe-debug") << "...failed to apply to nested" << std::endl;
+      return q;
+    }
     snqe.add(nqk, nqqe);
   }
+  // get the result of nested quantifier elimination
   Node qeBody = sk.apply(q[1]);
   qeBody = snqe.apply(qeBody);
+  // undo the skolemization
   qeBody = sk.rapply(qeBody, true);
+  // reconstruct the body
   std::vector<Node> qargs;
   qargs.push_back(q[0]);
   qargs.push_back(qeBody);
@@ -71,11 +111,18 @@ Node NestedQe::doNestedQe(Node q, bool keepTopLevel)
 Node NestedQe::doQe(Node q)
 {
   Assert(q.getKind() == kind::FORALL);
+  Trace("cegqi-nested-qe-debug") << "Apply qe to " << q << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   q = nm->mkNode(kind::EXISTS, q[0], q[1].negate());
   std::unique_ptr<SmtEngine> smt_qe;
   initializeSubsolver(smt_qe);
-  return smt_qe->getQuantifierElimination(q, true, false);
+  Node qqe = smt_qe->getQuantifierElimination(q, true, false);
+  if (expr::hasBoundVar(qqe))
+  {
+    //...failed to apply
+    return q;
+  }
+  return qqe;
 }
 
 }  // namespace quantifiers
