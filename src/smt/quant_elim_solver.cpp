@@ -18,6 +18,7 @@
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
+#include "expr/subs.h"
 
 using namespace CVC4::theory;
 using namespace CVC4::kind;
@@ -73,6 +74,9 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
       // failed, return original
       return q;
     }
+    // must use original quantified formula to compute QE, which ensures that
+    // e.g. term formula removal is not run on the body. Notice that we assume
+    // that the (single) quantified formula is the preprocessed, rewritten
     std::vector<Node> inst_qs;
     te->getInstantiatedQuantifiedFormulas(inst_qs);
     Assert(inst_qs.size() <= 1);
@@ -82,7 +86,19 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
       Node topq = inst_qs[0];
       Assert(topq.getKind() == FORALL);
       Trace("smt-qe") << "Get qe for " << topq << std::endl;
-      ret = te->getInstantiatedConjunction(topq);
+      std::vector<std::vector<Node>> insts;
+      te->getInstantiationTermVectors(topq, insts);
+      std::vector<Node> vars(ne[0].begin(), ne[0].end());
+      std::vector<Node> conjs;
+      // apply the instantiation on the original body
+      for (const std::vector<Node>& inst : insts)
+      {
+        Subs s;
+        s.add(vars, inst);
+        Node c = s.apply(ne[1].negate());
+        conjs.push_back(c);
+      }
+      ret = nm->mkAnd(conjs);
       Trace("smt-qe") << "Returned : " << ret << std::endl;
       if (q.getKind() == EXISTS)
       {

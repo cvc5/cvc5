@@ -839,7 +839,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
   // Do we need to track instantiations?
   // Needed for sygus due to single invocation techniques.
-  if ((options::unsatCores() && !options::trackInstLemmas.wasSetByUser())
+  if (options::cegqiNestedQE() || 
+      (options::unsatCores() && !options::trackInstLemmas.wasSetByUser())
       || is_sygus)
   {
     options::trackInstLemmas.set(true);
