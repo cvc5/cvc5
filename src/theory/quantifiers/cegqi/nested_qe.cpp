@@ -128,7 +128,7 @@ Node NestedQe::doQe(Node q)
     return q;
   }
   Node res = qqe.negate();
-  Trace("cegqi-nested-qe") << "  ...success, result" << res << std::endl;
+  Trace("cegqi-nested-qe") << "  ...success, result = " << res << std::endl;
   return res;
 }
 
