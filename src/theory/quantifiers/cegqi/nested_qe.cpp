@@ -38,8 +38,7 @@ bool NestedQe::process(Node q, std::vector<Node>& lems)
   d_qnqe[q] = qqe;
   if (qqe == q)
   {
-    Trace("cegqi-nested-qe")
-        << "...did not apply nested QE" << std::endl;
+    Trace("cegqi-nested-qe") << "...did not apply nested QE" << std::endl;
     return false;
   }
   Trace("cegqi-nested-qe") << "...applied nested QE" << std::endl;
@@ -129,7 +128,7 @@ Node NestedQe::doQe(Node q)
     return q;
   }
   Node res = qqe.negate();
-    Trace("cegqi-nested-qe") << "  ...success, result" << res << std::endl;
+  Trace("cegqi-nested-qe") << "  ...success, result" << res << std::endl;
   return res;
 }
 
