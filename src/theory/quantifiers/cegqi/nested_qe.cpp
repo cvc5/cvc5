@@ -33,16 +33,16 @@ bool NestedQe::process(Node q, std::vector<Node>& lems)
     // already processed
     return (*it).second != q;
   }
-  Trace("cegqi-nested-qe") << "Do nested QE on " << q << std::endl;
+  Trace("cegqi-nested-qe") << "Check nested QE on " << q << std::endl;
   Node qqe = doNestedQe(q, true);
   d_qnqe[q] = qqe;
   if (qqe == q)
   {
     Trace("cegqi-nested-qe")
-        << "Did not apply nested QE to " << qqe << std::endl;
+        << "...did not apply nested QE" << std::endl;
     return false;
   }
-  Trace("cegqi-nested-qe") << "Applied nested QE to " << q << std::endl;
+  Trace("cegqi-nested-qe") << "...applied nested QE" << std::endl;
   Trace("cegqi-nested-qe") << "Result is " << qqe << std::endl;
 
   // add as lemma
@@ -116,7 +116,7 @@ Node NestedQe::doNestedQe(Node q, bool keepTopLevel)
 Node NestedQe::doQe(Node q)
 {
   Assert(q.getKind() == kind::FORALL);
-  Trace("cegqi-nested-qe-debug") << "Apply qe to " << q << std::endl;
+  Trace("cegqi-nested-qe") << "  Apply qe to " << q << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   q = nm->mkNode(kind::EXISTS, q[0], q[1].negate());
   std::unique_ptr<SmtEngine> smt_qe;
@@ -124,10 +124,13 @@ Node NestedQe::doQe(Node q)
   Node qqe = smt_qe->getQuantifierElimination(q, true, false);
   if (expr::hasBoundVar(qqe))
   {
+    Trace("cegqi-nested-qe") << "  ...failed QE" << std::endl;
     //...failed to apply
     return q;
   }
-  return qqe.negate();
+  Node res = qqe.negate();
+    Trace("cegqi-nested-qe") << "  ...success, result" << res << std::endl;
+  return res;
 }
 
 }  // namespace quantifiers
