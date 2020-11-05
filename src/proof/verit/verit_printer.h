@@ -36,9 +36,18 @@ static int veritPrintInternal(std::ostream& out,
   std::vector<int> childIds;
   i++;
 
-  std::string last_step;
-  if (static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString()))
-      == VeritRule::ANCHOR)
+  std::string last_step = "";
+  //In case the rule is an assume
+  if (static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString())) == VeritRule::ASSUME)
+  {
+    out << "(assume t" << temp << " " << pfn->getArguments()[1] << ")"
+        << std::endl;
+    return i;
+  }
+
+
+  //In case the rule is an anchor
+  if (static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString())) == VeritRule::ANCHOR)
   {
     out << "(anchor :step " << last_step << ":args ";
     for (int i = 2; i < pfn->getArguments().size(); i++)
@@ -48,52 +57,60 @@ static int veritPrintInternal(std::ostream& out,
     out << ")\n";
   }
 
+
+  //Print Children
   for (auto child : pfn->getChildren())
   {
-    childIds.push_back(i);
+    if(static_cast<VeritRule>(std::stoul(child->getArguments()[0].toString())) == VeritRule::OR
+	&&
+      static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString())) == VeritRule::RESOLUTION)
+    {   bool temp = false;
+	if(child->getChildren().size() >= 1){
+	if(static_cast<VeritRule>(std::stoul(child->getChildren()[0]->getArguments()[0].toString())) != VeritRule::ASSUME){
+	  for(auto child2: pfn->getChildren()){
+	    if(child2->getResult() == child->getChildren()[0]->getResult()[1].negate() ){ 
+	      temp = true;
+              childIds.push_back(i+1);
+	      break;
+	    }
+          }}
+	}
+       if(!temp){childIds.push_back(i);}
+
+	    std::cout << "test5" << std::endl;
+    }
+    else{
+      childIds.push_back(i);
+    }
     i = veritPrintInternal(out, child, i);
   }
 
   last_step = i;
 
-  if (static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString()))
-      == VeritRule::ASSUME)
-  {
-    out << "(assume t" << temp << " " << pfn->getArguments()[1] << ")"
-        << std::endl;
-    return i;
-  }
-
-  if (static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString()))
-      == VeritRule::ANCHOR)
+  if (static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString())) == VeritRule::ANCHOR
+      || static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString())) == VeritRule::ASSUME)
   {
     return i;
   }
 
-  if (pfn->getArguments().size() == 2)
+
+  //Print current step
+  if (pfn->getArguments().size() >= 2)
   {
-    out << "(step t" << temp << " " << pfn->getArguments()[1] << " :rule "
-        << veritRuletoString(static_cast<VeritRule>(
-               std::stoul(pfn->getArguments()[0].toString())));
-    if (childIds.size() >= 1)
-    {
-      out << " :premises";
-      for (auto j : childIds)
-      {
-        out << " t" << j;
-      }
+    out << "(step t" << temp << " ";
+    if(pfn->getArguments()[1][1] == Node::null()){
+      out << "(cl)";
     }
-    out << ")\n";
-  }
-  else if (pfn->getArguments().size() > 2)
-  {
-    out << "(step t" << temp << " " << pfn->getArguments()[1] << " :rule "
-        << veritRuletoString(static_cast<VeritRule>(
-               std::stoul(pfn->getArguments()[0].toString())))
-        << " :args";
-    for (int i = 2; i < pfn->getArguments().size(); i++)
-    {
-      out << " " << pfn->getArguments()[i];
+    else{
+      out << pfn->getArguments()[1];
+    }
+    out << " :rule " << veritRuletoString(static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString())));
+    if (pfn->getArguments().size() > 2){
+      out << " :args";
+      for (int i = 2; i < pfn->getArguments().size(); i++)
+      {
+        out << " " << pfn->getArguments()[i];
+      }
     }
     if (childIds.size() >= 1)
     {

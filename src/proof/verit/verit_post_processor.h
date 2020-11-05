@@ -60,11 +60,13 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
               const std::vector<Node>& args,
               CDProof* cdp,
               bool& continueUpdate) override;
-
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
+  /** The node manager */
   NodeManager* d_nm;
+  /** The variable cl **/
+  Node d_cl;
   /**
    * This method adds a new step to the proof applying the veriT rule.
    *
@@ -73,13 +75,50 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
    * @param children The children of the application,
    * @param args The arguments of the application,
    * @param cdp The proof to add to,
-   * @return True if the step could be added, or null if not.
+   * @return True if the step could be added, or false if not.
    */
   bool addVeritStep(Node res,
                     VeritRule rule,
                     const std::vector<Node>& children,
                     const std::vector<Node>& args,
                     CDProof& cdp);
+  /**
+   * This method adds a new step to the proof applying the veriT rule but adds
+   * a conclusion different from the result
+   *
+   * @param res The expected result of the application,
+   * @param rule The id of the veriT rule,
+   * @param conclusion The conclusion of the application as the veriT printer
+   * @param children The children of the application,
+   * @param args The arguments of the application
+   * @param cdp The proof to add to
+   * @return True if the step could be added, or false if not.
+  */
+  bool addVeritStep(Node res,
+		    VeritRule rule,
+		    Node conclusion,
+		    const std::vector<Node>& children,
+		    const std::vector<Node>& args,
+		    CDProof& cdp);
+  /**
+   * This method adds a new step to the proof applying the veriT rule while
+   * replacing the outermost or by cl, i.e. (cl F1 ... Fn). The kind of the
+   * given Node has to be OR.
+   *
+   * @param res The expected result of the application in form (or F1 ... Fn),
+   * @param rule The id of the veriT rule,
+   * @param children The children of the application,
+   * @param args The arguments of the application
+   * @param cdp The proof to add to
+   * @return True if the step could be added, or false if not.
+  */
+
+  bool addVeritClStepFromOr(Node res,
+		            VeritRule rule,
+		            const std::vector<Node>& children,
+		            const std::vector<Node>& args,
+		            CDProof& cdp);
+
 };
 
 /**
