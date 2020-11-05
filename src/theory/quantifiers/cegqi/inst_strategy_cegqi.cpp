@@ -344,7 +344,7 @@ void InstStrategyCegqi::preRegisterQuantifier(Node q)
   {
     if (processNestedQe(q, true))
     {
-      // processed using nested quantifier elimination
+      // will process using nested quantifier elimination
       return;
     }
     // get the instantiator
@@ -549,7 +549,8 @@ bool InstStrategyCegqi::processNestedQe(Node q, bool isPreregister)
   {
     if (isPreregister)
     {
-      // if at preregister, we are done if we have nested quantification
+      // If at preregister, we are done if we have nested quantification.
+      // We will process nested quantification.
       return NestedQe::hasNestedQuantification(q);
     }
     // if not a preregister, we process, which may trigger quantifier

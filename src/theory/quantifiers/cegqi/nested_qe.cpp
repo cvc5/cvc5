@@ -63,7 +63,7 @@ bool NestedQe::getNestedQuantification(
 
 bool NestedQe::hasNestedQuantification(Node q)
 {
-  std::vector<Node> nqs;
+  std::unordered_set<Node, NodeHashFunction> nqs;
   return getNestedQuantification(q, nqs);
 }
 
