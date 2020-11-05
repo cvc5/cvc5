@@ -127,7 +127,7 @@ Node NestedQe::doQe(Node q)
     //...failed to apply
     return q;
   }
-  return qqe;
+  return qqe.negate();
 }
 
 }  // namespace quantifiers
