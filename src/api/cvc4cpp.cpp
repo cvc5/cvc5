@@ -4261,7 +4261,7 @@ Term Solver::mkTermHelper(const Op& op, const std::vector<Term>& children) const
 {
   if (!op.isIndexedHelper())
   {
-    return mkTerm(op.d_kind, children);
+    return mkTermHelper(op.d_kind, children);
   }
 
   NodeManagerScope scope(getNodeManager());
