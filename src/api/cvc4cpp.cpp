@@ -4202,20 +4202,7 @@ Term Solver::mkTerm(Kind kind, Term child) const
 
 Term Solver::mkTerm(Kind kind, Term child1, Term child2) const
 {
-  NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_ARG_CHECK_EXPECTED(!child1.isNull(), child1) << "non-null term";
-  CVC4_API_ARG_CHECK_EXPECTED(!child2.isNull(), child2) << "non-null term";
-  CVC4_API_SOLVER_CHECK_TERM(child1);
-  CVC4_API_SOLVER_CHECK_TERM(child2);
-  checkMkTerm(kind, 2);
-
-  Node res = getNodeManager()->mkNode(
-      extToIntKind(kind), *child1.d_node, *child2.d_node);
-  (void)res.getType(true); /* kick off type checking */
-  return Term(this, res);
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  return mkTermHelper(kind, std::vector<Term>{child1, child2});
 }
 
 Term Solver::mkTerm(Kind kind, Term child1, Term child2, Term child3) const
@@ -4236,16 +4223,13 @@ Term Solver::mkTerm(Op op) const
   CVC4_API_SOLVER_CHECK_OP(op);
   checkMkTerm(op.d_kind, 0);
 
-  Term res;
-  if (op.isIndexedHelper())
+  if (!op.isIndexedHelper())
   {
-    const CVC4::Kind int_kind = extToIntKind(op.d_kind);
-    res = Term(this, getNodeManager()->mkNode(int_kind, *op.d_node));
+    return mkTermFromKind(op.d_kind);
   }
-  else
-  {
-    res = mkTermFromKind(op.d_kind);
-  }
+
+  const CVC4::Kind int_kind = extToIntKind(op.d_kind);
+  Term res = Term(this, getNodeManager()->mkNode(int_kind, *op.d_node));
 
   (void)res.d_node->getType(true); /* kick off type checking */
   return res;
@@ -4255,92 +4239,31 @@ Term Solver::mkTerm(Op op) const
 
 Term Solver::mkTerm(Op op, Term child) const
 {
-  NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_SOLVER_CHECK_OP(op);
-  CVC4_API_ARG_CHECK_EXPECTED(!child.isNull(), child) << "non-null term";
-  CVC4_API_SOLVER_CHECK_TERM(child);
-  checkMkTerm(op.d_kind, 1);
-
-  const CVC4::Kind int_kind = extToIntKind(op.d_kind);
-  Node res;
-  if (op.isIndexedHelper())
-  {
-    res = getNodeManager()->mkNode(int_kind, *op.d_node, *child.d_node);
-  }
-  else
-  {
-    res = getNodeManager()->mkNode(int_kind, *child.d_node);
-  }
-
-  (void)res.getType(true); /* kick off type checking */
-  return Term(this, res);
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  return mkTermHelper(op, std::vector<Term>{child});
 }
 
 Term Solver::mkTerm(Op op, Term child1, Term child2) const
 {
-  NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_SOLVER_CHECK_OP(op);
-  CVC4_API_ARG_CHECK_EXPECTED(!child1.isNull(), child1) << "non-null term";
-  CVC4_API_ARG_CHECK_EXPECTED(!child2.isNull(), child2) << "non-null term";
-  CVC4_API_SOLVER_CHECK_TERM(child1);
-  CVC4_API_SOLVER_CHECK_TERM(child2);
-  checkMkTerm(op.d_kind, 2);
-
-  const CVC4::Kind int_kind = extToIntKind(op.d_kind);
-  Node res;
-  if (op.isIndexedHelper())
-  {
-    res = getNodeManager()->mkNode(
-        int_kind, *op.d_node, *child1.d_node, *child2.d_node);
-  }
-  else
-  {
-    res = getNodeManager()->mkNode(int_kind, *child1.d_node, *child2.d_node);
-  }
-
-  (void)res.getType(true); /* kick off type checking */
-  return Term(this, res);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  return mkTermHelper(op, std::vector<Term>{child1, child2});
 }
 
 Term Solver::mkTerm(Op op, Term child1, Term child2, Term child3) const
 {
-  NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_SOLVER_CHECK_OP(op);
-  CVC4_API_ARG_CHECK_EXPECTED(!child1.isNull(), child1) << "non-null term";
-  CVC4_API_ARG_CHECK_EXPECTED(!child2.isNull(), child2) << "non-null term";
-  CVC4_API_ARG_CHECK_EXPECTED(!child3.isNull(), child3) << "non-null term";
-  CVC4_API_SOLVER_CHECK_TERM(child1);
-  CVC4_API_SOLVER_CHECK_TERM(child2);
-  CVC4_API_SOLVER_CHECK_TERM(child3);
-  checkMkTerm(op.d_kind, 3);
-
-  const CVC4::Kind int_kind = extToIntKind(op.d_kind);
-  Node res;
-  if (op.isIndexedHelper())
-  {
-    res = getNodeManager()->mkNode(
-        int_kind, *op.d_node, *child1.d_node, *child2.d_node, *child3.d_node);
-  }
-  else
-  {
-    res = getNodeManager()->mkNode(
-        int_kind, *child1.d_node, *child2.d_node, *child3.d_node);
-  }
-
-  (void)res.getType(true); /* kick off type checking */
-  return Term(this, res);
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  return mkTermHelper(op, std::vector<Term>{child1, child2, child3});
 }
 
 Term Solver::mkTerm(Op op, const std::vector<Term>& children) const
 {
+  return mkTermHelper(op, children);
+}
+
+Term Solver::mkTermHelper(const Op& op, const std::vector<Term>& children) const
+{
+  if (!op.isIndexedHelper())
+  {
+    return mkTerm(op.d_kind, children);
+  }
+
   NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_SOLVER_CHECK_OP(op);
@@ -4357,18 +4280,11 @@ Term Solver::mkTerm(Op op, const std::vector<Term>& children) const
 
   const CVC4::Kind int_kind = extToIntKind(op.d_kind);
   std::vector<Node> echildren = termVectorToNodes(children);
-  Node res;
-  if (op.isIndexedHelper())
-  {
-    NodeBuilder<> nb(int_kind);
-    nb << *op.d_node;
-    nb.append(echildren);
-    res = nb.constructNode();
-  }
-  else
-  {
-    res = getNodeManager()->mkNode(int_kind, echildren);
-  }
+
+  NodeBuilder<> nb(int_kind);
+  nb << *op.d_node;
+  nb.append(echildren);
+  Node res = nb.constructNode();
 
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);

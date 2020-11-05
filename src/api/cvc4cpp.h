@@ -2475,8 +2475,7 @@ class CVC4_PUBLIC Solver
   /**
    * Create n-ary term of given kind from a given operator.
    * Create operators with mkOp().
-   * @param kind the kind of the term
-   * @param the operator
+   * @param op the operator
    * @children the children of the term
    * @return the Term
    */
@@ -3481,6 +3480,14 @@ class CVC4_PUBLIC Solver
    * @return the Term
    */
   Term mkTermHelper(Kind kind, const std::vector<Term>& children) const;
+
+  /**
+   * Create n-ary term of given kind from a given operator.
+   * @param op the operator
+   * @param children the children of the term
+   * @return the Term
+   */
+  Term mkTermHelper(const Op& op, const std::vector<Term>& children) const;
 
   /**
    * Create a vector of datatype sorts, using unresolved sorts.
