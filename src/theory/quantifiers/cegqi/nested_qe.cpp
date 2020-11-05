@@ -22,28 +22,29 @@
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-  
-NestedQe::NestedQe(context::UserContext* u) : d_qnqe(u){}
+
+NestedQe::NestedQe(context::UserContext* u) : d_qnqe(u) {}
 
 bool NestedQe::process(Node q, std::vector<Node>& lems)
 {
   NodeNodeMap::iterator it = d_qnqe.find(q);
-  if (it !=d_qnqe.end())
+  if (it != d_qnqe.end())
   {
     // already processed
-    return (*it).second!=q;
+    return (*it).second != q;
   }
   Trace("cegqi-nested-qe") << "Do nested QE on " << q << std::endl;
   Node qqe = doNestedQe(q, true);
   d_qnqe[q] = qqe;
-  if (qqe==q)
+  if (qqe == q)
   {
-    Trace("cegqi-nested-qe") << "Did not apply nested QE to " << qqe << std::endl;
+    Trace("cegqi-nested-qe")
+        << "Did not apply nested QE to " << qqe << std::endl;
     return false;
   }
   Trace("cegqi-nested-qe") << "Applied nested QE to " << q << std::endl;
   Trace("cegqi-nested-qe") << "Result is " << qqe << std::endl;
-  
+
   // add as lemma
   lems.push_back(q.eqNode(qqe));
   return true;
@@ -62,7 +63,8 @@ Node NestedQe::doNestedQe(Node q, bool keepTopLevel)
   std::unordered_set<Node, NodeHashFunction> nqs;
   if (!getNestedQuantification(q, nqs))
   {
-    Trace("cegqi-nested-qe-debug") << "...no nested quantification" << std::endl;
+    Trace("cegqi-nested-qe-debug")
+        << "...no nested quantification" << std::endl;
     if (keepTopLevel)
     {
       return q;
@@ -72,21 +74,24 @@ Node NestedQe::doNestedQe(Node q, bool keepTopLevel)
     Trace("cegqi-nested-qe-debug") << "...did ordinary qe" << std::endl;
     return qqe;
   }
-  Trace("cegqi-nested-qe-debug") << "..." << nqs.size() << " nested quantifiers" << std::endl;
+  Trace("cegqi-nested-qe-debug")
+      << "..." << nqs.size() << " nested quantifiers" << std::endl;
   // otherwise, skolemize the arguments of this and apply
   std::vector<Node> vars(q[0].begin(), q[0].end());
   Subs sk;
   sk.add(vars);
-  // do nested quantifier elimination on each nested quantifier, skolemizing the free variables
+  // do nested quantifier elimination on each nested quantifier, skolemizing the
+  // free variables
   Subs snqe;
   for (const Node& nq : nqs)
   {
     Node nqk = sk.apply(nq);
     Node nqqe = doNestedQe(nqk);
-    if (nqqe==nqk)
+    if (nqqe == nqk)
     {
       // failed
-      Trace("cegqi-nested-qe-debug") << "...failed to apply to nested" << std::endl;
+      Trace("cegqi-nested-qe-debug")
+          << "...failed to apply to nested" << std::endl;
       return q;
     }
     snqe.add(nqk, nqqe);

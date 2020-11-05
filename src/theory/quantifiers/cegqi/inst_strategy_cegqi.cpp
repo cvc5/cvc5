@@ -340,7 +340,8 @@ void InstStrategyCegqi::checkOwnership(Node q)
 
 void InstStrategyCegqi::preRegisterQuantifier(Node q)
 {
-  if( doCbqi( q ) ){
+  if (doCbqi(q))
+  {
     if (processNestedQe(q))
     {
       // processed using nested quantifier elimination
@@ -429,7 +430,7 @@ void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
   {
     // don't need to process this, since it has been reduced
     return;
-  }  
+  }
   if( e==0 ){
     CegInstantiator * cinst = getInstantiator( q );
     Trace("inst-alg") << "-> Run cegqi for " << q << std::endl;
@@ -544,7 +545,7 @@ void InstStrategyCegqi::presolve() {
 
 bool InstStrategyCegqi::processNestedQe(Node q)
 {
-  if (d_nestedQe!=nullptr)
+  if (d_nestedQe != nullptr)
   {
     std::vector<Node> lems;
     if (d_nestedQe->process(q, lems))
@@ -557,7 +558,7 @@ bool InstStrategyCegqi::processNestedQe(Node q)
       // don't need to process this, since it has been reduced
       return true;
     }
-  }  
+  }
   return false;
 }
 

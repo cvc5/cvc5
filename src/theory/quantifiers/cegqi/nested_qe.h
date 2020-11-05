@@ -20,8 +20,8 @@
 
 #include <unordered_set>
 
-#include "expr/node.h"
 #include "context/cdhashmap.h"
+#include "expr/node.h"
 
 namespace CVC4 {
 namespace theory {
@@ -29,7 +29,8 @@ namespace quantifiers {
 
 class NestedQe
 {
-  typedef context::CDHashMap< Node, Node, NodeHashFunction> NodeNodeMap;
+  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
+
  public:
   NestedQe(context::UserContext* u);
   ~NestedQe() {}
@@ -38,10 +39,11 @@ class NestedQe
    * via nested quantifier elimination (either during this call or previously
    * in this user context). If q was processed in this call, the lemma:
    *   (= q qqe)
-   * is added to lem, where qqe is the result of nested quantifier elimination on q.
+   * is added to lem, where qqe is the result of nested quantifier elimination
+   * on q.
    */
   bool process(Node q, std::vector<Node>& lems);
-  
+
   /**
    * Get quantifier elimination for q.
    */
@@ -60,6 +62,7 @@ class NestedQe
    * quantification.
    */
   static Node doQe(Node q);
+
  private:
   /**
    * Mapping from quantified formulas q to the result of doNestedQe(q, true).
