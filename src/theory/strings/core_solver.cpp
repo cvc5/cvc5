@@ -2394,11 +2394,20 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
   TypeNode intType = nm->integerType();
   Node k = sc->mkTypedSkolemCached(intType,n1,n2,SkolemCache::SK_DEQ_DIFF, "diff");
   Node deq = eq.negate();
-  Node conc;
-  // substring of length 1
-  Node ss1 = nm->mkNode(STRING_SUBSTR,n1,k,d_one);
-  Node ss2 = nm->mkNode(STRING_SUBSTR,n2,k,d_one);
-  conc = ss1.eqNode(ss2).negate();
+  Node ss1, ss2;
+  if (n1.getType().isString())
+  {
+    // substring of length 1
+    ss1 = nm->mkNode(STRING_SUBSTR,n1,k,d_one);
+    ss2 = nm->mkNode(STRING_SUBSTR,n2,k,d_one);
+  }
+  else
+  {
+    // as an optimization, for sequences, use seq.nth
+    ss1 = nm->mkNode(SEQ_NTH,n1,k);
+    ss2 = nm->mkNode(SEQ_NTH,n2,k);
+  }
+  Node conc = ss1.eqNode(ss2).negate();
   d_im.sendInference({deq}, conc, Inference::DEQ_EXTENSIONALITY, false, true);
 }
 
