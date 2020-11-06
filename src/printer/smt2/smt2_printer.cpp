@@ -1019,13 +1019,11 @@ void Smt2Printer::toStreamCastToType(std::ostream& out,
                                      TypeNode tn) const
 {
   Node nasc;
-  if (n.getType() != tn)
+  if (n.getType().isInteger() && !tn.isInteger())
   {
-    // probably due to subtyping integers and reals, cast it using an apply
-    // type ascription.
-    NodeManager* nm = NodeManager::currentNM();
-    Node tc = nm->mkConst(AscriptionType(tn));
-    nasc = nm->mkNode(kind::APPLY_TYPE_ASCRIPTION, tc, n);
+    Assert (tn.isReal());
+    // probably due to subtyping integers and reals, cast it
+    nasc = NodeManager::currentNM()->mkNode(kind::CAST_TO_REAL, tc, n);
   }
   else
   {
