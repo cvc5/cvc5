@@ -67,6 +67,7 @@ const char* toString(Inference i)
     case Inference::DEQ_LENS_EQ: return "DEQ_LENS_EQ";
     case Inference::DEQ_NORM_EMP: return "DEQ_NORM_EMP";
     case Inference::DEQ_LENGTH_SP: return "DEQ_LENGTH_SP";
+    case Inference::DEQ_EXTENSIONALITY: return "DEQ_EXTENSIONALITY";
     case Inference::CODE_PROXY: return "CODE_PROXY";
     case Inference::CODE_INJ: return "CODE_INJ";
     case Inference::RE_NF_CONFLICT: return "RE_NF_CONFLICT";

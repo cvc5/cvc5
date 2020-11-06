@@ -214,6 +214,8 @@ enum class Inference : uint32_t
   // is unknown, we apply the inference:
   //   len(s) != len(t) V len(s) = len(t)
   DEQ_LENGTH_SP,
+  // Disequality extensionality
+  DEQ_EXTENSIONALITY,
   //-------------------------------------- end core solver
   //-------------------------------------- codes solver
   // str.to_code( v ) = rewrite( str.to_code(c) )

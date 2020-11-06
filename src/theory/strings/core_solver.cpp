@@ -40,7 +40,8 @@ CoreSolver::CoreSolver(SolverState& s,
       d_im(im),
       d_termReg(tr),
       d_bsolver(bs),
-      d_nfPairs(s.getSatContext())
+      d_nfPairs(s.getSatContext()),
+      d_extDeq(s.getUserContext())
 {
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
@@ -2007,6 +2008,12 @@ void CoreSolver::processDeq(Node ni, Node nj)
   {
     return;
   }
+  
+  if (options::stringsExtDeq())
+  {
+    processExtensionalityDeq(Node ni, Node nj);
+    return;
+  }
 
   nfi = nfni.d_nf;
   nfj = nfnj.d_nf;
@@ -2368,6 +2375,39 @@ bool CoreSolver::processSimpleDeq(std::vector<Node>& nfi,
     index++;
   }
   return false;
+}
+
+void CoreSolver::processDeqExt(Node n1, Node n2)
+{
+  // hash based on equality
+  Node eq = n1<n2 ? n1.eqNode(n2) : n2.eqNode(n1);
+  NodeSet::iterator it = d_extDeq.find(eq);
+  if (it != d_extDeq.end())
+  {
+    // already processed
+    return;
+  }
+  NodeManager * nm = NodeManager::currentNM();
+  SkolemCache* sc = d_termReg.getSkolemCache();
+  TypeNode intType = nm->integerType();
+  Node k = sc->mkTypedSkolemCached(intType,n1,n2,SkolemCache::SK_DEQ_DIFF, "diff");
+  // substring of length 1
+  Node ss1 = nm->mkNode(STRING_SUBSTR,n1,k,d_one);
+  Node ss2 = nm->mkNode(STRING_SUBSTR,n2,k,d_one);
+  Node deq = eq.negate();
+  d_im.sendInference(ant, conc, Inference::EXTENSIONALITY, false, true);
+  
+  
+  /*
+  if (n1.getType().isString())
+  {
+    // substring of length 1
+  }
+  else
+  {
+    // seq.units
+  }
+  */
 }
 
 void CoreSolver::addNormalFormPair( Node n1, Node n2 ){
