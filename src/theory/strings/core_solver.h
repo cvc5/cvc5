@@ -475,7 +475,7 @@ class CoreSolver
    * @param n1 The first string in the disequality
    * @param n2 The second string in the disequality
    */
-  void processDeqExt(Node n1, Node n2);
+  void processDeqExtensionality(Node n1, Node n2);
   //--------------------------end for checkNormalFormsDeq
 
   /** The solver state object */

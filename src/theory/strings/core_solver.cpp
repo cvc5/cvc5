@@ -2011,7 +2011,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
   
   if (options::stringsExtDeq())
   {
-    processExtensionalityDeq(Node ni, Node nj);
+    processDeqExtensionality(ni, nj);
     return;
   }
 
@@ -2377,7 +2377,7 @@ bool CoreSolver::processSimpleDeq(std::vector<Node>& nfi,
   return false;
 }
 
-void CoreSolver::processDeqExt(Node n1, Node n2)
+void CoreSolver::processDeqExtensionality(Node n1, Node n2)
 {
   // hash based on equality
   Node eq = n1<n2 ? n1.eqNode(n2) : n2.eqNode(n1);
