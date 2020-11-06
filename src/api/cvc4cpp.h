@@ -3462,6 +3462,8 @@ class CVC4_PUBLIC Solver
   Term mkTermFromKind(Kind kind) const;
   /* Helper for mkChar functions that take a string as argument. */
   Term mkCharFromStrHelper(const std::string& s) const;
+  /** Get value helper, which accounts for subtyping */
+  Term getValueHelper(Term term) const;
 
   /**
    * Helper function that ensures that a given term is of sort real (as opposed
