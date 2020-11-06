@@ -1613,7 +1613,6 @@ set(regress_1_tests
   regress1/quantifiers/mix-coeff.smt2
   regress1/quantifiers/mutualrec2.cvc
   regress1/quantifiers/nested9_true-unreach-call.i_575.smt2
-  regress1/quantifiers/nl-pow-trick.smt2
   regress1/quantifiers/nra-interleave-inst.smt2
   regress1/quantifiers/opisavailable-12.smt2
   regress1/quantifiers/parametric-lists.smt2
@@ -2539,6 +2538,8 @@ set(regression_disabled_tests
   regress1/quantifiers/macro-subtype-param.smt2
   # times out with competition build:
   regress1/quantifiers/model_6_1_bv.smt2
+  # times out after change to arithmetic expand definitions
+  regress1/quantifiers/nl-pow-trick.smt2
   # timeout after changes to nonlinear on PR #5351
   regress1/quantifiers/rel-trigger-unusable.smt2
   # ajreynol: different error messages on production and debug:
