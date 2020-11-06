@@ -518,7 +518,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   {
     inst = d_base_inst;
   }
-  
+
   if (!constructed_cand)
   {
     return false;
@@ -1083,7 +1083,8 @@ void SynthConjecture::printAndContinueStream(const std::vector<Node>& enums,
 void SynthConjecture::excludeCurrentSolution(const std::vector<Node>& enums,
                                              const std::vector<Node>& values)
 {
-  Trace("cegqi-debug") << "Exclude current solution: " << enums << " / " << values << std::endl;
+  Trace("cegqi-debug") << "Exclude current solution: " << enums << " / "
+                       << values << std::endl;
   // We will not refine the current candidate solution since it is a solution
   // thus, we clear information regarding the current refinement
   d_set_ce_sk_vars = false;

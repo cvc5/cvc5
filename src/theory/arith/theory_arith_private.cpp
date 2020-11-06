@@ -1473,7 +1473,9 @@ ArithVar TheoryArithPrivate::requestArithVar(TNode x, bool aux, bool internal){
   Assert(isLeaf(x) || VarList::isMember(x) || x.getKind() == PLUS || internal);
   if(getLogicInfo().isLinear() && Variable::isDivMember(x)){
     stringstream ss;
-    ss << "A non-linear fact (involving div/mod/divisibility) was asserted to arithmetic in a linear logic: " << x << std::endl;
+    ss << "A non-linear fact (involving div/mod/divisibility) was asserted to "
+          "arithmetic in a linear logic: "
+       << x << std::endl;
     throw LogicException(ss.str());
   }
   Assert(!d_partialModel.hasArithVar(x));
