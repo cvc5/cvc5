@@ -65,7 +65,8 @@ static void toStreamRational(std::ostream& out,
   // Print the rational, possibly as decimal.
   // Notice that we print (/ (- 5) 3) instead of (- (/ 5 3)),
   // the former is compliant with real values in the smt lib standard.
-  if(r.isIntegral()) {
+  if (r.isIntegral())
+  {
     if (neg)
     {
       out << (v == sygus_variant ? "-" : "(- ") << -r;
@@ -74,18 +75,26 @@ static void toStreamRational(std::ostream& out,
     {
       out << r;
     }
-    if (decimal) { out << ".0"; }
+    if (decimal)
+    {
+      out << ".0";
+    }
     if (neg)
     {
       out << (v == sygus_variant ? "" : ")");
     }
-  }else{
+  }
+  else
+  {
     out << "(/ ";
-    if(neg) {
+    if (neg)
+    {
       Rational abs_r = (-r);
       out << (v == sygus_variant ? "-" : "(- ") << abs_r.getNumerator();
       out << (v == sygus_variant ? " " : ") ") << abs_r.getDenominator();
-    }else{
+    }
+    else
+    {
       out << r.getNumerator();
       out << ' ' << r.getDenominator();
     }
@@ -143,9 +152,7 @@ static bool stringifyRegexp(Node n, stringstream& ss) {
   return true;
 }
 
-void Smt2Printer::toStream(std::ostream& out,
-                           TNode n,
-                           int toDepth) const
+void Smt2Printer::toStream(std::ostream& out, TNode n, int toDepth) const
 {
   // null
   if(n.getKind() == kind::NULL_EXPR) {
@@ -153,7 +160,7 @@ void Smt2Printer::toStream(std::ostream& out,
     return;
   }
 
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   // constant
   if(n.getMetaKind() == kind::metakind::CONSTANT) {
     switch(n.getKind()) {
@@ -457,7 +464,7 @@ void Smt2Printer::toStream(std::ostream& out,
       // the logic is mixed int/real. The former occurs more frequently.
       bool is_int = force_nt.isInteger();
       // If constant rational, print as special case
-      if (type_asc_arg.getKind()== kind::CONST_RATIONAL)
+      if (type_asc_arg.getKind() == kind::CONST_RATIONAL)
       {
         const Rational& r = n.getConst<Rational>();
         toStreamRational(out, r, !is_int, d_variant);
@@ -466,7 +473,7 @@ void Smt2Printer::toStream(std::ostream& out,
       {
         out << "("
             << smtKindString(is_int ? kind::TO_INTEGER : kind::DIVISION,
-                            d_variant)
+                             d_variant)
             << " ";
         toStream(out, type_asc_arg, toDepth);
         if (!is_int)
@@ -480,9 +487,7 @@ void Smt2Printer::toStream(std::ostream& out,
     {
       // use type ascription
       out << "(as ";
-      toStream(out,
-               type_asc_arg,
-               toDepth < 0 ? toDepth : toDepth - 1);
+      toStream(out, type_asc_arg, toDepth < 0 ? toDepth : toDepth - 1);
       out << " " << force_nt << ")";
     }
     return;
@@ -547,7 +552,7 @@ void Smt2Printer::toStream(std::ostream& out,
     break;
 
   // uf theory
-  case kind::APPLY_UF:  break;
+  case kind::APPLY_UF: break;
   // higher-order
   case kind::HO_APPLY:
     if (!options::flattenHOChains())
@@ -784,11 +789,12 @@ void Smt2Printer::toStream(std::ostream& out,
   {
     out << smtKindString(k, d_variant) << " ";
     TypeNode elemType = n.getType().getSetElementType();
-    toStreamCastToType(out, n[0], toDepth < 0 ? toDepth : toDepth - 1, elemType);
+    toStreamCastToType(
+        out, n[0], toDepth < 0 ? toDepth : toDepth - 1, elemType);
     out << ")";
     return;
   }
-    break;
+  break;
   case kind::MEMBER:
   case kind::INSERT:
   case kind::SET_TYPE:
@@ -972,9 +978,7 @@ void Smt2Printer::toStream(std::ostream& out,
                    toDepth < 0 ? toDepth : toDepth - 1);
         }
       }else{
-        toStream(out,
-                 n.getOperator(),
-                 toDepth < 0 ? toDepth : toDepth - 1);
+        toStream(out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1);
       }
     } else {
       out << "(...)";
@@ -987,8 +991,7 @@ void Smt2Printer::toStream(std::ostream& out,
   
   for(size_t i = 0, c = 1; i < n.getNumChildren(); ) {
     if(toDepth != 0) {
-        toStream(
-            out, n[i], toDepth < 0 ? toDepth : toDepth - c);
+      toStream(out, n[i], toDepth < 0 ? toDepth : toDepth - c);
     } else {
       out << "(...)";
     }
@@ -1010,18 +1013,19 @@ void Smt2Printer::toStream(std::ostream& out,
   }
 }
 
-
-void Smt2Printer::toStreamCastToType(std::ostream& out, TNode n, int toDepth, TypeNode tn) const
+void Smt2Printer::toStreamCastToType(std::ostream& out,
+                                     TNode n,
+                                     int toDepth,
+                                     TypeNode tn) const
 {
   Node nasc;
-  if (n.getType()!=tn)
+  if (n.getType() != tn)
   {
     // probably due to subtyping integers and reals, cast it using an apply
     // type ascription.
-    NodeManager * nm = NodeManager::currentNM();
-        Node tc = nm->mkConst(
-            AscriptionType(tn));
-        nasc = nm->mkNode(kind::APPLY_TYPE_ASCRIPTION, tc, n);
+    NodeManager* nm = NodeManager::currentNM();
+    Node tc = nm->mkConst(AscriptionType(tn));
+    nasc = nm->mkNode(kind::APPLY_TYPE_ASCRIPTION, tc, n);
   }
   else
   {
@@ -1427,8 +1431,7 @@ void Smt2Printer::toStream(std::ostream& out,
     if (val.getKind() == kind::LAMBDA)
     {
       TypeNode rangeType = n.getType().getRangeType();
-      out << "(define-fun " << n << " " << val[0] << " "
-          << rangeType << " ";
+      out << "(define-fun " << n << " " << val[0] << " " << rangeType << " ";
       // call toStream and force its type to be proper
       toStreamCastToType(out, val[1], -1, rangeType);
       out << ")" << endl;
