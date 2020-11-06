@@ -5130,7 +5130,15 @@ Term Solver::getValue(Term term) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_SOLVER_CHECK_TERM(term);
-  return Term(this, d_smtEngine->getValue(*term.d_node));
+  Node value = d_smtEngine->getValue(*term.d_node);
+  Term res = Term(this, value);
+  // May need to wrap in real cast so that user know this is a real.
+  TypeNode tn = (*term.d_node).getType();
+  if (!tn.isInteger() && value.getType().isInteger())
+  {
+    return ensureRealSort(res);
+  }
+  return res;
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 

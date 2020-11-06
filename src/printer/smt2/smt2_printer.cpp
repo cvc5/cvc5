@@ -466,7 +466,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n, int toDepth) const
       // If constant rational, print as special case
       if (type_asc_arg.getKind() == kind::CONST_RATIONAL)
       {
-        const Rational& r = n.getConst<Rational>();
+        const Rational& r = type_asc_arg.getConst<Rational>();
         toStreamRational(out, r, !is_int, d_variant);
       }
       else
