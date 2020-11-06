@@ -21,6 +21,7 @@
 #include "options/theory_options.h"
 #include "theory/arith/arith_state.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/bound_inference.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/ext_theory.h"
 #include "theory/theory_model.h"
@@ -47,7 +48,12 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
                   containing.getOutputChannel()),
       d_model(containing.getSatContext()),
       d_trSlv(d_im, d_model),
-      d_nlSlv(d_im, state, d_model),
+      d_extState(d_im, d_model, containing.getSatContext()),
+      d_factoringSlv(d_im, d_model),
+      d_monomialBoundsSlv(&d_extState),
+      d_monomialSlv(&d_extState),
+      d_splitZeroSlv(&d_extState, state.getUserContext()),
+      d_tangentPlaneSlv(&d_extState),
       d_cadSlv(d_im, d_model),
       d_icpSlv(d_im),
       d_iandSlv(d_im, state, d_model),
@@ -173,17 +179,15 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
     useRelevance = true;
   }
   Valuation v = d_containing.getValuation();
-  NodeManager* nm = NodeManager::currentNM();
-  // get the assertions
-  std::map<Node, Rational> init_bounds[2];
-  std::map<Node, Node> init_bounds_lit[2];
-  unsigned nassertions = 0;
+
+  BoundInference bounds;
+
   std::unordered_set<Node, NodeHashFunction> init_assertions;
+
   for (Theory::assertions_iterator it = d_containing.facts_begin();
        it != d_containing.facts_end();
        ++it)
   {
-    nassertions++;
     const Assertion& assertion = *it;
     Trace("nl-ext") << "Loaded " << assertion.d_assertion << " from theory"
                     << std::endl;
@@ -193,97 +197,23 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
       // not relevant, skip
       continue;
     }
+    if (bounds.add(lit, false))
+    {
+      continue;
+    }
     init_assertions.insert(lit);
-    // check for concrete bounds
-    bool pol = lit.getKind() != NOT;
-    Node atom_orig = lit.getKind() == NOT ? lit[0] : lit;
-
-    std::vector<Node> atoms;
-    if (atom_orig.getKind() == EQUAL)
-    {
-      if (pol)
-      {
-        // t = s  is ( t >= s ^ t <= s )
-        for (unsigned i = 0; i < 2; i++)
-        {
-          Node atom_new = nm->mkNode(GEQ, atom_orig[i], atom_orig[1 - i]);
-          atom_new = Rewriter::rewrite(atom_new);
-          atoms.push_back(atom_new);
-        }
-      }
-    }
-    else
-    {
-      atoms.push_back(atom_orig);
-    }
-
-    for (const Node& atom : atoms)
-    {
-      // non-strict bounds only
-      if (atom.getKind() == GEQ || (!pol && atom.getKind() == GT))
-      {
-        Node p = atom[0];
-        Assert(atom[1].isConst());
-        Rational bound = atom[1].getConst<Rational>();
-        if (!pol)
-        {
-          if (atom[0].getType().isInteger())
-          {
-            // ~( p >= c ) ---> ( p <= c-1 )
-            bound = bound - Rational(1);
-          }
-        }
-        unsigned bindex = pol ? 0 : 1;
-        bool setBound = true;
-        std::map<Node, Rational>::iterator itb = init_bounds[bindex].find(p);
-        if (itb != init_bounds[bindex].end())
-        {
-          if (itb->second == bound)
-          {
-            setBound = atom_orig.getKind() == EQUAL;
-          }
-          else
-          {
-            setBound = pol ? itb->second < bound : itb->second > bound;
-          }
-          if (setBound)
-          {
-            // the bound is subsumed
-            init_assertions.erase(init_bounds_lit[bindex][p]);
-          }
-        }
-        if (setBound)
-        {
-          Trace("nl-ext-init") << (pol ? "Lower" : "Upper") << " bound for "
-                               << p << " : " << bound << std::endl;
-          init_bounds[bindex][p] = bound;
-          init_bounds_lit[bindex][p] = lit;
-        }
-      }
-    }
   }
-  // for each bound that is the same, ensure we've inferred the equality
-  for (std::pair<const Node, Rational>& ib : init_bounds[0])
+
+  for (const auto& vb : bounds.get())
   {
-    Node p = ib.first;
-    Node lit1 = init_bounds_lit[0][p];
-    if (lit1.getKind() != EQUAL)
+    const Bounds& b = vb.second;
+    if (!b.lower_bound.isNull())
     {
-      std::map<Node, Rational>::iterator itb = init_bounds[1].find(p);
-      if (itb != init_bounds[1].end())
-      {
-        if (ib.second == itb->second)
-        {
-          Node eq = p.eqNode(nm->mkConst(ib.second));
-          eq = Rewriter::rewrite(eq);
-          Node lit2 = init_bounds_lit[1][p];
-          Assert(lit2.getKind() != EQUAL);
-          // use the equality instead, thus these are redundant
-          init_assertions.erase(lit1);
-          init_assertions.erase(lit2);
-          init_assertions.insert(eq);
-        }
-      }
+      init_assertions.insert(b.lower_bound);
+    }
+    if (!b.upper_bound.isNull())
+    {
+      init_assertions.insert(b.upper_bound);
     }
   }
 
@@ -296,6 +226,7 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
     auto iait = init_assertions.find(lit);
     if (iait != init_assertions.end())
     {
+      Trace("nl-ext") << "Adding " << lit << std::endl;
       assertions.push_back(lit);
       init_assertions.erase(iait);
     }
@@ -304,10 +235,12 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
   // function by the code above.
   for (const Node& a : init_assertions)
   {
+    Trace("nl-ext") << "Adding " << a << std::endl;
     assertions.push_back(a);
   }
-  Trace("nl-ext") << "...keep " << assertions.size() << " / " << nassertions
-                  << " assertions." << std::endl;
+  Trace("nl-ext") << "...keep " << assertions.size() << " / "
+                  << d_containing.numAssertions() << " assertions."
+                  << std::endl;
 }
 
 std::vector<Node> NonlinearExtension::checkModelEval(
@@ -333,8 +266,7 @@ std::vector<Node> NonlinearExtension::checkModelEval(
   return false_asserts;
 }
 
-bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
-                                    std::vector<Node>& gs)
+bool NonlinearExtension::checkModel(const std::vector<Node>& assertions)
 {
   Trace("nl-ext-cm") << "--- check-model ---" << std::endl;
 
@@ -361,7 +293,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
   Trace("nl-ext-cm") << "-----" << std::endl;
   unsigned tdegree = d_trSlv.getTaylorDegree();
   std::vector<NlLemma> lemmas;
-  bool ret = d_model.checkModel(passertions, tdegree, lemmas, gs);
+  bool ret = d_model.checkModel(passertions, tdegree, lemmas);
   for (const auto& al: lemmas)
   {
     d_im.addPendingArithLemma(al);
@@ -534,17 +466,9 @@ bool NonlinearExtension::modelBasedRefinement()
           << std::endl;
       // check the model based on simple solving of equalities and using
       // error bounds on the Taylor approximation of transcendental functions.
-      std::vector<Node> gs;
-      if (checkModel(assertions, gs))
+      if (checkModel(assertions))
       {
         complete_status = 1;
-      }
-      for (const Node& mg : gs)
-      {
-        Node mgr = Rewriter::rewrite(mg);
-        mgr = d_containing.getValuation().ensureLiteral(mgr);
-        d_containing.getOutputChannel().requirePhase(mgr, true);
-        d_builtModel = true;
       }
       if (d_im.hasUsed())
       {
@@ -617,6 +541,11 @@ bool NonlinearExtension::modelBasedRefinement()
         d_containing.getOutputChannel().setIncomplete();
       }
     }
+    else
+    {
+      // we have built a model
+      d_builtModel = true;
+    }
     d_im.clearWaitingLemmas();
   } while (needsRecheck);
 
@@ -652,6 +581,7 @@ void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
 void NonlinearExtension::presolve()
 {
   Trace("nl-ext") << "NonlinearExtension::presolve" << std::endl;
+  d_builtModel = false;
 }
 
 void NonlinearExtension::runStrategy(Theory::Effort effort,
@@ -686,7 +616,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
       case InferStep::CAD_FULL: d_cadSlv.checkFull(); break;
       case InferStep::CAD_INIT: d_cadSlv.initLastCall(assertions); break;
       case InferStep::NL_FACTORING:
-        d_nlSlv.checkFactoring(assertions, false_asserts);
+        d_factoringSlv.check(assertions, false_asserts);
         break;
       case InferStep::IAND_INIT:
         d_iandSlv.initLastCall(assertions, false_asserts, xts);
@@ -698,30 +628,30 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
         d_icpSlv.check();
         break;
       case InferStep::NL_INIT:
-        d_nlSlv.initLastCall(assertions, false_asserts, xts);
+        d_extState.init(xts);
+        d_monomialBoundsSlv.init();
+        d_monomialSlv.init(xts);
         break;
       case InferStep::NL_MONOMIAL_INFER_BOUNDS:
-        d_nlSlv.checkMonomialInferBounds(assertions, false_asserts);
+        d_monomialBoundsSlv.checkBounds(assertions, false_asserts);
         break;
       case InferStep::NL_MONOMIAL_MAGNITUDE0:
-        d_nlSlv.checkMonomialMagnitude(0);
+        d_monomialSlv.checkMagnitude(0);
         break;
       case InferStep::NL_MONOMIAL_MAGNITUDE1:
-        d_nlSlv.checkMonomialMagnitude(1);
+        d_monomialSlv.checkMagnitude(1);
         break;
       case InferStep::NL_MONOMIAL_MAGNITUDE2:
-        d_nlSlv.checkMonomialMagnitude(2);
+        d_monomialSlv.checkMagnitude(2);
         break;
-      case InferStep::NL_MONOMIAL_SIGN: d_nlSlv.checkMonomialSign(); break;
+      case InferStep::NL_MONOMIAL_SIGN: d_monomialSlv.checkSign(); break;
       case InferStep::NL_RESOLUTION_BOUNDS:
-        d_nlSlv.checkMonomialInferResBounds();
+        d_monomialBoundsSlv.checkResBounds();
         break;
-      case InferStep::NL_SPLIT_ZERO: d_nlSlv.checkSplitZero(); break;
-      case InferStep::NL_TANGENT_PLANES:
-        d_nlSlv.checkTangentPlanes(false);
-        break;
+      case InferStep::NL_SPLIT_ZERO: d_splitZeroSlv.check(); break;
+      case InferStep::NL_TANGENT_PLANES: d_tangentPlaneSlv.check(false); break;
       case InferStep::NL_TANGENT_PLANES_WAITING:
-        d_nlSlv.checkTangentPlanes(true);
+        d_tangentPlaneSlv.check(true);
         break;
       case InferStep::TRANS_INIT:
         d_trSlv.initLastCall(assertions, false_asserts, xts);

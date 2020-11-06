@@ -475,6 +475,12 @@ uint64_t TypeNode::getSortConstructorArity() const
   return getAttribute(expr::SortArityAttr());
 }
 
+std::string TypeNode::getName() const
+{
+  Assert(isSort() || isSortConstructor());
+  return getAttribute(expr::VarNameAttr());
+}
+
 TypeNode TypeNode::instantiateSortConstructor(
     const std::vector<TypeNode>& params) const
 {
@@ -669,7 +675,7 @@ bool TypeNode::isSygusDatatype() const
 std::string TypeNode::toString() const {
   std::stringstream ss;
   OutputLanguage outlang = (this == &s_null) ? language::output::LANG_AUTO : options::outputLanguage();
-  d_nv->toStream(ss, -1, false, 0, outlang);
+  d_nv->toStream(ss, -1, 0, outlang);
   return ss.str();
 }
 

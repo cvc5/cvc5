@@ -28,7 +28,6 @@
 #include "api/cvc4cpp.h"
 #include "base/output.h"
 #include "expr/expr.h"
-#include "expr/expr_iomanip.h"
 #include "expr/kind.h"
 #include "expr/type.h"
 #include "options/options.h"
@@ -82,7 +81,7 @@ api::Term Parser::getSymbol(const std::string& name, SymbolType type)
   assert(isDeclared(name, type));
   assert(type == SYM_VARIABLE);
   // Functions share var namespace
-  return api::Term(d_solver, d_symtab->lookup(name));
+  return d_symtab->lookup(name);
 }
 
 api::Term Parser::getVariable(const std::string& name)
@@ -159,7 +158,7 @@ api::Sort Parser::getSort(const std::string& name)
 {
   checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
   assert(isDeclared(name, SYM_SORT));
-  api::Sort t = api::Sort(d_solver, d_symtab->lookupType(name));
+  api::Sort t = d_symtab->lookupType(name);
   return t;
 }
 
@@ -168,8 +167,7 @@ api::Sort Parser::getSort(const std::string& name,
 {
   checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
   assert(isDeclared(name, SYM_SORT));
-  api::Sort t = api::Sort(
-      d_solver, d_symtab->lookupType(name, api::sortVectorToTypes(params)));
+  api::Sort t = d_symtab->lookupType(name, params);
   return t;
 }
 
@@ -230,8 +228,7 @@ std::vector<api::Term> Parser::bindBoundVars(
   std::vector<api::Term> vars;
   for (std::pair<std::string, api::Sort>& i : sortedVarNames)
   {
-    vars.push_back(
-        bindBoundVar(i.first, api::Sort(d_solver, i.second.getType())));
+    vars.push_back(bindBoundVar(i.first, i.second));
   }
   return vars;
 }
@@ -245,7 +242,7 @@ api::Term Parser::mkAnonymousFunction(const std::string& prefix,
   }
   stringstream name;
   name << prefix << "_anon_" << ++d_anonymousFunctionCount;
-  return mkVar(name.str(), api::Sort(d_solver, type.getType()), flags);
+  return mkVar(name.str(), type, flags);
 }
 
 std::vector<api::Term> Parser::bindVars(const std::vector<std::string> names,
@@ -279,7 +276,7 @@ void Parser::defineVar(const std::string& name,
                        bool doOverload)
 {
   Debug("parser") << "defineVar( " << name << " := " << val << ")" << std::endl;
-  if (!d_symtab->bind(name, val.getExpr(), levelZero, doOverload))
+  if (!d_symtab->bind(name, val, levelZero, doOverload))
   {
     std::stringstream ss;
     ss << "Cannot bind " << name << " to symbol of type " << val.getSort();
@@ -296,10 +293,10 @@ void Parser::defineType(const std::string& name,
 {
   if (skipExisting && isDeclared(name, SYM_SORT))
   {
-    assert(api::Sort(d_solver, d_symtab->lookupType(name)) == type);
+    assert(d_symtab->lookupType(name) == type);
     return;
   }
-  d_symtab->bindType(name, type.getType(), levelZero);
+  d_symtab->bindType(name, type, levelZero);
   assert(isDeclared(name, SYM_SORT));
 }
 
@@ -308,8 +305,7 @@ void Parser::defineType(const std::string& name,
                         const api::Sort& type,
                         bool levelZero)
 {
-  d_symtab->bindType(
-      name, api::sortVectorToTypes(params), type.getType(), levelZero);
+  d_symtab->bindType(name, params, type, levelZero);
   assert(isDeclared(name, SYM_SORT));
 }
 
@@ -438,7 +434,6 @@ std::vector<api::Sort> Parser::bindMutualDatatypeTypes(
       for (size_t j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
       {
         const api::DatatypeConstructor& ctor = dt[j];
-        expr::ExprPrintTypes::Scope pts(Debug("parser-idt"), true);
         api::Term constructor = ctor.getConstructorTerm();
         Debug("parser-idt") << "+ define " << constructor << std::endl;
         string constructorName = ctor.getName();

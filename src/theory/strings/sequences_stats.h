@@ -92,8 +92,8 @@ class SequencesStatistics
   //--------------- conflicts, partition of calls to OutputChannel::conflict
   /** Number of equality engine conflicts */
   IntStat d_conflictsEqEngine;
-  /** Number of eager prefix conflicts */
-  IntStat d_conflictsEagerPrefix;
+  /** Number of eager conflicts */
+  IntStat d_conflictsEager;
   /** Number of inference conflicts */
   IntStat d_conflictsInfer;
   //--------------- end of conflicts
