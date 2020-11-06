@@ -143,7 +143,7 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
        NodeManager* nm = NodeManager::currentNM();
        TypeNode typ = ctor.getSpecializedConstructorType(d_type);
        b << nm->mkNode(kind::APPLY_TYPE_ASCRIPTION,
-                       nm->mkConst(AscriptionType(typ.toType())),
+                       nm->mkConst(AscriptionType(typ)),
                        ctor.getConstructor());
      }
      else

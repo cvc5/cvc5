@@ -85,28 +85,12 @@ using namespace CVC4::parser;
 #include "smt/command.h"
 
 namespace CVC4 {
-  class Expr;
 
   namespace api {
     class Term;
     class Sort;
   }
-
-  namespace parser {
-    namespace smt2 {
-      /**
-       * Just exists to provide the uintptr_t constructor that ANTLR
-       * requires.
-       */
-      struct myExpr : public CVC4::api::Term {
-        myExpr() : CVC4::api::Term() {}
-        myExpr(void*) : CVC4::api::Term() {}
-        myExpr(const Expr& e) : CVC4::api::Term(d_solver, e) {}
-        myExpr(const myExpr& e) : CVC4::api::Term(e) {}
-      };/* struct myExpr */
-    }/* CVC4::parser::smt2 namespace */
-  }/* CVC4::parser namespace */
-
+  
 }/* CVC4 namespace */
 
 }/* @parser::includes */
@@ -132,8 +116,6 @@ namespace CVC4 {
 #include "util/hash.h"
 #include "util/integer.h"
 #include "util/rational.h"
-// \todo Review the need for this header
-#include "math.h"
 
 using namespace CVC4;
 using namespace CVC4::parser;
@@ -156,7 +138,7 @@ using namespace CVC4::parser;
  * @return the parsed expression, or the Null Expr if we've reached the
  * end of the input
  */
-parseExpr returns [CVC4::parser::smt2::myExpr expr]
+parseExpr returns [CVC4::api::Term expr = CVC4::api::Term()]
 @declarations {
   CVC4::api::Term expr2;
 }
@@ -1710,7 +1692,7 @@ identifier[CVC4::ParseOp& p]
         // we adopt a special syntax (_ tupSel n)
         p.d_kind = api::APPLY_SELECTOR;
         // put m in expr so that the caller can deal with this case
-        p.d_expr = SOLVER->mkReal(AntlrInput::tokenToUnsigned($m));
+        p.d_expr = SOLVER->mkInteger(AntlrInput::tokenToUnsigned($m));
       }
     | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
       {
@@ -1735,7 +1717,7 @@ termAtomic[CVC4::api::Term& atomTerm]
   : INTEGER_LITERAL
     {
       std::string intStr = AntlrInput::tokenText($INTEGER_LITERAL);
-      atomTerm = SOLVER->mkReal(intStr);
+      atomTerm = SOLVER->mkInteger(intStr);
     }
   | DECIMAL_LITERAL
     {
@@ -1830,7 +1812,7 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
     {
       std::stringstream sIntLit;
       sIntLit << $INTEGER_LITERAL;
-      api::Term n = SOLVER->mkReal(sIntLit.str());
+      api::Term n = SOLVER->mkInteger(sIntLit.str());
       std::vector<api::Term> values;
       values.push_back( n );
       std::string attr_name(AntlrInput::tokenText($tok));
