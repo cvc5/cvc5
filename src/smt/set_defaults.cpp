@@ -1188,7 +1188,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       options::prenexQuant.set(options::PrenexQuantMode::NORMAL);
     }
     */
-    else if (options::globalNegate())
+    if (options::globalNegate())
     {
       if (!options::prenexQuant.wasSetByUser())
       {
