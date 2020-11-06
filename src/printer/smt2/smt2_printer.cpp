@@ -59,7 +59,39 @@ bool isVariant_2_6(Variant v) { return v == smt2_6_variant; }
 static void toStreamRational(std::ostream& out,
                              const Rational& r,
                              bool decimal,
-                             Variant v);
+                             Variant v)
+{
+  bool neg = r.sgn() < 0;
+  // Print the rational, possibly as decimal.
+  // Notice that we print (/ (- 5) 3) instead of (- (/ 5 3)),
+  // the former is compliant with real values in the smt lib standard.
+  if(r.isIntegral()) {
+    if (neg)
+    {
+      out << (v == sygus_variant ? "-" : "(- ") << -r;
+    }
+    else
+    {
+      out << r;
+    }
+    if (decimal) { out << ".0"; }
+    if (neg)
+    {
+      out << (v == sygus_variant ? "" : ")");
+    }
+  }else{
+    out << "(/ ";
+    if(neg) {
+      Rational abs_r = (-r);
+      out << (v == sygus_variant ? "-" : "(- ") << abs_r.getNumerator();
+      out << (v == sygus_variant ? " " : ") ") << abs_r.getDenominator();
+    }else{
+      out << r.getNumerator();
+      out << ' ' << r.getDenominator();
+    }
+    out << ')';
+  }
+}
 
 void Smt2Printer::toStream(std::ostream& out,
                            TNode n,
@@ -76,14 +108,14 @@ void Smt2Printer::toStream(std::ostream& out,
       theory::SubstitutionMap::const_iterator i_end = lets.end();
       for(; i != i_end; ++ i) {
         out << "(let ((";
-        toStream(out, (*i).second, toDepth, TypeNode::null());
+        toStream(out, (*i).second, toDepth);
         out << ' ';
-        toStream(out, (*i).first, toDepth, TypeNode::null());
+        toStream(out, (*i).first, toDepth);
         out << ")) ";
       }
     }
     Node body = dv.getDagifiedBody();
-    toStream(out, body, toDepth, TypeNode::null());
+    toStream(out, body, toDepth);
     if(!lets.empty()) {
       theory::SubstitutionMap::const_iterator i = lets.begin();
       theory::SubstitutionMap::const_iterator i_end = lets.end();
@@ -92,7 +124,7 @@ void Smt2Printer::toStream(std::ostream& out,
       }
     }
   } else {
-    toStream(out, n, toDepth, TypeNode::null());
+    toStream(out, n, toDepth);
   }
 }
 
@@ -121,6 +153,7 @@ void Smt2Printer::toStream(std::ostream& out,
     return;
   }
 
+  NodeManager * nm = NodeManager::currentNM();
   // constant
   if(n.getMetaKind() == kind::metakind::CONSTANT) {
     switch(n.getKind()) {
@@ -192,8 +225,7 @@ void Smt2Printer::toStream(std::ostream& out,
       break;
     case kind::CONST_RATIONAL: {
       const Rational& r = n.getConst<Rational>();
-      toStreamRational(
-          out, r, !force_nt.isNull() && !force_nt.isInteger(), d_variant);
+      toStreamRational(out, r, false, d_variant);
       break;
     }
 
@@ -402,11 +434,17 @@ void Smt2Printer::toStream(std::ostream& out,
 
   // determine if we are printing out a type ascription, store the argument of
   // the type ascription into type_asc_arg.
+  Kind k = n.getKind();
   Node type_asc_arg;
   TypeNode force_nt;
-  if (n.getKind() == kind::APPLY_TYPE_ASCRIPTION)
+  if (k == kind::APPLY_TYPE_ASCRIPTION)
   {
     force_nt = n.getOperator().getConst<AscriptionType>().getType();
+    type_asc_arg = n[0];
+  }
+  else if (k == kind::CAST_TO_REAL)
+  {
+    force_nt = nm->realType();
     type_asc_arg = n[0];
   }
   if (!type_asc_arg.isNull())
@@ -418,16 +456,25 @@ void Smt2Printer::toStream(std::ostream& out,
       // or the logic is non-linear, whereas (to_real x) is compliant when
       // the logic is mixed int/real. The former occurs more frequently.
       bool is_int = force_nt.isInteger();
-      out << "("
-          << smtKindString(is_int ? kind::TO_INTEGER : kind::DIVISION,
-                           d_variant)
-          << " ";
-      toStream(out, type_asc_arg, toDepth);
-      if (!is_int)
+      // If constant rational, print as special case
+      if (type_asc_arg.getKind()== kind::CONST_RATIONAL)
       {
-        out << " 1";
+        const Rational& r = n.getConst<Rational>();
+        toStreamRational(out, r, !is_int, d_variant);
       }
-      out << ")";
+      else
+      {
+        out << "("
+            << smtKindString(is_int ? kind::TO_INTEGER : kind::DIVISION,
+                            d_variant)
+            << " ";
+        toStream(out, type_asc_arg, toDepth);
+        if (!is_int)
+        {
+          out << " 1";
+        }
+        out << ")";
+      }
     }
     else
     {
@@ -467,10 +514,8 @@ void Smt2Printer::toStream(std::ostream& out,
   bool stillNeedToPrintParams = true;
   bool forceBinary = false; // force N-ary to binary when outputing children
   // operator
-  Kind k = n.getKind();
   if (n.getNumChildren() != 0 && k != kind::INST_PATTERN_LIST
-      && k != kind::APPLY_TYPE_ASCRIPTION && k != kind::CONSTRUCTOR_TYPE
-      && k != kind::CAST_TO_REAL)
+      && k != kind::CONSTRUCTOR_TYPE)
   {
     out << '(';
   }
@@ -593,16 +638,10 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::ABS:
   case kind::IS_INTEGER:
   case kind::TO_INTEGER:
+  case kind::TO_REAL:
   case kind::POW: 
     out << smtKindString(k, d_variant) << " ";
     break;
-  case kind::TO_REAL:
-  case kind::CAST_TO_REAL:
-  {
-    // (to_real 5) is printed as 5.0
-    out << n[0] << ".0";
-    return;
-  }
   case kind::IAND:
     out << "(_ iand " << n.getOperator().getConst<IntAnd>().d_size << ") ";
     stillNeedToPrintParams = false;
@@ -741,7 +780,15 @@ void Smt2Printer::toStream(std::ostream& out,
     out << smtKindString(k, d_variant) << " ";
     break;
   case kind::COMPREHENSION: out << smtKindString(k, d_variant) << " "; break;
-  case kind::SINGLETON: stillNeedToPrintParams = false; CVC4_FALLTHROUGH;
+  case kind::SINGLETON:
+  {
+    out << smtKindString(k, d_variant) << " ";
+    TypeNode elemType = n.getType().getSetElementType();
+    toStreamCastToType(out, n[0], toDepth < 0 ? toDepth : toDepth - 1, elemType);
+    out << ")";
+    return;
+  }
+    break;
   case kind::MEMBER:
   case kind::INSERT:
   case kind::SET_TYPE:
@@ -961,7 +1008,27 @@ void Smt2Printer::toStream(std::ostream& out,
   {
     out << parens.str() << ')';
   }
-}/* Smt2Printer::toStream(TNode) */
+}
+
+
+void Smt2Printer::toStreamCastToType(std::ostream& out, TNode n, int toDepth, TypeNode tn) const
+{
+  Node nasc;
+  if (n.getType()!=tn)
+  {
+    // probably due to subtyping integers and reals, cast it using an apply
+    // type ascription.
+    NodeManager * nm = NodeManager::currentNM();
+        Node tc = nm->mkConst(
+            AscriptionType(tn));
+        nasc = nm->mkNode(kind::APPLY_TYPE_ASCRIPTION, tc, n);
+  }
+  else
+  {
+    nasc = n;
+  }
+  toStream(out, nasc, -1);
+}
 
 static string smtKindString(Kind k, Variant v)
 {
@@ -1359,10 +1426,11 @@ void Smt2Printer::toStream(std::ostream& out,
     Node val = theory_model->getValue(n);
     if (val.getKind() == kind::LAMBDA)
     {
+      TypeNode rangeType = n.getType().getRangeType();
       out << "(define-fun " << n << " " << val[0] << " "
-          << n.getType().getRangeType() << " ";
+          << rangeType << " ";
       // call toStream and force its type to be proper
-      toStream(out, val[1], -1, n.getType().getRangeType());
+      toStreamCastToType(out, val[1], -1, rangeType);
       out << ")" << endl;
     }
     else
@@ -1381,7 +1449,7 @@ void Smt2Printer::toStream(std::ostream& out,
       }
       out << "(define-fun " << n << " () " << n.getType() << " ";
       // call toStream and force its type to be proper
-      toStream(out, val, -1, n.getType());
+      toStreamCastToType(out, val, -1, n.getType());
       out << ")" << endl;
     }
   }
@@ -1602,43 +1670,6 @@ void Smt2Printer::toStreamCmdDefineFunctionRec(
     out << ")";
   }
   out << ")" << std::endl;
-}
-
-static void toStreamRational(std::ostream& out,
-                             const Rational& r,
-                             bool decimal,
-                             Variant v)
-{
-  bool neg = r.sgn() < 0;
-  // Print the rational, possibly as decimal.
-  // Notice that we print (/ (- 5) 3) instead of (- (/ 5 3)),
-  // the former is compliant with real values in the smt lib standard.
-  if(r.isIntegral()) {
-    if (neg)
-    {
-      out << (v == sygus_variant ? "-" : "(- ") << -r;
-    }
-    else
-    {
-      out << r;
-    }
-    if (decimal) { out << ".0"; }
-    if (neg)
-    {
-      out << (v == sygus_variant ? "" : ")");
-    }
-  }else{
-    out << "(/ ";
-    if(neg) {
-      Rational abs_r = (-r);
-      out << (v == sygus_variant ? "-" : "(- ") << abs_r.getNumerator();
-      out << (v == sygus_variant ? " " : ") ") << abs_r.getDenominator();
-    }else{
-      out << r.getNumerator();
-      out << ' ' << r.getDenominator();
-    }
-    out << ')';
-  }
 }
 
 void Smt2Printer::toStreamCmdDeclareType(std::ostream& out,

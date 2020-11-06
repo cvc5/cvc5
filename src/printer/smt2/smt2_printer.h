@@ -228,6 +228,8 @@ class Smt2Printer : public CVC4::Printer
 
  private:
   void toStream(std::ostream& out, TNode n, int toDepth) const;
+  /** To stream, with a forced type */
+  void toStreamCastToType(std::ostream& out, TNode n, int toDepth, TypeNode tn) const;
   void toStream(std::ostream& out,
                 const smt::Model& m,
                 const NodeCommand* c) const override;
