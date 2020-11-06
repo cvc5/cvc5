@@ -403,14 +403,11 @@ void Smt2Printer::toStream(std::ostream& out,
   // determine if we are printing out a type ascription, store the argument of
   // the type ascription into type_asc_arg.
   Node type_asc_arg;
+  TypeNode force_nt;
   if (n.getKind() == kind::APPLY_TYPE_ASCRIPTION)
   {
     force_nt = n.getOperator().getConst<AscriptionType>().getType();
     type_asc_arg = n[0];
-  }
-  else if (!force_nt.isNull() && n.getType() != force_nt)
-  {
-    type_asc_arg = n;
   }
   if (!type_asc_arg.isNull())
   {
