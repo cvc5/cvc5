@@ -2009,7 +2009,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
     return;
   }
   
-  if (options::stringsExtDeq())
+  if (options::stringsDeqExt())
   {
     processDeqExtensionality(ni, nj);
     return;
@@ -2381,7 +2381,7 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
 {
   // hash based on equality
   Node eq = n1<n2 ? n1.eqNode(n2) : n2.eqNode(n1);
-  NodeSet::iterator it = d_extDeq.find(eq);
+  NodeSet::const_iterator it = d_extDeq.find(eq);
   if (it != d_extDeq.end())
   {
     // already processed
@@ -2393,12 +2393,13 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
   SkolemCache* sc = d_termReg.getSkolemCache();
   TypeNode intType = nm->integerType();
   Node k = sc->mkTypedSkolemCached(intType,n1,n2,SkolemCache::SK_DEQ_DIFF, "diff");
+  Node deq = eq.negate();
+  Node conc;
   // substring of length 1
   Node ss1 = nm->mkNode(STRING_SUBSTR,n1,k,d_one);
   Node ss2 = nm->mkNode(STRING_SUBSTR,n2,k,d_one);
-  Node ant = eq.negate();
-  Node conc = ss1.eqNode(ss2).negate();
-  d_im.sendInference(ant, conc, Inference::EXTENSIONALITY, false, true);
+  conc = ss1.eqNode(ss2).negate();
+  d_im.sendInference({deq}, conc, Inference::DEQ_EXTENSIONALITY, false, true);
 }
 
 void CoreSolver::addNormalFormPair( Node n1, Node n2 ){

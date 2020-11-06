@@ -232,9 +232,9 @@ header = "options/strings_options.h"
   help       = "perform eager context-dependent evaluation for applications of string kinds"
 
 [[option]]
-  name       = "stringsExtDeq"
+  name       = "stringsDeqExt"
   category   = "regular"
-  long       = "strings-ext-deq"
+  long       = "strings-deq-ext"
   type       = "bool"
   default    = "false"
   help       = "use extensionality for string disequalities"
