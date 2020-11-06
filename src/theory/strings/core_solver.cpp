@@ -2387,6 +2387,8 @@ void CoreSolver::processDeqExt(Node n1, Node n2)
     // already processed
     return;
   }
+  d_extDeq.insert(eq);
+  
   NodeManager * nm = NodeManager::currentNM();
   SkolemCache* sc = d_termReg.getSkolemCache();
   TypeNode intType = nm->integerType();
@@ -2394,20 +2396,9 @@ void CoreSolver::processDeqExt(Node n1, Node n2)
   // substring of length 1
   Node ss1 = nm->mkNode(STRING_SUBSTR,n1,k,d_one);
   Node ss2 = nm->mkNode(STRING_SUBSTR,n2,k,d_one);
-  Node deq = eq.negate();
+  Node ant = eq.negate();
+  Node conc = ss1.eqNode(ss2).negate();
   d_im.sendInference(ant, conc, Inference::EXTENSIONALITY, false, true);
-  
-  
-  /*
-  if (n1.getType().isString())
-  {
-    // substring of length 1
-  }
-  else
-  {
-    // seq.units
-  }
-  */
 }
 
 void CoreSolver::addNormalFormPair( Node n1, Node n2 ){
