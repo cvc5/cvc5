@@ -1021,7 +1021,7 @@ void Smt2Printer::toStreamCastToType(std::ostream& out,
   Node nasc;
   if (n.getType().isInteger() && !tn.isInteger())
   {
-    Assert (tn.isReal());
+    Assert(tn.isReal());
     // probably due to subtyping integers and reals, cast it
     nasc = NodeManager::currentNM()->mkNode(kind::CAST_TO_REAL, n);
   }

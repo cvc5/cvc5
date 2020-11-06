@@ -228,9 +228,9 @@ class Smt2Printer : public CVC4::Printer
 
  private:
   void toStream(std::ostream& out, TNode n, int toDepth) const;
-  /** 
+  /**
    * To stream, with a forced type. This method is used in some corner cases
-   * to force a node n to be printed as if it had type tn. This is used e.g. 
+   * to force a node n to be printed as if it had type tn. This is used e.g.
    * for the body of define-fun commands and arguments of singleton terms.
    */
   void toStreamCastToType(std::ostream& out,
