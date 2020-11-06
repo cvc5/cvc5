@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file tempate_infer.h
+/*! \file template_infer.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds

@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file ce_guided_single_inv.cpp
+/*! \file template_infer.cpp 
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Tim King
