@@ -188,12 +188,6 @@ jobs:
        export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
        python3 -c "import pycvc4"
 
-    - name: Run Pytest
-      if: matrix.python-bindings
-      run: |
-       export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
-       python3 -m pytest ./test/unit/api/python
-
       # Examples are built for non-symfpu builds
     - name: Check Examples
       if: matrix.check-examples && runner.os == 'Linux'

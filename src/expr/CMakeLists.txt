@@ -12,6 +12,7 @@ libcvc4_add_sources(
   array.h
   array_store_all.cpp
   array_store_all.h
+  ascription_type.cpp
   ascription_type.h
   attribute.h
   attribute.cpp

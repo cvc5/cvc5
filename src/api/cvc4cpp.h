@@ -206,6 +206,7 @@ class Datatype;
  */
 class CVC4_PUBLIC Sort
 {
+  friend class DatatypeConstructor;
   friend class DatatypeConstructorDecl;
   friend class DatatypeDecl;
   friend class Op;
@@ -224,6 +225,7 @@ class CVC4_PUBLIC Sort
    * @return the Sort
    */
   Sort(const Solver* slv, const CVC4::Type& t);
+  Sort(const Solver* slv, const CVC4::TypeNode& t);
 
   /**
    * Constructor.
@@ -488,6 +490,7 @@ class CVC4_PUBLIC Sort
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
   CVC4::Type getType(void) const;
+  const CVC4::TypeNode& getTypeNode(void) const;
 
   /* Constructor sort ------------------------------------------------------- */
 
@@ -670,7 +673,7 @@ class CVC4_PUBLIC Sort
    * memory allocation (CVC4::Type is already ref counted, so this could be
    * a unique_ptr instead).
    */
-  std::shared_ptr<CVC4::Type> d_type;
+  std::shared_ptr<CVC4::TypeNode> d_type;
 };
 
 /**
@@ -2472,8 +2475,7 @@ class CVC4_PUBLIC Solver
   /**
    * Create n-ary term of given kind from a given operator.
    * Create operators with mkOp().
-   * @param kind the kind of the term
-   * @param the operator
+   * @param op the operator
    * @children the children of the term
    * @return the Term
    */
@@ -2634,15 +2636,6 @@ class CVC4_PUBLIC Solver
    * @return the empty set constant
    */
   Term mkEmptySet(Sort s) const;
-
-  /**
-   * Create a singleton set from the given element t.
-   * @param s the element sort of the returned set.
-   * Note that the sort of t needs to be a subtype of s.
-   * @param t the single element in the singleton.
-   * @return a singleton set constructed from the element t.
-   */
-  Term mkSingleton(Sort s, Term t) const;
 
   /**
    * Create a constant representing an empty bag of the given sort.
@@ -3489,6 +3482,14 @@ class CVC4_PUBLIC Solver
   Term mkTermHelper(Kind kind, const std::vector<Term>& children) const;
 
   /**
+   * Create n-ary term of given kind from a given operator.
+   * @param op the operator
+   * @param children the children of the term
+   * @return the Term
+   */
+  Term mkTermHelper(const Op& op, const std::vector<Term>& children) const;
+
+  /**
    * Create a vector of datatype sorts, using unresolved sorts.
    * @param dtypedecls the datatype declarations from which the sort is created
    * @param unresolvedSorts the list of unresolved sorts
@@ -3528,11 +3529,13 @@ std::vector<Expr> termVectorToExprs(const std::vector<Term>& terms);
 std::vector<Node> termVectorToNodes(const std::vector<Term>& terms);
 std::vector<Type> sortVectorToTypes(const std::vector<Sort>& sorts);
 std::vector<TypeNode> sortVectorToTypeNodes(const std::vector<Sort>& sorts);
-std::set<Type> sortSetToTypes(const std::set<Sort>& sorts);
+std::set<TypeNode> sortSetToTypeNodes(const std::set<Sort>& sorts);
 std::vector<Term> exprVectorToTerms(const Solver* slv,
                                     const std::vector<Expr>& terms);
 std::vector<Sort> typeVectorToSorts(const Solver* slv,
                                     const std::vector<Type>& sorts);
+std::vector<Sort> typeNodeVectorToSorts(const Solver* slv,
+                                        const std::vector<TypeNode>& types);
 
 }  // namespace api
 

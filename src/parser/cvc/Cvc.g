@@ -1150,7 +1150,7 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
           PARSER_STATE->checkDeclaration(*i, CHECK_UNDECLARED, SYM_VARIABLE);
           api::Term func = PARSER_STATE->mkVar(
               *i,
-              api::Sort(SOLVER, t.getType()),
+              t,
               ExprManager::VAR_FLAG_GLOBAL | ExprManager::VAR_FLAG_DEFINED);
           PARSER_STATE->defineVar(*i, f);
           Command* decl = new DefineFunctionCommand(*i, func, f, true);
@@ -2158,9 +2158,9 @@ simpleTerm[CVC4::api::Term& f]
     /* finite set literal */
   | LBRACE formula[f] { args.push_back(f); }
     ( COMMA formula[f] { args.push_back(f); } )* RBRACE
-    { f = SOLVER->mkSingleton(args[0].getSort(), args[0]);
+    { f = MK_TERM(api::SINGLETON, args[0]);
       for(size_t i = 1; i < args.size(); ++i) {
-        f = MK_TERM(api::UNION, f, SOLVER->mkSingleton(args[i].getSort(), args[i]));
+        f = MK_TERM(api::UNION, f, MK_TERM(api::SINGLETON, args[i]));
       }
     }
 

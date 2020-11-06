@@ -246,6 +246,7 @@ void SolverState::setPendingConflict(InferInfo& ii)
   if (!d_pendingConflictSet.get())
   {
     d_pendingConflict = ii;
+    d_pendingConflictSet.set(true);
   }
 }
 

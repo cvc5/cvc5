@@ -249,6 +249,7 @@ class NonlinearExtension
    * and for establishing when we are able to answer "SAT".
    */
   NlModel d_model;
+
   /** The transcendental extension object
    *
    * This is the subsolver responsible for running the procedure for

@@ -28,7 +28,6 @@
 #include "api/cvc4cpp.h"
 #include "base/output.h"
 #include "expr/expr.h"
-#include "expr/expr_iomanip.h"
 #include "expr/kind.h"
 #include "expr/type.h"
 #include "options/options.h"
@@ -229,8 +228,7 @@ std::vector<api::Term> Parser::bindBoundVars(
   std::vector<api::Term> vars;
   for (std::pair<std::string, api::Sort>& i : sortedVarNames)
   {
-    vars.push_back(
-        bindBoundVar(i.first, api::Sort(d_solver, i.second.getType())));
+    vars.push_back(bindBoundVar(i.first, i.second));
   }
   return vars;
 }
@@ -244,7 +242,7 @@ api::Term Parser::mkAnonymousFunction(const std::string& prefix,
   }
   stringstream name;
   name << prefix << "_anon_" << ++d_anonymousFunctionCount;
-  return mkVar(name.str(), api::Sort(d_solver, type.getType()), flags);
+  return mkVar(name.str(), type, flags);
 }
 
 std::vector<api::Term> Parser::bindVars(const std::vector<std::string> names,
@@ -436,7 +434,6 @@ std::vector<api::Sort> Parser::bindMutualDatatypeTypes(
       for (size_t j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
       {
         const api::DatatypeConstructor& ctor = dt[j];
-        expr::ExprPrintTypes::Scope pts(Debug("parser-idt"), true);
         api::Term constructor = ctor.getConstructorTerm();
         Debug("parser-idt") << "+ define " << constructor << std::endl;
         string constructorName = ctor.getName();

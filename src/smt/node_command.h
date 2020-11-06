@@ -41,7 +41,6 @@ class NodeCommand
   virtual void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const = 0;
 
@@ -65,7 +64,6 @@ class DeclareFunctionNodeCommand : public NodeCommand
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
   NodeCommand* clone() const override;
@@ -93,7 +91,6 @@ class DeclareDatatypeNodeCommand : public NodeCommand
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
   NodeCommand* clone() const override;
@@ -113,7 +110,6 @@ class DeclareTypeNodeCommand : public NodeCommand
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
   NodeCommand* clone() const override;
@@ -140,7 +136,6 @@ class DefineFunctionNodeCommand : public NodeCommand
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
   NodeCommand* clone() const override;

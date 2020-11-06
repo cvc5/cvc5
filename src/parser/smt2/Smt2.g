@@ -85,28 +85,12 @@ using namespace CVC4::parser;
 #include "smt/command.h"
 
 namespace CVC4 {
-  class Expr;
 
   namespace api {
     class Term;
     class Sort;
   }
-
-  namespace parser {
-    namespace smt2 {
-      /**
-       * Just exists to provide the uintptr_t constructor that ANTLR
-       * requires.
-       */
-      struct myExpr : public CVC4::api::Term {
-        myExpr() : CVC4::api::Term() {}
-        myExpr(void*) : CVC4::api::Term() {}
-        myExpr(const Expr& e) : CVC4::api::Term(d_solver, e) {}
-        myExpr(const myExpr& e) : CVC4::api::Term(e) {}
-      };/* struct myExpr */
-    }/* CVC4::parser::smt2 namespace */
-  }/* CVC4::parser namespace */
-
+  
 }/* CVC4 namespace */
 
 }/* @parser::includes */
@@ -132,8 +116,6 @@ namespace CVC4 {
 #include "util/hash.h"
 #include "util/integer.h"
 #include "util/rational.h"
-// \todo Review the need for this header
-#include "math.h"
 
 using namespace CVC4;
 using namespace CVC4::parser;
@@ -156,7 +138,7 @@ using namespace CVC4::parser;
  * @return the parsed expression, or the Null Expr if we've reached the
  * end of the input
  */
-parseExpr returns [CVC4::parser::smt2::myExpr expr]
+parseExpr returns [CVC4::api::Term expr = CVC4::api::Term()]
 @declarations {
   CVC4::api::Term expr2;
 }
