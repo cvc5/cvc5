@@ -1180,12 +1180,14 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       // only supported in pure arithmetic or pure BV
       options::cegqiNestedQE.set(false);
     }
+    /*
     // prenexing
     if (options::cegqiNestedQE())
     {
       // only complete with prenex = normal
       options::prenexQuant.set(options::PrenexQuantMode::NORMAL);
     }
+    */
     else if (options::globalNegate())
     {
       if (!options::prenexQuant.wasSetByUser())
