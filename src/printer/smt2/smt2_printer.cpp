@@ -1023,7 +1023,7 @@ void Smt2Printer::toStreamCastToType(std::ostream& out,
   {
     Assert (tn.isReal());
     // probably due to subtyping integers and reals, cast it
-    nasc = NodeManager::currentNM()->mkNode(kind::CAST_TO_REAL, tc, n);
+    nasc = NodeManager::currentNM()->mkNode(kind::CAST_TO_REAL, n);
   }
   else
   {
