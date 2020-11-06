@@ -179,7 +179,6 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
     useRelevance = true;
   }
   Valuation v = d_containing.getValuation();
-  NodeManager* nm = NodeManager::currentNM();
 
   BoundInference bounds;
 
@@ -582,6 +581,7 @@ void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
 void NonlinearExtension::presolve()
 {
   Trace("nl-ext") << "NonlinearExtension::presolve" << std::endl;
+  d_builtModel = false;
 }
 
 void NonlinearExtension::runStrategy(Theory::Effort effort,

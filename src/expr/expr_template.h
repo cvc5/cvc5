@@ -513,13 +513,12 @@ public:
    * @param out the stream to serialize this expression to
    * @param toDepth the depth to which to print this expression, or -1
    * to print it fully
-   * @param types set to true to ascribe types to the output
-   * expressions (might break language compliance, but good for
-   * debugging expressions)
    * @param dag the dagification threshold to use (0 == off)
    * @param language the language in which to output
    */
-  void toStream(std::ostream& out, int toDepth = -1, bool types = false, size_t dag = 1,
+  void toStream(std::ostream& out,
+                int toDepth = -1,
+                size_t dag = 1,
                 OutputLanguage language = language::output::LANG_AUTO) const;
 
   /**

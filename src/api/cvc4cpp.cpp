@@ -3273,7 +3273,23 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
   {
     // default case, same as above
     checkMkTerm(kind, children.size());
-    res = d_exprMgr->mkExpr(k, echildren);
+    if (kind == api::SINGLETON)
+    {
+      // the type of the term is the same as the type of the internal node
+      // see Term::getSort()
+      TypeNode type = children[0].d_node->getType();
+      // Internally NodeManager::mkSingleton needs a type argument
+      // to construct a singleton, since there is no difference between
+      // integers and reals (both are Rationals).
+      // At the API, mkReal and mkInteger are different and therefore the
+      // element type can be used safely here.
+      Node singleton = getNodeManager()->mkSingleton(type, *children[0].d_node);
+      res = Term(this, singleton).getExpr();
+    }
+    else
+    {
+      res = d_exprMgr->mkExpr(k, echildren);
+    }
   }
 
   (void)res.getType(true); /* kick off type checking */
@@ -3386,6 +3402,7 @@ Sort Solver::getNullSort(void) const
 
 Sort Solver::getBooleanSort(void) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   return Sort(this, getNodeManager()->booleanType());
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -3393,6 +3410,7 @@ Sort Solver::getBooleanSort(void) const
 
 Sort Solver::getIntegerSort(void) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   return Sort(this, getNodeManager()->integerType());
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -3400,6 +3418,7 @@ Sort Solver::getIntegerSort(void) const
 
 Sort Solver::getRealSort(void) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   return Sort(this, getNodeManager()->realType());
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -3407,6 +3426,7 @@ Sort Solver::getRealSort(void) const
 
 Sort Solver::getRegExpSort(void) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   return Sort(this, getNodeManager()->regExpType());
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -3414,6 +3434,7 @@ Sort Solver::getRegExpSort(void) const
 
 Sort Solver::getStringSort(void) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   return Sort(this, getNodeManager()->stringType());
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -3421,6 +3442,7 @@ Sort Solver::getStringSort(void) const
 
 Sort Solver::getRoundingModeSort(void) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
       << "Expected CVC4 to be compiled with SymFPU support";
@@ -3432,6 +3454,7 @@ Sort Solver::getRoundingModeSort(void) const
 
 Sort Solver::mkArraySort(Sort indexSort, Sort elemSort) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!indexSort.isNull(), indexSort)
       << "non-null index sort";
@@ -3448,6 +3471,7 @@ Sort Solver::mkArraySort(Sort indexSort, Sort elemSort) const
 
 Sort Solver::mkBitVectorSort(uint32_t size) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(size > 0, size) << "size > 0";
 
@@ -3458,6 +3482,7 @@ Sort Solver::mkBitVectorSort(uint32_t size) const
 
 Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
       << "Expected CVC4 to be compiled with SymFPU support";
@@ -3503,6 +3528,7 @@ std::vector<Sort> Solver::mkDatatypeSorts(
 
 Sort Solver::mkFunctionSort(Sort domain, Sort codomain) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!codomain.isNull(), codomain)
       << "non-null codomain sort";
@@ -3522,6 +3548,7 @@ Sort Solver::mkFunctionSort(Sort domain, Sort codomain) const
 
 Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts, Sort codomain) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_SIZE_CHECK_EXPECTED(sorts.size() >= 1, sorts)
       << "at least one parameter sort for function sort";
@@ -3553,6 +3580,7 @@ Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts, Sort codomain) const
 
 Sort Solver::mkParamSort(const std::string& symbol) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   return Sort(
       this,
@@ -3562,6 +3590,7 @@ Sort Solver::mkParamSort(const std::string& symbol) const
 
 Sort Solver::mkPredicateSort(const std::vector<Sort>& sorts) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_SIZE_CHECK_EXPECTED(sorts.size() >= 1, sorts)
       << "at least one parameter sort for predicate sort";
@@ -3610,6 +3639,7 @@ Sort Solver::mkRecordSort(
 
 Sort Solver::mkSetSort(Sort elemSort) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!elemSort.isNull(), elemSort)
       << "non-null element sort";
@@ -3622,6 +3652,7 @@ Sort Solver::mkSetSort(Sort elemSort) const
 
 Sort Solver::mkBagSort(Sort elemSort) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!elemSort.isNull(), elemSort)
       << "non-null element sort";
@@ -3634,6 +3665,7 @@ Sort Solver::mkBagSort(Sort elemSort) const
 
 Sort Solver::mkSequenceSort(Sort elemSort) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!elemSort.isNull(), elemSort)
       << "non-null element sort";
@@ -3646,6 +3678,7 @@ Sort Solver::mkSequenceSort(Sort elemSort) const
 
 Sort Solver::mkUninterpretedSort(const std::string& symbol) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   return Sort(this, getNodeManager()->mkSort(symbol));
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -3654,6 +3687,7 @@ Sort Solver::mkUninterpretedSort(const std::string& symbol) const
 Sort Solver::mkSortConstructorSort(const std::string& symbol,
                                    size_t arity) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(arity > 0, arity) << "an arity > 0";
 
@@ -3664,6 +3698,7 @@ Sort Solver::mkSortConstructorSort(const std::string& symbol,
 
 Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   for (size_t i = 0, size = sorts.size(); i < size; ++i)
   {
@@ -3815,22 +3850,6 @@ Term Solver::mkEmptySet(Sort s) const
       << "set sort associated to this solver object";
 
   return mkValHelper<CVC4::EmptySet>(CVC4::EmptySet(*s.d_type));
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
-}
-
-Term Solver::mkSingleton(Sort s, Term t) const
-{
-  NodeManagerScope scope(getNodeManager());
-
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_ARG_CHECK_EXPECTED(!t.isNull(), t) << "non-null term";
-  CVC4_API_SOLVER_CHECK_TERM(t);
-  checkMkTerm(SINGLETON, 1);
-
-  Node res = getNodeManager()->mkSingleton(*s.d_type, *t.d_node);
-  (void)res.getType(true); /* kick off type checking */
-  return Term(this, res);
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -4178,35 +4197,12 @@ Term Solver::mkTerm(Kind kind) const
 
 Term Solver::mkTerm(Kind kind, Term child) const
 {
-  NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_ARG_CHECK_EXPECTED(!child.isNull(), child) << "non-null term";
-  CVC4_API_SOLVER_CHECK_TERM(child);
-  checkMkTerm(kind, 1);
-
-  Node res = getNodeManager()->mkNode(extToIntKind(kind), *child.d_node);
-  (void)res.getType(true); /* kick off type checking */
-  return Term(this, res);
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  return mkTermHelper(kind, std::vector<Term>{child});
 }
 
 Term Solver::mkTerm(Kind kind, Term child1, Term child2) const
 {
-  NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_ARG_CHECK_EXPECTED(!child1.isNull(), child1) << "non-null term";
-  CVC4_API_ARG_CHECK_EXPECTED(!child2.isNull(), child2) << "non-null term";
-  CVC4_API_SOLVER_CHECK_TERM(child1);
-  CVC4_API_SOLVER_CHECK_TERM(child2);
-  checkMkTerm(kind, 2);
-
-  Node res = getNodeManager()->mkNode(
-      extToIntKind(kind), *child1.d_node, *child2.d_node);
-  (void)res.getType(true); /* kick off type checking */
-  return Term(this, res);
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  return mkTermHelper(kind, std::vector<Term>{child1, child2});
 }
 
 Term Solver::mkTerm(Kind kind, Term child1, Term child2, Term child3) const
@@ -4227,16 +4223,13 @@ Term Solver::mkTerm(Op op) const
   CVC4_API_SOLVER_CHECK_OP(op);
   checkMkTerm(op.d_kind, 0);
 
-  Term res;
-  if (op.isIndexedHelper())
+  if (!op.isIndexedHelper())
   {
-    const CVC4::Kind int_kind = extToIntKind(op.d_kind);
-    res = Term(this, getNodeManager()->mkNode(int_kind, *op.d_node));
+    return mkTermFromKind(op.d_kind);
   }
-  else
-  {
-    res = mkTermFromKind(op.d_kind);
-  }
+
+  const CVC4::Kind int_kind = extToIntKind(op.d_kind);
+  Term res = Term(this, getNodeManager()->mkNode(int_kind, *op.d_node));
 
   (void)res.d_node->getType(true); /* kick off type checking */
   return res;
@@ -4246,92 +4239,31 @@ Term Solver::mkTerm(Op op) const
 
 Term Solver::mkTerm(Op op, Term child) const
 {
-  NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_SOLVER_CHECK_OP(op);
-  CVC4_API_ARG_CHECK_EXPECTED(!child.isNull(), child) << "non-null term";
-  CVC4_API_SOLVER_CHECK_TERM(child);
-  checkMkTerm(op.d_kind, 1);
-
-  const CVC4::Kind int_kind = extToIntKind(op.d_kind);
-  Node res;
-  if (op.isIndexedHelper())
-  {
-    res = getNodeManager()->mkNode(int_kind, *op.d_node, *child.d_node);
-  }
-  else
-  {
-    res = getNodeManager()->mkNode(int_kind, *child.d_node);
-  }
-
-  (void)res.getType(true); /* kick off type checking */
-  return Term(this, res);
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  return mkTermHelper(op, std::vector<Term>{child});
 }
 
 Term Solver::mkTerm(Op op, Term child1, Term child2) const
 {
-  NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_SOLVER_CHECK_OP(op);
-  CVC4_API_ARG_CHECK_EXPECTED(!child1.isNull(), child1) << "non-null term";
-  CVC4_API_ARG_CHECK_EXPECTED(!child2.isNull(), child2) << "non-null term";
-  CVC4_API_SOLVER_CHECK_TERM(child1);
-  CVC4_API_SOLVER_CHECK_TERM(child2);
-  checkMkTerm(op.d_kind, 2);
-
-  const CVC4::Kind int_kind = extToIntKind(op.d_kind);
-  Node res;
-  if (op.isIndexedHelper())
-  {
-    res = getNodeManager()->mkNode(
-        int_kind, *op.d_node, *child1.d_node, *child2.d_node);
-  }
-  else
-  {
-    res = getNodeManager()->mkNode(int_kind, *child1.d_node, *child2.d_node);
-  }
-
-  (void)res.getType(true); /* kick off type checking */
-  return Term(this, res);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  return mkTermHelper(op, std::vector<Term>{child1, child2});
 }
 
 Term Solver::mkTerm(Op op, Term child1, Term child2, Term child3) const
 {
-  NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_SOLVER_CHECK_OP(op);
-  CVC4_API_ARG_CHECK_EXPECTED(!child1.isNull(), child1) << "non-null term";
-  CVC4_API_ARG_CHECK_EXPECTED(!child2.isNull(), child2) << "non-null term";
-  CVC4_API_ARG_CHECK_EXPECTED(!child3.isNull(), child3) << "non-null term";
-  CVC4_API_SOLVER_CHECK_TERM(child1);
-  CVC4_API_SOLVER_CHECK_TERM(child2);
-  CVC4_API_SOLVER_CHECK_TERM(child3);
-  checkMkTerm(op.d_kind, 3);
-
-  const CVC4::Kind int_kind = extToIntKind(op.d_kind);
-  Node res;
-  if (op.isIndexedHelper())
-  {
-    res = getNodeManager()->mkNode(
-        int_kind, *op.d_node, *child1.d_node, *child2.d_node, *child3.d_node);
-  }
-  else
-  {
-    res = getNodeManager()->mkNode(
-        int_kind, *child1.d_node, *child2.d_node, *child3.d_node);
-  }
-
-  (void)res.getType(true); /* kick off type checking */
-  return Term(this, res);
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  return mkTermHelper(op, std::vector<Term>{child1, child2, child3});
 }
 
 Term Solver::mkTerm(Op op, const std::vector<Term>& children) const
 {
+  return mkTermHelper(op, children);
+}
+
+Term Solver::mkTermHelper(const Op& op, const std::vector<Term>& children) const
+{
+  if (!op.isIndexedHelper())
+  {
+    return mkTermHelper(op.d_kind, children);
+  }
+
   NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_SOLVER_CHECK_OP(op);
@@ -4348,18 +4280,11 @@ Term Solver::mkTerm(Op op, const std::vector<Term>& children) const
 
   const CVC4::Kind int_kind = extToIntKind(op.d_kind);
   std::vector<Node> echildren = termVectorToNodes(children);
-  Node res;
-  if (op.isIndexedHelper())
-  {
-    NodeBuilder<> nb(int_kind);
-    nb << *op.d_node;
-    nb.append(echildren);
-    res = nb.constructNode();
-  }
-  else
-  {
-    res = getNodeManager()->mkNode(int_kind, echildren);
-  }
+
+  NodeBuilder<> nb(int_kind);
+  nb << *op.d_node;
+  nb.append(echildren);
+  Node res = nb.constructNode();
 
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
