@@ -518,32 +518,26 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   {
     inst = d_base_inst;
   }
+  
+  if (!constructed_cand)
+  {
+    return false;
+  }
 
-  // check whether we will run CEGIS on inner skolem variables
-  bool sk_refine = (!isGround() || d_refine_count == 0) && constructed_cand;
-  if (sk_refine)
+  // if we trust the sampling we ran, we terminate now
+  if (options::cegisSample() == options::CegisSampleMode::TRUST)
   {
-    if (options::cegisSample() == options::CegisSampleMode::TRUST)
-    {
-      // we have that the current candidate passed a sample test
-      // since we trust sampling in this mode, we assert there is no
-      // counterexample to the conjecture here.
-      Node lem = nm->mkNode(OR, d_quant.negate(), nm->mkConst(false));
-      lem = getStreamGuardedLemma(lem);
-      lems.push_back(lem);
-      recordInstantiation(candidate_values);
-      d_hasSolution = true;
-      return true;
-    }
-    Assert(!d_set_ce_sk_vars);
+    // we have that the current candidate passed a sample test
+    // since we trust sampling in this mode, we assert there is no
+    // counterexample to the conjecture here.
+    Node lem = nm->mkNode(OR, d_quant.negate(), nm->mkConst(false));
+    lem = getStreamGuardedLemma(lem);
+    lems.push_back(lem);
+    recordInstantiation(candidate_values);
+    d_hasSolution = true;
+    return true;
   }
-  else
-  {
-    if (!constructed_cand)
-    {
-      return false;
-    }
-  }
+  Assert(!d_set_ce_sk_vars);
 
   // immediately skolemize inner existentials
   Node lem;
@@ -587,11 +581,8 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       lem = inst;
     }
   }
-  if (sk_refine)
-  {
-    d_ce_sk_vars.insert(d_ce_sk_vars.end(), sks.begin(), sks.end());
-    d_set_ce_sk_vars = true;
-  }
+  d_ce_sk_vars.insert(d_ce_sk_vars.end(), sks.begin(), sks.end());
+  d_set_ce_sk_vars = true;
 
   if (lem.isNull())
   {
@@ -807,8 +798,13 @@ bool SynthConjecture::doRefine()
     Trace("sygus-engine-debug") << "  ...(warning) failed to refine candidate, "
                                    "manually exclude candidate."
                                 << std::endl;
+    std::vector<Node> cvals;
+    for (const Node& c : d_candidates)
+    {
+      cvals.push_back(d_cinfo[c].d_inst.back());
+    }
     // something went wrong, exclude the current candidate
-    excludeCurrentSolution(sk_vars, sk_subs);
+    excludeCurrentSolution(d_candidates, cvals);
     // Note this happens when evaluation is incapable of disproving a candidate
     // for counterexample point c, but satisfiability checking happened to find
     // the the same point c is indeed a true counterexample. It is sound
@@ -1087,6 +1083,7 @@ void SynthConjecture::printAndContinueStream(const std::vector<Node>& enums,
 void SynthConjecture::excludeCurrentSolution(const std::vector<Node>& enums,
                                              const std::vector<Node>& values)
 {
+  Trace("cegqi-debug") << "Exclude current solution: " << enums << " / " << values << std::endl;
   // We will not refine the current candidate solution since it is a solution
   // thus, we clear information regarding the current refinement
   d_set_ce_sk_vars = false;
