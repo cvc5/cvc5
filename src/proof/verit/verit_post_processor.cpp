@@ -138,27 +138,93 @@ bool VeritProofPostprocessCallback::update(Node res,
     // Conclusion: (=> (and F1 ... Fn) F) or (not (and F1 ... Fn)) if F is false
     //
     // proof rule: anchor
-    // proof term:
-    // premises:
+    // proof term: (VP1:(cl (not F1) ... (not Fn) F))
+    // premises: (P:F)
     // args: (F1, ..., Fn)
+    //
+    // TODO: Wait for Haniels explanation on order at resolution. If possible this
+    // can be replaced by a single resolution step in the end
+    //
+    // Let (not (and F1 ... Fn))^i denote the repetition of (not (and F1 ... Fn)) for i times
+    // Repeat the following two step for i=1 to n:
+    //
+    // proof rule: and_neg
+    // proof term: (VP2_i_a:(cl (not (and F1 ... Fn)) Fi))
+    // premises: ()
+    // args: ()
+    //
+    // proof rule: resolution
+    // proof term: (VP2_i_b:(cl (not (and F1 ... Fn))^i (not Fi+1) ... (not Fn) F))
+    // premises: (VP2_i-1_b:(cl (not (and F1 ... Fn))^(i-1) (not Fi) ... (not Fn) F)) (VP2_i_a:(cl (not (and F1 ... Fn)) Fi))
+    // args: ()
+    //
+    // Then, the last step is: (VP2_n_b:(cl (not (and F1 ... Fn))^n F))
+    //
+    // proof rule: duplicate_literals
+    // proof term: (VP3:(cl (not (and F1 ... Fn)) F))
+    // premises: (VP2_n_b:(cl (not (and F1 ... Fn))^n F))
+    // args: ()
+    //
+    // proof rule: implies_neg1
+    // proof term: (VP4:(cl (=> (and F1 ... Fn) F) (and F1 ... Fn)))
+    // premises: ()
+    // args: ()
+    //
+    // proof rule: resolution
+    // proof term: (VP5:(cl (=> (and F1 ... Fn) F) F))
+    // premises: (VP3:(cl (not (and F1 ... Fn)) F)) (VP4:(cl (=> (and F1 ... Fn) F) (and F1 ... Fn)))
+    // args: ()
+    //
+    // proof rule: implies_neg2
+    // proof term: (VP6:(cl (=> (and F1 ... Fn) F) (not F)))
+    // premises: ()
+    // args: ()
+    //
+    // proof rule: resolution
+    // proof term: (VP7:(cl (=> (and F1 ... Fn) F) (=> (and F1 ... Fn) F)))
+    // premises: (VP5:(cl (=> (and F1 ... Fn) F) F)) (VP6:(cl (=> (and F1 ... Fn) F) (not F)))
+    // args: ()
+    //
+    // proof rule: duplicate_literals
+    // proof term: (VP8:(cl (=> (and F1 ... Fn) F)))
+    // premises: (VP7:(cl (=> (and F1 ... Fn) F) (=> (and F1 ... Fn) F)))
+    // args: ()
+    //
+    // If F is false additionally
+    //
+    // proof rule: implies_simplify
+    // proof term: (VP9:(cl (= (=> (and F1 ... Fn) false) (not (and F1 ... Fn)))))
+    // premises: ()
+    // args: ()
+    //
+    // proof rule: equiv1
+    // proof term: (VP10:(cl (not (=> (and F1 ... Fn) false)) (not (and F1 ... Fn))))
+    // premises: (VP9:(cl (= (=> (and F1 ... Fn) false) (not (and F1 ... Fn)))))
+    // args: ()
+    //
+    // proof rule: resolution
+    // proof term: (cl (not (and F1 ... Fn)))
+    // premises: (VP8:(cl (=> (and F1 ... Fn) F))) (VP10:(cl (not (=> (and F1 ... Fn) false)) (not (and F1 ... Fn))))
+    // args: ()
     case PfRule::SCOPE://TODO: Not finished yet, consider second case
-    {
-      return addVeritStep(res,VeritRule::ANCHOR,children,args,*cdp);
-      /*bool success = true;
-
-      for(int i = 0; i < args.size(); i++){
-        if(args[i].getKind() == kind::OR){
-        Node temp = d_nm->mkNode(kind::SEXPR,args[i]);
-        success = success
-		  && addVeritStep(temp, VeritRule::ASSUME, args[i], {}, {}, *cdp)
-	          && addVeritClStepFromOr(args[i], VeritRule::OR, {temp}, {}, *cdp);
-        }
-        success = success && addVeritStep(args[i],VeritRule::ASSUME, {}, {}, *cdp);
+    {//TODO: rename ANCHOR_SCOPE to ANCHOR_SUBPROOF?
+      std::vector<Node> neg_node;
+      for(Node arg:args){
+        neg_node.push_back(arg.notNode());
       }
-      std::vector<Node> new_children;
-      new_children.insert(new_children.end(),args.begin(),args.end());
-      new_children.insert(new_children.end(),children.begin(),children.end());
-      return success && addVeritStep(res,VeritRule::ANCHOR,children,args,*cdp);*/
+      Node vp1 = d_nm->mkNode(kind::OR,neg_node);
+
+      if(res.getKind() == kind::NOT){
+	//TODO: It is not quite clear from the Onomicon what happens in this case,
+	//i.e. whether false is added or phi is ommited
+	
+	      //construct neg node of arguments first
+	Node conclusion = d_nm->mkNode(kind::SEXPR,d_cl,res);
+	return addVeritClStepFromOr(vp1,VeritRule::ANCHOR_SCOPE,children,args,*cdp);
+
+      }
+//In this case construct neg node and then apply and_neg
+      return addVeritStep(res,VeritRule::ANCHOR_SCOPE,children,args,*cdp);
       // Note: Adding the last step (introducing the implication) is not
       // feasible. It is better to print it when the scope statement comes up Add
       // this to the final version of printer. return true;

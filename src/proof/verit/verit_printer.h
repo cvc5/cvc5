@@ -13,6 +13,7 @@
  **/
 
 #include <memory>
+#include <string>
 
 #include "cvc4_private.h"
 #include "expr/proof_node_updater.h"
@@ -27,77 +28,91 @@ namespace CVC4 {
 
 namespace proof {
 
+
+// TEMP ad-hoc code to test conversion
+static std::string veritPrintName(std::vector<int> ids,
+                                  int i)
+{
+  std::string name;
+  for(int id:ids){
+    name.push_back('t');
+    name.append(std::to_string(id));
+    name.push_back('.');
+  }
+  name.push_back('t');
+  name.append(std::to_string(i));
+  return name;
+}
+
 // TEMP ad-hoc code to test conversion
 static int veritPrintInternal(std::ostream& out,
                               std::shared_ptr<ProofNode> pfn,
-                              int i)
+			      std::vector<int> &ids,
+                              int i=1)
 {
-  int temp = i;
+  // The id of the current proof node
+  int current_id = i;
+  // Ids of the childrens of this proof node that are used to print the premises
   std::vector<int> childIds;
-  i++;
 
-  std::string last_step = "";
-  //In case the rule is an assume
-  if (static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString())) == VeritRule::ASSUME)
-  {
-    out << "(assume t" << temp << " " << pfn->getArguments()[1] << ")"
-        << std::endl;
-    return i;
-  }
-
+  std::vector<std::string> assump;
 
   //In case the rule is an anchor
-  if (static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString())) == VeritRule::ANCHOR)
+  if (static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString())) == VeritRule::ANCHOR_SCOPE)
   {
-    out << "(anchor :step " << last_step << ":args ";
-    for (int i = 2; i < pfn->getArguments().size(); i++)
-    {
-      out << " " << pfn->getArguments()[i];
+    // The arguments are printed as assumptions before the
+    for(int j = 2; j < pfn->getArguments().size(); j++){
+      out << "(assume " << veritPrintName(ids,i) << " " << pfn->getArguments()[j] << ")\n";
+      assump.push_back(veritPrintName(ids,i));
+      i++;
     }
-    out << ")\n";
+    out << "(anchor :step " << veritPrintName(ids,i) << " :args (";
+    for (int j = 2; j < pfn->getArguments().size(); j++)
+    {
+      out << pfn->getArguments()[j];
+      if(j != pfn->getArguments().size()-1){out << " ";}
+    }
+    out << "))\n";
+    ids.push_back(i);
+    i = 1;
   }
 
 
   //Print Children
-  for (auto child : pfn->getChildren())
+  for (int j = 0; j < pfn->getChildren().size(); j++)
   {
-    if(static_cast<VeritRule>(std::stoul(child->getArguments()[0].toString())) == VeritRule::OR
-	&&
-      static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString())) == VeritRule::RESOLUTION)
-    {   bool temp = false;
-	if(child->getChildren().size() >= 1){
-	if(static_cast<VeritRule>(std::stoul(child->getChildren()[0]->getArguments()[0].toString())) != VeritRule::ASSUME){
-	  for(auto child2: pfn->getChildren()){
-	    if(child2->getResult() == child->getChildren()[0]->getResult()[1].negate() ){ 
-	      temp = true;
-              childIds.push_back(i+1);
-	      break;
-	    }
-          }}
-	}
-       if(!temp){childIds.push_back(i);}
-
-	    std::cout << "test5" << std::endl;
-    }
-    else{
-      childIds.push_back(i);
-    }
-    i = veritPrintInternal(out, child, i);
+    std::shared_ptr<ProofNode> child = pfn->getChildren()[j];
+    i = veritPrintInternal(out, child, ids, i);
+    childIds.push_back(i-1);
   }
 
-  last_step = i;
-
-  if (static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString())) == VeritRule::ANCHOR
-      || static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString())) == VeritRule::ASSUME)
+  //In case the rule is an assume
+  if (static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString())) == VeritRule::ASSUME)
   {
-    return i;
+    out << "(input " << veritPrintName(ids,i) << " " << pfn->getArguments()[1] << ")"
+        << std::endl;
+    return i+1;
   }
 
+  //In case the rule is an anchor
+  if (static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString())) == VeritRule::ANCHOR_SCOPE)
+  {
+    auto last = ids.back();
+    ids.pop_back();
+    out << "(step " << veritPrintName(ids,last) << " " << pfn->getArguments()[1] << " :rule "
+	<< veritRuletoString(static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString()))) << ")\n";
+    out << "(step " << veritPrintName(ids,i+1) << " " << pfn->getArguments()[1][1] << " :rule "
+	<< veritRuletoString(VeritRule::RESOLUTION)
+	<< " :premises";
+    for(std::string ass: assump){out << ass;}
+    out << ")\n";
+    return i+1;
+  }
 
   //Print current step
   if (pfn->getArguments().size() >= 2)
   {
-    out << "(step t" << temp << " ";
+    out << "(step " << veritPrintName(ids,i) << " ";
     if(pfn->getArguments()[1][1] == Node::null()){
       out << "(cl)";
     }
@@ -117,7 +132,7 @@ static int veritPrintInternal(std::ostream& out,
       out << " :premises";
       for (auto j : childIds)
       {
-        out << " t" << j;
+        out << " " << veritPrintName(ids,j);
       }
     }
     out << ")\n";
@@ -126,7 +141,11 @@ static int veritPrintInternal(std::ostream& out,
   {
     out << "Not translated yet\n";
   }
-  return i;
+
+
+
+
+  return i+1;
 }
 
 static void veritPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn)
@@ -138,9 +157,11 @@ static void veritPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   out << "\n";
   out << "Print veriT proof: " << std::endl;
   // Do not print outermost scope
-  veritPrintInternal(out, pfn->getChildren()[0], 0);
+  //veritPrintInternal(out, pfn->getChildren()[0], 0);
   // Print outermost scope
-  // veritPrintInternal(out,pfn,0);
+  std::vector<int> ids;
+  veritPrintInternal(out,pfn,ids,1);
+  out << "\n";
   out << "\n";
 }
 

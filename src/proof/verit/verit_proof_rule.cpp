@@ -27,6 +27,8 @@ const char* veritRuletoString(VeritRule id)
     case VeritRule::UNDEFINED: return "undefined";
     case VeritRule::ASSUME: return "assume";
     case VeritRule::ANCHOR: return "anchor";
+    case VeritRule::ANCHOR_SCOPE: return "subproof";
+    case VeritRule::ANCHOR_BIND: return "bind";
     case VeritRule::INPUT: return "input";
     case VeritRule::TRUE: return "true";
     case VeritRule::FALSE: return "false";
