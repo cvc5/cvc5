@@ -48,7 +48,8 @@ static std::string veritPrintName(std::vector<int> ids,
 static int veritPrintInternal(std::ostream& out,
                               std::shared_ptr<ProofNode> pfn,
 			      std::vector<int> &ids,
-                              int i=1)
+                              int i=1,
+			      bool firstScope=false)
 {
   // The id of the current proof node
   int current_id = i;
@@ -63,7 +64,6 @@ static int veritPrintInternal(std::ostream& out,
     // The arguments are printed as assumptions before the
     for(int j = 2; j < pfn->getArguments().size(); j++){
       out << "(assume " << veritPrintName(ids,i) << " " << pfn->getArguments()[j] << ")\n";
-      assump.push_back(veritPrintName(ids,i));
       i++;
     }
     out << "(anchor :step " << veritPrintName(ids,i) << " :args (";
@@ -91,6 +91,7 @@ static int veritPrintInternal(std::ostream& out,
   {
     out << "(input " << veritPrintName(ids,i) << " " << pfn->getArguments()[1] << ")"
         << std::endl;
+    assump.push_back(veritPrintName(ids,i));
     return i+1;
   }
 
@@ -100,13 +101,12 @@ static int veritPrintInternal(std::ostream& out,
     auto last = ids.back();
     ids.pop_back();
     out << "(step " << veritPrintName(ids,last) << " " << pfn->getArguments()[1] << " :rule "
-	<< veritRuletoString(static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString()))) << ")\n";
-    out << "(step " << veritPrintName(ids,i+1) << " " << pfn->getArguments()[1][1] << " :rule "
-	<< veritRuletoString(VeritRule::RESOLUTION)
-	<< " :premises";
-    for(std::string ass: assump){out << ass;}
+	<< veritRuletoString(static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString())));
+    for(std::string ass: assump){//TODO: Find way to print assumptions
+      out << " " << ass;
+    }
     out << ")\n";
-    return i+1;
+    return i;
   }
 
   //Print current step

@@ -208,26 +208,70 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::SCOPE://TODO: Not finished yet, consider second case
     {//TODO: rename ANCHOR_SCOPE to ANCHOR_SUBPROOF?
-      std::vector<Node> neg_node;
+     //TODO: change success = success && ... to success &= success
+      bool success = true;
+
+      std::vector<Node> negNode;
       for(Node arg:args){
-        neg_node.push_back(arg.notNode());
+         negNode.push_back(arg.notNode());
       }
-      Node vp1 = d_nm->mkNode(kind::OR,neg_node);
+      negNode.push_back(children[0]);
+      Node vp1 = d_nm->mkNode(kind::OR,negNode);
 
-      if(res.getKind() == kind::NOT){
-	//TODO: It is not quite clear from the Onomicon what happens in this case,
-	//i.e. whether false is added or phi is ommited
-	
-	      //construct neg node of arguments first
-	Node conclusion = d_nm->mkNode(kind::SEXPR,d_cl,res);
-	return addVeritClStepFromOr(vp1,VeritRule::ANCHOR_SCOPE,children,args,*cdp);
+      success &= addVeritClStepFromOr(vp1,VeritRule::ANCHOR_SCOPE,children,args,*cdp);
 
+      Node andNode = d_nm->mkNode(kind::AND,args);
+      Node vp8 = d_nm->mkNode(kind::IMPLIES,andNode,children[0]);
+
+
+      Node vp2_i_a = d_nm->mkNode(kind::OR,andNode.notNode(),args[0]);
+      success &= addVeritClStepFromOr(vp2_i_a,VeritRule::AND_NEG,{},{},*cdp);
+
+      negNode.insert(negNode.begin(),andNode.notNode());
+      Node vp2_i_b = d_nm->mkNode(kind::OR,negNode);
+      success &= addVeritClStepFromOr(vp2_i_b,VeritRule::RESOLUTION,{vp1,vp2_i_a},{},*cdp);
+
+      for(int i = 1; i < args.size(); i++){
+	negNode.erase(negNode.begin()+i+1);
+	negNode.insert(negNode.begin(),andNode);
+      	Node vp2_i_b_next = d_nm->mkNode(kind::OR,negNode);
+
+	vp2_i_a = d_nm->mkNode(kind::OR,andNode,args[i]);
+
+	success &= addVeritClStepFromOr(vp2_i_a,VeritRule::AND_NEG,{},{},*cdp);
+	success &= addVeritClStepFromOr(vp2_i_b_next,VeritRule::RESOLUTION,{vp2_i_b,vp2_i_a},{},*cdp);
+
+	vp2_i_b = vp2_i_b_next;
       }
-//In this case construct neg node and then apply and_neg
-      return addVeritStep(res,VeritRule::ANCHOR_SCOPE,children,args,*cdp);
-      // Note: Adding the last step (introducing the implication) is not
-      // feasible. It is better to print it when the scope statement comes up Add
-      // this to the final version of printer. return true;
+
+      Node vp3 = d_nm->mkNode(kind::OR,andNode,children[0]);
+      success &= addVeritClStepFromOr(vp3,VeritRule::DUPLICATE_LITERALS,{vp2_i_b},{},*cdp);
+
+      Node vp4 = d_nm->mkNode(kind::OR,vp8,andNode);
+      success &= addVeritClStepFromOr(vp4,VeritRule::IMPLIES_NEG1,{},{},*cdp);
+
+      Node vp5 = d_nm->mkNode(kind::OR,vp8,children[0]);
+      success &= addVeritClStepFromOr(vp5,VeritRule::RESOLUTION,{vp3,vp4},{},*cdp);
+
+      Node vp6 = d_nm->mkNode(kind::OR,vp8,children[0].notNode());
+      success &= addVeritClStepFromOr(vp6,VeritRule::IMPLIES_NEG2,{},{},*cdp);
+
+      Node vp7 = d_nm->mkNode(kind::OR,vp8,vp8);
+      success &= addVeritClStepFromOr(vp7,VeritRule::IMPLIES_NEG1,{vp5,vp6},{},*cdp);
+
+      success &= addVeritStep(vp8,VeritRule::DUPLICATE_LITERALS,d_nm->mkNode(kind::SEXPR,d_cl,vp8),{vp7},{},*cdp);
+
+      if(res.getKind() == kind::NOT){ //TODO: better check if children[0] == false?
+        Node vp9 = d_nm->mkNode(kind::OR,vp8,andNode.negate());
+        success &= addVeritClStepFromOr(vp9,VeritRule::IMPLIES_SIMPLIFY,{},{},*cdp);
+
+	Node vp10 = d_nm->mkNode(kind::OR,vp8.notNode(),andNode.notNode());
+        success &= addVeritClStepFromOr(vp10,VeritRule::EQUIV1,{vp9},{},*cdp);
+
+	success &= addVeritStep(andNode.notNode(),VeritRule::RESOLUTION,d_nm->mkNode(kind::SEXPR,d_cl,andNode.notNode()),{vp8,vp10},{},*cdp);
+      }
+
+      return success;
     }
     //================================================= Boolean rules
     // ======== Resolution
