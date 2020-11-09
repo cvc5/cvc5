@@ -137,7 +137,10 @@ bool InferenceManager::processDtLemma(
   {
     expv.push_back(exp);
   }
-  if (!lemmaExp(conc, expv, {}, d_ipc.get(), p, doCache))
+  // Don't explain it. We set the no explain vector to expv and call lemmaExp
+  // for consistency, since this will invoke the proof equality engine if
+  // necessary.
+  if (!lemmaExp(conc, expv, expv, d_ipc.get(), p, doCache))
   {
     Trace("dt-lemma-debug") << "...duplicate lemma" << std::endl;
     return false;
@@ -187,7 +190,7 @@ void InferenceManager::processDtFactInternal(Node conc, Node exp)
     std::vector<Node> expv;
     if (!exp.isNull() && !exp.isConst())
     {
-      expv.push_back(exp);
+      lem = NodeManager::currentNM()->mkNode(kind::IMPLIES, exp, conc);
     }
     assertInternalFact(atom, polarity, expv, d_ipc.get());
   }

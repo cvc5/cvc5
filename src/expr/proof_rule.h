@@ -713,6 +713,21 @@ enum class PfRule : uint32_t
   // Conclusion: F
   ARRAYS_TRUST,
 
+  //================================================= Bit-Vector rules
+  // ======== Bitblast
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (= t bitblast(t))
+  BV_BITBLAST,
+  // ======== Eager Atom
+  // Children: none
+  // Arguments: (F)
+  // ---------------------
+  // Conclusion: (= F F[0])
+  // where F is of kind BITVECTOR_EAGER_ATOM
+  BV_EAGER_ATOM,
+
   //================================================= Datatype rules
   // ======== Unification
   // Children: (P:(= (C t1 ... tn) (C s1 ... sn)))

@@ -31,6 +31,7 @@
 #include "options/printer_options.h"
 #include "options/smt_options.h"
 #include "printer/dagification_visitor.h"
+#include "proof/lfsc/letify.h"
 #include "proof/unsat_core.h"
 #include "smt/command.h"
 #include "smt/node_command.h"
@@ -42,7 +43,6 @@
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"
 #include "util/smt2_quote_string.h"
-#include "proof/lfsc/letify.h"
 
 using namespace std;
 
@@ -62,8 +62,10 @@ static void toStreamRational(std::ostream& out,
                              bool decimal,
                              Variant v);
 
-void Smt2Printer::toStream(
-    std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const
+void Smt2Printer::toStream(std::ostream& out,
+                           TNode n,
+                           int toDepth,
+                           size_t dag) const
 {
   if(dag != 0) {
 #if 0
@@ -71,8 +73,7 @@ void Smt2Printer::toStream(
     // how closures are printed, which should force re-letifying bodies
     std::vector<Node> letList;
     std::map<Node, uint32_t> letMap;
-    uint32_t counter = 0;
-    proof::Letify::computeLet(n, letList, letMap, counter, dag+1);
+    proof::Letify::computeLet(n, letList, letMap, dag+1);
     std::stringstream cparen;
     if (!letList.empty())
     {
@@ -108,14 +109,14 @@ void Smt2Printer::toStream(
       theory::SubstitutionMap::const_iterator i_end = lets.end();
       for(; i != i_end; ++ i) {
         out << "(let ((";
-        toStream(out, (*i).second, toDepth, types, TypeNode::null());
+        toStream(out, (*i).second, toDepth, TypeNode::null());
         out << ' ';
-        toStream(out, (*i).first, toDepth, types, TypeNode::null());
+        toStream(out, (*i).first, toDepth, TypeNode::null());
         out << ")) ";
       }
     }
     Node body = dv.getDagifiedBody();
-    toStream(out, body, toDepth, types, TypeNode::null());
+    toStream(out, body, toDepth, TypeNode::null());
     if(!lets.empty()) {
       theory::SubstitutionMap::const_iterator i = lets.begin();
       theory::SubstitutionMap::const_iterator i_end = lets.end();
@@ -125,7 +126,7 @@ void Smt2Printer::toStream(
     }
 #endif
   } else {
-    toStream(out, n, toDepth, types, TypeNode::null());
+    toStream(out, n, toDepth, TypeNode::null());
   }
 }
 
@@ -148,7 +149,6 @@ static bool stringifyRegexp(Node n, stringstream& ss) {
 void Smt2Printer::toStream(std::ostream& out,
                            TNode n,
                            int toDepth,
-                           bool types,
                            TypeNode force_nt) const
 {
   // null
@@ -402,6 +402,13 @@ void Smt2Printer::toStream(std::ostream& out,
       out << "(_ fp.to_sbv_total "
           << n.getConst<FloatingPointToSBVTotal>().bvs.d_size << ")";
       break;
+    case kind::REGEXP_REPEAT_OP:
+      out << "(_ re.^ " << n.getConst<RegExpRepeat>().d_repeatAmount << ")";
+      break;
+    case kind::REGEXP_LOOP_OP:
+      out << "(_ re.loop " << n.getConst<RegExpLoop>().d_loopMinOcc << " "
+          << n.getConst<RegExpLoop>().d_loopMaxOcc << ")";
+      break;
     default:
       // fall back on whatever operator<< does on underlying type; we
       // might luck out and be SMT-LIB v2 compliant
@@ -422,7 +429,7 @@ void Smt2Printer::toStream(std::ostream& out,
     if(n.getNumChildren() != 0) {
       for(unsigned i = 0; i < n.getNumChildren(); ++i) {
 	      out << ' ';
-	      toStream(out, n[i], toDepth, types, TypeNode::null());
+              toStream(out, n[i], toDepth, TypeNode::null());
       }
       out << ')';
     }
@@ -454,7 +461,7 @@ void Smt2Printer::toStream(std::ostream& out,
           << smtKindString(is_int ? kind::TO_INTEGER : kind::DIVISION,
                            d_variant)
           << " ";
-      toStream(out, type_asc_arg, toDepth, types, TypeNode::null());
+      toStream(out, type_asc_arg, toDepth, TypeNode::null());
       if (!is_int)
       {
         out << " 1";
@@ -468,7 +475,6 @@ void Smt2Printer::toStream(std::ostream& out,
       toStream(out,
                type_asc_arg,
                toDepth < 0 ? toDepth : toDepth - 1,
-               types,
                TypeNode::null());
       out << " " << force_nt << ")";
     }
@@ -495,13 +501,6 @@ void Smt2Printer::toStream(std::ostream& out,
       }
       out << n.getId();
     }
-    if (types)
-    {
-      // print the whole type, but not *its* type
-      out << ":";
-      n.getType().toStream(out, language::output::LANG_SMTLIB_V2_5);
-    }
-
     return;
   }
 
@@ -529,7 +528,7 @@ void Smt2Printer::toStream(std::ostream& out,
     for (Node nc : n)
     {
       out << " ";
-      toStream(out, nc, toDepth, types, TypeNode::null());
+      toStream(out, nc, toDepth, TypeNode::null());
     }
     out << ")";
     return;
@@ -566,11 +565,11 @@ void Smt2Printer::toStream(std::ostream& out,
         args.insert(args.begin(), head[1]);
         head = head[0];
       }
-      toStream(out, head, toDepth, types, TypeNode::null());
+      toStream(out, head, toDepth, TypeNode::null());
       for (unsigned i = 0, size = args.size(); i < size; ++i)
       {
         out << " ";
-        toStream(out, args[i], toDepth, types, TypeNode::null());
+        toStream(out, args[i], toDepth, TypeNode::null());
       }
       out << ")";
     }
@@ -579,7 +578,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::LAMBDA: out << smtKindString(k, d_variant) << " "; break;
   case kind::MATCH:
     out << smtKindString(k, d_variant) << " ";
-    toStream(out, n[0], toDepth, types, TypeNode::null());
+    toStream(out, n[0], toDepth, TypeNode::null());
     out << " (";
     for (size_t i = 1, nchild = n.getNumChildren(); i < nchild; i++)
     {
@@ -587,15 +586,15 @@ void Smt2Printer::toStream(std::ostream& out,
       {
         out << " ";
       }
-      toStream(out, n[i], toDepth, types, TypeNode::null());
+      toStream(out, n[i], toDepth, TypeNode::null());
     }
     out << "))";
     return;
   case kind::MATCH_BIND_CASE:
     // ignore the binder
-    toStream(out, n[1], toDepth, types, TypeNode::null());
+    toStream(out, n[1], toDepth, TypeNode::null());
     out << " ";
-    toStream(out, n[2], toDepth, types, TypeNode::null());
+    toStream(out, n[2], toDepth, TypeNode::null());
     out << ")";
     return;
   case kind::MATCH_CASE:
@@ -710,7 +709,6 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::REGEXP_PLUS:
   case kind::REGEXP_OPT:
   case kind::REGEXP_RANGE:
-  case kind::REGEXP_LOOP:
   case kind::REGEXP_COMPLEMENT:
   case kind::REGEXP_DIFF:
   case kind::REGEXP_EMPTY:
@@ -718,6 +716,13 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::SEQ_UNIT:
   case kind::SEQ_NTH:
   case kind::SEQUENCE_TYPE: out << smtKindString(k, d_variant) << " "; break;
+  case kind::REGEXP_REPEAT:
+  case kind::REGEXP_LOOP:
+  {
+    out << n.getOperator() << ' ';
+    stillNeedToPrintParams = false;
+    break;
+  }
 
   case kind::CARDINALITY_CONSTRAINT: out << "fmf.card "; break;
   case kind::CARDINALITY_VALUE: out << "fmf.card.val "; break;
@@ -915,7 +920,7 @@ void Smt2Printer::toStream(std::ostream& out,
     for (TNode::iterator i = n.begin(), iend = n.end(); i != iend;)
     {
       out << '(';
-      toStream(out, *i, toDepth < 0 ? toDepth : toDepth - 1, types, 0);
+      toStream(out, *i, toDepth < 0 ? toDepth : toDepth - 1, 0);
       out << ' ';
       out << (*i).getType();
       out << ')';
@@ -964,7 +969,6 @@ void Smt2Printer::toStream(std::ostream& out,
           toStream(out,
                    dt[cindex].getConstructor(),
                    toDepth < 0 ? toDepth : toDepth - 1,
-                   types,
                    TypeNode::null());
           out << ")";
         }else{
@@ -972,11 +976,13 @@ void Smt2Printer::toStream(std::ostream& out,
           toStream(out,
                    dt[cindex].getConstructor(),
                    toDepth < 0 ? toDepth : toDepth - 1,
-                   types,
                    TypeNode::null());
         }
       }else{
-        toStream(out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, types, TypeNode::null());
+        toStream(out,
+                 n.getOperator(),
+                 toDepth < 0 ? toDepth : toDepth - 1,
+                 TypeNode::null());
       }
     } else {
       out << "(...)";
@@ -1056,9 +1062,10 @@ void Smt2Printer::toStream(std::ostream& out,
       Node cn = n[i];
       std::map< unsigned, TypeNode >::iterator itfc = force_child_type.find( i );
       if( itfc!=force_child_type.end() ){
-        toStream(out, cn, toDepth < 0 ? toDepth : toDepth - c, types, itfc->second);
+        toStream(out, cn, toDepth < 0 ? toDepth : toDepth - c, itfc->second);
       }else{
-        toStream(out, cn, toDepth < 0 ? toDepth : toDepth - c, types, TypeNode::null());
+        toStream(
+            out, cn, toDepth < 0 ? toDepth : toDepth - c, TypeNode::null());
       }
     } else {
       out << "(...)";
@@ -1303,6 +1310,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::REGEXP_PLUS: return "re.+";
   case kind::REGEXP_OPT: return "re.opt";
   case kind::REGEXP_RANGE: return "re.range";
+  case kind::REGEXP_REPEAT: return "re.^";
   case kind::REGEXP_LOOP: return "re.loop";
   case kind::REGEXP_COMPLEMENT: return "re.comp";
   case kind::REGEXP_DIFF: return "re.diff";
@@ -1479,7 +1487,7 @@ void Smt2Printer::toStream(std::ostream& out,
       out << "(define-fun " << n << " " << val[0] << " "
           << n.getType().getRangeType() << " ";
       // call toStream and force its type to be proper
-      toStream(out, val[1], -1, false, n.getType().getRangeType());
+      toStream(out, val[1], -1, n.getType().getRangeType());
       out << ")" << endl;
     }
     else
@@ -1498,7 +1506,7 @@ void Smt2Printer::toStream(std::ostream& out,
       }
       out << "(define-fun " << n << " () " << n.getType() << " ";
       // call toStream and force its type to be proper
-      toStream(out, val, -1, false, n.getType());
+      toStream(out, val, -1, n.getType());
       out << ")" << endl;
     }
   }

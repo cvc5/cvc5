@@ -41,7 +41,8 @@ Node Letify::convert(Node n,
     if (it == visited.end())
     {
       itl = letMap.find(cur);
-      if (itl != letMap.end())
+      // do not letify id 0
+      if (itl != letMap.end() && itl->second > 0)
       {
         // make the let variable
         std::stringstream ss;
@@ -87,7 +88,6 @@ Node Letify::convert(Node n,
 void Letify::computeLet(Node n,
                         std::vector<Node>& letList,
                         std::map<Node, uint32_t>& letMap,
-                        uint32_t& counter,
                         uint32_t thresh)
 {
   Assert(letList.empty() && letMap.empty());
@@ -100,7 +100,7 @@ void Letify::computeLet(Node n,
   std::map<Node, uint32_t> count;
   updateCounts(n, visitList, count);
   // Now populate the letList and letMap
-  convertCountToLet(visitList, count, letList, letMap, counter, thresh);
+  convertCountToLet(visitList, count, letList, letMap, thresh);
 }
 
 void Letify::updateCounts(Node n,
@@ -117,7 +117,7 @@ void Letify::updateCounts(Node n,
     it = count.find(cur);
     if (it == count.end())
     {
-      if (cur.getNumChildren()==0 || cur.isClosure())
+      if (cur.getNumChildren() == 0 || cur.isClosure())
       {
         visitList.push_back(cur);
         count[cur] = 1;
@@ -130,7 +130,7 @@ void Letify::updateCounts(Node n,
     }
     else
     {
-      if (it->second==0)
+      if (it->second == 0)
       {
         visitList.push_back(cur);
       }
@@ -151,7 +151,6 @@ void Letify::convertCountToLet(const std::vector<Node>& visitList,
                                const std::map<Node, uint32_t>& count,
                                std::vector<Node>& letList,
                                std::map<Node, uint32_t>& letMap,
-                               uint32_t& counter,
                                uint32_t thresh)
 {
   Assert(letList.empty() && letMap.empty());
@@ -165,7 +164,7 @@ void Letify::convertCountToLet(const std::vector<Node>& visitList,
   std::map<Node, uint32_t>::const_iterator itc;
   for (const Node& n : visitList)
   {
-    if (n.getNumChildren()==0)
+    if (n.getNumChildren() == 0)
     {
       // do not letify terms with no children
       continue;
@@ -175,8 +174,9 @@ void Letify::convertCountToLet(const std::vector<Node>& visitList,
     if (itc->second >= thresh)
     {
       letList.push_back(n);
-      letMap[n] = counter;
-      counter++;
+      // start with id 1
+      size_t id = letMap.size() + 1;
+      letMap[n] = id;
     }
   }
 }
@@ -184,7 +184,6 @@ void Letify::convertCountToLet(const std::vector<Node>& visitList,
 void Letify::computeProofLet(const ProofNode* pn,
                              std::vector<const ProofNode*>& pletList,
                              std::map<const ProofNode*, uint32_t>& pletMap,
-                             uint32_t& pcounter,
                              uint32_t thresh)
 {
   Assert(pletList.empty() && pletMap.empty());
@@ -197,8 +196,7 @@ void Letify::computeProofLet(const ProofNode* pn,
   std::map<const ProofNode*, uint32_t> pcount;
   computeProofCounts(pn, visitList, pcount);
   // Now populate the pletList and pletMap
-  convertProofCountToLet(
-      visitList, pcount, pletList, pletMap, pcounter, thresh);
+  convertProofCountToLet(visitList, pcount, pletList, pletMap, thresh);
 }
 
 void Letify::computeProofCounts(const ProofNode* pn,
@@ -224,7 +222,7 @@ void Letify::computeProofCounts(const ProofNode* pn,
     }
     else
     {
-      if (it->second==0)
+      if (it->second == 0)
       {
         visitList.push_back(cur);
       }
@@ -239,7 +237,6 @@ void Letify::convertProofCountToLet(
     const std::map<const ProofNode*, uint32_t>& pcount,
     std::vector<const ProofNode*>& pletList,
     std::map<const ProofNode*, uint32_t>& pletMap,
-    uint32_t& pcounter,
     uint32_t thresh)
 {
   Assert(pletList.empty() && pletMap.empty());
@@ -258,8 +255,9 @@ void Letify::convertProofCountToLet(
     if (itc->second >= thresh)
     {
       pletList.push_back(pn);
-      pletMap[pn] = pcounter;
-      pcounter++;
+      // start with id 1
+      size_t id = pletMap.size() + 1;
+      pletMap[pn] = id;
     }
   }
 }

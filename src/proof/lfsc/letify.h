@@ -26,6 +26,9 @@
 namespace CVC4 {
 namespace proof {
 
+/**
+ * Utilities for letification.
+ */
 class Letify
 {
  public:
@@ -41,7 +44,6 @@ class Letify
   static void computeLet(Node n,
                          std::vector<Node>& letList,
                          std::map<Node, uint32_t>& letMap,
-                         uint32_t& counter,
                          uint32_t thresh = 2);
   /**
    * Compute the count of sub nodes in pn, store in pcount. Additionally,
@@ -58,13 +60,12 @@ class Letify
                            std::vector<Node>& visitList,
                            std::map<Node, uint32_t>& count);
   /**
-   * Convert a count to a let list
+   * Convert a count to a let binding.
    */
   static void convertCountToLet(const std::vector<Node>& visitList,
                                 const std::map<Node, uint32_t>& count,
                                 std::vector<Node>& letList,
                                 std::map<Node, uint32_t>& letMap,
-                                uint32_t& counter,
                                 uint32_t thresh = 2);
   //------------------- end letification of terms
 
@@ -78,7 +79,6 @@ class Letify
   static void computeProofLet(const ProofNode* pn,
                               std::vector<const ProofNode*>& pletList,
                               std::map<const ProofNode*, uint32_t>& pletMap,
-                              uint32_t& pcounter,
                               uint32_t thresh = 2);
   /**
    * Compute the count of sub proof nodes in pn, store in pcount. Additionally,
@@ -96,9 +96,30 @@ class Letify
       const std::map<const ProofNode*, uint32_t>& pcount,
       std::vector<const ProofNode*>& pletList,
       std::map<const ProofNode*, uint32_t>& pletMap,
-      uint32_t& pcounter,
       uint32_t thresh = 2);
   //------------------- end letification of proofs
+};
+
+/**
+ * A let binding is a list and a map that can be printed as a let expression.
+ * In particular, the list d_letList is ordered such that
+ * d_letList[i] does not contain subterm d_letList[j] for j>i.
+ * It is intended that d_letList contains only unique nodes. Each node
+ * in d_letList is mapped to a unique identifier in d_letMap.
+ *
+ * If a term is mapped to identifier 0, then it is not letified. This is
+ * used to disable letification for certain terms.
+ */
+struct LetBinding
+{
+  /** Visit list */
+  std::vector<Node> visitList;
+  /** Count */
+  std::map<Node, uint32_t> count;
+  /** The let list */
+  std::vector<Node> d_letList;
+  /** The let map */
+  std::map<Node, uint32_t> d_letMap;
 };
 
 }  // namespace proof

@@ -1446,6 +1446,7 @@ set(regress_1_tests
   regress1/nl/issue3656.smt2
   regress1/nl/issue3803-nl-check-model.smt2
   regress1/nl/issue3955-ee-double-notify.smt2
+  regress1/nl/issue5372-2-no-m-presolve.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
   regress1/nl/metitarski_3_4_2e.smt2
@@ -1793,6 +1794,8 @@ set(regress_1_tests
   regress1/sets/issue4391-card-lasso.smt2
   regress1/sets/issue5271.smt2
   regress1/sets/issue5309.smt2
+  regress1/sets/issue5342.smt2
+  regress1/sets/issue5342_difference_version.smt2
   regress1/sets/lemmabug-ListElts317minimized.smt2
   regress1/sets/remove_check_free_31_6.smt2
   regress1/sets/sets-disequal.smt2
@@ -1845,6 +1848,9 @@ set(regress_1_tests
   regress1/strings/issue4735.smt2
   regress1/strings/issue4735_2.smt2
   regress1/strings/issue4759-comp-delta.smt2
+  regress1/strings/issue5330.smt2
+  regress1/strings/issue5330_2.smt2
+  regress1/strings/issue5374-proxy-i.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
@@ -2198,6 +2204,7 @@ set(regress_2_tests
   regress2/sygus/nia-max-square.sy
   regress2/sygus/no-syntax-test-no-si.sy
   regress2/sygus/pbe_bvurem.sy
+  regress2/sygus/policyM.sy
   regress2/sygus/process-10-vars-2fun.sy
   regress2/sygus/process-arg-invariance.sy
   regress2/sygus/real-grammar-neg.sy

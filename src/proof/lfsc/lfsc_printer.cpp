@@ -87,10 +87,9 @@ void LfscPrinter::print(std::ostream& out,
   {
     Letify::updateCounts(ia, visitList, count);
   }
-  uint32_t counter = 0;
   std::vector<Node> letList;
   std::map<Node, uint32_t> letMap;
-  Letify::convertCountToLet(visitList, count, letList, letMap, counter);
+  Letify::convertCountToLet(visitList, count, letList, letMap);
   // print the let list
   printLetList(out, cparen, letList, letMap);
 
@@ -115,7 +114,7 @@ void LfscPrinter::print(std::ostream& out,
   cparen << ")";
 
   // [5] print the proof body
-  Assert (pn->getRule()==PfRule::SCOPE);
+  Assert(pn->getRule() == PfRule::SCOPE);
   // the outermost scope can be ignored (it is the scope of the assertions,
   // which are already printed above).
   printProofLetify(out, pn->getChildren()[0].get(), letMap, passumeMap);
@@ -141,10 +140,9 @@ void LfscPrinter::printProofLetify(std::ostream& out,
   std::stringstream cparen;
 
   // [1] compute and print the proof lets
-  uint32_t pcounter = 0;
   std::vector<const ProofNode*> pletList;
   std::map<const ProofNode*, uint32_t> pletMap;
-  Letify::computeProofLet(pn, pletList, pletMap, pcounter);
+  Letify::computeProofLet(pn, pletList, pletMap);
   // define the let proofs
   if (!pletList.empty())
   {
@@ -320,8 +318,7 @@ void LfscPrinter::printLetify(std::ostream& out, Node n)
 
   std::vector<Node> letList;
   std::map<Node, uint32_t> letMap;
-  uint32_t counter = 0;
-  Letify::computeLet(n, letList, letMap, counter);
+  Letify::computeLet(n, letList, letMap);
 
   // [1] print the letification
   printLetList(out, cparen, letList, letMap);
