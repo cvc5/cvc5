@@ -1457,7 +1457,7 @@ void DeclareHeapCommand::toStream(std::ostream& out,
                                   OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdDeclareHeap(
-      out, d_locSort, d_dataSort);
+      out, d_locSort.getTypeNode(), d_dataSort.getTypeNode());
 }
 
 /* -------------------------------------------------------------------------- */

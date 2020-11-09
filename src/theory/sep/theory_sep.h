@@ -86,7 +86,7 @@ class TheorySep : public Theory {
    * executed once only, and must be invoked before solving separation logic
    * inputs.
    */
-  void declareHeap(TypeNode locT, TypeNode dataT);
+  void declareSepHeap(TypeNode locT, TypeNode dataT) override;
 
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */

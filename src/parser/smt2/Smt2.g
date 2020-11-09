@@ -910,11 +910,6 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
   | DECLARE_CODATATYPES_2_5_TOK datatypes_2_5_DefCommand[true, cmd]
   | DECLARE_CODATATYPE_TOK datatypeDefCommand[true, cmd]
   | DECLARE_CODATATYPES_TOK datatypesDefCommand[true, cmd]
-  | DECLARE_HEAP_TOK LPAREN_TOK sortSymbol[t,CHECK_DECLARED]
-    sortSymbol[s,CHECK_DECLARED] RPAREN_TOK
-    {
-      seq->addCommand(new DeclareHeapCommand(t, s));
-    }
 
     /* Support some of Z3's extended SMT-LIB commands */
 
@@ -1078,9 +1073,8 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     }
   | DECLARE_HEAP LPAREN_TOK
     sortSymbol[t, CHECK_DECLARED]
-    sortSymbol[t, CHECK_DECLARED]
-    // We currently do nothing with the type information declared for the heap.
-    { cmd->reset(new EmptyCommand()); }
+    sortSymbol[s, CHECK_DECLARED]
+    { cmd->reset(new DeclareHeapCommand(t, s)); }
     RPAREN_TOK
   | BLOCK_MODEL_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new BlockModelCommand()); }

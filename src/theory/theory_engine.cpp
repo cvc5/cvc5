@@ -1119,14 +1119,12 @@ const LogicInfo& TheoryEngine::getLogicInfo() const { return d_logicInfo; }
 void TheoryEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
 {
   Theory* tsep = theoryOf(THEORY_SEP);
-  if (tsep != nullptr)
+  if (tsep == nullptr)
   {
-    tsep->declareHeap(locT, dataT);
+    Assert(false) << "TheoryEngine::declareSepHeap called without the separation logic theory enabled";
+    return;
   }
-  else
-  {
-    Assert(false) << "setSepHeapTypes 
-  }
+  static_cast<TheorySep*>(tsep)->declareHeap(locT, dataT);
 }
 
 theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b) {

@@ -69,7 +69,7 @@ TheorySep::~TheorySep() {
   }
 }
 
-void TheorySep::declareHeap(TypeNode locT, TypeNode dataT)
+void TheorySep::declareSepHeap(TypeNode locT, TypeNode dataT)
 {
   if (!d_type_ref.isNull())
   {
@@ -1139,7 +1139,7 @@ void TheorySep::registerRefDataTypes( TypeNode tn1, TypeNode tn2, Node atom ){
   {
     Assert(!atom.isNull());
     // already declared, ensure compatible
-    if (!tn1.isNull() && !tn1.isComparableTo(d_type_ref)
+    if ((!tn1.isNull() && !tn1.isComparableTo(d_type_ref))
         || (!tn2.isNull() && !tn2.isComparableTo(d_type_data)))
     {
       std::stringstream ss;
