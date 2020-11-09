@@ -31,7 +31,6 @@ enum Variant
   smt2_0_variant,  // old-style 2.0 syntax, when it makes a difference
   smt2_6_variant,  // new-style 2.6 syntax, when it makes a difference, with
                    // support for the string standard
-  sygus_variant    // variant for sygus
 };                 /* enum Variant */
 
 class Smt2Printer : public CVC4::Printer

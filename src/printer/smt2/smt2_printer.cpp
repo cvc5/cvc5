@@ -69,7 +69,7 @@ static void toStreamRational(std::ostream& out,
   {
     if (neg)
     {
-      out << (v == sygus_variant ? "-" : "(- ") << -r;
+      out << "(- " << -r;
     }
     else
     {
@@ -81,7 +81,7 @@ static void toStreamRational(std::ostream& out,
     }
     if (neg)
     {
-      out << (v == sygus_variant ? "" : ")");
+      out << ")";
     }
   }
   else
@@ -90,8 +90,8 @@ static void toStreamRational(std::ostream& out,
     if (neg)
     {
       Rational abs_r = (-r);
-      out << (v == sygus_variant ? "-" : "(- ") << abs_r.getNumerator();
-      out << (v == sygus_variant ? " " : ") ") << abs_r.getDenominator();
+      out << "(- ") << abs_r.getNumerator();
+      out << ") " << abs_r.getDenominator();
     }
     else
     {
@@ -179,11 +179,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n, int toDepth) const
       }
       break;
     case kind::BITVECTOR_TYPE:
-      if(d_variant == sygus_variant ){
-        out << "(BitVec " << n.getConst<BitVectorSize>().d_size << ")";
-      }else{
-        out << "(_ BitVec " << n.getConst<BitVectorSize>().d_size << ")";
-      }
+      out << "(_ BitVec " << n.getConst<BitVectorSize>().d_size << ")";
       break;
     case kind::FLOATINGPOINT_TYPE:
       out << "(_ FloatingPoint "
