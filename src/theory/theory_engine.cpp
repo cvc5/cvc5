@@ -1124,7 +1124,16 @@ void TheoryEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
     Assert(false) << "TheoryEngine::declareSepHeap called without the separation logic theory enabled";
     return;
   }
-  static_cast<TheorySep*>(tsep)->declareHeap(locT, dataT);
+
+  // Definition of the statement that is to be run by every theory
+#ifdef CVC4_FOR_EACH_THEORY_STATEMENT
+#undef CVC4_FOR_EACH_THEORY_STATEMENT
+#endif
+#define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
+  theoryOf(THEORY)->declareHeap(locT, dataT);
+
+  // notify each theory using the statement above
+  CVC4_FOR_EACH_THEORY;
 }
 
 theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b) {
