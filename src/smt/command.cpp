@@ -1584,14 +1584,6 @@ void GetValueCommand::invoke(api::Solver* solver)
     {
       api::Term request = d_terms[i];
       api::Term value = result[i];
-      if (value.getSort().isInteger()
-          && request.getSort() == solver->getRealSort())
-      {
-        // Need to wrap in division-by-one so that output printers know this
-        // is an integer-looking constant that really should be output as
-        // a rational.  Necessary for SMT-LIB standards compliance.
-        value = solver->mkTerm(api::DIVISION, value, solver->mkReal(1));
-      }
       result[i] = solver->mkTerm(api::SEXPR, request, value);
     }
     d_result = solver->mkTerm(api::SEXPR, result);
