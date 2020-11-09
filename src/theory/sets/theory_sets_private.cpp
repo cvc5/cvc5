@@ -389,6 +389,7 @@ void TheorySetsPrivate::fullEffortCheck()
     }
     // check reduce comprehensions
     checkReduceComprehensions();
+
     d_im.doPendingLemmas();
     if (d_im.hasSent())
     {

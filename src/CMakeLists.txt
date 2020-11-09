@@ -761,6 +761,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/synth_conjecture.h
   theory/quantifiers/sygus/synth_engine.cpp
   theory/quantifiers/sygus/synth_engine.h
+  theory/quantifiers/sygus/template_infer.cpp
+  theory/quantifiers/sygus/template_infer.h
   theory/quantifiers/sygus/term_database_sygus.cpp
   theory/quantifiers/sygus/term_database_sygus.h
   theory/quantifiers/sygus/type_info.cpp
@@ -1148,6 +1150,7 @@ install(FILES
           parser/parser_builder.h
           parser/parser_exception.h
           parser/parse_op.h
+          parser/symbol_manager.h
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/parser)
 install(FILES
