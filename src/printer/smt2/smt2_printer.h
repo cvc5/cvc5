@@ -31,7 +31,6 @@ enum Variant
   smt2_0_variant,  // old-style 2.0 syntax, when it makes a difference
   smt2_6_variant,  // new-style 2.6 syntax, when it makes a difference, with
                    // support for the string standard
-  sygus_variant    // variant for sygus
 };                 /* enum Variant */
 
 class Smt2Printer : public CVC4::Printer
@@ -42,7 +41,6 @@ class Smt2Printer : public CVC4::Printer
   void toStream(std::ostream& out,
                 TNode n,
                 int toDepth,
-                bool types,
                 size_t dag) const override;
   void toStream(std::ostream& out, const CommandStatus* s) const override;
   void toStream(std::ostream& out, const smt::Model& m) const override;
@@ -228,8 +226,16 @@ class Smt2Printer : public CVC4::Printer
       std::ostream& out, const std::vector<Command*>& sequence) const override;
 
  private:
-  void toStream(
-      std::ostream& out, TNode n, int toDepth, bool types, TypeNode nt) const;
+  void toStream(std::ostream& out, TNode n, int toDepth) const;
+  /**
+   * To stream, with a forced type. This method is used in some corner cases
+   * to force a node n to be printed as if it had type tn. This is used e.g.
+   * for the body of define-fun commands and arguments of singleton terms.
+   */
+  void toStreamCastToType(std::ostream& out,
+                          TNode n,
+                          int toDepth,
+                          TypeNode tn) const;
   void toStream(std::ostream& out,
                 const smt::Model& m,
                 const NodeCommand* c) const override;
