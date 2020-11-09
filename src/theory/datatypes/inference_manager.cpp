@@ -35,7 +35,10 @@ InferenceManager::InferenceManager(Theory& t,
       d_pnm(pnm),
       d_ipc(pnm == nullptr ? nullptr
                            : new InferProofCons(state.getSatContext(), pnm)),
-      d_lemPg(pnm == nullptr ? nullptr : new EagerProofGenerator(pnm, state.getUserContext(), "datatypes::lemPg"))
+      d_lemPg(pnm == nullptr
+                  ? nullptr
+                  : new EagerProofGenerator(
+                        pnm, state.getUserContext(), "datatypes::lemPg"))
 {
   d_false = NodeManager::currentNM()->mkConst(false);
   smtStatisticsRegistry()->registerStat(&d_inferenceLemmas);
@@ -158,39 +161,6 @@ bool InferenceManager::processDtLemma(
   }
   d_inferenceLemmas << id;
   return true;
-
-  
-/*
-  if (conc.getKind() == EQUAL)
-  {
-    // Also process it as a fact first. Some lemmas concluding equalities
-    // should be processed as both internal facts and as lemmas.
-    // In particular, notice that lemmas that conclude non-datatype equalities
-    // are not guaranteed to send the conclusion back to the datatypes solver.
-    // We assert them also as facts both for performance reasons and so that
-    // the explanations are consistent with our proofs. If this were not the
-    // case, the explanation for the lemma could be stored here and supercede
-    // a future fact concluding conc via a different explanation, which would
-    // cause free assumptions in our proofs.
-    processDtFactInternal(conc, exp);
-  }
-  // send it as an (explained) lemma
-  std::vector<Node> expv;
-  if (!exp.isNull() && !exp.isConst())
-  {
-    expv.push_back(exp);
-  }
-  // Don't explain it. We set the no explain vector to expv and call lemmaExp
-  // for consistency, since this will invoke the proof equality engine if
-  // necessary.
-  if (!lemmaExp(conc, expv, expv, d_ipc.get(), p, doCache))
-  {
-    Trace("dt-lemma-debug") << "...duplicate lemma" << std::endl;
-    return false;
-  }
-  d_inferenceLemmas << id;
-  return true;
-  */
 }
 
 bool InferenceManager::processDtFact(Node conc, Node exp, InferId id)
@@ -202,7 +172,10 @@ bool InferenceManager::processDtFact(Node conc, Node exp, InferId id)
   return true;
 }
 
-Node InferenceManager::prepareDtInference(Node conc, Node exp, InferId id, InferProofCons * ipc)
+Node InferenceManager::prepareDtInference(Node conc,
+                                          Node exp,
+                                          InferId id,
+                                          InferProofCons* ipc)
 {
   Trace("dt-lemma-debug") << "prepareDtInference : " << conc << " via " << exp
                           << " by " << id << std::endl;
@@ -213,7 +186,7 @@ Node InferenceManager::prepareDtInference(Node conc, Node exp, InferId id, Infer
   }
   if (isProofEnabled())
   {
-    Assert (ipc!=nullptr);
+    Assert(ipc != nullptr);
     // If proofs are enabled, notify the proof constructor.
     // Notice that we have to reconstruct a datatypes inference here. This is
     // because the inference in the pending vector may be destroyed as we are
