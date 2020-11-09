@@ -290,7 +290,7 @@ class TheorySep : public Theory {
    * (A) a declare-heap command is issued with tn1/tn2, and atom is null, or
    * (B) an atom specifying the heap type tn1/tn2 is registered to this theory.
    * We set the heap type if we are are case (A), and check whether the
-   * heap type is consistent in the case of (B). 
+   * heap type is consistent in the case of (B).
    */
   void registerRefDataTypes(TypeNode tn1, TypeNode tn2, Node atom);
   //get location/data type

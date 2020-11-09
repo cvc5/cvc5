@@ -416,11 +416,11 @@ void Printer::toStreamCmdComment(std::ostream& out,
 }
 
 void Printer::toStreamCmdDeclareHeap(std::ostream& out,
-                             TypeNode locType,
-                             TypeNode dataType) const
-                             {
+                                     TypeNode locType,
+                                     TypeNode dataType) const
+{
   printUnknownCommand(out, "declare-heap");
-                             }
+}
 
 void Printer::toStreamCmdCommandSequence(
     std::ostream& out, const std::vector<Command*>& sequence) const

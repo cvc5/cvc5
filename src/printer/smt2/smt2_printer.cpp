@@ -1995,12 +1995,12 @@ void Smt2Printer::toStreamCmdComment(std::ostream& out,
   out << "(set-info :notes \"" << s << "\")" << std::endl;
 }
 
-  void Smt2Printer::toStreamCmdDeclareHeap(std::ostream& out,
-                             TypeNode locType,
-                             TypeNode dataType) const
-                             {
-                               out << "(declare-heap (" << locType << " " << dataType << "))" << std::endl;
-                             }
+void Smt2Printer::toStreamCmdDeclareHeap(std::ostream& out,
+                                         TypeNode locType,
+                                         TypeNode dataType) const
+{
+  out << "(declare-heap (" << locType << " " << dataType << "))" << std::endl;
+}
 
 void Smt2Printer::toStreamCmdEmpty(std::ostream& out,
                                    const std::string& name) const

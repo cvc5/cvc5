@@ -1135,13 +1135,20 @@ int TheorySep::processAssertion( Node n, std::map< int, std::map< Node, int > >&
 }
 
 void TheorySep::registerRefDataTypes( TypeNode tn1, TypeNode tn2, Node atom ){
-  if( !d_type_ref.isNull() ){
-    Assert (!atom.isNull());
+  if (!d_type_ref.isNull())
+  {
+    Assert(!atom.isNull());
     // already declared, ensure compatible
-    if (!tn1.isNull() && !tn1.isComparableTo(d_type_ref) || (!tn2.isNull() && !tn2.isComparableTo(d_type_data)))
+    if (!tn1.isNull() && !tn1.isComparableTo(d_type_ref)
+        || (!tn2.isNull() && !tn2.isComparableTo(d_type_data)))
     {
-        std::stringstream ss;
-        ss << "ERROR: the separation logic heap type has already been set to " << d_type_ref << " -> " << d_type_data << " but we have a constraint that uses different heap types, offending atom is " << atom << " with associated heap type " << tn1 << " -> " << tn2 << std::endl;
+      std::stringstream ss;
+      ss << "ERROR: the separation logic heap type has already been set to "
+         << d_type_ref << " -> " << d_type_data
+         << " but we have a constraint that uses different heap types, "
+            "offending atom is "
+         << atom << " with associated heap type " << tn1 << " -> " << tn2
+         << std::endl;
     }
     return;
   }
@@ -1151,13 +1158,17 @@ void TheorySep::registerRefDataTypes( TypeNode tn1, TypeNode tn2, Node atom ){
   {
     std::stringstream ss;
     // error, heap not declared
-    ss << "ERROR: the type of the separation logic heap has not been declared (e.g. via a declare-heap command), and we have a separation logic constraint " << atom << std::endl;
+    ss << "ERROR: the type of the separation logic heap has not been declared "
+          "(e.g. via a declare-heap command), and we have a separation logic "
+          "constraint "
+       << atom << std::endl;
     throw LogicException(ss.str());
   }
   // otherwise set it
-  Trace("sep-type") << "Sep: assume location type " << tn1 << " is associated with data type " << tn2 << std::endl;
+  Trace("sep-type") << "Sep: assume location type " << tn1
+                    << " is associated with data type " << tn2 << std::endl;
   d_loc_to_data_type[tn1] = tn2;
-  //for now, we only allow heap constraints of one type
+  // for now, we only allow heap constraints of one type
   d_type_ref = tn1;
   d_type_data = tn2;
   d_bound_kind[tn1] = bound_default;
