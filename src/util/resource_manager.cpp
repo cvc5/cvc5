@@ -258,11 +258,11 @@ void ResourceManager::spendResource(Resource r)
   switch (r)
   {
     case Resource::ArithPivotStep:
-      amount = 1;
+      amount = d_options[options::arithPivotStep];
       ++d_statistics->d_numArithPivotStep;
       break;
     case Resource::ArithNlLemmaStep:
-      amount = 1;
+      amount = d_options[options::arithNlLemmaStep];
       ++d_statistics->d_numArithNlLemmaStep;
       break;
     case Resource::BitblastStep:
@@ -282,11 +282,11 @@ void ResourceManager::spendResource(Resource r)
       ++d_statistics->d_numBvSatConflictsStep;
       break;
     case Resource::BvSatPropagateStep:
-      amount = 1;
+      amount = d_options[options::bvSatPropagateStep];
       ++d_statistics->d_numBvSatPropagateStep;
       break;
     case Resource::BvSatSimplifyStep:
-      amount = 1;
+      amount = d_options[options::bvSatSimplifyStep];
       ++d_statistics->d_numBvSatSimplifyStep;
       break;
     case Resource::CnfStep:
@@ -302,7 +302,7 @@ void ResourceManager::spendResource(Resource r)
       ++d_statistics->d_numLemmaStep;
       break;
     case Resource::NewSkolemStep:
-      amount = 1;
+      amount = d_options[options::newSkolemStep];
       ++d_statistics->d_numNewSkolemStep;
       break;
     case Resource::ParseStep:
