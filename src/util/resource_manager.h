@@ -164,8 +164,6 @@ class CVC4_PUBLIC ResourceManager
    */
   void endCall();
 
-  static uint64_t getFrequencyCount() { return s_resourceCount; }
-
   /**
    * Registers a listener that is notified on a resource out or (per-call)
    * timeout.
@@ -199,9 +197,6 @@ class CVC4_PUBLIC ResourceManager
 
   /** A flag indicating whether resource limitation is active. */
   bool d_on;
-
-  /** Counter indicating how often to check resource manager in loops */
-  static const uint64_t s_resourceCount;
 
   /** Receives a notification on reaching a limit. */
   std::vector<Listener*> d_listeners;
