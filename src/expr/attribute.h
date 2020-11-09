@@ -40,9 +40,9 @@ namespace attr {
 /**
  * Attributes are roughly speaking [almost] global hash tables from Nodes
  * (TNodes) to data. Attributes can be thought of as additional fields used to
- * extend NodeValues. Attributes are mutable, and come in both sat
+ * extend NodeValues. Attributes are mutable and come in both sat
  * context-dependent and non-context dependent varieties. Attributes live only
- * as long as the node itself does. If a Node is garbage-collected Attribute's
+ * as long as the node itself does. If a Node is garbage-collected, Attributes
  * associated with it will automatically be garbage collected. (Being in the
  * domain of an Attribute does not increase a Node's reference count.) To
  * achieve this special relationship with Nodes, Attributes are mapped by hash
@@ -68,8 +68,8 @@ namespace attr {
  * n.hasAttribute(InstLevelAttribute());
  * ```
  *
- * To separate Attributes of the same type in the same table each of the
- * structures struct InstLevelAttributeId {}; is given a different unique value
+ * To separate Attributes of the same type in the same table, each of the
+ * structures `struct InstLevelAttributeId {};` is given a different unique value
  * at load time. An example is the empty struct InstLevelAttributeId. These
  * should be unique for each Attribute. Then via some template messiness when
  * InstLevelAttribute() is passed as the argument to getAttribute(...) the load
