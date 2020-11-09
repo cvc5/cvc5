@@ -118,6 +118,7 @@ class SolverBlack : public CxxTest::TestSuite
   void testGetValue3();
   void testGetQuantifierElimination();
   void testGetQuantifierEliminationDisjunct();
+  void testDeclareSeparationHeap();
   void testGetSeparationHeapTerm1();
   void testGetSeparationHeapTerm2();
   void testGetSeparationHeapTerm3();
@@ -1697,6 +1698,16 @@ void SolverBlack::testGetQuantifierEliminationDisjunct()
   TS_ASSERT_THROWS_NOTHING(d_solver->getQuantifierEliminationDisjunct(forall));
 }
 
+
+void SolverBlack::testDeclareSeparationHeap()
+{
+  d_solver->setLogic("ALL_SUPPORTED");
+  Sort integer = d_solver->getIntegerSort();
+  TS_ASSERT_THROWS_NOTHING(d_solver->declareSeparationHeap(integer, integer));
+  // cannot declare separation logic heap more than once
+  TS_ASSERT_THROWS(d_solver->declareSeparationHeap(integer, integer), CVC4ApiException&);
+}
+
 namespace {
 /**
  * Helper function for testGetSeparation{Heap,Nil}TermX. Asserts and checks
@@ -1705,6 +1716,8 @@ namespace {
 void checkSimpleSeparationConstraints(Solver* solver)
 {
   Sort integer = solver->getIntegerSort();
+  // declare the separation heap
+  solver->declareSeparationHeap(integer, integer);
   Term x = solver->mkConst(integer, "x");
   Term p = solver->mkConst(integer, "p");
   Term heap = solver->mkTerm(Kind::SEP_PTO, p, x);

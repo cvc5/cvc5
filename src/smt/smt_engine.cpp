@@ -1513,7 +1513,7 @@ void SmtEngine::checkUnsatCore() {
 
   // set up separation logic heap if necessary
   TypeNode sepLocType, sepDataType;
-  if (coreChecker->getSepHeapTypes(sepLocType, sepDataType))
+  if (getSepHeapTypes(sepLocType, sepDataType))
   {
     coreChecker->declareSepHeap(sepLocType, sepDataType);
   }
