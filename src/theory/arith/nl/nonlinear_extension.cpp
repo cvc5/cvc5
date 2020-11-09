@@ -180,7 +180,6 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
     useRelevance = true;
   }
   Valuation v = d_containing.getValuation();
-  NodeManager* nm = NodeManager::currentNM();
 
   BoundInference bounds;
 

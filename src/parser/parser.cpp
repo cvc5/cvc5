@@ -28,7 +28,6 @@
 #include "api/cvc4cpp.h"
 #include "base/output.h"
 #include "expr/expr.h"
-#include "expr/expr_iomanip.h"
 #include "expr/kind.h"
 #include "expr/type.h"
 #include "options/options.h"
@@ -435,7 +434,6 @@ std::vector<api::Sort> Parser::bindMutualDatatypeTypes(
       for (size_t j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
       {
         const api::DatatypeConstructor& ctor = dt[j];
-        expr::ExprPrintTypes::Scope pts(Debug("parser-idt"), true);
         api::Term constructor = ctor.getConstructorTerm();
         Debug("parser-idt") << "+ define " << constructor << std::endl;
         string constructorName = ctor.getName();
