@@ -69,6 +69,24 @@ TheorySep::~TheorySep() {
   }
 }
 
+void TheorySep::declareHeap(TypeNode locT, TypeNode dataT)
+{
+  if (!d_loc_to_data_type.empty())
+  {
+    TypeNode te1 = d_loc_to_data_type.begin()->first;
+    std::stringstream ss;
+    ss << "ERROR: specifying heap constraints for two different types : ";
+    ss << locT << " -> " << dataT << ", but we already have ";
+    for (const std::pair<const Node, Node>& h : d_loc_to_data_type)
+    {
+      ss << h.first << " -> " << h.second;
+    }
+    throw LogicException(ss.str());
+  }
+  Node nullAtom;
+  registerRefDataTypes(locT, dataT, nullAtom);
+}
+
 TheoryRewriter* TheorySep::getTheoryRewriter() { return &d_rewriter; }
 
 bool TheorySep::needsEqualityEngine(EeSetupInfo& esi)
@@ -239,7 +257,6 @@ void TheorySep::postProcessModel( TheoryModel* m ){
 
 void TheorySep::presolve() {
   Trace("sep-pp") << "Presolving" << std::endl;
-  //TODO: cleanup if incremental?
 }
 
 
@@ -286,6 +303,11 @@ void TheorySep::notifyFact(TNode atom,
   }
   // maybe propagate
   doPending();
+}
+
+bool TheorySep::hasHeapTypes() const
+{
+  return !d_loc_to_data_type.empty();
 }
 
 void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
@@ -1119,12 +1141,6 @@ int TheorySep::processAssertion( Node n, std::map< int, std::map< Node, int > >&
 }
 
 void TheorySep::registerRefDataTypes( TypeNode tn1, TypeNode tn2, Node atom ){
-  //separation logic is effectively enabled when we find at least one spatial constraint occurs in the input
-  if( options::incrementalSolving() ){
-    std::stringstream ss;
-    ss << "ERROR: cannot use separation logic in incremental mode." << std::endl;
-    throw LogicException(ss.str());
-  }
   std::map< TypeNode, TypeNode >::iterator itt = d_loc_to_data_type.find( tn1 );
   if( itt==d_loc_to_data_type.end() ){
     if( !d_loc_to_data_type.empty() ){
@@ -1132,7 +1148,6 @@ void TheorySep::registerRefDataTypes( TypeNode tn1, TypeNode tn2, Node atom ){
       std::stringstream ss;
       ss << "ERROR: specifying heap constraints for two different types : " << tn1 << " -> " << tn2 << " and " << te1 << " -> " << d_loc_to_data_type[te1] << std::endl;
       throw LogicException(ss.str());
-      Assert(false);
     }
     if( tn2.isNull() ){
       Trace("sep-type") << "Sep: assume location type " << tn1 << " (from " << atom << ")" << std::endl;

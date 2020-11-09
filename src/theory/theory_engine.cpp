@@ -1116,6 +1116,19 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
 
 const LogicInfo& TheoryEngine::getLogicInfo() const { return d_logicInfo; }
 
+void TheoryEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
+{
+  Theory * tsep = theoryOf(THEORY_SEP);
+  if (tsep!=nullptr)
+  {
+    tsep->declareHeap(locT, dataT);
+  }
+  else
+  {
+    Assert(false) << "setSepHeapTypes 
+  }
+}
+
 theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b) {
   Assert(a.getType().isComparableTo(b.getType()));
   return d_sharedSolver->getEqualityStatus(a, b);

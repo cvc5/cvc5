@@ -78,6 +78,15 @@ class TheorySep : public Theory {
             const LogicInfo& logicInfo,
             ProofNodeManager* pnm = nullptr);
   ~TheorySep();
+  
+  /**
+   * Declare heap. For smt2 inputs, this is called when the command
+   * (declare-heap (locT datat)) is invoked by the user. This sets locT as the
+   * location type and dataT is the data type for the heap. This command can be
+   * executed once only, and must be invoked before solving separation logic
+   * inputs.
+   */
+  void declareHeap(TypeNode locT, TypeNode dataT);
 
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
@@ -152,6 +161,8 @@ class TheorySep : public Theory {
   //--------------------------------- end standard check
 
  private:
+  /** Have we set the heap types? */
+  bool hasHeapTypes() const;
   /** Ensures that the reduction has been added for the given fact */
   void reduceFact(TNode atom, bool polarity, TNode fact);
   /** Is spatial kind? */

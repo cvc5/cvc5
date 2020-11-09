@@ -5181,6 +5181,17 @@ Term Solver::getQuantifierEliminationDisjunct(api::Term q) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
+void Solver::declareSeparationHeap(api::Sort locSort, api::Sort dataSort) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK(
+      d_smtEngine->getLogicInfo().isTheoryEnabled(theory::THEORY_SEP))
+      << "Cannot obtain separation logic expressions if not using the "
+         "separation logic theory.";
+  d_smtEngine->declareSepHeap(locSort.getTypeNode(), dataSort.getTypeNode());
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
 Term Solver::getSeparationHeap() const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;

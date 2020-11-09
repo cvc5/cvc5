@@ -1448,6 +1448,21 @@ std::vector<Node> SmtEngine::getExpandedAssertions()
   return eassertsProc;
 }
 
+
+void SmtEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
+{
+  if (!d_logic.isTheoryEnabled(THEORY_SEP))
+  {
+    const char* msg =
+        "Cannot declare heap if not using the separation logic theory.";
+    throw RecoverableModalException(msg);
+  }
+  SmtScope smts(this);
+  finishInit();
+  TheoryEngine* te = getTheoryEngine();
+  te->declareSepHeap(locT, dataT);
+}
+
 Node SmtEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
 
 Node SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }

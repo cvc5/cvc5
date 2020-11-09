@@ -1425,9 +1425,48 @@ void DefineFunctionRecCommand::toStream(std::ostream& out,
       formals,
       api::termVectorToNodes(d_formulas));
 }
+/* -------------------------------------------------------------------------- */
+/* class DeclareHeapCommand                                                   */
+/* -------------------------------------------------------------------------- */
+DeclareHeapCommand::DeclareHeapCommand(api::Sort locSort, api::Sort dataSort)
+    : d_locSort(locSort), d_dataSort(dataSort)
+{
+}
+
+api::Sort DeclareHeapCommand::getLocationSort() const
+{
+  return d_locSort;
+}
+api::Sort DeclareHeapCommand::getDataSort() const
+{
+  return d_dataSort;
+}
+
+void DeclareHeapCommand::invoke(api::Solver* solver)
+{
+  solver->declareSepHeap(d_locSort, d_dataSort);
+}
+
+Command* DeclareHeapCommand::clone() const
+{
+  return new DeclareHeapCommand(d_locSort, d_dataSort);
+}
+
+std::string DeclareHeapCommand::getCommandName() const { return "declare-heap"; }
+
+void DeclareHeapCommand::toStream(std::ostream& out,
+                                 int toDepth,
+                                 size_t dag,
+                                 OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdDeclareHeap(
+      out,
+      d_locSort,
+      d_dataSort);
+}
 
 /* -------------------------------------------------------------------------- */
-/* class SetUserAttribute                                                     */
+/* class SetUserAttributeCommand                                              */
 /* -------------------------------------------------------------------------- */
 
 SetUserAttributeCommand::SetUserAttributeCommand(

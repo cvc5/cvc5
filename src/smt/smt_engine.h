@@ -309,6 +309,15 @@ class CVC4_PUBLIC SmtEngine
    */
   Result blockModelValues(const std::vector<Node>& exprs);
 
+  /**
+   * Declare heap. For smt2 inputs, this is called when the command
+   * (declare-heap (locT datat)) is invoked by the user. This sets locT as the
+   * location type and dataT is the data type for the heap. This command should
+   * be executed only once, and must be invoked before solving separation logic
+   * inputs.
+   */
+  void declareSepHeap(TypeNode locT, TypeNode dataT);
+  
   /** When using separation logic, obtain the expression for the heap.  */
   Node getSepHeapExpr();
 
