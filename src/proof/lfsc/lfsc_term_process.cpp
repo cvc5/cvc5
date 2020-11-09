@@ -124,6 +124,7 @@ Node LfscTermProcessCallback::convertInternal(Node n)
     std::reverse(children.begin(), children.end());
     if (n.getKind() != DISTINCT)
     {
+      // Most operators simply get binarized
       Node ret = children[0];
       for (unsigned i = 1, nchild = n.getNumChildren(); i < nchild; i++)
       {
@@ -133,6 +134,8 @@ Node LfscTermProcessCallback::convertInternal(Node n)
     }
     else
     {
+      // DINSTICT(x1,...,xn) --->
+      // AND(DISTINCT(x1,x2), AND(,..., AND(,..,DISTINCT(x_{n-1},x_n))))
       Node ret = nm->mkNode(k, children[0], children[1]);
       for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; i++)
         for (unsigned j = i + 1; i < nchild; i++)
