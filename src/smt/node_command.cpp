@@ -37,7 +37,6 @@ std::ostream& operator<<(std::ostream& out, const NodeCommand& nc)
 {
   nc.toStream(out,
               Node::setdepth::getDepth(out),
-              Node::printtypes::getPrintTypes(out),
               Node::dag::getDag(out),
               Node::setlanguage::getLanguage(out));
   return out;
@@ -60,7 +59,6 @@ DeclareFunctionNodeCommand::DeclareFunctionNodeCommand(const std::string& id,
 
 void DeclareFunctionNodeCommand::toStream(std::ostream& out,
                                           int toDepth,
-                                          bool types,
                                           size_t dag,
                                           OutputLanguage language) const
 {
@@ -103,7 +101,6 @@ DeclareTypeNodeCommand::DeclareTypeNodeCommand(const std::string& id,
 
 void DeclareTypeNodeCommand::toStream(std::ostream& out,
                                       int toDepth,
-                                      bool types,
                                       size_t dag,
                                       OutputLanguage language) const
 {
@@ -132,7 +129,6 @@ DeclareDatatypeNodeCommand::DeclareDatatypeNodeCommand(
 
 void DeclareDatatypeNodeCommand::toStream(std::ostream& out,
                                           int toDepth,
-                                          bool types,
                                           size_t dag,
                                           OutputLanguage language) const
 {
@@ -160,7 +156,6 @@ DefineFunctionNodeCommand::DefineFunctionNodeCommand(
 
 void DefineFunctionNodeCommand::toStream(std::ostream& out,
                                          int toDepth,
-                                         bool types,
                                          size_t dag,
                                          OutputLanguage language) const
 {
