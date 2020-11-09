@@ -42,12 +42,13 @@ namespace CVC4 {
 namespace parser {
 
 Parser::Parser(api::Solver* solver,
+               SymbolManager* sm,
                Input* input,
                bool strictMode,
                bool parseOnly)
     : d_input(input),
-      d_symtabAllocated(),
-      d_symtab(&d_symtabAllocated),
+      d_symman(sm),
+      d_symtab(sm->getSymbolTable()),
       d_assertionLevel(0),
       d_globalDeclarations(false),
       d_anonymousFunctionCount(0),
