@@ -1025,7 +1025,7 @@ void Smt2Printer::toStreamCastToType(std::ostream& out,
   {
     nasc = n;
   }
-  toStream(out, nasc, -1);
+  toStream(out, nasc, toDepth);
 }
 
 static string smtKindString(Kind k, Variant v)
