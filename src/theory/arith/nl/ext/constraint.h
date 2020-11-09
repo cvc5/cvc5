@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file nl_constraint.h
+/*! \file constraint.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -12,15 +12,15 @@
  ** \brief Utilities for non-linear constraints
  **/
 
-#ifndef CVC4__THEORY__ARITH__NL__NL_CONSTRAINT_H
-#define CVC4__THEORY__ARITH__NL__NL_CONSTRAINT_H
+#ifndef CVC4__THEORY__ARITH__NL__EXT__CONSTRAINT_H
+#define CVC4__THEORY__ARITH__NL__EXT__CONSTRAINT_H
 
 #include <map>
 #include <vector>
 
 #include "expr/kind.h"
 #include "expr/node.h"
-#include "theory/arith/nl/nl_monomial.h"
+#include "theory/arith/nl/ext/monomial.h"
 
 namespace CVC4 {
 namespace theory {

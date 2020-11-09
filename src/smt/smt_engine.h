@@ -29,7 +29,6 @@
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "options/options.h"
-#include "proof/unsat_core.h"
 #include "smt/logic_exception.h"
 #include "smt/output_manager.h"
 #include "smt/smt_mode.h"
@@ -59,6 +58,7 @@ class DecisionEngine;
 class TheoryEngine;
 
 class ProofManager;
+class UnsatCore;
 
 class LogicRequest;
 class StatisticsRegistry;
@@ -104,6 +104,7 @@ class ResourceOutListener;
 class SmtNodeManagerListener;
 class OptionsManager;
 class Preprocessor;
+class CheckModels;
 /** Subsolvers */
 class SmtSolver;
 class SygusSolver;
@@ -1095,6 +1096,11 @@ class CVC4_PUBLIC SmtEngine
    * implementation maintained by the SmtSolver.
    */
   std::unique_ptr<smt::Model> d_model;
+
+  /**
+   * The utility used for checking models
+   */
+  std::unique_ptr<smt::CheckModels> d_checkModels;
 
   /**
    * The proof manager, which manages all things related to checking,

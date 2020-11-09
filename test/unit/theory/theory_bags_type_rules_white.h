@@ -28,7 +28,7 @@ using namespace std;
 
 typedef expr::Attribute<Node, Node> attribute;
 
-class BagsTypeRuleBlack : public CxxTest::TestSuite
+class BagsTypeRuleWhite : public CxxTest::TestSuite
 {
  public:
   void setUp() override
@@ -63,7 +63,8 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
   void testCountOperator()
   {
     vector<Node> elements = getNStrings(1);
-    Node bag = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(100)));
+    Node bag = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(100)));
 
     Node count = d_nm->mkNode(BAG_COUNT, elements[0], bag);
     Node node = d_nm->mkConst(Rational(10));
@@ -73,14 +74,24 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
                      TypeCheckingExceptionPrivate&);
   }
 
+  void testDuplicateRemovalOperator()
+  {
+    vector<Node> elements = getNStrings(1);
+    Node bag = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(10)));
+    TS_ASSERT_THROWS_NOTHING(d_nm->mkNode(DUPLICATE_REMOVAL, bag));
+    TS_ASSERT(d_nm->mkNode(DUPLICATE_REMOVAL, bag).getType() == bag.getType());
+  }
+
   void testMkBagOperator()
   {
     vector<Node> elements = getNStrings(1);
-    Node negative =
-        d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(-1)));
-    Node zero = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(0)));
-    Node positive =
-        d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(1)));
+    Node negative = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(-1)));
+    Node zero = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(0)));
+    Node positive = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(1)));
 
     // only positive multiplicity are constants
     TS_ASSERT(!MkBagTypeRule::computeIsConst(d_nm.get(), negative));
@@ -99,7 +110,8 @@ class BagsTypeRuleBlack : public CxxTest::TestSuite
   void testToSetOperator()
   {
     vector<Node> elements = getNStrings(1);
-    Node bag = d_nm->mkNode(MK_BAG, elements[0], d_nm->mkConst(Rational(10)));
+    Node bag = d_nm->mkBag(
+        d_nm->stringType(), elements[0], d_nm->mkConst(Rational(10)));
     TS_ASSERT_THROWS_NOTHING(d_nm->mkNode(BAG_TO_SET, bag));
     TS_ASSERT(d_nm->mkNode(BAG_TO_SET, bag).getType().isSet());
   }

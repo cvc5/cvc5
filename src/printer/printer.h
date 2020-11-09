@@ -51,7 +51,6 @@ class Printer
   virtual void toStream(std::ostream& out,
                         TNode n,
                         int toDepth,
-                        bool types,
                         size_t dag) const = 0;
 
   /** Write a CommandStatus out to a stream with this Printer. */
@@ -159,9 +158,6 @@ class Printer
 
   /** Print simplify command */
   virtual void toStreamCmdSimplify(std::ostream& out, Node n) const;
-
-  /** Print expand-definitions command */
-  void toStreamCmdExpandDefinitions(std::ostream& out, Node n) const;
 
   /** Print get-value command */
   virtual void toStreamCmdGetValue(std::ostream& out,

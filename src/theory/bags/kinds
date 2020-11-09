@@ -45,9 +45,17 @@ operator DIFFERENCE_SUBTRACT    2  "bag difference1 (subtracts multiplicities)"
 # {("a", 2), ("b", 3)} \\ {("a", 1)} = {("b", 3)}
 operator DIFFERENCE_REMOVE 2  "bag difference remove (removes shared elements)"
 
-operator BAG_IS_INCLUDED   2  "inclusion predicate for bags (less than or equal multiplicities)"
+operator SUBBAG            2  "inclusion predicate for bags (less than or equal multiplicities)"
 operator BAG_COUNT         2  "multiplicity of an element in a bag"
-operator MK_BAG            2  "constructs a bag from one element along with its multiplicity"
+operator DUPLICATE_REMOVAL 1  "eliminate duplicates in a bag (also known as the delta operator,or the squash operator)"
+
+constant MK_BAG_OP \
+	::CVC4::MakeBagOp \
+	::CVC4::MakeBagOpHashFunction \
+	"theory/bags/make_bag_op.h" \
+	"operator for MK_BAG; payload is an instance of the CVC4::MakeBagOp class"
+parameterized MK_BAG MK_BAG_OP 2 \
+"constructs a bag from one element along with its multiplicity"
 
 # The operator bag-is-singleton returns whether the given bag is a singleton
 operator BAG_IS_SINGLETON  1  "return whether the given bag is a singleton"
@@ -67,8 +75,10 @@ typerule UNION_DISJOINT      ::CVC4::theory::bags::BinaryOperatorTypeRule
 typerule INTERSECTION_MIN    ::CVC4::theory::bags::BinaryOperatorTypeRule
 typerule DIFFERENCE_SUBTRACT ::CVC4::theory::bags::BinaryOperatorTypeRule
 typerule DIFFERENCE_REMOVE   ::CVC4::theory::bags::BinaryOperatorTypeRule
-typerule BAG_IS_INCLUDED     ::CVC4::theory::bags::IsIncludedTypeRule
+typerule SUBBAG              ::CVC4::theory::bags::SubBagTypeRule
 typerule BAG_COUNT           ::CVC4::theory::bags::CountTypeRule
+typerule DUPLICATE_REMOVAL   ::CVC4::theory::bags::DuplicateRemovalTypeRule
+typerule MK_BAG_OP           "SimpleTypeRule<RBuiltinOperator>"
 typerule MK_BAG              ::CVC4::theory::bags::MkBagTypeRule
 typerule EMPTYBAG            ::CVC4::theory::bags::EmptyBagTypeRule
 typerule BAG_CARD            ::CVC4::theory::bags::CardTypeRule

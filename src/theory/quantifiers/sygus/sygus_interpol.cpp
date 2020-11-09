@@ -268,11 +268,11 @@ void SygusInterpol::mkSygusConjecture(Node itp,
   Trace("sygus-interpol") << "Generate: " << d_sygusConj << std::endl;
 }
 
-bool SygusInterpol::findInterpol(Node& interpol, Node itp)
+bool SygusInterpol::findInterpol(SmtEngine* subSolver, Node& interpol, Node itp)
 {
   // get the synthesis solution
   std::map<Node, Node> sols;
-  d_subSolver->getSynthSolutions(sols);
+  subSolver->getSynthSolutions(sols);
   Assert(sols.size() == 1);
   std::map<Node, Node>::iterator its = sols.find(itp);
   if (its == sols.end())
@@ -313,43 +313,51 @@ bool SygusInterpol::findInterpol(Node& interpol, Node itp)
   return true;
 }
 
-bool SygusInterpol::SolveInterpolation(const std::string& name,
+bool SygusInterpol::solveInterpolation(const std::string& name,
                                        const std::vector<Node>& axioms,
                                        const Node& conj,
                                        const TypeNode& itpGType,
                                        Node& interpol)
 {
-  initializeSubsolver(d_subSolver);
-  // get the logic
-  LogicInfo l = d_subSolver->getLogicInfo().getUnlockedCopy();
-  // enable everything needed for sygus
-  l.enableSygus();
-  d_subSolver->setLogic(l);
-
+  // Some instructions in setSynthGrammar and mkSygusConjecture need a fully
+  // initialized solver to work properly. Notice, however, that the sub-solver
+  // created below is not fully initialized by the time those two methods are
+  // needed. Therefore, we call them while the current parent solver is in scope
+  // (i.e., before creating the sub-solver).
   collectSymbols(axioms, conj);
   createVariables(itpGType.isNull());
+  TypeNode grammarType = setSynthGrammar(itpGType, axioms, conj);
+
+  Node itp = mkPredicate(name);
+  mkSygusConjecture(itp, axioms, conj);
+
+  std::unique_ptr<SmtEngine> subSolver;
+  initializeSubsolver(subSolver);
+  // get the logic
+  LogicInfo l = subSolver->getLogicInfo().getUnlockedCopy();
+  // enable everything needed for sygus
+  l.enableSygus();
+  subSolver->setLogic(l);
+
   for (Node var : d_vars)
   {
-    d_subSolver->declareSygusVar(name, var, var.getType());
+    subSolver->declareSygusVar(name, var, var.getType());
   }
   std::vector<Node> vars_empty;
-  TypeNode grammarType = setSynthGrammar(itpGType, axioms, conj);
-  Node itp = mkPredicate(name);
-  d_subSolver->declareSynthFun(name, itp, grammarType, false, vars_empty);
-  mkSygusConjecture(itp, axioms, conj);
+  subSolver->declareSynthFun(name, itp, grammarType, false, vars_empty);
   Trace("sygus-interpol") << "SmtEngine::getInterpol: made conjecture : "
                           << d_sygusConj << ", solving for "
                           << d_sygusConj[0][0] << std::endl;
-  d_subSolver->assertSygusConstraint(d_sygusConj);
+  subSolver->assertSygusConstraint(d_sygusConj);
 
   Trace("sygus-interpol") << "  SmtEngine::getInterpol check sat..."
                           << std::endl;
-  Result r = d_subSolver->checkSynth();
+  Result r = subSolver->checkSynth();
   Trace("sygus-interpol") << "  SmtEngine::getInterpol result: " << r
                           << std::endl;
   if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
   {
-    return findInterpol(interpol, itp);
+    return findInterpol(subSolver.get(), interpol, itp);
   }
   return false;
 }

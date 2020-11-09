@@ -18,6 +18,7 @@
 #include <poly/polyxx.h>
 #endif
 
+#include "options/arith_options.h"
 #include "theory/arith/inference_id.h"
 #include "theory/arith/nl/cad/cdcac.h"
 #include "theory/arith/nl/poly_conversion.h"
@@ -83,8 +84,12 @@ void CadSolver::checkFull()
     Trace("nl-cad") << "Collected MIS: " << mis << std::endl;
     Assert(!mis.empty()) << "Infeasible subset can not be empty";
     Trace("nl-cad") << "UNSAT with MIS: " << mis << std::endl;
-    d_im.addConflict(NodeManager::currentNM()->mkAnd(mis),
-                     InferenceId::NL_CAD_CONFLICT);
+    for (auto& n : mis)
+    {
+      n = n.negate();
+    }
+    d_im.addPendingArithLemma(NodeManager::currentNM()->mkOr(mis),
+                              InferenceId::NL_CAD_CONFLICT);
   }
 #else
   Warning() << "Tried to use CadSolver but libpoly is not available. Compile "
@@ -145,10 +150,15 @@ bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
   {
     return false;
   }
-  assertions.clear();
+  bool foundNonVariable = false;
   for (const auto& v : d_CAC.getVariableOrdering())
   {
     Node variable = d_CAC.getConstraints().varMapper()(v);
+    if (!variable.isVar())
+    {
+      Trace("nl-cad") << "Not a variable: " << variable << std::endl;
+      foundNonVariable = true;
+    }
     Node value = value_to_node(d_CAC.getModel().get(v), d_ranVariable);
     if (value.isConst())
     {
@@ -160,6 +170,16 @@ bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
     }
     Trace("nl-cad") << "-> " << v << " = " << value << std::endl;
   }
+  if (foundNonVariable)
+  {
+    Trace("nl-cad")
+        << "Some variable was an extended term, don't clear list of assertions."
+        << std::endl;
+    return false;
+  }
+  Trace("nl-cad") << "Constructed a full assignment, clear list of assertions."
+                  << std::endl;
+  assertions.clear();
   return true;
 #else
   Warning() << "Tried to use CadSolver but libpoly is not available. Compile "

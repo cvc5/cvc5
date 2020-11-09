@@ -105,6 +105,71 @@ NodeManager::NodeManager(ExprManager* exprManager)
   init();
 }
 
+TypeNode NodeManager::booleanType()
+{
+  return mkTypeConst<TypeConstant>(BOOLEAN_TYPE);
+}
+
+TypeNode NodeManager::integerType()
+{
+  return mkTypeConst<TypeConstant>(INTEGER_TYPE);
+}
+
+TypeNode NodeManager::realType()
+{
+  return mkTypeConst<TypeConstant>(REAL_TYPE);
+}
+
+TypeNode NodeManager::stringType()
+{
+  return mkTypeConst<TypeConstant>(STRING_TYPE);
+}
+
+TypeNode NodeManager::regExpType()
+{
+  return mkTypeConst<TypeConstant>(REGEXP_TYPE);
+}
+
+TypeNode NodeManager::roundingModeType()
+{
+  return mkTypeConst<TypeConstant>(ROUNDINGMODE_TYPE);
+}
+
+TypeNode NodeManager::boundVarListType()
+{
+  return mkTypeConst<TypeConstant>(BOUND_VAR_LIST_TYPE);
+}
+
+TypeNode NodeManager::instPatternType()
+{
+  return mkTypeConst<TypeConstant>(INST_PATTERN_TYPE);
+}
+
+TypeNode NodeManager::instPatternListType()
+{
+  return mkTypeConst<TypeConstant>(INST_PATTERN_LIST_TYPE);
+}
+
+TypeNode NodeManager::builtinOperatorType()
+{
+  return mkTypeConst<TypeConstant>(BUILTIN_OPERATOR_TYPE);
+}
+
+TypeNode NodeManager::mkBitVectorType(unsigned size)
+{
+  return mkTypeConst<BitVectorSize>(BitVectorSize(size));
+}
+
+TypeNode NodeManager::mkFloatingPointType(unsigned exp, unsigned sig)
+{
+  return mkTypeConst<FloatingPointSize>(FloatingPointSize(exp, sig));
+}
+
+TypeNode NodeManager::mkFloatingPointType(FloatingPointSize fs)
+{
+  return mkTypeConst<FloatingPointSize>(fs);
+}
+
 void NodeManager::init() {
   // `mkConst()` indirectly needs the correct NodeManager in scope because we
   // call `NodeValue::inc()` which uses `NodeManager::curentNM()`
@@ -959,6 +1024,17 @@ Node NodeManager::mkSingleton(const TypeNode& t, const TNode n)
   Node op = mkConst(SingletonOp(t));
   Node singleton = mkNode(kind::SINGLETON, op, n);
   return singleton;
+}
+
+Node NodeManager::mkBag(const TypeNode& t, const TNode n, const TNode m)
+{
+  Assert(n.getType().isSubtypeOf(t))
+      << "Invalid operands for mkBag. The type '" << n.getType()
+      << "' of node '" << n << "' is not a subtype of '" << t << "'."
+      << std::endl;
+  Node op = mkConst(MakeBagOp(t));
+  Node bag = mkNode(kind::MK_BAG, op, n, m);
+  return bag;
 }
 
 Node NodeManager::mkAbstractValue(const TypeNode& type) {

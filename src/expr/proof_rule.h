@@ -201,16 +201,17 @@ enum class PfRule : uint32_t
   THEORY_LEMMA,
   // ======== Theory Rewrite
   // Children: none
-  // Arguments: (F, tid, preRewrite?)
+  // Arguments: (F, tid, rid)
   // ----------------------------------------
   // Conclusion: F
   // where F is an equality of the form (= t t') where t' is obtained by
-  // applying the theory rewriter with identifier tid in either its prewrite
-  // (when preRewrite is true) or postrewrite method. Notice that the checker
-  // for this rule does not replay the rewrite to ensure correctness, since
-  // theory rewriter methods are not static. For example, the quantifiers
-  // rewriter involves constructing new bound variables that are not guaranteed
-  // to be consistent on each call.
+  // applying the kind of rewriting given by the method identifier rid, which
+  // is one of:
+  //  { RW_REWRITE_THEORY_PRE, RW_REWRITE_THEORY_POST, RW_REWRITE_EQ_EXT }
+  // Notice that the checker for this rule does not replay the rewrite to ensure
+  // correctness, since theory rewriter methods are not static. For example,
+  // the quantifiers rewriter involves constructing new bound variables that are
+  // not guaranteed to be consistent on each call.
   THEORY_REWRITE,
   // The rules in this section have the signature of a "trusted rule":
   //
@@ -673,6 +674,52 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: F
   ARRAYS_TRUST,
+  
+  //================================================= Datatype rules
+  // ======== Unification
+  // Children: (P:(= (C t1 ... tn) (C s1 ... sn)))
+  // Arguments: (i)
+  // ----------------------------------------
+  // Conclusion: (= ti si)
+  // where C is a constructor.
+  DT_UNIF,
+  // ======== Instantiate
+  // Children: none
+  // Arguments: (t, n)
+  // ----------------------------------------
+  // Conclusion: (= ((_ is C) t) (= t (C (sel_1 t) ... (sel_n t))))
+  // where C is the n^th constructor of the type of T, and (_ is C) is the
+  // discriminator (tester) for C.
+  DT_INST,
+  // ======== Collapse
+  // Children: none
+  // Arguments: ((sel_i (C_j t_1 ... t_n)))
+  // ----------------------------------------
+  // Conclusion: (= (sel_i (C_j t_1 ... t_n)) r)
+  // where C_j is a constructor, r is t_i if sel_i is a correctly applied
+  // selector, or TypeNode::mkGroundTerm() of the proper type otherwise. Notice
+  // that the use of mkGroundTerm differs from the rewriter which uses
+  // mkGroundValue in this case.
+  DT_COLLAPSE,
+  // ======== Split
+  // Children: none
+  // Arguments: (t)
+  // ----------------------------------------
+  // Conclusion: (or ((_ is C1) t) ... ((_ is Cn) t))
+  DT_SPLIT,
+  // ======== Clash
+  // Children: (P1:((_ is Ci) t), P2: ((_ is Cj) t))
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: false
+  // for i != j.
+  DT_CLASH,
+  // ======== Datatype Trust
+  // Children: (P1 ... Pn)
+  // Arguments: (F)
+  // ---------------------
+  // Conclusion: F
+  DT_TRUST,
 
   //================================================= Quantifiers rules
   // ======== Witness intro
