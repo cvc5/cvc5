@@ -1130,7 +1130,7 @@ void TheoryEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
 #undef CVC4_FOR_EACH_THEORY_STATEMENT
 #endif
 #define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
-  theoryOf(THEORY)->declareHeap(locT, dataT);
+  theoryOf(THEORY)->declareSepHeap(locT, dataT);
 
   // notify each theory using the statement above
   CVC4_FOR_EACH_THEORY;
