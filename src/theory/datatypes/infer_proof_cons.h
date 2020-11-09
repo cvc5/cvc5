@@ -84,6 +84,8 @@ class InferProofCons : public ProofGenerator
    * information is stored in cdp.
    */
   void convert(InferId infer, Node conc, Node exp, CDProof* cdp);
+  /** A dummy context used by this class if none is provided */
+  context::Context d_context;
   /** the proof node manager */
   ProofNodeManager* d_pnm;
   /** The lazy fact map */

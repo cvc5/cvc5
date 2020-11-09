@@ -24,7 +24,7 @@ namespace theory {
 namespace datatypes {
 
 InferProofCons::InferProofCons(context::Context* c, ProofNodeManager* pnm)
-    : d_pnm(pnm), d_lazyFactMap(c)
+    : d_pnm(pnm), d_lazyFactMap(c == nullptr ? &d_context : c)
 {
   Assert(d_pnm != nullptr);
 }

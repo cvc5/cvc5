@@ -106,7 +106,7 @@ class InferenceManager : public InferenceManagerBuffered
    * status for proof generation. If this is not done, then it is possible
    * to have proofs with missing connections and hence free assumptions.
    */
-  Node prepareDtInference(Node conc, Node exp, InferId id);
+  Node prepareDtInference(Node conc, Node exp, InferId id, InferProofCons* ipc);
   /**
    * Process datatype fact internal. Makes the appropriate call to assert
    * fact conc from exp based on whether proofs are enabled.
@@ -121,8 +121,12 @@ class InferenceManager : public InferenceManagerBuffered
   HistogramStat<InferId> d_inferenceLemmas;
   HistogramStat<InferId> d_inferenceFacts;
   HistogramStat<InferId> d_inferenceConflicts;
+  /** Pointer to the proof node manager */
+  ProofNodeManager* d_pnm;
   /** The inference to proof converter */
   std::unique_ptr<InferProofCons> d_ipc;
+  /** An eager proof generator for lemmas */
+  std::unique_ptr<EagerProofGenerator> d_lemPg;
 };
 
 }  // namespace datatypes
