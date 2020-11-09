@@ -1698,14 +1698,14 @@ void SolverBlack::testGetQuantifierEliminationDisjunct()
   TS_ASSERT_THROWS_NOTHING(d_solver->getQuantifierEliminationDisjunct(forall));
 }
 
-
 void SolverBlack::testDeclareSeparationHeap()
 {
   d_solver->setLogic("ALL_SUPPORTED");
   Sort integer = d_solver->getIntegerSort();
   TS_ASSERT_THROWS_NOTHING(d_solver->declareSeparationHeap(integer, integer));
   // cannot declare separation logic heap more than once
-  TS_ASSERT_THROWS(d_solver->declareSeparationHeap(integer, integer), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->declareSeparationHeap(integer, integer),
+                   CVC4ApiException&);
 }
 
 namespace {
