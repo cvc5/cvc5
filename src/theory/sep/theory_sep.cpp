@@ -71,16 +71,13 @@ TheorySep::~TheorySep() {
 
 void TheorySep::declareHeap(TypeNode locT, TypeNode dataT)
 {
-  if (!d_loc_to_data_type.empty())
+  if (!d_type_ref.isNull())
   {
     TypeNode te1 = d_loc_to_data_type.begin()->first;
     std::stringstream ss;
-    ss << "ERROR: specifying heap constraints for two different types : ";
+    ss << "ERROR: declaring heap constraints for two different types : ";
     ss << locT << " -> " << dataT << ", but we already have ";
-    for (const std::pair<const Node, Node>& h : d_loc_to_data_type)
-    {
-      ss << h.first << " -> " << h.second;
-    }
+    ss << d_type_ref << " -> " << d_type_data;
     throw LogicException(ss.str());
   }
   Node nullAtom;
@@ -1138,41 +1135,32 @@ int TheorySep::processAssertion( Node n, std::map< int, std::map< Node, int > >&
 }
 
 void TheorySep::registerRefDataTypes( TypeNode tn1, TypeNode tn2, Node atom ){
-  std::map< TypeNode, TypeNode >::iterator itt = d_loc_to_data_type.find( tn1 );
-  if( itt==d_loc_to_data_type.end() ){
-    if( !d_loc_to_data_type.empty() ){
-      TypeNode te1 = d_loc_to_data_type.begin()->first;
-      std::stringstream ss;
-      ss << "ERROR: specifying heap constraints for two different types : " << tn1 << " -> " << tn2 << " and " << te1 << " -> " << d_loc_to_data_type[te1] << std::endl;
-      throw LogicException(ss.str());
+  if( !d_type_ref.isNull() ){
+    Assert (!atom.isNull());
+    // already declared, ensure compatible
+    if (!tn1.isNull() && !tn1.isComparableTo(d_type_ref) || (!tn2.isNull() && !tn2.isComparableTo(d_type_data)))
+    {
+        std::stringstream ss;
+        ss << "ERROR: the separation logic heap type has already been set to " << d_type_ref << " -> " << d_type_data << " but we have a constraint that uses different heap types, offending atom is " << atom << " with associated heap type " << tn1 << " -> " << tn2 << std::endl;
     }
-    if( tn2.isNull() ){
-      Trace("sep-type") << "Sep: assume location type " << tn1 << " (from " << atom << ")" << std::endl;
-    }else{
-      Trace("sep-type") << "Sep: assume location type " << tn1 << " is associated with data type " << tn2 << " (from " << atom << ")" << std::endl;
-    }
-    d_loc_to_data_type[tn1] = tn2;
-    //for now, we only allow heap constraints of one type
-    d_type_ref = tn1;
-    d_type_data = tn2;
-    d_bound_kind[tn1] = bound_default;
-  }else{
-    if( !tn2.isNull() ){
-      if( itt->second!=tn2 ){
-        if( itt->second.isNull() ){
-          Trace("sep-type") << "Sep: assume location type " << tn1 << " is associated with data type " << tn2 << " (from " << atom << ")" << std::endl;
-          //now we know data type
-          d_loc_to_data_type[tn1] = tn2;
-          d_type_data = tn2;
-        }else{
-          std::stringstream ss;
-          ss << "ERROR: location type " << tn1 << " is already associated with data type " << itt->second << ", offending atom is " << atom << " with data type " << tn2 << std::endl;
-          throw LogicException(ss.str());
-          Assert(false);
-        }
-      }
-    }
+    return;
   }
+  // if not declared yet, and we have a separation logic constraint, throw
+  // an error.
+  if (!atom.isNull())
+  {
+    std::stringstream ss;
+    // error, heap not declared
+    ss << "ERROR: the type of the separation logic heap has not been declared (e.g. via a declare-heap command), and we have a separation logic constraint " << atom << std::endl;
+    throw LogicException(ss.str());
+  }
+  // otherwise set it
+  Trace("sep-type") << "Sep: assume location type " << tn1 << " is associated with data type " << tn2 << std::endl;
+  d_loc_to_data_type[tn1] = tn2;
+  //for now, we only allow heap constraints of one type
+  d_type_ref = tn1;
+  d_type_data = tn2;
+  d_bound_kind[tn1] = bound_default;
 }
 
 void TheorySep::initializeBounds() {

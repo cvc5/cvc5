@@ -895,7 +895,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
 @declarations {
   std::vector<api::DatatypeDecl> dts;
   CVC4::api::Term e, e2;
-  CVC4::api::Sort t;
+  CVC4::api::Sort t, s;
   std::string name;
   std::vector<std::string> names;
   std::vector<CVC4::api::Term> terms;
@@ -910,6 +910,11 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
   | DECLARE_CODATATYPES_2_5_TOK datatypes_2_5_DefCommand[true, cmd]
   | DECLARE_CODATATYPE_TOK datatypeDefCommand[true, cmd]
   | DECLARE_CODATATYPES_TOK datatypesDefCommand[true, cmd]
+  | DECLARE_HEAP_TOK LPAREN_TOK sortSymbol[t,CHECK_DECLARED]
+    sortSymbol[s,CHECK_DECLARED] RPAREN_TOK
+    {
+      seq->addCommand(new DeclareHeapCommand(t, s));
+    }
 
     /* Support some of Z3's extended SMT-LIB commands */
 
@@ -2261,6 +2266,7 @@ DECLARE_DATATYPES_2_5_TOK : { !( PARSER_STATE->v2_6() || PARSER_STATE->sygus() )
 DECLARE_DATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'declare-datatypes';
 DECLARE_CODATATYPES_2_5_TOK : { !( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) }?'declare-codatatypes';
 DECLARE_CODATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'declare-codatatypes';
+DECLARE_HEAP_TOK : 'declare-heap';
 PAR_TOK : { PARSER_STATE->v2_6() }?'par';
 COMPREHENSION_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_SETS) }?'comprehension';
 TESTER_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }?'is';

@@ -1438,7 +1438,7 @@ api::Sort DeclareHeapCommand::getDataSort() const { return d_dataSort; }
 
 void DeclareHeapCommand::invoke(api::Solver* solver)
 {
-  solver->declareSepHeap(d_locSort, d_dataSort);
+  solver->declareSeparationHeap(d_locSort, d_dataSort);
 }
 
 Command* DeclareHeapCommand::clone() const

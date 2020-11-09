@@ -218,6 +218,11 @@ class Smt2Printer : public CVC4::Printer
   void toStreamCmdComment(std::ostream& out,
                           const std::string& comment) const override;
 
+  /** Print declare-heap command */
+  void toStreamCmdDeclareHeap(std::ostream& out,
+                             TypeNode locType,
+                             TypeNode dataType) const override;
+                             
   /** Print command sequence command */
   void toStreamCmdCommandSequence(
       std::ostream& out, const std::vector<Command*>& sequence) const override;

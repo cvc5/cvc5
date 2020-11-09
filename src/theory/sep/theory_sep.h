@@ -285,7 +285,14 @@ class TheorySep : public Theory {
   //get global reference/data type
   TypeNode getReferenceType( Node n );
   TypeNode getDataType( Node n );
-  void registerRefDataTypes( TypeNode tn1, TypeNode tn2, Node atom );
+  /**
+   * This is called either when:
+   * (A) a declare-heap command is issued with tn1/tn2, and atom is null, or
+   * (B) an atom specifying the heap type tn1/tn2 is registered to this theory.
+   * We set the heap type if we are are case (A), and check whether the
+   * heap type is consistent in the case of (B). 
+   */
+  void registerRefDataTypes(TypeNode tn1, TypeNode tn2, Node atom);
   //get location/data type
   //get the base label for the spatial assertion
   Node getBaseLabel( TypeNode tn );

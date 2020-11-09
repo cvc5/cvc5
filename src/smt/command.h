@@ -566,7 +566,7 @@ class CVC4_PUBLIC DefineFunctionRecCommand : public Command
  *   (declare-heap (T U))
  * where T is the location sort and U is the data sort.
  */
-class CVC4_PUBLIC DeclareHeapCommand
+class CVC4_PUBLIC DeclareHeapCommand : public Command
 {
  public:
   DeclareHeapCommand(api::Sort locSort, api::Sort dataSort);
@@ -586,7 +586,7 @@ class CVC4_PUBLIC DeclareHeapCommand
   api::Sort d_locSort;
   /** The data sort */
   api::Sort d_dataSort;
-}; /* class DeclareHeapCommand */
+};
 
 /**
  * The command when an attribute is set by a user.  In SMT-LIBv2 this is done
