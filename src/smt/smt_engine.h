@@ -317,6 +317,14 @@ class CVC4_PUBLIC SmtEngine
    * inputs.
    */
   void declareSepHeap(TypeNode locT, TypeNode dataT);
+  
+  /**
+   * Get the separation heap types, which extracts which types were passed to
+   * the method above.
+   *
+   * @return true if the separation logic heap types have been declared.
+   */
+  bool getSepHeapTypes(TypeNode& locT, TypeNode& dataT);
 
   /** When using separation logic, obtain the expression for the heap.  */
   Node getSepHeapExpr();

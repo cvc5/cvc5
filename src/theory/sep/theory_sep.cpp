@@ -302,8 +302,6 @@ void TheorySep::notifyFact(TNode atom,
   doPending();
 }
 
-bool TheorySep::hasHeapTypes() const { return !d_loc_to_data_type.empty(); }
-
 void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
 {
   if (d_reduce.find(fact) != d_reduce.end())

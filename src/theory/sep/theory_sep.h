@@ -161,8 +161,6 @@ class TheorySep : public Theory {
   //--------------------------------- end standard check
 
  private:
-  /** Have we set the heap types? */
-  bool hasHeapTypes() const;
   /** Ensures that the reduction has been added for the given fact */
   void reduceFact(TNode atom, bool polarity, TNode fact);
   /** Is spatial kind? */

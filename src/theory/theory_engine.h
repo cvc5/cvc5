@@ -139,6 +139,9 @@ class TheoryEngine {
    * the cost of walking the DAG on registration, etc.
    */
   const LogicInfo& d_logicInfo;
+  /** The separation logic location and data types */
+  TypeNode d_sepLocType;
+  TypeNode d_sepDataType;
 
   /** Reference to the output manager of the smt engine */
   OutputManager& d_outMgr;
@@ -637,6 +640,8 @@ class TheoryEngine {
   }
   /** get the logic info used by this theory engine */
   const LogicInfo& getLogicInfo() const;
+  /** get the separation logic heap types */
+  bool getSepHeapTypes(TypeNode& locType, TypeNode& dataType) const;
 
   /**
    * Declare heap. This is used for separation logics to set the location

@@ -1116,6 +1116,17 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
 
 const LogicInfo& TheoryEngine::getLogicInfo() const { return d_logicInfo; }
 
+bool TheoryEngine::getSepHeapTypes(TypeNode& locType, TypeNode& dataType) const
+{
+  if (d_sepLocType.isNull())
+  {
+    return false;
+  }
+  locType = d_sepLocType;
+  dataType = d_sepDataType;
+  return true;
+}
+
 void TheoryEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
 {
   Theory* tsep = theoryOf(THEORY_SEP);
@@ -1134,6 +1145,10 @@ void TheoryEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
 
   // notify each theory using the statement above
   CVC4_FOR_EACH_THEORY;
+  
+  // remember the types we have set
+  d_sepLocType = locT;
+  d_sepDataType = dataT;
 }
 
 theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b) {
