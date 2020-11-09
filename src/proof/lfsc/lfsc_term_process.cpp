@@ -122,12 +122,29 @@ Node LfscTermProcessCallback::convertInternal(Node n)
     // convert all n-ary applications to binary
     std::vector<Node> children(n.begin(), n.end());
     std::reverse(children.begin(), children.end());
-    Node ret = children[0];
-    for (unsigned i = 1, nchild = n.getNumChildren(); i < nchild; i++)
+    if (n.getKind() != DISTINCT)
     {
-      ret = nm->mkNode(k, children[i], ret);
+      Node ret = children[0];
+      for (unsigned i = 1, nchild = n.getNumChildren(); i < nchild; i++)
+      {
+        ret = nm->mkNode(k, children[i], ret);
+      }
+      return ret;
     }
-    return ret;
+    else
+    {
+      Node ret = nm->mkNode(k, children[0], children[1]);
+      for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; i++)
+        for (unsigned j = i + 1; i < nchild; i++)
+        {
+          if (i != 0 && j != 1)
+          {
+            ret = nm->mkNode(
+                kind::AND, ret, nm->mkNode(k, children[i], children[j]));
+          }
+        }
+      return ret;
+    }
   }
   return n;
 }
