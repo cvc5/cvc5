@@ -33,11 +33,11 @@ namespace theory {
  * This function initializes the smt engine smte to check the satisfiability
  * of the argument "query". It takes the logic and options of the current
  * SMT engine in scope.
- * 
+ *
  * Notice this method intentionally does not fully initialize smte. This means
  * that the options of smte can still be modified after it is returned by
  * this method.
- * 
+ *
  * Notice that some aspects of subsolvers are not incoporated by this call.
  * For example, the type of separation logic heaps is not set on smte, even
  * if the current SMT engine has declared a separation logic heap.

@@ -317,7 +317,7 @@ class CVC4_PUBLIC SmtEngine
    * inputs.
    */
   void declareSepHeap(TypeNode locT, TypeNode dataT);
-  
+
   /**
    * Get the separation heap types, which extracts which types were passed to
    * the method above.

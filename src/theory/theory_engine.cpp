@@ -1132,7 +1132,8 @@ void TheoryEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
   Theory* tsep = theoryOf(THEORY_SEP);
   if (tsep == nullptr)
   {
-    Assert(false) << "TheoryEngine::declareSepHeap called without the separation logic theory enabled";
+    Assert(false) << "TheoryEngine::declareSepHeap called without the "
+                     "separation logic theory enabled";
     return;
   }
 
@@ -1145,7 +1146,7 @@ void TheoryEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
 
   // notify each theory using the statement above
   CVC4_FOR_EACH_THEORY;
-  
+
   // remember the types we have set
   d_sepLocType = locT;
   d_sepDataType = dataT;

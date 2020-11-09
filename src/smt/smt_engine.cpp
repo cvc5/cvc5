@@ -65,8 +65,8 @@
 #include "theory/logic_info.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/rewriter.h"
-#include "theory/theory_engine.h"
 #include "theory/smt_engine_subsolver.h"
+#include "theory/theory_engine.h"
 #include "util/hash.h"
 #include "util/random.h"
 #include "util/resource_manager.h"
@@ -1517,7 +1517,7 @@ void SmtEngine::checkUnsatCore() {
   {
     coreChecker->declareSepHeap(sepLocType, sepDataType);
   }
-  
+
   Notice() << "SmtEngine::checkUnsatCore(): pushing core assertions (size == " << core.size() << ")" << endl;
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
     Node assertionAfterExpansion = expandDefinitions(*i);
