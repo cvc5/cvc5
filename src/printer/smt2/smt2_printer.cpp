@@ -90,7 +90,7 @@ static void toStreamRational(std::ostream& out,
     if (neg)
     {
       Rational abs_r = (-r);
-      out << "(- ") << abs_r.getNumerator();
+      out << "(- " << abs_r.getNumerator();
       out << ") " << abs_r.getDenominator();
     }
     else
