@@ -1123,7 +1123,7 @@ cdef class Solver:
         return term
 
     def declareSeparationHeap(self, Sort locType, Sort dataType):
-        self.declareSeparationHeap(locType.csort, dataType.csort)
+        self.csolver.declareSeparationHeap(locType.csort, dataType.csort)
 
     def getSeparationNilTerm(self):
         cdef Term term = Term(self)
