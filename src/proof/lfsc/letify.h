@@ -26,7 +26,7 @@
 namespace CVC4 {
 namespace proof {
 
-/** 
+/**
  * Utilities for letification.
  */
 class Letify
@@ -106,7 +106,7 @@ class Letify
  * d_letList[i] does not contain subterm d_letList[j] for j>i.
  * It is intended that d_letList contains only unique nodes. Each node
  * in d_letList is mapped to a unique identifier in d_letMap.
- * 
+ *
  * If a term is mapped to identifier 0, then it is not letified. This is
  * used to disable letification for certain terms.
  */

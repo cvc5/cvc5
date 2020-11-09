@@ -42,7 +42,7 @@ Node Letify::convert(Node n,
     {
       itl = letMap.find(cur);
       // do not letify id 0
-      if (itl != letMap.end() && itl->second>0)
+      if (itl != letMap.end() && itl->second > 0)
       {
         // make the let variable
         std::stringstream ss;
@@ -175,7 +175,7 @@ void Letify::convertCountToLet(const std::vector<Node>& visitList,
     {
       letList.push_back(n);
       // start with id 1
-      size_t id = letMap.size()+1;
+      size_t id = letMap.size() + 1;
       letMap[n] = id;
     }
   }
@@ -256,7 +256,7 @@ void Letify::convertProofCountToLet(
     {
       pletList.push_back(pn);
       // start with id 1
-      size_t id = pletMap.size()+1;
+      size_t id = pletMap.size() + 1;
       pletMap[pn] = id;
     }
   }
