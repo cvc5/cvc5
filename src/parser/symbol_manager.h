@@ -29,7 +29,7 @@ namespace parser {
 
 /**
  * Symbol manager, which manages:
- * (1) The symbol table used by the parser
+ * (1) The symbol table used by the parser,
  * (2) Information related to the (! ... :named s) feature in SMT-LIB version 2.
  */
 class CVC4_PUBLIC SymbolManager
@@ -48,9 +48,7 @@ class CVC4_PUBLIC SymbolManager
    * context. In particular, this is true if and only if there was an assertion
    * command of the form (assert (! t :named name)).
    * @return true if the name was set. This method may return false if t
-   * already has a name that takes precedence over the name set by this method.
-   *
-   * Notice that assertion names take priority over ordinary names.
+   * already has a name.
    */
   bool setExpressionName(api::Term t,
                          const std::string& name,

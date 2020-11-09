@@ -27,11 +27,8 @@ bool SymbolManager::setExpressionName(api::Term t,
 {
   if (d_names.find(t) != d_names.end())
   {
-    // already named assertion, or we are not naming an assertion
-    if (!isAssertion || d_namedAsserts.find(t) != d_namedAsserts.end())
-    {
-      return false;
-    }
+    // already named assertion
+    return false;
   }
   if (isAssertion)
   {
