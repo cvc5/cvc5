@@ -317,7 +317,7 @@ class CVC4_PUBLIC SmtEngine
    * inputs.
    */
   void declareSepHeap(TypeNode locT, TypeNode dataT);
-  
+
   /** When using separation logic, obtain the expression for the heap.  */
   Node getSepHeapExpr();
 

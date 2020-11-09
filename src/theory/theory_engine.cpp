@@ -1118,8 +1118,8 @@ const LogicInfo& TheoryEngine::getLogicInfo() const { return d_logicInfo; }
 
 void TheoryEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
 {
-  Theory * tsep = theoryOf(THEORY_SEP);
-  if (tsep!=nullptr)
+  Theory* tsep = theoryOf(THEORY_SEP);
+  if (tsep != nullptr)
   {
     tsep->declareHeap(locT, dataT);
   }

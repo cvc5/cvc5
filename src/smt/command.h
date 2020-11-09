@@ -560,7 +560,6 @@ class CVC4_PUBLIC DefineFunctionRecCommand : public Command
   bool d_global;
 }; /* class DefineFunctionRecCommand */
 
-
 /**
  * In separation logic inputs, which is an extension of smt2 inputs, this
  * corresponds to the command:
@@ -569,7 +568,6 @@ class CVC4_PUBLIC DefineFunctionRecCommand : public Command
  */
 class CVC4_PUBLIC DeclareHeapCommand
 {
-
  public:
   DeclareHeapCommand(api::Sort locSort, api::Sort dataSort);
   api::Sort getLocationSort() const;
@@ -582,10 +580,11 @@ class CVC4_PUBLIC DeclareHeapCommand
       int toDepth = -1,
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
+
  protected:
-   /** The location sort */
+  /** The location sort */
   api::Sort d_locSort;
-   /** The data sort */
+  /** The data sort */
   api::Sort d_dataSort;
 }; /* class DeclareHeapCommand */
 

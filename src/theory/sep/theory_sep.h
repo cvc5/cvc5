@@ -78,7 +78,7 @@ class TheorySep : public Theory {
             const LogicInfo& logicInfo,
             ProofNodeManager* pnm = nullptr);
   ~TheorySep();
-  
+
   /**
    * Declare heap. For smt2 inputs, this is called when the command
    * (declare-heap (locT datat)) is invoked by the user. This sets locT as the

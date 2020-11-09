@@ -3165,7 +3165,7 @@ class CVC4_PUBLIC Solver
    * @param dataSort The data sort of the heap
    */
   void declareSeparationHeap(api::Sort locSort, api::Sort dataSort) const;
-  
+
   /**
    * When using separation logic, obtain the term for the heap.
    * @return The term for the heap

@@ -637,13 +637,14 @@ class TheoryEngine {
   }
   /** get the logic info used by this theory engine */
   const LogicInfo& getLogicInfo() const;
-  
-  /** 
+
+  /**
    * Declare heap. This is used for separation logics to set the location
-   * and data types. It should be called only once, and before 
+   * and data types. It should be called only once, and before any separation
+   * logic constraints are asserted to this theory engine.
    */
   void declareSepHeap(TypeNode locT, TypeNode dataT);
-  
+
   /**
    * Returns the equality status of the two terms, from the theory
    * that owns the domain type.  The types of a and b must be the same.

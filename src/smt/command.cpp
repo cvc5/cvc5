@@ -1433,14 +1433,8 @@ DeclareHeapCommand::DeclareHeapCommand(api::Sort locSort, api::Sort dataSort)
 {
 }
 
-api::Sort DeclareHeapCommand::getLocationSort() const
-{
-  return d_locSort;
-}
-api::Sort DeclareHeapCommand::getDataSort() const
-{
-  return d_dataSort;
-}
+api::Sort DeclareHeapCommand::getLocationSort() const { return d_locSort; }
+api::Sort DeclareHeapCommand::getDataSort() const { return d_dataSort; }
 
 void DeclareHeapCommand::invoke(api::Solver* solver)
 {
@@ -1452,17 +1446,18 @@ Command* DeclareHeapCommand::clone() const
   return new DeclareHeapCommand(d_locSort, d_dataSort);
 }
 
-std::string DeclareHeapCommand::getCommandName() const { return "declare-heap"; }
+std::string DeclareHeapCommand::getCommandName() const
+{
+  return "declare-heap";
+}
 
 void DeclareHeapCommand::toStream(std::ostream& out,
-                                 int toDepth,
-                                 size_t dag,
-                                 OutputLanguage language) const
+                                  int toDepth,
+                                  size_t dag,
+                                  OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdDeclareHeap(
-      out,
-      d_locSort,
-      d_dataSort);
+      out, d_locSort, d_dataSort);
 }
 
 /* -------------------------------------------------------------------------- */

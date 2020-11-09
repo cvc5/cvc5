@@ -1448,7 +1448,6 @@ std::vector<Node> SmtEngine::getExpandedAssertions()
   return eassertsProc;
 }
 
-
 void SmtEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
 {
   if (!d_logic.isTheoryEnabled(THEORY_SEP))
