@@ -41,8 +41,8 @@ if __name__ == "__main__":
   start_bool = slv.mkVar(boolean, "StartBool")
 
   # define the rules
-  zero = slv.mkReal(0)
-  one = slv.mkReal(1)
+  zero = slv.mkInteger(0)
+  one = slv.mkInteger(1)
 
   plus = slv.mkTerm(kinds.Plus, start, start)
   minus = slv.mkTerm(kinds.Minus, start, start)

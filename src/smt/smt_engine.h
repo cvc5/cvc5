@@ -29,7 +29,6 @@
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "options/options.h"
-#include "proof/unsat_core.h"
 #include "smt/logic_exception.h"
 #include "smt/output_manager.h"
 #include "smt/smt_mode.h"
@@ -59,6 +58,7 @@ class DecisionEngine;
 class TheoryEngine;
 
 class ProofManager;
+class UnsatCore;
 
 class LogicRequest;
 class StatisticsRegistry;
@@ -308,6 +308,23 @@ class CVC4_PUBLIC SmtEngine
    * The return value has the same meaning as that of assertFormula.
    */
   Result blockModelValues(const std::vector<Node>& exprs);
+
+  /**
+   * Declare heap. For smt2 inputs, this is called when the command
+   * (declare-heap (locT datat)) is invoked by the user. This sets locT as the
+   * location type and dataT is the data type for the heap. This command should
+   * be executed only once, and must be invoked before solving separation logic
+   * inputs.
+   */
+  void declareSepHeap(TypeNode locT, TypeNode dataT);
+
+  /**
+   * Get the separation heap types, which extracts which types were passed to
+   * the method above.
+   *
+   * @return true if the separation logic heap types have been declared.
+   */
+  bool getSepHeapTypes(TypeNode& locT, TypeNode& dataT);
 
   /** When using separation logic, obtain the expression for the heap.  */
   Node getSepHeapExpr();

@@ -46,8 +46,8 @@ if __name__ == "__main__":
     p = slv.mkConst(intPred, "p")
 
     # Constants
-    zero = slv.mkReal(0)
-    one = slv.mkReal(1)
+    zero = slv.mkInteger(0)
+    one = slv.mkInteger(1)
 
     # Terms
     f_x = slv.mkTerm(kinds.ApplyUf, f, x)

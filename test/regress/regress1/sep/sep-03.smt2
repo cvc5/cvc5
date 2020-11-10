@@ -1,5 +1,6 @@
 (set-logic QF_ALL_SUPPORTED)
 (set-info :status unsat)
+(declare-heap (Int Int))
 
 (declare-const x Int)
 (declare-const y Int)

@@ -16,8 +16,8 @@
 
 #include "cvc4parser_public.h"
 
-#ifndef CVC4__PARSER__PARSER_STATE_H
-#define CVC4__PARSER__PARSER_STATE_H
+#ifndef CVC4__PARSER__PARSER_H
+#define CVC4__PARSER__PARSER_H
 
 #include <cassert>
 #include <list>
@@ -25,49 +25,19 @@
 #include <string>
 
 #include "api/cvc4cpp.h"
-#include "expr/expr.h"
 #include "expr/kind.h"
 #include "expr/symbol_table.h"
 #include "parser/input.h"
 #include "parser/parse_op.h"
 #include "parser/parser_exception.h"
+#include "parser/symbol_manager.h"
 #include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
 
 // Forward declarations
-class BooleanType;
 class Command;
-class FunctionType;
-class Type;
 class ResourceManager;
-
-//for sygus gterm two-pass parsing
-class CVC4_PUBLIC SygusGTerm {
-public:
-  enum{
-    gterm_op,
-    gterm_constant,
-    gterm_variable,
-    gterm_input_variable,
-    gterm_local_variable,
-    gterm_nested_sort,
-    gterm_unresolved,
-    gterm_ignore,
-  };
-  api::Sort d_type;
-  /** The parsed operator */
-  ParseOp d_op;
-  std::vector<api::Term> d_let_vars;
-  unsigned d_gterm_type;
-  std::string d_name;
-  std::vector< SygusGTerm > d_children;
-  
-  unsigned getNumChildren() { return d_children.size(); }
-  void addChild(){
-    d_children.push_back( SygusGTerm() );
-  }
-};
 
 namespace parser {
 
@@ -140,16 +110,13 @@ private:
  Input* d_input;
 
  /**
-  * The declaration scope that is "owned" by this parser.  May or
-  * may not be the current declaration scope in use.
+  * Reference to the symbol manager, which manages the symbol table used by
+  * this parser.
   */
- SymbolTable d_symtabAllocated;
+ SymbolManager* d_symman;
 
  /**
-  * This current symbol table used by this parser.  Initially points
-  * to d_symtabAllocated, but can be changed (making this parser
-  * delegate its definitions and lookups to another parser).
-  * See useDeclarationsFrom().
+  * This current symbol table used by this parser, from symbol manager.
   */
  SymbolTable* d_symtab;
 
@@ -246,7 +213,8 @@ protected:
   * @attention The parser takes "ownership" of the given
   * input and will delete it on destruction.
   *
-  * @param the solver API object
+  * @param solver solver API object
+  * @param symm reference to the symbol manager
   * @param input the parser input
   * @param strictMode whether to incorporate strict(er) compliance checks
   * @param parseOnly whether we are parsing only (and therefore certain checks
@@ -254,6 +222,7 @@ protected:
   * unimplementedFeature())
   */
  Parser(api::Solver* solver,
+        SymbolManager* sm,
         Input* input,
         bool strictMode = false,
         bool parseOnly = false);
@@ -825,7 +794,7 @@ public:
   /** is this function overloaded? */
   bool isOverloadedFunction(api::Term fun)
   {
-    return d_symtab->isOverloadedFunction(fun.getExpr());
+    return d_symtab->isOverloadedFunction(fun);
   }
 
   /** Get overloaded constant for type.
@@ -834,8 +803,7 @@ public:
   */
   api::Term getOverloadedConstantForType(const std::string& name, api::Sort t)
   {
-    return api::Term(d_solver,
-                     d_symtab->getOverloadedConstantForType(name, t.getType()));
+    return d_symtab->getOverloadedConstantForType(name, t);
   }
 
   /**
@@ -846,9 +814,7 @@ public:
   api::Term getOverloadedFunctionForTypes(const std::string& name,
                                           std::vector<api::Sort>& argTypes)
   {
-    return api::Term(d_solver,
-                     d_symtab->getOverloadedFunctionForTypes(
-                         name, api::sortVectorToTypes(argTypes)));
+    return d_symtab->getOverloadedFunctionForTypes(name, argTypes);
   }
   //------------------------ end operator overloading
   /**

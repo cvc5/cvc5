@@ -345,6 +345,22 @@ libcvc4_add_sources(
   theory/arith/nl/cad/projections.h
   theory/arith/nl/cad/variable_ordering.cpp
   theory/arith/nl/cad/variable_ordering.h
+  theory/arith/nl/ext/constraint.cpp
+  theory/arith/nl/ext/constraint.h
+  theory/arith/nl/ext/factoring_check.cpp
+  theory/arith/nl/ext/factoring_check.h
+  theory/arith/nl/ext/monomial.cpp
+  theory/arith/nl/ext/monomial.h
+  theory/arith/nl/ext/monomial_bounds_check.cpp
+  theory/arith/nl/ext/monomial_bounds_check.h
+  theory/arith/nl/ext/monomial_check.cpp
+  theory/arith/nl/ext/monomial_check.h
+  theory/arith/nl/ext/ext_state.cpp
+  theory/arith/nl/ext/ext_state.h
+  theory/arith/nl/ext/split_zero_check.cpp
+  theory/arith/nl/ext/split_zero_check.h
+  theory/arith/nl/ext/tangent_plane_check.cpp
+  theory/arith/nl/ext/tangent_plane_check.h
   theory/arith/nl/ext_theory_callback.cpp
   theory/arith/nl/ext_theory_callback.h
   theory/arith/nl/iand_solver.cpp
@@ -357,18 +373,12 @@ libcvc4_add_sources(
   theory/arith/nl/icp/icp_solver.h
   theory/arith/nl/icp/intersection.cpp
   theory/arith/nl/icp/intersection.h
-  theory/arith/nl/nl_constraint.cpp
-  theory/arith/nl/nl_constraint.h
   theory/arith/nl/iand_table.cpp
   theory/arith/nl/iand_table.h
   theory/arith/nl/nl_lemma_utils.cpp
   theory/arith/nl/nl_lemma_utils.h
   theory/arith/nl/nl_model.cpp
   theory/arith/nl/nl_model.h
-  theory/arith/nl/nl_monomial.cpp
-  theory/arith/nl/nl_monomial.h
-  theory/arith/nl/nl_solver.cpp
-  theory/arith/nl/nl_solver.h
   theory/arith/nl/nonlinear_extension.cpp
   theory/arith/nl/nonlinear_extension.h
   theory/arith/nl/poly_conversion.cpp
@@ -388,6 +398,8 @@ libcvc4_add_sources(
   theory/arith/proof_checker.cpp
   theory/arith/proof_checker.h
   theory/arith/proof_macros.h
+  theory/arith/rewrites.cpp
+  theory/arith/rewrites.h
   theory/arith/simplex.cpp
   theory/arith/simplex.h
   theory/arith/simplex_update.cpp
@@ -732,6 +744,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/sygus_pbe.h
   theory/quantifiers/sygus/sygus_process_conj.cpp
   theory/quantifiers/sygus/sygus_process_conj.h
+  theory/quantifiers/sygus/sygus_qe_preproc.cpp
+  theory/quantifiers/sygus/sygus_qe_preproc.h
   theory/quantifiers/sygus/sygus_repair_const.cpp
   theory/quantifiers/sygus/sygus_repair_const.h
   theory/quantifiers/sygus/sygus_stats.cpp
@@ -748,6 +762,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/synth_conjecture.h
   theory/quantifiers/sygus/synth_engine.cpp
   theory/quantifiers/sygus/synth_engine.h
+  theory/quantifiers/sygus/template_infer.cpp
+  theory/quantifiers/sygus/template_infer.h
   theory/quantifiers/sygus/term_database_sygus.cpp
   theory/quantifiers/sygus/term_database_sygus.h
   theory/quantifiers/sygus/type_info.cpp
@@ -1135,6 +1151,7 @@ install(FILES
           parser/parser_builder.h
           parser/parser_exception.h
           parser/parse_op.h
+          parser/symbol_manager.h
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/parser)
 install(FILES
