@@ -208,7 +208,7 @@ class CVC4_PUBLIC Command
   virtual void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const = 0;
 
@@ -282,7 +282,7 @@ class CVC4_PUBLIC EmptyCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
@@ -305,7 +305,7 @@ class CVC4_PUBLIC EchoCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
@@ -331,7 +331,7 @@ class CVC4_PUBLIC AssertCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class AssertCommand */
@@ -345,7 +345,7 @@ class CVC4_PUBLIC PushCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class PushCommand */
@@ -359,7 +359,7 @@ class CVC4_PUBLIC PopCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class PopCommand */
@@ -398,7 +398,7 @@ class CVC4_PUBLIC DeclareFunctionCommand : public DeclarationDefinitionCommand
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class DeclareFunctionCommand */
@@ -421,7 +421,7 @@ class CVC4_PUBLIC DeclareSortCommand : public DeclarationDefinitionCommand
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class DeclareSortCommand */
@@ -447,7 +447,7 @@ class CVC4_PUBLIC DefineSortCommand : public DeclarationDefinitionCommand
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class DefineSortCommand */
@@ -475,7 +475,7 @@ class CVC4_PUBLIC DefineFunctionCommand : public DeclarationDefinitionCommand
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
@@ -511,7 +511,6 @@ class CVC4_PUBLIC DefineNamedFunctionCommand : public DefineFunctionCommand
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class DefineNamedFunctionCommand */
@@ -543,7 +542,7 @@ class CVC4_PUBLIC DefineFunctionRecCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
@@ -560,6 +559,34 @@ class CVC4_PUBLIC DefineFunctionRecCommand : public Command
    */
   bool d_global;
 }; /* class DefineFunctionRecCommand */
+
+/**
+ * In separation logic inputs, which is an extension of smt2 inputs, this
+ * corresponds to the command:
+ *   (declare-heap (T U))
+ * where T is the location sort and U is the data sort.
+ */
+class CVC4_PUBLIC DeclareHeapCommand : public Command
+{
+ public:
+  DeclareHeapCommand(api::Sort locSort, api::Sort dataSort);
+  api::Sort getLocationSort() const;
+  api::Sort getDataSort() const;
+  void invoke(api::Solver* solver) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
+
+ protected:
+  /** The location sort */
+  api::Sort d_locSort;
+  /** The data sort */
+  api::Sort d_dataSort;
+};
 
 /**
  * The command when an attribute is set by a user.  In SMT-LIBv2 this is done
@@ -582,7 +609,7 @@ class CVC4_PUBLIC SetUserAttributeCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
@@ -617,7 +644,7 @@ class CVC4_PUBLIC CheckSatCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
@@ -646,7 +673,7 @@ class CVC4_PUBLIC CheckSatAssumingCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
@@ -674,7 +701,7 @@ class CVC4_PUBLIC QueryCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class QueryCommand */
@@ -704,7 +731,7 @@ class CVC4_PUBLIC DeclareSygusVarCommand : public DeclarationDefinitionCommand
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
@@ -754,7 +781,7 @@ class CVC4_PUBLIC SynthFunCommand : public DeclarationDefinitionCommand
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
@@ -792,7 +819,7 @@ class CVC4_PUBLIC SygusConstraintCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
@@ -836,7 +863,7 @@ class CVC4_PUBLIC SygusInvConstraintCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
@@ -873,7 +900,7 @@ class CVC4_PUBLIC CheckSynthCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
@@ -905,7 +932,7 @@ class CVC4_PUBLIC SimplifyCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class SimplifyCommand */
@@ -929,7 +956,7 @@ class CVC4_PUBLIC GetValueCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class GetValueCommand */
@@ -950,7 +977,7 @@ class CVC4_PUBLIC GetAssignmentCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class GetAssignmentCommand */
@@ -969,7 +996,7 @@ class CVC4_PUBLIC GetModelCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
@@ -989,7 +1016,7 @@ class CVC4_PUBLIC BlockModelCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class BlockModelCommand */
@@ -1007,7 +1034,7 @@ class CVC4_PUBLIC BlockModelValuesCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
@@ -1027,7 +1054,7 @@ class CVC4_PUBLIC GetProofCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class GetProofCommand */
@@ -1044,7 +1071,7 @@ class CVC4_PUBLIC GetInstantiationsCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
@@ -1064,7 +1091,7 @@ class CVC4_PUBLIC GetSynthSolutionCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
@@ -1103,7 +1130,7 @@ class CVC4_PUBLIC GetInterpolCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
@@ -1155,7 +1182,7 @@ class CVC4_PUBLIC GetAbductCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
@@ -1194,7 +1221,7 @@ class CVC4_PUBLIC GetQuantifierEliminationCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class GetQuantifierEliminationCommand */
@@ -1211,7 +1238,7 @@ class CVC4_PUBLIC GetUnsatAssumptionsCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
@@ -1233,7 +1260,7 @@ class CVC4_PUBLIC GetUnsatCoreCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
@@ -1260,7 +1287,6 @@ class CVC4_PUBLIC GetAssertionsCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class GetAssertionsCommand */
@@ -1281,7 +1307,6 @@ class CVC4_PUBLIC SetBenchmarkStatusCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class SetBenchmarkStatusCommand */
@@ -1301,7 +1326,6 @@ class CVC4_PUBLIC SetBenchmarkLogicCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class SetBenchmarkLogicCommand */
@@ -1324,7 +1348,6 @@ class CVC4_PUBLIC SetInfoCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class SetInfoCommand */
@@ -1348,7 +1371,6 @@ class CVC4_PUBLIC GetInfoCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class GetInfoCommand */
@@ -1371,7 +1393,7 @@ class CVC4_PUBLIC SetOptionCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class SetOptionCommand */
@@ -1395,7 +1417,7 @@ class CVC4_PUBLIC GetOptionCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class GetOptionCommand */
@@ -1422,7 +1444,7 @@ class CVC4_PUBLIC SetExpressionNameCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class SetExpressionNameCommand */
@@ -1443,7 +1465,7 @@ class CVC4_PUBLIC DatatypeDeclarationCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class DatatypeDeclarationCommand */
@@ -1458,7 +1480,7 @@ class CVC4_PUBLIC ResetCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class ResetCommand */
@@ -1473,7 +1495,7 @@ class CVC4_PUBLIC ResetAssertionsCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class ResetAssertionsCommand */
@@ -1488,7 +1510,7 @@ class CVC4_PUBLIC QuitCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class QuitCommand */
@@ -1508,7 +1530,7 @@ class CVC4_PUBLIC CommentCommand : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class CommentCommand */
@@ -1545,7 +1567,7 @@ class CVC4_PUBLIC CommandSequence : public Command
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class CommandSequence */
@@ -1555,7 +1577,7 @@ class CVC4_PUBLIC DeclarationSequence : public CommandSequence
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
+
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 };

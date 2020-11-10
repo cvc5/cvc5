@@ -33,6 +33,7 @@ class Solver;
 
 namespace parser {
   class Parser;
+  class SymbolManager;
 }/* CVC4::parser namespace */
 
 class CVC4_PUBLIC InteractiveShell
@@ -50,7 +51,7 @@ class CVC4_PUBLIC InteractiveShell
   static const unsigned s_historyLimit = 500;
 
 public:
- InteractiveShell(api::Solver* solver);
+ InteractiveShell(api::Solver* solver, parser::SymbolManager* sm);
 
  /**
   * Close out the interactive session.
