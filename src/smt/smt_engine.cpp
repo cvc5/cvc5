@@ -69,6 +69,7 @@
 #include "theory/logic_info.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/rewriter.h"
+#include "theory/smt_engine_subsolver.h"
 #include "theory/theory_engine.h"
 #include "util/hash.h"
 #include "util/random.h"
@@ -1474,6 +1475,28 @@ std::vector<Node> SmtEngine::getExpandedAssertions()
   return eassertsProc;
 }
 
+void SmtEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
+{
+  if (!d_logic.isTheoryEnabled(THEORY_SEP))
+  {
+    const char* msg =
+        "Cannot declare heap if not using the separation logic theory.";
+    throw RecoverableModalException(msg);
+  }
+  SmtScope smts(this);
+  finishInit();
+  TheoryEngine* te = getTheoryEngine();
+  te->declareSepHeap(locT, dataT);
+}
+
+bool SmtEngine::getSepHeapTypes(TypeNode& locT, TypeNode& dataT)
+{
+  SmtScope smts(this);
+  finishInit();
+  TheoryEngine* te = getTheoryEngine();
+  return te->getSepHeapTypes(locT, dataT);
+}
+
 Node SmtEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
 
 Node SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
@@ -1533,21 +1556,28 @@ void SmtEngine::checkUnsatCore() {
   Notice() << "SmtEngine::checkUnsatCore(): generating unsat core" << endl;
   UnsatCore core = getUnsatCore();
 
-  SmtEngine coreChecker(d_exprManager, &d_options);
-  coreChecker.setIsInternalSubsolver();
-  coreChecker.setLogic(getLogicInfo());
-  coreChecker.getOptions().set(options::checkUnsatCores, false);
+  // initialize the core checker
+  std::unique_ptr<SmtEngine> coreChecker;
+  initializeSubsolver(coreChecker);
+  coreChecker->getOptions().set(options::checkUnsatCores, false);
+
+  // set up separation logic heap if necessary
+  TypeNode sepLocType, sepDataType;
+  if (getSepHeapTypes(sepLocType, sepDataType))
+  {
+    coreChecker->declareSepHeap(sepLocType, sepDataType);
+  }
 
   Notice() << "SmtEngine::checkUnsatCore(): pushing core assertions (size == " << core.size() << ")" << endl;
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
     Node assertionAfterExpansion = expandDefinitions(*i);
     Notice() << "SmtEngine::checkUnsatCore(): pushing core member " << *i
              << ", expanded to " << assertionAfterExpansion << "\n";
-    coreChecker.assertFormula(assertionAfterExpansion);
+    coreChecker->assertFormula(assertionAfterExpansion);
   }
   Result r;
   try {
-    r = coreChecker.checkSat();
+    r = coreChecker->checkSat();
   } catch(...) {
     throw;
   }
