@@ -104,7 +104,8 @@ void TheorySep::finishInit()
 
 void TheorySep::preRegisterTerm(TNode n)
 {
-  if (n.getKind() == SEP_PTO || n.getKind() == SEP_EMP)
+  Kind k = n.getKind();
+  if (k == SEP_PTO || k== SEP_EMP || k == SEP_STAR || k == SEP_WAND)
   {
     registerRefDataTypesAtom(n);
   }
@@ -1140,9 +1141,18 @@ int TheorySep::processAssertion( Node n, std::map< int, std::map< Node, int > >&
 
 void TheorySep::registerRefDataTypesAtom(Node atom)
 {
-  Assert(atom.getKind() == SEP_PTO || atom.getKind() == SEP_EMP);
-  TypeNode tn1 = atom[0].getType();
-  TypeNode tn2 = atom[1].getType();
+  TypeNode tn1;
+  TypeNode tn2;
+  Kind k = atom.getKind();
+  if(k == SEP_PTO || k == SEP_EMP)
+  {
+    tn1 = atom[0].getType();
+    tn2 = atom[1].getType();
+  }
+  else
+  {
+    Assert (k == SEP_STAR || k == SEP_WAND);
+  }
   registerRefDataTypes(tn1, tn2, atom);
 }
 
