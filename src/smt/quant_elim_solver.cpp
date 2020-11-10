@@ -19,6 +19,7 @@
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
+#include "expr/skolem_manager.h"
 
 using namespace CVC4::theory;
 using namespace CVC4::kind;
@@ -94,8 +95,17 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
       // apply the instantiation on the original body
       for (const std::vector<Node>& inst : insts)
       {
+        // Convert to witness+rewritten form, which e.g. replaces ITE skolems
+        // with their definitions.
+        std::vector<Node> winst = inst;
+        for (size_t i=0, isize=winst.size(); i<isize; i++)
+        {
+          Node w =SkolemManager::getWitnessForm(winst[i]);
+          winst[i] = Rewriter::rewrite(w);
+          Trace("smt-qe") << "Witness form conversion: " << winst[i] << " from " << inst[i] << std::endl;
+        }
         Subs s;
-        s.add(vars, inst);
+        s.add(vars, winst);
         Node c = s.apply(ne[1].negate());
         conjs.push_back(c);
       }
