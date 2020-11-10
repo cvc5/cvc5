@@ -137,8 +137,7 @@ void getSymbols(TNode n,
  * For term n, this function collects the subterms of n whose kind is k.
  * @param n The node under investigation
  * @param k The kind we are considering
- * @param topLevel If true, we collect only the top-level subterms with kind
- * k. Subterms
+ * @param topLevel If true, we collect only the top-level subterms with kind k.
  * @param ts The set which the symbols of n are added to
  */
 void getKindSubterms(TNode n,
