@@ -104,7 +104,7 @@ void TheorySep::finishInit()
 
 void TheorySep::preRegisterTerm(TNode n)
 {
-  if (n.getKind()==SEP_PTO || n.getKind()==SEP_EMP)
+  if (n.getKind() == SEP_PTO || n.getKind() == SEP_EMP)
   {
     registerRefDataTypesAtom(n);
   }
@@ -1017,7 +1017,7 @@ int TheorySep::processAssertion( Node n, std::map< int, std::map< Node, int > >&
   if( it==visited[index].end() ){
     Trace("sep-pp-debug") << "process assertion : " << n << ", index = " << index << std::endl;
     if( n.getKind()==kind::SEP_EMP ){
-      registerRefDataTypesAtom( n );
+      registerRefDataTypesAtom(n);
       if( hasPol && pol ){
         references[index][n].clear();
         references_strict[index][n] = true; 
@@ -1025,7 +1025,7 @@ int TheorySep::processAssertion( Node n, std::map< int, std::map< Node, int > >&
         card = 1;
       }
     }else if( n.getKind()==kind::SEP_PTO ){
-      registerRefDataTypesAtom( n );
+      registerRefDataTypesAtom(n);
       if( quantifiers::TermUtil::hasBoundVarAttr( n[0] ) ){
         if( d_bound_kind[tn1]!=bound_strict && d_bound_kind[tn1]!=bound_invalid ){
           if( options::quantEpr() && n[0].getKind()==kind::BOUND_VARIABLE ){
@@ -1137,14 +1137,15 @@ int TheorySep::processAssertion( Node n, std::map< int, std::map< Node, int > >&
   return card;
 }
 
-void TheorySep::registerRefDataTypesAtom( Node atom ){
-  Assert (atom.getKind()==SEP_PTO || atom.getKind()==SEP_EMP);
+void TheorySep::registerRefDataTypesAtom(Node atom)
+{
+  Assert(atom.getKind() == SEP_PTO || atom.getKind() == SEP_EMP);
   TypeNode tn1 = atom[0].getType();
   TypeNode tn2 = atom[1].getType();
   registerRefDataTypes(tn1, tn2, atom);
 }
 
-void TheorySep::registerRefDataTypes( TypeNode tn1, TypeNode tn2, Node atom )
+void TheorySep::registerRefDataTypes(TypeNode tn1, TypeNode tn2, Node atom)
 {
   if (!d_type_ref.isNull())
   {
