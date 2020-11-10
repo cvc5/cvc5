@@ -29,7 +29,9 @@ PR finished:
 (26) strings infer info update "noExplain", all calls to InferenceManager (req 22, 35, 45, 65, 82)
 (27) split theory engine
 (28) ProofSkolemCache -> SkolemManager
+(29) [x10] arithmetic proof producing [Alex] (req 24, 25)
 (30) Arithmetic operator elimination proof producing initial (req 25, 28, 33, 64)
+(31) update strings inference manager to use ProofEqEngine (req 24, 26, 43, cee-strings)
 (32) Add trustedConflict/trustedLemma to output channel (req 0, 12, 27)
 (33) split operator elimination from arith (req 28)
 (34) theory proof step buffer
@@ -117,12 +119,12 @@ PR finished:
 
 PRs ready:
 
-(29) [x10] arithmetic proof producing [Alex] (req 24, 25) *
-(31) update strings inference manager to use ProofEqEngine (req 24, 26, 43, cee-strings) *
 (68) PropEngine proof producing [Haniel] (req 53, 110, 111, 112)
 (70) rewriter unit test [Andres] (req 36, 37)
-(118) non-clausal simplification proof producing (req 116, 117, 120, 125)
+(118) non-clausal simplification proof producing (req 116, 117, 120, 125) *
+(130) regexp elimination proofs (req 101) *
 (131) Updates to Boolean proof checker [Haniel]
+(132) Datatypes inference to proof (req 127) *
 (133) Boolean proof checker unit test [Haniel]
 (134) proofs for skolemization *
 
@@ -137,14 +139,13 @@ PRs future:
 (85) SmtEngine check proofs [Haniel] (req 68, 82)
 (98) fixes in setDefaults
 (101) strings misc changes to preprocess, base (req 31, 43)
-(130) regexp elimination proofs (req 101)
-(132) Datatypes proof producing (req 127)
+(135) Datatypes proof producing (req 132)
 
 Wish list:
 
 (57) compilation of rewrite DSL into DSL rewrite rule database initialization [Andres] (req 56)
 - CAD proofs [Gereon]
-- nl-ext proofs
+- nl-ext proofs [Gereon]
 - BV simple solver proof producing [Mathias]
 - SEXPR simply typed
 - Proof kinds infrastructure?
