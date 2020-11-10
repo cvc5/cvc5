@@ -675,7 +675,7 @@ bool TypeNode::isSygusDatatype() const
 std::string TypeNode::toString() const {
   std::stringstream ss;
   OutputLanguage outlang = (this == &s_null) ? language::output::LANG_AUTO : options::outputLanguage();
-  d_nv->toStream(ss, -1, false, 0, outlang);
+  d_nv->toStream(ss, -1, 0, outlang);
   return ss.str();
 }
 

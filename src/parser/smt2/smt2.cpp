@@ -32,8 +32,12 @@
 namespace CVC4 {
 namespace parser {
 
-Smt2::Smt2(api::Solver* solver, Input* input, bool strictMode, bool parseOnly)
-    : Parser(solver, input, strictMode, parseOnly),
+Smt2::Smt2(api::Solver* solver,
+           SymbolManager* sm,
+           Input* input,
+           bool strictMode,
+           bool parseOnly)
+    : Parser(solver, sm, input, strictMode, parseOnly),
       d_logicSet(false),
       d_seenSetLogic(false)
 {
@@ -1163,8 +1167,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
     if (kind == api::SINGLETON && args.size() == 1)
     {
-      api::Sort sort = args[0].getSort();
-      api::Term ret = d_solver->mkSingleton(sort, args[0]);
+      api::Term ret = d_solver->mkTerm(api::SINGLETON, args[0]);
       Debug("parser") << "applyParseOp: return singleton " << ret << std::endl;
       return ret;
     }

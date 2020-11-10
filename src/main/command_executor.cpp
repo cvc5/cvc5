@@ -50,6 +50,7 @@ void printStatsIncremental(std::ostream& out, const std::string& prvsStatsString
 
 CommandExecutor::CommandExecutor(Options& options)
     : d_solver(new api::Solver(&options)),
+      d_symman(new parser::SymbolManager(d_solver.get())),
       d_smtEngine(d_solver->getSmtEngine()),
       d_options(options),
       d_stats("driver"),

@@ -182,7 +182,9 @@ SatValue MinisatSatSolver::solve(unsigned long& resource) {
 SatValue MinisatSatSolver::solve() {
   setupOptions();
   d_minisat->budgetOff();
-  return toSatLiteralValue(d_minisat->solve());
+  SatValue result = toSatLiteralValue(d_minisat->solve());
+  d_minisat->clearInterrupt();
+  return result;
 }
 
 bool MinisatSatSolver::ok() const {

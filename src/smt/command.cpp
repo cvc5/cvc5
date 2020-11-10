@@ -53,7 +53,6 @@ std::ostream& operator<<(std::ostream& out, const Command& c)
 {
   c.toStream(out,
              Node::setdepth::getDepth(out),
-             Node::printtypes::getPrintTypes(out),
              Node::dag::getDag(out),
              Node::setlanguage::getLanguage(out));
   return out;
@@ -227,7 +226,7 @@ std::string EmptyCommand::getCommandName() const { return "empty"; }
 
 void EmptyCommand::toStream(std::ostream& out,
                             int toDepth,
-                            bool types,
+
                             size_t dag,
                             OutputLanguage language) const
 {
@@ -262,7 +261,7 @@ std::string EchoCommand::getCommandName() const { return "echo"; }
 
 void EchoCommand::toStream(std::ostream& out,
                            int toDepth,
-                           bool types,
+
                            size_t dag,
                            OutputLanguage language) const
 {
@@ -305,7 +304,7 @@ std::string AssertCommand::getCommandName() const { return "assert"; }
 
 void AssertCommand::toStream(std::ostream& out,
                              int toDepth,
-                             bool types,
+
                              size_t dag,
                              OutputLanguage language) const
 {
@@ -338,7 +337,7 @@ std::string PushCommand::getCommandName() const { return "push"; }
 
 void PushCommand::toStream(std::ostream& out,
                            int toDepth,
-                           bool types,
+
                            size_t dag,
                            OutputLanguage language) const
 {
@@ -371,7 +370,7 @@ std::string PopCommand::getCommandName() const { return "pop"; }
 
 void PopCommand::toStream(std::ostream& out,
                           int toDepth,
-                          bool types,
+
                           size_t dag,
                           OutputLanguage language) const
 {
@@ -429,7 +428,7 @@ std::string CheckSatCommand::getCommandName() const { return "check-sat"; }
 
 void CheckSatCommand::toStream(std::ostream& out,
                                int toDepth,
-                               bool types,
+
                                size_t dag,
                                OutputLanguage language) const
 {
@@ -504,7 +503,7 @@ std::string CheckSatAssumingCommand::getCommandName() const
 
 void CheckSatAssumingCommand::toStream(std::ostream& out,
                                        int toDepth,
-                                       bool types,
+
                                        size_t dag,
                                        OutputLanguage language) const
 {
@@ -559,7 +558,7 @@ std::string QueryCommand::getCommandName() const { return "query"; }
 
 void QueryCommand::toStream(std::ostream& out,
                             int toDepth,
-                            bool types,
+
                             size_t dag,
                             OutputLanguage language) const
 {
@@ -597,7 +596,7 @@ std::string DeclareSygusVarCommand::getCommandName() const
 
 void DeclareSygusVarCommand::toStream(std::ostream& out,
                                       int toDepth,
-                                      bool types,
+
                                       size_t dag,
                                       OutputLanguage language) const
 {
@@ -654,7 +653,7 @@ std::string SynthFunCommand::getCommandName() const
 
 void SynthFunCommand::toStream(std::ostream& out,
                                int toDepth,
-                               bool types,
+
                                size_t dag,
                                OutputLanguage language) const
 {
@@ -703,7 +702,7 @@ std::string SygusConstraintCommand::getCommandName() const
 
 void SygusConstraintCommand::toStream(std::ostream& out,
                                       int toDepth,
-                                      bool types,
+
                                       size_t dag,
                                       OutputLanguage language) const
 {
@@ -759,7 +758,7 @@ std::string SygusInvConstraintCommand::getCommandName() const
 
 void SygusInvConstraintCommand::toStream(std::ostream& out,
                                          int toDepth,
-                                         bool types,
+
                                          size_t dag,
                                          OutputLanguage language) const
 {
@@ -833,7 +832,7 @@ std::string CheckSynthCommand::getCommandName() const { return "check-synth"; }
 
 void CheckSynthCommand::toStream(std::ostream& out,
                                  int toDepth,
-                                 bool types,
+
                                  size_t dag,
                                  OutputLanguage language) const
 {
@@ -862,7 +861,7 @@ std::string ResetCommand::getCommandName() const { return "reset"; }
 
 void ResetCommand::toStream(std::ostream& out,
                             int toDepth,
-                            bool types,
+
                             size_t dag,
                             OutputLanguage language) const
 {
@@ -898,7 +897,7 @@ std::string ResetAssertionsCommand::getCommandName() const
 
 void ResetAssertionsCommand::toStream(std::ostream& out,
                                       int toDepth,
-                                      bool types,
+
                                       size_t dag,
                                       OutputLanguage language) const
 {
@@ -920,7 +919,7 @@ std::string QuitCommand::getCommandName() const { return "exit"; }
 
 void QuitCommand::toStream(std::ostream& out,
                            int toDepth,
-                           bool types,
+
                            size_t dag,
                            OutputLanguage language) const
 {
@@ -944,7 +943,7 @@ std::string CommentCommand::getCommandName() const { return "comment"; }
 
 void CommentCommand::toStream(std::ostream& out,
                               int toDepth,
-                              bool types,
+
                               size_t dag,
                               OutputLanguage language) const
 {
@@ -1041,7 +1040,7 @@ std::string CommandSequence::getCommandName() const { return "sequence"; }
 
 void CommandSequence::toStream(std::ostream& out,
                                int toDepth,
-                               bool types,
+
                                size_t dag,
                                OutputLanguage language) const
 {
@@ -1055,7 +1054,7 @@ void CommandSequence::toStream(std::ostream& out,
 
 void DeclarationSequence::toStream(std::ostream& out,
                                    int toDepth,
-                                   bool types,
+
                                    size_t dag,
                                    OutputLanguage language) const
 {
@@ -1125,7 +1124,7 @@ std::string DeclareFunctionCommand::getCommandName() const
 
 void DeclareFunctionCommand::toStream(std::ostream& out,
                                       int toDepth,
-                                      bool types,
+
                                       size_t dag,
                                       OutputLanguage language) const
 {
@@ -1163,7 +1162,7 @@ std::string DeclareSortCommand::getCommandName() const
 
 void DeclareSortCommand::toStream(std::ostream& out,
                                   int toDepth,
-                                  bool types,
+
                                   size_t dag,
                                   OutputLanguage language) const
 {
@@ -1207,7 +1206,7 @@ std::string DefineSortCommand::getCommandName() const { return "define-sort"; }
 
 void DefineSortCommand::toStream(std::ostream& out,
                                  int toDepth,
-                                 bool types,
+
                                  size_t dag,
                                  OutputLanguage language) const
 {
@@ -1284,7 +1283,7 @@ std::string DefineFunctionCommand::getCommandName() const
 
 void DefineFunctionCommand::toStream(std::ostream& out,
                                      int toDepth,
-                                     bool types,
+
                                      size_t dag,
                                      OutputLanguage language) const
 {
@@ -1329,7 +1328,7 @@ Command* DefineNamedFunctionCommand::clone() const
 
 void DefineNamedFunctionCommand::toStream(std::ostream& out,
                                           int toDepth,
-                                          bool types,
+
                                           size_t dag,
                                           OutputLanguage language) const
 {
@@ -1409,7 +1408,7 @@ std::string DefineFunctionRecCommand::getCommandName() const
 
 void DefineFunctionRecCommand::toStream(std::ostream& out,
                                         int toDepth,
-                                        bool types,
+
                                         size_t dag,
                                         OutputLanguage language) const
 {
@@ -1426,9 +1425,43 @@ void DefineFunctionRecCommand::toStream(std::ostream& out,
       formals,
       api::termVectorToNodes(d_formulas));
 }
+/* -------------------------------------------------------------------------- */
+/* class DeclareHeapCommand                                                   */
+/* -------------------------------------------------------------------------- */
+DeclareHeapCommand::DeclareHeapCommand(api::Sort locSort, api::Sort dataSort)
+    : d_locSort(locSort), d_dataSort(dataSort)
+{
+}
+
+api::Sort DeclareHeapCommand::getLocationSort() const { return d_locSort; }
+api::Sort DeclareHeapCommand::getDataSort() const { return d_dataSort; }
+
+void DeclareHeapCommand::invoke(api::Solver* solver)
+{
+  solver->declareSeparationHeap(d_locSort, d_dataSort);
+}
+
+Command* DeclareHeapCommand::clone() const
+{
+  return new DeclareHeapCommand(d_locSort, d_dataSort);
+}
+
+std::string DeclareHeapCommand::getCommandName() const
+{
+  return "declare-heap";
+}
+
+void DeclareHeapCommand::toStream(std::ostream& out,
+                                  int toDepth,
+                                  size_t dag,
+                                  OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdDeclareHeap(
+      out, d_locSort.getTypeNode(), d_dataSort.getTypeNode());
+}
 
 /* -------------------------------------------------------------------------- */
-/* class SetUserAttribute                                                     */
+/* class SetUserAttributeCommand                                              */
 /* -------------------------------------------------------------------------- */
 
 SetUserAttributeCommand::SetUserAttributeCommand(
@@ -1493,7 +1526,7 @@ std::string SetUserAttributeCommand::getCommandName() const
 
 void SetUserAttributeCommand::toStream(std::ostream& out,
                                        int toDepth,
-                                       bool types,
+
                                        size_t dag,
                                        OutputLanguage language) const
 {
@@ -1548,7 +1581,7 @@ std::string SimplifyCommand::getCommandName() const { return "simplify"; }
 
 void SimplifyCommand::toStream(std::ostream& out,
                                int toDepth,
-                               bool types,
+
                                size_t dag,
                                OutputLanguage language) const
 {
@@ -1585,14 +1618,6 @@ void GetValueCommand::invoke(api::Solver* solver)
     {
       api::Term request = d_terms[i];
       api::Term value = result[i];
-      if (value.getSort().isInteger()
-          && request.getSort() == solver->getRealSort())
-      {
-        // Need to wrap in division-by-one so that output printers know this
-        // is an integer-looking constant that really should be output as
-        // a rational.  Necessary for SMT-LIB standards compliance.
-        value = solver->mkTerm(api::DIVISION, value, solver->mkReal(1));
-      }
       result[i] = solver->mkTerm(api::SEXPR, request, value);
     }
     d_result = solver->mkTerm(api::SEXPR, result);
@@ -1637,7 +1662,7 @@ std::string GetValueCommand::getCommandName() const { return "get-value"; }
 
 void GetValueCommand::toStream(std::ostream& out,
                                int toDepth,
-                               bool types,
+
                                size_t dag,
                                OutputLanguage language) const
 {
@@ -1709,7 +1734,7 @@ std::string GetAssignmentCommand::getCommandName() const
 
 void GetAssignmentCommand::toStream(std::ostream& out,
                                     int toDepth,
-                                    bool types,
+
                                     size_t dag,
                                     OutputLanguage language) const
 {
@@ -1771,7 +1796,7 @@ std::string GetModelCommand::getCommandName() const { return "get-model"; }
 
 void GetModelCommand::toStream(std::ostream& out,
                                int toDepth,
-                               bool types,
+
                                size_t dag,
                                OutputLanguage language) const
 {
@@ -1814,7 +1839,7 @@ std::string BlockModelCommand::getCommandName() const { return "block-model"; }
 
 void BlockModelCommand::toStream(std::ostream& out,
                                  int toDepth,
-                                 bool types,
+
                                  size_t dag,
                                  OutputLanguage language) const
 {
@@ -1872,7 +1897,7 @@ std::string BlockModelValuesCommand::getCommandName() const
 
 void BlockModelValuesCommand::toStream(std::ostream& out,
                                        int toDepth,
-                                       bool types,
+
                                        size_t dag,
                                        OutputLanguage language) const
 {
@@ -1900,7 +1925,7 @@ std::string GetProofCommand::getCommandName() const { return "get-proof"; }
 
 void GetProofCommand::toStream(std::ostream& out,
                                int toDepth,
-                               bool types,
+
                                size_t dag,
                                OutputLanguage language) const
 {
@@ -1953,7 +1978,7 @@ std::string GetInstantiationsCommand::getCommandName() const
 
 void GetInstantiationsCommand::toStream(std::ostream& out,
                                         int toDepth,
-                                        bool types,
+
                                         size_t dag,
                                         OutputLanguage language) const
 {
@@ -2005,7 +2030,7 @@ std::string GetSynthSolutionCommand::getCommandName() const
 
 void GetSynthSolutionCommand::toStream(std::ostream& out,
                                        int toDepth,
-                                       bool types,
+
                                        size_t dag,
                                        OutputLanguage language) const
 {
@@ -2095,7 +2120,7 @@ std::string GetInterpolCommand::getCommandName() const
 
 void GetInterpolCommand::toStream(std::ostream& out,
                                   int toDepth,
-                                  bool types,
+
                                   size_t dag,
                                   OutputLanguage language) const
 {
@@ -2181,7 +2206,7 @@ std::string GetAbductCommand::getCommandName() const { return "get-abduct"; }
 
 void GetAbductCommand::toStream(std::ostream& out,
                                 int toDepth,
-                                bool types,
+
                                 size_t dag,
                                 OutputLanguage language) const
 {
@@ -2257,7 +2282,7 @@ std::string GetQuantifierEliminationCommand::getCommandName() const
 
 void GetQuantifierEliminationCommand::toStream(std::ostream& out,
                                                int toDepth,
-                                               bool types,
+
                                                size_t dag,
                                                OutputLanguage language) const
 {
@@ -2320,7 +2345,7 @@ std::string GetUnsatAssumptionsCommand::getCommandName() const
 
 void GetUnsatAssumptionsCommand::toStream(std::ostream& out,
                                           int toDepth,
-                                          bool types,
+
                                           size_t dag,
                                           OutputLanguage language) const
 {
@@ -2386,7 +2411,7 @@ std::string GetUnsatCoreCommand::getCommandName() const
 
 void GetUnsatCoreCommand::toStream(std::ostream& out,
                                    int toDepth,
-                                   bool types,
+
                                    size_t dag,
                                    OutputLanguage language) const
 {
@@ -2444,7 +2469,7 @@ std::string GetAssertionsCommand::getCommandName() const
 
 void GetAssertionsCommand::toStream(std::ostream& out,
                                     int toDepth,
-                                    bool types,
+
                                     size_t dag,
                                     OutputLanguage language) const
 {
@@ -2492,7 +2517,7 @@ std::string SetBenchmarkStatusCommand::getCommandName() const
 
 void SetBenchmarkStatusCommand::toStream(std::ostream& out,
                                          int toDepth,
-                                         bool types,
+
                                          size_t dag,
                                          OutputLanguage language) const
 {
@@ -2542,7 +2567,7 @@ std::string SetBenchmarkLogicCommand::getCommandName() const
 
 void SetBenchmarkLogicCommand::toStream(std::ostream& out,
                                         int toDepth,
-                                        bool types,
+
                                         size_t dag,
                                         OutputLanguage language) const
 {
@@ -2587,7 +2612,7 @@ std::string SetInfoCommand::getCommandName() const { return "set-info"; }
 
 void SetInfoCommand::toStream(std::ostream& out,
                               int toDepth,
-                              bool types,
+
                               size_t dag,
                               OutputLanguage language) const
 {
@@ -2654,7 +2679,7 @@ std::string GetInfoCommand::getCommandName() const { return "get-info"; }
 
 void GetInfoCommand::toStream(std::ostream& out,
                               int toDepth,
-                              bool types,
+
                               size_t dag,
                               OutputLanguage language) const
 {
@@ -2698,7 +2723,7 @@ std::string SetOptionCommand::getCommandName() const { return "set-option"; }
 
 void SetOptionCommand::toStream(std::ostream& out,
                                 int toDepth,
-                                bool types,
+
                                 size_t dag,
                                 OutputLanguage language) const
 {
@@ -2752,7 +2777,7 @@ std::string GetOptionCommand::getCommandName() const { return "get-option"; }
 
 void GetOptionCommand::toStream(std::ostream& out,
                                 int toDepth,
-                                bool types,
+
                                 size_t dag,
                                 OutputLanguage language) const
 {
@@ -2788,7 +2813,7 @@ std::string SetExpressionNameCommand::getCommandName() const
 
 void SetExpressionNameCommand::toStream(std::ostream& out,
                                         int toDepth,
-                                        bool types,
+
                                         size_t dag,
                                         OutputLanguage language) const
 {
@@ -2835,7 +2860,7 @@ std::string DatatypeDeclarationCommand::getCommandName() const
 
 void DatatypeDeclarationCommand::toStream(std::ostream& out,
                                           int toDepth,
-                                          bool types,
+
                                           size_t dag,
                                           OutputLanguage language) const
 {
