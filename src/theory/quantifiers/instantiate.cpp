@@ -380,6 +380,19 @@ bool Instantiate::addInstantiation(
           orig_body, q[1], maxInstLevel + 1);
     }
   }
+  if (options::trackInstLemmas())
+  {
+    if (options::incrementalSolving())
+    {
+      recorded = d_c_inst_match_trie[q]->recordInstLemma(q, terms, lem);
+    }
+    else
+    {
+      recorded = d_inst_match_trie[q].recordInstLemma(q, terms, lem);
+    }
+    Trace("inst-add-debug") << "...was recorded : " << recorded << std::endl;
+    Assert(recorded);
+  }
   Trace("inst-add-debug") << " --> Success." << std::endl;
   ++(d_statistics.d_instantiations);
   return true;
@@ -557,6 +570,12 @@ bool Instantiate::printInstantiations(std::ostream& out)
 
 bool Instantiate::printInstantiationsList(std::ostream& out)
 {
+  bool useUnsatCore = false;
+  std::vector<Node> active_lemmas;
+  if (options::trackInstLemmas() && getUnsatCoreLemmas(active_lemmas))
+  {
+    useUnsatCore = true;
+  }
   bool printed = false;
   bool isFull = options::printInstFull();
   if (options::incrementalSolving())
@@ -569,7 +588,7 @@ bool Instantiate::printInstantiationsList(std::ostream& out)
         continue;
       }
       std::stringstream sout;
-      t.second->print(sout, t.first);
+      t.second->print(sout, t.first, useUnsatCore, active_lemmas);
       if (!sout.str().empty())
       {
         out << "(instantiations " << qout.str() << std::endl;
@@ -589,7 +608,7 @@ bool Instantiate::printInstantiationsList(std::ostream& out)
         continue;
       }
       std::stringstream sout;
-      t.second.print(sout, t.first);
+      t.second.print(sout, t.first, useUnsatCore, active_lemmas);
       if (!sout.str().empty())
       {
         out << "(instantiations " << qout.str() << std::endl;
@@ -640,7 +659,7 @@ bool Instantiate::printQuant(Node q, std::ostream& out, bool isFull)
   return true;
 }
 
-void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs) const
+void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
 {
   if (options::incrementalSolving())
   {
@@ -654,11 +673,42 @@ void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs) const
   }
   else
   {
-    for (const std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
+    for (std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
     {
       qs.push_back(t.first);
     }
   }
+}
+
+bool Instantiate::getUnsatCoreLemmas(std::vector<Node>& active_lemmas)
+{
+  // only if unsat core available
+  if (options::unsatCores())
+  {
+    if (!ProofManager::currentPM()->unsatCoreAvailable())
+    {
+      return false;
+    }
+  }
+  else
+  {
+    return false;
+  }
+
+  Trace("inst-unsat-core") << "Get instantiations in unsat core..."
+                           << std::endl;
+  ProofManager::currentPM()->getLemmasInUnsatCore(active_lemmas);
+  if (Trace.isOn("inst-unsat-core"))
+  {
+    Trace("inst-unsat-core") << "Quantifiers lemmas in unsat core: "
+                             << std::endl;
+    for (const Node& lem : active_lemmas)
+    {
+      Trace("inst-unsat-core") << "  " << lem << std::endl;
+    }
+    Trace("inst-unsat-core") << std::endl;
+  }
+  return true;
 }
 
 void Instantiate::getInstantiationTermVectors(
@@ -701,7 +751,123 @@ void Instantiate::getInstantiationTermVectors(
   }
 }
 
+void Instantiate::getExplanationForInstLemmas(
+    const std::vector<Node>& lems,
+    std::map<Node, Node>& quant,
+    std::map<Node, std::vector<Node> >& tvec)
+{
+  if (!options::trackInstLemmas())
+  {
+    std::stringstream msg;
+    msg << "Cannot get explanation for instantiations when --track-inst-lemmas "
+           "is false.";
+    throw OptionException(msg.str());
+  }
+  if (options::incrementalSolving())
+  {
+    for (std::pair<const Node, inst::CDInstMatchTrie*>& t : d_c_inst_match_trie)
+    {
+      t.second->getExplanationForInstLemmas(t.first, lems, quant, tvec);
+    }
+  }
+  else
+  {
+    for (std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
+    {
+      t.second.getExplanationForInstLemmas(t.first, lems, quant, tvec);
+    }
+  }
+#ifdef CVC4_ASSERTIONS
+  for (unsigned j = 0; j < lems.size(); j++)
+  {
+    Assert(quant.find(lems[j]) != quant.end());
+    Assert(tvec.find(lems[j]) != tvec.end());
+  }
+#endif
+}
+
 bool Instantiate::isProofEnabled() const { return d_pfInst != nullptr; }
+
+void Instantiate::getInstantiations(std::map<Node, std::vector<Node> >& insts)
+{
+  if (!options::trackInstLemmas())
+  {
+    std::stringstream msg;
+    msg << "Cannot get instantiations when --track-inst-lemmas is false.";
+    throw OptionException(msg.str());
+  }
+  std::vector<Node> active_lemmas;
+  bool useUnsatCore = getUnsatCoreLemmas(active_lemmas);
+
+  if (options::incrementalSolving())
+  {
+    for (std::pair<const Node, inst::CDInstMatchTrie*>& t : d_c_inst_match_trie)
+    {
+      t.second->getInstantiations(
+          insts[t.first], t.first, d_qe, useUnsatCore, active_lemmas);
+    }
+  }
+  else
+  {
+    for (std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
+    {
+      t.second.getInstantiations(
+          insts[t.first], t.first, d_qe, useUnsatCore, active_lemmas);
+    }
+  }
+}
+
+void Instantiate::getInstantiations(Node q, std::vector<Node>& insts)
+{
+  if (options::incrementalSolving())
+  {
+    std::map<Node, inst::CDInstMatchTrie*>::iterator it =
+        d_c_inst_match_trie.find(q);
+    if (it != d_c_inst_match_trie.end())
+    {
+      std::vector<Node> active_lemmas;
+      it->second->getInstantiations(
+          insts, it->first, d_qe, false, active_lemmas);
+    }
+  }
+  else
+  {
+    std::map<Node, inst::InstMatchTrie>::iterator it =
+        d_inst_match_trie.find(q);
+    if (it != d_inst_match_trie.end())
+    {
+      std::vector<Node> active_lemmas;
+      it->second.getInstantiations(
+          insts, it->first, d_qe, false, active_lemmas);
+    }
+  }
+}
+
+Node Instantiate::getInstantiatedConjunction(Node q)
+{
+  Assert(q.getKind() == FORALL);
+  std::vector<Node> insts;
+  getInstantiations(q, insts);
+  if (insts.empty())
+  {
+    return NodeManager::currentNM()->mkConst(true);
+  }
+  Node ret;
+  if (insts.size() == 1)
+  {
+    ret = insts[0];
+  }
+  else
+  {
+    ret = NodeManager::currentNM()->mkNode(kind::AND, insts);
+  }
+  // have to remove q
+  // may want to do this in a better way
+  TNode tq = q;
+  TNode tt = NodeManager::currentNM()->mkConst(true);
+  ret = ret.substitute(tq, tt);
+  return ret;
+}
 
 void Instantiate::debugPrint(std::ostream& out)
 {

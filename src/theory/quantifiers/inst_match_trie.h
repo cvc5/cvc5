@@ -130,29 +130,82 @@ class InstMatchTrie
    */
   void getInstantiations(Node q, std::vector<std::vector<Node>>& insts) const;
 
+  /** get instantiations
+   *
+   * This gets the set of instantiation lemmas that were recorded in this trie
+   * via calls to recordInstLemma. If useActive is true, we only add
+   * instantiations that occur in active.
+   */
+  void getInstantiations(std::vector<Node>& insts,
+                         Node q,
+                         QuantifiersEngine* qe,
+                         bool useActive,
+                         std::vector<Node>& active)
+  {
+    std::vector<Node> terms;
+    getInstantiations(insts, q, terms, qe, useActive, active);
+  }
+  /** get explanation for inst lemmas
+   *
+   * This gets the explanation for the instantiation lemmas in lems for
+   * quantified formula q, for which this trie stores instantiation matches for.
+   * For each instantiation lemma lem recording in this trie via calls to
+   * recordInstLemma, we map lem to q in map quant, and lem to its corresponding
+   * vector of terms in tvec.
+   */
+  void getExplanationForInstLemmas(
+      Node q,
+      const std::vector<Node>& lems,
+      std::map<Node, Node>& quant,
+      std::map<Node, std::vector<Node> >& tvec) const
+  {
+    std::vector<Node> terms;
+    getExplanationForInstLemmas(q, terms, lems, quant, tvec);
+  }
+
   /** clear the data of this class */
   void clear() { d_data.clear(); }
   /** print this class */
   void print(std::ostream& out,
-             Node q) const
+             Node q,
+             bool useActive,
+             std::vector<Node>& active) const
   {
     std::vector<TNode> terms;
-    print(out, q, terms);
+    print(out, q, terms, useActive, active);
   }
   /** the data */
   std::map<Node, InstMatchTrie> d_data;
 
  private:
+  /** Helper for getInstantiations.*/
+  void getInstantiations(Node q, std::vector<std::vector<Node>>& insts, std::vector<Node>& terms) const;
   /** helper for print
    * terms accumulates the path we are on in the trie.
    */
   void print(std::ostream& out,
              Node q,
-             std::vector<TNode>& terms) const;
-  /** Helper for get instantiations */
-  void getInstantiations(Node q, std::vector<std::vector<Node>>& insts,
-    std::vector<Node>& terms
-  ) const;
+             std::vector<TNode>& terms,
+             bool useActive,
+             std::vector<Node>& active) const;
+  /** helper for get instantiations
+   * terms accumulates the path we are on in the trie.
+   */
+  void getInstantiations(std::vector<Node>& insts,
+                         Node q,
+                         std::vector<Node>& terms,
+                         QuantifiersEngine* qe,
+                         bool useActive,
+                         std::vector<Node>& active) const;
+  /** helper for get explantaion for inst lemmas
+   * terms accumulates the path we are on in the trie.
+   */
+  void getExplanationForInstLemmas(
+      Node q,
+      std::vector<Node>& terms,
+      const std::vector<Node>& lems,
+      std::map<Node, Node>& quant,
+      std::map<Node, std::vector<Node> >& tvec) const;
   /** set instantiation lemma at this node in the trie */
   void setInstLemma(Node n)
   {
@@ -251,12 +304,47 @@ class CDInstMatchTrie
    */
   void getInstantiations(Node q, std::vector<std::vector<Node>>& insts) const;
 
+  /** get instantiations
+   *
+   * This gets the set of instantiation lemmas that were recorded in this class
+   * via calls to recordInstLemma. If useActive is true, we only add
+   * instantiations that occur in active.
+   */
+  void getInstantiations(std::vector<Node>& insts,
+                         Node q,
+                         QuantifiersEngine* qe,
+                         bool useActive,
+                         std::vector<Node>& active)
+  {
+    std::vector<Node> terms;
+    getInstantiations(insts, q, terms, qe, useActive, active);
+  }
+  /** get explanation for inst lemmas
+   *
+   * This gets the explanation for the instantiation lemmas in lems for
+   * quantified formula q, for which this trie stores instantiation matches for.
+   * For each instantiation lemma lem recording in this trie via calls to
+   * recordInstLemma, we map lem to q in map quant, and lem to its corresponding
+   * vector of terms in tvec.
+   */
+  void getExplanationForInstLemmas(
+      Node q,
+      const std::vector<Node>& lems,
+      std::map<Node, Node>& quant,
+      std::map<Node, std::vector<Node> >& tvec) const
+  {
+    std::vector<Node> terms;
+    getExplanationForInstLemmas(q, terms, lems, quant, tvec);
+  }
+
   /** print this class */
   void print(std::ostream& out,
-             Node q) const
+             Node q,
+             bool useActive,
+             std::vector<Node>& active) const
   {
     std::vector<TNode> terms;
-    print(out, q, terms);
+    print(out, q, terms, useActive, active);
   }
 
  private:
@@ -271,12 +359,32 @@ class CDInstMatchTrie
    */
   void print(std::ostream& out,
              Node q,
-             std::vector<TNode>& terms) const;
+             std::vector<TNode>& terms,
+             bool useActive,
+             std::vector<Node>& active) const;
+  /** helper for get instantiations
+   * terms accumulates the path we are on in the trie.
+   */
+  void getInstantiations(std::vector<Node>& insts,
+                         Node q,
+                         std::vector<Node>& terms,
+                         QuantifiersEngine* qe,
+                         bool useActive,
+                         std::vector<Node>& active) const;
+  /** helper for get explanation for inst lemma
+   * terms accumulates the path we are on in the trie.
+   */
+  void getExplanationForInstLemmas(
+      Node q,
+      std::vector<Node>& terms,
+      const std::vector<Node>& lems,
+      std::map<Node, Node>& quant,
+      std::map<Node, std::vector<Node> >& tvec) const;
   /** set instantiation lemma at this node in the trie */
   void setInstLemma(Node n)
   {
     d_data.clear();
-    d_data[n] = nullptr;
+    d_data[n] = NULL;
   }
   /** does this node of the trie store an instantiation lemma? */
   bool hasInstLemma() const { return !d_data.empty(); }
