@@ -75,7 +75,7 @@ void TheorySep::declareSepHeap(TypeNode locT, TypeNode dataT)
   {
     TypeNode te1 = d_loc_to_data_type.begin()->first;
     std::stringstream ss;
-    ss << "ERROR: declaring heap constraints for two different types : ";
+    ss << "ERROR: cannot declare heap types for separation logic more than once.  We are declaring heap of type ";
     ss << locT << " -> " << dataT << ", but we already have ";
     ss << d_type_ref << " -> " << d_type_data;
     throw LogicException(ss.str());
