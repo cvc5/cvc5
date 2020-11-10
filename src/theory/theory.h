@@ -249,6 +249,15 @@ class Theory {
   }
 
   /**
+   * Set separation logic heap. This is called when the location and data
+   * types for separation logic are determined. This should be called at
+   * most once, before solving.
+   *
+   * This currently should be overridden by the separation logic theory only.
+   */
+  virtual void declareSepHeap(TypeNode locT, TypeNode dataT) {}
+
+  /**
    * The theory that owns the uninterpreted sort.
    */
   static TheoryId s_uninterpretedSortOwner;
