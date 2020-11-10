@@ -199,7 +199,10 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   return status;
 }
 
-bool solverInvoke(api::Solver* solver, parser::SymbolManager* sm, Command* cmd, std::ostream* out)
+bool solverInvoke(api::Solver* solver,
+                  parser::SymbolManager* sm,
+                  Command* cmd,
+                  std::ostream* out)
 {
   if (out == NULL)
   {

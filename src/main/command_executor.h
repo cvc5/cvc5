@@ -116,7 +116,10 @@ private:
 
 }; /* class CommandExecutor */
 
-bool solverInvoke(api::Solver* solver, parser::SymbolManager* sm, Command* cmd, std::ostream* out);
+bool solverInvoke(api::Solver* solver,
+                  parser::SymbolManager* sm,
+                  Command* cmd,
+                  std::ostream* out);
 
 }/* CVC4::main namespace */
 }/* CVC4 namespace */
