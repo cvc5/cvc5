@@ -50,7 +50,8 @@ SynthConjecture::SynthConjecture(QuantifiersEngine* qe,
       d_stats(s),
       d_tds(qe->getTermDatabaseSygus()),
       d_hasSolution(false),
-      d_ceg_si(new CegSingleInv(qe, this)),
+      d_ceg_si(new CegSingleInv(qe)),
+      d_templInfer(new SygusTemplateInfer),
       d_ceg_proc(new SynthConjectureProcess(qe)),
       d_ceg_gc(new CegGrammarConstructor(qe, this)),
       d_sygus_rconst(new SygusRepairConst(qe)),
@@ -116,15 +117,18 @@ void SynthConjecture::assign(Node q)
   {
     d_ceg_si->initialize(d_simp_quant);
     d_simp_quant = d_ceg_si->getSimplifiedConjecture();
-    // carry the templates
-    for (unsigned i = 0; i < q[0].getNumChildren(); i++)
+    if (!d_ceg_si->isSingleInvocation())
     {
-      Node v = q[0][i];
-      Node templ = d_ceg_si->getTemplate(v);
+      d_templInfer->initialize(d_simp_quant);
+    }
+    // carry the templates
+    for (const Node& v : q[0])
+    {
+      Node templ = d_templInfer->getTemplate(v);
       if (!templ.isNull())
       {
         templates[v] = templ;
-        templates_arg[v] = d_ceg_si->getTemplateArg(v);
+        templates_arg[v] = d_templInfer->getTemplateArg(v);
       }
     }
   }
@@ -1334,7 +1338,7 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
 
         // check if there was a template
         Node sf = d_quant[0][i];
-        Node templ = d_ceg_si->getTemplate(sf);
+        Node templ = d_templInfer->getTemplate(sf);
         if (!templ.isNull())
         {
           Trace("cegqi-inv-debug")
@@ -1342,7 +1346,7 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
           // if it was not embedded into the grammar
           if (!options::sygusTemplEmbedGrammar())
           {
-            TNode templa = d_ceg_si->getTemplateArg(sf);
+            TNode templa = d_templInfer->getTemplateArg(sf);
             // make the builtin version of the full solution
             sol = d_tds->sygusToBuiltin(sol, sol.getType());
             Trace("cegqi-inv") << "Builtin version of solution is : " << sol

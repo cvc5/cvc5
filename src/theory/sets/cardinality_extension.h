@@ -167,7 +167,7 @@ class CardinalityExtension
   TermRegistry& d_treg;
   /** register cardinality term
    *
-   * This method add lemmas corresponding to the definition of
+   * This method adds lemmas corresponding to the definition of
    * the cardinality of set term n. For example, if n is A^B (denoting set
    * intersection as ^), then we consider the lemmas card(A^B)>=0,
    * card(A) = card(A\B) + card(A^B) and card(B) = card(B\A) + card(A^B).
