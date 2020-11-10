@@ -1427,7 +1427,7 @@ DeclareHeapCommand::DeclareHeapCommand(api::Sort locSort, api::Sort dataSort)
 api::Sort DeclareHeapCommand::getLocationSort() const { return d_locSort; }
 api::Sort DeclareHeapCommand::getDataSort() const { return d_dataSort; }
 
-void DeclareHeapCommand::invoke(api::Solver* solver)
+void DeclareHeapCommand::invoke(api::Solver* solver, parser::SymbolManager* sm)
 {
   solver->declareSeparationHeap(d_locSort, d_dataSort);
 }

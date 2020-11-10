@@ -576,7 +576,7 @@ class CVC4_PUBLIC DeclareHeapCommand : public Command
   DeclareHeapCommand(api::Sort locSort, api::Sort dataSort);
   api::Sort getLocationSort() const;
   api::Sort getDataSort() const;
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager* sm) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
