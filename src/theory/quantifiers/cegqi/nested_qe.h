@@ -48,23 +48,27 @@ class NestedQe
    */
   bool hasProcessed(Node q) const;
 
-  /** Get nested quantification */
+  /**
+   * Get nested quantification. Returns true if q has nested quantifiers.
+   * Adds each nested quantifier in the body of q to nqs.
+   */
   static bool getNestedQuantification(
       Node q, std::unordered_set<Node, NodeHashFunction>& nqs);
-  /** 
+  /**
    * Does quantified formula q have nested quantification?
    */
   static bool hasNestedQuantification(Node q);
   /**
-   * Does q have nested quantification?
-   */
-  /**
-   * Do nested quantifier elimination.
+   * Do nested quantifier elimination. Returns a formula that is equivalent to
+   * q and has no nested quantification. If keepTopLevel is false, then the
+   * returned formula is quantifier-free. Otherwise, it is a quantified formula
+   * with no nested quantification.
    */
   static Node doNestedQe(Node q, bool keepTopLevel = false);
   /**
    * Run quantifier free formula for quantified formula q with no nested
-   * quantification.
+   * quantification. This method invokes a subsolver for performing quantifier
+   * elimination.
    */
   static Node doQe(Node q);
 
