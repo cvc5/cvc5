@@ -247,7 +247,9 @@ void EchoCommand::invoke(api::Solver* solver, parser::SymbolManager* sm)
   d_commandStatus = CommandSuccess::instance();
 }
 
-void EchoCommand::invoke(api::Solver* solver, parser::SymbolManager* sm, std::ostream& out)
+void EchoCommand::invoke(api::Solver* solver,
+                         parser::SymbolManager* sm,
+                         std::ostream& out)
 {
   out << d_output << std::endl;
   Trace("dtview::command") << "* ~COMMAND: echo |" << d_output << "|~"
@@ -978,7 +980,9 @@ void CommandSequence::invoke(api::Solver* solver, parser::SymbolManager* sm)
   d_commandStatus = CommandSuccess::instance();
 }
 
-void CommandSequence::invoke(api::Solver* solver, parser::SymbolManager* sm, std::ostream& out)
+void CommandSequence::invoke(api::Solver* solver,
+                             parser::SymbolManager* sm,
+                             std::ostream& out)
 {
   for (; d_index < d_commandSequence.size(); ++d_index)
   {

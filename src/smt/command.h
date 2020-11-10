@@ -1496,7 +1496,9 @@ class CVC4_PUBLIC CommandSequence : public Command
   void clear();
 
   void invoke(api::Solver* solver, parser::SymbolManager* sm) override;
-  void invoke(api::Solver* solver, parser::SymbolManager* sm, std::ostream& out) override;
+  void invoke(api::Solver* solver,
+              parser::SymbolManager* sm,
+              std::ostream& out) override;
 
   typedef std::vector<Command*>::iterator iterator;
   typedef std::vector<Command*>::const_iterator const_iterator;
