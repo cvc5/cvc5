@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-fmf
+; COMMAND-LINE: --strings-fmf --strings-exp
 ; EXPECT: sat
 (set-logic QF_SLIA)
 (set-info :status sat)
