@@ -41,6 +41,10 @@ class Solver;
 class Term;
 }  // namespace api
 
+namespace parser {
+class SymbolManager;
+}
+
 class UnsatCore;
 class SmtEngine;
 class Command;
@@ -202,8 +206,8 @@ class CVC4_PUBLIC Command
 
   virtual ~Command();
 
-  virtual void invoke(api::Solver* solver) = 0;
-  virtual void invoke(api::Solver* solver, std::ostream& out);
+  virtual void invoke(api::Solver* solver, parser::SymbolManager * sm) = 0;
+  virtual void invoke(api::Solver* solver, parser::SymbolManager * sm, std::ostream& out);
 
   virtual void toStream(
       std::ostream& out,
@@ -276,13 +280,12 @@ class CVC4_PUBLIC EmptyCommand : public Command
  public:
   EmptyCommand(std::string name = "");
   std::string getName() const;
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
@@ -297,15 +300,14 @@ class CVC4_PUBLIC EchoCommand : public Command
 
   std::string getOutput() const;
 
-  void invoke(api::Solver* solver) override;
-  void invoke(api::Solver* solver, std::ostream& out) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm, std::ostream& out) override;
 
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 
@@ -324,14 +326,13 @@ class CVC4_PUBLIC AssertCommand : public Command
 
   api::Term getTerm() const;
 
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
 
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class AssertCommand */
@@ -339,13 +340,12 @@ class CVC4_PUBLIC AssertCommand : public Command
 class CVC4_PUBLIC PushCommand : public Command
 {
  public:
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class PushCommand */
@@ -353,13 +353,12 @@ class CVC4_PUBLIC PushCommand : public Command
 class CVC4_PUBLIC PopCommand : public Command
 {
  public:
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class PopCommand */
@@ -372,7 +371,7 @@ class CVC4_PUBLIC DeclarationDefinitionCommand : public Command
  public:
   DeclarationDefinitionCommand(const std::string& id);
 
-  void invoke(api::Solver* solver) override = 0;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override = 0;
   std::string getSymbol() const;
 }; /* class DeclarationDefinitionCommand */
 
@@ -392,7 +391,7 @@ class CVC4_PUBLIC DeclareFunctionCommand : public DeclarationDefinitionCommand
   bool getPrintInModelSetByUser() const;
   void setPrintInModel(bool p);
 
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -415,7 +414,7 @@ class CVC4_PUBLIC DeclareSortCommand : public DeclarationDefinitionCommand
   size_t getArity() const;
   api::Sort getSort() const;
 
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -441,7 +440,7 @@ class CVC4_PUBLIC DefineSortCommand : public DeclarationDefinitionCommand
   const std::vector<api::Sort>& getParameters() const;
   api::Sort getSort() const;
 
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -469,7 +468,7 @@ class CVC4_PUBLIC DefineFunctionCommand : public DeclarationDefinitionCommand
   const std::vector<api::Term>& getFormals() const;
   api::Term getFormula() const;
 
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -506,7 +505,7 @@ class CVC4_PUBLIC DefineNamedFunctionCommand : public DefineFunctionCommand
                              const std::vector<api::Term>& formals,
                              api::Term formula,
                              bool global);
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   Command* clone() const override;
   void toStream(
       std::ostream& out,
@@ -537,7 +536,7 @@ class CVC4_PUBLIC DefineFunctionRecCommand : public Command
   const std::vector<std::vector<api::Term> >& getFormals() const;
   const std::vector<api::Term>& getFormulas() const;
 
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -576,7 +575,7 @@ class CVC4_PUBLIC SetUserAttributeCommand : public Command
                           api::Term term,
                           const std::string& value);
 
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -610,7 +609,7 @@ class CVC4_PUBLIC CheckSatCommand : public Command
 
   api::Term getTerm() const;
   api::Result getResult() const;
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* clone() const override;
   std::string getCommandName() const override;
@@ -639,7 +638,7 @@ class CVC4_PUBLIC CheckSatAssumingCommand : public Command
 
   const std::vector<api::Term>& getTerms() const;
   api::Result getResult() const;
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* clone() const override;
   std::string getCommandName() const override;
@@ -667,7 +666,7 @@ class CVC4_PUBLIC QueryCommand : public Command
 
   api::Term getTerm() const;
   api::Result getResult() const;
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* clone() const override;
   std::string getCommandName() const override;
@@ -695,7 +694,7 @@ class CVC4_PUBLIC DeclareSygusVarCommand : public DeclarationDefinitionCommand
    * The declared sygus variable is communicated to the SMT engine in case a
    * synthesis conjecture is built later on.
    */
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   /** creates a copy of this command */
   Command* clone() const override;
   /** returns this command's name */
@@ -745,7 +744,7 @@ class CVC4_PUBLIC SynthFunCommand : public DeclarationDefinitionCommand
    * The declared function-to-synthesize is communicated to the SMT engine in
    * case a synthesis conjecture is built later on.
    */
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   /** creates a copy of this command */
   Command* clone() const override;
   /** returns this command's name */
@@ -783,7 +782,7 @@ class CVC4_PUBLIC SygusConstraintCommand : public Command
    * The declared constraint is communicated to the SMT engine in case a
    * synthesis conjecture is built later on.
    */
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   /** creates a copy of this command */
   Command* clone() const override;
   /** returns this command's name */
@@ -827,7 +826,7 @@ class CVC4_PUBLIC SygusInvConstraintCommand : public Command
    * invariant constraint is built, in case an actual synthesis conjecture is
    * built later on.
    */
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   /** creates a copy of this command */
   Command* clone() const override;
   /** returns this command's name */
@@ -864,7 +863,7 @@ class CVC4_PUBLIC CheckSynthCommand : public Command
    * and then perform a satisfiability check, whose result is stored in
    * d_result.
    */
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   /** creates a copy of this command */
   Command* clone() const override;
   /** returns this command's name */
@@ -898,7 +897,7 @@ class CVC4_PUBLIC SimplifyCommand : public Command
 
   api::Term getTerm() const;
   api::Term getResult() const;
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* clone() const override;
   std::string getCommandName() const override;
@@ -922,7 +921,7 @@ class CVC4_PUBLIC GetValueCommand : public Command
 
   const std::vector<api::Term>& getTerms() const;
   api::Term getResult() const;
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* clone() const override;
   std::string getCommandName() const override;
@@ -943,7 +942,7 @@ class CVC4_PUBLIC GetAssignmentCommand : public Command
   GetAssignmentCommand();
 
   SExpr getResult() const;
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* clone() const override;
   std::string getCommandName() const override;
@@ -962,7 +961,7 @@ class CVC4_PUBLIC GetModelCommand : public Command
 
   // Model is private to the library -- for now
   // Model* getResult() const ;
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* clone() const override;
   std::string getCommandName() const override;
@@ -983,7 +982,7 @@ class CVC4_PUBLIC BlockModelCommand : public Command
  public:
   BlockModelCommand();
 
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1001,7 +1000,7 @@ class CVC4_PUBLIC BlockModelValuesCommand : public Command
   BlockModelValuesCommand(const std::vector<api::Term>& terms);
 
   const std::vector<api::Term>& getTerms() const;
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1021,7 +1020,7 @@ class CVC4_PUBLIC GetProofCommand : public Command
  public:
   GetProofCommand();
 
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1037,7 +1036,7 @@ class CVC4_PUBLIC GetInstantiationsCommand : public Command
  public:
   GetInstantiationsCommand();
 
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* clone() const override;
   std::string getCommandName() const override;
@@ -1057,7 +1056,7 @@ class CVC4_PUBLIC GetSynthSolutionCommand : public Command
  public:
   GetSynthSolutionCommand();
 
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* clone() const override;
   std::string getCommandName() const override;
@@ -1096,7 +1095,7 @@ class CVC4_PUBLIC GetInterpolCommand : public Command
    * query. */
   api::Term getResult() const;
 
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* clone() const override;
   std::string getCommandName() const override;
@@ -1148,7 +1147,7 @@ class CVC4_PUBLIC GetAbductCommand : public Command
    */
   api::Term getResult() const;
 
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* clone() const override;
   std::string getCommandName() const override;
@@ -1185,7 +1184,7 @@ class CVC4_PUBLIC GetQuantifierEliminationCommand : public Command
 
   api::Term getTerm() const;
   bool getDoFull() const;
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   api::Term getResult() const;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
 
@@ -1203,7 +1202,7 @@ class CVC4_PUBLIC GetUnsatAssumptionsCommand : public Command
 {
  public:
   GetUnsatAssumptionsCommand();
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   std::vector<api::Term> getResult() const;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* clone() const override;
@@ -1225,7 +1224,7 @@ class CVC4_PUBLIC GetUnsatCoreCommand : public Command
   GetUnsatCoreCommand();
   const std::vector<api::Term>& getUnsatCore() const;
 
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
 
   Command* clone() const override;
@@ -1252,7 +1251,7 @@ class CVC4_PUBLIC GetAssertionsCommand : public Command
  public:
   GetAssertionsCommand();
 
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   std::string getResult() const;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* clone() const override;
@@ -1274,7 +1273,7 @@ class CVC4_PUBLIC SetBenchmarkStatusCommand : public Command
 
   BenchmarkStatus getStatus() const;
 
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1293,7 +1292,7 @@ class CVC4_PUBLIC SetBenchmarkLogicCommand : public Command
   SetBenchmarkLogicCommand(std::string logic);
 
   std::string getLogic() const;
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1315,7 +1314,7 @@ class CVC4_PUBLIC SetInfoCommand : public Command
   std::string getFlag() const;
   SExpr getSExpr() const;
 
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1337,7 +1336,7 @@ class CVC4_PUBLIC GetInfoCommand : public Command
   std::string getFlag() const;
   std::string getResult() const;
 
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* clone() const override;
   std::string getCommandName() const override;
@@ -1360,7 +1359,7 @@ class CVC4_PUBLIC SetOptionCommand : public Command
   std::string getFlag() const;
   SExpr getSExpr() const;
 
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1383,7 +1382,7 @@ class CVC4_PUBLIC GetOptionCommand : public Command
   std::string getFlag() const;
   std::string getResult() const;
 
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* clone() const override;
   std::string getCommandName() const override;
@@ -1411,7 +1410,7 @@ class CVC4_PUBLIC SetExpressionNameCommand : public Command
  public:
   SetExpressionNameCommand(api::Term term, std::string name);
 
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1432,7 +1431,7 @@ class CVC4_PUBLIC DatatypeDeclarationCommand : public Command
 
   DatatypeDeclarationCommand(const std::vector<api::Sort>& datatypes);
   const std::vector<api::Sort>& getDatatypes() const;
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1447,7 +1446,7 @@ class CVC4_PUBLIC ResetCommand : public Command
 {
  public:
   ResetCommand() {}
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1462,7 +1461,7 @@ class CVC4_PUBLIC ResetAssertionsCommand : public Command
 {
  public:
   ResetAssertionsCommand() {}
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1477,7 +1476,7 @@ class CVC4_PUBLIC QuitCommand : public Command
 {
  public:
   QuitCommand() {}
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1497,7 +1496,7 @@ class CVC4_PUBLIC CommentCommand : public Command
 
   std::string getComment() const;
 
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   Command* clone() const override;
   std::string getCommandName() const override;
   void toStream(
@@ -1523,7 +1522,7 @@ class CVC4_PUBLIC CommandSequence : public Command
   void addCommand(Command* cmd);
   void clear();
 
-  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, parser::SymbolManager * sm) override;
   void invoke(api::Solver* solver, std::ostream& out) override;
 
   typedef std::vector<Command*>::iterator iterator;
