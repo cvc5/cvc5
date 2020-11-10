@@ -729,7 +729,7 @@ void Instantiate::getInstantiationTermVectors(
     }
     return;
   }
-  
+
   if (options::incrementalSolving())
   {
     std::map<Node, inst::CDInstMatchTrie*>::const_iterator it =
