@@ -152,11 +152,6 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
       success = true;
     }
     break;
-    case InferId::LABEL_EXH:
-    {
-      // TODO: resolution
-    }
-    break;
     case InferId::COLLAPSE_SEL:
     {
       Assert(exp.getKind() == EQUAL);
@@ -223,8 +218,10 @@ void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
       success = true;
     }
     break;
-    case InferId::BISIMILAR: break;
-    case InferId::CYCLE: break;
+    // inferences currently not supported
+    case InferId::LABEL_EXH:
+    case InferId::BISIMILAR:
+    case InferId::CYCLE:
     default:
       Trace("dt-ipc") << "...no conversion for inference " << infer
                       << std::endl;
