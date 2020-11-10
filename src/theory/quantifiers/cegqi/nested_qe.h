@@ -48,13 +48,13 @@ class NestedQe
    */
   bool hasProcessed(Node q) const;
 
-  /** 
+  /**
    * Get nested quantification. Returns true if q has nested quantifiers.
    * Adds each nested quantifier in the body of q to nqs.
    */
   static bool getNestedQuantification(
       Node q, std::unordered_set<Node, NodeHashFunction>& nqs);
-  /** 
+  /**
    * Does quantified formula q have nested quantification?
    */
   static bool hasNestedQuantification(Node q);
@@ -71,6 +71,7 @@ class NestedQe
    * elimination.
    */
   static Node doQe(Node q);
+
  private:
   /**
    * Mapping from quantified formulas q to the result of doNestedQe(q, true).

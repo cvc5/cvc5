@@ -254,8 +254,8 @@ class Instantiate : public QuantifiersUtil
    * Get term vectors corresponding to for all instantiations lemmas added in
    * the current user context for quantified formula q, store them in tvecs.
    */
-  void getInstantiationTermVectors(Node q,
-                                   std::vector<std::vector<Node> >& tvecs) const;
+  void getInstantiationTermVectors(
+      Node q, std::vector<std::vector<Node> >& tvecs) const;
   /** get instantiation term vectors
    *
    * Get term vectors for all instantiations lemmas added in the current user

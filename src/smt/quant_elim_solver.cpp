@@ -85,7 +85,8 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
     {
       Node topq = inst_qs[0];
       Assert(topq.getKind() == FORALL);
-      Trace("smt-qe") << "Get qe based on preprocessed quantified formula " << topq << std::endl;
+      Trace("smt-qe") << "Get qe based on preprocessed quantified formula "
+                      << topq << std::endl;
       std::vector<std::vector<Node>> insts;
       te->getInstantiationTermVectors(topq, insts);
       std::vector<Node> vars(ne[0].begin(), ne[0].end());

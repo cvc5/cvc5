@@ -195,7 +195,7 @@ class InstStrategyCegqi : public QuantifiersModule
   /**
    * Return true if q can be processed with nested quantifier elimination.
    * This may add a lemma on the output channel of quantifiers engine if so.
-   * 
+   *
    * @param q The quantified formula to process
    * @param isPreregister Whether this method is being called at preregister.
    */

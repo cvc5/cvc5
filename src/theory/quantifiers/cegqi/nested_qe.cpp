@@ -51,7 +51,7 @@ bool NestedQe::process(Node q, std::vector<Node>& lems)
 
 bool NestedQe::hasProcessed(Node q) const
 {
-  return d_qnqe.find(q)!=d_qnqe.end();
+  return d_qnqe.find(q) != d_qnqe.end();
 }
 
 bool NestedQe::getNestedQuantification(

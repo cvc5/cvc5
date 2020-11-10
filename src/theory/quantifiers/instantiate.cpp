@@ -716,16 +716,18 @@ void Instantiate::getInstantiationTermVectors(
 {
   if (options::incrementalSolving())
   {
-    std::map<Node, inst::CDInstMatchTrie*>::const_iterator it = d_c_inst_match_trie.find(q);
-    if (it!=d_c_inst_match_trie.end())
+    std::map<Node, inst::CDInstMatchTrie*>::const_iterator it =
+        d_c_inst_match_trie.find(q);
+    if (it != d_c_inst_match_trie.end())
     {
       it->second->getInstantiations(q, tvecs);
     }
   }
   else
   {
-    std::map<Node, inst::InstMatchTrie>::const_iterator it = d_inst_match_trie.find(q);
-    if (it!=d_inst_match_trie.end())
+    std::map<Node, inst::InstMatchTrie>::const_iterator it =
+        d_inst_match_trie.find(q);
+    if (it != d_inst_match_trie.end())
     {
       it->second.getInstantiations(q, tvecs);
     }
@@ -737,14 +739,16 @@ void Instantiate::getInstantiationTermVectors(
 {
   if (options::incrementalSolving())
   {
-    for (const std::pair<const Node, inst::CDInstMatchTrie*>& t : d_c_inst_match_trie)
+    for (const std::pair<const Node, inst::CDInstMatchTrie*>& t :
+         d_c_inst_match_trie)
     {
       getInstantiationTermVectors(t.first, insts[t.first]);
     }
   }
   else
   {
-    for (const std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
+    for (const std::pair<const Node, inst::InstMatchTrie>& t :
+         d_inst_match_trie)
     {
       getInstantiationTermVectors(t.first, insts[t.first]);
     }
