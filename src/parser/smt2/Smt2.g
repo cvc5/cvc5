@@ -895,7 +895,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
 @declarations {
   std::vector<api::DatatypeDecl> dts;
   CVC4::api::Term e, e2;
-  CVC4::api::Sort t;
+  CVC4::api::Sort t, s;
   std::string name;
   std::vector<std::string> names;
   std::vector<CVC4::api::Term> terms;
@@ -1073,9 +1073,8 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     }
   | DECLARE_HEAP LPAREN_TOK
     sortSymbol[t, CHECK_DECLARED]
-    sortSymbol[t, CHECK_DECLARED]
-    // We currently do nothing with the type information declared for the heap.
-    { cmd->reset(new EmptyCommand()); }
+    sortSymbol[s, CHECK_DECLARED]
+    { cmd->reset(new DeclareHeapCommand(t, s)); }
     RPAREN_TOK
   | BLOCK_MODEL_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new BlockModelCommand()); }
