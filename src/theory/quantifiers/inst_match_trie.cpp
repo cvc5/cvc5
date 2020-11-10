@@ -264,11 +264,7 @@ void InstMatchTrie::getInstantiations(Node q, std::vector<std::vector<Node>>& in
 
 void InstMatchTrie::getInstantiations(Node q, std::vector<std::vector<Node>>& insts, std::vector<Node>& terms) const
 {
-  if (!d_valid.get())
-  {
-    // do nothing
-  }
-  else if (terms.size() == q[0].getNumChildren())
+  if (terms.size() == q[0].getNumChildren())
   {
     insts.push_back(terms);
   }
