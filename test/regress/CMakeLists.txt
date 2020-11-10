@@ -1572,6 +1572,7 @@ set(regress_1_tests
   regress1/quantifiers/const.cvc
   regress1/quantifiers/constfunc.cvc
   regress1/quantifiers/dump-inst-i.smt2
+  regress1/quantifiers/dump-inst-proof.smt2
   regress1/quantifiers/dump-inst.smt2
   regress1/quantifiers/eqrange_ex_1.smt2
   regress1/quantifiers/ext-ex-deq-trigger.smt2
@@ -2537,8 +2538,6 @@ set(regression_disabled_tests
   regress1/nl/issue3307.smt2
   # no longer support snorm option
   regress1/quantifiers/arith-snorm.smt2
-  # currently do not support minimization of instantiations
-  regress1/quantifiers/dump-inst-proof.smt2
   # ajreynol: different error messages on production and debug:
   regress1/quantifiers/macro-subtype-param.smt2
   # times out with competition build:
