@@ -1027,6 +1027,7 @@ int TheorySep::processAssertion( Node n, std::map< int, std::map< Node, int > >&
     }else if( n.getKind()==kind::SEP_PTO ){
       registerRefDataTypesAtom(n);
       if( quantifiers::TermUtil::hasBoundVarAttr( n[0] ) ){
+        TypeNode tn1 = n[0].getType();
         if( d_bound_kind[tn1]!=bound_strict && d_bound_kind[tn1]!=bound_invalid ){
           if( options::quantEpr() && n[0].getKind()==kind::BOUND_VARIABLE ){
             // still valid : bound on heap models will include Herbrand universe of n[0].getType()
