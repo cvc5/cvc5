@@ -3,6 +3,7 @@
 (set-logic QF_ALL_SUPPORTED)
 (set-info :status sat)
 (declare-sort U 0)
+(declare-heap (U U))
 (declare-fun x () U)
 (declare-fun y () U)
 (declare-fun a () U)

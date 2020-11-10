@@ -199,10 +199,7 @@ class SortProperties {
   inline static bool isWellFounded(TypeNode type) {
     return true;
   }
-  inline static Node mkGroundTerm(TypeNode type) {
-    Assert(type.getKind() == kind::SORT_TYPE);
-    return NodeManager::currentNM()->mkSkolem("groundTerm", type, "a ground term created for type " + type.toString());
-  }
+  static Node mkGroundTerm(TypeNode type);
 };/* class SortProperties */
 
 class FunctionProperties {

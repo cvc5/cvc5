@@ -511,7 +511,6 @@ class CVC4_PUBLIC DefineNamedFunctionCommand : public DefineFunctionCommand
   void toStream(
       std::ostream& out,
       int toDepth = -1,
-
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class DefineNamedFunctionCommand */
@@ -560,6 +559,34 @@ class CVC4_PUBLIC DefineFunctionRecCommand : public Command
    */
   bool d_global;
 }; /* class DefineFunctionRecCommand */
+
+/**
+ * In separation logic inputs, which is an extension of smt2 inputs, this
+ * corresponds to the command:
+ *   (declare-heap (T U))
+ * where T is the location sort and U is the data sort.
+ */
+class CVC4_PUBLIC DeclareHeapCommand : public Command
+{
+ public:
+  DeclareHeapCommand(api::Sort locSort, api::Sort dataSort);
+  api::Sort getLocationSort() const;
+  api::Sort getDataSort() const;
+  void invoke(api::Solver* solver) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
+
+ protected:
+  /** The location sort */
+  api::Sort d_locSort;
+  /** The data sort */
+  api::Sort d_dataSort;
+};
 
 /**
  * The command when an attribute is set by a user.  In SMT-LIBv2 this is done
