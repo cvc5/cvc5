@@ -105,7 +105,7 @@ void TheorySep::finishInit()
 void TheorySep::preRegisterTerm(TNode n)
 {
   Kind k = n.getKind();
-  if (k == SEP_PTO || k== SEP_EMP || k == SEP_STAR || k == SEP_WAND)
+  if (k == SEP_PTO || k == SEP_EMP || k == SEP_STAR || k == SEP_WAND)
   {
     registerRefDataTypesAtom(n);
   }
@@ -1144,14 +1144,14 @@ void TheorySep::registerRefDataTypesAtom(Node atom)
   TypeNode tn1;
   TypeNode tn2;
   Kind k = atom.getKind();
-  if(k == SEP_PTO || k == SEP_EMP)
+  if (k == SEP_PTO || k == SEP_EMP)
   {
     tn1 = atom[0].getType();
     tn2 = atom[1].getType();
   }
   else
   {
-    Assert (k == SEP_STAR || k == SEP_WAND);
+    Assert(k == SEP_STAR || k == SEP_WAND);
   }
   registerRefDataTypes(tn1, tn2, atom);
 }
