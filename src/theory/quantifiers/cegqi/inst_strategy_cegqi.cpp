@@ -216,7 +216,6 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
     Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
     //it is not active if it corresponds to a rewrite rule: we will process in rewrite engine
     if( doCbqi( q ) ){
-      Assert(hasAddedCbqiLemma(q));
       if( d_quantEngine->getModel()->isQuantifierActive( q ) ){
         d_active_quant[q] = true;
         Debug("cegqi-debug") << "Check quantified formula " << q << "..." << std::endl;

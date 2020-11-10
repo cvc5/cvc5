@@ -712,8 +712,24 @@ bool Instantiate::getUnsatCoreLemmas(std::vector<Node>& active_lemmas)
 }
 
 void Instantiate::getInstantiationTermVectors(
-    Node q, std::vector<std::vector<Node> >& tvecs) const
+    Node q, std::vector<std::vector<Node> >& tvecs)
 {
+  // if track instantiations is true, we use the instantiation + explanation
+  // methods for doing minimization based on unsat cores.
+  if (options::trackInstLemmas())
+  {
+    std::vector<Node> lemmas;
+    getInstantiations(q, lemmas);
+    std::map<Node, Node> quant;
+    std::map<Node, std::vector<Node> > tvec;
+    getExplanationForInstLemmas(lemmas, quant, tvec);
+    for (std::pair<const Node, std::vector<Node> >& t : tvec)
+    {
+      tvecs.push_back(t.second);
+    }
+    return;
+  }
+  
   if (options::incrementalSolving())
   {
     std::map<Node, inst::CDInstMatchTrie*>::const_iterator it =
@@ -735,7 +751,7 @@ void Instantiate::getInstantiationTermVectors(
 }
 
 void Instantiate::getInstantiationTermVectors(
-    std::map<Node, std::vector<std::vector<Node> > >& insts) const
+    std::map<Node, std::vector<std::vector<Node> > >& insts)
 {
   if (options::incrementalSolving())
   {
