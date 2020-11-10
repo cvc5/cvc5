@@ -1,5 +1,9 @@
+; COMMAND-LINE: --strings-fmf
+; EXPECT: sat
 (set-logic QF_SLIA)
 (set-info :status sat)
+; required for solving the benchmark, although the original benchmark only has an error when this is disabled
+(set-option :strings-fmf true)
 (declare-fun a () String)
 (assert (not (= (ite (str.contains (str.++ (str.replace (str.substr
  (str.substr (str.substr a 1 (- (str.len a) 1)) 0 (- (str.len
