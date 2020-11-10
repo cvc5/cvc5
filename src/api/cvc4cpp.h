@@ -3158,6 +3158,15 @@ class CVC4_PUBLIC Solver
   Term getQuantifierEliminationDisjunct(api::Term q) const;
 
   /**
+   * When using separation logic, this sets the location sort and the
+   * datatype sort to the given ones. This method should be invoked exactly
+   * once, before any separation logic constraints are provided.
+   * @param locSort The location sort of the heap
+   * @param dataSort The data sort of the heap
+   */
+  void declareSeparationHeap(api::Sort locSort, api::Sort dataSort) const;
+
+  /**
    * When using separation logic, obtain the term for the heap.
    * @return The term for the heap
    */
