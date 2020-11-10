@@ -1425,9 +1425,43 @@ void DefineFunctionRecCommand::toStream(std::ostream& out,
       formals,
       api::termVectorToNodes(d_formulas));
 }
+/* -------------------------------------------------------------------------- */
+/* class DeclareHeapCommand                                                   */
+/* -------------------------------------------------------------------------- */
+DeclareHeapCommand::DeclareHeapCommand(api::Sort locSort, api::Sort dataSort)
+    : d_locSort(locSort), d_dataSort(dataSort)
+{
+}
+
+api::Sort DeclareHeapCommand::getLocationSort() const { return d_locSort; }
+api::Sort DeclareHeapCommand::getDataSort() const { return d_dataSort; }
+
+void DeclareHeapCommand::invoke(api::Solver* solver)
+{
+  solver->declareSeparationHeap(d_locSort, d_dataSort);
+}
+
+Command* DeclareHeapCommand::clone() const
+{
+  return new DeclareHeapCommand(d_locSort, d_dataSort);
+}
+
+std::string DeclareHeapCommand::getCommandName() const
+{
+  return "declare-heap";
+}
+
+void DeclareHeapCommand::toStream(std::ostream& out,
+                                  int toDepth,
+                                  size_t dag,
+                                  OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdDeclareHeap(
+      out, d_locSort.getTypeNode(), d_dataSort.getTypeNode());
+}
 
 /* -------------------------------------------------------------------------- */
-/* class SetUserAttribute                                                     */
+/* class SetUserAttributeCommand                                              */
 /* -------------------------------------------------------------------------- */
 
 SetUserAttributeCommand::SetUserAttributeCommand(
@@ -1584,14 +1618,6 @@ void GetValueCommand::invoke(api::Solver* solver)
     {
       api::Term request = d_terms[i];
       api::Term value = result[i];
-      if (value.getSort().isInteger()
-          && request.getSort() == solver->getRealSort())
-      {
-        // Need to wrap in division-by-one so that output printers know this
-        // is an integer-looking constant that really should be output as
-        // a rational.  Necessary for SMT-LIB standards compliance.
-        value = solver->mkTerm(api::DIVISION, value, solver->mkReal(1));
-      }
       result[i] = solver->mkTerm(api::SEXPR, request, value);
     }
     d_result = solver->mkTerm(api::SEXPR, result);

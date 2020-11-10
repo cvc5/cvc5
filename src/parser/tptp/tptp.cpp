@@ -33,8 +33,14 @@
 namespace CVC4 {
 namespace parser {
 
-Tptp::Tptp(api::Solver* solver, Input* input, bool strictMode, bool parseOnly)
-    : Parser(solver, input, strictMode, parseOnly), d_cnf(false), d_fof(false)
+Tptp::Tptp(api::Solver* solver,
+           SymbolManager* sm,
+           Input* input,
+           bool strictMode,
+           bool parseOnly)
+    : Parser(solver, sm, input, strictMode, parseOnly),
+      d_cnf(false),
+      d_fof(false)
 {
   addTheory(Tptp::THEORY_CORE);
 
