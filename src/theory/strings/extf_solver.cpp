@@ -631,13 +631,13 @@ void ExtfSolver::checkExtfInference(Node n,
       }
       else
       {
-        // If we already know that s (does not) contain t, then n is redundant.
-        // For example, if str.contains( x, y ), str.contains( z, y ), and x=z
-        // are asserted in the current context, then str.contains( z, y ) is
-        // satisfied by all models of str.contains( x, y ) ^ x=z and thus can
-        // be ignored.
+        // If we already know that s (does not) contain t, then n may be
+        // redundant. However, we do not mark n as reduced here, since strings
+        // reductions may require dependencies between extended functions.
+        // Marking reduced here could lead to incorrect models if an
+        // extended function is marked reduced based on an assignment to
+        // something that depends on n.
         Trace("strings-extf-debug") << "  redundant." << std::endl;
-        d_extt.markReduced(n);
       }
     }
     return;
