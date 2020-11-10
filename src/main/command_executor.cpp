@@ -119,9 +119,9 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
 {
   bool status = true;
   if(d_options.getVerbosity() >= -1) {
-    status = solverInvoke(d_solver.get(), cmd, d_options.getOut());
+    status = solverInvoke(d_solver.get(), d_symman.get(), cmd, d_options.getOut());
   } else {
-    status = solverInvoke(d_solver.get(), cmd, nullptr);
+    status = solverInvoke(d_solver.get(), d_symman.get(), cmd, nullptr);
   }
 
   api::Result res;
