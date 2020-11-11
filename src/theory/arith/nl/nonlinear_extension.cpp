@@ -69,6 +69,12 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
+
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
+  if (pc != nullptr)
+  {
+    d_proofChecker.registerTo(pc);
+  }
 }
 
 NonlinearExtension::~NonlinearExtension() {}
