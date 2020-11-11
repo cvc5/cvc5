@@ -70,7 +70,7 @@ void testGetInfo(api::Solver* solver, const char* s)
   assert(c != NULL);
   cout << c << endl;
   stringstream ss;
-  c->invoke(solver, ss);
+  c->invoke(solver, symman.get(), ss);
   assert(p->nextCommand() == NULL);
   delete p;
   delete c;
