@@ -20,6 +20,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <memory>
 
 #include "api/cvc4cpp.h"
 #include "expr/symbol_table.h"
@@ -38,7 +39,7 @@ class CVC4_PUBLIC SymbolManager
 {
  public:
   SymbolManager(api::Solver* s);
-  ~SymbolManager() {}
+  ~SymbolManager();
   /** Get the underlying symbol table */
   SymbolTable* getSymbolTable();
   //---------------------------- named expressions
@@ -84,7 +85,22 @@ class CVC4_PUBLIC SymbolManager
                           std::vector<std::string>& names,
                           bool areAssertions = false) const;
   //---------------------------- end named expressions
-
+  /** 
+   * Get the scope level of the symbol table.
+    */
+  size_t scopeLevel() const;
+  /**
+   * Push a scope in the symbol table.
+   */
+  void pushScope();
+  /**
+   * Pop a scope in the symbol table.
+   */
+  void popScope();
+  /**
+   * Reset this symbol manager, which resets the symbol table.
+   */
+  void reset();
  private:
   /** The API Solver object. */
   api::Solver* d_solver;
@@ -92,10 +108,9 @@ class CVC4_PUBLIC SymbolManager
    * The declaration scope that is "owned" by this symbol manager.
    */
   SymbolTable d_symtabAllocated;
-  /** Map terms to names */
-  std::map<api::Term, std::string> d_names;
-  /** The set of terms with assertion names */
-  std::set<api::Term> d_namedAsserts;
+  /** The implementation of the symbol manager */
+  class Implementation;
+  std::unique_ptr<Implementation> d_implementation;
 };
 
 }  // namespace CVC4
