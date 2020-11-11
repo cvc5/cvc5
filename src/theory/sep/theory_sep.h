@@ -100,6 +100,8 @@ class TheorySep : public Theory {
   /** finish initialization */
   void finishInit() override;
   //--------------------------------- end initialization
+  /** preregister term */
+  void preRegisterTerm(TNode n) override;
 
   std::string identify() const override { return std::string("TheorySep"); }
 
@@ -283,6 +285,11 @@ class TheorySep : public Theory {
   //get global reference/data type
   TypeNode getReferenceType( Node n );
   TypeNode getDataType( Node n );
+  /**
+   * Register reference data types for atom. Calls the method below for
+   * the appropriate types.
+   */
+  void registerRefDataTypesAtom(Node atom);
   /**
    * This is called either when:
    * (A) a declare-heap command is issued with tn1/tn2, and atom is null, or
