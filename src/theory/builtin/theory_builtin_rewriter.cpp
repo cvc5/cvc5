@@ -456,7 +456,7 @@ Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
   Assert(node.getKind() == kind::WITNESS);
   if (node[1].getKind() == kind::EQUAL)
   {
-    for (unsigned i = 0; i < 2; i++)
+    for (size_t i = 0; i < 2; i++)
     {
       // (witness ((x T)) (= x t)) ---> t
       if (node[1][i] == node[0][0])
