@@ -41,10 +41,7 @@ class Solver;
 class Term;
 }  // namespace api
 
-namespace parser {
 class SymbolManager;
-}
-
 class UnsatCore;
 class SmtEngine;
 class Command;

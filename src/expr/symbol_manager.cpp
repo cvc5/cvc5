@@ -72,5 +72,4 @@ void SymbolManager::getExpressionNames(const std::vector<api::Term>& ts,
   }
 }
 
-}  // namespace parser
 }  // namespace CVC4
