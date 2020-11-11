@@ -46,9 +46,9 @@ class TheoryBuiltinRewriter : public TheoryRewriter
   static Node getArrayRepresentationForLambdaRec(TNode n, TypeNode retType);
 
  public:
-   /** 
-    * The default rewriter for rewrites that occur at both pre and post rewrite. 
-    */
+  /**
+   * The default rewriter for rewrites that occur at both pre and post rewrite.
+   */
   static RewriteResponse doRewrite(TNode node);
   /**
    * Main entry point for rewriting terms of the form (witness ((x T)) (P x)).
