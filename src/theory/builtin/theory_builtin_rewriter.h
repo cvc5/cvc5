@@ -47,11 +47,11 @@ class TheoryBuiltinRewriter : public TheoryRewriter
 
  public:
   static RewriteResponse doRewrite(TNode node);
-  /** 
+  /**
    * Main entry point for rewriting terms of the form (witness ((x T)) (P x)).
    * Returns the rewritten form of node.
    */
-  static Node rewriteWitness(TNode node); 
+  static Node rewriteWitness(TNode node);
   /** Get function type for array type
    *
    * This returns the function type of terms returned by the function

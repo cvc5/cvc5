@@ -453,7 +453,7 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
 
 Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
 {
-  Assert (node.getKind()==kind::WITNESS);
+  Assert(node.getKind() == kind::WITNESS);
   if (node[1].getKind() == kind::EQUAL)
   {
     for (unsigned i = 0; i < 2; i++)
@@ -462,12 +462,12 @@ Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
       if (node[1][i] == node[0][0])
       {
         Trace("builtin-rewrite") << "Witness rewrite: " << node << " --> "
-                                  << node[1][1 - i] << std::endl;
+                                 << node[1][1 - i] << std::endl;
         // also must be a legal elimination: the other side of the equality
         // cannot contain the variable, and it must be a subtype of the
         // variable
-        if (!expr::hasSubterm(node[1][1 - i], node[0][0]) &&
-            node[1][i].getType().isSubtypeOf(node[0][0].getType()))
+        if (!expr::hasSubterm(node[1][1 - i], node[0][0])
+            && node[1][i].getType().isSubtypeOf(node[0][0].getType()))
         {
           return node[1][1 - i];
         }
