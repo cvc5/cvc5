@@ -320,7 +320,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
             // Trace("nl-ext-bound-lemma") << "       intro new
             // monomials = " << introNewTerms << std::endl;
             d_data->d_im.addPendingArithLemma(
-                iblem, InferenceId::NL_INFER_BOUNDS_NT, introNewTerms);
+                iblem, InferenceId::NL_INFER_BOUNDS_NT, nullptr, introNewTerms);
           }
         }
       }
