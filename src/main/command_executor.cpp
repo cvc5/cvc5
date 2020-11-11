@@ -50,7 +50,7 @@ void printStatsIncremental(std::ostream& out, const std::string& prvsStatsString
 
 CommandExecutor::CommandExecutor(Options& options)
     : d_solver(new api::Solver(&options)),
-      d_symman(new parser::SymbolManager(d_solver.get())),
+      d_symman(new SymbolManager(d_solver.get())),
       d_smtEngine(d_solver->getSmtEngine()),
       d_options(options),
       d_stats("driver"),
@@ -200,7 +200,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
 }
 
 bool solverInvoke(api::Solver* solver,
-                  parser::SymbolManager* sm,
+                  SymbolManager* sm,
                   Command* cmd,
                   std::ostream* out)
 {
