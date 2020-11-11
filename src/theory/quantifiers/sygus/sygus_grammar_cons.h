@@ -146,14 +146,6 @@ public:
   */
   static TypeNode mkSygusTemplateType( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl, const std::string& fun );
   /**
-   * Returns the sygus variable list for function-to-synthesize variable f.
-   * These are the names of the arguments of f, which should be included in the
-   * grammar for f. This returns either the variable list set explicitly via the
-   * attribute SygusSynthFunVarListAttribute, or a fresh variable list of the
-   * proper type otherwise. It will return null if f is not a function.
-   */
-  static Node getSygusVarList(Node f);
-  /**
    * Returns true iff there are syntax restrictions on the
    * functions-to-synthesize of sygus conjecture q.
    */
