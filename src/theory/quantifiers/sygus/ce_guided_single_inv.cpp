@@ -244,11 +244,13 @@ bool CegSingleInv::solve()
     {
       // Convert to rewritten witness form, which replaces e.g. ITE skolems
       // by their definitions.
+      /*
       for (unsigned j=0, nsize=d_inst[i].size(); i<nsize; i++)
       {
         Node w = SkolemManager::getWitnessForm(d_inst[i][j]);
         d_inst[i][j] =  Rewriter::rewrite(w);
       }
+      */
       std::vector<Node>& inst = d_inst[i];
       Trace("sygus-si") << "  Instantiation: " << inst << std::endl;
       // instantiation should have same arity since we are not allowed to

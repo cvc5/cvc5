@@ -97,6 +97,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
       {
         // Convert to witness+rewritten form, which e.g. replaces ITE skolems
         // with their definitions.
+        /*
         std::vector<Node> winst = inst;
         for (size_t i=0, isize=winst.size(); i<isize; i++)
         {
@@ -104,8 +105,9 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
           winst[i] = Rewriter::rewrite(w);
           Trace("smt-qe") << "Witness form conversion: " << winst[i] << " from " << inst[i] << std::endl;
         }
+        */
         Subs s;
-        s.add(vars, winst);
+        s.add(vars, inst);
         Node c = s.apply(ne[1].negate());
         conjs.push_back(c);
       }
