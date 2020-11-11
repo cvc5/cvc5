@@ -70,6 +70,7 @@ class InferenceManager : public InferenceManagerBuffered
    */
   void addPendingArithLemma(const Node& lemma,
                             InferenceId inftype,
+                            ProofGenerator* pg = nullptr,
                             bool isWaiting = false);
 
   /**
