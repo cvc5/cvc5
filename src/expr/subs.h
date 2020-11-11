@@ -54,7 +54,7 @@ class Subs
   void append(Subs& s);
   /** Return the result of this substitution on n */
   Node apply(Node n, bool doRewrite = false) const;
-  /** Return the result of the reserve of this substitution on n */
+  /** Return the result of the reverse of this substitution on n */
   Node rapply(Node n, bool doRewrite = false) const;
   /** Apply this substitution to all nodes in the range of s */
   void applyToRange(Subs& s, bool doRewrite = false) const;

@@ -12,10 +12,9 @@
  ** \brief The symbol manager
  **/
 
-#include "parser/symbol_manager.h"
+#include "expr/symbol_manager.h"
 
 namespace CVC4 {
-namespace parser {
 
 SymbolManager::SymbolManager(api::Solver* s) : d_solver(s) {}
 
@@ -73,5 +72,4 @@ void SymbolManager::getExpressionNames(const std::vector<api::Term>& ts,
   }
 }
 
-}  // namespace parser
 }  // namespace CVC4

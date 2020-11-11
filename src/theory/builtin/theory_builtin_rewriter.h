@@ -33,16 +33,6 @@ class TheoryBuiltinRewriter : public TheoryRewriter
 
  public:
 
-  static inline RewriteResponse doRewrite(TNode node)
-  {
-    switch (node.getKind())
-    {
-      case kind::DISTINCT:
-        return RewriteResponse(REWRITE_DONE, blastDistinct(node));
-      default: return RewriteResponse(REWRITE_DONE, node);
-    }
-  }
-
   RewriteResponse postRewrite(TNode node) override;
 
   RewriteResponse preRewrite(TNode node) override { return doRewrite(node); }
@@ -56,6 +46,15 @@ class TheoryBuiltinRewriter : public TheoryRewriter
   static Node getArrayRepresentationForLambdaRec(TNode n, TypeNode retType);
 
  public:
+  /**
+   * The default rewriter for rewrites that occur at both pre and post rewrite.
+   */
+  static RewriteResponse doRewrite(TNode node);
+  /**
+   * Main entry point for rewriting terms of the form (witness ((x T)) (P x)).
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteWitness(TNode node);
   /** Get function type for array type
    *
    * This returns the function type of terms returned by the function
