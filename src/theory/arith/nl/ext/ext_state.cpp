@@ -26,8 +26,11 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-ExtState::ExtState(InferenceManager& im, NlModel& model, context::Context* c)
-    : d_im(im), d_model(model)
+ExtState::ExtState(InferenceManager& im,
+                   NlModel& model,
+                   ProofNodeManager* pnm,
+                   context::Context* c)
+    : d_im(im), d_model(model), d_pnm(pnm)
 {
   d_false = NodeManager::currentNM()->mkConst(false);
   d_true = NodeManager::currentNM()->mkConst(true);
