@@ -26,16 +26,16 @@
 
 namespace CVC4 {
 
-class Options;
-
 namespace api {
 class Solver;
 }
 
+class Options;
+class SymbolManager;
+
 namespace parser {
 
 class Parser;
-class SymbolManager;
 
 /**
  * A builder for input language parsers. <code>build()</code> can be
