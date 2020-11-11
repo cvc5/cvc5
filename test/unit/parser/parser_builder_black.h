@@ -25,10 +25,10 @@
 #include <iostream>
 
 #include "api/cvc4cpp.h"
+#include "expr/symbol_manager.h"
 #include "options/language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
-#include "parser/symbol_manager.h"
 
 using namespace CVC4;
 using namespace CVC4::parser;
@@ -43,7 +43,7 @@ class ParserBuilderBlack : public CxxTest::TestSuite
     // ensure the old symbol manager is deleted
     d_symman.reset(nullptr);
     d_solver.reset(new api::Solver());
-    d_symman.reset(new parser::SymbolManager(d_solver.get()));
+    d_symman.reset(new SymbolManager(d_solver.get()));
   }
 
   void tearDown() override {}
@@ -134,6 +134,6 @@ class ParserBuilderBlack : public CxxTest::TestSuite
   }
 
   std::unique_ptr<api::Solver> d_solver;
-  std::unique_ptr<parser::SymbolManager> d_symman;
+  std::unique_ptr<SymbolManager> d_symman;
 
 }; // class ParserBuilderBlack
