@@ -374,10 +374,7 @@ bool getFreeVariables(TNode n,
       {
         visit.push_back(cur.getOperator());
       }
-      for (const TNode& cn : cur)
-      {
-        visit.push_back(cn);
-      }
+      visit.insert(visit.end(), cur.begin(), cur.end());
     }
     else if (!itv->second)
     {
@@ -413,10 +410,7 @@ bool getVariables(TNode n, std::unordered_set<TNode, TNodeHashFunction>& vs)
       }
       else
       {
-        for (const TNode& cn : cur)
-        {
-          visit.push_back(cn);
-        }
+        visit.insert(visit.end(), cur.begin(), cur.end());
       }
       visited.insert(cur);
     }
@@ -453,10 +447,41 @@ void getSymbols(TNode n,
       {
         visit.push_back(cur.getOperator());
       }
-      for (TNode cn : cur)
+      visit.insert(visit.end(), cur.begin(), cur.end());
+    }
+  } while (!visit.empty());
+}
+
+void getKindSubterms(TNode n,
+                     Kind k,
+                     bool topLevel,
+                     std::unordered_set<Node, NodeHashFunction>& ts)
+{
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+      if (cur.getKind() == k)
       {
-        visit.push_back(cn);
+        ts.insert(cur);
+        if (topLevel)
+        {
+          // only considering top-level applications
+          continue;
+        }
       }
+      if (cur.hasOperator())
+      {
+        visit.push_back(cur.getOperator());
+      }
+      visit.insert(visit.end(), cur.begin(), cur.end());
     }
   } while (!visit.empty());
 }
@@ -500,10 +525,7 @@ void getOperatorsMap(
         ops[tn].insert(o);
       }
       // add children to visit in the future
-      for (TNode cn : cur)
-      {
-        visit.push_back(cn);
-      }
+      visit.insert(visit.end(), cur.begin(), cur.end());
     }
   } while (!visit.empty());
 }
