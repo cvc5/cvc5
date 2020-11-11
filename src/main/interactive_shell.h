@@ -33,8 +33,9 @@ class Solver;
 
 namespace parser {
   class Parser;
-  class SymbolManager;
 }/* CVC4::parser namespace */
+
+class SymbolManager;
 
 class CVC4_PUBLIC InteractiveShell
 {
