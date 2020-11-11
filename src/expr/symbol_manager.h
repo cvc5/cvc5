@@ -18,9 +18,9 @@
 #define CVC4__EXPR__SYMBOL_MANAGER_H
 
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
-#include <memory>
 
 #include "api/cvc4cpp.h"
 #include "expr/symbol_table.h"
@@ -85,9 +85,9 @@ class CVC4_PUBLIC SymbolManager
                           std::vector<std::string>& names,
                           bool areAssertions = false) const;
   //---------------------------- end named expressions
-  /** 
+  /**
    * Get the scope level of the symbol table.
-    */
+   */
   size_t scopeLevel() const;
   /**
    * Push a scope in the symbol table.
@@ -101,6 +101,7 @@ class CVC4_PUBLIC SymbolManager
    * Reset this symbol manager, which resets the symbol table.
    */
   void reset();
+
  private:
   /** The API Solver object. */
   api::Solver* d_solver;

@@ -766,7 +766,7 @@ public:
   void popScope();
 
   virtual void reset();
-  
+
   void setGlobalDeclarations(bool flag) {
     d_globalDeclarations = flag;
   }

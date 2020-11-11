@@ -23,19 +23,19 @@ namespace CVC4 {
 
 // ---------------------------------------------- SymbolManager::Implementation
 
-class SymbolManager::Implementation {
-  typedef CDHashMap<api::Term, std::string, api::TermHashFunction> TermStringMap;
+class SymbolManager::Implementation
+{
+  typedef CDHashMap<api::Term, std::string, api::TermHashFunction>
+      TermStringMap;
   typedef CDHashSet<api::Term, api::TermHashFunction> TermSet;
+
  public:
   Implementation()
-      : d_context(),
-      d_names(&d_context),
-      d_namedAsserts(&d_context)
+      : d_context(), d_names(&d_context), d_namedAsserts(&d_context)
   {
   }
 
-  ~Implementation() {
-  }
+  ~Implementation() {}
   /** set expression name */
   bool setExpressionName(api::Term t,
                          const std::string& name,
@@ -50,7 +50,8 @@ class SymbolManager::Implementation {
                           bool areAssertions = false) const;
   /** reset */
   void reset();
-private:
+
+ private:
   /** The context manager for the scope maps. */
   Context d_context;
   /** Map terms to names */
@@ -58,11 +59,10 @@ private:
   /** The set of terms with assertion names */
   TermSet d_namedAsserts;
 };
-  
 
 bool SymbolManager::Implementation::setExpressionName(api::Term t,
-                                      const std::string& name,
-                                      bool isAssertion)
+                                                      const std::string& name,
+                                                      bool isAssertion)
 {
   if (d_names.find(t) != d_names.end())
   {
@@ -78,8 +78,8 @@ bool SymbolManager::Implementation::setExpressionName(api::Term t,
 }
 
 bool SymbolManager::Implementation::getExpressionName(api::Term t,
-                                      std::string& name,
-                                      bool isAssertion) const
+                                                      std::string& name,
+                                                      bool isAssertion) const
 {
   TermStringMap::const_iterator it = d_names.find(t);
   if (it == d_names.end())
@@ -98,9 +98,10 @@ bool SymbolManager::Implementation::getExpressionName(api::Term t,
   return true;
 }
 
-void SymbolManager::Implementation::getExpressionNames(const std::vector<api::Term>& ts,
-                                       std::vector<std::string>& names,
-                                       bool areAssertions) const
+void SymbolManager::Implementation::getExpressionNames(
+    const std::vector<api::Term>& ts,
+    std::vector<std::string>& names,
+    bool areAssertions) const
 {
   for (const api::Term& t : ts)
   {
@@ -119,9 +120,10 @@ void SymbolManager::Implementation::reset()
 
 // ---------------------------------------------- SymbolManager
 
-SymbolManager::SymbolManager(api::Solver* s) : d_solver(s), 
-d_implementation(new SymbolManager::Implementation())
-{}
+SymbolManager::SymbolManager(api::Solver* s)
+    : d_solver(s), d_implementation(new SymbolManager::Implementation())
+{
+}
 
 SymbolManager::~SymbolManager() {}
 
@@ -153,14 +155,9 @@ size_t SymbolManager::scopeLevel() const
   return d_symtabAllocated.getLevel();
 }
 
-void SymbolManager::pushScope() 
-{
-  d_symtabAllocated.pushScope();
-}
+void SymbolManager::pushScope() { d_symtabAllocated.pushScope(); }
 
-void SymbolManager::popScope() {
-  d_symtabAllocated.popScope();
-}
+void SymbolManager::popScope() { d_symtabAllocated.popScope(); }
 
 void SymbolManager::reset()
 {
