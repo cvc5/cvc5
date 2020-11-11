@@ -12,7 +12,7 @@
  ** \brief The symbol manager
  **/
 
-#include "cvc4parser_public.h"
+#include "cvc4_public.h"
 
 #ifndef CVC4__EXPR__SYMBOL_MANAGER_H
 #define CVC4__EXPR__SYMBOL_MANAGER_H
@@ -25,12 +25,14 @@
 #include "expr/symbol_table.h"
 
 namespace CVC4 {
-namespace parser {
 
 /**
  * Symbol manager, which manages:
  * (1) The symbol table used by the parser,
  * (2) Information related to the (! ... :named s) feature in SMT-LIB version 2.
+ * 
+ * Like SymbolTable, this class currently lives in src/expr/ since it uses
+ * context-dependent data structures.
  */
 class CVC4_PUBLIC SymbolManager
 {
@@ -96,7 +98,6 @@ class CVC4_PUBLIC SymbolManager
   std::set<api::Term> d_namedAsserts;
 };
 
-}  // namespace parser
 }  // namespace CVC4
 
-#endif /* CVC4__PARSER__SYMBOL_MANAGER_H */
+#endif /* CVC4__EXPR__SYMBOL_MANAGER_H */

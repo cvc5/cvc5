@@ -43,7 +43,7 @@
 #include "parser/input.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
-#include "parser/symbol_manager.h"
+#include "expr/symbol_manager.h"
 #include "smt/command.h"
 #include "theory/logic_info.h"
 
@@ -85,7 +85,7 @@ static set<string> s_declarations;
 #endif /* HAVE_LIBEDITLINE */
 
 InteractiveShell::InteractiveShell(api::Solver* solver,
-                                   parser::SymbolManager* sm)
+                                   SymbolManager* sm)
     : d_options(solver->getOptions()),
       d_in(*d_options.getIn()),
       d_out(*d_options.getOutConst()),

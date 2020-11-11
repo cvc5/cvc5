@@ -21,7 +21,7 @@
 #include "api/cvc4cpp.h"
 #include "expr/expr_manager.h"
 #include "options/options.h"
-#include "parser/symbol_manager.h"
+#include "expr/symbol_manager.h"
 #include "smt/smt_engine.h"
 #include "util/statistics_registry.h"
 
@@ -52,7 +52,7 @@ class CommandExecutor
    * Certain commands (e.g. reset-assertions) have a specific impact on the
    * symbol manager.
    */
-  std::unique_ptr<parser::SymbolManager> d_symman;
+  std::unique_ptr<SymbolManager> d_symman;
   SmtEngine* d_smtEngine;
   Options& d_options;
   StatisticsRegistry d_stats;
@@ -80,7 +80,7 @@ class CommandExecutor
   api::Solver* getSolver() { return d_solver.get(); }
 
   /** Get a pointer to the symbol manager owned by this CommandExecutor */
-  parser::SymbolManager* getSymbolManager() { return d_symman.get(); }
+  SymbolManager* getSymbolManager() { return d_symman.get(); }
 
   api::Result getResult() const { return d_result; }
   void reset();
@@ -117,7 +117,7 @@ private:
 }; /* class CommandExecutor */
 
 bool solverInvoke(api::Solver* solver,
-                  parser::SymbolManager* sm,
+                  SymbolManager* sm,
                   Command* cmd,
                   std::ostream* out);
 

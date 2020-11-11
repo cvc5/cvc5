@@ -27,7 +27,7 @@
 #include "options/language.h"
 #include "options/options.h"
 #include "parser/parser_builder.h"
-#include "parser/symbol_manager.h"
+#include "expr/symbol_manager.h"
 #include "smt/command.h"
 
 using namespace CVC4;
@@ -45,7 +45,7 @@ class InteractiveShellBlack : public CxxTest::TestSuite
     d_options.set(options::inputLanguage, language::input::LANG_CVC4);
     d_symman.reset(nullptr);
     d_solver.reset(new api::Solver(&d_options));
-    d_symman.reset(new parser::SymbolManager(d_solver.get()));
+    d_symman.reset(new SymbolManager(d_solver.get()));
   }
 
   void tearDown() override
@@ -99,7 +99,7 @@ class InteractiveShellBlack : public CxxTest::TestSuite
 
  private:
   std::unique_ptr<api::Solver> d_solver;
-  std::unique_ptr<parser::SymbolManager> d_symman;
+  std::unique_ptr<SymbolManager> d_symman;
   Options d_options;
   stringstream* d_sin;
   stringstream* d_sout;
