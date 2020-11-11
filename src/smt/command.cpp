@@ -28,10 +28,10 @@
 #include "base/output.h"
 #include "expr/expr_iomanip.h"
 #include "expr/node.h"
+#include "expr/symbol_manager.h"
 #include "expr/type.h"
 #include "options/options.h"
 #include "options/smt_options.h"
-#include "expr/symbol_manager.h"
 #include "printer/printer.h"
 #include "proof/unsat_core.h"
 #include "smt/dump.h"
@@ -176,9 +176,7 @@ bool Command::interrupted() const
          && dynamic_cast<const CommandInterrupted*>(d_commandStatus) != NULL;
 }
 
-void Command::invoke(api::Solver* solver,
-                     SymbolManager* sm,
-                     std::ostream& out)
+void Command::invoke(api::Solver* solver, SymbolManager* sm, std::ostream& out)
 {
   invoke(solver, sm);
   if (!(isMuted() && ok()))
@@ -454,8 +452,7 @@ const std::vector<api::Term>& CheckSatAssumingCommand::getTerms() const
   return d_terms;
 }
 
-void CheckSatAssumingCommand::invoke(api::Solver* solver,
-                                     SymbolManager* sm)
+void CheckSatAssumingCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   Trace("dtview::command") << "* ~COMMAND: (check-sat-assuming ( " << d_terms
                            << " )~" << std::endl;
@@ -577,8 +574,7 @@ DeclareSygusVarCommand::DeclareSygusVarCommand(const std::string& id,
 api::Term DeclareSygusVarCommand::getVar() const { return d_var; }
 api::Sort DeclareSygusVarCommand::getSort() const { return d_sort; }
 
-void DeclareSygusVarCommand::invoke(api::Solver* solver,
-                                    SymbolManager* sm)
+void DeclareSygusVarCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   d_commandStatus = CommandSuccess::instance();
 }
@@ -672,8 +668,7 @@ SygusConstraintCommand::SygusConstraintCommand(const api::Term& t) : d_term(t)
 {
 }
 
-void SygusConstraintCommand::invoke(api::Solver* solver,
-                                    SymbolManager* sm)
+void SygusConstraintCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
@@ -724,8 +719,7 @@ SygusInvConstraintCommand::SygusInvConstraintCommand(const api::Term& inv,
 {
 }
 
-void SygusInvConstraintCommand::invoke(api::Solver* solver,
-                                       SymbolManager* sm)
+void SygusInvConstraintCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
@@ -867,8 +861,7 @@ void ResetCommand::toStream(std::ostream& out,
 /* class ResetAssertionsCommand                                               */
 /* -------------------------------------------------------------------------- */
 
-void ResetAssertionsCommand::invoke(api::Solver* solver,
-                                    SymbolManager* sm)
+void ResetAssertionsCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
@@ -1096,8 +1089,7 @@ void DeclareFunctionCommand::setPrintInModel(bool p)
   d_printInModelSetByUser = true;
 }
 
-void DeclareFunctionCommand::invoke(api::Solver* solver,
-                                    SymbolManager* sm)
+void DeclareFunctionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   d_commandStatus = CommandSuccess::instance();
 }
@@ -1245,8 +1237,7 @@ const std::vector<api::Term>& DefineFunctionCommand::getFormals() const
 }
 
 api::Term DefineFunctionCommand::getFormula() const { return d_formula; }
-void DefineFunctionCommand::invoke(api::Solver* solver,
-                                   SymbolManager* sm)
+void DefineFunctionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
@@ -1301,8 +1292,7 @@ DefineNamedFunctionCommand::DefineNamedFunctionCommand(
 {
 }
 
-void DefineNamedFunctionCommand::invoke(api::Solver* solver,
-                                        SymbolManager* sm)
+void DefineNamedFunctionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   this->DefineFunctionCommand::invoke(solver, sm);
   if (!d_func.isNull() && d_func.getSort().isBoolean())
@@ -1374,8 +1364,7 @@ const std::vector<api::Term>& DefineFunctionRecCommand::getFormulas() const
   return d_formulas;
 }
 
-void DefineFunctionRecCommand::invoke(api::Solver* solver,
-                                      SymbolManager* sm)
+void DefineFunctionRecCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
@@ -1485,8 +1474,7 @@ SetUserAttributeCommand::SetUserAttributeCommand(const std::string& attr,
 {
 }
 
-void SetUserAttributeCommand::invoke(api::Solver* solver,
-                                     SymbolManager* sm)
+void SetUserAttributeCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
@@ -1664,8 +1652,7 @@ void GetValueCommand::toStream(std::ostream& out,
 /* -------------------------------------------------------------------------- */
 
 GetAssignmentCommand::GetAssignmentCommand() {}
-void GetAssignmentCommand::invoke(api::Solver* solver,
-                                  SymbolManager* sm)
+void GetAssignmentCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
@@ -1850,8 +1837,7 @@ const std::vector<api::Term>& BlockModelValuesCommand::getTerms() const
 {
   return d_terms;
 }
-void BlockModelValuesCommand::invoke(api::Solver* solver,
-                                     SymbolManager* sm)
+void BlockModelValuesCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
@@ -1923,8 +1909,7 @@ void GetProofCommand::toStream(std::ostream& out,
 /* -------------------------------------------------------------------------- */
 
 GetInstantiationsCommand::GetInstantiationsCommand() : d_solver(nullptr) {}
-void GetInstantiationsCommand::invoke(api::Solver* solver,
-                                      SymbolManager* sm)
+void GetInstantiationsCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
@@ -1976,8 +1961,7 @@ void GetInstantiationsCommand::toStream(std::ostream& out,
 /* -------------------------------------------------------------------------- */
 
 GetSynthSolutionCommand::GetSynthSolutionCommand() : d_solver(nullptr) {}
-void GetSynthSolutionCommand::invoke(api::Solver* solver,
-                                     SymbolManager* sm)
+void GetSynthSolutionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
@@ -2280,8 +2264,7 @@ void GetQuantifierEliminationCommand::toStream(std::ostream& out,
 
 GetUnsatAssumptionsCommand::GetUnsatAssumptionsCommand() {}
 
-void GetUnsatAssumptionsCommand::invoke(api::Solver* solver,
-                                        SymbolManager* sm)
+void GetUnsatAssumptionsCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
@@ -2406,8 +2389,7 @@ void GetUnsatCoreCommand::toStream(std::ostream& out,
 /* -------------------------------------------------------------------------- */
 
 GetAssertionsCommand::GetAssertionsCommand() {}
-void GetAssertionsCommand::invoke(api::Solver* solver,
-                                  SymbolManager* sm)
+void GetAssertionsCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
@@ -2473,8 +2455,7 @@ BenchmarkStatus SetBenchmarkStatusCommand::getStatus() const
   return d_status;
 }
 
-void SetBenchmarkStatusCommand::invoke(api::Solver* solver,
-                                       SymbolManager* sm)
+void SetBenchmarkStatusCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
@@ -2525,8 +2506,7 @@ SetBenchmarkLogicCommand::SetBenchmarkLogicCommand(std::string logic)
 }
 
 std::string SetBenchmarkLogicCommand::getLogic() const { return d_logic; }
-void SetBenchmarkLogicCommand::invoke(api::Solver* solver,
-                                      SymbolManager* sm)
+void SetBenchmarkLogicCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
@@ -2773,8 +2753,7 @@ SetExpressionNameCommand::SetExpressionNameCommand(api::Term term,
 {
 }
 
-void SetExpressionNameCommand::invoke(api::Solver* solver,
-                                      SymbolManager* sm)
+void SetExpressionNameCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   solver->getSmtEngine()->setExpressionName(d_term.getExpr(), d_name);
   d_commandStatus = CommandSuccess::instance();
@@ -2822,8 +2801,7 @@ const std::vector<api::Sort>& DatatypeDeclarationCommand::getDatatypes() const
   return d_datatypes;
 }
 
-void DatatypeDeclarationCommand::invoke(api::Solver* solver,
-                                        SymbolManager* sm)
+void DatatypeDeclarationCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   d_commandStatus = CommandSuccess::instance();
 }

@@ -25,10 +25,10 @@
 #include <iostream>
 
 #include "api/cvc4cpp.h"
+#include "expr/symbol_manager.h"
 #include "options/language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
-#include "expr/symbol_manager.h"
 
 using namespace CVC4;
 using namespace CVC4::parser;

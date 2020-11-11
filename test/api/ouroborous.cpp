@@ -111,8 +111,7 @@ void runTestString(std::string instr, InputLanguage instrlang = input::LANG_SMTL
 int runTest() {
   std::unique_ptr<api::Solver> solver =
       std::unique_ptr<api::Solver>(new api::Solver());
-  std::unique_ptr<SymbolManager> symman(
-      new SymbolManager(solver.get()));
+  std::unique_ptr<SymbolManager> symman(new SymbolManager(solver.get()));
   psr = ParserBuilder(solver.get(), symman.get(), "internal-buffer")
             .withStringInput(declarations)
             .withInputLanguage(input::LANG_SMTLIB_V2)

@@ -26,11 +26,11 @@
 
 #include "api/cvc4cpp.h"
 #include "expr/kind.h"
+#include "expr/symbol_manager.h"
 #include "expr/symbol_table.h"
 #include "parser/input.h"
 #include "parser/parse_op.h"
 #include "parser/parser_exception.h"
-#include "expr/symbol_manager.h"
 #include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
