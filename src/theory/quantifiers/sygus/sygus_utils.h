@@ -32,8 +32,14 @@ class SygusUtils
   /**
    * Make (negated) sygus conjecture of the form
    *   forall fs. conj
-   * with instantiation attributes in ips. Notice that the marker for
+   * with instantiation attributes in iattrs. Notice that the marker for
    * sygus conjecture is automatically prepended to this list.
+   * 
+   * @param fs The functions
+   * @param conj The (negated) conjecture body
+   * @param iattrs The attributes of the conjecture. Notice this does not
+   * require the "sygus attribute" marker, which is automatically generated
+   * by this method.
    */
   static Node mkSygusConjecture(const std::vector<Node>& fs,
                                 Node conj,
@@ -42,7 +48,12 @@ class SygusUtils
   static Node mkSygusConjecture(const std::vector<Node>& fs, Node conj);
 
   /**
-   * Make conjecture, with a set of solved functions.
+   * Make conjecture, with a set of solved functions. In particular,
+   * solvedf is a substitution of the form { f1 -> t1, ... fn -> tn } where
+   * each f1 ... fn are in fs.
+   * 
+   * In the implementation, solutions for solved functions are stored
+   * in the instantiation attribute list of the returned conjecture.
    */
   static Node mkSygusConjecture(const std::vector<Node>& fs,
                                 Node conj,
