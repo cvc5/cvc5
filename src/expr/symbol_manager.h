@@ -14,8 +14,8 @@
 
 #include "cvc4parser_public.h"
 
-#ifndef CVC4__PARSER__SYMBOL_MANAGER_H
-#define CVC4__PARSER__SYMBOL_MANAGER_H
+#ifndef CVC4__EXPR__SYMBOL_MANAGER_H
+#define CVC4__EXPR__SYMBOL_MANAGER_H
 
 #include <map>
 #include <set>
