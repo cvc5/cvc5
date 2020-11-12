@@ -770,6 +770,29 @@ void Parser::attributeNotSupported(const std::string& attr) {
   }
 }
 
+size_t Parser::scopeLevel() const { return d_symman->scopeLevel(); }
+
+void Parser::pushScope(bool bindingLevel)
+{
+  d_symman->pushScope();
+  if (!bindingLevel)
+  {
+    d_assertionLevel = scopeLevel();
+  }
+}
+
+void Parser::popScope()
+{
+  d_symman->popScope();
+  if (scopeLevel() < d_assertionLevel)
+  {
+    d_assertionLevel = scopeLevel();
+    d_reservedSymbols.clear();
+  }
+}
+
+void Parser::reset() { d_symman->reset(); }
+
 std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
 {
   std::vector<unsigned> str;
