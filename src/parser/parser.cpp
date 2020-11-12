@@ -239,7 +239,8 @@ api::Term Parser::mkAnonymousFunction(const std::string& prefix,
                                       uint32_t flags)
 {
   bool globalDecls = d_symman->getGlobalDeclarations();
-  if (globalDecls) {
+  if (globalDecls)
+  {
     flags |= ExprManager::VAR_FLAG_GLOBAL;
   }
   stringstream name;
@@ -253,7 +254,8 @@ std::vector<api::Term> Parser::bindVars(const std::vector<std::string> names,
                                         bool doOverload)
 {
   bool globalDecls = d_symman->getGlobalDeclarations();
-  if (globalDecls) {
+  if (globalDecls)
+  {
     flags |= ExprManager::VAR_FLAG_GLOBAL;
   }
   std::vector<api::Term> vars;
@@ -337,9 +339,7 @@ api::Sort Parser::mkSort(const std::string& name, uint32_t flags)
       api::Sort(d_solver, d_solver->getExprManager()->mkSort(name, flags));
   bool globalDecls = d_symman->getGlobalDeclarations();
   defineType(
-      name,
-      type,
-      globalDecls && !(flags & ExprManager::SORT_FLAG_PLACEHOLDER));
+      name, type, globalDecls && !(flags & ExprManager::SORT_FLAG_PLACEHOLDER));
   return type;
 }
 
@@ -353,11 +353,10 @@ api::Sort Parser::mkSortConstructor(const std::string& name,
       d_solver,
       d_solver->getExprManager()->mkSortConstructor(name, arity, flags));
   bool globalDecls = d_symman->getGlobalDeclarations();
-  defineType(
-      name,
-      vector<api::Sort>(arity),
-      type,
-      globalDecls && !(flags & ExprManager::SORT_FLAG_PLACEHOLDER));
+  defineType(name,
+             vector<api::Sort>(arity),
+             type,
+             globalDecls && !(flags & ExprManager::SORT_FLAG_PLACEHOLDER));
   return type;
 }
 
@@ -447,8 +446,7 @@ std::vector<api::Sort> Parser::bindMutualDatatypeTypes(
           if(!doOverload) {
             checkDeclaration(constructorName, CHECK_UNDECLARED);
           }
-          defineVar(
-              constructorName, constructor, globalDecls, doOverload);
+          defineVar(constructorName, constructor, globalDecls, doOverload);
           consNames.insert(constructorName);
         }else{
           throw ParserException(constructorName + " already declared in this datatype");
