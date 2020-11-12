@@ -30,7 +30,10 @@ class SymbolManager::Implementation
 
  public:
   Implementation()
-      : d_context(), d_names(&d_context), d_namedAsserts(&d_context), d_hasPushedScope(&d_context, false)
+      : d_context(),
+        d_names(&d_context),
+        d_namedAsserts(&d_context),
+        d_hasPushedScope(&d_context, false)
   {
   }
 
@@ -53,6 +56,7 @@ class SymbolManager::Implementation
   void pushScope(bool isUserContext);
   /** Pop a scope in the expression names. */
   void popScope();
+
  private:
   /** The context manager for the scope maps. */
   Context d_context;
@@ -60,7 +64,7 @@ class SymbolManager::Implementation
   TermStringMap d_names;
   /** The set of terms with assertion names */
   TermSet d_namedAsserts;
-  /** 
+  /**
    * Have we pushed a scope (e.g. a let or quantifier) in the current context?
    */
   CDO<bool> d_hasPushedScope;
@@ -130,7 +134,8 @@ void SymbolManager::pushScope(bool isUserContext)
 
 void SymbolManager::popScope()
 {
-  if (d_context.getLevel() == 0) {
+  if (d_context.getLevel() == 0)
+  {
     throw ScopeException();
   }
   d_context.pop();
@@ -144,7 +149,8 @@ void SymbolManager::Implementation::reset()
 // ---------------------------------------------- SymbolManager
 
 SymbolManager::SymbolManager(api::Solver* s)
-    : d_solver(s), d_implementation(new SymbolManager::Implementation()),
+    : d_solver(s),
+      d_implementation(new SymbolManager::Implementation()),
       d_globalDeclarations(false)
 {
 }
@@ -179,9 +185,10 @@ size_t SymbolManager::scopeLevel() const
   return d_symtabAllocated.getLevel();
 }
 
-void SymbolManager::pushScope(bool isUserContext) { 
+void SymbolManager::pushScope(bool isUserContext)
+{
   d_implementation->pushScope(isUserContext);
-  d_symtabAllocated.pushScope(); 
+  d_symtabAllocated.pushScope();
 }
 
 void SymbolManager::popScope() { d_symtabAllocated.popScope(); }

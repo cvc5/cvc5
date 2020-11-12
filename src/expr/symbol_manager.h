@@ -91,7 +91,7 @@ class CVC4_PUBLIC SymbolManager
   size_t scopeLevel() const;
   /**
    * Push a scope in the symbol table.
-   * 
+   *
    * @param isUserContext If true, this push is denoting a push of the user
    * context, e.g. via an smt2 push/pop command. Otherwise, this push is
    * due to a let/quantifier binding.
@@ -109,6 +109,7 @@ class CVC4_PUBLIC SymbolManager
   void setGlobalDeclarations(bool flag);
   /** Get global declarations flag. */
   bool getGlobalDeclarations() const;
+
  private:
   /** The API Solver object. */
   api::Solver* d_solver;
