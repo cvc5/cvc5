@@ -23,6 +23,7 @@
 #include "printer/cvc/cvc_printer.h"
 #include "printer/smt2/smt2_printer.h"
 #include "printer/tptp/tptp_printer.h"
+#include "proof/unsat_core.h"
 #include "smt/command.h"
 #include "smt/node_command.h"
 
@@ -88,7 +89,7 @@ void Printer::toStream(std::ostream& out, const smt::Model& m) const
 void Printer::toStream(std::ostream& out, const UnsatCore& core) const
 {
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
-    toStreamCmdAssert(out, Node::fromExpr(*i));
+    toStreamCmdAssert(out, *i);
     out << std::endl;
   }
 }/* Printer::toStream(UnsatCore) */
@@ -412,6 +413,13 @@ void Printer::toStreamCmdComment(std::ostream& out,
                                  const std::string& comment) const
 {
   printUnknownCommand(out, "comment");
+}
+
+void Printer::toStreamCmdDeclareHeap(std::ostream& out,
+                                     TypeNode locType,
+                                     TypeNode dataType) const
+{
+  printUnknownCommand(out, "declare-heap");
 }
 
 void Printer::toStreamCmdCommandSequence(

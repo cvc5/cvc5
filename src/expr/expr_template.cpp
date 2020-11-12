@@ -593,10 +593,13 @@ bool Expr::hasFreeVariable() const
   return expr::hasFreeVar(*d_node);
 }
 
-void Expr::toStream(std::ostream& out, int depth, bool types, size_t dag,
-                    OutputLanguage language) const {
+void Expr::toStream(std::ostream& out,
+                    int depth,
+                    size_t dag,
+                    OutputLanguage language) const
+{
   ExprManagerScope ems(*this);
-  d_node->toStream(out, depth, types, dag, language);
+  d_node->toStream(out, depth, dag, language);
 }
 
 Node Expr::getNode() const { return *d_node; }

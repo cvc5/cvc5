@@ -23,6 +23,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "theory/strings/eqc_info.h"
+#include "theory/strings/infer_info.h"
 #include "theory/theory_model.h"
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
@@ -66,7 +67,7 @@ class SolverState : public TheoryState
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
   //-------------------------------------- end notifications for equalities
   //------------------------------------------ conflicts
-  /** set pending conflict
+  /** set pending prefix conflict
    *
    * If conf is non-null, this is called when conf is a conjunction of literals
    * that hold in the current context that are unsatisfiable. It is set as the
@@ -76,9 +77,16 @@ class SolverState : public TheoryState
    * during a merge operation, when the equality engine is not in a state to
    * provide explanations.
    */
-  void setPendingConflictWhen(Node conf);
+  void setPendingPrefixConflictWhen(Node conf);
+  /**
+   * Set pending conflict, infer info version. Called when we are in conflict
+   * based on the inference ii. This generalizes the above method.
+   */
+  void setPendingConflict(InferInfo& ii);
+  /** return true if we have a pending conflict */
+  bool hasPendingConflict() const;
   /** get the pending conflict, or null if none exist */
-  Node getPendingConflict() const;
+  bool getPendingConflict(InferInfo& ii) const;
   //------------------------------------------ end conflicts
   /** get length with explanation
    *
@@ -152,13 +160,16 @@ class SolverState : public TheoryState
  private:
   /** Common constants */
   Node d_zero;
+  Node d_false;
   /**
    * The (SAT-context-dependent) list of disequalities that have been asserted
    * to the equality engine above.
    */
   NodeList d_eeDisequalities;
   /** The pending conflict if one exists */
-  context::CDO<Node> d_pendingConflict;
+  context::CDO<bool> d_pendingConflictSet;
+  /** The pending conflict, valid if the above flag is true */
+  InferInfo d_pendingConflict;
   /** Map from representatives to their equivalence class information */
   std::map<Node, EqcInfo*> d_eqcInfo;
 }; /* class TheoryStrings */

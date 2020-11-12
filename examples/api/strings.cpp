@@ -56,7 +56,7 @@ int main()
   // Length of y: |y|
   Term leny = slv.mkTerm(STRING_LENGTH, y);
   // |y| >= 0
-  Term formula2 = slv.mkTerm(GEQ, leny, slv.mkReal(0));
+  Term formula2 = slv.mkTerm(GEQ, leny, slv.mkInteger(0));
 
   // Regular expression: (ab[c-e]*f)|g|h
   Term r = slv.mkTerm(REGEXP_UNION,

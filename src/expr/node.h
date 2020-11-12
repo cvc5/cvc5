@@ -821,19 +821,16 @@ public:
    * @param out the stream to serialize this node to
    * @param toDepth the depth to which to print this expression, or -1 to
    * print it fully
-   * @param types set to true to ascribe types to the output expressions
-   * (might break language compliance, but good for debugging expressions)
    * @param language the language in which to output
    */
   inline void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
       size_t dagThreshold = 1,
       OutputLanguage language = language::output::LANG_AUTO) const
   {
     assertTNodeNotExpired();
-    d_nv->toStream(out, toDepth, types, dagThreshold, language);
+    d_nv->toStream(out, toDepth, dagThreshold, language);
   }
 
   /**
@@ -851,17 +848,6 @@ public:
    * gives "(OR a b (...))"
    */
   typedef expr::ExprSetDepth setdepth;
-
-  /**
-   * IOStream manipulator to print type ascriptions or not.
-   *
-   *   // let a, b, c, and d be variables of sort U
-   *   Node n = nm->mkNode(OR, a, b, nm->mkNode(AND, c, nm->mkNode(NOT, d)))
-   *   out << n;
-   *
-   * gives "(OR a:U b:U (AND c:U (NOT d:U)))", but
-   */
-  typedef expr::ExprPrintTypes printtypes;
 
   /**
    * IOStream manipulator to print expressions as DAGs (or not).
@@ -909,7 +895,6 @@ public:
 inline std::ostream& operator<<(std::ostream& out, TNode n) {
   n.toStream(out,
              Node::setdepth::getDepth(out),
-             Node::printtypes::getPrintTypes(out),
              Node::dag::getDag(out),
              Node::setlanguage::getLanguage(out));
   return out;
@@ -1523,7 +1508,6 @@ inline Node NodeTemplate<true>::fromExpr(const Expr& e) {
  */
 static void __attribute__((used)) debugPrintNode(const NodeTemplate<true>& n) {
   Warning() << Node::setdepth(-1)
-            << Node::printtypes(false)
             << Node::dag(true)
             << Node::setlanguage(language::output::LANG_AST)
             << n << std::endl;
@@ -1531,7 +1515,6 @@ static void __attribute__((used)) debugPrintNode(const NodeTemplate<true>& n) {
 }
 static void __attribute__((used)) debugPrintNodeNoDag(const NodeTemplate<true>& n) {
   Warning() << Node::setdepth(-1)
-            << Node::printtypes(false)
             << Node::dag(false)
             << Node::setlanguage(language::output::LANG_AST)
             << n << std::endl;
@@ -1544,7 +1527,6 @@ static void __attribute__((used)) debugPrintRawNode(const NodeTemplate<true>& n)
 
 static void __attribute__((used)) debugPrintTNode(const NodeTemplate<false>& n) {
   Warning() << Node::setdepth(-1)
-            << Node::printtypes(false)
             << Node::dag(true)
             << Node::setlanguage(language::output::LANG_AST)
             << n << std::endl;
@@ -1552,7 +1534,6 @@ static void __attribute__((used)) debugPrintTNode(const NodeTemplate<false>& n) 
 }
 static void __attribute__((used)) debugPrintTNodeNoDag(const NodeTemplate<false>& n) {
   Warning() << Node::setdepth(-1)
-            << Node::printtypes(false)
             << Node::dag(false)
             << Node::setlanguage(language::output::LANG_AST)
             << n << std::endl;
