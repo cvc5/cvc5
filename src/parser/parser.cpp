@@ -50,7 +50,6 @@ Parser::Parser(api::Solver* solver,
       d_symman(sm),
       d_symtab(sm->getSymbolTable()),
       d_assertionLevel(0),
-      d_globalDeclarations(false),
       d_anonymousFunctionCount(0),
       d_done(false),
       d_checksEnabled(true),
@@ -239,7 +238,8 @@ api::Term Parser::mkAnonymousFunction(const std::string& prefix,
                                       const api::Sort& type,
                                       uint32_t flags)
 {
-  if (d_globalDeclarations) {
+  bool globalDecls = d_symman->getGlobalDeclarations();
+  if (globalDecls) {
     flags |= ExprManager::VAR_FLAG_GLOBAL;
   }
   stringstream name;
@@ -252,7 +252,8 @@ std::vector<api::Term> Parser::bindVars(const std::vector<std::string> names,
                                         uint32_t flags,
                                         bool doOverload)
 {
-  if (d_globalDeclarations) {
+  bool globalDecls = d_symman->getGlobalDeclarations();
+  if (globalDecls) {
     flags |= ExprManager::VAR_FLAG_GLOBAL;
   }
   std::vector<api::Term> vars;
@@ -334,10 +335,11 @@ api::Sort Parser::mkSort(const std::string& name, uint32_t flags)
   Debug("parser") << "newSort(" << name << ")" << std::endl;
   api::Sort type =
       api::Sort(d_solver, d_solver->getExprManager()->mkSort(name, flags));
+  bool globalDecls = d_symman->getGlobalDeclarations();
   defineType(
       name,
       type,
-      d_globalDeclarations && !(flags & ExprManager::SORT_FLAG_PLACEHOLDER));
+      globalDecls && !(flags & ExprManager::SORT_FLAG_PLACEHOLDER));
   return type;
 }
 
@@ -350,11 +352,12 @@ api::Sort Parser::mkSortConstructor(const std::string& name,
   api::Sort type = api::Sort(
       d_solver,
       d_solver->getExprManager()->mkSortConstructor(name, arity, flags));
+  bool globalDecls = d_symman->getGlobalDeclarations();
   defineType(
       name,
       vector<api::Sort>(arity),
       type,
-      d_globalDeclarations && !(flags & ExprManager::SORT_FLAG_PLACEHOLDER));
+      globalDecls && !(flags & ExprManager::SORT_FLAG_PLACEHOLDER));
   return type;
 }
 
@@ -413,6 +416,7 @@ std::vector<api::Sort> Parser::bindMutualDatatypeTypes(
         d_solver->mkDatatypeSorts(datatypes, d_unresolved);
 
     assert(datatypes.size() == types.size());
+    bool globalDecls = d_symman->getGlobalDeclarations();
 
     for (unsigned i = 0; i < datatypes.size(); ++i) {
       api::Sort t = types[i];
@@ -425,11 +429,11 @@ std::vector<api::Sort> Parser::bindMutualDatatypeTypes(
       if (t.isParametricDatatype())
       {
         std::vector<api::Sort> paramTypes = t.getDatatypeParamSorts();
-        defineType(name, paramTypes, t, d_globalDeclarations);
+        defineType(name, paramTypes, t, globalDecls);
       }
       else
       {
-        defineType(name, t, d_globalDeclarations);
+        defineType(name, t, globalDecls);
       }
       std::unordered_set< std::string > consNames;
       std::unordered_set< std::string > selNames;
@@ -444,7 +448,7 @@ std::vector<api::Sort> Parser::bindMutualDatatypeTypes(
             checkDeclaration(constructorName, CHECK_UNDECLARED);
           }
           defineVar(
-              constructorName, constructor, d_globalDeclarations, doOverload);
+              constructorName, constructor, globalDecls, doOverload);
           consNames.insert(constructorName);
         }else{
           throw ParserException(constructorName + " already declared in this datatype");
@@ -458,7 +462,7 @@ std::vector<api::Sort> Parser::bindMutualDatatypeTypes(
           {
             checkDeclaration(testerName, CHECK_UNDECLARED);
           }
-          defineVar(testerName, tester, d_globalDeclarations, doOverload);
+          defineVar(testerName, tester, globalDecls, doOverload);
         }
         for (size_t k = 0, nargs = ctor.getNumSelectors(); k < nargs; k++)
         {
@@ -470,7 +474,7 @@ std::vector<api::Sort> Parser::bindMutualDatatypeTypes(
             if(!doOverload) {
               checkDeclaration(selectorName, CHECK_UNDECLARED);
             }
-            defineVar(selectorName, selector, d_globalDeclarations, doOverload);
+            defineVar(selectorName, selector, globalDecls, doOverload);
             selNames.insert(selectorName);
           }else{
             throw ParserException(selectorName + " already declared in this datatype");
