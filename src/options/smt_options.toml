@@ -429,7 +429,7 @@ header = "options/smt_options.h"
   help = "print uninterpreted elements declare-fun, and also include a declare-sort for the sort"
 [[option.mode.DeclFun]]
   name = "decl-fun"
-  help = "print uninterpreted elements declare-fun, but don'tinclude a declare-sort for the sort"
+  help = "(default) print uninterpreted elements declare-fun, but don't include a declare-sort for the sort"
 
 [[option]]
   name       = "modelWitnessValue"
