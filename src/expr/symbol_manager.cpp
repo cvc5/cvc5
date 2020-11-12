@@ -30,7 +30,7 @@ class SymbolManager::Implementation
 
  public:
   Implementation()
-      : d_context(), d_names(&d_context), d_namedAsserts(&d_context)
+      : d_context(), d_names(&d_context), d_namedAsserts(&d_context), d_hasPushedScope(&d_context, false)
   {
   }
 
@@ -50,7 +50,7 @@ class SymbolManager::Implementation
   /** reset */
   void reset();
   /** Push a scope in the expression names. */
-  void pushScope();
+  void pushScope(bool isUserContext);
   /** Pop a scope in the expression names. */
   void popScope();
  private:
@@ -60,6 +60,10 @@ class SymbolManager::Implementation
   TermStringMap d_names;
   /** The set of terms with assertion names */
   TermSet d_namedAsserts;
+  /** 
+   * Have we pushed a scope (e.g. a let or quantifier) in the current context?
+   */
+  CDO<bool> d_hasPushedScope;
 };
 
 bool SymbolManager::Implementation::setExpressionName(api::Term t,
@@ -115,6 +119,23 @@ void SymbolManager::Implementation::getExpressionNames(
   }
 }
 
+void SymbolManager::pushScope(bool isUserContext)
+{
+  d_context.push();
+  if (!isUserContext)
+  {
+    d_hasPushedScope = true;
+  }
+}
+
+void SymbolManager::popScope()
+{
+  if (d_context.getLevel() == 0) {
+    throw ScopeException();
+  }
+  d_context.pop();
+}
+
 void SymbolManager::Implementation::reset()
 {
   // clear names?
@@ -123,7 +144,8 @@ void SymbolManager::Implementation::reset()
 // ---------------------------------------------- SymbolManager
 
 SymbolManager::SymbolManager(api::Solver* s)
-    : d_solver(s), d_implementation(new SymbolManager::Implementation())
+    : d_solver(s), d_implementation(new SymbolManager::Implementation()),
+      d_globalDeclarations(false)
 {
 }
 
@@ -157,9 +179,22 @@ size_t SymbolManager::scopeLevel() const
   return d_symtabAllocated.getLevel();
 }
 
-void SymbolManager::pushScope() { d_symtabAllocated.pushScope(); }
+void SymbolManager::pushScope(bool isUserContext) { 
+  d_implementation->pushScope(isUserContext);
+  d_symtabAllocated.pushScope(); 
+}
 
 void SymbolManager::popScope() { d_symtabAllocated.popScope(); }
+
+void SymbolManager::setGlobalDeclarations(bool flag)
+{
+  d_globalDeclarations = flag;
+}
+
+bool SymbolManager::getGlobalDeclarations() const
+{
+  return d_globalDeclarations;
+}
 
 void SymbolManager::reset()
 {

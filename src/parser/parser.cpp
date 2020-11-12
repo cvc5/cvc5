@@ -205,7 +205,7 @@ api::Term Parser::bindVar(const std::string& name,
                           uint32_t flags,
                           bool doOverload)
 {
-  if (d_globalDeclarations) {
+  if (d_symman->getGlobalDeclarations()) {
     flags |= ExprManager::VAR_FLAG_GLOBAL;
   }
   Debug("parser") << "bindVar(" << name << ", " << type << ")" << std::endl;
@@ -774,7 +774,7 @@ size_t Parser::scopeLevel() const { return d_symman->scopeLevel(); }
 
 void Parser::pushScope(bool bindingLevel)
 {
-  d_symman->pushScope();
+  d_symman->pushScope(!bindingLevel);
   if (!bindingLevel)
   {
     d_assertionLevel = scopeLevel();
@@ -792,6 +792,11 @@ void Parser::popScope()
 }
 
 void Parser::reset() { d_symman->reset(); }
+
+SymbolManager* getSymbolManager()
+{
+  return d_symman;
+}
 
 std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
 {

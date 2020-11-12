@@ -91,8 +91,12 @@ class CVC4_PUBLIC SymbolManager
   size_t scopeLevel() const;
   /**
    * Push a scope in the symbol table.
+   * 
+   * @param isUserContext If true, this push is denoting a push of the user
+   * context, e.g. via an smt2 push/pop command. Otherwise, this push is
+   * due to a let/quantifier binding.
    */
-  void pushScope();
+  void pushScope(bool isUserContext);
   /**
    * Pop a scope in the symbol table.
    */
@@ -101,7 +105,10 @@ class CVC4_PUBLIC SymbolManager
    * Reset this symbol manager, which resets the symbol table.
    */
   void reset();
-
+  /** Set global declarations to the value flag. */
+  void setGlobalDeclarations(bool flag);
+  /** Get global declarations flag. */
+  bool getGlobalDeclarations() const;
  private:
   /** The API Solver object. */
   api::Solver* d_solver;
@@ -112,6 +119,8 @@ class CVC4_PUBLIC SymbolManager
   /** The implementation of the symbol manager */
   class Implementation;
   std::unique_ptr<Implementation> d_implementation;
+  /** Whether the global declarations option is enabled (default false) */
+  bool d_globalDeclarations
 };
 
 }  // namespace CVC4
