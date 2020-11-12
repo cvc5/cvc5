@@ -29,9 +29,9 @@ InferProofCons::InferProofCons(context::Context* c, ProofNodeManager* pnm)
   Assert(d_pnm != nullptr);
 }
 
-void InferProofCons::notifyFact(std::shared_ptr<DatatypesInference> di)
+void InferProofCons::notifyFact(const std::shared_ptr<DatatypesInference>& di)
 {
-  Node fact = di->d_conc;
+  TNode fact = di->d_conc;
   if (d_lazyFactMap.find(fact) != d_lazyFactMap.end())
   {
     return;
@@ -44,7 +44,7 @@ void InferProofCons::notifyFact(std::shared_ptr<DatatypesInference> di)
   d_lazyFactMap.insert(fact, di);
 }
 
-void InferProofCons::convert(InferId infer, Node conc, Node exp, CDProof* cdp)
+void InferProofCons::convert(InferId infer, TNode conc, TNode exp, CDProof* cdp)
 {
   Trace("dt-ipc") << "convert: " << infer << ": " << conc << " by " << exp
                   << std::endl;
