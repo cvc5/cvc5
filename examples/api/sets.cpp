@@ -69,13 +69,13 @@ int main()
 
   // Find me an element in {1, 2} intersection {2, 3}, if there is one.
   {
-    Term one = slv.mkReal(1);
-    Term two = slv.mkReal(2);
-    Term three = slv.mkReal(3);
+    Term one = slv.mkInteger(1);
+    Term two = slv.mkInteger(2);
+    Term three = slv.mkInteger(3);
 
-    Term singleton_one = slv.mkSingleton(integer, one);
-    Term singleton_two = slv.mkSingleton(integer, two);
-    Term singleton_three = slv.mkSingleton(integer, three);
+    Term singleton_one = slv.mkTerm(SINGLETON, one);
+    Term singleton_two = slv.mkTerm(SINGLETON, two);
+    Term singleton_three = slv.mkTerm(SINGLETON, three);
     Term one_two = slv.mkTerm(UNION, singleton_one, singleton_two);
     Term two_three = slv.mkTerm(UNION, singleton_two, singleton_three);
     Term intersection = slv.mkTerm(INTERSECTION, one_two, two_three);

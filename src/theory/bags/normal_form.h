@@ -115,6 +115,13 @@ class NormalForm
   static Node evaluateBagCount(TNode n);
 
   /**
+   * @param n has the form (duplicate_removal A) where A is a constant bag
+   * @return a constant bag constructed from the elements in A where each
+   * element has multiplicity one
+   */
+  static Node evaluateDuplicateRemoval(TNode n);
+
+  /**
    * evaluates union disjoint node such that the returned node is a canonical
    * bag that has the form
    * (union_disjoint (mkBag e1 c1) ...

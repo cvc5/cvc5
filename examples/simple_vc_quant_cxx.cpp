@@ -40,7 +40,7 @@ int main() {
   std::cout << "Made expression : " << quantpospx << std::endl;
 
   //make ~P( 5 )
-  Term five = slv.mkReal(5);
+  Term five = slv.mkInteger(5);
   Term pfive = slv.mkTerm(Kind::APPLY_UF, p, five);
   Term negpfive = slv.mkTerm(Kind::NOT, pfive);
   std::cout << "Made expression : " << negpfive << std::endl;

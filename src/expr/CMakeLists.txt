@@ -12,6 +12,7 @@ libcvc4_add_sources(
   array.h
   array_store_all.cpp
   array_store_all.h
+  ascription_type.cpp
   ascription_type.h
   attribute.h
   attribute.cpp
@@ -75,6 +76,8 @@ libcvc4_add_sources(
   proof_step_buffer.h
   skolem_manager.cpp
   skolem_manager.h
+  symbol_manager.cpp
+  symbol_manager.h
   symbol_table.cpp
   symbol_table.h
   tconv_seq_proof_generator.cpp

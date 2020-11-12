@@ -174,6 +174,7 @@ void CheckModels::checkModel(Model* m,
     Notice() << "SmtEngine::checkModel(): checking assertion " << assertion
              << std::endl;
     Node n = assertion;
+    Notice() << "SmtEngine::checkModel(): -- rewritten form is " << Rewriter::rewrite(n) << std::endl;
     Node nr = Rewriter::rewrite(substitutions.apply(n));
     if (nr.isConst() && nr.getConst<bool>())
     {

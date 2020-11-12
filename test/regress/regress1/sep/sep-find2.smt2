@@ -1,5 +1,6 @@
 (set-logic QF_SEP_LIA)
 (set-info :status unsat)
+(declare-heap (Int Int))
 
 (declare-const x1 Int)
 (declare-const x2 Int)
