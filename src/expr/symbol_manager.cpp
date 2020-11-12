@@ -25,9 +25,8 @@ namespace CVC4 {
 
 class SymbolManager::Implementation
 {
-  typedef CDHashMap<api::Term, std::string, api::TermHashFunction>
-      TermStringMap;
-  typedef CDHashSet<api::Term, api::TermHashFunction> TermSet;
+  using TermStringMap = CDHashMap<api::Term, std::string, api::TermHashFunction>;
+  using TermSet = CDHashSet<api::Term, api::TermHashFunction>;
 
  public:
   Implementation()
