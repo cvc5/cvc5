@@ -1370,7 +1370,7 @@ void Smt2Printer::toStream(std::ostream& out, const smt::Model& m) const
     out << "; " << ln << std::endl;
   }
   //print the model
-  out << "(model" << endl;
+  out << "(" << endl;
   // don't need to print approximations since they are built into choice
   // functions in the values of variables.
   this->Printer::toStream(out, m);

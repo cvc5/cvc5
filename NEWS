@@ -34,6 +34,9 @@ Changes:
   now restrict bvxnor to only allow two operands in order to avoid confusion
   about the semantics, since the behavior of n-ary operands to bvxnor is now
   undefined in SMT-LIB.
+* SMT-LIB output for `get-model` command now conforms with the standard,
+  and does *not* begin with the keyword `model`. The output
+  is the same as before, only with this word removed from the beginning.
 
 
 Changes since 1.7
