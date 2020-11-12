@@ -142,7 +142,8 @@ class CDCAC
                                          bool returnFirstInterval = false);
 
   /**
-   * Finish the generated proof (if proofs are enabled) with a scope over the given assertions.
+   * Finish the generated proof (if proofs are enabled) with a scope over the
+   * given assertions.
    */
   void closeProof(const std::vector<Node>& assertions);
 

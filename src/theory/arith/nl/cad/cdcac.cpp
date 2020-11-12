@@ -480,12 +480,12 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
 }
 
 void CDCAC::closeProof(const std::vector<Node>& assertions)
+{
+  if (d_proof)
   {
-    if (d_proof)
-    {
-      d_proof->endScope(assertions);
-    }
+    d_proof->endScope(assertions);
   }
+}
 
 bool CDCAC::checkIntegrality(std::size_t cur_variable, const poly::Value& value)
 {
