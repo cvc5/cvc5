@@ -24,13 +24,9 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-MonomialCheck::MonomialCheck(ExtState* data, context::UserContext* ctx)
+MonomialCheck::MonomialCheck(ExtState* data)
     : d_data(data)
 {
-  if (d_data->d_pnm != nullptr)
-  {
-    d_proof.reset(new EagerProofGenerator(d_data->d_pnm, ctx));
-  }
   d_order_points.push_back(d_data->d_neg_one);
   d_order_points.push_back(d_data->d_zero);
   d_order_points.push_back(d_data->d_one);
@@ -319,20 +315,14 @@ int MonomialCheck::compareSign(
       Node prem = av.eqNode(d_data->d_zero);
       Node conc = oa.eqNode(d_data->d_zero);
       Node lemma = prem.impNode(conc);
-      if (d_proof)
+      LazyCDProof* proof = nullptr;
+      if (d_data->d_proof)
       {
-        d_proof->setProofFor(
-            lemma,
-            d_data->d_pnm->mkNode(
-                PfRule::SCOPE,
-                {d_data->d_pnm->mkNode(PfRule::MACRO_SR_PRED_INTRO,
-                                       {d_data->d_pnm->mkAssume(prem)},
-                                       {conc},
-                                       conc)},
-                {prem}));
+        proof = d_data->d_proof->allocateProof();
+        proof->addStep(conc, PfRule::MACRO_SR_PRED_INTRO, {prem}, {conc});
+        proof->addStep(lemma, PfRule::SCOPE, {conc}, {prem});
       }
-      d_data->d_im.addPendingArithLemma(
-          lemma, InferenceId::NL_SIGN, d_proof.get());
+      d_data->d_im.addPendingArithLemma(lemma, InferenceId::NL_SIGN, proof);
     }
     return 0;
   }

@@ -27,7 +27,7 @@ namespace nl {
 class MonomialCheck
 {
  public:
-  MonomialCheck(ExtState* data, context::UserContext* ctx);
+  MonomialCheck(ExtState* data);
 
   void init(const std::vector<Node>& xts);
 
@@ -178,8 +178,6 @@ class MonomialCheck
 
   /** Basic data that is shared with other checks */
   ExtState* d_data;
-  /** Proof for generated lemmas, if proofs are enabled. */
-  std::unique_ptr<EagerProofGenerator> d_proof;
 
   std::map<Node, bool> d_ms_proc;
   // ordering, stores variables and 0,1,-1
