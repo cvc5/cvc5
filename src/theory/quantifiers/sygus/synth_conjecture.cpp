@@ -560,7 +560,8 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   query = d_tds->rewriteNode(query);
   // eagerly unfold applications of evaluation function
   Trace("cegqi-debug") << "pre-unfold counterexample : " << query << std::endl;
-  // record the solution
+  // Record the solution, which may be falsified below. We require recording
+  // here since the result of the satisfiability test may be unknown.
   recordSolution(candidate_values);
 
   if (!query.isConst() || query.getConst<bool>())
@@ -618,6 +619,8 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     d_hasSolution = false;
     return false;
   }
+  // now mark that we have a solution
+  d_hasSolution = true;
   // Use lemma to terminate with "unsat", this is justified by the verification
   // check above, which confirms the synthesis conjecture is solved.
   lems.push_back(d_quant.negate());
@@ -1207,7 +1210,6 @@ void SynthConjecture::recordSolution(std::vector<Node>& vs)
   {
     d_cinfo[d_candidates[i]].d_inst.push_back(vs[i]);
   }
-  d_hasSolution = true;
 }
 
 bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
