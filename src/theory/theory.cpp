@@ -437,6 +437,7 @@ EqualityStatus Theory::getEqualityStatus(TNode a, TNode b)
   {
     return EQUALITY_UNKNOWN;
   }
+  Trace("sharing") << "Theory<" << getId() << ">::getEqualityStatus(" << a << ", " << b << ")" << std::endl;
   Assert(d_equalityEngine->hasTerm(a) && d_equalityEngine->hasTerm(b));
 
   // Check for equality (simplest)

@@ -51,7 +51,7 @@ if __name__ == "__main__":
     # Length of y: |y|
     leny = slv.mkTerm(kinds.StringLength, y)
     # |y| >= 0
-    formula2 = slv.mkTerm(kinds.Geq, leny, slv.mkReal(0))
+    formula2 = slv.mkTerm(kinds.Geq, leny, slv.mkInteger(0))
 
     # Regular expression: (ab[c-e]*f)|g|h
     r = slv.mkTerm(kinds.RegexpUnion,

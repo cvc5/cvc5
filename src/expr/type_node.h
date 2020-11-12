@@ -385,7 +385,7 @@ public:
    * @param language the language in which to output
    */
   inline void toStream(std::ostream& out, OutputLanguage language = language::output::LANG_AUTO) const {
-    d_nv->toStream(out, -1, false, 0, language);
+    d_nv->toStream(out, -1, 0, language);
   }
 
   /**
@@ -538,6 +538,9 @@ public:
 
   /** Get the return type (for selector types) */
   TypeNode getSelectorRangeType() const;
+
+  /** Get the domain type (for tester types) */
+  TypeNode getTesterDomainType() const;
 
   /** Get the element type (for set types) */
   TypeNode getSetElementType() const;
@@ -693,6 +696,11 @@ public:
 
   /** Get sort constructor arity */
   uint64_t getSortConstructorArity() const;
+
+  /**
+   * Get name, for uninterpreted sorts and uninterpreted sort constructors.
+   */
+  std::string getName() const;
 
   /**
    * Instantiate a sort constructor type. The type on which this method is
@@ -1113,7 +1121,6 @@ inline unsigned TypeNode::getBitVectorSize() const {
  */
 static void __attribute__((used)) debugPrintTypeNode(const TypeNode& n) {
   Warning() << Node::setdepth(-1)
-            << Node::printtypes(false)
             << Node::dag(true)
             << Node::setlanguage(language::output::LANG_AST)
             << n << std::endl;
@@ -1121,7 +1128,6 @@ static void __attribute__((used)) debugPrintTypeNode(const TypeNode& n) {
 }
 static void __attribute__((used)) debugPrintTypeNodeNoDag(const TypeNode& n) {
   Warning() << Node::setdepth(-1)
-            << Node::printtypes(false)
             << Node::dag(false)
             << Node::setlanguage(language::output::LANG_AST)
             << n << std::endl;

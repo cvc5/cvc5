@@ -30,9 +30,9 @@ if __name__ == "__main__":
   integer = slv.getIntegerSort()
   boolean = slv.getBooleanSort()
 
-  zero = slv.mkReal(0)
-  one = slv.mkReal(1)
-  ten = slv.mkReal(10)
+  zero = slv.mkInteger(0)
+  one = slv.mkInteger(1)
+  ten = slv.mkInteger(10)
 
   # declare input variables for functions
   x = slv.mkVar(integer, "x")

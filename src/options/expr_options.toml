@@ -24,15 +24,6 @@ header = "options/expr_options.h"
   help       = "dagify common subexprs appearing > N times (1 == default, 0 == don't dagify)"
 
 [[option]]
-  name       = "printExprTypes"
-  category   = "regular"
-  long       = "print-expr-types"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "print types with variables when printing exprs"
-
-[[option]]
   name       = "typeChecking"
   category   = "regular"
   long       = "type-checking"

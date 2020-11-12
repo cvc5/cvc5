@@ -49,8 +49,6 @@ TermRegistry::TermRegistry(SolverState& s,
       d_preregisteredTerms(s.getUserContext()),
       d_registeredTerms(s.getUserContext()),
       d_registeredTypes(s.getUserContext()),
-      d_proxyVar(s.getUserContext()),
-      d_proxyVarToLength(s.getUserContext()),
       d_lengthLemmaTermsCache(s.getUserContext()),
       d_epg(pnm ? new EagerProofGenerator(
                       pnm,
@@ -203,8 +201,12 @@ void TermRegistry::preRegisterTerm(TNode n)
   }
   else if (tn.isBoolean())
   {
-    // Get triggered for both equal and dis-equal
-    ee->addTriggerPredicate(n);
+    // All kinds that we do congruence over that may return a Boolean go here
+    if (k==STRING_STRCTN || k == STRING_LEQ || k == SEQ_NTH)
+    {
+      // Get triggered for both equal and dis-equal
+      ee->addTriggerPredicate(n);
+    }
   }
   else
   {
@@ -460,11 +462,6 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
     Trace("strings-lemma") << "Strings::Lemma SK-GEQ-ONE : " << len_geq_one
                            << std::endl;
     Trace("strings-assert") << "(assert " << len_geq_one << ")" << std::endl;
-    if (options::proofNewPedantic() > 0)
-    {
-      Unhandled() << "Unhandled lemma Strings::Lemma SK-GEQ-ONE : "
-                  << len_geq_one << std::endl;
-    }
     return TrustNode::mkTrustLemma(len_geq_one, nullptr);
   }
 
@@ -474,11 +471,6 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
     Trace("strings-lemma") << "Strings::Lemma SK-ONE : " << len_one
                            << std::endl;
     Trace("strings-assert") << "(assert " << len_one << ")" << std::endl;
-    if (options::proofNewPedantic() > 0)
-    {
-      Unhandled() << "Unhandled lemma Strings::Lemma SK-ONE : " << len_one
-                  << std::endl;
-    }
     return TrustNode::mkTrustLemma(len_one, nullptr);
   }
   Assert(s == LENGTH_SPLIT);
@@ -563,7 +555,7 @@ Node TermRegistry::getSymbolicDefinition(Node n, std::vector<Node>& exp) const
 
 Node TermRegistry::getProxyVariableFor(Node n) const
 {
-  NodeNodeMap::const_iterator it = d_proxyVar.find(n);
+  std::map<Node, Node>::const_iterator it = d_proxyVar.find(n);
   if (it != d_proxyVar.end())
   {
     return (*it).second;

@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file nl_monomial.h
+/*! \file monomial.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King
@@ -12,8 +12,8 @@
  ** \brief Utilities for monomials
  **/
 
-#ifndef CVC4__THEORY__ARITH__NL__NL_MONOMIAL_H
-#define CVC4__THEORY__ARITH__NL__NL_MONOMIAL_H
+#ifndef CVC4__THEORY__ARITH__NL__EXT__MONOMIAL_H
+#define CVC4__THEORY__ARITH__NL__EXT__MONOMIAL_H
 
 #include <map>
 #include <vector>

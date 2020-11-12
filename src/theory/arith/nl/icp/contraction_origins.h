@@ -80,7 +80,7 @@ class ContractionOriginManager
   /**
    * Collect all theory atoms from the origins of the given variable.
    */
-  Node getOrigins(const Node& variable) const;
+  std::vector<Node> getOrigins(const Node& variable) const;
 
   /** Check whether a node c is among the origins of a variable. */
   bool isInOrigins(const Node& variable, const Node& c) const;
