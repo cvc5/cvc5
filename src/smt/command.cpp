@@ -2756,7 +2756,6 @@ SetExpressionNameCommand::SetExpressionNameCommand(api::Term term,
 void SetExpressionNameCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   solver->getSmtEngine()->setExpressionName(d_term.getExpr(), d_name);
-  sm->setExpressionName(d_term, d_name);
   d_commandStatus = CommandSuccess::instance();
 }
 

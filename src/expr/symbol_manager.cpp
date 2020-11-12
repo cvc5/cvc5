@@ -127,7 +127,7 @@ void SymbolManager::Implementation::getExpressionNames(
   }
 }
 
-void SymbolManager::pushScope(bool isUserContext)
+void SymbolManager::Implementation::pushScope(bool isUserContext)
 {
   d_context.push();
   if (!isUserContext)
@@ -136,7 +136,7 @@ void SymbolManager::pushScope(bool isUserContext)
   }
 }
 
-void SymbolManager::popScope()
+void SymbolManager::Implementation::popScope()
 {
   if (d_context.getLevel() == 0)
   {
