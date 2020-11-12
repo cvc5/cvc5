@@ -30,7 +30,10 @@ namespace nl {
 
 struct ExtState
 {
-  ExtState(InferenceManager& im, NlModel& model, context::Context* c);
+  ExtState(InferenceManager& im,
+           NlModel& model,
+           ProofNodeManager* pnm,
+           context::Context* c);
 
   void init(const std::vector<Node>& xts);
 
@@ -44,6 +47,11 @@ struct ExtState
   InferenceManager& d_im;
   /** Reference to the non-linear model object */
   NlModel& d_model;
+  /**
+   * Pointer to the current proof node manager. nullptr, if proofs are
+   * disabled.
+   */
+  ProofNodeManager* d_pnm;
 
   // information about monomials
   std::vector<Node> d_ms;
