@@ -27,7 +27,6 @@ namespace nl {
 
 void ExtProofRuleChecker::registerTo(ProofChecker* pc)
 {
-  pc->registerChecker(PfRule::ARITH_MULT_ZERO, this);
 }
 
 Node ExtProofRuleChecker::checkInternal(PfRule id,
@@ -44,15 +43,6 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
   for (const auto& c : children)
   {
     Trace("nl-ext-checker") << "\t" << c << std::endl;
-  }
-  if (id == PfRule::ARITH_MULT_ZERO)
-  {
-    Assert(children.empty());
-    Assert(args.size() == 2);
-    Assert(args[0].getType().isInteger() || args[0].getType().isReal());
-    Assert(args[1].getType().isInteger() || args[1].getType().isReal());
-    return nm->mkNode(
-        Kind::IMPLIES, args[0].eqNode(zero), args[1].eqNode(zero));
   }
   return Node::null();
 }

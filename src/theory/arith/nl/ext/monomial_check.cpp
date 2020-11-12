@@ -316,10 +316,14 @@ int MonomialCheck::compareSign(
   {
     if (mvaoa.getConst<Rational>().sgn() != 0)
     {
-      Node lemma = av.eqNode(d_data->d_zero).impNode(oa.eqNode(d_data->d_zero));
+      Node prem = av.eqNode(d_data->d_zero);
+      Node conc = oa.eqNode(d_data->d_zero);
+      Node lemma = nm->mkNode(Kind::OR, prem.negate(), conc);
       if (d_proof)
       {
-        d_proof->addStep(lemma, PfRule::ARITH_MULT_ZERO, {}, {av, oa});
+        Node split = nm->mkNode(Kind::OR, conc, conc.negate());
+        d_proof->addStep(split, PfRule::SPLIT, {}, {conc});
+        d_proof->addStep(lemma, PfRule::MACRO_SR_PRED_TRANSFORM, {split, prem}, {lemma});
       }
       d_data->d_im.addPendingArithLemma(
           lemma, InferenceId::NL_SIGN, d_proof.get());
