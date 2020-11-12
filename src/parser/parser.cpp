@@ -796,7 +796,7 @@ void Parser::popScope()
 
 void Parser::reset() { d_symman->reset(); }
 
-SymbolManager* getSymbolManager() { return d_symman; }
+SymbolManager* Parser::getSymbolManager() { return d_symman; }
 
 std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
 {
