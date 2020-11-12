@@ -26,7 +26,7 @@ namespace nl {
 class MonomialCheck
 {
  public:
-  MonomialCheck(ExtState* data, context::Context* ctx);
+  MonomialCheck(ExtState* data, context::UserContext* ctx);
 
   void init(const std::vector<Node>& xts);
 

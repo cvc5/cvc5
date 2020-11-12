@@ -24,7 +24,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-MonomialCheck::MonomialCheck(ExtState* data, context::Context* ctx)
+MonomialCheck::MonomialCheck(ExtState* data, context::UserContext* ctx)
     : d_data(data)
 {
   if (d_data->d_pnm != nullptr)
