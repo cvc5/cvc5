@@ -49,7 +49,10 @@ class SymbolManager::Implementation
                           bool areAssertions = false) const;
   /** reset */
   void reset();
-
+  /** Push a scope in the expression names. */
+  void pushScope();
+  /** Pop a scope in the expression names. */
+  void popScope();
  private:
   /** The context manager for the scope maps. */
   Context d_context;
