@@ -560,6 +560,8 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   query = d_tds->rewriteNode(query);
   // eagerly unfold applications of evaluation function
   Trace("cegqi-debug") << "pre-unfold counterexample : " << query << std::endl;
+  // record the solution
+  recordSolution(candidate_values);
 
   if (!query.isConst() || query.getConst<bool>())
   {
@@ -608,12 +610,9 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     }
     // otherwise we are unsat, and we will process the solution below
   }
-  // record the solution
-  recordSolution(candidate_values);
   if (options::sygusStream())
   {
-    // if we were successful, we immediately print the current solution.
-    // this saves us from introducing a verification lemma and a new guard.
+    // immediately print the current solution
     printAndContinueStream(terms, candidate_values);
     // streaming means now we immediately are looking for a new solution
     d_hasSolution = false;
