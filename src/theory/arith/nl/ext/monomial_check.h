@@ -26,7 +26,7 @@ namespace nl {
 class MonomialCheck
 {
  public:
-  MonomialCheck(ExtState* data);
+  MonomialCheck(ExtState* data, context::Context* ctx);
 
   void init(const std::vector<Node>& xts);
 
@@ -162,7 +162,7 @@ class MonomialCheck
    */
   bool cmp_holds(Node x,
                  Node y,
-                 std::map<Node, std::map<Node, Node> >& cmp_infers,
+                 const std::map<Node, std::map<Node, Node> >& cmp_infers,
                  std::vector<Node>& exp,
                  std::map<Node, bool>& visited);
   /** assign order ids */
@@ -177,6 +177,8 @@ class MonomialCheck
 
   /** Basic data that is shared with other checks */
   ExtState* d_data;
+  /** Proof for generated lemmas, if proofs are enabled. */
+  std::unique_ptr<CDProof> d_proof;
 
   std::map<Node, bool> d_ms_proc;
   // ordering, stores variables and 0,1,-1

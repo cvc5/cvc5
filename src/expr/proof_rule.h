@@ -1102,6 +1102,13 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (Q)
   INT_TRUST,
+  //======== Multiplication with zero factor
+  // Children: none
+  // Arguments: (f, t)
+  // ---------------------
+  // Conclusion: (=> (= f 0) (= t 0))
+  // Where f is a factor of a term t.
+  ARITH_MULT_ZERO,
 
   // ================ CAD Lemmas
   // We use IRP for IndexedRootPredicate.
