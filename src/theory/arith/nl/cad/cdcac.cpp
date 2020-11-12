@@ -62,6 +62,10 @@ void CDCAC::reset()
 {
   d_constraints.reset();
   d_assignment.clear();
+  if (d_proof)
+  {
+    d_proof->reset();
+  }
 }
 
 void CDCAC::computeVariableOrdering()
@@ -468,8 +472,20 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
       Trace("cdcac") << "-> " << i.d_interval << std::endl;
     }
   }
+  if (d_proof != nullptr)
+  {
+    d_proof->endRecursive();
+  }
   return intervals;
 }
+
+void CDCAC::closeProof(const std::vector<Node>& assertions)
+  {
+    if (d_proof)
+    {
+      d_proof->endScope(assertions);
+    }
+  }
 
 bool CDCAC::checkIntegrality(std::size_t cur_variable, const poly::Value& value)
 {
