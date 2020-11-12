@@ -16,6 +16,7 @@
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
+#include "context/cdo.h"
 
 using namespace CVC4::context;
 
