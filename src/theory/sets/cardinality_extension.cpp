@@ -308,6 +308,9 @@ void CardinalityExtension::checkCardCycles()
       return;
     }
   }
+
+  Trace("sets") << "d_card_parent: " << d_card_parent << std::endl;
+  Trace("sets") << "d_oSetEqc: " << d_oSetEqc << std::endl;
   Trace("sets") << "Done check cardinality cycles" << std::endl;
 }
 
