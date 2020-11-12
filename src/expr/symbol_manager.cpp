@@ -74,6 +74,9 @@ bool SymbolManager::Implementation::setExpressionName(api::Term t,
                                                       const std::string& name,
                                                       bool isAssertion)
 {
+  // cannot name subexpressions under quantifiers
+  PrettyCheckArgument(
+      !d_hasPushedScope.get(), name, "cannot name function in a scope");
   if (d_names.find(t) != d_names.end())
   {
     // already named assertion

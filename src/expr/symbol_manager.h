@@ -120,8 +120,11 @@ class CVC4_PUBLIC SymbolManager
   /** The implementation of the symbol manager */
   class Implementation;
   std::unique_ptr<Implementation> d_implementation;
-  /** Whether the global declarations option is enabled (default false) */
-  bool d_globalDeclarations
+  /** 
+   * Whether the global declarations option is enabled. This corresponds to the
+   * SMT-LIB option :global-declarations. By default, its value is false.
+   */
+  bool d_globalDeclarations;
 };
 
 }  // namespace CVC4
