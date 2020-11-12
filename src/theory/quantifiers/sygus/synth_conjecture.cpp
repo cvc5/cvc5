@@ -611,6 +611,8 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     }
     // otherwise we are unsat, and we will process the solution below
   }
+  // now mark that we have a solution
+  d_hasSolution = true;
   if (options::sygusStream())
   {
     // immediately print the current solution
@@ -619,8 +621,6 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     d_hasSolution = false;
     return false;
   }
-  // now mark that we have a solution
-  d_hasSolution = true;
   // Use lemma to terminate with "unsat", this is justified by the verification
   // check above, which confirms the synthesis conjecture is solved.
   lems.push_back(d_quant.negate());
