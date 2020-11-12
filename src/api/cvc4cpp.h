@@ -2475,8 +2475,7 @@ class CVC4_PUBLIC Solver
   /**
    * Create n-ary term of given kind from a given operator.
    * Create operators with mkOp().
-   * @param kind the kind of the term
-   * @param the operator
+   * @param op the operator
    * @children the children of the term
    * @return the Term
    */
@@ -2637,15 +2636,6 @@ class CVC4_PUBLIC Solver
    * @return the empty set constant
    */
   Term mkEmptySet(Sort s) const;
-
-  /**
-   * Create a singleton set from the given element t.
-   * @param s the element sort of the returned set.
-   * Note that the sort of t needs to be a subtype of s.
-   * @param t the single element in the singleton.
-   * @return a singleton set constructed from the element t.
-   */
-  Term mkSingleton(Sort s, Term t) const;
 
   /**
    * Create a constant representing an empty bag of the given sort.
@@ -3168,6 +3158,15 @@ class CVC4_PUBLIC Solver
   Term getQuantifierEliminationDisjunct(api::Term q) const;
 
   /**
+   * When using separation logic, this sets the location sort and the
+   * datatype sort to the given ones. This method should be invoked exactly
+   * once, before any separation logic constraints are provided.
+   * @param locSort The location sort of the heap
+   * @param dataSort The data sort of the heap
+   */
+  void declareSeparationHeap(api::Sort locSort, api::Sort dataSort) const;
+
+  /**
    * When using separation logic, obtain the term for the heap.
    * @return The term for the heap
    */
@@ -3472,6 +3471,8 @@ class CVC4_PUBLIC Solver
   Term mkTermFromKind(Kind kind) const;
   /* Helper for mkChar functions that take a string as argument. */
   Term mkCharFromStrHelper(const std::string& s) const;
+  /** Get value helper, which accounts for subtyping */
+  Term getValueHelper(Term term) const;
 
   /**
    * Helper function that ensures that a given term is of sort real (as opposed
@@ -3490,6 +3491,14 @@ class CVC4_PUBLIC Solver
    * @return the Term
    */
   Term mkTermHelper(Kind kind, const std::vector<Term>& children) const;
+
+  /**
+   * Create n-ary term of given kind from a given operator.
+   * @param op the operator
+   * @param children the children of the term
+   * @return the Term
+   */
+  Term mkTermHelper(const Op& op, const std::vector<Term>& children) const;
 
   /**
    * Create a vector of datatype sorts, using unresolved sorts.

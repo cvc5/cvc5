@@ -26,10 +26,7 @@ namespace CVC4 {
 namespace expr {
 
 const int ExprSetDepth::s_iosIndex = std::ios_base::xalloc();
-const int ExprPrintTypes::s_iosIndex = std::ios_base::xalloc();
 const int ExprDag::s_iosIndex = std::ios_base::xalloc();
-
-
 
 ExprSetDepth::ExprSetDepth(long depth) : d_depth(depth) {}
 
@@ -69,31 +66,6 @@ ExprSetDepth::Scope::Scope(std::ostream& out, long depth)
 
 ExprSetDepth::Scope::~Scope() {
   ExprSetDepth::setDepth(d_out, d_oldDepth);
-}
-
-
-ExprPrintTypes::ExprPrintTypes(bool printTypes) : d_printTypes(printTypes) {}
-
-void ExprPrintTypes::applyPrintTypes(std::ostream& out) {
-  out.iword(s_iosIndex) = d_printTypes;
-}
-
-bool ExprPrintTypes::getPrintTypes(std::ostream& out) {
-  return out.iword(s_iosIndex);
-}
-
-void ExprPrintTypes::setPrintTypes(std::ostream& out, bool printTypes) {
-  out.iword(s_iosIndex) = printTypes;
-}
-
-ExprPrintTypes::Scope::Scope(std::ostream& out, bool printTypes)
-  : d_out(out),
-    d_oldPrintTypes(ExprPrintTypes::getPrintTypes(out)) {
-  ExprPrintTypes::setPrintTypes(out, printTypes);
-}
-
-ExprPrintTypes::Scope::~Scope() {
-  ExprPrintTypes::setPrintTypes(d_out, d_oldPrintTypes);
 }
 
 ExprDag::ExprDag(bool dag) : d_dag(dag ? 1 : 0) {}
@@ -142,11 +114,6 @@ ExprDag::Scope::~Scope() {
 
 std::ostream& operator<<(std::ostream& out, ExprDag d) {
   d.applyDag(out);
-  return out;
-}
-
-std::ostream& operator<<(std::ostream& out, ExprPrintTypes pt) {
-  pt.applyPrintTypes(out);
   return out;
 }
 

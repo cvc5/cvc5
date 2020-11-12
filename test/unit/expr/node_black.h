@@ -550,7 +550,7 @@ class NodeBlack : public CxxTest::TestSuite {
     TS_ASSERT(sstr.str() == "(AND w (OR x y) z)");
 
     sstr.str(string());
-    o.toStream(sstr, -1, false, 0);
+    o.toStream(sstr, -1, 0);
     TS_ASSERT(sstr.str() == "(XOR (AND w (OR x y) z) (AND w (OR x y) z))");
 
     sstr.str(string());

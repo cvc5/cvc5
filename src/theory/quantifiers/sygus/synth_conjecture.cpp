@@ -48,7 +48,8 @@ SynthConjecture::SynthConjecture(QuantifiersEngine* qe,
       d_stats(s),
       d_tds(qe->getTermDatabaseSygus()),
       d_hasSolution(false),
-      d_ceg_si(new CegSingleInv(qe, this)),
+      d_ceg_si(new CegSingleInv(qe)),
+      d_templInfer(new SygusTemplateInfer),
       d_ceg_proc(new SynthConjectureProcess(qe)),
       d_ceg_gc(new CegGrammarConstructor(qe, this)),
       d_sygus_rconst(new SygusRepairConst(qe)),
@@ -114,15 +115,18 @@ void SynthConjecture::assign(Node q)
   {
     d_ceg_si->initialize(d_simp_quant);
     d_simp_quant = d_ceg_si->getSimplifiedConjecture();
-    // carry the templates
-    for (unsigned i = 0; i < q[0].getNumChildren(); i++)
+    if (!d_ceg_si->isSingleInvocation())
     {
-      Node v = q[0][i];
-      Node templ = d_ceg_si->getTemplate(v);
+      d_templInfer->initialize(d_simp_quant);
+    }
+    // carry the templates
+    for (const Node& v : q[0])
+    {
+      Node templ = d_templInfer->getTemplate(v);
       if (!templ.isNull())
       {
         templates[v] = templ;
-        templates_arg[v] = d_ceg_si->getTemplateArg(v);
+        templates_arg[v] = d_templInfer->getTemplateArg(v);
       }
     }
   }
@@ -484,28 +488,22 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     inst = d_base_inst;
   }
 
-  // check whether we will run CEGIS on inner skolem variables
-  bool sk_refine = (!isGround() || d_refine_count == 0) && constructed_cand;
-  if (sk_refine)
+  if (!constructed_cand)
   {
-    if (options::cegisSample() == options::CegisSampleMode::TRUST)
-    {
-      // we have that the current candidate passed a sample test
-      // since we trust sampling in this mode, we assert there is no
-      // counterexample to the conjecture here.
-      lems.push_back(d_quant.negate());
-      recordSolution(candidate_values);
-      return true;
-    }
-    Assert(!d_set_ce_sk_vars);
+    return false;
   }
-  else
+
+  // if we trust the sampling we ran, we terminate now
+  if (options::cegisSample() == options::CegisSampleMode::TRUST)
   {
-    if (!constructed_cand)
-    {
-      return false;
-    }
+    // we have that the current candidate passed a sample test
+    // since we trust sampling in this mode, we assert there is no
+    // counterexample to the conjecture here.
+    lems.push_back(d_quant.negate());
+    recordSolution(candidate_values);
+    return true;
   }
+  Assert(!d_set_ce_sk_vars);
 
   // immediately skolemize inner existentials
   Node query;
@@ -549,11 +547,8 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       query = inst;
     }
   }
-  if (sk_refine)
-  {
-    d_ce_sk_vars.insert(d_ce_sk_vars.end(), sks.begin(), sks.end());
-    d_set_ce_sk_vars = true;
-  }
+  d_ce_sk_vars.insert(d_ce_sk_vars.end(), sks.begin(), sks.end());
+  d_set_ce_sk_vars = true;
 
   if (query.isNull())
   {
@@ -745,8 +740,13 @@ bool SynthConjecture::doRefine()
     Trace("sygus-engine-debug") << "  ...(warning) failed to refine candidate, "
                                    "manually exclude candidate."
                                 << std::endl;
+    std::vector<Node> cvals;
+    for (const Node& c : d_candidates)
+    {
+      cvals.push_back(d_cinfo[c].d_inst.back());
+    }
     // something went wrong, exclude the current candidate
-    excludeCurrentSolution(sk_vars, sk_subs);
+    excludeCurrentSolution(d_candidates, cvals);
     // Note this happens when evaluation is incapable of disproving a candidate
     // for counterexample point c, but satisfiability checking happened to find
     // the the same point c is indeed a true counterexample. It is sound
@@ -984,6 +984,8 @@ void SynthConjecture::printAndContinueStream(const std::vector<Node>& enums,
 void SynthConjecture::excludeCurrentSolution(const std::vector<Node>& enums,
                                              const std::vector<Node>& values)
 {
+  Trace("cegqi-debug") << "Exclude current solution: " << enums << " / "
+                       << values << std::endl;
   // We will not refine the current candidate solution since it is a solution
   // thus, we clear information regarding the current refinement
   d_set_ce_sk_vars = false;
@@ -1246,7 +1248,7 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
 
         // check if there was a template
         Node sf = d_quant[0][i];
-        Node templ = d_ceg_si->getTemplate(sf);
+        Node templ = d_templInfer->getTemplate(sf);
         if (!templ.isNull())
         {
           Trace("cegqi-inv-debug")
@@ -1254,7 +1256,7 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
           // if it was not embedded into the grammar
           if (!options::sygusTemplEmbedGrammar())
           {
-            TNode templa = d_ceg_si->getTemplateArg(sf);
+            TNode templa = d_templInfer->getTemplateArg(sf);
             // make the builtin version of the full solution
             sol = d_tds->sygusToBuiltin(sol, sol.getType());
             Trace("cegqi-inv") << "Builtin version of solution is : " << sol

@@ -4,6 +4,7 @@
 (set-info :status unsat)
 (declare-sort U 0)
 (declare-fun u () U)
+(declare-heap (U U))
 
 (assert (sep (not (_ emp U U)) (not (_ emp U U))))
 
