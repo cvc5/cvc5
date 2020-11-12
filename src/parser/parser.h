@@ -26,11 +26,11 @@
 
 #include "api/cvc4cpp.h"
 #include "expr/kind.h"
+#include "expr/symbol_manager.h"
 #include "expr/symbol_table.h"
 #include "parser/input.h"
 #include "parser/parse_op.h"
 #include "parser/parser_exception.h"
-#include "parser/symbol_manager.h"
 #include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
@@ -751,7 +751,7 @@ public:
   /**
    * Gets the current declaration level.
    */
-  inline size_t scopeLevel() const { return d_symtab->getLevel(); }
+  size_t scopeLevel() const;
 
   /**
    * Pushes a scope. All subsequent symbol declarations made are only valid in
@@ -761,24 +761,11 @@ public:
    * current scope level. This determines which scope assertions are declared
    * at.
    */
-  inline void pushScope(bool bindingLevel = false) {
-    d_symtab->pushScope();
-    if(!bindingLevel) {
-      d_assertionLevel = scopeLevel();
-    }
-  }
+  void pushScope(bool bindingLevel = false);
 
-  inline void popScope() {
-    d_symtab->popScope();
-    if(scopeLevel() < d_assertionLevel) {
-      d_assertionLevel = scopeLevel();
-      d_reservedSymbols.clear();
-    }
-  }
+  void popScope();
 
-  virtual void reset() {
-    d_symtab->reset();
-  }
+  virtual void reset();
 
   void setGlobalDeclarations(bool flag) {
     d_globalDeclarations = flag;

@@ -1128,6 +1128,7 @@ install(FILES
           expr/expr_iomanip.h
           expr/record.h
           expr/sequence.h
+          expr/symbol_manager.h
           expr/symbol_table.h
           expr/type.h
           expr/uninterpreted_constant.h
@@ -1151,7 +1152,6 @@ install(FILES
           parser/parser_builder.h
           parser/parser_exception.h
           parser/parse_op.h
-          parser/symbol_manager.h
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/parser)
 install(FILES
