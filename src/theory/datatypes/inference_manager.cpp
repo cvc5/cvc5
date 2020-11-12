@@ -88,13 +88,17 @@ bool InferenceManager::processDtInference(Node conc,
                           << std::endl;
   if (asLemma)
   {
-    // send it as an (explained) lemma
-    std::vector<Node> expv;
+    // send it as a lemma
+    Node lem;
     if (!exp.isNull() && !exp.isConst())
     {
-      expv.push_back(exp);
+      lem = NodeManager::currentNM()->mkNode(kind::IMPLIES, exp, conc);
     }
-    if (!lemmaExp(conc, expv, {}))
+    else
+    {
+      lem = conc;
+    }
+    if (!lemma(lem))
     {
       Trace("dt-lemma-debug") << "...duplicate lemma" << std::endl;
       return false;

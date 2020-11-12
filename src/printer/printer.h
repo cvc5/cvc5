@@ -256,6 +256,10 @@ class Printer
   /** Print comment command */
   virtual void toStreamCmdComment(std::ostream& out,
                                   const std::string& comment) const;
+  /** Declare heap command */
+  virtual void toStreamCmdDeclareHeap(std::ostream& out,
+                                      TypeNode locType,
+                                      TypeNode dataType) const;
 
   /** Print command sequence command */
   virtual void toStreamCmdCommandSequence(

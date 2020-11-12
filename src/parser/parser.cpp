@@ -42,12 +42,13 @@ namespace CVC4 {
 namespace parser {
 
 Parser::Parser(api::Solver* solver,
+               SymbolManager* sm,
                Input* input,
                bool strictMode,
                bool parseOnly)
     : d_input(input),
-      d_symtabAllocated(),
-      d_symtab(&d_symtabAllocated),
+      d_symman(sm),
+      d_symtab(sm->getSymbolTable()),
       d_assertionLevel(0),
       d_globalDeclarations(false),
       d_anonymousFunctionCount(0),
@@ -768,6 +769,29 @@ void Parser::attributeNotSupported(const std::string& attr) {
     d_attributesWarnedAbout.insert(attr);
   }
 }
+
+size_t Parser::scopeLevel() const { return d_symman->scopeLevel(); }
+
+void Parser::pushScope(bool bindingLevel)
+{
+  d_symman->pushScope();
+  if (!bindingLevel)
+  {
+    d_assertionLevel = scopeLevel();
+  }
+}
+
+void Parser::popScope()
+{
+  d_symman->popScope();
+  if (scopeLevel() < d_assertionLevel)
+  {
+    d_assertionLevel = scopeLevel();
+    d_reservedSymbols.clear();
+  }
+}
+
+void Parser::reset() { d_symman->reset(); }
 
 std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
 {

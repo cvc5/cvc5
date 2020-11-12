@@ -3187,6 +3187,19 @@ Term Solver::mkCharFromStrHelper(const std::string& s) const
   return mkValHelper<CVC4::String>(CVC4::String(cpts));
 }
 
+Term Solver::getValueHelper(Term term) const
+{
+  Node value = d_smtEngine->getValue(*term.d_node);
+  Term res = Term(this, value);
+  // May need to wrap in real cast so that user know this is a real.
+  TypeNode tn = (*term.d_node).getType();
+  if (!tn.isInteger() && value.getType().isInteger())
+  {
+    return ensureRealSort(res);
+  }
+  return res;
+}
+
 Term Solver::mkTermFromKind(Kind kind) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
@@ -5130,7 +5143,7 @@ Term Solver::getValue(Term term) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_SOLVER_CHECK_TERM(term);
-  return Term(this, d_smtEngine->getValue(*term.d_node));
+  return getValueHelper(term);
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
@@ -5153,7 +5166,7 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
         this == terms[i].d_solver, "term", terms[i], i)
         << "term associated to this solver object";
     /* Can not use emplace_back here since constructor is private. */
-    res.push_back(Term(this, d_smtEngine->getValue(terms[i].d_node->toExpr())));
+    res.push_back(getValueHelper(terms[i]));
   }
   return res;
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -5178,6 +5191,17 @@ Term Solver::getQuantifierEliminationDisjunct(api::Term q) const
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   return Term(
       this, d_smtEngine->getQuantifierElimination(q.getNode(), false, true));
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+void Solver::declareSeparationHeap(api::Sort locSort, api::Sort dataSort) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK(
+      d_smtEngine->getLogicInfo().isTheoryEnabled(theory::THEORY_SEP))
+      << "Cannot obtain separation logic expressions if not using the "
+         "separation logic theory.";
+  d_smtEngine->declareSepHeap(locSort.getTypeNode(), dataSort.getTypeNode());
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
