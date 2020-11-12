@@ -29,7 +29,7 @@ MonomialCheck::MonomialCheck(ExtState* data, context::UserContext* ctx)
 {
   if (d_data->d_pnm != nullptr)
   {
-    d_proof.reset(new CDProof(d_data->d_pnm, ctx));
+    d_proof.reset(new EagerProofGenerator(d_data->d_pnm, ctx));
   }
   d_order_points.push_back(d_data->d_neg_one);
   d_order_points.push_back(d_data->d_zero);
@@ -318,12 +318,18 @@ int MonomialCheck::compareSign(
     {
       Node prem = av.eqNode(d_data->d_zero);
       Node conc = oa.eqNode(d_data->d_zero);
-      Node lemma = nm->mkNode(Kind::OR, prem.negate(), conc);
+      Node lemma = prem.impNode(conc);
       if (d_proof)
       {
-        Node split = nm->mkNode(Kind::OR, conc, conc.negate());
-        d_proof->addStep(split, PfRule::SPLIT, {}, {conc});
-        d_proof->addStep(lemma, PfRule::MACRO_SR_PRED_TRANSFORM, {split, prem}, {lemma});
+        d_proof->setProofFor(
+            lemma,
+            d_data->d_pnm->mkNode(
+                PfRule::SCOPE,
+                {d_data->d_pnm->mkNode(PfRule::MACRO_SR_PRED_INTRO,
+                                       {d_data->d_pnm->mkAssume(prem)},
+                                       {conc},
+                                       conc)},
+                {prem}));
       }
       d_data->d_im.addPendingArithLemma(
           lemma, InferenceId::NL_SIGN, d_proof.get());

@@ -17,6 +17,7 @@
 
 #include "expr/node.h"
 #include "theory/arith/nl/ext/ext_state.h"
+#include "theory/eager_proof_generator.h"
 
 namespace CVC4 {
 namespace theory {
@@ -178,7 +179,7 @@ class MonomialCheck
   /** Basic data that is shared with other checks */
   ExtState* d_data;
   /** Proof for generated lemmas, if proofs are enabled. */
-  std::unique_ptr<CDProof> d_proof;
+  std::unique_ptr<EagerProofGenerator> d_proof;
 
   std::map<Node, bool> d_ms_proc;
   // ordering, stores variables and 0,1,-1
