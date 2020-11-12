@@ -42,7 +42,6 @@ class TermBlack : public CxxTest::TestSuite
   void testTermCompare();
   void testTermChildren();
   void testSubstitute();
-  void testIsValue();
   void testConstArray();
   void testConstSequenceElements();
 
@@ -100,7 +99,7 @@ void TermBlack::testGetKind()
   Term p = d_solver.mkVar(funSort2, "p");
   TS_ASSERT_THROWS_NOTHING(p.getKind());
 
-  Term zero = d_solver.mkReal(0);
+  Term zero = d_solver.mkInteger(0);
   TS_ASSERT_THROWS_NOTHING(zero.getKind());
 
   Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
@@ -146,7 +145,7 @@ void TermBlack::testGetSort()
   TS_ASSERT_THROWS_NOTHING(p.getSort());
   TS_ASSERT(p.getSort() == funSort2);
 
-  Term zero = d_solver.mkReal(0);
+  Term zero = d_solver.mkInteger(0);
   TS_ASSERT_THROWS_NOTHING(zero.getSort());
   TS_ASSERT(zero.getSort() == intSort);
 
@@ -227,7 +226,7 @@ void TermBlack::testGetOp()
 
   Term nilTerm = d_solver.mkTerm(APPLY_CONSTRUCTOR, nilOpTerm);
   Term consTerm = d_solver.mkTerm(
-      APPLY_CONSTRUCTOR, consOpTerm, d_solver.mkReal(0), nilTerm);
+      APPLY_CONSTRUCTOR, consOpTerm, d_solver.mkInteger(0), nilTerm);
   Term headTerm = d_solver.mkTerm(APPLY_SELECTOR, headOpTerm, consTerm);
   Term tailTerm = d_solver.mkTerm(APPLY_SELECTOR, tailOpTerm, consTerm);
 
@@ -272,7 +271,7 @@ void TermBlack::testNotTerm()
   TS_ASSERT_THROWS(f.notTerm(), CVC4ApiException&);
   Term p = d_solver.mkVar(funSort2, "p");
   TS_ASSERT_THROWS(p.notTerm(), CVC4ApiException&);
-  Term zero = d_solver.mkReal(0);
+  Term zero = d_solver.mkInteger(0);
   TS_ASSERT_THROWS(zero.notTerm(), CVC4ApiException&);
   Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
   TS_ASSERT_THROWS(f_x.notTerm(), CVC4ApiException&);
@@ -308,7 +307,7 @@ void TermBlack::testAndTerm()
   TS_ASSERT_THROWS(p.andTerm(x), CVC4ApiException&);
   TS_ASSERT_THROWS(p.andTerm(f), CVC4ApiException&);
   TS_ASSERT_THROWS(p.andTerm(p), CVC4ApiException&);
-  Term zero = d_solver.mkReal(0);
+  Term zero = d_solver.mkInteger(0);
   TS_ASSERT_THROWS(zero.andTerm(b), CVC4ApiException&);
   TS_ASSERT_THROWS(zero.andTerm(x), CVC4ApiException&);
   TS_ASSERT_THROWS(zero.andTerm(f), CVC4ApiException&);
@@ -374,7 +373,7 @@ void TermBlack::testOrTerm()
   TS_ASSERT_THROWS(p.orTerm(x), CVC4ApiException&);
   TS_ASSERT_THROWS(p.orTerm(f), CVC4ApiException&);
   TS_ASSERT_THROWS(p.orTerm(p), CVC4ApiException&);
-  Term zero = d_solver.mkReal(0);
+  Term zero = d_solver.mkInteger(0);
   TS_ASSERT_THROWS(zero.orTerm(b), CVC4ApiException&);
   TS_ASSERT_THROWS(zero.orTerm(x), CVC4ApiException&);
   TS_ASSERT_THROWS(zero.orTerm(f), CVC4ApiException&);
@@ -440,7 +439,7 @@ void TermBlack::testXorTerm()
   TS_ASSERT_THROWS(p.xorTerm(x), CVC4ApiException&);
   TS_ASSERT_THROWS(p.xorTerm(f), CVC4ApiException&);
   TS_ASSERT_THROWS(p.xorTerm(p), CVC4ApiException&);
-  Term zero = d_solver.mkReal(0);
+  Term zero = d_solver.mkInteger(0);
   TS_ASSERT_THROWS(zero.xorTerm(b), CVC4ApiException&);
   TS_ASSERT_THROWS(zero.xorTerm(x), CVC4ApiException&);
   TS_ASSERT_THROWS(zero.xorTerm(f), CVC4ApiException&);
@@ -506,7 +505,7 @@ void TermBlack::testEqTerm()
   TS_ASSERT_THROWS(p.eqTerm(x), CVC4ApiException&);
   TS_ASSERT_THROWS(p.eqTerm(f), CVC4ApiException&);
   TS_ASSERT_THROWS_NOTHING(p.eqTerm(p));
-  Term zero = d_solver.mkReal(0);
+  Term zero = d_solver.mkInteger(0);
   TS_ASSERT_THROWS(zero.eqTerm(b), CVC4ApiException&);
   TS_ASSERT_THROWS(zero.eqTerm(x), CVC4ApiException&);
   TS_ASSERT_THROWS(zero.eqTerm(f), CVC4ApiException&);
@@ -572,7 +571,7 @@ void TermBlack::testImpTerm()
   TS_ASSERT_THROWS(p.impTerm(x), CVC4ApiException&);
   TS_ASSERT_THROWS(p.impTerm(f), CVC4ApiException&);
   TS_ASSERT_THROWS(p.impTerm(p), CVC4ApiException&);
-  Term zero = d_solver.mkReal(0);
+  Term zero = d_solver.mkInteger(0);
   TS_ASSERT_THROWS(zero.impTerm(b), CVC4ApiException&);
   TS_ASSERT_THROWS(zero.impTerm(x), CVC4ApiException&);
   TS_ASSERT_THROWS(zero.impTerm(f), CVC4ApiException&);
@@ -639,7 +638,7 @@ void TermBlack::testIteTerm()
   Term p = d_solver.mkVar(funSort2, "p");
   TS_ASSERT_THROWS(p.iteTerm(b, b), CVC4ApiException&);
   TS_ASSERT_THROWS(p.iteTerm(x, b), CVC4ApiException&);
-  Term zero = d_solver.mkReal(0);
+  Term zero = d_solver.mkInteger(0);
   TS_ASSERT_THROWS(zero.iteTerm(x, x), CVC4ApiException&);
   TS_ASSERT_THROWS(zero.iteTerm(x, b), CVC4ApiException&);
   Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
@@ -660,17 +659,17 @@ void TermBlack::testIteTerm()
 
 void TermBlack::testTermAssignment()
 {
-  Term t1 = d_solver.mkReal(1);
+  Term t1 = d_solver.mkInteger(1);
   Term t2 = t1;
-  t2 = d_solver.mkReal(2);
-  TS_ASSERT_EQUALS(t1, d_solver.mkReal(1));
+  t2 = d_solver.mkInteger(2);
+  TS_ASSERT_EQUALS(t1, d_solver.mkInteger(1));
 }
 
 void TermBlack::testTermCompare()
 {
-  Term t1 = d_solver.mkReal(1);
-  Term t2 = d_solver.mkTerm(PLUS, d_solver.mkReal(2), d_solver.mkReal(2));
-  Term t3 = d_solver.mkTerm(PLUS, d_solver.mkReal(2), d_solver.mkReal(2));
+  Term t1 = d_solver.mkInteger(1);
+  Term t2 = d_solver.mkTerm(PLUS, d_solver.mkInteger(2), d_solver.mkInteger(2));
+  Term t3 = d_solver.mkTerm(PLUS, d_solver.mkInteger(2), d_solver.mkInteger(2));
   TS_ASSERT(t2 >= t3);
   TS_ASSERT(t2 <= t3);
   TS_ASSERT((t1 > t2) != (t1 < t2));
@@ -680,8 +679,8 @@ void TermBlack::testTermCompare()
 void TermBlack::testTermChildren()
 {
   // simple term 2+3
-  Term two = d_solver.mkReal(2);
-  Term t1 = d_solver.mkTerm(PLUS, two, d_solver.mkReal(3));
+  Term two = d_solver.mkInteger(2);
+  Term t1 = d_solver.mkTerm(PLUS, two, d_solver.mkInteger(3));
   TS_ASSERT(t1[0] == two);
   TS_ASSERT(t1.getNumChildren() == 2);
   Term tnull;
@@ -702,7 +701,7 @@ void TermBlack::testTermChildren()
 void TermBlack::testSubstitute()
 {
   Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
-  Term one = d_solver.mkReal(1);
+  Term one = d_solver.mkInteger(1);
   Term ttrue = d_solver.mkTrue();
   Term xpx = d_solver.mkTerm(PLUS, x, x);
   Term onepone = d_solver.mkTerm(PLUS, one, one);
@@ -750,34 +749,27 @@ void TermBlack::testSubstitute()
   TS_ASSERT_THROWS(xpx.substitute(es, rs), CVC4ApiException&);
 }
 
-void TermBlack::testIsValue()
-{
-  Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
-  Term one = d_solver.mkReal(1);
-  Term xpone = d_solver.mkTerm(PLUS, x, one);
-  Term onepone = d_solver.mkTerm(PLUS, one, one);
-  TS_ASSERT(!x.isValue());
-  TS_ASSERT(one.isValue());
-  TS_ASSERT(!xpone.isValue());
-  TS_ASSERT(!onepone.isValue());
-  Term tnull;
-  TS_ASSERT_THROWS(tnull.isValue(), CVC4ApiException&);
-}
-
 void TermBlack::testConstArray()
 {
   Sort intsort = d_solver.getIntegerSort();
   Sort arrsort = d_solver.mkArraySort(intsort, intsort);
   Term a = d_solver.mkConst(arrsort, "a");
-  Term one = d_solver.mkReal(1);
+  Term one = d_solver.mkInteger(1);
   Term constarr = d_solver.mkConstArray(arrsort, one);
-
-  TS_ASSERT(!a.isValue());
-  TS_ASSERT(constarr.isValue());
 
   TS_ASSERT_EQUALS(constarr.getKind(), CONST_ARRAY);
   TS_ASSERT_EQUALS(constarr.getConstArrayBase(), one);
   TS_ASSERT_THROWS(a.getConstArrayBase(), CVC4ApiException&);
+
+  arrsort =
+      d_solver.mkArraySort(d_solver.getRealSort(), d_solver.getRealSort());
+  Term zero_array = d_solver.mkConstArray(arrsort, d_solver.mkReal(0));
+  Term stores = d_solver.mkTerm(
+      STORE, zero_array, d_solver.mkReal(1), d_solver.mkReal(2));
+  stores =
+      d_solver.mkTerm(STORE, stores, d_solver.mkReal(2), d_solver.mkReal(3));
+  stores =
+      d_solver.mkTerm(STORE, stores, d_solver.mkReal(4), d_solver.mkReal(5));
 }
 
 void TermBlack::testConstSequenceElements()
@@ -786,7 +778,6 @@ void TermBlack::testConstSequenceElements()
   Sort seqsort = d_solver.mkSequenceSort(realsort);
   Term s = d_solver.mkEmptySequence(seqsort);
 
-  TS_ASSERT(s.isValue());
 
   TS_ASSERT_EQUALS(s.getKind(), CONST_SEQUENCE);
   // empty sequence has zero elements

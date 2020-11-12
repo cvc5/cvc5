@@ -32,8 +32,12 @@
 namespace CVC4 {
 namespace parser {
 
-Smt2::Smt2(api::Solver* solver, Input* input, bool strictMode, bool parseOnly)
-    : Parser(solver, input, strictMode, parseOnly),
+Smt2::Smt2(api::Solver* solver,
+           SymbolManager* sm,
+           Input* input,
+           bool strictMode,
+           bool parseOnly)
+    : Parser(solver, sm, input, strictMode, parseOnly),
       d_logicSet(false),
       d_seenSetLogic(false)
 {
@@ -480,50 +484,6 @@ void Smt2::resetAssertions() {
     this->popScope();
   }
   pushScope(true);
-}
-
-Smt2::SynthFunFactory::SynthFunFactory(
-    Smt2* smt2,
-    const std::string& id,
-    bool isInv,
-    api::Sort range,
-    std::vector<std::pair<std::string, api::Sort>>& sortedVarNames)
-    : d_smt2(smt2), d_id(id), d_sort(range), d_isInv(isInv)
-{
-  if (range.isNull())
-  {
-    smt2->parseError("Must supply return type for synth-fun.");
-  }
-  if (range.isFunction())
-  {
-    smt2->parseError("Cannot use synth-fun with function return type.");
-  }
-
-  std::vector<api::Sort> varSorts;
-  for (const std::pair<std::string, api::Sort>& p : sortedVarNames)
-  {
-    varSorts.push_back(p.second);
-  }
-
-  api::Sort funSort = varSorts.empty()
-                          ? range
-                          : d_smt2->d_solver->mkFunctionSort(varSorts, range);
-
-  // we do not allow overloading for synth fun
-  d_fun = d_smt2->bindBoundVar(id, funSort);
-
-  Debug("parser-sygus") << "Define synth fun : " << id << std::endl;
-
-  d_smt2->pushScope(true);
-  d_sygusVars = d_smt2->bindBoundVars(sortedVarNames);
-}
-
-std::unique_ptr<Command> Smt2::SynthFunFactory::mkCommand(api::Grammar* grammar)
-{
-  Debug("parser-sygus") << "...read synth fun " << d_id << std::endl;
-  d_smt2->popScope();
-  return std::unique_ptr<Command>(
-      new SynthFunCommand(d_id, d_fun, d_sygusVars, d_sort, d_isInv, grammar));
 }
 
 std::unique_ptr<Command> Smt2::invConstraint(
@@ -1099,33 +1059,22 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       parseError("Too many arguments to array constant.");
     }
     api::Term constVal = args[0];
-    if (!constVal.isValue())
+
+    // To parse array constants taking reals whose values are specified by
+    // rationals, e.g. ((as const (Array Int Real)) (/ 1 3)), we must handle
+    // the fact that (/ 1 3) is the division of constants 1 and 3, and not
+    // the resulting constant rational value. Thus, we must construct the
+    // resulting rational here. This also is applied for integral real values
+    // like 5.0 which are converted to (/ 5 1) to distinguish them from
+    // integer constants. We must ensure numerator and denominator are
+    // constant and the denominator is non-zero.
+    if (constVal.getKind() == api::DIVISION)
     {
-      // To parse array constants taking reals whose values are specified by
-      // rationals, e.g. ((as const (Array Int Real)) (/ 1 3)), we must handle
-      // the fact that (/ 1 3) is the division of constants 1 and 3, and not
-      // the resulting constant rational value. Thus, we must construct the
-      // resulting rational here. This also is applied for integral real values
-      // like 5.0 which are converted to (/ 5 1) to distinguish them from
-      // integer constants. We must ensure numerator and denominator are
-      // constant and the denominator is non-zero.
-      if (constVal.getKind() == api::DIVISION && constVal[0].isValue()
-          && constVal[1].isValue()
-          && !constVal[1].getExpr().getConst<Rational>().isZero())
-      {
-        std::stringstream sdiv;
-        sdiv << constVal[0] << "/" << constVal[1];
-        constVal = d_solver->mkReal(sdiv.str());
-      }
-      if (!constVal.isValue())
-      {
-        std::stringstream ss;
-        ss << "expected constant term inside array constant, but found "
-           << "nonconstant term:" << std::endl
-           << "the term: " << constVal;
-        parseError(ss.str());
-      }
+      std::stringstream sdiv;
+      sdiv << constVal[0] << "/" << constVal[1];
+      constVal = d_solver->mkReal(sdiv.str());
     }
+
     if (!p.d_type.getArrayElementSort().isComparableTo(constVal.getSort()))
     {
       std::stringstream ss;
@@ -1218,8 +1167,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
     if (kind == api::SINGLETON && args.size() == 1)
     {
-      api::Sort sort = args[0].getSort();
-      api::Term ret = d_solver->mkSingleton(sort, args[0]);
+      api::Term ret = d_solver->mkTerm(api::SINGLETON, args[0]);
       Debug("parser") << "applyParseOp: return singleton " << ret << std::endl;
       return ret;
     }

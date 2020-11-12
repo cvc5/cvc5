@@ -1,5 +1,5 @@
 ; EXPECT: sat
-; EXPECT: ((pos_int 5) (pos_real_int_value (/ 3 1)) (pos_rat (/ 1 3)) (zero (/ 0 1)) (neg_rat (/ (- 2) 3)) (neg_real_int_value (/ (- 2) 1)) (neg_int (- 6)))
+; EXPECT: ((pos_int 5) (pos_real_int_value 3.0) (pos_rat (/ 1 3)) (zero 0.0) (neg_rat (/ (- 2) 3)) (neg_real_int_value (- 2.0)) (neg_int (- 6)))
 (set-info :smt-lib-version 2.0)
 (set-option :produce-models true)
 (set-logic QF_LIRA)

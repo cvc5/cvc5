@@ -34,7 +34,6 @@ class TptpPrinter : public CVC4::Printer
   void toStream(std::ostream& out,
                 TNode n,
                 int toDepth,
-                bool types,
                 size_t dag) const override;
   void toStream(std::ostream& out, const CommandStatus* s) const override;
   void toStream(std::ostream& out, const smt::Model& m) const override;

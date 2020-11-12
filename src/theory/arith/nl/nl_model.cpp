@@ -159,7 +159,7 @@ Node NlModel::getRepresentative(Node n) const
   return d_model->getRepresentative(n);
 }
 
-Node NlModel::getValueInternal(Node n) const
+Node NlModel::getValueInternal(Node n)
 {
   if (n.isConst())
   {
@@ -171,7 +171,11 @@ Node NlModel::getValueInternal(Node n) const
     AlwaysAssert(it->second.isConst());
     return it->second;
   }
-  // It is unconstrained in the model, return 0.
+  // It is unconstrained in the model, return 0. We additionally add it
+  // to mapping from the linear solver. This ensures that if the nonlinear
+  // solver assumes that n = 0, then this assumption is recorded in the overall
+  // model.
+  d_arithVal[n] = d_zero;
   return d_zero;
 }
 
@@ -215,8 +219,7 @@ int NlModel::compareValue(Node i, Node j, bool isAbsolute) const
 
 bool NlModel::checkModel(const std::vector<Node>& assertions,
                          unsigned d,
-                         std::vector<NlLemma>& lemmas,
-                         std::vector<Node>& gs)
+                         std::vector<NlLemma>& lemmas)
 {
   Trace("nl-ext-cm-debug") << "  solve for equalities..." << std::endl;
   for (const Node& atom : assertions)
@@ -312,26 +315,6 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
     return false;
   }
   Trace("nl-ext-cm") << "...simple check succeeded!" << std::endl;
-
-  // must assert and re-check if produce models is true
-  if (options::produceModels())
-  {
-    NodeManager* nm = NodeManager::currentNM();
-    // model guard whose semantics is "the model we constructed holds"
-    Node mg = nm->mkSkolem("model", nm->booleanType());
-    gs.push_back(mg);
-    // assert the constructed model as assertions
-    for (const std::pair<const Node, std::pair<Node, Node>> cb :
-         d_check_model_bounds)
-    {
-      Node l = cb.second.first;
-      Node u = cb.second.second;
-      Node v = cb.first;
-      Node pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
-      pred = nm->mkNode(OR, mg.negate(), pred);
-      lemmas.emplace_back(pred);
-    }
-  }
   return true;
 }
 
@@ -1280,7 +1263,12 @@ void NlModel::getModelValueRepair(
     std::map<Node, Node>& witnesses)
 {
   Trace("nl-model") << "NlModel::getModelValueRepair:" << std::endl;
-
+  // If we extended the model with entries x -> 0 for unconstrained values,
+  // we first update the map to the extended one.
+  if (d_arithVal.size() > arithModel.size())
+  {
+    arithModel = d_arithVal;
+  }
   // Record the approximations we used. This code calls the
   // recordApproximation method of the model, which overrides the model
   // values for variables that we solved for, using techniques specific to

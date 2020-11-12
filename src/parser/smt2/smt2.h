@@ -68,6 +68,7 @@ class Smt2 : public Parser
 
  protected:
   Smt2(api::Solver* solver,
+       SymbolManager* sm,
        Input* input,
        bool strictMode = false,
        bool parseOnly = false);
@@ -193,49 +194,6 @@ class Smt2 : public Parser
   void reset() override;
 
   void resetAssertions();
-
-  /**
-   * Class for creating instances of `SynthFunCommand`s. Creating an instance
-   * of this class pushes the scope, destroying it pops the scope.
-   */
-  class SynthFunFactory
-  {
-   public:
-    /**
-     * Creates an instance of `SynthFunFactory`.
-     *
-     * @param smt2 Pointer to the parser state
-     * @param id Name of the function to synthesize
-     * @param isInv True if the goal is to synthesize an invariant, false
-     * otherwise
-     * @param range The return type of the function-to-synthesize
-     * @param sortedVarNames The parameters of the function-to-synthesize
-     */
-    SynthFunFactory(
-        Smt2* smt2,
-        const std::string& id,
-        bool isInv,
-        api::Sort range,
-        std::vector<std::pair<std::string, api::Sort>>& sortedVarNames);
-
-    const std::vector<api::Term>& getSygusVars() const { return d_sygusVars; }
-
-    /**
-     * Create an instance of `SynthFunCommand`.
-     *
-     * @param grammar Optional grammar associated with the synth-fun command
-     * @return The instance of `SynthFunCommand`
-     */
-    std::unique_ptr<Command> mkCommand(api::Grammar* grammar);
-
-   private:
-    Smt2* d_smt2;
-    std::string d_id;
-    api::Term d_fun;
-    api::Sort d_sort;
-    bool d_isInv;
-    std::vector<api::Term> d_sygusVars;
-  };
 
   /**
    * Creates a command that adds an invariant constraint.
