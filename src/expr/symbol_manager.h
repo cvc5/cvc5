@@ -86,11 +86,12 @@ class CVC4_PUBLIC SymbolManager
                           bool areAssertions = false) const;
   /**
    * Get a mapping of all expression names.
-   * 
+   *
    * @param areAssertions Whether we only wish to include assertion names
    * @return the mapping containing all expression names.
    */
-  std::map<api::Term, std::string> getExpressionNames(bool areAssertions = false) const;
+  std::map<api::Term, std::string> getExpressionNames(
+      bool areAssertions = false) const;
   //---------------------------- end named expressions
   /**
    * Get the scope level of the symbol table.

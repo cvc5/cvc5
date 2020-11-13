@@ -129,13 +129,17 @@ void SymbolManager::Implementation::getExpressionNames(
   }
 }
 
-std::map<api::Term, std::string> SymbolManager::Implementation::getExpressionNames(bool areAssertions) const
+std::map<api::Term, std::string>
+SymbolManager::Implementation::getExpressionNames(bool areAssertions) const
 {
   std::map<api::Term, std::string> emap;
-  for (TermStringMap::const_iterator it = d_names.begin(), itend = d_names.end(); it != itend; ++it)
+  for (TermStringMap::const_iterator it = d_names.begin(),
+                                     itend = d_names.end();
+       it != itend;
+       ++it)
   {
     api::Term t = (*it).first;
-    if (areAssertions && d_namedAsserts.find(t)==d_namedAsserts.end())
+    if (areAssertions && d_namedAsserts.find(t) == d_namedAsserts.end())
     {
       continue;
     }
@@ -146,9 +150,10 @@ std::map<api::Term, std::string> SymbolManager::Implementation::getExpressionNam
 
 void SymbolManager::Implementation::pushScope(bool isUserContext)
 {
-  Trace("sym-manager") << "pushScope, isUserContext = " << isUserContext << std::endl;
-  PrettyCheckArgument(
-      !d_hasPushedScope.get() || !isUserContext, "cannot push a user context within a scope context");
+  Trace("sym-manager") << "pushScope, isUserContext = " << isUserContext
+                       << std::endl;
+  PrettyCheckArgument(!d_hasPushedScope.get() || !isUserContext,
+                      "cannot push a user context within a scope context");
   d_context.push();
   if (!isUserContext)
   {
@@ -164,7 +169,8 @@ void SymbolManager::Implementation::popScope()
     throw ScopeException();
   }
   d_context.pop();
-  Trace("sym-manager-debug") << "d_hasPushedScope is now " << d_hasPushedScope.get() << std::endl;
+  Trace("sym-manager-debug")
+      << "d_hasPushedScope is now " << d_hasPushedScope.get() << std::endl;
 }
 
 void SymbolManager::Implementation::reset()
@@ -206,7 +212,8 @@ void SymbolManager::getExpressionNames(const std::vector<api::Term>& ts,
   return d_implementation->getExpressionNames(ts, names, areAssertions);
 }
 
-std::map<api::Term, std::string> SymbolManager::getExpressionNames(bool areAssertions) const
+std::map<api::Term, std::string> SymbolManager::getExpressionNames(
+    bool areAssertions) const
 {
   return d_implementation->getExpressionNames(areAssertions);
 }
@@ -222,8 +229,11 @@ void SymbolManager::pushScope(bool isUserContext)
   d_symtabAllocated.pushScope();
 }
 
-void SymbolManager::popScope() { d_symtabAllocated.popScope();
-  d_implementation->popScope(); }
+void SymbolManager::popScope()
+{
+  d_symtabAllocated.popScope();
+  d_implementation->popScope();
+}
 
 void SymbolManager::setGlobalDeclarations(bool flag)
 {
