@@ -100,7 +100,6 @@ class Letify
   //------------------- end letification of proofs
 };
 
-
 }  // namespace proof
 }  // namespace CVC4
 

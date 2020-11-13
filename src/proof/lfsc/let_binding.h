@@ -20,9 +20,9 @@
 #include <map>
 #include <vector>
 
-#include "expr/node.h"
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
+#include "expr/node.h"
 
 namespace CVC4 {
 namespace proof {
@@ -40,19 +40,18 @@ namespace proof {
 class LetBinding
 {
   typedef context::CDList<Node> NodeList;
-  typedef context::
-      CDHashMap<Node, uint32_t, NodeHashFunction>
-          NodeIdMap;
-public:
+  typedef context::CDHashMap<Node, uint32_t, NodeHashFunction> NodeIdMap;
+
+ public:
   LetBinding(uint32_t thresh = 2);
-  /** 
+  /**
    * Push scope for n.
-   * 
+   *
    * This compute the letification for n, adds the (new) terms that must be
    * letified in this context to letList.
-   * 
+   *
    * Notice that this method does not traverse inside of closures.
-   * 
+   *
    * @param n The node to letify
    * @param letList The list of terms that should be letified within n. This
    * list is ordered in such a way that letList[i] does not contain subterm
@@ -61,22 +60,22 @@ public:
   void push(Node n, std::vector<Node>& letList);
   /** Pop scope for n, reverts the state change of the above method */
   void pop();
-  /** 
+  /**
    * @return the identifier for node n.
    */
   uint32_t getId(Node n) const;
-  /** 
+  /**
    * Convert n based on the state of the let binding. This replaces all
    * letified subterms of n with a fresh variable whose name prefix is the
    * given one.
-   * 
+   *
    * @param n The node to convert
    * @param prefix The prefix of variables to convert
    * @return the converted node.
    */
-  Node convert(Node n,
-                      const std::string& prefix) const;
-private:
+  Node convert(Node n, const std::string& prefix) const;
+
+ private:
   /**
    * Compute the count of sub nodes in pn, store in pcount. Additionally,
    * store each node in the domain of pcount in an order in visitList

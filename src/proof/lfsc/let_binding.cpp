@@ -18,10 +18,18 @@
 
 namespace CVC4 {
 namespace proof {
-  
-LetBinding::LetBinding(uint32_t thresh) : d_thresh(thresh), d_context(), d_visitList(&d_context), d_count(&d_context), d_letList(&d_context), d_letMap(&d_context){}
 
-void LetBinding::push(Node n, std::vector< Node >& letList)
+LetBinding::LetBinding(uint32_t thresh)
+    : d_thresh(thresh),
+      d_context(),
+      d_visitList(&d_context),
+      d_count(&d_context),
+      d_letList(&d_context),
+      d_letMap(&d_context)
+{
+}
+
+void LetBinding::push(Node n, std::vector<Node>& letList)
 {
   d_context.push();
   if (d_thresh == 0)
@@ -35,31 +43,29 @@ void LetBinding::push(Node n, std::vector< Node >& letList)
   // Now populate the d_letList and d_letMap
   convertCountToLet();
   // add the new entries to the letList
-  for (NodeList::iterator it = d_letList.begin()+prevSize, itend = d_letList.end(); it != itend; ++it)
+  for (NodeList::iterator it = d_letList.begin() + prevSize,
+                          itend = d_letList.end();
+       it != itend;
+       ++it)
   {
     letList.push_back(*it);
   }
 }
 
-void LetBinding::pop()
-{
-  d_context.pop();
-}
+void LetBinding::pop() { d_context.pop(); }
 
 uint32_t LetBinding::getId(Node n) const
 {
   NodeIdMap::const_iterator it = d_letMap.find(n);
-  if (it==d_letMap.end())
+  if (it == d_letMap.end())
   {
     return 0;
   }
   return (*it).second;
 }
 
-Node LetBinding::convert(Node n,
-                      const std::string& prefix) const
+Node LetBinding::convert(Node n, const std::string& prefix) const
 {
-
   if (d_letMap.empty())
   {
     return n;
@@ -81,7 +87,7 @@ Node LetBinding::convert(Node n,
     {
       uint32_t id = getId(cur);
       // do not letify id 0
-      if (id>0)
+      if (id > 0)
       {
         // make the let variable
         std::stringstream ss;
@@ -124,7 +130,6 @@ Node LetBinding::convert(Node n,
   return visited[n];
 }
 
-
 void LetBinding::updateCounts(Node n)
 {
   NodeIdMap::iterator it;
@@ -163,7 +168,7 @@ void LetBinding::updateCounts(Node n)
 
 void LetBinding::convertCountToLet()
 {
-  Assert (d_thresh > 0);
+  Assert(d_thresh > 0);
   // Assign ids for those whose d_count is >= d_thresh, traverse in d_visitList
   // in order so that deeper proofs are assigned lower identifiers, which
   // ensures the let list can be printed.
@@ -175,7 +180,7 @@ void LetBinding::convertCountToLet()
       // do not letify terms with no children
       continue;
     }
-    else if (d_letMap.find(n)!=d_letMap.end())
+    else if (d_letMap.find(n) != d_letMap.end())
     {
       // already letified, perhaps at a lower context
       continue;
@@ -194,4 +199,3 @@ void LetBinding::convertCountToLet()
 
 }  // namespace proof
 }  // namespace CVC4
-

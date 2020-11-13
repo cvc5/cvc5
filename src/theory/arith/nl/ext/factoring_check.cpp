@@ -25,8 +25,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-FactoringCheck::FactoringCheck(ExtState* data)
-    : d_data(data)
+FactoringCheck::FactoringCheck(ExtState* data) : d_data(data)
 {
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
