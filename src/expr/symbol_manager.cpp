@@ -146,8 +146,9 @@ std::map<api::Term, std::string> SymbolManager::Implementation::getExpressionNam
 
 void SymbolManager::Implementation::pushScope(bool isUserContext)
 {
+  Trace("sym-manager") << "pushScope, isUserContext = " << isUserContext << std::endl;
   PrettyCheckArgument(
-      !d_hasPushedScope.get() || !isUserContext, name, "cannot push a user context within a scope context");
+      !d_hasPushedScope.get() || !isUserContext, "cannot push a user context within a scope context");
   d_context.push();
   if (!isUserContext)
   {
@@ -157,11 +158,13 @@ void SymbolManager::Implementation::pushScope(bool isUserContext)
 
 void SymbolManager::Implementation::popScope()
 {
+  Trace("sym-manager") << "popScope" << std::endl;
   if (d_context.getLevel() == 0)
   {
     throw ScopeException();
   }
   d_context.pop();
+  Trace("sym-manager-debug") << "d_hasPushedScope is now " << d_hasPushedScope.get() << std::endl;
 }
 
 void SymbolManager::Implementation::reset()
@@ -219,7 +222,8 @@ void SymbolManager::pushScope(bool isUserContext)
   d_symtabAllocated.pushScope();
 }
 
-void SymbolManager::popScope() { d_symtabAllocated.popScope(); }
+void SymbolManager::popScope() { d_symtabAllocated.popScope();
+  d_implementation->popScope(); }
 
 void SymbolManager::setGlobalDeclarations(bool flag)
 {
