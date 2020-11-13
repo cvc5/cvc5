@@ -17,7 +17,6 @@
 #include "proof/lfsc/letify.h"
 
 namespace CVC4 {
-namespace proof {
 
 LetBinding::LetBinding(uint32_t thresh)
     : d_thresh(thresh),
@@ -29,9 +28,11 @@ LetBinding::LetBinding(uint32_t thresh)
 {
 }
 
-void LetBinding::push(Node n, std::vector<Node>& letList)
+uint32_t LetBinding::getThreshold() const { return d_thresh; }
+
+void LetBinding::process(Node n)
 {
-  d_context.push();
+  Assert (!n.isNull());
   if (d_thresh == 0)
   {
     // value of 0 means do not introduce let
@@ -39,6 +40,17 @@ void LetBinding::push(Node n, std::vector<Node>& letList)
   }
   // update the count of occurrences
   updateCounts(n);
+}
+
+void LetBinding::pushScope(Node n, std::vector<Node>& letList)
+{
+  // process the node
+  if (!n.isNull())
+  {
+    process(n);
+  }
+  // now, push the context
+  d_context.push();
   size_t prevSize = d_letList.size();
   // Now populate the d_letList and d_letMap
   convertCountToLet();
@@ -52,7 +64,13 @@ void LetBinding::push(Node n, std::vector<Node>& letList)
   }
 }
 
-void LetBinding::pop() { d_context.pop(); }
+void LetBinding::pushScope(std::vector<Node>& letList)
+{
+  Node nullNode;
+  pushScope(nullNode, letList);
+}
+
+void LetBinding::popScope() { d_context.pop(); }
 
 uint32_t LetBinding::getId(Node n) const
 {
@@ -64,13 +82,12 @@ uint32_t LetBinding::getId(Node n) const
   return (*it).second;
 }
 
-Node LetBinding::convert(Node n, const std::string& prefix) const
+Node LetBinding::convert(Node n, const std::string& prefix, bool letTop) const
 {
   if (d_letMap.empty())
   {
     return n;
   }
-  std::map<Node, uint32_t>::const_iterator itl;
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
@@ -86,12 +103,12 @@ Node LetBinding::convert(Node n, const std::string& prefix) const
     if (it == visited.end())
     {
       uint32_t id = getId(cur);
-      // do not letify id 0
-      if (id > 0)
+      // do not letify id 0, or n itself if letTop is false
+      if (id > 0 && (cur!=n || letTop))
       {
         // make the let variable
         std::stringstream ss;
-        ss << prefix << itl->second;
+        ss << prefix << id;
         visited[cur] = nm->mkBoundVar(ss.str(), cur.getType());
       }
       else
@@ -197,5 +214,4 @@ void LetBinding::convertCountToLet()
   }
 }
 
-}  // namespace proof
 }  // namespace CVC4

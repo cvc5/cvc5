@@ -25,17 +25,50 @@
 #include "expr/node.h"
 
 namespace CVC4 {
-namespace proof {
 
 /**
- * A let binding is a list and a map that can be printed as a let expression.
- * In particular, the list d_letList is ordered such that
+ * A flexible let binding class. This class provides functionalities for
+ * printing letified terms. A simple use case is the following for Node n
+ * and LetBinding lbind:
+ * ```
+ *   std::vector<Node> letList;
+ *   lbind.pushScope(n, letList);
+ * ```
+ * Now, letList contains a list of subterms of n that should be letified based
+ * on the threshold value passed to this class where a value n>0 indicates that
+ * terms with n or more occurrences should be letified.
+ * 
+ * The above is equivalent to:
+ * ```
+ *   std::vector<Node> letList;
+ *   lbind.process(n);
+ *   lbind.pushScope(letList);
+ * ```
+ * In fact, multiple terms can be processed above, in which case the counting
+ * is cumulative.
+ *
+ * All quantified formulas are treated as black boxes. This class can be used
+ * to letify terms with quantifiers, where multiple calls to pushScope /
+ * popScope can be used. In particular, consider:
+ * ```
+ *   std::vector<Node> letList1;
+ *   lbind.pushScope(n1, letList1);
+ *   std::vector<Node> letList2;
+ *   lbind.pushScope(n2, letList2);
+ *   ...
+ *   lbind.popScope();
+ *   lbind.popScope();
+ * ```
+ * In a typical use case, n2 is the body of a quantified formula that is a
+ * subterm of n1. We have that letList2 is the list of subterms of n2 that
+ * should be letified, assuming that we have already have let definitions
+ * given by letList1.
+ * 
+ * Internally, a let binding is a list and a map that can be printed as a let
+ * expression. In particular, the list d_letList is ordered such that
  * d_letList[i] does not contain subterm d_letList[j] for j>i.
  * It is intended that d_letList contains only unique nodes. Each node
  * in d_letList is mapped to a unique identifier in d_letMap.
- *
- * If a term is mapped to identifier 0, then it is not letified. This is
- * used to disable letification for certain terms.
  */
 class LetBinding
 {
@@ -44,6 +77,12 @@ class LetBinding
 
  public:
   LetBinding(uint32_t thresh = 2);
+  /** Get threshold */
+  uint32_t getThreshold() const;
+  /**
+   * This updates this let binding to consider the counts for node n.
+   */
+  void process(Node n);
   /**
    * Push scope for n.
    *
@@ -57,11 +96,13 @@ class LetBinding
    * list is ordered in such a way that letList[i] does not contain subterm
    * letList[j] for j>i.
    */
-  void push(Node n, std::vector<Node>& letList);
+  void pushScope(Node n, std::vector<Node>& letList);
+  /** Same as above, without a node to letify */
+  void pushScope(std::vector<Node>& letList);
   /** Pop scope for n, reverts the state change of the above method */
-  void pop();
+  void popScope();
   /**
-   * @return the identifier for node n.
+   * @return the identifier for node n, or 0 if it does not have one.
    */
   uint32_t getId(Node n) const;
   /**
@@ -71,9 +112,10 @@ class LetBinding
    *
    * @param n The node to convert
    * @param prefix The prefix of variables to convert
+   * @param letTop Whether we letify n itself
    * @return the converted node.
    */
-  Node convert(Node n, const std::string& prefix) const;
+  Node convert(Node n, const std::string& prefix, bool letTop=true) const;
 
  private:
   /**
@@ -100,7 +142,6 @@ class LetBinding
   NodeIdMap d_letMap;
 };
 
-}  // namespace proof
 }  // namespace CVC4
 
 #endif
