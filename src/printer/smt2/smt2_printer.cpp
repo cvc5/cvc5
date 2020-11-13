@@ -31,6 +31,7 @@
 #include "options/printer_options.h"
 #include "options/smt_options.h"
 #include "printer/dagification_visitor.h"
+#include "proof/lfsc/let_binding.h"
 #include "proof/lfsc/letify.h"
 #include "proof/unsat_core.h"
 #include "smt/command.h"
@@ -43,7 +44,6 @@
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"
 #include "util/smt2_quote_string.h"
-#include "proof/lfsc/let_binding.h"
 
 using namespace std;
 
@@ -144,10 +144,12 @@ void Smt2Printer::toStream(std::ostream& out,
   }
 }
 
-void Smt2Printer::toStreamWithLetify(std::ostream& out, Node n,
-                        int toDepth, LetBinding* lbind) const
+void Smt2Printer::toStreamWithLetify(std::ostream& out,
+                                     Node n,
+                                     int toDepth,
+                                     LetBinding* lbind) const
 {
-  if (lbind==nullptr)
+  if (lbind == nullptr)
   {
     toStream(out, n, toDepth);
     return;
@@ -177,8 +179,10 @@ void Smt2Printer::toStreamWithLetify(std::ostream& out, Node n,
   lbind->popScope();
 }
 
-
-void Smt2Printer::toStream(std::ostream& out, TNode n, int toDepth, LetBinding* lbind) const
+void Smt2Printer::toStream(std::ostream& out,
+                           TNode n,
+                           int toDepth,
+                           LetBinding* lbind) const
 {
   // null
   if(n.getKind() == kind::NULL_EXPR) {
@@ -454,7 +458,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n, int toDepth, LetBinding* 
     if(n.getNumChildren() != 0) {
       for(unsigned i = 0; i < n.getNumChildren(); ++i) {
 	      out << ' ';
-        toStream(out, n[i], toDepth);
+              toStream(out, n[i], toDepth);
       }
       out << ')';
     }
@@ -924,7 +928,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n, int toDepth, LetBinding* 
       out << "(! ";
     }
     out << n[0] << " ";
-    toStreamWithLetify(out, n[1], toDepth-1, lbind);
+    toStreamWithLetify(out, n[1], toDepth - 1, lbind);
     if (n.getNumChildren() == 3)
     {
       out << n[2];
@@ -997,7 +1001,8 @@ void Smt2Printer::toStream(std::ostream& out, TNode n, int toDepth, LetBinding* 
                    toDepth < 0 ? toDepth : toDepth - 1);
         }
       }else{
-        toStream(out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, lbind);
+        toStream(
+            out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, lbind);
       }
     } else {
       out << "(...)";
@@ -1285,7 +1290,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::SEP_PTO: return "pto";
   case kind::SEP_WAND: return "wand";
   case kind::SEP_EMP: return "emp";
-  
+
   // quantifiers
   case kind::FORALL: return "forall";
   case kind::EXISTS: return "exists";

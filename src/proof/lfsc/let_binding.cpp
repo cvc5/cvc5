@@ -32,7 +32,7 @@ uint32_t LetBinding::getThreshold() const { return d_thresh; }
 
 void LetBinding::process(Node n)
 {
-  Assert (!n.isNull());
+  Assert(!n.isNull());
   if (d_thresh == 0)
   {
     // value of 0 means do not introduce let
@@ -104,7 +104,7 @@ Node LetBinding::convert(Node n, const std::string& prefix, bool letTop) const
     {
       uint32_t id = getId(cur);
       // do not letify id 0, or n itself if letTop is false
-      if (id > 0 && (cur!=n || letTop))
+      if (id > 0 && (cur != n || letTop))
       {
         // make the let variable
         std::stringstream ss;

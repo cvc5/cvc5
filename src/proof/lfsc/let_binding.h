@@ -37,7 +37,7 @@ namespace CVC4 {
  * Now, letList contains a list of subterms of n that should be letified based
  * on the threshold value passed to this class where a value n>0 indicates that
  * terms with n or more occurrences should be letified.
- * 
+ *
  * The above is equivalent to:
  * ```
  *   std::vector<Node> letList;
@@ -63,7 +63,7 @@ namespace CVC4 {
  * subterm of n1. We have that letList2 is the list of subterms of n2 that
  * should be letified, assuming that we have already have let definitions
  * given by letList1.
- * 
+ *
  * Internally, a let binding is a list and a map that can be printed as a let
  * expression. In particular, the list d_letList is ordered such that
  * d_letList[i] does not contain subterm d_letList[j] for j>i.
@@ -115,7 +115,7 @@ class LetBinding
    * @param letTop Whether we letify n itself
    * @return the converted node.
    */
-  Node convert(Node n, const std::string& prefix, bool letTop=true) const;
+  Node convert(Node n, const std::string& prefix, bool letTop = true) const;
 
  private:
   /**
