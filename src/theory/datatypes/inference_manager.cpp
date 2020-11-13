@@ -167,7 +167,22 @@ bool InferenceManager::processDtFact(Node conc, Node exp, InferId id)
 {
   conc = prepareDtInference(conc, exp, id, d_ipc.get());
   // assert the internal fact, which has the same issue as above
-  processDtFactInternal(conc, exp);
+  bool polarity = conc.getKind() != NOT;
+  TNode atom = polarity ? conc : conc[0];
+  if (isProofEnabled())
+  {
+    std::vector<Node> expv;
+    if (!exp.isNull() && !exp.isConst())
+    {
+      expv.push_back(exp);
+    }
+    assertInternalFact(atom, polarity, expv, d_ipc.get());
+  }
+  else
+  {
+    // use version without proofs
+    assertInternalFact(atom, polarity, exp);
+  }
   d_inferenceFacts << id;
   return true;
 }
@@ -197,26 +212,6 @@ Node InferenceManager::prepareDtInference(Node conc,
     ipc->notifyFact(di);
   }
   return conc;
-}
-
-void InferenceManager::processDtFactInternal(Node conc, Node exp)
-{
-  bool polarity = conc.getKind() != NOT;
-  TNode atom = polarity ? conc : conc[0];
-  if (isProofEnabled())
-  {
-    std::vector<Node> expv;
-    if (!exp.isNull() && !exp.isConst())
-    {
-      expv.push_back(exp);
-    }
-    assertInternalFact(atom, polarity, expv, d_ipc.get());
-  }
-  else
-  {
-    // use version without proofs
-    assertInternalFact(atom, polarity, exp);
-  }
 }
 
 }  // namespace datatypes

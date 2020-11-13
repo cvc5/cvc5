@@ -107,11 +107,6 @@ class InferenceManager : public InferenceManagerBuffered
    * to have proofs with missing connections and hence free assumptions.
    */
   Node prepareDtInference(Node conc, Node exp, InferId id, InferProofCons* ipc);
-  /**
-   * Process datatype fact internal. Makes the appropriate call to assert
-   * fact conc from exp based on whether proofs are enabled.
-   */
-  void processDtFactInternal(Node conc, Node exp);
   /** The false node */
   Node d_false;
   /**
