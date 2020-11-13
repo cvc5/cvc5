@@ -31,7 +31,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-TranscendentalSolver::TranscendentalSolver(InferenceManager& im, NlModel& m) : d_im(im), d_model(m)
+TranscendentalSolver::TranscendentalSolver(ExtState* data) : d_data(data)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
@@ -116,7 +116,7 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
         std::vector<Node> repList;
         for (const Node& ac : a)
         {
-          Node r = d_model.computeConcreteModelValue(ac);
+          Node r = d_data->d_model.computeConcreteModelValue(ac);
           repList.push_back(r);
         }
         Node aa = argTrie[ak].add(a, repList);
@@ -124,8 +124,8 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
         {
           // apply congruence to pairs of terms that are disequal and congruent
           Assert(aa.getNumChildren() == a.getNumChildren());
-          Node mvaa = d_model.computeAbstractModelValue(a);
-          Node mvaaa = d_model.computeAbstractModelValue(aa);
+          Node mvaa = d_data->d_model.computeAbstractModelValue(a);
+          Node mvaaa = d_data->d_model.computeAbstractModelValue(aa);
           if (mvaa != mvaaa)
           {
             std::vector<Node> exp;
@@ -135,7 +135,8 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
             }
             Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
             Node cong_lemma = nm->mkNode(OR, expn.negate(), a.eqNode(aa));
-            d_im.addPendingArithLemma(cong_lemma, InferenceId::NL_CONGRUENCE);
+            d_data->d_im.addPendingArithLemma(cong_lemma,
+                                              InferenceId::NL_CONGRUENCE);
           }
         }
         else
@@ -162,7 +163,7 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
     getCurrentPiBounds();
   }
 
-  if (d_im.hasUsed())
+  if (d_data->d_im.hasUsed())
   {
     return;
   }
@@ -202,17 +203,28 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
                   y,
                   nm->mkNode(MULT, nm->mkConst(Rational(2)), shift, d_pi)))),
           new_a.eqNode(a));
+      // note we must do preprocess on this lemma
+      Trace("nl-ext-lemma")
+          << "NonlinearExtension::Lemma : purify : " << lem << std::endl;
+      NlLemma nlem(lem,
+                   LemmaProperty::PREPROCESS,
+                   nullptr,
+                   InferenceId::NL_T_PURIFY_ARG);
+      d_data->d_im.addPendingArithLemma(nlem);
     }
     else
     {
       // do both equalities to ensure that new_a becomes a preregistered term
       lem = nm->mkNode(AND, a.eqNode(new_a), a[0].eqNode(y));
+      // note we must do preprocess on this lemma
+      Trace("nl-ext-lemma")
+          << "NonlinearExtension::Lemma : purify : " << lem << std::endl;
+      NlLemma nlem(lem,
+                   LemmaProperty::PREPROCESS,
+                   nullptr,
+                   InferenceId::NL_T_PURIFY_ARG);
+      d_data->d_im.addPendingArithLemma(nlem);
     }
-    // note we must do preprocess on this lemma
-    Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : purify : " << lem
-                          << std::endl;
-    NlLemma nlem(lem, LemmaProperty::PREPROCESS, nullptr, InferenceId::NL_T_PURIFY_ARG);
-    d_im.addPendingArithLemma(nlem);
   }
 
   if (Trace.isOn("nl-ext-mv"))
@@ -227,9 +239,9 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
         for (const Node& tf : tfl.second)
         {
           Node v = tf[0];
-          d_model.computeConcreteModelValue(v);
-          d_model.computeAbstractModelValue(v);
-          d_model.printModelValue("nl-ext-mv", v);
+          d_data->d_model.computeConcreteModelValue(v);
+          d_data->d_model.computeAbstractModelValue(v);
+          d_data->d_model.printModelValue("nl-ext-mv", v);
         }
       }
     }
@@ -289,7 +301,7 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
         bu = bounds.second;
         if (bl != bu)
         {
-          d_model.setUsedApproximate();
+          d_data->d_model.setUsedApproximate();
         }
       }
       if (!bl.isNull() && !bu.isNull())
@@ -304,7 +316,7 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
           {
             Trace("nl-ext-cm") << "...bound for " << stf << " : [" << bl << ", "
                                << bu << "]" << std::endl;
-            success = d_model.addCheckModelBound(stf, bl, bu);
+            success = d_data->d_model.addCheckModelBound(stf, bl, bu);
           }
         }
       }
@@ -367,7 +379,7 @@ void TranscendentalSolver::getCurrentPiBounds()
   Node pi_lem = nm->mkNode(AND,
                            nm->mkNode(GEQ, d_pi, d_pi_bound[0]),
                            nm->mkNode(LEQ, d_pi, d_pi_bound[1]));
-  d_im.addPendingArithLemma(pi_lem, InferenceId::NL_T_PI_BOUND);
+  d_data->d_im.addPendingArithLemma(pi_lem, InferenceId::NL_T_PI_BOUND);
 }
 
 void TranscendentalSolver::checkTranscendentalInitialRefine()
@@ -385,7 +397,6 @@ void TranscendentalSolver::checkTranscendentalInitialRefine()
       if (d_tf_initial_refine.find(t) == d_tf_initial_refine.end())
       {
         d_tf_initial_refine[t] = true;
-        Node lem;
         if (k == SINE)
         {
           Node symn = nm->mkNode(SINE, nm->mkNode(MULT, d_neg_one, t[0]));
@@ -397,24 +408,21 @@ void TranscendentalSolver::checkTranscendentalInitialRefine()
           Assert(d_trSlaves.find(t) != d_trSlaves.end());
           std::vector<Node> children;
 
-          lem = nm->mkNode(AND,
-                           // bounds
-                           nm->mkNode(AND,
-                                      nm->mkNode(LEQ, t, d_one),
-                                      nm->mkNode(GEQ, t, d_neg_one)),
-                           // symmetry
-                           nm->mkNode(PLUS, t, symn).eqNode(d_zero),
-                           // sign
-                           nm->mkNode(EQUAL,
-                                      nm->mkNode(LT, t[0], d_zero),
-                                      nm->mkNode(LT, t, d_zero)),
-                           // zero val
-                           nm->mkNode(EQUAL,
-                                      nm->mkNode(GT, t[0], d_zero),
-                                      nm->mkNode(GT, t, d_zero)));
-          lem = nm->mkNode(
-              AND,
-              lem,
+          Node lems[6] = {
+              // bounds
+              nm->mkNode(AND,
+                         nm->mkNode(LEQ, t, d_one),
+                         nm->mkNode(GEQ, t, d_neg_one)),
+              // symmetry
+              nm->mkNode(PLUS, t, symn).eqNode(d_zero),
+              // positive
+              nm->mkNode(EQUAL,
+                         nm->mkNode(LT, t[0], d_zero),
+                         nm->mkNode(LT, t, d_zero)),
+              // negative
+              nm->mkNode(EQUAL,
+                         nm->mkNode(GT, t[0], d_zero),
+                         nm->mkNode(GT, t, d_zero)),
               // zero tangent
               nm->mkNode(AND,
                          nm->mkNode(IMPLIES,
@@ -432,14 +440,17 @@ void TranscendentalSolver::checkTranscendentalInitialRefine()
                   nm->mkNode(
                       IMPLIES,
                       nm->mkNode(GT, t[0], d_pi_neg),
-                      nm->mkNode(GT, t, nm->mkNode(MINUS, d_pi_neg, t[0])))));
+                      nm->mkNode(GT, t, nm->mkNode(MINUS, d_pi_neg, t[0]))))};
+          for (const auto& l : lems)
+          {
+            d_data->d_im.addPendingArithLemma(l, InferenceId::NL_T_INIT_REFINE);
+          }
         }
         else if (k == EXPONENTIAL)
         {
           // ( exp(x) > 0 ) ^ ( x=0 <=> exp( x ) = 1 ) ^ ( x < 0 <=> exp( x ) <
           // 1 ) ^ ( x <= 0 V exp( x ) > x + 1 )
-          lem = nm->mkNode(
-              AND,
+          Node lems[4] = {
               nm->mkNode(GT, t, d_zero),
               nm->mkNode(EQUAL, t[0].eqNode(d_zero), t.eqNode(d_one)),
               nm->mkNode(EQUAL,
@@ -447,11 +458,11 @@ void TranscendentalSolver::checkTranscendentalInitialRefine()
                          nm->mkNode(LT, t, d_one)),
               nm->mkNode(OR,
                          nm->mkNode(LEQ, t[0], d_zero),
-                         nm->mkNode(GT, t, nm->mkNode(PLUS, t[0], d_one))));
-        }
-        if (!lem.isNull())
-        {
-          d_im.addPendingArithLemma(lem, InferenceId::NL_T_INIT_REFINE);
+                         nm->mkNode(GT, t, nm->mkNode(PLUS, t[0], d_one)))};
+          for (const auto& l : lems)
+          {
+            d_data->d_im.addPendingArithLemma(l, InferenceId::NL_T_INIT_REFINE);
+          }
         }
       }
     }
@@ -475,7 +486,7 @@ void TranscendentalSolver::checkTranscendentalMonotonic()
       for (const Node& tf : tfl.second)
       {
         Node a = tf[0];
-        Node mvaa = d_model.computeAbstractModelValue(a);
+        Node mvaa = d_data->d_model.computeAbstractModelValue(a);
         if (mvaa.isConst())
         {
           Trace("nl-ext-tf-mono-debug") << "...tf term : " << a << std::endl;
@@ -487,7 +498,7 @@ void TranscendentalSolver::checkTranscendentalMonotonic()
   }
 
   SortNlModel smv;
-  smv.d_nlm = &d_model;
+  smv.d_nlm = &d_data->d_model;
   // sort by concrete values
   smv.d_isConcrete = true;
   smv.d_reverse_order = true;
@@ -502,11 +513,11 @@ void TranscendentalSolver::checkTranscendentalMonotonic()
       for (unsigned i = 0; i < sorted_tf_args[k].size(); i++)
       {
         Node targ = sorted_tf_args[k][i];
-        Node mvatarg = d_model.computeAbstractModelValue(targ);
+        Node mvatarg = d_data->d_model.computeAbstractModelValue(targ);
         Trace("nl-ext-tf-mono")
             << "  " << targ << " -> " << mvatarg << std::endl;
         Node t = tf_arg_to_term[k][targ];
-        Node mvat = d_model.computeAbstractModelValue(t);
+        Node mvat = d_data->d_model.computeAbstractModelValue(t);
         Trace("nl-ext-tf-mono") << "     f-val : " << mvat << std::endl;
       }
       std::vector<Node> mpoints;
@@ -531,7 +542,7 @@ void TranscendentalSolver::checkTranscendentalMonotonic()
           Node mpv;
           if (!mpoints[i].isNull())
           {
-            mpv = d_model.computeAbstractModelValue(mpoints[i]);
+            mpv = d_data->d_model.computeAbstractModelValue(mpoints[i]);
             Assert(mpv.isConst());
           }
           mpoints_vals.push_back(mpv);
@@ -544,10 +555,10 @@ void TranscendentalSolver::checkTranscendentalMonotonic()
         for (unsigned i = 0, size = sorted_tf_args[k].size(); i < size; i++)
         {
           Node sarg = sorted_tf_args[k][i];
-          Node sargval = d_model.computeAbstractModelValue(sarg);
+          Node sargval = d_data->d_model.computeAbstractModelValue(sarg);
           Assert(sargval.isConst());
           Node s = tf_arg_to_term[k][sarg];
-          Node sval = d_model.computeAbstractModelValue(s);
+          Node sval = d_data->d_model.computeAbstractModelValue(s);
           Assert(sval.isConst());
 
           // increment to the proper monotonicity region
@@ -608,7 +619,7 @@ void TranscendentalSolver::checkTranscendentalMonotonic()
                      && sval.getConst<Rational>() < tval.getConst<Rational>())
             {
               mono_lem = nm->mkNode(
-                  IMPLIES, nm->mkNode(LEQ, targ, sarg), nm->mkNode(LEQ, t, s));
+                  IMPLIES, nm->mkNode(GEQ, targ, sarg), nm->mkNode(LEQ, t, s));
             }
             if (!mono_lem.isNull())
             {
@@ -625,7 +636,8 @@ void TranscendentalSolver::checkTranscendentalMonotonic()
               Trace("nl-ext-tf-mono")
                   << "Monotonicity lemma : " << mono_lem << std::endl;
 
-              d_im.addPendingArithLemma(mono_lem, InferenceId::NL_T_MONOTONICITY);
+              d_data->d_im.addPendingArithLemma(mono_lem,
+                                                InferenceId::NL_T_MONOTONICITY);
             }
           }
           // store the previous values
@@ -675,13 +687,14 @@ void TranscendentalSolver::checkTranscendentalTangentPlanes()
       for (unsigned d = 1; d <= d_taylor_degree; d++)
       {
         Trace("nl-ext-tftp") << "- run at degree " << d << "..." << std::endl;
-        unsigned prev = d_im.numPendingLemmas() + d_im.numWaitingLemmas();
+        unsigned prev =
+            d_data->d_im.numPendingLemmas() + d_data->d_im.numWaitingLemmas();
         if (checkTfTangentPlanesFun(tf, d))
         {
-          Trace("nl-ext-tftp")
-              << "...fail, #lemmas = "
-              << (d_im.numPendingLemmas() + d_im.numWaitingLemmas() - prev)
-              << std::endl;
+          Trace("nl-ext-tftp") << "...fail, #lemmas = "
+                               << (d_data->d_im.numPendingLemmas()
+                                   + d_data->d_im.numWaitingLemmas() - prev)
+                               << std::endl;
           break;
         }
         else
@@ -702,7 +715,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
   Assert(d_trSlaves.find(tf) != d_trSlaves.end());
 
   // Figure 3 : c
-  Node c = d_model.computeAbstractModelValue(tf[0]);
+  Node c = d_data->d_model.computeAbstractModelValue(tf[0]);
   int csign = c.getConst<Rational>().sgn();
   if (csign == 0)
   {
@@ -722,7 +735,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
   poly_approx_bounds[1][-1] = pbounds[3];
 
   // Figure 3 : v
-  Node v = d_model.computeAbstractModelValue(tf);
+  Node v = d_data->d_model.computeAbstractModelValue(tf);
 
   // check value of tf
   Trace("nl-ext-tftp-debug") << "Process tangent plane refinement for " << tf
@@ -769,8 +782,8 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
   bool is_secant = false;
   std::pair<Node, Node> mvb = getTfModelBounds(tf, d);
   // this is the approximated value of tf(c), which is a value such that:
-  //    M_A(tf(c)) >= poly_appox_c >= tf(c) or
-  //    M_A(tf(c)) <= poly_appox_c <= tf(c)
+  //    M_A(tf(c)) >= poly_approx_c >= tf(c) or
+  //    M_A(tf(c)) <= poly_approx_c <= tf(c)
   // In other words, it is a better approximation of the true value of tf(c)
   // in the case that we add a refinement lemma. We use this value in the
   // refinement schemas below.
@@ -865,17 +878,17 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
     }
     if (!antec.empty())
     {
-      Node antec_n = antec.size() == 1 ? antec[0] : nm->mkNode(AND, antec);
-      lem = nm->mkNode(IMPLIES, antec_n, lem);
+      lem = nm->mkNode(IMPLIES, nm->mkAnd(antec), lem);
     }
     Trace("nl-ext-tftp-debug2")
         << "*** Tangent plane lemma (pre-rewrite): " << lem << std::endl;
     lem = Rewriter::rewrite(lem);
     Trace("nl-ext-tftp-lemma")
         << "*** Tangent plane lemma : " << lem << std::endl;
-    Assert(d_model.computeAbstractModelValue(lem) == d_false);
+    Assert(d_data->d_model.computeAbstractModelValue(lem) == d_false);
     // Figure 3 : line 9
-    d_im.addPendingArithLemma(lem, InferenceId::NL_T_TANGENT, nullptr, true);
+    d_data->d_im.addPendingArithLemma(
+        lem, InferenceId::NL_T_TANGENT, nullptr, true);
   }
   else if (is_secant)
   {
@@ -893,7 +906,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
 
     // sort
     SortNlModel smv;
-    smv.d_nlm = &d_model;
+    smv.d_nlm = &d_data->d_model;
     smv.d_isConcrete = true;
     std::sort(spoints.begin(), spoints.end(), smv);
     // get the resulting index of c
@@ -939,15 +952,13 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
     Trace("nl-ext-tftp-debug2") << "...secant bounds are : " << bounds[0]
                                 << " ... " << bounds[1] << std::endl;
 
-    // the secant plane may be conjunction of 1-2 guarded inequalities
-    std::vector<Node> lemmaConj;
     for (unsigned s = 0; s < 2; s++)
     {
       // compute secant plane
       Assert(!poly_approx.isNull());
       Assert(!bounds[s].isNull());
       // take the model value of l or u (since may contain PI)
-      Node b = d_model.computeAbstractModelValue(bounds[s]);
+      Node b = d_data->d_model.computeAbstractModelValue(bounds[s]);
       Trace("nl-ext-tftp-debug2") << "...model value of bound " << bounds[s]
                                   << " is " << b << std::endl;
       Assert(b.isConst());
@@ -1001,19 +1012,16 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
         lem = Rewriter::rewrite(lem);
         Trace("nl-ext-tftp-lemma")
             << "*** Secant plane lemma : " << lem << std::endl;
-        lemmaConj.push_back(lem);
-        Assert(d_model.computeAbstractModelValue(lem) == d_false);
+        Assert(d_data->d_model.computeAbstractModelValue(lem) == d_false);
+        // Figure 3 : line 22
+        NlLemma nlem(
+            lem, LemmaProperty::NONE, nullptr, InferenceId::NL_T_SECANT);
+        // The side effect says that if lem is added, then we should add the
+        // secant point c for (tf,d).
+        nlem.d_secantPoint.push_back(std::make_tuple(tf, d, c));
+        d_data->d_im.addPendingArithLemma(nlem, true);
       }
     }
-    // Figure 3 : line 22
-    Assert(!lemmaConj.empty());
-    Node lem =
-        lemmaConj.size() == 1 ? lemmaConj[0] : nm->mkNode(AND, lemmaConj);
-    NlLemma nlem(lem, LemmaProperty::NONE, nullptr, InferenceId::NL_T_SECANT);
-    // The side effect says that if lem is added, then we should add the
-    // secant point c for (tf,d).
-    nlem.d_secantPoint.push_back(std::make_tuple(tf, d, c));
-    d_im.addPendingArithLemma(nlem, true);
   }
   return true;
 }
@@ -1367,7 +1375,7 @@ void TranscendentalSolver::getPolynomialApproximationBounds(
   }
 }
 
-void TranscendentalSolver::getPolynomialApproximationBoundForArg(
+unsigned TranscendentalSolver::getPolynomialApproximationBoundForArg(
     Kind k, Node c, unsigned d, std::vector<Node>& pbounds)
 {
   getPolynomialApproximationBounds(k, d, pbounds);
@@ -1406,14 +1414,16 @@ void TranscendentalSolver::getPolynomialApproximationBoundForArg(
       getPolynomialApproximationBounds(k, ds, pboundss);
       pbounds[2] = pboundss[2];
     }
+    return ds;
   }
+  return d;
 }
 
 std::pair<Node, Node> TranscendentalSolver::getTfModelBounds(Node tf,
                                                              unsigned d)
 {
   // compute the model value of the argument
-  Node c = d_model.computeAbstractModelValue(tf[0]);
+  Node c = d_data->d_model.computeAbstractModelValue(tf[0]);
   Assert(c.isConst());
   int csign = c.getConst<Rational>().sgn();
   Kind k = tf.getKind();
@@ -1448,7 +1458,7 @@ std::pair<Node, Node> TranscendentalSolver::getTfModelBounds(Node tf,
       // is not equal to
       // M_A( x*x { x -> t } ) = M_A( t*t )
       // where M_A denotes the abstract model.
-      Node mtfs = d_model.computeAbstractModelValue(tfs);
+      Node mtfs = d_data->d_model.computeAbstractModelValue(tfs);
       pab = pab.substitute(tfv, mtfs);
       pab = Rewriter::rewrite(pab);
       Assert (pab.isConst());

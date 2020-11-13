@@ -21,8 +21,7 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/arith/inference_manager.h"
-#include "theory/arith/nl/nl_model.h"
+#include "theory/arith/nl/ext/ext_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -44,7 +43,7 @@ namespace nl {
 class TranscendentalSolver
 {
  public:
-  TranscendentalSolver(InferenceManager& im, NlModel& m);
+  TranscendentalSolver(ExtState* data);
   ~TranscendentalSolver();
 
   /** init last call
@@ -211,11 +210,13 @@ class TranscendentalSolver
    * polynomials may depend on c. In particular, for P_u+[x] for <k>( c ) where
    * c>0, we return the P_u+[x] from the function above for the minimum degree
    * d' >= d such that (1-c^{2*d'+1}/(2*d'+1)!) is positive.
+   * @return the actual degree of the polynomial approximations (which may be
+   * larger than d).
    */
-  void getPolynomialApproximationBoundForArg(Kind k,
-                                             Node c,
-                                             unsigned d,
-                                             std::vector<Node>& pbounds);
+  unsigned getPolynomialApproximationBoundForArg(Kind k,
+                                                 Node c,
+                                                 unsigned d,
+                                                 std::vector<Node>& pbounds);
   /** get transcendental function model bounds
    *
    * This returns the current lower and upper bounds of transcendental
@@ -271,10 +272,8 @@ class TranscendentalSolver
   /** Make the node -pi <= a <= pi */
   static Node mkValidPhase(Node a, Node pi);
 
-  /** The inference manager that we push conflicts and lemmas to. */
-  InferenceManager& d_im;
-  /** Reference to the non-linear model object */
-  NlModel& d_model;
+  /** Basic data that is shared with other checks */
+  ExtState* d_data;
   /** commonly used terms */
   Node d_zero;
   Node d_one;
