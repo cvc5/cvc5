@@ -37,6 +37,15 @@ struct ExtState
 
   void init(const std::vector<Node>& xts);
 
+  /**
+   * Checks whether proofs are enabled.
+   */
+  bool isProofEnabled() const;
+  /**
+   * Creates and returns a new LazyCDProof that can be used to prove some lemma.
+   */
+  LazyCDProof* getProof();
+
   Node d_false;
   Node d_true;
   Node d_zero;

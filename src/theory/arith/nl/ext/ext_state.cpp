@@ -96,6 +96,14 @@ void ExtState::init(const std::vector<Node>& xts)
   Trace("nl-ext") << "We have " << d_ms.size() << " monomials." << std::endl;
 }
 
+bool ExtState::isProofEnabled() const { return d_proof.get() != nullptr; }
+
+LazyCDProof* ExtState::getProof()
+{
+  Assert(isProofEnabled());
+  return d_proof->allocateProof();
+}
+
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory

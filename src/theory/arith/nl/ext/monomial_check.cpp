@@ -316,9 +316,9 @@ int MonomialCheck::compareSign(
       Node conc = oa.eqNode(d_data->d_zero);
       Node lemma = prem.impNode(conc);
       LazyCDProof* proof = nullptr;
-      if (d_data->d_proof)
+      if (d_data->isProofEnabled())
       {
-        proof = d_data->d_proof->allocateProof();
+        proof = d_data->getProof();
         proof->addStep(conc, PfRule::MACRO_SR_PRED_INTRO, {prem}, {conc});
         proof->addStep(lemma, PfRule::SCOPE, {conc}, {prem});
       }
