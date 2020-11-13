@@ -1102,6 +1102,32 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (Q)
   INT_TRUST,
+  //======== Multiplication tangent plane
+  // Children: none
+  // Arguments: (x, y, a, b, i)
+  // ---------------------
+  // Conclusion:
+  //   i=0: (or (not (>= x a)) (not (<= y b)) (<= (* x y) tplane))
+  //   i=1: (or (not (<= x a)) (not (>= y b)) (<= (* x y) tplane))
+  //   i=2: (or (not (<= x a)) (not (<= y b)) (>= (* x y) tplane))
+  //   i=3: (or (not (>= x a)) (not (>= y b)) (>= (* x y) tplane))
+  // Where x,y are real terms (variables or extended terms), a,b are real
+  // constants, and i is 0,1,2,3. tplane is the tangent plane of x*y at (a,b):
+  //    b*x + a*y - a*b
+  ARITH_MULT_TANGENT,
+  //======== Multiplication tangent plane inverse
+  // Children: none
+  // Arguments: (x, y, a, b, i)
+  // ---------------------
+  // Conclusion:
+  //   i=0: (or (not (<= (* x y) tplane)) (>= x a) (>= y b))
+  //   i=1: (or (not (<= (* x y) tplane)) (<= x a) (<= y b))
+  //   i=2: (or (not (>= (* x y) tplane)) (<= x a) (>= y b))
+  //   i=3: (or (not (>= (* x y) tplane)) (>= x a) (<= y b))
+  // Where x,y are real terms (variables or extended terms), a,b are real
+  // constants, and i is 0,1,2,3. tplane is the tangent plane of x*y at (a,b):
+  //    b*x + a*y - a*b
+  ARITH_MULT_TANGENT_INV,
 
   // ================ CAD Lemmas
   // We use IRP for IndexedRootPredicate.
