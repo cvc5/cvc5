@@ -258,7 +258,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
     symbol[name,CHECK_UNDECLARED,SYM_SORT]
     { PARSER_STATE->checkUserSymbol(name); }
     LPAREN_TOK symbolList[names,CHECK_NONE,SYM_SORT] RPAREN_TOK
-    { PARSER_STATE->pushScope(true);
+    { PARSER_STATE->pushScope();
       for(std::vector<std::string>::const_iterator i = names.begin(),
             iend = names.end();
           i != iend;
@@ -319,7 +319,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       }
 
       t = PARSER_STATE->mkFlatFunctionType(sorts, t, flattenVars);
-      PARSER_STATE->pushScope(true);
+      PARSER_STATE->pushScope();
       terms = PARSER_STATE->bindBoundVars(sortedVarNames);
     }
     term[expr, expr2]
@@ -365,7 +365,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
         // set the expression name, if there was a named term
         std::pair<api::Term, std::string> namedTerm =
             PARSER_STATE->lastNamedTerm();
-        SYM_MAN->setExpressionName(func, name, true);
+        SYM_MAN->setExpressionName(namedTerm.first, namedTerm.second, true);
         Command* csen =
             new SetExpressionNameCommand(namedTerm.first, namedTerm.second);
         csen->setMuted(true);
@@ -423,12 +423,12 @@ command [std::unique_ptr<CVC4::Command>* cmd]
         if(num == 0) {
           cmd->reset(new EmptyCommand());
         } else if(num == 1) {
-          PARSER_STATE->pushScope();
+          PARSER_STATE->pushScope(true);
           cmd->reset(new PushCommand());
         } else {
           std::unique_ptr<CommandSequence> seq(new CommandSequence());
           do {
-            PARSER_STATE->pushScope();
+            PARSER_STATE->pushScope(true);
             Command* push_cmd = new PushCommand();
             push_cmd->setMuted(num > 1);
             seq->addCommand(push_cmd);
@@ -442,7 +442,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
               "Strict compliance mode demands an integer to be provided to "
               "PUSH.  Maybe you want (push 1)?");
         } else {
-          PARSER_STATE->pushScope();
+          PARSER_STATE->pushScope(true);
           cmd->reset(new PushCommand());
         }
       } )
@@ -550,7 +550,7 @@ sygusCommand returns [std::unique_ptr<CVC4::Command> cmd]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     ( sortSymbol[range,CHECK_DECLARED] )?
     {
-      PARSER_STATE->pushScope(true);
+      PARSER_STATE->pushScope();
       sygusVars = PARSER_STATE->bindBoundVars(sortedVarNames);
     }
     (
@@ -662,7 +662,7 @@ sygusGrammar[CVC4::api::Grammar*& ret,
   RPAREN_TOK
   {
     // non-terminal symbols in the pre-declaration are locally scoped
-    PARSER_STATE->pushScope(true);
+    PARSER_STATE->pushScope();
     for (std::pair<std::string, api::Sort>& i : sortedVarNames)
     {
       PARSER_STATE->checkDeclaration(name, CHECK_UNDECLARED, SYM_SORT);
@@ -819,7 +819,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
       func =
           PARSER_STATE->bindDefineFunRec(fname, sortedVarNames, t, flattenVars);
       PARSER_STATE->pushDefineFunRecScope(
-          sortedVarNames, func, flattenVars, bvs, true);
+          sortedVarNames, func, flattenVars, bvs);
     }
     term[expr, expr2]
     { PARSER_STATE->popScope();
@@ -863,7 +863,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
       }
       bvs.clear();
       PARSER_STATE->pushDefineFunRecScope( sortedVarNamesList[0], funcs[0],
-                                           flattenVarsList[0], bvs, true);
+                                           flattenVarsList[0], bvs);
     }
     (
     term[expr,expr2]
@@ -880,7 +880,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
       if( func_defs.size()<funcs.size() ){
         bvs.clear();
         PARSER_STATE->pushDefineFunRecScope( sortedVarNamesList[j], funcs[j],
-                                             flattenVarsList[j], bvs, true);
+                                             flattenVarsList[j], bvs);
       }
     }
     )+
@@ -997,7 +997,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       sortedVarList[sortedVarNames] RPAREN_TOK
       { /* add variables to parser state before parsing term */
         Debug("parser") << "define fun: '" << name << "'" << std::endl;
-        PARSER_STATE->pushScope(true);
+        PARSER_STATE->pushScope();
         terms = PARSER_STATE->bindBoundVars(sortedVarNames);
       }
       term[e,e2]
@@ -1029,7 +1029,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     sortSymbol[t,CHECK_DECLARED]
     { /* add variables to parser state before parsing term */
       Debug("parser") << "define const: '" << name << "'" << std::endl;
-      PARSER_STATE->pushScope(true);
+      PARSER_STATE->pushScope();
       terms = PARSER_STATE->bindBoundVars(sortedVarNames);
     }
     term[e, e2]
@@ -1105,7 +1105,7 @@ datatypes_2_5_DefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
 }
   : { PARSER_STATE->checkThatLogicIsSet();
     /* open a scope to keep the UnresolvedTypes contained */
-    PARSER_STATE->pushScope(true); }
+    PARSER_STATE->pushScope(); }
   LPAREN_TOK /* parametric sorts */
   ( symbol[name,CHECK_UNDECLARED,SYM_SORT]
     {
@@ -1175,7 +1175,7 @@ datatypesDef[bool isCo,
   std::string name;
   std::vector<api::Sort> params;
 }
-  : { PARSER_STATE->pushScope(true);
+  : { PARSER_STATE->pushScope();
       // Declare the datatypes that are currently being defined as unresolved
       // types. If we do not know the arity of the datatype yet, we wait to
       // define it until parsing the preamble of its body, which may optionally
@@ -1202,7 +1202,7 @@ datatypesDef[bool isCo,
         PARSER_STATE->parseError("Too many datatypes defined in this block.");
       }
     }
-    ( PAR_TOK { PARSER_STATE->pushScope(true); } LPAREN_TOK
+    ( PAR_TOK { PARSER_STATE->pushScope(); } LPAREN_TOK
       ( symbol[name,CHECK_UNDECLARED,SYM_SORT]
         {
           params.push_back( PARSER_STATE->mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER)); }
@@ -1363,7 +1363,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
       {
         PARSER_STATE->parseError("Quantifier used in non-quantified logic.");
       }
-      PARSER_STATE->pushScope(true);
+      PARSER_STATE->pushScope();
     }
     boundVarList[bvl]
     term[f, f2] RPAREN_TOK
@@ -1378,7 +1378,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
       expr = MK_TERM(kind, args);
     }
   | LPAREN_TOK COMPREHENSION_TOK
-    { PARSER_STATE->pushScope(true); }
+    { PARSER_STATE->pushScope(); }
     boundVarList[bvl]
     {
       args.push_back(bvl);
@@ -1397,7 +1397,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
   | /* a let or sygus let binding */
     LPAREN_TOK 
       LET_TOK LPAREN_TOK
-      { PARSER_STATE->pushScope(true); }
+      { PARSER_STATE->pushScope(); }
       ( LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE]
         term[expr, f2]
         RPAREN_TOK
@@ -1435,7 +1435,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
       // case with non-nullary pattern
       LPAREN_TOK LPAREN_TOK term[f, f2] {
           args.clear();
-          PARSER_STATE->pushScope(true);
+          PARSER_STATE->pushScope();
           // f should be a constructor
           type = f.getSort();
           Debug("parser-dt") << "Pattern head : " << f << " " << type << std::endl;
@@ -1554,7 +1554,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
     }
   | /* lambda */
     LPAREN_TOK HO_LAMBDA_TOK
-    { PARSER_STATE->pushScope(true); }
+    { PARSER_STATE->pushScope(); }
     boundVarList[bvl]
     term[f, f2] RPAREN_TOK
     {
@@ -2182,7 +2182,7 @@ datatypeDef[bool isCo, std::vector<CVC4::api::DatatypeDecl>& datatypes,
      * datatypes won't work, because this type will already be
      * "defined" as an unresolved type; don't worry, we check
      * below. */
-  : symbol[id,CHECK_NONE,SYM_SORT] { PARSER_STATE->pushScope(true); }
+  : symbol[id,CHECK_NONE,SYM_SORT] { PARSER_STATE->pushScope(); }
     {
       datatypes.push_back(SOLVER->mkDatatypeDecl(id, params, isCo));
     }

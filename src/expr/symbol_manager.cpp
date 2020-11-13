@@ -51,6 +51,8 @@ class SymbolManager::Implementation
   void getExpressionNames(const std::vector<api::Term>& ts,
                           std::vector<std::string>& names,
                           bool areAssertions = false) const;
+  /** get expression names */
+  std::map<api::Term, std::string> getExpressionNames(bool areAssertions) const;
   /** reset */
   void reset();
   /** Push a scope in the expression names. */
@@ -144,6 +146,8 @@ std::map<api::Term, std::string> SymbolManager::Implementation::getExpressionNam
 
 void SymbolManager::Implementation::pushScope(bool isUserContext)
 {
+  PrettyCheckArgument(
+      !d_hasPushedScope.get() || !isUserContext, name, "cannot push a user context within a scope context");
   d_context.push();
   if (!isUserContext)
   {
