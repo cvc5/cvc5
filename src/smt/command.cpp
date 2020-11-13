@@ -1313,11 +1313,18 @@ void DefineNamedFunctionCommand::toStream(std::ostream& out,
                                           size_t dag,
                                           OutputLanguage language) const
 {
+  // get the range type of the function, or the type itself
+  // if its not a function
+  TypeNode range = d_func.getSort().getTypeNode();
+  if (range.isFunction())
+  {
+    range = range.getRangeType();
+  }
   Printer::getPrinter(language)->toStreamCmdDefineNamedFunction(
       out,
       d_func.toString(),
       api::termVectorToNodes(d_formals),
-      d_func.getSort().getFunctionCodomainSort().getTypeNode(),
+      range,
       d_formula.getNode());
 }
 

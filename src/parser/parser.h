@@ -128,12 +128,6 @@ private:
  size_t d_assertionLevel;
 
  /**
-  * Whether we're in global declarations mode (all definitions and
-  * declarations are global).
-  */
- bool d_globalDeclarations;
-
- /**
   * Maintains a list of reserved symbols at the assertion level that might
   * not occur in our symbol table.  This is necessary to e.g. support the
   * proper behavior of the :named annotation in SMT-LIBv2 when used under
@@ -767,15 +761,8 @@ public:
 
   virtual void reset();
 
-  void setGlobalDeclarations(bool flag) {
-    d_globalDeclarations = flag;
-  }
-
-  bool getGlobalDeclarations() { return d_globalDeclarations; }
-
-  inline SymbolTable* getSymbolTable() const {
-    return d_symtab;
-  }
+  /** Return the symbol manager used by this parser. */
+  SymbolManager* getSymbolManager();
 
   //------------------------ operator overloading
   /** is this function overloaded? */
