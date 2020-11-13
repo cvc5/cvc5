@@ -21,7 +21,7 @@ namespace proof {
   
 LetBinding::LetBinding(uint32_t thresh) : d_thresh(thresh), d_context(), d_visitList(&d_context), d_count(&d_context), d_letList(&d_context), d_letMap(&d_context){}
 
-void LetBinding::push(Node n, std::vector< std::pair<Node, Node> >& letList)
+void LetBinding::push(Node n, std::vector< Node >& letList)
 {
   d_context.push();
   if (d_thresh == 0)
@@ -31,9 +31,14 @@ void LetBinding::push(Node n, std::vector< std::pair<Node, Node> >& letList)
   }
   // update the count of occurrences
   updateCounts(n);
+  size_t prevSize = d_letList.size();
   // Now populate the d_letList and d_letMap
   convertCountToLet();
   // add the new entries to the letList
+  for (NodeList::iterator it = d_letList.begin()+prevSize, itend = d_letList.end(); it != itend; ++it)
+  {
+    letList.push_back(*it);
+  }
 }
 
 void LetBinding::pop()
@@ -159,8 +164,9 @@ void LetBinding::updateCounts(Node n)
 void LetBinding::convertCountToLet()
 {
   Assert (d_thresh > 0);
-  // Assign ids for those whose d_count is > 1, traverse in reverse order
-  // so that deeper proofs are assigned lower identifiers
+  // Assign ids for those whose d_count is >= d_thresh, traverse in d_visitList
+  // in order so that deeper proofs are assigned lower identifiers, which
+  // ensures the let list can be printed.
   NodeIdMap::const_iterator itc;
   for (const Node& n : d_visitList)
   {
