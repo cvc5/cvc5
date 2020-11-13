@@ -127,6 +127,21 @@ void SymbolManager::Implementation::getExpressionNames(
   }
 }
 
+std::map<api::Term, std::string> SymbolManager::Implementation::getExpressionNames(bool areAssertions) const
+{
+  std::map<api::Term, std::string> emap;
+  for (TermStringMap::const_iterator it = d_names.begin(), itend = d_names.end(); it != itend; ++it)
+  {
+    api::Term t = (*it).first;
+    if (areAssertions && d_namedAsserts.find(t)==d_namedAsserts.end())
+    {
+      continue;
+    }
+    emap[t] = (*it).second;
+  }
+  return emap;
+}
+
 void SymbolManager::Implementation::pushScope(bool isUserContext)
 {
   d_context.push();
@@ -182,6 +197,11 @@ void SymbolManager::getExpressionNames(const std::vector<api::Term>& ts,
                                        bool areAssertions) const
 {
   return d_implementation->getExpressionNames(ts, names, areAssertions);
+}
+
+std::map<api::Term, std::string> SymbolManager::getExpressionNames(bool areAssertions) const
+{
+  return d_implementation->getExpressionNames(areAssertions);
 }
 
 size_t SymbolManager::scopeLevel() const

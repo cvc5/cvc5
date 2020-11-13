@@ -365,6 +365,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
         // set the expression name, if there was a named term
         std::pair<api::Term, std::string> namedTerm =
             PARSER_STATE->lastNamedTerm();
+        SYM_MAN->setExpressionName(func, name, true);
         Command* csen =
             new SetExpressionNameCommand(namedTerm.first, namedTerm.second);
         csen->setMuted(true);
@@ -1842,6 +1843,7 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
       api::Term func = PARSER_STATE->setNamedAttribute(expr, sexpr);
       std::string name = sexpr.getValue();
       // bind name to expr with define-fun
+      SYM_MAN->setExpressionName(func, name, false);
       Command* c =
           new DefineNamedFunctionCommand(name,
                                          func,
