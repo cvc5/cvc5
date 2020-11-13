@@ -159,7 +159,7 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
           {
             proof = d_data->getProof();
             Node k_eq = kf.eqNode(sum);
-            Node split = nm->mkNode(Kind::OR, lit, lit.negate());
+            Node split = nm->mkNode(Kind::OR, lit, lit.notNode());
             proof->addStep(split, PfRule::SPLIT, {}, {lit});
             proof->addStep(
                 flem, PfRule::MACRO_SR_PRED_TRANSFORM, {split, k_eq}, {flem});
