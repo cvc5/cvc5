@@ -24,7 +24,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-SplitZeroCheck::SplitZeroCheck(ExtState* data, context::Context* ctx)
+SplitZeroCheck::SplitZeroCheck(ExtState* data, context::UserContext* ctx)
     : d_data(data), d_zero_split(ctx)
 {
 }
@@ -36,14 +36,16 @@ void SplitZeroCheck::check()
     Node v = d_data->d_ms_vars[i];
     if (d_zero_split.insert(v))
     {
-      Node eq = v.eqNode(d_data->d_zero);
-      eq = Rewriter::rewrite(eq);
+      Node eq = Rewriter::rewrite(v.eqNode(d_data->d_zero));
+      Node lem = eq.orNode(eq.negate());
+      LazyCDProof* proof = nullptr;
+      if (d_data->isProofEnabled())
+      {
+        proof = d_data->getProof();
+        proof->addStep(lem, PfRule::SPLIT, {}, {eq});
+      }
       d_data->d_im.addPendingPhaseRequirement(eq, true);
-      ArithLemma lem(eq.orNode(eq.negate()),
-                     LemmaProperty::NONE,
-                     nullptr,
-                     InferenceId::NL_SPLIT_ZERO);
-      d_data->d_im.addPendingArithLemma(lem);
+      d_data->d_im.addPendingArithLemma(lem, InferenceId::NL_SPLIT_ZERO, proof);
     }
   }
 }
