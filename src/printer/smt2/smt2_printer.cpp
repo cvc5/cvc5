@@ -1396,7 +1396,8 @@ void Smt2Printer::toStream(std::ostream& out,
     else
     {
       std::vector<Node> elements = theory_model->getDomainElements(tn);
-      if (options::modelUninterpDtEnum())
+      if (options::modelUninterpPrint()
+          == options::ModelUninterpPrintMode::DtEnum)
       {
         if (isVariant_2_6(d_variant))
         {
@@ -1416,7 +1417,11 @@ void Smt2Printer::toStream(std::ostream& out,
       {
         // print the cardinality
         out << "; cardinality of " << tn << " is " << elements.size() << endl;
-        out << (*dtc) << endl;
+        if (options::modelUninterpPrint()
+            == options::ModelUninterpPrintMode::DeclSortAndFun)
+        {
+          out << (*dtc) << endl;
+        }
         // print the representatives
         for (const Node& trn : elements)
         {
@@ -1463,7 +1468,9 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     else
     {
-      if (options::modelUninterpDtEnum() && val.getKind() == kind::STORE)
+      if (options::modelUninterpPrint()
+              == options::ModelUninterpPrintMode::DtEnum
+          && val.getKind() == kind::STORE)
       {
         TypeNode tn = val[1].getType();
         const std::vector<Node>* type_refs =

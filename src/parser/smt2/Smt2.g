@@ -127,6 +127,8 @@ using namespace CVC4::parser;
 #define PARSER_STATE ((Smt2*)PARSER->super)
 #undef SOLVER
 #define SOLVER PARSER_STATE->getSolver()
+#undef SYM_MAN
+#define SYM_MAN PARSER_STATE->getSymbolManager()
 #undef MK_TERM
 #define MK_TERM SOLVER->mkTerm
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
@@ -336,7 +338,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       api::Term func = PARSER_STATE->bindVar(name, t,
                                       ExprManager::VAR_FLAG_DEFINED, true);
       cmd->reset(new DefineFunctionCommand(
-          name, func, terms, expr, PARSER_STATE->getGlobalDeclarations()));
+          name, func, terms, expr, SYM_MAN->getGlobalDeclarations()));
     }
   | DECLARE_DATATYPE_TOK datatypeDefCommand[false, cmd]
   | DECLARE_DATATYPES_TOK datatypesDefCommand[false, cmd]
@@ -745,8 +747,9 @@ setOptionInternal[std::unique_ptr<CVC4::Command>* cmd]
       // Ugly that this changes the state of the parser; but
       // global-declarations affects parsing, so we can't hold off
       // on this until some SmtEngine eventually (if ever) executes it.
-      if(name == ":global-declarations") {
-        PARSER_STATE->setGlobalDeclarations(sexpr.getValue() == "true");
+      if(name == ":global-declarations")
+      {
+        SYM_MAN->setGlobalDeclarations(sexpr.getValue() == "true");
       }
     }
   ;
@@ -823,7 +826,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
         expr = PARSER_STATE->mkHoApply( expr, flattenVars );
       }
       cmd->reset(new DefineFunctionRecCommand(
-          func, bvs, expr, PARSER_STATE->getGlobalDeclarations()));
+          func, bvs, expr, SYM_MAN->getGlobalDeclarations()));
     }
   | DEFINE_FUNS_REC_TOK
     { PARSER_STATE->checkThatLogicIsSet();}
@@ -887,7 +890,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
             "define-funs-rec"));
       }
       cmd->reset(new DefineFunctionRecCommand(
-          funcs, formals, func_defs, PARSER_STATE->getGlobalDeclarations()));
+          funcs, formals, func_defs, SYM_MAN->getGlobalDeclarations()));
     }
   ;
 
@@ -984,7 +987,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
         api::Term func = PARSER_STATE->bindVar(name, e.getSort(),
                                         ExprManager::VAR_FLAG_DEFINED);
         cmd->reset(new DefineFunctionCommand(
-            name, func, e, PARSER_STATE->getGlobalDeclarations()));
+            name, func, e, SYM_MAN->getGlobalDeclarations()));
       }
     | // (define (f (v U) ...) t)
       LPAREN_TOK
@@ -1015,7 +1018,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
         api::Term func = PARSER_STATE->bindVar(name, tt,
                                         ExprManager::VAR_FLAG_DEFINED);
         cmd->reset(new DefineFunctionCommand(
-            name, func, terms, e, PARSER_STATE->getGlobalDeclarations()));
+            name, func, terms, e, SYM_MAN->getGlobalDeclarations()));
       }
     )
   | // (define-const x U t)
@@ -1037,7 +1040,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       api::Term func = PARSER_STATE->bindVar(name, t,
                                       ExprManager::VAR_FLAG_DEFINED);
       cmd->reset(new DefineFunctionCommand(
-          name, func, terms, e, PARSER_STATE->getGlobalDeclarations()));
+          name, func, terms, e, SYM_MAN->getGlobalDeclarations()));
     }
 
   | SIMPLIFY_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -1844,7 +1847,7 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
                                          func,
                                          std::vector<api::Term>(),
                                          expr,
-                                         PARSER_STATE->getGlobalDeclarations());
+                                         SYM_MAN->getGlobalDeclarations());
       c->setMuted(true);
       PARSER_STATE->preemptCommand(c);
     }
