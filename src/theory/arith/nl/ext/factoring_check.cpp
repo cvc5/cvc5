@@ -121,7 +121,13 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
           sum = Rewriter::rewrite(sum);
           Trace("nl-ext-factor")
               << "* Factored sum for " << x << " : " << sum << std::endl;
-          Node kf = getFactorSkolem(sum);
+
+          LazyCDProof* proof = nullptr;
+          if (d_data->isProofEnabled())
+          {
+            proof = d_data->getProof();
+          }
+          Node kf = getFactorSkolem(sum, proof);
           std::vector<Node> poly;
           poly.push_back(nm->mkNode(Kind::MULT, x, kf));
           std::map<Node, std::vector<Node> >::iterator itfo =
@@ -154,11 +160,9 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
           lemma_disj.push_back(lit.negate());
           Node flem = nm->mkNode(Kind::OR, lemma_disj);
           Trace("nl-ext-factor") << "...lemma is " << flem << std::endl;
-          LazyCDProof* proof = nullptr;
           if (d_data->isProofEnabled())
           {
-            proof = d_data->getProof();
-            Node k_eq = kf.eqNode(sum);
+            Node k_eq = Rewriter::rewrite(kf.eqNode(sum));
             Node split = nm->mkNode(Kind::OR, lit, lit.notNode());
             proof->addStep(split, PfRule::SPLIT, {}, {lit});
             proof->addStep(
@@ -172,7 +176,7 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
   }
 }
 
-Node FactoringCheck::getFactorSkolem(Node n)
+Node FactoringCheck::getFactorSkolem(Node n, LazyCDProof* proof)
 {
   std::map<Node, Node>::iterator itf = d_factor_skolem.find(n);
   if (itf == d_factor_skolem.end())
@@ -182,10 +186,8 @@ Node FactoringCheck::getFactorSkolem(Node n)
     Node k_eq = Rewriter::rewrite(k.eqNode(n));
     Trace("nl-ext-factor") << "...adding factor skolem " << k << " == " << n
                            << std::endl;
-    LazyCDProof* proof = nullptr;
     if (d_data->isProofEnabled())
     {
-      proof = d_data->getProof();
       proof->addStep(k_eq, PfRule::MACRO_SR_PRED_INTRO, {}, {k_eq});
     }
     d_data->d_im.addPendingArithLemma(k_eq, InferenceId::NL_FACTOR, proof);
