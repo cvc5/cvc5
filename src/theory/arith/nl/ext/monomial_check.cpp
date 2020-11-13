@@ -24,7 +24,8 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-MonomialCheck::MonomialCheck(ExtState* data) : d_data(data)
+MonomialCheck::MonomialCheck(ExtState* data)
+    : d_data(data)
 {
   d_order_points.push_back(d_data->d_neg_one);
   d_order_points.push_back(d_data->d_zero);
@@ -311,8 +312,17 @@ int MonomialCheck::compareSign(
   {
     if (mvaoa.getConst<Rational>().sgn() != 0)
     {
-      Node lemma = av.eqNode(d_data->d_zero).impNode(oa.eqNode(d_data->d_zero));
-      d_data->d_im.addPendingArithLemma(lemma, InferenceId::NL_SIGN);
+      Node prem = av.eqNode(d_data->d_zero);
+      Node conc = oa.eqNode(d_data->d_zero);
+      Node lemma = prem.impNode(conc);
+      LazyCDProof* proof = nullptr;
+      if (d_data->isProofEnabled())
+      {
+        proof = d_data->getProof();
+        proof->addStep(conc, PfRule::MACRO_SR_PRED_INTRO, {prem}, {conc});
+        proof->addStep(lemma, PfRule::SCOPE, {conc}, {prem});
+      }
+      d_data->d_im.addPendingArithLemma(lemma, InferenceId::NL_SIGN, proof);
     }
     return 0;
   }
@@ -582,11 +592,12 @@ bool MonomialCheck::compareMonomial(
   return false;
 }
 
-bool MonomialCheck::cmp_holds(Node x,
-                              Node y,
-                              std::map<Node, std::map<Node, Node> >& cmp_infers,
-                              std::vector<Node>& exp,
-                              std::map<Node, bool>& visited)
+bool MonomialCheck::cmp_holds(
+    Node x,
+    Node y,
+    const std::map<Node, std::map<Node, Node> >& cmp_infers,
+    std::vector<Node>& exp,
+    std::map<Node, bool>& visited)
 {
   if (x == y)
   {
@@ -597,10 +608,10 @@ bool MonomialCheck::cmp_holds(Node x,
     return false;
   }
   visited[x] = true;
-  std::map<Node, std::map<Node, Node> >::iterator it = cmp_infers.find(x);
+  std::map<Node, std::map<Node, Node> >::const_iterator it = cmp_infers.find(x);
   if (it != cmp_infers.end())
   {
-    for (std::map<Node, Node>::iterator itc = it->second.begin();
+    for (std::map<Node, Node>::const_iterator itc = it->second.begin();
          itc != it->second.end();
          ++itc)
     {
