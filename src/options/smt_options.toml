@@ -412,13 +412,24 @@ header = "options/smt_options.h"
   help       = "in models, output arrays (and in future, maybe others) using abstract values, as required by the SMT-LIB standard"
 
 [[option]]
-  name       = "modelUninterpDtEnum"
+  name       = "modelUninterpPrint"
+  smt_name   = "model-uninterp-print"
   category   = "regular"
-  long       = "model-u-dt-enum"
-  type       = "bool"
-  default    = "false"
+  long       = "model-u-print=MODE"
+  type       = "ModelUninterpPrintMode"
+  default    = "DeclFun"
   read_only  = true
-  help       = "in models, output uninterpreted sorts as datatype enumerations"
+  help       = "determines how to print uninterpreted elements in models"
+  help_mode  = "uninterpreted elements in models printing  modes."
+[[option.mode.DtEnum]]
+  name = "dtenum"
+  help = "print uninterpreted elements as datatype enumerations, where the sort is the datatype"
+[[option.mode.DeclSortAndFun]]
+  name = "decl-sort-and-fun"
+  help = "print uninterpreted elements declare-fun, and also include a declare-sort for the sort"
+[[option.mode.DeclFun]]
+  name = "decl-fun"
+  help = "(default) print uninterpreted elements declare-fun, but don't include a declare-sort for the sort"
 
 [[option]]
   name       = "modelWitnessValue"
