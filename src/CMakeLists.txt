@@ -140,6 +140,8 @@ libcvc4_add_sources(
   proof/lean/lean_printer.h
   proof/lfsc/letify.cpp
   proof/lfsc/letify.h
+  proof/lfsc/let_binding.cpp
+  proof/lfsc/let_binding.h
   proof/lfsc/lfsc_post_processor.cpp
   proof/lfsc/lfsc_post_processor.h
   proof/lfsc/lfsc_printer.cpp

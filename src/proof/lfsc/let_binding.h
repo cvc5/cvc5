@@ -44,16 +44,29 @@ class LetBinding
       CDHashMap<Node, uint32_t, NodeHashFunction>
           NodeIdMap;
 public:
-  LetBinding();
+  LetBinding(uint32_t thresh = 2);
   /** */
-  void push(Node n);
+  void push(Node n, std::vector< std::pair<Node, Node> >& letList);
   /** */
   void pop();
   /** */
   uint32_t getId(Node n) const;
   /** convert */
-  //Node convert(Node n) const;
+  Node convert(Node n,
+                      const std::string& prefix) const;
 private:
+  /**
+   * Compute the count of sub nodes in pn, store in pcount. Additionally,
+   * store each node in the domain of pcount in an order in visitList
+   * such that visitList[i] does not contain sub visitList[j] for j>i.
+   */
+  void updateCounts(Node n);
+  /**
+   * Convert a count to a let binding.
+   */
+  void convertCountToLet();
+  /** The dag threshold */
+  uint32_t d_thresh;
   /** An internal context */
   context::Context d_context;
   /** Visit list */
