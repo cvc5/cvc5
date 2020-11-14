@@ -29,6 +29,8 @@ const char* toString(LfscRule id)
     case LfscRule::NEG_SYMM: return "neg_symm";
     case LfscRule::CONG: return "cong";
     case LfscRule::TRANS: return "trans";
+    case LfscRule::CNF_AND_POS_1: return "cnf_and_pos_1";
+    case LfscRule::CNF_AND_POS_2: return "cnf_and_pos_2";
     default: return "?";
   }
 }
@@ -225,11 +227,15 @@ void LfscPrinter::printProofInternal(
         else
         {
           // a normal rule application, compute the proof arguments
-          if (computeProofArgs(cur, visit))
+          std::vector<PExpr> args;
+          
+          if (computeProofArgs(cur, args))
           {
             processedChildren[cur] = false;
             // will revisit this proof node to close parentheses
             visit.push_back(PExpr(cur));
+            std::reverse(args.begin(), args.end());
+            visit.insert(visit.end(), args.begin(), args.end());
             // print the rule name
             out << std::endl << "(";
             printRule(out, cur);
@@ -240,7 +246,7 @@ void LfscPrinter::printProofInternal(
             // could not print the rule, trust for now
             out << std::endl << "(trust ";
             printInternal(out, cur->getResult(), letMap);
-            out << ") ; from " << pn->getRule() << std::endl;
+            out << ") ; from " << cur->getRule() << std::endl;
           }
         }
       }
@@ -259,7 +265,7 @@ void LfscPrinter::printProofInternal(
     // case 3: a hole
     else
     {
-      out << " _";
+      out << " _ ";
     }
   } while (!visit.empty());
 }
@@ -286,6 +292,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::FALSE_INTRO:
     case PfRule::TRUE_ELIM:
     case PfRule::FALSE_ELIM: pf << h << cs[0]; break;
+    case PfRule::CONTRA: pf << h << cs[0] << cs[1] ; break;
     // ---------- arguments of non-translated rules go here
     case PfRule::LFSC_RULE:
     {
@@ -295,12 +302,15 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
         case LfscRule::NEG_SYMM: pf << h << cs[0]; break;
         case LfscRule::TRANS: pf << h << h << h << cs[0] << cs[1]; break;
         case LfscRule::CONG: pf << h << h << h << h << cs[0] << cs[1]; break;
+        case LfscRule::CNF_AND_POS_1: 
+        case LfscRule::CNF_AND_POS_2: 
+          pf << h << h << cs[0]; break;
         // ---------- arguments of translated rules go here
         default: return false; break;
       }
       break;
     }
-    default: return false; break;
+    default: {     return false; break;}
   }
   return true;
 }
@@ -375,7 +385,7 @@ void LfscPrinter::printInternal(std::ostream& out, TypeNode tn)
   out << tn;
 }
 
-bool LfscPrinter::getLfscRule(Node n, LfscRule& lr)
+bool getLfscRule(Node n, LfscRule& lr)
 {
   uint32_t id;
   if (ProofRuleChecker::getUInt32(n, id))
@@ -386,7 +396,7 @@ bool LfscPrinter::getLfscRule(Node n, LfscRule& lr)
   return false;
 }
 
-LfscRule LfscPrinter::getLfscRule(Node n)
+LfscRule getLfscRule(Node n)
 {
   LfscRule lr = LfscRule::UNKNOWN;
   getLfscRule(n, lr);
@@ -423,6 +433,12 @@ void LfscPrinter::printAssumeId(std::ostream& out, uint32_t id)
 {
   out << "@a" << id;
 }
+
+Node mkLfscRuleNode(LfscRule r)
+{
+  return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(r)));
+}
+
 
 }  // namespace proof
 }  // namespace CVC4

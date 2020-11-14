@@ -14,6 +14,7 @@
 
 #include "cvc4_private.h"
 
+
 #ifndef CVC4__PROOF__LFSC__LFSC_POST_PROCESSOR_H
 #define CVC4__PROOF__LFSC__LFSC_POST_PROCESSOR_H
 
@@ -21,6 +22,7 @@
 #include <unordered_set>
 
 #include "expr/proof_node_updater.h"
+#include "lfsc_term_process.h"
 
 namespace CVC4 {
 namespace proof {
@@ -52,6 +54,12 @@ class LfscProofPostprocessCallback : public ProofNodeUpdaterCallback
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
+
+  /** The LFSC term processor callback */
+  LfscTermProcessCallback d_lcb;
+  /** The term processor */
+  TermProcessor d_tproc;
+
 };
 
 /**
@@ -70,6 +78,8 @@ class LfscProofPostprocess
   std::unique_ptr<LfscProofPostprocessCallback> d_cb;
   /** The proof node manager */
   ProofNodeManager* d_pnm;
+
+
 };
 
 }  // namespace proof
