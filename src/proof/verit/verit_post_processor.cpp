@@ -108,8 +108,8 @@ bool VeritProofPostprocessCallback::update(Node res,
 
       // addVeritStep(res,VeritRule::ANCHOR,children,args,*cdp);
       // Note: Adding the last step (introducing the implication) is not
-      // feasible. It is better to print it when the scope statement comes up Add
-      // this to the final version of printer. return true;
+      // feasible. It is better to print it when the scope statement comes up
+      // Add this to the final version of printer. return true;
     }
     //================================================= Boolean rules
     // ======== Resolution
@@ -214,7 +214,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::SPLIT:
     {
-      Node vp1 = d_nm->mkNode(kind::OR, args[0].notNode().notNode().notNode(), args[0]);
+      Node vp1 = d_nm->mkNode(
+          kind::OR, args[0].notNode().notNode().notNode(), args[0]);
       Node vp2 = d_nm->mkNode(kind::OR,
                               args[0].notNode().notNode().notNode().notNode(),
                               args[0].notNode());
