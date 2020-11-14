@@ -392,11 +392,6 @@ void ExtfSolver::checkExtfEval(int effort)
             Inference inf = effort == 0 ? Inference::EXTF : Inference::EXTF_N;
             d_im.sendInference(einfo.d_exp, conc, inf, false, true);
             d_statistics.d_cdSimplifications << n.getKind();
-            if (d_state.isInConflict())
-            {
-              Trace("strings-extf-debug") << "  conflict, return." << std::endl;
-              return;
-            }
           }
         }
         else
@@ -473,6 +468,11 @@ void ExtfSolver::checkExtfEval(int effort)
       {
         has_nreduce = true;
       }
+    }
+    if (d_state.isInConflict())
+    {
+      Trace("strings-extf-debug") << "  conflict, return." << std::endl;
+      return;
     }
   }
   d_hasExtf = has_nreduce;
