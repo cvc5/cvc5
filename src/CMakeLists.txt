@@ -537,6 +537,10 @@ libcvc4_add_sources(
   theory/datatypes/inference.h
   theory/datatypes/inference_manager.cpp
   theory/datatypes/inference_manager.h
+  theory/datatypes/infer_proof_cons.cpp
+  theory/datatypes/infer_proof_cons.h
+  theory/datatypes/proof_checker.cpp
+  theory/datatypes/proof_checker.h
   theory/datatypes/sygus_datatype_utils.cpp
   theory/datatypes/sygus_datatype_utils.h
   theory/datatypes/sygus_extension.cpp
@@ -1128,6 +1132,7 @@ install(FILES
           expr/expr_iomanip.h
           expr/record.h
           expr/sequence.h
+          expr/symbol_manager.h
           expr/symbol_table.h
           expr/type.h
           expr/uninterpreted_constant.h
@@ -1151,7 +1156,6 @@ install(FILES
           parser/parser_builder.h
           parser/parser_exception.h
           parser/parse_op.h
-          parser/symbol_manager.h
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/parser)
 install(FILES
