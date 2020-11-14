@@ -652,8 +652,7 @@ Node ProcessAssertions::expandDefinitions(
           // application of a user-defined symbol
           TNode func = n.getOperator();
           SmtEngine::DefinedFunctionMap* dfuns = d_smt.getDefinedFunctionMap();
-          SmtEngine::DefinedFunctionMap::const_iterator i =
-              dfuns->find(func);
+          SmtEngine::DefinedFunctionMap::const_iterator i = dfuns->find(func);
           if (i == dfuns->end())
           {
             throw TypeCheckingException(
