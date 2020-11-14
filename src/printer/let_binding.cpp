@@ -9,12 +9,10 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief A let binding
+ ** \brief A let binding utility
  **/
 
-#include "proof/lfsc/let_binding.h"
-
-#include "proof/lfsc/letify.h"
+#include "printer/let_binding.h"
 
 namespace CVC4 {
 

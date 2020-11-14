@@ -124,6 +124,8 @@ libcvc4_add_sources(
   printer/cvc/cvc_printer.h
   printer/dagification_visitor.cpp
   printer/dagification_visitor.h
+  printer/let_binding.cpp
+  printer/let_binding.h
   printer/printer.cpp
   printer/printer.h
   printer/smt2/smt2_printer.cpp
@@ -140,18 +142,16 @@ libcvc4_add_sources(
   proof/lean/lean_printer.h
   proof/lfsc/letify.cpp
   proof/lfsc/letify.h
-  proof/lfsc/let_binding.cpp
-  proof/lfsc/let_binding.h
   proof/lfsc/lfsc_post_processor.cpp
   proof/lfsc/lfsc_post_processor.h
   proof/lfsc/lfsc_printer.cpp
   proof/lfsc/lfsc_printer.h
   proof/lfsc/lfsc_term_process.cpp
   proof/lfsc/lfsc_term_process.h
-  proof/lfsc/term_processor.cpp
-  proof/lfsc/term_processor.h
   proof/sat_proof.h
   proof/sat_proof_implementation.h
+  proof/term_processor.cpp
+  proof/term_processor.h
   proof/unsat_core.cpp
   proof/unsat_core.h
   prop/bv_sat_solver_notify.h
