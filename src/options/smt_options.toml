@@ -111,7 +111,9 @@ header = "options/smt_options.h"
 [[option.mode.VERIT]]
   name       = "verit"
   help       = "Output veriT proof"
-
+[[option.mode.LFSC]]
+  name       = "lfsc"
+  help       = "Output LFSC proof"
 
 [[option]]
   name       = "modelCoresMode"

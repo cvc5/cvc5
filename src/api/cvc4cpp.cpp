@@ -3386,6 +3386,7 @@ Sort Solver::getNullSort(void) const
 
 Sort Solver::getBooleanSort(void) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   return Sort(this, getNodeManager()->booleanType());
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -3393,6 +3394,7 @@ Sort Solver::getBooleanSort(void) const
 
 Sort Solver::getIntegerSort(void) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   return Sort(this, getNodeManager()->integerType());
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -3400,6 +3402,7 @@ Sort Solver::getIntegerSort(void) const
 
 Sort Solver::getRealSort(void) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   return Sort(this, getNodeManager()->realType());
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -3407,6 +3410,7 @@ Sort Solver::getRealSort(void) const
 
 Sort Solver::getRegExpSort(void) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   return Sort(this, getNodeManager()->regExpType());
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -3414,6 +3418,7 @@ Sort Solver::getRegExpSort(void) const
 
 Sort Solver::getStringSort(void) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   return Sort(this, getNodeManager()->stringType());
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -3421,6 +3426,7 @@ Sort Solver::getStringSort(void) const
 
 Sort Solver::getRoundingModeSort(void) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
       << "Expected CVC4 to be compiled with SymFPU support";
@@ -3432,6 +3438,7 @@ Sort Solver::getRoundingModeSort(void) const
 
 Sort Solver::mkArraySort(Sort indexSort, Sort elemSort) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!indexSort.isNull(), indexSort)
       << "non-null index sort";
@@ -3448,6 +3455,7 @@ Sort Solver::mkArraySort(Sort indexSort, Sort elemSort) const
 
 Sort Solver::mkBitVectorSort(uint32_t size) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(size > 0, size) << "size > 0";
 
@@ -3458,6 +3466,7 @@ Sort Solver::mkBitVectorSort(uint32_t size) const
 
 Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
       << "Expected CVC4 to be compiled with SymFPU support";
@@ -3503,6 +3512,7 @@ std::vector<Sort> Solver::mkDatatypeSorts(
 
 Sort Solver::mkFunctionSort(Sort domain, Sort codomain) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!codomain.isNull(), codomain)
       << "non-null codomain sort";
@@ -3522,6 +3532,7 @@ Sort Solver::mkFunctionSort(Sort domain, Sort codomain) const
 
 Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts, Sort codomain) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_SIZE_CHECK_EXPECTED(sorts.size() >= 1, sorts)
       << "at least one parameter sort for function sort";
@@ -3553,6 +3564,7 @@ Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts, Sort codomain) const
 
 Sort Solver::mkParamSort(const std::string& symbol) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   return Sort(
       this,
@@ -3562,6 +3574,7 @@ Sort Solver::mkParamSort(const std::string& symbol) const
 
 Sort Solver::mkPredicateSort(const std::vector<Sort>& sorts) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_SIZE_CHECK_EXPECTED(sorts.size() >= 1, sorts)
       << "at least one parameter sort for predicate sort";
@@ -3610,6 +3623,7 @@ Sort Solver::mkRecordSort(
 
 Sort Solver::mkSetSort(Sort elemSort) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!elemSort.isNull(), elemSort)
       << "non-null element sort";
@@ -3622,6 +3636,7 @@ Sort Solver::mkSetSort(Sort elemSort) const
 
 Sort Solver::mkBagSort(Sort elemSort) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!elemSort.isNull(), elemSort)
       << "non-null element sort";
@@ -3634,6 +3649,7 @@ Sort Solver::mkBagSort(Sort elemSort) const
 
 Sort Solver::mkSequenceSort(Sort elemSort) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!elemSort.isNull(), elemSort)
       << "non-null element sort";
@@ -3646,6 +3662,7 @@ Sort Solver::mkSequenceSort(Sort elemSort) const
 
 Sort Solver::mkUninterpretedSort(const std::string& symbol) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   return Sort(this, getNodeManager()->mkSort(symbol));
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -3654,6 +3671,7 @@ Sort Solver::mkUninterpretedSort(const std::string& symbol) const
 Sort Solver::mkSortConstructorSort(const std::string& symbol,
                                    size_t arity) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(arity > 0, arity) << "an arity > 0";
 
@@ -3664,6 +3682,7 @@ Sort Solver::mkSortConstructorSort(const std::string& symbol,
 
 Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   for (size_t i = 0, size = sorts.size(); i < size; ++i)
   {

@@ -589,13 +589,11 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
     case kind::SEQUENCE_TYPE:
     case kind::SET_TYPE:
     case kind::BAG_TYPE:
+    case kind::SEXPR_TYPE:
     {
       // we don't support subtyping except for built in types Int and Real.
       return TypeNode();  // return null type
     }
-    case kind::SEXPR_TYPE:
-      Unimplemented()
-          << "haven't implemented leastCommonType for symbolic expressions yet";
     default:
       Unimplemented() << "don't have a commonType for types `" << t0
                       << "' and `" << t1 << "'";

@@ -34,8 +34,14 @@ TypeNode TermProcessCallback::convertType(TypeNode tn, bool toInternal)
 {
   return toInternal ? convertInternalType(tn) : convertExternalType(tn);
 }
-TypeNode TermProcessCallback::convertInternalType(TypeNode tn) { return TypeNode::null(); }
-TypeNode TermProcessCallback::convertExternalType(TypeNode tn) { return TypeNode::null(); }
+TypeNode TermProcessCallback::convertInternalType(TypeNode tn)
+{
+  return TypeNode::null();
+}
+TypeNode TermProcessCallback::convertExternalType(TypeNode tn)
+{
+  return TypeNode::null();
+}
 
 TermProcessor::TermProcessor(TermProcessCallback* cb) : d_cb(cb) {}
 
@@ -138,9 +144,17 @@ TypeNode TermProcessor::convertType(TypeNode tn, bool toInternal)
     it = cache.find(cur);
     if (it == cache.end())
     {
-      cache[cur] = TypeNode::null();
-      visit.push_back(cur);
-      visit.insert(visit.end(), cur.begin(), cur.end());
+      if (cur.getNumChildren() == 0)
+      {
+        TypeNode ret = d_cb->convertType(cur, toInternal);
+        cache[cur] = ret;
+      }
+      else
+      {
+        cache[cur] = TypeNode::null();
+        visit.push_back(cur);
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
     }
     else if (it->second.isNull())
     {
@@ -162,8 +176,11 @@ TypeNode TermProcessor::convertType(TypeNode tn, bool toInternal)
       }
       // construct the type node
       TypeNode ret = nb.constructTypeNode();
+      Trace("term-process-debug") << cur << " <- " << ret << std::endl;
       // run the callback for the current application
       ret = d_cb->convertType(ret, toInternal);
+      Trace("term-process-debug")
+          << cur << " <- " << ret << " (post-convert)" << std::endl;
       cache[cur] = ret;
     }
   } while (!visit.empty());
