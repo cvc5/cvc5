@@ -110,7 +110,7 @@ void Smt2Printer::toStream(std::ostream& out,
                            size_t dag) const
 {
   if(dag != 0) {
-#if 0
+#if 1
     LetBinding lbind(dag+1);
     toStreamWithLetify(out, n, toDepth, &lbind);
 #else
