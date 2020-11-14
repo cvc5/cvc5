@@ -140,7 +140,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
           u, d_pnm, "NonClausalSimp::newSubs", PfRule::PREPROCESS_LEMMA);
   SubstitutionMap& nss = newSubstitutions->get();
 
-  SubstitutionMap::iterator pos;
   size_t j = 0;
   std::vector<TrustNode>& learned_literals = propagator->getLearnedLiterals();
   // if proofs are enabled, we will need to track the proofs of learned literals
@@ -282,7 +281,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   // r' another constant propagation, then l'[l/r] -> r' should be a
   //    constant propagation too
   // 4. each lhs of constantPropagations is different from each rhs
-  for (pos = nss.begin(); pos != nss.end(); ++pos)
+  for (SubstitutionMap::iterator pos = nss.begin(); pos != nss.end(); ++pos)
   {
     Assert((*pos).first.isVar());
     Assert(top_level_substs.apply((*pos).first) == (*pos).first);
@@ -290,7 +289,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     Node app = nss.apply((*pos).second);
     Assert(nss.apply(app) == app);
   }
-  for (pos = cps.begin(); pos != cps.end(); ++pos)
+  for (SubstitutionMap::iterator pos = cps.begin(); pos != cps.end(); ++pos)
   {
     Assert((*pos).second.isConst());
     Assert(Rewriter::rewrite((*pos).first) == (*pos).first);
@@ -340,7 +339,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   TheoryModel* m = d_preprocContext->getTheoryEngine()->getModel();
   Assert(m != nullptr);
   NodeManager* nm = NodeManager::currentNM();
-  for (pos = nss.begin(); pos != nss.end(); ++pos)
+  for (SubstitutionMap::iterator pos = nss.begin(); pos != nss.end(); ++pos)
   {
     Node lhs = (*pos).first;
     TrustNode trhs = newSubstitutions->apply((*pos).second);
@@ -362,10 +361,10 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       Trace("non-clausal-simplify")
           << "substitute: will notify SAT layer of substitution: " << eq
           << std::endl;
-      trhs = newSubstitutions->apply((*pos).first);
-      Assert(!trhs.isNull());
-      assertionsToPreprocess->addSubstitutionNode(trhs.getProven(),
-                                                  trhs.getGenerator());
+       trhs = newSubstitutions->apply((*pos).first);
+       Assert(!trhs.isNull());
+       assertionsToPreprocess->addSubstitutionNode(trhs.getProven(),
+       trhs.getGenerator());
     }
   }
 
@@ -393,7 +392,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   }
   learned_literals.clear();
 
-  for (pos = cps.begin(); pos != cps.end(); ++pos)
+  for (SubstitutionMap::iterator pos = cps.begin(); pos != cps.end(); ++pos)
   {
     Node cProp = (*pos).first.eqNode((*pos).second);
     Assert(top_level_substs.apply(cProp) == cProp);
