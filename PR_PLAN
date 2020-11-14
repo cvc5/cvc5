@@ -89,6 +89,7 @@ PR finished:
 (97) term conversion sequence generator
 (99) SAT rules to Boolean checker [Haniel]
 (100) fixes for instantiate, quantifiers proof checker
+(101) strings misc changes to preprocess, base (req 31, 43)
 (102) proof equality engine always proof
 (103) buffered proof manager [Haniel] (req 102)
 (104) lazy proof chain [Haniel]
@@ -116,6 +117,9 @@ PR finished:
 (127) datatypes proof checker (req 126)
 (128) updates to lazy cd proof chain [Haniel]
 (129) refinements to cyclic checking policy
+(132) Datatypes inference to proof (req 127)
+(134) proofs for skolemization
+(135) Datatypes proof producing (req 132)
 
 PRs ready:
 
@@ -124,9 +128,9 @@ PRs ready:
 (118) non-clausal simplification proof producing (req 116, 117, 120, 125) *
 (130) regexp elimination proofs (req 101) *
 (131) Updates to Boolean proof checker [Haniel]
-(132) Datatypes inference to proof (req 127) *
 (133) Boolean proof checker unit test [Haniel]
-(134) proofs for skolemization *
+(136) BV proof checker [Mathias]
+(137) basic proofs for simple BV solver [Mathias]
 
 PRs future:
 
@@ -138,8 +142,6 @@ PRs future:
 (83) DSL rewrite rule compilation, including side condition utility [Andres] (req 56)
 (85) SmtEngine check proofs [Haniel] (req 68, 82)
 (98) fixes in setDefaults
-(101) strings misc changes to preprocess, base (req 31, 43)
-(135) Datatypes proof producing (req 132)
 
 Wish list:
 

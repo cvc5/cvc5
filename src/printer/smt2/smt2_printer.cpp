@@ -168,7 +168,7 @@ void Smt2Printer::toStreamWithLetify(std::ostream& out,
       out << "_let_" << id << " ";
       Node nlc = lbind->convert(nl, "_let_", false);
       toStream(out, nlc, toDepth, lbind);
-      out << "))";
+      out << ")) ";
       cparen << ")";
     }
   }

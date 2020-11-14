@@ -164,6 +164,7 @@ void LetBinding::updateCounts(Node n)
       {
         d_visitList.push_back(cur);
         d_count[cur] = 1;
+        visit.pop_back();
       }
       else
       {
