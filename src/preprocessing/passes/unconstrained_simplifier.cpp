@@ -133,7 +133,6 @@ Node UnconstrainedSimplifier::newUnconstrainedVar(TypeNode t, TNode var)
 void UnconstrainedSimplifier::processUnconstrained()
 {
   NodeManager* nm = NodeManager::currentNM();
-  LogicInfo logicInfo = preprocContext->getLogicInfo();
   
   vector<TNode> workList(d_unconstrained.begin(), d_unconstrained.end());
   Node currentSub;
@@ -588,7 +587,7 @@ void UnconstrainedSimplifier::processUnconstrained()
         // Uninterpreted function - if domain is infinite, no quantifiers are
         // used, and any child is unconstrained, result is unconstrained
         case kind::APPLY_UF:
-          if (logicInfo.isQuantified()
+          if (d_preprocContext->getLogicInfo().isQuantified()
               || !current.getType().getCardinality().isInfinite())
           {
             break;
