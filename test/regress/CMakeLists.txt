@@ -871,6 +871,7 @@ set(regress_0_tests
   regress0/sep/dispose-1.smt2
   regress0/sep/dup-nemp.smt2
   regress0/sep/issue3720-check-model.smt2
+  regress0/sep/issue5343-err.smt2
   regress0/sep/nemp.smt2
   regress0/sep/nil-no-elim.smt2
   regress0/sep/nspatial-simp.smt2
@@ -1011,6 +1012,7 @@ set(regress_0_tests
   regress0/strings/issue4820.smt2
   regress0/strings/issue4915.smt2
   regress0/strings/issue5090.smt2
+  regress0/strings/issue5428-re-diff-assoc.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/large-model.smt2
   regress0/strings/leadingzero001.smt2
@@ -2176,6 +2178,7 @@ set(regress_2_tests
   regress2/strings/cmu-prereg-fmf.smt2
   regress2/strings/cmu-repl-len-nterm.smt2
   regress2/strings/issue3203.smt2
+  regress2/strings/issue5381.smt2
   regress2/strings/issue918.smt2
   regress2/strings/non_termination_regular_expression6.smt2
   regress2/strings/pfnew-slow-2020-04-17.smt2

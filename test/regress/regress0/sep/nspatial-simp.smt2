@@ -3,6 +3,7 @@
 (set-logic QF_ALL_SUPPORTED)
 (set-info :status sat)
 (declare-fun x () Int)
+(declare-heap (Int Int))
 
 (assert (sep (= x 0) (not (= x 5))))
 

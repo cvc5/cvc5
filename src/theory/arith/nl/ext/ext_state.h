@@ -17,8 +17,8 @@
 
 #include <vector>
 
+#include "expr/lazy_proof_set.h"
 #include "expr/node.h"
-#include "expr/proof.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/ext/monomial.h"
 #include "theory/arith/nl/nl_model.h"
@@ -30,9 +30,21 @@ namespace nl {
 
 struct ExtState
 {
-  ExtState(InferenceManager& im, NlModel& model, context::Context* c);
+  ExtState(InferenceManager& im,
+           NlModel& model,
+           ProofNodeManager* pnm,
+           context::UserContext* c);
 
   void init(const std::vector<Node>& xts);
+
+  /**
+   * Checks whether proofs are enabled.
+   */
+  bool isProofEnabled() const;
+  /**
+   * Creates and returns a new LazyCDProof that can be used to prove some lemma.
+   */
+  LazyCDProof* getProof();
 
   Node d_false;
   Node d_true;
@@ -44,6 +56,15 @@ struct ExtState
   InferenceManager& d_im;
   /** Reference to the non-linear model object */
   NlModel& d_model;
+  /**
+   * Pointer to the current proof node manager. nullptr, if proofs are
+   * disabled.
+   */
+  ProofNodeManager* d_pnm;
+  /**
+   * A LazyCDProofSet that hands out (Lazy)CDProof objects for lemmas.
+   */
+  std::unique_ptr<LazyCDProofSet> d_proof;
 
   // information about monomials
   std::vector<Node> d_ms;

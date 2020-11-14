@@ -17,6 +17,7 @@
 
 #include "expr/node.h"
 #include "theory/arith/nl/ext/ext_state.h"
+#include "theory/eager_proof_generator.h"
 
 namespace CVC4 {
 namespace theory {
@@ -162,7 +163,7 @@ class MonomialCheck
    */
   bool cmp_holds(Node x,
                  Node y,
-                 std::map<Node, std::map<Node, Node> >& cmp_infers,
+                 const std::map<Node, std::map<Node, Node> >& cmp_infers,
                  std::vector<Node>& exp,
                  std::map<Node, bool>& visited);
   /** assign order ids */

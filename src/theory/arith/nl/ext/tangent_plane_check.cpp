@@ -184,7 +184,7 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
 
             Node tlem = nm->mkAnd(tplaneConj);
             d_data->d_im.addPendingArithLemma(
-                tlem, InferenceId::NL_TANGENT_PLANE, asWaitingLemmas);
+                tlem, InferenceId::NL_TANGENT_PLANE, nullptr, asWaitingLemmas);
           }
         }
       }

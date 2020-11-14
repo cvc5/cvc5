@@ -213,7 +213,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
       }
-      InteractiveShell shell(pExecutor->getSolver());
+      InteractiveShell shell(pExecutor->getSolver(),
+                             pExecutor->getSymbolManager());
       if(opts.getInteractivePrompt()) {
         Message() << Configuration::getPackageName()
                   << " " << Configuration::getVersionString();
@@ -258,7 +259,10 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         // pExecutor->doCommand(cmd);
       }
 
-      ParserBuilder parserBuilder(pExecutor->getSolver(), filename, opts);
+      ParserBuilder parserBuilder(pExecutor->getSolver(),
+                                  pExecutor->getSymbolManager(),
+                                  filename,
+                                  opts);
 
       if( inputFromStdin ) {
 #if defined(CVC4_COMPETITION_MODE) && !defined(CVC4_SMTCOMP_APPLICATION_TRACK)
@@ -411,7 +415,10 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         pExecutor->doCommand(cmd);
       }
 
-      ParserBuilder parserBuilder(pExecutor->getSolver(), filename, opts);
+      ParserBuilder parserBuilder(pExecutor->getSolver(),
+                                  pExecutor->getSymbolManager(),
+                                  filename,
+                                  opts);
 
       if( inputFromStdin ) {
 #if defined(CVC4_COMPETITION_MODE) && !defined(CVC4_SMTCOMP_APPLICATION_TRACK)
