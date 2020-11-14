@@ -156,7 +156,7 @@ void Smt2Printer::toStreamWithLetify(std::ostream& out,
   }
   std::stringstream cparen;
   std::vector<Node> letList;
-  lbind->pushScope(n, letList);
+  lbind->letify(n, letList);
   if (!letList.empty())
   {
     std::map<Node, uint32_t>::const_iterator it;

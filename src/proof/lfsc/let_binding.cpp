@@ -42,17 +42,21 @@ void LetBinding::process(Node n)
   updateCounts(n);
 }
 
-void LetBinding::pushScope(Node n, std::vector<Node>& letList)
+void LetBinding::letify(Node n, std::vector<Node>& letList)
 {
+  Assert (!n.isNull());
+  // first, push the context
+  pushScope();
   // process the node
-  if (!n.isNull())
-  {
-    process(n);
-  }
-  // now, push the context
-  d_context.push();
+  process(n);
+  // now, letify
+  letify(letList);
+}
+
+void LetBinding::letify(std::vector<Node>& letList)
+{
   size_t prevSize = d_letList.size();
-  // Now populate the d_letList and d_letMap
+  // populate the d_letList and d_letMap
   convertCountToLet();
   // add the new entries to the letList
   for (NodeList::iterator it = d_letList.begin() + prevSize,
@@ -64,11 +68,7 @@ void LetBinding::pushScope(Node n, std::vector<Node>& letList)
   }
 }
 
-void LetBinding::pushScope(std::vector<Node>& letList)
-{
-  Node nullNode;
-  pushScope(nullNode, letList);
-}
+void LetBinding::pushScope() { d_context.push(); }
 
 void LetBinding::popScope() { d_context.pop(); }
 

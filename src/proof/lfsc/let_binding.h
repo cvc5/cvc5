@@ -32,7 +32,7 @@ namespace CVC4 {
  * and LetBinding lbind:
  * ```
  *   std::vector<Node> letList;
- *   lbind.pushScope(n, letList);
+ *   lbind.letify(n, letList);
  * ```
  * Now, letList contains a list of subterms of n that should be letified based
  * on the threshold value passed to this class where a value n>0 indicates that
@@ -41,20 +41,21 @@ namespace CVC4 {
  * The above is equivalent to:
  * ```
  *   std::vector<Node> letList;
+ *   lbind.pushScope();
  *   lbind.process(n);
- *   lbind.pushScope(letList);
+ *   lbind.letify(letList);
  * ```
- * In fact, multiple terms can be processed above, in which case the counting
- * is cumulative.
+ * In fact, multiple terms can be passed to calls to process, in which case the
+ * counting is cumulative.
  *
  * All quantified formulas are treated as black boxes. This class can be used
  * to letify terms with quantifiers, where multiple calls to pushScope /
  * popScope can be used. In particular, consider:
  * ```
  *   std::vector<Node> letList1;
- *   lbind.pushScope(n1, letList1);
+ *   lbind.letify(n1, letList1);
  *   std::vector<Node> letList2;
- *   lbind.pushScope(n2, letList2);
+ *   lbind.letify(n2, letList2);
  *   ...
  *   lbind.popScope();
  *   lbind.popScope();
@@ -84,10 +85,8 @@ class LetBinding
    */
   void process(Node n);
   /**
-   * Push scope for n.
-   *
-   * This compute the letification for n, adds the (new) terms that must be
-   * letified in this context to letList.
+   * This pushes a scope, computes the letification for n, adds the (new) terms
+   * that must be letified in this context to letList.
    *
    * Notice that this method does not traverse inside of closures.
    *
@@ -96,9 +95,13 @@ class LetBinding
    * list is ordered in such a way that letList[i] does not contain subterm
    * letList[j] for j>i.
    */
-  void pushScope(Node n, std::vector<Node>& letList);
-  /** Same as above, without a node to letify */
-  void pushScope(std::vector<Node>& letList);
+  void letify(Node n, std::vector<Node>& letList);
+  /** 
+   * Same as above, without a node to letify.
+   */
+  void letify(std::vector<Node>& letList);
+  /** Push scope */
+  void pushScope();
   /** Pop scope for n, reverts the state change of the above method */
   void popScope();
   /**
