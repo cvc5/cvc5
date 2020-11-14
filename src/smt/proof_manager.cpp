@@ -143,6 +143,10 @@ void PfManager::printProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
     lpp.process(fp);
     proof::LfscPrinter lp;
     // print the proof for assertions
+    Trace("lfsc-debug") << "(proof\n";
+    Trace("lfsc-debug") << *fp;
+    Trace("lfsc-debug") << "\n)\n";
+
     lp.print(out, assertions, fp.get());
   }
   else

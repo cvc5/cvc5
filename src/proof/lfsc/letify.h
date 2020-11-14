@@ -26,6 +26,9 @@
 namespace CVC4 {
 namespace proof {
 
+/**
+ * Utilities for letification.
+ */
 class Letify
 {
  public:
@@ -57,7 +60,7 @@ class Letify
                            std::vector<Node>& visitList,
                            std::map<Node, uint32_t>& count);
   /**
-   * Convert a count to a let list
+   * Convert a count to a let binding.
    */
   static void convertCountToLet(const std::vector<Node>& visitList,
                                 const std::map<Node, uint32_t>& count,

@@ -124,6 +124,8 @@ libcvc4_add_sources(
   printer/cvc/cvc_printer.h
   printer/dagification_visitor.cpp
   printer/dagification_visitor.h
+  printer/let_binding.cpp
+  printer/let_binding.h
   printer/printer.cpp
   printer/printer.h
   printer/smt2/smt2_printer.cpp
@@ -149,10 +151,10 @@ libcvc4_add_sources(
   proof/lfsc/lfsc_printer.h
   proof/lfsc/lfsc_term_process.cpp
   proof/lfsc/lfsc_term_process.h
-  proof/lfsc/term_processor.cpp
-  proof/lfsc/term_processor.h
   proof/sat_proof.h
   proof/sat_proof_implementation.h
+  proof/term_processor.cpp
+  proof/term_processor.h
   proof/unsat_core.cpp
   proof/unsat_core.h
   prop/bv_sat_solver_notify.h
@@ -379,6 +381,8 @@ libcvc4_add_sources(
   theory/arith/nl/ext/monomial_check.h
   theory/arith/nl/ext/ext_state.cpp
   theory/arith/nl/ext/ext_state.h
+  theory/arith/nl/ext/proof_checker.cpp
+  theory/arith/nl/ext/proof_checker.h
   theory/arith/nl/ext/split_zero_check.cpp
   theory/arith/nl/ext/split_zero_check.h
   theory/arith/nl/ext/tangent_plane_check.cpp
@@ -794,6 +798,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/synth_conjecture.h
   theory/quantifiers/sygus/synth_engine.cpp
   theory/quantifiers/sygus/synth_engine.h
+  theory/quantifiers/sygus/template_infer.cpp
+  theory/quantifiers/sygus/template_infer.h
   theory/quantifiers/sygus/term_database_sygus.cpp
   theory/quantifiers/sygus/term_database_sygus.h
   theory/quantifiers/sygus/type_info.cpp
@@ -1168,6 +1174,7 @@ install(FILES
           expr/expr_iomanip.h
           expr/record.h
           expr/sequence.h
+          expr/symbol_manager.h
           expr/symbol_table.h
           expr/type.h
           expr/uninterpreted_constant.h

@@ -38,6 +38,7 @@
 
 #include "api/cvc4cpp.h"
 #include "base/output.h"
+#include "expr/symbol_manager.h"
 #include "options/language.h"
 #include "options/options.h"
 #include "parser/input.h"
@@ -83,13 +84,13 @@ static set<string> s_declarations;
 
 #endif /* HAVE_LIBEDITLINE */
 
-InteractiveShell::InteractiveShell(api::Solver* solver)
+InteractiveShell::InteractiveShell(api::Solver* solver, SymbolManager* sm)
     : d_options(solver->getOptions()),
       d_in(*d_options.getIn()),
       d_out(*d_options.getOutConst()),
       d_quit(false)
 {
-  ParserBuilder parserBuilder(solver, INPUT_FILENAME, d_options);
+  ParserBuilder parserBuilder(solver, sm, INPUT_FILENAME, d_options);
   /* Create parser with bogus input. */
   d_parser = parserBuilder.withStringInput("").build();
   if(d_options.wasSetByUserForceLogicString()) {

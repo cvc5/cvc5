@@ -134,6 +134,18 @@ void getSymbols(TNode n,
                 std::unordered_set<TNode, TNodeHashFunction>& visited);
 
 /**
+ * For term n, this function collects the subterms of n whose kind is k.
+ * @param n The node under investigation
+ * @param k The kind we are considering
+ * @param topLevel If true, we collect only the top-level subterms with kind k.
+ * @param ts The set which the symbols of n are added to
+ */
+void getKindSubterms(TNode n,
+                     Kind k,
+                     bool topLevel,
+                     std::unordered_set<Node, NodeHashFunction>& ts);
+
+/**
  * For term n, this function collects the operators that occur in n.
  * @param n The node under investigation
  * @param ops The map (from each type to operators of that type) which the

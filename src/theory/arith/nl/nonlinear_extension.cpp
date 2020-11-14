@@ -49,8 +49,8 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
                   containing.getOutputChannel()),
       d_model(containing.getSatContext()),
       d_trSlv(d_im, d_model),
-      d_extState(d_im, d_model, containing.getSatContext()),
-      d_factoringSlv(d_im, d_model),
+      d_extState(d_im, d_model, pnm, containing.getUserContext()),
+      d_factoringSlv(&d_extState),
       d_monomialBoundsSlv(&d_extState),
       d_monomialSlv(&d_extState),
       d_splitZeroSlv(&d_extState, state.getUserContext()),
@@ -69,6 +69,12 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
+
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
+  if (pc != nullptr)
+  {
+    d_proofChecker.registerTo(pc);
+  }
 }
 
 NonlinearExtension::~NonlinearExtension() {}
@@ -180,7 +186,6 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
     useRelevance = true;
   }
   Valuation v = d_containing.getValuation();
-  NodeManager* nm = NodeManager::currentNM();
 
   BoundInference bounds;
 

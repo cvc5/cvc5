@@ -444,6 +444,13 @@ SolverState::getBinaryOpIndex() const
 {
   return d_bop_index;
 }
+
+const std::map<Node, std::map<Node, Node>>& SolverState::getBinaryOpIndex(
+    Kind k)
+{
+  return d_bop_index[k];
+}
+
 const std::map<Kind, std::vector<Node> >& SolverState::getOperatorList() const
 {
   return d_op_list;

@@ -80,7 +80,8 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerTrustedChecker(PfRule::TRUST_REWRITE, this, 1);
   pc->registerTrustedChecker(PfRule::TRUST_SUBS, this, 1);
   pc->registerTrustedChecker(PfRule::TRUST_SUBS_MAP, this, 1);
-  // external rules
+  // another category
+  pc->registerChecker(PfRule::LFSC_RULE, this);
   pc->registerChecker(PfRule::VERIT_RULE, this);
 }
 
@@ -435,6 +436,8 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(!args.empty());
     Assert(args[0].getType().isBoolean());
     return args[0];
+  } else if (id == PfRule::LFSC_RULE) {
+    return args[1];
   }
   else if (id == PfRule::VERIT_RULE)
   {
@@ -443,6 +446,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     return args[1];
   }
 
+  
   // no rule
   return Node::null();
 }

@@ -32,8 +32,13 @@ InferenceManager::InferenceManager(Theory& t,
       d_inferenceLemmas("theory::datatypes::inferenceLemmas"),
       d_inferenceFacts("theory::datatypes::inferenceFacts"),
       d_inferenceConflicts("theory::datatypes::inferenceConflicts"),
+      d_pnm(pnm),
       d_ipc(pnm == nullptr ? nullptr
-                           : new InferProofCons(state.getSatContext(), pnm))
+                           : new InferProofCons(state.getSatContext(), pnm)),
+      d_lemPg(pnm == nullptr
+                  ? nullptr
+                  : new EagerProofGenerator(
+                        pnm, state.getUserContext(), "datatypes::lemPg"))
 {
   d_false = NodeManager::currentNM()->mkConst(false);
   smtStatisticsRegistry()->registerStat(&d_inferenceLemmas);
@@ -93,7 +98,7 @@ void InferenceManager::sendDtConflict(const std::vector<Node>& conf, InferId id)
   if (isProofEnabled())
   {
     Node exp = NodeManager::currentNM()->mkAnd(conf);
-    prepareDtInference(d_false, exp, id);
+    prepareDtInference(d_false, exp, id, d_ipc.get());
   }
   conflictExp(conf, d_ipc.get());
   d_inferenceConflicts << id;
@@ -117,27 +122,39 @@ bool InferenceManager::isProofEnabled() const { return d_ipc != nullptr; }
 bool InferenceManager::processDtLemma(
     Node conc, Node exp, InferId id, LemmaProperty p, bool doCache)
 {
-  conc = prepareDtInference(conc, exp, id);
-  if (conc.getKind() == EQUAL)
+  // set up a proof constructor
+  std::shared_ptr<InferProofCons> ipcl;
+  if (isProofEnabled())
   {
-    // Also process it as a fact first. Some lemmas concluding equalities
-    // should be processed as both internal facts and as lemmas.
-    // In particular, notice that lemmas that conclude non-datatype equalities
-    // are not guaranteed to send the conclusion back to the datatypes solver.
-    // We assert them also as facts both for performance reasons and so that
-    // the explanations are consistent with our proofs. If this were not the
-    // case, the explanation for the lemma could be stored here and supercede
-    // a future fact concluding conc via a different explanation, which would
-    // cause free assumptions in our proofs.
-    processDtFactInternal(conc, exp);
+    ipcl = std::make_shared<InferProofCons>(nullptr, d_pnm);
   }
-  // send it as an (explained) lemma
-  std::vector<Node> expv;
+  conc = prepareDtInference(conc, exp, id, ipcl.get());
+  // send it as a lemma
+  Node lem;
   if (!exp.isNull() && !exp.isConst())
   {
-    expv.push_back(exp);
+    lem = NodeManager::currentNM()->mkNode(kind::IMPLIES, exp, conc);
   }
-  if (!lemmaExp(conc, expv, {}, d_ipc.get(), p, doCache))
+  else
+  {
+    lem = conc;
+  }
+  if (isProofEnabled())
+  {
+    // store its proof
+    std::shared_ptr<ProofNode> pbody = ipcl->getProofFor(conc);
+    std::shared_ptr<ProofNode> pn = pbody;
+    if (!exp.isNull() && !exp.isConst())
+    {
+      std::vector<Node> expv;
+      expv.push_back(exp);
+      pn = d_pnm->mkScope(pbody, expv);
+    }
+    d_lemPg->setProofFor(lem, pn);
+  }
+  // use trusted lemma
+  TrustNode tlem = TrustNode::mkTrustLemma(lem, d_lemPg.get());
+  if (!trustedLemma(tlem))
   {
     Trace("dt-lemma-debug") << "...duplicate lemma" << std::endl;
     return false;
@@ -148,38 +165,8 @@ bool InferenceManager::processDtLemma(
 
 bool InferenceManager::processDtFact(Node conc, Node exp, InferId id)
 {
-  conc = prepareDtInference(conc, exp, id);
+  conc = prepareDtInference(conc, exp, id, d_ipc.get());
   // assert the internal fact, which has the same issue as above
-  processDtFactInternal(conc, exp);
-  d_inferenceFacts << id;
-  return true;
-}
-
-Node InferenceManager::prepareDtInference(Node conc, Node exp, InferId id)
-{
-  Trace("dt-lemma-debug") << "prepareDtInference : " << conc << " via " << exp
-                          << " by " << id << std::endl;
-  if (conc.getKind() == EQUAL && conc[0].getType().isBoolean())
-  {
-    // must turn (= conc false) into (not conc)
-    conc = Rewriter::rewrite(conc);
-  }
-  if (isProofEnabled())
-  {
-    // If proofs are enabled, notify the proof constructor.
-    // Notice that we have to reconstruct a datatypes inference here. This is
-    // because the inference in the pending vector may be destroyed as we are
-    // processing this inference, if we triggered to backtrack based on the
-    // call below, since it is a unique pointer.
-    std::shared_ptr<DatatypesInference> di =
-        std::make_shared<DatatypesInference>(this, conc, exp, id);
-    d_ipc->notifyFact(di);
-  }
-  return conc;
-}
-
-void InferenceManager::processDtFactInternal(Node conc, Node exp)
-{
   bool polarity = conc.getKind() != NOT;
   TNode atom = polarity ? conc : conc[0];
   if (isProofEnabled())
@@ -196,6 +183,35 @@ void InferenceManager::processDtFactInternal(Node conc, Node exp)
     // use version without proofs
     assertInternalFact(atom, polarity, exp);
   }
+  d_inferenceFacts << id;
+  return true;
+}
+
+Node InferenceManager::prepareDtInference(Node conc,
+                                          Node exp,
+                                          InferId id,
+                                          InferProofCons* ipc)
+{
+  Trace("dt-lemma-debug") << "prepareDtInference : " << conc << " via " << exp
+                          << " by " << id << std::endl;
+  if (conc.getKind() == EQUAL && conc[0].getType().isBoolean())
+  {
+    // must turn (= conc false) into (not conc)
+    conc = Rewriter::rewrite(conc);
+  }
+  if (isProofEnabled())
+  {
+    Assert(ipc != nullptr);
+    // If proofs are enabled, notify the proof constructor.
+    // Notice that we have to reconstruct a datatypes inference here. This is
+    // because the inference in the pending vector may be destroyed as we are
+    // processing this inference, if we triggered to backtrack based on the
+    // call below, since it is a unique pointer.
+    std::shared_ptr<DatatypesInference> di =
+        std::make_shared<DatatypesInference>(this, conc, exp, id);
+    ipc->notifyFact(di);
+  }
+  return conc;
 }
 
 }  // namespace datatypes
