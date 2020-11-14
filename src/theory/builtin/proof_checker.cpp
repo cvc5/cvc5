@@ -82,6 +82,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerTrustedChecker(PfRule::TRUST_SUBS_MAP, this, 1);
   // another category
   pc->registerChecker(PfRule::LFSC_RULE, this);
+  pc->registerChecker(PfRule::VERIT_RULE, this);
 }
 
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(
@@ -438,6 +439,13 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   } else if (id == PfRule::LFSC_RULE) {
     return args[1];
   }
+  else if (id == PfRule::VERIT_RULE)
+  {
+    Assert(args.size() > 1);
+    Assert(args[0].getType().isInteger());
+    return args[1];
+  }
+
   
   // no rule
   return Node::null();
