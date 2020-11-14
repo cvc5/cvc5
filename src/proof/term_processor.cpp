@@ -12,7 +12,7 @@
  ** \brief Implementation of term processor utilities
  **/
 
-#include "proof/lfsc/term_processor.h"
+#include "proof/term_processor.h"
 
 #include "expr/attribute.h"
 
