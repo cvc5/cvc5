@@ -142,6 +142,7 @@ class CVC4_PUBLIC SmtEngine
   friend class ::CVC4::api::Solver;
   friend class ::CVC4::smt::SmtEngineState;
   friend class ::CVC4::smt::SmtScope;
+  friend class ::CVC4::LogicRequest;
 
   /* .......................................................................  */
  public:
@@ -871,6 +872,12 @@ class CVC4_PUBLIC SmtEngine
   /** Get a pointer to the PropEngine owned by this SmtEngine. */
   prop::PropEngine* getPropEngine();
   
+  /**
+   * Get a pointer to the ProofManager owned by this SmtEngine.
+   * TODO (project #37): this is the old proof manager and will be deleted
+   */
+  ProofManager* getProofManager() { return d_proofManager.get(); };
+  
   /** Get the resource manager of this SMT engine */
   ResourceManager* getResourceManager();
 
@@ -910,12 +917,6 @@ class CVC4_PUBLIC SmtEngine
 
   /** Set solver instance that owns this SmtEngine. */
   void setSolver(api::Solver* solver) { d_solver = solver; }
-
-  /**
-   * Get a pointer to the ProofManager owned by this SmtEngine.
-   * TODO (project #37): this is the old proof manager and will be deleted
-   */
-  ProofManager* getProofManager() { return d_proofManager.get(); };
 
   /** Get a pointer to the StatisticsRegistry owned by this SmtEngine. */
   StatisticsRegistry* getStatisticsRegistry()

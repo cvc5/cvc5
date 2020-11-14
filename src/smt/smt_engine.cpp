@@ -26,6 +26,7 @@
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/smt_options.h"
+#include "options/main_options.h"
 #include "options/theory_options.h"
 #include "printer/printer.h"
 #include "proof/proof_manager.h"
@@ -125,14 +126,15 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
   d_resourceManager.reset(
       new ResourceManager(*d_statisticsRegistry.get(), d_options));
   d_optm.reset(new smt::OptionsManager(&d_options, d_resourceManager.get()));
-  d_pp.reset(
-      new smt::Preprocessor(*this, getUserContext(), *d_absValues.get()));
   // listen to node manager events
   d_nodeManager->subscribeEvents(d_snmListener.get());
   // listen to resource out
   d_resourceManager->registerListener(d_routListener.get());
   // make statistics
   d_stats.reset(new SmtEngineStatistics());
+  // reset the preprocessor
+  d_pp.reset(
+      new smt::Preprocessor(*this, getUserContext(), *d_absValues.get(), *d_stats));
   // make the SMT solver
   d_smtSolver.reset(
       new SmtSolver(*this, *d_state, d_resourceManager.get(), *d_pp, *d_stats));

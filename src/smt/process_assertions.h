@@ -57,7 +57,8 @@ class ProcessAssertions
   typedef unordered_map<Node, bool, NodeHashFunction> NodeToBoolHashMap;
 
  public:
-  ProcessAssertions(SmtEngine& smt, ResourceManager& rm);
+  ProcessAssertions(SmtEngine& smt, ResourceManager& rm,
+            SmtEngineStatistics& stats);
   ~ProcessAssertions();
   /** Finish initialize
    *
@@ -92,6 +93,8 @@ class ProcessAssertions
   SmtEngine& d_smt;
   /** Reference to resource manager */
   ResourceManager& d_resourceManager;
+  /** Reference to the SMT stats */
+  SmtEngineStatistics& d_smtStats;
   /** The preprocess context */
   preprocessing::PreprocessingPassContext* d_preprocessingPassContext;
   /** True node */
