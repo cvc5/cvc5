@@ -66,7 +66,7 @@ class PreprocessingPassContext
     d_resourceManager->spendResource(r);
   }
 
-  const LogicInfo& getLogicInfo() { return d_smt->d_logic; }
+  LogicInfo getLogicInfo() { return d_smt->getLogicInfo(); }
 
   /* Widen the logic to include the given theory. */
   void widenLogic(theory::TheoryId id);

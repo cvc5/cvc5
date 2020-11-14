@@ -134,32 +134,14 @@ namespace theory {
   class Rewriter;
 }/* CVC4::theory namespace */
 
-// TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
-// hood): use a type parameter and have check() delegate, or subclass
-// SmtEngine and override check()?
-//
-// Probably better than that is to have a configuration object that
-// indicates which passes are desired.  The configuration occurs
-// elsewhere (and can even occur at runtime).  A simple "pass manager"
-// of sorts determines check()'s behavior.
-//
-// The CNF conversion can go on in PropEngine.
 
 /* -------------------------------------------------------------------------- */
 
 class CVC4_PUBLIC SmtEngine
 {
   friend class ::CVC4::api::Solver;
-  // TODO (Issue #1096): Remove this friend relationship.
-  friend class ::CVC4::preprocessing::PreprocessingPassContext;
   friend class ::CVC4::smt::SmtEngineState;
   friend class ::CVC4::smt::SmtScope;
-  friend class ::CVC4::smt::ProcessAssertions;
-  friend class ::CVC4::smt::SmtSolver;
-  friend ProofManager* ::CVC4::smt::currentProofManager();
-  friend class ::CVC4::LogicRequest;
-  friend class ::CVC4::theory::TheoryModel;
-  friend class ::CVC4::theory::Rewriter;
 
   /* .......................................................................  */
  public:
@@ -877,6 +859,18 @@ class CVC4_PUBLIC SmtEngine
   Options& getOptions();
   const Options& getOptions() const;
 
+  /** Get a pointer to the UserContext owned by this SmtEngine. */
+  context::UserContext* getUserContext();
+
+  /** Get a pointer to the Context owned by this SmtEngine. */
+  context::Context* getContext();
+
+  /** Get a pointer to the TheoryEngine owned by this SmtEngine. */
+  TheoryEngine* getTheoryEngine();
+
+  /** Get a pointer to the PropEngine owned by this SmtEngine. */
+  prop::PropEngine* getPropEngine();
+  
   /** Get the resource manager of this SMT engine */
   ResourceManager* getResourceManager();
 
@@ -916,18 +910,6 @@ class CVC4_PUBLIC SmtEngine
 
   /** Set solver instance that owns this SmtEngine. */
   void setSolver(api::Solver* solver) { d_solver = solver; }
-
-  /** Get a pointer to the UserContext owned by this SmtEngine. */
-  context::UserContext* getUserContext();
-
-  /** Get a pointer to the Context owned by this SmtEngine. */
-  context::Context* getContext();
-
-  /** Get a pointer to the TheoryEngine owned by this SmtEngine. */
-  TheoryEngine* getTheoryEngine();
-
-  /** Get a pointer to the PropEngine owned by this SmtEngine. */
-  prop::PropEngine* getPropEngine();
 
   /**
    * Get a pointer to the ProofManager owned by this SmtEngine.
