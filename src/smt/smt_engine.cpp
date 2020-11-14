@@ -61,8 +61,11 @@
 #include "util/random.h"
 #include "util/resource_manager.h"
 
+// required for hacks related to old proofs for unsat cores
+#include "base/configuration.h"
+#include "base/configuration_private.h"
+
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::smt;
 using namespace CVC4::preprocessing;
 using namespace CVC4::prop;
