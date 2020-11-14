@@ -140,6 +140,9 @@ libcvc4_add_sources(
   proof/lean/lean_post_processor.cpp
   proof/lean/lean_post_processor.h
   proof/lean/lean_printer.h
+  proof/verit/verit_post_processor.cpp
+  proof/verit/verit_post_processor.h
+  proof/verit/verit_printer.h
   proof/lfsc/letify.cpp
   proof/lfsc/letify.h
   proof/lfsc/lfsc_post_processor.cpp
