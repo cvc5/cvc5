@@ -1503,10 +1503,6 @@ void SmtEngine::checkProof()
   // internal check the proof
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
-  if (options::proofNewEagerChecking())
-  {
-    pe->checkProof(d_asserts->getAssertionList());
-  }
   Assert(pe->getProof() != nullptr);
   std::shared_ptr<ProofNode> pePfn = pe->getProof();
   if (options ::checkProofsNew())

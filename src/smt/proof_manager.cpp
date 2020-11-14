@@ -95,7 +95,6 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
 
   Trace("smt-proof") << "SmtEngine::setFinalProof(): postprocess...\n";
   Assert(d_pfpp != nullptr);
-  d_pfpp->setAssertions(assertions);
   d_pfpp->process(pfn);
 
   Trace("smt-proof") << "SmtEngine::setFinalProof(): make scope...\n";
@@ -112,6 +111,7 @@ void PfManager::printProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
   std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as);
   // TODO (proj #37) according to the proof format, post process the proof node
   // TODO (proj #37) according to the proof format, print the proof node
+  std::ostream& out = *options::out();
   out << "(proof\n";
   out << *fp;
   out << "\n)\n";
