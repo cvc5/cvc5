@@ -96,7 +96,7 @@ class LetBinding
    * letList[j] for j>i.
    */
   void letify(Node n, std::vector<Node>& letList);
-  /** 
+  /**
    * Same as above, without a node to letify.
    */
   void letify(std::vector<Node>& letList);

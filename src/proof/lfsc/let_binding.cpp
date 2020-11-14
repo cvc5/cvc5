@@ -44,7 +44,7 @@ void LetBinding::process(Node n)
 
 void LetBinding::letify(Node n, std::vector<Node>& letList)
 {
-  Assert (!n.isNull());
+  Assert(!n.isNull());
   // first, push the context
   pushScope();
   // process the node
