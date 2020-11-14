@@ -435,10 +435,12 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(!args.empty());
     Assert(args[0].getType().isBoolean());
     return args[0];
-  } else if (id == PfRule::LFSC_RULE) {
+  }
+  else if (id == PfRule::LFSC_RULE)
+  {
     return args[1];
   }
-  
+
   // no rule
   return Node::null();
 }

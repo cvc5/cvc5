@@ -228,7 +228,7 @@ void LfscPrinter::printProofInternal(
         {
           // a normal rule application, compute the proof arguments
           std::vector<PExpr> args;
-          
+
           if (computeProofArgs(cur, args))
           {
             processedChildren[cur] = false;
@@ -292,7 +292,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::FALSE_INTRO:
     case PfRule::TRUE_ELIM:
     case PfRule::FALSE_ELIM: pf << h << cs[0]; break;
-    case PfRule::CONTRA: pf << h << cs[0] << cs[1] ; break;
+    case PfRule::CONTRA: pf << h << cs[0] << cs[1]; break;
     // ---------- arguments of non-translated rules go here
     case PfRule::LFSC_RULE:
     {
@@ -302,15 +302,18 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
         case LfscRule::NEG_SYMM: pf << h << cs[0]; break;
         case LfscRule::TRANS: pf << h << h << h << cs[0] << cs[1]; break;
         case LfscRule::CONG: pf << h << h << h << h << cs[0] << cs[1]; break;
-        case LfscRule::CNF_AND_POS_1: 
-        case LfscRule::CNF_AND_POS_2: 
-          pf << h << h << cs[0]; break;
+        case LfscRule::CNF_AND_POS_1:
+        case LfscRule::CNF_AND_POS_2: pf << h << h << cs[0]; break;
         // ---------- arguments of translated rules go here
         default: return false; break;
       }
       break;
     }
-    default: {     return false; break;}
+    default:
+    {
+      return false;
+      break;
+    }
   }
   return true;
 }
@@ -438,7 +441,6 @@ Node mkLfscRuleNode(LfscRule r)
 {
   return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(r)));
 }
-
 
 }  // namespace proof
 }  // namespace CVC4

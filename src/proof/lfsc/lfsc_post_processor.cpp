@@ -16,9 +16,9 @@
 #include "proof/lfsc/lfsc_printer.h"
 
 #include "expr/lazy_proof.h"
+#include "expr/proof_checker.h"
 #include "expr/proof_node_algorithm.h"
 #include "expr/proof_node_updater.h"
-#include "expr/proof_checker.h"
 
 namespace CVC4 {
 namespace proof {
@@ -57,14 +57,12 @@ bool LfscProofPostprocessCallback::update(Node res,
     ics.push_back(d_tproc.toInternal(c));
   }
 
-
   // convert arguments to internal form
   std::vector<Node> ias;
   for (const Node& a : args)
   {
     ias.push_back(d_tproc.toInternal(a));
   }
-
 
   switch (id)
   {
@@ -83,25 +81,28 @@ bool LfscProofPostprocessCallback::update(Node res,
       uint32_t i;
       bool b = ProofRuleChecker::getUInt32(args[0], i);
       Assert(b);
-//      Node cur = ics[0];
+      //      Node cur = ics[0];
       Node cur = children[0];
-      for (uint32_t j=0; j < i; j++ ) {
+      for (uint32_t j = 0; j < i; j++)
+      {
         // Assert(cur.getKind() == kind::AND);
         // Assert(cur.getNumChildren() == 2);
-//        Node cur_r = cur[1];
-        std::vector<Node> r_children(cur.begin()+1, cur.end());
+        //        Node cur_r = cur[1];
+        std::vector<Node> r_children(cur.begin() + 1, cur.end());
         Node cur_r = nm->mkAnd(r_children);
-        cdp->addStep(cur_r, PfRule::LFSC_RULE, {cur}, 
-                    {mkLfscRuleNode(LfscRule::CNF_AND_POS_2), 
-                      cur_r});
+        cdp->addStep(cur_r,
+                     PfRule::LFSC_RULE,
+                     {cur},
+                     {mkLfscRuleNode(LfscRule::CNF_AND_POS_2), cur_r});
         cur = cur_r;
       }
-      if (i != children[0].getNumChildren() -1 ) {
-        cdp->addStep(cur[0], PfRule::LFSC_RULE, {cur}, 
-                    {mkLfscRuleNode(LfscRule::CNF_AND_POS_1), 
-                      cur[0]});
+      if (i != children[0].getNumChildren() - 1)
+      {
+        cdp->addStep(cur[0],
+                     PfRule::LFSC_RULE,
+                     {cur},
+                     {mkLfscRuleNode(LfscRule::CNF_AND_POS_1), cur[0]});
       }
-      
     }
     break;
     default: return false; break;
@@ -109,10 +110,10 @@ bool LfscProofPostprocessCallback::update(Node res,
   return true;
 }
 
-void LfscProofPostprocess::process(std::shared_ptr<ProofNode> pf) {
+void LfscProofPostprocess::process(std::shared_ptr<ProofNode> pf)
+{
   ProofNodeUpdater updater(d_pnm, *(d_cb.get()));
   updater.process(pf);
-
 }
 
 }  // namespace proof

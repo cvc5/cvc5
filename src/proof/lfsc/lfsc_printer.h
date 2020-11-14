@@ -30,7 +30,7 @@ namespace proof {
 /**
 work steps:
 1. make new rules in the lfsc signature
-2. add to LfscRule enum 
+2. add to LfscRule enum
 3. print in toString
 4. convert PfRule to LfscRule in the postprocessor
 5. Add printing code to computeProofArgs
@@ -80,8 +80,6 @@ class LfscPrinter
  public:
   LfscPrinter();
   ~LfscPrinter() {}
-
-
 
   /**
    * Print the full proof of assertions => false by pn.
