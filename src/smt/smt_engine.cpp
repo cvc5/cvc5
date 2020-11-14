@@ -25,9 +25,10 @@
 #include "expr/node.h"
 #include "options/base_options.h"
 #include "options/language.h"
-#include "options/smt_options.h"
 #include "options/main_options.h"
+#include "options/smt_options.h"
 #include "options/theory_options.h"
+#include "options/printer_options.h"
 #include "printer/printer.h"
 #include "proof/proof_manager.h"
 #include "proof/unsat_core.h"
@@ -133,8 +134,8 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
   // make statistics
   d_stats.reset(new SmtEngineStatistics());
   // reset the preprocessor
-  d_pp.reset(
-      new smt::Preprocessor(*this, getUserContext(), *d_absValues.get(), *d_stats));
+  d_pp.reset(new smt::Preprocessor(
+      *this, getUserContext(), *d_absValues.get(), *d_stats));
   // make the SMT solver
   d_smtSolver.reset(
       new SmtSolver(*this, *d_state, d_resourceManager.get(), *d_pp, *d_stats));

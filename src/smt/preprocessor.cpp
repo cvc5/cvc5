@@ -30,7 +30,7 @@ namespace smt {
 Preprocessor::Preprocessor(SmtEngine& smt,
                            context::UserContext* u,
                            AbstractValues& abs,
-            SmtEngineStatistics& stats)
+                           SmtEngineStatistics& stats)
     : d_context(u),
       d_smt(smt),
       d_absValues(abs),

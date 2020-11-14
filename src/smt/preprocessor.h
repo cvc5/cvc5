@@ -41,8 +41,10 @@ class AbstractValues;
 class Preprocessor
 {
  public:
-  Preprocessor(SmtEngine& smt, context::UserContext* u, AbstractValues& abs,
-            SmtEngineStatistics& stats);
+  Preprocessor(SmtEngine& smt,
+               context::UserContext* u,
+               AbstractValues& abs,
+               SmtEngineStatistics& stats);
   ~Preprocessor();
   /**
    * Finish initialization

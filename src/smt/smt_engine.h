@@ -50,19 +50,13 @@ typedef NodeTemplate<true> Node;
 typedef NodeTemplate<false> TNode;
 struct NodeHashFunction;
 
-class Command;
-class GetModelCommand;
-
 class SmtEngine;
 class DecisionEngine;
 class TheoryEngine;
-
 class ProofManager;
 class UnsatCore;
-
 class LogicRequest;
 class StatisticsRegistry;
-
 class Printer;
 
 /* -------------------------------------------------------------------------- */
@@ -871,12 +865,14 @@ class CVC4_PUBLIC SmtEngine
 
   /** Get a pointer to the PropEngine owned by this SmtEngine. */
   prop::PropEngine* getPropEngine();
-  
+
   /**
    * Get a pointer to the ProofManager owned by this SmtEngine.
    * TODO (project #37): this is the old proof manager and will be deleted
    */
   ProofManager* getProofManager() { return d_proofManager.get(); };
+
+
   
   /** Get the resource manager of this SMT engine */
   ResourceManager* getResourceManager();
@@ -892,7 +888,13 @@ class CVC4_PUBLIC SmtEngine
 
   /** Get a pointer to the Rewriter owned by this SmtEngine. */
   theory::Rewriter* getRewriter() { return d_rewriter.get(); }
-
+  
+  /** The type of our internal map of defined functions */
+  typedef context::CDHashMap<Node, smt::DefinedFunction, NodeHashFunction>
+      DefinedFunctionMap;
+      
+  /** Get the defined function map */
+  DefinedFunctionMap* getDefinedFunctionMap() { return d_definedFunctions; }
   /**
    * Get expanded assertions.
    *
@@ -902,10 +904,6 @@ class CVC4_PUBLIC SmtEngine
   /* .......................................................................  */
  private:
   /* .......................................................................  */
-
-  /** The type of our internal map of defined functions */
-  typedef context::CDHashMap<Node, smt::DefinedFunction, NodeHashFunction>
-      DefinedFunctionMap;
   /** The type of our internal assertion list */
   typedef context::CDList<Node> AssertionList;
   /** The type of our internal assignment set */
@@ -1018,15 +1016,6 @@ class CVC4_PUBLIC SmtEngine
    */
   void setLogicInternal();
 
-  /**
-   * Add to Model command.  This is used for recording a command
-   * that should be reported during a get-model call.
-   */
-  void addToModelCommandAndDump(const Command& c,
-                                uint32_t flags = 0,
-                                bool userVisible = true,
-                                const char* dumpTag = "declarations");
-
   /*
    * Check satisfiability (used to check satisfiability and entailment).
    */
@@ -1118,7 +1107,7 @@ class CVC4_PUBLIC SmtEngine
 
   /** An index of our defined functions */
   DefinedFunctionMap* d_definedFunctions;
-
+  
   /** The solver for sygus queries */
   std::unique_ptr<smt::SygusSolver> d_sygusSolver;
 

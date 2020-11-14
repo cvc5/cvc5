@@ -52,9 +52,13 @@ class ScopeCounter
   unsigned& d_depth;
 };
 
-ProcessAssertions::ProcessAssertions(SmtEngine& smt, ResourceManager& rm,
-            SmtEngineStatistics& stats)
-    : d_smt(smt), d_resourceManager(rm), d_smtStats(stats), d_preprocessingPassContext(nullptr)
+ProcessAssertions::ProcessAssertions(SmtEngine& smt,
+                                     ResourceManager& rm,
+                                     SmtEngineStatistics& stats)
+    : d_smt(smt),
+      d_resourceManager(rm),
+      d_smtStats(stats),
+      d_preprocessingPassContext(nullptr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
 }
@@ -282,7 +286,7 @@ bool ProcessAssertions::apply(Assertions& as)
   noConflict = simplifyAssertions(assertions);
   if (!noConflict)
   {
-    ++(d_smtStats->d_simplifiedToFalse);
+    ++(d_smtStats.d_simplifiedToFalse);
   }
   Trace("smt-proc") << "ProcessAssertions::processAssertions() : post-simplify"
                     << endl;
@@ -295,13 +299,13 @@ bool ProcessAssertions::apply(Assertions& as)
   Debug("smt") << " assertions     : " << assertions.size() << endl;
 
   {
-    d_smtStats->d_numAssertionsPre += assertions.size();
+    d_smtStats.d_numAssertionsPre += assertions.size();
     d_passes["ite-removal"]->apply(&assertions);
     // This is needed because when solving incrementally, removeITEs may
     // introduce skolems that were solved for earlier and thus appear in the
     // substitution map.
     d_passes["apply-substs"]->apply(&assertions);
-    d_smtStats->d_numAssertionsPost += assertions.size();
+    d_smtStats.d_numAssertionsPost += assertions.size();
   }
 
   dumpAssertions("pre-repeat-simplify", assertions);
@@ -574,8 +578,8 @@ Node ProcessAssertions::expandDefinitions(
       if (n.isVar())
       {
         SmtEngine::DefinedFunctionMap::const_iterator i =
-            d_smt.d_definedFunctions->find(n);
-        if (i != d_smt.d_definedFunctions->end())
+            d_smt.getDefinedFunctionMap()->find(n);
+        if (i != dfuns->end())
         {
           Node f = (*i).second.getFormula();
           // must expand its definition
@@ -648,8 +652,8 @@ Node ProcessAssertions::expandDefinitions(
           // application of a user-defined symbol
           TNode func = n.getOperator();
           SmtEngine::DefinedFunctionMap::const_iterator i =
-              d_smt.d_definedFunctions->find(func);
-          if (i == d_smt.d_definedFunctions->end())
+              d_smt.getDefinedFunctionMap()->find(func);
+          if (i == d_smt.getDefinedFunctionMap()->end())
           {
             throw TypeCheckingException(
                 n.toExpr(),
