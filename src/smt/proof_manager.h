@@ -88,8 +88,6 @@ class PfManager
   std::unique_ptr<ProofChecker> d_pchecker;
   /** A proof node manager based on the above checker */
   std::unique_ptr<ProofNodeManager> d_pnm;
-  /** The rewrite proof database. */
-  std::unique_ptr<theory::RewriteDb> d_rewriteDb;
   /** The preprocess proof generator. */
   std::unique_ptr<smt::PreprocessProofGenerator> d_pppg;
   /** The proof post-processor */
