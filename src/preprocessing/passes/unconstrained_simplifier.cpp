@@ -34,8 +34,7 @@ UnconstrainedSimplifier::UnconstrainedSimplifier(
     : PreprocessingPass(preprocContext, "unconstrained-simplifier"),
       d_numUnconstrainedElim("preprocessor::number of unconstrained elims", 0),
       d_context(preprocContext->getDecisionContext()),
-      d_substitutions(preprocContext->getDecisionContext()),
-      d_logicInfo(preprocContext->getLogicInfo())
+      d_substitutions(preprocContext->getDecisionContext())
 {
   smtStatisticsRegistry()->registerStat(&d_numUnconstrainedElim);
 }
@@ -134,7 +133,8 @@ Node UnconstrainedSimplifier::newUnconstrainedVar(TypeNode t, TNode var)
 void UnconstrainedSimplifier::processUnconstrained()
 {
   NodeManager* nm = NodeManager::currentNM();
-
+  LogicInfo logicInfo = preprocContext->getLogicInfo();
+  
   vector<TNode> workList(d_unconstrained.begin(), d_unconstrained.end());
   Node currentSub;
   TNode parent;
@@ -588,7 +588,7 @@ void UnconstrainedSimplifier::processUnconstrained()
         // Uninterpreted function - if domain is infinite, no quantifiers are
         // used, and any child is unconstrained, result is unconstrained
         case kind::APPLY_UF:
-          if (d_logicInfo.isQuantified()
+          if (logicInfo.isQuantified()
               || !current.getType().getCardinality().isInfinite())
           {
             break;
