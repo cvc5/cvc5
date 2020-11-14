@@ -872,8 +872,6 @@ class CVC4_PUBLIC SmtEngine
    */
   ProofManager* getProofManager() { return d_proofManager.get(); };
 
-
-  
   /** Get the resource manager of this SMT engine */
   ResourceManager* getResourceManager();
 
@@ -888,11 +886,11 @@ class CVC4_PUBLIC SmtEngine
 
   /** Get a pointer to the Rewriter owned by this SmtEngine. */
   theory::Rewriter* getRewriter() { return d_rewriter.get(); }
-  
+
   /** The type of our internal map of defined functions */
   typedef context::CDHashMap<Node, smt::DefinedFunction, NodeHashFunction>
       DefinedFunctionMap;
-      
+
   /** Get the defined function map */
   DefinedFunctionMap* getDefinedFunctionMap() { return d_definedFunctions; }
   /**
@@ -1107,7 +1105,7 @@ class CVC4_PUBLIC SmtEngine
 
   /** An index of our defined functions */
   DefinedFunctionMap* d_definedFunctions;
-  
+
   /** The solver for sygus queries */
   std::unique_ptr<smt::SygusSolver> d_sygusSolver;
 
