@@ -1142,8 +1142,10 @@ class CVC4_PUBLIC SmtEngine
    */
   std::map<std::string, Integer> d_commandVerbosity;
 
+  /** The statistics registry */
   std::unique_ptr<StatisticsRegistry> d_statisticsRegistry;
 
+  /** The statistics class */
   std::unique_ptr<smt::SmtEngineStatistics> d_stats;
 
   /** The options object */

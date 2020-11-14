@@ -577,8 +577,8 @@ Node ProcessAssertions::expandDefinitions(
       // we can short circuit (variable) leaves
       if (n.isVar())
       {
-        SmtEngine::DefinedFunctionMap::const_iterator i =
-            d_smt.getDefinedFunctionMap()->find(n);
+        SmtEngine::DefinedFunctionMap* dfuns = d_smt.getDefinedFunctionMap();
+        SmtEngine::DefinedFunctionMap::const_iterator i = dfuns->find(n);
         if (i != dfuns->end())
         {
           Node f = (*i).second.getFormula();
@@ -651,9 +651,10 @@ Node ProcessAssertions::expandDefinitions(
         {
           // application of a user-defined symbol
           TNode func = n.getOperator();
+          SmtEngine::DefinedFunctionMap* dfuns = d_smt.getDefinedFunctionMap();
           SmtEngine::DefinedFunctionMap::const_iterator i =
-              d_smt.getDefinedFunctionMap()->find(func);
-          if (i == d_smt.getDefinedFunctionMap()->end())
+              dfuns->find(func);
+          if (i == dfuns->end())
           {
             throw TypeCheckingException(
                 n.toExpr(),
