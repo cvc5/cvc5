@@ -438,7 +438,8 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::VERIT_RULE)
   {
-    Assert(args.size() > 1 && args[0].getType().isReal());
+    Assert(args.size() > 1);
+    Assert(args[0].getType().isInteger());
     return args[1];
   }
 
