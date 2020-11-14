@@ -19,10 +19,10 @@
 #include "options/smt_options.h"
 #include "proof/lean/lean_post_processor.h"
 #include "proof/lean/lean_printer.h"
-#include "proof/verit/verit_post_processor.h"
-#include "proof/verit/verit_printer.h"
 #include "proof/lfsc/lfsc_post_processor.h"
 #include "proof/lfsc/lfsc_printer.h"
+#include "proof/verit/verit_post_processor.h"
+#include "proof/verit/verit_printer.h"
 #include "smt/assertions.h"
 
 namespace CVC4 {

@@ -102,14 +102,6 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: (F1, ..., Fn)
     case PfRule::SCOPE:
     {
-      /*for(int i = 0; i < args.size(); i++){
-        addVeritStep(args[i],VeritRule::ASSUME,{},{},*cdp);
-      }*/
-
-      // addVeritStep(res,VeritRule::ANCHOR,children,args,*cdp);
-      // Note: Adding the last step (introducing the implication) is not
-      // feasible. It is better to print it when the scope statement comes up
-      // Add this to the final version of printer. return true;
     }
     //================================================= Boolean rules
     // ======== Resolution
@@ -134,7 +126,12 @@ bool VeritProofPostprocessCallback::update(Node res,
       {
         new_args.push_back(d_nm->mkConst<Rational>(
             static_cast<unsigned>(VeritRule::RESOLUTION)));
-        new_args.push_back(Node::null());
+        new_args.push_back(res);
+        // Note: This will not print correctly. Before Node::null() was pushed
+        // but because of the move of the check of the VERIT_RULE to
+        // theory/builtin/proof_checker.cpp res has to be equal to args[1].
+        // However, this issue is resolved in a later version so it is not
+        // changed here.
         return cdp->addStep(res, PfRule::VERIT_RULE, children, new_args);
       }
       return addVeritStep(res, VeritRule::RESOLUTION, children, {}, *cdp);
@@ -311,7 +308,12 @@ bool VeritProofPostprocessCallback::update(Node res,
     {
       new_args.push_back(d_nm->mkConst<Rational>(
           static_cast<unsigned>(VeritRule::RESOLUTION)));
-      new_args.push_back(Node::null());  // print this as empty
+      new_args.push_back(res);
+      // Note: This will not print correctly. Before Node::null() was pushed but
+      // because of the move of the check of the VERIT_RULE to
+      // theory/builtin/proof_checker.cpp res has to be equal to args[1].
+      // However, this issue is resolved in a later version so it is not changed
+      // here.
       return cdp->addStep(res, PfRule::VERIT_RULE, children, new_args);
     }
     // ======== And elimination

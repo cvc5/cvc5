@@ -107,11 +107,6 @@ Node ProofChecker::check(
     Assert(expected.isNull() || expected == args[0]);
     return expected;
   }
-  if (id == PfRule::VERIT_RULE)
-  {
-    Assert(args.size() > 1 && args[0].getType().isReal());
-    return expected;
-  }
   // record stat
   d_stats.d_ruleChecks << id;
   ++d_stats.d_totalRuleChecks;
