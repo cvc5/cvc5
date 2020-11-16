@@ -318,7 +318,7 @@ SmtEngine::~SmtEngine()
     // of context-dependent data structures
     d_state->cleanup();
 
-    if (d_assignments != NULL) {
+    if(d_assignments != NULL) {
       d_assignments->deleteSelf();
     }
 
@@ -358,7 +358,7 @@ SmtEngine::~SmtEngine()
     d_statisticsRegistry.reset(nullptr);
     // destroy the state
     d_state.reset(nullptr);
-  } catch (Exception& e) {
+  } catch(Exception& e) {
     Warning() << "CVC4 threw an exception during cleanup." << endl
               << e << endl;
   }
@@ -498,7 +498,7 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
     return;
   } else if(key == "status") {
     string s;
-    if(value.isAtom())  {
+    if(value.isAtom()) {
       s = value.getValue();
     }
     if(s != "sat" && s != "unsat" && s != "unknown") {
@@ -658,11 +658,8 @@ void SmtEngine::debugCheckFunctionBody(Node formula,
          << "Body type     : " << formulaType;
       throw TypeCheckingException(func.toExpr(), ss.str());
     }
-  }
-  else
-  {
-    if (!formulaType.isComparableTo(funcType))
-    {
+  } else {
+    if(! formulaType.isComparableTo(funcType)) {
       stringstream ss;
       ss << "Declared type of defined constant does not match its definition\n"
          << "The constant   : " << func << "\n"
@@ -687,7 +684,7 @@ void SmtEngine::defineFunction(Node func,
 
   stringstream ss;
   ss << language::SetLanguage(
-      language::SetLanguage::getLanguage(Dump.getStream()))
+            language::SetLanguage::getLanguage(Dump.getStream()))
      << func;
   std::vector<Node> nFormals;
   nFormals.reserve(formals.size());
@@ -816,8 +813,7 @@ bool SmtEngine::isDefinedFunction(Node func)
   return d_definedFunctions->find(func) != d_definedFunctions->end();
 }
 
-Result SmtEngine::quickCheck()
-{
+Result SmtEngine::quickCheck() {
   Assert(d_state->isFullyInited());
   Trace("smt") << "SMT quickCheck()" << endl;
   const std::string& filename = d_state->getFilename();
@@ -978,27 +974,22 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
                  << "(" << assumptions << ") => " << r << endl;
 
     // Check that SAT results generate a model correctly.
-    if (options::checkModels())
-    {
+    if(options::checkModels()) {
       if (r.asSatisfiabilityResult().isSat() == Result::SAT)
       {
         checkModel();
       }
     }
     // Check that UNSAT results generate an unsat core correctly.
-    if (options::checkUnsatCores())
-    {
-      if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
-      {
+    if(options::checkUnsatCores()) {
+      if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
         TimerStat::CodeTimer checkUnsatCoreTimer(d_stats->d_checkUnsatCoreTime);
         checkUnsatCore();
       }
     }
 
     return r;
-  }
-  catch (UnsafeInterruptException& e)
-  {
+  } catch (UnsafeInterruptException& e) {
     AlwaysAssert(d_resourceManager->out());
     // Notice that we do not notify the state of this result. If we wanted to
     // make the solver resume a working state after an interupt, then we would
@@ -1054,8 +1045,7 @@ Result SmtEngine::assertFormula(const Node& formula, bool inUnsatCore)
 
   Trace("smt") << "SmtEngine::assertFormula(" << formula << ")" << endl;
 
-  if (Dump.isOn("raw-benchmark"))
-  {
+  if (Dump.isOn("raw-benchmark")) {
     getOutputManager().getPrinter().toStreamCmdAssert(
         getOutputManager().getDumpOut(), formula);
   }
@@ -1065,7 +1055,7 @@ Result SmtEngine::assertFormula(const Node& formula, bool inUnsatCore)
 
   d_asserts->assertFormula(n, inUnsatCore);
   return quickCheck().asEntailmentResult();
-} /* SmtEngine::assertFormula() */
+}/* SmtEngine::assertFormula() */
 
 /*
    --------------------------------------------------------------------------
@@ -1179,8 +1169,7 @@ Node SmtEngine::getValue(const Node& ex) const
   SmtScope smts(this);
 
   Trace("smt") << "SMT getValue(" << ex << ")" << endl;
-  if (Dump.isOn("benchmark"))
-  {
+  if(Dump.isOn("benchmark")) {
     d_outMgr.getPrinter().toStreamCmdGetValue(d_outMgr.getDumpOut(), {ex});
   }
   TypeNode expectedType = ex.getType();
@@ -1195,9 +1184,8 @@ Node SmtEngine::getValue(const Node& ex) const
   // two are different, but they need to be unified.  This ugly hack here
   // is to fix bug 554 until we can revamp boolean-terms and models [MGD]
 
-  // AJR : necessary?
-  if (!n.getType().isFunction())
-  {
+  //AJR : necessary?
+  if(!n.getType().isFunction()) {
     n = Rewriter::rewrite(n);
   }
 
@@ -1221,8 +1209,7 @@ Node SmtEngine::getValue(const Node& ex) const
   Assert(m->hasApproximations() || resultNode.getKind() == kind::LAMBDA
          || resultNode.isConst());
 
-  if (options::abstractValues() && resultNode.getType().isArray())
-  {
+  if(options::abstractValues() && resultNode.getType().isArray()) {
     resultNode = d_absValues->mkAbstractValue(resultNode);
     Trace("smt") << "--- abstract value >> " << resultNode << endl;
   }
@@ -1240,8 +1227,7 @@ std::vector<Node> SmtEngine::getValues(const std::vector<Node>& exprs)
   return result;
 }
 
-bool SmtEngine::addToAssignment(const Expr& ex)
-{
+bool SmtEngine::addToAssignment(const Expr& ex) {
   SmtScope smts(this);
   finishInit();
   d_state->doPendingPops();
@@ -1262,12 +1248,10 @@ bool SmtEngine::addToAssignment(const Expr& ex)
       "expected variable or defined-function application "
       "in addToAssignment(),\ngot %s",
       n.toString().c_str());
-  if (!options::produceAssignments())
-  {
+  if(!options::produceAssignments()) {
     return false;
   }
-  if (d_assignments == NULL)
-  {
+  if(d_assignments == NULL) {
     d_assignments = new (true) AssignmentSet(getContext());
   }
   d_assignments->insert(n);
@@ -1281,16 +1265,14 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
   Trace("smt") << "SMT getAssignment()" << endl;
   SmtScope smts(this);
   finishInit();
-  if (Dump.isOn("benchmark"))
-  {
+  if(Dump.isOn("benchmark")) {
     getOutputManager().getPrinter().toStreamCmdGetAssignment(
         getOutputManager().getDumpOut());
   }
-  if (!options::produceAssignments())
-  {
+  if(!options::produceAssignments()) {
     const char* msg =
-        "Cannot get the current assignment when "
-        "produce-assignments option is off.";
+      "Cannot get the current assignment when "
+      "produce-assignments option is off.";
     throw ModalException(msg);
   }
 
@@ -1299,7 +1281,7 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
   // assignments is null.
   Model* m = getAvailableModel("get assignment");
 
-  vector<pair<Expr, Expr>> res;
+  vector<pair<Expr,Expr>> res;
   if (d_assignments != nullptr)
   {
     TypeNode boolType = d_nodeManager->booleanType();
@@ -1339,15 +1321,13 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
-Model* SmtEngine::getModel()
-{
+Model* SmtEngine::getModel() {
   Trace("smt") << "SMT getModel()" << endl;
   SmtScope smts(this);
 
   finishInit();
 
-  if (Dump.isOn("benchmark"))
-  {
+  if(Dump.isOn("benchmark")) {
     getOutputManager().getPrinter().toStreamCmdGetModel(
         getOutputManager().getDumpOut());
   }
@@ -1519,8 +1499,7 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
 #endif /* IS_PROOFS_BUILD */
 }
 
-void SmtEngine::checkUnsatCore()
-{
+void SmtEngine::checkUnsatCore() {
   Assert(options::unsatCores())
       << "cannot check unsat core if unsat cores are turned off";
 
@@ -1547,17 +1526,13 @@ void SmtEngine::checkUnsatCore()
     coreChecker->assertFormula(assertionAfterExpansion);
   }
   Result r;
-  try
-  {
+  try {
     r = coreChecker->checkSat();
-  }
-  catch (...)
-  {
+  } catch (...) {
     throw;
   }
   Notice() << "SmtEngine::checkUnsatCore(): result is " << r << endl;
-  if (r.asSatisfiabilityResult().isUnknown())
-  {
+  if(r.asSatisfiabilityResult().isUnknown()) {
     Warning()
         << "SmtEngine::checkUnsatCore(): could not check core result unknown."
         << std::endl;
@@ -1569,8 +1544,7 @@ void SmtEngine::checkUnsatCore()
   }
 }
 
-void SmtEngine::checkModel(bool hardFailure)
-{
+void SmtEngine::checkModel(bool hardFailure) {
   context::CDList<Node>* al = d_asserts->getAssertionList();
   // --check-model implies --produce-assertions, which enables the
   // assertion list, so we should be ok.
@@ -1589,21 +1563,18 @@ void SmtEngine::checkModel(bool hardFailure)
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
-UnsatCore SmtEngine::getUnsatCore()
-{
+UnsatCore SmtEngine::getUnsatCore() {
   Trace("smt") << "SMT getUnsatCore()" << endl;
   SmtScope smts(this);
   finishInit();
-  if (Dump.isOn("benchmark"))
-  {
+  if(Dump.isOn("benchmark")) {
     getOutputManager().getPrinter().toStreamCmdGetUnsatCore(
         getOutputManager().getDumpOut());
   }
   return getUnsatCoreInternal();
 }
 
-void SmtEngine::printInstantiations(std::ostream& out)
-{
+void SmtEngine::printInstantiations(std::ostream& out) {
   SmtScope smts(this);
   finishInit();
   if (options::instFormatMode() == options::InstFormatMode::SZS)
@@ -1620,8 +1591,7 @@ void SmtEngine::printInstantiations(std::ostream& out)
   }
 }
 
-void SmtEngine::printSynthSolution(std::ostream& out)
-{
+void SmtEngine::printSynthSolution(std::ostream& out) {
   SmtScope smts(this);
   finishInit();
   TheoryEngine* te = getTheoryEngine();
@@ -1640,10 +1610,8 @@ Node SmtEngine::getQuantifierElimination(Node q, bool doFull, bool strict)
 {
   SmtScope smts(this);
   finishInit();
-  if (!d_logic.isPure(THEORY_ARITH) && strict)
-  {
-    Warning() << "Unexpected logic for quantifier elimination " << d_logic
-              << endl;
+  if(!d_logic.isPure(THEORY_ARITH) && strict){
+    Warning() << "Unexpected logic for quantifier elimination " << d_logic << endl;
   }
   return d_quantElimSolver->getQuantifierElimination(*d_asserts, q, doFull);
 }
@@ -1716,17 +1684,14 @@ std::vector<Node> SmtEngine::getAssertions()
   SmtScope smts(this);
   finishInit();
   d_state->doPendingPops();
-  if (Dump.isOn("benchmark"))
-  {
+  if(Dump.isOn("benchmark")) {
     getOutputManager().getPrinter().toStreamCmdGetAssertions(
         getOutputManager().getDumpOut());
   }
   Trace("smt") << "SMT getAssertions()" << endl;
-  if (!options::produceAssertions())
-  {
+  if(!options::produceAssertions()) {
     const char* msg =
-        "Cannot query the current assertion list when not in "
-        "produce-assertions mode.";
+        "Cannot query the current assertion list when not in produce-assertions mode.";
     throw ModalException(msg);
   }
   context::CDList<Node>* al = d_asserts->getAssertionList();
@@ -1747,21 +1712,18 @@ void SmtEngine::push()
   d_state->doPendingPops();
   Trace("smt") << "SMT push()" << endl;
   d_smtSolver->processAssertions(*d_asserts);
-  if (Dump.isOn("benchmark"))
-  {
+  if(Dump.isOn("benchmark")) {
     getOutputManager().getPrinter().toStreamCmdPush(
         getOutputManager().getDumpOut());
   }
   d_state->userPush();
 }
 
-void SmtEngine::pop()
-{
+void SmtEngine::pop() {
   SmtScope smts(this);
   finishInit();
   Trace("smt") << "SMT pop()" << endl;
-  if (Dump.isOn("benchmark"))
-  {
+  if(Dump.isOn("benchmark")) {
     getOutputManager().getPrinter().toStreamCmdPop(
         getOutputManager().getDumpOut());
   }
@@ -1781,10 +1743,9 @@ void SmtEngine::pop()
 void SmtEngine::reset()
 {
   SmtScope smts(this);
-  ExprManager* em = d_exprManager;
+  ExprManager *em = d_exprManager;
   Trace("smt") << "SMT reset()" << endl;
-  if (Dump.isOn("benchmark"))
-  {
+  if(Dump.isOn("benchmark")) {
     getOutputManager().getPrinter().toStreamCmdReset(
         getOutputManager().getDumpOut());
   }
@@ -1810,6 +1771,7 @@ void SmtEngine::resetAssertions()
     d_dumpm->resetAssertions();
     return;
   }
+
 
   Trace("smt") << "SMT resetAssertions()" << endl;
   if (Dump.isOn("benchmark"))
@@ -1886,7 +1848,7 @@ void SmtEngine::setUserAttribute(const std::string& attr,
   std::vector<Node> node_values;
   for (std::size_t i = 0, n = expr_values.size(); i < n; i++)
   {
-    node_values.push_back(expr_values[i].getNode());
+    node_values.push_back( expr_values[i].getNode() );
   }
   TheoryEngine* te = getTheoryEngine();
   Assert(te != nullptr);
@@ -1905,36 +1867,30 @@ void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
   NodeManagerScope nms(d_nodeManager);
   Trace("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
 
-  if (Dump.isOn("benchmark"))
-  {
+  if(Dump.isOn("benchmark")) {
     getOutputManager().getPrinter().toStreamCmdSetOption(
         getOutputManager().getDumpOut(), key, value);
   }
 
-  if (key == "command-verbosity")
-  {
-    if (!value.isAtom())
-    {
+  if(key == "command-verbosity") {
+    if(!value.isAtom()) {
       const vector<SExpr>& cs = value.getChildren();
-      if (cs.size() == 2 && (cs[0].isKeyword() || cs[0].isString())
-          && cs[1].isInteger())
-      {
+      if (cs.size() == 2 &&
+          (cs[0].isKeyword() || cs[0].isString()) &&
+          cs[1].isInteger()) {
         string c = cs[0].getValue();
         const Integer& v = cs[1].getIntegerValue();
-        if (v < 0 || v > 2)
-        {
+        if(v < 0 || v > 2) {
           throw OptionException("command-verbosity must be 0, 1, or 2");
         }
         d_commandVerbosity[c] = v;
         return;
       }
     }
-    throw OptionException(
-        "command-verbosity value must be a tuple (command-name, integer)");
+    throw OptionException("command-verbosity value must be a tuple (command-name, integer)");
   }
 
-  if (!value.isAtom())
-  {
+  if(!value.isAtom()) {
     throw OptionException("bad value for :" + key);
   }
 
@@ -1952,55 +1908,43 @@ CVC4::SExpr SmtEngine::getOption(const std::string& key) const
 
   Trace("smt") << "SMT getOption(" << key << ")" << endl;
 
-  if (key.length() >= 18 && key.compare(0, 18, "command-verbosity:") == 0)
-  {
-    map<string, Integer>::const_iterator i =
-        d_commandVerbosity.find(key.c_str() + 18);
-    if (i != d_commandVerbosity.end())
-    {
+  if(key.length() >= 18 &&
+     key.compare(0, 18, "command-verbosity:") == 0) {
+    map<string, Integer>::const_iterator i = d_commandVerbosity.find(key.c_str() + 18);
+    if(i != d_commandVerbosity.end()) {
       return SExpr((*i).second);
     }
     i = d_commandVerbosity.find("*");
-    if (i != d_commandVerbosity.end())
-    {
+    if(i != d_commandVerbosity.end()) {
       return SExpr((*i).second);
     }
     return SExpr(Integer(2));
   }
 
-  if (Dump.isOn("benchmark"))
-  {
+  if(Dump.isOn("benchmark")) {
     d_outMgr.getPrinter().toStreamCmdGetOption(d_outMgr.getDumpOut(), key);
   }
 
-  if (key == "command-verbosity")
-  {
+  if(key == "command-verbosity") {
     vector<SExpr> result;
     SExpr defaultVerbosity;
-    for (map<string, Integer>::const_iterator i = d_commandVerbosity.begin();
-         i != d_commandVerbosity.end();
-         ++i)
-    {
+    for(map<string, Integer>::const_iterator i = d_commandVerbosity.begin();
+        i != d_commandVerbosity.end();
+        ++i) {
       vector<SExpr> v;
       v.push_back(SExpr((*i).first));
       v.push_back(SExpr((*i).second));
-      if ((*i).first == "*")
-      {
+      if((*i).first == "*") {
         // put the default at the end of the SExpr
         defaultVerbosity = SExpr(v);
-      }
-      else
-      {
+      } else {
         result.push_back(SExpr(v));
       }
     }
     // put the default at the end of the SExpr
-    if (!defaultVerbosity.isAtom())
-    {
+    if(!defaultVerbosity.isAtom()) {
       result.push_back(defaultVerbosity);
-    }
-    else
-    {
+    } else {
       // ensure the default is always listed
       vector<SExpr> v;
       v.push_back(SExpr("*"));
@@ -2013,15 +1957,12 @@ CVC4::SExpr SmtEngine::getOption(const std::string& key) const
   return SExpr::parseAtom(d_options.getOption(key));
 }
 
-bool SmtEngine::getExpressionName(const Node& e, std::string& name) const
-{
+bool SmtEngine::getExpressionName(const Node& e, std::string& name) const {
   return d_exprNames->getExpressionName(e, name);
 }
 
-void SmtEngine::setExpressionName(const Node& e, const std::string& name)
-{
-  Trace("smt-debug") << "Set expression name " << e << " to " << name
-                     << std::endl;
+void SmtEngine::setExpressionName(const Node& e, const std::string& name) {
+  Trace("smt-debug") << "Set expression name " << e << " to " << name << std::endl;
   d_exprNames->setExpressionName(e, name);
 }
 
