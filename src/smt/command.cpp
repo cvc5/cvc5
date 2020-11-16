@@ -1612,6 +1612,7 @@ void GetAssignmentCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   if (!options::produceAssignments())
   {
+    // projects-248: this restriction is completely arbitrary
     std::stringstream sse;
     sse << "Cannot get assignment when produce-assignments is false";
     d_commandStatus = new CommandRecoverableFailure(sse.str());
@@ -1621,18 +1622,29 @@ void GetAssignmentCommand::invoke(api::Solver* solver, SymbolManager* sm)
   {
     std::map<api::Term, std::string> enames = sm->getExpressionNames();
     std::vector<SExpr> sexprs;
-    for (const std::pair<const api::Term, std::string>& e : enames)
+    if (enames.empty())
     {
-      api::Term v = solver->getValue(e.first);
-      std::vector<SExpr> ss;
-      ss.emplace_back(SExpr::Keyword(e.second));
-      ss.emplace_back(SExpr::Keyword(v.toString()));
-      sexprs.emplace_back(ss);
+      // corner case: get-assignment should throw an error if the model is
+      // not available, even if there are no named symbols. Thus, we query a
+      // dummy value here.
+      api::Term tt = solver->mkTrue();
+      solver->getValue(tt);
+    }
+    else
+    {
+      for (const std::pair<const api::Term, std::string>& e : enames)
+      {
+        api::Term v = solver->getValue(e.first);
+        std::vector<SExpr> ss;
+        ss.emplace_back(SExpr::Keyword(e.second));
+        ss.emplace_back(SExpr::Keyword(v.toString()));
+        sexprs.emplace_back(ss);
+      }
     }
     d_result = SExpr(sexprs);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (RecoverableModalException& e)
+  catch (api::CVC4ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
