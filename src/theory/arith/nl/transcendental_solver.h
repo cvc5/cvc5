@@ -84,18 +84,7 @@ class TranscendentalSolver
   // Relays to exp and sine solvers.
   void checkTranscendentalInitialRefine();
 
-  /** check transcendental monotonic
-   *
-   * Constructs a set of valid theory lemmas, based on a
-   * lemma scheme that ensures that applications
-   * of transcendental functions respect monotonicity.
-   *
-   * Examples:
-   *
-   * x > y => exp( x ) > exp( y )
-   * PI/2 > x > y > 0 => sin( x ) > sin( y )
-   * PI > x > y > PI/2 => sin( x ) < sin( y )
-   */
+  // Relays to exp and sine solvers.
   void checkTranscendentalMonotonic();
 
   /** check transcendental tangent planes

@@ -53,7 +53,8 @@ class SineSolver
                     const std::vector<Node>& false_asserts,
                     const std::vector<Node>& xts);
 
-  /** check initial refine
+  /**
+   * check initial refine
    *
    * Constructs a set of valid theory lemmas, based on
    * simple facts about the sine function.
@@ -69,6 +70,19 @@ class SineSolver
    */
   void checkInitialRefine();
 
+
+  /**
+   * check monotonicity
+   *
+   * Constructs a set of valid theory lemmas, based on a
+   * lemma scheme that ensures that applications
+   * of the sine function respect monotonicity.
+   *
+   * Examples:
+   *
+   * PI/2 > x > y > 0 => sin( x ) > sin( y )
+   * PI > x > y > PI/2 => sin( x ) < sin( y )
+   */
   void checkMonotonic();
 
  private:
