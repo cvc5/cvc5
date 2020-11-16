@@ -33,7 +33,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-TranscendentalSolver::TranscendentalSolver(InferenceManager& im, NlModel& m) : d_im(im), d_model(m)
+TranscendentalSolver::TranscendentalSolver(InferenceManager& im, NlModel& m) : d_im(im), d_model(m), d_expSlv(d_tstate), d_sineSlv(&d_tstate)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
@@ -50,6 +50,8 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
                                         const std::vector<Node>& false_asserts,
                                         const std::vector<Node>& xts)
 {
+  d_tstate.init(assertions, false_asserts, xts);
+
   d_funcCongClass.clear();
   d_funcMap.clear();
   d_tf_region.clear();
@@ -371,90 +373,8 @@ void TranscendentalSolver::getCurrentPiBounds()
 
 void TranscendentalSolver::checkTranscendentalInitialRefine()
 {
-  NodeManager* nm = NodeManager::currentNM();
-  Trace("nl-ext")
-      << "Get initial refinement lemmas for transcendental functions..."
-      << std::endl;
-  for (std::pair<const Kind, std::vector<Node> >& tfl : d_funcMap)
-  {
-    Kind k = tfl.first;
-    for (const Node& t : tfl.second)
-    {
-      // initial refinements
-      if (d_tf_initial_refine.find(t) == d_tf_initial_refine.end())
-      {
-        d_tf_initial_refine[t] = true;
-        Node lem;
-        if (k == SINE)
-        {
-          Node symn = nm->mkNode(SINE, nm->mkNode(MULT, d_neg_one, t[0]));
-          symn = Rewriter::rewrite(symn);
-          // Can assume it is its own master since phase is split over 0,
-          // hence  -pi <= t[0] <= pi implies -pi <= -t[0] <= pi.
-          d_trMaster[symn] = symn;
-          d_trSlaves[symn].insert(symn);
-          Assert(d_trSlaves.find(t) != d_trSlaves.end());
-          std::vector<Node> children;
-
-          lem = nm->mkNode(AND,
-                           // bounds
-                           nm->mkNode(AND,
-                                      nm->mkNode(LEQ, t, d_one),
-                                      nm->mkNode(GEQ, t, d_neg_one)),
-                           // symmetry
-                           nm->mkNode(PLUS, t, symn).eqNode(d_zero),
-                           // sign
-                           nm->mkNode(EQUAL,
-                                      nm->mkNode(LT, t[0], d_zero),
-                                      nm->mkNode(LT, t, d_zero)),
-                           // zero val
-                           nm->mkNode(EQUAL,
-                                      nm->mkNode(GT, t[0], d_zero),
-                                      nm->mkNode(GT, t, d_zero)));
-          lem = nm->mkNode(
-              AND,
-              lem,
-              // zero tangent
-              nm->mkNode(AND,
-                         nm->mkNode(IMPLIES,
-                                    nm->mkNode(GT, t[0], d_zero),
-                                    nm->mkNode(LT, t, t[0])),
-                         nm->mkNode(IMPLIES,
-                                    nm->mkNode(LT, t[0], d_zero),
-                                    nm->mkNode(GT, t, t[0]))),
-              // pi tangent
-              nm->mkNode(
-                  AND,
-                  nm->mkNode(IMPLIES,
-                             nm->mkNode(LT, t[0], d_pi),
-                             nm->mkNode(LT, t, nm->mkNode(MINUS, d_pi, t[0]))),
-                  nm->mkNode(
-                      IMPLIES,
-                      nm->mkNode(GT, t[0], d_pi_neg),
-                      nm->mkNode(GT, t, nm->mkNode(MINUS, d_pi_neg, t[0])))));
-        }
-        else if (k == EXPONENTIAL)
-        {
-          // ( exp(x) > 0 ) ^ ( x=0 <=> exp( x ) = 1 ) ^ ( x < 0 <=> exp( x ) <
-          // 1 ) ^ ( x <= 0 V exp( x ) > x + 1 )
-          lem = nm->mkNode(
-              AND,
-              nm->mkNode(GT, t, d_zero),
-              nm->mkNode(EQUAL, t[0].eqNode(d_zero), t.eqNode(d_one)),
-              nm->mkNode(EQUAL,
-                         nm->mkNode(LT, t[0], d_zero),
-                         nm->mkNode(LT, t, d_one)),
-              nm->mkNode(OR,
-                         nm->mkNode(LEQ, t[0], d_zero),
-                         nm->mkNode(GT, t, nm->mkNode(PLUS, t[0], d_one))));
-        }
-        if (!lem.isNull())
-        {
-          d_im.addPendingArithLemma(lem, InferenceId::NL_T_INIT_REFINE);
-        }
-      }
-    }
-  }
+  d_expSlv.checkInitialRefine();
+  d_sineSlv.checkInitialRefine();
 }
 
 void TranscendentalSolver::checkTranscendentalMonotonic()
@@ -1056,48 +976,44 @@ int TranscendentalSolver::regionToConcavity(Kind k, int region)
 
 Node TranscendentalSolver::regionToLowerBound(Kind k, int region)
 {
-  if (k == SINE)
+  Assert(k == Kind::SINE);
+  if (region == 1)
   {
-    if (region == 1)
-    {
-      return d_pi_2;
-    }
-    else if (region == 2)
-    {
-      return d_zero;
-    }
-    else if (region == 3)
-    {
-      return d_pi_neg_2;
-    }
-    else if (region == 4)
-    {
-      return d_pi_neg;
-    }
+    return d_pi_2;
+  }
+  else if (region == 2)
+  {
+    return d_zero;
+  }
+  else if (region == 3)
+  {
+    return d_pi_neg_2;
+  }
+  else if (region == 4)
+  {
+    return d_pi_neg;
   }
   return Node::null();
 }
 
 Node TranscendentalSolver::regionToUpperBound(Kind k, int region)
 {
-  if (k == SINE)
+  Assert(k == Kind::SINE);
+  if (region == 1)
   {
-    if (region == 1)
-    {
-      return d_pi;
-    }
-    else if (region == 2)
-    {
-      return d_pi_2;
-    }
-    else if (region == 3)
-    {
-      return d_zero;
-    }
-    else if (region == 4)
-    {
-      return d_pi_neg_2;
-    }
+    return d_pi;
+  }
+  else if (region == 2)
+  {
+    return d_pi_2;
+  }
+  else if (region == 3)
+  {
+    return d_zero;
+  }
+  else if (region == 4)
+  {
+    return d_pi_neg_2;
   }
   return Node::null();
 }

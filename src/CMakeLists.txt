@@ -389,6 +389,12 @@ libcvc4_add_sources(
   theory/arith/nl/strategy.h
   theory/arith/nl/transcendental_solver.cpp
   theory/arith/nl/transcendental_solver.h
+  theory/arith/nl/transcendental/exponential_solver.cpp
+  theory/arith/nl/transcendental/exponential_solver.h
+  theory/arith/nl/transcendental/sine_solver.cpp
+  theory/arith/nl/transcendental/sine_solver.h
+  theory/arith/nl/transcendental/transcendental_state.cpp
+  theory/arith/nl/transcendental/transcendental_state.h
   theory/arith/nl/transcendental/utils.cpp
   theory/arith/nl/transcendental/utils.h
   theory/arith/normal_form.cpp

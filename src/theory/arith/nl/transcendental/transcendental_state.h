@@ -1,0 +1,138 @@
+/*********************                                                        */
+/*! \file transcendental_state.h
+ ** \verbatim
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Tim King
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
+ **
+ ** \brief Utilities for transcendental lemmas.
+ **/
+
+#ifndef CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H
+#define CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H
+
+#include "expr/node.h"
+#include "theory/arith/inference_manager.h"
+#include "theory/arith/nl/nl_model.h"
+
+namespace CVC4 {
+namespace theory {
+namespace arith {
+namespace nl {
+namespace transcendental {
+
+struct TranscendentalState
+{
+
+  /** init last call
+   *
+   * This is called at the beginning of last call effort check, where
+   * assertions are the set of assertions belonging to arithmetic,
+   * false_asserts is the subset of assertions that are false in the current
+   * model, and xts is the set of extended function terms that are active in
+   * the current context.
+   *
+   * This call may add lemmas to lems based on registering term
+   * information (for example, purification of sine terms).
+   */
+  void init(const std::vector<Node>& assertions,
+                    const std::vector<Node>& false_asserts,
+                    const std::vector<Node>& xts);
+
+  void mkPi();
+  void getCurrentPiBounds();
+
+  Node d_zero;
+  Node d_one;
+  Node d_neg_one;
+
+  /** The inference manager that we push conflicts and lemmas to. */
+  InferenceManager& d_im;
+  /** Reference to the non-linear model object */
+  NlModel& d_model;
+
+
+  /**
+   * Some transcendental functions f(t) are "purified", e.g. we add
+   * t = y ^ f(t) = f(y) where y is a fresh variable. Those that are not
+   * purified we call "master terms".
+   *
+   * The maps below maintain a master/slave relationship over
+   * transcendental functions (SINE, EXPONENTIAL, PI), where above
+   * f(y) is the master of itself and of f(t).
+   *
+   * This is used for ensuring that the argument y of SINE we process is on the
+   * interval [-pi .. pi], and that exponentials are not applied to arguments
+   * that contain transcendental functions.
+   */
+  std::map<Node, Node> d_trMaster;
+  std::map<Node, std::unordered_set<Node, NodeHashFunction>> d_trSlaves;
+
+  /** concavity region for transcendental functions
+   *
+   * This stores an integer that identifies an interval in
+   * which the current model value for an argument of an
+   * application of a transcendental function resides.
+   *
+   * For exp( x ):
+   *   region #1 is -infty < x < infty
+   * For sin( x ):
+   *   region #0 is pi < x < infty (this is an invalid region)
+   *   region #1 is pi/2 < x <= pi
+   *   region #2 is 0 < x <= pi/2
+   *   region #3 is -pi/2 < x <= 0
+   *   region #4 is -pi < x <= -pi/2
+   *   region #5 is -infty < x <= -pi (this is an invalid region)
+   * All regions not listed above, as well as regions 0 and 5
+   * for SINE are "invalid". We only process applications
+   * of transcendental functions whose arguments have model
+   * values that reside in valid regions.
+   */
+  std::unordered_map<Node, int, NodeHashFunction> d_tf_region;
+  /**
+   * Maps representives of a congruence class to the members of that class.
+   *
+   * In detail, a congruence class is a set of terms of the form
+   *   { f(t1), ..., f(tn) }
+   * such that t1 = ... = tn in the current context. We choose an arbitrary
+   * term among these to be the repesentative of this congruence class.
+   *
+   * Moreover, notice we compute congruence classes only over terms that
+   * are transcendental function applications that are "master terms",
+   * see d_trMaster/d_trSlave.
+   */
+  std::map<Node, std::vector<Node>> d_funcCongClass;
+  /**
+   * A list of all functions for each kind in { EXPONENTIAL, SINE, POW, PI }
+   * that are representives of their congruence class.
+   */
+  std::map<Kind, std::vector<Node>> d_funcMap;
+
+  /** PI
+   *
+   * Note that PI is a (symbolic, non-constant) nullary operator. This is
+   * because its value cannot be computed exactly. We constraint PI to concrete
+   * lower and upper bounds stored in d_pi_bound below.
+   */
+  Node d_pi;
+  /** PI/2 */
+  Node d_pi_2;
+  /** -PI/2 */
+  Node d_pi_neg_2;
+  /** -PI */
+  Node d_pi_neg;
+  /** the concrete lower and upper bounds for PI */
+  Node d_pi_bound[2];
+};
+
+}  // namespace transcendental
+}  // namespace nl
+}  // namespace arith
+}  // namespace theory
+}  // namespace CVC4
+
+#endif /* CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H */

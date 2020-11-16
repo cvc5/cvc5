@@ -23,6 +23,9 @@
 #include "expr/node.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_model.h"
+#include "theory/arith/nl/transcendental/exponential_solver.h"
+#include "theory/arith/nl/transcendental/sine_solver.h"
+#include "theory/arith/nl/transcendental/transcendental_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -343,6 +346,10 @@ class TranscendentalSolver
   Node d_pi_neg;
   /** the concrete lower and upper bounds for PI */
   Node d_pi_bound[2];
+
+  transcendental::TranscendentalState d_tstate;
+  transcendental::ExponentialSolver d_expSlv;
+  transcendental::SineSolver d_sineSlv;
 }; /* class TranscendentalSolver */
 
 }  // namespace nl
