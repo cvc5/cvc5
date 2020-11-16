@@ -1,0 +1,161 @@
+/*********************                                                        */
+/*! \file utils.cpp
+ ** \verbatim
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Tim King
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
+ **
+ ** \brief Utilities for transcendental lemmas.
+ **/
+
+#include "theory/arith/nl/transcendental/utils.h"
+
+#include "theory/rewriter.h"
+
+namespace CVC4 {
+namespace theory {
+namespace arith {
+namespace nl {
+namespace transcendental {
+
+
+TNode getTaylorVariable() {
+    static const Node s_taylor_real_fv = NodeManager::currentNM()->mkBoundVar("x", NodeManager::currentNM()->realType());
+    return s_taylor_real_fv;
+}
+
+std::pair<Node, Node> getTaylor(TNode fa, std::uint64_t n)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node d_zero = nm->mkConst(Rational(0));
+  TNode s_taylor_real_fv = getTaylorVariable();
+  static const Node s_taylor_real_fv_base = nm->mkBoundVar("a", nm->realType());
+  static const Node s_taylor_real_fv_base_rem = nm->mkBoundVar("b", nm->realType());
+  static thread_local std::unordered_map<Node,
+                            std::unordered_map<std::uint64_t, Node>,
+                            NodeHashFunction>
+      s_taylor_sum;
+  static thread_local std::unordered_map<Node,
+                            std::unordered_map<std::uint64_t, Node>,
+                            NodeHashFunction>
+      s_taylor_rem;
+
+  Assert(n > 0);
+  Node fac;  // what term we cache for fa
+  if (fa[0] == d_zero)
+  {
+    // optimization : simpler to compute (x-fa[0])^n if we are centered around 0
+    fac = fa;
+  }
+  else
+  {
+    // otherwise we use a standard factor a in (x-a)^n
+    fac = nm->mkNode(fa.getKind(), s_taylor_real_fv_base);
+  }
+  Node taylor_rem;
+  Node taylor_sum;
+  // check if we have already computed this Taylor series
+  auto itt = s_taylor_sum[fac].find(n);
+  if (itt == s_taylor_sum[fac].end())
+  {
+    Node i_exp_base;
+    if (fa[0] == d_zero)
+    {
+      i_exp_base = s_taylor_real_fv;
+    }
+    else
+    {
+      i_exp_base = Rewriter::rewrite(
+          nm->mkNode(Kind::MINUS, s_taylor_real_fv, s_taylor_real_fv_base));
+    }
+    Node i_derv = fac;
+    Node i_fact = nm->mkConst(Rational(1));
+    Node i_exp = i_fact;
+    int i_derv_status = 0;
+    unsigned counter = 0;
+    std::vector<Node> sum;
+    do
+    {
+      counter++;
+      if (fa.getKind() == Kind::EXPONENTIAL)
+      {
+        // unchanged
+      }
+      else if (fa.getKind() == Kind::SINE)
+      {
+        if (i_derv_status % 2 == 1)
+        {
+          Node pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
+          Node pi_2 = Rewriter::rewrite(nm->mkNode(
+              Kind::MULT, pi, nm->mkConst(Rational(1) / Rational(2))));
+
+          Node arg = nm->mkNode(Kind::PLUS, pi_2, s_taylor_real_fv_base);
+          i_derv = nm->mkNode(Kind::SINE, arg);
+        }
+        else
+        {
+          i_derv = fa;
+        }
+        if (i_derv_status >= 2)
+        {
+          i_derv = nm->mkNode(Kind::MINUS, d_zero, i_derv);
+        }
+        i_derv = Rewriter::rewrite(i_derv);
+        i_derv_status = i_derv_status == 3 ? 0 : i_derv_status + 1;
+      }
+      if (counter == (n + 1))
+      {
+        TNode x = s_taylor_real_fv_base;
+        i_derv = i_derv.substitute(x, s_taylor_real_fv_base_rem);
+      }
+      Node curr = nm->mkNode(
+          Kind::MULT, nm->mkNode(Kind::DIVISION, i_derv, i_fact), i_exp);
+      if (counter == (n + 1))
+      {
+        taylor_rem = curr;
+      }
+      else
+      {
+        sum.push_back(curr);
+        i_fact = Rewriter::rewrite(
+            nm->mkNode(Kind::MULT, nm->mkConst(Rational(counter)), i_fact));
+        i_exp = Rewriter::rewrite(nm->mkNode(Kind::MULT, i_exp_base, i_exp));
+      }
+    } while (counter <= n);
+    taylor_sum = sum.size() == 1 ? sum[0] : nm->mkNode(Kind::PLUS, sum);
+
+    if (fac[0] != s_taylor_real_fv_base)
+    {
+      TNode x = s_taylor_real_fv_base;
+      taylor_sum = taylor_sum.substitute(x, fac[0]);
+    }
+
+    // cache
+    s_taylor_sum[fac][n] = taylor_sum;
+    s_taylor_rem[fac][n] = taylor_rem;
+  }
+  else
+  {
+    taylor_sum = itt->second;
+    Assert(s_taylor_rem[fac].find(n) != s_taylor_rem[fac].end());
+    taylor_rem = s_taylor_rem[fac][n];
+  }
+
+  // must substitute for the argument if we were using a different lookup
+  if (fa[0] != fac[0])
+  {
+    TNode x = s_taylor_real_fv_base;
+    taylor_sum = taylor_sum.substitute(x, fa[0]);
+  }
+  return std::pair<Node, Node>(taylor_sum, taylor_rem);
+}
+
+}  // namespace transcendental
+}  // namespace nl
+}  // namespace arith
+}  // namespace theory
+}  // namespace CVC4

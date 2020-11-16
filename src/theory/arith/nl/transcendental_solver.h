@@ -360,36 +360,6 @@ class TranscendentalSolver
                      NodeHashFunction>
       d_secant_points;
 
-  /** get Taylor series of degree n for function fa centered around point fa[0].
-   *
-   * Return value is ( P_{n,f(a)}( x ), R_{n+1,f(a)}( x ) ) where
-   * the first part of the pair is the Taylor series expansion :
-   *    P_{n,f(a)}( x ) = sum_{i=0}^n (f^i( a )/i!)*(x-a)^i
-   * and the second part of the pair is the Taylor series remainder :
-   *    R_{n+1,f(a),b}( x ) = (f^{n+1}( b )/(n+1)!)*(x-a)^{n+1}
-   *
-   * The above values are cached for each (f,n) for a fixed variable "a".
-   * To compute the Taylor series for fa, we compute the Taylor series
-   *   for ( fa.getKind(), n ) then substitute { a -> fa[0] } if fa[0]!=0.
-   * We compute P_{n,f(0)}( x )/R_{n+1,f(0),b}( x ) for ( fa.getKind(), n )
-   *   if fa[0]=0.
-   * In the latter case, note we compute the exponential x^{n+1}
-   * instead of (x-a)^{n+1}, which can be done faster.
-   */
-  std::pair<Node, Node> getTaylor(Node fa, unsigned n);
-
-  /** internal variables used for constructing (cached) versions of the Taylor
-   * series above.
-   */
-  Node d_taylor_real_fv;           // x above
-  Node d_taylor_real_fv_base;      // a above
-  Node d_taylor_real_fv_base_rem;  // b above
-
-  /** cache of sum and remainder terms for getTaylor */
-  std::unordered_map<Node, std::unordered_map<unsigned, Node>, NodeHashFunction>
-      d_taylor_sum;
-  std::unordered_map<Node, std::unordered_map<unsigned, Node>, NodeHashFunction>
-      d_taylor_rem;
   /** taylor degree
    *
    * Indicates that the degree of the polynomials in the Taylor approximation of

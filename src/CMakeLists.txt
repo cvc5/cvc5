@@ -389,6 +389,8 @@ libcvc4_add_sources(
   theory/arith/nl/strategy.h
   theory/arith/nl/transcendental_solver.cpp
   theory/arith/nl/transcendental_solver.h
+  theory/arith/nl/transcendental/utils.cpp
+  theory/arith/nl/transcendental/utils.h
   theory/arith/normal_form.cpp
   theory/arith/normal_form.h
   theory/arith/operator_elim.cpp

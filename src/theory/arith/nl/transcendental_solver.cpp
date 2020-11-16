@@ -24,6 +24,8 @@
 #include "theory/arith/arith_utilities.h"
 #include "theory/rewriter.h"
 
+#include "theory/arith/nl/transcendental/utils.h"
+
 using namespace CVC4::kind;
 
 namespace CVC4 {
@@ -39,9 +41,6 @@ TranscendentalSolver::TranscendentalSolver(InferenceManager& im, NlModel& m) : d
   d_zero = nm->mkConst(Rational(0));
   d_one = nm->mkConst(Rational(1));
   d_neg_one = nm->mkConst(Rational(-1));
-  d_taylor_real_fv = nm->mkBoundVar("x", nm->realType());
-  d_taylor_real_fv_base = nm->mkBoundVar("a", nm->realType());
-  d_taylor_real_fv_base_rem = nm->mkBoundVar("b", nm->realType());
   d_taylor_degree = options::nlExtTfTaylorDegree();
 }
 
@@ -655,15 +654,6 @@ void TranscendentalSolver::checkTranscendentalTangentPlanes()
       // initial approximation is superior.
       continue;
     }
-    Trace("nl-ext-tftp-debug2") << "Taylor variables: " << std::endl;
-    Trace("nl-ext-tftp-debug2")
-        << "          taylor_real_fv : " << d_taylor_real_fv << std::endl;
-    Trace("nl-ext-tftp-debug2")
-        << "     taylor_real_fv_base : " << d_taylor_real_fv_base << std::endl;
-    Trace("nl-ext-tftp-debug2")
-        << " taylor_real_fv_base_rem : " << d_taylor_real_fv_base_rem
-        << std::endl;
-    Trace("nl-ext-tftp-debug2") << std::endl;
 
     // we substitute into the Taylor sum P_{n,f(0)}( x )
 
@@ -731,7 +721,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
   Trace("nl-ext-tftp-debug") << "  arg value in model : " << c << std::endl;
 
   std::vector<Node> taylor_vars;
-  taylor_vars.push_back(d_taylor_real_fv);
+  taylor_vars.push_back(transcendental::getTaylorVariable());
 
   // compute the concavity
   int region = -1;
@@ -1198,114 +1188,6 @@ Node TranscendentalSolver::getDerivative(Node n, Node x)
   return Node::null();
 }
 
-std::pair<Node, Node> TranscendentalSolver::getTaylor(Node fa, unsigned n)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  Assert(n > 0);
-  Node fac;  // what term we cache for fa
-  if (fa[0] == d_zero)
-  {
-    // optimization : simpler to compute (x-fa[0])^n if we are centered around 0
-    fac = fa;
-  }
-  else
-  {
-    // otherwise we use a standard factor a in (x-a)^n
-    fac = nm->mkNode(fa.getKind(), d_taylor_real_fv_base);
-  }
-  Node taylor_rem;
-  Node taylor_sum;
-  // check if we have already computed this Taylor series
-  std::unordered_map<unsigned, Node>::iterator itt = d_taylor_sum[fac].find(n);
-  if (itt == d_taylor_sum[fac].end())
-  {
-    Node i_exp_base;
-    if (fa[0] == d_zero)
-    {
-      i_exp_base = d_taylor_real_fv;
-    }
-    else
-    {
-      i_exp_base = Rewriter::rewrite(
-          nm->mkNode(MINUS, d_taylor_real_fv, d_taylor_real_fv_base));
-    }
-    Node i_derv = fac;
-    Node i_fact = d_one;
-    Node i_exp = d_one;
-    int i_derv_status = 0;
-    unsigned counter = 0;
-    std::vector<Node> sum;
-    do
-    {
-      counter++;
-      if (fa.getKind() == EXPONENTIAL)
-      {
-        // unchanged
-      }
-      else if (fa.getKind() == SINE)
-      {
-        if (i_derv_status % 2 == 1)
-        {
-          Node arg = nm->mkNode(PLUS, d_pi_2, d_taylor_real_fv_base);
-          i_derv = nm->mkNode(SINE, arg);
-        }
-        else
-        {
-          i_derv = fa;
-        }
-        if (i_derv_status >= 2)
-        {
-          i_derv = nm->mkNode(MINUS, d_zero, i_derv);
-        }
-        i_derv = Rewriter::rewrite(i_derv);
-        i_derv_status = i_derv_status == 3 ? 0 : i_derv_status + 1;
-      }
-      if (counter == (n + 1))
-      {
-        TNode x = d_taylor_real_fv_base;
-        i_derv = i_derv.substitute(x, d_taylor_real_fv_base_rem);
-      }
-      Node curr = nm->mkNode(MULT, nm->mkNode(DIVISION, i_derv, i_fact), i_exp);
-      if (counter == (n + 1))
-      {
-        taylor_rem = curr;
-      }
-      else
-      {
-        sum.push_back(curr);
-        i_fact = Rewriter::rewrite(
-            nm->mkNode(MULT, nm->mkConst(Rational(counter)), i_fact));
-        i_exp = Rewriter::rewrite(nm->mkNode(MULT, i_exp_base, i_exp));
-      }
-    } while (counter <= n);
-    taylor_sum = sum.size() == 1 ? sum[0] : nm->mkNode(PLUS, sum);
-
-    if (fac[0] != d_taylor_real_fv_base)
-    {
-      TNode x = d_taylor_real_fv_base;
-      taylor_sum = taylor_sum.substitute(x, fac[0]);
-    }
-
-    // cache
-    d_taylor_sum[fac][n] = taylor_sum;
-    d_taylor_rem[fac][n] = taylor_rem;
-  }
-  else
-  {
-    taylor_sum = itt->second;
-    Assert(d_taylor_rem[fac].find(n) != d_taylor_rem[fac].end());
-    taylor_rem = d_taylor_rem[fac][n];
-  }
-
-  // must substitute for the argument if we were using a different lookup
-  if (fa[0] != fac[0])
-  {
-    TNode x = d_taylor_real_fv_base;
-    taylor_sum = taylor_sum.substitute(x, fa[0]);
-  }
-  return std::pair<Node, Node>(taylor_sum, taylor_rem);
-}
-
 void TranscendentalSolver::getPolynomialApproximationBounds(
     Kind k, unsigned d, std::vector<Node>& pbounds)
 {
@@ -1316,7 +1198,7 @@ void TranscendentalSolver::getPolynomialApproximationBounds(
     // n is the Taylor degree we are currently considering
     unsigned n = 2 * d;
     // n must be even
-    std::pair<Node, Node> taylor = getTaylor(tft, n);
+    std::pair<Node, Node> taylor = transcendental::getTaylor(tft, n);
     Trace("nl-ext-tftp-debug2")
         << "Taylor for " << k << " is : " << taylor.first << std::endl;
     Node taylor_sum = Rewriter::rewrite(taylor.first);
@@ -1378,13 +1260,13 @@ void TranscendentalSolver::getPolynomialApproximationBoundForArg(
     Node tft = nm->mkNode(k, d_zero);
     bool success = false;
     unsigned ds = d;
-    TNode ttrf = d_taylor_real_fv;
+    TNode ttrf = transcendental::getTaylorVariable();
     TNode tc = c;
     do
     {
       success = true;
       unsigned n = 2 * ds;
-      std::pair<Node, Node> taylor = getTaylor(tft, n);
+      std::pair<Node, Node> taylor = transcendental::getTaylor(tft, n);
       // check that 1-c^{n+1}/(n+1)! > 0
       Node ru = nm->mkNode(DIVISION, taylor.second[1], taylor.second[0][1]);
       Node rus = ru.substitute(ttrf, tc);
@@ -1433,7 +1315,7 @@ std::pair<Node, Node> TranscendentalSolver::getTfModelBounds(Node tf,
   getPolynomialApproximationBoundForArg(k, c, d, pbounds);
 
   std::vector<Node> bounds;
-  TNode tfv = d_taylor_real_fv;
+  TNode tfv = transcendental::getTaylorVariable();
   TNode tfs = tf[0];
   for (unsigned d2 = 0; d2 < 2; d2++)
   {
