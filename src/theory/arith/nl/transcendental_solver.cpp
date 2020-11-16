@@ -73,10 +73,10 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
     if (isTranscendentalKind(ak))
     {
       // if we've already computed master for a
-      if (d_trMaster.find(a) != d_trMaster.end())
+      if (d_tstate.d_trMaster.find(a) != d_tstate.d_trMaster.end())
       {
         // a master has at least one slave
-        consider = (d_trSlaves.find(a) != d_trSlaves.end());
+        consider = (d_tstate.d_trSlaves.find(a) != d_tstate.d_trSlaves.end());
       }
       else
       {
@@ -163,78 +163,6 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
     getCurrentPiBounds();
   }
 
-  if (d_im.hasUsed())
-  {
-    return;
-  }
-
-  // process SINE phase shifting
-  for (const Node& a : trNeedsMaster)
-  {
-    // should not have processed this already
-    Assert(d_trMaster.find(a) == d_trMaster.end());
-    Kind k = a.getKind();
-    Assert(k == SINE || k == EXPONENTIAL);
-    Node y =
-        nm->mkSkolem("y", nm->realType(), "phase shifted trigonometric arg");
-    Node new_a = nm->mkNode(k, y);
-    d_trSlaves[new_a].insert(new_a);
-    d_trSlaves[new_a].insert(a);
-    d_trMaster[a] = new_a;
-    d_trMaster[new_a] = new_a;
-    Node lem;
-    if (k == SINE)
-    {
-      Trace("nl-ext-tf") << "Basis sine : " << new_a << " for " << a
-                         << std::endl;
-      Assert(!d_pi.isNull());
-      Node shift = nm->mkSkolem("s", nm->integerType(), "number of shifts");
-      // TODO : do not introduce shift here, instead needs model-based
-      // refinement for constant shifts (cvc4-projects #1284)
-      lem = nm->mkNode(
-          AND,
-          transcendental::mkValidPhase(y, d_pi),
-          nm->mkNode(
-              ITE,
-              transcendental::mkValidPhase(a[0], d_pi),
-              a[0].eqNode(y),
-              a[0].eqNode(nm->mkNode(
-                  PLUS,
-                  y,
-                  nm->mkNode(MULT, nm->mkConst(Rational(2)), shift, d_pi)))),
-          new_a.eqNode(a));
-    }
-    else
-    {
-      // do both equalities to ensure that new_a becomes a preregistered term
-      lem = nm->mkNode(AND, a.eqNode(new_a), a[0].eqNode(y));
-    }
-    // note we must do preprocess on this lemma
-    Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : purify : " << lem
-                          << std::endl;
-    NlLemma nlem(lem, LemmaProperty::PREPROCESS, nullptr, InferenceId::NL_T_PURIFY_ARG);
-    d_im.addPendingArithLemma(nlem);
-  }
-
-  if (Trace.isOn("nl-ext-mv"))
-  {
-    Trace("nl-ext-mv") << "Arguments of trancendental functions : "
-                       << std::endl;
-    for (std::pair<const Kind, std::vector<Node> >& tfl : d_funcMap)
-    {
-      Kind k = tfl.first;
-      if (k == SINE || k == EXPONENTIAL)
-      {
-        for (const Node& tf : tfl.second)
-        {
-          Node v = tf[0];
-          d_model.computeConcreteModelValue(v);
-          d_model.computeAbstractModelValue(v);
-          d_model.printModelValue("nl-ext-mv", v);
-        }
-      }
-    }
-  }
 }
 
 bool TranscendentalSolver::preprocessAssertionsCheckModel(
@@ -242,7 +170,7 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
 {
   std::vector<Node> pvars;
   std::vector<Node> psubs;
-  for (const std::pair<const Node, Node>& tb : d_trMaster)
+  for (const std::pair<const Node, Node>& tb : d_tstate.d_trMaster)
   {
     pvars.push_back(tb.first);
     psubs.push_back(tb.second);
@@ -299,9 +227,9 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
         for (const Node& ctf : d_funcCongClass[tf])
         {
           // each term in congruence classes should be master terms
-          Assert(d_trSlaves.find(ctf) != d_trSlaves.end());
+          Assert(d_tstate.d_trSlaves.find(ctf) != d_tstate.d_trSlaves.end());
           // we set the bounds for each slave of tf
-          for (const Node& stf : d_trSlaves[ctf])
+          for (const Node& stf : d_tstate.d_trSlaves[ctf])
           {
             Trace("nl-ext-cm") << "...bound for " << stf << " : [" << bl << ", "
                                << bu << "]" << std::endl;
@@ -609,7 +537,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
   NodeManager* nm = NodeManager::currentNM();
   Kind k = tf.getKind();
   // this should only be run on master applications
-  Assert(d_trSlaves.find(tf) != d_trSlaves.end());
+  Assert(d_tstate.d_trSlaves.find(tf) != d_tstate.d_trSlaves.end());
 
   // Figure 3 : c
   Node c = d_model.computeAbstractModelValue(tf[0]);
@@ -625,7 +553,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
   // mapped to for signs of c
   std::map<int, Node> poly_approx_bounds[2];
   std::vector<Node> pbounds;
-  transcendental::getPolynomialApproximationBoundForArg(k, c, d, pbounds);
+  d_tstate.d_taylor.getPolynomialApproximationBoundForArg(k, c, d, pbounds);
   poly_approx_bounds[0][1] = pbounds[0];
   poly_approx_bounds[0][-1] = pbounds[1];
   poly_approx_bounds[1][1] = pbounds[2];
@@ -641,7 +569,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
   Trace("nl-ext-tftp-debug") << "  arg value in model : " << c << std::endl;
 
   std::vector<Node> taylor_vars;
-  taylor_vars.push_back(transcendental::getTaylorVariable());
+  taylor_vars.push_back(d_tstate.d_taylor.getTaylorVariable());
 
   // compute the concavity
   int region = -1;
@@ -1039,10 +967,10 @@ std::pair<Node, Node> TranscendentalSolver::getTfModelBounds(Node tf,
   bool isNeg = csign == -1;
 
   std::vector<Node> pbounds;
-  transcendental::getPolynomialApproximationBoundForArg(k, c, d, pbounds);
+  d_tstate.d_taylor.getPolynomialApproximationBoundForArg(k, c, d, pbounds);
 
   std::vector<Node> bounds;
-  TNode tfv = transcendental::getTaylorVariable();
+  TNode tfv = d_tstate.d_taylor.getTaylorVariable();
   TNode tfs = tf[0];
   for (unsigned d2 = 0; d2 < 2; d2++)
   {

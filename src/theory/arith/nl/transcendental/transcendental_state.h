@@ -18,6 +18,7 @@
 #include "expr/node.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_model.h"
+#include "theory/arith/nl/transcendental/utils.h"
 
 namespace CVC4 {
 namespace theory {
@@ -56,6 +57,8 @@ struct TranscendentalState
   InferenceManager& d_im;
   /** Reference to the non-linear model object */
   NlModel& d_model;
+
+  TaylorGenerator d_taylor;
 
 
   /**

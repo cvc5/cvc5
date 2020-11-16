@@ -23,27 +23,20 @@ namespace arith {
 namespace nl {
 namespace transcendental {
 
-
-TNode getTaylorVariable() {
-    static const Node s_taylor_real_fv = NodeManager::currentNM()->mkBoundVar("x", NodeManager::currentNM()->realType());
-    return s_taylor_real_fv;
+TaylorGenerator::TaylorGenerator()
+    : d_nm(NodeManager::currentNM()),
+      d_taylor_real_fv(d_nm->mkBoundVar("x", d_nm->realType())),
+      d_taylor_real_fv_base(d_nm->mkBoundVar("a", d_nm->realType())),
+      d_taylor_real_fv_base_rem(d_nm->mkBoundVar("b", d_nm->realType()))
+{
 }
 
-std::pair<Node, Node> getTaylor(TNode fa, std::uint64_t n)
+TNode TaylorGenerator::getTaylorVariable() { return d_taylor_real_fv; }
+
+std::pair<Node, Node> TaylorGenerator::getTaylor(TNode fa, std::uint64_t n)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node d_zero = nm->mkConst(Rational(0));
-  TNode s_taylor_real_fv = getTaylorVariable();
-  static const Node s_taylor_real_fv_base = nm->mkBoundVar("a", nm->realType());
-  static const Node s_taylor_real_fv_base_rem = nm->mkBoundVar("b", nm->realType());
-  static thread_local std::unordered_map<Node,
-                            std::unordered_map<std::uint64_t, Node>,
-                            NodeHashFunction>
-      s_taylor_sum;
-  static thread_local std::unordered_map<Node,
-                            std::unordered_map<std::uint64_t, Node>,
-                            NodeHashFunction>
-      s_taylor_rem;
 
   Assert(n > 0);
   Node fac;  // what term we cache for fa
@@ -55,7 +48,7 @@ std::pair<Node, Node> getTaylor(TNode fa, std::uint64_t n)
   else
   {
     // otherwise we use a standard factor a in (x-a)^n
-    fac = nm->mkNode(fa.getKind(), s_taylor_real_fv_base);
+    fac = nm->mkNode(fa.getKind(), d_taylor_real_fv_base);
   }
   Node taylor_rem;
   Node taylor_sum;
@@ -66,12 +59,12 @@ std::pair<Node, Node> getTaylor(TNode fa, std::uint64_t n)
     Node i_exp_base;
     if (fa[0] == d_zero)
     {
-      i_exp_base = s_taylor_real_fv;
+      i_exp_base = d_taylor_real_fv;
     }
     else
     {
       i_exp_base = Rewriter::rewrite(
-          nm->mkNode(Kind::MINUS, s_taylor_real_fv, s_taylor_real_fv_base));
+          nm->mkNode(Kind::MINUS, d_taylor_real_fv, d_taylor_real_fv_base));
     }
     Node i_derv = fac;
     Node i_fact = nm->mkConst(Rational(1));
@@ -94,7 +87,7 @@ std::pair<Node, Node> getTaylor(TNode fa, std::uint64_t n)
           Node pi_2 = Rewriter::rewrite(nm->mkNode(
               Kind::MULT, pi, nm->mkConst(Rational(1) / Rational(2))));
 
-          Node arg = nm->mkNode(Kind::PLUS, pi_2, s_taylor_real_fv_base);
+          Node arg = nm->mkNode(Kind::PLUS, pi_2, d_taylor_real_fv_base);
           i_derv = nm->mkNode(Kind::SINE, arg);
         }
         else
@@ -110,8 +103,8 @@ std::pair<Node, Node> getTaylor(TNode fa, std::uint64_t n)
       }
       if (counter == (n + 1))
       {
-        TNode x = s_taylor_real_fv_base;
-        i_derv = i_derv.substitute(x, s_taylor_real_fv_base_rem);
+        TNode x = d_taylor_real_fv_base;
+        i_derv = i_derv.substitute(x, d_taylor_real_fv_base_rem);
       }
       Node curr = nm->mkNode(
           Kind::MULT, nm->mkNode(Kind::DIVISION, i_derv, i_fact), i_exp);
@@ -129,44 +122,43 @@ std::pair<Node, Node> getTaylor(TNode fa, std::uint64_t n)
     } while (counter <= n);
     taylor_sum = sum.size() == 1 ? sum[0] : nm->mkNode(Kind::PLUS, sum);
 
-    if (fac[0] != s_taylor_real_fv_base)
+    if (fac[0] != d_taylor_real_fv_base)
     {
-      TNode x = s_taylor_real_fv_base;
+      TNode x = d_taylor_real_fv_base;
       taylor_sum = taylor_sum.substitute(x, fac[0]);
     }
 
     // cache
     s_taylor_sum[fac][n] = taylor_sum;
-    s_taylor_rem[fac][n] = taylor_rem;
+    d_taylor_rem[fac][n] = taylor_rem;
   }
   else
   {
     taylor_sum = itt->second;
-    Assert(s_taylor_rem[fac].find(n) != s_taylor_rem[fac].end());
-    taylor_rem = s_taylor_rem[fac][n];
+    Assert(d_taylor_rem[fac].find(n) != d_taylor_rem[fac].end());
+    taylor_rem = d_taylor_rem[fac][n];
   }
 
   // must substitute for the argument if we were using a different lookup
   if (fa[0] != fac[0])
   {
-    TNode x = s_taylor_real_fv_base;
+    TNode x = d_taylor_real_fv_base;
     taylor_sum = taylor_sum.substitute(x, fa[0]);
   }
   return std::pair<Node, Node>(taylor_sum, taylor_rem);
 }
 
-void getPolynomialApproximationBounds(
+void TaylorGenerator::getPolynomialApproximationBounds(
     Kind k, unsigned d, std::vector<Node>& pbounds)
 {
-  static thread_local std::map<Kind, std::map<unsigned, std::vector<Node>>> s_poly_bounds;
-  if (s_poly_bounds[k][d].empty())
+  if (d_poly_bounds[k][d].empty())
   {
     NodeManager* nm = NodeManager::currentNM();
     Node tft = nm->mkNode(k, nm->mkConst(Rational(0)));
     // n is the Taylor degree we are currently considering
     unsigned n = 2 * d;
     // n must be even
-    std::pair<Node, Node> taylor = transcendental::getTaylor(tft, n);
+    std::pair<Node, Node> taylor = getTaylor(tft, n);
     Trace("nl-ext-tftp-debug2")
         << "Taylor for " << k << " is : " << taylor.first << std::endl;
     Node taylor_sum = Rewriter::rewrite(taylor.first);
@@ -188,8 +180,11 @@ void getPolynomialApproximationBounds(
       pbounds.push_back(taylor_sum);
       pbounds.push_back(taylor_sum);
       pbounds.push_back(Rewriter::rewrite(
-          nm->mkNode(Kind::MULT, taylor_sum, nm->mkNode(Kind::PLUS, nm->mkConst(Rational(1)), ru))));
-      pbounds.push_back(Rewriter::rewrite(nm->mkNode(Kind::PLUS, taylor_sum, ru)));
+          nm->mkNode(Kind::MULT,
+                     taylor_sum,
+                     nm->mkNode(Kind::PLUS, nm->mkConst(Rational(1)), ru))));
+      pbounds.push_back(
+          Rewriter::rewrite(nm->mkNode(Kind::PLUS, taylor_sum, ru)));
     }
     else
     {
@@ -207,20 +202,20 @@ void getPolynomialApproximationBounds(
     Trace("nl-ext-tf-tplanes") << " Upper (pos): " << pbounds[2] << std::endl;
     Trace("nl-ext-tf-tplanes") << " Lower (neg): " << pbounds[1] << std::endl;
     Trace("nl-ext-tf-tplanes") << " Upper (neg): " << pbounds[3] << std::endl;
-    s_poly_bounds[k][d].insert(
-        s_poly_bounds[k][d].end(), pbounds.begin(), pbounds.end());
+    d_poly_bounds[k][d].insert(
+        d_poly_bounds[k][d].end(), pbounds.begin(), pbounds.end());
   }
   else
   {
     pbounds.insert(
-        pbounds.end(), s_poly_bounds[k][d].begin(), s_poly_bounds[k][d].end());
+        pbounds.end(), d_poly_bounds[k][d].begin(), d_poly_bounds[k][d].end());
   }
 }
 
-void getPolynomialApproximationBoundForArg(
+void TaylorGenerator::getPolynomialApproximationBoundForArg(
     Kind k, Node c, unsigned d, std::vector<Node>& pbounds)
 {
-  transcendental::getPolynomialApproximationBounds(k, d, pbounds);
+  getPolynomialApproximationBounds(k, d, pbounds);
   Assert(c.isConst());
   if (k == Kind::EXPONENTIAL && c.getConst<Rational>().sgn() == 1)
   {
@@ -228,15 +223,16 @@ void getPolynomialApproximationBoundForArg(
     Node tft = nm->mkNode(k, nm->mkConst(Rational(0)));
     bool success = false;
     unsigned ds = d;
-    TNode ttrf = transcendental::getTaylorVariable();
+    TNode ttrf = getTaylorVariable();
     TNode tc = c;
     do
     {
       success = true;
       unsigned n = 2 * ds;
-      std::pair<Node, Node> taylor = transcendental::getTaylor(tft, n);
+      std::pair<Node, Node> taylor = getTaylor(tft, n);
       // check that 1-c^{n+1}/(n+1)! > 0
-      Node ru = nm->mkNode(Kind::DIVISION, taylor.second[1], taylor.second[0][1]);
+      Node ru =
+          nm->mkNode(Kind::DIVISION, taylor.second[1], taylor.second[0][1]);
       Node rus = ru.substitute(ttrf, tc);
       rus = Rewriter::rewrite(rus);
       Assert(rus.isConst());
@@ -253,17 +249,18 @@ void getPolynomialApproximationBoundForArg(
           << k << " " << c << ")" << std::endl;
       // must use sound upper bound
       std::vector<Node> pboundss;
-      transcendental::getPolynomialApproximationBounds(k, ds, pboundss);
+      getPolynomialApproximationBounds(k, ds, pboundss);
       pbounds[2] = pboundss[2];
     }
   }
 }
 
-
 Node mkValidPhase(TNode a, TNode pi)
 {
   return mkBounded(
-      NodeManager::currentNM()->mkNode(Kind::MULT, mkRationalNode(-1), pi), a, pi);
+      NodeManager::currentNM()->mkNode(Kind::MULT, mkRationalNode(-1), pi),
+      a,
+      pi);
 }
 
 }  // namespace transcendental
