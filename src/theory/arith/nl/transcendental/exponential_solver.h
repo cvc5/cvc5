@@ -53,6 +53,20 @@ class ExponentialSolver
                                         const std::vector<Node>& false_asserts,
                                         const std::vector<Node>& xts);
 
+  /** check initial refine
+   *
+   * Constructs a set of valid theory lemmas, based on
+   * simple facts about the exponential function.
+   * This mostly follows the initial axioms described in
+   * Section 4 of "Satisfiability
+   * Modulo Transcendental Functions via Incremental
+   * Linearization" by Cimatti et al., CADE 2017.
+   *
+   * Examples:
+   *
+   * exp( x )>0
+   * x<0 => exp( x )<1
+   */
   void checkInitialRefine();
 
  private:

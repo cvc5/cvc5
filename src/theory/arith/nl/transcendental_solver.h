@@ -1,3 +1,4 @@
+
 /*********************                                                        */
 /*! \file transcendental_solver.h
  ** \verbatim
@@ -80,22 +81,7 @@ class TranscendentalSolver
   /** Process side effects in lemma se */
   void processSideEffect(const NlLemma& se);
   //-------------------------------------------- lemma schemas
-  /** check transcendental initial refine
-   *
-   * Constructs a set of valid theory lemmas, based on
-   * simple facts about transcendental functions.
-   * This mostly follows the initial axioms described in
-   * Section 4 of "Satisfiability
-   * Modulo Transcendental Functions via Incremental
-   * Linearization" by Cimatti et al., CADE 2017.
-   *
-   * Examples:
-   *
-   * sin( x ) = -sin( -x )
-   * ( PI > x > 0 ) => 0 < sin( x ) < 1
-   * exp( x )>0
-   * x<0 => exp( x )<1
-   */
+  // Relays to exp and sine solvers.
   void checkTranscendentalInitialRefine();
 
   /** check transcendental monotonic
