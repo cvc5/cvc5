@@ -191,10 +191,10 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
       // refinement for constant shifts (cvc4-projects #1284)
       lem = nm->mkNode(
           AND,
-          mkValidPhase(y, d_pi),
+          transcendental::mkValidPhase(y, d_pi),
           nm->mkNode(
               ITE,
-              mkValidPhase(a[0], d_pi),
+              transcendental::mkValidPhase(a[0], d_pi),
               a[0].eqNode(y),
               a[0].eqNode(nm->mkNode(
                   PLUS,
@@ -705,7 +705,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
   // mapped to for signs of c
   std::map<int, Node> poly_approx_bounds[2];
   std::vector<Node> pbounds;
-  getPolynomialApproximationBoundForArg(k, c, d, pbounds);
+  transcendental::getPolynomialApproximationBoundForArg(k, c, d, pbounds);
   poly_approx_bounds[0][1] = pbounds[0];
   poly_approx_bounds[0][-1] = pbounds[1];
   poly_approx_bounds[1][1] = pbounds[2];
@@ -1102,109 +1102,6 @@ Node TranscendentalSolver::regionToUpperBound(Kind k, int region)
   return Node::null();
 }
 
-void TranscendentalSolver::getPolynomialApproximationBounds(
-    Kind k, unsigned d, std::vector<Node>& pbounds)
-{
-  if (d_poly_bounds[k][d].empty())
-  {
-    NodeManager* nm = NodeManager::currentNM();
-    Node tft = nm->mkNode(k, d_zero);
-    // n is the Taylor degree we are currently considering
-    unsigned n = 2 * d;
-    // n must be even
-    std::pair<Node, Node> taylor = transcendental::getTaylor(tft, n);
-    Trace("nl-ext-tftp-debug2")
-        << "Taylor for " << k << " is : " << taylor.first << std::endl;
-    Node taylor_sum = Rewriter::rewrite(taylor.first);
-    Trace("nl-ext-tftp-debug2")
-        << "Taylor for " << k << " is (post-rewrite) : " << taylor_sum
-        << std::endl;
-    Assert(taylor.second.getKind() == MULT);
-    Assert(taylor.second.getNumChildren() == 2);
-    Assert(taylor.second[0].getKind() == DIVISION);
-    Trace("nl-ext-tftp-debug2")
-        << "Taylor remainder for " << k << " is " << taylor.second << std::endl;
-    // ru is x^{n+1}/(n+1)!
-    Node ru = nm->mkNode(DIVISION, taylor.second[1], taylor.second[0][1]);
-    ru = Rewriter::rewrite(ru);
-    Trace("nl-ext-tftp-debug2")
-        << "Taylor remainder factor is (post-rewrite) : " << ru << std::endl;
-    if (k == EXPONENTIAL)
-    {
-      pbounds.push_back(taylor_sum);
-      pbounds.push_back(taylor_sum);
-      pbounds.push_back(Rewriter::rewrite(
-          nm->mkNode(MULT, taylor_sum, nm->mkNode(PLUS, d_one, ru))));
-      pbounds.push_back(Rewriter::rewrite(nm->mkNode(PLUS, taylor_sum, ru)));
-    }
-    else
-    {
-      Assert(k == SINE);
-      Node l = Rewriter::rewrite(nm->mkNode(MINUS, taylor_sum, ru));
-      Node u = Rewriter::rewrite(nm->mkNode(PLUS, taylor_sum, ru));
-      pbounds.push_back(l);
-      pbounds.push_back(l);
-      pbounds.push_back(u);
-      pbounds.push_back(u);
-    }
-    Trace("nl-ext-tf-tplanes")
-        << "Polynomial approximation for " << k << " is: " << std::endl;
-    Trace("nl-ext-tf-tplanes") << " Lower (pos): " << pbounds[0] << std::endl;
-    Trace("nl-ext-tf-tplanes") << " Upper (pos): " << pbounds[2] << std::endl;
-    Trace("nl-ext-tf-tplanes") << " Lower (neg): " << pbounds[1] << std::endl;
-    Trace("nl-ext-tf-tplanes") << " Upper (neg): " << pbounds[3] << std::endl;
-    d_poly_bounds[k][d].insert(
-        d_poly_bounds[k][d].end(), pbounds.begin(), pbounds.end());
-  }
-  else
-  {
-    pbounds.insert(
-        pbounds.end(), d_poly_bounds[k][d].begin(), d_poly_bounds[k][d].end());
-  }
-}
-
-void TranscendentalSolver::getPolynomialApproximationBoundForArg(
-    Kind k, Node c, unsigned d, std::vector<Node>& pbounds)
-{
-  getPolynomialApproximationBounds(k, d, pbounds);
-  Assert(c.isConst());
-  if (k == EXPONENTIAL && c.getConst<Rational>().sgn() == 1)
-  {
-    NodeManager* nm = NodeManager::currentNM();
-    Node tft = nm->mkNode(k, d_zero);
-    bool success = false;
-    unsigned ds = d;
-    TNode ttrf = transcendental::getTaylorVariable();
-    TNode tc = c;
-    do
-    {
-      success = true;
-      unsigned n = 2 * ds;
-      std::pair<Node, Node> taylor = transcendental::getTaylor(tft, n);
-      // check that 1-c^{n+1}/(n+1)! > 0
-      Node ru = nm->mkNode(DIVISION, taylor.second[1], taylor.second[0][1]);
-      Node rus = ru.substitute(ttrf, tc);
-      rus = Rewriter::rewrite(rus);
-      Assert(rus.isConst());
-      if (rus.getConst<Rational>() > d_one.getConst<Rational>())
-      {
-        success = false;
-        ds = ds + 1;
-      }
-    } while (!success);
-    if (ds > d)
-    {
-      Trace("nl-ext-exp-taylor")
-          << "*** Increase Taylor bound to " << ds << " > " << d << " for ("
-          << k << " " << c << ")" << std::endl;
-      // must use sound upper bound
-      std::vector<Node> pboundss;
-      getPolynomialApproximationBounds(k, ds, pboundss);
-      pbounds[2] = pboundss[2];
-    }
-  }
-}
-
 std::pair<Node, Node> TranscendentalSolver::getTfModelBounds(Node tf,
                                                              unsigned d)
 {
@@ -1226,7 +1123,7 @@ std::pair<Node, Node> TranscendentalSolver::getTfModelBounds(Node tf,
   bool isNeg = csign == -1;
 
   std::vector<Node> pbounds;
-  getPolynomialApproximationBoundForArg(k, c, d, pbounds);
+  transcendental::getPolynomialApproximationBoundForArg(k, c, d, pbounds);
 
   std::vector<Node> bounds;
   TNode tfv = transcendental::getTaylorVariable();
@@ -1256,12 +1153,6 @@ std::pair<Node, Node> TranscendentalSolver::getTfModelBounds(Node tf,
     }
   }
   return std::pair<Node, Node>(bounds[0], bounds[1]);
-}
-
-Node TranscendentalSolver::mkValidPhase(Node a, Node pi)
-{
-  return mkBounded(
-      NodeManager::currentNM()->mkNode(MULT, mkRationalNode(-1), pi), a, pi);
 }
 
 }  // namespace nl

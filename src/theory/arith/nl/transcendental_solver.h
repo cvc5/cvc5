@@ -188,34 +188,7 @@ class TranscendentalSolver
    */
   bool checkTfTangentPlanesFun(Node tf, unsigned d);
   //-------------------------------------------- end lemma schemas
-  /** polynomial approximation bounds
-   *
-   * This adds P_l+[x], P_l-[x], P_u+[x], P_u-[x] to pbounds, where x is
-   * d_taylor_real_fv. These are polynomial approximations of the Taylor series
-   * of <k>( 0 ) for degree 2*d where k is SINE or EXPONENTIAL.
-   * These correspond to P_l and P_u from Figure 3 of Cimatti et al., CADE 2017,
-   * for positive/negative (+/-) values of the argument of <k>( 0 ).
-   *
-   * Notice that for certain bounds (e.g. upper bounds for exponential), the
-   * Taylor approximation for a fixed degree is only sound up to a given
-   * upper bound on the argument. To obtain sound lower/upper bounds for a
-   * given <k>( c ), use the function below.
-   */
-  void getPolynomialApproximationBounds(Kind k,
-                                        unsigned d,
-                                        std::vector<Node>& pbounds);
-  /** polynomial approximation bounds
-   *
-   * This computes polynomial approximations P_l+[x], P_l-[x], P_u+[x], P_u-[x]
-   * that are sound (lower, upper) bounds for <k>( c ). Notice that these
-   * polynomials may depend on c. In particular, for P_u+[x] for <k>( c ) where
-   * c>0, we return the P_u+[x] from the function above for the minimum degree
-   * d' >= d such that (1-c^{2*d'+1}/(2*d'+1)!) is positive.
-   */
-  void getPolynomialApproximationBoundForArg(Kind k,
-                                             Node c,
-                                             unsigned d,
-                                             std::vector<Node>& pbounds);
+
   /** get transcendental function model bounds
    *
    * This returns the current lower and upper bounds of transcendental
@@ -259,8 +232,6 @@ class TranscendentalSolver
 
   void mkPi();
   void getCurrentPiBounds();
-  /** Make the node -pi <= a <= pi */
-  static Node mkValidPhase(Node a, Node pi);
 
   /** The inference manager that we push conflicts and lemmas to. */
   InferenceManager& d_im;
@@ -311,8 +282,6 @@ class TranscendentalSolver
    * values that reside in valid regions.
    */
   std::unordered_map<Node, int, NodeHashFunction> d_tf_region;
-  /** cache of the above function */
-  std::map<Kind, std::map<unsigned, std::vector<Node>>> d_poly_bounds;
 
   /**
    * Maps representives of a congruence class to the members of that class.

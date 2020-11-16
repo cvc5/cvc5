@@ -14,6 +14,7 @@
 
 #include "theory/arith/nl/transcendental/utils.h"
 
+#include "theory/arith/arith_utilities.h"
 #include "theory/rewriter.h"
 
 namespace CVC4 {
@@ -152,6 +153,117 @@ std::pair<Node, Node> getTaylor(TNode fa, std::uint64_t n)
     taylor_sum = taylor_sum.substitute(x, fa[0]);
   }
   return std::pair<Node, Node>(taylor_sum, taylor_rem);
+}
+
+void getPolynomialApproximationBounds(
+    Kind k, unsigned d, std::vector<Node>& pbounds)
+{
+  static thread_local std::map<Kind, std::map<unsigned, std::vector<Node>>> s_poly_bounds;
+  if (s_poly_bounds[k][d].empty())
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    Node tft = nm->mkNode(k, nm->mkConst(Rational(0)));
+    // n is the Taylor degree we are currently considering
+    unsigned n = 2 * d;
+    // n must be even
+    std::pair<Node, Node> taylor = transcendental::getTaylor(tft, n);
+    Trace("nl-ext-tftp-debug2")
+        << "Taylor for " << k << " is : " << taylor.first << std::endl;
+    Node taylor_sum = Rewriter::rewrite(taylor.first);
+    Trace("nl-ext-tftp-debug2")
+        << "Taylor for " << k << " is (post-rewrite) : " << taylor_sum
+        << std::endl;
+    Assert(taylor.second.getKind() == Kind::MULT);
+    Assert(taylor.second.getNumChildren() == 2);
+    Assert(taylor.second[0].getKind() == Kind::DIVISION);
+    Trace("nl-ext-tftp-debug2")
+        << "Taylor remainder for " << k << " is " << taylor.second << std::endl;
+    // ru is x^{n+1}/(n+1)!
+    Node ru = nm->mkNode(Kind::DIVISION, taylor.second[1], taylor.second[0][1]);
+    ru = Rewriter::rewrite(ru);
+    Trace("nl-ext-tftp-debug2")
+        << "Taylor remainder factor is (post-rewrite) : " << ru << std::endl;
+    if (k == Kind::EXPONENTIAL)
+    {
+      pbounds.push_back(taylor_sum);
+      pbounds.push_back(taylor_sum);
+      pbounds.push_back(Rewriter::rewrite(
+          nm->mkNode(Kind::MULT, taylor_sum, nm->mkNode(Kind::PLUS, nm->mkConst(Rational(1)), ru))));
+      pbounds.push_back(Rewriter::rewrite(nm->mkNode(Kind::PLUS, taylor_sum, ru)));
+    }
+    else
+    {
+      Assert(k == Kind::SINE);
+      Node l = Rewriter::rewrite(nm->mkNode(Kind::MINUS, taylor_sum, ru));
+      Node u = Rewriter::rewrite(nm->mkNode(Kind::PLUS, taylor_sum, ru));
+      pbounds.push_back(l);
+      pbounds.push_back(l);
+      pbounds.push_back(u);
+      pbounds.push_back(u);
+    }
+    Trace("nl-ext-tf-tplanes")
+        << "Polynomial approximation for " << k << " is: " << std::endl;
+    Trace("nl-ext-tf-tplanes") << " Lower (pos): " << pbounds[0] << std::endl;
+    Trace("nl-ext-tf-tplanes") << " Upper (pos): " << pbounds[2] << std::endl;
+    Trace("nl-ext-tf-tplanes") << " Lower (neg): " << pbounds[1] << std::endl;
+    Trace("nl-ext-tf-tplanes") << " Upper (neg): " << pbounds[3] << std::endl;
+    s_poly_bounds[k][d].insert(
+        s_poly_bounds[k][d].end(), pbounds.begin(), pbounds.end());
+  }
+  else
+  {
+    pbounds.insert(
+        pbounds.end(), s_poly_bounds[k][d].begin(), s_poly_bounds[k][d].end());
+  }
+}
+
+void getPolynomialApproximationBoundForArg(
+    Kind k, Node c, unsigned d, std::vector<Node>& pbounds)
+{
+  transcendental::getPolynomialApproximationBounds(k, d, pbounds);
+  Assert(c.isConst());
+  if (k == Kind::EXPONENTIAL && c.getConst<Rational>().sgn() == 1)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    Node tft = nm->mkNode(k, nm->mkConst(Rational(0)));
+    bool success = false;
+    unsigned ds = d;
+    TNode ttrf = transcendental::getTaylorVariable();
+    TNode tc = c;
+    do
+    {
+      success = true;
+      unsigned n = 2 * ds;
+      std::pair<Node, Node> taylor = transcendental::getTaylor(tft, n);
+      // check that 1-c^{n+1}/(n+1)! > 0
+      Node ru = nm->mkNode(Kind::DIVISION, taylor.second[1], taylor.second[0][1]);
+      Node rus = ru.substitute(ttrf, tc);
+      rus = Rewriter::rewrite(rus);
+      Assert(rus.isConst());
+      if (rus.getConst<Rational>() > 1)
+      {
+        success = false;
+        ds = ds + 1;
+      }
+    } while (!success);
+    if (ds > d)
+    {
+      Trace("nl-ext-exp-taylor")
+          << "*** Increase Taylor bound to " << ds << " > " << d << " for ("
+          << k << " " << c << ")" << std::endl;
+      // must use sound upper bound
+      std::vector<Node> pboundss;
+      transcendental::getPolynomialApproximationBounds(k, ds, pboundss);
+      pbounds[2] = pboundss[2];
+    }
+  }
+}
+
+
+Node mkValidPhase(TNode a, TNode pi)
+{
+  return mkBounded(
+      NodeManager::currentNM()->mkNode(Kind::MULT, mkRationalNode(-1), pi), a, pi);
 }
 
 }  // namespace transcendental
