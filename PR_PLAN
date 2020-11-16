@@ -123,8 +123,9 @@ PR finished:
 
 PRs ready:
 
-(68) PropEngine proof producing [Haniel] (req 53, 110, 111, 112)
+(68) PropEngine proof producing [Haniel] (req 53, 85, 110, 111, 112)
 (70) rewriter unit test [Andres] (req 36, 37)
+(85) SmtEngine infrastructure for check proofs (req 82)
 (118) non-clausal simplification proof producing (req 116, 117, 120, 125) *
 (130) regexp elimination proofs (req 101) *
 (131) Updates to Boolean proof checker [Haniel]
@@ -140,7 +141,6 @@ PRs future:
 (58) DSL rewrite rule proof generator (req 57)
 (69) Initial dumping infrastructure [Haniel]
 (83) DSL rewrite rule compilation, including side condition utility [Andres] (req 56)
-(85) SmtEngine check proofs [Haniel] (req 68, 82)
 (98) fixes in setDefaults
 
 Wish list:
