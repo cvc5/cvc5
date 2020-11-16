@@ -50,8 +50,8 @@ class SineSolver
   ~SineSolver();
 
   void initLastCall(const std::vector<Node>& assertions,
-                                        const std::vector<Node>& false_asserts,
-                                        const std::vector<Node>& xts);
+                    const std::vector<Node>& false_asserts,
+                    const std::vector<Node>& xts);
 
   /** check initial refine
    *
@@ -69,17 +69,30 @@ class SineSolver
    */
   void checkInitialRefine();
 
+  void checkMonotonic();
+
  private:
+  int regionToMonotonicityDir(int region)
+  {
+    if (region == 1 || region == 4)
+    {
+      return -1;
+    }
+    else if (region == 2 || region == 3)
+    {
+      return 1;
+    }
+    return 0;
+  }
 
- TranscendentalState* d_data;
+  TranscendentalState* d_data;
 
- /** The transcendental functions we have done initial refinements on */
+  /** The transcendental functions we have done initial refinements on */
   std::map<Node, bool> d_tf_initial_refine;
-
 
 }; /* class SineSolver */
 
-}
+}  // namespace transcendental
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory

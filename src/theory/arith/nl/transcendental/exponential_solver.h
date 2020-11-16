@@ -69,7 +69,18 @@ class ExponentialSolver
    */
   void checkInitialRefine();
 
+  void checkMonotonic();
+
  private:
+
+ int regionToMonotonicityDir(int region)
+{
+    if (region == 1)
+    {
+      return 1;
+    }
+  return 0;
+}
 
  TranscendentalState* d_data;
 

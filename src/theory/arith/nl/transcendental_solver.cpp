@@ -307,6 +307,10 @@ void TranscendentalSolver::checkTranscendentalInitialRefine()
 
 void TranscendentalSolver::checkTranscendentalMonotonic()
 {
+  d_expSlv.checkMonotonic();
+  d_sineSlv.checkMonotonic();
+  return;
+  
   Trace("nl-ext") << "Get monotonicity lemmas for transcendental functions..."
                   << std::endl;
 

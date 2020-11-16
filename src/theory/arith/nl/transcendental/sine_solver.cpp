@@ -115,6 +115,186 @@ void SineSolver::checkInitialRefine()
   }
 }
 
+void SineSolver::checkMonotonic()
+{
+  Trace("nl-ext") << "Get monotonicity lemmas for transcendental functions..."
+                  << std::endl;
+
+  // sort arguments of all transcendentals
+  std::map<Kind, std::vector<Node> > sorted_tf_args;
+  std::map<Kind, std::map<Node, Node> > tf_arg_to_term;
+
+  for (std::pair<const Kind, std::vector<Node> >& tfl : d_data->d_funcMap)
+  {
+    Kind k = tfl.first;
+    if (tfl.first != Kind::SINE)
+    {
+      continue;
+    }
+      for (const Node& tf : tfl.second)
+      {
+        Node a = tf[0];
+        Node mvaa = d_data->d_model.computeAbstractModelValue(a);
+        if (mvaa.isConst())
+        {
+          Trace("nl-ext-tf-mono-debug") << "...tf term : " << a << std::endl;
+          sorted_tf_args[k].push_back(a);
+          tf_arg_to_term[k][a] = tf;
+        }
+      }
+  }
+
+  SortNlModel smv;
+  smv.d_nlm = &d_data->d_model;
+  // sort by concrete values
+  smv.d_isConcrete = true;
+  smv.d_reverse_order = true;
+  for (std::pair<const Kind, std::vector<Node> >& tfl : d_data->d_funcMap)
+  {
+    Kind k = tfl.first;
+    
+    if (tfl.first != Kind::SINE)
+    {
+      continue;
+    }
+    if (!sorted_tf_args[k].empty())
+    {
+      std::sort(sorted_tf_args[k].begin(), sorted_tf_args[k].end(), smv);
+      Trace("nl-ext-tf-mono") << "Sorted transcendental function list for " << k
+                              << " : " << std::endl;
+      for (unsigned i = 0; i < sorted_tf_args[k].size(); i++)
+      {
+        Node targ = sorted_tf_args[k][i];
+        Node mvatarg = d_data->d_model.computeAbstractModelValue(targ);
+        Trace("nl-ext-tf-mono")
+            << "  " << targ << " -> " << mvatarg << std::endl;
+        Node t = tf_arg_to_term[k][targ];
+        Node mvat = d_data->d_model.computeAbstractModelValue(t);
+        Trace("nl-ext-tf-mono") << "     f-val : " << mvat << std::endl;
+      }
+      std::vector<Node> mpoints;
+      std::vector<Node> mpoints_vals;
+        mpoints.push_back(d_data->d_pi);
+        mpoints.push_back(d_data->d_pi_2);
+        mpoints.push_back(d_data->d_zero);
+        mpoints.push_back(d_data->d_pi_neg_2);
+        mpoints.push_back(d_data->d_pi_neg);
+      if (!mpoints.empty())
+      {
+        // get model values for points
+        for (unsigned i = 0; i < mpoints.size(); i++)
+        {
+          Node mpv;
+          if (!mpoints[i].isNull())
+          {
+            mpv = d_data->d_model.computeAbstractModelValue(mpoints[i]);
+            Assert(mpv.isConst());
+          }
+          mpoints_vals.push_back(mpv);
+        }
+
+        unsigned mdir_index = 0;
+        int monotonic_dir = -1;
+        Node mono_bounds[2];
+        Node targ, targval, t, tval;
+        for (unsigned i = 0, size = sorted_tf_args[k].size(); i < size; i++)
+        {
+          Node sarg = sorted_tf_args[k][i];
+          Node sargval = d_data->d_model.computeAbstractModelValue(sarg);
+          Assert(sargval.isConst());
+          Node s = tf_arg_to_term[k][sarg];
+          Node sval = d_data->d_model.computeAbstractModelValue(s);
+          Assert(sval.isConst());
+
+          // increment to the proper monotonicity region
+          bool increment = true;
+          while (increment && mdir_index < mpoints.size())
+          {
+            increment = false;
+            if (mpoints[mdir_index].isNull())
+            {
+              increment = true;
+            }
+            else
+            {
+              Node pval = mpoints_vals[mdir_index];
+              Assert(pval.isConst());
+              if (sargval.getConst<Rational>() < pval.getConst<Rational>())
+              {
+                increment = true;
+                Trace("nl-ext-tf-mono") << "...increment at " << sarg
+                                        << " since model value is less than "
+                                        << mpoints[mdir_index] << std::endl;
+              }
+            }
+            if (increment)
+            {
+              tval = Node::null();
+              mono_bounds[1] = mpoints[mdir_index];
+              mdir_index++;
+              monotonic_dir = regionToMonotonicityDir(mdir_index);
+              if (mdir_index < mpoints.size())
+              {
+                mono_bounds[0] = mpoints[mdir_index];
+              }
+              else
+              {
+                mono_bounds[0] = Node::null();
+              }
+            }
+          }
+          // store the concavity region
+          d_data->d_tf_region[s] = mdir_index;
+          Trace("nl-ext-concavity") << "Transcendental function " << s
+                                    << " is in region #" << mdir_index;
+          Trace("nl-ext-concavity")
+              << ", arg model value = " << sargval << std::endl;
+
+          if (!tval.isNull())
+          {
+            NodeManager* nm = NodeManager::currentNM();
+            Node mono_lem;
+            if (monotonic_dir == 1
+                && sval.getConst<Rational>() > tval.getConst<Rational>())
+            {
+              mono_lem = nm->mkNode(
+                  Kind::IMPLIES, nm->mkNode(Kind::GEQ, targ, sarg), nm->mkNode(Kind::GEQ, t, s));
+            }
+            else if (monotonic_dir == -1
+                     && sval.getConst<Rational>() < tval.getConst<Rational>())
+            {
+              mono_lem = nm->mkNode(
+                  Kind::IMPLIES, nm->mkNode(Kind::LEQ, targ, sarg), nm->mkNode(Kind::LEQ, t, s));
+            }
+            if (!mono_lem.isNull())
+            {
+              if (!mono_bounds[0].isNull())
+              {
+                Assert(!mono_bounds[1].isNull());
+                mono_lem = nm->mkNode(
+                    Kind::IMPLIES,
+                    nm->mkNode(Kind::AND,
+                               mkBounded(mono_bounds[0], targ, mono_bounds[1]),
+                               mkBounded(mono_bounds[0], sarg, mono_bounds[1])),
+                    mono_lem);
+              }
+              Trace("nl-ext-tf-mono")
+                  << "Monotonicity lemma : " << mono_lem << std::endl;
+
+              d_data->d_im.addPendingArithLemma(mono_lem, InferenceId::NL_T_MONOTONICITY);
+            }
+          }
+          // store the previous values
+          targ = sarg;
+          targval = sargval;
+          t = s;
+          tval = sval;
+        }
+      }
+    }
+  }
+}
+
 }  // namespace transcendental
 }  // namespace nl
 }  // namespace arith
