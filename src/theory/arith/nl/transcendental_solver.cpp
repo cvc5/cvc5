@@ -54,7 +54,7 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
 
   d_funcCongClass.clear();
   d_funcMap.clear();
-  d_tf_region.clear();
+  //d_tstate.d_tf_region.clear();
 
   NodeManager* nm = NodeManager::currentNM();
 
@@ -310,7 +310,7 @@ void TranscendentalSolver::checkTranscendentalMonotonic()
   d_expSlv.checkMonotonic();
   d_sineSlv.checkMonotonic();
   return;
-  
+
   Trace("nl-ext") << "Get monotonicity lemmas for transcendental functions..."
                   << std::endl;
 
@@ -439,7 +439,7 @@ void TranscendentalSolver::checkTranscendentalMonotonic()
             }
           }
           // store the concavity region
-          d_tf_region[s] = mdir_index;
+          d_tstate.d_tf_region[s] = mdir_index;
           Trace("nl-ext-concavity") << "Transcendental function " << s
                                     << " is in region #" << mdir_index;
           Trace("nl-ext-concavity")
@@ -578,8 +578,8 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
   // compute the concavity
   int region = -1;
   std::unordered_map<Node, int, NodeHashFunction>::iterator itr =
-      d_tf_region.find(tf);
-  if (itr != d_tf_region.end())
+      d_tstate.d_tf_region.find(tf);
+  if (itr != d_tstate.d_tf_region.end())
   {
     region = itr->second;
     Trace("nl-ext-tftp-debug") << "  region is : " << region << std::endl;

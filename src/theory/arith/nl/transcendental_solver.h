@@ -250,28 +250,6 @@ class TranscendentalSolver
   /** The transcendental functions we have done initial refinements on */
   std::map<Node, bool> d_tf_initial_refine;
 
-  /** concavity region for transcendental functions
-   *
-   * This stores an integer that identifies an interval in
-   * which the current model value for an argument of an
-   * application of a transcendental function resides.
-   *
-   * For exp( x ):
-   *   region #1 is -infty < x < infty
-   * For sin( x ):
-   *   region #0 is pi < x < infty (this is an invalid region)
-   *   region #1 is pi/2 < x <= pi
-   *   region #2 is 0 < x <= pi/2
-   *   region #3 is -pi/2 < x <= 0
-   *   region #4 is -pi < x <= -pi/2
-   *   region #5 is -infty < x <= -pi (this is an invalid region)
-   * All regions not listed above, as well as regions 0 and 5
-   * for SINE are "invalid". We only process applications
-   * of transcendental functions whose arguments have model
-   * values that reside in valid regions.
-   */
-  std::unordered_map<Node, int, NodeHashFunction> d_tf_region;
-
   /**
    * Maps representives of a congruence class to the members of that class.
    *
