@@ -33,7 +33,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-TranscendentalSolver::TranscendentalSolver(InferenceManager& im, NlModel& m) : d_im(im), d_model(m), d_expSlv(d_tstate), d_sineSlv(&d_tstate)
+TranscendentalSolver::TranscendentalSolver(InferenceManager& im, NlModel& m) : d_im(im), d_model(m), d_tstate(d_im, d_model), d_expSlv(&d_tstate), d_sineSlv(&d_tstate)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);

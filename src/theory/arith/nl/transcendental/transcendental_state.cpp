@@ -23,6 +23,14 @@ namespace arith {
 namespace nl {
 namespace transcendental {
 
+TranscendentalState::TranscendentalState(InferenceManager& im, NlModel& model)
+    : d_im(im), d_model(model)
+{
+  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
+  d_one = NodeManager::currentNM()->mkConst(Rational(1));
+  d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
+}
+
 void TranscendentalState::init(const std::vector<Node>& assertions,
                                         const std::vector<Node>& false_asserts,
                                         const std::vector<Node>& xts)

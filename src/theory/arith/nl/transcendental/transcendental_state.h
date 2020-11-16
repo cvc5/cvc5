@@ -27,6 +27,8 @@ namespace transcendental {
 
 struct TranscendentalState
 {
+  TranscendentalState(InferenceManager& im, NlModel& model);
+
 
   /** init last call
    *
