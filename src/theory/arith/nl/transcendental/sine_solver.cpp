@@ -106,6 +106,10 @@ void SineSolver::checkInitialRefine()
                         Kind::GT,
                         t,
                         nm->mkNode(Kind::MINUS, d_data->d_pi_neg, t[0])))));
+        if (!lem.isNull())
+        {
+          d_data->d_im.addPendingArithLemma(lem, InferenceId::NL_T_INIT_REFINE);
+        }
       }
     }
   }
