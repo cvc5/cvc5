@@ -26,6 +26,7 @@
 
 #include "api/cvc4cpp.h"
 #include "expr/kind.h"
+#include "expr/symbol_manager.h"
 #include "expr/symbol_table.h"
 #include "parser/input.h"
 #include "parser/parse_op.h"
@@ -109,16 +110,13 @@ private:
  Input* d_input;
 
  /**
-  * The declaration scope that is "owned" by this parser.  May or
-  * may not be the current declaration scope in use.
+  * Reference to the symbol manager, which manages the symbol table used by
+  * this parser.
   */
- SymbolTable d_symtabAllocated;
+ SymbolManager* d_symman;
 
  /**
-  * This current symbol table used by this parser.  Initially points
-  * to d_symtabAllocated, but can be changed (making this parser
-  * delegate its definitions and lookups to another parser).
-  * See useDeclarationsFrom().
+  * This current symbol table used by this parser, from symbol manager.
   */
  SymbolTable* d_symtab;
 
@@ -128,12 +126,6 @@ private:
   * lambda.
   */
  size_t d_assertionLevel;
-
- /**
-  * Whether we're in global declarations mode (all definitions and
-  * declarations are global).
-  */
- bool d_globalDeclarations;
 
  /**
   * Maintains a list of reserved symbols at the assertion level that might
@@ -215,7 +207,8 @@ protected:
   * @attention The parser takes "ownership" of the given
   * input and will delete it on destruction.
   *
-  * @param the solver API object
+  * @param solver solver API object
+  * @param symm reference to the symbol manager
   * @param input the parser input
   * @param strictMode whether to incorporate strict(er) compliance checks
   * @param parseOnly whether we are parsing only (and therefore certain checks
@@ -223,6 +216,7 @@ protected:
   * unimplementedFeature())
   */
  Parser(api::Solver* solver,
+        SymbolManager* sm,
         Input* input,
         bool strictMode = false,
         bool parseOnly = false);
@@ -751,7 +745,7 @@ public:
   /**
    * Gets the current declaration level.
    */
-  inline size_t scopeLevel() const { return d_symtab->getLevel(); }
+  size_t scopeLevel() const;
 
   /**
    * Pushes a scope. All subsequent symbol declarations made are only valid in
@@ -761,34 +755,14 @@ public:
    * current scope level. This determines which scope assertions are declared
    * at.
    */
-  inline void pushScope(bool bindingLevel = false) {
-    d_symtab->pushScope();
-    if(!bindingLevel) {
-      d_assertionLevel = scopeLevel();
-    }
-  }
+  void pushScope(bool bindingLevel = false);
 
-  inline void popScope() {
-    d_symtab->popScope();
-    if(scopeLevel() < d_assertionLevel) {
-      d_assertionLevel = scopeLevel();
-      d_reservedSymbols.clear();
-    }
-  }
+  void popScope();
 
-  virtual void reset() {
-    d_symtab->reset();
-  }
+  virtual void reset();
 
-  void setGlobalDeclarations(bool flag) {
-    d_globalDeclarations = flag;
-  }
-
-  bool getGlobalDeclarations() { return d_globalDeclarations; }
-
-  inline SymbolTable* getSymbolTable() const {
-    return d_symtab;
-  }
+  /** Return the symbol manager used by this parser. */
+  SymbolManager* getSymbolManager();
 
   //------------------------ operator overloading
   /** is this function overloaded? */

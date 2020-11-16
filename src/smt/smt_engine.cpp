@@ -65,6 +65,7 @@
 #include "theory/logic_info.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/rewriter.h"
+#include "theory/smt_engine_subsolver.h"
 #include "theory/theory_engine.h"
 #include "util/hash.h"
 #include "util/random.h"
@@ -263,15 +264,15 @@ void SmtEngine::finishInit()
   // dumping the command twice.
   if (Dump.isOn("benchmark") && !Dump.isOn("raw-benchmark"))
   {
-    LogicInfo everything;
-    everything.lock();
-    getOutputManager().getPrinter().toStreamCmdComment(
-        getOutputManager().getDumpOut(),
-        "CVC4 always dumps the most general, all-supported logic (below), as "
-        "some internals might require the use of a logic more general than "
-        "the input.");
-    getOutputManager().getPrinter().toStreamCmdSetBenchmarkLogic(
-        getOutputManager().getDumpOut(), everything.getLogicString());
+      LogicInfo everything;
+      everything.lock();
+      getOutputManager().getPrinter().toStreamCmdComment(
+          getOutputManager().getDumpOut(),
+          "CVC4 always dumps the most general, all-supported logic (below), as "
+          "some internals might require the use of a logic more general than "
+          "the input.");
+      getOutputManager().getPrinter().toStreamCmdSetBenchmarkLogic(
+          getOutputManager().getDumpOut(), everything.getLogicString());
   }
 
   // initialize the dump manager
@@ -300,8 +301,7 @@ void SmtEngine::finishInit()
   Trace("smt-debug") << "SmtEngine::finishInit done" << std::endl;
 }
 
-void SmtEngine::shutdown()
-{
+void SmtEngine::shutdown() {
   d_state->shutdown();
 
   d_smtSolver->shutdown();
@@ -311,22 +311,20 @@ SmtEngine::~SmtEngine()
 {
   SmtScope smts(this);
 
-  try
-  {
+  try {
     shutdown();
 
     // global push/pop around everything, to ensure proper destruction
     // of context-dependent data structures
     d_state->cleanup();
 
-    if (d_assignments != NULL)
-    {
+    if (d_assignments != NULL) {
       d_assignments->deleteSelf();
     }
 
     d_definedFunctions->deleteSelf();
 
-    // destroy all passes before destroying things that they refer to
+    //destroy all passes before destroying things that they refer to
     d_pp->cleanup();
 
     // d_proofManager is always created when proofs are enabled at configure
@@ -360,10 +358,9 @@ SmtEngine::~SmtEngine()
     d_statisticsRegistry.reset(nullptr);
     // destroy the state
     d_state.reset(nullptr);
-  }
-  catch (Exception& e)
-  {
-    Warning() << "CVC4 threw an exception during cleanup." << endl << e << endl;
+  } catch (Exception& e) {
+    Warning() << "CVC4 threw an exception during cleanup." << endl
+              << e << endl;
   }
 }
 
@@ -372,9 +369,8 @@ void SmtEngine::setLogic(const LogicInfo& logic)
   SmtScope smts(this);
   if (d_state->isFullyInited())
   {
-    throw ModalException(
-        "Cannot set logic in SmtEngine after the engine has "
-        "finished initializing.");
+    throw ModalException("Cannot set logic in SmtEngine after the engine has "
+                         "finished initializing.");
   }
   d_logic = logic;
   d_userLogic = logic;
@@ -401,7 +397,9 @@ void SmtEngine::setLogic(const std::string& s)
 }
 
 void SmtEngine::setLogic(const char* logic) { setLogic(string(logic)); }
-LogicInfo SmtEngine::getLogicInfo() const { return d_logic; }
+LogicInfo SmtEngine::getLogicInfo() const {
+  return d_logic;
+}
 
 LogicInfo SmtEngine::getUserLogicInfo() const
 {
@@ -440,19 +438,15 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
 
   Trace("smt") << "SMT setInfo(" << key << ", " << value << ")" << endl;
 
-  if (Dump.isOn("benchmark"))
-  {
-    if (key == "status")
-    {
+  if(Dump.isOn("benchmark")) {
+    if(key == "status") {
       string s = value.getValue();
       Result::Sat status =
           (s == "sat") ? Result::SAT
                        : ((s == "unsat") ? Result::UNSAT : Result::SAT_UNKNOWN);
       getOutputManager().getPrinter().toStreamCmdSetBenchmarkStatus(
           getOutputManager().getDumpOut(), status);
-    }
-    else
-    {
+    } else {
       getOutputManager().getPrinter().toStreamCmdSetInfo(
           getOutputManager().getDumpOut(), key, value);
     }
@@ -473,20 +467,16 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
   else if (key == "smt-lib-version" && !options::inputLanguage.wasSetByUser())
   {
     language::input::Language ilang = language::input::LANG_AUTO;
-    if ((value.isInteger() && value.getIntegerValue() == Integer(2))
-        || (value.isRational() && value.getRationalValue() == Rational(2))
-        || value.getValue() == "2" || value.getValue() == "2.0")
-    {
+    if( (value.isInteger() && value.getIntegerValue() == Integer(2)) ||
+        (value.isRational() && value.getRationalValue() == Rational(2)) ||
+        value.getValue() == "2" ||
+        value.getValue() == "2.0" ) {
       ilang = language::input::LANG_SMTLIB_V2_0;
-    }
-    else if ((value.isRational() && value.getRationalValue() == Rational(5, 2))
-             || value.getValue() == "2.5")
-    {
+    } else if( (value.isRational() && value.getRationalValue() == Rational(5, 2)) ||
+               value.getValue() == "2.5" ) {
       ilang = language::input::LANG_SMTLIB_V2_5;
-    }
-    else if ((value.isRational() && value.getRationalValue() == Rational(13, 5))
-             || value.getValue() == "2.6")
-    {
+    } else if( (value.isRational() && value.getRationalValue() == Rational(13, 5)) ||
+               value.getValue() == "2.6" ) {
       ilang = language::input::LANG_SMTLIB_V2_6;
     }
     else
@@ -506,19 +496,14 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
       }
     }
     return;
-  }
-  else if (key == "status")
-  {
+  } else if(key == "status") {
     string s;
-    if (value.isAtom())
-    {
+    if(value.isAtom())  {
       s = value.getValue();
     }
-    if (s != "sat" && s != "unsat" && s != "unknown")
-    {
-      throw OptionException(
-          "argument to (set-info :status ..) must be "
-          "`sat' or `unsat' or `unknown'");
+    if(s != "sat" && s != "unsat" && s != "unknown") {
+      throw OptionException("argument to (set-info :status ..) must be "
+                            "`sat' or `unsat' or `unknown'");
     }
     d_state->notifyExpectedStatus(s);
     return;
@@ -640,11 +625,9 @@ void SmtEngine::debugCheckFormals(const std::vector<Node>& formals, Node func)
        i != formals.end();
        ++i)
   {
-    if ((*i).getKind() != kind::BOUND_VARIABLE)
-    {
+    if((*i).getKind() != kind::BOUND_VARIABLE) {
       stringstream ss;
-      ss << "All formal arguments to defined functions must be "
-            "BOUND_VARIABLEs, but in the\n"
+      ss << "All formal arguments to defined functions must be BOUND_VARIABLEs, but in the\n"
          << "definition of function " << func << ", formal\n"
          << "  " << *i << "\n"
          << "has kind " << (*i).getKind();
@@ -664,11 +647,9 @@ void SmtEngine::debugCheckFunctionBody(Node formula,
   // should instead have SmtEngine::defineFunction() and
   // SmtEngine::defineConstant() for better clarity, although then that
   // doesn't match the SMT-LIBv2 standard...
-  if (formals.size() > 0)
-  {
+  if(formals.size() > 0) {
     TypeNode rangeType = funcType.getRangeType();
-    if (!formulaType.isComparableTo(rangeType))
-    {
+    if(! formulaType.isComparableTo(rangeType)) {
       stringstream ss;
       ss << "Type of defined function does not match its declaration\n"
          << "The function  : " << func << "\n"
@@ -1488,6 +1469,28 @@ std::vector<Node> SmtEngine::getExpandedAssertions()
   return eassertsProc;
 }
 
+void SmtEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
+{
+  if (!d_logic.isTheoryEnabled(THEORY_SEP))
+  {
+    const char* msg =
+        "Cannot declare heap if not using the separation logic theory.";
+    throw RecoverableModalException(msg);
+  }
+  SmtScope smts(this);
+  finishInit();
+  TheoryEngine* te = getTheoryEngine();
+  te->declareSepHeap(locT, dataT);
+}
+
+bool SmtEngine::getSepHeapTypes(TypeNode& locT, TypeNode& dataT)
+{
+  SmtScope smts(this);
+  finishInit();
+  TheoryEngine* te = getTheoryEngine();
+  return te->getSepHeapTypes(locT, dataT);
+}
+
 Node SmtEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
 
 Node SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
@@ -1524,22 +1527,29 @@ void SmtEngine::checkUnsatCore()
   Notice() << "SmtEngine::checkUnsatCore(): generating unsat core" << endl;
   UnsatCore core = getUnsatCore();
 
-  SmtEngine coreChecker(d_exprManager, &d_options);
-  coreChecker.setIsInternalSubsolver();
-  coreChecker.setLogic(getLogicInfo());
-  coreChecker.getOptions().set(options::checkUnsatCores, false);
+  // initialize the core checker
+  std::unique_ptr<SmtEngine> coreChecker;
+  initializeSubsolver(coreChecker);
+  coreChecker->getOptions().set(options::checkUnsatCores, false);
+
+  // set up separation logic heap if necessary
+  TypeNode sepLocType, sepDataType;
+  if (getSepHeapTypes(sepLocType, sepDataType))
+  {
+    coreChecker->declareSepHeap(sepLocType, sepDataType);
+  }
 
   Notice() << "SmtEngine::checkUnsatCore(): pushing core assertions (size == " << core.size() << ")" << endl;
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
     Node assertionAfterExpansion = expandDefinitions(*i);
     Notice() << "SmtEngine::checkUnsatCore(): pushing core member " << *i
              << ", expanded to " << assertionAfterExpansion << "\n";
-    coreChecker.assertFormula(assertionAfterExpansion);
+    coreChecker->assertFormula(assertionAfterExpansion);
   }
   Result r;
   try
   {
-    r = coreChecker.checkSat();
+    r = coreChecker->checkSat();
   }
   catch (...)
   {
@@ -1826,8 +1836,7 @@ void SmtEngine::interrupt()
   d_smtSolver->interrupt();
 }
 
-void SmtEngine::setResourceLimit(unsigned long units, bool cumulative)
-{
+void SmtEngine::setResourceLimit(unsigned long units, bool cumulative) {
   d_resourceManager->setResourceLimit(units, cumulative);
 }
 void SmtEngine::setTimeLimit(unsigned long milis)
@@ -1835,13 +1844,11 @@ void SmtEngine::setTimeLimit(unsigned long milis)
   d_resourceManager->setTimeLimit(milis);
 }
 
-unsigned long SmtEngine::getResourceUsage() const
-{
+unsigned long SmtEngine::getResourceUsage() const {
   return d_resourceManager->getResourceUsage();
 }
 
-unsigned long SmtEngine::getTimeUsage() const
-{
+unsigned long SmtEngine::getTimeUsage() const {
   return d_resourceManager->getTimeUsage();
 }
 
@@ -1865,8 +1872,7 @@ SExpr SmtEngine::getStatistic(std::string name) const
   return d_statisticsRegistry->getStatistic(name);
 }
 
-void SmtEngine::safeFlushStatistics(int fd) const
-{
+void SmtEngine::safeFlushStatistics(int fd) const {
   d_statisticsRegistry->safeFlushInformation(fd);
 }
 
@@ -2037,4 +2043,4 @@ const Printer* SmtEngine::getPrinter() const
 
 OutputManager& SmtEngine::getOutputManager() { return d_outMgr; }
 
-}  // namespace CVC4
+}/* CVC4 namespace */

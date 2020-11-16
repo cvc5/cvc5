@@ -97,6 +97,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
     else
     {
       std::vector<Node> echildren(children[0][0].begin(), children[0][0].end());
+      echildren[1] = echildren[1].notNode();
       exists = nm->mkNode(EXISTS, echildren);
     }
     std::vector<Node> skolems;

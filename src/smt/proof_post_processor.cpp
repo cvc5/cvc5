@@ -736,7 +736,7 @@ bool ProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
 {
   PfRule r = pn->getRule();
   // if not doing eager pedantic checking, fail if below threshold
-  if (!options::proofNewPedanticEager())
+  if (!options::proofNewEagerChecking())
   {
     if (!d_pedanticFailure)
     {
