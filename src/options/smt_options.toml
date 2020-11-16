@@ -541,6 +541,24 @@ header = "options/smt_options.h"
   help       = "enable resource limiting per query"
 
 [[option]]
+  name       = "arithPivotStep"
+  category   = "expert"
+  long       = "arith-pivot-step=N"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for each arithmetic pivot step"
+
+[[option]]
+  name       = "arithNlLemmaStep"
+  category   = "expert"
+  long       = "arith-nl-lemma-step=N"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for each arithmetic nonlinear lemma step"
+
+[[option]]
   name       = "rewriteStep"
   category   = "expert"
   long       = "rewrite-step=N"
@@ -613,6 +631,15 @@ header = "options/smt_options.h"
   help       = "amount of resources spent when adding lemmas"
 
 [[option]]
+  name       = "newSkolemStep"
+  category   = "expert"
+  long       = "new-skolem-step=N"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent when adding new skolems"
+
+[[option]]
   name       = "restartStep"
   category   = "expert"
   long       = "restart-step=N"
@@ -665,6 +692,24 @@ header = "options/smt_options.h"
   default    = "1"
   read_only  = true
   help       = "amount of resources spent for each sat conflict (bitvectors)"
+
+[[option]]
+  name       = "bvSatPropagateStep"
+  category   = "expert"
+  long       = "bv-sat-propagate-step=N"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for each sat propagate (bitvectors)"
+
+[[option]]
+  name       = "bvSatSimplifyStep"
+  category   = "expert"
+  long       = "bv-sat-simplify-step=N"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for each sat simplify (bitvectors)"
 
 [[option]]
   name       = "forceNoLimitCpuWhileDump"

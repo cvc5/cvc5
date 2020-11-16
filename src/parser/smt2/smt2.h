@@ -169,7 +169,7 @@ class Smt2 : public Parser
 
   /** Push scope for define-fun-rec
    *
-   * This calls Parser::pushScope(bindingLevel) and sets up
+   * This calls Parser::pushScope() and sets up
    * initial information for reading a body of a function definition
    * in the define-fun-rec and define-funs-rec command.
    * The input parameters func/flattenVars are the result
@@ -180,7 +180,7 @@ class Smt2 : public Parser
    * flattenVars : the implicit variables introduced when defining func.
    *
    * This function:
-   * (1) Calls Parser::pushScope(bindingLevel).
+   * (1) Calls Parser::pushScope().
    * (2) Computes the bound variable list for the quantified formula
    *     that defined this definition and stores it in bvs.
    */
@@ -188,8 +188,7 @@ class Smt2 : public Parser
       const std::vector<std::pair<std::string, api::Sort>>& sortedVarNames,
       api::Term func,
       const std::vector<api::Term>& flattenVars,
-      std::vector<api::Term>& bvs,
-      bool bindingLevel = false);
+      std::vector<api::Term>& bvs);
 
   void reset() override;
 
