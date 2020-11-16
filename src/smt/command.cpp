@@ -1663,15 +1663,15 @@ void GetAssignmentCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    std::vector<std::pair<Expr, Expr>> assignments =
-        solver->getSmtEngine()->getAssignment();
-    vector<SExpr> sexprs;
-    for (const auto& p : assignments)
+    std::map<api::Term, std::string> enames = sm->getExpressionNames();
+    std::vector<SExpr> sexprs;
+    for (const std::pair<const api::Term, std::string>& e : enames)
     {
-      vector<SExpr> v;
-      v.emplace_back(SExpr::Keyword(p.first.toString()));
-      v.emplace_back(SExpr::Keyword(p.second.toString()));
-      sexprs.emplace_back(v);
+      api::Term v = solver->getValue(e.first);
+      std::vector<SExpr> ss;
+      ss.emplace_back(SExpr::Keyword(e.second));
+      ss.emplace_back(SExpr::Keyword(v.toString()));
+      sexprs.emplace_back(ss);
     }
     d_result = SExpr(sexprs);
     d_commandStatus = CommandSuccess::instance();
