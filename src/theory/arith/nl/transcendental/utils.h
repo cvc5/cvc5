@@ -16,6 +16,7 @@
 #define CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__UTILS_H
 
 #include "expr/node.h"
+#include "theory/arith/nl/nl_model.h"
 
 namespace CVC4 {
 namespace theory {
@@ -83,6 +84,8 @@ class TaylorGenerator
                                              Node c,
                                              unsigned d,
                                              std::vector<Node>& pbounds);
+
+  std::pair<Node, Node> getTfModelBounds(Node tf, unsigned d, NlModel& model);
 
  private:
   NodeManager* d_nm;

@@ -26,6 +26,8 @@ namespace transcendental {
 TranscendentalState::TranscendentalState(InferenceManager& im, NlModel& model)
     : d_im(im), d_model(model)
 {
+  d_true = NodeManager::currentNM()->mkConst(true);
+  d_false = NodeManager::currentNM()->mkConst(false);
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
@@ -220,7 +222,6 @@ void TranscendentalState::init(const std::vector<Node>& assertions,
     }
   }
 }
-
 
 void TranscendentalState::mkPi()
 {

@@ -22,9 +22,8 @@
 #include "options/arith_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
-#include "theory/rewriter.h"
-
 #include "theory/arith/nl/transcendental/utils.h"
+#include "theory/rewriter.h"
 
 using namespace CVC4::kind;
 
@@ -33,7 +32,12 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-TranscendentalSolver::TranscendentalSolver(InferenceManager& im, NlModel& m) : d_im(im), d_model(m), d_tstate(d_im, d_model), d_expSlv(&d_tstate), d_sineSlv(&d_tstate)
+TranscendentalSolver::TranscendentalSolver(InferenceManager& im, NlModel& m)
+    : d_im(im),
+      d_model(m),
+      d_tstate(d_im, d_model),
+      d_expSlv(&d_tstate),
+      d_sineSlv(&d_tstate)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
@@ -54,7 +58,7 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
 
   d_funcCongClass.clear();
   d_funcMap.clear();
-  //d_tstate.d_tf_region.clear();
+  // d_tstate.d_tf_region.clear();
 
   NodeManager* nm = NodeManager::currentNM();
 
@@ -162,7 +166,6 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
     mkPi();
     getCurrentPiBounds();
   }
-
 }
 
 bool TranscendentalSolver::preprocessAssertionsCheckModel(
@@ -339,28 +342,49 @@ void TranscendentalSolver::checkTranscendentalTangentPlanes()
       {
         Trace("nl-ext-tftp") << "- run at degree " << d << "..." << std::endl;
         unsigned prev = d_im.numPendingLemmas() + d_im.numWaitingLemmas();
-        if (checkTfTangentPlanesFun(tf, d))
+        if (k == Kind::EXPONENTIAL)
         {
-          Trace("nl-ext-tftp")
-              << "...fail, #lemmas = "
-              << (d_im.numPendingLemmas() + d_im.numWaitingLemmas() - prev)
-              << std::endl;
-          break;
+          if (d_expSlv.checkTfTangentPlanesFun(tf, d))
+          {
+            Trace("nl-ext-tftp")
+                << "...fail, #lemmas = "
+                << (d_im.numPendingLemmas() + d_im.numWaitingLemmas() - prev)
+                << std::endl;
+            break;
+          }
+          else
+          {
+            Trace("nl-ext-tftp") << "...success" << std::endl;
+          }
         }
         else
         {
-          Trace("nl-ext-tftp") << "...success" << std::endl;
+          if (checkTfTangentPlanesFun(tf, d))
+          {
+            Trace("nl-ext-tftp")
+                << "...fail, #lemmas = "
+                << (d_im.numPendingLemmas() + d_im.numWaitingLemmas() - prev)
+                << std::endl;
+            break;
+          }
+          else
+          {
+            Trace("nl-ext-tftp") << "...success" << std::endl;
+          }
         }
       }
     }
   }
 }
 
-bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
-                                                   unsigned d)
+bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = tf.getKind();
+  if (k == Kind::EXPONENTIAL)
+  {
+    return d_expSlv.checkTfTangentPlanesFun(tf, d);
+  }
   // this should only be run on master applications
   Assert(d_tstate.d_trSlaves.find(tf) != d_tstate.d_trSlaves.end());
 
@@ -813,7 +837,7 @@ std::pair<Node, Node> TranscendentalSolver::getTfModelBounds(Node tf,
       Node mtfs = d_model.computeAbstractModelValue(tfs);
       pab = pab.substitute(tfv, mtfs);
       pab = Rewriter::rewrite(pab);
-      Assert (pab.isConst());
+      Assert(pab.isConst());
       bounds.push_back(pab);
     }
     else

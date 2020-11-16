@@ -255,6 +255,61 @@ void TaylorGenerator::getPolynomialApproximationBoundForArg(
   }
 }
 
+std::pair<Node, Node> TaylorGenerator::getTfModelBounds(Node tf, unsigned d, NlModel& model)
+{
+  // compute the model value of the argument
+  Node c = model.computeAbstractModelValue(tf[0]);
+  Assert(c.isConst());
+  int csign = c.getConst<Rational>().sgn();
+  Kind k = tf.getKind();
+  if (csign == 0)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    // at zero, its trivial
+    if (k == Kind::SINE)
+    {
+      Node zero = nm->mkConst(Rational(0));
+      return std::pair<Node, Node>(zero, zero);
+    }
+    Assert(k == Kind::EXPONENTIAL);
+    Node one = nm->mkConst(Rational(1));
+    return std::pair<Node, Node>(one, one);
+  }
+  bool isNeg = csign == -1;
+
+  std::vector<Node> pbounds;
+  getPolynomialApproximationBoundForArg(k, c, d, pbounds);
+
+  std::vector<Node> bounds;
+  TNode tfv = getTaylorVariable();
+  TNode tfs = tf[0];
+  for (unsigned d2 = 0; d2 < 2; d2++)
+  {
+    int index = d2 == 0 ? (isNeg ? 1 : 0) : (isNeg ? 3 : 2);
+    Node pab = pbounds[index];
+    if (!pab.isNull())
+    {
+      // { x -> M_A(tf[0]) }
+      // Notice that we compute the model value of tfs first, so that
+      // the call to rewrite below does not modify the term, where notice that
+      // rewrite( x*x { x -> M_A(t) } ) = M_A(t)*M_A(t)
+      // is not equal to
+      // M_A( x*x { x -> t } ) = M_A( t*t )
+      // where M_A denotes the abstract model.
+      Node mtfs = model.computeAbstractModelValue(tfs);
+      pab = pab.substitute(tfv, mtfs);
+      pab = Rewriter::rewrite(pab);
+      Assert(pab.isConst());
+      bounds.push_back(pab);
+    }
+    else
+    {
+      bounds.push_back(Node::null());
+    }
+  }
+  return std::pair<Node, Node>(bounds[0], bounds[1]);
+}
+
 Node mkValidPhase(TNode a, TNode pi)
 {
   return mkBounded(

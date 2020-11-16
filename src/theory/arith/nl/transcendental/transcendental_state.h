@@ -49,6 +49,8 @@ struct TranscendentalState
   void mkPi();
   void getCurrentPiBounds();
 
+    Node d_true;
+    Node d_false;
   Node d_zero;
   Node d_one;
   Node d_neg_one;
@@ -116,6 +118,21 @@ struct TranscendentalState
    * that are representives of their congruence class.
    */
   std::map<Kind, std::vector<Node>> d_funcMap;
+
+  /** secant points (sorted list) for transcendental functions
+   *
+   * This is used for tangent plane refinements for
+   * transcendental functions. This is the set
+   * "get-previous-secant-points" in "Satisfiability
+   * Modulo Transcendental Functions via Incremental
+   * Linearization" by Cimatti et al., CADE 2017, for
+   * each transcendental function application. We store this set for each
+   * Taylor degree.
+   */
+  std::unordered_map<Node,
+                     std::map<unsigned, std::vector<Node>>,
+                     NodeHashFunction>
+      d_secant_points;
 
   /** PI
    *

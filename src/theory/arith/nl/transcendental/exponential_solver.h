@@ -84,9 +84,22 @@ class ExponentialSolver
    */
   void checkMonotonic();
 
+    bool checkTfTangentPlanesFun(Node tf, unsigned d);
+
  private:
 
+
  int regionToMonotonicityDir(int region)
+{
+    if (region == 1)
+    {
+      return 1;
+    }
+  return 0;
+}
+
+
+int regionToConcavity(int region)
 {
     if (region == 1)
     {
