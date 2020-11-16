@@ -1624,7 +1624,6 @@ void GetAssignmentCommand::invoke(api::Solver* solver, SymbolManager* sm)
     for (const std::pair<const api::Term, std::string>& e : enames)
     {
       api::Term v = solver->getValue(e.first);
-      Trace("ajr-temp") << "Get value " << e.first << " returns " << v << std::endl;
       std::vector<SExpr> ss;
       ss.emplace_back(SExpr::Keyword(e.second));
       ss.emplace_back(SExpr::Keyword(v.toString()));
