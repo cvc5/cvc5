@@ -1528,7 +1528,7 @@ void SmtEngine::checkUnsatCore() {
   Result r;
   try {
     r = coreChecker->checkSat();
-  } catch (...) {
+  } catch(...) {
     throw;
   }
   Notice() << "SmtEngine::checkUnsatCore(): result is " << r << endl;
@@ -1574,7 +1574,7 @@ UnsatCore SmtEngine::getUnsatCore() {
   return getUnsatCoreInternal();
 }
 
-void SmtEngine::printInstantiations(std::ostream& out) {
+void SmtEngine::printInstantiations( std::ostream& out ) {
   SmtScope smts(this);
   finishInit();
   if (options::instFormatMode() == options::InstFormatMode::SZS)
@@ -1591,7 +1591,7 @@ void SmtEngine::printInstantiations(std::ostream& out) {
   }
 }
 
-void SmtEngine::printSynthSolution(std::ostream& out) {
+void SmtEngine::printSynthSolution( std::ostream& out ) {
   SmtScope smts(this);
   finishInit();
   TheoryEngine* te = getTheoryEngine();
@@ -1691,7 +1691,7 @@ std::vector<Node> SmtEngine::getAssertions()
   Trace("smt") << "SMT getAssertions()" << endl;
   if(!options::produceAssertions()) {
     const char* msg =
-        "Cannot query the current assertion list when not in produce-assertions mode.";
+      "Cannot query the current assertion list when not in produce-assertions mode.";
     throw ModalException(msg);
   }
   context::CDList<Node>* al = d_asserts->getAssertionList();
@@ -1875,9 +1875,9 @@ void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
   if(key == "command-verbosity") {
     if(!value.isAtom()) {
       const vector<SExpr>& cs = value.getChildren();
-      if (cs.size() == 2 &&
-          (cs[0].isKeyword() || cs[0].isString()) &&
-          cs[1].isInteger()) {
+      if(cs.size() == 2 &&
+         (cs[0].isKeyword() || cs[0].isString()) &&
+         cs[1].isInteger()) {
         string c = cs[0].getValue();
         const Integer& v = cs[1].getIntegerValue();
         if(v < 0 || v > 2) {
@@ -1963,7 +1963,7 @@ bool SmtEngine::getExpressionName(const Node& e, std::string& name) const {
 
 void SmtEngine::setExpressionName(const Node& e, const std::string& name) {
   Trace("smt-debug") << "Set expression name " << e << " to " << name << std::endl;
-  d_exprNames->setExpressionName(e, name);
+  d_exprNames->setExpressionName(e,name);
 }
 
 Options& SmtEngine::getOptions() { return d_options; }
