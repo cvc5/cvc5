@@ -256,15 +256,6 @@ class TranscendentalSolver
    * region.
    */
   Node regionToUpperBound(Kind k, int region);
-  /** get derivative
-   *
-   * Returns d/dx n. Supports cases of n
-   * for transcendental functions applied to x,
-   * multiplication, addition, constants and variables.
-   * Returns Node::null() if derivative is an
-   * unhandled case.
-   */
-  Node getDerivative(Node n, Node x);
 
   void mkPi();
   void getCurrentPiBounds();
