@@ -548,24 +548,6 @@ class CVC4_PUBLIC SmtEngine
    */
   std::vector<Node> getValues(const std::vector<Node>& exprs);
 
-  /**
-   * Add a function to the set of expressions whose value is to be
-   * later returned by a call to getAssignment().  The expression
-   * should be a Boolean zero-ary defined function or a Boolean
-   * variable.  Rather than throwing a ModalException on modal
-   * failures (not in interactive mode or not producing assignments),
-   * this function returns true if the expression was added and false
-   * if this request was ignored.
-   */
-  bool addToAssignment(const Expr& e);
-
-  /**
-   * Get the assignment (only if immediately preceded by a SAT or
-   * NOT_ENTAILED query).  Only permitted if the SmtEngine is set to
-   * operate interactively and produce-assignments is on.
-   */
-  std::vector<std::pair<Expr, Expr> > getAssignment();
-
   /** Print all instantiations made by the quantifiers module.  */
   void printInstantiations(std::ostream& out);
 
@@ -907,8 +889,6 @@ class CVC4_PUBLIC SmtEngine
       DefinedFunctionMap;
   /** The type of our internal assertion list */
   typedef context::CDList<Node> AssertionList;
-  /** The type of our internal assignment set */
-  typedef context::CDHashSet<Node, NodeHashFunction> AssignmentSet;
 
   // disallow copy/assignment
   SmtEngine(const SmtEngine&) = delete;
@@ -1145,11 +1125,6 @@ class CVC4_PUBLIC SmtEngine
   std::unique_ptr<smt::InterpolationSolver> d_interpolSolver;
   /** The solver for quantifier elimination queries */
   std::unique_ptr<smt::QuantElimSolver> d_quantElimSolver;
-  /**
-   * List of items for which to retrieve values using getAssignment().
-   */
-  AssignmentSet* d_assignments;
-
   /**
    * The logic we're in. This logic may be an extension of the logic set by the
    * user.

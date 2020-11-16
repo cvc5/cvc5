@@ -1278,57 +1278,6 @@ void DefineFunctionCommand::toStream(std::ostream& out,
 }
 
 /* -------------------------------------------------------------------------- */
-/* class DefineNamedFunctionCommand                                           */
-/* -------------------------------------------------------------------------- */
-
-DefineNamedFunctionCommand::DefineNamedFunctionCommand(
-
-    const std::string& id,
-    api::Term func,
-    const std::vector<api::Term>& formals,
-    api::Term formula,
-    bool global)
-    : DefineFunctionCommand(id, func, formals, formula, global)
-{
-}
-
-void DefineNamedFunctionCommand::invoke(api::Solver* solver, SymbolManager* sm)
-{
-  this->DefineFunctionCommand::invoke(solver, sm);
-  if (!d_func.isNull() && d_func.getSort().isBoolean())
-  {
-    solver->getSmtEngine()->addToAssignment(d_func.getExpr());
-  }
-  d_commandStatus = CommandSuccess::instance();
-}
-
-Command* DefineNamedFunctionCommand::clone() const
-{
-  return new DefineNamedFunctionCommand(
-      d_symbol, d_func, d_formals, d_formula, d_global);
-}
-
-void DefineNamedFunctionCommand::toStream(std::ostream& out,
-                                          int toDepth,
-                                          size_t dag,
-                                          OutputLanguage language) const
-{
-  // get the range type of the function, or the type itself
-  // if its not a function
-  TypeNode range = d_func.getSort().getTypeNode();
-  if (range.isFunction())
-  {
-    range = range.getRangeType();
-  }
-  Printer::getPrinter(language)->toStreamCmdDefineNamedFunction(
-      out,
-      d_func.toString(),
-      api::termVectorToNodes(d_formals),
-      range,
-      d_formula.getNode());
-}
-
-/* -------------------------------------------------------------------------- */
 /* class DefineFunctionRecCommand                                             */
 /* -------------------------------------------------------------------------- */
 
@@ -1661,6 +1610,13 @@ void GetValueCommand::toStream(std::ostream& out,
 GetAssignmentCommand::GetAssignmentCommand() {}
 void GetAssignmentCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
+  if (!options::produceAssignments())
+  {
+    std::stringstream sse;
+    sse << "Cannot get assignment when produce-assignments is false";
+    d_commandStatus = new CommandRecoverableFailure(sse.str());
+    return;
+  }
   try
   {
     std::map<api::Term, std::string> enames = sm->getExpressionNames();
@@ -1668,6 +1624,7 @@ void GetAssignmentCommand::invoke(api::Solver* solver, SymbolManager* sm)
     for (const std::pair<const api::Term, std::string>& e : enames)
     {
       api::Term v = solver->getValue(e.first);
+      Trace("ajr-temp") << "Get value " << e.first << " returns " << v << std::endl;
       std::vector<SExpr> ss;
       ss.emplace_back(SExpr::Keyword(e.second));
       ss.emplace_back(SExpr::Keyword(v.toString()));

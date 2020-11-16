@@ -1700,20 +1700,6 @@ void Smt2Printer::toStreamCmdDefineType(std::ostream& out,
   out << ") " << t << ")" << std::endl;
 }
 
-void Smt2Printer::toStreamCmdDefineNamedFunction(
-    std::ostream& out,
-    const std::string& id,
-    const std::vector<Node>& formals,
-    TypeNode range,
-    Node formula) const
-{
-  out << "DefineNamedFunction( ";
-  toStreamCmdDefineFunction(out, id, formals, range, formula);
-  out << " )" << std::endl;
-
-  printUnknownCommand(out, "define-named-function");
-}
-
 void Smt2Printer::toStreamCmdSimplify(std::ostream& out, Node n) const
 {
   out << "(simplify " << n << ')' << std::endl;
