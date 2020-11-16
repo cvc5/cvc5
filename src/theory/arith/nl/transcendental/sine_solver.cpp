@@ -155,17 +155,6 @@ void SineSolver::checkMonotonic()
   smv.d_reverse_order = true;
   std::sort(tf_args.begin(), tf_args.end(), smv);
 
-  Trace("nl-ext-tf-mono") << "Sorted transcendental function list for "
-                          << Kind::SINE << " : " << std::endl;
-  for (unsigned i = 0; i < tf_args.size(); i++)
-  {
-    Node targ = tf_args[i];
-    Node mvatarg = d_data->d_model.computeAbstractModelValue(targ);
-    Trace("nl-ext-tf-mono") << "  " << targ << " -> " << mvatarg << std::endl;
-    Node t = tf_arg_to_term[targ];
-    Node mvat = d_data->d_model.computeAbstractModelValue(t);
-    Trace("nl-ext-tf-mono") << "     f-val : " << mvat << std::endl;
-  }
   std::vector<Node> mpoints = {d_data->d_pi,
                                d_data->d_pi_2,
                                d_data->d_zero,
@@ -184,9 +173,8 @@ void SineSolver::checkMonotonic()
   int monotonic_dir = -1;
   Node mono_bounds[2];
   Node targ, targval, t, tval;
-  for (unsigned i = 0, size = tf_args.size(); i < size; i++)
+  for (const auto& sarg: tf_args)
   {
-    Node sarg = tf_args[i];
     Node sargval = d_data->d_model.computeAbstractModelValue(sarg);
     Assert(sargval.isConst());
     Node s = tf_arg_to_term[sarg];
