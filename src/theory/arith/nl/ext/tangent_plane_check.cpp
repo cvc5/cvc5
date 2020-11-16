@@ -122,11 +122,12 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
               Node ab =
                   nm->mkNode(d == 1 || d == 3 ? Kind::GEQ : Kind::LEQ, b, b_v);
               Node conc = nm->mkNode(d <= 1 ? Kind::LEQ : Kind::GEQ, t, tplane);
-              Node tlem = nm->mkNode(Kind::EQUAL, nm->mkNode(Kind::AND, aa, ab), conc);
+              Node tlem =
+                  nm->mkNode(Kind::EQUAL, nm->mkNode(Kind::AND, aa, ab), conc);
               Trace("nl-ext-tplanes")
                   << "Tangent plane lemma : " << tlem << std::endl;
               d_data->d_im.addPendingArithLemma(
-                tlem, InferenceId::NL_TANGENT_PLANE, asWaitingLemmas);
+                  tlem, InferenceId::NL_TANGENT_PLANE, asWaitingLemmas);
             }
           }
         }
