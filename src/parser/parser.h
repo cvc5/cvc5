@@ -751,11 +751,13 @@ public:
    * Pushes a scope. All subsequent symbol declarations made are only valid in
    * this scope, i.e. they are deleted on the next call to popScope.
    *
-   * The argument bindingLevel is true, the assertion level is set to the
-   * current scope level. This determines which scope assertions are declared
-   * at.
+   * The argument isUserContext is true, when we are pushing a user context
+   * e.g. via the smt2 command (push n). This may also include one initial
+   * pushScope when the parser is initialized. User-context pushes and pops
+   * have an impact on both expression names and the symbol table, whereas
+   * other pushes and pops only have an impact on the symbol table.
    */
-  void pushScope(bool bindingLevel = false);
+  void pushScope(bool isUserContext = false);
 
   void popScope();
 
