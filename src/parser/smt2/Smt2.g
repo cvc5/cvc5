@@ -1841,10 +1841,8 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
   | ATTRIBUTE_NAMED_TOK symbolicExpr[sexpr]
     {
       attr = std::string(":named");
-      // set the expression name in the symbol manager
-      SYM_MAN->setExpressionName(expr, sexpr.getValue(), false);
-      // define the variable in the parser
-      PARSER_STATE->defineVar(sexpr.getValue(), expr);
+      // notify that expression was given a name
+      PARSER_STATE->notifyNamedExpression(expr, sexpr.getValue());
     }
   ;
 
