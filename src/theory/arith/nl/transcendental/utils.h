@@ -85,6 +85,12 @@ class TaylorGenerator
                                              unsigned d,
                                              std::vector<Node>& pbounds);
 
+  /** get transcendental function model bounds
+   *
+   * This returns the current lower and upper bounds of transcendental
+   * function application tf based on Taylor of degree 2*d, which is dependent
+   * on the model value of its argument.
+   */
   std::pair<Node, Node> getTfModelBounds(Node tf, unsigned d, NlModel& model);
 
  private:

@@ -99,7 +99,7 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
       }
       else
       {
-        std::pair<Node, Node> bounds = getTfModelBounds(tf, d_taylor_degree);
+        std::pair<Node, Node> bounds = d_tstate.d_taylor.getTfModelBounds(tf, d_taylor_degree, d_model);
         bl = bounds.first;
         bu = bounds.second;
         if (bl != bu)
@@ -237,10 +237,6 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = tf.getKind();
-  if (k == Kind::EXPONENTIAL)
-  {
-    //return d_expSlv.checkTfTangentPlanesFun(tf, d);
-  }
   // this should only be run on master applications
   Assert(d_tstate.d_trSlaves.find(tf) != d_tstate.d_trSlaves.end());
 
@@ -298,9 +294,9 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
   Node bounds[2];
   if (k == SINE)
   {
-    bounds[0] = regionToLowerBound(k, region);
+    bounds[0] = d_sineSlv.regionToLowerBound(region);
     Assert(!bounds[0].isNull());
-    bounds[1] = regionToUpperBound(k, region);
+    bounds[1] = d_sineSlv.regionToUpperBound(region);
     Assert(!bounds[1].isNull());
   }
 
@@ -310,7 +306,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
   // compute whether this is a tangent refinement or a secant refinement
   bool is_tangent = false;
   bool is_secant = false;
-  std::pair<Node, Node> mvb = getTfModelBounds(tf, d);
+  std::pair<Node, Node> mvb = d_tstate.d_taylor.getTfModelBounds(tf, d, d_model);
   // this is the approximated value of tf(c), which is a value such that:
   //    M_A(tf(c)) >= poly_appox_c >= tf(c) or
   //    M_A(tf(c)) <= poly_appox_c <= tf(c)
@@ -388,7 +384,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
   {
     if (k == Kind::EXPONENTIAL) {
       d_expSlv.mkTangentLemma(tf, c, poly_approx_c);
-    } else {
+    } else if (k == Kind::SINE) {
       d_sineSlv.mkTangentLemma(tf, c, poly_approx_c, region);
     }
   }
@@ -554,103 +550,6 @@ int TranscendentalSolver::regionToConcavity(Kind k, int region)
     }
   }
   return 0;
-}
-
-Node TranscendentalSolver::regionToLowerBound(Kind k, int region)
-{
-  Assert(k == Kind::SINE);
-  if (region == 1)
-  {
-    return d_tstate.d_pi_2;
-  }
-  else if (region == 2)
-  {
-    return d_tstate.d_zero;
-  }
-  else if (region == 3)
-  {
-    return d_tstate.d_pi_neg_2;
-  }
-  else if (region == 4)
-  {
-    return d_tstate.d_pi_neg;
-  }
-  return Node::null();
-}
-
-Node TranscendentalSolver::regionToUpperBound(Kind k, int region)
-{
-  Assert(k == Kind::SINE);
-  if (region == 1)
-  {
-    return d_tstate.d_pi;
-  }
-  else if (region == 2)
-  {
-    return d_tstate.d_pi_2;
-  }
-  else if (region == 3)
-  {
-    return d_tstate.d_zero;
-  }
-  else if (region == 4)
-  {
-    return d_tstate.d_pi_neg_2;
-  }
-  return Node::null();
-}
-
-std::pair<Node, Node> TranscendentalSolver::getTfModelBounds(Node tf,
-                                                             unsigned d)
-{
-  // compute the model value of the argument
-  Node c = d_model.computeAbstractModelValue(tf[0]);
-  Assert(c.isConst());
-  int csign = c.getConst<Rational>().sgn();
-  Kind k = tf.getKind();
-  if (csign == 0)
-  {
-    // at zero, its trivial
-    if (k == SINE)
-    {
-      return std::pair<Node, Node>(d_tstate.d_zero, d_tstate.d_zero);
-    }
-    Assert(k == EXPONENTIAL);
-    return std::pair<Node, Node>(d_tstate.d_one, d_tstate.d_one);
-  }
-  bool isNeg = csign == -1;
-
-  std::vector<Node> pbounds;
-  d_tstate.d_taylor.getPolynomialApproximationBoundForArg(k, c, d, pbounds);
-
-  std::vector<Node> bounds;
-  TNode tfv = d_tstate.d_taylor.getTaylorVariable();
-  TNode tfs = tf[0];
-  for (unsigned d2 = 0; d2 < 2; d2++)
-  {
-    int index = d2 == 0 ? (isNeg ? 1 : 0) : (isNeg ? 3 : 2);
-    Node pab = pbounds[index];
-    if (!pab.isNull())
-    {
-      // { x -> M_A(tf[0]) }
-      // Notice that we compute the model value of tfs first, so that
-      // the call to rewrite below does not modify the term, where notice that
-      // rewrite( x*x { x -> M_A(t) } ) = M_A(t)*M_A(t)
-      // is not equal to
-      // M_A( x*x { x -> t } ) = M_A( t*t )
-      // where M_A denotes the abstract model.
-      Node mtfs = d_model.computeAbstractModelValue(tfs);
-      pab = pab.substitute(tfv, mtfs);
-      pab = Rewriter::rewrite(pab);
-      Assert(pab.isConst());
-      bounds.push_back(pab);
-    }
-    else
-    {
-      bounds.push_back(Node::null());
-    }
-  }
-  return std::pair<Node, Node>(bounds[0], bounds[1]);
 }
 
 }  // namespace nl

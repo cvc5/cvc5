@@ -86,6 +86,45 @@ class SineSolver
 
   void mkTangentLemma(TNode e, TNode c, TNode poly_approx, int region);
 
+/** region to lower bound
+   *
+   * Returns the term corresponding to the lower
+   * bound of the region of transcendental function
+   * with kind k. Returns Node::null if the region
+   * is invalid, or there is no lower bound for the
+   * region.
+   */
+  Node regionToLowerBound(int region)
+  {
+    switch (region)
+    {
+      case 1: return d_data->d_pi_2;
+      case 2: return d_data->d_zero;
+      case 3: return d_data->d_pi_neg_2;
+      case 4: return d_data->d_pi_neg;
+      default: return Node();
+    }
+  }
+
+/** region to upper bound
+   *
+   * Returns the term corresponding to the upper
+   * bound of the region of transcendental function
+   * with kind k. Returns Node::null if the region
+   * is invalid, or there is no upper bound for the
+   * region.
+   */
+  Node regionToUpperBound(int region)
+  {
+    switch (region)
+    {
+      case 1: return d_data->d_pi;
+      case 2: return d_data->d_pi_2;
+      case 3: return d_data->d_zero;
+      case 4: return d_data->d_pi_neg_2;
+      default: return Node();
+    }
+  }
  private:
   int regionToMonotonicityDir(int region)
   {
@@ -110,29 +149,6 @@ class SineSolver
     }
   }
 
-  Node regionToLowerBound(int region)
-  {
-    switch (region)
-    {
-      case 1: return d_data->d_pi_2;
-      case 2: return d_data->d_zero;
-      case 3: return d_data->d_pi_neg_2;
-      case 4: return d_data->d_pi_neg;
-      default: return Node();
-    }
-  }
-
-  Node regionToUpperBound(int region)
-  {
-    switch (region)
-    {
-      case 1: return d_data->d_pi;
-      case 2: return d_data->d_pi_2;
-      case 3: return d_data->d_zero;
-      case 4: return d_data->d_pi_neg_2;
-      default: return Node();
-    }
-  }
 
   TranscendentalState* d_data;
 

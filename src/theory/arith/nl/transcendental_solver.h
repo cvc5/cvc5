@@ -167,13 +167,6 @@ class TranscendentalSolver
   bool checkTfTangentPlanesFun(Node tf, unsigned d);
   //-------------------------------------------- end lemma schemas
 
-  /** get transcendental function model bounds
-   *
-   * This returns the current lower and upper bounds of transcendental
-   * function application tf based on Taylor of degree 2*d, which is dependent
-   * on the model value of its argument.
-   */
-  std::pair<Node, Node> getTfModelBounds(Node tf, unsigned d);
   /** get concavity
    *
    * Returns whether we are concave (+1) or convex (-1)
@@ -182,24 +175,6 @@ class TranscendentalSolver
    * Returns 0 if region is invalid.
    */
   int regionToConcavity(Kind k, int region);
-  /** region to lower bound
-   *
-   * Returns the term corresponding to the lower
-   * bound of the region of transcendental function
-   * with kind k. Returns Node::null if the region
-   * is invalid, or there is no lower bound for the
-   * region.
-   */
-  Node regionToLowerBound(Kind k, int region);
-  /** region to upper bound
-   *
-   * Returns the term corresponding to the upper
-   * bound of the region of transcendental function
-   * with kind k. Returns Node::null if the region
-   * is invalid, or there is no upper bound for the
-   * region.
-   */
-  Node regionToUpperBound(Kind k, int region);
 
   /** The inference manager that we push conflicts and lemmas to. */
   InferenceManager& d_im;
