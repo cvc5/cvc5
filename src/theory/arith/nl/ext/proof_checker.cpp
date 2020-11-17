@@ -28,7 +28,6 @@ namespace nl {
 void ExtProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(PfRule::ARITH_MULT_TANGENT, this);
-  pc->registerChecker(PfRule::ARITH_MULT_TANGENT_INV, this);
 }
 
 Node ExtProofRuleChecker::checkInternal(PfRule id,
@@ -73,35 +72,6 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
         nm->mkNode(i == 2 || i == 3 ? Kind::GEQ : Kind::LEQ,
                    nm->mkNode(Kind::NONLINEAR_MULT, x, y),
                    tplane)
-    });
-  }
-  else if (id == PfRule::ARITH_MULT_TANGENT_INV)
-  {
-    Assert(children.empty());
-    Assert(args.size() == 5);
-    Assert(args[0].getType().isReal());
-    Assert(args[1].getType().isReal());
-    Assert(args[2].getType().isReal());
-    Assert(args[3].getType().isReal());
-    Assert(args[4].isConst() && args[4].getKind() == Kind::CONST_RATIONAL
-           && args[4].getConst<Rational>().isIntegral());
-    Node x = args[0];
-    Node y = args[1];
-    Node a = args[2];
-    Node b = args[3];
-    std::uint64_t i =
-        args[4].getConst<Rational>().getNumerator().toUnsignedInt();
-    Node tplane = nm->mkNode(Kind::MINUS,
-                             nm->mkNode(Kind::PLUS,
-                                        nm->mkNode(Kind::MULT, b, x),
-                                        nm->mkNode(Kind::MULT, a, y)),
-                             nm->mkNode(Kind::MULT, a, b));
-    return nm->mkOr(std::vector<Node>{
-        nm->mkNode(i == 2 || i == 3 ? Kind::GEQ : Kind::LEQ,
-                   nm->mkNode(Kind::NONLINEAR_MULT, x, y),
-                   tplane).negate(),
-        nm->mkNode(i == 0 || i == 3 ? Kind::GEQ : Kind::LEQ, x, a),
-        nm->mkNode(i == 0 || i == 2 ? Kind::GEQ : Kind::LEQ, y, b)
     });
   }
   return Node::null();

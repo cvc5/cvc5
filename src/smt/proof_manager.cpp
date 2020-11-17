@@ -21,6 +21,8 @@
 #include "proof/lean/lean_printer.h"
 #include "proof/lfsc/lfsc_post_processor.h"
 #include "proof/lfsc/lfsc_printer.h"
+#include "proof/verit/verit_post_processor.h"
+#include "proof/verit/verit_printer.h"
 #include "smt/assertions.h"
 
 namespace CVC4 {
@@ -34,6 +36,7 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
           d_pnm.get(), u, "smt::PreprocessProofGenerator")),
       d_pfpp(new ProofPostproccess(d_pnm.get(), smte, d_pppg.get())),
       d_lpfpp(new proof::LeanProofPostprocess(d_pnm.get())),
+      d_vpfpp(nullptr),
       d_finalProof(nullptr)
 {
   // add rules to eliminate here
@@ -125,6 +128,12 @@ void PfManager::printProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
     d_lpfpp->process(fp);
     proof::leanPrinter(out, fp);
   }
+  else if (options::proofFormatMode() == options::ProofFormatMode::VERIT)
+  {
+    d_vpfpp.reset(new proof::VeritProofPostprocess(d_pnm.get()));
+    d_vpfpp->process(fp);
+    proof::veritPrinter(out, fp);
+  }
   else if (options::proofFormatMode() == options::ProofFormatMode::LFSC)
   {
     std::vector<Node> assertions;
@@ -134,6 +143,10 @@ void PfManager::printProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
     lpp.process(fp);
     proof::LfscPrinter lp;
     // print the proof for assertions
+    Trace("lfsc-debug") << "(proof\n";
+    Trace("lfsc-debug") << *fp;
+    Trace("lfsc-debug") << "\n)\n";
+
     lp.print(out, assertions, fp.get());
   }
   else

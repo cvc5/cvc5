@@ -28,6 +28,15 @@ namespace CVC4 {
 namespace proof {
 
 /**
+work steps:
+1. make new rules in the lfsc signature
+2. add to LfscRule enum
+3. print in toString
+4. convert PfRule to LfscRule in the postprocessor
+5. Add printing code to computeProofArgs
+*/
+
+/**
  * LFSC rules
  */
 enum class LfscRule : uint32_t
@@ -37,6 +46,8 @@ enum class LfscRule : uint32_t
   NEG_SYMM,
   TRANS,
   CONG,
+  CNF_AND_POS_1,
+  CNF_AND_POS_2,
   //----------- unknown
   UNKNOWN,
 };
@@ -60,12 +71,16 @@ const char* toString(LfscRule id);
  * @return The stream
  */
 std::ostream& operator<<(std::ostream& out, LfscRule id);
+LfscRule getLfscRule(Node n);
+bool getLfscRule(Node n, LfscRule& lr);
+Node mkLfscRuleNode(LfscRule r);
 
 class LfscPrinter
 {
  public:
   LfscPrinter();
   ~LfscPrinter() {}
+
   /**
    * Print the full proof of assertions => false by pn.
    */
@@ -174,8 +189,6 @@ class LfscPrinter
   //------------------------------ end printing proofs
 
   //------------------- helper methods
-  static bool getLfscRule(Node n, LfscRule& lr);
-  static LfscRule getLfscRule(Node n);
   static void printRule(std::ostream& out, const ProofNode*);
   static void printId(std::ostream& out, uint32_t id);
   static void printProofId(std::ostream& out, uint32_t id);
