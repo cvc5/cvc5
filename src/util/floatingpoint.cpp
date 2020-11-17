@@ -512,7 +512,7 @@ FloatingPoint::FloatingPoint(const FloatingPointSize& size, const BitVector& bv)
       d_fpl(symfpu::unpack<symfpuLiteral::traits>(size, bv))
 #else
       ,
-      d_fpl(size.exponent(), size.significand(), 0.0)
+      d_fpl(size.exponentWidth(), size.significandWidth(), 0.0)
 #endif
 {
 }

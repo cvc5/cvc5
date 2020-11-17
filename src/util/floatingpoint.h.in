@@ -431,45 +431,45 @@ class CVC4_PUBLIC FloatingPoint
 
   /**
    * Create a FP NaN value of given size.
-   * t: The FP size (format).
+   * size: The FP size (format).
    */
   static FloatingPoint makeNaN(const FloatingPointSize& size);
   /**
    * Create a FP infinity value of given size.
-   * t:    The FP size (format).
-   * sign: True for +oo, false otherwise.
+   * size: The FP size (format).
+   * sign: True for -oo, false otherwise.
    */
   static FloatingPoint makeInf(const FloatingPointSize& size, bool sign);
   /**
    * Create a FP zero value of given size.
-   * t:    The FP size (format).
-   * sign: True for +zero, false otherwise.
+   * size: The FP size (format).
+   * sign: True for -zero, false otherwise.
    */
   static FloatingPoint makeZero(const FloatingPointSize& size, bool sign);
   /**
    * Create the smallest subnormal FP value of given size.
-   * t:    The FP size (format).
-   * sign: True for positive sign, false otherwise.
+   * size: The FP size (format).
+   * sign: True for negative sign, false otherwise.
    */
   static FloatingPoint makeMinSubnormal(const FloatingPointSize& size,
                                         bool sign);
   /**
    * Create the largest subnormal FP value of given size.
-   * t:    The FP size (format).
-   * sign: True for positive sign, false otherwise.
+   * size: The FP size (format).
+   * sign: True for negative sign, false otherwise.
    */
   static FloatingPoint makeMaxSubnormal(const FloatingPointSize& size,
                                         bool sign);
   /**
    * Create the smallest normal FP value of given size.
-   * t:    The FP size (format).
-   * sign: True for positive sign, false otherwise.
+   * size: The FP size (format).
+   * sign: True for negative sign, false otherwise.
    */
   static FloatingPoint makeMinNormal(const FloatingPointSize& size, bool sign);
   /**
    * Create the largest normal FP value of given size.
-   * t:    The FP size (format).
-   * sign: True for positive sign, false otherwise.
+   * size: The FP size (format).
+   * sign: True for negative sign, false otherwise.
    */
   static FloatingPoint makeMaxNormal(const FloatingPointSize& size, bool sign);
 
