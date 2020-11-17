@@ -39,9 +39,9 @@ inline bool CVC4_PUBLIC validSignificandSize(unsigned s) { return s >= 2; }
 /* -------------------------------------------------------------------------- */
 
 /**
- * Floating point sorts are parameterised by two non-zero constants
- * giving the width (in bits) of the exponent and significand
- * (including the hidden bit).
+ * Floating point sorts are parameterised by two non-zero constants giving the
+ * width (in bits) of the exponent and significand (including the hidden bit).
+ * So, IEEE-754 single precision, a.k.a. float, is described as 8 24.
  */
 class CVC4_PUBLIC FloatingPointSize
 {
@@ -845,15 +845,9 @@ struct CVC4_PUBLIC FloatingPointToBVHashFunction
   }
 }; /* struct FloatingPointToBVHashFunction */
 
-// It is not possible to pack a number without a size to pack to,
-// thus it is difficult to implement this in a sensible way.  Use
-// FloatingPoint instead...
-#if 0
-inline std::ostream& operator <<(std::ostream& os, const FloatingPointLiteral& fp) CVC4_PUBLIC;
-inline std::ostream& operator <<(std::ostream& os, const FloatingPointLiteral& fp) {
-    return os << "FloatingPointLiteral";
-  }
-#endif
+/* Note: It is not possible to pack a number without a size to pack to,
+ * thus it is difficult to implement output stream operator overloads for
+ * FloatingPointLiteral in a sensible way. Use FloatingPoint instead. */
 
 /** Output stream operator overloading for floating-point values. */
 std::ostream& operator<<(std::ostream& os, const FloatingPoint& fp) CVC4_PUBLIC;
