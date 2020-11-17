@@ -284,10 +284,10 @@ void SineSolver::mkTangentLemma(TNode e, TNode c, TNode poly_approx, int region)
                      mdir != concavity ? Node(c) : regionToUpperBound(region))),
       nm->mkNode(concavity == 1 ? Kind::GEQ : Kind::LEQ, e, poly_approx));
 
-  Trace("nl-ext-tftp-debug2")
+  Trace("nl-ext-sine")
       << "*** Tangent plane lemma (pre-rewrite): " << lem << std::endl;
   lem = Rewriter::rewrite(lem);
-  Trace("nl-ext-tftp-lemma")
+  Trace("nl-ext-sine")
       << "*** Tangent plane lemma : " << lem << std::endl;
   Assert(d_data->d_model.computeAbstractModelValue(lem) == d_data->d_false);
   // Figure 3 : line 9

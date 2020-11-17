@@ -90,26 +90,6 @@ class ExponentialSolver
 
  private:
 
-
- int regionToMonotonicityDir(int region)
-{
-    if (region == 1)
-    {
-      return 1;
-    }
-  return 0;
-}
-
-
-int regionToConcavity(int region)
-{
-    if (region == 1)
-    {
-      return 1;
-    }
-  return 0;
-}
-
  TranscendentalState* d_data;
 
  /** The transcendental functions we have done initial refinements on */

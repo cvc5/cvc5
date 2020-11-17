@@ -174,13 +174,6 @@ class TranscendentalSolver
    * on the model value of its argument.
    */
   std::pair<Node, Node> getTfModelBounds(Node tf, unsigned d);
-  /** get monotonicity direction
-   *
-   * Returns whether the slope is positive (+1) or negative(-1)
-   * in region of transcendental function with kind k.
-   * Returns 0 if region is invalid.
-   */
-  int regionToMonotonicityDir(Kind k, int region);
   /** get concavity
    *
    * Returns whether we are concave (+1) or convex (-1)
@@ -208,34 +201,11 @@ class TranscendentalSolver
    */
   Node regionToUpperBound(Kind k, int region);
 
-  void mkPi();
-  void getCurrentPiBounds();
-
   /** The inference manager that we push conflicts and lemmas to. */
   InferenceManager& d_im;
   /** Reference to the non-linear model object */
   NlModel& d_model;
-  /** commonly used terms */
-  Node d_zero;
-  Node d_one;
-  Node d_neg_one;
-  Node d_true;
-  Node d_false;
-  /**
-   * Some transcendental functions f(t) are "purified", e.g. we add
-   * t = y ^ f(t) = f(y) where y is a fresh variable. Those that are not
-   * purified we call "master terms".
-   *
-   * The maps below maintain a master/slave relationship over
-   * transcendental functions (SINE, EXPONENTIAL, PI), where above
-   * f(y) is the master of itself and of f(t).
-   *
-   * This is used for ensuring that the argument y of SINE we process is on the
-   * interval [-pi .. pi], and that exponentials are not applied to arguments
-   * that contain transcendental functions.
-   */
-  std::map<Node, Node> d_trMaster;
-  std::map<Node, std::unordered_set<Node, NodeHashFunction>> d_trSlaves;
+  
   /** The transcendental functions we have done initial refinements on */
   std::map<Node, bool> d_tf_initial_refine;
 
@@ -284,21 +254,6 @@ class TranscendentalSolver
    * if the option options::nlExtTfIncPrecision() is enabled.
    */
   unsigned d_taylor_degree;
-  /** PI
-   *
-   * Note that PI is a (symbolic, non-constant) nullary operator. This is
-   * because its value cannot be computed exactly. We constraint PI to concrete
-   * lower and upper bounds stored in d_pi_bound below.
-   */
-  Node d_pi;
-  /** PI/2 */
-  Node d_pi_2;
-  /** -PI/2 */
-  Node d_pi_neg_2;
-  /** -PI */
-  Node d_pi_neg;
-  /** the concrete lower and upper bounds for PI */
-  Node d_pi_bound[2];
 
   transcendental::TranscendentalState d_tstate;
   transcendental::ExponentialSolver d_expSlv;

@@ -39,12 +39,6 @@ TranscendentalSolver::TranscendentalSolver(InferenceManager& im, NlModel& m)
       d_expSlv(&d_tstate),
       d_sineSlv(&d_tstate)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  d_true = nm->mkConst(true);
-  d_false = nm->mkConst(false);
-  d_zero = nm->mkConst(Rational(0));
-  d_one = nm->mkConst(Rational(1));
-  d_neg_one = nm->mkConst(Rational(-1));
   d_taylor_degree = options::nlExtTfTaylorDegree();
 }
 
@@ -62,8 +56,6 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
 
   NodeManager* nm = NodeManager::currentNM();
 
-  // register the extended function terms
-  std::vector<Node> trNeedsMaster;
   bool needPi = false;
   // for computing congruence
   std::map<Kind, ArgTrie> argTrie;
@@ -99,16 +91,6 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
               break;
             }
           }
-        }
-        if (!consider)
-        {
-          // wait to assign a master below
-          trNeedsMaster.push_back(a);
-        }
-        else
-        {
-          d_trMaster[a] = a;
-          d_trSlaves[a].insert(a);
         }
       }
     }
@@ -160,12 +142,6 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
       d_funcCongClass[a].push_back(a);
     }
   }
-  // initialize pi if necessary
-  if (needPi && d_pi.isNull())
-  {
-    mkPi();
-    getCurrentPiBounds();
-  }
 }
 
 bool TranscendentalSolver::preprocessAssertionsCheckModel(
@@ -211,8 +187,8 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
       Node bu;
       if (k == PI)
       {
-        bl = d_pi_bound[0];
-        bu = d_pi_bound[1];
+        bl = d_tstate.d_pi_bound[0];
+        bu = d_tstate.d_pi_bound[1];
       }
       else
       {
@@ -273,33 +249,6 @@ void TranscendentalSolver::processSideEffect(const NlLemma& se)
     Node c = std::get<2>(sp);
     d_secant_points[tf][d].push_back(c);
   }
-}
-
-void TranscendentalSolver::mkPi()
-{
-  NodeManager* nm = NodeManager::currentNM();
-  if (d_pi.isNull())
-  {
-    d_pi = nm->mkNullaryOperator(nm->realType(), PI);
-    d_pi_2 = Rewriter::rewrite(
-        nm->mkNode(MULT, d_pi, nm->mkConst(Rational(1) / Rational(2))));
-    d_pi_neg_2 = Rewriter::rewrite(
-        nm->mkNode(MULT, d_pi, nm->mkConst(Rational(-1) / Rational(2))));
-    d_pi_neg =
-        Rewriter::rewrite(nm->mkNode(MULT, d_pi, nm->mkConst(Rational(-1))));
-    // initialize bounds
-    d_pi_bound[0] = nm->mkConst(Rational(103993) / Rational(33102));
-    d_pi_bound[1] = nm->mkConst(Rational(104348) / Rational(33215));
-  }
-}
-
-void TranscendentalSolver::getCurrentPiBounds()
-{
-  NodeManager* nm = NodeManager::currentNM();
-  Node pi_lem = nm->mkNode(AND,
-                           nm->mkNode(GEQ, d_pi, d_pi_bound[0]),
-                           nm->mkNode(LEQ, d_pi, d_pi_bound[1]));
-  d_im.addPendingArithLemma(pi_lem, InferenceId::NL_T_PI_BOUND);
 }
 
 void TranscendentalSolver::checkTranscendentalInitialRefine()
@@ -476,7 +425,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
       Trace("nl-ext-tftp-debug2") << "...compare : " << comp << std::endl;
       Node compr = Rewriter::rewrite(comp);
       Trace("nl-ext-tftp-debug2") << "...got : " << compr << std::endl;
-      if (compr == d_true)
+      if (compr == d_tstate.d_true)
       {
         poly_approx_c = v_pab;
         // beyond the bounds
@@ -574,7 +523,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
       else if (k == EXPONENTIAL)
       {
         // pick c-1
-        bounds[0] = Rewriter::rewrite(nm->mkNode(MINUS, c, d_one));
+        bounds[0] = Rewriter::rewrite(nm->mkNode(MINUS, c, d_tstate.d_one));
       }
     }
     if (index < spoints.size() - 1)
@@ -592,7 +541,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
       else if (k == EXPONENTIAL)
       {
         // pick c+1
-        bounds[1] = Rewriter::rewrite(nm->mkNode(PLUS, c, d_one));
+        bounds[1] = Rewriter::rewrite(nm->mkNode(PLUS, c, d_tstate.d_one));
       }
     }
     Trace("nl-ext-tftp-debug2") << "...secant bounds are : " << bounds[0]
@@ -661,7 +610,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
         Trace("nl-ext-tftp-lemma")
             << "*** Secant plane lemma : " << lem << std::endl;
         lemmaConj.push_back(lem);
-        Assert(d_model.computeAbstractModelValue(lem) == d_false);
+        Assert(d_model.computeAbstractModelValue(lem) == d_tstate.d_false);
       }
     }
     // Figure 3 : line 22
@@ -675,29 +624,6 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
     d_im.addPendingArithLemma(nlem, true);
   }
   return true;
-}
-
-int TranscendentalSolver::regionToMonotonicityDir(Kind k, int region)
-{
-  if (k == EXPONENTIAL)
-  {
-    if (region == 1)
-    {
-      return 1;
-    }
-  }
-  else if (k == SINE)
-  {
-    if (region == 1 || region == 4)
-    {
-      return -1;
-    }
-    else if (region == 2 || region == 3)
-    {
-      return 1;
-    }
-  }
-  return 0;
 }
 
 int TranscendentalSolver::regionToConcavity(Kind k, int region)
@@ -728,19 +654,19 @@ Node TranscendentalSolver::regionToLowerBound(Kind k, int region)
   Assert(k == Kind::SINE);
   if (region == 1)
   {
-    return d_pi_2;
+    return d_tstate.d_pi_2;
   }
   else if (region == 2)
   {
-    return d_zero;
+    return d_tstate.d_zero;
   }
   else if (region == 3)
   {
-    return d_pi_neg_2;
+    return d_tstate.d_pi_neg_2;
   }
   else if (region == 4)
   {
-    return d_pi_neg;
+    return d_tstate.d_pi_neg;
   }
   return Node::null();
 }
@@ -750,19 +676,19 @@ Node TranscendentalSolver::regionToUpperBound(Kind k, int region)
   Assert(k == Kind::SINE);
   if (region == 1)
   {
-    return d_pi;
+    return d_tstate.d_pi;
   }
   else if (region == 2)
   {
-    return d_pi_2;
+    return d_tstate.d_pi_2;
   }
   else if (region == 3)
   {
-    return d_zero;
+    return d_tstate.d_zero;
   }
   else if (region == 4)
   {
-    return d_pi_neg_2;
+    return d_tstate.d_pi_neg_2;
   }
   return Node::null();
 }
@@ -780,10 +706,10 @@ std::pair<Node, Node> TranscendentalSolver::getTfModelBounds(Node tf,
     // at zero, its trivial
     if (k == SINE)
     {
-      return std::pair<Node, Node>(d_zero, d_zero);
+      return std::pair<Node, Node>(d_tstate.d_zero, d_tstate.d_zero);
     }
     Assert(k == EXPONENTIAL);
-    return std::pair<Node, Node>(d_one, d_one);
+    return std::pair<Node, Node>(d_tstate.d_one, d_tstate.d_one);
   }
   bool isNeg = csign == -1;
 
