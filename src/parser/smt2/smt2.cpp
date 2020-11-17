@@ -452,10 +452,9 @@ void Smt2::pushDefineFunRecScope(
     const std::vector<std::pair<std::string, api::Sort>>& sortedVarNames,
     api::Term func,
     const std::vector<api::Term>& flattenVars,
-    std::vector<api::Term>& bvs,
-    bool bindingLevel)
+    std::vector<api::Term>& bvs)
 {
-  pushScope(bindingLevel);
+  pushScope();
 
   // bound variables are those that are explicitly named in the preamble
   // of the define-fun(s)-rec command, we define them here
