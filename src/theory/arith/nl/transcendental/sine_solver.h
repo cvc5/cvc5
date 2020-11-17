@@ -86,7 +86,12 @@ class SineSolver
 
   void mkTangentLemma(TNode e, TNode c, TNode poly_approx, int region);
 
-/** region to lower bound
+  std::pair<Node, Node> getSecantBounds(TNode e,
+                                        TNode c,
+                                        unsigned d,
+                                        int region);
+
+  /** region to lower bound
    *
    * Returns the term corresponding to the lower
    * bound of the region of transcendental function
@@ -106,7 +111,7 @@ class SineSolver
     }
   }
 
-/** region to upper bound
+  /** region to upper bound
    *
    * Returns the term corresponding to the upper
    * bound of the region of transcendental function
@@ -125,6 +130,7 @@ class SineSolver
       default: return Node();
     }
   }
+
  private:
   int regionToMonotonicityDir(int region)
   {
@@ -148,7 +154,6 @@ class SineSolver
       default: return 0;
     }
   }
-
 
   TranscendentalState* d_data;
 

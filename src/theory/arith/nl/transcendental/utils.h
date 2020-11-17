@@ -115,6 +115,18 @@ class TaylorGenerator
  */
 Node mkValidPhase(TNode a, TNode pi);
 
+template <typename It>
+void sortByModel(
+    It begin, It end, NlModel& model, bool concrete, bool reverse = false)
+{
+  SortNlModel smv;
+  smv.d_nlm = &model;
+  // sort by concrete values
+  smv.d_isConcrete = concrete;
+  smv.d_reverse_order = reverse;
+  std::sort(begin, end, smv);
+}
+
 }  // namespace transcendental
 }  // namespace nl
 }  // namespace arith

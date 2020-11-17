@@ -99,7 +99,8 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
       }
       else
       {
-        std::pair<Node, Node> bounds = d_tstate.d_taylor.getTfModelBounds(tf, d_taylor_degree, d_model);
+        std::pair<Node, Node> bounds =
+            d_tstate.d_taylor.getTfModelBounds(tf, d_taylor_degree, d_model);
         bl = bounds.first;
         bu = bounds.second;
         if (bl != bu)
@@ -154,7 +155,7 @@ void TranscendentalSolver::processSideEffect(const NlLemma& se)
     Node tf = std::get<0>(sp);
     unsigned d = std::get<1>(sp);
     Node c = std::get<2>(sp);
-    d_secant_points[tf][d].push_back(c);
+    d_tstate.d_secant_points[tf][d].push_back(c);
   }
 }
 
@@ -198,35 +199,17 @@ void TranscendentalSolver::checkTranscendentalTangentPlanes()
       {
         Trace("nl-ext-tftp") << "- run at degree " << d << "..." << std::endl;
         unsigned prev = d_im.numPendingLemmas() + d_im.numWaitingLemmas();
-        if (k == Kind::EXPONENTIAL)
+        if (checkTfTangentPlanesFun(tf, d))
         {
-          if (d_expSlv.checkTfTangentPlanesFun(tf, d))
-          {
-            Trace("nl-ext-tftp")
-                << "...fail, #lemmas = "
-                << (d_im.numPendingLemmas() + d_im.numWaitingLemmas() - prev)
-                << std::endl;
-            break;
-          }
-          else
-          {
-            Trace("nl-ext-tftp") << "...success" << std::endl;
-          }
+          Trace("nl-ext-tftp")
+              << "...fail, #lemmas = "
+              << (d_im.numPendingLemmas() + d_im.numWaitingLemmas() - prev)
+              << std::endl;
+          break;
         }
         else
         {
-          if (checkTfTangentPlanesFun(tf, d))
-          {
-            Trace("nl-ext-tftp")
-                << "...fail, #lemmas = "
-                << (d_im.numPendingLemmas() + d_im.numWaitingLemmas() - prev)
-                << std::endl;
-            break;
-          }
-          else
-          {
-            Trace("nl-ext-tftp") << "...success" << std::endl;
-          }
+          Trace("nl-ext-tftp") << "...success" << std::endl;
         }
       }
     }
@@ -289,16 +272,6 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
     // no secant/tangent plane is necessary
     return true;
   }
-  // bounds for which we are this concavity
-  // Figure 3: < l, u >
-  Node bounds[2];
-  if (k == SINE)
-  {
-    bounds[0] = d_sineSlv.regionToLowerBound(region);
-    Assert(!bounds[0].isNull());
-    bounds[1] = d_sineSlv.regionToUpperBound(region);
-    Assert(!bounds[1].isNull());
-  }
 
   // Figure 3: P
   Node poly_approx;
@@ -306,7 +279,8 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
   // compute whether this is a tangent refinement or a secant refinement
   bool is_tangent = false;
   bool is_secant = false;
-  std::pair<Node, Node> mvb = d_tstate.d_taylor.getTfModelBounds(tf, d, d_model);
+  std::pair<Node, Node> mvb =
+      d_tstate.d_taylor.getTfModelBounds(tf, d, d_model);
   // this is the approximated value of tf(c), which is a value such that:
   //    M_A(tf(c)) >= poly_appox_c >= tf(c) or
   //    M_A(tf(c)) <= poly_appox_c <= tf(c)
@@ -382,71 +356,34 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
 
   if (is_tangent)
   {
-    if (k == Kind::EXPONENTIAL) {
+    if (k == Kind::EXPONENTIAL)
+    {
       d_expSlv.mkTangentLemma(tf, c, poly_approx_c);
-    } else if (k == Kind::SINE) {
+    }
+    else if (k == Kind::SINE)
+    {
       d_sineSlv.mkTangentLemma(tf, c, poly_approx_c, region);
     }
   }
   else if (is_secant)
   {
-    // bounds are the minimum and maximum previous secant points
-    // should not repeat secant points: secant lemmas should suffice to
-    // rule out previous assignment
-    Assert(std::find(
-               d_secant_points[tf][d].begin(), d_secant_points[tf][d].end(), c)
-           == d_secant_points[tf][d].end());
-    // Insert into the (temporary) vector. We do not update this vector
-    // until we are sure this secant plane lemma has been processed. We do
-    // this by mapping the lemma to a side effect below.
-    std::vector<Node> spoints = d_secant_points[tf][d];
-    spoints.push_back(c);
+    // bounds for which we are this concavity
+    // Figure 3: < l, u >
+    Node bounds[2];
 
-    // sort
-    SortNlModel smv;
-    smv.d_nlm = &d_model;
-    smv.d_isConcrete = true;
-    std::sort(spoints.begin(), spoints.end(), smv);
-    // get the resulting index of c
-    unsigned index =
-        std::find(spoints.begin(), spoints.end(), c) - spoints.begin();
-    // bounds are the next closest upper/lower bound values
-    if (index > 0)
+    if (k == Kind::SINE)
     {
-      bounds[0] = spoints[index - 1];
+      auto b = d_sineSlv.getSecantBounds(tf, c, d, region);
+      bounds[0] = b.first;
+      bounds[1] = b.second;
     }
-    else
+    else if (k == EXPONENTIAL)
     {
-      // otherwise, we use the lower boundary point for this concavity
-      // region
-      if (k == SINE)
-      {
-        Assert(!bounds[0].isNull());
-      }
-      else if (k == EXPONENTIAL)
-      {
-        // pick c-1
-        bounds[0] = Rewriter::rewrite(nm->mkNode(MINUS, c, d_tstate.d_one));
-      }
+      auto b = d_expSlv.getSecantBounds(tf, c, d, region);
+      bounds[0] = b.first;
+      bounds[1] = b.second;
     }
-    if (index < spoints.size() - 1)
-    {
-      bounds[1] = spoints[index + 1];
-    }
-    else
-    {
-      // otherwise, we use the upper boundary point for this concavity
-      // region
-      if (k == SINE)
-      {
-        Assert(!bounds[1].isNull());
-      }
-      else if (k == EXPONENTIAL)
-      {
-        // pick c+1
-        bounds[1] = Rewriter::rewrite(nm->mkNode(PLUS, c, d_tstate.d_one));
-      }
-    }
+
     Trace("nl-ext-tftp-debug2") << "...secant bounds are : " << bounds[0]
                                 << " ... " << bounds[1] << std::endl;
 

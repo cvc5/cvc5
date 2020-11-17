@@ -181,21 +181,6 @@ class TranscendentalSolver
   /** Reference to the non-linear model object */
   NlModel& d_model;
 
-  /** secant points (sorted list) for transcendental functions
-   *
-   * This is used for tangent plane refinements for
-   * transcendental functions. This is the set
-   * "get-previous-secant-points" in "Satisfiability
-   * Modulo Transcendental Functions via Incremental
-   * Linearization" by Cimatti et al., CADE 2017, for
-   * each transcendental function application. We store this set for each
-   * Taylor degree.
-   */
-  std::unordered_map<Node,
-                     std::map<unsigned, std::vector<Node>>,
-                     NodeHashFunction>
-      d_secant_points;
-
   /** taylor degree
    *
    * Indicates that the degree of the polynomials in the Taylor approximation of

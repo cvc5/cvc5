@@ -30,7 +30,6 @@ struct TranscendentalState
 {
   TranscendentalState(InferenceManager& im, NlModel& model);
 
-
   /** init last call
    *
    * This is called at the beginning of last call effort check, where
@@ -43,14 +42,39 @@ struct TranscendentalState
    * information (for example, purification of sine terms).
    */
   void init(const std::vector<Node>& assertions,
-                    const std::vector<Node>& false_asserts,
-                    const std::vector<Node>& xts);
+            const std::vector<Node>& false_asserts,
+            const std::vector<Node>& xts);
 
   void mkPi();
   void getCurrentPiBounds();
 
-    Node d_true;
-    Node d_false;
+  std::pair<Node, Node> getClosestSecantPoints(TNode e, TNode c, unsigned d)
+  {
+    // bounds are the minimum and maximum previous secant points
+    // should not repeat secant points: secant lemmas should suffice to
+    // rule out previous assignment
+    Assert(
+        std::find(d_secant_points[e][d].begin(), d_secant_points[e][d].end(), c)
+        == d_secant_points[e][d].end());
+    // Insert into the (temporary) vector. We do not update this vector
+    // until we are sure this secant plane lemma has been processed. We do
+    // this by mapping the lemma to a side effect below.
+    std::vector<Node> spoints = d_secant_points[e][d];
+    spoints.push_back(c);
+
+    // sort
+    sortByModel(spoints.begin(), spoints.end(), d_model, true);
+    // get the resulting index of c
+    unsigned index =
+        std::find(spoints.begin(), spoints.end(), c) - spoints.begin();
+
+    // bounds are the next closest upper/lower bound values
+    return {index > 0 ? spoints[index - 1] : Node(),
+            index < spoints.size() - 1 ? spoints[index + 1] : Node()};
+  }
+
+  Node d_true;
+  Node d_false;
   Node d_zero;
   Node d_one;
   Node d_neg_one;
@@ -61,7 +85,6 @@ struct TranscendentalState
   NlModel& d_model;
 
   TaylorGenerator d_taylor;
-
 
   /**
    * Some transcendental functions f(t) are "purified", e.g. we add

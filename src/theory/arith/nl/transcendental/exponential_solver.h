@@ -86,7 +86,10 @@ class ExponentialSolver
 
   void mkTangentLemma(TNode e, TNode c, TNode poly_approx);
 
-    bool checkTfTangentPlanesFun(Node tf, unsigned d);
+  std::pair<Node, Node> getSecantBounds(TNode e,
+                                        TNode c,
+                                        unsigned d,
+                                        int region);
 
  private:
 

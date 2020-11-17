@@ -148,12 +148,7 @@ void SineSolver::checkMonotonic()
     return;
   }
 
-  SortNlModel smv;
-  smv.d_nlm = &d_data->d_model;
-  // sort by concrete values
-  smv.d_isConcrete = true;
-  smv.d_reverse_order = true;
-  std::sort(tf_args.begin(), tf_args.end(), smv);
+  sortByModel(tf_args.begin(), tf_args.end(), d_data->d_model, true, true);
 
   std::vector<Node> mpoints = {d_data->d_pi,
                                d_data->d_pi_2,
@@ -284,14 +279,34 @@ void SineSolver::mkTangentLemma(TNode e, TNode c, TNode poly_approx, int region)
                      mdir != concavity ? Node(c) : regionToUpperBound(region))),
       nm->mkNode(concavity == 1 ? Kind::GEQ : Kind::LEQ, e, poly_approx));
 
-  Trace("nl-ext-sine")
-      << "*** Tangent plane lemma (pre-rewrite): " << lem << std::endl;
+  Trace("nl-ext-sine") << "*** Tangent plane lemma (pre-rewrite): " << lem
+                       << std::endl;
   lem = Rewriter::rewrite(lem);
-  Trace("nl-ext-sine")
-      << "*** Tangent plane lemma : " << lem << std::endl;
+  Trace("nl-ext-sine") << "*** Tangent plane lemma : " << lem << std::endl;
   Assert(d_data->d_model.computeAbstractModelValue(lem) == d_data->d_false);
   // Figure 3 : line 9
   d_data->d_im.addPendingArithLemma(lem, InferenceId::NL_T_TANGENT, true);
+}
+
+std::pair<Node, Node> SineSolver::getSecantBounds(TNode e,
+                                                  TNode c,
+                                                  unsigned d,
+                                                  int region)
+{
+  std::pair<Node, Node> bounds = d_data->getClosestSecantPoints(e, c, d);
+
+  // Check if we already have neighboring secant points
+  if (bounds.first.isNull())
+  {
+    // lower boundary point for this concavity region
+    bounds.first = regionToLowerBound(region);
+  }
+  if (bounds.second.isNull())
+  {
+    // upper boundary point for this concavity region
+    bounds.second = regionToUpperBound(region);
+  }
+  return bounds;
 }
 
 }  // namespace transcendental
