@@ -1,10 +1,11 @@
 (set-logic QF_LIA)
-(set-info :status sat)
+(set-info :status unsat)
 (declare-fun x () Int)
 (declare-fun y () Int)
 
-(assert (or (! (= x y) :named foo) (= x 5)))
+(assert (or (= x 5) (= x 7)))
+(assert (or (! (= x 5) :named foo) (= x y)))
 
-(assert (or foo (= x 7)))
+(assert (= foo (= x 7)))
 
 (check-sat)
