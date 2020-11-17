@@ -1623,6 +1623,7 @@ void GetAssignmentCommand::invoke(api::Solver* solver, SymbolManager* sm)
     // Must use vector version of getValue to ensure error is thrown regardless
     // of whether terms is empty.
     std::vector<api::Term> values = solver->getValue(terms);
+    Assert(values.size() == names.size());
     std::vector<SExpr> sexprs;
     for (size_t i = 0, nterms = terms.size(); i < nterms; i++)
     {
