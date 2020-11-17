@@ -114,7 +114,7 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
                                                 nm->mkNode(Kind::MULT, b_v, a),
                                                 nm->mkNode(Kind::MULT, a_v, b)),
                                      nm->mkNode(Kind::MULT, a_v, b_v));
-            // construct the equivalent of the following lemmas:
+            // construct the following lemmas:
             // t <= tplane  <=>  ((a <= a_v ^ b >= b_v) v (a >= a_v ^ b <= b_v))
             // t >= tplane  <=>  ((a <= a_v ^ b <= b_v) v (a >= a_v ^ b >= b_v))
 
