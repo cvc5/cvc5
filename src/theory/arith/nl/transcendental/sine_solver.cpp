@@ -148,7 +148,7 @@ void SineSolver::checkMonotonic()
     return;
   }
 
-  sortByModel(tf_args.begin(), tf_args.end(), d_data->d_model, true, true);
+  sortByNlModel(tf_args.begin(), tf_args.end(), &d_data->d_model, true, false, true);
 
   std::vector<Node> mpoints = {d_data->d_pi,
                                d_data->d_pi_2,

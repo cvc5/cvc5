@@ -63,7 +63,7 @@ struct TranscendentalState
     spoints.push_back(c);
 
     // sort
-    sortByModel(spoints.begin(), spoints.end(), d_model, true);
+    sortByNlModel(spoints.begin(), spoints.end(), &d_model);
     // get the resulting index of c
     unsigned index =
         std::find(spoints.begin(), spoints.end(), c) - spoints.begin();

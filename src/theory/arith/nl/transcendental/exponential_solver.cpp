@@ -115,7 +115,7 @@ void ExponentialSolver::checkMonotonic()
     return;
   }
 
-  sortByModel(tf_args.begin(), tf_args.end(), d_data->d_model, true, true);
+  sortByNlModel(tf_args.begin(), tf_args.end(), &d_data->d_model, true, false, true);
 
   Node targ, targval, t, tval;
   for (const auto& sarg : tf_args)
