@@ -2,6 +2,7 @@
 ; EXPECT: sat
 (set-logic ALL_SUPPORTED)
 (declare-sort U 0)
+(declare-heap (U Int))
 (declare-fun u1 () U)
 (declare-fun u2 () U)
 (assert (not (= u1 u2)))

@@ -81,11 +81,13 @@ bool ExtfSolver::doReduction(int effort, Node n)
   if (!d_extfInfoTmp[n].d_modelActive)
   {
     // n is not active in the model, no need to reduce
+  Trace("strings-extf-debug") << "...skip due to model active" << std::endl;
     return false;
   }
   if (d_reduced.find(n)!=d_reduced.end())
   {
     // already sent a reduction lemma
+  Trace("strings-extf-debug") << "...skip due to reduced" << std::endl;
     return false;
   }
   // determine the effort level to process the extf at
@@ -157,6 +159,8 @@ bool ExtfSolver::doReduction(int effort, Node n)
   }
   if (effort != r_effort)
   {
+    
+  Trace("strings-extf-debug") << "...skip due to effort" << std::endl;
     // not the right effort level to reduce
     return false;
   }
@@ -202,6 +206,8 @@ bool ExtfSolver::doReduction(int effort, Node n)
     Trace("strings-red-lemma")
         << "Reduction_" << effort << " lemma : " << nnlem << std::endl;
     Trace("strings-red-lemma") << "...from " << n << std::endl;
+    Trace("strings-red-lemma")
+        << "Reduction_" << effort << " rewritten : " << Rewriter::rewrite(nnlem) << std::endl;
     d_im.sendInference(d_emptyVec, nnlem, Inference::REDUCTION, false, true);
     Trace("strings-extf-debug")
         << "  resolve extf : " << n << " based on reduction." << std::endl;
@@ -386,11 +392,6 @@ void ExtfSolver::checkExtfEval(int effort)
             Inference inf = effort == 0 ? Inference::EXTF : Inference::EXTF_N;
             d_im.sendInference(einfo.d_exp, conc, inf, false, true);
             d_statistics.d_cdSimplifications << n.getKind();
-            if (d_state.isInConflict())
-            {
-              Trace("strings-extf-debug") << "  conflict, return." << std::endl;
-              return;
-            }
           }
         }
         else
@@ -467,6 +468,11 @@ void ExtfSolver::checkExtfEval(int effort)
       {
         has_nreduce = true;
       }
+    }
+    if (d_state.isInConflict())
+    {
+      Trace("strings-extf-debug") << "  conflict, return." << std::endl;
+      return;
     }
   }
   d_hasExtf = has_nreduce;
@@ -625,13 +631,13 @@ void ExtfSolver::checkExtfInference(Node n,
       }
       else
       {
-        // If we already know that s (does not) contain t, then n is redundant.
-        // For example, if str.contains( x, y ), str.contains( z, y ), and x=z
-        // are asserted in the current context, then str.contains( z, y ) is
-        // satisfied by all models of str.contains( x, y ) ^ x=z and thus can
-        // be ignored.
+        // If we already know that s (does not) contain t, then n may be
+        // redundant. However, we do not mark n as reduced here, since strings
+        // reductions may require dependencies between extended functions.
+        // Marking reduced here could lead to incorrect models if an
+        // extended function is marked reduced based on an assignment to
+        // something that depends on n.
         Trace("strings-extf-debug") << "  redundant." << std::endl;
-        d_extt.markReduced(n);
       }
     }
     return;

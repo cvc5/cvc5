@@ -85,28 +85,12 @@ using namespace CVC4::parser;
 #include "smt/command.h"
 
 namespace CVC4 {
-  class Expr;
 
   namespace api {
     class Term;
     class Sort;
   }
-
-  namespace parser {
-    namespace smt2 {
-      /**
-       * Just exists to provide the uintptr_t constructor that ANTLR
-       * requires.
-       */
-      struct myExpr : public CVC4::api::Term {
-        myExpr() : CVC4::api::Term() {}
-        myExpr(void*) : CVC4::api::Term() {}
-        myExpr(const Expr& e) : CVC4::api::Term(d_solver, e) {}
-        myExpr(const myExpr& e) : CVC4::api::Term(e) {}
-      };/* struct myExpr */
-    }/* CVC4::parser::smt2 namespace */
-  }/* CVC4::parser namespace */
-
+  
 }/* CVC4 namespace */
 
 }/* @parser::includes */
@@ -132,8 +116,6 @@ namespace CVC4 {
 #include "util/hash.h"
 #include "util/integer.h"
 #include "util/rational.h"
-// \todo Review the need for this header
-#include "math.h"
 
 using namespace CVC4;
 using namespace CVC4::parser;
@@ -145,6 +127,8 @@ using namespace CVC4::parser;
 #define PARSER_STATE ((Smt2*)PARSER->super)
 #undef SOLVER
 #define SOLVER PARSER_STATE->getSolver()
+#undef SYM_MAN
+#define SYM_MAN PARSER_STATE->getSymbolManager()
 #undef MK_TERM
 #define MK_TERM SOLVER->mkTerm
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
@@ -156,7 +140,7 @@ using namespace CVC4::parser;
  * @return the parsed expression, or the Null Expr if we've reached the
  * end of the input
  */
-parseExpr returns [CVC4::parser::smt2::myExpr expr]
+parseExpr returns [CVC4::api::Term expr = CVC4::api::Term()]
 @declarations {
   CVC4::api::Term expr2;
 }
@@ -274,7 +258,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
     symbol[name,CHECK_UNDECLARED,SYM_SORT]
     { PARSER_STATE->checkUserSymbol(name); }
     LPAREN_TOK symbolList[names,CHECK_NONE,SYM_SORT] RPAREN_TOK
-    { PARSER_STATE->pushScope(true);
+    { PARSER_STATE->pushScope();
       for(std::vector<std::string>::const_iterator i = names.begin(),
             iend = names.end();
           i != iend;
@@ -335,7 +319,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       }
 
       t = PARSER_STATE->mkFlatFunctionType(sorts, t, flattenVars);
-      PARSER_STATE->pushScope(true);
+      PARSER_STATE->pushScope();
       terms = PARSER_STATE->bindBoundVars(sortedVarNames);
     }
     term[expr, expr2]
@@ -354,7 +338,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       api::Term func = PARSER_STATE->bindVar(name, t,
                                       ExprManager::VAR_FLAG_DEFINED, true);
       cmd->reset(new DefineFunctionCommand(
-          name, func, terms, expr, PARSER_STATE->getGlobalDeclarations()));
+          name, func, terms, expr, SYM_MAN->getGlobalDeclarations()));
     }
   | DECLARE_DATATYPE_TOK datatypeDefCommand[false, cmd]
   | DECLARE_DATATYPES_TOK datatypesDefCommand[false, cmd]
@@ -381,6 +365,8 @@ command [std::unique_ptr<CVC4::Command>* cmd]
         // set the expression name, if there was a named term
         std::pair<api::Term, std::string> namedTerm =
             PARSER_STATE->lastNamedTerm();
+        // TODO (projects-248)
+        // SYM_MAN->setExpressionName(namedTerm.first, namedTerm.second, true);
         Command* csen =
             new SetExpressionNameCommand(namedTerm.first, namedTerm.second);
         csen->setMuted(true);
@@ -438,12 +424,12 @@ command [std::unique_ptr<CVC4::Command>* cmd]
         if(num == 0) {
           cmd->reset(new EmptyCommand());
         } else if(num == 1) {
-          PARSER_STATE->pushScope();
+          PARSER_STATE->pushScope(true);
           cmd->reset(new PushCommand());
         } else {
           std::unique_ptr<CommandSequence> seq(new CommandSequence());
           do {
-            PARSER_STATE->pushScope();
+            PARSER_STATE->pushScope(true);
             Command* push_cmd = new PushCommand();
             push_cmd->setMuted(num > 1);
             seq->addCommand(push_cmd);
@@ -457,7 +443,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
               "Strict compliance mode demands an integer to be provided to "
               "PUSH.  Maybe you want (push 1)?");
         } else {
-          PARSER_STATE->pushScope();
+          PARSER_STATE->pushScope(true);
           cmd->reset(new PushCommand());
         }
       } )
@@ -565,7 +551,7 @@ sygusCommand returns [std::unique_ptr<CVC4::Command> cmd]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     ( sortSymbol[range,CHECK_DECLARED] )?
     {
-      PARSER_STATE->pushScope(true);
+      PARSER_STATE->pushScope();
       sygusVars = PARSER_STATE->bindBoundVars(sortedVarNames);
     }
     (
@@ -677,7 +663,7 @@ sygusGrammar[CVC4::api::Grammar*& ret,
   RPAREN_TOK
   {
     // non-terminal symbols in the pre-declaration are locally scoped
-    PARSER_STATE->pushScope(true);
+    PARSER_STATE->pushScope();
     for (std::pair<std::string, api::Sort>& i : sortedVarNames)
     {
       PARSER_STATE->checkDeclaration(name, CHECK_UNDECLARED, SYM_SORT);
@@ -763,8 +749,9 @@ setOptionInternal[std::unique_ptr<CVC4::Command>* cmd]
       // Ugly that this changes the state of the parser; but
       // global-declarations affects parsing, so we can't hold off
       // on this until some SmtEngine eventually (if ever) executes it.
-      if(name == ":global-declarations") {
-        PARSER_STATE->setGlobalDeclarations(sexpr.getValue() == "true");
+      if(name == ":global-declarations")
+      {
+        SYM_MAN->setGlobalDeclarations(sexpr.getValue() == "true");
       }
     }
   ;
@@ -833,7 +820,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
       func =
           PARSER_STATE->bindDefineFunRec(fname, sortedVarNames, t, flattenVars);
       PARSER_STATE->pushDefineFunRecScope(
-          sortedVarNames, func, flattenVars, bvs, true);
+          sortedVarNames, func, flattenVars, bvs);
     }
     term[expr, expr2]
     { PARSER_STATE->popScope();
@@ -841,7 +828,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
         expr = PARSER_STATE->mkHoApply( expr, flattenVars );
       }
       cmd->reset(new DefineFunctionRecCommand(
-          func, bvs, expr, PARSER_STATE->getGlobalDeclarations()));
+          func, bvs, expr, SYM_MAN->getGlobalDeclarations()));
     }
   | DEFINE_FUNS_REC_TOK
     { PARSER_STATE->checkThatLogicIsSet();}
@@ -877,7 +864,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
       }
       bvs.clear();
       PARSER_STATE->pushDefineFunRecScope( sortedVarNamesList[0], funcs[0],
-                                           flattenVarsList[0], bvs, true);
+                                           flattenVarsList[0], bvs);
     }
     (
     term[expr,expr2]
@@ -894,7 +881,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
       if( func_defs.size()<funcs.size() ){
         bvs.clear();
         PARSER_STATE->pushDefineFunRecScope( sortedVarNamesList[j], funcs[j],
-                                             flattenVarsList[j], bvs, true);
+                                             flattenVarsList[j], bvs);
       }
     }
     )+
@@ -905,7 +892,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
             "define-funs-rec"));
       }
       cmd->reset(new DefineFunctionRecCommand(
-          funcs, formals, func_defs, PARSER_STATE->getGlobalDeclarations()));
+          funcs, formals, func_defs, SYM_MAN->getGlobalDeclarations()));
     }
   ;
 
@@ -913,7 +900,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
 @declarations {
   std::vector<api::DatatypeDecl> dts;
   CVC4::api::Term e, e2;
-  CVC4::api::Sort t;
+  CVC4::api::Sort t, s;
   std::string name;
   std::vector<std::string> names;
   std::vector<CVC4::api::Term> terms;
@@ -1002,7 +989,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
         api::Term func = PARSER_STATE->bindVar(name, e.getSort(),
                                         ExprManager::VAR_FLAG_DEFINED);
         cmd->reset(new DefineFunctionCommand(
-            name, func, e, PARSER_STATE->getGlobalDeclarations()));
+            name, func, e, SYM_MAN->getGlobalDeclarations()));
       }
     | // (define (f (v U) ...) t)
       LPAREN_TOK
@@ -1011,7 +998,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       sortedVarList[sortedVarNames] RPAREN_TOK
       { /* add variables to parser state before parsing term */
         Debug("parser") << "define fun: '" << name << "'" << std::endl;
-        PARSER_STATE->pushScope(true);
+        PARSER_STATE->pushScope();
         terms = PARSER_STATE->bindBoundVars(sortedVarNames);
       }
       term[e,e2]
@@ -1033,7 +1020,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
         api::Term func = PARSER_STATE->bindVar(name, tt,
                                         ExprManager::VAR_FLAG_DEFINED);
         cmd->reset(new DefineFunctionCommand(
-            name, func, terms, e, PARSER_STATE->getGlobalDeclarations()));
+            name, func, terms, e, SYM_MAN->getGlobalDeclarations()));
       }
     )
   | // (define-const x U t)
@@ -1043,7 +1030,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     sortSymbol[t,CHECK_DECLARED]
     { /* add variables to parser state before parsing term */
       Debug("parser") << "define const: '" << name << "'" << std::endl;
-      PARSER_STATE->pushScope(true);
+      PARSER_STATE->pushScope();
       terms = PARSER_STATE->bindBoundVars(sortedVarNames);
     }
     term[e, e2]
@@ -1055,7 +1042,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       api::Term func = PARSER_STATE->bindVar(name, t,
                                       ExprManager::VAR_FLAG_DEFINED);
       cmd->reset(new DefineFunctionCommand(
-          name, func, terms, e, PARSER_STATE->getGlobalDeclarations()));
+          name, func, terms, e, SYM_MAN->getGlobalDeclarations()));
     }
 
   | SIMPLIFY_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -1091,9 +1078,8 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     }
   | DECLARE_HEAP LPAREN_TOK
     sortSymbol[t, CHECK_DECLARED]
-    sortSymbol[t, CHECK_DECLARED]
-    // We currently do nothing with the type information declared for the heap.
-    { cmd->reset(new EmptyCommand()); }
+    sortSymbol[s, CHECK_DECLARED]
+    { cmd->reset(new DeclareHeapCommand(t, s)); }
     RPAREN_TOK
   | BLOCK_MODEL_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new BlockModelCommand()); }
@@ -1120,7 +1106,7 @@ datatypes_2_5_DefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
 }
   : { PARSER_STATE->checkThatLogicIsSet();
     /* open a scope to keep the UnresolvedTypes contained */
-    PARSER_STATE->pushScope(true); }
+    PARSER_STATE->pushScope(); }
   LPAREN_TOK /* parametric sorts */
   ( symbol[name,CHECK_UNDECLARED,SYM_SORT]
     {
@@ -1190,7 +1176,7 @@ datatypesDef[bool isCo,
   std::string name;
   std::vector<api::Sort> params;
 }
-  : { PARSER_STATE->pushScope(true);
+  : { PARSER_STATE->pushScope();
       // Declare the datatypes that are currently being defined as unresolved
       // types. If we do not know the arity of the datatype yet, we wait to
       // define it until parsing the preamble of its body, which may optionally
@@ -1217,7 +1203,7 @@ datatypesDef[bool isCo,
         PARSER_STATE->parseError("Too many datatypes defined in this block.");
       }
     }
-    ( PAR_TOK { PARSER_STATE->pushScope(true); } LPAREN_TOK
+    ( PAR_TOK { PARSER_STATE->pushScope(); } LPAREN_TOK
       ( symbol[name,CHECK_UNDECLARED,SYM_SORT]
         {
           params.push_back( PARSER_STATE->mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER)); }
@@ -1378,7 +1364,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
       {
         PARSER_STATE->parseError("Quantifier used in non-quantified logic.");
       }
-      PARSER_STATE->pushScope(true);
+      PARSER_STATE->pushScope();
     }
     boundVarList[bvl]
     term[f, f2] RPAREN_TOK
@@ -1393,7 +1379,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
       expr = MK_TERM(kind, args);
     }
   | LPAREN_TOK COMPREHENSION_TOK
-    { PARSER_STATE->pushScope(true); }
+    { PARSER_STATE->pushScope(); }
     boundVarList[bvl]
     {
       args.push_back(bvl);
@@ -1412,7 +1398,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
   | /* a let or sygus let binding */
     LPAREN_TOK 
       LET_TOK LPAREN_TOK
-      { PARSER_STATE->pushScope(true); }
+      { PARSER_STATE->pushScope(); }
       ( LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE]
         term[expr, f2]
         RPAREN_TOK
@@ -1450,7 +1436,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
       // case with non-nullary pattern
       LPAREN_TOK LPAREN_TOK term[f, f2] {
           args.clear();
-          PARSER_STATE->pushScope(true);
+          PARSER_STATE->pushScope();
           // f should be a constructor
           type = f.getSort();
           Debug("parser-dt") << "Pattern head : " << f << " " << type << std::endl;
@@ -1569,7 +1555,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
     }
   | /* lambda */
     LPAREN_TOK HO_LAMBDA_TOK
-    { PARSER_STATE->pushScope(true); }
+    { PARSER_STATE->pushScope(); }
     boundVarList[bvl]
     term[f, f2] RPAREN_TOK
     {
@@ -1858,12 +1844,13 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
       api::Term func = PARSER_STATE->setNamedAttribute(expr, sexpr);
       std::string name = sexpr.getValue();
       // bind name to expr with define-fun
+      // TODO (projects-248) SYM_MAN->setExpressionName(func, name, false);
       Command* c =
           new DefineNamedFunctionCommand(name,
                                          func,
                                          std::vector<api::Term>(),
                                          expr,
-                                         PARSER_STATE->getGlobalDeclarations());
+                                         SYM_MAN->getGlobalDeclarations());
       c->setMuted(true);
       PARSER_STATE->preemptCommand(c);
     }
@@ -2196,7 +2183,7 @@ datatypeDef[bool isCo, std::vector<CVC4::api::DatatypeDecl>& datatypes,
      * datatypes won't work, because this type will already be
      * "defined" as an unresolved type; don't worry, we check
      * below. */
-  : symbol[id,CHECK_NONE,SYM_SORT] { PARSER_STATE->pushScope(true); }
+  : symbol[id,CHECK_NONE,SYM_SORT] { PARSER_STATE->pushScope(); }
     {
       datatypes.push_back(SOLVER->mkDatatypeDecl(id, params, isCo));
     }

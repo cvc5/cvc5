@@ -33,12 +33,12 @@
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
 #include "theory/quantifiers/sygus/sygus_repair_const.h"
 #include "theory/quantifiers/sygus/sygus_stats.h"
+#include "theory/quantifiers/sygus/template_infer.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-class SynthEngine;
 class SygusStatistics;
 
 /**
@@ -82,7 +82,7 @@ class EnumValGenerator
 class SynthConjecture
 {
  public:
-  SynthConjecture(QuantifiersEngine* qe, SynthEngine* p, SygusStatistics& s);
+  SynthConjecture(QuantifiersEngine* qe, SygusStatistics& s);
   ~SynthConjecture();
   /** presolve */
   void presolve();
@@ -199,8 +199,6 @@ class SynthConjecture
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
-  /** pointer to the synth engine that owns this */
-  SynthEngine* d_parent;
   /** reference to the statistics of parent */
   SygusStatistics& d_stats;
   /** term database sygus of d_qe */
@@ -216,6 +214,8 @@ class SynthConjecture
   std::unique_ptr<DecisionStrategy> d_feasible_strategy;
   /** single invocation utility */
   std::unique_ptr<CegSingleInv> d_ceg_si;
+  /** template inference utility */
+  std::unique_ptr<SygusTemplateInfer> d_templInfer;
   /** utility for static preprocessing and analysis of conjectures */
   std::unique_ptr<SynthConjectureProcess> d_ceg_proc;
   /** grammar utility */
@@ -357,17 +357,8 @@ class SynthConjecture
   unsigned d_repair_index;
   /** number of times we have called doRefine */
   unsigned d_refine_count;
-  /** get candidadate */
-  Node getCandidate(unsigned int i) { return d_candidates[i]; }
-  /** record instantiation (this is used to construct solutions later) */
-  void recordInstantiation(std::vector<Node>& vs)
-  {
-    Assert(vs.size() == d_candidates.size());
-    for (unsigned i = 0; i < vs.size(); i++)
-    {
-      d_cinfo[d_candidates[i]].d_inst.push_back(vs[i]);
-    }
-  }
+  /** record solution (this is used to construct solutions later) */
+  void recordSolution(std::vector<Node>& vs);
   /** get synth solutions internal
    *
    * This function constructs the body of solutions for all
@@ -389,31 +380,6 @@ class SynthConjecture
   bool getSynthSolutionsInternal(std::vector<Node>& sols,
                                  std::vector<int>& status);
   //-------------------------------- sygus stream
-  /** current stream guard */
-  Node d_current_stream_guard;
-  /** the decision strategy for streaming solutions */
-  class SygusStreamDecisionStrategy : public DecisionStrategyFmf
-  {
-   public:
-    SygusStreamDecisionStrategy(context::Context* satContext,
-                                Valuation valuation);
-    /** make literal */
-    Node mkLiteral(unsigned i) override;
-    /** identify */
-    std::string identify() const override
-    {
-      return std::string("sygus_stream");
-    }
-  };
-  std::unique_ptr<SygusStreamDecisionStrategy> d_stream_strategy;
-  /** get current stream guard */
-  Node getCurrentStreamGuard() const;
-  /** get stream guarded lemma
-   *
-   * If sygusStream is enabled, this returns ( G V n ) where G is the guard
-   * returned by getCurrentStreamGuard, otherwise this returns n.
-   */
-  Node getStreamGuardedLemma(Node n) const;
   /**
    * Prints the current synthesis solution to the output stream indicated by
    * the Options object, send a lemma blocking the current solution to the
