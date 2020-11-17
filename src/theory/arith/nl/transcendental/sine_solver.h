@@ -70,7 +70,6 @@ class SineSolver
    */
   void checkInitialRefine();
 
-
   /**
    * check monotonicity
    *
@@ -85,44 +84,55 @@ class SineSolver
    */
   void checkMonotonic();
 
-  void mkTangentLemma(TNode e, TNode c, TNode poly_approx, int concavity, int region);
+  void mkTangentLemma(TNode e, TNode c, TNode poly_approx, int region);
 
  private:
   int regionToMonotonicityDir(int region)
   {
-    if (region == 1 || region == 4)
+    switch (region)
     {
-      return -1;
+      case 1:
+      case 4: return -1;
+      case 2:
+      case 3: return 1;
+      default: return 0;
     }
-    else if (region == 2 || region == 3)
+  }
+  int regionToConcavity(int region)
+  {
+    switch (region)
     {
-      return 1;
+      case 1:
+      case 2: return -1;
+      case 3:
+      case 4: return 1;
+      default: return 0;
     }
-    return 0;
   }
 
-
-Node regionToLowerBound(int region)
-{
-  switch (region) {
-    case 1: return d_data->d_pi_2;
-    case 2: return d_data->d_zero;
-    case 3: return d_data->d_pi_neg_2;
-    case 4: return d_data->d_pi_neg;
-    default: return Node();
+  Node regionToLowerBound(int region)
+  {
+    switch (region)
+    {
+      case 1: return d_data->d_pi_2;
+      case 2: return d_data->d_zero;
+      case 3: return d_data->d_pi_neg_2;
+      case 4: return d_data->d_pi_neg;
+      default: return Node();
+    }
   }
-}
 
-Node regionToUpperBound(int region)
-{
-  switch (region) {
-    case 1: return d_data->d_pi;
-    case 2: return d_data->d_pi_2;
-    case 3: return d_data->d_zero;
-    case 4: return d_data->d_pi_neg_2;
-    default: return Node();
+  Node regionToUpperBound(int region)
+  {
+    switch (region)
+    {
+      case 1: return d_data->d_pi;
+      case 2: return d_data->d_pi_2;
+      case 3: return d_data->d_zero;
+      case 4: return d_data->d_pi_neg_2;
+      default: return Node();
+    }
   }
-}
 
   TranscendentalState* d_data;
 

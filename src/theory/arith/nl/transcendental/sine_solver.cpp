@@ -173,7 +173,7 @@ void SineSolver::checkMonotonic()
   int monotonic_dir = -1;
   Node mono_bounds[2];
   Node targ, targval, t, tval;
-  for (const auto& sarg: tf_args)
+  for (const auto& sarg : tf_args)
   {
     Node sargval = d_data->d_model.computeAbstractModelValue(sarg);
     Assert(sargval.isConst());
@@ -262,48 +262,36 @@ void SineSolver::checkMonotonic()
   }
 }
 
-void SineSolver::mkTangentLemma(TNode e, TNode c, TNode poly_approx, int concavity, int region)
+void SineSolver::mkTangentLemma(TNode e, TNode c, TNode poly_approx, int region)
 {
   NodeManager* nm = NodeManager::currentNM();
 
-  Node bounds[2] = {
-    regionToLowerBound(region),
-    regionToUpperBound(region)
-  };
-
   // compute tangent plane
-    // Figure 3: T( x )
-    // We use zero slope tangent planes, since the concavity of the Taylor
-    // approximation cannot be easily established.
-    Node tplane = poly_approx;
+  // Figure 3: T( x )
+  // We use zero slope tangent planes, since the concavity of the Taylor
+  // approximation cannot be easily established.
+  int concavity = regionToConcavity(region);
+  int mdir = regionToMonotonicityDir(region);
+  Node lem = nm->mkNode(
+      Kind::IMPLIES,
+      nm->mkNode(
+          Kind::AND,
+          nm->mkNode(Kind::GEQ,
+                     e[0],
+                     mdir == concavity ? Node(c) : regionToLowerBound(region)),
+          nm->mkNode(Kind::LEQ,
+                     e[0],
+                     mdir != concavity ? Node(c) : regionToUpperBound(region))),
+      nm->mkNode(concavity == 1 ? Kind::GEQ : Kind::LEQ, e, poly_approx));
 
-    Node lem = nm->mkNode(concavity == 1 ? Kind::GEQ : Kind::LEQ, e, tplane);
-    std::vector<Node> antec;
-    int mdir = regionToMonotonicityDir(region);
-    for (unsigned i = 0; i < 2; i++)
-    {
-      // Tangent plane is valid in the interval [c,u) if the slope of the
-      // function matches its concavity, and is valid in (l, c] otherwise.
-      Node use_bound = (mdir == concavity) == (i == 0) ? Node(c) : bounds[i];
-      if (!use_bound.isNull())
-      {
-        Node ant = nm->mkNode(i == 0 ? Kind::GEQ : Kind::LEQ, e[0], use_bound);
-        antec.push_back(ant);
-      }
-    }
-    if (!antec.empty())
-    {
-      Node antec_n = antec.size() == 1 ? antec[0] : nm->mkNode(Kind::AND, antec);
-      lem = nm->mkNode(Kind::IMPLIES, antec_n, lem);
-    }
-    Trace("nl-ext-tftp-debug2")
-        << "*** Tangent plane lemma (pre-rewrite): " << lem << std::endl;
-    lem = Rewriter::rewrite(lem);
-    Trace("nl-ext-tftp-lemma")
-        << "*** Tangent plane lemma : " << lem << std::endl;
-    Assert(d_data->d_model.computeAbstractModelValue(lem) == d_data->d_false);
-    // Figure 3 : line 9
-    d_data->d_im.addPendingArithLemma(lem, InferenceId::NL_T_TANGENT, true);
+  Trace("nl-ext-tftp-debug2")
+      << "*** Tangent plane lemma (pre-rewrite): " << lem << std::endl;
+  lem = Rewriter::rewrite(lem);
+  Trace("nl-ext-tftp-lemma")
+      << "*** Tangent plane lemma : " << lem << std::endl;
+  Assert(d_data->d_model.computeAbstractModelValue(lem) == d_data->d_false);
+  // Figure 3 : line 9
+  d_data->d_im.addPendingArithLemma(lem, InferenceId::NL_T_TANGENT, true);
 }
 
 }  // namespace transcendental

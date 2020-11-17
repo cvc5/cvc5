@@ -533,7 +533,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
     if (k == Kind::EXPONENTIAL) {
       d_expSlv.mkTangentLemma(tf, c, poly_approx_c);
     } else {
-      d_sineSlv.mkTangentLemma(tf, c, poly_approx_c, concavity, region);
+      d_sineSlv.mkTangentLemma(tf, c, poly_approx_c, region);
     }
   }
   else if (is_secant)
