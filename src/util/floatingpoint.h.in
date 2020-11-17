@@ -39,7 +39,7 @@ inline bool CVC4_PUBLIC validSignificandSize(unsigned s) { return s >= 2; }
 /* -------------------------------------------------------------------------- */
 
 /**
- * Floating point sorts are parameterised by two non-zero constants giving the
+ * Floating point sorts are parameterised by two constants > 1 giving the
  * width (in bits) of the exponent and significand (including the hidden bit).
  * So, IEEE-754 single precision, a.k.a. float, is described as 8 24.
  */
