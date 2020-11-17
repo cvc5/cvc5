@@ -52,6 +52,8 @@ class InteractiveShellBlack : public CxxTest::TestSuite
   {
     delete d_sin;
     delete d_sout;
+    d_symman.reset(nullptr);
+    d_solver.reset(nullptr);
   }
 
   void testAssertTrue() {
