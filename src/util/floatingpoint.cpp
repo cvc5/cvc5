@@ -500,7 +500,6 @@ FloatingPoint::FloatingPoint(unsigned d_exp_size,
       d_fpl(symfpu::unpack<symfpuLiteral::traits>(
           symfpuLiteral::CVC4FPSize(d_exp_size, d_sig_size), bv))
 #else
-      ,
       d_fpl(d_exp_size, d_sig_size, 0.0)
 #endif
 {
@@ -511,7 +510,6 @@ FloatingPoint::FloatingPoint(const FloatingPointSize& size, const BitVector& bv)
 #ifdef CVC4_USE_SYMFPU
       d_fpl(symfpu::unpack<symfpuLiteral::traits>(size, bv))
 #else
-      ,
       d_fpl(size.exponentWidth(), size.significandWidth(), 0.0)
 #endif
 {
