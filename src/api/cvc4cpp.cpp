@@ -1433,10 +1433,10 @@ uint32_t Op::getIndices() const
     case INT_TO_BITVECTOR: i = d_node->getConst<IntToBitVector>().d_size; break;
     case IAND: i = d_node->getConst<IntAnd>().d_size; break;
     case FLOATINGPOINT_TO_UBV:
-      i = d_node->getConst<FloatingPointToUBV>().bvs.d_size;
+      i = d_node->getConst<FloatingPointToUBV>().d_bv_size.d_size;
       break;
     case FLOATINGPOINT_TO_SBV:
-      i = d_node->getConst<FloatingPointToSBV>().bvs.d_size;
+      i = d_node->getConst<FloatingPointToSBV>().d_bv_size.d_size;
       break;
     case TUPLE_UPDATE: i = d_node->getConst<TupleUpdate>().getIndex(); break;
     case REGEXP_REPEAT:
@@ -1469,36 +1469,42 @@ std::pair<uint32_t, uint32_t> Op::getIndices() const
   {
     CVC4::FloatingPointToFPIEEEBitVector ext =
         d_node->getConst<FloatingPointToFPIEEEBitVector>();
-    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+    indices = std::make_pair(ext.d_fp_size.exponentWidth(),
+                             ext.d_fp_size.significandWidth());
   }
   else if (k == FLOATINGPOINT_TO_FP_FLOATINGPOINT)
   {
     CVC4::FloatingPointToFPFloatingPoint ext =
         d_node->getConst<FloatingPointToFPFloatingPoint>();
-    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+    indices = std::make_pair(ext.d_fp_size.exponentWidth(),
+                             ext.d_fp_size.significandWidth());
   }
   else if (k == FLOATINGPOINT_TO_FP_REAL)
   {
     CVC4::FloatingPointToFPReal ext = d_node->getConst<FloatingPointToFPReal>();
-    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+    indices = std::make_pair(ext.d_fp_size.exponentWidth(),
+                             ext.d_fp_size.significandWidth());
   }
   else if (k == FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR)
   {
     CVC4::FloatingPointToFPSignedBitVector ext =
         d_node->getConst<FloatingPointToFPSignedBitVector>();
-    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+    indices = std::make_pair(ext.d_fp_size.exponentWidth(),
+                             ext.d_fp_size.significandWidth());
   }
   else if (k == FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR)
   {
     CVC4::FloatingPointToFPUnsignedBitVector ext =
         d_node->getConst<FloatingPointToFPUnsignedBitVector>();
-    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+    indices = std::make_pair(ext.d_fp_size.exponentWidth(),
+                             ext.d_fp_size.significandWidth());
   }
   else if (k == FLOATINGPOINT_TO_FP_GENERIC)
   {
     CVC4::FloatingPointToFPGeneric ext =
         d_node->getConst<FloatingPointToFPGeneric>();
-    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+    indices = std::make_pair(ext.d_fp_size.exponentWidth(),
+                             ext.d_fp_size.significandWidth());
   }
   else if (k == REGEXP_LOOP)
   {
