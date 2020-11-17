@@ -888,8 +888,7 @@ class CVC4_PUBLIC SmtEngine
   theory::Rewriter* getRewriter() { return d_rewriter.get(); }
 
   /** The type of our internal map of defined functions */
-  typedef context::CDHashMap<Node, smt::DefinedFunction, NodeHashFunction>
-      DefinedFunctionMap;
+  using DefinedFunctionMap = context::CDHashMap<Node, smt::DefinedFunction, NodeHashFunction>;
 
   /** Get the defined function map */
   DefinedFunctionMap* getDefinedFunctionMap() { return d_definedFunctions; }
