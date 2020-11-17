@@ -57,6 +57,12 @@ CommandExecutor::CommandExecutor(Options& options)
       d_result()
 {
 }
+CommandExecutor::~CommandExecutor()
+{
+  // ensure that symbol manager is destroyed before solver
+  d_symman.reset(nullptr);
+  d_solver.reset(nullptr);
+}
 
 void CommandExecutor::flushStatistics(std::ostream& out) const
 {
