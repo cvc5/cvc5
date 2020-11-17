@@ -117,15 +117,19 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
             // construct the equivalent of the following lemmas:
             // t <= tplane  <=>  ((a <= a_v ^ b >= b_v) v (a >= a_v ^ b <= b_v))
             // t >= tplane  <=>  ((a <= a_v ^ b <= b_v) v (a >= a_v ^ b >= b_v))
-            for (unsigned d = 0; d < 4; d++)
+
+            for (unsigned d = 0; d < 2; d++)
             {
-              Node aa =
-                  nm->mkNode(d == 0 || d == 3 ? Kind::GEQ : Kind::LEQ, a, a_v);
-              Node ab =
-                  nm->mkNode(d == 1 || d == 3 ? Kind::GEQ : Kind::LEQ, b, b_v);
-              Node conc = nm->mkNode(d <= 1 ? Kind::LEQ : Kind::GEQ, t, tplane);
-              Node tlem =
-                  nm->mkNode(Kind::EQUAL, nm->mkNode(Kind::AND, aa, ab), conc);
+              Node b1 = nm->mkNode(d == 0 ? Kind::GEQ : Kind::LEQ, b, b_v);
+              Node b2 = nm->mkNode(d == 0 ? Kind::LEQ : Kind::GEQ, b, b_v);
+              Node tlem = nm->mkNode(
+                  Kind::EQUAL,
+                  nm->mkNode(d == 0 ? Kind::LEQ : Kind::GEQ, t, tplane),
+                  nm->mkNode(
+                      Kind::OR,
+                      nm->mkNode(Kind::AND, nm->mkNode(Kind::LEQ, a, a_v), b1),
+                      nm->mkNode(
+                          Kind::AND, nm->mkNode(Kind::GEQ, a, a_v), b2)));
               Trace("nl-ext-tplanes")
                   << "Tangent plane lemma : " << tlem << std::endl;
               d_data->d_im.addPendingArithLemma(
