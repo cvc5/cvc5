@@ -1610,36 +1610,26 @@ void GetValueCommand::toStream(std::ostream& out,
 GetAssignmentCommand::GetAssignmentCommand() {}
 void GetAssignmentCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
-  if (!options::produceAssignments())
-  {
-    // projects-248: this restriction is completely arbitrary
-    std::stringstream sse;
-    sse << "Cannot get assignment when produce-assignments is false";
-    d_commandStatus = new CommandRecoverableFailure(sse.str());
-    return;
-  }
   try
   {
     std::map<api::Term, std::string> enames = sm->getExpressionNames();
-    std::vector<SExpr> sexprs;
-    if (enames.empty())
+    std::vector<api::Term> terms;
+    std::vector<std::string> names;
+    for (const std::pair<const api::Term, std::string>& e : enames)
     {
-      // corner case: get-assignment should throw an error if the model is
-      // not available, even if there are no named symbols. Thus, we query a
-      // dummy value here.
-      api::Term tt = solver->mkTrue();
-      solver->getValue(tt);
+      terms.push_back(e.first);
+      names.push_back(e.second);
     }
-    else
+    // Must use vector version of getValue to ensure error is thrown regardless
+    // of whether terms is empty.
+    std::vector<api::Term> values = solver->getValue(terms);
+    std::vector<SExpr> sexprs;
+    for (size_t i=0, nterms=terms.size(); i<nterms; i++)
     {
-      for (const std::pair<const api::Term, std::string>& e : enames)
-      {
-        api::Term v = solver->getValue(e.first);
-        std::vector<SExpr> ss;
-        ss.emplace_back(SExpr::Keyword(e.second));
-        ss.emplace_back(SExpr::Keyword(v.toString()));
-        sexprs.emplace_back(ss);
-      }
+      std::vector<SExpr> ss;
+      ss.emplace_back(SExpr::Keyword(names[i]));
+      ss.emplace_back(SExpr::Keyword(values[i].toString()));
+      sexprs.emplace_back(ss);
     }
     d_result = SExpr(sexprs);
     d_commandStatus = CommandSuccess::instance();
