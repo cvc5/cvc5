@@ -175,6 +175,11 @@ size_t SmtEngine::getNumUserLevels() const
   return d_state->getNumUserLevels();
 }
 SmtMode SmtEngine::getSmtMode() const { return d_state->getMode(); }
+bool SmtEngine::isSmtModeSat() const
+{
+  SmtMode mode = getSmtMode();
+  return mode==SmtMode::SAT || mode==SmtMode::SAT_UNKNOWN;
+}
 Result SmtEngine::getStatusOfLastCommand() const
 {
   return d_state->getStatus();
