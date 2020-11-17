@@ -383,7 +383,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
   Kind k = tf.getKind();
   if (k == Kind::EXPONENTIAL)
   {
-    return d_expSlv.checkTfTangentPlanesFun(tf, d);
+    //return d_expSlv.checkTfTangentPlanesFun(tf, d);
   }
   // this should only be run on master applications
   Assert(d_tstate.d_trSlaves.find(tf) != d_tstate.d_trSlaves.end());
@@ -530,39 +530,11 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
 
   if (is_tangent)
   {
-    // compute tangent plane
-    // Figure 3: T( x )
-    // We use zero slope tangent planes, since the concavity of the Taylor
-    // approximation cannot be easily established.
-    Node tplane = poly_approx_c;
-
-    Node lem = nm->mkNode(concavity == 1 ? GEQ : LEQ, tf, tplane);
-    std::vector<Node> antec;
-    int mdir = regionToMonotonicityDir(k, region);
-    for (unsigned i = 0; i < 2; i++)
-    {
-      // Tangent plane is valid in the interval [c,u) if the slope of the
-      // function matches its concavity, and is valid in (l, c] otherwise.
-      Node use_bound = (mdir == concavity) == (i == 0) ? c : bounds[i];
-      if (!use_bound.isNull())
-      {
-        Node ant = nm->mkNode(i == 0 ? GEQ : LEQ, tf[0], use_bound);
-        antec.push_back(ant);
-      }
+    if (k == Kind::EXPONENTIAL) {
+      d_expSlv.mkTangentLemma(tf, c, poly_approx_c);
+    } else {
+      d_sineSlv.mkTangentLemma(tf, c, poly_approx_c, concavity, region);
     }
-    if (!antec.empty())
-    {
-      Node antec_n = antec.size() == 1 ? antec[0] : nm->mkNode(AND, antec);
-      lem = nm->mkNode(IMPLIES, antec_n, lem);
-    }
-    Trace("nl-ext-tftp-debug2")
-        << "*** Tangent plane lemma (pre-rewrite): " << lem << std::endl;
-    lem = Rewriter::rewrite(lem);
-    Trace("nl-ext-tftp-lemma")
-        << "*** Tangent plane lemma : " << lem << std::endl;
-    Assert(d_model.computeAbstractModelValue(lem) == d_false);
-    // Figure 3 : line 9
-    d_im.addPendingArithLemma(lem, InferenceId::NL_T_TANGENT, true);
   }
   else if (is_secant)
   {

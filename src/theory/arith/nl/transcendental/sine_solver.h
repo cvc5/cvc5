@@ -85,6 +85,8 @@ class SineSolver
    */
   void checkMonotonic();
 
+  void mkTangentLemma(TNode e, TNode c, TNode poly_approx, int concavity, int region);
+
  private:
   int regionToMonotonicityDir(int region)
   {
@@ -98,6 +100,29 @@ class SineSolver
     }
     return 0;
   }
+
+
+Node regionToLowerBound(int region)
+{
+  switch (region) {
+    case 1: return d_data->d_pi_2;
+    case 2: return d_data->d_zero;
+    case 3: return d_data->d_pi_neg_2;
+    case 4: return d_data->d_pi_neg;
+    default: return Node();
+  }
+}
+
+Node regionToUpperBound(int region)
+{
+  switch (region) {
+    case 1: return d_data->d_pi;
+    case 2: return d_data->d_pi_2;
+    case 3: return d_data->d_zero;
+    case 4: return d_data->d_pi_neg_2;
+    default: return Node();
+  }
+}
 
   TranscendentalState* d_data;
 

@@ -84,6 +84,8 @@ class ExponentialSolver
    */
   void checkMonotonic();
 
+  void mkTangentLemma(TNode e, TNode c, TNode poly_approx);
+
     bool checkTfTangentPlanesFun(Node tf, unsigned d);
 
  private:

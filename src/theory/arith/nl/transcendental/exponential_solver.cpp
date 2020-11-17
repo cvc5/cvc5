@@ -123,7 +123,8 @@ void ExponentialSolver::checkMonotonic()
   std::sort(tf_args.begin(), tf_args.end(), smv);
 
   Node targ, targval, t, tval;
-  for (const auto& sarg: tf_args) {
+  for (const auto& sarg : tf_args)
+  {
     Node sargval = d_data->d_model.computeAbstractModelValue(sarg);
     Assert(sargval.isConst());
     Node s = tf_arg_to_term[sarg];
@@ -140,8 +141,7 @@ void ExponentialSolver::checkMonotonic()
       Node mono_lem = nm->mkNode(Kind::IMPLIES,
                                  nm->mkNode(Kind::GEQ, targ, sarg),
                                  nm->mkNode(Kind::GEQ, t, s));
-      Trace("nl-ext-exp")
-          << "Monotonicity lemma : " << mono_lem << std::endl;
+      Trace("nl-ext-exp") << "Monotonicity lemma : " << mono_lem << std::endl;
 
       d_data->d_im.addPendingArithLemma(mono_lem,
                                         InferenceId::NL_T_MONOTONICITY);
@@ -154,11 +154,9 @@ void ExponentialSolver::checkMonotonic()
   }
 }
 
-bool ExponentialSolver::checkTfTangentPlanesFun(Node tf,
-                                                   unsigned d)
+bool ExponentialSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
 {
   NodeManager* nm = NodeManager::currentNM();
-  //Kind k = tf.getKind();
   // this should only be run on master applications
   Assert(d_data->d_trSlaves.find(tf) != d_data->d_trSlaves.end());
 
@@ -173,14 +171,9 @@ bool ExponentialSolver::checkTfTangentPlanesFun(Node tf,
   Assert(csign == 1 || csign == -1);
 
   // Figure 3: P_l, P_u
-  // mapped to for signs of c
-  std::map<int, Node> poly_approx_bounds[2];
   std::vector<Node> pbounds;
-  d_data->d_taylor.getPolynomialApproximationBoundForArg(Kind::EXPONENTIAL, c, d, pbounds);
-  poly_approx_bounds[0][1] = pbounds[0];
-  poly_approx_bounds[0][-1] = pbounds[1];
-  poly_approx_bounds[1][1] = pbounds[2];
-  poly_approx_bounds[1][-1] = pbounds[3];
+  d_data->d_taylor.getPolynomialApproximationBoundForArg(
+      Kind::EXPONENTIAL, c, d, pbounds);
 
   // Figure 3 : v
   Node v = d_data->d_model.computeAbstractModelValue(tf);
@@ -191,30 +184,14 @@ bool ExponentialSolver::checkTfTangentPlanesFun(Node tf,
   Trace("nl-ext-tftp-debug") << "  value in model : " << v << std::endl;
   Trace("nl-ext-tftp-debug") << "  arg value in model : " << c << std::endl;
 
-  std::vector<Node> taylor_vars;
-  taylor_vars.push_back(d_data->d_taylor.getTaylorVariable());
-
-  // compute the concavity
-  std::unordered_map<Node, int, NodeHashFunction>::iterator itr =
-      d_data->d_tf_region.find(tf);
-  if (itr != d_data->d_tf_region.end())
-  {
-    Assert(itr->second == 1);
-    Trace("nl-ext-tftp-debug") << "  region is : 1" << std::endl;
-  }
-  // Figure 3 : conc
-  Trace("nl-ext-tftp-debug") << "  concavity is : 1" << std::endl;
-  // bounds for which we are this concavity
-  // Figure 3: < l, u >
-  Node bounds[2];
-
   // Figure 3: P
   Node poly_approx;
 
   // compute whether this is a tangent refinement or a secant refinement
   bool is_tangent = false;
   bool is_secant = false;
-  std::pair<Node, Node> mvb = d_data->d_taylor.getTfModelBounds(tf, d, d_data->d_model);
+  std::pair<Node, Node> mvb =
+      d_data->d_taylor.getTfModelBounds(tf, d, d_data->d_model);
   // this is the approximated value of tf(c), which is a value such that:
   //    M_A(tf(c)) >= poly_appox_c >= tf(c) or
   //    M_A(tf(c)) <= poly_appox_c <= tf(c)
@@ -224,12 +201,11 @@ bool ExponentialSolver::checkTfTangentPlanesFun(Node tf,
   Node poly_approx_c;
   for (unsigned r = 0; r < 2; r++)
   {
-    Node pab = poly_approx_bounds[r][csign];
     Node v_pab = r == 0 ? mvb.first : mvb.second;
     if (!v_pab.isNull())
     {
       Trace("nl-ext-tftp-debug2")
-          << "...model value of " << pab << " is " << v_pab << std::endl;
+          << "...model value of poly approximation is " << v_pab << std::endl;
 
       Assert(v_pab.isConst());
       Node comp = nm->mkNode(r == 0 ? Kind::LT : Kind::GT, v, v_pab);
@@ -242,13 +218,13 @@ bool ExponentialSolver::checkTfTangentPlanesFun(Node tf,
         // beyond the bounds
         if (r == 0)
         {
-          poly_approx = poly_approx_bounds[r][csign];
+          poly_approx = pbounds[csign == 1 ? 0 : 1];
           is_tangent = true;
           is_secant = false;
         }
         else
         {
-          poly_approx = poly_approx_bounds[r][csign];
+          poly_approx = pbounds[csign == 1 ? 2 : 3];
           is_tangent = false;
           is_secant = true;
         }
@@ -290,30 +266,15 @@ bool ExponentialSolver::checkTfTangentPlanesFun(Node tf,
 
   if (is_tangent)
   {
+    mkTangentLemma(tf, c, poly_approx_c);
     // compute tangent plane
     // Figure 3: T( x )
     // We use zero slope tangent planes, since the concavity of the Taylor
     // approximation cannot be easily established.
-    Node tplane = poly_approx_c;
-
-    Node lem = nm->mkNode(Kind::GEQ, tf, tplane);
-    std::vector<Node> antec;
-    for (unsigned i = 0; i < 2; i++)
-    {
-      // Tangent plane is valid in the interval [c,u) if the slope of the
-      // function matches its concavity, and is valid in (l, c] otherwise.
-      Node use_bound = (i == 0) ? c : bounds[i];
-      if (!use_bound.isNull())
-      {
-        Node ant = nm->mkNode(i == 0 ? Kind::GEQ : Kind::LEQ, tf[0], use_bound);
-        antec.push_back(ant);
-      }
-    }
-    if (!antec.empty())
-    {
-      Node antec_n = antec.size() == 1 ? antec[0] : nm->mkNode(Kind::AND, antec);
-      lem = nm->mkNode(Kind::IMPLIES, antec_n, lem);
-    }
+    // Tangent plane is valid in the interval [c,u).
+    Node lem = nm->mkNode(Kind::IMPLIES,
+                          nm->mkNode(Kind::GEQ, tf[0], c),
+                          nm->mkNode(Kind::GEQ, tf, poly_approx_c));
     Trace("nl-ext-tftp-debug2")
         << "*** Tangent plane lemma (pre-rewrite): " << lem << std::endl;
     lem = Rewriter::rewrite(lem);
@@ -328,8 +289,9 @@ bool ExponentialSolver::checkTfTangentPlanesFun(Node tf,
     // bounds are the minimum and maximum previous secant points
     // should not repeat secant points: secant lemmas should suffice to
     // rule out previous assignment
-    Assert(std::find(
-               d_data->d_secant_points[tf][d].begin(), d_data->d_secant_points[tf][d].end(), c)
+    Assert(std::find(d_data->d_secant_points[tf][d].begin(),
+                     d_data->d_secant_points[tf][d].end(),
+                     c)
            == d_data->d_secant_points[tf][d].end());
     // Insert into the (temporary) vector. We do not update this vector
     // until we are sure this secant plane lemma has been processed. We do
@@ -346,6 +308,10 @@ bool ExponentialSolver::checkTfTangentPlanesFun(Node tf,
     unsigned index =
         std::find(spoints.begin(), spoints.end(), c) - spoints.begin();
     // bounds are the next closest upper/lower bound values
+    // bounds for which we are this concavity
+    // Figure 3: < l, u >
+    Node bounds[2];
+
     if (index > 0)
     {
       bounds[0] = spoints[index - 1];
@@ -354,8 +320,8 @@ bool ExponentialSolver::checkTfTangentPlanesFun(Node tf,
     {
       // otherwise, we use the lower boundary point for this concavity
       // region
-        // pick c-1
-        bounds[0] = Rewriter::rewrite(nm->mkNode(Kind::MINUS, c, d_data->d_one));
+      // pick c-1
+      bounds[0] = Rewriter::rewrite(nm->mkNode(Kind::MINUS, c, d_data->d_one));
     }
     if (index < spoints.size() - 1)
     {
@@ -365,8 +331,8 @@ bool ExponentialSolver::checkTfTangentPlanesFun(Node tf,
     {
       // otherwise, we use the upper boundary point for this concavity
       // region
-        // pick c+1
-        bounds[1] = Rewriter::rewrite(nm->mkNode(Kind::PLUS, c, d_data->d_one));
+      // pick c+1
+      bounds[1] = Rewriter::rewrite(nm->mkNode(Kind::PLUS, c, d_data->d_one));
     }
     Trace("nl-ext-tftp-debug2") << "...secant bounds are : " << bounds[0]
                                 << " ... " << bounds[1] << std::endl;
@@ -386,23 +352,15 @@ bool ExponentialSolver::checkTfTangentPlanesFun(Node tf,
       if (c != b)
       {
         // Figure 3 : P(l), P(u), for s = 0,1
-        Node poly_approx_b;
-        std::vector<Node> taylor_subs;
-        taylor_subs.push_back(b);
-        Assert(taylor_vars.size() == taylor_subs.size());
-        poly_approx_b = poly_approx.substitute(taylor_vars.begin(),
-                                               taylor_vars.end(),
-                                               taylor_subs.begin(),
-                                               taylor_subs.end());
+        Node poly_approx_b =
+            Rewriter::rewrite(poly_approx.substitute(d_data->d_taylor.getTaylorVariable(), b));
         // Figure 3: S_l( x ), S_u( x ) for s = 0,1
-        Node splane;
         Node rcoeff_n = Rewriter::rewrite(nm->mkNode(Kind::MINUS, b, c));
         Assert(rcoeff_n.isConst());
         Rational rcoeff = rcoeff_n.getConst<Rational>();
         Assert(rcoeff.sgn() != 0);
-        poly_approx_b = Rewriter::rewrite(poly_approx_b);
         poly_approx_c = Rewriter::rewrite(poly_approx_c);
-        splane = nm->mkNode(
+        Node splane = nm->mkNode(
             Kind::PLUS,
             poly_approx_b,
             nm->mkNode(Kind::MULT,
@@ -434,7 +392,8 @@ bool ExponentialSolver::checkTfTangentPlanesFun(Node tf,
         Trace("nl-ext-tftp-lemma")
             << "*** Secant plane lemma : " << lem << std::endl;
         lemmaConj.push_back(lem);
-        Assert(d_data->d_model.computeAbstractModelValue(lem) == d_data->d_false);
+        Assert(d_data->d_model.computeAbstractModelValue(lem)
+               == d_data->d_false);
       }
     }
     // Figure 3 : line 22
@@ -448,6 +407,27 @@ bool ExponentialSolver::checkTfTangentPlanesFun(Node tf,
     d_data->d_im.addPendingArithLemma(nlem, true);
   }
   return true;
+}
+
+void ExponentialSolver::mkTangentLemma(TNode e, TNode c, TNode poly_approx)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  // compute tangent plane
+    // Figure 3: T( x )
+    // We use zero slope tangent planes, since the concavity of the Taylor
+    // approximation cannot be easily established.
+    // Tangent plane is valid in the interval [c,u).
+    Node lem = nm->mkNode(Kind::IMPLIES,
+                          nm->mkNode(Kind::GEQ, e[0], c),
+                          nm->mkNode(Kind::GEQ, e, poly_approx));
+    Trace("nl-ext-exp")
+        << "*** Tangent plane lemma (pre-rewrite): " << lem << std::endl;
+    lem = Rewriter::rewrite(lem);
+    Trace("nl-ext-exp")
+        << "*** Tangent plane lemma : " << lem << std::endl;
+    Assert(d_data->d_model.computeAbstractModelValue(lem) == d_data->d_false);
+    // Figure 3 : line 9
+    d_data->d_im.addPendingArithLemma(lem, InferenceId::NL_T_TANGENT, true);
 }
 
 }  // namespace transcendental
