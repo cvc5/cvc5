@@ -133,7 +133,7 @@ Node UnconstrainedSimplifier::newUnconstrainedVar(TypeNode t, TNode var)
 void UnconstrainedSimplifier::processUnconstrained()
 {
   NodeManager* nm = NodeManager::currentNM();
-  
+
   vector<TNode> workList(d_unconstrained.begin(), d_unconstrained.end());
   Node currentSub;
   TNode parent;
