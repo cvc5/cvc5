@@ -73,6 +73,77 @@ struct TranscendentalState
             index < spoints.size() - 1 ? spoints[index + 1] : Node()};
   }
 
+  Node mkSecantPlane(TNode arg, TNode b, TNode c, TNode approx, TNode approx_c)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    // Figure 3 : P(l), P(u), for s = 0,1
+    Node approx_b =
+        Rewriter::rewrite(approx.substitute(d_taylor.getTaylorVariable(), b));
+    // Figure 3: S_l( x ), S_u( x ) for s = 0,1
+    Node rcoeff_n = Rewriter::rewrite(nm->mkNode(Kind::MINUS, b, c));
+    Assert(rcoeff_n.isConst());
+    Rational rcoeff = rcoeff_n.getConst<Rational>();
+    Assert(rcoeff.sgn() != 0);
+    return nm->mkNode(Kind::PLUS,
+                      approx_b,
+                      nm->mkNode(Kind::MULT,
+                                 nm->mkNode(Kind::MINUS, approx_b, approx_c),
+                                 nm->mkConst(rcoeff.inverse()),
+                                 nm->mkNode(Kind::MINUS, arg, b)));
+  }
+
+  NlLemma mkSecantLemma(
+      TNode lower, TNode upper, int concavity, TNode tf, TNode splane)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    // With respect to Figure 3, this is slightly different.
+    // In particular, we chose b to be the model value of bounds[s],
+    // which is a constant although bounds[s] may not be (e.g. if it
+    // contains PI).
+    // To ensure that c...b does not cross an inflection point,
+    // we guard with the symbolic version of bounds[s].
+    // This leads to lemmas e.g. of this form:
+    //   ( c <= x <= PI/2 ) => ( sin(x) < ( P( b ) - P( c ) )*( x -
+    //   b ) + P( b ) )
+    // where b = (PI/2)^M, the current value of PI/2 in the model.
+    // This is sound since we are guarded by the symbolic
+    // representation of PI/2.
+    Node antec_n = nm->mkNode(Kind::AND,
+                              nm->mkNode(Kind::GEQ, tf[0], lower),
+                              nm->mkNode(Kind::LEQ, tf[0], upper));
+    Node lem = nm->mkNode(
+        Kind::IMPLIES,
+        antec_n,
+        nm->mkNode(concavity == 1 ? Kind::LEQ : Kind::GEQ, tf, splane));
+    Trace("nl-ext-tftp-debug2")
+        << "*** Secant plane lemma (pre-rewrite) : " << lem << std::endl;
+    lem = Rewriter::rewrite(lem);
+    Trace("nl-ext-tftp-lemma")
+        << "*** Secant plane lemma : " << lem << std::endl;
+    Assert(d_model.computeAbstractModelValue(lem) == d_false);
+    return NlLemma(lem, LemmaProperty::NONE, nullptr, InferenceId::NL_T_SECANT);
+  }
+
+  void mkSecant(TNode lower,
+                TNode approx_lower,
+                TNode upper,
+                TNode approx_upper,
+                TNode tf,
+                TNode c,
+                unsigned d,
+                int concavity)
+  {
+    if (lower == upper) return;
+    Node splane =
+        mkSecantPlane(tf[0], lower, upper, approx_lower, approx_upper);
+
+    NlLemma nlem = mkSecantLemma(lower, upper, concavity, tf, splane);
+    // The side effect says that if lem is added, then we should add the
+    // secant point c for (tf,d).
+    nlem.d_secantPoint.push_back(std::make_tuple(tf, d, c));
+    d_im.addPendingArithLemma(nlem, true);
+  }
+
   Node d_true;
   Node d_false;
   Node d_zero;

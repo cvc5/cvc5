@@ -252,9 +252,6 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
   Trace("nl-ext-tftp-debug") << "  value in model : " << v << std::endl;
   Trace("nl-ext-tftp-debug") << "  arg value in model : " << c << std::endl;
 
-  std::vector<Node> taylor_vars;
-  taylor_vars.push_back(d_tstate.d_taylor.getTaylorVariable());
-
   // compute the concavity
   int region = -1;
   std::unordered_map<Node, int, NodeHashFunction>::iterator itr =
@@ -304,7 +301,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
       Trace("nl-ext-tftp-debug2") << "...got : " << compr << std::endl;
       if (compr == d_tstate.d_true)
       {
-        poly_approx_c = v_pab;
+        poly_approx_c = Rewriter::rewrite(v_pab);
         // beyond the bounds
         if (r == 0)
         {
@@ -387,81 +384,23 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
     Trace("nl-ext-tftp-debug2") << "...secant bounds are : " << bounds[0]
                                 << " ... " << bounds[1] << std::endl;
 
-    // the secant plane may be conjunction of 1-2 guarded inequalities
-    std::vector<Node> lemmaConj;
-    for (unsigned s = 0; s < 2; s++)
-    {
-      // compute secant plane
-      Assert(!poly_approx.isNull());
-      Assert(!bounds[s].isNull());
-      // take the model value of l or u (since may contain PI)
-      Node b = d_model.computeAbstractModelValue(bounds[s]);
-      Trace("nl-ext-tftp-debug2") << "...model value of bound " << bounds[s]
-                                  << " is " << b << std::endl;
-      Assert(b.isConst());
-      if (c != b)
-      {
-        // Figure 3 : P(l), P(u), for s = 0,1
-        Node poly_approx_b;
-        std::vector<Node> taylor_subs;
-        taylor_subs.push_back(b);
-        Assert(taylor_vars.size() == taylor_subs.size());
-        poly_approx_b = poly_approx.substitute(taylor_vars.begin(),
-                                               taylor_vars.end(),
-                                               taylor_subs.begin(),
-                                               taylor_subs.end());
-        // Figure 3: S_l( x ), S_u( x ) for s = 0,1
-        Node splane;
-        Node rcoeff_n = Rewriter::rewrite(nm->mkNode(MINUS, b, c));
-        Assert(rcoeff_n.isConst());
-        Rational rcoeff = rcoeff_n.getConst<Rational>();
-        Assert(rcoeff.sgn() != 0);
-        poly_approx_b = Rewriter::rewrite(poly_approx_b);
-        poly_approx_c = Rewriter::rewrite(poly_approx_c);
-        splane = nm->mkNode(
-            PLUS,
-            poly_approx_b,
-            nm->mkNode(MULT,
-                       nm->mkNode(MINUS, poly_approx_b, poly_approx_c),
-                       nm->mkConst(Rational(1) / rcoeff),
-                       nm->mkNode(MINUS, tf[0], b)));
-
-        Node lem = nm->mkNode(concavity == 1 ? LEQ : GEQ, tf, splane);
-        // With respect to Figure 3, this is slightly different.
-        // In particular, we chose b to be the model value of bounds[s],
-        // which is a constant although bounds[s] may not be (e.g. if it
-        // contains PI).
-        // To ensure that c...b does not cross an inflection point,
-        // we guard with the symbolic version of bounds[s].
-        // This leads to lemmas e.g. of this form:
-        //   ( c <= x <= PI/2 ) => ( sin(x) < ( P( b ) - P( c ) )*( x -
-        //   b ) + P( b ) )
-        // where b = (PI/2)^M, the current value of PI/2 in the model.
-        // This is sound since we are guarded by the symbolic
-        // representation of PI/2.
-        Node antec_n =
-            nm->mkNode(AND,
-                       nm->mkNode(GEQ, tf[0], s == 0 ? bounds[s] : c),
-                       nm->mkNode(LEQ, tf[0], s == 0 ? c : bounds[s]));
-        lem = nm->mkNode(IMPLIES, antec_n, lem);
-        Trace("nl-ext-tftp-debug2")
-            << "*** Secant plane lemma (pre-rewrite) : " << lem << std::endl;
-        lem = Rewriter::rewrite(lem);
-        Trace("nl-ext-tftp-lemma")
-            << "*** Secant plane lemma : " << lem << std::endl;
-        lemmaConj.push_back(lem);
-        Assert(d_model.computeAbstractModelValue(lem) == d_tstate.d_false);
-      }
-    }
-    // Figure 3 : line 22
-    Assert(!lemmaConj.empty());
-    Node lem =
-        lemmaConj.size() == 1 ? lemmaConj[0] : nm->mkNode(AND, lemmaConj);
-    NlLemma nlem(lem, LemmaProperty::NONE, nullptr, InferenceId::NL_T_SECANT);
-    // The side effect says that if lem is added, then we should add the
-    // secant point c for (tf,d).
-    nlem.d_secantPoint.push_back(std::make_tuple(tf, d, c));
-    d_im.addPendingArithLemma(nlem, true);
+    // take the model value of l or u (since may contain PI)
+    d_tstate.mkSecant(d_model.computeAbstractModelValue(bounds[0]),
+                      bounds[0],
+                      c,
+                      poly_approx_c,
+                      tf,
+                      c,
+                      d,
+                      concavity);
+    d_tstate.mkSecant(c,
+                      poly_approx_c,
+                      d_model.computeAbstractModelValue(bounds[1]),
+                      bounds[1],
+                      tf,
+                      c,
+                      d,
+                      concavity);
   }
   return true;
 }
