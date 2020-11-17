@@ -391,7 +391,8 @@ void SmtEngine::setLogic(const std::string& s)
 }
 
 void SmtEngine::setLogic(const char* logic) { setLogic(string(logic)); }
-LogicInfo SmtEngine::getLogicInfo() const {
+
+const LogicInfo& SmtEngine::getLogicInfo() const {
   return d_logic;
 }
 

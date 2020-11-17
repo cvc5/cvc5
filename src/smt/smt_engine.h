@@ -208,7 +208,7 @@ class CVC4_PUBLIC SmtEngine
   void setLogic(const LogicInfo& logic);
 
   /** Get the logic information currently set. */
-  LogicInfo getLogicInfo() const;
+  const LogicInfo& getLogicInfo() const;
 
   /** Get the logic information set by the user. */
   LogicInfo getUserLogicInfo() const;
