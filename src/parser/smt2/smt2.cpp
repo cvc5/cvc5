@@ -1222,12 +1222,12 @@ void Smt2::notifyNamedExpression(api::Term& expr, std::string name)
 {
   checkUserSymbol(name);
   // remember the expression name in the symbol manager
-  getSymbolManager()->setExpressionName(expr,name,false);
+  getSymbolManager()->setExpressionName(expr, name, false);
   // define the variable
-  defineVar(name,expr);
+  defineVar(name, expr);
   // set the last named term, which ensures that we catch when assertions are
   // named
-  setLastNamedTerm(expr,name);
+  setLastNamedTerm(expr, name);
 }
 
 api::Term Smt2::mkAnd(const std::vector<api::Term>& es)

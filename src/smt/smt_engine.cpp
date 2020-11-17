@@ -178,7 +178,7 @@ SmtMode SmtEngine::getSmtMode() const { return d_state->getMode(); }
 bool SmtEngine::isSmtModeSat() const
 {
   SmtMode mode = getSmtMode();
-  return mode==SmtMode::SAT || mode==SmtMode::SAT_UNKNOWN;
+  return mode == SmtMode::SAT || mode == SmtMode::SAT_UNKNOWN;
 }
 Result SmtEngine::getStatusOfLastCommand() const
 {

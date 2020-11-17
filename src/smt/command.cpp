@@ -1624,7 +1624,7 @@ void GetAssignmentCommand::invoke(api::Solver* solver, SymbolManager* sm)
     // of whether terms is empty.
     std::vector<api::Term> values = solver->getValue(terms);
     std::vector<SExpr> sexprs;
-    for (size_t i=0, nterms=terms.size(); i<nterms; i++)
+    for (size_t i = 0, nterms = terms.size(); i < nterms; i++)
     {
       std::vector<SExpr> ss;
       ss.emplace_back(SExpr::Keyword(names[i]));

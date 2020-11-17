@@ -205,7 +205,7 @@ class CVC4_PUBLIC SmtEngine
   size_t getNumUserLevels() const;
   /** Return the current mode of the solver. */
   SmtMode getSmtMode() const;
-  /** 
+  /**
    * Whether the SmtMode allows for get-value, get-model, get-assignment, etc.
    * This is equivalent to:
    * getSmtMode()==SmtMode::SAT || getSmtMode()==SmtMode::SAT_UNKNOWN
