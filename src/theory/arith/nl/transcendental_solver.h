@@ -205,31 +205,6 @@ class TranscendentalSolver
   InferenceManager& d_im;
   /** Reference to the non-linear model object */
   NlModel& d_model;
-  
-  /** The transcendental functions we have done initial refinements on */
-  std::map<Node, bool> d_tf_initial_refine;
-
-  /**
-   * Maps representives of a congruence class to the members of that class.
-   *
-   * In detail, a congruence class is a set of terms of the form
-   *   { f(t1), ..., f(tn) }
-   * such that t1 = ... = tn in the current context. We choose an arbitrary
-   * term among these to be the repesentative of this congruence class.
-   *
-   * Moreover, notice we compute congruence classes only over terms that
-   * are transcendental function applications that are "master terms",
-   * see d_trMaster/d_trSlave.
-   */
-  std::map<Node, std::vector<Node>> d_funcCongClass;
-  /**
-   * A list of all functions for each kind in { EXPONENTIAL, SINE, POW, PI }
-   * that are representives of their congruence class.
-   */
-  std::map<Kind, std::vector<Node>> d_funcMap;
-
-  // tangent plane bounds
-  std::map<Node, std::map<Node, Node>> d_tangent_val_bound[4];
 
   /** secant points (sorted list) for transcendental functions
    *

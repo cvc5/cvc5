@@ -50,13 +50,8 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
 {
   d_tstate.init(assertions, false_asserts, xts);
 
-  d_funcCongClass.clear();
-  d_funcMap.clear();
-  // d_tstate.d_tf_region.clear();
-
   NodeManager* nm = NodeManager::currentNM();
 
-  bool needPi = false;
   // for computing congruence
   std::map<Kind, ArgTrie> argTrie;
   for (unsigned i = 0, xsize = xts.size(); i < xsize; i++)
@@ -96,7 +91,6 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
     }
     if (ak == EXPONENTIAL || ak == SINE)
     {
-      needPi = needPi || (ak == SINE);
       // if we didn't indicate that it should be purified above
       if (consider)
       {
@@ -125,21 +119,7 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
             d_im.addPendingArithLemma(cong_lemma, InferenceId::NL_CONGRUENCE);
           }
         }
-        else
-        {
-          // new representative of congruence class
-          d_funcMap[ak].push_back(a);
-        }
-        // add to congruence class
-        d_funcCongClass[aa].push_back(a);
       }
-    }
-    else if (ak == PI)
-    {
-      Assert(consider);
-      needPi = true;
-      d_funcMap[ak].push_back(a);
-      d_funcCongClass[a].push_back(a);
     }
   }
 }
@@ -175,7 +155,7 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
   // get model bounds for all transcendental functions
   Trace("nl-ext-cm") << "----- Get bounds for transcendental functions..."
                      << std::endl;
-  for (std::pair<const Kind, std::vector<Node> >& tfs : d_funcMap)
+  for (std::pair<const Kind, std::vector<Node> >& tfs : d_tstate.d_funcMap)
   {
     Kind k = tfs.first;
     for (const Node& tf : tfs.second)
@@ -203,7 +183,7 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
       if (!bl.isNull() && !bu.isNull())
       {
         // for each function in the congruence classe
-        for (const Node& ctf : d_funcCongClass[tf])
+        for (const Node& ctf : d_tstate.d_funcCongClass[tf])
         {
           // each term in congruence classes should be master terms
           Assert(d_tstate.d_trSlaves.find(ctf) != d_tstate.d_trSlaves.end());
@@ -269,7 +249,7 @@ void TranscendentalSolver::checkTranscendentalTangentPlanes()
                   << std::endl;
   // this implements Figure 3 of "Satisfiaility Modulo Transcendental Functions
   // via Incremental Linearization" by Cimatti et al
-  for (std::pair<const Kind, std::vector<Node> >& tfs : d_funcMap)
+  for (std::pair<const Kind, std::vector<Node> >& tfs : d_tstate.d_funcMap)
   {
     Kind k = tfs.first;
     if (k == PI)
