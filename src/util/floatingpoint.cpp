@@ -568,7 +568,7 @@ static FloatingPointLiteral constructorHelperRational(
 #endif
     } else {
 #ifdef CVC4_USE_SYMFPU
-      int negative = (r.sgn() < 0) ? 1 : 0;
+      int32_t negative = (r.sgn() < 0) ? 1 : 0;
 #endif
       r = r.abs();
 
