@@ -9,10 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
+ ** \brief Representation of unsat cores.
  **/
 
 #include "cvc4_private.h"
@@ -28,7 +25,8 @@
 namespace CVC4 {
 
 /**
- * An unsat core, which can optionally be initialized as a list of names.
+ * An unsat core, which can optionally be initialized as a list of names
+ * or as a list of formulas.
  */
 class UnsatCore
 {

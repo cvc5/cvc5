@@ -10,8 +10,6 @@
  ** directory for licensing information.\endverbatim
  **
  ** \brief Representation of unsat cores
- **
- ** Representation of unsat cores.
  **/
 
 #include "proof/unsat_core.h"
