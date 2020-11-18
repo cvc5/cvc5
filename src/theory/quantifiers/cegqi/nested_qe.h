@@ -29,7 +29,7 @@ namespace quantifiers {
 
 class NestedQe
 {
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
+  using NodeNodeMap = context::CDHashMap<Node, Node, NodeHashFunction>;
 
  public:
   NestedQe(context::UserContext* u);
