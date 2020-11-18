@@ -477,6 +477,14 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
   return intervals;
 }
 
+void CDCAC::startNewProof()
+{
+  if (isProofEnabled())
+  {
+    d_proof->startNewProof();
+  }
+}
+
 ProofGenerator* CDCAC::closeProof(const std::vector<Node>& assertions)
 {
   if (isProofEnabled())

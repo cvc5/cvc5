@@ -142,7 +142,7 @@ class CDCAC
   std::vector<CACInterval> getUnsatCover(std::size_t curVariable = 0,
                                          bool returnFirstInterval = false);
 
-  void startNewProof() { d_proof->startNewProof(); }
+  void startNewProof();
   /**
    * Finish the generated proof (if proofs are enabled) with a scope over the
    * given assertions.
