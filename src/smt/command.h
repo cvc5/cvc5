@@ -1376,32 +1376,6 @@ class CVC4_PUBLIC GetOptionCommand : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class GetOptionCommand */
 
-// Set expression name command
-// Note this is not an official smt2 command
-// Conceptually:
-//   (assert (! expr :named name))
-// is converted to
-//   (assert expr)
-//   (set-expr-name expr name)
-class CVC4_PUBLIC SetExpressionNameCommand : public Command
-{
- protected:
-  api::Term d_term;
-  std::string d_name;
-
- public:
-  SetExpressionNameCommand(api::Term term, std::string name);
-
-  void invoke(api::Solver* solver, SymbolManager* sm) override;
-  Command* clone() const override;
-  std::string getCommandName() const override;
-  void toStream(
-      std::ostream& out,
-      int toDepth = -1,
-      size_t dag = 1,
-      OutputLanguage language = language::output::LANG_AUTO) const override;
-}; /* class SetExpressionNameCommand */
-
 class CVC4_PUBLIC DatatypeDeclarationCommand : public Command
 {
  private:

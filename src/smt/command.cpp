@@ -2722,42 +2722,6 @@ void GetOptionCommand::toStream(std::ostream& out,
 }
 
 /* -------------------------------------------------------------------------- */
-/* class SetExpressionNameCommand                                             */
-/* -------------------------------------------------------------------------- */
-
-SetExpressionNameCommand::SetExpressionNameCommand(api::Term term,
-                                                   std::string name)
-    : d_term(term), d_name(name)
-{
-}
-
-void SetExpressionNameCommand::invoke(api::Solver* solver, SymbolManager* sm)
-{
-  solver->getSmtEngine()->setExpressionName(d_term.getExpr(), d_name);
-  d_commandStatus = CommandSuccess::instance();
-}
-
-Command* SetExpressionNameCommand::clone() const
-{
-  SetExpressionNameCommand* c = new SetExpressionNameCommand(d_term, d_name);
-  return c;
-}
-
-std::string SetExpressionNameCommand::getCommandName() const
-{
-  return "set-expr-name";
-}
-
-void SetExpressionNameCommand::toStream(std::ostream& out,
-                                        int toDepth,
-                                        size_t dag,
-                                        OutputLanguage language) const
-{
-  Printer::getPrinter(language)->toStreamCmdSetExpressionName(
-      out, d_term.getNode(), d_name);
-}
-
-/* -------------------------------------------------------------------------- */
 /* class DatatypeDeclarationCommand                                           */
 /* -------------------------------------------------------------------------- */
 

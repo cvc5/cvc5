@@ -51,7 +51,6 @@ UnsatCore::const_iterator UnsatCore::end() const {
 }
 
 void UnsatCore::toStream(std::ostream& out) const {
-  Assert(d_smt != NULL);
   expr::ExprDag::Scope scope(out, false);
   Printer::getPrinter(options::outputLanguage())->toStream(out, *this);
 }
