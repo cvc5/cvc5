@@ -105,7 +105,6 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
 
           for (unsigned p = 0; p < pts[0].size(); p++)
           {
-            LazyCDProof* proof = nullptr;
             Node a_v = pts[0][p];
             Node b_v = pts[1][p];
 
@@ -140,7 +139,8 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
                 proof->addStep(
                     tlem,
                     PfRule::ARITH_MULT_TANGENT,
-                    {a, b, a_v, b_v, nm->mkConst(Rational(d == 0 ? -1 : 1))});
+                    {},
+                    {t, a, b, a_v, b_v, nm->mkConst(Rational(d == 0 ? -1 : 1))});
               }
               d_data->d_im.addPendingArithLemma(
                   tlem, InferenceId::NL_TANGENT_PLANE, proof, asWaitingLemmas);

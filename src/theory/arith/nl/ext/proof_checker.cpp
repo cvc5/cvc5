@@ -48,31 +48,37 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
   if (id == PfRule::ARITH_MULT_TANGENT)
   {
     Assert(children.empty());
-    Assert(args.size() == 5);
+    Assert(args.size() == 6);
     Assert(args[0].getType().isReal());
     Assert(args[1].getType().isReal());
     Assert(args[2].getType().isReal());
     Assert(args[3].getType().isReal());
-    Assert(args[4].isConst() && args[4].getKind() == Kind::CONST_RATIONAL
-           && args[4].getConst<Rational>().isIntegral());
-    Node x = args[0];
-    Node y = args[1];
-    Node a = args[2];
-    Node b = args[3];
-    std::uint64_t i =
-        args[4].getConst<Rational>().getNumerator().toUnsignedInt();
+    Assert(args[4].getType().isReal());
+    Assert(args[5].isConst() && args[5].getKind() == Kind::CONST_RATIONAL
+           && args[5].getConst<Rational>().isIntegral());
+    Node t = args[0];
+    Node x = args[1];
+    Node y = args[2];
+    Node a = args[3];
+    Node b = args[4];
+    int sgn = args[5].getConst<Rational>().getNumerator().sgn();
+    Assert(sgn == -1 || sgn == 1);
     Node tplane = nm->mkNode(Kind::MINUS,
                              nm->mkNode(Kind::PLUS,
                                         nm->mkNode(Kind::MULT, b, x),
                                         nm->mkNode(Kind::MULT, a, y)),
                              nm->mkNode(Kind::MULT, a, b));
-    return nm->mkOr(std::vector<Node>{
-        nm->mkNode(i == 0 || i == 3 ? Kind::GEQ : Kind::LEQ, x, a).negate(),
-        nm->mkNode(i == 1 || i == 3 ? Kind::GEQ : Kind::LEQ, y, b).negate(),
-        nm->mkNode(i == 2 || i == 3 ? Kind::GEQ : Kind::LEQ,
-                   nm->mkNode(Kind::NONLINEAR_MULT, x, y),
-                   tplane)
-    });
+    return nm->mkNode(
+        Kind::EQUAL,
+        nm->mkNode(sgn == -1 ? Kind::LEQ : Kind::GEQ, t, tplane),
+        nm->mkNode(
+            Kind::OR,
+            nm->mkNode(Kind::AND,
+                       nm->mkNode(Kind::LEQ, x, a),
+                       nm->mkNode(sgn == -1 ? Kind::GEQ : Kind::LEQ, y, b)),
+            nm->mkNode(Kind::AND,
+                       nm->mkNode(Kind::GEQ, x, a),
+                       nm->mkNode(sgn == -1 ? Kind::LEQ : Kind::GEQ, y, b))));
   }
   return Node::null();
 }
