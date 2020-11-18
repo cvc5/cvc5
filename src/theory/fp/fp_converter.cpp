@@ -1578,7 +1578,7 @@ Node FpConverter::convert(TNode node)
                             symfpu::convertFloatToUBV<traits>(fpt(childType),
                                                               (*mode).second,
                                                               (*arg1).second,
-                                                              info.bvs,
+                                                              info.d_bv_size,
                                                               ubv(current[2])));
             i = d_ubvMap.find(current);
           }
@@ -1620,7 +1620,7 @@ Node FpConverter::convert(TNode node)
                             symfpu::convertFloatToSBV<traits>(fpt(childType),
                                                               (*mode).second,
                                                               (*arg1).second,
-                                                              info.bvs,
+                                                              info.d_bv_size,
                                                               sbv(current[2])));
 
             i = d_sbvMap.find(current);
