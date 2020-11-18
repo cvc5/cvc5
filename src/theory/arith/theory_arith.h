@@ -74,8 +74,6 @@ class TheoryArith : public Theory {
    */
   void preRegisterTerm(TNode n) override;
 
-  TrustNode expandDefinition(Node node) override;
-
   //--------------------------------- standard check
   /** Pre-check, called before the fact queue of the theory is processed. */
   bool preCheck(Effort level) override;
