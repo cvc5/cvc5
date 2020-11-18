@@ -2318,15 +2318,20 @@ void GetUnsatCoreCommand::printResult(std::ostream& out,
   }
   else
   {
-    std::vector<std::string> names;
-    bool useNames = false;
-    if (!options::dumpUnsatCoresFull())
+    if (options::dumpUnsatCoresFull())
     {
-      d_sm->getExpressionNames(d_result, names, true);
-      useNames = true;
+      // use the assertions
+      UnsatCore ucr(api::termVectorToNodes(d_result));
+      ucr.toStream(out);
     }
-    UnsatCore ucr(api::termVectorToNodes(d_result), names, useNames);
-    ucr.toStream(out);
+    else
+    {
+      // otherwise, use the names
+      std::vector<std::string> names;
+      d_sm->getExpressionNames(d_result, names, true);
+      UnsatCore ucr(names);
+      ucr.toStream(out);
+    }
   }
 }
 

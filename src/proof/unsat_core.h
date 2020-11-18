@@ -27,15 +27,17 @@
 
 namespace CVC4 {
 
-
+/**
+ * An unsat core, which can optionally be initialized as a list of names.
+ */
 class UnsatCore
 {
  public:
   UnsatCore() {}
-
-  UnsatCore(const std::vector<Node>& core,
-            std::vector<std::string>& names,
-            bool useNames);
+  /** Initialize using assertions */
+  UnsatCore(const std::vector<Node>& core);
+  /** Initialize using assertion names */
+  UnsatCore(std::vector<std::string>& names);
   ~UnsatCore() {}
 
   /** Whether we are using names for this unsat core */
