@@ -33,8 +33,8 @@
 
 namespace CVC4 {
 // Inline these!
-inline bool CVC4_PUBLIC validExponentSize(unsigned e) { return e >= 2; }
-inline bool CVC4_PUBLIC validSignificandSize(unsigned s) { return s >= 2; }
+inline bool CVC4_PUBLIC validExponentSize(uint32_t e) { return e >= 2; }
+inline bool CVC4_PUBLIC validSignificandSize(uint32_t s) { return s >= 2; }
 
 /* -------------------------------------------------------------------------- */
 
@@ -47,7 +47,7 @@ class CVC4_PUBLIC FloatingPointSize
 {
  public:
   /** Constructors. */
-  FloatingPointSize(unsigned exp_size, unsigned sig_size);
+  FloatingPointSize(uint32_t exp_size, uint32_t sig_size);
   FloatingPointSize(const FloatingPointSize& old);
 
   /** Operator overload for equality comparison. */
@@ -59,14 +59,14 @@ class CVC4_PUBLIC FloatingPointSize
   /** Implement the interface that symfpu uses for floating-point formats. */
 
   /** Get the exponent bit-width of this floating-point format. */
-  inline unsigned exponentWidth(void) const { return this->d_exp_size; }
+  inline uint32_t exponentWidth(void) const { return this->d_exp_size; }
   /** Get the significand bit-width of this floating-point format. */
-  inline unsigned significandWidth(void) const { return this->d_sig_size; }
+  inline uint32_t significandWidth(void) const { return this->d_sig_size; }
   /**
    * Get the bit-width of the packed representation of this floating-point
    * format (= exponent + significand bit-width, convenience wrapper).
    */
-  inline unsigned packedWidth(void) const
+  inline uint32_t packedWidth(void) const
   {
     return this->exponentWidth() + this->significandWidth();
   }
@@ -74,7 +74,7 @@ class CVC4_PUBLIC FloatingPointSize
    * Get the exponent bit-width of the packed representation of this
    * floating-point format (= exponent bit-width).
    */
-  inline unsigned packedExponentWidth(void) const
+  inline uint32_t packedExponentWidth(void) const
   {
     return this->exponentWidth();
   }
@@ -82,16 +82,16 @@ class CVC4_PUBLIC FloatingPointSize
    * Get the significand bit-width of the packed representation of this
    * floating-point format (= significand bit-width - 1).
    */
-  inline unsigned packedSignificandWidth(void) const
+  inline uint32_t packedSignificandWidth(void) const
   {
     return this->significandWidth() - 1;
   }
 
  private:
   /** Exponent bit-width. */
-  unsigned d_exp_size;
+  uint32_t d_exp_size;
   /** Significand bit-width. */
-  unsigned d_sig_size;
+  uint32_t d_sig_size;
 
 }; /* class FloatingPointSize */
 
@@ -107,7 +107,7 @@ struct CVC4_PUBLIC FloatingPointSizeHashFunction
 
   inline size_t operator()(const FloatingPointSize& t) const
   {
-    return size_t(ROLL(t.exponentWidth(), 4 * sizeof(unsigned))
+    return size_t(ROLL(t.exponentWidth(), 4 * sizeof(uint32_t))
                   | t.significandWidth());
   }
 }; /* struct FloatingPointSizeHashFunction */
@@ -224,7 +224,7 @@ class wrappedBitVector : public BitVector
 
  public:
   /** Constructors. */
-  wrappedBitVector(const CVC4BitWidth w, const unsigned v) : BitVector(w, v) {}
+  wrappedBitVector(const CVC4BitWidth w, const uint32_t v) : BitVector(w, v) {}
   wrappedBitVector(const CVC4Prop& p) : BitVector(1, p ? 1U : 0U) {}
   wrappedBitVector(const wrappedBitVector<isSigned>& old) : BitVector(old) {}
   wrappedBitVector(const BitVector& old) : BitVector(old) {}
@@ -379,8 +379,8 @@ class CVC4_PUBLIC FloatingPointLiteral
   // representation is solver specific.
   void unfinished(void) const;
 
-  FloatingPointLiteral(unsigned, unsigned, double) { unfinished(); }
-  FloatingPointLiteral(unsigned, unsigned, const std::string&) { unfinished(); }
+  FloatingPointLiteral(uint32_t, uint32_t, double) { unfinished(); }
+  FloatingPointLiteral(uint32_t, uint32_t, const std::string&) { unfinished(); }
   FloatingPointLiteral(const FloatingPointLiteral&) { unfinished(); }
   bool operator==(const FloatingPointLiteral& op) const
   {
@@ -408,7 +408,7 @@ class CVC4_PUBLIC FloatingPoint
   using PartialRational = std::pair<Rational, bool>;
 
   /** Constructors. */
-  FloatingPoint(unsigned e, unsigned s, const BitVector& bv);
+  FloatingPoint(uint32_t e, uint32_t s, const BitVector& bv);
   FloatingPoint(const FloatingPointSize& size, const BitVector& bv);
 
   FloatingPoint(const FloatingPointSize& fp_size,
@@ -635,7 +635,7 @@ class CVC4_PUBLIC FloatingPointConvertSort
 {
  public:
   /** Constructors. */
-  FloatingPointConvertSort(unsigned _e, unsigned _s) : d_fp_size(_e, _s) {}
+  FloatingPointConvertSort(uint32_t _e, uint32_t _s) : d_fp_size(_e, _s) {}
   FloatingPointConvertSort(const FloatingPointSize& fps) : d_fp_size(fps) {}
 
   /** Operator overload for comparison of conversion sorts. */
@@ -649,7 +649,7 @@ class CVC4_PUBLIC FloatingPointConvertSort
 };
 
 /** Hash function for conversion sorts. */
-template <unsigned key>
+template <uint32_t key>
 struct CVC4_PUBLIC FloatingPointConvertSortHashFunction
 {
   inline size_t operator()(const FloatingPointConvertSort& fpcs) const
@@ -674,7 +674,7 @@ class CVC4_PUBLIC FloatingPointToFPIEEEBitVector
 {
  public:
   /** Constructors. */
-  FloatingPointToFPIEEEBitVector(unsigned _e, unsigned _s)
+  FloatingPointToFPIEEEBitVector(uint32_t _e, uint32_t _s)
       : FloatingPointConvertSort(_e, _s)
   {
   }
@@ -693,7 +693,7 @@ class CVC4_PUBLIC FloatingPointToFPFloatingPoint
 {
  public:
   /** Constructors. */
-  FloatingPointToFPFloatingPoint(unsigned _e, unsigned _s)
+  FloatingPointToFPFloatingPoint(uint32_t _e, uint32_t _s)
       : FloatingPointConvertSort(_e, _s)
   {
   }
@@ -710,7 +710,7 @@ class CVC4_PUBLIC FloatingPointToFPReal : public FloatingPointConvertSort
 {
  public:
   /** Constructors. */
-  FloatingPointToFPReal(unsigned _e, unsigned _s)
+  FloatingPointToFPReal(uint32_t _e, uint32_t _s)
       : FloatingPointConvertSort(_e, _s)
   {
   }
@@ -728,7 +728,7 @@ class CVC4_PUBLIC FloatingPointToFPSignedBitVector
 {
  public:
   /** Constructors. */
-  FloatingPointToFPSignedBitVector(unsigned _e, unsigned _s)
+  FloatingPointToFPSignedBitVector(uint32_t _e, uint32_t _s)
       : FloatingPointConvertSort(_e, _s)
   {
   }
@@ -746,7 +746,7 @@ class CVC4_PUBLIC FloatingPointToFPUnsignedBitVector
 {
  public:
   /** Constructors. */
-  FloatingPointToFPUnsignedBitVector(unsigned _e, unsigned _s)
+  FloatingPointToFPUnsignedBitVector(uint32_t _e, uint32_t _s)
       : FloatingPointConvertSort(_e, _s)
   {
   }
@@ -760,7 +760,7 @@ class CVC4_PUBLIC FloatingPointToFPGeneric : public FloatingPointConvertSort
 {
  public:
   /** Constructors. */
-  FloatingPointToFPGeneric(unsigned _e, unsigned _s)
+  FloatingPointToFPGeneric(uint32_t _e, uint32_t _s)
       : FloatingPointConvertSort(_e, _s)
   {
   }
@@ -777,12 +777,12 @@ class CVC4_PUBLIC FloatingPointToBV
 {
  public:
   /** Constructors. */
-  FloatingPointToBV(unsigned s) : d_bv_size(s) {}
+  FloatingPointToBV(uint32_t s) : d_bv_size(s) {}
   FloatingPointToBV(const FloatingPointToBV& old) : d_bv_size(old.d_bv_size) {}
   FloatingPointToBV(const BitVectorSize& old) : d_bv_size(old) {}
 
   /** Return the bit-width of the bit-vector to convert to. */
-  operator unsigned() const { return d_bv_size; }
+  operator uint32_t() const { return d_bv_size; }
 
   /** The bit-width of the bit-vector to converto to. */
   BitVectorSize d_bv_size;
@@ -794,7 +794,7 @@ class CVC4_PUBLIC FloatingPointToBV
 class CVC4_PUBLIC FloatingPointToUBV : public FloatingPointToBV
 {
  public:
-  FloatingPointToUBV(unsigned _s) : FloatingPointToBV(_s) {}
+  FloatingPointToUBV(uint32_t _s) : FloatingPointToBV(_s) {}
   FloatingPointToUBV(const FloatingPointToBV& old) : FloatingPointToBV(old) {}
 };
 
@@ -804,7 +804,7 @@ class CVC4_PUBLIC FloatingPointToUBV : public FloatingPointToBV
 class CVC4_PUBLIC FloatingPointToSBV : public FloatingPointToBV
 {
  public:
-  FloatingPointToSBV(unsigned _s) : FloatingPointToBV(_s) {}
+  FloatingPointToSBV(uint32_t _s) : FloatingPointToBV(_s) {}
   FloatingPointToSBV(const FloatingPointToBV& old) : FloatingPointToBV(old) {}
 };
 
@@ -814,7 +814,7 @@ class CVC4_PUBLIC FloatingPointToSBV : public FloatingPointToBV
 class CVC4_PUBLIC FloatingPointToUBVTotal : public FloatingPointToBV
 {
  public:
-  FloatingPointToUBVTotal(unsigned _s) : FloatingPointToBV(_s) {}
+  FloatingPointToUBVTotal(uint32_t _s) : FloatingPointToBV(_s) {}
   FloatingPointToUBVTotal(const FloatingPointToBV& old) : FloatingPointToBV(old)
   {
   }
@@ -826,7 +826,7 @@ class CVC4_PUBLIC FloatingPointToUBVTotal : public FloatingPointToBV
 class CVC4_PUBLIC FloatingPointToSBVTotal : public FloatingPointToBV
 {
  public:
-  FloatingPointToSBVTotal(unsigned _s) : FloatingPointToBV(_s) {}
+  FloatingPointToSBVTotal(uint32_t _s) : FloatingPointToBV(_s) {}
   FloatingPointToSBVTotal(const FloatingPointToBV& old) : FloatingPointToBV(old)
   {
   }
@@ -835,7 +835,7 @@ class CVC4_PUBLIC FloatingPointToSBVTotal : public FloatingPointToBV
 /**
  * Hash function for floating-point to bit-vector conversions.
  */
-template <unsigned key>
+template <uint32_t key>
 struct CVC4_PUBLIC FloatingPointToBVHashFunction
 {
   inline size_t operator()(const FloatingPointToBV& fptbv) const
