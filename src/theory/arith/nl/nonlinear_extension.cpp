@@ -55,7 +55,7 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       d_monomialSlv(&d_extState),
       d_splitZeroSlv(&d_extState, state.getUserContext()),
       d_tangentPlaneSlv(&d_extState),
-      d_cadSlv(d_im, d_model, pnm),
+      d_cadSlv(d_im, d_model, state.getUserContext(), pnm),
       d_icpSlv(d_im),
       d_iandSlv(d_im, state, d_model),
       d_builtModel(containing.getSatContext(), false)

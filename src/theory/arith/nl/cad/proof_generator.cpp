@@ -84,43 +84,44 @@ Node mkIRP(const Node& var,
 
 }  // namespace
 
-CADProofGenerator::CADProofGenerator(ProofNodeManager* pnm) : d_ltpg(pnm)
+CADProofGenerator::CADProofGenerator(context::Context* ctx,
+                                     ProofNodeManager* pnm)
+    : d_pnm(pnm), d_proofs(ctx)
 {
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
   d_zero = NodeManager::currentNM()->mkConst<Rational>(0);
 }
 
-std::string CADProofGenerator::identify() const { return "CADProofGenerator"; }
-
 std::shared_ptr<ProofNode> CADProofGenerator::getProof() const
 {
-  return d_ltpg.getProof();
-}
-std::shared_ptr<ProofNode> CADProofGenerator::getProofFor(Node f)
-{
-  Assert(hasProofFor(f));
-  return getProof();
-}
-bool CADProofGenerator::hasProofFor(Node f)
-{
-  return f == getProof()->getResult();
+  return d_proofs.back()->getProof();
 }
 
-void CADProofGenerator::startRecursive() { d_ltpg.openChild(); }
+void CADProofGenerator::startNewProof()
+{
+  d_proofs.push_back(std::make_shared<LazyTreeProofGenerator>(d_pnm));
+}
+void CADProofGenerator::startRecursive() { d_proofs.back()->openChild(); }
 void CADProofGenerator::endRecursive()
 {
-  d_ltpg.setCurrent(PfRule::ARITH_NL_CAD_RECURSIVE, {}, {d_false}, d_false);
-  d_ltpg.closeChild();
+  d_proofs.back()->setCurrent(
+      PfRule::ARITH_NL_CAD_RECURSIVE, {}, {d_false}, d_false);
+  d_proofs.back()->closeChild();
 }
 void CADProofGenerator::startScope()
 {
-  d_ltpg.openChild();
-  d_ltpg.getCurrent().d_rule = PfRule::SCOPE;
+  d_proofs.back()->openChild();
+  d_proofs.back()->getCurrent().d_rule = PfRule::SCOPE;
 }
 void CADProofGenerator::endScope(const std::vector<Node>& args)
 {
-  d_ltpg.setCurrent(PfRule::SCOPE, {}, args, d_false);
-  d_ltpg.closeChild();
+  d_proofs.back()->setCurrent(PfRule::SCOPE, {}, args, d_false);
+  d_proofs.back()->closeChild();
+}
+
+ProofGenerator* CADProofGenerator::getProofGenerator() const
+{
+  return d_proofs.back().get();
 }
 
 void CADProofGenerator::addDirect(Node var,
@@ -135,10 +136,10 @@ void CADProofGenerator::addDirect(Node var,
       && is_plus_infinity(get_upper(interval)))
   {
     // "Full conflict", constraint excludes (-inf,inf)
-    d_ltpg.openChild();
-    d_ltpg.setCurrent(
+    d_proofs.back()->openChild();
+    d_proofs.back()->setCurrent(
         PfRule::ARITH_NL_CAD_DIRECT, {constraint}, {d_false}, d_false);
-    d_ltpg.closeChild();
+    d_proofs.back()->closeChild();
     return;
   }
   std::vector<Node> res;
@@ -172,10 +173,10 @@ void CADProofGenerator::addDirect(Node var,
   }
   // Add to proof manager
   startScope();
-  d_ltpg.openChild();
-  d_ltpg.setCurrent(
+  d_proofs.back()->openChild();
+  d_proofs.back()->setCurrent(
       PfRule::ARITH_NL_CAD_DIRECT, {constraint}, {d_false}, d_false);
-  d_ltpg.closeChild();
+  d_proofs.back()->closeChild();
   endScope(res);
 }
 
@@ -225,7 +226,7 @@ std::vector<Node> CADProofGenerator::constructCell(Node var,
 
 std::ostream& operator<<(std::ostream& os, const CADProofGenerator& proof)
 {
-  return os << proof.d_ltpg;
+  return os << *proof.d_proofs.back();
 }
 
 }  // namespace cad

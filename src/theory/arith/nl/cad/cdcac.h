@@ -48,7 +48,8 @@ class CDCAC
 {
  public:
   /** Initialize this method with the given variable ordering. */
-  CDCAC(ProofNodeManager* pnm,
+  CDCAC(context::Context* ctx,
+        ProofNodeManager* pnm,
         const std::vector<poly::Variable>& ordering = {});
 
   /** Reset this instance. */
@@ -141,11 +142,12 @@ class CDCAC
   std::vector<CACInterval> getUnsatCover(std::size_t curVariable = 0,
                                          bool returnFirstInterval = false);
 
+  void startNewProof() { d_proof->startNewProof(); }
   /**
    * Finish the generated proof (if proofs are enabled) with a scope over the
    * given assertions.
    */
-  void closeProof(const std::vector<Node>& assertions);
+  ProofGenerator* closeProof(const std::vector<Node>& assertions);
 
   /** Get the proof generator */
   CADProofGenerator* getProof() { return d_proof.get(); }

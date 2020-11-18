@@ -49,12 +49,14 @@ void removeDuplicates(std::vector<T>& v)
 }
 }  // namespace
 
-CDCAC::CDCAC(ProofNodeManager* pnm, const std::vector<poly::Variable>& ordering)
+CDCAC::CDCAC(context::Context* ctx,
+             ProofNodeManager* pnm,
+             const std::vector<poly::Variable>& ordering)
     : d_variableOrdering(ordering)
 {
   if (pnm != nullptr)
   {
-    d_proof.reset(new CADProofGenerator(pnm));
+    d_proof.reset(new CADProofGenerator(ctx, pnm));
   }
 }
 
@@ -62,10 +64,6 @@ void CDCAC::reset()
 {
   d_constraints.reset();
   d_assignment.clear();
-  if (isProofEnabled())
-  {
-    d_proof->reset();
-  }
 }
 
 void CDCAC::computeVariableOrdering()
@@ -479,12 +477,14 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
   return intervals;
 }
 
-void CDCAC::closeProof(const std::vector<Node>& assertions)
+ProofGenerator* CDCAC::closeProof(const std::vector<Node>& assertions)
 {
   if (isProofEnabled())
   {
     d_proof->endScope(assertions);
+    return d_proof->getProofGenerator();
   }
+  return nullptr;
 }
 
 bool CDCAC::checkIntegrality(std::size_t cur_variable, const poly::Value& value)
