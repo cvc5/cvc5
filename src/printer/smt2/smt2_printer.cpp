@@ -212,9 +212,8 @@ void Smt2Printer::toStream(std::ostream& out,
       break;
     case kind::FLOATINGPOINT_TYPE:
       out << "(_ FloatingPoint "
-          << n.getConst<FloatingPointSize>().exponent() << " "
-          << n.getConst<FloatingPointSize>().significand()
-          << ")";
+          << n.getConst<FloatingPointSize>().exponentWidth() << " "
+          << n.getConst<FloatingPointSize>().significandWidth() << ")";
       break;
     case kind::CONST_BITVECTOR:
     {
@@ -382,53 +381,69 @@ void Smt2Printer::toStream(std::ostream& out,
       break;
     case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP:
       out << "(_ to_fp "
-          << n.getConst<FloatingPointToFPIEEEBitVector>().t.exponent() << ' '
-          << n.getConst<FloatingPointToFPIEEEBitVector>().t.significand()
+          << n.getConst<FloatingPointToFPIEEEBitVector>()
+                 .d_fp_size.exponentWidth()
+          << ' '
+          << n.getConst<FloatingPointToFPIEEEBitVector>()
+                 .d_fp_size.significandWidth()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP:
       out << "(_ to_fp "
-          << n.getConst<FloatingPointToFPFloatingPoint>().t.exponent() << ' '
-          << n.getConst<FloatingPointToFPFloatingPoint>().t.significand()
+          << n.getConst<FloatingPointToFPFloatingPoint>()
+                 .d_fp_size.exponentWidth()
+          << ' '
+          << n.getConst<FloatingPointToFPFloatingPoint>()
+                 .d_fp_size.significandWidth()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_REAL_OP:
-      out << "(_ to_fp " << n.getConst<FloatingPointToFPReal>().t.exponent()
-          << ' ' << n.getConst<FloatingPointToFPReal>().t.significand() << ")";
+      out << "(_ to_fp "
+          << n.getConst<FloatingPointToFPReal>().d_fp_size.exponentWidth()
+          << ' '
+          << n.getConst<FloatingPointToFPReal>().d_fp_size.significandWidth()
+          << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP:
       out << "(_ to_fp "
-          << n.getConst<FloatingPointToFPSignedBitVector>().t.exponent() << ' '
-          << n.getConst<FloatingPointToFPSignedBitVector>().t.significand()
+          << n.getConst<FloatingPointToFPSignedBitVector>()
+                 .d_fp_size.exponentWidth()
+          << ' '
+          << n.getConst<FloatingPointToFPSignedBitVector>()
+                 .d_fp_size.significandWidth()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP:
       out << "(_ to_fp_unsigned "
-          << n.getConst<FloatingPointToFPUnsignedBitVector>().t.exponent()
+          << n.getConst<FloatingPointToFPUnsignedBitVector>()
+                 .d_fp_size.exponentWidth()
           << ' '
-          << n.getConst<FloatingPointToFPUnsignedBitVector>().t.significand()
+          << n.getConst<FloatingPointToFPUnsignedBitVector>()
+                 .d_fp_size.significandWidth()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_GENERIC_OP:
-      out << "(_ to_fp " << n.getConst<FloatingPointToFPGeneric>().t.exponent()
-          << ' ' << n.getConst<FloatingPointToFPGeneric>().t.significand()
+      out << "(_ to_fp "
+          << n.getConst<FloatingPointToFPGeneric>().d_fp_size.exponentWidth()
+          << ' '
+          << n.getConst<FloatingPointToFPGeneric>().d_fp_size.significandWidth()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_UBV_OP:
-      out << "(_ fp.to_ubv " << n.getConst<FloatingPointToUBV>().bvs.d_size
-          << ")";
+      out << "(_ fp.to_ubv "
+          << n.getConst<FloatingPointToUBV>().d_bv_size.d_size << ")";
       break;
     case kind::FLOATINGPOINT_TO_SBV_OP:
-      out << "(_ fp.to_sbv " << n.getConst<FloatingPointToSBV>().bvs.d_size
-          << ")";
+      out << "(_ fp.to_sbv "
+          << n.getConst<FloatingPointToSBV>().d_bv_size.d_size << ")";
       break;
     case kind::FLOATINGPOINT_TO_UBV_TOTAL_OP:
       out << "(_ fp.to_ubv_total "
-          << n.getConst<FloatingPointToUBVTotal>().bvs.d_size << ")";
+          << n.getConst<FloatingPointToUBVTotal>().d_bv_size.d_size << ")";
       break;
     case kind::FLOATINGPOINT_TO_SBV_TOTAL_OP:
       out << "(_ fp.to_sbv_total "
-          << n.getConst<FloatingPointToSBVTotal>().bvs.d_size << ")";
+          << n.getConst<FloatingPointToSBVTotal>().d_bv_size.d_size << ")";
       break;
     case kind::REGEXP_REPEAT_OP:
       out << "(_ re.^ " << n.getConst<RegExpRepeat>().d_repeatAmount << ")";
@@ -1728,20 +1743,6 @@ void Smt2Printer::toStreamCmdDefineType(std::ostream& out,
     out << params.back();
   }
   out << ") " << t << ")" << std::endl;
-}
-
-void Smt2Printer::toStreamCmdDefineNamedFunction(
-    std::ostream& out,
-    const std::string& id,
-    const std::vector<Node>& formals,
-    TypeNode range,
-    Node formula) const
-{
-  out << "DefineNamedFunction( ";
-  toStreamCmdDefineFunction(out, id, formals, range, formula);
-  out << " )" << std::endl;
-
-  printUnknownCommand(out, "define-named-function");
 }
 
 void Smt2Printer::toStreamCmdSimplify(std::ostream& out, Node n) const

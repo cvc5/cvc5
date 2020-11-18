@@ -1,4 +1,4 @@
-; COMMAND-LINE: --nl-ext --nl-ext-tplanes
+; COMMAND-LINE: --nl-ext --nl-ext-tplanes -q
 ; EXPECT: sat
 (set-logic QF_UFNIA)
 (set-info :status sat)

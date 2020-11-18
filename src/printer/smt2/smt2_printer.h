@@ -95,13 +95,6 @@ class Smt2Printer : public CVC4::Printer
                                  TypeNode range,
                                  Node formula) const override;
 
-  /** Print define-named-fun command */
-  void toStreamCmdDefineNamedFunction(std::ostream& out,
-                                      const std::string& id,
-                                      const std::vector<Node>& formals,
-                                      TypeNode range,
-                                      Node formula) const override;
-
   /** Print define-fun-rec command */
   void toStreamCmdDefineFunctionRec(
       std::ostream& out,
