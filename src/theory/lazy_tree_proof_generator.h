@@ -130,8 +130,6 @@ class LazyTreeProofGenerator : public ProofGenerator
                          const std::string& name = "LazyTreeProofGenerator");
 
   std::string identify() const override { return d_name; }
-  /** Reset this proof generator, removes everything */
-  void reset();
   /** Create a new child and make it the current node */
   void openChild();
   /**

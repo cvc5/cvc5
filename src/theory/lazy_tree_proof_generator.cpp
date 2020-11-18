@@ -29,13 +29,6 @@ LazyTreeProofGenerator::LazyTreeProofGenerator(ProofNodeManager* pnm,
 {
   d_stack.emplace_back(&d_proof);
 }
-void LazyTreeProofGenerator::reset()
-{
-  d_cached.reset();
-  d_stack.clear();
-  d_proof = detail::TreeProofNode();
-  d_stack.emplace_back(&d_proof);
-}
 void LazyTreeProofGenerator::openChild()
 {
   detail::TreeProofNode& pn = getCurrent();
