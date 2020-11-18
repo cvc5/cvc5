@@ -75,6 +75,18 @@ class CADProofGenerator : public ProofGenerator
   void endScope(const std::vector<Node>& args);
 
   /**
+   * Calls LazyTreeProofGenerator::pruneChildren(f), but decorates the
+   * predicate such that f only accepts the index.
+   * @param f A Callable bool(std::size_t)
+   */
+  template<typename F>
+  void pruneChildren(F&& f) {
+    d_ltpg.pruneChildren([&f](std::size_t i, const detail::TreeProofNode& tpn) {
+      return f(i);
+    });
+  }
+
+  /**
    * Add a direct interval conflict as generated in getUnsatIntervals().
    * Its meaning is:
    *   over the partial assignment a, var is not in interval because p~sc~0

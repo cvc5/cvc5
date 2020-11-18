@@ -148,7 +148,7 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
       }
     }
   }
-  cleanIntervals(res);
+  pruneRedundantIntervals(res);
   return res;
 }
 
@@ -399,7 +399,7 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
       Trace("cdcac") << "Adding integrality interval " << newInterval.d_interval
                      << std::endl;
       intervals.emplace_back(newInterval);
-      cleanIntervals(intervals);
+      pruneRedundantIntervals(intervals);
       continue;
     }
     d_assignment.set(d_variableOrdering[curVariable], sample);
@@ -460,7 +460,7 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
     Trace("cdcac") << "\torigins: " << intervals.back().d_origins << std::endl;
 
     // Remove redundant intervals
-    cleanIntervals(intervals);
+    pruneRedundantIntervals(intervals);
   }
 
   if (Trace.isOn("cdcac"))
@@ -529,6 +529,23 @@ bool CDCAC::hasRootBelow(const poly::Polynomial& p,
   return std::any_of(roots.begin(), roots.end(), [&val](const poly::Value& r) {
     return r <= val;
   });
+}
+
+void CDCAC::pruneRedundantIntervals(std::vector<CACInterval>& intervals)
+{
+  if (isProofEnabled())
+  {
+    std::vector<CACInterval> allIntervals = intervals;
+    cleanIntervals(intervals);
+    d_proof->pruneChildren([&allIntervals, &intervals](std::size_t i) {
+      return std::find(intervals.begin(), intervals.end(), allIntervals[i])
+             != intervals.end();
+    });
+  }
+  else
+  {
+    cleanIntervals(intervals);
+  }
 }
 
 }  // namespace cad

@@ -151,6 +151,34 @@ class LazyTreeProofGenerator
   /** Construct the proof as a ProofNode */
   std::shared_ptr<ProofNode> getProof() const;
 
+  /**
+   * Removes children from the current node based on the given predicate.
+   * It can be used for cases where facts (and their proofs) are eagerly
+   * generated and then later pruned, for example to produce smaller conflicts.
+   * The predicate is given as a Callable f that is called for every child with
+   * the id of the child and the child itself.
+   * f should return true if the child should be kept, fals if the child should
+   * be removed.
+   * @param f a Callable bool(std::size_t, const detail::TreeProofNode&)
+   */
+  template<typename F>
+  void pruneChildren(F&& f) {
+    auto& children = getCurrent().d_children;
+    std::size_t cur = 0;
+    std::size_t pos = 0;
+    for (std::size_t size = children.size(); cur < size; ++cur) {
+      std::cout << "Checking " << pos << std::endl;
+      if (f(cur, children[pos])) {
+        if (cur != pos) {
+          std::cout << "Removing " << pos << std::endl;
+          children[pos] = std::move(children[cur]);
+        }
+        ++pos;
+      }
+    }
+    children.resize(pos);
+  }
+
  private:
   /** recursive proof construction used by getProof() */
   std::shared_ptr<ProofNode> getProof(
