@@ -1422,7 +1422,7 @@ void SmtEngine::checkUnsatCore() {
     coreChecker->declareSepHeap(sepLocType, sepDataType);
   }
 
-  Notice() << "SmtEngine::checkUnsatCore(): pushing core assertions (size == " << core.size() << ")" << endl;
+  Notice() << "SmtEngine::checkUnsatCore(): pushing core assertions" << std::endl;
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
     Node assertionAfterExpansion = expandDefinitions(*i);
     Notice() << "SmtEngine::checkUnsatCore(): pushing core member " << *i
