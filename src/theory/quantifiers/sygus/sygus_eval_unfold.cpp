@@ -318,8 +318,7 @@ Node SygusEvalUnfold::unfold(Node en,
       << "Applied sygus args : " << ret << std::endl;
   // rewrite
   ret = Rewriter::rewrite(ret);
-  Trace("sygus-eval-unfold-debug")
-      << "Rewritten : " << ret << std::endl;
+  Trace("sygus-eval-unfold-debug") << "Rewritten : " << ret << std::endl;
   return ret;
 }
 

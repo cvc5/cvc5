@@ -27,7 +27,6 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/smt_engine_subsolver.h"
-#include "expr/node_algorithm.h"
 
 using namespace CVC4::kind;
 
@@ -201,14 +200,11 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
                          candidate_skeletons,
                          sk_vars,
                          sk_vars_to_subs);
-    Trace("sygus-repair-const-debug") << "...after fit-to-logic : " << fo_body << std::endl;
+    Trace("sygus-repair-const-debug")
+        << "...after fit-to-logic : " << fo_body << std::endl;
   }
+  Assert(!expr::hasFreeVar(fo_body));
 
-  std::unordered_set<Node, NodeHashFunction> fvs;
-  expr::getFreeVariables(fo_body, fvs);
-  Trace("sygus-repair-const-debug") << "...free variables: " << fvs << std::endl;
-  Assert (!expr::hasFreeVar(fo_body));
-  
   if (fo_body.isNull() || sk_vars.empty())
   {
     Trace("sygus-repair-const")
