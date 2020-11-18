@@ -140,10 +140,20 @@ class CDCAC
    */
   std::vector<CACInterval> getUnsatCover(std::size_t curVariable = 0,
                                          bool returnFirstInterval = false);
+
+  /**
+   * Finish the generated proof (if proofs are enabled) with a scope over the
+   * given assertions.
+   */
+  void closeProof(const std::vector<Node>& assertions);
+
   /** Get the proof generator */
   CADProofGenerator* getProof() { return d_proof.get(); }
 
  private:
+  /** Check whether proofs are enabled */
+  bool isProofEnabled() const { return d_proof != nullptr; }
+
   /**
    * Check whether the current sample satisfies the integrality condition of the
    * current variable. Returns true if the variable is not integral or the

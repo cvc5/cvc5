@@ -55,6 +55,9 @@ class CADProofGenerator : public ProofGenerator
   /** Return a string identifier for this proof generator */
   std::string identify() const override;
 
+  /** Reset this proof generator. */
+  void reset() { d_ltpg.reset(); }
+
   /** Return the constructed proof */
   std::shared_ptr<ProofNode> getProof() const;
   /** Return the constructed proof. Checks that we have proven f */
