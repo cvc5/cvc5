@@ -169,12 +169,10 @@ class LazyTreeProofGenerator
     std::size_t pos = 0;
     for (std::size_t size = children.size(); cur < size; ++cur)
     {
-      std::cout << "Checking " << pos << std::endl;
       if (f(cur, children[pos]))
       {
         if (cur != pos)
         {
-          std::cout << "Removing " << pos << std::endl;
           children[pos] = std::move(children[cur]);
         }
         ++pos;
