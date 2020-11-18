@@ -394,9 +394,7 @@ void SmtEngine::setLogic(const std::string& s)
 }
 
 void SmtEngine::setLogic(const char* logic) { setLogic(string(logic)); }
-LogicInfo SmtEngine::getLogicInfo() const {
-  return d_logic;
-}
+LogicInfo SmtEngine::getLogicInfo() const { return d_logic; }
 
 LogicInfo SmtEngine::getUserLogicInfo() const
 {
@@ -1422,7 +1420,8 @@ void SmtEngine::checkUnsatCore() {
     coreChecker->declareSepHeap(sepLocType, sepDataType);
   }
 
-  Notice() << "SmtEngine::checkUnsatCore(): pushing core assertions" << std::endl;
+  Notice() << "SmtEngine::checkUnsatCore(): pushing core assertions"
+           << std::endl;
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
     Node assertionAfterExpansion = expandDefinitions(*i);
     Notice() << "SmtEngine::checkUnsatCore(): pushing core member " << *i
