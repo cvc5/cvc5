@@ -41,9 +41,9 @@ class UnsatCore
   ~UnsatCore() {}
 
   /** Whether we are using names for this unsat core */
-  bool usingNames() const { return d_useNames; }
+  bool useNames() const { return d_useNames; }
   /** Get the number of assertions in the unsat core */
-  size_t size() const { return d_core.size(); }
+  size_t size() const { return d_core.size()+d_names.size(); }
   /** Get the assertions in the unsat core */
   const std::vector<Node>& getCore() const;
   /** Get their names */
@@ -54,10 +54,9 @@ class UnsatCore
 
   const_iterator begin() const;
   const_iterator end() const;
-
+  
   /**
    * prints this UnsatCore object to the stream out.
-   * We use the expression names stored in the SymbolManager d_sm
    */
   void toStream(std::ostream& out) const;
 
