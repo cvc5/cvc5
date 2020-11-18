@@ -62,6 +62,10 @@ void CDCAC::reset()
 {
   d_constraints.reset();
   d_assignment.clear();
+  if (isProofEnabled())
+  {
+    d_proof->reset();
+  }
 }
 
 void CDCAC::computeVariableOrdering()
@@ -131,7 +135,7 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
       if (!is_plus_infinity(get_upper(i))) u.emplace_back(p);
       m.emplace_back(p);
       res.emplace_back(CACInterval{i, l, u, m, d, {n}});
-      if (d_proof != nullptr)
+      if (isProofEnabled())
       {
         d_proof->addDirect(
             d_constraints.varMapper()(d_variableOrdering[cur_variable]),
@@ -364,7 +368,7 @@ CACInterval CDCAC::intervalFromCharacterization(
 std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
                                               bool returnFirstInterval)
 {
-  if (d_proof != nullptr)
+  if (isProofEnabled())
   {
     d_proof->startRecursive();
   }
@@ -406,7 +410,7 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
       Trace("cdcac") << "Found full assignment: " << d_assignment << std::endl;
       return {};
     }
-    if (d_proof != nullptr)
+    if (isProofEnabled())
     {
       d_proof->startScope();
     }
@@ -428,7 +432,7 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
         intervalFromCharacterization(characterization, curVariable, sample);
     newInterval.d_origins = collectConstraints(cov);
     intervals.emplace_back(newInterval);
-    if (d_proof != nullptr)
+    if (isProofEnabled())
     {
       auto cell = d_proof->constructCell(
           d_constraints.varMapper()(d_variableOrdering[curVariable]),
@@ -468,7 +472,19 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
       Trace("cdcac") << "-> " << i.d_interval << std::endl;
     }
   }
+  if (isProofEnabled())
+  {
+    d_proof->endRecursive();
+  }
   return intervals;
+}
+
+void CDCAC::closeProof(const std::vector<Node>& assertions)
+{
+  if (isProofEnabled())
+  {
+    d_proof->endScope(assertions);
+  }
 }
 
 bool CDCAC::checkIntegrality(std::size_t cur_variable, const poly::Value& value)
