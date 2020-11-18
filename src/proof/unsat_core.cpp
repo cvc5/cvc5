@@ -23,7 +23,7 @@
 #include "smt/smt_engine_scope.h"
 
 namespace CVC4 {
-  
+
 UnsatCore::UnsatCore(const std::vector<Node>& core)
     : d_useNames(false), d_core(core), d_names()
 {
