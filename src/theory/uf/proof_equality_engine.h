@@ -168,8 +168,6 @@ class ProofEqEngine : public EagerProofGenerator
   TrustNode assertConflict(PfRule id,
                            const std::vector<Node>& exp,
                            const std::vector<Node>& args);
-  /** Multi-step version */
-  TrustNode assertConflict(const std::vector<Node>& exp, ProofStepBuffer& psb);
   /** Generator version, where pg has a proof of false from assumptions exp */
   TrustNode assertConflict(const std::vector<Node>& exp, ProofGenerator* pg);
   //-------------------------- assert lemma
@@ -215,11 +213,6 @@ class ProofEqEngine : public EagerProofGenerator
                         const std::vector<Node>& exp,
                         const std::vector<Node>& noExplain,
                         const std::vector<Node>& args);
-  /** Multi-step version */
-  TrustNode assertLemma(Node conc,
-                        const std::vector<Node>& exp,
-                        const std::vector<Node>& noExplain,
-                        ProofStepBuffer& psb);
   /** Generator version, where pg has a proof of conc */
   TrustNode assertLemma(Node conc,
                         const std::vector<Node>& exp,
@@ -248,21 +241,6 @@ class ProofEqEngine : public EagerProofGenerator
   /** holds */
   bool holds(TNode pred, bool polarity);
   /**
-   * Assert lemma internal. This method is called for ensuring the proof of
-   * conc exists in curr, where exp / noExplain are the its explanation (see
-   * assertLemma). This method is used for conflicts as well, where noExplain
-   * must be empty and conc = d_false.
-   *
-   * If curr is null, no proof is constructed.
-   *
-   * This method returns the trust node of the lemma or conflict with this
-   * class as the proof generator.
-   */
-  TrustNode assertLemmaInternal(Node conc,
-                                const std::vector<Node>& exp,
-                                const std::vector<Node>& noExplain,
-                                LazyCDProof* curr);
-  /**
    * Ensure proof for fact. This is called by the above method after we have
    * determined the final set of assumptions used for showing conc. This
    * method is used for lemmas, conflicts, and explanations for propagations.
@@ -271,7 +249,29 @@ class ProofEqEngine : public EagerProofGenerator
   TrustNode ensureProofForFact(Node conc,
                                const std::vector<TNode>& assumps,
                                TrustNodeKind tnk,
-                               LazyCDProof* curr);
+                               ProofGenerator* curr);
+  /**
+   * This ensures the proof of the literals that are in exp but not in
+   * noExplain have been added to curr. This additionally adds the
+   * explanation of exp to assumps. It updates tnk to LEMMA if there
+   * are any literals in exp that are not in noExplain.
+   */
+  void explainVecWithProof(TrustNodeKind& tnk,
+                           std::vector<TNode>& assumps,
+                           const std::vector<Node>& exp,
+                           const std::vector<Node>& noExplain,
+                           LazyCDProof* curr);
+  /** Explain
+   *
+   * This adds to assumps the set of facts that were asserted to this
+   * class in the current SAT context that are required for showing lit.
+   *
+   * This additionally registers the equality proof steps required to
+   * regress the explanation of lit in curr.
+   */
+  void explainWithProof(Node lit,
+                        std::vector<TNode>& assumps,
+                        LazyCDProof* curr);
   /** Reference to the equality engine */
   eq::EqualityEngine& d_ee;
   /** The default proof generator (for simple facts) */
@@ -290,18 +290,6 @@ class ProofEqEngine : public EagerProofGenerator
    * SAT-context-dependent.
    */
   NodeSet d_keep;
-  /** Explain
-   *
-   * This adds to assumps the set of facts that were asserted to this
-   * class in the current SAT context by calls to assertAssume that are
-   * required for showing lit.
-   *
-   * This additionally registers the equality proof steps required to
-   * regress the explanation of lit.
-   */
-  void explainWithProof(Node lit,
-                        std::vector<TNode>& assumps,
-                        LazyCDProof* curr);
 };
 
 }  // namespace eq

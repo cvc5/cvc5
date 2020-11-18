@@ -1076,8 +1076,8 @@ void DeclareTypeNodeCommandToStream(std::ostream& out,
   TypeNode type_node = command.getType();
   const std::vector<Node>* type_reps =
       model.getRepSet()->getTypeRepsOrNull(type_node);
-  if (options::modelUninterpDtEnum() && type_node.isSort()
-      && type_reps != nullptr)
+  if (options::modelUninterpPrint() == options::ModelUninterpPrintMode::DtEnum
+      && type_node.isSort() && type_reps != nullptr)
   {
     out << "DATATYPE" << std::endl;
     out << "  " << command.getSymbol() << " = ";
@@ -1147,7 +1147,8 @@ void DeclareFunctionNodeCommandToStream(
   // We get the value from the theory model directly, which notice
   // does not have to go through the standard SmtEngine::getValue interface.
   Node val = model.getValue(n);
-  if (options::modelUninterpDtEnum() && val.getKind() == kind::STORE)
+  if (options::modelUninterpPrint() == options::ModelUninterpPrintMode::DtEnum
+      && val.getKind() == kind::STORE)
   {
     TypeNode type_node = val[1].getType();
     if (tn.isSort())
@@ -1407,16 +1408,6 @@ void CvcPrinter::toStreamCmdDefineType(std::ostream& out,
   {
     out << id << " : TYPE = " << t << ';' << std::endl;
   }
-}
-
-void CvcPrinter::toStreamCmdDefineNamedFunction(
-    std::ostream& out,
-    const std::string& id,
-    const std::vector<Node>& formals,
-    TypeNode range,
-    Node formula) const
-{
-  toStreamCmdDefineFunction(out, id, formals, range, formula);
 }
 
 void CvcPrinter::toStreamCmdSimplify(std::ostream& out, Node n) const

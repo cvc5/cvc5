@@ -26,11 +26,11 @@
 
 #include "api/cvc4cpp.h"
 #include "expr/kind.h"
+#include "expr/symbol_manager.h"
 #include "expr/symbol_table.h"
 #include "parser/input.h"
 #include "parser/parse_op.h"
 #include "parser/parser_exception.h"
-#include "parser/symbol_manager.h"
 #include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
@@ -126,12 +126,6 @@ private:
   * lambda.
   */
  size_t d_assertionLevel;
-
- /**
-  * Whether we're in global declarations mode (all definitions and
-  * declarations are global).
-  */
- bool d_globalDeclarations;
 
  /**
   * Maintains a list of reserved symbols at the assertion level that might
@@ -751,44 +745,26 @@ public:
   /**
    * Gets the current declaration level.
    */
-  inline size_t scopeLevel() const { return d_symtab->getLevel(); }
+  size_t scopeLevel() const;
 
   /**
    * Pushes a scope. All subsequent symbol declarations made are only valid in
    * this scope, i.e. they are deleted on the next call to popScope.
    *
-   * The argument bindingLevel is true, the assertion level is set to the
-   * current scope level. This determines which scope assertions are declared
-   * at.
+   * The argument isUserContext is true, when we are pushing a user context
+   * e.g. via the smt2 command (push n). This may also include one initial
+   * pushScope when the parser is initialized. User-context pushes and pops
+   * have an impact on both expression names and the symbol table, whereas
+   * other pushes and pops only have an impact on the symbol table.
    */
-  inline void pushScope(bool bindingLevel = false) {
-    d_symtab->pushScope();
-    if(!bindingLevel) {
-      d_assertionLevel = scopeLevel();
-    }
-  }
+  void pushScope(bool isUserContext = false);
 
-  inline void popScope() {
-    d_symtab->popScope();
-    if(scopeLevel() < d_assertionLevel) {
-      d_assertionLevel = scopeLevel();
-      d_reservedSymbols.clear();
-    }
-  }
+  void popScope();
 
-  virtual void reset() {
-    d_symtab->reset();
-  }
+  virtual void reset();
 
-  void setGlobalDeclarations(bool flag) {
-    d_globalDeclarations = flag;
-  }
-
-  bool getGlobalDeclarations() { return d_globalDeclarations; }
-
-  inline SymbolTable* getSymbolTable() const {
-    return d_symtab;
-  }
+  /** Return the symbol manager used by this parser. */
+  SymbolManager* getSymbolManager();
 
   //------------------------ operator overloading
   /** is this function overloaded? */
