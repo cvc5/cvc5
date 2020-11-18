@@ -23,19 +23,18 @@
 #include "smt/smt_engine_scope.h"
 
 namespace CVC4 {
-  
 
-
-UnsatCore::UnsatCore(const std::vector<Node>& core, std::vector<std::string>& names, bool useNames)
+UnsatCore::UnsatCore(const std::vector<Node>& core,
+                     std::vector<std::string>& names,
+                     bool useNames)
     : d_useNames(useNames), d_core(core), d_names(names)
 {
   Debug("core") << "UnsatCore size " << d_core.size() << std::endl;
 }
 
-
 const std::vector<Node>& getCore() const;
 const std::vector<std::string>& getCoreNames() const;
-  
+
 UnsatCore::const_iterator UnsatCore::begin() const {
   return d_core.begin();
 }

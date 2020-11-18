@@ -1331,7 +1331,7 @@ void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core) const
   else
   {
     // otherwise, use the formulas
-    for(UnsatCore::const_iterator i = core.begin(); i != core.end(); ++i)
+    for (UnsatCore::const_iterator i = core.begin(); i != core.end(); ++i)
     {
       out << *i << endl;
     }

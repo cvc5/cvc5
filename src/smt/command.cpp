@@ -2296,7 +2296,7 @@ void GetUnsatCoreCommand::invoke(api::Solver* solver, SymbolManager* sm)
   {
     d_sm = sm;
     d_result = solver->getUnsatCore();
-    
+
     d_commandStatus = CommandSuccess::instance();
   }
   catch (api::CVC4ApiRecoverableException& e)
