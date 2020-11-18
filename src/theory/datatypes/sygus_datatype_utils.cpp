@@ -553,6 +553,8 @@ Node sygusToBuiltinEval(Node n, const std::vector<Node>& args)
         index = indexOf(cur.getOperator());
         // apply to arguments
         ret = mkSygusTerm(dt, index, children);
+        // also apply to arguments
+        ret = applySygusArgs(dt, dt[index].getSygusOp(), ret, args);
       }
       visited[cur] = ret;
     }
