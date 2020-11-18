@@ -496,28 +496,6 @@ class CVC4_PUBLIC DefineFunctionCommand : public DeclarationDefinitionCommand
 }; /* class DefineFunctionCommand */
 
 /**
- * This differs from DefineFunctionCommand only in that it instructs
- * the SmtEngine to "remember" this function for later retrieval with
- * getAssignment().  Used for :named attributes in SMT-LIBv2.
- */
-class CVC4_PUBLIC DefineNamedFunctionCommand : public DefineFunctionCommand
-{
- public:
-  DefineNamedFunctionCommand(const std::string& id,
-                             api::Term func,
-                             const std::vector<api::Term>& formals,
-                             api::Term formula,
-                             bool global);
-  void invoke(api::Solver* solver, SymbolManager* sm) override;
-  Command* clone() const override;
-  void toStream(
-      std::ostream& out,
-      int toDepth = -1,
-      size_t dag = 1,
-      OutputLanguage language = language::output::LANG_AUTO) const override;
-}; /* class DefineNamedFunctionCommand */
-
-/**
  * The command when parsing define-fun-rec or define-funs-rec.
  * This command will assert a set of quantified formulas that specify
  * the (mutually recursive) function definitions provided to it.

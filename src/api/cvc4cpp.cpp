@@ -1433,10 +1433,10 @@ uint32_t Op::getIndices() const
     case INT_TO_BITVECTOR: i = d_node->getConst<IntToBitVector>().d_size; break;
     case IAND: i = d_node->getConst<IntAnd>().d_size; break;
     case FLOATINGPOINT_TO_UBV:
-      i = d_node->getConst<FloatingPointToUBV>().bvs.d_size;
+      i = d_node->getConst<FloatingPointToUBV>().d_bv_size.d_size;
       break;
     case FLOATINGPOINT_TO_SBV:
-      i = d_node->getConst<FloatingPointToSBV>().bvs.d_size;
+      i = d_node->getConst<FloatingPointToSBV>().d_bv_size.d_size;
       break;
     case TUPLE_UPDATE: i = d_node->getConst<TupleUpdate>().getIndex(); break;
     case REGEXP_REPEAT:
@@ -1469,36 +1469,42 @@ std::pair<uint32_t, uint32_t> Op::getIndices() const
   {
     CVC4::FloatingPointToFPIEEEBitVector ext =
         d_node->getConst<FloatingPointToFPIEEEBitVector>();
-    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+    indices = std::make_pair(ext.d_fp_size.exponentWidth(),
+                             ext.d_fp_size.significandWidth());
   }
   else if (k == FLOATINGPOINT_TO_FP_FLOATINGPOINT)
   {
     CVC4::FloatingPointToFPFloatingPoint ext =
         d_node->getConst<FloatingPointToFPFloatingPoint>();
-    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+    indices = std::make_pair(ext.d_fp_size.exponentWidth(),
+                             ext.d_fp_size.significandWidth());
   }
   else if (k == FLOATINGPOINT_TO_FP_REAL)
   {
     CVC4::FloatingPointToFPReal ext = d_node->getConst<FloatingPointToFPReal>();
-    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+    indices = std::make_pair(ext.d_fp_size.exponentWidth(),
+                             ext.d_fp_size.significandWidth());
   }
   else if (k == FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR)
   {
     CVC4::FloatingPointToFPSignedBitVector ext =
         d_node->getConst<FloatingPointToFPSignedBitVector>();
-    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+    indices = std::make_pair(ext.d_fp_size.exponentWidth(),
+                             ext.d_fp_size.significandWidth());
   }
   else if (k == FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR)
   {
     CVC4::FloatingPointToFPUnsignedBitVector ext =
         d_node->getConst<FloatingPointToFPUnsignedBitVector>();
-    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+    indices = std::make_pair(ext.d_fp_size.exponentWidth(),
+                             ext.d_fp_size.significandWidth());
   }
   else if (k == FLOATINGPOINT_TO_FP_GENERIC)
   {
     CVC4::FloatingPointToFPGeneric ext =
         d_node->getConst<FloatingPointToFPGeneric>();
-    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+    indices = std::make_pair(ext.d_fp_size.exponentWidth(),
+                             ext.d_fp_size.significandWidth());
   }
   else if (k == REGEXP_LOOP)
   {
@@ -5154,11 +5160,11 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
+  CVC4_API_RECOVERABLE_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
-  CVC4_API_CHECK(d_smtEngine->getSmtMode() != SmtMode::UNSAT)
-      << "Cannot get value when in unsat mode.";
+  CVC4_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
+      << "Cannot get value unless after a SAT or unknown response.";
   std::vector<Term> res;
   for (size_t i = 0, n = terms.size(); i < n; ++i)
   {
@@ -5216,8 +5222,8 @@ Term Solver::getSeparationHeap() const
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get separation heap term unless model generation is enabled "
          "(try --produce-models)";
-  CVC4_API_CHECK(d_smtEngine->getSmtMode() != SmtMode::UNSAT)
-      << "Cannot get separtion heap term when in unsat mode.";
+  CVC4_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
+      << "Can only get separtion heap term after sat or unknown response.";
   return Term(this, d_smtEngine->getSepHeapExpr());
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -5233,8 +5239,8 @@ Term Solver::getSeparationNilTerm() const
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get separation nil term unless model generation is enabled "
          "(try --produce-models)";
-  CVC4_API_CHECK(d_smtEngine->getSmtMode() != SmtMode::UNSAT)
-      << "Cannot get separtion nil term when in unsat mode.";
+  CVC4_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
+      << "Can only get separtion nil term after sat or unknown response.";
   return Term(this, d_smtEngine->getSepNilExpr());
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -5324,8 +5330,8 @@ void Solver::printModel(std::ostream& out) const
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
-  CVC4_API_CHECK(d_smtEngine->getSmtMode() != SmtMode::UNSAT)
-      << "Cannot get value when in unsat mode.";
+  CVC4_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
+      << "Can only get value after sat or unknown response.";
   out << *d_smtEngine->getModel();
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -5337,8 +5343,8 @@ void Solver::blockModel() const
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
-  CVC4_API_CHECK(d_smtEngine->getSmtMode() != SmtMode::UNSAT)
-      << "Cannot get value when in unsat mode.";
+  CVC4_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
+      << "Can only block model after sat or unknown response.";
   d_smtEngine->blockModel();
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -5349,8 +5355,8 @@ void Solver::blockModelValues(const std::vector<Term>& terms) const
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
-  CVC4_API_CHECK(d_smtEngine->getSmtMode() != SmtMode::UNSAT)
-      << "Cannot get value when in unsat mode.";
+  CVC4_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
+      << "Can only block model values after sat or unknown response.";
   CVC4_API_ARG_SIZE_CHECK_EXPECTED(!terms.empty(), terms)
       << "a non-empty set of terms";
   for (size_t i = 0, tsize = terms.size(); i < tsize; ++i)
