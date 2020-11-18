@@ -551,9 +551,9 @@ Node sygusToBuiltinEval(Node n, const std::vector<Node>& args)
           children.push_back(it->second);
         }
         index = indexOf(cur.getOperator());
-        // apply to arguments
+        // apply to children, which constructs the builtin term
         ret = mkSygusTerm(dt, index, children);
-        // also apply to arguments
+        // now apply it to arguments in args
         ret = applySygusArgs(dt, dt[index].getSygusOp(), ret, args);
       }
       visited[cur] = ret;
