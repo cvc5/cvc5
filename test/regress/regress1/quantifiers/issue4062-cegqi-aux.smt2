@@ -1,4 +1,4 @@
-; COMMAND-LINE: --arith-rewrite-equalities --global-negate --no-check-models
+; COMMAND-LINE: --arith-rewrite-equalities --global-negate --no-check-models --sygus-inst
 ; EXPECT: sat
 (set-logic NIA)
 (set-option :arith-rewrite-equalities true)

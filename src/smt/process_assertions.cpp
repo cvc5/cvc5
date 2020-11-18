@@ -52,8 +52,13 @@ class ScopeCounter
   unsigned& d_depth;
 };
 
-ProcessAssertions::ProcessAssertions(SmtEngine& smt, ResourceManager& rm)
-    : d_smt(smt), d_resourceManager(rm), d_preprocessingPassContext(nullptr)
+ProcessAssertions::ProcessAssertions(SmtEngine& smt,
+                                     ResourceManager& rm,
+                                     SmtEngineStatistics& stats)
+    : d_smt(smt),
+      d_resourceManager(rm),
+      d_smtStats(stats),
+      d_preprocessingPassContext(nullptr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
 }
@@ -127,7 +132,7 @@ bool ProcessAssertions::apply(Assertions& as)
     Chat() << "expanding definitions..." << endl;
     Trace("simplify") << "ProcessAssertions::simplify(): expanding definitions"
                       << endl;
-    TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_definitionExpansionTime);
+    TimerStat::CodeTimer codeTimer(d_smtStats.d_definitionExpansionTime);
     unordered_map<Node, Node, NodeHashFunction> cache;
     for (size_t i = 0, nasserts = assertions.size(); i < nasserts; ++i)
     {
@@ -232,7 +237,7 @@ bool ProcessAssertions::apply(Assertions& as)
     d_passes["sep-skolem-emp"]->apply(&assertions);
   }
 
-  if (d_smt.d_logic.isQuantified())
+  if (d_smt.getLogicInfo().isQuantified())
   {
     // remove rewrite rules, apply pre-skolemization to existential quantifiers
     d_passes["quantifiers-preprocess"]->apply(&assertions);
@@ -261,7 +266,7 @@ bool ProcessAssertions::apply(Assertions& as)
   }
 
   // rephrasing normal inputs as sygus problems
-  if (!d_smt.d_isInternalSubsolver)
+  if (!d_smt.isInternalSubsolver())
   {
     if (options::sygusInference())
     {
@@ -281,7 +286,7 @@ bool ProcessAssertions::apply(Assertions& as)
   noConflict = simplifyAssertions(assertions);
   if (!noConflict)
   {
-    ++(d_smt.d_stats->d_simplifiedToFalse);
+    ++(d_smtStats.d_simplifiedToFalse);
   }
   Trace("smt-proc") << "ProcessAssertions::processAssertions() : post-simplify"
                     << endl;
@@ -294,13 +299,13 @@ bool ProcessAssertions::apply(Assertions& as)
   Debug("smt") << " assertions     : " << assertions.size() << endl;
 
   {
-    d_smt.d_stats->d_numAssertionsPre += assertions.size();
+    d_smtStats.d_numAssertionsPre += assertions.size();
     d_passes["ite-removal"]->apply(&assertions);
     // This is needed because when solving incrementally, removeITEs may
     // introduce skolems that were solved for earlier and thus appear in the
     // substitution map.
     d_passes["apply-substs"]->apply(&assertions);
-    d_smt.d_stats->d_numAssertionsPost += assertions.size();
+    d_smtStats.d_numAssertionsPost += assertions.size();
   }
 
   dumpAssertions("pre-repeat-simplify", assertions);
@@ -411,6 +416,11 @@ bool ProcessAssertions::apply(Assertions& as)
   Debug("smt") << " assertions     : " << assertions.size() << endl;
 
   d_passes["theory-preprocess"]->apply(&assertions);
+  // Must remove ITEs again since theory preprocessing may introduce them.
+  // Notice that we alternatively could ensure that the theory-preprocess
+  // pass above calls TheoryPreprocess::preprocess instead of
+  // TheoryPreprocess::theoryPreprocess, as the former also does ITE removal.
+  d_passes["ite-removal"]->apply(&assertions);
 
   if (options::bitblastMode() == options::BitblastMode::EAGER)
   {
@@ -451,7 +461,7 @@ bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
       if (  // check that option is on
           options::arithMLTrick() &&
           // only useful in arith
-          d_smt.d_logic.isTheoryEnabled(THEORY_ARITH) &&
+          d_smt.getLogicInfo().isTheoryEnabled(THEORY_ARITH) &&
           // we add new assertions and need this (in practice, this
           // restriction only disables miplib processing during
           // re-simplification, which we don't expect to be useful anyway)
@@ -545,7 +555,7 @@ Node ProcessAssertions::expandDefinitions(
     unordered_map<Node, Node, NodeHashFunction>& cache,
     bool expandOnly)
 {
-  NodeManager* nm = d_smt.d_nodeManager;
+  NodeManager* nm = d_smt.getNodeManager();
   std::stack<std::tuple<Node, Node, bool>> worklist;
   std::stack<Node> result;
   worklist.push(std::make_tuple(Node(n), Node(n), false));
@@ -572,9 +582,9 @@ Node ProcessAssertions::expandDefinitions(
       // we can short circuit (variable) leaves
       if (n.isVar())
       {
-        SmtEngine::DefinedFunctionMap::const_iterator i =
-            d_smt.d_definedFunctions->find(n);
-        if (i != d_smt.d_definedFunctions->end())
+        SmtEngine::DefinedFunctionMap* dfuns = d_smt.getDefinedFunctionMap();
+        SmtEngine::DefinedFunctionMap::const_iterator i = dfuns->find(n);
+        if (i != dfuns->end())
         {
           Node f = (*i).second.getFormula();
           // must expand its definition
@@ -646,9 +656,9 @@ Node ProcessAssertions::expandDefinitions(
         {
           // application of a user-defined symbol
           TNode func = n.getOperator();
-          SmtEngine::DefinedFunctionMap::const_iterator i =
-              d_smt.d_definedFunctions->find(func);
-          if (i == d_smt.d_definedFunctions->end())
+          SmtEngine::DefinedFunctionMap* dfuns = d_smt.getDefinedFunctionMap();
+          SmtEngine::DefinedFunctionMap::const_iterator i = dfuns->find(func);
+          if (i == dfuns->end())
           {
             throw TypeCheckingException(
                 n.toExpr(),

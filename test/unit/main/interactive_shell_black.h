@@ -52,6 +52,9 @@ class InteractiveShellBlack : public CxxTest::TestSuite
   {
     delete d_sin;
     delete d_sout;
+    // ensure that symbol manager is destroyed before solver
+    d_symman.reset(nullptr);
+    d_solver.reset(nullptr);
   }
 
   void testAssertTrue() {

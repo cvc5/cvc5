@@ -1473,8 +1473,9 @@ ArithVar TheoryArithPrivate::requestArithVar(TNode x, bool aux, bool internal){
   Assert(isLeaf(x) || VarList::isMember(x) || x.getKind() == PLUS || internal);
   if(getLogicInfo().isLinear() && Variable::isDivMember(x)){
     stringstream ss;
-    ss << "A non-linear fact (involving div/mod/divisibility) was asserted to arithmetic in a linear logic: " << x << endl
-       << "if you only use division (or modulus) by a constant value, or if you only use the divisibility-by-k predicate, try using the --rewrite-divk option.";
+    ss << "A non-linear fact (involving div/mod/divisibility) was asserted to "
+          "arithmetic in a linear logic: "
+       << x << std::endl;
     throw LogicException(ss.str());
   }
   Assert(!d_partialModel.hasArithVar(x));
@@ -3478,6 +3479,13 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
     Unimplemented();
   }
   d_statistics.d_avgUnknownsInARow.addEntry(d_unknownsInARow);
+
+  size_t nPivots = options::useFC() ? d_fcSimplex.getPivots() : d_dualSimplex.getPivots();
+  for (std::size_t i = 0; i < d_fcSimplex.getPivots(); ++i)
+  {
+    d_containing.d_out->spendResource(
+        ResourceManager::Resource::ArithPivotStep);
+  }
 
   Debug("arith::ems") << "ems: " << emmittedConflictOrSplit
                       << "pre approx cuts" << endl;
