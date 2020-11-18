@@ -27,6 +27,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/smt_engine_subsolver.h"
+#include "expr/node_algorithm.h"
 
 using namespace CVC4::kind;
 
