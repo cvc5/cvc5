@@ -30,7 +30,7 @@ namespace CVC4 {
 
 class UnsatCore
 {
-public:
+ public:
  UnsatCore() {}
 
  UnsatCore(const std::vector<Node>& core,
@@ -58,8 +58,7 @@ public:
   * We use the expression names stored in the SymbolManager d_sm
   */
  void toStream(std::ostream& out) const;
-
-private:
+ private:
  /** Whether we are using names for this unsat core */
  bool d_useNames;
  /** The unsat core */
