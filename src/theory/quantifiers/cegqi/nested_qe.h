@@ -66,7 +66,7 @@ class NestedQe
    */
   static Node doNestedQe(Node q, bool keepTopLevel = false);
   /**
-   * Run quantifier free formula for quantified formula q with no nested
+   * Run quantifier elimination on quantified formula q, where q has no nested
    * quantification. This method invokes a subsolver for performing quantifier
    * elimination.
    */
