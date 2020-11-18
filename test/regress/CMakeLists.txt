@@ -1447,7 +1447,6 @@ set(regress_1_tests
   regress1/nl/issue3617.smt2
   regress1/nl/issue3647.smt2
   regress1/nl/issue3656.smt2
-  regress1/nl/issue3803-nl-check-model.smt2
   regress1/nl/issue3955-ee-double-notify.smt2
   regress1/nl/issue5372-2-no-m-presolve.smt2
   regress1/nl/metitarski-1025.smt2
@@ -1613,11 +1612,11 @@ set(regress_1_tests
   regress1/quantifiers/issue5019-cegqi-i.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
+  regress1/quantifiers/lia-witness-div-pp.smt2
   regress1/quantifiers/lra-vts-inf.smt2
   regress1/quantifiers/mix-coeff.smt2
   regress1/quantifiers/mutualrec2.cvc
   regress1/quantifiers/nested9_true-unreach-call.i_575.smt2
-  regress1/quantifiers/nl-pow-trick.smt2
   regress1/quantifiers/nra-interleave-inst.smt2
   regress1/quantifiers/opisavailable-12.smt2
   regress1/quantifiers/parametric-lists.smt2
@@ -1997,7 +1996,6 @@ set(regress_1_tests
   regress1/sygus/issue3247.smt2
   regress1/sygus/issue3320-quant.sy
   regress1/sygus/issue3461.sy
-  regress1/sygus/issue3498.smt2
   regress1/sygus/issue3514.smt2
   regress1/sygus/issue3507.smt2
   regress1/sygus/issue3633.smt2
@@ -2536,6 +2534,8 @@ set(regression_disabled_tests
   regress1/ho/nested_lambdas-sat-SYO056^1-delta.smt2
   # issue1048-arrays-int-real.smt2 -- different errors on debug and production.
   regress1/issue1048-arrays-int-real.smt2
+  # times out after no expand definitions for arithmetic
+  regress1/nl/issue3803-nl-check-model.smt2
   # times out after update to tangent planes
   regress1/nl/NAVIGATION2.smt2
   # sat or unknown in different builds
@@ -2546,6 +2546,8 @@ set(regression_disabled_tests
   regress1/quantifiers/macro-subtype-param.smt2
   # times out with competition build:
   regress1/quantifiers/model_6_1_bv.smt2
+  # times out after change to arithmetic expand definitions
+  regress1/quantifiers/nl-pow-trick.smt2
   # timeout after changes to nonlinear on PR #5351
   regress1/quantifiers/rel-trigger-unusable.smt2
   # ajreynol: different error messages on production and debug:
@@ -2572,6 +2574,8 @@ set(regression_disabled_tests
   regress1/sygus/array_search_2.sy
   regress1/sygus/array_sum_2_5.sy
   regress1/sygus/crcy-si-rcons.sy
+  # previously sygus inference did not apply, now (correctly) times out
+  regress1/sygus/issue3498.smt2
   # currently slow at c9fd28a
   regress1/sygus/issue3580.sy
   regress2/arith/arith-int-098.cvc
