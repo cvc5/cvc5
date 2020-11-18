@@ -79,11 +79,11 @@ class CADProofGenerator : public ProofGenerator
    * predicate such that f only accepts the index.
    * @param f A Callable bool(std::size_t)
    */
-  template<typename F>
-  void pruneChildren(F&& f) {
-    d_ltpg.pruneChildren([&f](std::size_t i, const detail::TreeProofNode& tpn) {
-      return f(i);
-    });
+  template <typename F>
+  void pruneChildren(F&& f)
+  {
+    d_ltpg.pruneChildren(
+        [&f](std::size_t i, const detail::TreeProofNode& tpn) { return f(i); });
   }
 
   /**

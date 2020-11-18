@@ -161,15 +161,19 @@ class LazyTreeProofGenerator
    * be removed.
    * @param f a Callable bool(std::size_t, const detail::TreeProofNode&)
    */
-  template<typename F>
-  void pruneChildren(F&& f) {
+  template <typename F>
+  void pruneChildren(F&& f)
+  {
     auto& children = getCurrent().d_children;
     std::size_t cur = 0;
     std::size_t pos = 0;
-    for (std::size_t size = children.size(); cur < size; ++cur) {
+    for (std::size_t size = children.size(); cur < size; ++cur)
+    {
       std::cout << "Checking " << pos << std::endl;
-      if (f(cur, children[pos])) {
-        if (cur != pos) {
+      if (f(cur, children[pos]))
+      {
+        if (cur != pos)
+        {
           std::cout << "Removing " << pos << std::endl;
           children[pos] = std::move(children[cur]);
         }
