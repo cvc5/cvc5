@@ -102,7 +102,6 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_abductSolver(nullptr),
       d_interpolSolver(nullptr),
       d_quantElimSolver(nullptr),
-      d_assignments(nullptr),
       d_logic(),
       d_originalOptions(),
       d_isInternalSubsolver(false),
@@ -176,6 +175,11 @@ size_t SmtEngine::getNumUserLevels() const
   return d_state->getNumUserLevels();
 }
 SmtMode SmtEngine::getSmtMode() const { return d_state->getMode(); }
+bool SmtEngine::isSmtModeSat() const
+{
+  SmtMode mode = getSmtMode();
+  return mode == SmtMode::SAT || mode == SmtMode::SAT_UNKNOWN;
+}
 Result SmtEngine::getStatusOfLastCommand() const
 {
   return d_state->getStatus();
@@ -317,10 +321,6 @@ SmtEngine::~SmtEngine()
     // global push/pop around everything, to ensure proper destruction
     // of context-dependent data structures
     d_state->cleanup();
-
-    if(d_assignments != NULL) {
-      d_assignments->deleteSelf();
-    }
 
     d_definedFunctions->deleteSelf();
 
@@ -1225,99 +1225,6 @@ std::vector<Node> SmtEngine::getValues(const std::vector<Node>& exprs)
     result.push_back(getValue(e));
   }
   return result;
-}
-
-bool SmtEngine::addToAssignment(const Expr& ex) {
-  SmtScope smts(this);
-  finishInit();
-  d_state->doPendingPops();
-  // Substitute out any abstract values in ex
-  Node n = d_absValues->substituteAbstractValues(Node::fromExpr(ex));
-  TypeNode type = n.getType(options::typeChecking());
-  // must be Boolean
-  PrettyCheckArgument(type.isBoolean(),
-                      n,
-                      "expected Boolean-typed variable or function application "
-                      "in addToAssignment()");
-  // must be a defined constant, or a variable
-  PrettyCheckArgument(
-      (((d_definedFunctions->find(n) != d_definedFunctions->end())
-        && n.getNumChildren() == 0)
-       || n.isVar()),
-      n,
-      "expected variable or defined-function application "
-      "in addToAssignment(),\ngot %s",
-      n.toString().c_str());
-  if(!options::produceAssignments()) {
-    return false;
-  }
-  if(d_assignments == NULL) {
-    d_assignments = new (true) AssignmentSet(getContext());
-  }
-  d_assignments->insert(n);
-
-  return true;
-}
-
-// TODO(#1108): Simplify the error reporting of this method.
-vector<pair<Expr, Expr>> SmtEngine::getAssignment()
-{
-  Trace("smt") << "SMT getAssignment()" << endl;
-  SmtScope smts(this);
-  finishInit();
-  if(Dump.isOn("benchmark")) {
-    getOutputManager().getPrinter().toStreamCmdGetAssignment(
-        getOutputManager().getDumpOut());
-  }
-  if(!options::produceAssignments()) {
-    const char* msg =
-      "Cannot get the current assignment when "
-      "produce-assignments option is off.";
-    throw ModalException(msg);
-  }
-
-  // Get the model here, regardless of whether d_assignments is null, since
-  // we should throw errors related to model availability whether or not
-  // assignments is null.
-  Model* m = getAvailableModel("get assignment");
-
-  vector<pair<Expr,Expr>> res;
-  if (d_assignments != nullptr)
-  {
-    TypeNode boolType = d_nodeManager->booleanType();
-    for (AssignmentSet::key_iterator i = d_assignments->key_begin(),
-                                     iend = d_assignments->key_end();
-         i != iend;
-         ++i)
-    {
-      Node as = *i;
-      Assert(as.getType() == boolType);
-
-      Trace("smt") << "--- getting value of " << as << endl;
-
-      // Expand, then normalize
-      std::unordered_map<Node, Node, NodeHashFunction> cache;
-      Node n = d_pp->expandDefinitions(as, cache);
-      n = Rewriter::rewrite(n);
-
-      Trace("smt") << "--- getting value of " << n << endl;
-      Node resultNode;
-      if (m != nullptr)
-      {
-        resultNode = m->getValue(n);
-      }
-
-      // type-check the result we got
-      Assert(resultNode.isNull() || resultNode.getType() == boolType);
-
-      // ensure it's a constant
-      Assert(resultNode.isConst());
-
-      Assert(as.isVar());
-      res.emplace_back(as.toExpr(), resultNode.toExpr());
-    }
-  }
-  return res;
 }
 
 // TODO(#1108): Simplify the error reporting of this method.

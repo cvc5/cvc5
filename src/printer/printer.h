@@ -103,13 +103,6 @@ class Printer
                                          TypeNode range,
                                          Node formula) const;
 
-  /** Print define-named-fun command */
-  virtual void toStreamCmdDefineNamedFunction(std::ostream& out,
-                                              const std::string& id,
-                                              const std::vector<Node>& formals,
-                                              TypeNode range,
-                                              Node formula) const;
-
   /** Print define-fun-rec command */
   virtual void toStreamCmdDefineFunctionRec(
       std::ostream& out,
