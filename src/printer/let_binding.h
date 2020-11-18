@@ -73,8 +73,8 @@ namespace CVC4 {
  */
 class LetBinding
 {
-  typedef context::CDList<Node> NodeList;
-  typedef context::CDHashMap<Node, uint32_t, NodeHashFunction> NodeIdMap;
+  using NodeList = context::CDList<Node>;
+  using NodeIdMap = context::CDHashMap<Node, uint32_t, NodeHashFunction>;
 
  public:
   LetBinding(uint32_t thresh = 2);

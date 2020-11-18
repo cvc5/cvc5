@@ -57,13 +57,7 @@ void LetBinding::letify(std::vector<Node>& letList)
   // populate the d_letList and d_letMap
   convertCountToLet();
   // add the new entries to the letList
-  for (NodeList::iterator it = d_letList.begin() + prevSize,
-                          itend = d_letList.end();
-       it != itend;
-       ++it)
-  {
-    letList.push_back(*it);
-  }
+letList.insert(letList.end(), d_letList.begin() + prevSize, d_letList.end());
 }
 
 void LetBinding::pushScope() { d_context.push(); }
@@ -77,7 +71,7 @@ uint32_t LetBinding::getId(Node n) const
   {
     return 0;
   }
-  return (*it).second;
+  return it->second;
 }
 
 Node LetBinding::convert(Node n, const std::string& prefix, bool letTop) const
@@ -172,11 +166,11 @@ void LetBinding::updateCounts(Node n)
     }
     else
     {
-      if ((*it).second == 0)
+      if (it->second == 0)
       {
         d_visitList.push_back(cur);
       }
-      d_count[cur] = (*it).second + 1;
+      d_count[cur] = it->second + 1;
       visit.pop_back();
     }
   } while (!visit.empty());
@@ -203,7 +197,7 @@ void LetBinding::convertCountToLet()
     }
     itc = d_count.find(n);
     Assert(itc != d_count.end());
-    if ((*itc).second >= d_thresh)
+    if (itc->second >= d_thresh)
     {
       d_letList.push_back(n);
       // start with id 1
