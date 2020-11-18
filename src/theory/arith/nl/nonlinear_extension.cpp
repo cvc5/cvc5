@@ -48,9 +48,9 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
                   containing.getUserContext(),
                   containing.getOutputChannel()),
       d_model(containing.getSatContext()),
-      d_trSlv(d_im, d_model),
-      d_extState(d_im, d_model, pnm, containing.getSatContext()),
-      d_factoringSlv(d_im, d_model),
+      d_trSlv(&d_extState),
+      d_extState(d_im, d_model, pnm, containing.getUserContext()),
+      d_factoringSlv(&d_extState),
       d_monomialBoundsSlv(&d_extState),
       d_monomialSlv(&d_extState),
       d_splitZeroSlv(&d_extState, state.getUserContext()),
@@ -168,6 +168,8 @@ unsigned NonlinearExtension::filterLemmas(std::vector<NlLemma>& lemmas,
   for (const NlLemma& lem : lemmas)
   {
     sum += filterLemma(lem, out);
+    d_containing.getOutputChannel().spendResource(
+        ResourceManager::Resource::ArithNlLemmaStep);
   }
   lemmas.clear();
   return sum;

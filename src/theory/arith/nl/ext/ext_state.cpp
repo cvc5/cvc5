@@ -29,7 +29,7 @@ namespace nl {
 ExtState::ExtState(InferenceManager& im,
                    NlModel& model,
                    ProofNodeManager* pnm,
-                   context::Context* c)
+                   context::UserContext* c)
     : d_im(im), d_model(model), d_pnm(pnm)
 {
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -37,6 +37,10 @@ ExtState::ExtState(InferenceManager& im,
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
+  if (d_pnm != nullptr)
+  {
+    d_proof.reset(new LazyCDProofSet(d_pnm, c, "nl-ext"));
+  }
 }
 
 void ExtState::init(const std::vector<Node>& xts)
@@ -90,6 +94,14 @@ void ExtState::init(const std::vector<Node>& xts)
   }
 
   Trace("nl-ext") << "We have " << d_ms.size() << " monomials." << std::endl;
+}
+
+bool ExtState::isProofEnabled() const { return d_proof.get() != nullptr; }
+
+LazyCDProof* ExtState::getProof()
+{
+  Assert(isProofEnabled());
+  return d_proof->allocateProof();
 }
 
 }  // namespace nl

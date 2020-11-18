@@ -100,28 +100,6 @@ class Letify
   //------------------- end letification of proofs
 };
 
-/**
- * A let binding is a list and a map that can be printed as a let expression.
- * In particular, the list d_letList is ordered such that
- * d_letList[i] does not contain subterm d_letList[j] for j>i.
- * It is intended that d_letList contains only unique nodes. Each node
- * in d_letList is mapped to a unique identifier in d_letMap.
- *
- * If a term is mapped to identifier 0, then it is not letified. This is
- * used to disable letification for certain terms.
- */
-struct LetBinding
-{
-  /** Visit list */
-  std::vector<Node> visitList;
-  /** Count */
-  std::map<Node, uint32_t> count;
-  /** The let list */
-  std::vector<Node> d_letList;
-  /** The let map */
-  std::map<Node, uint32_t> d_letMap;
-};
-
 }  // namespace proof
 }  // namespace CVC4
 

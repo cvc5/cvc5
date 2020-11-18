@@ -25,9 +25,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-void ExtProofRuleChecker::registerTo(ProofChecker* pc)
-{
-}
+void ExtProofRuleChecker::registerTo(ProofChecker* pc) {}
 
 Node ExtProofRuleChecker::checkInternal(PfRule id,
                                         const std::vector<Node>& children,

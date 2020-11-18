@@ -21,6 +21,7 @@
 #include <unordered_set>
 
 #include "expr/proof_node_updater.h"
+#include "proof/lfsc/lfsc_term_process.h"
 
 namespace CVC4 {
 namespace proof {
@@ -52,6 +53,11 @@ class LfscProofPostprocessCallback : public ProofNodeUpdaterCallback
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
+
+  /** The LFSC term processor callback */
+  LfscTermProcessCallback d_lcb;
+  /** The term processor */
+  TermProcessor d_tproc;
 };
 
 /**
