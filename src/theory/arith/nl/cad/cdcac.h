@@ -151,6 +151,9 @@ class CDCAC
   CADProofGenerator* getProof() { return d_proof.get(); }
 
  private:
+  /** Check whether proofs are enabled */
+  bool isProofEnabled() const { return d_proof != nullptr; }
+
   /**
    * Check whether the current sample satisfies the integrality condition of the
    * current variable. Returns true if the variable is not integral or the
