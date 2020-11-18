@@ -97,12 +97,6 @@ void TheoryArith::preRegisterTerm(TNode n)
   d_internal->preRegisterTerm(n);
 }
 
-TrustNode TheoryArith::expandDefinition(Node node)
-{
-  // call eliminate operators
-  return d_arithPreproc.eliminate(node);
-}
-
 void TheoryArith::notifySharedTerm(TNode n) { d_internal->notifySharedTerm(n); }
 
 TrustNode TheoryArith::ppRewrite(TNode atom)

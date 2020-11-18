@@ -296,18 +296,6 @@ void AstPrinter::toStreamCmdDefineType(std::ostream& out,
   out << "]," << t << ')' << std::endl;
 }
 
-void AstPrinter::toStreamCmdDefineNamedFunction(
-    std::ostream& out,
-    const std::string& id,
-    const std::vector<Node>& formals,
-    TypeNode range,
-    Node formula) const
-{
-  out << "DefineNamedFunction( ";
-  toStreamCmdDefineFunction(out, id, formals, range, formula);
-  out << " )" << std::endl;
-}
-
 void AstPrinter::toStreamCmdSimplify(std::ostream& out, Node n) const
 {
   out << "Simplify( << " << n << " >> )" << std::endl;
