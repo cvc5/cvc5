@@ -18,21 +18,15 @@
 
 #include "api/cvc4cpp.h"
 #include "base/check.h"
-#include "base/configuration.h"
-#include "base/configuration_private.h"
 #include "base/exception.h"
 #include "base/modal_exception.h"
 #include "base/output.h"
 #include "decision/decision_engine.h"
 #include "expr/node.h"
-#include "expr/node_self_iterator.h"
-#include "expr/node_visitor.h"
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/main_options.h"
-#include "options/option_exception.h"
 #include "options/printer_options.h"
-#include "options/set_language.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "printer/printer.h"
@@ -60,19 +54,18 @@
 #include "smt/smt_engine_stats.h"
 #include "smt/smt_solver.h"
 #include "smt/sygus_solver.h"
-#include "smt/term_formula_removal.h"
-#include "smt/update_ostream.h"
-#include "theory/logic_info.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 #include "theory/theory_engine.h"
-#include "util/hash.h"
 #include "util/random.h"
 #include "util/resource_manager.h"
 
+// required for hacks related to old proofs for unsat cores
+#include "base/configuration.h"
+#include "base/configuration_private.h"
+
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::smt;
 using namespace CVC4::preprocessing;
 using namespace CVC4::prop;
@@ -136,14 +129,15 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
   d_resourceManager.reset(
       new ResourceManager(*d_statisticsRegistry.get(), d_options));
   d_optm.reset(new smt::OptionsManager(&d_options, d_resourceManager.get()));
-  d_pp.reset(
-      new smt::Preprocessor(*this, getUserContext(), *d_absValues.get()));
   // listen to node manager events
   d_nodeManager->subscribeEvents(d_snmListener.get());
   // listen to resource out
   d_resourceManager->registerListener(d_routListener.get());
   // make statistics
   d_stats.reset(new SmtEngineStatistics());
+  // reset the preprocessor
+  d_pp.reset(new smt::Preprocessor(
+      *this, getUserContext(), *d_absValues.get(), *d_stats));
   // make the SMT solver
   d_smtSolver.reset(
       new SmtSolver(*this, *d_state, d_resourceManager.get(), *d_pp, *d_stats));
@@ -399,9 +393,8 @@ void SmtEngine::setLogic(const std::string& s)
 }
 
 void SmtEngine::setLogic(const char* logic) { setLogic(string(logic)); }
-LogicInfo SmtEngine::getLogicInfo() const {
-  return d_logic;
-}
+
+const LogicInfo& SmtEngine::getLogicInfo() const { return d_logic; }
 
 LogicInfo SmtEngine::getUserLogicInfo() const
 {

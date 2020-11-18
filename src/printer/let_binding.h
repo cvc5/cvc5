@@ -73,8 +73,8 @@ namespace CVC4 {
  */
 class LetBinding
 {
-  typedef context::CDList<Node> NodeList;
-  typedef context::CDHashMap<Node, uint32_t, NodeHashFunction> NodeIdMap;
+  using NodeList = context::CDList<Node>;
+  using NodeIdMap = context::CDHashMap<Node, uint32_t, NodeHashFunction>;
 
  public:
   LetBinding(uint32_t thresh = 2);
@@ -122,9 +122,9 @@ class LetBinding
 
  private:
   /**
-   * Compute the count of sub nodes in pn, store in pcount. Additionally,
-   * store each node in the domain of pcount in an order in visitList
-   * such that visitList[i] does not contain sub visitList[j] for j>i.
+   * Compute the count of sub nodes in n, store in d_count. Additionally,
+   * store each node in the domain of d_count in an order in d_visitList
+   * such that d_visitList[i] does not contain sub d_visitList[j] for j>i.
    */
   void updateCounts(Node n);
   /**

@@ -50,19 +50,13 @@ typedef NodeTemplate<true> Node;
 typedef NodeTemplate<false> TNode;
 struct NodeHashFunction;
 
-class Command;
-class GetModelCommand;
-
 class SmtEngine;
 class DecisionEngine;
 class TheoryEngine;
-
 class ProofManager;
 class UnsatCore;
-
 class LogicRequest;
 class StatisticsRegistry;
-
 class Printer;
 
 /* -------------------------------------------------------------------------- */
@@ -135,32 +129,15 @@ namespace theory {
   class RewriteDb;
 }/* CVC4::theory namespace */
 
-// TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
-// hood): use a type parameter and have check() delegate, or subclass
-// SmtEngine and override check()?
-//
-// Probably better than that is to have a configuration object that
-// indicates which passes are desired.  The configuration occurs
-// elsewhere (and can even occur at runtime).  A simple "pass manager"
-// of sorts determines check()'s behavior.
-//
-// The CNF conversion can go on in PropEngine.
 
 /* -------------------------------------------------------------------------- */
 
 class CVC4_PUBLIC SmtEngine
 {
   friend class ::CVC4::api::Solver;
-  // TODO (Issue #1096): Remove this friend relationship.
-  friend class ::CVC4::preprocessing::PreprocessingPassContext;
   friend class ::CVC4::smt::SmtEngineState;
   friend class ::CVC4::smt::SmtScope;
-  friend class ::CVC4::smt::ProcessAssertions;
-  friend class ::CVC4::smt::SmtSolver;
-  friend ProofManager* ::CVC4::smt::currentProofManager();
   friend class ::CVC4::LogicRequest;
-  friend class ::CVC4::theory::TheoryModel;
-  friend class ::CVC4::theory::Rewriter;
 
   /* .......................................................................  */
  public:
@@ -238,7 +215,7 @@ class CVC4_PUBLIC SmtEngine
   void setLogic(const LogicInfo& logic);
 
   /** Get the logic information currently set. */
-  LogicInfo getLogicInfo() const;
+  const LogicInfo& getLogicInfo() const;
 
   /** Get the logic information set by the user. */
   LogicInfo getUserLogicInfo() const;
@@ -872,6 +849,24 @@ class CVC4_PUBLIC SmtEngine
   Options& getOptions();
   const Options& getOptions() const;
 
+  /** Get a pointer to the UserContext owned by this SmtEngine. */
+  context::UserContext* getUserContext();
+
+  /** Get a pointer to the Context owned by this SmtEngine. */
+  context::Context* getContext();
+
+  /** Get a pointer to the TheoryEngine owned by this SmtEngine. */
+  TheoryEngine* getTheoryEngine();
+
+  /** Get a pointer to the PropEngine owned by this SmtEngine. */
+  prop::PropEngine* getPropEngine();
+
+  /**
+   * Get a pointer to the ProofManager owned by this SmtEngine.
+   * TODO (project #37): this is the old proof manager and will be deleted
+   */
+  ProofManager* getProofManager() { return d_proofManager.get(); };
+
   /** Get the resource manager of this SMT engine */
   ResourceManager* getResourceManager();
 
@@ -887,6 +882,12 @@ class CVC4_PUBLIC SmtEngine
   /** Get a pointer to the Rewriter owned by this SmtEngine. */
   theory::Rewriter* getRewriter() { return d_rewriter.get(); }
 
+  /** The type of our internal map of defined functions */
+  using DefinedFunctionMap =
+      context::CDHashMap<Node, smt::DefinedFunction, NodeHashFunction>;
+
+  /** Get the defined function map */
+  DefinedFunctionMap* getDefinedFunctionMap() { return d_definedFunctions; }
   /**
    * Get expanded assertions.
    *
@@ -896,10 +897,6 @@ class CVC4_PUBLIC SmtEngine
   /* .......................................................................  */
  private:
   /* .......................................................................  */
-
-  /** The type of our internal map of defined functions */
-  typedef context::CDHashMap<Node, smt::DefinedFunction, NodeHashFunction>
-      DefinedFunctionMap;
   /** The type of our internal assertion list */
   typedef context::CDList<Node> AssertionList;
 
@@ -910,26 +907,8 @@ class CVC4_PUBLIC SmtEngine
   /** Set solver instance that owns this SmtEngine. */
   void setSolver(api::Solver* solver) { d_solver = solver; }
 
-  /** Get a pointer to the UserContext owned by this SmtEngine. */
-  context::UserContext* getUserContext();
-
-  /** Get a pointer to the Context owned by this SmtEngine. */
-  context::Context* getContext();
-
-  /** Get a pointer to the TheoryEngine owned by this SmtEngine. */
-  TheoryEngine* getTheoryEngine();
-
-  /** Get a pointer to the PropEngine owned by this SmtEngine. */
-  prop::PropEngine* getPropEngine();
-
   /** Get a pointer to the (new) PfManager owned by this SmtEngine. */
   smt::PfManager* getPfManager() { return d_pfManager.get(); };
-
-  /**
-   * Get a pointer to the ProofManager owned by this SmtEngine.
-   * TODO (project #37): this is the old proof manager and will be deleted
-   */
-  ProofManager* getProofManager() { return d_proofManager.get(); };
 
   /** Get a pointer to the StatisticsRegistry owned by this SmtEngine. */
   StatisticsRegistry* getStatisticsRegistry()
@@ -1038,15 +1017,6 @@ class CVC4_PUBLIC SmtEngine
    * be called when d_logic is updated.
    */
   void setLogicInternal();
-
-  /**
-   * Add to Model command.  This is used for recording a command
-   * that should be reported during a get-model call.
-   */
-  void addToModelCommandAndDump(const Command& c,
-                                uint32_t flags = 0,
-                                bool userVisible = true,
-                                const char* dumpTag = "declarations");
 
   /*
    * Check satisfiability (used to check satisfiability and entailment).
@@ -1171,8 +1141,10 @@ class CVC4_PUBLIC SmtEngine
    */
   std::map<std::string, Integer> d_commandVerbosity;
 
+  /** The statistics registry */
   std::unique_ptr<StatisticsRegistry> d_statisticsRegistry;
 
+  /** The statistics class */
   std::unique_ptr<smt::SmtEngineStatistics> d_stats;
 
   /** The options object */

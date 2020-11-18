@@ -57,13 +57,7 @@ void LetBinding::letify(std::vector<Node>& letList)
   // populate the d_letList and d_letMap
   convertCountToLet();
   // add the new entries to the letList
-  for (NodeList::iterator it = d_letList.begin() + prevSize,
-                          itend = d_letList.end();
-       it != itend;
-       ++it)
-  {
-    letList.push_back(*it);
-  }
+  letList.insert(letList.end(), d_letList.begin() + prevSize, d_letList.end());
 }
 
 void LetBinding::pushScope() { d_context.push(); }
@@ -186,7 +180,7 @@ void LetBinding::convertCountToLet()
 {
   Assert(d_thresh > 0);
   // Assign ids for those whose d_count is >= d_thresh, traverse in d_visitList
-  // in order so that deeper proofs are assigned lower identifiers, which
+  // in order so that deeper nodes are assigned lower identifiers, which
   // ensures the let list can be printed.
   NodeIdMap::const_iterator itc;
   for (const Node& n : d_visitList)
