@@ -25,6 +25,7 @@
 
 #include <vector>
 
+#include "context/cdlist.h"
 #include "expr/node.h"
 #include "expr/proof_generator.h"
 #include "theory/arith/nl/cad/cdcac_utils.h"
@@ -46,25 +47,18 @@ namespace cad {
  * It uses a LazyTreeProofGenerator internally to manage the tree-based proof
  * construction.
  */
-class CADProofGenerator : public ProofGenerator
+class CADProofGenerator
 {
  public:
   friend std::ostream& operator<<(std::ostream& os,
                                   const CADProofGenerator& proof);
-  CADProofGenerator(ProofNodeManager* pnm);
-  /** Return a string identifier for this proof generator */
-  std::string identify() const override;
-
-  /** Reset this proof generator. */
-  void reset() { d_ltpg.reset(); }
+  CADProofGenerator(context::Context* ctx, ProofNodeManager* pnm);
 
   /** Return the constructed proof */
   std::shared_ptr<ProofNode> getProof() const;
-  /** Return the constructed proof. Checks that we have proven f */
-  std::shared_ptr<ProofNode> getProofFor(Node f) override;
-  /** Checks whether we have proven f */
-  bool hasProofFor(Node f) override;
 
+  /** Start a new proof in this proof generator */
+  void startNewProof();
   /** Start a new recursive call */
   void startRecursive();
   /** Finish the current recursive call */
@@ -73,6 +67,20 @@ class CADProofGenerator : public ProofGenerator
   void startScope();
   /** Finish a scope and add the (generalized) sample that was refuted */
   void endScope(const std::vector<Node>& args);
+  /** Return the current proof generator */
+  ProofGenerator* getProofGenerator() const;
+
+  /**
+   * Calls LazyTreeProofGenerator::pruneChildren(f), but decorates the
+   * predicate such that f only accepts the index.
+   * @param f A Callable bool(std::size_t)
+   */
+  template <typename F>
+  void pruneChildren(F&& f)
+  {
+    d_proofs.back()->pruneChildren(
+        [&f](std::size_t i, const detail::TreeProofNode& tpn) { return f(i); });
+  }
 
   /**
    * Add a direct interval conflict as generated in getUnsatIntervals().
@@ -114,8 +122,10 @@ class CADProofGenerator : public ProofGenerator
                                   VariableMapper& vm);
 
  private:
-  /** The underlying tree proof manager */
-  LazyTreeProofGenerator d_ltpg;
+  /** The proof node manager used for the proofs */
+  ProofNodeManager* d_pnm;
+  /** The list of generated proofs */
+  context::CDList<std::shared_ptr<LazyTreeProofGenerator>> d_proofs;
 
   /** Constant false */
   Node d_false;
