@@ -31,6 +31,7 @@
 #include "options/printer_options.h"
 #include "options/smt_options.h"
 #include "printer/dagification_visitor.h"
+#include "printer/let_binding.h"
 #include "proof/unsat_core.h"
 #include "smt/command.h"
 #include "smt/node_command.h"
@@ -108,51 +109,52 @@ void Smt2Printer::toStream(std::ostream& out,
                            size_t dag) const
 {
   if(dag != 0) {
-    DagificationVisitor dv(dag);
-    NodeVisitor<DagificationVisitor> visitor;
-    visitor.run(dv, n);
-    const theory::SubstitutionMap& lets = dv.getLets();
-    if(!lets.empty()) {
-      theory::SubstitutionMap::const_iterator i = lets.begin();
-      theory::SubstitutionMap::const_iterator i_end = lets.end();
-      for(; i != i_end; ++ i) {
-        out << "(let ((";
-        toStream(out, (*i).second, toDepth);
-        out << ' ';
-        toStream(out, (*i).first, toDepth);
-        out << ")) ";
-      }
-    }
-    Node body = dv.getDagifiedBody();
-    toStream(out, body, toDepth);
-    if(!lets.empty()) {
-      theory::SubstitutionMap::const_iterator i = lets.begin();
-      theory::SubstitutionMap::const_iterator i_end = lets.end();
-      for(; i != i_end; ++ i) {
-        out << ")";
-      }
-    }
+    LetBinding lbind(dag + 1);
+    toStreamWithLetify(out, n, toDepth, &lbind);
   } else {
     toStream(out, n, toDepth);
   }
 }
 
-static bool stringifyRegexp(Node n, stringstream& ss) {
-  if(n.getKind() == kind::STRING_TO_REGEXP) {
-    ss << n[0].getConst<String>().toString(true);
-  } else if(n.getKind() == kind::REGEXP_CONCAT) {
-    for(unsigned i = 0; i < n.getNumChildren(); ++i) {
-      if(!stringifyRegexp(n[i], ss)) {
-        return false;
-      }
-    }
-  } else {
-    return false;
+void Smt2Printer::toStreamWithLetify(std::ostream& out,
+                                     Node n,
+                                     int toDepth,
+                                     LetBinding* lbind) const
+{
+  if (lbind == nullptr)
+  {
+    toStream(out, n, toDepth);
+    return;
   }
-  return true;
+  std::stringstream cparen;
+  std::vector<Node> letList;
+  lbind->letify(n, letList);
+  if (!letList.empty())
+  {
+    std::map<Node, uint32_t>::const_iterator it;
+    for (size_t i = 0, nlets = letList.size(); i < nlets; i++)
+    {
+      Node nl = letList[i];
+      out << "(let ((";
+      uint32_t id = lbind->getId(nl);
+      out << "_let_" << id << " ";
+      Node nlc = lbind->convert(nl, "_let_", false);
+      toStream(out, nlc, toDepth, lbind);
+      out << ")) ";
+      cparen << ")";
+    }
+  }
+  Node nc = lbind->convert(n, "_let_");
+  // print the body, passing the lbind object
+  toStream(out, nc, toDepth, lbind);
+  out << cparen.str();
+  lbind->popScope();
 }
 
-void Smt2Printer::toStream(std::ostream& out, TNode n, int toDepth) const
+void Smt2Printer::toStream(std::ostream& out,
+                           TNode n,
+                           int toDepth,
+                           LetBinding* lbind) const
 {
   // null
   if(n.getKind() == kind::NULL_EXPR) {
@@ -486,7 +488,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n, int toDepth) const
             << smtKindString(is_int ? kind::TO_INTEGER : kind::DIVISION,
                              d_variant)
             << " ";
-        toStream(out, type_asc_arg, toDepth);
+        toStream(out, type_asc_arg, toDepth, lbind);
         if (!is_int)
         {
           out << " 1";
@@ -498,7 +500,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n, int toDepth) const
     {
       // use type ascription
       out << "(as ";
-      toStream(out, type_asc_arg, toDepth < 0 ? toDepth : toDepth - 1);
+      toStream(out, type_asc_arg, toDepth < 0 ? toDepth : toDepth - 1, lbind);
       out << " " << force_nt << ")";
     }
     return;
@@ -583,20 +585,19 @@ void Smt2Printer::toStream(std::ostream& out, TNode n, int toDepth) const
         args.insert(args.begin(), head[1]);
         head = head[0];
       }
-      toStream(out, head, toDepth);
+      toStream(out, head, toDepth, lbind);
       for (unsigned i = 0, size = args.size(); i < size; ++i)
       {
         out << " ";
-        toStream(out, args[i], toDepth);
+        toStream(out, args[i], toDepth, lbind);
       }
       out << ")";
     }
     return;
 
-  case kind::LAMBDA: out << smtKindString(k, d_variant) << " "; break;
   case kind::MATCH:
     out << smtKindString(k, d_variant) << " ";
-    toStream(out, n[0], toDepth);
+    toStream(out, n[0], toDepth, lbind);
     out << " (";
     for (size_t i = 1, nchild = n.getNumChildren(); i < nchild; i++)
     {
@@ -604,21 +605,20 @@ void Smt2Printer::toStream(std::ostream& out, TNode n, int toDepth) const
       {
         out << " ";
       }
-      toStream(out, n[i], toDepth);
+      toStream(out, n[i], toDepth, lbind);
     }
     out << "))";
     return;
   case kind::MATCH_BIND_CASE:
     // ignore the binder
-    toStream(out, n[1], toDepth);
+    toStream(out, n[1], toDepth, lbind);
     out << " ";
-    toStream(out, n[2], toDepth);
+    toStream(out, n[2], toDepth, lbind);
     out << ")";
     return;
   case kind::MATCH_CASE:
     // do nothing
     break;
-  case kind::WITNESS: out << smtKindString(k, d_variant) << " "; break;
 
   // arith theory
   case kind::PLUS:
@@ -667,6 +667,12 @@ void Smt2Printer::toStream(std::ostream& out, TNode n, int toDepth) const
     out << "(_ divisible " << n.getOperator().getConst<Divisible>().k << ")";
     stillNeedToPrintParams = false;
     break;
+  case kind::INDEXED_ROOT_PREDICATE_OP:
+  {
+    const IndexedRootPredicate& irp = n.getConst<IndexedRootPredicate>();
+    out << "(_ root_predicate " << irp.d_index << ")";
+    break;
+  }
 
     // arrays theory
   case kind::SELECT:
@@ -900,23 +906,16 @@ void Smt2Printer::toStream(std::ostream& out, TNode n, int toDepth) const
     // quantifiers
   case kind::FORALL:
   case kind::EXISTS:
+  case kind::LAMBDA:
+  case kind::WITNESS:
   {
-    if (k == kind::FORALL)
+    out << smtKindString(k, d_variant) << " ";
+    if (n.getNumChildren() == 3)
     {
-      out << "forall ";
+      out << "(! ";
     }
-    else
-    {
-      out << "exists ";
-    }
-    for (unsigned i = 0; i < 2; i++)
-    {
-      out << n[i] << " ";
-      if (i == 0 && n.getNumChildren() == 3)
-      {
-        out << "(! ";
-      }
-    }
+    out << n[0] << " ";
+    toStreamWithLetify(out, n[1], toDepth - 1, lbind);
     if (n.getNumChildren() == 3)
     {
       out << n[2];
@@ -932,7 +931,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n, int toDepth) const
     for (TNode::iterator i = n.begin(), iend = n.end(); i != iend;)
     {
       out << '(';
-      toStream(out, *i, toDepth < 0 ? toDepth : toDepth - 1, 0);
+      toStream(out, *i, toDepth < 0 ? toDepth : toDepth - 1);
       out << ' ';
       out << (*i).getType();
       out << ')';
@@ -989,7 +988,8 @@ void Smt2Printer::toStream(std::ostream& out, TNode n, int toDepth) const
                    toDepth < 0 ? toDepth : toDepth - 1);
         }
       }else{
-        toStream(out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1);
+        toStream(
+            out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, lbind);
       }
     } else {
       out << "(...)";
@@ -1002,7 +1002,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n, int toDepth) const
   
   for(size_t i = 0, c = 1; i < n.getNumChildren(); ) {
     if(toDepth != 0) {
-      toStream(out, n[i], toDepth < 0 ? toDepth : toDepth - c);
+      toStream(out, n[i], toDepth < 0 ? toDepth : toDepth - c, lbind);
     } else {
       out << "(...)";
     }
@@ -1062,8 +1062,7 @@ static string smtKindString(Kind k, Variant v)
     // uf theory
   case kind::APPLY_UF: break;
 
-  case kind::LAMBDA:
-    return "lambda";
+  case kind::LAMBDA: return "lambda";
   case kind::MATCH: return "match";
   case kind::WITNESS: return "witness";
 
@@ -1278,6 +1277,10 @@ static string smtKindString(Kind k, Variant v)
   case kind::SEP_PTO: return "pto";
   case kind::SEP_WAND: return "wand";
   case kind::SEP_EMP: return "emp";
+
+  // quantifiers
+  case kind::FORALL: return "forall";
+  case kind::EXISTS: return "exists";
 
   default:
     ; /* fall through */
