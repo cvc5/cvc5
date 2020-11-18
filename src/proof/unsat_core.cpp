@@ -23,11 +23,19 @@
 #include "smt/smt_engine_scope.h"
 
 namespace CVC4 {
+  
 
-void UnsatCore::initMessage() const {
+
+UnsatCore::UnsatCore(const std::vector<Node>& core, std::vector<std::string>& names, bool useNames)
+    : d_useNames(useNames), d_core(core), d_names(names)
+{
   Debug("core") << "UnsatCore size " << d_core.size() << std::endl;
 }
 
+
+const std::vector<Node>& getCore() const;
+const std::vector<std::string>& getCoreNames() const;
+  
 UnsatCore::const_iterator UnsatCore::begin() const {
   return d_core.begin();
 }
@@ -38,7 +46,6 @@ UnsatCore::const_iterator UnsatCore::end() const {
 
 void UnsatCore::toStream(std::ostream& out) const {
   Assert(d_smt != NULL);
-  smt::SmtScope smts(d_smt);
   expr::ExprDag::Scope scope(out, false);
   Printer::getPrinter(options::outputLanguage())->toStream(out, *this);
 }

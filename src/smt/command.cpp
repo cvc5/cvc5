@@ -2289,14 +2289,14 @@ void GetUnsatAssumptionsCommand::toStream(std::ostream& out,
 /* class GetUnsatCoreCommand                                                  */
 /* -------------------------------------------------------------------------- */
 
-GetUnsatCoreCommand::GetUnsatCoreCommand() {}
+GetUnsatCoreCommand::GetUnsatCoreCommand() : d_sm(nullptr) {}
 void GetUnsatCoreCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    d_solver = solver;
+    d_sm = sm;
     d_result = solver->getUnsatCore();
-
+    
     d_commandStatus = CommandSuccess::instance();
   }
   catch (api::CVC4ApiRecoverableException& e)
@@ -2318,7 +2318,14 @@ void GetUnsatCoreCommand::printResult(std::ostream& out,
   }
   else
   {
-    UnsatCore ucr(d_solver->getSmtEngine(), api::termVectorToNodes(d_result));
+    std::vector<std::string> names;
+    bool useNames = false;
+    if (!options::dumpUnsatCoresFull())
+    {
+      d_sm->getExpressionNames(d_result, names, true);
+      useNames = true;
+    }
+    UnsatCore ucr(api::termVectorToNodes(d_result), names, useNames);
     ucr.toStream(out);
   }
 }
@@ -2332,7 +2339,7 @@ const std::vector<api::Term>& GetUnsatCoreCommand::getUnsatCore() const
 Command* GetUnsatCoreCommand::clone() const
 {
   GetUnsatCoreCommand* c = new GetUnsatCoreCommand;
-  c->d_solver = d_solver;
+  c->d_sm = d_sm;
   c->d_result = d_result;
   return c;
 }
