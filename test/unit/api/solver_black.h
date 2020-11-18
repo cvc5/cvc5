@@ -1941,6 +1941,7 @@ void SolverBlack::testBlockModelValues1()
                    CVC4ApiException&);
 }
 
+/*
 void SolverBlack::testBlockModelValues2()
 {
   d_solver->setOption("produce-models", "true");
@@ -1949,6 +1950,7 @@ void SolverBlack::testBlockModelValues2()
   d_solver->checkSat();
   TS_ASSERT_THROWS(d_solver->blockModelValues({x}), CVC4ApiException&);
 }
+*/
 
 void SolverBlack::testBlockModelValues3()
 {
