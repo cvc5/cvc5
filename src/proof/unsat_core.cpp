@@ -37,7 +37,10 @@ UnsatCore::UnsatCore(std::vector<std::string>& names)
 }
 
 const std::vector<Node>& UnsatCore::getCore() const { return d_core; }
-const std::vector<std::string>& UnsatCore::getCoreNames() const { return d_names; }
+const std::vector<std::string>& UnsatCore::getCoreNames() const
+{
+  return d_names;
+}
 
 UnsatCore::const_iterator UnsatCore::begin() const {
   return d_core.begin();

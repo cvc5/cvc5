@@ -43,7 +43,7 @@ class UnsatCore
   /** Whether we are using names for this unsat core */
   bool useNames() const { return d_useNames; }
   /** Get the number of assertions in the unsat core */
-  size_t size() const { return d_core.size()+d_names.size(); }
+  size_t size() const { return d_core.size() + d_names.size(); }
   /** Get the assertions in the unsat core */
   const std::vector<Node>& getCore() const;
   /** Get their names */
@@ -54,7 +54,7 @@ class UnsatCore
 
   const_iterator begin() const;
   const_iterator end() const;
-  
+
   /**
    * prints this UnsatCore object to the stream out.
    */
