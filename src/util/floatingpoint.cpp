@@ -70,7 +70,7 @@ CVC4_LIT_ITE_DFN(::CVC4::symfpuLiteral::traits::ubv);
 
 namespace CVC4 {
 
-FloatingPointSize::FloatingPointSize(unsigned exp_size, unsigned sig_size)
+FloatingPointSize::FloatingPointSize(uint32_t exp_size, uint32_t sig_size)
     : d_exp_size(exp_size), d_sig_size(sig_size)
 {
   PrettyCheckArgument(validExponentSize(exp_size),
@@ -492,8 +492,8 @@ void FloatingPointLiteral::unfinished(void) const
 }
 #endif
 
-FloatingPoint::FloatingPoint(unsigned d_exp_size,
-                             unsigned d_sig_size,
+FloatingPoint::FloatingPoint(uint32_t d_exp_size,
+                             uint32_t d_sig_size,
                              const BitVector& bv)
     : d_fp_size(d_exp_size, d_sig_size),
 #ifdef CVC4_USE_SYMFPU
@@ -597,7 +597,7 @@ static FloatingPointLiteral constructorHelperRational(
       Assert(r < working * two);
 
       // Work out the number of bits required to represent the exponent for a normal number
-      unsigned expBits = 2; // No point starting with an invalid amount
+      uint32_t expBits = 2;  // No point starting with an invalid amount
 
       Integer doubleInt(2);
       if (exp.strictlyPositive()) {
@@ -619,12 +619,13 @@ static FloatingPointLiteral constructorHelperRational(
       BitVector exactExp(expBits, exp);
 
       // Compute the significand.
-      unsigned sigBits = size.significandWidth() + 2;  // guard and sticky bits
+      uint32_t sigBits = size.significandWidth() + 2;  // guard and sticky bits
       BitVector sig(sigBits, 0U);
       BitVector one(sigBits, 1U);
       Rational workingSig(0,1);
-      for (unsigned i = 0; i < sigBits - 1; ++i) {
-	Rational mid(workingSig + working);
+      for (uint32_t i = 0; i < sigBits - 1; ++i)
+      {
+        Rational mid(workingSig + working);
 
 	if (mid <= r) {
 	  sig = sig | one;
@@ -650,7 +651,7 @@ static FloatingPointLiteral constructorHelperRational(
       // may have more to allow subnormals to be normalised.
       // Thus...
 #ifdef CVC4_USE_SYMFPU
-      unsigned extension =
+      uint32_t extension =
           FloatingPointLiteral::exponentWidth(exactFormat) - expBits;
 
       FloatingPointLiteral exactFloat(
@@ -1113,16 +1114,16 @@ std::string FloatingPoint::toString(bool printAsIndexed) const
   std::string str;
   // retrive BV value
   BitVector bv(pack());
-  unsigned largestSignificandBit =
+  uint32_t largestSignificandBit =
       d_fp_size.significandWidth() - 2;  // -1 for -inclusive, -1 for hidden
-  unsigned largestExponentBit =
+  uint32_t largestExponentBit =
       (d_fp_size.exponentWidth() - 1) + (largestSignificandBit + 1);
   BitVector v[3];
   v[0] = bv.extract(largestExponentBit + 1, largestExponentBit + 1);
   v[1] = bv.extract(largestExponentBit, largestSignificandBit + 1);
   v[2] = bv.extract(largestSignificandBit, 0);
   str.append("(fp ");
-  for (unsigned i = 0; i < 3; ++i)
+  for (uint32_t i = 0; i < 3; ++i)
   {
     if (printAsIndexed)
     {
