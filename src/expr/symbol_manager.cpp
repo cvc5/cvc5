@@ -77,17 +77,19 @@ bool SymbolManager::Implementation::setExpressionName(api::Term t,
                                                       const std::string& name,
                                                       bool isAssertion)
 {
+  Trace("sym-manager") << "set expression name: " << t << " -> " << name
+                       << ", isAssertion=" << isAssertion << std::endl;
   // cannot name subexpressions under quantifiers
   PrettyCheckArgument(
       !d_hasPushedScope.get(), name, "cannot name function in a scope");
+  if (isAssertion)
+  {
+    d_namedAsserts.insert(t);
+  }
   if (d_names.find(t) != d_names.end())
   {
     // already named assertion
     return false;
-  }
-  if (isAssertion)
-  {
-    d_namedAsserts.insert(t);
   }
   d_names[t] = name;
   return true;
