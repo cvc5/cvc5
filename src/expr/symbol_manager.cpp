@@ -181,11 +181,15 @@ void SymbolManager::Implementation::getModelDeclarations(std::vector<api::Sort>&
 
 void SymbolManager::Implementation::addModelDeclarationSort(api::Sort s)
 {
+  Trace("sym-manager") << "addModelDeclarationSort " << s
+                       << std::endl;
   d_declareSorts.push_back(s);
 }
 
 void SymbolManager::Implementation::addModelDeclarationTerm(api::Term t)
 {
+  Trace("sym-manager") << "addModelDeclarationTerm " << t
+                       << std::endl;
   d_declareTerms.push_back(t);
 }
 

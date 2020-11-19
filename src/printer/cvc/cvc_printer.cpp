@@ -1292,6 +1292,7 @@ void CvcPrinter::toStreamCmdDeclarationSequence(
   {
     DeclarationDefinitionCommand* dd =
         static_cast<DeclarationDefinitionCommand*>(*i++);
+    Assert (dd!=nullptr);
     if (i != sequence.cend())
     {
       out << dd->getSymbol() << ", ";
