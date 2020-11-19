@@ -313,7 +313,7 @@ void TheoryEngine::preRegister(TNode preprocessed) {
                       << std::endl;
       Assert(!expr::hasFreeVar(preprocessed));
       // should not have witness
-      Assert(!expr::hasSubtermKind(kind::WITNESS,preprocessed));
+      Assert(!expr::hasSubtermKind(kind::WITNESS, preprocessed));
 
       // Pre-register the terms in the atom
       theory::TheoryIdSet theories = NodeVisitor<PreRegisterVisitor>::run(
@@ -1178,7 +1178,7 @@ Node TheoryEngine::ensureLiteral(TNode n) {
   std::vector<Node> newSkolems;
   TrustNode tpn = d_tpp.preprocess(n, newLemmas, newSkolems, true);
   // send lemmas corresponding to the skolems introduced by preprocessing n
-  for( const TrustNode& tnl : newLemmas)
+  for (const TrustNode& tnl : newLemmas)
   {
     lemma(tnl, LemmaProperty::NONE);
   }

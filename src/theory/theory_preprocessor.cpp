@@ -90,8 +90,8 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
   // In this method, all rewriting steps of node are stored in d_tpg.
 
   Trace("tpp-debug") << "TheoryPreprocessor::preprocess: start " << node
-                           << ", doTheoryPreprocess=" << doTheoryPreprocess
-                           << std::endl;
+                     << ", doTheoryPreprocess=" << doTheoryPreprocess
+                     << std::endl;
   // Run theory preprocessing, maybe
   Node ppNode = node;
   if (doTheoryPreprocess)
@@ -125,8 +125,7 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
   {
     if (node != ppNode)
     {
-      Trace("tpp-debug")
-          << "after preprocessing : " << ppNode << std::endl;
+      Trace("tpp-debug") << "after preprocessing : " << ppNode << std::endl;
     }
     if (rtfNode != ppNode)
     {
@@ -136,8 +135,7 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
     {
       Trace("tpp-debug") << "after rewriting : " << retNode << std::endl;
     }
-    Trace("tpp-debug")
-        << "TheoryPreprocessor::preprocess: finish" << std::endl;
+    Trace("tpp-debug") << "TheoryPreprocessor::preprocess: finish" << std::endl;
   }
   if (node == retNode)
   {
@@ -186,7 +184,7 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
 
   // now, rewrite the lemmas
   Trace("tpp-debug") << "TheoryPreprocessor::preprocess: process lemmas"
-                           << std::endl;
+                     << std::endl;
   for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
   {
     // get the trust node to process
@@ -217,11 +215,9 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
       newLemmas[i] = TrustNode::mkTrustLemma(rewritten, d_lp.get());
     }
     Assert(!isProofEnabled() || newLemmas[i].getGenerator() != nullptr);
-    newLemmas[i].debugCheckClosed("tpp-debug",
-                                  "TheoryPreprocessor::lemma_new");
+    newLemmas[i].debugCheckClosed("tpp-debug", "TheoryPreprocessor::lemma_new");
   }
-  Trace("tpp-debug") << "Preprocessed: " << node << " " << retNode
-                           << std::endl;
+  Trace("tpp-debug") << "Preprocessed: " << node << " " << retNode << std::endl;
   return tret;
 }
 
@@ -390,9 +386,8 @@ Node TheoryPreprocessor::rewriteWithProof(Node term)
     // may rewrite the same term more than once, thus check hasRewriteStep
     if (termr != term)
     {
-      Trace("tpp-debug")
-          << "TheoryPreprocessor: addRewriteStep (rewriting) " << term << " -> "
-          << termr << std::endl;
+      Trace("tpp-debug") << "TheoryPreprocessor: addRewriteStep (rewriting) "
+                         << term << " -> " << termr << std::endl;
       // always use term context hash 0 (default)
       d_tpg->addRewriteStep(term, termr, PfRule::REWRITE, {}, {term});
     }
@@ -420,9 +415,8 @@ Node TheoryPreprocessor::preprocessWithProof(Node term)
   {
     if (trn.getGenerator() != nullptr)
     {
-      Trace("tpp-debug")
-          << "TheoryPreprocessor: addRewriteStep (generator) " << term << " -> "
-          << termr << std::endl;
+      Trace("tpp-debug") << "TheoryPreprocessor: addRewriteStep (generator) "
+                         << term << " -> " << termr << std::endl;
       trn.debugCheckClosed("tpp-debug",
                            "TheoryPreprocessor::preprocessWithProof");
       // always use term context hash 0 (default)
@@ -431,9 +425,8 @@ Node TheoryPreprocessor::preprocessWithProof(Node term)
     }
     else
     {
-      Trace("tpp-debug")
-          << "TheoryPreprocessor: addRewriteStep (trusted) " << term << " -> "
-          << termr << std::endl;
+      Trace("tpp-debug") << "TheoryPreprocessor: addRewriteStep (trusted) "
+                         << term << " -> " << termr << std::endl;
       // small step trust
       d_tpg->addRewriteStep(
           term, termr, PfRule::THEORY_PREPROCESS, {}, {term.eqNode(termr)});
