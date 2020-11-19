@@ -28,6 +28,7 @@
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "expr/proof_generator.h"
+#include "expr/proof_set.h"
 #include "theory/arith/nl/cad/cdcac_utils.h"
 #include "theory/arith/nl/poly_conversion.h"
 #include "theory/lazy_tree_proof_generator.h"
@@ -54,9 +55,6 @@ class CADProofGenerator
                                   const CADProofGenerator& proof);
   CADProofGenerator(context::Context* ctx, ProofNodeManager* pnm);
 
-  /** Return the constructed proof */
-  std::shared_ptr<ProofNode> getProof() const;
-
   /** Start a new proof in this proof generator */
   void startNewProof();
   /** Start a new recursive call */
@@ -78,7 +76,7 @@ class CADProofGenerator
   template <typename F>
   void pruneChildren(F&& f)
   {
-    d_proofs.back()->pruneChildren(
+    d_current->pruneChildren(
         [&f](std::size_t i, const detail::TreeProofNode& tpn) { return f(i); });
   }
 
@@ -125,7 +123,9 @@ class CADProofGenerator
   /** The proof node manager used for the proofs */
   ProofNodeManager* d_pnm;
   /** The list of generated proofs */
-  context::CDList<std::shared_ptr<LazyTreeProofGenerator>> d_proofs;
+  CDProofSet<LazyTreeProofGenerator> d_proofs;
+  /** The current proof */
+  LazyTreeProofGenerator* d_current;
 
   /** Constant false */
   Node d_false;

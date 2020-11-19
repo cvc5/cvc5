@@ -24,8 +24,8 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-SplitZeroCheck::SplitZeroCheck(ExtState* data, context::UserContext* ctx)
-    : d_data(data), d_zero_split(ctx)
+SplitZeroCheck::SplitZeroCheck(ExtState* data)
+    : d_data(data), d_zero_split(d_data->d_ctx)
 {
 }
 
@@ -38,7 +38,7 @@ void SplitZeroCheck::check()
     {
       Node eq = Rewriter::rewrite(v.eqNode(d_data->d_zero));
       Node lem = eq.orNode(eq.negate());
-      LazyCDProof* proof = nullptr;
+      CDProof* proof = nullptr;
       if (d_data->isProofEnabled())
       {
         proof = d_data->getProof();

@@ -314,7 +314,7 @@ int MonomialCheck::compareSign(
       Node prem = av.eqNode(d_data->d_zero);
       Node conc = oa.eqNode(d_data->d_zero);
       Node lemma = prem.impNode(conc);
-      LazyCDProof* proof = nullptr;
+      CDProof* proof = nullptr;
       if (d_data->isProofEnabled())
       {
         proof = d_data->getProof();

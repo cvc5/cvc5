@@ -17,7 +17,7 @@
 
 #include <vector>
 
-#include "expr/lazy_proof_set.h"
+#include "expr/proof_set.h"
 #include "expr/node.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/ext/monomial.h"
@@ -44,7 +44,7 @@ struct ExtState
   /**
    * Creates and returns a new LazyCDProof that can be used to prove some lemma.
    */
-  LazyCDProof* getProof();
+  CDProof* getProof();
 
   Node d_false;
   Node d_true;
@@ -61,10 +61,12 @@ struct ExtState
    * disabled.
    */
   ProofNodeManager* d_pnm;
+  /** The user context. */
+  context::UserContext* d_ctx;
   /**
-   * A LazyCDProofSet that hands out (Lazy)CDProof objects for lemmas.
+   * A CDProofSet that hands out CDProof objects for lemmas.
    */
-  std::unique_ptr<LazyCDProofSet> d_proof;
+  std::unique_ptr<CDProofSet<CDProof>> d_proof;
 
   // information about monomials
   std::vector<Node> d_ms;
