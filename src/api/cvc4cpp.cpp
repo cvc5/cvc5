@@ -5322,19 +5322,6 @@ bool Solver::getAbduct(Term conj, Grammar& g, Term& output) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-void Solver::printModel(std::ostream& out) const
-{
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
-      << "Cannot get value unless model generation is enabled "
-         "(try --produce-models)";
-  CVC4_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
-      << "Can only get value after sat or unknown response.";
-  out << *d_smtEngine->getModel();
-  CVC4_API_SOLVER_TRY_CATCH_END;
-}
-
 void Solver::blockModel() const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;

@@ -3234,13 +3234,6 @@ class CVC4_PUBLIC Solver
   bool getAbduct(Term conj, Grammar& g, Term& output) const;
 
   /**
-   * Print the model of a satisfiable query to the given output stream.
-   * Requires to enable option 'produce-models'.
-   * @param out the output stream
-   */
-  void printModel(std::ostream& out) const;
-
-  /**
    * Block the current model. Can be called only if immediately preceded by a
    * SAT or INVALID query.
    * SMT-LIB: ( block-model )

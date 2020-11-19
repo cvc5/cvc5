@@ -93,12 +93,16 @@ class Model {
    * the values of sorts and terms.
    */
   theory::TheoryModel* d_tmodel;
-  /** The list of declare-sort */
+  /** 
+   * The list of types to print, generally corresponding to declare-sort
+   * commands.
+   */
   std::vector<TypeNode> d_declareSort;
-  /** The list of declare-datatypes */
-  std::vector<TypeNode> d_declareDatatype;
-  /** The list of declare-fun */
-  std::vector<Node> d_declareFun;
+  /** 
+   * The list of terms to print, is typically one-to-one with declare-fun
+   * commands.
+   */
+  std::vector<Node> d_declareTerms;
 };
 
 }  // namespace smt
