@@ -663,7 +663,9 @@ class TheoryEngine {
   Node getModelValue(TNode var);
 
   /**
-   * Takes a literal and returns an equivalent literal that is guaranteed to be a SAT literal
+   * Takes a literal and returns an equivalent literal that is guaranteed to be
+   * a SAT literal. This rewrites and preprocesses n, which notice may involve
+   * sending lemmas if preprocessing n involves introducing new skolems.
    */
   Node ensureLiteral(TNode n);
 
