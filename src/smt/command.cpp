@@ -2762,11 +2762,6 @@ const std::vector<api::Sort>& DatatypeDeclarationCommand::getDatatypes() const
 
 void DatatypeDeclarationCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
-  // mark that it will be printed in the model
-  for (const api::Sort& d : d_datatypes)
-  {
-    sm->addModelDeclarationSort(d);
-  }
   d_commandStatus = CommandSuccess::instance();
 }
 
