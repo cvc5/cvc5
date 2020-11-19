@@ -16,7 +16,6 @@
 
 #include <fcntl.h>
 #include <stdio.h>
-#include <stdint.h>
 
 #include <antlr3input.h>
 
