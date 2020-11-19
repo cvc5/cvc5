@@ -4150,6 +4150,20 @@ Term Solver::mkConst(Sort sort, const std::string& symbol) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
+Term Solver::mkConst(Sort sort) const
+{
+  NodeManagerScope scope(getNodeManager());
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
+  CVC4_API_SOLVER_CHECK_SORT(sort);
+
+  Expr res = d_exprMgr->mkVar(sort.d_type->toType());
+  (void)res.getType(true); /* kick off type checking */
+  return Term(this, res);
+
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
 /* Create variables                                                           */
 /* -------------------------------------------------------------------------- */
 
@@ -4796,6 +4810,7 @@ Term Solver::defineFun(Term fun,
 
   if (fun.getSort().isFunction())
   {
+    Trace("ajr-temp") << "Define fun " << bound_vars << " for " << fun << std::endl;
     std::vector<Sort> domain_sorts = fun.getSort().getFunctionDomainSorts();
     size_t size = bound_vars.size();
     CVC4_API_ARG_SIZE_CHECK_EXPECTED(size == domain_sorts.size(), bound_vars)

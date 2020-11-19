@@ -2830,6 +2830,14 @@ class CVC4_PUBLIC Solver
    * @return the first-order constant
    */
   Term mkConst(Sort sort, const std::string& symbol) const;
+  /**
+   * Create (first-order) constant (0-arity function symbol), with a default
+   * symbol name.
+   *
+   * @param sort the sort of the constant
+   * @return the first-order constant
+   */
+  Term mkConst(Sort sort) const;
 
   /**
    * Create a bound variable to be used in a binder (i.e. a quantifier, a
