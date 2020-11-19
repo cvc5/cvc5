@@ -17,8 +17,6 @@
 
 #include "theory/arith/theory_arith_private.h"
 
-#include <stdint.h>
-
 #include <map>
 #include <queue>
 #include <vector>

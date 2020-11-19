@@ -19,8 +19,6 @@
 #ifndef CVC4__SAT__PROOF_H
 #define CVC4__SAT__PROOF_H
 
-#include <stdint.h>
-
 #include <iosfwd>
 #include <set>
 #include <sstream>

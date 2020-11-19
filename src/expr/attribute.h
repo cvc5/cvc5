@@ -25,7 +25,6 @@
 #define CVC4__EXPR__ATTRIBUTE_H
 
 #include <string>
-#include <stdint.h>
 #include "expr/attribute_unique_id.h"
 
 // include supporting templates
