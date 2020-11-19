@@ -1349,15 +1349,20 @@ void Smt2Printer::toStream(std::ostream& out, const CommandStatus* s) const
 void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core) const
 {
   out << "(" << std::endl;
-  SmtEngine * smt = core.getSmtEngine();
-  Assert(smt != NULL);
-  for(UnsatCore::const_iterator i = core.begin(); i != core.end(); ++i) {
-    std::string name;
-    if (smt->getExpressionName(*i,name)) {
-      // Named assertions always get printed
-      out << CVC4::quoteSymbol(name) << endl;
-    } else if (options::dumpUnsatCoresFull()) {
-      // Unnamed assertions only get printed if the option is set
+  if (core.useNames())
+  {
+    // use the names
+    const std::vector<std::string>& cnames = core.getCoreNames();
+    for (const std::string& cn : cnames)
+    {
+      out << CVC4::quoteSymbol(cn) << std::endl;
+    }
+  }
+  else
+  {
+    // otherwise, use the formulas
+    for (UnsatCore::const_iterator i = core.begin(); i != core.end(); ++i)
+    {
       out << *i << endl;
     }
   }

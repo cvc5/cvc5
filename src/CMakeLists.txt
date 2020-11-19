@@ -235,8 +235,6 @@ libcvc4_add_sources(
   smt/dump.h
   smt/dump_manager.cpp
   smt/dump_manager.h
-  smt/expr_names.cpp
-  smt/expr_names.h
   smt/listeners.cpp
   smt/listeners.h
   smt/logic_exception.h
