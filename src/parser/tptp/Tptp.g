@@ -61,7 +61,6 @@ options {
 }/* @lexer::includes */
 
 @lexer::postinclude {
-#include <stdint.h>
 
 #include "parser/tptp/tptp.h"
 #include "parser/antlr_input.h"

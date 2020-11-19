@@ -63,8 +63,6 @@ options {
 }/* @lexer::includes */
 
 @lexer::postinclude {
-#include <stdint.h>
-
 #include "parser/smt2/smt2.h"
 #include "parser/antlr_input.h"
 

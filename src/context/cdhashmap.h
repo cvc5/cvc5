@@ -82,7 +82,6 @@
 #ifndef CVC4__CONTEXT__CDHASHMAP_H
 #define CVC4__CONTEXT__CDHASHMAP_H
 
-#include <cstddef>
 #include <functional>
 #include <iterator>
 #include <unordered_map>
