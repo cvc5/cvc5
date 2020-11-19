@@ -86,8 +86,6 @@ class Printer
 
   /** Print declare-sort command */
   virtual void toStreamCmdDeclareType(std::ostream& out,
-                                      const std::string& id,
-                                      size_t arity,
                                       TypeNode type) const;
 
   /** Print define-sort command */
@@ -266,18 +264,24 @@ class Printer
   /** Derived classes can construct, but no one else. */
   Printer() {}
 
-  /** write model response to command */
-  virtual void toStream(std::ostream& out,
-                        const smt::Model& m,
-                        const NodeCommand* c) const = 0;
+  /** 
+   * To stream model sort. This prints the appropriate output for type
+   * tn declared via declare-sort or declare-datatype.
+   */
+  virtual void toStreamModelSort(std::ostream& out, const smt::Model& m, TypeNode tn) const = 0;
+
+  /** 
+   * To stream model term. This prints the appropriate output for type
+   * tn declared via declare-fun.
+   */
+  virtual void toStreamModelTerm(std::ostream& out, const smt::Model& m, Node n) const = 0;
 
   /** write model response to command using another language printer */
   void toStreamUsing(OutputLanguage lang,
                      std::ostream& out,
-                     const smt::Model& m,
-                     const NodeCommand* c) const
+                     const smt::Model& m) const
   {
-    getPrinter(lang)->toStream(out, m, c);
+    getPrinter(lang)->toStream(out, m);
   }
 
   /**

@@ -1091,6 +1091,8 @@ void DeclareFunctionCommand::setPrintInModel(bool p)
 
 void DeclareFunctionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
+  // mark that it will be printed in the model
+  sm->addModelDeclarationTerm(d_func);
   d_commandStatus = CommandSuccess::instance();
 }
 
@@ -1132,6 +1134,8 @@ size_t DeclareSortCommand::getArity() const { return d_arity; }
 api::Sort DeclareSortCommand::getSort() const { return d_sort; }
 void DeclareSortCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
+  // mark that it will be printed in the model
+  sm->addModelDeclarationSort(d_sort);
   d_commandStatus = CommandSuccess::instance();
 }
 
@@ -1151,7 +1155,7 @@ void DeclareSortCommand::toStream(std::ostream& out,
                                   OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdDeclareType(
-      out, d_sort.toString(), d_arity, d_sort.getTypeNode());
+      out, d_sort.getTypeNode());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1693,6 +1697,19 @@ void GetModelCommand::invoke(api::Solver* solver, SymbolManager* sm)
   try
   {
     d_result = solver->getSmtEngine()->getModel();
+    // set the model declarations, which determines what is printed in the model
+    std::vector<api::Sort> declareSorts;
+    std::vector<api::Term> declareTerms;
+    sm->getModelDeclarations(declareSorts, declareTerms);
+    d_result->clearModelDeclarations();
+    for (const api::Sort& s : declareSorts)
+    {
+      d_result->addDeclarationSort(s.getTypeNode());
+    }
+    for (const api::Term& t : declareTerms)
+    {
+      d_result->addDeclarationTerm(t.getNode());
+    }
     d_commandStatus = CommandSuccess::instance();
   }
   catch (RecoverableModalException& e)
@@ -2745,6 +2762,11 @@ const std::vector<api::Sort>& DatatypeDeclarationCommand::getDatatypes() const
 
 void DatatypeDeclarationCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
+  // mark that it will be printed in the model
+  for (const api::Sort& d : d_datatypes)
+  {
+    sm->addModelDeclarationSort(d);
+  }
   d_commandStatus = CommandSuccess::instance();
 }
 

@@ -105,7 +105,7 @@ void DeclareTypeNodeCommand::toStream(std::ostream& out,
                                       OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdDeclareType(
-      out, d_id, d_arity, d_type);
+      out, d_type);
 }
 
 NodeCommand* DeclareTypeNodeCommand::clone() const

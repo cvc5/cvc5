@@ -61,5 +61,28 @@ Node Model::getValue(TNode n) const { return d_tmodel->getValue(n); }
 
 bool Model::hasApproximations() const { return d_tmodel->hasApproximations(); }
 
+void Model::clearModelDeclarations()
+{
+  d_declareSorts.clear();
+}
+
+void Model::addDeclarationSort(TypeNode tn)
+{
+  d_declareSorts.push_back(tn);
+}
+
+void Model::addDeclarationTerm(Node n)
+{
+  d_declareTerms.push_back(n);
+}
+const std::vector<TypeNode>& Model::getDeclaredSorts() const
+{
+  return d_declareSorts;
+}
+const std::vector<Node>& Model::getDeclaredTerms() const
+{
+  return d_declareTerms;
+}
+  
 }  // namespace smt
 }/* CVC4 namespace */

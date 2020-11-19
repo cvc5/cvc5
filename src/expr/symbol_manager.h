@@ -97,11 +97,11 @@ class CVC4_PUBLIC SymbolManager
    * 
    * @param declareSorts The sorts we have declared that should be printed
    * in the model.
-   * @param declareFuns The terms we have declared that should be printed
+   * @param declareTerms The terms we have declared that should be printed
    * in the model.
    */
   void getModelDeclarations(std::vector<api::Sort>& declareSorts,
-                            std::vector<api::Term>& declareFuns) const;
+                            std::vector<api::Term>& declareTerms) const;
   /**
    * Add declared sort to the list of model declarations. 
    */

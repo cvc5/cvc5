@@ -1067,20 +1067,21 @@ void CvcPrinter::toStream(std::ostream& out, const CommandStatus* s) const
 
 }/* CvcPrinter::toStream(CommandStatus*) */
 
-namespace {
-
-void DeclareTypeNodeCommandToStream(std::ostream& out,
-                                    const theory::TheoryModel& model,
-                                    const DeclareTypeNodeCommand& command)
+void CvcPrinter::toStreamModelSort(std::ostream& out, const smt::Model& m, TypeNode tn) const
 {
-  TypeNode type_node = command.getType();
+  if (!tn.isSort())
+  {
+    out << "ERROR: don't know how to print a non uninterpreted sort in model: " << tn << std::endl;
+    return;
+  }
+  const theory::TheoryModel* tm = m.getTheoryModel();
   const std::vector<Node>* type_reps =
-      model.getRepSet()->getTypeRepsOrNull(type_node);
+      tm->getRepSet()->getTypeRepsOrNull(tn);
   if (options::modelUninterpPrint() == options::ModelUninterpPrintMode::DtEnum
-      && type_node.isSort() && type_reps != nullptr)
+      && type_reps != nullptr)
   {
     out << "DATATYPE" << std::endl;
-    out << "  " << command.getSymbol() << " = ";
+    out << "  " << tn << " = ";
     for (size_t i = 0; i < type_reps->size(); i++)
     {
       if (i > 0)
@@ -1091,16 +1092,16 @@ void DeclareTypeNodeCommandToStream(std::ostream& out,
     }
     out << std::endl << "END;" << std::endl;
   }
-  else if (type_node.isSort() && type_reps != nullptr)
+  else if (type_reps != nullptr)
   {
-    out << "% cardinality of " << type_node << " is " << type_reps->size()
+    out << "% cardinality of " << tn << " is " << type_reps->size()
         << std::endl;
-    out << command << std::endl;
+    toStreamCmdDeclareType(out, tn);
     for (Node type_rep : *type_reps)
     {
       if (type_rep.isVar())
       {
-        out << type_rep << " : " << type_node << ";" << std::endl;
+        out << type_rep << " : " << tn << ";" << std::endl;
       }
       else
       {
@@ -1110,21 +1111,13 @@ void DeclareTypeNodeCommandToStream(std::ostream& out,
   }
   else
   {
-    out << command << std::endl;
+    toStreamCmdDeclareType(out, tn);
   }
 }
 
-void DeclareFunctionNodeCommandToStream(
-    std::ostream& out,
-    const theory::TheoryModel& model,
-    const DeclareFunctionNodeCommand& command)
+void CvcPrinter::toStreamModelTerm(std::ostream& out, const smt::Model& m, Node n) const
 {
-  Node n = command.getFunction();
-  if (n.getKind() == kind::SKOLEM)
-  {
-    // don't print out internal stuff
-    return;
-  }
+  const theory::TheoryModel* tm = m.getTheoryModel();
   TypeNode tn = n.getType();
   out << n << " : ";
   if (tn.isFunction() || tn.isPredicate())
@@ -1146,15 +1139,16 @@ void DeclareFunctionNodeCommandToStream(
   }
   // We get the value from the theory model directly, which notice
   // does not have to go through the standard SmtEngine::getValue interface.
-  Node val = model.getValue(n);
+  Node val = tm->getValue(n);
   if (options::modelUninterpPrint() == options::ModelUninterpPrintMode::DtEnum
       && val.getKind() == kind::STORE)
   {
     TypeNode type_node = val[1].getType();
     if (tn.isSort())
     {
-      if (const std::vector<Node>* type_reps =
-              model.getRepSet()->getTypeRepsOrNull(type_node))
+      const std::vector<Node>* type_reps =
+              tm->getRepSet()->getTypeRepsOrNull(type_node);
+      if (type_reps!=nullptr)
       {
         Cardinality indexCard(type_reps->size());
         val = theory::arrays::TheoryArraysRewriter::normalizeConstant(
@@ -1164,8 +1158,6 @@ void DeclareFunctionNodeCommandToStream(
   }
   out << " = " << val << ";" << std::endl;
 }
-
-}  // namespace
 
 void CvcPrinter::toStream(std::ostream& out, const smt::Model& m) const
 {
@@ -1183,28 +1175,6 @@ void CvcPrinter::toStream(std::ostream& out, const smt::Model& m) const
   out << "MODEL BEGIN" << std::endl;
   this->Printer::toStream(out, m);
   out << "MODEL END;" << std::endl;
-}
-
-void CvcPrinter::toStream(std::ostream& out,
-                          const smt::Model& model,
-                          const NodeCommand* command) const
-{
-  const auto* theory_model = model.getTheoryModel();
-  AlwaysAssert(theory_model != nullptr);
-  if (const auto* declare_type_command =
-          dynamic_cast<const DeclareTypeNodeCommand*>(command))
-  {
-    DeclareTypeNodeCommandToStream(out, *theory_model, *declare_type_command);
-  }
-  else if (const auto* dfc =
-               dynamic_cast<const DeclareFunctionNodeCommand*>(command))
-  {
-    DeclareFunctionNodeCommandToStream(out, *theory_model, *dfc);
-  }
-  else
-  {
-    out << *command << std::endl;
-  }
 }
 
 void CvcPrinter::toStreamCmdAssert(std::ostream& out, Node n) const
@@ -1376,20 +1346,18 @@ void CvcPrinter::toStreamCmdDefineFunction(std::ostream& out,
 }
 
 void CvcPrinter::toStreamCmdDeclareType(std::ostream& out,
-                                        const std::string& id,
-                                        size_t arity,
                                         TypeNode type) const
 {
+  size_t arity = type.isSortConstructor() ? type.getSortConstructorArity() : 0;
   if (arity > 0)
   {
-    // TODO?
     out << "ERROR: Don't know how to print parameterized type declaration "
            "in CVC language."
         << std::endl;
   }
   else
   {
-    out << id << " : TYPE;" << std::endl;
+    out << type << " : TYPE;" << std::endl;
   }
 }
 

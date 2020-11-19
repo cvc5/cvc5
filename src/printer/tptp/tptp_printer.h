@@ -42,11 +42,18 @@ class TptpPrinter : public CVC4::Printer
    * unsat core with UnsatCore::getSmtEngine.
    */
   void toStream(std::ostream& out, const UnsatCore& core) const override;
+private:
+  /** 
+   * To stream model sort. This prints the appropriate output for type
+   * tn declared via declare-sort or declare-datatype.
+   */
+  void toStreamModelSort(std::ostream& out, const smt::Model& m, TypeNode tn) const override;
 
- private:
-  void toStream(std::ostream& out,
-                const smt::Model& m,
-                const NodeCommand* c) const override;
+  /** 
+   * To stream model term. This prints the appropriate output for type
+   * tn declared via declare-fun.
+   */
+  void toStreamModelTerm(std::ostream& out, const smt::Model& m, Node n) const override;
 
 }; /* class TptpPrinter */
 

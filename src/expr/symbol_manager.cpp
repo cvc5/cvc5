@@ -60,7 +60,7 @@ class SymbolManager::Implementation
   std::map<api::Term, std::string> getExpressionNames(bool areAssertions) const;
   /** get model declarations */
   void getModelDeclarations(std::vector<api::Sort>& declareSorts,
-                            std::vector<api::Term>& declareFuns) const;
+                            std::vector<api::Term>& declareTerms) const;
   /** Add declared sort to the list of model declarations. */
   void addModelDeclarationSort(api::Sort s);
   /** Add declared term to the list of model declarations. */
@@ -167,15 +167,15 @@ SymbolManager::Implementation::getExpressionNames(bool areAssertions) const
 }
 
 void SymbolManager::Implementation::getModelDeclarations(std::vector<api::Sort>& declareSorts,
-                          std::vector<api::Term>& declareFuns) const
+                          std::vector<api::Term>& declareTerms) const
 {
   for (SortList::const_iterator it = d_declareSorts.begin(); it != d_declareSorts.end(); ++it)
   {
     declareSorts.push_back(*it);
   }
-  for (TermList::const_iterator it = d_declareFuns.begin(); it != d_declareFuns.end(); ++it)
+  for (TermList::const_iterator it = d_declareTerms.begin(); it != d_declareTerms.end(); ++it)
   {
-    declareFuns.push_back(*it);
+    declareTerms.push_back(*it);
   }
 }
 
@@ -186,7 +186,7 @@ void SymbolManager::Implementation::addModelDeclarationSort(api::Sort s)
 
 void SymbolManager::Implementation::addModelDeclarationTerm(api::Term t)
 {
-  d_declareTerms.push_back(s);
+  d_declareTerms.push_back(t);
 }
 
 void SymbolManager::Implementation::pushScope(bool isUserContext)
@@ -261,9 +261,9 @@ std::map<api::Term, std::string> SymbolManager::getExpressionNames(
 
 
 void SymbolManager::getModelDeclarations(std::vector<api::Sort>& declareSorts,
-                          std::vector<api::Term>& declareFuns) const
+                          std::vector<api::Term>& declareTerms) const
 {
-  return d_implementation->getModelDeclarations(declareSorts, declareFuns);
+  return d_implementation->getModelDeclarations(declareSorts, declareTerms);
 }
 
 void SymbolManager::addModelDeclarationSort(api::Sort s)

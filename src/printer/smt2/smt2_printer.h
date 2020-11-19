@@ -75,8 +75,6 @@ class Smt2Printer : public CVC4::Printer
 
   /** Print declare-sort command */
   void toStreamCmdDeclareType(std::ostream& out,
-                              const std::string& id,
-                              size_t arity,
                               TypeNode type) const override;
 
   /** Print define-sort command */
@@ -234,11 +232,19 @@ class Smt2Printer : public CVC4::Printer
                           TNode n,
                           int toDepth,
                           TypeNode tn) const;
-  void toStream(std::ostream& out,
-                const smt::Model& m,
-                const NodeCommand* c) const override;
   void toStream(std::ostream& out, const SExpr& sexpr) const;
   void toStream(std::ostream& out, const DType& dt) const;
+  /** 
+   * To stream model sort. This prints the appropriate output for type
+   * tn declared via declare-sort or declare-datatype.
+   */
+  void toStreamModelSort(std::ostream& out, const smt::Model& m, TypeNode tn) const override;
+
+  /** 
+   * To stream model term. This prints the appropriate output for type
+   * tn declared via declare-fun.
+   */
+  void toStreamModelTerm(std::ostream& out, const smt::Model& m, Node n) const override;
 
   Variant d_variant;
 }; /* class Smt2Printer */
