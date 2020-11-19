@@ -822,22 +822,6 @@ class CVC4_PUBLIC SmtEngine
                         const std::vector<Expr>& expr_values,
                         const std::string& str_value);
 
-  /**
-   * Get expression name.
-   *
-   * Return true if given expressoion has a name in the current context.
-   * If it returns true, the name of expression 'e' is stored in 'name'.
-   */
-  bool getExpressionName(const Node& e, std::string& name) const;
-
-  /**
-   * Set name of given expression 'e' to 'name'.
-   *
-   * This information is user-context-dependent.
-   * If 'e' already has a name, it is overwritten.
-   */
-  void setExpressionName(const Node& e, const std::string& name);
-
   /** Get the options object (const and non-const versions) */
   Options& getOptions();
   const Options& getOptions() const;
@@ -1049,8 +1033,6 @@ class CVC4_PUBLIC SmtEngine
   std::unique_ptr<smt::AbstractValues> d_absValues;
   /** Assertions manager */
   std::unique_ptr<smt::Assertions> d_asserts;
-  /** Expression names */
-  std::unique_ptr<smt::ExprNames> d_exprNames;
   /** The dump manager */
   std::unique_ptr<smt::DumpManager> d_dumpm;
   /** Resource out listener */

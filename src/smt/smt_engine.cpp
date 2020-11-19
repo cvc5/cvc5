@@ -38,7 +38,6 @@
 #include "smt/check_models.h"
 #include "smt/defined_function.h"
 #include "smt/dump_manager.h"
-#include "smt/expr_names.h"
 #include "smt/interpolation_solver.h"
 #include "smt/listeners.h"
 #include "smt/logic_request.h"
@@ -80,7 +79,6 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_nodeManager(d_exprManager->getNodeManager()),
       d_absValues(new AbstractValues(d_nodeManager)),
       d_asserts(new Assertions(getUserContext(), *d_absValues.get())),
-      d_exprNames(new ExprNames(getUserContext())),
       d_dumpm(new DumpManager(getUserContext())),
       d_routListener(new ResourceOutListener(*this)),
       d_snmListener(new SmtNodeManagerListener(*d_dumpm.get(), d_outMgr)),
@@ -334,7 +332,6 @@ SmtEngine::~SmtEngine()
 
     d_absValues.reset(nullptr);
     d_asserts.reset(nullptr);
-    d_exprNames.reset(nullptr);
     d_dumpm.reset(nullptr);
 
     d_sygusSolver.reset(nullptr);
@@ -1391,7 +1388,7 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
   }
 
   d_proofManager->traceUnsatCore();  // just to trigger core creation
-  return UnsatCore(this, d_proofManager->extractUnsatCore());
+  return UnsatCore(d_proofManager->extractUnsatCore());
 #else  /* IS_PROOFS_BUILD */
   throw ModalException(
       "This build of CVC4 doesn't have proof support (required for unsat "
@@ -1418,7 +1415,8 @@ void SmtEngine::checkUnsatCore() {
     coreChecker->declareSepHeap(sepLocType, sepDataType);
   }
 
-  Notice() << "SmtEngine::checkUnsatCore(): pushing core assertions (size == " << core.size() << ")" << endl;
+  Notice() << "SmtEngine::checkUnsatCore(): pushing core assertions"
+           << std::endl;
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
     Node assertionAfterExpansion = expandDefinitions(*i);
     Notice() << "SmtEngine::checkUnsatCore(): pushing core member " << *i
@@ -1855,15 +1853,6 @@ CVC4::SExpr SmtEngine::getOption(const std::string& key) const
   }
 
   return SExpr::parseAtom(d_options.getOption(key));
-}
-
-bool SmtEngine::getExpressionName(const Node& e, std::string& name) const {
-  return d_exprNames->getExpressionName(e, name);
-}
-
-void SmtEngine::setExpressionName(const Node& e, const std::string& name) {
-  Trace("smt-debug") << "Set expression name " << e << " to " << name << std::endl;
-  d_exprNames->setExpressionName(e,name);
 }
 
 Options& SmtEngine::getOptions() { return d_options; }

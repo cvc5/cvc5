@@ -112,6 +112,8 @@ libcvc4_add_sources(
   record.h
   sequence.cpp
   sequence.h
+  subs.cpp
+  subs.h
   sygus_datatype.cpp
   sygus_datatype.h
   uninterpreted_constant.cpp

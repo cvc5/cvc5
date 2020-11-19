@@ -219,8 +219,6 @@ libcvc4_add_sources(
   smt/dump.h
   smt/dump_manager.cpp
   smt/dump_manager.h
-  smt/expr_names.cpp
-  smt/expr_names.h
   smt/listeners.cpp
   smt/listeners.h
   smt/logic_exception.h
@@ -618,6 +616,8 @@ libcvc4_add_sources(
   theory/quantifiers/cegqi/ceg_instantiator.h
   theory/quantifiers/cegqi/inst_strategy_cegqi.cpp
   theory/quantifiers/cegqi/inst_strategy_cegqi.h
+  theory/quantifiers/cegqi/nested_qe.cpp
+  theory/quantifiers/cegqi/nested_qe.h
   theory/quantifiers/cegqi/vts_term_cache.cpp
   theory/quantifiers/cegqi/vts_term_cache.h
   theory/quantifiers/conjecture_generator.cpp
