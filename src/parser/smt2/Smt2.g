@@ -363,12 +363,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
         // set the expression name, if there was a named term
         std::pair<api::Term, std::string> namedTerm =
             PARSER_STATE->lastNamedTerm();
-        // TODO (projects-248)
-        // SYM_MAN->setExpressionName(namedTerm.first, namedTerm.second, true);
-        Command* csen =
-            new SetExpressionNameCommand(namedTerm.first, namedTerm.second);
-        csen->setMuted(true);
-        PARSER_STATE->preemptCommand(csen);
+        SYM_MAN->setExpressionName(namedTerm.first, namedTerm.second, true);
       }
     }
   | /* check-sat */

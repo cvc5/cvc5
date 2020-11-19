@@ -120,6 +120,8 @@ using namespace CVC4::parser;
 #define PARSER_STATE ((Tptp*)PARSER->super)
 #undef SOLVER
 #define SOLVER PARSER_STATE->getSolver()
+#undef SYM_MAN
+#define SYM_MAN PARSER_STATE->getSymbolManager()
 #undef MK_TERM
 #define MK_TERM SOLVER->mkTerm
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
@@ -163,9 +165,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
       CVC4::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr, expr);
       if( !aexpr.isNull() ){
         // set the expression name (e.g. used with unsat core printing)
-        Command* csen = new SetExpressionNameCommand(aexpr, name);
-        csen->setMuted(true);
-        PARSER_STATE->preemptCommand(csen);
+        SYM_MAN->setExpressionName(aexpr, name, true);
       }
       // make the command to assert the formula
       cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, /* cnf == */ true, true);
@@ -177,9 +177,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
       CVC4::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
       if( !aexpr.isNull() ){
         // set the expression name (e.g. used with unsat core printing)
-        Command* csen = new SetExpressionNameCommand(aexpr, name);
-        csen->setMuted(true);
-        PARSER_STATE->preemptCommand(csen);
+        SYM_MAN->setExpressionName(aexpr, name, true);
       }
       // make the command to assert the formula
       cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, /* cnf == */ false, true);
@@ -193,9 +191,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
         CVC4::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
         if( !aexpr.isNull() ){
           // set the expression name (e.g. used with unsat core printing)
-          Command* csen = new SetExpressionNameCommand(aexpr, name);
-          csen->setMuted(true);
-          PARSER_STATE->preemptCommand(csen);
+          SYM_MAN->setExpressionName(aexpr, name, true);
         }
         // make the command to assert the formula
         cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, /* cnf == */ false, true);
@@ -218,9 +214,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
         if (!aexpr.isNull())
         {
           // set the expression name (e.g. used with unsat core printing)
-          Command* csen = new SetExpressionNameCommand(aexpr, name);
-          csen->setMuted(true);
-          PARSER_STATE->preemptCommand(csen);
+          SYM_MAN->setExpressionName(aexpr, name, true);
         }
         // make the command to assert the formula
         cmd = PARSER_STATE->makeAssertCommand(

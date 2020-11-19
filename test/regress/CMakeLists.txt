@@ -1419,7 +1419,6 @@ set(regress_1_tests
   regress1/lemmas/simple_startup_9nodes.abstract.base.smtv1.smt2
   regress1/model-blocker-simple.smt2
   regress1/model-blocker-values.smt2
-  regress1/nl/approx-sqrt-unsat.smt2
   regress1/nl/approx-sqrt.smt2
   regress1/nl/arctan2-expdef.smt2
   regress1/nl/arrowsmith-050317.smt2
@@ -1610,6 +1609,9 @@ set(regress_1_tests
   regress1/quantifiers/issue4620-erq-witness-unsound.smt2
   regress1/quantifiers/issue4685-wrewrite.smt2
   regress1/quantifiers/issue5019-cegqi-i.smt2
+  regress1/quantifiers/issue5469-aext.smt2
+  regress1/quantifiers/issue5470-aext.smt2
+  regress1/quantifiers/issue5471-aext.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lia-witness-div-pp.smt2
@@ -2534,6 +2536,8 @@ set(regression_disabled_tests
   regress1/ho/nested_lambdas-sat-SYO056^1-delta.smt2
   # issue1048-arrays-int-real.smt2 -- different errors on debug and production.
   regress1/issue1048-arrays-int-real.smt2
+  # slow on some builds after changes to tangent planes
+  regress1/nl/approx-sqrt-unsat.smt2
   # times out after no expand definitions for arithmetic
   regress1/nl/issue3803-nl-check-model.smt2
   # times out after update to tangent planes
