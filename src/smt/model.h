@@ -93,6 +93,12 @@ class Model {
    * the values of sorts and terms.
    */
   theory::TheoryModel* d_tmodel;
+  /** The list of declare-sort */
+  std::vector<TypeNode> d_declareSort;
+  /** The list of declare-datatypes */
+  std::vector<TypeNode> d_declareDatatype;
+  /** The list of declare-fun */
+  std::vector<Node> d_declareFun;
 };
 
 }  // namespace smt

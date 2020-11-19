@@ -2829,7 +2829,7 @@ class CVC4_PUBLIC Solver
    * @param symbol the name of the constant
    * @return the first-order constant
    */
-  Term mkConst(Sort sort, const std::string& symbol = std::string()) const;
+  Term mkConst(Sort sort, const std::string& symbol) const;
 
   /**
    * Create a bound variable to be used in a binder (i.e. a quantifier, a

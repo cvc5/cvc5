@@ -4143,8 +4143,7 @@ Term Solver::mkConst(Sort sort, const std::string& symbol) const
   CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
   CVC4_API_SOLVER_CHECK_SORT(sort);
 
-  Expr res = symbol.empty() ? d_exprMgr->mkVar(sort.d_type->toType())
-                            : d_exprMgr->mkVar(symbol, sort.d_type->toType());
+  Expr res = d_exprMgr->mkVar(symbol, sort.d_type->toType());
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
 
