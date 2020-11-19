@@ -43,32 +43,29 @@ class CVC4_PUBLIC FloatingPointSize
   /** Implement the interface that symfpu uses for floating-point formats. */
 
   /** Get the exponent bit-width of this floating-point format. */
-  inline uint32_t exponentWidth(void) const { return this->d_exp_size; }
+  inline uint32_t exponentWidth(void) const { return d_exp_size; }
   /** Get the significand bit-width of this floating-point format. */
-  inline uint32_t significandWidth(void) const { return this->d_sig_size; }
+  inline uint32_t significandWidth(void) const { return d_sig_size; }
   /**
    * Get the bit-width of the packed representation of this floating-point
    * format (= exponent + significand bit-width, convenience wrapper).
    */
   inline uint32_t packedWidth(void) const
   {
-    return this->exponentWidth() + this->significandWidth();
+    return exponentWidth() + significandWidth();
   }
   /**
    * Get the exponent bit-width of the packed representation of this
    * floating-point format (= exponent bit-width).
    */
-  inline uint32_t packedExponentWidth(void) const
-  {
-    return this->exponentWidth();
-  }
+  inline uint32_t packedExponentWidth(void) const { return exponentWidth(); }
   /**
    * Get the significand bit-width of the packed representation of this
    * floating-point format (= significand bit-width - 1).
    */
   inline uint32_t packedSignificandWidth(void) const
   {
-    return this->significandWidth() - 1;
+    return significandWidth() - 1;
   }
 
  private:
