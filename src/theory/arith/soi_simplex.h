@@ -52,8 +52,6 @@
 
 #pragma once
 
-#include <stdint.h>
-
 #include "theory/arith/simplex.h"
 #include "util/dense_map.h"
 #include "util/statistics_registry.h"

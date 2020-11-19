@@ -154,10 +154,15 @@ void TheoryArith::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
   d_internal->ppStaticLearn(n, learned);
 }
 
-bool TheoryArith::preCheck(Effort level) { return d_internal->preCheck(level); }
+bool TheoryArith::preCheck(Effort level)
+{
+  Trace("arith-check") << "TheoryArith::preCheck " << level << std::endl;
+  return d_internal->preCheck(level);
+}
 
 void TheoryArith::postCheck(Effort level)
 {
+  Trace("arith-check") << "TheoryArith::postCheck " << level << std::endl;
   // check with the non-linear solver at last call
   if (level == Theory::EFFORT_LAST_CALL)
   {
@@ -191,6 +196,9 @@ void TheoryArith::postCheck(Effort level)
 bool TheoryArith::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
+  Trace("arith-check") << "TheoryArith::preNotifyFact: " << fact
+                       << ", isPrereg=" << isPrereg
+                       << ", isInternal=" << isInternal << std::endl;
   d_internal->preNotifyFact(atom, pol, fact);
   // We do not assert to the equality engine of arithmetic in the standard way,
   // hence we return "true" to indicate we are finished with this fact.

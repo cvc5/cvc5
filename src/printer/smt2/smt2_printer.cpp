@@ -109,35 +109,8 @@ void Smt2Printer::toStream(std::ostream& out,
                            size_t dag) const
 {
   if(dag != 0) {
-#if 1
     LetBinding lbind(dag + 1);
     toStreamWithLetify(out, n, toDepth, &lbind);
-#else
-    DagificationVisitor dv(dag);
-    NodeVisitor<DagificationVisitor> visitor;
-    visitor.run(dv, n);
-    const theory::SubstitutionMap& lets = dv.getLets();
-    if(!lets.empty()) {
-      theory::SubstitutionMap::const_iterator i = lets.begin();
-      theory::SubstitutionMap::const_iterator i_end = lets.end();
-      for(; i != i_end; ++ i) {
-        out << "(let ((";
-        toStream(out, (*i).second, toDepth);
-        out << ' ';
-        toStream(out, (*i).first, toDepth);
-        out << ")) ";
-      }
-    }
-    Node body = dv.getDagifiedBody();
-    toStream(out, body, toDepth);
-    if(!lets.empty()) {
-      theory::SubstitutionMap::const_iterator i = lets.begin();
-      theory::SubstitutionMap::const_iterator i_end = lets.end();
-      for(; i != i_end; ++ i) {
-        out << ")";
-      }
-    }
-#endif
   } else {
     toStream(out, n, toDepth);
   }

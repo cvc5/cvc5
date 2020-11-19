@@ -17,7 +17,6 @@
 #ifndef CVC4__IAND_H
 #define CVC4__IAND_H
 
-#include <cstdint>
 #include <iosfwd>
 
 #include "base/exception.h"

@@ -256,6 +256,32 @@ void InstMatchTrie::getExplanationForInstLemmas(
   }
 }
 
+void InstMatchTrie::getInstantiations(
+    Node q, std::vector<std::vector<Node>>& insts) const
+{
+  std::vector<Node> terms;
+  getInstantiations(q, insts, terms);
+}
+
+void InstMatchTrie::getInstantiations(Node q,
+                                      std::vector<std::vector<Node>>& insts,
+                                      std::vector<Node>& terms) const
+{
+  if (terms.size() == q[0].getNumChildren())
+  {
+    insts.push_back(terms);
+  }
+  else
+  {
+    for (const std::pair<const Node, InstMatchTrie>& d : d_data)
+    {
+      terms.push_back(d.first);
+      d.second.getInstantiations(q, insts, terms);
+      terms.pop_back();
+    }
+  }
+}
+
 CDInstMatchTrie::~CDInstMatchTrie()
 {
   for (std::pair<const Node, CDInstMatchTrie*>& d : d_data)
@@ -513,6 +539,36 @@ void CDInstMatchTrie::getExplanationForInstLemmas(
         d.second->getExplanationForInstLemmas(q, terms, lems, quant, tvec);
         terms.pop_back();
       }
+    }
+  }
+}
+
+void CDInstMatchTrie::getInstantiations(
+    Node q, std::vector<std::vector<Node>>& insts) const
+{
+  std::vector<Node> terms;
+  getInstantiations(q, insts, terms);
+}
+
+void CDInstMatchTrie::getInstantiations(Node q,
+                                        std::vector<std::vector<Node>>& insts,
+                                        std::vector<Node>& terms) const
+{
+  if (!d_valid.get())
+  {
+    // do nothing
+  }
+  else if (terms.size() == q[0].getNumChildren())
+  {
+    insts.push_back(terms);
+  }
+  else
+  {
+    for (const std::pair<const Node, CDInstMatchTrie*>& d : d_data)
+    {
+      terms.push_back(d.first);
+      d.second->getInstantiations(q, insts, terms);
+      terms.pop_back();
     }
   }
 }
