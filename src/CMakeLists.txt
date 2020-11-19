@@ -124,6 +124,8 @@ libcvc4_add_sources(
   printer/cvc/cvc_printer.h
   printer/dagification_visitor.cpp
   printer/dagification_visitor.h
+  printer/let_binding.cpp
+  printer/let_binding.h
   printer/printer.cpp
   printer/printer.h
   printer/smt2/smt2_printer.cpp
@@ -217,8 +219,6 @@ libcvc4_add_sources(
   smt/dump.h
   smt/dump_manager.cpp
   smt/dump_manager.h
-  smt/expr_names.cpp
-  smt/expr_names.h
   smt/listeners.cpp
   smt/listeners.h
   smt/logic_exception.h
@@ -537,6 +537,10 @@ libcvc4_add_sources(
   theory/datatypes/inference.h
   theory/datatypes/inference_manager.cpp
   theory/datatypes/inference_manager.h
+  theory/datatypes/infer_proof_cons.cpp
+  theory/datatypes/infer_proof_cons.h
+  theory/datatypes/proof_checker.cpp
+  theory/datatypes/proof_checker.h
   theory/datatypes/sygus_datatype_utils.cpp
   theory/datatypes/sygus_datatype_utils.h
   theory/datatypes/sygus_extension.cpp

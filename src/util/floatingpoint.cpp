@@ -43,16 +43,16 @@
 #ifdef CVC4_USE_SYMFPU
 namespace symfpu {
 
-#define CVC4_LIT_ITE_DFN(T)                                        \
-  template <>                                                      \
-  struct ite<::CVC4::symfpuLiteral::prop, T>                       \
-  {                                                                \
-    static const T &iteOp(const ::CVC4::symfpuLiteral::prop &cond, \
-                          const T &l,                              \
-                          const T &r)                              \
-    {                                                              \
-      return cond ? l : r;                                         \
-    }                                                              \
+#define CVC4_LIT_ITE_DFN(T)                                            \
+  template <>                                                          \
+  struct ite<::CVC4::symfpuLiteral::CVC4Prop, T>                       \
+  {                                                                    \
+    static const T& iteOp(const ::CVC4::symfpuLiteral::CVC4Prop& cond, \
+                          const T& l,                                  \
+                          const T& r)                                  \
+    {                                                                  \
+      return cond ? l : r;                                             \
+    }                                                                  \
   }
 
 CVC4_LIT_ITE_DFN(::CVC4::symfpuLiteral::traits::rm);
@@ -70,16 +70,30 @@ CVC4_LIT_ITE_DFN(::CVC4::symfpuLiteral::traits::ubv);
 
 namespace CVC4 {
 
-FloatingPointSize::FloatingPointSize (unsigned _e, unsigned _s) : e(_e), s(_s)
+FloatingPointSize::FloatingPointSize(uint32_t exp_size, uint32_t sig_size)
+    : d_exp_size(exp_size), d_sig_size(sig_size)
 {
-  PrettyCheckArgument(validExponentSize(_e),_e,"Invalid exponent size : %d",_e);
-  PrettyCheckArgument(validSignificandSize(_s),_s,"Invalid significand size : %d",_s);
+  PrettyCheckArgument(validExponentSize(exp_size),
+                      exp_size,
+                      "Invalid exponent size : %d",
+                      exp_size);
+  PrettyCheckArgument(validSignificandSize(sig_size),
+                      sig_size,
+                      "Invalid significand size : %d",
+                      sig_size);
 }
 
-FloatingPointSize::FloatingPointSize (const FloatingPointSize &old) : e(old.e), s(old.s)
+FloatingPointSize::FloatingPointSize(const FloatingPointSize& old)
+    : d_exp_size(old.d_exp_size), d_sig_size(old.d_sig_size)
 {
-  PrettyCheckArgument(validExponentSize(e),e,"Invalid exponent size : %d",e);
-  PrettyCheckArgument(validSignificandSize(s),s,"Invalid significand size : %d",s);
+  PrettyCheckArgument(validExponentSize(d_exp_size),
+                      d_exp_size,
+                      "Invalid exponent size : %d",
+                      d_exp_size);
+  PrettyCheckArgument(validSignificandSize(d_sig_size),
+                      d_sig_size,
+                      "Invalid significand size : %d",
+                      d_sig_size);
 }
 
 namespace symfpuLiteral {
@@ -88,36 +102,40 @@ namespace symfpuLiteral {
 typedef traits t;
 
 template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::one(const bwt &w)
+wrappedBitVector<isSigned> wrappedBitVector<isSigned>::one(
+    const CVC4BitWidth& w)
 {
   return wrappedBitVector<isSigned>(w, 1);
 }
 
 template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::zero(const bwt &w)
+wrappedBitVector<isSigned> wrappedBitVector<isSigned>::zero(
+    const CVC4BitWidth& w)
 {
   return wrappedBitVector<isSigned>(w, 0);
 }
 
 template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::allOnes(const bwt &w)
+wrappedBitVector<isSigned> wrappedBitVector<isSigned>::allOnes(
+    const CVC4BitWidth& w)
 {
   return ~wrappedBitVector<isSigned>::zero(w);
 }
 
 template <bool isSigned>
-prop wrappedBitVector<isSigned>::isAllOnes() const
+CVC4Prop wrappedBitVector<isSigned>::isAllOnes() const
 {
   return (*this == wrappedBitVector<isSigned>::allOnes(this->getWidth()));
 }
 template <bool isSigned>
-prop wrappedBitVector<isSigned>::isAllZeros() const
+CVC4Prop wrappedBitVector<isSigned>::isAllZeros() const
 {
   return (*this == wrappedBitVector<isSigned>::zero(this->getWidth()));
 }
 
 template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::maxValue(const bwt &w)
+wrappedBitVector<isSigned> wrappedBitVector<isSigned>::maxValue(
+    const CVC4BitWidth& w)
 {
   if (isSigned)
   {
@@ -131,7 +149,8 @@ wrappedBitVector<isSigned> wrappedBitVector<isSigned>::maxValue(const bwt &w)
 }
 
 template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::minValue(const bwt &w)
+wrappedBitVector<isSigned> wrappedBitVector<isSigned>::minValue(
+    const CVC4BitWidth& w)
 {
   if (isSigned)
   {
@@ -292,58 +311,64 @@ wrappedBitVector<isSigned> wrappedBitVector<isSigned>::modularNegate() const
 /*** Comparisons ***/
 
 template <bool isSigned>
-prop wrappedBitVector<isSigned>::operator==(
-    const wrappedBitVector<isSigned> &op) const
+CVC4Prop wrappedBitVector<isSigned>::operator==(
+    const wrappedBitVector<isSigned>& op) const
 {
   return this->BitVector::operator==(op);
 }
 
 template <>
-prop wrappedBitVector<true>::operator<=(const wrappedBitVector<true> &op) const
+CVC4Prop wrappedBitVector<true>::operator<=(
+    const wrappedBitVector<true>& op) const
 {
   return this->signedLessThanEq(op);
 }
 
 template <>
-prop wrappedBitVector<true>::operator>=(const wrappedBitVector<true> &op) const
+CVC4Prop wrappedBitVector<true>::operator>=(
+    const wrappedBitVector<true>& op) const
 {
   return !(this->signedLessThan(op));
 }
 
 template <>
-prop wrappedBitVector<true>::operator<(const wrappedBitVector<true> &op) const
+CVC4Prop wrappedBitVector<true>::operator<(
+    const wrappedBitVector<true>& op) const
 {
   return this->signedLessThan(op);
 }
 
 template <>
-prop wrappedBitVector<true>::operator>(const wrappedBitVector<true> &op) const
+CVC4Prop wrappedBitVector<true>::operator>(
+    const wrappedBitVector<true>& op) const
 {
   return !(this->signedLessThanEq(op));
 }
 
 template <>
-prop wrappedBitVector<false>::operator<=(
-    const wrappedBitVector<false> &op) const
+CVC4Prop wrappedBitVector<false>::operator<=(
+    const wrappedBitVector<false>& op) const
 {
   return this->unsignedLessThanEq(op);
 }
 
 template <>
-prop wrappedBitVector<false>::operator>=(
-    const wrappedBitVector<false> &op) const
+CVC4Prop wrappedBitVector<false>::operator>=(
+    const wrappedBitVector<false>& op) const
 {
   return !(this->unsignedLessThan(op));
 }
 
 template <>
-prop wrappedBitVector<false>::operator<(const wrappedBitVector<false> &op) const
+CVC4Prop wrappedBitVector<false>::operator<(
+    const wrappedBitVector<false>& op) const
 {
   return this->unsignedLessThan(op);
 }
 
 template <>
-prop wrappedBitVector<false>::operator>(const wrappedBitVector<false> &op) const
+CVC4Prop wrappedBitVector<false>::operator>(
+    const wrappedBitVector<false>& op) const
 {
   return !(this->unsignedLessThanEq(op));
 }
@@ -366,7 +391,7 @@ wrappedBitVector<false> wrappedBitVector<isSigned>::toUnsigned(void) const
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::extend(
-    bwt extension) const
+    CVC4BitWidth extension) const
 {
   if (isSigned)
   {
@@ -380,7 +405,7 @@ wrappedBitVector<isSigned> wrappedBitVector<isSigned>::extend(
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::contract(
-    bwt reduction) const
+    CVC4BitWidth reduction) const
 {
   PRECONDITION(this->getWidth() > reduction);
 
@@ -388,9 +413,10 @@ wrappedBitVector<isSigned> wrappedBitVector<isSigned>::contract(
 }
 
 template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::resize(bwt newSize) const
+wrappedBitVector<isSigned> wrappedBitVector<isSigned>::resize(
+    CVC4BitWidth newSize) const
 {
-  bwt width = this->getWidth();
+  CVC4BitWidth width = this->getWidth();
 
   if (newSize > width)
   {
@@ -423,8 +449,8 @@ wrappedBitVector<isSigned> wrappedBitVector<isSigned>::append(
 
 // Inclusive of end points, thus if the same, extracts just one bit
 template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::extract(bwt upper,
-                                                               bwt lower) const
+wrappedBitVector<isSigned> wrappedBitVector<isSigned>::extract(
+    CVC4BitWidth upper, CVC4BitWidth lower) const
 {
   PRECONDITION(upper >= lower);
   return this->BitVector::extract(upper, lower);
@@ -434,25 +460,25 @@ wrappedBitVector<isSigned> wrappedBitVector<isSigned>::extract(bwt upper,
 template class wrappedBitVector<true>;
 template class wrappedBitVector<false>;
 
-rm traits::RNE(void) { return ::CVC4::roundNearestTiesToEven; };
-rm traits::RNA(void) { return ::CVC4::roundNearestTiesToAway; };
-rm traits::RTP(void) { return ::CVC4::roundTowardPositive; };
-rm traits::RTN(void) { return ::CVC4::roundTowardNegative; };
-rm traits::RTZ(void) { return ::CVC4::roundTowardZero; };
+traits::rm traits::RNE(void) { return ::CVC4::roundNearestTiesToEven; };
+traits::rm traits::RNA(void) { return ::CVC4::roundNearestTiesToAway; };
+traits::rm traits::RTP(void) { return ::CVC4::roundTowardPositive; };
+traits::rm traits::RTN(void) { return ::CVC4::roundTowardNegative; };
+traits::rm traits::RTZ(void) { return ::CVC4::roundTowardZero; };
 // This is a literal back-end so props are actually bools
 // so these can be handled in the same way as the internal assertions above
 
-void traits::precondition(const prop &p)
+void traits::precondition(const traits::prop& p)
 {
   Assert(p);
   return;
 }
-void traits::postcondition(const prop &p)
+void traits::postcondition(const traits::prop& p)
 {
   Assert(p);
   return;
 }
-void traits::invariant(const prop &p)
+void traits::invariant(const traits::prop& p)
 {
   Assert(p);
   return;
@@ -466,25 +492,26 @@ void FloatingPointLiteral::unfinished(void) const
 }
 #endif
 
-FloatingPoint::FloatingPoint(unsigned e, unsigned s, const BitVector &bv)
-    :
+FloatingPoint::FloatingPoint(uint32_t d_exp_size,
+                             uint32_t d_sig_size,
+                             const BitVector& bv)
+    : d_fp_size(d_exp_size, d_sig_size),
 #ifdef CVC4_USE_SYMFPU
-      fpl(symfpu::unpack<symfpuLiteral::traits>(symfpuLiteral::fpt(e, s), bv)),
+      d_fpl(symfpu::unpack<symfpuLiteral::traits>(
+          symfpuLiteral::CVC4FPSize(d_exp_size, d_sig_size), bv))
 #else
-      fpl(e, s, 0.0),
+      d_fpl(d_exp_size, d_sig_size, 0.0)
 #endif
-      t(e, s)
 {
 }
 
 FloatingPoint::FloatingPoint(const FloatingPointSize& size, const BitVector& bv)
-    :
+    : d_fp_size(size),
 #ifdef CVC4_USE_SYMFPU
-      fpl(symfpu::unpack<symfpuLiteral::traits>(size, bv)),
+      d_fpl(symfpu::unpack<symfpuLiteral::traits>(size, bv))
 #else
-      fpl(size.exponent(), size.significand(), 0.0),
+      d_fpl(size.exponentWidth(), size.significandWidth(), 0.0)
 #endif
-      t(size)
 {
 }
 
@@ -499,17 +526,17 @@ static FloatingPointLiteral constructorHelperBitVector(
   {
     return FloatingPointLiteral(
         symfpu::convertSBVToFloat<symfpuLiteral::traits>(
-            symfpuLiteral::fpt(size),
-            symfpuLiteral::rm(rm),
-            symfpuLiteral::sbv(bv)));
+            symfpuLiteral::CVC4FPSize(size),
+            symfpuLiteral::CVC4RM(rm),
+            symfpuLiteral::CVC4SignedBitVector(bv)));
   }
   else
   {
     return FloatingPointLiteral(
         symfpu::convertUBVToFloat<symfpuLiteral::traits>(
-            symfpuLiteral::fpt(size),
-            symfpuLiteral::rm(rm),
-            symfpuLiteral::ubv(bv)));
+            symfpuLiteral::CVC4FPSize(size),
+            symfpuLiteral::CVC4RM(rm),
+            symfpuLiteral::CVC4UnsignedBitVector(bv)));
   }
 #else
   return FloatingPointLiteral(2, 2, 0.0);
@@ -521,7 +548,7 @@ FloatingPoint::FloatingPoint(const FloatingPointSize& size,
                              const RoundingMode& rm,
                              const BitVector& bv,
                              bool signedBV)
-    : fpl(constructorHelperBitVector(size, rm, bv, signedBV)), t(size)
+    : d_fp_size(size), d_fpl(constructorHelperBitVector(size, rm, bv, signedBV))
 {
 }
 
@@ -541,7 +568,7 @@ static FloatingPointLiteral constructorHelperRational(
 #endif
     } else {
 #ifdef CVC4_USE_SYMFPU
-      int negative = (r.sgn() < 0) ? 1 : 0;
+      uint32_t negative = (r.sgn() < 0) ? 1 : 0;
 #endif
       r = r.abs();
 
@@ -570,7 +597,7 @@ static FloatingPointLiteral constructorHelperRational(
       Assert(r < working * two);
 
       // Work out the number of bits required to represent the exponent for a normal number
-      unsigned expBits = 2; // No point starting with an invalid amount
+      uint32_t expBits = 2;  // No point starting with an invalid amount
 
       Integer doubleInt(2);
       if (exp.strictlyPositive()) {
@@ -592,12 +619,13 @@ static FloatingPointLiteral constructorHelperRational(
       BitVector exactExp(expBits, exp);
 
       // Compute the significand.
-      unsigned sigBits = size.significandWidth() + 2;  // guard and sticky bits
+      uint32_t sigBits = size.significandWidth() + 2;  // guard and sticky bits
       BitVector sig(sigBits, 0U);
       BitVector one(sigBits, 1U);
       Rational workingSig(0,1);
-      for (unsigned i = 0; i < sigBits - 1; ++i) {
-	Rational mid(workingSig + working);
+      for (uint32_t i = 0; i < sigBits - 1; ++i)
+      {
+        Rational mid(workingSig + working);
 
 	if (mid <= r) {
 	  sig = sig | one;
@@ -623,7 +651,7 @@ static FloatingPointLiteral constructorHelperRational(
       // may have more to allow subnormals to be normalised.
       // Thus...
 #ifdef CVC4_USE_SYMFPU
-      unsigned extension =
+      uint32_t extension =
           FloatingPointLiteral::exponentWidth(exactFormat) - expBits;
 
       FloatingPointLiteral exactFloat(
@@ -643,7 +671,7 @@ static FloatingPointLiteral constructorHelperRational(
 FloatingPoint::FloatingPoint(const FloatingPointSize& size,
                              const RoundingMode& rm,
                              const Rational& r)
-    : fpl(constructorHelperRational(size, rm, r)), t(size)
+    : d_fp_size(size), d_fpl(constructorHelperRational(size, rm, r))
 {
 }
 
@@ -714,265 +742,327 @@ FloatingPoint FloatingPoint::makeMaxNormal(const FloatingPointSize& size,
   return FloatingPoint(size, bvsign.concat(bvexp).concat(bvsig));
 }
 
-  /* Operations implemented using symfpu */
-  FloatingPoint FloatingPoint::absolute (void) const {
+/* Operations implemented using symfpu */
+FloatingPoint FloatingPoint::absolute(void) const
+{
 #ifdef CVC4_USE_SYMFPU
-    return FloatingPoint(t, symfpu::absolute<symfpuLiteral::traits>(t, fpl));
+  return FloatingPoint(
+      d_fp_size, symfpu::absolute<symfpuLiteral::traits>(d_fp_size, d_fpl));
 #else
-    return *this;
+  return *this;
 #endif
-  }
-  
-  FloatingPoint FloatingPoint::negate (void) const {
-#ifdef CVC4_USE_SYMFPU
-    return FloatingPoint(t, symfpu::negate<symfpuLiteral::traits>(t, fpl));
-#else
-    return *this;
-#endif
-  }
-  
-  FloatingPoint FloatingPoint::plus (const RoundingMode &rm, const FloatingPoint &arg) const {
-#ifdef CVC4_USE_SYMFPU
-    Assert(this->t == arg.t);
-    return FloatingPoint(
-        t, symfpu::add<symfpuLiteral::traits>(t, rm, fpl, arg.fpl, true));
-#else
-    return *this;
-#endif
-  }
+}
 
-  FloatingPoint FloatingPoint::sub (const RoundingMode &rm, const FloatingPoint &arg) const {
+FloatingPoint FloatingPoint::negate(void) const
+{
 #ifdef CVC4_USE_SYMFPU
-    Assert(this->t == arg.t);
-    return FloatingPoint(
-        t, symfpu::add<symfpuLiteral::traits>(t, rm, fpl, arg.fpl, false));
+  return FloatingPoint(d_fp_size,
+                       symfpu::negate<symfpuLiteral::traits>(d_fp_size, d_fpl));
 #else
-    return *this;
+  return *this;
 #endif
-  }
+}
 
-  FloatingPoint FloatingPoint::mult (const RoundingMode &rm, const FloatingPoint &arg) const {
+FloatingPoint FloatingPoint::plus(const RoundingMode& rm,
+                                  const FloatingPoint& arg) const
+{
 #ifdef CVC4_USE_SYMFPU
-    Assert(this->t == arg.t);
-    return FloatingPoint(
-        t, symfpu::multiply<symfpuLiteral::traits>(t, rm, fpl, arg.fpl));
+  Assert(this->d_fp_size == arg.d_fp_size);
+  return FloatingPoint(d_fp_size,
+                       symfpu::add<symfpuLiteral::traits>(
+                           d_fp_size, rm, d_fpl, arg.d_fpl, true));
 #else
-    return *this;
+  return *this;
 #endif
-  }
+}
 
-  FloatingPoint FloatingPoint::fma (const RoundingMode &rm, const FloatingPoint &arg1, const FloatingPoint &arg2) const {
+FloatingPoint FloatingPoint::sub(const RoundingMode& rm,
+                                 const FloatingPoint& arg) const
+{
 #ifdef CVC4_USE_SYMFPU
-    Assert(this->t == arg1.t);
-    Assert(this->t == arg2.t);
-    return FloatingPoint(
-        t, symfpu::fma<symfpuLiteral::traits>(t, rm, fpl, arg1.fpl, arg2.fpl));
+  Assert(this->d_fp_size == arg.d_fp_size);
+  return FloatingPoint(d_fp_size,
+                       symfpu::add<symfpuLiteral::traits>(
+                           d_fp_size, rm, d_fpl, arg.d_fpl, false));
 #else
-    return *this;
+  return *this;
 #endif
-  }
+}
 
-  FloatingPoint FloatingPoint::div (const RoundingMode &rm, const FloatingPoint &arg) const {
+FloatingPoint FloatingPoint::mult(const RoundingMode& rm,
+                                  const FloatingPoint& arg) const
+{
 #ifdef CVC4_USE_SYMFPU
-    Assert(this->t == arg.t);
-    return FloatingPoint(
-        t, symfpu::divide<symfpuLiteral::traits>(t, rm, fpl, arg.fpl));
+  Assert(this->d_fp_size == arg.d_fp_size);
+  return FloatingPoint(
+      d_fp_size,
+      symfpu::multiply<symfpuLiteral::traits>(d_fp_size, rm, d_fpl, arg.d_fpl));
 #else
-    return *this;
+  return *this;
 #endif
-  }
+}
 
-  FloatingPoint FloatingPoint::sqrt (const RoundingMode &rm) const {
+FloatingPoint FloatingPoint::fma(const RoundingMode& rm,
+                                 const FloatingPoint& arg1,
+                                 const FloatingPoint& arg2) const
+{
 #ifdef CVC4_USE_SYMFPU
-    return FloatingPoint(t, symfpu::sqrt<symfpuLiteral::traits>(t, rm, fpl));
+  Assert(this->d_fp_size == arg1.d_fp_size);
+  Assert(this->d_fp_size == arg2.d_fp_size);
+  return FloatingPoint(d_fp_size,
+                       symfpu::fma<symfpuLiteral::traits>(
+                           d_fp_size, rm, d_fpl, arg1.d_fpl, arg2.d_fpl));
 #else
-    return *this;
+  return *this;
 #endif
-  }
+}
 
-  FloatingPoint FloatingPoint::rti (const RoundingMode &rm) const {
+FloatingPoint FloatingPoint::div(const RoundingMode& rm,
+                                 const FloatingPoint& arg) const
+{
 #ifdef CVC4_USE_SYMFPU
-    return FloatingPoint(
-        t, symfpu::roundToIntegral<symfpuLiteral::traits>(t, rm, fpl));
+  Assert(this->d_fp_size == arg.d_fp_size);
+  return FloatingPoint(
+      d_fp_size,
+      symfpu::divide<symfpuLiteral::traits>(d_fp_size, rm, d_fpl, arg.d_fpl));
 #else
-    return *this;
+  return *this;
 #endif
-  }
+}
 
-  FloatingPoint FloatingPoint::rem (const FloatingPoint &arg) const {
+FloatingPoint FloatingPoint::sqrt(const RoundingMode& rm) const
+{
 #ifdef CVC4_USE_SYMFPU
-    Assert(this->t == arg.t);
-    return FloatingPoint(
-        t, symfpu::remainder<symfpuLiteral::traits>(t, fpl, arg.fpl));
+  return FloatingPoint(
+      d_fp_size, symfpu::sqrt<symfpuLiteral::traits>(d_fp_size, rm, d_fpl));
 #else
-    return *this;
+  return *this;
 #endif
-  }
+}
 
-  FloatingPoint FloatingPoint::maxTotal (const FloatingPoint &arg, bool zeroCaseLeft) const {
+FloatingPoint FloatingPoint::rti(const RoundingMode& rm) const
+{
 #ifdef CVC4_USE_SYMFPU
-    Assert(this->t == arg.t);
-    return FloatingPoint(
-        t, symfpu::max<symfpuLiteral::traits>(t, fpl, arg.fpl, zeroCaseLeft));
+  return FloatingPoint(
+      d_fp_size,
+      symfpu::roundToIntegral<symfpuLiteral::traits>(d_fp_size, rm, d_fpl));
 #else
-    return *this;
+  return *this;
 #endif
-  }
-  
-  FloatingPoint FloatingPoint::minTotal (const FloatingPoint &arg, bool zeroCaseLeft) const {
+}
+
+FloatingPoint FloatingPoint::rem(const FloatingPoint& arg) const
+{
 #ifdef CVC4_USE_SYMFPU
-    Assert(this->t == arg.t);
-    return FloatingPoint(
-        t, symfpu::min<symfpuLiteral::traits>(t, fpl, arg.fpl, zeroCaseLeft));
+  Assert(this->d_fp_size == arg.d_fp_size);
+  return FloatingPoint(
+      d_fp_size,
+      symfpu::remainder<symfpuLiteral::traits>(d_fp_size, d_fpl, arg.d_fpl));
 #else
-    return *this;
+  return *this;
 #endif
-  }
+}
 
-  FloatingPoint::PartialFloatingPoint FloatingPoint::max (const FloatingPoint &arg) const {
-    FloatingPoint tmp(maxTotal(arg, true));
-    return PartialFloatingPoint(tmp, tmp == maxTotal(arg, false));
-  }
-
-  FloatingPoint::PartialFloatingPoint FloatingPoint::min (const FloatingPoint &arg) const {
-    FloatingPoint tmp(minTotal(arg, true));
-    return PartialFloatingPoint(tmp, tmp == minTotal(arg, false));
-  }
-
-  bool FloatingPoint::operator ==(const FloatingPoint& fp) const {
+FloatingPoint FloatingPoint::maxTotal(const FloatingPoint& arg,
+                                      bool zeroCaseLeft) const
+{
 #ifdef CVC4_USE_SYMFPU
-    return ((t == fp.t)
-            && symfpu::smtlibEqual<symfpuLiteral::traits>(t, fpl, fp.fpl));
+  Assert(this->d_fp_size == arg.d_fp_size);
+  return FloatingPoint(d_fp_size,
+                       symfpu::max<symfpuLiteral::traits>(
+                           d_fp_size, d_fpl, arg.d_fpl, zeroCaseLeft));
 #else
-    return ( (t == fp.t) );
+  return *this;
 #endif
-  }
+}
 
-  bool FloatingPoint::operator <= (const FloatingPoint &arg) const {
+FloatingPoint FloatingPoint::minTotal(const FloatingPoint& arg,
+                                      bool zeroCaseLeft) const
+{
 #ifdef CVC4_USE_SYMFPU
-    Assert(this->t == arg.t);
-    return symfpu::lessThanOrEqual<symfpuLiteral::traits>(t, fpl, arg.fpl);
+  Assert(this->d_fp_size == arg.d_fp_size);
+  return FloatingPoint(d_fp_size,
+                       symfpu::min<symfpuLiteral::traits>(
+                           d_fp_size, d_fpl, arg.d_fpl, zeroCaseLeft));
 #else
-    return false;
+  return *this;
 #endif
-  }
+}
 
-  bool FloatingPoint::operator < (const FloatingPoint &arg) const {
-#ifdef CVC4_USE_SYMFPU
-    Assert(this->t == arg.t);
-    return symfpu::lessThan<symfpuLiteral::traits>(t, fpl, arg.fpl);
-#else
-    return false;
-#endif
-  }
+FloatingPoint::PartialFloatingPoint FloatingPoint::max(
+    const FloatingPoint& arg) const
+{
+  FloatingPoint tmp(maxTotal(arg, true));
+  return PartialFloatingPoint(tmp, tmp == maxTotal(arg, false));
+}
 
-  bool FloatingPoint::isNormal (void) const {
-#ifdef CVC4_USE_SYMFPU
-    return symfpu::isNormal<symfpuLiteral::traits>(t, fpl);
-#else
-    return false;
-#endif
-  }
+FloatingPoint::PartialFloatingPoint FloatingPoint::min(
+    const FloatingPoint& arg) const
+{
+  FloatingPoint tmp(minTotal(arg, true));
+  return PartialFloatingPoint(tmp, tmp == minTotal(arg, false));
+}
 
-  bool FloatingPoint::isSubnormal (void) const {
+bool FloatingPoint::operator==(const FloatingPoint& fp) const
+{
 #ifdef CVC4_USE_SYMFPU
-    return symfpu::isSubnormal<symfpuLiteral::traits>(t, fpl);
+  return ((d_fp_size == fp.d_fp_size)
+          && symfpu::smtlibEqual<symfpuLiteral::traits>(
+              d_fp_size, d_fpl, fp.d_fpl));
 #else
-    return false;
+  return ((d_fp_size == fp.d_fp_size));
 #endif
-  }
+}
 
-  bool FloatingPoint::isZero (void) const {
+bool FloatingPoint::operator<=(const FloatingPoint& arg) const
+{
 #ifdef CVC4_USE_SYMFPU
-    return symfpu::isZero<symfpuLiteral::traits>(t, fpl);
+  Assert(this->d_fp_size == arg.d_fp_size);
+  return symfpu::lessThanOrEqual<symfpuLiteral::traits>(
+      d_fp_size, d_fpl, arg.d_fpl);
 #else
-    return false;
+  return false;
 #endif
-  }
+}
 
-  bool FloatingPoint::isInfinite (void) const {
+bool FloatingPoint::operator<(const FloatingPoint& arg) const
+{
 #ifdef CVC4_USE_SYMFPU
-    return symfpu::isInfinite<symfpuLiteral::traits>(t, fpl);
+  Assert(this->d_fp_size == arg.d_fp_size);
+  return symfpu::lessThan<symfpuLiteral::traits>(d_fp_size, d_fpl, arg.d_fpl);
 #else
-    return false;
+  return false;
 #endif
-  }
+}
 
-  bool FloatingPoint::isNaN (void) const {
+bool FloatingPoint::isNormal(void) const
+{
 #ifdef CVC4_USE_SYMFPU
-    return symfpu::isNaN<symfpuLiteral::traits>(t, fpl);
+  return symfpu::isNormal<symfpuLiteral::traits>(d_fp_size, d_fpl);
 #else
-    return false;
+  return false;
 #endif
-  }
+}
 
-  bool FloatingPoint::isNegative (void) const {
+bool FloatingPoint::isSubnormal(void) const
+{
 #ifdef CVC4_USE_SYMFPU
-    return symfpu::isNegative<symfpuLiteral::traits>(t, fpl);
+  return symfpu::isSubnormal<symfpuLiteral::traits>(d_fp_size, d_fpl);
 #else
-    return false;
+  return false;
 #endif
-  }
+}
 
-  bool FloatingPoint::isPositive (void) const {
+bool FloatingPoint::isZero(void) const
+{
 #ifdef CVC4_USE_SYMFPU
-    return symfpu::isPositive<symfpuLiteral::traits>(t, fpl);
+  return symfpu::isZero<symfpuLiteral::traits>(d_fp_size, d_fpl);
 #else
-    return false;
+  return false;
 #endif
-  }
+}
 
-  FloatingPoint FloatingPoint::convert (const FloatingPointSize &target, const RoundingMode &rm) const {
+bool FloatingPoint::isInfinite(void) const
+{
 #ifdef CVC4_USE_SYMFPU
-    return FloatingPoint(
-        target,
-        symfpu::convertFloatToFloat<symfpuLiteral::traits>(t, target, rm, fpl));
+  return symfpu::isInfinite<symfpuLiteral::traits>(d_fp_size, d_fpl);
 #else
-    return *this;
+  return false;
 #endif
-  }
-  
-  BitVector FloatingPoint::convertToBVTotal (BitVectorSize width, const RoundingMode &rm, bool signedBV, BitVector undefinedCase) const {
+}
+
+bool FloatingPoint::isNaN(void) const
+{
+#ifdef CVC4_USE_SYMFPU
+  return symfpu::isNaN<symfpuLiteral::traits>(d_fp_size, d_fpl);
+#else
+  return false;
+#endif
+}
+
+bool FloatingPoint::isNegative(void) const
+{
+#ifdef CVC4_USE_SYMFPU
+  return symfpu::isNegative<symfpuLiteral::traits>(d_fp_size, d_fpl);
+#else
+  return false;
+#endif
+}
+
+bool FloatingPoint::isPositive(void) const
+{
+#ifdef CVC4_USE_SYMFPU
+  return symfpu::isPositive<symfpuLiteral::traits>(d_fp_size, d_fpl);
+#else
+  return false;
+#endif
+}
+
+FloatingPoint FloatingPoint::convert(const FloatingPointSize& target,
+                                     const RoundingMode& rm) const
+{
+#ifdef CVC4_USE_SYMFPU
+  return FloatingPoint(target,
+                       symfpu::convertFloatToFloat<symfpuLiteral::traits>(
+                           d_fp_size, target, rm, d_fpl));
+#else
+  return *this;
+#endif
+}
+
+BitVector FloatingPoint::convertToBVTotal(BitVectorSize width,
+                                          const RoundingMode& rm,
+                                          bool signedBV,
+                                          BitVector undefinedCase) const
+{
 #ifdef CVC4_USE_SYMFPU
     if (signedBV)
       return symfpu::convertFloatToSBV<symfpuLiteral::traits>(
-          t, rm, fpl, width, undefinedCase);
+          d_fp_size, rm, d_fpl, width, undefinedCase);
     else
       return symfpu::convertFloatToUBV<symfpuLiteral::traits>(
-          t, rm, fpl, width, undefinedCase);
+          d_fp_size, rm, d_fpl, width, undefinedCase);
 #else
-    return undefinedCase;
+  return undefinedCase;
 #endif
+}
+
+Rational FloatingPoint::convertToRationalTotal(Rational undefinedCase) const
+{
+  PartialRational p(convertToRational());
+
+  return p.second ? p.first : undefinedCase;
+}
+
+FloatingPoint::PartialBitVector FloatingPoint::convertToBV(
+    BitVectorSize width, const RoundingMode& rm, bool signedBV) const
+{
+  BitVector tmp(convertToBVTotal(width, rm, signedBV, BitVector(width, 0U)));
+  BitVector confirm(
+      convertToBVTotal(width, rm, signedBV, BitVector(width, 1U)));
+
+  return PartialBitVector(tmp, tmp == confirm);
+}
+
+FloatingPoint::PartialRational FloatingPoint::convertToRational(void) const
+{
+  if (this->isNaN() || this->isInfinite())
+  {
+    return PartialRational(Rational(0U, 1U), false);
   }
-
-  Rational FloatingPoint::convertToRationalTotal (Rational undefinedCase) const {
-    PartialRational p(convertToRational());
-
-    return p.second ? p.first : undefinedCase;
+  if (this->isZero())
+  {
+    return PartialRational(Rational(0U, 1U), true);
   }
-
-  FloatingPoint::PartialBitVector FloatingPoint::convertToBV (BitVectorSize width, const RoundingMode &rm, bool signedBV) const {
-    BitVector tmp(convertToBVTotal (width, rm, signedBV, BitVector(width, 0U)));
-    BitVector confirm(convertToBVTotal (width, rm, signedBV, BitVector(width, 1U)));
-
-    return PartialBitVector(tmp, tmp == confirm);
-  }
-
-  FloatingPoint::PartialRational FloatingPoint::convertToRational (void) const {
-    if (this->isNaN() || this->isInfinite()) {
-      return PartialRational(Rational(0U, 1U), false);
-    }
-    if (this->isZero()) {
-      return PartialRational(Rational(0U, 1U), true);
-      
-    } else {
+  else
+  {
 #ifdef CVC4_USE_SYMFPU
-      Integer sign((this->fpl.getSign()) ? -1 : 1);
-      Integer exp(
-          this->fpl.getExponent().toSignedInteger()
-          - (Integer(t.significand()
-                     - 1)));  // -1 as forcibly normalised into the [1,2) range
-      Integer significand(this->fpl.getSignificand().toInteger());
+    Integer sign((this->d_fpl.getSign()) ? -1 : 1);
+    Integer exp(
+        this->d_fpl.getExponent().toSignedInteger()
+        - (Integer(d_fp_size.significandWidth()
+                   - 1)));  // -1 as forcibly normalised into the [1,2) range
+    Integer significand(this->d_fpl.getSignificand().toInteger());
 #else
       Integer sign(0);
       Integer exp(0);
@@ -1003,35 +1093,37 @@ FloatingPoint FloatingPoint::makeMaxNormal(const FloatingPointSize& size,
 	Rational r(signedSignificand, q);
 	return PartialRational(r, true);
       }
-    }
+  }
 
     Unreachable() << "Convert float literal to real broken.";
-  }
+}
 
-  BitVector FloatingPoint::pack (void) const {
+BitVector FloatingPoint::pack(void) const
+{
 #ifdef CVC4_USE_SYMFPU
-    BitVector bv(symfpu::pack<symfpuLiteral::traits>(this->t, this->fpl));
+  BitVector bv(
+      symfpu::pack<symfpuLiteral::traits>(this->d_fp_size, this->d_fpl));
 #else
-    BitVector bv(4u,0u);
+  BitVector bv(4u, 0u);
 #endif
-    return bv;
-  }
+  return bv;
+}
 
 std::string FloatingPoint::toString(bool printAsIndexed) const
 {
   std::string str;
   // retrive BV value
   BitVector bv(pack());
-  unsigned largestSignificandBit =
-      t.significand() - 2;  // -1 for -inclusive, -1 for hidden
-  unsigned largestExponentBit =
-      (t.exponent() - 1) + (largestSignificandBit + 1);
+  uint32_t largestSignificandBit =
+      d_fp_size.significandWidth() - 2;  // -1 for -inclusive, -1 for hidden
+  uint32_t largestExponentBit =
+      (d_fp_size.exponentWidth() - 1) + (largestSignificandBit + 1);
   BitVector v[3];
   v[0] = bv.extract(largestExponentBit + 1, largestExponentBit + 1);
   v[1] = bv.extract(largestExponentBit, largestSignificandBit + 1);
   v[2] = bv.extract(largestSignificandBit, 0);
   str.append("(fp ");
-  for (unsigned i = 0; i < 3; ++i)
+  for (uint32_t i = 0; i < 3; ++i)
   {
     if (printAsIndexed)
     {
@@ -1055,4 +1147,21 @@ std::string FloatingPoint::toString(bool printAsIndexed) const
   return str;
 }
 
+std::ostream& operator<<(std::ostream& os, const FloatingPoint& fp)
+{
+  // print in binary notation
+  return os << fp.toString();
+}
+
+std::ostream& operator<<(std::ostream& os, const FloatingPointSize& fps)
+{
+  return os << "(_ FloatingPoint " << fps.exponentWidth() << " "
+            << fps.significandWidth() << ")";
+}
+
+std::ostream& operator<<(std::ostream& os, const FloatingPointConvertSort& fpcs)
+{
+  return os << "(_ to_fp " << fpcs.d_fp_size.exponentWidth() << " "
+            << fpcs.d_fp_size.significandWidth() << ")";
+}
 }/* CVC4 namespace */

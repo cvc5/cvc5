@@ -20,587 +20,846 @@
 #ifndef CVC4__FLOATINGPOINT_H
 #define CVC4__FLOATINGPOINT_H
 
+#include <fenv.h>
+
 #include "util/bitvector.h"
 #include "util/rational.h"
 
-#include <fenv.h>
-
+// clang-format off
 #if @CVC4_USE_SYMFPU@
+// clang-format on
 #include <symfpu/core/unpackedFloat.h>
 #endif /* @CVC4_USE_SYMFPU@ */
 
 namespace CVC4 {
-  // Inline these!
-  inline bool CVC4_PUBLIC validExponentSize (unsigned e) { return e >= 2; }
-  inline bool CVC4_PUBLIC validSignificandSize (unsigned s) { return s >= 2; }
+// Inline these!
+inline bool CVC4_PUBLIC validExponentSize(uint32_t e) { return e >= 2; }
+inline bool CVC4_PUBLIC validSignificandSize(uint32_t s) { return s >= 2; }
 
-  /**
-   * Floating point sorts are parameterised by two non-zero constants
-   * giving the width (in bits) of the exponent and significand
-   * (including the hidden bit).
-   */
-  class CVC4_PUBLIC FloatingPointSize {
-    /*
-      Class invariants:
-      * VALIDEXPONENTSIZE(e)
-      * VALIDSIGNIFCANDSIZE(s)
-     */
+/* -------------------------------------------------------------------------- */
 
-  private :
-    unsigned e;
-    unsigned s;
+/**
+ * Floating point sorts are parameterised by two constants > 1 giving the
+ * width (in bits) of the exponent and significand (including the hidden bit).
+ * So, IEEE-754 single precision, a.k.a. float, is described as 8 24.
+ */
+class CVC4_PUBLIC FloatingPointSize
+{
+ public:
+  /** Constructors. */
+  FloatingPointSize(uint32_t exp_size, uint32_t sig_size);
+  FloatingPointSize(const FloatingPointSize& old);
 
-  public :
-    FloatingPointSize (unsigned _e, unsigned _s);
-    FloatingPointSize (const FloatingPointSize &old);
-
-    inline unsigned exponent (void) const {
-      return this->e;
-    }
-
-    inline unsigned significand (void) const {
-      return this->s;
-    }
-
-    bool operator ==(const FloatingPointSize& fps) const {
-      return (e == fps.e) && (s == fps.s);
-    }
-
-    // Implement the interface that symfpu uses for floating-point formats.
-    inline unsigned exponentWidth(void) const { return this->exponent(); }
-    inline unsigned significandWidth(void) const { return this->significand(); }
-    inline unsigned packedWidth(void) const
-    {
-      return this->exponentWidth() + this->significandWidth();
-    }
-    inline unsigned packedExponentWidth(void) const
-    {
-      return this->exponentWidth();
-    }
-    inline unsigned packedSignificandWidth(void) const
-    {
-      return this->significandWidth() - 1;
-    }
-
-  }; /* class FloatingPointSize */
-
-  struct CVC4_PUBLIC FloatingPointSizeHashFunction {
-    static inline size_t ROLL(size_t X, size_t N) {
-      return (((X) << (N)) | ((X) >> (8*sizeof((X)) - (N)) ));
-    }
-
-    inline size_t operator() (const FloatingPointSize& t) const {
-      return size_t(ROLL(t.exponent(), 4*sizeof(unsigned)) |
-		    t.significand());
-    }
-  }; /* struct FloatingPointSizeHashFunction */
-
-
-  /**
-   * A concrete instance of the rounding mode sort
-   */
-  enum CVC4_PUBLIC RoundingMode {
-    roundNearestTiesToEven = FE_TONEAREST,
-    roundTowardPositive = FE_UPWARD,
-    roundTowardNegative = FE_DOWNWARD,
-    roundTowardZero = FE_TOWARDZERO,
-    // Initializes this to the diagonalization of the 4 other values.
-    roundNearestTiesToAway = (((~FE_TONEAREST) & 0x1) | ((~FE_UPWARD) & 0x2) |
-                              ((~FE_DOWNWARD) & 0x4) | ((~FE_TOWARDZERO) & 0x8))
-  }; /* enum RoundingMode */
-
-  struct CVC4_PUBLIC RoundingModeHashFunction {
-    inline size_t operator() (const RoundingMode& rm) const {
-      return size_t(rm);
-    }
-  }; /* struct RoundingModeHashFunction */
-
-  /**
-   * This is a symfpu literal "back-end".  It allows the library to be used as
-   * an arbitrary precision floating-point implementation.  This is effectively
-   * the glue between symfpu's notion of "signed bit-vector" and CVC4's
-   * BitVector.
-   */
-  namespace symfpuLiteral {
-  // Forward declaration of wrapper so that traits can be defined early and so
-  // used in the implementation of wrappedBitVector.
-  template <bool T>
-  class wrappedBitVector;
-
-  // This is the template parameter for symfpu's templates.
-  class traits
+  /** Operator overload for equality comparison. */
+  bool operator==(const FloatingPointSize& fps) const
   {
-   public:
-    // The six key types that symfpu uses.
-    using bwt = uint32_t;
-    using prop = bool;
-    using rm = ::CVC4::RoundingMode;
-    using fpt = ::CVC4::FloatingPointSize;
-    using sbv = wrappedBitVector<true>;
-    using ubv = wrappedBitVector<false>;
-
-    // Give concrete instances of each rounding mode, mainly for comparisons.
-    static rm RNE(void);
-    static rm RNA(void);
-    static rm RTP(void);
-    static rm RTN(void);
-    static rm RTZ(void);
-
-    // The sympfu properties.
-    static void precondition(const prop &p);
-    static void postcondition(const prop &p);
-    static void invariant(const prop &p);
-  };
-
-  // Use the same type names as symfpu.
-  using bwt = traits::bwt;
-  using prop = traits::prop;
-  using rm = traits::rm;
-  using fpt = traits::fpt;
-  using ubv = traits::ubv;
-  using sbv = traits::sbv;
-
-  // Type function for mapping between types
-  template <bool T>
-  struct signedToLiteralType;
-
-  template <>
-  struct signedToLiteralType<true>
-  {
-    using literalType = int32_t;
-  };
-  template <>
-  struct signedToLiteralType<false>
-  {
-    using literalType = uint32_t;
-  };
-
-  // This is an additional interface for CVC4::BitVector.
-  // The template parameter distinguishes signed and unsigned bit-vectors, a
-  // distinction symfpu uses.
-  template <bool isSigned>
-  class wrappedBitVector : public BitVector
-  {
-   protected:
-    using literalType = typename signedToLiteralType<isSigned>::literalType;
-
-    friend wrappedBitVector<!isSigned>;  // To allow conversion between the
-                                         // types
-#if @CVC4_USE_SYMFPU@
-    friend ::symfpu::ite<prop, wrappedBitVector<isSigned> >;  // For ITE
-#endif /* @CVC4_USE_SYMFPU@ */
-
-   public:
-    wrappedBitVector(const bwt w, const unsigned v) : BitVector(w, v) {}
-    wrappedBitVector(const prop &p) : BitVector(1, p ? 1U : 0U) {}
-    wrappedBitVector(const wrappedBitVector<isSigned> &old) : BitVector(old) {}
-    wrappedBitVector(const BitVector &old) : BitVector(old) {}
-    bwt getWidth(void) const { return getSize(); }
-    /*** Constant creation and test ***/
-
-    static wrappedBitVector<isSigned> one(const bwt &w);
-    static wrappedBitVector<isSigned> zero(const bwt &w);
-    static wrappedBitVector<isSigned> allOnes(const bwt &w);
-
-    prop isAllOnes() const;
-    prop isAllZeros() const;
-
-    static wrappedBitVector<isSigned> maxValue(const bwt &w);
-    static wrappedBitVector<isSigned> minValue(const bwt &w);
-
-    /*** Operators ***/
-    wrappedBitVector<isSigned> operator<<(
-        const wrappedBitVector<isSigned> &op) const;
-    wrappedBitVector<isSigned> operator>>(
-        const wrappedBitVector<isSigned> &op) const;
-
-    /* Inherited but ...
-     * *sigh* if we use the inherited version then it will return a
-     * CVC4::BitVector which can be converted back to a
-     * wrappedBitVector<isSigned> but isn't done automatically when working
-     * out types for templates instantiation.  ITE is a particular
-     * problem as expressions and constants no longer derive the
-     * same type.  There aren't any good solutions in C++, we could
-     * use CRTP but Liana wouldn't appreciate that, so the following
-     * pointless wrapping functions are needed.
-     */
-    wrappedBitVector<isSigned> operator|(
-        const wrappedBitVector<isSigned> &op) const;
-    wrappedBitVector<isSigned> operator&(
-        const wrappedBitVector<isSigned> &op) const;
-    wrappedBitVector<isSigned> operator+(
-        const wrappedBitVector<isSigned> &op) const;
-    wrappedBitVector<isSigned> operator-(
-        const wrappedBitVector<isSigned> &op) const;
-    wrappedBitVector<isSigned> operator*(
-        const wrappedBitVector<isSigned> &op) const;
-    wrappedBitVector<isSigned> operator/(
-        const wrappedBitVector<isSigned> &op) const;
-    wrappedBitVector<isSigned> operator%(
-        const wrappedBitVector<isSigned> &op) const;
-    wrappedBitVector<isSigned> operator-(void) const;
-    wrappedBitVector<isSigned> operator~(void)const;
-
-    wrappedBitVector<isSigned> increment() const;
-    wrappedBitVector<isSigned> decrement() const;
-    wrappedBitVector<isSigned> signExtendRightShift(
-        const wrappedBitVector<isSigned> &op) const;
-
-    /*** Modular opertaions ***/
-    // No overflow checking so these are the same as other operations
-    wrappedBitVector<isSigned> modularLeftShift(
-        const wrappedBitVector<isSigned> &op) const;
-    wrappedBitVector<isSigned> modularRightShift(
-        const wrappedBitVector<isSigned> &op) const;
-    wrappedBitVector<isSigned> modularIncrement() const;
-    wrappedBitVector<isSigned> modularDecrement() const;
-    wrappedBitVector<isSigned> modularAdd(
-        const wrappedBitVector<isSigned> &op) const;
-    wrappedBitVector<isSigned> modularNegate() const;
-
-    /*** Comparisons ***/
-    // Inherited ... ish ...
-    prop operator==(const wrappedBitVector<isSigned> &op) const;
-    prop operator<=(const wrappedBitVector<isSigned> &op) const;
-    prop operator>=(const wrappedBitVector<isSigned> &op) const;
-    prop operator<(const wrappedBitVector<isSigned> &op) const;
-    prop operator>(const wrappedBitVector<isSigned> &op) const;
-
-    /*** Type conversion ***/
-    wrappedBitVector<true> toSigned(void) const;
-    wrappedBitVector<false> toUnsigned(void) const;
-
-    /*** Bit hacks ***/
-    wrappedBitVector<isSigned> extend(bwt extension) const;
-    wrappedBitVector<isSigned> contract(bwt reduction) const;
-    wrappedBitVector<isSigned> resize(bwt newSize) const;
-    wrappedBitVector<isSigned> matchWidth(
-        const wrappedBitVector<isSigned> &op) const;
-    wrappedBitVector<isSigned> append(
-        const wrappedBitVector<isSigned> &op) const;
-
-    // Inclusive of end points, thus if the same, extracts just one bit
-    wrappedBitVector<isSigned> extract(bwt upper, bwt lower) const;
-  };
+    return (d_exp_size == fps.d_exp_size) && (d_sig_size == fps.d_sig_size);
   }
 
+  /** Implement the interface that symfpu uses for floating-point formats. */
+
+  /** Get the exponent bit-width of this floating-point format. */
+  inline uint32_t exponentWidth(void) const { return this->d_exp_size; }
+  /** Get the significand bit-width of this floating-point format. */
+  inline uint32_t significandWidth(void) const { return this->d_sig_size; }
   /**
-   * A concrete floating point number
+   * Get the bit-width of the packed representation of this floating-point
+   * format (= exponent + significand bit-width, convenience wrapper).
    */
+  inline uint32_t packedWidth(void) const
+  {
+    return this->exponentWidth() + this->significandWidth();
+  }
+  /**
+   * Get the exponent bit-width of the packed representation of this
+   * floating-point format (= exponent bit-width).
+   */
+  inline uint32_t packedExponentWidth(void) const
+  {
+    return this->exponentWidth();
+  }
+  /**
+   * Get the significand bit-width of the packed representation of this
+   * floating-point format (= significand bit-width - 1).
+   */
+  inline uint32_t packedSignificandWidth(void) const
+  {
+    return this->significandWidth() - 1;
+  }
+
+ private:
+  /** Exponent bit-width. */
+  uint32_t d_exp_size;
+  /** Significand bit-width. */
+  uint32_t d_sig_size;
+
+}; /* class FloatingPointSize */
+
+/**
+ * Hash function for floating point formats.
+ */
+struct CVC4_PUBLIC FloatingPointSizeHashFunction
+{
+  static inline size_t ROLL(size_t X, size_t N)
+  {
+    return (((X) << (N)) | ((X) >> (8 * sizeof((X)) - (N))));
+  }
+
+  inline size_t operator()(const FloatingPointSize& t) const
+  {
+    return size_t(ROLL(t.exponentWidth(), 4 * sizeof(uint32_t))
+                  | t.significandWidth());
+  }
+}; /* struct FloatingPointSizeHashFunction */
+
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A concrete instance of the rounding mode sort
+ */
+enum CVC4_PUBLIC RoundingMode
+{
+  roundNearestTiesToEven = FE_TONEAREST,
+  roundTowardPositive = FE_UPWARD,
+  roundTowardNegative = FE_DOWNWARD,
+  roundTowardZero = FE_TOWARDZERO,
+  // Initializes this to the diagonalization of the 4 other values.
+  roundNearestTiesToAway = (((~FE_TONEAREST) & 0x1) | ((~FE_UPWARD) & 0x2)
+                            | ((~FE_DOWNWARD) & 0x4) | ((~FE_TOWARDZERO) & 0x8))
+}; /* enum RoundingMode */
+
+/**
+ * Hash function for rounding mode values.
+ */
+struct CVC4_PUBLIC RoundingModeHashFunction
+{
+  inline size_t operator()(const RoundingMode& rm) const { return size_t(rm); }
+}; /* struct RoundingModeHashFunction */
+
+/* -------------------------------------------------------------------------- */
+
+/**
+ * This is a symfpu literal "back-end".  It allows the library to be used as
+ * an arbitrary precision floating-point implementation.  This is effectively
+ * the glue between symfpu's notion of "signed bit-vector" and CVC4's
+ * BitVector.
+ */
+namespace symfpuLiteral {
+
+/**
+ * Forward declaration of wrapper so that traits can be defined early and so
+ * used in the implementation of wrappedBitVector.
+ */
+template <bool T>
+class wrappedBitVector;
+
+using CVC4BitWidth = uint32_t;
+using CVC4Prop = bool;
+using CVC4RM = ::CVC4::RoundingMode;
+using CVC4FPSize = ::CVC4::FloatingPointSize;
+using CVC4UnsignedBitVector = wrappedBitVector<false>;
+using CVC4SignedBitVector = wrappedBitVector<true>;
+
+/**
+ * This is the template parameter for symfpu's templates.
+ */
+class traits
+{
+ public:
+  /** The six key types that symfpu uses. */
+  using bwt = CVC4BitWidth;           // bit-width type
+  using prop = CVC4Prop;              // boolean type
+  using rm = CVC4RM;                  // rounding-mode type
+  using fpt = CVC4FPSize;             // floating-point format type
+  using ubv = CVC4UnsignedBitVector;  // unsigned bit-vector type
+  using sbv = CVC4SignedBitVector;    // signed bit-vector type
+
+  /** Give concrete instances of each rounding mode, mainly for comparisons. */
+  static rm RNE(void);
+  static rm RNA(void);
+  static rm RTP(void);
+  static rm RTN(void);
+  static rm RTZ(void);
+
+  /** The sympfu properties. */
+  static void precondition(const prop& p);
+  static void postcondition(const prop& p);
+  static void invariant(const prop& p);
+};
+
+/**
+ * Type function for mapping between types.
+ */
+template <bool T>
+struct signedToLiteralType;
+
+template <>
+struct signedToLiteralType<true>
+{
+  using literalType = int32_t;
+};
+template <>
+struct signedToLiteralType<false>
+{
+  using literalType = uint32_t;
+};
+
+/**
+ * This extends the interface for CVC4::BitVector for compatibility with symFPU.
+ * The template parameter distinguishes signed and unsigned bit-vectors, a
+ * distinction symfpu uses.
+ */
+template <bool isSigned>
+class wrappedBitVector : public BitVector
+{
+ protected:
+  using literalType = typename signedToLiteralType<isSigned>::literalType;
+  friend wrappedBitVector<!isSigned>;  // To allow conversion between types
+
+// clang-format off
 #if @CVC4_USE_SYMFPU@
-  using FloatingPointLiteral = ::symfpu::unpackedFloat<symfpuLiteral::traits>;
+  // clang-format on
+  friend ::symfpu::ite<CVC4Prop, wrappedBitVector<isSigned> >;  // For ITE
+#endif /* @CVC4_USE_SYMFPU@ */
+
+ public:
+  /** Constructors. */
+  wrappedBitVector(const CVC4BitWidth w, const uint32_t v) : BitVector(w, v) {}
+  wrappedBitVector(const CVC4Prop& p) : BitVector(1, p ? 1U : 0U) {}
+  wrappedBitVector(const wrappedBitVector<isSigned>& old) : BitVector(old) {}
+  wrappedBitVector(const BitVector& old) : BitVector(old) {}
+
+  /** Get the bit-width of this wrapped bit-vector. */
+  CVC4BitWidth getWidth(void) const { return getSize(); }
+
+  /** Create a zero value of given bit-width 'w'. */
+  static wrappedBitVector<isSigned> one(const CVC4BitWidth& w);
+  /** Create a one value of given bit-width 'w'. */
+  static wrappedBitVector<isSigned> zero(const CVC4BitWidth& w);
+  /** Create a ones value (all bits 1) of given bit-width 'w'. */
+  static wrappedBitVector<isSigned> allOnes(const CVC4BitWidth& w);
+  /** Create a maximum signed/unsigned value of given bit-width 'w'. */
+  static wrappedBitVector<isSigned> maxValue(const CVC4BitWidth& w);
+  /** Create a minimum signed/unsigned value of given bit-width 'w'. */
+  static wrappedBitVector<isSigned> minValue(const CVC4BitWidth& w);
+
+  /** Return true if this a bit-vector representing a ones value. */
+  CVC4Prop isAllOnes() const;
+  /** Return true if this a bit-vector representing a zero value. */
+  CVC4Prop isAllZeros() const;
+
+  /** Left shift. */
+  wrappedBitVector<isSigned> operator<<(
+      const wrappedBitVector<isSigned>& op) const;
+  /** Logical (unsigned) and arithmetic (signed) right shift. */
+  wrappedBitVector<isSigned> operator>>(
+      const wrappedBitVector<isSigned>& op) const;
+
+  /**
+   * Inherited but ...
+   * *sigh* if we use the inherited version then it will return a
+   * CVC4::BitVector which can be converted back to a
+   * wrappedBitVector<isSigned> but isn't done automatically when working
+   * out types for templates instantiation.  ITE is a particular
+   * problem as expressions and constants no longer derive the
+   * same type.  There aren't any good solutions in C++, we could
+   * use CRTP but Liana wouldn't appreciate that, so the following
+   * pointless wrapping functions are needed.
+   */
+
+  /** Bit-wise or. */
+  wrappedBitVector<isSigned> operator|(
+      const wrappedBitVector<isSigned>& op) const;
+  /** Bit-wise and. */
+  wrappedBitVector<isSigned> operator&(
+      const wrappedBitVector<isSigned>& op) const;
+  /** Bit-vector addition. */
+  wrappedBitVector<isSigned> operator+(
+      const wrappedBitVector<isSigned>& op) const;
+  /** Bit-vector subtraction. */
+  wrappedBitVector<isSigned> operator-(
+      const wrappedBitVector<isSigned>& op) const;
+  /** Bit-vector multiplication. */
+  wrappedBitVector<isSigned> operator*(
+      const wrappedBitVector<isSigned>& op) const;
+  /** Bit-vector signed/unsigned division. */
+  wrappedBitVector<isSigned> operator/(
+      const wrappedBitVector<isSigned>& op) const;
+  /** Bit-vector signed/unsigned remainder. */
+  wrappedBitVector<isSigned> operator%(
+      const wrappedBitVector<isSigned>& op) const;
+  /** Bit-vector negation. */
+  wrappedBitVector<isSigned> operator-(void) const;
+  /** Bit-wise not. */
+  wrappedBitVector<isSigned> operator~(void) const;
+
+  /** Bit-vector increment. */
+  wrappedBitVector<isSigned> increment() const;
+  /** Bit-vector decrement. */
+  wrappedBitVector<isSigned> decrement() const;
+  /**
+   * Bit-vector logical/arithmetic right shift where 'op' extended to the
+   * bit-width of this wrapped bit-vector.
+   */
+  wrappedBitVector<isSigned> signExtendRightShift(
+      const wrappedBitVector<isSigned>& op) const;
+
+  /**
+   * Modular operations.
+   * Note: No overflow checking so these are the same as other operations.
+   */
+  wrappedBitVector<isSigned> modularLeftShift(
+      const wrappedBitVector<isSigned>& op) const;
+  wrappedBitVector<isSigned> modularRightShift(
+      const wrappedBitVector<isSigned>& op) const;
+  wrappedBitVector<isSigned> modularIncrement() const;
+  wrappedBitVector<isSigned> modularDecrement() const;
+  wrappedBitVector<isSigned> modularAdd(
+      const wrappedBitVector<isSigned>& op) const;
+  wrappedBitVector<isSigned> modularNegate() const;
+
+  /** Bit-vector equality. */
+  CVC4Prop operator==(const wrappedBitVector<isSigned>& op) const;
+  /** Bit-vector signed/unsigned less or equal than. */
+  CVC4Prop operator<=(const wrappedBitVector<isSigned>& op) const;
+  /** Bit-vector sign/unsigned greater or equal than. */
+  CVC4Prop operator>=(const wrappedBitVector<isSigned>& op) const;
+  /** Bit-vector signed/unsigned less than. */
+  CVC4Prop operator<(const wrappedBitVector<isSigned>& op) const;
+  /** Bit-vector sign/unsigned greater or equal than. */
+  CVC4Prop operator>(const wrappedBitVector<isSigned>& op) const;
+
+  /** Convert this bit-vector to a signed bit-vector. */
+  wrappedBitVector<true> toSigned(void) const;
+  /** Convert this bit-vector to an unsigned bit-vector. */
+  wrappedBitVector<false> toUnsigned(void) const;
+
+  /** Bit-vector signed/unsigned (zero) extension. */
+  wrappedBitVector<isSigned> extend(CVC4BitWidth extension) const;
+  /**
+   * Create a "contracted" bit-vector by cutting off the 'reduction' number of
+   * most significant bits, i.e., by extracting the (bit-width - reduction)
+   * least significant bits.
+   */
+  wrappedBitVector<isSigned> contract(CVC4BitWidth reduction) const;
+  /**
+   * Create a "resized" bit-vector of given size bei either extending (if new
+   * size is larger) or contracting (if it is smaller) this wrapped bit-vector.
+   */
+  wrappedBitVector<isSigned> resize(CVC4BitWidth newSize) const;
+  /**
+   * Create an extension of this bit-vector that matches the bit-width of the
+   * given bit-vector.
+   * Note: The size of the given bit-vector may not be larger than the size of
+   * this bit-vector.
+   */
+  wrappedBitVector<isSigned> matchWidth(
+      const wrappedBitVector<isSigned>& op) const;
+  /** Bit-vector concatenation. */
+  wrappedBitVector<isSigned> append(const wrappedBitVector<isSigned>& op) const;
+
+  /** Inclusive of end points, thus if the same, extracts just one bit. */
+  wrappedBitVector<isSigned> extract(CVC4BitWidth upper,
+                                     CVC4BitWidth lower) const;
+};
+}  // namespace symfpuLiteral
+
+/**
+ * A concrete floating point value.
+ */
+// clang-format off
+#if @CVC4_USE_SYMFPU@
+// clang-format on
+using FloatingPointLiteral = ::symfpu::unpackedFloat<symfpuLiteral::traits>;
 #else
-  class CVC4_PUBLIC FloatingPointLiteral {
-  public :
-    // This intentional left unfinished as the choice of literal
-    // representation is solver specific.
-    void unfinished (void) const;
+class CVC4_PUBLIC FloatingPointLiteral
+{
+ public:
+  // This intentional left unfinished as the choice of literal
+  // representation is solver specific.
+  void unfinished(void) const;
 
-    FloatingPointLiteral(unsigned, unsigned, double) { unfinished(); }
-    FloatingPointLiteral(unsigned, unsigned, const std::string &) { unfinished(); }
-    FloatingPointLiteral(const FloatingPointLiteral &) { unfinished(); }
-    bool operator == (const FloatingPointLiteral &op) const {
-      unfinished();
-      return false;
-    }
+  FloatingPointLiteral(uint32_t, uint32_t, double) { unfinished(); }
+  FloatingPointLiteral(uint32_t, uint32_t, const std::string&) { unfinished(); }
+  FloatingPointLiteral(const FloatingPointLiteral&) { unfinished(); }
+  bool operator==(const FloatingPointLiteral& op) const
+  {
+    unfinished();
+    return false;
+  }
 
-    size_t hash (void) const {
-      unfinished();
-      return 23;
-    }
-  };
+  size_t hash(void) const
+  {
+    unfinished();
+    return 23;
+  }
+};
 #endif /* @CVC4_USE_SYMFPU@ */
 
-  class CVC4_PUBLIC FloatingPoint {
-  protected :
-    FloatingPointLiteral fpl;
-
-  public :
-    FloatingPointSize t;
-
-    /** Constructors. */
-    FloatingPoint(unsigned e, unsigned s, const BitVector& bv);
-    FloatingPoint(const FloatingPointSize& size, const BitVector& bv);
-
-    FloatingPoint(const FloatingPointSize& oldt,
-                  const FloatingPointLiteral& oldfpl)
-        : fpl(oldfpl), t(oldt)
-    {
-    }
-
-    FloatingPoint(const FloatingPoint& fp) : fpl(fp.fpl), t(fp.t) {}
-    FloatingPoint(const FloatingPointSize& size,
-                  const RoundingMode& rm,
-                  const BitVector& bv,
-                  bool signedBV);
-    FloatingPoint(const FloatingPointSize& size,
-                  const RoundingMode& rm,
-                  const Rational& r);
-
-    /**
-     * Create a FP NaN value of given size.
-     * t: The FP size (format).
-     */
-    static FloatingPoint makeNaN (const FloatingPointSize &size);
-    /**
-     * Create a FP infinity value of given size.
-     * t:    The FP size (format).
-     * sign: True for +oo, false otherwise.
-     */
-    static FloatingPoint makeInf(const FloatingPointSize& size, bool sign);
-    /**
-     * Create a FP zero value of given size.
-     * t:    The FP size (format).
-     * sign: True for +zero, false otherwise.
-     */
-    static FloatingPoint makeZero(const FloatingPointSize& size, bool sign);
-    /**
-     * Create the smallest subnormal FP value of given size.
-     * t:    The FP size (format).
-     * sign: True for positive sign, false otherwise.
-     */
-    static FloatingPoint makeMinSubnormal(const FloatingPointSize& size,
-                                          bool sign);
-    /**
-     * Create the largest subnormal FP value of given size.
-     * t:    The FP size (format).
-     * sign: True for positive sign, false otherwise.
-     */
-    static FloatingPoint makeMaxSubnormal(const FloatingPointSize& size,
-                                          bool sign);
-    /**
-     * Create the smallest normal FP value of given size.
-     * t:    The FP size (format).
-     * sign: True for positive sign, false otherwise.
-     */
-    static FloatingPoint makeMinNormal(const FloatingPointSize& size,
-                                       bool sign);
-    /**
-     * Create the largest normal FP value of given size.
-     * t:    The FP size (format).
-     * sign: True for positive sign, false otherwise.
-     */
-    static FloatingPoint makeMaxNormal(const FloatingPointSize& size,
-                                          bool sign);
-
-    const FloatingPointLiteral& getLiteral(void) const { return this->fpl; }
-
-    /* Return string representation.
-     *
-     * If printAsIndexed is true then it prints
-     * the bit-vector components of the FP value as indexed symbols, otherwise
-     * in binary notation. */
-    std::string toString(bool printAsIndexed = false) const;
-
-    // Gives the corresponding IEEE-754 transfer format
-    BitVector pack (void) const;
-
-
-    FloatingPoint absolute (void) const;
-    FloatingPoint negate (void) const;
-    FloatingPoint plus (const RoundingMode &rm, const FloatingPoint &arg) const;
-    FloatingPoint sub (const RoundingMode &rm, const FloatingPoint &arg) const;
-    FloatingPoint mult (const RoundingMode &rm, const FloatingPoint &arg) const;
-    FloatingPoint div (const RoundingMode &rm, const FloatingPoint &arg) const;
-    FloatingPoint fma (const RoundingMode &rm, const FloatingPoint &arg1, const FloatingPoint &arg2) const;
-    FloatingPoint sqrt (const RoundingMode &rm) const;
-    FloatingPoint rti (const RoundingMode &rm) const;
-    FloatingPoint rem (const FloatingPoint &arg) const;
-
-    // zeroCase is whether the left or right is returned in the case of min/max(-0,+0) or (+0,-0)
-    FloatingPoint maxTotal (const FloatingPoint &arg, bool zeroCaseLeft) const;
-    FloatingPoint minTotal (const FloatingPoint &arg, bool zeroCaseLeft) const;
-
-    // These detect when the answer is defined
-    typedef std::pair<FloatingPoint, bool> PartialFloatingPoint;
-
-    PartialFloatingPoint max (const FloatingPoint &arg) const;
-    PartialFloatingPoint min (const FloatingPoint &arg) const;
-
-
-    bool operator ==(const FloatingPoint& fp) const;
-    bool operator <= (const FloatingPoint &arg) const;
-    bool operator < (const FloatingPoint &arg) const;
-
-    bool isNormal (void) const;
-    bool isSubnormal (void) const;
-    bool isZero (void) const;
-    bool isInfinite (void) const;
-    bool isNaN (void) const;
-    bool isNegative (void) const;
-    bool isPositive (void) const;
-
-    FloatingPoint convert (const FloatingPointSize &target, const RoundingMode &rm) const;
-
-    // These require a value to return in the undefined case
-    BitVector convertToBVTotal (BitVectorSize width, const RoundingMode &rm,
-				bool signedBV, BitVector undefinedCase) const;
-    Rational convertToRationalTotal (Rational undefinedCase) const;
-
-    // These detect when the answer is defined
-    typedef std::pair<BitVector, bool> PartialBitVector;
-    typedef std::pair<Rational, bool> PartialRational;
-
-    PartialBitVector convertToBV (BitVectorSize width, const RoundingMode &rm,
-				bool signedBV) const;
-    PartialRational convertToRational (void) const;
-
-  }; /* class FloatingPoint */
-
-
-  struct CVC4_PUBLIC FloatingPointHashFunction {
-    size_t operator() (const FloatingPoint& fp) const {
-      FloatingPointSizeHashFunction fpshf;
-      BitVectorHashFunction bvhf;
-
-      return fpshf(fp.t) ^ bvhf(fp.pack());
-    }
-  }; /* struct FloatingPointHashFunction */
-
+class CVC4_PUBLIC FloatingPoint
+{
+ public:
   /**
-   * The parameter type for the conversions to floating point.
+   * Wrappers to represent results of non-total functions (e.g., min/max).
+   * The Boolean flag is true if the result is defined, and false otherwise.
    */
-  class CVC4_PUBLIC FloatingPointConvertSort {
-  public :
-    FloatingPointSize t;
+  using PartialFloatingPoint = std::pair<FloatingPoint, bool>;
+  using PartialBitVector = std::pair<BitVector, bool>;
+  using PartialRational = std::pair<Rational, bool>;
 
-    FloatingPointConvertSort (unsigned _e, unsigned _s)
-      : t(_e,_s) {}
-    FloatingPointConvertSort (const FloatingPointSize &fps)
-      : t(fps) {}
+  /** Constructors. */
+  FloatingPoint(uint32_t e, uint32_t s, const BitVector& bv);
+  FloatingPoint(const FloatingPointSize& size, const BitVector& bv);
 
-    bool operator ==(const FloatingPointConvertSort& fpcs) const {
-      return t == fpcs.t;
-    }
-
-  };
-
-  /**
-   * As different conversions are different parameterised kinds, there
-   * is a need for different (C++) types for each one.
-   */
-
-  class CVC4_PUBLIC FloatingPointToFPIEEEBitVector : public FloatingPointConvertSort {
-  public :
-    FloatingPointToFPIEEEBitVector (unsigned _e, unsigned _s) : FloatingPointConvertSort(_e,_s) {}
-    FloatingPointToFPIEEEBitVector (const FloatingPointConvertSort &old) : FloatingPointConvertSort(old) {}
-  };
-
-  class CVC4_PUBLIC FloatingPointToFPFloatingPoint : public FloatingPointConvertSort {
-  public :
-    FloatingPointToFPFloatingPoint (unsigned _e, unsigned _s) : FloatingPointConvertSort(_e,_s) {}
-    FloatingPointToFPFloatingPoint (const FloatingPointConvertSort &old) : FloatingPointConvertSort(old) {}
-  };
-
-  class CVC4_PUBLIC FloatingPointToFPReal : public FloatingPointConvertSort {
-  public :
-    FloatingPointToFPReal (unsigned _e, unsigned _s) : FloatingPointConvertSort(_e,_s) {}
-    FloatingPointToFPReal (const FloatingPointConvertSort &old) : FloatingPointConvertSort(old) {}
-  };
-
-  class CVC4_PUBLIC FloatingPointToFPSignedBitVector : public FloatingPointConvertSort {
-  public :
-    FloatingPointToFPSignedBitVector (unsigned _e, unsigned _s) : FloatingPointConvertSort(_e,_s) {}
-    FloatingPointToFPSignedBitVector (const FloatingPointConvertSort &old) : FloatingPointConvertSort(old) {}
-  };
-
-  class CVC4_PUBLIC FloatingPointToFPUnsignedBitVector : public FloatingPointConvertSort {
-  public :
-    FloatingPointToFPUnsignedBitVector (unsigned _e, unsigned _s) : FloatingPointConvertSort(_e,_s) {}
-    FloatingPointToFPUnsignedBitVector (const FloatingPointConvertSort &old) : FloatingPointConvertSort(old) {}
-  };
-
-  class CVC4_PUBLIC FloatingPointToFPGeneric : public FloatingPointConvertSort {
-  public :
-    FloatingPointToFPGeneric (unsigned _e, unsigned _s) : FloatingPointConvertSort(_e,_s) {}
-    FloatingPointToFPGeneric (const FloatingPointConvertSort &old) : FloatingPointConvertSort(old) {}
-  };
-
-
-
-  template <unsigned key>
-  struct CVC4_PUBLIC FloatingPointConvertSortHashFunction {
-    inline size_t operator() (const FloatingPointConvertSort& fpcs) const {
-      FloatingPointSizeHashFunction f;
-      return f(fpcs.t) ^ (0x00005300 | (key << 24));
-    }
-  }; /* struct FloatingPointConvertSortHashFunction */
-
-
-
-
-
-
-
-
-  /**
-   * The parameter type for the conversion to bit vector.
-   */
-  class CVC4_PUBLIC FloatingPointToBV {
-  public :
-    BitVectorSize bvs;
-
-    FloatingPointToBV (unsigned s)
-      : bvs(s) {}
-    FloatingPointToBV (const FloatingPointToBV &old) : bvs(old.bvs) {}
-    FloatingPointToBV (const BitVectorSize &old) : bvs(old) {}
-    operator unsigned () const { return bvs; }
-  };
-
-  class CVC4_PUBLIC FloatingPointToUBV : public FloatingPointToBV {
-  public : FloatingPointToUBV (unsigned _s) : FloatingPointToBV(_s) {}
-    FloatingPointToUBV (const FloatingPointToBV &old) : FloatingPointToBV(old) {}
-  };
-  class CVC4_PUBLIC FloatingPointToSBV : public FloatingPointToBV {
-  public : FloatingPointToSBV (unsigned _s) : FloatingPointToBV(_s) {}
-    FloatingPointToSBV (const FloatingPointToBV &old) : FloatingPointToBV(old) {}
-  };
-  class CVC4_PUBLIC FloatingPointToUBVTotal : public FloatingPointToBV {
-  public : FloatingPointToUBVTotal (unsigned _s) : FloatingPointToBV(_s) {}
-    FloatingPointToUBVTotal (const FloatingPointToBV &old) : FloatingPointToBV(old) {}
-  };
-  class CVC4_PUBLIC FloatingPointToSBVTotal : public FloatingPointToBV {
-  public : FloatingPointToSBVTotal (unsigned _s) : FloatingPointToBV(_s) {}
-    FloatingPointToSBVTotal (const FloatingPointToBV &old) : FloatingPointToBV(old) {}
-  };
-
-
-  template <unsigned key>
-  struct CVC4_PUBLIC FloatingPointToBVHashFunction {
-    inline size_t operator() (const FloatingPointToBV& fptbv) const {
-      UnsignedHashFunction< ::CVC4::BitVectorSize > f;
-      return 	(key ^ 0x46504256) ^ f(fptbv.bvs);
-    }
-  }; /* struct FloatingPointToBVHashFunction */
-
-
-  // It is not possible to pack a number without a size to pack to,
-  // thus it is difficult to implement this in a sensible way.  Use
-  // FloatingPoint instead...
-  /*
-  inline std::ostream& operator <<(std::ostream& os, const FloatingPointLiteral& fp) CVC4_PUBLIC;
-  inline std::ostream& operator <<(std::ostream& os, const FloatingPointLiteral& fp) {
-    return os << "FloatingPointLiteral";
-  }
-  */
-
-  inline std::ostream& operator <<(std::ostream& os, const FloatingPoint& fp) CVC4_PUBLIC;
-  inline std::ostream& operator<<(std::ostream& os, const FloatingPoint& fp)
+  FloatingPoint(const FloatingPointSize& fp_size,
+                const FloatingPointLiteral& fpl)
+      : d_fp_size(fp_size), d_fpl(fpl)
   {
-    // print in binary notation
-    return os << fp.toString();
   }
 
-  inline std::ostream& operator <<(std::ostream& os, const FloatingPointSize& fps) CVC4_PUBLIC;
-  inline std::ostream& operator <<(std::ostream& os, const FloatingPointSize& fps) {
-    return os << "(_ FloatingPoint " << fps.exponent() << " " << fps.significand() << ")";
+  FloatingPoint(const FloatingPoint& fp)
+      : d_fp_size(fp.d_fp_size), d_fpl(fp.d_fpl)
+  {
+  }
+  FloatingPoint(const FloatingPointSize& size,
+                const RoundingMode& rm,
+                const BitVector& bv,
+                bool signedBV);
+  FloatingPoint(const FloatingPointSize& size,
+                const RoundingMode& rm,
+                const Rational& r);
+
+  /**
+   * Create a FP NaN value of given size.
+   * size: The FP size (format).
+   */
+  static FloatingPoint makeNaN(const FloatingPointSize& size);
+  /**
+   * Create a FP infinity value of given size.
+   * size: The FP size (format).
+   * sign: True for -oo, false otherwise.
+   */
+  static FloatingPoint makeInf(const FloatingPointSize& size, bool sign);
+  /**
+   * Create a FP zero value of given size.
+   * size: The FP size (format).
+   * sign: True for -zero, false otherwise.
+   */
+  static FloatingPoint makeZero(const FloatingPointSize& size, bool sign);
+  /**
+   * Create the smallest subnormal FP value of given size.
+   * size: The FP size (format).
+   * sign: True for negative sign, false otherwise.
+   */
+  static FloatingPoint makeMinSubnormal(const FloatingPointSize& size,
+                                        bool sign);
+  /**
+   * Create the largest subnormal FP value of given size.
+   * size: The FP size (format).
+   * sign: True for negative sign, false otherwise.
+   */
+  static FloatingPoint makeMaxSubnormal(const FloatingPointSize& size,
+                                        bool sign);
+  /**
+   * Create the smallest normal FP value of given size.
+   * size: The FP size (format).
+   * sign: True for negative sign, false otherwise.
+   */
+  static FloatingPoint makeMinNormal(const FloatingPointSize& size, bool sign);
+  /**
+   * Create the largest normal FP value of given size.
+   * size: The FP size (format).
+   * sign: True for negative sign, false otherwise.
+   */
+  static FloatingPoint makeMaxNormal(const FloatingPointSize& size, bool sign);
+
+  /** Get the wrapped floating-point value. */
+  const FloatingPointLiteral& getLiteral(void) const { return this->d_fpl; }
+
+  /**
+   * Return a string representation of this floating-point.
+   *
+   * If printAsIndexed is true then it prints the bit-vector components of the
+   * FP value as indexed symbols, otherwise in binary notation.
+   */
+  std::string toString(bool printAsIndexed = false) const;
+
+  /** Return the packed (IEEE-754) representation of this floating-point. */
+  BitVector pack(void) const;
+
+  /** Floating-point absolute value. */
+  FloatingPoint absolute(void) const;
+  /** Floating-point negation. */
+  FloatingPoint negate(void) const;
+  /** Floating-point addition. */
+  FloatingPoint plus(const RoundingMode& rm, const FloatingPoint& arg) const;
+  /** Floating-point subtraction. */
+  FloatingPoint sub(const RoundingMode& rm, const FloatingPoint& arg) const;
+  /** Floating-point multiplication. */
+  FloatingPoint mult(const RoundingMode& rm, const FloatingPoint& arg) const;
+  /** Floating-point division. */
+  FloatingPoint div(const RoundingMode& rm, const FloatingPoint& arg) const;
+  /** Floating-point fused multiplication and addition. */
+  FloatingPoint fma(const RoundingMode& rm,
+                    const FloatingPoint& arg1,
+                    const FloatingPoint& arg2) const;
+  /** Floating-point square root. */
+  FloatingPoint sqrt(const RoundingMode& rm) const;
+  /** Floating-point round to integral. */
+  FloatingPoint rti(const RoundingMode& rm) const;
+  /** Floating-point remainder. */
+  FloatingPoint rem(const FloatingPoint& arg) const;
+
+  /**
+   * Floating-point max (total version).
+   * zeroCase: true to return the left (rather than the right operand) in case
+   *           of max(-0,+0) or max(+0,-0).
+   */
+  FloatingPoint maxTotal(const FloatingPoint& arg, bool zeroCaseLeft) const;
+  /**
+   * Floating-point min (total version).
+   * zeroCase: true to return the left (rather than the right operand) in case
+   *           of min(-0,+0) or min(+0,-0).
+   */
+  FloatingPoint minTotal(const FloatingPoint& arg, bool zeroCaseLeft) const;
+
+  /**
+   * Floating-point max.
+   *
+   * Returns a partial floating-point, which is a pair of FloatingPoint and
+   * bool. The boolean flag is true if the result is defined, and false if it
+   * is undefined.
+   */
+  PartialFloatingPoint max(const FloatingPoint& arg) const;
+  /** Floating-point min.
+   *
+   * Returns a partial floating-point, which is a pair of FloatingPoint and
+   * bool. The boolean flag is true if the result is defined, and false if it
+   * is undefined.
+   */
+  PartialFloatingPoint min(const FloatingPoint& arg) const;
+
+  /** Equality (NOT: fp.eq but =) over floating-point values. */
+  bool operator==(const FloatingPoint& fp) const;
+  /** Floating-point less or equal than. */
+  bool operator<=(const FloatingPoint& arg) const;
+  /** Floating-point less than. */
+  bool operator<(const FloatingPoint& arg) const;
+
+  /** Return true if this floating-point represents a normal value. */
+  bool isNormal(void) const;
+  /** Return true if this floating-point represents a subnormal value. */
+  bool isSubnormal(void) const;
+  /** Return true if this floating-point represents a zero value. */
+  bool isZero(void) const;
+  /** Return true if this floating-point represents an infinite value. */
+  bool isInfinite(void) const;
+  /** Return true if this floating-point represents a NaN value. */
+  bool isNaN(void) const;
+  /** Return true if this floating-point represents a negative value. */
+  bool isNegative(void) const;
+  /** Return true if this floating-point represents a positive value. */
+  bool isPositive(void) const;
+
+  /**
+   * Convert this floating-point to a floating-point of given size, with
+   * respect to given rounding mode.
+   */
+  FloatingPoint convert(const FloatingPointSize& target,
+                        const RoundingMode& rm) const;
+
+  /**
+   * Convert this floating-point to a bit-vector of given size, with
+   * respect to given rounding mode (total version).
+   * Returns given bit-vector 'undefinedCase' in the undefined case.
+   */
+  BitVector convertToBVTotal(BitVectorSize width,
+                             const RoundingMode& rm,
+                             bool signedBV,
+                             BitVector undefinedCase) const;
+  /**
+   * Convert this floating-point to a rational, with respect to given rounding
+   * mode (total version).
+   * Returns given rational 'undefinedCase' in the undefined case.
+   */
+  Rational convertToRationalTotal(Rational undefinedCase) const;
+
+  /**
+   * Convert this floating-point to a bit-vector of given size.
+   *
+   * Returns a partial bit-vector, which is a pair of BitVector and bool.
+   * The boolean flag is true if the result is defined, and false if it
+   * is undefined.
+   */
+  PartialBitVector convertToBV(BitVectorSize width,
+                               const RoundingMode& rm,
+                               bool signedBV) const;
+  /**
+   * Convert this floating-point to a Rational.
+   *
+   * Returns a partial Rational, which is a pair of Rational and bool.
+   * The boolean flag is true if the result is defined, and false if it
+   * is undefined.
+   */
+  PartialRational convertToRational(void) const;
+
+  /** The floating-point size of this floating-point value. */
+  FloatingPointSize d_fp_size;
+
+ protected:
+  /** The floating-point literal of this floating-point value. */
+  FloatingPointLiteral d_fpl;
+
+}; /* class FloatingPoint */
+
+/**
+ * Hash function for floating-point values.
+ */
+struct CVC4_PUBLIC FloatingPointHashFunction
+{
+  size_t operator()(const FloatingPoint& fp) const
+  {
+    FloatingPointSizeHashFunction fpshf;
+    BitVectorHashFunction bvhf;
+
+    return fpshf(fp.d_fp_size) ^ bvhf(fp.pack());
+  }
+}; /* struct FloatingPointHashFunction */
+
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The parameter type for the conversions to floating point.
+ */
+class CVC4_PUBLIC FloatingPointConvertSort
+{
+ public:
+  /** Constructors. */
+  FloatingPointConvertSort(uint32_t _e, uint32_t _s) : d_fp_size(_e, _s) {}
+  FloatingPointConvertSort(const FloatingPointSize& fps) : d_fp_size(fps) {}
+
+  /** Operator overload for comparison of conversion sorts. */
+  bool operator==(const FloatingPointConvertSort& fpcs) const
+  {
+    return d_fp_size == fpcs.d_fp_size;
   }
 
-  inline std::ostream& operator <<(std::ostream& os, const FloatingPointConvertSort& fpcs) CVC4_PUBLIC;
-  inline std::ostream& operator <<(std::ostream& os, const FloatingPointConvertSort& fpcs) {
-    return os << "(_ to_fp " << fpcs.t.exponent() << " " << fpcs.t.significand() << ")";
-  }
+  /** The floating-point size of this sort. */
+  FloatingPointSize d_fp_size;
+};
 
-}/* CVC4 namespace */
+/** Hash function for conversion sorts. */
+template <uint32_t key>
+struct CVC4_PUBLIC FloatingPointConvertSortHashFunction
+{
+  inline size_t operator()(const FloatingPointConvertSort& fpcs) const
+  {
+    FloatingPointSizeHashFunction f;
+    return f(fpcs.d_fp_size) ^ (0x00005300 | (key << 24));
+  }
+}; /* struct FloatingPointConvertSortHashFunction */
+
+/**
+ * As different conversions are different parameterised kinds, there
+ * is a need for different (C++) types for each one.
+ */
+
+/**
+ * Conversion from floating-point to IEEE bit-vector (first bit represents the
+ * sign, the following exponent width bits the exponent, and the remaining bits
+ * the significand).
+ */
+class CVC4_PUBLIC FloatingPointToFPIEEEBitVector
+    : public FloatingPointConvertSort
+{
+ public:
+  /** Constructors. */
+  FloatingPointToFPIEEEBitVector(uint32_t _e, uint32_t _s)
+      : FloatingPointConvertSort(_e, _s)
+  {
+  }
+  FloatingPointToFPIEEEBitVector(const FloatingPointConvertSort& old)
+      : FloatingPointConvertSort(old)
+  {
+  }
+};
+
+/**
+ * Conversion from floating-point to another floating-point (of possibly
+ * different size).
+ */
+class CVC4_PUBLIC FloatingPointToFPFloatingPoint
+    : public FloatingPointConvertSort
+{
+ public:
+  /** Constructors. */
+  FloatingPointToFPFloatingPoint(uint32_t _e, uint32_t _s)
+      : FloatingPointConvertSort(_e, _s)
+  {
+  }
+  FloatingPointToFPFloatingPoint(const FloatingPointConvertSort& old)
+      : FloatingPointConvertSort(old)
+  {
+  }
+};
+
+/**
+ * Conversion from floating-point to Real.
+ */
+class CVC4_PUBLIC FloatingPointToFPReal : public FloatingPointConvertSort
+{
+ public:
+  /** Constructors. */
+  FloatingPointToFPReal(uint32_t _e, uint32_t _s)
+      : FloatingPointConvertSort(_e, _s)
+  {
+  }
+  FloatingPointToFPReal(const FloatingPointConvertSort& old)
+      : FloatingPointConvertSort(old)
+  {
+  }
+};
+
+/**
+ * Conversion from floating-point to signed bit-vector value.
+ */
+class CVC4_PUBLIC FloatingPointToFPSignedBitVector
+    : public FloatingPointConvertSort
+{
+ public:
+  /** Constructors. */
+  FloatingPointToFPSignedBitVector(uint32_t _e, uint32_t _s)
+      : FloatingPointConvertSort(_e, _s)
+  {
+  }
+  FloatingPointToFPSignedBitVector(const FloatingPointConvertSort& old)
+      : FloatingPointConvertSort(old)
+  {
+  }
+};
+
+/**
+ * Conversion from floating-point to unsigned bit-vector value.
+ */
+class CVC4_PUBLIC FloatingPointToFPUnsignedBitVector
+    : public FloatingPointConvertSort
+{
+ public:
+  /** Constructors. */
+  FloatingPointToFPUnsignedBitVector(uint32_t _e, uint32_t _s)
+      : FloatingPointConvertSort(_e, _s)
+  {
+  }
+  FloatingPointToFPUnsignedBitVector(const FloatingPointConvertSort& old)
+      : FloatingPointConvertSort(old)
+  {
+  }
+};
+
+class CVC4_PUBLIC FloatingPointToFPGeneric : public FloatingPointConvertSort
+{
+ public:
+  /** Constructors. */
+  FloatingPointToFPGeneric(uint32_t _e, uint32_t _s)
+      : FloatingPointConvertSort(_e, _s)
+  {
+  }
+  FloatingPointToFPGeneric(const FloatingPointConvertSort& old)
+      : FloatingPointConvertSort(old)
+  {
+  }
+};
+
+/**
+ * Base type for floating-point to bit-vector conversion.
+ */
+class CVC4_PUBLIC FloatingPointToBV
+{
+ public:
+  /** Constructors. */
+  FloatingPointToBV(uint32_t s) : d_bv_size(s) {}
+  FloatingPointToBV(const FloatingPointToBV& old) : d_bv_size(old.d_bv_size) {}
+  FloatingPointToBV(const BitVectorSize& old) : d_bv_size(old) {}
+
+  /** Return the bit-width of the bit-vector to convert to. */
+  operator uint32_t() const { return d_bv_size; }
+
+  /** The bit-width of the bit-vector to converto to. */
+  BitVectorSize d_bv_size;
+};
+
+/**
+ * Conversion from floating-point to unsigned bit-vector value.
+ */
+class CVC4_PUBLIC FloatingPointToUBV : public FloatingPointToBV
+{
+ public:
+  FloatingPointToUBV(uint32_t _s) : FloatingPointToBV(_s) {}
+  FloatingPointToUBV(const FloatingPointToBV& old) : FloatingPointToBV(old) {}
+};
+
+/**
+ * Conversion from floating-point to signed bit-vector value.
+ */
+class CVC4_PUBLIC FloatingPointToSBV : public FloatingPointToBV
+{
+ public:
+  FloatingPointToSBV(uint32_t _s) : FloatingPointToBV(_s) {}
+  FloatingPointToSBV(const FloatingPointToBV& old) : FloatingPointToBV(old) {}
+};
+
+/**
+ * Conversion from floating-point to unsigned bit-vector value (total version).
+ */
+class CVC4_PUBLIC FloatingPointToUBVTotal : public FloatingPointToBV
+{
+ public:
+  FloatingPointToUBVTotal(uint32_t _s) : FloatingPointToBV(_s) {}
+  FloatingPointToUBVTotal(const FloatingPointToBV& old) : FloatingPointToBV(old)
+  {
+  }
+};
+
+/**
+ * Conversion from floating-point to signed bit-vector value (total version).
+ */
+class CVC4_PUBLIC FloatingPointToSBVTotal : public FloatingPointToBV
+{
+ public:
+  FloatingPointToSBVTotal(uint32_t _s) : FloatingPointToBV(_s) {}
+  FloatingPointToSBVTotal(const FloatingPointToBV& old) : FloatingPointToBV(old)
+  {
+  }
+};
+
+/**
+ * Hash function for floating-point to bit-vector conversions.
+ */
+template <uint32_t key>
+struct CVC4_PUBLIC FloatingPointToBVHashFunction
+{
+  inline size_t operator()(const FloatingPointToBV& fptbv) const
+  {
+    UnsignedHashFunction< ::CVC4::BitVectorSize> f;
+    return (key ^ 0x46504256) ^ f(fptbv.d_bv_size);
+  }
+}; /* struct FloatingPointToBVHashFunction */
+
+/* Note: It is not possible to pack a number without a size to pack to,
+ * thus it is difficult to implement output stream operator overloads for
+ * FloatingPointLiteral in a sensible way. Use FloatingPoint instead. */
+
+/** Output stream operator overloading for floating-point values. */
+std::ostream& operator<<(std::ostream& os, const FloatingPoint& fp) CVC4_PUBLIC;
+
+/** Output stream operator overloading for floating-point formats. */
+std::ostream& operator<<(std::ostream& os,
+                         const FloatingPointSize& fps) CVC4_PUBLIC;
+
+/** Output stream operator overloading for floating-point conversion sorts. */
+std::ostream& operator<<(std::ostream& os,
+                         const FloatingPointConvertSort& fpcs) CVC4_PUBLIC;
+
+}  // namespace CVC4
 
 #endif /* CVC4__FLOATINGPOINT_H */

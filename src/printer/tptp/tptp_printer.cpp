@@ -71,15 +71,20 @@ void TptpPrinter::toStream(std::ostream& out,
 void TptpPrinter::toStream(std::ostream& out, const UnsatCore& core) const
 {
   out << "% SZS output start UnsatCore " << std::endl;
-  SmtEngine * smt = core.getSmtEngine();
-  Assert(smt != NULL);
-  for(UnsatCore::const_iterator i = core.begin(); i != core.end(); ++i) {
-    std::string name;
-    if (smt->getExpressionName(*i, name)) {
-      // Named assertions always get printed
-      out << name << endl;
-    } else if (options::dumpUnsatCoresFull()) {
-      // Unnamed assertions only get printed if the option is set
+  if (core.useNames())
+  {
+    // use the names
+    const std::vector<std::string>& cnames = core.getCoreNames();
+    for (const std::string& cn : cnames)
+    {
+      out << cn << std::endl;
+    }
+  }
+  else
+  {
+    // otherwise, use the formulas
+    for (UnsatCore::const_iterator i = core.begin(); i != core.end(); ++i)
+    {
       out << *i << endl;
     }
   }

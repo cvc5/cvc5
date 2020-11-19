@@ -27,6 +27,7 @@
 #include "expr/node_trie.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/inference_manager.h"
+#include "theory/datatypes/proof_checker.h"
 #include "theory/datatypes/sygus_extension.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
@@ -308,6 +309,8 @@ private:
   InferenceManager d_im;
   /** The notify class */
   NotifyClass d_notify;
+  /** Proof checker for datatypes */
+  DatatypesProofRuleChecker d_pchecker;
 };/* class TheoryDatatypes */
 
 }/* CVC4::theory::datatypes namespace */

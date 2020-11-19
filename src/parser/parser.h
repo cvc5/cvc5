@@ -128,12 +128,6 @@ private:
  size_t d_assertionLevel;
 
  /**
-  * Whether we're in global declarations mode (all definitions and
-  * declarations are global).
-  */
- bool d_globalDeclarations;
-
- /**
   * Maintains a list of reserved symbols at the assertion level that might
   * not occur in our symbol table.  This is necessary to e.g. support the
   * proper behavior of the :named annotation in SMT-LIBv2 when used under
@@ -751,44 +745,26 @@ public:
   /**
    * Gets the current declaration level.
    */
-  inline size_t scopeLevel() const { return d_symtab->getLevel(); }
+  size_t scopeLevel() const;
 
   /**
    * Pushes a scope. All subsequent symbol declarations made are only valid in
    * this scope, i.e. they are deleted on the next call to popScope.
    *
-   * The argument bindingLevel is true, the assertion level is set to the
-   * current scope level. This determines which scope assertions are declared
-   * at.
+   * The argument isUserContext is true, when we are pushing a user context
+   * e.g. via the smt2 command (push n). This may also include one initial
+   * pushScope when the parser is initialized. User-context pushes and pops
+   * have an impact on both expression names and the symbol table, whereas
+   * other pushes and pops only have an impact on the symbol table.
    */
-  inline void pushScope(bool bindingLevel = false) {
-    d_symtab->pushScope();
-    if(!bindingLevel) {
-      d_assertionLevel = scopeLevel();
-    }
-  }
+  void pushScope(bool isUserContext = false);
 
-  inline void popScope() {
-    d_symtab->popScope();
-    if(scopeLevel() < d_assertionLevel) {
-      d_assertionLevel = scopeLevel();
-      d_reservedSymbols.clear();
-    }
-  }
+  void popScope();
 
-  virtual void reset() {
-    d_symtab->reset();
-  }
+  virtual void reset();
 
-  void setGlobalDeclarations(bool flag) {
-    d_globalDeclarations = flag;
-  }
-
-  bool getGlobalDeclarations() { return d_globalDeclarations; }
-
-  inline SymbolTable* getSymbolTable() const {
-    return d_symtab;
-  }
+  /** Return the symbol manager used by this parser. */
+  SymbolManager* getSymbolManager();
 
   //------------------------ operator overloading
   /** is this function overloaded? */

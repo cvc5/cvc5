@@ -312,6 +312,8 @@ void TheoryEngine::preRegister(TNode preprocessed) {
       Debug("theory") << "TheoryEngine::preRegister: " << preprocessed
                       << std::endl;
       Assert(!expr::hasFreeVar(preprocessed));
+      // should not have witness
+      Assert(!expr::hasSubtermKind(kind::WITNESS, preprocessed));
 
       // Pre-register the terms in the atom
       theory::TheoryIdSet theories = NodeVisitor<PreRegisterVisitor>::run(
@@ -1172,8 +1174,15 @@ Node TheoryEngine::ensureLiteral(TNode n) {
   Debug("ensureLiteral") << "rewriting: " << n << std::endl;
   Node rewritten = Rewriter::rewrite(n);
   Debug("ensureLiteral") << "      got: " << rewritten << std::endl;
-  TrustNode tp = preprocess(rewritten);
-  Node preprocessed = tp.isNull() ? rewritten : tp.getNode();
+  std::vector<TrustNode> newLemmas;
+  std::vector<Node> newSkolems;
+  TrustNode tpn = d_tpp.preprocess(n, newLemmas, newSkolems, true);
+  // send lemmas corresponding to the skolems introduced by preprocessing n
+  for (const TrustNode& tnl : newLemmas)
+  {
+    lemma(tnl, LemmaProperty::NONE);
+  }
+  Node preprocessed = tpn.isNull() ? rewritten : tpn.getNode();
   Debug("ensureLiteral") << "preprocessed: " << preprocessed << std::endl;
   d_propEngine->ensureLiteral(preprocessed);
   return preprocessed;
@@ -1391,6 +1400,8 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   // get the node
   Node node = tlemma.getNode();
   Node lemma = tlemma.getProven();
+
+  Assert(!expr::hasFreeVar(lemma));
 
   // when proofs are enabled, we ensure the trust node has a generator by
   // adding a trust step to the lazy proof maintained by this class

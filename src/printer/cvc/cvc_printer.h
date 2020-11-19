@@ -80,13 +80,6 @@ class CvcPrinter : public CVC4::Printer
                                  TypeNode range,
                                  Node formula) const override;
 
-  /** Print define-named-fun command */
-  void toStreamCmdDefineNamedFunction(std::ostream& out,
-                                      const std::string& id,
-                                      const std::vector<Node>& formals,
-                                      TypeNode range,
-                                      Node formula) const override;
-
   /** Print check-sat command */
   void toStreamCmdCheckSat(std::ostream& out,
                            Node n = Node::null()) const override;
