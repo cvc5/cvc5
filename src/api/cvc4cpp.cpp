@@ -4810,7 +4810,6 @@ Term Solver::defineFun(Term fun,
 
   if (fun.getSort().isFunction())
   {
-    Trace("ajr-temp") << "Define fun " << bound_vars << " for " << fun << std::endl;
     std::vector<Sort> domain_sorts = fun.getSort().getFunctionDomainSorts();
     size_t size = bound_vars.size();
     CVC4_API_ARG_SIZE_CHECK_EXPECTED(size == domain_sorts.size(), bound_vars)
