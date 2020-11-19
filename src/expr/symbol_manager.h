@@ -92,9 +92,9 @@ class CVC4_PUBLIC SymbolManager
    */
   std::map<api::Term, std::string> getExpressionNames(
       bool areAssertions = false) const;
-  /** 
+  /**
    * Get model declarations
-   * 
+   *
    * @param declareSorts The sorts we have declared that should be printed
    * in the model.
    * @param declareTerms The terms we have declared that should be printed
@@ -103,14 +103,14 @@ class CVC4_PUBLIC SymbolManager
   void getModelDeclarations(std::vector<api::Sort>& declareSorts,
                             std::vector<api::Term>& declareTerms) const;
   /**
-   * Add declared sort to the list of model declarations. 
+   * Add declared sort to the list of model declarations.
    */
   void addModelDeclarationSort(api::Sort s);
   /**
-   * Add declared term to the list of model declarations. 
+   * Add declared term to the list of model declarations.
    */
   void addModelDeclarationTerm(api::Term t);
-  
+
   //---------------------------- end named expressions
   /**
    * Get the scope level of the symbol table.

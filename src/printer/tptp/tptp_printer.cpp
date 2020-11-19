@@ -59,13 +59,17 @@ void TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
       << endl;
 }
 
-void TptpPrinter::toStreamModelSort(std::ostream& out, const smt::Model& m, TypeNode tn) const
+void TptpPrinter::toStreamModelSort(std::ostream& out,
+                                    const smt::Model& m,
+                                    TypeNode tn) const
 {
   // shouldn't be called; only the non-Command* version above should be
   Unreachable();
 }
 
-void TptpPrinter::toStreamModelTerm(std::ostream& out, const smt::Model& m, Node n) const
+void TptpPrinter::toStreamModelTerm(std::ostream& out,
+                                    const smt::Model& m,
+                                    Node n) const
 {
   // shouldn't be called; only the non-Command* version above should be
   Unreachable();

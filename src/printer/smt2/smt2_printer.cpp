@@ -1367,17 +1367,19 @@ void Smt2Printer::toStream(std::ostream& out, const smt::Model& m) const
   }
 }
 
-void Smt2Printer::toStreamModelSort(std::ostream& out, const smt::Model& m, TypeNode tn) const
+void Smt2Printer::toStreamModelSort(std::ostream& out,
+                                    const smt::Model& m,
+                                    TypeNode tn) const
 {
   if (!tn.isSort())
   {
-    out << "ERROR: don't know how to print non uninterpreted sort in model: " << tn << std::endl;
+    out << "ERROR: don't know how to print non uninterpreted sort in model: "
+        << tn << std::endl;
     return;
   }
   const theory::TheoryModel* tm = m.getTheoryModel();
   std::vector<Node> elements = tm->getDomainElements(tn);
-  if (options::modelUninterpPrint()
-      == options::ModelUninterpPrintMode::DtEnum)
+  if (options::modelUninterpPrint() == options::ModelUninterpPrintMode::DtEnum)
   {
     if (isVariant_2_6(d_variant))
     {
@@ -1406,8 +1408,7 @@ void Smt2Printer::toStreamModelSort(std::ostream& out, const smt::Model& m, Type
   {
     if (trn.isVar())
     {
-      out << "(declare-fun " << quoteSymbol(trn) << " () " << tn << ")"
-          << endl;
+      out << "(declare-fun " << quoteSymbol(trn) << " () " << tn << ")" << endl;
     }
     else
     {
@@ -1416,7 +1417,9 @@ void Smt2Printer::toStreamModelSort(std::ostream& out, const smt::Model& m, Type
   }
 }
 
-void Smt2Printer::toStreamModelTerm(std::ostream& out, const smt::Model& m, Node n) const
+void Smt2Printer::toStreamModelTerm(std::ostream& out,
+                                    const smt::Model& m,
+                                    Node n) const
 {
   const theory::TheoryModel* tm = m.getTheoryModel();
   // We get the value from the theory model directly, which notice
@@ -1432,8 +1435,7 @@ void Smt2Printer::toStreamModelTerm(std::ostream& out, const smt::Model& m, Node
   }
   else
   {
-    if (options::modelUninterpPrint()
-            == options::ModelUninterpPrintMode::DtEnum
+    if (options::modelUninterpPrint() == options::ModelUninterpPrintMode::DtEnum
         && val.getKind() == kind::STORE)
     {
       TypeNode tn = val[1].getType();
@@ -1664,7 +1666,7 @@ void Smt2Printer::toStreamCmdDefineFunctionRec(
 void Smt2Printer::toStreamCmdDeclareType(std::ostream& out,
                                          TypeNode type) const
 {
-  Assert (type.isSort() || type.isSortConstructor());
+  Assert(type.isSort() || type.isSortConstructor());
   std::stringstream id;
   id << type;
   size_t arity = type.isSortConstructor() ? type.getSortConstructorArity() : 0;

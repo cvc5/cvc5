@@ -164,17 +164,21 @@ class CvcPrinter : public CVC4::Printer
 
  private:
   void toStream(std::ostream& out, TNode n, int toDepth, bool bracket) const;
-  /** 
+  /**
    * To stream model sort. This prints the appropriate output for type
    * tn declared via declare-sort or declare-datatype.
    */
-  void toStreamModelSort(std::ostream& out, const smt::Model& m, TypeNode tn) const override;
+  void toStreamModelSort(std::ostream& out,
+                         const smt::Model& m,
+                         TypeNode tn) const override;
 
-  /** 
+  /**
    * To stream model term. This prints the appropriate output for type
    * tn declared via declare-fun.
    */
-  void toStreamModelTerm(std::ostream& out, const smt::Model& m, Node n) const override;
+  void toStreamModelTerm(std::ostream& out,
+                         const smt::Model& m,
+                         Node n) const override;
 
   bool d_cvc3Mode;
 }; /* class CvcPrinter */

@@ -1067,16 +1067,18 @@ void CvcPrinter::toStream(std::ostream& out, const CommandStatus* s) const
 
 }/* CvcPrinter::toStream(CommandStatus*) */
 
-void CvcPrinter::toStreamModelSort(std::ostream& out, const smt::Model& m, TypeNode tn) const
+void CvcPrinter::toStreamModelSort(std::ostream& out,
+                                   const smt::Model& m,
+                                   TypeNode tn) const
 {
   if (!tn.isSort())
   {
-    out << "ERROR: don't know how to print a non uninterpreted sort in model: " << tn << std::endl;
+    out << "ERROR: don't know how to print a non uninterpreted sort in model: "
+        << tn << std::endl;
     return;
   }
   const theory::TheoryModel* tm = m.getTheoryModel();
-  const std::vector<Node>* type_reps =
-      tm->getRepSet()->getTypeRepsOrNull(tn);
+  const std::vector<Node>* type_reps = tm->getRepSet()->getTypeRepsOrNull(tn);
   if (options::modelUninterpPrint() == options::ModelUninterpPrintMode::DtEnum
       && type_reps != nullptr)
   {
@@ -1115,7 +1117,9 @@ void CvcPrinter::toStreamModelSort(std::ostream& out, const smt::Model& m, TypeN
   }
 }
 
-void CvcPrinter::toStreamModelTerm(std::ostream& out, const smt::Model& m, Node n) const
+void CvcPrinter::toStreamModelTerm(std::ostream& out,
+                                   const smt::Model& m,
+                                   Node n) const
 {
   const theory::TheoryModel* tm = m.getTheoryModel();
   TypeNode tn = n.getType();
@@ -1147,8 +1151,8 @@ void CvcPrinter::toStreamModelTerm(std::ostream& out, const smt::Model& m, Node 
     if (tn.isSort())
     {
       const std::vector<Node>* type_reps =
-              tm->getRepSet()->getTypeRepsOrNull(type_node);
-      if (type_reps!=nullptr)
+          tm->getRepSet()->getTypeRepsOrNull(type_node);
+      if (type_reps != nullptr)
       {
         Cardinality indexCard(type_reps->size());
         val = theory::arrays::TheoryArraysRewriter::normalizeConstant(
@@ -1292,7 +1296,7 @@ void CvcPrinter::toStreamCmdDeclarationSequence(
   {
     DeclarationDefinitionCommand* dd =
         static_cast<DeclarationDefinitionCommand*>(*i++);
-    Assert (dd!=nullptr);
+    Assert(dd != nullptr);
     if (i != sequence.cend())
     {
       out << dd->getSymbol() << ", ";

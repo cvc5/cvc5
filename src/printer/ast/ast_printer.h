@@ -163,17 +163,21 @@ class AstPrinter : public CVC4::Printer
 
  private:
   void toStream(std::ostream& out, TNode n, int toDepth) const;
-  /** 
+  /**
    * To stream model sort. This prints the appropriate output for type
    * tn declared via declare-sort or declare-datatype.
    */
-  void toStreamModelSort(std::ostream& out, const smt::Model& m, TypeNode tn) const override;
+  void toStreamModelSort(std::ostream& out,
+                         const smt::Model& m,
+                         TypeNode tn) const override;
 
-  /** 
+  /**
    * To stream model term. This prints the appropriate output for type
    * tn declared via declare-fun.
    */
-  void toStreamModelTerm(std::ostream& out, const smt::Model& m, Node n) const override;
+  void toStreamModelTerm(std::ostream& out,
+                         const smt::Model& m,
+                         Node n) const override;
 }; /* class AstPrinter */
 
 }  // namespace ast

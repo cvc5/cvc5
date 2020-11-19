@@ -92,7 +92,7 @@ void Printer::toStream(std::ostream& out, const smt::Model& m) const
     }
     toStreamModelTerm(out, m, n);
   }
-  
+
 }/* Printer::toStream(Model) */
 
 void Printer::toStream(std::ostream& out, const UnsatCore& core) const

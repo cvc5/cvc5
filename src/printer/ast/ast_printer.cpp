@@ -148,13 +148,17 @@ void AstPrinter::toStream(std::ostream& out, const smt::Model& m) const
   out << "Model()";
 }
 
-void AstPrinter::toStreamModelSort(std::ostream& out, const smt::Model& m, TypeNode tn) const
+void AstPrinter::toStreamModelSort(std::ostream& out,
+                                   const smt::Model& m,
+                                   TypeNode tn) const
 {
   // shouldn't be called; only the non-Command* version above should be
   Unreachable();
 }
 
-void AstPrinter::toStreamModelTerm(std::ostream& out, const smt::Model& m, Node n) const
+void AstPrinter::toStreamModelTerm(std::ostream& out,
+                                   const smt::Model& m,
+                                   Node n) const
 {
   // shouldn't be called; only the non-Command* version above should be
   Unreachable();
@@ -278,8 +282,7 @@ void AstPrinter::toStreamCmdDefineFunction(std::ostream& out,
 void AstPrinter::toStreamCmdDeclareType(std::ostream& out,
                                         TypeNode type) const
 {
-  out << "DeclareType(" << type << ')'
-      << std::endl;
+  out << "DeclareType(" << type << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdDefineType(std::ostream& out,

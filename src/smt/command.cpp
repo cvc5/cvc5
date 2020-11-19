@@ -957,7 +957,8 @@ void CommandSequence::addCommand(Command* cmd)
 void CommandSequence::clear() { d_commandSequence.clear(); }
 void CommandSequence::invoke(api::Solver* solver, SymbolManager* sm)
 {
-  Trace("ajr-temp") << "invoke " << d_commandSequence.size() << " commands" << std::endl;
+  Trace("ajr-temp") << "invoke " << d_commandSequence.size() << " commands"
+                    << std::endl;
   for (; d_index < d_commandSequence.size(); ++d_index)
   {
     d_commandSequence[d_index]->invoke(solver, sm);
@@ -1155,8 +1156,8 @@ void DeclareSortCommand::toStream(std::ostream& out,
                                   size_t dag,
                                   OutputLanguage language) const
 {
-  Printer::getPrinter(language)->toStreamCmdDeclareType(
-      out, d_sort.getTypeNode());
+  Printer::getPrinter(language)->toStreamCmdDeclareType(out,
+                                                        d_sort.getTypeNode());
 }
 
 /* -------------------------------------------------------------------------- */

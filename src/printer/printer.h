@@ -264,17 +264,21 @@ class Printer
   /** Derived classes can construct, but no one else. */
   Printer() {}
 
-  /** 
+  /**
    * To stream model sort. This prints the appropriate output for type
    * tn declared via declare-sort or declare-datatype.
    */
-  virtual void toStreamModelSort(std::ostream& out, const smt::Model& m, TypeNode tn) const = 0;
+  virtual void toStreamModelSort(std::ostream& out,
+                                 const smt::Model& m,
+                                 TypeNode tn) const = 0;
 
-  /** 
+  /**
    * To stream model term. This prints the appropriate output for type
    * tn declared via declare-fun.
    */
-  virtual void toStreamModelTerm(std::ostream& out, const smt::Model& m, Node n) const = 0;
+  virtual void toStreamModelTerm(std::ostream& out,
+                                 const smt::Model& m,
+                                 Node n) const = 0;
 
   /** write model response to command using another language printer */
   void toStreamUsing(OutputLanguage lang,

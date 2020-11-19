@@ -166,14 +166,19 @@ SymbolManager::Implementation::getExpressionNames(bool areAssertions) const
   return emap;
 }
 
-void SymbolManager::Implementation::getModelDeclarations(std::vector<api::Sort>& declareSorts,
-                          std::vector<api::Term>& declareTerms) const
+void SymbolManager::Implementation::getModelDeclarations(
+    std::vector<api::Sort>& declareSorts,
+    std::vector<api::Term>& declareTerms) const
 {
-  for (SortList::const_iterator it = d_declareSorts.begin(); it != d_declareSorts.end(); ++it)
+  for (SortList::const_iterator it = d_declareSorts.begin();
+       it != d_declareSorts.end();
+       ++it)
   {
     declareSorts.push_back(*it);
   }
-  for (TermList::const_iterator it = d_declareTerms.begin(); it != d_declareTerms.end(); ++it)
+  for (TermList::const_iterator it = d_declareTerms.begin();
+       it != d_declareTerms.end();
+       ++it)
   {
     declareTerms.push_back(*it);
   }
@@ -181,15 +186,13 @@ void SymbolManager::Implementation::getModelDeclarations(std::vector<api::Sort>&
 
 void SymbolManager::Implementation::addModelDeclarationSort(api::Sort s)
 {
-  Trace("sym-manager") << "addModelDeclarationSort " << s
-                       << std::endl;
+  Trace("sym-manager") << "addModelDeclarationSort " << s << std::endl;
   d_declareSorts.push_back(s);
 }
 
 void SymbolManager::Implementation::addModelDeclarationTerm(api::Term t)
 {
-  Trace("sym-manager") << "addModelDeclarationTerm " << t
-                       << std::endl;
+  Trace("sym-manager") << "addModelDeclarationTerm " << t << std::endl;
   d_declareTerms.push_back(t);
 }
 
@@ -263,9 +266,9 @@ std::map<api::Term, std::string> SymbolManager::getExpressionNames(
   return d_implementation->getExpressionNames(areAssertions);
 }
 
-
-void SymbolManager::getModelDeclarations(std::vector<api::Sort>& declareSorts,
-                          std::vector<api::Term>& declareTerms) const
+void SymbolManager::getModelDeclarations(
+    std::vector<api::Sort>& declareSorts,
+    std::vector<api::Term>& declareTerms) const
 {
   return d_implementation->getModelDeclarations(declareSorts, declareTerms);
 }

@@ -39,7 +39,7 @@ std::ostream& operator<<(std::ostream&, const Model&);
  * This is the SMT-level model object, that is responsible for maintaining
  * the necessary information for how to print the model, as well as
  * holding a pointer to the underlying implementation of the theory model.
- * 
+ *
  * The model declarations maintained by this class are context-independent
  * and should be updated when this model is printed.
  */
@@ -84,12 +84,12 @@ class Model {
   //----------------------- model declarations
   /** Clear the current model declarations. */
   void clearModelDeclarations();
-  /** 
+  /**
    * Set that tn is a sort that should be printed in the model, when applicable,
    * based on the output language.
    */
   void addDeclarationSort(TypeNode tn);
-  /** 
+  /**
    * Set that n is a variable that should be printed in the model, when
    * applicable, based on the output language.
    */
@@ -114,12 +114,12 @@ class Model {
    * the values of sorts and terms.
    */
   theory::TheoryModel* d_tmodel;
-  /** 
+  /**
    * The list of types to print, generally corresponding to declare-sort
    * commands.
    */
   std::vector<TypeNode> d_declareSorts;
-  /** 
+  /**
    * The list of terms to print, is typically one-to-one with declare-fun
    * commands.
    */
