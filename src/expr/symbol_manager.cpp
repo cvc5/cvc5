@@ -16,6 +16,7 @@
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
+#include "context/cdlist.h"
 #include "context/cdo.h"
 
 using namespace CVC4::context;
@@ -28,12 +29,16 @@ class SymbolManager::Implementation
 {
   using TermStringMap = CDHashMap<api::Term, std::string, api::TermHashFunction>;
   using TermSet = CDHashSet<api::Term, api::TermHashFunction>;
+  using SortList = CDList<api::Sort>;
+  using TermList = CDList<api::Term>;
 
  public:
   Implementation()
       : d_context(),
         d_names(&d_context),
         d_namedAsserts(&d_context),
+        d_declareSorts(&d_context),
+        d_declareTerms(&d_context),
         d_hasPushedScope(&d_context, false)
   {
   }
@@ -53,6 +58,13 @@ class SymbolManager::Implementation
                           bool areAssertions = false) const;
   /** get expression names */
   std::map<api::Term, std::string> getExpressionNames(bool areAssertions) const;
+  /** get model declarations */
+  void getModelDeclarations(std::vector<api::Sort>& declareSorts,
+                            std::vector<api::Term>& declareTerms) const;
+  /** Add declared sort to the list of model declarations. */
+  void addModelDeclarationSort(api::Sort s);
+  /** Add declared term to the list of model declarations. */
+  void addModelDeclarationTerm(api::Term t);
   /** reset */
   void reset();
   /** Push a scope in the expression names. */
@@ -67,6 +79,10 @@ class SymbolManager::Implementation
   TermStringMap d_names;
   /** The set of terms with assertion names */
   TermSet d_namedAsserts;
+  /** Declared sorts (for model printing) */
+  SortList d_declareSorts;
+  /** Declared terms (for model printing) */
+  TermList d_declareTerms;
   /**
    * Have we pushed a scope (e.g. a let or quantifier) in the current context?
    */
@@ -150,6 +166,36 @@ SymbolManager::Implementation::getExpressionNames(bool areAssertions) const
   return emap;
 }
 
+void SymbolManager::Implementation::getModelDeclarations(
+    std::vector<api::Sort>& declareSorts,
+    std::vector<api::Term>& declareTerms) const
+{
+  for (SortList::const_iterator it = d_declareSorts.begin();
+       it != d_declareSorts.end();
+       ++it)
+  {
+    declareSorts.push_back(*it);
+  }
+  for (TermList::const_iterator it = d_declareTerms.begin();
+       it != d_declareTerms.end();
+       ++it)
+  {
+    declareTerms.push_back(*it);
+  }
+}
+
+void SymbolManager::Implementation::addModelDeclarationSort(api::Sort s)
+{
+  Trace("sym-manager") << "addModelDeclarationSort " << s << std::endl;
+  d_declareSorts.push_back(s);
+}
+
+void SymbolManager::Implementation::addModelDeclarationTerm(api::Term t)
+{
+  Trace("sym-manager") << "addModelDeclarationTerm " << t << std::endl;
+  d_declareTerms.push_back(t);
+}
+
 void SymbolManager::Implementation::pushScope(bool isUserContext)
 {
   Trace("sym-manager") << "pushScope, isUserContext = " << isUserContext
@@ -218,6 +264,23 @@ std::map<api::Term, std::string> SymbolManager::getExpressionNames(
     bool areAssertions) const
 {
   return d_implementation->getExpressionNames(areAssertions);
+}
+
+void SymbolManager::getModelDeclarations(
+    std::vector<api::Sort>& declareSorts,
+    std::vector<api::Term>& declareTerms) const
+{
+  return d_implementation->getModelDeclarations(declareSorts, declareTerms);
+}
+
+void SymbolManager::addModelDeclarationSort(api::Sort s)
+{
+  d_implementation->addModelDeclarationSort(s);
+}
+
+void SymbolManager::addModelDeclarationTerm(api::Term t)
+{
+  d_implementation->addModelDeclarationTerm(t);
 }
 
 size_t SymbolManager::scopeLevel() const
