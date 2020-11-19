@@ -124,6 +124,8 @@ libcvc4_add_sources(
   printer/cvc/cvc_printer.h
   printer/dagification_visitor.cpp
   printer/dagification_visitor.h
+  printer/let_binding.cpp
+  printer/let_binding.h
   printer/printer.cpp
   printer/printer.h
   printer/smt2/smt2_printer.cpp

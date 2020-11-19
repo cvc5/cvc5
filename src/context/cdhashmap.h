@@ -418,6 +418,7 @@ public:
 
     // Dereference operators.
     const value_type& operator*() const { return d_it->getValue(); }
+    const value_type* operator->() const { return &d_it->getValue(); }
 
     // Prefix increment
     iterator& operator++()

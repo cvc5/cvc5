@@ -61,7 +61,6 @@ class UnconstrainedSimplifier : public PreprocessingPass
   context::Context* d_context;
   theory::SubstitutionMap d_substitutions;
 
-  const LogicInfo& d_logicInfo;
   /**
    * Visit all subterms in assertion. This method throws a LogicException if
    * there is a subterm that is unhandled by this preprocessing pass (e.g. a

@@ -184,15 +184,6 @@ void Printer::toStreamCmdDefineFunction(std::ostream& out,
   printUnknownCommand(out, "define-fun");
 }
 
-void Printer::toStreamCmdDefineNamedFunction(std::ostream& out,
-                                             const std::string& id,
-                                             const std::vector<Node>& formals,
-                                             TypeNode range,
-                                             Node formula) const
-{
-  printUnknownCommand(out, "define-named-function");
-}
-
 void Printer::toStreamCmdDefineFunctionRec(
     std::ostream& out,
     const std::vector<Node>& funcs,

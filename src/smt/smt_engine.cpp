@@ -18,21 +18,15 @@
 
 #include "api/cvc4cpp.h"
 #include "base/check.h"
-#include "base/configuration.h"
-#include "base/configuration_private.h"
 #include "base/exception.h"
 #include "base/modal_exception.h"
 #include "base/output.h"
 #include "decision/decision_engine.h"
 #include "expr/node.h"
-#include "expr/node_self_iterator.h"
-#include "expr/node_visitor.h"
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/main_options.h"
-#include "options/option_exception.h"
 #include "options/printer_options.h"
-#include "options/set_language.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "printer/printer.h"
@@ -60,19 +54,18 @@
 #include "smt/smt_engine_stats.h"
 #include "smt/smt_solver.h"
 #include "smt/sygus_solver.h"
-#include "smt/term_formula_removal.h"
-#include "smt/update_ostream.h"
-#include "theory/logic_info.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 #include "theory/theory_engine.h"
-#include "util/hash.h"
 #include "util/random.h"
 #include "util/resource_manager.h"
 
+// required for hacks related to old proofs for unsat cores
+#include "base/configuration.h"
+#include "base/configuration_private.h"
+
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::smt;
 using namespace CVC4::preprocessing;
 using namespace CVC4::prop;
@@ -102,7 +95,6 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_abductSolver(nullptr),
       d_interpolSolver(nullptr),
       d_quantElimSolver(nullptr),
-      d_assignments(nullptr),
       d_logic(),
       d_originalOptions(),
       d_isInternalSubsolver(false),
@@ -137,14 +129,15 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
   d_resourceManager.reset(
       new ResourceManager(*d_statisticsRegistry.get(), d_options));
   d_optm.reset(new smt::OptionsManager(&d_options, d_resourceManager.get()));
-  d_pp.reset(
-      new smt::Preprocessor(*this, getUserContext(), *d_absValues.get()));
   // listen to node manager events
   d_nodeManager->subscribeEvents(d_snmListener.get());
   // listen to resource out
   d_resourceManager->registerListener(d_routListener.get());
   // make statistics
   d_stats.reset(new SmtEngineStatistics());
+  // reset the preprocessor
+  d_pp.reset(new smt::Preprocessor(
+      *this, getUserContext(), *d_absValues.get(), *d_stats));
   // make the SMT solver
   d_smtSolver.reset(
       new SmtSolver(*this, *d_state, d_resourceManager.get(), *d_pp, *d_stats));
@@ -176,6 +169,11 @@ size_t SmtEngine::getNumUserLevels() const
   return d_state->getNumUserLevels();
 }
 SmtMode SmtEngine::getSmtMode() const { return d_state->getMode(); }
+bool SmtEngine::isSmtModeSat() const
+{
+  SmtMode mode = getSmtMode();
+  return mode == SmtMode::SAT || mode == SmtMode::SAT_UNKNOWN;
+}
 Result SmtEngine::getStatusOfLastCommand() const
 {
   return d_state->getStatus();
@@ -318,10 +316,6 @@ SmtEngine::~SmtEngine()
     // of context-dependent data structures
     d_state->cleanup();
 
-    if(d_assignments != NULL) {
-      d_assignments->deleteSelf();
-    }
-
     d_definedFunctions->deleteSelf();
 
     //destroy all passes before destroying things that they refer to
@@ -397,9 +391,8 @@ void SmtEngine::setLogic(const std::string& s)
 }
 
 void SmtEngine::setLogic(const char* logic) { setLogic(string(logic)); }
-LogicInfo SmtEngine::getLogicInfo() const {
-  return d_logic;
-}
+
+const LogicInfo& SmtEngine::getLogicInfo() const { return d_logic; }
 
 LogicInfo SmtEngine::getUserLogicInfo() const
 {
@@ -1225,99 +1218,6 @@ std::vector<Node> SmtEngine::getValues(const std::vector<Node>& exprs)
     result.push_back(getValue(e));
   }
   return result;
-}
-
-bool SmtEngine::addToAssignment(const Expr& ex) {
-  SmtScope smts(this);
-  finishInit();
-  d_state->doPendingPops();
-  // Substitute out any abstract values in ex
-  Node n = d_absValues->substituteAbstractValues(Node::fromExpr(ex));
-  TypeNode type = n.getType(options::typeChecking());
-  // must be Boolean
-  PrettyCheckArgument(type.isBoolean(),
-                      n,
-                      "expected Boolean-typed variable or function application "
-                      "in addToAssignment()");
-  // must be a defined constant, or a variable
-  PrettyCheckArgument(
-      (((d_definedFunctions->find(n) != d_definedFunctions->end())
-        && n.getNumChildren() == 0)
-       || n.isVar()),
-      n,
-      "expected variable or defined-function application "
-      "in addToAssignment(),\ngot %s",
-      n.toString().c_str());
-  if(!options::produceAssignments()) {
-    return false;
-  }
-  if(d_assignments == NULL) {
-    d_assignments = new (true) AssignmentSet(getContext());
-  }
-  d_assignments->insert(n);
-
-  return true;
-}
-
-// TODO(#1108): Simplify the error reporting of this method.
-vector<pair<Expr, Expr>> SmtEngine::getAssignment()
-{
-  Trace("smt") << "SMT getAssignment()" << endl;
-  SmtScope smts(this);
-  finishInit();
-  if(Dump.isOn("benchmark")) {
-    getOutputManager().getPrinter().toStreamCmdGetAssignment(
-        getOutputManager().getDumpOut());
-  }
-  if(!options::produceAssignments()) {
-    const char* msg =
-      "Cannot get the current assignment when "
-      "produce-assignments option is off.";
-    throw ModalException(msg);
-  }
-
-  // Get the model here, regardless of whether d_assignments is null, since
-  // we should throw errors related to model availability whether or not
-  // assignments is null.
-  Model* m = getAvailableModel("get assignment");
-
-  vector<pair<Expr,Expr>> res;
-  if (d_assignments != nullptr)
-  {
-    TypeNode boolType = d_nodeManager->booleanType();
-    for (AssignmentSet::key_iterator i = d_assignments->key_begin(),
-                                     iend = d_assignments->key_end();
-         i != iend;
-         ++i)
-    {
-      Node as = *i;
-      Assert(as.getType() == boolType);
-
-      Trace("smt") << "--- getting value of " << as << endl;
-
-      // Expand, then normalize
-      std::unordered_map<Node, Node, NodeHashFunction> cache;
-      Node n = d_pp->expandDefinitions(as, cache);
-      n = Rewriter::rewrite(n);
-
-      Trace("smt") << "--- getting value of " << n << endl;
-      Node resultNode;
-      if (m != nullptr)
-      {
-        resultNode = m->getValue(n);
-      }
-
-      // type-check the result we got
-      Assert(resultNode.isNull() || resultNode.getType() == boolType);
-
-      // ensure it's a constant
-      Assert(resultNode.isConst());
-
-      Assert(as.isVar());
-      res.emplace_back(as.toExpr(), resultNode.toExpr());
-    }
-  }
-  return res;
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
