@@ -755,7 +755,7 @@ void Instantiate::getInstantiationTermVectors(
 {
   if (options::incrementalSolving())
   {
-    for (const std::pair<const Node, inst::CDInstMatchTrie*>& t :
+    for (const auto& t :
          d_c_inst_match_trie)
     {
       getInstantiationTermVectors(t.first, insts[t.first]);
@@ -763,7 +763,7 @@ void Instantiate::getInstantiationTermVectors(
   }
   else
   {
-    for (const std::pair<const Node, inst::InstMatchTrie>& t :
+    for (const auto& t :
          d_inst_match_trie)
     {
       getInstantiationTermVectors(t.first, insts[t.first]);

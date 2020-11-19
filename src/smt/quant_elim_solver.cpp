@@ -76,7 +76,8 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
     }
     // must use original quantified formula to compute QE, which ensures that
     // e.g. term formula removal is not run on the body. Notice that we assume
-    // that the (single) quantified formula is the preprocessed, rewritten
+    // that the (single) quantified formula is preprocessed, rewritten
+    // version of the input quantified formula q.
     std::vector<Node> inst_qs;
     te->getInstantiatedQuantifiedFormulas(inst_qs);
     Assert(inst_qs.size() <= 1);
