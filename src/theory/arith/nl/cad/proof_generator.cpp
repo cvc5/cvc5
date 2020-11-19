@@ -86,42 +86,36 @@ Node mkIRP(const Node& var,
 
 CADProofGenerator::CADProofGenerator(context::Context* ctx,
                                      ProofNodeManager* pnm)
-    : d_pnm(pnm), d_proofs(ctx)
+    : d_pnm(pnm), d_proofs(pnm, ctx), d_current(nullptr)
 {
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
   d_zero = NodeManager::currentNM()->mkConst<Rational>(0);
 }
 
-std::shared_ptr<ProofNode> CADProofGenerator::getProof() const
-{
-  return d_proofs.back()->getProof();
-}
-
 void CADProofGenerator::startNewProof()
 {
-  d_proofs.push_back(std::make_shared<LazyTreeProofGenerator>(d_pnm));
+  d_current = d_proofs.allocateProof();
 }
-void CADProofGenerator::startRecursive() { d_proofs.back()->openChild(); }
+void CADProofGenerator::startRecursive() { d_current->openChild(); }
 void CADProofGenerator::endRecursive()
 {
-  d_proofs.back()->setCurrent(
-      PfRule::ARITH_NL_CAD_RECURSIVE, {}, {d_false}, d_false);
-  d_proofs.back()->closeChild();
+  d_current->setCurrent(PfRule::ARITH_NL_CAD_RECURSIVE, {}, {d_false}, d_false);
+  d_current->closeChild();
 }
 void CADProofGenerator::startScope()
 {
-  d_proofs.back()->openChild();
-  d_proofs.back()->getCurrent().d_rule = PfRule::SCOPE;
+  d_current->openChild();
+  d_current->getCurrent().d_rule = PfRule::SCOPE;
 }
 void CADProofGenerator::endScope(const std::vector<Node>& args)
 {
-  d_proofs.back()->setCurrent(PfRule::SCOPE, {}, args, d_false);
-  d_proofs.back()->closeChild();
+  d_current->setCurrent(PfRule::SCOPE, {}, args, d_false);
+  d_current->closeChild();
 }
 
 ProofGenerator* CADProofGenerator::getProofGenerator() const
 {
-  return d_proofs.back().get();
+  return d_current;
 }
 
 void CADProofGenerator::addDirect(Node var,
@@ -136,10 +130,10 @@ void CADProofGenerator::addDirect(Node var,
       && is_plus_infinity(get_upper(interval)))
   {
     // "Full conflict", constraint excludes (-inf,inf)
-    d_proofs.back()->openChild();
-    d_proofs.back()->setCurrent(
+    d_current->openChild();
+    d_current->setCurrent(
         PfRule::ARITH_NL_CAD_DIRECT, {constraint}, {d_false}, d_false);
-    d_proofs.back()->closeChild();
+    d_current->closeChild();
     return;
   }
   std::vector<Node> res;
@@ -173,10 +167,10 @@ void CADProofGenerator::addDirect(Node var,
   }
   // Add to proof manager
   startScope();
-  d_proofs.back()->openChild();
-  d_proofs.back()->setCurrent(
+  d_current->openChild();
+  d_current->setCurrent(
       PfRule::ARITH_NL_CAD_DIRECT, {constraint}, {d_false}, d_false);
-  d_proofs.back()->closeChild();
+  d_current->closeChild();
   endScope(res);
 }
 
@@ -226,7 +220,7 @@ std::vector<Node> CADProofGenerator::constructCell(Node var,
 
 std::ostream& operator<<(std::ostream& os, const CADProofGenerator& proof)
 {
-  return os << *proof.d_proofs.back();
+  return os << *proof.d_current;
 }
 
 }  // namespace cad
