@@ -30,7 +30,7 @@ ExtState::ExtState(InferenceManager& im,
                    NlModel& model,
                    ProofNodeManager* pnm,
                    context::UserContext* c)
-    : d_im(im), d_model(model), d_pnm(pnm)
+    : d_im(im), d_model(model), d_pnm(pnm), d_ctx(c)
 {
   d_false = NodeManager::currentNM()->mkConst(false);
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -39,7 +39,7 @@ ExtState::ExtState(InferenceManager& im,
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
   if (d_pnm != nullptr)
   {
-    d_proof.reset(new LazyCDProofSet(d_pnm, c, "nl-ext"));
+    d_proof.reset(new CDProofSet<CDProof>(d_pnm, d_ctx, "nl-ext"));
   }
 }
 
@@ -98,10 +98,10 @@ void ExtState::init(const std::vector<Node>& xts)
 
 bool ExtState::isProofEnabled() const { return d_proof.get() != nullptr; }
 
-LazyCDProof* ExtState::getProof()
+CDProof* ExtState::getProof()
 {
   Assert(isProofEnabled());
-  return d_proof->allocateProof();
+  return d_proof->allocateProof(d_ctx);
 }
 
 }  // namespace nl

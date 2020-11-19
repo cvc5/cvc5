@@ -121,7 +121,7 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
           Trace("nl-ext-factor")
               << "* Factored sum for " << x << " : " << sum << std::endl;
 
-          LazyCDProof* proof = nullptr;
+          CDProof* proof = nullptr;
           if (d_data->isProofEnabled())
           {
             proof = d_data->getProof();
@@ -175,7 +175,7 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
   }
 }
 
-Node FactoringCheck::getFactorSkolem(Node n, LazyCDProof* proof)
+Node FactoringCheck::getFactorSkolem(Node n, CDProof* proof)
 {
   std::map<Node, Node>::iterator itf = d_factor_skolem.find(n);
   if (itf == d_factor_skolem.end())

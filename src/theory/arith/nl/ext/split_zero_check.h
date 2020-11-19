@@ -26,7 +26,7 @@ namespace nl {
 class SplitZeroCheck
 {
  public:
-  SplitZeroCheck(ExtState* data, context::UserContext* ctx);
+  SplitZeroCheck(ExtState* data);
 
   /** check split zero
    *

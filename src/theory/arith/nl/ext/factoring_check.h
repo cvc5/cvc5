@@ -55,7 +55,7 @@ class FactoringCheck
   Node d_zero;
   Node d_one;
 
-  Node getFactorSkolem(Node n, LazyCDProof* proof);
+  Node getFactorSkolem(Node n, CDProof* proof);
 };
 
 }  // namespace nl
