@@ -312,6 +312,8 @@ void TheoryEngine::preRegister(TNode preprocessed) {
       Debug("theory") << "TheoryEngine::preRegister: " << preprocessed
                       << std::endl;
       Assert(!expr::hasFreeVar(preprocessed));
+      // should not have witness
+      Assert(!expr::hasSubtermKind(kind::WITNESS,preprocessed));
 
       // Pre-register the terms in the atom
       theory::TheoryIdSet theories = NodeVisitor<PreRegisterVisitor>::run(
