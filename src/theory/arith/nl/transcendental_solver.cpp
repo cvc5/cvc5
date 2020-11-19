@@ -355,52 +355,23 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
   {
     if (k == Kind::EXPONENTIAL)
     {
-      d_expSlv.mkTangentLemma(tf, c, poly_approx_c);
+      d_expSlv.doTangentLemma(tf, c, poly_approx_c);
     }
     else if (k == Kind::SINE)
     {
-      d_sineSlv.mkTangentLemma(tf, c, poly_approx_c, region);
+      d_sineSlv.doTangentLemma(tf, c, poly_approx_c, region);
     }
   }
   else if (is_secant)
   {
-    // bounds for which we are this concavity
-    // Figure 3: < l, u >
-    Node bounds[2];
-
-    if (k == Kind::SINE)
+    if (k == EXPONENTIAL)
     {
-      auto b = d_sineSlv.getSecantBounds(tf, c, d, region);
-      bounds[0] = b.first;
-      bounds[1] = b.second;
+      d_expSlv.doSecantLemmas(tf, c, poly_approx_c, d);
     }
-    else if (k == EXPONENTIAL)
+    else if (k == Kind::SINE)
     {
-      auto b = d_expSlv.getSecantBounds(tf, c, d, region);
-      bounds[0] = b.first;
-      bounds[1] = b.second;
+      d_sineSlv.doSecantLemmas(tf, c, poly_approx_c, d, region);
     }
-
-    Trace("nl-ext-tftp-debug2") << "...secant bounds are : " << bounds[0]
-                                << " ... " << bounds[1] << std::endl;
-
-    // take the model value of l or u (since may contain PI)
-    d_tstate.mkSecant(d_model.computeAbstractModelValue(bounds[0]),
-                      bounds[0],
-                      c,
-                      poly_approx_c,
-                      tf,
-                      c,
-                      d,
-                      concavity);
-    d_tstate.mkSecant(c,
-                      poly_approx_c,
-                      d_model.computeAbstractModelValue(bounds[1]),
-                      bounds[1],
-                      tf,
-                      c,
-                      d,
-                      concavity);
   }
   return true;
 }

@@ -84,12 +84,12 @@ class SineSolver
    */
   void checkMonotonic();
 
-  void mkTangentLemma(TNode e, TNode c, TNode poly_approx, int region);
+  /** Sent tangent lemma around c for e */
+  void doTangentLemma(TNode e, TNode c, TNode poly_approx, int region);
 
-  std::pair<Node, Node> getSecantBounds(TNode e,
-                                        TNode c,
-                                        unsigned d,
-                                        int region);
+  /** Sent secant lemmas around c for e */
+  void doSecantLemmas(
+      TNode e, TNode c, TNode poly_approx, unsigned d, int region);
 
   /** region to lower bound
    *
@@ -132,6 +132,11 @@ class SineSolver
   }
 
  private:
+  std::pair<Node, Node> getSecantBounds(TNode e,
+                                        TNode c,
+                                        unsigned d,
+                                        int region);
+
   int regionToMonotonicityDir(int region)
   {
     switch (region)

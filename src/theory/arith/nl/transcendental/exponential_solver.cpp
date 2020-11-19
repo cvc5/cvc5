@@ -115,7 +115,8 @@ void ExponentialSolver::checkMonotonic()
     return;
   }
 
-  sortByNlModel(tf_args.begin(), tf_args.end(), &d_data->d_model, true, false, true);
+  sortByNlModel(
+      tf_args.begin(), tf_args.end(), &d_data->d_model, true, false, true);
 
   Node targ, targval, t, tval;
   for (const auto& sarg : tf_args)
@@ -149,7 +150,7 @@ void ExponentialSolver::checkMonotonic()
   }
 }
 
-void ExponentialSolver::mkTangentLemma(TNode e, TNode c, TNode poly_approx)
+void ExponentialSolver::doTangentLemma(TNode e, TNode c, TNode poly_approx)
 {
   NodeManager* nm = NodeManager::currentNM();
   // compute tangent plane
@@ -169,10 +170,17 @@ void ExponentialSolver::mkTangentLemma(TNode e, TNode c, TNode poly_approx)
   d_data->d_im.addPendingArithLemma(lem, InferenceId::NL_T_TANGENT, true);
 }
 
+void ExponentialSolver::doSecantLemmas(TNode e,
+                                       TNode c,
+                                       TNode poly_approx,
+                                       unsigned d)
+{
+  d_data->doSecantLemmas(getSecantBounds(e, c, d), c, poly_approx, e, d, 1);
+}
+
 std::pair<Node, Node> ExponentialSolver::getSecantBounds(TNode e,
                                                          TNode c,
-                                                         unsigned d,
-                                                         int region)
+                                                         unsigned d)
 {
   std::pair<Node, Node> bounds = d_data->getClosestSecantPoints(e, c, d);
 

@@ -50,8 +50,8 @@ class ExponentialSolver
   ~ExponentialSolver();
 
   void initLastCall(const std::vector<Node>& assertions,
-                                        const std::vector<Node>& false_asserts,
-                                        const std::vector<Node>& xts);
+                    const std::vector<Node>& false_asserts,
+                    const std::vector<Node>& xts);
 
   /**
    * check initial refine
@@ -70,7 +70,6 @@ class ExponentialSolver
    */
   void checkInitialRefine();
 
-
   /**
    * check monotonicity
    *
@@ -84,24 +83,24 @@ class ExponentialSolver
    */
   void checkMonotonic();
 
-  void mkTangentLemma(TNode e, TNode c, TNode poly_approx);
+  /** Sent tangent lemma around c for e */
+  void doTangentLemma(TNode e, TNode c, TNode poly_approx);
 
-  std::pair<Node, Node> getSecantBounds(TNode e,
-                                        TNode c,
-                                        unsigned d,
-                                        int region);
+  /** Sent secant lemmas around c for e */
+  void doSecantLemmas(TNode e, TNode c, TNode poly_approx, unsigned d);
 
  private:
+  /** Generate bounds for secant lemmas */
+  std::pair<Node, Node> getSecantBounds(TNode e, TNode c, unsigned d);
 
- TranscendentalState* d_data;
+  TranscendentalState* d_data;
 
- /** The transcendental functions we have done initial refinements on */
+  /** The transcendental functions we have done initial refinements on */
   std::map<Node, bool> d_tf_initial_refine;
-
 
 }; /* class ExponentialSolver */
 
-}
+}  // namespace transcendental
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory

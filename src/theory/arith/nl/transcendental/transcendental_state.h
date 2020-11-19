@@ -124,24 +124,37 @@ struct TranscendentalState
     return NlLemma(lem, LemmaProperty::NONE, nullptr, InferenceId::NL_T_SECANT);
   }
 
-  void mkSecant(TNode lower,
-                TNode approx_lower,
-                TNode upper,
-                TNode approx_upper,
-                TNode tf,
-                TNode c,
-                unsigned d,
-                int concavity)
+  void doSecantLemmas(const std::pair<Node, Node>& bounds,
+                 TNode c,
+                 TNode approx_c,
+                 TNode tf,
+                 unsigned d,
+                 int concavity)
   {
-    if (lower == upper) return;
-    Node splane =
-        mkSecantPlane(tf[0], lower, upper, approx_lower, approx_upper);
+    // take the model value of l or u (since may contain PI)
+    // Make secant from bounds.first to c
+    Node lval = d_model.computeAbstractModelValue(bounds.first);
+    if (lval != c)
+    {
+      Node splane = mkSecantPlane(tf[0], lval, c, bounds.first, approx_c);
+      NlLemma nlem = mkSecantLemma(lval, c, concavity, tf, splane);
+      // The side effect says that if lem is added, then we should add the
+      // secant point c for (tf,d).
+      nlem.d_secantPoint.push_back(std::make_tuple(tf, d, c));
+      d_im.addPendingArithLemma(nlem, true);
+    }
 
-    NlLemma nlem = mkSecantLemma(lower, upper, concavity, tf, splane);
-    // The side effect says that if lem is added, then we should add the
-    // secant point c for (tf,d).
-    nlem.d_secantPoint.push_back(std::make_tuple(tf, d, c));
-    d_im.addPendingArithLemma(nlem, true);
+    // Make secant from c to bounds.second
+    Node uval = d_model.computeAbstractModelValue(bounds.second);
+    if (c != uval)
+    {
+      Node splane = mkSecantPlane(tf[0], c, uval, approx_c, bounds.second);
+      NlLemma nlem = mkSecantLemma(c, uval, concavity, tf, splane);
+      // The side effect says that if lem is added, then we should add the
+      // secant point c for (tf,d).
+      nlem.d_secantPoint.push_back(std::make_tuple(tf, d, c));
+      d_im.addPendingArithLemma(nlem, true);
+    }
   }
 
   Node d_true;

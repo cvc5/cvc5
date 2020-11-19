@@ -148,7 +148,8 @@ void SineSolver::checkMonotonic()
     return;
   }
 
-  sortByNlModel(tf_args.begin(), tf_args.end(), &d_data->d_model, true, false, true);
+  sortByNlModel(
+      tf_args.begin(), tf_args.end(), &d_data->d_model, true, false, true);
 
   std::vector<Node> mpoints = {d_data->d_pi,
                                d_data->d_pi_2,
@@ -257,7 +258,7 @@ void SineSolver::checkMonotonic()
   }
 }
 
-void SineSolver::mkTangentLemma(TNode e, TNode c, TNode poly_approx, int region)
+void SineSolver::doTangentLemma(TNode e, TNode c, TNode poly_approx, int region)
 {
   NodeManager* nm = NodeManager::currentNM();
 
@@ -286,6 +287,17 @@ void SineSolver::mkTangentLemma(TNode e, TNode c, TNode poly_approx, int region)
   Assert(d_data->d_model.computeAbstractModelValue(lem) == d_data->d_false);
   // Figure 3 : line 9
   d_data->d_im.addPendingArithLemma(lem, InferenceId::NL_T_TANGENT, true);
+}
+
+void SineSolver::doSecantLemmas(
+    TNode e, TNode c, TNode poly_approx, unsigned d, int region)
+{
+  d_data->doSecantLemmas(getSecantBounds(e, c, d, region),
+                         c,
+                         poly_approx,
+                         e,
+                         d,
+                         regionToConcavity(region));
 }
 
 std::pair<Node, Node> SineSolver::getSecantBounds(TNode e,
