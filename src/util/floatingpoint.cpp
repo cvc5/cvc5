@@ -64,10 +64,6 @@ CVC4_LIT_ITE_DFN(::CVC4::symfpuLiteral::traits::ubv);
 }
 #endif
 
-#ifndef CVC4_USE_SYMFPU
-#define PRECONDITION(X) Assert((X))
-#endif
-
 namespace CVC4 {
 
 #ifndef CVC4_USE_SYMFPU

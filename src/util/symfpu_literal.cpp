@@ -328,7 +328,7 @@ template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::contract(
     CVC4BitWidth reduction) const
 {
-  PRECONDITION(this->getWidth() > reduction);
+  Assert(this->getWidth() > reduction);
 
   return this->extract((this->getWidth() - 1) - reduction, 0);
 }
@@ -357,7 +357,7 @@ template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::matchWidth(
     const wrappedBitVector<isSigned>& op) const
 {
-  PRECONDITION(this->getWidth() <= op.getWidth());
+  Assert(this->getWidth() <= op.getWidth());
   return this->extend(op.getWidth() - this->getWidth());
 }
 
@@ -373,7 +373,7 @@ template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::extract(
     CVC4BitWidth upper, CVC4BitWidth lower) const
 {
-  PRECONDITION(upper >= lower);
+  Assert(upper >= lower);
   return this->BitVector::extract(upper, lower);
 }
 
