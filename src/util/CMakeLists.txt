@@ -8,6 +8,7 @@
 ## All rights reserved.  See the file COPYING in the top-level source
 ## directory for licensing information.
 ##
+configure_file(symfpu_literal.h.in symfpu_literal.h)
 configure_file(floatingpoint.h.in floatingpoint.h)
 configure_file(rational.h.in rational.h)
 configure_file(integer.h.in integer.h)
@@ -26,6 +27,8 @@ libcvc4_add_sources(
   divisible.cpp
   divisible.h
   floatingpoint.cpp
+  floatingpoint_size.cpp
+  floatingpoint_size.h
   gmp_util.h
   hash.h
   iand.h
@@ -44,6 +47,7 @@ libcvc4_add_sources(
   result.h
   regexp.cpp
   regexp.h
+  roundingmode.h
   safe_print.cpp
   safe_print.h
   sampler.cpp
@@ -58,6 +62,7 @@ libcvc4_add_sources(
   statistics_registry.h
   string.cpp
   string.h
+  symfpu_literal.cpp
   tuple.h
   unsafe_interrupt_exception.h
   utility.cpp
