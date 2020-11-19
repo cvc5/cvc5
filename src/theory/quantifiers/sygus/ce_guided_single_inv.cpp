@@ -27,7 +27,6 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/smt_engine_subsolver.h"
-#include "expr/skolem_manager.h"
 
 using namespace CVC4::kind;
 

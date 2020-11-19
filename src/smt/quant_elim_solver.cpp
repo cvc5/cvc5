@@ -19,7 +19,6 @@
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
-#include "expr/skolem_manager.h"
 
 using namespace CVC4::theory;
 using namespace CVC4::kind;
