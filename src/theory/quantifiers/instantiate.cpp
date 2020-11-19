@@ -755,16 +755,14 @@ void Instantiate::getInstantiationTermVectors(
 {
   if (options::incrementalSolving())
   {
-    for (const auto& t :
-         d_c_inst_match_trie)
+    for (const auto& t : d_c_inst_match_trie)
     {
       getInstantiationTermVectors(t.first, insts[t.first]);
     }
   }
   else
   {
-    for (const auto& t :
-         d_inst_match_trie)
+    for (const auto& t : d_inst_match_trie)
     {
       getInstantiationTermVectors(t.first, insts[t.first]);
     }
