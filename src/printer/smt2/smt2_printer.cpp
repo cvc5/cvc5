@@ -209,14 +209,14 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     case kind::CONST_ROUNDINGMODE:
       switch (n.getConst<RoundingMode>()) {
-      case roundNearestTiesToEven : out << "roundNearestTiesToEven"; break;
-      case roundNearestTiesToAway : out << "roundNearestTiesToAway"; break;
-      case roundTowardPositive : out << "roundTowardPositive"; break;
-      case roundTowardNegative : out << "roundTowardNegative"; break;
-      case roundTowardZero : out << "roundTowardZero"; break;
-      default :
-        Unreachable() << "Invalid value of rounding mode constant ("
-                      << n.getConst<RoundingMode>() << ")";
+        case ROUND_NEAREST_TIES_TO_EVEN: out << "roundNearestTiesToEven"; break;
+        case ROUND_NEAREST_TIES_TO_AWAY: out << "roundNearestTiesToAway"; break;
+        case ROUND_TOWARD_POSITIVE: out << "roundTowardPositive"; break;
+        case ROUND_TOWARD_NEGATIVE: out << "roundTowardNegative"; break;
+        case ROUND_TOWARD_ZERO: out << "roundTowardZero"; break;
+        default:
+          Unreachable() << "Invalid value of rounding mode constant ("
+                        << n.getConst<RoundingMode>() << ")";
       }
       break;
     case kind::CONST_BOOLEAN:
