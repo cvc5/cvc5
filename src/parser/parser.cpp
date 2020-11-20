@@ -16,8 +16,6 @@
 
 #include "parser/parser.h"
 
-#include <stdint.h>
-
 #include <cassert>
 #include <fstream>
 #include <iostream>
