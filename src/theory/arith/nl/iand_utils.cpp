@@ -159,15 +159,17 @@ Node IAndUtils::createBitwiseIAndNode(Node x,
                                       uint64_t high,
                                       uint64_t low)
 {
-  // temporary restriction to single bits
-  // TODO support all granularities
-  Assert(high == low);
-
-  NodeManager* nm = NodeManager::currentNM();
-  Node cond = nm->mkNode(kind::AND,
-                         iextract(high, low, x).eqNode(d_one),
-                         iextract(high, low, y).eqNode(d_one));
-  return nm->mkNode(kind::ITE, cond, d_one, d_zero);
+  uint64_t granularity = high - low + 1;
+  Assert(granularity <= 8);
+  // compute the table for the current granularity if needed
+  if (d_bvandTable.find(granularity) == d_bvandTable.end())
+  {
+    computeAndTable(granularity);
+  }
+  const std::map<std::pair<int64_t, int64_t>, uint64_t>& table =
+      d_bvandTable[granularity];
+  return createITEFromTable(
+      iextract(high, low, x), iextract(high, low, y), granularity, table);
 }
 
 Node IAndUtils::iextract(unsigned i, unsigned j, Node n) const

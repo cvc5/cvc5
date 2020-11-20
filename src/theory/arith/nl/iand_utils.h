@@ -111,7 +111,7 @@ class IAndUtils
   // Helpers
 
   /**
-   * A helper function for createSumNode
+   * A helper function for createSumNode and createBitwiseIAndNode
    * @param x integer node corresponding to the original first bit-vector
    *        argument
    * @param y integer node corresponding to the original second bit-vector
