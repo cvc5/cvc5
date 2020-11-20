@@ -170,18 +170,8 @@ void SymbolManager::Implementation::getModelDeclarations(
     std::vector<api::Sort>& declareSorts,
     std::vector<api::Term>& declareTerms) const
 {
-  for (SortList::const_iterator it = d_declareSorts.begin();
-       it != d_declareSorts.end();
-       ++it)
-  {
-    declareSorts.push_back(*it);
-  }
-  for (TermList::const_iterator it = d_declareTerms.begin();
-       it != d_declareTerms.end();
-       ++it)
-  {
-    declareTerms.push_back(*it);
-  }
+  declareSorts.insert(declareSorts.end(), d_declareSorts.begin(), d_declareSorts.end());
+  declareTerms.insert(declareTerms.end(), d_declareTerms.begin(), d_declareTerms.end());
 }
 
 void SymbolManager::Implementation::addModelDeclarationSort(api::Sort s)
