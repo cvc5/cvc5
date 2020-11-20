@@ -887,18 +887,10 @@ namespace constantFold {
     switch (k)
     {
 #ifdef CVC4_USE_SYMFPU
-      case kind::FLOATINGPOINT_COMPONENT_NAN:
-        result = arg0.getLiteral().nan;
-        break;
-      case kind::FLOATINGPOINT_COMPONENT_INF:
-        result = arg0.getLiteral().inf;
-        break;
-      case kind::FLOATINGPOINT_COMPONENT_ZERO:
-        result = arg0.getLiteral().zero;
-        break;
-      case kind::FLOATINGPOINT_COMPONENT_SIGN:
-        result = arg0.getLiteral().sign;
-        break;
+      case kind::FLOATINGPOINT_COMPONENT_NAN: result = arg0.isNaN(); break;
+      case kind::FLOATINGPOINT_COMPONENT_INF: result = arg0.isInfinite(); break;
+      case kind::FLOATINGPOINT_COMPONENT_ZERO: result = arg0.isZero(); break;
+      case kind::FLOATINGPOINT_COMPONENT_SIGN: result = arg0.getSign(); break;
 #endif
       default: Unreachable() << "Unknown kind used in componentFlag"; break;
     }
@@ -919,11 +911,11 @@ namespace constantFold {
     return RewriteResponse(
         REWRITE_DONE,
 #ifdef CVC4_USE_SYMFPU
-        NodeManager::currentNM()->mkConst((BitVector)arg0.getLiteral().exponent)
+        NodeManager::currentNM()->mkConst((BitVector)arg0.getExponent())
 #else
         node
 #endif
-            );
+    );
   }
 
   RewriteResponse componentSignificand(TNode node, bool)
@@ -932,14 +924,14 @@ namespace constantFold {
 
     FloatingPoint arg0(node[0].getConst<FloatingPoint>());
 
-    return RewriteResponse(REWRITE_DONE,
+    return RewriteResponse(
+        REWRITE_DONE,
 #ifdef CVC4_USE_SYMFPU
-                           NodeManager::currentNM()->mkConst(
-                               (BitVector)arg0.getLiteral().significand)
+        NodeManager::currentNM()->mkConst((BitVector)arg0.getSignificand())
 #else
-                           node
+        node
 #endif
-                               );
+    );
   }
 
   RewriteResponse roundingModeBitBlast(TNode node, bool)
