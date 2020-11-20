@@ -179,6 +179,11 @@ class NormalForm
    * @return a constant set constructed from the elements in A.
    */
   static Node evaluateToSet(TNode n);
+  /**
+   * @param n has the form (= A B) where A and B are constant bags
+   * @return a whether A = B.
+   */
+  static Node evaluateEqual(TNode n);
 };
 }  // namespace bags
 }  // namespace theory

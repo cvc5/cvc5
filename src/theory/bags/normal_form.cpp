@@ -105,6 +105,7 @@ Node NormalForm::evaluate(TNode n)
     case BAG_IS_SINGLETON: return evaluateIsSingleton(n);
     case BAG_FROM_SET: return evaluateFromSet(n);
     case BAG_TO_SET: return evaluateToSet(n);
+    case EQUAL: return evaluateEqual(n);
     default: break;
   }
   Unhandled() << "Unexpected bag kind '" << n.getKind() << "' in node " << n
@@ -649,6 +650,17 @@ Node NormalForm::evaluateToSet(TNode n)
   TypeNode setType = nm->mkSetType(n[0].getType().getBagElementType());
   Node set = sets::NormalForm::elementsToSet(setElements, setType);
   return set;
+}
+
+Node NormalForm::evaluateEqual(TNode n)
+{
+  Assert(n.getKind() == EQUAL);
+  NodeManager* nm = NodeManager::currentNM();
+  if (n[0] == n[1])
+  {
+    return nm->mkConst(true);
+  }
+  return nm->mkConst(false);
 }
 
 }  // namespace bags
