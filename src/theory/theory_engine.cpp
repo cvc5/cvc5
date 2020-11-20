@@ -1183,7 +1183,8 @@ Node TheoryEngine::ensureLiteral(TNode n) {
     lemma(tnl, LemmaProperty::NONE);
   }
   Node preprocessed = tpn.isNull() ? rewritten : tpn.getNode();
-  Trace("ensureLiteral") << "ensureLiteral preprocessed: " << preprocessed << std::endl;
+  Trace("ensureLiteral") << "ensureLiteral preprocessed: " << preprocessed
+                         << std::endl;
   d_propEngine->ensureLiteral(preprocessed);
   return preprocessed;
 }
@@ -1533,7 +1534,8 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   d_propEngine->assertLemma(tlemma.getProven(), false, removable);
   for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
   {
-    Trace("te-lemma") << "Lemma, new lemma: " << newLemmas[i].getProven() << std::endl;
+    Trace("te-lemma") << "Lemma, new lemma: " << newLemmas[i].getProven()
+                      << std::endl;
     d_propEngine->assertLemma(newLemmas[i].getProven(), false, removable);
   }
 
