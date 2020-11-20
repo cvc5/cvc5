@@ -174,34 +174,10 @@ void TheoryDatatypes::postCheck(Effort level)
   d_im.process();
   if (level == EFFORT_LAST_CALL)
   {
-    // do instantiate
-    if (options::dtInstLazy())
-    {
-      d_im.reset();
-      eq::EqClassesIterator eqccs_i = eq::EqClassesIterator(d_equalityEngine);
-      while (!eqccs_i.isFinished())
-      {
-        Node eqc = (*eqccs_i);
-        if (!eqc.getType().isDatatype())
-        {
-          continue;
-        }
-        EqcInfo* ei = getOrMakeEqcInfo(eqc);
-        instantiate(ei, eqc, true);
-      }
-      d_im.process();
-      if (d_state.isInConflict() || d_im.hasSentLemma())
-      {
-        return;
-      }
-    }
-
-    if (d_sygusExtension != nullptr)
-    {
-      std::vector<Node> lemmas;
-      d_sygusExtension->check(lemmas);
-      d_im.sendLemmas(lemmas);
-    }
+    Assert(d_sygusExtension != nullptr);
+    std::vector<Node> lemmas;
+    d_sygusExtension->check(lemmas);
+    d_im.sendLemmas(lemmas);
     return;
   }
   else if (level == EFFORT_FULL && !d_state.isInConflict()
@@ -399,7 +375,7 @@ void TheoryDatatypes::postCheck(Effort level)
 }
 
 bool TheoryDatatypes::needsCheckLastEffort() {
-  return options::dtInstLazy() || d_sygusExtension != nullptr;
+  return d_sygusExtension != nullptr;
 }
 
 void TheoryDatatypes::notifyFact(TNode atom,
@@ -1543,13 +1519,7 @@ Node TheoryDatatypes::getInstantiateCons(Node n, const DType& dt, int index)
   }
 }
 
-void TheoryDatatypes::instantiate(EqcInfo* eqc, Node n, bool force)
-{
-  if (!force && options::dtInstLazy())
-  {
-    // wait to apply
-    return;
-  }
+void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
   Trace("datatypes-debug") << "Instantiate: " << n << std::endl;
   //add constructor to equivalence class if not done so already
   int index = getLabelIndex( eqc, n );
@@ -1587,7 +1557,7 @@ void TheoryDatatypes::instantiate(EqcInfo* eqc, Node n, bool force)
   // selector terms that may contribute to conflicts due to cardinality (good
   // examples of this are regress0/datatypes/dt-param-card4-bool-sat.smt2 and
   // regress0/datatypes/list-bool.smt2).
-  bool forceLemma = true;  // dt[index].hasFiniteExternalArgType(ttn);
+  bool forceLemma = dt[index].hasFiniteExternalArgType(ttn);
   Trace("datatypes-infer-debug") << "DtInstantiate : " << eqc << " " << eq
                                  << " forceLemma = " << forceLemma << std::endl;
   d_im.addPendingInference(eq, exp, forceLemma, InferId::INST);
