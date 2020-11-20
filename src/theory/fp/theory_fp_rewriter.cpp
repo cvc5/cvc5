@@ -954,23 +954,23 @@ namespace constantFold {
     RoundingMode arg0(node[0].getConst<RoundingMode>());
     switch (arg0)
     {
-      case roundNearestTiesToEven:
+      case ROUND_NEAREST_TIES_TO_EVEN:
         value = symfpuSymbolic::traits::RNE().getConst<BitVector>();
         break;
 
-      case roundNearestTiesToAway:
+      case ROUND_NEAREST_TIES_TO_AWAY:
         value = symfpuSymbolic::traits::RNA().getConst<BitVector>();
         break;
 
-      case roundTowardPositive:
+      case ROUND_TOWARD_POSITIVE:
         value = symfpuSymbolic::traits::RTP().getConst<BitVector>();
         break;
 
-      case roundTowardNegative:
+      case ROUND_TOWARD_NEGATIVE:
         value = symfpuSymbolic::traits::RTN().getConst<BitVector>();
         break;
 
-      case roundTowardZero:
+      case ROUND_TOWARD_ZERO:
         value = symfpuSymbolic::traits::RTZ().getConst<BitVector>();
         break;
 
@@ -1351,58 +1351,65 @@ TheoryFpRewriter::TheoryFpRewriter()
         }
       }
 
-      if (allChildrenConst) {
-	RewriteStatus rs = REWRITE_DONE;    // This is a bit messy because
-        Node rn = res.d_node;  // RewriteResponse is too functional..
+      if (allChildrenConst)
+      {
+        RewriteStatus rs = REWRITE_DONE;  // This is a bit messy because
+        Node rn = res.d_node;             // RewriteResponse is too functional..
 
-        if (apartFromRoundingMode) {
+        if (apartFromRoundingMode)
+        {
           if (!(res.d_node.getKind() == kind::EQUAL)
               &&  // Avoid infinite recursion...
               !(res.d_node.getKind() == kind::ROUNDINGMODE_BITBLAST))
-          {  // Don't eliminate the bit-blast
+          {
+            // Don't eliminate the bit-blast
             // We are close to being able to constant fold this
             // and in many cases the rounding mode really doesn't matter.
             // So we can try brute forcing our way through them.
 
-            NodeManager *nm = NodeManager::currentNM();
+            NodeManager* nm = NodeManager::currentNM();
 
-	    Node RNE(nm->mkConst(roundNearestTiesToEven));
-	    Node RNA(nm->mkConst(roundNearestTiesToAway));
-	    Node RTZ(nm->mkConst(roundTowardPositive));
-	    Node RTN(nm->mkConst(roundTowardNegative));
-	    Node RTP(nm->mkConst(roundTowardZero));
+            Node rne(nm->mkConst(ROUND_NEAREST_TIES_TO_EVEN));
+            Node rna(nm->mkConst(ROUND_NEAREST_TIES_TO_AWAY));
+            Node rtz(nm->mkConst(ROUND_TOWARD_POSITIVE));
+            Node rtn(nm->mkConst(ROUND_TOWARD_NEGATIVE));
+            Node rtp(nm->mkConst(ROUND_TOWARD_ZERO));
 
-            TNode RM(res.d_node[0]);
+            TNode rm(res.d_node[0]);
 
-            Node wRNE(res.d_node.substitute(RM, TNode(RNE)));
-            Node wRNA(res.d_node.substitute(RM, TNode(RNA)));
-            Node wRTZ(res.d_node.substitute(RM, TNode(RTZ)));
-            Node wRTN(res.d_node.substitute(RM, TNode(RTN)));
-            Node wRTP(res.d_node.substitute(RM, TNode(RTP)));
+            Node w_rne(res.d_node.substitute(rm, TNode(rne)));
+            Node w_rna(res.d_node.substitute(rm, TNode(rna)));
+            Node w_rtz(res.d_node.substitute(rm, TNode(rtz)));
+            Node w_rtn(res.d_node.substitute(rm, TNode(rtn)));
+            Node w_rtp(res.d_node.substitute(rm, TNode(rtp)));
 
             rs = REWRITE_AGAIN_FULL;
-	    rn = nm->mkNode(kind::ITE,
-			    nm->mkNode(kind::EQUAL, RM, RNE),
-			    wRNE,
-			    nm->mkNode(kind::ITE,
-				       nm->mkNode(kind::EQUAL, RM, RNA),
-				       wRNA,
-				       nm->mkNode(kind::ITE,
-						  nm->mkNode(kind::EQUAL, RM, RTZ),
-						  wRTZ,
-						  nm->mkNode(kind::ITE,
-							     nm->mkNode(kind::EQUAL, RM, RTN),
-							     wRTN,
-							     wRTP))));
-	  }
-	} else {
+            rn = nm->mkNode(
+                kind::ITE,
+                nm->mkNode(kind::EQUAL, rm, rne),
+                w_rne,
+                nm->mkNode(
+                    kind::ITE,
+                    nm->mkNode(kind::EQUAL, rm, rna),
+                    w_rna,
+                    nm->mkNode(kind::ITE,
+                               nm->mkNode(kind::EQUAL, rm, rtz),
+                               w_rtz,
+                               nm->mkNode(kind::ITE,
+                                          nm->mkNode(kind::EQUAL, rm, rtn),
+                                          w_rtn,
+                                          w_rtp))));
+          }
+        }
+        else
+        {
           RewriteResponse tmp =
               d_constantFoldTable[res.d_node.getKind()](res.d_node, false);
           rs = tmp.d_status;
           rn = tmp.d_node;
         }
 
-	RewriteResponse constRes(rs,rn);
+        RewriteResponse constRes(rs, rn);
 
         if (constRes.d_node != res.d_node)
         {

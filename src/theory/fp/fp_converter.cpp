@@ -797,17 +797,17 @@ Node FpConverter::rmToNode(const rm &r) const
   Node value = nm->mkNode(
       kind::ITE,
       nm->mkNode(kind::EQUAL, transVar, RNE),
-      nm->mkConst(roundNearestTiesToEven),
+      nm->mkConst(ROUND_NEAREST_TIES_TO_EVEN),
       nm->mkNode(kind::ITE,
                  nm->mkNode(kind::EQUAL, transVar, RNA),
-                 nm->mkConst(roundNearestTiesToAway),
+                 nm->mkConst(ROUND_NEAREST_TIES_TO_AWAY),
                  nm->mkNode(kind::ITE,
                             nm->mkNode(kind::EQUAL, transVar, RTP),
-                            nm->mkConst(roundTowardPositive),
+                            nm->mkConst(ROUND_TOWARD_POSITIVE),
                             nm->mkNode(kind::ITE,
                                        nm->mkNode(kind::EQUAL, transVar, RTN),
-                                       nm->mkConst(roundTowardNegative),
-                                       nm->mkConst(roundTowardZero)))));
+                                       nm->mkConst(ROUND_TOWARD_NEGATIVE),
+                                       nm->mkConst(ROUND_TOWARD_ZERO)))));
   return value;
 }
 
@@ -875,19 +875,19 @@ Node FpConverter::convert(TNode node)
             /******** Constants ********/
             switch (current.getConst<RoundingMode>())
             {
-              case roundNearestTiesToEven:
+              case ROUND_NEAREST_TIES_TO_EVEN:
                 d_rmMap.insert(current, traits::RNE());
                 break;
-              case roundNearestTiesToAway:
+              case ROUND_NEAREST_TIES_TO_AWAY:
                 d_rmMap.insert(current, traits::RNA());
                 break;
-              case roundTowardPositive:
+              case ROUND_TOWARD_POSITIVE:
                 d_rmMap.insert(current, traits::RTP());
                 break;
-              case roundTowardNegative:
+              case ROUND_TOWARD_NEGATIVE:
                 d_rmMap.insert(current, traits::RTN());
                 break;
-              case roundTowardZero:
+              case ROUND_TOWARD_ZERO:
                 d_rmMap.insert(current, traits::RTZ());
                 break;
               default: Unreachable() << "Unknown rounding mode"; break;
