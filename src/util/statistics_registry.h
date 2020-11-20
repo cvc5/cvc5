@@ -36,8 +36,6 @@
 #ifndef CVC4__STATISTICS_REGISTRY_H
 #define CVC4__STATISTICS_REGISTRY_H
 
-#include <stdint.h>
-
 #include <ctime>
 #include <iomanip>
 #include <map>

@@ -16,8 +16,6 @@
 
 #include "theory/strings/theory_strings_preprocess.h"
 
-#include <stdint.h>
-
 #include "expr/kind.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"

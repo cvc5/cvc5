@@ -19,8 +19,6 @@
 
 #pragma once
 
-#include <stdint.h>
-
 // ATTRIBUTE IDs ============================================================
 
 namespace CVC4 {
