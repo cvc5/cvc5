@@ -86,14 +86,6 @@ header = "options/datatypes_options.h"
   help       = "internally use shared selectors across multiple constructors"
 
 [[option]]
-  name       = "dtInstLazy"
-  category   = "regular"
-  long       = "dt-inst-lazy"
-  type       = "bool"
-  default    = "false"
-  help       = "lazily apply the instantiate inference"
-
-[[option]]
   name       = "sygusSymBreak"
   category   = "regular"
   long       = "sygus-sym-break"
