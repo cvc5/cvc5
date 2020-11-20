@@ -1698,14 +1698,13 @@ void GetModelCommand::invoke(api::Solver* solver, SymbolManager* sm)
   {
     d_result = solver->getSmtEngine()->getModel();
     // set the model declarations, which determines what is printed in the model
-    std::vector<api::Sort> declareSorts;
-    std::vector<api::Term> declareTerms;
-    sm->getModelDeclarations(declareSorts, declareTerms);
     d_result->clearModelDeclarations();
+    std::vector<api::Sort> declareSorts = sm->getModelDeclareSorts();
     for (const api::Sort& s : declareSorts)
     {
       d_result->addDeclarationSort(s.getTypeNode());
     }
+    std::vector<api::Term> declareTerms = sm->getModelDeclareTerms();
     for (const api::Term& t : declareTerms)
     {
       d_result->addDeclarationTerm(t.getNode());
