@@ -292,7 +292,7 @@ class FloatingPointLiteral
   {
   }
 #else
-  FloatingPointLiteral(uint32_t, uint32_t, double);
+  FloatingPointLiteral(uint32_t, uint32_t, double) { unfinished(); };
 #endif
   ~FloatingPointLiteral() {}
 

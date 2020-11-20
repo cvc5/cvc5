@@ -77,12 +77,22 @@ namespace CVC4 {
 
 uint32_t FloatingPoint::getUnpackedExponentWidth(FloatingPointSize& size)
 {
+#ifdef CVC4_USE_SYMFPU
   return SymFPUUnpackedFloatLiteral::exponentWidth(size);
+#else
+  Unreachable() << "no concrete implementation of FloatingPointLiteral";
+  return 2;
+#endif
 }
 
 uint32_t FloatingPoint::getUnpackedSignificandWidth(FloatingPointSize& size)
 {
+#ifdef CVC4_USE_SYMFPU
   return SymFPUUnpackedFloatLiteral::significandWidth(size);
+#else
+  Unreachable() << "no concrete implementation of FloatingPointLiteral";
+  return 2;
+#endif
 }
 
 FloatingPoint::FloatingPoint(uint32_t d_exp_size,
@@ -134,7 +144,7 @@ FloatingPoint::FloatingPoint(const FloatingPointSize& size,
             symfpuLiteral::CVC4UnsignedBitVector(bv)));
   }
 #else
-  d_fpl = FloatingPointLiteral(2, 2, 0.0);
+  d_fpl = new FloatingPointLiteral(2, 2, 0.0);
 #endif
 }
 
@@ -164,7 +174,7 @@ FloatingPoint::FloatingPoint(const FloatingPointSize& size,
     d_fpl = new FloatingPointLiteral(
         SymFPUUnpackedFloatLiteral::makeZero(size, false));
 #else
-    d_fpl = FloatingPointLiteral(2, 2, 0.0);
+    d_fpl = new FloatingPointLiteral(2, 2, 0.0);
 #endif
   }
   else
@@ -572,14 +582,35 @@ bool FloatingPoint::operator<(const FloatingPoint& arg) const
 #endif
 }
 
-BitVector FloatingPoint::getExponent() const { return d_fpl->d_symuf.exponent; }
+BitVector FloatingPoint::getExponent() const
+{
+#ifdef CVC4_USE_SYMFPU
+  return d_fpl->d_symuf.exponent;
+#else
+  Unreachable() << "no concrete implementation of FloatingPointLiteral";
+  return BitVector();
+#endif
+}
 
 BitVector FloatingPoint::getSignificand() const
 {
+#ifdef CVC4_USE_SYMFPU
   return d_fpl->d_symuf.significand;
+#else
+  Unreachable() << "no concrete implementation of FloatingPointLiteral";
+  return BitVector();
+#endif
 }
 
-bool FloatingPoint::getSign() const { return d_fpl->d_symuf.sign; }
+bool FloatingPoint::getSign() const
+{
+#ifdef CVC4_USE_SYMFPU
+  return d_fpl->d_symuf.sign;
+#else
+  Unreachable() << "no concrete implementation of FloatingPointLiteral";
+  return false;
+#endif
+}
 
 bool FloatingPoint::isNormal(void) const
 {
