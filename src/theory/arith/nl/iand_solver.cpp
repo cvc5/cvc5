@@ -244,7 +244,8 @@ Node IAndSolver::bitwiseLemma(Node i)
   Node x = i[0];
   Node y = i[1];
 
-  unsigned k = i.getOperator().getConst<IntAnd>().d_size;
+  unsigned bvsize = i.getOperator().getConst<IntAnd>().d_size;
+  uint64_t granularity = options::BVAndIntegerGranularity();
 
   Rational absI = d_model.computeAbstractModelValue(i).getConst<Rational>();
   Rational concI = d_model.computeConcreteModelValue(i).getConst<Rational>();
@@ -252,8 +253,8 @@ Node IAndSolver::bitwiseLemma(Node i)
   Assert(absI.isIntegral());
   Assert(concI.isIntegral());
 
-  BitVector bvAbsI = BitVector(k, absI.getNumerator());
-  BitVector bvConcI = BitVector(k, concI.getNumerator());
+  BitVector bvAbsI = BitVector(bvsize, absI.getNumerator());
+  BitVector bvConcI = BitVector(bvsize, concI.getNumerator());
 
   NodeManager* nm = NodeManager::currentNM();
   Node lem = d_true;
@@ -261,13 +262,23 @@ Node IAndSolver::bitwiseLemma(Node i)
   // compare each bit to bvI
   Node cond;
   Node bitIAnd;
-  for (unsigned j = 0; j < k; j++)
+  unsigned high_bit;
+  for (unsigned j = 0; j < bvsize; j += granularity)
   {
-    if (bvAbsI.extract(j, j) != bvConcI.extract(j, j))
+    high_bit = j + granularity - 1;
+    // don't let high_bit pass bvsize
+    if (high_bit >= bvsize)
     {
-      bitIAnd = d_iandUtils.createBitwiseIAndNode(x, y, j, j);
+      high_bit = bvsize - 1;
+    }
+
+    // check if the abstraction differs from the concrete one on these bits
+    if (bvAbsI.extract(high_bit, j) != bvConcI.extract(high_bit, j))
+    {
+      bitIAnd = d_iandUtils.createBitwiseIAndNode(x, y, high_bit, j);
       // enforce bitwise equality
-      lem = nm->mkNode(AND, lem, d_iandUtils.iextract(j, j, i).eqNode(bitIAnd));
+      lem = nm->mkNode(
+          AND, lem, d_iandUtils.iextract(high_bit, j, i).eqNode(bitIAnd));
     }
   }
   return lem;
