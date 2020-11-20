@@ -89,7 +89,7 @@ void IAndSolver::checkInitialRefine()
       // conj.push_back(i.eqNode(nm->mkNode(IAND, op, i[1], i[0])));
       // 0 <= iand(x,y) < 2^k
       conj.push_back(nm->mkNode(LEQ, d_zero, i));
-      conj.push_back(nm->mkNode(LT, i, d_iandTable.twoToK(k)));
+      conj.push_back(nm->mkNode(LT, i, d_iandUtils.twoToK(k)));
       // iand(x,y)<=x
       conj.push_back(nm->mkNode(LEQ, i, i[0]));
       // iand(x,y)<=y
@@ -202,7 +202,7 @@ Node IAndSolver::mkIOr(unsigned k, Node x, Node y) const
 Node IAndSolver::mkINot(unsigned k, Node x) const
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node ret = nm->mkNode(MINUS, d_iandTable.twoToKMinusOne(k), x);
+  Node ret = nm->mkNode(MINUS, d_iandUtils.twoToKMinusOne(k), x);
   ret = Rewriter::rewrite(ret);
   return ret;
 }
@@ -234,7 +234,7 @@ Node IAndSolver::sumBasedLemma(Node i)
   uint64_t granularity = options::BVAndIntegerGranularity();
   NodeManager* nm = NodeManager::currentNM();
   Node lem = nm->mkNode(
-      EQUAL, i, d_iandTable.createSumNode(x, y, bvsize, granularity));
+      EQUAL, i, d_iandUtils.createSumNode(x, y, bvsize, granularity));
   return lem;
 }
 
@@ -267,11 +267,11 @@ Node IAndSolver::bitwiseLemma(Node i)
     {
       // x[j] & y[j] == ite(x[j] == 1 /\ y[j] == 1, 1, 0)
       cond = nm->mkNode(AND,
-                        d_iandTable.iextract(j, j, x).eqNode(d_one),
-                        d_iandTable.iextract(j, j, y).eqNode(d_one));
+                        d_iandUtils.iextract(j, j, x).eqNode(d_one),
+                        d_iandUtils.iextract(j, j, y).eqNode(d_one));
       bitIAnd = nm->mkNode(ITE, cond, d_one, d_zero);
       // enforce bitwise equality
-      lem = nm->mkNode(AND, lem, d_iandTable.iextract(j, j, i).eqNode(bitIAnd));
+      lem = nm->mkNode(AND, lem, d_iandUtils.iextract(j, j, i).eqNode(bitIAnd));
     }
   }
   return lem;

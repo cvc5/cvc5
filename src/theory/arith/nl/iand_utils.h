@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file iand_table.h
+/*! \file iand_utils.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Yoni Zohar
@@ -18,6 +18,7 @@
 
 #include <tuple>
 #include <vector>
+
 #include "expr/node.h"
 
 namespace CVC4 {
@@ -29,10 +30,10 @@ namespace nl {
  * A class that computes tables for iand values
  * with various bit-widths
  */
-class IAndTable
+class IAndUtils
 {
  public:
-  IAndTable();
+  IAndUtils();
 
   /**
    * A generic function that creates a node that represents a bvand

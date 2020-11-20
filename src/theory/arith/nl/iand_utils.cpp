@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file iand_table.cpp
+/*! \file iand_utils.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Yoni Zohar
@@ -13,7 +13,7 @@
  ** the value of iand.
  **/
 
-#include "theory/arith/nl/iand_table.h"
+#include "theory/arith/nl/iand_utils.h"
 
 #include <cmath>
 
@@ -52,14 +52,14 @@ Node intExtract(Node x, uint64_t i, uint64_t size)
   return extract;
 }
 
-IAndTable::IAndTable()
+IAndUtils::IAndUtils()
 {
   NodeManager* nm = NodeManager::currentNM();
   d_one = nm->mkConst(Rational(1));
   d_two = nm->mkConst(Rational(2));
 }
 
-Node IAndTable::createITEFromTable(
+Node IAndUtils::createITEFromTable(
     Node x,
     Node y,
     uint64_t granularity,
@@ -97,7 +97,7 @@ Node IAndTable::createITEFromTable(
   return ite;
 }
 
-Node IAndTable::createSumNode(Node x,
+Node IAndUtils::createSumNode(Node x,
                               Node y,
                               uint64_t bvsize,
                               uint64_t granularity)
@@ -153,7 +153,7 @@ Node IAndTable::createSumNode(Node x,
   return sumNode;
 }
 
-Node IAndTable::iextract(unsigned i, unsigned j, Node n) const
+Node IAndUtils::iextract(unsigned i, unsigned j, Node n) const
 {
   NodeManager* nm = NodeManager::currentNM();
   //  ((_ extract i j) n) is n / 2^j mod 2^{i-j+1}
@@ -163,7 +163,7 @@ Node IAndTable::iextract(unsigned i, unsigned j, Node n) const
   return ret;
 }
 
-void IAndTable::computeAndTable(uint64_t granularity)
+void IAndUtils::computeAndTable(uint64_t granularity)
 {
   Assert(d_bvandTable.find(granularity) == d_bvandTable.end());
   // the table was not yet computed
@@ -193,12 +193,13 @@ void IAndTable::computeAndTable(uint64_t granularity)
   }
   // optimize the table by identifying and adding the default value
   addDefaultValue(table, num_of_values);
-  Assert(table.size() == 1 + (static_cast<uint64_t>(num_of_values * num_of_values)));
+  Assert(table.size()
+         == 1 + (static_cast<uint64_t>(num_of_values * num_of_values)));
   // store the table in the cache and return it
   d_bvandTable[granularity] = table;
 }
 
-void IAndTable::addDefaultValue(
+void IAndUtils::addDefaultValue(
     std::map<std::pair<int64_t, int64_t>, uint64_t>& table,
     uint64_t num_of_values)
 {
@@ -233,7 +234,7 @@ void IAndTable::addDefaultValue(
   table[std::make_pair(-1, -1)] = most_common_result;
 }
 
-Node IAndTable::twoToK(unsigned k) const
+Node IAndUtils::twoToK(unsigned k) const
 {
   // could be faster
   NodeManager* nm = NodeManager::currentNM();
@@ -242,7 +243,7 @@ Node IAndTable::twoToK(unsigned k) const
   return ret;
 }
 
-Node IAndTable::twoToKMinusOne(unsigned k) const
+Node IAndUtils::twoToKMinusOne(unsigned k) const
 {
   // could be faster
   NodeManager* nm = NodeManager::currentNM();

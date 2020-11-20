@@ -22,7 +22,7 @@
 #include "expr/node.h"
 #include "theory/arith/arith_state.h"
 #include "theory/arith/inference_manager.h"
-#include "theory/arith/nl/iand_table.h"
+#include "theory/arith/nl/iand_utils.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
 
@@ -89,7 +89,7 @@ class IAndSolver
   Node d_one;
   Node d_two;
 
-  IAndTable d_iandTable;
+  IAndUtils d_iandUtils;
   /** IAND terms that have been given initial refinement lemmas */
   NodeSet d_initRefine;
   /** all IAND terms, for each bit-width */
