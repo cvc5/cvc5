@@ -17,6 +17,7 @@
 #include "expr/subs.h"
 #include "smt/smt_solver.h"
 #include "theory/quantifiers/extended_rewrite.h"
+#include "theory/quantifiers/nested_qe.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 
@@ -40,6 +41,9 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
     throw ModalException(
         "Expecting a quantified formula as argument to get-qe.");
   }
+  // do nested quantifier elimination if necessary
+  q = NestedQe::doNestedQe(q, true);
+  Trace("smt-qe") << "QuantElimSolver: after nested quantifier elimination : " << q << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   // tag the quantified formula with the quant-elim attribute
   TypeNode t = nm->booleanType();

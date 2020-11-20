@@ -69,6 +69,14 @@ bool NestedQe::hasNestedQuantification(Node q)
 
 Node NestedQe::doNestedQe(Node q, bool keepTopLevel)
 {
+  NodeManager* nm = NodeManager::currentNM();
+  Node qOrig = q;
+  bool inputExists = false;
+  if (q.getKind()==kind::EXISTS)
+  {
+    q = nm->mkNode(kind::FORALL, q[0], q[1].negate());
+    inputExists = true;
+  }
   Assert(q.getKind() == kind::FORALL);
   std::unordered_set<Node, NodeHashFunction> nqs;
   if (!getNestedQuantification(q, nqs))
@@ -77,7 +85,7 @@ Node NestedQe::doNestedQe(Node q, bool keepTopLevel)
         << "...no nested quantification" << std::endl;
     if (keepTopLevel)
     {
-      return q;
+      return qOrig;
     }
     // just do ordinary quantifier elimination
     Node qqe = doQe(q);
@@ -114,13 +122,12 @@ Node NestedQe::doNestedQe(Node q, bool keepTopLevel)
   // reconstruct the body
   std::vector<Node> qargs;
   qargs.push_back(q[0]);
-  qargs.push_back(qeBody);
+  qargs.push_back(inputExists ? qeBody.negate() : qeBody);
   if (q.getNumChildren() == 3)
   {
     qargs.push_back(q[2]);
   }
-  NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(kind::FORALL, qargs);
+  return nm->mkNode(inputExists ? kind::EXISTS : kind::FORALL, qargs);
 }
 
 Node NestedQe::doQe(Node q)
