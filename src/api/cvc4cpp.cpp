@@ -851,6 +851,10 @@ class CVC4ApiRecoverableExceptionStream
   {
 #define CVC4_API_SOLVER_TRY_CATCH_END                                          \
   }                                                                            \
+  catch (const UnrecognizedOptionException& e)                                 \
+  {                                                                            \
+    throw UnrecognizedOptionException(e.getMessage());                         \
+  }                                                                            \
   catch (const CVC4::RecoverableModalException& e)                             \
   {                                                                            \
     throw CVC4ApiRecoverableException(e.getMessage());                         \

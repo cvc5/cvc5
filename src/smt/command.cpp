@@ -2593,10 +2593,6 @@ void GetInfoCommand::invoke(api::Solver* solver, SymbolManager* sm)
     d_result = sexprToString(solver->mkTerm(api::SEXPR, v));
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC4ApiRecoverableException&)
-  {
-    d_commandStatus = new CommandUnsupported();
-  }
   catch (api::CVC4ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
@@ -2652,10 +2648,10 @@ void SetOptionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    solver->getSmtEngine()->setOption(d_flag, d_sexpr);
+    solver->setOption(d_flag, d_sexpr);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (UnrecognizedOptionException&)
+  catch (api::CVC4ApiRecoverableException&)
   {
     d_commandStatus = new CommandUnsupported();
   }
@@ -2690,10 +2686,10 @@ void GetOptionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    d_result = solver->getSmtEngine()->getOption(d_flag).getValue();
+    d_result = solver->getOption(d_flag);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (UnrecognizedOptionException&)
+  catch (api::CVC4ApiRecoverableException&)
   {
     d_commandStatus = new CommandUnsupported();
   }
