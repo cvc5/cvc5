@@ -159,7 +159,7 @@ void IAndSolver::checkFullRefine()
         Trace("iand-lemma")
             << "IAndSolver::Lemma: " << lem << " ; BITWISE_REFINE" << std::endl;
         d_im.addPendingArithLemma(
-            lem, InferenceId::NL_IAND_BITWISE_REFINE, true);
+            lem, InferenceId::NL_IAND_BITWISE_REFINE, nullptr, true);
       }
       else
       {
