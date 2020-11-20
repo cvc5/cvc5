@@ -300,7 +300,7 @@ bool ProcessAssertions::apply(Assertions& as)
 
   {
     d_smtStats.d_numAssertionsPre += assertions.size();
-    d_passes["ite-removal"]->apply(&assertions);
+    //d_passes["ite-removal"]->apply(&assertions);
     // This is needed because when solving incrementally, removeITEs may
     // introduce skolems that were solved for earlier and thus appear in the
     // substitution map.
@@ -392,7 +392,7 @@ bool ProcessAssertions::apply(Assertions& as)
       // TODO(b/1256): For some reason this is needed for some benchmarks, such
       // as
       // QF_AUFBV/dwp_formulas/try5_small_difret_functions_dwp_tac.re_node_set_remove_at.il.dwp.smt2
-      d_passes["ite-removal"]->apply(&assertions);
+      //d_passes["ite-removal"]->apply(&assertions);
       d_passes["apply-substs"]->apply(&assertions);
     }
     Trace("smt-proc")

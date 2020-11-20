@@ -18,6 +18,7 @@
 #include "expr/skolem_manager.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
+#include "expr/node_algorithm.h"
 #include "theory/theory_engine.h"
 
 using namespace std;
@@ -139,6 +140,7 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
   }
   if (node == retNode)
   {
+    Trace("tpp-debug") << "...TheoryPreprocessor::preprocess returned no change" << std::endl;
     // no change
     Assert(newLemmas.empty());
     return TrustNode::null();
@@ -217,7 +219,7 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
     Assert(!isProofEnabled() || newLemmas[i].getGenerator() != nullptr);
     newLemmas[i].debugCheckClosed("tpp-debug", "TheoryPreprocessor::lemma_new");
   }
-  Trace("tpp-debug") << "Preprocessed: " << node << " " << retNode << std::endl;
+  Trace("tpp-debug") << "...TheoryPreprocessor::preprocess returned " << tret.getNode() << std::endl;
   return tret;
 }
 

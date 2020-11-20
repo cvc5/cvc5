@@ -202,7 +202,7 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
   {
     // Here, we eliminate the ITE if we are not Boolean and if we do not contain
     // a free variable.
-    if (!inQuant || !expr::hasFreeVar(node))
+    if (!inQuant)
     {
       skolem = getSkolemForNode(node);
       if (skolem.isNull())
