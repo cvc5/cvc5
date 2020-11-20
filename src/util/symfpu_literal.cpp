@@ -17,6 +17,25 @@
 
 namespace CVC4 {
 
+#ifndef CVC4_USE_SYMFPU
+void FloatingPointLiteral::unfinished(void) const
+{
+  Unimplemented() << "Floating-point literals not yet implemented.";
+}
+
+bool FloatingPointLiteral::operator==(const FloatingPointLiteral& other) const
+{
+  unfinished();
+  return false;
+}
+
+size_t FloatingPointLiteral::hash(void) const
+{
+  unfinished();
+  return 23;
+}
+#endif
+
 namespace symfpuLiteral {
 
 // To simplify the property macros

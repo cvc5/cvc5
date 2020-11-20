@@ -13,10 +13,12 @@
  **/
 
 #include "theory/fp/fp_converter.h"
-#include "theory/theory.h"
-// theory.h Only needed for the leaf test
 
 #include <vector>
+
+#include "theory/theory.h"  // theory.h Only needed for the leaf test
+#include "util/floatingpoint.h"
+#include "util/symfpu_literal.h"
 
 #ifdef CVC4_USE_SYMFPU
 #include "symfpu/core/add.h"
@@ -919,9 +921,11 @@ Node FpConverter::convert(TNode node)
           if (current.getKind() == kind::CONST_FLOATINGPOINT)
           {
             /******** Constants ********/
-            d_fpMap.insert(current,
-                           symfpu::unpackedFloat<traits>(
-                               current.getConst<FloatingPoint>().getLiteral()));
+            d_fpMap.insert(
+                current,
+                symfpu::unpackedFloat<traits>(current.getConst<FloatingPoint>()
+                                                  .getLiteral()
+                                                  ->getSymUF()));
           }
           else
           {
@@ -1711,43 +1715,23 @@ Node FpConverter::getValue(Valuation &val, TNode var)
 #ifdef CVC4_USE_SYMFPU
   TypeNode t(var.getType());
 
+  Assert(t.isRoundingMode() || t.isFloatingPoint())
+      << "Asking for the value of a type that is not managed by the "
+         "floating-point theory";
+
   if (t.isRoundingMode())
   {
     rmMap::const_iterator i(d_rmMap.find(var));
 
-    if (i == d_rmMap.end())
-    {
-      Unreachable() << "Asking for the value of an unregistered expression";
-    }
-    else
-    {
-      Node value = rmToNode((*i).second);
-      return value;
-    }
+    Assert(i != d_rmMap.end())
+        << "Asking for the value of an unregistered expression";
+    return rmToNode((*i).second);
   }
-  else if (t.isFloatingPoint())
-  {
-    fpMap::const_iterator i(d_fpMap.find(var));
+  fpMap::const_iterator i(d_fpMap.find(var));
 
-    if (i == d_fpMap.end())
-    {
-      Unreachable() << "Asking for the value of an unregistered expression";
-    }
-    else
-    {
-      Node value = ufToNode(fpt(t), (*i).second);
-      return value;
-    }
-  }
-  else
-  {
-    Unreachable()
-        << "Asking for the value of a type that is not managed by the "
-           "floating-point theory";
-  }
-
-  Unreachable() << "Unable to find value";
-
+  Assert(i != d_fpMap.end())
+      << "Asking for the value of an unregistered expression";
+  return ufToNode(fpt(t), (*i).second);
 #else
   Unimplemented() << "Conversion is dependent on SymFPU";
 #endif

@@ -10,9 +10,6 @@
  ** directory for licensing information.\endverbatim
  **
  ** \brief The definition of rounding mode values.
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
  **/
 #include "cvc4_public.h"
 
@@ -22,6 +19,8 @@
 #include <fenv.h>
 
 namespace CVC4 {
+
+#define CVC4_NUM_ROUNDING_MODES 5
 
 /**
  * A concrete instance of the rounding mode sort
