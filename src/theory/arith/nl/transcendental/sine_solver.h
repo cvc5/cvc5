@@ -91,6 +91,12 @@ class SineSolver
   void doSecantLemmas(
       TNode e, TNode c, TNode poly_approx, unsigned d, int region);
 
+ private:
+  std::pair<Node, Node> getSecantBounds(TNode e,
+                                        TNode c,
+                                        unsigned d,
+                                        int region);
+
   /** region to lower bound
    *
    * Returns the term corresponding to the lower
@@ -130,12 +136,6 @@ class SineSolver
       default: return Node();
     }
   }
-
- private:
-  std::pair<Node, Node> getSecantBounds(TNode e,
-                                        TNode c,
-                                        unsigned d,
-                                        int region);
 
   int regionToMonotonicityDir(int region)
   {
