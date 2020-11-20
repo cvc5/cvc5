@@ -589,7 +589,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
           nm->mkNode(kind::FLOATINGPOINT_TO_FP_REAL,
                      nm->mkConst(FloatingPointToFPReal(
                          concrete[0].getType().getConst<FloatingPointSize>())),
-                     nm->mkConst(roundTowardPositive),
+                     nm->mkConst(ROUND_TOWARD_POSITIVE),
                      abstractValue));
 
       Node bg = nm->mkNode(
@@ -606,7 +606,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
           nm->mkNode(kind::FLOATINGPOINT_TO_FP_REAL,
                      nm->mkConst(FloatingPointToFPReal(
                          concrete[0].getType().getConst<FloatingPointSize>())),
-                     nm->mkConst(roundTowardNegative),
+                     nm->mkConst(ROUND_TOWARD_NEGATIVE),
                      abstractValue));
 
       Node bl = nm->mkNode(
