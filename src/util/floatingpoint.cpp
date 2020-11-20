@@ -211,8 +211,8 @@ FloatingPoint::FloatingPoint(const FloatingPointSize& size,
     Integer doubleInt(2);
     if (exp.strictlyPositive())
     {
-      Integer representable(
-          4);  // 1 more than exactly representable with expBits
+      // 1 more than exactly representable with expBits
+      Integer representable(4);
       while (representable <= exp)
       {  // hence <=
         representable *= doubleInt;
