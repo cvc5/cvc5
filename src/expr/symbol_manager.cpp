@@ -58,9 +58,10 @@ class SymbolManager::Implementation
                           bool areAssertions = false) const;
   /** get expression names */
   std::map<api::Term, std::string> getExpressionNames(bool areAssertions) const;
-  /** get model declarations */
-  void getModelDeclarations(std::vector<api::Sort>& declareSorts,
-                            std::vector<api::Term>& declareTerms) const;
+  /** get model declare sorts */
+  std::vector<api::Sort> getModelDeclareSorts() const;
+  /** get model declare terms */
+  std::vector<api::Term> getModelDeclareTerms() const;
   /** Add declared sort to the list of model declarations. */
   void addModelDeclarationSort(api::Sort s);
   /** Add declared term to the list of model declarations. */
@@ -166,12 +167,22 @@ SymbolManager::Implementation::getExpressionNames(bool areAssertions) const
   return emap;
 }
 
-void SymbolManager::Implementation::getModelDeclarations(
-    std::vector<api::Sort>& declareSorts,
-    std::vector<api::Term>& declareTerms) const
+std::vector<api::Sort> SymbolManager::Implementation::getModelDeclareSorts()
+    const
 {
-  declareSorts.insert(declareSorts.end(), d_declareSorts.begin(), d_declareSorts.end());
-  declareTerms.insert(declareTerms.end(), d_declareTerms.begin(), d_declareTerms.end());
+  std::vector<api::Sort> declareSorts;
+  declareSorts.insert(
+      declareSorts.end(), d_declareSorts.begin(), d_declareSorts.end());
+  return declareSorts;
+}
+
+std::vector<api::Term> SymbolManager::Implementation::getModelDeclareTerms()
+    const
+{
+  std::vector<api::Term> declareTerms;
+  declareTerms.insert(
+      declareTerms.end(), d_declareTerms.begin(), d_declareTerms.end());
+  return declareTerms;
 }
 
 void SymbolManager::Implementation::addModelDeclarationSort(api::Sort s)
@@ -255,12 +266,13 @@ std::map<api::Term, std::string> SymbolManager::getExpressionNames(
 {
   return d_implementation->getExpressionNames(areAssertions);
 }
-
-void SymbolManager::getModelDeclarations(
-    std::vector<api::Sort>& declareSorts,
-    std::vector<api::Term>& declareTerms) const
+std::vector<api::Sort> SymbolManager::getModelDeclareSorts() const
 {
-  return d_implementation->getModelDeclarations(declareSorts, declareTerms);
+  return d_implementation->getModelDeclareSorts();
+}
+std::vector<api::Term> SymbolManager::getModelDeclareTerms() const
+{
+  return d_implementation->getModelDeclareTerms();
 }
 
 void SymbolManager::addModelDeclarationSort(api::Sort s)

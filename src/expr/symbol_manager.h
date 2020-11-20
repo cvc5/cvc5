@@ -93,15 +93,13 @@ class CVC4_PUBLIC SymbolManager
   std::map<api::Term, std::string> getExpressionNames(
       bool areAssertions = false) const;
   /**
-   * Get model declarations
-   *
-   * @param declareSorts The sorts we have declared that should be printed
-   * in the model.
-   * @param declareTerms The terms we have declared that should be printed
-   * in the model.
+   * @return The sorts we have declared that should be printed in the model.
    */
-  void getModelDeclarations(std::vector<api::Sort>& declareSorts,
-                            std::vector<api::Term>& declareTerms) const;
+  std::vector<api::Sort> getModelDeclareSorts() const;
+  /**
+   * @return The terms we have declared that should be printed in the model.
+   */
+  std::vector<api::Term> getModelDeclareTerms() const;
   /**
    * Add declared sort to the list of model declarations.
    */
