@@ -285,8 +285,9 @@ private:
    *
    * If force is false, then this is a no-op if options::dtInstLazy is enabled.
    */
-  void instantiate( EqcInfo* eqc, Node n, bool force = false );
-private:
+  void instantiate(EqcInfo* eqc, Node n, bool force = false);
+
+ private:
   //equality queries
   bool hasTerm( TNode a );
   bool areEqual( TNode a, TNode b );

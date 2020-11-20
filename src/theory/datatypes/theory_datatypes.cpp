@@ -179,12 +179,14 @@ void TheoryDatatypes::postCheck(Effort level)
     {
       d_im.reset();
       eq::EqClassesIterator eqccs_i = eq::EqClassesIterator(d_equalityEngine);
-      while( !eqccs_i.isFinished() ){
+      while (!eqccs_i.isFinished())
+      {
         Node eqc = (*eqccs_i);
-        if( !eqc.getType().isDatatype() ){
+        if (!eqc.getType().isDatatype())
+        {
           continue;
         }
-        EqcInfo* ei = getOrMakeEqcInfo( eqc );
+        EqcInfo* ei = getOrMakeEqcInfo(eqc);
         instantiate(ei, eqc, true);
       }
       d_im.process();
@@ -194,7 +196,7 @@ void TheoryDatatypes::postCheck(Effort level)
       }
     }
 
-    if(d_sygusExtension != nullptr)
+    if (d_sygusExtension != nullptr)
     {
       std::vector<Node> lemmas;
       d_sygusExtension->check(lemmas);
@@ -1541,7 +1543,8 @@ Node TheoryDatatypes::getInstantiateCons(Node n, const DType& dt, int index)
   }
 }
 
-void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n, bool force ){
+void TheoryDatatypes::instantiate(EqcInfo* eqc, Node n, bool force)
+{
   if (!force && options::dtInstLazy())
   {
     // wait to apply
@@ -1584,7 +1587,7 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n, bool force ){
   // selector terms that may contribute to conflicts due to cardinality (good
   // examples of this are regress0/datatypes/dt-param-card4-bool-sat.smt2 and
   // regress0/datatypes/list-bool.smt2).
-  bool forceLemma = true;//dt[index].hasFiniteExternalArgType(ttn);
+  bool forceLemma = true;  // dt[index].hasFiniteExternalArgType(ttn);
   Trace("datatypes-infer-debug") << "DtInstantiate : " << eqc << " " << eq
                                  << " forceLemma = " << forceLemma << std::endl;
   d_im.addPendingInference(eq, exp, forceLemma, InferId::INST);

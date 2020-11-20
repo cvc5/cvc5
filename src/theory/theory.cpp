@@ -358,7 +358,9 @@ bool Theory::collectModelInfo(TheoryModel* m, const std::set<Node>& termSet)
   {
     if (!m->assertEqualityEngine(d_equalityEngine, &termSet))
     {
-      Assert(false) << "Theory::collectModelInfo failed to assert equality engine, theory " << d_id << std::endl;
+      Assert(false) << "Theory::collectModelInfo failed to assert equality "
+                       "engine, theory "
+                    << d_id << std::endl;
       return false;
     }
   }
