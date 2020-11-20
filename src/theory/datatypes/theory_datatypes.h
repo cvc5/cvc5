@@ -278,8 +278,14 @@ private:
   void collectTerms( Node n );
   /** get instantiate cons */
   Node getInstantiateCons(Node n, const DType& dt, int index);
-  /** check instantiate */
-  void instantiate( EqcInfo* eqc, Node n );
+  /**
+   * Check instantiate. This adds a pending inference based on applying
+   * the instantiate rule for equivalence class representative n with info
+   * eqc.
+   *
+   * If force is false, then this is a no-op if options::dtInstLazy is enabled.
+   */
+  void instantiate( EqcInfo* eqc, Node n, bool force = false );
 private:
   //equality queries
   bool hasTerm( TNode a );
