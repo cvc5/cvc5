@@ -86,6 +86,23 @@ class IAndUtils
    */
   Node createSumNode(Node x, Node y, uint64_t bvsize, uint64_t granularity);
 
+  /** Create a bitwise integer And node for two integers x and y for bits
+   * between hgih and low Example for high = 0, low = 0 (e.g. granularity 1)
+   *    ite(x[0] == 1 & y[0] == 1, #b1, #b0)
+   *
+   *  For higher granularities it makes use of computeAndTable
+   *
+   *  @param x an integer operand corresponding to the first original
+   *         bit-vector operand
+   *  @param y an integer operand corresponding to the second original
+   *         bit-vector operand
+   *  @param high the upper bit index
+   *  @param low the lower bit index
+   *  @return an integer node corresponding to a bitwise AND applied to
+   *          integers for the bits between high and low
+   */
+  Node createBitwiseIAndNode(Node x, Node y, uint64_t high, uint64_t low);
+
   /** extract from integer
    *  ((_ extract i j) n) is n / 2^j mod 2^{i-j+1}
    */
@@ -145,6 +162,7 @@ class IAndUtils
 
  private:
   /** commonly used terms */
+  Node d_zero;
   Node d_one;
   Node d_two;
 };

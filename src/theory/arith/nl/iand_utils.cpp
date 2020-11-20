@@ -55,6 +55,7 @@ Node intExtract(Node x, uint64_t i, uint64_t size)
 IAndUtils::IAndUtils()
 {
   NodeManager* nm = NodeManager::currentNM();
+  d_zero = nm->mkConst(Rational(0));
   d_one = nm->mkConst(Rational(1));
   d_two = nm->mkConst(Rational(2));
 }
@@ -151,6 +152,22 @@ Node IAndUtils::createSumNode(Node x,
                    nm->mkNode(kind::MULT, pow2(i * granularity), sumPart));
   }
   return sumNode;
+}
+
+Node IAndUtils::createBitwiseIAndNode(Node x,
+                                      Node y,
+                                      uint64_t high,
+                                      uint64_t low)
+{
+  // temporary restriction to single bits
+  // TODO support all granularities
+  Assert(high == low);
+
+  NodeManager* nm = NodeManager::currentNM();
+  Node cond = nm->mkNode(kind::AND,
+                         iextract(high, low, x).eqNode(d_one),
+                         iextract(high, low, y).eqNode(d_one));
+  return nm->mkNode(kind::ITE, cond, d_one, d_zero);
 }
 
 Node IAndUtils::iextract(unsigned i, unsigned j, Node n) const

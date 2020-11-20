@@ -265,11 +265,7 @@ Node IAndSolver::bitwiseLemma(Node i)
   {
     if (bvAbsI.extract(j, j) != bvConcI.extract(j, j))
     {
-      // x[j] & y[j] == ite(x[j] == 1 /\ y[j] == 1, 1, 0)
-      cond = nm->mkNode(AND,
-                        d_iandUtils.iextract(j, j, x).eqNode(d_one),
-                        d_iandUtils.iextract(j, j, y).eqNode(d_one));
-      bitIAnd = nm->mkNode(ITE, cond, d_one, d_zero);
+      bitIAnd = d_iandUtils.createBitwiseIAndNode(x, y, j, j);
       // enforce bitwise equality
       lem = nm->mkNode(AND, lem, d_iandUtils.iextract(j, j, i).eqNode(bitIAnd));
     }
