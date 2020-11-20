@@ -15,7 +15,6 @@
 #include "theory/theory_preprocessor.h"
 
 #include "expr/lazy_proof.h"
-#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
