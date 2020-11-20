@@ -200,8 +200,10 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
   // in the "non-variable Boolean term within term" case below.
   if (node.getKind() == kind::ITE && !nodeType.isBoolean())
   {
-    // Here, we eliminate the ITE if we are not Boolean and if we do not contain
-    // a free variable.
+    // Here, we eliminate the ITE if we are not Boolean and if we are
+    // not in a quantified formula. This policy should be in sync with
+    // the policy for when to apply theory preprocessing to terms, see PR
+    // #5497.
     if (!inQuant)
     {
       skolem = getSkolemForNode(node);
