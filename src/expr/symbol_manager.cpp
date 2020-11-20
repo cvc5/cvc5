@@ -167,17 +167,21 @@ SymbolManager::Implementation::getExpressionNames(bool areAssertions) const
   return emap;
 }
 
-std::vector<api::Sort> SymbolManager::Implementation::getModelDeclareSorts() const
+std::vector<api::Sort> SymbolManager::Implementation::getModelDeclareSorts()
+    const
 {
   std::vector<api::Sort> declareSorts;
-  declareSorts.insert(declareSorts.end(), d_declareSorts.begin(), d_declareSorts.end());
+  declareSorts.insert(
+      declareSorts.end(), d_declareSorts.begin(), d_declareSorts.end());
   return declareSorts;
 }
 
-std::vector<api::Term> SymbolManager::Implementation::getModelDeclareTerms() const
+std::vector<api::Term> SymbolManager::Implementation::getModelDeclareTerms()
+    const
 {
   std::vector<api::Term> declareTerms;
-  declareTerms.insert(declareTerms.end(), d_declareTerms.begin(), d_declareTerms.end());
+  declareTerms.insert(
+      declareTerms.end(), d_declareTerms.begin(), d_declareTerms.end());
   return declareTerms;
 }
 
