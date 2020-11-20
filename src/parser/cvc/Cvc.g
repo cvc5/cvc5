@@ -546,7 +546,6 @@ api::Term addNots(api::Solver* s, size_t n, api::Term e) {
 
 #include <cassert>
 #include <memory>
-#include <stdint.h>
 
 #include "options/set_language.h"
 #include "parser/antlr_tracing.h"

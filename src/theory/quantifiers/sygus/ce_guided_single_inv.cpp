@@ -241,6 +241,8 @@ bool CegSingleInv::solve()
     Node body = siq[1];
     for (unsigned i = 0, ninsts = d_inst.size(); i < ninsts; i++)
     {
+      // note we do not convert to witness form here, since we could be
+      // an internal subsolver
       std::vector<Node>& inst = d_inst[i];
       Trace("sygus-si") << "  Instantiation: " << inst << std::endl;
       // instantiation should have same arity since we are not allowed to

@@ -22,7 +22,7 @@
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "expr/lazy_proof.h"
-#include "expr/lazy_proof_set.h"
+#include "expr/proof_set.h"
 #include "expr/proof_generator.h"
 #include "expr/proof_node_manager.h"
 #include "theory/eager_proof_generator.h"
@@ -118,6 +118,8 @@ class PreprocessProofGenerator : public ProofGenerator
   ProofNodeManager* d_pnm;
   /** A dummy context used by this class if none is provided */
   context::Context d_context;
+  /** The context used here */
+  context::Context* d_ctx;
   /**
    * The trust node that was the source of each node constructed during
    * preprocessing. For each n, d_src[n] is a trust node whose node is n. This
@@ -127,7 +129,7 @@ class PreprocessProofGenerator : public ProofGenerator
    */
   NodeTrustNodeMap d_src;
   /** A context-dependent list of LazyCDProof, allocated for conjoin steps */
-  LazyCDProofSet d_helperProofs;
+  CDProofSet<LazyCDProof> d_helperProofs;
   /**
    * A cd proof for input assertions, this is an empty proof that intentionally
    * returns (ASSUME f) for all f.
