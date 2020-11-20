@@ -437,9 +437,8 @@ Node BVToInt::translateWithChildren(Node original,
         // translate the result to integers
         returnNode = d_nm->mkNode(kind::BITVECTOR_TO_NAT, bvand);
       }
-      else
+      else if (options::solveBVAsInt() == options::SolveBVAsIntMode::SUM)
       {
-        Assert(options::solveBVAsInt() == options::SolveBVAsIntMode::SUM);
         // Construct a sum of ites, based on granularity.
         Assert(translated_children.size() == 2);
         returnNode =
@@ -447,6 +446,32 @@ Node BVToInt::translateWithChildren(Node original,
                                       translated_children[1],
                                       bvsize,
                                       options::BVAndIntegerGranularity());
+      }
+      else
+      {
+        Assert(options::solveBVAsInt() == options::SolveBVAsIntMode::BITWISE);
+        uint64_t bvsize = original[0].getType().getBitVectorSize();
+        uint64_t granularity = options::BVAndIntegerGranularity();
+
+        Node x = translated_children[0];
+        Node y = translated_children[1];
+        Node iAndOp = d_nm->mkConst(IntAnd(bvsize));
+        returnNode = d_nm->mkNode(kind::IAND, iAndOp, x, y);
+
+        // eagerly add bitwise lemmas according to the provided granularity
+        uint64_t high_bit;
+        for (uint64_t j = 0; j < bvsize; j += granularity)
+        {
+          high_bit = j + granularity - 1;
+          // don't let high_bit pass bvsize
+          if (high_bit >= bvsize)
+          {
+            high_bit = bvsize - 1;
+          }
+          Node extractedReturnNode = d_iandUtils.iextract(high_bit, j, returnNode);
+          d_bitwiseAssertions.insert(extractedReturnNode.eqNode(
+              d_iandUtils.createBitwiseIAndNode(x, y, high_bit, j)));
+        }
       }
       break;
     }
@@ -921,7 +946,8 @@ BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
       d_eliminationCache(preprocContext->getUserContext()),
       d_rebuildCache(preprocContext->getUserContext()),
       d_bvToIntCache(preprocContext->getUserContext()),
-      d_rangeAssertions(preprocContext->getUserContext())
+      d_rangeAssertions(preprocContext->getUserContext()),
+      d_bitwiseAssertions(preprocContext->getUserContext())
 {
   d_nm = NodeManager::currentNM();
   d_zero = d_nm->mkConst<Rational>(0);
@@ -942,6 +968,10 @@ PreprocessingPassResult BVToInt::applyInternal(
     assertionsToPreprocess->replace(i, rwNode);
   }
   addFinalizeRangeAssertions(assertionsToPreprocess);
+  if (options::solveBVAsInt() == options::SolveBVAsIntMode::BITWISE)
+  {
+    addFinalizeBitwiseAssertions(assertionsToPreprocess);
+  }
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
@@ -959,6 +989,28 @@ void BVToInt::addFinalizeRangeAssertions(
   assertionsToPreprocess->push_back(rangeAssertions);
   Trace("bv-to-int-debug") << "range constraints: "
                            << rangeAssertions.toString() << std::endl;
+}
+
+void BVToInt::addFinalizeBitwiseAssertions(
+    AssertionPipeline* assertionsToPreprocess)
+{
+  Assert(options::solveBVAsInt() == options::SolveBVAsIntMode::BITWISE);
+  if (!d_bitwiseAssertions.size())
+  {
+    return;
+  }
+  // collect the bitwise assertions from d_bitwiseAssertions
+  // (which is a context-dependent set)
+  // into a vector.
+  vector<Node> vec_bitwise;
+  vec_bitwise.assign(d_bitwiseAssertions.key_begin(),
+                     d_bitwiseAssertions.key_end());
+  // conjoin all bitwise assertions and add the conjunction
+  // as a new assertion
+  Node bitwiseAssertions = Rewriter::rewrite(d_nm->mkAnd(vec_bitwise));
+  assertionsToPreprocess->push_back(bitwiseAssertions);
+  Trace("bv-to-int-debug") << "bitwise constraints: "
+                           << bitwiseAssertions.toString() << std::endl;
 }
 
 Node BVToInt::createShiftNode(vector<Node> children,

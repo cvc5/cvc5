@@ -180,6 +180,13 @@ class BVToInt : public PreprocessingPass
   void addFinalizeRangeAssertions(AssertionPipeline* assertionsToPreprocess);
 
   /**
+   * Add the bitwise assertions (if any) collected in d_bitwiseAssertions
+   * to the assertion pipeline as a single conjunction.
+   * used only for SolveBVAsIntMode::BITWISE
+   */
+  void addFinalizeBitwiseAssertions(AssertionPipeline* assertionsToPreprocess);
+
+  /**
    * @param quantifiedNode a node whose main operator is forall/exists.
    * @return a node opbtained from quantifiedNode by:
    * 1. Replacing all bound BV variables by new bound integer variables.
@@ -274,6 +281,12 @@ class BVToInt : public PreprocessingPass
    * These are added for every new integer variable that we introduce.
    */
   context::CDHashSet<Node, NodeHashFunction> d_rangeAssertions;
+
+  /**
+   * A set of "bitwise" equalities over integers for BITVECTOR_AND
+   *   used in for options::SolveBVAsIntMode::BITWISE
+   */
+  context::CDHashSet<Node, NodeHashFunction> d_bitwiseAssertions;
 
   /**
    * Useful constants

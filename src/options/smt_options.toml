@@ -700,6 +700,9 @@ header = "options/smt_options.h"
 [[option.mode.BV]]
   name = "bv"
   help = "Translate bvand back to bit-vectors"
+[[option.mode.BITWISE]]
+  name = "bitwise"
+  help = "Introduce an iand operator but eagerly add bitwise lemmas"
 
 [[option]]
   name       = "BVAndIntegerGranularity"
