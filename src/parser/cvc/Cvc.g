@@ -1141,6 +1141,13 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
           PARSER_STATE->parseError("cannot construct a definition here; maybe you want a LET");
         }
         assert(!idList.empty());
+        api::Term fterm = f;
+        std::vector<api::Term> formals;
+        if (f.getKind()==api::LAMBDA)
+        {
+          formals.insert(formals.end(), f[0].begin(), f[0].end());
+          f = f[1];
+        }
         for(std::vector<std::string>::const_iterator i = idList.begin(),
               i_end = idList.end();
             i != i_end;
@@ -1151,13 +1158,13 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
               *i,
               t,
               ExprManager::VAR_FLAG_GLOBAL | ExprManager::VAR_FLAG_DEFINED);
-          PARSER_STATE->defineVar(*i, f);
-          Command* decl = new DefineFunctionCommand(*i, func, f, true);
+          PARSER_STATE->defineVar(*i, fterm);
+          Command* decl = new DefineFunctionCommand(*i, func, formals, f, true);
           seq->addCommand(decl);
         }
       }
       if(topLevel) {
-        cmd->reset(new DeclarationSequence());
+        cmd->reset(seq.release());
       }
     }
   ;
@@ -2169,13 +2176,10 @@ simpleTerm[CVC4::api::Term& f]
     }
 
     /* array literals */
-  | ARRAY_TOK /* { PARSER_STATE->pushScope(); } */ LPAREN
+  | ARRAY_TOK LPAREN
     restrictedType[t, CHECK_DECLARED] OF_TOK restrictedType[t2, CHECK_DECLARED]
     RPAREN COLON simpleTerm[f]
-    { /* Eventually if we support a bound var (like a lambda) for array
-       * literals, we can use the push/pop scope. */
-      /* PARSER_STATE->popScope(); */
-      t = SOLVER->mkArraySort(t, t2);
+    { t = SOLVER->mkArraySort(t, t2);
       if(!t2.isComparableTo(f.getSort())) {
         std::stringstream ss;
         ss << "type mismatch inside array constant term:" << std::endl
