@@ -1865,8 +1865,9 @@ bool QuantifiersRewriter::doOperation(Node q,
   }
   else if (computeOption == COMPUTE_PROCESS_TERMS)
   {
-    return options::elimExtArithQuant()
-           || options::iteLiftQuant() != options::IteLiftQuantMode::NONE;
+    return is_std
+           && (options::elimExtArithQuant()
+               || options::iteLiftQuant() != options::IteLiftQuantMode::NONE);
   }
   else if (computeOption == COMPUTE_COND_SPLIT)
   {

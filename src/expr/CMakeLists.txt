@@ -32,8 +32,6 @@ libcvc4_add_sources(
   lazy_proof.h
   lazy_proof_chain.cpp
   lazy_proof_chain.h
-  lazy_proof_set.cpp
-  lazy_proof_set.h
   match_trie.cpp
   match_trie.h
   node.cpp
@@ -72,6 +70,7 @@ libcvc4_add_sources(
   proof_node_updater.h
   proof_rule.cpp
   proof_rule.h
+  proof_set.h
   proof_step_buffer.cpp
   proof_step_buffer.h
   skolem_manager.cpp

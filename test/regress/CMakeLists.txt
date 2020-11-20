@@ -1606,12 +1606,18 @@ set(regress_1_tests
   regress1/quantifiers/issue4062-cegqi-aux.smt2
   regress1/quantifiers/issue4243-prereg-inc.smt2
   regress1/quantifiers/issue4290-cegqi-r.smt2
+  regress1/quantifiers/issue4433-nqe.smt2
   regress1/quantifiers/issue4620-erq-witness-unsound.smt2
   regress1/quantifiers/issue4685-wrewrite.smt2
+  regress1/quantifiers/issue4849-nqe.smt2
   regress1/quantifiers/issue5019-cegqi-i.smt2
+  regress1/quantifiers/issue5279-nqe.smt2
+  regress1/quantifiers/issue5365-nqe.smt2
   regress1/quantifiers/issue5469-aext.smt2
   regress1/quantifiers/issue5470-aext.smt2
   regress1/quantifiers/issue5471-aext.smt2
+  regress1/quantifiers/issue5484-qe.smt2
+  regress1/quantifiers/issue5484b-qe.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lia-witness-div-pp.smt2
