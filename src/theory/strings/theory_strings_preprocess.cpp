@@ -965,7 +965,7 @@ Node StringsPreprocess::simplifyRec(Node t,
     Node retNode = t;
     if( t.getNumChildren()==0 ){
       retNode = simplify(t, asserts);
-    }else if( t.getKind()!=kind::FORALL ){
+    }else if( !t.isClosure() ){
       bool changed = false;
       std::vector< Node > cc;
       if( t.getMetaKind() == kind::metakind::PARAMETERIZED ){
