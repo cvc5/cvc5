@@ -45,6 +45,29 @@ using namespace std;
 
 namespace CVC4 {
 
+std::string sexprToString(api::Term sexpr)
+{
+  if (sexpr.getNumChildren() == 0)
+  {
+    return sexpr.toString().substr(1, sexpr.toString().length() - 2);
+  }
+
+  Assert(sexpr.getKind() == api::SEXPR);
+
+  std::stringstream ss;
+  auto it = sexpr.begin();
+  ss << '(' << sexprToString(*it);
+  ++it;
+
+  while (it != sexpr.end())
+  {
+    ss << ' ' << sexprToString(*it);
+    ++it;
+  }
+  ss << ')';
+  return ss.str();
+}
+
 const int CommandPrintSuccess::s_iosIndex = std::ios_base::xalloc();
 const CommandSuccess* CommandSuccess::s_instance = new CommandSuccess();
 const CommandInterrupted* CommandInterrupted::s_instance =
@@ -136,11 +159,6 @@ std::ostream& operator<<(std::ostream& out, CommandPrintSuccess cps)
 /* -------------------------------------------------------------------------- */
 
 Command::Command() : d_commandStatus(nullptr), d_muted(false) {}
-
-Command::Command(const api::Solver* solver)
-    : d_commandStatus(nullptr), d_muted(false)
-{
-}
 
 Command::Command(const Command& cmd)
 {
@@ -1810,7 +1828,7 @@ void BlockModelValuesCommand::invoke(api::Solver* solver, SymbolManager* sm)
     solver->blockModelValues(d_terms);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (RecoverableModalException& e)
+  catch (api::CVC4ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -2519,21 +2537,21 @@ void SetBenchmarkLogicCommand::toStream(std::ostream& out,
 /* class SetInfoCommand                                                       */
 /* -------------------------------------------------------------------------- */
 
-SetInfoCommand::SetInfoCommand(std::string flag, const SExpr& sexpr)
+SetInfoCommand::SetInfoCommand(std::string flag, const std::string& sexpr)
     : d_flag(flag), d_sexpr(sexpr)
 {
 }
 
 std::string SetInfoCommand::getFlag() const { return d_flag; }
-SExpr SetInfoCommand::getSExpr() const { return d_sexpr; }
+const std::string& SetInfoCommand::getSExpr() const { return d_sexpr; }
 void SetInfoCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    solver->getSmtEngine()->setInfo(d_flag, d_sexpr);
+    solver->setInfo(d_flag, d_sexpr);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (UnrecognizedOptionException&)
+  catch (api::CVC4ApiRecoverableException&)
   {
     // As per SMT-LIB spec, silently accept unknown set-info keys
     d_commandStatus = CommandSuccess::instance();
@@ -2569,23 +2587,17 @@ void GetInfoCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    vector<SExpr> v;
-    v.push_back(SExpr(SExpr::Keyword(string(":") + d_flag)));
-    v.emplace_back(solver->getSmtEngine()->getInfo(d_flag));
-    stringstream ss;
-    if (d_flag == "all-options" || d_flag == "all-statistics")
-    {
-      ss << PrettySExprs(true);
-    }
-    ss << SExpr(v);
-    d_result = ss.str();
+    std::vector<api::Term> v;
+    v.push_back(solver->mkString(":" + d_flag));
+    v.push_back(solver->mkString(solver->getInfo(d_flag)));
+    d_result = sexprToString(solver->mkTerm(api::SEXPR, v));
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (UnrecognizedOptionException&)
+  catch (api::CVC4ApiRecoverableException&)
   {
     d_commandStatus = new CommandUnsupported();
   }
-  catch (RecoverableModalException& e)
+  catch (api::CVC4ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -2629,13 +2641,13 @@ void GetInfoCommand::toStream(std::ostream& out,
 /* class SetOptionCommand                                                     */
 /* -------------------------------------------------------------------------- */
 
-SetOptionCommand::SetOptionCommand(std::string flag, const SExpr& sexpr)
+SetOptionCommand::SetOptionCommand(std::string flag, const std::string& sexpr)
     : d_flag(flag), d_sexpr(sexpr)
 {
 }
 
 std::string SetOptionCommand::getFlag() const { return d_flag; }
-SExpr SetOptionCommand::getSExpr() const { return d_sexpr; }
+const std::string& SetOptionCommand::getSExpr() const { return d_sexpr; }
 void SetOptionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
@@ -2678,7 +2690,7 @@ void GetOptionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    d_result = solver->getOption(d_flag);
+    d_result = solver->getSmtEngine()->getOption(d_flag).getValue();
     d_commandStatus = CommandSuccess::instance();
   }
   catch (UnrecognizedOptionException&)

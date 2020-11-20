@@ -261,10 +261,6 @@ class Smt2 : public Parser
    */
   bool escapeDupDblQuote() const { return v2_5() || sygus(); }
 
-  void setInfo(const std::string& flag, const SExpr& sexpr);
-
-  void setOption(const std::string& flag, const SExpr& sexpr);
-
   void checkThatLogicIsSet();
 
   /**

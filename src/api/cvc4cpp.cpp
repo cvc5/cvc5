@@ -354,6 +354,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::DISTINCT, DISTINCT},
         {CVC4::Kind::VARIABLE, CONSTANT},
         {CVC4::Kind::BOUND_VARIABLE, VARIABLE},
+        {CVC4::Kind::SEXPR, SEXPR},
         {CVC4::Kind::LAMBDA, LAMBDA},
         {CVC4::Kind::WITNESS, WITNESS},
         /* Boolean --------------------------------------------------------- */
@@ -819,6 +820,14 @@ class CVC4ApiRecoverableExceptionStream
   ? (void)0                                                         \
   : OstreamVoider()                                                 \
           & CVC4ApiExceptionStream().ostream()                      \
+                << "Invalid argument '" << arg << "' for '" << #arg \
+                << "', expected "
+
+#define CVC4_API_RECOVERABLE_ARG_CHECK_EXPECTED(cond, arg)          \
+  CVC4_PREDICT_TRUE(cond)                                           \
+  ? (void)0                                                         \
+  : OstreamVoider()                                                 \
+          & CVC4ApiRecoverableExceptionStream().ostream()           \
                 << "Invalid argument '" << arg << "' for '" << #arg \
                 << "', expected "
 
@@ -5070,7 +5079,7 @@ std::vector<Term> Solver::getAssertions(void) const
 std::string Solver::getInfo(const std::string& flag) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_CHECK(d_smtEngine->isValidGetInfoFlag(flag))
+  CVC4_API_RECOVERABLE_CHECK(d_smtEngine->isValidGetInfoFlag(flag))
       << "Unrecognized flag for getInfo.";
 
   return d_smtEngine->getInfo(flag).toString();
@@ -5415,7 +5424,7 @@ void Solver::resetAssertions(void) const
 void Solver::setInfo(const std::string& keyword, const std::string& value) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_ARG_CHECK_EXPECTED(
+  CVC4_API_RECOVERABLE_ARG_CHECK_EXPECTED(
       keyword == "source" || keyword == "category" || keyword == "difficulty"
           || keyword == "filename" || keyword == "license" || keyword == "name"
           || keyword == "notes" || keyword == "smt-lib-version"
@@ -5423,10 +5432,10 @@ void Solver::setInfo(const std::string& keyword, const std::string& value) const
       keyword)
       << "'source', 'category', 'difficulty', 'filename', 'license', 'name', "
          "'notes', 'smt-lib-version' or 'status'";
-  CVC4_API_ARG_CHECK_EXPECTED(keyword != "smt-lib-version" || value == "2"
-                                  || value == "2.0" || value == "2.5"
-                                  || value == "2.6",
-                              value)
+  CVC4_API_RECOVERABLE_ARG_CHECK_EXPECTED(
+      keyword != "smt-lib-version" || value == "2" || value == "2.0"
+          || value == "2.5" || value == "2.6",
+      value)
       << "'2.0', '2.5', '2.6'";
   CVC4_API_ARG_CHECK_EXPECTED(keyword != "status" || value == "sat"
                                   || value == "unsat" || value == "unknown",
