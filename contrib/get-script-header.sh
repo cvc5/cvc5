@@ -50,21 +50,13 @@ function setup_dep
   url="$1"
   directory="$2"
   echo "Setting up $directory ..."
+  rm -rf "$directory"
   mkdir -p "$directory"
   cd "$directory"
   webget "$url" archive
   tar xf archive --strip 1 # Strip top-most directory
   rm archive
 }
-
-function check_dep_dir
-{
-  if [ -e "$1" ]; then
-    echo "error: file or directory '$1' exists; please move it out of the way." >&2
-    exit 1
-  fi
-}
-
 
 # Some of our dependencies do not provide a make install rule. Use the
 # following helper functions to copy libraries/headers/binaries into the

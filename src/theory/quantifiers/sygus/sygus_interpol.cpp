@@ -319,6 +319,18 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
                                        const TypeNode& itpGType,
                                        Node& interpol)
 {
+  // Some instructions in setSynthGrammar and mkSygusConjecture need a fully
+  // initialized solver to work properly. Notice, however, that the sub-solver
+  // created below is not fully initialized by the time those two methods are
+  // needed. Therefore, we call them while the current parent solver is in scope
+  // (i.e., before creating the sub-solver).
+  collectSymbols(axioms, conj);
+  createVariables(itpGType.isNull());
+  TypeNode grammarType = setSynthGrammar(itpGType, axioms, conj);
+
+  Node itp = mkPredicate(name);
+  mkSygusConjecture(itp, axioms, conj);
+
   std::unique_ptr<SmtEngine> subSolver;
   initializeSubsolver(subSolver);
   // get the logic
@@ -327,17 +339,12 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
   l.enableSygus();
   subSolver->setLogic(l);
 
-  collectSymbols(axioms, conj);
-  createVariables(itpGType.isNull());
   for (Node var : d_vars)
   {
     subSolver->declareSygusVar(name, var, var.getType());
   }
   std::vector<Node> vars_empty;
-  TypeNode grammarType = setSynthGrammar(itpGType, axioms, conj);
-  Node itp = mkPredicate(name);
   subSolver->declareSynthFun(name, itp, grammarType, false, vars_empty);
-  mkSygusConjecture(itp, axioms, conj);
   Trace("sygus-interpol") << "SmtEngine::getInterpol: made conjecture : "
                           << d_sygusConj << ", solving for "
                           << d_sygusConj[0][0] << std::endl;

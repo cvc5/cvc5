@@ -18,7 +18,6 @@
 
 #include <antlr3.h>
 #include <limits.h>
-#include <stdint.h>
 
 #include "base/output.h"
 #include "expr/type.h"

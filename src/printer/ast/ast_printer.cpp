@@ -35,8 +35,10 @@ namespace CVC4 {
 namespace printer {
 namespace ast {
 
-void AstPrinter::toStream(
-    std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const
+void AstPrinter::toStream(std::ostream& out,
+                          TNode n,
+                          int toDepth,
+                          size_t dag) const
 {
   if(dag != 0) {
     DagificationVisitor dv(dag);
@@ -54,26 +56,23 @@ void AstPrinter::toStream(
         } else {
           first = false;
         }
-        toStream(out, (*i).second, toDepth, types, false);
+        toStream(out, (*i).second, toDepth, false);
         out << " := ";
-        toStream(out, (*i).first, toDepth, types, false);
+        toStream(out, (*i).first, toDepth, false);
       }
       out << " IN ";
     }
     Node body = dv.getDagifiedBody();
-    toStream(out, body, toDepth, types);
+    toStream(out, body, toDepth);
     if(!lets.empty()) {
       out << ')';
     }
   } else {
-    toStream(out, n, toDepth, types);
+    toStream(out, n, toDepth);
   }
 }
 
-void AstPrinter::toStream(std::ostream& out,
-                          TNode n,
-                          int toDepth,
-                          bool types) const
+void AstPrinter::toStream(std::ostream& out, TNode n, int toDepth) const
 {
   // null
   if(n.getKind() == kind::NULL_EXPR) {
@@ -89,12 +88,6 @@ void AstPrinter::toStream(std::ostream& out,
     } else {
       out << "var_" << n.getId();
     }
-    if(types) {
-      // print the whole type, but not *its* type
-      out << ":";
-      n.getType().toStream(out, language::output::LANG_AST);
-    }
-
     return;
   }
 
@@ -108,7 +101,7 @@ void AstPrinter::toStream(std::ostream& out,
     if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
       out << ' ';
       if(toDepth != 0) {
-        toStream(out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, types);
+        toStream(out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1);
       } else {
         out << "(...)";
       }
@@ -121,7 +114,7 @@ void AstPrinter::toStream(std::ostream& out,
         out << ' ';
       }
       if(toDepth != 0) {
-        toStream(out, *i, toDepth < 0 ? toDepth : toDepth - 1, types);
+        toStream(out, *i, toDepth < 0 ? toDepth : toDepth - 1);
       } else {
         out << "(...)";
       }
@@ -301,18 +294,6 @@ void AstPrinter::toStreamCmdDefineType(std::ostream& out,
     out << params.back();
   }
   out << "]," << t << ')' << std::endl;
-}
-
-void AstPrinter::toStreamCmdDefineNamedFunction(
-    std::ostream& out,
-    const std::string& id,
-    const std::vector<Node>& formals,
-    TypeNode range,
-    Node formula) const
-{
-  out << "DefineNamedFunction( ";
-  toStreamCmdDefineFunction(out, id, formals, range, formula);
-  out << " )" << std::endl;
 }
 
 void AstPrinter::toStreamCmdSimplify(std::ostream& out, Node n) const

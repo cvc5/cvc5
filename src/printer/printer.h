@@ -51,7 +51,6 @@ class Printer
   virtual void toStream(std::ostream& out,
                         TNode n,
                         int toDepth,
-                        bool types,
                         size_t dag) const = 0;
 
   /** Write a CommandStatus out to a stream with this Printer. */
@@ -103,13 +102,6 @@ class Printer
                                          const std::vector<Node>& formals,
                                          TypeNode range,
                                          Node formula) const;
-
-  /** Print define-named-fun command */
-  virtual void toStreamCmdDefineNamedFunction(std::ostream& out,
-                                              const std::string& id,
-                                              const std::vector<Node>& formals,
-                                              TypeNode range,
-                                              Node formula) const;
 
   /** Print define-fun-rec command */
   virtual void toStreamCmdDefineFunctionRec(
@@ -257,6 +249,10 @@ class Printer
   /** Print comment command */
   virtual void toStreamCmdComment(std::ostream& out,
                                   const std::string& comment) const;
+  /** Declare heap command */
+  virtual void toStreamCmdDeclareHeap(std::ostream& out,
+                                      TypeNode locType,
+                                      TypeNode dataType) const;
 
   /** Print command sequence command */
   virtual void toStreamCmdCommandSequence(

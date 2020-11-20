@@ -150,7 +150,8 @@ void IAndSolver::checkFullRefine()
         Node lem = sumBasedLemma(i);  // add lemmas based on sum mode
         Trace("iand-lemma")
             << "IAndSolver::Lemma: " << lem << " ; SUM_REFINE" << std::endl;
-        d_im.addPendingArithLemma(lem, InferenceId::NL_IAND_SUM_REFINE, true);
+        d_im.addPendingArithLemma(
+            lem, InferenceId::NL_IAND_SUM_REFINE, nullptr, true);
       }
       else if (options::iandMode() == options::IandMode::BITWISE)
       {
@@ -166,7 +167,8 @@ void IAndSolver::checkFullRefine()
         Node lem = valueBasedLemma(i);
         Trace("iand-lemma")
             << "IAndSolver::Lemma: " << lem << " ; VALUE_REFINE" << std::endl;
-        d_im.addPendingArithLemma(lem, InferenceId::NL_IAND_VALUE_REFINE, true);
+        d_im.addPendingArithLemma(
+            lem, InferenceId::NL_IAND_VALUE_REFINE, nullptr, true);
       }
     }
   }

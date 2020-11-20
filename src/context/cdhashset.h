@@ -115,6 +115,7 @@ public:
       V operator*() const {
         return d_val;
       }
+      V* operator->() const { return &d_val; }
     };/* class CDSet<>::iterator::Proxy */
 
     // Actual postfix increment: returns Proxy with the old value.

@@ -35,7 +35,6 @@ class CvcPrinter : public CVC4::Printer
   void toStream(std::ostream& out,
                 TNode n,
                 int toDepth,
-                bool types,
                 size_t dag) const override;
   void toStream(std::ostream& out, const CommandStatus* s) const override;
   void toStream(std::ostream& out, const smt::Model& m) const override;
@@ -80,13 +79,6 @@ class CvcPrinter : public CVC4::Printer
                                  const std::vector<Node>& formals,
                                  TypeNode range,
                                  Node formula) const override;
-
-  /** Print define-named-fun command */
-  void toStreamCmdDefineNamedFunction(std::ostream& out,
-                                      const std::string& id,
-                                      const std::vector<Node>& formals,
-                                      TypeNode range,
-                                      Node formula) const override;
 
   /** Print check-sat command */
   void toStreamCmdCheckSat(std::ostream& out,
@@ -173,8 +165,7 @@ class CvcPrinter : public CVC4::Printer
       std::ostream& out, const std::vector<Command*>& sequence) const override;
 
  private:
-  void toStream(
-      std::ostream& out, TNode n, int toDepth, bool types, bool bracket) const;
+  void toStream(std::ostream& out, TNode n, int toDepth, bool bracket) const;
   void toStream(std::ostream& out,
                 const smt::Model& m,
                 const NodeCommand* c) const override;

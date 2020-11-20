@@ -45,8 +45,10 @@ namespace CVC4 {
 namespace printer {
 namespace cvc {
 
-void CvcPrinter::toStream(
-    std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const
+void CvcPrinter::toStream(std::ostream& out,
+                          TNode n,
+                          int toDepth,
+                          size_t dag) const
 {
   if(dag != 0) {
     DagificationVisitor dv(dag);
@@ -64,16 +66,16 @@ void CvcPrinter::toStream(
         } else {
           first = false;
         }
-        toStream(out, (*i).second, toDepth, types, false);
+        toStream(out, (*i).second, toDepth, false);
         out << " = ";
-        toStream(out, (*i).first, toDepth, types, false);
+        toStream(out, (*i).first, toDepth, false);
       }
       out << " IN ";
     }
     Node body = dv.getDagifiedBody();
-    toStream(out, body, toDepth, types, false);
+    toStream(out, body, toDepth, false);
   } else {
-    toStream(out, n, toDepth, types, false);
+    toStream(out, n, toDepth, false);
   }
 }
 
@@ -91,8 +93,10 @@ void toStreamRational(std::ostream& out, Node n, bool forceRational)
   }
 }
 
-void CvcPrinter::toStream(
-    std::ostream& out, TNode n, int depth, bool types, bool bracket) const
+void CvcPrinter::toStream(std::ostream& out,
+                          TNode n,
+                          int depth,
+                          bool bracket) const
 {
   if (depth == 0) {
     out << "(...)";
@@ -118,11 +122,6 @@ void CvcPrinter::toStream(
         out << n.getKind() << '_';
       }
       out << n.getId();
-    }
-    if(types) {
-      // print the whole type, but not *its* type
-      out << ":";
-      n.getType().toStream(out, language::output::LANG_CVC4);
     }
     return;
   }
@@ -287,11 +286,11 @@ void CvcPrinter::toStream(
       break;
     case kind::ITE:
       out << "IF ";
-      toStream(out, n[0], depth, types, true);
+      toStream(out, n[0], depth, true);
       out << " THEN ";
-      toStream(out, n[1], depth, types, true);
+      toStream(out, n[1], depth, true);
       out << " ELSE ";
-      toStream(out, n[2], depth, types, true);
+      toStream(out, n[2], depth, true);
       out << " ENDIF";
       return;
       break;
@@ -301,7 +300,7 @@ void CvcPrinter::toStream(
         if (i > 0) {
           out << ", ";
         }
-        toStream(out, n[i], depth, types, false);
+        toStream(out, n[i], depth, false);
       }
       out << ']';
       return;
@@ -311,22 +310,22 @@ void CvcPrinter::toStream(
       break;
     case kind::LAMBDA:
       out << "(LAMBDA";
-      toStream(out, n[0], depth, types, true);
+      toStream(out, n[0], depth, true);
       out << ": ";
-      toStream(out, n[1], depth, types, true);
+      toStream(out, n[1], depth, true);
       out << ")";
       return;
       break;
     case kind::WITNESS:
       out << "(WITNESS";
-      toStream(out, n[0], depth, types, false);
+      toStream(out, n[0], depth, false);
       out << " : ";
-      toStream(out, n[1], depth, types, false);
+      toStream(out, n[1], depth, false);
       out << ')';
       return;
     case kind::DISTINCT:
       // distinct not supported directly, blast it away with the rewriter
-      toStream(out, theory::Rewriter::rewrite(n), depth, types, true);
+      toStream(out, theory::Rewriter::rewrite(n), depth, true);
       return;
     case kind::SORT_TYPE:
     {
@@ -361,9 +360,7 @@ void CvcPrinter::toStream(
       break;
 
     // UF
-    case kind::APPLY_UF:
-      toStream(op, n.getOperator(), depth, types, false);
-      break;
+    case kind::APPLY_UF: toStream(op, n.getOperator(), depth, false); break;
     case kind::CARDINALITY_CONSTRAINT:
     case kind::COMBINED_CARDINALITY_CONSTRAINT:
       out << "CARDINALITY_CONSTRAINT";
@@ -378,14 +375,14 @@ void CvcPrinter::toStream(
           if (i > 1) {
             out << ", ";
           }
-          toStream(out, n[i - 1], depth, types, false);
+          toStream(out, n[i - 1], depth, false);
         }
         if (n.getNumChildren() > 2) {
           out << ')';
         }
       }
       out << " -> ";
-      toStream(out, n[n.getNumChildren() - 1], depth, types, false);
+      toStream(out, n[n.getNumChildren() - 1], depth, false);
       return;
       break;
 
@@ -407,10 +404,10 @@ void CvcPrinter::toStream(
       return;
       break;
     case kind::APPLY_TYPE_ASCRIPTION: {
-        toStream(out, n[0], depth, types, false);
-        out << "::";
-        TypeNode t = TypeNode::fromType(n.getOperator().getConst<AscriptionType>().getType());
-        out << (t.isFunctionLike() ? t.getRangeType() : t);
+      toStream(out, n[0], depth, false);
+      out << "::";
+      TypeNode t = n.getOperator().getConst<AscriptionType>().getType();
+      out << (t.isFunctionLike() ? t.getRangeType() : t);
       }
       return;
       break;
@@ -433,14 +430,14 @@ void CvcPrinter::toStream(
               out << ", ";
             }
             out << recCons[i].getName() << " := ";
-            toStream(out, n[i], depth, types, false);
+            toStream(out, n[i], depth, false);
           }
           out << " #)";
           return;
         }
         else
         {
-          toStream(op, n.getOperator(), depth, types, false);
+          toStream(op, n.getOperator(), depth, false);
           if (n.getNumChildren() == 0)
           {
             // for datatype constants d, we print "d" and not "d()"
@@ -456,11 +453,11 @@ void CvcPrinter::toStream(
         Node opn = n.getOperator();
         if (!t.isDatatype())
         {
-          toStream(op, opn, depth, types, false);
+          toStream(op, opn, depth, false);
         }
         else if (t.isTuple() || t.isRecord())
         {
-          toStream(out, n[0], depth, types, true);
+          toStream(out, n[0], depth, true);
           out << '.';
           const DType& dt = t.getDType();
           if (t.isTuple())
@@ -479,11 +476,11 @@ void CvcPrinter::toStream(
           }
           else
           {
-            toStream(out, opn, depth, types, false);
+            toStream(out, opn, depth, false);
           }
           return;
         }else{
-          toStream(op, opn, depth, types, false);
+          toStream(op, opn, depth, false);
         }
       }
       break;
@@ -492,7 +489,7 @@ void CvcPrinter::toStream(
       op << "is_";
       unsigned cindex = DType::indexOf(n.getOperator());
       const DType& dt = DType::datatypeOf(n.getOperator());
-      toStream(op, dt[cindex].getConstructor(), depth, types, false);
+      toStream(op, dt[cindex].getConstructor(), depth, false);
     }
       break;
     case kind::CONSTRUCTOR_TYPE:
@@ -505,45 +502,45 @@ void CvcPrinter::toStream(
           if(i > 0) {
             out << ", ";
           }
-          toStream(out, n[i], depth, types, false);
+          toStream(out, n[i], depth, false);
         }
         if(n.getNumChildren() > 2) {
           out << ')';
         }
         out << " -> ";
       }
-      toStream(out, n[n.getNumChildren() - 1], depth, types, false);
+      toStream(out, n[n.getNumChildren() - 1], depth, false);
       return;
     case kind::TESTER_TYPE:
-      toStream(out, n[0], depth, types, false);
+      toStream(out, n[0], depth, false);
       out << " -> BOOLEAN";
       return;
       break;
     case kind::TUPLE_UPDATE:
-      toStream(out, n[0], depth, types, true);
+      toStream(out, n[0], depth, true);
       out << " WITH ." << n.getOperator().getConst<TupleUpdate>().getIndex() << " := ";
-      toStream(out, n[1], depth, types, true);
+      toStream(out, n[1], depth, true);
       return;
       break;
     case kind::RECORD_UPDATE:
-      toStream(out, n[0], depth, types, true);
+      toStream(out, n[0], depth, true);
       out << " WITH ." << n.getOperator().getConst<RecordUpdate>().getField() << " := ";
-      toStream(out, n[1], depth, types, true);
+      toStream(out, n[1], depth, true);
       return;
       break;
 
     // ARRAYS
     case kind::ARRAY_TYPE:
       out << "ARRAY ";
-      toStream(out, n[0], depth, types, false);
+      toStream(out, n[0], depth, false);
       out << " OF ";
-      toStream(out, n[1], depth, types, false);
+      toStream(out, n[1], depth, false);
       return;
       break;
     case kind::SELECT:
-      toStream(out, n[0], depth, types, true);
+      toStream(out, n[0], depth, true);
       out << '[';
-      toStream(out, n[1], depth, types, false);
+      toStream(out, n[1], depth, false);
       out << ']';
       return;
       break;
@@ -557,18 +554,18 @@ void CvcPrinter::toStream(
         out << '(';
       }
       TNode x = stk.top();
-      toStream(out, x[0], depth, types, false);
+      toStream(out, x[0], depth, false);
       out << " WITH [";
-      toStream(out, x[1], depth, types, false);
+      toStream(out, x[1], depth, false);
       out << "] := ";
-      toStream(out, x[2], depth, types, false);
+      toStream(out, x[2], depth, false);
       stk.pop();
       while(!stk.empty()) {
         x = stk.top();
         out << ", [";
-        toStream(out, x[1], depth, types, false);
+        toStream(out, x[1], depth, false);
         out << "] := ";
-        toStream(out, x[2], depth, types, false);
+        toStream(out, x[2], depth, false);
         stk.pop();
       }
       if (bracket) {
@@ -644,6 +641,8 @@ void CvcPrinter::toStream(
       opType = PREFIX;
       break;
     case kind::TO_REAL:
+    case kind::CAST_TO_REAL:
+    {
       if (n[0].getKind() == kind::CONST_RATIONAL)
       {
         // print the constant as a rational
@@ -652,12 +651,13 @@ void CvcPrinter::toStream(
       else
       {
         // ignore, there is no to-real in CVC language
-        toStream(out, n[0], depth, types, false);
+        toStream(out, n[0], depth, false);
       }
       return;
+    }
     case kind::DIVISIBLE:
       out << "DIVISIBLE(";
-      toStream(out, n[0], depth, types, false);
+      toStream(out, n[0], depth, false);
       out << ", " << n.getOperator().getConst<Divisible>().k << ")";
       return;
 
@@ -758,16 +758,16 @@ void CvcPrinter::toStream(
         out << "BVPLUS(";
         out << BitVectorType(n.getType().toType()).getSize();
         out << ',';
-        toStream(out, n[child], depth, types, false);
+        toStream(out, n[child], depth, false);
         out << ',';
         ++child;
       }
       out << "BVPLUS(";
       out << BitVectorType(n.getType().toType()).getSize();
       out << ',';
-      toStream(out, n[child], depth, types, false);
+      toStream(out, n[child], depth, false);
       out << ',';
-      toStream(out, n[child + 1], depth, types, false);
+      toStream(out, n[child + 1], depth, false);
       while (child > 0) {
         out << ')';
         --child;
@@ -781,9 +781,9 @@ void CvcPrinter::toStream(
       Assert(n.getType().isBitVector());
       out << BitVectorType(n.getType().toType()).getSize();
       out << ',';
-      toStream(out, n[0], depth, types, false);
+      toStream(out, n[0], depth, false);
       out << ',';
-      toStream(out, n[1], depth, types, false);
+      toStream(out, n[1], depth, false);
       out << ')';
       return;
       break;
@@ -795,16 +795,16 @@ void CvcPrinter::toStream(
         out << "BVMULT(";
         out << BitVectorType(n.getType().toType()).getSize();
         out << ',';
-        toStream(out, n[child], depth, types, false);
+        toStream(out, n[child], depth, false);
         out << ',';
         ++child;
         }
       out << "BVMULT(";
       out << BitVectorType(n.getType().toType()).getSize();
       out << ',';
-      toStream(out, n[child], depth, types, false);
+      toStream(out, n[child], depth, false);
       out << ',';
-      toStream(out, n[child + 1], depth, types, false);
+      toStream(out, n[child + 1], depth, false);
       while (child > 0) {
         out << ')';
         --child;
@@ -823,31 +823,31 @@ void CvcPrinter::toStream(
       break;
     case kind::BITVECTOR_REPEAT:
       out << "BVREPEAT(";
-      toStream(out, n[0], depth, types, false);
+      toStream(out, n[0], depth, false);
       out << ", " << n.getOperator().getConst<BitVectorRepeat>() << ')';
       return;
       break;
     case kind::BITVECTOR_ZERO_EXTEND:
       out << "BVZEROEXTEND(";
-      toStream(out, n[0], depth, types, false);
+      toStream(out, n[0], depth, false);
       out << ", " << n.getOperator().getConst<BitVectorZeroExtend>() << ')';
       return;
       break;
     case kind::BITVECTOR_SIGN_EXTEND:
       out << "SX(";
-      toStream(out, n[0], depth, types, false);
+      toStream(out, n[0], depth, false);
       out << ", " << BitVectorType(n.getType().toType()).getSize() << ')';
       return;
       break;
     case kind::BITVECTOR_ROTATE_LEFT:
       out << "BVROTL(";
-      toStream(out, n[0], depth, types, false);
+      toStream(out, n[0], depth, false);
       out << ", " << n.getOperator().getConst<BitVectorRotateLeft>() << ')';
       return;
       break;
     case kind::BITVECTOR_ROTATE_RIGHT:
       out << "BVROTR(";
-      toStream(out, n[0], depth, types, false);
+      toStream(out, n[0], depth, false);
       out << ", " << n.getOperator().getConst<BitVectorRotateRight>() << ')';
       return;
       break;
@@ -855,7 +855,7 @@ void CvcPrinter::toStream(
     // SETS
     case kind::SET_TYPE:
       out << "SET OF ";
-      toStream(out, n[0], depth, types, false);
+      toStream(out, n[0], depth, false);
       return;
       break;
     case kind::UNION:
@@ -908,7 +908,7 @@ void CvcPrinter::toStream(
       break;
     case kind::SINGLETON:
       out << "{";
-      toStream(out, n[0], depth, types, false);
+      toStream(out, n[0], depth, false);
       out << "}";
       return;
       break;
@@ -918,13 +918,13 @@ void CvcPrinter::toStream(
       }
       out << '{';
       size_t i = 0;
-      toStream(out, n[i++], depth, types, false);
+      toStream(out, n[i++], depth, false);
       for(;i+1 < n.getNumChildren(); ++i) {
         out << ", ";
-        toStream(out, n[i], depth, types, false);
+        toStream(out, n[i], depth, false);
       }
       out << "} | ";
-      toStream(out, n[i], depth, types, true);
+      toStream(out, n[i], depth, true);
       if(bracket) {
         out << ')';
       }
@@ -933,7 +933,7 @@ void CvcPrinter::toStream(
     }
     case kind::CARD: {
       out << "CARD(";
-      toStream(out, n[0], depth, types, false);
+      toStream(out, n[0], depth, false);
       out << ")";
       return;
       break;
@@ -942,17 +942,17 @@ void CvcPrinter::toStream(
     // Quantifiers
     case kind::FORALL:
       out << "(FORALL";
-      toStream(out, n[0], depth, types, false);
+      toStream(out, n[0], depth, false);
       out << " : ";
-      toStream(out, n[1], depth, types, false);
+      toStream(out, n[1], depth, false);
       out << ')';
       // TODO: user patterns?
       return;
     case kind::EXISTS:
       out << "(EXISTS";
-      toStream(out, n[0], depth, types, false);
+      toStream(out, n[0], depth, false);
       out << " : ";
-      toStream(out, n[1], depth, types, false);
+      toStream(out, n[1], depth, false);
       out << ')';
       // TODO: user patterns?
       return;
@@ -965,7 +965,9 @@ void CvcPrinter::toStream(
         if(i > 0) {
           out << ", ";
         }
-        toStream(out, n[i], -1, true, false); // ascribe types
+        toStream(out, n[i], -1, false);
+        out << ":";
+        n[i].getType().toStream(out, language::output::LANG_CVC4);
       }
       out << ')';
       return;
@@ -1019,7 +1021,7 @@ void CvcPrinter::toStream(
         out << ", ";
       }
     }
-    toStream(out, n[i], depth, types, opType == INFIX);
+    toStream(out, n[i], depth, opType == INFIX);
   }
 
   switch (opType) {
@@ -1074,8 +1076,8 @@ void DeclareTypeNodeCommandToStream(std::ostream& out,
   TypeNode type_node = command.getType();
   const std::vector<Node>* type_reps =
       model.getRepSet()->getTypeRepsOrNull(type_node);
-  if (options::modelUninterpDtEnum() && type_node.isSort()
-      && type_reps != nullptr)
+  if (options::modelUninterpPrint() == options::ModelUninterpPrintMode::DtEnum
+      && type_node.isSort() && type_reps != nullptr)
   {
     out << "DATATYPE" << std::endl;
     out << "  " << command.getSymbol() << " = ";
@@ -1145,7 +1147,8 @@ void DeclareFunctionNodeCommandToStream(
   // We get the value from the theory model directly, which notice
   // does not have to go through the standard SmtEngine::getValue interface.
   Node val = model.getValue(n);
-  if (options::modelUninterpDtEnum() && val.getKind() == kind::STORE)
+  if (options::modelUninterpPrint() == options::ModelUninterpPrintMode::DtEnum
+      && val.getKind() == kind::STORE)
   {
     TypeNode type_node = val[1].getType();
     if (tn.isSort())
@@ -1405,16 +1408,6 @@ void CvcPrinter::toStreamCmdDefineType(std::ostream& out,
   {
     out << id << " : TYPE = " << t << ';' << std::endl;
   }
-}
-
-void CvcPrinter::toStreamCmdDefineNamedFunction(
-    std::ostream& out,
-    const std::string& id,
-    const std::vector<Node>& formals,
-    TypeNode range,
-    Node formula) const
-{
-  toStreamCmdDefineFunction(out, id, formals, range, formula);
 }
 
 void CvcPrinter::toStreamCmdSimplify(std::ostream& out, Node n) const

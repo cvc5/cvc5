@@ -34,9 +34,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-CegSingleInv::CegSingleInv(QuantifiersEngine* qe, SynthConjecture* p)
+CegSingleInv::CegSingleInv(QuantifiersEngine* qe)
     : d_qe(qe),
-      d_parent(p),
       d_sip(new SingleInvocationPartition),
       d_sol(new CegSingleInvSol(qe)),
       d_isSolved(false),
@@ -61,20 +60,7 @@ void CegSingleInv::initialize(Node q)
   // infer single invocation-ness
 
   // get the variables
-  std::vector< Node > progs;
-  std::map< Node, std::vector< Node > > prog_vars;
-  for (const Node& sf : q[0])
-  {
-    progs.push_back( sf );
-    Node sfvl = CegGrammarConstructor::getSygusVarList(sf);
-    if (!sfvl.isNull())
-    {
-      for (const Node& sfv : sfvl)
-      {
-        prog_vars[sf].push_back(sfv);
-      }
-    }
-  }
+  std::vector<Node> progs(q[0].begin(), q[0].end());
   // compute single invocation partition
   Node qq;
   if (q[1].getKind() == NOT && q[1][0].getKind() == FORALL)
@@ -113,163 +99,8 @@ void CegSingleInv::initialize(Node q)
     if (options::cegqiSingleInvMode() != options::CegqiSingleInvMode::NONE)
     {
       d_single_invocation = true;
-      return;
     }
   }
-  // We are processing without single invocation techniques, now check if
-  // we should fix an invariant template (post-condition strengthening or
-  // pre-condition weakening).
-  options::SygusInvTemplMode tmode = options::sygusInvTemplMode();
-  if (tmode != options::SygusInvTemplMode::NONE)
-  {
-    // currently only works for single predicate synthesis
-    if (q[0].getNumChildren() > 1 || !q[0][0].getType().isPredicate())
-    {
-      tmode = options::SygusInvTemplMode::NONE;
-    }
-    else if (!options::sygusInvTemplWhenSyntax())
-    {
-      // only use invariant templates if no syntactic restrictions
-      if (CegGrammarConstructor::hasSyntaxRestrictions(q))
-      {
-        tmode = options::SygusInvTemplMode::NONE;
-      }
-    }
-  }
-
-  if (tmode == options::SygusInvTemplMode::NONE)
-  {
-    // not processing invariant templates
-    return;
-  }
-  // if we are doing invariant templates, then construct the template
-  Trace("sygus-si") << "- Do transition inference..." << std::endl;
-  d_ti[q].process(qq, q[0][0]);
-  Trace("cegqi-inv") << std::endl;
-  Node prog = d_ti[q].getFunction();
-  if (!d_ti[q].isComplete())
-  {
-    // the invariant could not be inferred
-    return;
-  }
-  Assert(prog == q[0][0]);
-  NodeManager* nm = NodeManager::currentNM();
-  // map the program back via non-single invocation map
-  std::vector<Node> prog_templ_vars;
-  d_ti[q].getVariables(prog_templ_vars);
-  d_trans_pre[prog] = d_ti[q].getPreCondition();
-  d_trans_post[prog] = d_ti[q].getPostCondition();
-  Trace("cegqi-inv") << "   precondition : " << d_trans_pre[prog] << std::endl;
-  Trace("cegqi-inv") << "  postcondition : " << d_trans_post[prog] << std::endl;
-  std::vector<Node> sivars;
-  d_sip->getSingleInvocationVariables(sivars);
-  Node invariant = d_sip->getFunctionInvocationFor(prog);
-  if (invariant.isNull())
-  {
-    // the conjecture did not have an instance of the invariant
-    // (e.g. it is trivially true/false).
-    return;
-  }
-  invariant = invariant.substitute(sivars.begin(),
-                                   sivars.end(),
-                                   prog_templ_vars.begin(),
-                                   prog_templ_vars.end());
-  Trace("cegqi-inv") << "      invariant : " << invariant << std::endl;
-
-  // store simplified version of quantified formula
-  d_simp_quant = d_sip->getFullSpecification();
-  std::vector<Node> new_bv;
-  for( const Node& v : sivars )
-  {
-    new_bv.push_back(nm->mkBoundVar(v.getType()));
-  }
-  d_simp_quant = d_simp_quant.substitute(
-      sivars.begin(), sivars.end(), new_bv.begin(), new_bv.end());
-  Assert(q[1].getKind() == NOT && q[1][0].getKind() == FORALL);
-  for (const Node& v : q[1][0][0])
-  {
-    new_bv.push_back(v);
-  }
-  d_simp_quant =
-      nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, new_bv), d_simp_quant)
-          .negate();
-  d_simp_quant = Rewriter::rewrite(d_simp_quant);
-  d_simp_quant = nm->mkNode(FORALL, q[0], d_simp_quant, q[2]);
-  Trace("sygus-si") << "Rewritten quantifier : " << d_simp_quant << std::endl;
-
-  // construct template argument
-  d_templ_arg[prog] = nm->mkSkolem("I", invariant.getType());
-
-  // construct template
-  Node templ;
-  if (options::sygusInvAutoUnfold())
-  {
-    if (d_ti[q].isComplete())
-    {
-      Trace("cegqi-inv-auto-unfold")
-          << "Automatic deterministic unfolding... " << std::endl;
-      // auto-unfold
-      DetTrace dt;
-      int init_dt = d_ti[q].initializeTrace(dt);
-      if (init_dt == 0)
-      {
-        Trace("cegqi-inv-auto-unfold") << "  Init : ";
-        dt.print("cegqi-inv-auto-unfold");
-        Trace("cegqi-inv-auto-unfold") << std::endl;
-        unsigned counter = 0;
-        unsigned status = 0;
-        while (counter < 100 && status == 0)
-        {
-          status = d_ti[q].incrementTrace(dt);
-          counter++;
-          Trace("cegqi-inv-auto-unfold") << "  #" << counter << " : ";
-          dt.print("cegqi-inv-auto-unfold");
-          Trace("cegqi-inv-auto-unfold")
-              << "...status = " << status << std::endl;
-        }
-        if (status == 1)
-        {
-          // we have a trivial invariant
-          templ = d_ti[q].constructFormulaTrace(dt);
-          Trace("cegqi-inv") << "By finite deterministic terminating trace, a "
-                                "solution invariant is : "
-                             << std::endl;
-          Trace("cegqi-inv") << "   " << templ << std::endl;
-          // this should be unnecessary
-          templ = nm->mkNode(AND, templ, d_templ_arg[prog]);
-        }
-      }
-      else
-      {
-        Trace("cegqi-inv-auto-unfold") << "...failed initialize." << std::endl;
-      }
-    }
-  }
-  Trace("cegqi-inv") << "Make the template... " << tmode << " " << templ
-                     << std::endl;
-  if (templ.isNull())
-  {
-    if (tmode == options::SygusInvTemplMode::PRE)
-    {
-      templ = nm->mkNode(OR, d_trans_pre[prog], d_templ_arg[prog]);
-    }
-    else
-    {
-      Assert(tmode == options::SygusInvTemplMode::POST);
-      templ = nm->mkNode(AND, d_trans_post[prog], d_templ_arg[prog]);
-    }
-  }
-  Trace("cegqi-inv") << "       template (pre-substitution) : " << templ
-                     << std::endl;
-  Assert(!templ.isNull());
-  // subsitute the template arguments
-  Assert(prog_templ_vars.size() == prog_vars[prog].size());
-  templ = templ.substitute(prog_templ_vars.begin(),
-                           prog_templ_vars.end(),
-                           prog_vars[prog].begin(),
-                           prog_vars[prog].end());
-  Trace("cegqi-inv") << "       template : " << templ << std::endl;
-  d_templ[prog] = templ;
 }
 
 void CegSingleInv::finishInit(bool syntaxRestricted)
@@ -410,6 +241,8 @@ bool CegSingleInv::solve()
     Node body = siq[1];
     for (unsigned i = 0, ninsts = d_inst.size(); i < ninsts; i++)
     {
+      // note we do not convert to witness form here, since we could be
+      // an internal subsolver
       std::vector<Node>& inst = d_inst[i];
       Trace("sygus-si") << "  Instantiation: " << inst << std::endl;
       // instantiation should have same arity since we are not allowed to

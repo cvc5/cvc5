@@ -68,6 +68,7 @@ class Smt2 : public Parser
 
  protected:
   Smt2(api::Solver* solver,
+       SymbolManager* sm,
        Input* input,
        bool strictMode = false,
        bool parseOnly = false);
@@ -168,7 +169,7 @@ class Smt2 : public Parser
 
   /** Push scope for define-fun-rec
    *
-   * This calls Parser::pushScope(bindingLevel) and sets up
+   * This calls Parser::pushScope() and sets up
    * initial information for reading a body of a function definition
    * in the define-fun-rec and define-funs-rec command.
    * The input parameters func/flattenVars are the result
@@ -179,7 +180,7 @@ class Smt2 : public Parser
    * flattenVars : the implicit variables introduced when defining func.
    *
    * This function:
-   * (1) Calls Parser::pushScope(bindingLevel).
+   * (1) Calls Parser::pushScope().
    * (2) Computes the bound variable list for the quantified formula
    *     that defined this definition and stores it in bvs.
    */
@@ -187,55 +188,11 @@ class Smt2 : public Parser
       const std::vector<std::pair<std::string, api::Sort>>& sortedVarNames,
       api::Term func,
       const std::vector<api::Term>& flattenVars,
-      std::vector<api::Term>& bvs,
-      bool bindingLevel = false);
+      std::vector<api::Term>& bvs);
 
   void reset() override;
 
   void resetAssertions();
-
-  /**
-   * Class for creating instances of `SynthFunCommand`s. Creating an instance
-   * of this class pushes the scope, destroying it pops the scope.
-   */
-  class SynthFunFactory
-  {
-   public:
-    /**
-     * Creates an instance of `SynthFunFactory`.
-     *
-     * @param smt2 Pointer to the parser state
-     * @param id Name of the function to synthesize
-     * @param isInv True if the goal is to synthesize an invariant, false
-     * otherwise
-     * @param range The return type of the function-to-synthesize
-     * @param sortedVarNames The parameters of the function-to-synthesize
-     */
-    SynthFunFactory(
-        Smt2* smt2,
-        const std::string& id,
-        bool isInv,
-        api::Sort range,
-        std::vector<std::pair<std::string, api::Sort>>& sortedVarNames);
-
-    const std::vector<api::Term>& getSygusVars() const { return d_sygusVars; }
-
-    /**
-     * Create an instance of `SynthFunCommand`.
-     *
-     * @param grammar Optional grammar associated with the synth-fun command
-     * @return The instance of `SynthFunCommand`
-     */
-    std::unique_ptr<Command> mkCommand(api::Grammar* grammar);
-
-   private:
-    Smt2* d_smt2;
-    std::string d_id;
-    api::Term d_fun;
-    api::Sort d_sort;
-    bool d_isInv;
-    std::vector<api::Term> d_sygusVars;
-  };
 
   /**
    * Creates a command that adds an invariant constraint.
@@ -386,17 +343,11 @@ class Smt2 : public Parser
     }
     this->Parser::checkDeclaration(name, check, type, notes);
   }
-  /** Set named attribute
-   *
-   * This is called when expression expr is annotated with a name, i.e.
-   * (! expr :named sexpr). It sets up the necessary information to process
-   * this naming, including marking that expr is the last named term.
-   *
-   * We construct an expression symbol whose name is the name of s-expression
-   * which is used later for tracking assertions in unsat cores. This
-   * symbol is returned by this method.
+  /**
+   * Notify that expression expr was given name std::string via a :named
+   * attribute.
    */
-  api::Term setNamedAttribute(api::Term& expr, const SExpr& sexpr);
+  void notifyNamedExpression(api::Term& expr, std::string name);
 
   // Throw a ParserException with msg appended with the current logic.
   inline void parseErrorLogic(const std::string& msg)

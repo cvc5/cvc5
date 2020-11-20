@@ -36,7 +36,6 @@ extern int optreset;
 
 #include <unistd.h>
 #include <string.h>
-#include <stdint.h>
 #include <time.h>
 
 #include <cstdio>

@@ -23,9 +23,12 @@
 #include "context/cdhashset.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "expr/proof_node_manager.h"
 #include "theory/ext_theory.h"
+#include "theory/inference_manager_buffered.h"
 #include "theory/output_channel.h"
 #include "theory/strings/infer_info.h"
+#include "theory/strings/infer_proof_cons.h"
 #include "theory/strings/sequences_stats.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/term_registry.h"
@@ -66,10 +69,11 @@ namespace strings {
  * theory of strings, e.g. sendPhaseRequirement, setIncomplete, and
  * with the extended theory object e.g. markCongruent.
  */
-class InferenceManager : public TheoryInferenceManager
+class InferenceManager : public InferenceManagerBuffered
 {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
+  friend class InferInfo;
 
  public:
   InferenceManager(Theory& t,
@@ -79,6 +83,15 @@ class InferenceManager : public TheoryInferenceManager
                    SequencesStatistics& statistics,
                    ProofNodeManager* pnm);
   ~InferenceManager() {}
+
+  /**
+   * Do pending method. This processes all pending facts, lemmas and pending
+   * phase requests based on the policy of this manager. This means that
+   * we process the pending facts first and abort if in conflict. Otherwise, we
+   * process the pending lemmas and then the pending phase requirements.
+   * Notice that we process the pending lemmas even if there were facts.
+   */
+  void doPending();
 
   /** send internal inferences
    *
@@ -145,15 +158,17 @@ class InferenceManager : public TheoryInferenceManager
    * is used as a hint for proof reconstruction.
    * @param asLemma If true, then this method will send a lemma instead
    * of a fact whenever applicable.
+   * @return true if the inference was not trivial (e.g. its conclusion did
+   * not rewrite to true).
    */
-  void sendInference(const std::vector<Node>& exp,
+  bool sendInference(const std::vector<Node>& exp,
                      const std::vector<Node>& noExplain,
                      Node eq,
                      Inference infer,
                      bool isRev = false,
                      bool asLemma = false);
   /** same as above, but where noExplain is empty */
-  void sendInference(const std::vector<Node>& exp,
+  bool sendInference(const std::vector<Node>& exp,
                      Node eq,
                      Inference infer,
                      bool isRev = false,
@@ -171,7 +186,7 @@ class InferenceManager : public TheoryInferenceManager
    * If the flag asLemma is true, then this method will send a lemma instead
    * of a fact whenever applicable.
    */
-  void sendInference(const InferInfo& ii, bool asLemma = false);
+  void sendInference(InferInfo& ii, bool asLemma = false);
   /** Send split
    *
    * This requests that ( a = b V a != b ) is sent on the output channel as a
@@ -186,17 +201,6 @@ class InferenceManager : public TheoryInferenceManager
    * otherwise. A split is trivial if a=b rewrites to a constant.
    */
   bool sendSplit(Node a, Node b, Inference infer, bool preq = true);
-
-  /** Send phase requirement
-   *
-   * This method is called to indicate this class should send a phase
-   * requirement request to the output channel for literal lit to be
-   * decided with polarity pol. This requirement is processed at the same time
-   * lemmas are sent on the output channel of this class during this call to
-   * check. This means if the current lemmas of this class are abandoned (due
-   * to a conflict), the phase requirement is not processed.
-   */
-  void sendPhaseRequirement(Node lit, bool pol);
   /**
    * Set that we are incomplete for the current set of assertions (in other
    * words, we must answer "unknown" instead of "sat"); this calls the output
@@ -213,61 +217,13 @@ class InferenceManager : public TheoryInferenceManager
   /** Adds lit to the vector exp if it is non-null */
   void addToExplanation(Node lit, std::vector<Node>& exp) const;
   //----------------------------end constructing antecedants
-  /** Do pending facts
-   *
-   * This method asserts pending facts (d_pending) with explanations
-   * (d_pendingExp) to the equality engine of the theory of strings via calls
-   * to assertPendingFact.
-   *
-   * It terminates early if a conflict is encountered, for instance, by
-   * equality reasoning within the equality engine.
-   *
-   * Regardless of whether a conflict is encountered, the vector d_pending
-   * and map d_pendingExp are cleared.
-   */
-  void doPendingFacts();
-  /** Do pending lemmas
-   *
-   * This method flushes all pending lemmas (d_pending_lem) to the output
-   * channel of theory of strings.
-   *
-   * Like doPendingFacts, this function will terminate early if a conflict
-   * has already been encountered by the theory of strings. The vector
-   * d_pending_lem is cleared regardless of whether a conflict is discovered.
-   *
-   * Notice that as a result of the above design, some lemmas may be "dropped"
-   * if a conflict is discovered in between when a lemma is added to the
-   * pending vector of this class (via a sendInference call). Lemmas
-   * e.g. those that are required for initialization should not be sent via
-   * this class, since they should never be dropped.
-   */
-  void doPendingLemmas();
   /**
    * Have we processed an inference during this call to check? In particular,
    * this returns true if we have a pending fact or lemma, or have encountered
    * a conflict.
    */
   bool hasProcessed() const;
-  /** Do we have a pending fact to add to the equality engine? */
-  bool hasPendingFact() const { return !d_pending.empty(); }
-  /** Do we have a pending lemma to send on the output channel? */
-  bool hasPendingLemma() const { return !d_pendingLem.empty(); }
 
-  /** make explanation
-   *
-   * This returns a node corresponding to the explanation of formulas in a,
-   * interpreted conjunctively. The returned node is a conjunction of literals
-   * that have been asserted to the equality engine.
-   */
-  Node mkExplain(const std::vector<Node>& a) const;
-  /** Same as above, but with a subset noExplain that should not be explained */
-  Node mkExplain(const std::vector<Node>& a,
-                 const std::vector<Node>& noExplain) const;
-  /**
-   * Explain literal l, add conjuncts to assumptions vector instead of making
-   * the node corresponding to their conjunction.
-   */
-  void explain(TNode literal, std::vector<TNode>& assumptions) const;
   // ------------------------------------------------- extended theory
   /**
    * Mark that terms a and b are congruent in the current context.
@@ -284,7 +240,18 @@ class InferenceManager : public TheoryInferenceManager
   void markReduced(Node n, bool contextDepend = true);
   // ------------------------------------------------- end extended theory
 
+  /**
+   * Called when ii is ready to be processed as a conflict. This makes a
+   * trusted node whose generator is the underlying proof equality engine
+   * (if it exists), and sends it on the output channel.
+   */
+  void processConflict(const InferInfo& ii);
+
  private:
+  /** Called when ii is ready to be processed as a fact */
+  bool processFact(InferInfo& ii);
+  /** Called when ii is ready to be processed as a lemma */
+  bool processLemma(InferInfo& ii);
   /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
   /** Reference to the term registry of theory of strings */
@@ -293,21 +260,13 @@ class InferenceManager : public TheoryInferenceManager
   ExtTheory& d_extt;
   /** Reference to the statistics for the theory of strings/sequences. */
   SequencesStatistics& d_statistics;
-
+  /** Conversion from inferences to proofs */
+  std::unique_ptr<InferProofCons> d_ipc;
   /** Common constants */
   Node d_true;
   Node d_false;
   Node d_zero;
   Node d_one;
-  /**
-   * The list of pending literals to assert to the equality engine along with
-   * their explanation.
-   */
-  std::vector<InferInfo> d_pending;
-  /** A map from literals to their pending phase requirement */
-  std::map<Node, bool> d_pendingReqPhase;
-  /** A list of pending lemmas to be sent on the output channel. */
-  std::vector<InferInfo> d_pendingLem;
 };
 
 }  // namespace strings

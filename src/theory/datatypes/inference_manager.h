@@ -19,6 +19,7 @@
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
+#include "theory/datatypes/infer_proof_cons.h"
 #include "theory/datatypes/inference.h"
 #include "theory/inference_manager_buffered.h"
 #include "util/statistics_registry.h"
@@ -62,23 +63,65 @@ class InferenceManager : public InferenceManagerBuffered
    */
   void process();
   /**
+   * Send lemma immediately on the output channel
+   */
+  void sendDtLemma(Node lem,
+                   InferId i = InferId::NONE,
+                   LemmaProperty p = LemmaProperty::NONE,
+                   bool doCache = true);
+  /**
+   * Send conflict immediately on the output channel
+   */
+  void sendDtConflict(const std::vector<Node>& conf, InferId i = InferId::NONE);
+  /**
    * Send lemmas with property NONE on the output channel immediately.
    * Returns true if any lemma was sent.
    */
   bool sendLemmas(const std::vector<Node>& lemmas);
 
  private:
+  /** Are proofs enabled? */
+  bool isProofEnabled() const;
   /**
-   * Process datatype inference. We send a lemma if asLemma is true, and
-   * send an internal fact if asLemma is false.
+   * Process datatype inference as a lemma
    */
-  bool processDtInference(Node conc, Node exp, InferId id, bool asLemma);
+  bool processDtLemma(Node conc,
+                      Node exp,
+                      InferId id,
+                      LemmaProperty p = LemmaProperty::NONE,
+                      bool doCache = true);
+  /**
+   * Process datatype inference as a fact
+   */
+  bool processDtFact(Node conc, Node exp, InferId id);
+  /**
+   * Helper function for the above methods. Returns the conclusion, which
+   * may be modified so that it is compatible with proofs. If proofs are
+   * enabled, it ensures the proof constructor is ready to provide a proof
+   * of (=> exp conc).
+   *
+   * In particular, if conc is a Boolean equality, it is rewritten. This is
+   * to ensure that we do not assert equalities of the form (= t true)
+   * or (= t false) to the equality engine, which have a reserved internal
+   * status for proof generation. If this is not done, then it is possible
+   * to have proofs with missing connections and hence free assumptions.
+   */
+  Node prepareDtInference(Node conc, Node exp, InferId id, InferProofCons* ipc);
+  /** The false node */
+  Node d_false;
   /**
    * Counts the number of applications of each type of inference processed by
-   * the above method as facts and lemmas.
+   * the above method as facts, lemmas and conflicts.
    */
   HistogramStat<InferId> d_inferenceLemmas;
   HistogramStat<InferId> d_inferenceFacts;
+  HistogramStat<InferId> d_inferenceConflicts;
+  /** Pointer to the proof node manager */
+  ProofNodeManager* d_pnm;
+  /** The inference to proof converter */
+  std::unique_ptr<InferProofCons> d_ipc;
+  /** An eager proof generator for lemmas */
+  std::unique_ptr<EagerProofGenerator> d_lemPg;
 };
 
 }  // namespace datatypes

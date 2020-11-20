@@ -28,9 +28,10 @@ namespace strings {
 SolverState::SolverState(context::Context* c,
                          context::UserContext* u,
                          Valuation& v)
-    : TheoryState(c, u, v), d_eeDisequalities(c), d_pendingConflict(c)
+    : TheoryState(c, u, v), d_eeDisequalities(c), d_pendingConflictSet(c, false)
 {
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
+  d_false = NodeManager::currentNM()->mkConst(false);
 }
 
 SolverState::~SolverState()
@@ -95,12 +96,12 @@ void SolverState::eqNotifyMerge(TNode t1, TNode t2)
     }
     if (!e2->d_prefixC.get().isNull())
     {
-      setPendingConflictWhen(
+      setPendingPrefixConflictWhen(
           e1->addEndpointConst(e2->d_prefixC, Node::null(), false));
     }
     if (!e2->d_suffixC.get().isNull())
     {
-      setPendingConflictWhen(
+      setPendingPrefixConflictWhen(
           e1->addEndpointConst(e2->d_suffixC, Node::null(), true));
     }
     if (e2->d_cardinalityLemK.get() > e1->d_cardinalityLemK.get())
@@ -161,7 +162,7 @@ void SolverState::addEndpointsToEqcInfo(Node t, Node concat, Node eqc)
       Trace("strings-eager-pconf-debug")
           << "New term: " << concat << " for " << t << " with prefix " << c
           << " (" << (r == 1) << ")" << std::endl;
-      setPendingConflictWhen(ei->addEndpointConst(t, c, r == 1));
+      setPendingPrefixConflictWhen(ei->addEndpointConst(t, c, r == 1));
     }
   }
 }
@@ -227,15 +228,39 @@ bool SolverState::isEqualEmptyWord(Node s, Node& emps)
   return false;
 }
 
-void SolverState::setPendingConflictWhen(Node conf)
+void SolverState::setPendingPrefixConflictWhen(Node conf)
 {
-  if (!conf.isNull() && d_pendingConflict.get().isNull())
+  if (conf.isNull() || d_pendingConflictSet.get())
   {
-    d_pendingConflict = conf;
+    return;
+  }
+  InferInfo iiPrefixConf;
+  iiPrefixConf.d_id = Inference::PREFIX_CONFLICT;
+  iiPrefixConf.d_conc = d_false;
+  utils::flattenOp(AND, conf, iiPrefixConf.d_ant);
+  setPendingConflict(iiPrefixConf);
+}
+
+void SolverState::setPendingConflict(InferInfo& ii)
+{
+  if (!d_pendingConflictSet.get())
+  {
+    d_pendingConflict = ii;
+    d_pendingConflictSet.set(true);
   }
 }
 
-Node SolverState::getPendingConflict() const { return d_pendingConflict; }
+bool SolverState::hasPendingConflict() const { return d_pendingConflictSet; }
+
+bool SolverState::getPendingConflict(InferInfo& ii) const
+{
+  if (d_pendingConflictSet)
+  {
+    ii = d_pendingConflict;
+    return true;
+  }
+  return false;
+}
 
 std::pair<bool, Node> SolverState::entailmentCheck(options::TheoryOfMode mode,
                                                    TNode lit)
