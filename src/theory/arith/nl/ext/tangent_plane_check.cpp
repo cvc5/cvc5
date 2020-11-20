@@ -133,7 +133,7 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
               Trace("nl-ext-tplanes")
                   << "Tangent plane lemma : " << tlem << std::endl;
               d_data->d_im.addPendingArithLemma(
-                  tlem, InferenceId::NL_TANGENT_PLANE, asWaitingLemmas);
+                  tlem, InferenceId::NL_TANGENT_PLANE, nullptr, asWaitingLemmas);
             }
           }
         }

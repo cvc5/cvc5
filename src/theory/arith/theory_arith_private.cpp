@@ -17,8 +17,6 @@
 
 #include "theory/arith/theory_arith_private.h"
 
-#include <stdint.h>
-
 #include <map>
 #include <queue>
 #include <vector>
@@ -3480,7 +3478,6 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
   }
   d_statistics.d_avgUnknownsInARow.addEntry(d_unknownsInARow);
 
-  size_t nPivots = options::useFC() ? d_fcSimplex.getPivots() : d_dualSimplex.getPivots();
   for (std::size_t i = 0; i < d_fcSimplex.getPivots(); ++i)
   {
     d_containing.d_out->spendResource(

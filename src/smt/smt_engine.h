@@ -652,18 +652,6 @@ class CVC4_PUBLIC SmtEngine
   void getInstantiatedQuantifiedFormulas(std::vector<Node>& qs);
 
   /**
-   * Get instantiations for quantified formula q.
-   *
-   * If q was a quantified formula that was instantiated on the last call to
-   * check-sat (i.e. q is returned as part of the vector in the method
-   * getInstantiatedQuantifiedFormulas above), then the list of instantiations
-   * of that formula that were generated are added to insts.
-   *
-   * In particular, if q is of the form forall x. P(x), then insts is a list
-   * of formulas of the form P(t1), ..., P(tn).
-   */
-  void getInstantiations(Node q, std::vector<Node>& insts);
-  /**
    * Get instantiation term vectors for quantified formula q.
    *
    * This method is similar to above, but in the example above, we return the
@@ -821,22 +809,6 @@ class CVC4_PUBLIC SmtEngine
                         Expr expr,
                         const std::vector<Expr>& expr_values,
                         const std::string& str_value);
-
-  /**
-   * Get expression name.
-   *
-   * Return true if given expressoion has a name in the current context.
-   * If it returns true, the name of expression 'e' is stored in 'name'.
-   */
-  bool getExpressionName(const Node& e, std::string& name) const;
-
-  /**
-   * Set name of given expression 'e' to 'name'.
-   *
-   * This information is user-context-dependent.
-   * If 'e' already has a name, it is overwritten.
-   */
-  void setExpressionName(const Node& e, const std::string& name);
 
   /** Get the options object (const and non-const versions) */
   Options& getOptions();
@@ -1049,8 +1021,6 @@ class CVC4_PUBLIC SmtEngine
   std::unique_ptr<smt::AbstractValues> d_absValues;
   /** Assertions manager */
   std::unique_ptr<smt::Assertions> d_asserts;
-  /** Expression names */
-  std::unique_ptr<smt::ExprNames> d_exprNames;
   /** The dump manager */
   std::unique_ptr<smt::DumpManager> d_dumpm;
   /** Resource out listener */
