@@ -86,9 +86,6 @@ if __name__ == "__main__":
           " slv.getValue(...) on all terms")
     prefixPrintGetValue(slv, assertions)
 
-    print("Alternatively, print the model", "\n")
-    slv.printModel()
-
     print()
     print("You can also use nested loops to iterate over terms")
     for a in assertions:
