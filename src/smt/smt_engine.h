@@ -652,18 +652,6 @@ class CVC4_PUBLIC SmtEngine
   void getInstantiatedQuantifiedFormulas(std::vector<Node>& qs);
 
   /**
-   * Get instantiations for quantified formula q.
-   *
-   * If q was a quantified formula that was instantiated on the last call to
-   * check-sat (i.e. q is returned as part of the vector in the method
-   * getInstantiatedQuantifiedFormulas above), then the list of instantiations
-   * of that formula that were generated are added to insts.
-   *
-   * In particular, if q is of the form forall x. P(x), then insts is a list
-   * of formulas of the form P(t1), ..., P(tn).
-   */
-  void getInstantiations(Node q, std::vector<Node>& insts);
-  /**
    * Get instantiation term vectors for quantified formula q.
    *
    * This method is similar to above, but in the example above, we return the

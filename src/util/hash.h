@@ -20,7 +20,6 @@
 #ifndef CVC4__HASH_H
 #define CVC4__HASH_H
 
-#include <cstdint>
 #include <functional>
 #include <string>
 
