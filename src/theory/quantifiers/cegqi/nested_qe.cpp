@@ -72,7 +72,7 @@ Node NestedQe::doNestedQe(Node q, bool keepTopLevel)
   NodeManager* nm = NodeManager::currentNM();
   Node qOrig = q;
   bool inputExists = false;
-  if (q.getKind()==kind::EXISTS)
+  if (q.getKind() == kind::EXISTS)
   {
     q = nm->mkNode(kind::FORALL, q[0], q[1].negate());
     inputExists = true;
