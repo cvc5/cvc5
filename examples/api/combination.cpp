@@ -106,10 +106,6 @@ int main()
        << endl;
   prefixPrintGetValue(slv, assertions);
 
-  cout << endl << endl << "Alternatively, print the model." << endl << endl;
-
-  slv.printModel(cout);
-
   cout << endl;
   cout << "You can also use nested loops to iterate over terms." << endl;
   for (Term::const_iterator it = assertions.begin();
