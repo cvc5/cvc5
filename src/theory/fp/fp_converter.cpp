@@ -18,7 +18,7 @@
 
 #include "theory/theory.h"  // theory.h Only needed for the leaf test
 #include "util/floatingpoint.h"
-#include "util/symfpu_literal.h"
+#include "util/floatingpoint_literal_symfpu.h"
 
 #ifdef CVC4_USE_SYMFPU
 #include "symfpu/core/add.h"
