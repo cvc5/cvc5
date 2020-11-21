@@ -146,7 +146,7 @@ class ProcessAssertions
   /**
    * Expand defintitions in assertions
    */
-  void expandAssertions(AssertionPipeline& assertions, bool expandOnly);
+  void expandAssertions(preprocessing::AssertionPipeline& assertions, bool expandOnly);
 };
 
 }  // namespace smt
