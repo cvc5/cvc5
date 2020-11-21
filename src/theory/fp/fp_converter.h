@@ -14,6 +14,8 @@
  ** Uses the symfpu library to convert from floating-point operations to
  ** bit-vectors and propositions allowing the theory to be solved by
  ** 'bit-blasting'.
+ **
+ ** !!! This header is not to be included in any other headers !!!
  **/
 
 #include "cvc4_private.h"
@@ -48,10 +50,6 @@
 namespace CVC4 {
 namespace theory {
 namespace fp {
-
-typedef PairHashFunction<TypeNode, TypeNode, TypeNodeHashFunction,
-                         TypeNodeHashFunction>
-    PairTypeNodeHashFunction;
 
 /**
  * This is a symfpu symbolic "back-end".  It allows the library to be used to

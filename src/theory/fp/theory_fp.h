@@ -24,7 +24,6 @@
 #include <utility>
 
 #include "context/cdo.h"
-#include "theory/fp/fp_converter.h"
 #include "theory/fp/theory_fp_rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
@@ -33,7 +32,10 @@ namespace CVC4 {
 namespace theory {
 namespace fp {
 
-class TheoryFp : public Theory {
+class FpConverter;
+
+class TheoryFp : public Theory
+{
  public:
   /** Constructs a new instance of TheoryFp w.r.t. the provided contexts. */
   TheoryFp(context::Context* c,
@@ -42,8 +44,11 @@ class TheoryFp : public Theory {
            Valuation valuation,
            const LogicInfo& logicInfo,
            ProofNodeManager* pnm = nullptr);
+  /** Destructor. */
+  ~TheoryFp();
+
   //--------------------------------- initialization
-  /** get the official theory rewriter of this theory */
+  /** Get the official theory rewriter of this theory. */
   TheoryRewriter* getTheoryRewriter() override;
   /**
    * Returns true if we need an equality engine. If so, we initialize the
@@ -51,7 +56,7 @@ class TheoryFp : public Theory {
    * documentation in Theory::needsEqualityEngine.
    */
   bool needsEqualityEngine(EeSetupInfo& esi) override;
-  /** finish initialization */
+  /** Finish initialization. */
   void finishInit() override;
   //--------------------------------- end initialization
 
@@ -77,8 +82,10 @@ class TheoryFp : public Theory {
   Node getModelValue(TNode var) override;
   bool collectModelInfo(TheoryModel* m,
                         const std::set<Node>& relevantTerms) override;
-  /** Collect model values in m based on the relevant terms given by
-   * relevantTerms */
+  /**
+   * Collect model values in m based on the relevant terms given by
+   * relevantTerms.
+   */
   bool collectModelValues(TheoryModel* m,
                           const std::set<Node>& relevantTerms) override;
 
@@ -87,7 +94,20 @@ class TheoryFp : public Theory {
   TrustNode explain(TNode n) override;
 
  protected:
-  /** Equality engine */
+  using PairTypeNodeHashFunction = PairHashFunction<TypeNode,
+                                                    TypeNode,
+                                                    TypeNodeHashFunction,
+                                                    TypeNodeHashFunction>;
+  /** Uninterpreted functions for undefined cases of non-total operators. */
+  using ComparisonUFMap =
+      context::CDHashMap<TypeNode, Node, TypeNodeHashFunction>;
+  /** Uninterpreted functions for lazy handling of conversions. */
+  using ConversionUFMap = context::
+      CDHashMap<std::pair<TypeNode, TypeNode>, Node, PairTypeNodeHashFunction>;
+  using ConversionAbstractionMap = ComparisonUFMap;
+  using AbstractionMap = context::CDHashMap<Node, Node, NodeHashFunction>;
+
+  /** Equality engine. */
   class NotifyClass : public eq::EqualityEngineNotify {
    protected:
     TheoryFp& d_theorySolver;
@@ -108,14 +128,15 @@ class TheoryFp : public Theory {
 
   NotifyClass d_notification;
 
-  /** General utility **/
+  /** General utility. */
   void registerTerm(TNode node);
   bool isRegistered(TNode node);
 
   context::CDHashSet<Node, NodeHashFunction> d_registeredTerms;
 
-  /** Bit-blasting conversion */
-  FpConverter d_conv;
+  /** The word-blaster. Translates FP -> BV. */
+  FpConverter* d_conv = nullptr;
+
   bool d_expansionRequested;
 
   void convertAndEquateTerm(TNode node);
@@ -133,44 +154,30 @@ class TheoryFp : public Theory {
    */
   void conflictEqConstantMerge(TNode t1, TNode t2);
 
-  context::CDO<Node> d_conflictNode;
-
-  typedef context::CDHashMap<TypeNode, Node, TypeNodeHashFunction>
-      ComparisonUFMap;
-
-  ComparisonUFMap d_minMap;
-  ComparisonUFMap d_maxMap;
+  bool refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete);
 
   Node minUF(Node);
   Node maxUF(Node);
 
-  typedef context::CDHashMap<std::pair<TypeNode, TypeNode>, Node,
-                             PairTypeNodeHashFunction>
-      ConversionUFMap;
-
-  ConversionUFMap d_toUBVMap;
-  ConversionUFMap d_toSBVMap;
-
   Node toUBVUF(Node);
   Node toSBVUF(Node);
 
-  ComparisonUFMap d_toRealMap;
-
   Node toRealUF(Node);
-
-  /** Uninterpretted functions for lazy handling of conversions */
-  typedef ComparisonUFMap conversionAbstractionMap;
-
-  conversionAbstractionMap realToFloatMap;
-  conversionAbstractionMap floatToRealMap;
 
   Node abstractRealToFloat(Node);
   Node abstractFloatToReal(Node);
 
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> abstractionMapType;
-  abstractionMapType abstractionMap;  // abstract -> original
+ private:
+  context::CDO<Node> d_conflictNode;
 
-  bool refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete);
+  ComparisonUFMap d_minMap;
+  ComparisonUFMap d_maxMap;
+  ConversionUFMap d_toUBVMap;
+  ConversionUFMap d_toSBVMap;
+  ComparisonUFMap d_toRealMap;
+  ConversionAbstractionMap d_realToFloatMap;
+  ConversionAbstractionMap d_floatToRealMap;
+  AbstractionMap d_abstractionMap;  // abstract -> original
 
   /** The theory rewriter for this theory. */
   TheoryFpRewriter d_rewriter;
