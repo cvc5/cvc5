@@ -44,8 +44,6 @@ class TheoryFp : public Theory
            Valuation valuation,
            const LogicInfo& logicInfo,
            ProofNodeManager* pnm = nullptr);
-  /** Destructor. */
-  ~TheoryFp();
 
   //--------------------------------- initialization
   /** Get the official theory rewriter of this theory. */
@@ -135,7 +133,7 @@ class TheoryFp : public Theory
   context::CDHashSet<Node, NodeHashFunction> d_registeredTerms;
 
   /** The word-blaster. Translates FP -> BV. */
-  FpConverter* d_conv = nullptr;
+  std::unique_ptr<FpConverter> d_conv;
 
   bool d_expansionRequested;
 

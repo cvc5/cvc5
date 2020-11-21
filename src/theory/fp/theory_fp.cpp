@@ -126,12 +126,6 @@ TheoryFp::TheoryFp(context::Context* c,
   d_theoryState = &d_state;
 } /* TheoryFp::TheoryFp() */
 
-TheoryFp::~TheoryFp()
-{
-  delete d_conv;
-  d_conv = nullptr;
-}
-
 TheoryRewriter* TheoryFp::getTheoryRewriter() { return &d_rewriter; }
 
 bool TheoryFp::needsEqualityEngine(EeSetupInfo& esi)
