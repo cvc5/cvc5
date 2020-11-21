@@ -1,8 +1,8 @@
 /*********************                                                        */
-/*! \file floatingpoint.h.in
+/*! \file floatingpoint.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain, Aina Niemetz, Haniel Barbosa
+ **   Aina Niemetz, Martin Brain, Mathias Preiner
  ** Copyright (c) 2013  University of Oxford
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
