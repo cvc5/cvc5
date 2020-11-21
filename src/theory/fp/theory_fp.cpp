@@ -459,7 +459,7 @@ TrustNode TheoryFp::ppRewrite(TNode node)
   {
     return texp;
   }
-  
+
   Node res = node;
 
   // Abstract conversion functions

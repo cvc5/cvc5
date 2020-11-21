@@ -752,7 +752,8 @@ Node ProcessAssertions::expandDefinitions(
   return result.top();
 }
 
-void ProcessAssertions::expandAssertions(AssertionPipeline& assertions, bool expandOnly)
+void ProcessAssertions::expandAssertions(AssertionPipeline& assertions,
+                                         bool expandOnly)
 {
   Chat() << "expanding definitions in assertions..." << endl;
   Trace("simplify") << "ProcessAssertions::simplify(): expanding definitions"

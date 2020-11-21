@@ -97,7 +97,7 @@ void TheoryArith::preRegisterTerm(TNode n)
   d_internal->preRegisterTerm(n);
 }
 
-TrustNode TheoryArith::expandDefinition(Node node)	
+TrustNode TheoryArith::expandDefinition(Node node)
 {
   // call eliminate operators
   return d_arithPreproc.eliminate(node);
