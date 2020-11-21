@@ -32,6 +32,9 @@ const char* toString(Rewrite r)
     case Rewrite::COUNT_EMPTY: return "COUNT_EMPTY";
     case Rewrite::COUNT_MK_BAG: return "COUNT_MK_BAG";
     case Rewrite::DUPLICATE_REMOVAL_MK_BAG: return "DUPLICATE_REMOVAL_MK_BAG";
+    case Rewrite::EQ_CONST_FALSE: return "EQ_CONST_FALSE";
+    case Rewrite::EQ_REFL: return "EQ_REFL";
+    case Rewrite::EQ_SYM: return "EQ_SYM";
     case Rewrite::FROM_SINGLETON: return "FROM_SINGLETON";
     case Rewrite::IDENTICAL_NODES: return "IDENTICAL_NODES";
     case Rewrite::INTERSECTION_EMPTY_LEFT: return "INTERSECTION_EMPTY_LEFT";
