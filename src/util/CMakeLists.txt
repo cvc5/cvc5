@@ -8,7 +8,7 @@
 ## All rights reserved.  See the file COPYING in the top-level source
 ## directory for licensing information.
 ##
-configure_file(symfpu_literal.h.in symfpu_literal.h)
+configure_file(floatingpoint_literal_symfpu.h.in floatingpoint_literal_symfpu.h)
 configure_file(rational.h.in rational.h)
 configure_file(integer.h.in integer.h)
 configure_file(real_algebraic_number.h.in real_algebraic_number.h)
@@ -62,7 +62,7 @@ libcvc4_add_sources(
   statistics_registry.h
   string.cpp
   string.h
-  symfpu_literal.cpp
+  floatingpoint_literal_symfpu.cpp
   tuple.h
   unsafe_interrupt_exception.h
   utility.cpp
