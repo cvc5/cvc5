@@ -453,7 +453,13 @@ TrustNode TheoryFp::expandDefinition(Node node)
 TrustNode TheoryFp::ppRewrite(TNode node)
 {
   Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): " << node << std::endl;
-
+  // first, see if we need to expand definitions
+  TrustNode texp = expandDefinition(node);
+  if (!texp.isNull())
+  {
+    return texp;
+  }
+  
   Node res = node;
 
   // Abstract conversion functions

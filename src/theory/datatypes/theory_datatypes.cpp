@@ -595,7 +595,12 @@ TrustNode TheoryDatatypes::expandDefinition(Node n)
 TrustNode TheoryDatatypes::ppRewrite(TNode in)
 {
   Debug("tuprec") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
-
+  // first, see if we need to expand definitions
+  TrustNode texp = expandDefinition(in);
+  if (!texp.isNull())
+  {
+    return texp;
+  }
   if( in.getKind()==EQUAL ){
     Node nn;
     std::vector< Node > rew;

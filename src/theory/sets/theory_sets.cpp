@@ -128,6 +128,11 @@ void TheorySets::preRegisterTerm(TNode node)
 
 TrustNode TheorySets::expandDefinition(Node n)
 {
+  return d_internal->expandDefinition(n);
+}
+
+TrustNode TheorySets::ppRewrite(TNode n)
+{
   Kind nk = n.getKind();
   if (nk == UNIVERSE_SET || nk == COMPLEMENT || nk == JOIN_IMAGE
       || nk == COMPREHENSION)
@@ -150,7 +155,8 @@ TrustNode TheorySets::expandDefinition(Node n)
       throw LogicException(ss.str());
     }
   }
-  return d_internal->expandDefinition(n);
+  // just expand definitions
+  return expandDefinition(n);
 }
 
 Theory::PPAssertStatus TheorySets::ppAssert(
