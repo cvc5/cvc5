@@ -300,6 +300,20 @@ class floatingPointTypeInfo : public FloatingPointSize
  */
 class FpConverter
 {
+ public:
+  /** Constructor. */
+  FpConverter(context::UserContext*);
+  /** Destructor. */
+  ~FpConverter();
+
+  /** Adds a node to the conversion, returns the converted node */
+  Node convert(TNode);
+
+  /** Gives the node representing the value of a given variable */
+  Node getValue(Valuation&, TNode);
+
+  context::CDList<Node> d_additionalAssertions;
+
  protected:
 #ifdef CVC4_USE_SYMFPU
   typedef symfpuSymbolic::traits traits;
@@ -336,17 +350,6 @@ class FpConverter
   /* Creates the relevant components for a variable */
   uf buildComponents(TNode current);
 #endif
-
- public:
-  context::CDList<Node> d_additionalAssertions;
-
-  FpConverter(context::UserContext *);
-
-  /** Adds a node to the conversion, returns the converted node */
-  Node convert(TNode);
-
-  /** Gives the node representing the value of a given variable */
-  Node getValue(Valuation &, TNode);
 };
 
 }  // namespace fp
