@@ -128,21 +128,7 @@ bool ProcessAssertions::apply(Assertions& as)
       << "ProcessAssertions::processAssertions() : pre-definition-expansion"
       << endl;
   dumpAssertions("pre-definition-expansion", assertions);
-  {
-    Chat() << "expanding definitions..." << endl;
-    Trace("simplify") << "ProcessAssertions::simplify(): expanding definitions"
-                      << endl;
-    TimerStat::CodeTimer codeTimer(d_smtStats.d_definitionExpansionTime);
-    unordered_map<Node, Node, NodeHashFunction> cache;
-    for (size_t i = 0, nasserts = assertions.size(); i < nasserts; ++i)
-    {
-      Node expd = expandDefinitions(assertions[i], cache);
-      if (expd != assertions[i])
-      {
-        assertions.replace(i, expd);
-      }
-    }
-  }
+  expandAssertions(assertions, true);
   Trace("smt-proc")
       << "ProcessAssertions::processAssertions() : post-definition-expansion"
       << endl;
@@ -764,6 +750,23 @@ Node ProcessAssertions::expandDefinitions(
   AlwaysAssert(result.size() == 1);
 
   return result.top();
+}
+
+void ProcessAssertions::expandAssertions(AssertionPipeline& assertions, bool expandOnly)
+{
+  Chat() << "expanding definitions in assertions..." << endl;
+  Trace("simplify") << "ProcessAssertions::simplify(): expanding definitions"
+                    << endl;
+  TimerStat::CodeTimer codeTimer(d_smtStats.d_definitionExpansionTime);
+  unordered_map<Node, Node, NodeHashFunction> cache;
+  for (size_t i = 0, nasserts = assertions.size(); i < nasserts; ++i)
+  {
+    Node expd = expandDefinitions(assertions[i], cache, expandOnly);
+    if (expd != assertions[i])
+    {
+      assertions.replace(i, expd);
+    }
+  }
 }
 
 void ProcessAssertions::collectSkolems(
