@@ -30,9 +30,7 @@ namespace proof {
 
 
 // TEMP ad-hoc code to test conversion
-static std::string veritPrintName(std::vector<int> ids,
-                                  int i,
-				  bool isAssump)
+static std::string veritPrintName(std::vector<int> ids, int i, bool isAssump)
 {
   std::string name;
   for(int id:ids){
@@ -40,19 +38,25 @@ static std::string veritPrintName(std::vector<int> ids,
     name.append(std::to_string(id));
     name.push_back('.');
   }
-  if(isAssump){name.push_back('h');}
-  else{name.push_back('t');}
+  if (isAssump)
+  {
+    name.push_back('h');
+  }
+  else
+  {
+    name.push_back('t');
+  }
   name.append(std::to_string(i));
   return name;
 }
 
 // TEMP ad-hoc code to test conversion
 static std::vector<int> veritPrintInternal(std::ostream& out,
-                              std::shared_ptr<ProofNode> pfn,
-			      std::vector<int> &ids,
-                              int i,
-			      int h,
-			      bool &firstScope)
+                                           std::shared_ptr<ProofNode> pfn,
+                                           std::vector<int>& ids,
+                                           int i,
+                                           int h,
+                                           bool& firstScope)
 {
   // The id of the current proof node
   int current_id = i;
@@ -64,10 +68,11 @@ static std::vector<int> veritPrintInternal(std::ostream& out,
   {
     // The arguments are printed as assumptions before the
     for(int j = 2; j < pfn->getArguments().size(); j++){
-      out << "(assume " << veritPrintName(ids,h,true) << " " << pfn->getArguments()[j] << ")\n";
+      out << "(assume " << veritPrintName(ids, h, true) << " "
+          << pfn->getArguments()[j] << ")\n";
       h++;
     }
-    out << "(anchor :step " << veritPrintName(ids,i,false) << " :args (";
+    out << "(anchor :step " << veritPrintName(ids, i, false) << " :args (";
     for (int j = 2; j < pfn->getArguments().size(); j++)
     {
       out << pfn->getArguments()[j];
@@ -83,7 +88,8 @@ static std::vector<int> veritPrintInternal(std::ostream& out,
   for (int j = 0; j < pfn->getChildren().size(); j++)
   {
     std::shared_ptr<ProofNode> child = pfn->getChildren()[j];
-    std::vector<int> res = veritPrintInternal(out, child, ids, i, h, firstScope);
+    std::vector<int> res =
+        veritPrintInternal(out, child, ids, i, h, firstScope);
     i = res[0];
     h = res[1];
     childIds.push_back(i-1);
@@ -92,9 +98,9 @@ static std::vector<int> veritPrintInternal(std::ostream& out,
   //In case the rule is an assume
   if (static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString())) == VeritRule::ASSUME)
   {
-    out << "(input " << veritPrintName(ids,i,false) << " " << pfn->getArguments()[1] << ")"
-        << std::endl;
-    return {i+1,h};
+    out << "(input " << veritPrintName(ids, i, false) << " "
+        << pfn->getArguments()[1] << ")" << std::endl;
+    return {i + 1, h};
   }
 
   //In case the rule is an anchor
@@ -102,32 +108,45 @@ static std::vector<int> veritPrintInternal(std::ostream& out,
   {
     auto last = ids.back();
     ids.pop_back();
-    out << "(step " << veritPrintName(ids,last,false) << " " << pfn->getArguments()[1] << " :rule "
-	<< veritRuletoString(static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString())));
-    //TODO: Print premises
+    out << "(step " << veritPrintName(ids, last, false) << " "
+        << pfn->getArguments()[1] << " :rule "
+        << veritRuletoString(static_cast<VeritRule>(
+               std::stoul(pfn->getArguments()[0].toString())));
+    // TODO: Print premises
     out << ")\n";
-    i = last+2;
-    if(firstScope){
-      out << "(step " << veritPrintName(ids,i-1,false) << " (cl false) :rule resolution :premises " << veritPrintName(ids,i-2,false);
-      for(int j = 1; j < h; j++){
-        out << " " << veritPrintName(ids,j,true);
+    i = last + 2;
+    if (firstScope)
+    {
+      out << "(step " << veritPrintName(ids, i - 1, false)
+          << " (cl false) :rule resolution :premises "
+          << veritPrintName(ids, i - 2, false);
+      for (int j = 1; j < h; j++)
+      {
+        out << " " << veritPrintName(ids, j, true);
       }
-      out<< ")\n";
-      out << "(step " << veritPrintName(ids,i,false) << " (cl (not (false))) :rule false" << ")\n";
-      out << "(step " << veritPrintName(ids,i+1,false) << " (cl) :rule resolution :premises " << veritPrintName(ids,i-1,false)
-	      << " "<< veritPrintName(ids,i,false)<<")\n";
+      out << ")\n";
+      out << "(step " << veritPrintName(ids, i, false)
+          << " (cl (not (false))) :rule false"
+          << ")\n";
+      out << "(step " << veritPrintName(ids, i + 1, false)
+          << " (cl) :rule resolution :premises "
+          << veritPrintName(ids, i - 1, false) << " "
+          << veritPrintName(ids, i, false) << ")\n";
       firstScope = false;
-      return {i+1,h};
-    }//TODO: WHAT IF NOT FIRST SCOPE WHAT ABOUT ASSUMPTIONS?
-    return {i,h};
+      return {i + 1, h};
+    }  // TODO: WHAT IF NOT FIRST SCOPE WHAT ABOUT ASSUMPTIONS?
+    return {i, h};
   }
 
-  if(!firstScope){return {i,h};}
+  if (!firstScope)
+  {
+    return {i, h};
+  }
 
   //Print current step
   if (pfn->getArguments().size() >= 2)
   {
-    out << "(step " << veritPrintName(ids,i,false) << " ";
+    out << "(step " << veritPrintName(ids, i, false) << " ";
     if(pfn->getArguments()[1][1] == Node::null()){
       out << "(cl)";
     }
@@ -147,7 +166,7 @@ static std::vector<int> veritPrintInternal(std::ostream& out,
       out << " :premises";
       for (auto j : childIds)
       {
-        out << " " << veritPrintName(ids,j,false);
+        out << " " << veritPrintName(ids, j, false);
       }
     }
     out << ")\n";
@@ -157,7 +176,7 @@ static std::vector<int> veritPrintInternal(std::ostream& out,
     out << "Not translated yet\n";
   }
 
-  return {i+1,h};
+  return {i + 1, h};
 }
 
 static void veritPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn)
@@ -173,7 +192,7 @@ static void veritPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   // Print outermost scope
   std::vector<int> ids;
   bool firstScope = true;
-  veritPrintInternal(out,pfn,ids,1,1,firstScope);
+  veritPrintInternal(out, pfn, ids, 1, 1, firstScope);
   out << "\n";
   out << "\n";
 }
