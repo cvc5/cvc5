@@ -9,7 +9,6 @@
 ## directory for licensing information.
 ##
 configure_file(symfpu_literal.h.in symfpu_literal.h)
-configure_file(floatingpoint.h.in floatingpoint.h)
 configure_file(rational.h.in rational.h)
 configure_file(integer.h.in integer.h)
 configure_file(real_algebraic_number.h.in real_algebraic_number.h)
@@ -27,6 +26,7 @@ libcvc4_add_sources(
   divisible.cpp
   divisible.h
   floatingpoint.cpp
+  floatingpoint.h
   floatingpoint_size.cpp
   floatingpoint_size.h
   gmp_util.h
