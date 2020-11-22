@@ -124,7 +124,7 @@ class Smt2Printer : public CVC4::Printer
                            const std::vector<Node>& vars,
                            TypeNode range,
                            bool isInv,
-                           TypeNode sygusType) const override;
+                           TypeNode* sygusType = nullptr) const override;
 
   /** Print constraint command */
   void toStreamCmdConstraint(std::ostream& out, Node n) const override;

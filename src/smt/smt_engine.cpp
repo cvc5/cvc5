@@ -1081,14 +1081,22 @@ void SmtEngine::declareSynthFun(const std::string& id,
 
   if (Dump.isOn("raw-benchmark"))
   {
-    getOutputManager().getPrinter().toStreamCmdSynthFun(
-        getOutputManager().getDumpOut(),
-        id,
-        vars,
-        func.getType().isFunction() ? func.getType().getRangeType()
-                                    : func.getType(),
-        isInv,
-        sygusType);
+    sygusType.isNull()
+        ? getOutputManager().getPrinter().toStreamCmdSynthFun(
+            getOutputManager().getDumpOut(),
+            id,
+            vars,
+            func.getType().isFunction() ? func.getType().getRangeType()
+                                        : func.getType(),
+            isInv)
+        : getOutputManager().getPrinter().toStreamCmdSynthFun(
+            getOutputManager().getDumpOut(),
+            id,
+            vars,
+            func.getType().isFunction() ? func.getType().getRangeType()
+                                        : func.getType(),
+            isInv,
+            &sygusType);
   }
 }
 

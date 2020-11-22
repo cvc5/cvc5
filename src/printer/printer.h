@@ -137,7 +137,7 @@ class Printer
                                    const std::vector<Node>& vars,
                                    TypeNode range,
                                    bool isInv,
-                                   TypeNode sygusType) const;
+                                   TypeNode* sygusType = nullptr) const;
 
   /** Print constraint command */
   virtual void toStreamCmdConstraint(std::ostream& out, Node n) const;
