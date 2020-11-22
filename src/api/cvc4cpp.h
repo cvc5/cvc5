@@ -2829,7 +2829,15 @@ class CVC4_PUBLIC Solver
    * @param symbol the name of the constant
    * @return the first-order constant
    */
-  Term mkConst(Sort sort, const std::string& symbol = std::string()) const;
+  Term mkConst(Sort sort, const std::string& symbol) const;
+  /**
+   * Create (first-order) constant (0-arity function symbol), with a default
+   * symbol name.
+   *
+   * @param sort the sort of the constant
+   * @return the first-order constant
+   */
+  Term mkConst(Sort sort) const;
 
   /**
    * Create a bound variable to be used in a binder (i.e. a quantifier, a
@@ -3232,13 +3240,6 @@ class CVC4_PUBLIC Solver
    * @return true if it gets C successfully, false otherwise
    */
   bool getAbduct(Term conj, Grammar& g, Term& output) const;
-
-  /**
-   * Print the model of a satisfiable query to the given output stream.
-   * Requires to enable option 'produce-models'.
-   * @param out the output stream
-   */
-  void printModel(std::ostream& out) const;
 
   /**
    * Block the current model. Can be called only if immediately preceded by a

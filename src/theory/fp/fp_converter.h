@@ -29,7 +29,7 @@
 #include "expr/type.h"
 #include "theory/valuation.h"
 #include "util/bitvector.h"
-#include "util/floatingpoint.h"
+#include "util/floatingpoint_size.h"
 #include "util/hash.h"
 
 #ifdef CVC4_USE_SYMFPU
