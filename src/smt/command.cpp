@@ -1278,57 +1278,6 @@ void DefineFunctionCommand::toStream(std::ostream& out,
 }
 
 /* -------------------------------------------------------------------------- */
-/* class DefineNamedFunctionCommand                                           */
-/* -------------------------------------------------------------------------- */
-
-DefineNamedFunctionCommand::DefineNamedFunctionCommand(
-
-    const std::string& id,
-    api::Term func,
-    const std::vector<api::Term>& formals,
-    api::Term formula,
-    bool global)
-    : DefineFunctionCommand(id, func, formals, formula, global)
-{
-}
-
-void DefineNamedFunctionCommand::invoke(api::Solver* solver, SymbolManager* sm)
-{
-  this->DefineFunctionCommand::invoke(solver, sm);
-  if (!d_func.isNull() && d_func.getSort().isBoolean())
-  {
-    solver->getSmtEngine()->addToAssignment(d_func.getExpr());
-  }
-  d_commandStatus = CommandSuccess::instance();
-}
-
-Command* DefineNamedFunctionCommand::clone() const
-{
-  return new DefineNamedFunctionCommand(
-      d_symbol, d_func, d_formals, d_formula, d_global);
-}
-
-void DefineNamedFunctionCommand::toStream(std::ostream& out,
-                                          int toDepth,
-                                          size_t dag,
-                                          OutputLanguage language) const
-{
-  // get the range type of the function, or the type itself
-  // if its not a function
-  TypeNode range = d_func.getSort().getTypeNode();
-  if (range.isFunction())
-  {
-    range = range.getRangeType();
-  }
-  Printer::getPrinter(language)->toStreamCmdDefineNamedFunction(
-      out,
-      d_func.toString(),
-      api::termVectorToNodes(d_formals),
-      range,
-      d_formula.getNode());
-}
-
-/* -------------------------------------------------------------------------- */
 /* class DefineFunctionRecCommand                                             */
 /* -------------------------------------------------------------------------- */
 
@@ -1663,20 +1612,30 @@ void GetAssignmentCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    std::vector<std::pair<Expr, Expr>> assignments =
-        solver->getSmtEngine()->getAssignment();
-    vector<SExpr> sexprs;
-    for (const auto& p : assignments)
+    std::map<api::Term, std::string> enames = sm->getExpressionNames();
+    std::vector<api::Term> terms;
+    std::vector<std::string> names;
+    for (const std::pair<const api::Term, std::string>& e : enames)
     {
-      vector<SExpr> v;
-      v.emplace_back(SExpr::Keyword(p.first.toString()));
-      v.emplace_back(SExpr::Keyword(p.second.toString()));
-      sexprs.emplace_back(v);
+      terms.push_back(e.first);
+      names.push_back(e.second);
+    }
+    // Must use vector version of getValue to ensure error is thrown regardless
+    // of whether terms is empty.
+    std::vector<api::Term> values = solver->getValue(terms);
+    Assert(values.size() == names.size());
+    std::vector<SExpr> sexprs;
+    for (size_t i = 0, nterms = terms.size(); i < nterms; i++)
+    {
+      std::vector<SExpr> ss;
+      ss.emplace_back(SExpr::Keyword(names[i]));
+      ss.emplace_back(SExpr::Keyword(values[i].toString()));
+      sexprs.emplace_back(ss);
     }
     d_result = SExpr(sexprs);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (RecoverableModalException& e)
+  catch (api::CVC4ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -2330,12 +2289,12 @@ void GetUnsatAssumptionsCommand::toStream(std::ostream& out,
 /* class GetUnsatCoreCommand                                                  */
 /* -------------------------------------------------------------------------- */
 
-GetUnsatCoreCommand::GetUnsatCoreCommand() {}
+GetUnsatCoreCommand::GetUnsatCoreCommand() : d_sm(nullptr) {}
 void GetUnsatCoreCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    d_solver = solver;
+    d_sm = sm;
     d_result = solver->getUnsatCore();
 
     d_commandStatus = CommandSuccess::instance();
@@ -2359,8 +2318,20 @@ void GetUnsatCoreCommand::printResult(std::ostream& out,
   }
   else
   {
-    UnsatCore ucr(d_solver->getSmtEngine(), api::termVectorToNodes(d_result));
-    ucr.toStream(out);
+    if (options::dumpUnsatCoresFull())
+    {
+      // use the assertions
+      UnsatCore ucr(api::termVectorToNodes(d_result));
+      ucr.toStream(out);
+    }
+    else
+    {
+      // otherwise, use the names
+      std::vector<std::string> names;
+      d_sm->getExpressionNames(d_result, names, true);
+      UnsatCore ucr(names);
+      ucr.toStream(out);
+    }
   }
 }
 
@@ -2373,7 +2344,7 @@ const std::vector<api::Term>& GetUnsatCoreCommand::getUnsatCore() const
 Command* GetUnsatCoreCommand::clone() const
 {
   GetUnsatCoreCommand* c = new GetUnsatCoreCommand;
-  c->d_solver = d_solver;
+  c->d_sm = d_sm;
   c->d_result = d_result;
   return c;
 }
@@ -2748,42 +2719,6 @@ void GetOptionCommand::toStream(std::ostream& out,
                                 OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetOption(out, d_flag);
-}
-
-/* -------------------------------------------------------------------------- */
-/* class SetExpressionNameCommand                                             */
-/* -------------------------------------------------------------------------- */
-
-SetExpressionNameCommand::SetExpressionNameCommand(api::Term term,
-                                                   std::string name)
-    : d_term(term), d_name(name)
-{
-}
-
-void SetExpressionNameCommand::invoke(api::Solver* solver, SymbolManager* sm)
-{
-  solver->getSmtEngine()->setExpressionName(d_term.getExpr(), d_name);
-  d_commandStatus = CommandSuccess::instance();
-}
-
-Command* SetExpressionNameCommand::clone() const
-{
-  SetExpressionNameCommand* c = new SetExpressionNameCommand(d_term, d_name);
-  return c;
-}
-
-std::string SetExpressionNameCommand::getCommandName() const
-{
-  return "set-expr-name";
-}
-
-void SetExpressionNameCommand::toStream(std::ostream& out,
-                                        int toDepth,
-                                        size_t dag,
-                                        OutputLanguage language) const
-{
-  Printer::getPrinter(language)->toStreamCmdSetExpressionName(
-      out, d_term.getNode(), d_name);
 }
 
 /* -------------------------------------------------------------------------- */

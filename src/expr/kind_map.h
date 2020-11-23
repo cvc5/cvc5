@@ -20,7 +20,6 @@
 #ifndef CVC4__KIND_MAP_H
 #define CVC4__KIND_MAP_H
 
-#include <stdint.h>
 #include <iterator>
 
 #include "base/check.h"

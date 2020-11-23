@@ -10,7 +10,7 @@
  ** directory for licensing information.\endverbatim
  **
  ** \brief Provides mechanisms to limit resources.
-  **
+ **
  ** This file provides the ResourceManager class. It can be used to impose
  ** (cumulative and per-call) resource limits on the solver, as well as per-call
  ** time limits.
@@ -24,7 +24,6 @@
 #include <sys/time.h>
 
 #include <chrono>
-#include <cstddef>
 #include <memory>
 
 #include "base/exception.h"
@@ -81,13 +80,18 @@ class CVC4_PUBLIC ResourceManager
   /** Types of resources. */
   enum class Resource
   {
+    ArithPivotStep,
+    ArithNlLemmaStep,
     BitblastStep,
     BvEagerAssertStep,
     BvPropagationStep,
     BvSatConflictsStep,
+    BvSatPropagateStep,
+    BvSatSimplifyStep,
     CnfStep,
     DecisionStep,
     LemmaStep,
+    NewSkolemStep,
     ParseStep,
     PreprocessStep,
     QuantifierStep,
@@ -159,8 +163,6 @@ class CVC4_PUBLIC ResourceManager
    */
   void endCall();
 
-  static uint64_t getFrequencyCount() { return s_resourceCount; }
-
   /**
    * Registers a listener that is notified on a resource out or (per-call)
    * timeout.
@@ -194,9 +196,6 @@ class CVC4_PUBLIC ResourceManager
 
   /** A flag indicating whether resource limitation is active. */
   bool d_on;
-
-  /** Counter indicating how often to check resource manager in loops */
-  static const uint64_t s_resourceCount;
 
   /** Receives a notification on reaching a limit. */
   std::vector<Listener*> d_listeners;

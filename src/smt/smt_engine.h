@@ -50,19 +50,13 @@ typedef NodeTemplate<true> Node;
 typedef NodeTemplate<false> TNode;
 struct NodeHashFunction;
 
-class Command;
-class GetModelCommand;
-
 class SmtEngine;
 class DecisionEngine;
 class TheoryEngine;
-
 class ProofManager;
 class UnsatCore;
-
 class LogicRequest;
 class StatisticsRegistry;
-
 class Printer;
 
 /* -------------------------------------------------------------------------- */
@@ -134,32 +128,15 @@ namespace theory {
   class Rewriter;
 }/* CVC4::theory namespace */
 
-// TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
-// hood): use a type parameter and have check() delegate, or subclass
-// SmtEngine and override check()?
-//
-// Probably better than that is to have a configuration object that
-// indicates which passes are desired.  The configuration occurs
-// elsewhere (and can even occur at runtime).  A simple "pass manager"
-// of sorts determines check()'s behavior.
-//
-// The CNF conversion can go on in PropEngine.
 
 /* -------------------------------------------------------------------------- */
 
 class CVC4_PUBLIC SmtEngine
 {
   friend class ::CVC4::api::Solver;
-  // TODO (Issue #1096): Remove this friend relationship.
-  friend class ::CVC4::preprocessing::PreprocessingPassContext;
   friend class ::CVC4::smt::SmtEngineState;
   friend class ::CVC4::smt::SmtScope;
-  friend class ::CVC4::smt::ProcessAssertions;
-  friend class ::CVC4::smt::SmtSolver;
-  friend ProofManager* ::CVC4::smt::currentProofManager();
   friend class ::CVC4::LogicRequest;
-  friend class ::CVC4::theory::TheoryModel;
-  friend class ::CVC4::theory::Rewriter;
 
   /* .......................................................................  */
  public:
@@ -206,6 +183,12 @@ class CVC4_PUBLIC SmtEngine
   /** Return the current mode of the solver. */
   SmtMode getSmtMode() const;
   /**
+   * Whether the SmtMode allows for get-value, get-model, get-assignment, etc.
+   * This is equivalent to:
+   * getSmtMode()==SmtMode::SAT || getSmtMode()==SmtMode::SAT_UNKNOWN
+   */
+  bool isSmtModeSat() const;
+  /**
    * Returns the most recent result of checkSat/checkEntailed or
    * (set-info :status).
    */
@@ -231,7 +214,7 @@ class CVC4_PUBLIC SmtEngine
   void setLogic(const LogicInfo& logic);
 
   /** Get the logic information currently set. */
-  LogicInfo getLogicInfo() const;
+  const LogicInfo& getLogicInfo() const;
 
   /** Get the logic information set by the user. */
   LogicInfo getUserLogicInfo() const;
@@ -548,24 +531,6 @@ class CVC4_PUBLIC SmtEngine
    */
   std::vector<Node> getValues(const std::vector<Node>& exprs);
 
-  /**
-   * Add a function to the set of expressions whose value is to be
-   * later returned by a call to getAssignment().  The expression
-   * should be a Boolean zero-ary defined function or a Boolean
-   * variable.  Rather than throwing a ModalException on modal
-   * failures (not in interactive mode or not producing assignments),
-   * this function returns true if the expression was added and false
-   * if this request was ignored.
-   */
-  bool addToAssignment(const Expr& e);
-
-  /**
-   * Get the assignment (only if immediately preceded by a SAT or
-   * NOT_ENTAILED query).  Only permitted if the SmtEngine is set to
-   * operate interactively and produce-assignments is on.
-   */
-  std::vector<std::pair<Expr, Expr> > getAssignment();
-
   /** Print all instantiations made by the quantifiers module.  */
   void printInstantiations(std::ostream& out);
 
@@ -686,18 +651,6 @@ class CVC4_PUBLIC SmtEngine
    */
   void getInstantiatedQuantifiedFormulas(std::vector<Node>& qs);
 
-  /**
-   * Get instantiations for quantified formula q.
-   *
-   * If q was a quantified formula that was instantiated on the last call to
-   * check-sat (i.e. q is returned as part of the vector in the method
-   * getInstantiatedQuantifiedFormulas above), then the list of instantiations
-   * of that formula that were generated are added to insts.
-   *
-   * In particular, if q is of the form forall x. P(x), then insts is a list
-   * of formulas of the form P(t1), ..., P(tn).
-   */
-  void getInstantiations(Node q, std::vector<Node>& insts);
   /**
    * Get instantiation term vectors for quantified formula q.
    *
@@ -857,65 +810,9 @@ class CVC4_PUBLIC SmtEngine
                         const std::vector<Expr>& expr_values,
                         const std::string& str_value);
 
-  /**
-   * Get expression name.
-   *
-   * Return true if given expressoion has a name in the current context.
-   * If it returns true, the name of expression 'e' is stored in 'name'.
-   */
-  bool getExpressionName(const Node& e, std::string& name) const;
-
-  /**
-   * Set name of given expression 'e' to 'name'.
-   *
-   * This information is user-context-dependent.
-   * If 'e' already has a name, it is overwritten.
-   */
-  void setExpressionName(const Node& e, const std::string& name);
-
   /** Get the options object (const and non-const versions) */
   Options& getOptions();
   const Options& getOptions() const;
-
-  /** Get the resource manager of this SMT engine */
-  ResourceManager* getResourceManager();
-
-  /** Permit access to the underlying dump manager. */
-  smt::DumpManager* getDumpManager();
-
-  /** Get the printer used by this SMT engine */
-  const Printer* getPrinter() const;
-
-  /** Get the output manager for this SMT engine */
-  OutputManager& getOutputManager();
-
-  /** Get a pointer to the Rewriter owned by this SmtEngine. */
-  theory::Rewriter* getRewriter() { return d_rewriter.get(); }
-
-  /**
-   * Get expanded assertions.
-   *
-   * Return the set of assertions, after expanding definitions.
-   */
-  std::vector<Node> getExpandedAssertions();
-  /* .......................................................................  */
- private:
-  /* .......................................................................  */
-
-  /** The type of our internal map of defined functions */
-  typedef context::CDHashMap<Node, smt::DefinedFunction, NodeHashFunction>
-      DefinedFunctionMap;
-  /** The type of our internal assertion list */
-  typedef context::CDList<Node> AssertionList;
-  /** The type of our internal assignment set */
-  typedef context::CDHashSet<Node, NodeHashFunction> AssignmentSet;
-
-  // disallow copy/assignment
-  SmtEngine(const SmtEngine&) = delete;
-  SmtEngine& operator=(const SmtEngine&) = delete;
-
-  /** Set solver instance that owns this SmtEngine. */
-  void setSolver(api::Solver* solver) { d_solver = solver; }
 
   /** Get a pointer to the UserContext owned by this SmtEngine. */
   context::UserContext* getUserContext();
@@ -934,6 +831,46 @@ class CVC4_PUBLIC SmtEngine
    * TODO (project #37): this is the old proof manager and will be deleted
    */
   ProofManager* getProofManager() { return d_proofManager.get(); };
+
+  /** Get the resource manager of this SMT engine */
+  ResourceManager* getResourceManager();
+
+  /** Permit access to the underlying dump manager. */
+  smt::DumpManager* getDumpManager();
+
+  /** Get the printer used by this SMT engine */
+  const Printer* getPrinter() const;
+
+  /** Get the output manager for this SMT engine */
+  OutputManager& getOutputManager();
+
+  /** Get a pointer to the Rewriter owned by this SmtEngine. */
+  theory::Rewriter* getRewriter() { return d_rewriter.get(); }
+
+  /** The type of our internal map of defined functions */
+  using DefinedFunctionMap =
+      context::CDHashMap<Node, smt::DefinedFunction, NodeHashFunction>;
+
+  /** Get the defined function map */
+  DefinedFunctionMap* getDefinedFunctionMap() { return d_definedFunctions; }
+  /**
+   * Get expanded assertions.
+   *
+   * Return the set of assertions, after expanding definitions.
+   */
+  std::vector<Node> getExpandedAssertions();
+  /* .......................................................................  */
+ private:
+  /* .......................................................................  */
+  /** The type of our internal assertion list */
+  typedef context::CDList<Node> AssertionList;
+
+  // disallow copy/assignment
+  SmtEngine(const SmtEngine&) = delete;
+  SmtEngine& operator=(const SmtEngine&) = delete;
+
+  /** Set solver instance that owns this SmtEngine. */
+  void setSolver(api::Solver* solver) { d_solver = solver; }
 
   /** Get a pointer to the StatisticsRegistry owned by this SmtEngine. */
   StatisticsRegistry* getStatisticsRegistry()
@@ -1035,15 +972,6 @@ class CVC4_PUBLIC SmtEngine
    */
   void setLogicInternal();
 
-  /**
-   * Add to Model command.  This is used for recording a command
-   * that should be reported during a get-model call.
-   */
-  void addToModelCommandAndDump(const Command& c,
-                                uint32_t flags = 0,
-                                bool userVisible = true,
-                                const char* dumpTag = "declarations");
-
   /*
    * Check satisfiability (used to check satisfiability and entailment).
    */
@@ -1093,8 +1021,6 @@ class CVC4_PUBLIC SmtEngine
   std::unique_ptr<smt::AbstractValues> d_absValues;
   /** Assertions manager */
   std::unique_ptr<smt::Assertions> d_asserts;
-  /** Expression names */
-  std::unique_ptr<smt::ExprNames> d_exprNames;
   /** The dump manager */
   std::unique_ptr<smt::DumpManager> d_dumpm;
   /** Resource out listener */
@@ -1146,11 +1072,6 @@ class CVC4_PUBLIC SmtEngine
   /** The solver for quantifier elimination queries */
   std::unique_ptr<smt::QuantElimSolver> d_quantElimSolver;
   /**
-   * List of items for which to retrieve values using getAssignment().
-   */
-  AssignmentSet* d_assignments;
-
-  /**
    * The logic we're in. This logic may be an extension of the logic set by the
    * user.
    */
@@ -1172,8 +1093,10 @@ class CVC4_PUBLIC SmtEngine
    */
   std::map<std::string, Integer> d_commandVerbosity;
 
+  /** The statistics registry */
   std::unique_ptr<StatisticsRegistry> d_statisticsRegistry;
 
+  /** The statistics class */
   std::unique_ptr<smt::SmtEngineStatistics> d_stats;
 
   /** The options object */

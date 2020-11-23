@@ -1410,16 +1410,6 @@ void CvcPrinter::toStreamCmdDefineType(std::ostream& out,
   }
 }
 
-void CvcPrinter::toStreamCmdDefineNamedFunction(
-    std::ostream& out,
-    const std::string& id,
-    const std::vector<Node>& formals,
-    TypeNode range,
-    Node formula) const
-{
-  toStreamCmdDefineFunction(out, id, formals, range, formula);
-}
-
 void CvcPrinter::toStreamCmdSimplify(std::ostream& out, Node n) const
 {
   out << "TRANSFORM " << n << ';' << std::endl;

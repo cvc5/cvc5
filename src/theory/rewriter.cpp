@@ -219,11 +219,9 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
   }
   // Rewrite until the stack is empty
   for (;;){
-
-    if (hasSmtEngine &&
-		d_iterationCount % ResourceManager::getFrequencyCount() == 0) {
+    if (hasSmtEngine)
+    {
       rm->spendResource(ResourceManager::Resource::RewriteStep);
-      d_iterationCount = 0;
     }
 
     // Get the top of the recursion stack
@@ -481,7 +479,6 @@ RewriteResponse Rewriter::processTrustRewriteResponse(
     {
       Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
       // add small step trusted rewrite
-      NodeManager* nm = NodeManager::currentNM();
       Node rid = mkMethodId(isPre ? MethodId::RW_REWRITE_THEORY_PRE
                                   : MethodId::RW_REWRITE_THEORY_POST);
       tcpg->addRewriteStep(proven[0],

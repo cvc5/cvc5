@@ -16,8 +16,6 @@
 
 #include "parser/parser.h"
 
-#include <stdint.h>
-
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -775,10 +773,10 @@ void Parser::attributeNotSupported(const std::string& attr) {
 
 size_t Parser::scopeLevel() const { return d_symman->scopeLevel(); }
 
-void Parser::pushScope(bool bindingLevel)
+void Parser::pushScope(bool isUserContext)
 {
-  d_symman->pushScope(!bindingLevel);
-  if (!bindingLevel)
+  d_symman->pushScope(isUserContext);
+  if (isUserContext)
   {
     d_assertionLevel = scopeLevel();
   }

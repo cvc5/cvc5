@@ -1133,9 +1133,6 @@ cdef class Solver:
     def pop(self, nscopes=1):
         self.csolver.pop(nscopes)
 
-    def printModel(self):
-        self.csolver.printModel(cout)
-
     def push(self, nscopes=1):
         self.csolver.push(nscopes)
 
