@@ -334,8 +334,6 @@ api::Sort Parser::mkSort(const std::string& name, uint32_t flags)
 {
   Debug("parser") << "newSort(" << name << ")" << std::endl;
   api::Sort type = d_solver->mkUninterpretedSort(name);
-  // TODO: handle flags
-  // api::Sort(d_solver, d_solver->getExprManager()->mkSort(name, flags));
   bool globalDecls = d_symman->getGlobalDeclarations();
   defineType(
       name, type, globalDecls && !(flags & ExprManager::SORT_FLAG_PLACEHOLDER));
@@ -348,11 +346,7 @@ api::Sort Parser::mkSortConstructor(const std::string& name,
 {
   Debug("parser") << "newSortConstructor(" << name << ", " << arity
                   << ")"
-                  // TODO: handle flags
                   << std::endl;
-  // api::Sort type = api::Sort(
-  //    d_solver,
-  //    d_solver->getExprManager()->mkSortConstructor(name, arity, flags));
   api::Sort type = d_solver->mkSortConstructorSort(name, arity);
   bool globalDecls = d_symman->getGlobalDeclarations();
   defineType(name,
@@ -649,11 +643,7 @@ api::Term Parser::mkVar(const std::string& name,
                         const api::Sort& type,
                         uint32_t flags)
 {
-  api::Term t = d_solver->mkConst(type, name);
-  // TODO: handle flags
-  // api::Term(d_solver, d_solver->getExprManager()->mkVar(name, type.getType(),
-  // flags))
-  return t;
+  return d_solver->mkConst(type, name);
 }
 //!!!!!!!!!!! temporary
 
