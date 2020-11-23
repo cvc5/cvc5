@@ -19,6 +19,7 @@
 
 // This is only needed for checking that components are only applied to leaves.
 #include "theory/theory.h"
+#include "util/roundingmode.h"
 
 #ifndef CVC4__THEORY__FP__THEORY_FP_TYPE_RULES_H
 #define CVC4__THEORY__FP__THEORY_FP_TYPE_RULES_H
@@ -693,12 +694,10 @@ class FloatingPointComponentExponent
      * Here we use types from floatingpoint.h which are the literal
      * back-end but it should't make a difference. */
     FloatingPointSize fps = operandType.getConst<FloatingPointSize>();
-    symfpuLiteral::CVC4FPSize format(fps);  // The symfpu interface to type info
-    unsigned bw = FloatingPointLiteral::exponentWidth(format);
+    unsigned bw = FloatingPoint::getUnpackedExponentWidth(fps);
 #else
     unsigned bw = 2;
 #endif
-
     return nodeManager->mkBitVectorType(bw);
   }
 };
@@ -736,12 +735,10 @@ class FloatingPointComponentSignificand
 #ifdef CVC4_USE_SYMFPU
     /* As before we need to use some of sympfu. */
     FloatingPointSize fps = operandType.getConst<FloatingPointSize>();
-    symfpuLiteral::CVC4FPSize format(fps);
-    unsigned bw = FloatingPointLiteral::significandWidth(format);
+    unsigned bw = FloatingPoint::getUnpackedSignificandWidth(fps);
 #else
     unsigned bw = 1;
 #endif
-
     return nodeManager->mkBitVectorType(bw);
   }
 };
@@ -771,12 +768,7 @@ class RoundingModeBitBlast
       }
     }
 
-#ifdef CVC4_USE_SYMFPU
-    /* Uses sympfu for the macro. */
-    return nodeManager->mkBitVectorType(SYMFPU_NUMBER_OF_ROUNDING_MODES);
-#else
-    return nodeManager->mkBitVectorType(5);
-#endif
+    return nodeManager->mkBitVectorType(CVC4_NUM_ROUNDING_MODES);
   }
 };
 

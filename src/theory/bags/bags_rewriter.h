@@ -60,7 +60,7 @@ class BagsRewriter : public TheoryRewriter
    * rewrites for n include:
    * - (= A A) = true where A is a bag
    */
-  BagsRewriteResponse rewriteEqual(const TNode& n) const;
+  BagsRewriteResponse preRewriteEqual(const TNode& n) const;
 
   /**
    * rewrites for n include:
@@ -201,6 +201,14 @@ class BagsRewriter : public TheoryRewriter
    *     where n is a positive constant and T is the type of the bag's elements
    */
   BagsRewriteResponse rewriteToSet(const TNode& n) const;
+
+  /**
+   *  rewrites for n include:
+   *  - (= A A) = true
+   *  - (= A B) = false if A and B are different bag constants
+   *  - (= B A) = (= A B) if A < B and at least one of A or B is not a constant
+   */
+  BagsRewriteResponse postRewriteEqual(const TNode& n) const;
 
  private:
   /** Reference to the rewriter statistics. */
