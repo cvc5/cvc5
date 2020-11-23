@@ -1126,6 +1126,17 @@ enum class PfRule : uint32_t
   // Where orig is the origin that implies (rel lhs rhs) and rel is a relation
   // symbol and rel_inv the inverted relation symbol.
   ARITH_MULT_NEG,
+  //======== Multiplication tangent plane
+  // Children: none
+  // Arguments: (t, x, y, a, b, sgn)
+  // ---------------------
+  // Conclusion:
+  //   sgn=-1: (= (<= t tplane) (or (and (<= x a) (>= y b)) (and (>= x a) (<= y b)))
+  //   sgn= 1: (= (>= t tplane) (or (and (<= x a) (<= y b)) (and (>= x a) (>= y b)))
+  // Where x,y are real terms (variables or extended terms), t = (* x y)
+  // (possibly under rewriting), a,b are real constants, and sgn is either -1 or 1.
+  // tplane is the tangent plane of x*y at (a,b): b*x + a*y - a*b
+  ARITH_MULT_TANGENT,
 
   // ================ CAD Lemmas
   // We use IRP for IndexedRootPredicate.
