@@ -1,3 +1,5 @@
+; COMMAND-LINE: --strings-exp
+; EXPECT: sat
 (set-logic QF_S)
 (set-info :status sat)
 (declare-fun x () String)
