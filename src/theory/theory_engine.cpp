@@ -24,7 +24,6 @@
 #include "expr/attribute.h"
 #include "expr/lazy_proof.h"
 #include "expr/node.h"
-#include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
 #include "expr/node_visitor.h"
 #include "options/bv_options.h"
@@ -1171,19 +1170,21 @@ Node TheoryEngine::getModelValue(TNode var) {
 
 
 Node TheoryEngine::ensureLiteral(TNode n) {
-  Debug("ensureLiteral") << "rewriting: " << n << std::endl;
+  Trace("ensureLiteral") << "ensureLiteral rewriting: " << n << std::endl;
   Node rewritten = Rewriter::rewrite(n);
-  Debug("ensureLiteral") << "      got: " << rewritten << std::endl;
+  Trace("ensureLiteral") << "  got: " << rewritten << std::endl;
   std::vector<TrustNode> newLemmas;
   std::vector<Node> newSkolems;
   TrustNode tpn = d_tpp.preprocess(n, newLemmas, newSkolems, true);
   // send lemmas corresponding to the skolems introduced by preprocessing n
   for (const TrustNode& tnl : newLemmas)
   {
+    Trace("ensureLiteral") << "  lemma: " << tnl.getNode() << std::endl;
     lemma(tnl, LemmaProperty::NONE);
   }
   Node preprocessed = tpn.isNull() ? rewritten : tpn.getNode();
-  Debug("ensureLiteral") << "preprocessed: " << preprocessed << std::endl;
+  Trace("ensureLiteral") << "ensureLiteral preprocessed: " << preprocessed
+                         << std::endl;
   d_propEngine->ensureLiteral(preprocessed);
   return preprocessed;
 }
@@ -1400,6 +1401,7 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   // get the node
   Node node = tlemma.getNode();
   Node lemma = tlemma.getProven();
+  Trace("te-lemma") << "Lemma, input: " << lemma << std::endl;
 
   Assert(!expr::hasFreeVar(lemma));
 
@@ -1528,9 +1530,12 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   }
 
   // now, send the lemmas to the prop engine
+  Trace("te-lemma") << "Lemma, output: " << tlemma.getProven() << std::endl;
   d_propEngine->assertLemma(tlemma, removable);
   for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
   {
+    Trace("te-lemma") << "Lemma, new lemma: " << newLemmas[i].getProven()
+                      << std::endl;
     d_propEngine->assertLemma(newLemmas[i], removable);
   }
 

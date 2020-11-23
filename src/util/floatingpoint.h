@@ -1,8 +1,8 @@
 /*********************                                                        */
-/*! \file floatingpoint.h.in
+/*! \file floatingpoint.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain, Aina Niemetz, Haniel Barbosa
+ **   Aina Niemetz, Martin Brain, Mathias Preiner
  ** Copyright (c) 2013  University of Oxford
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
@@ -24,13 +24,6 @@
 #include "util/floatingpoint_size.h"
 #include "util/rational.h"
 #include "util/roundingmode.h"
-#include "util/symfpu_literal.h"
-
-// clang-format off
-#if @CVC4_USE_SYMFPU@
-// clang-format on
-#include <symfpu/core/unpackedFloat.h>
-#endif /* @CVC4_USE_SYMFPU@ */
 
 /* -------------------------------------------------------------------------- */
 
@@ -38,37 +31,7 @@ namespace CVC4 {
 
 /* -------------------------------------------------------------------------- */
 
-/**
- * A concrete floating point value.
- */
-// clang-format off
-#if @CVC4_USE_SYMFPU@
-// clang-format on
-using FloatingPointLiteral = ::symfpu::unpackedFloat<symfpuLiteral::traits>;
-#else
-class CVC4_PUBLIC FloatingPointLiteral
-{
- public:
-  // This intentional left unfinished as the choice of literal
-  // representation is solver specific.
-  void unfinished(void) const;
-
-  FloatingPointLiteral(uint32_t, uint32_t, double) { unfinished(); }
-  FloatingPointLiteral(uint32_t, uint32_t, const std::string&) { unfinished(); }
-  FloatingPointLiteral(const FloatingPointLiteral&) { unfinished(); }
-  bool operator==(const FloatingPointLiteral& op) const
-  {
-    unfinished();
-    return false;
-  }
-
-  size_t hash(void) const
-  {
-    unfinished();
-    return 23;
-  }
-};
-#endif /* @CVC4_USE_SYMFPU@ */
+class FloatingPointLiteral;
 
 class CVC4_PUBLIC FloatingPoint
 {
@@ -81,20 +44,25 @@ class CVC4_PUBLIC FloatingPoint
   using PartialBitVector = std::pair<BitVector, bool>;
   using PartialRational = std::pair<Rational, bool>;
 
+  /**
+   * Get the number of exponent bits in the unpacked format corresponding to a
+   * given packed format.  These is the unpacked counter-parts of
+   * FloatingPointSize::exponentWidth().
+   */
+  static uint32_t getUnpackedExponentWidth(FloatingPointSize& size);
+  /**
+   * Get the number of exponent bits in the unpacked format corresponding to a
+   * given packed format.  These is the unpacked counter-parts of
+   * FloatingPointSize::significandWidth().
+   */
+  static uint32_t getUnpackedSignificandWidth(FloatingPointSize& size);
+
   /** Constructors. */
   FloatingPoint(uint32_t e, uint32_t s, const BitVector& bv);
   FloatingPoint(const FloatingPointSize& size, const BitVector& bv);
-
   FloatingPoint(const FloatingPointSize& fp_size,
-                const FloatingPointLiteral& fpl)
-      : d_fp_size(fp_size), d_fpl(fpl)
-  {
-  }
-
-  FloatingPoint(const FloatingPoint& fp)
-      : d_fp_size(fp.d_fp_size), d_fpl(fp.d_fpl)
-  {
-  }
+                const FloatingPointLiteral* fpl);
+  FloatingPoint(const FloatingPoint& fp);
   FloatingPoint(const FloatingPointSize& size,
                 const RoundingMode& rm,
                 const BitVector& bv,
@@ -102,6 +70,8 @@ class CVC4_PUBLIC FloatingPoint
   FloatingPoint(const FloatingPointSize& size,
                 const RoundingMode& rm,
                 const Rational& r);
+  /** Destructor. */
+  ~FloatingPoint();
 
   /**
    * Create a FP NaN value of given size.
@@ -148,7 +118,7 @@ class CVC4_PUBLIC FloatingPoint
   static FloatingPoint makeMaxNormal(const FloatingPointSize& size, bool sign);
 
   /** Get the wrapped floating-point value. */
-  const FloatingPointLiteral& getLiteral(void) const { return this->d_fpl; }
+  const FloatingPointLiteral* getLiteral(void) const { return d_fpl; }
 
   /**
    * Return a string representation of this floating-point.
@@ -220,6 +190,13 @@ class CVC4_PUBLIC FloatingPoint
   /** Floating-point less than. */
   bool operator<(const FloatingPoint& arg) const;
 
+  /** Get the exponent of this floating-point value. */
+  BitVector getExponent() const;
+  /** Get the significand of this floating-point value. */
+  BitVector getSignificand() const;
+  /** True if this value is a negative value. */
+  bool getSign() const;
+
   /** Return true if this floating-point represents a normal value. */
   bool isNormal(void) const;
   /** Return true if this floating-point represents a subnormal value. */
@@ -280,9 +257,9 @@ class CVC4_PUBLIC FloatingPoint
   /** The floating-point size of this floating-point value. */
   FloatingPointSize d_fp_size;
 
- protected:
+ private:
   /** The floating-point literal of this floating-point value. */
-  FloatingPointLiteral d_fpl;
+  FloatingPointLiteral* d_fpl;
 
 }; /* class FloatingPoint */
 

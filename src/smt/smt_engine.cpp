@@ -508,7 +508,7 @@ bool SmtEngine::isValidGetInfoFlag(const std::string& key) const
   if (key == "all-statistics" || key == "error-behavior" || key == "name"
       || key == "version" || key == "authors" || key == "status"
       || key == "reason-unknown" || key == "assertion-stack-levels"
-      || key == "all-options")
+      || key == "all-options" || key == "time")
   {
     return true;
   }
@@ -579,6 +579,10 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
       case Result::UNSAT: return SExpr(SExpr::Keyword("unsat"));
       default: return SExpr(SExpr::Keyword("unknown"));
     }
+  }
+  if (key == "time")
+  {
+    return SExpr(std::clock());
   }
   if (key == "reason-unknown")
   {
