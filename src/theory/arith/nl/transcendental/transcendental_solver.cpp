@@ -12,7 +12,7 @@
  ** \brief Implementation of solver for handling transcendental functions.
  **/
 
-#include "theory/arith/nl/transcendental_solver.h"
+#include "theory/arith/nl/transcendental/transcendental_solver.h"
 
 #include <cmath>
 #include <set>
@@ -31,13 +31,10 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 namespace nl {
+namespace transcendental {
 
 TranscendentalSolver::TranscendentalSolver(InferenceManager& im, NlModel& m)
-    : d_im(im),
-      d_model(m),
-      d_tstate(d_im, d_model),
-      d_expSlv(&d_tstate),
-      d_sineSlv(&d_tstate)
+    : d_tstate(im, m), d_expSlv(&d_tstate), d_sineSlv(&d_tstate)
 {
   d_taylor_degree = options::nlExtTfTaylorDegree();
 }
@@ -84,31 +81,26 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
                      << std::endl;
   for (std::pair<const Kind, std::vector<Node> >& tfs : d_tstate.d_funcMap)
   {
-    Kind k = tfs.first;
     for (const Node& tf : tfs.second)
     {
       Trace("nl-ext-cm") << "- Term: " << tf << std::endl;
       bool success = true;
       // tf is Figure 3 : tf( x )
-      Node bl;
-      Node bu;
-      if (k == PI)
+      std::pair<Node, Node> bounds;
+      if (tfs.first == Kind::PI)
       {
-        bl = d_tstate.d_pi_bound[0];
-        bu = d_tstate.d_pi_bound[1];
+        bounds = {d_tstate.d_pi_bound[0], d_tstate.d_pi_bound[1]};
       }
       else
       {
-        std::pair<Node, Node> bounds =
-            d_tstate.d_taylor.getTfModelBounds(tf, d_taylor_degree, d_model);
-        bl = bounds.first;
-        bu = bounds.second;
-        if (bl != bu)
+        bounds = d_tstate.d_taylor.getTfModelBounds(
+            tf, d_taylor_degree, d_tstate.d_model);
+        if (bounds.first != bounds.second)
         {
-          d_model.setUsedApproximate();
+          d_tstate.d_model.setUsedApproximate();
         }
       }
-      if (!bl.isNull() && !bu.isNull())
+      if (!bounds.first.isNull() && !bounds.second.isNull())
       {
         // for each function in the congruence classe
         for (const Node& ctf : d_tstate.d_funcCongClass[tf])
@@ -118,9 +110,11 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
           // we set the bounds for each slave of tf
           for (const Node& stf : d_tstate.d_trSlaves[ctf])
           {
-            Trace("nl-ext-cm") << "...bound for " << stf << " : [" << bl << ", "
-                               << bu << "]" << std::endl;
-            success = d_model.addCheckModelBound(stf, bl, bu);
+            Trace("nl-ext-cm")
+                << "...bound for " << stf << " : [" << bounds.first << ", "
+                << bounds.second << "]" << std::endl;
+            success = d_tstate.d_model.addCheckModelBound(
+                stf, bounds.first, bounds.second);
           }
         }
       }
@@ -138,7 +132,7 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
     }
   }
   // replace the assertions
-  assertions = passertions;
+  assertions = std::move(passertions);
   return true;
 }
 
@@ -177,7 +171,8 @@ void TranscendentalSolver::checkTranscendentalTangentPlanes()
                   << std::endl;
   // this implements Figure 3 of "Satisfiaility Modulo Transcendental Functions
   // via Incremental Linearization" by Cimatti et al
-  for (std::pair<const Kind, std::vector<Node> >& tfs : d_tstate.d_funcMap)
+  for (const std::pair<const Kind, std::vector<Node> >& tfs :
+       d_tstate.d_funcMap)
   {
     Kind k = tfs.first;
     if (k == PI)
@@ -198,13 +193,14 @@ void TranscendentalSolver::checkTranscendentalTangentPlanes()
       for (unsigned d = 1; d <= d_taylor_degree; d++)
       {
         Trace("nl-ext-tftp") << "- run at degree " << d << "..." << std::endl;
-        unsigned prev = d_im.numPendingLemmas() + d_im.numWaitingLemmas();
+        unsigned prev =
+            d_tstate.d_im.numPendingLemmas() + d_tstate.d_im.numWaitingLemmas();
         if (checkTfTangentPlanesFun(tf, d))
         {
-          Trace("nl-ext-tftp")
-              << "...fail, #lemmas = "
-              << (d_im.numPendingLemmas() + d_im.numWaitingLemmas() - prev)
-              << std::endl;
+          Trace("nl-ext-tftp") << "...fail, #lemmas = "
+                               << (d_tstate.d_im.numPendingLemmas()
+                                   + d_tstate.d_im.numWaitingLemmas() - prev)
+                               << std::endl;
           break;
         }
         else
@@ -224,7 +220,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
   Assert(d_tstate.d_trSlaves.find(tf) != d_tstate.d_trSlaves.end());
 
   // Figure 3 : c
-  Node c = d_model.computeAbstractModelValue(tf[0]);
+  Node c = d_tstate.d_model.computeAbstractModelValue(tf[0]);
   int csign = c.getConst<Rational>().sgn();
   if (csign == 0)
   {
@@ -244,7 +240,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
   poly_approx_bounds[1][-1] = pbounds[3];
 
   // Figure 3 : v
-  Node v = d_model.computeAbstractModelValue(tf);
+  Node v = d_tstate.d_model.computeAbstractModelValue(tf);
 
   // check value of tf
   Trace("nl-ext-tftp-debug") << "Process tangent plane refinement for " << tf
@@ -277,7 +273,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
   bool is_tangent = false;
   bool is_secant = false;
   std::pair<Node, Node> mvb =
-      d_tstate.d_taylor.getTfModelBounds(tf, d, d_model);
+      d_tstate.d_taylor.getTfModelBounds(tf, d, d_tstate.d_model);
   // this is the approximated value of tf(c), which is a value such that:
   //    M_A(tf(c)) >= poly_appox_c >= tf(c) or
   //    M_A(tf(c)) <= poly_appox_c <= tf(c)
@@ -399,6 +395,7 @@ int TranscendentalSolver::regionToConcavity(Kind k, int region)
   return 0;
 }
 
+}  // namespace transcendental
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory

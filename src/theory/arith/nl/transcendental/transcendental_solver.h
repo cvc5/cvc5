@@ -13,8 +13,8 @@
  ** \brief Solving for handling transcendental functions.
  **/
 
-#ifndef CVC4__THEORY__ARITH__NL__TRANSCENDENTAL_SOLVER_H
-#define CVC4__THEORY__ARITH__NL__TRANSCENDENTAL_SOLVER_H
+#ifndef CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_SOLVER_H
+#define CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_SOLVER_H
 
 #include <map>
 #include <unordered_map>
@@ -32,6 +32,7 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 namespace nl {
+namespace transcendental {
 
 /** Transcendental solver class
  *
@@ -146,6 +147,7 @@ class TranscendentalSolver
    *     such that c1 ~= .277 and c2 ~= 2.032.
    */
   void checkTranscendentalTangentPlanes();
+
  private:
   /** check transcendental function refinement for tf
    *
@@ -176,11 +178,6 @@ class TranscendentalSolver
    */
   int regionToConcavity(Kind k, int region);
 
-  /** The inference manager that we push conflicts and lemmas to. */
-  InferenceManager& d_im;
-  /** Reference to the non-linear model object */
-  NlModel& d_model;
-
   /** taylor degree
    *
    * Indicates that the degree of the polynomials in the Taylor approximation of
@@ -190,11 +187,15 @@ class TranscendentalSolver
    */
   unsigned d_taylor_degree;
 
+  /** Common state for transcendental solver */
   transcendental::TranscendentalState d_tstate;
+  /** The solver responsible for the exponential function */
   transcendental::ExponentialSolver d_expSlv;
+  /** The solver responsible for the sine function */
   transcendental::SineSolver d_sineSlv;
 }; /* class TranscendentalSolver */
 
+}  // namespace transcendental
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
