@@ -29,13 +29,14 @@ namespace smt {
 
 Preprocessor::Preprocessor(SmtEngine& smt,
                            context::UserContext* u,
-                           AbstractValues& abs)
+                           AbstractValues& abs,
+                           SmtEngineStatistics& stats)
     : d_context(u),
       d_smt(smt),
       d_absValues(abs),
       d_propagator(true, true),
       d_assertionsProcessed(u, false),
-      d_processor(smt, *smt.getResourceManager()),
+      d_processor(smt, *smt.getResourceManager(), stats),
       d_rtf(u),
       d_pnm(nullptr)
 {
@@ -157,6 +158,7 @@ void Preprocessor::setProofGenerator(PreprocessProofGenerator* pppg)
 {
   Assert(pppg != nullptr);
   d_pnm = pppg->getManager();
+  d_propagator.setProof(d_pnm, d_context, pppg);
   d_rtf.setProofNodeManager(d_pnm);
 }
 

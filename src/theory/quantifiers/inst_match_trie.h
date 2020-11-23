@@ -125,6 +125,10 @@ class InstMatchTrie
                        Node lem,
                        ImtIndexOrder* imtio = NULL,
                        unsigned index = 0);
+  /**
+   * Adds the instantiations for q into insts.
+   */
+  void getInstantiations(Node q, std::vector<std::vector<Node>>& insts) const;
 
   /** get instantiations
    *
@@ -174,6 +178,10 @@ class InstMatchTrie
   std::map<Node, InstMatchTrie> d_data;
 
  private:
+  /** Helper for getInstantiations.*/
+  void getInstantiations(Node q,
+                         std::vector<std::vector<Node>>& insts,
+                         std::vector<Node>& terms) const;
   /** helper for print
    * terms accumulates the path we are on in the trie.
    */
@@ -293,6 +301,10 @@ class CDInstMatchTrie
                        std::vector<Node>& m,
                        Node lem,
                        unsigned index = 0);
+  /**
+   * Adds the instantiations for q into insts.
+   */
+  void getInstantiations(Node q, std::vector<std::vector<Node>>& insts) const;
 
   /** get instantiations
    *
@@ -338,6 +350,10 @@ class CDInstMatchTrie
   }
 
  private:
+  /** Helper for getInstantiations.*/
+  void getInstantiations(Node q,
+                         std::vector<std::vector<Node>>& insts,
+                         std::vector<Node>& terms) const;
   /** the data */
   std::map<Node, CDInstMatchTrie*> d_data;
   /** is valid */

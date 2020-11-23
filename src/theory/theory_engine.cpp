@@ -24,7 +24,6 @@
 #include "expr/attribute.h"
 #include "expr/lazy_proof.h"
 #include "expr/node.h"
-#include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
 #include "expr/node_visitor.h"
 #include "options/bv_options.h"
@@ -312,6 +311,8 @@ void TheoryEngine::preRegister(TNode preprocessed) {
       Debug("theory") << "TheoryEngine::preRegister: " << preprocessed
                       << std::endl;
       Assert(!expr::hasFreeVar(preprocessed));
+      // should not have witness
+      Assert(!expr::hasSubtermKind(kind::WITNESS, preprocessed));
 
       // Pre-register the terms in the atom
       theory::TheoryIdSet theories = NodeVisitor<PreRegisterVisitor>::run(
@@ -1169,12 +1170,21 @@ Node TheoryEngine::getModelValue(TNode var) {
 
 
 Node TheoryEngine::ensureLiteral(TNode n) {
-  Debug("ensureLiteral") << "rewriting: " << n << std::endl;
+  Trace("ensureLiteral") << "ensureLiteral rewriting: " << n << std::endl;
   Node rewritten = Rewriter::rewrite(n);
-  Debug("ensureLiteral") << "      got: " << rewritten << std::endl;
-  TrustNode tp = preprocess(rewritten);
-  Node preprocessed = tp.isNull() ? rewritten : tp.getNode();
-  Debug("ensureLiteral") << "preprocessed: " << preprocessed << std::endl;
+  Trace("ensureLiteral") << "  got: " << rewritten << std::endl;
+  std::vector<TrustNode> newLemmas;
+  std::vector<Node> newSkolems;
+  TrustNode tpn = d_tpp.preprocess(n, newLemmas, newSkolems, true);
+  // send lemmas corresponding to the skolems introduced by preprocessing n
+  for (const TrustNode& tnl : newLemmas)
+  {
+    Trace("ensureLiteral") << "  lemma: " << tnl.getNode() << std::endl;
+    lemma(tnl, LemmaProperty::NONE);
+  }
+  Node preprocessed = tpn.isNull() ? rewritten : tpn.getNode();
+  Trace("ensureLiteral") << "ensureLiteral preprocessed: " << preprocessed
+                         << std::endl;
   d_propEngine->ensureLiteral(preprocessed);
   return preprocessed;
 }
@@ -1206,25 +1216,9 @@ void TheoryEngine::getInstantiatedQuantifiedFormulas( std::vector< Node >& qs ) 
   }
 }
 
-void TheoryEngine::getInstantiations( Node q, std::vector< Node >& insts ) {
-  if( d_quantEngine ){
-    d_quantEngine->getInstantiations( q, insts );
-  }else{
-    Assert(false);
-  }
-}
-
 void TheoryEngine::getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs ) {
   if( d_quantEngine ){
     d_quantEngine->getInstantiationTermVectors( q, tvecs );
-  }else{
-    Assert(false);
-  }
-}
-
-void TheoryEngine::getInstantiations( std::map< Node, std::vector< Node > >& insts ) {
-  if( d_quantEngine ){
-    d_quantEngine->getInstantiations( insts );
   }else{
     Assert(false);
   }
@@ -1235,15 +1229,6 @@ void TheoryEngine::getInstantiationTermVectors( std::map< Node, std::vector< std
     d_quantEngine->getInstantiationTermVectors( insts );
   }else{
     Assert(false);
-  }
-}
-
-Node TheoryEngine::getInstantiatedConjunction( Node q ) {
-  if( d_quantEngine ){
-    return d_quantEngine->getInstantiatedConjunction( q );
-  }else{
-    Assert(false);
-    return Node::null();
   }
 }
 
@@ -1416,6 +1401,9 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   // get the node
   Node node = tlemma.getNode();
   Node lemma = tlemma.getProven();
+  Trace("te-lemma") << "Lemma, input: " << lemma << std::endl;
+
+  Assert(!expr::hasFreeVar(lemma));
 
   // when proofs are enabled, we ensure the trust node has a generator by
   // adding a trust step to the lazy proof maintained by this class
@@ -1542,9 +1530,12 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   }
 
   // now, send the lemmas to the prop engine
+  Trace("te-lemma") << "Lemma, output: " << tlemma.getProven() << std::endl;
   d_propEngine->assertLemma(tlemma.getProven(), false, removable);
   for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
   {
+    Trace("te-lemma") << "Lemma, new lemma: " << newLemmas[i].getProven()
+                      << std::endl;
     d_propEngine->assertLemma(newLemmas[i].getProven(), false, removable);
   }
 

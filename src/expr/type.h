@@ -20,7 +20,6 @@
 #define CVC4__TYPE_H
 
 #include <climits>
-#include <cstdint>
 #include <string>
 #include <vector>
 

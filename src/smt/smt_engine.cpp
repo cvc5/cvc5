@@ -18,21 +18,15 @@
 
 #include "api/cvc4cpp.h"
 #include "base/check.h"
-#include "base/configuration.h"
-#include "base/configuration_private.h"
 #include "base/exception.h"
 #include "base/modal_exception.h"
 #include "base/output.h"
 #include "decision/decision_engine.h"
 #include "expr/node.h"
-#include "expr/node_self_iterator.h"
-#include "expr/node_visitor.h"
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/main_options.h"
-#include "options/option_exception.h"
 #include "options/printer_options.h"
-#include "options/set_language.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "printer/printer.h"
@@ -44,7 +38,6 @@
 #include "smt/check_models.h"
 #include "smt/defined_function.h"
 #include "smt/dump_manager.h"
-#include "smt/expr_names.h"
 #include "smt/interpolation_solver.h"
 #include "smt/listeners.h"
 #include "smt/logic_request.h"
@@ -60,19 +53,18 @@
 #include "smt/smt_engine_stats.h"
 #include "smt/smt_solver.h"
 #include "smt/sygus_solver.h"
-#include "smt/term_formula_removal.h"
-#include "smt/update_ostream.h"
-#include "theory/logic_info.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 #include "theory/theory_engine.h"
-#include "util/hash.h"
 #include "util/random.h"
 #include "util/resource_manager.h"
 
+// required for hacks related to old proofs for unsat cores
+#include "base/configuration.h"
+#include "base/configuration_private.h"
+
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::smt;
 using namespace CVC4::preprocessing;
 using namespace CVC4::prop;
@@ -87,7 +79,6 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_nodeManager(d_exprManager->getNodeManager()),
       d_absValues(new AbstractValues(d_nodeManager)),
       d_asserts(new Assertions(getUserContext(), *d_absValues.get())),
-      d_exprNames(new ExprNames(getUserContext())),
       d_dumpm(new DumpManager(getUserContext())),
       d_routListener(new ResourceOutListener(*this)),
       d_snmListener(new SmtNodeManagerListener(*d_dumpm.get(), d_outMgr)),
@@ -136,14 +127,15 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
   d_resourceManager.reset(
       new ResourceManager(*d_statisticsRegistry.get(), d_options));
   d_optm.reset(new smt::OptionsManager(&d_options, d_resourceManager.get()));
-  d_pp.reset(
-      new smt::Preprocessor(*this, getUserContext(), *d_absValues.get()));
   // listen to node manager events
   d_nodeManager->subscribeEvents(d_snmListener.get());
   // listen to resource out
   d_resourceManager->registerListener(d_routListener.get());
   // make statistics
   d_stats.reset(new SmtEngineStatistics());
+  // reset the preprocessor
+  d_pp.reset(new smt::Preprocessor(
+      *this, getUserContext(), *d_absValues.get(), *d_stats));
   // make the SMT solver
   d_smtSolver.reset(
       new SmtSolver(*this, *d_state, d_resourceManager.get(), *d_pp, *d_stats));
@@ -340,7 +332,6 @@ SmtEngine::~SmtEngine()
 
     d_absValues.reset(nullptr);
     d_asserts.reset(nullptr);
-    d_exprNames.reset(nullptr);
     d_dumpm.reset(nullptr);
 
     d_sygusSolver.reset(nullptr);
@@ -397,9 +388,8 @@ void SmtEngine::setLogic(const std::string& s)
 }
 
 void SmtEngine::setLogic(const char* logic) { setLogic(string(logic)); }
-LogicInfo SmtEngine::getLogicInfo() const {
-  return d_logic;
-}
+
+const LogicInfo& SmtEngine::getLogicInfo() const { return d_logic; }
 
 LogicInfo SmtEngine::getUserLogicInfo() const
 {
@@ -516,7 +506,7 @@ bool SmtEngine::isValidGetInfoFlag(const std::string& key) const
   if (key == "all-statistics" || key == "error-behavior" || key == "name"
       || key == "version" || key == "authors" || key == "status"
       || key == "reason-unknown" || key == "assertion-stack-levels"
-      || key == "all-options")
+      || key == "all-options" || key == "time")
   {
     return true;
   }
@@ -587,6 +577,10 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
       case Result::UNSAT: return SExpr(SExpr::Keyword("unsat"));
       default: return SExpr(SExpr::Keyword("unknown"));
     }
+  }
+  if (key == "time")
+  {
+    return SExpr(std::clock());
   }
   if (key == "reason-unknown")
   {
@@ -1398,7 +1392,7 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
   }
 
   d_proofManager->traceUnsatCore();  // just to trigger core creation
-  return UnsatCore(this, d_proofManager->extractUnsatCore());
+  return UnsatCore(d_proofManager->extractUnsatCore());
 #else  /* IS_PROOFS_BUILD */
   throw ModalException(
       "This build of CVC4 doesn't have proof support (required for unsat "
@@ -1425,7 +1419,8 @@ void SmtEngine::checkUnsatCore() {
     coreChecker->declareSepHeap(sepLocType, sepDataType);
   }
 
-  Notice() << "SmtEngine::checkUnsatCore(): pushing core assertions (size == " << core.size() << ")" << endl;
+  Notice() << "SmtEngine::checkUnsatCore(): pushing core assertions"
+           << std::endl;
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
     Node assertionAfterExpansion = expandDefinitions(*i);
     Notice() << "SmtEngine::checkUnsatCore(): pushing core member " << *i
@@ -1567,14 +1562,6 @@ void SmtEngine::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
   TheoryEngine* te = getTheoryEngine();
   Assert(te != nullptr);
   te->getInstantiatedQuantifiedFormulas(qs);
-}
-
-void SmtEngine::getInstantiations(Node q, std::vector<Node>& insts)
-{
-  SmtScope smts(this);
-  TheoryEngine* te = getTheoryEngine();
-  Assert(te != nullptr);
-  te->getInstantiations(q, insts);
 }
 
 void SmtEngine::getInstantiationTermVectors(
@@ -1862,15 +1849,6 @@ CVC4::SExpr SmtEngine::getOption(const std::string& key) const
   }
 
   return SExpr::parseAtom(d_options.getOption(key));
-}
-
-bool SmtEngine::getExpressionName(const Node& e, std::string& name) const {
-  return d_exprNames->getExpressionName(e, name);
-}
-
-void SmtEngine::setExpressionName(const Node& e, const std::string& name) {
-  Trace("smt-debug") << "Set expression name " << e << " to " << name << std::endl;
-  d_exprNames->setExpressionName(e,name);
 }
 
 Options& SmtEngine::getOptions() { return d_options; }

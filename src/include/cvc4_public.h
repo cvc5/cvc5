@@ -19,6 +19,7 @@
 #ifndef CVC4_PUBLIC_H
 #define CVC4_PUBLIC_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 #if defined _WIN32 || defined __CYGWIN__
