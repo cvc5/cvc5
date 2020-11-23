@@ -52,7 +52,9 @@ class Model;
 }
 
 /**
- * Convert a symbolic expression to string.
+ * Convert a symbolic expression to string. This method differs from
+ * Term::toString in that it does not surround constant strings with double
+ * quote symbols.
  *
  * @param sexpr the symbolic expression to convert
  * @return the symbolic expression as string

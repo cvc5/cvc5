@@ -49,7 +49,9 @@ std::string sexprToString(api::Term sexpr)
 {
   if (sexpr.getNumChildren() == 0)
   {
-    return sexpr.toString().substr(1, sexpr.toString().length() - 2);
+    return sexpr.getKind() == api::CONST_STRING
+               ? sexpr.toString().substr(1, sexpr.toString().length() - 2)
+               : sexpr.toString();
   }
 
   Assert(sexpr.getKind() == api::SEXPR);
