@@ -453,11 +453,13 @@ Node BVToInt::translateWithChildren(Node original,
       else
       {
         Assert(options::solveBVAsInt() == options::SolveBVAsIntMode::BITWISE);
+        uint64_t bvsize = original[0].getType().getBitVectorSize();
         uint64_t granularity = options::BVAndIntegerGranularity();
 
         Node x = translated_children[0];
         Node y = translated_children[1];
-        returnNode = d_nm->mkNode(kind::IAND, x, y);
+        Node iAndOp = d_nm->mkConst(IntAnd(bvsize));
+        returnNode = d_nm->mkNode(kind::IAND, iAndOp, x, y);
 
         // eagerly add bitwise lemmas according to the provided granularity
         uint64_t high_bit;
