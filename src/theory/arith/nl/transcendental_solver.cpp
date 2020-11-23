@@ -875,7 +875,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
         << "*** Tangent plane lemma : " << lem << std::endl;
     Assert(d_model.computeAbstractModelValue(lem) == d_false);
     // Figure 3 : line 9
-    d_im.addPendingArithLemma(lem, InferenceId::NL_T_TANGENT, true);
+    d_im.addPendingArithLemma(lem, InferenceId::NL_T_TANGENT, nullptr, true);
   }
   else if (is_secant)
   {
