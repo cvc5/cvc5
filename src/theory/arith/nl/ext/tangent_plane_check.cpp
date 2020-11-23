@@ -132,7 +132,7 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
                           Kind::AND, nm->mkNode(Kind::GEQ, a, a_v), b2)));
               Trace("nl-ext-tplanes")
                   << "Tangent plane lemma : " << tlem << std::endl;
-              LazyCDProof* proof = nullptr;
+              CDProof* proof = nullptr;
               if (d_data->isProofEnabled())
               {
                 proof = d_data->getProof();
