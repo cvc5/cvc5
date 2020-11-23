@@ -755,8 +755,9 @@ TypeNode floatingPointTypeInfo::getTypeNode(void) const
 }
 
 FpConverter::FpConverter(context::UserContext* user)
-    : d_additionalAssertions(user),
+    : d_additionalAssertions(user)
 #ifdef CVC4_USE_SYMFPU
+      ,
       d_fpMap(user),
       d_rmMap(user),
       d_boolMap(user),
