@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file utils.h
+/*! \file taylor_generator.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King
@@ -9,11 +9,11 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Utilities for transcendental lemmas.
+ ** \brief Generate taylor approximations transcendental lemmas.
  **/
 
-#ifndef CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__UTILS_H
-#define CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__UTILS_H
+#ifndef CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TAYLOR_GENERATOR_H
+#define CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TAYLOR_GENERATOR_H
 
 #include "expr/node.h"
 #include "theory/arith/nl/nl_model.h"
@@ -108,12 +108,6 @@ class TaylorGenerator
       d_taylor_rem;
   std::map<Kind, std::map<unsigned, std::vector<Node>>> d_poly_bounds;
 };
-
-/**
- * Ensure a is in the main phase:
- *   -pi <= a <= pi
- */
-Node mkValidPhase(TNode a, TNode pi);
 
 }  // namespace transcendental
 }  // namespace nl

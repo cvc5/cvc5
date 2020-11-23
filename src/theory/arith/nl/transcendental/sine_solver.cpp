@@ -286,7 +286,7 @@ void SineSolver::doTangentLemma(TNode e, TNode c, TNode poly_approx, int region)
   Trace("nl-ext-sine") << "*** Tangent plane lemma : " << lem << std::endl;
   Assert(d_data->d_model.computeAbstractModelValue(lem) == d_data->d_false);
   // Figure 3 : line 9
-  d_data->d_im.addPendingArithLemma(lem, InferenceId::NL_T_TANGENT, true);
+  d_data->d_im.addPendingArithLemma(lem, InferenceId::NL_T_TANGENT, nullptr, true);
 }
 
 void SineSolver::doSecantLemmas(

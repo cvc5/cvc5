@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file utils.cpp
+/*! \file taylor_generator.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King
@@ -9,10 +9,10 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Utilities for transcendental lemmas.
+ ** \brief Generate taylor approximations transcendental lemmas.
  **/
 
-#include "theory/arith/nl/transcendental/utils.h"
+#include "theory/arith/nl/transcendental/taylor_generator.h"
 
 #include "theory/arith/arith_utilities.h"
 #include "theory/rewriter.h"
@@ -308,14 +308,6 @@ std::pair<Node, Node> TaylorGenerator::getTfModelBounds(Node tf, unsigned d, NlM
     }
   }
   return std::pair<Node, Node>(bounds[0], bounds[1]);
-}
-
-Node mkValidPhase(TNode a, TNode pi)
-{
-  return mkBounded(
-      NodeManager::currentNM()->mkNode(Kind::MULT, mkRationalNode(-1), pi),
-      a,
-      pi);
 }
 
 }  // namespace transcendental

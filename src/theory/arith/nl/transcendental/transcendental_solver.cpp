@@ -22,7 +22,7 @@
 #include "options/arith_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/nl/transcendental/utils.h"
+#include "theory/arith/nl/transcendental/taylor_generator.h"
 #include "theory/rewriter.h"
 
 using namespace CVC4::kind;

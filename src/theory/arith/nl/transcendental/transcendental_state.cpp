@@ -15,13 +15,28 @@
 #include "theory/arith/nl/transcendental/transcendental_state.h"
 
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/nl/transcendental/utils.h"
+#include "theory/arith/nl/transcendental/taylor_generator.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 namespace nl {
 namespace transcendental {
+
+namespace {
+
+/**
+ * Ensure a is in the main phase:
+ *   -pi <= a <= pi
+ */
+inline Node mkValidPhase(TNode a, TNode pi)
+{
+  return mkBounded(
+      NodeManager::currentNM()->mkNode(Kind::MULT, mkRationalNode(-1), pi),
+      a,
+      pi);
+}
+}  // namespace
 
 TranscendentalState::TranscendentalState(InferenceManager& im, NlModel& model)
     : d_im(im), d_model(model)
@@ -34,8 +49,8 @@ TranscendentalState::TranscendentalState(InferenceManager& im, NlModel& model)
 }
 
 void TranscendentalState::init(const std::vector<Node>& assertions,
-                                        const std::vector<Node>& false_asserts,
-                                        const std::vector<Node>& xts)
+                               const std::vector<Node>& false_asserts,
+                               const std::vector<Node>& xts)
 {
   d_funcCongClass.clear();
   d_funcMap.clear();
@@ -186,7 +201,8 @@ void TranscendentalState::init(const std::vector<Node>& assertions,
               a[0].eqNode(nm->mkNode(
                   Kind::PLUS,
                   y,
-                  nm->mkNode(Kind::MULT, nm->mkConst(Rational(2)), shift, d_pi)))),
+                  nm->mkNode(
+                      Kind::MULT, nm->mkConst(Rational(2)), shift, d_pi)))),
           new_a.eqNode(a));
     }
     else
@@ -233,8 +249,8 @@ void TranscendentalState::mkPi()
         nm->mkNode(Kind::MULT, d_pi, nm->mkConst(Rational(1) / Rational(2))));
     d_pi_neg_2 = Rewriter::rewrite(
         nm->mkNode(Kind::MULT, d_pi, nm->mkConst(Rational(-1) / Rational(2))));
-    d_pi_neg =
-        Rewriter::rewrite(nm->mkNode(Kind::MULT, d_pi, nm->mkConst(Rational(-1))));
+    d_pi_neg = Rewriter::rewrite(
+        nm->mkNode(Kind::MULT, d_pi, nm->mkConst(Rational(-1))));
     // initialize bounds
     d_pi_bound[0] = nm->mkConst(Rational(103993) / Rational(33102));
     d_pi_bound[1] = nm->mkConst(Rational(104348) / Rational(33215));
@@ -248,6 +264,117 @@ void TranscendentalState::getCurrentPiBounds()
                            nm->mkNode(Kind::GEQ, d_pi, d_pi_bound[0]),
                            nm->mkNode(Kind::LEQ, d_pi, d_pi_bound[1]));
   d_im.addPendingArithLemma(pi_lem, InferenceId::NL_T_PI_BOUND);
+}
+
+std::pair<Node, Node> TranscendentalState::getClosestSecantPoints(TNode e,
+                                                                  TNode c,
+                                                                  unsigned d)
+{
+  // bounds are the minimum and maximum previous secant points
+  // should not repeat secant points: secant lemmas should suffice to
+  // rule out previous assignment
+  Assert(
+      std::find(d_secant_points[e][d].begin(), d_secant_points[e][d].end(), c)
+      == d_secant_points[e][d].end());
+  // Insert into the (temporary) vector. We do not update this vector
+  // until we are sure this secant plane lemma has been processed. We do
+  // this by mapping the lemma to a side effect below.
+  std::vector<Node> spoints = d_secant_points[e][d];
+  spoints.push_back(c);
+
+  // sort
+  sortByNlModel(spoints.begin(), spoints.end(), &d_model);
+  // get the resulting index of c
+  unsigned index =
+      std::find(spoints.begin(), spoints.end(), c) - spoints.begin();
+
+  // bounds are the next closest upper/lower bound values
+  return {index > 0 ? spoints[index - 1] : Node(),
+          index < spoints.size() - 1 ? spoints[index + 1] : Node()};
+}
+
+Node TranscendentalState::mkSecantPlane(
+    TNode arg, TNode b, TNode c, TNode approx, TNode approx_c)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  // Figure 3 : P(l), P(u), for s = 0,1
+  Node approx_b =
+      Rewriter::rewrite(approx.substitute(d_taylor.getTaylorVariable(), b));
+  // Figure 3: S_l( x ), S_u( x ) for s = 0,1
+  Node rcoeff_n = Rewriter::rewrite(nm->mkNode(Kind::MINUS, b, c));
+  Assert(rcoeff_n.isConst());
+  Rational rcoeff = rcoeff_n.getConst<Rational>();
+  Assert(rcoeff.sgn() != 0);
+  return nm->mkNode(Kind::PLUS,
+                    approx_b,
+                    nm->mkNode(Kind::MULT,
+                               nm->mkNode(Kind::MINUS, approx_b, approx_c),
+                               nm->mkConst(rcoeff.inverse()),
+                               nm->mkNode(Kind::MINUS, arg, b)));
+}
+
+NlLemma TranscendentalState::mkSecantLemma(
+    TNode lower, TNode upper, int concavity, TNode tf, TNode splane)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  // With respect to Figure 3, this is slightly different.
+  // In particular, we chose b to be the model value of bounds[s],
+  // which is a constant although bounds[s] may not be (e.g. if it
+  // contains PI).
+  // To ensure that c...b does not cross an inflection point,
+  // we guard with the symbolic version of bounds[s].
+  // This leads to lemmas e.g. of this form:
+  //   ( c <= x <= PI/2 ) => ( sin(x) < ( P( b ) - P( c ) )*( x -
+  //   b ) + P( b ) )
+  // where b = (PI/2)^M, the current value of PI/2 in the model.
+  // This is sound since we are guarded by the symbolic
+  // representation of PI/2.
+  Node antec_n = nm->mkNode(Kind::AND,
+                            nm->mkNode(Kind::GEQ, tf[0], lower),
+                            nm->mkNode(Kind::LEQ, tf[0], upper));
+  Node lem = nm->mkNode(
+      Kind::IMPLIES,
+      antec_n,
+      nm->mkNode(concavity == 1 ? Kind::LEQ : Kind::GEQ, tf, splane));
+  Trace("nl-ext-tftp-debug2")
+      << "*** Secant plane lemma (pre-rewrite) : " << lem << std::endl;
+  lem = Rewriter::rewrite(lem);
+  Trace("nl-ext-tftp-lemma") << "*** Secant plane lemma : " << lem << std::endl;
+  Assert(d_model.computeAbstractModelValue(lem) == d_false);
+  return NlLemma(lem, LemmaProperty::NONE, nullptr, InferenceId::NL_T_SECANT);
+}
+
+void TranscendentalState::doSecantLemmas(const std::pair<Node, Node>& bounds,
+                                         TNode c,
+                                         TNode approx_c,
+                                         TNode tf,
+                                         unsigned d,
+                                         int concavity)
+{
+  // take the model value of l or u (since may contain PI)
+  // Make secant from bounds.first to c
+  Node lval = d_model.computeAbstractModelValue(bounds.first);
+  if (lval != c)
+  {
+    Node splane = mkSecantPlane(tf[0], lval, c, bounds.first, approx_c);
+    NlLemma nlem = mkSecantLemma(lval, c, concavity, tf, splane);
+    // The side effect says that if lem is added, then we should add the
+    // secant point c for (tf,d).
+    nlem.d_secantPoint.push_back(std::make_tuple(tf, d, c));
+    d_im.addPendingArithLemma(nlem, true);
+  }
+
+  // Make secant from c to bounds.second
+  Node uval = d_model.computeAbstractModelValue(bounds.second);
+  if (c != uval)
+  {
+    Node splane = mkSecantPlane(tf[0], c, uval, approx_c, bounds.second);
+    NlLemma nlem = mkSecantLemma(c, uval, concavity, tf, splane);
+    // The side effect says that if lem is added, then we should add the
+    // secant point c for (tf,d).
+    nlem.d_secantPoint.push_back(std::make_tuple(tf, d, c));
+    d_im.addPendingArithLemma(nlem, true);
+  }
 }
 
 }  // namespace transcendental
