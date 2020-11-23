@@ -144,7 +144,7 @@ FloatingPoint::FloatingPoint(const FloatingPointSize& size,
             symfpuLiteral::CVC4UnsignedBitVector(bv))));
   }
 #else
-  d_fpl = new FloatingPointLiteral(2, 2, 0.0);
+  d_fpl.reset(new FloatingPointLiteral(2, 2, 0.0));
 #endif
 }
 
