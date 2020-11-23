@@ -38,6 +38,8 @@ Node applySygusArgs(const DType& dt,
                     const std::vector<Node>& args)
 {
   // optimization: if n is just a sygus bound variable, return immediately
+  // by replacing with the proper argument, or returning unchanged if it is
+  // a bound variable not corresponding to a formal argument.
   if (n.getKind() == BOUND_VARIABLE)
   {
     if (n.hasAttribute(SygusVarNumAttribute()))
@@ -46,7 +48,7 @@ Node applySygusArgs(const DType& dt,
       Assert(dt.getSygusVarList()[vn] == n);
       return args[vn];
     }
-    // it is a different bound variable
+    // it is a different bound variable, it is unchanged
     return n;
   }
   // n is an application of operator op.

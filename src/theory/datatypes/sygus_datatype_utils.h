@@ -127,9 +127,9 @@ Node mkSygusTerm(Node op,
  *   C3 / L3 where L3 is (lambda w1. w1+(x+y))
  *   C4 / L4 where L4 is y
  * Examples of calling this function:
- *   applySygusArgs( dt, L1, (APPLY_UF L5 t1 t2), { 3, 5 } )
+ *   applySygusArgs( dt, L1, (APPLY_UF L1 t1 t2), { 3, 5 } )
  *     ... returns (APPLY_UF (lambda w1 w2. w1+w2) t1 t2).
- *   applySygusArgs( dt, L2, (APPLY_UF L4 t1), { 3, 5 } )
+ *   applySygusArgs( dt, L2, (APPLY_UF L2 t1), { 3, 5 } )
  *     ... returns (APPLY_UF (lambda w1. w1+3) t1).
  *   applySygusArgs( dt, L3, (APPLY_UF L3 t1), { 3, 5 } )
  *     ... returns (APPLY_UF (lambda w1. w1+(3+5)) t1).
