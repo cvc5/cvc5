@@ -51,6 +51,10 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
     // no need to rewrite n if it is already in a normal form
     response = BagsRewriteResponse(n, Rewrite::NONE);
   }
+  else if(n.getKind() == EQUAL)
+  {
+    response = postRewriteEqual(n);
+  }
   else if (NormalForm::areChildrenConstants(n))
   {
     Node value = NormalForm::evaluate(n);
@@ -98,7 +102,7 @@ RewriteResponse BagsRewriter::preRewrite(TNode n)
   Kind k = n.getKind();
   switch (k)
   {
-    case EQUAL: response = rewriteEqual(n); break;
+    case EQUAL: response = preRewriteEqual(n); break;
     case SUBBAG: response = rewriteSubBag(n); break;
     default: response = BagsRewriteResponse(n, Rewrite::NONE);
   }
@@ -117,7 +121,7 @@ RewriteResponse BagsRewriter::preRewrite(TNode n)
   return RewriteResponse(RewriteStatus::REWRITE_DONE, n);
 }
 
-BagsRewriteResponse BagsRewriter::rewriteEqual(const TNode& n) const
+BagsRewriteResponse BagsRewriter::preRewriteEqual(const TNode& n) const
 {
   Assert(n.getKind() == EQUAL);
   if (n[0] == n[1])
@@ -471,6 +475,30 @@ BagsRewriteResponse BagsRewriter::rewriteToSet(const TNode& n) const
     // where n is a positive constant and T is the type of the bag's elements
     Node set = d_nm->mkSingleton(n[0][0].getType(), n[0][0]);
     return BagsRewriteResponse(set, Rewrite::TO_SINGLETON);
+  }
+  return BagsRewriteResponse(n, Rewrite::NONE);
+}
+
+BagsRewriteResponse BagsRewriter::postRewriteEqual(const TNode& n) const
+{
+  Assert(n.getKind() == kind::EQUAL);
+  if (n[0] == n[1])
+  {
+    Node ret = NodeManager::currentNM()->mkConst(true);
+    return BagsRewriteResponse(ret, Rewrite::EQ_REFL);
+  }
+
+  if (n[0].isConst() && n[1].isConst())
+  {
+    Node ret = NodeManager::currentNM()->mkConst(false);
+    return BagsRewriteResponse(ret, Rewrite::EQ_CONST_FALSE);
+  }
+
+  // standard ordering
+  if (n[0] > n[1])
+  {
+    Node ret = NodeManager::currentNM()->mkNode(kind::EQUAL, n[1], n[0]);
+    return BagsRewriteResponse(ret, Rewrite::EQ_SYM);
   }
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
