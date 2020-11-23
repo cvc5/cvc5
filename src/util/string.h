@@ -17,7 +17,6 @@
 #ifndef CVC4__UTIL__STRING_H
 #define CVC4__UTIL__STRING_H
 
-#include <cstddef>
 #include <functional>
 #include <ostream>
 #include <string>
