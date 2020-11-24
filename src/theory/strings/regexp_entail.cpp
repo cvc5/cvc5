@@ -252,9 +252,11 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
             {
               if (children_s.empty())
               {
-                // check if beyond this, we can't do it or there is nothing
-                // left, if so, repeat
-                bool can_skip = false;
+                // Check if beyond this, we hit a conflict. In this case, we
+                // must repeat.  Notice that we do not treat the case where
+                // there are no more strings to consume as a failure, since
+                // we may be within a recursive call, see issue #5510.
+                bool can_skip = true;
                 if (children.size() > 1)
                 {
                   std::vector<Node> mchildren_ss;
@@ -273,9 +275,9 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
                   Trace("regexp-ext-rewrite-debug") << push;
                   Node rets = simpleRegexpConsume(mchildren_ss, children_ss, t);
                   Trace("regexp-ext-rewrite-debug") << pop;
-                  if (rets.isNull())
+                  if (!rets.isNull())
                   {
-                    can_skip = true;
+                    can_skip = false;
                   }
                 }
                 if (!can_skip)
