@@ -93,6 +93,7 @@ class ExponentialSolver
   /** Generate bounds for secant lemmas */
   std::pair<Node, Node> getSecantBounds(TNode e, TNode c, unsigned d);
 
+  /** Holds common state for transcendental solvers */
   TranscendentalState* d_data;
 
   /** The transcendental functions we have done initial refinements on */

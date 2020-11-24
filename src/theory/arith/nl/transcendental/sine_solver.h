@@ -160,6 +160,7 @@ class SineSolver
     }
   }
 
+  /** Holds common state for transcendental solvers */
   TranscendentalState* d_data;
 
   /** The transcendental functions we have done initial refinements on */

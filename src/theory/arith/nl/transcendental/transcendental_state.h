@@ -26,6 +26,12 @@ namespace arith {
 namespace nl {
 namespace transcendental {
 
+/**
+ * Holds common state and utilities for transcendental solvers.
+ *
+ * This includes common lookups and caches as well as generic utilities for
+ * secant plane lemmas and taylor approximations.
+ */
 struct TranscendentalState
 {
   TranscendentalState(InferenceManager& im, NlModel& model);
@@ -107,7 +113,7 @@ struct TranscendentalState
     InferenceManager& d_im;
     /** Reference to the non-linear model object */
     NlModel& d_model;
-
+    /** Utility to compute taylor approximations */
     TaylorGenerator d_taylor;
 
     /**
