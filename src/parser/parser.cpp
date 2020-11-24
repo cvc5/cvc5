@@ -377,10 +377,6 @@ api::Sort Parser::mkUnresolvedTypeConstructor(
 {
   Debug("parser") << "newSortConstructor(P)(" << name << ", " << params.size()
                   << ")" << std::endl;
-  // api::Sort unresolved =
-  //    api::Sort(d_solver,
-  //              d_solver->getExprManager()->mkSortConstructor(
-  //                  name, params.size(), ExprManager::SORT_FLAG_PLACEHOLDER));
   api::Sort unresolved = d_solver->mkSortConstructorSort(name, params.size());
   defineType(name, params, unresolved);
   api::Sort t = getSort(name, params);

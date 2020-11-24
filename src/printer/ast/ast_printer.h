@@ -172,8 +172,8 @@ class AstPrinter : public CVC4::Printer
                          TypeNode tn) const override;
 
   /**
-   * To stream model term. This prints the appropriate output for type
-   * tn declared via declare-fun.
+   * To stream model term. This prints the appropriate output for term
+   * n declared via declare-fun.
    */
   void toStreamModelTerm(std::ostream& out,
                          const smt::Model& m,

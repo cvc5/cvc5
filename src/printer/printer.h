@@ -273,8 +273,8 @@ class Printer
                                  TypeNode tn) const = 0;
 
   /**
-   * To stream model term. This prints the appropriate output for type
-   * tn declared via declare-fun.
+   * To stream model term. This prints the appropriate output for term
+   * n declared via declare-fun.
    */
   virtual void toStreamModelTerm(std::ostream& out,
                                  const smt::Model& m,
