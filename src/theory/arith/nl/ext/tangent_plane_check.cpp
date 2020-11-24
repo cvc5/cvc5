@@ -136,11 +136,15 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
               if (d_data->isProofEnabled())
               {
                 proof = d_data->getProof();
-                proof->addStep(
-                    tlem,
-                    PfRule::ARITH_MULT_TANGENT,
-                    {},
-                    {t, a, b, a_v, b_v, nm->mkConst(Rational(d == 0 ? -1 : 1))});
+                proof->addStep(tlem,
+                               PfRule::ARITH_MULT_TANGENT,
+                               {},
+                               {t,
+                                a,
+                                b,
+                                a_v,
+                                b_v,
+                                nm->mkConst(Rational(d == 0 ? -1 : 1))});
               }
               d_data->d_im.addPendingArithLemma(
                   tlem, InferenceId::NL_TANGENT_PLANE, proof, asWaitingLemmas);

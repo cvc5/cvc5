@@ -148,7 +148,7 @@ class SolverBlack : public CxxTest::TestSuite
   void testBlockModel4();
   void testBlockModelValues1();
   // FIXME: not sure why this is failing
-  //void testBlockModelValues2();
+  // void testBlockModelValues2();
   void testBlockModelValues3();
   void testBlockModelValues4();
   void testBlockModelValues5();
