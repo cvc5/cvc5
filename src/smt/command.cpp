@@ -47,26 +47,38 @@ namespace CVC4 {
 
 std::string sexprToString(api::Term sexpr)
 {
-  if (sexpr.getNumChildren() == 0)
+  // if sexpr is a spec constant and not a string, return the result of calling
+  // Term::toString
+  if (sexpr.getKind() == api::CONST_BOOLEAN
+      || sexpr.getKind() == api::CONST_FLOATINGPOINT
+      || sexpr.getKind() == api::CONST_RATIONAL)
   {
-    return sexpr.getKind() == api::CONST_STRING
-               ? sexpr.toString().substr(1, sexpr.toString().length() - 2)
-               : sexpr.toString();
+    return sexpr.toString();
   }
 
+  // if sexpr is a constant string, return the result of calling Term::toString.
+  // However, strip the surrounding quotes
+  if (sexpr.getKind() == api::CONST_STRING)
+  {
+    return sexpr.toString().substr(1, sexpr.toString().length() - 2);
+  }
+
+  // if sexpr is not a spec constant, make sure it is an array of sub-sexprs
   Assert(sexpr.getKind() == api::SEXPR);
 
   std::stringstream ss;
   auto it = sexpr.begin();
+
+  // recursively print the sub-sexprs
   ss << '(' << sexprToString(*it);
   ++it;
-
   while (it != sexpr.end())
   {
     ss << ' ' << sexprToString(*it);
     ++it;
   }
   ss << ')';
+
   return ss.str();
 }
 
