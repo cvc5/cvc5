@@ -1612,7 +1612,10 @@ void CegInstantiator::registerCounterexampleLemma(Node lem,
       // already processed variable
       continue;
     }
-    if (ces.getType().isBoolean())
+    // must avoid selector symbols, and function skolems introduced by
+    // theory preprocessing
+    TypeNode ct = ces.getType();
+    if (ct.isBoolean() || ct.isFunctionLike())
     {
       // Boolean variables, including the counterexample literal, don't matter
       // since they are always assigned a model value.

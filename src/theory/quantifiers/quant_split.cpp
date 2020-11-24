@@ -126,6 +126,7 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
   {
     return;
   }
+  Trace("quant-dsplit") << "QuantDSplit::check" << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   FirstOrderModel* m = d_quantEngine->getModel();
   std::vector<Node> lemmas;
@@ -134,6 +135,7 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
        ++it)
   {
     Node q = it->first;
+    Trace("quant-dsplit") << "- Split quantifier " << q << std::endl;
     if (m->isQuantifierAsserted(q) && m->isQuantifierActive(q)
         && d_added_split.find(q) == d_added_split.end())
     {
@@ -188,6 +190,10 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
       disj.push_back(conc);
       lemmas.push_back(disj.size() == 1 ? disj[0] : nm->mkNode(kind::OR, disj));
     }
+    else
+    {
+      Trace("quant-dsplit") << "...skip " << m->isQuantifierAsserted(q) << " " << m->isQuantifierActive(q) << " " << (d_added_split.find(q) == d_added_split.end()) << std::endl;
+    }
   }
 
   // add lemmas to quantifiers engine
@@ -196,5 +202,6 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
     Trace("quant-dsplit") << "QuantDSplit lemma : " << lem << std::endl;
     d_quantEngine->addLemma(lem, false);
   }
+  Trace("quant-dsplit") << "QuantDSplit::check finished" << std::endl;
 }
 
