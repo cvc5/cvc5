@@ -15,6 +15,7 @@
 #include "theory/trust_node.h"
 
 #include "expr/proof_generator.h"
+#include "expr/proof_ensure_closed.h"
 
 namespace CVC4 {
 namespace theory {
