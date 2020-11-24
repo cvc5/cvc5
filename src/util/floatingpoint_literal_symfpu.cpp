@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file symfpu_literal.cpp
+/*! \file floatingpoint_literal_symfpu.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Martin Brain, Aina Niemetz
@@ -11,7 +11,7 @@
  **
  ** \brief SymFPU glue code for floating-point values.
  **/
-#include "util/symfpu_literal.h"
+#include "util/floatingpoint_literal_symfpu.h"
 
 #include "base/check.h"
 

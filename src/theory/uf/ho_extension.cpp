@@ -36,14 +36,14 @@ HoExtension::HoExtension(TheoryState& state, TheoryInferenceManager& im)
   d_true = NodeManager::currentNM()->mkConst(true);
 }
 
-Node HoExtension::expandDefinition(Node node)
+Node HoExtension::ppRewrite(Node node)
 {
   // convert HO_APPLY to APPLY_UF if fully applied
   if (node[0].getType().getNumChildren() == 2)
   {
     Trace("uf-ho") << "uf-ho : expanding definition : " << node << std::endl;
     Node ret = getApplyUfForHoApply(node);
-    Trace("uf-ho") << "uf-ho : expandDefinition : " << node << " to " << ret
+    Trace("uf-ho") << "uf-ho : ppRewrite : " << node << " to " << ret
                    << std::endl;
     return ret;
   }

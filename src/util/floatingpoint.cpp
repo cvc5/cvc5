@@ -23,8 +23,8 @@
 #include <limits>
 
 #include "base/check.h"
+#include "util/floatingpoint_literal_symfpu.h"
 #include "util/integer.h"
-#include "util/symfpu_literal.h"
 
 #ifdef CVC4_USE_SYMFPU
 #include "symfpu/core/add.h"
