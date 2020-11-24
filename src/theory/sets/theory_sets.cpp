@@ -68,6 +68,8 @@ void TheorySets::finishInit()
   d_valuation.setUnevaluatedKind(COMPREHENSION);
   // choice is used to eliminate witness
   d_valuation.setUnevaluatedKind(WITNESS);
+  // Universe set is not evaluated. This is moreover important for ensuring that
+  // we do not eliminate terms whose value involves the universe set.
   d_valuation.setUnevaluatedKind(UNIVERSE_SET);
 
   // functions we are doing congruence over
