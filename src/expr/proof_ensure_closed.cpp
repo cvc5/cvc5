@@ -14,8 +14,8 @@
 
 #include "expr/proof_ensure_closed.h"
 
-#include "options/smt_options.h"
 #include "expr/proof_node_algorithm.h"
+#include "options/smt_options.h"
 
 namespace CVC4 {
 
