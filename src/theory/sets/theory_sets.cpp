@@ -68,6 +68,7 @@ void TheorySets::finishInit()
   d_valuation.setUnevaluatedKind(COMPREHENSION);
   // choice is used to eliminate witness
   d_valuation.setUnevaluatedKind(WITNESS);
+  d_valuation.setUnevaluatedKind(UNIVERSE_SET);
 
   // functions we are doing congruence over
   d_equalityEngine->addFunctionKind(SINGLETON);
