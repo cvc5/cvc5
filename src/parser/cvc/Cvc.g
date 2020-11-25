@@ -565,12 +565,8 @@ namespace CVC4 {
 #include <vector>
 
 #include "base/output.h"
-#include "expr/expr.h"
-#include "expr/kind.h"
-#include "expr/type.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
-
 
 #define REPEAT_COMMAND(k, CommandCtor)                      \
   ({                                                        \

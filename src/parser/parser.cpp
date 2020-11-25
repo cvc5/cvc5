@@ -25,7 +25,6 @@
 
 #include "api/cvc4cpp.h"
 #include "base/output.h"
-#include "expr/expr.h"
 #include "expr/kind.h"
 #include "expr/type.h"
 #include "options/options.h"

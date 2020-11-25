@@ -25,8 +25,6 @@
 #include <vector>
 
 #include "api/cvc4cpp.h"
-#include "expr/expr.h"
-#include "expr/expr_manager.h"
 #include "options/language.h"
 #include "parser/parser_exception.h"
 

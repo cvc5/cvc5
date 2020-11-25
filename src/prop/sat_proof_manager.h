@@ -19,7 +19,6 @@
 
 #include "context/cdhashset.h"
 #include "expr/buffered_proof_generator.h"
-#include "expr/expr.h"
 #include "expr/lazy_proof_chain.h"
 #include "expr/node.h"
 #include "expr/proof.h"
