@@ -30,15 +30,11 @@ class NodeCommand;
 namespace smt {
 
 /**
- * This utility is responsible for:
- * (1) storing information required for SMT-LIB queries such as get-model,
- * which requires knowing what symbols are declared and should be printed in
- * the model.
- * (2) implementing some dumping traces e.g. --dump=declarations.
+ * This utility is responsible for
+ * implementing some dumping traces e.g. --dump=declarations.
  */
 class DumpManager
 {
-  typedef context::CDList<NodeCommand*> CommandList;
 
  public:
   DumpManager(context::UserContext* u);
@@ -48,10 +44,6 @@ class DumpManager
    * when initialization of options is finished.
    */
   void finishInit();
-  /**
-   * Reset assertions, called on SmtEngine::resetAssertions.
-   */
-  void resetAssertions();
   /**
    * Add to Model command.  This is used for recording a command
    * that should be reported during a get-model call.
@@ -65,34 +57,10 @@ class DumpManager
    * Set that function f should print in the model if and only if p is true.
    */
   void setPrintFuncInModel(Node f, bool p);
-  /** get number of commands to report in a model */
-  size_t getNumModelCommands() const;
-  /** get model command at index i */
-  const NodeCommand* getModelCommand(size_t i) const;
 
  private:
   /** Fully inited */
   bool d_fullyInited;
-
-  /**
-   * A list of commands that should be in the Model globally (i.e.,
-   * regardless of push/pop).  Only maintained if produce-models option
-   * is on.
-   */
-  std::vector<std::unique_ptr<NodeCommand>> d_modelGlobalCommands;
-
-  /**
-   * A list of commands that should be in the Model locally (i.e.,
-   * it is context-dependent on push/pop).  Only maintained if
-   * produce-models option is on.
-   */
-  CommandList d_modelCommands;
-  /**
-   * A list of model commands allocated to d_modelCommands at any time. This
-   * is maintained for memory management purposes.
-   */
-  std::vector<std::unique_ptr<NodeCommand>> d_modelCommandsAlloc;
-
   /**
    * A vector of declaration commands waiting to be dumped out.
    * Once the SmtEngine is fully initialized, we'll dump them.
