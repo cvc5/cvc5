@@ -33,7 +33,7 @@ QuantElimSolver::~QuantElimSolver() {}
 
 Node QuantElimSolver::getQuantifierElimination(Assertions& as,
                                                Node q,
-                                               bool doFull)
+                                               bool doFull, bool isInternalSubsolver)
 {
   Trace("smt-qe") << "QuantElimSolver: get qe : " << q << std::endl;
   if (q.getKind() != EXISTS && q.getKind() != FORALL)

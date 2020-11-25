@@ -1515,7 +1515,7 @@ Node SmtEngine::getQuantifierElimination(Node q, bool doFull, bool strict)
   if(!d_logic.isPure(THEORY_ARITH) && strict){
     Warning() << "Unexpected logic for quantifier elimination " << d_logic << endl;
   }
-  return d_quantElimSolver->getQuantifierElimination(*d_asserts, q, doFull);
+  return d_quantElimSolver->getQuantifierElimination(*d_asserts, q, doFull, d_isInternalSubsolver);
 }
 
 bool SmtEngine::getInterpol(const Node& conj,
