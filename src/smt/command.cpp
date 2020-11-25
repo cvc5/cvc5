@@ -651,17 +651,14 @@ void SynthFunCommand::toStream(std::ostream& out,
                                OutputLanguage language) const
 {
   std::vector<Node> nodeVars = termVectorToNodes(d_vars);
-  if (d_grammar == nullptr)
-  {
-    Printer::getPrinter(language)->toStreamCmdSynthFun(
-        out, d_symbol, nodeVars, d_sort.getTypeNode(), d_isInv);
-  }
-  else
-  {
-    TypeNode grammar = d_grammar->resolve().getTypeNode();
-    Printer::getPrinter(language)->toStreamCmdSynthFun(
-        out, d_symbol, nodeVars, d_sort.getTypeNode(), d_isInv, &grammar);
-  }
+  Printer::getPrinter(language)->toStreamCmdSynthFun(
+      out,
+      d_symbol,
+      nodeVars,
+      d_sort.getTypeNode(),
+      d_isInv,
+      d_grammar == nullptr ? TypeNode::null()
+                           : d_grammar->resolve().getTypeNode());
 }
 
 /* -------------------------------------------------------------------------- */

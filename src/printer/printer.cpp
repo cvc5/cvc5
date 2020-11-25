@@ -228,7 +228,7 @@ void Printer::toStreamCmdSynthFun(std::ostream& out,
                                   const std::vector<Node>& vars,
                                   TypeNode range,
                                   bool isInv,
-                                  TypeNode* sygusType) const
+                                  TypeNode sygusType) const
 {
   printUnknownCommand(out, isInv ? "synth-inv" : "synth-fun");
 }

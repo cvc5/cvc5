@@ -2044,7 +2044,7 @@ void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
                                       const std::vector<Node>& vars,
                                       TypeNode range,
                                       bool isInv,
-                                      TypeNode* sygusType) const
+                                      TypeNode sygusType) const
 {
   out << '(' << (isInv ? "synth-inv " : "synth-fun ") << CVC4::quoteSymbol(sym)
       << ' ';
@@ -2069,9 +2069,9 @@ void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
   }
   out << '\n';
   // print grammar, if any
-  if (sygusType != nullptr)
+  if (!sygusType.isNull())
   {
-    toStreamSygusGrammar(out, *sygusType);
+    toStreamSygusGrammar(out, sygusType);
   }
   out << ')' << std::endl;
 }
