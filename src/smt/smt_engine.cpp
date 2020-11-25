@@ -524,15 +524,9 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
   if (key == "all-statistics")
   {
     vector<SExpr> stats;
-    StatisticsRegistry* sr = d_nodeManager
-        ->getStatisticsRegistry();
-        for (StatisticsRegistry::const_iterator i =
-                                           sr
-                                               ->begin();
-                                       i
-                                       != sr
-                                              ->end();
-                                       ++i)
+    StatisticsRegistry* sr = d_nodeManager->getStatisticsRegistry();
+    for (StatisticsRegistry::const_iterator i = sr->begin(); i != sr->end();
+         ++i)
     {
       vector<SExpr> v;
       v.push_back((*i).first);
