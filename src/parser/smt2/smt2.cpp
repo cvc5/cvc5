@@ -24,6 +24,7 @@
 #include "parser/parser.h"
 #include "parser/smt2/smt2_input.h"
 #include "util/bitvector.h"
+#include "expr/expr.h"
 
 // ANTLR defines these, which is really bad!
 #undef true
@@ -445,7 +446,7 @@ api::Term Smt2::bindDefineFunRec(
   api::Sort ft = mkFlatFunctionType(sorts, t, flattenVars);
 
   // allow overloading
-  return bindVar(fname, ft, ExprManager::VAR_FLAG_NONE, true);
+  return bindVar(fname, ft, true);
 }
 
 void Smt2::pushDefineFunRecScope(
