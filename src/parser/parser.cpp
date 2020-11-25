@@ -344,8 +344,7 @@ api::Sort Parser::mkSortConstructor(const std::string& name,
                                     size_t arity,
                                     uint32_t flags)
 {
-  Debug("parser") << "newSortConstructor(" << name << ", " << arity
-                  << ")"
+  Debug("parser") << "newSortConstructor(" << name << ", " << arity << ")"
                   << std::endl;
   api::Sort type = d_solver->mkSortConstructorSort(name, arity);
   bool globalDecls = d_symman->getGlobalDeclarations();

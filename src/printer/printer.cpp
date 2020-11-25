@@ -96,8 +96,8 @@ void Printer::toStream(std::ostream& out, const smt::Model& m) const
 }/* Printer::toStream(Model) */
 
 void Printer::toStreamUsing(OutputLanguage lang,
-                    std::ostream& out,
-                    const smt::Model& m) const
+                            std::ostream& out,
+                            const smt::Model& m) const
 {
   getPrinter(lang)->toStream(out, m);
 }
