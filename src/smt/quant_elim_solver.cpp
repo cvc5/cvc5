@@ -41,11 +41,13 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
     throw ModalException(
         "Expecting a quantified formula as argument to get-qe.");
   }
+  NodeManager* nm = NodeManager::currentNM();
+  // ensure the body is rewritten
+  q = nm->mkNode(q.getKind(), q[0], Rewriter::rewrite(q[1]));
   // do nested quantifier elimination if necessary
   q = quantifiers::NestedQe::doNestedQe(q, true);
   Trace("smt-qe") << "QuantElimSolver: after nested quantifier elimination : "
                   << q << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
   // tag the quantified formula with the quant-elim attribute
   TypeNode t = nm->booleanType();
   Node n_attr = nm->mkSkolem("qe", t, "Auxiliary variable for qe attr.");

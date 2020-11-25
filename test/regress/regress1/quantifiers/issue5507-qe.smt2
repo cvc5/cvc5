@@ -1,5 +1,4 @@
-; SCRUBBER: sed 's/(.*)/()/g'
-; EXPECT: ()
+; EXPECT: false
 ; EXIT: 0
 (set-logic LIA)
 (declare-fun v0 () Bool)
