@@ -30,8 +30,7 @@ uint32_t LetBinding::getThreshold() const { return d_thresh; }
 
 void LetBinding::process(Node n)
 {
-  Assert(!n.isNull());
-  if (d_thresh == 0)
+  if (n.isNull() || d_thresh == 0)
   {
     // value of 0 means do not introduce let
     return;
@@ -42,7 +41,6 @@ void LetBinding::process(Node n)
 
 void LetBinding::letify(Node n, std::vector<Node>& letList)
 {
-  Assert(!n.isNull());
   // first, push the context
   pushScope();
   // process the node
