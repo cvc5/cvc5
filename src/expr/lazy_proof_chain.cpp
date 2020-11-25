@@ -15,6 +15,7 @@
 #include "expr/lazy_proof_chain.h"
 
 #include "expr/proof.h"
+#include "expr/proof_ensure_closed.h"
 #include "expr/proof_node_algorithm.h"
 #include "options/smt_options.h"
 

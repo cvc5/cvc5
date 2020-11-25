@@ -141,9 +141,6 @@ class SolverBlack : public CxxTest::TestSuite
   void testPop1();
   void testPop2();
   void testPop3();
-  void testPrintModel1();
-  void testPrintModel2();
-  void testPrintModel3();
 
   void testBlockModel1();
   void testBlockModel2();
@@ -151,7 +148,7 @@ class SolverBlack : public CxxTest::TestSuite
   void testBlockModel4();
   void testBlockModelValues1();
   // FIXME: not sure why this is failing
-  //void testBlockModelValues2();
+  // void testBlockModelValues2();
   void testBlockModelValues3();
   void testBlockModelValues4();
   void testBlockModelValues5();
@@ -195,7 +192,7 @@ void SolverBlack::testRecoverableException()
   d_solver->setOption("produce-models", "true");
   Term x = d_solver->mkConst(d_solver->getBooleanSort(), "x");
   d_solver->assertFormula(x.eqTerm(x).notTerm());
-  TS_ASSERT_THROWS(d_solver->printModel(std::cout),
+  TS_ASSERT_THROWS(d_solver->getValue(x),
                    CVC4ApiRecoverableException&);
 }
 
@@ -1863,32 +1860,6 @@ void SolverBlack::testPop3()
   TS_ASSERT_THROWS_NOTHING(d_solver->push(1));
   TS_ASSERT_THROWS_NOTHING(d_solver->pop(1));
   TS_ASSERT_THROWS(d_solver->pop(1), CVC4ApiException&);
-}
-
-void SolverBlack::testPrintModel1()
-{
-  d_solver->setOption("produce-models", "false");
-  Term x = d_solver->mkConst(d_solver->getBooleanSort(), "x");
-  d_solver->assertFormula(x.eqTerm(x));
-  TS_ASSERT_THROWS(d_solver->printModel(std::cout), CVC4ApiException&);
-}
-
-void SolverBlack::testPrintModel2()
-{
-  d_solver->setOption("produce-models", "true");
-  Term x = d_solver->mkConst(d_solver->getBooleanSort(), "x");
-  d_solver->assertFormula(x.eqTerm(x).notTerm());
-  d_solver->checkSat();
-  TS_ASSERT_THROWS(d_solver->printModel(std::cout), CVC4ApiException&);
-}
-
-void SolverBlack::testPrintModel3()
-{
-  d_solver->setOption("produce-models", "true");
-  Term x = d_solver->mkConst(d_solver->getBooleanSort(), "x");
-  d_solver->assertFormula(x.eqTerm(x));
-  d_solver->checkSat();
-  TS_ASSERT_THROWS_NOTHING(d_solver->printModel(std::cout));
 }
 
 void SolverBlack::testBlockModel1()

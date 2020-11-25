@@ -1243,10 +1243,10 @@ install(FILES
           util/string.h
           util/tuple.h
           util/unsafe_interrupt_exception.h
-          ${CMAKE_CURRENT_BINARY_DIR}/util/floatingpoint.h
           ${CMAKE_CURRENT_BINARY_DIR}/util/integer.h
           ${CMAKE_CURRENT_BINARY_DIR}/util/rational.h
           ${CMAKE_CURRENT_BINARY_DIR}/util/real_algebraic_number.h
+          ${CMAKE_CURRENT_BINARY_DIR}/util/floatingpoint_literal_symfpu.h
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/util)
 

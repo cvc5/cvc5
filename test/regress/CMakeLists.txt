@@ -1618,6 +1618,9 @@ set(regress_1_tests
   regress1/quantifiers/issue5469-aext.smt2
   regress1/quantifiers/issue5470-aext.smt2
   regress1/quantifiers/issue5471-aext.smt2
+  regress1/quantifiers/issue5482-rtf-no-fv.smt2
+  regress1/quantifiers/issue5484-qe.smt2
+  regress1/quantifiers/issue5484b-qe.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lia-witness-div-pp.smt2
@@ -1861,6 +1864,7 @@ set(regress_1_tests
   regress1/strings/issue5330.smt2
   regress1/strings/issue5330_2.smt2
   regress1/strings/issue5374-proxy-i.smt2
+  regress1/strings/issue5483-pp-leq.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2

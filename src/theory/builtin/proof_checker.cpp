@@ -443,7 +443,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(args[0].getType().isInteger());
     return args[1];
   }
-  
+
   // no rule
   return Node::null();
 }

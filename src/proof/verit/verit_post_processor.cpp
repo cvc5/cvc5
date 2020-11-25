@@ -19,6 +19,7 @@
 #include <memory>
 #include <vector>
 
+#include "expr/proof_ensure_closed.h"
 #include "expr/proof_node_algorithm.h"
 
 namespace CVC4 {
@@ -100,8 +101,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // proof term:
     // premises:
     // args: (F1, ..., Fn)
-    case PfRule::SCOPE:
-    {
+    case PfRule::SCOPE: {
     }
     //================================================= Boolean rules
     // ======== Resolution
@@ -269,7 +269,7 @@ bool VeritProofPostprocessCallback::update(Node res,
           d_nm->mkNode(kind::OR, d_nm->mkNode(kind::NOT, children[0]), res);
       return addVeritStep(vp, VeritRule::IMPLIES, {children[1]}, {}, *cdp)
              && addVeritStep(
-                 res, VeritRule::RESOLUTION, {vp, children[0]}, {}, *cdp);
+                    res, VeritRule::RESOLUTION, {vp, children[0]}, {}, *cdp);
     }
     // ======== Double negation elimination
     // Children: (P:(not (not F)))
@@ -292,7 +292,7 @@ bool VeritProofPostprocessCallback::update(Node res,
           d_nm->mkNode(kind::OR, d_nm->mkNode(kind::NOT, children[0]), res);
       return addVeritStep(vp, VeritRule::NOT_NOT, {}, {}, *cdp)
              && addVeritStep(
-                 res, VeritRule::RESOLUTION, {children[0], vp}, {}, *cdp);
+                    res, VeritRule::RESOLUTION, {children[0], vp}, {}, *cdp);
     }
     // ======== Contradiction
     // Children: (P1:F P2:(not F))
@@ -361,7 +361,7 @@ bool VeritProofPostprocessCallback::update(Node res,
 
       return addVeritStep(vp1, VeritRule::AND_NEG, {}, {}, *cdp)
              && addVeritStep(
-                 res, VeritRule::RESOLUTION, new_children, {}, *cdp);
+                    res, VeritRule::RESOLUTION, new_children, {}, *cdp);
     }
     // ======== Not Or elimination
     // Children: (P:(not (or F1 ... Fn)))
@@ -879,7 +879,7 @@ bool VeritProofPostprocessCallback::update(Node res,
              && addVeritStep(vp2, VeritRule::ITE_POS2, {}, {}, *cdp)
              && addVeritStep(vp3, VeritRule::RESOLUTION, {vp1, vp2}, {}, *cdp)
              && addVeritStep(
-                 res, VeritRule::DUPLICATE_LITERALS, {vp3}, {}, *cdp);
+                    res, VeritRule::DUPLICATE_LITERALS, {vp3}, {}, *cdp);
     }
     // ======== CNF ITE Neg version 1
     // Children: ()
@@ -945,7 +945,7 @@ bool VeritProofPostprocessCallback::update(Node res,
              && addVeritStep(vp2, VeritRule::ITE_NEG2, {}, {}, *cdp)
              && addVeritStep(vp3, VeritRule::RESOLUTION, {vp1, vp2}, {}, *cdp)
              && addVeritStep(
-                 res, VeritRule::DUPLICATE_LITERALS, {vp3}, {}, *cdp);
+                    res, VeritRule::DUPLICATE_LITERALS, {vp3}, {}, *cdp);
     }
 
     //================================================= Equality rules
@@ -1038,7 +1038,7 @@ bool VeritProofPostprocessCallback::update(Node res,
       return addVeritStep(vp1, VeritRule::EQUIV_SIMPLIFY, {}, {}, *cdp)
              && addVeritStep(vp2, VeritRule::EQUIV2, {vp1}, {}, *cdp)
              && addVeritStep(
-                 res, VeritRule::RESOLUTION, {vp2, children[0]}, {}, *cdp);
+                    res, VeritRule::RESOLUTION, {vp2, children[0]}, {}, *cdp);
     }
     // ======== True elim
     // Children: (P:(= F true))
@@ -1068,7 +1068,7 @@ bool VeritProofPostprocessCallback::update(Node res,
       return addVeritStep(vp1, VeritRule::EQUIV_SIMPLIFY, {}, {}, *cdp)
              && addVeritStep(vp2, VeritRule::EQUIV2, {vp1}, {}, *cdp)
              && addVeritStep(
-                 res, VeritRule::RESOLUTION, {vp2, children[0]}, {}, *cdp);
+                    res, VeritRule::RESOLUTION, {vp2, children[0]}, {}, *cdp);
     }
     // ======== False intro
     // Children: (P:(not F))
@@ -1146,7 +1146,7 @@ bool VeritProofPostprocessCallback::update(Node res,
       return addVeritStep(vp1, VeritRule::EQUIV_SIMPLIFY, {}, {}, *cdp)
              && addVeritStep(vp2, VeritRule::EQUIV1, {vp1}, {}, *cdp)
              && addVeritStep(
-                 res, VeritRule::RESOLUTION, {vp1, children[0]}, {}, *cdp);
+                    res, VeritRule::RESOLUTION, {vp1, children[0]}, {}, *cdp);
     }
     // ======== HO trust
     // Children: none

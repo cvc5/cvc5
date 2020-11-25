@@ -14,6 +14,8 @@
 
 #include "expr/lazy_proof.h"
 
+#include "expr/proof_ensure_closed.h"
+
 using namespace CVC4::kind;
 
 namespace CVC4 {
