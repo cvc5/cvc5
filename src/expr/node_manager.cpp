@@ -964,7 +964,7 @@ Node NodeManager::mkAssociative(Kind kind,
   if( numChildren <= max ) {
     return mkNode(kind,children);
   }
-  const unsigned int min = minArity(kind);
+  const unsigned int min = metakind::getLowerBoundForKind(kind);
 
   std::vector<Node>::const_iterator it = children.begin() ;
   std::vector<Node>::const_iterator end = children.end() ;
