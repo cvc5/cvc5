@@ -785,9 +785,6 @@ class CVC4_PUBLIC SmtEngine
    */
   unsigned long getResourceRemaining() const;
 
-  /** Permit access to the underlying ExprManager. */
-  ExprManager* getExprManager() const { return d_exprManager; }
-
   /** Permit access to the underlying NodeManager. */
   NodeManager* getNodeManager() const;
 
@@ -1013,9 +1010,7 @@ class CVC4_PUBLIC SmtEngine
    */
   std::unique_ptr<smt::SmtEngineState> d_state;
 
-  /** Our expression manager */
-  ExprManager* d_exprManager;
-  /** Our internal expression/node manager */
+  /** Our internal node manager */
   NodeManager* d_nodeManager;
   /** Abstract values */
   std::unique_ptr<smt::AbstractValues> d_absValues;

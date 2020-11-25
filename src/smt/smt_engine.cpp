@@ -73,10 +73,9 @@ using namespace CVC4::theory;
 
 namespace CVC4 {
 
-SmtEngine::SmtEngine(ExprManager* em, Options* optr)
+SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
     : d_state(new SmtEngineState(*this)),
-      d_exprManager(em),
-      d_nodeManager(d_exprManager->getNodeManager()),
+      d_nodeManager(nm),
       d_absValues(new AbstractValues(d_nodeManager)),
       d_asserts(new Assertions(getUserContext(), *d_absValues.get())),
       d_dumpm(new DumpManager(getUserContext())),
@@ -525,12 +524,14 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
   if (key == "all-statistics")
   {
     vector<SExpr> stats;
+             d_nodeManager
+                 ->getStatisticsRegistry()
     for (StatisticsRegistry::const_iterator i =
-             NodeManager::fromExprManager(d_exprManager)
+             d_nodeManager
                  ->getStatisticsRegistry()
                  ->begin();
          i
-         != NodeManager::fromExprManager(d_exprManager)
+         != d_nodeManager
                 ->getStatisticsRegistry()
                 ->end();
          ++i)
@@ -1637,7 +1638,6 @@ void SmtEngine::pop() {
 void SmtEngine::reset()
 {
   SmtScope smts(this);
-  ExprManager *em = d_exprManager;
   Trace("smt") << "SMT reset()" << endl;
   if(Dump.isOn("benchmark")) {
     getOutputManager().getPrinter().toStreamCmdReset(
@@ -1647,7 +1647,7 @@ void SmtEngine::reset()
   Options opts;
   opts.copyValues(d_originalOptions);
   this->~SmtEngine();
-  new (this) SmtEngine(em, &opts);
+  new (this) SmtEngine(d_nodeManager, &opts);
   // Restore data set after creation
   notifyStartParsing(filename);
 }
@@ -1715,7 +1715,7 @@ unsigned long SmtEngine::getResourceRemaining() const
 
 NodeManager* SmtEngine::getNodeManager() const
 {
-  return d_exprManager->getNodeManager();
+  return d_nodeManager;
 }
 
 Statistics SmtEngine::getStatistics() const
