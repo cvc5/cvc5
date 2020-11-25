@@ -26,8 +26,7 @@
 namespace CVC4 {
 namespace smt {
 
-Model::Model(theory::TheoryModel* tm)
-    : d_isKnownSat(false), d_tmodel(tm)
+Model::Model(theory::TheoryModel* tm) : d_isKnownSat(false), d_tmodel(tm)
 {
   Assert(d_tmodel != nullptr);
 }

@@ -45,7 +45,8 @@ void DumpManager::finishInit()
 
   d_fullyInited = true;
 }
-void DumpManager::resetAssertions() { 
+void DumpManager::resetAssertions()
+{
   // currently, do nothing
 }
 
