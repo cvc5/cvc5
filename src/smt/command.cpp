@@ -1077,17 +1077,6 @@ DeclareFunctionCommand::DeclareFunctionCommand(const std::string& id,
 
 api::Term DeclareFunctionCommand::getFunction() const { return d_func; }
 api::Sort DeclareFunctionCommand::getSort() const { return d_sort; }
-bool DeclareFunctionCommand::getPrintInModel() const { return d_printInModel; }
-bool DeclareFunctionCommand::getPrintInModelSetByUser() const
-{
-  return d_printInModelSetByUser;
-}
-
-void DeclareFunctionCommand::setPrintInModel(bool p)
-{
-  d_printInModel = p;
-  d_printInModelSetByUser = true;
-}
 
 void DeclareFunctionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
