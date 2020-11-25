@@ -38,8 +38,7 @@ namespace smt {
 class ExpandDefs
 {
  public:
-  ExpandDefs(SmtEngine& smt,
-                    SmtEngineStatistics& stats);
+  ExpandDefs(SmtEngine& smt, SmtEngineStatistics& stats);
   ~ExpandDefs();
   /**
    * Expand definitions in term n. Return the expanded form of n.
@@ -50,14 +49,16 @@ class ExpandDefs
    * TheoryEngine is not called on subterms of n.
    * @return The expanded term.
    */
-  Node expandDefinitions(TNode n,
-                         std::unordered_map<Node, Node, NodeHashFunction>& cache,
-                         bool expandOnly = false);
+  Node expandDefinitions(
+      TNode n,
+      std::unordered_map<Node, Node, NodeHashFunction>& cache,
+      bool expandOnly = false);
   /**
    * Expand defintitions in assertions. This applies this above method to each
    * assertion in the given pipeline.
    */
-  void expandAssertions(preprocessing::AssertionPipeline& assertions, bool expandOnly = false);
+  void expandAssertions(preprocessing::AssertionPipeline& assertions,
+                        bool expandOnly = false);
 
  private:
   /** Reference to the SMT engine */

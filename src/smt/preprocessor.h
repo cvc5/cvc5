@@ -20,10 +20,10 @@
 #include <vector>
 
 #include "preprocessing/preprocessing_pass_context.h"
+#include "smt/expand_definitions.h"
 #include "smt/process_assertions.h"
 #include "smt/term_formula_removal.h"
 #include "theory/booleans/circuit_propagator.h"
-#include "smt/expand_definitions.h"
 
 namespace CVC4 {
 namespace smt {

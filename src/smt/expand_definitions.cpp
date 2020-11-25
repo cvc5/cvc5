@@ -28,16 +28,12 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace smt {
 
-ExpandDefs::ExpandDefs(SmtEngine& smt,
-                                     SmtEngineStatistics& stats)
-    : d_smt(smt),
-      d_smtStats(stats)
+ExpandDefs::ExpandDefs(SmtEngine& smt, SmtEngineStatistics& stats)
+    : d_smt(smt), d_smtStats(stats)
 {
 }
 
-ExpandDefs::~ExpandDefs()
-{
-}
+ExpandDefs::~ExpandDefs() {}
 
 Node ExpandDefs::expandDefinitions(
     TNode n,
@@ -256,11 +252,10 @@ Node ExpandDefs::expandDefinitions(
 }
 
 void ExpandDefs::expandAssertions(AssertionPipeline& assertions,
-                                         bool expandOnly)
+                                  bool expandOnly)
 {
   Chat() << "expanding definitions in assertions..." << endl;
-  Trace("simplify") << "ExpandDefs::simplify(): expanding definitions"
-                    << endl;
+  Trace("simplify") << "ExpandDefs::simplify(): expanding definitions" << endl;
   TimerStat::CodeTimer codeTimer(d_smtStats.d_definitionExpansionTime);
   unordered_map<Node, Node, NodeHashFunction> cache;
   for (size_t i = 0, nasserts = assertions.size(); i < nasserts; ++i)
@@ -273,7 +268,6 @@ void ExpandDefs::expandAssertions(AssertionPipeline& assertions,
     }
   }
 }
-
 
 }  // namespace smt
 }  // namespace CVC4
