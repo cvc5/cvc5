@@ -26,7 +26,6 @@
 
 namespace CVC4 {
 
-class SmtEngine;
 class NodeCommand;
 
 namespace smt {
@@ -45,17 +44,12 @@ std::ostream& operator<<(std::ostream&, const Model&);
  */
 class Model {
   friend std::ostream& operator<<(std::ostream&, const Model&);
-  friend class ::CVC4::SmtEngine;
 
  public:
   /** construct */
-  Model(SmtEngine& smt, theory::TheoryModel* tm);
+  Model(theory::TheoryModel* tm);
   /** virtual destructor */
   ~Model() {}
-  /** get the smt engine that this model is hooked up to */
-  SmtEngine* getSmtEngine() { return &d_smt; }
-  /** get the smt engine (as a pointer-to-const) that this model is hooked up to */
-  const SmtEngine* getSmtEngine() const { return &d_smt; }
   /** get the input name (file name, etc.) this model is associated to */
   std::string getInputName() const { return d_inputName; }
   /**
@@ -77,10 +71,6 @@ class Model {
   /** Does this model have approximations? */
   bool hasApproximations() const;
   //----------------------- end helper methods
-  /** get number of commands to report */
-  size_t getNumCommands() const;
-  /** get command */
-  const NodeCommand* getCommand(size_t i) const;
   //----------------------- model declarations
   /** Clear the current model declarations. */
   void clearModelDeclarations();

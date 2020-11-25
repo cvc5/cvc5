@@ -26,27 +26,16 @@
 namespace CVC4 {
 namespace smt {
 
-Model::Model(SmtEngine& smt, theory::TheoryModel* tm)
-    : d_smt(smt), d_isKnownSat(false), d_tmodel(tm)
+Model::Model(theory::TheoryModel* tm)
+    : d_isKnownSat(false), d_tmodel(tm)
 {
   Assert(d_tmodel != nullptr);
 }
 
 std::ostream& operator<<(std::ostream& out, const Model& m) {
-  smt::SmtScope smts(&m.d_smt);
   expr::ExprDag::Scope scope(out, false);
   Printer::getPrinter(options::outputLanguage())->toStream(out, m);
   return out;
-}
-
-size_t Model::getNumCommands() const
-{
-  return d_smt.getDumpManager()->getNumModelCommands();
-}
-
-const NodeCommand* Model::getCommand(size_t i) const
-{
-  return d_smt.getDumpManager()->getModelCommand(i);
 }
 
 theory::TheoryModel* Model::getTheoryModel() { return d_tmodel; }
