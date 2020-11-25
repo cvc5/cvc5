@@ -54,7 +54,6 @@ class ProcessAssertions
 {
   /** The types for the recursive function definitions */
   typedef context::CDList<Node> NodeList;
-  typedef unordered_map<Node, Node, NodeHashFunction> NodeToNodeHashMap;
   typedef unordered_map<Node, bool, NodeHashFunction> NodeToBoolHashMap;
 
  public:
