@@ -84,8 +84,8 @@ class QuantElimSolver
    * @param q The quantified formula we are eliminating quantifiers from
    * @param doFull Whether we are doing full quantifier elimination on q
    * @param isInternalSubsolver Whether the SmtEngine we belong to is an
-   * internal subsolver. If it is not, then we will spawn a new SmtEngine
-   * to compute the result.
+   * internal subsolver. If it is not, then we convert the final result to
+   * witness form.
    * @return The result of eliminating quantifiers from q.
    */
   Node getQuantifierElimination(Assertions& as,
