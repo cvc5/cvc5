@@ -283,10 +283,7 @@ class Printer
   /** write model response to command using another language printer */
   void toStreamUsing(OutputLanguage lang,
                      std::ostream& out,
-                     const smt::Model& m) const
-  {
-    getPrinter(lang)->toStream(out, m);
-  }
+                     const smt::Model& m) const;
 
   /**
    * Write an error to `out` stating that command `name` is not supported by
