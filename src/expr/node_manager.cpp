@@ -957,7 +957,7 @@ Node NodeManager::mkAssociative(Kind kind,
       kind::isAssociative(kind)) <<
       "Illegal kind in mkAssociative";
 
-  const unsigned int max = maxArity(kind);
+  const unsigned int max = metakind::getUpperBoundForKind(kind);
   unsigned int numChildren = children.size();
 
   /* If the number of children is within bounds, then there's nothing to do. */
@@ -1009,7 +1009,7 @@ Node NodeManager::mkLeftAssociative(Kind kind,
   Node n = children[0];
   for (unsigned i = 1, size = children.size(); i < size; i++)
   {
-    n = d_nodeManager->mkNode(kind, n, children[i]);
+    n = mkNode(kind, n, children[i]);
   }
   return n;
 }
@@ -1020,7 +1020,7 @@ Node NodeManager::mkRightAssociative(Kind kind,
   Node n = children[children.size() - 1];
   for (unsigned i = children.size() - 1; i > 0;)
   {
-    n = d_nodeManager->mkNode(kind, children[--i], n);
+    n = mkNode(kind, children[--i], n);
   }
   return n;
 }
