@@ -29,7 +29,9 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace smt {
 
-ExpandDefs::ExpandDefs(SmtEngine& smt, ResourceManager& rm, SmtEngineStatistics& stats)
+ExpandDefs::ExpandDefs(SmtEngine& smt,
+                       ResourceManager& rm,
+                       SmtEngineStatistics& stats)
     : d_smt(smt), d_resourceManager(rm), d_smtStats(stats)
 {
 }
@@ -171,9 +173,10 @@ Node ExpandDefs::expandDefinitions(
                    std::ostream_iterator<Node>(Debug("expand"), ", "));
               Debug("expand") << formals.back();
             }
-            Debug("expand") << "]" << std::endl
-                            << "       " << def.getFunction().getType() << std::endl
-                            << "       " << def.getFormula() << std::endl;
+            Debug("expand")
+                << "]" << std::endl
+                << "       " << def.getFunction().getType() << std::endl
+                << "       " << def.getFormula() << std::endl;
           }
 
           fm = def.getFormula();
@@ -256,7 +259,8 @@ void ExpandDefs::expandAssertions(AssertionPipeline& assertions,
                                   bool expandOnly)
 {
   Chat() << "expanding definitions in assertions..." << std::endl;
-  Trace("simplify") << "ExpandDefs::simplify(): expanding definitions" << std::endl;
+  Trace("simplify") << "ExpandDefs::simplify(): expanding definitions"
+                    << std::endl;
   TimerStat::CodeTimer codeTimer(d_smtStats.d_definitionExpansionTime);
   std::unordered_map<Node, Node, NodeHashFunction> cache;
   for (size_t i = 0, nasserts = assertions.size(); i < nasserts; ++i)

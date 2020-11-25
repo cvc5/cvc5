@@ -39,8 +39,7 @@ namespace smt {
 class ExpandDefs
 {
  public:
-  ExpandDefs(SmtEngine& smt, 
-                    ResourceManager& rm,SmtEngineStatistics& stats);
+  ExpandDefs(SmtEngine& smt, ResourceManager& rm, SmtEngineStatistics& stats);
   ~ExpandDefs();
   /**
    * Expand definitions in term n. Return the expanded form of n.
