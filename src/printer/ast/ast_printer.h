@@ -162,8 +162,10 @@ class AstPrinter : public CVC4::Printer
       std::ostream& out, const std::vector<Command*>& sequence) const override;
 
  private:
-  void toStream(std::ostream& out, TNode n, int toDepth,
-                          LetBinding* lbind) const;
+  void toStream(std::ostream& out,
+                TNode n,
+                int toDepth,
+                LetBinding* lbind) const;
   /**
    * To stream model sort. This prints the appropriate output for type
    * tn declared via declare-sort or declare-datatype.

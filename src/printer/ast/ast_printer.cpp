@@ -47,7 +47,9 @@ void AstPrinter::toStream(std::ostream& out,
   }
 }
 
-void AstPrinter::toStream(std::ostream& out, TNode n, int toDepth,
+void AstPrinter::toStream(std::ostream& out,
+                          TNode n,
+                          int toDepth,
                           LetBinding* lbind) const
 {
   // null
@@ -72,13 +74,13 @@ void AstPrinter::toStream(std::ostream& out, TNode n, int toDepth,
     // constant
     out << ' ';
     kind::metakind::NodeValueConstPrinter::toStream(out, n);
-  } 
+  }
   else if (n.isClosure())
   {
-    for (size_t i=0, nchild=n.getNumChildren(); i<nchild; i++)
+    for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
     {
       // body is re-letified
-      if (i==1)
+      if (i == 1)
       {
         toStreamWithLetify(out, n, toDepth, lbind);
         continue;
@@ -92,7 +94,8 @@ void AstPrinter::toStream(std::ostream& out, TNode n, int toDepth,
     if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
       out << ' ';
       if(toDepth != 0) {
-        toStream(out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, lbind);
+        toStream(
+            out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, lbind);
       } else {
         out << "(...)";
       }
@@ -386,9 +389,9 @@ void AstPrinter::toStreamCmdComment(std::ostream& out,
 }
 
 void AstPrinter::toStreamWithLetify(std::ostream& out,
-                        Node n,
-                        int toDepth,
-                        LetBinding* lbind) const
+                                    Node n,
+                                    int toDepth,
+                                    LetBinding* lbind) const
 {
   if (lbind == nullptr)
   {
@@ -406,9 +409,12 @@ void AstPrinter::toStreamWithLetify(std::ostream& out,
     bool first = true;
     for (size_t i = 0, nlets = letList.size(); i < nlets; i++)
     {
-      if(! first) {
+      if (!first)
+      {
         out << ", ";
-      } else {
+      }
+      else
+      {
         first = false;
       }
       Node nl = letList[i];
@@ -467,8 +473,6 @@ static bool tryToStream(std::ostream& out, const CommandStatus* s)
   }
   return false;
 }
-
-
 
 }/* CVC4::printer::ast namespace */
 }/* CVC4::printer namespace */
