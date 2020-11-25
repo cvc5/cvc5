@@ -1069,9 +1069,7 @@ DeclareFunctionCommand::DeclareFunctionCommand(const std::string& id,
                                                api::Sort sort)
     : DeclarationDefinitionCommand(id),
       d_func(func),
-      d_sort(sort),
-      d_printInModel(true),
-      d_printInModelSetByUser(false)
+      d_sort(sort)
 {
 }
 

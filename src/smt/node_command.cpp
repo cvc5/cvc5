@@ -51,9 +51,7 @@ DeclareFunctionNodeCommand::DeclareFunctionNodeCommand(const std::string& id,
                                                        TypeNode type)
     : d_id(id),
       d_fun(expr),
-      d_type(type),
-      d_printInModel(true),
-      d_printInModelSetByUser(false)
+      d_type(type)
 {
 }
 
