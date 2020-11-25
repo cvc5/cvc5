@@ -72,7 +72,7 @@ void DumpManager::addToModelCommandAndDump(const NodeCommand& c,
 void DumpManager::setPrintFuncInModel(Node f, bool p)
 {
   Trace("setp-model") << "Set printInModel " << f << " to " << p << std::endl;
-  // TODO: implement
+  // TODO (cvc4-wishues/issues/75): implement
 }
 
 }  // namespace smt
