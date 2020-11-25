@@ -20,6 +20,7 @@
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
+#include "expr/skolem_manager.h"
 
 using namespace CVC4::theory;
 using namespace CVC4::kind;
@@ -123,6 +124,12 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
     // do extended rewrite to minimize the size of the formula aggressively
     theory::quantifiers::ExtendedRewriter extr(true);
     ret = extr.extendedRewrite(ret);
+    // if we are an internal subsolver, convert to witness form, since
+    // internally generated skolems should not escape
+    if (!isInternalSubsolver)
+    {
+      ret = SkolemManager::getWitnessForm(ret);
+    }
     return ret;
   }
   // otherwise, just true/false
