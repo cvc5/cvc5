@@ -1087,8 +1087,6 @@ Command* DeclareFunctionCommand::clone() const
 {
   DeclareFunctionCommand* dfc =
       new DeclareFunctionCommand(d_symbol, d_func, d_sort);
-  dfc->d_printInModel = d_printInModel;
-  dfc->d_printInModelSetByUser = d_printInModelSetByUser;
   return dfc;
 }
 
