@@ -125,7 +125,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
     // do extended rewrite to minimize the size of the formula aggressively
     theory::quantifiers::ExtendedRewriter extr(true);
     ret = extr.extendedRewrite(ret);
-    // if we are an internal subsolver, convert to witness form, since
+    // if we are not an internal subsolver, convert to witness form, since
     // internally generated skolems should not escape
     if (!isInternalSubsolver)
     {
