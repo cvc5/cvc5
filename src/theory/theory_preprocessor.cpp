@@ -350,27 +350,29 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
   {
     return (*find).second;
   }
-  unsigned nc = term.getNumChildren();
-  if (nc == 0)
+  if (term.getNumChildren() == 0)
   {
     return preprocessWithProof(term);
   }
   Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
-
+  // We must rewrite before preprocessing, because some terms when rewritten
+  // may introduce new terms that are not top-level and require preprocessing.
+  // An example of this is (forall ((x Int)) (and (tail L) (P x))) which
+  // rewrites to (and (tail L) (forall ((x Int)) (P x))). The subterm (tail L)
+  // must be preprocessed as a child here.
   Node newTerm = rewriteWithProof(term);
+  size_t nc = newTerm.getNumChildren();
   // do not rewrite inside quantifiers
-  if (!newTerm.isClosure())
+  if (nc>0 && !newTerm.isClosure())
   {
     NodeBuilder<> newNode(newTerm.getKind());
     if (newTerm.getMetaKind() == kind::metakind::PARAMETERIZED)
     {
       newNode << newTerm.getOperator();
     }
-    unsigned i;
-    nc = newTerm.getNumChildren();
-    for (i = 0; i < nc; ++i)
+    for (const Node& nt : newTerm)
     {
-      newNode << ppTheoryRewrite(newTerm[i]);
+      newNode << ppTheoryRewrite(nt);
     }
     newTerm = Node(newNode);
     newTerm = rewriteWithProof(newTerm);
