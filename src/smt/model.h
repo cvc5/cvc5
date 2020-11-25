@@ -26,7 +26,7 @@
 
 namespace CVC4 {
 
-class NodeCommand;
+class SmtEngine;
 
 namespace smt {
 
@@ -44,6 +44,7 @@ std::ostream& operator<<(std::ostream&, const Model&);
  */
 class Model {
   friend std::ostream& operator<<(std::ostream&, const Model&);
+  friend ::CVC4::SmtEngine;
 
  public:
   /** construct */
@@ -90,8 +91,6 @@ class Model {
   const std::vector<Node>& getDeclaredTerms() const;
   //----------------------- end model declarations
  protected:
-  /** The SmtEngine we're associated with */
-  SmtEngine& d_smt;
   /** the input name (file name, etc.) this model is associated to */
   std::string d_inputName;
   /**

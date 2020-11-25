@@ -30,7 +30,7 @@ class NodeCommand;
 namespace smt {
 
 /**
- * This utility is responsible for
+ * This utility is responsible forZ
  * implementing some dumping traces e.g. --dump=declarations.
  */
 class DumpManager
@@ -44,6 +44,10 @@ class DumpManager
    * when initialization of options is finished.
    */
   void finishInit();
+  /**
+   * Reset assertions, called on SmtEngine::resetAssertions.
+   */
+  void resetAssertions();
   /**
    * Add to Model command.  This is used for recording a command
    * that should be reported during a get-model call.

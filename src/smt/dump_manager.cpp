@@ -45,6 +45,9 @@ void DumpManager::finishInit()
 
   d_fullyInited = true;
 }
+void DumpManager::resetAssertions() { 
+  // currently, do nothing
+}
 
 void DumpManager::addToModelCommandAndDump(const NodeCommand& c,
                                            uint32_t flags,
