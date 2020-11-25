@@ -17,6 +17,7 @@
 #include <stack>
 #include <utility>
 
+#include "expr/node_manager_attributes.h"
 #include "smt/defined_function.h"
 #include "smt/smt_engine.h"
 #include "theory/theory_engine.h"
@@ -28,8 +29,8 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace smt {
 
-ExpandDefs::ExpandDefs(SmtEngine& smt, SmtEngineStatistics& stats)
-    : d_smt(smt), d_smtStats(stats)
+ExpandDefs::ExpandDefs(SmtEngine& smt, ResourceManager& rm, SmtEngineStatistics& stats)
+    : d_smt(smt), d_resourceManager(rm), d_smtStats(stats)
 {
 }
 
@@ -50,7 +51,7 @@ Node ExpandDefs::expandDefinitions(
 
   do
   {
-    spendResource(ResourceManager::Resource::PreprocessStep);
+    d_resourceManager.spendResource(ResourceManager::Resource::PreprocessStep);
 
     // n is the input / original
     // node is the output / result
@@ -93,7 +94,7 @@ Node ExpandDefs::expandDefinitions(
       }
 
       // maybe it's in the cache
-      unordered_map<Node, Node, NodeHashFunction>::iterator cacheHit =
+      std::unordered_map<Node, Node, NodeHashFunction>::iterator cacheHit =
           cache.find(n);
       if (cacheHit != cache.end())
       {
@@ -125,7 +126,7 @@ Node ExpandDefs::expandDefinitions(
       }
       if (doExpand)
       {
-        vector<Node> formals;
+        std::vector<Node> formals;
         TNode fm;
         if (n.getOperator().getKind() == LAMBDA)
         {
@@ -147,32 +148,32 @@ Node ExpandDefs::expandDefinitions(
           {
             throw TypeCheckingException(
                 n.toExpr(),
-                string("Undefined function: `") + func.toString() + "'");
+                std::string("Undefined function: `") + func.toString() + "'");
           }
           DefinedFunction def = (*i).second;
           formals = def.getFormals();
 
           if (Debug.isOn("expand"))
           {
-            Debug("expand") << "found: " << n << endl;
-            Debug("expand") << " func: " << func << endl;
-            string name = func.getAttribute(expr::VarNameAttr());
-            Debug("expand") << "     : \"" << name << "\"" << endl;
+            Debug("expand") << "found: " << n << std::endl;
+            Debug("expand") << " func: " << func << std::endl;
+            std::string name = func.getAttribute(expr::VarNameAttr());
+            Debug("expand") << "     : \"" << name << "\"" << std::endl;
           }
           if (Debug.isOn("expand"))
           {
-            Debug("expand") << " defn: " << def.getFunction() << endl
+            Debug("expand") << " defn: " << def.getFunction() << std::endl
                             << "       [";
             if (formals.size() > 0)
             {
               copy(formals.begin(),
                    formals.end() - 1,
-                   ostream_iterator<Node>(Debug("expand"), ", "));
+                   std::ostream_iterator<Node>(Debug("expand"), ", "));
               Debug("expand") << formals.back();
             }
-            Debug("expand") << "]" << endl
-                            << "       " << def.getFunction().getType() << endl
-                            << "       " << def.getFormula() << endl;
+            Debug("expand") << "]" << std::endl
+                            << "       " << def.getFunction().getType() << std::endl
+                            << "       " << def.getFormula() << std::endl;
           }
 
           fm = def.getFormula();
@@ -182,7 +183,7 @@ Node ExpandDefs::expandDefinitions(
                                       formals.end(),
                                       n.begin(),
                                       n.begin() + formals.size());
-        Debug("expand") << "made : " << instance << endl;
+        Debug("expand") << "made : " << instance << std::endl;
 
         Node expanded = expandDefinitions(instance, cache, expandOnly);
         cache[n] = (n == expanded ? Node::null() : expanded);
@@ -218,15 +219,15 @@ Node ExpandDefs::expandDefinitions(
       // Working upwards
       // Reconstruct the node from it's (now rewritten) children on the stack
 
-      Debug("expand") << "cons : " << node << endl;
+      Debug("expand") << "cons : " << node << std::endl;
       if (node.getNumChildren() > 0)
       {
-        // cout << "cons : " << node << endl;
+        // cout << "cons : " << node << std::endl;
         NodeBuilder<> nb(node.getKind());
         if (node.getMetaKind() == metakind::PARAMETERIZED)
         {
-          Debug("expand") << "op   : " << node.getOperator() << endl;
-          // cout << "op   : " << node.getOperator() << endl;
+          Debug("expand") << "op   : " << node.getOperator() << std::endl;
+          // cout << "op   : " << node.getOperator() << std::endl;
           nb << node.getOperator();
         }
         for (size_t i = 0, nchild = node.getNumChildren(); i < nchild; ++i)
@@ -234,8 +235,8 @@ Node ExpandDefs::expandDefinitions(
           Assert(!result.empty());
           Node expanded = result.top();
           result.pop();
-          // cout << "exchld : " << expanded << endl;
-          Debug("expand") << "exchld : " << expanded << endl;
+          // cout << "exchld : " << expanded << std::endl;
+          Debug("expand") << "exchld : " << expanded << std::endl;
           nb << expanded;
         }
         node = nb;
@@ -254,10 +255,10 @@ Node ExpandDefs::expandDefinitions(
 void ExpandDefs::expandAssertions(AssertionPipeline& assertions,
                                   bool expandOnly)
 {
-  Chat() << "expanding definitions in assertions..." << endl;
-  Trace("simplify") << "ExpandDefs::simplify(): expanding definitions" << endl;
+  Chat() << "expanding definitions in assertions..." << std::endl;
+  Trace("simplify") << "ExpandDefs::simplify(): expanding definitions" << std::endl;
   TimerStat::CodeTimer codeTimer(d_smtStats.d_definitionExpansionTime);
-  unordered_map<Node, Node, NodeHashFunction> cache;
+  std::unordered_map<Node, Node, NodeHashFunction> cache;
   for (size_t i = 0, nasserts = assertions.size(); i < nasserts; ++i)
   {
     Node assert = assertions[i];

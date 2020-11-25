@@ -20,8 +20,9 @@
 #include <unordered_map>
 
 #include "expr/node.h"
-#include "preprocessing/assertions_pipeline.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "smt/smt_engine_stats.h"
+#include "util/resource_manager.h"
 
 namespace CVC4 {
 
@@ -38,7 +39,8 @@ namespace smt {
 class ExpandDefs
 {
  public:
-  ExpandDefs(SmtEngine& smt, SmtEngineStatistics& stats);
+  ExpandDefs(SmtEngine& smt, 
+                    ResourceManager& rm,SmtEngineStatistics& stats);
   ~ExpandDefs();
   /**
    * Expand definitions in term n. Return the expanded form of n.
@@ -63,6 +65,8 @@ class ExpandDefs
  private:
   /** Reference to the SMT engine */
   SmtEngine& d_smt;
+  /** Reference to resource manager */
+  ResourceManager& d_resourceManager;
   /** Reference to the SMT stats */
   SmtEngineStatistics& d_smtStats;
 };
