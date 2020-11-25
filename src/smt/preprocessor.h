@@ -23,6 +23,7 @@
 #include "smt/process_assertions.h"
 #include "smt/term_formula_removal.h"
 #include "theory/booleans/circuit_propagator.h"
+#include "smt/expand_definitions.h"
 
 namespace CVC4 {
 namespace smt {
@@ -125,6 +126,8 @@ class Preprocessor
   context::CDO<bool> d_assertionsProcessed;
   /** The preprocessing pass context */
   std::unique_ptr<preprocessing::PreprocessingPassContext> d_ppContext;
+  /** Expand definitions module, responsible for expanding definitions */
+  ExpandDefs d_exDefs;
   /**
    * Process assertions module, responsible for implementing the preprocessing
    * passes.

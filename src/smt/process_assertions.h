@@ -26,6 +26,7 @@
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/assertions.h"
+#include "smt/expand_definitions.h"
 #include "smt/smt_engine_stats.h"
 #include "util/resource_manager.h"
 
@@ -58,6 +59,7 @@ class ProcessAssertions
 
  public:
   ProcessAssertions(SmtEngine& smt,
+                    ExpandDefs& exDefs,
                     ResourceManager& rm,
                     SmtEngineStatistics& stats);
   ~ProcessAssertions();
@@ -76,22 +78,12 @@ class ProcessAssertions
    * processing the assertions.
    */
   bool apply(Assertions& as);
-  /**
-   * Expand definitions in term n. Return the expanded form of n.
-   *
-   * @param n The node to expand
-   * @param cache Cache of previous results
-   * @param expandOnly if true, then the expandDefinitions function of
-   * TheoryEngine is not called on subterms of n.
-   * @return The expanded term.
-   */
-  Node expandDefinitions(TNode n,
-                         NodeToNodeHashMap& cache,
-                         bool expandOnly = false);
 
  private:
   /** Reference to the SMT engine */
   SmtEngine& d_smt;
+  /** Reference to expand definitions module */
+  ExpandDefs& d_exDefs;
   /** Reference to resource manager */
   ResourceManager& d_resourceManager;
   /** Reference to the SMT stats */
