@@ -928,11 +928,11 @@ api::Term Parser::mkStringConstant(const std::string& s)
 {
   if (language::isInputLang_smt2_6(d_solver->getOptions().getInputLanguage()))
   {
-    return api::Term(d_solver, d_solver->mkString(s, true).getExpr());
+    return d_solver->mkString(s, true);
   }
   // otherwise, we must process ad-hoc escape sequences
   std::vector<unsigned> str = processAdHocStringEsc(s);
-  return api::Term(d_solver, d_solver->mkString(str).getExpr());
+  return d_solver->mkString(str);
 }
 
 } /* CVC4::parser namespace */

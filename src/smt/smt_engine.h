@@ -806,8 +806,8 @@ class CVC4_PUBLIC SmtEngine
    * In SMT-LIBv2 this is done via the syntax (! expr :attr)
    */
   void setUserAttribute(const std::string& attr,
-                        Expr expr,
-                        const std::vector<Expr>& expr_values,
+                        Node expr,
+                        const std::vector<Node>& expr_values,
                         const std::string& str_value);
 
   /** Get the options object (const and non-const versions) */

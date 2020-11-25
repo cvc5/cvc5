@@ -1442,8 +1442,8 @@ void SetUserAttributeCommand::invoke(api::Solver* solver, SymbolManager* sm)
     {
       solver->getSmtEngine()->setUserAttribute(
           d_attr,
-          d_term.getExpr(),
-          api::termVectorToExprs(d_termValues),
+          d_term.getNode(),
+          api::termVectorToNodes(d_termValues),
           d_strValue);
     }
     d_commandStatus = CommandSuccess::instance();

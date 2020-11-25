@@ -1091,6 +1091,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   else if (p.d_kind == api::APPLY_SELECTOR && !p.d_expr.isNull())
   {
     // tuple selector case
+    std::string indexString = p.d_expr.toString();
     Integer x = p.d_expr.getExpr().getConst<Rational>().getNumerator();
     if (!x.fitsUnsignedInt())
     {
