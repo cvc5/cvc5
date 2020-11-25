@@ -357,23 +357,24 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
   }
   Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
 
-  Node newTerm = term;
+  Node newTerm = rewriteWithProof(term);
   // do not rewrite inside quantifiers
-  if (!term.isClosure())
+  if (!newTerm.isClosure())
   {
-    NodeBuilder<> newNode(term.getKind());
-    if (term.getMetaKind() == kind::metakind::PARAMETERIZED)
+    NodeBuilder<> newNode(newTerm.getKind());
+    if (newTerm.getMetaKind() == kind::metakind::PARAMETERIZED)
     {
-      newNode << term.getOperator();
+      newNode << newTerm.getOperator();
     }
     unsigned i;
+    nc = newTerm.getNumChildren();
     for (i = 0; i < nc; ++i)
     {
-      newNode << ppTheoryRewrite(term[i]);
+      newNode << ppTheoryRewrite(newTerm[i]);
     }
     newTerm = Node(newNode);
+    newTerm = rewriteWithProof(newTerm);
   }
-  newTerm = rewriteWithProof(newTerm);
   newTerm = preprocessWithProof(newTerm);
   d_ppCache[term] = newTerm;
   Trace("theory-pp") << "ppTheoryRewrite returning " << newTerm << "}" << endl;
