@@ -44,7 +44,7 @@ std::ostream& operator<<(std::ostream&, const Model&);
  */
 class Model {
   friend std::ostream& operator<<(std::ostream&, const Model&);
-  friend ::CVC4::SmtEngine;
+  friend class ::CVC4::SmtEngine;
 
  public:
   /** construct */
