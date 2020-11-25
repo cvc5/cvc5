@@ -26,7 +26,7 @@
 #include "options/language.h"  // for LANG_AST
 #include "smt/command.h"
 #include "smt/node_command.h"
-#include "theory/substitutions.h"
+#include "printer/let_binding.h"
 
 using namespace std;
 
@@ -82,10 +82,10 @@ void AstPrinter::toStream(std::ostream& out,
       // body is re-letified
       if (i == 1)
       {
-        toStreamWithLetify(out, n, toDepth, lbind);
+        toStreamWithLetify(out, n[i], toDepth, lbind);
         continue;
       }
-      toStream(out, *i, toDepth < 0 ? toDepth : toDepth - 1, lbind);
+      toStream(out, n[i], toDepth < 0 ? toDepth : toDepth - 1, lbind);
     }
   }
   else

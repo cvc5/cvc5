@@ -24,6 +24,9 @@
 #include "printer/printer.h"
 
 namespace CVC4 {
+
+class LetBinding;
+
 namespace printer {
 namespace ast {
 
@@ -165,7 +168,7 @@ class AstPrinter : public CVC4::Printer
   void toStream(std::ostream& out,
                 TNode n,
                 int toDepth,
-                LetBinding* lbind) const;
+                LetBinding* lbind = nullptr) const;
   /**
    * To stream model sort. This prints the appropriate output for type
    * tn declared via declare-sort or declare-datatype.
