@@ -19,7 +19,6 @@
 #include <string>
 
 #include "api/cvc4cpp.h"
-#include "expr/expr_manager.h"
 #include "expr/symbol_manager.h"
 #include "options/options.h"
 #include "smt/smt_engine.h"

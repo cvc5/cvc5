@@ -21,7 +21,6 @@
 #include <set>
 
 #include "api/cvc4cpp.h"
-#include "expr/type.h"
 #include "options/options.h"
 #include "parser/parser.h"
 #include "smt/command.h"

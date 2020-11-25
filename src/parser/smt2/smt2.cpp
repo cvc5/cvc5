@@ -18,7 +18,6 @@
 #include <algorithm>
 
 #include "base/check.h"
-#include "expr/type.h"
 #include "options/options.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"

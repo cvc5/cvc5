@@ -24,7 +24,6 @@
 
 #include "base/configuration.h"
 #include "base/output.h"
-#include "expr/expr_manager.h"
 #include "main/command_executor.h"
 #include "main/interactive_shell.h"
 #include "options/language.h"
@@ -32,7 +31,6 @@
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "parser/parser_exception.h"
-#include "smt/smt_engine.h"
 #include "util/result.h"
 #include "util/statistics.h"
 

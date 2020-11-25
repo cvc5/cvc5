@@ -27,8 +27,6 @@
 #include "api/cvc4cpp.h"
 #include "base/configuration.h"
 #include "base/output.h"
-#include "expr/expr_iomanip.h"
-#include "expr/expr_manager.h"
 #include "main/command_executor.h"
 #include "main/interactive_shell.h"
 #include "main/main.h"
