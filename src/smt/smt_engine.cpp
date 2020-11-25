@@ -1733,20 +1733,15 @@ void SmtEngine::safeFlushStatistics(int fd) const {
 }
 
 void SmtEngine::setUserAttribute(const std::string& attr,
-                                 Expr expr,
-                                 const std::vector<Expr>& expr_values,
+                                 Node expr,
+                                 const std::vector<Node>& expr_values,
                                  const std::string& str_value)
 {
   SmtScope smts(this);
   finishInit();
-  std::vector<Node> node_values;
-  for (std::size_t i = 0, n = expr_values.size(); i < n; i++)
-  {
-    node_values.push_back( expr_values[i].getNode() );
-  }
   TheoryEngine* te = getTheoryEngine();
   Assert(te != nullptr);
-  te->setUserAttribute(attr, expr.getNode(), node_values, str_value);
+  te->setUserAttribute(attr, expr, expr_values, str_value);
 }
 
 void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
