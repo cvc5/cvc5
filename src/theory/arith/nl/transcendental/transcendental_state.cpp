@@ -297,9 +297,6 @@ Node TranscendentalState::mkSecantPlane(
     TNode arg, TNode b, TNode c, TNode approx_b, TNode approx_c)
 {
   NodeManager* nm = NodeManager::currentNM();
-  // Figure 3 : P(l), P(u), for s = 0,1
-  // Node approx_b =
-  //    Rewriter::rewrite(approx.substitute(d_taylor.getTaylorVariable(), b));
   // Figure 3: S_l( x ), S_u( x ) for s = 0,1
   Node rcoeff_n = Rewriter::rewrite(nm->mkNode(Kind::MINUS, b, c));
   Assert(rcoeff_n.isConst());
@@ -361,6 +358,7 @@ void TranscendentalState::doSecantLemmas(const std::pair<Node, Node>& bounds,
                               << " is " << lval << std::endl;
   if (lval != c)
   {
+    // Figure 3 : P(l), P(u), for s = 0
     Node approx_l = Rewriter::rewrite(
         poly_approx.substitute(d_taylor.getTaylorVariable(), lval));
     Node splane = mkSecantPlane(tf[0], lval, c, approx_l, approx_c);
@@ -377,6 +375,7 @@ void TranscendentalState::doSecantLemmas(const std::pair<Node, Node>& bounds,
                               << " is " << uval << std::endl;
   if (c != uval)
   {
+    // Figure 3 : P(l), P(u), for s = 1
     Node approx_u = Rewriter::rewrite(
         poly_approx.substitute(d_taylor.getTaylorVariable(), uval));
     Node splane = mkSecantPlane(tf[0], c, uval, approx_c, approx_u);
