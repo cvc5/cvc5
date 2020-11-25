@@ -1,4 +1,5 @@
 (set-logic QF_AUFNRA)
+(set-info :status sat)
 (declare-const arr0 (Array Real Real))
 (declare-const r5 Real)
 (declare-const r19 Real)
