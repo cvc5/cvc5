@@ -24,9 +24,9 @@
 #include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "expr/node_visitor.h"
 #include "options/language.h"  // for LANG_AST
+#include "printer/let_binding.h"
 #include "smt/command.h"
 #include "smt/node_command.h"
-#include "printer/let_binding.h"
 
 using namespace std;
 
