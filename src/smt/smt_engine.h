@@ -21,13 +21,12 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 #include "base/modal_exception.h"
 #include "context/cdhashmap_forward.h"
 #include "context/cdhashset_forward.h"
 #include "context/cdlist_forward.h"
-#include "expr/expr.h"
-#include "expr/expr_manager.h"
 #include "options/options.h"
 #include "smt/logic_exception.h"
 #include "smt/output_manager.h"
@@ -48,9 +47,10 @@ namespace CVC4 {
 template <bool ref_count> class NodeTemplate;
 typedef NodeTemplate<true> Node;
 typedef NodeTemplate<false> TNode;
+class TypeNode;
 struct NodeHashFunction;
 
-class SmtEngine;
+class NodeManager;
 class DecisionEngine;
 class TheoryEngine;
 class ProofManager;
@@ -58,6 +58,7 @@ class UnsatCore;
 class LogicRequest;
 class StatisticsRegistry;
 class Printer;
+class ResourceManager;
 
 /* -------------------------------------------------------------------------- */
 
@@ -147,7 +148,7 @@ class CVC4_PUBLIC SmtEngine
    * If provided, optr is a pointer to a set of options that should initialize the values
    * of the options object owned by this class.
    */
-  SmtEngine(ExprManager* em, Options* optr = nullptr);
+  SmtEngine(NodeManager* nm, Options* optr = nullptr);
   /** Destruct the SMT engine.  */
   ~SmtEngine();
 
@@ -691,7 +692,7 @@ class CVC4_PUBLIC SmtEngine
   /**
    * Completely reset the state of the solver, as though destroyed and
    * recreated.  The result is as if newly constructed (so it still
-   * retains the same options structure and ExprManager).
+   * retains the same options structure and NodeManager).
    */
   void reset();
 
