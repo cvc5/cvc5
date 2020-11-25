@@ -361,9 +361,8 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
   // rewrites to (and (tail L) (forall ((x Int)) (P x))). The subterm (tail L)
   // must be preprocessed as a child here.
   Node newTerm = rewriteWithProof(term);
-  size_t nc = newTerm.getNumChildren();
   // do not rewrite inside quantifiers
-  if (nc>0 && !newTerm.isClosure())
+  if (newTerm.getNumChildren()>0 && !newTerm.isClosure())
   {
     NodeBuilder<> newNode(newTerm.getKind());
     if (newTerm.getMetaKind() == kind::metakind::PARAMETERIZED)
