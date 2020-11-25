@@ -573,7 +573,7 @@ class NodeManager {
    * of terms of size >= 2 such that the terms above are well-typed.
    */
   Node mkChain(Kind kind, const std::vector<Node>& children);
-  
+
   /**
    * Optional flags used to control behavior of NodeManager::mkSkolem().
    * They should be composed with a bitwise OR (e.g.,

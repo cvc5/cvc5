@@ -516,8 +516,7 @@ public:
   /**
    * Creates a new sort constructor with the given name and arity.
    */
-  api::Sort mkSortConstructor(const std::string& name,
-                              size_t arity);
+  api::Sort mkSortConstructor(const std::string& name, size_t arity);
 
   /**
    * Creates a new "unresolved type," used only during parsing.
@@ -653,8 +652,7 @@ public:
   /**
    * Make variable of the given name and type
    */
-  api::Term mkVar(const std::string& name,
-                  const api::Sort& type);
+  api::Term mkVar(const std::string& name, const api::Sort& type);
 
   /**
    * Add an operator to the current legal set.

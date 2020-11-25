@@ -736,11 +736,13 @@ TypeNode NodeManager::TupleTypeCache::getTupleType( NodeManager * nm, std::vecto
 }
 
 TypeNode NodeManager::RecTypeCache::getRecordType( NodeManager * nm, const Record& rec, unsigned index ) {
-  if( index==rec.size() ){
+  if (index == rec.size())
+  {
     if( d_data.isNull() ){
       std::stringstream sst;
       sst << "__cvc4_record";
-      for (const std::pair<std::string, TypeNode>& i : rec){
+      for (const std::pair<std::string, TypeNode>& i : rec)
+      {
         sst << "_" << i.first << "_" << i.second;
       }
       DType dt(sst.str());
@@ -759,7 +761,8 @@ TypeNode NodeManager::RecTypeCache::getRecordType( NodeManager * nm, const Recor
     }
     return d_data;
   }
-  return d_children[rec[index].second][rec[index].first].getRecordType( nm, rec, index+1 );
+  return d_children[rec[index].second][rec[index].first].getRecordType(
+      nm, rec, index + 1);
 }
 
 TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& sorts)
@@ -950,43 +953,44 @@ Node NodeManager::getBoundVarListForFunctionType( TypeNode tn ) {
   return bvl;
 }
 
-Node NodeManager::mkAssociative(Kind kind,
-                                const std::vector<Node>& children) {
-  AlwaysAssert(
-      kind::isAssociative(kind)) <<
-      "Illegal kind in mkAssociative";
+Node NodeManager::mkAssociative(Kind kind, const std::vector<Node>& children)
+{
+  AlwaysAssert(kind::isAssociative(kind)) << "Illegal kind in mkAssociative";
 
   const unsigned int max = kind::metakind::getUpperBoundForKind(kind);
   unsigned int numChildren = children.size();
 
   /* If the number of children is within bounds, then there's nothing to do. */
-  if( numChildren <= max ) {
-    return mkNode(kind,children);
+  if (numChildren <= max)
+  {
+    return mkNode(kind, children);
   }
   const unsigned int min = kind::metakind::getLowerBoundForKind(kind);
 
-  std::vector<Node>::const_iterator it = children.begin() ;
-  std::vector<Node>::const_iterator end = children.end() ;
+  std::vector<Node>::const_iterator it = children.begin();
+  std::vector<Node>::const_iterator end = children.end();
 
   /* The new top-level children and the children of each sub node */
   std::vector<Node> newChildren;
   std::vector<Node> subChildren;
 
-  while( it != end && numChildren > max ) {
+  while (it != end && numChildren > max)
+  {
     /* Grab the next max children and make a node for them. */
-    for( std::vector<Node>::const_iterator next = it + max;
-         it != next;
-         ++it, --numChildren ) {
+    for (std::vector<Node>::const_iterator next = it + max; it != next;
+         ++it, --numChildren)
+    {
       subChildren.push_back(*it);
     }
-    Node subNode = mkNode(kind,subChildren);
+    Node subNode = mkNode(kind, subChildren);
     newChildren.push_back(subNode);
 
     subChildren.clear();
   }
 
   // add the leftover children
-  if(numChildren > 0) {
+  if (numChildren > 0)
+  {
     for (; it != end; ++it)
     {
       newChildren.push_back(*it);

@@ -315,20 +315,16 @@ api::Sort Parser::mkSort(const std::string& name)
 {
   Debug("parser") << "newSort(" << name << ")" << std::endl;
   api::Sort type = d_solver->mkUninterpretedSort(name);
-  defineType(
-      name, type);
+  defineType(name, type);
   return type;
 }
 
-api::Sort Parser::mkSortConstructor(const std::string& name,
-                                    size_t arity)
+api::Sort Parser::mkSortConstructor(const std::string& name, size_t arity)
 {
   Debug("parser") << "newSortConstructor(" << name << ", " << arity << ")"
                   << std::endl;
   api::Sort type = d_solver->mkSortConstructorSort(name, arity);
-  defineType(name,
-             vector<api::Sort>(arity),
-             type);
+  defineType(name, vector<api::Sort>(arity), type);
   return type;
 }
 
@@ -342,8 +338,7 @@ api::Sort Parser::mkUnresolvedType(const std::string& name)
 api::Sort Parser::mkUnresolvedTypeConstructor(const std::string& name,
                                               size_t arity)
 {
-  api::Sort unresolved =
-      mkSortConstructor(name, arity);
+  api::Sort unresolved = mkSortConstructor(name, arity);
   d_unresolved.insert(unresolved);
   return unresolved;
 }
@@ -611,8 +606,7 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
 }
 
 //!!!!!!!!!!! temporary
-api::Term Parser::mkVar(const std::string& name,
-                        const api::Sort& type)
+api::Term Parser::mkVar(const std::string& name, const api::Sort& type)
 {
   return d_solver->mkConst(type, name);
 }

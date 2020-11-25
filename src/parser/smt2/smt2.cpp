@@ -18,12 +18,12 @@
 #include <algorithm>
 
 #include "base/check.h"
+#include "expr/expr.h"
 #include "options/options.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "parser/smt2/smt2_input.h"
 #include "util/bitvector.h"
-#include "expr/expr.h"
 
 // ANTLR defines these, which is really bad!
 #undef true
