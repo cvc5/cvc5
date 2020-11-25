@@ -957,14 +957,14 @@ Node NodeManager::mkAssociative(Kind kind,
       kind::isAssociative(kind)) <<
       "Illegal kind in mkAssociative";
 
-  const unsigned int max = metakind::getUpperBoundForKind(kind);
+  const unsigned int max = kind::metakind::getUpperBoundForKind(kind);
   unsigned int numChildren = children.size();
 
   /* If the number of children is within bounds, then there's nothing to do. */
   if( numChildren <= max ) {
     return mkNode(kind,children);
   }
-  const unsigned int min = metakind::getLowerBoundForKind(kind);
+  const unsigned int min = kind::metakind::getLowerBoundForKind(kind);
 
   std::vector<Node>::const_iterator it = children.begin() ;
   std::vector<Node>::const_iterator end = children.end() ;
