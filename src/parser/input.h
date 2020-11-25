@@ -31,8 +31,6 @@
 namespace CVC4 {
 
 class Command;
-class Type;
-class FunctionType;
 
 namespace parser {
 

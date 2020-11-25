@@ -736,13 +736,12 @@ TypeNode NodeManager::TupleTypeCache::getTupleType( NodeManager * nm, std::vecto
 }
 
 TypeNode NodeManager::RecTypeCache::getRecordType( NodeManager * nm, const Record& rec, unsigned index ) {
-  if( index==rec.getNumFields() ){
+  if( index==rec.size() ){
     if( d_data.isNull() ){
-      const Record::FieldVector& fields = rec.getFields();
       std::stringstream sst;
       sst << "__cvc4_record";
-      for(Record::FieldVector::const_iterator i = fields.begin(); i != fields.end(); ++i) {
-        sst << "_" << (*i).first << "_" << (*i).second;
+      for (const std::pair<std::string, TypeNode>& i : rec){
+        sst << "_" << i.first << "_" << i.second;
       }
       DType dt(sst.str());
       dt.setRecord();
@@ -750,17 +749,17 @@ TypeNode NodeManager::RecTypeCache::getRecordType( NodeManager * nm, const Recor
       ssc << sst.str() << "_ctor";
       std::shared_ptr<DTypeConstructor> c =
           std::make_shared<DTypeConstructor>(ssc.str());
-      for(Record::FieldVector::const_iterator i = fields.begin(); i != fields.end(); ++i) {
-        c->addArg((*i).first, TypeNode::fromType((*i).second));
+      for (const std::pair<std::string, TypeNode>& i : rec)
+      {
+        c->addArg(i.first, i.second);
       }
       dt.addConstructor(c);
       d_data = nm->mkDatatypeType(dt);
       Debug("tuprec-debug") << "Return type : " << d_data << std::endl;
     }
     return d_data;
-  }else{
-    return d_children[TypeNode::fromType( rec[index].second )][rec[index].first].getRecordType( nm, rec, index+1 );
   }
+  return d_children[rec[index].second][rec[index].first].getRecordType( nm, rec, index+1 );
 }
 
 TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& sorts)
