@@ -978,7 +978,7 @@ Node NodeManager::mkAssociative(Kind kind,
     for( std::vector<Node>::const_iterator next = it + max;
          it != next;
          ++it, --numChildren ) {
-      subChildren.push_back(it->getNode());
+      subChildren.push_back(*it);
     }
     Node subNode = mkNode(kind,subChildren);
     newChildren.push_back(subNode);
