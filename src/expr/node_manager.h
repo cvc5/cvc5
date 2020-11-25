@@ -558,7 +558,7 @@ class NodeManager {
    */
   Node mkLeftAssociative(Kind kind, const std::vector<Node>& children);
   /**
-   * Create an Expr by applying an binary right-associative operator to the
+   * Create an Node by applying an binary right-associative operator to the
    * children. For example, mkRightAssociative( f, { a, b, c } ) returns
    * f( a, f( b, c ) ).
    */

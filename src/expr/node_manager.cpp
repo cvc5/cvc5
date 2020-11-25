@@ -951,7 +951,7 @@ Node NodeManager::getBoundVarListForFunctionType( TypeNode tn ) {
   return bvl;
 }
 
-Expr NodeManager::mkAssociative(Kind kind,
+Node NodeManager::mkAssociative(Kind kind,
                                 const std::vector<Node>& children) {
   AlwaysAssert(
       kind::isAssociative(kind)) <<
@@ -1009,7 +1009,7 @@ Node NodeManager::mkLeftAssociative(Kind kind,
   Node n = children[0];
   for (unsigned i = 1, size = children.size(); i < size; i++)
   {
-    n = d_nodeManager->mkNode(kind, n, children[i].getNode());
+    n = d_nodeManager->mkNode(kind, n, children[i]);
   }
   return n;
 }
@@ -1020,7 +1020,7 @@ Node NodeManager::mkRightAssociative(Kind kind,
   Node n = children[children.size() - 1];
   for (unsigned i = children.size() - 1; i > 0;)
   {
-    n = d_nodeManager->mkNode(kind, children[--i].getNode(), n);
+    n = d_nodeManager->mkNode(kind, children[--i], n);
   }
   return n;
 }
