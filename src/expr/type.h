@@ -33,7 +33,7 @@ class Expr;
 class TypeNode;
 struct CVC4_PUBLIC ExprManagerMapCollection;
 
-class CVC4_PUBLIC SmtEngine;
+class SmtEngine;
 
 template <bool ref_count>
 class NodeTemplate;

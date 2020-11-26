@@ -170,12 +170,11 @@ void ExponentialSolver::doTangentLemma(TNode e, TNode c, TNode poly_approx)
   d_data->d_im.addPendingArithLemma(lem, InferenceId::NL_T_TANGENT, nullptr, true);
 }
 
-void ExponentialSolver::doSecantLemmas(TNode e,
-                                       TNode c,
-                                       TNode poly_approx,
-                                       unsigned d)
+void ExponentialSolver::doSecantLemmas(
+    TNode e, TNode poly_approx, TNode c, TNode poly_approx_c, unsigned d)
 {
-  d_data->doSecantLemmas(getSecantBounds(e, c, d), c, poly_approx, e, d, 1);
+  d_data->doSecantLemmas(
+      getSecantBounds(e, c, d), poly_approx, c, poly_approx_c, e, d, 1);
 }
 
 std::pair<Node, Node> ExponentialSolver::getSecantBounds(TNode e,

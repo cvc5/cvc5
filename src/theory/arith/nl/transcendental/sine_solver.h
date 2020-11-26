@@ -88,8 +88,12 @@ class SineSolver
   void doTangentLemma(TNode e, TNode c, TNode poly_approx, int region);
 
   /** Sent secant lemmas around c for e */
-  void doSecantLemmas(
-      TNode e, TNode c, TNode poly_approx, unsigned d, int region);
+  void doSecantLemmas(TNode e,
+                      TNode poly_approx,
+                      TNode c,
+                      TNode poly_approx_c,
+                      unsigned d,
+                      int region);
 
  private:
   std::pair<Node, Node> getSecantBounds(TNode e,
