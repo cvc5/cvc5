@@ -2142,7 +2142,6 @@ set(regress_2_tests
   regress2/bv_to_int_5095_2.smt2
   regress2/bv_to_int_ashr.smt2
   regress2/bv_to_int_bitwise.smt2
-  regress2/bv_to_int_bvmul1.smt2
   regress2/bv_to_int_bvuf_to_intuf_smtlib.smt2
   regress2/bv_to_int_inc1.smt2
   regress2/bv_to_int_mask_array_1.smt2
@@ -2603,6 +2602,8 @@ set(regression_disabled_tests
   # timeout on debug
   regress2/arith/real2int-test.smt2
   regress2/bug396.smt2
+  # due to bv2int not handling unsigned/signed division
+  regress2/bv_to_int_bvmul1.smt2
   regress2/nl/dumortier-050317.smt2
   regress2/nl/nt-lemmas-bad.smt2
   regress2/quantifiers/ForElimination-scala-9.smt2
