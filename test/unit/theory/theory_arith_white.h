@@ -101,7 +101,7 @@ public:
   {
     d_em = new ExprManager();
     d_nm = NodeManager::fromExprManager(d_em);
-    d_smt = new SmtEngine(d_em);
+    d_smt = new SmtEngine(d_nm);
     d_smt->setOption("incremental", CVC4::SExpr(false));
     d_ctxt = d_smt->getContext();
     d_uctxt = d_smt->getUserContext();

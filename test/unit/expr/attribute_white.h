@@ -66,7 +66,7 @@ class AttributeWhite : public CxxTest::TestSuite {
   {
     d_em = new ExprManager();
     d_nm = NodeManager::fromExprManager(d_em);
-    d_smtEngine = new SmtEngine(d_em);
+    d_smtEngine = new SmtEngine(d_nm);
     d_scope = new SmtScope(d_smtEngine);
     d_booleanType = new TypeNode(d_nm->booleanType());
   }
