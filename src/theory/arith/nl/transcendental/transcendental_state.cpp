@@ -294,12 +294,9 @@ std::pair<Node, Node> TranscendentalState::getClosestSecantPoints(TNode e,
 }
 
 Node TranscendentalState::mkSecantPlane(
-    TNode arg, TNode b, TNode c, TNode approx, TNode approx_c)
+    TNode arg, TNode b, TNode c, TNode approx_b, TNode approx_c)
 {
   NodeManager* nm = NodeManager::currentNM();
-  // Figure 3 : P(l), P(u), for s = 0,1
-  Node approx_b =
-      Rewriter::rewrite(approx.substitute(d_taylor.getTaylorVariable(), b));
   // Figure 3: S_l( x ), S_u( x ) for s = 0,1
   Node rcoeff_n = Rewriter::rewrite(nm->mkNode(Kind::MINUS, b, c));
   Assert(rcoeff_n.isConst());
@@ -345,18 +342,26 @@ NlLemma TranscendentalState::mkSecantLemma(
 }
 
 void TranscendentalState::doSecantLemmas(const std::pair<Node, Node>& bounds,
+                                         TNode poly_approx,
                                          TNode c,
                                          TNode approx_c,
                                          TNode tf,
                                          unsigned d,
                                          int concavity)
 {
+  Trace("nl-ext-tftp-debug2") << "...secant bounds are : " << bounds.first
+                              << " ... " << bounds.second << std::endl;
   // take the model value of l or u (since may contain PI)
   // Make secant from bounds.first to c
   Node lval = d_model.computeAbstractModelValue(bounds.first);
+  Trace("nl-ext-tftp-debug2") << "...model value of bound " << bounds.first
+                              << " is " << lval << std::endl;
   if (lval != c)
   {
-    Node splane = mkSecantPlane(tf[0], lval, c, bounds.first, approx_c);
+    // Figure 3 : P(l), P(u), for s = 0
+    Node approx_l = Rewriter::rewrite(
+        poly_approx.substitute(d_taylor.getTaylorVariable(), lval));
+    Node splane = mkSecantPlane(tf[0], lval, c, approx_l, approx_c);
     NlLemma nlem = mkSecantLemma(lval, c, concavity, tf, splane);
     // The side effect says that if lem is added, then we should add the
     // secant point c for (tf,d).
@@ -366,9 +371,14 @@ void TranscendentalState::doSecantLemmas(const std::pair<Node, Node>& bounds,
 
   // Make secant from c to bounds.second
   Node uval = d_model.computeAbstractModelValue(bounds.second);
+  Trace("nl-ext-tftp-debug2") << "...model value of bound " << bounds.second
+                              << " is " << uval << std::endl;
   if (c != uval)
   {
-    Node splane = mkSecantPlane(tf[0], c, uval, approx_c, bounds.second);
+    // Figure 3 : P(l), P(u), for s = 1
+    Node approx_u = Rewriter::rewrite(
+        poly_approx.substitute(d_taylor.getTaylorVariable(), uval));
+    Node splane = mkSecantPlane(tf[0], c, uval, approx_c, approx_u);
     NlLemma nlem = mkSecantLemma(c, uval, concavity, tf, splane);
     // The side effect says that if lem is added, then we should add the
     // secant point c for (tf,d).
