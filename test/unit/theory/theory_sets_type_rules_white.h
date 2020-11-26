@@ -28,8 +28,8 @@ class SetsTypeRuleWhite : public CxxTest::TestSuite
   {
     d_slv.reset(new Solver());
     d_em.reset(new ExprManager());
-    d_smt.reset(new SmtEngine(d_em.get()));
     d_nm.reset(NodeManager::fromExprManager(d_em.get()));
+    d_smt.reset(new SmtEngine(d_nm.get()));
     d_smt->finishInit();
   }
 
