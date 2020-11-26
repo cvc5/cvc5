@@ -1283,6 +1283,8 @@ set(regress_1_tests
   regress1/arith/div.08.smt2
   regress1/arith/div.09.smt2
   regress1/arith/issue3952-rew-eq.smt2
+  regress1/arith/issue4985-model-success.smt2
+  regress1/arith/issue4985b-model-success.smt2
   regress1/arith/issue789.smt2
   regress1/arith/miplib3.cvc
   regress1/arith/mod.02.smt2
@@ -1613,6 +1615,7 @@ set(regress_1_tests
   regress1/quantifiers/issue5019-cegqi-i.smt2
   regress1/quantifiers/issue5279-nqe.smt2
   regress1/quantifiers/issue5365-nqe.smt2
+  regress1/quantifiers/issue5378-witness.smt2
   regress1/quantifiers/issue5469-aext.smt2
   regress1/quantifiers/issue5470-aext.smt2
   regress1/quantifiers/issue5471-aext.smt2
@@ -1864,6 +1867,7 @@ set(regress_1_tests
   regress1/strings/issue5374-proxy-i.smt2
   regress1/strings/issue5483-pp-leq.smt2
   regress1/strings/issue5510-re-consume.smt2
+  regress1/strings/issue5520-re-consume.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
