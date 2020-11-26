@@ -1069,25 +1069,12 @@ DeclareFunctionCommand::DeclareFunctionCommand(const std::string& id,
                                                api::Sort sort)
     : DeclarationDefinitionCommand(id),
       d_func(func),
-      d_sort(sort),
-      d_printInModel(true),
-      d_printInModelSetByUser(false)
+      d_sort(sort)
 {
 }
 
 api::Term DeclareFunctionCommand::getFunction() const { return d_func; }
 api::Sort DeclareFunctionCommand::getSort() const { return d_sort; }
-bool DeclareFunctionCommand::getPrintInModel() const { return d_printInModel; }
-bool DeclareFunctionCommand::getPrintInModelSetByUser() const
-{
-  return d_printInModelSetByUser;
-}
-
-void DeclareFunctionCommand::setPrintInModel(bool p)
-{
-  d_printInModel = p;
-  d_printInModelSetByUser = true;
-}
 
 void DeclareFunctionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
@@ -1100,8 +1087,6 @@ Command* DeclareFunctionCommand::clone() const
 {
   DeclareFunctionCommand* dfc =
       new DeclareFunctionCommand(d_symbol, d_func, d_sort);
-  dfc->d_printInModel = d_printInModel;
-  dfc->d_printInModelSetByUser = d_printInModelSetByUser;
   return dfc;
 }
 

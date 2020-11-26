@@ -51,9 +51,7 @@ DeclareFunctionNodeCommand::DeclareFunctionNodeCommand(const std::string& id,
                                                        TypeNode type)
     : d_id(id),
       d_fun(expr),
-      d_type(type),
-      d_printInModel(true),
-      d_printInModelSetByUser(false)
+      d_type(type)
 {
 }
 
@@ -71,22 +69,6 @@ NodeCommand* DeclareFunctionNodeCommand::clone() const
 }
 
 const Node& DeclareFunctionNodeCommand::getFunction() const { return d_fun; }
-
-bool DeclareFunctionNodeCommand::getPrintInModel() const
-{
-  return d_printInModel;
-}
-
-bool DeclareFunctionNodeCommand::getPrintInModelSetByUser() const
-{
-  return d_printInModelSetByUser;
-}
-
-void DeclareFunctionNodeCommand::setPrintInModel(bool p)
-{
-  d_printInModel = p;
-  d_printInModelSetByUser = true;
-}
 
 /* -------------------------------------------------------------------------- */
 /* class DeclareTypeNodeCommand                                               */
