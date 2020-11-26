@@ -289,12 +289,17 @@ void SineSolver::doTangentLemma(TNode e, TNode c, TNode poly_approx, int region)
   d_data->d_im.addPendingArithLemma(lem, InferenceId::NL_T_TANGENT, nullptr, true);
 }
 
-void SineSolver::doSecantLemmas(
-    TNode e, TNode c, TNode poly_approx, unsigned d, int region)
+void SineSolver::doSecantLemmas(TNode e,
+                                TNode poly_approx,
+                                TNode c,
+                                TNode poly_approx_c,
+                                unsigned d,
+                                int region)
 {
   d_data->doSecantLemmas(getSecantBounds(e, c, d, region),
-                         c,
                          poly_approx,
+                         c,
+                         poly_approx_c,
                          e,
                          d,
                          regionToConcavity(region));
