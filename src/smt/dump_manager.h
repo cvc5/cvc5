@@ -30,7 +30,7 @@ class NodeCommand;
 namespace smt {
 
 /**
- * This utility is responsible forZ
+ * This utility is responsible for:
  * implementing some dumping traces e.g. --dump=declarations.
  */
 class DumpManager
