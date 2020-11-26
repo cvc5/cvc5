@@ -362,7 +362,7 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
   // must be preprocessed as a child here.
   Node newTerm = rewriteWithProof(term);
   // do not rewrite inside quantifiers
-  if (newTerm.getNumChildren()>0 && !newTerm.isClosure())
+  if (newTerm.getNumChildren() > 0 && !newTerm.isClosure())
   {
     NodeBuilder<> newNode(newTerm.getKind());
     if (newTerm.getMetaKind() == kind::metakind::PARAMETERIZED)
