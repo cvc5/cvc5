@@ -87,7 +87,8 @@ class ExponentialSolver
   void doTangentLemma(TNode e, TNode c, TNode poly_approx);
 
   /** Sent secant lemmas around c for e */
-  void doSecantLemmas(TNode e, TNode c, TNode poly_approx, unsigned d);
+  void doSecantLemmas(
+      TNode e, TNode poly_approx, TNode c, TNode poly_approx_c, unsigned d);
 
  private:
   /** Generate bounds for secant lemmas */

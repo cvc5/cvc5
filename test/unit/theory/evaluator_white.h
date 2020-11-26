@@ -50,7 +50,7 @@ class TheoryEvaluatorWhite : public CxxTest::TestSuite
     opts.setOutputLanguage(language::output::LANG_SMTLIB_V2);
     d_em = new ExprManager;
     d_nm = NodeManager::fromExprManager(d_em);
-    d_smt = new SmtEngine(d_em, &opts);
+    d_smt = new SmtEngine(d_nm, &opts);
     d_scope = new SmtScope(d_smt);
     d_smt->finishInit();
   }

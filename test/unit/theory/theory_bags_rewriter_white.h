@@ -34,8 +34,8 @@ class BagsTypeRuleWhite : public CxxTest::TestSuite
   void setUp() override
   {
     d_em.reset(new ExprManager());
-    d_smt.reset(new SmtEngine(d_em.get()));
     d_nm.reset(NodeManager::fromExprManager(d_em.get()));
+    d_smt.reset(new SmtEngine(d_nm.get()));
     d_smt->finishInit();
     d_rewriter.reset(new BagsRewriter(nullptr));
   }
