@@ -190,10 +190,6 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
       disj.push_back(conc);
       lemmas.push_back(disj.size() == 1 ? disj[0] : nm->mkNode(kind::OR, disj));
     }
-    else
-    {
-      Trace("quant-dsplit") << "...skip " << m->isQuantifierAsserted(q) << " " << m->isQuantifierActive(q) << " " << (d_added_split.find(q) == d_added_split.end()) << std::endl;
-    }
   }
 
   // add lemmas to quantifiers engine

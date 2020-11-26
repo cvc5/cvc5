@@ -134,10 +134,6 @@ class ProcessAssertions
                           TNode n,
                           TNode skolem,
                           NodeToBoolHashMap& cache);
-  /**
-   * Expand defintitions in assertions
-   */
-  void expandAssertions(preprocessing::AssertionPipeline& assertions, bool expandOnly);
 };
 
 }  // namespace smt

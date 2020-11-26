@@ -69,7 +69,8 @@ class TheoryArith : public Theory {
   void finishInit() override;
   //--------------------------------- end initialization
   /**
-   * Expand definition
+   * Expand definition, which eliminates extended operators like div/mod in
+   * the given node.
    */
   TrustNode expandDefinition(Node node) override;
   /**
