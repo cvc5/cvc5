@@ -43,11 +43,11 @@ using namespace std;
 
 class RewriterWhite : public CxxTest::TestSuite
 {
-  ExprManager* d_em;
+  std::unique_ptr<ExprManager> d_em;
   NodeManager* d_nm;
-  SmtEngine* d_smt;
-  SmtScope* d_scope;
-  Rewriter* d_rewriter;
+  std::unique_ptr<SmtEngine> d_smt;
+  std::unique_ptr<SmtScope> d_scope;
+  std::unique_ptr<Rewriter> d_rewriter;
 
  public:
   RewriterWhite() {}
@@ -56,25 +56,17 @@ class RewriterWhite : public CxxTest::TestSuite
   {
     Options opts;
     opts.setOutputLanguage(language::output::LANG_SMTLIB_V2);
-    d_em = new ExprManager;
-    d_nm = NodeManager::fromExprManager(d_em);
-    d_smt = new SmtEngine(d_em, &opts);
+    d_em.reset(new ExprManager);
+    d_nm = NodeManager::fromExprManager(d_em.get());
+    d_smt.reset(new SmtEngine(d_nm, &opts));
     d_smt->setOption("dag-thresh", "0");
     d_smt->setOption("proof-new", "true");
-    d_scope = new SmtScope(d_smt);
+    d_scope.reset(new SmtScope(d_smt.get()));
     d_smt->finishInit();
     // make a rewriter with proof generation
-    d_rewriter = new Rewriter;
+    d_rewriter.reset(new Rewriter);
     d_rewriter->setProofNodeManager(
         d_smt->getPfManager()->getProofNodeManager());
-  }
-
-  void tearDown() override
-  {
-    delete d_rewriter;
-    delete d_scope;
-    delete d_smt;
-    delete d_em;
   }
 
   void rewriteWithProof(Node t)
