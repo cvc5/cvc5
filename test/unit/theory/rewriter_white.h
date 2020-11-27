@@ -69,6 +69,14 @@ class RewriterWhite : public CxxTest::TestSuite
         d_smt->getPfManager()->getProofNodeManager());
   }
 
+  void tearDown() override
+  {
+    d_rewriter.release();
+    d_scope.release();
+    d_smt.release();
+    d_em.release();
+  }
+
   void rewriteWithProof(Node t)
   {
     TrustNode tr = d_rewriter->rewriteWithProof(t);

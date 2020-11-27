@@ -59,6 +59,12 @@ class BoolProofCheckerBlack : public CxxTest::TestSuite
     bpfc->registerTo(d_checker);
   }
 
+  void tearDown() override
+  {
+    d_smt.release();
+    d_em.release();
+  }
+
   void testChainResolution()
   {
     Node l0 = d_nm->mkVar("l0", d_nm->booleanType());
