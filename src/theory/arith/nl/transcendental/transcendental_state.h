@@ -71,10 +71,13 @@ struct TranscendentalState
    * Get the two closest secant points from the once stored already.
    * "closest" is determined according to the current model.
    * @param e The transcendental term (like (exp t))
-   * @param c The point currently under consideration (probably the model of t)
+   * @param center The point currently under consideration (probably the model
+   * of t)
    * @param d The taylor degree.
    */
-  std::pair<Node, Node> getClosestSecantPoints(TNode e, TNode c, unsigned d);
+  std::pair<Node, Node> getClosestSecantPoints(TNode e,
+                                               TNode center,
+                                               unsigned d);
 
   /**
    * Construct a secant plane as function in arg between lower and upper

@@ -267,26 +267,26 @@ void TranscendentalState::getCurrentPiBounds()
 }
 
 std::pair<Node, Node> TranscendentalState::getClosestSecantPoints(TNode e,
-                                                                  TNode c,
+                                                                  TNode center,
                                                                   unsigned d)
 {
   // bounds are the minimum and maximum previous secant points
   // should not repeat secant points: secant lemmas should suffice to
   // rule out previous assignment
-  Assert(
-      std::find(d_secant_points[e][d].begin(), d_secant_points[e][d].end(), c)
-      == d_secant_points[e][d].end());
+  Assert(std::find(
+             d_secant_points[e][d].begin(), d_secant_points[e][d].end(), center)
+         == d_secant_points[e][d].end());
   // Insert into the (temporary) vector. We do not update this vector
   // until we are sure this secant plane lemma has been processed. We do
   // this by mapping the lemma to a side effect below.
   std::vector<Node> spoints = d_secant_points[e][d];
-  spoints.push_back(c);
+  spoints.push_back(center);
 
   // sort
   sortByNlModel(spoints.begin(), spoints.end(), &d_model);
   // get the resulting index of c
   unsigned index =
-      std::find(spoints.begin(), spoints.end(), c) - spoints.begin();
+      std::find(spoints.begin(), spoints.end(), center) - spoints.begin();
 
   // bounds are the next closest upper/lower bound values
   return {index > 0 ? spoints[index - 1] : Node(),

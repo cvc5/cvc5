@@ -89,14 +89,14 @@ class ExponentialSolver
   /** Sent secant lemmas around c for e */
   void doSecantLemmas(TNode e,
                       TNode poly_approx,
-                      TNode c,
-                      TNode poly_approx_c,
+                      TNode center,
+                      TNode cval,
                       unsigned d,
                       unsigned actual_d);
 
  private:
   /** Generate bounds for secant lemmas */
-  std::pair<Node, Node> getSecantBounds(TNode e, TNode c, unsigned d);
+  std::pair<Node, Node> getSecantBounds(TNode e, TNode center, unsigned d);
 
   /** Holds common state for transcendental solvers */
   TranscendentalState* d_data;

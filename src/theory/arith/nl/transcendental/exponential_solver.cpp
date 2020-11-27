@@ -172,15 +172,15 @@ void ExponentialSolver::doTangentLemma(TNode e, TNode c, TNode poly_approx)
 
 void ExponentialSolver::doSecantLemmas(TNode e,
                                        TNode poly_approx,
-                                       TNode c,
-                                       TNode poly_approx_c,
+                                       TNode center,
+                                       TNode cval,
                                        unsigned d,
                                        unsigned actual_d)
 {
-  d_data->doSecantLemmas(getSecantBounds(e, c, d),
+  d_data->doSecantLemmas(getSecantBounds(e, center, d),
                          poly_approx,
-                         c,
-                         poly_approx_c,
+                         center,
+                         cval,
                          e,
                          Convexity::CONVEX,
                          d,
@@ -188,23 +188,23 @@ void ExponentialSolver::doSecantLemmas(TNode e,
 }
 
 std::pair<Node, Node> ExponentialSolver::getSecantBounds(TNode e,
-                                                         TNode c,
+                                                         TNode center,
                                                          unsigned d)
 {
-  std::pair<Node, Node> bounds = d_data->getClosestSecantPoints(e, c, d);
+  std::pair<Node, Node> bounds = d_data->getClosestSecantPoints(e, center, d);
 
   // Check if we already have neighboring secant points
   if (bounds.first.isNull())
   {
     // pick c-1
     bounds.first = Rewriter::rewrite(
-        NodeManager::currentNM()->mkNode(Kind::MINUS, c, d_data->d_one));
+        NodeManager::currentNM()->mkNode(Kind::MINUS, center, d_data->d_one));
   }
   if (bounds.second.isNull())
   {
     // pick c+1
     bounds.second = Rewriter::rewrite(
-        NodeManager::currentNM()->mkNode(Kind::PLUS, c, d_data->d_one));
+        NodeManager::currentNM()->mkNode(Kind::PLUS, center, d_data->d_one));
   }
   return bounds;
 }
