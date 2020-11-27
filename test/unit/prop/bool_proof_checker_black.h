@@ -37,9 +37,9 @@ using namespace CVC4::smt;
 
 class BoolProofCheckerBlack : public CxxTest::TestSuite
 {
-  ExprManager* d_em;
+  std::unique_ptr<ExprManager> d_em;
   NodeManager* d_nm;
-  SmtEngine* d_smt;
+  std::unique_ptr<SmtEngine> d_smt;
   ProofChecker* d_checker;
 
  public:
@@ -47,23 +47,16 @@ class BoolProofCheckerBlack : public CxxTest::TestSuite
   {
     Options opts;
     opts.setOutputLanguage(language::output::LANG_SMTLIB_V2);
-    d_em = new ExprManager;
-    d_nm = NodeManager::fromExprManager(d_em);
-    d_smt = new SmtEngine(d_em, &opts);
+    d_em.reset(new ExprManager);
+    d_nm = NodeManager::fromExprManager(d_em.get());
+    d_smt.reset(new SmtEngine(d_nm, &opts));
     d_smt->setOption("dag-thresh", "0");
     d_smt->setOption("proof-new", "true");
     d_smt->finishInit();
     // make a proof checker for booleans
-    booleans::BoolProofRuleChecker* bpfc = new booleans::BoolProofRuleChecker();
+    std::unique_ptr<booleans::BoolProofRuleChecker> bpfc(new booleans::BoolProofRuleChecker());
     d_checker = d_smt->getPfManager()->getProofNodeManager()->getChecker();
     bpfc->registerTo(d_checker);
-    delete bpfc;
-  }
-
-  void tearDown() override
-  {
-    delete d_smt;
-    delete d_em;
   }
 
   void testChainResolution()
