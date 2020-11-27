@@ -294,24 +294,40 @@ std::pair<Node, Node> TranscendentalState::getClosestSecantPoints(TNode e,
 }
 
 Node TranscendentalState::mkSecantPlane(
-    TNode arg, TNode b, TNode c, TNode approx_b, TNode approx_c)
+    TNode arg, TNode lower, TNode upper, TNode lval, TNode uval)
 {
   NodeManager* nm = NodeManager::currentNM();
   // Figure 3: S_l( x ), S_u( x ) for s = 0,1
-  Node rcoeff_n = Rewriter::rewrite(nm->mkNode(Kind::MINUS, b, c));
+  Node rcoeff_n = Rewriter::rewrite(nm->mkNode(Kind::MINUS, lower, upper));
   Assert(rcoeff_n.isConst());
   Rational rcoeff = rcoeff_n.getConst<Rational>();
   Assert(rcoeff.sgn() != 0);
-  return nm->mkNode(Kind::PLUS,
-                    approx_b,
-                    nm->mkNode(Kind::MULT,
-                               nm->mkNode(Kind::MINUS, approx_b, approx_c),
-                               nm->mkConst(rcoeff.inverse()),
-                               nm->mkNode(Kind::MINUS, arg, b)));
+  Node res =
+      nm->mkNode(Kind::PLUS,
+                 lval,
+                 nm->mkNode(Kind::MULT,
+                            nm->mkNode(Kind::DIVISION,
+                                       nm->mkNode(Kind::MINUS, lval, uval),
+                                       nm->mkNode(Kind::MINUS, lower, upper)),
+                            nm->mkNode(Kind::MINUS, arg, lower)));
+  Trace("nl-trans") << "Creating secant plane for transcendental function of "
+                    << arg << std::endl;
+  Trace("nl-trans") << "\tfrom ( " << lower << " ; " << lval << " ) to ( "
+                    << upper << " ; " << uval << " )" << std::endl;
+  Trace("nl-trans") << "\t" << res << std::endl;
+  Trace("nl-trans") << "\trewritten: " << Rewriter::rewrite(res) << std::endl;
+  return res;
 }
 
-NlLemma TranscendentalState::mkSecantLemma(
-    TNode lower, TNode upper, int concavity, TNode tf, TNode splane)
+NlLemma TranscendentalState::mkSecantLemma(TNode lower,
+                                           TNode upper,
+                                           TNode lapprox,
+                                           TNode uapprox,
+                                           int csign,
+                                           Convexity convexity,
+                                           TNode tf,
+                                           TNode splane,
+                                           unsigned actual_d)
 {
   NodeManager* nm = NodeManager::currentNM();
   // With respect to Figure 3, this is slightly different.
@@ -329,10 +345,14 @@ NlLemma TranscendentalState::mkSecantLemma(
   Node antec_n = nm->mkNode(Kind::AND,
                             nm->mkNode(Kind::GEQ, tf[0], lower),
                             nm->mkNode(Kind::LEQ, tf[0], upper));
+  Trace("nl-trans") << "Bound for secant plane: " << lower << " <= " << tf[0]
+                    << " <= " << upper << std::endl;
+  Trace("nl-trans") << "\t" << antec_n << std::endl;
   Node lem = nm->mkNode(
       Kind::IMPLIES,
       antec_n,
-      nm->mkNode(concavity == 1 ? Kind::LEQ : Kind::GEQ, tf, splane));
+      nm->mkNode(
+          convexity == Convexity::CONVEX ? Kind::GEQ : Kind::LEQ, tf, splane));
   Trace("nl-ext-tftp-debug2")
       << "*** Secant plane lemma (pre-rewrite) : " << lem << std::endl;
   lem = Rewriter::rewrite(lem);
@@ -343,46 +363,54 @@ NlLemma TranscendentalState::mkSecantLemma(
 
 void TranscendentalState::doSecantLemmas(const std::pair<Node, Node>& bounds,
                                          TNode poly_approx,
-                                         TNode c,
-                                         TNode approx_c,
+                                         TNode center,
+                                         TNode cval,
                                          TNode tf,
+                                         Convexity convexity,
                                          unsigned d,
-                                         int concavity)
+                                         unsigned actual_d)
 {
+  int csign = center.getConst<Rational>().sgn();
+  Trace("nl-ext-tftp-debug2")
+      << "...do secant lemma with center " << center << " val " << cval
+      << " sign " << csign << std::endl;
   Trace("nl-ext-tftp-debug2") << "...secant bounds are : " << bounds.first
                               << " ... " << bounds.second << std::endl;
-  // take the model value of l or u (since may contain PI)
-  // Make secant from bounds.first to c
-  Node lval = d_model.computeAbstractModelValue(bounds.first);
+  // take the model value of lower (since may contain PI)
+  // Make secant from bounds.first to center
+  Node lower = d_model.computeAbstractModelValue(bounds.first);
   Trace("nl-ext-tftp-debug2") << "...model value of bound " << bounds.first
-                              << " is " << lval << std::endl;
-  if (lval != c)
+                              << " is " << lower << std::endl;
+  if (lower != center)
   {
     // Figure 3 : P(l), P(u), for s = 0
-    Node approx_l = Rewriter::rewrite(
-        poly_approx.substitute(d_taylor.getTaylorVariable(), lval));
-    Node splane = mkSecantPlane(tf[0], lval, c, approx_l, approx_c);
-    NlLemma nlem = mkSecantLemma(lval, c, concavity, tf, splane);
+    Node lval = Rewriter::rewrite(
+        poly_approx.substitute(d_taylor.getTaylorVariable(), lower));
+    Node splane = mkSecantPlane(tf[0], lower, center, lval, cval);
+    NlLemma nlem = mkSecantLemma(
+        lower, center, lval, cval, csign, convexity, tf, splane, actual_d);
     // The side effect says that if lem is added, then we should add the
     // secant point c for (tf,d).
-    nlem.d_secantPoint.push_back(std::make_tuple(tf, d, c));
+    nlem.d_secantPoint.push_back(std::make_tuple(tf, d, center));
     d_im.addPendingArithLemma(nlem, true);
   }
 
-  // Make secant from c to bounds.second
-  Node uval = d_model.computeAbstractModelValue(bounds.second);
+  // take the model value of upper (since may contain PI)
+  // Make secant from center to bounds.second
+  Node upper = d_model.computeAbstractModelValue(bounds.second);
   Trace("nl-ext-tftp-debug2") << "...model value of bound " << bounds.second
-                              << " is " << uval << std::endl;
-  if (c != uval)
+                              << " is " << upper << std::endl;
+  if (center != upper)
   {
     // Figure 3 : P(l), P(u), for s = 1
-    Node approx_u = Rewriter::rewrite(
-        poly_approx.substitute(d_taylor.getTaylorVariable(), uval));
-    Node splane = mkSecantPlane(tf[0], c, uval, approx_c, approx_u);
-    NlLemma nlem = mkSecantLemma(c, uval, concavity, tf, splane);
+    Node uval = Rewriter::rewrite(
+        poly_approx.substitute(d_taylor.getTaylorVariable(), upper));
+    Node splane = mkSecantPlane(tf[0], center, upper, cval, uval);
+    NlLemma nlem = mkSecantLemma(
+        center, upper, cval, uval, csign, convexity, tf, splane, actual_d);
     // The side effect says that if lem is added, then we should add the
     // secant point c for (tf,d).
-    nlem.d_secantPoint.push_back(std::make_tuple(tf, d, c));
+    nlem.d_secantPoint.push_back(std::make_tuple(tf, d, center));
     d_im.addPendingArithLemma(nlem, true);
   }
 }

@@ -266,19 +266,20 @@ void SineSolver::doTangentLemma(TNode e, TNode c, TNode poly_approx, int region)
   // Figure 3: T( x )
   // We use zero slope tangent planes, since the concavity of the Taylor
   // approximation cannot be easily established.
-  int concavity = regionToConcavity(region);
+  Convexity convexity = regionToConvexity(region);
   int mdir = regionToMonotonicityDir(region);
+  bool usec = (mdir == 1) == (convexity == Convexity::CONVEX);
   Node lem = nm->mkNode(
       Kind::IMPLIES,
       nm->mkNode(
           Kind::AND,
-          nm->mkNode(Kind::GEQ,
-                     e[0],
-                     mdir == concavity ? Node(c) : regionToLowerBound(region)),
-          nm->mkNode(Kind::LEQ,
-                     e[0],
-                     mdir != concavity ? Node(c) : regionToUpperBound(region))),
-      nm->mkNode(concavity == 1 ? Kind::GEQ : Kind::LEQ, e, poly_approx));
+          nm->mkNode(
+              Kind::GEQ, e[0], usec ? Node(c) : regionToLowerBound(region)),
+          nm->mkNode(
+              Kind::LEQ, e[0], usec ? Node(c) : regionToUpperBound(region))),
+      nm->mkNode(convexity == Convexity::CONVEX ? Kind::GEQ : Kind::LEQ,
+                 e,
+                 poly_approx));
 
   Trace("nl-ext-sine") << "*** Tangent plane lemma (pre-rewrite): " << lem
                        << std::endl;
@@ -294,6 +295,7 @@ void SineSolver::doSecantLemmas(TNode e,
                                 TNode c,
                                 TNode poly_approx_c,
                                 unsigned d,
+                                unsigned actual_d,
                                 int region)
 {
   d_data->doSecantLemmas(getSecantBounds(e, c, d, region),
@@ -301,8 +303,9 @@ void SineSolver::doSecantLemmas(TNode e,
                          c,
                          poly_approx_c,
                          e,
+                         regionToConvexity(region),
                          d,
-                         regionToConcavity(region));
+                         actual_d);
 }
 
 std::pair<Node, Node> SineSolver::getSecantBounds(TNode e,
