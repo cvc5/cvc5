@@ -352,11 +352,11 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
       Kind::IMPLIES,
       antec_n,
       nm->mkNode(
-          convexity == Convexity::CONVEX ? Kind::GEQ : Kind::LEQ, tf, splane));
-  Trace("nl-ext-tftp-debug2")
-      << "*** Secant plane lemma (pre-rewrite) : " << lem << std::endl;
+          convexity == Convexity::CONVEX ? Kind::LEQ : Kind::GEQ, tf, splane));
+  Trace("nl-trans-lemma") << "*** Secant plane lemma (pre-rewrite) : " << lem
+                          << std::endl;
   lem = Rewriter::rewrite(lem);
-  Trace("nl-ext-tftp-lemma") << "*** Secant plane lemma : " << lem << std::endl;
+  Trace("nl-trans-lemma") << "*** Secant plane lemma : " << lem << std::endl;
   Assert(d_model.computeAbstractModelValue(lem) == d_false);
   return NlLemma(lem, LemmaProperty::NONE, nullptr, InferenceId::NL_T_SECANT);
 }
@@ -371,16 +371,15 @@ void TranscendentalState::doSecantLemmas(const std::pair<Node, Node>& bounds,
                                          unsigned actual_d)
 {
   int csign = center.getConst<Rational>().sgn();
-  Trace("nl-ext-tftp-debug2")
-      << "...do secant lemma with center " << center << " val " << cval
-      << " sign " << csign << std::endl;
-  Trace("nl-ext-tftp-debug2") << "...secant bounds are : " << bounds.first
-                              << " ... " << bounds.second << std::endl;
+  Trace("nl-trans") << "...do secant lemma with center " << center << " val "
+                    << cval << " sign " << csign << std::endl;
+  Trace("nl-trans") << "...secant bounds are : " << bounds.first << " ... "
+                    << bounds.second << std::endl;
   // take the model value of lower (since may contain PI)
   // Make secant from bounds.first to center
   Node lower = d_model.computeAbstractModelValue(bounds.first);
-  Trace("nl-ext-tftp-debug2") << "...model value of bound " << bounds.first
-                              << " is " << lower << std::endl;
+  Trace("nl-trans") << "...model value of bound " << bounds.first << " is "
+                    << lower << std::endl;
   if (lower != center)
   {
     // Figure 3 : P(l), P(u), for s = 0
@@ -398,8 +397,8 @@ void TranscendentalState::doSecantLemmas(const std::pair<Node, Node>& bounds,
   // take the model value of upper (since may contain PI)
   // Make secant from center to bounds.second
   Node upper = d_model.computeAbstractModelValue(bounds.second);
-  Trace("nl-ext-tftp-debug2") << "...model value of bound " << bounds.second
-                              << " is " << upper << std::endl;
+  Trace("nl-trans") << "...model value of bound " << bounds.second << " is "
+                    << upper << std::endl;
   if (center != upper)
   {
     // Figure 3 : P(l), P(u), for s = 1
