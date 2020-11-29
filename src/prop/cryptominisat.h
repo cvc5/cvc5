@@ -2,10 +2,10 @@
 /*! \file cryptominisat.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Mathias Preiner, Liana Hadarean, Dejan Jovanovic
+ **   Mathias Preiner, Liana Hadarean, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -21,7 +21,6 @@
 
 #ifdef CVC4_USE_CRYPTOMINISAT
 
-#include "proof/clausal_bitvector_proof.h"
 #include "prop/sat_solver.h"
 
 // Cryptominisat has name clashes with the other Minisat implementations since
@@ -68,7 +67,6 @@ class CryptoMinisatSolver : public SatSolver
   SatValue modelValue(SatLiteral l) override;
 
   unsigned getAssertionLevel() const override;
-  void setClausalProofLog(proof::ClausalBitVectorProof* bvp) override;
 
  private:
   class Statistics
@@ -97,7 +95,6 @@ class CryptoMinisatSolver : public SatSolver
   void init();
 
   std::unique_ptr<CMSat::SATSolver> d_solver;
-  proof::ClausalBitVectorProof* d_bvp;
   unsigned d_numVariables;
   bool d_okay;
   SatVariable d_true;

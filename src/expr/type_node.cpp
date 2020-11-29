@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -304,11 +304,7 @@ Node TypeNode::mkGroundValue() const
   return *te;
 }
 
-bool TypeNode::isStringLike() const
-{
-  // TODO (cvc4-projects #23): sequence here
-  return isString();
-}
+bool TypeNode::isStringLike() const { return isString() || isSequence(); }
 
 bool TypeNode::isSubtypeOf(TypeNode t) const {
   if(*this == t) {
@@ -321,9 +317,6 @@ bool TypeNode::isSubtypeOf(TypeNode t) const {
     default:
       return false;
     }
-  }
-  if(isSet() && t.isSet()) {
-    return getSetElementType().isSubtypeOf(t.getSetElementType());
   }
   if (isFunction() && t.isFunction())
   {
@@ -346,15 +339,18 @@ bool TypeNode::isComparableTo(TypeNode t) const {
   if(isSubtypeOf(NodeManager::currentNM()->realType())) {
     return t.isSubtypeOf(NodeManager::currentNM()->realType());
   }
-  if(isSet() && t.isSet()) {
-    return getSetElementType().isComparableTo(t.getSetElementType());
-  }
   if (isFunction() && t.isFunction())
   {
     // comparable if they have a common type node
     return !leastCommonTypeNode(*this, t).isNull();
   }
   return false;
+}
+
+TypeNode TypeNode::getTesterDomainType() const
+{
+  Assert(isTester());
+  return (*this)[0];
 }
 
 TypeNode TypeNode::getSequenceElementType() const
@@ -400,10 +396,14 @@ std::vector<TypeNode> TypeNode::getParamTypes() const {
   return params;
 }
 
-
-/** Is this a tuple type? */
-bool TypeNode::isTuple() const {
+bool TypeNode::isTuple() const
+{
   return (getKind() == kind::DATATYPE_TYPE && getDType().isTuple());
+}
+
+bool TypeNode::isRecord() const
+{
+  return (getKind() == kind::DATATYPE_TYPE && getDType().isRecord());
 }
 
 size_t TypeNode::getTupleLength() const {
@@ -473,6 +473,12 @@ uint64_t TypeNode::getSortConstructorArity() const
 {
   Assert(isSortConstructor() && hasAttribute(expr::SortArityAttr()));
   return getAttribute(expr::SortArityAttr());
+}
+
+std::string TypeNode::getName() const
+{
+  Assert(isSort() || isSortConstructor());
+  return getAttribute(expr::VarNameAttr());
 }
 
 TypeNode TypeNode::instantiateSortConstructor(
@@ -579,27 +585,20 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
     case kind::TESTER_TYPE:
     case kind::ARRAY_TYPE:
     case kind::DATATYPE_TYPE:
-    case kind::PARAMETRIC_DATATYPE: return TypeNode();
+    case kind::PARAMETRIC_DATATYPE:
+    case kind::SEQUENCE_TYPE:
     case kind::SET_TYPE:
+    case kind::BAG_TYPE:
     {
-      // take the least common subtype of element types
-      TypeNode elementType;
-      if (t1.isSet()
-          && !(elementType = commonTypeNode(t0[0], t1[0], isLeast)).isNull())
-      {
-        return NodeManager::currentNM()->mkSetType(elementType);
-      }
-      else
-      {
-        return TypeNode();
-      }
+      // we don't support subtyping except for built in types Int and Real.
+      return TypeNode();  // return null type
     }
-  case kind::SEXPR_TYPE:
-    Unimplemented()
-        << "haven't implemented leastCommonType for symbolic expressions yet";
-  default:
-    Unimplemented() << "don't have a commonType for types `" << t0 << "' and `"
-                    << t1 << "'";
+    case kind::SEXPR_TYPE:
+      Unimplemented()
+          << "haven't implemented leastCommonType for symbolic expressions yet";
+    default:
+      Unimplemented() << "don't have a commonType for types `" << t0
+                      << "' and `" << t1 << "'";
   }
 }
 
@@ -664,10 +663,19 @@ bool TypeNode::isCodatatype() const
   return false;
 }
 
+bool TypeNode::isSygusDatatype() const
+{
+  if (isDatatype())
+  {
+    return getDType().isSygus();
+  }
+  return false;
+}
+
 std::string TypeNode::toString() const {
   std::stringstream ss;
   OutputLanguage outlang = (this == &s_null) ? language::output::LANG_AUTO : options::outputLanguage();
-  d_nv->toStream(ss, -1, false, 0, outlang);
+  d_nv->toStream(ss, -1, 0, outlang);
   return ss.str();
 }
 
@@ -680,6 +688,17 @@ const DType& TypeNode::getDType() const
   }
   Assert(getKind() == kind::PARAMETRIC_DATATYPE);
   return (*this)[0].getDType();
+}
+
+bool TypeNode::isBag() const
+{
+  return getKind() == kind::BAG_TYPE;
+}
+
+TypeNode TypeNode::getBagElementType() const
+{
+  Assert(isBag());
+  return (*this)[0];
 }
 
 }/* CVC4 namespace */

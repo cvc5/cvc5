@@ -2,10 +2,10 @@
 /*! \file proof_rule.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa, Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -71,63 +71,266 @@ enum class PfRule : uint32_t
   // has the conclusion (=> F F) and has no free assumptions. More generally, a
   // proof with no free assumptions always concludes a valid formula.
   SCOPE,
-  //================================================= Equality rules
-  // ======== Reflexive
+
+  //======================== Builtin theory (common node operations)
+  // ======== Substitution
+  // Children: (P1:F1, ..., Pn:Fn)
+  // Arguments: (t, (ids)?)
+  // ---------------------------------------------------------------
+  // Conclusion: (= t t*sigma{ids}(Fn)*...*sigma{ids}(F1))
+  // where sigma{ids}(Fi) are substitutions, which notice are applied in
+  // reverse order.
+  // Notice that ids is a MethodId identifier, which determines how to convert
+  // the formulas F1, ..., Fn into substitutions.
+  SUBS,
+  // ======== Rewrite
+  // Children: none
+  // Arguments: (t, (idr)?)
+  // ----------------------------------------
+  // Conclusion: (= t Rewriter{idr}(t))
+  // where idr is a MethodId identifier, which determines the kind of rewriter
+  // to apply, e.g. Rewriter::rewrite.
+  REWRITE,
+  // ======== Evaluate
   // Children: none
   // Arguments: (t)
-  // ---------------------
-  // Conclusion: (= t t)
-  REFL,
-  // ======== Symmetric
-  // Children: (P:(= t1 t2)) or (P:(not (= t1 t2)))
-  // Arguments: none
-  // -----------------------
-  // Conclusion: (= t2 t1) or (not (= t2 t1))
-  SYMM,
-  // ======== Transitivity
-  // Children: (P1:(= t1 t2), ..., Pn:(= t{n-1} tn))
-  // Arguments: none
-  // -----------------------
-  // Conclusion: (= t1 tn)
-  TRANS,
-  // ======== Congruence  (subsumed by Substitute?)
-  // Children: (P1:(= t1 s1), ..., Pn:(= tn sn))
-  // Arguments: (f)
-  // ---------------------------------------------
-  // Conclusion: (= (f t1 ... tn) (f s1 ... sn))
-  CONG,
-  // ======== True intro
-  // Children: (P:F)
-  // Arguments: none
   // ----------------------------------------
-  // Conclusion: (= F true)
-  TRUE_INTRO,
-  // ======== True elim
-  // Children: (P:(= F true)
-  // Arguments: none
+  // Conclusion: (= t Evaluator::evaluate(t))
+  // Note this is equivalent to:
+  //   (REWRITE t MethodId::RW_EVALUATE)
+  EVALUATE,
+  // ======== Substitution + Rewriting equality introduction
+  //
+  // In this rule, we provide a term t and conclude that it is equal to its
+  // rewritten form under a (proven) substitution.
+  //
+  // Children: (P1:F1, ..., Pn:Fn)
+  // Arguments: (t, (ids (idr)?)?)
+  // ---------------------------------------------------------------
+  // Conclusion: (= t t')
+  // where
+  //   t' is
+  //   Rewriter{idr}(t*sigma{ids}(Fn)*...*sigma{ids}(F1))
+  //
+  // In other words, from the point of view of Skolem forms, this rule
+  // transforms t to t' by standard substitution + rewriting.
+  //
+  // The argument ids and idr is optional and specify the identifier of the
+  // substitution and rewriter respectively to be used. For details, see
+  // theory/builtin/proof_checker.h.
+  MACRO_SR_EQ_INTRO,
+  // ======== Substitution + Rewriting predicate introduction
+  //
+  // In this rule, we provide a formula F and conclude it, under the condition
+  // that it rewrites to true under a proven substitution.
+  //
+  // Children: (P1:F1, ..., Pn:Fn)
+  // Arguments: (F, (ids (idr)?)?)
+  // ---------------------------------------------------------------
+  // Conclusion: F
+  // where
+  //   Rewriter{idr}(F*sigma{ids}(Fn)*...*sigma{ids}(F1)) == true
+  // where ids and idr are method identifiers.
+  //
+  // More generally, this rule also holds when:
+  //   Rewriter::rewrite(toWitness(F')) == true
+  // where F' is the result of the left hand side of the equality above. Here,
+  // notice that we apply rewriting on the witness form of F', meaning that this
+  // rule may conclude an F whose Skolem form is justified by the definition of
+  // its (fresh) Skolem variables. For example, this rule may justify the
+  // conclusion (= k t) where k is the purification Skolem for t, whose
+  // witness form is (witness ((x T)) (= x t)).
+  //
+  // Furthermore, notice that the rewriting and substitution is applied only
+  // within the side condition, meaning the rewritten form of the witness form
+  // of F does not escape this rule.
+  MACRO_SR_PRED_INTRO,
+  // ======== Substitution + Rewriting predicate elimination
+  //
+  // In this rule, if we have proven a formula F, then we may conclude its
+  // rewritten form under a proven substitution.
+  //
+  // Children: (P1:F, P2:F1, ..., P_{n+1}:Fn)
+  // Arguments: ((ids (idr)?)?)
+  // ----------------------------------------
+  // Conclusion: F'
+  // where
+  //   F' is
+  //   Rewriter{idr}(F*sigma{ids}(Fn)*...*sigma{ids}(F1)).
+  // where ids and idr are method identifiers.
+  //
+  // We rewrite only on the Skolem form of F, similar to MACRO_SR_EQ_INTRO.
+  MACRO_SR_PRED_ELIM,
+  // ======== Substitution + Rewriting predicate transform
+  //
+  // In this rule, if we have proven a formula F, then we may provide a formula
+  // G and conclude it if F and G are equivalent after rewriting under a proven
+  // substitution.
+  //
+  // Children: (P1:F, P2:F1, ..., P_{n+1}:Fn)
+  // Arguments: (G, (ids (idr)?)?)
+  // ----------------------------------------
+  // Conclusion: G
+  // where
+  //   Rewriter{idr}(F*sigma{ids}(Fn)*...*sigma{ids}(F1)) ==
+  //   Rewriter{idr}(G*sigma{ids}(Fn)*...*sigma{ids}(F1))
+  //
+  // More generally, this rule also holds when:
+  //   Rewriter::rewrite(toWitness(F')) == Rewriter::rewrite(toWitness(G'))
+  // where F' and G' are the result of each side of the equation above. Here,
+  // witness forms are used in a similar manner to MACRO_SR_PRED_INTRO above.
+  MACRO_SR_PRED_TRANSFORM,
+
+  //================================================= Processing rules
+  // ======== Remove Term Formulas Axiom
+  // Children: none
+  // Arguments: (t)
+  // ---------------------------------------------------------------
+  // Conclusion: RemoveTermFormulas::getAxiomFor(t).
+  REMOVE_TERM_FORMULA_AXIOM,
+
+  //================================================= Trusted rules
+  // ======== Theory lemma
+  // Children: none
+  // Arguments: (F, tid)
+  // ---------------------------------------------------------------
+  // Conclusion: F
+  // where F is a (T-valid) theory lemma generated by theory with TheoryId tid.
+  // This is a "coarse-grained" rule that is used as a placeholder if a theory
+  // did not provide a proof for a lemma or conflict.
+  THEORY_LEMMA,
+  // ======== Theory Rewrite
+  // Children: none
+  // Arguments: (F, tid, rid)
   // ----------------------------------------
   // Conclusion: F
-  TRUE_ELIM,
-  // ======== False intro
-  // Children: (P:(not F))
-  // Arguments: none
-  // ----------------------------------------
-  // Conclusion: (= F false)
-  FALSE_INTRO,
-  // ======== False elim
-  // Children: (P:(= F false)
-  // Arguments: none
-  // ----------------------------------------
-  // Conclusion: (not F)
-  FALSE_ELIM,
+  // where F is an equality of the form (= t t') where t' is obtained by
+  // applying the kind of rewriting given by the method identifier rid, which
+  // is one of:
+  //  { RW_REWRITE_THEORY_PRE, RW_REWRITE_THEORY_POST, RW_REWRITE_EQ_EXT }
+  // Notice that the checker for this rule does not replay the rewrite to ensure
+  // correctness, since theory rewriter methods are not static. For example,
+  // the quantifiers rewriter involves constructing new bound variables that are
+  // not guaranteed to be consistent on each call.
+  THEORY_REWRITE,
+  // The rules in this section have the signature of a "trusted rule":
+  //
+  // Children: none
+  // Arguments: (F)
+  // ---------------------------------------------------------------
+  // Conclusion: F
+  //
+  // where F is an equality of the form t = t' where t was replaced by t'
+  // based on some preprocessing pass, or otherwise F was added as a new
+  // assertion by some preprocessing pass.
+  PREPROCESS,
+  // where F was added as a new assertion by some preprocessing pass.
+  PREPROCESS_LEMMA,
+  // where F is an equality of the form t = Theory::ppRewrite(t) for some
+  // theory. Notice this is a "trusted" rule.
+  THEORY_PREPROCESS,
+  // where F was added as a new assertion by theory preprocessing.
+  THEORY_PREPROCESS_LEMMA,
+  // where F is an existential (exists ((x T)) (P x)) used for introducing
+  // a witness term (witness ((x T)) (P x)).
+  WITNESS_AXIOM,
+  // where F is an equality (= t t') that holds by a form of rewriting that
+  // could not be replayed during proof postprocessing.
+  TRUST_REWRITE,
+  // where F is an equality (= t t') that holds by a form of substitution that
+  // could not be replayed during proof postprocessing.
+  TRUST_SUBS,
+  // where F is an equality (= t t') that holds by a form of substitution that
+  // could not be determined by the TrustSubstitutionMap.
+  TRUST_SUBS_MAP,
 
   //================================================= Boolean rules
+  // ======== Resolution
+  // Children:
+  //  (P1:C1, P2:C2)
+  // Arguments: (id, L)
+  // ---------------------
+  // Conclusion: C
+  // where
+  //   - C1 and C2 are nodes viewed as clauses, i.e., either an OR node with
+  //     each children viewed as a literal or a node viewed as a literal. Note
+  //     that an OR node could also be a literal.
+  //   - id is either true or false
+  //   - L is the pivot of the resolution, which occurs as is (resp. under a
+  //     NOT) in C1 and negatively (as is) in C2 if id = true (id = false).
+  //   C is a clause resulting from collecting all the literals in C1, minus the
+  //   first occurrence of the pivot or its negation, and C2, minus the first
+  //   occurrence of the pivot or its negation, according to the policy above.
+  //   If the resulting clause has a single literal, that literal itself is the
+  //   result; if it has no literals, then the result is false; otherwise it's
+  //   an OR node of the resulting literals.
+  //
+  //   Note that it may be the case that the pivot does not occur in the
+  //   clauses. In this case the rule is not unsound, but it does not correspond
+  //   to resolution but rather to a weakening of the clause that did not have a
+  //   literal eliminated.
+  RESOLUTION,
+  // ======== Chain Resolution
+  // Children: (P1:(or F_{1,1} ... F_{1,n1}), ..., Pm:(or F_{m,1} ... F_{m,nm}))
+  // Arguments: (L_1, ..., L_{m-1})
+  // ---------------------
+  // Conclusion: C_m'
+  // where
+  //   let "C_1 <>_l C_2" represent the resolution of C_1 with C_2 with pivot l,
+  //   let C_1' = C_1 (from P_1),
+  //   for each i > 1, C_i' = C_i <>_L_i C_{i-1}'
+  CHAIN_RESOLUTION,
+  // ======== Factoring
+  // Children: (P:C1)
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: C2
+  // where
+  //  Set representations of C1 and C2 is the same and the number of literals in
+  //  C2 is smaller than that of C1
+  FACTORING,
+  // ======== Reordering
+  // Children: (P:C1)
+  // Arguments: (C2)
+  // ---------------------
+  // Conclusion: C2
+  // where
+  //  Set representations of C1 and C2 is the same but the number of literals in
+  //  C2 is the same of that of C1
+  REORDERING,
+
   // ======== Split
   // Children: none
   // Arguments: (F)
   // ---------------------
   // Conclusion: (or F (not F))
   SPLIT,
+  // ======== Equality resolution
+  // Children: (P1:F1, P2:(= F1 F2))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (F2)
+  // Note this can optionally be seen as a macro for EQUIV_ELIM1+RESOLUTION.
+  EQ_RESOLVE,
+  // ======== Modus ponens
+  // Children: (P1:F1, P2:(=> F1 F2))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (F2)
+  // Note this can optionally be seen as a macro for IMPLIES_ELIM+RESOLUTION.
+  MODUS_PONENS,
+  // ======== Double negation elimination
+  // Children: (P:(not (not F)))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (F)
+  NOT_NOT_ELIM,
+  // ======== Contradiction
+  // Children: (P1:F P2:(not F))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: false
+  CONTRA,
   // ======== And elimination
   // Children: (P:(and F1 ... Fn))
   // Arguments: (i)
@@ -236,12 +439,6 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (or C (not F2))
   NOT_ITE_ELIM2,
-  // ======== Not ITE elimination version 1
-  // Children: (P1:P P2:(not P))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (false)
-  CONTRA,
 
   //================================================= De Morgan rules
   // ======== Not And
@@ -378,101 +575,483 @@ enum class PfRule : uint32_t
   // Conclusion: (or (ite C F1 F2) (not F1) (not F2))
   CNF_ITE_NEG3,
 
-  //======================== Builtin theory (common node operations)
-  // ======== Substitution
-  // Children: (P1:F1, ..., Pn:Fn)
-  // Arguments: (t, (ids)?)
-  // ---------------------------------------------------------------
-  // Conclusion: (= t t*sigma{ids}(Fn)*...*sigma{ids}(F1))
-  // where sigma{ids}(Fi) are substitutions, which notice are applied in
-  // reverse order.
-  // Notice that ids is a MethodId identifier, which determines how to convert
-  // the formulas F1, ..., Fn into substitutions.
-  SUBS,
-  // ======== Rewrite
+  //================================================= Equality rules
+  // ======== Reflexive
   // Children: none
-  // Arguments: (t, (idr)?)
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (= t t)
+  REFL,
+  // ======== Symmetric
+  // Children: (P:(= t1 t2)) or (P:(not (= t1 t2)))
+  // Arguments: none
+  // -----------------------
+  // Conclusion: (= t2 t1) or (not (= t2 t1))
+  SYMM,
+  // ======== Transitivity
+  // Children: (P1:(= t1 t2), ..., Pn:(= t{n-1} tn))
+  // Arguments: none
+  // -----------------------
+  // Conclusion: (= t1 tn)
+  TRANS,
+  // ======== Congruence
+  // Children: (P1:(= t1 s1), ..., Pn:(= tn sn))
+  // Arguments: (<kind> f?)
+  // ---------------------------------------------
+  // Conclusion: (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn))
+  // Notice that f must be provided iff <kind> is a parameterized kind, e.g.
+  // APPLY_UF. The actual node for <kind> is constructible via
+  // ProofRuleChecker::mkKindNode.
+  CONG,
+  // ======== True intro
+  // Children: (P:F)
+  // Arguments: none
   // ----------------------------------------
-  // Conclusion: (= t Rewriter{idr}(t))
-  // where idr is a MethodId identifier, which determines the kind of rewriter
-  // to apply, e.g. Rewriter::rewrite.
-  REWRITE,
-  // ======== Substitution + Rewriting equality introduction
-  //
-  // In this rule, we provide a term t and conclude that it is equal to its
-  // rewritten form under a (proven) substitution.
-  //
-  // Children: (P1:F1, ..., Pn:Fn)
-  // Arguments: (t, (ids (idr)?)?)
-  // ---------------------------------------------------------------
-  // Conclusion: (= t t')
-  // where
-  //   t' is
-  //   toWitness(Rewriter{idr}(toSkolem(t)*sigma{ids}(Fn)*...*sigma{ids}(F1)))
-  //   toSkolem(...) converts terms from witness form to Skolem form,
-  //   toWitness(...) converts terms from Skolem form to witness form.
-  //
-  // Notice that:
-  //   toSkolem(t')=Rewriter{idr}(toSkolem(t)*sigma{ids}(Fn)*...*sigma{ids}(F1))
-  // In other words, from the point of view of Skolem forms, this rule
-  // transforms t to t' by standard substitution + rewriting.
-  //
-  // The argument ids and idr is optional and specify the identifier of the
-  // substitution and rewriter respectively to be used. For details, see
-  // theory/builtin/proof_checker.h.
-  MACRO_SR_EQ_INTRO,
-  // ======== Substitution + Rewriting predicate introduction
-  //
-  // In this rule, we provide a formula F and conclude it, under the condition
-  // that it rewrites to true under a proven substitution.
-  //
-  // Children: (P1:F1, ..., Pn:Fn)
-  // Arguments: (F, (ids (idr)?)?)
-  // ---------------------------------------------------------------
+  // Conclusion: (= F true)
+  TRUE_INTRO,
+  // ======== True elim
+  // Children: (P:(= F true))
+  // Arguments: none
+  // ----------------------------------------
   // Conclusion: F
-  // where
-  //   Rewriter{idr}(F*sigma{ids}(Fn)*...*sigma{ids}(F1)) == true
-  // where ids and idr are method identifiers.
-  //
-  // Notice that we apply rewriting on the witness form of F, meaning that this
-  // rule may conclude an F whose Skolem form is justified by the definition of
-  // its (fresh) Skolem variables. Furthermore, notice that the rewriting and
-  // substitution is applied only within the side condition, meaning the
-  // rewritten form of the witness form of F does not escape this rule.
-  MACRO_SR_PRED_INTRO,
-  // ======== Substitution + Rewriting predicate elimination
-  //
-  // In this rule, if we have proven a formula F, then we may conclude its
-  // rewritten form under a proven substitution.
-  //
-  // Children: (P1:F, P2:F1, ..., P_{n+1}:Fn)
-  // Arguments: ((ids (idr)?)?)
+  TRUE_ELIM,
+  // ======== False intro
+  // Children: (P:(not F))
+  // Arguments: none
   // ----------------------------------------
-  // Conclusion: F'
-  // where
-  //   F' is
-  //   toWitness(Rewriter{idr}(toSkolem(F)*sigma{ids}(Fn)*...*sigma{ids}(F1)).
-  // where ids and idr are method identifiers.
-  //
-  // We rewrite only on the Skolem form of F, similar to MACRO_SR_EQ_INTRO.
-  MACRO_SR_PRED_ELIM,
-  // ======== Substitution + Rewriting predicate transform
-  //
-  // In this rule, if we have proven a formula F, then we may provide a formula
-  // G and conclude it if F and G are equivalent after rewriting under a proven
-  // substitution.
-  //
-  // Children: (P1:F, P2:F1, ..., P_{n+1}:Fn)
-  // Arguments: (G, (ids (idr)?)?)
+  // Conclusion: (= F false)
+  FALSE_INTRO,
+  // ======== False elim
+  // Children: (P:(= F false))
+  // Arguments: none
   // ----------------------------------------
-  // Conclusion: G
-  // where
-  //   Rewriter{idr}(F*sigma{ids}(Fn)*...*sigma{ids}(F1)) ==
-  //   Rewriter{idr}(G*sigma{ids}(Fn)*...*sigma{ids}(F1))
+  // Conclusion: (not F)
+  FALSE_ELIM,
+  // ======== HO trust
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (= t TheoryUfRewriter::getHoApplyForApplyUf(t))
+  // For example, this rule concludes (f x y) = (HO_APPLY (HO_APPLY f x) y)
+  HO_APP_ENCODE,
+  // ======== Congruence
+  // Children: (P1:(= f g), P2:(= t1 s1), ..., Pn+1:(= tn sn))
+  // Arguments: ()
+  // ---------------------------------------------
+  // Conclusion: (= (f t1 ... tn) (g s1 ... sn))
+  // Notice that this rule is only used when the application kinds are APPLY_UF.
+  HO_CONG,
+
+  //================================================= Array rules
+  // ======== Read over write
+  // Children: (P:(not (= i1 i2)))
+  // Arguments: ((select (store a i2 e) i1))
+  // ----------------------------------------
+  // Conclusion: (= (select (store a i2 e) i1) (select a i1))
+  ARRAYS_READ_OVER_WRITE,
+  // ======== Read over write, contrapositive
+  // Children: (P:(not (= (select (store a i2 e) i1) (select a i1)))
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: (= i1 i2)
+  ARRAYS_READ_OVER_WRITE_CONTRA,
+  // ======== Read over write 1
+  // Children: none
+  // Arguments: ((select (store a i e) i))
+  // ----------------------------------------
+  // Conclusion: (= (select (store a i e) i) e)
+  ARRAYS_READ_OVER_WRITE_1,
+  // ======== Extensionality
+  // Children: (P:(not (= a b)))
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: (not (= (select a k) (select b k)))
+  // where k is arrays::SkolemCache::getExtIndexSkolem((not (= a b))).
+  ARRAYS_EXT,
+  // ======== Array Trust
+  // Children: (P1 ... Pn)
+  // Arguments: (F)
+  // ---------------------
+  // Conclusion: F
+  ARRAYS_TRUST,
+  
+  //================================================= Datatype rules
+  // ======== Unification
+  // Children: (P:(= (C t1 ... tn) (C s1 ... sn)))
+  // Arguments: (i)
+  // ----------------------------------------
+  // Conclusion: (= ti si)
+  // where C is a constructor.
+  DT_UNIF,
+  // ======== Instantiate
+  // Children: none
+  // Arguments: (t, n)
+  // ----------------------------------------
+  // Conclusion: (= ((_ is C) t) (= t (C (sel_1 t) ... (sel_n t))))
+  // where C is the n^th constructor of the type of T, and (_ is C) is the
+  // discriminator (tester) for C.
+  DT_INST,
+  // ======== Collapse
+  // Children: none
+  // Arguments: ((sel_i (C_j t_1 ... t_n)))
+  // ----------------------------------------
+  // Conclusion: (= (sel_i (C_j t_1 ... t_n)) r)
+  // where C_j is a constructor, r is t_i if sel_i is a correctly applied
+  // selector, or TypeNode::mkGroundTerm() of the proper type otherwise. Notice
+  // that the use of mkGroundTerm differs from the rewriter which uses
+  // mkGroundValue in this case.
+  DT_COLLAPSE,
+  // ======== Split
+  // Children: none
+  // Arguments: (t)
+  // ----------------------------------------
+  // Conclusion: (or ((_ is C1) t) ... ((_ is Cn) t))
+  DT_SPLIT,
+  // ======== Clash
+  // Children: (P1:((_ is Ci) t), P2: ((_ is Cj) t))
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: false
+  // for i != j.
+  DT_CLASH,
+  // ======== Datatype Trust
+  // Children: (P1 ... Pn)
+  // Arguments: (F)
+  // ---------------------
+  // Conclusion: F
+  DT_TRUST,
+
+  //================================================= Quantifiers rules
+  // ======== Witness intro
+  // Children: (P:(exists ((x T)) F[x]))
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: (= k (witness ((x T)) F[x]))
+  // where k is the Skolem form of (witness ((x T)) F[x]).
+  WITNESS_INTRO,
+  // ======== Exists intro
+  // Children: (P:F[t])
+  // Arguments: ((exists ((x T)) F[x]))
+  // ----------------------------------------
+  // Conclusion: (exists ((x T)) F[x])
+  // This rule verifies that F[x] indeed matches F[t] with a substitution
+  // over x.
+  EXISTS_INTRO,
+  // ======== Skolemize
+  // Children: (P:(exists ((x1 T1) ... (xn Tn)) F))
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: F*sigma
+  // sigma maps x1 ... xn to their representative skolems obtained by
+  // SkolemManager::mkSkolemize, returned in the skolems argument of that
+  // method. Alternatively, can use negated forall as a premise.
+  SKOLEMIZE,
+  // ======== Instantiate
+  // Children: (P:(forall ((x1 T1) ... (xn Tn)) F))
+  // Arguments: (t1 ... tn)
+  // ----------------------------------------
+  // Conclusion: F*sigma
+  // sigma maps x1 ... xn to t1 ... tn.
+  INSTANTIATE,
+
+  //================================================= String rules
+  //======================== Core solver
+  // ======== Concat eq
+  // Children: (P1:(= (str.++ t1 ... tn t) (str.++ t1 ... tn s)))
+  // Arguments: (b), indicating if reverse direction
+  // ---------------------
+  // Conclusion: (= t s)
   //
-  // Notice that we apply rewriting on the witness form of F and G, similar to
-  // MACRO_SR_PRED_INTRO.
-  MACRO_SR_PRED_TRANSFORM,
+  // Notice that t or s may be empty, in which case they are implicit in the
+  // concatenation above. For example, if
+  // P1 concludes (= x (str.++ x z)), then
+  // (CONCAT_EQ P1 :args false) concludes (= "" z)
+  //
+  // Also note that constants are split, such that if
+  // P1 concludes (= (str.++ "abc" x) (str.++ "a" y)), then
+  // (CONCAT_EQ P1 :args false) concludes (= (str.++ "bc" x) y)
+  // This splitting is done only for constants such that Word::splitConstant
+  // returns non-null.
+  CONCAT_EQ,
+  // ======== Concat unify
+  // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
+  //            P2:(= (str.len t1) (str.len s1)))
+  // Arguments: (b), indicating if reverse direction
+  // ---------------------
+  // Conclusion: (= t1 s1)
+  CONCAT_UNIFY,
+  // ======== Concat conflict
+  // Children: (P1:(= (str.++ c1 t) (str.++ c2 s)))
+  // Arguments: (b), indicating if reverse direction
+  // ---------------------
+  // Conclusion: false
+  // Where c1, c2 are constants such that Word::splitConstant(c1,c2,index,b)
+  // is null, in other words, neither is a prefix of the other.
+  CONCAT_CONFLICT,
+  // ======== Concat split
+  // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
+  //            P2:(not (= (str.len t1) (str.len s1))))
+  // Arguments: (false)
+  // ---------------------
+  // Conclusion: (or (= t1 (str.++ s1 r_t)) (= s1 (str.++ t1 r_s)))
+  // where
+  //   r_t = (witness ((z String)) (= z (suf t1 (str.len s1)))),
+  //   r_s = (witness ((z String)) (= z (suf s1 (str.len t1)))).
+  //
+  // or the reverse form of the above:
+  //
+  // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
+  //            P2:(not (= (str.len t2) (str.len s2))))
+  // Arguments: (true)
+  // ---------------------
+  // Conclusion: (or (= t2 (str.++ r_t s2)) (= s2 (str.++ r_s t2)))
+  // where
+  //   r_t = (witness ((z String)) (= z (pre t2 (- (str.len t2) (str.len
+  //   s2))))), r_s = (witness ((z String)) (= z (pre s2 (- (str.len s2)
+  //   (str.len t2))))).
+  //
+  // Above, (suf x n) is shorthand for (str.substr x n (- (str.len x) n)) and
+  // (pre x n) is shorthand for (str.substr x 0 n).
+  CONCAT_SPLIT,
+  // ======== Concat constant split
+  // Children: (P1:(= (str.++ t1 t2) (str.++ c s2)),
+  //            P2:(not (= (str.len t1) 0)))
+  // Arguments: (false)
+  // ---------------------
+  // Conclusion: (= t1 (str.++ c r))
+  // where
+  //   r = (witness ((z String)) (= z (suf t1 1))).
+  //
+  // or the reverse form of the above:
+  //
+  // Children: (P1:(= (str.++ t1 t2) (str.++ s1 c)),
+  //            P2:(not (= (str.len t2) 0)))
+  // Arguments: (true)
+  // ---------------------
+  // Conclusion: (= t2 (str.++ r c))
+  // where
+  //   r = (witness ((z String)) (= z (pre t2 (- (str.len t2) 1)))).
+  CONCAT_CSPLIT,
+  // ======== Concat length propagate
+  // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
+  //            P2:(> (str.len t1) (str.len s1)))
+  // Arguments: (false)
+  // ---------------------
+  // Conclusion: (= t1 (str.++ s1 r_t))
+  // where
+  //   r_t = (witness ((z String)) (= z (suf t1 (str.len s1))))
+  //
+  // or the reverse form of the above:
+  //
+  // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
+  //            P2:(> (str.len t2) (str.len s2)))
+  // Arguments: (false)
+  // ---------------------
+  // Conclusion: (= t2 (str.++ r_t s2))
+  // where
+  //   r_t = (witness ((z String)) (= z (pre t2 (- (str.len t2) (str.len
+  //   s2))))).
+  CONCAT_LPROP,
+  // ======== Concat constant propagate
+  // Children: (P1:(= (str.++ t1 w1 t2) (str.++ w2 s)),
+  //            P2:(not (= (str.len t1) 0)))
+  // Arguments: (false)
+  // ---------------------
+  // Conclusion: (= t1 (str.++ w3 r))
+  // where
+  //   w1, w2, w3, w4 are words,
+  //   w3 is (pre w2 p),
+  //   w4 is (suf w2 p),
+  //   p = Word::overlap((suf w2 1), w1),
+  //   r = (witness ((z String)) (= z (suf t1 (str.len w3)))).
+  // In other words, w4 is the largest suffix of (suf w2 1) that can contain a
+  // prefix of w1; since t1 is non-empty, w3 must therefore be contained in t1.
+  //
+  // or the reverse form of the above:
+  //
+  // Children: (P1:(= (str.++ t1 w1 t2) (str.++ s w2)),
+  //            P2:(not (= (str.len t2) 0)))
+  // Arguments: (true)
+  // ---------------------
+  // Conclusion: (= t2 (str.++ r w3))
+  // where
+  //   w1, w2, w3, w4 are words,
+  //   w3 is (suf w2 (- (str.len w2) p)),
+  //   w4 is (pre w2 (- (str.len w2) p)),
+  //   p = Word::roverlap((pre w2 (- (str.len w2) 1)), w1),
+  //   r = (witness ((z String)) (= z (pre t2 (- (str.len t2) (str.len w3))))).
+  // In other words, w4 is the largest prefix of (pre w2 (- (str.len w2) 1))
+  // that can contain a suffix of w1; since t2 is non-empty, w3 must therefore
+  // be contained in t2.
+  CONCAT_CPROP,
+  // ======== String decompose
+  // Children: (P1: (>= (str.len t) n)
+  // Arguments: (false)
+  // ---------------------
+  // Conclusion: (and (= t (str.++ w1 w2)) (= (str.len w1) n))
+  // or
+  // Children: (P1: (>= (str.len t) n)
+  // Arguments: (true)
+  // ---------------------
+  // Conclusion: (and (= t (str.++ w1 w2)) (= (str.len w2) n))
+  // where
+  //   w1 is (witness ((z String)) (= z (pre t n)))
+  //   w2 is (witness ((z String)) (= z (suf t n)))
+  STRING_DECOMPOSE,
+  // ======== Length positive
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (or (and (= (str.len t) 0) (= t "")) (> (str.len t 0)))
+  STRING_LENGTH_POS,
+  // ======== Length non-empty
+  // Children: (P1:(not (= t "")))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (not (= (str.len t) 0))
+  STRING_LENGTH_NON_EMPTY,
+  //======================== Extended functions
+  // ======== Reduction
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (and R (= t w))
+  // where w = strings::StringsPreprocess::reduce(t, R, ...).
+  // In other words, R is the reduction predicate for extended term t, and w is
+  //   (witness ((z T)) (= z t))
+  // Notice that the free variables of R are w and the free variables of t.
+  STRING_REDUCTION,
+  // ======== Eager Reduction
+  // Children: none
+  // Arguments: (t, id?)
+  // ---------------------
+  // Conclusion: R
+  // where R = strings::TermRegistry::eagerReduce(t, id).
+  STRING_EAGER_REDUCTION,
+  //======================== Regular expressions
+  // ======== Regular expression intersection
+  // Children: (P:(str.in.re t R1), P:(str.in.re t R2))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (str.in.re t (re.inter R1 R2)).
+  RE_INTER,
+  // ======== Regular expression unfold positive
+  // Children: (P:(str.in.re t R))
+  // Arguments: none
+  // ---------------------
+  // Conclusion:(RegExpOpr::reduceRegExpPos((str.in.re t R))),
+  // corresponding to the one-step unfolding of the premise.
+  RE_UNFOLD_POS,
+  // ======== Regular expression unfold negative
+  // Children: (P:(not (str.in.re t R)))
+  // Arguments: none
+  // ---------------------
+  // Conclusion:(RegExpOpr::reduceRegExpNeg((not (str.in.re t R)))),
+  // corresponding to the one-step unfolding of the premise.
+  RE_UNFOLD_NEG,
+  // ======== Regular expression unfold negative concat fixed
+  // Children: (P:(not (str.in.re t R)))
+  // Arguments: none
+  // ---------------------
+  // Conclusion:(RegExpOpr::reduceRegExpNegConcatFixed((not (str.in.re t
+  // R)),L,i)) where RegExpOpr::getRegExpConcatFixed((not (str.in.re t R)), i) =
+  // L. corresponding to the one-step unfolding of the premise, optimized for
+  // fixed length of component i of the regular expression concatenation R.
+  RE_UNFOLD_NEG_CONCAT_FIXED,
+  // ======== Regular expression elimination
+  // Children: (P:F)
+  // Arguments: none
+  // ---------------------
+  // Conclusion: R
+  // where R = strings::RegExpElimination::eliminate(F).
+  RE_ELIM,
+  //======================== Code points
+  // Children: none
+  // Arguments: (t, s)
+  // ---------------------
+  // Conclusion:(or (= (str.code t) (- 1))
+  //                (not (= (str.code t) (str.code s)))
+  //                (not (= t s)))
+  STRING_CODE_INJ,
+  //======================== Sequence unit
+  // Children: (P:(= (seq.unit x) (seq.unit y)))
+  // Arguments: none
+  // ---------------------
+  // Conclusion:(= x y)
+  // Also applies to the case where (seq.unit y) is a constant sequence
+  // of length one.
+  STRING_SEQ_UNIT_INJ,
+  // ======== String Trust
+  // Children: none
+  // Arguments: (Q)
+  // ---------------------
+  // Conclusion: (Q)
+  STRING_TRUST,
+
+  //================================================= Arithmetic rules
+  // ======== Adding Inequalities
+  // Note: an ArithLiteral is a term of the form (>< poly const)
+  // where
+  //   >< is >=, >, ==, <, <=, or not(== ...).
+  //   poly is a polynomial
+  //   const is a rational constant
+
+  // Children: (P1:l1, ..., Pn:ln)
+  //           where each li is an ArithLiteral
+  //           not(= ...) is dis-allowed!
+  //
+  // Arguments: (k1, ..., kn), non-zero reals
+  // ---------------------
+  // Conclusion: (>< (* k t1) (* k t2))
+  //    where >< is the fusion of the combination of the ><i, (flipping each it
+  //    its ki is negative). >< is always one of <, <=
+  //    NB: this implies that lower bounds must have negative ki,
+  //                      and upper bounds must have positive ki.
+  //    t1 is the sum of the polynomials.
+  //    t2 is the sum of the constants.
+  ARITH_SCALE_SUM_UPPER_BOUNDS,
+
+  // ======== Tightening Strict Integer Upper Bounds
+  // Children: (P:(< i c))
+  //         where i has integer type.
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (<= i greatestIntLessThan(c)})
+  INT_TIGHT_UB,
+
+  // ======== Tightening Strict Integer Lower Bounds
+  // Children: (P:(> i c))
+  //         where i has integer type.
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (>= i leastIntGreaterThan(c)})
+  INT_TIGHT_LB,
+
+  // ======== Trichotomy of the reals
+  // Children: (A B)
+  // Arguments: (C)
+  // ---------------------
+  // Conclusion: (C),
+  //                 where (not A) (not B) and C
+  //                   are (> x c) (< x c) and (= x c)
+  //                   in some order
+  //                 note that "not" here denotes arithmetic negation, flipping
+  //                 >= to <, etc.
+  ARITH_TRICHOTOMY,
+
+  // ======== Arithmetic operator elimination
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: arith::OperatorElim::getAxiomFor(t)
+  ARITH_OP_ELIM_AXIOM,
+
+  // ======== Int Trust
+  // Children: (P1 ... Pn)
+  // Arguments: (Q)
+  // ---------------------
+  // Conclusion: (Q)
+  INT_TRUST,
 
   //================================================= Unknown rule
   UNKNOWN,
@@ -497,6 +1076,12 @@ const char* toString(PfRule id);
  * @return The stream
  */
 std::ostream& operator<<(std::ostream& out, PfRule id);
+
+/** Hash function for proof rules */
+struct PfRuleHashFunction
+{
+  size_t operator()(PfRule id) const;
+}; /* struct PfRuleHashFunction */
 
 }  // namespace CVC4
 

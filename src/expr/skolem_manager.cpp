@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -15,6 +15,7 @@
 #include "expr/skolem_manager.h"
 
 #include "expr/attribute.h"
+#include "expr/node_algorithm.h"
 
 using namespace CVC4::kind;
 
@@ -32,6 +33,7 @@ struct SkolemFormAttributeId
 };
 typedef expr::Attribute<SkolemFormAttributeId, Node> SkolemFormAttribute;
 
+// Maps terms to their purify skolem variables
 struct PurifySkolemAttributeId
 {
 };
@@ -42,7 +44,8 @@ Node SkolemManager::mkSkolem(Node v,
                              const std::string& prefix,
                              const std::string& comment,
                              int flags,
-                             ProofGenerator* pg)
+                             ProofGenerator* pg,
+                             bool retWitness)
 {
   Assert(v.getKind() == BOUND_VARIABLE);
   // make the witness term
@@ -55,12 +58,20 @@ Node SkolemManager::mkSkolem(Node v,
   // store the mapping to proof generator if it exists
   if (pg != nullptr)
   {
-    Node q = nm->mkNode(EXISTS, w[0], w[1]);
+    // We cache based on the original (Skolem) form, since the user of this
+    // method operates on Skolem forms.
+    Node q = nm->mkNode(EXISTS, bvl, pred);
     // Notice this may overwrite an existing proof generator. This does not
     // matter since either should be able to prove q.
     d_gens[q] = pg;
   }
-  return getOrMakeSkolem(w, prefix, comment, flags);
+  Node k = getOrMakeSkolem(w, prefix, comment, flags);
+  // if we want to return the witness term, make it
+  if (retWitness)
+  {
+    return nm->mkNode(WITNESS, bvl, pred);
+  }
+  return k;
 }
 
 Node SkolemManager::mkSkolemize(Node q,
@@ -115,7 +126,7 @@ Node SkolemManager::skolemize(Node q,
     // method deterministic ensures that the proof checker (e.g. for
     // quantifiers) is capable of proving the expected value for conclusions
     // of proof rules, instead of an alpha-equivalent variant of a conclusion.
-    Node avp = getOrMakeBoundVariable(av, av);
+    Node avp = getOrMakeBoundVariable(av);
     ovarsW.push_back(avp);
     ovars.push_back(av);
   }
@@ -159,7 +170,7 @@ Node SkolemManager::mkPurifySkolem(Node t,
   // directly.
   if (t.getKind() == WITNESS)
   {
-    return getOrMakeSkolem(t, prefix, comment, flags);
+    return getOrMakeSkolem(getWitnessForm(t), prefix, comment, flags);
   }
   Node v = NodeManager::currentNM()->mkBoundVar(t.getType());
   Node k = mkSkolem(v, v.eqNode(t), prefix, comment, flags);
@@ -167,19 +178,14 @@ Node SkolemManager::mkPurifySkolem(Node t,
   return k;
 }
 
-Node SkolemManager::mkExistential(Node t, Node p)
+Node SkolemManager::mkBooleanTermVariable(Node t)
 {
-  Assert(p.getType().isBoolean());
-  NodeManager* nm = NodeManager::currentNM();
-  Node v = getOrMakeBoundVariable(t, p);
-  Node bvl = nm->mkNode(BOUND_VAR_LIST, v);
-  Node psubs = p.substitute(TNode(t), TNode(v));
-  return nm->mkNode(EXISTS, bvl, psubs);
+  return mkPurifySkolem(t, "", "", NodeManager::SKOLEM_BOOL_TERM_VAR);
 }
 
-ProofGenerator* SkolemManager::getProofGenerator(Node t)
+ProofGenerator* SkolemManager::getProofGenerator(Node t) const
 {
-  std::map<Node, ProofGenerator*>::iterator it = d_gens.find(t);
+  std::map<Node, ProofGenerator*>::const_iterator it = d_gens.find(t);
   if (it != d_gens.end())
   {
     return it->second;
@@ -275,7 +281,9 @@ Node SkolemManager::convertInternal(Node n, bool toWitness)
         // called on them. Regardless, witness terms with free variables
         // should never be themselves assigned skolems (otherwise we would have
         // assertions with free variables), and thus they can be treated like
-        // ordinary terms here.
+        // ordinary terms here. We use an assertion to check that this is
+        // indeed the case.
+        Assert(cur.getKind() != WITNESS || expr::hasFreeVar(cur));
         cur.setAttribute(sfa, ret);
       }
       visited[cur] = ret;
@@ -316,7 +324,16 @@ Node SkolemManager::getOrMakeSkolem(Node w,
   }
   NodeManager* nm = NodeManager::currentNM();
   // make the new skolem
-  Node k = nm->mkSkolem(prefix, w.getType(), comment, flags);
+  Node k;
+  if (flags & NodeManager::SKOLEM_BOOL_TERM_VAR)
+  {
+    Assert (w.getType().isBoolean());
+    k = nm->mkBooleanTermVariable();
+  }
+  else
+  {
+    k = nm->mkSkolem(prefix, w.getType(), comment, flags);
+  }
   // set witness form attribute for k
   WitnessFormAttribute wfa;
   k.setAttribute(wfa, w);
@@ -327,18 +344,16 @@ Node SkolemManager::getOrMakeSkolem(Node w,
   return k;
 }
 
-Node SkolemManager::getOrMakeBoundVariable(Node t, Node s)
+Node SkolemManager::getOrMakeBoundVariable(Node t)
 {
-  std::pair<Node, Node> key(t, s);
-  std::map<std::pair<Node, Node>, Node>::iterator it =
-      d_witnessBoundVar.find(key);
+  std::map<Node, Node>::iterator it = d_witnessBoundVar.find(t);
   if (it != d_witnessBoundVar.end())
   {
     return it->second;
   }
   TypeNode tt = t.getType();
   Node v = NodeManager::currentNM()->mkBoundVar(tt);
-  d_witnessBoundVar[key] = v;
+  d_witnessBoundVar[t] = v;
   return v;
 }
 

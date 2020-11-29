@@ -2,10 +2,10 @@
 /*! \file cvc4cpp.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Andres Noetzli
+ **   Aina Niemetz, Andrew Reynolds, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -36,13 +36,21 @@
 
 namespace CVC4 {
 
+template <bool ref_count>
+class NodeTemplate;
+typedef NodeTemplate<true> Node;
 class Expr;
-class Datatype;
-class DatatypeConstructor;
-class DatatypeConstructorArg;
+class DType;
+class DTypeConstructor;
+class DTypeSelector;
 class ExprManager;
+class GetAbductCommand;
+class GetInterpolCommand;
+class NodeManager;
 class SmtEngine;
+class SynthFunCommand;
 class Type;
+class TypeNode;
 class Options;
 class Random;
 class Result;
@@ -65,6 +73,16 @@ class CVC4_PUBLIC CVC4ApiException : public std::exception
 
  private:
   std::string d_msg;
+};
+
+class CVC4_PUBLIC CVC4ApiRecoverableException : public CVC4ApiException
+{
+ public:
+  CVC4ApiRecoverableException(const std::string& str) : CVC4ApiException(str) {}
+  CVC4ApiRecoverableException(const std::stringstream& stream)
+      : CVC4ApiException(stream.str())
+  {
+  }
 };
 
 /* -------------------------------------------------------------------------- */
@@ -188,6 +206,7 @@ class Datatype;
  */
 class CVC4_PUBLIC Sort
 {
+  friend class DatatypeConstructor;
   friend class DatatypeConstructorDecl;
   friend class DatatypeDecl;
   friend class Op;
@@ -206,6 +225,7 @@ class CVC4_PUBLIC Sort
    * @return the Sort
    */
   Sort(const Solver* slv, const CVC4::Type& t);
+  Sort(const Solver* slv, const CVC4::TypeNode& t);
 
   /**
    * Constructor.
@@ -380,6 +400,18 @@ class CVC4_PUBLIC Sort
   bool isSet() const;
 
   /**
+   * Is this a Bag sort?
+   * @return true if the sort is a Bag sort
+   */
+  bool isBag() const;
+
+  /**
+   * Is this a Sequence sort?
+   * @return true if the sort is a Sequence sort
+   */
+  bool isSequence() const;
+
+  /**
    * Is this a sort kind?
    * @return true if this is a sort kind
    */
@@ -458,6 +490,7 @@ class CVC4_PUBLIC Sort
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
   CVC4::Type getType(void) const;
+  const CVC4::TypeNode& getTypeNode(void) const;
 
   /* Constructor sort ------------------------------------------------------- */
 
@@ -475,6 +508,30 @@ class CVC4_PUBLIC Sort
    * @return the codomain sort of a constructor sort
    */
   Sort getConstructorCodomainSort() const;
+
+  /* Selector sort ------------------------------------------------------- */
+
+  /**
+   * @return the domain sort of a selector sort
+   */
+  Sort getSelectorDomainSort() const;
+
+  /**
+   * @return the codomain sort of a selector sort
+   */
+  Sort getSelectorCodomainSort() const;
+
+  /* Tester sort ------------------------------------------------------- */
+
+  /**
+   * @return the domain sort of a tester sort
+   */
+  Sort getTesterDomainSort() const;
+
+  /**
+   * @return the codomain sort of a tester sort, which is the Boolean sort
+   */
+  Sort getTesterCodomainSort() const;
 
   /* Function sort ------------------------------------------------------- */
 
@@ -511,6 +568,20 @@ class CVC4_PUBLIC Sort
    * @return the element sort of a set sort
    */
   Sort getSetElementSort() const;
+
+  /* Bag sort ------------------------------------------------------------ */
+
+  /**
+   * @return the element sort of a bag sort
+   */
+  Sort getBagElementSort() const;
+
+  /* Sequence sort ------------------------------------------------------- */
+
+  /**
+   * @return the element sort of a sequence sort
+   */
+  Sort getSequenceElementSort() const;
 
   /* Uninterpreted sort -------------------------------------------------- */
 
@@ -602,7 +673,7 @@ class CVC4_PUBLIC Sort
    * memory allocation (CVC4::Type is already ref counted, so this could be
    * a unique_ptr instead).
    */
-  std::shared_ptr<CVC4::Type> d_type;
+  std::shared_ptr<CVC4::TypeNode> d_type;
 };
 
 /**
@@ -660,6 +731,17 @@ class CVC4_PUBLIC Op
    * @return the Term
    */
   Op(const Solver* slv, const Kind k, const CVC4::Expr& e);
+
+  // !!! This constructor is only temporarily public until the parser is fully
+  // migrated to the new API. !!!
+  /**
+   * Constructor.
+   * @param slv the associated solver object
+   * @param k the kind of this Op
+   * @param n the internal node that is to be wrapped by this term
+   * @return the Term
+   */
+  Op(const Solver* slv, const Kind k, const CVC4::Node& n);
 
   /**
    * Destructor.
@@ -750,7 +832,7 @@ class CVC4_PUBLIC Op
    * memory allocation (CVC4::Expr is already ref counted, so this could be
    * a unique_ptr instead).
    */
-  std::shared_ptr<CVC4::Expr> d_expr;
+  std::shared_ptr<CVC4::Node> d_node;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -778,6 +860,16 @@ class CVC4_PUBLIC Term
    * @return the Term
    */
   Term(const Solver* slv, const CVC4::Expr& e);
+
+  // !!! This constructor is only temporarily public until the parser is fully
+  // migrated to the new API. !!!
+  /**
+   * Constructor.
+   * @param slv the associated solver object
+   * @param n the internal node that is to be wrapped by this term
+   * @return the Term
+   */
+  Term(const Solver* slv, const CVC4::Node& n);
 
   /**
    * Constructor.
@@ -893,18 +985,18 @@ class CVC4_PUBLIC Term
   bool isNull() const;
 
   /**
-   * Check if this is a Term representing a constant.
-   *
-   * @return true if a constant Term
-   */
-  bool isConst() const;
-
-  /**
    *  Return the base (element stored at all indices) of a constant array
    *  throws an exception if the kind is not CONST_ARRAY
    *  @return the base value
    */
   Term getConstArrayBase() const;
+
+  /**
+   *  Return the elements of a constant sequence
+   *  throws an exception if the kind is not CONST_SEQUENCE
+   *  @return the elements of the constant sequence.
+   */
+  std::vector<Term> getConstSequenceElements() const;
 
   /**
    * Boolean negation.
@@ -983,7 +1075,7 @@ class CVC4_PUBLIC Term
      * @param p the position of the iterator (e.g. which child it's on)
      */
     const_iterator(const Solver* slv,
-                   const std::shared_ptr<CVC4::Expr>& e,
+                   const std::shared_ptr<CVC4::Node>& e,
                    uint32_t p);
 
     /**
@@ -1035,8 +1127,8 @@ class CVC4_PUBLIC Term
      * The associated solver object.
      */
     const Solver* d_solver;
-    /* The original expression to be iterated over */
-    std::shared_ptr<CVC4::Expr> d_orig_expr;
+    /* The original node to be iterated over */
+    std::shared_ptr<CVC4::Node> d_origNode;
     /* Keeps track of the iteration position */
     uint32_t d_pos;
   };
@@ -1055,6 +1147,10 @@ class CVC4_PUBLIC Term
   // to the new API. !!!
   CVC4::Expr getExpr(void) const;
 
+  // !!! This is only temporarily available until the parser is fully migrated
+  // to the new API. !!!
+  const CVC4::Node& getNode(void) const;
+
  protected:
   /**
    * The associated solver object.
@@ -1069,12 +1165,24 @@ class CVC4_PUBLIC Term
   bool isNullHelper() const;
 
   /**
+   * Helper function that returns the kind of the term, which takes into
+   * account special cases of the conversion for internal to external kinds.
+   * @return the kind of this term
+   */
+  Kind getKindHelper() const;
+
+  /**
+   * returns true if the current term is a constant integer that is casted into
+   * real using the operator CAST_TO_REAL, and returns false otherwise
+   */
+  bool isCastedReal() const;
+  /**
    * The internal expression wrapped by this term.
    * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
    * memory allocation (CVC4::Expr is already ref counted, so this could be
    * a unique_ptr instead).
    */
-  std::shared_ptr<CVC4::Expr> d_expr;
+  std::shared_ptr<CVC4::Node> d_node;
 };
 
 /**
@@ -1183,6 +1291,11 @@ class CVC4_PUBLIC DatatypeConstructorDecl
   DatatypeConstructorDecl();
 
   /**
+   * Destructor.
+   */
+  ~DatatypeConstructorDecl();
+
+  /**
    * Add datatype selector declaration.
    * @param name the name of the datatype selector declaration to add
    * @param sort the range sort of the datatype selector declaration to add
@@ -1201,7 +1314,7 @@ class CVC4_PUBLIC DatatypeConstructorDecl
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  const CVC4::DatatypeConstructor& getDatatypeConstructor(void) const;
+  const CVC4::DTypeConstructor& getDatatypeConstructor(void) const;
 
  private:
   /**
@@ -1221,9 +1334,9 @@ class CVC4_PUBLIC DatatypeConstructorDecl
    * The internal (intermediate) datatype constructor wrapped by this
    * datatype constructor declaration.
    * This is a shared_ptr rather than a unique_ptr since
-   * CVC4::DatatypeConstructor is not ref counted.
+   * CVC4::DTypeConstructor is not ref counted.
    */
-  std::shared_ptr<CVC4::DatatypeConstructor> d_ctor;
+  std::shared_ptr<CVC4::DTypeConstructor> d_ctor;
 };
 
 class Solver;
@@ -1274,7 +1387,7 @@ class CVC4_PUBLIC DatatypeDecl
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  CVC4::Datatype& getDatatype(void) const;
+  CVC4::DType& getDatatype(void) const;
 
  private:
   /**
@@ -1327,10 +1440,10 @@ class CVC4_PUBLIC DatatypeDecl
 
   /* The internal (intermediate) datatype wrapped by this datatype
    * declaration
-   * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
+   * This is a shared_ptr rather than a unique_ptr since CVC4::DType is
    * not ref counted.
    */
-  std::shared_ptr<CVC4::Datatype> d_dtype;
+  std::shared_ptr<CVC4::DType> d_dtype;
 };
 
 /**
@@ -1355,7 +1468,7 @@ class CVC4_PUBLIC DatatypeSelector
    * @param stor the internal datatype selector to be wrapped
    * @return the DatatypeSelector
    */
-  DatatypeSelector(const Solver* slv, const CVC4::DatatypeConstructorArg& stor);
+  DatatypeSelector(const Solver* slv, const CVC4::DTypeSelector& stor);
 
   /**
    * Destructor.
@@ -1381,7 +1494,7 @@ class CVC4_PUBLIC DatatypeSelector
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  CVC4::DatatypeConstructorArg getDatatypeConstructorArg(void) const;
+  CVC4::DTypeSelector getDatatypeConstructorArg(void) const;
 
  private:
   /**
@@ -1391,10 +1504,10 @@ class CVC4_PUBLIC DatatypeSelector
 
   /**
    * The internal datatype selector wrapped by this datatype selector.
-   * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
+   * This is a shared_ptr rather than a unique_ptr since CVC4::DType is
    * not ref counted.
    */
-  std::shared_ptr<CVC4::DatatypeConstructorArg> d_stor;
+  std::shared_ptr<CVC4::DTypeSelector> d_stor;
 };
 
 /**
@@ -1418,7 +1531,7 @@ class CVC4_PUBLIC DatatypeConstructor
    * @param ctor the internal datatype constructor to be wrapped
    * @return the DatatypeConstructor
    */
-  DatatypeConstructor(const Solver* slv, const CVC4::DatatypeConstructor& ctor);
+  DatatypeConstructor(const Solver* slv, const CVC4::DTypeConstructor& ctor);
 
   /**
    * Destructor.
@@ -1433,6 +1546,31 @@ class CVC4_PUBLIC DatatypeConstructor
    * @return the constructor term
    */
   Term getConstructorTerm() const;
+
+  /**
+   * Get the constructor operator of this datatype constructor whose return
+   * type is retSort. This method is intended to be used on constructors of
+   * parametric datatypes and can be seen as returning the constructor
+   * term that has been explicitly cast to the given sort.
+   *
+   * This method is required for constructors of parametric datatypes whose
+   * return type cannot be determined by type inference. For example, given:
+   *   (declare-datatype List (par (T) ((nil) (cons (head T) (tail (List T))))))
+   * The type of nil terms need to be provided by the user. In SMT version 2.6,
+   * this is done via the syntax for qualified identifiers:
+   *   (as nil (List Int))
+   * This method is equivalent of applying the above, where this
+   * DatatypeConstructor is the one corresponding to nil, and retSort is
+   * (List Int).
+   *
+   * Furthermore note that the returned constructor term t is an operator,
+   * while Solver::mkTerm(APPLY_CONSTRUCTOR, t) is used to construct the above
+   * (nullary) application of nil.
+   *
+   * @param retSort the desired return sort of the constructor
+   * @return the constructor term
+   */
+  Term getSpecializedConstructorTerm(Sort retSort) const;
 
   /**
    * Get the tester operator of this datatype constructor.
@@ -1536,7 +1674,7 @@ class CVC4_PUBLIC DatatypeConstructor
      * @param true if this is a begin() iterator
      */
     const_iterator(const Solver* slv,
-                   const CVC4::DatatypeConstructor& ctor,
+                   const CVC4::DTypeConstructor& ctor,
                    bool begin);
 
     /**
@@ -1568,7 +1706,7 @@ class CVC4_PUBLIC DatatypeConstructor
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  const CVC4::DatatypeConstructor& getDatatypeConstructor(void) const;
+  const CVC4::DTypeConstructor& getDatatypeConstructor(void) const;
 
  private:
   /**
@@ -1585,10 +1723,10 @@ class CVC4_PUBLIC DatatypeConstructor
 
   /**
    * The internal datatype constructor wrapped by this datatype constructor.
-   * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
+   * This is a shared_ptr rather than a unique_ptr since CVC4::DType is
    * not ref counted.
    */
-  std::shared_ptr<CVC4::DatatypeConstructor> d_ctor;
+  std::shared_ptr<CVC4::DTypeConstructor> d_ctor;
 };
 
 /*
@@ -1607,7 +1745,7 @@ class CVC4_PUBLIC Datatype
    * @param dtype the internal datatype to be wrapped
    * @return the Datatype
    */
-  Datatype(const Solver* slv, const CVC4::Datatype& dtype);
+  Datatype(const Solver* slv, const CVC4::DType& dtype);
 
   // Nullary constructor for Cython
   Datatype();
@@ -1751,7 +1889,7 @@ class CVC4_PUBLIC Datatype
      * @param dtype the internal datatype to iterate over
      * @param true if this is a begin() iterator
      */
-    const_iterator(const Solver* slv, const CVC4::Datatype& dtype, bool begin);
+    const_iterator(const Solver* slv, const CVC4::DType& dtype, bool begin);
 
     /**
      * The associated solver object.
@@ -1782,7 +1920,7 @@ class CVC4_PUBLIC Datatype
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  const CVC4::Datatype& getDatatype(void) const;
+  const CVC4::DType& getDatatype(void) const;
 
  private:
   /**
@@ -1799,10 +1937,10 @@ class CVC4_PUBLIC Datatype
 
   /**
    * The internal datatype wrapped by this datatype.
-   * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
+   * This is a shared_ptr rather than a unique_ptr since CVC4::DType is
    * not ref counted.
    */
-  std::shared_ptr<CVC4::Datatype> d_dtype;
+  std::shared_ptr<CVC4::DType> d_dtype;
 };
 
 /**
@@ -1868,6 +2006,9 @@ std::ostream& operator<<(std::ostream& out,
  */
 class CVC4_PUBLIC Grammar
 {
+  friend class CVC4::GetAbductCommand;
+  friend class CVC4::GetInterpolCommand;
+  friend class CVC4::SynthFunCommand;
   friend class Solver;
 
  public:
@@ -1877,6 +2018,13 @@ class CVC4_PUBLIC Grammar
    * @param rule the rule to add
    */
   void addRule(Term ntSymbol, Term rule);
+
+  /**
+   * Add <rules> to the set of rules corresponding to <ntSymbol>.
+   * @param ntSymbol the non-terminal to which the rules are added
+   * @param rule the rules to add
+   */
+  void addRules(Term ntSymbol, std::vector<Term> rules);
 
   /**
    * Allow <ntSymbol> to be an arbitrary constant.
@@ -1892,11 +2040,14 @@ class CVC4_PUBLIC Grammar
   void addAnyVariable(Term ntSymbol);
 
   /**
-   * Add <rules> to the set of rules corresponding to <ntSymbol>.
-   * @param ntSymbol the non-terminal to which the rules are added
-   * @param rule the rules to add
+   * @return a string representation of this grammar.
    */
-  void addRules(Term ntSymbol, std::vector<Term> rules);
+  std::string toString() const;
+
+  /**
+   * Nullary constructor. Needed for the Cython API.
+   */
+  Grammar();
 
  private:
   /**
@@ -1986,6 +2137,14 @@ class CVC4_PUBLIC Grammar
   bool d_isResolved;
 };
 
+/**
+ * Serialize a grammar to given stream.
+ * @param out the output stream
+ * @param g the grammar to be serialized to the given output stream
+ * @return the output stream
+ */
+std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC4_PUBLIC;
+
 /* -------------------------------------------------------------------------- */
 /* Rounding Mode for Floating Points                                          */
 /* -------------------------------------------------------------------------- */
@@ -2026,7 +2185,7 @@ class CVC4_PUBLIC Solver
 
   /**
    * Constructor.
-   * @param opts a pointer to a solver options object (for parser only)
+   * @param opts an optional pointer to a solver options object
    * @return the Solver
    */
   Solver(Options* opts = nullptr);
@@ -2041,6 +2200,12 @@ class CVC4_PUBLIC Solver
    */
   Solver(const Solver&) = delete;
   Solver& operator=(const Solver&) = delete;
+
+  /* .................................................................... */
+  /* Solver Configuration                                                 */
+  /* .................................................................... */
+
+  bool supportsFloatingPoint() const;
 
   /* .................................................................... */
   /* Sorts Handling                                                       */
@@ -2074,7 +2239,7 @@ class CVC4_PUBLIC Solver
   /**
    * @return sort RoundingMode
    */
-  Sort getRoundingmodeSort() const;
+  Sort getRoundingModeSort() const;
 
   /**
    * @return sort String
@@ -2138,8 +2303,9 @@ class CVC4_PUBLIC Solver
    * @param unresolvedSorts the list of unresolved sorts
    * @return the datatype sorts
    */
-  std::vector<Sort> mkDatatypeSorts(std::vector<DatatypeDecl>& dtypedecls,
-                                    std::set<Sort>& unresolvedSorts) const;
+  std::vector<Sort> mkDatatypeSorts(
+      const std::vector<DatatypeDecl>& dtypedecls,
+      const std::set<Sort>& unresolvedSorts) const;
 
   /**
    * Create function sort.
@@ -2185,6 +2351,20 @@ class CVC4_PUBLIC Solver
    * @return the set sort
    */
   Sort mkSetSort(Sort elemSort) const;
+
+  /**
+   * Create a bag sort.
+   * @param elemSort the sort of the bag elements
+   * @return the bag sort
+   */
+  Sort mkBagSort(Sort elemSort) const;
+
+  /**
+   * Create a sequence sort.
+   * @param elemSort the sort of the sequence elements
+   * @return the sequence sort
+   */
+  Sort mkSequenceSort(Sort elemSort) const;
 
   /**
    * Create an uninterpreted sort.
@@ -2295,8 +2475,7 @@ class CVC4_PUBLIC Solver
   /**
    * Create n-ary term of given kind from a given operator.
    * Create operators with mkOp().
-   * @param kind the kind of the term
-   * @param the operator
+   * @param op the operator
    * @children the children of the term
    * @return the Term
    */
@@ -2401,29 +2580,28 @@ class CVC4_PUBLIC Solver
    * @return a constant representing Pi
    */
   Term mkPi() const;
-
   /**
-   * Create a real constant from a string.
+   * Create an integer constant from a string.
    * @param s the string representation of the constant, may represent an
-   *          integer (e.g., "123") or real constant (e.g., "12.34" or "12/34").
-   * @return a constant of sort Real or Integer (if 's' represents an integer)
+   *          integer (e.g., "123").
+   * @return a constant of sort Integer assuming 's' represents an integer)
    */
-  Term mkReal(const char* s) const;
+  Term mkInteger(const std::string& s) const;
 
   /**
-   * Create a real constant from a string.
-   * @param s the string representation of the constant, may represent an
-   *          integer (e.g., "123") or real constant (e.g., "12.34" or "12/34").
-   * @return a constant of sort Real or Integer (if 's' represents an integer)
-   */
-  Term mkReal(const std::string& s) const;
-
-  /**
-   * Create a real constant from an integer.
+   * Create an integer constant from a c++ int.
    * @param val the value of the constant
    * @return a constant of sort Integer
    */
-  Term mkReal(int32_t val) const;
+  Term mkInteger(int64_t val) const;
+
+  /**
+   * Create a real constant from a string.
+   * @param s the string representation of the constant, may represent an
+   *          integer (e.g., "123") or real constant (e.g., "12.34" or "12/34").
+   * @return a constant of sort Real
+   */
+  Term mkReal(const std::string& s) const;
 
   /**
    * Create a real constant from an integer.
@@ -2433,50 +2611,12 @@ class CVC4_PUBLIC Solver
   Term mkReal(int64_t val) const;
 
   /**
-   * Create a real constant from an unsigned integer.
-   * @param val the value of the constant
-   * @return a constant of sort Integer
-   */
-  Term mkReal(uint32_t val) const;
-
-  /**
-   * Create a real constant from an unsigned integer.
-   * @param val the value of the constant
-   * @return a constant of sort Integer
-   */
-  Term mkReal(uint64_t val) const;
-
-  /**
    * Create a real constant from a rational.
    * @param num the value of the numerator
    * @param den the value of the denominator
-   * @return a constant of sort Real or Integer (if 'num' is divisible by 'den')
-   */
-  Term mkReal(int32_t num, int32_t den) const;
-
-  /**
-   * Create a real constant from a rational.
-   * @param num the value of the numerator
-   * @param den the value of the denominator
-   * @return a constant of sort Real or Integer (if 'num' is divisible by 'den')
+   * @return a constant of sort Real
    */
   Term mkReal(int64_t num, int64_t den) const;
-
-  /**
-   * Create a real constant from a rational.
-   * @param num the value of the numerator
-   * @param den the value of the denominator
-   * @return a constant of sort Real or Integer (if 'num' is divisible by 'den')
-   */
-  Term mkReal(uint32_t num, uint32_t den) const;
-
-  /**
-   * Create a real constant from a rational.
-   * @param num the value of the numerator
-   * @param den the value of the denominator
-   * @return a constant of sort Real or Integer (if 'num' is divisible by 'den')
-   */
-  Term mkReal(uint64_t num, uint64_t den) const;
 
   /**
    * Create a regular expression empty term.
@@ -2498,20 +2638,18 @@ class CVC4_PUBLIC Solver
   Term mkEmptySet(Sort s) const;
 
   /**
+   * Create a constant representing an empty bag of the given sort.
+   * @param s the sort of the bag elements.
+   * @return the empty bag constant
+   */
+  Term mkEmptyBag(Sort s) const;
+
+  /**
    * Create a separation logic nil term.
    * @param sort the sort of the nil term
    * @return the separation logic nil term
    */
   Term mkSepNil(Sort sort) const;
-
-  /**
-   * Create a String constant.
-   * @param s the string this constant represents
-   * @param useEscSequences determines whether escape sequences in \p s should
-   * be converted to the corresponding character
-   * @return the String constant
-   */
-  Term mkString(const char* s, bool useEscSequences = false) const;
 
   /**
    * Create a String constant.
@@ -2544,11 +2682,11 @@ class CVC4_PUBLIC Solver
   Term mkChar(const std::string& s) const;
 
   /**
-   * Create a character constant from a given string.
-   * @param s the string denoting the code point of the character (in base 16)
-   * @return the character constant
+   * Create an empty sequence of the given element sort.
+   * @param sort The element sort of the sequence.
+   * @return the empty sequence with given element sort.
    */
-  Term mkChar(const char* s) const;
+  Term mkEmptySequence(Sort sort) const;
 
   /**
    * Create a universe set of the given sort.
@@ -2564,14 +2702,6 @@ class CVC4_PUBLIC Solver
    * @return the bit-vector constant
    */
   Term mkBitVector(uint32_t size, uint64_t val = 0) const;
-
-  /**
-   * Create a bit-vector constant from a given string.
-   * @param s the string representation of the constant
-   * @param base the base of the string representation (2, 10, or 16)
-   * @return the bit-vector constant
-   */
-  Term mkBitVector(const char* s, uint32_t base = 2) const;
 
   /**
    * Create a bit-vector constant from a given string of base 2, 10 or 16.
@@ -2591,23 +2721,12 @@ class CVC4_PUBLIC Solver
   /**
    * Create a bit-vector constant of a given bit-width from a given string of
    * base 2, 10 or 16.
-   *
    * @param size the bit-width of the constant
    * @param s the string representation of the constant
    * @param base the base of the string representation (2, 10, or 16)
    * @return the bit-vector constant
    */
-  Term mkBitVector(uint32_t size, const char* s, uint32_t base) const;
-
-  /**
-   * Create a bit-vector constant of a given bit-width from a given string of
-   * base 2, 10 or 16.
-   * @param size the bit-width of the constant
-   * @param s the string representation of the constant
-   * @param base the base of the string representation (2, 10, or 16)
-   * @return the bit-vector constant
-   */
-  Term mkBitVector(uint32_t size, std::string& s, uint32_t base) const;
+  Term mkBitVector(uint32_t size, const std::string& s, uint32_t base) const;
 
   /**
    * Create a constant array with the provided constant value stored at every
@@ -2710,10 +2829,19 @@ class CVC4_PUBLIC Solver
    * @param symbol the name of the constant
    * @return the first-order constant
    */
-  Term mkConst(Sort sort, const std::string& symbol = std::string()) const;
+  Term mkConst(Sort sort, const std::string& symbol) const;
+  /**
+   * Create (first-order) constant (0-arity function symbol), with a default
+   * symbol name.
+   *
+   * @param sort the sort of the constant
+   * @return the first-order constant
+   */
+  Term mkConst(Sort sort) const;
 
   /**
-   * Create (bound) variable.
+   * Create a bound variable to be used in a binder (i.e. a quantifier, a
+   * lambda, or a witness binder).
    * @param sort the sort of the variable
    * @param symbol the name of the variable
    * @return the variable
@@ -2950,14 +3078,6 @@ class CVC4_PUBLIC Solver
   std::vector<Term> getAssertions() const;
 
   /**
-   * Get the assignment of asserted formulas.
-   * SMT-LIB: ( get-assignment )
-   * Requires to enable option 'produce-assignments'.
-   * @return a list of formula-assignment pairs
-   */
-  std::vector<std::pair<Term, Term>> getAssignment() const;
-
-  /**
    * Get info from the solver.
    * SMT-LIB: ( get-info <info_flag> )
    * @return the info
@@ -3004,6 +3124,69 @@ class CVC4_PUBLIC Solver
   std::vector<Term> getValue(const std::vector<Term>& terms) const;
 
   /**
+   * Do quantifier elimination.
+   * SMT-LIB: ( get-qe <q> )
+   * Requires a logic that supports quantifier elimination. Currently, the only
+   * logics supported by quantifier elimination is LRA and LIA.
+   * @param q a quantified formula of the form:
+   *   Q x1...xn. P( x1...xn, y1...yn )
+   * where P( x1...xn, y1...yn ) is a quantifier-free formula
+   * @return a formula ret such that, given the current set of formulas A
+   * asserted to this solver:
+   *   - ( A ^ q ) and ( A ^ ret ) are equivalent
+   *   - ret is quantifier-free formula containing only free variables in
+   *     y1...yn.
+   */
+  Term getQuantifierElimination(api::Term q) const;
+
+  /**
+   * Do partial quantifier elimination, which can be used for incrementally
+   * computing the result of a quantifier elimination.
+   * SMT-LIB: ( get-qe-disjunct <q> )
+   * Requires a logic that supports quantifier elimination. Currently, the only
+   * logics supported by quantifier elimination is LRA and LIA.
+   * @param q a quantified formula of the form:
+   *   Q x1...xn. P( x1...xn, y1...yn )
+   * where P( x1...xn, y1...yn ) is a quantifier-free formula
+   * @return a formula ret such that, given the current set of formulas A
+   * asserted to this solver:
+   *   - (A ^ q) => (A ^ ret) if Q is forall or (A ^ ret) => (A ^ q) if Q is
+   *     exists,
+   *   - ret is quantifier-free formula containing only free variables in
+   *     y1...yn,
+   *   - If Q is exists, let A^Q_n be the formula
+   *       A ^ ~ret^Q_1 ^ ... ^ ~ret^Q_n
+   *     where for each i=1,...n, formula ret^Q_i is the result of calling
+   *     getQuantifierEliminationDisjunct for q with the set of assertions
+   *     A^Q_{i-1}. Similarly, if Q is forall, then let A^Q_n be
+   *       A ^ ret^Q_1 ^ ... ^ ret^Q_n
+   *     where ret^Q_i is the same as above. In either case, we have
+   *     that ret^Q_j will eventually be true or false, for some finite j.
+   */
+  Term getQuantifierEliminationDisjunct(api::Term q) const;
+
+  /**
+   * When using separation logic, this sets the location sort and the
+   * datatype sort to the given ones. This method should be invoked exactly
+   * once, before any separation logic constraints are provided.
+   * @param locSort The location sort of the heap
+   * @param dataSort The data sort of the heap
+   */
+  void declareSeparationHeap(api::Sort locSort, api::Sort dataSort) const;
+
+  /**
+   * When using separation logic, obtain the term for the heap.
+   * @return The term for the heap
+   */
+  Term getSeparationHeap() const;
+
+  /**
+   * When using separation logic, obtain the term for nil.
+   * @return The term for nil
+   */
+  Term getSeparationNilTerm() const;
+
+  /**
    * Pop (a) level(s) from the assertion stack.
    * SMT-LIB: ( pop <numeral> )
    * @param nscopes the number of levels to pop
@@ -3011,11 +3194,76 @@ class CVC4_PUBLIC Solver
   void pop(uint32_t nscopes = 1) const;
 
   /**
-   * Print the model of a satisfiable query to the given output stream.
-   * Requires to enable option 'produce-models'.
+   * Get an interpolant
+   * SMT-LIB: ( get-interpol <conj> )
+   * Requires to enable option 'produce-interpols'.
+   * @param conj the conjecture term
+   * @param output a Term I such that A->I and I->B are valid, where A is the
+   *        current set of assertions and B is given in the input by conj.
+   * @return true if it gets I successfully, false otherwise.
+   */
+  bool getInterpolant(Term conj, Term& output) const;
+
+  /**
+   * Get an interpolant
+   * SMT-LIB: ( get-interpol <conj> <g> )
+   * Requires to enable option 'produce-interpols'.
+   * @param conj the conjecture term
+   * @param g the grammar for the interpolant I
+   * @param output a Term I such that A->I and I->B are valid, where A is the
+   *        current set of assertions and B is given in the input by conj.
+   * @return true if it gets I successfully, false otherwise.
+   */
+  bool getInterpolant(Term conj, Grammar& g, Term& output) const;
+
+  /**
+   * Get an abduct.
+   * SMT-LIB: ( get-abduct <conj> )
+   * Requires enabling option 'produce-abducts'
+   * @param conj the conjecture term
+   * @param output a term C such that A^C is satisfiable, and A^~B^C is
+   *        unsatisfiable, where A is the current set of assertions and B is
+   *        given in the input by conj
+   * @return true if it gets C successfully, false otherwise
+   */
+  bool getAbduct(Term conj, Term& output) const;
+
+  /**
+   * Get an abduct.
+   * SMT-LIB: ( get-abduct <conj> <g> )
+   * Requires enabling option 'produce-abducts'
+   * @param conj the conjecture term
+   * @param g the grammar for the abduct C
+   * @param output a term C such that A^C is satisfiable, and A^~B^C is
+   *        unsatisfiable, where A is the current set of assertions and B is
+   *        given in the input by conj
+   * @return true if it gets C successfully, false otherwise
+   */
+  bool getAbduct(Term conj, Grammar& g, Term& output) const;
+
+  /**
+   * Block the current model. Can be called only if immediately preceded by a
+   * SAT or INVALID query.
+   * SMT-LIB: ( block-model )
+   * Requires enabling 'produce-models' option and setting 'block-models' option
+   * to a mode other than "none".
+   */
+  void blockModel() const;
+
+  /**
+   * Block the current model values of (at least) the values in terms. Can be
+   * called only if immediately preceded by a SAT or NOT_ENTAILED query.
+   * SMT-LIB: ( block-model-values ( <terms>+ ) )
+   * Requires enabling 'produce-models' option and setting 'block-models' option
+   * to a mode other than "none".
+   */
+  void blockModelValues(const std::vector<Term>& terms) const;
+
+  /**
+   * Print all instantiations made by the quantifiers module.
    * @param out the output stream
    */
-  void printModel(std::ostream& out) const;
+  void printInstantiations(std::ostream& out) const;
 
   /**
    * Push (a) level(s) to the assertion stack.
@@ -3072,7 +3320,9 @@ class CVC4_PUBLIC Solver
   Term mkSygusVar(Sort sort, const std::string& symbol = std::string()) const;
 
   /**
-   * Create a Sygus grammar.
+   * Create a Sygus grammar. The first non-terminal is treated as the starting
+   * non-terminal, so the order of non-terminals matters.
+   *
    * @param boundVars the parameters to corresponding synth-fun/synth-inv
    * @param ntSymbols the pre-declaration of the non-terminal symbols
    * @return the grammar
@@ -3185,7 +3435,15 @@ class CVC4_PUBLIC Solver
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
+  NodeManager* getNodeManager(void) const;
+
+  // !!! This is only temporarily available until the parser is fully migrated
+  // to the new API. !!!
   SmtEngine* getSmtEngine(void) const;
+
+  // !!! This is only temporarily available until options are refactored at
+  // the driver level. !!!
+  Options& getOptions(void);
 
  private:
   /* Helper to convert a vector of internal types to sorts. */
@@ -3214,14 +3472,16 @@ class CVC4_PUBLIC Solver
   Term mkTermFromKind(Kind kind) const;
   /* Helper for mkChar functions that take a string as argument. */
   Term mkCharFromStrHelper(const std::string& s) const;
+  /** Get value helper, which accounts for subtyping */
+  Term getValueHelper(Term term) const;
 
   /**
    * Helper function that ensures that a given term is of sort real (as opposed
    * to being of sort integer).
-   * @param term a term of sort integer or real
+   * @param t a term of sort integer or real
    * @return a term of sort real
    */
-  Term ensureRealSort(Term expr) const;
+  Term ensureRealSort(Term t) const;
 
   /**
    * Create n-ary term of given kind. This handles the cases of left/right
@@ -3234,14 +3494,22 @@ class CVC4_PUBLIC Solver
   Term mkTermHelper(Kind kind, const std::vector<Term>& children) const;
 
   /**
+   * Create n-ary term of given kind from a given operator.
+   * @param op the operator
+   * @param children the children of the term
+   * @return the Term
+   */
+  Term mkTermHelper(const Op& op, const std::vector<Term>& children) const;
+
+  /**
    * Create a vector of datatype sorts, using unresolved sorts.
    * @param dtypedecls the datatype declarations from which the sort is created
    * @param unresolvedSorts the list of unresolved sorts
    * @return the datatype sorts
    */
   std::vector<Sort> mkDatatypeSortsInternal(
-      std::vector<DatatypeDecl>& dtypedecls,
-      std::set<Sort>& unresolvedSorts) const;
+      const std::vector<DatatypeDecl>& dtypedecls,
+      const std::set<Sort>& unresolvedSorts) const;
 
   /**
    * Synthesize n-ary function following specified syntactic constraints.
@@ -3270,12 +3538,16 @@ class CVC4_PUBLIC Solver
 // !!! Only temporarily public until the parser is fully migrated to the
 // new API. !!!
 std::vector<Expr> termVectorToExprs(const std::vector<Term>& terms);
+std::vector<Node> termVectorToNodes(const std::vector<Term>& terms);
 std::vector<Type> sortVectorToTypes(const std::vector<Sort>& sorts);
-std::set<Type> sortSetToTypes(const std::set<Sort>& sorts);
+std::vector<TypeNode> sortVectorToTypeNodes(const std::vector<Sort>& sorts);
+std::set<TypeNode> sortSetToTypeNodes(const std::set<Sort>& sorts);
 std::vector<Term> exprVectorToTerms(const Solver* slv,
                                     const std::vector<Expr>& terms);
 std::vector<Sort> typeVectorToSorts(const Solver* slv,
                                     const std::vector<Type>& sorts);
+std::vector<Sort> typeNodeVectorToSorts(const Solver* slv,
+                                        const std::vector<TypeNode>& types);
 
 }  // namespace api
 

@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -23,6 +23,7 @@
 #include <string>
 
 #include "base/check.h"
+#include "base/configuration.h"
 #include "expr/kind.h"
 
 using namespace std;
@@ -43,7 +44,12 @@ LogicInfo::LogicInfo()
       d_higherOrder(true),
       d_locked(false)
 {
-  for(TheoryId id = THEORY_FIRST; id < THEORY_LAST; ++id) {
+  for (TheoryId id = THEORY_FIRST; id < THEORY_LAST; ++id)
+  {
+    if (id == THEORY_FP && !Configuration::isBuiltWithSymFPU())
+    {
+      continue;
+    }
     enableTheory(id);
   }
 }
@@ -330,6 +336,11 @@ std::string LogicInfo::getLogicString() const {
       }
       if(d_theories[THEORY_SETS]) {
         ss << "FS";
+        ++seen;
+      }
+      if (d_theories[THEORY_BAGS])
+      {
+        ss << "FB";
         ++seen;
       }
       if(seen != d_sharingTheories) {

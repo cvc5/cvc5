@@ -2,10 +2,10 @@
 /*! \file node_traversal.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Alex Ozdemir
+ **   Alex Ozdemir, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -17,7 +17,6 @@
 #ifndef CVC4__EXPR__NODE_TRAVERSAL_H
 #define CVC4__EXPR__NODE_TRAVERSAL_H
 
-#include <cstddef>
 #include <functional>
 #include <iterator>
 #include <unordered_map>
@@ -67,9 +66,13 @@ class NodeDfsIterator
   // Dereference
   reference operator*();
   // Equals
-  bool operator==(const NodeDfsIterator&) const;
+  // It is not constant, because an unitilized node must be initialized before
+  // comparison
+  bool operator==(NodeDfsIterator&);
   // Not equals
-  bool operator!=(const NodeDfsIterator&) const;
+  // It is not constant, because an unitilized node must be initialized before
+  // comparison
+  bool operator!=(NodeDfsIterator&);
 
  private:
   // While we're not at an appropriate visit (see d_postorder), advance.

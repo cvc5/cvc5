@@ -2,10 +2,10 @@
 /*! \file safe_print.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli
+ **   Andres Noetzli, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -36,13 +36,6 @@
 
 #ifndef CVC4__SAFE_PRINT_H
 #define CVC4__SAFE_PRINT_H
-
-#if __cplusplus >= 201103L
-// For c++11 and newer
-#include <cstdint>
-#else
-#include <stdint.h>
-#endif
 
 #include <unistd.h>
 

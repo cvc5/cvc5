@@ -1,4 +1,4 @@
-; Depends On: th_smt.plf
+; Deps: smt.plf
 (declare Real sort)
 
 (define arithpred_Real (! x (term Real)

@@ -2,10 +2,10 @@
 /*! \file theory_strings_utils.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -274,6 +274,8 @@ std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x)
       allEmptyEqs, std::vector<Node>(emptyNodes.begin(), emptyNodes.end()));
 }
 
+bool isConstantLike(Node n) { return n.isConst() || n.getKind() == SEQ_UNIT; }
+
 bool isUnboundedWildcard(const std::vector<Node>& rs, size_t start)
 {
   size_t i = start;
@@ -380,7 +382,7 @@ TypeNode getOwnerStringType(Node n)
   TypeNode tn;
   Kind k = n.getKind();
   if (k == STRING_STRIDOF || k == STRING_LENGTH || k == STRING_STRCTN
-      || k == STRING_PREFIX || k == STRING_SUFFIX)
+      || k == SEQ_NTH || k == STRING_PREFIX || k == STRING_SUFFIX)
   {
     // owning string type is the type of first argument
     tn = n[0].getType();

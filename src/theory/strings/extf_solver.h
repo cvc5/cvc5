@@ -1,11 +1,11 @@
 /*********************                                                        */
-/*! \file ext_solver.h
+/*! \file extf_solver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -83,9 +83,7 @@ class ExtfSolver
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  ExtfSolver(context::Context* c,
-             context::UserContext* u,
-             SolverState& s,
+  ExtfSolver(SolverState& s,
              InferenceManager& im,
              TermRegistry& tr,
              StringsRewriter& rewriter,
@@ -95,6 +93,11 @@ class ExtfSolver
              SequencesStatistics& statistics);
   ~ExtfSolver();
 
+  /**
+   * Called when a shared term is added to theory of strings, this registers
+   * n with the extended theory utility for context-depdendent simplification.
+   */
+  void addSharedTerm(TNode n);
   /** check extended functions evaluation
    *
    * This applies "context-dependent simplification" for all active extended
@@ -209,6 +212,23 @@ class ExtfSolver
   NodeSet d_extfInferCache;
   /** The set of extended functions we have sent reduction lemmas for */
   NodeSet d_reduced;
+};
+
+/** An extended theory callback */
+class StringsExtfCallback : public ExtTheoryCallback
+{
+ public:
+  StringsExtfCallback() : d_esolver(nullptr) {}
+  /**
+   * Get current substitution based on the underlying extended function
+   * solver.
+   */
+  bool getCurrentSubstitution(int effort,
+                              const std::vector<Node>& vars,
+                              std::vector<Node>& subs,
+                              std::map<Node, std::vector<Node> >& exp) override;
+  /** The extended function solver */
+  ExtfSolver* d_esolver;
 };
 
 }  // namespace strings

@@ -2,10 +2,10 @@
 /*! \file theory_sets_private.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Kshitij Bansal, Paul Meng
+ **   Andrew Reynolds, Kshitij Bansal, Mudathir Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -25,6 +25,7 @@
 #include "theory/sets/cardinality_extension.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/solver_state.h"
+#include "theory/sets/term_registry.h"
 #include "theory/sets/theory_sets_rels.h"
 #include "theory/sets/theory_sets_rewriter.h"
 #include "theory/theory.h"
@@ -39,26 +40,16 @@ class TheorySets;
 
 class TheorySetsPrivate {
   typedef context::CDHashMap< Node, bool, NodeHashFunction> NodeBoolMap;
-  typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
   void eqNotifyNewClass(TNode t);
-  void eqNotifyPreMerge(TNode t1, TNode t2);
-  void eqNotifyPostMerge(TNode t1, TNode t2);
+  void eqNotifyMerge(TNode t1, TNode t2);
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
-  /** Assert fact holds in the current context with explanation exp.
-   *
-   * exp should be explainable by the equality engine of this class, and fact
-   * should be a literal.
-   */
-  bool assertFact(Node fact, Node exp);
 
  private:
   /** Are a and b trigger terms in the equality engine that may be disequal? */
   bool areCareDisequal(Node a, Node b);
-  NodeIntMap d_members;
-  std::map< Node, std::vector< Node > > d_members_data;
   /**
    * Invoke the decision procedure for this theory, which is run at
    * full effort. This will either send a lemma or conflict on the output
@@ -70,19 +61,6 @@ class TheorySetsPrivate {
    * Reset the information for a full effort check.
    */
   void fullEffortReset();
-  /**
-   * This ensures that subtype constraints are met for all set terms. In
-   * particular, for a set equivalence class E, let Set(T) be the most
-   * common type among the types of terms in that class. In other words,
-   * if E contains two terms of Set(Int) and Set(Real), then Set(Int) is the
-   * most common type. Then, for each membership x in S where S is a set in
-   * this equivalence class, we ensure x has type T by asserting:
-   *   x = k
-   * for a fresh constant k of type T. This is done only if the type of x is not
-   * a subtype of Int (e.g. if x is of type Real). We call k the "type
-   * constraint skolem for x of type Int".
-   */
-  void checkSubtypes();
   /**
    * This implements an inference schema based on the "downwards closure" of
    * set membership. This roughly corresponds to the rules UNION DOWN I and II,
@@ -123,7 +101,6 @@ class TheorySetsPrivate {
    * context.
    */
   NodeSet d_termProcessed;
-  NodeSet d_keep;
   
   //propagation
   class EqcInfo
@@ -156,26 +133,37 @@ class TheorySetsPrivate {
    * contexts.
    */
   TheorySetsPrivate(TheorySets& external,
-                    context::Context* c,
-                    context::UserContext* u);
+                    SolverState& state,
+                    InferenceManager& im,
+                    SkolemCache& skc);
 
   ~TheorySetsPrivate();
 
   TheoryRewriter* getTheoryRewriter() { return &d_rewriter; }
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq);
+  /** Get the solver state */
+  SolverState* getSolverState() { return &d_state; }
 
+  /**
+   * Finish initialize, called after the equality engine of theory sets has
+   * been determined.
+   */
+  void finishInit();
+
+  //--------------------------------- standard check
+  /** Post-check, called after the fact queue of the theory is processed. */
+  void postCheck(Theory::Effort level);
+  /** Notify new fact */
+  void notifyFact(TNode atom, bool polarity, TNode fact);
+  //--------------------------------- end standard check
+
+  /** Collect model values in m based on the relevant terms given by termSet */
   void addSharedTerm(TNode);
-
-  void check(Theory::Effort);
-
-  bool collectModelInfo(TheoryModel* m);
+  bool collectModelValues(TheoryModel* m, const std::set<Node>& termSet);
 
   void computeCareGraph();
 
   Node explain(TNode);
-
-  EqualityStatus getEqualityStatus(TNode a, TNode b);
 
   void preRegisterTerm(TNode node);
 
@@ -208,55 +196,31 @@ class TheorySetsPrivate {
    * Another option to fix this is to make TheoryModel::getValue more general
    * so that it makes theory-specific calls to evaluate interpreted symbols.
    */
-  Node expandDefinition(Node n);
-  
+  TrustNode expandDefinition(Node n);
+
   void presolve();
 
-  void propagate(Theory::Effort);
-
-  /** get default output channel */
-  OutputChannel* getOutputChannel();
   /** get the valuation */
   Valuation& getValuation();
-
  private:
   TheorySets& d_external;
+  /** The state of the sets solver at full effort */
+  SolverState& d_state;
+  /** The inference manager of the sets solver */
+  InferenceManager& d_im;
+  /** Reference to the skolem cache */
+  SkolemCache& d_skCache;
+  /** The term registry */
+  TermRegistry d_treg;
 
-  /** Functions to handle callbacks from equality engine */
-  class NotifyClass : public eq::EqualityEngineNotify {
-    TheorySetsPrivate& d_theory;
+  /** Pointer to the equality engine of theory of sets */
+  eq::EqualityEngine* d_equalityEngine;
 
-  public:
-    NotifyClass(TheorySetsPrivate& theory): d_theory(theory) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override;
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override;
-    bool eqNotifyTriggerTermEquality(TheoryId tag,
-                                     TNode t1,
-                                     TNode t2,
-                                     bool value) override;
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override;
-    void eqNotifyNewClass(TNode t) override;
-    void eqNotifyPreMerge(TNode t1, TNode t2) override;
-    void eqNotifyPostMerge(TNode t1, TNode t2) override;
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override;
-  } d_notify;
-
-  /** Equality engine */
-  eq::EqualityEngine d_equalityEngine;
-
-  /** Proagate out to output channel */
-  bool propagate(TNode);
-
-  /** generate and send out conflict node */
-  void conflict(TNode, TNode);
-  
   bool isCareArg( Node n, unsigned a );
 
  public:
   /** Is formula n entailed to have polarity pol in the current context? */
   bool isEntailed(Node n, bool pol) { return d_state.isEntailed(n, pol); }
-  /** Is x entailed to be a member of set s in the current context? */
-  bool isMember(Node x, Node s);
 
  private:
   /** get choose function
@@ -265,10 +229,10 @@ class TheorySetsPrivate {
    * given set type, or creates a new one if it does not exist.
    */
   Node getChooseFunction(const TypeNode& setType);
-  /** The state of the sets solver at full effort */
-  SolverState d_state;
-  /** The inference manager of the sets solver */
-  InferenceManager d_im;
+  /** expand the definition of the choose operator */
+  TrustNode expandChooseOperator(const Node& node);
+  /** expand the definition of is_singleton operator */
+  TrustNode expandIsSingletonOperator(const Node& node);
   /** subtheory solver for the theory of relations */
   std::unique_ptr<TheorySetsRels> d_rels;
   /** subtheory solver for the theory of sets with cardinality */
@@ -289,10 +253,12 @@ class TheorySetsPrivate {
   /** The theory rewriter for this theory. */
   TheorySetsRewriter d_rewriter;
 
-  /*
-   * a map that stores the choose functions for set types
-   */
+  /** a map that stores the choose functions for set types */
   std::map<TypeNode, Node> d_chooseFunctions;
+
+  /** a map that maps each set to an existential quantifier generated for
+   * operator is_singleton */
+  std::map<Node, Node> d_isSingletonNodes;
 };/* class TheorySetsPrivate */
 
 

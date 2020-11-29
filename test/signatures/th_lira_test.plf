@@ -1,0 +1,294 @@
+; Deps: th_lira.plf
+;; Proof (from predicates on linear polynomials) that the following imply bottom
+;
+; -x - 1/2 y + 2 >= 0
+;  x +     y - 8 >= 0
+;  x -     y + 0 >= 0
+;
+(check
+  ; Variables
+  (% x real_var
+  (% y real_var
+  ; linear combinations
+  (@ m1 (lc_cons (~ 1/1) (av_from_real x) (lc_cons (~ 1/2) (av_from_real y) lc_null))
+  (@ m2 (lc_cons 1/1 (av_from_real x)     (lc_cons 1/1     (av_from_real y) lc_null))
+  (@ m3 (lc_cons 1/1 (av_from_real x)     (lc_cons (~ 1/1) (av_from_real y) lc_null))
+  ; affine functions
+  (@ p1 (aff_cons 2/1 m1)
+  (@ p2 (aff_cons (~ 8/1) m2)
+  (@ p3 (aff_cons 0/1 m3)
+  ; Proofs of affine bounds
+  (% pf_nonneg_1 (th_holds (bounded_aff p1 bound_non_neg))
+  (% pf_nonneg_2 (th_holds (bounded_aff p2 bound_non_neg))
+  (% pf_nonneg_3 (th_holds (bounded_aff p3 bound_non_neg))
+     (:
+       (th_holds false)
+       (bounded_aff_contra _ _
+         (bounded_aff_add _ _ _ _ _
+           (bounded_aff_mul_c _ _ _ 4/1 pf_nonneg_1)
+           (bounded_aff_add _ _ _ _ _
+             (bounded_aff_mul_c _ _ _ 3/1 pf_nonneg_2)
+             (bounded_aff_add _ _ _ _ _
+               (bounded_aff_mul_c _ _ _ 1/1 pf_nonneg_3)
+               bounded_aff_ax_0_>=_0)))))
+  )))))
+  ))))
+  ))
+)
+
+;; Proof (from predicates on real terms) that the following imply bottom
+;
+; -x - 1/2 y >= 2
+;  x +     y >= 8
+;  x -     y >= 0
+;
+(check
+  ; Declarations
+  ; Variables
+  (% x real_var
+  (% y real_var
+  ; real predicates
+  (@ f1 (>=_Real (+_Real (*_Real (a_real (~ 1/1)) (term_real_var x)) (*_Real (a_real (~ 1/2)) (term_real_var y))) (a_real (~ 2/1)))
+  (@ f2 (>=_Real (+_Real (*_Real (a_real 1/1) (term_real_var x)) (*_Real (a_real 1/1) (term_real_var y))) (a_real 8/1))
+  (@ f3 (>=_Real (+_Real (*_Real (a_real 1/1) (term_real_var x)) (*_Real (a_real (~ 1/1)) (term_real_var y))) (a_real 0/1))
+  ; proof of real predicates
+  (% pf_f1 (th_holds f1)
+  (% pf_f2 (th_holds f2)
+  (% pf_f3 (th_holds f3)
+
+
+  ; Normalization
+  ; real term -> linear polynomial normalization witnesses
+  (@ n1 (aff_>=_from_term  _ _ _
+        (is_aff_- _ _ _ _ _
+          (is_aff_+ _ _ _ _ _
+            (is_aff_mul_c_L _ _ _ (~ 1/1) (is_aff_var_real x))
+            (is_aff_mul_c_L _ _ _ (~ 1/2) (is_aff_var_real y)))
+          (is_aff_const (~ 2/1)))
+        pf_f1)
+  (@ n2 (aff_>=_from_term  _ _ _
+        (is_aff_- _ _ _ _ _
+          (is_aff_+ _ _ _ _ _
+            (is_aff_mul_c_L _ _ _ 1/1 (is_aff_var_real x))
+            (is_aff_mul_c_L _ _ _ 1/1 (is_aff_var_real y)))
+          (is_aff_const 8/1))
+        pf_f2)
+  (@ n3 (aff_>=_from_term  _ _ _
+        (is_aff_- _ _ _ _ _
+          (is_aff_+ _ _ _ _ _
+            (is_aff_mul_c_L _ _ _ 1/1 (is_aff_var_real x))
+            (is_aff_mul_c_L _ _ _ (~ 1/1) (is_aff_var_real y)))
+          (is_aff_const 0/1))
+        pf_f3)
+
+  ; derivation of a contradiction using farkas coefficients
+    (:
+      (th_holds false)
+      (bounded_aff_contra _ _
+       (bounded_aff_add _ _ _ _ _
+         (bounded_aff_mul_c _ _ _ 4/1 n1)
+         (bounded_aff_add _ _ _ _ _
+           (bounded_aff_mul_c _ _ _ 3/1 n2)
+           (bounded_aff_add _ _ _ _ _
+             (bounded_aff_mul_c _ _ _ 1/1 n3)
+             bounded_aff_ax_0_>=_0)))))
+  )))
+  )))
+  )))
+  ))
+)
+
+;; Term proof, 2 premises of the form (>=), one of the form (not >=)
+;; Proof (from predicates on real terms) that the following imply bottom
+;
+;        -x +     y >=  2
+;         x +     y >=  2
+;     not[        y >= -2] => [y < -2] => [-y > 2]
+;
+(check
+  ; Declarations
+  ; Variables
+  (% x real_var
+  (% y real_var
+  ; real predicates
+  (@ f1 (>=_Real
+          (+_Real (*_Real (a_real (~ 1/1)) (term_real_var x)) (term_real_var y))
+          (a_real 2/1))
+  (@ f2 (>=_Real
+          (+_Real (term_real_var x) (term_real_var y))
+          (a_real 2/1))
+  (@ f3 (not (>=_Real (term_real_var y) (a_real (~ 2/1))))
+
+  ; Normalization
+  ; proof of real predicates
+  (% pf_f1 (th_holds f1)
+  (% pf_f2 (th_holds f2)
+  (% pf_f3 (th_holds f3)
+  ; real term -> linear polynomial normalization witnesses
+  (@ n1 (aff_>=_from_term  _ _ _
+        (is_aff_- _ _ _ _ _
+          (is_aff_+ _ _ _ _ _
+            (is_aff_mul_c_L _ _ _ (~ 1/1) (is_aff_var_real x))
+            (is_aff_var_real y))
+          (is_aff_const 2/1))
+        pf_f1)
+  (@ n2 (aff_>=_from_term  _ _ _
+        (is_aff_- _ _ _ _ _
+          (is_aff_+ _ _ _ _ _
+            (is_aff_var_real x)
+            (is_aff_var_real y))
+          (is_aff_const 2/1))
+        pf_f2)
+  (@ n3 (aff_>_from_term _ _ _ _
+        (is_aff_- _ _ _ _ _
+          (is_aff_var_real y)
+          (is_aff_const (~ 2/1)))
+        pf_f3)
+
+  ; derivation of a contradiction using farkas coefficients
+    (:
+      (th_holds false)
+      (bounded_aff_contra _ _
+       (bounded_aff_add _ _ _ _ _
+         (bounded_aff_mul_c _ _ _ 1/1 n1)
+         (bounded_aff_add _ _ _ _ _
+           (bounded_aff_mul_c _ _ _ 1/1 n2)
+           (bounded_aff_add _ _ _ _ _
+             (bounded_aff_mul_c _ _ _ 2/1 n3)
+             bounded_aff_ax_0_>=_0)))))
+  )))
+  )))
+  )))
+  ))
+)
+
+;; Term proof, 2 premises of the form (>=), one of the form (not >=)
+;; x is a real,
+;; y is an integer
+;; Proof (from predicates on real terms) that the following imply bottom
+;
+;        -x +     y >=  2
+;         x +     y >=  2
+;     not[        y >= -2] => [y < -2] => [-y > 2]
+;
+(check
+  ; Declarations
+  ; Variables
+  (% x real_var
+  (% y int_var
+  ; real predicates
+  (@ f1 (>=_Real
+          (+_Real (*_Real (a_real (~ 1/1)) (term_real_var x)) (term_int_to_real (term_int_var y)))
+          (a_real 2/1))
+  (@ f2 (>=_Real
+          (+_Real (term_real_var x) (term_int_to_real (term_int_var y)))
+          (a_real 2/1))
+  (@ f3 (not (>=_IntReal (term_int_var y) (a_real (~ 2/1))))
+
+  ; Normalization
+  ; proof of real predicates
+  (% pf_f1 (th_holds f1)
+  (% pf_f2 (th_holds f2)
+  (% pf_f3 (th_holds f3)
+  ; real term -> linear polynomial normalization witnesses
+  (@ n1 (aff_>=_from_term  _ _ _
+        (is_aff_- _ _ _ _ _
+          (is_aff_+ _ _ _ _ _
+            (is_aff_mul_c_L _ _ _ (~ 1/1) (is_aff_var_real x))
+            (is_aff_var_int y))
+          (is_aff_const 2/1))
+        (pf_reified_arith_pred _ _ pf_f1))
+  (@ n2 (aff_>=_from_term  _ _ _
+        (is_aff_- _ _ _ _ _
+          (is_aff_+ _ _ _ _ _
+            (is_aff_var_real x)
+            (is_aff_var_int y))
+          (is_aff_const 2/1))
+        (pf_reified_arith_pred _ _ pf_f2))
+  (@ n3 (aff_>_from_term _ _ _ _
+        (is_aff_- _ _ _ _ _
+          (is_aff_var_int y)
+          (is_aff_const (~ 2/1)))
+        (pf_reified_arith_pred _ _ pf_f3))
+
+  ; derivation of a contradiction using farkas coefficients
+    (:
+      (th_holds false)
+      (bounded_aff_contra _ _
+       (bounded_aff_add _ _ _ _ _
+         (bounded_aff_mul_c _ _ _ 1/1 n1)
+         (bounded_aff_add _ _ _ _ _
+           (bounded_aff_mul_c _ _ _ 1/1 n2)
+           (bounded_aff_add _ _ _ _ _
+             (bounded_aff_mul_c _ _ _ 2/1 n3)
+             bounded_aff_ax_0_>=_0)))))
+  )))
+  )))
+  )))
+  ))
+)
+
+;; Term proof, 2 premises of the form (>=), one of the form (not >=)
+;; x is a real,
+;; y is an integer, and needs tightening
+;; Proof (from predicates on real terms) that the following imply bottom
+;
+;        -x         >=  -1/2
+;         x +     y >=  0
+;     not[        y >=  0] => [y < 0] => [-y >= 1]
+;
+(check
+  ; Declarations
+  ; Variables
+  (% x real_var
+  (% y int_var
+  ; real predicates
+  (@ f1 (>=_Real
+          (*_Real (a_real (~ 1/1)) (term_real_var x))
+          (a_real (~ 1/2)))
+  (@ f2 (>=_Real
+          (+_Real (term_real_var x) (term_int_to_real (term_int_var y)))
+          (a_real 0/1))
+  (@ f3 (not (>=_IntReal (*_Int (a_int 1) (term_int_var y)) (term_int_to_real (a_int 0))))
+
+  ; Normalization
+  ; proof of real predicates
+  (% pf_f1 (th_holds f1)
+  (% pf_f2 (th_holds f2)
+  (% pf_f3 (th_holds f3)
+  ; real term -> linear polynomial normalization witnesses
+  (@ n1 (aff_>=_from_term  _ _ _
+        (is_aff_- _ _ _ _ _
+          (is_aff_mul_c_L _ _ _ (~ 1/1) (is_aff_var_real x))
+          (is_aff_const (~ 1/2)))
+        (pf_reified_arith_pred _ _ pf_f1))
+  (@ n2 (aff_>=_from_term  _ _ _
+        (is_aff_- _ _ _ _ _
+          (is_aff_+ _ _ _ _ _
+            (is_aff_var_real x)
+            (is_aff_var_int y))
+          (is_aff_const 0/1))
+        (pf_reified_arith_pred _ _ pf_f2))
+  (@ n3 (aff_>=_from_term _ _ _
+        (is_aff_- _ _ _ _ _
+          (is_aff_mul_c_L _ _ _ (~ 1/1) (is_aff_var_int y))
+          (is_aff_const 1/1))
+        (pf_reified_arith_pred _ _
+          (tighten_not_>=_IntInt _ _ _ _ (check_neg_of_greatest_integer_below_int 1 0) pf_f3)))
+
+  ; derivation of a contradiction using farkas coefficients
+    (:
+      (th_holds false)
+      (bounded_aff_contra _ _
+       (bounded_aff_add _ _ _ _ _
+         (bounded_aff_mul_c _ _ _ 1/1 n1)
+         (bounded_aff_add _ _ _ _ _
+           (bounded_aff_mul_c _ _ _ 1/1 n2)
+           (bounded_aff_add _ _ _ _ _
+             (bounded_aff_mul_c _ _ _ 1/1 n3)
+             bounded_aff_ax_0_>=_0)))))
+  )))
+  )))
+  )))
+  ))
+)

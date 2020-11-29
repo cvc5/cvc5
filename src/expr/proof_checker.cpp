@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -15,6 +15,7 @@
 #include "expr/proof_checker.h"
 
 #include "expr/skolem_manager.h"
+#include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
 
 using namespace CVC4::kind;
@@ -25,47 +26,8 @@ Node ProofRuleChecker::check(PfRule id,
                              const std::vector<Node>& children,
                              const std::vector<Node>& args)
 {
-  // convert to witness form
-  std::vector<Node> childrenw = children;
-  std::vector<Node> argsw = args;
-  SkolemManager::convertToWitnessFormVec(childrenw);
-  SkolemManager::convertToWitnessFormVec(argsw);
-  Node res = checkInternal(id, childrenw, argsw);
-  // res is in terms of witness form, convert back to Skolem form
-  return SkolemManager::getSkolemForm(res);
-}
-
-Node ProofRuleChecker::checkChildrenArg(PfRule id,
-                                        const std::vector<Node>& children,
-                                        Node arg)
-{
-  return check(id, children, {arg});
-}
-Node ProofRuleChecker::checkChildren(PfRule id,
-                                     const std::vector<Node>& children)
-{
-  return check(id, children, {});
-}
-Node ProofRuleChecker::checkChild(PfRule id, Node child)
-{
-  return check(id, {child}, {});
-}
-Node ProofRuleChecker::checkArg(PfRule id, Node arg)
-{
-  return check(id, {}, {arg});
-}
-
-Node ProofRuleChecker::mkAnd(const std::vector<Node>& a)
-{
-  if (a.empty())
-  {
-    return NodeManager::currentNM()->mkConst(true);
-  }
-  else if (a.size() == 1)
-  {
-    return a[0];
-  }
-  return NodeManager::currentNM()->mkNode(AND, a);
+  // call instance-specific checkInternal method
+  return checkInternal(id, children, args);
 }
 
 bool ProofRuleChecker::getUInt32(TNode n, uint32_t& i)
@@ -89,6 +51,27 @@ bool ProofRuleChecker::getBool(TNode n, bool& b)
     return true;
   }
   return false;
+}
+
+bool ProofRuleChecker::getKind(TNode n, Kind& k)
+{
+  uint32_t i;
+  if (!getUInt32(n, i))
+  {
+    return false;
+  }
+  k = static_cast<Kind>(i);
+  return true;
+}
+
+Node ProofRuleChecker::mkKindNode(Kind k)
+{
+  if (k == UNDEFINED_KIND)
+  {
+    // UNDEFINED_KIND is negative, hence return null to avoid cast
+    return Node::null();
+  }
+  return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(k)));
 }
 
 ProofCheckerStatistics::ProofCheckerStatistics()
@@ -155,8 +138,9 @@ Node ProofChecker::check(
   Trace("pfcheck") << "  expected: " << expected << std::endl;
   std::stringstream out;
   // we use trusted (null) checkers here, since we want the proof generation to
-  // proceed without failing here.
-  Node res = checkInternal(id, cchildren, args, expected, out, true);
+  // proceed without failing here. We always enable output since a failure
+  // implies that we will exit with the error message below.
+  Node res = checkInternal(id, cchildren, args, expected, out, true, true);
   if (res.isNull())
   {
     Trace("pfcheck") << "ProofChecker::check: failed" << std::endl;
@@ -175,20 +159,25 @@ Node ProofChecker::checkDebug(PfRule id,
                               const char* traceTag)
 {
   std::stringstream out;
-  // since we are debugging, we want to treat trusted (null) checkers as
-  // a failure.
-  Node res = checkInternal(id, cchildren, args, expected, out, false);
-  Trace(traceTag) << "ProofChecker::checkDebug: " << id;
-  if (res.isNull())
+  bool traceEnabled = Trace.isOn(traceTag);
+  // Since we are debugging, we want to treat trusted (null) checkers as
+  // a failure. We only enable output if the trace is enabled for efficiency.
+  Node res =
+      checkInternal(id, cchildren, args, expected, out, false, traceEnabled);
+  if (traceEnabled)
   {
-    Trace(traceTag) << " failed, " << out.str() << std::endl;
+    Trace(traceTag) << "ProofChecker::checkDebug: " << id;
+    if (res.isNull())
+    {
+      Trace(traceTag) << " failed, " << out.str() << std::endl;
+    }
+    else
+    {
+      Trace(traceTag) << " success" << std::endl;
+    }
+    Trace(traceTag) << "cchildren: " << cchildren << std::endl;
+    Trace(traceTag) << "     args: " << args << std::endl;
   }
-  else
-  {
-    Trace(traceTag) << " success" << std::endl;
-  }
-  Trace(traceTag) << "cchildren: " << cchildren << std::endl;
-  Trace(traceTag) << "     args: " << args << std::endl;
   return res;
 }
 
@@ -197,13 +186,17 @@ Node ProofChecker::checkInternal(PfRule id,
                                  const std::vector<Node>& args,
                                  Node expected,
                                  std::stringstream& out,
-                                 bool useTrustedChecker)
+                                 bool useTrustedChecker,
+                                 bool enableOutput)
 {
   std::map<PfRule, ProofRuleChecker*>::iterator it = d_checker.find(id);
   if (it == d_checker.end())
   {
     // no checker for the rule
-    out << "no checker for rule " << id << std::endl;
+    if (enableOutput)
+    {
+      out << "no checker for rule " << id << std::endl;
+    }
     return Node::null();
   }
   else if (it->second == nullptr)
@@ -216,7 +209,10 @@ Node ProofChecker::checkInternal(PfRule id,
     }
     else
     {
-      out << "trusted checker for rule " << id << std::endl;
+      if (enableOutput)
+      {
+        out << "trusted checker for rule " << id << std::endl;
+      }
       return Node::null();
     }
   }
@@ -227,19 +223,42 @@ Node ProofChecker::checkInternal(PfRule id,
     Node expectedw = expected;
     if (res != expectedw)
     {
-      out << "result does not match expected value." << std::endl
-          << "    PfRule: " << id << std::endl;
-      for (const Node& c : cchildren)
+      if (enableOutput)
       {
-        out << "     child: " << c << std::endl;
+        out << "result does not match expected value." << std::endl
+            << "    PfRule: " << id << std::endl;
+        for (const Node& c : cchildren)
+        {
+          out << "     child: " << c << std::endl;
+        }
+        for (const Node& a : args)
+        {
+          out << "       arg: " << a << std::endl;
+        }
+        out << "    result: " << res << std::endl
+            << "  expected: " << expected << std::endl;
       }
-      for (const Node& a : args)
-      {
-        out << "       arg: " << a << std::endl;
-      }
-      out << "    result: " << res << std::endl
-          << "  expected: " << expected << std::endl;
       // it did not match the given expectation, fail
+      return Node::null();
+    }
+  }
+  // fails if pedantic level is not met
+  if (options::proofNewEagerChecking())
+  {
+    std::stringstream serr;
+    if (isPedanticFailure(id, serr, enableOutput))
+    {
+      if (enableOutput)
+      {
+        out << serr.str() << std::endl;
+        if (Trace.isOn("proof-new-pedantic"))
+        {
+          Trace("proof-new-pedantic")
+              << "Failed pedantic check for " << id << std::endl;
+          Trace("proof-new-pedantic") << "Expected: " << expected << std::endl;
+          out << "Expected: " << expected << std::endl;
+        }
+      }
       return Node::null();
     }
   }
@@ -257,6 +276,74 @@ void ProofChecker::registerChecker(PfRule id, ProofRuleChecker* psc)
     return;
   }
   d_checker[id] = psc;
+}
+
+void ProofChecker::registerTrustedChecker(PfRule id,
+                                          ProofRuleChecker* psc,
+                                          uint32_t plevel)
+{
+  AlwaysAssert(plevel <= 10) << "ProofChecker::registerTrustedChecker: "
+                                "pedantic level must be 0-10, got "
+                             << plevel << " for " << id;
+  registerChecker(id, psc);
+  // overwrites if already there
+  if (d_plevel.find(id) != d_plevel.end())
+  {
+    Notice() << "ProofChecker::registerTrustedRule: already provided pedantic "
+                "level for "
+             << id << std::endl;
+  }
+  d_plevel[id] = plevel;
+}
+
+ProofRuleChecker* ProofChecker::getCheckerFor(PfRule id)
+{
+  std::map<PfRule, ProofRuleChecker*>::const_iterator it = d_checker.find(id);
+  if (it == d_checker.end())
+  {
+    return nullptr;
+  }
+  return it->second;
+}
+
+uint32_t ProofChecker::getPedanticLevel(PfRule id) const
+{
+  std::map<PfRule, uint32_t>::const_iterator itp = d_plevel.find(id);
+  if (itp != d_plevel.end())
+  {
+    return itp->second;
+  }
+  return 0;
+}
+
+bool ProofChecker::isPedanticFailure(PfRule id,
+                                     std::ostream& out,
+                                     bool enableOutput) const
+{
+  if (d_pclevel == 0)
+  {
+    return false;
+  }
+  std::map<PfRule, uint32_t>::const_iterator itp = d_plevel.find(id);
+  if (itp != d_plevel.end())
+  {
+    if (itp->second <= d_pclevel)
+    {
+      if (enableOutput)
+      {
+        out << "pedantic level for " << id << " not met (rule level is "
+            << itp->second << " which is at or below the pedantic level "
+            << d_pclevel << ")";
+        bool pedanticTraceEnabled = Trace.isOn("proof-new-pedantic");
+        if (!pedanticTraceEnabled)
+        {
+          out << ", use -t proof-new-pedantic for details";
+        }
+      }
+      return true;
+    }
+  }
+  return false;
 }
 
 }  // namespace CVC4

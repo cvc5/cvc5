@@ -2,10 +2,10 @@
 /*! \file sequences_stats.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -63,6 +63,11 @@ class SequencesStatistics
   /** Counts the number of applications of each type of inference */
   HistogramStat<Inference> d_inferences;
   /**
+   * Counts the number of applications of each type of inference that were not
+   * processed as a proof step. This is a subset of d_inferences.
+   */
+  HistogramStat<Inference> d_inferencesNoPf;
+  /**
    * Counts the number of applications of each type of context-dependent
    * simplification. The sum of this map is equal to the number of EXTF or
    * EXTF_N inferences.
@@ -87,8 +92,8 @@ class SequencesStatistics
   //--------------- conflicts, partition of calls to OutputChannel::conflict
   /** Number of equality engine conflicts */
   IntStat d_conflictsEqEngine;
-  /** Number of eager prefix conflicts */
-  IntStat d_conflictsEagerPrefix;
+  /** Number of eager conflicts */
+  IntStat d_conflictsEager;
   /** Number of inference conflicts */
   IntStat d_conflictsInfer;
   //--------------- end of conflicts

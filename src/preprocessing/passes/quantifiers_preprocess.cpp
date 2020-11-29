@@ -2,10 +2,10 @@
 /*! \file quantifiers_preprocess.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Caleb Donovick
+ **   Caleb Donovick, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -39,9 +39,10 @@ PreprocessingPassResult QuantifiersPreprocess::applyInternal(
   for (size_t i = 0; i < size; ++i)
   {
     Node prev = (*assertionsToPreprocess)[i];
-    Node next = quantifiers::QuantifiersRewriter::preprocess(prev);
-    if (next != prev)
+    TrustNode trn = quantifiers::QuantifiersRewriter::preprocess(prev);
+    if (!trn.isNull())
     {
+      Node next = trn.getNode();
       assertionsToPreprocess->replace(i, Rewriter::rewrite(next));
       Trace("quantifiers-preprocess") << "*** Pre-skolemize " << prev << endl;
       Trace("quantifiers-preprocess")

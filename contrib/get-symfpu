@@ -5,7 +5,6 @@ source "$(dirname "$0")/get-script-header.sh"
 SYMFPU_DIR="$DEPS_DIR/symfpu-CVC4"
 commit="8fbe139bf0071cbe0758d2f6690a546c69ff0053"
 
-check_dep_dir "$SYMFPU_DIR"
 setup_dep \
   "https://github.com/martin-cs/symfpu/archive/$commit.tar.gz" "$SYMFPU_DIR"
 cd "$SYMFPU_DIR"

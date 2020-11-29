@@ -2,10 +2,10 @@
 /*! \file model_blocker.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -59,11 +59,11 @@ class ModelBlocker
    * our input. In other words, we do not return ~(x < 0) V ~(w < 0) since the
    * left disjunct is always false.
    */
-  static Expr getModelBlocker(
-      const std::vector<Expr>& assertions,
+  static Node getModelBlocker(
+      const std::vector<Node>& assertions,
       theory::TheoryModel* m,
       options::BlockModelsMode mode,
-      const std::vector<Expr>& exprToBlock = std::vector<Expr>());
+      const std::vector<Node>& exprToBlock = std::vector<Node>());
 }; /* class TheoryModelCoreBuilder */
 
 }  // namespace CVC4

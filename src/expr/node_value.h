@@ -2,10 +2,10 @@
 /*! \file node_value.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Tim King
+ **   Morgan Deters, Aina Niemetz, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -25,8 +25,6 @@
 
 #ifndef CVC4__EXPR__NODE_VALUE_H
 #define CVC4__EXPR__NODE_VALUE_H
-
-#include <stdint.h>
 
 #include <iterator>
 #include <string>
@@ -235,7 +233,6 @@ class NodeValue
 
   void toStream(std::ostream& out,
                 int toDepth = -1,
-                bool types = false,
                 size_t dag = 1,
                 OutputLanguage = language::output::LANG_AUTO) const;
 
@@ -517,7 +514,6 @@ inline T NodeValue::iterator<T>::operator*() const {
 inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv) {
   nv.toStream(out,
               Node::setdepth::getDepth(out),
-              Node::printtypes::getPrintTypes(out),
               Node::dag::getDag(out),
               Node::setlanguage::getLanguage(out));
   return out;
@@ -533,7 +529,6 @@ inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv) {
  */
 static void __attribute__((used)) debugPrintNodeValue(const expr::NodeValue* nv) {
   Warning() << Node::setdepth(-1)
-            << Node::printtypes(false)
             << Node::dag(true)
             << Node::setlanguage(language::output::LANG_AST)
             << *nv << std::endl;
@@ -541,7 +536,6 @@ static void __attribute__((used)) debugPrintNodeValue(const expr::NodeValue* nv)
 }
 static void __attribute__((used)) debugPrintNodeValueNoDag(const expr::NodeValue* nv) {
   Warning() << Node::setdepth(-1)
-            << Node::printtypes(false)
             << Node::dag(false)
             << Node::setlanguage(language::output::LANG_AST)
             << *nv << std::endl;

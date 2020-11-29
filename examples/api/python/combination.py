@@ -1,19 +1,19 @@
 #!/usr/bin/env python
-
 #####################
-#! \file combination.py
- ## \verbatim
- ## Top contributors (to current version):
- ##   Makai Mann, Aina Niemetz
- ## This file is part of the CVC4 project.
- ## Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ## in the top-level source directory) and their institutional affiliations.
- ## All rights reserved.  See the file COPYING in the top-level source
- ## directory for licensing information.\endverbatim
- ##
- ## \brief A simple demonstration of the solving capabilities of the CVC4
- ## combination solver through the Python API. This is a direct translation
- ## of combination-new.cpp.
+## combination.py
+## Top contributors (to current version):
+##   Makai Mann, Aina Niemetz, Andrew Reynolds
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
+## A simple demonstration of the solving capabilities of the CVC4
+## combination solver through the Python API. This is a direct translation
+## of combination-new.cpp.
+##
+
 import pycvc4
 from pycvc4 import kinds
 
@@ -46,8 +46,8 @@ if __name__ == "__main__":
     p = slv.mkConst(intPred, "p")
 
     # Constants
-    zero = slv.mkReal(0)
-    one = slv.mkReal(1)
+    zero = slv.mkInteger(0)
+    one = slv.mkInteger(1)
 
     # Terms
     f_x = slv.mkTerm(kinds.ApplyUf, f, x)
@@ -85,9 +85,6 @@ if __name__ == "__main__":
     print("Alternatively, iterate over assertions and call"
           " slv.getValue(...) on all terms")
     prefixPrintGetValue(slv, assertions)
-
-    print("Alternatively, print the model", "\n")
-    slv.printModel()
 
     print()
     print("You can also use nested loops to iterate over terms")

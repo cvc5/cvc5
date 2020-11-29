@@ -2,10 +2,10 @@
 /*! \file datatypes_rewriter.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Paul Meng
+ **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -280,7 +280,7 @@ RewriteResponse DatatypesRewriter::preRewrite(TNode in)
         const DTypeConstructor& dtc = utils::datatypeOf(op)[utils::indexOf(op)];
         // create ascribed constructor type
         Node tc = NodeManager::currentNM()->mkConst(
-            AscriptionType(dtc.getSpecializedConstructorType(tn).toType()));
+            AscriptionType(dtc.getSpecializedConstructorType(tn)));
         Node op_new = NodeManager::currentNM()->mkNode(
             kind::APPLY_TYPE_ASCRIPTION, tc, op);
         // make new node
@@ -390,41 +390,21 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
     }
     else if (k == kind::APPLY_SELECTOR_TOTAL)
     {
-      Node gt;
-      bool useTe = true;
-      // if( !tn.isSort() ){
-      //  useTe = false;
-      //}
-      if (tn.isDatatype())
+      // evaluates to the first ground value of type tn.
+      Node gt = tn.mkGroundValue();
+      Assert(!gt.isNull());
+      if (tn.isDatatype() && !tn.isInstantiatedDatatype())
       {
-        const DType& dta = tn.getDType();
-        useTe = !dta.isCodatatype();
+        gt = NodeManager::currentNM()->mkNode(
+            kind::APPLY_TYPE_ASCRIPTION,
+            NodeManager::currentNM()->mkConst(AscriptionType(tn)),
+            gt);
       }
-      if (useTe)
-      {
-        TypeEnumerator te(tn);
-        gt = *te;
-      }
-      else
-      {
-        gt = tn.mkGroundTerm();
-      }
-      if (!gt.isNull())
-      {
-        // Assert( gtt.isDatatype() || gtt.isParametricDatatype() );
-        if (tn.isDatatype() && !tn.isInstantiatedDatatype())
-        {
-          gt = NodeManager::currentNM()->mkNode(
-              kind::APPLY_TYPE_ASCRIPTION,
-              NodeManager::currentNM()->mkConst(AscriptionType(tn.toType())),
-              gt);
-        }
-        Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
-                                   << "Rewrite trivial selector " << in
-                                   << " to distinguished ground term " << gt
-                                   << std::endl;
-        return RewriteResponse(REWRITE_DONE, gt);
-      }
+      Trace("datatypes-rewrite")
+          << "DatatypesRewriter::postRewrite: "
+          << "Rewrite trivial selector " << in
+          << " to distinguished ground term " << gt << std::endl;
+      return RewriteResponse(REWRITE_DONE, gt);
     }
   }
   return RewriteResponse(REWRITE_DONE, in);
@@ -720,7 +700,7 @@ Node DatatypesRewriter::normalizeCodatatypeConstantEqc(
     {
       int debruijn = depth - it->second - 1;
       return NodeManager::currentNM()->mkConst(
-          UninterpretedConstant(n.getType().toType(), debruijn));
+          UninterpretedConstant(n.getType(), debruijn));
     }
     std::vector<Node> children;
     bool childChanged = false;

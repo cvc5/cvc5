@@ -2,10 +2,10 @@
 /*! \file term_database_sygus.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
+ **   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -89,7 +89,7 @@ TNode TermDbSygus::getFreeVar( TypeNode tn, int i, bool useSygusType ) {
       ss << "fv_" << tn << "_" << i;
     }
     Assert(!vtn.isNull());
-    Node v = nm->mkSkolem(ss.str(), vtn, "for sygus invariance testing");
+    Node v = nm->mkBoundVar(ss.str(), vtn);
     // store its id, which is unique per builtin type, regardless of how it is
     // otherwise cached.
     d_fvId[v] = d_fvTypeIdCounter[builtinType];
@@ -723,17 +723,21 @@ void TermDbSygus::toStreamSygus(const char* c, Node n)
 {
   if (Trace.isOn(c))
   {
-    if (n.isNull())
-    {
-      Trace(c) << n;
-    }
-    else
-    {
-      std::stringstream ss;
-      Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, n);
-      Trace(c) << ss.str();
-    }
+    std::stringstream ss;
+    toStreamSygus(ss, n);
+    Trace(c) << ss.str();
   }
+}
+
+void TermDbSygus::toStreamSygus(std::ostream& out, Node n)
+{
+  if (n.isNull())
+  {
+    out << n;
+    return;
+  }
+  // use external conversion
+  out << datatypes::utils::sygusToBuiltin(n, true);
 }
 
 SygusTypeInfo& TermDbSygus::getTypeInfo(TypeNode tn)

@@ -2,10 +2,10 @@
 /*! \file valuation.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
+ **   Morgan Deters, Andrew Reynolds, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -30,8 +30,6 @@ class TheoryEngine;
 
 namespace theory {
 
-class EntailmentCheckParameters;
-class EntailmentCheckSideEffects;
 class TheoryModel;
 
 /**
@@ -109,10 +107,29 @@ public:
   Node getModelValue(TNode var);
 
   /**
-   * Returns pointer to model.
+   * Returns pointer to model. This model is only valid during last call effort
+   * check.
    */
   TheoryModel* getModel();
-  
+
+  //-------------------------------------- static configuration of the model
+  /**
+   * Set that k is an unevaluated kind in the TheoryModel, if it exists.
+   * See TheoryModel::setUnevaluatedKind for details.
+   */
+  void setUnevaluatedKind(Kind k);
+  /**
+   * Set that k is an unevaluated kind in the TheoryModel, if it exists.
+   * See TheoryModel::setSemiEvaluatedKind for details.
+   */
+  void setSemiEvaluatedKind(Kind k);
+  /**
+   * Set that k is an irrelevant kind in the TheoryModel, if it exists.
+   * See TheoryModel::setIrrelevantKind for details.
+   */
+  void setIrrelevantKind(Kind k);
+  //-------------------------------------- end static configuration of the model
+
   /**
    * Ensure that the given node will have a designated SAT literal
    * that is definitionally equal to it.  The result of this function
@@ -141,15 +158,17 @@ public:
    * Request an entailment check according to the given theoryOfMode.
    * See theory.h for documentation on entailmentCheck().
    */
-  std::pair<bool, Node> entailmentCheck(
-      options::TheoryOfMode mode,
-      TNode lit,
-      const theory::EntailmentCheckParameters* params = NULL,
-      theory::EntailmentCheckSideEffects* out = NULL);
+  std::pair<bool, Node> entailmentCheck(options::TheoryOfMode mode, TNode lit);
 
   /** need check ? */
   bool needCheck() const;
-  
+
+  /**
+   * Is the literal lit (possibly) critical for satisfying the input formula in
+   * the current context? This call is applicable only during collectModelInfo
+   * or during LAST_CALL effort.
+   */
+  bool isRelevant(Node lit) const;
 };/* class Valuation */
 
 }/* CVC4::theory namespace */

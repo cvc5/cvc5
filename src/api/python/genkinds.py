@@ -1,4 +1,14 @@
 #!/usr/bin/env python
+#####################
+## genkinds.py
+## Top contributors (to current version):
+##   Makai Mann
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
 """
 This script reads CVC4/src/api/cvc4cppkind.h and generates
 .pxd and .pxi files which declare all the CVC4 kinds and
@@ -83,7 +93,7 @@ cdef class kind:
     cdef str name
     def __cinit__(self, int kindint):
         self.k = int2kind[kindint]
-        self.name = int2name[kindint].decode()
+        self.name = str(int2name[kindint])
 
     def __eq__(self, kind other):
         return (<int> self.k) == (<int> other.k)
@@ -111,7 +121,7 @@ kinds.__file__ = kinds.__name__ + ".py"
 KINDS_ATTR_TEMPLATE = \
 r"""
 int2kind[<int> {kind}] = {kind}
-int2name[<int> {kind}] = "{name}".encode()
+int2name[<int> {kind}] = b"{name}"
 cdef kind {name} = kind(<int> {kind})
 setattr(kinds, "{name}", {name})
 """

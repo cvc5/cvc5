@@ -2,10 +2,10 @@
 /*! \file ast_printer.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Liana Hadarean
+ **   Morgan Deters, Abdalrhman Mohamed, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -26,6 +26,7 @@
 #include "options/language.h"  // for LANG_AST
 #include "printer/dagification_visitor.h"
 #include "smt/command.h"
+#include "smt/node_command.h"
 #include "theory/substitutions.h"
 
 using namespace std;
@@ -34,8 +35,10 @@ namespace CVC4 {
 namespace printer {
 namespace ast {
 
-void AstPrinter::toStream(
-    std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const
+void AstPrinter::toStream(std::ostream& out,
+                          TNode n,
+                          int toDepth,
+                          size_t dag) const
 {
   if(dag != 0) {
     DagificationVisitor dv(dag);
@@ -53,26 +56,23 @@ void AstPrinter::toStream(
         } else {
           first = false;
         }
-        toStream(out, (*i).second, toDepth, types, false);
+        toStream(out, (*i).second, toDepth, false);
         out << " := ";
-        toStream(out, (*i).first, toDepth, types, false);
+        toStream(out, (*i).first, toDepth, false);
       }
       out << " IN ";
     }
     Node body = dv.getDagifiedBody();
-    toStream(out, body, toDepth, types);
+    toStream(out, body, toDepth);
     if(!lets.empty()) {
       out << ')';
     }
   } else {
-    toStream(out, n, toDepth, types);
+    toStream(out, n, toDepth);
   }
 }
 
-void AstPrinter::toStream(std::ostream& out,
-                          TNode n,
-                          int toDepth,
-                          bool types) const
+void AstPrinter::toStream(std::ostream& out, TNode n, int toDepth) const
 {
   // null
   if(n.getKind() == kind::NULL_EXPR) {
@@ -88,12 +88,6 @@ void AstPrinter::toStream(std::ostream& out,
     } else {
       out << "var_" << n.getId();
     }
-    if(types) {
-      // print the whole type, but not *its* type
-      out << ":";
-      n.getType().toStream(out, language::output::LANG_AST);
-    }
-
     return;
   }
 
@@ -107,7 +101,7 @@ void AstPrinter::toStream(std::ostream& out,
     if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
       out << ' ';
       if(toDepth != 0) {
-        toStream(out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, types);
+        toStream(out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1);
       } else {
         out << "(...)";
       }
@@ -120,7 +114,7 @@ void AstPrinter::toStream(std::ostream& out,
         out << ' ';
       }
       if(toDepth != 0) {
-        toStream(out, *i, toDepth < 0 ? toDepth : toDepth - 1, types);
+        toStream(out, *i, toDepth < 0 ? toDepth : toDepth - 1);
       } else {
         out << "(...)";
       }
@@ -131,55 +125,6 @@ void AstPrinter::toStream(std::ostream& out,
 
 template <class T>
 static bool tryToStream(std::ostream& out, const Command* c);
-
-void AstPrinter::toStream(std::ostream& out,
-                          const Command* c,
-                          int toDepth,
-                          bool types,
-                          size_t dag) const
-{
-  expr::ExprSetDepth::Scope sdScope(out, toDepth);
-  expr::ExprPrintTypes::Scope ptScope(out, types);
-  expr::ExprDag::Scope dagScope(out, dag);
-
-  if(tryToStream<EmptyCommand>(out, c) ||
-     tryToStream<AssertCommand>(out, c) ||
-     tryToStream<PushCommand>(out, c) ||
-     tryToStream<PopCommand>(out, c) ||
-     tryToStream<CheckSatCommand>(out, c) ||
-     tryToStream<CheckSatAssumingCommand>(out, c) ||
-     tryToStream<QueryCommand>(out, c) ||
-     tryToStream<ResetCommand>(out, c) ||
-     tryToStream<ResetAssertionsCommand>(out, c) ||
-     tryToStream<QuitCommand>(out, c) ||
-     tryToStream<DeclarationSequence>(out, c) ||
-     tryToStream<CommandSequence>(out, c) ||
-     tryToStream<DeclareFunctionCommand>(out, c) ||
-     tryToStream<DeclareTypeCommand>(out, c) ||
-     tryToStream<DefineTypeCommand>(out, c) ||
-     tryToStream<DefineNamedFunctionCommand>(out, c) ||
-     tryToStream<DefineFunctionCommand>(out, c) ||
-     tryToStream<SimplifyCommand>(out, c) ||
-     tryToStream<GetValueCommand>(out, c) ||
-     tryToStream<GetModelCommand>(out, c) ||
-     tryToStream<GetAssignmentCommand>(out, c) ||
-     tryToStream<GetAssertionsCommand>(out, c) ||
-     tryToStream<GetProofCommand>(out, c) ||
-     tryToStream<SetBenchmarkStatusCommand>(out, c) ||
-     tryToStream<SetBenchmarkLogicCommand>(out, c) ||
-     tryToStream<SetInfoCommand>(out, c) ||
-     tryToStream<GetInfoCommand>(out, c) ||
-     tryToStream<SetOptionCommand>(out, c) ||
-     tryToStream<GetOptionCommand>(out, c) ||
-     tryToStream<DatatypeDeclarationCommand>(out, c) ||
-     tryToStream<CommentCommand>(out, c)) {
-    return;
-  }
-
-  out << "ERROR: don't know how to print a Command of class: "
-      << typeid(*c).name() << endl;
-
-}/* AstPrinter::toStream(Command*) */
 
 template <class T>
 static bool tryToStream(std::ostream& out, const CommandStatus* s);
@@ -198,211 +143,250 @@ void AstPrinter::toStream(std::ostream& out, const CommandStatus* s) const
 
 }/* AstPrinter::toStream(CommandStatus*) */
 
-void AstPrinter::toStream(std::ostream& out, const Model& m) const
+void AstPrinter::toStream(std::ostream& out, const smt::Model& m) const
 {
   out << "Model()";
 }
 
 void AstPrinter::toStream(std::ostream& out,
-                          const Model& m,
-                          const Command* c) const
+                          const smt::Model& m,
+                          const NodeCommand* c) const
 {
   // shouldn't be called; only the non-Command* version above should be
   Unreachable();
 }
 
-static void toStream(std::ostream& out, const EmptyCommand* c)
+void AstPrinter::toStreamCmdEmpty(std::ostream& out,
+                                  const std::string& name) const
 {
-  out << "EmptyCommand(" << c->getName() << ")";
+  out << "EmptyCommand(" << name << ')' << std::endl;
 }
 
-static void toStream(std::ostream& out, const AssertCommand* c)
+void AstPrinter::toStreamCmdEcho(std::ostream& out,
+                                 const std::string& output) const
 {
-  out << "Assert(" << c->getExpr() << ")";
+  out << "EchoCommand(" << output << ')' << std::endl;
 }
 
-static void toStream(std::ostream& out, const PushCommand* c)
+void AstPrinter::toStreamCmdAssert(std::ostream& out, Node n) const
 {
-  out << "Push()";
+  out << "Assert(" << n << ')' << std::endl;
 }
 
-static void toStream(std::ostream& out, const PopCommand* c) { out << "Pop()"; }
-
-static void toStream(std::ostream& out, const CheckSatCommand* c)
+void AstPrinter::toStreamCmdPush(std::ostream& out) const
 {
-  Expr e = c->getExpr();
-  if(e.isNull()) {
+  out << "Push()" << std::endl;
+}
+
+void AstPrinter::toStreamCmdPop(std::ostream& out) const {
+  out << "Pop()" << std::endl;
+}
+
+void AstPrinter::toStreamCmdCheckSat(std::ostream& out, Node n) const
+{
+  if (n.isNull())
+  {
     out << "CheckSat()";
-  } else {
-    out << "CheckSat(" << e << ")";
   }
+  else
+  {
+    out << "CheckSat(" << n << ')';
+  }
+  out << std::endl;
 }
 
-static void toStream(std::ostream& out, const CheckSatAssumingCommand* c)
+void AstPrinter::toStreamCmdCheckSatAssuming(
+    std::ostream& out, const std::vector<Node>& nodes) const
 {
-  const vector<Expr>& terms = c->getTerms();
   out << "CheckSatAssuming( << ";
-  copy(terms.begin(), terms.end(), ostream_iterator<Expr>(out, ", "));
-  out << ">> )";
+  copy(nodes.begin(), nodes.end(), ostream_iterator<Node>(out, ", "));
+  out << ">> )" << std::endl;
 }
 
-static void toStream(std::ostream& out, const QueryCommand* c)
+void AstPrinter::toStreamCmdQuery(std::ostream& out, Node n) const
 {
-  out << "Query(" << c->getExpr() << ')';
+  out << "Query(" << n << ')' << std::endl;
 }
 
-static void toStream(std::ostream& out, const ResetCommand* c)
+void AstPrinter::toStreamCmdReset(std::ostream& out) const
 {
-  out << "Reset()";
+  out << "Reset()" << std::endl;
 }
 
-static void toStream(std::ostream& out, const ResetAssertionsCommand* c)
+void AstPrinter::toStreamCmdResetAssertions(std::ostream& out) const
 {
-  out << "ResetAssertions()";
+  out << "ResetAssertions()" << std::endl;
 }
 
-static void toStream(std::ostream& out, const QuitCommand* c)
+void AstPrinter::toStreamCmdQuit(std::ostream& out) const
 {
-  out << "Quit()";
+  out << "Quit()" << std::endl;
 }
 
-static void toStream(std::ostream& out, const DeclarationSequence* c)
+void AstPrinter::toStreamCmdDeclarationSequence(
+    std::ostream& out, const std::vector<Command*>& sequence) const
 {
   out << "DeclarationSequence[" << endl;
-  for(CommandSequence::const_iterator i = c->begin();
-      i != c->end();
-      ++i) {
+  for (CommandSequence::const_iterator i = sequence.cbegin();
+       i != sequence.cend();
+       ++i)
+  {
     out << *i << endl;
   }
-  out << "]";
+  out << "]" << std::endl;
 }
 
-static void toStream(std::ostream& out, const CommandSequence* c)
+void AstPrinter::toStreamCmdCommandSequence(
+    std::ostream& out, const std::vector<Command*>& sequence) const
 {
   out << "CommandSequence[" << endl;
-  for(CommandSequence::const_iterator i = c->begin();
-      i != c->end();
-      ++i) {
+  for (CommandSequence::const_iterator i = sequence.cbegin();
+       i != sequence.cend();
+       ++i)
+  {
     out << *i << endl;
   }
-  out << "]";
+  out << "]" << std::endl;
 }
 
-static void toStream(std::ostream& out, const DeclareFunctionCommand* c)
+void AstPrinter::toStreamCmdDeclareFunction(std::ostream& out,
+                                            const std::string& id,
+                                            TypeNode type) const
 {
-  out << "Declare(" << c->getSymbol() << "," << c->getType() << ")";
+  out << "Declare(" << id << "," << type << ')' << std::endl;
 }
 
-static void toStream(std::ostream& out, const DefineFunctionCommand* c)
+void AstPrinter::toStreamCmdDefineFunction(std::ostream& out,
+                                           const std::string& id,
+                                           const std::vector<Node>& formals,
+                                           TypeNode range,
+                                           Node formula) const
 {
-  Expr func = c->getFunction();
-  const std::vector<Expr>& formals = c->getFormals();
-  Expr formula = c->getFormula();
-  out << "DefineFunction( \"" << func << "\", [";
-  if(formals.size() > 0) {
-    copy( formals.begin(), formals.end() - 1,
-          ostream_iterator<Expr>(out, ", ") );
+  out << "DefineFunction( \"" << id << "\", [";
+  if (formals.size() > 0)
+  {
+    copy(formals.begin(), formals.end() - 1, ostream_iterator<Node>(out, ", "));
     out << formals.back();
   }
-  out << "], << " << formula << " >> )";
+  out << "], << " << formula << " >> )" << std::endl;
 }
 
-static void toStream(std::ostream& out, const DeclareTypeCommand* c)
+void AstPrinter::toStreamCmdDeclareType(std::ostream& out,
+                                        const std::string& id,
+                                        size_t arity,
+                                        TypeNode type) const
 {
-  out << "DeclareType(" << c->getSymbol() << "," << c->getArity() << ","
-      << c->getType() << ")";
+  out << "DeclareType(" << id << "," << arity << "," << type << ')'
+      << std::endl;
 }
 
-static void toStream(std::ostream& out, const DefineTypeCommand* c)
+void AstPrinter::toStreamCmdDefineType(std::ostream& out,
+                                       const std::string& id,
+                                       const std::vector<TypeNode>& params,
+                                       TypeNode t) const
 {
-  const vector<Type>& params = c->getParameters();
-  out << "DefineType(" << c->getSymbol() << ",[";
-  if(params.size() > 0) {
-    copy( params.begin(), params.end() - 1,
-          ostream_iterator<Type>(out, ", ") );
+  out << "DefineType(" << id << ",[";
+  if (params.size() > 0)
+  {
+    copy(params.begin(),
+         params.end() - 1,
+         ostream_iterator<TypeNode>(out, ", "));
     out << params.back();
   }
-  out << "]," << c->getType() << ")";
+  out << "]," << t << ')' << std::endl;
 }
 
-static void toStream(std::ostream& out, const DefineNamedFunctionCommand* c)
+void AstPrinter::toStreamCmdSimplify(std::ostream& out, Node n) const
 {
-  out << "DefineNamedFunction( ";
-  toStream(out, static_cast<const DefineFunctionCommand*>(c));
-  out << " )";
+  out << "Simplify( << " << n << " >> )" << std::endl;
 }
 
-static void toStream(std::ostream& out, const SimplifyCommand* c)
-{
-  out << "Simplify( << " << c->getTerm() << " >> )";
-}
-
-static void toStream(std::ostream& out, const GetValueCommand* c)
+void AstPrinter::toStreamCmdGetValue(std::ostream& out,
+                                     const std::vector<Node>& nodes) const
 {
   out << "GetValue( << ";
-  const vector<Expr>& terms = c->getTerms();
-  copy(terms.begin(), terms.end(), ostream_iterator<Expr>(out, ", "));
-  out << ">> )";
+  copy(nodes.begin(), nodes.end(), ostream_iterator<Node>(out, ", "));
+  out << ">> )" << std::endl;
 }
 
-static void toStream(std::ostream& out, const GetModelCommand* c)
+void AstPrinter::toStreamCmdGetModel(std::ostream& out) const
 {
-  out << "GetModel()";
+  out << "GetModel()" << std::endl;
 }
 
-static void toStream(std::ostream& out, const GetAssignmentCommand* c)
+void AstPrinter::toStreamCmdGetAssignment(std::ostream& out) const
 {
-  out << "GetAssignment()";
-}
-static void toStream(std::ostream& out, const GetAssertionsCommand* c)
-{
-  out << "GetAssertions()";
-}
-static void toStream(std::ostream& out, const GetProofCommand* c)
-{
-  out << "GetProof()";
-}
-static void toStream(std::ostream& out, const SetBenchmarkStatusCommand* c)
-{
-  out << "SetBenchmarkStatus(" << c->getStatus() << ")";
-}
-static void toStream(std::ostream& out, const SetBenchmarkLogicCommand* c)
-{
-  out << "SetBenchmarkLogic(" << c->getLogic() << ")";
-}
-static void toStream(std::ostream& out, const SetInfoCommand* c)
-{
-  out << "SetInfo(" << c->getFlag() << ", " << c->getSExpr() << ")";
+  out << "GetAssignment()" << std::endl;
 }
 
-static void toStream(std::ostream& out, const GetInfoCommand* c)
+void AstPrinter::toStreamCmdGetAssertions(std::ostream& out) const
 {
-  out << "GetInfo(" << c->getFlag() << ")";
-}
-static void toStream(std::ostream& out, const SetOptionCommand* c)
-{
-  out << "SetOption(" << c->getFlag() << ", " << c->getSExpr() << ")";
+  out << "GetAssertions()" << std::endl;
 }
 
-static void toStream(std::ostream& out, const GetOptionCommand* c)
+void AstPrinter::toStreamCmdGetProof(std::ostream& out) const
 {
-  out << "GetOption(" << c->getFlag() << ")";
+  out << "GetProof()" << std::endl;
 }
 
-static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c)
+void AstPrinter::toStreamCmdGetUnsatCore(std::ostream& out) const
 {
-  const vector<Type>& datatypes = c->getDatatypes();
+  out << "GetUnsatCore()" << std::endl;
+}
+
+void AstPrinter::toStreamCmdSetBenchmarkStatus(std::ostream& out,
+                                               Result::Sat status) const
+{
+  out << "SetBenchmarkStatus(" << status << ')' << std::endl;
+}
+
+void AstPrinter::toStreamCmdSetBenchmarkLogic(std::ostream& out,
+                                              const std::string& logic) const
+{
+  out << "SetBenchmarkLogic(" << logic << ')' << std::endl;
+}
+
+void AstPrinter::toStreamCmdSetInfo(std::ostream& out,
+                                    const std::string& flag,
+                                    SExpr sexpr) const
+{
+  out << "SetInfo(" << flag << ", " << sexpr << ')' << std::endl;
+}
+
+void AstPrinter::toStreamCmdGetInfo(std::ostream& out,
+                                    const std::string& flag) const
+{
+  out << "GetInfo(" << flag << ')' << std::endl;
+}
+
+void AstPrinter::toStreamCmdSetOption(std::ostream& out,
+                                      const std::string& flag,
+                                      SExpr sexpr) const
+{
+  out << "SetOption(" << flag << ", " << sexpr << ')' << std::endl;
+}
+
+void AstPrinter::toStreamCmdGetOption(std::ostream& out,
+                                      const std::string& flag) const
+{
+  out << "GetOption(" << flag << ')' << std::endl;
+}
+
+void AstPrinter::toStreamCmdDatatypeDeclaration(
+    std::ostream& out, const std::vector<TypeNode>& datatypes) const
+{
   out << "DatatypeDeclarationCommand([";
-  for (const Type& t : datatypes)
+  for (const TypeNode& t : datatypes)
   {
     out << t << ";" << endl;
   }
-  out << "])";
+  out << "])" << std::endl;
 }
 
-static void toStream(std::ostream& out, const CommentCommand* c)
+void AstPrinter::toStreamCmdComment(std::ostream& out,
+                                    const std::string& comment) const
 {
-  out << "CommentCommand([" << c->getComment() << "])";
+  out << "CommentCommand([" << comment << "])" << std::endl;
 }
 
 template <class T>

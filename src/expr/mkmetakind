@@ -270,19 +270,16 @@ $2 const& NodeValue::getConst< $2 >() const {
 "
   metakind_constHashes="${metakind_constHashes}
   case kind::$1:
-#line $lineno \"$kf\"
     return $3()(nv->getConst< $2 >());
 "
   metakind_constPrinters="${metakind_constPrinters}
   case kind::$1:
-#line $lineno \"$kf\"
     out << nv->getConst< $2 >();
     break;
 "
   cname=`echo "$2" | awk 'BEGIN {FS="::"} {print$NF}'`
   metakind_constDeleters="${metakind_constDeleters}
   case kind::$1:
-#line $lineno \"$kf\"
     std::allocator< $2 >().destroy(reinterpret_cast< $2* >(nv->d_children));
     break;
 "
@@ -301,7 +298,6 @@ function registerOperatorToKind {
   operatorKind=$1
   applyKind=$2
   metakind_operatorKinds="${metakind_operatorKinds}
-#line $lineno \"$kf\"
     case kind::$applyKind: return kind::$operatorKind;";
 }
 
@@ -395,10 +391,6 @@ done
 check_builtin_theory_seen
 
 ## output
-
-# generate warnings about incorrect #line annotations in templates
-nl -ba -s' ' "$template"  | grep '^ *[0-9][0-9]* # *line' |
-  awk '{OFS="";if($1+1!=$3) print "'"$template"':",$1,": warning: incorrect annotation \"#line ",$3,"\" (it should be \"#line ",($1+1),"\")"}' >&2
 
 text=$(cat "$template")
 for var in \

@@ -2,10 +2,10 @@
 /*! \file smt2.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Christopher L. Conway
+ **   Andrew Reynolds, Andres Noetzli, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -28,12 +28,12 @@
 #include "api/cvc4cpp.h"
 #include "parser/parse_op.h"
 #include "parser/parser.h"
-#include "smt/command.h"
 #include "theory/logic_info.h"
 #include "util/abstract_value.h"
 
 namespace CVC4 {
 
+class Command;
 class SExpr;
 
 namespace api {
@@ -60,17 +60,22 @@ class Smt2 : public Parser
    */
   std::unordered_map<std::string, api::Kind> d_indexedOpKindMap;
   std::pair<api::Term, std::string> d_lastNamedTerm;
-  // for sygus
-  std::vector<api::Term> d_sygusVars, d_sygusVarPrimed, d_sygusConstraints,
-      d_sygusFunSymbols;
+  /**
+   * A list of sygus grammar objects. We keep track of them here to ensure that
+   * they don't get deleted before the commands using them get invoked.
+   */
+  std::vector<std::unique_ptr<api::Grammar>> d_allocGrammars;
 
  protected:
   Smt2(api::Solver* solver,
+       SymbolManager* sm,
        Input* input,
        bool strictMode = false,
        bool parseOnly = false);
 
  public:
+  ~Smt2();
+
   /**
    * Add core theory symbols to the parser state.
    */
@@ -164,7 +169,7 @@ class Smt2 : public Parser
 
   /** Push scope for define-fun-rec
    *
-   * This calls Parser::pushScope(bindingLevel) and sets up
+   * This calls Parser::pushScope() and sets up
    * initial information for reading a body of a function definition
    * in the define-fun-rec and define-funs-rec command.
    * The input parameters func/flattenVars are the result
@@ -175,7 +180,7 @@ class Smt2 : public Parser
    * flattenVars : the implicit variables introduced when defining func.
    *
    * This function:
-   * (1) Calls Parser::pushScope(bindingLevel).
+   * (1) Calls Parser::pushScope().
    * (2) Computes the bound variable list for the quantified formula
    *     that defined this definition and stores it in bvs.
    */
@@ -183,56 +188,11 @@ class Smt2 : public Parser
       const std::vector<std::pair<std::string, api::Sort>>& sortedVarNames,
       api::Term func,
       const std::vector<api::Term>& flattenVars,
-      std::vector<api::Term>& bvs,
-      bool bindingLevel = false);
+      std::vector<api::Term>& bvs);
 
   void reset() override;
 
   void resetAssertions();
-
-  /**
-   * Class for creating instances of `SynthFunCommand`s. Creating an instance
-   * of this class pushes the scope, destroying it pops the scope.
-   */
-  class SynthFunFactory
-  {
-   public:
-    /**
-     * Creates an instance of `SynthFunFactory`.
-     *
-     * @param smt2 Pointer to the parser state
-     * @param fun Name of the function to synthesize
-     * @param isInv True if the goal is to synthesize an invariant, false
-     * otherwise
-     * @param range The return type of the function-to-synthesize
-     * @param sortedVarNames The parameters of the function-to-synthesize
-     */
-    SynthFunFactory(
-        Smt2* smt2,
-        const std::string& fun,
-        bool isInv,
-        api::Sort range,
-        std::vector<std::pair<std::string, api::Sort>>& sortedVarNames);
-    ~SynthFunFactory();
-
-    const std::vector<api::Term>& getSygusVars() const { return d_sygusVars; }
-
-    /**
-     * Create an instance of `SynthFunCommand`.
-     *
-     * @param grammar Optional grammar associated with the synth-fun command
-     * @return The instance of `SynthFunCommand`
-     */
-    std::unique_ptr<Command> mkCommand(api::Sort grammar);
-
-   private:
-    Smt2* d_smt2;
-    std::string d_fun;
-    api::Term d_synthFun;
-    api::Sort d_sygusType;
-    bool d_isInv;
-    std::vector<api::Term> d_sygusVars;
-  };
 
   /**
    * Creates a command that adds an invariant constraint.
@@ -260,6 +220,15 @@ class Smt2 : public Parser
    */
   const LogicInfo& getLogic() const { return d_logic; }
 
+  /**
+   * Create a Sygus grammar.
+   * @param boundVars the parameters to corresponding synth-fun/synth-inv
+   * @param ntSymbols the pre-declaration of the non-terminal symbols
+   * @return a pointer to the grammar
+   */
+  api::Grammar* mkGrammar(const std::vector<api::Term>& boundVars,
+                          const std::vector<api::Term>& ntSymbols);
+
   bool v2_0() const
   {
     return getLanguage() == language::input::LANG_SMTLIB_V2_0;
@@ -282,8 +251,6 @@ class Smt2 : public Parser
   }
   /** Are we using a sygus language? */
   bool sygus() const;
-  /** Are we using the sygus version 1.0 format? */
-  bool sygus_v1() const;
   /** Are we using the sygus version 2.0 format? */
   bool sygus_v2() const;
 
@@ -313,10 +280,13 @@ class Smt2 : public Parser
    */
   void checkLogicAllowsFunctions();
 
-  void checkUserSymbol(const std::string& name) {
-    if(name.length() > 0 && (name[0] == '.' || name[0] == '@')) {
+  void checkUserSymbol(const std::string& name)
+  {
+    if (name.length() > 0 && (name[0] == '.' || name[0] == '@'))
+    {
       std::stringstream ss;
-      ss << "cannot declare or define symbol `" << name << "'; symbols starting with . and @ are reserved in SMT-LIB";
+      ss << "cannot declare or define symbol `" << name
+         << "'; symbols starting with . and @ are reserved in SMT-LIB";
       parseError(ss.str());
     }
     else if (isOperatorEnabled(name))
@@ -334,7 +304,8 @@ class Smt2 : public Parser
     d_lastNamedTerm = std::make_pair(e, name);
   }
 
-  void clearLastNamedTerm() {
+  void clearLastNamedTerm()
+  {
     d_lastNamedTerm = std::make_pair(api::Term(), "");
   }
 
@@ -350,84 +321,6 @@ class Smt2 : public Parser
    */
   api::Term mkAbstractValue(const std::string& name);
 
-  void mkSygusConstantsForType(const api::Sort& type,
-                               std::vector<api::Term>& ops);
-
-  void processSygusGTerm(
-      CVC4::SygusGTerm& sgt,
-      int index,
-      std::vector<api::DatatypeDecl>& datatypes,
-      std::vector<api::Sort>& sorts,
-      std::vector<std::vector<ParseOp>>& ops,
-      std::vector<std::vector<std::string>>& cnames,
-      std::vector<std::vector<std::vector<api::Sort>>>& cargs,
-      std::vector<bool>& allow_const,
-      std::vector<std::vector<std::string>>& unresolved_gterm_sym,
-      const std::vector<api::Term>& sygus_vars,
-      std::map<api::Sort, api::Sort>& sygus_to_builtin,
-      std::map<api::Sort, api::Term>& sygus_to_builtin_expr,
-      api::Sort& ret,
-      bool isNested = false);
-
-  bool pushSygusDatatypeDef(
-      api::Sort t,
-      std::string& dname,
-      std::vector<api::DatatypeDecl>& datatypes,
-      std::vector<api::Sort>& sorts,
-      std::vector<std::vector<ParseOp>>& ops,
-      std::vector<std::vector<std::string>>& cnames,
-      std::vector<std::vector<std::vector<api::Sort>>>& cargs,
-      std::vector<bool>& allow_const,
-      std::vector<std::vector<std::string>>& unresolved_gterm_sym);
-
-  bool popSygusDatatypeDef(
-      std::vector<api::DatatypeDecl>& datatypes,
-      std::vector<api::Sort>& sorts,
-      std::vector<std::vector<ParseOp>>& ops,
-      std::vector<std::vector<std::string>>& cnames,
-      std::vector<std::vector<std::vector<api::Sort>>>& cargs,
-      std::vector<bool>& allow_const,
-      std::vector<std::vector<std::string>>& unresolved_gterm_sym);
-
-  void setSygusStartIndex(const std::string& fun,
-                          int startIndex,
-                          std::vector<api::DatatypeDecl>& datatypes,
-                          std::vector<api::Sort>& sorts,
-                          std::vector<std::vector<ParseOp>>& ops);
-
-  void mkSygusDatatype(api::DatatypeDecl& dt,
-                       std::vector<ParseOp>& ops,
-                       std::vector<std::string>& cnames,
-                       std::vector<std::vector<api::Sort>>& cargs,
-                       std::vector<std::string>& unresolved_gterm_sym,
-                       std::map<api::Sort, api::Sort>& sygus_to_builtin);
-
-  /**
-   * Adds a constructor to sygus datatype dt whose sygus operator is term.
-   *
-   * ntsToUnres contains a mapping from non-terminal symbols to the unresolved
-   * types they correspond to. This map indicates how the argument term should
-   * be interpreted (instances of symbols from the domain of ntsToUnres
-   * correspond to constructor arguments).
-   *
-   * The sygus operator that is actually added to dt corresponds to replacing
-   * each occurrence of non-terminal symbols from the domain of ntsToUnres
-   * with bound variables via purifySygusGTerm, and binding these variables
-   * via a lambda.
-   */
-  void addSygusConstructorTerm(
-      api::DatatypeDecl& dt,
-      api::Term term,
-      std::map<api::Term, api::Sort>& ntsToUnres) const;
-  /**
-   * This adds constructors to dt for sygus variables in sygusVars whose
-   * type is argument type. This method should be called when the sygus grammar
-   * term (Variable type) is encountered.
-   */
-  void addSygusConstructorVariables(api::DatatypeDecl& dt,
-                                    const std::vector<api::Term>& sygusVars,
-                                    api::Sort type) const;
-
   /**
    * Smt2 parser provides its own checkDeclaration, which does the
    * same as the base, but with some more helpful errors.
@@ -442,11 +335,6 @@ class Smt2 : public Parser
     if (name.length() > 1 && name[0] == '-'
         && name.find_first_not_of("0123456789", 1) == std::string::npos)
     {
-      if (sygus_v1())
-      {
-        // "-1" is allowed in SyGuS version 1.0
-        return;
-      }
       std::stringstream ss;
       ss << notes << "You may have intended to apply unary minus: `(- "
          << name.substr(1) << ")'\n";
@@ -455,17 +343,11 @@ class Smt2 : public Parser
     }
     this->Parser::checkDeclaration(name, check, type, notes);
   }
-  /** Set named attribute
-   *
-   * This is called when expression expr is annotated with a name, i.e.
-   * (! expr :named sexpr). It sets up the necessary information to process
-   * this naming, including marking that expr is the last named term.
-   *
-   * We construct an expression symbol whose name is the name of s-expression
-   * which is used later for tracking assertions in unsat cores. This
-   * symbol is returned by this method.
+  /**
+   * Notify that expression expr was given name std::string via a :named
+   * attribute.
    */
-  api::Term setNamedAttribute(api::Term& expr, const SExpr& sexpr);
+  void notifyNamedExpression(api::Term& expr, std::string name);
 
   // Throw a ParserException with msg appended with the current logic.
   inline void parseErrorLogic(const std::string& msg)
@@ -537,50 +419,6 @@ class Smt2 : public Parser
   api::Term applyParseOp(ParseOp& p, std::vector<api::Term>& args);
   //------------------------- end processing parse operators
  private:
-  std::map<api::Term, api::Sort> d_sygus_bound_var_type;
-
-  api::Sort processSygusNestedGTerm(
-      int sub_dt_index,
-      std::string& sub_dname,
-      std::vector<api::DatatypeDecl>& datatypes,
-      std::vector<api::Sort>& sorts,
-      std::vector<std::vector<ParseOp>>& ops,
-      std::vector<std::vector<std::string>>& cnames,
-      std::vector<std::vector<std::vector<api::Sort>>>& cargs,
-      std::vector<bool>& allow_const,
-      std::vector<std::vector<std::string>>& unresolved_gterm_sym,
-      std::map<api::Sort, api::Sort>& sygus_to_builtin,
-      std::map<api::Sort, api::Term>& sygus_to_builtin_expr,
-      api::Sort sub_ret);
-
-  /** make sygus bound var list
-   *
-   * This is used for converting non-builtin sygus operators to lambda
-   * expressions. It takes as input a datatype and constructor index (for
-   * naming) and a vector of type ltypes.
-   * It appends a bound variable to lvars for each type in ltypes, and returns
-   * a bound variable list whose children are lvars.
-   */
-  api::Term makeSygusBoundVarList(api::DatatypeDecl& dt,
-                                  unsigned i,
-                                  const std::vector<api::Sort>& ltypes,
-                                  std::vector<api::Term>& lvars);
-
-  /** Purify sygus grammar term
-   *
-   * This returns a term where all occurrences of non-terminal symbols (those
-   * in the domain of ntsToUnres) are replaced by fresh variables. For each
-   * variable replaced in this way, we add the fresh variable it is replaced
-   * with to args, and the unresolved type corresponding to the non-terminal
-   * symbol to cargs (constructor args). In other words, args contains the
-   * free variables in the term returned by this method (which should be bound
-   * by a lambda), and cargs contains the types of the arguments of the
-   * sygus constructor.
-   */
-  api::Term purifySygusGTerm(api::Term term,
-                             std::map<api::Term, api::Sort>& ntsToUnres,
-                             std::vector<api::Term>& args,
-                             std::vector<api::Sort>& cargs) const;
 
   void addArithmeticOperators();
 
@@ -610,7 +448,7 @@ class Smt2 : public Parser
   api::Term mkAnd(const std::vector<api::Term>& es);
 }; /* class Smt2 */
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace CVC4
 
 #endif /* CVC4__PARSER__SMT2_H */

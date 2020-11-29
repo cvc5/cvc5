@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Tim King, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -19,7 +19,6 @@
 
 #include <map>
 #include <queue>
-#include <stdint.h>
 #include <vector>
 
 #include "context/cdhashset.h"
@@ -31,19 +30,16 @@
 #include "expr/metakind.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
+#include "expr/proof_generator.h"
 #include "options/arith_options.h"
 #include "smt/logic_exception.h"
 #include "smt_util/boolean_simplification.h"
-#include "theory/arith/arith_rewriter.h"
-#include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/attempt_solution_simplex.h"
 #include "theory/arith/congruence_manager.h"
 #include "theory/arith/constraint.h"
-#include "theory/arith/constraint.h"
-#include "theory/arith/delta_rational.h"
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/dio_solver.h"
 #include "theory/arith/dual_simplex.h"
@@ -51,16 +47,16 @@
 #include "theory/arith/infer_bounds.h"
 #include "theory/arith/linear_equality.h"
 #include "theory/arith/matrix.h"
-#include "theory/arith/matrix.h"
 #include "theory/arith/normal_form.h"
 #include "theory/arith/partial_model.h"
-#include "theory/arith/partial_model.h"
+#include "theory/arith/proof_checker.h"
 #include "theory/arith/simplex.h"
 #include "theory/arith/soi_simplex.h"
 #include "theory/arith/theory_arith.h"
-#include "theory/arith/theory_arith_private_forward.h"
+#include "theory/eager_proof_generator.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "theory/trust_node.h"
 #include "theory/valuation.h"
 #include "util/dense_map.h"
 #include "util/integer.h"
@@ -83,10 +79,6 @@ namespace inferbounds {
 }
 class InferBoundsResult;
 
-namespace nl {
-class NonlinearExtension;
-}
-
 /**
  * Implementation of QF_LRA.
  * Based upon:
@@ -99,11 +91,20 @@ private:
 
   TheoryArith& d_containing;
 
-  bool d_nlIncomplete;
-  // TODO A better would be:
-  //context::CDO<bool> d_nlIncomplete;
+  /**
+   * Whether we encountered non-linear arithmetic at any time during solving.
+   */
+  bool d_foundNl;
 
   BoundInfoMap d_rowTracking;
+
+  // For proofs
+  /** Manages the proof nodes of this theory. */
+  ProofNodeManager* d_pnm;
+  /** Checks the proof rules of this theory. */
+  ArithProofRuleChecker d_checker;
+  /** Stores proposition(node)/proof pairs. */
+  std::unique_ptr<EagerProofGenerator> d_pfGen;
 
   /**
    * The constraint database associated with the theory.
@@ -310,8 +311,12 @@ private:
 
   /** This is only used by simplex at the moment. */
   context::CDO<Node> d_blackBoxConflict;
-public:
+  /** For holding the proof of the above conflict node. */
+  context::CDO<std::shared_ptr<ProofNode>> d_blackBoxConflictPf;
 
+  bool isProofEnabled() const;
+
+ public:
   /**
    * This adds the constraint a to the queue of conflicts in d_conflicts.
    * Both a and ~a must have a proof.
@@ -326,17 +331,16 @@ public:
   // void raiseConflict(ConstraintCP a, ConstraintCP b, ConstraintCP c);
 
   /** This is a conflict that is magically known to hold. */
-  void raiseBlackBoxConflict(Node bb);
+  void raiseBlackBoxConflict(Node bb, std::shared_ptr<ProofNode> pf = nullptr);
+  /**
+   * Returns true iff a conflict has been raised. This method is public since
+   * it is needed by the ArithState class to know whether we are in conflict.
+   */
+  bool anyConflict() const;
 
-private:
-
+ private:
   inline bool conflictQueueEmpty() const {
     return d_conflicts.empty();
-  }
-
-  /** Returns true iff a conflict has been raised. */
-  inline bool anyConflict() const {
-    return !conflictQueueEmpty() || !d_blackBoxConflict.get().isNull();
   }
 
   /**
@@ -372,9 +376,6 @@ private:
   FCSimplexDecisionProcedure d_fcSimplex;
   SumOfInfeasibilitiesSPD d_soiSimplex;
   AttemptSolutionSDP d_attemptSolSimplex;
-  
-  /** non-linear algebraic approach */
-  nl::NonlinearExtension* d_nonlinearExtension;
 
   bool solveRealRelaxation(Theory::Effort effortLevel);
 
@@ -417,89 +418,91 @@ private:
 
   Node axiomIteForTotalDivision(Node div_tot);
   Node axiomIteForTotalIntDivision(Node int_div_like);
-
-  // handle linear /, div, mod, and also is_int, to_int
-  Node ppRewriteTerms(TNode atom);
-
-  /**
-   * Called when a non-linear term n is given to this class. Throw an exception
-   * if the logic is linear.
-   */
-  void checkNonLinearLogic(Node term);
-  /**
-   * Eliminate operators in term n. If n has top symbol that is not a core
-   * one (including division, int division, mod, to_int, is_int, syntactic sugar
-   * transcendental functions), then we replace it by a form that eliminates
-   * that operator. This may involve the introduction of witness terms.
-   *
-   * One exception to the above rule is that we may leave certain applications
-   * like (/ 4 1) unchanged, since replacing this by 4 changes its type from
-   * real to int. This is important for some subtyping issues during
-   * expandDefinition. Moreover, applications like this can be eliminated
-   * trivially later by rewriting.
-   *
-   * This method is called both during expandDefinition and during ppRewrite.
-   *
-   * @param n The node to eliminate operators from.
-   * @return The (single step) eliminated form of n.
-   */
-  Node eliminateOperators(Node n);
-  /**
-   * Recursively ensure that n has no non-standard operators. This applies
-   * the above method on all subterms of n.
-   *
-   * @param n The node to eliminate operators from.
-   * @return The eliminated form of n.
-   */
-  Node eliminateOperatorsRec(Node n);
-
  public:
-  TheoryArithPrivate(TheoryArith& containing, context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
+  TheoryArithPrivate(TheoryArith& containing,
+                     context::Context* c,
+                     context::UserContext* u,
+                     OutputChannel& out,
+                     Valuation valuation,
+                     const LogicInfo& logicInfo,
+                     ProofNodeManager* pnm);
   ~TheoryArithPrivate();
 
-  TheoryRewriter* getTheoryRewriter() { return &d_rewriter; }
+  //--------------------------------- initialization
+  /**
+   * Returns true if we need an equality engine, see
+   * Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi);
+  /** finish initialize */
+  void finishInit();
+  //--------------------------------- end initialization
 
   /**
    * Does non-context dependent setup for a node connected to a theory.
    */
   void preRegisterTerm(TNode n);
-  Node expandDefinition(Node node);
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq);
-
-  void check(Theory::Effort e);
-  bool needsCheckLastEffort();
   void propagate(Theory::Effort e);
-  Node explain(TNode n);
-  bool getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp );
-  bool isExtfReduced( int effort, Node n, Node on, std::vector< Node >& exp );
+  TrustNode explain(TNode n);
 
   Rational deltaValueForTotalOrder() const;
 
   bool collectModelInfo(TheoryModel* m);
+  /**
+   * Collect model values. This is the main method for extracting information
+   * about how to construct the model. This method relies on the caller for
+   * processing the map, which is done so that other modules (e.g. the
+   * non-linear extension) can modify arithModel before it is sent to the model.
+   *
+   * @param termSet The set of relevant terms
+   * @param arithModel Mapping from terms (of real type) to their values. The
+   * caller should assert equalities to the model for each entry in this map.
+   */
+  void collectModelValues(const std::set<Node>& termSet,
+                          std::map<Node, Node>& arithModel);
 
   void shutdown(){ }
 
   void presolve();
   void notifyRestart();
-  Theory::PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
-  Node ppRewrite(TNode atom);
+  Theory::PPAssertStatus ppAssert(TrustNode tin,
+                                  TrustSubstitutionMap& outSubstitutions);
   void ppStaticLearn(TNode in, NodeBuilder<>& learned);
 
   std::string identify() const { return std::string("TheoryArith"); }
 
   EqualityStatus getEqualityStatus(TNode a, TNode b);
 
-  void addSharedTerm(TNode n);
+  /** Called when n is notified as being a shared term with TheoryArith. */
+  void notifySharedTerm(TNode n);
 
   Node getModelValue(TNode var);
 
 
   std::pair<bool, Node> entailmentCheck(TNode lit, const ArithEntailmentCheckParameters& params, ArithEntailmentCheckSideEffects& out);
 
+  //--------------------------------- standard check
+  /** Pre-check, called before the fact queue of the theory is processed. */
+  bool preCheck(Theory::Effort level);
+  /** Pre-notify fact. */
+  void preNotifyFact(TNode atom, bool pol, TNode fact);
+  /**
+   * Post-check, called after the fact queue of the theory is processed. Returns
+   * true if a conflict or lemma was emitted.
+   */
+  bool postCheck(Theory::Effort level);
+  //--------------------------------- end standard check
+  /**
+   * Found non-linear? This returns true if this solver ever encountered
+   * any non-linear terms that were unhandled. Note that this class is not
+   * responsible for handling non-linear arithmetic. If the owner of this
+   * class does not handle non-linear arithmetic in another way, then
+   * setIncomplete should be called on the output channel of TheoryArith.
+   */
+  bool foundNonlinear() const;
 
-private:
-
+ private:
   /** The constant zero. */
   DeltaRational d_DELTA_ZERO;
 
@@ -644,8 +647,11 @@ private:
    * Handles the case splitting for check() for a new assertion.
    * Returns a conflict if one was found.
    * Returns Node::null if no conflict was found.
+   *
+   * @param assertion The assertion that was just popped from the fact queue
+   * of TheoryArith and given to this class via preNotifyFact.
    */
-  ConstraintP constraintFromFactQueue();
+  ConstraintP constraintFromFactQueue(TNode assertion);
   bool assertionCases(ConstraintP c);
 
   /**
@@ -683,11 +689,9 @@ private:
   inline TheoryId theoryOf(TNode x) const { return d_containing.theoryOf(x); }
   inline void debugPrintFacts() const { d_containing.debugPrintFacts(); }
   inline context::Context* getSatContext() const { return d_containing.getSatContext(); }
-  inline void setIncomplete() {
-    (d_containing.d_out)->setIncomplete();
-    d_nlIncomplete = true;
-  }
+  void outputTrustedLemma(TrustNode lem);
   void outputLemma(TNode lem);
+  void outputTrustedConflict(TrustNode conf);
   void outputConflict(TNode lit);
   void outputPropagate(TNode lit);
   void outputRestart();
@@ -758,6 +762,13 @@ private:
   uint32_t d_solveIntMaybeHelp, d_solveIntAttempts;
 
   RationalVector d_farkasBuffer;
+
+  //---------------- during check
+  /** Whether there were new facts during preCheck */
+  bool d_newFacts;
+  /** The previous status, computed during preCheck */
+  Result::Sat d_previousStatus;
+  //---------------- end during check
 
   /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {
@@ -861,61 +872,6 @@ private:
 
 
   Statistics d_statistics;
-
-  enum class ArithSkolemId
-  {
-    /* an uninterpreted function f s.t. f(x) = x / 0.0 (real division) */
-    DIV_BY_ZERO,
-    /* an uninterpreted function f s.t. f(x) = x / 0 (integer division) */
-    INT_DIV_BY_ZERO,
-    /* an uninterpreted function f s.t. f(x) = x mod 0 */
-    MOD_BY_ZERO,
-    /* an uninterpreted function f s.t. f(x) = sqrt(x) */
-    SQRT,
-  };
-
-  /**
-   * Function symbols used to implement:
-   * (1) Uninterpreted division-by-zero semantics.  Needed to deal with partial
-   * division function ("/"),
-   * (2) Uninterpreted int-division-by-zero semantics.  Needed to deal with
-   * partial function "div",
-   * (3) Uninterpreted mod-zero semantics.  Needed to deal with partial
-   * function "mod".
-   *
-   * If the option arithNoPartialFun() is enabled, then the range of this map
-   * stores Skolem constants instead of Skolem functions, meaning that the
-   * function-ness of e.g. division by zero is ignored.
-   */
-  std::map<ArithSkolemId, Node> d_arith_skolem;
-  /** get arithmetic skolem
-   *
-   * Returns the Skolem in the above map for the given id, creating it if it
-   * does not already exist.
-   */
-  Node getArithSkolem(ArithSkolemId asi);
-  /** get arithmetic skolem application
-   *
-   * By default, this returns the term f( n ), where f is the Skolem function
-   * for the identifier asi.
-   *
-   * If the option arithNoPartialFun is enabled, this returns f, where f is
-   * the Skolem constant for the identifier asi.
-   */
-  Node getArithSkolemApp(Node n, ArithSkolemId asi);
-
-  /**
-   *  Maps for Skolems for to-integer, real/integer div-by-k, and inverse
-   *  non-linear operators that are introduced during ppRewriteTerms.
-   */
-  typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
-  NodeMap d_to_int_skolem;
-  NodeMap d_div_skolem;
-  NodeMap d_int_div_skolem;
-  NodeMap d_nlin_inverse_skolem;
-
-  /** The theory rewriter for this theory. */
-  ArithRewriter d_rewriter;
 };/* class TheoryArithPrivate */
 
 }/* CVC4::theory::arith namespace */

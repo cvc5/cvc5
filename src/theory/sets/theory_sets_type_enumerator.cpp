@@ -2,10 +2,10 @@
 /*! \file theory_sets_type_enumerator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King, Andrew Reynolds, Mudathir Mahgoub
+ **   Mudathir Mohamed, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -28,7 +28,7 @@ SetEnumerator::SetEnumerator(TypeNode type, TypeEnumeratorProperties* tep)
       d_currentSetIndex(0),
       d_currentSet()
 {
-  d_currentSet = d_nodeManager->mkConst(EmptySet(type.toType()));
+  d_currentSet = d_nodeManager->mkConst(EmptySet(type));
 }
 
 SetEnumerator::SetEnumerator(const SetEnumerator& enumerator)
@@ -89,7 +89,8 @@ SetEnumerator& SetEnumerator::operator++()
     // get a new element and return it as a singleton set
     Node element = *d_elementEnumerator;
     d_elementsSoFar.push_back(element);
-    d_currentSet = d_nodeManager->mkNode(kind::SINGLETON, element);
+    TypeNode elementType = d_elementEnumerator.getType();
+    d_currentSet = d_nodeManager->mkSingleton(elementType, element);
     d_elementEnumerator++;
   }
   else

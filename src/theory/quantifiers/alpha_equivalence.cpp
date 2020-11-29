@@ -2,10 +2,10 @@
 /*! \file alpha_equivalence.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters
+ **   Andrew Reynolds, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -17,11 +17,11 @@
 
 #include "theory/quantifiers_engine.h"
 
-using namespace CVC4;
-using namespace std;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
 using namespace CVC4::kind;
+
+namespace CVC4 {
+namespace theory {
+namespace quantifiers {
 
 struct sortTypeOrder {
   expr::TermCanonize* d_tu;
@@ -142,15 +142,23 @@ Node AlphaEquivalence::reduceQuantifier(Node q)
   Node lem;
   if (ret != q)
   {
-    // do not reduce annotated quantified formulas based on alpha equivalence
-    if (q.getNumChildren() == 2)
+    // lemma ( q <=> d_quant )
+    // Notice that we infer this equivalence regardless of whether q or ret
+    // have annotations (e.g. user patterns, names, etc.).
+    Trace("alpha-eq") << "Alpha equivalent : " << std::endl;
+    Trace("alpha-eq") << "  " << q << std::endl;
+    Trace("alpha-eq") << "  " << ret << std::endl;
+    lem = q.eqNode(ret);
+    if (q.getNumChildren() == 3)
     {
-      // lemma ( q <=> d_quant )
-      Trace("alpha-eq") << "Alpha equivalent : " << std::endl;
-      Trace("alpha-eq") << "  " << q << std::endl;
-      Trace("alpha-eq") << "  " << ret << std::endl;
-      lem = q.eqNode(ret);
+      Notice() << "Ignoring annotated quantified formula based on alpha "
+                  "equivalence: "
+               << q << std::endl;
     }
   }
   return lem;
 }
+
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4

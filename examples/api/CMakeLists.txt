@@ -1,22 +1,24 @@
+#####################
+## CMakeLists.txt
+## Top contributors (to current version):
+##   Mathias Preiner, Abdalrhman Mohamed, Aina Niemetz
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
 set(CVC4_EXAMPLES_API
   bitvectors
-  bitvectors-new
   bitvectors_and_arrays
-  bitvectors_and_arrays-new
   combination
-  combination-new
   datatypes
-  datatypes-new
   extract
-  extract-new
   helloworld
-  helloworld-new
   linear_arith
-  linear_arith-new
   sets
-  sets-new
+  sequences
   strings
-  strings-new
   sygus-fun
   sygus-grammar
   sygus-inv

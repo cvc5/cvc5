@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -82,7 +82,6 @@
 #ifndef CVC4__CONTEXT__CDHASHMAP_H
 #define CVC4__CONTEXT__CDHASHMAP_H
 
-#include <cstddef>
 #include <functional>
 #include <iterator>
 #include <unordered_map>
@@ -418,6 +417,7 @@ public:
 
     // Dereference operators.
     const value_type& operator*() const { return d_it->getValue(); }
+    const value_type* operator->() const { return &d_it->getValue(); }
 
     // Prefix increment
     iterator& operator++()

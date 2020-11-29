@@ -2,10 +2,10 @@
 /*! \file Tptp.g
  ** \verbatim
  ** Top contributors (to current version):
- **   Francois Bobot, Morgan Deters, Andrew Reynolds
+ **   Haniel Barbosa, Francois Bobot, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -61,7 +61,6 @@ options {
 }/* @lexer::includes */
 
 @lexer::postinclude {
-#include <stdint.h>
 
 #include "parser/tptp/tptp.h"
 #include "parser/antlr_input.h"
@@ -121,6 +120,8 @@ using namespace CVC4::parser;
 #define PARSER_STATE ((Tptp*)PARSER->super)
 #undef SOLVER
 #define SOLVER PARSER_STATE->getSolver()
+#undef SYM_MAN
+#define SYM_MAN PARSER_STATE->getSymbolManager()
 #undef MK_TERM
 #define MK_TERM SOLVER->mkTerm
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
@@ -161,12 +162,10 @@ parseCommand returns [CVC4::Command* cmd = NULL]
   }
     (COMMA_TOK anything*)? RPAREN_TOK DOT_TOK
     {
-      CVC4::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
+      CVC4::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr, expr);
       if( !aexpr.isNull() ){
         // set the expression name (e.g. used with unsat core printing)
-        Command* csen = new SetExpressionNameCommand(aexpr.getExpr(), name);
-        csen->setMuted(true);
-        PARSER_STATE->preemptCommand(csen);
+        SYM_MAN->setExpressionName(aexpr, name, true);
       }
       // make the command to assert the formula
       cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, /* cnf == */ true, true);
@@ -178,9 +177,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
       CVC4::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
       if( !aexpr.isNull() ){
         // set the expression name (e.g. used with unsat core printing)
-        Command* csen = new SetExpressionNameCommand(aexpr.getExpr(), name);
-        csen->setMuted(true);
-        PARSER_STATE->preemptCommand(csen);
+        SYM_MAN->setExpressionName(aexpr, name, true);
       }
       // make the command to assert the formula
       cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, /* cnf == */ false, true);
@@ -194,9 +191,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
         CVC4::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
         if( !aexpr.isNull() ){
           // set the expression name (e.g. used with unsat core printing)
-          Command* csen = new SetExpressionNameCommand(aexpr.getExpr(), name);
-          csen->setMuted(true);
-          PARSER_STATE->preemptCommand(csen);
+          SYM_MAN->setExpressionName(aexpr, name, true);
         }
         // make the command to assert the formula
         cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, /* cnf == */ false, true);
@@ -219,9 +214,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
         if (!aexpr.isNull())
         {
           // set the expression name (e.g. used with unsat core printing)
-          Command* csen = new SetExpressionNameCommand(aexpr.getExpr(), name);
-          csen->setMuted(true);
-          PARSER_STATE->preemptCommand(csen);
+          SYM_MAN->setExpressionName(aexpr, name, true);
         }
         // make the command to assert the formula
         cmd = PARSER_STATE->makeAssertCommand(
@@ -255,7 +248,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
       CVC4::api::Term aexpr = PARSER_STATE->getAssertionDistinctConstants();
       if( !aexpr.isNull() )
       {
-        seq->addCommand(new AssertCommand(aexpr.getExpr(), false));
+        seq->addCommand(new AssertCommand(aexpr, false));
       }
 
       std::string filename = PARSER_STATE->getInput()->getInputStreamName();
@@ -268,7 +261,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
       }
       seq->addCommand(new SetInfoCommand("filename", SExpr(filename)));
       if(PARSER_STATE->hasConjecture()) {
-        seq->addCommand(new QueryCommand(SOLVER->mkFalse().getExpr()));
+        seq->addCommand(new QueryCommand(SOLVER->mkFalse()));
       } else {
         seq->addCommand(new CheckSatCommand());
       }
@@ -477,7 +470,7 @@ definedPred[CVC4::ParseOp& p]
       api::Term body =
           MK_TERM(api::AND,
                   MK_TERM(api::NOT,
-                          MK_TERM(api::EQUAL, r, SOLVER->mkReal(0))),
+                          MK_TERM(api::EQUAL, r, SOLVER->mkInteger(0))),
                   MK_TERM(api::EQUAL, qr, MK_TERM(api::MULT, n, rr)));
       api::Term bvl = MK_TERM(api::BOUND_VAR_LIST, q, r);
       body = MK_TERM(api::EXISTS, bvl, body);
@@ -537,7 +530,7 @@ thfDefinedPred[CVC4::ParseOp& p]
       api::Term body = MK_TERM(
           api::AND,
           MK_TERM(api::NOT,
-                  MK_TERM(api::EQUAL, r, SOLVER->mkReal(0))),
+                  MK_TERM(api::EQUAL, r, SOLVER->mkInteger(0))),
           MK_TERM(api::EQUAL, qr, MK_TERM(api::MULT, n, rr)));
       api::Term bvl = MK_TERM(api::BOUND_VAR_LIST, q, r);
       body = MK_TERM(api::EXISTS, bvl, body);
@@ -708,7 +701,7 @@ definedFun[CVC4::ParseOp& p]
                                                   n,
                                                   SOLVER->mkReal(2)),
                                           SOLVER->mkReal(1, 2))),
-                          SOLVER->mkReal(2))));
+                          SOLVER->mkInteger(2))));
       p.d_kind = api::LAMBDA;
       p.d_expr = MK_TERM(api::LAMBDA, formals, expr);
       }
@@ -967,7 +960,7 @@ thfAtomTyping[CVC4::Command*& cmd]
         {
           // as yet, it's undeclared
           api::Sort atype = PARSER_STATE->mkSort(name);
-          cmd = new DeclareTypeCommand(name, 0, atype.getType());
+          cmd = new DeclareSortCommand(name, 0, atype);
         }
       }
     | parseThfType[type]
@@ -1007,8 +1000,7 @@ thfAtomTyping[CVC4::Command*& cmd]
           {
             freshExpr = PARSER_STATE->bindVar(name, type);
           }
-          cmd = new DeclareFunctionCommand(
-              name, freshExpr.getExpr(), type.getType());
+          cmd = new DeclareFunctionCommand(name, freshExpr, type);
         }
       }
     )
@@ -1320,7 +1312,7 @@ tffTypedAtom[CVC4::Command*& cmd]
         } else {
           // as yet, it's undeclared
           api::Sort atype = PARSER_STATE->mkSort(name);
-          cmd = new DeclareTypeCommand(name, 0, atype.getType());
+          cmd = new DeclareSortCommand(name, 0, atype);
         }
       }
     | parseType[type]
@@ -1339,8 +1331,7 @@ tffTypedAtom[CVC4::Command*& cmd]
         } else {
           // as yet, it's undeclared
           CVC4::api::Term aexpr = PARSER_STATE->bindVar(name, type);
-          cmd =
-              new DeclareFunctionCommand(name, aexpr.getExpr(), type.getType());
+          cmd = new DeclareFunctionCommand(name, aexpr, type);
         }
       }
     )
@@ -1749,7 +1740,15 @@ NUMBER
   : ( SIGN[pos]? num=DECIMAL
       { std::stringstream ss;
         ss << ( pos ? "" : "-" ) << AntlrInput::tokenText($num);
-        PARSER_STATE->d_tmp_expr = SOLVER->mkReal(ss.str());
+        std::string str = ss.str();
+        if (str.find(".") == std::string::npos)
+        {
+          PARSER_STATE->d_tmp_expr = SOLVER->mkInteger(str);
+        }
+        else
+        {
+          PARSER_STATE->d_tmp_expr = SOLVER->mkReal(str);
+        }
       }
     | SIGN[pos]? num=DECIMAL DOT den=DECIMAL (EXPONENT SIGN[posE]? e=DECIMAL)?
       {

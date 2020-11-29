@@ -2,10 +2,10 @@
 /*! \file cegis_unif.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa
+ **   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -465,8 +465,8 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
       std::string veName("_virtual_enum_grammar");
       SygusDatatype sdt(veName);
       TypeNode u = nm->mkSort(veName, ExprManager::SORT_FLAG_PLACEHOLDER);
-      std::set<Type> unresolvedTypes;
-      unresolvedTypes.insert(u.toType());
+      std::set<TypeNode> unresolvedTypes;
+      unresolvedTypes.insert(u);
       std::vector<TypeNode> cargsEmpty;
       Node cr = nm->mkConst(Rational(1));
       sdt.addConstructor(cr, "1", cargsEmpty);
@@ -475,15 +475,11 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
       cargsPlus.push_back(u);
       sdt.addConstructor(PLUS, cargsPlus);
       sdt.initializeDatatype(nm->integerType(), bvl, false, false);
-      std::vector<Datatype> datatypes;
+      std::vector<DType> datatypes;
       datatypes.push_back(sdt.getDatatype());
-      std::vector<DatatypeType> dtypes =
-          nm->toExprManager()->mkMutualDatatypeTypes(
-              datatypes,
-              unresolvedTypes,
-              ExprManager::DATATYPE_FLAG_PLACEHOLDER);
-      TypeNode vtn = TypeNode::fromType(dtypes[0]);
-      d_virtual_enum = nm->mkSkolem("_ve", vtn);
+      std::vector<TypeNode> dtypes = nm->mkMutualDatatypeTypes(
+          datatypes, unresolvedTypes, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+      d_virtual_enum = nm->mkSkolem("_ve", dtypes[0]);
       d_tds->registerEnumerator(
           d_virtual_enum, Node::null(), d_parent, ROLE_ENUM_CONSTRAINED);
     }
@@ -561,7 +557,7 @@ void CegisUnifEnumDecisionStrategy::initialize(
   }
 
   // register this strategy
-  d_qe->getTheoryEngine()->getDecisionManager()->registerStrategy(
+  d_qe->getDecisionManager()->registerStrategy(
       DecisionManager::STRAT_QUANT_CEGIS_UNIF_NUM_ENUMS, this);
 
   // create single condition enumerator for each decision tree strategy

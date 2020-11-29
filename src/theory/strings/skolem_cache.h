@@ -2,10 +2,10 @@
 /*! \file skolem_cache.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
+ **   Andrew Reynolds, Andres Noetzli, Yoni Zohar
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -138,6 +138,11 @@ class SkolemCache
     //   where b is a regular expression, n is the number of occurrences of b
     //   in a, and k(0)=0.
     SK_OCCUR_LEN,
+    // For function k: ((Seq U) x Int) -> U
+    // exists k.
+    // forall s, n.
+    //  k(s, n) is some undefined value of sort U
+    SK_NTH,
   };
   /**
    * Returns a skolem of type string that is cached for (a,b,id) and has

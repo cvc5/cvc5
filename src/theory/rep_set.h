@@ -2,10 +2,10 @@
 /*! \file rep_set.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -71,7 +71,7 @@ class RepSet {
   /** does this set have representative n of type tn? */
   bool hasRep(TypeNode tn, Node n) const;
   /** get the number of representatives for type */
-  unsigned getNumRepresentatives(TypeNode tn) const;
+  size_t getNumRepresentatives(TypeNode tn) const;
   /** get representative at index */
   Node getRepresentative(TypeNode tn, unsigned i) const;
   /**

@@ -1,3 +1,13 @@
+#####################
+## CMakeLists.txt
+## Top contributors (to current version):
+##   Mathias Preiner, Andres Noetzli
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
 find_package(Java REQUIRED)
 find_package(JUnit 4.0 REQUIRED)
 include(UseJava)
@@ -7,6 +17,7 @@ set(java_test_src_files
   BitVectorsAndArrays.java
   Combination.java
   HelloWorld.java
+  Issue2846.java
   LinearArith.java
 )
 

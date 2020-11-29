@@ -2,10 +2,10 @@
 /*! \file cvc4cppkind.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz
+ **   Aina Niemetz, Andrew Reynolds, Makai Mann
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -120,9 +120,18 @@ enum CVC4_PUBLIC Kind : int32_t
 #if 0
   /* Skolem variable (internal only) */
   SKOLEM,
-  /* Symbolic expression (any arity) */
-  SEXPR,
 #endif
+  /*
+   * Symbolic expression.
+   * Parameters: n > 0
+   *   -[1]..[n]: terms
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEXPR,
   /**
    * Lambda expression.
    * Parameters: 2
@@ -319,6 +328,23 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   MULT,
+  /**
+   * Operator for Integer AND
+   * Parameter: 1
+   *   -[1]: Size of the bit-vector that determines the semantics of the IAND
+   * Create with:
+   *   mkOp(Kind kind, uint32_t param).
+   *
+   * Apply integer conversion to bit-vector.
+   * Parameters: 2
+   *   -[1]: Op of kind IAND
+   *   -[2]: Integer term
+   *   -[3]: Integer term
+   * Create with:
+   *   mkTerm(Op op, Term child1, Term child2)
+   *   mkTerm(Op op, const std::vector<Term>& children)
+   */
+  IAND,
 #if 0
   /* Synonym for MULT.  */
   NONLINEAR_MULT,
@@ -744,6 +770,12 @@ enum CVC4_PUBLIC Kind : int32_t
   BITVECTOR_NEG,
   /**
    * Unsigned division of two bit-vectors, truncating towards 0.
+   *
+   * Note: The semantics of this operator depends on `bv-div-zero-const`
+   * (default is true).  Depending on the setting, a division by zero is
+   * treated as all ones (default, corresponds to SMT-LIB >=2.6) or an
+   * uninterpreted value (corresponds to SMT-LIB <2.6).
+   *
    * Parameters: 2
    *   -[1]..[2]: Terms of bit-vector sort (sorts must match)
    * Create with:
@@ -753,6 +785,12 @@ enum CVC4_PUBLIC Kind : int32_t
   BITVECTOR_UDIV,
   /**
    * Unsigned remainder from truncating division of two bit-vectors.
+   *
+   * Note: The semantics of this operator depends on `bv-div-zero-const`
+   * (default is true). Depending on the setting, if the modulus is zero, the
+   * result is either the dividend (default, corresponds to SMT-LIB >=2.6) or
+   * an uninterpreted value (corresponds to SMT-LIB <2.6).
+   *
    * Parameters: 2
    *   -[1]..[2]: Terms of bit-vector sort (sorts must match)
    * Create with:
@@ -762,6 +800,13 @@ enum CVC4_PUBLIC Kind : int32_t
   BITVECTOR_UREM,
   /**
    * Two's complement signed division of two bit-vectors.
+   *
+   * Note: The semantics of this operator depends on `bv-div-zero-const`
+   * (default is true). By default, the function returns all ones if the
+   * dividend is positive and one if the dividend is negative (corresponds to
+   * SMT-LIB >=2.6). If the option is disabled, a division by zero is treated
+   * as an uninterpreted value (corresponds to SMT-LIB <2.6).
+   *
    * Parameters: 2
    *   -[1]..[2]: Terms of bit-vector sort (sorts must match)
    * Create with:
@@ -772,6 +817,12 @@ enum CVC4_PUBLIC Kind : int32_t
   /**
    * Two's complement signed remainder of two bit-vectors
    * (sign follows dividend).
+   *
+   * Note: The semantics of this operator depends on `bv-div-zero-const`
+   * (default is true, corresponds to SMT-LIB >=2.6). Depending on the setting,
+   * if the modulus is zero, the result is either the dividend (default) or an
+   * uninterpreted value (corresponds to SMT-LIB <2.6).
+   *
    * Parameters: 2
    *   -[1]..[2]: Terms of bit-vector sort (sorts must match)
    * Create with:
@@ -782,6 +833,12 @@ enum CVC4_PUBLIC Kind : int32_t
   /**
    * Two's complement signed remainder
    * (sign follows divisor).
+   *
+   * Note: The semantics of this operator depends on `bv-div-zero-const`
+   * (default is on). Depending on the setting, if the modulus is zero, the
+   * result is either the dividend (default, corresponds to SMT-LIB >=2.6) or
+   * an uninterpreted value (corresponds to SMT-LIB <2.6).
+   *
    * Parameters: 2
    *   -[1]..[2]: Terms of bit-vector sort (sorts must match)
    * Create with:
@@ -1505,6 +1562,23 @@ enum CVC4_PUBLIC Kind : int32_t
    * arrays, the solver doesn't know what to do and aborts (Issue #1667).
    */
   CONST_ARRAY,
+  /**
+   * Equality over arrays a and b over a given range [i,j], i.e.,
+   * \forall k . i <= k <= j --> a[k] = b[k]
+   *
+   * Parameters: 4
+   *   -[1]: First array
+   *   -[2]: Second array
+   *   -[3]: Lower bound of range (inclusive)
+   *   -[4]: Uppper bound of range (inclusive)
+   * Create with:
+   *   mkTerm(Op op, const std::vector<Term>& children)
+   *
+   * Note: We currently support the creation of array equalities over index
+   * types bit-vector, floating-point, integer and real. Option --arrays-exp is
+   * required to support this operator.
+   */
+  EQ_RANGE,
 #if 0
   /* array table function (internal-only symbol) */
   ARR_TABLE_FUN,
@@ -1767,7 +1841,8 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   MEMBER,
   /**
-   * The set of the single element given as a parameter.
+   * Construct a singleton set from an element given as a parameter.
+   * The returned set has same type of the element.
    * Parameters: 1
    *   -[1]: Single element
    * Create with:
@@ -1891,6 +1966,151 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child)
    */
   CHOOSE,
+  /**
+   * Set is_singleton predicate.
+   * Parameters: 1
+   *   -[1]: Term of set sort, is [1] a singleton set?
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  IS_SINGLETON,
+  /* Bags ------------------------------------------------------------------ */
+  /**
+   * Empty bag constant.
+   * Parameters: 1
+   *   -[1]: Sort of the bag elements
+   * Create with:
+   *   mkEmptyBag(Sort sort)
+   */
+  EMPTYBAG,
+  /**
+   * Bag max union.
+   * Parameters: 2
+   *   -[1]..[2]: Terms of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  UNION_MAX,
+  /**
+   * Bag disjoint union (sum).
+   * Parameters: 2
+   *   -[1]..[2]: Terms of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  UNION_DISJOINT,
+  /**
+   * Bag intersection (min).
+   * Parameters: 2
+   *   -[1]..[2]: Terms of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  INTERSECTION_MIN,
+  /**
+   * Bag difference subtract (subtracts multiplicities of the second from the
+   * first).
+   * Parameters: 2
+   *   -[1]..[2]: Terms of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  DIFFERENCE_SUBTRACT,
+  /**
+   * Bag difference 2 (removes shared elements in the two bags).
+   * Parameters: 2
+   *   -[1]..[2]: Terms of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  DIFFERENCE_REMOVE,
+  /**
+   * Inclusion predicate for bags
+   * (multiplicities of the first bag <= multiplicities of the second bag).
+   * Parameters: 2
+   *   -[1]..[2]: Terms of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SUBBAG,
+  /**
+   * Element multiplicity in a bag
+   * Parameters: 2
+   *   -[1]..[2]: Terms of bag sort (Bag E), [1] an element of sort E
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  BAG_COUNT,
+  /**
+   * Eliminate duplicates in a given bag. The returned bag contains exactly the
+   * same elements in the given bag, but with multiplicity one.
+   * Parameters: 1
+   *   -[1]: a term of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  DUPLICATE_REMOVAL,
+  /**
+   * The bag of the single element given as a parameter.
+   * Parameters: 1
+   *   -[1]: Single element
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  MK_BAG,
+  /**
+   * Bag cardinality.
+   * Parameters: 1
+   *   -[1]: Bag to determine the cardinality of
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  BAG_CARD,
+  /**
+   * Returns an element from a given bag.
+   * If a bag A = {(x,n)} where n is the multiplicity, then the term (choose A)
+   * is equivalent to the term x.
+   * If the bag is empty, then (choose A) is an arbitrary value.
+   * If the bag contains distinct elements, then (choose A) will
+   * deterministically return an element in A.
+   * Parameters: 1
+   *   -[1]: Term of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  BAG_CHOOSE,
+  /**
+   * Bag is_singleton predicate (single element with multiplicity exactly one).
+   * Parameters: 1
+   *   -[1]: Term of bag sort, is [1] a singleton bag?
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  BAG_IS_SINGLETON,
+  /**
+   * Bag.from_set converts a set to a bag.
+   * Parameters: 1
+   *   -[1]: Term of set sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  BAG_FROM_SET,
+  /**
+   * Bag.to_set converts a bag to a set.
+   * Parameters: 1
+   *   -[1]: Term of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  BAG_TO_SET,
 
   /* Strings --------------------------------------------------------------- */
 
@@ -1937,6 +2157,21 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   STRING_SUBSTR,
+  /**
+   * String update.
+   * Updates a string s by replacing its context starting at an index with t.
+   * If the start index is negative, the start index is greater than the
+   * length of the string, the result is s. Otherwise, the length of the
+   * original string is preserved.
+   * Parameters: 3
+   *   -[1]: Term of sort String
+   *   -[2]: Term of sort Integer (index i)
+   *   -[3]: Term of sort String (replacement string t)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  STRING_UPDATE,
   /**
    * String character at.
    * Returns the character at index i from a string s. If the index is negative
@@ -2298,10 +2533,178 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child1)
    */
   REGEXP_COMPLEMENT,
-#if 0
-  /* regexp rv (internal use only) */
-  REGEXP_RV,
-#endif
+
+  /**
+   * Sequence concat.
+   * Parameters: n > 1
+   *   -[1]..[n]: Terms of Sequence sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_CONCAT,
+  /**
+   * Sequence length.
+   * Parameters: 1
+   *   -[1]: Term of Sequence sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  SEQ_LENGTH,
+  /**
+   * Sequence extract.
+   * Extracts a subsequence, starting at index i and of length l, from a
+   * sequence s.  If the start index is negative, the start index is greater
+   * than the length of the sequence, or the length is negative, the result is
+   * the empty sequence. Parameters: 3
+   *   -[1]: Term of sort Sequence
+   *   -[2]: Term of sort Integer (index i)
+   *   -[3]: Term of sort Integer (length l)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_EXTRACT,
+  /**
+   * Sequence update.
+   * Updates a sequence s by replacing its context starting at an index with t.
+   * If the start index is negative, the start index is greater than the
+   * length of the sequence, the result is s. Otherwise, the length of the
+   * original sequence is preserved.
+   * Parameters: 3
+   *   -[1]: Term of sort Sequence
+   *   -[2]: Term of sort Integer (index i)
+   *   -[3]: Term of sort Sequence (replacement sequence t)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_UPDATE,
+  /**
+   * Sequence element at.
+   * Returns the element at index i from a sequence s. If the index is negative
+   * or the index is greater or equal to the length of the sequence, the result
+   * is the empty sequence. Otherwise the result is a sequence of length 1.
+   * Parameters: 2
+   *   -[1]: Term of sequence sort (string s)
+   *   -[2]: Term of sort Integer (index i)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_AT,
+  /**
+   * Sequence contains.
+   * Checks whether a sequence s1 contains another sequence s2. If s2 is empty,
+   * the result is always true. Parameters: 2
+   *   -[1]: Term of sort Sequence (the sequence s1)
+   *   -[2]: Term of sort Sequence (the sequence s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_CONTAINS,
+  /**
+   * Sequence index-of.
+   * Returns the index of a subsequence s2 in a sequence s1 starting at index i.
+   * If the index is negative or greater than the length of sequence s1 or the
+   * subsequence s2 does not appear in sequence s1 after index i, the result is
+   * -1. Parameters: 3
+   *   -[1]: Term of sort Sequence (subsequence s1)
+   *   -[2]: Term of sort Sequence (subsequence s2)
+   *   -[3]: Term of sort Integer (index i)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_INDEXOF,
+  /**
+   * Sequence replace.
+   * Replaces the first occurrence of a sequence s2 in a sequence s1 with
+   * sequence s3. If s2 does not appear in s1, s1 is returned unmodified.
+   * Parameters: 3
+   *   -[1]: Term of sort Sequence (sequence s1)
+   *   -[2]: Term of sort Sequence (sequence s2)
+   *   -[3]: Term of sort Sequence (sequence s3)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_REPLACE,
+  /**
+   * Sequence replace all.
+   * Replaces all occurrences of a sequence s2 in a sequence s1 with sequence
+   * s3. If s2 does not appear in s1, s1 is returned unmodified. Parameters: 3
+   *   -[1]: Term of sort Sequence (sequence s1)
+   *   -[2]: Term of sort Sequence (sequence s2)
+   *   -[3]: Term of sort Sequence (sequence s3)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_REPLACE_ALL,
+  /**
+   * Sequence reverse.
+   * Parameters: 1
+   *   -[1]: Term of Sequence sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  SEQ_REV,
+  /**
+   * Sequence prefix-of.
+   * Checks whether a sequence s1 is a prefix of sequence s2. If sequence s1 is
+   * empty, this operator returns true.
+   * Parameters: 2
+   *   -[1]: Term of sort Sequence (sequence s1)
+   *   -[2]: Term of sort Sequence (sequence s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_PREFIX,
+  /**
+   * Sequence suffix-of.
+   * Checks whether a sequence s1 is a suffix of sequence s2. If sequence s1 is
+   * empty, this operator returns true. Parameters: 2
+   *   -[1]: Term of sort Sequence (sequence s1)
+   *   -[2]: Term of sort Sequence (sequence s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_SUFFIX,
+  /**
+   * Constant sequence.
+   * Parameters:
+   *   See mkEmptySequence()
+   * Create with:
+   *   mkEmptySequence(Sort sort)
+   * Note that a constant sequence is a term that is equivalent to:
+   *   (seq.++ (seq.unit c1) ... (seq.unit cn))
+   * where n>=0 and c1, ..., cn are constants of some sort. The elements
+   * can be extracted by Term::getConstSequenceElements().
+   */
+  CONST_SEQUENCE,
+  /**
+   * Sequence unit, corresponding to a sequence of length one with the given
+   * term.
+   * Parameters: 1
+   *   -[1] Element term.
+   * Create with:
+   *   mkTerm(Kind kind, Term child1)
+   */
+  SEQ_UNIT,
+  /**
+   * Sequence nth, corresponding to the nth element of a sequence.
+   * Parameters: 2
+   *   -[1] Sequence term.
+   *   -[2] Integer term.
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   */
+  SEQ_NTH,
 
   /* Quantifiers ----------------------------------------------------------- */
 
@@ -2408,6 +2811,8 @@ enum CVC4_PUBLIC Kind : int32_t
   SELECTOR_TYPE,
   /* set type, takes as parameter the type of the elements */
   SET_TYPE,
+  /* bag type, takes as parameter the type of the elements */
+  BAG_TYPE,
   /* sort tag */
   SORT_TAG,
   /* specifies types of user-declared 'uninterpreted' sorts */

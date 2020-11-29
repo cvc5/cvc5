@@ -2,10 +2,10 @@
 /*! \file type.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Tim King
+ **   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -331,8 +331,7 @@ bool Type::isTuple() const {
 /** Is this a record type? */
 bool Type::isRecord() const {
   NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->getKind() == kind::DATATYPE_TYPE
-         && DatatypeType(*this).getDatatype().isRecord();
+  return d_typeNode->isRecord();
 }
 
 /** Is this a symbolic expression type? */
@@ -586,24 +585,8 @@ std::vector<Type> ConstructorType::getArgTypes() const {
   return args;
 }
 
-const Datatype& DatatypeType::getDatatype() const {
-  NodeManagerScope nms(d_nodeManager);
-  Assert(isDatatype());
-  if (d_typeNode->getKind() == kind::DATATYPE_TYPE)
-  {
-    DatatypeIndexConstant dic = d_typeNode->getConst<DatatypeIndexConstant>();
-    return d_nodeManager->toExprManager()->getDatatypeForIndex(dic.getIndex());
-  }
-  Assert(d_typeNode->getKind() == kind::PARAMETRIC_DATATYPE);
-  return DatatypeType((*d_typeNode)[0].toType()).getDatatype();
-}
-
 bool DatatypeType::isParametric() const {
   return d_typeNode->isParametricDatatype();
-}
-
-Expr DatatypeType::getConstructor(std::string name) const {
-  return getDatatype().getConstructor(name);
 }
 
 bool DatatypeType::isInstantiated() const {
@@ -660,14 +643,6 @@ std::vector<Type> DatatypeType::getTupleTypes() const {
     vect.push_back( vec[i].toType() );
   }
   return vect;
-}
-
-/** Get the description of the record type */
-const Record& DatatypeType::getRecord() const {
-  NodeManagerScope nms(d_nodeManager);
-  Assert(isRecord());
-  const Datatype& dt = getDatatype();
-  return *(dt.getRecord());
 }
 
 DatatypeType SelectorType::getDomain() const {

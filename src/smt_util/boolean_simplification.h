@@ -2,10 +2,10 @@
 /*! \file boolean_simplification.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Andres Noetzli
+ **   Morgan Deters, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -199,18 +199,6 @@ class BooleanSimplification {
     }else{
       return base;
     }
-  }
-
-  /**
-   * Negates an Expr, doing all the double-negation elimination that's
-   * possible.
-   *
-   * @param e the Expr to negate (cannot be the null Expr)
-   */
-  static Expr negate(Expr e)
-  {
-    ExprManagerScope ems(e);
-    return negate(Node::fromExpr(e)).toExpr();
   }
 
   /**

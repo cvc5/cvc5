@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Aina Niemetz, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "options/bv_options.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
@@ -27,6 +28,23 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
+/* -------------------------------------------------------------------------- */
+
+/**
+ * BitOfConst
+ */
+template <>
+inline bool RewriteRule<BitOfConst>::applies(TNode node)
+{
+  return node.getKind() == kind::BITVECTOR_BITOF && node[0].isConst();
+}
+
+template <>
+inline Node RewriteRule<BitOfConst>::apply(TNode node)
+{
+  size_t pos = node.getOperator().getConst<BitVectorBitOf>().d_bitIndex;
+  return utils::getBit(node[0], pos) ? utils::mkTrue() : utils::mkFalse();
+}
 
 /* -------------------------------------------------------------------------- */
 
@@ -1558,6 +1576,41 @@ Node RewriteRule<ShiftZero>::apply(TNode node) {
 /* -------------------------------------------------------------------------- */
 
 /**
+ * UgtUrem
+ *
+ * (bvugt (bvurem T x) x)
+ *   ==>  (ite (= x 0_k) (bvugt T x) false)
+ *   ==>  (and (=> (= x 0_k) (bvugt T x)) (=> (not (= x 0_k)) false))
+ *   ==>  (and (=> (= x 0_k) (bvugt T x)) (= x 0_k))
+ *   ==>  (and (bvugt T x) (= x 0_k))
+ *   ==>  (and (bvugt T 0_k) (= x 0_k))
+ */
+
+template <>
+inline bool RewriteRule<UgtUrem>::applies(TNode node)
+{
+  return (options::bitvectorDivByZeroConst()
+          && node.getKind() == kind::BITVECTOR_UGT
+          && node[0].getKind() == kind::BITVECTOR_UREM_TOTAL
+          && node[0][1] == node[1]);
+}
+
+template <>
+inline Node RewriteRule<UgtUrem>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<UgtUrem>(" << node << ")" << std::endl;
+  const Node& T = node[0][0];
+  const Node& x = node[1];
+  Node zero = utils::mkConst(utils::getSize(x), 0);
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkNode(kind::AND,
+                    nm->mkNode(kind::EQUAL, x, zero),
+                    nm->mkNode(kind::BITVECTOR_UGT, T, zero));
+}
+
+/* -------------------------------------------------------------------------- */
+
+/**
  * BBPlusNeg
  * 
  * -a1 - a2 - ... - an + ak + ..  ==> - (a1 + a2 + ... + an) + ak
@@ -1840,7 +1893,7 @@ inline bool RewriteRule<SignExtendUltConst>::applies(TNode node)
     unsigned size_c = utils::getSize(c);
     unsigned msb_x_pos = utils::getSize(x) - 1;
     // (1 << (n - 1)))
-    BitVector bv_msb_x = BitVector(size_c).setBit(msb_x_pos);
+    BitVector bv_msb_x = BitVector(size_c).setBit(msb_x_pos, true);
     // (~0 << (n - 1))
     BitVector bv_upper_bits =
         (~BitVector(size_c)).leftShift(BitVector(size_c, msb_x_pos));
@@ -1876,7 +1929,7 @@ inline Node RewriteRule<SignExtendUltConst>::apply(TNode node)
   unsigned msb_x_pos = utils::getSize(x) - 1;
   Node c_lo = utils::mkConst(bv_c.extract(msb_x_pos, 0));
   // (1 << (n - 1)))
-  BitVector bv_msb_x = BitVector(size_c).setBit(msb_x_pos);
+  BitVector bv_msb_x = BitVector(size_c).setBit(msb_x_pos, true);
   // (~0 << (n - 1))
   BitVector bv_upper_bits =
       (~BitVector(size_c)).leftShift(BitVector(size_c, msb_x_pos));

@@ -1,19 +1,18 @@
 #!/usr/bin/env python
-
 #####################
-#! \file extract.py
- ## \verbatim
- ## Top contributors (to current version):
- ##   Makai Mann, Aina Niemetz
- ## This file is part of the CVC4 project.
- ## Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ## in the top-level source directory) and their institutional affiliations.
- ## All rights reserved.  See the file COPYING in the top-level source
- ## directory for licensing information.\endverbatim
- ##
- ## \brief A simple demonstration of the solving capabilities of the CVC4
- ## bit-vector solver through the Python API. This is a direct translation
- ## of extract-new.cpp.
+## extract.py
+## Top contributors (to current version):
+##   Makai Mann, Aina Niemetz
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
+## A simple demonstration of the solving capabilities of the CVC4
+## bit-vector solver through the Python API. This is a direct translation
+## of extract-new.cpp.
+##
 
 from pycvc4 import Solver
 from pycvc4.kinds import BVExtract, Equal

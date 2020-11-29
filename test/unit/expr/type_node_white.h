@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -64,9 +64,9 @@ class TypeNodeWhite : public CxxTest::TestSuite {
     Node xPos = d_nm->mkNode(GT, x, d_nm->mkConst(Rational(0)));
     TypeNode funtype = d_nm->mkFunctionType(integerType, booleanType);
     Node lambda = d_nm->mkVar("lambda", funtype);
-    vector<Expr> formals;
-    formals.push_back(x.toExpr());
-    d_smt->defineFunction(lambda.toExpr(), formals, xPos.toExpr());
+    vector<Node> formals;
+    formals.push_back(x);
+    d_smt->defineFunction(lambda, formals, xPos);
 
     TS_ASSERT( not realType.isComparableTo(booleanType) );
     TS_ASSERT( realType.isComparableTo(integerType) );

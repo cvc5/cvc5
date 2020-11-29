@@ -2,10 +2,10 @@
 /*! \file infer_info.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "theory/theory_inference.h"
 #include "util/safe_print.h"
 
 namespace CVC4 {
@@ -35,9 +36,17 @@ namespace strings {
  * Note: The order in this enum matters in certain cases (e.g. inferences
  * related to normal forms), inferences that come first are generally
  * preferred.
+ *
+ * Notice that an inference is intentionally distinct from PfRule. An
+ * inference captures *why* we performed a reasoning step, and a PfRule
+ * rule captures *what* reasoning step was used. For instance, the inference
+ * LEN_SPLIT translates to PfRule::SPLIT. The use of stats on inferences allows
+ * us to know that we performed N splits (PfRule::SPLIT) because we wanted
+ * to split on lengths for string equalities (Inference::LEN_SPLIT).
  */
 enum class Inference : uint32_t
 {
+  BEGIN,
   //-------------------------------------- base solver
   // initial normalize singular
   //   x1 = "" ^ ... ^ x_{i-1} = "" ^ x_{i+1} = "" ^ ... ^ xn = "" =>
@@ -59,6 +68,10 @@ enum class Inference : uint32_t
   // equal after e.g. removing strings that are currently empty. For example:
   //   y = "" ^ z = "" => x ++ y = z ++ x
   I_NORM,
+  // injectivity of seq.unit
+  UNIT_INJ,
+  // unit constant conflict
+  UNIT_CONST_CONFLICT,
   // A split due to cardinality
   CARD_SP,
   // The cardinality inference for strings, see Liang et al CAV 2014.
@@ -291,6 +304,10 @@ enum class Inference : uint32_t
   // (see theory_strings_preprocess).
   REDUCTION,
   //-------------------------------------- end extended function solver
+  //-------------------------------------- prefix conflict
+  // prefix conflict (coarse-grained)
+  PREFIX_CONFLICT,
+  //-------------------------------------- end prefix conflict
   NONE,
 };
 
@@ -331,18 +348,42 @@ enum LengthStatus
   LENGTH_GEQ_ONE
 };
 
+class InferenceManager;
+
 /**
  * An inference. This is a class to track an unprocessed call to either
  * send a fact, lemma, or conflict that is waiting to be asserted to the
  * equality engine or sent on the output channel.
+ *
+ * For the sake of proofs, the antecedants in InferInfo have a particular
+ * ordering for many of the core strings rules, which is expected by
+ * InferProofCons for constructing proofs of F_CONST, F_UNIFY, N_CONST, etc.
+ * which apply to a pair of string terms t and s. At a high level, the ordering
+ * expected in d_ant is:
+ * (1) (multiple) literals that explain why t and s have the same prefix/suffix,
+ * (2) t = s,
+ * (3) (optionally) a length constraint.
+ * For example, say we have:
+ *   { x ++ y ++ v1 = z ++ w ++ v2, x = z ++ u, u = "", len(y) = len(w) }
+ * We can conclude y = w by the N_UNIFY rule from the left side. The antecedant
+ * has the following form:
+ * - (prefix up to y/w equal) x = z ++ u, u = "",
+ * - (main equality) x ++ y ++ v1 = z ++ w ++ v2,
+ * - (length constraint) len(y) = len(w).
  */
-class InferInfo
+class InferInfo : public TheoryInference
 {
  public:
   InferInfo();
   ~InferInfo() {}
+  /** Process this inference */
+  bool process(TheoryInferenceManager* im, bool asLemma) override;
+  /** Pointer to the class used for processing this info */
+  InferenceManager* d_sim;
   /** The inference identifier */
   Inference d_id;
+  /** Whether it is the reverse form of the above id */
+  bool d_idRev;
   /** The conclusion */
   Node d_conc;
   /**
@@ -353,9 +394,11 @@ class InferInfo
   /**
    * The "new literal" antecedant(s) of the inference, interpreted
    * conjunctively. These are literals that were needed to show the conclusion
-   * but do not currently hold in the equality engine.
+   * but do not currently hold in the equality engine. These should be a subset
+   * of d_ant. In other words, antecedants that are not explained are stored
+   * in *both* d_ant and d_noExplain.
    */
-  std::vector<Node> d_antn;
+  std::vector<Node> d_noExplain;
   /**
    * A list of new skolems introduced as a result of this inference. They
    * are mapped to by a length status, indicating the length constraint that
@@ -366,15 +409,17 @@ class InferInfo
   bool isTrivial() const;
   /**
    * Does this infer info correspond to a conflict? True if d_conc is false
-   * and it has no new antecedants (d_antn).
+   * and it has no new antecedants (d_noExplain).
    */
   bool isConflict() const;
   /**
    * Does this infer info correspond to a "fact". A fact is an inference whose
    * conclusion should be added as an equality or predicate to the equality
-   * engine with no new external antecedants (d_antn).
+   * engine with no new external antecedants (d_noExplain).
    */
   bool isFact() const;
+  /** Get antecedant */
+  Node getAntecedant() const;
 };
 
 /**

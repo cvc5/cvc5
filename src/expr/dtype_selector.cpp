@@ -2,10 +2,10 @@
 /*! \file dtype_selector.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -26,7 +26,7 @@ DTypeSelector::DTypeSelector(std::string name, Node selector)
   Assert(name != "");
 }
 
-std::string DTypeSelector::getName() const { return d_name; }
+const std::string& DTypeSelector::getName() const { return d_name; }
 
 Node DTypeSelector::getSelector() const
 {
@@ -55,7 +55,11 @@ void DTypeSelector::toStream(std::ostream& out) const
   TypeNode t;
   if (d_resolved)
   {
-    t = getRangeType();
+    // don't try to print the range type of null, instead we print null itself.
+    if (!getType().isNull())
+    {
+      t = getRangeType();
+    }
   }
   else if (d_selector.isNull())
   {

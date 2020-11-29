@@ -1,20 +1,29 @@
+#####################
+## CMakeLists.txt
+## Top contributors (to current version):
+##   Andres Noetzli, Aina Niemetz, Mathias Preiner
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
 set(EXAMPLES_API_JAVA
-  BitVectors
-  BitVectorsAndArrays
   ## disabled until bindings for the new API are in place (issue #2284)
-  #CVC4Streams
-  Combination
-  Datatypes
-  Exceptions
-  FloatingPointArith
-  HelloWorld
-  LinearArith
-  ## disabled until bindings for the new API are in place (issue #2284)
-  #PipedInput
-  Relations
-  Statistics
-  Strings
-  UnsatCores
+  # BitVectors
+  # BitVectorsAndArrays
+  # CVC4Streams
+  # Combination
+  # Datatypes
+  # Exceptions
+  # FloatingPointArith
+  # HelloWorld
+  # LinearArith
+  # PipedInput
+  # Relations
+  # Statistics
+  # Strings
+  # UnsatCores
 )
 
 foreach(example ${EXAMPLES_API_JAVA})

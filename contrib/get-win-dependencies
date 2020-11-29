@@ -38,7 +38,7 @@ if [ -z "$HOST" ]; then
   echo "WARNING:"
 fi
 
-GMPVERSION=6.1.2
+GMPVERSION=6.2.0
 BOOSTVERSION=1.55.0
 BOOSTBASE=boost_1_55_0
 

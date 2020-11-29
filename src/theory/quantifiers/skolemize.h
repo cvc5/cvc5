@@ -2,10 +2,10 @@
 /*! \file skolemize.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -21,12 +21,15 @@
 #include <unordered_set>
 
 #include "context/cdhashmap.h"
-#include "expr/datatype.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
 #include "theory/quantifiers/quant_util.h"
+#include "theory/trust_node.h"
 
 namespace CVC4 {
+
+class DTypeConstructor;
+
 namespace theory {
 namespace quantifiers {
 
@@ -61,15 +64,16 @@ class Skolemize
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
 
  public:
-  Skolemize(QuantifiersEngine* qe, context::UserContext* u);
+  Skolemize(QuantifiersEngine* qe,
+            context::UserContext* u,
+            ProofNodeManager* pnm);
   ~Skolemize() {}
   /** skolemize quantified formula q
-   * If the return value ret of this function
-   * is non-null, then ret is a new skolemization lemma
-   * we generated for q. These lemmas are constructed
-   * once per user-context.
+   * If the return value ret of this function is non-null, then ret is a trust
+   * node corresponding to a new skolemization lemma we generated for q. These
+   * lemmas are constructed once per user-context.
    */
-  Node process(Node q);
+  TrustNode process(Node q);
   /** get skolem constants for quantified formula q */
   bool getSkolemConstants(Node q, std::vector<Node>& skolems);
   /** get the i^th skolem constant for quantified formula q */
@@ -117,6 +121,8 @@ class Skolemize
   bool printSkolemization(std::ostream& out);
 
  private:
+  /** Are proofs enabled? */
+  bool isProofEnabled() const;
   /** get self selectors
    * For datatype constructor dtc with type dt,
    * this collects the set of datatype selector applications,
@@ -137,6 +143,10 @@ class Skolemize
       d_skolem_constants;
   /** map from quantified formulas to their skolemized body */
   std::unordered_map<Node, Node, NodeHashFunction> d_skolem_body;
+  /** Pointer to the proof node manager */
+  ProofNodeManager* d_pnm;
+  /** Eager proof generator for skolemization lemmas */
+  std::unique_ptr<EagerProofGenerator> d_epg;
 };
 
 } /* CVC4::theory::quantifiers namespace */

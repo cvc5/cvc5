@@ -2,10 +2,10 @@
 /*! \file quantifiers_attributes.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -88,11 +88,33 @@ struct SygusVarToTermAttributeId
 typedef expr::Attribute<SygusVarToTermAttributeId, Node>
     SygusVarToTermAttribute;
 
-namespace quantifiers {
+/**
+ * Attribute marked true for types that are used as abstraction types in
+ * the finite model finding for function definitions algorithm.
+ */
+struct AbsTypeFunDefAttributeId
+{
+};
+typedef expr::Attribute<AbsTypeFunDefAttributeId, bool> AbsTypeFunDefAttribute;
 
-/** Attribute priority for rewrite rules */
-//struct RrPriorityAttributeId {};
-//typedef expr::Attribute< RrPriorityAttributeId, uint64_t > RrPriorityAttribute;
+/**
+ * Attribute true for quantifiers that have been internally generated, e.g.
+ * for reductions of string operators.
+ *
+ * Currently, this attribute is used for indicating that E-matching should
+ * not be applied, as E-matching should not be applied to quantifiers
+ * generated for strings reductions.
+ *
+ * This attribute can potentially be generalized to an identifier indicating
+ * the internal source of the quantified formula (of which strings reduction
+ * is one possibility).
+ */
+struct InternalQuantAttributeId
+{
+};
+typedef expr::Attribute<InternalQuantAttributeId, bool> InternalQuantAttribute;
+
+namespace quantifiers {
 
 /** This struct stores attributes for a single quantified formula */
 struct QAttributes
@@ -103,7 +125,8 @@ struct QAttributes
         d_sygus(false),
         d_qinstLevel(-1),
         d_quant_elim(false),
-        d_quant_elim_partial(false)
+        d_quant_elim_partial(false),
+        d_isInternal(false)
   {
   }
   ~QAttributes(){}
@@ -123,12 +146,14 @@ struct QAttributes
   bool d_quant_elim;
   /** is this formula marked for partial quantifier elimination? */
   bool d_quant_elim_partial;
+  /** Is this formula internally generated? */
+  bool d_isInternal;
   /** the instantiation pattern list for this quantified formula (its 3rd child)
    */
   Node d_ipl;
-  /** the name of this quantified formula */
+  /** The name of this quantified formula, used for :qid */
   Node d_name;
-  /** the quantifier id associated with this formula */
+  /** The (internal) quantifier id associated with this formula */
   Node d_qid_num;
   /** is this quantified formula a function definition? */
   bool isFunDef() const { return !d_fundef_f.isNull(); }
@@ -192,15 +217,17 @@ public:
   bool isSygus( Node q );
   /** get instantiation level */
   int getQuantInstLevel( Node q );
-  /** get rewrite rule priority */
-  int getRewriteRulePriority( Node q );
   /** is quant elim */
   bool isQuantElim( Node q );
   /** is quant elim partial */
   bool isQuantElimPartial( Node q );
-  /** get quant id num */
+  /** is internal quantifier */
+  bool isInternal(Node q) const;
+  /** get quant name, which is used for :qid */
+  Node getQuantName(Node q) const;
+  /** get (internal) quant id num */
   int getQuantIdNum( Node q );
-  /** get quant id num */
+  /** get (internal)quant id num */
   Node getQuantIdNumNode( Node q );
 
   /** set instantiation level attr */

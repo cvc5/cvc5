@@ -2,10 +2,10 @@
 /*! \file ite_removal.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli
+ **   Andres Noetzli, Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -34,9 +34,23 @@ PreprocessingPassResult IteRemoval::applyInternal(AssertionPipeline* assertions)
 {
   d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
 
+  IteSkolemMap& imap = assertions->getIteSkolemMap();
   // Remove all of the ITE occurrences and normalize
-  d_preprocContext->getIteRemover()->run(
-      assertions->ref(), assertions->getIteSkolemMap(), true);
+  for (unsigned i = 0, size = assertions->size(); i < size; ++i)
+  {
+    std::vector<theory::TrustNode> newAsserts;
+    std::vector<Node> newSkolems;
+    TrustNode trn = d_preprocContext->getIteRemover()->run(
+        (*assertions)[i], newAsserts, newSkolems, true);
+    // process
+    assertions->replaceTrusted(i, trn);
+    Assert(newSkolems.size() == newAsserts.size());
+    for (unsigned j = 0, nnasserts = newAsserts.size(); j < nnasserts; j++)
+    {
+      imap[newSkolems[j]] = assertions->size();
+      assertions->pushBackTrusted(newAsserts[j]);
+    }
+  }
   for (unsigned i = 0, size = assertions->size(); i < size; ++i)
   {
     assertions->replace(i, Rewriter::rewrite((*assertions)[i]));

@@ -1,4 +1,4 @@
-; Depends on sat.plf
+; Deps: sat.plf
 
 ; This file exists to support the **definition introduction** (or **extension**)
 ; rule in the paper:

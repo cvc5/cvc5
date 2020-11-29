@@ -1,3 +1,4 @@
+; COMMAND-LINE: --strings-exp
 (set-logic ALL)
 (set-info :status unsat)
 (declare-fun s () String)

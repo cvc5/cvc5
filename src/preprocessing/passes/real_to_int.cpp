@@ -2,10 +2,10 @@
 /*! \file real_to_int.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Haniel Barbosa
+ **   Haniel Barbosa, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -181,9 +181,8 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
           var_eq.push_back(n.eqNode(ret));
           // ensure that the original variable is defined to be the returned
           // one, which is important for models and for incremental solving.
-          std::vector<Expr> args;
-          smt::currentSmtEngine()->defineFunction(
-              n.toExpr(), args, ret.toExpr());
+          std::vector<Node> args;
+          d_preprocContext->getSmt()->defineFunction(n, args, ret);
         }
       }
     }

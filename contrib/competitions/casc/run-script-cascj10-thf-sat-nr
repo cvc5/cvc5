@@ -1,0 +1,35 @@
+#!/bin/bash
+
+here=`dirname $0`
+cvc4=$here/cvc4
+bench="$1"
+
+file=${bench##*/}
+filename=${file%.*}
+
+echo "------- cvc4-thf casc j10 for SAT : $bench at $2..."
+
+# use: trywith [params..]
+# to attempt a run.  If an SZS ontology result is printed, then
+# the run script terminates immediately.  Otherwise, this
+# function returns normally.
+function trywith {
+  limit=$1; shift;
+  echo "--- Run $@ at $limit...";
+  (ulimit -S -t "$limit";$cvc4 --lang=tptp --no-type-checking --no-interactive --force-logic="UFNIRA" --dump-models --produce-models --force-no-limit-cpu-while-dump "$@" $bench) 2>/dev/null |
+  (read w1 w2 w3 result w4 w5;
+  case "$result" in
+  Satisfiable) echo "$w1 $w2 $w3 $result $w4 $w5";cat;exit 0;;
+  CounterSatisfiable) echo "$w1 $w2 $w3 $result $w4 $w5";cat;exit 0;;
+  esac; exit 1)
+  if [ ${PIPESTATUS[1]} -eq 0 ]; then exit 0; fi
+}
+function finishwith {
+  echo "--- Run $@...";
+  $cvc4 --lang=tptp --no-type-checking --no-interactive --force-logic="UFNIRA" --dump-models --produce-models --force-no-limit-cpu-while-dump "$@" $bench
+}
+
+# designed for 300 seconds
+trywith 2 --uf-ho --finite-model-find --ho-elim
+finishwith --uf-ho --finite-model-find
+# echo "% SZS status" "GaveUp for $filename"

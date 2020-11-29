@@ -1,20 +1,22 @@
+#####################
+## CMakeLists.txt
+## Top contributors (to current version):
+##   Mathias Preiner, Andrew V. Jones, Aina Niemetz
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
 #-----------------------------------------------------------------------------#
 # Extract info from Git for git_versioninfo.cpp
 # Note: GitInfo.cmake generates git_versioninfo.cpp.
 
 find_package(Git)
 configure_file(GitInfo.cmake.in GitInfo.cmake @ONLY)
-add_custom_command(
-  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/git_versioninfo.cpp
-  COMMAND ${CMAKE_COMMAND} -DGIT_FOUND=${GIT_FOUND} -P GitInfo.cmake
-)
-set_source_files_properties(
-  ${CMAKE_CURRENT_BINARY_DIR}/git_versioninfo.cpp
-  PROPERTIES GENERATED TRUE
-)
 add_custom_target(gen-gitinfo
-  DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/git_versioninfo.cpp
-)
+  BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/git_versioninfo.cpp
+  COMMAND ${CMAKE_COMMAND} -DGIT_FOUND=${GIT_FOUND} -P GitInfo.cmake)
 
 #-----------------------------------------------------------------------------#
 

@@ -2,10 +2,10 @@
 /*! \file synth_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
+ **   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -21,7 +21,6 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/smt_engine_subsolver.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4::kind;
@@ -32,10 +31,13 @@ namespace theory {
 namespace quantifiers {
 
 SynthEngine::SynthEngine(QuantifiersEngine* qe, context::Context* c)
-    : QuantifiersModule(qe), d_tds(qe->getTermDatabaseSygus())
+    : QuantifiersModule(qe),
+      d_tds(qe->getTermDatabaseSygus()),
+      d_conj(nullptr),
+      d_sqp(qe)
 {
   d_conjs.push_back(std::unique_ptr<SynthConjecture>(
-      new SynthConjecture(d_quantEngine, this, d_statistics)));
+      new SynthConjecture(d_quantEngine, d_statistics)));
   d_conj = d_conjs.back().get();
 }
 
@@ -143,132 +145,21 @@ void SynthEngine::assignConjecture(Node q)
   Trace("sygus-engine") << "SynthEngine::assignConjecture " << q << std::endl;
   if (options::sygusQePreproc())
   {
-    // the following does quantifier elimination as a preprocess step
-    // for "non-ground single invocation synthesis conjectures":
-    //   exists f. forall xy. P[ f(x), x, y ]
-    // We run quantifier elimination:
-    //   exists y. P[ z, x, y ] ----> Q[ z, x ]
-    // Where we replace the original conjecture with:
-    //   exists f. forall x. Q[ f(x), x ]
-    // For more details, see Example 6 of Reynolds et al. SYNT 2017.
-    Node body = q[1];
-    if (body.getKind() == NOT && body[0].getKind() == FORALL)
+    Node lem = d_sqp.preprocess(q);
+    if (!lem.isNull())
     {
-      body = body[0][1];
-    }
-    NodeManager* nm = NodeManager::currentNM();
-    Trace("cegqi-qep") << "Compute single invocation for " << q << "..."
-                       << std::endl;
-    quantifiers::SingleInvocationPartition sip;
-    std::vector<Node> funcs0;
-    funcs0.insert(funcs0.end(), q[0].begin(), q[0].end());
-    sip.init(funcs0, body);
-    Trace("cegqi-qep") << "...finished, got:" << std::endl;
-    sip.debugPrint("cegqi-qep");
-
-    if (!sip.isPurelySingleInvocation() && sip.isNonGroundSingleInvocation())
-    {
-      // create new smt engine to do quantifier elimination
-      std::unique_ptr<SmtEngine> smt_qe;
-      initializeSubsolver(smt_qe);
-      Trace("cegqi-qep") << "Property is non-ground single invocation, run "
-                            "QE to obtain single invocation."
-                         << std::endl;
-      // partition variables
-      std::vector<Node> all_vars;
-      sip.getAllVariables(all_vars);
-      std::vector<Node> si_vars;
-      sip.getSingleInvocationVariables(si_vars);
-      std::vector<Node> qe_vars;
-      std::vector<Node> nqe_vars;
-      for (unsigned i = 0, size = all_vars.size(); i < size; i++)
-      {
-        Node v = all_vars[i];
-        if (std::find(si_vars.begin(), si_vars.end(), v) == si_vars.end())
-        {
-          qe_vars.push_back(v);
-        }
-        else
-        {
-          nqe_vars.push_back(v);
-        }
-      }
-      std::vector<Node> orig;
-      std::vector<Node> subs;
-      // skolemize non-qe variables
-      for (unsigned i = 0, size = nqe_vars.size(); i < size; i++)
-      {
-        Node k = nm->mkSkolem(
-            "k", nqe_vars[i].getType(), "qe for non-ground single invocation");
-        orig.push_back(nqe_vars[i]);
-        subs.push_back(k);
-        Trace("cegqi-qep") << "  subs : " << nqe_vars[i] << " -> " << k
+      Trace("cegqi-lemma") << "Cegqi::Lemma : qe-preprocess : " << lem
                            << std::endl;
-      }
-      std::vector<Node> funcs1;
-      sip.getFunctions(funcs1);
-      for (unsigned i = 0, size = funcs1.size(); i < size; i++)
-      {
-        Node f = funcs1[i];
-        Node fi = sip.getFunctionInvocationFor(f);
-        Node fv = sip.getFirstOrderVariableForFunction(f);
-        Assert(!fi.isNull());
-        orig.push_back(fi);
-        Node k =
-            nm->mkSkolem("k",
-                         fv.getType(),
-                         "qe for function in non-ground single invocation");
-        subs.push_back(k);
-        Trace("cegqi-qep") << "  subs : " << fi << " -> " << k << std::endl;
-      }
-      Node conj_se_ngsi = sip.getFullSpecification();
-      Trace("cegqi-qep") << "Full specification is " << conj_se_ngsi
-                         << std::endl;
-      Node conj_se_ngsi_subs = conj_se_ngsi.substitute(
-          orig.begin(), orig.end(), subs.begin(), subs.end());
-      Assert(!qe_vars.empty());
-      conj_se_ngsi_subs = nm->mkNode(EXISTS,
-                                     nm->mkNode(BOUND_VAR_LIST, qe_vars),
-                                     conj_se_ngsi_subs.negate());
-
-      Trace("cegqi-qep") << "Run quantifier elimination on "
-                         << conj_se_ngsi_subs << std::endl;
-      Expr qe_res = smt_qe->doQuantifierElimination(
-          conj_se_ngsi_subs.toExpr(), true, false);
-      Trace("cegqi-qep") << "Result : " << qe_res << std::endl;
-
-      // create single invocation conjecture, if QE was successful
-      Node qe_res_n = Node::fromExpr(qe_res);
-      if (!expr::hasBoundVar(qe_res_n))
-      {
-        qe_res_n = qe_res_n.substitute(
-            subs.begin(), subs.end(), orig.begin(), orig.end());
-        if (!nqe_vars.empty())
-        {
-          qe_res_n = nm->mkNode(
-              EXISTS, nm->mkNode(BOUND_VAR_LIST, nqe_vars), qe_res_n);
-        }
-        Assert(q.getNumChildren() == 3);
-        qe_res_n = nm->mkNode(FORALL, q[0], qe_res_n, q[2]);
-        Trace("cegqi-qep") << "Converted conjecture after QE : " << qe_res_n
-                           << std::endl;
-        qe_res_n = Rewriter::rewrite(qe_res_n);
-        Node nq = qe_res_n;
-        // must assert it is equivalent to the original
-        Node lem = q.eqNode(nq);
-        Trace("cegqi-lemma")
-            << "Cegqi::Lemma : qe-preprocess : " << lem << std::endl;
-        d_quantEngine->getOutputChannel().lemma(lem);
-        // we've reduced the original to a preprocessed version, return
-        return;
-      }
+      d_quantEngine->getOutputChannel().lemma(lem);
+      // we've reduced the original to a preprocessed version, return
+      return;
     }
   }
   // allocate a new synthesis conjecture if not assigned
   if (d_conjs.back()->isAssigned())
   {
     d_conjs.push_back(std::unique_ptr<SynthConjecture>(
-        new SynthConjecture(d_quantEngine, this, d_statistics)));
+        new SynthConjecture(d_quantEngine, d_statistics)));
   }
   d_conjs.back()->assign(q);
 }
@@ -305,8 +196,6 @@ void SynthEngine::registerQuantifier(Node q)
 
 bool SynthEngine::checkConjecture(SynthConjecture* conj)
 {
-  Node q = conj->getEmbeddedConjecture();
-  Node aq = conj->getConjecture();
   if (Trace.isOn("sygus-engine-debug"))
   {
     conj->debugPrint("sygus-engine-debug");
@@ -341,46 +230,14 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
           << "  ...check for counterexample." << std::endl;
       return true;
     }
-    else
+    if (!conj->needsRefinement())
     {
-      if (conj->needsRefinement())
-      {
-        // immediately go to refine candidate
-        return checkConjecture(conj);
-      }
+      return ret;
     }
-    return ret;
+    // otherwise, immediately go to refine candidate
   }
-  else
-  {
-    Trace("sygus-engine-debug")
-        << "  *** Refine candidate phase..." << std::endl;
-    std::vector<Node> rlems;
-    conj->doRefine(rlems);
-    bool addedLemma = false;
-    for (unsigned i = 0; i < rlems.size(); i++)
-    {
-      Node lem = rlems[i];
-      Trace("cegqi-lemma") << "Cegqi::Lemma : candidate refinement : " << lem
-                           << std::endl;
-      bool res = d_quantEngine->addLemma(lem);
-      if (res)
-      {
-        ++(d_statistics.d_cegqi_lemmas_refine);
-        conj->incrementRefineCount();
-        addedLemma = true;
-      }
-      else
-      {
-        Trace("cegqi-warn") << "  ...FAILED to add refinement!" << std::endl;
-      }
-    }
-    if (addedLemma)
-    {
-      Trace("sygus-engine-debug") << "  ...refine candidate." << std::endl;
-    }
-  }
-  return true;
+  Trace("sygus-engine-debug") << "  *** Refine candidate phase..." << std::endl;
+  return conj->doRefine();
 }
 
 void SynthEngine::printSynthSolution(std::ostream& out)

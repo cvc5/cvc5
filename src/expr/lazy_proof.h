@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -45,14 +45,15 @@ class LazyCDProof : public CDProof
    */
   LazyCDProof(ProofNodeManager* pnm,
               ProofGenerator* dpg = nullptr,
-              context::Context* c = nullptr);
+              context::Context* c = nullptr,
+              std::string name = "LazyCDProof");
   ~LazyCDProof();
   /**
    * Get lazy proof for fact, or nullptr if it does not exist. This may
    * additionally call proof generators to generate proofs for ASSUME nodes that
    * don't yet have a concrete proof.
    */
-  std::shared_ptr<ProofNode> mkProof(Node fact) override;
+  std::shared_ptr<ProofNode> getProofFor(Node fact) override;
   /** Add step by generator
    *
    * This method stores that expected can be proven by proof generator pg if
@@ -62,16 +63,26 @@ class LazyCDProof : public CDProof
    * It is important to note that pg is asked to provide a proof for expected
    * only when no other call for the fact expected is provided via the addStep
    * method of this class. In particular, pg is asked to prove expected when it
-   * appears as the conclusion of an ASSUME leaf within CDProof::mkProof.
+   * appears as the conclusion of an ASSUME leaf within CDProof::getProofFor.
    *
    * @param expected The fact that can be proven.
    * @param pg The generator that can proof expected.
+   * @param trustId If a null proof generator is provided, we add a step to
+   * the proof that has trustId as the rule and expected as the sole argument.
+   * We do this only if trustId is not PfRule::ASSUME. This is primarily used
+   * for identifying the kind of hole when a proof generator is not given.
+   * @param isClosed Whether to expect that pg can provide a closed proof for
+   * this fact.
+   * @param ctx The context we are in (for debugging).
    * @param forceOverwrite If this flag is true, then this call overwrites
    * an existing proof generator provided for expected, if one was provided
    * via a previous call to addLazyStep in the current context.
    */
   void addLazyStep(Node expected,
                    ProofGenerator* pg,
+                   PfRule trustId = PfRule::ASSUME,
+                   bool isClosed = false,
+                   const char* ctx = "LazyCDProof::addLazyStep",
                    bool forceOverwrite = false);
   /**
    * Does this have any proof generators? This method always returns true

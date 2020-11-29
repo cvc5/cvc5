@@ -25,7 +25,7 @@ header = "options/parser_options.h"
   type       = "bool"
   default    = "DO_SEMANTIC_CHECKS_BY_DEFAULT"
   read_only  = true
-  help       = "disable ALL semantic checks, including type checks"
+  help       = "enable semantic checks, including type checks"
 
 [[option]]
   name       = "globalDeclarations"

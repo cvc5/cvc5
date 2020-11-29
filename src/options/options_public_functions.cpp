@@ -2,10 +2,10 @@
 /*! \file options_public_functions.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Paul Meng
+ **   Tim King, Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -53,10 +53,6 @@ OutputLanguage Options::getOutputLanguage() const {
 }
 
 bool Options::getUfHo() const { return (*this)[options::ufHo]; }
-
-bool Options::getCheckProofs() const{
-  return (*this)[options::checkProofs];
-}
 
 bool Options::getDumpInstantiations() const{
   return (*this)[options::dumpInstantiations];
@@ -124,10 +120,6 @@ bool Options::getProduceModels() const{
   return (*this)[options::produceModels];
 }
 
-bool Options::getProof() const{
-  return (*this)[options::proof];
-}
-
 bool Options::getSegvSpin() const{
   return (*this)[options::segvSpin];
 }
@@ -155,6 +147,10 @@ bool Options::getStrictParsing() const{
 
 int Options::getTearDownIncremental() const{
   return (*this)[options::tearDownIncremental];
+}
+
+unsigned long Options::getCumulativeTimeLimit() const {
+  return (*this)[options::cumulativeMillisecondLimit];
 }
 
 bool Options::getVersion() const{

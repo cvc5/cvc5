@@ -2,10 +2,10 @@
 /*! \file preprocessing_pass_context.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Mathias Preiner, Justin Xu
+ **   Aina Niemetz, Mathias Preiner, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -29,6 +29,7 @@
 #include "smt/term_formula_removal.h"
 #include "theory/booleans/circuit_propagator.h"
 #include "theory/theory_engine.h"
+#include "theory/trust_substitutions.h"
 #include "util/resource_manager.h"
 
 namespace CVC4 {
@@ -39,9 +40,9 @@ class PreprocessingPassContext
  public:
   PreprocessingPassContext(
       SmtEngine* smt,
-      ResourceManager* resourceManager,
       RemoveTermFormulas* iteRemover,
-      theory::booleans::CircuitPropagator* circuitPropagator);
+      theory::booleans::CircuitPropagator* circuitPropagator,
+      ProofNodeManager* pnm);
 
   SmtEngine* getSmt() { return d_smt; }
   TheoryEngine* getTheoryEngine() { return d_smt->getTheoryEngine(); }
@@ -65,16 +66,14 @@ class PreprocessingPassContext
     d_resourceManager->spendResource(r);
   }
 
-  const LogicInfo& getLogicInfo() { return d_smt->d_logic; }
+  /** Get the current logic info of the SmtEngine */
+  const LogicInfo& getLogicInfo() { return d_smt->getLogicInfo(); }
 
   /* Widen the logic to include the given theory. */
   void widenLogic(theory::TheoryId id);
 
   /** Gets a reference to the top-level substitution map */
-  theory::SubstitutionMap& getTopLevelSubstitutions()
-  {
-    return d_topLevelSubstitutions;
-  }
+  theory::TrustSubstitutionMap& getTopLevelSubstitutions();
 
   /* Enable Integers. */
   void enableIntegers();
@@ -85,6 +84,9 @@ class PreprocessingPassContext
    * the symbols to d_symsInAssertions that occur in assertions.
    */
   void recordSymbolsInAssertions(const std::vector<Node>& assertions);
+
+  /** The the proof node manager associated with this context, if it exists */
+  ProofNodeManager* getProofNodeManager();
 
  private:
   /** Pointer to the SmtEngine that this context was created in. */
@@ -97,10 +99,12 @@ class PreprocessingPassContext
   RemoveTermFormulas* d_iteRemover;
 
   /* The top level substitutions */
-  theory::SubstitutionMap d_topLevelSubstitutions;
+  theory::TrustSubstitutionMap d_topLevelSubstitutions;
 
   /** Instance of the circuit propagator */
   theory::booleans::CircuitPropagator* d_circuitPropagator;
+  /** Pointer to the proof node manager, if it exists */
+  ProofNodeManager* d_pnm;
 
   /**
    * The (user-context-dependent) set of symbols that occur in at least one

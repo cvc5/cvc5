@@ -2,10 +2,10 @@
 /*! \file nl_lemma_utils.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -17,7 +17,10 @@
 
 #include <tuple>
 #include <vector>
+
 #include "expr/node.h"
+#include "theory/arith/arith_lemma.h"
+#include "theory/output_channel.h"
 
 namespace CVC4 {
 namespace theory {
@@ -25,6 +28,7 @@ namespace arith {
 namespace nl {
 
 class NlModel;
+class NonlinearExtension;
 
 /**
  * The data structure for a single lemma to process by the non-linear solver,
@@ -37,14 +41,24 @@ class NlModel;
  * - A set of secant points to record (for transcendental secant plane
  * inferences).
  */
-struct NlLemma
+class NlLemma : public ArithLemma
 {
-  NlLemma(Node lem) : d_lemma(lem), d_preprocess(false) {}
+ public:
+  NlLemma(Node n,
+          LemmaProperty p,
+          ProofGenerator* pg,
+          InferenceId inf = InferenceId::UNKNOWN)
+      : ArithLemma(n, p, pg, inf)
+  {
+  }
+  NlLemma(Node n, InferenceId inf = InferenceId::UNKNOWN)
+      : ArithLemma(n, LemmaProperty::NONE, nullptr, inf)
+  {
+  }
   ~NlLemma() {}
-  /** The lemma */
-  Node d_lemma;
-  /** Whether to preprocess the lemma */
-  bool d_preprocess;
+
+  bool process(TheoryInferenceManager* im, bool asLemma) override;
+
   /** secant points to add
    *
    * A member (tf, d, c) in this vector indicates that point c should be added
@@ -55,6 +69,8 @@ struct NlLemma
    * Cimatti et al., CADE 2017.
    */
   std::vector<std::tuple<Node, unsigned, Node> > d_secantPoint;
+
+  NonlinearExtension* d_nlext;
 };
 /**
  * Writes a non-linear lemma to a stream.

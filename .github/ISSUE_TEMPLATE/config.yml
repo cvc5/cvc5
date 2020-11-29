@@ -1,0 +1,4 @@
+contact_links:
+  - name: Bugs found with fuzzers
+    url: https://github.com/CVC4/CVC4/wiki/Fuzzing-CVC4
+    about: Please read the guidelines before submitting bugs found with a fuzzer

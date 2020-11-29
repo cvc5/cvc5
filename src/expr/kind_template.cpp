@@ -2,10 +2,10 @@
 /*! \file kind_template.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli, Morgan Deters, Dejan Jovanovic
+ **   Andres Noetzli, Christopher L. Conway, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -69,7 +69,6 @@ std::string kindToString(::CVC4::Kind k) {
 std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant) {
   switch(typeConstant) {
 ${type_constant_descriptions}
-#line 73 "${template}"
   default:
     out << "UNKNOWN_TYPE_CONSTANT";
     break;
@@ -85,7 +84,6 @@ TheoryId kindToTheoryId(::CVC4::Kind k) {
   case kind::NULL_EXPR:
     break;
 ${kind_to_theory_id}
-#line 89 "${template}"
   case kind::LAST_KIND:
     break;
   }
@@ -97,7 +95,6 @@ TheoryId typeConstantToTheoryId(::CVC4::TypeConstant typeConstant)
   switch (typeConstant)
   {
 ${type_constant_to_theory_id}
-#line 101 "${template}"
     case LAST_TYPE: break;
   }
   throw IllegalArgumentException(

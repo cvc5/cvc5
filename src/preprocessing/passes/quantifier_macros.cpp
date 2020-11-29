@@ -2,10 +2,10 @@
 /*! \file quantifier_macros.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Yoni Zohar, Morgan Deters
+ **   Andrew Reynolds, Yoni Zohar, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -19,7 +19,6 @@
 #include <vector>
 
 #include "options/quantifiers_options.h"
-#include "proof/proof_manager.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/arith/arith_msum.h"
@@ -50,7 +49,7 @@ PreprocessingPassResult QuantifierMacros::applyInternal(
   bool success;
   do
   {
-    success = simplify(assertionsToPreprocess->ref(), true);
+    success = simplify(assertionsToPreprocess, true);
   } while (success);
   finalizeDefinitions();
   clearMaps();
@@ -68,7 +67,9 @@ void QuantifierMacros::clearMaps()
   d_ground_macros = false;
 }
 
-bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite ){
+bool QuantifierMacros::simplify(AssertionPipeline* ap, bool doRewrite)
+{
+  const std::vector<Node>& assertions = ap->ref();
   unsigned rmax =
       options::macrosQuantMode() == options::MacrosQuantMode::ALL ? 2 : 1;
   for( unsigned r=0; r<rmax; r++ ){
@@ -79,11 +80,14 @@ bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite
     for( int i=0; i<(int)assertions.size(); i++ ){
       Trace("macros-debug") << "  process assertion " << assertions[i] << std::endl;
       if( processAssertion( assertions[i] ) ){
-        PROOF( 
-          if( std::find( macro_assertions.begin(), macro_assertions.end(), assertions[i] )==macro_assertions.end() ){
-            macro_assertions.push_back( assertions[i] );
-          }
-        );
+        if (options::unsatCores()
+            && std::find(macro_assertions.begin(),
+                         macro_assertions.end(),
+                         assertions[i])
+                   == macro_assertions.end())
+        {
+          macro_assertions.push_back(assertions[i]);
+        }
         //process this assertion again
         i--;
       }
@@ -98,18 +102,23 @@ bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite
         if( curr!=assertions[i] ){
           curr = Rewriter::rewrite( curr );
           Trace("macros-rewrite") << "Rewrite " << assertions[i] << " to " << curr << std::endl;
-          //for now, it is dependent upon all assertions involving macros, this is an over-approximation.
-          //a more fine-grained unsat core computation would require caching dependencies for each subterm of the formula, 
-          // which is expensive.
-          PROOF(ProofManager::currentPM()->addDependence(curr, assertions[i]);
-                for (unsigned j = 0; j < macro_assertions.size(); j++) {
-                  if (macro_assertions[j] != assertions[i])
-                  {
-                    ProofManager::currentPM()->addDependence(
-                        curr, macro_assertions[j]);
-                  }
-                });
-          assertions[i] = curr;
+          // for now, it is dependent upon all assertions involving macros, this
+          // is an over-approximation. a more fine-grained unsat core
+          // computation would require caching dependencies for each subterm of
+          // the formula, which is expensive.
+          if (options::unsatCores())
+          {
+            ProofManager::currentPM()->addDependence(curr, assertions[i]);
+            for (unsigned j = 0; j < macro_assertions.size(); j++)
+            {
+              if (macro_assertions[j] != assertions[i])
+              {
+                ProofManager::currentPM()->addDependence(curr,
+                                                         macro_assertions[j]);
+              }
+            }
+          }
+          ap->replace(i, curr);
           retVal = true;
         }
       }
@@ -432,9 +441,9 @@ Node QuantifierMacros::simplify( Node n ){
           for( unsigned i=0; i<children.size(); i++ ){
             Node etc = TypeNode::getEnsureTypeCondition( children[i], tno[i] );
             if( etc.isNull() ){
-              //if this does fail, we are incomplete, since we are eliminating quantified formula corresponding to op, 
+              // if this does fail, we are incomplete, since we are eliminating
+              // quantified formula corresponding to op,
               //  and not ensuring it applies to n when its types are correct.
-              //Assert( false );
               success = false;
               break;
             }else if( !etc.isConst() ){
@@ -495,20 +504,21 @@ void QuantifierMacros::finalizeDefinitions() {
   if( options::incrementalSolving() || options::produceModels() || doDefs ){
     Trace("macros") << "Store as defined functions..." << std::endl;
     //also store as defined functions
+    SmtEngine* smt = d_preprocContext->getSmt();
     for( std::map< Node, Node >::iterator it = d_macro_defs.begin(); it != d_macro_defs.end(); ++it ){
       Trace("macros-def") << "Macro definition for " << it->first << " : " << it->second << std::endl;
       Trace("macros-def") << "  basis is : ";
       std::vector< Node > nargs;
-      std::vector< Expr > args;
+      std::vector<Node> args;
       for( unsigned i=0; i<d_macro_basis[it->first].size(); i++ ){
         Node bv = NodeManager::currentNM()->mkBoundVar( d_macro_basis[it->first][i].getType() );
         Trace("macros-def") << d_macro_basis[it->first][i] << " ";
         nargs.push_back( bv );
-        args.push_back( bv.toExpr() );
+        args.push_back(bv);
       }
       Trace("macros-def") << std::endl;
       Node sbody = it->second.substitute( d_macro_basis[it->first].begin(), d_macro_basis[it->first].end(), nargs.begin(), nargs.end() );
-      smt::currentSmtEngine()->defineFunction( it->first.toExpr(), args, sbody.toExpr() );
+      smt->defineFunction(it->first, args, sbody);
 
       if( Trace.isOn("macros-warn") ){
         debugMacroDefinition( it->first, sbody );

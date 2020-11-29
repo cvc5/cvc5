@@ -8,7 +8,7 @@ theory THEORY_UF ::CVC4::theory::uf::TheoryUF "theory/uf/theory_uf.h"
 typechecker "theory/uf/theory_uf_type_rules.h"
 
 properties stable-infinite parametric
-properties check propagate ppStaticLearn presolve
+properties check ppStaticLearn presolve
 
 rewriter ::CVC4::theory::uf::TheoryUfRewriter "theory/uf/theory_uf_rewriter.h"
 parameterized APPLY_UF VARIABLE 1: "application of an uninterpreted function; first parameter is the function, remaining ones are parameters to that function"

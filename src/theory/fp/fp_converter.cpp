@@ -2,10 +2,10 @@
 /*! \file fp_converter.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain, Andres Noetzli, Aina Niemetz
+ **   Martin Brain, Mathias Preiner, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -13,10 +13,12 @@
  **/
 
 #include "theory/fp/fp_converter.h"
-#include "theory/theory.h"
-// theory.h Only needed for the leaf test
 
 #include <vector>
+
+#include "theory/theory.h"  // theory.h Only needed for the leaf test
+#include "util/floatingpoint.h"
+#include "util/floatingpoint_literal_symfpu.h"
 
 #ifdef CVC4_USE_SYMFPU
 #include "symfpu/core/add.h"
@@ -141,7 +143,6 @@ void probabilityAnnotation<traits, traits::prop>(const traits::prop &p,
 #endif
 
 #ifndef CVC4_USE_SYMFPU
-#define PRECONDITION(X) Assert((X))
 #define SYMFPU_NUMBER_OF_ROUNDING_MODES 5
 #endif
 
@@ -155,19 +156,20 @@ symbolicRoundingMode traits::RNA(void) { return symbolicRoundingMode(0x02); };
 symbolicRoundingMode traits::RTP(void) { return symbolicRoundingMode(0x04); };
 symbolicRoundingMode traits::RTN(void) { return symbolicRoundingMode(0x08); };
 symbolicRoundingMode traits::RTZ(void) { return symbolicRoundingMode(0x10); };
+
 void traits::precondition(const bool b)
 {
-  AlwaysAssert(b);
+  Assert(b);
   return;
 }
 void traits::postcondition(const bool b)
 {
-  AlwaysAssert(b);
+  Assert(b);
   return;
 }
 void traits::invariant(const bool b)
 {
-  AlwaysAssert(b);
+  Assert(b);
   return;
 }
 
@@ -186,18 +188,19 @@ bool symbolicProposition::checkNodeType(const TNode node)
 
 symbolicProposition::symbolicProposition(const Node n) : nodeWrapper(n)
 {
-  PRECONDITION(checkNodeType(*this));
+  Assert(checkNodeType(*this));
 }  // Only used within this header so could be friend'd
 symbolicProposition::symbolicProposition(bool v)
     : nodeWrapper(
           NodeManager::currentNM()->mkConst(BitVector(1U, (v ? 1U : 0U))))
 {
-  PRECONDITION(checkNodeType(*this));
+  Assert(checkNodeType(*this));
 }
+
 symbolicProposition::symbolicProposition(const symbolicProposition &old)
     : nodeWrapper(old)
 {
-  PRECONDITION(checkNodeType(*this));
+  Assert(checkNodeType(*this));
 }
 
 symbolicProposition symbolicProposition::operator!(void)const
@@ -245,7 +248,7 @@ bool symbolicRoundingMode::checkNodeType(const TNode n)
 
 symbolicRoundingMode::symbolicRoundingMode(const Node n) : nodeWrapper(n)
 {
-  PRECONDITION(checkNodeType(*this));
+  Assert(checkNodeType(*this));
 }
 
 #ifdef CVC4_USE_SYMFPU
@@ -253,8 +256,8 @@ symbolicRoundingMode::symbolicRoundingMode(const unsigned v)
     : nodeWrapper(NodeManager::currentNM()->mkConst(
           BitVector(SYMFPU_NUMBER_OF_ROUNDING_MODES, v)))
 {
-  PRECONDITION((v & (v - 1)) == 0 && v != 0);  // Exactly one bit set
-  PRECONDITION(checkNodeType(*this));
+  Assert((v & (v - 1)) == 0 && v != 0);  // Exactly one bit set
+  Assert(checkNodeType(*this));
 }
 #else
 symbolicRoundingMode::symbolicRoundingMode(const unsigned v)
@@ -268,7 +271,7 @@ symbolicRoundingMode::symbolicRoundingMode(const unsigned v)
 symbolicRoundingMode::symbolicRoundingMode(const symbolicRoundingMode &old)
     : nodeWrapper(old)
 {
-  PRECONDITION(checkNodeType(*this));
+  Assert(checkNodeType(*this));
 }
 
 symbolicProposition symbolicRoundingMode::valid(void) const
@@ -333,7 +336,7 @@ Node symbolicBitVector<isSigned>::toProposition(Node node) const
 template <bool isSigned>
 symbolicBitVector<isSigned>::symbolicBitVector(const Node n) : nodeWrapper(n)
 {
-  PRECONDITION(checkNodeType(*this));
+  Assert(checkNodeType(*this));
 }
 
 template <bool isSigned>
@@ -346,7 +349,7 @@ template <bool isSigned>
 symbolicBitVector<isSigned>::symbolicBitVector(const bwt w, const unsigned v)
     : nodeWrapper(NodeManager::currentNM()->mkConst(BitVector(w, v)))
 {
-  PRECONDITION(checkNodeType(*this));
+  Assert(checkNodeType(*this));
 }
 template <bool isSigned>
 symbolicBitVector<isSigned>::symbolicBitVector(const symbolicProposition &p)
@@ -358,13 +361,13 @@ symbolicBitVector<isSigned>::symbolicBitVector(
     const symbolicBitVector<isSigned> &old)
     : nodeWrapper(old)
 {
-  PRECONDITION(checkNodeType(*this));
+  Assert(checkNodeType(*this));
 }
 template <bool isSigned>
 symbolicBitVector<isSigned>::symbolicBitVector(const BitVector &old)
     : nodeWrapper(NodeManager::currentNM()->mkConst(old))
 {
-  PRECONDITION(checkNodeType(*this));
+  Assert(checkNodeType(*this));
 }
 
 template <bool isSigned>
@@ -670,7 +673,7 @@ template <bool isSigned>
 symbolicBitVector<isSigned> symbolicBitVector<isSigned>::contract(
     bwt reduction) const
 {
-  PRECONDITION(this->getWidth() > reduction);
+  Assert(this->getWidth() > reduction);
 
   NodeBuilder<> construct(kind::BITVECTOR_EXTRACT);
   construct << NodeManager::currentNM()->mkConst<BitVectorExtract>(
@@ -704,7 +707,7 @@ template <bool isSigned>
 symbolicBitVector<isSigned> symbolicBitVector<isSigned>::matchWidth(
     const symbolicBitVector<isSigned> &op) const
 {
-  PRECONDITION(this->getWidth() <= op.getWidth());
+  Assert(this->getWidth() <= op.getWidth());
   return this->extend(op.getWidth() - this->getWidth());
 }
 
@@ -721,7 +724,7 @@ template <bool isSigned>
 symbolicBitVector<isSigned> symbolicBitVector<isSigned>::extract(
     bwt upper, bwt lower) const
 {
-  PRECONDITION(upper >= lower);
+  Assert(upper >= lower);
 
   NodeBuilder<> construct(kind::BITVECTOR_EXTRACT);
   construct << NodeManager::currentNM()->mkConst<BitVectorExtract>(
@@ -734,7 +737,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::extract(
 floatingPointTypeInfo::floatingPointTypeInfo(const TypeNode type)
     : FloatingPointSize(type.getConst<FloatingPointSize>())
 {
-  PRECONDITION(type.isFloatingPoint());
+  Assert(type.isFloatingPoint());
 }
 floatingPointTypeInfo::floatingPointTypeInfo(unsigned exp, unsigned sig)
     : FloatingPointSize(exp, sig)
@@ -796,17 +799,17 @@ Node FpConverter::rmToNode(const rm &r) const
   Node value = nm->mkNode(
       kind::ITE,
       nm->mkNode(kind::EQUAL, transVar, RNE),
-      nm->mkConst(roundNearestTiesToEven),
+      nm->mkConst(ROUND_NEAREST_TIES_TO_EVEN),
       nm->mkNode(kind::ITE,
                  nm->mkNode(kind::EQUAL, transVar, RNA),
-                 nm->mkConst(roundNearestTiesToAway),
+                 nm->mkConst(ROUND_NEAREST_TIES_TO_AWAY),
                  nm->mkNode(kind::ITE,
                             nm->mkNode(kind::EQUAL, transVar, RTP),
-                            nm->mkConst(roundTowardPositive),
+                            nm->mkConst(ROUND_TOWARD_POSITIVE),
                             nm->mkNode(kind::ITE,
                                        nm->mkNode(kind::EQUAL, transVar, RTN),
-                                       nm->mkConst(roundTowardNegative),
-                                       nm->mkConst(roundTowardZero)))));
+                                       nm->mkConst(ROUND_TOWARD_NEGATIVE),
+                                       nm->mkConst(ROUND_TOWARD_ZERO)))));
   return value;
 }
 
@@ -874,19 +877,19 @@ Node FpConverter::convert(TNode node)
             /******** Constants ********/
             switch (current.getConst<RoundingMode>())
             {
-              case roundNearestTiesToEven:
+              case ROUND_NEAREST_TIES_TO_EVEN:
                 d_rmMap.insert(current, traits::RNE());
                 break;
-              case roundNearestTiesToAway:
+              case ROUND_NEAREST_TIES_TO_AWAY:
                 d_rmMap.insert(current, traits::RNA());
                 break;
-              case roundTowardPositive:
+              case ROUND_TOWARD_POSITIVE:
                 d_rmMap.insert(current, traits::RTP());
                 break;
-              case roundTowardNegative:
+              case ROUND_TOWARD_NEGATIVE:
                 d_rmMap.insert(current, traits::RTN());
                 break;
-              case roundTowardZero:
+              case ROUND_TOWARD_ZERO:
                 d_rmMap.insert(current, traits::RTZ());
                 break;
               default: Unreachable() << "Unknown rounding mode"; break;
@@ -918,9 +921,11 @@ Node FpConverter::convert(TNode node)
           if (current.getKind() == kind::CONST_FLOATINGPOINT)
           {
             /******** Constants ********/
-            d_fpMap.insert(current,
-                           symfpu::unpackedFloat<traits>(
-                               current.getConst<FloatingPoint>().getLiteral()));
+            d_fpMap.insert(
+                current,
+                symfpu::unpackedFloat<traits>(current.getConst<FloatingPoint>()
+                                                  .getLiteral()
+                                                  ->getSymUF()));
           }
           else
           {
@@ -1577,7 +1582,7 @@ Node FpConverter::convert(TNode node)
                             symfpu::convertFloatToUBV<traits>(fpt(childType),
                                                               (*mode).second,
                                                               (*arg1).second,
-                                                              info.bvs,
+                                                              info.d_bv_size,
                                                               ubv(current[2])));
             i = d_ubvMap.find(current);
           }
@@ -1619,7 +1624,7 @@ Node FpConverter::convert(TNode node)
                             symfpu::convertFloatToSBV<traits>(fpt(childType),
                                                               (*mode).second,
                                                               (*arg1).second,
-                                                              info.bvs,
+                                                              info.d_bv_size,
                                                               sbv(current[2])));
 
             i = d_sbvMap.find(current);
@@ -1710,43 +1715,23 @@ Node FpConverter::getValue(Valuation &val, TNode var)
 #ifdef CVC4_USE_SYMFPU
   TypeNode t(var.getType());
 
+  Assert(t.isRoundingMode() || t.isFloatingPoint())
+      << "Asking for the value of a type that is not managed by the "
+         "floating-point theory";
+
   if (t.isRoundingMode())
   {
     rmMap::const_iterator i(d_rmMap.find(var));
 
-    if (i == d_rmMap.end())
-    {
-      Unreachable() << "Asking for the value of an unregistered expression";
-    }
-    else
-    {
-      Node value = rmToNode((*i).second);
-      return value;
-    }
+    Assert(i != d_rmMap.end())
+        << "Asking for the value of an unregistered expression";
+    return rmToNode((*i).second);
   }
-  else if (t.isFloatingPoint())
-  {
-    fpMap::const_iterator i(d_fpMap.find(var));
+  fpMap::const_iterator i(d_fpMap.find(var));
 
-    if (i == d_fpMap.end())
-    {
-      Unreachable() << "Asking for the value of an unregistered expression";
-    }
-    else
-    {
-      Node value = ufToNode(fpt(t), (*i).second);
-      return value;
-    }
-  }
-  else
-  {
-    Unreachable()
-        << "Asking for the value of a type that is not managed by the "
-           "floating-point theory";
-  }
-
-  Unreachable() << "Unable to find value";
-
+  Assert(i != d_fpMap.end())
+      << "Asking for the value of an unregistered expression";
+  return ufToNode(fpt(t), (*i).second);
 #else
   Unimplemented() << "Conversion is dependent on SymFPU";
 #endif

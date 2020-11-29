@@ -1,4 +1,3 @@
-; COMMAND-LINE:
 (set-option :incremental false)
 (set-info :source "TTA Startup. Bruno Dutertre (bruno@csl.sri.com)")
 (set-info :status unsat)
