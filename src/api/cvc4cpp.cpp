@@ -3093,7 +3093,7 @@ size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
 Solver::Solver(Options* opts)
 {
   d_exprMgr.reset(new ExprManager);
-  d_smtEngine.reset(new SmtEngine(d_exprMgr.get(), opts));
+  d_smtEngine.reset(new SmtEngine(d_exprMgr->getNodeManager(), opts));
   d_smtEngine->setSolver(this);
   Options& o = d_smtEngine->getOptions();
   d_rng.reset(new Random(o[options::seed]));
