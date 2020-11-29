@@ -5,7 +5,7 @@
  **   Aina Niemetz, Andrew Reynolds, Makai Mann
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -120,9 +120,18 @@ enum CVC4_PUBLIC Kind : int32_t
 #if 0
   /* Skolem variable (internal only) */
   SKOLEM,
-  /* Symbolic expression (any arity) */
-  SEXPR,
 #endif
+  /*
+   * Symbolic expression.
+   * Parameters: n > 0
+   *   -[1]..[n]: terms
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEXPR,
   /**
    * Lambda expression.
    * Parameters: 2
@@ -761,6 +770,12 @@ enum CVC4_PUBLIC Kind : int32_t
   BITVECTOR_NEG,
   /**
    * Unsigned division of two bit-vectors, truncating towards 0.
+   *
+   * Note: The semantics of this operator depends on `bv-div-zero-const`
+   * (default is true).  Depending on the setting, a division by zero is
+   * treated as all ones (default, corresponds to SMT-LIB >=2.6) or an
+   * uninterpreted value (corresponds to SMT-LIB <2.6).
+   *
    * Parameters: 2
    *   -[1]..[2]: Terms of bit-vector sort (sorts must match)
    * Create with:
@@ -770,6 +785,12 @@ enum CVC4_PUBLIC Kind : int32_t
   BITVECTOR_UDIV,
   /**
    * Unsigned remainder from truncating division of two bit-vectors.
+   *
+   * Note: The semantics of this operator depends on `bv-div-zero-const`
+   * (default is true). Depending on the setting, if the modulus is zero, the
+   * result is either the dividend (default, corresponds to SMT-LIB >=2.6) or
+   * an uninterpreted value (corresponds to SMT-LIB <2.6).
+   *
    * Parameters: 2
    *   -[1]..[2]: Terms of bit-vector sort (sorts must match)
    * Create with:
@@ -779,6 +800,13 @@ enum CVC4_PUBLIC Kind : int32_t
   BITVECTOR_UREM,
   /**
    * Two's complement signed division of two bit-vectors.
+   *
+   * Note: The semantics of this operator depends on `bv-div-zero-const`
+   * (default is true). By default, the function returns all ones if the
+   * dividend is positive and one if the dividend is negative (corresponds to
+   * SMT-LIB >=2.6). If the option is disabled, a division by zero is treated
+   * as an uninterpreted value (corresponds to SMT-LIB <2.6).
+   *
    * Parameters: 2
    *   -[1]..[2]: Terms of bit-vector sort (sorts must match)
    * Create with:
@@ -789,6 +817,12 @@ enum CVC4_PUBLIC Kind : int32_t
   /**
    * Two's complement signed remainder of two bit-vectors
    * (sign follows dividend).
+   *
+   * Note: The semantics of this operator depends on `bv-div-zero-const`
+   * (default is true, corresponds to SMT-LIB >=2.6). Depending on the setting,
+   * if the modulus is zero, the result is either the dividend (default) or an
+   * uninterpreted value (corresponds to SMT-LIB <2.6).
+   *
    * Parameters: 2
    *   -[1]..[2]: Terms of bit-vector sort (sorts must match)
    * Create with:
@@ -799,6 +833,12 @@ enum CVC4_PUBLIC Kind : int32_t
   /**
    * Two's complement signed remainder
    * (sign follows divisor).
+   *
+   * Note: The semantics of this operator depends on `bv-div-zero-const`
+   * (default is on). Depending on the setting, if the modulus is zero, the
+   * result is either the dividend (default, corresponds to SMT-LIB >=2.6) or
+   * an uninterpreted value (corresponds to SMT-LIB <2.6).
+   *
    * Parameters: 2
    *   -[1]..[2]: Terms of bit-vector sort (sorts must match)
    * Create with:
@@ -1801,7 +1841,8 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   MEMBER,
   /**
-   * The set of the single element given as a parameter.
+   * Construct a singleton set from an element given as a parameter.
+   * The returned set has same type of the element.
    * Parameters: 1
    *   -[1]: Single element
    * Create with:
@@ -1925,6 +1966,151 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child)
    */
   CHOOSE,
+  /**
+   * Set is_singleton predicate.
+   * Parameters: 1
+   *   -[1]: Term of set sort, is [1] a singleton set?
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  IS_SINGLETON,
+  /* Bags ------------------------------------------------------------------ */
+  /**
+   * Empty bag constant.
+   * Parameters: 1
+   *   -[1]: Sort of the bag elements
+   * Create with:
+   *   mkEmptyBag(Sort sort)
+   */
+  EMPTYBAG,
+  /**
+   * Bag max union.
+   * Parameters: 2
+   *   -[1]..[2]: Terms of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  UNION_MAX,
+  /**
+   * Bag disjoint union (sum).
+   * Parameters: 2
+   *   -[1]..[2]: Terms of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  UNION_DISJOINT,
+  /**
+   * Bag intersection (min).
+   * Parameters: 2
+   *   -[1]..[2]: Terms of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  INTERSECTION_MIN,
+  /**
+   * Bag difference subtract (subtracts multiplicities of the second from the
+   * first).
+   * Parameters: 2
+   *   -[1]..[2]: Terms of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  DIFFERENCE_SUBTRACT,
+  /**
+   * Bag difference 2 (removes shared elements in the two bags).
+   * Parameters: 2
+   *   -[1]..[2]: Terms of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  DIFFERENCE_REMOVE,
+  /**
+   * Inclusion predicate for bags
+   * (multiplicities of the first bag <= multiplicities of the second bag).
+   * Parameters: 2
+   *   -[1]..[2]: Terms of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SUBBAG,
+  /**
+   * Element multiplicity in a bag
+   * Parameters: 2
+   *   -[1]..[2]: Terms of bag sort (Bag E), [1] an element of sort E
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  BAG_COUNT,
+  /**
+   * Eliminate duplicates in a given bag. The returned bag contains exactly the
+   * same elements in the given bag, but with multiplicity one.
+   * Parameters: 1
+   *   -[1]: a term of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  DUPLICATE_REMOVAL,
+  /**
+   * The bag of the single element given as a parameter.
+   * Parameters: 1
+   *   -[1]: Single element
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  MK_BAG,
+  /**
+   * Bag cardinality.
+   * Parameters: 1
+   *   -[1]: Bag to determine the cardinality of
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  BAG_CARD,
+  /**
+   * Returns an element from a given bag.
+   * If a bag A = {(x,n)} where n is the multiplicity, then the term (choose A)
+   * is equivalent to the term x.
+   * If the bag is empty, then (choose A) is an arbitrary value.
+   * If the bag contains distinct elements, then (choose A) will
+   * deterministically return an element in A.
+   * Parameters: 1
+   *   -[1]: Term of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  BAG_CHOOSE,
+  /**
+   * Bag is_singleton predicate (single element with multiplicity exactly one).
+   * Parameters: 1
+   *   -[1]: Term of bag sort, is [1] a singleton bag?
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  BAG_IS_SINGLETON,
+  /**
+   * Bag.from_set converts a set to a bag.
+   * Parameters: 1
+   *   -[1]: Term of set sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  BAG_FROM_SET,
+  /**
+   * Bag.to_set converts a bag to a set.
+   * Parameters: 1
+   *   -[1]: Term of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  BAG_TO_SET,
 
   /* Strings --------------------------------------------------------------- */
 
@@ -2510,6 +2696,15 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child1)
    */
   SEQ_UNIT,
+  /**
+   * Sequence nth, corresponding to the nth element of a sequence.
+   * Parameters: 2
+   *   -[1] Sequence term.
+   *   -[2] Integer term.
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   */
+  SEQ_NTH,
 
   /* Quantifiers ----------------------------------------------------------- */
 
@@ -2616,6 +2811,8 @@ enum CVC4_PUBLIC Kind : int32_t
   SELECTOR_TYPE,
   /* set type, takes as parameter the type of the elements */
   SET_TYPE,
+  /* bag type, takes as parameter the type of the elements */
+  BAG_TYPE,
   /* sort tag */
   SORT_TAG,
   /* specifies types of user-declared 'uninterpreted' sorts */

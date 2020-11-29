@@ -2,10 +2,10 @@
 /*! \file theory_strings_type_rules.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tianyi Liang, Mathias Preiner
+ **   Andrew Reynolds, Tianyi Liang, Yoni Zohar
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -373,6 +373,30 @@ class SeqUnitTypeRule
                                      bool check)
   {
     return nodeManager->mkSequenceType(n[0].getType(check));
+  }
+};
+
+class SeqNthTypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+  {
+    TypeNode t = n[0].getType(check);
+    TypeNode t1 = t.getSequenceElementType();
+    if (check)
+    {
+      if (!t.isSequence())
+      {
+        throw TypeCheckingExceptionPrivate(n, "expecting a sequence in nth");
+      }
+      TypeNode t2 = n[1].getType(check);
+      if (!t2.isInteger())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting an integer start term in nth");
+      }
+    }
+    return t1;
   }
 };
 

@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -26,8 +26,6 @@
 
 namespace CVC4 {
 
-class DatatypeConstructor;
-
 /**
  * The Node-level representation of a constructor for a datatype, which
  * currently resides in the Expr-level DatatypeConstructor class
@@ -35,7 +33,6 @@ class DatatypeConstructor;
  */
 class DTypeConstructor
 {
-  friend class DatatypeConstructor;
   friend class DType;
 
  public:
@@ -63,9 +60,23 @@ class DTypeConstructor
    * Add an argument, given a pointer to a selector object.
    */
   void addArg(std::shared_ptr<DTypeSelector> a);
+  /**
+   * Add a self-referential (i.e., a data field) of the given name
+   * to this Datatype constructor that refers to the enclosing
+   * Datatype.  For example, using the familiar "nat" Datatype, to
+   * create the "pred" field for "succ" constructor, one uses
+   * succ::addArgSelf("pred")---the actual Type
+   * cannot be passed because the Datatype is still under
+   * construction.  Selector names need not be unique; they are for
+   * convenience and pretty-printing only.
+   *
+   * This is a special case of
+   * DTypeConstructor::addArg(std::string).
+   */
+  void addArgSelf(std::string selectorName);
 
   /** Get the name of this constructor. */
-  std::string getName() const;
+  const std::string& getName() const;
 
   /**
    * Get the constructor operator of this constructor.  The
@@ -147,6 +158,13 @@ class DTypeConstructor
    * only be called for resolved constructors.
    */
   bool isInterpretedFinite(TypeNode t) const;
+  /**
+   * Has finite external argument type. This returns true if this constructor
+   * has an argument type that is not a datatype and is interpreted as a
+   * finite type. This function can only be called for resolved constructors.
+   *
+   */
+  bool hasFiniteExternalArgType(TypeNode t) const;
 
   /**
    * Returns true iff this constructor has already been
@@ -195,6 +213,12 @@ class DTypeConstructor
    *   stoa(T,C,index)
    */
   int getSelectorIndexInternal(Node sel) const;
+  /** get selector index for name
+   *
+   * Returns the index of selector with the given name, or -1 if it
+   * does not exist.
+   */
+  int getSelectorIndexForName(const std::string& name) const;
 
   /** involves external type
    *
@@ -212,6 +236,17 @@ class DTypeConstructor
   void toStream(std::ostream& out) const;
 
  private:
+  /** Constructor cardinality type */
+  enum class CardinalityType
+  {
+    // the constructor is finite
+    FINITE,
+    // the constructor is interpreted-finite (finite under the assumption that
+    // uninterpreted sorts are finite)
+    INTERPRETED_FINITE,
+    // the constructor is infinte
+    INFINITE
+  };
   /** resolve
    *
    * This resolves (initializes) the constructor. For details
@@ -269,6 +304,13 @@ class DTypeConstructor
                          std::vector<TypeNode>& processing,
                          std::map<TypeNode, Node>& gt,
                          bool isValue) const;
+  /**
+   * Compute cardinality info, returns a pair where its first component is
+   * an identifier indicating the cardinality type of this constructor for
+   * type t, and a Boolean indicating whether the constructor has any arguments
+   * that have finite external type.
+   */
+  std::pair<CardinalityType, bool> computeCardinalityInfo(TypeNode t) const;
   /** compute shared selectors
    * This computes the maps d_sharedSelectors and d_sharedSelectorIndex.
    */
@@ -307,6 +349,8 @@ class DTypeConstructor
    * its argument index for this constructor.
    */
   mutable std::map<TypeNode, std::map<Node, unsigned> > d_sharedSelectorIndex;
+  /**  A cache for computeCardinalityInfo. */
+  mutable std::map<TypeNode, std::pair<CardinalityType, bool> > d_cardInfo;
 }; /* class DTypeConstructor */
 
 /**

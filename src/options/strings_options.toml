@@ -205,3 +205,28 @@ header = "options/strings_options.h"
 [[option.mode.NONE]]
   name = "none"
   help = "Do not compute intersections for regular expressions."
+
+[[option]]
+  name       = "stringUnifiedVSpt"
+  category   = "regular"
+  long       = "strings-unified-vspt"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "use a single skolem for the variable splitting rule"
+
+[[option]]
+  name       = "stringLenConc"
+  category   = "regular"
+  long       = "strings-len-conc"
+  type       = "bool"
+  default    = "false"
+  help       = "add skolem length constraints in conclusions of inferences"
+
+[[option]]
+  name       = "stringEagerEval"
+  category   = "regular"
+  long       = "strings-eager-eval"
+  type       = "bool"
+  default    = "true"
+  help       = "perform eager context-dependent evaluation for applications of string kinds"

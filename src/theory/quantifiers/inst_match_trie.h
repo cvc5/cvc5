@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -125,6 +125,10 @@ class InstMatchTrie
                        Node lem,
                        ImtIndexOrder* imtio = NULL,
                        unsigned index = 0);
+  /**
+   * Adds the instantiations for q into insts.
+   */
+  void getInstantiations(Node q, std::vector<std::vector<Node>>& insts) const;
 
   /** get instantiations
    *
@@ -174,6 +178,10 @@ class InstMatchTrie
   std::map<Node, InstMatchTrie> d_data;
 
  private:
+  /** Helper for getInstantiations.*/
+  void getInstantiations(Node q,
+                         std::vector<std::vector<Node>>& insts,
+                         std::vector<Node>& terms) const;
   /** helper for print
    * terms accumulates the path we are on in the trie.
    */
@@ -293,6 +301,10 @@ class CDInstMatchTrie
                        std::vector<Node>& m,
                        Node lem,
                        unsigned index = 0);
+  /**
+   * Adds the instantiations for q into insts.
+   */
+  void getInstantiations(Node q, std::vector<std::vector<Node>>& insts) const;
 
   /** get instantiations
    *
@@ -338,6 +350,10 @@ class CDInstMatchTrie
   }
 
  private:
+  /** Helper for getInstantiations.*/
+  void getInstantiations(Node q,
+                         std::vector<std::vector<Node>>& insts,
+                         std::vector<Node>& terms) const;
   /** the data */
   std::map<Node, CDInstMatchTrie*> d_data;
   /** is valid */

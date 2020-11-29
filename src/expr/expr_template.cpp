@@ -5,7 +5,7 @@
  **   Morgan Deters, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -28,12 +28,6 @@
 #include "expr/variable_type_map.h"
 
 ${includes}
-
-// This is a hack, but an important one: if there's an error, the
-// compiler directs the user to the template file instead of the
-// generated one.  We don't want the user to modify the generated one,
-// since it'll get overwritten on a later build.
-#line 37 "${template}"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -599,10 +593,13 @@ bool Expr::hasFreeVariable() const
   return expr::hasFreeVar(*d_node);
 }
 
-void Expr::toStream(std::ostream& out, int depth, bool types, size_t dag,
-                    OutputLanguage language) const {
+void Expr::toStream(std::ostream& out,
+                    int depth,
+                    size_t dag,
+                    OutputLanguage language) const
+{
   ExprManagerScope ems(*this);
-  d_node->toStream(out, depth, types, dag, language);
+  d_node->toStream(out, depth, dag, language);
 }
 
 Node Expr::getNode() const { return *d_node; }

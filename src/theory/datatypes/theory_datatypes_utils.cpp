@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -55,7 +55,7 @@ Node getInstCons(Node n, const DType& dt, int index)
       Debug("datatypes-parametric")
           << "Type specification is " << tspec << std::endl;
       children[0] = nm->mkNode(APPLY_TYPE_ASCRIPTION,
-                               nm->mkConst(AscriptionType(tspec.toType())),
+                               nm->mkConst(AscriptionType(tspec)),
                                children[0]);
       n_ic = nm->mkNode(APPLY_CONSTRUCTOR, children);
       Assert(n_ic.getType() == tn);

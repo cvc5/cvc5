@@ -1,4 +1,14 @@
 #!/usr/bin/env python
+#####################
+## run_test.py
+## Top contributors (to current version):
+##   Andres Noetzli, Alex Ozdemir
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
 
 import argparse
 import re
@@ -111,12 +121,11 @@ def main():
     result = subprocess.Popen(cmd,
                               stderr=subprocess.STDOUT,
                               stdout=subprocess.PIPE)
-    code = result.wait()
-    if 0 != code:
-        stdout = result.stdout.read()
+    (stdout, _) = result.communicate()
+    if 0 != result.returncode:
         if stdout:
             print(stdout.decode())
-    return code
+    return result.returncode
 
 
 if __name__ == '__main__':

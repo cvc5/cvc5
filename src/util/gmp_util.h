@@ -5,7 +5,7 @@
  **   Tim King, Andres Noetzli, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -19,13 +19,6 @@
 
 #ifndef CVC4__GMP_UTIL_H
 #define CVC4__GMP_UTIL_H
-
-/*
- * Older versions of GMP in combination with newer versions of GCC and C++11
- * cause errors: https://gcc.gnu.org/gcc-4.9/porting_to.html
- * Including <cstddef> is a workaround for this issue.
- */
-#include <cstddef>
 
 #include <gmpxx.h>
 

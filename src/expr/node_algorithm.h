@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Andres Noetzli, Yoni Zohar
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -132,6 +132,18 @@ void getSymbols(TNode n, std::unordered_set<Node, NodeHashFunction>& syms);
 void getSymbols(TNode n,
                 std::unordered_set<Node, NodeHashFunction>& syms,
                 std::unordered_set<TNode, TNodeHashFunction>& visited);
+
+/**
+ * For term n, this function collects the subterms of n whose kind is k.
+ * @param n The node under investigation
+ * @param k The kind we are considering
+ * @param topLevel If true, we collect only the top-level subterms with kind k.
+ * @param ts The set which the symbols of n are added to
+ */
+void getKindSubterms(TNode n,
+                     Kind k,
+                     bool topLevel,
+                     std::unordered_set<Node, NodeHashFunction>& ts);
 
 /**
  * For term n, this function collects the operators that occur in n.

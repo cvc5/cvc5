@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -41,7 +41,7 @@ bool RepSet::hasRep(TypeNode tn, Node n) const
   }
 }
 
-unsigned RepSet::getNumRepresentatives(TypeNode tn) const
+size_t RepSet::getNumRepresentatives(TypeNode tn) const
 {
   const std::vector<Node>* reps = getTypeRepsOrNull(tn);
   return (reps != nullptr) ? reps->size() : 0;

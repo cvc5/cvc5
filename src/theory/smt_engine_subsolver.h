@@ -2,10 +2,10 @@
 /*! \file smt_engine_subsolver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -24,7 +24,6 @@
 
 #include "expr/expr_manager.h"
 #include "expr/node.h"
-#include "expr/variable_type_map.h"
 #include "smt/smt_engine.h"
 
 namespace CVC4 {
@@ -32,7 +31,16 @@ namespace theory {
 
 /**
  * This function initializes the smt engine smte to check the satisfiability
- * of the argument "query".
+ * of the argument "query". It takes the logic and options of the current
+ * SMT engine in scope.
+ *
+ * Notice this method intentionally does not fully initialize smte. This means
+ * that the options of smte can still be modified after it is returned by
+ * this method.
+ *
+ * Notice that some aspects of subsolvers are not incoporated by this call.
+ * For example, the type of separation logic heaps is not set on smte, even
+ * if the current SMT engine has declared a separation logic heap.
  *
  * @param smte The smt engine pointer to initialize
  * @param needsTimeout Whether we would like to set a timeout

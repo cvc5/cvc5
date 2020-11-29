@@ -2,10 +2,10 @@
 /*! \file evaluator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli, Andrew Reynolds, Mathias Preiner
+ **   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -25,6 +25,7 @@
 
 #include "base/output.h"
 #include "expr/node.h"
+#include "expr/uninterpreted_constant.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
 #include "util/string.h"
@@ -45,6 +46,7 @@ struct EvalResult
     BITVECTOR,
     RATIONAL,
     STRING,
+    UCONST,
     INVALID
   } d_tag;
 
@@ -55,6 +57,7 @@ struct EvalResult
     BitVector d_bv;
     Rational d_rat;
     String d_str;
+    UninterpretedConstant d_uc;
   };
 
   EvalResult(const EvalResult& other);
@@ -63,6 +66,7 @@ struct EvalResult
   EvalResult(const BitVector& bv) : d_tag(BITVECTOR), d_bv(bv) {}
   EvalResult(const Rational& i) : d_tag(RATIONAL), d_rat(i) {}
   EvalResult(const String& str) : d_tag(STRING), d_str(str) {}
+  EvalResult(const UninterpretedConstant& u) : d_tag(UCONST), d_uc(u) {}
 
   EvalResult& operator=(const EvalResult& other);
 

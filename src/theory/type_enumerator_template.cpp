@@ -5,7 +5,7 @@
  **   Morgan Deters, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -22,7 +22,6 @@
 
 
 ${type_enumerator_includes}
-#line 26 "${template}"
 
 using namespace std;
 
@@ -42,7 +41,6 @@ TypeEnumeratorInterface* TypeEnumerator::mkTypeEnumerator(
       }
       Unreachable();
       ${mk_type_enumerator_cases}
-#line 46 "${template}"
     default: Unhandled() << "No type enumerator for type `" << type << "'";
   }
   Unreachable();

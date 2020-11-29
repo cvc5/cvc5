@@ -5,7 +5,7 @@
  **   Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -74,8 +74,8 @@ int main()
   Term start_bool = slv.mkVar(boolean, "StartBool");
 
   // define the rules
-  Term zero = slv.mkReal(0);
-  Term one = slv.mkReal(1);
+  Term zero = slv.mkInteger(0);
+  Term one = slv.mkInteger(1);
 
   Term plus = slv.mkTerm(PLUS, start, start);
   Term minus = slv.mkTerm(MINUS, start, start);

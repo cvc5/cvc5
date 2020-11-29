@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -196,8 +196,7 @@ struct DatatypeAscriptionTypeRule {
                                      bool check) {
     Debug("typecheck-idt") << "typechecking ascription: " << n << std::endl;
     Assert(n.getKind() == kind::APPLY_TYPE_ASCRIPTION);
-    TypeNode t = TypeNode::fromType(
-        n.getOperator().getConst<AscriptionType>().getType());
+    TypeNode t = n.getOperator().getConst<AscriptionType>().getType();
     if (check) {
       TypeNode childType = n[0].getType(check);
 
@@ -282,9 +281,10 @@ struct RecordUpdateTypeRule {
         throw TypeCheckingExceptionPrivate(
             n, "Record-update expression formed over non-record");
       }
-      const Record& rec =
-          DatatypeType(recordType.toType()).getRecord();
-      if (!rec.contains(ru.getField())) {
+      const DType& dt = recordType.getDType();
+      const DTypeConstructor& recCons = dt[0];
+      if (recCons.getSelectorIndexForName(ru.getField()) == -1)
+      {
         std::stringstream ss;
         ss << "Record-update field `" << ru.getField()
            << "' is not a valid field name for the record type";

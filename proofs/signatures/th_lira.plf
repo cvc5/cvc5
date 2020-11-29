@@ -128,7 +128,7 @@
     (default (fail (term Int)))
   ))
 
-; This function negates linear interger terms---sums of terms of the form
+; This function negates linear integer terms---sums of terms of the form
 ; recognized by `negate_linear_monomial_int_term`.
 (program negate_linear_int_term ((t (term Int))) (term Int)
   (match t
@@ -339,7 +339,7 @@
 ; the statement that `a` satisfies `b` for all inputs
 (declare bounded_aff (! a aff (! b bound formula)))
 
-; Sum of two bounds (the bound satisfied by the sum of two functions satifying
+; Sum of two bounds (the bound satisfied by the sum of two functions satisfying
 ; the input bounds)
 (program bound_add ((b bound) (b2 bound)) bound
   (match b

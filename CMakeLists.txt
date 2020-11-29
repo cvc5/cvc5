@@ -1,9 +1,21 @@
+#####################
+## CMakeLists.txt
+## Top contributors (to current version):
+##   Mathias Preiner, Aina Niemetz, Gereon Kremer
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
 cmake_minimum_required(VERSION 3.4)
 
 #-----------------------------------------------------------------------------#
 # Project configuration
 
 project(cvc4)
+
+include(GNUInstallDirs)
 
 set(CVC4_MAJOR   1) # Major component of the version of CVC4.
 set(CVC4_MINOR   9) # Minor component of the version of CVC4.
@@ -73,18 +85,15 @@ endif()
 if(LFSC_DIR)
   list(APPEND CMAKE_PREFIX_PATH "${LFSC_DIR}")
 endif()
+if(POLY_DIR)
+  list(APPEND CMAKE_PREFIX_PATH "${POLY_DIR}")
+endif()
 if(SYMFPU_DIR)
   list(APPEND CMAKE_PREFIX_PATH "${SYMFPU_DIR}")
 endif()
 
 # By default the contrib/get-* scripts install dependencies to deps/install.
 list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/install")
-
-#-----------------------------------------------------------------------------#
-
-set(INCLUDE_INSTALL_DIR include)
-set(LIBRARY_INSTALL_DIR lib)
-set(RUNTIME_INSTALL_DIR bin)
 
 #-----------------------------------------------------------------------------#
 
@@ -136,11 +145,12 @@ cvc4_option(USE_CLN           "Use CLN instead of GMP")
 cvc4_option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver")
 cvc4_option(USE_GLPK          "Use GLPK simplex solver")
 cvc4_option(USE_KISSAT        "Use Kissat SAT solver")
-cvc4_option(USE_READLINE      "Use readline for better interactive support")
+cvc4_option(USE_EDITLINE      "Use Editline for better interactive support")
 # >> 2-valued: ON OFF
 #    > for options where we don't need to detect if set by user (default: OFF)
 option(USE_DRAT2ER            "Include drat2er for making eager BV proofs")
 option(USE_LFSC               "Use LFSC proof checker")
+option(USE_POLY               "Use LibPoly for polynomial arithmetic")
 option(USE_SYMFPU             "Use SymFPU for floating point support")
 option(USE_PYTHON2            "Prefer using Python 2 (for Python bindings)")
 option(USE_PYTHON3            "Prefer using Python 3 (for Python bindings)")
@@ -160,6 +170,7 @@ set(GLPK_DIR          "" CACHE STRING "Set GLPK install directory")
 set(GMP_DIR           "" CACHE STRING "Set GMP install directory")
 set(KISSAT_DIR        "" CACHE STRING "Set Kissat install directory")
 set(LFSC_DIR          "" CACHE STRING "Set LFSC install directory")
+set(POLY_DIR          "" CACHE STRING "Set LibPoly install directory")
 set(SYMFPU_DIR        "" CACHE STRING "Set SymFPU install directory")
 
 # Prepend binaries with prefix on make install
@@ -168,6 +179,9 @@ set(PROGRAM_PREFIX    "" CACHE STRING "Program prefix on make install")
 # Supprted language bindings based on new C++ API
 option(BUILD_BINDINGS_PYTHON "Build Python bindings based on new C++ API ")
 option(BUILD_BINDINGS_JAVA "Build Java bindings based on new C++ API ")
+
+# Build limitations
+option(BUILD_LIB_ONLY         "Only build the library")
 
 #-----------------------------------------------------------------------------#
 # Internal cmake variables
@@ -269,12 +283,13 @@ if(ENABLE_BEST)
   cvc4_set_option(USE_CLN ON)
   cvc4_set_option(USE_CRYPTOMINISAT ON)
   cvc4_set_option(USE_GLPK ON)
-  cvc4_set_option(USE_READLINE ON)
+  cvc4_set_option(USE_EDITLINE ON)
 endif()
 
 # Only enable unit testing if assertions are enabled. Otherwise, unit tests
 # that expect AssertionException to be thrown will fail.
 if(NOT ENABLE_ASSERTIONS)
+  message(WARNING "Disabling unit tests since assertions are disabled.")
   set(ENABLE_UNIT_TESTING OFF)
 endif()
 
@@ -307,9 +322,14 @@ if(ENABLE_SHARED)
   #
   # More information on RPATH in CMake:
   # https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
-  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIBRARY_INSTALL_DIR};${PROJECT_SOURCE_DIR}/deps/install/lib")
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR};${PROJECT_SOURCE_DIR}/deps/install/lib")
 else()
-  set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
+  # When building statically, we *only* want static archives/libraries
+  if (WIN32)
+      set(CMAKE_FIND_LIBRARY_SUFFIXES .lib .a)
+  else()
+      set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
+  endif()
   set(BUILD_SHARED_LIBS OFF)
   cvc4_set_option(ENABLE_STATIC_BINARY ON)
 
@@ -318,6 +338,11 @@ else()
   if(ENABLE_UNIT_TESTING)
     message(WARNING "Disabling unit tests since static build is enabled.")
     set(ENABLE_UNIT_TESTING OFF)
+  endif()
+
+  if (BUILD_BINDINGS_PYTHON)
+    message(FATAL_ERROR "Building Python bindings is not possible "
+                        "when building statically")
   endif()
 endif()
 
@@ -501,12 +526,19 @@ if(USE_LFSC)
   add_definitions(-DCVC4_USE_LFSC)
 endif()
 
-if(USE_READLINE)
-  set(GPL_LIBS "${GPL_LIBS} readline")
-  find_package(Readline REQUIRED)
-  set(HAVE_LIBREADLINE 1)
-  if(Readline_COMPENTRY_FUNC_RETURNS_CHARPTR)
-    set(READLINE_COMPENTRY_FUNC_RETURNS_CHARP 1)
+if(USE_POLY)
+  find_package(Poly REQUIRED)
+  add_definitions(-DCVC4_USE_POLY)
+  set(CVC4_USE_POLY_IMP 1)
+else()
+  set(CVC4_USE_POLY_IMP 0)
+endif()
+
+if(USE_EDITLINE)
+  find_package(Editline REQUIRED)
+  set(HAVE_LIBEDITLINE 1)
+  if(Editline_COMPENTRY_FUNC_RETURNS_CHARPTR)
+    set(EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP 1)
   endif()
 endif()
 
@@ -531,7 +563,11 @@ endif()
 # Generate CVC4's cvc4autoconfig.h header
 
 include(ConfigureCVC4)
+if(NOT ENABLE_SHARED)
+  set(CVC4_STATIC_BUILD ON)
+endif()
 configure_file(cvc4autoconfig.h.in cvc4autoconfig.h)
+unset(CVC4_STATIC_BUILD)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 #-----------------------------------------------------------------------------#
@@ -547,6 +583,7 @@ add_subdirectory(src)
 add_subdirectory(test)
 
 if(BUILD_BINDINGS_PYTHON)
+  set(BUILD_BINDINGS_PYTHON_VERSION ${PYTHON_VERSION_MAJOR})
   add_subdirectory(src/api/python)
 endif()
 
@@ -611,13 +648,13 @@ endif()
 install(EXPORT cvc4-targets
   FILE CVC4Targets.cmake
   NAMESPACE CVC4::
-  DESTINATION ${LIBRARY_INSTALL_DIR}/cmake/CVC4)
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CVC4)
 
 configure_package_config_file(
   ${CMAKE_SOURCE_DIR}/cmake/CVC4Config.cmake.in
   ${CMAKE_BINARY_DIR}/cmake/CVC4Config.cmake
-  INSTALL_DESTINATION ${LIBRARY_INSTALL_DIR}/cmake/CVC4
-  PATH_VARS LIBRARY_INSTALL_DIR
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CVC4
+  PATH_VARS CMAKE_INSTALL_LIBDIR
 )
 
 write_basic_package_version_file(
@@ -629,7 +666,7 @@ write_basic_package_version_file(
 install(FILES
   ${CMAKE_BINARY_DIR}/cmake/CVC4Config.cmake
   ${CMAKE_BINARY_DIR}/CVC4ConfigVersion.cmake
-  DESTINATION ${LIBRARY_INSTALL_DIR}/cmake/CVC4
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CVC4
 )
 
 
@@ -687,13 +724,16 @@ print_config("drat2er                   :" USE_DRAT2ER)
 print_config("GLPK                      :" USE_GLPK)
 print_config("Kissat                    :" USE_KISSAT)
 print_config("LFSC                      :" USE_LFSC)
+print_config("LibPoly                   :" USE_POLY)
+message("")
+print_config("BUILD_LIB_ONLY            :" BUILD_LIB_ONLY)
 
 if(CVC4_USE_CLN_IMP)
   message("MP library                : cln")
 else()
   message("MP library                : gmp")
 endif()
-print_config("Readline                  :" ${USE_READLINE})
+print_config("Editline                  :" ${USE_EDITLINE})
 print_config("SymFPU                    :" ${USE_SYMFPU})
 message("")
 if(ABC_DIR)
@@ -723,6 +763,9 @@ endif()
 if(LFSC_DIR)
   message("LFSC dir                  : ${LFSC_DIR}")
 endif()
+if(POLY_DIR)
+  message("LibPoly dir               : ${POLY_DIR}")
+endif()
 if(SYMFPU_DIR)
   message("SYMFPU dir                : ${SYMFPU_DIR}")
 endif()
@@ -737,7 +780,7 @@ message("")
 
 if(GPL_LIBS)
   message(
-  "CVC4 license             : GPLv3 (due to optional libraries; see below)"
+  "CVC4 license             : ${Yellow}GPLv3 (due to optional libraries; see below)${ResetColor}"
   "\n"
   "\n"
   "Please note that CVC4 will be built against the following GPLed libraries:"

@@ -2,10 +2,10 @@
 /*! \file language.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Andres Noetzli
+ **   Morgan Deters, Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -181,9 +181,8 @@ InputLanguage toInputLanguage(std::string language) {
     return input::LANG_SMTLIB_V2_6;
   } else if(language == "tptp" || language == "LANG_TPTP") {
     return input::LANG_TPTP;
-  }
-  else if (language == "sygus2" || language == "LANG_SYGUS_V2")
-  {
+  } else if(language == "sygus" || language == "sygus2" ||
+          language == "LANG_SYGUS" || language == "LANG_SYGUS_V2") {
     return input::LANG_SYGUS_V2;
   }
   else if (language == "auto" || language == "LANG_AUTO")

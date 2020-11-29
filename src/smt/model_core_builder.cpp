@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -20,28 +20,23 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-bool ModelCoreBuilder::setModelCore(const std::vector<Expr>& assertions,
-                                    Model* m,
+bool ModelCoreBuilder::setModelCore(const std::vector<Node>& assertions,
+                                    theory::TheoryModel* m,
                                     options::ModelCoresMode mode)
 {
   if (Trace.isOn("model-core"))
   {
     Trace("model-core") << "Compute model core, assertions:" << std::endl;
-    for (const Expr& a : assertions)
+    for (const Node& a : assertions)
     {
       Trace("model-core") << "  " << a << std::endl;
     }
   }
 
   // convert to nodes
-  std::vector<Node> asserts;
-  for (unsigned i = 0, size = assertions.size(); i < size; i++)
-  {
-    asserts.push_back(Node::fromExpr(assertions[i]));
-  }
   NodeManager* nm = NodeManager::currentNM();
 
-  Node formula = asserts.size() > 1? nm->mkNode(AND, asserts) : asserts[0];
+  Node formula = nm->mkAnd(assertions);
   std::vector<Node> vars;
   std::vector<Node> subs;
   Trace("model-core") << "Assignments: " << std::endl;
@@ -58,7 +53,7 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Expr>& assertions,
       visited.insert(cur);
       if (cur.isVar())
       {
-        Node vcur = Node::fromExpr(m->getValue(cur.toExpr()));
+        Node vcur = m->getValue(cur);
         Trace("model-core") << "  " << cur << " -> " << vcur << std::endl;
         vars.push_back(cur);
         subs.push_back(vcur);
@@ -100,7 +95,7 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Expr>& assertions,
 
     for (const Node& cv : coreVars)
     {
-      m->recordModelCoreSymbol(cv.toExpr());
+      m->recordModelCoreSymbol(cv);
     }
     return true;
   }

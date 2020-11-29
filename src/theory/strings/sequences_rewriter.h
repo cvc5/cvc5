@@ -2,10 +2,10 @@
 /*! \file sequences_rewriter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
+ **   Andrew Reynolds, Andres Noetzli, Yoni Zohar
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -263,6 +263,13 @@ class SequencesRewriter : public TheoryRewriter
    * Returns the rewritten form of node.
    */
   Node rewriteSeqUnit(Node node);
+
+  /** rewrite seq.nth
+   * This is the entry point for post-rewriting terms n of the form
+   *   seq.nth(s, i)
+   * Returns the rewritten form of node.
+   */
+  Node rewriteSeqNth(Node node);
 
   /** length preserving rewrite
    *

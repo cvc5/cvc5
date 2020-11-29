@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Paul Meng, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -17,6 +17,7 @@
 #ifndef CVC4__FIRST_ORDER_MODEL_H
 #define CVC4__FIRST_ORDER_MODEL_H
 
+#include "context/cdlist.h"
 #include "expr/attribute.h"
 #include "theory/theory_model.h"
 #include "theory/uf/theory_uf_model.h"
@@ -59,7 +60,7 @@ class FirstOrderModel : public TheoryModel
   /** assert quantifier */
   void assertQuantifier( Node n );
   /** get number of asserted quantifiers */
-  unsigned getNumAssertedQuantifiers();
+  size_t getNumAssertedQuantifiers() const;
   /** get asserted quantifier */
   Node getAssertedQuantifier( unsigned i, bool ordered = false );
   /** initialize model for term */

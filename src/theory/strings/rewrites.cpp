@@ -2,10 +2,10 @@
 /*! \file rewrites.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
+ **   Andrew Reynolds, Andres Noetzli, Yoni Zohar
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -210,6 +210,7 @@ const char* toString(Rewrite r)
     case Rewrite::LEN_SEQ_UNIT: return "LEN_SEQ_UNIT";
     case Rewrite::CHARAT_ELIM: return "CHARAT_ELIM";
     case Rewrite::SEQ_UNIT_EVAL: return "SEQ_UNIT_EVAL";
+    case Rewrite::SEQ_NTH_EVAL: return "SEQ_NTH_EVAL";      
     default: return "?";
   }
 }

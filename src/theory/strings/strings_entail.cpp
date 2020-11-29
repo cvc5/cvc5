@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -111,95 +111,92 @@ bool StringsEntail::canConstantContainList(Node c,
 bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
                                         std::vector<Node>& nr,
                                         int dir,
-                                        Node& curr)
+                                        Node& curr,
+                                        bool strict)
 {
   Assert(dir == 1 || dir == -1);
   Assert(nr.empty());
   NodeManager* nm = NodeManager::currentNM();
   Node zero = nm->mkConst(CVC4::Rational(0));
   bool ret = false;
-  bool success;
+  bool success = true;
   unsigned sindex = 0;
-  do
+  while (success && curr != zero && sindex < n1.size())
   {
     Assert(!curr.isNull());
     success = false;
-    if (curr != zero && sindex < n1.size())
+    unsigned sindex_use = dir == 1 ? sindex : ((n1.size() - 1) - sindex);
+    if (n1[sindex_use].isConst())
     {
-      unsigned sindex_use = dir == 1 ? sindex : ((n1.size() - 1) - sindex);
-      if (n1[sindex_use].isConst())
+      // could strip part of a constant
+      Node lowerBound = ArithEntail::getConstantBound(Rewriter::rewrite(curr));
+      if (!lowerBound.isNull())
       {
-        // could strip part of a constant
-        Node lowerBound =
-            ArithEntail::getConstantBound(Rewriter::rewrite(curr));
-        if (!lowerBound.isNull())
+        Assert(lowerBound.isConst());
+        Rational lbr = lowerBound.getConst<Rational>();
+        if (lbr.sgn() > 0)
         {
-          Assert(lowerBound.isConst());
-          Rational lbr = lowerBound.getConst<Rational>();
-          if (lbr.sgn() > 0)
+          Assert(ArithEntail::check(curr, true));
+          Node s = n1[sindex_use];
+          size_t slen = Word::getLength(s);
+          Node ncl = nm->mkConst(CVC4::Rational(slen));
+          Node next_s = nm->mkNode(MINUS, lowerBound, ncl);
+          next_s = Rewriter::rewrite(next_s);
+          Assert(next_s.isConst());
+          // we can remove the entire constant
+          if (next_s.getConst<Rational>().sgn() >= 0)
           {
-            Assert(ArithEntail::check(curr, true));
-            Node s = n1[sindex_use];
-            size_t slen = Word::getLength(s);
-            Node ncl = nm->mkConst(CVC4::Rational(slen));
-            Node next_s = nm->mkNode(MINUS, lowerBound, ncl);
-            next_s = Rewriter::rewrite(next_s);
-            Assert(next_s.isConst());
-            // we can remove the entire constant
-            if (next_s.getConst<Rational>().sgn() >= 0)
-            {
-              curr = Rewriter::rewrite(nm->mkNode(MINUS, curr, ncl));
-              success = true;
-              sindex++;
-            }
-            else
-            {
-              // we can remove part of the constant
-              // lower bound minus the length of a concrete string is negative,
-              // hence lowerBound cannot be larger than long max
-              Assert(lbr < Rational(String::maxSize()));
-              curr = Rewriter::rewrite(nm->mkNode(MINUS, curr, lowerBound));
-              uint32_t lbsize = lbr.getNumerator().toUnsignedInt();
-              Assert(lbsize < slen);
-              if (dir == 1)
-              {
-                // strip partially from the front
-                nr.push_back(Word::prefix(s, lbsize));
-                n1[sindex_use] = Word::suffix(s, slen - lbsize);
-              }
-              else
-              {
-                // strip partially from the back
-                nr.push_back(Word::suffix(s, lbsize));
-                n1[sindex_use] = Word::prefix(s, slen - lbsize);
-              }
-              ret = true;
-            }
-            Assert(ArithEntail::check(curr));
+            curr = Rewriter::rewrite(nm->mkNode(MINUS, curr, ncl));
+            success = true;
+            sindex++;
           }
           else
           {
-            // we cannot remove the constant
+            // we can remove part of the constant
+            // lower bound minus the length of a concrete string is negative,
+            // hence lowerBound cannot be larger than long max
+            Assert(lbr < Rational(String::maxSize()));
+            curr = Rewriter::rewrite(nm->mkNode(MINUS, curr, lowerBound));
+            uint32_t lbsize = lbr.getNumerator().toUnsignedInt();
+            Assert(lbsize < slen);
+            if (dir == 1)
+            {
+              // strip partially from the front
+              nr.push_back(Word::prefix(s, lbsize));
+              n1[sindex_use] = Word::suffix(s, slen - lbsize);
+            }
+            else
+            {
+              // strip partially from the back
+              nr.push_back(Word::suffix(s, lbsize));
+              n1[sindex_use] = Word::prefix(s, slen - lbsize);
+            }
+            ret = true;
           }
+          Assert(ArithEntail::check(curr));
         }
-      }
-      else
-      {
-        Node next_s = NodeManager::currentNM()->mkNode(
-            MINUS,
-            curr,
-            NodeManager::currentNM()->mkNode(STRING_LENGTH, n1[sindex_use]));
-        next_s = Rewriter::rewrite(next_s);
-        if (ArithEntail::check(next_s))
+        else
         {
-          success = true;
-          curr = next_s;
-          sindex++;
+          // we cannot remove the constant
         }
       }
     }
-  } while (success);
-  if (sindex > 0)
+    else
+    {
+      Node next_s = NodeManager::currentNM()->mkNode(
+          MINUS,
+          curr,
+          NodeManager::currentNM()->mkNode(STRING_LENGTH, n1[sindex_use]));
+      next_s = Rewriter::rewrite(next_s);
+      if (ArithEntail::check(next_s))
+      {
+        success = true;
+        curr = next_s;
+        sindex++;
+      }
+    }
+  }
+  if (sindex > 0 && (!strict || curr == zero))
   {
     if (dir == 1)
     {
@@ -225,6 +222,9 @@ int StringsEntail::componentContains(std::vector<Node>& n1,
 {
   Assert(nb.empty());
   Assert(ne.empty());
+  Trace("strings-entail") << "Component contains: " << std::endl;
+  Trace("strings-entail") << "n1 = " << n1 << std::endl;
+  Trace("strings-entail") << "n2 = " << n2 << std::endl;
   // if n2 is a singleton, we can do optimized version here
   if (n2.size() == 1)
   {
@@ -301,6 +301,10 @@ int StringsEntail::componentContains(std::vector<Node>& n1,
                                       -1,
                                       computeRemainder && remainderDir != -1))
             {
+              Trace("strings-entail-debug")
+                  << "Last remainder begin is " << n1rb_last << std::endl;
+              Trace("strings-entail-debug")
+                  << "Last remainder end is " << n1re_last << std::endl;
               Assert(n1rb_last.isNull());
               if (computeRemainder)
               {
@@ -325,6 +329,9 @@ int StringsEntail::componentContains(std::vector<Node>& n1,
                   }
                 }
               }
+              Trace("strings-entail-debug") << "ne = " << ne << std::endl;
+              Trace("strings-entail-debug") << "nb = " << nb << std::endl;
+              Trace("strings-entail-debug") << "...return " << i << std::endl;
               return i;
             }
             else
@@ -444,12 +451,12 @@ bool StringsEntail::componentContainsBase(
               {
                 return false;
               }
-              if (dir != 1)
+              if (dir != -1)
               {
                 n1rb = nm->mkNode(
                     STRING_SUBSTR, n2[0], nm->mkConst(Rational(0)), start_pos);
               }
-              if (dir != -1)
+              if (dir != 1)
               {
                 n1re = nm->mkNode(STRING_SUBSTR, n2[0], end_pos, len_n2s);
               }

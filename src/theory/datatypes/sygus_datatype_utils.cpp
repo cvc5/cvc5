@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -335,6 +335,16 @@ struct SygusToBuiltinVarAttributeId
 typedef expr::Attribute<SygusToBuiltinVarAttributeId, Node>
     SygusToBuiltinVarAttribute;
 
+// A variant of the above attribute for cases where we introduce a fresh
+// variable. This is to support sygusToBuiltin on non-constant sygus terms,
+// where sygus variables should be mapped to canonical builtin variables.
+// It is important to cache this so that sygusToBuiltin is deterministic.
+struct BuiltinVarToSygusAttributeId
+{
+};
+typedef expr::Attribute<BuiltinVarToSygusAttributeId, Node>
+    BuiltinVarToSygusAttribute;
+
 Node sygusToBuiltin(Node n, bool isExternal)
 {
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
@@ -388,6 +398,9 @@ Node sygusToBuiltin(Node n, bool isExternal)
           SygusToBuiltinVarAttribute stbv;
           cur.setAttribute(stbv, var);
           visited[cur] = var;
+          // create backwards mapping
+          BuiltinVarToSygusAttribute bvtsa;
+          var.setAttribute(bvtsa, cur);
         }
       }
       else
@@ -549,6 +562,16 @@ Node sygusToBuiltinEval(Node n, const std::vector<Node>& args)
   return visited[n];
 }
 
+Node builtinVarToSygus(Node v)
+{
+  BuiltinVarToSygusAttribute bvtsa;
+  if (v.hasAttribute(bvtsa))
+  {
+    return v.getAttribute(bvtsa);
+  }
+  return Node::null();
+}
+
 void getFreeSymbolsSygusType(TypeNode sdt,
                              std::unordered_set<Node, NodeHashFunction>& syms)
 {
@@ -625,7 +648,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
 
   // must convert all constructors to version with variables in "vars"
   std::vector<SygusDatatype> sdts;
-  std::set<Type> unres;
+  std::set<TypeNode> unres;
 
   Trace("dtsygus-gen-debug") << "Process sygus type:" << std::endl;
   Trace("dtsygus-gen-debug") << sdtd.getName() << std::endl;
@@ -639,7 +662,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
   ssutn0 << sdtd.getName() << "_s";
   TypeNode abdTNew =
       nm->mkSort(ssutn0.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
-  unres.insert(abdTNew.toType());
+  unres.insert(abdTNew);
   dtProcessed[sdt] = abdTNew;
 
   // We must convert all symbols in the sygus datatype type sdt to
@@ -683,7 +706,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
                 nm->mkSort(ssutn.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
             Trace("dtsygus-gen-debug") << "    ...unresolved type " << argtNew
                                        << " for " << argt << std::endl;
-            unres.insert(argtNew.toType());
+            unres.insert(argtNew);
             dtProcessed[argt] = argtNew;
             dtNextToProcess.push_back(argt);
           }
@@ -713,22 +736,21 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
   Trace("dtsygus-gen-debug")
       << "Make " << sdts.size() << " datatype types..." << std::endl;
   // extract the datatypes
-  std::vector<Datatype> datatypes;
+  std::vector<DType> datatypes;
   for (unsigned i = 0, ndts = sdts.size(); i < ndts; i++)
   {
     datatypes.push_back(sdts[i].getDatatype());
   }
   // make the datatype types
-  std::vector<DatatypeType> datatypeTypes =
-      nm->toExprManager()->mkMutualDatatypeTypes(
-          datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
-  TypeNode sdtS = TypeNode::fromType(datatypeTypes[0]);
+  std::vector<TypeNode> datatypeTypes = nm->mkMutualDatatypeTypes(
+      datatypes, unres, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+  TypeNode sdtS = datatypeTypes[0];
   if (Trace.isOn("dtsygus-gen-debug"))
   {
     Trace("dtsygus-gen-debug") << "Made datatype types:" << std::endl;
     for (unsigned j = 0, ndts = datatypeTypes.size(); j < ndts; j++)
     {
-      const DType& dtj = TypeNode::fromType(datatypeTypes[j]).getDType();
+      const DType& dtj = datatypeTypes[j].getDType();
       Trace("dtsygus-gen-debug") << "#" << j << ": " << dtj << std::endl;
       for (unsigned k = 0, ncons = dtj.getNumConstructors(); k < ncons; k++)
       {

@@ -2,10 +2,10 @@
 /*! \file array_store_all.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters
+ **   Tim King, Andres Noetzli, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -45,7 +45,8 @@ ArrayStoreAll::ArrayStoreAll(const TypeNode& type, const Node& value)
       "expr type `%s' does not match constituent type of array type `%s'",
       value.getType().toString().c_str(),
       type.toString().c_str());
-
+  Trace("arrays") << "constructing constant array of type: '" << type
+                  << "' and value: '" << value << "'" << std::endl;
   PrettyCheckArgument(
       value.isConst(), value, "ArrayStoreAll requires a constant expression");
 

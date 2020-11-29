@@ -2,10 +2,10 @@
 /*! \file engine_output_channel.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Dejan Jovanovic
+ **   Andrew Reynolds, Tim King, Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -45,15 +45,11 @@ class EngineOutputChannel : public theory::OutputChannel
 
   void safePoint(ResourceManager::Resource r) override;
 
-  void conflict(TNode conflictNode,
-                std::unique_ptr<Proof> pf = nullptr) override;
+  void conflict(TNode conflictNode) override;
   bool propagate(TNode literal) override;
 
   theory::LemmaStatus lemma(TNode lemma,
-                            ProofRule rule,
-                            bool removable = false,
-                            bool preprocess = false,
-                            bool sendAtoms = false) override;
+                            LemmaProperty p = LemmaProperty::NONE) override;
 
   theory::LemmaStatus splitLemma(TNode lemma, bool removable = false) override;
 
@@ -81,9 +77,7 @@ class EngineOutputChannel : public theory::OutputChannel
    * the same as calling OutputChannel::lemma on lem.
    */
   LemmaStatus trustedLemma(TrustNode plem,
-                           bool removable = false,
-                           bool preprocess = false,
-                           bool sendAtoms = false) override;
+                           LemmaProperty p = LemmaProperty::NONE) override;
 
  protected:
   /**

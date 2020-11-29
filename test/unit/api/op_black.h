@@ -5,7 +5,7 @@
  **   Makai Mann, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -30,6 +30,8 @@ class OpBlack : public CxxTest::TestSuite
   void testGetIndicesString();
   void testGetIndicesUint();
   void testGetIndicesPairUint();
+
+  void testOpScopingToString();
 
  private:
   Solver d_solver;
@@ -184,4 +186,12 @@ void OpBlack::testGetIndicesPairUint()
              == std::pair<uint32_t, uint32_t>{4, 25}));
   TS_ASSERT_THROWS(floatingpoint_to_fp_generic_ot.getIndices<std::string>(),
                    CVC4ApiException&);
+}
+
+void OpBlack::testOpScopingToString()
+{
+  Op bitvector_repeat_ot = d_solver.mkOp(BITVECTOR_REPEAT, 5);
+  std::string op_repr = bitvector_repeat_ot.toString();
+  Solver solver2;
+  TS_ASSERT_EQUALS(bitvector_repeat_ot.toString(), op_repr);
 }

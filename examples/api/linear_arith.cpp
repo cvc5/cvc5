@@ -2,10 +2,10 @@
 /*! \file linear_arith.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz
+ **   Aina Niemetz, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -39,8 +39,8 @@ int main()
   Term y = slv.mkConst(real, "y");
 
   // Constants
-  Term three = slv.mkReal(3);
-  Term neg2 = slv.mkReal(-2);
+  Term three = slv.mkInteger(3);
+  Term neg2 = slv.mkInteger(-2);
   Term two_thirds = slv.mkReal(2, 3);
 
   // Terms

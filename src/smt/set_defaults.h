@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -28,7 +28,7 @@ namespace smt {
  * updated by this method based on the current options and the logic itself.
  * @param isInternalSubsolver Whether we are setting the options for an
  * internal subsolver (see SmtEngine::isInternalSubsolver).
- * 
+ *
  * NOTE: we currently modify the current options in scope. This method
  * can be further refactored to modify an options object provided as an
  * explicit argument.

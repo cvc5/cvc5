@@ -5,7 +5,7 @@
  **   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -20,7 +20,6 @@
 #define CVC4__TYPE_H
 
 #include <climits>
-#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -30,7 +29,7 @@ namespace CVC4 {
 
 class NodeManager;
 class CVC4_PUBLIC ExprManager;
-class CVC4_PUBLIC Expr;
+class Expr;
 class TypeNode;
 struct CVC4_PUBLIC ExprManagerMapCollection;
 
@@ -616,18 +615,8 @@ class CVC4_PUBLIC DatatypeType : public Type {
   /** Construct from the base type */
   DatatypeType(const Type& type = Type());
 
-  /** Get the underlying datatype */
-  const Datatype& getDatatype() const;
-
   /** Is this datatype parametric? */
   bool isParametric() const;
-
-  /**
-   * Get the constructor operator associated to the given constructor
-   * name in this datatype.
-   */
-  Expr getConstructor(std::string name) const;
-
   /**
    * Has this datatype been fully instantiated ?
    *
@@ -653,9 +642,6 @@ class CVC4_PUBLIC DatatypeType : public Type {
 
   /** Get the constituent types of a tuple type */
   std::vector<Type> getTupleTypes() const;
-
-  /** Get the description of the record type */
-  const Record& getRecord() const;
 
 };/* class DatatypeType */
 

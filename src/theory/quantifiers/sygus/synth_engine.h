@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -20,6 +20,7 @@
 
 #include "context/cdhashmap.h"
 #include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/sygus/sygus_qe_preproc.h"
 #include "theory/quantifiers/sygus/sygus_stats.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 
@@ -86,6 +87,10 @@ class SynthEngine : public QuantifiersModule
    * preregisterAssertion.
    */
   SynthConjecture* d_conj;
+  /**
+   * The quantifier elimination preprocess module.
+   */
+  SygusQePreproc d_sqp;
   /** The statistics */
   SygusStatistics d_statistics;
   /** assign quantified formula q as a conjecture

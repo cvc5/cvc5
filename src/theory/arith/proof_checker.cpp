@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -33,8 +33,9 @@ void ArithProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::ARITH_TRICHOTOMY, this);
   pc->registerChecker(PfRule::INT_TIGHT_UB, this);
   pc->registerChecker(PfRule::INT_TIGHT_LB, this);
-  pc->registerChecker(PfRule::INT_TRUST, this);
   pc->registerChecker(PfRule::ARITH_OP_ELIM_AXIOM, this);
+  // trusted rules
+  pc->registerTrustedChecker(PfRule::INT_TRUST, this, 2);
 }
 
 Node ArithProofRuleChecker::checkInternal(PfRule id,
@@ -252,6 +253,20 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
     }
     case PfRule::INT_TRUST:
     {
+      if (Debug.isOn("arith::pf::check::trust"))
+      {
+        Debug("arith::pf::check::trust") << "Arith PfRule:" << id << std::endl;
+        Debug("arith::pf::check::trust") << "  children: " << std::endl;
+        for (const auto& c : children)
+        {
+          Debug("arith::pf::check::trust") << "  * " << c << std::endl;
+        }
+        Debug("arith::pf::check::trust") << "  args:" << std::endl;
+        for (const auto& c : args)
+        {
+          Debug("arith::pf::check::trust") << "  * " << c << std::endl;
+        }
+      }
       Assert(args.size() == 1);
       return args[0];
     }

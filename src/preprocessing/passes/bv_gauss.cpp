@@ -5,7 +5,7 @@
  **   Aina Niemetz, Mathias Preiner, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -737,8 +737,8 @@ PreprocessingPassResult BVGauss::applyInternal(
   }
 
   std::unordered_map<Node, Node, NodeHashFunction> subst;
-  std::vector<Node>& atpp = assertionsToPreprocess->ref();
 
+  NodeManager* nm = NodeManager::currentNM();
   for (const auto& eq : equations)
   {
     if (eq.second.size() <= 1) { continue; }
@@ -756,11 +756,12 @@ PreprocessingPassResult BVGauss::applyInternal(
                            << std::endl;
     if (ret != BVGauss::Result::INVALID)
     {
-      NodeManager *nm = NodeManager::currentNM();
       if (ret == BVGauss::Result::NONE)
       {
-        atpp.clear();
-        atpp.push_back(nm->mkConst<bool>(false));
+        assertionsToPreprocess->clear();
+        Node n = nm->mkConst<bool>(false);
+        assertionsToPreprocess->push_back(n);
+        return PreprocessingPassResult::CONFLICT;
       }
       else
       {
@@ -773,7 +774,8 @@ PreprocessingPassResult BVGauss::applyInternal(
         {
           Node a = nm->mkNode(kind::EQUAL, p.first, p.second);
           Trace("bv-gauss-elim") << "added assertion: " << a << std::endl;
-          atpp.push_back(a);
+          // add new assertion
+          assertionsToPreprocess->push_back(a);
         }
       }
     }
@@ -782,9 +784,13 @@ PreprocessingPassResult BVGauss::applyInternal(
   if (!subst.empty())
   {
     /* delete (= substitute with true) obsolete assertions */
-    for (auto& a : atpp)
+    const std::vector<Node>& aref = assertionsToPreprocess->ref();
+    for (size_t i = 0, asize = aref.size(); i < asize; ++i)
     {
-      a = a.substitute(subst.begin(), subst.end());
+      Node a = aref[i];
+      Node as = a.substitute(subst.begin(), subst.end());
+      // replace the assertion
+      assertionsToPreprocess->replace(i, as);
     }
   }
   return PreprocessingPassResult::NO_CONFLICT;

@@ -2,10 +2,10 @@
 /*! \file rewriter.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Andres Noetzli, Mathias Preiner
+ **   Andrew Reynolds, Andres Noetzli, Dejan Jovanovic
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -21,6 +21,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/builtin/proof_checker.h"
 #include "theory/rewriter_tables.h"
 #include "theory/theory.h"
 #include "util/resource_manager.h"
@@ -29,6 +30,13 @@ using namespace std;
 
 namespace CVC4 {
 namespace theory {
+
+/** Attribute true for nodes that have been rewritten with proofs enabled */
+struct RewriteWithProofsAttributeId
+{
+};
+typedef expr::Attribute<RewriteWithProofsAttributeId, bool>
+    RewriteWithProofsAttribute;
 
 // Note that this function is a simplified version of Theory::theoryOf for
 // (type-based) theoryOfMode. We expand and simplify it here for the sake of
@@ -99,7 +107,6 @@ Node Rewriter::rewrite(TNode node) {
 }
 
 TrustNode Rewriter::rewriteWithProof(TNode node,
-                                     bool elimTheoryRewrite,
                                      bool isExtEq)
 {
   // must set the proof checker before calling this
@@ -115,13 +122,19 @@ TrustNode Rewriter::rewriteWithProof(TNode node,
   return TrustNode::mkTrustRewrite(node, ret, d_tpg.get());
 }
 
-void Rewriter::setProofChecker(ProofChecker* pc)
+void Rewriter::setProofNodeManager(ProofNodeManager* pnm)
 {
   // if not already initialized with proof support
   if (d_tpg == nullptr)
   {
-    d_pnm.reset(new ProofNodeManager(pc));
-    d_tpg.reset(new TConvProofGenerator(d_pnm.get()));
+    Trace("rewriter") << "Rewriter::setProofNodeManager" << std::endl;
+    // the rewriter is staticly determinstic, thus use static cache policy
+    // for the term conversion proof generator
+    d_tpg.reset(new TConvProofGenerator(pnm,
+                                        nullptr,
+                                        TConvPolicy::FIXPOINT,
+                                        TConvCachePolicy::STATIC,
+                                        "Rewriter::TConvProofGenerator"));
   }
 }
 
@@ -176,6 +189,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
                          Node node,
                          TConvProofGenerator* tcpg)
 {
+  RewriteWithProofsAttribute rpfa;
 #ifdef CVC4_ASSERTIONS
   bool isEquality = node.getKind() == kind::EQUAL && (!node[0].getType().isBoolean());
 
@@ -189,7 +203,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
 
   // Check if it's been cached already
   Node cached = getPostRewriteCache(theoryId, node);
-  if (!cached.isNull() && (tcpg == nullptr || tcpg->hasRewriteStep(node)))
+  if (!cached.isNull() && (tcpg == nullptr || node.getAttribute(rpfa)))
   {
     return cached;
   }
@@ -205,11 +219,9 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
   }
   // Rewrite until the stack is empty
   for (;;){
-
-    if (hasSmtEngine &&
-		d_iterationCount % ResourceManager::getFrequencyCount() == 0) {
+    if (hasSmtEngine)
+    {
       rm->spendResource(ResourceManager::Resource::RewriteStep);
-      d_iterationCount = 0;
     }
 
     // Get the top of the recursion stack
@@ -226,7 +238,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
       cached = getPreRewriteCache(rewriteStackTop.getTheoryId(),
                                   rewriteStackTop.d_node);
       if (cached.isNull()
-          || (tcpg != nullptr && !tcpg->hasRewriteStep(rewriteStackTop.d_node)))
+          || (tcpg != nullptr && !rewriteStackTop.d_node.getAttribute(rpfa)))
       {
         // Rewrite until fix-point is reached
         for(;;) {
@@ -265,7 +277,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
                                  rewriteStackTop.d_node);
     // If not, go through the children
     if (cached.isNull()
-        || (tcpg != nullptr && !tcpg->hasRewriteStep(rewriteStackTop.d_node)))
+        || (tcpg != nullptr && !rewriteStackTop.d_node.getAttribute(rpfa)))
     {
       // The child we need to rewrite
       unsigned child = rewriteStackTop.d_nextChild++;
@@ -349,6 +361,37 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
       }
 
       // We're done with the post rewrite, so we add to the cache
+      if (tcpg != nullptr)
+      {
+        // if proofs are enabled, mark that we've rewritten with proofs
+        rewriteStackTop.d_original.setAttribute(rpfa, true);
+        if (!cached.isNull())
+        {
+          // We may have gotten a different node, due to non-determinism in
+          // theory rewriters (e.g. quantifiers rewriter which introduces
+          // fresh BOUND_VARIABLE). This can happen if we wrote once without
+          // proofs and then rewrote again with proofs.
+          if (rewriteStackTop.d_node != cached)
+          {
+            Trace("rewriter-proof") << "WARNING: Rewritten forms with and "
+                                       "without proofs were not equivalent"
+                                    << std::endl;
+            Trace("rewriter-proof")
+                << "   original: " << rewriteStackTop.d_original << std::endl;
+            Trace("rewriter-proof")
+                << "with proofs: " << rewriteStackTop.d_node << std::endl;
+            Trace("rewriter-proof") << " w/o proofs: " << cached << std::endl;
+            Node eq = rewriteStackTop.d_node.eqNode(cached);
+            tcpg->addRewriteStep(rewriteStackTop.d_node,
+                                 cached,
+                                 PfRule::TRUST_REWRITE,
+                                 {},
+                                 {eq});
+            // don't overwrite the cache, should be the same
+            rewriteStackTop.d_node = cached;
+          }
+        }
+      }
       setPostRewriteCache(rewriteStackTop.getOriginalTheoryId(),
                           rewriteStackTop.d_original,
                           rewriteStackTop.d_node);
@@ -391,7 +434,7 @@ RewriteResponse Rewriter::preRewrite(theory::TheoryId theoryId,
           d_theoryRewriters[theoryId]->preRewriteWithProof(n);
       // process the trust rewrite response: store the proof step into
       // tcpg if necessary and then convert to rewrite response.
-      return processTrustRewriteResponse(tresponse, true, tcpg);
+      return processTrustRewriteResponse(theoryId, tresponse, true, tcpg);
     }
     return d_theoryRewriters[theoryId]->preRewrite(n);
   }
@@ -412,7 +455,7 @@ RewriteResponse Rewriter::postRewrite(theory::TheoryId theoryId,
       // same as above, for post-rewrite
       TrustRewriteResponse tresponse =
           d_theoryRewriters[theoryId]->postRewriteWithProof(n);
-      return processTrustRewriteResponse(tresponse, false, tcpg);
+      return processTrustRewriteResponse(theoryId, tresponse, false, tcpg);
     }
     return d_theoryRewriters[theoryId]->postRewrite(n);
   }
@@ -420,6 +463,7 @@ RewriteResponse Rewriter::postRewrite(theory::TheoryId theoryId,
 }
 
 RewriteResponse Rewriter::processTrustRewriteResponse(
+    theory::TheoryId theoryId,
     const TrustRewriteResponse& tresponse,
     bool isPre,
     TConvProofGenerator* tcpg)
@@ -433,13 +477,15 @@ RewriteResponse Rewriter::processTrustRewriteResponse(
     ProofGenerator* pg = trn.getGenerator();
     if (pg == nullptr)
     {
+      Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
       // add small step trusted rewrite
-      NodeManager* nm = NodeManager::currentNM();
+      Node rid = mkMethodId(isPre ? MethodId::RW_REWRITE_THEORY_PRE
+                                  : MethodId::RW_REWRITE_THEORY_POST);
       tcpg->addRewriteStep(proven[0],
                            proven[1],
                            PfRule::THEORY_REWRITE,
                            {},
-                           {proven[0], nm->mkConst(isPre)});
+                           {proven, tidn, rid});
     }
     else
     {

@@ -5,7 +5,7 @@
  **   Morgan Deters, Dejan Jovanovic, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -26,7 +26,6 @@ ${includes}
 #ifndef CVC4__EXPR_H
 #define CVC4__EXPR_H
 
-#include <stdint.h>
 #include <iosfwd>
 #include <iterator>
 #include <string>
@@ -38,12 +37,6 @@ ${includes}
 #include "base/exception.h"
 #include "options/language.h"
 #include "util/hash.h"
-
-// This is a hack, but an important one: if there's an error, the
-// compiler directs the user to the template file instead of the
-// generated one.  We don't want the user to modify the generated one,
-// since it'll get overwritten on a later build.
-#line 47 "${template}"
 
 namespace CVC4 {
 
@@ -519,13 +512,12 @@ public:
    * @param out the stream to serialize this expression to
    * @param toDepth the depth to which to print this expression, or -1
    * to print it fully
-   * @param types set to true to ascribe types to the output
-   * expressions (might break language compliance, but good for
-   * debugging expressions)
    * @param dag the dagification threshold to use (0 == off)
    * @param language the language in which to output
    */
-  void toStream(std::ostream& out, int toDepth = -1, bool types = false, size_t dag = 1,
+  void toStream(std::ostream& out,
+                int toDepth = -1,
+                size_t dag = 1,
                 OutputLanguage language = language::output::LANG_AUTO) const;
 
   /**
@@ -620,8 +612,6 @@ private:
 };/* class Expr */
 
 ${getConst_instantiations}
-
-#line 625 "${template}"
 
 inline size_t ExprHashFunction::operator()(CVC4::Expr e) const {
   return (size_t) e.getId();

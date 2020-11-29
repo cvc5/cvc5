@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Andres Noetzli, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -32,16 +32,19 @@
 namespace CVC4 {
 namespace parser {
 
-Smt2::Smt2(api::Solver* solver, Input* input, bool strictMode, bool parseOnly)
-    : Parser(solver, input, strictMode, parseOnly),
+Smt2::Smt2(api::Solver* solver,
+           SymbolManager* sm,
+           Input* input,
+           bool strictMode,
+           bool parseOnly)
+    : Parser(solver, sm, input, strictMode, parseOnly),
       d_logicSet(false),
       d_seenSetLogic(false)
 {
-  if (!strictModeEnabled())
-  {
-    addCoreSymbols();
-  }
+  pushScope(true);
 }
+
+Smt2::~Smt2() { popScope(); }
 
 void Smt2::addArithmeticOperators() {
   addOperator(api::PLUS, "+");
@@ -181,6 +184,7 @@ void Smt2::addStringOperators() {
     addOperator(api::SEQ_REV, "seq.rev");
     addOperator(api::SEQ_REPLACE_ALL, "seq.replace_all");
     addOperator(api::SEQ_UNIT, "seq.unit");
+    addOperator(api::SEQ_NTH, "seq.nth");
   }
   // at the moment, we only use this syntax for smt2.6
   if (getLanguage() == language::input::LANG_SMTLIB_V2_6
@@ -287,9 +291,9 @@ void Smt2::addSepOperators() {
 
 void Smt2::addCoreSymbols()
 {
-  defineType("Bool", d_solver->getBooleanSort());
-  defineVar("true", d_solver->mkTrue());
-  defineVar("false", d_solver->mkFalse());
+  defineType("Bool", d_solver->getBooleanSort(), true, true);
+  defineVar("true", d_solver->mkTrue(), true, true);
+  defineVar("false", d_solver->mkFalse(), true, true);
   addOperator(api::AND, "and");
   addOperator(api::DISTINCT, "distinct");
   addOperator(api::EQUAL, "=");
@@ -448,10 +452,9 @@ void Smt2::pushDefineFunRecScope(
     const std::vector<std::pair<std::string, api::Sort>>& sortedVarNames,
     api::Term func,
     const std::vector<api::Term>& flattenVars,
-    std::vector<api::Term>& bvs,
-    bool bindingLevel)
+    std::vector<api::Term>& bvs)
 {
-  pushScope(bindingLevel);
+  pushScope();
 
   // bound variables are those that are explicitly named in the preamble
   // of the define-fun(s)-rec command, we define them here
@@ -471,10 +474,7 @@ void Smt2::reset() {
   operatorKindMap.clear();
   d_lastNamedTerm = std::pair<api::Term, std::string>();
   this->Parser::reset();
-
-  if( !strictModeEnabled() ) {
-    addCoreSymbols();
-  }
+  pushScope(true);
 }
 
 void Smt2::resetAssertions() {
@@ -482,55 +482,7 @@ void Smt2::resetAssertions() {
   while (this->scopeLevel() > 0) {
     this->popScope();
   }
-}
-
-Smt2::SynthFunFactory::SynthFunFactory(
-    Smt2* smt2,
-    const std::string& fun,
-    bool isInv,
-    api::Sort range,
-    std::vector<std::pair<std::string, api::Sort>>& sortedVarNames)
-    : d_smt2(smt2), d_fun(fun), d_isInv(isInv)
-{
-  if (range.isNull())
-  {
-    smt2->parseError("Must supply return type for synth-fun.");
-  }
-  if (range.isFunction())
-  {
-    smt2->parseError("Cannot use synth-fun with function return type.");
-  }
-  std::vector<api::Sort> varSorts;
-  for (const std::pair<std::string, api::Sort>& p : sortedVarNames)
-  {
-    varSorts.push_back(p.second);
-  }
-  Debug("parser-sygus") << "Define synth fun : " << fun << std::endl;
-  api::Sort synthFunType =
-      varSorts.size() > 0 ? d_smt2->getSolver()->mkFunctionSort(varSorts, range)
-                          : range;
-
-  // we do not allow overloading for synth fun
-  d_synthFun = d_smt2->bindBoundVar(fun, synthFunType);
-  // set the sygus type to be range by default, which is overwritten below
-  // if a grammar is provided
-  d_sygusType = range;
-
-  d_smt2->pushScope(true);
-  d_sygusVars = d_smt2->bindBoundVars(sortedVarNames);
-}
-
-Smt2::SynthFunFactory::~SynthFunFactory() { d_smt2->popScope(); }
-
-std::unique_ptr<Command> Smt2::SynthFunFactory::mkCommand(api::Sort grammar)
-{
-  Debug("parser-sygus") << "...read synth fun " << d_fun << std::endl;
-  return std::unique_ptr<Command>(new SynthFunCommand(
-      d_fun,
-      d_synthFun.getExpr(),
-      grammar.isNull() ? d_sygusType.getType() : grammar.getType(),
-      d_isInv,
-      api::termVectorToExprs(d_sygusVars)));
+  pushScope(true);
 }
 
 std::unique_ptr<Command> Smt2::invConstraint(
@@ -560,8 +512,7 @@ std::unique_ptr<Command> Smt2::invConstraint(
     terms.push_back(getVariable(name));
   }
 
-  return std::unique_ptr<Command>(
-      new SygusInvConstraintCommand(api::termVectorToExprs(terms)));
+  return std::unique_ptr<Command>(new SygusInvConstraintCommand(terms));
 }
 
 Command* Smt2::setLogic(std::string name, bool fromCommand)
@@ -609,7 +560,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
 
   if(d_logic.isTheoryEnabled(theory::THEORY_ARITH)) {
     if(d_logic.areIntegersUsed()) {
-      defineType("Int", d_solver->getIntegerSort());
+      defineType("Int", d_solver->getIntegerSort(), true, true);
       addArithmeticOperators();
       addOperator(api::INTS_DIVISION, "div");
       addOperator(api::INTS_MODULUS, "mod");
@@ -619,7 +570,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
 
     if (d_logic.areRealsUsed())
     {
-      defineType("Real", d_solver->getRealSort());
+      defineType("Real", d_solver->getRealSort(), true, true);
       addArithmeticOperators();
       addOperator(api::DIVISION, "/");
       if (!strictModeEnabled())
@@ -668,7 +619,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
 
   if(d_logic.isTheoryEnabled(theory::THEORY_DATATYPES)) {
     const std::vector<api::Sort> types;
-    defineType("Tuple", d_solver->mkTupleSort(types));
+    defineType("Tuple", d_solver->mkTupleSort(types), true, true);
     addDatatypesOperators();
   }
 
@@ -688,16 +639,35 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::CARD, "card");
     addOperator(api::COMPLEMENT, "complement");
     addOperator(api::CHOOSE, "choose");
+    addOperator(api::IS_SINGLETON, "is_singleton");
     addOperator(api::JOIN, "join");
     addOperator(api::PRODUCT, "product");
     addOperator(api::TRANSPOSE, "transpose");
     addOperator(api::TCLOSURE, "tclosure");
   }
 
+  if (d_logic.isTheoryEnabled(theory::THEORY_BAGS))
+  {
+    defineVar("emptybag", d_solver->mkEmptyBag(d_solver->getNullSort()));
+    addOperator(api::UNION_MAX, "union_max");
+    addOperator(api::UNION_DISJOINT, "union_disjoint");
+    addOperator(api::INTERSECTION_MIN, "intersection_min");
+    addOperator(api::DIFFERENCE_SUBTRACT, "difference_subtract");
+    addOperator(api::DIFFERENCE_REMOVE, "difference_remove");
+    addOperator(api::SUBBAG, "bag.is_included");
+    addOperator(api::BAG_COUNT, "bag.count");
+    addOperator(api::DUPLICATE_REMOVAL, "duplicate_removal");
+    addOperator(api::MK_BAG, "bag");
+    addOperator(api::BAG_CARD, "bag.card");
+    addOperator(api::BAG_CHOOSE, "bag.choose");
+    addOperator(api::BAG_IS_SINGLETON, "bag.is_singleton");
+    addOperator(api::BAG_FROM_SET, "bag.from_set");
+    addOperator(api::BAG_TO_SET, "bag.to_set");
+  }
   if(d_logic.isTheoryEnabled(theory::THEORY_STRINGS)) {
-    defineType("String", d_solver->getStringSort());
-    defineType("RegLan", d_solver->getRegExpSort());
-    defineType("Int", d_solver->getIntegerSort());
+    defineType("String", d_solver->getStringSort(), true, true);
+    defineType("RegLan", d_solver->getRegExpSort(), true, true);
+    defineType("Int", d_solver->getIntegerSort(), true, true);
 
     if (getLanguage() == language::input::LANG_SMTLIB_V2_6
         || getLanguage() == language::input::LANG_SYGUS_V2)
@@ -722,11 +692,11 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   }
 
   if (d_logic.isTheoryEnabled(theory::THEORY_FP)) {
-    defineType("RoundingMode", d_solver->getRoundingmodeSort());
-    defineType("Float16", d_solver->mkFloatingPointSort(5, 11));
-    defineType("Float32", d_solver->mkFloatingPointSort(8, 24));
-    defineType("Float64", d_solver->mkFloatingPointSort(11, 53));
-    defineType("Float128", d_solver->mkFloatingPointSort(15, 113));
+    defineType("RoundingMode", d_solver->getRoundingModeSort(), true, true);
+    defineType("Float16", d_solver->mkFloatingPointSort(5, 11), true, true);
+    defineType("Float32", d_solver->mkFloatingPointSort(8, 24), true, true);
+    defineType("Float64", d_solver->mkFloatingPointSort(11, 53), true, true);
+    defineType("Float128", d_solver->mkFloatingPointSort(15, 113), true, true);
 
     defineVar("RNE", d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN));
     defineVar("roundNearestTiesToEven",
@@ -760,6 +730,14 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   cmd->setMuted(!fromCommand);
   return cmd;
 } /* Smt2::setLogic() */
+
+api::Grammar* Smt2::mkGrammar(const std::vector<api::Term>& boundVars,
+                              const std::vector<api::Term>& ntSymbols)
+{
+  d_allocGrammars.emplace_back(
+      new api::Grammar(d_solver->mkSygusGrammar(boundVars, ntSymbols)));
+  return d_allocGrammars.back().get();
+}
 
 bool Smt2::sygus() const
 {
@@ -816,7 +794,8 @@ void Smt2::checkLogicAllowsFreeSorts()
   if (!d_logic.isTheoryEnabled(theory::THEORY_UF)
       && !d_logic.isTheoryEnabled(theory::THEORY_ARRAYS)
       && !d_logic.isTheoryEnabled(theory::THEORY_DATATYPES)
-      && !d_logic.isTheoryEnabled(theory::THEORY_SETS))
+      && !d_logic.isTheoryEnabled(theory::THEORY_SETS)
+      && !d_logic.isTheoryEnabled(theory::THEORY_BAGS))
   {
     parseErrorLogic("Free sort symbols not allowed in ");
   }
@@ -903,99 +882,6 @@ api::Term Smt2::mkAbstractValue(const std::string& name)
   assert(isAbstractValue(name));
   // remove the '@'
   return d_solver->mkAbstractValue(name.substr(1));
-}
-
-
-void Smt2::addSygusConstructorTerm(
-    api::DatatypeDecl& dt,
-    api::Term term,
-    std::map<api::Term, api::Sort>& ntsToUnres) const
-{
-  Trace("parser-sygus2") << "Add sygus cons term " << term << std::endl;
-  // At this point, we should know that dt is well founded, and that its
-  // builtin sygus operators are well-typed.
-  // Now, purify each occurrence of a non-terminal symbol in term, replace by
-  // free variables. These become arguments to constructors. Notice we must do
-  // a tree traversal in this function, since unique paths to the same term
-  // should be treated as distinct terms.
-  // Notice that let expressions are forbidden in the input syntax of term, so
-  // this does not lead to exponential behavior with respect to input size.
-  std::vector<api::Term> args;
-  std::vector<api::Sort> cargs;
-  api::Term op = purifySygusGTerm(term, ntsToUnres, args, cargs);
-  std::stringstream ssCName;
-  ssCName << op.getKind();
-  Trace("parser-sygus2") << "Purified operator " << op
-                         << ", #args/cargs=" << args.size() << "/"
-                         << cargs.size() << std::endl;
-  if (!args.empty())
-  {
-    api::Term lbvl = d_solver->mkTerm(api::BOUND_VAR_LIST, args);
-    // its operator is a lambda
-    op = d_solver->mkTerm(api::LAMBDA, lbvl, op);
-  }
-  Trace("parser-sygus2") << "addSygusConstructor:  operator " << op
-                         << std::endl;
-  dt.getDatatype().addSygusConstructor(
-      op.getExpr(), ssCName.str(), api::sortVectorToTypes(cargs));
-}
-
-api::Term Smt2::purifySygusGTerm(api::Term term,
-                                 std::map<api::Term, api::Sort>& ntsToUnres,
-                                 std::vector<api::Term>& args,
-                                 std::vector<api::Sort>& cargs) const
-{
-  Trace("parser-sygus2-debug")
-      << "purifySygusGTerm: " << term
-      << " #nchild=" << term.getExpr().getNumChildren() << std::endl;
-  std::map<api::Term, api::Sort>::iterator itn = ntsToUnres.find(term);
-  if (itn != ntsToUnres.end())
-  {
-    api::Term ret = d_solver->mkVar(term.getSort());
-    Trace("parser-sygus2-debug")
-        << "...unresolved non-terminal, intro " << ret << std::endl;
-    args.push_back(api::Term(d_solver, ret.getExpr()));
-    cargs.push_back(itn->second);
-    return ret;
-  }
-  std::vector<api::Term> pchildren;
-  bool childChanged = false;
-  for (unsigned i = 0, nchild = term.getNumChildren(); i < nchild; i++)
-  {
-    Trace("parser-sygus2-debug")
-        << "......purify child " << i << " : " << term[i] << std::endl;
-    api::Term ptermc = purifySygusGTerm(term[i], ntsToUnres, args, cargs);
-    pchildren.push_back(ptermc);
-    childChanged = childChanged || ptermc != term[i];
-  }
-  if (!childChanged)
-  {
-    Trace("parser-sygus2-debug") << "...no child changed" << std::endl;
-    return term;
-  }
-  api::Term nret = d_solver->mkTerm(term.getOp(), pchildren);
-  Trace("parser-sygus2-debug")
-      << "...child changed, return " << nret << std::endl;
-  return nret;
-}
-
-void Smt2::addSygusConstructorVariables(api::DatatypeDecl& dt,
-                                        const std::vector<api::Term>& sygusVars,
-                                        api::Sort type) const
-{
-  // each variable of appropriate type becomes a sygus constructor in dt.
-  for (unsigned i = 0, size = sygusVars.size(); i < size; i++)
-  {
-    api::Term v = sygusVars[i];
-    if (v.getSort() == type)
-    {
-      std::stringstream ss;
-      ss << v;
-      std::vector<api::Sort> cargs;
-      dt.getDatatype().addSygusConstructor(
-          v.getExpr(), ss.str(), api::sortVectorToTypes(cargs));
-    }
-  }
 }
 
 InputLanguage Smt2::getLanguage() const
@@ -1172,33 +1058,22 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       parseError("Too many arguments to array constant.");
     }
     api::Term constVal = args[0];
-    if (!constVal.isConst())
+
+    // To parse array constants taking reals whose values are specified by
+    // rationals, e.g. ((as const (Array Int Real)) (/ 1 3)), we must handle
+    // the fact that (/ 1 3) is the division of constants 1 and 3, and not
+    // the resulting constant rational value. Thus, we must construct the
+    // resulting rational here. This also is applied for integral real values
+    // like 5.0 which are converted to (/ 5 1) to distinguish them from
+    // integer constants. We must ensure numerator and denominator are
+    // constant and the denominator is non-zero.
+    if (constVal.getKind() == api::DIVISION)
     {
-      // To parse array constants taking reals whose values are specified by
-      // rationals, e.g. ((as const (Array Int Real)) (/ 1 3)), we must handle
-      // the fact that (/ 1 3) is the division of constants 1 and 3, and not
-      // the resulting constant rational value. Thus, we must construct the
-      // resulting rational here. This also is applied for integral real values
-      // like 5.0 which are converted to (/ 5 1) to distinguish them from
-      // integer constants. We must ensure numerator and denominator are
-      // constant and the denominator is non-zero.
-      if (constVal.getKind() == api::DIVISION && constVal[0].isConst()
-          && constVal[1].isConst()
-          && !constVal[1].getExpr().getConst<Rational>().isZero())
-      {
-        std::stringstream sdiv;
-        sdiv << constVal[0] << "/" << constVal[1];
-        constVal = d_solver->mkReal(sdiv.str());
-      }
-      if (!constVal.isConst())
-      {
-        std::stringstream ss;
-        ss << "expected constant term inside array constant, but found "
-           << "nonconstant term:" << std::endl
-           << "the term: " << constVal;
-        parseError(ss.str());
-      }
+      std::stringstream sdiv;
+      sdiv << constVal[0] << "/" << constVal[1];
+      constVal = d_solver->mkReal(sdiv.str());
     }
+
     if (!p.d_type.getArrayElementSort().isComparableTo(constVal.getSort()))
     {
       std::stringstream ss;
@@ -1238,11 +1113,9 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       ss << "tuple is of length " << length << "; cannot access index " << n;
       parseError(ss.str());
     }
-    const Datatype& dt = ((DatatypeType)t.getType()).getDatatype();
-    api::Term ret =
-        d_solver->mkTerm(api::APPLY_SELECTOR,
-                         api::Term(d_solver, dt[0][n].getSelector()),
-                         args[0]);
+    const api::Datatype& dt = t.getDatatype();
+    api::Term ret = d_solver->mkTerm(
+        api::APPLY_SELECTOR, dt[0][n].getSelectorTerm(), args[0]);
     Debug("parser") << "applyParseOp: return selector " << ret << std::endl;
     return ret;
   }
@@ -1290,6 +1163,12 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     {
       parseError(
           "eqrange predicate requires option --arrays-exp to be enabled.");
+    }
+    if (kind == api::SINGLETON && args.size() == 1)
+    {
+      api::Term ret = d_solver->mkTerm(api::SINGLETON, args[0]);
+      Debug("parser") << "applyParseOp: return singleton " << ret << std::endl;
+      return ret;
     }
     api::Term ret = d_solver->mkTerm(kind, args);
     Debug("parser") << "applyParseOp: return default builtin " << ret
@@ -1339,28 +1218,16 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   return ret;
 }
 
-api::Term Smt2::setNamedAttribute(api::Term& expr, const SExpr& sexpr)
+void Smt2::notifyNamedExpression(api::Term& expr, std::string name)
 {
-  if (!sexpr.isKeyword())
-  {
-    parseError("improperly formed :named annotation");
-  }
-  std::string name = sexpr.getValue();
   checkUserSymbol(name);
-  // ensure expr is a closed subterm
-  if (expr.getExpr().hasFreeVariable())
-  {
-    std::stringstream ss;
-    ss << ":named annotations can only name terms that are closed";
-    parseError(ss.str());
-  }
-  // check that sexpr is a fresh function symbol, and reserve it
-  reserveSymbolAtAssertionLevel(name);
-  // define it
-  api::Term func = bindVar(name, expr.getSort(), ExprManager::VAR_FLAG_DEFINED);
-  // remember the last term to have been given a :named attribute
+  // remember the expression name in the symbol manager
+  getSymbolManager()->setExpressionName(expr, name, false);
+  // define the variable
+  defineVar(name, expr);
+  // set the last named term, which ensures that we catch when assertions are
+  // named
   setLastNamedTerm(expr, name);
-  return func;
 }
 
 api::Term Smt2::mkAnd(const std::vector<api::Term>& es)

@@ -2,10 +2,10 @@
 /*! \file grammar_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Abdalrhman Mohamed, Aina Niemetz
+ **   Abdalrhman Mohamed, Aina Niemetz, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -57,7 +57,7 @@ void GrammarBlack::testAddRule()
   TS_ASSERT_THROWS(g.addRule(start, nullTerm), CVC4ApiException&);
   TS_ASSERT_THROWS(g.addRule(nts, d_solver->mkBoolean(false)),
                    CVC4ApiException&);
-  TS_ASSERT_THROWS(g.addRule(start, d_solver->mkReal(0)), CVC4ApiException&);
+  TS_ASSERT_THROWS(g.addRule(start, d_solver->mkInteger(0)), CVC4ApiException&);
 
   d_solver->synthFun("f", {}, boolean, g);
 
@@ -83,7 +83,7 @@ void GrammarBlack::testAddRules()
   TS_ASSERT_THROWS(g.addRules(start, {nullTerm}), CVC4ApiException&);
   TS_ASSERT_THROWS(g.addRules(nts, {d_solver->mkBoolean(false)}),
                    CVC4ApiException&);
-  TS_ASSERT_THROWS(g.addRules(start, {d_solver->mkReal(0)}), CVC4ApiException&);
+  TS_ASSERT_THROWS(g.addRules(start, {d_solver->mkInteger(0)}), CVC4ApiException&);
 
   d_solver->synthFun("f", {}, boolean, g);
 

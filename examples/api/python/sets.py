@@ -1,19 +1,19 @@
 #!/usr/bin/env python
-
 #####################
-#! \file sets.py
-## \verbatim
+## sets.py
 ## Top contributors (to current version):
 ##   Makai Mann, Aina Niemetz
 ## This file is part of the CVC4 project.
-## Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
-## in the top-level source directory) and their institutional affiliations.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
 ## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.\endverbatim
+## directory for licensing information.
 ##
 ## \brief A simple demonstration of the solving capabilities of the CVC4
 ## sets solver through the Python API. This is a direct translation
 ## of sets-new.cpp.
+##
+
 import pycvc4
 from pycvc4 import kinds
 
@@ -62,9 +62,9 @@ if __name__ == "__main__":
 
     # Find me an element in 1, 2 intersection 2, 3, if there is one.
 
-    one = slv.mkReal(1)
-    two = slv.mkReal(2)
-    three = slv.mkReal(3)
+    one = slv.mkInteger(1)
+    two = slv.mkInteger(2)
+    three = slv.mkInteger(3)
 
     singleton_one = slv.mkTerm(kinds.Singleton, one)
     singleton_two = slv.mkTerm(kinds.Singleton, two)

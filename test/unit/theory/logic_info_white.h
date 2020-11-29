@@ -5,7 +5,7 @@
  **   Morgan Deters, Andres Noetzli, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,9 +16,9 @@
 
 #include <cxxtest/TestSuite.h>
 
+#include "base/configuration.h"
 #include "expr/kind.h"
 #include "theory/logic_info.h"
-
 using namespace CVC4;
 using namespace CVC4::theory;
 
@@ -533,42 +533,65 @@ public:
                      CVC4::IllegalArgumentException&);
     TS_ASSERT_THROWS(info.disableTheory(THEORY_UF),
                      CVC4::IllegalArgumentException&);
-
     info = info.getUnlockedCopy();
-    TS_ASSERT( !info.isLocked() );
+    TS_ASSERT(!info.isLocked());
     info.disableTheory(THEORY_STRINGS);
     info.disableTheory(THEORY_SETS);
+    info.disableTheory(THEORY_BAGS);
     info.arithOnlyLinear();
     info.disableIntegers();
     info.lock();
-    TS_ASSERT_EQUALS(info.getLogicString(), "SEP_AUFBVFPDTLRA");
+    if (CVC4::Configuration::isBuiltWithSymFPU())
+    {
+      TS_ASSERT_EQUALS(info.getLogicString(), "SEP_AUFBVFPDTLRA");
+    }
+    else
+    {
+      TS_ASSERT_EQUALS(info.getLogicString(), "SEP_AUFBVDTLRA");
+    }
 
     info = info.getUnlockedCopy();
-    TS_ASSERT( !info.isLocked() );
+    TS_ASSERT(!info.isLocked());
     info.disableQuantifiers();
+    info.disableTheory(THEORY_BAGS);
     info.lock();
-    TS_ASSERT_EQUALS(info.getLogicString(), "QF_SEP_AUFBVFPDTLRA");
+    if (CVC4::Configuration::isBuiltWithSymFPU())
+    {
+      TS_ASSERT_EQUALS(info.getLogicString(), "QF_SEP_AUFBVFPDTLRA");
+    }
+    else
+    {
+      TS_ASSERT_EQUALS(info.getLogicString(), "QF_SEP_AUFBVDTLRA");
+    }
 
     info = info.getUnlockedCopy();
-    TS_ASSERT( !info.isLocked() );
+    TS_ASSERT(!info.isLocked());
     info.disableTheory(THEORY_BV);
     info.disableTheory(THEORY_DATATYPES);
+    info.disableTheory(THEORY_BAGS);
     info.enableIntegers();
     info.disableReals();
     info.lock();
-    TS_ASSERT_EQUALS(info.getLogicString(), "QF_SEP_AUFFPLIA");
+    if (CVC4::Configuration::isBuiltWithSymFPU())
+    {
+      TS_ASSERT_EQUALS(info.getLogicString(), "QF_SEP_AUFFPLIA");
+    }
+    else
+    {
+      TS_ASSERT_EQUALS(info.getLogicString(), "QF_SEP_AUFLIA");
+    }
 
     info = info.getUnlockedCopy();
-    TS_ASSERT( !info.isLocked() );
+    TS_ASSERT(!info.isLocked());
     info.disableTheory(THEORY_ARITH);
     info.disableTheory(THEORY_UF);
     info.disableTheory(THEORY_FP);
     info.disableTheory(THEORY_SEP);
+    info.disableTheory(THEORY_BAGS);
     info.lock();
-    TS_ASSERT_EQUALS( info.getLogicString(), "QF_AX" );
-    TS_ASSERT( info.isPure( THEORY_ARRAYS ) );
-    TS_ASSERT( ! info.isQuantified() );
-
+    TS_ASSERT_EQUALS(info.getLogicString(), "QF_AX");
+    TS_ASSERT(info.isPure(THEORY_ARRAYS));
+    TS_ASSERT(!info.isQuantified());
     // check all-excluded logic
     info = info.getUnlockedCopy();
     TS_ASSERT( !info.isLocked() );

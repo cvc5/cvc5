@@ -2,10 +2,10 @@
 /*! \file datatypes.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Andrew Reynolds, Makai Mann
+ **   Aina Niemetz, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -39,7 +39,7 @@ void test(Solver& slv, Sort& consListSort)
   Term t = slv.mkTerm(
       APPLY_CONSTRUCTOR,
       consList.getConstructorTerm("cons"),
-      slv.mkReal(0),
+      slv.mkInteger(0),
       slv.mkTerm(APPLY_CONSTRUCTOR, consList.getConstructorTerm("nil")));
 
   std::cout << "t is " << t << std::endl
@@ -124,7 +124,7 @@ void test(Solver& slv, Sort& consListSort)
             << "sort of cons is "
             << paramConsList.getConstructorTerm("cons").getSort() << std::endl
             << std::endl;
-  Term assertion = slv.mkTerm(GT, head_a, slv.mkReal(50));
+  Term assertion = slv.mkTerm(GT, head_a, slv.mkInteger(50));
   std::cout << "Assert " << assertion << std::endl;
   slv.assertFormula(assertion);
   std::cout << "Expect sat." << std::endl;

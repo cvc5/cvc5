@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -73,6 +73,12 @@ void ProofNode::printDebug(std::ostream& os) const
   ProofNodeToSExpr pnts;
   Node ps = pnts.convertToSExpr(this);
   os << ps;
+}
+
+std::ostream& operator<<(std::ostream& out, const ProofNode& pn)
+{
+  pn.printDebug(out);
+  return out;
 }
 
 }  // namespace CVC4

@@ -2,10 +2,10 @@
 /*! \file cegis_core_connective.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
+ **   Andrew Reynolds, Mathias Preiner, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,7 +14,6 @@
 
 #include "theory/quantifiers/sygus/cegis_core_connective.h"
 
-#include "expr/datatype.h"
 #include "options/base_options.h"
 #include "printer/printer.h"
 #include "proof/unsat_core.h"
@@ -22,6 +21,7 @@
 #include "smt/smt_engine_scope.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
+#include "theory/quantifiers/sygus/transition_inference.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/smt_engine_subsolver.h"
@@ -597,7 +597,7 @@ void CegisCoreConnective::getModel(SmtEngine& smt,
 {
   for (const Node& v : d_vars)
   {
-    Node mv = Node::fromExpr(smt.getValue(v.toExpr()));
+    Node mv = smt.getValue(v);
     Trace("sygus-ccore-model") << v << " -> " << mv << " ";
     vals.push_back(mv);
   }
@@ -612,7 +612,7 @@ bool CegisCoreConnective::getUnsatCore(
   bool hasQuery = false;
   for (UnsatCore::const_iterator i = uc.begin(); i != uc.end(); ++i)
   {
-    Node uassert = Node::fromExpr(*i);
+    Node uassert = *i;
     Trace("sygus-ccore-debug") << "  uc " << uassert << std::endl;
     if (queryAsserts.find(uassert) != queryAsserts.end())
     {

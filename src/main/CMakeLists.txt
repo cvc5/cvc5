@@ -1,3 +1,13 @@
+#####################
+## CMakeLists.txt
+## Top contributors (to current version):
+##   Mathias Preiner, Aina Niemetz, Gereon Kremer
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
 #-----------------------------------------------------------------------------#
 # libmain source files
 
@@ -31,8 +41,8 @@ add_dependencies(main cvc4 cvc4parser gen-tokens)
 get_target_property(LIBCVC4_INCLUDES cvc4 INCLUDE_DIRECTORIES)
 target_include_directories(main PRIVATE ${LIBCVC4_INCLUDES})
 
-# main-test library is only used for linking against system and unit tests so
-# that we don't have to include all object files of main into each unit/system
+# main-test library is only used for linking against api and unit tests so
+# that we don't have to include all object files of main into each api/unit
 # test. Do not link against main-test in any other case.
 add_library(main-test driver_unified.cpp $<TARGET_OBJECTS:main>)
 target_compile_definitions(main-test PRIVATE -D__BUILDING_CVC4DRIVER)
@@ -51,11 +61,11 @@ target_link_libraries(cvc4-bin cvc4 cvc4parser)
 if(PROGRAM_PREFIX)
   install(PROGRAMS
     $<TARGET_FILE:cvc4-bin>
-    DESTINATION ${RUNTIME_INSTALL_DIR}
+    DESTINATION ${CMAKE_INSTALL_BINDIR}
     RENAME ${PROGRAM_PREFIX}cvc4)
 else()
   install(TARGETS cvc4-bin
-    DESTINATION ${RUNTIME_INSTALL_DIR})
+    DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 
 # In order to get a fully static executable we have to make sure that we also
@@ -68,10 +78,10 @@ if(ENABLE_STATIC_BINARY)
   set_target_properties(cvc4-bin PROPERTIES LINK_SEARCH_END_STATIC ON)
 endif()
 
-if(USE_READLINE)
-  target_link_libraries(cvc4-bin ${Readline_LIBRARIES})
-  target_link_libraries(main-test ${Readline_LIBRARIES})
-  target_include_directories(main PRIVATE ${Readline_INCLUDE_DIR})
+if(USE_EDITLINE)
+  target_link_libraries(cvc4-bin ${Editline_LIBRARIES})
+  target_link_libraries(main-test ${Editline_LIBRARIES})
+  target_include_directories(main PRIVATE ${Editline_INCLUDE_DIRS})
 endif()
 
 #-----------------------------------------------------------------------------#
