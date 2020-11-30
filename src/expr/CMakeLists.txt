@@ -9,7 +9,6 @@
 ## directory for licensing information.
 ##
 libcvc4_add_sources(
-  array.h
   array_store_all.cpp
   array_store_all.h
   ascription_type.cpp
@@ -32,8 +31,6 @@ libcvc4_add_sources(
   lazy_proof.h
   lazy_proof_chain.cpp
   lazy_proof_chain.h
-  lazy_proof_set.cpp
-  lazy_proof_set.h
   match_trie.cpp
   match_trie.h
   node.cpp
@@ -58,6 +55,8 @@ libcvc4_add_sources(
   proof.h
   proof_checker.cpp
   proof_checker.h
+  proof_ensure_closed.cpp
+  proof_ensure_closed.h
   proof_generator.cpp
   proof_generator.h
   proof_node.cpp
@@ -72,10 +71,13 @@ libcvc4_add_sources(
   proof_node_updater.h
   proof_rule.cpp
   proof_rule.h
+  proof_set.h
   proof_step_buffer.cpp
   proof_step_buffer.h
   skolem_manager.cpp
   skolem_manager.h
+  symbol_manager.cpp
+  symbol_manager.h
   symbol_table.cpp
   symbol_table.h
   tconv_seq_proof_generator.cpp
@@ -110,6 +112,8 @@ libcvc4_add_sources(
   record.h
   sequence.cpp
   sequence.h
+  subs.cpp
+  subs.h
   sygus_datatype.cpp
   sygus_datatype.h
   uninterpreted_constant.cpp

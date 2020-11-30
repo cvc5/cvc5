@@ -14,6 +14,7 @@
 
 #include "prop/prop_proof_manager.h"
 
+#include "expr/proof_ensure_closed.h"
 #include "expr/proof_node_algorithm.h"
 
 namespace CVC4 {

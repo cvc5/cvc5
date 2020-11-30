@@ -15,6 +15,7 @@
 #include "theory/quantifiers/sygus/sygus_repair_const.h"
 
 #include "api/cvc4cpp.h"
+#include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
@@ -200,7 +201,10 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
                          candidate_skeletons,
                          sk_vars,
                          sk_vars_to_subs);
+    Trace("sygus-repair-const-debug")
+        << "...after fit-to-logic : " << fo_body << std::endl;
   }
+  Assert(!expr::hasFreeVar(fo_body));
 
   if (fo_body.isNull() || sk_vars.empty())
   {

@@ -884,10 +884,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     options::cegqi.set(false);
   }
   // Do we need to track instantiations?
-  // Needed for sygus due to single invocation techniques.
-  if (options::cegqiNestedQE()
-      || (options::unsatCores() && !options::trackInstLemmas.wasSetByUser())
-      || is_sygus)
+  if (options::unsatCores() && !options::trackInstLemmas.wasSetByUser())
   {
     options::trackInstLemmas.set(true);
   }
@@ -1214,13 +1211,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       // only supported in pure arithmetic or pure BV
       options::cegqiNestedQE.set(false);
     }
-    // prenexing
-    if (options::cegqiNestedQE())
-    {
-      // only complete with prenex = normal
-      options::prenexQuant.set(options::PrenexQuantMode::NORMAL);
-    }
-    else if (options::globalNegate())
+    if (options::globalNegate())
     {
       if (!options::prenexQuant.wasSetByUser())
       {

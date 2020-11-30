@@ -37,13 +37,6 @@
 #ifndef CVC4__SAFE_PRINT_H
 #define CVC4__SAFE_PRINT_H
 
-#if __cplusplus >= 201103L
-// For c++11 and newer
-#include <cstdint>
-#else
-#include <stdint.h>
-#endif
-
 #include <unistd.h>
 
 #include <cstring>

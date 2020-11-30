@@ -23,16 +23,10 @@
 namespace CVC4 {
 namespace theory {
 
-LazyTreeProofGenerator::LazyTreeProofGenerator(ProofNodeManager* pnm)
-    : d_pnm(pnm)
+LazyTreeProofGenerator::LazyTreeProofGenerator(ProofNodeManager* pnm,
+                                               const std::string& name)
+    : d_pnm(pnm), d_name(name)
 {
-  d_stack.emplace_back(&d_proof);
-}
-void LazyTreeProofGenerator::reset()
-{
-  d_cached.reset();
-  d_stack.clear();
-  d_proof = detail::TreeProofNode();
   d_stack.emplace_back(&d_proof);
 }
 void LazyTreeProofGenerator::openChild()
@@ -70,6 +64,17 @@ std::shared_ptr<ProofNode> LazyTreeProofGenerator::getProof() const
   std::vector<std::shared_ptr<ProofNode>> scope;
   d_cached = getProof(scope, d_proof);
   return d_cached;
+}
+
+std::shared_ptr<ProofNode> LazyTreeProofGenerator::getProofFor(Node f)
+{
+  Assert(hasProofFor(f));
+  return getProof();
+}
+
+bool LazyTreeProofGenerator::hasProofFor(Node f)
+{
+  return f == getProof()->getResult();
 }
 
 std::shared_ptr<ProofNode> LazyTreeProofGenerator::getProof(

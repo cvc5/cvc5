@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "proof/lfsc/term_processor.h"
+#include "proof/term_processor.h"
 
 namespace CVC4 {
 namespace proof {

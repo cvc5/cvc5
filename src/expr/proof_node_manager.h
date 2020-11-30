@@ -111,7 +111,8 @@ class ProofNodeManager
    *
    * Additionally, if both ensureClosed and doMinimize are true, assumps is
    * updated to contain exactly the free asumptions of pf. This also includes
-   * having no duplicates.
+   * having no duplicates. Furthermore, if assumps is empty after minimization,
+   * this method is a no-op.
    *
    * In each case, the update vector assumps is passed as arguments to SCOPE.
    *

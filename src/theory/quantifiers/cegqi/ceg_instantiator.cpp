@@ -630,20 +630,6 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
         && (vinst->useModelValue(this, sf, pv, d_effort) || is_sv)
         && vinst->allowModelValue(this, sf, pv, d_effort))
     {
-#ifdef CVC4_ASSERTIONS
-      // the instantiation strategy for quantified linear integer/real
-      // arithmetic with arbitrary quantifier nesting is "monotonic" as a
-      // consequence of Lemmas 5, 9 and Theorem 4 of Reynolds et al, "Solving
-      // Quantified Linear Arithmetic by Counterexample Guided Instantiation",
-      // FMSD 2017. We throw an assertion failure if we detect a case where the
-      // strategy was not monotonic.
-      if (options::cegqiNestedQE() && d_qe->getLogicInfo().isPure(THEORY_ARITH)
-          && d_qe->getLogicInfo().isLinear())
-      {
-        Trace("cegqi-warn") << "Had to resort to model value." << std::endl;
-        Assert(false);
-      }
-#endif
       Node mv = getModelValue( pv );
       TermProperties pv_prop_m;
       Trace("cegqi-inst-debug") << "[4] " << i << "...try model value " << mv << std::endl;

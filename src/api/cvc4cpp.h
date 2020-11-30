@@ -2829,7 +2829,15 @@ class CVC4_PUBLIC Solver
    * @param symbol the name of the constant
    * @return the first-order constant
    */
-  Term mkConst(Sort sort, const std::string& symbol = std::string()) const;
+  Term mkConst(Sort sort, const std::string& symbol) const;
+  /**
+   * Create (first-order) constant (0-arity function symbol), with a default
+   * symbol name.
+   *
+   * @param sort the sort of the constant
+   * @return the first-order constant
+   */
+  Term mkConst(Sort sort) const;
 
   /**
    * Create a bound variable to be used in a binder (i.e. a quantifier, a
@@ -3158,6 +3166,15 @@ class CVC4_PUBLIC Solver
   Term getQuantifierEliminationDisjunct(api::Term q) const;
 
   /**
+   * When using separation logic, this sets the location sort and the
+   * datatype sort to the given ones. This method should be invoked exactly
+   * once, before any separation logic constraints are provided.
+   * @param locSort The location sort of the heap
+   * @param dataSort The data sort of the heap
+   */
+  void declareSeparationHeap(api::Sort locSort, api::Sort dataSort) const;
+
+  /**
    * When using separation logic, obtain the term for the heap.
    * @return The term for the heap
    */
@@ -3223,13 +3240,6 @@ class CVC4_PUBLIC Solver
    * @return true if it gets C successfully, false otherwise
    */
   bool getAbduct(Term conj, Grammar& g, Term& output) const;
-
-  /**
-   * Print the model of a satisfiable query to the given output stream.
-   * Requires to enable option 'produce-models'.
-   * @param out the output stream
-   */
-  void printModel(std::ostream& out) const;
 
   /**
    * Block the current model. Can be called only if immediately preceded by a
@@ -3462,6 +3472,8 @@ class CVC4_PUBLIC Solver
   Term mkTermFromKind(Kind kind) const;
   /* Helper for mkChar functions that take a string as argument. */
   Term mkCharFromStrHelper(const std::string& s) const;
+  /** Get value helper, which accounts for subtyping */
+  Term getValueHelper(Term term) const;
 
   /**
    * Helper function that ensures that a given term is of sort real (as opposed

@@ -53,9 +53,9 @@ class NonClausalSimp : public PreprocessingPass
    * apply constant propagations cp to fixed point. Return the rewritten
    * form of lit.
    *
-   * If proofs are enabled, then we require that the learned
-   * literal preprocess proof generator has a proof of lit when this method
-   * is called, and ensure that the return literal also has a proof in d_llpg.
+   * If proofs are enabled, then we require that the learned literal preprocess
+   * proof generator (d_llpg) has a proof of lit when this method is called,
+   * and ensure that the return literal also has a proof in d_llpg.
    */
   Node processLearnedLit(Node lit,
                          theory::TrustSubstitutionMap* subs,

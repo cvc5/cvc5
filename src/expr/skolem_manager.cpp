@@ -81,7 +81,7 @@ Node SkolemManager::mkSkolemize(Node q,
                                 int flags,
                                 ProofGenerator* pg)
 {
-  Trace("sk-manager-debug") << "mkSkolemize..." << std::endl;
+  Trace("sk-manager-debug") << "mkSkolemize " << q << std::endl;
   Assert(q.getKind() == EXISTS);
   Node currQ = q;
   for (const Node& av : q[0])
@@ -99,6 +99,7 @@ Node SkolemManager::mkSkolemize(Node q,
     // Same as above, this may overwrite an existing proof generator
     d_gens[q] = pg;
   }
+  Trace("sk-manager-debug") << "...mkSkolemize returns " << currQ << std::endl;
   return currQ;
 }
 
@@ -136,11 +137,12 @@ Node SkolemManager::skolemize(Node q,
   Trace("sk-manager-debug") << "make exists predicate" << std::endl;
   if (!ovars.empty())
   {
-    Node bvl = nm->mkNode(BOUND_VAR_LIST, ovarsW);
-    pred = nm->mkNode(EXISTS, bvl, pred);
     // skolem form keeps the old variables
-    bvl = nm->mkNode(BOUND_VAR_LIST, ovars);
+    Node bvl = nm->mkNode(BOUND_VAR_LIST, ovars);
     qskolem = nm->mkNode(EXISTS, bvl, pred);
+    // update the predicate
+    bvl = nm->mkNode(BOUND_VAR_LIST, ovarsW);
+    pred = nm->mkNode(EXISTS, bvl, pred);
   }
   Trace("sk-manager-debug") << "call sub mkSkolem" << std::endl;
   // don't use a proof generator, since this may be an intermediate, partially

@@ -235,10 +235,10 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         vector[Term] getUnsatCore() except +
         Term getValue(Term term) except +
         vector[Term] getValue(const vector[Term]& terms) except +
+        void declareSeparationHeap(Sort locSort, Sort dataSort) except +
         Term getSeparationHeap() except +
         Term getSeparationNilTerm() except +
         void pop(uint32_t nscopes) except +
-        void printModel(ostream& out)
         void push(uint32_t nscopes) except +
         void reset() except +
         void resetAssertions() except +

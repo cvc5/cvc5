@@ -61,7 +61,6 @@ class DecisionManager
     //  "sat" for problems that are unsat.
     STRAT_QUANT_CEGQI_FEASIBLE,
     STRAT_QUANT_SYGUS_FEASIBLE,
-    STRAT_QUANT_SYGUS_STREAM_FEASIBLE,
     // placeholder for last model-sound required strategy
     STRAT_LAST_M_SOUND,
 

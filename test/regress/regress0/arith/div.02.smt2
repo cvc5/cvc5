@@ -1,3 +1,4 @@
+; COMMAND-LINE: -q
 ; EXPECT: sat
 (set-logic QF_NIA)
 (set-info :smt-lib-version 2.0)
