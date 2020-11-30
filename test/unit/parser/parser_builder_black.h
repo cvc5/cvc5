@@ -43,7 +43,7 @@ class ParserBuilderBlack : public CxxTest::TestSuite
     // ensure the old symbol manager is deleted
     d_symman.reset(nullptr);
     d_solver.reset(new api::Solver());
-    d_symman.reset(new SymbolManager(d_solver.get()));
+    d_symman.reset(new SymbolManager());
   }
 
   void tearDown() override {}

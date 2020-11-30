@@ -60,7 +60,7 @@ int main()
 
 void testGetInfo(api::Solver* solver, const char* s)
 {
-  std::unique_ptr<SymbolManager> symman(new SymbolManager(solver));
+  std::unique_ptr<SymbolManager> symman(new SymbolManager());
 
   ParserBuilder pb(solver, symman.get(), "<internal>", solver->getOptions());
   Parser* p = pb.withStringInput(string("(get-info ") + s + ")").build();

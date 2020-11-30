@@ -45,7 +45,7 @@ class InteractiveShellBlack : public CxxTest::TestSuite
     d_options.set(options::inputLanguage, language::input::LANG_CVC4);
     d_symman.reset(nullptr);
     d_solver.reset(new api::Solver(&d_options));
-    d_symman.reset(new SymbolManager(d_solver.get()));
+    d_symman.reset(new SymbolManager());
   }
 
   void tearDown() override
