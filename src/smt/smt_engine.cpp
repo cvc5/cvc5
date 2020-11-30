@@ -1507,7 +1507,7 @@ void SmtEngine::checkProof()
   std::shared_ptr<ProofNode> pePfn = pe->getProof();
   if (options ::checkProofsNew())
   {
-    d_pfManager->checkProof(pePfn, *d_asserts);
+    d_pfManager->checkProof(pePfn, *d_asserts, *d_definedFunctions);
   }
 }
 
@@ -1626,7 +1626,7 @@ void SmtEngine::printProof()
   Assert(pe != nullptr);
   Assert(pe->getProof() != nullptr);
   // the prop engine has the proof of false
-  d_pfManager->printProof(pe->getProof(), *d_asserts);
+  d_pfManager->printProof(pe->getProof(), *d_asserts, *d_definedFunctions);
 }
 
 void SmtEngine::printInstantiations( std::ostream& out ) {
