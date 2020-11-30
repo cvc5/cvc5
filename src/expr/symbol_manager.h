@@ -38,7 +38,7 @@ namespace CVC4 {
 class CVC4_PUBLIC SymbolManager
 {
  public:
-  SymbolManager(api::Solver* s);
+  SymbolManager();
   ~SymbolManager();
   /** Get the underlying symbol table */
   SymbolTable* getSymbolTable();
@@ -119,8 +119,6 @@ class CVC4_PUBLIC SymbolManager
   bool getGlobalDeclarations() const;
 
  private:
-  /** The API Solver object. */
-  api::Solver* d_solver;
   /**
    * The declaration scope that is "owned" by this symbol manager.
    */

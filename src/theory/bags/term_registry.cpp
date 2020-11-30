@@ -21,10 +21,8 @@ namespace CVC4 {
 namespace theory {
 namespace bags {
 
-TermRegistry::TermRegistry(SolverState& state, InferenceManager& im)
-    : d_im(im),
-      d_proxy(state.getUserContext()),
-      d_proxy_to_term(state.getUserContext())
+TermRegistry::TermRegistry(SolverState& state)
+    : d_proxy(state.getUserContext()), d_proxy_to_term(state.getUserContext())
 {
 }
 

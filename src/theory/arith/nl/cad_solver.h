@@ -71,17 +71,17 @@ class CadSolver
   bool constructModelIfAvailable(std::vector<Node>& assertions);
 
  private:
+#ifdef CVC4_POLY_IMP
   /**
    * The variable used to encode real algebraic numbers to nodes.
    */
   Node d_ranVariable;
 
-#ifdef CVC4_POLY_IMP
   /**
    * The object implementing the actual decision procedure.
    */
   cad::CDCAC d_CAC;
-#endif
+
   /**
    * Indicates whether we found satisfiability in the last call to
    * checkFullRefine.
@@ -92,6 +92,7 @@ class CadSolver
   InferenceManager& d_im;
   /** Reference to the non-linear model object */
   NlModel& d_model;
+#endif
 }; /* class CadSolver */
 
 }  // namespace nl

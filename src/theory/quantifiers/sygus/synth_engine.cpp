@@ -34,7 +34,7 @@ SynthEngine::SynthEngine(QuantifiersEngine* qe, context::Context* c)
     : QuantifiersModule(qe),
       d_tds(qe->getTermDatabaseSygus()),
       d_conj(nullptr),
-      d_sqp(qe)
+      d_sqp()
 {
   d_conjs.push_back(std::unique_ptr<SynthConjecture>(
       new SynthConjecture(d_quantEngine, d_statistics)));

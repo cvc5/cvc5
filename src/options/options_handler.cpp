@@ -67,7 +67,7 @@ void throwLazyBBUnsupported(options::SatSolverMode m)
 
 }  // namespace
 
-OptionsHandler::OptionsHandler(Options* options) : d_options(options) { }
+OptionsHandler::OptionsHandler() {}
 
 unsigned long OptionsHandler::limitHandler(std::string option,
                                            std::string optarg)

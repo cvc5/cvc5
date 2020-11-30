@@ -29,6 +29,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
+#ifdef CVC4_POLY_IMP
 CadSolver::CadSolver(InferenceManager& im, NlModel& model)
     : d_foundSatisfiability(false), d_im(im), d_model(model)
 {
@@ -38,6 +39,9 @@ CadSolver::CadSolver(InferenceManager& im, NlModel& model)
                                          "",
                                          NodeManager::SKOLEM_EXACT_NAME);
 }
+#else
+CadSolver::CadSolver(InferenceManager& im, NlModel& model) {}
+#endif
 
 CadSolver::~CadSolver() {}
 

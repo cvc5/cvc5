@@ -276,7 +276,7 @@ void TermDb::computeUfEqcTerms( TNode f ) {
     ops.insert(ops.end(), d_ho_op_slaves[f].begin(), d_ho_op_slaves[f].end());
   }
   eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
-  for (const Node& ff : ops)
+  for (const TNode& ff : ops)
   {
     for (const Node& n : d_op_map[ff])
     {

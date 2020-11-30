@@ -36,8 +36,7 @@ namespace prop {
 class ProofPostprocessCallback : public ProofNodeUpdaterCallback
 {
  public:
-  ProofPostprocessCallback(ProofNodeManager* pnm,
-                           ProofCnfStream* proofCnfStream);
+  ProofPostprocessCallback(ProofCnfStream* proofCnfStream);
   ~ProofPostprocessCallback() {}
   /**
    * Initialize, called once for each new ProofNode to process. This initializes
@@ -72,8 +71,6 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
               bool& continueUpdate) override;
 
  private:
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
   /** The cnf stream proof generator */
   ProofCnfStream* d_proofCnfStream;
   //---------------------------------reset at the begining of each update

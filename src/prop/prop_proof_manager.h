@@ -73,8 +73,6 @@ class PropPfManager
   void checkProof(context::CDList<Node>* assertions);
 
  private:
-  /** A node manager */
-  ProofNodeManager* d_pnm;
   /** The proof post-processor */
   std::unique_ptr<prop::ProofPostproccess> d_pfpp;
   /**

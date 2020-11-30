@@ -200,8 +200,6 @@ class ProofCircuitPropagatorForward : public ProofCircuitPropagator
  private:
   /** The current child that triggered the propagations */
   Node d_child;
-  /** The assignment of d_child */
-  bool d_childAssignment;
   /** The parent node used for propagation */
   Node d_parent;
 };

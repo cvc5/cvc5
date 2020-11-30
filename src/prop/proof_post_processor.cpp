@@ -21,8 +21,8 @@ namespace CVC4 {
 namespace prop {
 
 ProofPostprocessCallback::ProofPostprocessCallback(
-    ProofNodeManager* pnm, ProofCnfStream* proofCnfStream)
-    : d_pnm(pnm), d_proofCnfStream(proofCnfStream)
+    ProofCnfStream* proofCnfStream)
+    : d_proofCnfStream(proofCnfStream)
 {
 }
 
@@ -88,7 +88,7 @@ bool ProofPostprocessCallback::update(Node res,
 
 ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,
                                      ProofCnfStream* proofCnfStream)
-    : d_cb(pnm, proofCnfStream), d_pnm(pnm)
+    : d_cb(proofCnfStream), d_pnm(pnm)
 {
 }
 

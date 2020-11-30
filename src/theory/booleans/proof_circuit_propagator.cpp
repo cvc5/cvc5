@@ -426,7 +426,6 @@ ProofCircuitPropagatorForward::ProofCircuitPropagatorForward(
     ProofNodeManager* pnm, Node child, bool childAssignment, Node parent)
     : ProofCircuitPropagator{pnm},
       d_child(child),
-      d_childAssignment(childAssignment),
       d_parent(parent)
 {
 }

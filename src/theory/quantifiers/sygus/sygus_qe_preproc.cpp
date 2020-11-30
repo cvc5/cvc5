@@ -25,7 +25,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusQePreproc::SygusQePreproc(QuantifiersEngine* qe) {}
+SygusQePreproc::SygusQePreproc() {}
 
 Node SygusQePreproc::preprocess(Node q)
 {

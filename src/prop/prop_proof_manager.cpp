@@ -23,8 +23,7 @@ PropPfManager::PropPfManager(context::UserContext* userContext,
                              ProofNodeManager* pnm,
                              SatProofManager* satPM,
                              ProofCnfStream* cnfProof)
-    : d_pnm(pnm),
-      d_pfpp(new ProofPostproccess(pnm, cnfProof)),
+    : d_pfpp(new ProofPostproccess(pnm, cnfProof)),
       d_satPM(satPM),
       d_assertions(userContext)
 {

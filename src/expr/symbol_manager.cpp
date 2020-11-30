@@ -182,9 +182,8 @@ void SymbolManager::Implementation::reset()
 
 // ---------------------------------------------- SymbolManager
 
-SymbolManager::SymbolManager(api::Solver* s)
-    : d_solver(s),
-      d_implementation(new SymbolManager::Implementation()),
+SymbolManager::SymbolManager()
+    : d_implementation(new SymbolManager::Implementation()),
       d_globalDeclarations(false)
 {
 }

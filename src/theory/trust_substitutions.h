@@ -98,8 +98,6 @@ class TrustSubstitutionMap
   context::Context* d_ctx;
   /** The substitution map */
   SubstitutionMap d_subs;
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
   /** A context-dependent list of trust nodes */
   context::CDList<TrustNode> d_tsubs;
   /** Theory proof step buffer */

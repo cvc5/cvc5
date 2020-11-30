@@ -42,10 +42,11 @@ namespace options {
  */
 class OptionsHandler {
 public:
-  OptionsHandler(Options* options);
+ OptionsHandler();
 
-  void unsignedGreater0(const std::string& option, unsigned value) {
-    options::greater(0)(option, value);
+ void unsignedGreater0(const std::string& option, unsigned value)
+ {
+   options::greater(0)(option, value);
   }
 
   void unsignedLessEqual2(const std::string& option, unsigned value) {
@@ -113,9 +114,6 @@ public:
   void enableDebugTag(std::string option, std::string optarg);
 
  private:
-
-  /** Pointer to the containing Options object.*/
-  Options* d_options;
 
   /* Help strings */
   static const std::string s_instFormatHelp;

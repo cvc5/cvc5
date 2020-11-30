@@ -26,7 +26,6 @@ TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
                                            MethodId ids)
     : d_ctx(c),
       d_subs(c),
-      d_pnm(pnm),
       d_tsubs(c),
       d_tspb(pnm ? new TheoryProofStepBuffer(pnm->getChecker()) : nullptr),
       d_subsPg(

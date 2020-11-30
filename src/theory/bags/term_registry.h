@@ -37,7 +37,7 @@ class TermRegistry
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
 
  public:
-  TermRegistry(SolverState& state, InferenceManager& im);
+  TermRegistry(SolverState& state);
 
   /**
    * Returns the existing empty bag for type tn
@@ -46,8 +46,6 @@ class TermRegistry
   Node getEmptyBag(TypeNode tn);
 
  private:
-  /** The inference manager */
-  InferenceManager& d_im;
   /** Map from bag terms to their proxy variables */
   NodeMap d_proxy;
   /** Backwards map of above */

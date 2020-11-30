@@ -42,12 +42,6 @@ class InferenceManager : public InferenceManagerBuffered
   /** constants */
   Node d_true;
   Node d_false;
-  /**
-   * Reference to the state object for the theory of bags. We store the
-   * (derived) state here, since it has additional methods required in this
-   * class.
-   */
-  SolverState& d_state;
 };
 
 }  // namespace bags
