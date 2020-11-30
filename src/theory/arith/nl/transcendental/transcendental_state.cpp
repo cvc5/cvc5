@@ -352,7 +352,7 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
       Kind::IMPLIES,
       antec_n,
       nm->mkNode(
-          convexity == Convexity::CONVEX ? Kind::LEQ : Kind::GEQ, tf, splane));
+          convexity == Convexity::CONVEX ? Kind::GEQ : Kind::LEQ, tf, splane));
   Trace("nl-trans-lemma") << "*** Secant plane lemma (pre-rewrite) : " << lem
                           << std::endl;
   lem = Rewriter::rewrite(lem);
