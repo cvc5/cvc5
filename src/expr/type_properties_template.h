@@ -22,8 +22,8 @@
 #include <sstream>
 
 #include "base/check.h"
-#include "expr/expr.h"
 #include "expr/kind.h"
+#include "expr/node.h"
 #include "expr/type_node.h"
 #include "options/language.h"
 

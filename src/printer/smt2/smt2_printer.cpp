@@ -40,7 +40,6 @@
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/substitutions.h"
 #include "theory/theory_model.h"
 #include "util/smt2_quote_string.h"
 
@@ -1364,124 +1363,91 @@ void Smt2Printer::toStream(std::ostream& out, const smt::Model& m) const
   }
 }
 
-void Smt2Printer::toStream(std::ostream& out,
-                           const smt::Model& model,
-                           const NodeCommand* command) const
+void Smt2Printer::toStreamModelSort(std::ostream& out,
+                                    const smt::Model& m,
+                                    TypeNode tn) const
 {
-  const theory::TheoryModel* theory_model = model.getTheoryModel();
-  AlwaysAssert(theory_model != nullptr);
-  if (const DeclareTypeNodeCommand* dtc =
-          dynamic_cast<const DeclareTypeNodeCommand*>(command))
+  if (!tn.isSort())
   {
-    // print out the DeclareTypeCommand
-    TypeNode tn = dtc->getType();
-    if (!tn.isSort())
+    out << "ERROR: don't know how to print non uninterpreted sort in model: "
+        << tn << std::endl;
+    return;
+  }
+  const theory::TheoryModel* tm = m.getTheoryModel();
+  std::vector<Node> elements = tm->getDomainElements(tn);
+  if (options::modelUninterpPrint() == options::ModelUninterpPrintMode::DtEnum)
+  {
+    if (isVariant_2_6(d_variant))
     {
-      out << (*dtc) << endl;
+      out << "(declare-datatypes ((" << tn << " 0)) (";
     }
     else
     {
-      std::vector<Node> elements = theory_model->getDomainElements(tn);
-      if (options::modelUninterpPrint()
-          == options::ModelUninterpPrintMode::DtEnum)
-      {
-        if (isVariant_2_6(d_variant))
-        {
-          out << "(declare-datatypes ((" << (*dtc).getSymbol() << " 0)) (";
-        }
-        else
-        {
-          out << "(declare-datatypes () ((" << (*dtc).getSymbol() << " ";
-        }
-        for (const Node& type_ref : elements)
-        {
-          out << "(" << type_ref << ")";
-        }
-        out << ")))" << endl;
-      }
-      else
-      {
-        // print the cardinality
-        out << "; cardinality of " << tn << " is " << elements.size() << endl;
-        if (options::modelUninterpPrint()
-            == options::ModelUninterpPrintMode::DeclSortAndFun)
-        {
-          out << (*dtc) << endl;
-        }
-        // print the representatives
-        for (const Node& trn : elements)
-        {
-          if (trn.isVar())
-          {
-            out << "(declare-fun " << quoteSymbol(trn) << " () " << tn << ")"
-                << endl;
-          }
-          else
-          {
-            out << "; rep: " << trn << endl;
-          }
-        }
-      }
+      out << "(declare-datatypes () ((" << tn << " ";
     }
+    for (const Node& type_ref : elements)
+    {
+      out << "(" << type_ref << ")";
+    }
+    out << ")))" << endl;
+    return;
   }
-  else if (const DeclareFunctionNodeCommand* dfc =
-               dynamic_cast<const DeclareFunctionNodeCommand*>(command))
+  // print the cardinality
+  out << "; cardinality of " << tn << " is " << elements.size() << endl;
+  if (options::modelUninterpPrint()
+      == options::ModelUninterpPrintMode::DeclSortAndFun)
   {
-    // print out the DeclareFunctionCommand
-    Node n = dfc->getFunction();
-    if ((*dfc).getPrintInModelSetByUser())
+    toStreamCmdDeclareType(out, tn);
+  }
+  // print the representatives
+  for (const Node& trn : elements)
+  {
+    if (trn.isVar())
     {
-      if (!(*dfc).getPrintInModel())
-      {
-        return;
-      }
-    }
-    else if (n.getKind() == kind::SKOLEM)
-    {
-      // don't print out internal stuff
-      return;
-    }
-    // We get the value from the theory model directly, which notice
-    // does not have to go through the standard SmtEngine::getValue interface.
-    Node val = theory_model->getValue(n);
-    if (val.getKind() == kind::LAMBDA)
-    {
-      TypeNode rangeType = n.getType().getRangeType();
-      out << "(define-fun " << n << " " << val[0] << " " << rangeType << " ";
-      // call toStream and force its type to be proper
-      toStreamCastToType(out, val[1], -1, rangeType);
-      out << ")" << endl;
+      out << "(declare-fun " << quoteSymbol(trn) << " () " << tn << ")" << endl;
     }
     else
     {
-      if (options::modelUninterpPrint()
-              == options::ModelUninterpPrintMode::DtEnum
-          && val.getKind() == kind::STORE)
-      {
-        TypeNode tn = val[1].getType();
-        const std::vector<Node>* type_refs =
-            theory_model->getRepSet()->getTypeRepsOrNull(tn);
-        if (tn.isSort() && type_refs != nullptr)
-        {
-          Cardinality indexCard(type_refs->size());
-          val = theory::arrays::TheoryArraysRewriter::normalizeConstant(
-              val, indexCard);
-        }
-      }
-      out << "(define-fun " << n << " () " << n.getType() << " ";
-      // call toStream and force its type to be proper
-      toStreamCastToType(out, val, -1, n.getType());
-      out << ")" << endl;
+      out << "; rep: " << trn << endl;
     }
   }
-  else if (const DeclareDatatypeNodeCommand* declare_datatype_command =
-               dynamic_cast<const DeclareDatatypeNodeCommand*>(command))
+}
+
+void Smt2Printer::toStreamModelTerm(std::ostream& out,
+                                    const smt::Model& m,
+                                    Node n) const
+{
+  const theory::TheoryModel* tm = m.getTheoryModel();
+  // We get the value from the theory model directly, which notice
+  // does not have to go through the standard SmtEngine::getValue interface.
+  Node val = tm->getValue(n);
+  if (val.getKind() == kind::LAMBDA)
   {
-    out << *declare_datatype_command;
+    TypeNode rangeType = n.getType().getRangeType();
+    out << "(define-fun " << n << " " << val[0] << " " << rangeType << " ";
+    // call toStream and force its type to be proper
+    toStreamCastToType(out, val[1], -1, rangeType);
+    out << ")" << endl;
   }
   else
   {
-    Unreachable();
+    if (options::modelUninterpPrint() == options::ModelUninterpPrintMode::DtEnum
+        && val.getKind() == kind::STORE)
+    {
+      TypeNode tn = val[1].getType();
+      const std::vector<Node>* type_refs =
+          tm->getRepSet()->getTypeRepsOrNull(tn);
+      if (tn.isSort() && type_refs != nullptr)
+      {
+        Cardinality indexCard(type_refs->size());
+        val = theory::arrays::TheoryArraysRewriter::normalizeConstant(
+            val, indexCard);
+      }
+    }
+    out << "(define-fun " << n << " () " << n.getType() << " ";
+    // call toStream and force its type to be proper
+    toStreamCastToType(out, val, -1, n.getType());
+    out << ")" << endl;
   }
 }
 
@@ -1694,11 +1660,13 @@ void Smt2Printer::toStreamCmdDefineFunctionRec(
 }
 
 void Smt2Printer::toStreamCmdDeclareType(std::ostream& out,
-                                         const std::string& id,
-                                         size_t arity,
                                          TypeNode type) const
 {
-  out << "(declare-sort " << CVC4::quoteSymbol(id) << " " << arity << ")"
+  Assert(type.isSort() || type.isSortConstructor());
+  std::stringstream id;
+  id << type;
+  size_t arity = type.isSortConstructor() ? type.getSortConstructorArity() : 0;
+  out << "(declare-sort " << CVC4::quoteSymbol(id.str()) << " " << arity << ")"
       << std::endl;
 }
 
