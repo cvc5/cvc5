@@ -37,12 +37,19 @@ Node applySygusArgs(const DType& dt,
                     Node n,
                     const std::vector<Node>& args)
 {
+  // optimization: if n is just a sygus bound variable, return immediately
+  // by replacing with the proper argument, or returning unchanged if it is
+  // a bound variable not corresponding to a formal argument.
   if (n.getKind() == BOUND_VARIABLE)
   {
-    Assert(n.hasAttribute(SygusVarNumAttribute()));
-    int vn = n.getAttribute(SygusVarNumAttribute());
-    Assert(dt.getSygusVarList()[vn] == n);
-    return args[vn];
+    if (n.hasAttribute(SygusVarNumAttribute()))
+    {
+      int vn = n.getAttribute(SygusVarNumAttribute());
+      Assert(dt.getSygusVarList()[vn] == n);
+      return args[vn];
+    }
+    // it is a different bound variable, it is unchanged
+    return n;
   }
   // n is an application of operator op.
   // We must compute the free variables in op to determine if there are
@@ -551,8 +558,10 @@ Node sygusToBuiltinEval(Node n, const std::vector<Node>& args)
           children.push_back(it->second);
         }
         index = indexOf(cur.getOperator());
-        // apply to arguments
+        // apply to children, which constructs the builtin term
         ret = mkSygusTerm(dt, index, children);
+        // now apply it to arguments in args
+        ret = applySygusArgs(dt, dt[index].getSygusOp(), ret, args);
       }
       visited[cur] = ret;
     }
