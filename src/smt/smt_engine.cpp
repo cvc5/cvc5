@@ -468,11 +468,6 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
                value.getValue() == "2.6" ) {
       ilang = language::input::LANG_SMTLIB_V2_6;
     }
-    else
-    {
-      Warning() << "Warning: unsupported smt-lib-version: " << value << endl;
-      throw UnrecognizedOptionException();
-    }
     options::inputLanguage.set(ilang);
     // also update the output language
     if (!options::outputLanguage.wasSetByUser())
@@ -497,7 +492,6 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
     d_state->notifyExpectedStatus(s);
     return;
   }
-  throw UnrecognizedOptionException();
 }
 
 bool SmtEngine::isValidGetInfoFlag(const std::string& key) const
@@ -517,10 +511,6 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
   SmtScope smts(this);
 
   Trace("smt") << "SMT getInfo(" << key << ")" << endl;
-  if (!isValidGetInfoFlag(key))
-  {
-    throw UnrecognizedOptionException();
-  }
   if (key == "all-statistics")
   {
     vector<SExpr> stats;
