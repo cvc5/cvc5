@@ -61,6 +61,13 @@ class CDList : public ContextObj
   using ConstReference = typename std::vector<T>::const_reference;
 
   /**
+   * Instead of implementing our own iterators, we just use the iterators of
+   * the underlying `std::vector<T>`.
+   */
+  using const_iterator = typename std::vector<T>::const_iterator;
+  using iterator = typename std::vector<T>::const_iterator;
+
+  /**
    * Main constructor: d_list starts with size 0
    *
    * Optionally, a cleanup callback can be specified, which is called on every
@@ -137,73 +144,14 @@ class CDList : public ContextObj
   }
 
   /**
-   * Iterator for CDList class.  It has to be const because we don't
-   * allow items in the list to be changed.  It's a straightforward
-   * wrapper around a pointer.  Note that for efficiency, we implement
-   * only prefix increment and decrement.  Also note that it's OK to
-   * create an iterator from an empty, uninitialized list, as begin()
-   * and end() will have the same value (NULL).
-   */
-  class const_iterator {
-   public:
-    typedef std::input_iterator_tag iterator_category;
-    typedef T value_type;
-    typedef std::ptrdiff_t difference_type;
-    typedef const T* pointer;
-    typedef const T& reference;
-
-    const_iterator() : d_list(nullptr), d_pos(-1) {}
-    const_iterator(const std::vector<T>* list, size_t pos)
-        : d_list(list), d_pos(pos)
-    {
-    }
-
-    bool operator==(const const_iterator& other) const
-    {
-      return d_list == other.d_list && d_pos == other.d_pos;
-    }
-
-    bool operator!=(const const_iterator& other) const
-    {
-      return d_list != other.d_list || d_pos != other.d_pos;
-    }
-
-    const T& operator*() const { return (*d_list)[d_pos]; }
-    const T* operator->() const { return &(*d_list)[d_pos]; }
-
-    /** Prefix increment */
-    const_iterator& operator++() {
-      ++d_pos;
-      return *this;
-    }
-
-    /** Prefix decrement */
-    const_iterator& operator--()
-    {
-      --d_pos;
-      return *this;
-    }
-
-    /** operator+ */
-    const_iterator operator+(long signed int off) const {
-      return const_iterator(d_list, d_pos + off);
-    }
-
-   private:
-    const std::vector<T>* d_list;
-    size_t d_pos;
-  }; /* class CDList<>::const_iterator */
-  typedef const_iterator iterator;
-
-  /**
    * Returns an iterator pointing to the first item in the list.
    */
-  const_iterator begin() const { return const_iterator(&d_list, 0); }
+  const_iterator begin() const { return d_list.begin(); }
 
   /**
    * Returns an iterator pointing one past the last item in the list.
    */
-  const_iterator end() const { return const_iterator(&d_list, d_size); }
+  const_iterator end() const { return d_list.end(); }
 
  protected:
   /**
