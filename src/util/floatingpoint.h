@@ -258,8 +258,14 @@ class CVC4_PUBLIC FloatingPoint
   FloatingPointSize d_fp_size;
 
  private:
-  /** Constructor. */
+  /**
+   * Constructor.
+   *
+   * Note: This constructor takes ownership of 'fpl' and is not intended for
+   *       public use.
+   */
   FloatingPoint(const FloatingPointSize& fp_size, FloatingPointLiteral* fpl);
+
   /** The floating-point literal of this floating-point value. */
   std::unique_ptr<FloatingPointLiteral> d_fpl;
 
