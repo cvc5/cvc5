@@ -876,26 +876,8 @@ class CVC4_PUBLIC SmtEngine
   /** Set solver instance that owns this SmtEngine. */
   void setSolver(api::Solver* solver) { d_solver = solver; }
 
-  /** Get a pointer to the UserContext owned by this SmtEngine. */
-  context::UserContext* getUserContext();
-
-  /** Get a pointer to the Context owned by this SmtEngine. */
-  context::Context* getContext();
-
-  /** Get a pointer to the TheoryEngine owned by this SmtEngine. */
-  TheoryEngine* getTheoryEngine();
-
-  /** Get a pointer to the PropEngine owned by this SmtEngine. */
-  prop::PropEngine* getPropEngine();
-
   /** Get a pointer to the (new) PfManager owned by this SmtEngine. */
   smt::PfManager* getPfManager() { return d_pfManager.get(); };
-
-  /**
-   * Get a pointer to the ProofManager owned by this SmtEngine.
-   * TODO (project #37): this is the old proof manager and will be deleted
-   */
-  ProofManager* getProofManager() { return d_proofManager.get(); };
 
   /** Get a pointer to the StatisticsRegistry owned by this SmtEngine. */
   StatisticsRegistry* getStatisticsRegistry()
