@@ -781,7 +781,6 @@ public:
    */
   api::Term mkStringConstant(const std::string& s);
 
- private:
   /** ad-hoc string escaping
    *
    * Returns the (internal) vector of code points corresponding to processing

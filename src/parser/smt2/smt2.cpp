@@ -750,14 +750,6 @@ bool Smt2::sygus_v2() const
   return getLanguage() == language::input::LANG_SYGUS_V2;
 }
 
-void Smt2::setInfo(const std::string& flag, const SExpr& sexpr) {
-  // TODO: ???
-}
-
-void Smt2::setOption(const std::string& flag, const SExpr& sexpr) {
-  // TODO: ???
-}
-
 void Smt2::checkThatLogicIsSet()
 {
   if (!logicIsSet())
