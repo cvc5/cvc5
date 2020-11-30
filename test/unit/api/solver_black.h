@@ -118,6 +118,7 @@ class SolverBlack : public CxxTest::TestSuite
   void testGetValue3();
   void testGetQuantifierElimination();
   void testGetQuantifierEliminationDisjunct();
+  void testDeclareSeparationHeap();
   void testGetSeparationHeapTerm1();
   void testGetSeparationHeapTerm2();
   void testGetSeparationHeapTerm3();
@@ -140,9 +141,6 @@ class SolverBlack : public CxxTest::TestSuite
   void testPop1();
   void testPop2();
   void testPop3();
-  void testPrintModel1();
-  void testPrintModel2();
-  void testPrintModel3();
 
   void testBlockModel1();
   void testBlockModel2();
@@ -193,7 +191,7 @@ void SolverBlack::testRecoverableException()
   d_solver->setOption("produce-models", "true");
   Term x = d_solver->mkConst(d_solver->getBooleanSort(), "x");
   d_solver->assertFormula(x.eqTerm(x).notTerm());
-  TS_ASSERT_THROWS(d_solver->printModel(std::cout),
+  TS_ASSERT_THROWS(d_solver->getValue(x),
                    CVC4ApiRecoverableException&);
 }
 
@@ -1697,6 +1695,16 @@ void SolverBlack::testGetQuantifierEliminationDisjunct()
   TS_ASSERT_THROWS_NOTHING(d_solver->getQuantifierEliminationDisjunct(forall));
 }
 
+void SolverBlack::testDeclareSeparationHeap()
+{
+  d_solver->setLogic("ALL_SUPPORTED");
+  Sort integer = d_solver->getIntegerSort();
+  TS_ASSERT_THROWS_NOTHING(d_solver->declareSeparationHeap(integer, integer));
+  // cannot declare separation logic heap more than once
+  TS_ASSERT_THROWS(d_solver->declareSeparationHeap(integer, integer),
+                   CVC4ApiException&);
+}
+
 namespace {
 /**
  * Helper function for testGetSeparation{Heap,Nil}TermX. Asserts and checks
@@ -1705,6 +1713,8 @@ namespace {
 void checkSimpleSeparationConstraints(Solver* solver)
 {
   Sort integer = solver->getIntegerSort();
+  // declare the separation heap
+  solver->declareSeparationHeap(integer, integer);
   Term x = solver->mkConst(integer, "x");
   Term p = solver->mkConst(integer, "p");
   Term heap = solver->mkTerm(Kind::SEP_PTO, p, x);
@@ -1849,32 +1859,6 @@ void SolverBlack::testPop3()
   TS_ASSERT_THROWS_NOTHING(d_solver->push(1));
   TS_ASSERT_THROWS_NOTHING(d_solver->pop(1));
   TS_ASSERT_THROWS(d_solver->pop(1), CVC4ApiException&);
-}
-
-void SolverBlack::testPrintModel1()
-{
-  d_solver->setOption("produce-models", "false");
-  Term x = d_solver->mkConst(d_solver->getBooleanSort(), "x");
-  d_solver->assertFormula(x.eqTerm(x));
-  TS_ASSERT_THROWS(d_solver->printModel(std::cout), CVC4ApiException&);
-}
-
-void SolverBlack::testPrintModel2()
-{
-  d_solver->setOption("produce-models", "true");
-  Term x = d_solver->mkConst(d_solver->getBooleanSort(), "x");
-  d_solver->assertFormula(x.eqTerm(x).notTerm());
-  d_solver->checkSat();
-  TS_ASSERT_THROWS(d_solver->printModel(std::cout), CVC4ApiException&);
-}
-
-void SolverBlack::testPrintModel3()
-{
-  d_solver->setOption("produce-models", "true");
-  Term x = d_solver->mkConst(d_solver->getBooleanSort(), "x");
-  d_solver->assertFormula(x.eqTerm(x));
-  d_solver->checkSat();
-  TS_ASSERT_THROWS_NOTHING(d_solver->printModel(std::cout));
 }
 
 void SolverBlack::testBlockModel1()

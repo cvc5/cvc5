@@ -46,6 +46,8 @@ int validate_exception(void)
   /* Our integer type */
   Sort integer = slv.getIntegerSort();
 
+  /** we intentionally do not set the separation logic heap */
+
   /* Our SMT constants */
   Term x = slv.mkConst(integer, "x");
   Term y = slv.mkConst(integer, "y");
@@ -133,6 +135,9 @@ int validate_getters(void)
 
   /* Our integer type */
   Sort integer = slv.getIntegerSort();
+
+  /** Declare the separation logic heap types */
+  slv.declareSeparationHeap(integer, integer);
 
   /* A "random" constant */
   Term random_constant = slv.mkInteger(0xDEADBEEF);

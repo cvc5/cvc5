@@ -139,6 +139,9 @@ class TheoryEngine {
    * the cost of walking the DAG on registration, etc.
    */
   const LogicInfo& d_logicInfo;
+  /** The separation logic location and data types */
+  TypeNode d_sepLocType;
+  TypeNode d_sepDataType;
 
   /** Reference to the output manager of the smt engine */
   OutputManager& d_outMgr;
@@ -637,6 +640,16 @@ class TheoryEngine {
   }
   /** get the logic info used by this theory engine */
   const LogicInfo& getLogicInfo() const;
+  /** get the separation logic heap types */
+  bool getSepHeapTypes(TypeNode& locType, TypeNode& dataType) const;
+
+  /**
+   * Declare heap. This is used for separation logics to set the location
+   * and data types. It should be called only once, and before any separation
+   * logic constraints are asserted to this theory engine.
+   */
+  void declareSepHeap(TypeNode locT, TypeNode dataT);
+
   /**
    * Returns the equality status of the two terms, from the theory
    * that owns the domain type.  The types of a and b must be the same.
@@ -650,7 +663,9 @@ class TheoryEngine {
   Node getModelValue(TNode var);
 
   /**
-   * Takes a literal and returns an equivalent literal that is guaranteed to be a SAT literal
+   * Takes a literal and returns an equivalent literal that is guaranteed to be
+   * a SAT literal. This rewrites and preprocesses n, which notice may involve
+   * sending lemmas if preprocessing n involves introducing new skolems.
    */
   Node ensureLiteral(TNode n);
 
@@ -671,21 +686,12 @@ class TheoryEngine {
 
   /**
    * Get instantiation methods
-   *   first inputs forall x.q[x] and returns ( q[a], ..., q[z] )
-   *   second inputs forall x.q[x] and returns ( a, ..., z )
-   *   third and fourth return mappings e.g. forall x.q1[x] -> ( q1[a]...q1[z] )
+   *   the first given forall x.q[x] returns ( a, ..., z )
+   *   the second returns mappings e.g. forall x.q1[x] -> ( q1[a]...q1[z] )
    * , ... , forall x.qn[x] -> ( qn[a]...qn[z] )
    */
-  void getInstantiations( Node q, std::vector< Node >& insts );
   void getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs );
-  void getInstantiations( std::map< Node, std::vector< Node > >& insts );
   void getInstantiationTermVectors( std::map< Node, std::vector< std::vector< Node > > >& insts );
-
-  /**
-   * Get instantiated conjunction, returns q[t1] ^ ... ^ q[tn] where t1...tn are current set of instantiations for q.
-   *   Can be used for quantifier elimination when satisfiable and q[t1] ^ ... ^ q[tn] |= q
-   */
-  Node getInstantiatedConjunction( Node q );
 
   /**
    * Forwards an entailment check according to the given theoryOfMode.
@@ -733,7 +739,6 @@ private:
    * This function is called from the smt engine's checkModel routine.
    */
   void checkTheoryAssertionsWithModel(bool hardFailure);
-
  private:
   IntStat d_arithSubstitutionsAdded;
 };/* class TheoryEngine */

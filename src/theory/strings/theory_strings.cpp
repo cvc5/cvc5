@@ -337,8 +337,11 @@ bool TheoryStrings::collectModelInfoType(
           // is it an equivalence class with a seq.unit term?
           if (nfe.d_nf[0].getKind() == SEQ_UNIT)
           {
-            pure_eq_assign[eqc] = nfe.d_nf[0];
+            Node c = Rewriter::rewrite(nm->mkNode(
+                SEQ_UNIT, d_valuation.getModelValue(nfe.d_nf[0][0])));
+            pure_eq_assign[eqc] = c;
             Trace("strings-model") << "(unit: " << nfe.d_nf[0] << ") ";
+            m->getEqualityEngine()->addTerm(c);
           }
           // does it have a code and the length of these equivalence classes are
           // one?
@@ -366,6 +369,12 @@ bool TheoryStrings::collectModelInfoType(
       else
       {
         processed[eqc] = eqc;
+        // Make sure that constants are asserted to the theory model that we
+        // are building. It is possible that new constants were introduced by
+        // the eager evaluation in the equality engine. These terms are missing
+        // in the term set and, as a result, are skipped when the equality
+        // engine is asserted to the theory model.
+        m->getEqualityEngine()->addTerm(eqc);
       }
     }
     Trace("strings-model") << "have length " << lts_values[i] << std::endl;

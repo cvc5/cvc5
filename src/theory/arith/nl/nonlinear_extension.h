@@ -18,8 +18,6 @@
 #ifndef CVC4__THEORY__ARITH__NL__NONLINEAR_EXTENSION_H
 #define CVC4__THEORY__ARITH__NL__NONLINEAR_EXTENSION_H
 
-#include <stdint.h>
-
 #include <map>
 #include <vector>
 
@@ -40,7 +38,7 @@
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/stats.h"
 #include "theory/arith/nl/strategy.h"
-#include "theory/arith/nl/transcendental_solver.h"
+#include "theory/arith/nl/transcendental/transcendental_solver.h"
 #include "theory/ext_theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -249,12 +247,13 @@ class NonlinearExtension
    * and for establishing when we are able to answer "SAT".
    */
   NlModel d_model;
+
   /** The transcendental extension object
    *
    * This is the subsolver responsible for running the procedure for
    * transcendental functions.
    */
-  TranscendentalSolver d_trSlv;
+  transcendental::TranscendentalSolver d_trSlv;
   /**
    * Holds common lookup data for the checks implemented in the "nl-ext"
    * solvers (from Cimatti et al., TACAS 2017).

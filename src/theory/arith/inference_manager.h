@@ -37,7 +37,7 @@ class TheoryArith;
  * arithmetic theory.
  *
  * It adds some convenience methods to send ArithLemma and adds a mechanism for
- * waiting lemmas that can be flushed into the pending lemmas of the this
+ * waiting lemmas that can be flushed into the pending lemmas of this
  * buffered inference manager.
  * It also extends the caching mechanism of TheoryInferenceManager to cache
  * preprocessing lemmas and non-preprocessing lemmas separately. For the former,
@@ -51,29 +51,30 @@ class InferenceManager : public InferenceManagerBuffered
   InferenceManager(TheoryArith& ta, ArithState& astate, ProofNodeManager* pnm);
 
   /**
-   * Add a lemma as pending lemma to the this inference manager.
+   * Add a lemma as pending lemma to this inference manager.
    * If isWaiting is true, the lemma is first stored as waiting lemma and only
    * added as pending lemma when calling flushWaitingLemmas.
    */
   void addPendingArithLemma(std::unique_ptr<ArithLemma> lemma,
                             bool isWaiting = false);
   /**
-   * Add a lemma as pending lemma to the this inference manager.
+   * Add a lemma as pending lemma to this inference manager.
    * If isWaiting is true, the lemma is first stored as waiting lemma and only
    * added as pending lemma when calling flushWaitingLemmas.
    */
   void addPendingArithLemma(const ArithLemma& lemma, bool isWaiting = false);
   /**
-   * Add a lemma as pending lemma to the this inference manager.
+   * Add a lemma as pending lemma to this inference manager.
    * If isWaiting is true, the lemma is first stored as waiting lemma and only
    * added as pending lemma when calling flushWaitingLemmas.
    */
   void addPendingArithLemma(const Node& lemma,
                             InferenceId inftype,
+                            ProofGenerator* pg = nullptr,
                             bool isWaiting = false);
 
   /**
-   * Flush all waiting lemmas to the this inference manager (as pending
+   * Flush all waiting lemmas to this inference manager (as pending
    * lemmas). To actually send them, call doPendingLemmas() afterwards.
    */
   void flushWaitingLemmas();
@@ -83,12 +84,9 @@ class InferenceManager : public InferenceManagerBuffered
    */
   void clearWaitingLemmas();
 
-  /** Add a conflict to the this inference manager. */
-  void addConflict(const Node& conf, InferenceId inftype);
-
   /**
-   * Checks whether we have made any progress, that is whether a conflict, lemma
-   * or fact was added or whether a lemma or fact is pending.
+   * Checks whether we have made any progress, that is whether a conflict,
+   * lemma or fact was added or whether a lemma or fact is pending.
    */
   bool hasUsed() const;
 

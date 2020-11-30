@@ -546,7 +546,6 @@ api::Term addNots(api::Solver* s, size_t n, api::Term e) {
 
 #include <cassert>
 #include <memory>
-#include <stdint.h>
 
 #include "options/set_language.h"
 #include "parser/antlr_tracing.h"
@@ -1142,6 +1141,13 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
           PARSER_STATE->parseError("cannot construct a definition here; maybe you want a LET");
         }
         assert(!idList.empty());
+        api::Term fterm = f;
+        std::vector<api::Term> formals;
+        if (f.getKind()==api::LAMBDA)
+        {
+          formals.insert(formals.end(), f[0].begin(), f[0].end());
+          f = f[1];
+        }
         for(std::vector<std::string>::const_iterator i = idList.begin(),
               i_end = idList.end();
             i != i_end;
@@ -1150,15 +1156,15 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
           PARSER_STATE->checkDeclaration(*i, CHECK_UNDECLARED, SYM_VARIABLE);
           api::Term func = PARSER_STATE->mkVar(
               *i,
-              api::Sort(SOLVER, t.getType()),
+              t,
               ExprManager::VAR_FLAG_GLOBAL | ExprManager::VAR_FLAG_DEFINED);
-          PARSER_STATE->defineVar(*i, f);
-          Command* decl = new DefineFunctionCommand(*i, func, f, true);
+          PARSER_STATE->defineVar(*i, fterm);
+          Command* decl = new DefineFunctionCommand(*i, func, formals, f, true);
           seq->addCommand(decl);
         }
       }
       if(topLevel) {
-        cmd->reset(new DeclarationSequence());
+        cmd->reset(seq.release());
       }
     }
   ;
@@ -2158,9 +2164,9 @@ simpleTerm[CVC4::api::Term& f]
     /* finite set literal */
   | LBRACE formula[f] { args.push_back(f); }
     ( COMMA formula[f] { args.push_back(f); } )* RBRACE
-    { f = SOLVER->mkSingleton(args[0].getSort(), args[0]);
+    { f = MK_TERM(api::SINGLETON, args[0]);
       for(size_t i = 1; i < args.size(); ++i) {
-        f = MK_TERM(api::UNION, f, SOLVER->mkSingleton(args[i].getSort(), args[i]));
+        f = MK_TERM(api::UNION, f, MK_TERM(api::SINGLETON, args[i]));
       }
     }
 
@@ -2170,13 +2176,10 @@ simpleTerm[CVC4::api::Term& f]
     }
 
     /* array literals */
-  | ARRAY_TOK /* { PARSER_STATE->pushScope(); } */ LPAREN
+  | ARRAY_TOK LPAREN
     restrictedType[t, CHECK_DECLARED] OF_TOK restrictedType[t2, CHECK_DECLARED]
     RPAREN COLON simpleTerm[f]
-    { /* Eventually if we support a bound var (like a lambda) for array
-       * literals, we can use the push/pop scope. */
-      /* PARSER_STATE->popScope(); */
-      t = SOLVER->mkArraySort(t, t2);
+    { t = SOLVER->mkArraySort(t, t2);
       if(!t2.isComparableTo(f.getSort())) {
         std::stringstream ss;
         ss << "type mismatch inside array constant term:" << std::endl

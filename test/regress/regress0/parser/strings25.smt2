@@ -1,5 +1,5 @@
 ; EXPECT: sat
-; EXPECT: (model
+; EXPECT: (
 ; EXPECT: (define-fun s () String """")
 ; EXPECT: )
 

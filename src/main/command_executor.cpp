@@ -50,11 +50,18 @@ void printStatsIncremental(std::ostream& out, const std::string& prvsStatsString
 
 CommandExecutor::CommandExecutor(Options& options)
     : d_solver(new api::Solver(&options)),
+      d_symman(new SymbolManager(d_solver.get())),
       d_smtEngine(d_solver->getSmtEngine()),
       d_options(options),
       d_stats("driver"),
       d_result()
 {
+}
+CommandExecutor::~CommandExecutor()
+{
+  // ensure that symbol manager is destroyed before solver
+  d_symman.reset(nullptr);
+  d_solver.reset(nullptr);
 }
 
 void CommandExecutor::flushStatistics(std::ostream& out) const
@@ -118,9 +125,10 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
 {
   bool status = true;
   if(d_options.getVerbosity() >= -1) {
-    status = solverInvoke(d_solver.get(), cmd, d_options.getOut());
+    status =
+        solverInvoke(d_solver.get(), d_symman.get(), cmd, d_options.getOut());
   } else {
-    status = solverInvoke(d_solver.get(), cmd, nullptr);
+    status = solverInvoke(d_solver.get(), d_symman.get(), cmd, nullptr);
   }
 
   api::Result res;
@@ -197,15 +205,18 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   return status;
 }
 
-bool solverInvoke(api::Solver* solver, Command* cmd, std::ostream* out)
+bool solverInvoke(api::Solver* solver,
+                  SymbolManager* sm,
+                  Command* cmd,
+                  std::ostream* out)
 {
   if (out == NULL)
   {
-    cmd->invoke(solver);
+    cmd->invoke(solver, sm);
   }
   else
   {
-    cmd->invoke(solver, *out);
+    cmd->invoke(solver, sm, *out);
   }
   // ignore the error if the command-verbosity is 0 for this command
   std::string commandName =

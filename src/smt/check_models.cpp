@@ -67,24 +67,14 @@ void CheckModels::checkModel(Model* m,
                                 /* substituteUnderQuantifiers = */ false);
 
   Trace("check-model") << "checkModel: Collect substitution..." << std::endl;
-  for (size_t k = 0, ncmd = m->getNumCommands(); k < ncmd; ++k)
+  const std::vector<Node>& decTerms = m->getDeclaredTerms();
+  for (const Node& func : decTerms)
   {
-    const DeclareFunctionNodeCommand* c =
-        dynamic_cast<const DeclareFunctionNodeCommand*>(m->getCommand(k));
-    Notice() << "SmtEngine::checkModel(): model command " << k << " : "
-             << m->getCommand(k)->toString() << std::endl;
-    if (c == nullptr)
-    {
-      // we don't care about DECLARE-DATATYPES, DECLARE-SORT, ...
-      Notice() << "SmtEngine::checkModel(): skipping..." << std::endl;
-      continue;
-    }
     // We have a DECLARE-FUN:
     //
     // We'll first do some checks, then add to our substitution map
     // the mapping: function symbol |-> value
 
-    Node func = c->getFunction();
     Node val = m->getValue(func);
 
     Notice() << "SmtEngine::checkModel(): adding substitution: " << func
@@ -174,6 +164,7 @@ void CheckModels::checkModel(Model* m,
     Notice() << "SmtEngine::checkModel(): checking assertion " << assertion
              << std::endl;
     Node n = assertion;
+    Notice() << "SmtEngine::checkModel(): -- rewritten form is " << Rewriter::rewrite(n) << std::endl;
     Node nr = Rewriter::rewrite(substitutions.apply(n));
     if (nr.isConst() && nr.getConst<bool>())
     {

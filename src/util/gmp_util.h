@@ -20,13 +20,6 @@
 #ifndef CVC4__GMP_UTIL_H
 #define CVC4__GMP_UTIL_H
 
-/*
- * Older versions of GMP in combination with newer versions of GCC and C++11
- * cause errors: https://gcc.gnu.org/gcc-4.9/porting_to.html
- * Including <cstddef> is a workaround for this issue.
- */
-#include <cstddef>
-
 #include <gmpxx.h>
 
 namespace CVC4 {

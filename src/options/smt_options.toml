@@ -157,14 +157,6 @@ header = "options/smt_options.h"
   help       = "assertion failure for any incorrect rule application or untrusted lemma having pedantic level <=N with proof-new"
 
 [[option]]
-  name       = "proofNewPedanticEager"
-  category   = "regular"
-  long       = "proof-new-pedantic-eager"
-  type       = "bool"
-  default    = "false"
-  help       = "check pedantic levels eagerly (during proof rule construction) instead of during final proof construction"
-
-[[option]]
   name       = "proofNewEagerChecking"
   category   = "regular"
   long       = "proof-new-eager-checking"
@@ -420,13 +412,24 @@ header = "options/smt_options.h"
   help       = "in models, output arrays (and in future, maybe others) using abstract values, as required by the SMT-LIB standard"
 
 [[option]]
-  name       = "modelUninterpDtEnum"
+  name       = "modelUninterpPrint"
+  smt_name   = "model-uninterp-print"
   category   = "regular"
-  long       = "model-u-dt-enum"
-  type       = "bool"
-  default    = "false"
+  long       = "model-u-print=MODE"
+  type       = "ModelUninterpPrintMode"
+  default    = "DeclFun"
   read_only  = true
-  help       = "in models, output uninterpreted sorts as datatype enumerations"
+  help       = "determines how to print uninterpreted elements in models"
+  help_mode  = "uninterpreted elements in models printing  modes."
+[[option.mode.DtEnum]]
+  name = "dtenum"
+  help = "print uninterpreted elements as datatype enumerations, where the sort is the datatype"
+[[option.mode.DeclSortAndFun]]
+  name = "decl-sort-and-fun"
+  help = "print uninterpreted elements declare-fun, and also include a declare-sort for the sort"
+[[option.mode.DeclFun]]
+  name = "decl-fun"
+  help = "(default) print uninterpreted elements declare-fun, but don't include a declare-sort for the sort"
 
 [[option]]
   name       = "modelWitnessValue"
@@ -492,6 +495,24 @@ header = "options/smt_options.h"
   handler    = "limitHandler"
   read_only  = true
   help       = "enable resource limiting per query"
+
+[[option]]
+  name       = "arithPivotStep"
+  category   = "expert"
+  long       = "arith-pivot-step=N"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for each arithmetic pivot step"
+
+[[option]]
+  name       = "arithNlLemmaStep"
+  category   = "expert"
+  long       = "arith-nl-lemma-step=N"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for each arithmetic nonlinear lemma step"
 
 [[option]]
   name       = "rewriteStep"
@@ -566,6 +587,15 @@ header = "options/smt_options.h"
   help       = "amount of resources spent when adding lemmas"
 
 [[option]]
+  name       = "newSkolemStep"
+  category   = "expert"
+  long       = "new-skolem-step=N"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent when adding new skolems"
+
+[[option]]
   name       = "restartStep"
   category   = "expert"
   long       = "restart-step=N"
@@ -618,6 +648,24 @@ header = "options/smt_options.h"
   default    = "1"
   read_only  = true
   help       = "amount of resources spent for each sat conflict (bitvectors)"
+
+[[option]]
+  name       = "bvSatPropagateStep"
+  category   = "expert"
+  long       = "bv-sat-propagate-step=N"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for each sat propagate (bitvectors)"
+
+[[option]]
+  name       = "bvSatSimplifyStep"
+  category   = "expert"
+  long       = "bv-sat-simplify-step=N"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for each sat simplify (bitvectors)"
 
 [[option]]
   name       = "forceNoLimitCpuWhileDump"
