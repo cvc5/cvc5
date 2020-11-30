@@ -29,8 +29,6 @@
 #include <vector>
 
 #include "api/cvc4cpp.h"
-#include "expr/expr.h"
-#include "expr/type.h"
 #include "util/result.h"
 #include "util/sexpr.h"
 

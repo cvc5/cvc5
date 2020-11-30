@@ -18,7 +18,6 @@
 #include <vector>
 
 #include "base/output.h"
-#include "expr/expr.h"
 #include "expr/node_algorithm.h"
 #include "options/arith_options.h"
 #include "smt/smt_statistics_registry.h"

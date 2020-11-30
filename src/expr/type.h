@@ -35,9 +35,6 @@ struct CVC4_PUBLIC ExprManagerMapCollection;
 
 class SmtEngine;
 
-class CVC4_PUBLIC Datatype;
-class Record;
-
 template <bool ref_count>
 class NodeTemplate;
 
