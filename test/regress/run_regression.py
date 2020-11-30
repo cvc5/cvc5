@@ -199,6 +199,19 @@ def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc4_binary,
         error = error.decode()
     return (output.strip(), error.strip(), exit_status)
 
+def non_meta(line, benchmark_ext):
+    if ':' not in line:
+        return True
+    if not line[:line.find(':')].isupper():
+        return True
+    if benchmark_ext == '.p':
+        if '--' in line:
+            return True
+        if 'SPC' in line:
+            return True
+        else:
+            return False
+    return False
 
 def run_regression(unsat_cores, proofs, dump, use_skip_return_code,
                    skip_timeout, wrapper, cvc4_binary, benchmark_path,
@@ -268,7 +281,6 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code,
         if line[0] != comment_char:
             continue
         line = line[1:].lstrip()
-
         if line.startswith(SCRUBBER):
             scrubber = line[len(SCRUBBER):].strip()
         elif line.startswith(ERROR_SCRUBBER):
@@ -283,6 +295,15 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code,
             command_lines.append(line[len(COMMAND_LINE):].strip())
         elif line.startswith(REQUIRES):
             requires.append(line[len(REQUIRES):].strip())
+        elif non_meta(line, benchmark_ext):
+            pass
+        else:
+            print(
+                'Illegal metadata for regression: {}\nAllowed prefixes: {}'
+                .format(line,
+                        ' '.join([SCRUBBER, ERROR_SCRUBBER, EXPECT, EXPECT_ERROR, EXIT, COMMAND_LINE, REQUIRES])))
+            return EXIT_FAILURE
+            
     expected_output = expected_output.strip()
     expected_error = expected_error.strip()
 
