@@ -371,7 +371,7 @@ void LfscPrinter::printInternal(std::ostream& out,
                                 const std::map<Node, uint32_t>& letMap)
 {
   // TODO: smt2 printer, dag thresh 0 print?
-  Node nc = Letify::convert(n, letMap, "@t");
+  Node nc = Letify::convert(n, letMap, "t");
   out << nc;
 }
 
@@ -425,7 +425,7 @@ void LfscPrinter::printRule(std::ostream& out, const ProofNode* pn)
   out << rname;
 }
 
-void LfscPrinter::printId(std::ostream& out, uint32_t id) { out << "@t" << id; }
+void LfscPrinter::printId(std::ostream& out, uint32_t id) { out << "t" << id; }
 
 void LfscPrinter::printProofId(std::ostream& out, uint32_t id)
 {
@@ -434,7 +434,7 @@ void LfscPrinter::printProofId(std::ostream& out, uint32_t id)
 
 void LfscPrinter::printAssumeId(std::ostream& out, uint32_t id)
 {
-  out << "@a" << id;
+  out << "a" << id;
 }
 
 Node mkLfscRuleNode(LfscRule r)
