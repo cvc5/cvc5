@@ -247,7 +247,7 @@ Node StringsRewriter::rewriteStringLeq(Node n)
   Assert(!n1.empty() && !n2.empty());
 
   // constant prefixes
-  if (n1[0].isConst() && n2[0].isConst())
+  if (n1[0].isConst() && n2[0].isConst() && n1[0] != n2[0])
   {
     String s = n1[0].getConst<String>();
     String t = n2[0].getConst<String>();
