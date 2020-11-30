@@ -15,8 +15,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__CONTEXT__DEFAULT_CLEAN_UP_H
-#define __CVC4__CONTEXT__DEFAULT_CLEAN_UP_H
+#ifndef CVC4__CONTEXT__DEFAULT_CLEAN_UP_H
+#define CVC4__CONTEXT__DEFAULT_CLEAN_UP_H
 
 namespace CVC4 {
 namespace context {
