@@ -245,7 +245,8 @@ void LfscPrinter::printProofInternal(
             processedChildren[cur] = true;
             // could not print the rule, trust for now
             out << std::endl << "(trust ";
-            printInternal(out, cur->getResult(), letMap);
+            Node ni = d_tproc.toInternal(cur->getResult());
+            printInternal(out, ni, letMap);
             out << ") ; from " << cur->getRule() << std::endl;
           }
         }
@@ -425,16 +426,16 @@ void LfscPrinter::printRule(std::ostream& out, const ProofNode* pn)
   out << rname;
 }
 
-void LfscPrinter::printId(std::ostream& out, uint32_t id) { out << "t" << id; }
+void LfscPrinter::printId(std::ostream& out, uint32_t id) { out << "__t" << id; }
 
 void LfscPrinter::printProofId(std::ostream& out, uint32_t id)
 {
-  out << "@p" << id;
+  out << "__p" << id;
 }
 
 void LfscPrinter::printAssumeId(std::ostream& out, uint32_t id)
 {
-  out << "a" << id;
+  out << "__a" << id;
 }
 
 Node mkLfscRuleNode(LfscRule r)
