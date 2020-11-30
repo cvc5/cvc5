@@ -192,8 +192,8 @@ public:
 
   void setUp() override {
     d_em = new ExprManager();
-    d_smt = new SmtEngine(d_em);
     d_nm = NodeManager::fromExprManager(d_em);
+    d_smt = new SmtEngine(d_nm);
     d_scope = new SmtScope(d_smt);
 
     d_ctxt = d_smt->getContext();
