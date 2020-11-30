@@ -33,8 +33,11 @@ namespace arith {
 namespace nl {
 namespace transcendental {
 
-TranscendentalSolver::TranscendentalSolver(InferenceManager& im, NlModel& m)
-    : d_tstate(im, m), d_expSlv(&d_tstate), d_sineSlv(&d_tstate)
+TranscendentalSolver::TranscendentalSolver(InferenceManager& im,
+                                           NlModel& m,
+                                           ProofNodeManager* pnm,
+                                           context::UserContext* c)
+    : d_tstate(im, m, pnm, c), d_expSlv(&d_tstate), d_sineSlv(&d_tstate)
 {
   d_taylor_degree = options::nlExtTfTaylorDegree();
 }

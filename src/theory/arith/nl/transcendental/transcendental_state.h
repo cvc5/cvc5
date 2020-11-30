@@ -16,6 +16,7 @@
 #define CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H
 
 #include "expr/node.h"
+#include "expr/proof_set.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/transcendental/taylor_generator.h"
@@ -34,7 +35,19 @@ namespace transcendental {
  */
 struct TranscendentalState
 {
-  TranscendentalState(InferenceManager& im, NlModel& model);
+  TranscendentalState(InferenceManager& im,
+                      NlModel& model,
+                      ProofNodeManager* pnm,
+                      context::UserContext* c);
+
+  /**
+   * Checks whether proofs are enabled.
+   */
+  bool isProofEnabled() const;
+  /**
+   * Creates and returns a new LazyCDProof that can be used to prove some lemma.
+   */
+  CDProof* getProof();
 
   /** init last call
    *
@@ -116,6 +129,17 @@ struct TranscendentalState
   NlModel& d_model;
   /** Utility to compute taylor approximations */
   TaylorGenerator d_taylor;
+  /**
+   * Pointer to the current proof node manager. nullptr, if proofs are
+   * disabled.
+   */
+  ProofNodeManager* d_pnm;
+  /** The user context. */
+  context::UserContext* d_ctx;
+  /**
+   * A CDProofSet that hands out CDProof objects for lemmas.
+   */
+  std::unique_ptr<CDProofSet<CDProof>> d_proof;
 
   /**
    * Some transcendental functions f(t) are "purified", e.g. we add
