@@ -29,7 +29,7 @@
 #include "expr/expr_iomanip.h"
 #include "expr/node.h"
 #include "expr/symbol_manager.h"
-#include "expr/type.h"
+#include "expr/type_node.h"
 #include "options/options.h"
 #include "options/smt_options.h"
 #include "printer/printer.h"
@@ -1069,28 +1069,17 @@ DeclareFunctionCommand::DeclareFunctionCommand(const std::string& id,
                                                api::Sort sort)
     : DeclarationDefinitionCommand(id),
       d_func(func),
-      d_sort(sort),
-      d_printInModel(true),
-      d_printInModelSetByUser(false)
+      d_sort(sort)
 {
 }
 
 api::Term DeclareFunctionCommand::getFunction() const { return d_func; }
 api::Sort DeclareFunctionCommand::getSort() const { return d_sort; }
-bool DeclareFunctionCommand::getPrintInModel() const { return d_printInModel; }
-bool DeclareFunctionCommand::getPrintInModelSetByUser() const
-{
-  return d_printInModelSetByUser;
-}
-
-void DeclareFunctionCommand::setPrintInModel(bool p)
-{
-  d_printInModel = p;
-  d_printInModelSetByUser = true;
-}
 
 void DeclareFunctionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
+  // mark that it will be printed in the model
+  sm->addModelDeclarationTerm(d_func);
   d_commandStatus = CommandSuccess::instance();
 }
 
@@ -1098,8 +1087,6 @@ Command* DeclareFunctionCommand::clone() const
 {
   DeclareFunctionCommand* dfc =
       new DeclareFunctionCommand(d_symbol, d_func, d_sort);
-  dfc->d_printInModel = d_printInModel;
-  dfc->d_printInModelSetByUser = d_printInModelSetByUser;
   return dfc;
 }
 
@@ -1132,6 +1119,8 @@ size_t DeclareSortCommand::getArity() const { return d_arity; }
 api::Sort DeclareSortCommand::getSort() const { return d_sort; }
 void DeclareSortCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
+  // mark that it will be printed in the model
+  sm->addModelDeclarationSort(d_sort);
   d_commandStatus = CommandSuccess::instance();
 }
 
@@ -1150,8 +1139,8 @@ void DeclareSortCommand::toStream(std::ostream& out,
                                   size_t dag,
                                   OutputLanguage language) const
 {
-  Printer::getPrinter(language)->toStreamCmdDeclareType(
-      out, d_sort.toString(), d_arity, d_sort.getTypeNode());
+  Printer::getPrinter(language)->toStreamCmdDeclareType(out,
+                                                        d_sort.getTypeNode());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1438,8 +1427,8 @@ void SetUserAttributeCommand::invoke(api::Solver* solver, SymbolManager* sm)
     {
       solver->getSmtEngine()->setUserAttribute(
           d_attr,
-          d_term.getExpr(),
-          api::termVectorToExprs(d_termValues),
+          d_term.getNode(),
+          api::termVectorToNodes(d_termValues),
           d_strValue);
     }
     d_commandStatus = CommandSuccess::instance();
@@ -1693,6 +1682,18 @@ void GetModelCommand::invoke(api::Solver* solver, SymbolManager* sm)
   try
   {
     d_result = solver->getSmtEngine()->getModel();
+    // set the model declarations, which determines what is printed in the model
+    d_result->clearModelDeclarations();
+    std::vector<api::Sort> declareSorts = sm->getModelDeclareSorts();
+    for (const api::Sort& s : declareSorts)
+    {
+      d_result->addDeclarationSort(s.getTypeNode());
+    }
+    std::vector<api::Term> declareTerms = sm->getModelDeclareTerms();
+    for (const api::Term& t : declareTerms)
+    {
+      d_result->addDeclarationTerm(t.getNode());
+    }
     d_commandStatus = CommandSuccess::instance();
   }
   catch (RecoverableModalException& e)

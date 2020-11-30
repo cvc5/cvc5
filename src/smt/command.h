@@ -29,8 +29,6 @@
 #include <vector>
 
 #include "api/cvc4cpp.h"
-#include "expr/expr.h"
-#include "expr/type.h"
 #include "util/result.h"
 #include "util/sexpr.h"
 
@@ -387,16 +385,11 @@ class CVC4_PUBLIC DeclareFunctionCommand : public DeclarationDefinitionCommand
  protected:
   api::Term d_func;
   api::Sort d_sort;
-  bool d_printInModel;
-  bool d_printInModelSetByUser;
 
  public:
   DeclareFunctionCommand(const std::string& id, api::Term func, api::Sort sort);
   api::Term getFunction() const;
   api::Sort getSort() const;
-  bool getPrintInModel() const;
-  bool getPrintInModelSetByUser() const;
-  void setPrintInModel(bool p);
 
   void invoke(api::Solver* solver, SymbolManager* sm) override;
   Command* clone() const override;
