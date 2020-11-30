@@ -40,7 +40,7 @@ class TestCleanup
  private:
  public:
   TestCleanup() {}
-  void operator()(TestObject* o) { *(o->d_cleanupCalled) = true; }
+  void operator()(TestObject& o) { (*o.d_cleanupCalled) = true; }
 };
 
 class CDListBlack : public CxxTest::TestSuite {

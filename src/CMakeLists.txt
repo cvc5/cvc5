@@ -23,7 +23,6 @@ libcvc4_add_sources(
   context/cdhashset_forward.h
   context/cdinsert_hashmap.h
   context/cdinsert_hashmap_forward.h
-  context/cdlist.cpp
   context/cdlist.h
   context/cdlist_forward.h
   context/cdmaybe.h

@@ -25,7 +25,7 @@ template <class T>
 class DefaultCleanUp
 {
  public:
-  void operator()(T* t CVC4_UNUSED) const {}
+  void operator()(typename std::vector<T>::reference CVC4_UNUSED) const {}
 };
 
 }  // namespace context

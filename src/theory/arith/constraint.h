@@ -780,16 +780,15 @@ class Constraint {
   class ConstraintRuleCleanup
   {
    public:
-    inline void operator()(ConstraintRule* crp)
+    inline void operator()(ConstraintRule& crp)
     {
-      Assert(crp != NULL);
-      ConstraintP constraint = crp->d_constraint;
+      ConstraintP constraint = crp.d_constraint;
       Assert(constraint->d_crid != ConstraintRuleIdSentinel);
       constraint->d_crid = ConstraintRuleIdSentinel;
       ARITH_PROOF({
-        if (crp->d_farkasCoefficients != RationalVectorCPSentinel)
+        if (crp.d_farkasCoefficients != RationalVectorCPSentinel)
         {
-          delete crp->d_farkasCoefficients;
+          delete crp.d_farkasCoefficients;
         }
       });
     }
@@ -798,9 +797,8 @@ class Constraint {
   class CanBePropagatedCleanup
   {
    public:
-    inline void operator()(ConstraintP* p)
+    inline void operator()(ConstraintP& constraint)
     {
-      ConstraintP constraint = *p;
       Assert(constraint->d_canBePropagated);
       constraint->d_canBePropagated = false;
     }
@@ -809,9 +807,8 @@ class Constraint {
   class AssertionOrderCleanup
   {
    public:
-    inline void operator()(ConstraintP* p)
+    inline void operator()(ConstraintP& constraint)
     {
-      ConstraintP constraint = *p;
       Assert(constraint->assertedToTheTheory());
       constraint->d_assertionOrder = AssertionOrderSentinel;
       constraint->d_witness = TNode::null();
@@ -822,9 +819,8 @@ class Constraint {
   class SplitCleanup
   {
    public:
-    inline void operator()(ConstraintP* p)
+    inline void operator()(ConstraintP& constraint)
     {
-      ConstraintP constraint = *p;
       Assert(constraint->d_split);
       constraint->d_split = false;
     }

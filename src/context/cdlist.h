@@ -46,10 +46,19 @@ class CDList : public ContextObj
 {
  public:
   /** The value type with which this CDList<> was instantiated. */
-  typedef T value_type;
+  using value_type = T;
 
   /** The cleanup type with which this CDList<> was instantiated. */
-  typedef CleanUpT CleanUp;
+  using CleanUp = CleanUpT;
+
+  /**
+   * `std::vector<T>::operator[] const` returns an
+   * std::vector<T>::const_reference, which does not necessarily have to be a
+   * `const T&`. Specifically, in the case of `std::vector<bool>`, the type is
+   * specialized to be just a simple `bool`. For our `operator[] const`, we use
+   * the same type.
+   */
+  using ConstReference = typename std::vector<T>::const_reference;
 
   /**
    * Main constructor: d_list starts with size 0
@@ -112,7 +121,8 @@ class CDList : public ContextObj
   /**
    * Access to the ith item in the list.
    */
-  const T& operator[](size_t i) const {
+  ConstReference operator[](size_t i) const
+  {
     Assert(i < d_size) << "index out of bounds in CDList::operator[]";
     return d_list[i];
   }
@@ -120,7 +130,8 @@ class CDList : public ContextObj
   /**
    * Returns the most recent item added to the list.
    */
-  const T& back() const {
+  ConstReference back() const
+  {
     Assert(d_size > 0) << "CDList::back() called on empty list";
     return d_list[d_size - 1];
   }
@@ -243,7 +254,8 @@ class CDList : public ContextObj
       while (d_size != size)
       {
         --d_size;
-        d_cleanUp(&(d_list[d_size]));
+        typename std::vector<T>::reference elem = d_list[d_size];
+        d_cleanUp(elem);
       }
     }
     else
@@ -293,26 +305,6 @@ class CDList : public ContextObj
   }
 
 }; /* class CDList<> */
-
-/**
- * Specialization of truncateList for CDList<bool>. We need this because the
- * C++ standard library specializes std::vector<bool> to be a vector of bits
- * and taking the address from an element in a vector (&v[i]) results in a
- * compiler error.
- */
-template <>
-void CDList<bool, DefaultCleanUp<bool>, std::allocator<bool> >::truncateList(
-    const size_t size);
-
-/**
- * Specialization of operator[] for CDList<bool>. We need this because the C++
- * standard library specializes std::vector<bool> to be a vector of bits and
- * taking the address from an element in a vector (&v[i]) results in a compiler
- * error.
- */
-template <>
-const bool& CDList<bool, DefaultCleanUp<bool>, std::allocator<bool> >::
-operator[](size_t i) const;
 
 }/* CVC4::context namespace */
 }/* CVC4 namespace */
