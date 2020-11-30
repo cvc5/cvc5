@@ -110,6 +110,8 @@ class Preprocessor
   void setProofGenerator(PreprocessProofGenerator* pppg);
 
  private:
+  /** A copy of the current context */
+  context::Context* d_context;
   /** Reference to the parent SmtEngine */
   SmtEngine& d_smt;
   /** Reference to the abstract values utility */
