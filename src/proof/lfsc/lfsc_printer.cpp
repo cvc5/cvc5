@@ -372,7 +372,7 @@ void LfscPrinter::printInternal(std::ostream& out,
                                 const std::map<Node, uint32_t>& letMap)
 {
   // TODO: smt2 printer, dag thresh 0 print?
-  Node nc = Letify::convert(n, letMap, "t");
+  Node nc = Letify::convert(n, letMap, "__t");
   out << nc;
 }
 
