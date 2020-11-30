@@ -1,4 +1,4 @@
-; COMMAND-LINE: --fmf-fun --no-check-models --rewrite-divk
+; COMMAND-LINE: --fmf-fun --no-check-models
 ; EXPECT: sat
 (set-logic UFLIA)
 (set-info :status sat)

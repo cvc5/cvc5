@@ -2,10 +2,10 @@
 /*! \file arith_static_learner.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Dejan Jovanovic, Morgan Deters
+ **   Tim King, Dejan Jovanovic, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -17,12 +17,12 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__ARITH__ARITH_STATIC_LEARNER_H
-#define __CVC4__THEORY__ARITH__ARITH_STATIC_LEARNER_H
+#ifndef CVC4__THEORY__ARITH__ARITH_STATIC_LEARNER_H
+#define CVC4__THEORY__ARITH__ARITH_STATIC_LEARNER_H
 
 #include <set>
 
-#include "context/cdtrail_hashmap.h"
+#include "context/cdhashmap.h"
 #include "context/context.h"
 #include "theory/arith/arith_utilities.h"
 #include "util/statistics_registry.h"
@@ -37,7 +37,7 @@ private:
   /**
    * Map from a node to it's minimum and maximum.
    */
-  typedef context::CDTrailHashMap<Node, DeltaRational, NodeHashFunction> CDNodeToMinMaxMap;
+  typedef context::CDHashMap<Node, DeltaRational, NodeHashFunction> CDNodeToMinMaxMap;
   CDNodeToMinMaxMap d_minMap;
   CDNodeToMinMaxMap d_maxMap;
 
@@ -72,4 +72,4 @@ private:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__ARITH__ARITH_STATIC_LEARNER_H */
+#endif /* CVC4__THEORY__ARITH__ARITH_STATIC_LEARNER_H */

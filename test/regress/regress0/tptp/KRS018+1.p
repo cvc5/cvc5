@@ -1,3 +1,5 @@
+% COMMAND-LINE: --finite-model-find
+
 %------------------------------------------------------------------------------
 % File     : KRS018+1 : TPTP v5.5.0. Released v3.1.0.
 % Domain   : Knowledge Representation (Semantic Web)

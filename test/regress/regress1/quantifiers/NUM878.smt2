@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cbqi-bv
+; COMMAND-LINE: --cegqi-bv
 ; EXPECT: unsat
 (set-logic BV)
 (set-info :status unsat)

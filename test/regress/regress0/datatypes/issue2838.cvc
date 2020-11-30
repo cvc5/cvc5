@@ -1,0 +1,14 @@
+% EXPECT: sat
+Ints_0 : ARRAY INT OF INT;
+C : TYPE = [# i : INT #];
+CType : TYPE = ARRAY INT OF C;
+C_0 : CType;
+x : INT;
+C_1 : CType = C_0 WITH [0].i := 2;
+
+ASSERT C_0[0].i = 0;
+ASSERT C_0[1].i = 1;
+ASSERT Ints_0[2] = Ints_0[0];
+ASSERT x = Ints_0[C_1[0].i];
+ASSERT x /= Ints_0[C_1[1].i];
+CHECKSAT;

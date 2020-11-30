@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Francois Bobot
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__LANGUAGE_H
-#define __CVC4__LANGUAGE_H
+#ifndef CVC4__LANGUAGE_H
+#define CVC4__LANGUAGE_H
 
 #include <sstream>
 #include <string>
@@ -44,26 +44,20 @@ enum CVC4_PUBLIC Language
   // OUTPUT LANGUAGE, IF IT IS "IN PRINCIPLE" A COMMON LANGUAGE,
   // INCLUDE IT HERE
 
-  /** The SMTLIB v1 input language */
-  LANG_SMTLIB_V1 = 0,
   /** The SMTLIB v2.0 input language */
-  LANG_SMTLIB_V2_0,
+  LANG_SMTLIB_V2_0 = 0,
   /** The SMTLIB v2.5 input language */
   LANG_SMTLIB_V2_5,
-  /** The SMTLIB v2.6 input language */
+  /** The SMTLIB v2.6 input language, with support for the strings standard */
   LANG_SMTLIB_V2_6,
   /** Backward-compatibility for enumeration naming */
   LANG_SMTLIB_V2 = LANG_SMTLIB_V2_6,
-  /** The SMTLIB v2.6 input language, with support for the strings standard */
-  LANG_SMTLIB_V2_6_1,
   /** The TPTP input language */
   LANG_TPTP,
   /** The CVC4 input language */
   LANG_CVC4,
-  /** The Z3-str input language */
-  LANG_Z3STR,
-  /** The SyGuS input language */
-  LANG_SYGUS,
+  /** The SyGuS input language version 2.0 */
+  LANG_SYGUS_V2,
 
   // START OUTPUT-ONLY LANGUAGES AT ENUM VALUE 10
   // THESE ARE IN PRINCIPLE NOT POSSIBLE INPUT LANGUAGES
@@ -78,9 +72,6 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
   case LANG_AUTO:
     out << "LANG_AUTO";
     break;
-  case LANG_SMTLIB_V1:
-    out << "LANG_SMTLIB_V1";
-    break;
   case LANG_SMTLIB_V2_0:
     out << "LANG_SMTLIB_V2_0";
     break;
@@ -90,19 +81,13 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
   case LANG_SMTLIB_V2_6:
     out << "LANG_SMTLIB_V2_6";
     break;
-  case LANG_SMTLIB_V2_6_1: out << "LANG_SMTLIB_V2_6_1"; break;
   case LANG_TPTP:
     out << "LANG_TPTP";
     break;
   case LANG_CVC4:
     out << "LANG_CVC4";
     break;
-  case LANG_Z3STR:
-    out << "LANG_Z3STR";
-    break;
-  case LANG_SYGUS:
-    out << "LANG_SYGUS";
-    break;
+  case LANG_SYGUS_V2: out << "LANG_SYGUS_V2"; break;
   default:
     out << "undefined_input_language";
   }
@@ -127,26 +112,20 @@ enum CVC4_PUBLIC Language
   // OUTPUT LANGUAGE, IF IT IS "IN PRINCIPLE" A COMMON LANGUAGE,
   // INCLUDE IT HERE
 
-  /** The SMTLIB v1 output language (unsupported) */
-  LANG_SMTLIB_V1 = input::LANG_SMTLIB_V1,
   /** The SMTLIB v2.0 output language */
   LANG_SMTLIB_V2_0 = input::LANG_SMTLIB_V2_0,
   /** The SMTLIB v2.5 output language */
   LANG_SMTLIB_V2_5 = input::LANG_SMTLIB_V2_5,
-  /** The SMTLIB v2.6 output language */
+  /** The SMTLIB v2.6 output language, with support for the strings standard */
   LANG_SMTLIB_V2_6 = input::LANG_SMTLIB_V2_6,
   /** Backward-compatibility for enumeration naming */
   LANG_SMTLIB_V2 = input::LANG_SMTLIB_V2,
-  /** The SMTLIB v2.6 output language */
-  LANG_SMTLIB_V2_6_1 = input::LANG_SMTLIB_V2_6_1,
   /** The TPTP output language */
   LANG_TPTP = input::LANG_TPTP,
   /** The CVC4 output language */
   LANG_CVC4 = input::LANG_CVC4,
-  /** The Z3-str output language */
-  LANG_Z3STR = input::LANG_Z3STR,
-  /** The sygus output language */
-  LANG_SYGUS = input::LANG_SYGUS,
+  /** The sygus output language version 2.0 */
+  LANG_SYGUS_V2 = input::LANG_SYGUS_V2,
 
   // START OUTPUT-ONLY LANGUAGES AT ENUM VALUE 10
   // THESE ARE IN PRINCIPLE NOT POSSIBLE INPUT LANGUAGES
@@ -163,9 +142,6 @@ enum CVC4_PUBLIC Language
 inline std::ostream& operator<<(std::ostream& out, Language lang) CVC4_PUBLIC;
 inline std::ostream& operator<<(std::ostream& out, Language lang) {
   switch(lang) {
-  case LANG_SMTLIB_V1:
-    out << "LANG_SMTLIB_V1";
-    break;
   case LANG_SMTLIB_V2_0:
     out << "LANG_SMTLIB_V2_0";
     break;
@@ -173,19 +149,13 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
     out << "LANG_SMTLIB_V2_5";
     break;
   case LANG_SMTLIB_V2_6: out << "LANG_SMTLIB_V2_6"; break;
-  case LANG_SMTLIB_V2_6_1: out << "LANG_SMTLIB_V2_6_1"; break;
   case LANG_TPTP:
     out << "LANG_TPTP";
     break;
   case LANG_CVC4:
     out << "LANG_CVC4";
     break;
-  case LANG_Z3STR:
-    out << "LANG_Z3STR";
-    break;
-  case LANG_SYGUS:
-    out << "LANG_SYGUS";
-    break;
+  case LANG_SYGUS_V2: out << "LANG_SYGUS_V2"; break;
   case LANG_AST:
     out << "LANG_AST";
     break;
@@ -224,6 +194,10 @@ bool isOutputLang_smt2_5(OutputLanguage lang, bool exact = false) CVC4_PUBLIC;
 bool isInputLang_smt2_6(InputLanguage lang, bool exact = false) CVC4_PUBLIC;
 bool isOutputLang_smt2_6(OutputLanguage lang, bool exact = false) CVC4_PUBLIC;
 
+/** Is the language a variant of the SyGuS input language? */
+bool isInputLangSygus(InputLanguage lang) CVC4_PUBLIC;
+bool isOutputLangSygus(OutputLanguage lang) CVC4_PUBLIC;
+
 InputLanguage toInputLanguage(OutputLanguage language) CVC4_PUBLIC;
 OutputLanguage toOutputLanguage(InputLanguage language) CVC4_PUBLIC;
 InputLanguage toInputLanguage(std::string language) CVC4_PUBLIC;
@@ -232,4 +206,4 @@ OutputLanguage toOutputLanguage(std::string language) CVC4_PUBLIC;
 }/* CVC4::language namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__LANGUAGE_H */
+#endif /* CVC4__LANGUAGE_H */

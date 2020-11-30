@@ -1,3 +1,6 @@
+; COMMAND-LINE: --decision=justification
+; EXPECT: unsat
+
 
 (set-logic QF_UFLIA)
 (declare-sort U 0)

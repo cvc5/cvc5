@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Aina Niemetz, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -18,7 +18,7 @@
 
 #include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/bv/theory_bv.h"
+#include "theory/bv/bv_solver_lazy.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
 
@@ -31,8 +31,9 @@ using namespace CVC4::theory::bv::utils;
 
 bool InequalitySolver::check(Theory::Effort e) {
   Debug("bv-subtheory-inequality") << "InequalitySolveR::check("<< e <<")\n";
+  TimerStat::CodeTimer inequalityTimer(d_statistics.d_solveTime);
   ++(d_statistics.d_numCallstoCheck);
-  d_bv->spendResource(options::theoryCheckStep());
+  d_bv->spendResource(ResourceManager::Resource::TheoryCheckStep);
 
   bool ok = true;
   while (!done() && ok) {
@@ -181,22 +182,21 @@ bool InequalitySolver::isInequalityOnly(TNode node) {
 }
 
 void InequalitySolver::explain(TNode literal, std::vector<TNode>& assumptions) {
-  Assert (d_explanations.find(literal) != d_explanations.end());
+  Assert(d_explanations.find(literal) != d_explanations.end());
   TNode explanation = d_explanations[literal];
   assumptions.push_back(explanation);
   Debug("bv-inequality-explain") << "InequalitySolver::explain " << literal << " with " << explanation <<"\n";
 }
 
-void InequalitySolver::propagate(Theory::Effort e) {
-  Assert (false);
-}
-bool InequalitySolver::collectModelInfo(TheoryModel* m, bool fullModel)
+void InequalitySolver::propagate(Theory::Effort e) { Assert(false); }
+bool InequalitySolver::collectModelValues(TheoryModel* m,
+                                          const std::set<Node>& termSet)
 {
-  Debug("bitvector-model") << "InequalitySolver::collectModelInfo \n";
+  Debug("bitvector-model") << "InequalitySolver::collectModelValues \n";
   std::vector<Node> model;
   d_inequalityGraph.getAllValuesInModel(model);
   for (unsigned i = 0; i < model.size(); ++i) {
-    Assert (model[i].getKind() == kind::EQUAL);
+    Assert(model[i].getKind() == kind::EQUAL);
     if (!m->assertEquality(model[i][0], model[i][1], true))
     {
       return false;
@@ -206,12 +206,12 @@ bool InequalitySolver::collectModelInfo(TheoryModel* m, bool fullModel)
 }
 
 Node InequalitySolver::getModelValue(TNode var) {
-  Assert (isInequalityOnly(var));
+  Assert(isInequalityOnly(var));
   Debug("bitvector-model") << "InequalitySolver::getModelValue (" << var <<")";
-  Assert (isComplete());
+  Assert(isComplete());
   Node result = Node();
   if (!d_inequalityGraph.hasValueInModel(var)) {
-    Assert (d_bv->isSharedTerm(var));
+    Assert(d_bv->isSharedTerm(var));
   } else {
     BitVector val = d_inequalityGraph.getValueInModel(var);
     result = utils::mkConst(val);
@@ -246,10 +246,15 @@ bool InequalitySolver::addInequality(TNode a, TNode b, bool strict, TNode fact)
 }
 
 InequalitySolver::Statistics::Statistics()
-  : d_numCallstoCheck("theory::bv::InequalitySolver::NumCallsToCheck", 0)
+    : d_numCallstoCheck("theory::bv::inequality::NumCallsToCheck", 0),
+      d_solveTime("theory::bv::inequality::SolveTime")
 {
   smtStatisticsRegistry()->registerStat(&d_numCallstoCheck);
+  smtStatisticsRegistry()->registerStat(&d_solveTime);
 }
-InequalitySolver::Statistics::~Statistics() {
+
+InequalitySolver::Statistics::~Statistics()
+{
   smtStatisticsRegistry()->unregisterStat(&d_numCallstoCheck);
+  smtStatisticsRegistry()->unregisterStat(&d_solveTime);
 }

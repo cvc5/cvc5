@@ -13,8 +13,7 @@ to background theories of interest.
 .SH "SEE ALSO"
 .BR cvc4 (1),
 .BR libcvc4 (3),
-.BR libcvc4parser (3),
-.BR libcvc4compat (3)
+.BR libcvc4parser (3)
 
 Additionally, the CVC4 wiki contains useful information about the
 design and internals of CVC4.  It is maintained at

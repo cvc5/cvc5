@@ -2,10 +2,10 @@
 /*! \file arith_ite_utils.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Kshitij Bansal
+ **   Tim King, Aina Niemetz, Piotr Trojanek
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -21,9 +21,9 @@
 
 #include "base/output.h"
 #include "options/smt_options.h"
+#include "preprocessing/util/ite_utilities.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/normal_form.h"
-#include "theory/ite_utilities.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"
@@ -140,18 +140,18 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
   Unreachable();
 }
 
-ArithIteUtils::ArithIteUtils(ContainsTermITEVisitor& contains,
-                             context::Context* uc,
-                             TheoryModel* model)
-  : d_contains(contains)
-  , d_subs(NULL)
-  , d_model(model)
-  , d_one(1)
-  , d_subcount(uc, 0)
-  , d_skolems(uc)
-  , d_implies()
-  , d_skolemsAdded()
-  , d_orBinEqs()
+ArithIteUtils::ArithIteUtils(
+    preprocessing::util::ContainsTermITEVisitor& contains,
+    context::Context* uc,
+    TheoryModel* model)
+    : d_contains(contains),
+      d_subs(NULL),
+      d_model(model),
+      d_one(1),
+      d_subcount(uc, 0),
+      d_skolems(uc),
+      d_implies(),
+      d_orBinEqs()
 {
   d_subs = new SubstitutionMap(uc);
 }
@@ -312,16 +312,7 @@ void ArithIteUtils::learnSubstitutions(const std::vector<Node>& assertions){
     d_orBinEqs.resize(writePos);
   }while(solvedSomething);
 
-  for(size_t i = 0, N=d_skolemsAdded.size(); i<N; ++i){
-    Node sk = d_skolemsAdded[i];
-    Node to = d_skolems[sk];
-    if(!to.isNull()){
-      Node fp = applySubstitutions(to);
-      addSubstitution(sk, fp);
-    }
-  }
   d_implies.clear();
-  d_skolemsAdded.clear();
   d_orBinEqs.clear();
 }
 
@@ -373,7 +364,8 @@ Node ArithIteUtils::findIteCnd(TNode tb, TNode fb) const{
     // (not y) => (not x)
     // (not z) => x
     std::set<Node>::const_iterator ci = negtimp.begin(), cend = negtimp.end();
-    for(; ci != cend; ci++){
+    for (; ci != cend; ++ci)
+    {
       Node impliedByNotTB = *ci;
       Node impliedByNotTBNeg = impliedByNotTB.negate();
       if(negfimp.find(impliedByNotTBNeg) != negfimp.end()){
@@ -388,8 +380,8 @@ Node ArithIteUtils::findIteCnd(TNode tb, TNode fb) const{
 bool ArithIteUtils::solveBinOr(TNode binor){
   Assert(binor.getKind() == kind::OR);
   Assert(binor.getNumChildren() == 2);
-  Assert(binor[0].getKind() ==  kind::EQUAL);
-  Assert(binor[1].getKind() ==  kind::EQUAL);
+  Assert(binor[0].getKind() == kind::EQUAL);
+  Assert(binor[1].getKind() == kind::EQUAL);
 
   //Node n = 
   Node n = applySubstitutions(binor);
@@ -409,8 +401,8 @@ bool ArithIteUtils::solveBinOr(TNode binor){
   TNode l = n[0];
   TNode r = n[1];
 
-  Assert(l.getKind() ==  kind::EQUAL);
-  Assert(r.getKind() ==  kind::EQUAL);
+  Assert(l.getKind() == kind::EQUAL);
+  Assert(r.getKind() == kind::EQUAL);
 
   Debug("arith::ite") << "bin or " << n << endl;
 
@@ -455,7 +447,6 @@ bool ArithIteUtils::solveBinOr(TNode binor){
         Node sk = nm->mkSkolem("deor", nm->booleanType());
         Node ite = sk.iteNode(otherL, otherR);
         d_skolems.insert(sk, cnd);
-        d_skolemsAdded.push_back(sk);
         addSubstitution(sel, ite);
         return true;
       }

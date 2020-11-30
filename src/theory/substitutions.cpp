@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Dejan Jovanovic, Clark Barrett, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -15,6 +15,7 @@
  **/
 
 #include "theory/substitutions.h"
+#include "expr/node_algorithm.h"
 #include "theory/rewriter.h"
 
 using namespace std;
@@ -23,10 +24,11 @@ namespace CVC4 {
 namespace theory {
 
 struct substitution_stack_element {
-  TNode node;
-  bool children_added;
-  substitution_stack_element(TNode node)
-  : node(node), children_added(false) {}
+  TNode d_node;
+  bool d_children_added;
+  substitution_stack_element(TNode node) : d_node(node), d_children_added(false)
+  {
+  }
 };/* struct substitution_stack_element */
 
 Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
@@ -45,7 +47,7 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
   {
     // The current node we are processing
     substitution_stack_element& stackHead = toVisit.back();
-    TNode current = stackHead.node;
+    TNode current = stackHead.d_node;
 
     Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): processing " << current << endl;
 
@@ -56,8 +58,8 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
       continue;
     }
 
-    if (!d_substituteUnderQuantifiers &&
-        (current.getKind() == kind::FORALL || current.getKind() == kind::EXISTS)) {
+    if (!d_substituteUnderQuantifiers && current.isClosure())
+    {
       Debug("substitution::internal") << "--not substituting under quantifier" << endl;
       cache[current] = current;
       toVisit.pop_back();
@@ -76,7 +78,8 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
     }
 
     // Not yet substituted, so process
-    if (stackHead.children_added) {
+    if (stackHead.d_children_added)
+    {
       // Children have been processed, so substitute
       NodeBuilder<> builder(current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
@@ -108,10 +111,12 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
       Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): setting " << current << " -> " << result << endl;
       cache[current] = result;
       toVisit.pop_back();
-    } else {
+    }
+    else
+    {
       // Mark that we have added the children if any
       if (current.getNumChildren() > 0 || current.getMetaKind() == kind::metakind::PARAMETERIZED) {
-        stackHead.children_added = true;
+        stackHead.d_children_added = true;
         // We need to add the operator, if any
         if(current.getMetaKind() == kind::metakind::PARAMETERIZED) {
           TNode opNode = current.getOperator();
@@ -142,36 +147,6 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
 }/* SubstitutionMap::internalSubstitute() */
 
 
-void SubstitutionMap::simplifyRHS(const SubstitutionMap& subMap)
-{
-  // Put the new substitutions into the old ones
-  NodeMap::iterator it = d_substitutions.begin();
-  NodeMap::iterator it_end = d_substitutions.end();
-  for(; it != it_end; ++ it) {
-    d_substitutions[(*it).first] = subMap.apply((*it).second);
-  }  
-}
-
-
-void SubstitutionMap::simplifyRHS(TNode x, TNode t) {
-  // Temporary substitution cache
-  NodeCache tempCache;
-  tempCache[x] = t;
-
-  // Put the new substitution into the old ones
-  NodeMap::iterator it = d_substitutions.begin();
-  NodeMap::iterator it_end = d_substitutions.end();
-  for(; it != it_end; ++ it) {
-    d_substitutions[(*it).first] = internalSubstitute((*it).second, tempCache);
-  }  
-  // it = d_substitutionsLazy.begin();
-  // it_end = d_substitutionsLazy.end();
-  // for(; it != it_end; ++ it) {
-  //   d_substitutionsLazy[(*it).first] = internalSubstitute((*it).second, tempCache);
-  // }  
-}
-
-
 void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache)
 {
   Debug("substitution") << "SubstitutionMap::addSubstitution(" << x << ", " << t << ")" << endl;
@@ -179,7 +154,7 @@ void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache)
 
   // this causes a later assert-fail (the rhs != current one, above) anyway
   // putting it here is easier to diagnose
-  Assert(x != t, "cannot substitute a term for itself");
+  Assert(x != t) << "cannot substitute a term for itself";
 
   d_substitutions[x] = t;
 
@@ -209,23 +184,6 @@ void SubstitutionMap::addSubstitutions(SubstitutionMap& subMap, bool invalidateC
   }
 }
 
-
-static bool check(TNode node, const SubstitutionMap::NodeMap& substitutions) CVC4_UNUSED;
-static bool check(TNode node, const SubstitutionMap::NodeMap& substitutions) {
-  SubstitutionMap::NodeMap::const_iterator it = substitutions.begin();
-  SubstitutionMap::NodeMap::const_iterator it_end = substitutions.end();
-  Debug("substitution") << "checking " << node << endl;
-  for (; it != it_end; ++ it) {
-    Debug("substitution") << "-- hasSubterm( " << (*it).first << " ) ?" << endl;
-    if (node.hasSubterm((*it).first)) {
-      Debug("substitution") << "-- FAIL" << endl;
-      return false;
-    }
-  }
-  Debug("substitution") << "-- SUCCEED" << endl;
-  return true;
-}
-
 Node SubstitutionMap::apply(TNode t) {
 
   Debug("substitution") << "SubstitutionMap::apply(" << t << ")" << endl;
@@ -240,8 +198,6 @@ Node SubstitutionMap::apply(TNode t) {
   // Perform the substitution
   Node result = internalSubstitute(t, d_substitutionCache);
   Debug("substitution") << "SubstitutionMap::apply(" << t << ") => " << result << endl;
-
-  //  Assert(check(result, d_substitutions));
 
   return result;
 }

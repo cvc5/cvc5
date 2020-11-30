@@ -2,10 +2,10 @@
 /*! \file exception.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Andres Noetzli
+ **   Morgan Deters, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__EXCEPTION_H
-#define __CVC4__EXCEPTION_H
+#ifndef CVC4__EXCEPTION_H
+#define CVC4__EXCEPTION_H
 
 #include <cstdarg>
 #include <cstdlib>
@@ -26,8 +26,6 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
-
-#include "base/tls.h"
 
 namespace CVC4 {
 
@@ -127,15 +125,15 @@ inline std::ostream& operator<<(std::ostream& os, const Exception& e)
 
 template <class T> inline void CheckArgument(bool cond, const T& arg,
                                              const char* tail) CVC4_PUBLIC;
-template <class T> inline void CheckArgument(bool cond, const T& arg,
-                                             const char* tail) {
+template <class T> inline void CheckArgument(bool cond, const T& arg CVC4_UNUSED,
+                                             const char* tail CVC4_UNUSED) {
   if(__builtin_expect( ( !cond ), false )) { \
-    throw ::CVC4::IllegalArgumentException("", "", ""); \
+    throw ::CVC4::IllegalArgumentException("", "", tail); \
   } \
 }
 template <class T> inline void CheckArgument(bool cond, const T& arg)
   CVC4_PUBLIC;
-template <class T> inline void CheckArgument(bool cond, const T& arg) {
+template <class T> inline void CheckArgument(bool cond, const T& arg CVC4_UNUSED) {
   if(__builtin_expect( ( !cond ), false )) { \
     throw ::CVC4::IllegalArgumentException("", "", ""); \
   } \
@@ -158,14 +156,14 @@ public:
 
 private:
   /* Disallow copies */
-  LastExceptionBuffer(const LastExceptionBuffer&) CVC4_UNDEFINED;
-  LastExceptionBuffer& operator=(const LastExceptionBuffer&) CVC4_UNDEFINED;
+  LastExceptionBuffer(const LastExceptionBuffer&) = delete;
+  LastExceptionBuffer& operator=(const LastExceptionBuffer&) = delete;
 
   char* d_contents;
 
-  static CVC4_THREAD_LOCAL LastExceptionBuffer* s_currentBuffer;
+  static thread_local LastExceptionBuffer* s_currentBuffer;
 }; /* class LastExceptionBuffer */
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__EXCEPTION_H */
+#endif /* CVC4__EXCEPTION_H */

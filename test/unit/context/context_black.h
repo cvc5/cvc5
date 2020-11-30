@@ -2,10 +2,10 @@
 /*! \file context_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Tim King
+ **   Morgan Deters, Dejan Jovanovic, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -19,11 +19,11 @@
 #include <iostream>
 #include <vector>
 
-#include "base/cvc4_assert.h"
+#include "base/exception.h"
 #include "context/cdlist.h"
 #include "context/cdo.h"
 #include "context/context.h"
-
+#include "test_utils.h"
 
 using namespace std;
 using namespace CVC4;
@@ -36,12 +36,10 @@ struct MyContextNotifyObj : public ContextNotifyObj {
     ContextNotifyObj(context, pre),
     nCalls(0) {
   }
-  
-  virtual ~MyContextNotifyObj() {}
 
-  void contextNotifyPop() {
-    ++nCalls;
-  }
+  ~MyContextNotifyObj() override {}
+
+  void contextNotifyPop() override { ++nCalls; }
 };
 
 class MyContextObj : public ContextObj {
@@ -75,18 +73,15 @@ public:
     nSaves(0) {
   }
 
-  virtual ~MyContextObj() {
-    destroy();
-  }
+  ~MyContextObj() override { destroy(); }
 
-  ContextObj* save(ContextMemoryManager* pcmm) {
+  ContextObj* save(ContextMemoryManager* pcmm) override
+  {
     ++nSaves;
     return new(pcmm) MyContextObj(*this);
   }
 
-  void restore(ContextObj* contextObj) {
-    nCalls = notify.nCalls;
-  }
+  void restore(ContextObj* contextObj) override { nCalls = notify.nCalls; }
 
   void makeCurrent() {
     ContextObj::makeCurrent();
@@ -99,24 +94,20 @@ private:
 
   Context* d_context;
 
-public:
+ public:
+  void setUp() override { d_context = new Context; }
 
-  void setUp() {
-    d_context = new Context;
-  }
+  void tearDown() override { delete d_context; }
 
-  void tearDown() {
-    delete d_context;
-  }
-
-  void testContextPushPop() {
+  void testContextPushPop()
+  {
     // Test what happens when the context is popped below 0
     // the interface doesn't declare any exceptions
     d_context->push();
     d_context->pop();
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS( d_context->pop(), AssertionException );
-    TS_ASSERT_THROWS( d_context->pop(), AssertionException );
+    TS_UTILS_EXPECT_ABORT(d_context->pop());
+    TS_UTILS_EXPECT_ABORT(d_context->pop());
 #endif /* CVC4_ASSERTIONS */
   }
 

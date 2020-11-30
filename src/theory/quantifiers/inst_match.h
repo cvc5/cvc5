@@ -2,10 +2,10 @@
 /*! \file inst_match.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Francois Bobot
+ **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__INST_MATCH_H
-#define __CVC4__THEORY__QUANTIFIERS__INST_MATCH_H
+#ifndef CVC4__THEORY__QUANTIFIERS__INST_MATCH_H
+#define CVC4__THEORY__QUANTIFIERS__INST_MATCH_H
 
 #include <vector>
 
@@ -79,17 +79,15 @@ public:
     out << " )";
   }
   /** get the i^th term in the instantiation */
-  Node get(int i) const;
-  /** append the terms of this instantiation to inst */
-  void getInst(std::vector<Node>& inst) const;
+  Node get(size_t i) const;
   /** set/overwrites the i^th field in the instantiation with n */
-  void setValue( int i, TNode n );
+  void setValue(size_t i, TNode n);
   /** set the i^th term in the instantiation to n
    *
    * This method returns true if the i^th field was previously uninitialized,
    * or is equivalent to n modulo the equalities given by q.
    */
-  bool set(EqualityQuery* q, int i, TNode n);
+  bool set(EqualityQuery* q, size_t i, TNode n);
 };
 
 inline std::ostream& operator<<(std::ostream& out, const InstMatch& m) {
@@ -104,4 +102,4 @@ typedef CVC4::theory::inst::InstMatch InstMatch;
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__INST_MATCH_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__INST_MATCH_H */

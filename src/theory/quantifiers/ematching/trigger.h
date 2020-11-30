@@ -2,10 +2,10 @@
 /*! \file trigger.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__TRIGGER_H
-#define __CVC4__THEORY__QUANTIFIERS__TRIGGER_H
+#ifndef CVC4__THEORY__QUANTIFIERS__TRIGGER_H
+#define CVC4__THEORY__QUANTIFIERS__TRIGGER_H
 
 #include <map>
 
@@ -273,9 +273,13 @@ class Trigger {
    *     in the vector we are returning, e.g. we do not return f( x ) if we are
    *     also returning f( f( x ) ). TODO: revisit this (issue #1211)
    */
-  static void collectPatTerms( Node q, Node n, std::vector< Node >& patTerms, quantifiers::TriggerSelMode tstrt,
-                               std::vector< Node >& exclude, std::map< Node, TriggerTermInfo >& tinfo,
-                               bool filterInst = false );
+  static void collectPatTerms(Node q,
+                              Node n,
+                              std::vector<Node>& patTerms,
+                              options::TriggerSelMode tstrt,
+                              std::vector<Node>& exclude,
+                              std::map<Node, TriggerTermInfo>& tinfo,
+                              bool filterInst = false);
 
   /** Is n a usable trigger in quantified formula q?
    *
@@ -319,9 +323,12 @@ class Trigger {
   static bool isPureTheoryTrigger( Node n );
   /** get trigger weight
    *
-   * Returns 0 for triggers that are easy to process and 1 otherwise.
-   * A trigger is easy to process if it is an atomic trigger, or a relational
-   * trigger of the form x ~ g for ~ \in { =, >=, > }.
+   * Intutively, this function classifies how difficult it is to handle the
+   * trigger term n, where the smaller the value, the easier.
+   *
+   * Returns 0 for triggers that are APPLY_UF terms.
+   * Returns 1 for other triggers whose kind is atomic.
+   * Returns 2 otherwise.
    */
   static int getTriggerWeight( Node n );
   /** Returns whether n is a trigger term with a local theory extension
@@ -377,9 +384,18 @@ class Trigger {
    *
    * We add the triggers we collected recursively in n into added.
    */
-  static void collectPatTerms2( Node q, Node n, std::map< Node, std::vector< Node > >& visited, std::map< Node, TriggerTermInfo >& tinfo, 
-                                quantifiers::TriggerSelMode tstrt, std::vector< Node >& exclude, std::vector< Node >& added,
-                                bool pol, bool hasPol, bool epol, bool hasEPol, bool knowIsUsable = false );
+  static void collectPatTerms2(Node q,
+                               Node n,
+                               std::map<Node, std::vector<Node> >& visited,
+                               std::map<Node, TriggerTermInfo>& tinfo,
+                               options::TriggerSelMode tstrt,
+                               std::vector<Node>& exclude,
+                               std::vector<Node>& added,
+                               bool pol,
+                               bool hasPol,
+                               bool epol,
+                               bool hasEPol,
+                               bool knowIsUsable = false);
 
   /** filter all nodes that have trigger instances
    *
@@ -464,4 +480,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__TRIGGER_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__TRIGGER_H */

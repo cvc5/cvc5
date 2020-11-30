@@ -2,10 +2,10 @@
 /*! \file bv_quick_check.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Morgan Deters
+ **   Liana Hadarean, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -18,6 +18,7 @@
 
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/bitblast/lazy_bitblaster.h"
+#include "theory/bv/bv_solver_lazy.h"
 #include "theory/bv/theory_bv_utils.h"
 
 using namespace CVC4::prop;
@@ -26,11 +27,12 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-BVQuickCheck::BVQuickCheck(const std::string& name, theory::bv::TheoryBV* bv)
-  : d_ctx()
-  , d_bitblaster(new TLazyBitblaster(&d_ctx, bv, name, true))
-  , d_conflict()
-  , d_inConflict(&d_ctx, false)
+BVQuickCheck::BVQuickCheck(const std::string& name,
+                           theory::bv::BVSolverLazy* bv)
+    : d_ctx(),
+      d_bitblaster(new TLazyBitblaster(&d_ctx, bv, name, true)),
+      d_conflict(),
+      d_inConflict(&d_ctx, false)
 {}
 
 
@@ -55,7 +57,7 @@ prop::SatValue BVQuickCheck::checkSat(std::vector<Node>& assumptions, unsigned l
 
   for (unsigned i = 0; i < assumptions.size(); ++i) {
     TNode a = assumptions[i];
-    Assert (a.getType().isBoolean());
+    Assert(a.getType().isBoolean());
     d_bitblaster->bbAtom(a);
     bool ok = d_bitblaster->assertToSat(a, false);
     if (!ok) {
@@ -91,7 +93,7 @@ prop::SatValue BVQuickCheck::checkSat(unsigned long budget) {
 }
 
 bool BVQuickCheck::addAssertion(TNode assertion) {
-  Assert (assertion.getType().isBoolean());
+  Assert(assertion.getType().isBoolean());
   d_bitblaster->bbAtom(assertion);
   // assert to sat solver and run bcp to detect easy conflicts
   bool ok = d_bitblaster->assertToSat(assertion, true);
@@ -138,14 +140,14 @@ void BVQuickCheck::popToZero() {
   }
 }
 
-bool BVQuickCheck::collectModelInfo(theory::TheoryModel* model, bool fullModel)
+bool BVQuickCheck::collectModelValues(theory::TheoryModel* model,
+                                      const std::set<Node>& termSet)
 {
-  return d_bitblaster->collectModelInfo(model, fullModel);
+  return d_bitblaster->collectModelValues(model, termSet);
 }
 
 BVQuickCheck::~BVQuickCheck() {
   clearSolver();
-  delete d_bitblaster;
 }
 
 QuickXPlain::QuickXPlain(const std::string& name, BVQuickCheck* solver, unsigned long budget)
@@ -163,9 +165,7 @@ QuickXPlain::~QuickXPlain() {}
 
 unsigned QuickXPlain::selectUnsatCore(unsigned low, unsigned high,
                                       std::vector<TNode>& conflict) {
-
-  Assert(!d_solver->getConflict().isNull() &&
-         d_solver->inConflict());
+  Assert(!d_solver->getConflict().isNull() && d_solver->inConflict());
   Node query_confl = d_solver->getConflict();
 
   // conflict wasn't actually minimized
@@ -191,24 +191,23 @@ unsigned QuickXPlain::selectUnsatCore(unsigned low, unsigned high,
   if (write == low) {
     return low;
   }
-  Assert (write != 0);
+  Assert(write != 0);
   unsigned new_high = write - 1;
 
   for (TNodeSet::const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
     conflict[write++] = *it;
   }
-  Assert (write -1 == high);
-  Assert (new_high <= high);
-  
+  Assert(write - 1 == high);
+  Assert(new_high <= high);
+
   return new_high;
 }
 
 void QuickXPlain::minimizeConflictInternal(unsigned low, unsigned high,
                                            std::vector<TNode>& conflict,
                                            std::vector<TNode>& new_conflict) {
+  Assert(low <= high && high < conflict.size());
 
-  Assert (low <= high && high < conflict.size());
-  
   if (low == high) {
     new_conflict.push_back(conflict[low]);
     return;
@@ -324,7 +323,7 @@ Node QuickXPlain::minimizeConflict(TNode confl) {
   ++d_numCalled;
   ++(d_statistics.d_numConflictsMinimized);
   TimerStat::CodeTimer xplainTimer(d_statistics.d_xplainTime);
-  Assert (confl.getNumChildren() > 2);
+  Assert(confl.getNumChildren() > 2);
   std::vector<TNode> conflict;
   for (unsigned i = 0; i < confl.getNumChildren(); ++i) {
     conflict.push_back(confl[i]);

@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Tim King, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -478,7 +478,6 @@ protected:
 
     Assert(newEntry.getCoefficient() != 0);
 
-
     ++d_entriesInUse;
 
     d_rows[row].insert(newId);
@@ -650,7 +649,6 @@ public:
 
     Assert(mult != 0);
 
-
     RowIterator i = getRow(to).begin();
     RowIterator i_end = getRow(to).end();
     while(i != i_end){
@@ -709,7 +707,6 @@ public:
     Assert(debugNoZeroCoefficients(d_rowInMergeBuffer));
 
     Assert(mult != 0);
-
 
     RowIterator i = getRow(to).begin();
     RowIterator i_end = getRow(to).end();

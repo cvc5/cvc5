@@ -2,10 +2,10 @@
 /*! \file context_white.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters, Andres Noetzli, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,9 +16,9 @@
 
 #include <cxxtest/TestSuite.h>
 
-#include "base/cvc4_assert.h"
-#include "context/context.h"
+#include "base/check.h"
 #include "context/cdo.h"
+#include "context/context.h"
 
 using namespace std;
 using namespace CVC4;
@@ -29,18 +29,14 @@ private:
 
   Context* d_context;
 
-public:
+ public:
+  void setUp() override { d_context = new Context; }
 
-  void setUp() {
-    d_context = new Context;
-  }
+  void tearDown() override { delete d_context; }
 
-  void tearDown() {
-    delete d_context;
-  }
-
-  void testContextSimple() {
-    Scope *s = d_context->getTopScope();
+  void testContextSimple()
+  {
+    Scope* s = d_context->getTopScope();
 
     TS_ASSERT(s == d_context->getBottomScope());
     TS_ASSERT(d_context->getLevel() == 0);

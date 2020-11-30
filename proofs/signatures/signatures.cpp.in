@@ -1,0 +1,10 @@
+namespace CVC4 {
+namespace proof {
+
+extern const char *const plf_signatures;
+const char *const plf_signatures = "\
+@CORE_SIGNATURES@\
+";
+
+}  // namespace proof
+}  // namespace CVC4

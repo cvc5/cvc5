@@ -1,4 +1,4 @@
-% EXPECT: valid
+% EXPECT: entailed
 
 % simple test for rewriter cases
 

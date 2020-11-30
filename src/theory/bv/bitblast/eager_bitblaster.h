@@ -2,10 +2,10 @@
 /*! \file eager_bitblaster.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Mathias Preiner, Andres Noetzli
+ **   Mathias Preiner, Liana Hadarean, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__BV__BITBLAST__EAGER_BITBLASTER_H
-#define __CVC4__THEORY__BV__BITBLAST__EAGER_BITBLASTER_H
+#ifndef CVC4__THEORY__BV__BITBLAST__EAGER_BITBLASTER_H
+#define CVC4__THEORY__BV__BITBLAST__EAGER_BITBLASTER_H
 
 #include <unordered_set>
 
@@ -31,12 +31,12 @@ namespace theory {
 namespace bv {
 
 class BitblastingRegistrar;
-class TheoryBV;
+class BVSolverLazy;
 
 class EagerBitblaster : public TBitblaster<Node>
 {
  public:
-  EagerBitblaster(TheoryBV* theory_bv);
+  EagerBitblaster(BVSolverLazy* theory_bv, context::Context* context);
   ~EagerBitblaster();
 
   void addAtom(TNode atom);
@@ -51,19 +51,17 @@ class EagerBitblaster : public TBitblaster<Node>
 
   bool assertToSat(TNode node, bool propagate = true);
   bool solve();
+  bool solve(const std::vector<Node>& assumptions);
   bool collectModelInfo(TheoryModel* m, bool fullModel);
-  void setProofLog(BitVectorProof* bvp);
 
  private:
-  std::unique_ptr<context::Context> d_nullContext;
+  context::Context* d_context;
 
   typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
-  // sat solver used for bitblasting and associated CnfStream
   std::unique_ptr<prop::SatSolver> d_satSolver;
   std::unique_ptr<BitblastingRegistrar> d_bitblastingRegistrar;
-  std::unique_ptr<prop::CnfStream> d_cnfStream;
 
-  TheoryBV* d_bv;
+  BVSolverLazy* d_bv;
   TNodeSet d_bbAtoms;
   TNodeSet d_variables;
 
@@ -71,6 +69,7 @@ class EagerBitblaster : public TBitblaster<Node>
   std::unique_ptr<MinisatEmptyNotify> d_notify;
 
   Node getModelFromSatSolver(TNode a, bool fullModel) override;
+  prop::SatSolver* getSatSolver() override { return d_satSolver.get(); }
   bool isSharedTerm(TNode node);
 };
 
@@ -87,4 +86,4 @@ class BitblastingRegistrar : public prop::Registrar
 }  // namespace bv
 }  // namespace theory
 }  // namespace CVC4
-#endif  //  __CVC4__THEORY__BV__BITBLAST__EAGER_BITBLASTER_H
+#endif  //  CVC4__THEORY__BV__BITBLAST__EAGER_BITBLASTER_H

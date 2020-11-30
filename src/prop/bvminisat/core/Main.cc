@@ -23,12 +23,11 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <signal.h>
 #include <zlib.h>
 
-#include "utils/System.h"
-#include "utils/ParseUtils.h"
-#include "utils/Options.h"
-#include "core/Dimacs.h"
-#include "core/Solver.h"
-
+#include "prop/bvminisat/core/Dimacs.h"
+#include "prop/bvminisat/core/Solver.h"
+#include "prop/bvminisat/utils/Options.h"
+#include "prop/bvminisat/utils/ParseUtils.h"
+#include "prop/bvminisat/utils/System.h"
 
 namespace CVC4 {
 namespace BVMinisat {

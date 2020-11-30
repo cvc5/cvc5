@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 (set-logic LIA)
 (synth-fun inv ((l Int)) Bool
     (
@@ -8,9 +8,9 @@
         (AtomicFormula Bool ((<= Sum Const) (= Sum Const)))
         (Sum Int ((+ Term Term)))
         (Term Int ((* Sign Var)))
-        (Sign Int (0 1 -1))
+        (Sign Int (0 1 (- 1)))
         (Var Int (l))
-        (Const Int (-3 -2 -1 0 1 2 3))
+        (Const Int ((- 3) (- 2) (- 1) 0 1 2 3))
     )
 )
 
@@ -36,11 +36,11 @@
 (declare-var x4p Int)
 
 (constraint (implies (and6 (= l 0) (or (= x0p (+ x0 1)) (= x0p (- x0 1))) 
-				  (or (= x1p (+ x1 1)) (= x1p (- x1 1)))
-				  (or (= x2p (+ x2 1)) (= x2p (- x2 1)))
-				  (or (= x3p (+ x3 1)) (= x3p (- x3 1)))
-				  (or (= x4p (+ x4 1)) (= x4p (- x4 1)))) 
-		     (inv l)))
+                  (or (= x1p (+ x1 1)) (= x1p (- x1 1)))
+                  (or (= x2p (+ x2 1)) (= x2p (- x2 1)))
+                  (or (= x3p (+ x3 1)) (= x3p (- x3 1)))
+                  (or (= x4p (+ x4 1)) (= x4p (- x4 1)))) 
+             (inv l)))
 (constraint (implies (and (inv l) (not (= l 0))) false))
 
 (check-synth)

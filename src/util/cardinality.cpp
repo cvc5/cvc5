@@ -2,10 +2,10 @@
 /*! \file cardinality.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,7 +16,7 @@
 
 #include "util/cardinality.h"
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 
 namespace CVC4 {
 
@@ -174,9 +174,10 @@ Cardinality& Cardinality::operator^=(const Cardinality& c) {
     // inf ^ finite == inf
     return *this;
   } else {
-    Assert(compare(2) != LESS && !c.isFinite(),
-           "fall-through case not as expected:\n%s\n%s",
-           this->toString().c_str(), c.toString().c_str());
+    Assert(compare(2) != LESS && !c.isFinite())
+        << "fall-through case not as expected:\n"
+        << this << "\n"
+        << c;
     // (>= 2) ^ beth_k == beth_(k+1)
     // unless the base is already > the exponent
     if (compare(c) == GREATER) {

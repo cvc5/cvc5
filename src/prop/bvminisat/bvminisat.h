@@ -2,10 +2,10 @@
 /*! \file bvminisat.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Mathias Preiner, Liana Hadarean
+ **   Mathias Preiner, Liana Hadarean, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -21,9 +21,10 @@
 #include <memory>
 
 #include "context/cdo.h"
-#include "proof/clause_id.h"
+#include "prop/bv_sat_solver_notify.h"
 #include "prop/bvminisat/simp/SimpSolver.h"
 #include "prop/sat_solver.h"
+#include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -35,24 +36,27 @@ class BVMinisatSatSolver : public BVSatSolverInterface,
  private:
   class MinisatNotify : public BVMinisat::Notify
   {
-    BVSatSolverInterface::Notify* d_notify;
+    BVSatSolverNotify* d_notify;
 
    public:
-    MinisatNotify(BVSatSolverInterface::Notify* notify) : d_notify(notify) {}
+    MinisatNotify(BVSatSolverNotify* notify) : d_notify(notify) {}
     bool notify(BVMinisat::Lit lit) override
     {
       return d_notify->notify(toSatLiteral(lit));
     }
     void notify(BVMinisat::vec<BVMinisat::Lit>& clause) override;
-    void spendResource(unsigned amount) override
+    void spendResource(ResourceManager::Resource r) override
     {
-      d_notify->spendResource(amount);
+      d_notify->spendResource(r);
     }
-    void safePoint(unsigned amount) override { d_notify->safePoint(amount); }
+    void safePoint(ResourceManager::Resource r) override
+    {
+      d_notify->safePoint(r);
+    }
   };
 
-	std::unique_ptr<BVMinisat::SimpSolver> d_minisat;
-	std::unique_ptr<MinisatNotify> d_minisatNotify;
+  std::unique_ptr<BVMinisat::SimpSolver> d_minisat;
+  std::unique_ptr<MinisatNotify> d_minisatNotify;
 
   unsigned d_assertionsCount;
   context::CDO<unsigned> d_assertionsRealCount;
@@ -66,13 +70,14 @@ public:
   BVMinisatSatSolver(StatisticsRegistry* registry, context::Context* mainSatContext, const std::string& name = "");
   virtual ~BVMinisatSatSolver();
 
-  void setNotify(Notify* notify) override;
+  void setNotify(BVSatSolverNotify* notify) override;
 
   ClauseId addClause(SatClause& clause, bool removable) override;
 
   ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override
   {
-    Unreachable("Minisat does not support native XOR reasoning");
+    Unreachable() << "Minisat does not support native XOR reasoning";
+    return ClauseIdError;
   }
 
   SatValue propagate() override;
@@ -117,11 +122,9 @@ public:
 
   void popAssumption() override;
 
-  void setProofLog(BitVectorProof* bvp) override;
-
  private:
   /* Disable the default constructor. */
-  BVMinisatSatSolver() CVC4_UNDEFINED;
+  BVMinisatSatSolver() = delete;
 
   class Statistics {
   public:

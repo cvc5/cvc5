@@ -1,0 +1,95 @@
+; Deps: sat.plf smt.plf th_base.plf th_quant.plf
+
+; --------------------------------------------------------------------------------
+; literals :
+; L1 : forall x. x != x
+; L2 : t = t
+
+; input :
+; L1
+
+; (instantiation) lemma : 
+; L1 => L2
+
+; theory conflicts :
+; ~L2
+
+
+;  With the theory lemma, the input is unsatisfiable.
+; --------------------------------------------------------------------------------
+
+
+; (0) -------------------- term declarations -----------------------------------
+
+(check
+(% s sort
+(% t (term s)
+
+
+; (1) -------------------- input formula -----------------------------------
+
+(% x (term s)
+(% A1 (th_holds (forall _ x (not (= _ x x))))
+
+
+
+; (2) ------------------- specify that the following is a proof of the empty clause -----------------
+
+(: (holds cln)
+
+
+
+; (3) -------------------- theory lemmas prior to rewriting/preprocess/CNF -----------------
+;     ---  these should introduce (th_holds ...)
+
+
+; instantiation lemma
+(inst _ _ _ t (not (= _ t t)) A1 (\ A2
+
+
+
+
+; (4) -------------------- map theory literals to boolean variables
+;     --- maps all theory literals involved in proof to boolean literals
+
+(decl_atom (forall _ x (not (= _ x x))) (\ v1 (\ a1
+(decl_atom (= _ t t) (\ v2 (\ a2
+
+
+
+
+; (5) -------------------- theory conflicts ---------------------------------------------
+;     ---  these should introduce (holds ...)
+
+(satlem _ _
+(asf _ _ _ a2 (\ l2
+(clausify_false
+
+   (contra _ (refl _ t) l2)
+   
+))) (\ CT1
+; CT1 is the clause ( v2 )
+
+
+; (6) -------------------- clausification -----------------------------------------
+;     ---  these should introduce (holds ...)
+
+(satlem _ _
+(ast _ _ _ a2 (\ l2
+(clausify_false
+
+  (contra _ l2 A2)
+
+))) (\ C1
+; C1 is the clause ( ~v2 )
+
+
+; (7) -------------------- resolution proof ------------------------------------------------------------
+
+(satlem_simplify _ _ _
+
+(R _ _ CT1 C1 v2)
+
+(\ x x))
+
+))))))))))))))))))

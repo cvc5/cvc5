@@ -2,10 +2,10 @@
 /*! \file type_cardinality_public.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters
+ **   Morgan Deters, Andres Noetzli, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -17,12 +17,14 @@
 #include <cxxtest/TestSuite.h>
 
 #include <iostream>
-#include <string>
 #include <sstream>
+#include <string>
 
-#include "expr/kind.h"
-#include "expr/type.h"
+#include "api/cvc4cpp.h"
 #include "expr/expr_manager.h"
+#include "expr/kind.h"
+#include "expr/node_manager.h"
+#include "expr/type.h"
 #include "util/cardinality.h"
 
 using namespace CVC4;
@@ -30,22 +32,25 @@ using namespace CVC4::kind;
 using namespace std;
 
 class TypeCardinalityPublic : public CxxTest::TestSuite {
-  ExprManager* d_em;
-
-public:
-
-  void setUp() {
-    d_em = new ExprManager();
+ public:
+  void setUp() override
+  {
+    d_slv = new api::Solver();
+    d_em = d_slv->getExprManager();
+    d_nm = d_slv->getNodeManager();
   }
 
-  void tearDown() {
-    delete d_em;
-  }
+  void tearDown() override { delete d_slv; }
 
-  void testTheBasics() {
-    TS_ASSERT( d_em->booleanType().getCardinality().compare(2) == Cardinality::EQUAL );
-    TS_ASSERT( d_em->integerType().getCardinality().compare(Cardinality::INTEGERS) == Cardinality::EQUAL );
-    TS_ASSERT( d_em->realType().getCardinality().compare(Cardinality::REALS) == Cardinality::EQUAL );
+  void testTheBasics()
+  {
+    TS_ASSERT(d_em->booleanType().getCardinality().compare(2)
+              == Cardinality::EQUAL);
+    TS_ASSERT(
+        d_em->integerType().getCardinality().compare(Cardinality::INTEGERS)
+        == Cardinality::EQUAL);
+    TS_ASSERT(d_em->realType().getCardinality().compare(Cardinality::REALS)
+              == Cardinality::EQUAL);
   }
 
   void testArrays() {
@@ -177,15 +182,20 @@ public:
   }
 
   void testTernaryFunctions() {
-    vector<Type> boolbool; boolbool.push_back(d_em->booleanType()); boolbool.push_back(d_em->booleanType());
-    vector<Type> boolboolbool = boolbool; boolboolbool.push_back(d_em->booleanType());
+    vector<TypeNode> boolbool;
+    boolbool.push_back(d_nm->booleanType());
+    boolbool.push_back(d_nm->booleanType());
+    vector<TypeNode> boolboolbool = boolbool;
+    boolboolbool.push_back(d_nm->booleanType());
 
-    Type boolboolTuple = d_em->mkTupleType(boolbool);
-    Type boolboolboolTuple = d_em->mkTupleType(boolboolbool);
+    TypeNode boolboolTuple = d_nm->mkTupleType(boolbool);
+    TypeNode boolboolboolTuple = d_nm->mkTupleType(boolboolbool);
 
-    Type boolboolboolToBool = d_em->mkFunctionType(boolboolbool, d_em->booleanType());
-    Type boolboolToBoolbool = d_em->mkFunctionType(boolbool, boolboolTuple);
-    Type boolToBoolboolbool = d_em->mkFunctionType(d_em->booleanType(), boolboolboolTuple);
+    TypeNode boolboolboolToBool =
+        d_nm->mkFunctionType(boolboolbool, d_nm->booleanType());
+    TypeNode boolboolToBoolbool = d_nm->mkFunctionType(boolbool, boolboolTuple);
+    TypeNode boolToBoolboolbool =
+        d_nm->mkFunctionType(d_nm->booleanType(), boolboolboolTuple);
 
     TS_ASSERT( boolboolboolToBool.getCardinality().compare(/* 2 ^ 8 */ 1 << 8) == Cardinality::EQUAL );
     TS_ASSERT( boolboolToBoolbool.getCardinality().compare(/* 4 ^ 4 */ 4 * 4 * 4 * 4) == Cardinality::EQUAL );
@@ -226,4 +236,8 @@ public:
     }
   }
 
+ private:
+  api::Solver* d_slv;
+  ExprManager* d_em;
+  NodeManager* d_nm;
 };/* TypeCardinalityPublic */

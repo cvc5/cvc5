@@ -1,0 +1,16 @@
+(set-logic QF_AUFLIA)
+(set-option :arrays-exp true)
+(set-option :quiet true) ; Suppress Warning
+(set-info :status sat)
+(declare-fun a1 () (Array Int Int))
+(declare-fun a2 () (Array Int Int))
+(declare-fun e1 () Int)
+(declare-fun e2 () Int)
+(assert (distinct e1 e2))
+(assert (= a1 (store (store (store (store a1 0 e1) 1 e1) 2 e1) 3 e1)))
+(assert (= a2 (store (store (store (store a2 1 e1) 0 e1) 2 e2) 3 e1)))
+(assert (eqrange a1 a2 (- 1) 1))
+(assert (eqrange a1 a2 3 3))
+(check-sat)
+(exit)
+

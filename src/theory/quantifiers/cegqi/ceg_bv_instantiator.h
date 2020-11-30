@@ -2,10 +2,10 @@
 /*! \file ceg_bv_instantiator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ **   Andrew Reynolds, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H
-#define __CVC4__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H
+#ifndef CVC4__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H
+#define CVC4__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H
 
 #include <unordered_map>
 #include "theory/quantifiers/bv_inverter.h"
@@ -38,7 +38,7 @@ namespace quantifiers {
 class BvInstantiator : public Instantiator
 {
  public:
-  BvInstantiator(QuantifiersEngine* qe, TypeNode tn);
+  BvInstantiator(TypeNode tn, BvInverter* inv);
   ~BvInstantiator() override;
   /** reset */
   void reset(CegInstantiator* ci,
@@ -118,8 +118,6 @@ class BvInstantiator : public Instantiator
   /** the amount of slack we added for asserted literals */
   std::unordered_map<Node, Node, NodeHashFunction> d_alit_to_model_slack;
   //--------------------------------end solved forms
-  /** whether we have tried an instantiation based on assertion in this round */
-  bool d_tried_assertion_inst;
   /** rewrite assertion for solve pv
    *
    * Returns a literal that is equivalent to lit that leads to best solved form
@@ -142,7 +140,7 @@ class BvInstantiator : public Instantiator
       Node pv,
       Node n,
       std::vector<Node>& children,
-      std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv);
+      std::unordered_map<Node, bool, NodeHashFunction>& contains_pv);
   /** process literal, called from processAssertion
    *
    * lit is the literal to solve for pv that has been rewritten according to
@@ -170,32 +168,32 @@ class BvInstantiatorPreprocess : public InstantiatorPreprocess
   ~BvInstantiatorPreprocess() override {}
   /** register counterexample lemma
    *
-   * This method modifies the contents of lems based on the extract terms
-   * it contains when the option --cbqi-bv-rm-extract is enabled. It introduces
+   * This method adds to auxLems based on the extract terms that lem
+   * contains when the option --cbqi-bv-rm-extract is enabled. It introduces
    * a dummy equality so that segments of terms t under extracts can be solved
    * independently.
    *
-   * For example:
+   * For example, if lem is:
    *   P[ ((extract 7 4) t), ((extract 3 0) t)]
-   *     becomes:
-   *   P[((extract 7 4) t), ((extract 3 0) t)] ^
+   *     then we add:
    *   t = concat( x74, x30 )
-   * where x74 and x30 are fresh variables of type BV_4.
+   * to auxLems, where x74 and x30 are fresh variables of type BV_4, which are
+   * added to ceVars.
    *
-   * Another example:
+   * Another example, for:
    *   P[ ((extract 7 3) t), ((extract 4 0) t)]
-   *     becomes:
-   *   P[((extract 7 4) t), ((extract 3 0) t)] ^
+   *     we add:
    *   t = concat( x75, x44, x30 )
-   * where x75, x44 and x30 are fresh variables of type BV_3, BV_1, and BV_4
-   * respectively.
+   * to auxLems where x75, x44 and x30 are fresh variables of type BV_3, BV_1,
+   * and BV_4 respectively, which are added to ceVars.
    *
-   * Notice we leave the original conjecture alone. This is done for performance
+   * Notice we leave the original lem alone. This is done for performance
    * since the added equalities ensure we are able to construct the proper
    * solved forms for variables in t and for the intermediate variables above.
    */
-  void registerCounterexampleLemma(std::vector<Node>& lems,
-                                   std::vector<Node>& ce_vars) override;
+  void registerCounterexampleLemma(Node lem,
+                                   std::vector<Node>& ceVars,
+                                   std::vector<Node>& auxLems) override;
 
  private:
   /** collect extracts
@@ -213,4 +211,4 @@ class BvInstantiatorPreprocess : public InstantiatorPreprocess
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H */

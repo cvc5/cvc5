@@ -2,10 +2,10 @@
 /*! \file ceg_dt_instantiator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,9 +14,12 @@
 
 #include "theory/quantifiers/cegqi/ceg_dt_instantiator.h"
 
+#include "expr/dtype.h"
+#include "expr/node_algorithm.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
+
 using namespace std;
 using namespace CVC4::kind;
-using namespace CVC4::context;
 
 namespace CVC4 {
 namespace theory {
@@ -27,6 +30,14 @@ void DtInstantiator::reset(CegInstantiator* ci,
                            Node pv,
                            CegInstEffort effort)
 {
+}
+
+bool DtInstantiator::hasProcessEqualTerm(CegInstantiator* ci,
+                                         SolvedForm& sf,
+                                         Node pv,
+                                         CegInstEffort effort)
+{
+  return true;
 }
 
 bool DtInstantiator::processEqualTerms(CegInstantiator* ci,
@@ -48,16 +59,14 @@ bool DtInstantiator::processEqualTerms(CegInstantiator* ci,
           << "...try based on constructor term " << n << std::endl;
       std::vector<Node> children;
       children.push_back(n.getOperator());
-      const Datatype& dt =
-          static_cast<DatatypeType>(d_type.toType()).getDatatype();
-      unsigned cindex = Datatype::indexOf(n.getOperator().toExpr());
+      const DType& dt = d_type.getDType();
+      unsigned cindex = datatypes::utils::indexOf(n.getOperator());
       // now must solve for selectors applied to pv
       for (unsigned j = 0, nargs = dt[cindex].getNumArgs(); j < nargs; j++)
       {
-        Node c = nm->mkNode(
-            APPLY_SELECTOR_TOTAL,
-            Node::fromExpr(dt[cindex].getSelectorInternal(d_type.toType(), j)),
-            pv);
+        Node c = nm->mkNode(APPLY_SELECTOR_TOTAL,
+                            dt[cindex].getSelectorInternal(d_type, j),
+                            pv);
         ci->pushStackVariable(c);
         children.push_back(c);
       }
@@ -137,15 +146,13 @@ Node DtInstantiator::solve_dt(Node v, Node a, Node b, Node sa, Node sb)
     else
     {
       NodeManager* nm = NodeManager::currentNM();
-      unsigned cindex = Datatype::indexOf(a.getOperator().toExpr());
+      unsigned cindex = DType::indexOf(a.getOperator().toExpr());
       TypeNode tn = a.getType();
-      const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+      const DType& dt = tn.getDType();
       for (unsigned i = 0, nchild = a.getNumChildren(); i < nchild; i++)
       {
         Node nn = nm->mkNode(
-            APPLY_SELECTOR_TOTAL,
-            Node::fromExpr(dt[cindex].getSelectorInternal(tn.toType(), i)),
-            sb);
+            APPLY_SELECTOR_TOTAL, dt[cindex].getSelectorInternal(tn, i), sb);
         Node s = solve_dt(v, a[i], Node::null(), sa[i], nn);
         if (!s.isNull())
         {
@@ -162,7 +169,7 @@ Node DtInstantiator::solve_dt(Node v, Node a, Node b, Node sa, Node sb)
   if (!ret.isNull())
   {
     // ensure does not contain v
-    if (ret.hasSubterm(v))
+    if (expr::hasSubterm(ret, v))
     {
       ret = Node::null();
     }

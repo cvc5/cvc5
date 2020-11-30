@@ -2,10 +2,10 @@
 /*! \file sets_translate.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King, Mathias Preiner
+ **   Kshitij Bansal, Andres Noetzli, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -23,14 +23,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "expr/expr.h"
-#include "options/language.h"
-#include "options/options.h"
-#include "options/set_language.h"
-#include "parser/parser.h"
-#include "parser/parser_builder.h"
-#include "smt/command.h"
-#include "theory/logic_info.h"
+#include <cvc4/api/cvc4cpp.h>
+#include <cvc4/cvc4.h>
+#include <cvc4/options/set_language.h>
 
 using namespace std;
 using namespace CVC4;
@@ -203,7 +198,7 @@ class Mapper {
     } else {
       vector<Expr> children = e.getChildren();
       children.insert(children.begin(), setoperators[ make_pair(t, e.getKind()) ]);
-      ret = em->mkExpr(kind::APPLY, children);
+      ret = em->mkExpr(kind::APPLY_UF, children);
     }
     // cout << "returning " << ret  << endl;
     return ret;
@@ -268,14 +263,16 @@ int main(int argc, char* argv[])
     options.setInputLanguage(language::input::LANG_SMTLIB_V2);
     cout << language::SetLanguage(language::output::LANG_SMTLIB_V2);
     // cout << Expr::dag(0);
-    ExprManager exprManager(options);
+    std::unique_ptr<api::Solver> solver =
+        std::unique_ptr<api::Solver>(new api::Solver(&options));
 
-    Mapper m(&exprManager);
+    Mapper m(solver->getExprManager());
 
     // Create the parser
-    ParserBuilder parserBuilder(&exprManager, input, options);
+    ParserBuilder parserBuilder(solver.get(), input, options);
     if(input == "<stdin>") parserBuilder.withStreamInput(cin);
-    Parser* parser = parserBuilder.build();
+    std::unique_ptr<Parser> parser;
+    parser.reset(parserBuilder.build());
 
     // Variables and assertions
     vector<string> variables;
@@ -344,16 +341,26 @@ int main(int argc, char* argv[])
       DefineFunctionCommand* definefun = dynamic_cast<DefineFunctionCommand*>(cmd);
 
       Command* new_cmd = NULL;
-      if(assert) {
+      if (assert)
+      {
         Expr newexpr = m.collectSortsExpr(assert->getExpr());
         new_cmd = new AssertCommand(newexpr);
-      } else if(declarefun) {
+      }
+      else if (declarefun)
+      {
         Expr newfunc = m.collectSortsExpr(declarefun->getFunction());
-        new_cmd = new DeclareFunctionCommand(declarefun->getSymbol(), newfunc, declarefun->getType());
-      } else if(definefun) {
+        new_cmd = new DeclareFunctionCommand(
+            declarefun->getSymbol(), newfunc, declarefun->getType());
+      }
+      else if (definefun)
+      {
         Expr newfunc = m.collectSortsExpr(definefun->getFunction());
         Expr newformula = m.collectSortsExpr(definefun->getFormula());
-        new_cmd = new DefineFunctionCommand(definefun->getSymbol(), newfunc, definefun->getFormals(), newformula);
+        new_cmd = new DefineFunctionCommand(definefun->getSymbol(),
+                                            newfunc,
+                                            definefun->getFormals(),
+                                            newformula,
+                                            false);
       }
 
       if(new_cmd == NULL) {

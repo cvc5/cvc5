@@ -1,0 +1,8 @@
+(set-option :incremental false)
+(set-info :status sat)
+(set-logic QF_AUFBV)
+(declare-fun v1 () (_ BitVec 3))
+(declare-fun v2 () (_ BitVec 11))
+(declare-fun a9 () (Array (_ BitVec 8) (_ BitVec 5)))
+(declare-fun a6 () (Array (_ BitVec 1) (_ BitVec 13)))
+(check-sat-assuming ( (let ((_let_0 (bvnor v2 ((_ zero_extend 8) v1)))) (= (_ bv0 15) ((_ zero_extend 2) (select (store a6 (_ bv0 1) ((_ zero_extend 8) (select (store a9 ((_ extract 7 0) _let_0) (_ bv0 5)) (_ bv0 8)))) ((_ extract 0 0) _let_0))))) ))

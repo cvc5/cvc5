@@ -2,10 +2,10 @@
 /*! \file smt2toredlog.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Tim King, Andrew Reynolds
+ **   Dejan Jovanovic, Andrew Reynolds, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -22,12 +22,8 @@
 #include <typeinfo>
 #include <vector>
 
-#include "expr/expr.h"
-#include "options/options.h"
-#include "parser/parser.h"
-#include "parser/parser_builder.h"
-#include "smt/command.h"
-#include "smt/smt_engine.h"
+#include <cvc4/api/cvc4cpp.h>
+#include <cvc4/cvc4.h>
 
 using namespace std;
 using namespace CVC4;
@@ -53,14 +49,12 @@ int main(int argc, char* argv[])
   // Create the expression manager
   Options options;
   options.setInputLanguage(language::input::LANG_SMTLIB_V2);
-  ExprManager exprManager(options);
+  std::unique_ptr<api::Solver> solver =
+      std::unique_ptr<api::Solver>(new api::Solver(&options));
 
   // Create the parser
-  ParserBuilder parserBuilder(&exprManager, input, options);
+  ParserBuilder parserBuilder(solver.get(), input, options);
   Parser* parser = parserBuilder.build();
-
-  // Smt manager for simplifications
-  SmtEngine engine(&exprManager);
 
   // Variables and assertions
   std::map<Expr, unsigned> variables;
@@ -82,7 +76,7 @@ int main(int argc, char* argv[])
     DeclareFunctionCommand* declare = dynamic_cast<DeclareFunctionCommand*>(cmd);
     if (declare) {
       string name = declare->getSymbol();
-      Expr var = parser->getVariable(name);
+      Expr var = parser->getVariable(name).getExpr();
       unsigned n = variables.size();
       variables[var] = n;
       delete cmd;
@@ -91,7 +85,7 @@ int main(int argc, char* argv[])
     
     AssertCommand* assert = dynamic_cast<AssertCommand*>(cmd);
     if (assert) {
-      assertions.push_back(engine.simplify(assert->getExpr()));
+      assertions.push_back(solver->getSmtEngine()->simplify(assert->getExpr()));
       delete cmd;
       continue;
     }

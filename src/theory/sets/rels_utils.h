@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,6 +16,9 @@
 
 #ifndef SRC_THEORY_SETS_RELS_UTILS_H_
 #define SRC_THEORY_SETS_RELS_UTILS_H_
+
+#include "expr/dtype.h"
+#include "expr/node.h"
 
 namespace CVC4 {
 namespace theory {
@@ -67,26 +70,28 @@ public:
       return tuple[n_th];
     }
     TypeNode tn = tuple.getType();
-    Datatype dt = tn.getDatatype();
-    return NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal( tn.toType(), n_th ), tuple);
+    const DType& dt = tn.getDType();
+    return NodeManager::currentNM()->mkNode(
+        kind::APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal(tn, n_th), tuple);
   } 
   
   static Node reverseTuple( Node tuple ) {
-    Assert( tuple.getType().isTuple() );
+    Assert(tuple.getType().isTuple());
     std::vector<Node> elements;
     std::vector<TypeNode> tuple_types = tuple.getType().getTupleTypes();
     std::reverse( tuple_types.begin(), tuple_types.end() );
     TypeNode tn = NodeManager::currentNM()->mkTupleType( tuple_types );
-    Datatype dt = tn.getDatatype();
-    elements.push_back( Node::fromExpr(dt[0].getConstructor() ) );
+    const DType& dt = tn.getDType();
+    elements.push_back(dt[0].getConstructor());
     for(int i = tuple_types.size() - 1; i >= 0; --i) {
       elements.push_back( nthElementOfTuple(tuple, i) );
     }
     return NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, elements );
   }
   static Node constructPair(Node rel, Node a, Node b) {
-    Datatype dt = rel.getType().getSetElementType().getDatatype();
-    return NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, Node::fromExpr(dt[0].getConstructor()), a, b);
+    const DType& dt = rel.getType().getSetElementType().getDType();
+    return NodeManager::currentNM()->mkNode(
+        kind::APPLY_CONSTRUCTOR, dt[0].getConstructor(), a, b);
   }     
     
 };             

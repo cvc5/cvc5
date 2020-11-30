@@ -1,0 +1,10 @@
+% EXPECT: entailed
+
+x : BITVECTOR(4);
+
+QUERY
+( BVUDIV(x, 0bin0000) = 0bin1111 ) AND
+( BVUREM(x, 0bin0000) = x ) AND
+( BVSDIV(x, 0bin0000) = 0bin1111 OR BVSDIV(x, 0bin0000) = 0bin0001 ) AND
+( BVSREM(x, 0bin0000) = x ) AND
+( BVSMOD(x, 0bin0000) = x );

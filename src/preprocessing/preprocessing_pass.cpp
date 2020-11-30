@@ -2,10 +2,10 @@
 /*! \file preprocessing_pass.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Justin Xu, Aina Niemetz
+ **   Justin Xu, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,48 +16,12 @@
 
 #include "preprocessing/preprocessing_pass.h"
 
-#include "expr/node_manager.h"
-#include "proof/proof.h"
 #include "smt/dump.h"
 #include "smt/smt_statistics_registry.h"
+#include "printer/printer.h"
 
 namespace CVC4 {
 namespace preprocessing {
-
-AssertionPipeline::AssertionPipeline(context::Context* context)
-    : d_substitutionsIndex(context, 0), d_topLevelSubstitutions(context)
-{
-}
-
-void AssertionPipeline::replace(size_t i, Node n) {
-  PROOF(ProofManager::currentPM()->addDependence(n, d_nodes[i]););
-  d_nodes[i] = n;
-}
-
-void AssertionPipeline::replace(size_t i,
-                                Node n,
-                                const std::vector<Node>& addnDeps)
-{
-  PROOF(ProofManager::currentPM()->addDependence(n, d_nodes[i]);
-        for (const auto& addnDep
-             : addnDeps) {
-          ProofManager::currentPM()->addDependence(n, addnDep);
-        });
-  d_nodes[i] = n;
-}
-
-void AssertionPipeline::replace(size_t i, const std::vector<Node>& ns)
-{
-  PROOF(
-      for (const auto& n
-           : ns) { ProofManager::currentPM()->addDependence(n, d_nodes[i]); });
-  d_nodes[i] = NodeManager::currentNM()->mkConst<bool>(true);
-
-  for (const auto& n : ns)
-  {
-    d_nodes.push_back(n);
-  }
-}
 
 PreprocessingPassResult PreprocessingPass::apply(
     AssertionPipeline* assertionsToPreprocess) {
@@ -73,10 +37,16 @@ PreprocessingPassResult PreprocessingPass::apply(
 
 void PreprocessingPass::dumpAssertions(const char* key,
                                        const AssertionPipeline& assertionList) {
-  if (Dump.isOn("assertions") && Dump.isOn(std::string("assertions::") + key)) {
+  if (Dump.isOn("assertions") && Dump.isOn(std::string("assertions:") + key))
+  {
     // Push the simplified assertions to the dump output stream
-    for (const auto& n : assertionList) {
-      Dump("assertions") << AssertCommand(Expr(n.toExpr()));
+    OutputManager& outMgr = d_preprocContext->getSmt()->getOutputManager();
+    const Printer& printer = outMgr.getPrinter();
+    std::ostream& out = outMgr.getDumpOut();
+
+    for (const auto& n : assertionList)
+    {
+      printer.toStreamCmdAssert(out, n);
     }
   }
 }

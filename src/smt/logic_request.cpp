@@ -2,10 +2,10 @@
 /*! \file logic_request.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King
+ **   Mathias Preiner, Martin Brain, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -29,6 +29,17 @@ void LogicRequest::widenLogic(theory::TheoryId id) {
   d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
   d_smt.d_logic.enableTheory(id);
   d_smt.d_logic.lock();
+}
+
+/** Enable Integers if not yet enabled. */
+void LogicRequest::enableIntegers()
+{
+  if (!d_smt.d_logic.areIntegersUsed())
+  {
+    d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
+    d_smt.d_logic.enableIntegers();
+    d_smt.d_logic.lock();
+  }
 }
 
 }/* CVC4 namespace */

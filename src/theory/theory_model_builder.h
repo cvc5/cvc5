@@ -2,10 +2,10 @@
 /*! \file theory_model_builder.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
+ **   Andrew Reynolds, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__THEORY_MODEL_BUILDER_H
-#define __CVC4__THEORY__THEORY_MODEL_BUILDER_H
+#ifndef CVC4__THEORY__THEORY_MODEL_BUILDER_H
+#define CVC4__THEORY__THEORY_MODEL_BUILDER_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -23,6 +23,9 @@
 #include "theory/theory_model.h"
 
 namespace CVC4 {
+
+class TheoryEngine;
+
 namespace theory {
 
 /** TheoryEngineModelBuilder class
@@ -38,7 +41,7 @@ namespace theory {
  * this will set up the data structures in TheoryModel to represent
  * a model for the current set of assertions.
  */
-class TheoryEngineModelBuilder : public ModelBuilder
+class TheoryEngineModelBuilder
 {
   typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
   typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
@@ -46,19 +49,22 @@ class TheoryEngineModelBuilder : public ModelBuilder
  public:
   TheoryEngineModelBuilder(TheoryEngine* te);
   virtual ~TheoryEngineModelBuilder() {}
-  /** Build model function.
-   *
-   * Should be called only on TheoryModels m.
+  /**
+   * Should be called only on models m after they have been prepared
+   * (e.g. using ModelManager). In other words, the equality engine of model
+   * m contains all relevant information from each theory that is needed
+   * for building a model. This class is responsible simply for ensuring
+   * that all equivalence classes of the equality engine of m are assigned
+   * constants.
    *
    * This constructs the model m, via the following steps:
-   * (1) call TheoryEngine::collectModelInfo,
-   * (2) builder-specified pre-processing,
-   * (3) find the equivalence classes of m's
+   * (1) builder-specified pre-processing,
+   * (2) find the equivalence classes of m's
    *     equality engine that initially contain constants,
-   * (4) assign constants to all equivalence classes
+   * (3) assign constants to all equivalence classes
    *     of m's equality engine, through alternating
    *     iterations of evaluation and enumeration,
-   * (5) builder-specific processing, which includes assigning total
+   * (4) builder-specific processing, which includes assigning total
    *     interpretations to uninterpreted functions.
    *
    * This function returns false if any of the above
@@ -67,14 +73,15 @@ class TheoryEngineModelBuilder : public ModelBuilder
    * builder in steps (2) or (5), for instance, if the model we
    * are building fails to satisfy a quantified formula.
    */
-  bool buildModel(Model* m) override;
-  /** Debug check model.
+  bool buildModel(TheoryModel* m);
+
+  /** postprocess model
    *
-   * This throws an assertion failure if the model
-   * contains an equivalence class with two terms t1 and t2
-   * such that t1^M != t2^M.
+   * This is called when m is a model that will be returned to the user. This
+   * method checks the internal consistency of the model if we are in a debug
+   * build.
    */
-  void debugCheckModel(Model* m);
+  void postProcessModel(bool incomplete, TheoryModel* m);
 
  protected:
   /** pointer to theory engine */
@@ -102,18 +109,30 @@ class TheoryEngineModelBuilder : public ModelBuilder
   virtual void debugModel(TheoryModel* m) {}
   //-----------------------------------end virtual functions
 
-  /** is n assignable?
+  /** Debug check model.
    *
-   * A term n is assignable if its value
-   * is unconstrained by a standard model.
-   * Examples of assignable terms are:
+   * This throws an assertion failure if the model contains an equivalence
+   * class with two terms t1 and t2 such that t1^M != t2^M.
+   */
+  void debugCheckModel(TheoryModel* m);
+
+  /** Evaluate equivalence class
+   *
+   * If this method returns a non-null node c, then c is a constant and some
+   * term in the equivalence class of r evaluates to c based on the current
+   * state of the model m.
+   */
+  Node evaluateEqc(TheoryModel* m, TNode r);
+  /** is n an assignable expression?
+   *
+   * A term n is an assignable expression if its value is unconstrained by a
+   * standard model. Examples of assignable terms are:
    * - variables,
    * - applications of array select,
    * - applications of datatype selectors,
    * - applications of uninterpreted functions.
-   * Assignable terms must be first-order, that is,
-   * all instances of the above terms are not
-   * assignable if they have a higher-order (function) type.
+   * Assignable terms must be first-order, that is, all instances of the above
+   * terms are not assignable if they have a higher-order (function) type.
    */
   bool isAssignable(TNode n);
   /** add assignable subterms
@@ -202,6 +221,82 @@ class TheoryEngineModelBuilder : public ModelBuilder
    */
   std::map<Node, Node> d_constantReps;
 
+  /** Theory engine model builder assigner class
+   *
+   * This manages the assignment of values to terms of a given type.
+   * In particular, it is a wrapper around a type enumerator that is restricted
+   * by a set of values that it cannot generate, called an "assignment exclusion
+   * set".
+   */
+  class Assigner
+  {
+   public:
+    Assigner() : d_te(nullptr), d_isActive(false) {}
+    /**
+     * Initialize this assigner to generate values of type tn, with properties
+     * tep and assignment exclusion set aes.
+     */
+    void initialize(TypeNode tn,
+                    TypeEnumeratorProperties* tep,
+                    const std::vector<Node>& aes);
+    /** get the next term in the enumeration
+     *
+     * This method returns the next legal term based on type enumeration, where
+     * a term is legal it does not belong to the assignment exclusion set of
+     * this assigner. If no more terms exist, this method returns null. This
+     * should never be the case due to the conditions ensured by theory solvers
+     * for finite types. If it is the case, we give an assertion failure.
+     */
+    Node getNextAssignment();
+    /** The type enumerator */
+    std::unique_ptr<TypeEnumerator> d_te;
+    /** The assignment exclusion set of this Assigner */
+    std::vector<Node> d_assignExcSet;
+    /**
+     * Is active, flag set to true when all values in d_assignExcSet are
+     * constant.
+     */
+    bool d_isActive;
+  };
+  /** Is the given Assigner ready to assign values?
+   *
+   * This returns true if all values in the assignment exclusion set of a have
+   * a known value according to the state of this model builder (via a lookup
+   * in d_constantReps). It updates the assignment exclusion vector of a to
+   * these values whenever possible.
+   */
+  bool isAssignerActive(TheoryModel* tm, Assigner& a);
+  /** compute assignable information
+   *
+   * This computes necessary information pertaining to how values should be
+   * assigned to equivalence classes in the equality engine of tm.
+   *
+   * The argument tep stores global information about how values should be
+   * assigned, such as information on how many uninterpreted constant
+   * values are available, which is restricted if finite model finding is
+   * enabled.
+   *
+   * In particular this method constructs the following, passed as arguments:
+   * (1) assignableEqc: the set of equivalence classes that are "assignable",
+   * i.e. those that have an assignable expression in them (see isAssignable),
+   * and have not already been assigned a constant,
+   * (2) evaluableEqc: the set of equivalence classes that are "evaluable", i.e.
+   * those that have an expression in them that is not assignable, and have not
+   * already been assigned a constant,
+   * (3) eqcToAssigner: assigner objects for relevant equivalence classes that
+   * require special ways of assigning values, e.g. those that take into
+   * account assignment exclusion sets,
+   * (4) eqcToAssignerMaster: a map from equivalence classes to the equivalence
+   * class that it shares an assigner object with (all elements in the range of
+   * this map are in the domain of eqcToAssigner).
+   */
+  void computeAssignableInfo(
+      TheoryModel* tm,
+      TypeEnumeratorProperties& tep,
+      std::unordered_set<Node, NodeHashFunction>& assignableEqc,
+      std::unordered_set<Node, NodeHashFunction>& evaluableEqc,
+      std::map<Node, Assigner>& eqcToAssigner,
+      std::map<Node, Node>& eqcToAssignerMaster);
   //------------------------------------for codatatypes
   /** is v an excluded codatatype value?
    *
@@ -251,4 +346,4 @@ class TheoryEngineModelBuilder : public ModelBuilder
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__THEORY_MODEL_BUILDER_H */
+#endif /* CVC4__THEORY__THEORY_MODEL_BUILDER_H */

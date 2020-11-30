@@ -2,10 +2,10 @@
 /*! \file Datatypes.java
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters
+ **   Morgan Deters, Andres Noetzli, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,7 +14,7 @@
  ** An example of using inductive datatypes in CVC4 (Java version).
  **/
 
-import edu.nyu.acsys.CVC4.*;
+import edu.stanford.CVC4.*;
 import java.util.Iterator;
 
 public class Datatypes {
@@ -31,12 +31,12 @@ public class Datatypes {
     // is specified.  Second, it is "resolved"---at which point function
     // symbols are assigned to its constructors, selectors, and testers.
 
-    Datatype consListSpec = new Datatype("list"); // give the datatype a name
-    DatatypeConstructor cons = new DatatypeConstructor("cons");
+    Datatype consListSpec = new Datatype(em, "list"); // give a name
+    DatatypeConstructor cons = new DatatypeConstructor(em, "cons");
     cons.addArg("head", em.integerType());
     cons.addArg("tail", new DatatypeSelfType()); // a list
     consListSpec.addConstructor(cons);
-    DatatypeConstructor nil = new DatatypeConstructor("nil");
+    DatatypeConstructor nil = new DatatypeConstructor(em, "nil");
     consListSpec.addConstructor(nil);
 
     System.out.println("spec is:");

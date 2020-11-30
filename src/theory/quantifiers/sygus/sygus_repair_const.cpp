@@ -2,10 +2,10 @@
 /*! \file sygus_repair_const.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,15 +14,20 @@
 
 #include "theory/quantifiers/sygus/sygus_repair_const.h"
 
+#include "api/cvc4cpp.h"
+#include "expr/node_algorithm.h"
 #include "options/base_options.h"
+#include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/quantifiers_engine.h"
+#include "theory/smt_engine_subsolver.h"
 
 using namespace CVC4::kind;
 
@@ -68,7 +73,7 @@ void SygusRepairConst::registerSygusType(TypeNode tn,
       // "any constant" constructors
       return;
     }
-    const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+    const DType& dt = tn.getDType();
     if (!dt.isSygus())
     {
       // may have recursed to a non-sygus-datatype
@@ -81,7 +86,7 @@ void SygusRepairConst::registerSygusType(TypeNode tn,
     }
     for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
-      const DatatypeConstructor& dtc = dt[i];
+      const DTypeConstructor& dtc = dt[i];
       // recurse on all subfields
       for (unsigned j = 0, nargs = dtc.getNumArgs(); j < nargs; j++)
       {
@@ -92,7 +97,25 @@ void SygusRepairConst::registerSygusType(TypeNode tn,
   }
 }
 
+bool SygusRepairConst::isActive() const
+{
+  return !d_base_inst.isNull() && d_allow_constant_grammar;
+}
+
 bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
+                                      const std::vector<Node>& candidate_values,
+                                      std::vector<Node>& repair_cv,
+                                      bool useConstantsAsHoles)
+{
+  return repairSolution(d_base_inst,
+                        candidates,
+                        candidate_values,
+                        repair_cv,
+                        useConstantsAsHoles);
+}
+
+bool SygusRepairConst::repairSolution(Node sygusBody,
+                                      const std::vector<Node>& candidates,
                                       const std::vector<Node>& candidate_values,
                                       std::vector<Node>& repair_cv,
                                       bool useConstantsAsHoles)
@@ -100,18 +123,17 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
   Assert(candidates.size() == candidate_values.size());
 
   // if no grammar type allows constants, no repair is possible
-  if (d_base_inst.isNull() || !d_allow_constant_grammar)
+  if (!isActive())
   {
     return false;
   }
   if (Trace.isOn("sygus-repair-const"))
   {
     Trace("sygus-repair-const") << "Repair candidate solutions..." << std::endl;
-    Printer* p = Printer::getPrinter(options::outputLanguage());
     for (unsigned i = 0, size = candidates.size(); i < size; i++)
     {
       std::stringstream ss;
-      p->toStreamSygus(ss, candidate_values[i]);
+      TermDbSygus::toStreamSygus(ss, candidate_values[i]);
       Trace("sygus-repair-const")
           << "  " << candidates[i] << " -> " << ss.str() << std::endl;
     }
@@ -125,13 +147,12 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
   for (unsigned i = 0, size = candidates.size(); i < size; i++)
   {
     Node cv = candidate_values[i];
-    Node skeleton =
-        getSkeleton(cv, free_var_count, sk_vars, sk_vars_to_subs, useConstantsAsHoles);
+    Node skeleton = getSkeleton(
+        cv, free_var_count, sk_vars, sk_vars_to_subs, useConstantsAsHoles);
     if (Trace.isOn("sygus-repair-const"))
     {
-      Printer* p = Printer::getPrinter(options::outputLanguage());
       std::stringstream ss;
-      p->toStreamSygus(ss, cv);
+      TermDbSygus::toStreamSygus(ss, cv);
       Trace("sygus-repair-const")
           << "Solution #" << i << " : " << ss.str() << std::endl;
       if (skeleton == cv)
@@ -141,7 +162,7 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
       else
       {
         std::stringstream sss;
-        p->toStreamSygus(sss, skeleton);
+        TermDbSygus::toStreamSygus(sss, skeleton);
         Trace("sygus-repair-const")
             << "...inferred skeleton : " << sss.str() << std::endl;
       }
@@ -155,9 +176,9 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
     return false;
   }
 
-  NodeManager* nm = NodeManager::currentNM();
   Trace("sygus-repair-const") << "Get first-order query..." << std::endl;
-  Node fo_body = getFoQuery(candidates, candidate_skeletons, sk_vars);
+  Node fo_body =
+      getFoQuery(sygusBody, candidates, candidate_skeletons, sk_vars);
 
   Trace("sygus-repair-const-debug") << "...got : " << fo_body << std::endl;
 
@@ -173,13 +194,17 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
   LogicInfo logic = smt::currentSmtEngine()->getLogicInfo();
   if (logic.isTheoryEnabled(THEORY_ARITH) && logic.isLinear())
   {
-    fo_body = fitToLogic(logic,
+    fo_body = fitToLogic(sygusBody,
+                         logic,
                          fo_body,
                          candidates,
                          candidate_skeletons,
                          sk_vars,
                          sk_vars_to_subs);
+    Trace("sygus-repair-const-debug")
+        << "...after fit-to-logic : " << fo_body << std::endl;
   }
+  Assert(!expr::hasFreeVar(fo_body));
 
   if (fo_body.isNull() || sk_vars.empty())
   {
@@ -201,68 +226,61 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
                                   << std::endl;
       return false;
     }
-
-    // do miniscoping explicitly
-    if (fo_body[1].getKind() == AND)
-    {
-      Node bvl = fo_body[0];
-      std::vector<Node> children;
-      for (const Node& conj : fo_body[1])
-      {
-        children.push_back(nm->mkNode(FORALL, bvl, conj));
-      }
-      fo_body = nm->mkNode(AND, children);
-    }
   }
 
-  Trace("cegqi-engine") << "Repairing previous solution..." << std::endl;
+  Trace("sygus-engine") << "Repairing previous solution..." << std::endl;
   // make the satisfiability query
-  SmtEngine repcChecker(nm->toExprManager());
-  repcChecker.setLogic(smt::currentSmtEngine()->getLogicInfo());
-  repcChecker.assertFormula(fo_body.toExpr());
-  Result r = repcChecker.checkSat();
+  std::unique_ptr<SmtEngine> repcChecker;
+  // initialize the subsolver using the standard method
+  initializeSubsolver(repcChecker,
+                      options::sygusRepairConstTimeout.wasSetByUser(),
+                      options::sygusRepairConstTimeout());
+  // renable options disabled by sygus
+  repcChecker->setOption("miniscope-quant", true);
+  repcChecker->setOption("miniscope-quant-fv", true);
+  repcChecker->setOption("quant-split", true);
+  repcChecker->assertFormula(fo_body);
+  // check satisfiability
+  Result r = repcChecker->checkSat();
   Trace("sygus-repair-const") << "...got : " << r << std::endl;
-  if (r.asSatisfiabilityResult().isSat() != Result::UNSAT
-      && !r.asSatisfiabilityResult().isUnknown())
+  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT
+      || r.asSatisfiabilityResult().isUnknown())
   {
-    std::vector<Node> sk_sygus_m;
-    for (const Node& v : sk_vars)
-    {
-      Assert(d_sk_to_fo.find(v) != d_sk_to_fo.end());
-      Node fov = d_sk_to_fo[v];
-      Node fov_m = Node::fromExpr(repcChecker.getValue(fov.toExpr()));
-      Trace("sygus-repair-const") << "  " << fov << " = " << fov_m << std::endl;
-      // convert to sygus
-      Node fov_m_to_sygus = d_tds->getProxyVariable(v.getType(), fov_m);
-      sk_sygus_m.push_back(fov_m_to_sygus);
-    }
-    std::stringstream ss;
-    // convert back to sygus
-    for (unsigned i = 0, size = candidates.size(); i < size; i++)
-    {
-      Node csk = candidate_skeletons[i];
-      Node scsk = csk.substitute(
-          sk_vars.begin(), sk_vars.end(), sk_sygus_m.begin(), sk_sygus_m.end());
-      repair_cv.push_back(scsk);
-      if (Trace.isOn("sygus-repair-const") || Trace.isOn("cegqi-engine"))
-      {
-        std::stringstream sss;
-        Printer::getPrinter(options::outputLanguage())
-            ->toStreamSygus(sss, repair_cv[i]);
-        ss << "  * " << candidates[i] << " -> " << sss.str() << std::endl;
-      }
-    }
-    Trace("cegqi-engine") << "...success:" << std::endl;
-    Trace("cegqi-engine") << ss.str();
-    Trace("sygus-repair-const")
-        << "Repaired constants in solution : " << std::endl;
-    Trace("sygus-repair-const") << ss.str();
-    return true;
+    Trace("sygus-engine") << "...failed" << std::endl;
+    return false;
   }
-
-  Trace("cegqi-engine") << "...failed" << std::endl;
-
-  return false;
+  std::vector<Node> sk_sygus_m;
+  for (const Node& v : sk_vars)
+  {
+    Assert(d_sk_to_fo.find(v) != d_sk_to_fo.end());
+    Node fov = d_sk_to_fo[v];
+    Node fov_m = repcChecker->getValue(fov);
+    Trace("sygus-repair-const") << "  " << fov << " = " << fov_m << std::endl;
+    // convert to sygus
+    Node fov_m_to_sygus = d_tds->getProxyVariable(v.getType(), fov_m);
+    sk_sygus_m.push_back(fov_m_to_sygus);
+  }
+  std::stringstream ss;
+  // convert back to sygus
+  for (unsigned i = 0, size = candidates.size(); i < size; i++)
+  {
+    Node csk = candidate_skeletons[i];
+    Node scsk = csk.substitute(
+        sk_vars.begin(), sk_vars.end(), sk_sygus_m.begin(), sk_sygus_m.end());
+    repair_cv.push_back(scsk);
+    if (Trace.isOn("sygus-repair-const") || Trace.isOn("sygus-engine"))
+    {
+      std::stringstream sss;
+      TermDbSygus::toStreamSygus(sss, repair_cv[i]);
+      ss << "  * " << candidates[i] << " -> " << sss.str() << std::endl;
+    }
+  }
+  Trace("sygus-engine") << "...success:" << std::endl;
+  Trace("sygus-engine") << ss.str();
+  Trace("sygus-repair-const")
+      << "Repaired constants in solution : " << std::endl;
+  Trace("sygus-repair-const") << ss.str();
+  return true;
 }
 
 bool SygusRepairConst::mustRepair(Node n)
@@ -301,14 +319,14 @@ bool SygusRepairConst::isRepairable(Node n, bool useConstantsAsHoles)
   }
   TypeNode tn = n.getType();
   Assert(tn.isDatatype());
-  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+  const DType& dt = tn.getDType();
   if (!dt.isSygus())
   {
     return false;
   }
   Node op = n.getOperator();
-  unsigned cindex = datatypes::DatatypesRewriter::indexOf(op);
-  Node sygusOp = Node::fromExpr(dt[cindex].getSygusOp());
+  unsigned cindex = datatypes::utils::indexOf(op);
+  Node sygusOp = dt[cindex].getSygusOp();
   if (sygusOp.getAttribute(SygusAnyConstAttribute()))
   {
     // if it represents "any constant" then it is repairable
@@ -410,12 +428,12 @@ Node SygusRepairConst::getSkeleton(Node n,
   return visited[n];
 }
 
-Node SygusRepairConst::getFoQuery(const std::vector<Node>& candidates,
+Node SygusRepairConst::getFoQuery(Node body,
+                                  const std::vector<Node>& candidates,
                                   const std::vector<Node>& candidate_skeletons,
                                   const std::vector<Node>& sk_vars)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node body = d_base_inst.negate();
   Trace("sygus-repair-const") << "  Substitute skeletons..." << std::endl;
   body = body.substitute(candidates.begin(),
                          candidates.end(),
@@ -458,7 +476,7 @@ Node SygusRepairConst::getFoQuery(const std::vector<Node>& candidates,
     if (it == visited.end())
     {
       visited[cur] = Node::null();
-      if (datatypes::DatatypesRewriter::isSygusEvalApp(cur))
+      if (cur.getKind() == DT_SYGUS_EVAL)
       {
         Node v = cur[0];
         if (std::find(sk_vars.begin(), sk_vars.end(), v) != sk_vars.end())
@@ -508,7 +526,8 @@ Node SygusRepairConst::getFoQuery(const std::vector<Node>& candidates,
   return fo_body;
 }
 
-Node SygusRepairConst::fitToLogic(LogicInfo& logic,
+Node SygusRepairConst::fitToLogic(Node body,
+                                  LogicInfo& logic,
                                   Node n,
                                   const std::vector<Node>& candidates,
                                   std::vector<Node>& candidate_skeletons,
@@ -540,7 +559,7 @@ Node SygusRepairConst::fitToLogic(LogicInfo& logic,
     Assert(it != sk_vars.end());
     sk_vars.erase(it);
     // reconstruct the query
-    n = getFoQuery(candidates, candidate_skeletons, sk_vars);
+    n = getFoQuery(body, candidates, candidate_skeletons, sk_vars);
     // reset the exclusion variable
     exc_var = Node::null();
   }
@@ -571,7 +590,10 @@ bool SygusRepairConst::getFitToLogicExcludeVar(LogicInfo& logic,
     {
       visited.insert(cur);
       Kind ck = cur.getKind();
-      if (restrictLA && (ck == NONLINEAR_MULT || ck == DIVISION))
+      bool isArithDivKind = (ck == DIVISION_TOTAL || ck == INTS_DIVISION_TOTAL
+                             || ck == INTS_MODULUS_TOTAL);
+      Assert(ck != DIVISION && ck != INTS_DIVISION && ck != INTS_MODULUS);
+      if (restrictLA && (ck == NONLINEAR_MULT || isArithDivKind))
       {
         for (unsigned j = 0, size = cur.getNumChildren(); j < size; j++)
         {
@@ -579,7 +601,7 @@ bool SygusRepairConst::getFitToLogicExcludeVar(LogicInfo& logic,
           std::map<Node, Node>::iterator itf = d_fo_to_sk.find(ccur);
           if (itf != d_fo_to_sk.end())
           {
-            if (ck == NONLINEAR_MULT || (ck == DIVISION && j == 1))
+            if (ck == NONLINEAR_MULT || (isArithDivKind && j == 1))
             {
               exvar = itf->second;
               return true;

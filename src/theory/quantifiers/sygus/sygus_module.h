@@ -2,10 +2,10 @@
 /*! \file sygus_module.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
+ **   Andrew Reynolds, Mathias Preiner, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,31 +14,36 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_MODULE_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS_MODULE_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_MODULE_H
+#define CVC4__THEORY__QUANTIFIERS__SYGUS_MODULE_H
 
 #include <map>
+#include <vector>
+
 #include "expr/node.h"
-#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
+
+class QuantifiersEngine;
+
 namespace quantifiers {
 
-class CegConjecture;
+class SynthConjecture;
+class TermDbSygus;
 
 /** SygusModule
  *
- * This is the base class of sygus modules, owned by CegConjecture. The purpose
- * of this class is to, when applicable, suggest candidate solutions for
- * CegConjecture to test.
+ * This is the base class of sygus modules, owned by SynthConjecture. The
+ * purpose of this class is to, when applicable, suggest candidate solutions for
+ * SynthConjecture to test.
  *
- * In more detail, an instance of the conjecture class (CegConjecture) creates
+ * In more detail, an instance of the conjecture class (SynthConjecture) creates
  * the negated deep embedding form of the synthesis conjecture. In the
  * following, assume this is:
  *   forall d. exists x. P( d, x )
  * where d are of sygus datatype type. The "base instantiation" of this
- * conjecture (see CegConjecture::d_base_inst) is the formula:
+ * conjecture (see SynthConjecture::d_base_inst) is the formula:
  *   exists y. P( k, y )
  * where k are the "candidate" variables for the conjecture.
  *
@@ -48,20 +53,27 @@ class CegConjecture;
 class SygusModule
 {
  public:
-  SygusModule(QuantifiersEngine* qe, CegConjecture* p);
+  SygusModule(QuantifiersEngine* qe, SynthConjecture* p);
   virtual ~SygusModule() {}
   /** initialize
    *
-   * n is the "base instantiation" of the deep-embedding version of the
-   * synthesis conjecture under candidates (see CegConjecture::d_base_inst).
-   *
-   * This function may add lemmas to the argument lemmas, which should be
-   * sent out on the output channel of quantifiers by the caller.
+   * This function initializes the module for solving the given conjecture. This
+   * typically involves registering enumerators (for constructing terms) via
+   * calls to TermDbSygus::registerEnumerator.
    *
    * This function returns true if this module will take responsibility for
    * constructing candidates for the given conjecture.
+   *
+   * conj is the synthesis conjecture (prior to deep-embedding).
+   *
+   * n is the "base instantiation" of the deep-embedding version of the
+   * synthesis conjecture under candidates (see SynthConjecture::d_base_inst).
+   *
+   * This function may add lemmas to the argument lemmas, which should be
+   * sent out on the output channel of quantifiers by the caller.
    */
-  virtual bool initialize(Node n,
+  virtual bool initialize(Node conj,
+                          Node n,
                           const std::vector<Node>& candidates,
                           std::vector<Node>& lemmas) = 0;
   /** get term list
@@ -71,12 +83,26 @@ class SygusModule
    */
   virtual void getTermList(const std::vector<Node>& candidates,
                            std::vector<Node>& terms) = 0;
+  /** allow partial model
+   *
+   * This method returns true if this module does not require that all
+   * terms returned by getTermList have "proper" model values when calling
+   * constructCandidates. A term may have a model value that is not proper
+   * if is excluded by symmetry breaking, e.g. x+0 is not proper. All model
+   * values that are not proper are replaced by "null" when calling
+   * constructCandidates.
+   */
+  virtual bool allowPartialModel() { return false; }
   /** construct candidate
    *
    * This function takes as input:
-   *   terms : the terms returned by a call to getTermList,
+   *   terms : (a subset of) the terms returned by a call to getTermList,
    *   term_values : the current model values of terms,
    *   candidates : the list of candidates.
+   *
+   * In particular, notice that terms do not include inactive enumerators,
+   * thus if inactive enumerators were added to getTermList, then the terms
+   * list passed to this call will be a (strict) subset of that list.
    *
    * If this function returns true, it adds to candidate_values a list of terms
    * of the same length and type as candidates that are candidate solutions
@@ -114,14 +140,6 @@ class SygusModule
                                        std::vector<Node>& lems)
   {
   }
-  /** get next decision request
-   *
-   * This has the same contract as Theory::getNextDecisionRequest.
-   */
-  virtual Node getNextDecisionRequest(unsigned& priority)
-  {
-    return Node::null();
-  }
   /**
    * Are we trying to repair constants in candidate solutions?
    * If we return true for usingRepairConst is true, then this module has
@@ -135,11 +153,11 @@ class SygusModule
   /** sygus term database of d_qe */
   quantifiers::TermDbSygus* d_tds;
   /** reference to the parent conjecture */
-  CegConjecture* d_parent;
+  SynthConjecture* d_parent;
 };
 
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__SYGUS_MODULE_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_MODULE_H */

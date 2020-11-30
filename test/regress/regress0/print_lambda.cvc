@@ -1,7 +1,9 @@
 % SCRUBBER: sed -e 's/f : (INT) -> INT = (LAMBDA(.*:INT): 0);$/f : (INT) -> INT = (LAMBDA(VAR:INT): 0);/'
 % COMMAND-LINE: --produce-models
 % EXPECT: sat
+% EXPECT: MODEL BEGIN
 % EXPECT: f : (INT) -> INT = (LAMBDA(VAR:INT): 0);
+% EXPECT: MODEL END;
 
 f : INT -> INT;
 ASSERT f(1) = 0;

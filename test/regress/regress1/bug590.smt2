@@ -1,3 +1,6 @@
+; EXPECT: unknown
+; EXPECT: ((charlst2 ((as const (Array Int String)) "")))
+
 (set-logic QF_ALL_SUPPORTED)
 (set-option :strings-exp true)
 (set-option :produce-models true)

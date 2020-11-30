@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Tim King, Christopher L. Conway, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -24,7 +24,7 @@
 #  error "This source should only ever be built if CVC4_CLN_IMP is on !"
 #endif /* CVC4_CLN_IMP */
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 
 using namespace std;
 

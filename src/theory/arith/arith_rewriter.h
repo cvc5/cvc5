@@ -2,10 +2,10 @@
 /*! \file arith_rewriter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Tim King, Morgan Deters
+ **   Dejan Jovanovic, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -17,28 +17,24 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__ARITH__ARITH_REWRITER_H
-#define __CVC4__THEORY__ARITH__ARITH_REWRITER_H
+#ifndef CVC4__THEORY__ARITH__ARITH_REWRITER_H
+#define CVC4__THEORY__ARITH__ARITH_REWRITER_H
 
+#include "theory/arith/rewrites.h"
 #include "theory/theory.h"
-#include "theory/rewriter.h"
+#include "theory/theory_rewriter.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 
-class ArithRewriter {
-public:
+class ArithRewriter : public TheoryRewriter
+{
+ public:
+  RewriteResponse preRewrite(TNode n) override;
+  RewriteResponse postRewrite(TNode n) override;
 
-  static RewriteResponse preRewrite(TNode n);
-  static RewriteResponse postRewrite(TNode n);
-
-  static void init() { }
-
-  static void shutdown() { }
-
-private:
-
+ private:
   static Node makeSubtractionNode(TNode l, TNode r);
   static Node makeUnaryMinusNode(TNode n);
 
@@ -50,6 +46,7 @@ private:
   static RewriteResponse rewriteMinus(TNode t, bool pre);
   static RewriteResponse rewriteUMinus(TNode t, bool pre);
   static RewriteResponse rewriteDiv(TNode t, bool pre);
+  static RewriteResponse rewriteIntsDivMod(TNode t, bool pre);
   static RewriteResponse rewriteIntsDivModTotal(TNode t, bool pre);
 
   static RewriteResponse preRewritePlus(TNode t);
@@ -57,7 +54,9 @@ private:
 
   static RewriteResponse preRewriteMult(TNode t);
   static RewriteResponse postRewriteMult(TNode t);
-  
+
+  static RewriteResponse postRewriteIAnd(TNode t);
+
   static RewriteResponse preRewriteTranscendental(TNode t);
   static RewriteResponse postRewriteTranscendental(TNode t);
 
@@ -69,11 +68,12 @@ private:
   static inline bool isTerm(TNode n) {
     return !isAtom(n);
   }
-
-};/* class ArithRewriter */
+  /** return rewrite */
+  static RewriteResponse returnRewrite(TNode t, Node ret, Rewrite r);
+}; /* class ArithRewriter */
 
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__ARITH__ARITH_REWRITER_H */
+#endif /* CVC4__THEORY__ARITH__ARITH_REWRITER_H */

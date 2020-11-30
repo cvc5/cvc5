@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Clark Barrett, Andres Noetzli, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -24,7 +24,7 @@
 #include <valgrind/memcheck.h>
 #endif /* CVC4_VALGRIND */
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "base/output.h"
 #include "context/context_mm.h"
 
@@ -37,8 +37,8 @@ void ContextMemoryManager::newChunk() {
 
   // Increment index to chunk list
   ++d_indexChunkList;
-  Assert(d_chunkList.size() == d_indexChunkList,
-         "Index should be at the end of the list");
+  Assert(d_chunkList.size() == d_indexChunkList)
+      << "Index should be at the end of the list";
 
   // Create new chunk if no free chunk available
   if(d_freeChunks.empty()) {
@@ -105,8 +105,8 @@ void* ContextMemoryManager::newData(size_t size) {
     newChunk();
     res = (void*)d_nextFree;
     d_nextFree += size;
-    AlwaysAssert(d_nextFree <= d_endChunk,
-                 "Request is bigger than memory chunk size");
+    AlwaysAssert(d_nextFree <= d_endChunk)
+        << "Request is bigger than memory chunk size";
   }
   Debug("context") << "ContextMemoryManager::newData(" << size
                    << ") returning " << res << " at level "

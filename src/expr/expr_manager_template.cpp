@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Christopher L. Conway, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -26,12 +26,6 @@
 
 ${includes}
 
-// This is a hack, but an important one: if there's an error, the
-// compiler directs the user to the template file instead of the
-// generated one.  We don't want the user to modify the generated one,
-// since it'll get overwritten on a later build.
-#line 34 "${template}"
-
 #ifdef CVC4_STATISTICS_ON
   #define INC_STAT(kind) \
   { \
@@ -43,21 +37,32 @@ ${includes}
     } \
     ++ *(d_exprStatistics[kind]); \
   }
-  #define INC_STAT_VAR(type, bound_var) \
-  { \
-    TypeNode* typeNode = Type::getTypeNode(type); \
-    TypeConstant type = typeNode->getKind() == kind::TYPE_CONSTANT ? typeNode->getConst<TypeConstant>() : LAST_TYPE; \
-    if (d_exprStatisticsVars[type] == NULL) { \
-      stringstream statName; \
-      if (type == LAST_TYPE) { \
-        statName << "expr::ExprManager::" << ((bound_var) ? "BOUND_VARIABLE" : "VARIABLE") << ":Parameterized type"; \
-      } else { \
-        statName << "expr::ExprManager::" << ((bound_var) ? "BOUND_VARIABLE" : "VARIABLE") << ":" << type; \
-      } \
-      d_exprStatisticsVars[type] = new IntStat(statName.str(), 0); \
-      d_nodeManager->getStatisticsRegistry()->registerStat(d_exprStatisticsVars[type]); \
-    } \
-    ++ *(d_exprStatisticsVars[type]); \
+#define INC_STAT_VAR(type, bound_var)                                      \
+  {                                                                        \
+    TypeNode* isv_typeNode = Type::getTypeNode(type);                      \
+    TypeConstant isv_type = isv_typeNode->getKind() == kind::TYPE_CONSTANT \
+                                ? isv_typeNode->getConst<TypeConstant>()   \
+                                : LAST_TYPE;                               \
+    if (d_exprStatisticsVars[isv_type] == NULL)                            \
+    {                                                                      \
+      stringstream statName;                                               \
+      if (isv_type == LAST_TYPE)                                           \
+      {                                                                    \
+        statName << "expr::ExprManager::"                                  \
+                 << ((bound_var) ? "BOUND_VARIABLE" : "VARIABLE")          \
+                 << ":Parameterized isv_type";                             \
+      }                                                                    \
+      else                                                                 \
+      {                                                                    \
+        statName << "expr::ExprManager::"                                  \
+                 << ((bound_var) ? "BOUND_VARIABLE" : "VARIABLE") << ":"   \
+                 << isv_type;                                              \
+      }                                                                    \
+      d_exprStatisticsVars[isv_type] = new IntStat(statName.str(), 0);     \
+      d_nodeManager->getStatisticsRegistry()->registerStat(                \
+          d_exprStatisticsVars[isv_type]);                                 \
+    }                                                                      \
+    ++*(d_exprStatisticsVars[isv_type]);                                   \
   }
 #else
   #define INC_STAT(kind)
@@ -77,18 +82,6 @@ ExprManager::ExprManager() :
   }
   for (unsigned i = 0; i <= LAST_TYPE; ++ i) {
     d_exprStatisticsVars[i] = NULL;
-  }
-#endif
-}
-
-ExprManager::ExprManager(const Options& options) :
-  d_nodeManager(new NodeManager(this, options)) {
-#ifdef CVC4_STATISTICS_ON
-  for (unsigned i = 0; i <= LAST_TYPE; ++ i) {
-    d_exprStatisticsVars[i] = NULL;
-  }
-  for (unsigned i = 0; i < kind::LAST_KIND; ++ i) {
-    d_exprStatistics[i] = NULL;
   }
 #endif
 }
@@ -118,20 +111,10 @@ ExprManager::~ExprManager()
 
     delete d_nodeManager;
     d_nodeManager = NULL;
-
   } catch(Exception& e) {
     Warning() << "CVC4 threw an exception during cleanup." << std::endl
               << e << std::endl;
   }
-}
-
-const Options& ExprManager::getOptions() const {
-  return d_nodeManager->getOptions();
-}
-
-ResourceManager* ExprManager::getResourceManager()
-{
-  return d_nodeManager->getResourceManager();
 }
 
 BooleanType ExprManager::booleanType() const {
@@ -146,7 +129,7 @@ StringType ExprManager::stringType() const {
 
 RegExpType ExprManager::regExpType() const {
   NodeManagerScope nms(d_nodeManager);
-  return StringType(Type(d_nodeManager, new TypeNode(d_nodeManager->regExpType())));
+  return RegExpType(Type(d_nodeManager, new TypeNode(d_nodeManager->regExpType())));
 }
 
 RealType ExprManager::realType() const {
@@ -301,21 +284,30 @@ Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2, Expr child3,
   }
 }
 
-Expr ExprManager::mkExpr(Kind kind, const std::vector<Expr>& children) {
+Expr ExprManager::mkExpr(Kind kind, const std::vector<Expr>& children)
+{
+  const size_t nchildren = children.size();
   const kind::MetaKind mk = kind::metaKindOf(kind);
-  const unsigned n = children.size() - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
   PrettyCheckArgument(
-      mk == kind::metakind::PARAMETERIZED ||
-      mk == kind::metakind::OPERATOR, kind,
+      mk == kind::metakind::PARAMETERIZED || mk == kind::metakind::OPERATOR,
+      kind,
       "Only operator-style expressions are made with mkExpr(); "
       "to make variables and constants, see mkVar(), mkBoundVar(), "
       "and mkConst().");
   PrettyCheckArgument(
-      n >= minArity(kind) && n <= maxArity(kind), kind,
-      "Exprs with kind %s must have at least %u children and "
-      "at most %u children (the one under construction has %u)",
-      kind::kindToString(kind).c_str(),
-      minArity(kind), maxArity(kind), n);
+      mk != kind::metakind::PARAMETERIZED || nchildren > 0,
+      kind,
+      "Terms with kind %s must have an operator expression as first argument",
+      kind::kindToString(kind).c_str());
+  const size_t n = nchildren - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
+  PrettyCheckArgument(n >= minArity(kind) && n <= maxArity(kind),
+                      kind,
+                      "Exprs with kind %s must have at least %u children and "
+                      "at most %u children (the one under construction has %u)",
+                      kind::kindToString(kind).c_str(),
+                      minArity(kind),
+                      maxArity(kind),
+                      n);
 
   NodeManagerScope nms(d_nodeManager);
 
@@ -569,7 +561,7 @@ FunctionType ExprManager::mkFunctionType(Type domain, Type range) {
 /** Make a function type with input types from argTypes. */
 FunctionType ExprManager::mkFunctionType(const std::vector<Type>& argTypes, Type range) {
   NodeManagerScope nms(d_nodeManager);
-  Assert( argTypes.size() >= 1 );
+  Assert(argTypes.size() >= 1);
   std::vector<TypeNode> argTypeNodes;
   for (unsigned i = 0, i_end = argTypes.size(); i < i_end; ++ i) {
     argTypeNodes.push_back(*argTypes[i].d_typeNode);
@@ -579,7 +571,7 @@ FunctionType ExprManager::mkFunctionType(const std::vector<Type>& argTypes, Type
 
 FunctionType ExprManager::mkFunctionType(const std::vector<Type>& sorts) {
   NodeManagerScope nms(d_nodeManager);
-  Assert( sorts.size() >= 2 );
+  Assert(sorts.size() >= 2);
   std::vector<TypeNode> sortNodes;
   for (unsigned i = 0, i_end = sorts.size(); i < i_end; ++ i) {
      sortNodes.push_back(*sorts[i].d_typeNode);
@@ -589,26 +581,12 @@ FunctionType ExprManager::mkFunctionType(const std::vector<Type>& sorts) {
 
 FunctionType ExprManager::mkPredicateType(const std::vector<Type>& sorts) {
   NodeManagerScope nms(d_nodeManager);
-  Assert( sorts.size() >= 1 );
+  Assert(sorts.size() >= 1);
   std::vector<TypeNode> sortNodes;
   for (unsigned i = 0, i_end = sorts.size(); i < i_end; ++ i) {
      sortNodes.push_back(*sorts[i].d_typeNode);
   }
   return FunctionType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkPredicateType(sortNodes))));
-}
-
-DatatypeType ExprManager::mkTupleType(const std::vector<Type>& types) {
-  NodeManagerScope nms(d_nodeManager);
-  std::vector<TypeNode> typeNodes;
-  for (unsigned i = 0, i_end = types.size(); i < i_end; ++ i) {
-     typeNodes.push_back(*types[i].d_typeNode);
-  }
-  return DatatypeType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkTupleType(typeNodes))));
-}
-
-DatatypeType ExprManager::mkRecordType(const Record& rec) {
-  NodeManagerScope nms(d_nodeManager);
-  return DatatypeType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkRecordType(rec))));
 }
 
 SExprType ExprManager::mkSExprType(const std::vector<Type>& types) {
@@ -640,189 +618,12 @@ SetType ExprManager::mkSetType(Type elementType) const {
   return SetType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkSetType(*elementType.d_typeNode))));
 }
 
-DatatypeType ExprManager::mkDatatypeType(Datatype& datatype) {
-  // Not worth a special implementation; this doesn't need to be fast
-  // code anyway.
-  vector<Datatype> datatypes;
-  datatypes.push_back(datatype);
-  std::vector<DatatypeType> result = mkMutualDatatypeTypes(datatypes);
-  Assert(result.size() == 1);
-  return result.front();
-}
-
-std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(std::vector<Datatype>& datatypes) {
-  std::set<Type> unresolvedTypes;
-  return mkMutualDatatypeTypes(datatypes, unresolvedTypes);
-}
-
-std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, std::set<Type>& unresolvedTypes) {
+SequenceType ExprManager::mkSequenceType(Type elementType) const
+{
   NodeManagerScope nms(d_nodeManager);
-  std::map<std::string, DatatypeType> nameResolutions;
-  std::vector<DatatypeType> dtts;
-
-  //have to build deep copy so that datatypes will live in NodeManager
-  std::vector< Datatype* > dt_copies;
-  for(std::vector<Datatype>::iterator i = datatypes.begin(), i_end = datatypes.end(); i != i_end; ++i) {
-    dt_copies.push_back( new Datatype( *i ) );
-  }
-  
-  // First do some sanity checks, set up the final Type to be used for
-  // each datatype, and set up the "named resolutions" used to handle
-  // simple self- and mutual-recursion, for example in the definition
-  // "nat = succ(pred:nat) | zero", a named resolution can handle the
-  // pred selector.
-  for(std::vector<Datatype*>::iterator i = dt_copies.begin(), i_end = dt_copies.end(); i != i_end; ++i) {
-    TypeNode* typeNode;
-    if( (*i)->getNumParameters() == 0 ) {
-      unsigned index = d_nodeManager->registerDatatype( *i );
-      typeNode = new TypeNode(d_nodeManager->mkTypeConst(DatatypeIndexConstant(index)));
-      //typeNode = new TypeNode(d_nodeManager->mkTypeConst(*i));
-    } else {
-      unsigned index = d_nodeManager->registerDatatype( *i );
-      TypeNode cons = d_nodeManager->mkTypeConst(DatatypeIndexConstant(index));
-      //TypeNode cons = d_nodeManager->mkTypeConst(*i);
-      std::vector< TypeNode > params;
-      params.push_back( cons );
-      for( unsigned int ip = 0; ip < (*i)->getNumParameters(); ++ip ) {
-        params.push_back( TypeNode::fromType( (*i)->getParameter( ip ) ) );
-      }
-
-      typeNode = new TypeNode(d_nodeManager->mkTypeNode(kind::PARAMETRIC_DATATYPE, params));
-    }
-    Type type(d_nodeManager, typeNode);
-    DatatypeType dtt(type);
-    PrettyCheckArgument(
-        nameResolutions.find((*i)->getName()) == nameResolutions.end(),
-        dt_copies,
-        "cannot construct two datatypes at the same time "
-        "with the same name `%s'",
-        (*i)->getName().c_str());
-    nameResolutions.insert(std::make_pair((*i)->getName(), dtt));
-    dtts.push_back(dtt);
-    //d_keep_dtt.push_back(dtt);
-    //d_keep_dt.push_back(*i);
-    //Assert( dtt.getDatatype()==(*i) );
-  }
-
-  // Second, set up the type substitution map for complex type
-  // resolution (e.g. if "list" is the type we're defining, and it has
-  // a selector of type "ARRAY INT OF list", this can't be taken care
-  // of using the named resolutions that we set up above.  A
-  // preliminary array type was set up, and now needs to have "list"
-  // substituted in it for the correct type.
-  //
-  // @TODO get rid of named resolutions altogether and handle
-  // everything with these resolutions?
-  std::vector< SortConstructorType > paramTypes;
-  std::vector< DatatypeType > paramReplacements;
-  std::vector<Type> placeholders;// to hold the "unresolved placeholders"
-  std::vector<Type> replacements;// to hold our final, resolved types
-  for(std::set<Type>::iterator i = unresolvedTypes.begin(), i_end = unresolvedTypes.end(); i != i_end; ++i) {
-    std::string name;
-    if( (*i).isSort() ) {
-      name = SortType(*i).getName();
-    } else {
-      Assert( (*i).isSortConstructor() );
-      name = SortConstructorType(*i).getName();
-    }
-    std::map<std::string, DatatypeType>::const_iterator resolver =
-      nameResolutions.find(name);
-    PrettyCheckArgument(
-        resolver != nameResolutions.end(),
-        unresolvedTypes,
-        "cannot resolve type `%s'; it's not among "
-        "the datatypes being defined", name.c_str());
-    // We will instruct the Datatype to substitute "*i" (the
-    // unresolved SortType used as a placeholder in complex types)
-    // with "(*resolver).second" (the DatatypeType we created in the
-    // first step, above).
-    if( (*i).isSort() ) {
-      placeholders.push_back(*i);
-      replacements.push_back( (*resolver).second );
-    } else {
-      Assert( (*i).isSortConstructor() );
-      paramTypes.push_back( SortConstructorType(*i) );
-      paramReplacements.push_back( (*resolver).second );
-    }
-  }
-
-  // Lastly, perform the final resolutions and checks.
-  for(std::vector<DatatypeType>::iterator i = dtts.begin(),
-        i_end = dtts.end();
-      i != i_end;
-      ++i) {
-    const Datatype& dt = (*i).getDatatype();
-    if(!dt.isResolved()) {
-      const_cast<Datatype&>(dt).resolve(this, nameResolutions,
-                                        placeholders, replacements,
-                                        paramTypes, paramReplacements);
-    }
-
-    // Now run some checks, including a check to make sure that no
-    // selector is function-valued.
-    checkResolvedDatatype(*i);
-  }
-
-  for(std::vector<NodeManagerListener*>::iterator i = d_nodeManager->d_listeners.begin(); i != d_nodeManager->d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewDatatypes(dtts);
-  }
-  
-  return dtts;
-}
-
-void ExprManager::checkResolvedDatatype(DatatypeType dtt) const {
-  const Datatype& dt = dtt.getDatatype();
-
-  AssertArgument(dt.isResolved(), dtt, "datatype should have been resolved");
-
-  // for all constructors...
-  for(Datatype::const_iterator i = dt.begin(), i_end = dt.end();
-      i != i_end;
-      ++i) {
-    const DatatypeConstructor& c = *i;
-    Type testerType CVC4_UNUSED = c.getTester().getType();
-    Assert(c.isResolved() &&
-           testerType.isTester() &&
-           TesterType(testerType).getDomain() == dtt &&
-           TesterType(testerType).getRangeType() == booleanType(),
-           "malformed tester in datatype post-resolution");
-    Type ctorType CVC4_UNUSED = c.getConstructor().getType();
-    Assert(ctorType.isConstructor() &&
-           ConstructorType(ctorType).getArity() == c.getNumArgs() &&
-           ConstructorType(ctorType).getRangeType() == dtt,
-           "malformed constructor in datatype post-resolution");
-    // for all selectors...
-    for(DatatypeConstructor::const_iterator j = c.begin(), j_end = c.end();
-        j != j_end;
-        ++j) {
-      const DatatypeConstructorArg& a = *j;
-      Type selectorType = a.getType();
-      Assert(a.isResolved() &&
-             selectorType.isSelector() &&
-             SelectorType(selectorType).getDomain() == dtt,
-             "malformed selector in datatype post-resolution");
-      // This next one's a "hard" check, performed in non-debug builds
-      // as well; the other ones should all be guaranteed by the
-      // CVC4::Datatype class, but this actually needs to be checked.
-      AlwaysAssert(!SelectorType(selectorType).getRangeType().d_typeNode->isFunctionLike(),
-                   "cannot put function-like things in datatypes");
-    }
-  }
-}
-
-ConstructorType ExprManager::mkConstructorType(const DatatypeConstructor& constructor, Type range) const {
-  NodeManagerScope nms(d_nodeManager);
-  return Type(d_nodeManager, new TypeNode(d_nodeManager->mkConstructorType(constructor, *range.d_typeNode)));
-}
-
-SelectorType ExprManager::mkSelectorType(Type domain, Type range) const {
-  NodeManagerScope nms(d_nodeManager);
-  return Type(d_nodeManager, new TypeNode(d_nodeManager->mkSelectorType(*domain.d_typeNode, *range.d_typeNode)));
-}
-
-TesterType ExprManager::mkTesterType(Type domain) const {
-  NodeManagerScope nms(d_nodeManager);
-  return Type(d_nodeManager, new TypeNode(d_nodeManager->mkTesterType(*domain.d_typeNode)));
+  return SequenceType(Type(
+      d_nodeManager,
+      new TypeNode(d_nodeManager->mkSequenceType(*elementType.d_typeNode))));
 }
 
 SortType ExprManager::mkSort(const std::string& name, uint32_t flags) const {
@@ -831,10 +632,13 @@ SortType ExprManager::mkSort(const std::string& name, uint32_t flags) const {
 }
 
 SortConstructorType ExprManager::mkSortConstructor(const std::string& name,
-                                                   size_t arity) const {
+                                                   size_t arity,
+                                                   uint32_t flags) const
+{
   NodeManagerScope nms(d_nodeManager);
-  return SortConstructorType(Type(d_nodeManager,
-              new TypeNode(d_nodeManager->mkSortConstructor(name, arity))));
+  return SortConstructorType(
+      Type(d_nodeManager,
+           new TypeNode(d_nodeManager->mkSortConstructor(name, arity, flags))));
 }
 
 /**
@@ -862,13 +666,13 @@ SortConstructorType ExprManager::mkSortConstructor(const std::string& name,
  * @param check whether we should check the type as we compute it
  * (default: false)
  */
-Type ExprManager::getType(Expr e, bool check)
+Type ExprManager::getType(Expr expr, bool check)
 {
   NodeManagerScope nms(d_nodeManager);
   Type t;
   try {
     t = Type(d_nodeManager,
-             new TypeNode(d_nodeManager->getType(e.getNode(), check)));
+             new TypeNode(d_nodeManager->getType(expr.getNode(), check)));
   } catch (const TypeCheckingExceptionPrivate& e) {
     throw TypeCheckingException(this, &e);
   }
@@ -876,7 +680,6 @@ Type ExprManager::getType(Expr e, bool check)
 }
 
 Expr ExprManager::mkVar(const std::string& name, Type type, uint32_t flags) {
-  Assert(NodeManager::currentNM() == NULL, "ExprManager::mkVar() should only be called externally, not from within CVC4 code.  Please use mkSkolem().");
   NodeManagerScope nms(d_nodeManager);
   Node* n = d_nodeManager->mkVarPtr(name, *type.d_typeNode, flags);
   Debug("nm") << "set " << name << " on " << *n << std::endl;
@@ -885,7 +688,6 @@ Expr ExprManager::mkVar(const std::string& name, Type type, uint32_t flags) {
 }
 
 Expr ExprManager::mkVar(Type type, uint32_t flags) {
-  Assert(NodeManager::currentNM() == NULL, "ExprManager::mkVar() should only be called externally, not from within CVC4 code.  Please use mkSkolem().");
   NodeManagerScope nms(d_nodeManager);
   INC_STAT_VAR(type, false);
   return Expr(this, d_nodeManager->mkVarPtr(*type.d_typeNode, flags));
@@ -918,21 +720,21 @@ Expr ExprManager::mkAssociative(Kind kind,
       "Illegal kind in mkAssociative: %s",
       kind::kindToString(kind).c_str());
 
-  NodeManagerScope nms(d_nodeManager);
   const unsigned int max = maxArity(kind);
-  const unsigned int min = minArity(kind);
   unsigned int numChildren = children.size();
 
   /* If the number of children is within bounds, then there's nothing to do. */
   if( numChildren <= max ) {
     return mkExpr(kind,children);
   }
+  NodeManagerScope nms(d_nodeManager);
+  const unsigned int min = minArity(kind);
 
   std::vector<Expr>::const_iterator it = children.begin() ;
   std::vector<Expr>::const_iterator end = children.end() ;
 
   /* The new top-level children and the children of each sub node */
-  std::vector<Node> newChildren;
+  std::vector<Expr> newChildren;
   std::vector<Node> subChildren;
 
   while( it != end && numChildren > max ) {
@@ -943,39 +745,66 @@ Expr ExprManager::mkAssociative(Kind kind,
       subChildren.push_back(it->getNode());
     }
     Node subNode = d_nodeManager->mkNode(kind,subChildren);
-    newChildren.push_back(subNode);
+    newChildren.push_back(subNode.toExpr());
 
     subChildren.clear();
   }
 
-  /* If there's children left, "top off" the Expr. */
+  // add the leftover children
   if(numChildren > 0) {
-    /* If the leftovers are too few, just copy them into newChildren;
-     * otherwise make a new sub-node  */
-    if(numChildren < min) {
-      for(; it != end; ++it) {
-        newChildren.push_back(it->getNode());
-      }
-    } else {
-      for(; it != end; ++it) {
-        subChildren.push_back(it->getNode());
-      }
-      Node subNode = d_nodeManager->mkNode(kind, subChildren);
-      newChildren.push_back(subNode);
+    for (; it != end; ++it)
+    {
+      newChildren.push_back(*it);
     }
   }
 
-  /* It's inconceivable we could have enough children for this to fail
-   * (more than 2^32, in most cases?). */
-  AlwaysAssert( newChildren.size() <= max,
-                "Too many new children in mkAssociative" );
-
   /* It would be really weird if this happened (it would require
    * min > 2, for one thing), but let's make sure. */
-  AlwaysAssert( newChildren.size() >= min,
-                "Too few new children in mkAssociative" );
+  AlwaysAssert(newChildren.size() >= min)
+      << "Too few new children in mkAssociative";
 
-  return Expr(this, d_nodeManager->mkNodePtr(kind,newChildren) );
+  // recurse
+  return mkAssociative(kind, newChildren);
+}
+
+Expr ExprManager::mkLeftAssociative(Kind kind,
+                                    const std::vector<Expr>& children)
+{
+  NodeManagerScope nms(d_nodeManager);
+  Node n = children[0];
+  for (unsigned i = 1, size = children.size(); i < size; i++)
+  {
+    n = d_nodeManager->mkNode(kind, n, children[i].getNode());
+  }
+  return n.toExpr();
+}
+
+Expr ExprManager::mkRightAssociative(Kind kind,
+                                     const std::vector<Expr>& children)
+{
+  NodeManagerScope nms(d_nodeManager);
+  Node n = children[children.size() - 1];
+  for (unsigned i = children.size() - 1; i > 0;)
+  {
+    n = d_nodeManager->mkNode(kind, children[--i].getNode(), n);
+  }
+  return n.toExpr();
+}
+
+Expr ExprManager::mkChain(Kind kind, const std::vector<Expr>& children)
+{
+  if (children.size() == 2)
+  {
+    // if this is the case exactly 1 pair will be generated so the
+    // AND is not required
+    return mkExpr(kind, children[0], children[1]);
+  }
+  std::vector<Expr> cchildren;
+  for (size_t i = 0, nargsmo = children.size() - 1; i < nargsmo; i++)
+  {
+    cchildren.push_back(mkExpr(kind, children[i], children[i + 1]));
+  }
+  return mkExpr(kind::AND, cchildren);
 }
 
 unsigned ExprManager::minArity(Kind kind) {
@@ -984,6 +813,11 @@ unsigned ExprManager::minArity(Kind kind) {
 
 unsigned ExprManager::maxArity(Kind kind) {
   return metakind::getUpperBoundForKind(kind);
+}
+
+bool ExprManager::isNAryKind(Kind fun)
+{
+  return ExprManager::maxArity(fun) == expr::NodeValue::MAX_CHILDREN;
 }
 
 NodeManager* ExprManager::getNodeManager() const {
@@ -1023,6 +857,16 @@ TypeNode exportTypeInternal(TypeNode n, NodeManager* from, NodeManager* to, Expr
   } else if(n.getKind() == kind::BITVECTOR_TYPE) {
     return to->mkBitVectorType(n.getConst<BitVectorSize>());
   }
+  else if (n.getKind() == kind::FLOATINGPOINT_TYPE)
+  {
+    return to->mkFloatingPointType(n.getConst<FloatingPointSize>());
+  }
+  else if (n.getNumChildren() == 0)
+  {
+    std::stringstream msg;
+    msg << "export of type " << n << " not supported";
+    throw ExportUnsupportedException(msg.str().c_str());
+  }
   Type from_t = from->toType(n);
   Type& to_t = vmap.d_typeMap[from_t];
   if(! to_t.isNull()) {
@@ -1048,8 +892,8 @@ TypeNode exportTypeInternal(TypeNode n, NodeManager* from, NodeManager* to, Expr
 }/* CVC4::expr namespace */
 
 Type ExprManager::exportType(const Type& t, ExprManager* em, ExprManagerMapCollection& vmap) {
-  Assert(t.d_nodeManager != em->d_nodeManager,
-         "Can't export a Type to the same ExprManager");
+  Assert(t.d_nodeManager != em->d_nodeManager)
+      << "Can't export a Type to the same ExprManager";
   NodeManagerScope ems(t.d_nodeManager);
   return Type(em->d_nodeManager,
               new TypeNode(expr::exportTypeInternal(*t.d_typeNode, t.d_nodeManager, em->d_nodeManager, vmap)));

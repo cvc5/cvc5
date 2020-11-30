@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Clark Barrett, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -13,8 +13,10 @@
  **/
 #include "theory/theory_model.h"
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
+#include "options/theory_options.h"
 #include "options/uf_options.h"
 #include "smt/smt_engine.h"
 
@@ -28,17 +30,24 @@ namespace theory {
 TheoryModel::TheoryModel(context::Context* c,
                          std::string name,
                          bool enableFuncModels)
-    : d_substitutions(c, false),
-      d_modelBuilt(false),
-      d_modelBuiltSuccess(false),
+    : d_name(name),
+      d_substitutions(c, false),
+      d_equalityEngine(nullptr),
+      d_using_model_core(false),
       d_enableFuncModels(enableFuncModels)
 {
+  // must use function models when ufHo is enabled
+  Assert(d_enableFuncModels || !options::ufHo());
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
+}
 
-  d_eeContext = new context::Context();
-  d_equalityEngine = new eq::EqualityEngine(d_eeContext, name, false);
+TheoryModel::~TheoryModel() {}
 
+void TheoryModel::finishInit(eq::EqualityEngine* ee)
+{
+  Assert(ee != nullptr);
+  d_equalityEngine = ee;
   // The kinds we are treating as function application in congruence
   d_equalityEngine->addFunctionKind(kind::APPLY_UF, false, options::ufHo());
   d_equalityEngine->addFunctionKind(kind::HO_APPLY);
@@ -47,25 +56,20 @@ TheoryModel::TheoryModel(context::Context* c,
   d_equalityEngine->addFunctionKind(kind::APPLY_CONSTRUCTOR);
   d_equalityEngine->addFunctionKind(kind::APPLY_SELECTOR_TOTAL);
   d_equalityEngine->addFunctionKind(kind::APPLY_TESTER);
-  d_eeContext->push();
   // do not interpret APPLY_UF if we are not assigning function values
-  if (!enableFuncModels)
+  if (!d_enableFuncModels)
   {
     setSemiEvaluatedKind(kind::APPLY_UF);
   }
-  setUnevaluatedKind(kind::BOUND_VARIABLE);
-}
-
-TheoryModel::~TheoryModel()
-{
-  d_eeContext->pop();
-  delete d_equalityEngine;
-  delete d_eeContext;
+  // Equal and not terms are not relevant terms. In other words, asserted
+  // equalities and negations of predicates (as terms) do not need to be sent
+  // to the model. Regardless, theories should send information to the model
+  // that ensures that all assertions are satisfied.
+  setIrrelevantKind(EQUAL);
+  setIrrelevantKind(NOT);
 }
 
 void TheoryModel::reset(){
-  d_modelBuilt = false;
-  d_modelBuiltSuccess = false;
   d_modelCache.clear();
   d_comment_str.clear();
   d_sep_heap = Node::null();
@@ -73,12 +77,15 @@ void TheoryModel::reset(){
   d_approximations.clear();
   d_approx_list.clear();
   d_reps.clear();
+  d_assignExcSet.clear();
+  d_aesMaster.clear();
+  d_aesSlaves.clear();
   d_rep_set.clear();
   d_uf_terms.clear();
   d_ho_uf_terms.clear();
   d_uf_models.clear();
-  d_eeContext->pop();
-  d_eeContext->push();
+  d_using_model_core = false;
+  d_model_core.clear();
 }
 
 void TheoryModel::getComments(std::ostream& out) const {
@@ -91,35 +98,47 @@ void TheoryModel::setHeapModel( Node h, Node neq ) {
   d_sep_nil_eq = neq;
 }
 
-bool TheoryModel::getHeapModel( Expr& h, Expr& neq ) const {
-  if( d_sep_heap.isNull() || d_sep_nil_eq.isNull() ){
+bool TheoryModel::getHeapModel(Node& h, Node& neq) const
+{
+  if (d_sep_heap.isNull() || d_sep_nil_eq.isNull())
+  {
     return false;
-  }else{
-    h = d_sep_heap.toExpr();
-    neq = d_sep_nil_eq.toExpr();
-    return true;
   }
+  h = d_sep_heap;
+  neq = d_sep_nil_eq;
+  return true;
 }
 
 bool TheoryModel::hasApproximations() const { return !d_approx_list.empty(); }
 
-std::vector<std::pair<Expr, Expr> > TheoryModel::getApproximations() const
+std::vector<std::pair<Node, Node> > TheoryModel::getApproximations() const
 {
-  std::vector<std::pair<Expr, Expr> > approx;
-  for (const std::pair<Node, Node>& ap : d_approx_list)
-  {
-    approx.push_back(
-        std::pair<Expr, Expr>(ap.first.toExpr(), ap.second.toExpr()));
-  }
-  return approx;
+  return d_approx_list;
 }
 
-Node TheoryModel::getValue(TNode n, bool useDontCares) const {
+std::vector<Node> TheoryModel::getDomainElements(TypeNode tn) const
+{
+  // must be an uninterpreted sort
+  Assert(tn.isSort());
+  std::vector<Node> elements;
+  const std::vector<Node>* type_refs = d_rep_set.getTypeRepsOrNull(tn);
+  if (type_refs == nullptr || type_refs->empty())
+  {
+    // This is called when t is a sort that does not occur in this model.
+    // Sorts are always interpreted as non-empty, thus we add a single element.
+    elements.push_back(tn.mkGroundTerm());
+    return elements;
+  }
+  return *type_refs;
+}
+
+Node TheoryModel::getValue(TNode n) const
+{
   //apply substitutions
   Node nn = d_substitutions.apply(n);
   Debug("model-getvalue-debug") << "[model-getvalue] getValue : substitute " << n << " to " << nn << std::endl;
   //get value in model
-  nn = getModelValue(nn, false, useDontCares);
+  nn = getModelValue(nn);
   if (nn.isNull()) return nn;
   if(options::condenseFunctionValues() || nn.getKind() != kind::LAMBDA) {
     //normalize
@@ -130,35 +149,38 @@ Node TheoryModel::getValue(TNode n, bool useDontCares) const {
   return nn;
 }
 
-bool TheoryModel::isDontCare(Expr expr) const {
-  return getValue(Node::fromExpr(expr), true).isNull();
+bool TheoryModel::isModelCoreSymbol(Node s) const
+{
+  if (!d_using_model_core)
+  {
+    return true;
+  }
+  Assert(s.isVar() && s.getKind() != BOUND_VARIABLE);
+  return d_model_core.find(s) != d_model_core.end();
 }
 
-Expr TheoryModel::getValue( Expr expr ) const{
-  Node n = Node::fromExpr( expr );
-  Node ret = getValue( n );
-  return d_smt.postprocess(ret, TypeNode::fromType(expr.getType())).toExpr();
-}
-
-/** get cardinality for sort */
-Cardinality TheoryModel::getCardinality( Type t ) const{
-  TypeNode tn = TypeNode::fromType( t );
+Cardinality TheoryModel::getCardinality(TypeNode tn) const
+{
   //for now, we only handle cardinalities for uninterpreted sorts
-  if( tn.isSort() ){
-    if( d_rep_set.hasType( tn ) ){
-      Debug("model-getvalue-debug") << "Get cardinality sort, #rep : " << d_rep_set.getNumRepresentatives( tn ) << std::endl;
-      return Cardinality( d_rep_set.getNumRepresentatives( tn ) );
-    }else{
-      Debug("model-getvalue-debug") << "Get cardinality sort, unconstrained, return 1." << std::endl;
-      return Cardinality( 1 );
-    }
-  }else{
-      Debug("model-getvalue-debug") << "Get cardinality other sort, unknown." << std::endl;
+  if (!tn.isSort())
+  {
+    Debug("model-getvalue-debug")
+        << "Get cardinality other sort, unknown." << std::endl;
     return Cardinality( CardinalityUnknown() );
   }
+  if (d_rep_set.hasType(tn))
+  {
+    Debug("model-getvalue-debug")
+        << "Get cardinality sort, #rep : "
+        << d_rep_set.getNumRepresentatives(tn) << std::endl;
+    return Cardinality(d_rep_set.getNumRepresentatives(tn));
+  }
+  Debug("model-getvalue-debug")
+      << "Get cardinality sort, unconstrained, return 1." << std::endl;
+  return Cardinality(1);
 }
 
-Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) const
+Node TheoryModel::getModelValue(TNode n) const
 {
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it = d_modelCache.find(n);
   if (it != d_modelCache.end()) {
@@ -166,26 +188,27 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
   }
   Debug("model-getvalue-debug") << "Get model value " << n << " ... ";
   Debug("model-getvalue-debug") << d_equalityEngine->hasTerm(n) << std::endl;
-  if (n.isConst())
+  Kind nk = n.getKind();
+  if (n.isConst() || nk == BOUND_VARIABLE)
   {
     d_modelCache[n] = n;
     return n;
   }
 
   Node ret = n;
-  Kind nk = n.getKind();
   NodeManager* nm = NodeManager::currentNM();
 
   // if it is an evaluated kind, compute model values for children and evaluate
   if (n.getNumChildren() > 0
-      && d_not_evaluated_kinds.find(nk) == d_not_evaluated_kinds.end())
+      && d_unevaluated_kinds.find(nk) == d_unevaluated_kinds.end()
+      && d_semi_evaluated_kinds.find(nk) == d_semi_evaluated_kinds.end())
   {
     Debug("model-getvalue-debug")
         << "Get model value children " << n << std::endl;
     std::vector<Node> children;
     if (n.getKind() == APPLY_UF)
     {
-      Node op = getModelValue(n.getOperator(), hasBoundVars);
+      Node op = getModelValue(n.getOperator());
       Debug("model-getvalue-debug") << "  operator : " << op << std::endl;
       children.push_back(op);
     }
@@ -196,7 +219,7 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
     // evaluate the children
     for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; ++i)
     {
-      ret = getModelValue(n[i], hasBoundVars);
+      ret = getModelValue(n[i]);
       Debug("model-getvalue-debug")
           << "  " << n << "[" << i << "] is " << ret << std::endl;
       children.push_back(ret);
@@ -210,19 +233,30 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
     {
       Debug("model-getvalue-debug")
           << "get cardinality constraint " << ret[0].getType() << std::endl;
-      ret = nm->mkConst(
-          getCardinality(ret[0].getType().toType()).getFiniteCardinality()
-          <= ret[1].getConst<Rational>().getNumerator());
+      ret = nm->mkConst(getCardinality(ret[0].getType()).getFiniteCardinality()
+                        <= ret[1].getConst<Rational>().getNumerator());
     }
     else if (ret.getKind() == kind::CARDINALITY_VALUE)
     {
       Debug("model-getvalue-debug")
           << "get cardinality value " << ret[0].getType() << std::endl;
-      ret = nm->mkConst(Rational(
-          getCardinality(ret[0].getType().toType()).getFiniteCardinality()));
+      ret = nm->mkConst(
+          Rational(getCardinality(ret[0].getType()).getFiniteCardinality()));
     }
     d_modelCache[n] = ret;
     return ret;
+  }
+  // it might be approximate
+  std::map<Node, Node>::const_iterator ita = d_approximations.find(n);
+  if (ita != d_approximations.end())
+  {
+    // If the value of n is approximate based on predicate P(n), we return
+    // witness z. P(z).
+    Node v = nm->mkBoundVar(n.getType());
+    Node bvl = nm->mkNode(BOUND_VAR_LIST, v);
+    Node answer = nm->mkNode(WITNESS, bvl, ita->second.substitute(n, v));
+    d_modelCache[n] = answer;
+    return answer;
   }
   // must rewrite the term at this point
   ret = Rewriter::rewrite(n);
@@ -259,20 +293,18 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
   }
 
   // if we are a evaluated or semi-evaluated kind, return an arbitrary value
-  // if we are not in the d_not_evaluated_kinds map, we are evaluated
-  // if we are in the d_semi_evaluated_kinds, we are semi-evaluated
-  if (d_not_evaluated_kinds.find(nk) == d_not_evaluated_kinds.end()
-      || d_semi_evaluated_kinds.find(nk) != d_semi_evaluated_kinds.end())
+  // if we are not in the d_unevaluated_kinds map, we are evaluated
+  if (d_unevaluated_kinds.find(nk) == d_unevaluated_kinds.end())
   {
     if (t.isFunction() || t.isPredicate())
     {
       if (d_enableFuncModels)
       {
-        std::map<Node, Node>::const_iterator it = d_uf_models.find(n);
-        if (it != d_uf_models.end())
+        std::map<Node, Node>::const_iterator entry = d_uf_models.find(n);
+        if (entry != d_uf_models.end())
         {
           // Existing function
-          ret = it->second;
+          ret = entry->second;
           d_modelCache[n] = ret;
           return ret;
         }
@@ -280,7 +312,6 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
         // constant in the enumeration of the range type
         vector<TypeNode> argTypes = t.getArgTypes();
         vector<Node> args;
-        NodeManager* nm = NodeManager::currentNM();
         for (unsigned i = 0, size = argTypes.size(); i < size; ++i)
         {
           args.push_back(nm->mkBoundVar(argTypes[i]));
@@ -303,10 +334,6 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
     }
     else
     {
-      if (options::omitDontCares() && useDontCares)
-      {
-        return Node();
-      }
       // Unknown term - return first enumerated value for this type
       TypeEnumerator te(n.getType());
       ret = *te;
@@ -329,12 +356,11 @@ void TheoryModel::addSubstitution( TNode x, TNode t, bool invalidateCache ){
     Node oldX = d_substitutions.getSubstitution(x);
     // check that either the old substitution is the same, or it now maps to the new substitution
     if(oldX != t && d_substitutions.apply(oldX) != d_substitutions.apply(t)) {
-      stringstream ss;
-      ss << "Two incompatible substitutions added to TheoryModel:\n"
-         << "the term:    " << x << "\n"
-         << "old mapping: " << d_substitutions.apply(oldX) << "\n"
-         << "new mapping: " << d_substitutions.apply(t);
-      InternalError(ss.str());
+      InternalError()
+          << "Two incompatible substitutions added to TheoryModel:\n"
+          << "the term:    " << x << "\n"
+          << "old mapping: " << d_substitutions.apply(oldX) << "\n"
+          << "new mapping: " << d_substitutions.apply(t);
     }
 #endif /* CVC4_ASSERTIONS */
   }
@@ -403,7 +429,7 @@ bool TheoryModel::assertPredicate(TNode a, bool polarity)
 
 /** assert equality engine */
 bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
-                                       set<Node>* termSet)
+                                       const std::set<Node>* termSet)
 {
   Assert(d_equalityEngine->consistent());
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
@@ -442,8 +468,10 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
             first = false;
           }
           else {
-            Trace("model-builder-assertions") << "(assert (= " << *eqc_i << " " << rep << "));" << endl;
-            d_equalityEngine->mergePredicates(*eqc_i, rep, Node::null());
+            Node eq = (*eqc_i).eqNode(rep);
+            Trace("model-builder-assertions")
+                << "(assert " << eq << ");" << std::endl;
+            d_equalityEngine->assertEquality(eq, true, Node::null());
             if (!d_equalityEngine->consistent())
             {
               return false;
@@ -481,6 +509,69 @@ void TheoryModel::assertSkeleton(TNode n)
   d_reps[ n ] = n;
 }
 
+void TheoryModel::setAssignmentExclusionSet(TNode n,
+                                            const std::vector<Node>& eset)
+{
+  // should not be assigned yet
+  Assert(d_assignExcSet.find(n) == d_assignExcSet.end());
+  Trace("model-builder-debug")
+      << "Exclude values of " << n << " : " << eset << std::endl;
+  std::vector<Node>& aes = d_assignExcSet[n];
+  aes.insert(aes.end(), eset.begin(), eset.end());
+}
+
+void TheoryModel::setAssignmentExclusionSetGroup(
+    const std::vector<TNode>& group, const std::vector<Node>& eset)
+{
+  if (group.empty())
+  {
+    return;
+  }
+  // for efficiency, we store a single copy of eset and set a slave/master
+  // relationship
+  setAssignmentExclusionSet(group[0], eset);
+  std::vector<Node>& gslaves = d_aesSlaves[group[0]];
+  for (unsigned i = 1, gsize = group.size(); i < gsize; ++i)
+  {
+    Node gs = group[i];
+    // set master
+    d_aesMaster[gs] = group[0];
+    // add to slaves
+    gslaves.push_back(gs);
+  }
+}
+
+bool TheoryModel::getAssignmentExclusionSet(TNode n,
+                                            std::vector<Node>& group,
+                                            std::vector<Node>& eset)
+{
+  // does it have a master?
+  std::map<Node, Node>::iterator itm = d_aesMaster.find(n);
+  if (itm != d_aesMaster.end())
+  {
+    return getAssignmentExclusionSet(itm->second, group, eset);
+  }
+  std::map<Node, std::vector<Node> >::iterator ita = d_assignExcSet.find(n);
+  if (ita == d_assignExcSet.end())
+  {
+    return false;
+  }
+  eset.insert(eset.end(), ita->second.begin(), ita->second.end());
+  group.push_back(n);
+  // does it have slaves?
+  ita = d_aesSlaves.find(n);
+  if (ita != d_aesSlaves.end())
+  {
+    group.insert(group.end(), ita->second.begin(), ita->second.end());
+  }
+  return true;
+}
+
+bool TheoryModel::hasAssignmentExclusionSets() const
+{
+  return !d_assignExcSet.empty();
+}
+
 void TheoryModel::recordApproximation(TNode n, TNode pred)
 {
   Trace("model-builder-debug")
@@ -490,17 +581,39 @@ void TheoryModel::recordApproximation(TNode n, TNode pred)
   Assert(pred.getType().isBoolean());
   d_approximations[n] = pred;
   d_approx_list.push_back(std::pair<Node, Node>(n, pred));
+  // model cache is invalid
+  d_modelCache.clear();
+}
+void TheoryModel::recordApproximation(TNode n, TNode pred, Node witness)
+{
+  Node predDisj = NodeManager::currentNM()->mkNode(OR, n.eqNode(witness), pred);
+  recordApproximation(n, predDisj);
+}
+void TheoryModel::setUsingModelCore()
+{
+  d_using_model_core = true;
+  d_model_core.clear();
 }
 
-void TheoryModel::setUnevaluatedKind(Kind k)
-{
-  d_not_evaluated_kinds.insert(k);
-}
+void TheoryModel::recordModelCoreSymbol(Node sym) { d_model_core.insert(sym); }
+
+void TheoryModel::setUnevaluatedKind(Kind k) { d_unevaluated_kinds.insert(k); }
 
 void TheoryModel::setSemiEvaluatedKind(Kind k)
 {
-  d_not_evaluated_kinds.insert(k);
   d_semi_evaluated_kinds.insert(k);
+}
+
+void TheoryModel::setIrrelevantKind(Kind k) { d_irrKinds.insert(k); }
+
+const std::set<Kind>& TheoryModel::getIrrelevantKinds() const
+{
+  return d_irrKinds;
+}
+
+bool TheoryModel::isLegalElimination(TNode x, TNode val)
+{
+  return !expr::hasSubtermKinds(d_unevaluated_kinds, val);
 }
 
 bool TheoryModel::hasTerm(TNode a)
@@ -542,49 +655,21 @@ bool TheoryModel::areDisequal(TNode a, TNode b)
   }
 }
 
-//for debugging
-void TheoryModel::printRepresentativeDebug( const char* c, Node r ){
-  if( r.isNull() ){
-    Trace( c ) << "null";
-  }else if( r.getType().isBoolean() ){
-    if( areEqual( r, d_true ) ){
-      Trace( c ) << "true";
-    }else{
-      Trace( c ) << "false";
-    }
-  }else{
-    Trace( c ) << getRepresentative( r );
-  }
-}
-
-void TheoryModel::printRepresentative( std::ostream& out, Node r ){
-  Assert( !r.isNull() );
-  if( r.isNull() ){
-    out << "null";
-  }else if( r.getType().isBoolean() ){
-    if( areEqual( r, d_true ) ){
-      out  << "true";
-    }else{
-      out  << "false";
-    }
-  }else{
-    out << getRepresentative( r );
-  }
-}
-
 bool TheoryModel::areFunctionValuesEnabled() const
 {
   return d_enableFuncModels;
 }
 
 void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
-  Assert( d_uf_models.find( f )==d_uf_models.end() );
   Trace("model-builder") << "  Assigning function (" << f << ") to (" << f_def << ")" << endl;
+  Assert(d_uf_models.find(f) == d_uf_models.end());
 
   if( options::ufHo() ){
     //we must rewrite the function value since the definition needs to be a constant value
     f_def = Rewriter::rewrite( f_def );
-    Assert( f_def.isConst() );
+    Trace("model-builder-debug")
+        << "Model value (post-rewrite) : " << f_def << std::endl;
+    Assert(f_def.isConst()) << "Non-constant f_def: " << f_def;
   }
  
   // d_uf_models only stores models for variables
@@ -592,9 +677,9 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
     d_uf_models[f] = f_def;
   }
 
-  if( options::ufHo() ){
+  if (options::ufHo() && d_equalityEngine->hasTerm(f))
+  {
     Trace("model-builder-debug") << "  ...function is first-class member of equality engine" << std::endl;
-    Assert(d_equalityEngine->hasTerm(f));
     // assign to representative if higher-order
     Node r = d_equalityEngine->getRepresentative( f );
     //always replace the representative, since it is initially assigned to itself
@@ -622,7 +707,7 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
   // collect functions
   for( std::map< Node, std::vector< Node > >::iterator it = d_uf_terms.begin(); it != d_uf_terms.end(); ++it ){
     Node n = it->first;
-    Assert( !n.isNull() );
+    Assert(!n.isNull());
     if( !hasAssignedFunctionDefinition( n ) ){
       Trace("model-builder-fun-debug") << "Look at function : " << n << std::endl;
       if( options::ufHo() ){
@@ -656,6 +741,8 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
   Trace("model-builder-fun") << "return " << funcs_to_assign.size() << " functions to assign..." << std::endl;
   return funcs_to_assign;
 }
+
+const std::string& TheoryModel::getName() const { return d_name; }
 
 } /* namespace CVC4::theory */
 } /* namespace CVC4 */

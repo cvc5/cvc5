@@ -73,9 +73,6 @@ type_properties_includes=
 seen_theory=false
 seen_theory_builtin=false
 
-theory_enum=
-theory_descriptions=
-theory_stats_prefixes=
 
 function theory {
   # theory ID T header
@@ -88,7 +85,7 @@ function theory {
   fi
 
   # this script doesn't care about the theory class information, but
-  # makes does make sure it's there
+  # makes sure it's there
   seen_theory=true
   if [ "$1" = THEORY_BUILTIN ]; then
     if $seen_theory_builtin; then
@@ -106,13 +103,7 @@ function theory {
   fi
 
   theory_id="$1"
-  theory_enum="${theory_enum}  $1,
-"
-  theory_descriptions="${theory_descriptions}  case ${theory_id}: out << \"${theory_id}\"; break;
-"
   prefix=$(echo "$theory_id" | tr '[:upper:]' '[:lower:]')
-  theory_stats_prefixes="${theory_stats_prefixes}  case ${theory_id}: return \"theory::${prefix#theory_}\"; break;
-"
 }
 
 function alternate {
@@ -266,24 +257,24 @@ function register_sort {
 "
   type_constant_to_theory_id="${type_constant_to_theory_id}  case $id: return $theory_id;
 "
-  type_constant_cardinalities="${type_constant_cardinalities}#line $lineno \"$kf\"
+  type_constant_cardinalities="${type_constant_cardinalities}
   case $id: return Cardinality($cardinality);
 "
-  type_constant_wellfoundednesses="${type_constant_wellfoundednesses}#line $lineno \"$kf\"
+  type_constant_wellfoundednesses="${type_constant_wellfoundednesses}
   case $id: return $wellfoundedness;
 "
   if [ -n "$groundterm" ]; then
-    type_constant_groundterms="${type_constant_groundterms}#line $lineno \"$kf\"
+    type_constant_groundterms="${type_constant_groundterms}
   case $id: return $groundterm;
 "
     if [ -n "$header" ]; then
-      type_properties_includes="${type_properties_includes}#line $lineno \"$kf\"
+      type_properties_includes="${type_properties_includes}
 #include \"$header\"
 "
     fi
   else
-    type_constant_groundterms="${type_constant_groundterms}#line $lineno \"$kf\"
-  case $id: Unhandled(tc);
+    type_constant_groundterms="${type_constant_groundterms}
+  case $id: Unhandled() << tc;
 "
   fi
 }
@@ -293,11 +284,11 @@ function register_cardinality {
   cardinality_computer=$(sed 's,%TYPE%,typeNode,g' <<<"$2")
   header=$3
 
-  type_cardinalities="${type_cardinalities}#line $lineno \"$kf\"
+  type_cardinalities="${type_cardinalities}
   case $id: return $cardinality_computer;
 "
   if [ -n "$header" ]; then
-    type_properties_includes="${type_properties_includes}#line $lineno \"$kf\"
+    type_properties_includes="${type_properties_includes}
 #include \"$header\"
 "
   fi
@@ -323,20 +314,20 @@ function register_wellfoundedness {
     fi
   fi
 
-  type_wellfoundednesses="${type_wellfoundednesses}#line $lineno \"$kf\"
+  type_wellfoundednesses="${type_wellfoundednesses}
   case $id: return $wellfoundedness_computer;
 "
   if [ -n "$groundterm_computer" ]; then
-    type_groundterms="${type_groundterms}#line $lineno \"$kf\"
+    type_groundterms="${type_groundterms}
   case $id: return $groundterm_computer;
 "
   else
-    type_groundterms="${type_groundterms}#line $lineno \"$kf\"
-  case $id: Unhandled(typeNode);
+    type_groundterms="${type_groundterms}
+  case $id: Unhandled() << typeNode;
 "
   fi
   if [ -n "$header" ]; then
-    type_properties_includes="${type_properties_includes}#line $lineno \"$kf\"
+    type_properties_includes="${type_properties_includes}
 #include \"$header\"
 "
   fi
@@ -350,7 +341,7 @@ function register_kind {
 
   kind_decls="${kind_decls}  $r, /**< $comment ($register_kind_counter) */
 "
-  kind_printers="${kind_printers}  case $r: out << \"$r\"; break;
+  kind_printers="${kind_printers}  case $r: return \"$r\";
 "
   kind_to_theory_id="${kind_to_theory_id}  case kind::$r: return $theory_id;
 "
@@ -399,16 +390,11 @@ check_builtin_theory_seen
 
 ## output
 
-# generate warnings about incorrect #line annotations in templates
-nl -ba -s' ' "$template"  | grep '^ *[0-9][0-9]* # *line' |
-  awk '{OFS="";if($1+1!=$3) print "'"$template"':",$1,": warning: incorrect annotation \"#line ",$3,"\" (it should be \"#line ",($1+1),"\")"}' >&2
-
 text=$(cat "$template")
 for var in \
     kind_decls \
     kind_printers \
     kind_to_theory_id \
-    theory_enum \
     type_constant_list \
     type_constant_descriptions \
     type_constant_to_theory_id \
@@ -419,8 +405,6 @@ for var in \
     type_groundterms \
     type_constant_groundterms \
     type_properties_includes \
-    theory_descriptions \
-    theory_stats_prefixes \
     template \
     ; do
   eval text="\${text//\\\$\\{$var\\}/\${$var}}"

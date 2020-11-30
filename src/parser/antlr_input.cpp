@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Christopher L. Conway, Kshitij Bansal, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -15,13 +15,9 @@
  **/
 
 #include "parser/antlr_input.h"
-// We rely on the inclusion of #include <antlr3.h> in "parser/antlr_input.h".
-// This is avoid having to undefine the symbols in <antlr3.h>.
-// See the documentation in "parser/antlr_undefines.h" for more
-// details.
 
+#include <antlr3.h>
 #include <limits.h>
-#include <stdint.h>
 
 #include "base/output.h"
 #include "expr/type.h"
@@ -33,11 +29,9 @@
 #include "parser/memory_mapped_input_buffer.h"
 #include "parser/parser.h"
 #include "parser/parser_exception.h"
-#include "parser/smt1/smt1_input.h"
 #include "parser/smt2/smt2_input.h"
 #include "parser/smt2/sygus_input.h"
 #include "parser/tptp/tptp_input.h"
-#include "smt/command.h"
 
 using namespace std;
 using namespace CVC4;
@@ -250,13 +244,8 @@ AntlrInput* AntlrInput::newInput(InputLanguage lang, AntlrInputStream& inputStre
     input = new CvcInput(inputStream);
     break;
   }
-  case LANG_SMTLIB_V1:
-    input = new Smt1Input(inputStream);
-    break;
 
-  case LANG_SYGUS:
-    input = new SygusInput(inputStream);
-    break;
+  case LANG_SYGUS_V2: input = new SygusInput(inputStream); break;
 
   case LANG_TPTP:
     input = new TptpInput(inputStream);
@@ -270,8 +259,7 @@ AntlrInput* AntlrInput::newInput(InputLanguage lang, AntlrInputStream& inputStre
     else
     {
       std::stringstream ss;
-      ss << "internal error: unhandled language " << lang
-         << " in AntlrInput::newInput";
+      ss << "unable to detect input file format, try --lang ";
       throw InputStreamException(ss.str());
     }
   }
@@ -399,7 +387,10 @@ size_t wholeWordMatch(string input, string pattern, bool (*isWordChar)(char)) {
  *   found to be totally unhelpful. (TODO: fix this upstream to
  *   improve)
  */
-std::string parseErrorHelper(const char* lineStart, int charPositionInLine, const std::string& message)
+std::string parseErrorHelper(const char* lineStart,
+                             std::size_t lineLength,
+                             std::size_t charPositionInLine,
+                             const std::string& message)
 {
   // Is it a multi-line message
   bool multilineMessage = (message.find('\n') != string::npos);
@@ -415,17 +406,20 @@ std::string parseErrorHelper(const char* lineStart, int charPositionInLine, cons
     ss << message << endl << endl;
   }
 
-  int posSliceStart = (charPositionInLine - 50 <= 0) ? 0 : charPositionInLine - 50 + 5;
-  int posSliceEnd = posSliceStart + 70;
-  int caretPos = 0;
-  int caretPosExtra = 0; // for inital intendation, epilipses etc.
+  std::size_t posSliceStart =
+      (charPositionInLine <= 50) ? 0 : charPositionInLine - 50 + 5;
+  std::size_t posSliceEnd = posSliceStart + 70;
+  std::size_t caretPos = 0;
+  std::size_t caretPosExtra = 0;  // for inital intendation, epilipses etc.
 
   ss << "  "; caretPosExtra += 2;
   if(posSliceStart > 0) {
     ss << "..."; caretPosExtra += 3;
   }
 
-  for(int i = posSliceStart; lineStart[i] != '\n'; ++i) {
+  for (std::size_t i = posSliceStart; i < lineLength && lineStart[i] != '\n';
+       ++i)
+  {
     if(i == posSliceEnd) {
       ss << "...";
       break;
@@ -511,9 +505,14 @@ std::string parseErrorHelper(const char* lineStart, int charPositionInLine, cons
 
 void AntlrInput::parseError(const std::string& message, bool eofException)
 {
-  string updatedMessage = parseErrorHelper((const char*)d_antlr3InputStream->getLineBuf(d_antlr3InputStream),
-                                           d_lexer->getCharPositionInLine(d_lexer),
-                                           message);
+  auto lineLength = d_antlr3InputStream->sizeBuf
+                    - (static_cast<char*>(d_antlr3InputStream->currentLine)
+                       - static_cast<char*>(d_antlr3InputStream->data));
+  std::string updatedMessage = parseErrorHelper(
+      (const char*)d_antlr3InputStream->getLineBuf(d_antlr3InputStream),
+      lineLength,
+      d_lexer->getCharPositionInLine(d_lexer),
+      message);
 
   Debug("parser") << "Throwing exception: "
       << (const char*)d_lexer->rec->state->tokSource->fileName->chars << ":"

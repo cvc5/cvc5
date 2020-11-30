@@ -1,4 +1,4 @@
-% EXPECT: valid
+% EXPECT: entailed
 x: [REAL,INT,REAL] = ( 4/5, 9, 11/9 );
 first_elem: REAL = x.0;
 third_elem: REAL = x.2;

@@ -1,0 +1,23 @@
+; EXPECT: unsat
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+(set-logic ALL)
+(synth-fun args_0_refinement_0 
+	((r Int)) Bool 
+	((fv_B Bool)) 
+	(
+		(fv_B Bool (true)) 
+	)
+)
+(synth-fun ret_refinement_0 
+	((x0 Int) (r Bool)) Bool 
+	((fv_B Bool) (B Bool) (I Int)) 
+	(
+		(fv_B Bool (r true (=> B fv_B))) 
+		(B Bool ((Variable Bool) (= I I))) 
+		(I Int ((Variable Int) 1)) 
+	)
+)
+(constraint (ret_refinement_0 1 true))
+(constraint (not (ret_refinement_0 1 false)))
+(constraint (and (ret_refinement_0 0 false)))
+(check-synth)

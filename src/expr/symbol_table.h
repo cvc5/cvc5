@@ -2,10 +2,10 @@
 /*! \file symbol_table.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
+ **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__SYMBOL_TABLE_H
-#define __CVC4__SYMBOL_TABLE_H
+#ifndef CVC4__SYMBOL_TABLE_H
+#define CVC4__SYMBOL_TABLE_H
 
 #include <memory>
 #include <string>
@@ -28,6 +28,12 @@
 #include "expr/type.h"
 
 namespace CVC4 {
+
+namespace api {
+class Solver;
+class Sort;
+class Term;
+}  // namespace api
 
 class CVC4_PUBLIC ScopeException : public Exception {};
 
@@ -65,39 +71,9 @@ class CVC4_PUBLIC SymbolTable {
    * Returns false if the binding was invalid.
    */
   bool bind(const std::string& name,
-            Expr obj,
+            api::Term obj,
             bool levelZero = false,
             bool doOverload = false);
-
-  /**
-   * Bind a function body to a name in the current scope.
-   *
-   * When doOverload is false:
-   * if <code>name</code> is already bound to an expression in the current
-   * level, then the binding is replaced. If <code>name</code> is bound
-   * in a previous level, then the binding is "covered" by this one
-   * until the current scope is popped.
-   * If levelZero is true the name shouldn't be already bound.
-   *
-   * When doOverload is true:
-   * if <code>name</code> is already bound to an expression in the current
-   * level, then we mark the previous bound expression and obj as overloaded
-   * functions.
-   *
-   * Same as bind() but registers this as a function (so that
-   * isBoundDefinedFunction() returns true).
-   *
-   * @param name an identifier
-   * @param obj the expression to bind to <code>name</code>
-   * @param levelZero set if the binding must be done at level 0
-   * @param doOverload set if the binding can overload the function name.
-   *
-   * Returns false if the binding was invalid.
-   */
-  bool bindDefinedFunction(const std::string& name,
-                           Expr obj,
-                           bool levelZero = false,
-                           bool doOverload = false);
 
   /**
    * Bind a type to a name in the current scope.  If <code>name</code>
@@ -110,7 +86,7 @@ class CVC4_PUBLIC SymbolTable {
    * @param t the type to bind to <code>name</code>
    * @param levelZero set if the binding must be done at level 0
    */
-  void bindType(const std::string& name, Type t, bool levelZero = false);
+  void bindType(const std::string& name, api::Sort t, bool levelZero = false);
 
   /**
    * Bind a type to a name in the current scope.  If <code>name</code>
@@ -126,29 +102,17 @@ class CVC4_PUBLIC SymbolTable {
    * locally within the current scope)
    */
   void bindType(const std::string& name,
-                const std::vector<Type>& params,
-                Type t,
+                const std::vector<api::Sort>& params,
+                api::Sort t,
                 bool levelZero = false);
 
   /**
-   * Check whether a name is bound to an expression with either bind()
-   * or bindDefinedFunction().
+   * Check whether a name is bound to an expression with bind().
    *
    * @param name the identifier to check.
    * @returns true iff name is bound in the current scope.
    */
   bool isBound(const std::string& name) const;
-
-  /**
-   * Check whether a name was bound to a function with bindDefinedFunction().
-   */
-  bool isBoundDefinedFunction(const std::string& name) const;
-
-  /**
-   * Check whether an Expr was bound to a function (i.e., was the
-   * second arg to bindDefinedFunction()).
-   */
-  bool isBoundDefinedFunction(Expr func) const;
 
   /**
    * Check whether a name is bound to a type (or type constructor).
@@ -167,7 +131,7 @@ class CVC4_PUBLIC SymbolTable {
    * It returns the null expression if there is not a unique expression bound to
    * <code>name</code> in the current scope (i.e. if there is not exactly one).
    */
-  Expr lookup(const std::string& name) const;
+  api::Term lookup(const std::string& name) const;
 
   /**
    * Lookup a bound type.
@@ -175,7 +139,7 @@ class CVC4_PUBLIC SymbolTable {
    * @param name the type identifier to lookup
    * @returns the type bound to <code>name</code> in the current scope.
    */
-  Type lookupType(const std::string& name) const;
+  api::Sort lookupType(const std::string& name) const;
 
   /**
    * Lookup a bound parameterized type.
@@ -185,8 +149,8 @@ class CVC4_PUBLIC SymbolTable {
    * @returns the type bound to <code>name(<i>params</i>)</code> in
    * the current scope.
    */
-  Type lookupType(const std::string& name,
-                  const std::vector<Type>& params) const;
+  api::Sort lookupType(const std::string& name,
+                       const std::vector<api::Sort>& params) const;
 
   /**
    * Lookup the arity of a bound parameterized type.
@@ -212,13 +176,14 @@ class CVC4_PUBLIC SymbolTable {
 
   //------------------------ operator overloading
   /** is this function overloaded? */
-  bool isOverloadedFunction(Expr fun) const;
+  bool isOverloadedFunction(api::Term fun) const;
 
   /** Get overloaded constant for type.
    * If possible, it returns the defined symbol with name
    * that has type t. Otherwise returns null expression.
   */
-  Expr getOverloadedConstantForType(const std::string& name, Type t) const;
+  api::Term getOverloadedConstantForType(const std::string& name,
+                                         api::Sort t) const;
 
   /**
    * If possible, returns the unique defined function for a name
@@ -231,19 +196,16 @@ class CVC4_PUBLIC SymbolTable {
    * no functions with name and expected argTypes, or alternatively there is
    * more than one function with name and expected argTypes.
    */
-  Expr getOverloadedFunctionForTypes(const std::string& name,
-                                     const std::vector< Type >& argTypes) const;
+  api::Term getOverloadedFunctionForTypes(
+      const std::string& name, const std::vector<api::Sort>& argTypes) const;
   //------------------------ end operator overloading
 
  private:
-  // Copying and assignment have not yet been implemented.
-  SymbolTable(const SymbolTable&);
-  SymbolTable& operator=(SymbolTable&);
-
+  /** The implementation of the symbol table */
   class Implementation;
   std::unique_ptr<Implementation> d_implementation;
 }; /* class SymbolTable */
 
 }  // namespace CVC4
 
-#endif /* __CVC4__SYMBOL_TABLE_H */
+#endif /* CVC4__SYMBOL_TABLE_H */

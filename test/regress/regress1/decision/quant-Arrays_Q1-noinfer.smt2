@@ -1,3 +1,6 @@
+; COMMAND-LINE: --decision=justification
+; EXPECT: unsat
+
 (set-logic AUFLIA)
 (set-info :source | 
   Boogie/Spec# benchmarks.

@@ -2,10 +2,10 @@
 /*! \file bound_counts.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Clark Barrett
+ **   Tim King, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -18,9 +18,7 @@
 #include "cvc4_private.h"
 #pragma once
 
-#include <stdint.h>
-
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "theory/arith/arithvar.h"
 #include "util/dense_map.h"
 
@@ -66,7 +64,7 @@ public:
   }
 
   inline BoundCounts operator-(BoundCounts bc) const {
-    Assert( *this >= bc );
+    Assert(*this >= bc);
     return BoundCounts(d_lowerBoundCount - bc.d_lowerBoundCount,
                        d_upperBoundCount - bc.d_upperBoundCount);
   }

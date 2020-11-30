@@ -2,10 +2,10 @@
 /*! \file binary_heap_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters
+ **   Morgan Deters, Mathias Preiner, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -19,34 +19,33 @@
 #include <iostream>
 #include <sstream>
 
+#include "test_utils.h"
 #include "util/bin_heap.h"
 
 using namespace CVC4;
 using namespace std;
 
 class BinaryHeapBlack : public CxxTest::TestSuite {
-public:
+ public:
+  void setUp() override {}
 
-  void setUp() {
-  }
-
-  void tearDown() {
-  }
+  void tearDown() override {}
 
   /**
    * Test a a series of simple heaps (push a few then pop all then do others).
    * Done as a series to test if the heap structure falls into a bad state
    * after prolonged use.
    */
-  void testHeapSeries() {
+  void testHeapSeries()
+  {
     BinaryHeap<int> heap;
 
     // First test a heap of 1 element
     TS_ASSERT_EQUALS(heap.size(), 0u);
     TS_ASSERT(heap.empty());
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS_ANYTHING(heap.top());
-    TS_ASSERT_THROWS_ANYTHING(heap.pop());
+    TS_UTILS_EXPECT_ABORT(heap.top());
+    TS_UTILS_EXPECT_ABORT(heap.pop());
 #endif /* CVC4_ASSERTIONS */
     TS_ASSERT_EQUALS(heap.begin(), heap.end());
 
@@ -62,8 +61,8 @@ public:
     TS_ASSERT(heap.empty());
     TS_ASSERT_EQUALS(heap.size(), 0u);
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS_ANYTHING(heap.top());
-    TS_ASSERT_THROWS_ANYTHING(heap.pop());
+    TS_UTILS_EXPECT_ABORT(heap.top());
+    TS_UTILS_EXPECT_ABORT(heap.pop());
 #endif /* CVC4_ASSERTIONS */
 
     // Next test a heap of 4 elements
@@ -120,8 +119,8 @@ public:
     TS_ASSERT(heap.empty());
     TS_ASSERT_EQUALS(heap.size(), 0u);
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS_ANYTHING(heap.top());
-    TS_ASSERT_THROWS_ANYTHING(heap.pop());
+    TS_UTILS_EXPECT_ABORT(heap.top());
+    TS_UTILS_EXPECT_ABORT(heap.pop());
 #endif /* CVC4_ASSERTIONS */
 
     // Now with a few updates

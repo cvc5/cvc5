@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Christopher L. Conway, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,17 +16,18 @@
 
 #include "cvc4parser_public.h"
 
-#ifndef __CVC4__PARSER__INPUT_H
-#define __CVC4__PARSER__INPUT_H
+#ifndef CVC4__PARSER__INPUT_H
+#define CVC4__PARSER__INPUT_H
 
 #include <iostream>
 #include <stdio.h>
 #include <string>
 #include <vector>
 
-#include "options/language.h"
+#include "api/cvc4cpp.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
+#include "options/language.h"
 #include "parser/parser_exception.h"
 
 namespace CVC4 {
@@ -90,8 +91,8 @@ class CVC4_PUBLIC Input {
    * copy construction and assignment.  Mark them private and do not define
    * them.
    */
-  Input(const Input& input) CVC4_UNDEFINED;
-  Input& operator=(const Input& input) CVC4_UNDEFINED;
+  Input(const Input& input) = delete;
+  Input& operator=(const Input& input) = delete;
 
  public:
   /** Create an input for the given file.
@@ -164,11 +165,11 @@ class CVC4_PUBLIC Input {
 
   /** Parse an expression from the input by invoking the
    * implementation-specific parsing method. Returns a null
-   * <code>Expr</code> if there is no expression there to parse.
+   * <code>api::Term</code> if there is no expression there to parse.
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  virtual Expr parseExpr() = 0;
+  virtual api::Term parseExpr() = 0;
 
   /** Set the Parser object for this input. */
   virtual void setParser(Parser& parser) = 0;
@@ -178,4 +179,4 @@ class CVC4_PUBLIC Input {
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PARSER__ANTLR_INPUT_H */
+#endif /* CVC4__PARSER__ANTLR_INPUT_H */

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cbqi-nested-qe
+; COMMAND-LINE: --cegqi-nested-qe
 ; EXPECT: sat
 (set-logic BV)
 (set-info :status sat)

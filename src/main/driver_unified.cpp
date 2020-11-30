@@ -2,15 +2,14 @@
 /*! \file driver_unified.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Liana Hadarean
+ **   Morgan Deters, Liana Hadarean, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Driver for CVC4 executable (cvc4) unified for both
- ** sequential and portfolio versions
+ ** \brief Driver for CVC4 executable (cvc4)
  **/
 
 #include <stdio.h>
@@ -23,22 +22,18 @@
 #include <memory>
 #include <new>
 
-// This must come before PORTFOLIO_BUILD.
 #include "cvc4autoconfig.h"
 
-#include "base/tls.h"
+#include "api/cvc4cpp.h"
 #include "base/configuration.h"
 #include "base/output.h"
 #include "expr/expr_iomanip.h"
 #include "expr/expr_manager.h"
 #include "main/command_executor.h"
-
-#ifdef PORTFOLIO_BUILD
-#  include "main/command_executor_portfolio.h"
-#endif
-
 #include "main/interactive_shell.h"
 #include "main/main.h"
+#include "main/signal_handlers.h"
+#include "main/time_limit.h"
 #include "options/options.h"
 #include "options/set_language.h"
 #include "parser/parser.h"
@@ -56,7 +51,7 @@ using namespace CVC4::main;
 namespace CVC4 {
   namespace main {
     /** Global options variable */
-    CVC4_THREAD_LOCAL Options* pOptions;
+    thread_local Options* pOptions;
 
     /** Full argv[0] */
     const char *progPath;
@@ -65,10 +60,10 @@ namespace CVC4 {
     const std::string *progName;
 
     /** A pointer to the CommandExecutor (the signal handlers need it) */
-    CVC4::main::CommandExecutor* pExecutor = NULL;
+    CVC4::main::CommandExecutor* pExecutor = nullptr;
 
     /** A pointer to the totalTime driver stat (the signal handlers need it) */
-    CVC4::TimerStat* pTotalTime = NULL;
+    CVC4::TimerStat* pTotalTime = nullptr;
 
   }/* CVC4::main namespace */
 }/* CVC4 namespace */
@@ -98,20 +93,14 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   pOptions = &opts;
 
   // Initialize the signal handlers
-  cvc4_init();
+  signal_handlers::install();
 
   progPath = argv[0];
 
   // Parse the options
   vector<string> filenames = Options::parseOptions(&opts, argc, argv);
 
-# ifndef PORTFOLIO_BUILD
-  if( opts.wasSetByUserThreads() ||
-      opts.wasSetByUserThreadStackSize() ||
-      (! opts.getThreadArgv().empty()) ) {
-    throw OptionException("Thread options cannot be used with sequential CVC4.  Please build and use the portfolio binary `pcvc4'.");
-  }
-# endif
+  install_time_limit(opts);
 
   string progNameStr = opts.getBinaryName();
   progName = &progNameStr;
@@ -164,10 +153,6 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       unsigned len = filenameStr.size();
       if(len >= 5 && !strcmp(".smt2", filename + len - 5)) {
         opts.setInputLanguage(language::input::LANG_SMTLIB_V2_6);
-      } else if(len >= 4 && !strcmp(".smt", filename + len - 4)) {
-        opts.setInputLanguage(language::input::LANG_SMTLIB_V1);
-      } else if(len >= 5 && !strcmp(".smt1", filename + len - 5)) {
-        opts.setInputLanguage(language::input::LANG_SMTLIB_V1);
       } else if((len >= 2 && !strcmp(".p", filename + len - 2))
                 || (len >= 5 && !strcmp(".tptp", filename + len - 5))) {
         opts.setInputLanguage(language::input::LANG_TPTP);
@@ -176,9 +161,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         opts.setInputLanguage(language::input::LANG_CVC4);
       } else if((len >= 3 && !strcmp(".sy", filename + len - 3))
                 || (len >= 3 && !strcmp(".sl", filename + len - 3))) {
-        opts.setInputLanguage(language::input::LANG_SYGUS);
-        //since there is no sygus output language, set this to SMT lib 2
-        //opts.setOutputLanguage(language::output::LANG_SMTLIB_V2_0);
+        // version 2 sygus is the default
+        opts.setInputLanguage(language::input::LANG_SYGUS_V2);
       }
     }
   }
@@ -200,60 +184,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   // important even for muzzled builds (to get result output right)
   (*(opts.getOut())) << language::SetLanguage(opts.getOutputLanguage());
 
-  // Create the expression manager using appropriate options
-  ExprManager* exprMgr;
-# ifndef PORTFOLIO_BUILD
-  exprMgr = new ExprManager(opts);
-  pExecutor = new CommandExecutor(*exprMgr, opts);
-# else
-  OptionsList threadOpts;
-  parseThreadSpecificOptions(threadOpts, opts);
-
-  bool useParallelExecutor = true;
-  // incremental?
-  if(opts.wasSetByUserIncrementalSolving() &&
-     opts.getIncrementalSolving() &&
-     (! opts.getIncrementalParallel()) ) {
-    Notice() << "Notice: In --incremental mode, using the sequential solver"
-             << " unless forced by...\n"
-             << "Notice: ...the experimental --incremental-parallel option.\n";
-    useParallelExecutor = false;
-  }
-  // proofs?
-  if(opts.getCheckProofs()) {
-    if(opts.getFallbackSequential()) {
-      Warning() << "Warning: Falling back to sequential mode, as cannot run"
-                << " portfolio in check-proofs mode.\n";
-      useParallelExecutor = false;
-    }
-    else {
-      throw OptionException("Cannot run portfolio in check-proofs mode.");
-    }
-  }
-  // pick appropriate one
-  if(useParallelExecutor) {
-    exprMgr = new ExprManager(threadOpts[0]);
-    pExecutor = new CommandExecutorPortfolio(*exprMgr, opts, threadOpts);
-  } else {
-    exprMgr = new ExprManager(opts);
-    pExecutor = new CommandExecutor(*exprMgr, opts);
-  }
-# endif
-
-  std::unique_ptr<Parser> replayParser;
-  if( opts.getReplayInputFilename() != "" ) {
-    std::string replayFilename = opts.getReplayInputFilename();
-    ParserBuilder replayParserBuilder(exprMgr, replayFilename, opts);
-
-    if( replayFilename == "-") {
-      if( inputFromStdin ) {
-        throw OptionException("Replay file and input file can't both be stdin.");
-      }
-      replayParserBuilder.withStreamInput(cin);
-    }
-    replayParser.reset(replayParserBuilder.build());
-    pExecutor->setReplayStream(new Parser::ExprStream(replayParser.get()));
-  }
+  // Create the command executor to execute the parsed commands
+  pExecutor = new CommandExecutor(opts);
 
   int returnValue = 0;
   {
@@ -265,31 +197,29 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     ReferenceStat<std::string> s_statFilename("filename", filenameStr);
     RegisterStatistic statFilenameReg(&pExecutor->getStatisticsRegistry(),
                                       &s_statFilename);
+    // notify SmtEngine that we are starting to parse
+    pExecutor->getSmtEngine()->notifyStartParsing(filenameStr);
 
     // Parse and execute commands until we are done
-    Command* cmd;
+    std::unique_ptr<Command> cmd;
     bool status = true;
     if(opts.getInteractive() && inputFromStdin) {
       if(opts.getTearDownIncremental() > 0) {
         throw OptionException(
             "--tear-down-incremental doesn't work in interactive mode");
       }
-#ifndef PORTFOLIO_BUILD
       if(!opts.wasSetByUserIncrementalSolving()) {
-        cmd = new SetOptionCommand("incremental", SExpr(true));
+        cmd.reset(new SetOptionCommand("incremental", SExpr(true)));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
-        delete cmd;
       }
-#endif /* PORTFOLIO_BUILD */
-      InteractiveShell shell(*exprMgr, opts);
+      InteractiveShell shell(pExecutor->getSolver(),
+                             pExecutor->getSymbolManager());
       if(opts.getInteractivePrompt()) {
         Message() << Configuration::getPackageName()
                   << " " << Configuration::getVersionString();
         if(Configuration::isGitBuild()) {
           Message() << " [" << Configuration::getGitId() << "]";
-        } else if(Configuration::isSubversionBuild()) {
-          Message() << " [" << Configuration::getSubversionId() << "]";
         }
         Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
                   << " assertions:"
@@ -297,47 +227,42 @@ int runCvc4(int argc, char* argv[], Options& opts) {
                   << endl << endl;
         Message() << Configuration::copyright() << endl;
       }
-      if(replayParser) {
-        // have the replay parser use the declarations input interactively
-        replayParser->useDeclarationsFrom(shell.getParser());
-      }
 
       while(true) {
         try {
-          cmd = shell.readCommand();
+          cmd.reset(shell.readCommand());
         } catch(UnsafeInterruptException& e) {
           (*opts.getOut()) << CommandInterrupted();
           break;
         }
-        if (cmd == NULL)
+        if (cmd == nullptr)
           break;
         status = pExecutor->doCommand(cmd) && status;
         if (cmd->interrupted()) {
-          delete cmd;
           break;
         }
-        delete cmd;
       }
     } else if( opts.getTearDownIncremental() > 0) {
       if(!opts.getIncrementalSolving() && opts.getTearDownIncremental() > 1) {
         // For tear-down-incremental values greater than 1, need incremental
         // on too.
-        cmd = new SetOptionCommand("incremental", SExpr(true));
+        cmd.reset(new SetOptionCommand("incremental", SExpr(true)));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
-        delete cmd;
         // if(opts.wasSetByUserIncrementalSolving()) {
         //   throw OptionException(
         //     "--tear-down-incremental incompatible with --incremental");
         // }
 
-        // cmd = new SetOptionCommand("incremental", SExpr(false));
+        // cmd.reset(new SetOptionCommand("incremental", SExpr(false)));
         // cmd->setMuted(true);
         // pExecutor->doCommand(cmd);
-        // delete cmd;
       }
 
-      ParserBuilder parserBuilder(exprMgr, filename, opts);
+      ParserBuilder parserBuilder(pExecutor->getSolver(),
+                                  pExecutor->getSymbolManager(),
+                                  filename,
+                                  opts);
 
       if( inputFromStdin ) {
 #if defined(CVC4_COMPETITION_MODE) && !defined(CVC4_SMTCOMP_APPLICATION_TRACK)
@@ -350,41 +275,39 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       vector< vector<Command*> > allCommands;
       allCommands.push_back(vector<Command*>());
       std::unique_ptr<Parser> parser(parserBuilder.build());
-      if(replayParser) {
-        // have the replay parser use the file's declarations
-        replayParser->useDeclarationsFrom(parser.get());
-      }
       int needReset = 0;
       // true if one of the commands was interrupted
       bool interrupted = false;
-      while (status || opts.getContinuedExecution()) {
+      while (status)
+      {
         if (interrupted) {
           (*opts.getOut()) << CommandInterrupted();
           break;
         }
 
         try {
-          cmd = parser->nextCommand();
-          if (cmd == NULL) break;
+          cmd.reset(parser->nextCommand());
+          if (cmd == nullptr) break;
         } catch (UnsafeInterruptException& e) {
           interrupted = true;
           continue;
         }
 
-        if(dynamic_cast<PushCommand*>(cmd) != NULL) {
+        if(dynamic_cast<PushCommand*>(cmd.get()) != nullptr) {
           if(needReset >= opts.getTearDownIncremental()) {
             pExecutor->reset();
             for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
               if (interrupted) break;
               for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j)
               {
-                Command* cmd = allCommands[i][j]->clone();
-                cmd->setMuted(true);
-                pExecutor->doCommand(cmd);
-                if(cmd->interrupted()) {
+                Command* ccmd = allCommands[i][j]->clone();
+                ccmd->setMuted(true);
+                pExecutor->doCommand(ccmd);
+                if (ccmd->interrupted())
+                {
                   interrupted = true;
                 }
-                delete cmd;
+                delete ccmd;
               }
             }
             needReset = 0;
@@ -397,20 +320,20 @@ int runCvc4(int argc, char* argv[], Options& opts) {
             interrupted = true;
             continue;
           }
-        } else if(dynamic_cast<PopCommand*>(cmd) != NULL) {
+        } else if(dynamic_cast<PopCommand*>(cmd.get()) != nullptr) {
           allCommands.pop_back(); // fixme leaks cmds here
           if (needReset >= opts.getTearDownIncremental()) {
             pExecutor->reset();
             for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
               for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j)
               {
-                Command* cmd = allCommands[i][j]->clone();
-                cmd->setMuted(true);
-                pExecutor->doCommand(cmd);
-                if(cmd->interrupted()) {
+                std::unique_ptr<Command> ccmd(allCommands[i][j]->clone());
+                ccmd->setMuted(true);
+                pExecutor->doCommand(ccmd);
+                if (ccmd->interrupted())
+                {
                   interrupted = true;
                 }
-                delete cmd;
               }
             }
             if (interrupted) continue;
@@ -423,20 +346,21 @@ int runCvc4(int argc, char* argv[], Options& opts) {
               continue;
             }
           }
-        } else if(dynamic_cast<CheckSatCommand*>(cmd) != NULL ||
-                  dynamic_cast<QueryCommand*>(cmd) != NULL) {
+        } else if(dynamic_cast<CheckSatCommand*>(cmd.get()) != nullptr ||
+                  dynamic_cast<QueryCommand*>(cmd.get()) != nullptr) {
           if(needReset >= opts.getTearDownIncremental()) {
             pExecutor->reset();
             for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
               for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j)
               {
-                Command* cmd = allCommands[i][j]->clone();
-                cmd->setMuted(true);
-                pExecutor->doCommand(cmd);
-                if(cmd->interrupted()) {
+                Command* ccmd = allCommands[i][j]->clone();
+                ccmd->setMuted(true);
+                pExecutor->doCommand(ccmd);
+                if (ccmd->interrupted())
+                {
                   interrupted = true;
                 }
-                delete cmd;
+                delete ccmd;
               }
             }
             needReset = 0;
@@ -452,7 +376,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
             interrupted = true;
             continue;
           }
-        } else if(dynamic_cast<ResetCommand*>(cmd) != NULL) {
+        } else if(dynamic_cast<ResetCommand*>(cmd.get()) != nullptr) {
           pExecutor->doCommand(cmd);
           allCommands.clear();
           allCommands.push_back(vector<Command*>());
@@ -460,16 +384,16 @@ int runCvc4(int argc, char* argv[], Options& opts) {
           // We shouldn't copy certain commands, because they can cause
           // an error on replay since there's no associated sat/unsat check
           // preceding them.
-          if(dynamic_cast<GetUnsatCoreCommand*>(cmd) == NULL &&
-             dynamic_cast<GetProofCommand*>(cmd) == NULL &&
-             dynamic_cast<GetValueCommand*>(cmd) == NULL &&
-             dynamic_cast<GetModelCommand*>(cmd) == NULL &&
-             dynamic_cast<GetAssignmentCommand*>(cmd) == NULL &&
-             dynamic_cast<GetInstantiationsCommand*>(cmd) == NULL &&
-             dynamic_cast<GetAssertionsCommand*>(cmd) == NULL &&
-             dynamic_cast<GetInfoCommand*>(cmd) == NULL &&
-             dynamic_cast<GetOptionCommand*>(cmd) == NULL &&
-             dynamic_cast<EchoCommand*>(cmd) == NULL) {
+          if(dynamic_cast<GetUnsatCoreCommand*>(cmd.get()) == nullptr &&
+             dynamic_cast<GetProofCommand*>(cmd.get()) == nullptr &&
+             dynamic_cast<GetValueCommand*>(cmd.get()) == nullptr &&
+             dynamic_cast<GetModelCommand*>(cmd.get()) == nullptr &&
+             dynamic_cast<GetAssignmentCommand*>(cmd.get()) == nullptr &&
+             dynamic_cast<GetInstantiationsCommand*>(cmd.get()) == nullptr &&
+             dynamic_cast<GetAssertionsCommand*>(cmd.get()) == nullptr &&
+             dynamic_cast<GetInfoCommand*>(cmd.get()) == nullptr &&
+             dynamic_cast<GetOptionCommand*>(cmd.get()) == nullptr &&
+             dynamic_cast<EchoCommand*>(cmd.get()) == nullptr) {
             Command* copy = cmd->clone();
             allCommands.back().push_back(copy);
           }
@@ -479,22 +403,22 @@ int runCvc4(int argc, char* argv[], Options& opts) {
             continue;
           }
 
-          if(dynamic_cast<QuitCommand*>(cmd) != NULL) {
-            delete cmd;
+          if(dynamic_cast<QuitCommand*>(cmd.get()) != nullptr) {
             break;
           }
         }
-        delete cmd;
       }
     } else {
       if(!opts.wasSetByUserIncrementalSolving()) {
-        cmd = new SetOptionCommand("incremental", SExpr(false));
+        cmd.reset(new SetOptionCommand("incremental", SExpr(false)));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
-        delete cmd;
       }
 
-      ParserBuilder parserBuilder(exprMgr, filename, opts);
+      ParserBuilder parserBuilder(pExecutor->getSolver(),
+                                  pExecutor->getSymbolManager(),
+                                  filename,
+                                  opts);
 
       if( inputFromStdin ) {
 #if defined(CVC4_COMPETITION_MODE) && !defined(CVC4_SMTCOMP_APPLICATION_TRACK)
@@ -505,20 +429,17 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       }
 
       std::unique_ptr<Parser> parser(parserBuilder.build());
-      if(replayParser) {
-        // have the replay parser use the file's declarations
-        replayParser->useDeclarationsFrom(parser.get());
-      }
       bool interrupted = false;
-      while(status || opts.getContinuedExecution()) {
+      while (status)
+      {
         if (interrupted) {
           (*opts.getOut()) << CommandInterrupted();
           pExecutor->reset();
           break;
         }
         try {
-          cmd = parser->nextCommand();
-          if (cmd == NULL) break;
+          cmd.reset(parser->nextCommand());
+          if (cmd == nullptr) break;
         } catch (UnsafeInterruptException& e) {
           interrupted = true;
           continue;
@@ -530,15 +451,13 @@ int runCvc4(int argc, char* argv[], Options& opts) {
           break;
         }
 
-        if(dynamic_cast<QuitCommand*>(cmd) != NULL) {
-          delete cmd;
+        if(dynamic_cast<QuitCommand*>(cmd.get()) != nullptr) {
           break;
         }
-        delete cmd;
       }
     }
 
-    Result result;
+    api::Result result;
     if(status) {
       result = pExecutor->getResult();
       returnValue = 0;
@@ -555,14 +474,14 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     _exit(returnValue);
 #endif /* CVC4_COMPETITION_MODE */
 
-    ReferenceStat< Result > s_statSatResult("sat/unsat", result);
+    ReferenceStat<api::Result> s_statSatResult("sat/unsat", result);
     RegisterStatistic statSatResultReg(&pExecutor->getStatisticsRegistry(),
                                        &s_statSatResult);
 
     pTotalTime->stop();
 
     // Tim: I think that following comment is out of date?
-    // Set the global executor pointer to NULL first.  If we get a
+    // Set the global executor pointer to nullptr first.  If we get a
     // signal while dumping statistics, we don't want to try again.
     pExecutor->flushOutputStreams();
 
@@ -581,12 +500,11 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   // need to be around in that case for main() to print statistics.
   delete pTotalTime;
   delete pExecutor;
-  delete exprMgr;
 
-  pTotalTime = NULL;
-  pExecutor = NULL;
+  pTotalTime = nullptr;
+  pExecutor = nullptr;
 
-  cvc4_shutdown();
+  signal_handlers::cleanup();
 
   return returnValue;
 }

@@ -2,10 +2,10 @@
 /*! \file boolean_simplification_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Andrew Reynolds
+ **   Morgan Deters, Andres Noetzli, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -130,7 +130,8 @@ public:
 
 #ifdef CVC4_ASSERTIONS
     in = Node();
-    TS_ASSERT_THROWS( BooleanSimplification::negate(in), AssertArgumentException );
+    TS_ASSERT_THROWS(BooleanSimplification::negate(in),
+                     AssertArgumentException&);
 #endif /* CVC4_ASSERTIONS */
   }
 
@@ -165,7 +166,8 @@ public:
 
 #ifdef CVC4_ASSERTIONS
     in = d_nm->mkNode(kind::AND, a, b);
-    TS_ASSERT_THROWS( BooleanSimplification::simplifyClause(in), AssertArgumentException );
+    TS_ASSERT_THROWS(BooleanSimplification::simplifyClause(in),
+                     AssertArgumentException&);
 #endif /* CVC4_ASSERTIONS */
   }
 
@@ -190,7 +192,8 @@ public:
 
 #ifdef CVC4_ASSERTIONS
     in = d_nm->mkNode(kind::OR, a, b);
-    TS_ASSERT_THROWS( BooleanSimplification::simplifyHornClause(in), AssertArgumentException );
+    TS_ASSERT_THROWS(BooleanSimplification::simplifyHornClause(in),
+                     AssertArgumentException&);
 #endif /* CVC4_ASSERTIONS */
   }
 
@@ -211,7 +214,8 @@ public:
 
 #ifdef CVC4_ASSERTIONS
     in = d_nm->mkNode(kind::OR, a, b);
-    TS_ASSERT_THROWS( BooleanSimplification::simplifyConflict(in), AssertArgumentException );
+    TS_ASSERT_THROWS(BooleanSimplification::simplifyConflict(in),
+                     AssertArgumentException&);
 #endif /* CVC4_ASSERTIONS */
   }
 

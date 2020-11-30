@@ -1,5 +1,3 @@
-; COMMAND-LINE: --inst-prop
-; EXPECT: unsat
 (set-logic UFLIA)
 (set-info :status unsat)
 

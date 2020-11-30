@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Clark Barrett, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -68,7 +68,8 @@ ArrayInfo::ArrayInfo(context::Context* c, Backtracker<TNode>* b, std::string sta
 
 ArrayInfo::~ArrayInfo() {
   CNodeInfoMap::iterator it = info_map.begin();
-  for( ; it != info_map.end(); it++ ) {
+  for (; it != info_map.end(); ++it)
+  {
     if((*it).second!= emptyInfo) {
       delete (*it).second;
     }
@@ -133,7 +134,7 @@ void ArrayInfo::mergeLists(CTNodeList* la, const CTNodeList* lb) const{
 
 void ArrayInfo::addIndex(const Node a, const TNode i) {
   Assert(a.getType().isArray());
-  Assert(!i.getType().isArray()); // temporary for flat arrays
+  Assert(!i.getType().isArray());  // temporary for flat arrays
 
   Trace("arrays-ind")<<"Arrays::addIndex "<<a<<"["<<i<<"]\n";
   CTNodeList* temp_indices;
@@ -159,7 +160,7 @@ void ArrayInfo::addIndex(const Node a, const TNode i) {
 
 void ArrayInfo::addStore(const Node a, const TNode st){
   Assert(a.getType().isArray());
-  Assert(st.getKind()== kind::STORE); // temporary for flat arrays
+  Assert(st.getKind() == kind::STORE);  // temporary for flat arrays
 
   CTNodeList* temp_store;
   Info* temp_info;

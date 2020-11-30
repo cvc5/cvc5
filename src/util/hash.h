@@ -2,10 +2,10 @@
 /*! \file hash.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andres Noetzli, Christopher L. Conway
+ **   Morgan Deters, Andres Noetzli, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -17,10 +17,9 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__HASH_H
-#define __CVC4__HASH_H
+#ifndef CVC4__HASH_H
+#define CVC4__HASH_H
 
-#include <cstdint>
 #include <functional>
 #include <string>
 
@@ -67,4 +66,4 @@ struct PairHashFunction {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__HASH_H */
+#endif /* CVC4__HASH_H */

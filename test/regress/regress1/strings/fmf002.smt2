@@ -1,5 +1,5 @@
-(set-info :smt-lib-version 2.5)
-(set-logic QF_S)
+(set-info :smt-lib-version 2.6)
+(set-logic QF_SLIA)
 (set-option :strings-exp true)
 (set-option :strings-fmf true)
 (set-info :status sat)
@@ -8,7 +8,7 @@
 (declare-fun y () String)
 (declare-fun z () String)
 
-(assert (str.in.re x
+(assert (str.in_re x
                 (re.+ (re.range "a" "c"))
 				                ))
 

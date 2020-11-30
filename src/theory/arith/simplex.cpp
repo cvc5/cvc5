@@ -2,10 +2,10 @@
 /*! \file simplex.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andres Noetzli, Morgan Deters
+ **   Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -57,8 +57,7 @@ SimplexDecisionProcedure::~SimplexDecisionProcedure(){
 
 bool SimplexDecisionProcedure::standardProcessSignals(TimerStat &timer, IntStat& conflicts) {
   TimerStat::CodeTimer codeTimer(timer);
-  Assert( d_conflictVariables.empty() );
-
+  Assert(d_conflictVariables.empty());
 
   while(d_errorSet.moreSignals()){
     ArithVar curr = d_errorSet.topSignal();
@@ -99,7 +98,6 @@ void SimplexDecisionProcedure::reportConflict(ArithVar basic){
 }
 
 ConstraintCP SimplexDecisionProcedure::generateConflictForBasic(ArithVar basic) const {
-
   Assert(d_tableau.isBasic(basic));
   Assert(checkBasicForConflict(basic));
 
@@ -198,7 +196,7 @@ ArithVar SimplexDecisionProcedure::constructInfeasiblityFunction(TimerStat& time
   TimerStat::CodeTimer codeTimer(timer);
   Assert(!d_errorSet.focusEmpty());
   Assert(debugIsASet(set));
-  
+
   ArithVar inf = requestVariable();
   Assert(inf != ARITHVAR_SENTINEL);
 

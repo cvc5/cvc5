@@ -2,11 +2,11 @@
 /*! \file type_enumerator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Martin Brain
+ **   Tim King, Martin Brain, Andrew Reynolds
  ** Copyright (c) 2009-2015  New York University and The University of Iowa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__FP__TYPE_ENUMERATOR_H
-#define __CVC4__THEORY__FP__TYPE_ENUMERATOR_H
+#ifndef CVC4__THEORY__FP__TYPE_ENUMERATOR_H
+#define CVC4__THEORY__FP__TYPE_ENUMERATOR_H
 
 #include "expr/kind.h"
 #include "expr/type_node.h"
@@ -64,8 +64,12 @@ class FloatingPointEnumerator
  protected:
   FloatingPoint createFP(void) const {
     // Rotate the LSB into the sign so that NaN is the last value
-    const BitVector value =
-        d_state.logicalRightShift(1) | d_state.leftShift(d_state.getSize() - 1);
+    uint64_t vone = 1;
+    uint64_t vmax = d_state.getSize() - 1;
+    BitVector bva =
+        d_state.logicalRightShift(BitVector(d_state.getSize(), vone));
+    BitVector bvb = d_state.leftShift(BitVector(d_state.getSize(), vmax));
+    const BitVector value = (bva | bvb);
 
     return FloatingPoint(d_e, d_s, value);
   }
@@ -82,8 +86,10 @@ class RoundingModeEnumerator
  public:
   RoundingModeEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<RoundingModeEnumerator>(type),
-        d_rm(roundNearestTiesToEven),
-        d_enumerationComplete(false) {}
+        d_rm(ROUND_NEAREST_TIES_TO_EVEN),
+        d_enumerationComplete(false)
+  {
+  }
 
   /** Throws NoMoreValuesException if the enumeration is complete. */
   Node operator*() override {
@@ -95,24 +101,12 @@ class RoundingModeEnumerator
 
   RoundingModeEnumerator& operator++() override {
     switch (d_rm) {
-      case roundNearestTiesToEven:
-        d_rm = roundTowardPositive;
-        break;
-      case roundTowardPositive:
-        d_rm = roundTowardNegative;
-        break;
-      case roundTowardNegative:
-        d_rm = roundTowardZero;
-        break;
-      case roundTowardZero:
-        d_rm = roundNearestTiesToAway;
-        break;
-      case roundNearestTiesToAway:
-        d_enumerationComplete = true;
-        break;
-      default:
-        Unreachable("Unknown rounding mode?");
-        break;
+      case ROUND_NEAREST_TIES_TO_EVEN: d_rm = ROUND_TOWARD_POSITIVE; break;
+      case ROUND_TOWARD_POSITIVE: d_rm = ROUND_TOWARD_NEGATIVE; break;
+      case ROUND_TOWARD_NEGATIVE: d_rm = ROUND_TOWARD_ZERO; break;
+      case ROUND_TOWARD_ZERO: d_rm = ROUND_NEAREST_TIES_TO_AWAY; break;
+      case ROUND_NEAREST_TIES_TO_AWAY: d_enumerationComplete = true; break;
+      default: Unreachable() << "Unknown rounding mode?"; break;
     }
     return *this;
   }
@@ -128,4 +122,4 @@ class RoundingModeEnumerator
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__FP__TYPE_ENUMERATOR_H */
+#endif /* CVC4__THEORY__FP__TYPE_ENUMERATOR_H */

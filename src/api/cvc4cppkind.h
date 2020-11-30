@@ -2,10 +2,10 @@
 /*! \file cvc4cppkind.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz
+ **   Aina Niemetz, Andrew Reynolds, Makai Mann
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__API__CVC4CPPKIND_H
-#define __CVC4__API__CVC4CPPKIND_H
+#ifndef CVC4__API__CVC4CPPKIND_H
+#define CVC4__API__CVC4CPPKIND_H
 
 #include <ostream>
 
@@ -30,8 +30,12 @@ namespace api {
 
 /**
  * The kind of a CVC4 term.
+ *
+ * Note that the underlying type of Kind must be signed (to enable range
+ * checks for validity). The size of this type depends on the size of
+ * CVC4::Kind (NodeValue::NBITS_KIND, currently 10 bits, see expr/node_value.h).
  */
-enum CVC4_PUBLIC Kind
+enum CVC4_PUBLIC Kind : int32_t
 {
   /**
    * Internal kind.
@@ -57,7 +61,7 @@ enum CVC4_PUBLIC Kind
    *   -[1]: Sort of the constant
    *   -[2]: Index of the constant
    * Create with:
-   *   mkConst(Kind, Sort, int32_t)
+   *   mkUninterpretedConst(Sort sort, int32_t index)
    */
   UNINTERPRETED_CONSTANT,
   /**
@@ -65,12 +69,8 @@ enum CVC4_PUBLIC Kind
    * Parameters: 1
    *   -[1]: Index of the abstract value
    * Create with:
-   *   mkConst(Kind kind, const char* s, uint32_t base = 10)
-   *   mkConst(Kind kind, const std::string& s, uint32_t base = 10)
-   *   mkConst(Kind kind, uint32_t arg)
-   *   mkConst(Kind kind, int32_t arg)
-   *   mkConst(Kind kind, int64_t arg)
-   *   mkConst(Kind kind, uint64_t arg)
+   *   mkAbstractValue(const std::string& index);
+   *   mkAbstractValue(uint64_t index);
    */
   ABSTRACT_VALUE,
 #if 0
@@ -78,43 +78,19 @@ enum CVC4_PUBLIC Kind
   BUILTIN,
 #endif
   /**
-   * Defined function.
-   * Parameters: 3 (4)
-   *   See defineFun().
-   * Create with:
-   *   defineFun(const std::string& symbol,
-   *             const std::vector<Term>& bound_vars,
-   *             Sort sort,
-   *             Term term)
-   *   defineFun(Term fun,
-   *             const std::vector<Term>& bound_vars,
-   *             Term term)
-   */
-  FUNCTION,
-  /**
-   * Application of a defined function.
+   * Equality, chainable.
    * Parameters: n > 1
-   *   -[1]..[n]: Function argument instantiation Terms
+   *   -[1]..[n]: Terms with same sorts
    * Create with:
-   *   mkTerm(Kind kind, Term child)
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   */
-  APPLY,
-  /**
-   * Equality.
-   * Parameters: 2
-   *   -[1]..[2]: Terms with same sort
-   * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   EQUAL,
   /**
    * Disequality.
    * Parameters: n > 1
-   *   -[1]..[n]: Terms with same sort
+   *   -[1]..[n]: Terms with same sorts
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
@@ -122,8 +98,18 @@ enum CVC4_PUBLIC Kind
    */
   DISTINCT,
   /**
-   * Variable.
+   * First-order constant.
    * Not permitted in bindings (forall, exists, ...).
+   * Parameters:
+   *   See mkConst().
+   * Create with:
+   *   mkConst(const std::string& symbol, Sort sort)
+   *   mkConst(Sort sort)
+   */
+  CONSTANT,
+  /**
+   * (Bound) variable.
+   * Permitted in bindings and in the lambda and quantifier bodies only.
    * Parameters:
    *   See mkVar().
    * Create with:
@@ -131,22 +117,21 @@ enum CVC4_PUBLIC Kind
    *   mkVar(Sort sort)
    */
   VARIABLE,
-  /**
-   * Bound variable.
-   * Permitted in bindings and in the lambda and quantifier bodies only.
-   * Parameters:
-   *   See mkBoundVar().
-   * Create with:
-   *   mkBoundVar(const std::string& symbol, Sort sort)
-   *   mkBoundVar(Sort sort)
-   */
-  BOUND_VARIABLE,
 #if 0
   /* Skolem variable (internal only) */
   SKOLEM,
-  /* Symbolic expression (any arity) */
-  SEXPR,
 #endif
+  /*
+   * Symbolic expression.
+   * Parameters: n > 0
+   *   -[1]..[n]: terms
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEXPR,
   /**
    * Lambda expression.
    * Parameters: 2
@@ -158,36 +143,42 @@ enum CVC4_PUBLIC Kind
    */
   LAMBDA,
   /**
-   * Hilbert choice (epsilon) expression.
+   * The syntax of a witness term is similar to a quantified formula except that
+   * only one bound variable is allowed.
+   * The term (witness ((x T)) F) returns an element x of type T
+   * and asserts F.
+   *
+   * The witness operator behaves like the description operator
+   * (see https://planetmath.org/hilbertsvarepsilonoperator) if there is no x
+   * that satisfies F. But if such x exists, the witness operator does not
+   * enforce the axiom that ensures uniqueness up to logical equivalence:
+   * forall x. F \equiv G => witness x. F =  witness x. G
+   *
+   * For example if there are 2 elements of type T that satisfy F, then the
+   * following formula is satisfiable:
+   * (distinct
+   *    (witness ((x Int)) F)
+   *    (witness ((x Int)) F))
+   *
+   * This kind is primarily used internally, but may be returned in models
+   * (e.g. for arithmetic terms in non-linear queries). However, it is not
+   * supported by the parser. Moreover, the user of the API should be cautious
+   * when using this operator. In general, all witness terms
+   * (witness ((x Int)) F) should be such that (exists ((x Int)) F) is a valid
+   * formula. If this is not the case, then the semantics in formulas that use
+   * witness terms may be unintuitive. For example, the following formula is
+   * unsatisfiable:
+   * (or (= (witness ((x Int)) false) 0) (not (= (witness ((x Int)) false) 0))
+   * whereas notice that (or (= z 0) (not (= z 0))) is true for any z.
+   *
    * Parameters: 2
    *   -[1]: BOUND_VAR_LIST
-   *   -[2]: Hilbert choice body
+   *   -[2]: Witness body
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
-  CHOICE,
-  /**
-   * Chained operation.
-   * Parameters: n > 1
-   *   -[1]: Term of kind CHAIN_OP (represents a binary op)
-   *   -[2]..[n]: Arguments to that operator
-   * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   * Turned into a conjunction of binary applications of the operator on
-   * adjoining parameters.
-   */
-  CHAIN,
-  /**
-   * Chained operator.
-   * Parameters: 1
-   *   -[1]: Kind of the binary operation
-   * Create with:
-   *   mkOpTerm(Kind opkind, Kind kind)
-   */
-  CHAIN_OP,
+  WITNESS,
 
   /* Boolean --------------------------------------------------------------- */
 
@@ -199,7 +190,6 @@ enum CVC4_PUBLIC Kind
    *   mkTrue()
    *   mkFalse()
    *   mkBoolean(bool val)
-   *   mkConst(Kind kind, bool arg)
    */
   CONST_BOOLEAN,
   /* Logical not.
@@ -220,10 +210,11 @@ enum CVC4_PUBLIC Kind
   AND,
   /**
    * Logical implication.
-   * Parameters: 2
-   *   -[1]..[2]: Boolean Terms, [1] implies [2]
+   * Parameters: n > 1
+   *   -[1]..[n]: Boolean Terms, right associative
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   IMPLIES,
@@ -236,11 +227,12 @@ enum CVC4_PUBLIC Kind
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   OR,
-  /* Logical exclusive or.
-   * Parameters: 2
-   *   -[1]..[2]: Boolean Terms, [1] xor [2]
+  /* Logical exclusive or, left associative.
+   * Parameters: n > 1
+   *   -[1]..[n]: Boolean Terms, [1] xor ... xor [n]
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   XOR,
@@ -273,7 +265,9 @@ enum CVC4_PUBLIC Kind
   BOOLEAN_TERM_VARIABLE,
 #endif
   /**
-   * Cardinality constraint on sort S.
+   * Cardinality constraint on uninterpreted sort S.
+   * Interpreted as a predicate that is true when the cardinality of S
+   * is less than or equal to the value of the second argument.
    * Parameters: 2
    *   -[1]: Term of sort S
    *   -[2]: Positive integer constant that bounds the cardinality of sort S
@@ -282,22 +276,32 @@ enum CVC4_PUBLIC Kind
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   CARDINALITY_CONSTRAINT,
+  /*
+   * Cardinality value for uninterpreted sort S.
+   * An operator that returns an integer indicating the value of the cardinality
+   * of sort S.
+   * Parameters: 1
+   *   -[1]: Term of sort S
+   * Create with:
+   *   mkTerm(Kind kind, Term child1)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  CARDINALITY_VALUE,
 #if 0
   /* Combined cardinality constraint.  */
   COMBINED_CARDINALITY_CONSTRAINT,
   /* Partial uninterpreted function application.  */
   PARTIAL_APPLY_UF,
-  /* cardinality value of sort S:
-   * first parameter is (any) term of sort S */
-   CARDINALITY_VALUE,
 #endif
   /**
-   * Higher-order applicative encoding of function application.
-   * Parameters: 2
+   * Higher-order applicative encoding of function application, left
+   * associative.
+   * Parameters: n > 1
    *   -[1]: Function to apply
-   *   -[2]: Argument of the function
+   *   -[2] ... [n]: Arguments of the function
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   HO_APPLY,
@@ -324,16 +328,34 @@ enum CVC4_PUBLIC Kind
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   MULT,
+  /**
+   * Operator for Integer AND
+   * Parameter: 1
+   *   -[1]: Size of the bit-vector that determines the semantics of the IAND
+   * Create with:
+   *   mkOp(Kind kind, uint32_t param).
+   *
+   * Apply integer conversion to bit-vector.
+   * Parameters: 2
+   *   -[1]: Op of kind IAND
+   *   -[2]: Integer term
+   *   -[3]: Integer term
+   * Create with:
+   *   mkTerm(Op op, Term child1, Term child2)
+   *   mkTerm(Op op, const std::vector<Term>& children)
+   */
+  IAND,
 #if 0
   /* Synonym for MULT.  */
   NONLINEAR_MULT,
 #endif
   /**
-   * Arithmetic subtraction.
-   * Parameters: 2
-   *   -[1]..[2]: Terms of sort Integer, Real (sorts must match)
+   * Arithmetic subtraction, left associative.
+   * Parameters: n
+   *   -[1]..[n]: Terms of sort Integer, Real (sorts must match)
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   MINUS,
@@ -346,41 +368,25 @@ enum CVC4_PUBLIC Kind
    */
   UMINUS,
   /**
-   * Real division, division by 0 undefined
-   * Parameters: 2
-   *   -[1]..[2]: Terms of sort Integer, Real
+   * Real division, division by 0 undefined, left associative.
+   * Parameters: n > 1
+   *   -[1]..[n]: Terms of sort Integer, Real
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   DIVISION,
   /**
-   * Real division with interpreted division by 0
-   * Parameters: 2
-   *   -[1]..[2]: Terms of sort Integer, Real
+   * Integer division, division by 0 undefined, left associative.
+   * Parameters: n > 1
+   *   -[1]..[n]: Terms of sort Integer
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   */
-  DIVISION_TOTAL,
-  /**
-   * Integer division, division by 0 undefined.
-   * Parameters: 2
-   *   -[1]..[2]: Terms of sort Integer
-   * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   INTS_DIVISION,
-  /**
-   * Integer division with interpreted division by 0.
-   * Parameters: 2
-   *   -[1]..[2]: Terms of sort Integer
-   * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   */
-  INTS_DIVISION_TOTAL,
   /**
    * Integer modulus, division by 0 undefined.
    * Parameters: 2
@@ -391,15 +397,6 @@ enum CVC4_PUBLIC Kind
    */
   INTS_MODULUS,
   /**
-   * Integer modulus with interpreted division by 0.
-   * Parameters: 2
-   *   -[1]..[2]: Terms of sort Integer
-   * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   */
-  INTS_MODULUS_TOTAL,
-  /**
    * Absolute value.
    * Parameters: 1
    *   -[1]: Term of sort Integer
@@ -407,16 +404,6 @@ enum CVC4_PUBLIC Kind
    *   mkTerm(Kind kind, Term child)
    */
   ABS,
-  /**
-   * Divisibility-by-k predicate.
-   * Parameters: 2
-   *   -[1]: DIVISIBLE_OP Term
-   *   -[2]: Integer Term
-   * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   */
-  DIVISIBLE,
   /**
    * Arithmetic power.
    * Parameters: 2
@@ -543,9 +530,17 @@ enum CVC4_PUBLIC Kind
    * Parameter: 1
    *   -[1]: The k to divide by (sort Integer)
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param)
+   *   mkOp(Kind kind, uint32_t param)
+   *
+   * Apply divisibility-by-k predicate.
+   * Parameters: 2
+   *   -[1]: Op of kind DIVISIBLE
+   *   -[2]: Integer Term
+   * Create with:
+   *   mkTerm(Op op, Term child1, Term child2)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
-  DIVISIBLE_OP,
+  DIVISIBLE,
   /**
    * Multiple-precision rational constant.
    * Parameters:
@@ -563,55 +558,48 @@ enum CVC4_PUBLIC Kind
    *   mkReal(int64_t val)
    *   mkReal(uint32_t val)
    *   mkReal(uint64_t val)
-   *   mkRational(int32_t num, int32_t den)
-   *   mkRational(int64_t num, int64_t den)
-   *   mkRational(uint32_t num, uint32_t den)
-   *   mkRational(uint64_t num, uint64_t den)
-   *   mkConst(Kind kind, const char* s, uint32_t base = 10)
-   *   mkConst(Kind kind, const std::string& s, uint32_t base = 10)
-   *   mkConst(Kind kind, uint32_t arg)
-   *   mkConst(Kind kind, int64_t arg)
-   *   mkConst(Kind kind, uint64_t arg)
-   *   mkConst(Kind kind, int32_t arg)
-   *   mkConst(Kind kind, int32_t arg1, int32_t arg2)
-   *   mkConst(Kind kind, int64_t arg1, int64_t arg2)
-   *   mkConst(Kind kind, uint32_t arg1, uint32_t arg2)
-   *   mkConst(Kind kind, uint64_t arg1, uint64_t arg2)
+   *   mkReal(int32_t num, int32_t den)
+   *   mkReal(int64_t num, int64_t den)
+   *   mkReal(uint32_t num, uint32_t den)
+   *   mkReal(uint64_t num, uint64_t den)
    */
   CONST_RATIONAL,
   /**
-   * Less than.
-   * Parameters: 2
-   *   -[1]..[2]: Terms of sort Integer, Real; [1] < [2]
+   * Less than, chainable.
+   * Parameters: n
+   *   -[1]..[n]: Terms of sort Integer, Real; [1] < ... < [n]
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   LT,
   /**
-   * Less than or equal.
-   * Parameters: 2
-   *   -[1]..[2]: Terms of sort Integer, Real; [1] <= [2]
+   * Less than or equal, chainable.
+   * Parameters: n > 1
+   *   -[1]..[n]: Terms of sort Integer, Real; [1] <= ... <= [n]
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   LEQ,
   /**
-   * Greater than.
-   * Parameters: 2
-   *   -[1]..[2]: Terms of sort Integer, Real, [1] > [2]
+   * Greater than, chainable.
+   * Parameters: n > 1
+   *   -[1]..[n]: Terms of sort Integer, Real, [1] > ... > [n]
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   GT,
   /**
-   * Greater than or equal.
-   * Parameters: 2
-   *   -[1]..[2]: Terms of sort Integer, Real; [1] >= [2]
+   * Greater than or equal, chainable.
+   * Parameters: n > 1
+   *   -[1]..[n]: Terms of sort Integer, Real; [1] >= ... >= [n]
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   GEQ,
@@ -653,15 +641,9 @@ enum CVC4_PUBLIC Kind
    * Parameters:
    *   See mkBitVector().
    * Create with:
-   *   mkBitVector(uint32_t size)
-   *   mkBitVector(uint32_t size, uint32_t val)
    *   mkBitVector(uint32_t size, uint64_t val)
    *   mkBitVector(const char* s, uint32_t base = 2)
    *   mkBitVector(std::string& s, uint32_t base = 2)
-   *   mkConst(Kind kind, const char* s, uint32_t base = 10)
-   *   mkConst(Kind kind, const std::string& s, uint32_t base = 10)
-   *   mkConst(Kind kind, uint32_t arg)
-   *   mkConst(Kind kind, uint32_t arg1, uint64_t arg2)
    */
   CONST_BITVECTOR,
   /**
@@ -731,9 +713,9 @@ enum CVC4_PUBLIC Kind
    */
   BITVECTOR_NOR,
   /**
-   * Bit-wise xnor.
-   * Parameters: 2
-   *   -[1]..[2]: Terms of bit-vector sort (sorts must match)
+   * Bit-wise xnor, left associative.
+   * Parameters: n > 1
+   *   -[1]..[n]: Terms of bit-vector sort (sorts must match)
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
@@ -745,6 +727,7 @@ enum CVC4_PUBLIC Kind
    *   -[1]..[2]: Terms of bit-vector sort (sorts must match)
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   BITVECTOR_COMP,
@@ -787,6 +770,12 @@ enum CVC4_PUBLIC Kind
   BITVECTOR_NEG,
   /**
    * Unsigned division of two bit-vectors, truncating towards 0.
+   *
+   * Note: The semantics of this operator depends on `bv-div-zero-const`
+   * (default is true).  Depending on the setting, a division by zero is
+   * treated as all ones (default, corresponds to SMT-LIB >=2.6) or an
+   * uninterpreted value (corresponds to SMT-LIB <2.6).
+   *
    * Parameters: 2
    *   -[1]..[2]: Terms of bit-vector sort (sorts must match)
    * Create with:
@@ -796,6 +785,12 @@ enum CVC4_PUBLIC Kind
   BITVECTOR_UDIV,
   /**
    * Unsigned remainder from truncating division of two bit-vectors.
+   *
+   * Note: The semantics of this operator depends on `bv-div-zero-const`
+   * (default is true). Depending on the setting, if the modulus is zero, the
+   * result is either the dividend (default, corresponds to SMT-LIB >=2.6) or
+   * an uninterpreted value (corresponds to SMT-LIB <2.6).
+   *
    * Parameters: 2
    *   -[1]..[2]: Terms of bit-vector sort (sorts must match)
    * Create with:
@@ -805,6 +800,13 @@ enum CVC4_PUBLIC Kind
   BITVECTOR_UREM,
   /**
    * Two's complement signed division of two bit-vectors.
+   *
+   * Note: The semantics of this operator depends on `bv-div-zero-const`
+   * (default is true). By default, the function returns all ones if the
+   * dividend is positive and one if the dividend is negative (corresponds to
+   * SMT-LIB >=2.6). If the option is disabled, a division by zero is treated
+   * as an uninterpreted value (corresponds to SMT-LIB <2.6).
+   *
    * Parameters: 2
    *   -[1]..[2]: Terms of bit-vector sort (sorts must match)
    * Create with:
@@ -815,6 +817,12 @@ enum CVC4_PUBLIC Kind
   /**
    * Two's complement signed remainder of two bit-vectors
    * (sign follows dividend).
+   *
+   * Note: The semantics of this operator depends on `bv-div-zero-const`
+   * (default is true, corresponds to SMT-LIB >=2.6). Depending on the setting,
+   * if the modulus is zero, the result is either the dividend (default) or an
+   * uninterpreted value (corresponds to SMT-LIB <2.6).
+   *
    * Parameters: 2
    *   -[1]..[2]: Terms of bit-vector sort (sorts must match)
    * Create with:
@@ -825,6 +833,12 @@ enum CVC4_PUBLIC Kind
   /**
    * Two's complement signed remainder
    * (sign follows divisor).
+   *
+   * Note: The semantics of this operator depends on `bv-div-zero-const`
+   * (default is on). Depending on the setting, if the modulus is zero, the
+   * result is either the dividend (default, corresponds to SMT-LIB >=2.6) or
+   * an uninterpreted value (corresponds to SMT-LIB <2.6).
+   *
    * Parameters: 2
    *   -[1]..[2]: Terms of bit-vector sort (sorts must match)
    * Create with:
@@ -832,26 +846,6 @@ enum CVC4_PUBLIC Kind
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   BITVECTOR_SMOD,
-  /**
-   * Unsigned division of two bit-vectors, truncating towards 0
-   * (defined to be the all-ones bit pattern, if divisor is 0).
-   * Parameters: 2
-   *   -[1]..[2]: Terms of bit-vector sort (sorts must match)
-   * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   */
-  BITVECTOR_UDIV_TOTAL,
-  /**
-   * Unsigned remainder from truncating division of two bit-vectors
-   * (defined to be equal to the dividend, if divisor is 0).
-   * Parameters: 2
-   *   -[1]..[2]: Terms of bit-vector sort (sorts must match)
-   * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   */
-  BITVECTOR_UREM_TOTAL,
   /**
    * Bit-vector shift left.
    * The two bit-vector parameters must have same width.
@@ -1015,9 +1009,6 @@ enum CVC4_PUBLIC Kind
   /* term to be treated as a variable. used for eager bit-blasting Ackermann
    * expansion of bvurem (internal-only symbol) */
   BITVECTOR_ACKERMANIZE_UREM,
-  /* operator for the bit-vector boolean bit extract.
-   * One parameter, parameter is the index of the bit to extract */
-  BITVECTOR_BITOF_OP,
 #endif
   /**
    * Operator for bit-vector extract (from index 'high' to 'low').
@@ -1025,125 +1016,115 @@ enum CVC4_PUBLIC Kind
    *   -[1]: The 'high' index
    *   -[2]: The 'low' index
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param, uint32_t param)
+   *   mkOp(Kind kind, uint32_t param, uint32_t param)
+   *
+   * Apply bit-vector extract.
+   * Parameters: 2
+   *   -[1]: Op of kind BITVECTOR_EXTRACT
+   *   -[2]: Term of bit-vector sort
+   * Create with:
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
-  BITVECTOR_EXTRACT_OP,
+  BITVECTOR_EXTRACT,
   /**
    * Operator for bit-vector repeat.
    * Parameter 1:
    *   -[1]: Number of times to repeat a given bit-vector
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param).
+   *   mkOp(Kind kind, uint32_t param).
+   *
+   * Apply bit-vector repeat.
+   * Parameters: 2
+   *   -[1]: Op of kind BITVECTOR_REPEAT
+   *   -[2]: Term of bit-vector sort
+   * Create with:
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
-  BITVECTOR_REPEAT_OP,
+  BITVECTOR_REPEAT,
   /**
    * Operator for bit-vector zero-extend.
    * Parameter 1:
    *   -[1]: Number of bits by which a given bit-vector is to be extended
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param).
+   *   mkOp(Kind kind, uint32_t param).
+   *
+   * Apply bit-vector zero-extend.
+   * Parameters: 2
+   *   -[1]: Op of kind BITVECTOR_ZERO_EXTEND
+   *   -[2]: Term of bit-vector sort
+   * Create with:
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
-  BITVECTOR_ZERO_EXTEND_OP,
+  BITVECTOR_ZERO_EXTEND,
   /**
    * Operator for bit-vector sign-extend.
    * Parameter 1:
    *   -[1]: Number of bits by which a given bit-vector is to be extended
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param).
+   *   mkOp(Kind kind, uint32_t param).
+   *
+   * Apply bit-vector sign-extend.
+   * Parameters: 2
+   *   -[1]: Op of kind BITVECTOR_SIGN_EXTEND
+   *   -[2]: Term of bit-vector sort
+   * Create with:
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
-  BITVECTOR_SIGN_EXTEND_OP,
+  BITVECTOR_SIGN_EXTEND,
   /**
    * Operator for bit-vector rotate left.
    * Parameter 1:
    *   -[1]: Number of bits by which a given bit-vector is to be rotated
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param).
+   *   mkOp(Kind kind, uint32_t param).
+   *
+   * Apply bit-vector rotate left.
+   * Parameters: 2
+   *   -[1]: Op of kind BITVECTOR_ROTATE_LEFT
+   *   -[2]: Term of bit-vector sort
+   * Create with:
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
-  BITVECTOR_ROTATE_LEFT_OP,
+  BITVECTOR_ROTATE_LEFT,
   /**
    * Operator for bit-vector rotate right.
    * Parameter 1:
    *   -[1]: Number of bits by which a given bit-vector is to be rotated
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param).
-   */
-  BITVECTOR_ROTATE_RIGHT_OP,
-#if 0
-  /* bit-vector boolean bit extract.
-   * first parameter is a BITVECTOR_BITOF_OP, second is a bit-vector term */
-  BITVECTOR_BITOF,
-#endif
-  /* Bit-vector extract.
+   *   mkOp(Kind kind, uint32_t param).
+   *
+   * Apply bit-vector rotate right.
    * Parameters: 2
-   *   -[1]: BITVECTOR_EXTRACT_OP Term
+   *   -[1]: Op of kind BITVECTOR_ROTATE_RIGHT
    *   -[2]: Term of bit-vector sort
    * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
-   */
-  BITVECTOR_EXTRACT,
-  /* Bit-vector repeat.
-   * Parameters: 2
-   *   -[1]: BITVECTOR_REPEAT_OP Term
-   *   -[2]: Term of bit-vector sort
-   * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
-   */
-  BITVECTOR_REPEAT,
-  /* Bit-vector zero-extend.
-   * Parameters: 2
-   *   -[1]: BITVECTOR_ZERO_EXTEND_OP Term
-   *   -[2]: Term of bit-vector sort
-   * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
-   */
-  BITVECTOR_ZERO_EXTEND,
-  /* Bit-vector sign-extend.
-   * Parameters: 2
-   *   -[1]: BITVECTOR_SIGN_EXTEND_OP Term
-   *   -[2]: Term of bit-vector sort
-   * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
-   */
-  BITVECTOR_SIGN_EXTEND,
-  /* Bit-vector rotate left.
-   * Parameters: 2
-   *   -[1]: BITVECTOR_ROTATE_LEFT_OP Term
-   *   -[2]: Term of bit-vector sort
-   * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
-   */
-  BITVECTOR_ROTATE_LEFT,
-  /**
-   * Bit-vector rotate right.
-   * Parameters: 2
-   *   -[1]: BITVECTOR_ROTATE_RIGHT_OP Term
-   *   -[2]: Term of bit-vector sort
-   * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   BITVECTOR_ROTATE_RIGHT,
+#if 0
+  /* bit-vector boolean bit extract. */
+  BITVECTOR_BITOF,
+#endif
   /**
    * Operator for the conversion from Integer to bit-vector.
    * Parameter: 1
    *   -[1]: Size of the bit-vector to convert to
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param).
-   */
-  INT_TO_BITVECTOR_OP,
-  /**
-   * Integer conversion to bit-vector.
+   *   mkOp(Kind kind, uint32_t param).
+   *
+   * Apply integer conversion to bit-vector.
    * Parameters: 2
-   *   -[1]: INT_TO_BITVECTOR_OP Term
+   *   -[1]: Op of kind INT_TO_BITVECTOR
    *   -[2]: Integer term
    * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   INT_TO_BITVECTOR,
   /**
@@ -1164,13 +1145,13 @@ enum CVC4_PUBLIC Kind
    *   -[2]: Size of the significand
    *   -[3]: Value of the floating-point constant as a bit-vector term
    * Create with:
-   *   mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3)
+   *   mkFloatingPoint(uint32_t sig, uint32_t exp, Term val)
    */
   CONST_FLOATINGPOINT,
   /**
    * Floating-point rounding mode term.
    * Create with:
-   *   mkConst(RoundingMode rm)
+   *   mkRoundingMode(RoundingMode rm)
    */
   CONST_ROUNDINGMODE,
   /**
@@ -1310,12 +1291,6 @@ enum CVC4_PUBLIC Kind
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   FLOATINGPOINT_MAX,
-#if 0
-  /* floating-point minimum (defined for all inputs) */
-  FLOATINGPOINT_MIN_TOTAL,
-  /* floating-point maximum (defined for all inputs) */
-  FLOATINGPOINT_MAX_TOTAL,
-#endif
   /**
    * Floating-point less than or equal.
    * Parameters: 2
@@ -1413,17 +1388,15 @@ enum CVC4_PUBLIC Kind
    *   -[1]: Exponent size
    *   -[2]: Significand size
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param1, uint32_t param2)
-   */
-  FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP,
-  /**
+   *   mkOp(Kind kind, uint32_t param1, uint32_t param2)
+   *
    * Conversion from an IEEE-754 bit vector to floating-point.
    * Parameters: 2
-   *   -[1]: FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP Term
+   *   -[1]: Op of kind FLOATINGPOINT_TO_FP_IEEE_BITVECTOR
    *   -[2]: Term of sort FloatingPoint
    * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
   /**
@@ -1432,17 +1405,15 @@ enum CVC4_PUBLIC Kind
    *   -[1]: Exponent size
    *   -[2]: Significand size
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param1, uint32_t param2)
-   */
-  FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP,
-  /**
+   *   mkOp(Kind kind, uint32_t param1, uint32_t param2)
+   *
    * Conversion between floating-point sorts.
    * Parameters: 2
-   *   -[1]: FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP Term
+   *   -[1]: Op of kind FLOATINGPOINT_TO_FP_FLOATINGPOINT
    *   -[2]: Term of sort FloatingPoint
    * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   FLOATINGPOINT_TO_FP_FLOATINGPOINT,
   /**
@@ -1451,17 +1422,15 @@ enum CVC4_PUBLIC Kind
    *   -[1]: Exponent size
    *   -[2]: Significand size
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param1, uint32_t param2)
-   */
-  FLOATINGPOINT_TO_FP_REAL_OP,
-  /**
+   *   mkOp(Kind kind, uint32_t param1, uint32_t param2)
+   *
    * Conversion from a real to floating-point.
    * Parameters: 2
-   *   -[1]: FLOATINGPOINT_TO_FP_REAL_OP Term
+   *   -[1]: Op of kind FLOATINGPOINT_TO_FP_REAL
    *   -[2]: Term of sort FloatingPoint
    * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   FLOATINGPOINT_TO_FP_REAL,
   /*
@@ -1470,17 +1439,15 @@ enum CVC4_PUBLIC Kind
    *   -[1]: Exponent size
    *   -[2]: Significand size
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param1, uint32_t param2)
-   */
-  FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP,
-  /**
+   *   mkOp(Kind kind, uint32_t param1, uint32_t param2)
+   *
    * Conversion from a signed bit vector to floating-point.
    * Parameters: 2
-   *   -[1]: FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP Term
+   *   -[1]: Op of kind FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR
    *   -[2]: Term of sort FloatingPoint
    * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR,
   /**
@@ -1489,17 +1456,15 @@ enum CVC4_PUBLIC Kind
    *   -[1]: Exponent size
    *   -[2]: Significand size
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param1, uint32_t param2)
-   */
-  FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP,
-  /**
-   * Operator for converting an unsigned bit vector to floating-point.
+   *   mkOp(Kind kind, uint32_t param1, uint32_t param2)
+   *
+   * Converting an unsigned bit vector to floating-point.
    * Parameters: 2
-   *   -[1]: FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP Term
+   *   -[1]: Op of kind FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR
    *   -[2]: Term of sort FloatingPoint
    * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR,
   /**
@@ -1508,17 +1473,15 @@ enum CVC4_PUBLIC Kind
    *   -[1]: exponent size
    *   -[2]: Significand size
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param1, uint32_t param2)
-   */
-  FLOATINGPOINT_TO_FP_GENERIC_OP,
-  /**
+   *   mkOp(Kind kind, uint32_t param1, uint32_t param2)
+   *
    * Generic conversion to floating-point, used in parsing only.
    * Parameters: 2
-   *   -[1]: FLOATINGPOINT_TO_FP_GENERIC_OP Term
+   *   -[1]: Op of kind FLOATINGPOINT_TO_FP_GENERIC
    *   -[2]: Term of sort FloatingPoint
    * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   FLOATINGPOINT_TO_FP_GENERIC,
   /**
@@ -1526,75 +1489,33 @@ enum CVC4_PUBLIC Kind
    * Parameters: 1
    *   -[1]: Size of the bit-vector to convert to
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param)
-   */
-  FLOATINGPOINT_TO_UBV_OP,
-  /**
+   *   mkOp(Kind kind, uint32_t param)
+   *
    * Conversion from a floating-point value to an unsigned bit vector.
    * Parameters: 2
-   *   -[1]: FLOATINGPOINT_TO_FP_TO_UBV_OP Term
+   *   -[1]: Op of kind FLOATINGPOINT_TO_FP_TO_UBV
    *   -[2]: Term of sort FloatingPoint
    * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   FLOATINGPOINT_TO_UBV,
-  /**
-   * Operator for to_ubv_total.
-   * Parameters: 1
-   *   -[1]: Size of the bit-vector to convert to
-   * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param)
-   */
-  FLOATINGPOINT_TO_UBV_TOTAL_OP,
-  /**
-   * Conversion from  a floating-point value to an unsigned bit vector
-   * (defined for all inputs).
-   * Parameters: 2
-   *   -[1]: FLOATINGPOINT_TO_FP_TO_UBV_TOTAL_OP Term
-   *   -[2]: Term of sort FloatingPoint
-   * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
-   */
-  FLOATINGPOINT_TO_UBV_TOTAL,
   /**
    * Operator for to_sbv.
    * Parameters: 1
    *   -[1]: Size of the bit-vector to convert to
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param)
-   */
-  FLOATINGPOINT_TO_SBV_OP,
-  /**
+   *   mkOp(Kind kind, uint32_t param)
+   *
    * Conversion from a floating-point value to a signed bit vector.
    * Parameters: 2
-   *   -[1]: FLOATINGPOINT_TO_FP_TO_SBV_OP Term
+   *   -[1]: Op of kind FLOATINGPOINT_TO_FP_TO_SBV
    *   -[2]: Term of sort FloatingPoint
    * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   FLOATINGPOINT_TO_SBV,
-  /**
-   * Operator for to_sbv_total.
-   * Parameters: 1
-   *   -[1]: Size of the bit-vector to convert to
-   * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param)
-   */
-  FLOATINGPOINT_TO_SBV_TOTAL_OP,
-  /**
-   * Conversion from a floating-point value to a signed bit vector
-   * (defined for all inputs).
-   * Parameters: 2
-   *   -[1]: FLOATINGPOINT_TO_FP_TO_SBV_TOTAL_OP Term
-   *   -[2]: Term of sort FloatingPoint
-   * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
-   */
-  FLOATINGPOINT_TO_SBV_TOTAL,
   /**
    * Floating-point to real.
    * Parameters: 1
@@ -1603,14 +1524,6 @@ enum CVC4_PUBLIC Kind
    *   mkTerm(Kind kind, Term child)
    */
   FLOATINGPOINT_TO_REAL,
-  /**
-   * Floating-point to real (defined for all inputs).
-   * Parameters: 1
-   *   -[1]: Term of sort FloatingPoint
-   * Create with:
-   *   mkTerm(Kind kind, Term child)
-   */
-  FLOATINGPOINT_TO_REAL_TOTAL,
 
   /* Arrays ---------------------------------------------------------------- */
 
@@ -1620,8 +1533,8 @@ enum CVC4_PUBLIC Kind
    *   -[1]: Term of array sort
    *   -[2]: Selection index
    * Create with:
-   *   mkTerm(Term opTerm, Term child1, Term child2)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child1, Term child2)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   SELECT,
   /**
@@ -1631,8 +1544,8 @@ enum CVC4_PUBLIC Kind
    *   -[2]: Store index
    *   -[3]: Term to store at the index
    * Create with:
-   *   mkTerm(Term opTerm, Term child1, Term child2, Term child3)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child1, Term child2, Term child3)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   STORE,
   /**
@@ -1641,14 +1554,31 @@ enum CVC4_PUBLIC Kind
    *   -[1]: Array sort
    *   -[2]: Term representing a constant
    * Create with:
-   *   mkTerm(Term opTerm, Term child1, Term child2)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child1, Term child2)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    *
    * Note: We currently support the creation of constant arrays, but under some
    * conditions when there is a chain of equalities connecting two constant
    * arrays, the solver doesn't know what to do and aborts (Issue #1667).
    */
-  STORE_ALL,
+  CONST_ARRAY,
+  /**
+   * Equality over arrays a and b over a given range [i,j], i.e.,
+   * \forall k . i <= k <= j --> a[k] = b[k]
+   *
+   * Parameters: 4
+   *   -[1]: First array
+   *   -[2]: Second array
+   *   -[3]: Lower bound of range (inclusive)
+   *   -[4]: Uppper bound of range (inclusive)
+   * Create with:
+   *   mkTerm(Op op, const std::vector<Term>& children)
+   *
+   * Note: We currently support the creation of array equalities over index
+   * types bit-vector, floating-point, integer and real. Option --arrays-exp is
+   * required to support this operator.
+   */
+  EQ_RANGE,
 #if 0
   /* array table function (internal-only symbol) */
   ARR_TABLE_FUN,
@@ -1665,32 +1595,25 @@ enum CVC4_PUBLIC Kind
   /**
    * Constructor application.
    * Paramters: n > 0
-   *   -[1]: Constructor
+   *   -[1]: Constructor (operator)
    *   -[2]..[n]: Parameters to the constructor
    * Create with:
-   *   mkTerm(Kind kind)
-   *   mkTerm(Kind kind, Term child)
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   */
-  APPLY_SELECTOR,
-  /**
-   * Datatype selector application.
-   * Parameters: 1
-   *   -[1]: Datatype term (undefined if mis-applied)
-   * Create with:
-   *   mkTerm(Kind kind, Term child)
+   *   mkTerm(Kind kind, Op op)
+   *   mkTerm(Kind kind, Op op, Term child)
+   *   mkTerm(Kind kind, Op op, Term child1, Term child2)
+   *   mkTerm(Kind kind, Op op, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, Op op, const std::vector<Term>& children)
    */
   APPLY_CONSTRUCTOR,
   /**
    * Datatype selector application.
    * Parameters: 1
-   *   -[1]: Datatype term (defined rigidly if mis-applied)
+   *   -[1]: Selector (operator)
+   *   -[2]: Datatype term (undefined if mis-applied)
    * Create with:
-   *   mkTerm(Kind kind, Term child)
+   *   mkTerm(Kind kind, Op op, Term child)
    */
-  APPLY_SELECTOR_TOTAL,
+  APPLY_SELECTOR,
   /**
    * Datatype tester application.
    * Parameters: 2
@@ -1714,18 +1637,16 @@ enum CVC4_PUBLIC Kind
    * Parameters: 1
    *   -[1]: Index of the tuple to be updated
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param)
-   */
-  TUPLE_UPDATE_OP,
-  /**
-   * Tuple update.
+   *   mkOp(Kind kind, uint32_t param)
+   *
+   * Apply tuple update.
    * Parameters: 3
-   *   -[1]: TUPLE_UPDATE_OP (which references an index)
+   *   -[1]: Op of kind TUPLE_UPDATE (which references an index)
    *   -[2]: Tuple
    *   -[3]: Element to store in the tuple at the given index
    * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child1, Term child2)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   TUPLE_UPDATE,
   /**
@@ -1733,23 +1654,68 @@ enum CVC4_PUBLIC Kind
    * Parameters: 1
    *   -[1]: Name of the field to be updated
    * Create with:
-   *   mkOpTerm(Kind kind, const std::string& param)
-   */
-  RECORD_UPDATE_OP,
-  /**
+   *   mkOp(Kind kind, const std::string& param)
+   *
    * Record update.
    * Parameters: 3
-   *   -[1]: RECORD_UPDATE_OP Term (which references a field)
+   *   -[1]: Op of kind RECORD_UPDATE (which references a field)
    *   -[2]: Record term to update
    *   -[3]: Element to store in the record in the given field
+   * Create with:
+   *   mkTerm(Op op, Term child1, Term child2)
+   *   mkTerm(Op op,, const std::vector<Term>& children)
+   */
+  RECORD_UPDATE,
+  /* Match expressions.
+   * For example, the smt2 syntax match term
+   *   (match l (((cons h t) h) (nil 0)))
+   * is represented by the AST
+   * (MATCH l
+   *   (MATCH_BIND_CASE (BOUND_VAR_LIST h t) (cons h t) h)
+   *   (MATCH_CASE nil 0))
+   * The type of the last argument of each case term could be equal.
+   * Parameters: n > 1
+   *   -[1]..[n]: Terms of kind MATCH_CASE or MATCH_BIND_CASE
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   *
+   */
+  MATCH,
+  /* Match case
+   * A (constant) case expression to be used within a match expression.
+   * Parameters: 2
+   *   -[1] Term denoting the pattern expression
+   *   -[2] Term denoting the return value
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
-  RECORD_UPDATE,
-#if 0
-  /* datatypes size */
+  MATCH_CASE,
+  /* Match bind case
+   * A (non-constant) case expression to be used within a match expression.
+   * Parameters: 3
+   *   -[1] a BOUND_VAR_LIST Term containing the free variables of the case
+   *   -[2] Term denoting the pattern expression
+   *   -[3] Term denoting the return value
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  MATCH_BIND_CASE,
+  /*
+   * Datatypes size
+   * An operator mapping datatypes to an integer denoting the number of
+   * non-nullary applications of constructors they contain.
+   * Parameters: 1
+   *   -[1]: Datatype term
+   * Create with:
+   *   mkTerm(Kind kind, Term child1)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
   DT_SIZE,
+#if 0
   /* datatypes height bound */
   DT_HEIGHT_BOUND,
   /* datatypes height bound */
@@ -1769,7 +1735,6 @@ enum CVC4_PUBLIC Kind
    * Parameters: 0
    * Create with:
    *   mkSepNil(Sort sort)
-   *   mkTerm(Kind kind, Sort sort)
    */
   SEP_NIL,
   /**
@@ -1828,7 +1793,6 @@ enum CVC4_PUBLIC Kind
    *   -[1]: Sort of the set elements
    * Create with:
    *   mkEmptySet(Sort sort)
-   *   mkConst(Sort sort)
    */
   EMPTYSET,
   /**
@@ -1877,7 +1841,8 @@ enum CVC4_PUBLIC Kind
    */
   MEMBER,
   /**
-   * The set of the single element given as a parameter.
+   * Construct a singleton set from an element given as a parameter.
+   * The returned set has same type of the element.
    * Parameters: 1
    *   -[1]: Single element
    * Create with:
@@ -1917,7 +1882,6 @@ enum CVC4_PUBLIC Kind
    * All set variables must be interpreted as subsets of it.
    * Create with:
    *   mkUniverseSet(Sort sort)
-   *   mkTerm(Kind kind, Sort sort)
    */
   UNIVERSE_SET,
   /**
@@ -1971,6 +1935,182 @@ enum CVC4_PUBLIC Kind
    *   mkTerm(Kind kind, Term child)
    */
   IDEN,
+  /**
+   * Set comprehension
+   * A set comprehension is specified by a bound variable list x1 ... xn,
+   * a predicate P[x1...xn], and a term t[x1...xn]. A comprehension C with the
+   * above form has members given by the following semantics:
+   * forall y. ( exists x1...xn. P[x1...xn] ^ t[x1...xn] = y ) <=> (member y C)
+   * where y ranges over the element type of the (set) type of the
+   * comprehension. If t[x1..xn] is not provided, it is equivalent to y in the
+   * above formula.
+   * Parameters: 2 (3)
+   *   -[1]: Term BOUND_VAR_LIST
+   *   -[2]: Term denoting the predicate of the comprehension
+   *   -[3]: (optional) a Term denoting the generator for the comprehension
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  COMPREHENSION,
+  /**
+   * Returns an element from a given set.
+   * If a set A = {x}, then the term (choose A) is equivalent to the term x.
+   * If the set is empty, then (choose A) is an arbitrary value.
+   * If the set has cardinality > 1, then (choose A) will deterministically
+   * return an element in A.
+   * Parameters: 1
+   *   -[1]: Term of set sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  CHOOSE,
+  /**
+   * Set is_singleton predicate.
+   * Parameters: 1
+   *   -[1]: Term of set sort, is [1] a singleton set?
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  IS_SINGLETON,
+  /* Bags ------------------------------------------------------------------ */
+  /**
+   * Empty bag constant.
+   * Parameters: 1
+   *   -[1]: Sort of the bag elements
+   * Create with:
+   *   mkEmptyBag(Sort sort)
+   */
+  EMPTYBAG,
+  /**
+   * Bag max union.
+   * Parameters: 2
+   *   -[1]..[2]: Terms of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  UNION_MAX,
+  /**
+   * Bag disjoint union (sum).
+   * Parameters: 2
+   *   -[1]..[2]: Terms of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  UNION_DISJOINT,
+  /**
+   * Bag intersection (min).
+   * Parameters: 2
+   *   -[1]..[2]: Terms of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  INTERSECTION_MIN,
+  /**
+   * Bag difference subtract (subtracts multiplicities of the second from the
+   * first).
+   * Parameters: 2
+   *   -[1]..[2]: Terms of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  DIFFERENCE_SUBTRACT,
+  /**
+   * Bag difference 2 (removes shared elements in the two bags).
+   * Parameters: 2
+   *   -[1]..[2]: Terms of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  DIFFERENCE_REMOVE,
+  /**
+   * Inclusion predicate for bags
+   * (multiplicities of the first bag <= multiplicities of the second bag).
+   * Parameters: 2
+   *   -[1]..[2]: Terms of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SUBBAG,
+  /**
+   * Element multiplicity in a bag
+   * Parameters: 2
+   *   -[1]..[2]: Terms of bag sort (Bag E), [1] an element of sort E
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  BAG_COUNT,
+  /**
+   * Eliminate duplicates in a given bag. The returned bag contains exactly the
+   * same elements in the given bag, but with multiplicity one.
+   * Parameters: 1
+   *   -[1]: a term of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  DUPLICATE_REMOVAL,
+  /**
+   * The bag of the single element given as a parameter.
+   * Parameters: 1
+   *   -[1]: Single element
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  MK_BAG,
+  /**
+   * Bag cardinality.
+   * Parameters: 1
+   *   -[1]: Bag to determine the cardinality of
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  BAG_CARD,
+  /**
+   * Returns an element from a given bag.
+   * If a bag A = {(x,n)} where n is the multiplicity, then the term (choose A)
+   * is equivalent to the term x.
+   * If the bag is empty, then (choose A) is an arbitrary value.
+   * If the bag contains distinct elements, then (choose A) will
+   * deterministically return an element in A.
+   * Parameters: 1
+   *   -[1]: Term of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  BAG_CHOOSE,
+  /**
+   * Bag is_singleton predicate (single element with multiplicity exactly one).
+   * Parameters: 1
+   *   -[1]: Term of bag sort, is [1] a singleton bag?
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  BAG_IS_SINGLETON,
+  /**
+   * Bag.from_set converts a set to a bag.
+   * Parameters: 1
+   *   -[1]: Term of set sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  BAG_FROM_SET,
+  /**
+   * Bag.to_set converts a bag to a set.
+   * Parameters: 1
+   *   -[1]: Term of bag sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  BAG_TO_SET,
 
   /* Strings --------------------------------------------------------------- */
 
@@ -1987,7 +2127,8 @@ enum CVC4_PUBLIC Kind
   /**
    * String membership.
    * Parameters: 2
-   *   -[1]..[2]: Terms of String sort
+   *   -[1]: Term of String sort
+   *   -[2]: Term of RegExp sort
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
@@ -2017,6 +2158,21 @@ enum CVC4_PUBLIC Kind
    */
   STRING_SUBSTR,
   /**
+   * String update.
+   * Updates a string s by replacing its context starting at an index with t.
+   * If the start index is negative, the start index is greater than the
+   * length of the string, the result is s. Otherwise, the length of the
+   * original string is preserved.
+   * Parameters: 3
+   *   -[1]: Term of sort String
+   *   -[2]: Term of sort Integer (index i)
+   *   -[3]: Term of sort String (replacement string t)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  STRING_UPDATE,
+  /**
    * String character at.
    * Returns the character at index i from a string s. If the index is negative
    * or the index is greater than the length of the string, the result is the
@@ -2040,7 +2196,7 @@ enum CVC4_PUBLIC Kind
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
-  STRING_STRCTN,
+  STRING_CONTAINS,
   /**
    * String index-of.
    * Returns the index of a substring s2 in a string s1 starting at index i. If
@@ -2054,7 +2210,7 @@ enum CVC4_PUBLIC Kind
    *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
-  STRING_STRIDOF,
+  STRING_INDEXOF,
   /**
    * String replace.
    * Replaces a string s2 in a string s1 with string s3. If s2 does not appear
@@ -2067,7 +2223,116 @@ enum CVC4_PUBLIC Kind
    *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
-  STRING_STRREPL,
+  STRING_REPLACE,
+  /**
+   * String replace all.
+   * Replaces all occurrences of a string s2 in a string s1 with string s3.
+   * If s2 does not appear in s1, s1 is returned unmodified.
+   * Parameters: 3
+   *   -[1]: Term of sort String (string s1)
+   *   -[2]: Term of sort String (string s2)
+   *   -[3]: Term of sort String (string s3)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  STRING_REPLACE_ALL,
+  /**
+   * String replace regular expression match.
+   * Replaces the first match of a regular expression r in string s1 with
+   * string s2. If r does not match a substring of s1, s1 is returned
+   * unmodified.
+   * Parameters: 3
+   *   -[1]: Term of sort String (string s1)
+   *   -[2]: Term of sort Regexp (regexp r)
+   *   -[3]: Term of sort String (string s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  STRING_REPLACE_RE,
+  /**
+   * String replace all regular expression matches.
+   * Replaces all matches of a regular expression r in string s1 with string
+   * s2. If r does not match a substring of s1, s1 is returned unmodified.
+   * Parameters: 3
+   *   -[1]: Term of sort String (string s1)
+   *   -[2]: Term of sort Regexp (regexp r)
+   *   -[3]: Term of sort String (string s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  STRING_REPLACE_RE_ALL,
+  /**
+   * String to lower case.
+   * Parameters: 1
+   *   -[1]: Term of String sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  STRING_TOLOWER,
+  /**
+   * String to upper case.
+   * Parameters: 1
+   *   -[1]: Term of String sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  STRING_TOUPPER,
+  /**
+   * String reverse.
+   * Parameters: 1
+   *   -[1]: Term of String sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  STRING_REV,
+  /**
+   * String to code.
+   * Returns the code point of a string if it has length one, or returns -1
+   * otherwise.
+   * Parameters: 1
+   *   -[1]: Term of String sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  STRING_TO_CODE,
+  /**
+   * String from code.
+   * Returns a string containing a single character whose code point matches
+   * the argument to this function, or the empty string if the argument is
+   * out-of-bounds.
+   * Parameters: 1
+   *   -[1]: Term of Integer sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  STRING_FROM_CODE,
+  /**
+   * String less than.
+   * Returns true if string s1 is (strictly) less than s2 based on a
+   * lexiographic ordering over code points.
+   * Parameters: 2
+   *   -[1]: Term of sort String (the string s1)
+   *   -[2]: Term of sort String (the string s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  STRING_LT,
+  /**
+   * String less than or equal.
+   * Returns true if string s1 is less than or equal to s2 based on a
+   * lexiographic ordering over code points.
+   * Parameters: 2
+   *   -[1]: Term of sort String (the string s1)
+   *   -[2]: Term of sort String (the string s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  STRING_LEQ,
   /**
    * String prefix-of.
    * Checks whether a string s1 is a prefix of string s2. If string s1 is
@@ -2093,6 +2358,16 @@ enum CVC4_PUBLIC Kind
    */
   STRING_SUFFIX,
   /**
+   * String is-digit.
+   * Returns true if string s is digit (it is one of "0", ..., "9").
+   * Parameters: 1
+   *   -[1]: Term of sort String
+   * Create with:
+   *   mkTerm(Kind kind, Term child1)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  STRING_IS_DIGIT,
+  /**
    * Integer to string.
    * If the integer is negative this operator returns the empty string.
    * Parameters: 1
@@ -2100,7 +2375,7 @@ enum CVC4_PUBLIC Kind
    * Create with:
    *   mkTerm(Kind kind, Term child)
    */
-  STRING_ITOS,
+  STRING_FROM_INT,
   /**
    * String to integer (total function).
    * If the string does not contain an integer or the integer is negative, the
@@ -2110,7 +2385,7 @@ enum CVC4_PUBLIC Kind
    * Create with:
    *   mkTerm(Kind kind, Term child)
    */
-  STRING_STOI,
+  STRING_TO_INT,
   /**
    * Constant string.
    * Parameters:
@@ -2120,8 +2395,6 @@ enum CVC4_PUBLIC Kind
    *   mkString(const std::string& s)
    *   mkString(const unsigned char c)
    *   mkString(const std::vector<unsigned>& s)
-   *   mkConst(Kind kind, const char* s)
-   *   mkConst(Kind kind, const std::string& s)
    */
   CONST_STRING,
   /**
@@ -2160,6 +2433,15 @@ enum CVC4_PUBLIC Kind
    */
   REGEXP_INTER,
   /**
+   * Regexp difference.
+   * Parameters: 2
+   *   -[1]..[2]: Terms of Regexp sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  REGEXP_DIFF,
+  /**
    * Regexp *.
    * Parameters: 1
    *   -[1]: Term of sort Regexp
@@ -2194,15 +2476,37 @@ enum CVC4_PUBLIC Kind
    */
   REGEXP_RANGE,
   /**
-   * Regexp loop.
-   * Parameters: 2 (3)
-   *   -[1]: Term of sort RegExp
-   *   -[2]: Lower bound for the number of repetitions of the first argument
-   *   -[3]: Upper bound for the number of repetitions of the first argument
+   * Operator for regular expression repeat.
+   * Parameters: 1
+   *   -[1]: The number of repetitions
    * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   *   mkOp(Kind kind, uint32_t param)
+   *
+   * Apply regular expression loop.
+   * Parameters: 2
+   *   -[1]: Op of kind REGEXP_REPEAT
+   *   -[2]: Term of regular expression sort
+   * Create with:
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
+   */
+  REGEXP_REPEAT,
+  /**
+   * Operator for regular expression loop, from lower bound to upper bound
+   * number of repetitions.
+   * Parameters: 2
+   *   -[1]: The lower bound
+   *   -[2]: The upper bound
+   * Create with:
+   *   mkOp(Kind kind, uint32_t param, uint32_t param)
+   *
+   * Apply regular expression loop.
+   * Parameters: 2
+   *   -[1]: Op of kind REGEXP_LOOP
+   *   -[2]: Term of regular expression sort
+   * Create with:
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   REGEXP_LOOP,
   /**
@@ -2221,10 +2525,186 @@ enum CVC4_PUBLIC Kind
    *   mkTerm(Kind kind)
    */
   REGEXP_SIGMA,
-#if 0
-  /* regexp rv (internal use only) */
-  REGEXP_RV,
-#endif
+  /**
+   * Regexp complement.
+   * Parameters: 1
+   *   -[1]: Term of sort RegExp
+   * Create with:
+   *   mkTerm(Kind kind, Term child1)
+   */
+  REGEXP_COMPLEMENT,
+
+  /**
+   * Sequence concat.
+   * Parameters: n > 1
+   *   -[1]..[n]: Terms of Sequence sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_CONCAT,
+  /**
+   * Sequence length.
+   * Parameters: 1
+   *   -[1]: Term of Sequence sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  SEQ_LENGTH,
+  /**
+   * Sequence extract.
+   * Extracts a subsequence, starting at index i and of length l, from a
+   * sequence s.  If the start index is negative, the start index is greater
+   * than the length of the sequence, or the length is negative, the result is
+   * the empty sequence. Parameters: 3
+   *   -[1]: Term of sort Sequence
+   *   -[2]: Term of sort Integer (index i)
+   *   -[3]: Term of sort Integer (length l)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_EXTRACT,
+  /**
+   * Sequence update.
+   * Updates a sequence s by replacing its context starting at an index with t.
+   * If the start index is negative, the start index is greater than the
+   * length of the sequence, the result is s. Otherwise, the length of the
+   * original sequence is preserved.
+   * Parameters: 3
+   *   -[1]: Term of sort Sequence
+   *   -[2]: Term of sort Integer (index i)
+   *   -[3]: Term of sort Sequence (replacement sequence t)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_UPDATE,
+  /**
+   * Sequence element at.
+   * Returns the element at index i from a sequence s. If the index is negative
+   * or the index is greater or equal to the length of the sequence, the result
+   * is the empty sequence. Otherwise the result is a sequence of length 1.
+   * Parameters: 2
+   *   -[1]: Term of sequence sort (string s)
+   *   -[2]: Term of sort Integer (index i)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_AT,
+  /**
+   * Sequence contains.
+   * Checks whether a sequence s1 contains another sequence s2. If s2 is empty,
+   * the result is always true. Parameters: 2
+   *   -[1]: Term of sort Sequence (the sequence s1)
+   *   -[2]: Term of sort Sequence (the sequence s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_CONTAINS,
+  /**
+   * Sequence index-of.
+   * Returns the index of a subsequence s2 in a sequence s1 starting at index i.
+   * If the index is negative or greater than the length of sequence s1 or the
+   * subsequence s2 does not appear in sequence s1 after index i, the result is
+   * -1. Parameters: 3
+   *   -[1]: Term of sort Sequence (subsequence s1)
+   *   -[2]: Term of sort Sequence (subsequence s2)
+   *   -[3]: Term of sort Integer (index i)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_INDEXOF,
+  /**
+   * Sequence replace.
+   * Replaces the first occurrence of a sequence s2 in a sequence s1 with
+   * sequence s3. If s2 does not appear in s1, s1 is returned unmodified.
+   * Parameters: 3
+   *   -[1]: Term of sort Sequence (sequence s1)
+   *   -[2]: Term of sort Sequence (sequence s2)
+   *   -[3]: Term of sort Sequence (sequence s3)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_REPLACE,
+  /**
+   * Sequence replace all.
+   * Replaces all occurrences of a sequence s2 in a sequence s1 with sequence
+   * s3. If s2 does not appear in s1, s1 is returned unmodified. Parameters: 3
+   *   -[1]: Term of sort Sequence (sequence s1)
+   *   -[2]: Term of sort Sequence (sequence s2)
+   *   -[3]: Term of sort Sequence (sequence s3)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_REPLACE_ALL,
+  /**
+   * Sequence reverse.
+   * Parameters: 1
+   *   -[1]: Term of Sequence sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  SEQ_REV,
+  /**
+   * Sequence prefix-of.
+   * Checks whether a sequence s1 is a prefix of sequence s2. If sequence s1 is
+   * empty, this operator returns true.
+   * Parameters: 2
+   *   -[1]: Term of sort Sequence (sequence s1)
+   *   -[2]: Term of sort Sequence (sequence s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_PREFIX,
+  /**
+   * Sequence suffix-of.
+   * Checks whether a sequence s1 is a suffix of sequence s2. If sequence s1 is
+   * empty, this operator returns true. Parameters: 2
+   *   -[1]: Term of sort Sequence (sequence s1)
+   *   -[2]: Term of sort Sequence (sequence s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_SUFFIX,
+  /**
+   * Constant sequence.
+   * Parameters:
+   *   See mkEmptySequence()
+   * Create with:
+   *   mkEmptySequence(Sort sort)
+   * Note that a constant sequence is a term that is equivalent to:
+   *   (seq.++ (seq.unit c1) ... (seq.unit cn))
+   * where n>=0 and c1, ..., cn are constants of some sort. The elements
+   * can be extracted by Term::getConstSequenceElements().
+   */
+  CONST_SEQUENCE,
+  /**
+   * Sequence unit, corresponding to a sequence of length one with the given
+   * term.
+   * Parameters: 1
+   *   -[1] Element term.
+   * Create with:
+   *   mkTerm(Kind kind, Term child1)
+   */
+  SEQ_UNIT,
+  /**
+   * Sequence nth, corresponding to the nth element of a sequence.
+   * Parameters: 2
+   *   -[1] Sequence term.
+   *   -[2] Integer term.
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   */
+  SEQ_NTH,
 
   /* Quantifiers ----------------------------------------------------------- */
 
@@ -2252,29 +2732,70 @@ enum CVC4_PUBLIC Kind
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   EXISTS,
-#if 0
-  /* instantiation constant */
-  INST_CONSTANT,
-  /* instantiation pattern */
-  INST_PATTERN,
-  /* a list of bound variables (used to bind variables under a quantifier) */
+  /*
+   * A list of bound variables (used to bind variables under a quantifier)
+   * Parameters: n > 1
+   *   -[1]..[n]: Terms with kind BOUND_VARIABLE
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
   BOUND_VAR_LIST,
-  /* instantiation no-pattern */
-  INST_NO_PATTERN,
-  /* instantiation attribute */
-  INST_ATTRIBUTE,
-  /* a list of instantiation patterns */
-  INST_PATTERN_LIST,
-  /* predicate for specifying term in instantiation closure. */
+  /*
+   * A predicate for specifying term in instantiation closure.
+   * Parameters: 1
+   *   -[1]: Term
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
   INST_CLOSURE,
-  /* general rewrite rule (for rewrite-rules theory) */
-  REWRITE_RULE,
-  /* actual rewrite rule (for rewrite-rules theory) */
-  RR_REWRITE,
-  /* actual reduction rule (for rewrite-rules theory) */
-  RR_REDUCTION,
-  /* actual deduction rule (for rewrite-rules theory) */
-  RR_DEDUCTION,
+  /*
+   * An instantiation pattern.
+   * Specifies a (list of) terms to be used as a pattern for quantifier
+   * instantiation.
+   * Parameters: n > 1
+   *   -[1]..[n]: Terms with kind BOUND_VARIABLE
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  INST_PATTERN,
+  /*
+   * An instantiation no-pattern.
+   * Specifies a (list of) terms that should not be used as a pattern for
+   * quantifier instantiation.
+   * Parameters: n > 1
+   *   -[1]..[n]: Terms with kind BOUND_VARIABLE
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  INST_NO_PATTERN,
+  /*
+   * An instantiation attribute
+   * Specifies a custom property for a quantified formula given by a
+   * term that is ascribed a user attribute.
+   * Parameters: 1
+   *   -[1]: Term with a user attribute.
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  INST_ATTRIBUTE,
+  /*
+   * A list of instantiation patterns and/or attributes.
+   * Parameters: n > 1
+   *   -[1]..[n]: Terms with kind INST_PATTERN, INST_NO_PATTERN, or
+   * INST_ATTRIBUTE.
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  INST_PATTERN_LIST,
+#if 0
 
   /* Sort Kinds ------------------------------------------------------------ */
 
@@ -2290,6 +2811,8 @@ enum CVC4_PUBLIC Kind
   SELECTOR_TYPE,
   /* set type, takes as parameter the type of the elements */
   SET_TYPE,
+  /* bag type, takes as parameter the type of the elements */
+  BAG_TYPE,
   /* sort tag */
   SORT_TAG,
   /* specifies types of user-declared 'uninterpreted' sorts */
@@ -2312,6 +2835,13 @@ enum CVC4_PUBLIC Kind
   /* marks the upper-bound of this enumeration */
   LAST_KIND
 };
+
+/**
+ * Get the string representation of a given kind.
+ * @param k the kind
+ * @return the string representation of kind k
+ */
+std::string kindToString(Kind k) CVC4_PUBLIC;
 
 /**
  * Serialize a kind to given stream.

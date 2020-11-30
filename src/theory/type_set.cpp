@@ -2,10 +2,10 @@
 /*! \file type_set.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -24,18 +24,12 @@ TypeSet::~TypeSet()
   iterator it;
   for (it = d_typeSet.begin(); it != d_typeSet.end(); ++it)
   {
-    if ((*it).second != NULL)
-    {
-      delete (*it).second;
-    }
+    delete (*it).second;
   }
   TypeToTypeEnumMap::iterator it2;
   for (it2 = d_teMap.begin(); it2 != d_teMap.end(); ++it2)
   {
-    if ((*it2).second != NULL)
-    {
-      delete (*it2).second;
-    }
+    delete (*it2).second;
   }
 }
 

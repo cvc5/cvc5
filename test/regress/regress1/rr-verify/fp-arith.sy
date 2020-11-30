@@ -1,0 +1,36 @@
+; REQUIRES: symfpu
+; COMMAND-LINE: --lang=sygus2 --sygus-rr --sygus-samples=0 --sygus-rr-synth-check --sygus-abort-size=1 --sygus-rr-verify-abort --no-sygus-sym-break --fp-exp
+; EXPECT: (error "Maximum term size (1) for enumerative SyGuS exceeded.")
+; SCRUBBER: grep -v -E '(\(define-fun|\(rewrite)'
+; EXIT: 1
+
+(set-logic FP)
+
+(define-fun fp_plus_zero () Float16 (_ +zero 5 11))
+(define-fun fp_minus_zero () Float16 (_ -zero 5 11))
+(define-fun fp_plus_inf () Float16 (_ +oo 5 11))
+(define-fun fp_minus_inf () Float16 (_ -oo 5 11))
+(define-fun fp_nan () Float16 (_ NaN 5 11))
+
+(synth-fun f ( (r RoundingMode) (x Float16) (y Float16)) Float16
+((Start Float16))
+(
+ (Start Float16 (
+  (fp.abs Start)
+  (fp.neg Start)
+  (fp.add r Start Start)
+  (fp.sub r Start Start)
+  (fp.mul r Start Start)
+  (fp.div r Start Start)
+  (fp.sqrt r Start)
+  (fp.rem Start Start)
+  x
+  y
+  fp_plus_zero
+  fp_minus_zero
+  fp_plus_inf
+  fp_minus_inf
+  fp_nan
+ ))
+))
+(check-synth)

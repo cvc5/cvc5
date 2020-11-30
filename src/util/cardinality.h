@@ -2,10 +2,10 @@
 /*! \file cardinality.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Andrew Reynolds
+ **   Morgan Deters, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__CARDINALITY_H
-#define __CVC4__CARDINALITY_H
+#ifndef CVC4__CARDINALITY_H
+#define CVC4__CARDINALITY_H
 
 #include <iostream>
 #include <utility>
@@ -135,8 +135,7 @@ class CVC4_PUBLIC Cardinality {
   /** Returns true iff this cardinality is finite. */
   bool isFinite() const { return d_card > 0; }
   /** Returns true iff this cardinality is one */
-  bool isOne() const { return d_card == 1; }
-
+  bool isOne() const { return d_card == 2; }
   /**
    * Returns true iff this cardinality is finite and large (i.e.,
    * at the ceiling of representable finite cardinalities).
@@ -226,4 +225,4 @@ std::ostream& operator<<(std::ostream& out, const Cardinality& c) CVC4_PUBLIC;
 
 } /* CVC4 namespace */
 
-#endif /* __CVC4__CARDINALITY_H */
+#endif /* CVC4__CARDINALITY_H */

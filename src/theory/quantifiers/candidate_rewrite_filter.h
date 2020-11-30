@@ -2,10 +2,10 @@
 /*! \file candidate_rewrite_filter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,10 +16,11 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_FILTER_H
-#define __CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_FILTER_H
+#ifndef CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_FILTER_H
+#define CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_FILTER_H
 
 #include <map>
+#include "expr/match_trie.h"
 #include "theory/quantifiers/dynamic_rewrite.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/sygus_sampler.h"
@@ -27,57 +28,6 @@
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-
-/** A virtual class for notifications regarding matches. */
-class NotifyMatch
-{
- public:
-  virtual ~NotifyMatch() {}
-  /**
-   * A notification that s is equal to n * { vars -> subs }. This function
-   * should return false if we do not wish to be notified of further matches.
-   */
-  virtual bool notify(Node s,
-                      Node n,
-                      std::vector<Node>& vars,
-                      std::vector<Node>& subs) = 0;
-};
-
-/**
- * A trie (discrimination tree) storing a set of terms S, that can be used to
- * query, for a given term t, all terms s from S that are matchable with t,
- * that is s*sigma = t for some substitution sigma.
- */
-class MatchTrie
-{
- public:
-  /** Get matches
-   *
-   * This calls ntm->notify( n, s, vars, subs ) for each term s stored in this
-   * trie that is matchable with n where s = n * { vars -> subs } for some
-   * vars, subs. This function returns false if one of these calls to notify
-   * returns false.
-   */
-  bool getMatches(Node n, NotifyMatch* ntm);
-  /** Adds node n to this trie */
-  void addTerm(Node n);
-  /** Clear this trie */
-  void clear();
-
- private:
-  /**
-   * The children of this node in the trie. Terms t are indexed by a
-   * depth-first (right to left) traversal on its subterms, where the
-   * top-symbol of t is indexed by:
-   * - (operator, #children) if t has an operator, or
-   * - (t, 0) if t does not have an operator.
-   */
-  std::map<Node, std::map<unsigned, MatchTrie> > d_children;
-  /** The set of variables in the domain of d_children */
-  std::vector<Node> d_vars;
-  /** The data of this node in the trie */
-  Node d_data;
-};
 
 /** candidate rewrite filter
  *
@@ -165,10 +115,18 @@ class CandidateRewriteFilter
    * detail, if (t,s) is a relevant pair, then t in d_pairs[s].
    */
   std::map<Node, std::unordered_set<Node, NodeHashFunction> > d_pairs;
-  /** Match trie storing all terms in the domain of d_pairs. */
-  MatchTrie d_match_trie;
+  /**
+   * For each (builtin) type, a match trie storing all terms in the domain of
+   * d_pairs.
+   *
+   * Notice that we store d_drewrite->toInternal(t) instead of t, for each
+   * term t, so that polymorphism is handled properly. In particular, this
+   * prevents matches between terms select( x, y ) and select( z, y ) where
+   * the type of x and z are different.
+   */
+  std::map<TypeNode, expr::MatchTrie> d_match_trie;
   /** Notify class */
-  class CandidateRewriteFilterNotifyMatch : public NotifyMatch
+  class CandidateRewriteFilterNotifyMatch : public expr::NotifyMatch
   {
     CandidateRewriteFilter& d_sse;
 
@@ -215,4 +173,4 @@ class CandidateRewriteFilter
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_FILTER_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_FILTER_H */

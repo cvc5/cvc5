@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__REP_SET_H
-#define __CVC4__THEORY__REP_SET_H
+#ifndef CVC4__THEORY__REP_SET_H
+#define CVC4__THEORY__REP_SET_H
 
 #include <map>
 #include <vector>
@@ -71,7 +71,7 @@ class RepSet {
   /** does this set have representative n of type tn? */
   bool hasRep(TypeNode tn, Node n) const;
   /** get the number of representatives for type */
-  unsigned getNumRepresentatives(TypeNode tn) const;
+  size_t getNumRepresentatives(TypeNode tn) const;
   /** get representative at index */
   Node getRepresentative(TypeNode tn, unsigned i) const;
   /**
@@ -121,6 +121,22 @@ typedef std::vector< int > RepDomain;
 
 class RepBoundExt;
 
+/**
+ * Representative set iterator enumeration type, which indicates how the
+ * bound on a variable was determined.
+ */
+enum RsiEnumType
+{
+  // the bound on the variable is invalid
+  ENUM_INVALID = 0,
+  // the bound on the variable was determined in the default way, i.e. based
+  // on an enumeration of terms in the model.
+  ENUM_DEFAULT,
+  // The bound on the variable was determined in a custom way, i.e. via a
+  // quantifiers module like the BoundedIntegers module.
+  ENUM_CUSTOM,
+};
+
 /** Rep set iterator.
  *
  * This class is used for iterating over (tuples of) terms
@@ -140,15 +156,7 @@ class RepBoundExt;
  */
 class RepSetIterator {
 public:
- enum RsiEnumType
- {
-   ENUM_INVALID = 0,
-   ENUM_DEFAULT,
-   ENUM_BOUND_INT,
- };
-
-public:
- RepSetIterator(const RepSet* rs, RepBoundExt* rext);
+ RepSetIterator(const RepSet* rs, RepBoundExt* rext = nullptr);
  ~RepSetIterator() {}
  /** set that this iterator will be iterating over instantiations for a
   * quantifier */
@@ -167,10 +175,18 @@ public:
  bool isFinished() const;
  /** get domain size of the i^th field of this iterator */
  unsigned domainSize(unsigned i);
- /** get the i^th term in the tuple we are considering */
- Node getCurrentTerm(unsigned v, bool valTerm = false);
+ /** Get the type of terms in the i^th field of this iterator */
+ TypeNode getTypeOf(unsigned i) const;
+ /**
+  * Get the value for the i^th field in the tuple we are currently considering.
+  * If valTerm is true, we return a term instead of a value by calling
+  * RepSet::getTermForRepresentative on the value.
+  */
+ Node getCurrentTerm(unsigned i, bool valTerm = false) const;
  /** get the number of terms in the tuple we are considering */
- unsigned getNumTerms() { return d_index_order.size(); }
+ unsigned getNumTerms() const { return d_index_order.size(); }
+ /** get current terms */
+ void getCurrentTerms(std::vector<Node>& terms) const;
  /** get index order, returns var # */
  unsigned getIndexOrder(unsigned v) { return d_index_order[v]; }
  /** get variable order, returns index # */
@@ -262,9 +278,9 @@ class RepBoundExt
    *     iterating over domain elements of the type
    *     of its i^th bound variable.
    */
-  virtual RepSetIterator::RsiEnumType setBound(Node owner,
-                                               unsigned i,
-                                               std::vector<Node>& elements) = 0;
+  virtual RsiEnumType setBound(Node owner,
+                               unsigned i,
+                               std::vector<Node>& elements) = 0;
   /** reset index
    *
    * This method initializes iteration for the i^th
@@ -311,4 +327,4 @@ class RepBoundExt
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__REP_SET_H */
+#endif /* CVC4__THEORY__REP_SET_H */

@@ -25,7 +25,7 @@ template <class T>
 class DefaultCleanUp
 {
  public:
-  inline void operator()(T* t) const {}
+  void operator()(T* t CVC4_UNUSED) const {}
 };
 
 }  // namespace context

@@ -2,10 +2,10 @@
 /*! \file line_buffer.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli
+ **   Andres Noetzli, Mathias Preiner, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -54,10 +54,12 @@ uint8_t* LineBuffer::getPtrWithOffset(size_t line, size_t pos_in_line,
 }
 
 bool LineBuffer::isPtrBefore(uint8_t* ptr, size_t line, size_t pos_in_line) {
-  for (ssize_t i = line; i >= 0; i--) {
+  for (size_t j = 0; j < line; j++)
+  {
     // NOTE: std::less is guaranteed to give consistent results when comparing
     // pointers of different arrays (in contrast to built-in comparison
     // operators).
+    size_t i = line - j;
     uint8_t* end = d_lines[i] + ((i == line) ? pos_in_line : d_sizes[i]);
     if (std::less<uint8_t*>()(d_lines[i] - 1, ptr) &&
         std::less<uint8_t*>()(ptr, end)) {
@@ -67,8 +69,10 @@ bool LineBuffer::isPtrBefore(uint8_t* ptr, size_t line, size_t pos_in_line) {
   return false;
 }
 
-bool LineBuffer::readToLine(size_t line) {
-  while (line >= d_lines.size()) {
+bool LineBuffer::readToLine(size_t line_size)
+{
+  while (line_size >= d_lines.size())
+  {
     if (!(*d_stream)) {
       return false;
     }

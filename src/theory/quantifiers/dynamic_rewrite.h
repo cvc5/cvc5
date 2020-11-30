@@ -2,10 +2,10 @@
 /*! \file dynamic_rewrite.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__DYNAMIC_REWRITER_H
-#define __CVC4__THEORY__QUANTIFIERS__DYNAMIC_REWRITER_H
+#ifndef CVC4__THEORY__QUANTIFIERS__DYNAMIC_REWRITER_H
+#define CVC4__THEORY__QUANTIFIERS__DYNAMIC_REWRITER_H
 
 #include <map>
 
@@ -62,6 +62,17 @@ class DynamicRewriter
    * Check whether this class knows that the equality a = b holds.
    */
   bool areEqual(Node a, Node b);
+  /**
+   * Convert node a to its internal representation, which replaces all
+   * interpreted operators in a by a unique uninterpreted symbol.
+   */
+  Node toInternal(Node a);
+  /**
+   * Convert internal node ai to its original representation. It is the case
+   * that toExternal(toInternal(a))=a. If ai is not a term returned by
+   * toInternal, this method returns null.
+   */
+  Node toExternal(Node ai);
 
  private:
   /** index over argument types to function skolems
@@ -96,13 +107,10 @@ class DynamicRewriter
   };
   /** the internal operator symbol trie for this class */
   std::map<Node, OpInternalSymTrie> d_ois_trie;
-  /**
-   * Convert node a to its internal representation, which replaces all
-   * interpreted operators in a by a unique uninterpreted symbol.
-   */
-  Node toInternal(Node a);
   /** cache of the above function */
   std::map<Node, Node> d_term_to_internal;
+  /** inverse of the above map */
+  std::map<Node, Node> d_internal_to_term;
   /** stores congruence closure over terms given to this class. */
   eq::EqualityEngine d_equalityEngine;
   /** list of all equalities asserted to equality engine */
@@ -113,4 +121,4 @@ class DynamicRewriter
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__DYNAMIC_REWRITER_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__DYNAMIC_REWRITER_H */

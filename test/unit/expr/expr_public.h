@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -19,9 +19,13 @@
 #include <sstream>
 #include <string>
 
+#include "api/cvc4cpp.h"
 #include "base/exception.h"
-#include "expr/expr_manager.h"
 #include "expr/expr.h"
+#include "expr/expr_manager.h"
+#include "expr/expr_manager_scope.h"
+#include "expr/node.h"
+#include "expr/type_node.h"
 #include "options/options.h"
 
 using namespace CVC4;
@@ -29,47 +33,28 @@ using namespace CVC4::kind;
 using namespace std;
 
 class ExprPublic : public CxxTest::TestSuite {
-private:
-
-  Options opts;
-
-  ExprManager* d_em;
-
-  Expr* a_bool;
-  Expr* b_bool;
-  Expr* c_bool_and;
-  Expr* and_op;
-  Expr* plus_op;
-  Type* fun_type;
-  Expr* fun_op;
-  Expr* d_apply_fun_bool;
-  Expr* null;
-
-  Expr* i1;
-  Expr* i2;
-  Expr* r1;
-  Expr* r2;
-
-public:
-
-  void setUp() {
-    try {
-
-      char *argv[2];
+ public:
+  void setUp() override
+  {
+    try
+    {
+      char* argv[2];
       argv[0] = strdup("");
-      argv[1] = strdup("--output-language=ast");
+      argv[1] = strdup("--output-lang=ast");
       Options::parseOptions(&opts, 2, argv);
       free(argv[0]);
       free(argv[1]);
 
-      d_em = new ExprManager(opts);
+      d_slv = new api::Solver(&opts);
+      d_em = d_slv->getExprManager();
 
-      a_bool = new Expr(d_em->mkVar("a",d_em->booleanType()));
+      a_bool = new Expr(d_em->mkVar("a", d_em->booleanType()));
       b_bool = new Expr(d_em->mkVar("b", d_em->booleanType()));
       c_bool_and = new Expr(d_em->mkExpr(AND, *a_bool, *b_bool));
       and_op = new Expr(d_em->mkConst(AND));
       plus_op = new Expr(d_em->mkConst(PLUS));
-      fun_type = new Type(d_em->mkFunctionType(d_em->booleanType(), d_em->booleanType()));
+      fun_type = new Type(
+          d_em->mkFunctionType(d_em->booleanType(), d_em->booleanType()));
       fun_op = new Expr(d_em->mkVar("f", *fun_type));
       d_apply_fun_bool = new Expr(d_em->mkExpr(APPLY_UF, *fun_op, *a_bool));
       null = new Expr();
@@ -78,13 +63,16 @@ public:
       i2 = new Expr(d_em->mkConst(Rational(23)));
       r1 = new Expr(d_em->mkConst(Rational(1, 5)));
       r2 = new Expr(d_em->mkConst(Rational("0")));
-    } catch(Exception e) {
+    }
+    catch (Exception& e)
+    {
       cerr << "Exception during setUp():" << endl << e;
       throw;
     }
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     try {
       delete r2;
       delete r1;
@@ -100,9 +88,10 @@ public:
       delete c_bool_and;
       delete b_bool;
       delete a_bool;
-
-      delete d_em;
-    } catch(Exception e) {
+      delete d_slv;
+    }
+    catch (Exception& e)
+    {
       cerr << "Exception during tearDown():" << endl << e;
       throw;
     }
@@ -261,13 +250,13 @@ public:
     TS_ASSERT(d_apply_fun_bool->hasOperator());
     TS_ASSERT(!null->hasOperator());
 
-    TS_ASSERT_THROWS(a_bool->getOperator(), IllegalArgumentException);
-    TS_ASSERT_THROWS(b_bool->getOperator(), IllegalArgumentException);
+    TS_ASSERT_THROWS(a_bool->getOperator(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(b_bool->getOperator(), IllegalArgumentException&);
     TS_ASSERT(c_bool_and->getOperator() == *and_op);
-    TS_ASSERT_THROWS(plus_op->getOperator(), IllegalArgumentException);
-    TS_ASSERT_THROWS(and_op->getOperator(), IllegalArgumentException);
+    TS_ASSERT_THROWS(plus_op->getOperator(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(and_op->getOperator(), IllegalArgumentException&);
     TS_ASSERT(d_apply_fun_bool->getOperator() == *fun_op);
-    TS_ASSERT_THROWS(null->getOperator(), IllegalArgumentException);
+    TS_ASSERT_THROWS(null->getOperator(), IllegalArgumentException&);
   }
 
   void testGetType() {
@@ -277,11 +266,11 @@ public:
     TS_ASSERT(a_bool->getType(true) == d_em->booleanType());
     TS_ASSERT(b_bool->getType(false) == d_em->booleanType());
     TS_ASSERT(b_bool->getType(true) == d_em->booleanType());
-    TS_ASSERT_THROWS(d_em->mkExpr(MULT,*a_bool,*b_bool).getType(true),
-                     TypeCheckingException);
-// These need better support for operators
-//    TS_ASSERT(and_op->getType().isNull());
-//    TS_ASSERT(plus_op->getType().isNull());
+    TS_ASSERT_THROWS(d_em->mkExpr(MULT, *a_bool, *b_bool).getType(true),
+                     TypeCheckingException&);
+    // These need better support for operators
+    //    TS_ASSERT(and_op->getType().isNull());
+    //    TS_ASSERT(plus_op->getType().isNull());
     TS_ASSERT(d_apply_fun_bool->getType() == d_em->booleanType());
     TS_ASSERT(i1->getType().isInteger());
     TS_ASSERT(i2->getType().isInteger());
@@ -350,97 +339,30 @@ public:
     TS_ASSERT(null->isNull());
   }
 
-  void testIsConst() {
-    /* bool isConst() const; */
-
-    //Debug.on("isConst");
-
-    TS_ASSERT(!a_bool->isConst());
-    TS_ASSERT(!b_bool->isConst());
-    TS_ASSERT(!c_bool_and->isConst());
-    TS_ASSERT(and_op->isConst());
-    TS_ASSERT(plus_op->isConst());
-    TS_ASSERT(!d_apply_fun_bool->isConst());
-    TS_ASSERT(!null->isConst());
-
-    // more complicated "constants" exist in datatypes and arrays theories
-    Datatype list("list");
-    DatatypeConstructor consC("cons");
-    consC.addArg("car", d_em->integerType());
-    consC.addArg("cdr", DatatypeSelfType());
-    list.addConstructor(consC);
-    list.addConstructor(DatatypeConstructor("nil"));
-    DatatypeType listType = d_em->mkDatatypeType(list);
-    Expr cons = listType.getDatatype().getConstructor("cons");
-    Expr nil = listType.getDatatype().getConstructor("nil");
-    Expr x = d_em->mkVar("x", d_em->integerType());
-    Expr cons_x_nil = d_em->mkExpr(APPLY_CONSTRUCTOR, cons, x, d_em->mkExpr(APPLY_CONSTRUCTOR, nil));
-    Expr cons_1_nil = d_em->mkExpr(APPLY_CONSTRUCTOR, cons, d_em->mkConst(Rational(1)), d_em->mkExpr(APPLY_CONSTRUCTOR, nil));
-    Expr cons_1_cons_2_nil = d_em->mkExpr(APPLY_CONSTRUCTOR, cons, d_em->mkConst(Rational(1)), d_em->mkExpr(APPLY_CONSTRUCTOR, cons, d_em->mkConst(Rational(2)), d_em->mkExpr(APPLY_CONSTRUCTOR, nil)));
-    TS_ASSERT(d_em->mkExpr(APPLY_CONSTRUCTOR, nil).isConst());
-    TS_ASSERT(!cons_x_nil.isConst());
-    TS_ASSERT(cons_1_nil.isConst());
-    TS_ASSERT(cons_1_cons_2_nil.isConst());
-
-    ArrayType arrType = d_em->mkArrayType(d_em->integerType(), d_em->integerType());
-    Expr zero = d_em->mkConst(Rational(0));
-    Expr one = d_em->mkConst(Rational(1));
-    Expr storeAll = d_em->mkConst(ArrayStoreAll(arrType, zero));
-    TS_ASSERT(storeAll.isConst());
-
-    Expr arr = d_em->mkExpr(STORE, storeAll, zero, zero);
-    TS_ASSERT(!arr.isConst());
-    arr = d_em->mkExpr(STORE, storeAll, zero, one);
-    TS_ASSERT(arr.isConst());
-    Expr arr2 = d_em->mkExpr(STORE, arr, one, zero);
-    TS_ASSERT(!arr2.isConst());
-    arr2 = d_em->mkExpr(STORE, arr, one, one);
-    TS_ASSERT(arr2.isConst());
-    arr2 = d_em->mkExpr(STORE, arr, zero, one);
-    TS_ASSERT(!arr2.isConst());
-
-    arrType = d_em->mkArrayType(d_em->mkBitVectorType(1), d_em->mkBitVectorType(1));
-    zero = d_em->mkConst(BitVector(1,unsigned(0)));
-    one = d_em->mkConst(BitVector(1,unsigned(1)));
-    storeAll = d_em->mkConst(ArrayStoreAll(arrType, zero));
-    TS_ASSERT(storeAll.isConst());
-
-    arr = d_em->mkExpr(STORE, storeAll, zero, zero);
-    TS_ASSERT(!arr.isConst());
-    arr = d_em->mkExpr(STORE, storeAll, zero, one);
-    TS_ASSERT(arr.isConst());
-    arr2 = d_em->mkExpr(STORE, arr, one, zero);
-    TS_ASSERT(!arr2.isConst());
-    arr2 = d_em->mkExpr(STORE, arr, one, one);
-    TS_ASSERT(!arr2.isConst());
-    arr2 = d_em->mkExpr(STORE, arr, zero, one);
-    TS_ASSERT(!arr2.isConst());
-
-  }
-
   void testGetConst() {
     /* template <class T>
        const T& getConst() const; */
 
-    TS_ASSERT_THROWS(a_bool->getConst<Kind>(), IllegalArgumentException);
-    TS_ASSERT_THROWS(b_bool->getConst<Kind>(), IllegalArgumentException);
-    TS_ASSERT_THROWS(c_bool_and->getConst<Kind>(), IllegalArgumentException);
+    TS_ASSERT_THROWS(a_bool->getConst<Kind>(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(b_bool->getConst<Kind>(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(c_bool_and->getConst<Kind>(), IllegalArgumentException&);
     TS_ASSERT(and_op->getConst<Kind>() == AND);
-    TS_ASSERT_THROWS(and_op->getConst<Rational>(), IllegalArgumentException);
+    TS_ASSERT_THROWS(and_op->getConst<Rational>(), IllegalArgumentException&);
     TS_ASSERT(plus_op->getConst<Kind>() == PLUS);
-    TS_ASSERT_THROWS(plus_op->getConst<Rational>(), IllegalArgumentException);
-    TS_ASSERT_THROWS(d_apply_fun_bool->getConst<Kind>(), IllegalArgumentException);
-    TS_ASSERT_THROWS(null->getConst<Kind>(), IllegalArgumentException);
+    TS_ASSERT_THROWS(plus_op->getConst<Rational>(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(d_apply_fun_bool->getConst<Kind>(),
+                     IllegalArgumentException&);
+    TS_ASSERT_THROWS(null->getConst<Kind>(), IllegalArgumentException&);
 
     TS_ASSERT(i1->getConst<Rational>() == 0);
     TS_ASSERT(i2->getConst<Rational>() == 23);
     TS_ASSERT(r1->getConst<Rational>() == Rational(1, 5));
     TS_ASSERT(r2->getConst<Rational>() == Rational("0"));
 
-    TS_ASSERT_THROWS(i1->getConst<Kind>(), IllegalArgumentException);
-    TS_ASSERT_THROWS(i2->getConst<Kind>(), IllegalArgumentException);
-    TS_ASSERT_THROWS(r1->getConst<Kind>(), IllegalArgumentException);
-    TS_ASSERT_THROWS(r2->getConst<Kind>(), IllegalArgumentException);
+    TS_ASSERT_THROWS(i1->getConst<Kind>(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(i2->getConst<Kind>(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(r1->getConst<Kind>(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(r2->getConst<Kind>(), IllegalArgumentException&);
   }
 
   void testGetExprManager() {
@@ -459,4 +381,25 @@ public:
     TS_ASSERT(r1->getExprManager() == d_em);
     TS_ASSERT(r2->getExprManager() == d_em);
   }
+
+ private:
+  Options opts;
+
+  api::Solver* d_slv;
+  ExprManager* d_em;
+
+  Expr* a_bool;
+  Expr* b_bool;
+  Expr* c_bool_and;
+  Expr* and_op;
+  Expr* plus_op;
+  Type* fun_type;
+  Expr* fun_op;
+  Expr* d_apply_fun_bool;
+  Expr* null;
+
+  Expr* i1;
+  Expr* i2;
+  Expr* r1;
+  Expr* r2;
 };

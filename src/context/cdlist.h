@@ -2,10 +2,10 @@
 /*! \file cdlist.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Mathias Preiner
+ **   Morgan Deters, Tim King, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__CONTEXT__CDLIST_H
-#define __CVC4__CONTEXT__CDLIST_H
+#ifndef CVC4__CONTEXT__CDLIST_H
+#define CVC4__CONTEXT__CDLIST_H
 
 #include <iterator>
 #include <memory>
@@ -26,7 +26,7 @@
 #include <string>
 #include <vector>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "context/cdlist_forward.h"
 #include "context/context.h"
 #include "context/context_mm.h"
@@ -113,7 +113,7 @@ class CDList : public ContextObj
    * Access to the ith item in the list.
    */
   const T& operator[](size_t i) const {
-    Assert(i < d_size, "index out of bounds in CDList::operator[]");
+    Assert(i < d_size) << "index out of bounds in CDList::operator[]";
     return d_list[i];
   }
 
@@ -121,7 +121,7 @@ class CDList : public ContextObj
    * Returns the most recent item added to the list.
    */
   const T& back() const {
-    Assert(d_size > 0, "CDList::back() called on empty list");
+    Assert(d_size > 0) << "CDList::back() called on empty list";
     return d_list[d_size - 1];
   }
 
@@ -147,17 +147,18 @@ class CDList : public ContextObj
     {
     }
 
-    inline bool operator==(const const_iterator& other) const
+    bool operator==(const const_iterator& other) const
     {
       return d_list == other.d_list && d_pos == other.d_pos;
     }
 
-    inline bool operator!=(const const_iterator& other) const
+    bool operator!=(const const_iterator& other) const
     {
       return d_list != other.d_list || d_pos != other.d_pos;
     }
 
-    inline const T& operator*() const { return (*d_list)[d_pos]; }
+    const T& operator*() const { return (*d_list)[d_pos]; }
+    const T* operator->() const { return &(*d_list)[d_pos]; }
 
     /** Prefix increment */
     const_iterator& operator++() {
@@ -207,7 +208,7 @@ class CDList : public ContextObj
     Debug("cdlist") << "copy ctor: " << this << " from " << &l << " size "
                     << d_size << std::endl;
   }
-  CDList& operator=(const CDList& l) CVC4_UNDEFINED;
+  CDList& operator=(const CDList& l) = delete;
   /**
    * Implementation of mandatory ContextObj method restore: simply
    * restores the previous size.  Note that the list pointer and the
@@ -316,4 +317,4 @@ operator[](size_t i) const;
 }/* CVC4::context namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__CONTEXT__CDLIST_H */
+#endif /* CVC4__CONTEXT__CDLIST_H */

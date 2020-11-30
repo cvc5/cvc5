@@ -2,10 +2,10 @@
 /*! \file theory_sets_rewriter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal
+ **   Kshitij Bansal, Andres Noetzli, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__SETS__THEORY_SETS_REWRITER_H
-#define __CVC4__THEORY__SETS__THEORY_SETS_REWRITER_H
+#ifndef CVC4__THEORY__SETS__THEORY_SETS_REWRITER_H
+#define CVC4__THEORY__SETS__THEORY_SETS_REWRITER_H
 
 #include "theory/rewriter.h"
 
@@ -25,9 +25,9 @@ namespace CVC4 {
 namespace theory {
 namespace sets {
 
-class TheorySetsRewriter {
-public:
-
+class TheorySetsRewriter : public TheoryRewriter
+{
+ public:
   /**
    * Rewrite a node into the normal form for the theory of sets.
    * Called in post-order (really reverse-topological order) when
@@ -49,7 +49,7 @@ public:
    * expression belongs to a different theory, it will be fully
    * rewritten by that theory's rewriter.
    */
-  static RewriteResponse postRewrite(TNode node);
+  RewriteResponse postRewrite(TNode node) override;
 
   /**
    * Rewrite a node into the normal form for the theory of sets
@@ -60,33 +60,25 @@ public:
    * nasty expression).  Since it's only an optimization, the
    * implementation here can do nothing.
    */
-  static RewriteResponse preRewrite(TNode node);
+  RewriteResponse preRewrite(TNode node) override;
 
   /**
    * Rewrite an equality, in case special handling is required.
    */
-  static Node rewriteEquality(TNode equality) {
+  Node rewriteEquality(TNode equality)
+  {
     // often this will suffice
-    return postRewrite(equality).node;
+    return postRewrite(equality).d_node;
   }
-
+private:
   /**
-   * Initialize the rewriter.
+   * Returns true if elementTerm is in setTerm, where both terms are constants.
    */
-  static inline void init() {
-    // nothing to do
-  }
-
-  /**
-   * Shut down the rewriter.
-   */
-  static inline void shutdown() {
-    // nothing to do
-  }
-};/* class TheorySetsRewriter */
+  bool checkConstantMembership(TNode elementTerm, TNode setTerm);
+}; /* class TheorySetsRewriter */
 
 }/* CVC4::theory::sets namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__SETS__THEORY_SETS_REWRITER_H */
+#endif /* CVC4__THEORY__SETS__THEORY_SETS_REWRITER_H */

@@ -1,4 +1,4 @@
-% EXPECT: valid
+% EXPECT: entailed
 
 DATATYPE nat = succ(pred : nat2) | zero,
          nat2 = succ2(pred2 : nat) | zero2 END;

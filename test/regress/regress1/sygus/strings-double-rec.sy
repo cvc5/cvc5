@@ -1,8 +1,9 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 (set-logic SLIA)
- 
+
 (synth-fun f ((name String)) String
+    ((Start String) (Start1 String) (Start2 String))
     ((Start String (name "A" "B" "" (str.++ Start1 Start2)))
      (Start1 String (name "A" "B" ""))
      (Start2 String (name "B" "A" (str.++ Start2 Start)))
@@ -10,7 +11,7 @@
 
 
 (declare-var name String)
- 
+
 (constraint (= (f "BB") "AAAAAAAAAAAA"))
- 
+
 (check-synth)

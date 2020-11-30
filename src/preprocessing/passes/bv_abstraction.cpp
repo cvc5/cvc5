@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -53,12 +53,13 @@ PreprocessingPassResult BvAbstraction::applyInternal(
   }
   // If we are using the lazy solver and the abstraction applies, then UF
   // symbols were introduced.
-  if (options::bitblastMode() == bv::BITBLAST_MODE_LAZY && changed)
+  if (options::bitblastMode() == options::BitblastMode::LAZY && changed)
   {
     d_preprocContext->widenLogic(theory::THEORY_UF);
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
+
 
 }  // namespace passes
 }  // namespace preprocessing

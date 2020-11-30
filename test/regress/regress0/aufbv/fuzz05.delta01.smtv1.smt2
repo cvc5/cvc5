@@ -1,0 +1,5 @@
+(set-option :incremental false)
+(set-info :status sat)
+(set-logic QF_AUFBV)
+(declare-fun a2 () (Array (_ BitVec 12) (_ BitVec 9)))
+(check-sat-assuming ( (bvsge (_ bv0 13) (bvmul (bvsdiv (_ bv0 13) (_ bv0 13)) ((_ sign_extend 4) (select a2 (_ bv0 12))))) ))

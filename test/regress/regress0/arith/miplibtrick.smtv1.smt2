@@ -1,0 +1,6 @@
+(set-option :incremental false)
+(set-info :status sat)
+(set-logic QF_LRA)
+(declare-fun tmp1 () Real)
+(declare-fun x177 () Bool)
+(check-sat-assuming ( (and (=> (and (not x177) true) (= tmp1 0.0)) (=> (and x177 true) (= tmp1 (/ (- 350) 1)))) ))

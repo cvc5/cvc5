@@ -111,7 +111,7 @@ Aliases
     [[alias]]
       category   = "regular"
       long       = "smtlib-strict"
-      links      = ["--lang=smt2", "--output-lang=smt2", "--strict-parsing", "--default-expr-depth=-1", "--print-success", "--incremental", "--abstract-values"]
+      links      = ["--lang=smt2", "--output-lang=smt2", "--strict-parsing", "--expr-depth=-1", "--print-success", "--incremental", "--abstract-values"]
       help       = "SMT-LIBv2 compliance mode (implies other options)"
 
 
@@ -123,7 +123,7 @@ Aliases
 
   is equivalent to specifying the options
 
-    --lang=smt2 --output-lang=smt2 --strict-parsing --default-expr-depth=-1 --print-success --incremental --abstract-values
+    --lang=smt2 --output-lang=smt2 --strict-parsing --expr-depth=-1 --print-success --incremental --abstract-values
 
 
   It's also possible to pass an argument through to another option.

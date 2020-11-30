@@ -2,10 +2,10 @@
 /*! \file theory_arrays_rewriter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Clark Barrett, Morgan Deters, Dejan Jovanovic
+ **   Clark Barrett, Morgan Deters, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -17,13 +17,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_REWRITER_H
-#define __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_REWRITER_H
+#ifndef CVC4__THEORY__ARRAYS__THEORY_ARRAYS_REWRITER_H
+#define CVC4__THEORY__ARRAYS__THEORY_ARRAYS_REWRITER_H
 
 #include <unordered_map>
 #include <unordered_set>
 
 #include "theory/rewriter.h"
+#include "theory/theory_rewriter.h"
 #include "theory/type_enumerator.h"
 
 namespace CVC4 {
@@ -39,11 +40,13 @@ static inline Node mkEqNode(Node a, Node b) {
   return a.eqNode(b);
 }
 
-class TheoryArraysRewriter {
+class TheoryArraysRewriter : public TheoryRewriter
+{
   static Node normalizeConstant(TNode node) {
     return normalizeConstant(node, node[1].getType().getCardinality());
   }
-public:
+
+ public:
   //this function is called by printers when using the option "--model-u-dt-enum"
   static Node normalizeConstant(TNode node, Cardinality indexCard) {
     TNode store = node[0];
@@ -90,7 +93,7 @@ public:
     }
     Assert(store.getKind() == kind::STORE_ALL);
     ArrayStoreAll storeAll = store.getConst<ArrayStoreAll>();
-    Node defaultValue = Node::fromExpr(storeAll.getExpr());
+    Node defaultValue = storeAll.getValue();
     NodeManager* nm = NodeManager::currentNM();
 
     // Check if we are writing to default value - if so the store
@@ -211,7 +214,7 @@ public:
       std::sort(newIndices.begin(), newIndices.end());
     }
 
-    n = nm->mkConst(ArrayStoreAll(node.getType().toType(), maxValue.toExpr()));
+    n = nm->mkConst(ArrayStoreAll(node.getType(), maxValue));
     std::vector<Node>::iterator itNew = newIndices.begin(), it_end = newIndices.end();
     while (itNew != it_end || !indices.empty()) {
       if (itNew != it_end && (indices.empty() || (*itNew) < indices.back())) {
@@ -229,9 +232,9 @@ public:
     return n;
   }
 
-public:
-
-  static RewriteResponse postRewrite(TNode node) {
+ public:
+  RewriteResponse postRewrite(TNode node) override
+  {
     Trace("arrays-postrewrite") << "Arrays::postRewrite start " << node << std::endl;
     switch (node.getKind()) {
       case kind::SELECT: {
@@ -264,7 +267,7 @@ public:
         if (store.getKind() == kind::STORE_ALL) {
           // select(store_all(v),i) = v
           ArrayStoreAll storeAll = store.getConst<ArrayStoreAll>();
-          n = Node::fromExpr(storeAll.getExpr());
+          n = storeAll.getValue();
           Trace("arrays-postrewrite") << "Arrays::postRewrite returning " << n << std::endl;
           Assert(n.isConst());
           return RewriteResponse(REWRITE_DONE, n);
@@ -314,17 +317,9 @@ public:
           NodeManager* nm = NodeManager::currentNM();
           if (val) {
             // store(store(a,i,v),i,w) = store(a,i,w)
-            Node result;
-            if (value.getKind() == kind::SELECT &&
-                value[0] == store[0] &&
-                value[1] == index) {
-              result = store[0];
-            }
-            else {
-              result = nm->mkNode(kind::STORE, store[0], index, value);
-            }
+            Node result = nm->mkNode(kind::STORE, store[0], index, value);
             Trace("arrays-postrewrite") << "Arrays::postRewrite returning " << result << std::endl;
-            return RewriteResponse(REWRITE_DONE, result);
+            return RewriteResponse(REWRITE_AGAIN, result);
           }
           else if (index < store[1]) {
             // store(store(a,i,v),j,w) = store(store(a,j,w),i,v)
@@ -403,7 +398,8 @@ public:
     return RewriteResponse(REWRITE_DONE, node);
   }
 
-  static inline RewriteResponse preRewrite(TNode node) {
+  RewriteResponse preRewrite(TNode node) override
+  {
     Trace("arrays-prerewrite") << "Arrays::preRewrite start " << node << std::endl;
     switch (node.getKind()) {
       case kind::SELECT: {
@@ -436,7 +432,7 @@ public:
         if (store.getKind() == kind::STORE_ALL) {
           // select(store_all(v),i) = v
           ArrayStoreAll storeAll = store.getConst<ArrayStoreAll>();
-          n = Node::fromExpr(storeAll.getExpr());
+          n = storeAll.getValue();
           Trace("arrays-prerewrite") << "Arrays::preRewrite returning " << n << std::endl;
           Assert(n.isConst());
           return RewriteResponse(REWRITE_DONE, n);
@@ -503,10 +499,10 @@ public:
   static inline void init() {}
   static inline void shutdown() {}
 
-};/* class TheoryArraysRewriter */
+}; /* class TheoryArraysRewriter */
 
 }/* CVC4::theory::arrays namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_REWRITER_H */
+#endif /* CVC4__THEORY__ARRAYS__THEORY_ARRAYS_REWRITER_H */

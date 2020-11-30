@@ -2,10 +2,10 @@
 /*! \file type_enumerator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__ARITH__TYPE_ENUMERATOR_H
-#define __CVC4__THEORY__ARITH__TYPE_ENUMERATOR_H
+#ifndef CVC4__THEORY__ARITH__TYPE_ENUMERATOR_H
+#define CVC4__THEORY__ARITH__TYPE_ENUMERATOR_H
 
 #include "expr/kind.h"
 #include "expr/type_node.h"
@@ -36,8 +36,8 @@ class RationalEnumerator : public TypeEnumeratorBase<RationalEnumerator> {
   RationalEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<RationalEnumerator>(type), d_rat(0)
   {
-    Assert(type.getKind() == kind::TYPE_CONSTANT &&
-           type.getConst<TypeConstant>() == REAL_TYPE);
+    Assert(type.getKind() == kind::TYPE_CONSTANT
+           && type.getConst<TypeConstant>() == REAL_TYPE);
   }
 
   Node operator*() override { return NodeManager::currentNM()->mkConst(d_rat); }
@@ -77,8 +77,8 @@ class IntegerEnumerator : public TypeEnumeratorBase<IntegerEnumerator> {
   IntegerEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<IntegerEnumerator>(type), d_int(0)
   {
-    Assert(type.getKind() == kind::TYPE_CONSTANT &&
-           type.getConst<TypeConstant>() == INTEGER_TYPE);
+    Assert(type.getKind() == kind::TYPE_CONSTANT
+           && type.getConst<TypeConstant>() == INTEGER_TYPE);
   }
 
   Node operator*() override
@@ -104,4 +104,4 @@ class IntegerEnumerator : public TypeEnumeratorBase<IntegerEnumerator> {
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__ARITH__TYPE_ENUMERATOR_H */
+#endif /* CVC4__THEORY__ARITH__TYPE_ENUMERATOR_H */

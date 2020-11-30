@@ -2,10 +2,10 @@
 /*! \file theory_uf_model.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters
+ **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY_UF_MODEL_H
-#define __CVC4__THEORY_UF_MODEL_H
+#ifndef CVC4__THEORY_UF_MODEL_H
+#define CVC4__THEORY_UF_MODEL_H
 
 #include "theory/theory_model.h"
 
@@ -23,8 +23,6 @@ namespace CVC4 {
 namespace theory {
 namespace uf {
 
-// TODO (#1302) : some of these classes should be moved to
-// src/theory/quantifiers/
 class UfModelTreeNode
 {
 public:
@@ -33,8 +31,6 @@ public:
   std::map< Node, UfModelTreeNode > d_data;
   /** the value of this tree node (if all paths lead to same value) */
   Node d_value;
-  /** has concrete argument defintion */
-  bool hasConcreteArgumentDefinition();
 public:
   //is this model tree empty?
   bool isEmpty() { return d_data.empty() && d_value.isNull(); }
@@ -42,11 +38,6 @@ public:
   void clear();
   /** setValue function */
   void setValue( TheoryModel* m, Node n, Node v, std::vector< int >& indexOrder, bool ground, int argIndex );
-  /**  getValue function */
-  Node getValue( TheoryModel* m, Node n, std::vector< int >& indexOrder, int& depIndex, int argIndex );
-  Node getValue( TheoryModel* m, Node n, std::vector< int >& indexOrder, std::vector< int >& depIndex, int argIndex );
-  /** getConstant Value function */
-  Node getConstantValue( TheoryModel* m, Node n, std::vector< int >& indexOrder, int argIndex );
   /** getFunctionValue */
   Node getFunctionValue( std::vector< Node >& args, int index, Node argDefaultValue, bool simplify = true );
   /** update function */
@@ -94,36 +85,6 @@ public:
   void setDefaultValue( TheoryModel* m, Node v ){
     d_tree.setValue( m, Node::null(), v, d_index_order, false, 0 );
   }
-  /**  getValue function
-    *
-    *  returns val, the value of ground term n
-    *  Say n is f( t_0...t_n )
-    *    depIndex is the index for which every term of the form f( t_0 ... t_depIndex, *,... * ) is equal to val
-    *    for example, if g( x_0, x_1, x_2 ) := lambda x_0 x_1 x_2. if( x_1==a ) b else c,
-    *      then g( a, a, a ) would return b with depIndex = 1
-    *
-    */
-  Node getValue( TheoryModel* m, Node n, int& depIndex ){
-    return d_tree.getValue( m, n, d_index_order, depIndex, 0 );
-  }
-  /** -> implementation incomplete */
-  Node getValue( TheoryModel* m, Node n, std::vector< int >& depIndex ){
-    return d_tree.getValue( m, n, d_index_order, depIndex, 0 );
-  }
-  /** getConstantValue function
-    *
-    * given term n, where n may contain "all value" arguments, aka model basis arguments
-    *   if n is null, then every argument of n is considered "all value"
-    * if n is constant for the entire domain specified by n, then this function returns the value of its domain
-    * otherwise, it returns null
-    * for example, say the term e represents "all values"
-    *   if f( x_0, x_1 ) := if( x_0 = a ) b else if( x_1 = a ) a else b,
-    *     then f( a, e ) would return b, while f( e, a ) would return null
-    *  -> implementation incomplete
-    */
-  Node getConstantValue( TheoryModel* m, Node n ) {
-    return d_tree.getConstantValue( m, n, d_index_order, 0 );
-  }
   /** getFunctionValue
     *   Returns a representation of this function.
     */
@@ -138,8 +99,6 @@ public:
   void simplify() { d_tree.simplify( d_op, Node::null(), 0 ); }
   /** is this tree total? */
   bool isTotal() { return d_tree.isTotal( d_op, 0 ); }
-  /** is this function constant? */
-  bool isConstant( TheoryModel* m ) { return !getConstantValue( m, Node::null() ).isNull(); }
   /** is this tree empty? */
   bool isEmpty() { return d_tree.isEmpty(); }
 public:
@@ -147,50 +106,6 @@ public:
     d_tree.debugPrint( out, m, d_index_order, ind );
   }
 };
-
-
-class UfModelTreeGenerator
-{
-public:
-  //store for set values
-  Node d_default_value;
-  std::map< Node, Node > d_set_values[2][2];
-  // defaults
-  std::vector< Node > d_defaults;
-  Node getIntersection( TheoryModel* m, Node n1, Node n2, bool& isGround );
-public:
-  UfModelTreeGenerator(){}
-  ~UfModelTreeGenerator(){}
-  /** set default value */
-  void setDefaultValue( Node v ) { d_default_value = v; }
-  /** set value */
-  void setValue( TheoryModel* m, Node n, Node v, bool ground = true, bool isReq = true );
-  /** make model */
-  void makeModel( TheoryModel* m, UfModelTree& tree );
-  /** uses partial default values */
-  bool optUsePartialDefaults();
-  /** reset */
-  void clear();
-};
-
-//this class stores temporary information useful to model engine for constructing model
-class UfModelPreferenceData
-{
-public:
-  UfModelPreferenceData() : d_reconsiderModel( false ){}
-  virtual ~UfModelPreferenceData(){}
-  Node d_const_val;
-  // preferences for default values
-  std::vector< Node > d_values;
-  std::map< Node, std::vector< Node > > d_value_pro_con[2];
-  std::map< Node, std::vector< Node > > d_term_pro_con[2];
-  bool d_reconsiderModel;
-  /** set value preference */
-  void setValuePreference( Node f, Node n, Node r, bool isPro );
-  /** get best default value */
-  Node getBestDefaultValue( Node defaultTerm, TheoryModel* m );
-};
-
 
 }
 }

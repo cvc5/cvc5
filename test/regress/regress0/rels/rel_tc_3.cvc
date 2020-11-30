@@ -15,8 +15,8 @@ ASSERT (b = d);
 ASSERT (b > (d -1));
 ASSERT (b < (d+1));
 %ASSERT (2,3) IS_IN ((x JOIN x) JOIN x);
-%ASSERT NOT (2, 3) IS_IN (TCLOSURE x);
-ASSERT y = (TCLOSURE x);
+%ASSERT NOT (2, 3) IS_IN TCLOSURE(x);
+ASSERT y = TCLOSURE(x);
 ASSERT NOT ((1, 1) IS_IN y);
 
 CHECKSAT;

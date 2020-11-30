@@ -1,4 +1,4 @@
-% EXPECT: valid
+% EXPECT: entailed
 % Simple test for right associativity of <=>
 
 A, B, C: BOOLEAN;

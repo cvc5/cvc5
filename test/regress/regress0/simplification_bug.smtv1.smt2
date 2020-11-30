@@ -1,0 +1,5 @@
+(set-option :incremental false)
+(set-info :status unsat)
+(set-logic QF_SAT)
+(declare-fun b () Bool)
+(check-sat-assuming ( (and false b) ))

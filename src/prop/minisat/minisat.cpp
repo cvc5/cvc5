@@ -2,10 +2,10 @@
 /*! \file minisat.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Tim King
+ **   Liana Hadarean, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -106,15 +106,18 @@ void MinisatSatSolver::initialize(context::Context* context, TheoryProxy* theory
 
   d_context = context;
 
-  if( options::decisionMode() != decision::DECISION_STRATEGY_INTERNAL ) {
+  if (options::decisionMode() != options::DecisionMode::INTERNAL)
+  {
     Notice() << "minisat: Incremental solving is forced on (to avoid variable elimination)"
              << " unless using internal decision strategy." << std::endl;
   }
 
   // Create the solver
-  d_minisat = new Minisat::SimpSolver(theoryProxy, d_context,
-                                      options::incrementalSolving() ||
-                                      options::decisionMode() != decision::DECISION_STRATEGY_INTERNAL );
+  d_minisat = new Minisat::SimpSolver(
+      theoryProxy,
+      d_context,
+      options::incrementalSolving()
+          || options::decisionMode() != options::DecisionMode::INTERNAL);
 
   d_statistics.init(d_minisat);
 }
@@ -151,7 +154,7 @@ ClauseId MinisatSatSolver::addClause(SatClause& clause, bool removable) {
     return ClauseIdUndef;
   }
   d_minisat->addClause(minisat_clause, removable, clause_id);
-  PROOF( Assert (clause_id != ClauseIdError););
+  Assert(!CVC4::options::unsatCores() || clause_id != ClauseIdError);
   return clause_id;
 }
 
@@ -179,7 +182,9 @@ SatValue MinisatSatSolver::solve(unsigned long& resource) {
 SatValue MinisatSatSolver::solve() {
   setupOptions();
   d_minisat->budgetOff();
-  return toSatLiteralValue(d_minisat->solve());
+  SatValue result = toSatLiteralValue(d_minisat->solve());
+  d_minisat->clearInterrupt();
+  return result;
 }
 
 bool MinisatSatSolver::ok() const {
@@ -207,11 +212,6 @@ void MinisatSatSolver::requirePhase(SatLiteral lit) {
   Debug("minisat") << "requirePhase(" << lit << ")" << " " <<  lit.getSatVariable() << " " << lit.isNegated() << std::endl;
   SatVariable v = lit.getSatVariable();
   d_minisat->freezePolarity(v, lit.isNegated());
-}
-
-bool MinisatSatSolver::flipDecision() {
-  Debug("minisat") << "flipDecision()" << std::endl;
-  return d_minisat->flipDecision();
 }
 
 bool MinisatSatSolver::isDecision(SatVariable decn) const {

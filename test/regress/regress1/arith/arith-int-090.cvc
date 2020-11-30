@@ -1,4 +1,4 @@
-% EXPECT: invalid
+% EXPECT: not_entailed
 x0, x1, x2, x3 : INT;
 ASSERT  (-13 * x0) + (-14 * x1) + (-10 * x2) + (32 * x3) = 11 ;
 ASSERT (28 * x0) + (21 * x1) + (-20 * x2) + (-32 * x3) > -31 ;

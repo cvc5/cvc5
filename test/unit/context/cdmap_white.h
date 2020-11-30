@@ -2,10 +2,10 @@
 /*! \file cdmap_white.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Tim King
+ **   Morgan Deters, Mathias Preiner, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,8 +16,9 @@
 
 #include <cxxtest/TestSuite.h>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "context/cdhashmap.h"
+#include "test_utils.h"
 
 using namespace std;
 using namespace CVC4;
@@ -27,27 +28,23 @@ class CDMapWhite : public CxxTest::TestSuite {
 
   Context* d_context;
 
-public:
+ public:
+  void setUp() override { d_context = new Context; }
 
-  void setUp() {
-    d_context = new Context;
-  }
+  void tearDown() override { delete d_context; }
 
-  void tearDown() {
-    delete d_context;
-  }
-
-  void testUnreachableSaveAndRestore() {
+  void testUnreachableSaveAndRestore()
+  {
     CDHashMap<int, int> map(d_context);
 
     TS_ASSERT_THROWS_NOTHING(map.makeCurrent());
 
-    TS_ASSERT_THROWS(map.update(), UnreachableCodeException);
+    TS_UTILS_EXPECT_ABORT(map.update());
 
-    TS_ASSERT_THROWS(map.save(d_context->getCMM()), UnreachableCodeException);
-    TS_ASSERT_THROWS(map.restore(&map), UnreachableCodeException);
+    TS_UTILS_EXPECT_ABORT(map.save(d_context->getCMM()));
+    TS_UTILS_EXPECT_ABORT(map.restore(&map));
 
     d_context->push();
-    TS_ASSERT_THROWS(map.makeCurrent(), UnreachableCodeException);
+    TS_UTILS_EXPECT_ABORT(map.makeCurrent());
   }
 };

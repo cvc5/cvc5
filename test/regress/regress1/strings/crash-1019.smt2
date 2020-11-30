@@ -1,6 +1,5 @@
 (set-logic ALL_SUPPORTED)
 (set-option :strings-exp true)
-(set-option :rewrite-divk true)
 (set-info :status unsat)
  
 (declare-fun s () String)

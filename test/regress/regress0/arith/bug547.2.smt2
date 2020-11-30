@@ -1,6 +1,5 @@
-; COMMAND-LINE: --rewrite-divk
-; EXPECT: sat
 (set-logic QF_NIA)
+(set-info :status sat)
 (declare-fun x () Int)
 (declare-fun y () Int)
 (declare-fun z () Int)

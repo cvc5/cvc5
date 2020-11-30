@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__OPTIONS__OPTIONS_H
-#define __CVC4__OPTIONS__OPTIONS_H
+#ifndef CVC4__OPTIONS__OPTIONS_H
+#define CVC4__OPTIONS__OPTIONS_H
 
 #include <fstream>
 #include <ostream>
@@ -26,20 +26,24 @@
 
 #include "base/listener.h"
 #include "base/modal_exception.h"
-#include "base/tls.h"
-#include "options/argument_extender.h"
 #include "options/language.h"
 #include "options/option_exception.h"
 #include "options/printer_modes.h"
 
 namespace CVC4 {
 
+namespace api {
+class Solver;
+}
 namespace options {
   struct OptionsHolder;
   class OptionsHandler;
 }/* CVC4::options namespace */
 
+class OptionsListener;
+
 class CVC4_PUBLIC Options {
+  friend api::Solver;
   /** The struct that holds all option values. */
   options::OptionsHolder* d_holder;
 
@@ -47,59 +51,7 @@ class CVC4_PUBLIC Options {
   options::OptionsHandler* d_handler;
 
   /** The current Options in effect */
-  static CVC4_THREAD_LOCAL Options* s_current;
-
-  /** Listeners for options::forceLogicString being set. */
-  ListenerCollection d_forceLogicListeners;
-
-  /** Listeners for notifyBeforeSearch. */
-  ListenerCollection d_beforeSearchListeners;
-
-  /** Listeners for options::tlimit. */
-  ListenerCollection d_tlimitListeners;
-
-  /** Listeners for options::tlimit-per. */
-  ListenerCollection d_tlimitPerListeners;
-
-  /** Listeners for options::rlimit. */
-  ListenerCollection d_rlimitListeners;
-
-  /** Listeners for options::tlimit-per. */
-  ListenerCollection d_rlimitPerListeners;
-
-  /** Listeners for options::useTheoryList. */
-  ListenerCollection d_useTheoryListListeners;
-
-  /** Listeners for options::defaultExprDepth. */
-  ListenerCollection d_setDefaultExprDepthListeners;
-
-  /** Listeners for options::defaultDagThresh. */
-  ListenerCollection d_setDefaultDagThreshListeners;
-
-  /** Listeners for options::printExprTypes. */
-  ListenerCollection d_setPrintExprTypesListeners;
-
-  /** Listeners for options::dumpModeString. */
-  ListenerCollection d_setDumpModeListeners;
-
-  /** Listeners for options::printSuccess. */
-  ListenerCollection d_setPrintSuccessListeners;
-
-  /** Listeners for options::dumpToFileName. */
-  ListenerCollection d_dumpToFileListeners;
-
-  /** Listeners for options::regularChannelName. */
-  ListenerCollection d_setRegularChannelListeners;
-
-  /** Listeners for options::diagnosticChannelName. */
-  ListenerCollection d_setDiagnosticChannelListeners;
-
-  /** Listeners for options::replayFilename. */
-  ListenerCollection d_setReplayFilenameListeners;
-
-
-  static ListenerCollection::Registration* registerAndNotify(
-      ListenerCollection& collection, Listener* listener, bool notify);
+  static thread_local Options* s_current;
 
   /** Low-level assignment function for options */
   template <class T>
@@ -114,13 +66,13 @@ class CVC4_PUBLIC Options {
    * Options cannot be copied as they are given an explicit list of
    * Listeners to respond to.
    */
-  Options(const Options& options) CVC4_UNDEFINED;
+  Options(const Options& options) = delete;
 
   /**
    * Options cannot be assigned as they are given an explicit list of
    * Listeners to respond to.
    */
-  Options& operator=(const Options& options) CVC4_UNDEFINED;
+  Options& operator=(const Options& options) = delete;
 
   static std::string formatThreadOptionException(const std::string& option);
 
@@ -152,7 +104,7 @@ public:
     return s_current;
   }
 
-  Options();
+  Options(OptionsListener* ol = nullptr);
   ~Options();
 
   /**
@@ -195,21 +147,18 @@ public:
 
   // Get accessor functions.
   InputLanguage getInputLanguage() const;
-  InstFormatMode getInstFormatMode() const;
+  options::InstFormatMode getInstFormatMode() const;
   OutputLanguage getOutputLanguage() const;
-  bool getCheckProofs() const;
-  bool getContinuedExecution() const;
+  bool getUfHo() const;
   bool getDumpInstantiations() const;
   bool getDumpModels() const;
   bool getDumpProofs() const;
   bool getDumpSynth() const;
   bool getDumpUnsatCores() const;
   bool getEarlyExit() const;
-  bool getFallbackSequential() const;
   bool getFilesystemAccess() const;
   bool getForceNoLimitCpuWhileDump() const;
   bool getHelp() const;
-  bool getIncrementalParallel() const;
   bool getIncrementalSolving() const;
   bool getInteractive() const;
   bool getInteractivePrompt() const;
@@ -217,7 +166,6 @@ public:
   bool getMemoryMap() const;
   bool getParseOnly() const;
   bool getProduceModels() const;
-  bool getProof() const;
   bool getSegvSpin() const;
   bool getSemanticChecks() const;
   bool getStatistics() const;
@@ -225,45 +173,31 @@ public:
   bool getStatsHideZeros() const;
   bool getStrictParsing() const;
   int getTearDownIncremental() const;
+  unsigned long getCumulativeTimeLimit() const;
   bool getVersion() const;
-  bool getWaitToJoin() const;
   const std::string& getForceLogicString() const;
-  const std::vector<std::string>& getThreadArgv() const;
-  int getSharingFilterByLength() const;
-  int getThreadId() const;
   int getVerbosity() const;
   std::istream* getIn() const;
   std::ostream* getErr();
   std::ostream* getOut();
   std::ostream* getOutConst() const; // TODO: Remove this.
   std::string getBinaryName() const;
-  std::string getReplayInputFilename() const;
   unsigned getParseStep() const;
-  unsigned getThreadStackSize() const;
-  unsigned getThreads() const;
-
 
   // TODO: Document these.
   void setInputLanguage(InputLanguage);
   void setInteractive(bool);
   void setOut(std::ostream*);
   void setOutputLanguage(OutputLanguage);
-  void setSharingFilterByLength(int length);
-  void setThreadId(int);
 
-  bool wasSetByUserCeGuidedInst() const;
   bool wasSetByUserDumpSynth() const;
   bool wasSetByUserEarlyExit() const;
   bool wasSetByUserForceLogicString() const;
   bool wasSetByUserIncrementalSolving() const;
   bool wasSetByUserInteractive() const;
-  bool wasSetByUserThreadStackSize() const;
-  bool wasSetByUserThreads() const;
 
   // Static accessor functions.
   // TODO: Document these.
-  static int currentGetSharingFilterByLength();
-  static int currentGetThreadId();
   static std::ostream* currentGetOut();
 
   /**
@@ -336,200 +270,8 @@ public:
    */
   std::vector<std::vector<std::string> > getOptions() const;
 
-  /**
-   * Registers a listener for the notification, notifyBeforeSearch.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   *
-   * This has multiple usages so having a notifyIfSet flag does not add
-   * clarity. Users should check the relevant flags before registering this.
-   */
-  ListenerCollection::Registration* registerBeforeSearchListener(
-      Listener* listener);
-
-
-  /**
-   * Registers a listener for options::forceLogic being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerForceLogicListener(
-      Listener* listener, bool notifyIfSet);
-
-  /**
-   * Registers a listener for options::tlimit being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerTlimitListener(
-      Listener* listener, bool notifyIfSet);
-
-  /**
-   * Registers a listener for options::tlimit-per being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerTlimitPerListener(
-      Listener* listener, bool notifyIfSet);
-
-
-  /**
-   * Registers a listener for options::rlimit being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerRlimitListener(
-      Listener* listener, bool notifyIfSet);
-
-  /**
-   * Registers a listener for options::rlimit-per being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerRlimitPerListener(
-      Listener* listener, bool notifyIfSet);
-
-  /**
-   * Registers a listener for options::useTheoryList being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerUseTheoryListListener(
-      Listener* listener, bool notifyIfSet);
-
-
-  /**
-   * Registers a listener for options::defaultExprDepth being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerSetDefaultExprDepthListener(
-      Listener* listener, bool notifyIfSet);
-
-  /**
-   * Registers a listener for options::defaultDagThresh being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerSetDefaultExprDagListener(
-      Listener* listener, bool notifyIfSet);
-
-  /**
-   * Registers a listener for options::printExprTypes being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerSetPrintExprTypesListener(
-      Listener* listener, bool notifyIfSet);
-
-  /**
-   * Registers a listener for options::dumpModeString being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerSetDumpModeListener(
-      Listener* listener, bool notifyIfSet);
-
-  /**
-   * Registers a listener for options::printSuccess being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerSetPrintSuccessListener(
-      Listener* listener, bool notifyIfSet);
-
-  /**
-   * Registers a listener for options::dumpToFileName being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerDumpToFileNameListener(
-      Listener* listener, bool notifyIfSet);
-
-  /**
-   * Registers a listener for options::regularChannelName being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerSetRegularOutputChannelListener(
-      Listener* listener, bool notifyIfSet);
-
-  /**
-   * Registers a listener for options::diagnosticChannelName being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerSetDiagnosticOutputChannelListener(
-      Listener* listener, bool notifyIfSet);
-
-  /**
-   * Registers a listener for options::replayLogFilename being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerSetReplayLogFilename(
-      Listener* listener, bool notifyIfSet);
+  /** Set the generic listener associated with this class to ol */
+  void setListener(OptionsListener* ol);
 
   /** Sends a std::flush to getErr(). */
   void flushErr();
@@ -538,11 +280,18 @@ public:
   void flushOut();
 
  private:
+  /** Pointer to the options listener, if one exists */
+  OptionsListener* d_olisten;
+  /**
+   * Helper method for setOption, updates this object for setting the given
+   * option.
+   */
+  void setOptionInternal(const std::string& key, const std::string& optionarg);
   /**
    * Internal procedure for implementing the parseOptions function.
    * Initializes the options object based on the given command-line
-   * arguments. This uses an ArgumentExtender containing the
-   * command-line arguments. Nonoptions are stored into nonoptions.
+   * arguments. The command line arguments are stored in argc/argv.
+   * Nonoptions are stored into nonoptions.
    *
    * This is not thread safe.
    *
@@ -551,10 +300,11 @@ public:
    * Preconditions: options, extender and nonoptions are non-null.
    */
   static void parseOptionsRecursive(Options* options,
-                                    options::ArgumentExtender* extender,
+                                    int argc,
+                                    char* argv[],
                                     std::vector<std::string>* nonoptions);
 };/* class Options */
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__OPTIONS__OPTIONS_H */
+#endif /* CVC4__OPTIONS__OPTIONS_H */

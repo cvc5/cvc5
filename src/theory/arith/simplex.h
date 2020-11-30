@@ -2,10 +2,10 @@
 /*! \file simplex.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Clark Barrett
+ **   Tim King, Mathias Preiner, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -79,7 +79,7 @@ protected:
   DenseSet d_conflictVariables;
 
   /** The rule to use for heuristic selection mode. */
-  ErrorSelectionRule d_heuristicRule;
+  options::ErrorSelectionRule d_heuristicRule;
 
   /** Linear equality module. */
   LinearEqualityModule& d_linEq;

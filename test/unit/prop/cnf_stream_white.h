@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Christopher L. Conway, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -18,7 +18,7 @@
 /* #include <gmock/gmock.h> */
 /* #include <gtest/gtest.h> */
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "context/context.h"
 #include "expr/expr_manager.h"
 #include "expr/node_manager.h"
@@ -49,31 +49,34 @@ class FakeSatSolver : public SatSolver {
  public:
   FakeSatSolver() : d_nextVar(0), d_addClauseCalled(false) {}
 
-  SatVariable newVar(bool theoryAtom, bool preRegister, bool canErase) {
+  SatVariable newVar(bool theoryAtom, bool preRegister, bool canErase) override
+  {
     return d_nextVar++;
   }
 
-  SatVariable trueVar() { return d_nextVar++; }
+  SatVariable trueVar() override { return d_nextVar++; }
 
-  SatVariable falseVar() { return d_nextVar++; }
+  SatVariable falseVar() override { return d_nextVar++; }
 
-  ClauseId addClause(SatClause& c, bool lemma) {
+  ClauseId addClause(SatClause& c, bool lemma) override
+  {
     d_addClauseCalled = true;
     return ClauseIdUndef;
   }
 
-  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) {
+  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override
+  {
     d_addClauseCalled = true;
     return ClauseIdUndef;
   }
 
-  bool nativeXor() { return false; }
+  bool nativeXor() override { return false; }
 
   void reset() { d_addClauseCalled = false; }
 
   unsigned int addClauseCalled() { return d_addClauseCalled; }
 
-  unsigned getAssertionLevel() const { return 0; }
+  unsigned getAssertionLevel() const override { return 0; }
 
   bool isDecision(Node) const { return false; }
 
@@ -83,19 +86,22 @@ class FakeSatSolver : public SatSolver {
 
   bool spendResource() { return false; }
 
-  void interrupt() {}
+  void interrupt() override {}
 
-  SatValue solve() { return SAT_VALUE_UNKNOWN; }
+  SatValue solve() override { return SAT_VALUE_UNKNOWN; }
 
-  SatValue solve(long unsigned int& resource) { return SAT_VALUE_UNKNOWN; }
+  SatValue solve(long unsigned int& resource) override
+  {
+    return SAT_VALUE_UNKNOWN;
+  }
 
-  SatValue value(SatLiteral l) { return SAT_VALUE_UNKNOWN; }
+  SatValue value(SatLiteral l) override { return SAT_VALUE_UNKNOWN; }
 
-  SatValue modelValue(SatLiteral l) { return SAT_VALUE_UNKNOWN; }
+  SatValue modelValue(SatLiteral l) override { return SAT_VALUE_UNKNOWN; }
 
   bool properExplanation(SatLiteral lit, SatLiteral expl) const { return true; }
 
-  bool ok() const { return true; }
+  bool ok() const override { return true; }
 
 }; /* class FakeSatSolver */
 
@@ -122,23 +128,33 @@ class CnfStreamWhite : public CxxTest::TestSuite {
   SmtScope* d_scope;
   SmtEngine* d_smt;
 
-  void setUp() {
+  void setUp() override
+  {
     d_exprManager = new ExprManager();
-    d_smt = new SmtEngine(d_exprManager);
-    d_smt->d_logic.lock();
     d_nodeManager = NodeManager::fromExprManager(d_exprManager);
+    d_smt = new SmtEngine(d_nodeManager);
+    d_smt->d_logic.lock();
     d_scope = new SmtScope(d_smt);
 
-    d_theoryEngine = d_smt->d_theoryEngine;
+    // Notice that this unit test uses the theory engine of a created SMT
+    // engine d_smt. We must ensure that d_smt is properly initialized via
+    // the following call, which constructs its underlying theory engine.
+    d_smt->finishInit();
+    d_theoryEngine = d_smt->getTheoryEngine();
 
     d_satSolver = new FakeSatSolver();
     d_cnfContext = new context::Context();
     d_cnfRegistrar = new theory::TheoryRegistrar(d_theoryEngine);
-    d_cnfStream = new CVC4::prop::TseitinCnfStream(
-        d_satSolver, d_cnfRegistrar, d_cnfContext, d_smt->channels());
+    ResourceManager* rm = d_smt->getResourceManager();
+    d_cnfStream = new CVC4::prop::CnfStream(d_satSolver,
+                                            d_cnfRegistrar,
+                                            d_cnfContext,
+                                            &d_smt->getOutputManager(),
+                                            rm);
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     delete d_cnfStream;
     delete d_cnfContext;
     delete d_cnfRegistrar;
@@ -161,8 +177,8 @@ class CnfStreamWhite : public CxxTest::TestSuite {
     Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
     Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
     Node c = d_nodeManager->mkVar(d_nodeManager->booleanType());
-    d_cnfStream->convertAndAssert(d_nodeManager->mkNode(kind::AND, a, b, c),
-                                  false, false, RULE_INVALID, Node::null());
+    d_cnfStream->convertAndAssert(
+        d_nodeManager->mkNode(kind::AND, a, b, c), false, false);
     TS_ASSERT(d_satSolver->addClauseCalled());
   }
 
@@ -176,26 +192,27 @@ class CnfStreamWhite : public CxxTest::TestSuite {
     Node f = d_nodeManager->mkVar(d_nodeManager->booleanType());
     d_cnfStream->convertAndAssert(
         d_nodeManager->mkNode(
-            kind::IMPLIES, d_nodeManager->mkNode(kind::AND, a, b),
+            kind::IMPLIES,
+            d_nodeManager->mkNode(kind::AND, a, b),
             d_nodeManager->mkNode(
-                kind::EQUAL, d_nodeManager->mkNode(kind::OR, c, d),
+                kind::EQUAL,
+                d_nodeManager->mkNode(kind::OR, c, d),
                 d_nodeManager->mkNode(kind::NOT,
                                       d_nodeManager->mkNode(kind::XOR, e, f)))),
-        false, false, RULE_INVALID, Node::null());
+        false,
+        false);
     TS_ASSERT(d_satSolver->addClauseCalled());
   }
 
   void testTrue() {
     NodeManagerScope nms(d_nodeManager);
-    d_cnfStream->convertAndAssert(d_nodeManager->mkConst(true), false, false,
-                                  RULE_INVALID, Node::null());
+    d_cnfStream->convertAndAssert(d_nodeManager->mkConst(true), false, false);
     TS_ASSERT(d_satSolver->addClauseCalled());
   }
 
   void testFalse() {
     NodeManagerScope nms(d_nodeManager);
-    d_cnfStream->convertAndAssert(d_nodeManager->mkConst(false), false, false,
-                                  RULE_INVALID, Node::null());
+    d_cnfStream->convertAndAssert(d_nodeManager->mkConst(false), false, false);
     TS_ASSERT(d_satSolver->addClauseCalled());
   }
 
@@ -203,8 +220,8 @@ class CnfStreamWhite : public CxxTest::TestSuite {
     NodeManagerScope nms(d_nodeManager);
     Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
     Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
-    d_cnfStream->convertAndAssert(d_nodeManager->mkNode(kind::EQUAL, a, b), false,
-                                  false, RULE_INVALID, Node::null());
+    d_cnfStream->convertAndAssert(
+        d_nodeManager->mkNode(kind::EQUAL, a, b), false, false);
     TS_ASSERT(d_satSolver->addClauseCalled());
   }
 
@@ -212,33 +229,16 @@ class CnfStreamWhite : public CxxTest::TestSuite {
     NodeManagerScope nms(d_nodeManager);
     Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
     Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
-    d_cnfStream->convertAndAssert(d_nodeManager->mkNode(kind::IMPLIES, a, b),
-                                  false, false, RULE_INVALID, Node::null());
+    d_cnfStream->convertAndAssert(
+        d_nodeManager->mkNode(kind::IMPLIES, a, b), false, false);
     TS_ASSERT(d_satSolver->addClauseCalled());
   }
-
-  // ITEs should be removed before going to CNF
-  // void testIte() {
-  //  NodeManagerScope nms(d_nodeManager);
-  //  d_cnfStream->convertAndAssert(
-  //      d_nodeManager->mkNode(
-  //          kind::EQUAL,
-  //          d_nodeManager->mkNode(
-  //              kind::ITE,
-  //              d_nodeManager->mkVar(d_nodeManager->booleanType()),
-  //              d_nodeManager->mkVar(d_nodeManager->integerType()),
-  //              d_nodeManager->mkVar(d_nodeManager->integerType())
-  //          ),
-  //          d_nodeManager->mkVar(d_nodeManager->integerType())
-  //                            ), false, false, RULE_INVALID, Node::null());
-  //
-  //}
 
   void testNot() {
     NodeManagerScope nms(d_nodeManager);
     Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
-    d_cnfStream->convertAndAssert(d_nodeManager->mkNode(kind::NOT, a), false,
-                                  false, RULE_INVALID, Node::null());
+    d_cnfStream->convertAndAssert(
+        d_nodeManager->mkNode(kind::NOT, a), false, false);
     TS_ASSERT(d_satSolver->addClauseCalled());
   }
 
@@ -247,8 +247,8 @@ class CnfStreamWhite : public CxxTest::TestSuite {
     Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
     Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
     Node c = d_nodeManager->mkVar(d_nodeManager->booleanType());
-    d_cnfStream->convertAndAssert(d_nodeManager->mkNode(kind::OR, a, b, c),
-                                  false, false, RULE_INVALID, Node::null());
+    d_cnfStream->convertAndAssert(
+        d_nodeManager->mkNode(kind::OR, a, b, c), false, false);
     TS_ASSERT(d_satSolver->addClauseCalled());
   }
 
@@ -256,10 +256,10 @@ class CnfStreamWhite : public CxxTest::TestSuite {
     NodeManagerScope nms(d_nodeManager);
     Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
     Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
-    d_cnfStream->convertAndAssert(a, false, false, RULE_INVALID, Node::null());
+    d_cnfStream->convertAndAssert(a, false, false);
     TS_ASSERT(d_satSolver->addClauseCalled());
     d_satSolver->reset();
-    d_cnfStream->convertAndAssert(b, false, false, RULE_INVALID, Node::null());
+    d_cnfStream->convertAndAssert(b, false, false);
     TS_ASSERT(d_satSolver->addClauseCalled());
   }
 
@@ -267,8 +267,8 @@ class CnfStreamWhite : public CxxTest::TestSuite {
     NodeManagerScope nms(d_nodeManager);
     Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
     Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
-    d_cnfStream->convertAndAssert(d_nodeManager->mkNode(kind::XOR, a, b), false,
-                                  false, RULE_INVALID, Node::null());
+    d_cnfStream->convertAndAssert(
+        d_nodeManager->mkNode(kind::XOR, a, b), false, false);
     TS_ASSERT(d_satSolver->addClauseCalled());
   }
 

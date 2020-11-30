@@ -2,10 +2,10 @@
 /*! \file theory_bv.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Morgan Deters, Tim King
+ **   Andrew Reynolds, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,232 +16,124 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__BV__THEORY_BV_H
-#define __CVC4__THEORY__BV__THEORY_BV_H
+#ifndef CVC4__THEORY__BV__THEORY_BV_H
+#define CVC4__THEORY__BV__THEORY_BV_H
 
 #include <unordered_map>
-#include <unordered_set>
 
-#include "context/cdhashset.h"
-#include "context/cdlist.h"
-#include "context/context.h"
-#include "theory/bv/bv_subtheory.h"
-#include "theory/bv/theory_bv_utils.h"
+#include "theory/bv/theory_bv_rewriter.h"
 #include "theory/theory.h"
-#include "util/hash.h"
-#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bv {
 
-class CoreSolver;
-class InequalitySolver;
-class AlgebraicSolver;
-class BitblastSolver;
+class BVSolver;
 
-class EagerBitblastSolver;
+class TheoryBV : public Theory
+{
+  /* BVSolverLazy accesses methods from theory in a way that is deprecated and
+   * will be removed in the future. For now we allow direct access. */
+  friend class BVSolverLazy;
 
-class AbstractionModule;
-
-class TheoryBV : public Theory {
-
-  /** The context we are using */
-  context::Context* d_context;
-
-  /** Context dependent set of atoms we already propagated */
-  context::CDHashSet<Node, NodeHashFunction> d_alreadyPropagatedSet;
-  context::CDHashSet<Node, NodeHashFunction> d_sharedTermsSet;
-
-  std::vector<SubtheorySolver*> d_subtheories;
-  std::unordered_map<SubTheory, SubtheorySolver*, std::hash<int> > d_subtheoryMap;
-
-public:
-
-  TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out,
-           Valuation valuation, const LogicInfo& logicInfo,
+ public:
+  TheoryBV(context::Context* c,
+           context::UserContext* u,
+           OutputChannel& out,
+           Valuation valuation,
+           const LogicInfo& logicInfo,
+           ProofNodeManager* pnm = nullptr,
            std::string name = "");
 
   ~TheoryBV();
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+
+  /**
+   * Returns true if we need an equality engine. If so, we initialize the
+   * information regarding how it should be setup. For details, see the
+   * documentation in Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
 
   void finishInit() override;
 
-  Node expandDefinition(LogicRequest& logicRequest, Node node) override;
+  TrustNode expandDefinition(Node node) override;
 
   void preRegisterTerm(TNode n) override;
 
-  void check(Effort e) override;
+  bool preCheck(Effort e) override;
+
+  void postCheck(Effort e) override;
+
+  bool preNotifyFact(TNode atom,
+                     bool pol,
+                     TNode fact,
+                     bool isPrereg,
+                     bool isInternal) override;
+
+  void notifyFact(TNode atom, bool pol, TNode fact, bool isInternal) override;
 
   bool needsCheckLastEffort() override;
 
   void propagate(Effort e) override;
 
-  Node explain(TNode n) override;
+  TrustNode explain(TNode n) override;
 
-  bool collectModelInfo(TheoryModel* m) override;
+  /** Collect model values in m based on the relevant terms given by termSet */
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet) override;
 
   std::string identify() const override { return std::string("TheoryBV"); }
 
-  /** equality engine */
-  eq::EqualityEngine* getEqualityEngine() override;
-  bool getCurrentSubstitution(int effort,
-                              std::vector<Node>& vars,
-                              std::vector<Node>& subs,
-                              std::map<Node, std::vector<Node> >& exp) override;
-  int getReduction(int effort, Node n, Node& nr) override;
+  PPAssertStatus ppAssert(TrustNode in,
+                          TrustSubstitutionMap& outSubstitutions) override;
 
-  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
-
-  void enableCoreTheorySlicer();
-
-  Node ppRewrite(TNode t) override;
+  TrustNode ppRewrite(TNode t) override;
 
   void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
 
   void presolve() override;
 
-  bool applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
+  /** Called by abstraction preprocessing pass. */
+  bool applyAbstraction(const std::vector<Node>& assertions,
+                        std::vector<Node>& new_assertions);
 
-  void setProofLog( BitVectorProof * bvp );
-
-private:
-
-  class Statistics {
-  public:
-    AverageStat d_avgConflictSize;
-    IntStat     d_solveSubstitutions;
-    TimerStat   d_solveTimer;
-    IntStat     d_numCallsToCheckFullEffort;
-    IntStat     d_numCallsToCheckStandardEffort;
-    TimerStat   d_weightComputationTimer;
-    IntStat     d_numMultSlice;
-    Statistics();
-    ~Statistics();
-  };
-
-  Statistics d_statistics;
-
-  void spendResource(unsigned amount);
+ private:
+  void notifySharedTerm(TNode t) override;
 
   /**
-   * Return the uninterpreted function symbol corresponding to division-by-zero
-   * for this particular bit-width
+   * Return the UF symbol corresponding to division-by-zero for this particular
+   * bit-width.
    * @param k should be UREM or UDIV
-   * @param width
-   *
-   * @return
+   * @param width bit-width
    */
-  Node getBVDivByZero(Kind k, unsigned width);
+  Node getUFDivByZero(Kind k, unsigned width);
 
-  typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
-  typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
-  NodeSet d_staticLearnCache;
+  /** Internal BV solver. */
+  std::unique_ptr<BVSolver> d_internal;
 
   /**
    * Maps from bit-vector width to division-by-zero uninterpreted
    * function symbols.
    */
-  std::unordered_map<unsigned, Node> d_BVDivByZero;
-  std::unordered_map<unsigned, Node> d_BVRemByZero;
+  std::unordered_map<unsigned, Node> d_ufDivByZero;
+  std::unordered_map<unsigned, Node> d_ufRemByZero;
 
-  typedef std::unordered_map<Node, Node, NodeHashFunction>  NodeToNode;
+  /** The theory rewriter for this theory. */
+  TheoryBVRewriter d_rewriter;
 
-  context::CDO<bool> d_lemmasAdded;
+  /** A (default) theory state object */
+  TheoryState d_state;
 
-  // Are we in conflict?
-  context::CDO<bool> d_conflict;
+  /** A (default) theory inference manager. */
+  TheoryInferenceManager d_inferMgr;
 
-  // Invalidate the model cache if check was called
-  context::CDO<bool> d_invalidateModelCache;
+}; /* class TheoryBV */
 
-  /** The conflict node */
-  Node d_conflictNode;
+}  // namespace bv
+}  // namespace theory
+}  // namespace CVC4
 
-  /** Literals to propagate */
-  context::CDList<Node> d_literalsToPropagate;
-
-  /** Index of the next literal to propagate */
-  context::CDO<unsigned> d_literalsToPropagateIndex;
-
-  /**
-   * Keeps a map from nodes to the subtheory that propagated it so that we can explain it
-   * properly.
-   */
-  typedef context::CDHashMap<Node, SubTheory, NodeHashFunction> PropagatedMap;
-  PropagatedMap d_propagatedBy;
-
-  EagerBitblastSolver* d_eagerSolver;
-  AbstractionModule* d_abstractionModule;
-  bool d_isCoreTheory;
-  bool d_calledPreregister;
-  
-  //for extended functions
-  bool d_needsLastCallCheck;
-  context::CDHashSet<Node, NodeHashFunction> d_extf_range_infer;
-  context::CDHashSet<Node, NodeHashFunction> d_extf_collapse_infer;
-  bool doExtfInferences( std::vector< Node >& terms );
-  bool doExtfReductions( std::vector< Node >& terms );
-  
-  bool wasPropagatedBySubtheory(TNode literal) const {
-    return d_propagatedBy.find(literal) != d_propagatedBy.end();
-  }
-
-  SubTheory getPropagatingSubtheory(TNode literal) const {
-    Assert(wasPropagatedBySubtheory(literal));
-    PropagatedMap::const_iterator find = d_propagatedBy.find(literal);
-    return (*find).second;
-  }
-
-  /** Should be called to propagate the literal.  */
-  bool storePropagation(TNode literal, SubTheory subtheory);
-
-  /**
-   * Explains why this literal (propagated by subtheory) is true by adding assumptions.
-   */
-  void explain(TNode literal, std::vector<TNode>& assumptions);
-
-  void addSharedTerm(TNode t) override;
-
-  bool isSharedTerm(TNode t) { return d_sharedTermsSet.contains(t); }
-
-  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
-
-  Node getModelValue(TNode var) override;
-
-  inline std::string indent()
-  {
-    std::string indentStr(getSatContext()->getLevel(), ' ');
-    return indentStr;
-  }
-
-  void setConflict(Node conflict = Node::null());
-
-  bool inConflict() {
-    return d_conflict;
-  }
-
-  void sendConflict();
-
-  void lemma(TNode node) { d_out->lemma(node, RULE_CONFLICT); d_lemmasAdded = true; }
-
-  void checkForLemma(TNode node);
-
-  friend class LazyBitblaster;
-  friend class TLazyBitblaster;
-  friend class EagerBitblaster;
-  friend class BitblastSolver;
-  friend class EqualitySolver;
-  friend class CoreSolver;
-  friend class InequalitySolver;
-  friend class AlgebraicSolver;
-  friend class EagerBitblastSolver;
-};/* class TheoryBV */
-
-}/* CVC4::theory::bv namespace */
-}/* CVC4::theory namespace */
-
-}/* CVC4 namespace */
-
-#endif /* __CVC4__THEORY__BV__THEORY_BV_H */
+#endif /* CVC4__THEORY__BV__THEORY_BV_H */

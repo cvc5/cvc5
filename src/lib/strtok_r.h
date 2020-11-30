@@ -2,10 +2,10 @@
 /*! \file strtok_r.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__LIB__STRTOK_R_H
-#define __CVC4__LIB__STRTOK_R_H
+#ifndef CVC4__LIB__STRTOK_R_H
+#define CVC4__LIB__STRTOK_R_H
 
 #ifdef HAVE_STRTOK_R
 
@@ -39,4 +39,4 @@ char* strtok_r(char *str, const char *delim, char **saveptr);
 #endif /* __cplusplus */
 
 #endif /* HAVE_STRTOK_R */
-#endif /* __CVC4__LIB__STRTOK_R_H */
+#endif /* CVC4__LIB__STRTOK_R_H */

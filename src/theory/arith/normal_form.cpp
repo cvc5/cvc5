@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Tim King, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -69,10 +69,12 @@ bool Variable::isLeafMember(Node n){
     (Theory::isLeafOf(n, theory::THEORY_ARITH));
 }
 
-VarList::VarList(Node n)
-  : NodeWrapper(n)
+VarList::VarList(Node n) : NodeWrapper(n) { Assert(isSorted(begin(), end())); }
+
+bool Variable::isIAndMember(Node n)
 {
-  Assert(isSorted(begin(), end()));
+  return n.getKind() == kind::IAND && Polynomial::isMember(n[0])
+         && Polynomial::isMember(n[1]);
 }
 
 bool Variable::isDivMember(Node n){
@@ -275,11 +277,13 @@ Monomial Monomial::operator*(const Monomial& mono) const {
   return Monomial::mkMonomial(newConstant, newVL);
 }
 
-// vector<Monomial> Monomial::sumLikeTerms(const std::vector<Monomial> & monos) {
+// vector<Monomial> Monomial::sumLikeTerms(const std::vector<Monomial> & monos)
+// {
 //   Assert(isSorted(monos));
 //   vector<Monomial> outMonomials;
 //   typedef vector<Monomial>::const_iterator iterator;
-//   for(iterator rangeIter = monos.begin(), end=monos.end(); rangeIter != end;) {
+//   for(iterator rangeIter = monos.begin(), end=monos.end(); rangeIter != end;)
+//   {
 //     Rational constant = (*rangeIter).getConstant().getValue();
 //     VarList varList  = (*rangeIter).getVarList();
 //     ++rangeIter;
@@ -334,7 +338,7 @@ void Monomial::combineAdjacentMonomials(std::vector<Monomial>& monos) {
         writePos++;
       }
     }
-    Assert(rangeEnd>readPos);
+    Assert(rangeEnd > readPos);
     readPos = rangeEnd;
   }
   if(writePos > 0 ){
@@ -526,7 +530,7 @@ Integer Polynomial::numeratorGCD() const {
   //We'll use the standardization that gcd(0, 0) = 0
   //So that the gcd of the zero polynomial is gcd{0} = 0
   iterator i=begin(), e=end();
-  Assert(i!=e);
+  Assert(i != e);
 
   Integer d = (*i).getConstant().getValue().getNumerator().abs();
   if(d.isOne()){
@@ -683,13 +687,7 @@ SumPair SumPair::mkSumPair(const Polynomial& p){
   }
 }
 
-Comparison::Comparison(TNode n)
-  : NodeWrapper(n)
-{
-  Assert(isNormalForm());
-}
-
-
+Comparison::Comparison(TNode n) : NodeWrapper(n) { Assert(isNormalForm()); }
 
 SumPair Comparison::toSumPair() const {
   Kind cmpKind = comparisonKind();
@@ -727,8 +725,7 @@ SumPair Comparison::toSumPair() const {
         return SumPair(left - right, Constant::mkZero());
       }
     }
-  default:
-    Unhandled(cmpKind);
+    default: Unhandled() << cmpKind;
   }
 }
 
@@ -766,8 +763,7 @@ Polynomial Comparison::normalizedVariablePart() const {
         }
       }
     }
-  default:
-    Unhandled(cmpKind);
+    default: Unhandled() << cmpKind;
   }
 }
 
@@ -816,9 +812,66 @@ DeltaRational Comparison::normalizedDeltaRational() const {
         return DeltaRational(0, 0);
       }
     }
-  default:
-    Unhandled(cmpKind);
+    default: Unhandled() << cmpKind;
   }
+}
+
+std::tuple<Polynomial, Kind, Constant> Comparison::decompose(
+    bool split_constant) const
+{
+  Kind rel = getNode().getKind();
+  if (rel == Kind::NOT)
+  {
+    switch (getNode()[0].getKind())
+    {
+      case kind::LEQ: rel = Kind::GT; break;
+      case kind::LT: rel = Kind::GEQ; break;
+      case kind::EQUAL: rel = Kind::DISTINCT; break;
+      case kind::DISTINCT: rel = Kind::EQUAL; break;
+      case kind::GEQ: rel = Kind::LT; break;
+      case kind::GT: rel = Kind::LEQ; break;
+      default:
+        Assert(false) << "Unsupported relation: " << getNode()[0].getKind();
+    }
+  }
+
+  Polynomial poly = getLeft() - getRight();
+
+  if (!split_constant)
+  {
+    return std::tuple<Polynomial, Kind, Constant>{
+        poly, rel, Constant::mkZero()};
+  }
+
+  Constant right = Constant::mkZero();
+  if (poly.containsConstant())
+  {
+    right = -poly.getHead().getConstant();
+    poly = poly + Polynomial::mkPolynomial(right);
+  }
+
+  Constant lcoeff = poly.getHead().getConstant();
+  if (!lcoeff.isOne())
+  {
+    Constant invlcoeff = lcoeff.inverse();
+    if (lcoeff.isNegative())
+    {
+      switch (rel)
+      {
+        case kind::LEQ: rel = Kind::GEQ; break;
+        case kind::LT: rel = Kind::GT; break;
+        case kind::EQUAL: break;
+        case kind::DISTINCT: break;
+        case kind::GEQ: rel = Kind::LEQ; break;
+        case kind::GT: rel = Kind::LT; break;
+        default: Assert(false) << "Unsupported relation: " << rel;
+      }
+    }
+    poly = poly * invlcoeff;
+    right = right * invlcoeff;
+  }
+
+  return std::tuple<Polynomial, Kind, Constant>{poly, rel, right};
 }
 
 Comparison Comparison::parseNormalForm(TNode n) {
@@ -834,8 +887,7 @@ Node Comparison::toNode(Kind k, const Polynomial& l, const Constant& r) {
   case kind::GEQ:
   case kind::GT:
     return NodeManager::currentNM()->mkNode(k, l.getNode(), r.getNode());
-  default:
-    Unhandled(k);
+  default: Unhandled() << k;
   }
 }
 
@@ -875,9 +927,7 @@ size_t Comparison::getComplexity() const{
   case kind::GT:
   case kind::GEQ:
     return getLeft().getComplexity() +  getRight().getComplexity();
-  default:
-    Unhandled(comparisonKind());
-    return -1;
+  default: Unhandled() << comparisonKind(); return -1;
   }
 }
 
@@ -895,8 +945,7 @@ Polynomial Comparison::getLeft() const {
   case kind::GEQ:
     left = getNode()[0];
     break;
-  default:
-    Unhandled(k);
+  default: Unhandled() << k;
   }
   return Polynomial::parsePolynomial(left);
 }
@@ -915,8 +964,7 @@ Polynomial Comparison::getRight() const {
   case kind::GEQ:
     right = getNode()[1];
     break;
-  default:
-    Unhandled(k);
+  default: Unhandled() << k;
   }
   return Polynomial::parsePolynomial(right);
 }
@@ -1290,8 +1338,7 @@ Comparison Comparison::mkComparison(Kind k, const Polynomial& l, const Polynomia
       result = isInteger ?
         mkIntInequality(k, diff) : mkRatInequality(k, diff);
       break;
-    default:
-      Unhandled(k);
+    default: Unhandled() << k;
     }
     Assert(!result.isNull());
     if(result.getKind() == kind::NOT && result[0].getKind() == kind::CONST_BOOLEAN){

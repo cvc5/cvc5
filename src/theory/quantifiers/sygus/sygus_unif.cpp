@@ -2,10 +2,10 @@
 /*! \file sygus_unif.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa
+ **   Andrew Reynolds, Aina Niemetz, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,9 +14,9 @@
 
 #include "theory/quantifiers/sygus/sygus_unif.h"
 
-#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 #include "util/random.h"
 
 using namespace std;
@@ -26,7 +26,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusUnif::SygusUnif() : d_qe(nullptr), d_tds(nullptr) {}
+SygusUnif::SygusUnif()
+    : d_qe(nullptr), d_tds(nullptr), d_enableMinimality(false)
+{
+}
 SygusUnif::~SygusUnif() {}
 
 void SygusUnif::initializeCandidate(
@@ -42,46 +45,45 @@ void SygusUnif::initializeCandidate(
   d_strategy[f].initialize(qe, f, enums);
 }
 
-bool SygusUnif::constructSolution(std::vector<Node>& sols,
-                                  std::vector<Node>& lemmas)
+Node SygusUnif::getMinimalTerm(const std::vector<Node>& terms)
 {
-  // initialize a call to construct solution
-  initializeConstructSol();
-  for (const Node& f : d_candidates)
+  unsigned minSize = 0;
+  Node minTerm;
+  std::map<Node, unsigned>::iterator it;
+  for (const Node& n : terms)
   {
-    // initialize a call to construct solution for function f
-    initializeConstructSolFor(f);
-    // call the virtual construct solution method
-    Node e = d_strategy[f].getRootEnumerator();
-    Node sol = constructSol(f, e, role_equal, 1, lemmas);
-    if (sol.isNull())
+    it = d_termToSize.find(n);
+    unsigned ssize = 0;
+    if (it == d_termToSize.end())
     {
-      return false;
+      ssize = d_tds->getSygusTermSize(n);
+      d_termToSize[n] = ssize;
     }
-    sols.push_back(sol);
+    else
+    {
+      ssize = it->second;
+    }
+    if (minTerm.isNull() || ssize < minSize)
+    {
+      minTerm = n;
+      minSize = ssize;
+    }
   }
-  return true;
+  return minTerm;
 }
 
-Node SygusUnif::constructBestSolvedTerm(const std::vector<Node>& solved)
+Node SygusUnif::constructBestSolvedTerm(Node e, const std::vector<Node>& solved)
 {
   Assert(!solved.empty());
+  if (d_enableMinimality)
+  {
+    return getMinimalTerm(solved);
+  }
   return solved[0];
 }
 
-Node SygusUnif::constructBestStringSolvedTerm(const std::vector<Node>& solved)
-{
-  Assert(!solved.empty());
-  return solved[0];
-}
-
-Node SygusUnif::constructBestSolvedConditional(const std::vector<Node>& solved)
-{
-  Assert(!solved.empty());
-  return solved[0];
-}
-
-Node SygusUnif::constructBestConditional(const std::vector<Node>& conds)
+Node SygusUnif::constructBestConditional(Node ce,
+                                         const std::vector<Node>& conds)
 {
   Assert(!conds.empty());
   double r = Random::getRandom().pickDouble(0.0, 1.0);
@@ -95,16 +97,16 @@ Node SygusUnif::constructBestConditional(const std::vector<Node>& conds)
 
 Node SygusUnif::constructBestStringToConcat(
     const std::vector<Node>& strs,
-    const std::map<Node, unsigned>& total_inc,
-    const std::map<Node, std::vector<unsigned>>& incr)
+    const std::map<Node, size_t>& total_inc,
+    const std::map<Node, std::vector<size_t>>& incr)
 {
   Assert(!strs.empty());
   std::vector<Node> strs_tmp = strs;
-  std::random_shuffle(strs_tmp.begin(), strs_tmp.end());
+  std::shuffle(strs_tmp.begin(), strs_tmp.end(), Random::getRandom());
   // prefer one that has incremented by more than 0
   for (const Node& ns : strs_tmp)
   {
-    const std::map<Node, unsigned>::const_iterator iti = total_inc.find(ns);
+    const std::map<Node, size_t>::const_iterator iti = total_inc.find(ns);
     if (iti != total_inc.end() && iti->second > 0)
     {
       return ns;

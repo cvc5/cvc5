@@ -40,7 +40,6 @@
 #       notifyRestart     the theory supports notifyRestart()
 #       presolve          the theory supports presolve()
 #       postsolve         the theory supports postsolve()
-#       getNextDecisionRequest the theory supports getNextDecisionRequest()
 #
 #     In the case of the "theory-supports-function" properties, you
 #     need to declare these for your theory or the functions will not
@@ -290,9 +289,6 @@ constant BUILTIN \
     "expr/kind.h" \
     "the kind of expressions representing built-in operators"
 
-variable FUNCTION "a defined function"
-parameterized APPLY FUNCTION 0: "application of a defined function"
-
 operator EQUAL 2 "equality (two parameters only, sorts must match)"
 operator DISTINCT 2: "disequality (N-ary, sorts must match)"
 variable VARIABLE "a variable (not permitted in bindings)"
@@ -302,14 +298,7 @@ operator SEXPR 0: "a symbolic expression (any arity)"
 
 operator LAMBDA 2 "a lambda expression; first parameter is a BOUND_VAR_LIST, second is lambda body"
 
-operator CHOICE 2 "a Hilbert choice (epsilon) expression; first parameter is a BOUND_VAR_LIST, second is the Hilbert choice body"
-
-parameterized CHAIN CHAIN_OP 2: "chained operator (N-ary), turned into a conjunction of binary applications of the operator on adjoining parameters; first parameter is a CHAIN_OP representing a binary operator, rest are arguments to that operator"
-constant CHAIN_OP \
-    ::CVC4::Chain \
-    ::CVC4::ChainHashFunction \
-    "expr/chain.h" \
-    "the chained operator; payload is an instance of the CVC4::Chain class"
+operator WITNESS 2 "a witness expression; first parameter is a BOUND_VAR_LIST, second is the witness body"
 
 constant TYPE_CONSTANT \
     ::CVC4::TypeConstant \
@@ -320,7 +309,10 @@ operator FUNCTION_TYPE 2: "a function type"
 cardinality FUNCTION_TYPE \
     "::CVC4::theory::builtin::FunctionProperties::computeCardinality(%TYPE%)" \
     "theory/builtin/theory_builtin_type_rules.h"
-well-founded FUNCTION_TYPE false
+well-founded FUNCTION_TYPE \
+    "::CVC4::theory::builtin::FunctionProperties::isWellFounded(%TYPE%)" \
+    "::CVC4::theory::builtin::FunctionProperties::mkGroundTerm(%TYPE%)" \
+    "theory/builtin/theory_builtin_type_rules.h"
 enumerator FUNCTION_TYPE \
     ::CVC4::theory::builtin::FunctionEnumerator \
     "theory/builtin/type_enumerator.h"
@@ -333,14 +325,11 @@ well-founded SEXPR_TYPE \
     "::CVC4::theory::builtin::SExprProperties::mkGroundTerm(%TYPE%)" \
     "theory/builtin/theory_builtin_type_rules.h"
 
-typerule APPLY ::CVC4::theory::builtin::ApplyTypeRule
 typerule EQUAL ::CVC4::theory::builtin::EqualityTypeRule
 typerule DISTINCT ::CVC4::theory::builtin::DistinctTypeRule
 typerule SEXPR ::CVC4::theory::builtin::SExprTypeRule
 typerule LAMBDA ::CVC4::theory::builtin::LambdaTypeRule
-typerule CHOICE ::CVC4::theory::builtin::ChoiceTypeRule
-typerule CHAIN ::CVC4::theory::builtin::ChainTypeRule
-typerule CHAIN_OP ::CVC4::theory::builtin::ChainedOperatorTypeRule
+typerule WITNESS ::CVC4::theory::builtin::WitnessTypeRule
 
 # lambda expressions that are isomorphic to array constants can be considered constants
 construle LAMBDA ::CVC4::theory::builtin::LambdaTypeRule

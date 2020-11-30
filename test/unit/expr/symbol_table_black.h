@@ -2,10 +2,10 @@
 /*! \file symbol_table_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Christopher L. Conway, Morgan Deters, Dejan Jovanovic
+ **   Morgan Deters, Christopher L. Conway, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -19,7 +19,8 @@
 #include <sstream>
 #include <string>
 
-#include "base/cvc4_assert.h"
+#include "api/cvc4cpp.h"
+#include "base/check.h"
 #include "base/exception.h"
 #include "context/context.h"
 #include "expr/expr.h"
@@ -33,25 +34,27 @@ using namespace CVC4::context;
 using namespace std;
 
 class SymbolTableBlack : public CxxTest::TestSuite {
-private:
-
-  ExprManager* d_exprManager;
-
-public:
-
-  void setUp() {
-    try {
-      d_exprManager = new ExprManager;
-    } catch(Exception e) {
+ public:
+  void setUp() override
+  {
+    try
+    {
+      d_slv = new api::Solver();
+    }
+    catch (Exception& e)
+    {
       cerr << "Exception during setUp():" << endl << e;
       throw;
     }
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     try {
-      delete d_exprManager;
-    } catch(Exception e) {
+      delete d_slv;
+    }
+    catch (Exception& e)
+    {
       cerr << "Exception during tearDown():" << endl << e;
       throw;
     }
@@ -59,8 +62,8 @@ public:
 
   void testBind() {
     SymbolTable symtab;
-    Type booleanType = d_exprManager->booleanType();
-    Expr x = d_exprManager->mkVar(booleanType);
+    api::Sort booleanType = d_slv->getBooleanSort();
+    api::Term x = d_slv->mkConst(booleanType);
     symtab.bind("x",x);
     TS_ASSERT( symtab.isBound("x") );
     TS_ASSERT_EQUALS( symtab.lookup("x"), x );
@@ -68,9 +71,9 @@ public:
 
   void testBind2() {
     SymbolTable symtab;
-    Type booleanType = d_exprManager->booleanType();
+    api::Sort booleanType = d_slv->getBooleanSort();
     // var name attribute shouldn't matter
-    Expr y = d_exprManager->mkVar("y", booleanType);
+    api::Term y = d_slv->mkConst(booleanType, "y");
     symtab.bind("x",y);
     TS_ASSERT( symtab.isBound("x") );
     TS_ASSERT_EQUALS( symtab.lookup("x"), y );
@@ -78,10 +81,10 @@ public:
 
   void testBind3() {
     SymbolTable symtab;
-    Type booleanType = d_exprManager->booleanType();
-    Expr x = d_exprManager->mkVar(booleanType);
+    api::Sort booleanType = d_slv->getBooleanSort();
+    api::Term x = d_slv->mkConst(booleanType);
     symtab.bind("x",x);
-    Expr y = d_exprManager->mkVar(booleanType);
+    api::Term y = d_slv->mkConst(booleanType);
     // new binding covers old
     symtab.bind("x",y);
     TS_ASSERT( symtab.isBound("x") );
@@ -90,11 +93,11 @@ public:
 
   void testBind4() {
     SymbolTable symtab;
-    Type booleanType = d_exprManager->booleanType();
-    Expr x = d_exprManager->mkVar(booleanType);
+    api::Sort booleanType = d_slv->getBooleanSort();
+    api::Term x = d_slv->mkConst(booleanType);
     symtab.bind("x",x);
 
-    Type t = d_exprManager->mkSort("T");
+    api::Sort t = d_slv->mkUninterpretedSort("T");
     // duplicate binding for type is OK
     symtab.bindType("x",t);
 
@@ -106,7 +109,7 @@ public:
 
   void testBindType() {
     SymbolTable symtab;
-    Type s = d_exprManager->mkSort("S");
+    api::Sort s = d_slv->mkUninterpretedSort("S");
     symtab.bindType("S",s);
     TS_ASSERT( symtab.isBoundType("S") );
     TS_ASSERT_EQUALS( symtab.lookupType("S"), s );
@@ -115,7 +118,7 @@ public:
   void testBindType2() {
     SymbolTable symtab;
     // type name attribute shouldn't matter
-    Type s = d_exprManager->mkSort("S");
+    api::Sort s = d_slv->mkUninterpretedSort("S");
     symtab.bindType("T",s);
     TS_ASSERT( symtab.isBoundType("T") );
     TS_ASSERT_EQUALS( symtab.lookupType("T"), s );
@@ -123,9 +126,9 @@ public:
 
   void testBindType3() {
     SymbolTable symtab;
-    Type s = d_exprManager->mkSort("S");
+    api::Sort s = d_slv->mkUninterpretedSort("S");
     symtab.bindType("S",s);
-    Type t = d_exprManager->mkSort("T");
+    api::Sort t = d_slv->mkUninterpretedSort("T");
     // new binding covers old
     symtab.bindType("S",t);
     TS_ASSERT( symtab.isBoundType("S") );
@@ -134,15 +137,15 @@ public:
 
   void testPushScope() {
     SymbolTable symtab;
-    Type booleanType = d_exprManager->booleanType();
-    Expr x = d_exprManager->mkVar(booleanType);
+    api::Sort booleanType = d_slv->getBooleanSort();
+    api::Term x = d_slv->mkConst(booleanType);
     symtab.bind("x",x);
     symtab.pushScope();
 
     TS_ASSERT( symtab.isBound("x") );
     TS_ASSERT_EQUALS( symtab.lookup("x"), x );
 
-    Expr y = d_exprManager->mkVar(booleanType);
+    api::Term y = d_slv->mkConst(booleanType);
     symtab.bind("x",y);
 
     TS_ASSERT( symtab.isBound("x") );
@@ -156,6 +159,9 @@ public:
   void testBadPop() {
     SymbolTable symtab;
     // TODO: What kind of exception gets thrown here?
-    TS_ASSERT_THROWS( symtab.popScope(), ScopeException );
+    TS_ASSERT_THROWS(symtab.popScope(), ScopeException&);
   }
+
+ private:
+  api::Solver* d_slv;
 };/* class SymbolTableBlack */

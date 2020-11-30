@@ -1,9 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # win32-build script
 # Morgan Deters <mdeters@cs.nyu.edu>
 # Tue, 15 Jan 2013 11:11:24 -0500
 #
+
+set -e -o pipefail
 
 export WINDOWS_BUILD=yes
 export MAKE_CFLAGS=
@@ -24,7 +26,7 @@ while getopts ":s" opt; do
 done
 
 if [ -z "$HOST" ]; then
-  HOST=i686-w64-mingw32
+  HOST=x86_64-w64-mingw32
   echo "WARNING:"
   echo "WARNING: Using default HOST value: $HOST"
   echo "WARNING: You should probably run this script like this:"
@@ -36,7 +38,7 @@ if [ -z "$HOST" ]; then
   echo "WARNING:"
 fi
 
-GMPVERSION=6.1.2
+GMPVERSION=6.2.0
 BOOSTVERSION=1.55.0
 BOOSTBASE=boost_1_55_0
 
@@ -50,10 +52,10 @@ function reporterror {
 }
 
 function webget {
-  if which curl &>/dev/null; then
-    curl -L "$1" >"$2"
-  elif which wget &>/dev/null; then
+  if [ -x "$(command -v wget)" ]; then
     wget -c -O "$2" "$1"
+  elif [ -x "$(command -v curl)" ]; then
+    curl -L "$1" >"$2"
   else
     echo "Can't figure out how to download from web.  Please install wget or curl." >&2
     exit 1
@@ -74,23 +76,16 @@ echo
 MACHINE_TYPE="x86_64" ANTLR_CONFIGURE_ARGS="--host=$HOST" contrib/get-antlr-3.4 | grep -v 'Now configure CVC4 with' | grep -v '\./configure --with-antlr-dir='
 [ ${PIPESTATUS[0]} -eq 0 ] || reporterror
 echo
-echo =============================================================================
-echo
-echo "Setting up GMP $GMPVERSION..."
-echo
-( set -ex
-  mkdir gmp-$GMPVERSION
-  cd gmp-$GMPVERSION
-  gmpprefix=`pwd` &&
-  mkdir src &&
-  cd src &&
-  webget https://gmplib.org/download/gmp/gmp-$GMPVERSION.tar.bz2 gmp-$GMPVERSION.tar.bz2 &&
-  tar xfj gmp-$GMPVERSION.tar.bz2 &&
-  cd gmp-$GMPVERSION &&
-  ./configure --host=$HOST --prefix="$gmpprefix" --enable-cxx ${BUILD_TYPE} &&
-  make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" LDFLAGS="${MAKE_LDFLAGS}" &&
-  make install
-) || exit 1
+
+# Setup GMP
+HOST="$HOST" \
+BUILD_TYPE="$BUILD_TYPE" \
+MAKE_CFLAGS="$MAKE_CFLAGS" \
+MAKE_CXXFLAGS="$MAKE_CXXFLAGS" \
+MAKE_LDFLAGS="$MAKE_LDFLAGS" \
+GMPVERSION="$GMPVERSION" \
+  contrib/get-gmp-dev || reporterror
+
 echo
 echo =============================================================================
 echo

@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Dejan Jovanovic, Liana Hadarean, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -19,7 +19,7 @@
 
 #include <queue>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "base/output.h"
 #include "expr/expr.h"
 #include "expr/node.h"
@@ -31,88 +31,95 @@
 #include "prop/minisat/minisat.h"
 #include "prop/prop_engine.h"
 #include "prop/theory_proxy.h"
-#include "smt/command.h"
+#include "smt/dump.h"
+#include "smt/smt_engine.h"
+#include "printer/printer.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 
-using namespace std;
-using namespace CVC4::kind;
-
 namespace CVC4 {
 namespace prop {
 
-CnfStream::CnfStream(SatSolver* satSolver, Registrar* registrar,
-                     context::Context* context, bool fullLitToNodeMap,
+CnfStream::CnfStream(SatSolver* satSolver,
+                     Registrar* registrar,
+                     context::Context* context,
+                     OutputManager* outMgr,
+                     ResourceManager* rm,
+                     bool fullLitToNodeMap,
                      std::string name)
     : d_satSolver(satSolver),
+      d_outMgr(outMgr),
       d_booleanVariables(context),
       d_nodeToLiteralMap(context),
       d_literalToNodeMap(context),
       d_fullLitToNodeMap(fullLitToNodeMap),
-      d_convertAndAssertCounter(0),
       d_registrar(registrar),
       d_name(name),
-      d_cnfProof(NULL),
-      d_removable(false) {
+      d_cnfProof(nullptr),
+      d_removable(false),
+      d_resourceManager(rm)
+{
 }
 
-TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver, Registrar* registrar,
-                                   context::Context* context,
-                                   bool fullLitToNodeMap, std::string name)
-  : CnfStream(satSolver, registrar, context, fullLitToNodeMap, name)
-{}
-
-void CnfStream::assertClause(TNode node, SatClause& c) {
-  Debug("cnf") << "Inserting into stream " << c << " node = " << node << endl;
-  if(Dump.isOn("clauses")) {
-    if(c.size() == 1) {
-      Dump("clauses") << AssertCommand(Expr(getNode(c[0]).toExpr()));
-    } else {
+bool CnfStream::assertClause(TNode node, SatClause& c)
+{
+  Trace("cnf") << "Inserting into stream " << c << " node = " << node << "\n";
+  if (Dump.isOn("clauses") && d_outMgr != nullptr)
+  {
+    const Printer& printer = d_outMgr->getPrinter();
+    std::ostream& out = d_outMgr->getDumpOut();
+    if (c.size() == 1)
+    {
+      printer.toStreamCmdAssert(out, getNode(c[0]));
+    }
+    else
+    {
       Assert(c.size() > 1);
       NodeBuilder<> b(kind::OR);
-      for(unsigned i = 0; i < c.size(); ++i) {
+      for (unsigned i = 0; i < c.size(); ++i)
+      {
         b << getNode(c[i]);
       }
       Node n = b;
-      Dump("clauses") << AssertCommand(Expr(n.toExpr()));
+      printer.toStreamCmdAssert(out, n);
     }
   }
 
-  PROOF(if (d_cnfProof) d_cnfProof->pushCurrentDefinition(node););
+  ClauseId clauseId = d_satSolver->addClause(c, d_removable);
 
-  ClauseId clause_id = d_satSolver->addClause(c, d_removable);
-  if (clause_id == ClauseIdUndef) return; // nothing to store (no clause was added)
-
-  PROOF
-    (
-     if (d_cnfProof) {
-       Assert (clause_id != ClauseIdError);
-       d_cnfProof->registerConvertedClause(clause_id);
-       d_cnfProof->popCurrentDefinition();
-     }
-    );
+  if (d_cnfProof && clauseId != ClauseIdUndef)
+  {
+    d_cnfProof->registerConvertedClause(clauseId);
+  }
+  return clauseId != ClauseIdUndef;
 }
 
-void CnfStream::assertClause(TNode node, SatLiteral a) {
+bool CnfStream::assertClause(TNode node, SatLiteral a)
+{
   SatClause clause(1);
   clause[0] = a;
-  assertClause(node, clause);
+  return assertClause(node, clause);
 }
 
-void CnfStream::assertClause(TNode node, SatLiteral a, SatLiteral b) {
+bool CnfStream::assertClause(TNode node, SatLiteral a, SatLiteral b)
+{
   SatClause clause(2);
   clause[0] = a;
   clause[1] = b;
-  assertClause(node, clause);
+  return assertClause(node, clause);
 }
 
-void CnfStream::assertClause(TNode node, SatLiteral a, SatLiteral b, SatLiteral c) {
+bool CnfStream::assertClause(TNode node,
+                             SatLiteral a,
+                             SatLiteral b,
+                             SatLiteral c)
+{
   SatClause clause(3);
   clause[0] = a;
   clause[1] = b;
   clause[2] = c;
-  assertClause(node, clause);
+  return assertClause(node, clause);
 }
 
 bool CnfStream::hasLiteral(TNode n) const {
@@ -120,11 +127,12 @@ bool CnfStream::hasLiteral(TNode n) const {
   return find != d_nodeToLiteralMap.end();
 }
 
-void TseitinCnfStream::ensureLiteral(TNode n, bool noPreregistration) {
+void CnfStream::ensureLiteral(TNode n, bool noPreregistration)
+{
   // These are not removable and have no proof ID
   d_removable = false;
 
-  Debug("cnf") << "ensureLiteral(" << n << ")" << endl;
+  Trace("cnf") << "ensureLiteral(" << n << ")\n";
   if(hasLiteral(n)) {
     SatLiteral lit = getLiteral(n);
     if(!d_literalToNodeMap.contains(lit)){
@@ -135,12 +143,14 @@ void TseitinCnfStream::ensureLiteral(TNode n, bool noPreregistration) {
     return;
   }
 
-  AlwaysAssertArgument(n.getType().isBoolean(), n,
-                       "CnfStream::ensureLiteral() requires a node of Boolean type.\n"
-                       "got node: %s\n"
-                       "its type: %s\n",
-                       n.toString().c_str(),
-                       n.getType().toString().c_str());
+  AlwaysAssertArgument(
+      n.getType().isBoolean(),
+      n,
+      "CnfStream::ensureLiteral() requires a node of Boolean type.\n"
+      "got node: %s\n"
+      "its type: %s\n",
+      n.toString().c_str(),
+      n.getType().toString().c_str());
 
   bool negated CVC4_UNUSED = false;
   SatLiteral lit;
@@ -155,7 +165,24 @@ void TseitinCnfStream::ensureLiteral(TNode n, bool noPreregistration) {
     // If we were called with something other than a theory atom (or
     // Boolean variable), we get a SatLiteral that is definitionally
     // equal to it.
+    //
+    // We are setting the current assertion to be null. This is because `toCNF`
+    // may add clauses to the SAT solver and we look up the current assertion
+    // in that case. Setting it to null ensures that the assertion stack is
+    // non-empty and that we are not associating a bogus assertion with the
+    // clause. This should be ok because we use the mapping back to assertions
+    // for clauses from input assertions only.
+    if (d_cnfProof)
+    {
+      d_cnfProof->pushCurrentAssertion(Node::null());
+    }
+
     lit = toCNF(n, false);
+
+    if (d_cnfProof)
+    {
+      d_cnfProof->popCurrentAssertion();
+    }
 
     // Store backward-mappings
     // These may already exist
@@ -171,20 +198,25 @@ void TseitinCnfStream::ensureLiteral(TNode n, bool noPreregistration) {
 }
 
 SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister, bool canEliminate) {
-  Debug("cnf") << d_name << "::newLiteral(" << node << ", " << isTheoryAtom << ")" << endl;
+  Trace("cnf") << d_name << "::newLiteral(" << node << ", " << isTheoryAtom
+               << ")\n"
+               << push;
   Assert(node.getKind() != kind::NOT);
 
   // Get the literal for this node
   SatLiteral lit;
   if (!hasLiteral(node)) {
+    Trace("cnf") << d_name << "::newLiteral: node already registered\n";
     // If no literal, we'll make one
     if (node.getKind() == kind::CONST_BOOLEAN) {
+      Trace("cnf") << d_name << "::newLiteral: boolean const\n";
       if (node.getConst<bool>()) {
         lit = SatLiteral(d_satSolver->trueVar());
       } else {
         lit = SatLiteral(d_satSolver->falseVar());
       }
     } else {
+      Trace("cnf") << d_name << "::newLiteral: new var\n";
       lit = SatLiteral(d_satSolver->newVar(isTheoryAtom, preRegister, canEliminate));
     }
     d_nodeToLiteralMap.insert(node, lit);
@@ -207,17 +239,26 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
     d_registrar->preRegister(node);
     d_removable = backupRemovable;
   }
-
   // Here, you can have it
-  Debug("cnf") << "newLiteral(" << node << ") => " << lit << endl;
-
+  Trace("cnf") << "newLiteral(" << node << ") => " << lit << "\n" << pop;
   return lit;
 }
 
 TNode CnfStream::getNode(const SatLiteral& literal) {
-  Debug("cnf") << "getNode(" << literal << ")" << endl;
-  Debug("cnf") << "getNode(" << literal << ") => " << d_literalToNodeMap[literal] << endl;
+  Trace("cnf") << "getNode(" << literal << ")\n";
+  Trace("cnf") << "getNode(" << literal << ") => "
+               << d_literalToNodeMap[literal] << "\n";
   return d_literalToNodeMap[literal];
+}
+
+const CnfStream::NodeToLiteralMap& CnfStream::getTranslationCache() const
+{
+  return d_nodeToLiteralMap;
+}
+
+const CnfStream::LiteralToNodeMap& CnfStream::getNodeCache() const
+{
+  return d_literalToNodeMap;
 }
 
 void CnfStream::getBooleanVariables(std::vector<TNode>& outputVariables) const {
@@ -228,23 +269,26 @@ void CnfStream::getBooleanVariables(std::vector<TNode>& outputVariables) const {
 }
 
 void CnfStream::setProof(CnfProof* proof) {
-  Assert (d_cnfProof == NULL);
+  Assert(d_cnfProof == NULL);
   d_cnfProof = proof;
 }
 
 SatLiteral CnfStream::convertAtom(TNode node, bool noPreregistration) {
-  Debug("cnf") << "convertAtom(" << node << ")" << endl;
+  Trace("cnf") << "convertAtom(" << node << ")\n";
 
-  Assert(!hasLiteral(node), "atom already mapped!");
+  Assert(!hasLiteral(node)) << "atom already mapped!";
 
   bool theoryLiteral = false;
   bool canEliminate = true;
   bool preRegister = false;
 
   // Is this a variable add it to the list
-  if (node.isVar() && node.getKind()!=BOOLEAN_TERM_VARIABLE) {
+  if (node.isVar() && node.getKind() != kind::BOOLEAN_TERM_VARIABLE)
+  {
     d_booleanVariables.push_back(node);
-  } else {
+  }
+  else
+  {
     theoryLiteral = true;
     canEliminate = false;
     preRegister = !noPreregistration;
@@ -257,22 +301,24 @@ SatLiteral CnfStream::convertAtom(TNode node, bool noPreregistration) {
 }
 
 SatLiteral CnfStream::getLiteral(TNode node) {
-  Assert(!node.isNull(), "CnfStream: can't getLiteral() of null node");
+  Assert(!node.isNull()) << "CnfStream: can't getLiteral() of null node";
 
-  Assert(d_nodeToLiteralMap.contains(node),
-         "Literal not in the CNF Cache: %s\n",
-         node.toString().c_str());
+  Assert(d_nodeToLiteralMap.contains(node))
+      << "Literal not in the CNF Cache: " << node << "\n";
 
   SatLiteral literal = d_nodeToLiteralMap[node];
-  Debug("cnf") << "CnfStream::getLiteral(" << node << ") => " << literal << std::endl;
+  Trace("cnf") << "CnfStream::getLiteral(" << node << ") => " << literal
+               << "\n";
   return literal;
 }
 
-SatLiteral TseitinCnfStream::handleXor(TNode xorNode) {
-  Assert(!hasLiteral(xorNode), "Atom already mapped!");
-  Assert(xorNode.getKind() == XOR, "Expecting an XOR expression!");
-  Assert(xorNode.getNumChildren() == 2, "Expecting exactly 2 children!");
-  Assert(!d_removable, "Removable clauses can not contain Boolean structure");
+SatLiteral CnfStream::handleXor(TNode xorNode)
+{
+  Assert(!hasLiteral(xorNode)) << "Atom already mapped!";
+  Assert(xorNode.getKind() == kind::XOR) << "Expecting an XOR expression!";
+  Assert(xorNode.getNumChildren() == 2) << "Expecting exactly 2 children!";
+  Assert(!d_removable) << "Removable clauses can not contain Boolean structure";
+  Trace("cnf") << "CnfStream::handleXor(" << xorNode << ")\n";
 
   SatLiteral a = toCNF(xorNode[0]);
   SatLiteral b = toCNF(xorNode[1]);
@@ -287,11 +333,13 @@ SatLiteral TseitinCnfStream::handleXor(TNode xorNode) {
   return xorLit;
 }
 
-SatLiteral TseitinCnfStream::handleOr(TNode orNode) {
-  Assert(!hasLiteral(orNode), "Atom already mapped!");
-  Assert(orNode.getKind() == OR, "Expecting an OR expression!");
-  Assert(orNode.getNumChildren() > 1, "Expecting more then 1 child!");
-  Assert(!d_removable, "Removable clauses can not contain Boolean structure");
+SatLiteral CnfStream::handleOr(TNode orNode)
+{
+  Assert(!hasLiteral(orNode)) << "Atom already mapped!";
+  Assert(orNode.getKind() == kind::OR) << "Expecting an OR expression!";
+  Assert(orNode.getNumChildren() > 1) << "Expecting more then 1 child!";
+  Assert(!d_removable) << "Removable clauses can not contain Boolean structure";
+  Trace("cnf") << "CnfStream::handleOr(" << orNode << ")\n";
 
   // Number of children
   unsigned n_children = orNode.getNumChildren();
@@ -324,11 +372,13 @@ SatLiteral TseitinCnfStream::handleOr(TNode orNode) {
   return orLit;
 }
 
-SatLiteral TseitinCnfStream::handleAnd(TNode andNode) {
-  Assert(!hasLiteral(andNode), "Atom already mapped!");
-  Assert(andNode.getKind() == AND, "Expecting an AND expression!");
-  Assert(andNode.getNumChildren() > 1, "Expecting more than 1 child!");
-  Assert(!d_removable, "Removable clauses can not contain Boolean structure");
+SatLiteral CnfStream::handleAnd(TNode andNode)
+{
+  Assert(!hasLiteral(andNode)) << "Atom already mapped!";
+  Assert(andNode.getKind() == kind::AND) << "Expecting an AND expression!";
+  Assert(andNode.getNumChildren() > 1) << "Expecting more than 1 child!";
+  Assert(!d_removable) << "Removable clauses can not contain Boolean structure";
+  Trace("cnf") << "handleAnd(" << andNode << ")\n";
 
   // Number of children
   unsigned n_children = andNode.getNumChildren();
@@ -361,11 +411,14 @@ SatLiteral TseitinCnfStream::handleAnd(TNode andNode) {
   return andLit;
 }
 
-SatLiteral TseitinCnfStream::handleImplies(TNode impliesNode) {
-  Assert(!hasLiteral(impliesNode), "Atom already mapped!");
-  Assert(impliesNode.getKind() == IMPLIES, "Expecting an IMPLIES expression!");
-  Assert(impliesNode.getNumChildren() == 2, "Expecting exactly 2 children!");
-  Assert(!d_removable, "Removable clauses can not contain Boolean structure");
+SatLiteral CnfStream::handleImplies(TNode impliesNode)
+{
+  Assert(!hasLiteral(impliesNode)) << "Atom already mapped!";
+  Assert(impliesNode.getKind() == kind::IMPLIES)
+      << "Expecting an IMPLIES expression!";
+  Assert(impliesNode.getNumChildren() == 2) << "Expecting exactly 2 children!";
+  Assert(!d_removable) << "Removable clauses can not contain Boolean structure";
+  Trace("cnf") << "handleImplies(" << impliesNode << ")\n";
 
   // Convert the children to cnf
   SatLiteral a = toCNF(impliesNode[0]);
@@ -386,13 +439,13 @@ SatLiteral TseitinCnfStream::handleImplies(TNode impliesNode) {
   return impliesLit;
 }
 
-
-SatLiteral TseitinCnfStream::handleIff(TNode iffNode) {
-  Assert(!hasLiteral(iffNode), "Atom already mapped!");
-  Assert(iffNode.getKind() == EQUAL, "Expecting an EQUAL expression!");
-  Assert(iffNode.getNumChildren() == 2, "Expecting exactly 2 children!");
-
-  Debug("cnf") << "handleIff(" << iffNode << ")" << endl;
+SatLiteral CnfStream::handleIff(TNode iffNode)
+{
+  Assert(!hasLiteral(iffNode)) << "Atom already mapped!";
+  Assert(iffNode.getKind() == kind::EQUAL) << "Expecting an EQUAL expression!";
+  Assert(iffNode.getNumChildren() == 2) << "Expecting exactly 2 children!";
+  Assert(!d_removable) << "Removable clauses can not contain Boolean structure";
+  Trace("cnf") << "handleIff(" << iffNode << ")\n";
 
   // Convert the children to CNF
   SatLiteral a = toCNF(iffNode[0]);
@@ -418,23 +471,14 @@ SatLiteral TseitinCnfStream::handleIff(TNode iffNode) {
   return iffLit;
 }
 
-
-SatLiteral TseitinCnfStream::handleNot(TNode notNode) {
-  Assert(!hasLiteral(notNode), "Atom already mapped!");
-  Assert(notNode.getKind() == NOT, "Expecting a NOT expression!");
-  Assert(notNode.getNumChildren() == 1, "Expecting exactly 1 child!");
-
-  SatLiteral notLit = ~toCNF(notNode[0]);
-
-  return notLit;
-}
-
-SatLiteral TseitinCnfStream::handleIte(TNode iteNode) {
-  Assert(iteNode.getKind() == ITE);
+SatLiteral CnfStream::handleIte(TNode iteNode)
+{
+  Assert(!hasLiteral(iteNode)) << "Atom already mapped!";
+  Assert(iteNode.getKind() == kind::ITE);
   Assert(iteNode.getNumChildren() == 3);
-  Assert(!d_removable, "Removable clauses can not contain Boolean structure");
-
-  Debug("cnf") << "handleIte(" << iteNode[0] << " " << iteNode[1] << " " << iteNode[2] << ")" << endl;
+  Assert(!d_removable) << "Removable clauses can not contain Boolean structure";
+  Trace("cnf") << "handleIte(" << iteNode[0] << " " << iteNode[1] << " "
+               << iteNode[2] << ")\n";
 
   SatLiteral condLit = toCNF(iteNode[0]);
   SatLiteral thenLit = toCNF(iteNode[1]);
@@ -465,69 +509,52 @@ SatLiteral TseitinCnfStream::handleIte(TNode iteNode) {
   return iteLit;
 }
 
-
-SatLiteral TseitinCnfStream::toCNF(TNode node, bool negated) {
-  Debug("cnf") << "toCNF(" << node << ", negated = " << (negated ? "true" : "false") << ")" << endl;
-
+SatLiteral CnfStream::toCNF(TNode node, bool negated)
+{
+  Trace("cnf") << "toCNF(" << node
+               << ", negated = " << (negated ? "true" : "false") << ")\n";
   SatLiteral nodeLit;
   Node negatedNode = node.notNode();
 
   // If the non-negated node has already been translated, get the translation
   if(hasLiteral(node)) {
-    Debug("cnf") << "toCNF(): already translated" << endl;
+    Trace("cnf") << "toCNF(): already translated\n";
     nodeLit = getLiteral(node);
-  } else {
-    // Handle each Boolean operator case
-    switch(node.getKind()) {
-    case NOT:
-      nodeLit = handleNot(node);
-      break;
-    case XOR:
-      nodeLit = handleXor(node);
-      break;
-    case ITE:
-      nodeLit = handleIte(node);
-      break;
-    case IMPLIES:
-      nodeLit = handleImplies(node);
-      break;
-    case OR:
-      nodeLit = handleOr(node);
-      break;
-    case AND:
-      nodeLit = handleAnd(node);
-      break;
-    case EQUAL:
-      if(node[0].getType().isBoolean()) {
-        nodeLit = handleIff(node);
-      } else {
-        nodeLit = convertAtom(node);
-      }
+    // Return the (maybe negated) literal
+    return !negated ? nodeLit : ~nodeLit;
+  }
+  // Handle each Boolean operator case
+  switch (node.getKind())
+  {
+    case kind::NOT: nodeLit = ~toCNF(node[0]); break;
+    case kind::XOR: nodeLit = handleXor(node); break;
+    case kind::ITE: nodeLit = handleIte(node); break;
+    case kind::IMPLIES: nodeLit = handleImplies(node); break;
+    case kind::OR: nodeLit = handleOr(node); break;
+    case kind::AND: nodeLit = handleAnd(node); break;
+    case kind::EQUAL:
+      nodeLit =
+          node[0].getType().isBoolean() ? handleIff(node) : convertAtom(node);
       break;
     default:
-      {
-        //TODO make sure this does not contain any boolean substructure
-        nodeLit = convertAtom(node);
-        //Unreachable();
-        //Node atomic = handleNonAtomicNode(node);
-        //return isCached(atomic) ? lookupInCache(atomic) : convertAtom(atomic);
-      }
-      break;
+    {
+      nodeLit = convertAtom(node);
     }
+    break;
   }
-
-  // Return the appropriate (negated) literal
-  if (!negated) return nodeLit;
-  else return ~nodeLit;
+  // Return the (maybe negated) literal
+  return !negated ? nodeLit : ~nodeLit;
 }
 
-void TseitinCnfStream::convertAndAssertAnd(TNode node, bool negated) {
-  Assert(node.getKind() == AND);
+void CnfStream::convertAndAssertAnd(TNode node, bool negated)
+{
+  Assert(node.getKind() == kind::AND);
+  Trace("cnf") << "CnfStream::convertAndAssertAnd(" << node
+               << ", negated = " << (negated ? "true" : "false") << ")\n";
   if (!negated) {
     // If the node is a conjunction, we handle each conjunct separately
     for(TNode::const_iterator conjunct = node.begin(), node_end = node.end();
         conjunct != node_end; ++conjunct ) {
-      PROOF(if (d_cnfProof) d_cnfProof->setCnfDependence(*conjunct, node););
       convertAndAssert(*conjunct, false);
     }
   } else {
@@ -536,7 +563,7 @@ void TseitinCnfStream::convertAndAssertAnd(TNode node, bool negated) {
     SatClause clause(nChildren);
     TNode::const_iterator disjunct = node.begin();
     for(int i = 0; i < nChildren; ++ disjunct, ++ i) {
-      Assert( disjunct != node.end() );
+      Assert(disjunct != node.end());
       clause[i] = toCNF(*disjunct, true);
     }
     Assert(disjunct == node.end());
@@ -544,15 +571,18 @@ void TseitinCnfStream::convertAndAssertAnd(TNode node, bool negated) {
   }
 }
 
-void TseitinCnfStream::convertAndAssertOr(TNode node, bool negated) {
-  Assert(node.getKind() == OR);
+void CnfStream::convertAndAssertOr(TNode node, bool negated)
+{
+  Assert(node.getKind() == kind::OR);
+  Trace("cnf") << "CnfStream::convertAndAssertOr(" << node
+               << ", negated = " << (negated ? "true" : "false") << ")\n";
   if (!negated) {
     // If the node is a disjunction, we construct a clause and assert it
     int nChildren = node.getNumChildren();
     SatClause clause(nChildren);
     TNode::const_iterator disjunct = node.begin();
     for(int i = 0; i < nChildren; ++ disjunct, ++ i) {
-      Assert( disjunct != node.end() );
+      Assert(disjunct != node.end());
       clause[i] = toCNF(*disjunct, false);
     }
     Assert(disjunct == node.end());
@@ -561,13 +591,16 @@ void TseitinCnfStream::convertAndAssertOr(TNode node, bool negated) {
     // If the node is a conjunction, we handle each conjunct separately
     for(TNode::const_iterator conjunct = node.begin(), node_end = node.end();
         conjunct != node_end; ++conjunct ) {
-      PROOF(if (d_cnfProof) d_cnfProof->setCnfDependence((*conjunct).negate(), node.negate()););
       convertAndAssert(*conjunct, true);
     }
   }
 }
 
-void TseitinCnfStream::convertAndAssertXor(TNode node, bool negated) {
+void CnfStream::convertAndAssertXor(TNode node, bool negated)
+{
+  Assert(node.getKind() == kind::XOR);
+  Trace("cnf") << "CnfStream::convertAndAssertXor(" << node
+               << ", negated = " << (negated ? "true" : "false") << ")\n";
   if (!negated) {
     // p XOR q
     SatLiteral p = toCNF(node[0], false);
@@ -597,7 +630,11 @@ void TseitinCnfStream::convertAndAssertXor(TNode node, bool negated) {
   }
 }
 
-void TseitinCnfStream::convertAndAssertIff(TNode node, bool negated) {
+void CnfStream::convertAndAssertIff(TNode node, bool negated)
+{
+  Assert(node.getKind() == kind::EQUAL);
+  Trace("cnf") << "CnfStream::convertAndAssertIff(" << node
+               << ", negated = " << (negated ? "true" : "false") << ")\n";
   if (!negated) {
     // p <=> q
     SatLiteral p = toCNF(node[0], false);
@@ -627,7 +664,11 @@ void TseitinCnfStream::convertAndAssertIff(TNode node, bool negated) {
   }
 }
 
-void TseitinCnfStream::convertAndAssertImplies(TNode node, bool negated) {
+void CnfStream::convertAndAssertImplies(TNode node, bool negated)
+{
+  Assert(node.getKind() == kind::IMPLIES);
+  Trace("cnf") << "CnfStream::convertAndAssertImplies(" << node
+               << ", negated = " << (negated ? "true" : "false") << ")\n";
   if (!negated) {
     // p => q
     SatLiteral p = toCNF(node[0], false);
@@ -638,21 +679,26 @@ void TseitinCnfStream::convertAndAssertImplies(TNode node, bool negated) {
     clause[1] = q;
     assertClause(node, clause);
   } else {// Construct the
-    PROOF(if (d_cnfProof) d_cnfProof->setCnfDependence(node[0], node.negate()););
-    PROOF(if (d_cnfProof) d_cnfProof->setCnfDependence(node[1].negate(), node.negate()););
     // !(p => q) is the same as (p && ~q)
     convertAndAssert(node[0], false);
     convertAndAssert(node[1], true);
   }
 }
 
-void TseitinCnfStream::convertAndAssertIte(TNode node, bool negated) {
+void CnfStream::convertAndAssertIte(TNode node, bool negated)
+{
+  Assert(node.getKind() == kind::ITE);
+  Trace("cnf") << "CnfStream::convertAndAssertIte(" << node
+               << ", negated = " << (negated ? "true" : "false") << ")\n";
   // ITE(p, q, r)
   SatLiteral p = toCNF(node[0], false);
   SatLiteral q = toCNF(node[1], negated);
   SatLiteral r = toCNF(node[2], negated);
   // Construct the clauses:
   // (p => q) and (!p => r)
+  //
+  // Note that below q and r can be used directly because whether they are
+  // negated has been push to the literal definitions above
   Node nnode = node;
   if( negated ){
     nnode = node.negate();
@@ -670,79 +716,58 @@ void TseitinCnfStream::convertAndAssertIte(TNode node, bool negated) {
 // At the top level we must ensure that all clauses that are asserted are
 // not unit, except for the direct assertions. This allows us to remove the
 // clauses later when they are not needed anymore (lemmas for example).
-void TseitinCnfStream::convertAndAssert(TNode node,
-                                        bool removable,
-                                        bool negated,
-                                        ProofRule proof_id,
-                                        TNode from) {
-  Debug("cnf") << "convertAndAssert(" << node
-               << ", removable = " << (removable ? "true" : "false")
-               << ", negated = " << (negated ? "true" : "false") << ")" << endl;
+void CnfStream::convertAndAssert(TNode node,
+                                 bool removable,
+                                 bool negated,
+                                 bool input)
+{
+  Trace("cnf") << "convertAndAssert(" << node
+               << ", negated = " << (negated ? "true" : "false")
+               << ", removable = " << (removable ? "true" : "false") << ")\n";
   d_removable = removable;
-  PROOF
-    (if (d_cnfProof) {
-      Node assertion = negated ? node.notNode() : (Node)node;
-      Node from_assertion = negated? from.notNode() : (Node) from;
 
-      if (proof_id != RULE_INVALID) {
-        d_cnfProof->pushCurrentAssertion(from.isNull() ? assertion : from_assertion);
-        d_cnfProof->registerAssertion(from.isNull() ? assertion : from_assertion, proof_id);
-      }
-      else {
-        d_cnfProof->pushCurrentAssertion(assertion);
-        d_cnfProof->registerAssertion(assertion, proof_id);
-      }
-    });
-
+  if (d_cnfProof)
+  {
+    d_cnfProof->pushCurrentAssertion(negated ? node.notNode() : (Node)node,
+                                     input);
+  }
   convertAndAssert(node, negated);
-  PROOF
-    (if (d_cnfProof) {
-      d_cnfProof->popCurrentAssertion();
-    });
+  if (d_cnfProof)
+  {
+    d_cnfProof->popCurrentAssertion();
+  }
 }
 
-void TseitinCnfStream::convertAndAssert(TNode node, bool negated) {
-  Debug("cnf") << "convertAndAssert(" << node
-               << ", negated = " << (negated ? "true" : "false") << ")" << endl;
+void CnfStream::convertAndAssert(TNode node, bool negated)
+{
+  Trace("cnf") << "convertAndAssert(" << node
+               << ", negated = " << (negated ? "true" : "false") << ")\n";
 
-  if (d_convertAndAssertCounter % ResourceManager::getFrequencyCount() == 0) {
-    NodeManager::currentResourceManager()->spendResource(options::cnfStep());
-    d_convertAndAssertCounter = 0;
-  }
-  ++d_convertAndAssertCounter;
+  d_resourceManager->spendResource(ResourceManager::Resource::CnfStep);
 
   switch(node.getKind()) {
-  case AND:
-    convertAndAssertAnd(node, negated);
-    break;
-  case OR:
-    convertAndAssertOr(node, negated);
-    break;
-  case XOR:
-    convertAndAssertXor(node, negated);
-    break;
-  case IMPLIES:
-    convertAndAssertImplies(node, negated);
-    break;
-  case ITE:
-    convertAndAssertIte(node, negated);
-    break;
-  case NOT:
-    convertAndAssert(node[0], !negated);
-    break;
-  case EQUAL:
-    if( node[0].getType().isBoolean() ){
-      convertAndAssertIff(node, negated);
-      break;
-    }
-  default:
-  {
-    Node nnode = node;
-    if( negated ){
-      nnode = node.negate();
-    }
-    // Atoms
-    assertClause(nnode, toCNF(node, negated));
+    case kind::AND: convertAndAssertAnd(node, negated); break;
+    case kind::OR: convertAndAssertOr(node, negated); break;
+    case kind::XOR: convertAndAssertXor(node, negated); break;
+    case kind::IMPLIES: convertAndAssertImplies(node, negated); break;
+    case kind::ITE: convertAndAssertIte(node, negated); break;
+    case kind::NOT: convertAndAssert(node[0], !negated); break;
+    case kind::EQUAL:
+      if (node[0].getType().isBoolean())
+      {
+        convertAndAssertIff(node, negated);
+        break;
+      }
+      CVC4_FALLTHROUGH;
+    default:
+    {
+      Node nnode = node;
+      if (negated)
+      {
+        nnode = node.negate();
+      }
+      // Atoms
+      assertClause(nnode, toCNF(node, negated));
   }
     break;
   }

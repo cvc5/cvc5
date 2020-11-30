@@ -2,10 +2,10 @@
 /*! \file parser_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Christopher L. Conway, Morgan Deters, Tim King
+ **   Christopher L. Conway, Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -19,9 +19,11 @@
 #include <cxxtest/TestSuite.h>
 #include <sstream>
 
+#include "api/cvc4cpp.h"
 #include "base/output.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
+#include "expr/symbol_manager.h"
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/options.h"
@@ -30,75 +32,78 @@
 #include "parser/smt2/smt2.h"
 #include "smt/command.h"
 
-
 using namespace CVC4;
 using namespace CVC4::parser;
 using namespace CVC4::language::input;
 using namespace std;
 
-class ParserBlack {
-  InputLanguage d_lang;
-  ExprManager *d_exprManager;
-
-protected:
+class ParserBlack
+{
+ protected:
   Options d_options;
 
   /* Set up declaration context for expr inputs */
   virtual void setupContext(Parser& parser) {
     /* a, b, c: BOOLEAN */
-    parser.mkVar("a",d_exprManager->booleanType());
-    parser.mkVar("b",d_exprManager->booleanType());
-    parser.mkVar("c",d_exprManager->booleanType());
+    parser.bindVar("a", d_solver->getBooleanSort());
+    parser.bindVar("b", d_solver->getBooleanSort());
+    parser.bindVar("c", d_solver->getBooleanSort());
     /* t, u, v: TYPE */
-    Type t = parser.mkSort("t");
-    Type u = parser.mkSort("u");
-    Type v = parser.mkSort("v");
+    api::Sort t = parser.mkSort("t");
+    api::Sort u = parser.mkSort("u");
+    api::Sort v = parser.mkSort("v");
     /* f : t->u; g: u->v; h: v->t; */
-    parser.mkVar("f", d_exprManager->mkFunctionType(t,u));
-    parser.mkVar("g", d_exprManager->mkFunctionType(u,v));
-    parser.mkVar("h", d_exprManager->mkFunctionType(v,t));
+    parser.bindVar("f", d_solver->mkFunctionSort(t, u));
+    parser.bindVar("g", d_solver->mkFunctionSort(u, v));
+    parser.bindVar("h", d_solver->mkFunctionSort(v, t));
     /* x:t; y:u; z:v; */
-    parser.mkVar("x",t);
-    parser.mkVar("y",u);
-    parser.mkVar("z",v);
+    parser.bindVar("x", t);
+    parser.bindVar("y", u);
+    parser.bindVar("z", v);
   }
 
-  void tryGoodInput(const string goodInput) {
-      try {
-//        Debug.on("parser");
-//         Debug.on("parser-extra");
-//        cerr << "Testing good input: <<" << goodInput << ">>" << endl;
-//        istringstream stream(goodInputs[i]);
-        Parser *parser =
-          ParserBuilder(d_exprManager,"test")
-            .withStringInput(goodInput)
-            .withOptions(d_options)
-            .withInputLanguage(d_lang)
-            .build();
-        TS_ASSERT( !parser->done() );
-        Command* cmd;
-        while((cmd = parser->nextCommand()) != NULL) {
-          Debug("parser") << "Parsed command: " << (*cmd) << endl;
-          delete cmd;
-        }
-
-        TS_ASSERT( parser->done() );
-        delete parser;
-//        Debug.off("parser");
-//        Debug.off("parser-extra");
-      } catch (Exception& e) {
-        cout << "\nGood input failed:\n" << goodInput << endl
-             << e << endl;
-//        Debug.off("parser");
-        throw;
+  void tryGoodInput(const string goodInput)
+  {
+    try
+    {
+      //        Debug.on("parser");
+      //         Debug.on("parser-extra");
+      //        cerr << "Testing good input: <<" << goodInput << ">>" << endl;
+      //        istringstream stream(goodInputs[i]);
+      d_symman.reset(new SymbolManager(d_solver.get()));
+      Parser* parser = ParserBuilder(d_solver.get(), d_symman.get(), "test")
+                           .withStringInput(goodInput)
+                           .withOptions(d_options)
+                           .withInputLanguage(d_lang)
+                           .build();
+      TS_ASSERT(!parser->done());
+      Command* cmd;
+      while ((cmd = parser->nextCommand()) != NULL)
+      {
+        Debug("parser") << "Parsed command: " << (*cmd) << endl;
+        delete cmd;
       }
+
+      TS_ASSERT(parser->done());
+      delete parser;
+      //        Debug.off("parser");
+      //        Debug.off("parser-extra");
+    }
+    catch (Exception& e)
+    {
+      cout << "\nGood input failed:\n" << goodInput << endl << e << endl;
+      //        Debug.off("parser");
+      throw;
+    }
   }
 
-  void tryBadInput(const string badInput, bool strictMode = false) {
-//      cerr << "Testing bad input: '" << badInput << "'\n";
-//      Debug.on("parser");
+  void tryBadInput(const string badInput, bool strictMode = false)
+  {
+    //      cerr << "Testing bad input: '" << badInput << "'\n";
+    //      Debug.on("parser");
 
-    Parser* parser = ParserBuilder(d_exprManager, "test")
+    d_symman.reset(new SymbolManager(d_solver.get()));
+    Parser* parser = ParserBuilder(d_solver.get(), d_symman.get(), "test")
                          .withStringInput(badInput)
                          .withOptions(d_options)
                          .withInputLanguage(d_lang)
@@ -107,7 +112,8 @@ protected:
     TS_ASSERT_THROWS(
         {
           Command* cmd;
-          while ((cmd = parser->nextCommand()) != NULL) {
+          while ((cmd = parser->nextCommand()) != NULL)
+          {
             Debug("parser") << "Parsed command: " << (*cmd) << endl;
             delete cmd;
           }
@@ -118,37 +124,48 @@ protected:
     delete parser;
   }
 
-  void tryGoodExpr(const string goodExpr) {
-//    Debug.on("parser");
-//    Debug.on("parser-extra");
-      try {
-//        cerr << "Testing good expr: '" << goodExpr << "'\n";
-        // Debug.on("parser");
-//        istringstream stream(context + goodBooleanExprs[i]);
+  void tryGoodExpr(const string goodExpr)
+  {
+    //    Debug.on("parser");
+    //    Debug.on("parser-extra");
+    try
+    {
+      //        cerr << "Testing good expr: '" << goodExpr << "'\n";
+      // Debug.on("parser");
+      //        istringstream stream(context + goodBooleanExprs[i]);
 
-        Parser *parser =
-          ParserBuilder(d_exprManager,"test")
-            .withStringInput(goodExpr)
-            .withOptions(d_options)
-            .withInputLanguage(d_lang)
-            .build();
+      d_symman.reset(new SymbolManager(d_solver.get()));
+      Parser* parser = ParserBuilder(d_solver.get(), d_symman.get(), "test")
+                           .withStringInput(goodExpr)
+                           .withOptions(d_options)
+                           .withInputLanguage(d_lang)
+                           .build();
 
-        TS_ASSERT( !parser->done() );
-        setupContext(*parser);
-        TS_ASSERT( !parser->done() );
-        Expr e = parser->nextExpression();
-        TS_ASSERT( !e.isNull() );
-        e = parser->nextExpression();
-        TS_ASSERT( parser->done() );
-        TS_ASSERT( e.isNull() );
-        delete parser;
-      } catch (Exception& e) {
-        cout << endl
-             << "Good expr failed." << endl
-             << "Input: <<" << goodExpr << ">>" << endl
-             << "Output: <<" << e << ">>" << endl;
-        throw;
+      if (d_lang == LANG_SMTLIB_V2)
+      {
+        // Use QF_LIA to make multiplication ("*") available
+        std::unique_ptr<Command> cmd(
+            static_cast<Smt2*>(parser)->setLogic("QF_LIA"));
       }
+
+      TS_ASSERT(!parser->done());
+      setupContext(*parser);
+      TS_ASSERT(!parser->done());
+      api::Term e = parser->nextExpression();
+      TS_ASSERT(!e.isNull());
+      e = parser->nextExpression();
+      TS_ASSERT(parser->done());
+      TS_ASSERT(e.isNull());
+      delete parser;
+    }
+    catch (Exception& e)
+    {
+      cout << endl
+           << "Good expr failed." << endl
+           << "Input: <<" << goodExpr << ">>" << endl
+           << "Output: <<" << e << ">>" << endl;
+      throw;
+    }
   }
 
   /* NOTE: The check implemented here may fail if a bad expression
@@ -159,44 +176,57 @@ protected:
    * input was consumed here, so just be careful to avoid valid
    * prefixes in tests.
    */
-  void tryBadExpr(const string badExpr, bool strictMode = false) {
-//    Debug.on("parser");
-//    Debug.on("parser-extra");
-//      cout << "Testing bad expr: '" << badExpr << "'\n";
+  void tryBadExpr(const string badExpr, bool strictMode = false)
+  {
+    //    Debug.on("parser");
+    //    Debug.on("parser-extra");
+    //      cout << "Testing bad expr: '" << badExpr << "'\n";
 
-      Parser *parser =
-        ParserBuilder(d_exprManager,"test")
-          .withStringInput(badExpr)
-          .withOptions(d_options)
-          .withInputLanguage(d_lang)
-          .withStrictMode(strictMode)
-          .build();
-      setupContext(*parser);
-      TS_ASSERT( !parser->done() );
-      TS_ASSERT_THROWS
-        ( Expr e = parser->nextExpression();
-          cout << endl
-               << "Bad expr succeeded." << endl
-               << "Input: <<" << badExpr << ">>" << endl
-               << "Output: <<" << e << ">>" << endl;,
-          const ParserException& );
-      delete parser;
-//    Debug.off("parser");
+    d_symman.reset(new SymbolManager(d_solver.get()));
+    Parser* parser = ParserBuilder(d_solver.get(), d_symman.get(), "test")
+                         .withStringInput(badExpr)
+                         .withOptions(d_options)
+                         .withInputLanguage(d_lang)
+                         .withStrictMode(strictMode)
+                         .build();
+    setupContext(*parser);
+    TS_ASSERT(!parser->done());
+    TS_ASSERT_THROWS(api::Term e = parser->nextExpression();
+                     cout << endl
+                          << "Bad expr succeeded." << endl
+                          << "Input: <<" << badExpr << ">>" << endl
+                          << "Output: <<" << e << ">>" << endl;
+                     , const ParserException&);
+    delete parser;
+    //    Debug.off("parser");
   }
 
   ParserBlack(InputLanguage lang) :
     d_lang(lang) {
   }
 
-  void setUp() {
-    d_exprManager = new ExprManager;
+  virtual ~ParserBlack() {}
+
+  void setUp()
+  {
     d_options.set(options::parseOnly, true);
+    // ensure the old symbol manager is deleted
+    d_symman.reset(nullptr);
+    d_solver.reset(new api::Solver(&d_options));
   }
 
-  void tearDown() {
-    delete d_exprManager;
+  void tearDown()
+  {
+    d_symman.reset(nullptr);
+    d_solver.reset(nullptr);
   }
-};/* class ParserBlack */
+
+ private:
+  InputLanguage d_lang;
+  std::unique_ptr<api::Solver> d_solver;
+  std::unique_ptr<SymbolManager> d_symman;
+
+}; /* class ParserBlack */
 
 class Cvc4ParserTest : public CxxTest::TestSuite, public ParserBlack {
   typedef ParserBlack super;
@@ -204,13 +234,9 @@ class Cvc4ParserTest : public CxxTest::TestSuite, public ParserBlack {
 public:
   Cvc4ParserTest() : ParserBlack(LANG_CVC4) { }
 
-  void setUp() {
-    super::setUp();
-  }
+  void setUp() override { super::setUp(); }
 
-  void tearDown() {
-    super::tearDown();
-  }
+  void tearDown() override { super::tearDown(); }
 
   void testGoodCvc4Inputs() {
     tryGoodInput(""); // empty string is OK
@@ -233,12 +259,13 @@ public:
     tryGoodInput("a : INT = 5; a: INT;"); // decl after define, compatible
     tryGoodInput("a : TYPE; a : INT;"); // ok, sort and variable symbol spaces distinct
     tryGoodInput("a : TYPE; a : INT; b : a;"); // ok except a is both INT and sort `a'
-    //tryGoodInput("a : [0..0]; b : [-5..5]; c : [-1..1]; d : [ _ .._];"); // subranges
-    tryGoodInput("a : [ _..1]; b : [_.. 0]; c :[_..-1];");
     tryGoodInput("DATATYPE list = nil | cons(car:INT,cdr:list) END; DATATYPE cons = null END;");
     tryGoodInput("DATATYPE tree = node(data:list), list = cons(car:tree,cdr:list) | nil END;");
     //tryGoodInput("DATATYPE tree = node(data:[list,list,ARRAY tree OF list]), list = cons(car:ARRAY list OF tree,cdr:BITVECTOR(32)) END;");
-    tryGoodInput("DATATYPE trex = Foo | Bar END; DATATYPE tree = node(data:[list,list,ARRAY trex OF list]), list = cons(car:ARRAY list OF tree,cdr:BITVECTOR(32)) END;");
+    tryGoodInput(
+        "DATATYPE trex = Foo | Bar END; DATATYPE tree = "
+        "node(data:[list,list,ARRAY trex OF list]), list = cons(car:ARRAY list "
+        "OF tree,cdr:BITVECTOR(32)) END;");
   }
 
   void testBadCvc4Inputs() {
@@ -288,93 +315,18 @@ public:
   }
 };/* class Cvc4ParserTest */
 
-class Smt1ParserTest : public CxxTest::TestSuite, public ParserBlack {
-  typedef ParserBlack super;
-
-public:
-  Smt1ParserTest() : ParserBlack(LANG_SMTLIB_V1) { }
-
-  void setUp() {
-    super::setUp();
-  }
-
-  void tearDown() {
-    super::tearDown();
-  }
-
-  void testGoodSmt1Inputs() {
-    tryGoodInput(""); // empty string is OK
-    tryGoodInput("(benchmark foo :assumption true)");
-    tryGoodInput("(benchmark bar :formula true)");
-    tryGoodInput("(benchmark qux :formula false)");
-    tryGoodInput("(benchmark baz :extrapreds ( (a) (b) ) )");
-    tryGoodInput("(benchmark zab :extrapreds ( (a) (b) ) :formula (implies (and (implies a b) a) b))");
-    tryGoodInput("(benchmark zub :extrasorts (a) :extrafuns ( (f a a) (x a) )  :formula (= (f x) x))");
-    tryGoodInput("(benchmark fuz :extrasorts (a) :extrafuns ((x a) (y a)) :formula (= (ite true x y) x))");
-    tryGoodInput(";; nothing but a comment");
-    tryGoodInput("; a comment\n(benchmark foo ; hello\n  :formula true; goodbye\n)");
-  }
-
-  void testBadSmt1Inputs() {
-// competition builds don't do any checking
-#ifndef CVC4_COMPETITION_MODE
-    tryBadInput("(benchmark foo)"); // empty benchmark is not OK
-    tryBadInput("(benchmark bar :assumption)"); // no args
-    tryBadInput("(benchmark bar :formula)");
-    tryBadInput("(benchmark baz :extrapreds ( (a) (a) ) )"); // double decl
-    tryBadInput("(benchmark zub :extrasorts (a) :extrapreds (p a))"); // (p a) needs parens
-#endif /* ! CVC4_COMPETITION_MODE */
-  }
-
-  void testGoodSmt1Exprs() {
-    tryGoodExpr("(and a b)");
-    tryGoodExpr("(or (and a b) c)");
-    tryGoodExpr("(implies (and (implies a b) a) b)");
-    tryGoodExpr("(and (iff a b) (not a))");
-    tryGoodExpr("(iff (xor a b) (and (or a b) (not (and a b))))");
-    tryGoodExpr("(ite a (f x) y)");
-    tryGoodExpr("(if_then_else a (f x) y)");
-    tryGoodExpr("1");
-    tryGoodExpr("0");
-    tryGoodExpr("1.5");
-  }
-
-  void testBadSmt1Exprs() {
-// competition builds don't do any checking
-#ifndef CVC4_COMPETITION_MODE
-    tryBadExpr("(and)"); // wrong arity
-    tryBadExpr("(and a b"); // no closing paren
-    tryBadExpr("(a and b)"); // infix
-    tryBadExpr("(OR (AND a b) c)"); // wrong case
-    tryBadExpr("(a IMPLIES b)"); // infix AND wrong case
-    tryBadExpr("(not a b)"); // wrong arity
-    tryBadExpr("not a"); // needs parens
-    tryBadExpr("(ite a x)"); // wrong arity
-    tryBadExpr("(a b)"); // using non-function as function
-    tryBadExpr(".5"); // rational constants must have integer prefix
-    tryBadExpr("1."); // rational constants must have fractional suffix
-#endif /* ! CVC4_COMPETITION_MODE */
-  }
-};/* class Smt1ParserTest */
-
 class Smt2ParserTest : public CxxTest::TestSuite, public ParserBlack {
   typedef ParserBlack super;
 
 public:
   Smt2ParserTest() : ParserBlack(LANG_SMTLIB_V2) { }
 
-  void setUp() {
-    super::setUp();
-  }
+  void setUp() override { super::setUp(); }
 
-  void tearDown() {
-    super::tearDown();
-  }
+  void tearDown() override { super::tearDown(); }
 
-  virtual void setupContext(Parser& parser) {
-    if(dynamic_cast<Smt2*>(&parser) != NULL){
-      dynamic_cast<Smt2*>(&parser)->addTheory(Smt2::THEORY_CORE);
-    }
+  void setupContext(Parser& parser) override
+  {
     super::setupContext(parser);
   }
 

@@ -2,10 +2,10 @@
 /*! \file expr_manager_template.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Christopher L. Conway
+ **   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__EXPR_MANAGER_H
-#define __CVC4__EXPR_MANAGER_H
+#ifndef CVC4__EXPR_MANAGER_H
+#define CVC4__EXPR_MANAGER_H
 
 #include <vector>
 
@@ -28,13 +28,11 @@
 
 ${includes}
 
-// This is a hack, but an important one: if there's an error, the
-// compiler directs the user to the template file instead of the
-// generated one.  We don't want the user to modify the generated one,
-// since it'll get overwritten on a later build.
-#line 36 "${template}"
-
 namespace CVC4 {
+
+namespace api {
+class Solver;
+}
 
 class Expr;
 class SmtEngine;
@@ -44,14 +42,9 @@ class IntStat;
 struct ExprManagerMapCollection;
 class ResourceManager;
 
-namespace expr {
-  namespace pickle {
-    class Pickler;
-  }/* CVC4::expr::pickle namespace */
-}/* CVC4::expr namespace */
-
 class CVC4_PUBLIC ExprManager {
-private:
+ private:
+  friend api::Solver;
   /** The internal node manager */
   NodeManager* d_nodeManager;
 
@@ -66,11 +59,6 @@ private:
   NodeManager* getNodeManager() const;
 
   /**
-   * Check some things about a newly-created DatatypeType.
-   */
-  void checkResolvedDatatype(DatatypeType dtt) const;
-
-  /**
    * SmtEngine will use all the internals, so it will grab the
    * NodeManager.
    */
@@ -83,39 +71,17 @@ private:
   friend class NodeManager;
 
   // undefined, private copy constructor and assignment op (disallow copy)
-  ExprManager(const ExprManager&) CVC4_UNDEFINED;
-  ExprManager& operator=(const ExprManager&) CVC4_UNDEFINED;
-
-  std::vector<DatatypeType> d_keep_dtt;
-  std::vector<Datatype> d_keep_dt;
-
-public:
-
-  /**
-   * Creates an expression manager with default options.
-   */
+  ExprManager(const ExprManager&) = delete;
+  ExprManager& operator=(const ExprManager&) = delete;
+  /** Creates an expression manager. */
   ExprManager();
-
-  /**
-   * Creates an expression manager.
-   *
-   * @param options the earlyTypeChecking field is used to configure
-   * whether to do at Expr creation time.
-   */
-  explicit ExprManager(const Options& options);
-
+ public:
   /**
    * Destroys the expression manager. No will be deallocated at this point, so
    * any expression references that used to be managed by this expression
    * manager and are left-over are bad.
    */
   ~ExprManager();
-
-  /** Get this expr manager's options */
-  const Options& getOptions() const;
-
-  /** Get this expr manager's resource manager */
-  ResourceManager* getResourceManager();
 
   /** Get the type for booleans */
   BooleanType booleanType() const;
@@ -301,6 +267,29 @@ public:
   Expr mkAssociative(Kind kind, const std::vector<Expr>& children);
 
   /**
+   * Create an Expr by applying an binary left-associative operator to the
+   * children. For example, mkLeftAssociative( f, { a, b, c } ) returns
+   * f( f( a, b ), c ).
+   */
+  Expr mkLeftAssociative(Kind kind, const std::vector<Expr>& children);
+  /**
+   * Create an Expr by applying an binary right-associative operator to the
+   * children. For example, mkRightAssociative( f, { a, b, c } ) returns
+   * f( a, f( b, c ) ).
+   */
+  Expr mkRightAssociative(Kind kind, const std::vector<Expr>& children);
+
+  /** make chain
+   *
+   * Given a kind k and arguments t_1, ..., t_n, this returns the
+   * conjunction of:
+   *  (k t_1 t_2) .... (k t_{n-1} t_n)
+   * It is expected that k is a kind denoting a predicate, and args is a list
+   * of terms of size >= 2 such that the terms above are well-typed.
+   */
+  Expr mkChain(Kind kind, const std::vector<Expr>& children);
+
+  /**
    * Determine whether Exprs of a particular Kind have operators.
    * @returns true if Exprs of Kind k have operators.
    */
@@ -342,18 +331,6 @@ public:
   FunctionType mkPredicateType(const std::vector<Type>& sorts);
 
   /**
-   * Make a tuple type with types from
-   * <code>types[0..types.size()-1]</code>.  <code>types</code> must
-   * have at least one element.
-   */
-  DatatypeType mkTupleType(const std::vector<Type>& types);
-
-  /**
-   * Make a record type with types from the rec parameter.
-   */
-  DatatypeType mkRecordType(const Record& rec);
-
-  /**
    * Make a symbolic expressiontype with types from
    * <code>types[0..types.size()-1]</code>.  <code>types</code> may
    * have any number of elements.
@@ -372,56 +349,8 @@ public:
   /** Make the type of set with the given parameterization. */
   SetType mkSetType(Type elementType) const;
 
-  /** Make a type representing the given datatype. */
-  DatatypeType mkDatatypeType(Datatype& datatype);
-
-  /**
-   * Make a set of types representing the given datatypes, which may be
-   * mutually recursive.
-   */
-  std::vector<DatatypeType> mkMutualDatatypeTypes(std::vector<Datatype>& datatypes);
-
-  /**
-   * Make a set of types representing the given datatypes, which may
-   * be mutually recursive.  unresolvedTypes is a set of SortTypes
-   * that were used as placeholders in the Datatypes for the Datatypes
-   * of the same name.  This is just a more complicated version of the
-   * above mkMutualDatatypeTypes() function, but is required to handle
-   * complex types.
-   *
-   * For example, unresolvedTypes might contain the single sort "list"
-   * (with that name reported from SortType::getName()).  The
-   * datatypes list might have the single datatype
-   *
-   *   DATATYPE
-   *     list = cons(car:ARRAY INT OF list, cdr:list) | nil;
-   *   END;
-   *
-   * To represent the Type of the array, the user had to create a
-   * placeholder type (an uninterpreted sort) to stand for "list" in
-   * the type of "car".  It is this placeholder sort that should be
-   * passed in unresolvedTypes.  If the datatype was of the simpler
-   * form:
-   *
-   *   DATATYPE
-   *     list = cons(car:list, cdr:list) | nil;
-   *   END;
-   *
-   * then no complicated Type needs to be created, and the above,
-   * simpler form of mkMutualDatatypeTypes() is enough.
-   */
-  std::vector<DatatypeType> mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, std::set<Type>& unresolvedTypes);
-
-  /**
-   * Make a type representing a constructor with the given parameterization.
-   */
-  ConstructorType mkConstructorType(const DatatypeConstructor& constructor, Type range) const;
-
-  /** Make a type representing a selector with the given parameterization. */
-  SelectorType mkSelectorType(Type domain, Type range) const;
-
-  /** Make a type representing a tester with the given parameterization. */
-  TesterType mkTesterType(Type domain) const;
+  /** Make the type of sequence with the given parameterization. */
+  SequenceType mkSequenceType(Type elementType) const;
 
   /** Bits for use in mkSort() flags. */
   enum {
@@ -434,7 +363,8 @@ public:
 
   /** Make a sort constructor from a name and arity. */
   SortConstructorType mkSortConstructor(const std::string& name,
-                                        size_t arity) const;
+                                        size_t arity,
+                                        uint32_t flags = SORT_FLAG_NONE) const;
 
   /**
    * Get the type of an expression.
@@ -490,7 +420,7 @@ public:
 
   /**
    * Create a new, fresh variable for use in a binder expression
-   * (the BOUND_VAR_LIST of a FORALL, EXISTS, or LAMBDA).  It is
+   * (the BOUND_VAR_LIST of a FORALL, EXISTS, LAMBDA, or WITNESS).  It is
    * an error for this bound variable to exist outside of a binder,
    * and it should also only be used in a single binder expression.
    * That is, two distinct FORALL expressions should use entirely
@@ -509,7 +439,7 @@ public:
 
   /**
    * Create a (nameless) new, fresh variable for use in a binder
-   * expression (the BOUND_VAR_LIST of a FORALL, EXISTS, or LAMBDA).
+   * expression (the BOUND_VAR_LIST of a FORALL, EXISTS, LAMBDA, or WITNESS).
    * It is an error for this bound variable to exist outside of a
    * binder, and it should also only be used in a single binder
    * expression.  That is, two distinct FORALL expressions should use
@@ -550,10 +480,14 @@ public:
   /** Returns the maximum arity of the given kind. */
   static unsigned maxArity(Kind kind);
 
+  /** Whether a kind is n-ary. The test is based on n-ary kinds having their
+   * maximal arity as the maximal possible number of children of a node.
+   **/
+  static bool isNAryKind(Kind fun);
 };/* class ExprManager */
 
 ${mkConst_instantiations}
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__EXPR_MANAGER_H */
+#endif /* CVC4__EXPR_MANAGER_H */

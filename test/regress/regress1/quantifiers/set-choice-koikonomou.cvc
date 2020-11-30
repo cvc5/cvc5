@@ -1,0 +1,10 @@
+% EXPECT: entailed
+OPTION "finite-model-find";
+OPTION "fmf-bound-int";
+
+X : SET OF INT;
+
+ASSERT CARD(X) = 3;
+ASSERT FORALL(z: INT): z IS_IN X => (z > 0 AND z < 2);  % 1
+
+QUERY FORALL(z: INT): z IS_IN X => z > 0;

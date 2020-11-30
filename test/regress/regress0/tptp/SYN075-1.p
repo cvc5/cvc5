@@ -1,3 +1,5 @@
+% COMMAND-LINE: --finite-model-find
+
 %--------------------------------------------------------------------------
 % File     : SYN075-1 : TPTP v5.5.0. Released v1.0.0.
 % Domain   : Syntactic

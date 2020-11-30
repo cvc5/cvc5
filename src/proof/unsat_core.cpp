@@ -2,31 +2,42 @@
 /*! \file unsat_core.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Clark Barrett
+ **   Morgan Deters, Clark Barrett, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
  ** \brief Representation of unsat cores
- **
- ** Representation of unsat cores.
  **/
 
 #include "proof/unsat_core.h"
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "expr/expr_iomanip.h"
 #include "options/base_options.h"
 #include "printer/printer.h"
-#include "smt/command.h"
 #include "smt/smt_engine_scope.h"
 
 namespace CVC4 {
 
-void UnsatCore::initMessage() const {
+UnsatCore::UnsatCore(const std::vector<Node>& core)
+    : d_useNames(false), d_core(core), d_names()
+{
   Debug("core") << "UnsatCore size " << d_core.size() << std::endl;
+}
+
+UnsatCore::UnsatCore(std::vector<std::string>& names)
+    : d_useNames(true), d_core(), d_names(names)
+{
+  Debug("core") << "UnsatCore (names) size " << d_names.size() << std::endl;
+}
+
+const std::vector<Node>& UnsatCore::getCore() const { return d_core; }
+const std::vector<std::string>& UnsatCore::getCoreNames() const
+{
+  return d_names;
 }
 
 UnsatCore::const_iterator UnsatCore::begin() const {
@@ -38,8 +49,6 @@ UnsatCore::const_iterator UnsatCore::end() const {
 }
 
 void UnsatCore::toStream(std::ostream& out) const {
-  Assert(d_smt != NULL);
-  smt::SmtScope smts(d_smt);
   expr::ExprDag::Scope scope(out, false);
   Printer::getPrinter(options::outputLanguage())->toStream(out, *this);
 }

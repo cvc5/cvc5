@@ -2,10 +2,10 @@
 /*! \file term_database.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,16 +14,17 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H
-#define __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H
+#ifndef CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H
+#define CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H
 
 #include <map>
 #include <unordered_set>
 
 #include "expr/attribute.h"
+#include "expr/node_trie.h"
+#include "theory/quantifiers/quant_util.h"
 #include "theory/theory.h"
 #include "theory/type_enumerator.h"
-#include "theory/quantifiers/quant_util.h"
 
 namespace CVC4 {
 namespace theory {
@@ -36,67 +37,6 @@ namespace inst{
 }
 
 namespace quantifiers {
-
-/** Term arg trie class
-*
-* This also referred to as a "term index" or a "signature table".
-*
-* This data structure stores a set expressions, indexed by representatives of
-* their arguments.
-*
-* For example, consider the equivalence classes :
-*
-* { a, d, f( d, c ), f( a, c ) }
-* { b, f( b, d ) }
-* { c, f( b, b ) }
-*
-* where the first elements ( a, b, c ) are the representatives of these classes.
-* The TermArgTrie t we may build for f is :
-*
-* t :
-*   t.d_data[a] :
-*     t.d_data[a].d_data[c] :
-*       t.d_data[a].d_data[c].d_data[f(d,c)] : (leaf)
-*   t.d_data[b] :
-*     t.d_data[b].d_data[b] :
-*       t.d_data[b].d_data[b].d_data[f(b,b)] : (leaf)
-*     t.d_data[b].d_data[d] :
-*       t.d_data[b].d_data[d].d_data[f(b,d)] : (leaf)
-*
-* Leaf nodes store the terms that are indexed by the arguments, for example
-* term f(d,c) is indexed by the representative arguments (a,c), and is stored
-* as a the (single) key in the data of t.d_data[a].d_data[c].
-*/
-class TermArgTrie {
-public:
-  /** the data */
-  std::map< TNode, TermArgTrie > d_data;
-public:
- /** for leaf nodes : does this trie have data? */
- bool hasNodeData() { return !d_data.empty(); }
- /** for leaf nodes : get term corresponding to this leaf */
- TNode getNodeData() { return d_data.begin()->first; }
- /** exists term
- * Returns the term that is indexed by reps, if one exists, or
- * or returns null otherwise.
- */
- TNode existsTerm(std::vector<TNode>& reps, int argIndex = 0);
- /** add or get term
- * Returns the term that is previously indexed by reps, if one exists, or
- * Adds n to the trie, indexed by reps, and returns n.
- */
- TNode addOrGetTerm(TNode n, std::vector<TNode>& reps, int argIndex = 0);
- /** add term
- * Returns false if a term is previously indexed by reps.
- * Returns true if no term is previously indexed by reps,
- *   and adds n to the trie, indexed by reps, and returns n.
- */
- bool addTerm(TNode n, std::vector<TNode>& reps, int argIndex = 0);
- /** debug print this trie */
- void debugPrint(const char* c, Node n, unsigned depth = 0);
- /** clear all data from this trie */
- void clear() { d_data.clear(); }
-};/* class TermArgTrie */
 
 namespace fmcheck {
   class FullModelChecker;
@@ -119,12 +59,12 @@ class TermGenEnv;
  * The primary responsibilities for this class are to :
  * (1) Maintain a list of all ground terms that exist in the quantifier-free
  *     solvers, as notified through the master equality engine.
- * (2) Build TermArgTrie objects that index all ground terms, per operator.
+ * (2) Build TNodeTrie objects that index all ground terms, per operator.
  *
  * Like other utilities, its reset(...) function is called
  * at the beginning of full or last call effort checks.
  * This initializes the database for the round. However,
- * notice that TermArgTrie objects are computed
+ * notice that TNodeTrie objects are computed
  * lazily for performance reasons.
  */
 class TermDb : public QuantifiersUtil {
@@ -168,10 +108,11 @@ class TermDb : public QuantifiersUtil {
   */
   Node getTypeGroundTerm(TypeNode tn, unsigned i) const;
   /** get or make ground term
-  * Returns the first ground term of type tn,
-  * or makes one if none exist.
-  */
-  Node getOrMakeTypeGroundTerm(TypeNode tn);
+   *
+   * Returns the first ground term of type tn, or makes one if none exist. If
+   * reqVar is true, then the ground term must be a variable.
+   */
+  Node getOrMakeTypeGroundTerm(TypeNode tn, bool reqVar = false);
   /** make fresh variable
   * Returns a fresh variable of type tn.
   * This will return only a single fresh
@@ -211,10 +152,10 @@ class TermDb : public QuantifiersUtil {
   */
   Node getMatchOperator(Node n);
   /** get term arg index for all f-applications in the current context */
-  TermArgTrie* getTermArgTrie(Node f);
+  TNodeTrie* getTermArgTrie(Node f);
   /** get the term arg trie for f-applications in the equivalence class of eqc.
    */
-  TermArgTrie* getTermArgTrie(Node eqc, Node f);
+  TNodeTrie* getTermArgTrie(Node eqc, Node f);
   /** get congruent term
   * If possible, returns a term t such that:
   * (1) t is a term that is currently indexed by this database,
@@ -238,17 +179,37 @@ class TermDb : public QuantifiersUtil {
   bool inRelevantDomain(TNode f, unsigned i, TNode r);
   /** evaluate term
    *
-  * Returns a term n' such that n = n' is entailed based on the equality
-  * information qy.  This function may generate new terms. In particular,
-  * we typically rewrite maximal
-  * subterms of n to terms that exist in the equality engine specified by qy.
-  *
-  * useEntailmentTests is whether to use the theory engine's entailmentCheck
-  * call, for increased precision. This is not frequently used.
-  */
+   * Returns a term n' such that n = n' is entailed based on the equality
+   * information qy.  This function may generate new terms. In particular,
+   * we typically rewrite subterms of n of maximal size to terms that exist in
+   * the equality engine specified by qy.
+   *
+   * useEntailmentTests is whether to call the theory engine's entailmentTest
+   * on literals n for which this call fails to find a term n' that is
+   * equivalent to n, for increased precision. This is not frequently used.
+   *
+   * The vector exp stores the explanation for why n evaluates to that term,
+   * that is, if this call returns a non-null node n', then:
+   *   exp => n = n'
+   *
+   * If reqHasTerm, then we require that the returned term is a Boolean
+   * combination of terms that exist in the equality engine used by this call.
+   * If no such term is constructable, this call returns null. The motivation
+   * for setting this to true is to "fail fast" if we require the return value
+   * of this function to only involve existing terms. This is used e.g. in
+   * the "propagating instances" portion of conflict-based instantiation
+   * (quant_conflict_find.h).
+   */
+  Node evaluateTerm(TNode n,
+                    std::vector<Node>& exp,
+                    EqualityQuery* qy = NULL,
+                    bool useEntailmentTests = false,
+                    bool reqHasTerm = false);
+  /** same as above, without exp */
   Node evaluateTerm(TNode n,
                     EqualityQuery* qy = NULL,
-                    bool useEntailmentTests = false);
+                    bool useEntailmentTests = false,
+                    bool reqHasTerm = false);
   /** get entailed term
    *
   * If possible, returns a term n' such that:
@@ -310,14 +271,18 @@ class TermDb : public QuantifiersUtil {
   void setTermInactive(Node n);
   /** has term current
    *
-  * This function is used in cases where we restrict which terms appear in the
-  * database, such as for heuristics used in local theory extensions
-  * and for --term-db-mode=relevant.
-  * It returns whether the term n should be indexed in the current context.
-  */
+   * This function is used in cases where we restrict which terms appear in the
+   * database, such as for heuristics used in local theory extensions
+   * and for --term-db-mode=relevant.
+   * It returns whether the term n should be indexed in the current context.
+   *
+   * If the argument useMode is true, then this method returns a value based on
+   * the option options::termDbMode().
+   * Otherwise, it returns the lookup in the map d_has_map.
+   */
   bool hasTermCurrent(Node n, bool useMode = true);
   /** is term eligble for instantiation? */
-  bool isTermEligibleForInstantiation(TNode n, TNode f, bool print = false);
+  bool isTermEligibleForInstantiation(TNode n, TNode f);
   /** get eligible term in equivalence class of r */
   Node getEligibleTermInEqc(TNode r);
   /** is r a inst closure node?
@@ -326,6 +291,14 @@ class TermDb : public QuantifiersUtil {
    * Bansal et al., CAV 2015.
    */
   bool isInstClosure(Node r);
+  /** get higher-order type match predicate
+   *
+   * This predicate is used to force certain functions f of type tn to appear as
+   * first-class representatives in the quantifier-free UF solver. For a typical
+   * use case, we call getHoTypeMatchPredicate which returns a fresh predicate
+   * P of type (tn -> Bool). Then, we add P( f ) as a lemma.
+   */
+  Node getHoTypeMatchPredicate(TypeNode tn);
 
  private:
   /** reference to the quantifiers engine */
@@ -356,18 +329,29 @@ class TermDb : public QuantifiersUtil {
   /** mapping from terms to representatives of their arguments */
   std::map< TNode, std::vector< TNode > > d_arg_reps;
   /** map from operators to trie */
-  std::map< Node, TermArgTrie > d_func_map_trie;
-  std::map< Node, TermArgTrie > d_func_map_eqc_trie;
+  std::map<Node, TNodeTrie> d_func_map_trie;
+  std::map<Node, TNodeTrie> d_func_map_eqc_trie;
   /** mapping from operators to their representative relevant domains */
   std::map< Node, std::map< unsigned, std::vector< Node > > > d_func_map_rel_dom;
   /** has map */
   std::map< Node, bool > d_has_map;
   /** map from reps to a term in eqc in d_has_map */
-  std::map< Node, Node > d_term_elig_eqc;  
+  std::map<Node, Node> d_term_elig_eqc;
+  /**
+   * Dummy predicate that states terms should be considered first-class members
+   * of equality engine (for higher-order).
+   */
+  std::map<TypeNode, Node> d_ho_type_match_pred;
   /** set has term */
   void setHasTerm( Node n );
   /** helper for evaluate term */
-  Node evaluateTerm2( TNode n, std::map< TNode, Node >& visited, EqualityQuery * qy, bool useEntailmentTests );
+  Node evaluateTerm2(TNode n,
+                     std::map<TNode, Node>& visited,
+                     std::vector<Node>& exp,
+                     EqualityQuery* qy,
+                     bool useEntailmentTests,
+                     bool computeExp,
+                     bool reqHasTerm);
   /** helper for get entailed term */
   TNode getEntailedTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, EqualityQuery * qy );
   /** helper for is entailed */
@@ -420,7 +404,7 @@ class TermDb : public QuantifiersUtil {
    *   [1] -> (@ (@ f 0) 1)
    * is an entry in the term index of g. To do this, we maintain a term
    * index for a fresh variable pfun, the purification variable for
-   * (@ f 0). Thus, we register the term (psk 1) in the call to this function
+   * (@ f 0). Thus, we register the term (pfun 1) in the call to this function
    * for (@ (@ f 0) 1). This ensures that, when processing the equality
    * (@ f 0) = g, we merge the term indices of g and pfun. Hence, the entry
    *   [1] -> (@ (@ f 0) 1)
@@ -428,7 +412,7 @@ class TermDb : public QuantifiersUtil {
    * the equivalence class of g and pfun.
    *
    * Above, we set d_ho_fun_op_purify[(@ f 0)] = pfun, and
-   * d_ho_purify_to_term[(@ (@ f 0) 1)] = (psk 1).
+   * d_ho_purify_to_term[(pfun 1)] = (@ (@ f 0) 1).
    */
   void addTermHo(Node n,
                  std::set<Node>& added,
@@ -443,4 +427,4 @@ class TermDb : public QuantifiersUtil {
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H */

@@ -2,10 +2,10 @@
 /*! \file metakind_template.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andres Noetzli, Tim King
+ **   Morgan Deters, Andres Noetzli, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,12 +16,12 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__KIND__METAKIND_H
-#define __CVC4__KIND__METAKIND_H
+#ifndef CVC4__KIND__METAKIND_H
+#define CVC4__KIND__METAKIND_H
 
 #include <iosfwd>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "expr/kind.h"
 
 namespace CVC4 {
@@ -114,21 +114,6 @@ typedef ::CVC4::kind::metakind::MetaKind_t MetaKind;
 MetaKind metaKindOf(Kind k);
 }/* CVC4::kind namespace */
 
-namespace kind {
-namespace metakind {
-
-/* these are #defines so their sum can be #if-checked in node_value.h */
-#define __CVC4__EXPR__NODE_VALUE__NBITS__REFCOUNT 20
-#define __CVC4__EXPR__NODE_VALUE__NBITS__KIND 10
-#define __CVC4__EXPR__NODE_VALUE__NBITS__ID 40
-#define __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN 26
-
-static const unsigned MAX_CHILDREN =
-  (1u << __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN) - 1;
-
-}/* CVC4::kind::metakind namespace */
-}/* CVC4::kind namespace */
-
 namespace expr {
 
 // Comparison predicate
@@ -143,11 +128,11 @@ struct NodeValuePoolEq {
 
 #include "expr/node_value.h"
 
-#endif /* __CVC4__KIND__METAKIND_H */
+#endif /* CVC4__KIND__METAKIND_H */
 
 ${metakind_includes}
 
-#ifdef __CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP
+#ifdef CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP
 
 namespace CVC4 {
 
@@ -216,22 +201,6 @@ Kind operatorToKind(::CVC4::expr::NodeValue* nv);
 
 }/* CVC4::kind namespace */
 
-#line 220 "${template}"
-
-namespace theory {
-
-static inline bool useTheoryValidate(std::string theory) {
-${use_theory_validations}
-  return false;
-}
-
-static const char *const useTheoryHelp = "\
-The following options are valid alternate implementations for use with\n\
-the --use-theory option:\n\
-\n\
-${theory_alternate_doc}";
-
-}/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP */
+#endif /* CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP */

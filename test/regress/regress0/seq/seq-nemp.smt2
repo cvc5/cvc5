@@ -1,0 +1,6 @@
+(set-logic QF_SLIA)
+(set-info :status sat)
+(declare-fun x () (Seq Int))
+(assert (not (= x (as seq.empty (Seq Int)))))
+(assert (= (seq.len x) 16))
+(check-sat)

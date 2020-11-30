@@ -1,9 +1,8 @@
-; COMMAND-LINE: --lang=smt2.5
 ; EXPECT: unsat
 (set-logic ALL_SUPPORTED)
 (set-info :status unsat)
-(declare-datatypes (T) ((List (cons (head T) (tail (List T))) (nil))))
-(declare-datatypes () ((KV (kv (key Int) (value Int)) (nilKV)))) ; key value pair
+(declare-datatypes ((List 1)) ((par (T) ((cons (head T) (tail (List T))) (nil)))))
+(declare-datatypes ((KV 0)) (((kv (key Int) (value Int)) (nilKV))))
 (declare-fun mapper ((List Int)) (List KV))
 (assert
   (forall
@@ -13,7 +12,7 @@
         (= (as nil (List KV)) (mapper input))
         (= (cons (kv 0 (head input)) (mapper (tail input))) (mapper input))
      )
-  )                                                                                                                            
+  )
 )
 (declare-fun reduce ((List KV)) Int)
 (assert
@@ -41,4 +40,3 @@
   (not (= (sum (cons 0 (as nil (List Int)))) (reduce (mapper (cons 0 (as nil (List Int)))))))
 )
 (check-sat)
-

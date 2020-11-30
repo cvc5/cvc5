@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -20,7 +20,7 @@
 #include <map>
 #include <utility>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "base/output.h"
 #include "decision/decision_engine.h"
 #include "expr/expr.h"
@@ -30,13 +30,11 @@
 #include "options/options.h"
 #include "options/smt_options.h"
 #include "proof/proof_manager.h"
-#include "proof/proof_manager.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
 #include "prop/theory_proxy.h"
 #include "smt/smt_statistics_registry.h"
-#include "smt/command.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_registrar.h"
 #include "util/resource_manager.h"
@@ -44,13 +42,6 @@
 
 using namespace std;
 using namespace CVC4::context;
-
-
-#ifdef CVC4_REPLAY
-#  define CVC4_USE_REPLAY true
-#else /* CVC4_REPLAY */
-#  define CVC4_USE_REPLAY false
-#endif /* CVC4_REPLAY */
 
 namespace CVC4 {
 namespace prop {
@@ -75,47 +66,57 @@ public:
   }
 };
 
-PropEngine::PropEngine(TheoryEngine* te, DecisionEngine *de, Context* satContext,
-                       Context* userContext, std::ostream* replayLog,
-                       ExprStream* replayStream, LemmaChannels* channels) :
-  d_inCheckSat(false),
-  d_theoryEngine(te),
-  d_decisionEngine(de),
-  d_context(satContext),
-  d_theoryProxy(NULL),
-  d_satSolver(NULL),
-  d_registrar(NULL),
-  d_cnfStream(NULL),
-  d_interrupted(false),
-  d_resourceManager(NodeManager::currentResourceManager())
+PropEngine::PropEngine(TheoryEngine* te,
+                       Context* satContext,
+                       UserContext* userContext,
+                       ResourceManager* rm,
+                       OutputManager& outMgr)
+    : d_inCheckSat(false),
+      d_theoryEngine(te),
+      d_context(satContext),
+      d_theoryProxy(NULL),
+      d_satSolver(NULL),
+      d_registrar(NULL),
+      d_cnfStream(NULL),
+      d_interrupted(false),
+      d_resourceManager(rm),
+      d_outMgr(outMgr)
 {
 
   Debug("prop") << "Constructing the PropEngine" << endl;
 
+  d_decisionEngine.reset(new DecisionEngine(satContext, userContext, rm));
+  d_decisionEngine->init();  // enable appropriate strategies
+
   d_satSolver = SatSolverFactory::createDPLLMinisat(smtStatisticsRegistry());
 
   d_registrar = new theory::TheoryRegistrar(d_theoryEngine);
-  d_cnfStream = new CVC4::prop::TseitinCnfStream
-    (d_satSolver, d_registrar, userContext,
-     // fullLitToNode Map =
-     options::threads() > 1 ||
-     options::decisionMode() == decision::DECISION_STRATEGY_RELEVANCY ||
-     ( CVC4_USE_REPLAY && replayLog != NULL ));
+  d_cnfStream = new CVC4::prop::CnfStream(
+      d_satSolver, d_registrar, userContext, &d_outMgr, rm, true);
 
   d_theoryProxy = new TheoryProxy(
-      this, d_theoryEngine, d_decisionEngine, d_context, d_cnfStream, replayLog,
-      replayStream, channels);
+      this, d_theoryEngine, d_decisionEngine.get(), d_context, d_cnfStream);
   d_satSolver->initialize(d_context, d_theoryProxy);
 
   d_decisionEngine->setSatSolver(d_satSolver);
   d_decisionEngine->setCnfStream(d_cnfStream);
-  PROOF (
-         ProofManager::currentPM()->initCnfProof(d_cnfStream, userContext);
-         );
+  if (options::unsatCores())
+  {
+    ProofManager::currentPM()->initCnfProof(d_cnfStream, userContext);
+  }
+}
+
+void PropEngine::finishInit()
+{
+  NodeManager* nm = NodeManager::currentNM();
+  d_cnfStream->convertAndAssert(nm->mkConst(true), false, false);
+  d_cnfStream->convertAndAssert(nm->mkConst(false).notNode(), false, false);
 }
 
 PropEngine::~PropEngine() {
   Debug("prop") << "Destructing the PropEngine" << endl;
+  d_decisionEngine->shutdown();
+  d_decisionEngine.reset(nullptr);
   delete d_cnfStream;
   delete d_registrar;
   delete d_satSolver;
@@ -123,21 +124,24 @@ PropEngine::~PropEngine() {
 }
 
 void PropEngine::assertFormula(TNode node) {
-  Assert(!d_inCheckSat, "Sat solver in solve()!");
+  Assert(!d_inCheckSat) << "Sat solver in solve()!";
   Debug("prop") << "assertFormula(" << node << ")" << endl;
   // Assert as non-removable
-  d_cnfStream->convertAndAssert(node, false, false, RULE_GIVEN);
+  d_cnfStream->convertAndAssert(node, false, false, true);
 }
 
-void PropEngine::assertLemma(TNode node, bool negated,
-                             bool removable,
-                             ProofRule rule,
-                             TNode from) {
-  //Assert(d_inCheckSat, "Sat solver should be in solve()!");
+void PropEngine::assertLemma(TNode node, bool negated, bool removable)
+{
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << endl;
 
   // Assert as (possibly) removable
-  d_cnfStream->convertAndAssert(node, removable, negated, rule, from);
+  d_cnfStream->convertAndAssert(node, removable, negated);
+}
+
+void PropEngine::addAssertionsToDecisionEngine(
+    const preprocessing::AssertionPipeline& assertions)
+{
+  d_decisionEngine->addAssertions(assertions);
 }
 
 void PropEngine::requirePhase(TNode n, bool phase) {
@@ -146,11 +150,6 @@ void PropEngine::requirePhase(TNode n, bool phase) {
   Assert(n.getType().isBoolean());
   SatLiteral lit = d_cnfStream->getLiteral(n);
   d_satSolver->requirePhase(phase ? lit : ~lit);
-}
-
-bool PropEngine::flipDecision() {
-  Debug("prop") << "flipDecision()" << endl;
-  return d_satSolver->flipDecision();
 }
 
 bool PropEngine::isDecision(Node lit) const {
@@ -179,7 +178,7 @@ void PropEngine::printSatisfyingAssignment(){
 }
 
 Result PropEngine::checkSat() {
-  Assert(!d_inCheckSat, "Sat solver in solve()!");
+  Assert(!d_inCheckSat) << "Sat solver in solve()!";
   Debug("prop") << "PropEngine::checkSat()" << endl;
 
   // Mark that we are in the checkSat
@@ -244,7 +243,7 @@ bool PropEngine::isSatLiteral(TNode node) const {
 
 bool PropEngine::hasValue(TNode node, bool& value) const {
   Assert(node.getType().isBoolean());
-  Assert(d_cnfStream->hasLiteral(node));
+  Assert(d_cnfStream->hasLiteral(node)) << node;
 
   SatLiteral lit = d_cnfStream->getLiteral(node);
 
@@ -270,13 +269,13 @@ void PropEngine::ensureLiteral(TNode n) {
 }
 
 void PropEngine::push() {
-  Assert(!d_inCheckSat, "Sat solver in solve()!");
+  Assert(!d_inCheckSat) << "Sat solver in solve()!";
   d_satSolver->push();
   Debug("prop") << "push()" << endl;
 }
 
 void PropEngine::pop() {
-  Assert(!d_inCheckSat, "Sat solver in solve()!");
+  Assert(!d_inCheckSat) << "Sat solver in solve()!";
   d_satSolver->pop();
   Debug("prop") << "pop()" << endl;
 }
@@ -305,9 +304,9 @@ void PropEngine::interrupt()
   Debug("prop") << "interrupt()" << endl;
 }
 
-void PropEngine::spendResource(unsigned amount)
+void PropEngine::spendResource(ResourceManager::Resource r)
 {
-  d_resourceManager->spendResource(amount);
+  d_resourceManager->spendResource(r);
 }
 
 bool PropEngine::properExplanation(TNode node, TNode expl) const {

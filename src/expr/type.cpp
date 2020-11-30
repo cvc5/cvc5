@@ -2,10 +2,10 @@
 /*! \file type.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Tim King
+ **   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -67,14 +67,49 @@ Cardinality Type::getCardinality() const {
   return d_typeNode->getCardinality();
 }
 
+bool Type::isFinite() const
+{
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isFinite();
+}
+
+bool Type::isInterpretedFinite() const
+{
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isInterpretedFinite();
+}
+
 bool Type::isWellFounded() const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->isWellFounded();
 }
 
+bool Type::isFirstClass() const
+{
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isFirstClass();
+}
+
+bool Type::isFunctionLike() const
+{
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isFunctionLike();
+}
+
 Expr Type::mkGroundTerm() const {
   NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->mkGroundTerm().toExpr();
+  Expr ret = d_typeNode->mkGroundTerm().toExpr();
+  if (ret.isNull())
+  {
+    IllegalArgument(this, "Cannot construct ground term!");
+  }
+  return ret;
+}
+
+Expr Type::mkGroundValue() const
+{
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->mkGroundValue().toExpr();
 }
 
 bool Type::isSubtypeOf(Type t) const {
@@ -317,6 +352,12 @@ bool Type::isSet() const {
   return d_typeNode->isSet();
 }
 
+bool Type::isSequence() const
+{
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isSequence();
+}
+
 /** Is this a sort kind */
 bool Type::isSort() const {
   NodeManagerScope nms(d_nodeManager);
@@ -480,6 +521,11 @@ SetType::SetType(const Type& t) : Type(t)
   PrettyCheckArgument(isNull() || isSet(), this);
 }
 
+SequenceType::SequenceType(const Type& t) : Type(t)
+{
+  PrettyCheckArgument(isNull() || isSequence(), this);
+}
+
 SortType::SortType(const Type& t) : Type(t)
 {
   PrettyCheckArgument(isNull() || isSort(), this);
@@ -514,6 +560,11 @@ Type SetType::getElementType() const {
   return makeType(d_typeNode->getSetElementType());
 }
 
+Type SequenceType::getElementType() const
+{
+  return makeType(d_typeNode->getSequenceElementType());
+}
+
 DatatypeType ConstructorType::getRangeType() const {
   return DatatypeType(makeType(d_typeNode->getConstructorRangeType()));
 }
@@ -534,17 +585,8 @@ std::vector<Type> ConstructorType::getArgTypes() const {
   return args;
 }
 
-const Datatype& DatatypeType::getDatatype() const {
-  NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->getDatatype();
-}
-
 bool DatatypeType::isParametric() const {
   return d_typeNode->isParametricDatatype();
-}
-
-Expr DatatypeType::getConstructor(std::string name) const {
-  return getDatatype().getConstructor(name);
 }
 
 bool DatatypeType::isInstantiated() const {
@@ -601,12 +643,6 @@ std::vector<Type> DatatypeType::getTupleTypes() const {
     vect.push_back( vec[i].toType() );
   }
   return vect;
-}
-
-/** Get the description of the record type */
-const Record& DatatypeType::getRecord() const {
-  NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->getRecord();
 }
 
 DatatypeType SelectorType::getDomain() const {

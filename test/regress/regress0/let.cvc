@@ -1,4 +1,4 @@
-% EXPECT: valid
+% EXPECT: entailed
 U: TYPE;
 a: U;
 b: U;

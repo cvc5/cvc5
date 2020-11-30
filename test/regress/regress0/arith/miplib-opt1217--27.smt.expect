@@ -1,2 +1,0 @@
-% COMMAND-LINE: --miplib-trick
-% EXPECT: unsat

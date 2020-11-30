@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Aina Niemetz, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -39,7 +39,7 @@ using namespace std;
 namespace CVC4 {
 
 string Configuration::getName() {
-  return PACKAGE_NAME;
+  return CVC4_PACKAGE_NAME;
 }
 
 bool Configuration::isDebugBuild() {
@@ -50,16 +50,12 @@ bool Configuration::isStatisticsBuild() {
   return IS_STATISTICS_BUILD;
 }
 
-bool Configuration::isReplayBuild() {
-  return IS_REPLAY_BUILD;
-}
-
 bool Configuration::isTracingBuild() {
   return IS_TRACING_BUILD;
 }
 
 bool Configuration::isDumpingBuild() {
-  return IS_DUMPING_BUILD;
+  return IS_DUMPING_BUILD && !IS_MUZZLED_BUILD;
 }
 
 bool Configuration::isMuzzledBuild() {
@@ -82,12 +78,27 @@ bool Configuration::isProfilingBuild() {
   return IS_PROFILING_BUILD;
 }
 
+bool Configuration::isAsanBuild() { return IS_ASAN_BUILD; }
+
+bool Configuration::isUbsanBuild() { return IS_UBSAN_BUILD; }
+
+bool Configuration::isTsanBuild() { return IS_TSAN_BUILD; }
+
 bool Configuration::isCompetitionBuild() {
   return IS_COMPETITION_BUILD;
 }
 
+bool Configuration::isStaticBuild()
+{
+#if defined(CVC4_STATIC_BUILD)
+  return true;
+#else
+  return false;
+#endif
+}
+
 string Configuration::getPackageName() {
-  return PACKAGE_NAME;
+  return CVC4_PACKAGE_NAME;
 }
 
 string Configuration::getVersionString() {
@@ -112,7 +123,7 @@ std::string Configuration::getVersionExtra() {
 
 std::string Configuration::copyright() {
   std::stringstream ss;
-  ss << "Copyright (c) 2009-2018 by the authors and their institutional\n"
+  ss << "Copyright (c) 2009-2020 by the authors and their institutional\n"
      << "affiliations listed at http://cvc4.cs.stanford.edu/authors\n\n";
 
   if (Configuration::licenseIsGpl()) {
@@ -120,7 +131,7 @@ std::string Configuration::copyright() {
        << "the GNU General Public License (GPL) version 3.  Versions of CVC4\n"
        << "are available that are covered by the (modified) BSD license. If\n"
        << "you want to license CVC4 under this license, please configure CVC4\n"
-       << "with the \"--bsd\" option before building from sources.\n\n";
+       << "with the \"--no-gpl\" option before building from sources.\n\n";
   } else {
     ss << "CVC4 is open-source and is covered by the BSD license (modified)."
        << "\n\n";
@@ -128,7 +139,7 @@ std::string Configuration::copyright() {
 
   ss << "THIS SOFTWARE IS PROVIDED AS-IS, WITHOUT ANY WARRANTIES.\n"
      << "USE AT YOUR OWN RISK.\n\n";
- 
+
   ss << "CVC4 incorporates code from ANTLR3 (http://www.antlr.org).\n"
      << "See licenses/antlr3-LICENSE for copyright and licensing information."
      << "\n\n";
@@ -136,7 +147,9 @@ std::string Configuration::copyright() {
   if (Configuration::isBuiltWithAbc() || Configuration::isBuiltWithLfsc()
       || Configuration::isBuiltWithCadical()
       || Configuration::isBuiltWithCryptominisat()
-      || Configuration::isBuiltWithSymFPU())
+      || Configuration::isBuiltWithKissat()
+      || Configuration::isBuiltWithSymFPU()
+      || Configuration::isBuiltWithEditline())
   {
     ss << "This version of CVC4 is linked against the following non-(L)GPL'ed\n"
        << "third party libraries.\n\n";
@@ -162,15 +175,27 @@ std::string Configuration::copyright() {
          << "  See https://github.com/msoos/cryptominisat for copyright "
          << "information.\n\n";
     }
+    if (Configuration::isBuiltWithKissat())
+    {
+      ss << "  Kissat - Simplified Satisfiability Solver\n"
+         << "  See https://fmv.jku.at/kissat for copyright "
+         << "information.\n\n";
+    }
     if (Configuration::isBuiltWithSymFPU())
     {
       ss << "  SymFPU - The Symbolic Floating Point Unit\n"
          << "  See https://github.com/martin-cs/symfpu/tree/CVC4 for copyright "
          << "information.\n\n";
     }
+    if (Configuration::isBuiltWithEditline())
+    {
+      ss << "  Editline Library\n"
+         << "  See https://thrysoee.dk/editline\n"
+         << "  for copyright information.\n\n";
+    }
   }
 
-  if (Configuration::isBuiltWithGmp())
+  if (Configuration::isBuiltWithGmp() || Configuration::isBuiltWithPoly())
   {
     ss << "This version of CVC4 is linked against the following third party\n"
        << "libraries covered by the LGPLv3 license.\n"
@@ -179,11 +204,23 @@ std::string Configuration::copyright() {
       ss << "  GMP - Gnu Multi Precision Arithmetic Library\n"
          << "  See http://gmplib.org for copyright information.\n\n";
     }
+    if (Configuration::isBuiltWithPoly())
+    {
+      ss << "  LibPoly polynomial library\n"
+         << "  See https://github.com/SRI-CSL/libpoly for copyright and\n"
+         << "  licensing information.\n\n";
+    }
+    if (Configuration::isStaticBuild())
+    {
+      ss << "CVC4 is statically linked against these libraries. To recompile\n"
+            "this version of CVC4 with different versions of these libraries\n"
+            "follow the instructions on "
+            "https://github.com/CVC4/CVC4/blob/master/INSTALL.md\n\n";
+    }
   }
 
   if (Configuration::isBuiltWithCln()
-      || Configuration::isBuiltWithGlpk ()
-      || Configuration::isBuiltWithReadline()) {
+      || Configuration::isBuiltWithGlpk ()) {
     ss << "This version of CVC4 is linked against the following third party\n"
        << "libraries covered by the GPLv3 license.\n"
        << "See licenses/gpl-3.0.txt for more information.\n\n";
@@ -196,11 +233,6 @@ std::string Configuration::copyright() {
          << "the GNU Linear Programming Kit\n"
          << "  See http://github.com/timothy-king/glpk-cut-log for copyright"
          << "information\n\n";
-    }
-    if (Configuration::isBuiltWithReadline()) {
-      ss << "  GNU Readline\n"
-         << "  See http://cnswww.cns.cwru.edu/php/chet/readline/rltop.html\n"
-         << "  for copyright information.\n\n";
     }
   }
 
@@ -215,8 +247,6 @@ std::string Configuration::about() {
   ss << "This is CVC4 version " << CVC4_RELEASE_STRING;
   if (Configuration::isGitBuild()) {
     ss << " [" << Configuration::getGitId() << "]";
-  } else if (CVC4::Configuration::isSubversionBuild()) {
-    ss << " [" << Configuration::getSubversionId() << "]";
   }
   ss << "\ncompiled with " << Configuration::getCompiler()
      << "\non " << Configuration::getCompiledDateTime() << "\n\n";
@@ -250,16 +280,19 @@ bool Configuration::isBuiltWithCryptominisat() {
   return IS_CRYPTOMINISAT_BUILD;
 }
 
-bool Configuration::isBuiltWithReadline() {
-  return IS_READLINE_BUILD;
-}
+bool Configuration::isBuiltWithKissat() { return IS_KISSAT_BUILD; }
 
-bool Configuration::isBuiltWithTlsSupport() {
-  return USING_TLS;
-}
+bool Configuration::isBuiltWithDrat2Er() { return IS_DRAT2ER_BUILD; }
+
+bool Configuration::isBuiltWithEditline() { return IS_EDITLINE_BUILD; }
 
 bool Configuration::isBuiltWithLfsc() {
   return IS_LFSC_BUILD;
+}
+
+bool Configuration::isBuiltWithPoly()
+{
+  return IS_POLY_BUILD;
 }
 
 bool Configuration::isBuiltWithSymFPU() { return IS_SYMFPU_BUILD; }
@@ -359,33 +392,6 @@ std::string Configuration::getGitId() {
   stringstream ss;
   ss << "git " << branchName << " " << string(getGitCommit()).substr(0, 8)
      << ( ::CVC4::Configuration::hasGitModifications() ? " (with modifications)" : "" );
-  return ss.str();
-}
-
-bool Configuration::isSubversionBuild() {
-  return IS_SUBVERSION_BUILD;
-}
-
-const char* Configuration::getSubversionBranchName() {
-  return SUBVERSION_BRANCH_NAME;
-}
-
-unsigned Configuration::getSubversionRevision() {
-  return SUBVERSION_REVISION;
-}
-
-bool Configuration::hasSubversionModifications() {
-  return SUBVERSION_HAS_MODIFICATIONS;
-}
-
-std::string Configuration::getSubversionId() {
-  if(! isSubversionBuild()) {
-    return "";
-  }
-
-  stringstream ss;
-  ss << "subversion " << getSubversionBranchName() << " r" << getSubversionRevision()
-     << ( ::CVC4::Configuration::hasSubversionModifications() ? " (with modifications)" : "" );
   return ss.str();
 }
 

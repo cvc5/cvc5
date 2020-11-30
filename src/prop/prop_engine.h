@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -18,17 +18,17 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROP_ENGINE_H
-#define __CVC4__PROP_ENGINE_H
+#ifndef CVC4__PROP_ENGINE_H
+#define CVC4__PROP_ENGINE_H
 
 #include <sys/time.h>
 
 #include "base/modal_exception.h"
-#include "expr/expr_stream.h"
 #include "expr/node.h"
 #include "options/options.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "proof/proof_manager.h"
-#include "smt_util/lemma_channels.h"
+#include "util/resource_manager.h"
 #include "util/result.h"
 #include "util/unsafe_interrupt_exception.h"
 
@@ -36,6 +36,7 @@ namespace CVC4 {
 
 class ResourceManager;
 class DecisionEngine;
+class OutputManager;
 class TheoryEngine;
 
 namespace theory {
@@ -53,59 +54,29 @@ class PropEngine;
  * PropEngine is the abstraction of a Sat Solver, providing methods for
  * solving the SAT problem and conversion to CNF (via the CnfStream).
  */
-class PropEngine {
-
-  /**
-   * Indicates that the SAT solver is currently solving something and we should
-   * not mess with it's internal state.
-   */
-  bool d_inCheckSat;
-
-  /** The theory engine we will be using */
-  TheoryEngine *d_theoryEngine;
-
-  /** The decision engine we will be using */
-  DecisionEngine *d_decisionEngine;
-
-  /** The context */
-  context::Context* d_context;
-
-  /** SAT solver's proxy back to theories; kept around for dtor cleanup */
-  TheoryProxy* d_theoryProxy;
-
-  /** The SAT solver proxy */
-  DPLLSatSolverInterface* d_satSolver;
-
-  /** List of all of the assertions that need to be made */
-  std::vector<Node> d_assertionList;
-
-  /** Theory registrar; kept around for destructor cleanup */
-  theory::TheoryRegistrar* d_registrar;
-
-  /** The CNF converter in use */
-  CnfStream* d_cnfStream;
-
-  /** Whether we were just interrupted (or not) */
-  bool d_interrupted;
-  /** Pointer to resource manager for associated SmtEngine */
-  ResourceManager* d_resourceManager;
-
-  /** Dump out the satisfying assignment (after SAT result) */
-  void printSatisfyingAssignment();
-
-public:
-
+class PropEngine
+{
+ public:
   /**
    * Create a PropEngine with a particular decision and theory engine.
    */
-  PropEngine(TheoryEngine*, DecisionEngine*, context::Context* satContext,
-             context::Context* userContext, std::ostream* replayLog,
-             ExprStream* replayStream, LemmaChannels* channels);
+  PropEngine(TheoryEngine*,
+             context::Context* satContext,
+             context::UserContext* userContext,
+             ResourceManager* rm,
+             OutputManager& outMgr);
 
   /**
    * Destructor.
    */
   CVC4_PUBLIC ~PropEngine();
+
+  /**
+   * Finish initialize. Call this after construction just before we are
+   * ready to use this class. Should be called after TheoryEngine::finishInit.
+   * This method converts and asserts true and false into the CNF stream.
+   */
+  void finishInit();
 
   /**
    * This is called by SmtEngine, at shutdown time, just before
@@ -114,7 +85,7 @@ public:
    * PropEngine and Theory).  For now, there's nothing to do here in
    * the PropEngine.
    */
-  void shutdown() { }
+  void shutdown() {}
 
   /**
    * Converts the given formula to CNF and assert the CNF to the SAT solver.
@@ -134,7 +105,13 @@ public:
    * @param removable whether this lemma can be quietly removed based
    * on an activity heuristic (or not)
    */
-  void assertLemma(TNode node, bool negated, bool removable, ProofRule rule, TNode from = TNode::null());
+  void assertLemma(TNode node, bool negated, bool removable);
+
+  /**
+   * Pass a list of assertions from an AssertionPipeline to the decision engine.
+   */
+  void addAssertionsToDecisionEngine(
+      const preprocessing::AssertionPipeline& assertions);
 
   /**
    * If ever n is decided upon, it must be in the given phase.  This
@@ -146,19 +123,6 @@ public:
    * @param phase the phase to use
    */
   void requirePhase(TNode n, bool phase);
-
-  /**
-   * Backtracks to and flips the most recent unflipped decision, and
-   * returns TRUE.  If the decision stack is nonempty but all
-   * decisions have been flipped already, the state is backtracked to
-   * the root decision, which is re-flipped to the original phase (and
-   * FALSE is returned).  If the decision stack is empty, the state is
-   * unchanged and FALSE is returned.
-   *
-   * @return true if a decision was flipped as requested; false if the
-   * root decision was reflipped, or if no decisions are on the stack.
-   */
-  bool flipDecision();
 
   /**
    * Return whether the given literal is a SAT decision.  Either phase
@@ -241,7 +205,7 @@ public:
    * Informs the ResourceManager that a resource has been spent.  If out of
    * resources, can throw an UnsafeInterruptException exception.
    */
-  void spendResource(unsigned amount);
+  void spendResource(ResourceManager::Resource r);
 
   /**
    * For debugging.  Return true if "expl" is a well-formed
@@ -255,10 +219,49 @@ public:
    */
   bool properExplanation(TNode node, TNode expl) const;
 
-};/* class PropEngine */
+ private:
+  /** Dump out the satisfying assignment (after SAT result) */
+  void printSatisfyingAssignment();
+  /**
+   * Indicates that the SAT solver is currently solving something and we should
+   * not mess with it's internal state.
+   */
+  bool d_inCheckSat;
 
+  /** The theory engine we will be using */
+  TheoryEngine* d_theoryEngine;
 
-}/* CVC4::prop namespace */
-}/* CVC4 namespace */
+  /** The decision engine we will be using */
+  std::unique_ptr<DecisionEngine> d_decisionEngine;
 
-#endif /* __CVC4__PROP_ENGINE_H */
+  /** The context */
+  context::Context* d_context;
+
+  /** SAT solver's proxy back to theories; kept around for dtor cleanup */
+  TheoryProxy* d_theoryProxy;
+
+  /** The SAT solver proxy */
+  DPLLSatSolverInterface* d_satSolver;
+
+  /** List of all of the assertions that need to be made */
+  std::vector<Node> d_assertionList;
+
+  /** Theory registrar; kept around for destructor cleanup */
+  theory::TheoryRegistrar* d_registrar;
+
+  /** The CNF converter in use */
+  CnfStream* d_cnfStream;
+
+  /** Whether we were just interrupted (or not) */
+  bool d_interrupted;
+  /** Pointer to resource manager for associated SmtEngine */
+  ResourceManager* d_resourceManager;
+
+  /** Reference to the output manager of the smt engine */
+  OutputManager& d_outMgr;
+};
+
+}  // namespace prop
+}  // namespace CVC4
+
+#endif /* CVC4__PROP_ENGINE_H */

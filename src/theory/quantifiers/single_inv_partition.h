@@ -2,10 +2,10 @@
 /*! \file single_inv_partition.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SINGLE_INV_PARTITION_H
-#define __CVC4__THEORY__QUANTIFIERS__SINGLE_INV_PARTITION_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SINGLE_INV_PARTITION_H
+#define CVC4__THEORY__QUANTIFIERS__SINGLE_INV_PARTITION_H
 
 #include <map>
 #include <vector>
@@ -201,7 +201,7 @@ class SingleInvocationPartition
   std::vector<Node> d_si_vars;
 
   /** every free variable of conjuncts[2] */
-  std::vector<Node> d_all_vars;
+  std::unordered_set<Node, NodeHashFunction> d_all_vars;
   /** map from functions to first-order variables that anti-skolemized them */
   std::map<Node, Node> d_func_fo_var;
   /** map from first-order variables to the function it anti-skolemized */
@@ -228,6 +228,8 @@ class SingleInvocationPartition
   std::vector<Node> d_input_funcs;
   /** all input functions */
   std::vector<Node> d_all_funcs;
+  /** skolem of the same type as input functions */
+  std::vector<Node> d_input_func_sks;
 
   /** infer the argument types of uninterpreted function applications
    *
@@ -292,4 +294,4 @@ class SingleInvocationPartition
 } /* namespace CVC4::theory */
 } /* namespace CVC4 */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__SINGLE_INV_PARTITION_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__SINGLE_INV_PARTITION_H */

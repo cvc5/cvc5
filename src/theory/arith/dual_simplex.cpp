@@ -2,10 +2,10 @@
 /*! \file dual_simplex.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andres Noetzli
+ **   Tim King, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -17,7 +17,6 @@
 #include "theory/arith/dual_simplex.h"
 
 #include "base/output.h"
-#include "base/tls.h"
 #include "options/arith_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/constraint.h"
@@ -63,7 +62,7 @@ DualSimplexDecisionProcedure::Statistics::~Statistics(){
 Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
   Assert(d_conflictVariables.empty());
 
-  static CVC4_THREAD_LOCAL unsigned int instance = 0;
+  static thread_local unsigned int instance = 0;
   instance = instance + 1;
   d_pivots = 0;
 
@@ -74,7 +73,7 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
 
   // We need to reduce this because of
   d_errorSet.reduceToSignals();
-  d_errorSet.setSelectionRule(VAR_ORDER);
+  d_errorSet.setSelectionRule(options::ErrorSelectionRule::VAR_ORDER);
 
   if(processSignals()){
     d_conflictVariables.purge();
@@ -122,7 +121,7 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
 
   if(!d_errorSet.errorEmpty() && result != Result::UNSAT){
     if(exactResult){
-      d_errorSet.setSelectionRule(VAR_ORDER);
+      d_errorSet.setSelectionRule(options::ErrorSelectionRule::VAR_ORDER);
       while(!d_errorSet.errorEmpty() && result != Result::UNSAT){
         Assert(checkPeriod > 0);
         if(searchForFeasibleSolution(checkPeriod)){
@@ -130,7 +129,7 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
         }
       }
     }else if( options::arithStandardCheckVarOrderPivots() > 0){
-      d_errorSet.setSelectionRule(VAR_ORDER);
+      d_errorSet.setSelectionRule(options::ErrorSelectionRule::VAR_ORDER);
       if(searchForFeasibleSolution(options::arithStandardCheckVarOrderPivots())){
         result = Result::UNSAT;
       }

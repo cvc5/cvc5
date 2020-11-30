@@ -2,10 +2,10 @@
 /*! \file ceg_epr_instantiator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,9 +14,11 @@
 
 #include "theory/quantifiers/cegqi/ceg_epr_instantiator.h"
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -34,6 +36,14 @@ void EprInstantiator::reset(CegInstantiator* ci,
   d_equal_terms.clear();
 }
 
+bool EprInstantiator::hasProcessEqualTerm(CegInstantiator* ci,
+                                          SolvedForm& sf,
+                                          Node pv,
+                                          CegInstEffort effort)
+{
+  return true;
+}
+
 bool EprInstantiator::processEqualTerm(CegInstantiator* ci,
                                        SolvedForm& sf,
                                        Node pv,
@@ -47,7 +57,7 @@ bool EprInstantiator::processEqualTerm(CegInstantiator* ci,
     d_equal_terms.push_back(n);
     return false;
   }
-  pv_prop.d_type = 0;
+  pv_prop.d_type = CEG_TT_EQUAL;
   return ci->constructInstantiationInc(pv, n, pv_prop, sf);
 }
 
@@ -83,7 +93,7 @@ bool EprInstantiator::processEqualTerms(CegInstantiator* ci,
   // sort by match score
   std::sort(d_equal_terms.begin(), d_equal_terms.end(), setm);
   TermProperties pv_prop;
-  pv_prop.d_type = 0;
+  pv_prop.d_type = CEG_TT_EQUAL;
   for (unsigned i = 0, size = d_equal_terms.size(); i < size; i++)
   {
     if (ci->constructInstantiationInc(pv, d_equal_terms[i], pv_prop, sf))
@@ -98,14 +108,14 @@ void EprInstantiator::computeMatchScore(CegInstantiator* ci,
                                         Node pv,
                                         Node catom,
                                         std::vector<Node>& arg_reps,
-                                        TermArgTrie* tat,
+                                        TNodeTrie* tat,
                                         unsigned index,
                                         std::map<Node, int>& match_score)
 {
   if (index == catom.getNumChildren())
   {
-    Assert(tat->hasNodeData());
-    Node gcatom = tat->getNodeData();
+    Assert(tat->hasData());
+    Node gcatom = tat->getData();
     Trace("cegqi-epr") << "Matched : " << catom << " and " << gcatom
                        << std::endl;
     for (unsigned i = 0, nchild = catom.getNumChildren(); i < nchild; i++)
@@ -123,7 +133,7 @@ void EprInstantiator::computeMatchScore(CegInstantiator* ci,
     }
     return;
   }
-  std::map<TNode, TermArgTrie>::iterator it = tat->d_data.find(arg_reps[index]);
+  std::map<TNode, TNodeTrie>::iterator it = tat->d_data.find(arg_reps[index]);
   if (it != tat->d_data.end())
   {
     computeMatchScore(
@@ -137,7 +147,7 @@ void EprInstantiator::computeMatchScore(CegInstantiator* ci,
                                         Node eqc,
                                         std::map<Node, int>& match_score)
 {
-  if (!inst::Trigger::isAtomicTrigger(catom) || !catom.hasSubterm(pv))
+  if (!inst::Trigger::isAtomicTrigger(catom) || !expr::hasSubterm(catom, pv))
   {
     return;
   }
@@ -156,7 +166,7 @@ void EprInstantiator::computeMatchScore(CegInstantiator* ci,
   TermDb* tdb = ci->getQuantifiersEngine()->getTermDatabase();
   Node rep = ee->getRepresentative(eqc);
   Node op = tdb->getMatchOperator(catom);
-  TermArgTrie* tat = tdb->getTermArgTrie(rep, op);
+  TNodeTrie* tat = tdb->getTermArgTrie(rep, op);
   Trace("cegqi-epr") << "EPR instantiation match term : " << catom
                      << ", check ground terms=" << (tat != NULL) << std::endl;
   if (tat)

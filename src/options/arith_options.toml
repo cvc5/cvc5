@@ -7,11 +7,21 @@ header = "options/arith_options.h"
   category   = "regular"
   long       = "unate-lemmas=MODE"
   type       = "ArithUnateLemmaMode"
-  default    = "ALL_PRESOLVE_LEMMAS"
-  handler    = "stringToArithUnateLemmaMode"
-  includes   = ["options/arith_unate_lemma_mode.h"]
+  default    = "ALL"
   read_only  = true
   help       = "determines which lemmas to add before solving (default is 'all', see --unate-lemmas=help)"
+  help_mode  = "Unate lemmas are generated before SAT search begins using the relationship of constant terms and polynomials."
+[[option.mode.ALL]]
+  name = "all"
+  help = "A combination of inequalities and equalities."
+[[option.mode.EQUALITY]]
+  name = "eqs"
+  help = "Outputs lemmas of the general forms (= p c) implies (<= p d) for c < d, or (= p c) implies (not (= p d)) for c != d."
+[[option.mode.INEQUALITY]]
+  name = "ineqs"
+  help  = "Outputs lemmas of the general form (<= p c) implies (<= p d) for c < d."
+[[option.mode.NO]]
+  name = "none"
 
 [[option]]
   name       = "arithPropagationMode"
@@ -19,10 +29,22 @@ header = "options/arith_options.h"
   long       = "arith-prop=MODE"
   type       = "ArithPropagationMode"
   default    = "BOTH_PROP"
-  handler    = "stringToArithPropagationMode"
-  includes   = ["options/arith_propagation_mode.h"]
   read_only  = true
   help       = "turns on arithmetic propagation (default is 'old', see --arith-prop=help)"
+  help_mode  = "This decides on kind of propagation arithmetic attempts to do during the search."
+[[option.mode.NO_PROP]]
+  name = "none"
+[[option.mode.UNATE_PROP]]
+  name = "unate"
+  help = "Use constraints to do unate propagation."
+[[option.mode.BOUND_INFERENCE_PROP]]
+  name = "bi"
+  help  = "(Bounds Inference) infers bounds on basic variables using the upper and lower bounds of the non-basic variables in the tableau."
+[[option.mode.BOTH_PROP]]
+  name = "both"
+  help = "Use bounds inference and unate."
+
+
 
 # The maximum number of difference pivots to do per invocation of simplex.
 # If this is negative, the number of pivots done is the number of variables.
@@ -55,10 +77,20 @@ header = "options/arith_options.h"
   long       = "error-selection-rule=RULE"
   type       = "ErrorSelectionRule"
   default    = "MINIMUM_AMOUNT"
-  handler    = "stringToErrorSelectionRule"
-  includes   = ["options/arith_heuristic_pivot_rule.h"]
   read_only  = true
   help       = "change the pivot rule for the basic variable (default is 'min', see --pivot-rule help)"
+  help_mode  = "This decides on the rule used by simplex during heuristic rounds for deciding the next basic variable to select."
+[[option.mode.MINIMUM_AMOUNT]]
+  name = "min"
+  help = "The minimum abs() value of the variable's violation of its bound."
+[[option.mode.VAR_ORDER]]
+  name = "varord"
+  help = "The variable order."
+[[option.mode.MAXIMUM_AMOUNT]]
+  name = "max"
+  help = "The maximum violation the bound."
+[[option.mode.SUM_METRIC]]
+  name = "sum"
 
 # The number of pivots before simplex rechecks every basic variable for a conflict
 [[option]]
@@ -117,7 +149,6 @@ header = "options/arith_options.h"
   long       = "miplib-trick"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "turns on the preprocessing step of attempting to infer bounds on miplib problems"
 
 [[option]]
@@ -141,7 +172,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "maxCutsInContext"
   category   = "regular"
-  long       = "maxCutsInContext"
+  long       = "maxCutsInContext=N"
   type       = "unsigned"
   default    = "65535"
   read_only  = true
@@ -207,7 +238,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "maxApproxDepth"
   category   = "regular"
-  long       = "approx-branch-depth"
+  long       = "approx-branch-depth=N"
   type       = "int16_t"
   default    = "200"
   help       = "maximum branch depth the approximate solver is allowed to take"
@@ -225,13 +256,13 @@ header = "options/arith_options.h"
   category   = "regular"
   long       = "new-prop"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "use the new row propagation system"
 
 [[option]]
   name       = "arithPropAsLemmaLength"
   category   = "regular"
-  long       = "arith-prop-clauses"
+  long       = "arith-prop-clauses=N"
   type       = "uint16_t"
   default    = "8"
   help       = "rows shorter than this are propagated as clauses"
@@ -243,14 +274,6 @@ header = "options/arith_options.h"
   type       = "bool"
   default    = "false"
   help       = "use quick explain to minimize the sum of infeasibility conflicts"
-
-[[option]]
-  name       = "rewriteDivk"
-  category   = "regular"
-  long       = "rewrite-divk"
-  type       = "bool"
-  default    = "false"
-  help       = "rewrite division and mod when by a constant into linear terms"
 
 [[option]]
   name       = "trySolveIntStandardEffort"
@@ -273,7 +296,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "dioSolverTurns"
   category   = "regular"
-  long       = "dio-turns"
+  long       = "dio-turns=N"
   type       = "int"
   default    = "10"
   read_only  = true
@@ -282,7 +305,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "rrTurns"
   category   = "regular"
-  long       = "rr-turns"
+  long       = "rr-turns=N"
   type       = "int"
   default    = "3"
   read_only  = true
@@ -300,7 +323,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "replayEarlyCloseDepths"
   category   = "regular"
-  long       = "replay-early-close-depth"
+  long       = "replay-early-close-depth=N"
   type       = "int"
   default    = "1"
   read_only  = true
@@ -309,7 +332,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "replayFailurePenalty"
   category   = "regular"
-  long       = "replay-failure-penalty"
+  long       = "replay-failure-penalty=N"
   type       = "int"
   default    = "100"
   read_only  = true
@@ -318,7 +341,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "replayNumericFailurePenalty"
   category   = "regular"
-  long       = "replay-num-err-penalty"
+  long       = "replay-num-err-penalty=N"
   type       = "int"
   default    = "4194304"
   read_only  = true
@@ -327,7 +350,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "replayRejectCutSize"
   category   = "regular"
-  long       = "replay-reject-cut"
+  long       = "replay-reject-cut=N"
   type       = "unsigned"
   default    = "25500"
   read_only  = true
@@ -336,7 +359,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "lemmaRejectCutSize"
   category   = "regular"
-  long       = "replay-lemma-reject-cut"
+  long       = "replay-lemma-reject-cut=N"
   type       = "unsigned"
   default    = "25500"
   read_only  = true
@@ -345,7 +368,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "soiApproxMajorFailure"
   category   = "regular"
-  long       = "replay-soi-major-threshold"
+  long       = "replay-soi-major-threshold=T"
   type       = "double"
   default    = ".01"
   read_only  = true
@@ -354,7 +377,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "soiApproxMajorFailurePen"
   category   = "regular"
-  long       = "replay-soi-major-threshold-pen"
+  long       = "replay-soi-major-threshold-pen=N"
   type       = "int"
   default    = "50"
   read_only  = true
@@ -363,7 +386,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "soiApproxMinorFailure"
   category   = "regular"
-  long       = "replay-soi-minor-threshold"
+  long       = "replay-soi-minor-threshold=T"
   type       = "double"
   default    = ".0001"
   read_only  = true
@@ -372,7 +395,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "soiApproxMinorFailurePen"
   category   = "regular"
-  long       = "replay-soi-minor-threshold-pen"
+  long       = "replay-soi-minor-threshold-pen=N"
   type       = "int"
   default    = "10"
   read_only  = true
@@ -381,7 +404,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "ppAssertMaxSubSize"
   category   = "regular"
-  long       = "pp-assert-max-sub-size"
+  long       = "pp-assert-max-sub-size=N"
   type       = "unsigned"
   default    = "2"
   read_only  = true
@@ -402,17 +425,7 @@ header = "options/arith_options.h"
   long       = "pb-rewrites"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "apply pseudo boolean rewrites"
-
-[[option]]
-  name       = "sNormInferEq"
-  category   = "regular"
-  long       = "snorm-infer-eq"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "infer equalities based on Shostak normalization"
 
 [[option]]
   name       = "nlExt"
@@ -420,8 +433,7 @@ header = "options/arith_options.h"
   long       = "nl-ext"
   type       = "bool"
   default    = "true"
-  read_only  = true
-  help       = "extended approach to non-linear"
+  help       = "incremental linearization approach to non-linear"
 
 [[option]]
   name       = "nlExtResBound"
@@ -430,7 +442,7 @@ header = "options/arith_options.h"
   type       = "bool"
   default    = "false"
   read_only  = true
-  help       = "use resolution-style inference for inferring new bounds"
+  help       = "use resolution-style inference for inferring new bounds in non-linear incremental linearization solver"
 
 [[option]]
   name       = "nlExtFactor"
@@ -439,7 +451,7 @@ header = "options/arith_options.h"
   type       = "bool"
   default    = "true"
   read_only  = true
-  help       = "use factoring inference in non-linear solver"
+  help       = "use factoring inference in non-linear incremental linearization solver"
 
 [[option]]
   name       = "nlExtTangentPlanes"
@@ -447,8 +459,7 @@ header = "options/arith_options.h"
   long       = "nl-ext-tplanes"
   type       = "bool"
   default    = "false"
-  read_only  = true
-  help       = "use non-terminating tangent plane strategy for non-linear"
+  help       = "use non-terminating tangent plane strategy for non-linear incremental linearization solver"
 
 [[option]]
   name       = "nlExtTangentPlanesInterleave"
@@ -456,7 +467,7 @@ header = "options/arith_options.h"
   long       = "nl-ext-tplanes-interleave"
   type       = "bool"
   default    = "false"
-  help       = "interleave tangent plane strategy for non-linear"
+  help       = "interleave tangent plane strategy for non-linear incremental linearization solver"
 
 [[option]]
   name       = "nlExtTfTangentPlanes"
@@ -465,7 +476,7 @@ header = "options/arith_options.h"
   type       = "bool"
   default    = "true"
   read_only  = true
-  help       = "use non-terminating tangent plane strategy for transcendental functions for non-linear"
+  help       = "use non-terminating tangent plane strategy for transcendental functions for non-linear incremental linearization solver"
 
 [[option]]
   name       = "nlExtEntailConflicts"
@@ -483,7 +494,7 @@ header = "options/arith_options.h"
   type       = "bool"
   default    = "true"
   read_only  = true
-  help       = "do rewrites in non-linear solver"
+  help       = "do context-dependent simplification based on rewrites in non-linear solver"
 
 [[option]]
   name       = "nlExtPurify"
@@ -501,7 +512,7 @@ header = "options/arith_options.h"
   type       = "bool"
   default    = "false"
   read_only  = true
-  help       = "intial splits on zero for all variables"
+  help       = "initial splits on zero for all variables"
 
 [[option]]
   name       = "nlExtTfTaylorDegree"
@@ -519,3 +530,55 @@ header = "options/arith_options.h"
   default    = "true"
   read_only  = true
   help       = "whether to increment the precision for irrational function constraints"
+
+[[option]]
+  name       = "nlRlvMode"
+  category   = "regular"
+  long       = "nl-rlv=MODE"
+  type       = "NlRlvMode"
+  default    = "NONE"
+  help       = "choose mode for using relevance of assertoins in non-linear arithmetic"
+  help_mode  = "Modes for using relevance of assertoins in non-linear arithmetic."
+[[option.mode.NONE]]
+  name = "none"
+  help = "Do not use relevance."
+[[option.mode.INTERLEAVE]]
+  name = "interleave"
+  help = "Alternate rounds using relevance."
+[[option.mode.ALWAYS]]
+  name = "always"
+  help = "Always use relevance."
+  
+[[option]]
+  name       = "brabTest"
+  category   = "regular"
+  long       = "arith-brab"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "whether to use simple rounding, similar to a unit-cube test, for integers"
+
+[[option]]
+  name       = "nlCad"
+  category   = "regular"
+  long       = "nl-cad"
+  type       = "bool"
+  default    = "false"
+  help       = "whether to use the cylindrical algebraic decomposition solver for non-linear arithmetic"
+
+[[option]]
+  name       = "nlCadUseInitial"
+  category   = "regular"
+  long       = "nl-cad-initial"
+  type       = "bool"
+  default    = "false"
+  help       = "whether to use the linear model as initial guess for the cylindrical algebraic decomposition solver"
+
+[[option]]
+  name       = "nlICP"
+  category   = "regular"
+  long       = "nl-icp"
+  type       = "bool"
+  default    = "false"
+  help       = "whether to use ICP-style propagations for non-linear arithmetic"
+

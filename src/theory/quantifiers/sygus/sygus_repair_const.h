@@ -2,10 +2,10 @@
 /*! \file sygus_repair_const.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,19 +14,22 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H
+#define CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H
 
 #include <unordered_set>
 #include "expr/node.h"
 #include "theory/logic_info.h"
-#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
+
+class QuantifiersEngine;
+
 namespace quantifiers {
 
 class CegConjecture;
+class TermDbSygus;
 
 /** SygusRepairConst
  *
@@ -50,9 +53,9 @@ class SygusRepairConst
   ~SygusRepairConst() {}
   /** initialize
    *
-   * Initialize this class with the base instantiation of the sygus conjecture
-   * (see CegConjecture::d_base_inst) and its candidate variables (see
-   * CegConjecture::d_candidates).
+   * Initialize this class with the base instantiation (body) of the sygus
+   * conjecture (see SynthConjecture::d_base_inst) and its candidate variables
+   * (see SynthConjecture::d_candidates).
    */
   void initialize(Node base_inst, const std::vector<Node>& candidates);
   /** repair solution
@@ -72,11 +75,28 @@ class SygusRepairConst
    * candidate_values to be repairable. In addition, if the flag
    * useConstantsAsHoles is true, we consider all constants whose (sygus) type
    * admit alls constants to be repairable.
+   * The repaired solution has the property that it satisfies the synthesis
+   * conjecture whose body is given by sygusBody.
+   */
+  bool repairSolution(Node sygusBody,
+                      const std::vector<Node>& candidates,
+                      const std::vector<Node>& candidate_values,
+                      std::vector<Node>& repair_cv,
+                      bool useConstantsAsHoles = false);
+  /**
+   * Same as above, but where sygusBody is the body (base_inst) provided to the
+   * call to initialize of this class.
    */
   bool repairSolution(const std::vector<Node>& candidates,
                       const std::vector<Node>& candidate_values,
                       std::vector<Node>& repair_cv,
                       bool useConstantsAsHoles = false);
+  /**
+   * Return whether this module has the possibility to repair solutions. This is
+   * true if this module has been initialized, and at least one candidate has
+   * an "any constant" constructor.
+   */
+  bool isActive() const;
   /** must repair?
    *
    * This returns true if n must be repaired for it to be a valid solution.
@@ -139,12 +159,14 @@ class SygusRepairConst
   /** get first-order query
    *
    * This function returns a formula that is equivalent to the negation of the
-   * synthesis conjecture, where candidates are replaced by candidate_skeletons,
+   * synthesis conjecture whose body is given in the first argument, where
+   * candidates are replaced by candidate_skeletons,
    * whose free variables are in the set sk_vars. The returned formula
    * is a first-order (quantified) formula in the background logic, without UF,
    * of the form [***] above.
    */
-  Node getFoQuery(const std::vector<Node>& candidates,
+  Node getFoQuery(Node body,
+                  const std::vector<Node>& candidates,
                   const std::vector<Node>& candidate_skeletons,
                   const std::vector<Node>& sk_vars);
   /** fit to logic
@@ -154,6 +176,9 @@ class SygusRepairConst
    * variables may introduce e.g. non-linearity. If non-linear arithmetic is
    * not enabled, we must undo some of the variables we introduced when
    * inferring candidate skeletons.
+   *
+   * body is the (sygus) form of the original synthesis conjecture we are
+   * considering in this call.
    *
    * This function may remove variables from sk_vars and the map
    * sk_vars_to_subs. The skeletons candidate_skeletons are obtained by
@@ -165,7 +190,8 @@ class SygusRepairConst
    * It uses the function below to choose which variables to remove from
    * sk_vars.
    */
-  Node fitToLogic(LogicInfo& logic,
+  Node fitToLogic(Node body,
+                  LogicInfo& logic,
                   Node n,
                   const std::vector<Node>& candidates,
                   std::vector<Node>& candidate_skeletons,
@@ -189,4 +215,4 @@ class SygusRepairConst
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H */

@@ -2,10 +2,10 @@
 /*! \file cvc4_public.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters
+ **   Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,9 +16,10 @@
  ** the libraries and driver binary, and also exported to the user.
  **/
 
-#ifndef __CVC4_PUBLIC_H
-#define __CVC4_PUBLIC_H
+#ifndef CVC4_PUBLIC_H
+#define CVC4_PUBLIC_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 #if defined _WIN32 || defined __CYGWIN__
@@ -31,26 +32,10 @@
 #  endif /* __GNUC__ >= 4 */
 #endif /* defined _WIN32 || defined __CYGWIN__ */
 
-// Can use CVC4_UNDEFINED for things like undefined, private
-// copy constructors.  The advantage is that with CVC4_UNDEFINED,
-// if something _does_ try to call the function, you get an error
-// at the point of the call (rather than a link error later).
-
 // CVC4_UNUSED is to mark something (e.g. local variable, function)
 // as being _possibly_ unused, so that the compiler generates no
 // warning about it.  This might be the case for e.g. a variable
 // only used in DEBUG builds.
-
-#ifdef __GNUC__
-#  if __GNUC__ > 4 || ( __GNUC__ == 4 && __GNUC_MINOR__ >= 3 )
-     /* error function attribute only exists in GCC >= 4.3.0 */
-#    define CVC4_UNDEFINED __attribute__((__error__("this function intentionally undefined")))
-#  else /* GCC < 4.3.0 */
-#    define CVC4_UNDEFINED
-#  endif /* GCC >= 4.3.0 */
-#else /* ! __GNUC__ */
-#  define CVC4_UNDEFINED
-#endif /* __GNUC__ */
 
 #ifdef __GNUC__
 #  define CVC4_UNUSED __attribute__((__unused__))
@@ -68,4 +53,4 @@
 #  define CVC4_WARN_UNUSED_RESULT
 #endif /* __GNUC__ */
 
-#endif /* __CVC4_PUBLIC_H */
+#endif /* CVC4_PUBLIC_H */

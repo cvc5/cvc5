@@ -2,10 +2,10 @@
 /*! \file minisat.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Mathias Preiner, Morgan Deters
+ **   Mathias Preiner, Liana Hadarean, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -27,8 +27,7 @@ class MinisatSatSolver : public DPLLSatSolverInterface {
 public:
 
   MinisatSatSolver(StatisticsRegistry* registry);
-  virtual ~MinisatSatSolver();
-;
+  ~MinisatSatSolver() override;
 
   static SatVariable     toSatVariable(Minisat::Var var);
   static Minisat::Lit    toMinisatLit(SatLiteral lit);
@@ -44,7 +43,7 @@ public:
   ClauseId addClause(SatClause& clause, bool removable) override;
   ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override
   {
-    Unreachable("Minisat does not support native XOR reasoning");
+    Unreachable() << "Minisat does not support native XOR reasoning";
   }
 
   SatVariable newVar(bool isTheoryAtom,
@@ -77,8 +76,6 @@ public:
   void resetTrail() override;
 
   void requirePhase(SatLiteral lit) override;
-
-  bool flipDecision() override;
 
   bool isDecision(SatVariable decn) const override;
 

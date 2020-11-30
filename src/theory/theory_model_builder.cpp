@@ -2,10 +2,10 @@
 /*! \file theory_model_builder.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Clark Barrett, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -13,6 +13,7 @@
  **/
 #include "theory/theory_model_builder.h"
 
+#include "expr/dtype.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
@@ -26,8 +27,98 @@ using namespace CVC4::context;
 namespace CVC4 {
 namespace theory {
 
+void TheoryEngineModelBuilder::Assigner::initialize(
+    TypeNode tn, TypeEnumeratorProperties* tep, const std::vector<Node>& aes)
+{
+  d_te.reset(new TypeEnumerator(tn, tep));
+  d_assignExcSet.insert(d_assignExcSet.end(), aes.begin(), aes.end());
+}
+
+Node TheoryEngineModelBuilder::Assigner::getNextAssignment()
+{
+  Assert(d_te != nullptr);
+  Node n;
+  bool success = false;
+  TypeEnumerator& te = *d_te;
+  // Check if we have run out of elements. This should never happen; if it
+  // does we assert false and return null.
+  if (te.isFinished())
+  {
+    Assert(false);
+    return Node::null();
+  }
+  // must increment until we find one that is not in the assignment
+  // exclusion set
+  do
+  {
+    n = *te;
+    success = std::find(d_assignExcSet.begin(), d_assignExcSet.end(), n)
+              == d_assignExcSet.end();
+    // increment regardless of fail or succeed, to set up the next value
+    ++te;
+  } while (!success);
+  return n;
+}
+
 TheoryEngineModelBuilder::TheoryEngineModelBuilder(TheoryEngine* te) : d_te(te)
 {
+}
+
+Node TheoryEngineModelBuilder::evaluateEqc(TheoryModel* m, TNode r)
+{
+  eq::EqClassIterator eqc_i = eq::EqClassIterator(r, m->d_equalityEngine);
+  for (; !eqc_i.isFinished(); ++eqc_i)
+  {
+    Node n = *eqc_i;
+    Trace("model-builder-debug") << "Look at term : " << n << std::endl;
+    if (!isAssignable(n))
+    {
+      Trace("model-builder-debug") << "...try to normalize" << std::endl;
+      Node normalized = normalize(m, n, true);
+      if (normalized.isConst())
+      {
+        return normalized;
+      }
+    }
+  }
+  return Node::null();
+}
+
+bool TheoryEngineModelBuilder::isAssignerActive(TheoryModel* tm, Assigner& a)
+{
+  if (a.d_isActive)
+  {
+    return true;
+  }
+  std::vector<Node>& eset = a.d_assignExcSet;
+  std::map<Node, Node>::iterator it;
+  for (unsigned i = 0, size = eset.size(); i < size; i++)
+  {
+    // Members of exclusion set must have values, otherwise we are not yet
+    // assignable.
+    Node er = eset[i];
+    if (er.isConst())
+    {
+      // already processed
+      continue;
+    }
+    // Assignable members of assignment exclusion set should be representatives
+    // of their equivalence classes. This ensures we look up the constant
+    // representatives for assignable members of assignment exclusion sets.
+    Assert(er == tm->getRepresentative(er));
+    it = d_constantReps.find(er);
+    if (it == d_constantReps.end())
+    {
+      Trace("model-build-aes")
+          << "isAssignerActive: not active due to " << er << std::endl;
+      return false;
+    }
+    // update
+    eset[i] = it->second;
+  }
+  Trace("model-build-aes") << "isAssignerActive: active!" << std::endl;
+  a.d_isActive = true;
+  return true;
 }
 
 bool TheoryEngineModelBuilder::isAssignable(TNode n)
@@ -46,6 +137,14 @@ bool TheoryEngineModelBuilder::isAssignable(TNode n)
       // might be a function field
       return !n.getType().isFunction();
     }
+  }
+  else if (n.getKind() == kind::FLOATINGPOINT_COMPONENT_SIGN)
+  {
+    // Extracting the sign of a floating-point number acts similar to a
+    // selector on a datatype, i.e. if `(sign x)` wasn't assigned a value, we
+    // can pick an arbitrary one. Note that the other components of a
+    // floating-point number should always be assigned a value.
+    return true;
   }
   else
   {
@@ -72,7 +171,7 @@ void TheoryEngineModelBuilder::addAssignableSubterms(TNode n,
                                                      TheoryModel* tm,
                                                      NodeSet& cache)
 {
-  if (n.getKind() == FORALL || n.getKind() == EXISTS)
+  if (n.isClosure())
   {
     return;
   }
@@ -190,7 +289,7 @@ bool TheoryEngineModelBuilder::involvesUSort(TypeNode tn)
   }
   else if (tn.isDatatype())
   {
-    const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+    const DType& dt = tn.getDType();
     return dt.involvesUninterpretedType();
   }
   else
@@ -256,12 +355,12 @@ void TheoryEngineModelBuilder::addToTypeList(
       }
       else if (tn.isDatatype())
       {
-        const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+        const DType& dt = tn.getDType();
         for (unsigned i = 0; i < dt.getNumConstructors(); i++)
         {
           for (unsigned j = 0; j < dt[i].getNumArgs(); j++)
           {
-            TypeNode ctn = TypeNode::fromType(dt[i][j].getRangeType());
+            TypeNode ctn = dt[i][j].getRangeType();
             addToTypeList(ctn, type_list, visiting);
           }
         }
@@ -273,46 +372,34 @@ void TheoryEngineModelBuilder::addToTypeList(
   }
 }
 
-bool TheoryEngineModelBuilder::buildModel(Model* m)
+bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
 {
   Trace("model-builder") << "TheoryEngineModelBuilder: buildModel" << std::endl;
-  TheoryModel* tm = (TheoryModel*)m;
+  eq::EqualityEngine* ee = tm->d_equalityEngine;
 
-  // buildModel should only be called once per check
-  Assert(!tm->isBuilt());
-
-  // Reset model
-  tm->reset();
-
-  // mark as built
-  tm->d_modelBuilt = true;
-  tm->d_modelBuiltSuccess = false;
-
-  // Collect model info from the theories
-  Trace("model-builder") << "TheoryEngineModelBuilder: Collect model info..."
-                         << std::endl;
-  if (!d_te->collectModelInfo(tm))
-  {
-    return false;
-  }
-
+  Trace("model-builder")
+      << "TheoryEngineModelBuilder: Preprocess build model..." << std::endl;
   // model-builder specific initialization
   if (!preProcessBuildModel(tm))
   {
+    Trace("model-builder")
+        << "TheoryEngineModelBuilder: fail preprocess build model."
+        << std::endl;
     return false;
   }
 
+  Trace("model-builder")
+      << "TheoryEngineModelBuilder: Add assignable subterms..." << std::endl;
   // Loop through all terms and make sure that assignable sub-terms are in the
   // equality engine
   // Also, record #eqc per type (for finite model finding)
   std::map<TypeNode, unsigned> eqc_usort_count;
-  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(tm->d_equalityEngine);
+  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(ee);
   {
     NodeSet cache;
     for (; !eqcs_i.isFinished(); ++eqcs_i)
     {
-      eq::EqClassIterator eqc_i =
-          eq::EqClassIterator((*eqcs_i), tm->d_equalityEngine);
+      eq::EqClassIterator eqc_i = eq::EqClassIterator((*eqcs_i), ee);
       for (; !eqc_i.isFinished(); ++eqc_i)
       {
         addAssignableSubterms(*eqc_i, tm, cache);
@@ -338,6 +425,13 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   d_constantReps.clear();
   std::map<Node, Node> assertedReps;
   TypeSet typeConstSet, typeRepSet, typeNoRepSet;
+  // Compute type enumerator properties. This code ensures we do not
+  // enumerate terms that have uninterpreted constants that violate the
+  // bounds imposed by finite model finding. For example, if finite
+  // model finding insists that there are only 2 values { U1, U2 } of type U,
+  // then the type enumerator for list of U should enumerate:
+  //   nil, (cons U1 nil), (cons U2 nil), (cons U1 (cons U1 nil)), ...
+  // instead of enumerating (cons U3 nil).
   TypeEnumeratorProperties tep;
   if (options::finiteModelFind())
   {
@@ -352,6 +446,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     }
     typeConstSet.setTypeEnumeratorProperties(&tep);
   }
+
   // AJR: build ordered list of types that ensures that base types are
   // enumerated first.
   // (I think) this is only strictly necessary for finite model finding +
@@ -428,6 +523,20 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     }
   }
 
+  Trace("model-builder") << "Compute assignable information..." << std::endl;
+  // The set of equivalence classes that are "assignable"
+  std::unordered_set<Node, NodeHashFunction> assignableEqc;
+  // The set of equivalence classes that are "evaluable"
+  std::unordered_set<Node, NodeHashFunction> evaluableEqc;
+  // Assigner objects for relevant equivalence classes
+  std::map<Node, Assigner> eqcToAssigner;
+  // Maps equivalence classes to the equivalence class that maps to its assigner
+  // object in the above map.
+  std::map<Node, Node> eqcToAssignerMaster;
+  // Compute the above information
+  computeAssignableInfo(
+      tm, tep, assignableEqc, evaluableEqc, eqcToAssigner, eqcToAssignerMaster);
+
   // Need to ensure that each EC has a constant representative.
 
   Trace("model-builder") << "Processing EC's..." << std::endl;
@@ -466,56 +575,40 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
         {
           Trace("model-builder") << "  Eval phase, working on type: " << t
                                  << endl;
-          bool assignable, evaluable, evaluated;
+          bool evaluable;
           d_normalizedCache.clear();
           for (i = noRepSet->begin(); i != noRepSet->end();)
           {
             i2 = i;
             ++i;
-            assignable = false;
-            evaluable = false;
-            evaluated = false;
             Trace("model-builder-debug") << "Look at eqc : " << (*i2)
                                          << std::endl;
-            eq::EqClassIterator eqc_i =
-                eq::EqClassIterator(*i2, tm->d_equalityEngine);
-            for (; !eqc_i.isFinished(); ++eqc_i)
+            Node normalized;
+            // only possible to normalize if we are evaluable
+            evaluable = evaluableEqc.find(*i2) != evaluableEqc.end();
+            if (evaluable)
             {
-              Node n = *eqc_i;
-              Trace("model-builder-debug") << "Look at term : " << n
-                                           << std::endl;
-              if (isAssignable(n))
-              {
-                assignable = true;
-                Trace("model-builder-debug") << "...assignable" << std::endl;
-              }
-              else
-              {
-                evaluable = true;
-                Trace("model-builder-debug") << "...try to normalize"
-                                             << std::endl;
-                Node normalized = normalize(tm, n, true);
-                if (normalized.isConst())
-                {
-                  typeConstSet.add(tb, normalized);
-                  assignConstantRep(tm, *i2, normalized);
-                  Trace("model-builder") << "    Eval: Setting constant rep of "
-                                         << (*i2) << " to " << normalized
-                                         << endl;
-                  changed = true;
-                  evaluated = true;
-                  noRepSet->erase(i2);
-                  break;
-                }
-              }
+              normalized = evaluateEqc(tm, *i2);
             }
-            if (!evaluated)
+            if (!normalized.isNull())
+            {
+              Assert(normalized.isConst());
+              typeConstSet.add(tb, normalized);
+              assignConstantRep(tm, *i2, normalized);
+              Trace("model-builder") << "    Eval: Setting constant rep of "
+                                     << (*i2) << " to " << normalized << endl;
+              changed = true;
+              noRepSet->erase(i2);
+            }
+            else
             {
               if (evaluable)
               {
                 evaluableSet.insert(tb);
               }
-              if (assignable)
+              // If assignable, remember there is an equivalence class that is
+              // not assigned and assignable.
+              if (assignableEqc.find(*i2) != assignableEqc.end())
               {
                 unassignedAssignable = true;
               }
@@ -610,10 +703,9 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       bool isCorecursive = false;
       if (t.isDatatype())
       {
-        const Datatype& dt = ((DatatypeType)(t).toType()).getDatatype();
-        isCorecursive =
-            dt.isCodatatype() && (!dt.isFinite(t.toType())
-                                  || dt.isRecursiveSingleton(t.toType()));
+        const DType& dt = t.getDType();
+        isCorecursive = dt.isCodatatype()
+                        && (!dt.isFinite(t) || dt.isRecursiveSingleton(t));
       }
 #ifdef CVC4_ASSERTIONS
       bool isUSortFiniteRestricted = false;
@@ -623,7 +715,6 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       }
 #endif
 
-      set<Node>* repSet = typeRepSet.getSet(t);
       TypeNode tb = t.getBaseType();
       if (!assignOne)
       {
@@ -640,26 +731,35 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       Trace("model-builder") << "  Assign phase, working on type: " << t
                              << endl;
       bool assignable, evaluable CVC4_UNUSED;
+      std::map<Node, Assigner>::iterator itAssigner;
+      std::map<Node, Node>::iterator itAssignerM;
+      set<Node>* repSet = typeRepSet.getSet(t);
       for (i = noRepSet.begin(); i != noRepSet.end();)
       {
         i2 = i;
         ++i;
-        eq::EqClassIterator eqc_i =
-            eq::EqClassIterator(*i2, tm->d_equalityEngine);
-        assignable = false;
-        evaluable = false;
-        for (; !eqc_i.isFinished(); ++eqc_i)
+        // check whether it has an assigner object
+        itAssignerM = eqcToAssignerMaster.find(*i2);
+        if (itAssignerM != eqcToAssignerMaster.end())
         {
-          Node n = *eqc_i;
-          if (isAssignable(n))
-          {
-            assignable = true;
-          }
-          else
-          {
-            evaluable = true;
-          }
+          // Take the master's assigner. Notice we don't care which order
+          // equivalence classes are assigned. For instance, the master can
+          // be assigned after one of its slaves.
+          itAssigner = eqcToAssigner.find(itAssignerM->second);
         }
+        else
+        {
+          itAssigner = eqcToAssigner.find(*i2);
+        }
+        if (itAssigner != eqcToAssigner.end())
+        {
+          assignable = isAssignerActive(tm, itAssigner->second);
+        }
+        else
+        {
+          assignable = assignableEqc.find(*i2) != assignableEqc.end();
+        }
+        evaluable = evaluableEqc.find(*i2) != evaluableEqc.end();
         Trace("model-builder-debug")
             << "    eqc " << *i2 << " is assignable=" << assignable
             << ", evaluable=" << evaluable << std::endl;
@@ -667,17 +767,25 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
         {
           Assert(!evaluable || assignOne);
           // this assertion ensures that if we are assigning to a term of
-          // Boolean type, then the term is either a variable or an APPLY_UF.
+          // Boolean type, then the term must be assignable.
           // Note we only assign to terms of Boolean type if the term occurs in
           // a singleton equivalence class; otherwise the term would have been
           // in the equivalence class of true or false and would not need
           // assigning.
-          Assert(!t.isBoolean() || (*i2).isVar()
-                 || (*i2).getKind() == kind::APPLY_UF);
+          Assert(!t.isBoolean() || isAssignable(*i2));
           Node n;
-          if (t.getCardinality().isInfinite())
+          if (itAssigner != eqcToAssigner.end())
           {
-            // if (!t.isInterpretedFinite()) {
+            Trace("model-builder-debug")
+                << "Get value from assigner for finite type..." << std::endl;
+            // if it has an assigner, get the value from the assigner.
+            n = itAssigner->second.getNextAssignment();
+            Assert(!n.isNull());
+          }
+          else if (!t.isFinite())
+          {
+            // if its infinite, we get a fresh value that does not occur in
+            // the model.
             bool success;
             do
             {
@@ -727,13 +835,17 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
               }
               //---
             } while (!success);
+            Assert(!n.isNull());
           }
           else
           {
+            Trace("model-builder-debug")
+                << "Get first value from finite type..." << std::endl;
+            // Otherwise, we get the first value from the type enumerator.
             TypeEnumerator te(t);
             n = *te;
           }
-          Assert(!n.isNull());
+          Trace("model-builder-debug") << "...got " << n << std::endl;
           assignConstantRep(tm, *i2, n);
           changed = true;
           noRepSet.erase(i2);
@@ -795,31 +907,205 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   for (it = typeNoRepSet.begin(); it != typeNoRepSet.end(); ++it)
   {
     set<Node>& noRepSet = TypeSet::getSet(it);
-    set<Node>::iterator i;
-    for (i = noRepSet.begin(); i != noRepSet.end(); ++i)
+    for (const Node& node : noRepSet)
     {
-      tm->d_reps[*i] = *i;
-      tm->d_rep_set.add((*i).getType(), *i);
+      tm->d_reps[node] = node;
+      tm->d_rep_set.add(node.getType(), node);
     }
   }
 
   // modelBuilder-specific initialization
   if (!processBuildModel(tm))
   {
+    Trace("model-builder")
+        << "TheoryEngineModelBuilder: fail process build model." << std::endl;
     return false;
   }
-  else
+  Trace("model-builder") << "TheoryEngineModelBuilder: success" << std::endl;
+  return true;
+}
+void TheoryEngineModelBuilder::computeAssignableInfo(
+    TheoryModel* tm,
+    TypeEnumeratorProperties& tep,
+    std::unordered_set<Node, NodeHashFunction>& assignableEqc,
+    std::unordered_set<Node, NodeHashFunction>& evaluableEqc,
+    std::map<Node, Assigner>& eqcToAssigner,
+    std::map<Node, Node>& eqcToAssignerMaster)
+{
+  eq::EqualityEngine* ee = tm->d_equalityEngine;
+  bool computeAssigners = tm->hasAssignmentExclusionSets();
+  std::unordered_set<Node, NodeHashFunction> processed;
+  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(ee);
+  // A flag set to true if the current equivalence class is assignable (see
+  // assignableEqc).
+  bool assignable = false;
+  // Set to true if the current equivalence class is evaluatable (see
+  // evaluableEqc).
+  bool evaluable = false;
+  // Set to true if a term in the current equivalence class has been given an
+  // assignment exclusion set.
+  bool hasESet CVC4_UNUSED = false;
+  // Set to true if we found that a term in the current equivalence class has
+  // been given an assignment exclusion set, and we have not seen this term
+  // as part of a previous assignment exclusion group. In other words, when
+  // this flag is true we construct a new assigner object with the current
+  // equivalence class as its master.
+  bool foundESet = false;
+  // Look at all equivalence classes in the model
+  for (; !eqcs_i.isFinished(); ++eqcs_i)
   {
-    tm->d_modelBuiltSuccess = true;
-    return true;
+    Node eqc = *eqcs_i;
+    if (d_constantReps.find(eqc) != d_constantReps.end())
+    {
+      // already assigned above, skip
+      continue;
+    }
+    // reset information for the current equivalence classe
+    assignable = false;
+    evaluable = false;
+    hasESet = false;
+    foundESet = false;
+    // the assignment exclusion set for the current equivalence class
+    std::vector<Node> eset;
+    // the group to which this equivalence class belongs when exclusion sets
+    // were assigned (see the argument group of
+    // TheoryModel::getAssignmentExclusionSet).
+    std::vector<Node> group;
+    eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, ee);
+    // For each term in the current equivalence class, we update the above
+    // information. We may terminate this loop before looking at all terms if we
+    // have inferred the value of all of the information above.
+    for (; !eqc_i.isFinished(); ++eqc_i)
+    {
+      Node n = *eqc_i;
+      if (!isAssignable(n))
+      {
+        evaluable = true;
+        if (!computeAssigners)
+        {
+          if (assignable)
+          {
+            // both flags set, we are done
+            break;
+          }
+        }
+        // expressions that are not assignable should not be given assignment
+        // exclusion sets
+        Assert(!tm->getAssignmentExclusionSet(n, group, eset));
+        continue;
+      }
+      else
+      {
+        assignable = true;
+        if (!computeAssigners)
+        {
+          if (evaluable)
+          {
+            // both flags set, we are done
+            break;
+          }
+          // we don't compute assigners, skip
+          continue;
+        }
+      }
+      // process the assignment exclusion set for term n
+      // was it processed as a slave of a group?
+      if (processed.find(n) != processed.end())
+      {
+        // Should not have two assignment exclusion sets for the same
+        // equivalence class
+        Assert(!hasESet);
+        Assert(eqcToAssignerMaster.find(eqc) != eqcToAssignerMaster.end());
+        // already processed as a slave term
+        hasESet = true;
+        continue;
+      }
+      // was it assigned one?
+      if (tm->getAssignmentExclusionSet(n, group, eset))
+      {
+        // Should not have two assignment exclusion sets for the same
+        // equivalence class
+        Assert(!hasESet);
+        foundESet = true;
+        hasESet = true;
+      }
+    }
+    if (assignable)
+    {
+      assignableEqc.insert(eqc);
+    }
+    if (evaluable)
+    {
+      evaluableEqc.insert(eqc);
+    }
+    // If we found an assignment exclusion set, we construct a new assigner
+    // object.
+    if (foundESet)
+    {
+      // we don't accept assignment exclusion sets for evaluable eqc
+      Assert(!evaluable);
+      // construct the assigner
+      Assigner& a = eqcToAssigner[eqc];
+      // Take the representatives of each term in the assignment exclusion
+      // set, which ensures we can look up their value in d_constReps later.
+      std::vector<Node> aes;
+      for (const Node& e : eset)
+      {
+        // Should only supply terms that occur in the model or constants
+        // in assignment exclusion sets.
+        Assert(tm->hasTerm(e) || e.isConst());
+        Node er = tm->hasTerm(e) ? tm->getRepresentative(e) : e;
+        aes.push_back(er);
+      }
+      // initialize
+      a.initialize(eqc.getType(), &tep, aes);
+      // all others in the group are slaves of this
+      for (const Node& g : group)
+      {
+        Assert(isAssignable(g));
+        if (!tm->hasTerm(g))
+        {
+          // Ignore those that aren't in the model, in the case the user
+          // has supplied an assignment exclusion set to a variable not in
+          // the model.
+          continue;
+        }
+        Node gr = tm->getRepresentative(g);
+        if (gr != eqc)
+        {
+          eqcToAssignerMaster[gr] = eqc;
+          // remember that this term has been processed
+          processed.insert(g);
+        }
+      }
+    }
   }
 }
 
-void TheoryEngineModelBuilder::debugCheckModel(Model* m)
+void TheoryEngineModelBuilder::postProcessModel(bool incomplete, TheoryModel* m)
 {
-  TheoryModel* tm = (TheoryModel*)m;
+  // if we are incomplete, there is no guarantee on the model.
+  // thus, we do not check the model here.
+  if (incomplete)
+  {
+    return;
+  }
+  Assert(m != nullptr);
+  // debug-check the model if the checkModels() is enabled.
+  if (options::debugCheckModels())
+  {
+    debugCheckModel(m);
+  }
+}
+
+void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
+{
 #ifdef CVC4_ASSERTIONS
-  Assert(tm->isBuilt());
+  if (tm->hasApproximations())
+  {
+    // models with approximations may fail the assertions below
+    return;
+  }
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(tm->d_equalityEngine);
   std::map<Node, Node>::iterator itMap;
   // Check that every term evaluates to its representative in the model
@@ -853,8 +1139,8 @@ void TheoryEngineModelBuilder::debugCheckModel(Model* m)
                                            << "getValue(n): " << tm->getValue(n)
                                            << endl
                                            << "rep: " << rep << endl;
-        Assert(tm->getValue(*eqc_i) == rep,
-               "run with -d check-model::rep-checking for details");
+        Assert(tm->getValue(*eqc_i) == rep)
+            << "run with -d check-model::rep-checking for details";
       }
     }
   }
@@ -899,12 +1185,18 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
           if (itMap != d_constantReps.end())
           {
             ri = (*itMap).second;
+            Trace("model-builder-debug") << i << ": const child " << ri << std::endl;
             recurse = false;
           }
           else if (!evalOnly)
           {
             recurse = false;
+            Trace("model-builder-debug") << i << ": keep " << ri << std::endl;
           }
+        }
+        else
+        {
+          Trace("model-builder-debug") << i << ": no hasTerm " << ri << std::endl;
         }
         if (recurse)
         {
@@ -921,9 +1213,6 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
     if (childrenConst)
     {
       retNode = Rewriter::rewrite(retNode);
-      Assert(retNode.getKind() == kind::APPLY_UF
-             || !retNode.getType().isFirstClass()
-             || retNode.isConst());
     }
   }
   d_normalizedCache[r] = retNode;
@@ -983,7 +1272,7 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
     ufmt.simplify();
   }
   std::stringstream ss;
-  ss << "_arg_" << f << "_";
+  ss << "_arg_";
   Node val = ufmt.getFunctionValue(ss.str().c_str(), condenseFuncValues);
   m->assignFunctionDefinition(f, val);
   // ufmt.debugPrint( std::cout, m );

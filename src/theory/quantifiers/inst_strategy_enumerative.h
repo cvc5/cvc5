@@ -2,10 +2,10 @@
 /*! \file inst_strategy_enumerative.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,12 +14,13 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__INST_STRATEGY_ENUMERATIVE_H
-#define __CVC4__INST_STRATEGY_ENUMERATIVE_H
+#ifndef CVC4__INST_STRATEGY_ENUMERATIVE_H
+#define CVC4__INST_STRATEGY_ENUMERATIVE_H
 
 #include "context/context.h"
 #include "context/context_mm.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/relevant_domain.h"
 
 namespace CVC4 {
 namespace theory {
@@ -61,8 +62,10 @@ namespace quantifiers {
 class InstStrategyEnum : public QuantifiersModule
 {
  public:
-  InstStrategyEnum(QuantifiersEngine* qe);
+  InstStrategyEnum(QuantifiersEngine* qe, RelevantDomain* rd);
   ~InstStrategyEnum() {}
+  /** Presolve */
+  void presolve() override;
   /** Needs check. */
   bool needsCheck(Theory::Effort e) override;
   /** Reset round. */
@@ -79,6 +82,8 @@ class InstStrategyEnum : public QuantifiersModule
   }
 
  private:
+  /** Pointer to the relevant domain utility of quantifiers engine */
+  RelevantDomain* d_rd;
   /** process quantified formula
    *
    * q is the quantified formula we are constructing instances for.
@@ -92,8 +97,18 @@ class InstStrategyEnum : public QuantifiersModule
    * well-typed term *not* occurring in the current context.
    * This handles corner cases where there are no well-typed
    * ground terms in the current context to instantiate with.
+   *
+   * The flag isRd indicates whether we are trying relevant domain
+   * instantiations. If this flag is false, we are trying arbitrary ground
+   * term instantiations.
    */
-  bool process(Node q, bool fullEffort);
+  bool process(Node q, bool fullEffort, bool isRd);
+  /**
+   * A limit on the number of rounds to apply this strategy, where a value < 0
+   * means no limit. This value is set to the value of fullSaturateLimit()
+   * during presolve.
+   */
+  int32_t d_fullSaturateLimit;
 }; /* class InstStrategyEnum */
 
 } /* CVC4::theory::quantifiers namespace */

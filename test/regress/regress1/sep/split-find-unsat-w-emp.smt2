@@ -1,5 +1,6 @@
 (set-logic QF_ALL_SUPPORTED)
 (set-info :status unsat)
+(declare-heap (Int Int))
 
 (declare-const x Int)
 (declare-const y Int)
@@ -10,7 +11,7 @@
 (declare-const c Int)
 
 (assert (and
-        (not (sep (not (pto x a)) (not (pto y b)) (not (sep (pto x a) (pto y b))) (not (emp x x)) ))
+        (not (sep (not (pto x a)) (not (pto y b)) (not (sep (pto x a) (pto y b))) (not (_ emp Int Int)) ))
         (sep (pto x a) (pto y b))
   )
 )

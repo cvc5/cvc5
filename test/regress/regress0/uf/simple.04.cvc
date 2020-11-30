@@ -1,4 +1,4 @@
-% EXPECT: invalid
+% EXPECT: not_entailed
 A: TYPE;
 B: TYPE;
 x, y: A;

@@ -2,10 +2,10 @@
 /*! \file theory_arith_white.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Dejan Jovanovic
+ **   Tim King, Andres Noetzli, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -97,25 +97,27 @@ public:
     }
   }
 
-  void setUp() {
+  void setUp() override
+  {
     d_em = new ExprManager();
     d_nm = NodeManager::fromExprManager(d_em);
-    d_smt = new SmtEngine(d_em);
+    d_smt = new SmtEngine(d_nm);
     d_smt->setOption("incremental", CVC4::SExpr(false));
-    d_ctxt = d_smt->d_context;
-    d_uctxt = d_smt->d_userContext;
+    d_ctxt = d_smt->getContext();
+    d_uctxt = d_smt->getUserContext();
     d_scope = new SmtScope(d_smt);
     d_outputChannel.clear();
     d_logicInfo.lock();
 
-    // guard against duplicate statistics assertion errors
-    delete d_smt->d_theoryEngine->d_theoryTable[THEORY_ARITH];
-    delete d_smt->d_theoryEngine->d_theoryOut[THEORY_ARITH];
-    d_smt->d_theoryEngine->d_theoryTable[THEORY_ARITH] = NULL;
-    d_smt->d_theoryEngine->d_theoryOut[THEORY_ARITH] = NULL;
+    // Notice that this unit test uses the theory engine of a created SMT
+    // engine d_smt. We must ensure that d_smt is properly initialized via
+    // the following call, which constructs its underlying theory engine.
+    d_smt->finishInit();
 
-    d_arith = new TheoryArith(d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL),
-                              d_logicInfo);
+    d_smt->getTheoryEngine()->d_theoryTable[THEORY_ARITH]->setOutputChannel(
+        d_outputChannel);
+    d_arith = static_cast<TheoryArith*>(
+        d_smt->getTheoryEngine()->d_theoryTable[THEORY_ARITH]);
 
     preregistered = new std::set<Node>();
 
@@ -125,14 +127,14 @@ public:
 
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     delete d_intType;
     delete d_realType;
     delete d_booleanType;
 
     delete preregistered;
 
-    delete d_arith;
     d_outputChannel.clear();
     delete d_scope;
     delete d_smt;
@@ -287,6 +289,7 @@ public:
 
   void testIntNormalForm() {
     Node x = d_nm->mkVar(*d_intType);
+    Node xr = d_nm->mkVar(*d_realType);
     Node c0 = d_nm->mkConst<Rational>(d_zero);
     Node c1 = d_nm->mkConst<Rational>(d_one);
     Node c2 = d_nm->mkConst<Rational>(Rational(2));
@@ -316,5 +319,14 @@ public:
 
     TS_ASSERT_EQUALS(Rewriter::rewrite(leq0), Rewriter::rewrite(geq1.notNode()));
     TS_ASSERT_EQUALS(Rewriter::rewrite(leq1), Rewriter::rewrite(geq2.notNode()));
+
+    // (abs x) --> (abs x)
+    Node absX = d_nm->mkNode(ABS, x);
+    TS_ASSERT_EQUALS(Rewriter::rewrite(absX), absX);
+
+    // (exp (+ 2 + x)) --> (* (exp x) (exp 1) (exp 1))
+    Node t = d_nm->mkNode(EXPONENTIAL, d_nm->mkNode(PLUS, c2, xr)).eqNode(c0);
+    TS_ASSERT_EQUALS(Rewriter::rewrite(Rewriter::rewrite(t)),
+                     Rewriter::rewrite(t));
   }
 };

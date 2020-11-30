@@ -2,10 +2,10 @@
 /*! \file integer_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Aina Niemetz
+ **   Tim King, Aina Niemetz, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -293,14 +293,14 @@ public:
   }
 
   void testParseErrors() {
-    TS_ASSERT_THROWS(Integer("abracadabra"), std::invalid_argument);
-    TS_ASSERT_THROWS(Integer("+-1"), std::invalid_argument);
-    TS_ASSERT_THROWS(Integer("-+1"), std::invalid_argument);
-    TS_ASSERT_THROWS(Integer("5i"), std::invalid_argument);
-    TS_ASSERT_THROWS(Integer("10xyz"), std::invalid_argument);
-    TS_ASSERT_THROWS(Integer("0xff", 10), std::invalid_argument);
-    TS_ASSERT_THROWS(Integer("#x5", 0), std::invalid_argument);
-    TS_ASSERT_THROWS(Integer("0b123", 0), std::invalid_argument);
+    TS_ASSERT_THROWS(Integer("abracadabra"), std::invalid_argument&);
+    TS_ASSERT_THROWS(Integer("+-1"), std::invalid_argument&);
+    TS_ASSERT_THROWS(Integer("-+1"), std::invalid_argument&);
+    TS_ASSERT_THROWS(Integer("5i"), std::invalid_argument&);
+    TS_ASSERT_THROWS(Integer("10xyz"), std::invalid_argument&);
+    TS_ASSERT_THROWS(Integer("0xff", 10), std::invalid_argument&);
+    TS_ASSERT_THROWS(Integer("#x5", 0), std::invalid_argument&);
+    TS_ASSERT_THROWS(Integer("0b123", 0), std::invalid_argument&);
   }
 
   void testPow() {

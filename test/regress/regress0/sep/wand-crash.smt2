@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --no-check-models
 ; EXPECT: sat
 (set-logic QF_ALL_SUPPORTED)
-(assert (wand (emp 0 0) (emp 0 0)))
+(declare-heap (Int Int))
+(assert (wand (_ emp Int Int) (_ emp Int Int)))
 (check-sat)

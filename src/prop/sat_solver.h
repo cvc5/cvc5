@@ -2,10 +2,10 @@
 /*! \file sat_solver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Dejan Jovanovic, Morgan Deters
+ **   Dejan Jovanovic, Liana Hadarean, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,10 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROP__SAT_SOLVER_H
-#define __CVC4__PROP__SAT_SOLVER_H
-
-#include <stdint.h>
+#ifndef CVC4__PROP__SAT_SOLVER_H
+#define CVC4__PROP__SAT_SOLVER_H
 
 #include <string>
 
@@ -28,11 +26,10 @@
 #include "expr/node.h"
 #include "proof/clause_id.h"
 #include "prop/sat_solver_types.h"
+#include "prop/bv_sat_solver_notify.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
-  
-class BitVectorProof;
 
 namespace prop {
 
@@ -54,7 +51,7 @@ public:
 
   /** Add a clause corresponding to rhs = l1 xor .. xor ln  */
   virtual ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) = 0;
-  
+
   /**
    * Create a new boolean variable in the solver.
    * @param isTheoryAtom is this a theory atom that needs to be asserted to theory
@@ -76,6 +73,13 @@ public:
   /** Check the satisfiability of the added clauses */
   virtual SatValue solve(long unsigned int&) = 0;
 
+  /** Check satisfiability under assumptions */
+  virtual SatValue solve(const std::vector<SatLiteral>& assumptions)
+  {
+    Unimplemented() << "Solving under assumptions not implemented";
+    return SAT_VALUE_UNKNOWN;
+  };
+
   /** Interrupt the solver */
   virtual void interrupt() = 0;
 
@@ -90,9 +94,7 @@ public:
 
   /** Check if the solver is in an inconsistent state */
   virtual bool ok() const = 0;
-  
-  virtual void setProofLog( BitVectorProof * bvp ) {}
-  
+
 };/* class SatSolver */
 
 
@@ -101,27 +103,8 @@ public:
 
   virtual ~BVSatSolverInterface() {}
   /** Interface for notifications */
-  class Notify {
-  public:
 
-    virtual ~Notify() {};
-
-    /**
-     * If the notify returns false, the solver will break out of whatever it's currently doing
-     * with an "unknown" answer.
-     */
-    virtual bool notify(SatLiteral lit) = 0;
-
-    /**
-     * Notify about a learnt clause.
-     */
-    virtual void notify(SatClause& clause) = 0;
-    virtual void spendResource(unsigned amount) = 0;
-    virtual void safePoint(unsigned amount) = 0;
-
-  };/* class BVSatSolverInterface::Notify */
-
-  virtual void setNotify(Notify* notify) = 0;
+  virtual void setNotify(BVSatSolverNotify* notify) = 0;
 
   virtual void markUnremovable(SatLiteral lit) = 0;
 
@@ -139,10 +122,13 @@ public:
 
 };/* class BVSatSolverInterface */
 
+class DPLLSatSolverInterface : public SatSolver
+{
+ public:
+  virtual ~DPLLSatSolverInterface(){};
 
-class DPLLSatSolverInterface: public SatSolver {
-public:
-  virtual void initialize(context::Context* context, prop::TheoryProxy* theoryProxy) = 0;
+  virtual void initialize(context::Context* context,
+                          prop::TheoryProxy* theoryProxy) = 0;
 
   virtual void push() = 0;
 
@@ -158,10 +144,8 @@ public:
 
   virtual void requirePhase(SatLiteral lit) = 0;
 
-  virtual bool flipDecision() = 0;
-
   virtual bool isDecision(SatVariable decn) const = 0;
-};/* class DPLLSatSolverInterface */
+}; /* class DPLLSatSolverInterface */
 
 inline std::ostream& operator <<(std::ostream& out, prop::SatLiteral lit) {
   out << lit.toString();
@@ -201,4 +185,4 @@ inline std::ostream& operator <<(std::ostream& out, prop::SatValue val) {
 }/* CVC4::prop namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PROP__SAT_MODULE_H */
+#endif /* CVC4__PROP__SAT_MODULE_H */

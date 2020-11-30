@@ -1,0 +1,93 @@
+; REQUIRES: no-competition
+; COMMAND-LINE: --sygus-out=status --sygus-rec-fun --lang=sygus2
+; EXPECT-ERROR: (error "Parse Error: pLTL-sygus-syntax-err.sy:80.19: number of arguments does not match the constructor type
+; EXPECT-ERROR: 
+; EXPECT-ERROR: (Op2 <O2> <F>)
+; EXPECT-ERROR: ^
+; EXPECT-ERROR: ")
+; EXIT: 1
+(set-logic ALL)
+(set-option :lang sygus2)
+;(set-option :sygus-out status)
+(set-option :sygus-rec-fun true)
+(set-option :uf-ho true)
+
+(define-sort Time () Int)
+
+(declare-datatype Var ( (X0) (X1) ))
+
+; Declare Unary Operators.
+(declare-datatype UNARY_OP ( (NOT) (Y) (G) (H) ))
+
+; Declare Binary Operators.
+(declare-datatype BINARY_OP ( (AND) (OR) (IMPLIES) )) ; (S) ))
+
+; Formula Declaration.
+(declare-datatype Formula (
+  (P (Id Var))
+  (Op1 (op1 UNARY_OP) (f Formula))
+  (Op2 (op2 BINARY_OP) (f1 Formula) (f2 Formula))
+  )
+)
+
+; Trace Length.
+(declare-const tn Int)
+(assert (= tn 2))
+
+;cTrace Declaration (trace_index, variable_index)
+(define-fun val ((i Int) (x Var)) Bool
+  (or (and (= i 0) (= x X0))
+      (and (= i 0) (= x X1))
+      (and (= i 1) (= x X1))
+  )
+)
+
+;cpLTL Semantics
+(define-fun-rec holds ((f Formula) (t Time)) Bool
+  (and (<= 0 t tn)
+       (match f (
+         ((P i) (val t i))
+      
+         ((Op1 op g) 
+           (match op (
+             (NOT (not (holds g t))) 
+
+             (Y (and (< 0 t) (holds g (- t 1))))    
+
+             (G (and (holds g t) (or (= t tn) (holds f (+ t 1)))))
+
+             (H (and (holds g t) (or (= t 0) (holds f (- t 1)))))
+          )))
+
+         ((Op2 op f g)     
+           (match op (
+             (AND (and (holds f t) (holds g t)))
+
+             (OR  (or (holds f t) (holds g t)))
+
+             (IMPLIES (or (not (holds f t)) (holds g t)))
+         )))))
+    )
+)
+
+(synth-fun phi ((x0 Var) (x1 Var)) Formula
+  ((<F> Formula) (<O1> UNARY_OP) (<O2> BINARY_OP))
+  (
+   (<F> Formula (
+     (P x0)
+     (P x1)
+     (Op1 <O1> <F>)
+     (Op2 <O2> <F>)
+     )
+   )
+   (<O1> UNARY_OP (NOT Y G H))
+   (<O2> BINARY_OP (AND OR IMPLIES))
+  )
+)
+
+(constraint (holds (Op1 G (phi X0 X1)) 0))
+
+(check-synth)
+
+
+

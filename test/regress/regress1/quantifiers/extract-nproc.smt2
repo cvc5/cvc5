@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cbqi-bv --cbqi-bv-rm-extract
+; COMMAND-LINE: --cegqi-bv --cegqi-bv-rm-extract
 ; EXPECT: sat
 (set-logic BV)
 (declare-fun k_3 () (_ BitVec 8))

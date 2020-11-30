@@ -2,10 +2,10 @@
 /*! \file sat_solver_types.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Kshitij Bansal, Liana Hadarean
+ **   Dejan Jovanovic, Alex Ozdemir, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -24,8 +24,10 @@
 
 #include "cvc4_private.h"
 
-#include <string>
 #include <sstream>
+#include <string>
+#include <unordered_set>
+#include <vector>
 
 namespace CVC4 {
 namespace prop {
@@ -120,6 +122,16 @@ public:
   }
 
   /**
+   * Compare two literals
+   */
+  bool operator<(const SatLiteral& other) const
+  {
+    return getSatVariable() == other.getSatVariable()
+               ? isNegated() < other.isNegated()
+               : getSatVariable() < other.getSatVariable();
+  }
+
+  /**
    * Returns a string representation of the literal.
    */
   std::string toString() const {
@@ -166,6 +178,26 @@ struct SatLiteralHashFunction {
  */
 typedef std::vector<SatLiteral> SatClause;
 
+struct SatClauseSetHashFunction
+{
+  inline size_t operator()(
+      const std::unordered_set<SatLiteral, SatLiteralHashFunction>& clause)
+      const
+  {
+    size_t acc = 0;
+    for (const auto& l : clause)
+    {
+      acc ^= l.hash();
+    }
+    return acc;
+  }
+};
+
+struct SatClauseLessThan
+{
+  bool operator()(const SatClause& l, const SatClause& r) const;
+};
+
 /**
  * Each object in the SAT solver, such as as variables and clauses, can be assigned a life span,
  * so that the SAT solver can (or should) remove them when the lifespan is over.
@@ -204,5 +236,3 @@ enum SatSolverLifespan
 
 }
 }
-
-

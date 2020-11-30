@@ -2,10 +2,11 @@
 ; EXPECT: unsat
 (set-logic ALL_SUPPORTED)
 (set-info :status unsat)
+(declare-heap (Int Int))
 
 (declare-const u Int)
 
-(assert (emp 0 0))
+(assert (_ emp Int Int))
 
 (assert 
 (forall ((y Int)) 

@@ -1,4 +1,4 @@
-% EXPECT: valid
+% EXPECT: entailed
 x0, x1, x2, x3 : INT;
 ASSERT  (-15 * x0) + (3 * x1) + (31 * x2) + (2 * x3) = -18 ;
 ASSERT  (-25 * x0) + (-10 * x1) + (15 * x2) + (29 * x3) = -18 ;

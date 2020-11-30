@@ -2,10 +2,10 @@
 /*! \file quantifiers_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,156 +16,81 @@
 
 #include "options/quantifiers_options.h"
 #include "options/uf_options.h"
+#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/arrays/theory_arrays.h"
-#include "theory/datatypes/theory_datatypes.h"
-#include "theory/quantifiers/alpha_equivalence.h"
-#include "theory/quantifiers/anti_skolem.h"
-#include "theory/quantifiers/bv_inverter.h"
-#include "theory/quantifiers/cegqi/inst_strategy_cbqi.h"
-#include "theory/quantifiers/conjecture_generator.h"
-#include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
-#include "theory/quantifiers/ematching/instantiation_engine.h"
-#include "theory/quantifiers/ematching/trigger.h"
-#include "theory/quantifiers/equality_infer.h"
-#include "theory/quantifiers/equality_query.h"
-#include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/fmf/ambqi_builder.h"
-#include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
-#include "theory/quantifiers/fmf/model_engine.h"
-#include "theory/quantifiers/inst_propagator.h"
-#include "theory/quantifiers/inst_strategy_enumerative.h"
-#include "theory/quantifiers/instantiate.h"
-#include "theory/quantifiers/local_theory_ext.h"
-#include "theory/quantifiers/quant_conflict_find.h"
-#include "theory/quantifiers/quant_epr.h"
-#include "theory/quantifiers/quant_relevance.h"
-#include "theory/quantifiers/quant_split.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/quantifiers_modules.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
-#include "theory/quantifiers/relevant_domain.h"
-#include "theory/quantifiers/rewrite_engine.h"
-#include "theory/quantifiers/skolemize.h"
-#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
-#include "theory/quantifiers/sygus/sygus_eval_unfold.h"
-#include "theory/quantifiers/sygus/term_database_sygus.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/term_enumeration.h"
-#include "theory/quantifiers/term_util.h"
-#include "theory/sep/theory_sep.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/uf/theory_uf.h"
-#include "theory/uf/theory_uf_strong_solver.h"
 
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
-using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::inst;
 
-QuantifiersEngine::QuantifiersEngine(context::Context* c,
-                                     context::UserContext* u,
-                                     TheoryEngine* te)
+namespace CVC4 {
+namespace theory {
+
+QuantifiersEngine::QuantifiersEngine(TheoryEngine* te,
+                                     DecisionManager& dm,
+                                     ProofNodeManager* pnm)
     : d_te(te),
+      d_context(te->getSatContext()),
+      d_userContext(te->getUserContext()),
+      d_decManager(dm),
+      d_masterEqualityEngine(nullptr),
+      d_eq_query(
+          new quantifiers::EqualityQueryQuantifiersEngine(d_context, this)),
+      d_tr_trie(new inst::TriggerTrie),
+      d_model(nullptr),
+      d_builder(nullptr),
+      d_qepr(nullptr),
+      d_term_util(new quantifiers::TermUtil(this)),
+      d_term_canon(new expr::TermCanonize),
+      d_term_db(new quantifiers::TermDb(d_context, d_userContext, this)),
+      d_sygus_tdb(nullptr),
       d_quant_attr(new quantifiers::QuantAttributes(this)),
-      d_instantiate(new quantifiers::Instantiate(this, u)),
-      d_skolemize(new quantifiers::Skolemize(this, u)),
+      d_instantiate(new quantifiers::Instantiate(this, d_userContext, pnm)),
+      d_skolemize(new quantifiers::Skolemize(this, d_userContext, pnm)),
       d_term_enum(new quantifiers::TermEnumeration),
-      d_conflict_c(c, false),
-      // d_quants(u),
-      d_quants_prereg(u),
-      d_quants_red(u),
-      d_lemmas_produced_c(u),
-      d_ierCounter_c(c),
-      // d_ierCounter(c),
-      // d_ierCounter_lc(c),
-      // d_ierCounterLastLc(c),
-      d_presolve(u, true),
-      d_presolve_in(u),
-      d_presolve_cache(u),
-      d_presolve_cache_wq(u),
-      d_presolve_cache_wic(u)
+      d_conflict_c(d_context, false),
+      d_quants_prereg(d_userContext),
+      d_quants_red(d_userContext),
+      d_lemmas_produced_c(d_userContext),
+      d_ierCounter_c(d_context),
+      d_presolve(d_userContext, true),
+      d_presolve_in(d_userContext),
+      d_presolve_cache(d_userContext),
+      d_presolve_cache_wq(d_userContext),
+      d_presolve_cache_wic(d_userContext)
 {
-  //utilities
-  d_eq_query = new quantifiers::EqualityQueryQuantifiersEngine( c, this );
-  d_util.push_back( d_eq_query );
+  //---- utilities
+  d_util.push_back(d_eq_query.get());
+  // term util must come before the other utilities
+  d_util.push_back(d_term_util.get());
+  d_util.push_back(d_term_db.get());
 
-  // term util must come first
-  d_term_util = new quantifiers::TermUtil(this);
-  d_util.push_back(d_term_util);
-
-  d_term_db = new quantifiers::TermDb( c, u, this );
-  d_util.push_back( d_term_db );
-  
-  if (options::ceGuidedInst()) {
-    d_sygus_tdb = new quantifiers::TermDbSygus(c, this);
-  }else{
-    d_sygus_tdb = NULL;
-  }
-
-  if( options::instPropagate() ){
-    // notice that this option is incompatible with options::qcfAllConflict()
-    d_inst_prop = new quantifiers::InstPropagator( this );
-    d_util.push_back( d_inst_prop );
-    d_instantiate->addNotify(d_inst_prop->getInstantiationNotify());
-  }else{
-    d_inst_prop = NULL;
-  }
-  
-  if( options::inferArithTriggerEq() ){
-    d_eq_inference = new quantifiers::EqualityInference( c, options::inferArithTriggerEqExp() );
-  }else{
-    d_eq_inference = NULL;
+  if (options::sygus() || options::sygusInst())
+  {
+    // must be constructed here since it is required for datatypes finistInit
+    d_sygus_tdb.reset(new quantifiers::TermDbSygus(d_context, this));
   }
 
   d_util.push_back(d_instantiate.get());
 
-  d_tr_trie = new inst::TriggerTrie;
   d_curr_effort_level = QuantifiersModule::QEFFORT_NONE;
   d_conflict = false;
   d_hasAddedLemma = false;
-  d_useModelEe = false;
   //don't add true lemma
   d_lemmas_produced_c[d_term_util->d_true] = true;
 
   Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
 
-  if( options::relevantTriggers() ){
-    d_quant_rel = new quantifiers::QuantRelevance(false);
-    d_util.push_back(d_quant_rel);
-  }else{
-    d_quant_rel = NULL;
-  }
-
   if( options::quantEpr() ){
-    Assert( !options::incrementalSolving() );
-    d_qepr = new quantifiers::QuantEPR;
-  }else{
-    d_qepr = NULL;
+    Assert(!options::incrementalSolving());
+    d_qepr.reset(new quantifiers::QuantEPR);
   }
-
-
-  d_qcf = NULL;
-  d_sg_gen = NULL;
-  d_inst_engine = NULL;
-  d_i_cbqi = NULL;
-  d_qsplit = NULL;
-  d_anti_skolem = NULL;
-  d_model = NULL;
-  d_model_engine = NULL;
-  d_bint = NULL;
-  d_rr_engine = NULL;
-  d_ceg_inst = NULL;
-  d_lte_part_inst = NULL;
-  d_alpha_equiv = NULL;
-  d_fs = NULL;
-  d_rel_dom = NULL;
-  d_bv_invert = NULL;
-  d_builder = NULL;
+  //---- end utilities
 
   //allow theory combination to go first, once initially
   d_ierCounter = options::instWhenTcFirst() ? 0 : 1;
@@ -174,140 +99,65 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   d_ierCounterLastLc = 0;
   d_inst_when_phase = 1 + ( options::instWhenPhase()<1 ? 1 : options::instWhenPhase() );
 
-  bool needsBuilder = false;
-  bool needsRelDom = false;
-  //add quantifiers modules
-  if( options::quantConflictFind() || options::quantRewriteRules() ){
-    d_qcf = new quantifiers::QuantConflictFind( this, c);
-    d_modules.push_back( d_qcf );
-  }
-  if( options::conjectureGen() ){
-    d_sg_gen = new quantifiers::ConjectureGenerator( this, c );
-    d_modules.push_back( d_sg_gen );
-  }
-  if( !options::finiteModelFind() || options::fmfInstEngine() ){
-    d_inst_engine = new quantifiers::InstantiationEngine( this );
-    d_modules.push_back(  d_inst_engine );
-  }
-  if( options::cbqi() ){
-    d_i_cbqi = new quantifiers::InstStrategyCegqi( this );
-    d_modules.push_back( d_i_cbqi );
-    if( options::cbqiBv() ){
-      // if doing instantiation for BV, need the inverter class
-      d_bv_invert = new quantifiers::BvInverter;
-    }
-  }
-  if( options::ceGuidedInst() ){
-    d_ceg_inst = new quantifiers::CegInstantiation( this, c );
-    d_modules.push_back( d_ceg_inst );
-    //needsBuilder = true;
-  }  
-  //finite model finding
-  if( options::finiteModelFind() ){
-    if( options::fmfBound() ){
-      d_bint = new quantifiers::BoundedIntegers( c, this );
-      d_modules.push_back( d_bint );
-    }
-    d_model_engine = new quantifiers::ModelEngine( c, this );
-    d_modules.push_back( d_model_engine );
-    //finite model finder has special ways of building the model
-    needsBuilder = true;
-  }
-  if( options::quantRewriteRules() ){
-    d_rr_engine = new quantifiers::RewriteEngine( c, this );
-    d_modules.push_back(d_rr_engine);
-  }
-  if( options::ltePartialInst() ){
-    d_lte_part_inst = new quantifiers::LtePartialInst( this, c );
-    d_modules.push_back( d_lte_part_inst );
-  }
-  if( options::quantDynamicSplit()!=quantifiers::QUANT_DSPLIT_MODE_NONE ){
-    d_qsplit = new quantifiers::QuantDSplit( this, c );
-    d_modules.push_back( d_qsplit );
-  }
-  if( options::quantAntiSkolem() ){
-    d_anti_skolem = new quantifiers::QuantAntiSkolem( this );
-    d_modules.push_back( d_anti_skolem );
-  }
-  if( options::quantAlphaEquiv() ){
-    d_alpha_equiv = new quantifiers::AlphaEquivalence( this );
-  }
-  //full saturation : instantiate from relevant domain, then arbitrary terms
-  if( options::fullSaturateQuant() || options::fullSaturateInterleave() ){
-    d_fs = new quantifiers::InstStrategyEnum(this);
-    d_modules.push_back( d_fs );
-    needsRelDom = true;
-  }
-  
-  if( needsRelDom ){
-    d_rel_dom = new quantifiers::RelevantDomain( this );
-    d_util.push_back( d_rel_dom );
-  }
-  
-  // if we require specialized ways of building the model
-  if( needsBuilder ){
+  // Finite model finding requires specialized ways of building the model.
+  // We require constructing the model and model builder here, since it is
+  // required for initializing the CombinationEngine.
+  if (options::finiteModelFind() || options::fmfBound())
+  {
     Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBound() << std::endl;
-    if (options::mbqiMode() == quantifiers::MBQI_FMC
-        || options::mbqiMode() == quantifiers::MBQI_TRUST
+    if (options::mbqiMode() == options::MbqiMode::FMC
+        || options::mbqiMode() == options::MbqiMode::TRUST
         || options::fmfBound())
     {
       Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
-      d_model = new quantifiers::fmcheck::FirstOrderModelFmc( this, c, "FirstOrderModelFmc" );
-      d_builder = new quantifiers::fmcheck::FullModelChecker( c, this );
-    }else if( options::mbqiMode()==quantifiers::MBQI_ABS ){
-      Trace("quant-engine-debug") << "...make abs mbqi builder." << std::endl;
-      d_model = new quantifiers::FirstOrderModelAbs( this, c, "FirstOrderModelAbs" );
-      d_builder = new quantifiers::AbsMbqiBuilder( c, this );
+      d_model.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
+          this, d_context, "FirstOrderModelFmc"));
+      d_builder.reset(
+          new quantifiers::fmcheck::FullModelChecker(d_context, this));
     }else{
       Trace("quant-engine-debug") << "...make default model builder." << std::endl;
-      d_model = new quantifiers::FirstOrderModelIG( this, c, "FirstOrderModelIG" );
-      d_builder = new quantifiers::QModelBuilderDefault( c, this );
+      d_model.reset(
+          new quantifiers::FirstOrderModel(this, d_context, "FirstOrderModel"));
+      d_builder.reset(new quantifiers::QModelBuilder(d_context, this));
     }
   }else{
-    d_model = new quantifiers::FirstOrderModelIG( this, c, "FirstOrderModelIG" );
+    d_model.reset(
+        new quantifiers::FirstOrderModel(this, d_context, "FirstOrderModel"));
   }
 }
 
-QuantifiersEngine::~QuantifiersEngine()
+QuantifiersEngine::~QuantifiersEngine() {}
+
+void QuantifiersEngine::finishInit()
 {
-  delete d_alpha_equiv;
-  delete d_builder;
-  delete d_qepr;
-  delete d_rr_engine;
-  delete d_bint;
-  delete d_model_engine;
-  delete d_inst_engine;
-  delete d_qcf;
-  delete d_quant_rel;
-  delete d_rel_dom;
-  delete d_bv_invert;
-  delete d_model;
-  delete d_tr_trie;
-  delete d_term_db;
-  delete d_sygus_tdb;
-  delete d_term_util;
-  delete d_eq_inference;
-  delete d_eq_query;
-  delete d_sg_gen;
-  delete d_ceg_inst;
-  delete d_lte_part_inst;
-  delete d_fs;
-  delete d_i_cbqi;
-  delete d_qsplit;
-  delete d_anti_skolem;
-  delete d_inst_prop;
+  // Initialize the modules and the utilities here. We delay their
+  // initialization to here, since this is after TheoryQuantifiers finishInit,
+  // which has initialized the state and inference manager of this engine.
+  d_qmodules.reset(new quantifiers::QuantifiersModules);
+  d_qmodules->initialize(this, d_context, d_modules);
+  if (d_qmodules->d_rel_dom.get())
+  {
+    d_util.push_back(d_qmodules->d_rel_dom.get());
+  }
 }
 
-EqualityQuery* QuantifiersEngine::getEqualityQuery() { return d_eq_query; }
-
-context::Context* QuantifiersEngine::getSatContext()
+void QuantifiersEngine::setMasterEqualityEngine(eq::EqualityEngine* mee)
 {
-  return d_te->theoryOf(THEORY_QUANTIFIERS)->getSatContext();
+  d_masterEqualityEngine = mee;
 }
+
+TheoryEngine* QuantifiersEngine::getTheoryEngine() const { return d_te; }
+
+DecisionManager* QuantifiersEngine::getDecisionManager()
+{
+  return &d_decManager;
+}
+
+context::Context* QuantifiersEngine::getSatContext() { return d_context; }
 
 context::UserContext* QuantifiersEngine::getUserContext()
 {
-  return d_te->theoryOf(THEORY_QUANTIFIERS)->getUserContext();
+  return d_userContext;
 }
 
 OutputChannel& QuantifiersEngine::getOutputChannel()
@@ -323,6 +173,59 @@ Valuation& QuantifiersEngine::getValuation()
 const LogicInfo& QuantifiersEngine::getLogicInfo() const
 {
   return d_te->getLogicInfo();
+}
+
+EqualityQuery* QuantifiersEngine::getEqualityQuery() const
+{
+  return d_eq_query.get();
+}
+quantifiers::QModelBuilder* QuantifiersEngine::getModelBuilder() const
+{
+  return d_builder.get();
+}
+quantifiers::QuantEPR* QuantifiersEngine::getQuantEPR() const
+{
+  return d_qepr.get();
+}
+quantifiers::FirstOrderModel* QuantifiersEngine::getModel() const
+{
+  return d_model.get();
+}
+quantifiers::TermDb* QuantifiersEngine::getTermDatabase() const
+{
+  return d_term_db.get();
+}
+quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const
+{
+  return d_sygus_tdb.get();
+}
+quantifiers::TermUtil* QuantifiersEngine::getTermUtil() const
+{
+  return d_term_util.get();
+}
+expr::TermCanonize* QuantifiersEngine::getTermCanonize() const
+{
+  return d_term_canon.get();
+}
+quantifiers::QuantAttributes* QuantifiersEngine::getQuantAttributes() const
+{
+  return d_quant_attr.get();
+}
+quantifiers::Instantiate* QuantifiersEngine::getInstantiate() const
+{
+  return d_instantiate.get();
+}
+quantifiers::Skolemize* QuantifiersEngine::getSkolemize() const
+{
+  return d_skolemize.get();
+}
+quantifiers::TermEnumeration* QuantifiersEngine::getTermEnumeration() const
+{
+  return d_term_enum.get();
+}
+inst::TriggerTrie* QuantifiersEngine::getTriggerDatabase() const
+{
+  return d_tr_trie.get();
 }
 
 QuantifiersModule * QuantifiersEngine::getOwner( Node q ) {
@@ -348,23 +251,85 @@ void QuantifiersEngine::setOwner( Node q, QuantifiersModule * m, int priority ) 
   }
 }
 
+void QuantifiersEngine::setOwner(Node q, quantifiers::QAttributes& qa)
+{
+  if (qa.d_sygus || (options::sygusRecFun() && !qa.d_fundef_f.isNull()))
+  {
+    if (d_qmodules->d_synth_e.get() == nullptr)
+    {
+      Trace("quant-warn") << "WARNING : synth engine is null, and we have : "
+                          << q << std::endl;
+    }
+    // set synth engine as owner since this is either a conjecture or a function
+    // definition to be used by sygus
+    setOwner(q, d_qmodules->d_synth_e.get(), 2);
+  }
+}
+
 bool QuantifiersEngine::hasOwnership( Node q, QuantifiersModule * m ) {
   QuantifiersModule * mo = getOwner( q );
   return mo==m || mo==NULL;
 }
 
-bool QuantifiersEngine::isFiniteBound( Node q, Node v ) {
-  if( getBoundedIntegers() && getBoundedIntegers()->isBoundVar( q, v ) ){
+bool QuantifiersEngine::isFiniteBound(Node q, Node v) const
+{
+  quantifiers::BoundedIntegers* bi = d_qmodules->d_bint.get();
+  if (bi && bi->isBound(q, v))
+  {
     return true;
-  }else{
-    TypeNode tn = v.getType();
-    if( tn.isSort() && options::finiteModelFind() ){
-      return true;
-    }
-    else if (d_term_enum->mayComplete(tn))
+  }
+  TypeNode tn = v.getType();
+  if (tn.isSort() && options::finiteModelFind())
+  {
+    return true;
+  }
+  else if (d_term_enum->mayComplete(tn))
+  {
+    return true;
+  }
+  return false;
+}
+
+BoundVarType QuantifiersEngine::getBoundVarType(Node q, Node v) const
+{
+  quantifiers::BoundedIntegers* bi = d_qmodules->d_bint.get();
+  if (bi)
+  {
+    return bi->getBoundVarType(q, v);
+  }
+  return isFiniteBound(q, v) ? BOUND_FINITE : BOUND_NONE;
+}
+
+void QuantifiersEngine::getBoundVarIndices(Node q,
+                                           std::vector<unsigned>& indices) const
+{
+  Assert(indices.empty());
+  // we take the bounded variables first
+  quantifiers::BoundedIntegers* bi = d_qmodules->d_bint.get();
+  if (bi)
+  {
+    bi->getBoundVarIndices(q, indices);
+  }
+  // then get the remaining ones
+  for (unsigned i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
+  {
+    if (std::find(indices.begin(), indices.end(), i) == indices.end())
     {
-      return true;
+      indices.push_back(i);
     }
+  }
+}
+
+bool QuantifiersEngine::getBoundElements(RepSetIterator* rsi,
+                                         bool initial,
+                                         Node q,
+                                         Node v,
+                                         std::vector<Node>& elements) const
+{
+  quantifiers::BoundedIntegers* bi = d_qmodules->d_bint.get();
+  if (bi)
+  {
+    return bi->getBoundElements(rsi, initial, q, v, elements);
   }
   return false;
 }
@@ -391,45 +356,36 @@ void QuantifiersEngine::ppNotifyAssertions(
   Trace("quant-engine-proc")
       << "ppNotifyAssertions in QE, #assertions = " << assertions.size()
       << " check epr = " << (d_qepr != NULL) << std::endl;
-  if ((options::instLevelInputOnly() && options::instMaxLevel() != -1) ||
-      d_qepr != NULL) {
-    for (unsigned i = 0; i < assertions.size(); i++) {
-      if (options::instLevelInputOnly() && options::instMaxLevel() != -1) {
-        quantifiers::QuantAttributes::setInstantiationLevelAttr(assertions[i],
-                                                                0);
-      }
-      if (d_qepr != NULL) {
-        d_qepr->registerAssertion(assertions[i]);
-      }
+  if (options::instLevelInputOnly() && options::instMaxLevel() != -1)
+  {
+    for (const Node& a : assertions)
+    {
+      quantifiers::QuantAttributes::setInstantiationLevelAttr(a, 0);
     }
-    if (d_qepr != NULL) {
-      // must handle sources of other new constants e.g. separation logic
-      // FIXME: cleanup
-      sep::TheorySep* theory_sep =
-          static_cast<sep::TheorySep*>(getTheoryEngine()->theoryOf(THEORY_SEP));
-      theory_sep->initializeBounds();
-      d_qepr->finishInit();
+  }
+  if (options::sygus())
+  {
+    quantifiers::SynthEngine* sye = d_qmodules->d_synth_e.get();
+    for (const Node& a : assertions)
+    {
+      sye->preregisterAssertion(a);
     }
+  }
+  /* The SyGuS instantiation module needs a global view of all available
+   * assertions to collect global terms that get added to each grammar.
+   */
+  if (options::sygusInst())
+  {
+    quantifiers::SygusInst* si = d_qmodules->d_sygus_inst.get();
+    si->ppNotifyAssertions(assertions);
   }
 }
 
 void QuantifiersEngine::check( Theory::Effort e ){
   CodeTimer codeTimer(d_statistics.d_time);
-  d_useModelEe = options::quantModelEe() && ( e>=Theory::EFFORT_LAST_CALL );
-  // if we want to use the model's equality engine, build the model now
-  if( d_useModelEe && !d_model->isBuilt() ){
-    Trace("quant-engine-debug") << "Build the model." << std::endl;
-    if( !d_te->getModelBuilder()->buildModel( d_model ) ){
-      //we are done if model building was unsuccessful
-      flushLemmas();
-      if( d_hasAddedLemma ){
-        Trace("quant-engine-debug") << "...failed." << std::endl;
-        return;
-      }
-    }
-  }
-  
-  if( !getActiveEqualityEngine()->consistent() ){
+
+  if (!getMasterEqualityEngine()->consistent())
+  {
     Trace("quant-engine-debug") << "Master equality engine not consistent, return." << std::endl;
     return;
   }
@@ -484,12 +440,12 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
   Trace("quant-engine-debug2") << "Quantifiers Engine call to check, level = " << e << ", needsCheck=" << needsCheck << std::endl;
   if( needsCheck ){
-    //flush previous lemmas (for instance, if was interupted), or other lemmas to process
+    //flush previous lemmas (for instance, if was interrupted), or other lemmas to process
     flushLemmas();
     if( d_hasAddedLemma ){
       return;
     }
-    
+
     double clSet = 0;
     if( Trace.isOn("quant-engine") ){
       clSet = double(clock())/double(CLOCKS_PER_SEC);
@@ -508,8 +464,12 @@ void QuantifiersEngine::check( Theory::Effort e ){
       if( !d_lemmas_waiting.empty() ){
         Trace("quant-engine-debug") << "  lemmas waiting = " << d_lemmas_waiting.size() << std::endl;
       }
-      Trace("quant-engine-debug") << "  Theory engine finished : " << !d_te->needCheck() << std::endl;
+      Trace("quant-engine-debug")
+          << "  Theory engine finished : " << !theoryEngineNeedsCheck()
+          << std::endl;
       Trace("quant-engine-debug") << "  Needs model effort : " << needsModelE << std::endl;
+      Trace("quant-engine-debug")
+          << "  In conflict : " << d_conflict << std::endl;
     }
     if( Trace.isOn("quant-engine-ee-pre") ){
       Trace("quant-engine-ee-pre") << "Equality engine (pre-inference): " << std::endl;
@@ -533,7 +493,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
           return;
         }else{
           //should only fail reset if added a lemma
-          Assert( false );
+          Assert(false);
         }
       }
     }
@@ -563,9 +523,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
 
     if( e==Theory::EFFORT_LAST_CALL ){
-      //if effort is last call, try to minimize model first
-      //uf::StrongSolverTheoryUF * ufss = ((uf::TheoryUF*)getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver();
-      //if( ufss && !ufss->minimize() ){ return; }
       ++(d_statistics.d_instantiation_rounds_lc);
     }else if( e==Theory::EFFORT_FULL ){
       ++(d_statistics.d_instantiation_rounds);
@@ -578,22 +535,15 @@ void QuantifiersEngine::check( Theory::Effort e ){
       QuantifiersModule::QEffort quant_e =
           static_cast<QuantifiersModule::QEffort>(qef);
       d_curr_effort_level = quant_e;
-      //build the model if any module requested it
+      // Force the theory engine to build the model if any module requested it.
       if (needsModelE == quant_e)
       {
-        if (!d_model->isBuilt())
+        Trace("quant-engine-debug") << "Build model..." << std::endl;
+        if (!d_te->buildModel())
         {
-          // theory engine's model builder is quantifier engine's builder if it
-          // has one
-          Assert(!d_builder || d_builder == d_te->getModelBuilder());
-          Trace("quant-engine-debug") << "Build model..." << std::endl;
-          if (!d_te->getModelBuilder()->buildModel(d_model))
-          {
-            flushLemmas();
-          }
-        }
-        if (!d_model->isBuiltSuccess())
-        {
+          // If we failed to build the model, flush all pending lemmas and
+          // finish.
+          flushLemmas();
           break;
         }
       }
@@ -617,7 +567,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       if( d_hasAddedLemma ){
         break;
       }else{
-        Assert( !d_conflict );
+        Assert(!d_conflict);
         if (quant_e == QuantifiersModule::QEFFORT_CONFLICT)
         {
           if( e==Theory::EFFORT_FULL ){
@@ -687,7 +637,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
                     setIncomplete = true;
                     break;
                   }else{
-                    Assert( qmd!=NULL );
+                    Assert(qmd != NULL);
                     Trace("quant-engine-debug2") << "Complete for " << q << " due to " << qmd->identify().c_str() << std::endl;
                   }
                 }
@@ -703,8 +653,16 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
     d_curr_effort_level = QuantifiersModule::QEFFORT_NONE;
     Trace("quant-engine-debug") << "Done check modules that needed check." << std::endl;
-    if( d_hasAddedLemma ){
-      d_instantiate->debugPrint();
+    // debug print
+    if (d_hasAddedLemma)
+    {
+      bool debugInstTrace = Trace.isOn("inst-per-quant-round");
+      if (options::debugInst() || debugInstTrace)
+      {
+        Options& sopts = smt::currentSmtEngine()->getOptions();
+        std::ostream& out = *sopts.getOut();
+        d_instantiate->debugPrint(out);
+      }
     }
     if( Trace.isOn("quant-engine") ){
       double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
@@ -712,7 +670,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       Trace("quant-engine") << ", added lemma = " << d_hasAddedLemma;
       Trace("quant-engine") << std::endl;
     }
-    
+
     Trace("quant-engine-debug2") << "Finished quantifiers engine check." << std::endl;
   }else{
     Trace("quant-engine-debug2") << "Quantifiers Engine does not need check." << std::endl;
@@ -742,10 +700,11 @@ bool QuantifiersEngine::reduceQuantifier( Node q ) {
     Node lem;
     std::map< Node, Node >::iterator itr = d_quants_red_lem.find( q );
     if( itr==d_quants_red_lem.end() ){
-      if( d_alpha_equiv ){
+      if (d_qmodules->d_alpha_equiv)
+      {
         Trace("quant-engine-red") << "Alpha equivalence " << q << "?" << std::endl;
         //add equivalence with another quantified formula
-        lem = d_alpha_equiv->reduceQuantifier( q );
+        lem = d_qmodules->d_alpha_equiv->reduceQuantifier(q);
         if( !lem.isNull() ){
           Trace("quant-engine-red") << "...alpha equivalence success." << std::endl;
           ++(d_statistics.d_red_alpha_equiv);
@@ -773,7 +732,7 @@ void QuantifiersEngine::registerQuantifierInternal(Node f)
     Trace("quant") << " : " << f << std::endl;
     unsigned prev_lemma_waiting = d_lemmas_waiting.size();
     ++(d_statistics.d_num_quant);
-    Assert( f.getKind()==FORALL );
+    Assert(f.getKind() == FORALL);
     // register with utilities
     for (unsigned i = 0; i < d_util.size(); i++)
     {
@@ -851,16 +810,17 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
   }
   if( !pol ){
     // do skolemization
-    Node lem = d_skolemize->process(f);
+    TrustNode lem = d_skolemize->process(f);
     if (!lem.isNull())
     {
       if (Trace.isOn("quantifiers-sk-debug"))
       {
-        Node slem = Rewriter::rewrite(lem);
+        Node slem = Rewriter::rewrite(lem.getNode());
         Trace("quantifiers-sk-debug")
             << "Skolemize lemma : " << slem << std::endl;
       }
-      getOutputChannel().lemma(lem, false, true);
+      getOutputChannel().trustedLemma(
+          lem, LemmaProperty::PREPROCESS | LemmaProperty::NEEDS_JUSTIFY);
     }
     return;
   }
@@ -873,19 +833,6 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
     mdl->assertNode(f);
   }
   addTermToDatabase(d_term_util->getInstConstantBody(f), true);
-}
-
-Node QuantifiersEngine::getNextDecisionRequest( unsigned& priority ){
-  unsigned min_priority = 0;
-  Node dec;  
-  for( unsigned i=0; i<d_modules.size(); i++ ){
-    Node n = d_modules[i]->getNextDecisionRequest( priority );
-    if( !n.isNull() && ( dec.isNull() || priority<min_priority ) ){
-      dec = n;
-      min_priority = priority;
-    }
-  }
-  return dec;
 }
 
 void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool withinInstClosure ){
@@ -904,21 +851,9 @@ void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool within
 
     if (!withinQuant)
     {
-      if (d_sygus_tdb)
+      if (d_sygus_tdb && options::sygusEvalUnfold())
       {
         d_sygus_tdb->getEvalUnfold()->registerEvalTerm(n);
-      }
-
-      // added contains also the Node that just have been asserted in this
-      // branch
-      if (d_quant_rel)
-      {
-        for (std::set<Node>::iterator i = added.begin(), end = added.end();
-             i != end;
-             i++)
-        {
-          d_quant_rel->setRelevance( i->getOperator(), 0 );
-        }
       }
     }
   }
@@ -926,25 +861,6 @@ void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool within
 
 void QuantifiersEngine::eqNotifyNewClass(TNode t) {
   addTermToDatabase( t );
-  if( d_eq_inference ){
-    d_eq_inference->eqNotifyNewClass( t );
-  }
-}
-
-void QuantifiersEngine::eqNotifyPreMerge(TNode t1, TNode t2) {
-  if( d_eq_inference ){
-    d_eq_inference->eqNotifyMerge( t1, t2 );
-  }
-}
-
-void QuantifiersEngine::eqNotifyPostMerge(TNode t1, TNode t2) {
-
-}
-
-void QuantifiersEngine::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
-  //if( d_qcf ){
-  //  d_qcf->assertDisequal( t1, t2 );
-  //}
 }
 
 bool QuantifiersEngine::addLemma( Node lem, bool doCache, bool doRewrite ){
@@ -955,7 +871,6 @@ bool QuantifiersEngine::addLemma( Node lem, bool doCache, bool doRewrite ){
     Trace("inst-add-debug") << "Adding lemma : " << lem << std::endl;
     BoolMap::const_iterator itp = d_lemmas_produced_c.find( lem );
     if( itp==d_lemmas_produced_c.end() || !(*itp).second ){
-      //d_curr_out->lemma( lem, false, true );
       d_lemmas_produced_c[ lem ] = true;
       d_lemmas_waiting.push_back( lem );
       Trace("inst-add-debug") << "Added lemma" << std::endl;
@@ -969,6 +884,19 @@ bool QuantifiersEngine::addLemma( Node lem, bool doCache, bool doRewrite ){
     d_lemmas_waiting.push_back( lem );
     return true;
   }
+}
+
+bool QuantifiersEngine::addTrustedLemma(TrustNode tlem,
+                                        bool doCache,
+                                        bool doRewrite)
+{
+  Node lem = tlem.getProven();
+  if (!addLemma(lem, doCache, doRewrite))
+  {
+    return false;
+  }
+  d_lemmasWaitingPg[lem] = tlem.getGenerator();
+  return true;
 }
 
 bool QuantifiersEngine::removeLemma( Node lem ) {
@@ -986,96 +914,103 @@ void QuantifiersEngine::addRequirePhase( Node lit, bool req ){
   d_phase_req_waiting[lit] = req;
 }
 
-bool QuantifiersEngine::addEPRAxiom( TypeNode tn ) {
-  if( d_qepr ){
-    Assert( !options::incrementalSolving() );
-    if( d_qepr->isEPR( tn ) && !d_qepr->hasEPRAxiom( tn ) ){
-      Node lem = d_qepr->mkEPRAxiom( tn );
-      Trace("quant-epr") << "EPR lemma for " << tn << " : " << lem << std::endl;
-      getOutputChannel().lemma( lem );
-    }
-  }
-  return false;
-}
-  
 void QuantifiersEngine::markRelevant( Node q ) {
   d_model->markRelevant( q );
 }
+bool QuantifiersEngine::hasAddedLemma() const
+{
+  return !d_lemmas_waiting.empty() || d_hasAddedLemma;
+}
+bool QuantifiersEngine::theoryEngineNeedsCheck() const
+{
+  return d_te->needCheck();
+}
 
-void QuantifiersEngine::setConflict() { 
-  d_conflict = true; 
-  d_conflict_c = true; 
+void QuantifiersEngine::setConflict()
+{
+  d_conflict = true;
+  d_conflict_c = true;
 }
 
 bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   Trace("quant-engine-debug2") << "Get inst when needs check, counts=" << d_ierCounter << ", " << d_ierCounter_lc << std::endl;
   //determine if we should perform check, based on instWhenMode
   bool performCheck = false;
-  if( options::instWhenMode()==quantifiers::INST_WHEN_FULL ){
+  if (options::instWhenMode() == options::InstWhenMode::FULL)
+  {
     performCheck = ( e >= Theory::EFFORT_FULL );
-  }else if( options::instWhenMode()==quantifiers::INST_WHEN_FULL_DELAY ){
-    performCheck = ( e >= Theory::EFFORT_FULL ) && !getTheoryEngine()->needCheck();
-  }else if( options::instWhenMode()==quantifiers::INST_WHEN_FULL_LAST_CALL ){
-    performCheck = ( ( e==Theory::EFFORT_FULL && d_ierCounter%d_inst_when_phase!=0 ) || e==Theory::EFFORT_LAST_CALL );
-  }else if( options::instWhenMode()==quantifiers::INST_WHEN_FULL_DELAY_LAST_CALL ){
-    performCheck = ( ( e==Theory::EFFORT_FULL && !getTheoryEngine()->needCheck() && d_ierCounter%d_inst_when_phase!=0 ) || e==Theory::EFFORT_LAST_CALL );
-  }else if( options::instWhenMode()==quantifiers::INST_WHEN_LAST_CALL ){
-    performCheck = ( e >= Theory::EFFORT_LAST_CALL );
-  }else{
-    performCheck = true;
   }
-  if( e==Theory::EFFORT_LAST_CALL ){
-    //with bounded integers, skip every other last call,
-    // since matching loops may occur with infinite quantification
-    if( d_ierCounter_lc%2==0 && options::fmfBound() ){
-      performCheck = false;
-    }
+  else if (options::instWhenMode() == options::InstWhenMode::FULL_DELAY)
+  {
+    performCheck = (e >= Theory::EFFORT_FULL) && !theoryEngineNeedsCheck();
+  }
+  else if (options::instWhenMode() == options::InstWhenMode::FULL_LAST_CALL)
+  {
+    performCheck = ( ( e==Theory::EFFORT_FULL && d_ierCounter%d_inst_when_phase!=0 ) || e==Theory::EFFORT_LAST_CALL );
+  }
+  else if (options::instWhenMode()
+           == options::InstWhenMode::FULL_DELAY_LAST_CALL)
+  {
+    performCheck = ((e == Theory::EFFORT_FULL && !theoryEngineNeedsCheck()
+                     && d_ierCounter % d_inst_when_phase != 0)
+                    || e == Theory::EFFORT_LAST_CALL);
+  }
+  else if (options::instWhenMode() == options::InstWhenMode::LAST_CALL)
+  {
+    performCheck = ( e >= Theory::EFFORT_LAST_CALL );
+  }
+  else
+  {
+    performCheck = true;
   }
   return performCheck;
 }
 
-quantifiers::UserPatMode QuantifiersEngine::getInstUserPatMode() {
-  if( options::userPatternsQuant()==quantifiers::USER_PAT_MODE_INTERLEAVE ){
-    return d_ierCounter%2==0 ? quantifiers::USER_PAT_MODE_USE : quantifiers::USER_PAT_MODE_RESORT;
-  }else{
+options::UserPatMode QuantifiersEngine::getInstUserPatMode()
+{
+  if (options::userPatternsQuant() == options::UserPatMode::INTERLEAVE)
+  {
+    return d_ierCounter % 2 == 0 ? options::UserPatMode::USE
+                                 : options::UserPatMode::RESORT;
+  }
+  else
+  {
     return options::userPatternsQuant();
   }
 }
 
 void QuantifiersEngine::flushLemmas(){
+  OutputChannel& out = getOutputChannel();
   if( !d_lemmas_waiting.empty() ){
-    //filter based on notify classes
-    if (d_instantiate->hasNotify())
-    {
-      unsigned prev_lem_sz = d_lemmas_waiting.size();
-      d_instantiate->notifyFlushLemmas();
-      if( prev_lem_sz!=d_lemmas_waiting.size() ){
-        Trace("quant-engine") << "...filtered instances : " << d_lemmas_waiting.size() << " / " << prev_lem_sz << std::endl;
-      }
-    }
     //take default output channel if none is provided
     d_hasAddedLemma = true;
-    for( unsigned i=0; i<d_lemmas_waiting.size(); i++ ){
-      Trace("qe-lemma") << "Lemma : " << d_lemmas_waiting[i] << std::endl;
-      getOutputChannel().lemma( d_lemmas_waiting[i], false, true );
+    std::map<Node, ProofGenerator*>::iterator itp;
+    // Note: Do not use foreach loop here and do not cache size() call.
+    // New lemmas can be added while iterating over d_lemmas_waiting.
+    for (size_t i = 0; i < d_lemmas_waiting.size(); ++i)
+    {
+      const Node& lemw = d_lemmas_waiting[i];
+      Trace("qe-lemma") << "Lemma : " << lemw << std::endl;
+      itp = d_lemmasWaitingPg.find(lemw);
+      if (itp != d_lemmasWaitingPg.end())
+      {
+        TrustNode tlemw = TrustNode::mkTrustLemma(lemw, itp->second);
+        out.trustedLemma(tlemw, LemmaProperty::PREPROCESS);
+      }
+      else
+      {
+        out.lemma(lemw, LemmaProperty::PREPROCESS);
+      }
     }
     d_lemmas_waiting.clear();
   }
   if( !d_phase_req_waiting.empty() ){
     for( std::map< Node, bool >::iterator it = d_phase_req_waiting.begin(); it != d_phase_req_waiting.end(); ++it ){
       Trace("qe-lemma") << "Require phase : " << it->first << " -> " << it->second << std::endl;
-      getOutputChannel().requirePhase( it->first, it->second );
+      out.requirePhase(it->first, it->second);
     }
     d_phase_req_waiting.clear();
   }
-}
-
-bool QuantifiersEngine::getUnsatCoreLemmas( std::vector< Node >& active_lemmas ) {
-  return d_instantiate->getUnsatCoreLemmas(active_lemmas);
-}
-
-bool QuantifiersEngine::getUnsatCoreLemmas( std::vector< Node >& active_lemmas, std::map< Node, Node >& weak_imp ) {
-  return d_instantiate->getUnsatCoreLemmas(active_lemmas, weak_imp);
 }
 
 void QuantifiersEngine::getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs ) {
@@ -1086,20 +1021,15 @@ void QuantifiersEngine::getInstantiationTermVectors( std::map< Node, std::vector
   d_instantiate->getInstantiationTermVectors(insts);
 }
 
-void QuantifiersEngine::getExplanationForInstLemmas(
-    const std::vector<Node>& lems,
-    std::map<Node, Node>& quant,
-    std::map<Node, std::vector<Node> >& tvec)
-{
-  d_instantiate->getExplanationForInstLemmas(lems, quant, tvec);
-}
-
 void QuantifiersEngine::printInstantiations( std::ostream& out ) {
   bool printed = false;
   // print the skolemizations
-  if (d_skolemize->printSkolemization(out))
+  if (options::printInstMode() == options::PrintInstMode::LIST)
   {
-    printed = true;
+    if (d_skolemize->printSkolemization(out))
+    {
+      printed = true;
+    }
   }
   // print the instantiations
   if (d_instantiate->printInstantiations(out))
@@ -1112,8 +1042,9 @@ void QuantifiersEngine::printInstantiations( std::ostream& out ) {
 }
 
 void QuantifiersEngine::printSynthSolution( std::ostream& out ) {
-  if( d_ceg_inst ){
-    d_ceg_inst->printSynthSolution( out );
+  if (d_qmodules->d_synth_e)
+  {
+    d_qmodules->d_synth_e->printSynthSolution(out);
   }else{
     out << "Internal error : module for synth solution not found." << std::endl;
   }
@@ -1121,18 +1052,6 @@ void QuantifiersEngine::printSynthSolution( std::ostream& out ) {
 
 void QuantifiersEngine::getInstantiatedQuantifiedFormulas( std::vector< Node >& qs ) {
   d_instantiate->getInstantiatedQuantifiedFormulas(qs);
-}
-
-void QuantifiersEngine::getInstantiations( std::map< Node, std::vector< Node > >& insts ) {
-  d_instantiate->getInstantiations(insts);
-}
-
-void QuantifiersEngine::getInstantiations( Node q, std::vector< Node >& insts  ) {
-  d_instantiate->getInstantiations(q, insts);
-}
-
-Node QuantifiersEngine::getInstantiatedConjunction( Node q ) {
-  return d_instantiate->getInstantiatedConjunction(q);
 }
 
 QuantifiersEngine::Statistics::Statistics()
@@ -1202,33 +1121,23 @@ QuantifiersEngine::Statistics::~Statistics(){
   smtStatisticsRegistry()->unregisterStat(&d_instantiations_rr);
 }
 
-eq::EqualityEngine* QuantifiersEngine::getMasterEqualityEngine(){
-  return d_te->getMasterEqualityEngine();
-}
-
-eq::EqualityEngine* QuantifiersEngine::getActiveEqualityEngine() {
-  if( d_useModelEe ){
-    return d_model->getEqualityEngine();
-  }else{
-    return d_te->getMasterEqualityEngine();
-  }
+eq::EqualityEngine* QuantifiersEngine::getMasterEqualityEngine() const
+{
+  return d_masterEqualityEngine;
 }
 
 Node QuantifiersEngine::getInternalRepresentative( Node a, Node q, int index ){
-  bool prevModelEe = d_useModelEe;
-  d_useModelEe = false;
-  Node ret = d_eq_query->getInternalRepresentative( a, q, index );
-  d_useModelEe = prevModelEe;
-  return ret;
+  return d_eq_query->getInternalRepresentative(a, q, index);
 }
 
-void QuantifiersEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
+bool QuantifiersEngine::getSynthSolutions(
+    std::map<Node, std::map<Node, Node> >& sol_map)
 {
-  d_ceg_inst->getSynthSolutions(sol_map);
+  return d_qmodules->d_synth_e->getSynthSolutions(sol_map);
 }
 
 void QuantifiersEngine::debugPrintEqualityEngine( const char * c ) {
-  eq::EqualityEngine* ee = getActiveEqualityEngine();
+  eq::EqualityEngine* ee = getMasterEqualityEngine();
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
   std::map< TypeNode, int > typ_num;
   while( !eqcs_i.isFinished() ){
@@ -1263,3 +1172,5 @@ void QuantifiersEngine::debugPrintEqualityEngine( const char * c ) {
   }
 }
 
+}  // namespace theory
+}  // namespace CVC4

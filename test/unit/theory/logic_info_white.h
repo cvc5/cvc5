@@ -2,10 +2,10 @@
 /*! \file logic_info_white.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Mathias Preiner, Andres Noetzli
+ **   Morgan Deters, Andres Noetzli, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,9 +16,9 @@
 
 #include <cxxtest/TestSuite.h>
 
+#include "base/configuration.h"
 #include "expr/kind.h"
 #include "theory/logic_info.h"
-
 using namespace CVC4;
 using namespace CVC4::theory;
 
@@ -457,27 +457,41 @@ public:
     LogicInfo info;
     TS_ASSERT( !info.isLocked() );
 
-    TS_ASSERT_THROWS( info.getLogicString(), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( info.isTheoryEnabled( THEORY_BUILTIN ), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( info.isTheoryEnabled( THEORY_BOOL ), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( info.isTheoryEnabled( THEORY_UF ), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( info.isTheoryEnabled( THEORY_ARITH ), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( info.isTheoryEnabled( THEORY_ARRAYS ), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( info.isTheoryEnabled( THEORY_BV ), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( info.isTheoryEnabled( THEORY_DATATYPES ), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( info.isTheoryEnabled( THEORY_QUANTIFIERS ), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( ! info.isPure( THEORY_BUILTIN ), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( ! info.isPure( THEORY_BOOL ), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( ! info.isPure( THEORY_UF ), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( ! info.isPure( THEORY_ARITH ), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( ! info.isPure( THEORY_ARRAYS ), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( ! info.isPure( THEORY_BV ), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( ! info.isPure( THEORY_DATATYPES ), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( ! info.isPure( THEORY_QUANTIFIERS ), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( info.isQuantified(), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( info.areIntegersUsed(), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( info.areRealsUsed(), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( !info.isLinear(), CVC4::IllegalArgumentException );
+    TS_ASSERT_THROWS(info.getLogicString(), CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(info.isTheoryEnabled(THEORY_BUILTIN),
+                     CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(info.isTheoryEnabled(THEORY_BOOL),
+                     CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(info.isTheoryEnabled(THEORY_UF),
+                     CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(info.isTheoryEnabled(THEORY_ARITH),
+                     CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(info.isTheoryEnabled(THEORY_ARRAYS),
+                     CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(info.isTheoryEnabled(THEORY_BV),
+                     CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(info.isTheoryEnabled(THEORY_DATATYPES),
+                     CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(info.isTheoryEnabled(THEORY_QUANTIFIERS),
+                     CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(!info.isPure(THEORY_BUILTIN),
+                     CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(!info.isPure(THEORY_BOOL),
+                     CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(!info.isPure(THEORY_UF), CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(!info.isPure(THEORY_ARITH),
+                     CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(!info.isPure(THEORY_ARRAYS),
+                     CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(!info.isPure(THEORY_BV), CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(!info.isPure(THEORY_DATATYPES),
+                     CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(!info.isPure(THEORY_QUANTIFIERS),
+                     CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(info.isQuantified(), CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(info.areIntegersUsed(), CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(info.areRealsUsed(), CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(!info.isLinear(), CVC4::IllegalArgumentException&);
 
     info.lock();
     TS_ASSERT( info.isLocked() );
@@ -505,51 +519,79 @@ public:
     TS_ASSERT(info.areTranscendentalsUsed());
     TS_ASSERT( !info.isLinear() );
 
-    TS_ASSERT_THROWS( info.arithOnlyLinear(), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( info.disableIntegers(), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( info.disableQuantifiers(), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( info.disableTheory(THEORY_BV), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( info.disableTheory(THEORY_DATATYPES), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( info.enableIntegers(), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( info.disableReals(), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( info.disableTheory(THEORY_ARITH), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( info.disableTheory(THEORY_UF), CVC4::IllegalArgumentException );
-
+    TS_ASSERT_THROWS(info.arithOnlyLinear(), CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(info.disableIntegers(), CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(info.disableQuantifiers(),
+                     CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(info.disableTheory(THEORY_BV),
+                     CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(info.disableTheory(THEORY_DATATYPES),
+                     CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(info.enableIntegers(), CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(info.disableReals(), CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(info.disableTheory(THEORY_ARITH),
+                     CVC4::IllegalArgumentException&);
+    TS_ASSERT_THROWS(info.disableTheory(THEORY_UF),
+                     CVC4::IllegalArgumentException&);
     info = info.getUnlockedCopy();
-    TS_ASSERT( !info.isLocked() );
+    TS_ASSERT(!info.isLocked());
     info.disableTheory(THEORY_STRINGS);
     info.disableTheory(THEORY_SETS);
+    info.disableTheory(THEORY_BAGS);
     info.arithOnlyLinear();
     info.disableIntegers();
     info.lock();
-    TS_ASSERT_EQUALS( info.getLogicString(), "AUFBVFPDTLRASEP" );
+    if (CVC4::Configuration::isBuiltWithSymFPU())
+    {
+      TS_ASSERT_EQUALS(info.getLogicString(), "SEP_AUFBVFPDTLRA");
+    }
+    else
+    {
+      TS_ASSERT_EQUALS(info.getLogicString(), "SEP_AUFBVDTLRA");
+    }
 
     info = info.getUnlockedCopy();
-    TS_ASSERT( !info.isLocked() );
+    TS_ASSERT(!info.isLocked());
     info.disableQuantifiers();
+    info.disableTheory(THEORY_BAGS);
     info.lock();
-    TS_ASSERT_EQUALS( info.getLogicString(), "QF_AUFBVFPDTLRASEP" );
+    if (CVC4::Configuration::isBuiltWithSymFPU())
+    {
+      TS_ASSERT_EQUALS(info.getLogicString(), "QF_SEP_AUFBVFPDTLRA");
+    }
+    else
+    {
+      TS_ASSERT_EQUALS(info.getLogicString(), "QF_SEP_AUFBVDTLRA");
+    }
 
     info = info.getUnlockedCopy();
-    TS_ASSERT( !info.isLocked() );
+    TS_ASSERT(!info.isLocked());
     info.disableTheory(THEORY_BV);
     info.disableTheory(THEORY_DATATYPES);
+    info.disableTheory(THEORY_BAGS);
     info.enableIntegers();
     info.disableReals();
     info.lock();
-    TS_ASSERT_EQUALS( info.getLogicString(), "QF_AUFFPLIASEP" );
+    if (CVC4::Configuration::isBuiltWithSymFPU())
+    {
+      TS_ASSERT_EQUALS(info.getLogicString(), "QF_SEP_AUFFPLIA");
+    }
+    else
+    {
+      TS_ASSERT_EQUALS(info.getLogicString(), "QF_SEP_AUFLIA");
+    }
 
     info = info.getUnlockedCopy();
-    TS_ASSERT( !info.isLocked() );
+    TS_ASSERT(!info.isLocked());
     info.disableTheory(THEORY_ARITH);
     info.disableTheory(THEORY_UF);
     info.disableTheory(THEORY_FP);
     info.disableTheory(THEORY_SEP);
+    info.disableTheory(THEORY_BAGS);
     info.lock();
-    TS_ASSERT_EQUALS( info.getLogicString(), "QF_AX" );
-    TS_ASSERT( info.isPure( THEORY_ARRAYS ) );
-    TS_ASSERT( ! info.isQuantified() );
-
+    TS_ASSERT_EQUALS(info.getLogicString(), "QF_AX");
+    TS_ASSERT(info.isPure(THEORY_ARRAYS));
+    TS_ASSERT(!info.isQuantified());
     // check all-excluded logic
     info = info.getUnlockedCopy();
     TS_ASSERT( !info.isLocked() );
@@ -565,11 +607,11 @@ public:
     TS_ASSERT( !info.isTheoryEnabled( THEORY_BV ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_DATATYPES ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_BOOL ) );
-    TS_ASSERT_THROWS( info.isLinear(), IllegalArgumentException );
-    TS_ASSERT_THROWS( info.areIntegersUsed(), IllegalArgumentException );
-    TS_ASSERT_THROWS( info.isDifferenceLogic(), IllegalArgumentException );
-    TS_ASSERT_THROWS( info.areRealsUsed(), IllegalArgumentException );
-    TS_ASSERT_THROWS(info.areTranscendentalsUsed(), IllegalArgumentException);
+    TS_ASSERT_THROWS(info.isLinear(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(info.areIntegersUsed(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(info.isDifferenceLogic(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(info.areRealsUsed(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(info.areTranscendentalsUsed(), IllegalArgumentException&);
 
     // check copy is unchanged
     info = info.getUnlockedCopy();
@@ -585,11 +627,11 @@ public:
     TS_ASSERT( !info.isTheoryEnabled( THEORY_BV ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_DATATYPES ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_BOOL ) );
-    TS_ASSERT_THROWS( info.isLinear(), IllegalArgumentException );
-    TS_ASSERT_THROWS( info.areIntegersUsed(), IllegalArgumentException );
-    TS_ASSERT_THROWS( info.isDifferenceLogic(), IllegalArgumentException );
-    TS_ASSERT_THROWS( info.areRealsUsed(), IllegalArgumentException );
-    TS_ASSERT_THROWS(info.areTranscendentalsUsed(), IllegalArgumentException);
+    TS_ASSERT_THROWS(info.isLinear(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(info.areIntegersUsed(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(info.isDifferenceLogic(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(info.areRealsUsed(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(info.areTranscendentalsUsed(), IllegalArgumentException&);
 
     // check all-included logic
     info = info.getUnlockedCopy();
@@ -713,6 +755,10 @@ public:
   }
 
   void testComparison() {
+    LogicInfo ufHo = LogicInfo("QF_UF").getUnlockedCopy();
+    ufHo.enableHigherOrder();
+    ufHo.lock();
+
     eq("QF_UF", "QF_UF");
     nc("QF_UF", "QF_LRA");
     nc("QF_UF", "QF_LIA");
@@ -737,6 +783,9 @@ public:
     lt("QF_UF", "AUFLIA");
     lt("QF_UF", "AUFLIRA");
     lt("QF_UF", "AUFNIRA");
+    lt("QF_UF", "QF_UFC");
+    lt("QF_UF", ufHo);
+    nc("QF_UFC", ufHo);
 
     nc("QF_LRA", "QF_UF");
     eq("QF_LRA", "QF_LRA");
@@ -762,6 +811,7 @@ public:
     nc("QF_LRA", "AUFLIA");
     lt("QF_LRA", "AUFLIRA");
     lt("QF_LRA", "AUFNIRA");
+    lt("QF_LRA", "QF_UFCLRA");
 
     nc("QF_LIA", "QF_UF");
     nc("QF_LIA", "QF_LRA");
@@ -1316,6 +1366,11 @@ public:
     gt("AUFNIRA", "AUFLIRA");
     eq("AUFNIRA", "AUFNIRA");
     lt("AUFNIRA", "AUFNIRAT");
+
+    gt("QF_UFC", "QF_UF");
+    gt("QF_UFCLRA", "QF_UFLRA");
+
+    gt(ufHo, "QF_UF");
   }
 
 };/* class LogicInfoWhite */

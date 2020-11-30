@@ -1,4 +1,4 @@
-% EXPECT: invalid
+% EXPECT: not_entailed
 DATATYPE foo = f(i:INT) END;
 x : foo;
 y : INT;

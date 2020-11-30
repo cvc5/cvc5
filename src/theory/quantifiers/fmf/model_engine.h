@@ -2,10 +2,10 @@
 /*! \file model_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Mathias Preiner
+ **   Andrew Reynolds, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,11 +14,11 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__MODEL_ENGINE_H
-#define __CVC4__THEORY__QUANTIFIERS__MODEL_ENGINE_H
+#ifndef CVC4__THEORY__QUANTIFIERS__MODEL_ENGINE_H
+#define CVC4__THEORY__QUANTIFIERS__MODEL_ENGINE_H
 
-#include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/fmf/model_builder.h"
+#include "theory/quantifiers/quant_util.h"
 #include "theory/theory_model.h"
 
 namespace CVC4 {
@@ -28,9 +28,6 @@ namespace quantifiers {
 class ModelEngine : public QuantifiersModule
 {
   friend class RepSetIterator;
-private:
-  //options
-  bool optOneQuantPerRound();
 private:
   //check model
   int checkModel();
@@ -67,4 +64,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__MODEL_ENGINE_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__MODEL_ENGINE_H */

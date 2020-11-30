@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__MANAGED_OSTREAMS_H
-#define __CVC4__MANAGED_OSTREAMS_H
+#ifndef CVC4__MANAGED_OSTREAMS_H
+#define CVC4__MANAGED_OSTREAMS_H
 
 #include <ostream>
 
@@ -73,20 +73,6 @@ class ManagedOstream {
  private:
   std::ostream* d_managed;
 }; /* class ManagedOstream */
-
-class SetToDefaultSourceListener : public Listener {
- public:
-  SetToDefaultSourceListener(ManagedOstream* managedOstream)
-      : d_managedOstream(managedOstream){}
-
-  void notify() override
-  {
-    d_managedOstream->set(d_managedOstream->defaultSource());
-  }
-
- private:
-  ManagedOstream* d_managedOstream;
-};
 
 /**
  * This controls the memory associated with --dump-to.
@@ -156,27 +142,6 @@ class ManagedDiagnosticOutputChannel : public ManagedOstream {
   void addSpecialCases(OstreamOpener* opener) const override;
 };/* class ManagedRegularOutputChannel */
 
-/** This controls the memory associated with replay-log. */
-class ManagedReplayLogOstream : public ManagedOstream {
- public:
-  ManagedReplayLogOstream();
-  ~ManagedReplayLogOstream();
-
-  std::ostream* getReplayLog() const { return d_replayLog; }
-  const char* getName() const override { return "replay-log"; }
-  std::string defaultSource() const override;
-
- protected:
-  /** Initializes an output stream. Not necessarily managed. */
-  void initialize(std::ostream* outStream) override;
-
-  /** Adds special cases to an ostreamopener. */
-  void addSpecialCases(OstreamOpener* opener) const override;
-
- private:
-  std::ostream* d_replayLog;
-};/* class ManagedRegularOutputChannel */
-
 }/* CVC4 namespace */
 
-#endif /* __CVC4__MANAGED_OSTREAMS_H */
+#endif /* CVC4__MANAGED_OSTREAMS_H */

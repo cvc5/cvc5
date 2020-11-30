@@ -2,10 +2,10 @@
 /*! \file lazy_bitblaster.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Mathias Preiner
+ **   Mathias Preiner, Liana Hadarean, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
-#define __CVC4__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
+#ifndef CVC4__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
+#define CVC4__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
 
 #include "theory/bv/bitblast/bitblaster.h"
 
@@ -25,14 +25,14 @@
 #include "context/cdlist.h"
 #include "prop/cnf_stream.h"
 #include "prop/registrar.h"
-#include "prop/sat_solver.h"
+#include "prop/bv_sat_solver_notify.h"
 #include "theory/bv/abstraction.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bv {
 
-class TheoryBV;
+class BVSolverLazy;
 
 class TLazyBitblaster : public TBitblaster<Node>
 {
@@ -45,7 +45,7 @@ class TLazyBitblaster : public TBitblaster<Node>
   bool hasBBAtom(TNode atom) const override;
 
   TLazyBitblaster(context::Context* c,
-                  TheoryBV* bv,
+                  BVSolverLazy* bv,
                   const std::string name = "",
                   bool emptyNotify = false);
   ~TLazyBitblaster();
@@ -72,11 +72,10 @@ class TLazyBitblaster : public TBitblaster<Node>
    * Adds a constant value for each bit-blasted variable in the model.
    *
    * @param m the model
-   * @param fullModel whether to create a "full model," i.e., add
-   * constants to equivalence classes that don't already have them
+   * @param termSet the set of relevant terms
    */
-  bool collectModelInfo(TheoryModel* m, bool fullModel);
-  void setProofLog(BitVectorProof* bvp);
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet);
 
   typedef TNodeSet::const_iterator vars_iterator;
   vars_iterator beginVars() { return d_variables.begin(); }
@@ -106,33 +105,30 @@ class TLazyBitblaster : public TBitblaster<Node>
                              prop::SatLiteralHashFunction>
       ExplanationMap;
   /** This class gets callbacks from minisat on propagations */
-  class MinisatNotify : public prop::BVSatSolverInterface::Notify
+  class MinisatNotify : public prop::BVSatSolverNotify
   {
     prop::CnfStream* d_cnf;
-    TheoryBV* d_bv;
+    BVSolverLazy* d_bv;
     TLazyBitblaster* d_lazyBB;
 
    public:
-    MinisatNotify(prop::CnfStream* cnf, TheoryBV* bv, TLazyBitblaster* lbv)
+    MinisatNotify(prop::CnfStream* cnf, BVSolverLazy* bv, TLazyBitblaster* lbv)
         : d_cnf(cnf), d_bv(bv), d_lazyBB(lbv)
     {
     }
 
     bool notify(prop::SatLiteral lit) override;
     void notify(prop::SatClause& clause) override;
-    void spendResource(unsigned amount) override;
-    void safePoint(unsigned amount) override;
+    void spendResource(ResourceManager::Resource r) override;
+    void safePoint(ResourceManager::Resource r) override;
   };
 
-  TheoryBV* d_bv;
+  BVSolverLazy* d_bv;
   context::Context* d_ctx;
 
   std::unique_ptr<prop::NullRegistrar> d_nullRegistrar;
-  std::unique_ptr<context::Context> d_nullContext;
-  // sat solver used for bitblasting and associated CnfStream
   std::unique_ptr<prop::BVSatSolverInterface> d_satSolver;
-  std::unique_ptr<prop::BVSatSolverInterface::Notify> d_satSolverNotify;
-  std::unique_ptr<prop::CnfStream> d_cnfStream;
+  std::unique_ptr<prop::BVSatSolverNotify> d_satSolverNotify;
 
   AssertionList*
       d_assertedAtoms;            /**< context dependent list storing the atoms
@@ -153,6 +149,7 @@ class TLazyBitblaster : public TBitblaster<Node>
   void addAtom(TNode atom);
   bool hasValue(TNode a);
   Node getModelFromSatSolver(TNode a, bool fullModel) override;
+  prop::SatSolver* getSatSolver() override { return d_satSolver.get(); }
 
   class Statistics
   {
@@ -178,4 +175,4 @@ class TLazyBitblaster : public TBitblaster<Node>
 }  // namespace bv
 }  // namespace theory
 }  // namespace CVC4
-#endif  //  __CVC4__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
+#endif  //  CVC4__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H

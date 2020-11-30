@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Aina Niemetz, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,22 +14,21 @@
  ** Bitblaster for the lazy bv solver.
  **/
 
-#include "cvc4_private.h"
-
 #include "theory/bv/bitblast/lazy_bitblaster.h"
 
+#include "cvc4_private.h"
 #include "options/bv_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
+#include "smt/smt_engine.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/abstraction.h"
+#include "theory/bv/bv_solver_lazy.h"
 #include "theory/bv/theory_bv.h"
+#include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
-#include "proof/bitvector_proof.h"
-#include "proof/proof_manager.h"
-#include "theory/bv/theory_bv_utils.h"
 
 namespace CVC4 {
 namespace theory {
@@ -60,14 +59,13 @@ uint64_t numNodes(TNode node, utils::NodeSet& seen)
 }
 
 TLazyBitblaster::TLazyBitblaster(context::Context* c,
-                                 bv::TheoryBV* bv,
+                                 bv::BVSolverLazy* bv,
                                  const std::string name,
                                  bool emptyNotify)
     : TBitblaster<Node>(),
       d_bv(bv),
       d_ctx(c),
       d_nullRegistrar(new prop::NullRegistrar()),
-      d_nullContext(new context::Context()),
       d_assertedAtoms(new (true) context::CDList<prop::SatLiteral>(c)),
       d_explanations(new (true) ExplanationMap(c)),
       d_variables(),
@@ -81,17 +79,19 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c,
   d_satSolver.reset(
       prop::SatSolverFactory::createMinisat(c, smtStatisticsRegistry(), name));
 
-  d_cnfStream.reset(
-      new prop::TseitinCnfStream(d_satSolver.get(),
-                                 d_nullRegistrar.get(),
-                                 d_nullContext.get(),
-                                 options::proof(),
-                                 "LazyBitblaster"));
+  ResourceManager* rm = smt::currentResourceManager();
+  d_cnfStream.reset(new prop::CnfStream(d_satSolver.get(),
+                                        d_nullRegistrar.get(),
+                                        d_nullContext.get(),
+                                        nullptr,
+                                        rm,
+                                        false,
+                                        "LazyBitblaster"));
 
   d_satSolverNotify.reset(
       d_emptyNotify
-          ? (prop::BVSatSolverInterface::Notify*)new MinisatEmptyNotify()
-          : (prop::BVSatSolverInterface::Notify*)new MinisatNotify(
+          ? (prop::BVSatSolverNotify*)new MinisatEmptyNotify()
+          : (prop::BVSatSolverNotify*)new MinisatNotify(
                 d_cnfStream.get(), bv, this));
 
   d_satSolver->setNotify(d_satSolverNotify.get());
@@ -162,8 +162,7 @@ void TLazyBitblaster::bbAtom(TNode node)
     Assert(!atom_bb.isNull());
     Node atom_definition = nm->mkNode(kind::EQUAL, node, atom_bb);
     storeBBAtom(node, atom_bb);
-    d_cnfStream->convertAndAssert(
-        atom_definition, false, false, RULE_INVALID, TNode::null());
+    d_cnfStream->convertAndAssert(atom_definition, false, false);
     return;
   }
 
@@ -174,28 +173,19 @@ void TLazyBitblaster::bbAtom(TNode node)
           ? d_atomBBStrategies[normalized.getKind()](normalized, this)
           : normalized;
 
-  if (!options::proof())
-  {
-    atom_bb = Rewriter::rewrite(atom_bb);
-  }
+  atom_bb = Rewriter::rewrite(atom_bb);
 
   // asserting that the atom is true iff the definition holds
   Node atom_definition = nm->mkNode(kind::EQUAL, node, atom_bb);
   storeBBAtom(node, atom_bb);
-  d_cnfStream->convertAndAssert(
-      atom_definition, false, false, RULE_INVALID, TNode::null());
+  d_cnfStream->convertAndAssert(atom_definition, false, false);
 }
 
 void TLazyBitblaster::storeBBAtom(TNode atom, Node atom_bb) {
-  // No need to store the definition for the lazy bit-blaster (unless proofs are enabled).
-  if( d_bvp != NULL ){
-    d_bvp->registerAtomBB(atom.toExpr(), atom_bb.toExpr());
-  }
   d_bbAtoms.insert(atom);
 }
 
 void TLazyBitblaster::storeBBTerm(TNode node, const Bits& bits) {
-  if( d_bvp ){ d_bvp->registerTermBB(node.toExpr()); }
   d_termCache.insert(std::make_pair(node, bits));
 }
 
@@ -234,15 +224,15 @@ void TLazyBitblaster::bbTerm(TNode node, Bits& bits) {
     getBBTerm(node, bits);
     return;
   }
-  Assert( node.getType().isBitVector() );
+  Assert(node.getType().isBitVector());
 
-  d_bv->spendResource(options::bitblastStep());
+  d_bv->spendResource(ResourceManager::Resource::BitblastStep);
   Debug("bitvector-bitblast") << "Bitblasting term " << node <<"\n";
   ++d_statistics.d_numTerms;
 
   d_termBBStrategies[node.getKind()] (node, bits,this);
 
-  Assert (bits.size() == utils::getSize(node));
+  Assert(bits.size() == utils::getSize(node));
 
   storeBBTerm(node, bits);
 }
@@ -259,7 +249,7 @@ void TLazyBitblaster::explain(TNode atom, std::vector<TNode>& explanation) {
 
   ++(d_statistics.d_numExplainedPropagations);
   if (options::bvEagerExplanations()) {
-    Assert (d_explanations->find(lit) != d_explanations->end());
+    Assert(d_explanations->find(lit) != d_explanations->end());
     const std::vector<prop::SatLiteral>& literal_explanation = (*d_explanations)[lit].get();
     for (unsigned i = 0; i < literal_explanation.size(); ++i) {
       explanation.push_back(d_cnfStream->getNode(literal_explanation[i]));
@@ -294,9 +284,9 @@ bool TLazyBitblaster::assertToSat(TNode lit, bool propagate) {
   } else {
     atom = lit;
   }
-  Assert( utils::isBitblastAtom( atom ) );
+  Assert(utils::isBitblastAtom(atom));
 
-  Assert (hasBBAtom(atom));
+  Assert(hasBBAtom(atom));
 
   prop::SatLiteral markerLit = d_cnfStream->getLiteral(atom);
 
@@ -304,8 +294,12 @@ bool TLazyBitblaster::assertToSat(TNode lit, bool propagate) {
     markerLit = ~markerLit;
   }
 
-  Debug("bitvector-bb") << "TheoryBV::TLazyBitblaster::assertToSat asserting node: " << atom <<"\n";
-  Debug("bitvector-bb") << "TheoryBV::TLazyBitblaster::assertToSat with literal:   " << markerLit << "\n";
+  Debug("bitvector-bb")
+      << "BVSolverLazy::TLazyBitblaster::assertToSat asserting node: " << atom
+      << "\n";
+  Debug("bitvector-bb")
+      << "BVSolverLazy::TLazyBitblaster::assertToSat with literal:   "
+      << markerLit << "\n";
 
   prop::SatValue ret = d_satSolver->assertAssumption(markerLit, propagate);
 
@@ -422,30 +416,32 @@ void TLazyBitblaster::MinisatNotify::notify(prop::SatClause& clause) {
       lemmab << d_cnf->getNode(clause[i]);
     }
     Node lemma = lemmab;
-    d_bv->d_out->lemma(lemma);
+    d_bv->d_inferManager.lemma(lemma);
   } else {
-    d_bv->d_out->lemma(d_cnf->getNode(clause[0]));
+    d_bv->d_inferManager.lemma(d_cnf->getNode(clause[0]));
   }
 }
 
-void TLazyBitblaster::MinisatNotify::spendResource(unsigned amount)
+void TLazyBitblaster::MinisatNotify::spendResource(ResourceManager::Resource r)
 {
-  d_bv->spendResource(amount);
+  d_bv->spendResource(r);
 }
 
-void TLazyBitblaster::MinisatNotify::safePoint(unsigned amount)
+void TLazyBitblaster::MinisatNotify::safePoint(ResourceManager::Resource r)
 {
-  d_bv->d_out->safePoint(amount);
+  d_bv->d_inferManager.safePoint(r);
 }
 
 EqualityStatus TLazyBitblaster::getEqualityStatus(TNode a, TNode b)
 {
   int numAssertions = d_bv->numAssertions();
+  bool has_full_model =
+      numAssertions != 0 && d_fullModelAssertionLevel.get() == numAssertions;
+
   Debug("bv-equality-status")
       << "TLazyBitblaster::getEqualityStatus " << a << " = " << b << "\n";
   Debug("bv-equality-status")
-      << "BVSatSolver has full model? "
-      << (d_fullModelAssertionLevel.get() == numAssertions) << "\n";
+      << "BVSatSolver has full model? " << has_full_model << "\n";
 
   // First check if it trivially rewrites to false/true
   Node a_eq_b =
@@ -454,7 +450,7 @@ EqualityStatus TLazyBitblaster::getEqualityStatus(TNode a, TNode b)
   if (a_eq_b == utils::mkFalse()) return theory::EQUALITY_FALSE;
   if (a_eq_b == utils::mkTrue()) return theory::EQUALITY_TRUE;
 
-  if (d_fullModelAssertionLevel.get() != numAssertions)
+  if (!has_full_model)
   {
     return theory::EQUALITY_UNKNOWN;
   }
@@ -485,7 +481,7 @@ bool TLazyBitblaster::isSharedTerm(TNode node) {
 }
 
 bool TLazyBitblaster::hasValue(TNode a) {
-  Assert (hasBBTerm(a));
+  Assert(hasBBTerm(a));
   Bits bits;
   getBBTerm(a, bits);
   for (int i = bits.size() -1; i >= 0; --i) {
@@ -524,7 +520,7 @@ Node TLazyBitblaster::getModelFromSatSolver(TNode a, bool fullModel) {
     if (d_cnfStream->hasLiteral(bits[i])) {
       prop::SatLiteral bit = d_cnfStream->getLiteral(bits[i]);
       bit_value = d_satSolver->value(bit);
-      Assert (bit_value != prop::SAT_VALUE_UNKNOWN);
+      Assert(bit_value != prop::SAT_VALUE_UNKNOWN);
     } else {
       if (!fullModel) return Node();
       // unconstrained bits default to false
@@ -536,27 +532,25 @@ Node TLazyBitblaster::getModelFromSatSolver(TNode a, bool fullModel) {
   return utils::mkConst(bits.size(), value);
 }
 
-bool TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
+bool TLazyBitblaster::collectModelValues(TheoryModel* m,
+                                         const std::set<Node>& termSet)
 {
-  std::set<Node> termSet;
-  d_bv->computeRelevantTerms(termSet);
-
   for (std::set<Node>::const_iterator it = termSet.begin(); it != termSet.end(); ++it) {
     TNode var = *it;
     // not actually a leaf of the bit-vector theory
     if (d_variables.find(var) == d_variables.end())
       continue;
 
-    Assert (Theory::theoryOf(var) == theory::THEORY_BV || isSharedTerm(var));
+    Assert(Theory::theoryOf(var) == theory::THEORY_BV || isSharedTerm(var));
     // only shared terms could not have been bit-blasted
-    Assert (hasBBTerm(var) || isSharedTerm(var));
+    Assert(hasBBTerm(var) || isSharedTerm(var));
 
     Node const_value = getModelFromSatSolver(var, true);
-    Assert (const_value.isNull() || const_value.isConst());
+    Assert(const_value.isNull() || const_value.isConst());
     if(const_value != Node()) {
-      Debug("bitvector-model") << "TLazyBitblaster::collectModelInfo (assert (= "
-                               << var << " "
-                               << const_value << "))\n";
+      Debug("bitvector-model")
+          << "TLazyBitblaster::collectModelValues (assert (= " << var << " "
+          << const_value << "))\n";
       if (!m->assertEquality(var, const_value, true))
       {
         return false;
@@ -566,14 +560,8 @@ bool TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
   return true;
 }
 
-void TLazyBitblaster::setProofLog( BitVectorProof * bvp ){
-  d_bvp = bvp;
-  d_satSolver->setProofLog( bvp );
-  bvp->initCnfProof(d_cnfStream.get(), d_nullContext.get());
-}
-
 void TLazyBitblaster::clearSolver() {
-  Assert (d_ctx->getLevel() == 0);
+  Assert(d_ctx->getLevel() == 0);
   d_assertedAtoms->deleteSelf();
   d_assertedAtoms = new(true) context::CDList<prop::SatLiteral>(d_ctx);
   d_explanations->deleteSelf();
@@ -586,12 +574,16 @@ void TLazyBitblaster::clearSolver() {
   // recreate sat solver
   d_satSolver.reset(
       prop::SatSolverFactory::createMinisat(d_ctx, smtStatisticsRegistry()));
-  d_cnfStream.reset(new prop::TseitinCnfStream(
-      d_satSolver.get(), d_nullRegistrar.get(), d_nullContext.get()));
+  ResourceManager* rm = smt::currentResourceManager();
+  d_cnfStream.reset(new prop::CnfStream(d_satSolver.get(),
+                                        d_nullRegistrar.get(),
+                                        d_nullContext.get(),
+                                        nullptr,
+                                        rm));
   d_satSolverNotify.reset(
       d_emptyNotify
-          ? (prop::BVSatSolverInterface::Notify*)new MinisatEmptyNotify()
-          : (prop::BVSatSolverInterface::Notify*)new MinisatNotify(
+          ? (prop::BVSatSolverNotify*)new MinisatEmptyNotify()
+          : (prop::BVSatSolverNotify*)new MinisatNotify(
                 d_cnfStream.get(), d_bv, this));
   d_satSolver->setNotify(d_satSolverNotify.get());
 }

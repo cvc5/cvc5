@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Clark Barrett, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__ARRAYS__TYPE_ENUMERATOR_H
-#define __CVC4__THEORY__ARRAYS__TYPE_ENUMERATOR_H
+#ifndef CVC4__THEORY__ARRAYS__TYPE_ENUMERATOR_H
+#define CVC4__THEORY__ARRAYS__TYPE_ENUMERATOR_H
 
 #include "theory/type_enumerator.h"
 #include "expr/type_node.h"
@@ -53,7 +53,8 @@ class ArrayEnumerator : public TypeEnumeratorBase<ArrayEnumerator> {
   {
     d_indexVec.push_back(*d_index);
     d_constituentVec.push_back(new TypeEnumerator(d_constituentType, d_tep));
-    d_arrayConst = d_nm->mkConst(ArrayStoreAll(type.toType(), (*(*d_constituentVec.back())).toExpr()));
+    d_arrayConst =
+        d_nm->mkConst(ArrayStoreAll(type, (*(*d_constituentVec.back()))));
     Trace("array-type-enum") << "Array const : " << d_arrayConst << std::endl;
   }
 
@@ -158,4 +159,4 @@ class ArrayEnumerator : public TypeEnumeratorBase<ArrayEnumerator> {
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__ARRAYS__TYPE_ENUMERATOR_H */
+#endif /* CVC4__THEORY__ARRAYS__TYPE_ENUMERATOR_H */

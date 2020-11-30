@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -51,8 +51,6 @@
 #include "cvc4_private.h"
 
 #pragma once
-
-#include <stdint.h>
 
 #include "theory/arith/simplex.h"
 #include "util/dense_map.h"
@@ -196,7 +194,6 @@ private:
     LinearEqualityModule::VarPreferenceFunction bpf = useBlands ?
       &LinearEqualityModule::minVarOrder :
       &LinearEqualityModule::minRowLength;
-    bpf = &LinearEqualityModule::minVarOrder;
 
     return selectPrimalUpdate(basic, upf, bpf);
   }

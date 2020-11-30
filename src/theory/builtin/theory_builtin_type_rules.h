@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H
-#define __CVC4__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H
+#ifndef CVC4__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H
+#define CVC4__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H
 
 #include "expr/node.h"
 #include "expr/type_node.h"
@@ -30,44 +30,6 @@
 namespace CVC4 {
 namespace theory {
 namespace builtin {
-
-class ApplyTypeRule {
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-  {
-    TNode f = n.getOperator();
-    TypeNode fType = f.getType(check);
-    if( !fType.isFunction() && n.getNumChildren() > 0 ) {
-      throw TypeCheckingExceptionPrivate(n, "operator does not have function type");
-    }
-    if( check ) {
-      if(fType.isFunction()) {
-        if(n.getNumChildren() != fType.getNumChildren() - 1) {
-          throw TypeCheckingExceptionPrivate(n, "number of arguments does not match the function type");
-        }
-        TNode::iterator argument_it = n.begin();
-        TNode::iterator argument_it_end = n.end();
-        TypeNode::iterator argument_type_it = fType.begin();
-        for(; argument_it != argument_it_end; ++argument_it, ++argument_type_it) {
-          if(!(*argument_it).getType().isComparableTo(*argument_type_it)) {
-            std::stringstream ss;
-            ss << "argument types do not match the function type:\n"
-               << "argument:  " << *argument_it << "\n"
-               << "has type:  " << (*argument_it).getType() << "\n"
-               << "not equal: " << *argument_type_it;
-            throw TypeCheckingExceptionPrivate(n, ss.str());
-          }
-        }
-      } else {
-        if( n.getNumChildren() > 0 ) {
-          throw TypeCheckingExceptionPrivate(n, "number of arguments does not match the function type");
-        }
-      }
-    }
-    return fType.isFunction() ? fType.getRangeType() : fType;
-  }
-};/* class ApplyTypeRule */
-
 
 class EqualityTypeRule {
  public:
@@ -134,7 +96,7 @@ class SExprTypeRule {
 class UninterpretedConstantTypeRule {
  public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
-    return TypeNode::fromType(n.getConst<UninterpretedConstant>().getType());
+    return n.getConst<UninterpretedConstant>().getType();
   }
 };/* class UninterpretedConstantTypeRule */
 
@@ -170,9 +132,9 @@ class LambdaTypeRule {
   {
     Assert(n.getKind() == kind::LAMBDA);
     //get array representation of this function, if possible
-    Node na = TheoryBuiltinRewriter::getArrayRepresentationForLambda( n, true );
+    Node na = TheoryBuiltinRewriter::getArrayRepresentationForLambda(n);
     if( !na.isNull() ){
-      Assert( na.getType().isArray() );
+      Assert(na.getType().isArray());
       Trace("lambda-const") << "Array representation for " << n << " is " << na << " " << na.getType() << std::endl;
       // must have the standard bound variable list
       Node bvl = NodeManager::currentNM()->getBoundVarListForFunctionType( n.getType() );
@@ -197,7 +159,7 @@ class LambdaTypeRule {
   }
 };/* class LambdaTypeRule */
 
-class ChoiceTypeRule
+class WitnessTypeRule
 {
  public:
   inline static TypeNode computeType(NodeManager* nodeManager,
@@ -207,14 +169,14 @@ class ChoiceTypeRule
     if (n[0].getType(check) != nodeManager->boundVarListType())
     {
       std::stringstream ss;
-      ss << "expected a bound var list for CHOICE expression, got `"
+      ss << "expected a bound var list for WITNESS expression, got `"
          << n[0].getType().toString() << "'";
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
     if (n[0].getNumChildren() != 1)
     {
       std::stringstream ss;
-      ss << "expected a bound var list with one argument for CHOICE expression";
+      ss << "expected a bound var list with one argument for WITNESS expression";
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
     if (check)
@@ -223,80 +185,21 @@ class ChoiceTypeRule
       if (!rangeType.isBoolean())
       {
         std::stringstream ss;
-        ss << "expected a body of a CHOICE expression to have Boolean type";
+        ss << "expected a body of a WITNESS expression to have Boolean type";
         throw TypeCheckingExceptionPrivate(n, ss.str());
       }
     }
-    // The type of a choice function is the type of its bound variable.
+    // The type of a witness function is the type of its bound variable.
     return n[0][0].getType();
   }
-}; /* class ChoiceTypeRule */
-
-class ChainTypeRule {
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
-    Assert(n.getKind() == kind::CHAIN);
-
-    if(!check) {
-      return nodeManager->booleanType();
-    }
-
-    TypeNode tn;
-    try {
-      // Actually do the expansion to do the typechecking.
-      // Shouldn't be extra work to do this, since the rewriter
-      // keeps a cache.
-      tn = nodeManager->getType(Rewriter::rewrite(n), check);
-    } catch(TypeCheckingExceptionPrivate& e) {
-      std::stringstream ss;
-      ss << "Cannot typecheck the expansion of chained operator `" << n.getOperator() << "':"
-         << std::endl;
-      // indent the sub-exception for clarity
-      std::stringstream ss2;
-      ss2 << e;
-      std::string eStr = ss2.str();
-      for(size_t i = eStr.find('\n'); i != std::string::npos; i = eStr.find('\n', i)) {
-        eStr.insert(++i, "| ");
-      }
-      ss << "| " << eStr;
-      throw TypeCheckingExceptionPrivate(n, ss.str());
-    }
-
-    // This check is intentionally != booleanType() rather than
-    // !(...isBoolean()): if we ever add a type compatible with
-    // Boolean (pseudobooleans or whatever), we have to revisit
-    // the above "!check" case where booleanType() is returned
-    // directly.  Putting this check here will cause a failure if
-    // it's ever relevant.
-    if(tn != nodeManager->booleanType()) {
-      std::stringstream ss;
-      ss << "Chains can only be formed over predicates; "
-         << "the operator here returns `" << tn << "', expected `"
-         << nodeManager->booleanType() << "'.";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
-    }
-
-    return nodeManager->booleanType();
-  }
-};/* class ChainTypeRule */
-
-class ChainedOperatorTypeRule {
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
-    Assert(n.getKind() == kind::CHAIN_OP);
-    return nodeManager->getType(nodeManager->operatorOf(n.getConst<Chain>().getOperator()), check);
-  }
-};/* class ChainedOperatorTypeRule */
+}; /* class WitnessTypeRule */
 
 class SortProperties {
  public:
   inline static bool isWellFounded(TypeNode type) {
     return true;
   }
-  inline static Node mkGroundTerm(TypeNode type) {
-    Assert(type.getKind() == kind::SORT_TYPE);
-    return NodeManager::currentNM()->mkSkolem("groundTerm", type, "a ground term created for type " + type.toString());
-  }
+  static Node mkGroundTerm(TypeNode type);
 };/* class SortProperties */
 
 class FunctionProperties {
@@ -316,6 +219,31 @@ class FunctionProperties {
     Cardinality valueCard = type[type.getNumChildren() - 1].getCardinality();
 
     return valueCard ^ argsCard;
+  }
+  /** Function type is well-founded if its component sorts are */
+  static bool isWellFounded(TypeNode type)
+  {
+    for (TypeNode::iterator i = type.begin(), i_end = type.end(); i != i_end;
+         ++i)
+    {
+      if (!(*i).isWellFounded())
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+  /**
+   * Ground term for function sorts is (lambda x. t) where x is the
+   * canonical variable list for its type and t is the canonical ground term of
+   * its range.
+   */
+  static Node mkGroundTerm(TypeNode type)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    Node bvl = nm->getBoundVarListForFunctionType(type);
+    Node ret = type.getRangeType().mkGroundTerm();
+    return nm->mkNode(kind::LAMBDA, bvl, ret);
   }
 };/* class FuctionProperties */
 
@@ -375,4 +303,4 @@ class SExprProperties {
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H */
+#endif /* CVC4__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H */

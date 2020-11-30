@@ -2,10 +2,10 @@
 /*! \file memory.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters
+ **   Tim King, Morgan Deters, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -36,24 +36,22 @@
 #include <sys/resource.h>
 #include <sys/time.h>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
+#include "base/configuration_private.h"
 
 // Conditionally define CVC4_MEMORY_LIMITING_DISABLED.
 #ifdef __APPLE__
 #  define CVC4_MEMORY_LIMITING_DISABLED 1
 #  define CVC4_MEMORY_LIMITING_DISABLED_REASON "setrlimit() is broken on Mac."
 #else /* __APPLE__ */
-#  if defined(__has_feature)
-#    if __has_feature(address_sanitizer)
+
 // Tests cannot expect bad_alloc to be thrown due to limit memory using
 // setrlimit when ASAN is enable. ASAN instead aborts on mmap failures.
-#      define CVC4_MEMORY_LIMITING_DISABLED 1
-#      define CVC4_MEMORY_LIMITING_DISABLED_REASON "ASAN's mmap failures abort."
-#    endif /* __has_feature(address_sanitizer) */
-#  endif /* defined(__has_feature) */
+#  if IS_ASAN_BUILD
+#    define CVC4_MEMORY_LIMITING_DISABLED 1
+#    define CVC4_MEMORY_LIMITING_DISABLED_REASON "ASAN's mmap failures abort."
+#  endif
 #endif
-
-
 
 namespace CVC4 {
 namespace test {

@@ -2,10 +2,10 @@
 /*! \file theory_fp.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain, Mathias Preiner, Tim King
+ **   Martin Brain, Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -17,14 +17,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__FP__THEORY_FP_H
-#define __CVC4__THEORY__FP__THEORY_FP_H
+#ifndef CVC4__THEORY__FP__THEORY_FP_H
+#define CVC4__THEORY__FP__THEORY_FP_H
 
 #include <string>
 #include <utility>
 
 #include "context/cdo.h"
 #include "theory/fp/fp_converter.h"
+#include "theory/fp/theory_fp_rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -35,27 +36,55 @@ namespace fp {
 class TheoryFp : public Theory {
  public:
   /** Constructs a new instance of TheoryFp w.r.t. the provided contexts. */
-  TheoryFp(context::Context* c, context::UserContext* u, OutputChannel& out,
-           Valuation valuation, const LogicInfo& logicInfo);
+  TheoryFp(context::Context* c,
+           context::UserContext* u,
+           OutputChannel& out,
+           Valuation valuation,
+           const LogicInfo& logicInfo,
+           ProofNodeManager* pnm = nullptr);
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+  /**
+   * Returns true if we need an equality engine. If so, we initialize the
+   * information regarding how it should be setup. For details, see the
+   * documentation in Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
+  /** finish initialization */
+  void finishInit() override;
+  //--------------------------------- end initialization
 
-  Node expandDefinition(LogicRequest& lr, Node node) override;
+  TrustNode expandDefinition(Node node) override;
 
   void preRegisterTerm(TNode node) override;
-  void addSharedTerm(TNode node) override;
 
-  Node ppRewrite(TNode node) override;
+  TrustNode ppRewrite(TNode node) override;
 
-  void check(Effort) override;
-
+  //--------------------------------- standard check
+  /** Do we need a check call at last call effort? */
   bool needsCheckLastEffort() override { return true; }
+  /** Post-check, called after the fact queue of the theory is processed. */
+  void postCheck(Effort level) override;
+  /** Pre-notify fact, return true if processed. */
+  bool preNotifyFact(TNode atom,
+                     bool pol,
+                     TNode fact,
+                     bool isPrereg,
+                     bool isInternal) override;
+  //--------------------------------- end standard check
+
   Node getModelValue(TNode var) override;
-  bool collectModelInfo(TheoryModel* m) override;
+  bool collectModelInfo(TheoryModel* m,
+                        const std::set<Node>& relevantTerms) override;
+  /** Collect model values in m based on the relevant terms given by
+   * relevantTerms */
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& relevantTerms) override;
 
   std::string identify() const override { return "THEORY_FP"; }
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
-
-  Node explain(TNode n) override;
+  TrustNode explain(TNode n) override;
 
  protected:
   /** Equality engine */
@@ -65,7 +94,6 @@ class TheoryFp : public Theory {
 
    public:
     NotifyClass(TheoryFp& solver) : d_theorySolver(solver) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override;
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override;
     bool eqNotifyTriggerTermEquality(TheoryId tag,
                                      TNode t1,
@@ -73,14 +101,12 @@ class TheoryFp : public Theory {
                                      bool value) override;
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override;
     void eqNotifyNewClass(TNode t) override {}
-    void eqNotifyPreMerge(TNode t1, TNode t2) override {}
-    void eqNotifyPostMerge(TNode t1, TNode t2) override {}
+    void eqNotifyMerge(TNode t1, TNode t2) override {}
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
   };
   friend NotifyClass;
 
   NotifyClass d_notification;
-  eq::EqualityEngine d_equalityEngine;
 
   /** General utility **/
   void registerTerm(TNode node);
@@ -96,14 +122,18 @@ class TheoryFp : public Theory {
 
   /** Interaction with the rest of the solver **/
   void handleLemma(Node node);
-  bool handlePropagation(TNode node);
-  void handleConflict(TNode node);
+  /**
+   * Called when literal node is inferred by the equality engine. This
+   * propagates node on the output channel.
+   */
+  bool propagateLit(TNode node);
+  /**
+   * Called when two constants t1 and t2 merge in the equality engine. This
+   * sends a conflict on the output channel.
+   */
+  void conflictEqConstantMerge(TNode t1, TNode t2);
 
-  context::CDO<bool> d_conflict;
   context::CDO<Node> d_conflictNode;
-
-  /** Uninterpretted functions for partially defined functions. **/
-  void enableUF(LogicRequest& lr);
 
   typedef context::CDHashMap<TypeNode, Node, TypeNodeHashFunction>
       ComparisonUFMap;
@@ -142,10 +172,14 @@ class TheoryFp : public Theory {
 
   bool refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete);
 
+  /** The theory rewriter for this theory. */
+  TheoryFpRewriter d_rewriter;
+  /** A (default) theory state object */
+  TheoryState d_state;
 }; /* class TheoryFp */
 
 }  // namespace fp
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__FP__THEORY_FP_H */
+#endif /* CVC4__THEORY__FP__THEORY_FP_H */

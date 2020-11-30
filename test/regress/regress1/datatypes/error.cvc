@@ -1,6 +1,5 @@
 % REQUIRES: no-competition
-% EXPECT-ERROR: CVC4 Error:
-% EXPECT-ERROR: Parse Error: foo already declared in this datatype
+% EXPECT-ERROR: (error "Parse Error: foo already declared in this datatype")
 % EXIT: 1
 
 DATATYPE single_ctor = foo(bar:REAL) | foo(bar2:REAL) END;

@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -17,13 +17,14 @@
  **/
 #include "theory/logic_info.h"
 
-#include <string>
 #include <cstring>
+#include <iostream>
 #include <sstream>
+#include <string>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
+#include "base/configuration.h"
 #include "expr/kind.h"
-
 
 using namespace std;
 using namespace CVC4::theory;
@@ -43,7 +44,12 @@ LogicInfo::LogicInfo()
       d_higherOrder(true),
       d_locked(false)
 {
-  for(TheoryId id = THEORY_FIRST; id < THEORY_LAST; ++id) {
+  for (TheoryId id = THEORY_FIRST; id < THEORY_LAST; ++id)
+  {
+    if (id == THEORY_FP && !Configuration::isBuiltWithSymFPU())
+    {
+      continue;
+    }
     enableTheory(id);
   }
 }
@@ -207,13 +213,15 @@ bool LogicInfo::operator==(const LogicInfo& other) const {
 
   PrettyCheckArgument(d_sharingTheories == other.d_sharingTheories, *this,
                       "LogicInfo internal inconsistency");
+  bool res = d_cardinalityConstraints == other.d_cardinalityConstraints
+             && d_higherOrder == other.d_higherOrder;
   if(isTheoryEnabled(theory::THEORY_ARITH)) {
     return d_integers == other.d_integers && d_reals == other.d_reals
            && d_transcendentals == other.d_transcendentals
            && d_linear == other.d_linear
-           && d_differenceLogic == other.d_differenceLogic;
+           && d_differenceLogic == other.d_differenceLogic && res;
   } else {
-    return true;
+    return res;
   }
 }
 
@@ -227,13 +235,15 @@ bool LogicInfo::operator<=(const LogicInfo& other) const {
   }
   PrettyCheckArgument(d_sharingTheories <= other.d_sharingTheories, *this,
                       "LogicInfo internal inconsistency");
+  bool res = (!d_cardinalityConstraints || other.d_cardinalityConstraints)
+             && (!d_higherOrder || other.d_higherOrder);
   if(isTheoryEnabled(theory::THEORY_ARITH) && other.isTheoryEnabled(theory::THEORY_ARITH)) {
     return (!d_integers || other.d_integers) && (!d_reals || other.d_reals)
            && (!d_transcendentals || other.d_transcendentals)
            && (d_linear || !other.d_linear)
-           && (d_differenceLogic || !other.d_differenceLogic);
+           && (d_differenceLogic || !other.d_differenceLogic) && res;
   } else {
-    return true;
+    return res;
   }
 }
 
@@ -247,13 +257,15 @@ bool LogicInfo::operator>=(const LogicInfo& other) const {
   }
   PrettyCheckArgument(d_sharingTheories >= other.d_sharingTheories, *this,
                       "LogicInfo internal inconsistency");
+  bool res = (d_cardinalityConstraints || !other.d_cardinalityConstraints)
+             && (d_higherOrder || !other.d_higherOrder);
   if(isTheoryEnabled(theory::THEORY_ARITH) && other.isTheoryEnabled(theory::THEORY_ARITH)) {
     return (d_integers || !other.d_integers) && (d_reals || !other.d_reals)
            && (d_transcendentals || !other.d_transcendentals)
            && (!d_linear || other.d_linear)
-           && (!d_differenceLogic || other.d_differenceLogic);
+           && (!d_differenceLogic || other.d_differenceLogic) && res;
     } else {
-    return true;
+      return res;
   }
 }
 
@@ -275,6 +287,11 @@ std::string LogicInfo::getLogicString() const {
       stringstream ss;
       if(!isQuantified()) {
         ss << "QF_";
+      }
+      if (d_theories[THEORY_SEP])
+      {
+        ss << "SEP_";
+        ++seen;
       }
       if(d_theories[THEORY_ARRAYS]) {
         ss << (d_sharingTheories == 1 ? "AX" : "A");
@@ -321,13 +338,15 @@ std::string LogicInfo::getLogicString() const {
         ss << "FS";
         ++seen;
       }
-      if(d_theories[THEORY_SEP]) {
-        ss << "SEP";
+      if (d_theories[THEORY_BAGS])
+      {
+        ss << "FB";
         ++seen;
-      }     
+      }
       if(seen != d_sharingTheories) {
-        Unhandled("can't extract a logic string from LogicInfo; at least one "
-                  "active theory is unknown to LogicInfo::getLogicString() !");
+        Unhandled()
+            << "can't extract a logic string from LogicInfo; at least one "
+               "active theory is unknown to LogicInfo::getLogicString() !";
       }
 
       if(seen == 0) {
@@ -404,6 +423,11 @@ void LogicInfo::setLogicString(std::string logicString)
       p += 3;
     } else {
       enableQuantifiers();
+    }
+    if (!strncmp(p, "SEP_", 4))
+    {
+      enableSeparationLogic();
+      p += 4;
     }
     if(!strncmp(p, "AX", 2)) {
       enableTheory(THEORY_ARRAYS);
@@ -504,10 +528,6 @@ void LogicInfo::setLogicString(std::string logicString)
         enableTheory(THEORY_SETS);
         p += 2;
       }
-      if(!strncmp(p, "SEP", 3)) {
-        enableTheory(THEORY_SEP);
-        p += 3;
-      }
     }
   }
 
@@ -570,6 +590,22 @@ void LogicInfo::disableTheory(theory::TheoryId theory) {
     d_logicString = "";
     d_theories[theory] = false;
   }
+}
+
+void LogicInfo::enableSygus()
+{
+  enableQuantifiers();
+  enableTheory(THEORY_UF);
+  enableTheory(THEORY_DATATYPES);
+  enableIntegers();
+  enableHigherOrder();
+}
+
+void LogicInfo::enableSeparationLogic()
+{
+  enableTheory(THEORY_SEP);
+  enableTheory(THEORY_UF);
+  enableTheory(THEORY_SETS);
 }
 
 void LogicInfo::enableIntegers() {

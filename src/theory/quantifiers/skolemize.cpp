@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/skolemize.h"
 
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_util.h"
@@ -27,24 +28,65 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-Skolemize::Skolemize(QuantifiersEngine* qe, context::UserContext* u)
-    : d_quantEngine(qe), d_skolemized(u)
+Skolemize::Skolemize(QuantifiersEngine* qe,
+                     context::UserContext* u,
+                     ProofNodeManager* pnm)
+    : d_quantEngine(qe),
+      d_skolemized(u),
+      d_pnm(pnm),
+      d_epg(pnm == nullptr ? nullptr
+                           : new EagerProofGenerator(pnm, u, "Skolemize::epg"))
 {
 }
 
-Node Skolemize::process(Node q)
+TrustNode Skolemize::process(Node q)
 {
+  Assert(q.getKind() == FORALL);
   // do skolemization
-  if (d_skolemized.find(q) == d_skolemized.end())
+  if (d_skolemized.find(q) != d_skolemized.end())
   {
+    return TrustNode::null();
+  }
+  Node lem;
+  ProofGenerator* pg = nullptr;
+  if (isProofEnabled() && !options::dtStcInduction()
+      && !options::intWfInduction())
+  {
+    // if using proofs and not using induction, we use the justified
+    // skolemization
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* skm = nm->getSkolemManager();
+    std::vector<Node> echildren(q.begin(), q.end());
+    echildren[1] = echildren[1].notNode();
+    Node existsq = nm->mkNode(EXISTS, echildren);
+    Node res = skm->mkSkolemize(existsq, d_skolem_constants[q], "skv");
+    Node qnot = q.notNode();
+    CDProof cdp(d_pnm);
+    cdp.addStep(res, PfRule::SKOLEMIZE, {qnot}, {});
+    std::shared_ptr<ProofNode> pf = cdp.getProofFor(res);
+    std::vector<Node> assumps;
+    assumps.push_back(qnot);
+    std::shared_ptr<ProofNode> pfs = d_pnm->mkScope({pf}, assumps);
+    lem = nm->mkNode(IMPLIES, qnot, res);
+    d_epg->setProofFor(lem, pfs);
+    pg = d_epg.get();
+    Trace("quantifiers-sk")
+        << "Skolemize (with proofs) : " << d_skolem_constants[q] << " for "
+        << std::endl;
+    Trace("quantifiers-sk") << "   " << q << std::endl;
+    Trace("quantifiers-sk") << "   " << res << std::endl;
+  }
+  else
+  {
+    // otherwise, we use the more general skolemization with inductive
+    // strengthening, which does not support proofs
     Node body = getSkolemizedBody(q);
     NodeBuilder<> nb(kind::OR);
     nb << q << body.notNode();
-    Node lem = nb;
-    d_skolemized[q] = lem;
-    return lem;
+    lem = nb;
   }
-  return Node::null();
+  d_skolemized[q] = lem;
+  return TrustNode::mkTrustLemma(lem, pg);
 }
 
 bool Skolemize::getSkolemConstants(Node q, std::vector<Node>& skolems)
@@ -73,8 +115,8 @@ Node Skolemize::getSkolemConstant(Node q, unsigned i)
   return Node::null();
 }
 
-void Skolemize::getSelfSel(const Datatype& dt,
-                           const DatatypeConstructor& dc,
+void Skolemize::getSelfSel(const DType& dt,
+                           const DTypeConstructor& dc,
                            Node n,
                            TypeNode ntn,
                            std::vector<Node>& selfSel)
@@ -82,14 +124,14 @@ void Skolemize::getSelfSel(const Datatype& dt,
   TypeNode tspec;
   if (dt.isParametric())
   {
-    tspec = TypeNode::fromType(
-        dc.getSpecializedConstructorType(n.getType().toType()));
+    tspec = dc.getSpecializedConstructorType(n.getType());
     Trace("sk-ind-debug") << "Specialized constructor type : " << tspec
                           << std::endl;
     Assert(tspec.getNumChildren() == dc.getNumArgs());
   }
   Trace("sk-ind-debug") << "Check self sel " << dc.getName() << " "
                         << dt.getName() << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
   for (unsigned j = 0; j < dc.getNumArgs(); j++)
   {
     std::vector<Node> ssc;
@@ -104,32 +146,17 @@ void Skolemize::getSelfSel(const Datatype& dt,
     }
     else
     {
-      TypeNode tn = TypeNode::fromType(dc[j].getRangeType());
+      TypeNode tn = dc[j].getRangeType();
       Trace("sk-ind-debug") << "Compare " << tn << " " << ntn << std::endl;
       if (tn == ntn)
       {
         ssc.push_back(n);
       }
     }
-    /* TODO: more than weak structural induction
-    else if( tn.isDatatype() && std::find( visited.begin(), visited.end(), tn
-    )==visited.end() ){
-      visited.push_back( tn );
-      const Datatype& dt =
-    ((DatatypeType)(subs[0].getType()).toType()).getDatatype();
-      std::vector< Node > disj;
-      for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-        getSelfSel( dt[i], n, ntn, ssc );
-      }
-      visited.pop_back();
-    }
-    */
     for (unsigned k = 0; k < ssc.size(); k++)
     {
-      Node ss = NodeManager::currentNM()->mkNode(
-          APPLY_SELECTOR_TOTAL,
-          dc.getSelectorInternal(n.getType().toType(), j),
-          n);
+      Node ss = nm->mkNode(
+          APPLY_SELECTOR_TOTAL, dc.getSelectorInternal(n.getType(), j), n);
       if (std::find(selfSel.begin(), selfSel.end(), ss) == selfSel.end())
       {
         selfSel.push_back(ss);
@@ -146,6 +173,7 @@ Node Skolemize::mkSkolemizedBody(Node f,
                                  Node& sub,
                                  std::vector<unsigned>& sub_vars)
 {
+  NodeManager* nm = NodeManager::currentNM();
   Assert(sk.empty() || sk.size() == f[0].getNumChildren());
   // calculate the variables and substitution
   std::vector<TNode> ind_vars;
@@ -220,17 +248,14 @@ Node Skolemize::mkSkolemizedBody(Node f,
     // the following constructs ~( R( x, k ) => ~P( x ) )
     if (options::dtStcInduction() && tn.isDatatype())
     {
-      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+      const DType& dt = tn.getDType();
       std::vector<Node> disj;
       for (unsigned i = 0; i < dt.getNumConstructors(); i++)
       {
         std::vector<Node> selfSel;
         getSelfSel(dt, dt[i], k, tn, selfSel);
         std::vector<Node> conj;
-        conj.push_back(
-            NodeManager::currentNM()
-                ->mkNode(APPLY_TESTER, Node::fromExpr(dt[i].getTester()), k)
-                .negate());
+        conj.push_back(nm->mkNode(APPLY_TESTER, dt[i].getTester(), k).negate());
         for (unsigned j = 0; j < selfSel.size(); j++)
         {
           conj.push_back(ret.substitute(ind_vars[0], selfSel[j]).negate());
@@ -291,16 +316,8 @@ Node Skolemize::mkSkolemizedBody(Node f,
         ret, f.getAttribute(InstLevelAttribute()));
   }
 
-  if (Trace.isOn("quantifiers-sk"))
-  {
-    Trace("quantifiers-sk") << "Skolemize : ";
-    for (unsigned i = 0; i < sk.size(); i++)
-    {
-      Trace("quantifiers-sk") << sk[i] << " ";
-    }
-    Trace("quantifiers-sk") << "for " << std::endl;
-    Trace("quantifiers-sk") << "   " << f << std::endl;
-  }
+  Trace("quantifiers-sk") << "Skolemize : " << sk << " for " << std::endl;
+  Trace("quantifiers-sk") << "   " << f << std::endl;
 
   return ret;
 }
@@ -308,14 +325,17 @@ Node Skolemize::mkSkolemizedBody(Node f,
 Node Skolemize::getSkolemizedBody(Node f)
 {
   Assert(f.getKind() == FORALL);
-  if (d_skolem_body.find(f) == d_skolem_body.end())
+  std::unordered_map<Node, Node, NodeHashFunction>::iterator it =
+      d_skolem_body.find(f);
+  if (it == d_skolem_body.end())
   {
     std::vector<TypeNode> fvTypes;
     std::vector<TNode> fvs;
     Node sub;
     std::vector<unsigned> sub_vars;
-    d_skolem_body[f] = mkSkolemizedBody(
+    Node ret = mkSkolemizedBody(
         f, f[1], fvTypes, fvs, d_skolem_constants[f], sub, sub_vars);
+    d_skolem_body[f] = ret;
     // store sub quantifier information
     if (!sub.isNull())
     {
@@ -337,8 +357,9 @@ Node Skolemize::getSkolemizedBody(Node f)
             f, f[0][i], d_skolem_constants[f][i]);
       }
     }
+    return ret;
   }
-  return d_skolem_body[f];
+  return it->second;
 }
 
 bool Skolemize::isInductionTerm(Node n)
@@ -346,10 +367,10 @@ bool Skolemize::isInductionTerm(Node n)
   TypeNode tn = n.getType();
   if (options::dtStcInduction() && tn.isDatatype())
   {
-    const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+    const DType& dt = tn.getDType();
     return !dt.isCodatatype();
   }
-  if (options::intWfInduction() && n.getType().isInteger())
+  if (options::intWfInduction() && tn.isInteger())
   {
     return true;
   }
@@ -380,6 +401,8 @@ bool Skolemize::printSkolemization(std::ostream& out)
   }
   return printed;
 }
+
+bool Skolemize::isProofEnabled() const { return d_epg != nullptr; }
 
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */

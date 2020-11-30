@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Christopher L. Conway, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -18,7 +18,7 @@
 
 #include <string>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "expr/attribute.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
@@ -61,17 +61,18 @@ class AttributeWhite : public CxxTest::TestSuite {
   TypeNode* d_booleanType;
   SmtEngine* d_smtEngine;
 
-public:
-
-  void setUp() {
+ public:
+  void setUp() override
+  {
     d_em = new ExprManager();
     d_nm = NodeManager::fromExprManager(d_em);
-    d_smtEngine = new SmtEngine(d_em);
+    d_smtEngine = new SmtEngine(d_nm);
     d_scope = new SmtScope(d_smtEngine);
     d_booleanType = new TypeNode(d_nm->booleanType());
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     delete d_booleanType;
     delete d_scope;
     delete d_smtEngine;

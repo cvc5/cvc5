@@ -2,10 +2,10 @@
 /*! \file type_checker.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Tim King, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -19,8 +19,8 @@
 // ordering dependence
 #include "expr/node.h"
 
-#ifndef __CVC4__EXPR__TYPE_CHECKER_H
-#define __CVC4__EXPR__TYPE_CHECKER_H
+#ifndef CVC4__EXPR__TYPE_CHECKER_H
+#define CVC4__EXPR__TYPE_CHECKER_H
 
 namespace CVC4 {
 namespace expr {
@@ -33,11 +33,9 @@ public:
 
  static bool computeIsConst(NodeManager* nodeManager, TNode n);
 
- static bool neverIsConst(NodeManager* nodeManager, TNode n);
-
 };/* class TypeChecker */
 
 }/* CVC4::expr namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__EXPR__TYPE_CHECKER_H */
+#endif /* CVC4__EXPR__TYPE_CHECKER_H */

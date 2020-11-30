@@ -2,10 +2,10 @@
 /*! \file theory_sep_rewriter.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -25,7 +25,7 @@ namespace theory {
 namespace sep {
 
 void TheorySepRewriter::getStarChildren( Node n, std::vector< Node >& s_children, std::vector< Node >& ns_children ){
-  Assert( n.getKind()==kind::SEP_STAR );
+  Assert(n.getKind() == kind::SEP_STAR);
   Node tr = NodeManager::currentNM()->mkConst( true );
   for( unsigned i=0; i<n.getNumChildren(); i++ ){
     if( n[i].getKind()==kind::SEP_EMP ){
@@ -102,7 +102,9 @@ RewriteResponse TheorySepRewriter::postRewrite(TNode node) {
   switch (node.getKind()) {
     case kind::SEP_LABEL: {
       if( node[0].getKind()==kind::SEP_PTO ){
-        Node s = NodeManager::currentNM()->mkNode( kind::SINGLETON, node[0][0] );
+        // TODO(project##230): Find a safe type for the singleton operator
+        Node s = NodeManager::currentNM()->mkSingleton(node[0][0].getType(),
+                                                       node[0][0]);
         if( node[1]!=s ){
           Node c1 = node[1].eqNode( s );
           Node c2 = NodeManager::currentNM()->mkNode( kind::SEP_LABEL, NodeManager::currentNM()->mkNode( kind::SEP_PTO, node[0][0], node[0][1] ), s );
@@ -110,7 +112,8 @@ RewriteResponse TheorySepRewriter::postRewrite(TNode node) {
         }
       }
       if( node[0].getKind()==kind::SEP_EMP ){
-        retNode = node[1].eqNode( NodeManager::currentNM()->mkConst(EmptySet(node[1].getType().toType())) );
+        retNode = node[1].eqNode(
+            NodeManager::currentNM()->mkConst(EmptySet(node[1].getType())));
       }
       break;
     }
@@ -131,7 +134,7 @@ RewriteResponse TheorySepRewriter::postRewrite(TNode node) {
         }
         ns_children.push_back( schild );
       }
-      Assert( !ns_children.empty() );
+      Assert(!ns_children.empty());
       if( ns_children.size()==1 ){
         retNode = ns_children[0];
       }else{
@@ -160,58 +163,6 @@ RewriteResponse TheorySepRewriter::postRewrite(TNode node) {
   }
   return RewriteResponse(node==retNode ? REWRITE_DONE : REWRITE_AGAIN_FULL, retNode);
 }
-
-Node TheorySepRewriter::preSkolemEmp( Node n, bool pol, std::map< bool, std::map< Node, Node > >& visited ) {
-  std::map< Node, Node >::iterator it = visited[pol].find( n );
-  if( it==visited[pol].end() ){
-    Trace("sep-preprocess") << "Pre-skolem emp " << n << " with pol " << pol << std::endl;
-    Node ret = n;
-    if( n.getKind()==kind::SEP_EMP ){
-      if( !pol ){
-        TypeNode tnx = n[0].getType();
-        TypeNode tny = n[1].getType();
-        Node x = NodeManager::currentNM()->mkSkolem( "ex", tnx, "skolem location for negated emp" );
-        Node y = NodeManager::currentNM()->mkSkolem( "ey", tny, "skolem data for negated emp" );
-        return NodeManager::currentNM()->mkNode( kind::SEP_STAR, 
-                 NodeManager::currentNM()->mkNode( kind::SEP_PTO, x, y ),
-                 NodeManager::currentNM()->mkConst( true ) ).negate();
-      }
-    }else if( n.getKind()!=kind::FORALL && n.getNumChildren()>0 ){
-      std::vector< Node > children;
-      bool childChanged = false;
-      if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
-        children.push_back( n.getOperator() );
-      }
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        bool newPol, newHasPol;
-        QuantPhaseReq::getPolarity( n, i, true, pol, newHasPol, newPol );
-        Node nc = n[i];
-        if( newHasPol ){
-          nc = preSkolemEmp( n[i], newPol, visited );
-          childChanged = childChanged || nc!=n[i];
-        }
-        children.push_back( nc );
-      }
-      if( childChanged ){
-        return NodeManager::currentNM()->mkNode( n.getKind(), children );
-      }
-    }
-    visited[pol][n] = ret;
-    return n;
-  }else{
-    return it->second;
-  }
-}
-
-Node TheorySepRewriter::preprocess( Node n ) {
-  if( options::sepPreSkolemEmp() ){
-    bool pol = true;
-    std::map< bool, std::map< Node, Node > > visited;
-    n = preSkolemEmp( n, pol, visited );
-  }
-  return n;
-}
-
 
 }/* CVC4::theory::sep namespace */
 }/* CVC4::theory namespace */

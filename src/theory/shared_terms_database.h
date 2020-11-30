@@ -2,10 +2,10 @@
 /*! \file shared_terms_database.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Mathias Preiner
+ **   Dejan Jovanovic, Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -21,8 +21,12 @@
 
 #include "context/cdhashset.h"
 #include "expr/node.h"
-#include "theory/theory.h"
+#include "expr/proof_node_manager.h"
+#include "theory/ee_setup_info.h"
+#include "theory/theory_id.h"
+#include "theory/trust_node.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/uf/proof_equality_engine.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -30,17 +34,14 @@ namespace CVC4 {
 class TheoryEngine;
 
 class SharedTermsDatabase : public context::ContextNotifyObj {
-
-public:
-
+ public:
   /** A container for a list of shared terms */
   typedef std::vector<TNode> shared_terms_list;
 
   /** The iterator to go through the shared terms list */
   typedef shared_terms_list::const_iterator shared_terms_iterator;
 
-private:
-
+ private:
   /** Some statistics */
   IntStat d_statSharedTerms;
 
@@ -57,19 +58,22 @@ private:
   context::CDO<unsigned> d_addedSharedTermsSize;
 
   /** A map from atoms and subterms to the theories that use it */
-  typedef context::CDHashMap<std::pair<Node, TNode>, theory::Theory::Set, TNodePairHashFunction> SharedTermsTheoriesMap;
+  typedef context::CDHashMap<std::pair<Node, TNode>,
+                             theory::TheoryIdSet,
+                             TNodePairHashFunction>
+      SharedTermsTheoriesMap;
   SharedTermsTheoriesMap d_termsToTheories;
 
   /** Map from term to theories that have already been notified about the shared term */
-  typedef context::CDHashMap<TNode, theory::Theory::Set, TNodeHashFunction> AlreadyNotifiedMap;
+  typedef context::CDHashMap<TNode, theory::TheoryIdSet, TNodeHashFunction>
+      AlreadyNotifiedMap;
   AlreadyNotifiedMap d_alreadyNotifiedMap;
 
   /** The registered equalities for propagation */
   typedef context::CDHashSet<Node, NodeHashFunction> RegisteredEqualitiesSet;
   RegisteredEqualitiesSet d_registeredEqualities;
 
-private:
-
+ private:
   /** This method removes all the un-necessary stuff from the maps */
   void backtrack();
 
@@ -78,15 +82,10 @@ private:
     SharedTermsDatabase& d_sharedTerms;
   public:
     EENotifyClass(SharedTermsDatabase& shared): d_sharedTerms(shared) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override
-    {
-      d_sharedTerms.propagateEquality(equality, value);
-      return true;
-    }
-
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
-      Unreachable();
+      Assert(predicate.getKind() == kind::EQUAL);
+      d_sharedTerms.propagateEquality(predicate, value);
       return true;
     }
 
@@ -104,16 +103,12 @@ private:
     }
 
     void eqNotifyNewClass(TNode t) override {}
-    void eqNotifyPreMerge(TNode t1, TNode t2) override {}
-    void eqNotifyPostMerge(TNode t1, TNode t2) override {}
+    void eqNotifyMerge(TNode t1, TNode t2) override {}
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
   };
 
   /** The notify class for d_equalityEngine */
   EENotifyClass d_EENotify;
-
-  /** Equality engine */
-  theory::eq::EqualityEngine d_equalityEngine;
 
   /**
    * Method called by equalityEngine when a becomes (dis-)equal to b and a and b are shared with
@@ -155,10 +150,29 @@ private:
    */
   void checkForConflict();
 
-public:
-
-  SharedTermsDatabase(TheoryEngine* theoryEngine, context::Context* context);
+ public:
+  /**
+   * @param theoryEngine The parent theory engine
+   * @param context The SAT context
+   * @param userContext The user context
+   * @param pnm The proof node manager to use, which is non-null if proofs
+   * are enabled.
+   */
+  SharedTermsDatabase(TheoryEngine* theoryEngine,
+                      context::Context* context,
+                      context::UserContext* userContext,
+                      ProofNodeManager* pnm);
   ~SharedTermsDatabase();
+
+  //-------------------------------------------- initialization
+  /** Called to set the equality engine. */
+  void setEqualityEngine(theory::eq::EqualityEngine* ee);
+  /**
+   * Returns true if we need an equality engine, this has the same contract
+   * as Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(theory::EeSetupInfo& esi);
+  //-------------------------------------------- end initialization
 
   /**
    * Asserts the equality to the shared terms database,
@@ -173,7 +187,7 @@ public:
   /**
    * Returns an explanation of the propagation that came from the database.
    */
-  Node explain(TNode literal) const;
+  theory::TrustNode explain(TNode literal) const;
 
   /**
    * Add an equality to propagate.
@@ -184,12 +198,12 @@ public:
    * Add a shared term to the database. The shared term is a subterm of the atom and
    * should be associated with the given theory.
    */
-  void addSharedTerm(TNode atom, TNode term, theory::Theory::Set theories);
+  void addSharedTerm(TNode atom, TNode term, theory::TheoryIdSet theories);
 
   /**
    * Mark that the given theories have been notified of the given shared term.
    */
-  void markNotified(TNode term, theory::Theory::Set theories);
+  void markNotified(TNode term, theory::TheoryIdSet theories);
 
   /**
    * Returns true if the atom contains any shared terms, false otherwise.
@@ -209,12 +223,12 @@ public:
   /**
    * Get the theories that share the term in a given atom (and have not yet been notified).
    */
-  theory::Theory::Set getTheoriesToNotify(TNode atom, TNode term) const;
+  theory::TheoryIdSet getTheoriesToNotify(TNode atom, TNode term) const;
 
   /**
    * Get the theories that share the term and have been notified already.
    */
-  theory::Theory::Set getNotifiedTheories(TNode term) const;
+  theory::TheoryIdSet getNotifiedTheories(TNode term) const;
 
   /**
    * Returns true if the term is currently registered as shared with some theory.
@@ -245,14 +259,23 @@ public:
   /**
    * get equality engine
    */
-  theory::eq::EqualityEngine* getEqualityEngine() { return &d_equalityEngine; }
+  theory::eq::EqualityEngine* getEqualityEngine();
 
-protected:
-
+ protected:
   /**
    * This method gets called on backtracks from the context manager.
    */
- void contextNotifyPop() override { backtrack(); }
+  void contextNotifyPop() override { backtrack(); }
+  /** The SAT search context. */
+  context::Context* d_satContext;
+  /** The user level assertion context. */
+  context::UserContext* d_userContext;
+  /** Equality engine */
+  theory::eq::EqualityEngine* d_equalityEngine;
+  /** Proof equality engine */
+  std::unique_ptr<theory::eq::ProofEqEngine> d_pfee;
+  /** The proof node manager */
+  ProofNodeManager* d_pnm;
 };
 
 }

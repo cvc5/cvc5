@@ -1,7 +1,7 @@
 bv : BITVECTOR(10);
 a : BOOLEAN;
 
-% EXPECT: valid
+% EXPECT: entailed
 QUERY
  0bin01100000[5:3]=(0bin1111001@bv[0:0])[4:2]
  AND

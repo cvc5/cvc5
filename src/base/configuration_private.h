@@ -2,10 +2,10 @@
 /*! \file configuration_private.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Christopher L. Conway, Morgan Deters, Mathias Preiner
+ **   Christopher L. Conway, Andres Noetzli, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__CONFIGURATION_PRIVATE_H
-#define __CVC4__CONFIGURATION_PRIVATE_H
+#ifndef CVC4__CONFIGURATION_PRIVATE_H
+#define CVC4__CONFIGURATION_PRIVATE_H
 
 #include <string>
 
@@ -35,12 +35,6 @@ namespace CVC4 {
 #else /* CVC4_STATISTICS_ON */
 #  define IS_STATISTICS_BUILD false
 #endif /* CVC4_STATISTICS_ON */
-
-#ifdef CVC4_REPLAY
-#  define IS_REPLAY_BUILD true
-#else /* CVC4_REPLAY */
-#  define IS_REPLAY_BUILD false
-#endif /* CVC4_REPLAY */
 
 #ifdef CVC4_TRACING
 #  define IS_TRACING_BUILD true
@@ -126,17 +120,35 @@ namespace CVC4 {
 #  define IS_CRYPTOMINISAT_BUILD false
 #endif /* CVC4_USE_CRYPTOMINISAT */
 
+#if CVC4_USE_DRAT2ER
+#  define IS_DRAT2ER_BUILD true
+#else /* CVC4_USE_DRAT2ER */
+#  define IS_DRAT2ER_BUILD false
+#endif /* CVC4_USE_DRAT2ER */
+
+#if CVC4_USE_KISSAT
+#define IS_KISSAT_BUILD true
+#else /* CVC4_USE_KISSAT */
+#define IS_KISSAT_BUILD false
+#endif /* CVC4_USE_KISSAT */
+
 #if CVC4_USE_LFSC
 #define IS_LFSC_BUILD true
 #else /* CVC4_USE_LFSC */
 #define IS_LFSC_BUILD false
 #endif /* CVC4_USE_LFSC */
 
-#if HAVE_LIBREADLINE
-#  define IS_READLINE_BUILD true
-#else /* HAVE_LIBREADLINE */
-#  define IS_READLINE_BUILD false
-#endif /* HAVE_LIBREADLINE */
+#if CVC4_USE_POLY
+#define IS_POLY_BUILD true
+#else /* CVC4_USE_POLY */
+#define IS_POLY_BUILD false
+#endif /* CVC4_USE_POLY */
+
+#if HAVE_LIBEDITLINE
+#define IS_EDITLINE_BUILD true
+#else /* HAVE_LIBEDITLINE */
+#define IS_EDITLINE_BUILD false
+#endif /* HAVE_LIBEDITLINE */
 
 #ifdef CVC4_USE_SYMFPU
 #define IS_SYMFPU_BUILD true
@@ -150,12 +162,44 @@ namespace CVC4 {
 #  define IS_GPL_BUILD false
 #endif /* CVC4_GPL_DEPS */
 
-#ifdef TLS
-#  define USING_TLS true
-#else /* TLS */
-#  define USING_TLS false
-#endif /* TLS */
+#define IS_ASAN_BUILD false
+
+// GCC test
+#if defined(__SANITIZE_ADDRESS__)
+#  undef IS_ASAN_BUILD
+#  define IS_ASAN_BUILD true
+#endif /* defined(__SANITIZE_ADDRESS__) */
+
+// Clang test
+#if defined(__has_feature)
+#  if __has_feature(address_sanitizer)
+#    undef IS_ASAN_BUILD
+#    define IS_ASAN_BUILD true
+#  endif /* __has_feature(address_sanitizer) */
+#endif /* defined(__has_feature) */
+
+#ifdef CVC4_USE_UBSAN
+#define IS_UBSAN_BUILD true
+#else /* CVC4_USE_UBSAN */
+#define IS_UBSAN_BUILD false
+#endif /* CVC4_USE_UBSAN */
+
+#define IS_TSAN_BUILD false
+
+// GCC test
+#if defined(__SANITIZE_THREAD__)
+#undef IS_TSAN_BUILD
+#define IS_TSAN_BUILD true
+#endif /* defined(__SANITIZE_THREAD__) */
+
+// Clang test
+#if defined(__has_feature)
+#if __has_feature(thread_sanitizer)
+#undef IS_TSAN_BUILD
+#define IS_TSAN_BUILD true
+#endif /* __has_feature(thread_sanitizer) */
+#endif /* defined(__has_feature) */
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__CONFIGURATION_PRIVATE_H */
+#endif /* CVC4__CONFIGURATION_PRIVATE_H */

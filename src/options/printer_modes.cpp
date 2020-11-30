@@ -2,10 +2,10 @@
 /*! \file printer_modes.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Mathias Preiner, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -19,33 +19,16 @@
 
 namespace CVC4 {
 
-std::ostream& operator<<(std::ostream& out, ModelFormatMode mode) {
-  switch(mode) {
-  case MODEL_FORMAT_MODE_DEFAULT:
-    out << "MODEL_FORMAT_MODE_DEFAULT";
-    break;
-  case MODEL_FORMAT_MODE_TABLE:
-    out << "MODEL_FORMAT_MODE_TABLE";
-    break;
-  default:
-    out << "ModelFormatMode:UNKNOWN![" << unsigned(mode) << "]";
-  }
-
-  return out;
-}
-
-std::ostream& operator<<(std::ostream& out, InstFormatMode mode) {
-  switch(mode) {
-  case INST_FORMAT_MODE_DEFAULT:
-    out << "INST_FORMAT_MODE_DEFAULT";
-    break;
-  case INST_FORMAT_MODE_SZS:
-    out << "INST_FORMAT_MODE_SZS";
-    break;
-  default:
-    out << "InstFormatMode:UNKNOWN![" << unsigned(mode) << "]";
+std::ostream& operator<<(std::ostream& out, options::InstFormatMode mode)
+{
+  out << "InstFormatMode::";
+  switch (mode)
+  {
+    case options::InstFormatMode::DEFAULT: out << "DEFAULT"; break;
+    case options::InstFormatMode::SZS: out << "SZS"; break;
+    default: out << "UNKNOWN![" << unsigned(mode) << "]";
   }
   return out;
 }
 
-}/* CVC4 namespace */
+}  // namespace CVC4

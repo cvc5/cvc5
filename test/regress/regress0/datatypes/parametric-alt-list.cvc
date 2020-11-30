@@ -1,0 +1,13 @@
+% EXPECT: sat
+DATATYPE
+List[X,Y] = nil | cons (head: X, tail: List[Y,X])
+END;
+
+x : List[INT,STRING]; % = cons(1, nil::List[STRING,INT]);
+y : List[INT,STRING];
+
+ASSERT NOT( x = y );
+
+ASSERT NOT ( x = tail(tail(x)) );
+
+CHECKSAT;

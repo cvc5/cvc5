@@ -2,10 +2,10 @@
 /*! \file term_enumeration.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__TERM_ENUMERATION_H
-#define __CVC4__THEORY__QUANTIFIERS__TERM_ENUMERATION_H
+#ifndef CVC4__THEORY__QUANTIFIERS__TERM_ENUMERATION_H
+#define CVC4__THEORY__QUANTIFIERS__TERM_ENUMERATION_H
 
 #include <unordered_map>
 #include <vector>
@@ -42,25 +42,27 @@ class TermEnumeration
   ~TermEnumeration() {}
   /** get i^th term for type tn */
   Node getEnumerateTerm(TypeNode tn, unsigned i);
-  /** is closed enumerable type
-   *
-   * This returns true if this type has an enumerator that produces
-   * constants that are handled by ground theory solvers.
-   * Examples of types that are not closed enumerable are:
-   * (1) uninterpreted sorts,
-   * (2) arrays,
-   * (3) codatatypes,
-   * (4) parametric sorts involving any of the above.
-   */
-  bool isClosedEnumerableType(TypeNode tn);
   /** may complete type
    *
-   * Returns true if the type tn is closed 
-   * enumerable, and is small enough
-   * for finite model finding to enumerate it,
-   * by some heuristic (current cardinality < 1000).
+   * Returns true if the type tn is closed enumerable, is interpreted as a
+   * finite type, and has cardinality less than some reasonable value
+   * (currently < 1000). This method caches the results of whether each type
+   * may be completed.
    */
   bool mayComplete(TypeNode tn);
+  /**
+   * Static version of the above method where maximum cardinality is
+   * configurable.
+   */
+  static bool mayComplete(TypeNode tn, unsigned cardMax);
+
+  /** get domain
+   *
+   * If tn is a type such that mayComplete(tn) returns true, this method
+   * adds all domain elements of tn to dom and returns true. Otherwise, this
+   * method returns false.
+   */
+  bool getDomain(TypeNode tn, std::vector<Node>& dom);
 
  private:
   /** ground terms enumerated for types */
@@ -80,4 +82,4 @@ class TermEnumeration
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__TERM_ENUMERATION_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__TERM_ENUMERATION_H */

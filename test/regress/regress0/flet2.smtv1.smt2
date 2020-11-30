@@ -1,0 +1,7 @@
+(set-option :incremental false)
+(set-info :status sat)
+(set-logic QF_UF)
+(declare-sort U 0)
+(declare-fun a () Bool)
+(declare-fun b () Bool)
+(check-sat-assuming ( (and (and a b) (or a b)) ))

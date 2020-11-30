@@ -1,4 +1,14 @@
 #! /usr/bin/python
+#####################
+## SimpleVC.py
+## Top contributors (to current version):
+##   Morgan Deters, Aina Niemetz, Andres Noetzli
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
 ##! \file SimpleVC.py
 ### \verbatim
 ### Original author: mdeters
@@ -16,11 +26,9 @@
 ### A simple demonstration of the Python interface.  Compare to the
 ### C++ interface in simple_vc_cxx.cpp; they are quite similar.
 ###
-### To run, use something like:
+### To run from a build directory, use something like:
 ###
-###   ln -s ../builds/src/bindings/python/CVC4.py CVC4.py
-###   ln -s ../builds/src/bindings/python/.libs/CVC4.so _CVC4.so
-###   ./SimpleVC.py
+###   PYTHONPATH=src/bindings/python python ../examples/SimpleVC.py
 ####
 
 import CVC4
@@ -53,12 +61,11 @@ def main():
 
   formula = Expr(em.mkExpr(CVC4.AND, x_positive, y_positive)).impExpr(Expr(twox_plus_y_geq_3))
 
-  print("Checking validity of formula " + formula.toString() + " with CVC4.")
-  print("CVC4 should report VALID.")
-  print("Result from CVC4 is: " + smt.query(formula).toString())
+  print("Checking entailment of formula " + formula.toString() + " with CVC4.")
+  print("CVC4 should report ENTAILED .")
+  print("Result from CVC4 is: " + smt.checkEntailed(formula).toString())
 
   return 0
 
 if __name__ == '__main__':
   sys.exit(main())
-

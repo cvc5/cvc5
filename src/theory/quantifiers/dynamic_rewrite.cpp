@@ -2,10 +2,10 @@
 /*! \file dynamic_rewrite.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -109,6 +109,10 @@ Node DynamicRewriter::toInternal(Node a)
     for (const Node& ca : a)
     {
       Node cai = toInternal(ca);
+      if (cai.isNull())
+      {
+        return Node::null();
+      }
       children.push_back(cai);
     }
     if (!children.empty())
@@ -124,7 +128,18 @@ Node DynamicRewriter::toInternal(Node a)
     }
   }
   d_term_to_internal[a] = ret;
+  d_internal_to_term[ret] = a;
   return ret;
+}
+
+Node DynamicRewriter::toExternal(Node ai)
+{
+  std::map<Node, Node>::iterator it = d_internal_to_term.find(ai);
+  if (it != d_internal_to_term.end())
+  {
+    return it->second;
+  }
+  return Node::null();
 }
 
 Node DynamicRewriter::OpInternalSymTrie::getSymbol(Node n)

@@ -3,8 +3,9 @@
 (set-logic ALL_SUPPORTED)
 (declare-sort Loc 0)
 (declare-const l Loc)
+(declare-heap (Loc Loc))
 
-(assert (not (emp l l)))
+(assert (not (_ emp Loc Loc)))
 (assert (forall ((x Loc) (y Loc)) (not (pto x y))))
 
 

@@ -2,10 +2,10 @@
 /*! \file stats_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andres Noetzli, Tim King
+ **   Andres Noetzli, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -46,8 +46,8 @@ public:
     // StatisticsRegistry
     //static void flushStatistics(std::ostream& out);
 
-    //static inline void registerStat(Stat* s) throw (AssertionException);
-    //static inline void unregisterStat(Stat* s) throw (AssertionException);
+    // static inline void registerStat(Stat* s);
+    // static inline void unregisterStat(Stat* s);
 
     string empty, bar = "bar", baz = "baz";
     ReferenceStat<string> refStr("stat #1", empty);

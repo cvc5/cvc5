@@ -1,0 +1,18 @@
+% EXPECT: not_entailed
+% EXPECT: ((r.a, "active"))
+% EXPECT: ((y.1, 9))
+OPTION "produce-models";
+
+R : TYPE = [#
+   a : STRING,
+   b : STRING
+#];
+r : R;
+
+y: [REAL, INT, REAL];
+
+ASSERT r = (# a := "active", b := "who knows?" #);
+ASSERT y = ( 4/5, 9, 11/9 );
+QUERY r.a = "what?";
+GET_VALUE r.a;
+GET_VALUE y.1;

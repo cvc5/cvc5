@@ -6,8 +6,8 @@ z, t : BITVECTOR(12);
 ASSERT x = 0hexff;
 ASSERT z = 0hexff0;
 
-% EXPECT: valid
+% EXPECT: entailed
 QUERY  z = x << 4;
 
-% EXPECT: valid
+% EXPECT: entailed
 QUERY (z >> 4)[7:0] = x;

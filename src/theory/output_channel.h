@@ -2,10 +2,10 @@
 /*! \file output_channel.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Liana Hadarean
+ **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,20 +16,59 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__OUTPUT_CHANNEL_H
-#define __CVC4__THEORY__OUTPUT_CHANNEL_H
+#ifndef CVC4__THEORY__OUTPUT_CHANNEL_H
+#define CVC4__THEORY__OUTPUT_CHANNEL_H
 
 #include <memory>
 
-#include "base/cvc4_assert.h"
-#include "proof/proof_manager.h"
+#include "expr/proof_node.h"
 #include "smt/logic_exception.h"
 #include "theory/interrupted.h"
-#include "util/proof.h"
+#include "theory/trust_node.h"
 #include "util/resource_manager.h"
 
 namespace CVC4 {
 namespace theory {
+
+/** Properties of lemmas */
+enum class LemmaProperty : uint32_t
+{
+  // default
+  NONE = 0,
+  // whether the lemma is removable
+  REMOVABLE = 1,
+  // whether the lemma needs preprocessing
+  PREPROCESS = 2,
+  // whether the processing of the lemma should send atoms to the caller
+  SEND_ATOMS = 4,
+  // whether the lemma is part of the justification for answering "sat"
+  NEEDS_JUSTIFY = 8
+};
+/** Define operator lhs | rhs */
+LemmaProperty operator|(LemmaProperty lhs, LemmaProperty rhs);
+/** Define operator lhs |= rhs */
+LemmaProperty& operator|=(LemmaProperty& lhs, LemmaProperty rhs);
+/** Define operator lhs & rhs */
+LemmaProperty operator&(LemmaProperty lhs, LemmaProperty rhs);
+/** Define operator lhs &= rhs */
+LemmaProperty& operator&=(LemmaProperty& lhs, LemmaProperty rhs);
+/** is the removable bit set on p? */
+bool isLemmaPropertyRemovable(LemmaProperty p);
+/** is the preprocess bit set on p? */
+bool isLemmaPropertyPreprocess(LemmaProperty p);
+/** is the send atoms bit set on p? */
+bool isLemmaPropertySendAtoms(LemmaProperty p);
+/** is the needs justify bit set on p? */
+bool isLemmaPropertyNeedsJustify(LemmaProperty p);
+
+/**
+ * Writes an lemma property name to a stream.
+ *
+ * @param out The stream to write to
+ * @param p The lemma property to write to the stream
+ * @return The stream
+ */
+std::ostream& operator<<(std::ostream& out, LemmaProperty p);
 
 class Theory;
 
@@ -40,17 +79,17 @@ class Theory;
  */
 class LemmaStatus {
  public:
-  LemmaStatus(TNode rewrittenLemma, unsigned level)
-      : d_rewrittenLemma(rewrittenLemma), d_level(level) {}
+  LemmaStatus(TNode rewrittenLemma, unsigned level);
 
   /** Get the T-rewritten form of the lemma. */
-  TNode getRewrittenLemma() const { return d_rewrittenLemma; }
+  TNode getRewrittenLemma() const;
   /**
    * Get the user-level at which the lemma resides.  After this user level
    * is popped, the lemma is un-asserted from the SAT layer.  This level
    * will be 0 if the lemma didn't reach the SAT layer at all.
    */
-  unsigned getLevel() const { return d_level; }
+  unsigned getLevel() const;
+
  private:
   Node d_rewrittenLemma;
   unsigned d_level;
@@ -83,7 +122,7 @@ class OutputChannel {
    *
    * @throws Interrupted if the theory can be safely interrupted.
    */
-  virtual void safePoint(uint64_t amount) {}
+  virtual void safePoint(ResourceManager::Resource r) {}
 
   /**
    * Indicate a theory conflict has arisen.
@@ -94,10 +133,8 @@ class OutputChannel {
    * assigned false), or else a literal by itself (in the case of a
    * unit conflict) which is assigned TRUE (and T-conflicting) in the
    * current assignment.
-   * @param pf - a proof of the conflict. This is only non-null if proofs
-   * are enabled.
    */
-  virtual void conflict(TNode n, std::unique_ptr<Proof> pf = nullptr) = 0;
+  virtual void conflict(TNode n) = 0;
 
   /**
    * Propagate a theory literal.
@@ -112,24 +149,11 @@ class OutputChannel {
    * been detected.  (This requests a split.)
    *
    * @param n - a theory lemma valid at decision level 0
-   * @param rule - the proof rule for this lemma
-   * @param removable - whether the lemma can be removed at any point
-   * @param preprocess - whether to apply more aggressive preprocessing
-   * @param sendAtoms - whether to ensure atoms are sent to the theory
+   * @param p The properties of the lemma
    * @return the "status" of the lemma, including user level at which
    * the lemma resides; the lemma will be removed when this user level pops
    */
-  virtual LemmaStatus lemma(TNode n, ProofRule rule, bool removable = false,
-                            bool preprocess = false,
-                            bool sendAtoms = false) = 0;
-
-  /**
-   * Variant of the lemma function that does not require providing a proof rule.
-   */
-  virtual LemmaStatus lemma(TNode n, bool removable = false,
-                            bool preprocess = false, bool sendAtoms = false) {
-    return lemma(n, RULE_INVALID, removable, preprocess, sendAtoms);
-  }
+  virtual LemmaStatus lemma(TNode n, LemmaProperty p = LemmaProperty::NONE) = 0;
 
   /**
    * Request a split on a new theory atom.  This is equivalent to
@@ -137,7 +161,7 @@ class OutputChannel {
    *
    * @param n - a theory atom; must be of Boolean type
    */
-  LemmaStatus split(TNode n) { return splitLemma(n.orNode(n.notNode())); }
+  LemmaStatus split(TNode n);
 
   virtual LemmaStatus splitLemma(TNode n, bool removable = false) = 0;
 
@@ -154,48 +178,6 @@ class OutputChannel {
    * @param phase - the phase to decide on n
    */
   virtual void requirePhase(TNode n, bool phase) = 0;
-
-  /**
-   * Flips the most recent unflipped decision to the other phase and
-   * returns true.  If all decisions have been flipped, the root
-   * decision is re-flipped and flipDecision() returns false.  If no
-   * decisions (flipped nor unflipped) are on the decision stack, the
-   * state is not affected and flipDecision() returns false.
-   *
-   * For example, if l1, l2, and l3 are all decision literals, and
-   * have been decided in positive phase, a series of flipDecision()
-   * calls has the following effects:
-   *
-   * l1 l2 l3 <br/>
-   * l1 l2 ~l3 <br/>
-   * l1 ~l2 <br/>
-   * ~l1 <br/>
-   * l1 (and flipDecision() returns false)
-   *
-   * Naturally, flipDecision() might be interleaved with search.  For example:
-   *
-   * l1 l2 l3 <br/>
-   * flipDecision() <br/>
-   * l1 l2 ~l3 <br/>
-   * flipDecision() <br/>
-   * l1 ~l2 <br/>
-   * SAT decides l3 <br/>
-   * l1 ~l2 l3 <br/>
-   * flipDecision() <br/>
-   * l1 ~l2 ~l3 <br/>
-   * flipDecision() <br/>
-   * ~l1 <br/>
-   * SAT decides l2 <br/>
-   * ~l1 l2 <br/>
-   * flipDecision() <br/>
-   * ~l1 ~l2 <br/>
-   * flipDecision() returns FALSE<br/>
-   * l1
-   *
-   * @return true if a decision was flipped; false if no decision
-   * could be flipped, or if the root decision was re-flipped
-   */
-  virtual bool flipDecision() = 0;
 
   /**
    * Notification from a theory that it realizes it is incomplete at
@@ -215,7 +197,7 @@ class OutputChannel {
    * long-running operations, they cannot rely on resource() to break
    * out of infinite or intractable computations.
    */
-  virtual void spendResource(unsigned amount) {}
+  virtual void spendResource(ResourceManager::Resource r) {}
 
   /**
    * Handle user attribute.
@@ -231,9 +213,26 @@ class OutputChannel {
    */
   virtual void demandRestart() {}
 
+  //---------------------------- new proof
+  /**
+   * Let pconf be the pair (Node conf, ProofGenerator * pfg). This method
+   * sends conf on the output channel of this class whose proof can be generated
+   * by the generator pfg. Apart from pfg, the interface for this method is
+   * the same as OutputChannel.
+   */
+  virtual void trustedConflict(TrustNode pconf);
+  /**
+   * Let plem be the pair (Node lem, ProofGenerator * pfg).
+   * Send lem on the output channel of this class whose proof can be generated
+   * by the generator pfg. Apart from pfg, the interface for this method is
+   * the same as OutputChannel.
+   */
+  virtual LemmaStatus trustedLemma(TrustNode lem,
+                                   LemmaProperty p = LemmaProperty::NONE);
+  //---------------------------- end new proof
 }; /* class OutputChannel */
 
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__OUTPUT_CHANNEL_H */
+#endif /* CVC4__THEORY__OUTPUT_CHANNEL_H */

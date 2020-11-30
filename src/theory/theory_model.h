@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,13 +14,13 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__THEORY_MODEL_H
-#define __CVC4__THEORY__THEORY_MODEL_H
+#ifndef CVC4__THEORY__THEORY_MODEL_H
+#define CVC4__THEORY__THEORY_MODEL_H
 
 #include <unordered_map>
 #include <unordered_set>
 
-#include "smt/model.h"
+#include "theory/ee_setup_info.h"
 #include "theory/rep_set.h"
 #include "theory/substitutions.h"
 #include "theory/type_enumerator.h"
@@ -75,30 +75,19 @@ namespace theory {
  * above functions such as getRepresentative() when assigning total
  * interpretations for uninterpreted functions.
  */
-class TheoryModel : public Model
+class TheoryModel
 {
   friend class TheoryEngineModelBuilder;
 public:
   TheoryModel(context::Context* c, std::string name, bool enableFuncModels);
-  ~TheoryModel() override;
+  virtual ~TheoryModel();
+  /**
+   * Finish init, where ee is the equality engine the model should use.
+   */
+  void finishInit(eq::EqualityEngine* ee);
 
   /** reset the model */
   virtual void reset();
-  /** is built
-   *
-   * Have we attempted to build this model since the last
-   * call to reset? Notice for model building techniques
-   * that are not guaranteed to succeed (such as
-   * when quantified formulas are enabled), a true return
-   * value does not imply that this is a model of the
-   * current assertions.
-   */
-  bool isBuilt() { return d_modelBuilt; }
-  /** is built success
-   *
-   * Was this model successfully built since the last call to reset?
-   */
-  bool isBuiltSuccess() { return d_modelBuiltSuccess; }
   //---------------------------- for building the model
   /** Adds a substitution from x to t. */
   void addSubstitution(TNode x, TNode t, bool invalidateCache = true);
@@ -120,7 +109,7 @@ public:
    * is consistent after asserting the equality engine to this model.
    */
   bool assertEqualityEngine(const eq::EqualityEngine* ee,
-                            std::set<Node>* termSet = NULL);
+                            const std::set<Node>* termSet = NULL);
   /** assert skeleton
    *
    * This method gives a "skeleton" for the model value of the equivalence
@@ -139,6 +128,60 @@ public:
    * during Theory's collectModelInfo( ... ) functions.
    */
   void assertSkeleton(TNode n);
+  /** set assignment exclusion set
+   *
+   * This method sets the "assignment exclusion set" for term n. This is a
+   * set of terms whose value n must be distinct from in the model.
+   *
+   * This method should be used sparingly, and in a way such that model
+   * building is still guaranteed to succeed. Term n is intended to be an
+   * assignable term, typically of finite type. Thus, for example, this method
+   * should not be called with a vector eset that is greater than the
+   * cardinality of the type of n. Additionally, this method should not be
+   * called in a way that introduces cyclic dependencies on the assignment order
+   * of terms in the model. For example, providing { y } as the assignment
+   * exclusion set of x and { x } as the assignment exclusion set of y will
+   * cause model building to fail.
+   *
+   * The vector eset should contain only terms that occur in the model, or
+   * are constants.
+   *
+   * Additionally, we (currently) require that an assignment exclusion set
+   * should not be set for two terms in the same equivalence class, or to
+   * equivalence classes with an assignable term. Otherwise an
+   * assertion will be thrown by TheoryEngineModelBuilder during model building.
+   */
+  void setAssignmentExclusionSet(TNode n, const std::vector<Node>& eset);
+  /** set assignment exclusion set group
+   *
+   * Given group = { x_1, ..., x_n }, this is semantically equivalent to calling
+   * the above method on the following pairs of arguments:
+   *   x1, eset
+   *   x2, eset + { x_1 }
+   *   ...
+   *   xn, eset + { x_1, ..., x_{n-1} }
+   * Similar restrictions should be considered as above when applying this
+   * method to ensure that model building will succeed. Notice that for
+   * efficiency, the implementation of how the above information is stored
+   * may avoid constructing n copies of eset.
+   */
+  void setAssignmentExclusionSetGroup(const std::vector<TNode>& group,
+                                      const std::vector<Node>& eset);
+  /** get assignment exclusion set for term n
+   *
+   * If n has been given an assignment exclusion set, then this method returns
+   * true and the set is added to eset. Otherwise, the method returns false.
+   *
+   * Additionally, if n was assigned an assignment exclusion set via a call to
+   * setAssignmentExclusionSetGroup, it adds all members that were passed
+   * in the first argument of that call to the vector group. Otherwise, it
+   * adds n itself to group.
+   */
+  bool getAssignmentExclusionSet(TNode n,
+                                 std::vector<Node>& group,
+                                 std::vector<Node>& eset);
+  /** have any assignment exclusion sets been created? */
+  bool hasAssignmentExclusionSets() const;
   /** record approximation
    *
    * This notifies this model that the value of n was approximated in this
@@ -161,6 +204,13 @@ public:
    * construction process.
    */
   void recordApproximation(TNode n, TNode pred);
+  /**
+   * Same as above, but with a witness constant. This ensures that the
+   * approximation predicate is of the form (or (= n witness) pred). This
+   * is useful if the user wants to know a possible concrete value in
+   * the range of the predicate.
+   */
+  void recordApproximation(TNode n, TNode pred, Node witness);
   /** set unevaluate/semi-evaluated kind
    *
    * This informs this model how it should interpret applications of terms with
@@ -205,6 +255,24 @@ public:
    */
   void setUnevaluatedKind(Kind k);
   void setSemiEvaluatedKind(Kind k);
+  /**
+   * Set irrelevant kind. These kinds do not impact model generation, that is,
+   * registered terms in theories of this kind do not need to be sent to
+   * the model. An example is APPLY_TESTER.
+   */
+  void setIrrelevantKind(Kind k);
+  /**
+   * Get the set of irrelevant kinds that have been registered by the above
+   * method.
+   */
+  const std::set<Kind>& getIrrelevantKinds() const;
+  /** is legal elimination
+   *
+   * Returns true if x -> val is a legal elimination of variable x.
+   * In particular, this ensures that val does not have any subterms that
+   * are of unevaluated kinds.
+   */
+  bool isLegalElimination(TNode x, TNode val);
   //---------------------------- end building the model
 
   // ------------------- general equality queries
@@ -223,38 +291,40 @@ public:
   /** Get value function.
    * This should be called only after a ModelBuilder
    * has called buildModel(...) on this model.
-   *   useDontCares is whether to return Node::null() if
-   *     n does not occur in the equality engine.
    */
-  Node getValue(TNode n, bool useDontCares = false) const;
+  Node getValue(TNode n) const;
   /** get comments */
-  void getComments(std::ostream& out) const override;
+  void getComments(std::ostream& out) const;
 
   //---------------------------- separation logic
   /** set the heap and value sep.nil is equal to */
   void setHeapModel(Node h, Node neq);
   /** get the heap and value sep.nil is equal to */
-  bool getHeapModel(Expr& h, Expr& neq) const override;
+  bool getHeapModel(Node& h, Node& neq) const;
   //---------------------------- end separation logic
 
   /** is the list of approximations non-empty? */
-  bool hasApproximations() const override;
+  bool hasApproximations() const;
   /** get approximations */
-  std::vector<std::pair<Expr, Expr> > getApproximations() const override;
+  std::vector<std::pair<Node, Node> > getApproximations() const;
+  /** get domain elements for uninterpreted sort t */
+  std::vector<Node> getDomainElements(TypeNode t) const;
   /** get the representative set object */
   const RepSet* getRepSet() const { return &d_rep_set; }
   /** get the representative set object (FIXME: remove this, see #1199) */
   RepSet* getRepSetPtr() { return &d_rep_set; }
-  /** return whether this node is a don't-care */
-  bool isDontCare(Expr expr) const override;
-  /** get value function for Exprs. */
-  Expr getValue(Expr expr) const override;
+
+  //---------------------------- model cores
+  /** set using model core */
+  void setUsingModelCore();
+  /** record model core symbol */
+  void recordModelCoreSymbol(Node sym);
+  /** Return whether symbol expr is in the model core. */
+  bool isModelCoreSymbol(Node sym) const;
+  //---------------------------- end model cores
+
   /** get cardinality for sort */
-  Cardinality getCardinality(Type t) const override;
-  /** print representative debug function */
-  void printRepresentativeDebug( const char* c, Node r );
-  /** print representative function */
-  void printRepresentative( std::ostream& out, Node r );
+  Cardinality getCardinality(TypeNode t) const;
 
   //---------------------------- function values
   /** a map from functions f to a list of all APPLY_UF terms with operator f */
@@ -275,29 +345,42 @@ public:
   */
   std::vector< Node > getFunctionsToAssign();
   //---------------------------- end function values
+  /** Get the name of this model */
+  const std::string& getName() const;
+
  protected:
+  /** Unique name of this model */
+  std::string d_name;
   /** substitution map for this model */
   SubstitutionMap d_substitutions;
-  /** whether we have tried to build this model in the current context */
-  bool d_modelBuilt;
-  /** whether this model has been built successfully */
-  bool d_modelBuiltSuccess;
-  /** special local context for our equalityEngine so we can clear it
-   * independently of search context */
-  context::Context* d_eeContext;
   /** equality engine containing all known equalities/disequalities */
   eq::EqualityEngine* d_equalityEngine;
   /** approximations (see recordApproximation) */
   std::map<Node, Node> d_approximations;
   /** list of all approximations */
   std::vector<std::pair<Node, Node> > d_approx_list;
-  /** a set of kinds that are not evaluated */
-  std::unordered_set<Kind, kind::KindHashFunction> d_not_evaluated_kinds;
+  /** a set of kinds that are unevaluated */
+  std::unordered_set<Kind, kind::KindHashFunction> d_unevaluated_kinds;
   /** a set of kinds that are semi-evaluated */
   std::unordered_set<Kind, kind::KindHashFunction> d_semi_evaluated_kinds;
-  /** map of representatives of equality engine to used representatives in
-   * representative set */
+  /** The set of irrelevant kinds */
+  std::set<Kind> d_irrKinds;
+  /**
+   * Map of representatives of equality engine to used representatives in
+   * representative set
+   */
   std::map<Node, Node> d_reps;
+  /** Map of terms to their assignment exclusion set. */
+  std::map<Node, std::vector<Node> > d_assignExcSet;
+  /**
+   * Map of terms to their "assignment exclusion set master". After a call to
+   * setAssignmentExclusionSetGroup, the master of each term in group
+   * (except group[0]) is set to group[0], which stores the assignment
+   * exclusion set for that group in the above map.
+   */
+  std::map<Node, Node> d_aesMaster;
+  /** Reverse of the above map */
+  std::map<Node, std::vector<Node> > d_aesSlaves;
   /** stores set of representatives for each type */
   RepSet d_rep_set;
   /** true/false nodes */
@@ -305,16 +388,15 @@ public:
   Node d_false;
   /** comment stream to include in printing */
   std::stringstream d_comment_str;
+  /** are we using model cores? */
+  bool d_using_model_core;
+  /** symbols that are in the model core */
+  std::unordered_set<Node, NodeHashFunction> d_model_core;
   /** Get model value function.
    *
    * This function is a helper function for getValue.
-   *   hasBoundVars is whether n may contain bound variables
-   *   useDontCares is whether to return Node::null() if
-   *     n does not occur in the equality engine.
    */
-  Node getModelValue(TNode n,
-                     bool hasBoundVars = false,
-                     bool useDontCares = false) const;
+  Node getModelValue(TNode n) const;
   /** add term internal
    *
    * This will do any model-specific processing necessary for n,
@@ -349,4 +431,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__THEORY_MODEL_H */
+#endif /* CVC4__THEORY__THEORY_MODEL_H */

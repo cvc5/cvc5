@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__UF__THEORY_UF_TYPE_RULES_H
-#define __CVC4__THEORY__UF__THEORY_UF_TYPE_RULES_H
+#ifndef CVC4__THEORY__UF__THEORY_UF_TYPE_RULES_H
+#define CVC4__THEORY__UF__THEORY_UF_TYPE_RULES_H
 
 namespace CVC4 {
 namespace theory {
@@ -145,13 +145,13 @@ class HoApplyTypeRule {
   // the typing rule for HO_APPLY terms
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
-    Assert( n.getKind()==kind::HO_APPLY );
+    Assert(n.getKind() == kind::HO_APPLY);
     TypeNode fType = n[0].getType(check);
     if (!fType.isFunction()) {
       throw TypeCheckingExceptionPrivate(
           n, "first argument does not have function type");
     }
-    Assert( fType.getNumChildren()>=2 );
+    Assert(fType.getNumChildren() >= 2);
     if (check) {
       TypeNode aType = n[1].getType(check);
       if( !aType.isSubtypeOf( fType[0] ) ){
@@ -178,4 +178,4 @@ class HoApplyTypeRule {
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__UF__THEORY_UF_TYPE_RULES_H */
+#endif /* CVC4__THEORY__UF__THEORY_UF_TYPE_RULES_H */

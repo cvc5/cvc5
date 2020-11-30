@@ -1,4 +1,5 @@
-(set-logic QF_S)
+; COMMAND-LINE: --strings-exp
+(set-logic QF_SLIA)
 (set-info :status sat)
 
 (declare-fun x () String)

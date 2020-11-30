@@ -1,3 +1,4 @@
+% COMMAND-LINE: --no-finite-model-find
 %------------------------------------------------------------------------------
 % File     : DAT001=1 : TPTP v5.5.0. Released v5.0.0.
 % Domain   : Data Structures

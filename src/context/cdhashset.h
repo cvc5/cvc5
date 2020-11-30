@@ -2,10 +2,10 @@
 /*! \file cdhashset.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Kshitij Bansal
+ **   Morgan Deters, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,13 +16,12 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__CONTEXT__CDHASHSET_H
-#define __CVC4__CONTEXT__CDHASHSET_H
+#ifndef CVC4__CONTEXT__CDHASHSET_H
+#define CVC4__CONTEXT__CDHASHSET_H
 
-#include "base/cvc4_assert.h"
-#include "context/context.h"
+#include "base/check.h"
 #include "context/cdinsert_hashmap.h"
-
+#include "context/context.h"
 
 namespace CVC4 {
 namespace context {
@@ -32,8 +31,8 @@ class CDHashSet : protected CDInsertHashMap<V, bool, HashFcn> {
   typedef CDInsertHashMap<V, bool, HashFcn> super;
 
   // no copy or assignment
-  CDHashSet(const CDHashSet&) CVC4_UNDEFINED;
-  CDHashSet& operator=(const CDHashSet&) CVC4_UNDEFINED;
+  CDHashSet(const CDHashSet&) = delete;
+  CDHashSet& operator=(const CDHashSet&) = delete;
 
 public:
 
@@ -51,7 +50,7 @@ public:
   }
 
   static void operator delete(void* pMem) {
-    AlwaysAssert(false, "It is not allowed to delete a ContextObj this way!");
+    AlwaysAssert(false) << "It is not allowed to delete a ContextObj this way!";
   }
 
   CDHashSet(Context* context) :
@@ -116,6 +115,7 @@ public:
       V operator*() const {
         return d_val;
       }
+      V* operator->() const { return &d_val; }
     };/* class CDSet<>::iterator::Proxy */
 
     // Actual postfix increment: returns Proxy with the old value.
@@ -158,4 +158,4 @@ public:
 }/* CVC4::context namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__CONTEXT__CDHASHSET_H */
+#endif /* CVC4__CONTEXT__CDHASHSET_H */

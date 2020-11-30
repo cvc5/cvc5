@@ -2,10 +2,10 @@
 /*! \file fp_converter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain
+ **   Martin Brain, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -18,10 +18,10 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__FP__FP_CONVERTER_H
-#define __CVC4__THEORY__FP__FP_CONVERTER_H
+#ifndef CVC4__THEORY__FP__FP_CONVERTER_H
+#define CVC4__THEORY__FP__FP_CONVERTER_H
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "expr/node.h"
@@ -29,7 +29,7 @@
 #include "expr/type.h"
 #include "theory/valuation.h"
 #include "util/bitvector.h"
-#include "util/floatingpoint.h"
+#include "util/floatingpoint_size.h"
 #include "util/hash.h"
 
 #ifdef CVC4_USE_SYMFPU
@@ -318,11 +318,11 @@ class FpConverter
   typedef context::CDHashMap<Node, ubv, NodeHashFunction> ubvMap;
   typedef context::CDHashMap<Node, sbv, NodeHashFunction> sbvMap;
 
-  fpMap f;
-  rmMap r;
-  boolMap b;
-  ubvMap u;
-  sbvMap s;
+  fpMap d_fpMap;
+  rmMap d_rmMap;
+  boolMap d_boolMap;
+  ubvMap d_ubvMap;
+  sbvMap d_sbvMap;
 
   /* These functions take a symfpu object and convert it to a node.
    * These should ensure that constant folding it will give a
@@ -355,4 +355,4 @@ class FpConverter
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__FP__THEORY_FP_H */
+#endif /* CVC4__THEORY__FP__THEORY_FP_H */

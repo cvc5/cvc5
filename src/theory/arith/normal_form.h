@@ -2,10 +2,10 @@
 /*! \file normal_form.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Andrew Reynolds
+ **   Tim King, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__ARITH__NORMAL_FORM_H
-#define __CVC4__THEORY__ARITH__NORMAL_FORM_H
+#ifndef CVC4__THEORY__ARITH__NORMAL_FORM_H
+#define CVC4__THEORY__ARITH__NORMAL_FORM_H
 
 #include <algorithm>
 #include <list>
@@ -224,50 +224,48 @@ public:
 
 class Variable : public NodeWrapper {
 public:
-  Variable(Node n) : NodeWrapper(n) {
-    Assert(isMember(getNode()));
-  }
+ Variable(Node n) : NodeWrapper(n) { Assert(isMember(getNode())); }
 
-  // TODO: check if it's a theory leaf also
-  static bool isMember(Node n) {
-    Kind k = n.getKind();
-    switch(k){
-    case kind::CONST_RATIONAL:
-      return false;
-    case kind::INTS_DIVISION:
-    case kind::INTS_MODULUS:
-    case kind::DIVISION:
-    case kind::INTS_DIVISION_TOTAL:
-    case kind::INTS_MODULUS_TOTAL:
-    case kind::DIVISION_TOTAL:
-      return isDivMember(n);
-    case kind::EXPONENTIAL:
-    case kind::SINE:
-    case kind::COSINE:
-    case kind::TANGENT:
-    case kind::COSECANT:
-    case kind::SECANT:
-    case kind::COTANGENT:
-    case kind::ARCSINE:
-    case kind::ARCCOSINE:
-    case kind::ARCTANGENT:
-    case kind::ARCCOSECANT:
-    case kind::ARCSECANT:
-    case kind::ARCCOTANGENT:
-    case kind::SQRT:
-    case kind::PI:
-      return isTranscendentalMember(n);      
-    case kind::ABS:
-    case kind::TO_INTEGER:
-      // Treat to_int as a variable; it is replaced in early preprocessing
-      // by a variable.
-      return true;
-    default:
-      return isLeafMember(n);
-    }
-  }
+ // TODO: check if it's a theory leaf also
+ static bool isMember(Node n)
+ {
+   Kind k = n.getKind();
+   switch (k)
+   {
+     case kind::CONST_RATIONAL: return false;
+     case kind::INTS_DIVISION:
+     case kind::INTS_MODULUS:
+     case kind::DIVISION:
+     case kind::INTS_DIVISION_TOTAL:
+     case kind::INTS_MODULUS_TOTAL:
+     case kind::DIVISION_TOTAL: return isDivMember(n);
+     case kind::IAND: return isIAndMember(n);
+     case kind::EXPONENTIAL:
+     case kind::SINE:
+     case kind::COSINE:
+     case kind::TANGENT:
+     case kind::COSECANT:
+     case kind::SECANT:
+     case kind::COTANGENT:
+     case kind::ARCSINE:
+     case kind::ARCCOSINE:
+     case kind::ARCTANGENT:
+     case kind::ARCCOSECANT:
+     case kind::ARCSECANT:
+     case kind::ARCCOTANGENT:
+     case kind::SQRT:
+     case kind::PI: return isTranscendentalMember(n);
+     case kind::ABS:
+     case kind::TO_INTEGER:
+       // Treat to_int as a variable; it is replaced in early preprocessing
+       // by a variable.
+       return true;
+     default: return isLeafMember(n);
+   }
+ }
 
   static bool isLeafMember(Node n);
+  static bool isIAndMember(Node n);
   static bool isDivMember(Node n);
   bool isDivLike() const{
     return isDivMember(getNode());
@@ -306,7 +304,7 @@ public:
           if(n < m){
             return -1;
           }else{
-            Assert( n != m );
+            Assert(n != m);
             return 1;
           }
         }else{
@@ -339,20 +337,17 @@ public:
 
 class Constant : public NodeWrapper {
 public:
-  Constant(Node n) : NodeWrapper(n) {
-    Assert(isMember(getNode()));
-  }
+ Constant(Node n) : NodeWrapper(n) { Assert(isMember(getNode())); }
 
-  static bool isMember(Node n) {
-    return n.getKind() == kind::CONST_RATIONAL;
-  }
+ static bool isMember(Node n) { return n.getKind() == kind::CONST_RATIONAL; }
 
-  bool isNormalForm() { return isMember(getNode()); }
+ bool isNormalForm() { return isMember(getNode()); }
 
-  static Constant mkConstant(Node n) {
-    Assert(n.getKind() == kind::CONST_RATIONAL);
-    return Constant(n);
-  }
+ static Constant mkConstant(Node n)
+ {
+   Assert(n.getKind() == kind::CONST_RATIONAL);
+   return Constant(n);
+ }
 
   static Constant mkConstant(const Rational& rat);
 
@@ -597,8 +592,8 @@ private:
   Monomial(Node n, const Constant& c, const VarList& vl):
     NodeWrapper(n), constant(c), varList(vl)
   {
-    Assert(!c.isZero() ||  vl.empty() );
-    Assert( c.isZero() || !vl.empty() );
+    Assert(!c.isZero() || vl.empty());
+    Assert(c.isZero() || !vl.empty());
 
     Assert(!c.isOne() || !multStructured(n));
   }
@@ -623,15 +618,15 @@ private:
   Monomial(const VarList& vl):
     NodeWrapper(vl.getNode()), constant(Constant::mkConstant(1)), varList(vl)
   {
-    Assert( !varList.empty() );
+    Assert(!varList.empty());
   }
 
   Monomial(const Constant& c, const VarList& vl):
     NodeWrapper(makeMultNode(c,vl)), constant(c), varList(vl)
   {
-    Assert( !c.isZero() );
-    Assert( !c.isOne() );
-    Assert( !varList.empty() );
+    Assert(!c.isZero());
+    Assert(!c.isOne());
+    Assert(!varList.empty());
 
     Assert(multStructured(getNode()));
   }
@@ -843,8 +838,8 @@ public:
   Polynomial(const std::vector<Monomial>& m):
     NodeWrapper(makePlusNode(m)), d_singleton(false)
   {
-    Assert( m.size() >= 2);
-    Assert( Monomial::isStrictlySorted(m) );
+    Assert(m.size() >= 2);
+    Assert(Monomial::isStrictlySorted(m));
   }
 
   static Polynomial mkPolynomial(const Constant& c){
@@ -901,7 +896,7 @@ public:
   }
 
   Polynomial getTail() const {
-    Assert(! singleton());
+    Assert(!singleton());
 
     iterator tailStart = begin();
     ++tailStart;
@@ -951,6 +946,18 @@ public:
   /** Returns true if the polynomial contains a non-linear monomial.*/
   bool isNonlinear() const;
 
+  /** Check whether this polynomial is only a single variable. */
+  bool isVariable() const
+  {
+    return singleton() && getHead().getVarList().singleton()
+           && getHead().coefficientIsOne();
+  }
+  /** Return the variable, given that isVariable() holds. */
+  Variable getVariable() const
+  {
+    Assert(isVariable());
+    return getHead().getVarList().getHead();
+  }
 
   /**
    * Selects a minimal monomial in the polynomial by the absolute value of
@@ -1097,14 +1104,9 @@ private:
     return NodeManager::currentNM()->mkNode(kind::PLUS, p.getNode(), c.getNode());
   }
 
-  SumPair(TNode n) :
-    NodeWrapper(n)
-  {
-    Assert(isNormalForm());
-  }
+  SumPair(TNode n) : NodeWrapper(n) { Assert(isNormalForm()); }
 
-public:
-
+ public:
   SumPair(const Polynomial& p):
     NodeWrapper(toNode(p, Constant::mkConstant(0)))
   {
@@ -1387,10 +1389,23 @@ public:
   Polynomial normalizedVariablePart() const;
   DeltaRational normalizedDeltaRational() const;
 
+  /**
+   * Transforms a Comparison object into a stronger normal form:
+   *    Polynomial ~Kind~ Constant
+   * 
+   * From the comparison, this method resolved a negation (if present) and
+   * moves everything to the left side.
+   * If split_constant is false, the constant is always zero.
+   * If split_constant is true, the polynomial has no constant term and is
+   * normalized to have leading coefficient one.
+   */
+  std::tuple<Polynomial, Kind, Constant> decompose(
+      bool split_constant = false) const;
+
 };/* class Comparison */
 
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__ARITH__NORMAL_FORM_H */
+#endif /* CVC4__THEORY__ARITH__NORMAL_FORM_H */

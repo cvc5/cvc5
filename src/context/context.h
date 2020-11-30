@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Clark Barrett, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__CONTEXT__CONTEXT_H
-#define __CVC4__CONTEXT__CONTEXT_H
+#ifndef CVC4__CONTEXT__CONTEXT_H
+#define CVC4__CONTEXT__CONTEXT_H
 
 #include <cstdlib>
 #include <cstring>
@@ -27,7 +27,7 @@
 #include <typeinfo>
 #include <vector>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "base/output.h"
 #include "context/context_mm.h"
 
@@ -94,8 +94,8 @@ class Context {
   friend std::ostream& operator<<(std::ostream&, const Context&);
 
   // disable copy, assignment
-  Context(const Context&) CVC4_UNDEFINED;
-  Context& operator=(const Context&) CVC4_UNDEFINED;
+  Context(const Context&) = delete;
+  Context& operator=(const Context&) = delete;
 
 public:
 
@@ -135,10 +135,10 @@ public:
     }
     ~ScopedPush() noexcept(false) {
       d_context->pop();
-      AlwaysAssert(d_context->getTopScope() == d_scope,
-                   "Context::ScopedPush observed an uneven Context (at pop, "
-                   "top scope doesn't match what it was at the time the "
-                   "ScopedPush was applied)");
+      AlwaysAssert(d_context->getTopScope() == d_scope)
+          << "Context::ScopedPush observed an uneven Context (at pop, "
+             "top scope doesn't match what it was at the time the "
+             "ScopedPush was applied)";
     }
   };/* Context::ScopedPush */
 
@@ -208,8 +208,8 @@ public:
 class UserContext : public Context {
 private:
   // disable copy, assignment
-  UserContext(const UserContext&) CVC4_UNDEFINED;
-  UserContext& operator=(const UserContext&) CVC4_UNDEFINED;
+  UserContext(const UserContext&) = delete;
+  UserContext& operator=(const UserContext&) = delete;
 public:
   UserContext() {}
 };/* class UserContext */
@@ -569,7 +569,7 @@ class ContextObj {
    * calling deleteSelf().
    */
   static void operator delete(void* pMem) {
-    AlwaysAssert(false, "It is not allowed to delete a ContextObj this way!");
+    AlwaysAssert(false) << "It is not allowed to delete a ContextObj this way!";
   }
 
   /**
@@ -745,4 +745,4 @@ inline void Scope::addToChain(ContextObj* pContextObj)
 }/* CVC4::context namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__CONTEXT__CONTEXT_H */
+#endif /* CVC4__CONTEXT__CONTEXT_H */

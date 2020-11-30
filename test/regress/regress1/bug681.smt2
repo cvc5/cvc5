@@ -1,4 +1,3 @@
-; COMMAND-LINE: --lang=smt2.5
 ; EXIT: 1
 ; EXPECT: (error "Array theory solver does not yet support write-chains connecting two different constant arrays")
 (set-logic ALL_SUPPORTED)
@@ -10,9 +9,9 @@
 
 (assert (=> start!1 (not lt!2)))
 
-(declare-datatypes () ( (Option!3 (None!1) (Some!1 (v!18 Int))) ))
+(declare-datatypes ((Option!3 0)) (((None!1) (Some!1 (v!18 Int)))))
 
-(declare-datatypes () ( (Method!1 (Method!2 (initials!1 (Array Option!3 Int)))) ))
+(declare-datatypes ((Method!1 0)) (((Method!2 (initials!1 (Array Option!3 Int))))))
 
 (declare-fun lambda!2 () (Array Int Method!1))
 

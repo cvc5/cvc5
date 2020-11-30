@@ -2,10 +2,10 @@
 /*! \file rewriter_tables_template.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Tim King, Morgan Deters
+ **   Dejan Jovanovic, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -28,22 +28,6 @@ ${rewriter_includes}
 
 namespace CVC4 {
 namespace theory {
-
-RewriteResponse Rewriter::callPreRewrite(theory::TheoryId theoryId, TNode node) {
-  switch(theoryId) {
-${pre_rewrite_calls}
-  default:
-    Unreachable();
-  }
-}
-
-RewriteResponse Rewriter::callPostRewrite(theory::TheoryId theoryId, TNode node) {
-  switch(theoryId) {
-${post_rewrite_calls}
-  default:
-    Unreachable();
-  }
-}
 
 Node Rewriter::getPreRewriteCache(theory::TheoryId theoryId, TNode node) {
   switch(theoryId) {
@@ -77,12 +61,19 @@ ${post_rewrite_set_cache}
   }
 }
 
-void Rewriter::init() {
-${rewrite_init}
+Rewriter::Rewriter() : d_tpg(nullptr)
+{
+for (size_t i = 0; i < kind::LAST_KIND; ++i)
+{
+  d_preRewriters[i] = nullptr;
+  d_postRewriters[i] = nullptr;
 }
 
-void Rewriter::shutdown() {
-${rewrite_shutdown}
+for (size_t i = 0; i < theory::THEORY_LAST; ++i)
+{
+  d_preRewritersEqual[i] = nullptr;
+  d_postRewritersEqual[i] = nullptr;
+}
 }
 
 void Rewriter::clearCachesInternal() {

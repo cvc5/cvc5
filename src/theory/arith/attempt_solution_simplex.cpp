@@ -2,10 +2,10 @@
 /*! \file attempt_solution_simplex.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King
+ **   Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -78,7 +78,7 @@ Result::Sat AttemptSolutionSDP::attempt(const ApproximateSimplex::Solution& sol)
     }
   }
   d_errorSet.reduceToSignals();
-  d_errorSet.setSelectionRule(VAR_ORDER);
+  d_errorSet.setSelectionRule(options::ErrorSelectionRule::VAR_ORDER);
 
   static int instance = 0;
   ++instance;
@@ -138,7 +138,7 @@ Result::Sat AttemptSolutionSDP::attempt(const ApproximateSimplex::Solution& sol)
       return Result::UNSAT;
     }
   }
-  Assert( d_conflictVariables.empty() );
+  Assert(d_conflictVariables.empty());
 
   if(d_errorSet.errorEmpty()){
     return Result::SAT;

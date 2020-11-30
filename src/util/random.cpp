@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -19,9 +19,19 @@
 #include "util/random.h"
 
 #include <cfloat>
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 
 namespace CVC4 {
+
+Random::Random(uint64_t seed) { setSeed(seed); }
+
+void Random::setSeed(uint64_t seed)
+{
+  d_seed = seed == 0 ? ~seed : seed;
+  d_state = d_seed;
+}
+
+uint64_t Random::operator()() { return rand(); }
 
 uint64_t Random::rand()
 {

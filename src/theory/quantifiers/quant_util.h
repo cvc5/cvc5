@@ -2,10 +2,10 @@
 /*! \file quant_util.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANT_UTIL_H
-#define __CVC4__THEORY__QUANT_UTIL_H
+#ifndef CVC4__THEORY__QUANT_UTIL_H
+#define CVC4__THEORY__QUANT_UTIL_H
 
 #include <iostream>
 #include <map>
@@ -119,7 +119,8 @@ class QuantifiersModule {
    *
    * Called once for new quantified formulas q that are pre-registered by the
    * quantifiers theory, after internal ownership of quantified formulas is
-   * finalized. This does context-dependent initialization of this module.
+   * finalized. This does context-independent initialization of this module
+   * for quantified formula q.
    */
   virtual void registerQuantifier(Node q) {}
   /** Pre-register quantifier
@@ -134,28 +135,23 @@ class QuantifiersModule {
    * Called when a quantified formula q is asserted to the quantifiers theory
    */
   virtual void assertNode(Node q) {}
-  /* Get the next decision request.
-   *
-   * Identical to Theory::getNextDecisionRequest(...)
-   */
-  virtual Node getNextDecisionRequest( unsigned& priority ) { return TNode::null(); }
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   virtual std::string identify() const = 0;
   //----------------------------general queries
   /** get currently used the equality engine */
-  eq::EqualityEngine * getEqualityEngine();
+  eq::EqualityEngine* getEqualityEngine() const;
   /** are n1 and n2 equal in the current used equality engine? */
-  bool areEqual( TNode n1, TNode n2 );
+  bool areEqual(TNode n1, TNode n2) const;
   /** are n1 and n2 disequal in the current used equality engine? */
-  bool areDisequal(TNode n1, TNode n2);
+  bool areDisequal(TNode n1, TNode n2) const;
   /** get the representative of n in the current used equality engine */
-  TNode getRepresentative( TNode n );
+  TNode getRepresentative(TNode n) const;
   /** get quantifiers engine that owns this module */
-  QuantifiersEngine* getQuantifiersEngine() { return d_quantEngine; }
+  QuantifiersEngine* getQuantifiersEngine() const;
   /** get currently used term database */
-  quantifiers::TermDb * getTermDatabase();
+  quantifiers::TermDb* getTermDatabase() const;
   /** get currently used term utility object */
-  quantifiers::TermUtil * getTermUtil();
+  quantifiers::TermUtil* getTermUtil() const;
   //----------------------------end general queries
  protected:
   /** pointer to the quantifiers engine that owns this module */
@@ -239,7 +235,25 @@ public:
   virtual TNode getCongruentTerm( Node f, std::vector< TNode >& args ) = 0;
 };/* class EqualityQuery */
 
+/** Types of bounds that can be inferred for quantified formulas */
+enum BoundVarType
+{
+  // a variable has a finite bound because it has finite cardinality
+  BOUND_FINITE,
+  // a variable has a finite bound because it is in an integer range, e.g.
+  //   forall x. u <= x <= l => P(x)
+  BOUND_INT_RANGE,
+  // a variable has a finite bound because it is a member of a set, e.g.
+  //   forall x. x in S => P(x)
+  BOUND_SET_MEMBER,
+  // a variable has a finite bound because only a fixed set of terms are
+  // relevant for it in the domain of the quantified formula, e.g.
+  //   forall x. ( x = t1 OR ... OR x = tn ) => P(x)
+  BOUND_FIXED_SET,
+  // a bound has not been inferred for the variable
+  BOUND_NONE
+};
 }
 }
 
-#endif /* __CVC4__THEORY__QUANT_UTIL_H */
+#endif /* CVC4__THEORY__QUANT_UTIL_H */

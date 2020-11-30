@@ -11,8 +11,8 @@ zt : IntPair;
 ASSERT zt = (2,1);
 
 ASSERT z IS_IN x;
-ASSERT NOT (zt IS_IN (TRANSPOSE x));
+ASSERT NOT (zt IS_IN TRANSPOSE(x));
 
-ASSERT y = (TRANSPOSE x);
+ASSERT y = TRANSPOSE(x);
 
 CHECKSAT;

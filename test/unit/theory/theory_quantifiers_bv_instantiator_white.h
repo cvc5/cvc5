@@ -2,10 +2,10 @@
 /*! \file theory_quantifiers_bv_instantiator_white.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Mathias Preiner, Andrew Reynolds
+ **   Mathias Preiner, Andres Noetzli, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -19,10 +19,9 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/quantifiers/cegqi/ceg_bv_instantiator_utils.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
-
-#include "theory/quantifiers/cegqi/ceg_bv_instantiator.cpp"
 
 #include <cxxtest/TestSuite.h>
 #include <iostream>
@@ -33,13 +32,14 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 using namespace CVC4::theory::bv::utils;
 using namespace CVC4::theory::quantifiers;
+using namespace CVC4::theory::quantifiers::utils;
 using namespace CVC4::smt;
 
 class BvInstantiatorWhite : public CxxTest::TestSuite
 {
  public:
-  void setUp();
-  void tearDown();
+  void setUp() override;
+  void tearDown() override;
 
   void testGetPvCoeff();
   void testNormalizePvMult();
@@ -63,8 +63,9 @@ void BvInstantiatorWhite::setUp()
 {
   d_em = new ExprManager();
   d_nm = NodeManager::fromExprManager(d_em);
-  d_smt = new SmtEngine(d_em);
+  d_smt = new SmtEngine(d_nm);
   d_scope = new SmtScope(d_smt);
+  d_smt->finishInit();
 }
 
 void BvInstantiatorWhite::tearDown()
@@ -153,7 +154,7 @@ void BvInstantiatorWhite::testNormalizePvMult()
   Node zero = mkZero(32);
   Node one = mkOne(32);
   BvLinearAttribute is_linear;
-  std::unordered_map<TNode, bool, TNodeHashFunction> contains_x;
+  std::unordered_map<Node, bool, NodeHashFunction> contains_x;
 
   contains_x[x] = true;
   contains_x[neg_x] = true;
@@ -251,7 +252,7 @@ void BvInstantiatorWhite::testNormalizePvPlus()
   Node c = mkVar(32);
   Node d = mkVar(32);
   BvLinearAttribute is_linear;
-  std::unordered_map<TNode, bool, TNodeHashFunction> contains_x;
+  std::unordered_map<Node, bool, NodeHashFunction> contains_x;
 
   contains_x[x] = true;
   contains_x[neg_x] = true;
@@ -374,7 +375,7 @@ void BvInstantiatorWhite::testNormalizePvEqual()
   Node one = mkOne(32);
   Node ntrue = mkTrue();
   BvLinearAttribute is_linear;
-  std::unordered_map<TNode, bool, TNodeHashFunction> contains_x;
+  std::unordered_map<Node, bool, NodeHashFunction> contains_x;
 
   contains_x[x] = true;
   contains_x[neg_x] = true;

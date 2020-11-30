@@ -2,10 +2,10 @@
 /*! \file sygus_grammar_red.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,15 +14,22 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_RED_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_RED_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_RED_H
+#define CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_RED_H
 
 #include <map>
-#include "theory/quantifiers_engine.h"
+#include <vector>
+
+#include "expr/node.h"
 
 namespace CVC4 {
 namespace theory {
+
+class QuantifiersEngine;
+
 namespace quantifiers {
+
+class TermDbSygus;
 
 /** SygusRedundantCons
  *
@@ -105,7 +112,7 @@ class SygusRedundantCons
    * to terms.
    */
   void getGenericList(TermDbSygus* tds,
-                      const Datatype& dt,
+                      const DType& dt,
                       unsigned c,
                       unsigned index,
                       std::map<int, Node>& pre,
@@ -116,4 +123,4 @@ class SygusRedundantCons
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_RED_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_RED_H */

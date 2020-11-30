@@ -2,10 +2,10 @@
 /*! \file dense_map.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Dejan Jovanovic
+ **   Tim King, Dejan Jovanovic, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -26,10 +26,10 @@
 
 #pragma once
 
-#include <boost/integer_traits.hpp>
+#include <limits>
 #include <vector>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "util/index.h"
 
 
@@ -48,7 +48,8 @@ private:
 
   typedef Index Position;
   typedef std::vector<Position> PositionMap;
-  static const Position POSITION_SENTINEL = boost::integer_traits<Position>::const_max;
+  static const Position POSITION_SENTINEL =
+      std::numeric_limits<Position>::max();
 
   //Each Key in the set is mapped to its position in d_list.
   //Each Key not in the set is mapped to KEY_SENTINEL
@@ -100,7 +101,7 @@ public:
     if( x >= allocated()){
       return false;
     }else{
-      Assert(x <  allocated());
+      Assert(x < allocated());
       return d_posVector[x] != +POSITION_SENTINEL;
     }
   }

@@ -7,8 +7,8 @@
 (check-sat-assuming (_substvar_4_ false))
 ; EXPECT: unsat
 (get-unsat-assumptions)
-; EXPECT: [false]
+; EXPECT: (false)
 (check-sat-assuming ((= _substvar_4_ _substvar_4_) (distinct _substvar_4_ _substvar_4_)))
 ; EXPECT: unsat
 (get-unsat-assumptions)
-; EXPECT: [(distinct _substvar_4_ _substvar_4_)]
+; EXPECT: ((distinct _substvar_4_ _substvar_4_))

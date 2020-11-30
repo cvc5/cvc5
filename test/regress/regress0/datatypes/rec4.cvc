@@ -1,4 +1,4 @@
-% EXPECT: valid
+% EXPECT: entailed
 a : BOOLEAN;
 a49 : BOOLEAN = (
           IF a THEN (# _a := 1 #)

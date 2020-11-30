@@ -2,10 +2,10 @@
 /*! \file evaluator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli
+ **   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -17,17 +17,18 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__EVALUATOR_H
-#define __CVC4__THEORY__EVALUATOR_H
+#ifndef CVC4__THEORY__EVALUATOR_H
+#define CVC4__THEORY__EVALUATOR_H
 
 #include <utility>
 #include <vector>
 
 #include "base/output.h"
 #include "expr/node.h"
+#include "expr/uninterpreted_constant.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
-#include "util/regexp.h"
+#include "util/string.h"
 
 namespace CVC4 {
 namespace theory {
@@ -45,6 +46,7 @@ struct EvalResult
     BITVECTOR,
     RATIONAL,
     STRING,
+    UCONST,
     INVALID
   } d_tag;
 
@@ -55,6 +57,7 @@ struct EvalResult
     BitVector d_bv;
     Rational d_rat;
     String d_str;
+    UninterpretedConstant d_uc;
   };
 
   EvalResult(const EvalResult& other);
@@ -63,6 +66,7 @@ struct EvalResult
   EvalResult(const BitVector& bv) : d_tag(BITVECTOR), d_bv(bv) {}
   EvalResult(const Rational& i) : d_tag(RATIONAL), d_rat(i) {}
   EvalResult(const String& str) : d_tag(STRING), d_str(str) {}
+  EvalResult(const UninterpretedConstant& u) : d_tag(UCONST), d_uc(u) {}
 
   EvalResult& operator=(const EvalResult& other);
 
@@ -85,29 +89,76 @@ class Evaluator
  public:
   /**
    * Evaluates node `n` under the substitution described by the variable names
-   * `args` and the corresponding values `vals`. The function returns a null
-   * node if there is a subterm that is not constant under the substitution or
-   * if an operator is not supported by the evaluator.
+   * `args` and the corresponding values `vals`. This method uses evaluation
+   * for subterms that evaluate to constants supported in the EvalResult
+   * class and substitution with rewriting for the others.
+   *
+   * The nodes in vals are typically intended to be constant, although this
+   * is not required.
+   *
+   * If the parameter useRewriter is true, then we may invoke calls to the
+   * rewriter for computing the result of this method.
+   *
+   * The result of this call is either equivalent to:
+   * (1) Rewriter::rewrite(n.substitute(args,vars))
+   * (2) Node::null().
+   * If useRewriter is true, then we are always in the first case. If
+   * useRewriter is false, then we may be in case (2) if computing the
+   * rewritten, substituted form of n could not be determined by evaluation.
    */
   Node eval(TNode n,
             const std::vector<Node>& args,
-            const std::vector<Node>& vals);
+            const std::vector<Node>& vals,
+            bool useRewriter = true) const;
+  /**
+   * Same as above, but with a precomputed visited map.
+   */
+  Node eval(TNode n,
+            const std::vector<Node>& args,
+            const std::vector<Node>& vals,
+            const std::unordered_map<Node, Node, NodeHashFunction>& visited,
+            bool useRewriter = true) const;
 
  private:
   /**
    * Evaluates node `n` under the substitution described by the variable names
    * `args` and the corresponding values `vals`. The internal version returns
-   * an EvalResult which has slightly less overhead for recursive calls. The
-   * function returns an invalid result if there is a subterm that is not
-   * constant under the substitution or if an operator is not supported by the
-   * evaluator.
+   * an EvalResult which has slightly less overhead for recursive calls.
+   *
+   * The method returns an invalid EvalResult if the result of the substitution
+   * on n does not result in a constant value that is one of those supported in
+   * the EvalResult class. Notice that e.g. datatype constants are not supported
+   * in this class.
+   *
+   * This method additionally adds subterms of n that could not be evaluated
+   * (in the above sense) to the map evalAsNode. For each such subterm n', we
+   * store the node corresponding to the result of applying the substitution
+   * `args` to `vals` and rewriting. Notice that this map contains an entry
+   * for n in the case that it cannot be evaluated.
    */
-  EvalResult evalInternal(TNode n,
-                          const std::vector<Node>& args,
-                          const std::vector<Node>& vals);
+  EvalResult evalInternal(
+      TNode n,
+      const std::vector<Node>& args,
+      const std::vector<Node>& vals,
+      std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode,
+      std::unordered_map<TNode, EvalResult, TNodeHashFunction>& results,
+      bool useRewriter) const;
+  /** reconstruct
+   *
+   * This function reconstructs the result of evaluating n using a combination
+   * of evaluation results (eresults) and substitution+rewriting (evalAsNode).
+   *
+   * Arguments eresults and evalAsNode are built within the context of the
+   * above method for some args and vals. This method ensures that the return
+   * value is equivalent to the rewritten form of n * { args -> vals }.
+   */
+  Node reconstruct(
+      TNode n,
+      std::unordered_map<TNode, EvalResult, TNodeHashFunction>& eresults,
+      std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode) const;
 };
 
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__EVALUATOR_H */
+#endif /* CVC4__THEORY__EVALUATOR_H */

@@ -1,3 +1,5 @@
+; COMMAND-LINE: --cegqi-multi-inst
+; EXPECT: unsat
 (set-info :smt-lib-version 2.6)
 (set-logic NRA)
 (set-info :status unsat)

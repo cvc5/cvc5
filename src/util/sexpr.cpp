@@ -2,10 +2,10 @@
 /*! \file sexpr.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds
+ **   Tim King, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -28,7 +28,7 @@
 #include <sstream>
 #include <vector>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "options/set_language.h"
 #include "util/ostream_util.h"
 #include "util/smt2_quote_string.h"
@@ -272,8 +272,6 @@ void SExpr::toStreamRec(std::ostream& out, const SExpr& sexpr,
 
 bool SExpr::languageQuotesKeywords(OutputLanguage language) {
   switch (language) {
-    case language::output::LANG_SMTLIB_V1:
-    case language::output::LANG_SYGUS:
     case language::output::LANG_TPTP:
       return true;
     case language::output::LANG_AST:

@@ -2,10 +2,10 @@
 /*! \file cryptominisat.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Mathias Preiner
+ **   Mathias Preiner, Liana Hadarean, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROP__CRYPTOMINISAT_H
-#define __CVC4__PROP__CRYPTOMINISAT_H
+#ifndef CVC4__PROP__CRYPTOMINISAT_H
+#define CVC4__PROP__CRYPTOMINISAT_H
 
 #ifdef CVC4_USE_CRYPTOMINISAT
 
@@ -35,17 +35,11 @@ namespace CMSat {
 namespace CVC4 {
 namespace prop {
 
-class CryptoMinisatSolver : public SatSolver {
+class CryptoMinisatSolver : public SatSolver
+{
+  friend class SatSolverFactory;
 
-private:
-  std::unique_ptr<CMSat::SATSolver> d_solver;
-  unsigned d_numVariables;
-  bool d_okay;
-  SatVariable d_true;
-  SatVariable d_false;
-public:
-  CryptoMinisatSolver(StatisticsRegistry* registry,
-                      const std::string& name = "");
+ public:
   ~CryptoMinisatSolver() override;
 
   ClauseId addClause(SatClause& clause, bool removable) override;
@@ -53,7 +47,9 @@ public:
 
   bool nativeXor() override { return true; }
 
-  SatVariable newVar(bool isTheoryAtom = false, bool preRegister = false, bool canErase = true) override;
+  SatVariable newVar(bool isTheoryAtom = false,
+                     bool preRegister = false,
+                     bool canErase = true) override;
 
   SatVariable trueVar() override;
   SatVariable falseVar() override;
@@ -61,27 +57,48 @@ public:
   void markUnremovable(SatLiteral lit);
 
   void interrupt() override;
-  
+
   SatValue solve() override;
   SatValue solve(long unsigned int&) override;
+  SatValue solve(const std::vector<SatLiteral>& assumptions) override;
+
   bool ok() const override;
   SatValue value(SatLiteral l) override;
   SatValue modelValue(SatLiteral l) override;
 
   unsigned getAssertionLevel() const override;
 
-  class Statistics {
-  public:
+ private:
+  class Statistics
+  {
+   public:
     StatisticsRegistry* d_registry;
     IntStat d_statCallsToSolve;
     IntStat d_xorClausesAdded;
     IntStat d_clausesAdded;
     TimerStat d_solveTime;
     bool d_registerStats;
-    Statistics(StatisticsRegistry* registry,
-               const std::string& prefix);
+    Statistics(StatisticsRegistry* registry, const std::string& prefix);
     ~Statistics();
   };
+
+  /**
+   * Private to disallow creation outside of SatSolverFactory.
+   * Function init() must be called after creation.
+   */
+  CryptoMinisatSolver(StatisticsRegistry* registry,
+                      const std::string& name = "");
+  /**
+   * Initialize SAT solver instance.
+   * Note: Split out to not call virtual functions in constructor.
+   */
+  void init();
+
+  std::unique_ptr<CMSat::SATSolver> d_solver;
+  unsigned d_numVariables;
+  bool d_okay;
+  SatVariable d_true;
+  SatVariable d_false;
 
   Statistics d_statistics;
 };
@@ -90,4 +107,4 @@ public:
 }  // namespace CVC4
 
 #endif  // CVC4_USE_CRYPTOMINISAT
-#endif  // __CVC4__PROP__CRYPTOMINISAT_H
+#endif  // CVC4__PROP__CRYPTOMINISAT_H

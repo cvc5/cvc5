@@ -2,10 +2,10 @@
 /*! \file conjecture_generator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Dejan Jovanovic
+ **   Andrew Reynolds, Mathias Preiner, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,14 +14,17 @@
  **/
 
 #include "theory/quantifiers/conjecture_generator.h"
+#include "expr/term_canonize.h"
 #include "options/quantifiers_options.h"
+#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/ematching/trigger.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
+#include "util/random.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -39,7 +42,7 @@ struct sortConjectureScore {
 
 void OpArgIndex::addTerm( std::vector< TNode >& terms, TNode n, unsigned index ){
   if( index==n.getNumChildren() ){
-    Assert( n.hasOperator() );
+    Assert(n.hasOperator());
     if( std::find( d_ops.begin(), d_ops.end(), n.getOperator() )==d_ops.end() ){
       d_ops.push_back( n.getOperator() );
       d_op_terms.push_back( n );
@@ -63,12 +66,14 @@ Node OpArgIndex::getGroundTerm( ConjectureGenerator * s, std::vector< TNode >& a
       }
     }
     return Node::null();
-  }else{
-    std::vector< TNode > args2;
-    args2.push_back( d_ops[0] );
-    args2.insert( args2.end(), args.begin(), args.end() );
-    return NodeManager::currentNM()->mkNode( d_op_terms[0].getKind(), args2 );
   }
+  std::vector<TNode> args2;
+  if (d_op_terms[0].getMetaKind() == kind::metakind::PARAMETERIZED)
+  {
+    args2.push_back( d_ops[0] );
+  }
+  args2.insert(args2.end(), args.begin(), args.end());
+  return NodeManager::currentNM()->mkNode(d_op_terms[0].getKind(), args2);
 }
 
 void OpArgIndex::getGroundTerms( ConjectureGenerator * s, std::vector< TNode >& terms ) {
@@ -80,16 +85,20 @@ void OpArgIndex::getGroundTerms( ConjectureGenerator * s, std::vector< TNode >& 
   }
 }
 
-
-
-ConjectureGenerator::ConjectureGenerator( QuantifiersEngine * qe, context::Context* c ) : QuantifiersModule( qe ),
-d_notify( *this ),
-d_uequalityEngine(d_notify, c, "ConjectureGenerator::ee", false),
-d_ee_conjectures( c ){
-  d_fullEffortCount = 0;
-  d_conj_count = 0;
-  d_subs_confirmCount = 0;
-  d_subs_unkCount = 0;
+ConjectureGenerator::ConjectureGenerator(QuantifiersEngine* qe,
+                                         context::Context* c)
+    : QuantifiersModule(qe),
+      d_notify(*this),
+      d_uequalityEngine(d_notify, c, "ConjectureGenerator::ee", false),
+      d_ee_conjectures(c),
+      d_conj_count(0),
+      d_subs_confirmCount(0),
+      d_subs_unkCount(0),
+      d_fullEffortCount(0),
+      d_hasAddedLemma(false)
+{
+  d_true = NodeManager::currentNM()->mkConst(true);
+  d_false = NodeManager::currentNM()->mkConst(false);
   d_uequalityEngine.addFunctionKind( kind::APPLY_UF );
   d_uequalityEngine.addFunctionKind( kind::APPLY_CONSTRUCTOR );
 
@@ -113,7 +122,8 @@ void ConjectureGenerator::eqNotifyNewClass( TNode t ){
   d_upendingAdds.push_back( t );
 }
 
-void ConjectureGenerator::eqNotifyPreMerge(TNode t1, TNode t2) {
+void ConjectureGenerator::eqNotifyMerge(TNode t1, TNode t2)
+{
   //get maintained representatives
   TNode rt1 = t1;
   TNode rt2 = t2;
@@ -140,15 +150,6 @@ void ConjectureGenerator::eqNotifyPreMerge(TNode t1, TNode t2) {
     }
     ei->d_rep = t2;
   }
-}
-
-void ConjectureGenerator::eqNotifyPostMerge(TNode t1, TNode t2) {
-
-}
-
-void ConjectureGenerator::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
-  Trace("thm-ee-debug") << "UEE : disequality holds : " << t1 << " != " << t2 << std::endl;
-
 }
 
 
@@ -181,12 +182,12 @@ void ConjectureGenerator::setUniversalRelevant( TNode n ) {
 
 bool ConjectureGenerator::isUniversalLessThan( TNode rt1, TNode rt2 ) {
   //prefer the one that is (normal, smaller) lexographically
-  Assert( d_pattern_is_relevant.find( rt1 )!=d_pattern_is_relevant.end() );
-  Assert( d_pattern_is_relevant.find( rt2 )!=d_pattern_is_relevant.end() );
-  Assert( d_pattern_is_normal.find( rt1 )!=d_pattern_is_normal.end() );
-  Assert( d_pattern_is_normal.find( rt2 )!=d_pattern_is_normal.end() );
-  Assert( d_pattern_fun_sum.find( rt1 )!=d_pattern_fun_sum.end() );
-  Assert( d_pattern_fun_sum.find( rt2 )!=d_pattern_fun_sum.end() );
+  Assert(d_pattern_is_relevant.find(rt1) != d_pattern_is_relevant.end());
+  Assert(d_pattern_is_relevant.find(rt2) != d_pattern_is_relevant.end());
+  Assert(d_pattern_is_normal.find(rt1) != d_pattern_is_normal.end());
+  Assert(d_pattern_is_normal.find(rt2) != d_pattern_is_normal.end());
+  Assert(d_pattern_fun_sum.find(rt1) != d_pattern_fun_sum.end());
+  Assert(d_pattern_fun_sum.find(rt2) != d_pattern_fun_sum.end());
 
   if( d_pattern_is_relevant[rt1] && !d_pattern_is_relevant[rt2] ){
     Trace("thm-ee-debug") << "UEE : LT due to relevant." << std::endl;
@@ -228,7 +229,8 @@ bool ConjectureGenerator::areUniversalDisequal( TNode n1, TNode n2 ) {
   return n1!=n2 && d_uequalityEngine.hasTerm( n1 ) && d_uequalityEngine.hasTerm( n2 ) && d_uequalityEngine.areDisequal( n1, n2, false );
 }
 
-TNode ConjectureGenerator::getUniversalRepresentative( TNode n, bool add ) {
+Node ConjectureGenerator::getUniversalRepresentative(TNode n, bool add)
+{
   if( add ){
     if( d_urelevant_terms.find( n )==d_urelevant_terms.end() ){
       setUniversalRelevant( n );
@@ -249,7 +251,7 @@ TNode ConjectureGenerator::getUniversalRepresentative( TNode n, bool add ) {
           Trace("thm-ee-add") << "UEE : Add universal term " << t << std::endl;
           std::vector< Node > eq_terms;
           //if occurs modulo equality at ground level, it is equivalent to representative of ground equality engine
-          TNode gt = getTermDatabase()->evaluateTerm( t );
+          Node gt = getTermDatabase()->evaluateTerm(t);
           if( !gt.isNull() && gt!=t ){
             eq_terms.push_back( gt );
           }
@@ -258,24 +260,32 @@ TNode ConjectureGenerator::getUniversalRepresentative( TNode n, bool add ) {
           if( !eq_terms.empty() ){
             Trace("thm-ee-add") << "UEE : Based on ground EE/theorem DB, it is equivalent to " << eq_terms.size() << " terms : " << std::endl;
             //add equivalent terms as equalities to universal engine
-            for( unsigned i=0; i<eq_terms.size(); i++ ){
-              Trace("thm-ee-add") << "  " << eq_terms[i] << std::endl;
+            for (const Node& eqt : eq_terms)
+            {
+              Trace("thm-ee-add") << "  " << eqt << std::endl;
               bool assertEq = false;
-              if( d_urelevant_terms.find( eq_terms[i] )!=d_urelevant_terms.end() ){
+              if (d_urelevant_terms.find(eqt) != d_urelevant_terms.end())
+              {
                 assertEq = true;
-              }else{
-                Assert( eq_terms[i].getType()==tn );
-                registerPattern( eq_terms[i], tn );
-                if( isUniversalLessThan( eq_terms[i], t ) || ( options::conjectureUeeIntro() && d_pattern_fun_sum[t]>=d_pattern_fun_sum[eq_terms[i]] ) ){
-                  setUniversalRelevant( eq_terms[i] );
+              }
+              else
+              {
+                Assert(eqt.getType() == tn);
+                registerPattern(eqt, tn);
+                if (isUniversalLessThan(eqt, t)
+                    || (options::conjectureUeeIntro()
+                        && d_pattern_fun_sum[t] >= d_pattern_fun_sum[eqt]))
+                {
+                  setUniversalRelevant(eqt);
                   assertEq = true;
                 }
               }
               if( assertEq ){
                 Node exp;
-                d_uequalityEngine.assertEquality( t.eqNode( eq_terms[i] ), true, exp );
+                d_uequalityEngine.assertEquality(t.eqNode(eqt), true, exp);
               }else{
-                Trace("thm-ee-no-add") << "Do not add : " << t << " == " << eq_terms[i] << std::endl;
+                Trace("thm-ee-no-add")
+                    << "Do not add : " << t << " == " << eqt << std::endl;
               }
             }
           }else{
@@ -300,7 +310,7 @@ TNode ConjectureGenerator::getUniversalRepresentative( TNode n, bool add ) {
 }
 
 Node ConjectureGenerator::getFreeVar( TypeNode tn, unsigned i ) {
-  return d_quantEngine->getTermUtil()->getCanonicalFreeVar( tn, i );
+  return d_quantEngine->getTermCanonize()->getCanonicalFreeVar(tn, i);
 }
 
 bool ConjectureGenerator::isHandledTerm( TNode n ){
@@ -376,11 +386,14 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
         Trace("sg-proc-debug") << "...eqc : " << r << std::endl;
         eqcs.push_back( r );
         if( r.getType().isBoolean() ){
-          if( areEqual( r, getTermUtil()->d_true ) ){
-            d_ground_eqc_map[r] = getTermUtil()->d_true;
+          if (areEqual(r, d_true))
+          {
+            d_ground_eqc_map[r] = d_true;
             d_bool_eqc[0] = r;
-          }else if( areEqual( r, getTermUtil()->d_false ) ){
-            d_ground_eqc_map[r] = getTermUtil()->d_false;
+          }
+          else if (areEqual(r, d_false))
+          {
+            d_ground_eqc_map[r] = d_false;
             d_bool_eqc[1] = r;
           }
         }
@@ -399,8 +412,8 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
         }
         ++eqcs_i;
       }
-      Assert( !d_bool_eqc[0].isNull() );
-      Assert( !d_bool_eqc[1].isNull() );
+      Assert(!d_bool_eqc[0].isNull());
+      Assert(!d_bool_eqc[1].isNull());
       d_urelevant_terms.clear();
       Trace("sg-proc") << "...done get eq classes" << std::endl;
 
@@ -445,7 +458,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
           TNode r = eqcs[i];
           //print out members
           bool firstTime = true;
-          bool isFalse = areEqual( r, getTermUtil()->d_false );
+          bool isFalse = areEqual(r, d_false);
           eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
           while( !eqc_i.isFinished() ){
             TNode n = (*eqc_i);
@@ -457,8 +470,9 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
               if( n.hasOperator() ){
                 Trace("sg-gen-eqc") << "   (" << n.getOperator();
                 getTermDatabase()->computeArgReps( n );
-                for( unsigned i=0; i<getTermDatabase()->d_arg_reps[n].size(); i++ ){
-                  Trace("sg-gen-eqc") << " e" << d_em[getTermDatabase()->d_arg_reps[n][i]];
+                for (TNode ar : getTermDatabase()->d_arg_reps[n])
+                {
+                  Trace("sg-gen-eqc") << " e" << d_em[ar];
                 }
                 Trace("sg-gen-eqc") << ") :: " << n << std::endl;
               }else{
@@ -529,7 +543,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
               if( d_tge.isRelevantTerm( eq ) ){
                 //make it canonical
                 Trace("sg-proc-debug") << "get canonical " << eq << std::endl;
-                eq = d_quantEngine->getTermUtil()->getCanonicalTerm( eq );
+                eq = d_quantEngine->getTermCanonize()->getCanonicalTerm(eq);
               }else{
                 eq = Node::null();
               }
@@ -539,16 +553,20 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
                 inEe = d_ee_conjectures.find( q[1] )!=d_ee_conjectures.end();
                 if( !inEe ){
                   //add to universal equality engine
-                  Node nl = getUniversalRepresentative( eq[0], true );
-                  Node nr = getUniversalRepresentative( eq[1], true );
-                  if( areUniversalEqual( nl, nr ) ){
+                  Node nlu = getUniversalRepresentative(eq[0], true);
+                  Node nru = getUniversalRepresentative(eq[1], true);
+                  if (areUniversalEqual(nlu, nru))
+                  {
                     isSubsume = true;
                     //set inactive (will be ignored by other modules)
                     d_quantEngine->getModel()->setQuantifierActive( q, false );
-                  }else{
+                  }
+                  else
+                  {
                     Node exp;
                     d_ee_conjectures[q[1]] = true;
-                    d_uequalityEngine.assertEquality( nl.eqNode( nr ), true, exp );
+                    d_uequalityEngine.assertEquality(
+                        nlu.eqNode(nru), true, exp);
                   }
                 }
                 Trace("sg-conjecture") << "*** CONJECTURE : currently proven" << (isSubsume ? " and subsumed" : "");
@@ -579,8 +597,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
           std::vector< Node > ce;
           for (unsigned j = 0; j < skolems.size(); j++)
           {
-            TNode k = skolems[j];
-            TNode rk = getRepresentative( k );
+            TNode rk = getRepresentative(skolems[j]);
             std::map< TNode, Node >::iterator git = d_ground_eqc_map.find( rk );
             //check if it is a ground term
             if( git==d_ground_eqc_map.end() ){
@@ -603,8 +620,9 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
           }
           if( disproven ){
             Trace("sg-conjecture") << "disproven : " << q << " : ";
-            for( unsigned i=0; i<ce.size(); i++ ){
-              Trace("sg-conjecture") << q[0][i] << " -> " << ce[i] << " ";
+            for (unsigned j = 0, ceSize = ce.size(); j < ceSize; j++)
+            {
+              Trace("sg-conjecture") << q[0][j] << " -> " << ce[j] << " ";
             }
             Trace("sg-conjecture") << std::endl;
           }
@@ -665,7 +683,10 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
 
             //add information about pattern
             Trace("sg-gen-tg-debug") << "Collect pattern information..." << std::endl;
-            Assert( std::find( d_rel_patterns[tnn].begin(), d_rel_patterns[tnn].end(), nn )==d_rel_patterns[tnn].end() );
+            Assert(std::find(d_rel_patterns[tnn].begin(),
+                             d_rel_patterns[tnn].end(),
+                             nn)
+                   == d_rel_patterns[tnn].end());
             d_rel_patterns[tnn].push_back( nn );
             //build information concerning the variables in this pattern
             unsigned sum = 0;
@@ -676,14 +697,16 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
                 typ_to_subs_index[it->first] = sum;
                 sum += it->second;
                 for( unsigned i=0; i<it->second; i++ ){
-                  gsubs_vars.push_back( d_quantEngine->getTermUtil()->getCanonicalFreeVar( it->first, i ) );
+                  gsubs_vars.push_back(
+                      d_quantEngine->getTermCanonize()->getCanonicalFreeVar(
+                          it->first, i));
                 }
               }
             }
             d_rel_pattern_var_sum[nn] = sum;
             //register the pattern
             registerPattern( nn, tnn );
-            Assert( d_pattern_is_normal[nn] );
+            Assert(d_pattern_is_normal[nn]);
             Trace("sg-gen-tg-debug") << "...done collect pattern information" << std::endl;
 
             //record information about types
@@ -727,7 +750,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
                       Trace("sg-rel-term-debug") << "    ";
                     }
                     Trace("sg-rel-term-debug") << it->first << ":x" << it2->first << " -> " << it2->second;
-                    Assert( tindex+it2->first<gsubs_terms.size() );
+                    Assert(tindex + it2->first < gsubs_terms.size());
                     gsubs_terms[tindex+it2->first] = it2->second;
                   }
                 }
@@ -763,7 +786,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
             d_tge.d_var_id[ it->first ] = it->second;
             d_tge.d_var_limit[ it->first ] = it->second;
           }
-          std::random_shuffle( rt_types.begin(), rt_types.end() );
+          std::shuffle(rt_types.begin(), rt_types.end(), Random::getRandom());
           std::map< TypeNode, std::vector< Node > > conj_rhs;
           for( unsigned i=0; i<rt_types.size(); i++ ){
 
@@ -775,7 +798,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
               if( considerTermCanon( rhs, false ) ){
                 Trace("sg-rel-prop") << "Relevant RHS : " << rhs << std::endl;
                 //register pattern
-                Assert( rhs.getType()==rt_types[i] );
+                Assert(rhs.getType() == rt_types[i]);
                 registerPattern( rhs, rt_types[i] );
                 if( rdepth<depth ){
                   //consider against all LHS at depth
@@ -820,7 +843,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
         while( !ueqcs_i.isFinished() ){
           TNode r = (*ueqcs_i);
           bool firstTime = true;
-          TNode rr = getUniversalRepresentative( r );
+          Node rr = getUniversalRepresentative(r);
           Trace("thm-ee") << "  " << rr;
           Trace("thm-ee") << " : { ";
           eq::EqClassIterator ueqc_i = eq::EqClassIterator( r, &d_uequalityEngine );
@@ -882,9 +905,12 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
               d_conj_count++;
             }else{
               std::vector< Node > bvs;
-              for( std::map< TypeNode, unsigned >::iterator it = d_pattern_var_id[lhs].begin(); it != d_pattern_var_id[lhs].end(); ++it ){
-                for( unsigned i=0; i<=it->second; i++ ){
-                  bvs.push_back( getFreeVar( it->first, i ) );
+              for (const std::pair<TypeNode, unsigned>& lhs_pattern :
+                   d_pattern_var_id[lhs])
+              {
+                for (unsigned j = 0; j <= lhs_pattern.second; j++)
+                {
+                  bvs.push_back(getFreeVar(lhs_pattern.first, j));
                 }
               }
               Node rsg;
@@ -928,7 +954,7 @@ bool ConjectureGenerator::considerTermCanon( Node ln, bool genRelevant ){
     //do not consider if it is non-canonical, and either:
     //  (1) we are not generating relevant terms, or
     //  (2) its canonical form is a generalization.
-    TNode lnr = getUniversalRepresentative( ln, true );
+    Node lnr = getUniversalRepresentative(ln, true);
     if( lnr==ln ){
       markReportedCanon( ln );
     }else if( !genRelevant || isGeneralization( lnr, ln ) ){
@@ -954,7 +980,7 @@ unsigned ConjectureGenerator::collectFunctions( TNode opat, TNode pat, std::map<
     }
     return sum;
   }else{
-    Assert( pat.getNumChildren()==0 );
+    Assert(pat.getNumChildren() == 0);
     funcs[pat]++;
     //for variables
     if( pat.getKind()==BOUND_VARIABLE ){
@@ -994,8 +1020,8 @@ void ConjectureGenerator::registerPattern( Node pat, TypeNode tpat ) {
     d_patterns[TypeNode::null()].push_back( pat );
     d_patterns[tpat].push_back( pat );
 
-    Assert( d_pattern_fun_id.find( pat )==d_pattern_fun_id.end() );
-    Assert( d_pattern_var_id.find( pat )==d_pattern_var_id.end() );
+    Assert(d_pattern_fun_id.find(pat) == d_pattern_fun_id.end());
+    Assert(d_pattern_var_id.find(pat) == d_pattern_var_id.end());
 
     //collect functions
     std::map< TypeNode, unsigned > mnvn;
@@ -1019,11 +1045,11 @@ bool ConjectureGenerator::isGeneralization( TNode patg, TNode pat, std::map< TNo
       return true;
     }
   }else{
-    Assert( patg.hasOperator() );
+    Assert(patg.hasOperator());
     if( !pat.hasOperator() || patg.getOperator()!=pat.getOperator() ){
       return false;
     }else{
-      Assert( patg.getNumChildren()==pat.getNumChildren() );
+      Assert(patg.getNumChildren() == pat.getNumChildren());
       for( unsigned i=0; i<patg.getNumChildren(); i++ ){
         if( !isGeneralization( patg[i], pat[i], subs ) ){
           return false;
@@ -1065,47 +1091,61 @@ Node ConjectureGenerator::getPredicateForType( TypeNode tn ) {
 
 void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector< Node >& terms ) {
   if( n.getNumChildren()>0 ){
+    Trace("sg-gt-enum-debug") << "Get enumerate uf terms " << n << " (" << num
+                              << ")" << std::endl;
     TermEnumeration* te = d_quantEngine->getTermEnumeration();
+    // below, we do a fair enumeration of vectors vec of indices whose sum is
+    // 1,2,3, ...
     std::vector< int > vec;
     std::vector< TypeNode > types;
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       vec.push_back( 0 );
       TypeNode tn = n[i].getType();
-      if (te->isClosedEnumerableType(tn))
+      if (tn.isClosedEnumerable())
       {
         types.push_back( tn );
       }else{
         return;
       }
     }
+    // the index of the last child is determined by the limit of the sum
+    // of indices of children (size_limit) and the sum of the indices of the
+    // other children (vec_sum). Hence, we pop here and add this value at each
+    // iteration of the loop.
     vec.pop_back();
     int size_limit = 0;
     int vec_sum = -1;
     unsigned index = 0;
     unsigned last_size = terms.size();
     while( terms.size()<num ){
-      bool success = true;
       if( vec_sum==-1 ){
         vec_sum = 0;
+        // we will construct a new child below
+        // since sum is 0, the index of last child is limit
         vec.push_back( size_limit );
-      }else{
+      }
+      else if (index < vec.size())
+      {
+        Assert(index < types.size());
         //see if we can iterate current
         if (vec_sum < size_limit
             && !te->getEnumerateTerm(types[index], vec[index] + 1).isNull())
         {
           vec[index]++;
           vec_sum++;
+          // we will construct a new child below
+          // add the index of the last child, its index is (limit-sum)
           vec.push_back( size_limit - vec_sum );
         }else{
+          // reset the index
           vec_sum -= vec[index];
           vec[index] = 0;
           index++;
-          if( index==n.getNumChildren() ){
-            success = false;
-          }
         }
       }
-      if( success ){
+      if (index < vec.size())
+      {
+        // if we are ready to construct the term
         if( vec.size()==n.getNumChildren() ){
           Node lc =
               te->getEnumerateTerm(types[vec.size() - 1], vec[vec.size() - 1]);
@@ -1122,19 +1162,22 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
             children.push_back( n.getOperator() );
             for( unsigned i=0; i<(vec.size()-1); i++ ){
               Node nn = te->getEnumerateTerm(types[i], vec[i]);
-              Assert( !nn.isNull() );
-              Assert( nn.getType()==n[i].getType() );
+              Assert(!nn.isNull());
+              Assert(nn.getType() == n[i].getType());
               children.push_back( nn );
             }
             children.push_back( lc );
-            Node n = NodeManager::currentNM()->mkNode( APPLY_UF, children );
-            Trace("sg-gt-enum") << "Ground term enumerate : " << n << std::endl;
-            terms.push_back( n );
+            Node nenum = NodeManager::currentNM()->mkNode(APPLY_UF, children);
+            Trace("sg-gt-enum")
+                << "Ground term enumerate : " << nenum << std::endl;
+            terms.push_back(nenum);
           }
+          // pop the index for the last child
           vec.pop_back();
           index = 0;
         }
       }else{
+        // no more indices to increment, we reset and increment size_limit
         if( terms.size()>last_size ){
           last_size = terms.size();
           size_limit++;
@@ -1143,6 +1186,8 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
           }
           vec_sum = -1;
         }else{
+          // No terms were generated at the previous size.
+          // Thus, we've saturated, no more terms can be enumerated.
           return;
         }
       }
@@ -1200,7 +1245,7 @@ void ConjectureGenerator::processCandidateConjecture( TNode lhs, TNode rhs, unsi
 }
 
 int ConjectureGenerator::considerCandidateConjecture( TNode lhs, TNode rhs ) {
-  Assert( lhs.getType()==rhs.getType() );
+  Assert(lhs.getType() == rhs.getType());
 
   Trace("sg-cconj-debug") << "Consider candidate conjecture : " << lhs << " == " << rhs << "?" << std::endl;
   if( lhs==rhs ){
@@ -1255,7 +1300,7 @@ int ConjectureGenerator::considerCandidateConjecture( TNode lhs, TNode rhs ) {
     Trace("sg-cconj") << "Consider possible candidate conjecture : " << lhs << " == " << rhs << "?" << std::endl;
     //find witness for counterexample, if possible
     if( options::conjectureFilterModel() ){
-      Assert( d_rel_pattern_var_sum.find( lhs )!=d_rel_pattern_var_sum.end() );
+      Assert(d_rel_pattern_var_sum.find(lhs) != d_rel_pattern_var_sum.end());
       Trace("sg-cconj-debug") << "Notify substitutions over " << d_rel_pattern_var_sum[lhs] << " variables." << std::endl;
       std::map< TNode, TNode > subs;
       d_subs_confirmCount = 0;
@@ -1296,7 +1341,7 @@ bool ConjectureGenerator::notifySubstitution( TNode glhs, std::map< TNode, TNode
   if( Trace.isOn("sg-cconj-debug") ){
     Trace("sg-cconj-debug") << "Ground eqc for LHS : " << glhs << ", based on substituion: " << std::endl;
     for( std::map< TNode, TNode >::iterator it = subs.begin(); it != subs.end(); ++it ){
-      Assert( getRepresentative( it->second )==it->second );
+      Assert(getRepresentative(it->second) == it->second);
       Trace("sg-cconj-debug") << "  " << it->first << " -> " << it->second << std::endl;
     }
   }
@@ -1365,7 +1410,7 @@ bool ConjectureGenerator::notifySubstitution( TNode glhs, std::map< TNode, TNode
 
 
 void TermGenerator::reset( TermGenEnv * s, TypeNode tn ) {
-  Assert( d_children.empty() );
+  Assert(d_children.empty());
   d_typ = tn;
   d_status = 0;
   d_status_num = 0;
@@ -1463,14 +1508,14 @@ bool TermGenerator::getNextTerm( TermGenEnv * s, unsigned depth ) {
       return s->considerCurrentTermCanon( d_id ) ? true : getNextTerm( s, depth );
       //return true;
     }else{
-      Assert( d_status_child_num<(int)s->d_func_args[f].size() );
+      Assert(d_status_child_num < (int)s->d_func_args[f].size());
       if( d_status_child_num==(int)d_children.size() ){
         d_children.push_back( s->d_tg_id );
-        Assert( s->d_tg_alloc.find( s->d_tg_id )==s->d_tg_alloc.end() );
+        Assert(s->d_tg_alloc.find(s->d_tg_id) == s->d_tg_alloc.end());
         s->d_tg_alloc[d_children[d_status_child_num]].reset( s, s->d_func_args[f][d_status_child_num] );
         return getNextTerm( s, depth );
       }else{
-        Assert( d_status_child_num+1==(int)d_children.size() );
+        Assert(d_status_child_num + 1 == (int)d_children.size());
         if( s->d_tg_alloc[d_children[d_status_child_num]].getNextTerm( s, depth-1 ) ){
           d_status_child_num++;
           return getNextTerm( s, depth );
@@ -1487,7 +1532,7 @@ bool TermGenerator::getNextTerm( TermGenEnv * s, unsigned depth ) {
   }else if( d_status==1 || d_status==3 ){
     if( d_status==1 ){
       s->removeVar( d_typ );
-      Assert( d_status_num==(int)s->d_var_id[d_typ] );
+      Assert(d_status_num == (int)s->d_var_id[d_typ]);
       //check if there is only one feasible equivalence class.  if so, don't make pattern any more specific.
       //unsigned i = s->d_ccand_eqc[0].size()-1;
       //if( s->d_ccand_eqc[0][i].size()==1 && s->d_ccand_eqc[1][i].empty() ){
@@ -1500,7 +1545,7 @@ bool TermGenerator::getNextTerm( TermGenEnv * s, unsigned depth ) {
     d_status_num = -1;
     return getNextTerm( s, depth );
   }else{
-    Assert( d_children.empty() );
+    Assert(d_children.empty());
     return false;
   }
 }
@@ -1565,7 +1610,7 @@ bool TermGenerator::getNextMatch( TermGenEnv * s, TNode eqc, std::map< TypeNode,
           return false;
         }
       }
-      Assert( subs[d_typ].find( d_status_num )==subs[d_typ].end() );
+      Assert(subs[d_typ].find(d_status_num) == subs[d_typ].end());
       subs[d_typ][d_status_num] = eqc;
       return true;
     }else{
@@ -1579,9 +1624,9 @@ bool TermGenerator::getNextMatch( TermGenEnv * s, TNode eqc, std::map< TypeNode,
   }else if( d_status==2 ){
     if( d_match_status==0 ){
       d_match_status++;
-      Assert( d_status_num<(int)s->getNumTgVars( d_typ ) );
+      Assert(d_status_num < (int)s->getNumTgVars(d_typ));
       std::map< unsigned, TNode >::iterator it = subs[d_typ].find( d_status_num );
-      Assert( it!=subs[d_typ].end() );
+      Assert(it != subs[d_typ].end());
       return it->second==eqc;
     }else{
       return false;
@@ -1597,8 +1642,8 @@ bool TermGenerator::getNextMatch( TermGenEnv * s, TNode eqc, std::map< TypeNode,
         if( d_match_status_child_num==0 ){
           //initial binding
           TNode f = s->getTgFunc( d_typ, d_status_num );
-          Assert( !eqc.isNull() );
-          TermArgTrie * tat = s->getTermDatabase()->getTermArgTrie( eqc, f );
+          Assert(!eqc.isNull());
+          TNodeTrie* tat = s->getTermDatabase()->getTermArgTrie(eqc, f);
           if( tat ){
             d_match_children.push_back( tat->d_data.begin() );
             d_match_children_end.push_back( tat->d_data.end() );
@@ -1613,7 +1658,7 @@ bool TermGenerator::getNextMatch( TermGenEnv * s, TNode eqc, std::map< TypeNode,
         }
       }
       d_match_status++;
-      Assert( d_match_status_child_num+1==(int)d_match_children.size() );
+      Assert(d_match_status_child_num + 1 == (int)d_match_children.size());
       if( d_match_children[d_match_status_child_num]==d_match_children_end[d_match_status_child_num] ){
         //no more arguments to bind
         d_match_children.pop_back();
@@ -1634,9 +1679,10 @@ bool TermGenerator::getNextMatch( TermGenEnv * s, TNode eqc, std::map< TypeNode,
         }
       }
     }else{
-      Assert( d_match_status==1 );
-      Assert( d_match_status_child_num+1==(int)d_match_children.size() );
-      Assert( d_match_children[d_match_status_child_num]!=d_match_children_end[d_match_status_child_num] );
+      Assert(d_match_status == 1);
+      Assert(d_match_status_child_num + 1 == (int)d_match_children.size());
+      Assert(d_match_children[d_match_status_child_num]
+             != d_match_children_end[d_match_status_child_num]);
       d_match_status--;
       if( s->d_tg_alloc[d_children[d_match_status_child_num]].getNextMatch( s, d_match_children[d_match_status_child_num]->first, subs, rev_subs ) ){
         d_match_status_child_num++;
@@ -1648,7 +1694,7 @@ bool TermGenerator::getNextMatch( TermGenEnv * s, TNode eqc, std::map< TypeNode,
       }
     }
   }
-  Assert( false );
+  Assert(false);
   return false;
 }
 
@@ -1675,7 +1721,7 @@ unsigned TermGenerator::calculateGeneralizationDepth( TermGenEnv * s, std::map< 
     }
     return sum;
   }else{
-    Assert( d_status==2 || d_status==1 );
+    Assert(d_status == 2 || d_status == 1);
     std::map< TypeNode, std::vector< int > >::iterator it = fvs.find( d_typ );
     if( it!=fvs.end() ){
       if( std::find( it->second.begin(), it->second.end(), d_status_num )!=it->second.end() ){
@@ -1698,7 +1744,7 @@ unsigned TermGenerator::getGeneralizationDepth( TermGenEnv * s ) {
 
 Node TermGenerator::getTerm( TermGenEnv * s ) {
   if( d_status==1 || d_status==2 ){
-    Assert( !d_typ.isNull() );
+    Assert(!d_typ.isNull());
     return s->getFreeVar( d_typ, d_status_num );
   }else if( d_status==5 ){
     Node f = s->getTgFunc( d_typ, d_status_num );
@@ -1719,7 +1765,7 @@ Node TermGenerator::getTerm( TermGenEnv * s ) {
       return NodeManager::currentNM()->mkNode( s->d_func_kind[f], children );
     }
   }else{
-    Assert( false );
+    Assert(false);
   }
   return Node::null();
 }
@@ -1781,11 +1827,17 @@ void TermGenEnv::collectSignatureInformation() {
     }
   }
   //shuffle functions
-  for( std::map< TypeNode, std::vector< TNode > >::iterator it = d_typ_tg_funcs.begin(); it != d_typ_tg_funcs.end(); ++it ){
-    std::random_shuffle( it->second.begin(), it->second.end() );
-    if( it->first.isNull() ){
+  for (std::map<TypeNode, std::vector<TNode> >::iterator it =
+           d_typ_tg_funcs.begin();
+       it != d_typ_tg_funcs.end();
+       ++it)
+  {
+    std::shuffle(it->second.begin(), it->second.end(), Random::getRandom());
+    if (it->first.isNull())
+    {
       Trace("sg-gen-tg-debug") << "In this order : ";
-      for( unsigned i=0; i<it->second.size(); i++ ){
+      for (unsigned i = 0; i < it->second.size(); i++)
+      {
         Trace("sg-gen-tg-debug") << it->second[i] << " ";
       }
       Trace("sg-gen-tg-debug") << std::endl;
@@ -1794,7 +1846,7 @@ void TermGenEnv::collectSignatureInformation() {
 }
 
 void TermGenEnv::reset( unsigned depth, bool genRelevant, TypeNode tn ) {
-  Assert( d_tg_alloc.empty() );
+  Assert(d_tg_alloc.empty());
   d_tg_alloc.clear();
 
   if( genRelevant ){
@@ -1813,7 +1865,8 @@ void TermGenEnv::reset( unsigned depth, bool genRelevant, TypeNode tn ) {
 
 bool TermGenEnv::getNextTerm() {
   if( d_tg_alloc[0].getNextTerm( this, d_tg_gdepth_limit ) ){
-    Assert( (int)d_tg_alloc[0].getGeneralizationDepth( this )<=d_tg_gdepth_limit );
+    Assert((int)d_tg_alloc[0].getGeneralizationDepth(this)
+           <= d_tg_gdepth_limit);
     if( (int)d_tg_alloc[0].getGeneralizationDepth( this )!=d_tg_gdepth_limit ){
       return getNextTerm();
     }else{
@@ -1880,7 +1933,7 @@ Node TermGenEnv::getFreeVar( TypeNode tn, unsigned i ) {
 }
 
 bool TermGenEnv::considerCurrentTerm() {
-  Assert( !d_tg_alloc.empty() );
+  Assert(!d_tg_alloc.empty());
 
   //if generalization depth is too large, don't consider it
   unsigned i = d_tg_alloc.size();
@@ -1915,10 +1968,10 @@ bool TermGenEnv::considerCurrentTerm() {
     Trace("sg-gen-tg-debug") << "Filter based on relevant ground EQC";
     Trace("sg-gen-tg-debug") << ", #eqc to try = " << d_ccand_eqc[0][i-1].size() << "/" << d_ccand_eqc[1][i-1].size() << std::endl;
 
-    Assert( d_ccand_eqc[0].size()>=2 );
-    Assert( d_ccand_eqc[0].size()==d_ccand_eqc[1].size() );
-    Assert( d_ccand_eqc[0].size()==d_tg_id+1 );
-    Assert( d_tg_id==d_tg_alloc.size() );
+    Assert(d_ccand_eqc[0].size() >= 2);
+    Assert(d_ccand_eqc[0].size() == d_ccand_eqc[1].size());
+    Assert(d_ccand_eqc[0].size() == d_tg_id + 1);
+    Assert(d_tg_id == d_tg_alloc.size());
     for( unsigned r=0; r<2; r++ ){
       d_ccand_eqc[r][i].clear();
     }
@@ -1979,13 +2032,13 @@ void TermGenEnv::changeContext( bool add ) {
       d_ccand_eqc[r].pop_back();
     }
     d_tg_id--;
-    Assert( d_tg_alloc.find( d_tg_id )!=d_tg_alloc.end() );
+    Assert(d_tg_alloc.find(d_tg_id) != d_tg_alloc.end());
     d_tg_alloc.erase( d_tg_id );
   }
 }
 
 bool TermGenEnv::considerCurrentTermCanon( unsigned tg_id ){
-  Assert( tg_id<d_tg_alloc.size() );
+  Assert(tg_id < d_tg_alloc.size());
   if( options::conjectureFilterCanonical() ){
     //check based on a canonicity of the term (if there is one)
     Trace("sg-gen-tg-debug") << "Consider term canon ";
@@ -2042,7 +2095,7 @@ void SubstitutionIndex::addSubstitution( TNode eqc, std::vector< TNode >& vars, 
   if( i==vars.size() ){
     d_var = eqc;
   }else{
-    Assert( d_var.isNull() || d_var==vars[i] );
+    Assert(d_var.isNull() || d_var == vars[i]);
     d_var = vars[i];
     d_children[terms[i]].addSubstitution( eqc, vars, terms, i+1 );
   }
@@ -2050,10 +2103,10 @@ void SubstitutionIndex::addSubstitution( TNode eqc, std::vector< TNode >& vars, 
 
 bool SubstitutionIndex::notifySubstitutions( ConjectureGenerator * s, std::map< TNode, TNode >& subs, TNode rhs, unsigned numVars, unsigned i ) {
   if( i==numVars ){
-    Assert( d_children.empty() );
+    Assert(d_children.empty());
     return s->notifySubstitution( d_var, subs, rhs );
   }else{
-    Assert( i==0 || !d_children.empty() );
+    Assert(i == 0 || !d_children.empty());
     for( std::map< TNode, SubstitutionIndex >::iterator it = d_children.begin(); it != d_children.end(); ++it ){
       Trace("sg-cconj-debug2") << "Try " << d_var << " -> " << it->first << " (" << i << "/" << numVars << ")" << std::endl;
       subs[d_var] = it->first;
@@ -2091,9 +2144,9 @@ void TheoremIndex::addTheoremNode( TNode curr, std::vector< TNode >& lhs_v, std:
     lhs_arg.push_back( 0 );
     d_children[curr.getOperator()].addTheorem( lhs_v, lhs_arg, rhs );
   }else{
-    Assert( curr.getKind()==kind::BOUND_VARIABLE );
+    Assert(curr.getKind() == kind::BOUND_VARIABLE);
     TypeNode tn = curr.getType();
-    Assert( d_var[tn].isNull() || d_var[tn]==curr );
+    Assert(d_var[tn].isNull() || d_var[tn] == curr);
     d_var[tn] = curr;
     d_children[curr].addTheorem( lhs_v, lhs_arg, rhs );
   }
@@ -2141,7 +2194,7 @@ void TheoremIndex::getEquivalentTermsNode( Node curr, std::vector< TNode >& n_v,
   std::map< TypeNode, TNode >::iterator itt = d_var.find( tn );
   if( itt!=d_var.end() ){
     Trace("thm-db-debug") << "Check for substitution with " << itt->second << "..." << std::endl;
-    Assert( curr.getType()==itt->second.getType() );
+    Assert(curr.getType() == itt->second.getType());
     //add to substitution if possible
     bool success = false;
     std::map< TNode, TNode >::iterator it = smap.find( itt->second );

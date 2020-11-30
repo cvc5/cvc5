@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -15,17 +15,16 @@
 #include "theory/quantifiers/fmf/model_engine.h"
 
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers/fmf/ambqi_builder.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/quantifiers/instantiate.h"
+#include "theory/quantifiers/quant_rep_bound_ext.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/uf/theory_uf.h"
-#include "theory/uf/theory_uf_strong_solver.h"
 
 using namespace std;
 using namespace CVC4;
@@ -76,9 +75,8 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
     doCheck = quant_e == QEFFORT_MODEL;
   }
   if( doCheck ){
-    Assert( !d_quantEngine->inConflict() );
+    Assert(!d_quantEngine->inConflict());
     int addedLemmas = 0;
-    FirstOrderModel* fm = d_quantEngine->getModel();
 
     //the following will test that the model satisfies all asserted universal quantifiers by
     // (model-based) exhaustive instantiation.
@@ -87,24 +85,16 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
       Trace("model-engine") << "---Model Engine Round---" << std::endl;
       clSet = double(clock())/double(CLOCKS_PER_SEC);
     }
-
-    Trace("model-engine-debug") << "Verify uf ss is minimal..." << std::endl;
-    //let the strong solver verify that the model is minimal
-    //for debugging, this will if there are terms in the model that the strong solver was not notified of
-    uf::StrongSolverTheoryUF * ufss = ((uf::TheoryUF*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver();
-    if( !ufss || ufss->debugModel( fm ) ){
-      Trace("model-engine-debug") << "Check model..." << std::endl;
-      d_incomplete_check = false;
-      //print debug
-      if( Trace.isOn("fmf-model-complete") ){
-        Trace("fmf-model-complete") << std::endl;
-        debugPrint("fmf-model-complete");
-      }
-      //successfully built an acceptable model, now check it
-      addedLemmas += checkModel();
-    }else{
-      addedLemmas++;
+    Trace("model-engine-debug") << "Check model..." << std::endl;
+    d_incomplete_check = false;
+    // print debug
+    if (Trace.isOn("fmf-model-complete"))
+    {
+      Trace("fmf-model-complete") << std::endl;
+      debugPrint("fmf-model-complete");
     }
+    // successfully built an acceptable model, now check it
+    addedLemmas += checkModel();
 
     if( Trace.isOn("model-engine") ){
       double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
@@ -136,7 +126,8 @@ void ModelEngine::registerQuantifier( Node f ){
     for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
       TypeNode tn = f[0][i].getType();
       if( !tn.isSort() ){
-        if( !tn.getCardinality().isFinite() ){
+        if (!tn.isInterpretedFinite())
+        {
           if( tn.isInteger() ){
             if( !options::fmfBound() ){
               canHandle = false;
@@ -157,18 +148,8 @@ void ModelEngine::assertNode( Node f ){
 
 }
 
-bool ModelEngine::optOneQuantPerRound(){
-  return options::fmfOneQuantPerRound();
-}
-
-
 int ModelEngine::checkModel(){
   FirstOrderModel* fm = d_quantEngine->getModel();
-
-  //flatten the representatives
-  //Trace("model-engine-debug") << "Flattening representatives...." << std::endl;
-  // d_quantEngine->getEqualityQuery()->flattenRepresentatives(
-  // fm->getRepSet()->d_type_reps );
 
   //for debugging, setup
   for (std::map<TypeNode, std::vector<Node> >::iterator it =
@@ -186,6 +167,11 @@ int ModelEngine::checkModel(){
       Trace("model-engine-debug") << "   Term reps : ";
       for( size_t i=0; i<it->second.size(); i++ ){
         Node r = d_quantEngine->getInternalRepresentative( it->second[i], Node::null(), 0 );
+        if (r.isNull())
+        {
+          // there was an invalid equivalence class
+          d_incomplete_check = true;
+        }
         Trace("model-engine-debug") << r << " ";
       }
       Trace("model-engine-debug") << std::endl;
@@ -218,9 +204,9 @@ int ModelEngine::checkModel(){
 
   Trace("model-engine-debug") << "Do exhaustive instantiation..." << std::endl;
   // FMC uses two sub-effort levels
-  int e_max = options::mbqiMode() == MBQI_FMC
+  int e_max = options::mbqiMode() == options::MbqiMode::FMC
                   ? 2
-                  : (options::mbqiMode() == MBQI_TRUST ? 0 : 1);
+                  : (options::mbqiMode() == options::MbqiMode::TRUST ? 0 : 1);
   for( int e=0; e<e_max; e++) {
     d_incomplete_quants.clear();
     for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
@@ -229,7 +215,8 @@ int ModelEngine::checkModel(){
       //determine if we should check this quantifier
       if( d_quantEngine->getModel()->isQuantifierActive( q ) && d_quantEngine->hasOwnership( q, this ) ){
         exhaustiveInstantiate( q, e );
-        if( d_quantEngine->inConflict() || ( optOneQuantPerRound() && d_addedLemmas>0 ) ){
+        if (d_quantEngine->inConflict())
+        {
           break;
         }
       }else{
@@ -239,7 +226,7 @@ int ModelEngine::checkModel(){
     if( d_addedLemmas>0 ){
       break;
     }else{
-      Assert( !d_quantEngine->inConflict() );
+      Assert(!d_quantEngine->inConflict());
     }
   }
 
@@ -271,7 +258,8 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
     }
     d_triedLemmas += mb->getNumTriedLemmas()-prev_tlem;
     d_addedLemmas += mb->getNumAddedLemmas()-prev_alem;
-    d_quantEngine->d_statistics.d_instantiations_fmf_mbqi += mb->getNumAddedLemmas();
+    d_quantEngine->d_statistics.d_instantiations_fmf_mbqi +=
+        (mb->getNumAddedLemmas() - prev_alem);
   }else{
     if( Trace.isOn("fmf-exh-inst-debug") ){
       Trace("fmf-exh-inst-debug") << "   Instantiation Constants: ";

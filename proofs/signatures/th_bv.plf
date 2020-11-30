@@ -3,20 +3,6 @@
 (declare trust-bad (th_holds false))
 
 ; helper stuff
-(program mpz_sub ((x mpz) (y mpz)) mpz
-	 (mp_add x (mp_mul (~1) y)))
-
-(program mp_ispos ((x mpz)) formula
-	 (mp_ifneg x false true))
-
-(program mpz_eq ((x mpz) (y mpz)) formula
-    (mp_ifzero (mpz_sub x y) true false))
-
-(program mpz_lt ((x mpz) (y mpz)) formula
-    (mp_ifneg (mpz_sub x y) true false))
-
-(program mpz_lte ((x mpz) (y mpz)) formula
-    (mp_ifneg (mpz_sub x y) true (mpz_eq x y)))
 
 (program mpz_ ((x mpz) (y mpz)) formula
     (mp_ifzero (mpz_sub x y) true false))
@@ -86,7 +72,6 @@
 
 (declare bvand bvop2)
 (declare bvor bvop2)
-(declare bvor bvop2)
 (declare bvxor bvop2)
 (declare bvnand bvop2)
 (declare bvnor bvop2)
@@ -102,7 +87,6 @@
 (declare bvshl bvop2)
 (declare bvlshr bvop2)
 (declare bvashr bvop2)
-(declare concat bvop2)
 
 ; bit vector unary operators
 (define bvop1

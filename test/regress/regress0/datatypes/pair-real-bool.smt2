@@ -1,21 +1,20 @@
-; COMMAND-LINE: --lang=smt2.5
 ; EXPECT: sat
 ;(set-option :produce-models true)
 (set-logic QF_ALL_SUPPORTED)
 (set-info :status sat)
-(declare-datatypes () (
-  ( RealTree 
-    ( Node 
-      (left RealTree) 
-		  (elem Real) 
-		  (right RealTree)) 
+(declare-datatypes ((RealTree 0)) (
+  (
+    (Node
+      (left RealTree)
+      (elem Real)
+      (right RealTree))
     (Leaf)
    )
 ))
 
-(declare-datatypes (T1 T2) ((Pair (mk-pair (first T1) (second T2)))))
+(declare-datatypes ((Pair 2)) ((par (T1 T2) ((mk-pair (first T1) (second T2))))))
 
-( declare-fun SumeAndPositiveTree ( RealTree ) (Pair Real Bool) )
+(declare-fun SumeAndPositiveTree (RealTree) (Pair Real Bool))
 
 (declare-fun l1 () RealTree)
 (declare-fun l2 () RealTree)

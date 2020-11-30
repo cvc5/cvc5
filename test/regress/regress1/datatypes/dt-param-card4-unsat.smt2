@@ -1,10 +1,9 @@
-; COMMAND-LINE: --lang=smt2.5
 ; EXPECT: unsat
 (set-logic QF_ALL_SUPPORTED)
 (set-info :status unsat)
-(declare-datatypes (T S) ( (Pair (pair (first T) (second S)) ) ) )
+(declare-datatypes ((Pair 2)) ((par (T S) ((pair (first T) (second S))))))
 
-(declare-datatypes () ((Color (red) (blue))))
+(declare-datatypes ((Color 0)) (((red) (blue))))
 
 (declare-fun p1 () (Pair Color Color))
 (declare-fun p2 () (Pair Color Color))

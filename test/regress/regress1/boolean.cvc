@@ -1,4 +1,4 @@
-% EXPECT: valid
+% EXPECT: entailed
 p : BOOLEAN;
 q : BOOLEAN;
 r : BOOLEAN;

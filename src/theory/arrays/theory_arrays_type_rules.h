@@ -2,10 +2,10 @@
 /*! \file theory_arrays_type_rules.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Clark Barrett, Christopher L. Conway
+ **   Morgan Deters, Clark Barrett, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H
-#define __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H
+#ifndef CVC4__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H
+#define CVC4__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H
 
 #include "theory/arrays/theory_arrays_rewriter.h" // for array-constant attributes
 #include "theory/type_enumerator.h"
@@ -69,8 +69,7 @@ struct ArrayStoreTypeRule {
     else {
       Assert(n.getKind() == kind::STORE_ALL);
       ArrayStoreAll storeAll = n.getConst<ArrayStoreAll>();
-      ArrayType arrayType = storeAll.getType();
-      return TypeNode::fromType(arrayType);
+      return storeAll.getType();
     }
   }
 
@@ -106,7 +105,7 @@ struct ArrayStoreTypeRule {
     }
     Assert(store.getKind() == kind::STORE_ALL);
     ArrayStoreAll storeAll = store.getConst<ArrayStoreAll>();
-    Node defaultValue = Node::fromExpr(storeAll.getExpr());
+    Node defaultValue = storeAll.getValue();
     if (value == defaultValue) {
       return false;
     }
@@ -218,13 +217,65 @@ struct ArraysProperties {
 struct ArrayPartialSelectTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    Assert(n.getKind() == kind::PARTIAL_SELECT_0 || n.getKind() == kind::PARTIAL_SELECT_1);
+    Assert(n.getKind() == kind::PARTIAL_SELECT_0
+           || n.getKind() == kind::PARTIAL_SELECT_1);
     return nodeManager->integerType();
   }
 };/* struct ArrayPartialSelectTypeRule */
+
+struct ArrayEqRangeTypeRule
+{
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::EQ_RANGE);
+    if (check)
+    {
+      TypeNode n0_type = n[0].getType(check);
+      TypeNode n1_type = n[1].getType(check);
+      if (!n0_type.isArray())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "first operand of eqrange is not an array");
+      }
+      if (!n1_type.isArray())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "second operand of eqrange is not an array");
+      }
+      if (n0_type != n1_type)
+      {
+        throw TypeCheckingExceptionPrivate(n, "array types do not match");
+      }
+      TypeNode indexType = n0_type.getArrayIndexType();
+      TypeNode indexRangeType1 = n[2].getType(check);
+      TypeNode indexRangeType2 = n[3].getType(check);
+      if (!indexRangeType1.isSubtypeOf(indexType))
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "eqrange lower index type does not match array index type");
+      }
+      if (!indexRangeType2.isSubtypeOf(indexType))
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "eqrange upper index type does not match array index type");
+      }
+      if (!indexType.isBitVector() && !indexType.isFloatingPoint()
+          && !indexType.isInteger() && !indexType.isReal())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n,
+            "eqrange only supports bit-vectors, floating-points, integers, and "
+            "reals as index type");
+      }
+    }
+    return nodeManager->booleanType();
+  }
+}; /* struct ArrayEqRangeTypeRule */
 
 }/* CVC4::theory::arrays namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H */
+#endif /* CVC4__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H */

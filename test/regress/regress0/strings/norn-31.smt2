@@ -1,4 +1,4 @@
-(set-info :smt-lib-version 2.5)
+(set-info :smt-lib-version 2.6)
 (set-logic QF_SLIA)
 (set-option :strings-exp true)
 (set-info :status unsat)
@@ -17,8 +17,8 @@
 (declare-fun var_11 () String)
 (declare-fun var_12 () String)
 
-(assert (str.in.re var_1 (re.* (re.range "a" "u"))))
-(assert (str.in.re var_1 (re.++ (re.* (str.to.re "a")) (str.to.re "b"))))
-(assert (str.in.re var_1 (re.++ (re.++ (re.++ (re.* (re.union (str.to.re "a") (str.to.re "b"))) (str.to.re "b")) (str.to.re "a")) (re.* (re.union (str.to.re "a") (str.to.re "b"))))))
-(assert (not (str.in.re "" re.nostr)))
+(assert (str.in_re var_1 (re.* (re.range "a" "u"))))
+(assert (str.in_re var_1 (re.++ (re.* (str.to_re "a")) (str.to_re "b"))))
+(assert (str.in_re var_1 (re.++ (re.++ (re.++ (re.* (re.union (str.to_re "a") (str.to_re "b"))) (str.to_re "b")) (str.to_re "a")) (re.* (re.union (str.to_re "a") (str.to_re "b"))))))
+(assert (not (str.in_re "" re.none)))
 (check-sat)

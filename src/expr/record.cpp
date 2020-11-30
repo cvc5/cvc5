@@ -2,10 +2,10 @@
 /*! \file record.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters
+ **   Tim King, Morgan Deters, Piotr Trojanek
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,7 +16,7 @@
 
 #include "expr/record.h"
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "base/output.h"
 #include "expr/expr.h"
 #include "expr/type.h"
@@ -24,7 +24,9 @@
 
 namespace CVC4 {
 
-static Record::FieldVector::const_iterator find(const Record::FieldVector& fields, std::string name){
+static Record::FieldVector::const_iterator find(
+    const Record::FieldVector& fields, const std::string& name)
+{
   for(Record::FieldVector::const_iterator i = fields.begin(), i_end = fields.end(); i != i_end; ++i){
     if((*i).first == name) {
       return i;

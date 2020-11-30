@@ -1,4 +1,4 @@
-; COMMAND-LINE: --bitblast=eager --no-check-proofs
+; COMMAND-LINE: --bitblast=eager 
 ; EXPECT: unsat
 (set-logic QF_BV)
 (set-info :status unsat)

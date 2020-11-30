@@ -2,10 +2,10 @@
 /*! \file bv_inequality_graph.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Clark Barrett
+ **   Liana Hadarean, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__BV__BV_INEQUALITY__GRAPH_H
-#define __CVC4__THEORY__BV__BV_INEQUALITY__GRAPH_H
+#ifndef CVC4__THEORY__BV__BV_INEQUALITY__GRAPH_H
+#define CVC4__THEORY__BV__BV_INEQUALITY__GRAPH_H
 
 #include <list>
 #include <queue>
@@ -95,9 +95,9 @@ class InequalityGraph : public context::ContextNotifyObj{
       : d_model(model)
     {}
     bool operator() (TermId left, TermId right) const {
-      Assert (d_model->find(left) != d_model->end() &&
-              d_model->find(right) != d_model->end());
-      
+      Assert(d_model->find(left) != d_model->end()
+             && d_model->find(right) != d_model->end());
+
       return (*(d_model->find(left))).second.value < (*(d_model->find(right))).second.value; 
     }
   }; 
@@ -148,11 +148,22 @@ class InequalityGraph : public context::ContextNotifyObj{
   
   ReasonId registerReason(TNode reason);
   TNode getReasonNode(ReasonId id) const;
-  
-  
-  Edges& getEdges(TermId id) { Assert (id < d_ineqEdges.size()); return d_ineqEdges[id]; }
-  InequalityNode& getInequalityNode(TermId id) { Assert (id < d_ineqNodes.size()); return d_ineqNodes[id]; }
-  const InequalityNode& getInequalityNode(TermId id) const { Assert (id < d_ineqNodes.size()); return d_ineqNodes[id]; }
+
+  Edges& getEdges(TermId id)
+  {
+    Assert(id < d_ineqEdges.size());
+    return d_ineqEdges[id];
+  }
+  InequalityNode& getInequalityNode(TermId id)
+  {
+    Assert(id < d_ineqNodes.size());
+    return d_ineqNodes[id];
+  }
+  const InequalityNode& getInequalityNode(TermId id) const
+  {
+    Assert(id < d_ineqNodes.size());
+    return d_ineqNodes[id];
+  }
   unsigned getBitwidth(TermId id) const { return getInequalityNode(id).getBitwidth(); }
   bool isConst(TermId id) const { return getInequalityNode(id).isConstant(); }
   
@@ -282,4 +293,4 @@ public:
 }
 }
 
-#endif /* __CVC4__THEORY__BV__BV_INEQUALITY__GRAPH_H */
+#endif /* CVC4__THEORY__BV__BV_INEQUALITY__GRAPH_H */

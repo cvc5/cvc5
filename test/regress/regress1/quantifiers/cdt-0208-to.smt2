@@ -1,4 +1,4 @@
-; COMMAND-LINE: --full-saturate-quant --lang=smt2.5
+; COMMAND-LINE: --full-saturate-quant
 ; EXPECT: unsat
 (set-logic ALL_SUPPORTED)
 (set-info :status unsat)
@@ -102,11 +102,12 @@
 (declare-sort A_llist_a_llist_prod_a_llist_a_llist_prod_bool_fun_fun_a_llist_a_llist_prod_a_llist_a_llist_prod_prod_bool_fun_fun$ 0)
 (declare-sort A_llist_a_llist_prod_a_llist_a_llist_prod_a_llist_a_llist_prod_fun_fun_a_llist_a_llist_prod_a_llist_a_llist_prod_bool_fun_fun_fun$ 0)
 (declare-sort A_llist_a_llist_prod_a_llist_a_llist_prod_a_llist_a_llist_prod_a_llist_a_llist_prod_prod_fun_fun_a_llist_a_llist_prod_a_llist_a_llist_prod_bool_fun_fun_fun$ 0)
-(declare-codatatypes () ((A_llist$ (lNil$) (lCons$ (lhd$ A$) (ltl$ A_llist$)))))
-(declare-datatypes () ((A_llist_a_llist_prod$ (pair$ (fst$ A_llist$) (snd$ A_llist$)))))
-(declare-codatatypes () ((A_llist_a_llist_prod_llist$ (lNil$a) (lCons$a (lhd$a A_llist_a_llist_prod$) (ltl$a A_llist_a_llist_prod_llist$)))))
-(declare-datatypes () ((A_llist_a_llist_prod_llist_a_llist_a_llist_prod_llist_prod$ (pair$a (fst$a A_llist_a_llist_prod_llist$) (snd$a A_llist_a_llist_prod_llist$)))
-  (A_llist_a_llist_prod_a_llist_a_llist_prod_prod$ (pair$b (fst$b A_llist_a_llist_prod$) (snd$b A_llist_a_llist_prod$)))))
+(declare-codatatypes ((A_llist$ 0)) (((lNil$) (lCons$ (lhd$ A$) (ltl$ A_llist$)))))
+(declare-datatypes ((A_llist_a_llist_prod$ 0)) (((pair$ (fst$ A_llist$) (snd$ A_llist$)))))
+(declare-codatatypes ((A_llist_a_llist_prod_llist$ 0)) (((lNil$a) (lCons$a (lhd$a A_llist_a_llist_prod$) (ltl$a A_llist_a_llist_prod_llist$)))))
+(declare-datatypes ((A_llist_a_llist_prod_llist_a_llist_a_llist_prod_llist_prod$ 0) (A_llist_a_llist_prod_a_llist_a_llist_prod_prod$ 0)) (
+  ((pair$a (fst$a A_llist_a_llist_prod_llist$) (snd$a A_llist_a_llist_prod_llist$)))
+  ((pair$b (fst$b A_llist_a_llist_prod$) (snd$b A_llist_a_llist_prod$)))))
 (declare-fun p$ () A_llist_a_llist_bool_fun_fun$)
 (declare-fun uu$ (Bool) A_llist_a_llist_prod_a_llist_a_llist_prod_bool_fun_fun_a_llist_a_llist_prod_a_llist_a_llist_prod_bool_fun_fun_fun$)
 (declare-fun xs$ () A_llist$)

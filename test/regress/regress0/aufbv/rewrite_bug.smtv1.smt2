@@ -1,0 +1,5 @@
+(set-option :incremental false)
+(set-info :status sat)
+(set-logic QF_AUFBV)
+(declare-fun a () (Array (_ BitVec 32) (_ BitVec 8)))
+(check-sat-assuming ( (let ((_let_0 (store (store a (_ bv1 32) (_ bv1 8)) (_ bv0 32) ((_ extract 7 0) ((_ sign_extend 24) (select a (_ bv1 32))))))) (let ((_let_1 (store _let_0 (_ bv1 32) (select _let_0 (_ bv1 32))))) (and true true true true (not (bvslt ((_ sign_extend 24) (_ bv0 8)) ((_ sign_extend 24) (select _let_1 (_ bv0 32))))) (bvslt (_ bv0 32) ((_ sign_extend 24) (select _let_1 (_ bv1 32))))))) ))

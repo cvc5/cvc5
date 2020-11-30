@@ -2,10 +2,10 @@
 /*! \file linear_equality.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King
+ **   Tim King, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -365,7 +365,6 @@ void LinearEqualityModule::debugCheckTracking(){
         << "computed " << computed
         << " tracking " << d_btracking[ridx] << endl;
       Assert(computed == d_btracking[ridx]);
-
     }
   }
 }
@@ -511,11 +510,11 @@ void LinearEqualityModule::propagateBasicFromRow(ConstraintP c){
   RowIndex ridx = d_tableau.basicToRowIndex(basic);
 
   ConstraintCPVec bounds;
-  RationalVectorP coeffs = NULLPROOF(new RationalVector());
+  RationalVectorP coeffs = ARITH_NULLPROOF(new RationalVector());
   propagateRow(bounds, ridx, upperBound, c, coeffs);
   c->impliedByFarkas(bounds, coeffs, false);
   c->tryToPropagate();
-  
+
   if(coeffs != RationalVectorPSentinel) { delete coeffs; }
 }
 
@@ -525,9 +524,9 @@ void LinearEqualityModule::propagateBasicFromRow(ConstraintP c){
  * The proof is in terms of the other constraints and the negation of c, ~c.
  *
  * A row has the form:
- *   sum a_i * x_i  = 0 
+ *   sum a_i * x_i  = 0
  * or
- *   sx + sum r y + sum q z = 0 
+ *   sx + sum r y + sum q z = 0
  * where r > 0 and q < 0.
  *
  * If rowUp, we are proving c
@@ -556,7 +555,7 @@ void LinearEqualityModule::propagateRow(ConstraintCPVec& into, RowIndex ridx, bo
     Assert(farkas->empty());
     farkas->push_back(Rational(0));
   }
-  
+
   ArithVar v = c->getVariable();
   Debug("arith::propagateRow") << "LinearEqualityModule::propagateRow("
                                    << ridx << ", " << rowUp << ", " << v << ") start" << endl;
@@ -564,7 +563,7 @@ void LinearEqualityModule::propagateRow(ConstraintCPVec& into, RowIndex ridx, bo
   const Rational& multiple = rowUp ? d_one : d_negOne;
 
   Debug("arith::propagateRow") << "multiple: " << multiple << endl;
-  
+
   Tableau::RowIterator iter = d_tableau.ridRowIterator(ridx);
   for(; !iter.atEnd(); ++iter){
     const Tableau::Entry& entry = *iter;
@@ -574,12 +573,10 @@ void LinearEqualityModule::propagateRow(ConstraintCPVec& into, RowIndex ridx, bo
     Assert(sgn != 0);
     bool selectUb = rowUp ? (sgn > 0) : (sgn < 0);
 
-    Assert( nonbasic != v ||
-            ( rowUp && a_ij.sgn() > 0 && c->isLowerBound()) ||
-            ( rowUp && a_ij.sgn() < 0 && c->isUpperBound()) ||
-            (!rowUp && a_ij.sgn() > 0 && c->isUpperBound()) ||
-            (!rowUp && a_ij.sgn() < 0 && c->isLowerBound())
-            );
+    Assert(nonbasic != v || (rowUp && a_ij.sgn() > 0 && c->isLowerBound())
+           || (rowUp && a_ij.sgn() < 0 && c->isUpperBound())
+           || (!rowUp && a_ij.sgn() > 0 && c->isUpperBound())
+           || (!rowUp && a_ij.sgn() < 0 && c->isLowerBound()));
 
     if(Debug.isOn("arith::propagateRow")){
       if(nonbasic == v){
@@ -598,8 +595,8 @@ void LinearEqualityModule::propagateRow(ConstraintCPVec& into, RowIndex ridx, bo
       if(farkas != RationalVectorPSentinel){
         Assert(farkas->front().isZero());
         Rational multAij = multiple * a_ij;
-        Debug("arith::propagateRow") << "("<<multAij<<") ";        
-        farkas->front() = multAij;      
+        Debug("arith::propagateRow") << "(" << multAij << ") ";
+        farkas->front() = multAij;
       }
 
       Debug("arith::propagateRow") << c << endl;
@@ -608,10 +605,10 @@ void LinearEqualityModule::propagateRow(ConstraintCPVec& into, RowIndex ridx, bo
       ConstraintCP bound = selectUb
         ? d_variables.getUpperBoundConstraint(nonbasic)
         : d_variables.getLowerBoundConstraint(nonbasic);
-      
+
       if(farkas != RationalVectorPSentinel){
         Rational multAij = multiple * a_ij;
-        Debug("arith::propagateRow") << "("<<multAij<<") ";        
+        Debug("arith::propagateRow") << "(" << multAij << ") ";
         farkas->push_back(multAij);
       }
       Assert(bound != NullConstraint);
@@ -681,7 +678,7 @@ ConstraintP LinearEqualityModule::weakestExplanation(bool aboveUpper, DeltaRatio
  * If !aboveUpper, then the conflict is with the constraint c : x_b >= l_b.
  *
  * A row has the form:
- *   -x_b sum a_i * x_i  = 0 
+ *   -x_b sum a_i * x_i  = 0
  * or
  *   -x_b + sum r y + sum q z = 0,
  *    x_b = sum r y + sum q z
@@ -727,7 +724,7 @@ ConstraintCP LinearEqualityModule::minimallyWeakConflict(bool aboveUpper, ArithV
     Assert(assignment < d_variables.getLowerBound(basicVar));
     surplus = d_variables.getLowerBound(basicVar) - assignment;
   }
-  
+
   bool anyWeakenings = false;
   for(Tableau::RowIterator i = d_tableau.basicRowIterator(basicVar); !i.atEnd(); ++i){
     const Tableau::Entry& entry = *i;
@@ -743,7 +740,7 @@ ConstraintCP LinearEqualityModule::minimallyWeakConflict(bool aboveUpper, ArithV
 
     fcs.addConstraint(c, coeff, adjustSgn);
     if(basicVar == v){
-      Assert(! c->negationHasProof() );
+      Assert(!c->negationHasProof());
       fcs.makeLastConsequent();
     }
   }
@@ -1400,8 +1397,8 @@ void LinearEqualityModule::pop_block(BorderHeap& heap, int& brokenInBlock, int& 
       heap.pop_heap();
     }else{
       // does not belong to the block
-      Assert((heap.direction() > 0) ?
-             (blockValue < top.d_diff) : (blockValue > top.d_diff));
+      Assert((heap.direction() > 0) ? (blockValue < top.d_diff)
+                                    : (blockValue > top.d_diff));
       break;
     }
   }

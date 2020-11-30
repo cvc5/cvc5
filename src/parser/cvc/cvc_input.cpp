@@ -2,10 +2,10 @@
 /*! \file cvc_input.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Christopher L. Conway, Morgan Deters, Tim King
+ **   Christopher L. Conway, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,12 +14,9 @@
  ** [[ Add file-specific comments here ]]
  **/
 
-// These headers should be the first two included.
-// See the documentation in "parser/antlr_undefines.h" for more details.
-#include <antlr3.h>
-#include "parser/antlr_undefines.h"
-
 #include "parser/cvc/cvc_input.h"
+
+#include <antlr3.h>
 
 #include "expr/expr_manager.h"
 #include "parser/antlr_input.h"
@@ -64,7 +61,8 @@ Command* CvcInput::parseCommand() {
   return d_pCvcParser->parseCommand(d_pCvcParser);
 }
 
-Expr CvcInput::parseExpr() {
+api::Term CvcInput::parseExpr()
+{
   return d_pCvcParser->parseExpr(d_pCvcParser);
 }
 

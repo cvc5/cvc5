@@ -2,10 +2,10 @@
 /*! \file utility.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Aina Niemetz
+ **   Morgan Deters, Andres Noetzli, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,12 +16,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__UTILITY_H
-#define __CVC4__UTILITY_H
+#ifndef CVC4__UTILITY_H
+#define CVC4__UTILITY_H
 
 #include <algorithm>
-#include <utility>
+#include <fstream>
 #include <functional>
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace CVC4 {
 
@@ -69,18 +72,38 @@ inline InputIterator find_if_unique(InputIterator first, InputIterator last, Pre
 }
 
 template <typename T>
-void container_to_stream(std::ostream& out, const T& container)
+void container_to_stream(std::ostream& out,
+                         const T& container,
+                         const char* prefix = "[",
+                         const char* postfix = "]",
+                         const char* sep = ", ")
 {
-  out << "[";
+  out << prefix;
   bool is_first = true;
   for (const auto& item : container)
   {
-    out << (!is_first ? ", " : "") << item;
+    out << (!is_first ? sep : "") << item;
     is_first = false;
   }
-  out << "]";
+  out << postfix;
 }
+
+/**
+ * Opens a new temporary file with a given filename pattern and returns an
+ * fstream to it. The directory that the file is created in is either TMPDIR or
+ * /tmp/ if TMPDIR is not set.
+ *
+ * @param pattern The filename pattern. This string is modified to contain the
+ * name of the temporary file.
+ *
+ * @return A unique pointer to the filestream for the temporary file.
+ *
+ * Note: We use `std::unique_ptr<std::fstream>` instead of `std::fstream`
+ * because GCC < 5 does not support the move constructor of `std::fstream`. See
+ * https://gcc.gnu.org/bugzilla/show_bug.cgi?id=54316 for details.
+ */
+std::unique_ptr<std::fstream> openTmpFile(std::string* pattern);
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__UTILITY_H */
+#endif /* CVC4__UTILITY_H */

@@ -2,10 +2,10 @@
 /*! \file cdqueue.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Mathias Preiner, Francois Bobot
+ **   Tim King, Francois Bobot, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -23,8 +23,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__CONTEXT__CDQUEUE_H
-#define __CVC4__CONTEXT__CDQUEUE_H
+#ifndef CVC4__CONTEXT__CDQUEUE_H
+#define CVC4__CONTEXT__CDQUEUE_H
 
 #include "context/context.h"
 #include "context/cdlist.h"
@@ -123,21 +123,21 @@ public:
    * function.
    */
   void pop(){
-    Assert(!empty(), "Attempting to pop from an empty queue.");
+    Assert(!empty()) << "Attempting to pop from an empty queue.";
     ParentType::makeCurrent();
     d_iter = d_iter + 1;
     if (empty() && d_lastsave != ParentType::d_size) {
       // Some elements have been enqueued and dequeued in the same
       // context and now the queue is empty we can destruct them.
       ParentType::truncateList(d_lastsave);
-      Assert(ParentType::d_size ==  d_lastsave);
+      Assert(ParentType::d_size == d_lastsave);
       d_iter = d_lastsave;
     }
   }
 
   /** Returns a reference to the next element on the queue. */
   const T& front() const{
-    Assert(!empty(), "No front in an empty queue.");
+    Assert(!empty()) << "No front in an empty queue.";
     return ParentType::d_list[d_iter];
   }
 
@@ -145,7 +145,7 @@ public:
    * Returns the most recent item added to the queue.
    */
   const T& back() const {
-    Assert(!empty(), "CDQueue::back() called on empty list");
+    Assert(!empty()) << "CDQueue::back() called on empty list";
     return ParentType::d_list[ParentType::d_size - 1];
   }
 
@@ -164,4 +164,4 @@ public:
 }/* CVC4::context namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__CONTEXT__CDQUEUE_H */
+#endif /* CVC4__CONTEXT__CDQUEUE_H */

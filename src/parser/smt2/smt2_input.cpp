@@ -2,10 +2,10 @@
 /*! \file smt2_input.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Christopher L. Conway, Tim King, Morgan Deters
+ **   Christopher L. Conway, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,13 +14,9 @@
  ** [[ Add file-specific comments here ]]
  **/
 
-// These headers should be the first two included.
-// See the documentation in "parser/antlr_undefines.h" for more details.
-#include <antlr3.h>
-#include "parser/antlr_undefines.h"
-
-
 #include "parser/smt2/smt2_input.h"
+
+#include <antlr3.h>
 
 #include "expr/expr_manager.h"
 #include "parser/input.h"
@@ -66,7 +62,8 @@ Command* Smt2Input::parseCommand() {
   return d_pSmt2Parser->parseCommand(d_pSmt2Parser);
 }
 
-Expr Smt2Input::parseExpr() {
+api::Term Smt2Input::parseExpr()
+{
   return d_pSmt2Parser->parseExpr(d_pSmt2Parser);
 }
 

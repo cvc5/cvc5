@@ -2,10 +2,10 @@
 /*! \file cadical.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Mathias Preiner
+ **   Mathias Preiner, Aina Niemetz, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROP__CADICAL_H
-#define __CVC4__PROP__CADICAL_H
+#ifndef CVC4__PROP__CADICAL_H
+#define CVC4__PROP__CADICAL_H
 
 #ifdef CVC4_USE_CADICAL
 
@@ -30,9 +30,9 @@ namespace prop {
 
 class CadicalSolver : public SatSolver
 {
- public:
-  CadicalSolver(StatisticsRegistry* registry, const std::string& name = "");
+  friend class SatSolverFactory;
 
+ public:
   ~CadicalSolver() override;
 
   ClauseId addClause(SatClause& clause, bool removable) override;
@@ -48,8 +48,8 @@ class CadicalSolver : public SatSolver
   SatVariable falseVar() override;
 
   SatValue solve() override;
-
   SatValue solve(long unsigned int&) override;
+  SatValue solve(const std::vector<SatLiteral>& assumptions) override;
 
   void interrupt() override;
 
@@ -62,6 +62,17 @@ class CadicalSolver : public SatSolver
   bool ok() const override;
 
  private:
+  /**
+   * Private to disallow creation outside of SatSolverFactory.
+   * Function init() must be called after creation.
+   */
+  CadicalSolver(StatisticsRegistry* registry, const std::string& name = "");
+  /**
+   * Initialize SAT solver instance.
+   * Note: Split out to not call virtual functions in constructor.
+   */
+  void init();
+
   std::unique_ptr<CaDiCaL::Solver> d_solver;
 
   unsigned d_nextVarIdx;
@@ -87,4 +98,4 @@ class CadicalSolver : public SatSolver
 }  // namespace CVC4
 
 #endif  // CVC4_USE_CADICAL
-#endif  // __CVC4__PROP__CADICAL_H
+#endif  // CVC4__PROP__CADICAL_H

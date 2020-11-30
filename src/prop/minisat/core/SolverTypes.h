@@ -73,9 +73,14 @@ inline  bool sign      (Lit p)              { return p.x & 1; }
 inline  int  var       (Lit p)              { return p.x >> 1; }
 
 // Mapping Literals to and from compact integers suitable for array indexing:
-inline  int  toInt     (Var v)              { return v; } 
-inline  int  toInt     (Lit p)              { return p.x; } 
-inline  Lit  toLit     (int i)              { Lit p; p.x = i; return p; } 
+inline int toInt(Var v) { return v; }
+inline int toInt(Lit p) { return p.x; }
+inline Lit toLit(int i)
+{
+  Lit p;
+  p.x = i;
+  return p;
+}
 
 //const Lit lit_Undef = mkLit(var_Undef, false);  // }- Useful special constants.
 //const Lit lit_Error = mkLit(var_Undef, true );  // }
@@ -83,20 +88,19 @@ inline  Lit  toLit     (int i)              { Lit p; p.x = i; return p; }
 const Lit lit_Undef = { -2 };  // }- Useful special constants.
 const Lit lit_Error = { -1 };  // }
 
-
 //=================================================================================================
 // Lifted booleans:
 //
-// NOTE: this implementation is optimized for the case when comparisons between values are mostly
-//       between one variable and one constant. Some care had to be taken to make sure that gcc 
-//       does enough constant propagation to produce sensible code, and this appears to be somewhat
-//       fragile unfortunately.
+// NOTE: this implementation is optimized for the case when comparisons between
+// values are mostly
+//       between one variable and one constant. Some care had to be taken to
+//       make sure that gcc does enough constant propagation to produce sensible
+//       code, and this appears to be somewhat fragile unfortunately.
 
 /*
-  This is to avoid multiple definitions of l_True, l_False and l_Undef if using multiple copies of
-  Minisat.
-  IMPORTANT: if we you change the value of the constants so that it is not the same in all copies
-  of Minisat this breaks! 
+  This is to avoid multiple definitions of l_True, l_False and l_Undef if using
+  multiple copies of Minisat. IMPORTANT: if we you change the value of the
+  constants so that it is not the same in all copies of Minisat this breaks!
  */
 
 #ifndef l_True
@@ -124,10 +128,12 @@ public:
     bool  operator != (lbool b) const { return !(*this == b); }
     lbool operator ^  (bool  b) const { return lbool((uint8_t)(value^(uint8_t)b)); }
 
-    lbool operator && (lbool b) const { 
-        uint8_t sel = (this->value << 1) | (b.value << 3);
-        uint8_t v   = (0xF7F755F4 >> sel) & 3;
-        return lbool(v); }
+    lbool operator&&(lbool b) const
+    {
+      uint8_t sel = (this->value << 1) | (b.value << 3);
+      uint8_t v = (0xF7F755F4 >> sel) & 3;
+      return lbool(v);
+    }
 
     lbool operator || (lbool b) const {
         uint8_t sel = (this->value << 1) | (b.value << 3);
@@ -163,7 +169,7 @@ inline std::ostream& operator <<(std::ostream& out, Minisat::vec<Minisat::Lit>& 
 }
 
 inline std::ostream& operator <<(std::ostream& out, Minisat::lbool val) {
-  std::string val_str; 
+  std::string val_str;
   if( val == l_False ) {
     val_str = "0";
   } else if (val == l_True ) {
@@ -208,14 +214,14 @@ class Clause {
         header.size      = ps.size();
         header.level     = level;
 
-        for (int i = 0; i < ps.size(); i++) 
-            data[i].lit = ps[i];
+        for (int i = 0; i < ps.size(); i++) data[i].lit = ps[i];
 
         if (header.has_extra){
             if (header.removable)
-                data[header.size].act = 0; 
-            else 
-                calcAbstraction(); }
+              data[header.size].act = 0;
+            else
+              calcAbstraction();
+        }
     }
 
 public:
@@ -321,7 +327,7 @@ class OccLists
 
  public:
     OccLists(const Deleted& d) : deleted(d) {}
-    
+
     void  init      (const Idx& idx){ occs.growTo(toInt(idx)+1); dirty.growTo(toInt(idx)+1, 0); }
     void  resizeTo  (const Idx& idx);
     // Vec&  operator[](const Idx& idx){ return occs[toInt(idx)]; }
@@ -394,13 +400,12 @@ class CMap
 
     typedef Map<CRef, T, CRefHash> HashTable;
     HashTable map;
-        
+
  public:
     // Size-operations:
     void     clear       ()                           { map.clear(); }
     int      size        ()                const      { return map.elems(); }
 
-    
     // Insert/Remove/Test mapping:
     void     insert      (CRef cr, const T& t){ map.insert(cr, t); }
     void     growTo      (CRef cr, const T& t){ map.insert(cr, t); } // NOTE: for compatibility
@@ -423,15 +428,14 @@ class CMap
         printf(" --- size = %d, bucket_count = %d\n", size(), map.bucket_count()); }
 };
 
-
 /*_________________________________________________________________________________________________
 |
 |  subsumes : (other : const Clause&)  ->  Lit
-|  
+|
 |  Description:
-|       Checks if clause subsumes 'other', and at the same time, if it can be used to simplify 'other'
-|       by subsumption resolution.
-|  
+|       Checks if clause subsumes 'other', and at the same time, if it can be
+used to simplify 'other' |       by subsumption resolution.
+|
 |    Result:
 |       lit_Error  - No subsumption or simplification
 |       lit_Undef  - Clause subsumes 'other'

@@ -2,10 +2,10 @@
 /*! \file evaluator_white.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli
+ **   Andres Noetzli, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -26,6 +26,7 @@
 #include "theory/evaluator.h"
 #include "theory/rewriter.h"
 #include "theory/theory_test_utils.h"
+#include "util/rational.h"
 
 using namespace CVC4;
 using namespace CVC4::smt;
@@ -43,17 +44,18 @@ class TheoryEvaluatorWhite : public CxxTest::TestSuite
  public:
   TheoryEvaluatorWhite() {}
 
-  void setUp()
+  void setUp() override
   {
     Options opts;
     opts.setOutputLanguage(language::output::LANG_SMTLIB_V2);
-    d_em = new ExprManager(opts);
+    d_em = new ExprManager;
     d_nm = NodeManager::fromExprManager(d_em);
-    d_smt = new SmtEngine(d_em);
+    d_smt = new SmtEngine(d_nm, &opts);
     d_scope = new SmtScope(d_smt);
+    d_smt->finishInit();
   }
 
-  void tearDown()
+  void tearDown() override
   {
     delete d_scope;
     delete d_smt;
@@ -118,5 +120,65 @@ class TheoryEvaluatorWhite : public CxxTest::TestSuite
     TS_ASSERT_EQUALS(r,
                      Rewriter::rewrite(t.substitute(
                          args.begin(), args.end(), vals.begin(), vals.end())));
+  }
+
+  void testStrIdOf()
+  {
+    Node a = d_nm->mkConst(String("A"));
+    Node empty = d_nm->mkConst(String(""));
+    Node one = d_nm->mkConst(Rational(1));
+    Node two = d_nm->mkConst(Rational(2));
+
+    std::vector<Node> args;
+    std::vector<Node> vals;
+    Evaluator eval;
+
+    {
+      Node n = d_nm->mkNode(kind::STRING_STRIDOF, a, empty, one);
+      Node r = eval.eval(n, args, vals);
+      TS_ASSERT_EQUALS(r, Rewriter::rewrite(n));
+    }
+
+    {
+      Node n = d_nm->mkNode(kind::STRING_STRIDOF, a, a, one);
+      Node r = eval.eval(n, args, vals);
+      TS_ASSERT_EQUALS(r, Rewriter::rewrite(n));
+    }
+
+    {
+      Node n = d_nm->mkNode(kind::STRING_STRIDOF, a, empty, two);
+      Node r = eval.eval(n, args, vals);
+      TS_ASSERT_EQUALS(r, Rewriter::rewrite(n));
+    }
+
+    {
+      Node n = d_nm->mkNode(kind::STRING_STRIDOF, a, a, two);
+      Node r = eval.eval(n, args, vals);
+      TS_ASSERT_EQUALS(r, Rewriter::rewrite(n));
+    }
+  }
+
+  void testCode()
+  {
+    Node a = d_nm->mkConst(String("A"));
+    Node empty = d_nm->mkConst(String(""));
+
+    std::vector<Node> args;
+    std::vector<Node> vals;
+    Evaluator eval;
+
+    // (str.code "A") ---> 65
+    {
+      Node n = d_nm->mkNode(kind::STRING_TO_CODE, a);
+      Node r = eval.eval(n, args, vals);
+      TS_ASSERT_EQUALS(r, d_nm->mkConst(Rational(65)));
+    }
+
+    // (str.code "") ---> -1
+    {
+      Node n = d_nm->mkNode(kind::STRING_TO_CODE, empty);
+      Node r = eval.eval(n, args, vals);
+      TS_ASSERT_EQUALS(r, d_nm->mkConst(Rational(-1)));
+    }
   }
 };

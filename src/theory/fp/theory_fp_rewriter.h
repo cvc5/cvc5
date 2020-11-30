@@ -2,10 +2,10 @@
 /*! \file theory_fp_rewriter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain, Paul Meng
+ **   Andres Noetzli, Martin Brain, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -17,10 +17,10 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__FP__THEORY_FP_REWRITER_H
-#define __CVC4__THEORY__FP__THEORY_FP_REWRITER_H
+#ifndef CVC4__THEORY__FP__THEORY_FP_REWRITER_H
+#define CVC4__THEORY__FP__THEORY_FP_REWRITER_H
 
-#include "theory/rewriter.h"
+#include "theory/theory_rewriter.h"
 
 namespace CVC4 {
 namespace theory {
@@ -28,40 +28,31 @@ namespace fp {
 
 typedef RewriteResponse (*RewriteFunction) (TNode, bool);
 
-class TheoryFpRewriter {
- protected :
-  static RewriteFunction preRewriteTable[kind::LAST_KIND];
-  static RewriteFunction postRewriteTable[kind::LAST_KIND];
-  static RewriteFunction constantFoldTable[kind::LAST_KIND]; 
-
-
+class TheoryFpRewriter : public TheoryRewriter
+{
  public:
+  TheoryFpRewriter();
 
-  static RewriteResponse preRewrite(TNode node);
-  static RewriteResponse postRewrite(TNode node);
-
+  RewriteResponse preRewrite(TNode node) override;
+  RewriteResponse postRewrite(TNode node) override;
 
   /**
    * Rewrite an equality, in case special handling is required.
    */
-  static Node rewriteEquality(TNode equality) {
+  Node rewriteEquality(TNode equality)
+  {
     // often this will suffice
-    return postRewrite(equality).node;
+    return postRewrite(equality).d_node;
   }
 
-  static void init();
-
-  /**
-   * Shut down the rewriter.
-   */
-  static inline void shutdown() {
-    // nothing to do
-  }
-
-};/* class TheoryFpRewriter */
+ protected:
+  RewriteFunction d_preRewriteTable[kind::LAST_KIND];
+  RewriteFunction d_postRewriteTable[kind::LAST_KIND];
+  RewriteFunction d_constantFoldTable[kind::LAST_KIND];
+}; /* class TheoryFpRewriter */
 
 }/* CVC4::theory::fp namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__FP__THEORY_FP_REWRITER_H */
+#endif /* CVC4__THEORY__FP__THEORY_FP_REWRITER_H */

@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -17,17 +17,17 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__UPDATE_OSTREAM_H
-#define __CVC4__UPDATE_OSTREAM_H
+#ifndef CVC4__UPDATE_OSTREAM_H
+#define CVC4__UPDATE_OSTREAM_H
 
 #include <ostream>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "base/output.h"
 #include "expr/expr_iomanip.h"
+#include "options/base_options.h"
 #include "options/language.h"
 #include "options/set_language.h"
-#include "options/base_options.h"
 #include "smt/dump.h"
 
 namespace CVC4 {
@@ -37,21 +37,18 @@ class ChannelSettings {
   ChannelSettings(std::ostream& out)
       : d_dagSetting(expr::ExprDag::getDag(out)),
         d_exprDepthSetting(expr::ExprSetDepth::getDepth(out)),
-        d_printtypesSetting(expr::ExprPrintTypes::getPrintTypes(out)),
         d_languageSetting(language::SetLanguage::getLanguage(out))
   {}
 
   void apply(std::ostream& out) {
     out << expr::ExprDag(d_dagSetting);
     out << expr::ExprSetDepth(d_exprDepthSetting);
-    out << expr::ExprPrintTypes(d_printtypesSetting);
     out << language::SetLanguage(d_languageSetting);
   }
 
  private:
   const int d_dagSetting;
   const size_t d_exprDepthSetting;
-  const bool d_printtypesSetting;
   const OutputLanguage d_languageSetting;
 }; /* class ChannelSettings */
 
@@ -121,4 +118,4 @@ class TraceOstreamUpdate : public OstreamUpdate {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__UPDATE_OSTREAM_H */
+#endif /* CVC4__UPDATE_OSTREAM_H */

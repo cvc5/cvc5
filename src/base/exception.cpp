@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -22,13 +22,13 @@
 #include <cstring>
 #include <string>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 
 using namespace std;
 
 namespace CVC4 {
 
-CVC4_THREAD_LOCAL LastExceptionBuffer* LastExceptionBuffer::s_currentBuffer = NULL;
+thread_local LastExceptionBuffer* LastExceptionBuffer::s_currentBuffer = NULL;
 
 LastExceptionBuffer::LastExceptionBuffer() : d_contents(NULL) {}
 
@@ -65,9 +65,7 @@ std::string IllegalArgumentException::formatVariadic(const char* format, ...) {
 
   for (int i = 0; i < 2; ++i){
     Assert(n > 0);
-    if(buf != NULL){
-      delete [] buf;
-    }
+    delete[] buf;
     buf = new char[n];
 
     va_list args_copy;

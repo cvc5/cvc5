@@ -1,0 +1,1228 @@
+#####################
+## CMakeLists.txt
+## Top contributors (to current version):
+##   Mathias Preiner, Andrew Reynolds, Gereon Kremer
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
+#-----------------------------------------------------------------------------#
+# Collect libcvc4 source files
+
+libcvc4_add_sources(
+  api/cvc4cpp.cpp
+  api/cvc4cpp.h
+  api/cvc4cppkind.h
+  context/backtrackable.h
+  context/cddense_set.h
+  context/cdhashmap.h
+  context/cdhashmap_forward.h
+  context/cdhashset.h
+  context/cdhashset_forward.h
+  context/cdinsert_hashmap.h
+  context/cdinsert_hashmap_forward.h
+  context/cdlist.cpp
+  context/cdlist.h
+  context/cdlist_forward.h
+  context/cdmaybe.h
+  context/cdo.h
+  context/cdqueue.h
+  context/cdtrail_queue.h
+  context/context.cpp
+  context/context.h
+  context/context_mm.cpp
+  context/context_mm.h
+  context/default_clean_up.h
+  decision/decision_attributes.h
+  decision/decision_engine.cpp
+  decision/decision_engine.h
+  decision/decision_strategy.h
+  decision/justification_heuristic.cpp
+  decision/justification_heuristic.h
+  lib/clock_gettime.c
+  lib/clock_gettime.h
+  lib/ffs.c
+  lib/ffs.h
+  lib/replacements.h
+  lib/strtok_r.c
+  lib/strtok_r.h
+  preprocessing/assertion_pipeline.cpp
+  preprocessing/assertion_pipeline.h
+  preprocessing/passes/ackermann.cpp
+  preprocessing/passes/ackermann.h
+  preprocessing/passes/apply_substs.cpp
+  preprocessing/passes/apply_substs.h
+  preprocessing/passes/bool_to_bv.cpp
+  preprocessing/passes/bool_to_bv.h
+  preprocessing/passes/bv_abstraction.cpp
+  preprocessing/passes/bv_abstraction.h
+  preprocessing/passes/bv_eager_atoms.cpp
+  preprocessing/passes/bv_eager_atoms.h
+  preprocessing/passes/bv_gauss.cpp
+  preprocessing/passes/bv_gauss.h
+  preprocessing/passes/bv_intro_pow2.cpp
+  preprocessing/passes/bv_intro_pow2.h
+  preprocessing/passes/bv_to_bool.cpp
+  preprocessing/passes/bv_to_bool.h
+  preprocessing/passes/bv_to_int.cpp
+  preprocessing/passes/bv_to_int.h
+  preprocessing/passes/extended_rewriter_pass.cpp
+  preprocessing/passes/extended_rewriter_pass.h
+  preprocessing/passes/fun_def_fmf.cpp
+  preprocessing/passes/fun_def_fmf.h
+  preprocessing/passes/global_negate.cpp
+  preprocessing/passes/global_negate.h
+  preprocessing/passes/ho_elim.cpp
+  preprocessing/passes/ho_elim.h
+  preprocessing/passes/int_to_bv.cpp
+  preprocessing/passes/int_to_bv.h
+  preprocessing/passes/ite_removal.cpp
+  preprocessing/passes/ite_removal.h
+  preprocessing/passes/ite_simp.cpp
+  preprocessing/passes/ite_simp.h
+  preprocessing/passes/miplib_trick.cpp
+  preprocessing/passes/miplib_trick.h
+  preprocessing/passes/nl_ext_purify.cpp
+  preprocessing/passes/nl_ext_purify.h
+  preprocessing/passes/non_clausal_simp.cpp
+  preprocessing/passes/non_clausal_simp.h
+  preprocessing/passes/pseudo_boolean_processor.cpp
+  preprocessing/passes/pseudo_boolean_processor.h
+  preprocessing/passes/quantifier_macros.cpp
+  preprocessing/passes/quantifier_macros.h
+  preprocessing/passes/quantifiers_preprocess.cpp
+  preprocessing/passes/quantifiers_preprocess.h
+  preprocessing/passes/real_to_int.cpp
+  preprocessing/passes/real_to_int.h
+  preprocessing/passes/rewrite.cpp
+  preprocessing/passes/rewrite.h
+  preprocessing/passes/sep_skolem_emp.cpp
+  preprocessing/passes/sep_skolem_emp.h
+  preprocessing/passes/sort_infer.cpp
+  preprocessing/passes/sort_infer.h
+  preprocessing/passes/static_learning.cpp
+  preprocessing/passes/static_learning.h
+  preprocessing/passes/sygus_inference.cpp
+  preprocessing/passes/sygus_inference.h
+  preprocessing/passes/synth_rew_rules.cpp
+  preprocessing/passes/synth_rew_rules.h
+  preprocessing/passes/theory_preprocess.cpp
+  preprocessing/passes/theory_preprocess.h
+  preprocessing/passes/unconstrained_simplifier.cpp
+  preprocessing/passes/unconstrained_simplifier.h
+  preprocessing/preprocessing_pass.cpp
+  preprocessing/preprocessing_pass.h
+  preprocessing/preprocessing_pass_context.cpp
+  preprocessing/preprocessing_pass_context.h
+  preprocessing/preprocessing_pass_registry.cpp
+  preprocessing/preprocessing_pass_registry.h
+  preprocessing/util/ite_utilities.cpp
+  preprocessing/util/ite_utilities.h
+  printer/ast/ast_printer.cpp
+  printer/ast/ast_printer.h
+  printer/cvc/cvc_printer.cpp
+  printer/cvc/cvc_printer.h
+  printer/dagification_visitor.cpp
+  printer/dagification_visitor.h
+  printer/let_binding.cpp
+  printer/let_binding.h
+  printer/printer.cpp
+  printer/printer.h
+  printer/smt2/smt2_printer.cpp
+  printer/smt2/smt2_printer.h
+  printer/tptp/tptp_printer.cpp
+  printer/tptp/tptp_printer.h
+  proof/clause_id.h
+  proof/cnf_proof.cpp
+  proof/cnf_proof.h
+  proof/proof_manager.cpp
+  proof/proof_manager.h
+  proof/sat_proof.h
+  proof/sat_proof_implementation.h
+  proof/unsat_core.cpp
+  proof/unsat_core.h
+  prop/bv_sat_solver_notify.h
+  prop/bvminisat/bvminisat.cpp
+  prop/bvminisat/bvminisat.h
+  prop/bvminisat/core/Dimacs.h
+  prop/bvminisat/core/Solver.cc
+  prop/bvminisat/core/Solver.h
+  prop/bvminisat/core/SolverTypes.h
+  prop/bvminisat/mtl/Alg.h
+  prop/bvminisat/mtl/Alloc.h
+  prop/bvminisat/mtl/Heap.h
+  prop/bvminisat/mtl/IntTypes.h
+  prop/bvminisat/mtl/Map.h
+  prop/bvminisat/mtl/Queue.h
+  prop/bvminisat/mtl/Sort.h
+  prop/bvminisat/mtl/Vec.h
+  prop/bvminisat/mtl/XAlloc.h
+  prop/bvminisat/simp/SimpSolver.cc
+  prop/bvminisat/simp/SimpSolver.h
+  prop/bvminisat/utils/Options.h
+  prop/cadical.cpp
+  prop/cadical.h
+  prop/cnf_stream.cpp
+  prop/cnf_stream.h
+  prop/cryptominisat.cpp
+  prop/cryptominisat.h
+  prop/kissat.cpp
+  prop/kissat.h
+  prop/proof_cnf_stream.cpp
+  prop/proof_cnf_stream.h
+  prop/minisat/core/Dimacs.h
+  prop/minisat/core/Solver.cc
+  prop/minisat/core/Solver.h
+  prop/minisat/core/SolverTypes.h
+  prop/minisat/minisat.cpp
+  prop/minisat/minisat.h
+  prop/minisat/mtl/Alg.h
+  prop/minisat/mtl/Alloc.h
+  prop/minisat/mtl/Heap.h
+  prop/minisat/mtl/IntTypes.h
+  prop/minisat/mtl/Map.h
+  prop/minisat/mtl/Queue.h
+  prop/minisat/mtl/Sort.h
+  prop/minisat/mtl/Vec.h
+  prop/minisat/mtl/XAlloc.h
+  prop/minisat/simp/SimpSolver.cc
+  prop/minisat/simp/SimpSolver.h
+  prop/minisat/utils/Options.h
+  prop/proof_post_processor.cpp
+  prop/proof_post_processor.h
+  prop/prop_engine.cpp
+  prop/prop_engine.h
+  prop/prop_proof_manager.cpp
+  prop/prop_proof_manager.h
+  prop/registrar.h
+  prop/sat_solver.h
+  prop/sat_proof_manager.cpp
+  prop/sat_proof_manager.h
+  prop/sat_solver_factory.cpp
+  prop/sat_solver_factory.h
+  prop/sat_solver_types.cpp
+  prop/sat_solver_types.h
+  prop/theory_proxy.cpp
+  prop/theory_proxy.h
+  smt/abduction_solver.cpp
+  smt/abduction_solver.h
+  smt/abstract_values.cpp
+  smt/abstract_values.h
+  smt/assertions.cpp
+  smt/assertions.h
+  smt/check_models.cpp
+  smt/check_models.h
+  smt/command.cpp
+  smt/command.h
+  smt/defined_function.h
+  smt/dump.cpp
+  smt/dump.h
+  smt/dump_manager.cpp
+  smt/dump_manager.h
+  smt/expand_definitions.cpp
+  smt/expand_definitions.h
+  smt/listeners.cpp
+  smt/listeners.h
+  smt/logic_exception.h
+  smt/logic_request.cpp
+  smt/logic_request.h
+  smt/interpolation_solver.cpp
+  smt/interpolation_solver.h
+  smt/managed_ostreams.cpp
+  smt/managed_ostreams.h
+  smt/model.cpp
+  smt/model.h
+  smt/model_core_builder.cpp
+  smt/model_core_builder.h
+  smt/model_blocker.cpp
+  smt/model_blocker.h
+  smt/node_command.cpp
+  smt/node_command.h
+  smt/options_manager.cpp
+  smt/options_manager.h
+  smt/output_manager.cpp
+  smt/output_manager.h
+  smt/quant_elim_solver.cpp
+  smt/quant_elim_solver.h
+  smt/preprocessor.cpp
+  smt/preprocessor.h
+  smt/preprocess_proof_generator.cpp
+  smt/preprocess_proof_generator.h
+  smt/process_assertions.cpp
+  smt/process_assertions.h
+  smt/proof_manager.cpp
+  smt/proof_manager.h
+  smt/proof_post_processor.cpp
+  smt/proof_post_processor.h
+  smt/set_defaults.cpp
+  smt/set_defaults.h
+  smt/smt_engine.cpp
+  smt/smt_engine.h
+  smt/smt_engine_scope.cpp
+  smt/smt_engine_scope.h
+  smt/smt_engine_state.cpp
+  smt/smt_engine_state.h
+  smt/smt_engine_stats.cpp
+  smt/smt_engine_stats.h
+  smt/smt_mode.cpp
+  smt/smt_mode.h
+  smt/smt_solver.cpp
+  smt/smt_solver.h
+  smt/smt_statistics_registry.cpp
+  smt/smt_statistics_registry.h
+  smt/sygus_solver.cpp
+  smt/sygus_solver.h
+  smt/term_formula_removal.cpp
+  smt/term_formula_removal.h
+  smt/update_ostream.h
+  smt/witness_form.cpp
+  smt/witness_form.h
+  smt_util/boolean_simplification.cpp
+  smt_util/boolean_simplification.h
+  smt_util/nary_builder.cpp
+  smt_util/nary_builder.h
+  theory/arith/approx_simplex.cpp
+  theory/arith/approx_simplex.h
+  theory/arith/arith_ite_utils.cpp
+  theory/arith/arith_ite_utils.h
+  theory/arith/arith_lemma.cpp
+  theory/arith/arith_lemma.h
+  theory/arith/arith_msum.cpp
+  theory/arith/arith_msum.h
+  theory/arith/arith_preprocess.cpp
+  theory/arith/arith_preprocess.h
+  theory/arith/arith_rewriter.cpp
+  theory/arith/arith_rewriter.h
+  theory/arith/arith_state.cpp
+  theory/arith/arith_state.h
+  theory/arith/arith_static_learner.cpp
+  theory/arith/arith_static_learner.h
+  theory/arith/arith_utilities.cpp
+  theory/arith/arith_utilities.h
+  theory/arith/arithvar.cpp
+  theory/arith/arithvar.h
+  theory/arith/attempt_solution_simplex.cpp
+  theory/arith/attempt_solution_simplex.h
+  theory/arith/bound_counts.h
+  theory/arith/bound_inference.cpp
+  theory/arith/bound_inference.h
+  theory/arith/callbacks.cpp
+  theory/arith/callbacks.h
+  theory/arith/congruence_manager.cpp
+  theory/arith/congruence_manager.h
+  theory/arith/constraint.cpp
+  theory/arith/constraint.h
+  theory/arith/constraint_forward.h
+  theory/arith/cut_log.cpp
+  theory/arith/cut_log.h
+  theory/arith/delta_rational.cpp
+  theory/arith/delta_rational.h
+  theory/arith/dio_solver.cpp
+  theory/arith/dio_solver.h
+  theory/arith/dual_simplex.cpp
+  theory/arith/dual_simplex.h
+  theory/arith/error_set.cpp
+  theory/arith/error_set.h
+  theory/arith/fc_simplex.cpp
+  theory/arith/fc_simplex.h
+  theory/arith/infer_bounds.cpp
+  theory/arith/infer_bounds.h
+  theory/arith/inference_id.cpp
+  theory/arith/inference_id.h
+  theory/arith/inference_manager.cpp
+  theory/arith/inference_manager.h
+  theory/arith/linear_equality.cpp
+  theory/arith/linear_equality.h
+  theory/arith/matrix.cpp
+  theory/arith/matrix.h
+  theory/arith/nl/cad_solver.cpp
+  theory/arith/nl/cad_solver.h
+  theory/arith/nl/cad/cdcac.cpp
+  theory/arith/nl/cad/cdcac.h
+  theory/arith/nl/cad/cdcac_utils.cpp
+  theory/arith/nl/cad/cdcac_utils.h
+  theory/arith/nl/cad/constraints.cpp
+  theory/arith/nl/cad/constraints.h
+  theory/arith/nl/cad/projections.cpp
+  theory/arith/nl/cad/projections.h
+  theory/arith/nl/cad/variable_ordering.cpp
+  theory/arith/nl/cad/variable_ordering.h
+  theory/arith/nl/ext/constraint.cpp
+  theory/arith/nl/ext/constraint.h
+  theory/arith/nl/ext/factoring_check.cpp
+  theory/arith/nl/ext/factoring_check.h
+  theory/arith/nl/ext/monomial.cpp
+  theory/arith/nl/ext/monomial.h
+  theory/arith/nl/ext/monomial_bounds_check.cpp
+  theory/arith/nl/ext/monomial_bounds_check.h
+  theory/arith/nl/ext/monomial_check.cpp
+  theory/arith/nl/ext/monomial_check.h
+  theory/arith/nl/ext/ext_state.cpp
+  theory/arith/nl/ext/ext_state.h
+  theory/arith/nl/ext/split_zero_check.cpp
+  theory/arith/nl/ext/split_zero_check.h
+  theory/arith/nl/ext/tangent_plane_check.cpp
+  theory/arith/nl/ext/tangent_plane_check.h
+  theory/arith/nl/ext_theory_callback.cpp
+  theory/arith/nl/ext_theory_callback.h
+  theory/arith/nl/iand_solver.cpp
+  theory/arith/nl/iand_solver.h
+  theory/arith/nl/icp/candidate.cpp
+  theory/arith/nl/icp/candidate.h
+  theory/arith/nl/icp/contraction_origins.cpp
+  theory/arith/nl/icp/contraction_origins.h
+  theory/arith/nl/icp/icp_solver.cpp
+  theory/arith/nl/icp/icp_solver.h
+  theory/arith/nl/icp/intersection.cpp
+  theory/arith/nl/icp/intersection.h
+  theory/arith/nl/iand_table.cpp
+  theory/arith/nl/iand_table.h
+  theory/arith/nl/nl_lemma_utils.cpp
+  theory/arith/nl/nl_lemma_utils.h
+  theory/arith/nl/nl_model.cpp
+  theory/arith/nl/nl_model.h
+  theory/arith/nl/nonlinear_extension.cpp
+  theory/arith/nl/nonlinear_extension.h
+  theory/arith/nl/poly_conversion.cpp
+  theory/arith/nl/poly_conversion.h
+  theory/arith/nl/stats.cpp
+  theory/arith/nl/stats.h
+  theory/arith/nl/strategy.cpp
+  theory/arith/nl/strategy.h
+  theory/arith/nl/transcendental/exponential_solver.cpp
+  theory/arith/nl/transcendental/exponential_solver.h
+  theory/arith/nl/transcendental/sine_solver.cpp
+  theory/arith/nl/transcendental/sine_solver.h
+  theory/arith/nl/transcendental/taylor_generator.cpp
+  theory/arith/nl/transcendental/taylor_generator.h
+  theory/arith/nl/transcendental/transcendental_solver.cpp
+  theory/arith/nl/transcendental/transcendental_solver.h
+  theory/arith/nl/transcendental/transcendental_state.cpp
+  theory/arith/nl/transcendental/transcendental_state.h
+  theory/arith/normal_form.cpp
+  theory/arith/normal_form.h
+  theory/arith/operator_elim.cpp
+  theory/arith/operator_elim.h
+  theory/arith/partial_model.cpp
+  theory/arith/partial_model.h
+  theory/arith/proof_checker.cpp
+  theory/arith/proof_checker.h
+  theory/arith/proof_macros.h
+  theory/arith/rewrites.cpp
+  theory/arith/rewrites.h
+  theory/arith/simplex.cpp
+  theory/arith/simplex.h
+  theory/arith/simplex_update.cpp
+  theory/arith/simplex_update.h
+  theory/arith/soi_simplex.cpp
+  theory/arith/soi_simplex.h
+  theory/arith/tableau.cpp
+  theory/arith/tableau.h
+  theory/arith/tableau_sizes.cpp
+  theory/arith/tableau_sizes.h
+  theory/arith/theory_arith.cpp
+  theory/arith/theory_arith.h
+  theory/arith/theory_arith_private.cpp
+  theory/arith/theory_arith_private.h
+  theory/arith/theory_arith_type_rules.h
+  theory/arith/type_enumerator.h
+  theory/arrays/array_info.cpp
+  theory/arrays/array_info.h
+  theory/arrays/inference_manager.cpp
+  theory/arrays/inference_manager.h
+  theory/arrays/proof_checker.cpp
+  theory/arrays/proof_checker.h
+  theory/arrays/skolem_cache.cpp
+  theory/arrays/skolem_cache.h
+  theory/arrays/theory_arrays.cpp
+  theory/arrays/theory_arrays.h
+  theory/arrays/theory_arrays_rewriter.cpp
+  theory/arrays/theory_arrays_rewriter.h
+  theory/arrays/theory_arrays_type_rules.h
+  theory/arrays/type_enumerator.h
+  theory/arrays/union_find.cpp
+  theory/arrays/union_find.h
+  theory/assertion.cpp
+  theory/assertion.h
+  theory/atom_requests.cpp
+  theory/atom_requests.h
+  theory/bags/bags_rewriter.cpp
+  theory/bags/bags_rewriter.h
+  theory/bags/bags_statistics.cpp
+  theory/bags/bags_statistics.h
+  theory/bags/inference_manager.cpp
+  theory/bags/inference_manager.h
+  theory/bags/make_bag_op.cpp
+  theory/bags/make_bag_op.h
+  theory/bags/normal_form.cpp
+  theory/bags/normal_form.h
+  theory/bags/rewrites.cpp
+  theory/bags/rewrites.h
+  theory/bags/solver_state.cpp
+  theory/bags/solver_state.h
+  theory/bags/term_registry.cpp
+  theory/bags/term_registry.h
+  theory/bags/theory_bags.cpp
+  theory/bags/theory_bags.h
+  theory/bags/theory_bags_type_enumerator.cpp
+  theory/bags/theory_bags_type_enumerator.h
+  theory/bags/theory_bags_type_rules.h
+  theory/booleans/circuit_propagator.cpp
+  theory/booleans/circuit_propagator.h
+  theory/booleans/proof_circuit_propagator.cpp
+  theory/booleans/proof_circuit_propagator.h
+  theory/booleans/proof_checker.cpp
+  theory/booleans/proof_checker.h
+  theory/booleans/theory_bool.cpp
+  theory/booleans/theory_bool.h
+  theory/booleans/theory_bool_rewriter.cpp
+  theory/booleans/theory_bool_rewriter.h
+  theory/booleans/theory_bool_type_rules.h
+  theory/booleans/type_enumerator.h
+  theory/builtin/proof_checker.cpp
+  theory/builtin/proof_checker.h
+  theory/builtin/theory_builtin.cpp
+  theory/builtin/theory_builtin.h
+  theory/builtin/theory_builtin_rewriter.cpp
+  theory/builtin/theory_builtin_rewriter.h
+  theory/builtin/theory_builtin_type_rules.cpp
+  theory/builtin/theory_builtin_type_rules.h
+  theory/builtin/type_enumerator.cpp
+  theory/builtin/type_enumerator.h
+  theory/bv/abstraction.cpp
+  theory/bv/abstraction.h
+  theory/bv/bitblast/aig_bitblaster.cpp
+  theory/bv/bitblast/aig_bitblaster.h
+  theory/bv/bitblast/bitblast_strategies_template.h
+  theory/bv/bitblast/bitblast_utils.h
+  theory/bv/bitblast/bitblaster.h
+  theory/bv/bitblast/eager_bitblaster.cpp
+  theory/bv/bitblast/eager_bitblaster.h
+  theory/bv/bitblast/lazy_bitblaster.cpp
+  theory/bv/bitblast/lazy_bitblaster.h
+  theory/bv/bv_eager_solver.cpp
+  theory/bv/bv_eager_solver.h
+  theory/bv/bv_inequality_graph.cpp
+  theory/bv/bv_inequality_graph.h
+  theory/bv/bv_quick_check.cpp
+  theory/bv/bv_quick_check.h
+  theory/bv/bv_solver.h
+  theory/bv/bv_solver_lazy.cpp
+  theory/bv/bv_solver_lazy.h
+  theory/bv/bv_solver_simple.cpp
+  theory/bv/bv_solver_simple.h
+  theory/bv/bv_subtheory.h
+  theory/bv/bv_subtheory_algebraic.cpp
+  theory/bv/bv_subtheory_algebraic.h
+  theory/bv/bv_subtheory_bitblast.cpp
+  theory/bv/bv_subtheory_bitblast.h
+  theory/bv/bv_subtheory_core.cpp
+  theory/bv/bv_subtheory_core.h
+  theory/bv/bv_subtheory_inequality.cpp
+  theory/bv/bv_subtheory_inequality.h
+  theory/bv/slicer.cpp
+  theory/bv/slicer.h
+  theory/bv/theory_bv.cpp
+  theory/bv/theory_bv.h
+  theory/bv/theory_bv_rewrite_rules.h
+  theory/bv/theory_bv_rewrite_rules_constant_evaluation.h
+  theory/bv/theory_bv_rewrite_rules_core.h
+  theory/bv/theory_bv_rewrite_rules_normalization.h
+  theory/bv/theory_bv_rewrite_rules_operator_elimination.h
+  theory/bv/theory_bv_rewrite_rules_simplification.h
+  theory/bv/theory_bv_rewriter.cpp
+  theory/bv/theory_bv_rewriter.h
+  theory/bv/theory_bv_type_rules.h
+  theory/bv/theory_bv_utils.cpp
+  theory/bv/theory_bv_utils.h
+  theory/bv/type_enumerator.h
+  theory/care_graph.h
+  theory/combination_care_graph.cpp
+  theory/combination_care_graph.h
+  theory/combination_engine.cpp
+  theory/combination_engine.h
+  theory/datatypes/datatypes_rewriter.cpp
+  theory/datatypes/datatypes_rewriter.h
+  theory/datatypes/inference.cpp
+  theory/datatypes/inference.h
+  theory/datatypes/inference_manager.cpp
+  theory/datatypes/inference_manager.h
+  theory/datatypes/infer_proof_cons.cpp
+  theory/datatypes/infer_proof_cons.h
+  theory/datatypes/proof_checker.cpp
+  theory/datatypes/proof_checker.h
+  theory/datatypes/sygus_datatype_utils.cpp
+  theory/datatypes/sygus_datatype_utils.h
+  theory/datatypes/sygus_extension.cpp
+  theory/datatypes/sygus_extension.h
+  theory/datatypes/sygus_simple_sym.cpp
+  theory/datatypes/sygus_simple_sym.h
+  theory/datatypes/theory_datatypes.cpp
+  theory/datatypes/theory_datatypes.h
+  theory/datatypes/theory_datatypes_type_rules.h
+  theory/datatypes/theory_datatypes_utils.cpp
+  theory/datatypes/theory_datatypes_utils.h
+  theory/datatypes/type_enumerator.cpp
+  theory/datatypes/type_enumerator.h
+  theory/decision_manager.cpp
+  theory/decision_manager.h
+  theory/decision_strategy.cpp
+  theory/decision_strategy.h
+  theory/eager_proof_generator.cpp
+  theory/eager_proof_generator.h
+  theory/ee_manager.cpp
+  theory/ee_manager.h
+  theory/ee_manager_distributed.cpp
+  theory/ee_manager_distributed.h
+  theory/ee_setup_info.h
+  theory/engine_output_channel.cpp
+  theory/engine_output_channel.h
+  theory/evaluator.cpp
+  theory/evaluator.h
+  theory/ext_theory.cpp
+  theory/ext_theory.h
+  theory/fp/fp_converter.cpp
+  theory/fp/fp_converter.h
+  theory/fp/theory_fp.cpp
+  theory/fp/theory_fp.h
+  theory/fp/theory_fp_rewriter.cpp
+  theory/fp/theory_fp_rewriter.h
+  theory/fp/theory_fp_type_rules.h
+  theory/fp/type_enumerator.h
+  theory/interrupted.h
+  theory/inference_manager_buffered.cpp
+  theory/inference_manager_buffered.h
+  theory/logic_info.cpp
+  theory/logic_info.h
+  theory/model_manager.cpp
+  theory/model_manager.h
+  theory/model_manager_distributed.cpp
+  theory/model_manager_distributed.h
+  theory/output_channel.cpp
+  theory/output_channel.h
+  theory/quantifiers/alpha_equivalence.cpp
+  theory/quantifiers/alpha_equivalence.h
+  theory/quantifiers/anti_skolem.cpp
+  theory/quantifiers/anti_skolem.h
+  theory/quantifiers/bv_inverter.cpp
+  theory/quantifiers/bv_inverter.h
+  theory/quantifiers/bv_inverter_utils.cpp
+  theory/quantifiers/bv_inverter_utils.h
+  theory/quantifiers/candidate_rewrite_database.cpp
+  theory/quantifiers/candidate_rewrite_database.h
+  theory/quantifiers/candidate_rewrite_filter.cpp
+  theory/quantifiers/candidate_rewrite_filter.h
+  theory/quantifiers/cegqi/ceg_arith_instantiator.cpp
+  theory/quantifiers/cegqi/ceg_arith_instantiator.h
+  theory/quantifiers/cegqi/ceg_bv_instantiator.cpp
+  theory/quantifiers/cegqi/ceg_bv_instantiator.h
+  theory/quantifiers/cegqi/ceg_bv_instantiator_utils.cpp
+  theory/quantifiers/cegqi/ceg_bv_instantiator_utils.h
+  theory/quantifiers/cegqi/ceg_dt_instantiator.cpp
+  theory/quantifiers/cegqi/ceg_dt_instantiator.h
+  theory/quantifiers/cegqi/ceg_epr_instantiator.cpp
+  theory/quantifiers/cegqi/ceg_epr_instantiator.h
+  theory/quantifiers/cegqi/ceg_instantiator.cpp
+  theory/quantifiers/cegqi/ceg_instantiator.h
+  theory/quantifiers/cegqi/inst_strategy_cegqi.cpp
+  theory/quantifiers/cegqi/inst_strategy_cegqi.h
+  theory/quantifiers/cegqi/nested_qe.cpp
+  theory/quantifiers/cegqi/nested_qe.h
+  theory/quantifiers/cegqi/vts_term_cache.cpp
+  theory/quantifiers/cegqi/vts_term_cache.h
+  theory/quantifiers/conjecture_generator.cpp
+  theory/quantifiers/conjecture_generator.h
+  theory/quantifiers/dynamic_rewrite.cpp
+  theory/quantifiers/dynamic_rewrite.h
+  theory/quantifiers/ematching/candidate_generator.cpp
+  theory/quantifiers/ematching/candidate_generator.h
+  theory/quantifiers/ematching/ho_trigger.cpp
+  theory/quantifiers/ematching/ho_trigger.h
+  theory/quantifiers/ematching/inst_match_generator.cpp
+  theory/quantifiers/ematching/inst_match_generator.h
+  theory/quantifiers/ematching/inst_strategy_e_matching.cpp
+  theory/quantifiers/ematching/inst_strategy_e_matching.h
+  theory/quantifiers/ematching/instantiation_engine.cpp
+  theory/quantifiers/ematching/instantiation_engine.h
+  theory/quantifiers/ematching/trigger.cpp
+  theory/quantifiers/ematching/trigger.h
+  theory/quantifiers/equality_infer.cpp
+  theory/quantifiers/equality_infer.h
+  theory/quantifiers/equality_query.cpp
+  theory/quantifiers/equality_query.h
+  theory/quantifiers/expr_miner.cpp
+  theory/quantifiers/expr_miner.h
+  theory/quantifiers/expr_miner_manager.cpp
+  theory/quantifiers/expr_miner_manager.h
+  theory/quantifiers/extended_rewrite.cpp
+  theory/quantifiers/extended_rewrite.h
+  theory/quantifiers/first_order_model.cpp
+  theory/quantifiers/first_order_model.h
+  theory/quantifiers/fmf/bounded_integers.cpp
+  theory/quantifiers/fmf/bounded_integers.h
+  theory/quantifiers/fmf/full_model_check.cpp
+  theory/quantifiers/fmf/full_model_check.h
+  theory/quantifiers/fmf/model_builder.cpp
+  theory/quantifiers/fmf/model_builder.h
+  theory/quantifiers/fmf/model_engine.cpp
+  theory/quantifiers/fmf/model_engine.h
+  theory/quantifiers/fun_def_evaluator.cpp
+  theory/quantifiers/fun_def_evaluator.h
+  theory/quantifiers/inst_match.cpp
+  theory/quantifiers/inst_match.h
+  theory/quantifiers/inst_match_trie.cpp
+  theory/quantifiers/inst_match_trie.h
+  theory/quantifiers/inst_strategy_enumerative.cpp
+  theory/quantifiers/inst_strategy_enumerative.h
+  theory/quantifiers/sygus_inst.cpp
+  theory/quantifiers/sygus_inst.h
+  theory/quantifiers/instantiate.cpp
+  theory/quantifiers/instantiate.h
+  theory/quantifiers/lazy_trie.cpp
+  theory/quantifiers/lazy_trie.h
+  theory/quantifiers/proof_checker.cpp
+  theory/quantifiers/proof_checker.h
+  theory/quantifiers/quant_conflict_find.cpp
+  theory/quantifiers/quant_conflict_find.h
+  theory/quantifiers/quant_epr.cpp
+  theory/quantifiers/quant_epr.h
+  theory/quantifiers/quant_relevance.cpp
+  theory/quantifiers/quant_relevance.h
+  theory/quantifiers/quant_rep_bound_ext.cpp
+  theory/quantifiers/quant_rep_bound_ext.h
+  theory/quantifiers/quant_split.cpp
+  theory/quantifiers/quant_split.h
+  theory/quantifiers/quant_util.cpp
+  theory/quantifiers/quant_util.h
+  theory/quantifiers/quantifiers_attributes.cpp
+  theory/quantifiers/quantifiers_attributes.h
+  theory/quantifiers/quantifiers_modules.cpp
+  theory/quantifiers/quantifiers_modules.h
+  theory/quantifiers/quantifiers_rewriter.cpp
+  theory/quantifiers/quantifiers_rewriter.h
+  theory/quantifiers/quantifiers_state.cpp
+  theory/quantifiers/quantifiers_state.h
+  theory/quantifiers/query_generator.cpp
+  theory/quantifiers/query_generator.h
+  theory/quantifiers/relevant_domain.cpp
+  theory/quantifiers/relevant_domain.h
+  theory/quantifiers/single_inv_partition.cpp
+  theory/quantifiers/single_inv_partition.h
+  theory/quantifiers/skolemize.cpp
+  theory/quantifiers/skolemize.h
+  theory/quantifiers/solution_filter.cpp
+  theory/quantifiers/solution_filter.h
+  theory/quantifiers/sygus/ce_guided_single_inv.cpp
+  theory/quantifiers/sygus/ce_guided_single_inv.h
+  theory/quantifiers/sygus/ce_guided_single_inv_sol.cpp
+  theory/quantifiers/sygus/ce_guided_single_inv_sol.h
+  theory/quantifiers/sygus/cegis.cpp
+  theory/quantifiers/sygus/cegis.h
+  theory/quantifiers/sygus/cegis_core_connective.cpp
+  theory/quantifiers/sygus/cegis_core_connective.h
+  theory/quantifiers/sygus/cegis_unif.cpp
+  theory/quantifiers/sygus/cegis_unif.h
+  theory/quantifiers/sygus/example_eval_cache.cpp
+  theory/quantifiers/sygus/example_eval_cache.h
+  theory/quantifiers/sygus/example_infer.cpp
+  theory/quantifiers/sygus/example_infer.h
+  theory/quantifiers/sygus/example_min_eval.cpp
+  theory/quantifiers/sygus/example_min_eval.h
+  theory/quantifiers/sygus/enum_stream_substitution.cpp
+  theory/quantifiers/sygus/enum_stream_substitution.h
+  theory/quantifiers/sygus/example_infer.cpp
+  theory/quantifiers/sygus/example_infer.h
+  theory/quantifiers/sygus/example_min_eval.cpp
+  theory/quantifiers/sygus/example_min_eval.h
+  theory/quantifiers/sygus/sygus_abduct.cpp
+  theory/quantifiers/sygus/sygus_abduct.h
+  theory/quantifiers/sygus/sygus_enumerator.cpp
+  theory/quantifiers/sygus/sygus_enumerator.h
+  theory/quantifiers/sygus/sygus_enumerator_basic.cpp
+  theory/quantifiers/sygus/sygus_enumerator_basic.h
+  theory/quantifiers/sygus/sygus_eval_unfold.cpp
+  theory/quantifiers/sygus/sygus_eval_unfold.h
+  theory/quantifiers/sygus/sygus_explain.cpp
+  theory/quantifiers/sygus/sygus_explain.h
+  theory/quantifiers/sygus/sygus_grammar_cons.cpp
+  theory/quantifiers/sygus/sygus_grammar_cons.h
+  theory/quantifiers/sygus/sygus_grammar_norm.cpp
+  theory/quantifiers/sygus/sygus_grammar_norm.h
+  theory/quantifiers/sygus/sygus_grammar_red.cpp
+  theory/quantifiers/sygus/sygus_grammar_red.h
+  theory/quantifiers/sygus/sygus_interpol.cpp
+  theory/quantifiers/sygus/sygus_interpol.h
+  theory/quantifiers/sygus/sygus_invariance.cpp
+  theory/quantifiers/sygus/sygus_invariance.h
+  theory/quantifiers/sygus/sygus_module.cpp
+  theory/quantifiers/sygus/sygus_module.h
+  theory/quantifiers/sygus/sygus_pbe.cpp
+  theory/quantifiers/sygus/sygus_pbe.h
+  theory/quantifiers/sygus/sygus_process_conj.cpp
+  theory/quantifiers/sygus/sygus_process_conj.h
+  theory/quantifiers/sygus/sygus_qe_preproc.cpp
+  theory/quantifiers/sygus/sygus_qe_preproc.h
+  theory/quantifiers/sygus/sygus_repair_const.cpp
+  theory/quantifiers/sygus/sygus_repair_const.h
+  theory/quantifiers/sygus/sygus_stats.cpp
+  theory/quantifiers/sygus/sygus_stats.h
+  theory/quantifiers/sygus/sygus_unif.cpp
+  theory/quantifiers/sygus/sygus_unif.h
+  theory/quantifiers/sygus/sygus_unif_io.cpp
+  theory/quantifiers/sygus/sygus_unif_io.h
+  theory/quantifiers/sygus/sygus_unif_rl.cpp
+  theory/quantifiers/sygus/sygus_unif_rl.h
+  theory/quantifiers/sygus/sygus_unif_strat.cpp
+  theory/quantifiers/sygus/sygus_unif_strat.h
+  theory/quantifiers/sygus/synth_conjecture.cpp
+  theory/quantifiers/sygus/synth_conjecture.h
+  theory/quantifiers/sygus/synth_engine.cpp
+  theory/quantifiers/sygus/synth_engine.h
+  theory/quantifiers/sygus/template_infer.cpp
+  theory/quantifiers/sygus/template_infer.h
+  theory/quantifiers/sygus/term_database_sygus.cpp
+  theory/quantifiers/sygus/term_database_sygus.h
+  theory/quantifiers/sygus/type_info.cpp
+  theory/quantifiers/sygus/type_info.h
+  theory/quantifiers/sygus/type_node_id_trie.cpp
+  theory/quantifiers/sygus/type_node_id_trie.h
+  theory/quantifiers/sygus/transition_inference.cpp
+  theory/quantifiers/sygus/transition_inference.h
+  theory/quantifiers/sygus_sampler.cpp
+  theory/quantifiers/sygus_sampler.h
+  theory/quantifiers/term_database.cpp
+  theory/quantifiers/term_database.h
+  theory/quantifiers/term_enumeration.cpp
+  theory/quantifiers/term_enumeration.h
+  theory/quantifiers/term_util.cpp
+  theory/quantifiers/term_util.h
+  theory/quantifiers/theory_quantifiers.cpp
+  theory/quantifiers/theory_quantifiers.h
+  theory/quantifiers/theory_quantifiers_type_rules.h
+  theory/quantifiers_engine.cpp
+  theory/quantifiers_engine.h
+  theory/relevance_manager.cpp
+  theory/relevance_manager.h
+  theory/rep_set.cpp
+  theory/rep_set.h
+  theory/rewriter.cpp
+  theory/rewriter.h
+  theory/rewriter_attributes.h
+  theory/sep/theory_sep.cpp
+  theory/sep/theory_sep.h
+  theory/sep/theory_sep_rewriter.cpp
+  theory/sep/theory_sep_rewriter.h
+  theory/sep/theory_sep_type_rules.h
+  theory/sets/cardinality_extension.cpp
+  theory/sets/cardinality_extension.h
+  theory/sets/inference_manager.cpp
+  theory/sets/inference_manager.h
+  theory/sets/normal_form.h
+  theory/sets/rels_utils.h
+  theory/sets/singleton_op.cpp
+  theory/sets/singleton_op.h
+  theory/sets/skolem_cache.cpp
+  theory/sets/skolem_cache.h
+  theory/sets/solver_state.cpp
+  theory/sets/solver_state.h
+  theory/sets/term_registry.cpp
+  theory/sets/term_registry.h
+  theory/sets/theory_sets.cpp
+  theory/sets/theory_sets.h
+  theory/sets/theory_sets_private.cpp
+  theory/sets/theory_sets_private.h
+  theory/sets/theory_sets_rels.cpp
+  theory/sets/theory_sets_rels.h
+  theory/sets/theory_sets_rewriter.cpp
+  theory/sets/theory_sets_rewriter.h
+  theory/sets/theory_sets_type_enumerator.cpp
+  theory/sets/theory_sets_type_enumerator.h
+  theory/sets/theory_sets_type_rules.h
+  theory/shared_solver.cpp
+  theory/shared_solver.h
+  theory/shared_solver_distributed.cpp
+  theory/shared_solver_distributed.h
+  theory/shared_terms_database.cpp
+  theory/shared_terms_database.h
+  theory/smt_engine_subsolver.cpp
+  theory/smt_engine_subsolver.h
+  theory/sort_inference.cpp
+  theory/sort_inference.h
+  theory/strings/arith_entail.cpp
+  theory/strings/arith_entail.h
+  theory/strings/base_solver.cpp
+  theory/strings/base_solver.h
+  theory/strings/core_solver.cpp
+  theory/strings/core_solver.h
+  theory/strings/extf_solver.cpp
+  theory/strings/extf_solver.h
+  theory/strings/eqc_info.cpp
+  theory/strings/eqc_info.h
+  theory/strings/infer_info.cpp
+  theory/strings/infer_info.h
+  theory/strings/infer_proof_cons.cpp
+  theory/strings/infer_proof_cons.h
+  theory/strings/inference_manager.cpp
+  theory/strings/inference_manager.h
+  theory/strings/normal_form.cpp
+  theory/strings/normal_form.h
+  theory/strings/proof_checker.cpp
+  theory/strings/proof_checker.h
+  theory/strings/regexp_elim.cpp
+  theory/strings/regexp_elim.h
+  theory/strings/regexp_entail.cpp
+  theory/strings/regexp_entail.h
+  theory/strings/regexp_operation.cpp
+  theory/strings/regexp_operation.h
+  theory/strings/regexp_solver.cpp
+  theory/strings/regexp_solver.h
+  theory/strings/rewrites.cpp
+  theory/strings/rewrites.h
+  theory/strings/sequences_rewriter.cpp
+  theory/strings/sequences_rewriter.h
+  theory/strings/sequences_stats.cpp
+  theory/strings/sequences_stats.h
+  theory/strings/skolem_cache.cpp
+  theory/strings/skolem_cache.h
+  theory/strings/solver_state.cpp
+  theory/strings/solver_state.h
+  theory/strings/strategy.cpp
+  theory/strings/strategy.h
+  theory/strings/strings_entail.cpp
+  theory/strings/strings_entail.h
+  theory/strings/strings_fmf.cpp
+  theory/strings/strings_fmf.h
+  theory/strings/strings_rewriter.cpp
+  theory/strings/strings_rewriter.h
+  theory/strings/theory_strings.cpp
+  theory/strings/theory_strings.h
+  theory/strings/theory_strings_preprocess.cpp
+  theory/strings/theory_strings_preprocess.h
+  theory/strings/theory_strings_type_rules.h
+  theory/strings/theory_strings_utils.cpp
+  theory/strings/theory_strings_utils.h
+  theory/strings/term_registry.cpp
+  theory/strings/term_registry.h
+  theory/strings/type_enumerator.cpp
+  theory/strings/type_enumerator.h
+  theory/strings/word.cpp
+  theory/strings/word.h
+  theory/subs_minimize.cpp
+  theory/subs_minimize.h
+  theory/substitutions.cpp
+  theory/substitutions.h
+  theory/term_registration_visitor.cpp
+  theory/term_registration_visitor.h
+  theory/theory.cpp
+  theory/theory.h
+  theory/theory_engine.cpp
+  theory/theory_engine.h
+  theory/theory_engine_proof_generator.cpp
+  theory/theory_engine_proof_generator.h
+  theory/theory_id.cpp
+  theory/theory_id.h
+  theory/theory_eq_notify.h
+  theory/theory_inference.cpp
+  theory/theory_inference.h
+  theory/theory_inference_manager.cpp
+  theory/theory_inference_manager.h
+  theory/theory_model.cpp
+  theory/theory_model.h
+  theory/theory_model_builder.cpp
+  theory/theory_model_builder.h
+  theory/theory_preprocessor.cpp
+  theory/theory_preprocessor.h
+  theory/theory_proof_step_buffer.cpp
+  theory/theory_proof_step_buffer.h
+  theory/theory_rewriter.cpp
+  theory/theory_rewriter.h
+  theory/theory_registrar.h
+  theory/theory_state.cpp
+  theory/theory_state.h
+  theory/theory_test_utils.h
+  theory/trust_node.cpp
+  theory/trust_node.h
+  theory/trust_substitutions.cpp
+  theory/trust_substitutions.h
+  theory/type_enumerator.h
+  theory/type_set.cpp
+  theory/type_set.h
+  theory/uf/cardinality_extension.cpp
+  theory/uf/cardinality_extension.h
+  theory/uf/equality_engine.cpp
+  theory/uf/equality_engine.h
+  theory/uf/equality_engine_iterator.cpp
+  theory/uf/equality_engine_iterator.h
+  theory/uf/equality_engine_notify.h
+  theory/uf/equality_engine_types.h
+  theory/uf/eq_proof.cpp
+  theory/uf/eq_proof.h
+  theory/uf/proof_checker.cpp
+  theory/uf/proof_checker.h
+  theory/uf/proof_equality_engine.cpp
+  theory/uf/proof_equality_engine.h
+  theory/uf/ho_extension.cpp
+  theory/uf/ho_extension.h
+  theory/uf/symmetry_breaker.cpp
+  theory/uf/symmetry_breaker.h
+  theory/uf/theory_uf.cpp
+  theory/uf/theory_uf.h
+  theory/uf/theory_uf_model.cpp
+  theory/uf/theory_uf_model.h
+  theory/uf/theory_uf_rewriter.h
+  theory/uf/theory_uf_type_rules.h
+  theory/valuation.cpp
+  theory/valuation.h
+)
+
+#-----------------------------------------------------------------------------#
+# Add required include paths for this and all subdirectories.
+
+include_directories(include)
+include_directories(. ${CMAKE_CURRENT_BINARY_DIR})
+
+#-----------------------------------------------------------------------------#
+
+set(KINDS_FILES
+  ${PROJECT_SOURCE_DIR}/src/theory/builtin/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/booleans/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/uf/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/arith/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/bv/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/fp/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/arrays/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/datatypes/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/sep/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/sets/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/bags/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/strings/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds)
+
+#-----------------------------------------------------------------------------#
+# Add subdirectories
+
+add_subdirectory(base)
+add_subdirectory(expr)
+add_subdirectory(options)
+if (NOT BUILD_LIB_ONLY)
+  add_subdirectory(parser)
+endif()
+add_subdirectory(theory)
+add_subdirectory(util)
+
+#-----------------------------------------------------------------------------#
+# All sources for libcvc4 are now collected in LIBCVC4_SRCS and (if generated)
+# LIBCVC4_GEN_SRCS (via libcvc4_add_sources). We can now build libcvc4.
+
+set_source_files_properties(${LIBCVC4_GEN_SRCS} PROPERTIES GENERATED TRUE)
+add_library(cvc4 ${LIBCVC4_SRCS} ${LIBCVC4_GEN_SRCS})
+target_include_directories(cvc4
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:include>
+)
+
+install(TARGETS cvc4
+  EXPORT cvc4-targets
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+set_target_properties(cvc4 PROPERTIES SOVERSION ${CVC4_SOVERSION})
+target_compile_definitions(cvc4
+  PRIVATE
+    -D__BUILDING_CVC4LIB
+    -D__STDC_LIMIT_MACROS
+    -D__STDC_FORMAT_MACROS
+)
+# Add libcvc4 dependencies for generated sources.
+add_dependencies(cvc4 gen-expr gen-gitinfo gen-options gen-tags gen-theory)
+
+# Add library/include dependencies
+if(ENABLE_VALGRIND)
+  target_include_directories(cvc4 PRIVATE ${Valgrind_INCLUDE_DIR})
+endif()
+if(USE_ABC)
+  target_link_libraries(cvc4 ${ABC_LIBRARIES})
+  target_include_directories(cvc4 PRIVATE ${ABC_INCLUDE_DIR})
+endif()
+if(USE_CADICAL)
+  target_link_libraries(cvc4 ${CaDiCaL_LIBRARIES})
+  target_include_directories(cvc4 PRIVATE ${CaDiCaL_INCLUDE_DIR})
+endif()
+if(USE_CLN)
+  target_link_libraries(cvc4 ${CLN_LIBRARIES})
+  target_include_directories(cvc4 PUBLIC $<BUILD_INTERFACE:${CLN_INCLUDE_DIR}>)
+endif()
+if(USE_CRYPTOMINISAT)
+  target_link_libraries(cvc4 ${CryptoMiniSat_LIBRARIES})
+  target_include_directories(cvc4 PRIVATE ${CryptoMiniSat_INCLUDE_DIR})
+endif()
+if(USE_KISSAT)
+  target_link_libraries(cvc4 ${Kissat_LIBRARIES})
+  target_include_directories(cvc4 PRIVATE ${Kissat_INCLUDE_DIR})
+endif()
+if(USE_DRAT2ER)
+  target_link_libraries(cvc4 ${Drat2Er_LIBRARIES})
+  target_include_directories(cvc4 PRIVATE ${Drat2Er_INCLUDE_DIR})
+endif()
+if(USE_GLPK)
+  target_link_libraries(cvc4 ${GLPK_LIBRARIES})
+  target_include_directories(cvc4 PRIVATE ${GLPK_INCLUDE_DIR})
+endif()
+if(USE_LFSC)
+  target_link_libraries(cvc4 ${LFSC_LIBRARIES})
+  target_include_directories(cvc4 PRIVATE ${LFSC_INCLUDE_DIR})
+endif()
+if(USE_POLY)
+  target_link_libraries(cvc4 ${POLY_LIBRARIES})
+  target_include_directories(cvc4 PRIVATE ${POLY_INCLUDE_DIR})
+endif()
+if(USE_SYMFPU)
+  target_include_directories(cvc4
+    PUBLIC $<BUILD_INTERFACE:${SymFPU_INCLUDE_DIR}>)
+endif()
+
+# Note: When linked statically GMP needs to be linked after CLN since CLN
+# depends on GMP.
+target_link_libraries(cvc4 ${GMP_LIBRARIES})
+target_include_directories(cvc4 PUBLIC $<BUILD_INTERFACE:${GMP_INCLUDE_DIR}>)
+
+# Add rt library
+# Note: For glibc < 2.17 we have to additionally link against rt (man clock_gettime).
+#       RT_LIBRARIES should be empty for glibc >= 2.17
+target_link_libraries(cvc4 ${RT_LIBRARIES})
+
+#-----------------------------------------------------------------------------#
+# Visit main subdirectory after creating target cvc4. For target main, we have
+# to manually add library dependencies since we can't use
+# target_link_libraries(...) with object libraries for cmake versions <= 3.12.
+# Thus, we can only visit main as soon as all dependencies for cvc4 are set up.
+
+if (NOT BUILD_LIB_ONLY)
+  add_subdirectory(main)
+endif()
+
+#-----------------------------------------------------------------------------#
+# Note:
+# We define all install commands for all public headers here in one
+# place so that we can easily remove them as soon as we enforce the new
+# C++ API.
+#
+# All (generated) headers that either include cvc4_public.h or
+# cvc4parser_public.h need to be listed explicitly here.
+#
+install(FILES
+          api/cvc4cpp.h
+          api/cvc4cppkind.h
+        DESTINATION
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/api)
+install(FILES
+          base/configuration.h
+          base/exception.h
+          base/listener.h
+          base/modal_exception.h
+        DESTINATION
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/base)
+install(FILES
+          context/cdhashmap_forward.h
+          context/cdhashset_forward.h
+          context/cdinsert_hashmap_forward.h
+          context/cdlist_forward.h
+        DESTINATION
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/context)
+install(FILES
+          include/cvc4.h
+          include/cvc4_public.h
+          include/cvc4parser_public.h
+        DESTINATION
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4)
+install(FILES
+          expr/array.h
+          expr/array_store_all.h
+          expr/ascription_type.h
+          expr/emptyset.h
+          expr/expr_iomanip.h
+          expr/record.h
+          expr/sequence.h
+          expr/symbol_manager.h
+          expr/symbol_table.h
+          expr/type.h
+          expr/uninterpreted_constant.h
+          expr/variable_type_map.h
+          ${CMAKE_CURRENT_BINARY_DIR}/expr/expr.h
+          ${CMAKE_CURRENT_BINARY_DIR}/expr/kind.h
+          ${CMAKE_CURRENT_BINARY_DIR}/expr/expr_manager.h
+        DESTINATION
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/expr)
+install(FILES
+          options/language.h
+          options/option_exception.h
+          options/options.h
+          options/printer_modes.h
+          options/set_language.h
+        DESTINATION
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/options)
+install(FILES
+          parser/input.h
+          parser/parser.h
+          parser/parser_builder.h
+          parser/parser_exception.h
+          parser/parse_op.h
+        DESTINATION
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/parser)
+install(FILES
+        DESTINATION
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/printer)
+install(FILES
+          proof/unsat_core.h
+        DESTINATION
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/proof)
+install(FILES
+          smt/command.h
+          smt/logic_exception.h
+          smt/smt_engine.h
+        DESTINATION
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/smt)
+install(FILES
+          theory/logic_info.h
+          theory/theory_id.h
+        DESTINATION
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/theory)
+install(FILES
+          util/abstract_value.h
+          util/bitvector.h
+          util/bool.h
+          util/cardinality.h
+          util/divisible.h
+          util/gmp_util.h
+          util/hash.h
+          util/iand.h
+          util/integer_cln_imp.h
+          util/integer_gmp_imp.h
+          util/maybe.h
+          util/poly_util.h
+          util/rational_cln_imp.h
+          util/rational_gmp_imp.h
+          util/real_algebraic_number_poly_imp.h
+          util/regexp.h
+          util/resource_manager.h
+          util/result.h
+          util/sexpr.h
+          util/statistics.h
+          util/string.h
+          util/tuple.h
+          util/unsafe_interrupt_exception.h
+          ${CMAKE_CURRENT_BINARY_DIR}/util/integer.h
+          ${CMAKE_CURRENT_BINARY_DIR}/util/rational.h
+          ${CMAKE_CURRENT_BINARY_DIR}/util/real_algebraic_number.h
+          ${CMAKE_CURRENT_BINARY_DIR}/util/floatingpoint_literal_symfpu.h
+        DESTINATION
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/util)
+
+# Fix include paths for all public headers.
+# Note: This is a temporary fix until the new C++ API is in place.
+install(CODE "execute_process(COMMAND
+                ${CMAKE_CURRENT_LIST_DIR}/fix-install-headers.sh
+                ${CMAKE_INSTALL_PREFIX})")

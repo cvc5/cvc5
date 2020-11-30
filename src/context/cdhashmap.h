@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -79,17 +79,17 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__CONTEXT__CDHASHMAP_H
-#define __CVC4__CONTEXT__CDHASHMAP_H
+#ifndef CVC4__CONTEXT__CDHASHMAP_H
+#define CVC4__CONTEXT__CDHASHMAP_H
 
 #include <functional>
 #include <iterator>
 #include <unordered_map>
 #include <vector>
 
-#include "base/cvc4_assert.h"
-#include "context/context.h"
+#include "base/check.h"
 #include "context/cdhashmap_forward.h"
+#include "context/context.h"
 
 namespace CVC4 {
 namespace context {
@@ -100,12 +100,29 @@ template <class Key, class Data, class HashFcn = std::hash<Key> >
 class CDOhash_map : public ContextObj {
   friend class CDHashMap<Key, Data, HashFcn>;
 
-  Key d_key;
-  Data d_data;
-  CDHashMap<Key, Data, HashFcn>* d_map;
+ public:
+  // The type of the <Key, Data> pair mapped by this class.
+  //
+  // Implementation:
+  // The data and key visible to users of CDHashMap are only visible through
+  // const references. Thus the type of dereferencing a
+  // CDHashMap<Key, Data>::iterator.second is intended to always be a
+  // `const Data&`. (Otherwise, to get a Data& safely, access operations
+  // would need to makeCurrent() to get the Data&, which is an unacceptable
+  // performance hit.) To allow for the desired updating in other scenarios, we
+  // store a std::pair<const Key, const Data> and break the const encapsulation
+  // when necessary.
+  using value_type = std::pair<const Key, const Data>;
 
-  /** never put this cdhashmapelement on the trash */
-  bool d_noTrash;
+ private:
+  value_type d_value;
+
+  // See documentation of value_type for why this is needed.
+  Key& mutable_key() { return const_cast<Key&>(d_value.first); }
+  // See documentation of value_type for why this is needed.
+  Data& mutable_data() { return const_cast<Data&>(d_value.second); }
+
+  CDHashMap<Key, Data, HashFcn>* d_map;
 
   // Doubly-linked list for keeping track of elements in order of insertion
   CDOhash_map* d_prev;
@@ -121,10 +138,10 @@ class CDOhash_map : public ContextObj {
     CDOhash_map* p = static_cast<CDOhash_map*>(data);
     if(d_map != NULL) {
       if(p->d_map == NULL) {
-        Assert(d_map->d_map.find(d_key) != d_map->d_map.end() &&
-               (*d_map->d_map.find(d_key)).second == this);
+        Assert(d_map->d_map.find(getKey()) != d_map->d_map.end()
+               && (*d_map->d_map.find(getKey())).second == this);
         // no longer in map (popped beyond first level in which it was)
-        d_map->d_map.erase(d_key);
+        d_map->d_map.erase(getKey());
         // If we call deleteSelf() here, it re-enters restore().  So,
         // put it on a "trash heap" instead, for later deletion.
         //
@@ -142,72 +159,53 @@ class CDOhash_map : public ContextObj {
         }
         d_next->d_prev = d_prev;
         d_prev->d_next = d_next;
-        if(d_noTrash) {
-          Debug("gc") << "CDHashMap<> no-trash " << this << std::endl;
-        } else {
-          Debug("gc") << "CDHashMap<> trash push_back " << this << std::endl;
-          //this->deleteSelf();
-          enqueueToGarbageCollect();
-        }
+
+        Debug("gc") << "CDHashMap<> trash push_back " << this << std::endl;
+        // this->deleteSelf();
+        enqueueToGarbageCollect();
       } else {
-        d_data = p->d_data;
+        mutable_data() = p->get();
       }
     }
     // Explicitly call destructors for the key and the data as they will not
     // otherwise get called.
-    p->d_key.~Key();
-    p->d_data.~Data();
+    p->mutable_key().~Key();
+    p->mutable_data().~Data();
   }
 
   /** ensure copy ctor is only called by us */
-  CDOhash_map(const CDOhash_map& other) :
-    ContextObj(other),
-    // don't need to save the key---and if we do we can get
-    // refcounts for Node keys messed up and leak memory
-    d_key(),
-    d_data(other.d_data),
-    d_map(other.d_map),
-    d_prev(NULL),
-    d_next(NULL) {
+  CDOhash_map(const CDOhash_map& other)
+      : ContextObj(other),
+        // don't need to save the key---and if we do we can get
+        // refcounts for Node keys messed up and leak memory
+        d_value(Key(), other.d_value.second),
+        d_map(other.d_map),
+        d_prev(NULL),
+        d_next(NULL)
+  {
   }
-  CDOhash_map& operator=(const CDOhash_map&) CVC4_UNDEFINED;
+  CDOhash_map& operator=(const CDOhash_map&) = delete;
 
-public:
-
+ public:
   CDOhash_map(Context* context,
-         CDHashMap<Key, Data, HashFcn>* map,
-         const Key& key,
-         const Data& data,
-         bool atLevelZero = false,
-         bool allocatedInCMM = false) :
-    ContextObj(allocatedInCMM, context),
-    d_key(key),
-    d_data(data),
-    d_map(NULL),
-    d_noTrash(allocatedInCMM) {
-
-    // untested, probably unsafe.
-    Assert(!(atLevelZero && allocatedInCMM));
-
+              CDHashMap<Key, Data, HashFcn>* map,
+              const Key& key,
+              const Data& data,
+              bool atLevelZero = false)
+      : ContextObj(false, context), d_value(key, data), d_map(NULL)
+  {
     if(atLevelZero) {
       // "Initializing" map insertion: this entry will never be
       // removed from the map, it's inserted at level 0 as an
       // "initializing" element.  See
       // CDHashMap<>::insertAtContextLevelZero().
-      d_data = data;
+      mutable_data() = data;
     } else {
       // Normal map insertion: first makeCurrent(), then set the data
       // and then, later, the map.  Order is important; we can't
       // initialize d_map in the constructor init list above, because
       // we want the restore of d_map to NULL to signal us to remove
       // the element from the map.
-
-      if(allocatedInCMM) {
-        // Force a save/restore point, even though the object is
-        // allocated here.  This is so that we can detect when the
-        // object falls out of the map (otherwise we wouldn't get it).
-        makeSaveRestorePoint();
-      }
 
       set(data);
     }
@@ -232,16 +230,14 @@ public:
 
   void set(const Data& data) {
     makeCurrent();
-    d_data = data;
+    mutable_data() = data;
   }
 
-  const Key& getKey() const {
-    return d_key;
-  }
+  const Key& getKey() const { return d_value.first; }
 
-  const Data& get() const {
-    return d_data;
-  }
+  const Data& get() const { return d_value.second; }
+
+  const value_type& getValue() const { return d_value; }
 
   operator Data() {
     return get();
@@ -281,14 +277,18 @@ class CDHashMap : public ContextObj {
   Context* d_context;
 
   // Nothing to save; the elements take care of themselves
-  ContextObj* save(ContextMemoryManager* pCMM) override { Unreachable(); }
+  ContextObj* save(ContextMemoryManager* pCMM) override
+  {
+    Unreachable();
+    SuppressWrongNoReturnWarning;
+  }
 
   // Similarly, nothing to restore
   void restore(ContextObj* data) override { Unreachable(); }
 
   // no copy or assignment
-  CDHashMap(const CDHashMap&) CVC4_UNDEFINED;
-  CDHashMap& operator=(const CDHashMap&) CVC4_UNDEFINED;
+  CDHashMap(const CDHashMap&) = delete;
+  CDHashMap& operator=(const CDHashMap&) = delete;
 
 public:
   CDHashMap(Context* context)
@@ -312,9 +312,7 @@ public:
       // mark it as being a destruction (short-circuit restore())
       Element* element = key_element_pair.second;
       element->d_map = nullptr;
-      if (!element->d_noTrash) {
-        element->deleteSelf();
-      }
+      element->deleteSelf();
     }
     d_map.clear();
     d_first = nullptr;
@@ -395,10 +393,17 @@ public:
 
   // FIXME: no erase(), too much hassle to implement efficiently...
 
+  using value_type = typename CDOhash_map<Key, Data, HashFcn>::value_type;
+
   class iterator {
     const Element* d_it;
 
-  public:
+   public:
+    using iterator_category = std::input_iterator_tag;
+    using value_type = typename CDOhash_map<Key, Data, HashFcn>::value_type;
+    using difference_type = ptrdiff_t;
+    using pointer = typename CDOhash_map<Key, Data, HashFcn>::value_type*;
+    using reference = typename CDOhash_map<Key, Data, HashFcn>::value_type&;
 
     iterator(const Element* p) : d_it(p) {}
     iterator(const iterator& i) : d_it(i.d_it) {}
@@ -407,47 +412,21 @@ public:
     iterator() : d_it(nullptr) {}
 
     // (Dis)equality
-    bool operator==(const iterator& i) const {
-      return d_it == i.d_it;
-    }
-    bool operator!=(const iterator& i) const {
-      return d_it != i.d_it;
-    }
+    bool operator==(const iterator& i) const { return d_it == i.d_it; }
+    bool operator!=(const iterator& i) const { return d_it != i.d_it; }
 
     // Dereference operators.
-    std::pair<const Key, const Data> operator*() const {
-      return std::pair<const Key, const Data>(d_it->getKey(), d_it->get());
-    }
+    const value_type& operator*() const { return d_it->getValue(); }
+    const value_type* operator->() const { return &d_it->getValue(); }
 
     // Prefix increment
-    iterator& operator++() {
+    iterator& operator++()
+    {
       d_it = d_it->next();
       return *this;
     }
 
-    // Postfix increment: requires a Proxy object to hold the
-    // intermediate value for dereferencing
-    class Proxy {
-      const std::pair<const Key, Data>* d_pair;
-
-    public:
-
-      Proxy(const std::pair<const Key, Data>& p) : d_pair(&p) {}
-
-      const std::pair<const Key, Data>& operator*() const {
-        return *d_pair;
-      }
-    };/* class CDHashMap<>::iterator::Proxy */
-
-    // Actual postfix increment: returns Proxy with the old value.
-    // Now, an expression like *i++ will return the current *i, and
-    // then advance the iterator.  However, don't try to use
-    // Proxy for anything else.
-    const Proxy operator++(int) {
-      Proxy e(*(*this));
-      ++(*this);
-      return e;
-    }
+    // Postfix increment is not yet supported.
   };/* class CDHashMap<>::iterator */
 
   typedef iterator const_iterator;
@@ -476,4 +455,4 @@ public:
 }/* CVC4::context namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__CONTEXT__CDHASHMAP_H */
+#endif /* CVC4__CONTEXT__CDHASHMAP_H */

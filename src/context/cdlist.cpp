@@ -47,7 +47,7 @@ void CDList<bool, DefaultCleanUp<bool> >::truncateList(const size_t size)
 template <>
 const bool& CDList<bool, DefaultCleanUp<bool> >::operator[](size_t i) const
 {
-  Assert(i < d_size, "index out of bounds in CDList::operator[]");
+  Assert(i < d_size) << "index out of bounds in CDList::operator[]";
   return std::move(d_list[i]);
 }
 

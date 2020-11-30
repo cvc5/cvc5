@@ -2,10 +2,10 @@
 /*! \file inst_match_generator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Clark Barrett
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,19 +14,17 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__INST_MATCH_GENERATOR_H
-#define __CVC4__THEORY__QUANTIFIERS__INST_MATCH_GENERATOR_H
+#ifndef CVC4__THEORY__QUANTIFIERS__INST_MATCH_GENERATOR_H
+#define CVC4__THEORY__QUANTIFIERS__INST_MATCH_GENERATOR_H
 
 #include <map>
+#include "expr/node_trie.h"
 #include "theory/quantifiers/inst_match_trie.h"
 
 namespace CVC4 {
 namespace theory {
 
 class QuantifiersEngine;
-namespace quantifiers{
-  class TermArgTrie;
-}
 
 namespace inst {
 
@@ -440,7 +438,7 @@ public:
 
  private:
   /** variable we are matching (x in the example x+1). */
-  TNode d_var;
+  Node d_var;
   /** cache of d_var.getType() */
   TypeNode d_var_type;
   /** The substitution for what we match (x-1 in the example x+1). */
@@ -662,7 +660,7 @@ class InstMatchGeneratorSimple : public IMGenerator {
                          QuantifiersEngine* qe,
                          int& addedLemmas,
                          unsigned argIndex,
-                         quantifiers::TermArgTrie* tat);
+                         TNodeTrie* tat);
 };/* class InstMatchGeneratorSimple */
 }
 }

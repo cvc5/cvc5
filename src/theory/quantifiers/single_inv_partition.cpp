@@ -2,10 +2,10 @@
 /*! \file single_inv_partition.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,6 +14,7 @@
  **/
 #include "theory/quantifiers/single_inv_partition.h"
 
+#include "expr/node_algorithm.h"
 #include "theory/quantifiers/term_util.h"
 
 using namespace CVC4;
@@ -128,26 +129,38 @@ bool SingleInvocationPartition::inferArgTypes(Node n,
 
 bool SingleInvocationPartition::init(std::vector<Node>& funcs, Node n)
 {
-  Trace("si-prt") << "Initialize with " << funcs.size() << " input functions..."
-                  << std::endl;
+  Trace("si-prt") << "Initialize with " << funcs.size() << " input functions ("
+                  << funcs << ")..." << std::endl;
   std::vector<TypeNode> typs;
   if (!funcs.empty())
   {
     TypeNode tn0 = funcs[0].getType();
-    for (unsigned i = 1; i < funcs.size(); i++)
+    if (tn0.getNumChildren() > 0)
     {
-      if (funcs[i].getType() != tn0)
+      for (unsigned i = 0, nargs = tn0.getNumChildren() - 1; i < nargs; i++)
+      {
+        typs.push_back(tn0[i]);
+      }
+    }
+    for (unsigned i = 1, size = funcs.size(); i < size; i++)
+    {
+      TypeNode tni = funcs[i].getType();
+      if (tni.getNumChildren() != tn0.getNumChildren())
       {
         // can't anti-skolemize functions of different sort
         Trace("si-prt") << "...type mismatch" << std::endl;
         return false;
       }
-    }
-    if (tn0.getNumChildren() > 1)
-    {
-      for (unsigned j = 0; j < tn0.getNumChildren() - 1; j++)
+      else if (tni.getNumChildren() > 0)
       {
-        typs.push_back(tn0[j]);
+        for (unsigned j = 0, nargs = tni.getNumChildren() - 1; j < nargs; j++)
+        {
+          if (tni[j] != typs[j])
+          {
+            Trace("si-prt") << "...argument type mismatch" << std::endl;
+            return false;
+          }
+        }
       }
     }
   }
@@ -163,6 +176,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
   Assert(d_arg_types.empty());
   Assert(d_input_funcs.empty());
   Assert(d_si_vars.empty());
+  NodeManager* nm = NodeManager::currentNM();
   d_has_input_funcs = has_funcs;
   d_arg_types.insert(d_arg_types.end(), typs.begin(), typs.end());
   d_input_funcs.insert(d_input_funcs.end(), funcs.begin(), funcs.end());
@@ -171,10 +185,15 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
   {
     std::stringstream ss;
     ss << "s_" << j;
-    Node si_v = NodeManager::currentNM()->mkBoundVar(ss.str(), d_arg_types[j]);
+    Node si_v = nm->mkBoundVar(ss.str(), d_arg_types[j]);
     d_si_vars.push_back(si_v);
   }
   Assert(d_si_vars.size() == d_arg_types.size());
+  for (const Node& inf : d_input_funcs)
+  {
+    Node sk = nm->mkSkolem("_sik", inf.getType());
+    d_input_func_sks.push_back(sk);
+  }
   Trace("si-prt") << "SingleInvocationPartition::process " << n << std::endl;
   Trace("si-prt") << "Get conjuncts..." << std::endl;
   std::vector<Node> conj;
@@ -187,7 +206,21 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
       std::vector<Node> si_subs;
       Trace("si-prt") << "Process conjunct : " << conj[i] << std::endl;
       // do DER on conjunct
-      Node cr = TermUtil::getQuantSimplify(conj[i]);
+      // Must avoid eliminating the first-order input functions in the
+      // getQuantSimplify step below. We use a substitution to avoid this.
+      // This makes it so that e.g. the synthesis conjecture:
+      //   exists f. f!=0 ^ P
+      // is not rewritten to exists f. (f=0 => false) ^ P and subsquently
+      // rewritten to exists f. false ^ P by the elimination f -> 0.
+      Node cr = conj[i].substitute(d_input_funcs.begin(),
+                                   d_input_funcs.end(),
+                                   d_input_func_sks.begin(),
+                                   d_input_func_sks.end());
+      cr = TermUtil::getQuantSimplify(cr);
+      cr = cr.substitute(d_input_func_sks.begin(),
+                         d_input_func_sks.end(),
+                         d_input_funcs.begin(),
+                         d_input_funcs.end());
       if (cr != conj[i])
       {
         Trace("si-prt-debug") << "...rewritten to " << cr << std::endl;
@@ -210,7 +243,6 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
         }
         std::map<Node, Node> subs_map;
         std::map<Node, Node> subs_map_rev;
-        std::vector<Node> funcs;
         // normalize the invocations
         if (!terms.empty())
         {
@@ -248,17 +280,17 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
         Trace("si-prt-debug") << "...normalized invocations to " << cr
                               << std::endl;
         // now must check if it has other bound variables
-        std::vector<Node> bvs;
-        TermUtil::getBoundVars(cr, bvs);
+        std::unordered_set<Node, NodeHashFunction> fvs;
+        expr::getFreeVariables(cr, fvs);
         // bound variables must be contained in the single invocation variables
-        for (const Node& bv : bvs)
+        for (const Node& bv : fvs)
         {
           if (std::find(d_si_vars.begin(), d_si_vars.end(), bv)
               == d_si_vars.end())
           {
-            // getBoundVars also collects functions in the rare case that we are
-            // synthesizing a function with 0 arguments, take this into account
-            // here.
+            // getFreeVariables also collects functions in the rare case that
+            // we are synthesizing a function with 0 arguments, take this into
+            // account here.
             if (std::find(d_input_funcs.begin(), d_input_funcs.end(), bv)
                 == d_input_funcs.end())
             {
@@ -279,24 +311,24 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
         Trace("si-prt") << "...not single invocation." << std::endl;
         singleInvocation = false;
         // rename bound variables with maximal overlap with si_vars
-        std::vector<Node> bvs;
-        TermUtil::getBoundVars(cr, bvs);
-        std::vector<Node> terms;
-        std::vector<Node> subs;
-        for (unsigned j = 0; j < bvs.size(); j++)
+        std::unordered_set<Node, NodeHashFunction> fvs;
+        expr::getFreeVariables(cr, fvs);
+        std::vector<Node> termsNs;
+        std::vector<Node> subsNs;
+        for (const Node& v : fvs)
         {
-          TypeNode tn = bvs[j].getType();
-          Trace("si-prt-debug") << "Fit bound var #" << j << " : " << bvs[j]
-                                << " with si." << std::endl;
+          TypeNode tn = v.getType();
+          Trace("si-prt-debug")
+              << "Fit bound var: " << v << " with si." << std::endl;
           for (unsigned k = 0; k < d_si_vars.size(); k++)
           {
             if (tn == d_arg_types[k])
             {
-              if (std::find(subs.begin(), subs.end(), d_si_vars[k])
-                  == subs.end())
+              if (std::find(subsNs.begin(), subsNs.end(), d_si_vars[k])
+                  == subsNs.end())
               {
-                terms.push_back(bvs[j]);
-                subs.push_back(d_si_vars[k]);
+                termsNs.push_back(v);
+                subsNs.push_back(d_si_vars[k]);
                 Trace("si-prt-debug") << "  ...use " << d_si_vars[k]
                                       << std::endl;
                 break;
@@ -304,15 +336,17 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
             }
           }
         }
-        Assert(terms.size() == subs.size());
-        cr =
-            cr.substitute(terms.begin(), terms.end(), subs.begin(), subs.end());
+        Assert(termsNs.size() == subsNs.size());
+        cr = cr.substitute(
+            termsNs.begin(), termsNs.end(), subsNs.begin(), subsNs.end());
       }
       cr = Rewriter::rewrite(cr);
       Trace("si-prt") << ".....got si=" << singleInvocation
                       << ", result : " << cr << std::endl;
       d_conjuncts[2].push_back(cr);
-      TermUtil::getBoundVars(cr, d_all_vars);
+      std::unordered_set<Node, NodeHashFunction> fvs;
+      expr::getFreeVariables(cr, fvs);
+      d_all_vars.insert(fvs.begin(), fvs.end());
       if (singleInvocation)
       {
         // replace with single invocation formulation
@@ -336,6 +370,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
   else
   {
     Trace("si-prt") << "...failed." << std::endl;
+    return false;
   }
   return true;
 }
@@ -388,7 +423,6 @@ bool SingleInvocationPartition::processConjunct(Node n,
   else
   {
     bool ret = true;
-    // if( TermUtil::hasBoundVarAttr( n ) ){
     for (unsigned i = 0; i < n.getNumChildren(); i++)
     {
       if (!processConjunct(n[i], visited, args, terms, subs))
@@ -478,8 +512,8 @@ bool SingleInvocationPartition::isAntiSkolemizableType(Node f)
   {
     TypeNode tn = f.getType();
     bool ret = false;
-    if (tn.getNumChildren() == d_arg_types.size() + 1
-        || (d_arg_types.empty() && tn.getNumChildren() == 0))
+    if (((tn.isFunction() && tn.getNumChildren() == d_arg_types.size() + 1)
+         || (d_arg_types.empty() && tn.getNumChildren() == 0)))
     {
       ret = true;
       std::vector<Node> children;

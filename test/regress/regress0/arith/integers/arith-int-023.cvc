@@ -1,4 +1,4 @@
-% EXPECT: invalid
+% EXPECT: not_entailed
 x0, x1, x2, x3 : INT;
 ASSERT (29 * x0) + (-19 * x1) + (23 * x2) + (15 * x3) <= 9;
 QUERY FALSE;

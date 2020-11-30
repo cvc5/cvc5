@@ -7,7 +7,7 @@
 theory THEORY_DATATYPES ::CVC4::theory::datatypes::TheoryDatatypes "theory/datatypes/theory_datatypes.h"
 typechecker "theory/datatypes/theory_datatypes_type_rules.h"
 
-properties check presolve parametric propagate getNextDecisionRequest
+properties check parametric
 
 rewriter ::CVC4::theory::datatypes::DatatypesRewriter "theory/datatypes/datatypes_rewriter.h"
 
@@ -41,15 +41,15 @@ parameterized APPLY_TESTER TESTER_TYPE 1 "tester application; first parameter is
 constant DATATYPE_TYPE \
     ::CVC4::DatatypeIndexConstant \
     "::CVC4::DatatypeIndexConstantHashFunction" \
-    "expr/datatype.h" \
+    "expr/datatype_index.h" \
     "a datatype type index"
 cardinality DATATYPE_TYPE \
-    "%TYPE%.getDatatype().getCardinality(%TYPE%.toType())" \
-    "expr/datatype.h"
+    "%TYPE%.getDType().getCardinality(%TYPE%)" \
+    "expr/dtype.h"
 well-founded DATATYPE_TYPE \
-    "%TYPE%.getDatatype().isWellFounded()" \
-    "%TYPE%.getDatatype().mkGroundTerm(%TYPE%.toType())" \
-    "expr/datatype.h"
+    "%TYPE%.getDType().isWellFounded()" \
+    "%TYPE%.getDType().mkGroundTerm(%TYPE%)" \
+    "expr/dtype.h"
 
 enumerator DATATYPE_TYPE \
     "::CVC4::theory::datatypes::DatatypesEnumerator" \
@@ -57,12 +57,12 @@ enumerator DATATYPE_TYPE \
 
 operator PARAMETRIC_DATATYPE 1: "parametric datatype"
 cardinality PARAMETRIC_DATATYPE \
-    "DatatypeType(%TYPE%.toType()).getDatatype().getCardinality(%TYPE%.toType())" \
-    "expr/datatype.h"
+    "%TYPE%.getDType().getCardinality(%TYPE%)" \
+    "expr/dtype.h"
 well-founded PARAMETRIC_DATATYPE \
-    "DatatypeType(%TYPE%.toType()).getDatatype().isWellFounded()" \
-    "DatatypeType(%TYPE%.toType()).getDatatype().mkGroundTerm(%TYPE%.toType())" \
-    "expr/datatype.h"
+    "%TYPE%.getDType().isWellFounded()" \
+    "%TYPE%.getDType().mkGroundTerm(%TYPE%)" \
+    "expr/dtype.h"
 
 enumerator PARAMETRIC_DATATYPE \
     "::CVC4::theory::datatypes::DatatypesEnumerator" \
@@ -91,6 +91,7 @@ constant TUPLE_UPDATE_OP \
         "util/tuple.h" \
         "operator for a tuple update; payload is an instance of the CVC4::TupleUpdate class"
 parameterized TUPLE_UPDATE TUPLE_UPDATE_OP 2 "tuple update; first parameter is a TUPLE_UPDATE_OP (which references an index), second is the tuple, third is the element to store in the tuple at the given index"
+typerule TUPLE_UPDATE_OP ::CVC4::theory::datatypes::TupleUpdateOpTypeRule
 typerule TUPLE_UPDATE ::CVC4::theory::datatypes::TupleUpdateTypeRule
 
 constant RECORD_UPDATE_OP \
@@ -99,6 +100,7 @@ constant RECORD_UPDATE_OP \
         "expr/record.h" \
         "operator for a record update; payload is an instance CVC4::RecordUpdate class"
 parameterized RECORD_UPDATE RECORD_UPDATE_OP 2 "record update; first parameter is a RECORD_UPDATE_OP (which references a field), second is a record term to update, third is the element to store in the record in the given field"
+typerule RECORD_UPDATE_OP ::CVC4::theory::datatypes::RecordUpdateOpTypeRule
 typerule RECORD_UPDATE ::CVC4::theory::datatypes::RecordUpdateTypeRule
 
 
@@ -116,5 +118,24 @@ typerule DT_SYGUS_BOUND ::CVC4::theory::datatypes::DtSygusBoundTypeRule
 
 operator DT_SYGUS_EVAL 1: "datatypes sygus evaluation function"
 typerule DT_SYGUS_EVAL ::CVC4::theory::datatypes::DtSyguEvalTypeRule
+
+
+# Kinds for match terms. For example, the match term
+#   (match l (((cons h t) h) (nil 0))) 
+# is represented by the AST
+#   (MATCH l 
+#      (MATCH_BIND_CASE (BOUND_VAR_LIST h t) (cons h t) h)
+#      (MATCH_CASE nil 0)
+#   )
+# where notice that patterns with free variables use MATCH_BIND_CASE whereas
+# patterns with no free variables use MATCH_CASE.
+
+operator MATCH 2: "match construct"
+operator MATCH_CASE 2 "a match case"
+operator MATCH_BIND_CASE 3 "a match case with bound variables"
+
+typerule MATCH ::CVC4::theory::datatypes::MatchTypeRule
+typerule MATCH_CASE ::CVC4::theory::datatypes::MatchCaseTypeRule
+typerule MATCH_BIND_CASE ::CVC4::theory::datatypes::MatchBindCaseTypeRule
 
 endtheory

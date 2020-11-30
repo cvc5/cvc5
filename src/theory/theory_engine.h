@@ -2,10 +2,10 @@
 /*! \file theory_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Andrew Reynolds
+ **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,57 +16,61 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY_ENGINE_H
-#define __CVC4__THEORY_ENGINE_H
+#ifndef CVC4__THEORY_ENGINE_H
+#define CVC4__THEORY_ENGINE_H
 
 #include <deque>
 #include <memory>
 #include <set>
 #include <unordered_map>
-#include <vector>
 #include <utility>
+#include <vector>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "context/cdhashset.h"
 #include "expr/node.h"
 #include "options/options.h"
 #include "options/smt_options.h"
+#include "options/theory_options.h"
 #include "prop/prop_engine.h"
-#include "smt/command.h"
-#include "smt_util/lemma_channels.h"
 #include "theory/atom_requests.h"
+#include "theory/engine_output_channel.h"
 #include "theory/interrupted.h"
 #include "theory/rewriter.h"
-#include "theory/shared_terms_database.h"
 #include "theory/sort_inference.h"
-#include "theory/substitutions.h"
 #include "theory/term_registration_visitor.h"
 #include "theory/theory.h"
+#include "theory/theory_preprocessor.h"
+#include "theory/trust_node.h"
+#include "theory/trust_substitutions.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
 #include "util/hash.h"
+#include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 #include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
 
 class ResourceManager;
-class LemmaProofRecipe;
+class TheoryEngineProofGenerator;
 
 /**
  * A pair of a theory and a node. This is used to mark the flow of
  * propagations between theories.
  */
 struct NodeTheoryPair {
-  Node node;
-  theory::TheoryId theory;
-  size_t timestamp;
-  NodeTheoryPair(TNode node, theory::TheoryId theory, size_t timestamp = 0)
-  : node(node), theory(theory), timestamp(timestamp) {}
-  NodeTheoryPair() : theory(theory::THEORY_LAST), timestamp() {}
+  Node d_node;
+  theory::TheoryId d_theory;
+  size_t d_timestamp;
+  NodeTheoryPair(TNode n, theory::TheoryId t, size_t ts = 0)
+      : d_node(n), d_theory(t), d_timestamp(ts)
+  {
+  }
+  NodeTheoryPair() : d_theory(theory::THEORY_LAST), d_timestamp() {}
   // Comparison doesn't take into account the timestamp
   bool operator == (const NodeTheoryPair& pair) const {
-    return node == pair.node && theory == pair.theory;
+    return d_node == pair.d_node && d_theory == pair.d_theory;
   }
 };/* struct NodeTheoryPair */
 
@@ -74,33 +78,29 @@ struct NodeTheoryPairHashFunction {
   NodeHashFunction hashFunction;
   // Hash doesn't take into account the timestamp
   size_t operator()(const NodeTheoryPair& pair) const {
-    uint64_t hash = fnv1a::fnv1a_64(NodeHashFunction()(pair.node));
-    return static_cast<size_t>(fnv1a::fnv1a_64(pair.theory, hash));
+    uint64_t hash = fnv1a::fnv1a_64(NodeHashFunction()(pair.d_node));
+    return static_cast<size_t>(fnv1a::fnv1a_64(pair.d_theory, hash));
   }
 };/* struct NodeTheoryPairHashFunction */
 
 
 /* Forward declarations */
 namespace theory {
-  class TheoryModel;
-  class TheoryEngineModelBuilder;
-  class ITEUtilities;
+class TheoryModel;
+class CombinationEngine;
+class SharedSolver;
+class DecisionManager;
+class RelevanceManager;
 
-  namespace eq {
-    class EqualityEngine;
-  }/* CVC4::theory::eq namespace */
+namespace eq {
+class EqualityEngine;
+}  // namespace eq
 
-  namespace quantifiers {
-    class TermDb;
-  }
-
-  class EntailmentCheckParameters;
-  class EntailmentCheckSideEffects;
+class EntailmentCheckParameters;
+class EntailmentCheckSideEffects;
 }/* CVC4::theory namespace */
 
-class DecisionEngine;
 class RemoveTermFormulas;
-class UnconstrainedSimplifier;
 
 /**
  * This is essentially an abstraction for a collection of theories.  A
@@ -112,13 +112,12 @@ class TheoryEngine {
 
   /** Shared terms database can use the internals notify the theories */
   friend class SharedTermsDatabase;
-  friend class theory::quantifiers::TermDb;
+  friend class theory::EngineOutputChannel;
+  friend class theory::CombinationEngine;
+  friend class theory::SharedSolver;
 
   /** Associated PropEngine engine */
   prop::PropEngine* d_propEngine;
-
-  /** Access to decision engine */
-  DecisionEngine* d_decisionEngine;
 
   /** Our context */
   context::Context* d_context;
@@ -140,213 +139,49 @@ class TheoryEngine {
    * the cost of walking the DAG on registration, etc.
    */
   const LogicInfo& d_logicInfo;
+  /** The separation logic location and data types */
+  TypeNode d_sepLocType;
+  TypeNode d_sepDataType;
 
-  /**
-   * The database of shared terms.
+  /** Reference to the output manager of the smt engine */
+  OutputManager& d_outMgr;
+
+  //--------------------------------- new proofs
+  /** Proof node manager used by this theory engine, if proofs are enabled */
+  ProofNodeManager* d_pnm;
+  /** The lazy proof object
+   *
+   * This stores instructions for how to construct proofs for all theory lemmas.
    */
-  SharedTermsDatabase d_sharedTerms;
-
-  /**
-   * Master equality engine, to share with theories.
-   */
-  theory::eq::EqualityEngine* d_masterEqualityEngine;
-
-  /** notify class for master equality engine */
-  class NotifyClass : public theory::eq::EqualityEngineNotify {
-    TheoryEngine& d_te;
-  public:
-    NotifyClass(TheoryEngine& te): d_te(te) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override
-    {
-      return true;
-    }
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
-    {
-      return true;
-    }
-    bool eqNotifyTriggerTermEquality(theory::TheoryId tag,
-                                     TNode t1,
-                                     TNode t2,
-                                     bool value) override
-    {
-      return true;
-    }
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override {}
-    void eqNotifyNewClass(TNode t) override { d_te.eqNotifyNewClass(t); }
-    void eqNotifyPreMerge(TNode t1, TNode t2) override
-    {
-      d_te.eqNotifyPreMerge(t1, t2);
-    }
-    void eqNotifyPostMerge(TNode t1, TNode t2) override
-    {
-      d_te.eqNotifyPostMerge(t1, t2);
-    }
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
-    {
-      d_te.eqNotifyDisequal(t1, t2, reason);
-    }
-  };/* class TheoryEngine::NotifyClass */
-  NotifyClass d_masterEENotify;
-
-  /**
-   * notification methods
-   */
-  void eqNotifyNewClass(TNode t);
-  void eqNotifyPreMerge(TNode t1, TNode t2);
-  void eqNotifyPostMerge(TNode t1, TNode t2);
-  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
-
+  std::shared_ptr<LazyCDProof> d_lazyProof;
+  /** The proof generator */
+  std::shared_ptr<TheoryEngineProofGenerator> d_tepg;
+  //--------------------------------- end new proofs
+  /** The combination manager we are using */
+  std::unique_ptr<theory::CombinationEngine> d_tc;
+  /** The shared solver of the above combination engine. */
+  theory::SharedSolver* d_sharedSolver;
   /**
    * The quantifiers engine
    */
   theory::QuantifiersEngine* d_quantEngine;
-
   /**
-   * Default model object
+   * The decision manager
    */
-  theory::TheoryModel* d_curr_model;
-  bool d_aloc_curr_model;
-  /**
-   * Model builder object
-   */
-  theory::TheoryEngineModelBuilder* d_curr_model_builder;
-  bool d_aloc_curr_model_builder;
+  std::unique_ptr<theory::DecisionManager> d_decManager;
+  /** The relevance manager */
+  std::unique_ptr<theory::RelevanceManager> d_relManager;
 
-  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
-  typedef std::unordered_map<TNode, Node, TNodeHashFunction> TNodeMap;
+  /** Default visitor for pre-registration */
+  PreRegisterVisitor d_preRegistrationVisitor;
 
-  /**
-  * Cache for theory-preprocessing of assertions
-   */
-  NodeMap d_ppCache;
-
-  /**
-   * Used for "missed-t-propagations" dumping mode only.  A set of all
-   * theory-propagable literals.
-   */
-  context::CDList<TNode> d_possiblePropagations;
-
-  /**
-   * Used for "missed-t-propagations" dumping mode only.  A
-   * context-dependent set of those theory-propagable literals that
-   * have been propagated.
-   */
-  context::CDHashSet<Node, NodeHashFunction> d_hasPropagated;
-
-
-  /**
-   * Statistics for a particular theory.
-   */
-  class Statistics {
-
-    static std::string mkName(std::string prefix,
-                              theory::TheoryId theory,
-                              std::string suffix) {
-      std::stringstream ss;
-      ss << prefix << theory << suffix;
-      return ss.str();
-    }
-
-  public:
-
-    IntStat conflicts, propagations, lemmas, requirePhase, flipDecision, restartDemands;
-
-    Statistics(theory::TheoryId theory);
-    ~Statistics();
-  };/* class TheoryEngine::Statistics */
-
-  /**
-   * An output channel for Theory that passes messages
-   * back to a TheoryEngine.
-   */
-  class EngineOutputChannel : public theory::OutputChannel {
-    friend class TheoryEngine;
-
-    /**
-     * The theory engine we're communicating with.
-     */
-    TheoryEngine* d_engine;
-
-    /**
-     * The statistics of the theory interractions.
-     */
-    Statistics d_statistics;
-
-    /** The theory owning this channel. */
-    theory::TheoryId d_theory;
-
-   public:
-    EngineOutputChannel(TheoryEngine* engine, theory::TheoryId theory)
-        : d_engine(engine), d_statistics(theory), d_theory(theory) {}
-
-    void safePoint(uint64_t amount) override {
-      spendResource(amount);
-      if (d_engine->d_interrupted) {
-        throw theory::Interrupted();
-      }
-    }
-
-    void conflict(TNode conflictNode,
-                  std::unique_ptr<Proof> pf = nullptr) override;
-    bool propagate(TNode literal) override;
-
-    theory::LemmaStatus lemma(TNode lemma, ProofRule rule,
-                              bool removable = false, bool preprocess = false,
-                              bool sendAtoms = false) override;
-
-    theory::LemmaStatus splitLemma(TNode lemma,
-                                   bool removable = false) override;
-
-    void demandRestart() override {
-      NodeManager* curr = NodeManager::currentNM();
-      Node restartVar = curr->mkSkolem(
-          "restartVar", curr->booleanType(),
-          "A boolean variable asserted to be true to force a restart");
-      Trace("theory::restart")
-          << "EngineOutputChannel<" << d_theory << ">::restart(" << restartVar
-          << ")" << std::endl;
-      ++d_statistics.restartDemands;
-      lemma(restartVar, RULE_INVALID, true);
-    }
-
-    void requirePhase(TNode n, bool phase) override {
-      Debug("theory") << "EngineOutputChannel::requirePhase(" << n << ", "
-                      << phase << ")" << std::endl;
-      ++d_statistics.requirePhase;
-      d_engine->d_propEngine->requirePhase(n, phase);
-    }
-
-    bool flipDecision() override {
-      Debug("theory") << "EngineOutputChannel::flipDecision()" << std::endl;
-      ++d_statistics.flipDecision;
-      return d_engine->d_propEngine->flipDecision();
-    }
-
-    void setIncomplete() override {
-      Trace("theory") << "TheoryEngine::setIncomplete()" << std::endl;
-      d_engine->setIncomplete(d_theory);
-    }
-
-    void spendResource(unsigned amount) override {
-      d_engine->spendResource(amount);
-    }
-
-    void handleUserAttribute(const char* attr, theory::Theory* t) override {
-      d_engine->handleUserAttribute(attr, t);
-    }
-
-   private:
-    /**
-     * A helper function for registering lemma recipes with the proof engine
-     */
-    void registerLemmaRecipe(Node lemma, Node originalLemma, bool preprocess,
-                             theory::TheoryId theoryId);
-  }; /* class TheoryEngine::EngineOutputChannel */
+  /** are we in eager model building mode? (see setEagerModelBuilding). */
+  bool d_eager_model_building;
 
   /**
    * Output channels for individual theories.
    */
-  EngineOutputChannel* d_theoryOut[theory::THEORY_LAST];
+  theory::EngineOutputChannel* d_theoryOut[theory::THEORY_LAST];
 
   /**
    * Are we in conflict.
@@ -354,9 +189,20 @@ class TheoryEngine {
   context::CDO<bool> d_inConflict;
 
   /**
-   * Called by the theories to notify of a conflict.
+   * Are we in "SAT mode"? In this state, the user can query for the model.
+   * This corresponds to the state in Figure 4.1, page 52 of the SMT-LIB
+   * standard, version 2.6.
    */
-  void conflict(TNode conflict, theory::TheoryId theoryId);
+  bool d_inSatMode;
+
+  /**
+   * Called by the theories to notify of a conflict.
+   *
+   * @param conflict The trust node containing the conflict and its proof
+   * generator (if it exists),
+   * @param theoryId The theory that sent the conflict
+   */
+  void conflict(theory::TrustNode conflict, theory::TheoryId theoryId);
 
   /**
    * Debugging flag to ensure that shutdown() is called before the
@@ -376,7 +222,6 @@ class TheoryEngine {
   void setIncomplete(theory::TheoryId theory) {
     d_incomplete = true;
   }
-
 
   /**
    * Mapping of propagations from recievers to senders.
@@ -414,12 +259,6 @@ class TheoryEngine {
   void propagate(theory::Theory::Effort effort);
 
   /**
-   * Called by the output channel to request decisions "as soon as
-   * possible."
-   */
-  void propagateAsDecision(TNode literal, theory::TheoryId theory);
-
-  /**
    * A variable to mark if we added any lemmas.
    */
   bool d_lemmasAdded;
@@ -439,24 +278,25 @@ class TheoryEngine {
   /**
    * Adds a new lemma, returning its status.
    * @param node the lemma
-   * @param negated should the lemma be asserted negated
-   * @param removable can the lemma be remove (restrictions apply)
-   * @param needAtoms if not THEORY_LAST, then
+   * @param p the properties of the lemma.
+   * @param atomsTo the theory that atoms of the lemma should be sent to
+   * @param from the theory that sent the lemma
+   * @return a lemma status, containing the lemma and context information
+   * about when it was sent.
    */
-  theory::LemmaStatus lemma(TNode node,
-                            ProofRule rule,
-                            bool negated,
-                            bool removable,
-                            bool preprocess,
-                            theory::TheoryId atomsTo);
+  theory::LemmaStatus lemma(theory::TrustNode node,
+                            theory::LemmaProperty p,
+                            theory::TheoryId atomsTo = theory::THEORY_LAST,
+                            theory::TheoryId from = theory::THEORY_LAST);
 
   /** Enusre that the given atoms are send to the given theory */
   void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);
 
-  RemoveTermFormulas& d_tform_remover;
-
   /** sort inference module */
   SortInference d_sortInfer;
+
+  /** The theory preprocessor */
+  theory::TheoryPreprocessor d_tpp;
 
   /** Time spent in theory combination */
   TimerStat d_combineTheoriesTime;
@@ -468,15 +308,15 @@ class TheoryEngine {
   bool d_interrupted;
   ResourceManager* d_resourceManager;
 
-  /** Container for lemma input and output channels. */
-  LemmaChannels* d_channels;
-
-public:
-
+ public:
   /** Constructs a theory engine */
-  TheoryEngine(context::Context* context, context::UserContext* userContext,
-               RemoveTermFormulas& iteRemover, const LogicInfo& logic,
-               LemmaChannels* channels);
+  TheoryEngine(context::Context* context,
+               context::UserContext* userContext,
+               ResourceManager* rm,
+               RemoveTermFormulas& iteRemover,
+               const LogicInfo& logic,
+               OutputManager& outMgr,
+               ProofNodeManager* pnm);
 
   /** Destroys a theory engine */
   ~TheoryEngine();
@@ -484,32 +324,39 @@ public:
   void interrupt();
 
   /** "Spend" a resource during a search or preprocessing.*/
-  void spendResource(unsigned amount);
+  void spendResource(ResourceManager::Resource r);
 
   /**
    * Adds a theory. Only one theory per TheoryId can be present, so if
    * there is another theory it will be deleted.
    */
   template <class TheoryClass>
-  inline void addTheory(theory::TheoryId theoryId) {
+  inline void addTheory(theory::TheoryId theoryId)
+  {
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
-    d_theoryOut[theoryId] = new EngineOutputChannel(this, theoryId);
-    d_theoryTable[theoryId] =
-        new TheoryClass(d_context, d_userContext, *d_theoryOut[theoryId],
-                        theory::Valuation(this), d_logicInfo);
+    d_theoryOut[theoryId] = new theory::EngineOutputChannel(this, theoryId);
+    d_theoryTable[theoryId] = new TheoryClass(d_context,
+                                              d_userContext,
+                                              *d_theoryOut[theoryId],
+                                              theory::Valuation(this),
+                                              d_logicInfo,
+                                              d_pnm);
+    theory::Rewriter::registerTheoryRewriter(
+        theoryId, d_theoryTable[theoryId]->getTheoryRewriter());
   }
 
-  inline void setPropEngine(prop::PropEngine* propEngine) {
-    Assert(d_propEngine == NULL);
+  void setPropEngine(prop::PropEngine* propEngine)
+  {
     d_propEngine = propEngine;
   }
 
-  inline void setDecisionEngine(DecisionEngine* decisionEngine) {
-    Assert(d_decisionEngine == NULL);
-    d_decisionEngine = decisionEngine;
-  }
-
-  /** Called when all initialization of options/logic is done */
+  /**
+   * Called when all initialization of options/logic is done, after theory
+   * objects have been created.
+   *
+   * This initializes the quantifiers engine, the "official" equality engines
+   * of each theory as required, and the model and model builder utilities.
+   */
   void finishInit();
 
   /**
@@ -519,19 +366,18 @@ public:
     return d_propEngine;
   }
 
+  /** Get the proof node manager */
+  ProofNodeManager* getProofNodeManager() const;
+
   /**
    * Get a pointer to the underlying sat context.
    */
-  inline context::Context* getSatContext() const {
-    return d_context;
-  }
+  context::Context* getSatContext() const { return d_context; }
 
   /**
    * Get a pointer to the underlying user context.
    */
-  inline context::Context* getUserContext() const {
-    return d_userContext;
-  }
+  context::UserContext* getUserContext() const { return d_userContext; }
 
   /**
    * Get a pointer to the underlying quantifiers engine.
@@ -539,14 +385,15 @@ public:
   theory::QuantifiersEngine* getQuantifiersEngine() const {
     return d_quantEngine;
   }
-
-private:
-
   /**
-   * Helper for preprocess
+   * Get a pointer to the underlying decision manager.
    */
-  Node ppTheoryRewrite(TNode term);
+  theory::DecisionManager* getDecisionManager() const
+  {
+    return d_decManager.get();
+  }
 
+ private:
   /**
    * Queue of nodes for pre-registration.
    */
@@ -562,11 +409,6 @@ private:
    * check()
    */
   context::CDO<bool> d_factsAsserted;
-
-  /**
-   * Map from equality atoms to theories that would like to be notified about them.
-   */
-
 
   /**
    * Assert the formula to the given theory.
@@ -587,34 +429,31 @@ private:
    * @param assertion the normalized assertion being sent
    * @param originalAssertion the actual assertion that was sent
    * @param toTheoryId the theory that is on the receiving end
-   * @param fromTheoryId the theory that sent the assertino
+   * @param fromTheoryId the theory that sent the assertion
    * @return true if a new assertion, false if theory already got it
    */
   bool markPropagation(TNode assertion, TNode originalAssertions, theory::TheoryId toTheoryId, theory::TheoryId fromTheoryId);
 
   /**
-   * Computes the explanation by travarsing the propagation graph and
+   * Computes the explanation by traversing the propagation graph and
    * asking relevant theories to explain the propagations. Initially
    * the explanation vector should contain only the element (node, theory)
    * where the node is the one to be explained, and the theory is the
-   * theory that sent the literal. The lemmaProofRecipe will contain a list
-   * of the explanation steps required to produce the original node.
+   * theory that sent the literal.
    */
-  void getExplanation(std::vector<NodeTheoryPair>& explanationVector, LemmaProofRecipe* lemmaProofRecipe);
+  theory::TrustNode getExplanation(
+      std::vector<NodeTheoryPair>& explanationVector);
 
-public:
+  /** Are proofs enabled? */
+  bool isProofEnabled() const;
 
-  /**
-   * Signal the start of a new round of assertion preprocessing
-   */
-  void preprocessStart();
-
+ public:
   /**
    * Runs theory specific preprocessing on the non-Boolean parts of
    * the formula.  This is only called on input assertions, after ITEs
    * have been removed.
    */
-  Node preprocess(TNode node);
+  theory::TrustNode preprocess(TNode node);
 
   /** Notify (preprocessed) assertions. */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
@@ -640,7 +479,12 @@ public:
   inline bool needCheck() const {
     return d_outputChannelUsed || d_lemmasAdded;
   }
-
+  /**
+   * Is the literal lit (possibly) critical for satisfying the input formula in
+   * the current context? This call is applicable only during collectModelInfo
+   * or during LAST_CALL effort.
+   */
+  bool isRelevant(Node lit) const;
   /**
    * This is called at shutdown time by the SmtEngine, just before
    * destruction.  It is important because there are destruction
@@ -649,10 +493,13 @@ public:
   void shutdown();
 
   /**
-   * Solve the given literal with a theory that owns it.
+   * Solve the given literal with a theory that owns it. The proof of tliteral
+   * is carried in the trust node. The proof added to substitutionOut should
+   * take this proof into account (when proofs are enabled).
    */
-  theory::Theory::PPAssertStatus solve(TNode literal,
-                                    theory::SubstitutionMap& substitutionOut);
+  theory::Theory::PPAssertStatus solve(
+      theory::TrustNode tliteral,
+      theory::TrustSubstitutionMap& substitutionOut);
 
   /**
    * Preregister a Theory atom with the responsible theory (or
@@ -671,11 +518,6 @@ public:
    * @param effort the effort level to use
    */
   void check(theory::Theory::Effort effort);
-
-  /**
-   * Run the combination framework.
-   */
-  void combineTheories();
 
   /**
    * Calls ppStaticLearn() on all theories, accumulating their
@@ -706,50 +548,72 @@ public:
     }
   }
 
+  /**
+   * Returns the next decision request, or null if none exist. The next
+   * decision request is a literal that this theory engine prefers the SAT
+   * solver to make as its next decision. Decision requests are managed by
+   * the decision manager d_decManager.
+   */
   Node getNextDecisionRequest();
 
   bool properConflict(TNode conflict) const;
-  bool properPropagation(TNode lit) const;
-  bool properExplanation(TNode node, TNode expl) const;
 
   /**
    * Returns an explanation of the node propagated to the SAT solver.
    */
-  Node getExplanation(TNode node);
+  theory::TrustNode getExplanation(TNode node);
 
   /**
-   * Returns an explanation of the node propagated to the SAT solver and the theory
-   * that propagated it.
-   */
-  Node getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRecipe);
-
-  /**
-   * collect model info
-   */
-  bool collectModelInfo(theory::TheoryModel* m);
-  /** post process model */
-  void postProcessModel( theory::TheoryModel* m );
-
-  /**
-   * Get the current model
+   * Get the pointer to the model object used by this theory engine.
    */
   theory::TheoryModel* getModel();
+  /**
+   * Get the current model for the current set of assertions. This method
+   * should only be called immediately after a satisfiable or unknown
+   * response to a check-sat call, and only if produceModels is true.
+   *
+   * If the model is not already built, this will cause this theory engine
+   * to build the model.
+   *
+   * If the model is not available (for instance, if the last call to check-sat
+   * was interrupted), then this returns the null pointer.
+   */
+  theory::TheoryModel* getBuiltModel();
+  /**
+   * This forces the model maintained by the combination engine to be built
+   * if it has not been done so already. This should be called only during a
+   * last call effort check after theory combination is run.
+   *
+   * @return true if the model was successfully built (possibly prior to this
+   * call).
+   */
+  bool buildModel();
+  /** set eager model building
+   *
+   * If this method is called, then this TheoryEngine will henceforth build
+   * its model immediately after every satisfiability check that results
+   * in a satisfiable or unknown result. The motivation for this mode is to
+   * accomodate API users that get the model object from the TheoryEngine,
+   * where we want to ensure that this model is always valid.
+   * TODO (#2648): revisit this.
+   */
+  void setEagerModelBuilding() { d_eager_model_building = true; }
 
   /** get synth solutions
    *
-   * This function adds entries to sol_map that map functions-to-synthesize with
+   * This method returns true if there is a synthesis solution available. This
+   * is the case if the last call to check satisfiability originated in a
+   * check-synth call, and the synthesis solver successfully found a solution
+   * for all active synthesis conjectures.
+   *
+   * This method adds entries to sol_map that map functions-to-synthesize with
    * their solutions, for all active conjectures. This should be called
    * immediately after the solver answers unsat for sygus input.
    *
    * For details on what is added to sol_map, see
-   * CegConjecture::getSynthSolutions.
+   * SynthConjecture::getSynthSolutions.
    */
-  void getSynthSolutions(std::map<Node, Node>& sol_map);
-
-  /**
-   * Get the model builder
-   */
-  theory::TheoryEngineModelBuilder* getModelBuilder() { return d_curr_model_builder; }
+  bool getSynthSolutions(std::map<Node, std::map<Node, Node> >& sol_map);
 
   /**
    * Get the theory associated to a given Node.
@@ -767,6 +631,7 @@ public:
    * @returns the theory
    */
   inline theory::Theory* theoryOf(theory::TheoryId theoryId) const {
+    Assert(theoryId < theory::THEORY_LAST);
     return d_theoryTable[theoryId];
   }
 
@@ -775,6 +640,16 @@ public:
   }
   /** get the logic info used by this theory engine */
   const LogicInfo& getLogicInfo() const;
+  /** get the separation logic heap types */
+  bool getSepHeapTypes(TypeNode& locType, TypeNode& dataType) const;
+
+  /**
+   * Declare heap. This is used for separation logics to set the location
+   * and data types. It should be called only once, and before any separation
+   * logic constraints are asserted to this theory engine.
+   */
+  void declareSepHeap(TypeNode locT, TypeNode dataT);
+
   /**
    * Returns the equality status of the two terms, from the theory
    * that owns the domain type.  The types of a and b must be the same.
@@ -788,7 +663,9 @@ public:
   Node getModelValue(TNode var);
 
   /**
-   * Takes a literal and returns an equivalent literal that is guaranteed to be a SAT literal
+   * Takes a literal and returns an equivalent literal that is guaranteed to be
+   * a SAT literal. This rewrites and preprocesses n, which notice may involve
+   * sending lemmas if preprocessing n involves introducing new skolems.
    */
   Node ensureLiteral(TNode n);
 
@@ -809,82 +686,39 @@ public:
 
   /**
    * Get instantiation methods
-   *   first inputs forall x.q[x] and returns ( q[a], ..., q[z] )
-   *   second inputs forall x.q[x] and returns ( a, ..., z ) 
-   *   third and fourth return mappings e.g. forall x.q1[x] -> ( q1[a]...q1[z] ) , ... , forall x.qn[x] -> ( qn[a]...qn[z] )
+   *   the first given forall x.q[x] returns ( a, ..., z )
+   *   the second returns mappings e.g. forall x.q1[x] -> ( q1[a]...q1[z] )
+   * , ... , forall x.qn[x] -> ( qn[a]...qn[z] )
    */
-  void getInstantiations( Node q, std::vector< Node >& insts );
   void getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs );
-  void getInstantiations( std::map< Node, std::vector< Node > >& insts );
   void getInstantiationTermVectors( std::map< Node, std::vector< std::vector< Node > > >& insts );
-  
-  /**
-   * Get instantiated conjunction, returns q[t1] ^ ... ^ q[tn] where t1...tn are current set of instantiations for q.
-   *   Can be used for quantifier elimination when satisfiable and q[t1] ^ ... ^ q[tn] |= q
-   */
-  Node getInstantiatedConjunction( Node q );
 
   /**
    * Forwards an entailment check according to the given theoryOfMode.
    * See theory.h for documentation on entailmentCheck().
    */
-  std::pair<bool, Node> entailmentCheck(theory::TheoryOfMode mode, TNode lit, const theory::EntailmentCheckParameters* params = NULL, theory::EntailmentCheckSideEffects* out = NULL);
+  std::pair<bool, Node> entailmentCheck(options::TheoryOfMode mode, TNode lit);
 
-private:
-
-  /** Default visitor for pre-registration */
-  PreRegisterVisitor d_preRegistrationVisitor;
-
-  /** Visitor for collecting shared terms */
-  SharedTermsVisitor d_sharedTermsVisitor;
+ private:
 
   /** Dump the assertions to the dump */
   void dumpAssertions(const char* tag);
 
-  /**
-   * A collection of ite preprocessing passes.
-   */
-  theory::ITEUtilities* d_iteUtilities;
-
-
-  /** For preprocessing pass simplifying unconstrained expressions */
-  UnconstrainedSimplifier* d_unconstrainedSimp;
-
   /** For preprocessing pass lifting bit-vectors of size 1 to booleans */
 public:
-  void staticInitializeBVOptions(const std::vector<Node>& assertions);
-
-  Node ppSimpITE(TNode assertion);
-  /** Returns false if an assertion simplified to false. */
-  bool donePPSimpITE(std::vector<Node>& assertions);
-
-  void ppUnconstrainedSimp(std::vector<Node>& assertions);
-
-  SharedTermsDatabase* getSharedTermsDatabase() { return &d_sharedTerms; }
-
-  theory::eq::EqualityEngine* getMasterEqualityEngine() { return d_masterEqualityEngine; }
-
-  RemoveTermFormulas* getTermFormulaRemover() { return &d_tform_remover; }
 
   SortInference* getSortInference() { return &d_sortInfer; }
 
   /** Prints the assertions to the debug stream */
   void printAssertions(const char* tag);
 
-  /** Theory alternative is in use. */
-  bool useTheoryAlternative(const std::string& name);
-
-  /** Enables using a theory alternative by name. */
-  void enableTheoryAlternative(const std::string& name);
-
 private:
-  std::set< std::string > d_theoryAlternatives;
 
   std::map< std::string, std::vector< theory::Theory* > > d_attr_handle;
 
  public:
   /** Set user attribute.
-   * 
+   *
    * This function is called when an attribute is set by a user.  In SMT-LIBv2
    * this is done via the syntax (! n :attr)
    */
@@ -894,7 +728,7 @@ private:
                         const std::string& str_value);
 
   /** Handle user attribute.
-   * 
+   *
    * Associates theory t with the attribute attr.  Theory t will be
    * notified whenever an attribute of name attr is set.
    */
@@ -905,12 +739,10 @@ private:
    * This function is called from the smt engine's checkModel routine.
    */
   void checkTheoryAssertionsWithModel(bool hardFailure);
-
  private:
   IntStat d_arithSubstitutionsAdded;
-
 };/* class TheoryEngine */
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY_ENGINE_H */
+#endif /* CVC4__THEORY_ENGINE_H */

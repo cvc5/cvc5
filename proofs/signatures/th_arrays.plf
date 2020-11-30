@@ -3,7 +3,7 @@
 ; Theory of Arrays
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; depends on : th_base.plf
+; Deps: th_base.plf
 
 ; sorts
 

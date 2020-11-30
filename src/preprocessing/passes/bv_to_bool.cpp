@@ -2,16 +2,17 @@
 /*! \file bv_to_bool.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Yoni Zohar
+ **   Yoni Zohar, Liana Hadarean, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
  ** \brief Preprocessing pass that lifts bit-vectors of size 1 to booleans.
  **
  ** Preprocessing pass that lifts bit-vectors of size 1 to booleans.
+ ** Implemented recursively.
  **/
 
 #include "preprocessing/passes/bv_to_bool.h"
@@ -21,11 +22,10 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "expr/node_visitor.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
-
-#include "smt/smt_statistics_registry.h"
-#include "smt_util/node_visitor.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -45,8 +45,7 @@ BVToBool::BVToBool(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult BVToBool::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  NodeManager::currentResourceManager()->spendResource(
-      options::preprocessStep());
+  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
   std::vector<Node> new_assertions;
   liftBvToBool(assertionsToPreprocess->ref(), new_assertions);
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
@@ -259,6 +258,7 @@ Node BVToBool::liftNode(TNode current)
       }
       for (unsigned i = 0; i < current.getNumChildren(); ++i)
       {
+        // Recursively lift children
         Node converted = liftNode(current[i]);
         Assert(converted.getType() == current[i].getType());
         builder << converted;
@@ -303,6 +303,7 @@ BVToBool::Statistics::~Statistics()
   smtStatisticsRegistry()->unregisterStat(&d_numAtomsLifted);
   smtStatisticsRegistry()->unregisterStat(&d_numTermsForcedLifted);
 }
+
 
 }  // passes
 }  // Preprocessing

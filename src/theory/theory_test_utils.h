@@ -2,10 +2,10 @@
 /*! \file theory_test_utils.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Liana Hadarean
+ **   Tim King, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,19 +16,18 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__THEORY__THEORY_TEST_UTILS_H
-#define __CVC4__THEORY__THEORY_TEST_UTILS_H
+#ifndef CVC4__THEORY__THEORY_TEST_UTILS_H
+#define CVC4__THEORY__THEORY_TEST_UTILS_H
 
 #include <iostream>
 #include <memory>
 #include <utility>
 #include <vector>
 
-#include "base/cvc4_assert.h"
 #include "expr/node.h"
 #include "theory/interrupted.h"
 #include "theory/output_channel.h"
-#include "util/proof.h"
+#include "util/resource_manager.h"
 #include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
@@ -68,25 +67,29 @@ public:
   TestOutputChannel() {}
   ~TestOutputChannel() override {}
 
-  void safePoint(uint64_t amount) override {}
-  void conflict(TNode n, std::unique_ptr<Proof> pf) override
-  {
-    push(CONFLICT, n);
-  }
+  void safePoint(ResourceManager::Resource r) override {}
+  void conflict(TNode n) override { push(CONFLICT, n); }
+
+  void trustedConflict(TrustNode n) override { push(CONFLICT, n.getNode()); }
 
   bool propagate(TNode n) override {
     push(PROPAGATE, n);
     return true;
   }
 
-  LemmaStatus lemma(TNode n, ProofRule rule, bool removable = false,
-                    bool preprocess = false, bool sendAtoms = false) override {
+  LemmaStatus lemma(TNode n, LemmaProperty p) override
+  {
     push(LEMMA, n);
     return LemmaStatus(Node::null(), 0);
   }
 
+  LemmaStatus trustedLemma(TrustNode n, LemmaProperty p) override
+  {
+    push(LEMMA, n.getNode());
+    return LemmaStatus(Node::null(), 0);
+  }
+
   void requirePhase(TNode, bool) override {}
-  bool flipDecision() override { return true; }
   void setIncomplete() override {}
   void handleUserAttribute(const char* attr, theory::Theory* t) override {}
 
@@ -125,4 +128,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__THEORY_TEST_UTILS_H */
+#endif /* CVC4__THEORY__THEORY_TEST_UTILS_H */

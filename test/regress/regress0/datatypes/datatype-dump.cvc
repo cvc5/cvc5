@@ -10,7 +10,7 @@
 % EXPECT: END;
 % EXPECT: x : nat;
 % EXPECT: QUERY NOT(is_succ(x)) AND NOT(is_zero(x));
-% EXPECT: invalid
+% EXPECT: not_entailed
 %
 
 DATATYPE nat = succ(pred : nat) | zero END;

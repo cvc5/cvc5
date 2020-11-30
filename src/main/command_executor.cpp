@@ -2,10 +2,10 @@
 /*! \file command_executor.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King, Morgan Deters
+ **   Kshitij Bansal, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -48,19 +48,34 @@ void setNoLimitCPU() {
 
 void printStatsIncremental(std::ostream& out, const std::string& prvsStatsString, const std::string& curStatsString);
 
-CommandExecutor::CommandExecutor(ExprManager &exprMgr, Options &options) :
-  d_exprMgr(exprMgr),
-  d_smtEngine(new SmtEngine(&exprMgr)),
-  d_options(options),
-  d_stats("driver"),
-  d_result(),
-  d_replayStream(NULL)
-{}
+CommandExecutor::CommandExecutor(Options& options)
+    : d_solver(new api::Solver(&options)),
+      d_symman(new SymbolManager(d_solver.get())),
+      d_smtEngine(d_solver->getSmtEngine()),
+      d_options(options),
+      d_stats("driver"),
+      d_result()
+{
+}
+CommandExecutor::~CommandExecutor()
+{
+  // ensure that symbol manager is destroyed before solver
+  d_symman.reset(nullptr);
+  d_solver.reset(nullptr);
+}
 
-void CommandExecutor::setReplayStream(ExprStream* replayStream) {
-  assert(d_replayStream == NULL);
-  d_replayStream = replayStream;
-  d_smtEngine->setReplayStream(d_replayStream);
+void CommandExecutor::flushStatistics(std::ostream& out) const
+{
+  d_solver->getExprManager()->getStatistics().flushInformation(out);
+  d_smtEngine->getStatistics().flushInformation(out);
+  d_stats.flushInformation(out);
+}
+
+void CommandExecutor::safeFlushStatistics(int fd) const
+{
+  d_solver->getExprManager()->safeFlushStatistics(fd);
+  d_smtEngine->safeFlushStatistics(fd);
+  d_stats.safeFlushInformation(fd);
 }
 
 bool CommandExecutor::doCommand(Command* cmd)
@@ -70,13 +85,14 @@ bool CommandExecutor::doCommand(Command* cmd)
   }
 
   CommandSequence *seq = dynamic_cast<CommandSequence*>(cmd);
-  if(seq != NULL) {
+  if(seq != nullptr) {
     // assume no error
     bool status = true;
 
-    for(CommandSequence::iterator subcmd = seq->begin();
-        (status || d_options.getContinuedExecution()) && subcmd != seq->end();
-        ++subcmd) {
+    for (CommandSequence::iterator subcmd = seq->begin();
+         status && subcmd != seq->end();
+         ++subcmd)
+    {
       status = doCommand(*subcmd);
     }
 
@@ -92,37 +108,44 @@ bool CommandExecutor::doCommand(Command* cmd)
 
 void CommandExecutor::reset()
 {
-  if(d_options.getStatistics()) {
+  if (d_options.getStatistics())
+  {
     flushStatistics(*d_options.getErr());
   }
-  delete d_smtEngine;
-  d_smtEngine = new SmtEngine(&d_exprMgr);
+  /* We have to keep options passed via CL on reset. These options are stored
+   * in CommandExecutor::d_options (populated and created in the driver), and
+   * CommandExecutor::d_options only contains *these* options since the
+   * NodeManager copies the options into a new options object before SmtEngine
+   * configures additional options based on the given CL options.
+   * We can thus safely reuse CommandExecutor::d_options here. */
+  d_solver.reset(new api::Solver(&d_options));
 }
 
 bool CommandExecutor::doCommandSingleton(Command* cmd)
 {
   bool status = true;
   if(d_options.getVerbosity() >= -1) {
-    status = smtEngineInvoke(d_smtEngine, cmd, d_options.getOut());
+    status =
+        solverInvoke(d_solver.get(), d_symman.get(), cmd, d_options.getOut());
   } else {
-    status = smtEngineInvoke(d_smtEngine, cmd, NULL);
+    status = solverInvoke(d_solver.get(), d_symman.get(), cmd, nullptr);
   }
 
-  Result res;
-  CheckSatCommand* cs = dynamic_cast<CheckSatCommand*>(cmd);
-  if(cs != NULL) {
+  api::Result res;
+  const CheckSatCommand* cs = dynamic_cast<const CheckSatCommand*>(cmd);
+  if(cs != nullptr) {
     d_result = res = cs->getResult();
   }
-  QueryCommand* q = dynamic_cast<QueryCommand*>(cmd);
-  if(q != NULL) {
+  const QueryCommand* q = dynamic_cast<const QueryCommand*>(cmd);
+  if(q != nullptr) {
     d_result = res = q->getResult();
   }
-  CheckSynthCommand* csy = dynamic_cast<CheckSynthCommand*>(cmd);
-  if(csy != NULL) {
+ const  CheckSynthCommand* csy = dynamic_cast<const CheckSynthCommand*>(cmd);
+  if(csy != nullptr) {
     d_result = res = csy->getResult();
   }
 
-  if((cs != NULL || q != NULL) && d_options.getStatsEveryQuery()) {
+  if((cs != nullptr || q != nullptr) && d_options.getStatsEveryQuery()) {
     std::ostringstream ossCurStats;
     flushStatistics(ossCurStats);
     std::ostream& err = *d_options.getErr();
@@ -133,31 +156,35 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   // dump the model/proof/unsat core if option is set
   if (status) {
     std::vector<std::unique_ptr<Command> > getterCommands;
-    if (d_options.getProduceModels() && d_options.getDumpModels() &&
-        (res.asSatisfiabilityResult() == Result::SAT ||
-         (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE))) {
+    if (d_options.getDumpModels()
+        && (res.isSat()
+            || (res.isSatUnknown()
+                && res.getResult().whyUnknown() == Result::INCOMPLETE)))
+    {
       getterCommands.emplace_back(new GetModelCommand());
     }
-    if (d_options.getProof() && d_options.getDumpProofs() &&
-        res.asSatisfiabilityResult() == Result::UNSAT) {
+    if (d_options.getDumpProofs() && res.isUnsat())
+    {
       getterCommands.emplace_back(new GetProofCommand());
     }
 
-    if (d_options.getDumpInstantiations() &&
-        ((d_options.getInstFormatMode() != INST_FORMAT_MODE_SZS &&
-          (res.asSatisfiabilityResult() == Result::SAT ||
-           (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE))) ||
-         res.asSatisfiabilityResult() == Result::UNSAT)) {
+    if (d_options.getDumpInstantiations()
+        && ((d_options.getInstFormatMode() != options::InstFormatMode::SZS
+             && (res.isSat()
+                 || (res.isSatUnknown()
+                     && res.getResult().whyUnknown() == Result::INCOMPLETE)))
+            || res.isUnsat()))
+    {
       getterCommands.emplace_back(new GetInstantiationsCommand());
     }
 
-    if (d_options.getDumpSynth() &&
-        res.asSatisfiabilityResult() == Result::UNSAT) {
+    if (d_options.getDumpSynth() && res.isUnsat())
+    {
       getterCommands.emplace_back(new GetSynthSolutionCommand());
     }
 
-    if (d_options.getDumpUnsatCores() &&
-        res.asSatisfiabilityResult() == Result::UNSAT) {
+    if (d_options.getDumpUnsatCores() && res.isUnsat())
+    {
       getterCommands.emplace_back(new GetUnsatCoreCommand());
     }
 
@@ -168,7 +195,8 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       }
       for (const auto& getterCommand : getterCommands) {
         status = doCommandSingleton(getterCommand.get());
-        if (!status && !d_options.getContinuedExecution()) {
+        if (!status)
+        {
           break;
         }
       }
@@ -177,17 +205,24 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   return status;
 }
 
-bool smtEngineInvoke(SmtEngine* smt, Command* cmd, std::ostream *out)
+bool solverInvoke(api::Solver* solver,
+                  SymbolManager* sm,
+                  Command* cmd,
+                  std::ostream* out)
 {
-  if(out == NULL) {
-    cmd->invoke(smt);
-  } else {
-    cmd->invoke(smt, *out);
+  if (out == NULL)
+  {
+    cmd->invoke(solver, sm);
+  }
+  else
+  {
+    cmd->invoke(solver, sm, *out);
   }
   // ignore the error if the command-verbosity is 0 for this command
   std::string commandName =
       std::string("command-verbosity:") + cmd->getCommandName();
-  if(smt->getOption(commandName).getIntegerValue() == 0) {
+  if (solver->getOption(commandName) == "0")
+  {
     return true;
   }
   return !cmd->fail();

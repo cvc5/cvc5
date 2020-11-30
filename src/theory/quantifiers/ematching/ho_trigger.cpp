@@ -2,10 +2,10 @@
 /*! \file ho_trigger.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -112,7 +112,7 @@ void HigherOrderTrigger::collectHoVarApplyTerms(
           bool curWithinApply = withinApply[cur];
           visited[cur] = Node::null();
           visit.push_back(cur);
-          for (unsigned j = 0, size = cur.getNumChildren(); j < size; j++)
+          for (unsigned j = 0, sizec = cur.getNumChildren(); j < sizec; j++)
           {
             withinApply[cur[j]] = curWithinApply && j == 0;
             visit.push_back(cur[j]);
@@ -270,6 +270,11 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
         // Assert( f==value );
         for (unsigned k = 0, size = args.size(); k < size; k++)
         {
+          // must now subsitute back, to handle cases like
+          // (@ x y) matching (@ t (@ t s))
+          // where the above substitution would produce (@ x (@ x s)),
+          // but the argument should be (@ t s).
+          args[k] = args[k].substitute(var, value);
           Node val = args[k];
           std::map<unsigned, Node>::iterator itf = fixed_vals.find(k);
           if (itf == fixed_vals.end())
@@ -464,12 +469,12 @@ int HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
   Trace("ho-quant-trigger") << "addHoTypeMatchPredicateLemmas..." << std::endl;
   unsigned numLemmas = 0;
   // this forces expansion of APPLY_UF terms to curried HO_APPLY chains
-  unsigned size = d_quantEngine->getTermDatabase()->getNumOperators();
-  quantifiers::TermUtil* tutil = d_quantEngine->getTermUtil();
+  quantifiers::TermDb* tdb = d_quantEngine->getTermDatabase();
+  unsigned size = tdb->getNumOperators();
   NodeManager* nm = NodeManager::currentNM();
   for (unsigned j = 0; j < size; j++)
   {
-    Node f = d_quantEngine->getTermDatabase()->getOperator(j);
+    Node f = tdb->getOperator(j);
     if (f.isVar())
     {
       TypeNode tn = f.getType();
@@ -481,7 +486,7 @@ int HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
         // for each function type suffix of the type of f, for example if
         // f : (Int -> (Int -> Int))
         // we iterate with stn = (Int -> (Int -> Int)) and (Int -> Int)
-        for (unsigned a = 0, size = argTypes.size(); a < size; a++)
+        for (unsigned a = 0, arg_size = argTypes.size(); a < arg_size; a++)
         {
           std::vector<TypeNode> sargts;
           sargts.insert(sargts.begin(), argTypes.begin() + a, argTypes.end());
@@ -492,7 +497,7 @@ int HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
           // if a variable of this type occurs in this trigger
           if (d_ho_var_types.find(stn) != d_ho_var_types.end())
           {
-            Node u = tutil->getHoTypeMatchPredicate(tn);
+            Node u = tdb->getHoTypeMatchPredicate(tn);
             Node au = nm->mkNode(kind::APPLY_UF, u, f);
             if (d_quantEngine->addLemma(au))
             {

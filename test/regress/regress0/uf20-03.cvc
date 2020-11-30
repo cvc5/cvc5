@@ -1,4 +1,4 @@
-% EXPECT: invalid
+% EXPECT: not_entailed
 x_1 : BOOLEAN;
 x_2 : BOOLEAN;
 x_3 : BOOLEAN;

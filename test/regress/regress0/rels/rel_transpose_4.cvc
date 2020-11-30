@@ -8,6 +8,6 @@ z : IntPair;
 ASSERT z = (1,2);
 
 ASSERT z IS_IN x;
-ASSERT NOT ((2, 1) IS_IN (TRANSPOSE x));
+ASSERT NOT ((2, 1) IS_IN TRANSPOSE(x));
 
 CHECKSAT;

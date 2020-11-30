@@ -65,7 +65,6 @@ exportConstant_cases=
 
 typerules=
 construles=
-neverconstrules=
 
 seen_theory=false
 seen_theory_builtin=false
@@ -151,9 +150,7 @@ function typerule {
   lineno=${BASH_LINENO[0]}
   check_theory_seen
   typerules="${typerules}
-#line $lineno \"$kf\"
   case kind::$1:
-#line $lineno \"$kf\"
     typeNode = $2::computeType(nodeManager, n, check);
     break;
 "
@@ -164,16 +161,8 @@ function construle {
   lineno=${BASH_LINENO[0]}
   check_theory_seen
   construles="${construles}
-#line $lineno \"$kf\"
   case kind::$1:
-#line $lineno \"$kf\"
     return $2::computeIsConst(nodeManager, n);
-"
-  neverconstrules="${neverconstrules}
-#line $lineno \"$kf\"
-  case kind::$1:
-#line $lineno \"$kf\"
-    return false;
 "
 }
 
@@ -225,26 +214,19 @@ function constant {
   fi
 
   mkConst_instantiations="${mkConst_instantiations}
-#line $lineno \"$kf\"
 template <> Expr ExprManager::mkConst($2 const& val);
 "
   mkConst_implementations="${mkConst_implementations}
-#line $lineno \"$kf\"
 template <> Expr ExprManager::mkConst($2 const& val) {
-#line $lineno \"$kf\"
   return Expr(this, new Node(d_nodeManager->mkConst< $2 >(val)));
 }
 "
   getConst_instantiations="${getConst_instantiations}
-#line $lineno \"$kf\"
 template <> $2 const & Expr::getConst< $2 >() const;
 "
   getConst_implementations="${getConst_implementations}
-#line $lineno \"$kf\"
 template <> $2 const & Expr::getConst() const {
-#line $lineno \"$kf\"
   PrettyCheckArgument(getKind() == ::CVC4::kind::$1, *this, \"Improper kind for getConst<$2>()\");
-#line $lineno \"$kf\"
   return d_node->getConst< $2 >();
 }
 "
@@ -295,10 +277,6 @@ check_builtin_theory_seen
 
 ## output
 
-# generate warnings about incorrect #line annotations in templates
-nl -ba -s' ' "$template"  | grep '^ *[0-9][0-9]* # *line' |
-  awk '{OFS="";if($1+1!=$3) print "'"$template"':",$1,": warning: incorrect annotation \"#line ",$3,"\" (it should be \"#line ",($1+1),"\")"}' >&2
-
 text=$(cat "$template")
 for var in \
     includes \
@@ -311,7 +289,6 @@ for var in \
     typechecker_includes \
     typerules \
     construles \
-    neverconstrules \
     ; do
   eval text="\${text//\\\$\\{$var\\}/\${$var}}"
 done
