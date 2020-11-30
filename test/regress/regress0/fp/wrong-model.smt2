@@ -2,7 +2,7 @@
 ; COMMAND-LINE: --fp-exp
 ; EXPECT: sat
 
-; note: the (set-logic ALL) is on purpose because the problem was not triggered
+; NOTE: the (set-logic ALL) is on purpose because the problem was not triggered
 ; with QF_FP.
 (set-logic ALL)
 (declare-const r RoundingMode)
