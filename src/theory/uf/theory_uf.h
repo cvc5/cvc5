@@ -142,7 +142,7 @@ private:
   bool collectModelValues(TheoryModel* m,
                           const std::set<Node>& termSet) override;
 
-  TrustNode expandDefinition(Node node) override;
+  TrustNode ppRewrite(TNode node) override;
   void preRegisterTerm(TNode term) override;
   TrustNode explain(TNode n) override;
 

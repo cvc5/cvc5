@@ -68,16 +68,11 @@ class DeclareFunctionNodeCommand : public NodeCommand
       OutputLanguage language = language::output::LANG_AUTO) const override;
   NodeCommand* clone() const override;
   const Node& getFunction() const;
-  bool getPrintInModel() const;
-  bool getPrintInModelSetByUser() const;
-  void setPrintInModel(bool p);
 
  private:
   std::string d_id;
   Node d_fun;
   TypeNode d_type;
-  bool d_printInModel;
-  bool d_printInModelSetByUser;
 };
 
 /**

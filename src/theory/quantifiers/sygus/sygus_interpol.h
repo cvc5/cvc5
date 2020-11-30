@@ -20,7 +20,7 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "expr/type.h"
+#include "expr/type_node.h"
 #include "smt/smt_engine.h"
 
 namespace CVC4 {

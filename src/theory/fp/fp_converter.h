@@ -26,10 +26,10 @@
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
-#include "expr/type.h"
+#include "expr/type_node.h"
 #include "theory/valuation.h"
 #include "util/bitvector.h"
-#include "util/floatingpoint.h"
+#include "util/floatingpoint_size.h"
 #include "util/hash.h"
 
 #ifdef CVC4_USE_SYMFPU
