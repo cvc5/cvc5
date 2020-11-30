@@ -362,11 +362,11 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
   {
     if (k == EXPONENTIAL)
     {
-      d_expSlv.doSecantLemmas(tf, c, poly_approx_c, d);
+      d_expSlv.doSecantLemmas(tf, poly_approx, c, poly_approx_c, d);
     }
     else if (k == Kind::SINE)
     {
-      d_sineSlv.doSecantLemmas(tf, c, poly_approx_c, d, region);
+      d_sineSlv.doSecantLemmas(tf, poly_approx, c, poly_approx_c, d, region);
     }
   }
   return true;

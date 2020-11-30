@@ -42,7 +42,7 @@ class TypeNodeWhite : public CxxTest::TestSuite {
   {
     d_em = new ExprManager();
     d_nm = d_em->getNodeManager();
-    d_smt = new SmtEngine(d_em);
+    d_smt = new SmtEngine(d_nm);
     d_scope = new NodeManagerScope(d_nm);
   }
 
