@@ -149,10 +149,10 @@ FloatingPoint::FloatingPoint(const FloatingPointSize& size,
 }
 
 FloatingPoint::FloatingPoint(const FloatingPointSize& fp_size,
-                             const FloatingPointLiteral* fpl)
+                             FloatingPointLiteral* fpl)
     : d_fp_size(fp_size)
 {
-  d_fpl.reset(new FloatingPointLiteral(*fpl));
+  d_fpl.reset(fpl);
 }
 
 FloatingPoint::FloatingPoint(const FloatingPoint& fp) : d_fp_size(fp.d_fp_size)

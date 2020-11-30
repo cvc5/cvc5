@@ -62,8 +62,7 @@ class CVC4_PUBLIC FloatingPoint
   /** Constructors. */
   FloatingPoint(uint32_t e, uint32_t s, const BitVector& bv);
   FloatingPoint(const FloatingPointSize& size, const BitVector& bv);
-  FloatingPoint(const FloatingPointSize& fp_size,
-                const FloatingPointLiteral* fpl);
+  FloatingPoint(const FloatingPointSize& fp_size, FloatingPointLiteral* fpl);
   FloatingPoint(const FloatingPoint& fp);
   FloatingPoint(const FloatingPointSize& size,
                 const RoundingMode& rm,
