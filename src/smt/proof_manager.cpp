@@ -56,7 +56,9 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
 
 PfManager::~PfManager() {}
 
-void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as, DefinedFunctionMap& df)
+void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn,
+                              Assertions& as,
+                              DefinedFunctionMap& df)
 {
   // Note this assumes that setFinalProof is only called once per unsat
   // response. This method would need to cache its result otherwise.
@@ -106,7 +108,9 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as, De
   Trace("smt-proof") << "SmtEngine::setFinalProof(): finished.\n";
 }
 
-void PfManager::printProof(std::shared_ptr<ProofNode> pfn, Assertions& as, DefinedFunctionMap& df)
+void PfManager::printProof(std::shared_ptr<ProofNode> pfn,
+                           Assertions& as,
+                           DefinedFunctionMap& df)
 {
   Trace("smt-proof") << "PfManager::printProof: start" << std::endl;
   std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as, df);
@@ -118,7 +122,9 @@ void PfManager::printProof(std::shared_ptr<ProofNode> pfn, Assertions& as, Defin
   out << "\n)\n";
 }
 
-void PfManager::checkProof(std::shared_ptr<ProofNode> pfn, Assertions& as, DefinedFunctionMap& df)
+void PfManager::checkProof(std::shared_ptr<ProofNode> pfn,
+                           Assertions& as,
+                           DefinedFunctionMap& df)
 {
   Trace("smt-proof") << "PfManager::checkProof: start" << std::endl;
   std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as, df);
@@ -143,7 +149,9 @@ std::shared_ptr<ProofNode> PfManager::getFinalProof(
   return d_finalProof;
 }
 
-void PfManager::getAssertions(Assertions& as, DefinedFunctionMap& df, std::vector<Node>& assertions)
+void PfManager::getAssertions(Assertions& as,
+                              DefinedFunctionMap& df,
+                              std::vector<Node>& assertions)
 {
   context::CDList<Node>* al = as.getAssertionList();
   Assert(al != nullptr);
@@ -152,7 +160,7 @@ void PfManager::getAssertions(Assertions& as, DefinedFunctionMap& df, std::vecto
   {
     assertions.push_back(*i);
   }
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   for (const std::pair<Node, smt::DefinedFunction>& dfn : df)
   {
     Node def = dfn.second.getFormula();
