@@ -54,7 +54,8 @@ class BoolProofCheckerBlack : public CxxTest::TestSuite
     d_smt->setOption("proof-new", "true");
     d_smt->finishInit();
     // make a proof checker for booleans
-    std::unique_ptr<booleans::BoolProofRuleChecker> bpfc(new booleans::BoolProofRuleChecker());
+    std::unique_ptr<booleans::BoolProofRuleChecker> bpfc(
+        new booleans::BoolProofRuleChecker());
     d_checker = d_smt->getPfManager()->getProofNodeManager()->getChecker();
     bpfc->registerTo(d_checker);
   }
