@@ -5,7 +5,7 @@
  **   Tim King, Morgan Deters, Paul Meng
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -150,7 +150,6 @@ public:
   options::InstFormatMode getInstFormatMode() const;
   OutputLanguage getOutputLanguage() const;
   bool getUfHo() const;
-  bool getCheckProofs() const;
   bool getDumpInstantiations() const;
   bool getDumpModels() const;
   bool getDumpProofs() const;
@@ -167,7 +166,6 @@ public:
   bool getMemoryMap() const;
   bool getParseOnly() const;
   bool getProduceModels() const;
-  bool getProof() const;
   bool getSegvSpin() const;
   bool getSemanticChecks() const;
   bool getStatistics() const;

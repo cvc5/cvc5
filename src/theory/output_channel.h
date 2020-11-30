@@ -2,10 +2,10 @@
 /*! \file output_channel.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Liana Hadarean
+ **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -22,11 +22,9 @@
 #include <memory>
 
 #include "expr/proof_node.h"
-#include "proof/proof_manager.h"
 #include "smt/logic_exception.h"
 #include "theory/interrupted.h"
 #include "theory/trust_node.h"
-#include "util/proof.h"
 #include "util/resource_manager.h"
 
 namespace CVC4 {
@@ -42,7 +40,9 @@ enum class LemmaProperty : uint32_t
   // whether the lemma needs preprocessing
   PREPROCESS = 2,
   // whether the processing of the lemma should send atoms to the caller
-  SEND_ATOMS = 4
+  SEND_ATOMS = 4,
+  // whether the lemma is part of the justification for answering "sat"
+  NEEDS_JUSTIFY = 8
 };
 /** Define operator lhs | rhs */
 LemmaProperty operator|(LemmaProperty lhs, LemmaProperty rhs);
@@ -58,6 +58,8 @@ bool isLemmaPropertyRemovable(LemmaProperty p);
 bool isLemmaPropertyPreprocess(LemmaProperty p);
 /** is the send atoms bit set on p? */
 bool isLemmaPropertySendAtoms(LemmaProperty p);
+/** is the needs justify bit set on p? */
+bool isLemmaPropertyNeedsJustify(LemmaProperty p);
 
 /**
  * Writes an lemma property name to a stream.
@@ -131,10 +133,8 @@ class OutputChannel {
    * assigned false), or else a literal by itself (in the case of a
    * unit conflict) which is assigned TRUE (and T-conflicting) in the
    * current assignment.
-   * @param pf - a proof of the conflict. This is only non-null if proofs
-   * are enabled.
    */
-  virtual void conflict(TNode n, std::unique_ptr<Proof> pf = nullptr) = 0;
+  virtual void conflict(TNode n) = 0;
 
   /**
    * Propagate a theory literal.
@@ -149,19 +149,11 @@ class OutputChannel {
    * been detected.  (This requests a split.)
    *
    * @param n - a theory lemma valid at decision level 0
-   * @param rule - the proof rule for this lemma
    * @param p The properties of the lemma
    * @return the "status" of the lemma, including user level at which
    * the lemma resides; the lemma will be removed when this user level pops
    */
-  virtual LemmaStatus lemma(TNode n,
-                            ProofRule rule,
-                            LemmaProperty p = LemmaProperty::NONE) = 0;
-
-  /**
-   * Variant of the lemma function that does not require providing a proof rule.
-   */
-  virtual LemmaStatus lemma(TNode n, LemmaProperty p = LemmaProperty::NONE);
+  virtual LemmaStatus lemma(TNode n, LemmaProperty p = LemmaProperty::NONE) = 0;
 
   /**
    * Request a split on a new theory atom.  This is equivalent to

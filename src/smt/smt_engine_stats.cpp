@@ -2,10 +2,10 @@
 /*! \file smt_engine_stats.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andres Noetzli, Morgan Deters
+ **   Tim King, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -25,9 +25,7 @@ SmtEngineStatistics::SmtEngineStatistics()
       d_cnfConversionTime("smt::SmtEngine::cnfConversionTime"),
       d_numAssertionsPre("smt::SmtEngine::numAssertionsPreITERemoval", 0),
       d_numAssertionsPost("smt::SmtEngine::numAssertionsPostITERemoval", 0),
-      d_proofsSize("smt::SmtEngine::proofsSize", 0),
       d_checkModelTime("smt::SmtEngine::checkModelTime"),
-      d_lfscCheckProofTime("smt::SmtEngine::lfscCheckProofTime"),
       d_checkUnsatCoreTime("smt::SmtEngine::checkUnsatCoreTime"),
       d_solveTime("smt::SmtEngine::solveTime"),
       d_pushPopTime("smt::SmtEngine::pushPopTime"),
@@ -39,9 +37,7 @@ SmtEngineStatistics::SmtEngineStatistics()
   smtStatisticsRegistry()->registerStat(&d_cnfConversionTime);
   smtStatisticsRegistry()->registerStat(&d_numAssertionsPre);
   smtStatisticsRegistry()->registerStat(&d_numAssertionsPost);
-  smtStatisticsRegistry()->registerStat(&d_proofsSize);
   smtStatisticsRegistry()->registerStat(&d_checkModelTime);
-  smtStatisticsRegistry()->registerStat(&d_lfscCheckProofTime);
   smtStatisticsRegistry()->registerStat(&d_checkUnsatCoreTime);
   smtStatisticsRegistry()->registerStat(&d_solveTime);
   smtStatisticsRegistry()->registerStat(&d_pushPopTime);
@@ -56,9 +52,7 @@ SmtEngineStatistics::~SmtEngineStatistics()
   smtStatisticsRegistry()->unregisterStat(&d_cnfConversionTime);
   smtStatisticsRegistry()->unregisterStat(&d_numAssertionsPre);
   smtStatisticsRegistry()->unregisterStat(&d_numAssertionsPost);
-  smtStatisticsRegistry()->unregisterStat(&d_proofsSize);
   smtStatisticsRegistry()->unregisterStat(&d_checkModelTime);
-  smtStatisticsRegistry()->unregisterStat(&d_lfscCheckProofTime);
   smtStatisticsRegistry()->unregisterStat(&d_checkUnsatCoreTime);
   smtStatisticsRegistry()->unregisterStat(&d_solveTime);
   smtStatisticsRegistry()->unregisterStat(&d_pushPopTime);

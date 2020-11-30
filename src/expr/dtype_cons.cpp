@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -66,11 +66,11 @@ void DTypeConstructor::addArgSelf(std::string selectorName)
 {
   Trace("datatypes") << "DTypeConstructor::addArgSelf" << std::endl;
   std::shared_ptr<DTypeSelector> a =
-      std::make_shared<DTypeSelector>(selectorName, Node::null());
+      std::make_shared<DTypeSelector>(selectorName + '\0', Node::null());
   addArg(a);
 }
 
-std::string DTypeConstructor::getName() const { return d_name; }
+const std::string& DTypeConstructor::getName() const { return d_name; }
 
 Node DTypeConstructor::getConstructor() const
 {
@@ -115,7 +115,10 @@ TypeNode DTypeConstructor::getSpecializedConstructorType(
     TypeNode returnType) const
 {
   Assert(isResolved());
-  Assert(returnType.isDatatype());
+  Assert(returnType.isDatatype())
+      << "DTypeConstructor::getSpecializedConstructorType: expected datatype, "
+         "got "
+      << returnType;
   const DType& dt = DType::datatypeOf(d_constructor);
   Assert(dt.isParametric());
   TypeNode dtt = dt.getTypeNode();
@@ -150,60 +153,39 @@ Cardinality DTypeConstructor::getCardinality(TypeNode t) const
 
 bool DTypeConstructor::isFinite(TypeNode t) const
 {
-  Assert(isResolved());
-
-  TNode self = d_constructor;
-  // is this already in the cache ?
-  if (self.getAttribute(DTypeFiniteComputedAttr()))
-  {
-    return self.getAttribute(DTypeFiniteAttr());
-  }
-  std::vector<TypeNode> instTypes;
-  std::vector<TypeNode> paramTypes;
-  bool isParam = t.isParametricDatatype();
-  if (isParam)
-  {
-    paramTypes = t.getDType().getParameters();
-    instTypes = TypeNode(t).getParamTypes();
-  }
-  for (size_t i = 0, nargs = getNumArgs(); i < nargs; i++)
-  {
-    TypeNode tc = getArgType(i);
-    if (isParam)
-    {
-      tc = tc.substitute(paramTypes.begin(),
-                         paramTypes.end(),
-                         instTypes.begin(),
-                         instTypes.end());
-    }
-    if (!tc.isFinite())
-    {
-      self.setAttribute(DTypeFiniteComputedAttr(), true);
-      self.setAttribute(DTypeFiniteAttr(), false);
-      return false;
-    }
-  }
-  self.setAttribute(DTypeFiniteComputedAttr(), true);
-  self.setAttribute(DTypeFiniteAttr(), true);
-  return true;
+  std::pair<CardinalityType, bool> cinfo = computeCardinalityInfo(t);
+  return cinfo.first == CardinalityType::FINITE;
 }
 
 bool DTypeConstructor::isInterpretedFinite(TypeNode t) const
 {
-  Assert(isResolved());
-  TNode self = d_constructor;
-  // is this already in the cache ?
-  if (self.getAttribute(DTypeUFiniteComputedAttr()))
+  std::pair<CardinalityType, bool> cinfo = computeCardinalityInfo(t);
+  return cinfo.first != CardinalityType::INFINITE;
+}
+
+bool DTypeConstructor::hasFiniteExternalArgType(TypeNode t) const
+{
+  std::pair<CardinalityType, bool> cinfo = computeCardinalityInfo(t);
+  return cinfo.second;
+}
+
+std::pair<DTypeConstructor::CardinalityType, bool>
+DTypeConstructor::computeCardinalityInfo(TypeNode t) const
+{
+  std::map<TypeNode, std::pair<CardinalityType, bool> >::iterator it =
+      d_cardInfo.find(t);
+  if (it != d_cardInfo.end())
   {
-    return self.getAttribute(DTypeUFiniteAttr());
+    return it->second;
   }
+  std::pair<CardinalityType, bool> ret(CardinalityType::FINITE, false);
   std::vector<TypeNode> instTypes;
   std::vector<TypeNode> paramTypes;
   bool isParam = t.isParametricDatatype();
   if (isParam)
   {
     paramTypes = t.getDType().getParameters();
-    instTypes = TypeNode(t).getParamTypes();
+    instTypes = t.getParamTypes();
   }
   for (unsigned i = 0, nargs = getNumArgs(); i < nargs; i++)
   {
@@ -215,16 +197,30 @@ bool DTypeConstructor::isInterpretedFinite(TypeNode t) const
                          instTypes.begin(),
                          instTypes.end());
     }
-    if (!tc.isInterpretedFinite())
+    if (tc.isFinite())
     {
-      self.setAttribute(DTypeUFiniteComputedAttr(), true);
-      self.setAttribute(DTypeUFiniteAttr(), false);
-      return false;
+      // do nothing
     }
+    else if (tc.isInterpretedFinite())
+    {
+      if (ret.first == CardinalityType::FINITE)
+      {
+        // not simply finite, it depends on uninterpreted sorts being finite
+        ret.first = CardinalityType::INTERPRETED_FINITE;
+      }
+    }
+    else
+    {
+      // infinite implies the constructor is infinite cardinality
+      ret.first = CardinalityType::INFINITE;
+      continue;
+    }
+    // if the argument is (interpreted) finite and external, set the flag
+    // for indicating it has a finite external argument
+    ret.second = ret.second || !tc.isDatatype();
   }
-  self.setAttribute(DTypeUFiniteComputedAttr(), true);
-  self.setAttribute(DTypeUFiniteAttr(), true);
-  return true;
+  d_cardInfo[t] = ret;
+  return ret;
 }
 
 bool DTypeConstructor::isResolved() const { return !d_tester.isNull(); }
@@ -442,7 +438,7 @@ Node DTypeConstructor::computeGroundTerm(TypeNode t,
                           << ", ascribe to " << t << std::endl;
     groundTerms[0] = nm->mkNode(
         APPLY_TYPE_ASCRIPTION,
-        nm->mkConst(AscriptionType(getSpecializedConstructorType(t).toType())),
+        nm->mkConst(AscriptionType(getSpecializedConstructorType(t))),
         groundTerms[0]);
     groundTerm = nm->mkNode(APPLY_CONSTRUCTOR, groundTerms);
   }
@@ -577,6 +573,13 @@ bool DTypeConstructor::resolve(
     arg->d_selector.setAttribute(DTypeIndexAttr(), index++);
     arg->d_resolved = true;
     argTypes.push_back(range);
+    // We use \0 as a distinguished marker for unresolved selectors for doing
+    // name resolutions. We now can remove \0 from name if necessary.
+    const size_t nul = arg->d_name.find('\0');
+    if (nul != std::string::npos)
+    {
+      arg->d_name.resize(nul);
+    }
   }
 
   Assert(index == getNumArgs());

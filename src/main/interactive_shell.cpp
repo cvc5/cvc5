@@ -2,10 +2,10 @@
 /*! \file interactive_shell.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Christopher L. Conway, Tim King
+ **   Morgan Deters, Christopher L. Conway, Andrew V. Jones
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -38,6 +38,7 @@
 
 #include "api/cvc4cpp.h"
 #include "base/output.h"
+#include "expr/symbol_manager.h"
 #include "options/language.h"
 #include "options/options.h"
 #include "parser/input.h"
@@ -83,13 +84,13 @@ static set<string> s_declarations;
 
 #endif /* HAVE_LIBEDITLINE */
 
-InteractiveShell::InteractiveShell(api::Solver* solver)
+InteractiveShell::InteractiveShell(api::Solver* solver, SymbolManager* sm)
     : d_options(solver->getOptions()),
       d_in(*d_options.getIn()),
       d_out(*d_options.getOutConst()),
       d_quit(false)
 {
-  ParserBuilder parserBuilder(solver, INPUT_FILENAME, d_options);
+  ParserBuilder parserBuilder(solver, sm, INPUT_FILENAME, d_options);
   /* Create parser with bogus input. */
   d_parser = parserBuilder.withStringInput("").build();
   if(d_options.wasSetByUserForceLogicString()) {
@@ -309,34 +310,56 @@ restart:
   CommandSequence *cmd_seq = new CommandSequence();
   Command *cmd;
 
-  try {
-    while( (cmd = d_parser->nextCommand()) ) {
+  try
+  {
+    while ((cmd = d_parser->nextCommand()))
+    {
       cmd_seq->addCommand(cmd);
-      if(dynamic_cast<QuitCommand*>(cmd) != NULL) {
+      if (dynamic_cast<QuitCommand*>(cmd) != NULL)
+      {
         d_quit = true;
         break;
-      } else {
+      }
+      else
+      {
 #if HAVE_LIBEDITLINE
-        if(dynamic_cast<DeclareFunctionCommand*>(cmd) != NULL) {
-          s_declarations.insert(dynamic_cast<DeclareFunctionCommand*>(cmd)->getSymbol());
-        } else if(dynamic_cast<DefineFunctionCommand*>(cmd) != NULL) {
-          s_declarations.insert(dynamic_cast<DefineFunctionCommand*>(cmd)->getSymbol());
-        } else if(dynamic_cast<DeclareTypeCommand*>(cmd) != NULL) {
-          s_declarations.insert(dynamic_cast<DeclareTypeCommand*>(cmd)->getSymbol());
-        } else if(dynamic_cast<DefineTypeCommand*>(cmd) != NULL) {
-          s_declarations.insert(dynamic_cast<DefineTypeCommand*>(cmd)->getSymbol());
+        if (dynamic_cast<DeclareFunctionCommand*>(cmd) != NULL)
+        {
+          s_declarations.insert(
+              dynamic_cast<DeclareFunctionCommand*>(cmd)->getSymbol());
+        }
+        else if (dynamic_cast<DefineFunctionCommand*>(cmd) != NULL)
+        {
+          s_declarations.insert(
+              dynamic_cast<DefineFunctionCommand*>(cmd)->getSymbol());
+        }
+        else if (dynamic_cast<DeclareSortCommand*>(cmd) != NULL)
+        {
+          s_declarations.insert(
+              dynamic_cast<DeclareSortCommand*>(cmd)->getSymbol());
+        }
+        else if (dynamic_cast<DefineSortCommand*>(cmd) != NULL)
+        {
+          s_declarations.insert(
+              dynamic_cast<DefineSortCommand*>(cmd)->getSymbol());
         }
 #endif /* HAVE_LIBEDITLINE */
       }
     }
-  } catch(ParserEndOfFileException& pe) {
+  }
+  catch (ParserEndOfFileException& pe)
+  {
     line += "\n";
     goto restart;
-  } catch(ParserException& pe) {
+  }
+  catch (ParserException& pe)
+  {
     if (language::isOutputLang_smt2(d_options.getOutputLanguage()))
     {
       d_out << "(error \"" << pe << "\")" << endl;
-    } else {
+    }
+    else
+    {
       d_out << pe << endl;
     }
     // We can't really clear out the sequence and abort the current line,
@@ -350,8 +373,8 @@ restart:
     // FIXME: does that mean e.g. that a pushed LET scope might not yet have
     // been popped?!
     //
-    //delete cmd_seq;
-    //cmd_seq = new CommandSequence();
+    // delete cmd_seq;
+    // cmd_seq = new CommandSequence();
   }
 
   return cmd_seq;

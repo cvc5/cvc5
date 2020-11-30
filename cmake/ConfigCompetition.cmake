@@ -1,3 +1,13 @@
+#####################
+## ConfigCompetition.cmake
+## Top contributors (to current version):
+##   Aina Niemetz, Andres Noetzli, Mathias Preiner
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
 add_definitions(-DCVC4_COMPETITION_MODE)
 add_check_c_cxx_flag("-funroll-all-loops")
 add_check_c_cxx_flag("-fexpensive-optimizations")
@@ -22,3 +32,13 @@ cvc4_set_option(ENABLE_MUZZLE ON)
 # enable_shared=no
 cvc4_set_option(ENABLE_SHARED OFF)
 cvc4_set_option(ENABLE_UNIT_TESTING OFF)
+
+# By default, we include all dependencies in our competition build that are
+# required to achieve the best performance
+set(ENABLE_GPL ON)
+cvc4_set_option(USE_CADICAL ON)
+cvc4_set_option(USE_CLN ON)
+cvc4_set_option(USE_CRYPTOMINISAT ON)
+cvc4_set_option(USE_EDITLINE OFF)
+cvc4_set_option(USE_GLPK ON)
+cvc4_set_option(USE_SYMFPU ON)

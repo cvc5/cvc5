@@ -2,10 +2,10 @@
 /*! \file abstract_values.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -46,7 +46,7 @@ Node AbstractValues::mkAbstractValue(TNode n)
     d_abstractValueMap.addSubstitution(val, n);
   }
   // We are supposed to ascribe types to all abstract values that go out.
-  Node ascription = d_nm->mkConst(AscriptionType(n.getType().toType()));
+  Node ascription = d_nm->mkConst(AscriptionType(n.getType()));
   Node retval = d_nm->mkNode(kind::APPLY_TYPE_ASCRIPTION, ascription, val);
   return retval;
 }

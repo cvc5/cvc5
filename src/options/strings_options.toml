@@ -222,3 +222,11 @@ header = "options/strings_options.h"
   type       = "bool"
   default    = "false"
   help       = "add skolem length constraints in conclusions of inferences"
+
+[[option]]
+  name       = "stringEagerEval"
+  category   = "regular"
+  long       = "strings-eager-eval"
+  type       = "bool"
+  default    = "true"
+  help       = "perform eager context-dependent evaluation for applications of string kinds"

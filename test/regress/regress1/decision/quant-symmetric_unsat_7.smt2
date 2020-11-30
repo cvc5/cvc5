@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-check-proofs --no-check-unsat-cores --decision=justification
+; COMMAND-LINE: --no-check-unsat-cores --decision=justification
 ; EXPECT: unsat
 
 (set-logic AUFLIRA)

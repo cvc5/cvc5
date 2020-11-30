@@ -1,5 +1,21 @@
+#####################
+## Helpers.cmake
+## Top contributors (to current version):
+##   Mathias Preiner, Aina Niemetz, Andres Noetzli
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
 include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
+
+if(NOT WIN32)
+  string(ASCII 27 Esc)
+  set(Yellow "${Esc}[33m")
+  set(ResetColor "${Esc}[m")
+endif()
 
 # Add a C flag to the global list of C flags.
 macro(add_c_flag flag)

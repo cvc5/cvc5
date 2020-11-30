@@ -5,7 +5,7 @@
  **   Dejan Jovanovic, Liana Hadarean, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -19,8 +19,6 @@
 #ifndef CVC4__PROP__SAT_SOLVER_H
 #define CVC4__PROP__SAT_SOLVER_H
 
-#include <stdint.h>
-
 #include <string>
 
 #include "context/cdlist.h"
@@ -32,11 +30,6 @@
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
-
-namespace proof {
-class ClausalBitVectorProof;
-class ResolutionBitVectorProof;
-}  // namespace proof
 
 namespace prop {
 
@@ -58,7 +51,7 @@ public:
 
   /** Add a clause corresponding to rhs = l1 xor .. xor ln  */
   virtual ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) = 0;
-  
+
   /**
    * Create a new boolean variable in the solver.
    * @param isTheoryAtom is this a theory atom that needs to be asserted to theory
@@ -84,6 +77,7 @@ public:
   virtual SatValue solve(const std::vector<SatLiteral>& assumptions)
   {
     Unimplemented() << "Solving under assumptions not implemented";
+    return SAT_VALUE_UNKNOWN;
   };
 
   /** Interrupt the solver */
@@ -100,10 +94,6 @@ public:
 
   /** Check if the solver is in an inconsistent state */
   virtual bool ok() const = 0;
-
-  virtual void setResolutionProofLog(proof::ResolutionBitVectorProof* bvp) {}
-
-  virtual void setClausalProofLog(proof::ClausalBitVectorProof* drat_proof) {}
 
 };/* class SatSolver */
 

@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Paul Meng, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -24,6 +24,7 @@
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/rels_utils.h"
 #include "theory/sets/solver_state.h"
+#include "theory/sets/term_registry.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -67,8 +68,8 @@ class TheorySetsRels {
 public:
  TheorySetsRels(SolverState& s,
                 InferenceManager& im,
-                eq::EqualityEngine& e,
-                context::UserContext* u);
+                SkolemCache& skc,
+                TermRegistry& treg);
 
  ~TheorySetsRels();
  /**
@@ -90,8 +91,10 @@ private:
   SolverState& d_state;
   /** Reference to the inference manager for the theory of sets */
   InferenceManager& d_im;
-  /** Reference to the equality engine of theory of sets */
-  eq::EqualityEngine& d_ee;
+  /** Reference to the skolem cache */
+  SkolemCache& d_skCache;
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
   /** A list of pending inferences to process */
   std::vector<Node> d_pending;
   NodeSet                       d_shared_terms;
@@ -173,7 +176,7 @@ private:
 
   /** Helper functions */
   bool hasTerm( Node a );
-  void makeSharedTerm( Node );
+  void makeSharedTerm(Node, TypeNode t);
   void reduceTupleVar( Node );
   bool hasMember( Node, Node );
   void computeTupleReps( Node );

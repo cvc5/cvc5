@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -25,13 +25,14 @@ SequencesStatistics::SequencesStatistics()
     : d_checkRuns("theory::strings::checkRuns", 0),
       d_strategyRuns("theory::strings::strategyRuns", 0),
       d_inferences("theory::strings::inferences"),
+      d_inferencesNoPf("theory::strings::inferencesNoPf"),
       d_cdSimplifications("theory::strings::cdSimplifications"),
       d_reductions("theory::strings::reductions"),
       d_regexpUnfoldingsPos("theory::strings::regexpUnfoldingsPos"),
       d_regexpUnfoldingsNeg("theory::strings::regexpUnfoldingsNeg"),
       d_rewrites("theory::strings::rewrites"),
       d_conflictsEqEngine("theory::strings::conflictsEqEngine", 0),
-      d_conflictsEagerPrefix("theory::strings::conflictsEagerPrefix", 0),
+      d_conflictsEager("theory::strings::conflictsEager", 0),
       d_conflictsInfer("theory::strings::conflictsInfer", 0),
       d_lemmasEagerPreproc("theory::strings::lemmasEagerPreproc", 0),
       d_lemmasCmiSplit("theory::strings::lemmasCmiSplit", 0),
@@ -43,13 +44,14 @@ SequencesStatistics::SequencesStatistics()
   smtStatisticsRegistry()->registerStat(&d_checkRuns);
   smtStatisticsRegistry()->registerStat(&d_strategyRuns);
   smtStatisticsRegistry()->registerStat(&d_inferences);
+  smtStatisticsRegistry()->registerStat(&d_inferencesNoPf);
   smtStatisticsRegistry()->registerStat(&d_cdSimplifications);
   smtStatisticsRegistry()->registerStat(&d_reductions);
   smtStatisticsRegistry()->registerStat(&d_regexpUnfoldingsPos);
   smtStatisticsRegistry()->registerStat(&d_regexpUnfoldingsNeg);
   smtStatisticsRegistry()->registerStat(&d_rewrites);
   smtStatisticsRegistry()->registerStat(&d_conflictsEqEngine);
-  smtStatisticsRegistry()->registerStat(&d_conflictsEagerPrefix);
+  smtStatisticsRegistry()->registerStat(&d_conflictsEager);
   smtStatisticsRegistry()->registerStat(&d_conflictsInfer);
   smtStatisticsRegistry()->registerStat(&d_lemmasEagerPreproc);
   smtStatisticsRegistry()->registerStat(&d_lemmasCmiSplit);
@@ -63,13 +65,14 @@ SequencesStatistics::~SequencesStatistics()
   smtStatisticsRegistry()->unregisterStat(&d_checkRuns);
   smtStatisticsRegistry()->unregisterStat(&d_strategyRuns);
   smtStatisticsRegistry()->unregisterStat(&d_inferences);
+  smtStatisticsRegistry()->unregisterStat(&d_inferencesNoPf);
   smtStatisticsRegistry()->unregisterStat(&d_cdSimplifications);
   smtStatisticsRegistry()->unregisterStat(&d_reductions);
   smtStatisticsRegistry()->unregisterStat(&d_regexpUnfoldingsPos);
   smtStatisticsRegistry()->unregisterStat(&d_regexpUnfoldingsNeg);
   smtStatisticsRegistry()->unregisterStat(&d_rewrites);
   smtStatisticsRegistry()->unregisterStat(&d_conflictsEqEngine);
-  smtStatisticsRegistry()->unregisterStat(&d_conflictsEagerPrefix);
+  smtStatisticsRegistry()->unregisterStat(&d_conflictsEager);
   smtStatisticsRegistry()->unregisterStat(&d_conflictsInfer);
   smtStatisticsRegistry()->unregisterStat(&d_lemmasEagerPreproc);
   smtStatisticsRegistry()->unregisterStat(&d_lemmasCmiSplit);

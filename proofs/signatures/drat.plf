@@ -354,7 +354,7 @@
 ; Helper for `is_operational_drat_proof` which takes a UP model for the working
 ; formula. The UP model is important for determining which clause deletions
 ; actually are executed in operational DRAT. Passing the UP model along
-; prevents it from being fully recomputed everytime.
+; prevents it from being fully recomputed every time.
 (program is_operational_drat_proof_h ((f cnf) (up_model clause) (pf DRATProof)) bool
          (match pf
                 (DRATProofn (cnf_has_bottom f))

@@ -5,7 +5,7 @@
  **   Andres Noetzli, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -63,8 +63,6 @@ const char* toString(CVC4::Kind k);
  */
 std::ostream& operator<<(std::ostream&, CVC4::Kind) CVC4_PUBLIC;
 
-#line 67 "${template}"
-
 /** Returns true if the given kind is associative. This is used by ExprManager to
  * decide whether it's safe to modify big expressions by changing the grouping of
  * the arguments. */
@@ -86,7 +84,6 @@ struct KindHashFunction {
 enum CVC4_PUBLIC TypeConstant
 {
   ${type_constant_list}
-#line 90 "${template}"
   LAST_TYPE
 }; /* enum TypeConstant */
 

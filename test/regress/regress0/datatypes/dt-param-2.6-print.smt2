@@ -1,5 +1,5 @@
 ; EXPECT: sat
-; EXPECT: (model
+; EXPECT: (
 ; EXPECT: (declare-datatypes ((Pair 2)) ((par (X Y)((mkPair (first X) (second Y))))))
 ; EXPECT: (define-fun x () (Pair Int Real) ((as mkPair (Pair Int Real)) 2 (/ 3 2)))
 ; EXPECT: )

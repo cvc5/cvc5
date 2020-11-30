@@ -1,19 +1,18 @@
 #!/usr/bin/env python
-
 #####################
-#! \file datatypes.py
- ## \verbatim
- ## Top contributors (to current version):
- ##   Makai Mann
- ## This file is part of the CVC4 project.
- ## Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ## in the top-level source directory) and their institutional affiliations.
- ## All rights reserved.  See the file COPYING in the top-level source
- ## directory for licensing information.\endverbatim
- ##
- ## \brief A simple demonstration of the solving capabilities of the CVC4
- ## datatypes solver through the Python API. This is a direct translation
- ## of datatypes-new.cpp.
+## datatypes.py
+## Top contributors (to current version):
+##   Makai Mann, Andrew Reynolds, Aina Niemetz
+## This file is part of the CVC4 project.
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## in the top-level source directory and their institutional affiliations.
+## All rights reserved.  See the file COPYING in the top-level source
+## directory for licensing information.
+##
+## \brief A simple demonstration of the solving capabilities of the CVC4
+## datatypes solver through the Python API. This is a direct translation
+## of datatypes-new.cpp.
+##
 
 import pycvc4
 from pycvc4 import kinds
@@ -34,7 +33,7 @@ def test(slv, consListSort):
     # "nil" is a constructor too
 
     t = slv.mkTerm(kinds.ApplyConstructor, consList.getConstructorTerm("cons"),
-                   slv.mkReal(0),
+                   slv.mkInteger(0),
                    slv.mkTerm(kinds.ApplyConstructor, consList.getConstructorTerm("nil")))
 
     print("t is {}\nsort of cons is {}\n sort of nil is {}".format(
@@ -83,7 +82,7 @@ def test(slv, consListSort):
     print("head_a is {} of sort {}".format(head_a, head_a.getSort()))
     print("sort of cons is", paramConsList.getConstructorTerm("cons").getSort())
 
-    assertion = slv.mkTerm(kinds.Gt, head_a, slv.mkReal(50))
+    assertion = slv.mkTerm(kinds.Gt, head_a, slv.mkInteger(50))
     print("Assert", assertion)
     slv.assertFormula(assertion)
     print("Expect sat.")

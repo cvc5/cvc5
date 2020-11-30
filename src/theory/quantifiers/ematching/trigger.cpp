@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -408,7 +408,7 @@ bool Trigger::isAtomicTriggerKind( Kind k ) {
          || k == APPLY_SELECTOR_TOTAL || k == APPLY_TESTER || k == UNION
          || k == INTERSECTION || k == SUBSET || k == SETMINUS || k == MEMBER
          || k == SINGLETON || k == SEP_PTO || k == BITVECTOR_TO_NAT
-         || k == INT_TO_BITVECTOR || k == HO_APPLY;
+         || k == INT_TO_BITVECTOR || k == HO_APPLY || k == SEQ_NTH;
 }
 
 bool Trigger::isRelationalTrigger( Node n ) {

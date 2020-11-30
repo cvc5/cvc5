@@ -2,10 +2,10 @@
 /*! \file sets.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz
+ **   Aina Niemetz, Kshitij Bansal
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -69,9 +69,9 @@ int main()
 
   // Find me an element in {1, 2} intersection {2, 3}, if there is one.
   {
-    Term one = slv.mkReal(1);
-    Term two = slv.mkReal(2);
-    Term three = slv.mkReal(3);
+    Term one = slv.mkInteger(1);
+    Term two = slv.mkInteger(2);
+    Term three = slv.mkInteger(3);
 
     Term singleton_one = slv.mkTerm(SINGLETON, one);
     Term singleton_two = slv.mkTerm(SINGLETON, two);

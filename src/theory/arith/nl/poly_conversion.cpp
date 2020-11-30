@@ -5,7 +5,7 @@
  **   Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -201,6 +201,79 @@ poly::Polynomial as_poly_polynomial(const CVC4::Node& n, VariableMapper& vm)
   poly::Integer denom;
   return as_poly_polynomial_impl(n, denom, vm);
 }
+poly::Polynomial as_poly_polynomial(const CVC4::Node& n,
+                                    VariableMapper& vm,
+                                    poly::Rational& denominator)
+{
+  poly::Integer denom;
+  auto res = as_poly_polynomial_impl(n, denom, vm);
+  denominator = poly::Rational(denom);
+  return res;
+}
+
+namespace {
+/**
+ * Utility class that collects the monomial terms (as nodes) from the polynomial
+ * we are converting.
+ */
+struct CollectMonomialData
+{
+  CollectMonomialData(VariableMapper& v) : d_vm(v) {}
+
+  /** Mapper from poly variables to CVC4 variables */
+  VariableMapper& d_vm;
+  /** Collections of the monomial terms */
+  std::vector<Node> d_terms;
+  /** Caches the current node manager */
+  NodeManager* d_nm = NodeManager::currentNM();
+};
+/**
+ * Callback for lp_polynomial_traverse. Assumes data is actually a
+ * CollectMonomialData object and puts the polynomial into it.
+ */
+void collect_monomials(const lp_polynomial_context_t* ctx,
+                       lp_monomial_t* m,
+                       void* data)
+{
+  CollectMonomialData* d = static_cast<CollectMonomialData*>(data);
+  // constant
+  Node term =
+      d->d_nm->mkConst<Rational>(poly_utils::toRational(poly::Integer(&m->a)));
+  for (std::size_t i = 0; i < m->n; ++i)
+  {
+    // variable exponent pair
+    Node var = d->d_vm(m->p[i].x);
+    if (m->p[i].d > 1)
+    {
+      Node exp = d->d_nm->mkConst<Rational>(m->p[i].d);
+      term = d->d_nm->mkNode(
+          Kind::NONLINEAR_MULT, term, d->d_nm->mkNode(Kind::POW, var, exp));
+    }
+    else
+    {
+      term = d->d_nm->mkNode(Kind::NONLINEAR_MULT, term, var);
+    }
+  }
+  d->d_terms.emplace_back(term);
+}
+}  // namespace
+
+CVC4::Node as_cvc_polynomial(const poly::Polynomial& p, VariableMapper& vm)
+{
+  CollectMonomialData cmd(vm);
+  // Do the actual conversion
+  lp_polynomial_traverse(p.get_internal(), collect_monomials, &cmd);
+
+  if (cmd.d_terms.empty())
+  {
+    return cmd.d_nm->mkConst<Rational>(0);
+  }
+  if (cmd.d_terms.size() == 1)
+  {
+    return cmd.d_terms.front();
+  }
+  return cmd.d_nm->mkNode(Kind::PLUS, cmd.d_terms);
+}
 
 poly::SignCondition normalize_kind(CVC4::Kind kind,
                                    bool negated,
@@ -346,12 +419,126 @@ Node value_to_node(const poly::Value& v, const Node& ran_variable)
   return nm->mkConst(Rational(0));
 }
 
+Node lower_bound_as_node(const Node& var,
+                         const poly::Value& lower,
+                         bool open,
+                         bool allowNonlinearLemma)
+{
+  auto* nm = NodeManager::currentNM();
+  if (!poly::is_algebraic_number(lower))
+  {
+    return nm->mkNode(open ? Kind::LEQ : Kind::LT,
+                      var,
+                      nm->mkConst(poly_utils::toRationalAbove(lower)));
+  }
+  if (poly::represents_rational(lower))
+  {
+    return nm->mkNode(
+        open ? Kind::LEQ : Kind::LT,
+        var,
+        nm->mkConst(poly_utils::toRationalAbove(poly::get_rational(lower))));
+  }
+  if (!allowNonlinearLemma)
+  {
+    return Node();
+  }
+
+  const poly::AlgebraicNumber& alg = as_algebraic_number(lower);
+
+  Node poly = as_cvc_upolynomial(get_defining_polynomial(alg), var);
+  Rational l = poly_utils::toRational(
+      poly::get_lower(poly::get_isolating_interval(alg)));
+  Rational u = poly_utils::toRational(
+      poly::get_upper(poly::get_isolating_interval(alg)));
+  int sl = poly::sign_at(get_defining_polynomial(alg),
+                         poly::get_lower(poly::get_isolating_interval(alg)));
+  int su = poly::sign_at(get_defining_polynomial(alg),
+                         poly::get_upper(poly::get_isolating_interval(alg)));
+  Assert(sl != 0 && su != 0 && sl != su);
+
+  // open:  var <= l  or  (var < u  and  sgn(poly(var)) == sl)
+  // !open: var <= l  or  (var < u  and  sgn(poly(var)) == sl/0)
+  Kind relation;
+  if (open)
+  {
+    relation = (sl < 0) ? Kind::LEQ : Kind::GEQ;
+  }
+  else
+  {
+    relation = (sl < 0) ? Kind::LT : Kind::GT;
+  }
+  return nm->mkNode(
+      Kind::OR,
+      nm->mkNode(Kind::LEQ, var, nm->mkConst(l)),
+      nm->mkNode(Kind::AND,
+                 nm->mkNode(Kind::LT, var, nm->mkConst(u)),
+                 nm->mkNode(relation, poly, nm->mkConst(Rational(0)))));
+}
+
+Node upper_bound_as_node(const Node& var,
+                         const poly::Value& upper,
+                         bool open,
+                         bool allowNonlinearLemma)
+{
+  auto* nm = NodeManager::currentNM();
+  if (!poly::is_algebraic_number(upper))
+  {
+    return nm->mkNode(open ? Kind::GEQ : Kind::GT,
+                      var,
+                      nm->mkConst(poly_utils::toRationalAbove(upper)));
+  }
+  if (poly::represents_rational(upper))
+  {
+    return nm->mkNode(
+        open ? Kind::GEQ : Kind::GT,
+        var,
+        nm->mkConst(poly_utils::toRationalAbove(poly::get_rational(upper))));
+  }
+  if (!allowNonlinearLemma)
+  {
+    return Node();
+  }
+
+  const poly::AlgebraicNumber& alg = as_algebraic_number(upper);
+
+  Node poly = as_cvc_upolynomial(get_defining_polynomial(alg), var);
+  Rational l = poly_utils::toRational(
+      poly::get_lower(poly::get_isolating_interval(alg)));
+  Rational u = poly_utils::toRational(
+      poly::get_upper(poly::get_isolating_interval(alg)));
+  int sl = poly::sign_at(get_defining_polynomial(alg),
+                         poly::get_lower(poly::get_isolating_interval(alg)));
+  int su = poly::sign_at(get_defining_polynomial(alg),
+                         poly::get_upper(poly::get_isolating_interval(alg)));
+  Assert(sl != 0 && su != 0 && sl != su);
+
+  // open:  var >= u  or  (var > l  and  sgn(poly(var)) == su)
+  // !open: var >= u  or  (var > l  and  sgn(poly(var)) == su/0)
+  Kind relation;
+  if (open)
+  {
+    relation = (su < 0) ? Kind::LEQ : Kind::GEQ;
+  }
+  else
+  {
+    relation = (su < 0) ? Kind::LT : Kind::GT;
+  }
+  return nm->mkNode(
+      Kind::OR,
+      nm->mkNode(Kind::GEQ, var, nm->mkConst(u)),
+      nm->mkNode(Kind::AND,
+                 nm->mkNode(Kind::GT, var, nm->mkConst(l)),
+                 nm->mkNode(relation, poly, nm->mkConst(Rational(0)))));
+}
+
 Node excluding_interval_to_lemma(const Node& variable,
-                                 const poly::Interval& interval)
+                                 const poly::Interval& interval,
+                                 bool allowNonlinearLemma)
 {
   auto* nm = NodeManager::currentNM();
   const auto& lv = poly::get_lower(interval);
   const auto& uv = poly::get_upper(interval);
+  if (bitsize(lv) > 100 || bitsize(uv) > 100) return Node();
   bool li = poly::is_minus_infinity(lv);
   bool ui = poly::is_plus_infinity(uv);
   if (li && ui) return nm->mkConst(true);
@@ -359,36 +546,59 @@ Node excluding_interval_to_lemma(const Node& variable,
   {
     if (is_algebraic_number(lv))
     {
-      return nm->mkNode(
-          Kind::AND,
-          nm->mkNode(
-              Kind::GT, variable, nm->mkConst(poly_utils::toRationalBelow(lv))),
-          nm->mkNode(Kind::LT,
-                     variable,
-                     nm->mkConst(poly_utils::toRationalAbove(lv))));
+      const poly::AlgebraicNumber& alg = as_algebraic_number(lv);
+      if (poly::is_rational(alg))
+      {
+        Trace("nl-cad") << "Rational point interval: " << interval << std::endl;
+        return nm->mkNode(Kind::DISTINCT,
+                          variable,
+                          nm->mkConst(poly_utils::toRational(
+                              poly::to_rational_approximation(alg))));
+      }
+      Trace("nl-cad") << "Algebraic point interval: " << interval << std::endl;
+      // p(x) != 0 or x <= lb or ub <= x
+      if (allowNonlinearLemma)
+      {
+        Node poly = as_cvc_upolynomial(get_defining_polynomial(alg), variable);
+        return nm->mkNode(
+            Kind::OR,
+            nm->mkNode(Kind::DISTINCT, poly, nm->mkConst(Rational(0))),
+            nm->mkNode(Kind::LT,
+                       variable,
+                       nm->mkConst(poly_utils::toRationalBelow(lv))),
+            nm->mkNode(Kind::GT,
+                       variable,
+                       nm->mkConst(poly_utils::toRationalAbove(lv))));
+      }
+      return Node();
     }
     else
     {
-      return nm->mkNode(
-          Kind::EQUAL, variable, nm->mkConst(poly_utils::toRationalBelow(lv)));
+      Trace("nl-cad") << "Rational point interval: " << interval << std::endl;
+      return nm->mkNode(Kind::DISTINCT,
+                        variable,
+                        nm->mkConst(poly_utils::toRationalBelow(lv)));
     }
   }
   if (li)
   {
-    return nm->mkNode(
-        Kind::GT, variable, nm->mkConst(poly_utils::toRationalAbove(uv)));
+    Trace("nl-cad") << "Only upper bound: " << interval << std::endl;
+    return upper_bound_as_node(
+        variable, uv, poly::get_upper_open(interval), allowNonlinearLemma);
   }
   if (ui)
   {
-    return nm->mkNode(
-        Kind::LT, variable, nm->mkConst(poly_utils::toRationalBelow(lv)));
+    Trace("nl-cad") << "Only lower bound: " << interval << std::endl;
+    return lower_bound_as_node(
+        variable, lv, poly::get_lower_open(interval), allowNonlinearLemma);
   }
-  return nm->mkNode(
-      Kind::AND,
-      nm->mkNode(
-          Kind::GT, variable, nm->mkConst(poly_utils::toRationalAbove(uv))),
-      nm->mkNode(
-          Kind::LT, variable, nm->mkConst(poly_utils::toRationalBelow(lv))));
+  Trace("nl-cad") << "Proper interval: " << interval << std::endl;
+  Node lb = lower_bound_as_node(
+      variable, lv, poly::get_lower_open(interval), allowNonlinearLemma);
+  Node ub = upper_bound_as_node(
+      variable, uv, poly::get_upper_open(interval), allowNonlinearLemma);
+  if (lb.isNull() || ub.isNull()) return Node();
+  return nm->mkNode(Kind::OR, lb, ub);
 }
 
 Maybe<Rational> get_lower_bound(const Node& n)
@@ -500,6 +710,91 @@ poly::Value node_to_value(const Node& n, const Node& ran_variable)
     return poly_utils::toRational(n.getConst<Rational>());
   }
   return node_to_poly_ran(n, ran_variable);
+}
+
+/** Bitsize of a dyadic rational. */
+std::size_t bitsize(const poly::DyadicRational& v)
+{
+  return bit_size(numerator(v)) + bit_size(denominator(v));
+}
+/** Bitsize of an integer. */
+std::size_t bitsize(const poly::Integer& v) { return bit_size(v); }
+/** Bitsize of a rational. */
+std::size_t bitsize(const poly::Rational& v)
+{
+  return bit_size(numerator(v)) + bit_size(denominator(v));
+}
+/** Bitsize of a univariate polynomial. */
+std::size_t bitsize(const poly::UPolynomial& v)
+{
+  std::size_t sum = 0;
+  for (const auto& c : coefficients(v))
+  {
+    sum += bitsize(c);
+  }
+  return sum;
+}
+/** Bitsize of an algebraic number. */
+std::size_t bitsize(const poly::AlgebraicNumber& v)
+{
+  if (is_rational(v))
+  {
+    return bitsize(to_rational_approximation(v));
+  }
+  return bitsize(get_lower_bound(v)) + bitsize(get_upper_bound(v))
+         + bitsize(get_defining_polynomial(v));
+}
+
+std::size_t bitsize(const poly::Value& v)
+{
+  if (is_algebraic_number(v))
+  {
+    return bitsize(as_algebraic_number(v));
+  }
+  else if (is_dyadic_rational(v))
+  {
+    return bitsize(as_dyadic_rational(v));
+  }
+  else if (is_integer(v))
+  {
+    return bitsize(as_integer(v));
+  }
+  else if (is_minus_infinity(v))
+  {
+    return 1;
+  }
+  else if (is_none(v))
+  {
+    return 0;
+  }
+  else if (is_plus_infinity(v))
+  {
+    return 1;
+  }
+  else if (is_rational(v))
+  {
+    return bitsize(as_rational(v));
+  }
+  Assert(false);
+  return 0;
+}
+
+poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi)
+{
+  poly::IntervalAssignment res;
+  for (const auto& vb : bi.get())
+  {
+    poly::Variable v = vm(vb.first);
+    poly::Value l = vb.second.lower_value.isNull()
+                        ? poly::Value::minus_infty()
+                        : node_to_value(vb.second.lower_value, vb.first);
+    poly::Value u = vb.second.upper_value.isNull()
+                        ? poly::Value::plus_infty()
+                        : node_to_value(vb.second.upper_value, vb.first);
+    poly::Interval i(l, vb.second.lower_strict, u, vb.second.upper_strict);
+    res.set(v, i);
+  }
+  return res;
 }
 
 }  // namespace nl

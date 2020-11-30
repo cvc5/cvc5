@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/proof_checker.h"
 
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "theory/builtin/proof_checker.h"
 
@@ -36,23 +37,47 @@ Node QuantifiersProofRuleChecker::checkInternal(
     PfRule id, const std::vector<Node>& children, const std::vector<Node>& args)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   // compute what was proven
-  if (id == PfRule::WITNESS_INTRO || id == PfRule::EXISTS_INTRO)
+  if (id == PfRule::EXISTS_INTRO)
   {
     Assert(children.size() == 1);
     Assert(args.size() == 1);
-    SkolemManager* sm = nm->getSkolemManager();
     Node p = children[0];
-    Node t = args[0];
-    Node exists = sm->mkExistential(t, p);
-    if (id == PfRule::EXISTS_INTRO)
+    Node exists = args[0];
+    if (exists.getKind() != kind::EXISTS || exists[0].getNumChildren() != 1)
     {
-      return exists;
+      return Node::null();
+    }
+    std::unordered_map<Node, Node, NodeHashFunction> subs;
+    if (!expr::match(exists[1], p, subs))
+    {
+      return Node::null();
+    }
+    // substitution must contain only the variable of the existential
+    for (const std::pair<const Node, Node>& s : subs)
+    {
+      if (s.first != exists[0][0])
+      {
+        return Node::null();
+      }
+    }
+    return exists;
+  }
+  else if (id == PfRule::WITNESS_INTRO)
+  {
+    Assert(children.size() == 1);
+    Assert(args.empty());
+    if (children[0].getKind() != EXISTS || children[0][0].getNumChildren() != 1)
+    {
+      return Node::null();
     }
     std::vector<Node> skolems;
-    sm->mkSkolemize(exists, skolems, "k");
+    sm->mkSkolemize(children[0], skolems, "k");
     Assert(skolems.size() == 1);
-    return skolems[0];
+    Node witness = SkolemManager::getWitnessForm(skolems[0]);
+    Assert(witness.getKind() == WITNESS && witness[0] == children[0][0]);
+    return skolems[0].eqNode(witness);
   }
   else if (id == PfRule::SKOLEMIZE)
   {
@@ -64,7 +89,6 @@ Node QuantifiersProofRuleChecker::checkInternal(
     {
       return Node::null();
     }
-    SkolemManager* sm = nm->getSkolemManager();
     Node exists;
     if (children[0].getKind() == EXISTS)
     {
@@ -73,6 +97,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
     else
     {
       std::vector<Node> echildren(children[0][0].begin(), children[0][0].end());
+      echildren[1] = echildren[1].notNode();
       exists = nm->mkNode(EXISTS, echildren);
     }
     std::vector<Node> skolems;

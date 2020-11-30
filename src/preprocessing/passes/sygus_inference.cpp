@@ -2,10 +2,10 @@
 /*! \file sygus_inference.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
+ **   Andrew Reynolds, Mathias Preiner, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -24,6 +24,7 @@
 
 using namespace std;
 using namespace CVC4::kind;
+using namespace CVC4::theory;
 
 namespace CVC4 {
 namespace preprocessing {
@@ -43,21 +44,21 @@ PreprocessingPassResult SygusInference::applyInternal(
   {
     Assert(funs.size() == sols.size());
     // if so, sygus gives us function definitions
-    SmtEngine* master_smte = smt::currentSmtEngine();
+    SmtEngine* master_smte = d_preprocContext->getSmt();
     for (unsigned i = 0, size = funs.size(); i < size; i++)
     {
-      std::vector<Expr> args;
+      std::vector<Node> args;
       Node sol = sols[i];
       // if it is a non-constant function
       if (sol.getKind() == LAMBDA)
       {
         for (const Node& v : sol[0])
         {
-          args.push_back(v.toExpr());
+          args.push_back(v);
         }
         sol = sol[1];
       }
-      master_smte->defineFunction(funs[i].toExpr(), args, sol.toExpr());
+      master_smte->defineFunction(funs[i], args, sol);
     }
 
     // apply substitution to everything, should result in SAT
@@ -79,7 +80,7 @@ PreprocessingPassResult SygusInference::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-bool SygusInference::solveSygus(std::vector<Node>& assertions,
+bool SygusInference::solveSygus(const std::vector<Node>& assertions,
                                 std::vector<Node>& funs,
                                 std::vector<Node>& sols)
 {
@@ -135,7 +136,11 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
     if (pas.getKind() == FORALL)
     {
       // preprocess the quantified formula
-      pas = theory::quantifiers::QuantifiersRewriter::preprocess(pas);
+      TrustNode trn = quantifiers::QuantifiersRewriter::preprocess(pas);
+      if (!trn.isNull())
+      {
+        pas = trn.getNode();
+      }
       Trace("sygus-infer-debug") << "  ...preprocessed to " << pas << std::endl;
     }
     if (pas.getKind() == FORALL)
@@ -313,25 +318,25 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
     return false;
   }
   // get the synthesis solutions
-  std::map<Expr, Expr> synth_sols;
+  std::map<Node, Node> synth_sols;
   rrSygus->getSynthSolutions(synth_sols);
 
   std::vector<Node> final_ff;
   std::vector<Node> final_ff_sol;
-  for (std::map<Expr, Expr>::iterator it = synth_sols.begin();
+  for (std::map<Node, Node>::iterator it = synth_sols.begin();
        it != synth_sols.end();
        ++it)
   {
     Trace("sygus-infer") << "  synth sol : " << it->first << " -> "
                          << it->second << std::endl;
-    Node ffv = Node::fromExpr(it->first);
+    Node ffv = it->first;
     std::map<Node, Node>::iterator itffv = ff_var_to_ff.find(ffv);
     // all synthesis solutions should correspond to a variable we introduced
     Assert(itffv != ff_var_to_ff.end());
     if (itffv != ff_var_to_ff.end())
     {
       Node ff = itffv->second;
-      Node body2 = Node::fromExpr(it->second);
+      Node body2 = it->second;
       Trace("sygus-infer") << "Define " << ff << " as " << body2 << std::endl;
       funs.push_back(ff);
       sols.push_back(body2);

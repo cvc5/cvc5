@@ -5,7 +5,7 @@
  **   Morgan Deters, Aina Niemetz, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -86,6 +86,15 @@ bool Configuration::isTsanBuild() { return IS_TSAN_BUILD; }
 
 bool Configuration::isCompetitionBuild() {
   return IS_COMPETITION_BUILD;
+}
+
+bool Configuration::isStaticBuild()
+{
+#if defined(CVC4_STATIC_BUILD)
+  return true;
+#else
+  return false;
+#endif
 }
 
 string Configuration::getPackageName() {
@@ -200,6 +209,13 @@ std::string Configuration::copyright() {
       ss << "  LibPoly polynomial library\n"
          << "  See https://github.com/SRI-CSL/libpoly for copyright and\n"
          << "  licensing information.\n\n";
+    }
+    if (Configuration::isStaticBuild())
+    {
+      ss << "CVC4 is statically linked against these libraries. To recompile\n"
+            "this version of CVC4 with different versions of these libraries\n"
+            "follow the instructions on "
+            "https://github.com/CVC4/CVC4/blob/master/INSTALL.md\n\n";
     }
   }
 

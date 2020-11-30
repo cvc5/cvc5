@@ -2,10 +2,10 @@
 /*! \file smt_engine_subsolver.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa
+ **   Andrew Reynolds, Andres Noetzli, Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -51,11 +51,11 @@ void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
   smte.reset(new SmtEngine(nm->toExprManager(), &smtCurr->getOptions()));
   smte->setIsInternalSubsolver();
   smte->setLogic(smtCurr->getLogicInfo());
+  // set the options
   if (needsTimeout)
   {
     smte->setTimeLimit(timeout);
   }
-  smte->setLogic(smt::currentSmtEngine()->getLogicInfo());
 }
 
 Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte,
@@ -112,8 +112,8 @@ Result checkWithSubsolver(Node query,
   {
     for (const Node& v : vars)
     {
-      Expr val = smte->getValue(v.toExpr());
-      modelVals.push_back(Node::fromExpr(val));
+      Node val = smte->getValue(v);
+      modelVals.push_back(val);
     }
   }
   return r;

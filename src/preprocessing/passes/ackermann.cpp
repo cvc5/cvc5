@@ -5,7 +5,7 @@
  **   Ying Sheng, Yoni Zohar, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -70,11 +70,14 @@ void addLemmaForPair(TNode args1,
   }
   else
   {
-    Assert(args1.getKind() == kind::SELECT && args1[0] == func);
-    Assert(args2.getKind() == kind::SELECT && args2[0] == func);
+    Assert(args1.getKind() == kind::SELECT && args1.getOperator() == func);
+    Assert(args2.getKind() == kind::SELECT && args2.getOperator() == func);
     Assert(args1.getNumChildren() == 2);
     Assert(args2.getNumChildren() == 2);
-    args_eq = nm->mkNode(kind::EQUAL, args1[1], args2[1]);
+    args_eq = nm->mkNode(Kind::AND,
+      nm->mkNode(kind::EQUAL, args1[0], args2[0]),
+      nm->mkNode(kind::EQUAL, args1[1], args2[1])
+    );
   }
   Node func_eq = nm->mkNode(kind::EQUAL, args1, args2);
   Node lemma = nm->mkNode(kind::IMPLIES, args_eq, func_eq);
@@ -153,7 +156,7 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
     if (seen.find(term) == seen.end())
     {
       TNode func;
-      if (term.getKind() == kind::APPLY_UF)
+      if (term.getKind() == kind::APPLY_UF || term.getKind() == kind::SELECT)
       {
         storeFunctionAndAddLemmas(term.getOperator(),
                                   term,
@@ -162,11 +165,6 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
                                   assertions,
                                   nm,
                                   vec);
-      }
-      else if (term.getKind() == kind::SELECT)
-      {
-        storeFunctionAndAddLemmas(
-            term[0], term, fun_to_args, fun_to_skolem, assertions, nm, vec);
       }
       else
       {
@@ -278,9 +276,13 @@ void usortsToBitVectors(const LogicInfo& d_logic,
     for (size_t i = 0, size = assertions->size(); i < size; ++i)
     {
       Node old = (*assertions)[i];
-      assertions->replace(i, usVarsToBVVars.apply((*assertions)[i]));
-      Trace("uninterpretedSorts-to-bv")
-          << "  " << old << " => " << (*assertions)[i] << "\n";
+      Node newA = usVarsToBVVars.apply((*assertions)[i]);
+      if (newA != old)
+      {
+        assertions->replace(i, newA);
+        Trace("uninterpretedSorts-to-bv")
+            << "  " << old << " => " << (*assertions)[i] << "\n";
+      }
     }
   }
 }

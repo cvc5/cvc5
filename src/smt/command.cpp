@@ -5,7 +5,7 @@
  **   Tim King, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -28,10 +28,12 @@
 #include "base/output.h"
 #include "expr/expr_iomanip.h"
 #include "expr/node.h"
+#include "expr/symbol_manager.h"
 #include "expr/type.h"
 #include "options/options.h"
 #include "options/smt_options.h"
 #include "printer/printer.h"
+#include "proof/unsat_core.h"
 #include "smt/dump.h"
 #include "smt/model.h"
 #include "smt/smt_engine.h"
@@ -52,7 +54,6 @@ std::ostream& operator<<(std::ostream& out, const Command& c)
 {
   c.toStream(out,
              Node::setdepth::getDepth(out),
-             Node::printtypes::getPrintTypes(out),
              Node::dag::getDag(out),
              Node::setlanguage::getLanguage(out));
   return out;
@@ -89,7 +90,6 @@ ostream& operator<<(ostream& out, const CommandStatus* s)
   }
   return out;
 }
-
 
 /* output stream insertion operator for benchmark statuses */
 std::ostream& operator<<(std::ostream& out, BenchmarkStatus status)
@@ -137,8 +137,8 @@ std::ostream& operator<<(std::ostream& out, CommandPrintSuccess cps)
 
 Command::Command() : d_commandStatus(nullptr), d_muted(false) {}
 
-Command::Command(api::Solver* solver)
-    : d_solver(solver), d_commandStatus(nullptr), d_muted(false)
+Command::Command(const api::Solver* solver)
+    : d_commandStatus(nullptr), d_muted(false)
 {
 }
 
@@ -176,15 +176,14 @@ bool Command::interrupted() const
          && dynamic_cast<const CommandInterrupted*>(d_commandStatus) != NULL;
 }
 
-void Command::invoke(SmtEngine* smtEngine, std::ostream& out)
+void Command::invoke(api::Solver* solver, SymbolManager* sm, std::ostream& out)
 {
-  invoke(smtEngine);
+  invoke(solver, sm);
   if (!(isMuted() && ok()))
   {
-    printResult(out,
-                smtEngine->getOption("command-verbosity:" + getCommandName())
-                    .getIntegerValue()
-                    .toUnsignedInt());
+    printResult(
+        out,
+        std::stoul(solver->getOption("command-verbosity:" + getCommandName())));
   }
 }
 
@@ -193,15 +192,6 @@ std::string Command::toString() const
   std::stringstream ss;
   toStream(ss);
   return ss.str();
-}
-
-void Command::toStream(std::ostream& out,
-                       int toDepth,
-                       bool types,
-                       size_t dag,
-                       OutputLanguage language) const
-{
-  Printer::getPrinter(language)->toStream(out, this, toDepth, types, dag);
 }
 
 void CommandStatus::toStream(std::ostream& out, OutputLanguage language) const
@@ -226,20 +216,22 @@ void Command::printResult(std::ostream& out, uint32_t verbosity) const
 
 EmptyCommand::EmptyCommand(std::string name) : d_name(name) {}
 std::string EmptyCommand::getName() const { return d_name; }
-void EmptyCommand::invoke(SmtEngine* smtEngine)
+void EmptyCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   /* empty commands have no implementation */
   d_commandStatus = CommandSuccess::instance();
 }
 
-Command* EmptyCommand::exportTo(ExprManager* exprManager,
-                                ExprManagerMapCollection& variableMap)
-{
-  return new EmptyCommand(d_name);
-}
-
 Command* EmptyCommand::clone() const { return new EmptyCommand(d_name); }
 std::string EmptyCommand::getCommandName() const { return "empty"; }
+
+void EmptyCommand::toStream(std::ostream& out,
+                            int toDepth,
+                            size_t dag,
+                            OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdEmpty(out, d_name);
+}
 
 /* -------------------------------------------------------------------------- */
 /* class EchoCommand                                                          */
@@ -247,48 +239,51 @@ std::string EmptyCommand::getCommandName() const { return "empty"; }
 
 EchoCommand::EchoCommand(std::string output) : d_output(output) {}
 std::string EchoCommand::getOutput() const { return d_output; }
-void EchoCommand::invoke(SmtEngine* smtEngine)
+void EchoCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   /* we don't have an output stream here, nothing to do */
   d_commandStatus = CommandSuccess::instance();
 }
 
-void EchoCommand::invoke(SmtEngine* smtEngine, std::ostream& out)
+void EchoCommand::invoke(api::Solver* solver,
+                         SymbolManager* sm,
+                         std::ostream& out)
 {
   out << d_output << std::endl;
   Trace("dtview::command") << "* ~COMMAND: echo |" << d_output << "|~"
                            << std::endl;
   d_commandStatus = CommandSuccess::instance();
-  printResult(out,
-              smtEngine->getOption("command-verbosity:" + getCommandName())
-                  .getIntegerValue()
-                  .toUnsignedInt());
-}
-
-Command* EchoCommand::exportTo(ExprManager* exprManager,
-                               ExprManagerMapCollection& variableMap)
-{
-  return new EchoCommand(d_output);
+  printResult(
+      out,
+      std::stoul(solver->getOption("command-verbosity:" + getCommandName())));
 }
 
 Command* EchoCommand::clone() const { return new EchoCommand(d_output); }
 std::string EchoCommand::getCommandName() const { return "echo"; }
 
+void EchoCommand::toStream(std::ostream& out,
+                           int toDepth,
+                           size_t dag,
+                           OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdEcho(out, d_output);
+}
+
 /* -------------------------------------------------------------------------- */
 /* class AssertCommand                                                        */
 /* -------------------------------------------------------------------------- */
 
-AssertCommand::AssertCommand(const Expr& e, bool inUnsatCore)
-    : d_expr(e), d_inUnsatCore(inUnsatCore)
+AssertCommand::AssertCommand(const api::Term& t, bool inUnsatCore)
+    : d_term(t), d_inUnsatCore(inUnsatCore)
 {
 }
 
-Expr AssertCommand::getExpr() const { return d_expr; }
-void AssertCommand::invoke(SmtEngine* smtEngine)
+api::Term AssertCommand::getTerm() const { return d_term; }
+void AssertCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    smtEngine->assertFormula(d_expr, d_inUnsatCore);
+    solver->getSmtEngine()->assertFormula(d_term.getNode(), d_inUnsatCore);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (UnsafeInterruptException& e)
@@ -301,29 +296,30 @@ void AssertCommand::invoke(SmtEngine* smtEngine)
   }
 }
 
-Command* AssertCommand::exportTo(ExprManager* exprManager,
-                                 ExprManagerMapCollection& variableMap)
-{
-  return new AssertCommand(d_expr.exportTo(exprManager, variableMap),
-                           d_inUnsatCore);
-}
-
 Command* AssertCommand::clone() const
 {
-  return new AssertCommand(d_expr, d_inUnsatCore);
+  return new AssertCommand(d_term, d_inUnsatCore);
 }
 
 std::string AssertCommand::getCommandName() const { return "assert"; }
+
+void AssertCommand::toStream(std::ostream& out,
+                             int toDepth,
+                             size_t dag,
+                             OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdAssert(out, d_term.getNode());
+}
 
 /* -------------------------------------------------------------------------- */
 /* class PushCommand                                                          */
 /* -------------------------------------------------------------------------- */
 
-void PushCommand::invoke(SmtEngine* smtEngine)
+void PushCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    smtEngine->push();
+    solver->push();
     d_commandStatus = CommandSuccess::instance();
   }
   catch (UnsafeInterruptException& e)
@@ -334,26 +330,28 @@ void PushCommand::invoke(SmtEngine* smtEngine)
   {
     d_commandStatus = new CommandFailure(e.what());
   }
-}
-
-Command* PushCommand::exportTo(ExprManager* exprManager,
-                               ExprManagerMapCollection& variableMap)
-{
-  return new PushCommand();
 }
 
 Command* PushCommand::clone() const { return new PushCommand(); }
 std::string PushCommand::getCommandName() const { return "push"; }
 
+void PushCommand::toStream(std::ostream& out,
+                           int toDepth,
+                           size_t dag,
+                           OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdPush(out);
+}
+
 /* -------------------------------------------------------------------------- */
 /* class PopCommand                                                           */
 /* -------------------------------------------------------------------------- */
 
-void PopCommand::invoke(SmtEngine* smtEngine)
+void PopCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    smtEngine->pop();
+    solver->pop();
     d_commandStatus = CommandSuccess::instance();
   }
   catch (UnsafeInterruptException& e)
@@ -366,31 +364,35 @@ void PopCommand::invoke(SmtEngine* smtEngine)
   }
 }
 
-Command* PopCommand::exportTo(ExprManager* exprManager,
-                              ExprManagerMapCollection& variableMap)
-{
-  return new PopCommand();
-}
-
 Command* PopCommand::clone() const { return new PopCommand(); }
 std::string PopCommand::getCommandName() const { return "pop"; }
+
+void PopCommand::toStream(std::ostream& out,
+                          int toDepth,
+                          size_t dag,
+                          OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdPop(out);
+}
 
 /* -------------------------------------------------------------------------- */
 /* class CheckSatCommand                                                      */
 /* -------------------------------------------------------------------------- */
 
-CheckSatCommand::CheckSatCommand() : d_expr() {}
+CheckSatCommand::CheckSatCommand() : d_term() {}
 
-CheckSatCommand::CheckSatCommand(const Expr& expr) : d_expr(expr) {}
+CheckSatCommand::CheckSatCommand(const api::Term& term) : d_term(term) {}
 
-Expr CheckSatCommand::getExpr() const { return d_expr; }
-void CheckSatCommand::invoke(SmtEngine* smtEngine)
+api::Term CheckSatCommand::getTerm() const { return d_term; }
+void CheckSatCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   Trace("dtview::command") << "* ~COMMAND: " << getCommandName() << "~"
                            << std::endl;
   try
   {
-    d_result = smtEngine->checkSat(d_expr);
+    d_result =
+        d_term.isNull() ? solver->checkSat() : solver->checkSatAssuming(d_term);
+
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -399,7 +401,7 @@ void CheckSatCommand::invoke(SmtEngine* smtEngine)
   }
 }
 
-Result CheckSatCommand::getResult() const { return d_result; }
+api::Result CheckSatCommand::getResult() const { return d_result; }
 void CheckSatCommand::printResult(std::ostream& out, uint32_t verbosity) const
 {
   if (!ok())
@@ -413,47 +415,50 @@ void CheckSatCommand::printResult(std::ostream& out, uint32_t verbosity) const
   }
 }
 
-Command* CheckSatCommand::exportTo(ExprManager* exprManager,
-                                   ExprManagerMapCollection& variableMap)
-{
-  CheckSatCommand* c =
-      new CheckSatCommand(d_expr.exportTo(exprManager, variableMap));
-  c->d_result = d_result;
-  return c;
-}
-
 Command* CheckSatCommand::clone() const
 {
-  CheckSatCommand* c = new CheckSatCommand(d_expr);
+  CheckSatCommand* c = new CheckSatCommand(d_term);
   c->d_result = d_result;
   return c;
 }
 
 std::string CheckSatCommand::getCommandName() const { return "check-sat"; }
 
+void CheckSatCommand::toStream(std::ostream& out,
+                               int toDepth,
+                               size_t dag,
+                               OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdCheckSat(out, d_term.getNode());
+}
+
 /* -------------------------------------------------------------------------- */
 /* class CheckSatAssumingCommand                                              */
 /* -------------------------------------------------------------------------- */
 
-CheckSatAssumingCommand::CheckSatAssumingCommand(Expr term) : d_terms({term}) {}
+CheckSatAssumingCommand::CheckSatAssumingCommand(api::Term term)
+    : d_terms({term})
+{
+}
 
-CheckSatAssumingCommand::CheckSatAssumingCommand(const std::vector<Expr>& terms)
+CheckSatAssumingCommand::CheckSatAssumingCommand(
+    const std::vector<api::Term>& terms)
     : d_terms(terms)
 {
 }
 
-const std::vector<Expr>& CheckSatAssumingCommand::getTerms() const
+const std::vector<api::Term>& CheckSatAssumingCommand::getTerms() const
 {
   return d_terms;
 }
 
-void CheckSatAssumingCommand::invoke(SmtEngine* smtEngine)
+void CheckSatAssumingCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   Trace("dtview::command") << "* ~COMMAND: (check-sat-assuming ( " << d_terms
                            << " )~" << std::endl;
   try
   {
-    d_result = smtEngine->checkSat(d_terms);
+    d_result = solver->checkSatAssuming(d_terms);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -462,7 +467,7 @@ void CheckSatAssumingCommand::invoke(SmtEngine* smtEngine)
   }
 }
 
-Result CheckSatAssumingCommand::getResult() const
+api::Result CheckSatAssumingCommand::getResult() const
 {
   Trace("dtview::command") << "* ~RESULT: " << d_result << "~" << std::endl;
   return d_result;
@@ -481,19 +486,6 @@ void CheckSatAssumingCommand::printResult(std::ostream& out,
   }
 }
 
-Command* CheckSatAssumingCommand::exportTo(
-    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
-{
-  vector<Expr> exportedTerms;
-  for (const Expr& e : d_terms)
-  {
-    exportedTerms.push_back(e.exportTo(exprManager, variableMap));
-  }
-  CheckSatAssumingCommand* c = new CheckSatAssumingCommand(exportedTerms);
-  c->d_result = d_result;
-  return c;
-}
-
 Command* CheckSatAssumingCommand::clone() const
 {
   CheckSatAssumingCommand* c = new CheckSatAssumingCommand(d_terms);
@@ -506,21 +498,30 @@ std::string CheckSatAssumingCommand::getCommandName() const
   return "check-sat-assuming";
 }
 
+void CheckSatAssumingCommand::toStream(std::ostream& out,
+                                       int toDepth,
+                                       size_t dag,
+                                       OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdCheckSatAssuming(
+      out, api::termVectorToNodes(d_terms));
+}
+
 /* -------------------------------------------------------------------------- */
 /* class QueryCommand                                                         */
 /* -------------------------------------------------------------------------- */
 
-QueryCommand::QueryCommand(const Expr& e, bool inUnsatCore)
-    : d_expr(e), d_inUnsatCore(inUnsatCore)
+QueryCommand::QueryCommand(const api::Term& t, bool inUnsatCore)
+    : d_term(t), d_inUnsatCore(inUnsatCore)
 {
 }
 
-Expr QueryCommand::getExpr() const { return d_expr; }
-void QueryCommand::invoke(SmtEngine* smtEngine)
+api::Term QueryCommand::getTerm() const { return d_term; }
+void QueryCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    d_result = smtEngine->checkEntailed(d_expr);
+    d_result = solver->checkEntailed(d_term);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -529,7 +530,7 @@ void QueryCommand::invoke(SmtEngine* smtEngine)
   }
 }
 
-Result QueryCommand::getResult() const { return d_result; }
+api::Result QueryCommand::getResult() const { return d_result; }
 void QueryCommand::printResult(std::ostream& out, uint32_t verbosity) const
 {
   if (!ok())
@@ -542,62 +543,45 @@ void QueryCommand::printResult(std::ostream& out, uint32_t verbosity) const
   }
 }
 
-Command* QueryCommand::exportTo(ExprManager* exprManager,
-                                ExprManagerMapCollection& variableMap)
-{
-  QueryCommand* c = new QueryCommand(d_expr.exportTo(exprManager, variableMap),
-                                     d_inUnsatCore);
-  c->d_result = d_result;
-  return c;
-}
-
 Command* QueryCommand::clone() const
 {
-  QueryCommand* c = new QueryCommand(d_expr, d_inUnsatCore);
+  QueryCommand* c = new QueryCommand(d_term, d_inUnsatCore);
   c->d_result = d_result;
   return c;
 }
 
 std::string QueryCommand::getCommandName() const { return "query"; }
 
+void QueryCommand::toStream(std::ostream& out,
+                            int toDepth,
+                            size_t dag,
+                            OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdQuery(out, d_term.getNode());
+}
+
 /* -------------------------------------------------------------------------- */
 /* class DeclareSygusVarCommand */
 /* -------------------------------------------------------------------------- */
 
 DeclareSygusVarCommand::DeclareSygusVarCommand(const std::string& id,
-                                               Expr var,
-                                               Type t)
-    : DeclarationDefinitionCommand(id), d_var(var), d_type(t)
+                                               api::Term var,
+                                               api::Sort sort)
+    : DeclarationDefinitionCommand(id), d_var(var), d_sort(sort)
 {
 }
 
-Expr DeclareSygusVarCommand::getVar() const { return d_var; }
-Type DeclareSygusVarCommand::getType() const { return d_type; }
+api::Term DeclareSygusVarCommand::getVar() const { return d_var; }
+api::Sort DeclareSygusVarCommand::getSort() const { return d_sort; }
 
-void DeclareSygusVarCommand::invoke(SmtEngine* smtEngine)
+void DeclareSygusVarCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
-  try
-  {
-    smtEngine->declareSygusVar(d_symbol, d_var, d_type);
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
-}
-
-Command* DeclareSygusVarCommand::exportTo(ExprManager* exprManager,
-                                          ExprManagerMapCollection& variableMap)
-{
-  return new DeclareSygusVarCommand(d_symbol,
-                                    d_var.exportTo(exprManager, variableMap),
-                                    d_type.exportTo(exprManager, variableMap));
+  d_commandStatus = CommandSuccess::instance();
 }
 
 Command* DeclareSygusVarCommand::clone() const
 {
-  return new DeclareSygusVarCommand(d_symbol, d_var, d_type);
+  return new DeclareSygusVarCommand(d_symbol, d_var, d_sort);
 }
 
 std::string DeclareSygusVarCommand::getCommandName() const
@@ -605,107 +589,55 @@ std::string DeclareSygusVarCommand::getCommandName() const
   return "declare-var";
 }
 
-/* -------------------------------------------------------------------------- */
-/* class DeclareSygusFunctionCommand                                          */
-/* -------------------------------------------------------------------------- */
-
-DeclareSygusFunctionCommand::DeclareSygusFunctionCommand(const std::string& id,
-                                                         Expr func,
-                                                         Type t)
-    : DeclarationDefinitionCommand(id), d_func(func), d_type(t)
+void DeclareSygusVarCommand::toStream(std::ostream& out,
+                                      int toDepth,
+                                      size_t dag,
+                                      OutputLanguage language) const
 {
-}
-
-Expr DeclareSygusFunctionCommand::getFunction() const { return d_func; }
-Type DeclareSygusFunctionCommand::getType() const { return d_type; }
-
-void DeclareSygusFunctionCommand::invoke(SmtEngine* smtEngine)
-{
-  try
-  {
-    smtEngine->declareSygusFunctionVar(d_symbol, d_func, d_type);
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
-}
-
-Command* DeclareSygusFunctionCommand::exportTo(
-    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
-{
-  return new DeclareSygusFunctionCommand(
-      d_symbol,
-      d_func.exportTo(exprManager, variableMap),
-      d_type.exportTo(exprManager, variableMap));
-}
-
-Command* DeclareSygusFunctionCommand::clone() const
-{
-  return new DeclareSygusFunctionCommand(d_symbol, d_func, d_type);
-}
-
-std::string DeclareSygusFunctionCommand::getCommandName() const
-{
-  return "declare-fun";
+  Printer::getPrinter(language)->toStreamCmdDeclareVar(
+      out, d_var.getNode(), d_sort.getTypeNode());
 }
 
 /* -------------------------------------------------------------------------- */
-/* class SynthFunCommand                                                    */
+/* class SynthFunCommand                                                      */
 /* -------------------------------------------------------------------------- */
 
 SynthFunCommand::SynthFunCommand(const std::string& id,
-                                 Expr func,
-                                 Type sygusType,
+                                 api::Term fun,
+                                 const std::vector<api::Term>& vars,
+                                 api::Sort sort,
                                  bool isInv,
-                                 const std::vector<Expr>& vars)
+                                 api::Grammar* g)
     : DeclarationDefinitionCommand(id),
-      d_func(func),
-      d_sygusType(sygusType),
+      d_fun(fun),
+      d_vars(vars),
+      d_sort(sort),
       d_isInv(isInv),
-      d_vars(vars)
+      d_grammar(g)
 {
 }
 
-SynthFunCommand::SynthFunCommand(const std::string& id,
-                                 Expr func,
-                                 Type sygusType,
-                                 bool isInv)
-    : SynthFunCommand(id, func, sygusType, isInv, {})
+api::Term SynthFunCommand::getFunction() const { return d_fun; }
+
+const std::vector<api::Term>& SynthFunCommand::getVars() const
 {
+  return d_vars;
 }
 
-Expr SynthFunCommand::getFunction() const { return d_func; }
-const std::vector<Expr>& SynthFunCommand::getVars() const { return d_vars; }
-Type SynthFunCommand::getSygusType() const { return d_sygusType; }
+api::Sort SynthFunCommand::getSort() const { return d_sort; }
 bool SynthFunCommand::isInv() const { return d_isInv; }
 
-void SynthFunCommand::invoke(SmtEngine* smtEngine)
-{
-  try
-  {
-    smtEngine->declareSynthFun(d_symbol, d_func, d_sygusType, d_isInv, d_vars);
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
-}
+const api::Grammar* SynthFunCommand::getGrammar() const { return d_grammar; }
 
-Command* SynthFunCommand::exportTo(ExprManager* exprManager,
-                                   ExprManagerMapCollection& variableMap)
+void SynthFunCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
-  return new SynthFunCommand(d_symbol,
-                             d_func.exportTo(exprManager, variableMap),
-                             d_sygusType.exportTo(exprManager, variableMap),
-                             d_isInv);
+  d_commandStatus = CommandSuccess::instance();
 }
 
 Command* SynthFunCommand::clone() const
 {
-  return new SynthFunCommand(d_symbol, d_func, d_sygusType, d_isInv, d_vars);
+  return new SynthFunCommand(
+      d_symbol, d_fun, d_vars, d_sort, d_isInv, d_grammar);
 }
 
 std::string SynthFunCommand::getCommandName() const
@@ -713,17 +645,34 @@ std::string SynthFunCommand::getCommandName() const
   return d_isInv ? "synth-inv" : "synth-fun";
 }
 
+void SynthFunCommand::toStream(std::ostream& out,
+                               int toDepth,
+                               size_t dag,
+                               OutputLanguage language) const
+{
+  std::vector<Node> nodeVars = termVectorToNodes(d_vars);
+  Printer::getPrinter(language)->toStreamCmdSynthFun(
+      out,
+      d_symbol,
+      nodeVars,
+      d_sort.getTypeNode(),
+      d_isInv,
+      d_grammar->resolve().getTypeNode());
+}
+
 /* -------------------------------------------------------------------------- */
 /* class SygusConstraintCommand */
 /* -------------------------------------------------------------------------- */
 
-SygusConstraintCommand::SygusConstraintCommand(const Expr& e) : d_expr(e) {}
+SygusConstraintCommand::SygusConstraintCommand(const api::Term& t) : d_term(t)
+{
+}
 
-void SygusConstraintCommand::invoke(SmtEngine* smtEngine)
+void SygusConstraintCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    smtEngine->assertSygusConstraint(d_expr);
+    solver->addSygusConstraint(d_term);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -732,17 +681,11 @@ void SygusConstraintCommand::invoke(SmtEngine* smtEngine)
   }
 }
 
-Expr SygusConstraintCommand::getExpr() const { return d_expr; }
-
-Command* SygusConstraintCommand::exportTo(ExprManager* exprManager,
-                                          ExprManagerMapCollection& variableMap)
-{
-  return new SygusConstraintCommand(d_expr.exportTo(exprManager, variableMap));
-}
+api::Term SygusConstraintCommand::getTerm() const { return d_term; }
 
 Command* SygusConstraintCommand::clone() const
 {
-  return new SygusConstraintCommand(d_expr);
+  return new SygusConstraintCommand(d_term);
 }
 
 std::string SygusConstraintCommand::getCommandName() const
@@ -750,29 +693,37 @@ std::string SygusConstraintCommand::getCommandName() const
   return "constraint";
 }
 
+void SygusConstraintCommand::toStream(std::ostream& out,
+                                      int toDepth,
+                                      size_t dag,
+                                      OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdConstraint(out, d_term.getNode());
+}
+
 /* -------------------------------------------------------------------------- */
 /* class SygusInvConstraintCommand */
 /* -------------------------------------------------------------------------- */
 
 SygusInvConstraintCommand::SygusInvConstraintCommand(
-    const std::vector<Expr>& predicates)
+    const std::vector<api::Term>& predicates)
     : d_predicates(predicates)
 {
 }
 
-SygusInvConstraintCommand::SygusInvConstraintCommand(const Expr& inv,
-                                                     const Expr& pre,
-                                                     const Expr& trans,
-                                                     const Expr& post)
-    : SygusInvConstraintCommand(std::vector<Expr>{inv, pre, trans, post})
+SygusInvConstraintCommand::SygusInvConstraintCommand(const api::Term& inv,
+                                                     const api::Term& pre,
+                                                     const api::Term& trans,
+                                                     const api::Term& post)
+    : SygusInvConstraintCommand(std::vector<api::Term>{inv, pre, trans, post})
 {
 }
 
-void SygusInvConstraintCommand::invoke(SmtEngine* smtEngine)
+void SygusInvConstraintCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    smtEngine->assertSygusInvConstraint(
+    solver->addSygusInvConstraint(
         d_predicates[0], d_predicates[1], d_predicates[2], d_predicates[3]);
     d_commandStatus = CommandSuccess::instance();
   }
@@ -782,15 +733,9 @@ void SygusInvConstraintCommand::invoke(SmtEngine* smtEngine)
   }
 }
 
-const std::vector<Expr>& SygusInvConstraintCommand::getPredicates() const
+const std::vector<api::Term>& SygusInvConstraintCommand::getPredicates() const
 {
   return d_predicates;
-}
-
-Command* SygusInvConstraintCommand::exportTo(
-    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
-{
-  return new SygusInvConstraintCommand(d_predicates);
 }
 
 Command* SygusInvConstraintCommand::clone() const
@@ -803,20 +748,32 @@ std::string SygusInvConstraintCommand::getCommandName() const
   return "inv-constraint";
 }
 
+void SygusInvConstraintCommand::toStream(std::ostream& out,
+                                         int toDepth,
+                                         size_t dag,
+                                         OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdInvConstraint(
+      out,
+      d_predicates[0].getNode(),
+      d_predicates[1].getNode(),
+      d_predicates[2].getNode(),
+      d_predicates[3].getNode());
+}
+
 /* -------------------------------------------------------------------------- */
 /* class CheckSynthCommand                                                    */
 /* -------------------------------------------------------------------------- */
 
-void CheckSynthCommand::invoke(SmtEngine* smtEngine)
+void CheckSynthCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    d_result = smtEngine->checkSynth();
+    d_result = solver->checkSynth();
     d_commandStatus = CommandSuccess::instance();
-    smt::SmtScope scope(smtEngine);
     d_solution.clear();
     // check whether we should print the status
-    if (d_result.asSatisfiabilityResult() != Result::UNSAT
+    if (!d_result.isUnsat()
         || options::sygusOut() == options::SygusSolutionOutMode::STATUS_AND_DEF
         || options::sygusOut() == options::SygusSolutionOutMode::STATUS)
     {
@@ -830,7 +787,7 @@ void CheckSynthCommand::invoke(SmtEngine* smtEngine)
       }
     }
     // check whether we should print the solution
-    if (d_result.asSatisfiabilityResult() == Result::UNSAT
+    if (d_result.isUnsat()
         && options::sygusOut() != options::SygusSolutionOutMode::STATUS)
     {
       // printing a synthesis solution is a non-constant
@@ -838,7 +795,7 @@ void CheckSynthCommand::invoke(SmtEngine* smtEngine)
       // (Figure 5 of Reynolds et al. CAV 2015).
       // Hence, we must call here print solution here,
       // instead of during printResult.
-      smtEngine->printSynthSolution(d_solution);
+      solver->printSynthSolution(d_solution);
     }
   }
   catch (exception& e)
@@ -847,7 +804,7 @@ void CheckSynthCommand::invoke(SmtEngine* smtEngine)
   }
 }
 
-Result CheckSynthCommand::getResult() const { return d_result; }
+api::Result CheckSynthCommand::getResult() const { return d_result; }
 void CheckSynthCommand::printResult(std::ostream& out, uint32_t verbosity) const
 {
   if (!ok())
@@ -860,63 +817,61 @@ void CheckSynthCommand::printResult(std::ostream& out, uint32_t verbosity) const
   }
 }
 
-Command* CheckSynthCommand::exportTo(ExprManager* exprManager,
-                                     ExprManagerMapCollection& variableMap)
-{
-  return new CheckSynthCommand();
-}
-
 Command* CheckSynthCommand::clone() const { return new CheckSynthCommand(); }
 
 std::string CheckSynthCommand::getCommandName() const { return "check-synth"; }
+
+void CheckSynthCommand::toStream(std::ostream& out,
+                                 int toDepth,
+                                 size_t dag,
+                                 OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdCheckSynth(out);
+}
 
 /* -------------------------------------------------------------------------- */
 /* class ResetCommand                                                         */
 /* -------------------------------------------------------------------------- */
 
-void ResetCommand::invoke(SmtEngine* smtEngine)
+void ResetCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    smtEngine->reset();
+    solver->getSmtEngine()->reset();
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
   {
     d_commandStatus = new CommandFailure(e.what());
   }
-}
-
-Command* ResetCommand::exportTo(ExprManager* exprManager,
-                                ExprManagerMapCollection& variableMap)
-{
-  return new ResetCommand();
 }
 
 Command* ResetCommand::clone() const { return new ResetCommand(); }
 std::string ResetCommand::getCommandName() const { return "reset"; }
 
+void ResetCommand::toStream(std::ostream& out,
+                            int toDepth,
+                            size_t dag,
+                            OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdReset(out);
+}
+
 /* -------------------------------------------------------------------------- */
 /* class ResetAssertionsCommand                                               */
 /* -------------------------------------------------------------------------- */
 
-void ResetAssertionsCommand::invoke(SmtEngine* smtEngine)
+void ResetAssertionsCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    smtEngine->resetAssertions();
+    solver->resetAssertions();
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
   {
     d_commandStatus = new CommandFailure(e.what());
   }
-}
-
-Command* ResetAssertionsCommand::exportTo(ExprManager* exprManager,
-                                          ExprManagerMapCollection& variableMap)
-{
-  return new ResetAssertionsCommand();
 }
 
 Command* ResetAssertionsCommand::clone() const
@@ -929,24 +884,34 @@ std::string ResetAssertionsCommand::getCommandName() const
   return "reset-assertions";
 }
 
+void ResetAssertionsCommand::toStream(std::ostream& out,
+                                      int toDepth,
+                                      size_t dag,
+                                      OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdResetAssertions(out);
+}
+
 /* -------------------------------------------------------------------------- */
 /* class QuitCommand                                                          */
 /* -------------------------------------------------------------------------- */
 
-void QuitCommand::invoke(SmtEngine* smtEngine)
+void QuitCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   Dump("benchmark") << *this;
   d_commandStatus = CommandSuccess::instance();
 }
 
-Command* QuitCommand::exportTo(ExprManager* exprManager,
-                               ExprManagerMapCollection& variableMap)
-{
-  return new QuitCommand();
-}
-
 Command* QuitCommand::clone() const { return new QuitCommand(); }
 std::string QuitCommand::getCommandName() const { return "exit"; }
+
+void QuitCommand::toStream(std::ostream& out,
+                           int toDepth,
+                           size_t dag,
+                           OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdQuit(out);
+}
 
 /* -------------------------------------------------------------------------- */
 /* class CommentCommand                                                       */
@@ -954,20 +919,22 @@ std::string QuitCommand::getCommandName() const { return "exit"; }
 
 CommentCommand::CommentCommand(std::string comment) : d_comment(comment) {}
 std::string CommentCommand::getComment() const { return d_comment; }
-void CommentCommand::invoke(SmtEngine* smtEngine)
+void CommentCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   Dump("benchmark") << *this;
   d_commandStatus = CommandSuccess::instance();
 }
 
-Command* CommentCommand::exportTo(ExprManager* exprManager,
-                                  ExprManagerMapCollection& variableMap)
-{
-  return new CommentCommand(d_comment);
-}
-
 Command* CommentCommand::clone() const { return new CommentCommand(d_comment); }
 std::string CommentCommand::getCommandName() const { return "comment"; }
+
+void CommentCommand::toStream(std::ostream& out,
+                              int toDepth,
+                              size_t dag,
+                              OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdComment(out, d_comment);
+}
 
 /* -------------------------------------------------------------------------- */
 /* class CommandSequence                                                      */
@@ -988,11 +955,11 @@ void CommandSequence::addCommand(Command* cmd)
 }
 
 void CommandSequence::clear() { d_commandSequence.clear(); }
-void CommandSequence::invoke(SmtEngine* smtEngine)
+void CommandSequence::invoke(api::Solver* solver, SymbolManager* sm)
 {
   for (; d_index < d_commandSequence.size(); ++d_index)
   {
-    d_commandSequence[d_index]->invoke(smtEngine);
+    d_commandSequence[d_index]->invoke(solver, sm);
     if (!d_commandSequence[d_index]->ok())
     {
       // abort execution
@@ -1006,11 +973,13 @@ void CommandSequence::invoke(SmtEngine* smtEngine)
   d_commandStatus = CommandSuccess::instance();
 }
 
-void CommandSequence::invoke(SmtEngine* smtEngine, std::ostream& out)
+void CommandSequence::invoke(api::Solver* solver,
+                             SymbolManager* sm,
+                             std::ostream& out)
 {
   for (; d_index < d_commandSequence.size(); ++d_index)
   {
-    d_commandSequence[d_index]->invoke(smtEngine, out);
+    d_commandSequence[d_index]->invoke(solver, sm, out);
     if (!d_commandSequence[d_index]->ok())
     {
       // abort execution
@@ -1022,21 +991,6 @@ void CommandSequence::invoke(SmtEngine* smtEngine, std::ostream& out)
 
   AlwaysAssert(d_commandStatus == NULL);
   d_commandStatus = CommandSuccess::instance();
-}
-
-Command* CommandSequence::exportTo(ExprManager* exprManager,
-                                   ExprManagerMapCollection& variableMap)
-{
-  CommandSequence* seq = new CommandSequence();
-  for (iterator i = begin(); i != end(); ++i)
-  {
-    Command* cmd_to_export = *i;
-    Command* cmd = cmd_to_export->exportTo(exprManager, variableMap);
-    seq->addCommand(cmd);
-    Debug("export") << "[export] so far converted: " << seq << endl;
-  }
-  seq->d_index = d_index;
-  return seq;
 }
 
 Command* CommandSequence::clone() const
@@ -1072,6 +1026,28 @@ CommandSequence::iterator CommandSequence::end()
 
 std::string CommandSequence::getCommandName() const { return "sequence"; }
 
+void CommandSequence::toStream(std::ostream& out,
+                               int toDepth,
+                               size_t dag,
+                               OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdCommandSequence(out,
+                                                            d_commandSequence);
+}
+
+/* -------------------------------------------------------------------------- */
+/* class DeclarationSequence                                                  */
+/* -------------------------------------------------------------------------- */
+
+void DeclarationSequence::toStream(std::ostream& out,
+                                   int toDepth,
+                                   size_t dag,
+                                   OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdDeclarationSequence(
+      out, d_commandSequence);
+}
+
 /* -------------------------------------------------------------------------- */
 /* class DeclarationDefinitionCommand                                         */
 /* -------------------------------------------------------------------------- */
@@ -1089,18 +1065,18 @@ std::string DeclarationDefinitionCommand::getSymbol() const { return d_symbol; }
 /* -------------------------------------------------------------------------- */
 
 DeclareFunctionCommand::DeclareFunctionCommand(const std::string& id,
-                                               Expr func,
-                                               Type t)
+                                               api::Term func,
+                                               api::Sort sort)
     : DeclarationDefinitionCommand(id),
       d_func(func),
-      d_type(t),
+      d_sort(sort),
       d_printInModel(true),
       d_printInModelSetByUser(false)
 {
 }
 
-Expr DeclareFunctionCommand::getFunction() const { return d_func; }
-Type DeclareFunctionCommand::getType() const { return d_type; }
+api::Term DeclareFunctionCommand::getFunction() const { return d_func; }
+api::Sort DeclareFunctionCommand::getSort() const { return d_sort; }
 bool DeclareFunctionCommand::getPrintInModel() const { return d_printInModel; }
 bool DeclareFunctionCommand::getPrintInModelSetByUser() const
 {
@@ -1113,27 +1089,15 @@ void DeclareFunctionCommand::setPrintInModel(bool p)
   d_printInModelSetByUser = true;
 }
 
-void DeclareFunctionCommand::invoke(SmtEngine* smtEngine)
+void DeclareFunctionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   d_commandStatus = CommandSuccess::instance();
-}
-
-Command* DeclareFunctionCommand::exportTo(ExprManager* exprManager,
-                                          ExprManagerMapCollection& variableMap)
-{
-  DeclareFunctionCommand* dfc =
-      new DeclareFunctionCommand(d_symbol,
-                                 d_func.exportTo(exprManager, variableMap),
-                                 d_type.exportTo(exprManager, variableMap));
-  dfc->d_printInModel = d_printInModel;
-  dfc->d_printInModelSetByUser = d_printInModelSetByUser;
-  return dfc;
 }
 
 Command* DeclareFunctionCommand::clone() const
 {
   DeclareFunctionCommand* dfc =
-      new DeclareFunctionCommand(d_symbol, d_func, d_type);
+      new DeclareFunctionCommand(d_symbol, d_func, d_sort);
   dfc->d_printInModel = d_printInModel;
   dfc->d_printInModelSetByUser = d_printInModelSetByUser;
   return dfc;
@@ -1144,94 +1108,105 @@ std::string DeclareFunctionCommand::getCommandName() const
   return "declare-fun";
 }
 
+void DeclareFunctionCommand::toStream(std::ostream& out,
+                                      int toDepth,
+                                      size_t dag,
+                                      OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdDeclareFunction(
+      out, d_func.toString(), d_sort.getTypeNode());
+}
+
 /* -------------------------------------------------------------------------- */
-/* class DeclareTypeCommand                                                   */
+/* class DeclareSortCommand                                                   */
 /* -------------------------------------------------------------------------- */
 
-DeclareTypeCommand::DeclareTypeCommand(const std::string& id,
+DeclareSortCommand::DeclareSortCommand(const std::string& id,
                                        size_t arity,
-                                       Type t)
-    : DeclarationDefinitionCommand(id), d_arity(arity), d_type(t)
+                                       api::Sort sort)
+    : DeclarationDefinitionCommand(id), d_arity(arity), d_sort(sort)
 {
 }
 
-size_t DeclareTypeCommand::getArity() const { return d_arity; }
-Type DeclareTypeCommand::getType() const { return d_type; }
-void DeclareTypeCommand::invoke(SmtEngine* smtEngine)
+size_t DeclareSortCommand::getArity() const { return d_arity; }
+api::Sort DeclareSortCommand::getSort() const { return d_sort; }
+void DeclareSortCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   d_commandStatus = CommandSuccess::instance();
 }
 
-Command* DeclareTypeCommand::exportTo(ExprManager* exprManager,
-                                      ExprManagerMapCollection& variableMap)
+Command* DeclareSortCommand::clone() const
 {
-  return new DeclareTypeCommand(
-      d_symbol, d_arity, d_type.exportTo(exprManager, variableMap));
+  return new DeclareSortCommand(d_symbol, d_arity, d_sort);
 }
 
-Command* DeclareTypeCommand::clone() const
-{
-  return new DeclareTypeCommand(d_symbol, d_arity, d_type);
-}
-
-std::string DeclareTypeCommand::getCommandName() const
+std::string DeclareSortCommand::getCommandName() const
 {
   return "declare-sort";
 }
 
+void DeclareSortCommand::toStream(std::ostream& out,
+                                  int toDepth,
+                                  size_t dag,
+                                  OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdDeclareType(
+      out, d_sort.toString(), d_arity, d_sort.getTypeNode());
+}
+
 /* -------------------------------------------------------------------------- */
-/* class DefineTypeCommand                                                    */
+/* class DefineSortCommand                                                    */
 /* -------------------------------------------------------------------------- */
 
-DefineTypeCommand::DefineTypeCommand(const std::string& id, Type t)
-    : DeclarationDefinitionCommand(id), d_params(), d_type(t)
+DefineSortCommand::DefineSortCommand(const std::string& id, api::Sort sort)
+    : DeclarationDefinitionCommand(id), d_params(), d_sort(sort)
 {
 }
 
-DefineTypeCommand::DefineTypeCommand(const std::string& id,
-                                     const std::vector<Type>& params,
-                                     Type t)
-    : DeclarationDefinitionCommand(id), d_params(params), d_type(t)
+DefineSortCommand::DefineSortCommand(const std::string& id,
+                                     const std::vector<api::Sort>& params,
+                                     api::Sort sort)
+    : DeclarationDefinitionCommand(id), d_params(params), d_sort(sort)
 {
 }
 
-const std::vector<Type>& DefineTypeCommand::getParameters() const
+const std::vector<api::Sort>& DefineSortCommand::getParameters() const
 {
   return d_params;
 }
 
-Type DefineTypeCommand::getType() const { return d_type; }
-void DefineTypeCommand::invoke(SmtEngine* smtEngine)
+api::Sort DefineSortCommand::getSort() const { return d_sort; }
+void DefineSortCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   d_commandStatus = CommandSuccess::instance();
 }
 
-Command* DefineTypeCommand::exportTo(ExprManager* exprManager,
-                                     ExprManagerMapCollection& variableMap)
+Command* DefineSortCommand::clone() const
 {
-  vector<Type> params;
-  transform(d_params.begin(),
-            d_params.end(),
-            back_inserter(params),
-            ExportTransformer(exprManager, variableMap));
-  Type type = d_type.exportTo(exprManager, variableMap);
-  return new DefineTypeCommand(d_symbol, params, type);
+  return new DefineSortCommand(d_symbol, d_params, d_sort);
 }
 
-Command* DefineTypeCommand::clone() const
-{
-  return new DefineTypeCommand(d_symbol, d_params, d_type);
-}
+std::string DefineSortCommand::getCommandName() const { return "define-sort"; }
 
-std::string DefineTypeCommand::getCommandName() const { return "define-sort"; }
+void DefineSortCommand::toStream(std::ostream& out,
+                                 int toDepth,
+                                 size_t dag,
+                                 OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdDefineType(
+      out,
+      d_symbol,
+      api::sortVectorToTypeNodes(d_params),
+      d_sort.getTypeNode());
+}
 
 /* -------------------------------------------------------------------------- */
 /* class DefineFunctionCommand                                                */
 /* -------------------------------------------------------------------------- */
 
 DefineFunctionCommand::DefineFunctionCommand(const std::string& id,
-                                             Expr func,
-                                             Expr formula,
+                                             api::Term func,
+                                             api::Term formula,
                                              bool global)
     : DeclarationDefinitionCommand(id),
       d_func(func),
@@ -1241,34 +1216,34 @@ DefineFunctionCommand::DefineFunctionCommand(const std::string& id,
 {
 }
 
-DefineFunctionCommand::DefineFunctionCommand(const std::string& id,
-                                             Expr func,
-                                             const std::vector<Expr>& formals,
-                                             Expr formula,
-                                             bool global)
+DefineFunctionCommand::DefineFunctionCommand(
+    const std::string& id,
+    api::Term func,
+    const std::vector<api::Term>& formals,
+    api::Term formula,
+    bool global)
     : DeclarationDefinitionCommand(id),
       d_func(func),
       d_formals(formals),
       d_formula(formula),
       d_global(global)
-
 {
 }
 
-Expr DefineFunctionCommand::getFunction() const { return d_func; }
-const std::vector<Expr>& DefineFunctionCommand::getFormals() const
+api::Term DefineFunctionCommand::getFunction() const { return d_func; }
+const std::vector<api::Term>& DefineFunctionCommand::getFormals() const
 {
   return d_formals;
 }
 
-Expr DefineFunctionCommand::getFormula() const { return d_formula; }
-void DefineFunctionCommand::invoke(SmtEngine* smtEngine)
+api::Term DefineFunctionCommand::getFormula() const { return d_formula; }
+void DefineFunctionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
     if (!d_func.isNull())
     {
-      smtEngine->defineFunction(d_func, d_formals, d_formula, d_global);
+      solver->defineFun(d_func, d_formals, d_formula, d_global);
     }
     d_commandStatus = CommandSuccess::instance();
   }
@@ -1276,20 +1251,6 @@ void DefineFunctionCommand::invoke(SmtEngine* smtEngine)
   {
     d_commandStatus = new CommandFailure(e.what());
   }
-}
-
-Command* DefineFunctionCommand::exportTo(ExprManager* exprManager,
-                                         ExprManagerMapCollection& variableMap)
-{
-  Expr func = d_func.exportTo(
-      exprManager, variableMap, /* flags = */ ExprManager::VAR_FLAG_DEFINED);
-  vector<Expr> formals;
-  transform(d_formals.begin(),
-            d_formals.end(),
-            back_inserter(formals),
-            ExportTransformer(exprManager, variableMap));
-  Expr formula = d_formula.exportTo(exprManager, variableMap);
-  return new DefineFunctionCommand(d_symbol, func, formals, formula, d_global);
 }
 
 Command* DefineFunctionCommand::clone() const
@@ -1303,48 +1264,17 @@ std::string DefineFunctionCommand::getCommandName() const
   return "define-fun";
 }
 
-/* -------------------------------------------------------------------------- */
-/* class DefineNamedFunctionCommand                                           */
-/* -------------------------------------------------------------------------- */
-
-DefineNamedFunctionCommand::DefineNamedFunctionCommand(
-    const std::string& id,
-    Expr func,
-    const std::vector<Expr>& formals,
-    Expr formula,
-    bool global)
-    : DefineFunctionCommand(id, func, formals, formula, global)
+void DefineFunctionCommand::toStream(std::ostream& out,
+                                     int toDepth,
+                                     size_t dag,
+                                     OutputLanguage language) const
 {
-}
-
-void DefineNamedFunctionCommand::invoke(SmtEngine* smtEngine)
-{
-  this->DefineFunctionCommand::invoke(smtEngine);
-  if (!d_func.isNull() && d_func.getType().isBoolean())
-  {
-    smtEngine->addToAssignment(d_func);
-  }
-  d_commandStatus = CommandSuccess::instance();
-}
-
-Command* DefineNamedFunctionCommand::exportTo(
-    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
-{
-  Expr func = d_func.exportTo(exprManager, variableMap);
-  vector<Expr> formals;
-  transform(d_formals.begin(),
-            d_formals.end(),
-            back_inserter(formals),
-            ExportTransformer(exprManager, variableMap));
-  Expr formula = d_formula.exportTo(exprManager, variableMap);
-  return new DefineNamedFunctionCommand(
-      d_symbol, func, formals, formula, d_global);
-}
-
-Command* DefineNamedFunctionCommand::clone() const
-{
-  return new DefineNamedFunctionCommand(
-      d_symbol, d_func, d_formals, d_formula, d_global);
+  Printer::getPrinter(language)->toStreamCmdDefineFunction(
+      out,
+      d_func.toString(),
+      api::termVectorToNodes(d_formals),
+      d_func.getNode().getType().getRangeType(),
+      d_formula.getNode());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1352,12 +1282,12 @@ Command* DefineNamedFunctionCommand::clone() const
 /* -------------------------------------------------------------------------- */
 
 DefineFunctionRecCommand::DefineFunctionRecCommand(
-    api::Solver* solver,
+
     api::Term func,
     const std::vector<api::Term>& formals,
     api::Term formula,
     bool global)
-    : Command(solver), d_global(global)
+    : d_global(global)
 {
   d_funcs.push_back(func);
   d_formals.push_back(formals);
@@ -1365,16 +1295,12 @@ DefineFunctionRecCommand::DefineFunctionRecCommand(
 }
 
 DefineFunctionRecCommand::DefineFunctionRecCommand(
-    api::Solver* solver,
+
     const std::vector<api::Term>& funcs,
     const std::vector<std::vector<api::Term>>& formals,
     const std::vector<api::Term>& formulas,
     bool global)
-    : Command(solver),
-      d_funcs(funcs),
-      d_formals(formals),
-      d_formulas(formulas),
-      d_global(global)
+    : d_funcs(funcs), d_formals(formals), d_formulas(formulas), d_global(global)
 {
 }
 
@@ -1394,11 +1320,11 @@ const std::vector<api::Term>& DefineFunctionRecCommand::getFormulas() const
   return d_formulas;
 }
 
-void DefineFunctionRecCommand::invoke(SmtEngine* smtEngine)
+void DefineFunctionRecCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    d_solver->defineFunsRec(d_funcs, d_formals, d_formulas, d_global);
+    solver->defineFunsRec(d_funcs, d_formals, d_formulas, d_global);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -1407,16 +1333,9 @@ void DefineFunctionRecCommand::invoke(SmtEngine* smtEngine)
   }
 }
 
-Command* DefineFunctionRecCommand::exportTo(
-    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
-{
-  Unimplemented();
-}
-
 Command* DefineFunctionRecCommand::clone() const
 {
-  return new DefineFunctionRecCommand(
-      d_solver, d_funcs, d_formals, d_formulas, d_global);
+  return new DefineFunctionRecCommand(d_funcs, d_formals, d_formulas, d_global);
 }
 
 std::string DefineFunctionRecCommand::getCommandName() const
@@ -1424,48 +1343,104 @@ std::string DefineFunctionRecCommand::getCommandName() const
   return "define-fun-rec";
 }
 
+void DefineFunctionRecCommand::toStream(std::ostream& out,
+                                        int toDepth,
+                                        size_t dag,
+                                        OutputLanguage language) const
+{
+  std::vector<std::vector<Node>> formals;
+  formals.reserve(d_formals.size());
+  for (const std::vector<api::Term>& formal : d_formals)
+  {
+    formals.push_back(api::termVectorToNodes(formal));
+  }
+
+  Printer::getPrinter(language)->toStreamCmdDefineFunctionRec(
+      out,
+      api::termVectorToNodes(d_funcs),
+      formals,
+      api::termVectorToNodes(d_formulas));
+}
 /* -------------------------------------------------------------------------- */
-/* class SetUserAttribute                                                     */
+/* class DeclareHeapCommand                                                   */
+/* -------------------------------------------------------------------------- */
+DeclareHeapCommand::DeclareHeapCommand(api::Sort locSort, api::Sort dataSort)
+    : d_locSort(locSort), d_dataSort(dataSort)
+{
+}
+
+api::Sort DeclareHeapCommand::getLocationSort() const { return d_locSort; }
+api::Sort DeclareHeapCommand::getDataSort() const { return d_dataSort; }
+
+void DeclareHeapCommand::invoke(api::Solver* solver, SymbolManager* sm)
+{
+  solver->declareSeparationHeap(d_locSort, d_dataSort);
+}
+
+Command* DeclareHeapCommand::clone() const
+{
+  return new DeclareHeapCommand(d_locSort, d_dataSort);
+}
+
+std::string DeclareHeapCommand::getCommandName() const
+{
+  return "declare-heap";
+}
+
+void DeclareHeapCommand::toStream(std::ostream& out,
+                                  int toDepth,
+                                  size_t dag,
+                                  OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdDeclareHeap(
+      out, d_locSort.getTypeNode(), d_dataSort.getTypeNode());
+}
+
+/* -------------------------------------------------------------------------- */
+/* class SetUserAttributeCommand                                              */
 /* -------------------------------------------------------------------------- */
 
 SetUserAttributeCommand::SetUserAttributeCommand(
     const std::string& attr,
-    Expr expr,
-    const std::vector<Expr>& expr_values,
-    const std::string& str_value)
-    : d_attr(attr),
-      d_expr(expr),
-      d_expr_values(expr_values),
-      d_str_value(str_value)
+    api::Term term,
+    const std::vector<api::Term>& termValues,
+    const std::string& strValue)
+    : d_attr(attr), d_term(term), d_termValues(termValues), d_strValue(strValue)
 {
 }
 
 SetUserAttributeCommand::SetUserAttributeCommand(const std::string& attr,
-                                                 Expr expr)
-    : SetUserAttributeCommand(attr, expr, {}, "")
+                                                 api::Term term)
+    : SetUserAttributeCommand(attr, term, {}, "")
 {
 }
 
 SetUserAttributeCommand::SetUserAttributeCommand(
-    const std::string& attr, Expr expr, const std::vector<Expr>& values)
-    : SetUserAttributeCommand(attr, expr, values, "")
+    const std::string& attr,
+    api::Term term,
+    const std::vector<api::Term>& values)
+    : SetUserAttributeCommand(attr, term, values, "")
 {
 }
 
 SetUserAttributeCommand::SetUserAttributeCommand(const std::string& attr,
-                                                 Expr expr,
+                                                 api::Term term,
                                                  const std::string& value)
-    : SetUserAttributeCommand(attr, expr, {}, value)
+    : SetUserAttributeCommand(attr, term, {}, value)
 {
 }
 
-void SetUserAttributeCommand::invoke(SmtEngine* smtEngine)
+void SetUserAttributeCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    if (!d_expr.isNull())
+    if (!d_term.isNull())
     {
-      smtEngine->setUserAttribute(d_attr, d_expr, d_expr_values, d_str_value);
+      solver->getSmtEngine()->setUserAttribute(
+          d_attr,
+          d_term.getExpr(),
+          api::termVectorToExprs(d_termValues),
+          d_strValue);
     }
     d_commandStatus = CommandSuccess::instance();
   }
@@ -1475,17 +1450,9 @@ void SetUserAttributeCommand::invoke(SmtEngine* smtEngine)
   }
 }
 
-Command* SetUserAttributeCommand::exportTo(
-    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
-{
-  Expr expr = d_expr.exportTo(exprManager, variableMap);
-  return new SetUserAttributeCommand(d_attr, expr, d_expr_values, d_str_value);
-}
-
 Command* SetUserAttributeCommand::clone() const
 {
-  return new SetUserAttributeCommand(
-      d_attr, d_expr, d_expr_values, d_str_value);
+  return new SetUserAttributeCommand(d_attr, d_term, d_termValues, d_strValue);
 }
 
 std::string SetUserAttributeCommand::getCommandName() const
@@ -1493,17 +1460,26 @@ std::string SetUserAttributeCommand::getCommandName() const
   return "set-user-attribute";
 }
 
+void SetUserAttributeCommand::toStream(std::ostream& out,
+                                       int toDepth,
+                                       size_t dag,
+                                       OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdSetUserAttribute(
+      out, d_attr, d_term.getNode());
+}
+
 /* -------------------------------------------------------------------------- */
 /* class SimplifyCommand                                                      */
 /* -------------------------------------------------------------------------- */
 
-SimplifyCommand::SimplifyCommand(Expr term) : d_term(term) {}
-Expr SimplifyCommand::getTerm() const { return d_term; }
-void SimplifyCommand::invoke(SmtEngine* smtEngine)
+SimplifyCommand::SimplifyCommand(api::Term term) : d_term(term) {}
+api::Term SimplifyCommand::getTerm() const { return d_term; }
+void SimplifyCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    d_result = smtEngine->simplify(d_term);
+    d_result = solver->simplify(d_term);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (UnsafeInterruptException& e)
@@ -1516,7 +1492,7 @@ void SimplifyCommand::invoke(SmtEngine* smtEngine)
   }
 }
 
-Expr SimplifyCommand::getResult() const { return d_result; }
+api::Term SimplifyCommand::getResult() const { return d_result; }
 void SimplifyCommand::printResult(std::ostream& out, uint32_t verbosity) const
 {
   if (!ok())
@@ -1529,15 +1505,6 @@ void SimplifyCommand::printResult(std::ostream& out, uint32_t verbosity) const
   }
 }
 
-Command* SimplifyCommand::exportTo(ExprManager* exprManager,
-                                   ExprManagerMapCollection& variableMap)
-{
-  SimplifyCommand* c =
-      new SimplifyCommand(d_term.exportTo(exprManager, variableMap));
-  c->d_result = d_result.exportTo(exprManager, variableMap);
-  return c;
-}
-
 Command* SimplifyCommand::clone() const
 {
   SimplifyCommand* c = new SimplifyCommand(d_term);
@@ -1547,102 +1514,50 @@ Command* SimplifyCommand::clone() const
 
 std::string SimplifyCommand::getCommandName() const { return "simplify"; }
 
-/* -------------------------------------------------------------------------- */
-/* class ExpandDefinitionsCommand                                             */
-/* -------------------------------------------------------------------------- */
-
-ExpandDefinitionsCommand::ExpandDefinitionsCommand(Expr term) : d_term(term) {}
-Expr ExpandDefinitionsCommand::getTerm() const { return d_term; }
-void ExpandDefinitionsCommand::invoke(SmtEngine* smtEngine)
+void SimplifyCommand::toStream(std::ostream& out,
+                               int toDepth,
+                               size_t dag,
+                               OutputLanguage language) const
 {
-  Node t = Node::fromExpr(d_term);
-  d_result = smtEngine->expandDefinitions(t).toExpr();
-  d_commandStatus = CommandSuccess::instance();
-}
-
-Expr ExpandDefinitionsCommand::getResult() const { return d_result; }
-void ExpandDefinitionsCommand::printResult(std::ostream& out,
-                                           uint32_t verbosity) const
-{
-  if (!ok())
-  {
-    this->Command::printResult(out, verbosity);
-  }
-  else
-  {
-    out << d_result << endl;
-  }
-}
-
-Command* ExpandDefinitionsCommand::exportTo(
-    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
-{
-  ExpandDefinitionsCommand* c =
-      new ExpandDefinitionsCommand(d_term.exportTo(exprManager, variableMap));
-  c->d_result = d_result.exportTo(exprManager, variableMap);
-  return c;
-}
-
-Command* ExpandDefinitionsCommand::clone() const
-{
-  ExpandDefinitionsCommand* c = new ExpandDefinitionsCommand(d_term);
-  c->d_result = d_result;
-  return c;
-}
-
-std::string ExpandDefinitionsCommand::getCommandName() const
-{
-  return "expand-definitions";
+  Printer::getPrinter(language)->toStreamCmdSimplify(out, d_term.getNode());
 }
 
 /* -------------------------------------------------------------------------- */
 /* class GetValueCommand                                                      */
 /* -------------------------------------------------------------------------- */
 
-GetValueCommand::GetValueCommand(Expr term) : d_terms()
+GetValueCommand::GetValueCommand(api::Term term) : d_terms()
 {
   d_terms.push_back(term);
 }
 
-GetValueCommand::GetValueCommand(const std::vector<Expr>& terms)
+GetValueCommand::GetValueCommand(const std::vector<api::Term>& terms)
     : d_terms(terms)
 {
   PrettyCheckArgument(
       terms.size() >= 1, terms, "cannot get-value of an empty set of terms");
 }
 
-const std::vector<Expr>& GetValueCommand::getTerms() const { return d_terms; }
-void GetValueCommand::invoke(SmtEngine* smtEngine)
+const std::vector<api::Term>& GetValueCommand::getTerms() const
+{
+  return d_terms;
+}
+void GetValueCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    ExprManager* em = smtEngine->getExprManager();
-    NodeManager* nm = NodeManager::fromExprManager(em);
-    smt::SmtScope scope(smtEngine);
-    vector<Expr> result = smtEngine->getValues(d_terms);
+    std::vector<api::Term> result = solver->getValue(d_terms);
     Assert(result.size() == d_terms.size());
     for (int i = 0, size = d_terms.size(); i < size; i++)
     {
-      Expr e = d_terms[i];
-      Node eNode = Node::fromExpr(e);
-      Assert(nm == NodeManager::fromExprManager(e.getExprManager()));
-      Node request = options::expandDefinitions()
-                         ? smtEngine->expandDefinitions(eNode)
-                         : eNode;
-      Node value = Node::fromExpr(result[i]);
-      if (value.getType().isInteger() && request.getType() == nm->realType())
-      {
-        // Need to wrap in division-by-one so that output printers know this
-        // is an integer-looking constant that really should be output as
-        // a rational.  Necessary for SMT-LIB standards compliance.
-        value = nm->mkNode(kind::DIVISION, value, nm->mkConst(Rational(1)));
-      }
-      result[i] = nm->mkNode(kind::SEXPR, request, value).toExpr();
+      api::Term request = d_terms[i];
+      api::Term value = result[i];
+      result[i] = solver->mkTerm(api::SEXPR, request, value);
     }
-    d_result = em->mkExpr(kind::SEXPR, result);
+    d_result = solver->mkTerm(api::SEXPR, result);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (RecoverableModalException& e)
+  catch (api::CVC4ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -1656,7 +1571,7 @@ void GetValueCommand::invoke(SmtEngine* smtEngine)
   }
 }
 
-Expr GetValueCommand::getResult() const { return d_result; }
+api::Term GetValueCommand::getResult() const { return d_result; }
 void GetValueCommand::printResult(std::ostream& out, uint32_t verbosity) const
 {
   if (!ok())
@@ -1670,21 +1585,6 @@ void GetValueCommand::printResult(std::ostream& out, uint32_t verbosity) const
   }
 }
 
-Command* GetValueCommand::exportTo(ExprManager* exprManager,
-                                   ExprManagerMapCollection& variableMap)
-{
-  vector<Expr> exportedTerms;
-  for (std::vector<Expr>::const_iterator i = d_terms.begin();
-       i != d_terms.end();
-       ++i)
-  {
-    exportedTerms.push_back((*i).exportTo(exprManager, variableMap));
-  }
-  GetValueCommand* c = new GetValueCommand(exportedTerms);
-  c->d_result = d_result.exportTo(exprManager, variableMap);
-  return c;
-}
-
 Command* GetValueCommand::clone() const
 {
   GetValueCommand* c = new GetValueCommand(d_terms);
@@ -1694,28 +1594,48 @@ Command* GetValueCommand::clone() const
 
 std::string GetValueCommand::getCommandName() const { return "get-value"; }
 
+void GetValueCommand::toStream(std::ostream& out,
+                               int toDepth,
+                               size_t dag,
+                               OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdGetValue(
+      out, api::termVectorToNodes(d_terms));
+}
+
 /* -------------------------------------------------------------------------- */
 /* class GetAssignmentCommand                                                 */
 /* -------------------------------------------------------------------------- */
 
 GetAssignmentCommand::GetAssignmentCommand() {}
-void GetAssignmentCommand::invoke(SmtEngine* smtEngine)
+void GetAssignmentCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    std::vector<std::pair<Expr, Expr>> assignments = smtEngine->getAssignment();
-    vector<SExpr> sexprs;
-    for (const auto& p : assignments)
+    std::map<api::Term, std::string> enames = sm->getExpressionNames();
+    std::vector<api::Term> terms;
+    std::vector<std::string> names;
+    for (const std::pair<const api::Term, std::string>& e : enames)
     {
-      vector<SExpr> v;
-      v.emplace_back(SExpr::Keyword(p.first.toString()));
-      v.emplace_back(SExpr::Keyword(p.second.toString()));
-      sexprs.emplace_back(v);
+      terms.push_back(e.first);
+      names.push_back(e.second);
+    }
+    // Must use vector version of getValue to ensure error is thrown regardless
+    // of whether terms is empty.
+    std::vector<api::Term> values = solver->getValue(terms);
+    Assert(values.size() == names.size());
+    std::vector<SExpr> sexprs;
+    for (size_t i = 0, nterms = terms.size(); i < nterms; i++)
+    {
+      std::vector<SExpr> ss;
+      ss.emplace_back(SExpr::Keyword(names[i]));
+      ss.emplace_back(SExpr::Keyword(values[i].toString()));
+      sexprs.emplace_back(ss);
     }
     d_result = SExpr(sexprs);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (RecoverableModalException& e)
+  catch (api::CVC4ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -1743,14 +1663,6 @@ void GetAssignmentCommand::printResult(std::ostream& out,
   }
 }
 
-Command* GetAssignmentCommand::exportTo(ExprManager* exprManager,
-                                        ExprManagerMapCollection& variableMap)
-{
-  GetAssignmentCommand* c = new GetAssignmentCommand();
-  c->d_result = d_result;
-  return c;
-}
-
 Command* GetAssignmentCommand::clone() const
 {
   GetAssignmentCommand* c = new GetAssignmentCommand();
@@ -1763,17 +1675,24 @@ std::string GetAssignmentCommand::getCommandName() const
   return "get-assignment";
 }
 
+void GetAssignmentCommand::toStream(std::ostream& out,
+                                    int toDepth,
+                                    size_t dag,
+                                    OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdGetAssignment(out);
+}
+
 /* -------------------------------------------------------------------------- */
 /* class GetModelCommand                                                      */
 /* -------------------------------------------------------------------------- */
 
-GetModelCommand::GetModelCommand() : d_result(nullptr), d_smtEngine(nullptr) {}
-void GetModelCommand::invoke(SmtEngine* smtEngine)
+GetModelCommand::GetModelCommand() : d_result(nullptr) {}
+void GetModelCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    d_result = smtEngine->getModel();
-    d_smtEngine = smtEngine;
+    d_result = solver->getSmtEngine()->getModel();
     d_commandStatus = CommandSuccess::instance();
   }
   catch (RecoverableModalException& e)
@@ -1808,38 +1727,36 @@ void GetModelCommand::printResult(std::ostream& out, uint32_t verbosity) const
   }
 }
 
-Command* GetModelCommand::exportTo(ExprManager* exprManager,
-                                   ExprManagerMapCollection& variableMap)
-{
-  GetModelCommand* c = new GetModelCommand();
-  c->d_result = d_result;
-  c->d_smtEngine = d_smtEngine;
-  return c;
-}
-
 Command* GetModelCommand::clone() const
 {
   GetModelCommand* c = new GetModelCommand();
   c->d_result = d_result;
-  c->d_smtEngine = d_smtEngine;
   return c;
 }
 
 std::string GetModelCommand::getCommandName() const { return "get-model"; }
+
+void GetModelCommand::toStream(std::ostream& out,
+                               int toDepth,
+                               size_t dag,
+                               OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdGetModel(out);
+}
 
 /* -------------------------------------------------------------------------- */
 /* class BlockModelCommand */
 /* -------------------------------------------------------------------------- */
 
 BlockModelCommand::BlockModelCommand() {}
-void BlockModelCommand::invoke(SmtEngine* smtEngine)
+void BlockModelCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    smtEngine->blockModel();
+    solver->blockModel();
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (RecoverableModalException& e)
+  catch (api::CVC4ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -1851,13 +1768,6 @@ void BlockModelCommand::invoke(SmtEngine* smtEngine)
   {
     d_commandStatus = new CommandFailure(e.what());
   }
-}
-
-Command* BlockModelCommand::exportTo(ExprManager* exprManager,
-                                     ExprManagerMapCollection& variableMap)
-{
-  BlockModelCommand* c = new BlockModelCommand();
-  return c;
 }
 
 Command* BlockModelCommand::clone() const
@@ -1868,11 +1778,20 @@ Command* BlockModelCommand::clone() const
 
 std::string BlockModelCommand::getCommandName() const { return "block-model"; }
 
+void BlockModelCommand::toStream(std::ostream& out,
+                                 int toDepth,
+                                 size_t dag,
+                                 OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdBlockModel(out);
+}
+
 /* -------------------------------------------------------------------------- */
 /* class BlockModelValuesCommand */
 /* -------------------------------------------------------------------------- */
 
-BlockModelValuesCommand::BlockModelValuesCommand(const std::vector<Expr>& terms)
+BlockModelValuesCommand::BlockModelValuesCommand(
+    const std::vector<api::Term>& terms)
     : d_terms(terms)
 {
   PrettyCheckArgument(terms.size() >= 1,
@@ -1880,15 +1799,15 @@ BlockModelValuesCommand::BlockModelValuesCommand(const std::vector<Expr>& terms)
                       "cannot block-model-values of an empty set of terms");
 }
 
-const std::vector<Expr>& BlockModelValuesCommand::getTerms() const
+const std::vector<api::Term>& BlockModelValuesCommand::getTerms() const
 {
   return d_terms;
 }
-void BlockModelValuesCommand::invoke(SmtEngine* smtEngine)
+void BlockModelValuesCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    smtEngine->blockModelValues(d_terms);
+    solver->blockModelValues(d_terms);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (RecoverableModalException& e)
@@ -1903,20 +1822,6 @@ void BlockModelValuesCommand::invoke(SmtEngine* smtEngine)
   {
     d_commandStatus = new CommandFailure(e.what());
   }
-}
-
-Command* BlockModelValuesCommand::exportTo(
-    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
-{
-  vector<Expr> exportedTerms;
-  for (std::vector<Expr>::const_iterator i = d_terms.begin();
-       i != d_terms.end();
-       ++i)
-  {
-    exportedTerms.push_back((*i).exportTo(exprManager, variableMap));
-  }
-  BlockModelValuesCommand* c = new BlockModelValuesCommand(exportedTerms);
-  return c;
 }
 
 Command* BlockModelValuesCommand::clone() const
@@ -1930,76 +1835,51 @@ std::string BlockModelValuesCommand::getCommandName() const
   return "block-model-values";
 }
 
+void BlockModelValuesCommand::toStream(std::ostream& out,
+                                       int toDepth,
+                                       size_t dag,
+                                       OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdBlockModelValues(
+      out, api::termVectorToNodes(d_terms));
+}
+
 /* -------------------------------------------------------------------------- */
 /* class GetProofCommand                                                      */
 /* -------------------------------------------------------------------------- */
 
-GetProofCommand::GetProofCommand() : d_smtEngine(nullptr), d_result(nullptr) {}
-void GetProofCommand::invoke(SmtEngine* smtEngine)
+GetProofCommand::GetProofCommand() {}
+void GetProofCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
-  try
-  {
-    d_smtEngine = smtEngine;
-    d_result = &smtEngine->getProof();
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (RecoverableModalException& e)
-  {
-    d_commandStatus = new CommandRecoverableFailure(e.what());
-  }
-  catch (UnsafeInterruptException& e)
-  {
-    d_commandStatus = new CommandInterrupted();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
-}
-
-const Proof& GetProofCommand::getResult() const { return *d_result; }
-void GetProofCommand::printResult(std::ostream& out, uint32_t verbosity) const
-{
-  if (!ok())
-  {
-    this->Command::printResult(out, verbosity);
-  }
-  else
-  {
-    smt::SmtScope scope(d_smtEngine);
-    d_result->toStream(out);
-  }
-}
-
-Command* GetProofCommand::exportTo(ExprManager* exprManager,
-                                   ExprManagerMapCollection& variableMap)
-{
-  GetProofCommand* c = new GetProofCommand();
-  c->d_result = d_result;
-  c->d_smtEngine = d_smtEngine;
-  return c;
+  Unimplemented() << "Unimplemented get-proof\n";
 }
 
 Command* GetProofCommand::clone() const
 {
   GetProofCommand* c = new GetProofCommand();
-  c->d_result = d_result;
-  c->d_smtEngine = d_smtEngine;
   return c;
 }
 
 std::string GetProofCommand::getCommandName() const { return "get-proof"; }
 
+void GetProofCommand::toStream(std::ostream& out,
+                               int toDepth,
+                               size_t dag,
+                               OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdGetProof(out);
+}
+
 /* -------------------------------------------------------------------------- */
 /* class GetInstantiationsCommand                                             */
 /* -------------------------------------------------------------------------- */
 
-GetInstantiationsCommand::GetInstantiationsCommand() : d_smtEngine(nullptr) {}
-void GetInstantiationsCommand::invoke(SmtEngine* smtEngine)
+GetInstantiationsCommand::GetInstantiationsCommand() : d_solver(nullptr) {}
+void GetInstantiationsCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    d_smtEngine = smtEngine;
+    d_solver = solver;
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -2017,24 +1897,15 @@ void GetInstantiationsCommand::printResult(std::ostream& out,
   }
   else
   {
-    d_smtEngine->printInstantiations(out);
+    d_solver->printInstantiations(out);
   }
-}
-
-Command* GetInstantiationsCommand::exportTo(
-    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
-{
-  GetInstantiationsCommand* c = new GetInstantiationsCommand();
-  // c->d_result = d_result;
-  c->d_smtEngine = d_smtEngine;
-  return c;
 }
 
 Command* GetInstantiationsCommand::clone() const
 {
   GetInstantiationsCommand* c = new GetInstantiationsCommand();
   // c->d_result = d_result;
-  c->d_smtEngine = d_smtEngine;
+  c->d_solver = d_solver;
   return c;
 }
 
@@ -2043,16 +1914,24 @@ std::string GetInstantiationsCommand::getCommandName() const
   return "get-instantiations";
 }
 
+void GetInstantiationsCommand::toStream(std::ostream& out,
+                                        int toDepth,
+                                        size_t dag,
+                                        OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdGetInstantiations(out);
+}
+
 /* -------------------------------------------------------------------------- */
 /* class GetSynthSolutionCommand                                              */
 /* -------------------------------------------------------------------------- */
 
-GetSynthSolutionCommand::GetSynthSolutionCommand() : d_smtEngine(nullptr) {}
-void GetSynthSolutionCommand::invoke(SmtEngine* smtEngine)
+GetSynthSolutionCommand::GetSynthSolutionCommand() : d_solver(nullptr) {}
+void GetSynthSolutionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    d_smtEngine = smtEngine;
+    d_solver = solver;
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -2070,64 +1949,66 @@ void GetSynthSolutionCommand::printResult(std::ostream& out,
   }
   else
   {
-    d_smtEngine->printSynthSolution(out);
+    d_solver->printSynthSolution(out);
   }
-}
-
-Command* GetSynthSolutionCommand::exportTo(
-    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
-{
-  GetSynthSolutionCommand* c = new GetSynthSolutionCommand();
-  c->d_smtEngine = d_smtEngine;
-  return c;
 }
 
 Command* GetSynthSolutionCommand::clone() const
 {
   GetSynthSolutionCommand* c = new GetSynthSolutionCommand();
-  c->d_smtEngine = d_smtEngine;
+  c->d_solver = d_solver;
   return c;
 }
 
 std::string GetSynthSolutionCommand::getCommandName() const
 {
-  return "get-instantiations";
+  return "get-synth-solution";
 }
 
-GetInterpolCommand::GetInterpolCommand(api::Solver* solver,
-                                       const std::string& name,
-                                       api::Term conj)
-    : Command(solver), d_name(name), d_conj(conj), d_resultStatus(false)
+void GetSynthSolutionCommand::toStream(std::ostream& out,
+                                       int toDepth,
+                                       size_t dag,
+                                       OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdGetSynthSolution(out);
+}
+
+/* -------------------------------------------------------------------------- */
+/* class GetInterpolCommand                                                   */
+/* -------------------------------------------------------------------------- */
+
+GetInterpolCommand::GetInterpolCommand(const std::string& name, api::Term conj)
+    : d_name(name), d_conj(conj), d_resultStatus(false)
 {
 }
-GetInterpolCommand::GetInterpolCommand(api::Solver* solver,
-                                       const std::string& name,
+GetInterpolCommand::GetInterpolCommand(const std::string& name,
                                        api::Term conj,
-                                       const Type& gtype)
-    : Command(solver),
-      d_name(name),
-      d_conj(conj),
-      d_sygus_grammar_type(gtype),
-      d_resultStatus(false)
+                                       api::Grammar* g)
+    : d_name(name), d_conj(conj), d_sygus_grammar(g), d_resultStatus(false)
 {
 }
 
 api::Term GetInterpolCommand::getConjecture() const { return d_conj; }
-Type GetInterpolCommand::getGrammarType() const { return d_sygus_grammar_type; }
+
+const api::Grammar* GetInterpolCommand::getGrammar() const
+{
+  return d_sygus_grammar;
+}
+
 api::Term GetInterpolCommand::getResult() const { return d_result; }
 
-void GetInterpolCommand::invoke(SmtEngine* smtEngine)
+void GetInterpolCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    if (d_sygus_grammar_type.isNull())
+    if (d_sygus_grammar == nullptr)
     {
-      d_resultStatus = d_solver->getInterpolant(d_conj, d_result);
+      d_resultStatus = solver->getInterpolant(d_conj, d_result);
     }
     else
     {
       d_resultStatus =
-          d_solver->getInterpolant(d_conj, d_sygus_grammar_type, d_result);
+          solver->getInterpolant(d_conj, *d_sygus_grammar, d_result);
     }
     d_commandStatus = CommandSuccess::instance();
   }
@@ -2159,15 +2040,10 @@ void GetInterpolCommand::printResult(std::ostream& out,
   }
 }
 
-Command* GetInterpolCommand::exportTo(ExprManager* exprManager,
-                                      ExprManagerMapCollection& variableMap)
-{
-  Unimplemented();
-}
-
 Command* GetInterpolCommand::clone() const
 {
-  GetInterpolCommand* c = new GetInterpolCommand(d_solver, d_name, d_conj);
+  GetInterpolCommand* c =
+      new GetInterpolCommand(d_name, d_conj, d_sygus_grammar);
   c->d_result = d_result;
   c->d_resultStatus = d_resultStatus;
   return c;
@@ -2178,42 +2054,52 @@ std::string GetInterpolCommand::getCommandName() const
   return "get-interpol";
 }
 
-GetAbductCommand::GetAbductCommand() {}
-GetAbductCommand::GetAbductCommand(const std::string& name, Expr conj)
+void GetInterpolCommand::toStream(std::ostream& out,
+                                  int toDepth,
+                                  size_t dag,
+                                  OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdGetInterpol(
+      out, d_name, d_conj.getNode(), d_sygus_grammar->resolve().getTypeNode());
+}
+
+/* -------------------------------------------------------------------------- */
+/* class GetAbductCommand                                                     */
+/* -------------------------------------------------------------------------- */
+
+GetAbductCommand::GetAbductCommand(const std::string& name, api::Term conj)
     : d_name(name), d_conj(conj), d_resultStatus(false)
 {
 }
 GetAbductCommand::GetAbductCommand(const std::string& name,
-                                   Expr conj,
-                                   const Type& gtype)
-    : d_name(name),
-      d_conj(conj),
-      d_sygus_grammar_type(gtype),
-      d_resultStatus(false)
+                                   api::Term conj,
+                                   api::Grammar* g)
+    : d_name(name), d_conj(conj), d_sygus_grammar(g), d_resultStatus(false)
 {
 }
 
-Expr GetAbductCommand::getConjecture() const { return d_conj; }
-Type GetAbductCommand::getGrammarType() const { return d_sygus_grammar_type; }
-std::string GetAbductCommand::getAbductName() const { return d_name; }
-Expr GetAbductCommand::getResult() const { return d_result; }
+api::Term GetAbductCommand::getConjecture() const { return d_conj; }
 
-void GetAbductCommand::invoke(SmtEngine* smtEngine)
+const api::Grammar* GetAbductCommand::getGrammar() const
+{
+  return d_sygus_grammar;
+}
+
+std::string GetAbductCommand::getAbductName() const { return d_name; }
+api::Term GetAbductCommand::getResult() const { return d_result; }
+
+void GetAbductCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    Node conjNode = Node::fromExpr(d_conj);
-    Node resn;
-    if (d_sygus_grammar_type.isNull())
+    if (d_sygus_grammar == nullptr)
     {
-      d_resultStatus = smtEngine->getAbduct(conjNode, resn);
+      d_resultStatus = solver->getAbduct(d_conj, d_result);
     }
     else
     {
-      TypeNode gtype = TypeNode::fromType(d_sygus_grammar_type);
-      d_resultStatus = smtEngine->getAbduct(conjNode, gtype, resn);
+      d_resultStatus = solver->getAbduct(d_conj, *d_sygus_grammar, d_result);
     }
-    d_result = resn.toExpr();
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -2243,22 +2129,9 @@ void GetAbductCommand::printResult(std::ostream& out, uint32_t verbosity) const
   }
 }
 
-Command* GetAbductCommand::exportTo(ExprManager* exprManager,
-                                    ExprManagerMapCollection& variableMap)
-{
-  GetAbductCommand* c =
-      new GetAbductCommand(d_name, d_conj.exportTo(exprManager, variableMap));
-  c->d_sygus_grammar_type =
-      d_sygus_grammar_type.exportTo(exprManager, variableMap);
-  c->d_result = d_result.exportTo(exprManager, variableMap);
-  c->d_resultStatus = d_resultStatus;
-  return c;
-}
-
 Command* GetAbductCommand::clone() const
 {
-  GetAbductCommand* c = new GetAbductCommand(d_name, d_conj);
-  c->d_sygus_grammar_type = d_sygus_grammar_type;
+  GetAbductCommand* c = new GetAbductCommand(d_name, d_conj, d_sygus_grammar);
   c->d_result = d_result;
   c->d_resultStatus = d_resultStatus;
   return c;
@@ -2266,27 +2139,44 @@ Command* GetAbductCommand::clone() const
 
 std::string GetAbductCommand::getCommandName() const { return "get-abduct"; }
 
+void GetAbductCommand::toStream(std::ostream& out,
+                                int toDepth,
+                                size_t dag,
+                                OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdGetAbduct(
+      out, d_name, d_conj.getNode(), d_sygus_grammar->resolve().getTypeNode());
+}
+
 /* -------------------------------------------------------------------------- */
 /* class GetQuantifierEliminationCommand                                      */
 /* -------------------------------------------------------------------------- */
 
 GetQuantifierEliminationCommand::GetQuantifierEliminationCommand()
-    : d_expr(), d_doFull(true)
+    : d_term(), d_doFull(true)
 {
 }
 GetQuantifierEliminationCommand::GetQuantifierEliminationCommand(
-    const Expr& expr, bool doFull)
-    : d_expr(expr), d_doFull(doFull)
+    const api::Term& term, bool doFull)
+    : d_term(term), d_doFull(doFull)
 {
 }
 
-Expr GetQuantifierEliminationCommand::getExpr() const { return d_expr; }
+api::Term GetQuantifierEliminationCommand::getTerm() const { return d_term; }
 bool GetQuantifierEliminationCommand::getDoFull() const { return d_doFull; }
-void GetQuantifierEliminationCommand::invoke(SmtEngine* smtEngine)
+void GetQuantifierEliminationCommand::invoke(api::Solver* solver,
+                                             SymbolManager* sm)
 {
   try
   {
-    d_result = smtEngine->doQuantifierElimination(d_expr, d_doFull);
+    if (d_doFull)
+    {
+      d_result = solver->getQuantifierElimination(d_term);
+    }
+    else
+    {
+      d_result = solver->getQuantifierEliminationDisjunct(d_term);
+    }
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -2295,7 +2185,10 @@ void GetQuantifierEliminationCommand::invoke(SmtEngine* smtEngine)
   }
 }
 
-Expr GetQuantifierEliminationCommand::getResult() const { return d_result; }
+api::Term GetQuantifierEliminationCommand::getResult() const
+{
+  return d_result;
+}
 void GetQuantifierEliminationCommand::printResult(std::ostream& out,
                                                   uint32_t verbosity) const
 {
@@ -2309,19 +2202,10 @@ void GetQuantifierEliminationCommand::printResult(std::ostream& out,
   }
 }
 
-Command* GetQuantifierEliminationCommand::exportTo(
-    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
-{
-  GetQuantifierEliminationCommand* c = new GetQuantifierEliminationCommand(
-      d_expr.exportTo(exprManager, variableMap), d_doFull);
-  c->d_result = d_result;
-  return c;
-}
-
 Command* GetQuantifierEliminationCommand::clone() const
 {
   GetQuantifierEliminationCommand* c =
-      new GetQuantifierEliminationCommand(d_expr, d_doFull);
+      new GetQuantifierEliminationCommand(d_term, d_doFull);
   c->d_result = d_result;
   return c;
 }
@@ -2331,20 +2215,29 @@ std::string GetQuantifierEliminationCommand::getCommandName() const
   return d_doFull ? "get-qe" : "get-qe-disjunct";
 }
 
+void GetQuantifierEliminationCommand::toStream(std::ostream& out,
+                                               int toDepth,
+                                               size_t dag,
+                                               OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdGetQuantifierElimination(
+      out, d_term.getNode());
+}
+
 /* -------------------------------------------------------------------------- */
 /* class GetUnsatAssumptionsCommand                                           */
 /* -------------------------------------------------------------------------- */
 
 GetUnsatAssumptionsCommand::GetUnsatAssumptionsCommand() {}
 
-void GetUnsatAssumptionsCommand::invoke(SmtEngine* smtEngine)
+void GetUnsatAssumptionsCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    d_result = smtEngine->getUnsatAssumptions();
+    d_result = solver->getUnsatAssumptions();
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (RecoverableModalException& e)
+  catch (api::CVC4ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -2354,7 +2247,7 @@ void GetUnsatAssumptionsCommand::invoke(SmtEngine* smtEngine)
   }
 }
 
-std::vector<Expr> GetUnsatAssumptionsCommand::getResult() const
+std::vector<api::Term> GetUnsatAssumptionsCommand::getResult() const
 {
   return d_result;
 }
@@ -2372,14 +2265,6 @@ void GetUnsatAssumptionsCommand::printResult(std::ostream& out,
   }
 }
 
-Command* GetUnsatAssumptionsCommand::exportTo(
-    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
-{
-  GetUnsatAssumptionsCommand* c = new GetUnsatAssumptionsCommand;
-  c->d_result = d_result;
-  return c;
-}
-
 Command* GetUnsatAssumptionsCommand::clone() const
 {
   GetUnsatAssumptionsCommand* c = new GetUnsatAssumptionsCommand;
@@ -2392,19 +2277,29 @@ std::string GetUnsatAssumptionsCommand::getCommandName() const
   return "get-unsat-assumptions";
 }
 
+void GetUnsatAssumptionsCommand::toStream(std::ostream& out,
+                                          int toDepth,
+                                          size_t dag,
+                                          OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdGetUnsatAssumptions(out);
+}
+
 /* -------------------------------------------------------------------------- */
 /* class GetUnsatCoreCommand                                                  */
 /* -------------------------------------------------------------------------- */
 
-GetUnsatCoreCommand::GetUnsatCoreCommand() {}
-void GetUnsatCoreCommand::invoke(SmtEngine* smtEngine)
+GetUnsatCoreCommand::GetUnsatCoreCommand() : d_sm(nullptr) {}
+void GetUnsatCoreCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    d_result = smtEngine->getUnsatCore();
+    d_sm = sm;
+    d_result = solver->getUnsatCore();
+
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (RecoverableModalException& e)
+  catch (api::CVC4ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -2423,27 +2318,33 @@ void GetUnsatCoreCommand::printResult(std::ostream& out,
   }
   else
   {
-    d_result.toStream(out);
+    if (options::dumpUnsatCoresFull())
+    {
+      // use the assertions
+      UnsatCore ucr(api::termVectorToNodes(d_result));
+      ucr.toStream(out);
+    }
+    else
+    {
+      // otherwise, use the names
+      std::vector<std::string> names;
+      d_sm->getExpressionNames(d_result, names, true);
+      UnsatCore ucr(names);
+      ucr.toStream(out);
+    }
   }
 }
 
-const UnsatCore& GetUnsatCoreCommand::getUnsatCore() const
+const std::vector<api::Term>& GetUnsatCoreCommand::getUnsatCore() const
 {
   // of course, this will be empty if the command hasn't been invoked yet
   return d_result;
 }
 
-Command* GetUnsatCoreCommand::exportTo(ExprManager* exprManager,
-                                       ExprManagerMapCollection& variableMap)
-{
-  GetUnsatCoreCommand* c = new GetUnsatCoreCommand;
-  c->d_result = d_result;
-  return c;
-}
-
 Command* GetUnsatCoreCommand::clone() const
 {
   GetUnsatCoreCommand* c = new GetUnsatCoreCommand;
+  c->d_sm = d_sm;
   c->d_result = d_result;
   return c;
 }
@@ -2453,19 +2354,27 @@ std::string GetUnsatCoreCommand::getCommandName() const
   return "get-unsat-core";
 }
 
+void GetUnsatCoreCommand::toStream(std::ostream& out,
+                                   int toDepth,
+                                   size_t dag,
+                                   OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdGetUnsatCore(out);
+}
+
 /* -------------------------------------------------------------------------- */
 /* class GetAssertionsCommand                                                 */
 /* -------------------------------------------------------------------------- */
 
 GetAssertionsCommand::GetAssertionsCommand() {}
-void GetAssertionsCommand::invoke(SmtEngine* smtEngine)
+void GetAssertionsCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
     stringstream ss;
-    const vector<Expr> v = smtEngine->getAssertions();
+    const vector<api::Term> v = solver->getAssertions();
     ss << "(\n";
-    copy(v.begin(), v.end(), ostream_iterator<Expr>(ss, "\n"));
+    copy(v.begin(), v.end(), ostream_iterator<api::Term>(ss, "\n"));
     ss << ")\n";
     d_result = ss.str();
     d_commandStatus = CommandSuccess::instance();
@@ -2490,14 +2399,6 @@ void GetAssertionsCommand::printResult(std::ostream& out,
   }
 }
 
-Command* GetAssertionsCommand::exportTo(ExprManager* exprManager,
-                                        ExprManagerMapCollection& variableMap)
-{
-  GetAssertionsCommand* c = new GetAssertionsCommand();
-  c->d_result = d_result;
-  return c;
-}
-
 Command* GetAssertionsCommand::clone() const
 {
   GetAssertionsCommand* c = new GetAssertionsCommand();
@@ -2508,6 +2409,14 @@ Command* GetAssertionsCommand::clone() const
 std::string GetAssertionsCommand::getCommandName() const
 {
   return "get-assertions";
+}
+
+void GetAssertionsCommand::toStream(std::ostream& out,
+                                    int toDepth,
+                                    size_t dag,
+                                    OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdGetAssertions(out);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2524,26 +2433,19 @@ BenchmarkStatus SetBenchmarkStatusCommand::getStatus() const
   return d_status;
 }
 
-void SetBenchmarkStatusCommand::invoke(SmtEngine* smtEngine)
+void SetBenchmarkStatusCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
     stringstream ss;
     ss << d_status;
-    SExpr status = SExpr(ss.str());
-    smtEngine->setInfo("status", status);
+    solver->setInfo("status", ss.str());
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
   {
     d_commandStatus = new CommandFailure(e.what());
   }
-}
-
-Command* SetBenchmarkStatusCommand::exportTo(
-    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
-{
-  return new SetBenchmarkStatusCommand(d_status);
 }
 
 Command* SetBenchmarkStatusCommand::clone() const
@@ -2556,6 +2458,22 @@ std::string SetBenchmarkStatusCommand::getCommandName() const
   return "set-info";
 }
 
+void SetBenchmarkStatusCommand::toStream(std::ostream& out,
+                                         int toDepth,
+                                         size_t dag,
+                                         OutputLanguage language) const
+{
+  Result::Sat status = Result::SAT_UNKNOWN;
+  switch (d_status)
+  {
+    case BenchmarkStatus::SMT_SATISFIABLE: status = Result::SAT; break;
+    case BenchmarkStatus::SMT_UNSATISFIABLE: status = Result::UNSAT; break;
+    case BenchmarkStatus::SMT_UNKNOWN: status = Result::SAT_UNKNOWN; break;
+  }
+
+  Printer::getPrinter(language)->toStreamCmdSetBenchmarkStatus(out, status);
+}
+
 /* -------------------------------------------------------------------------- */
 /* class SetBenchmarkLogicCommand                                             */
 /* -------------------------------------------------------------------------- */
@@ -2566,23 +2484,17 @@ SetBenchmarkLogicCommand::SetBenchmarkLogicCommand(std::string logic)
 }
 
 std::string SetBenchmarkLogicCommand::getLogic() const { return d_logic; }
-void SetBenchmarkLogicCommand::invoke(SmtEngine* smtEngine)
+void SetBenchmarkLogicCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    smtEngine->setLogic(d_logic);
+    solver->setLogic(d_logic);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
   {
     d_commandStatus = new CommandFailure(e.what());
   }
-}
-
-Command* SetBenchmarkLogicCommand::exportTo(
-    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
-{
-  return new SetBenchmarkLogicCommand(d_logic);
 }
 
 Command* SetBenchmarkLogicCommand::clone() const
@@ -2593,6 +2505,14 @@ Command* SetBenchmarkLogicCommand::clone() const
 std::string SetBenchmarkLogicCommand::getCommandName() const
 {
   return "set-logic";
+}
+
+void SetBenchmarkLogicCommand::toStream(std::ostream& out,
+                                        int toDepth,
+                                        size_t dag,
+                                        OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdSetBenchmarkLogic(out, d_logic);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2606,11 +2526,11 @@ SetInfoCommand::SetInfoCommand(std::string flag, const SExpr& sexpr)
 
 std::string SetInfoCommand::getFlag() const { return d_flag; }
 SExpr SetInfoCommand::getSExpr() const { return d_sexpr; }
-void SetInfoCommand::invoke(SmtEngine* smtEngine)
+void SetInfoCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    smtEngine->setInfo(d_flag, d_sexpr);
+    solver->getSmtEngine()->setInfo(d_flag, d_sexpr);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (UnrecognizedOptionException&)
@@ -2624,12 +2544,6 @@ void SetInfoCommand::invoke(SmtEngine* smtEngine)
   }
 }
 
-Command* SetInfoCommand::exportTo(ExprManager* exprManager,
-                                  ExprManagerMapCollection& variableMap)
-{
-  return new SetInfoCommand(d_flag, d_sexpr);
-}
-
 Command* SetInfoCommand::clone() const
 {
   return new SetInfoCommand(d_flag, d_sexpr);
@@ -2637,19 +2551,27 @@ Command* SetInfoCommand::clone() const
 
 std::string SetInfoCommand::getCommandName() const { return "set-info"; }
 
+void SetInfoCommand::toStream(std::ostream& out,
+                              int toDepth,
+                              size_t dag,
+                              OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdSetInfo(out, d_flag, d_sexpr);
+}
+
 /* -------------------------------------------------------------------------- */
 /* class GetInfoCommand                                                       */
 /* -------------------------------------------------------------------------- */
 
 GetInfoCommand::GetInfoCommand(std::string flag) : d_flag(flag) {}
 std::string GetInfoCommand::getFlag() const { return d_flag; }
-void GetInfoCommand::invoke(SmtEngine* smtEngine)
+void GetInfoCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
     vector<SExpr> v;
     v.push_back(SExpr(SExpr::Keyword(string(":") + d_flag)));
-    v.push_back(smtEngine->getInfo(d_flag));
+    v.emplace_back(solver->getSmtEngine()->getInfo(d_flag));
     stringstream ss;
     if (d_flag == "all-options" || d_flag == "all-statistics")
     {
@@ -2686,14 +2608,6 @@ void GetInfoCommand::printResult(std::ostream& out, uint32_t verbosity) const
   }
 }
 
-Command* GetInfoCommand::exportTo(ExprManager* exprManager,
-                                  ExprManagerMapCollection& variableMap)
-{
-  GetInfoCommand* c = new GetInfoCommand(d_flag);
-  c->d_result = d_result;
-  return c;
-}
-
 Command* GetInfoCommand::clone() const
 {
   GetInfoCommand* c = new GetInfoCommand(d_flag);
@@ -2702,6 +2616,14 @@ Command* GetInfoCommand::clone() const
 }
 
 std::string GetInfoCommand::getCommandName() const { return "get-info"; }
+
+void GetInfoCommand::toStream(std::ostream& out,
+                              int toDepth,
+                              size_t dag,
+                              OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdGetInfo(out, d_flag);
+}
 
 /* -------------------------------------------------------------------------- */
 /* class SetOptionCommand                                                     */
@@ -2714,11 +2636,11 @@ SetOptionCommand::SetOptionCommand(std::string flag, const SExpr& sexpr)
 
 std::string SetOptionCommand::getFlag() const { return d_flag; }
 SExpr SetOptionCommand::getSExpr() const { return d_sexpr; }
-void SetOptionCommand::invoke(SmtEngine* smtEngine)
+void SetOptionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    smtEngine->setOption(d_flag, d_sexpr);
+    solver->getSmtEngine()->setOption(d_flag, d_sexpr);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (UnrecognizedOptionException&)
@@ -2731,12 +2653,6 @@ void SetOptionCommand::invoke(SmtEngine* smtEngine)
   }
 }
 
-Command* SetOptionCommand::exportTo(ExprManager* exprManager,
-                                    ExprManagerMapCollection& variableMap)
-{
-  return new SetOptionCommand(d_flag, d_sexpr);
-}
-
 Command* SetOptionCommand::clone() const
 {
   return new SetOptionCommand(d_flag, d_sexpr);
@@ -2744,18 +2660,25 @@ Command* SetOptionCommand::clone() const
 
 std::string SetOptionCommand::getCommandName() const { return "set-option"; }
 
+void SetOptionCommand::toStream(std::ostream& out,
+                                int toDepth,
+                                size_t dag,
+                                OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdSetOption(out, d_flag, d_sexpr);
+}
+
 /* -------------------------------------------------------------------------- */
 /* class GetOptionCommand                                                     */
 /* -------------------------------------------------------------------------- */
 
 GetOptionCommand::GetOptionCommand(std::string flag) : d_flag(flag) {}
 std::string GetOptionCommand::getFlag() const { return d_flag; }
-void GetOptionCommand::invoke(SmtEngine* smtEngine)
+void GetOptionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    SExpr res = smtEngine->getOption(d_flag);
-    d_result = res.toString();
+    d_result = solver->getOption(d_flag);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (UnrecognizedOptionException&)
@@ -2781,14 +2704,6 @@ void GetOptionCommand::printResult(std::ostream& out, uint32_t verbosity) const
   }
 }
 
-Command* GetOptionCommand::exportTo(ExprManager* exprManager,
-                                    ExprManagerMapCollection& variableMap)
-{
-  GetOptionCommand* c = new GetOptionCommand(d_flag);
-  c->d_result = d_result;
-  return c;
-}
-
 Command* GetOptionCommand::clone() const
 {
   GetOptionCommand* c = new GetOptionCommand(d_flag);
@@ -2798,71 +2713,39 @@ Command* GetOptionCommand::clone() const
 
 std::string GetOptionCommand::getCommandName() const { return "get-option"; }
 
-/* -------------------------------------------------------------------------- */
-/* class SetExpressionNameCommand                                             */
-/* -------------------------------------------------------------------------- */
-
-SetExpressionNameCommand::SetExpressionNameCommand(Expr expr, std::string name)
-    : d_expr(expr), d_name(name)
+void GetOptionCommand::toStream(std::ostream& out,
+                                int toDepth,
+                                size_t dag,
+                                OutputLanguage language) const
 {
-}
-
-void SetExpressionNameCommand::invoke(SmtEngine* smtEngine)
-{
-  smtEngine->setExpressionName(d_expr, d_name);
-  d_commandStatus = CommandSuccess::instance();
-}
-
-Command* SetExpressionNameCommand::exportTo(
-    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
-{
-  SetExpressionNameCommand* c = new SetExpressionNameCommand(
-      d_expr.exportTo(exprManager, variableMap), d_name);
-  return c;
-}
-
-Command* SetExpressionNameCommand::clone() const
-{
-  SetExpressionNameCommand* c = new SetExpressionNameCommand(d_expr, d_name);
-  return c;
-}
-
-std::string SetExpressionNameCommand::getCommandName() const
-{
-  return "set-expr-name";
+  Printer::getPrinter(language)->toStreamCmdGetOption(out, d_flag);
 }
 
 /* -------------------------------------------------------------------------- */
 /* class DatatypeDeclarationCommand                                           */
 /* -------------------------------------------------------------------------- */
 
-DatatypeDeclarationCommand::DatatypeDeclarationCommand(const Type& datatype)
+DatatypeDeclarationCommand::DatatypeDeclarationCommand(
+    const api::Sort& datatype)
     : d_datatypes()
 {
   d_datatypes.push_back(datatype);
 }
 
 DatatypeDeclarationCommand::DatatypeDeclarationCommand(
-    const std::vector<Type>& datatypes)
+    const std::vector<api::Sort>& datatypes)
     : d_datatypes(datatypes)
 {
 }
 
-const std::vector<Type>& DatatypeDeclarationCommand::getDatatypes() const
+const std::vector<api::Sort>& DatatypeDeclarationCommand::getDatatypes() const
 {
   return d_datatypes;
 }
 
-void DatatypeDeclarationCommand::invoke(SmtEngine* smtEngine)
+void DatatypeDeclarationCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   d_commandStatus = CommandSuccess::instance();
-}
-
-Command* DatatypeDeclarationCommand::exportTo(
-    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
-{
-  throw ExportUnsupportedException(
-      "export of DatatypeDeclarationCommand unsupported");
 }
 
 Command* DatatypeDeclarationCommand::clone() const
@@ -2873,6 +2756,15 @@ Command* DatatypeDeclarationCommand::clone() const
 std::string DatatypeDeclarationCommand::getCommandName() const
 {
   return "declare-datatypes";
+}
+
+void DatatypeDeclarationCommand::toStream(std::ostream& out,
+                                          int toDepth,
+                                          size_t dag,
+                                          OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdDatatypeDeclaration(
+      out, api::sortVectorToTypeNodes(d_datatypes));
 }
 
 }  // namespace CVC4

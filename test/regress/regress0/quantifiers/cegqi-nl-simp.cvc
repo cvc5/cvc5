@@ -1,2 +1,3 @@
+% COMMAND-LINE: --nl-rlv=none
 % EXPECT: entailed
 QUERY FORALL (x:INT) : EXISTS (y:INT) : (x*y=x) ;

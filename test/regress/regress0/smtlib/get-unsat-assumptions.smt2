@@ -1,3 +1,4 @@
+; COMMAND-LINE: --incremental
 ; EXPECT: unsat
 ; EXPECT: (x x)
 ; SCRUBBER: sed -e 's/a[1-2]/x/g'

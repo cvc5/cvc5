@@ -6,7 +6,7 @@
          (! a clause
             (! b clause
                (! result bool
-                  (! (^
+                  (! sc (^
                        (bool_and
                            (bool_eq (clause_eq a b) result)
                        (bool_and

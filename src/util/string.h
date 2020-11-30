@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Tim King, Tianyi Liang
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -17,7 +17,6 @@
 #ifndef CVC4__UTIL__STRING_H
 #define CVC4__UTIL__STRING_H
 
-#include <cstddef>
 #include <functional>
 #include <ostream>
 #include <string>
@@ -58,7 +57,7 @@ class CVC4_PUBLIC String {
    *  \u{d_2 d_1 d_0}
    *  \u{d_3 d_2 d_1 d_0}
    *  \u{d_4 d_3 d_2 d_1 d_0}
-   * where d_0 ... d_4 are hexidecimal digits, to the appropriate character.
+   * where d_0 ... d_4 are hexadecimal digits, to the appropriate character.
    *
    * If useEscSequences is false, then the characters of the constructed
    * CVC4::String correspond one-to-one with the input string.
@@ -213,7 +212,7 @@ class CVC4_PUBLIC String {
    * This is true for code points between 48 ('0') and 57 ('9').
    */
   static bool isDigit(unsigned character);
-  /** is the unsigned a hexidecimal digit?
+  /** is the unsigned a hexadecimal digit?
    *
    * This is true for code points between 48 ('0') and 57 ('9'), code points
    * between 65 ('A') and 70 ('F) and code points between 97 ('a') and 102 ('f).

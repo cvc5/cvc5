@@ -229,8 +229,8 @@ We have 4 categories of tests:
   (label: **example**)
 - **regression tests** (5 levels) in directory `test/regress`
   (label: **regressN** with N the regression level)
-- **system tests** in directory `test/system`
-  (label: **system**)
+- **api tests** in directory `test/api`
+  (label: **api**)
 - **unit tests** in directory `test/unit`
   (label: **unit**)
 
@@ -238,25 +238,28 @@ We have 4 categories of tests:
 
 The system tests are not built by default.
 
-    make systemtests                      # build and run all system tests
-    make <system_test>                    # build test/system/<system_test>.<ext>
-    ctest system/<system_test>            # run test/system/<system_test>.<ext>
+    make apitests                         # build and run all system tests
+    make <api_test>                       # build test/system/<system_test>.<ext>
+    ctest api/<api_test>                  # run test/system/<system_test>.<ext>
 
 All system test binaries are built into `<build_dir>/bin/test/system`.
 
-We use prefix `system/` + `<system_test>` (for `<system_test>` in `test/system`)
+We use prefix `api/` + `<api_test>` (for `<api_test>` in `test/api`)
 as test target name.  
 
-    make ouroborous                       # build test/system/ouroborous.cpp
+    make ouroborous                       # build test/api/ouroborous.cpp
     ctest -R ouroborous                   # run all tests that match '*ouroborous*'
-                                          # > runs system/ouroborous
+                                          # > runs api/ouroborous
     ctest -R ouroborous$                  # run all tests that match '*ouroborous'
-                                          # > runs system/ouroborous
-    ctest -R system/ouroborous$           # run all tests that match '*system/ouroborous'
-                                          # > runs system/ouroborous
+                                          # > runs api/ouroborous
+    ctest -R api/ouroborous$              # run all tests that match '*api/ouroborous'
+                                          # > runs api/ouroborous
 ### Testing Unit Tests
 
 The unit tests are not built by default.
+
+Note that CVC4 can only be configured with unit tests in non-static builds with
+assertions enabled.
 
     make units                            # build and run all unit tests
     make <unit_test>                      # build test/unit/<subdir>/<unit_test>.<ext>
@@ -317,3 +320,36 @@ are configured to **run** in parallel with the maximum number of threads
 available on the system. Override with `ARGS=-jN`.
 
 Use `-jN` for parallel **building** with `N` threads.
+
+
+## Recompiling a specific CVC4 version with different LGPL library versions
+
+To recompile a specific static binary of CVC4 with different versions of the
+linked LGPL libraries perform the following steps:
+
+1. Make sure that you have installed the desired LGPL library versions.
+   You can check the versions found by CVC4's build system during the configure
+   phase.
+
+2. Determine the commit sha and configuration of the CVC4 binary
+```
+cvc4 --show-config
+```
+3. Download the specific source code version:
+```
+wget https://github.com/CVC4/CVC4/archive/<commit-sha>.tar.gz
+```
+4. Extract the source code
+```
+tar xf <commit-sha>.tar.gz
+```
+5. Change into source code directory
+```
+cd CVC4-<commit-sha>
+```
+6. Configure CVC4 with options listed by `cvc4 --show-config`
+```
+./configure.sh --static <options>
+```
+
+7. Follow remaining steps from [build instructions](#building-cvc4)

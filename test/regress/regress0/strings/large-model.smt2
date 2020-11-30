@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --lang=smt2.6 --check-models
-; EXPECT: (error "Cannot generate model with string whose length exceeds UINT32_MAX")
+; SCRUBBER: sed -E 's/of length [0-9]+/of length LENGTH/'
+; EXPECT: (error "The model was computed to have strings of length LENGTH. We only allow strings up to length 4294967295")
 ; EXIT: 1
 (set-logic SLIA)
 (declare-fun x () String)

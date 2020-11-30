@@ -2,10 +2,10 @@
 /*! \file simple_vc_quant_cxx.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andres Noetzli, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -40,7 +40,7 @@ int main() {
   std::cout << "Made expression : " << quantpospx << std::endl;
 
   //make ~P( 5 )
-  Term five = slv.mkReal(5);
+  Term five = slv.mkInteger(5);
   Term pfive = slv.mkTerm(Kind::APPLY_UF, p, five);
   Term negpfive = slv.mkTerm(Kind::NOT, pfive);
   std::cout << "Made expression : " << negpfive << std::endl;

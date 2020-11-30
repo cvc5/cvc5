@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -16,12 +16,12 @@
 
 #include "theory/strings/theory_strings_preprocess.h"
 
-#include <stdint.h>
-
 #include "expr/kind.h"
+#include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "proof/proof_manager.h"
 #include "smt/logic_exception.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/word.h"
@@ -32,6 +32,13 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace strings {
+
+/** Mapping to a dummy node for marking an attribute on internal quantified
+ * formulas */
+struct QInternalVarAttributeId
+{
+};
+typedef expr::Attribute<QInternalVarAttributeId, Node> QInternalVarAttribute;
 
 StringsPreprocess::StringsPreprocess(SkolemCache* sc,
                                      context::UserContext* u,
@@ -294,7 +301,7 @@ Node StringsPreprocess::reduce(Node t,
     Node ux1lem = nm->mkNode(GEQ, n, ux1);
 
     lem = nm->mkNode(OR, g.negate(), nm->mkNode(AND, eq, cb, ux1lem));
-    lem = nm->mkNode(FORALL, xbv, lem);
+    lem = mkForallInternal(xbv, lem);
     conc.push_back(lem);
 
     Node nonneg = nm->mkNode(GEQ, n, zero);
@@ -381,7 +388,7 @@ Node StringsPreprocess::reduce(Node t,
     Node ux1lem = nm->mkNode(GEQ, stoit, ux1);
 
     lem = nm->mkNode(OR, g.negate(), nm->mkNode(AND, eq, cb, ux1lem));
-    lem = nm->mkNode(FORALL, xbv, lem);
+    lem = mkForallInternal(xbv, lem);
     conc2.push_back(lem);
 
     Node sneg = nm->mkNode(LT, stoit, zero);
@@ -408,6 +415,55 @@ Node StringsPreprocess::reduce(Node t,
     // is just an optimization.
 
     retNode = stoit;
+  }
+  else if (t.getKind() == kind::SEQ_NTH)
+  {
+    // processing term:  str.nth( s, n)
+    // similar to substr.
+    Node s = t[0];
+    Node n = t[1];
+    Node skt = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "sst");
+    Node t12 = nm->mkNode(PLUS, n, one);
+    Node lt0 = nm->mkNode(STRING_LENGTH, s);
+    // start point is greater than or equal zero
+    Node c1 = nm->mkNode(GEQ, n, zero);
+    // start point is less than end of string
+    Node c2 = nm->mkNode(GT, lt0, n);
+    // check whether this application of seq.nth is defined.
+    Node cond = nm->mkNode(AND, c1, c2);
+
+    // nodes for the case where `seq.nth` is defined.
+    Node sk1 = sc->mkSkolemCached(s, n, SkolemCache::SK_PREFIX, "sspre");
+    Node sk2 = sc->mkSkolemCached(s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
+    Node unit = nm->mkNode(SEQ_UNIT, skt);
+    Node b11 = s.eqNode(nm->mkNode(STRING_CONCAT, sk1, unit, sk2));
+    // length of first skolem is second argument
+    Node b12 = nm->mkNode(STRING_LENGTH, sk1).eqNode(n);
+    Node lsk2 = nm->mkNode(STRING_LENGTH, sk2);
+    Node b13 = nm->mkNode(EQUAL, lsk2, nm->mkNode(MINUS, lt0, t12));
+    Node b1 = nm->mkNode(AND, b11, b12, b13);
+
+    // nodes for the case where `seq.nth` is undefined.
+    std::vector<TypeNode> argTypes;
+    argTypes.push_back(s.getType());
+    argTypes.push_back(nm->integerType());
+    TypeNode elemType = s.getType().getSequenceElementType();
+    TypeNode ufType = nm->mkFunctionType(argTypes, elemType);
+    Node uf = sc->mkTypedSkolemCached(
+        ufType, Node::null(), Node::null(), SkolemCache::SK_NTH, "Uf");
+    Node b2 = nm->mkNode(EQUAL, skt, nm->mkNode(APPLY_UF, uf, s, n));
+
+    // the full ite, split on definedness of `seq.nth`
+    Node lemma = nm->mkNode(ITE, cond, b1, b2);
+
+    // assert:
+    // IF    n >=0 AND n < len( s )
+    // THEN: s = sk1 ++ unit(skt) ++ sk2 AND
+    //       len( sk1 ) = n AND
+    //       ( len( sk2 ) = len( s )- (n+1)
+    // ELSE: skt = Uf(s, n), where Uf is a cached skolem function.
+    asserts.push_back(lemma);
+    retNode = skt;
   }
   else if (t.getKind() == kind::STRING_STRREPL)
   {
@@ -518,8 +574,8 @@ Node StringsPreprocess::reduce(Node t,
     flem.push_back(
         ufip1.eqNode(nm->mkNode(PLUS, ii, nm->mkNode(STRING_LENGTH, y))));
 
-    Node q = nm->mkNode(
-        FORALL, bvli, nm->mkNode(OR, bound.negate(), nm->mkNode(AND, flem)));
+    Node body = nm->mkNode(OR, bound.negate(), nm->mkNode(AND, flem));
+    Node q = mkForallInternal(bvli, body);
     lem.push_back(q);
 
     // assert:
@@ -688,8 +744,8 @@ Node StringsPreprocess::reduce(Node t,
             .eqNode(nm->mkNode(
                 STRING_CONCAT, pfxMatch, z, nm->mkNode(APPLY_UF, us, ip1))));
 
-    Node forall = nm->mkNode(
-        FORALL, bvli, nm->mkNode(OR, bound.negate(), nm->mkNode(AND, flem)));
+    Node body = nm->mkNode(OR, bound.negate(), nm->mkNode(AND, flem));
+    Node forall = mkForallInternal(bvli, body);
     lemmas.push_back(forall);
 
     // IF in_re(x, re.++(_*, y', _*))
@@ -744,8 +800,8 @@ Node StringsPreprocess::reduce(Node t,
 
     Node bound =
         nm->mkNode(AND, nm->mkNode(LEQ, zero, i), nm->mkNode(LT, i, lenr));
-    Node rangeA =
-        nm->mkNode(FORALL, bvi, nm->mkNode(OR, bound.negate(), ri.eqNode(res)));
+    Node body = nm->mkNode(OR, bound.negate(), ri.eqNode(res));
+    Node rangeA = mkForallInternal(bvi, body);
 
     // upper 65 ... 90
     // lower 97 ... 122
@@ -779,8 +835,8 @@ Node StringsPreprocess::reduce(Node t,
 
     Node bound =
         nm->mkNode(AND, nm->mkNode(LEQ, zero, i), nm->mkNode(LT, i, lenr));
-    Node rangeA = nm->mkNode(
-        FORALL, bvi, nm->mkNode(OR, bound.negate(), ssr.eqNode(ssx)));
+    Node body = nm->mkNode(OR, bound.negate(), ssr.eqNode(ssx));
+    Node rangeA = mkForallInternal(bvi, body);
     // assert:
     //   len(r) = len(x) ^
     //   forall i. 0 <= i < len(r) =>
@@ -817,7 +873,7 @@ Node StringsPreprocess::reduce(Node t,
   {
     Node ltp = sc->mkTypedSkolemCached(
         nm->booleanType(), t, SkolemCache::SK_PURIFY, "ltp");
-    Node k = nm->mkSkolem("k", nm->integerType());
+    Node k = SkolemCache::mkIndexVar(t);
 
     std::vector<Node> conj;
     conj.push_back(nm->mkNode(GEQ, k, zero));
@@ -841,6 +897,8 @@ Node StringsPreprocess::reduce(Node t,
     }
     conj.push_back(nm->mkNode(ITE, ite_ch));
 
+    Node conjn = nm->mkNode(
+        EXISTS, nm->mkNode(BOUND_VAR_LIST, k), nm->mkNode(AND, conj));
     // Intuitively, the reduction says either x and y are equal, or they have
     // some (maximal) common prefix after which their characters at position k
     // are distinct, and the comparison of their code matches the return value
@@ -854,13 +912,13 @@ Node StringsPreprocess::reduce(Node t,
     // assert:
     //  IF x=y
     //  THEN: ltp
-    //  ELSE: k >= 0 AND k <= len( x ) AND k <= len( y ) AND
+    //  ELSE: exists k.
+    //        k >= 0 AND k <= len( x ) AND k <= len( y ) AND
     //        substr( x, 0, k ) = substr( y, 0, k ) AND
     //        IF    ltp
     //        THEN: str.code(substr( x, k, 1 )) < str.code(substr( y, k, 1 ))
     //        ELSE: str.code(substr( x, k, 1 )) > str.code(substr( y, k, 1 ))
-    Node assert =
-        nm->mkNode(ITE, t[0].eqNode(t[1]), ltp, nm->mkNode(AND, conj));
+    Node assert = nm->mkNode(ITE, t[0].eqNode(t[1]), ltp, conjn);
     asserts.push_back(assert);
 
     // Thus, str.<=( x, y ) = ltp
@@ -972,10 +1030,37 @@ void StringsPreprocess::processAssertions( std::vector< Node > &vec_node ){
                    : NodeManager::currentNM()->mkNode(kind::AND, asserts);
     if( res!=vec_node[i] ){
       res = Rewriter::rewrite( res );
-      PROOF( ProofManager::currentPM()->addDependence( res, vec_node[i] ); );
+      if (options::unsatCores())
+      {
+        ProofManager::currentPM()->addDependence(res, vec_node[i]);
+      }
       vec_node[i] = res;
     }
   }
+}
+
+Node StringsPreprocess::mkForallInternal(Node bvl, Node body)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  QInternalVarAttribute qiva;
+  Node qvar;
+  if (bvl.hasAttribute(qiva))
+  {
+    qvar = bvl.getAttribute(qiva);
+  }
+  else
+  {
+    qvar = nm->mkSkolem("qinternal", nm->booleanType());
+    // this dummy variable marks that the quantified formula is internal
+    qvar.setAttribute(InternalQuantAttribute(), true);
+    // remember the dummy variable
+    bvl.setAttribute(qiva, qvar);
+  }
+  // make the internal attribute, and put it in a singleton list
+  Node ip = nm->mkNode(INST_ATTRIBUTE, qvar);
+  Node ipl = nm->mkNode(INST_PATTERN_LIST, ip);
+  // make the overall formula
+  return nm->mkNode(FORALL, bvl, body, ipl);
 }
 
 }/* CVC4::theory::strings namespace */

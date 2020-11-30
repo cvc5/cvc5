@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -251,6 +251,32 @@ void InstMatchTrie::getExplanationForInstLemmas(
     {
       terms.push_back(d.first);
       d.second.getExplanationForInstLemmas(q, terms, lems, quant, tvec);
+      terms.pop_back();
+    }
+  }
+}
+
+void InstMatchTrie::getInstantiations(
+    Node q, std::vector<std::vector<Node>>& insts) const
+{
+  std::vector<Node> terms;
+  getInstantiations(q, insts, terms);
+}
+
+void InstMatchTrie::getInstantiations(Node q,
+                                      std::vector<std::vector<Node>>& insts,
+                                      std::vector<Node>& terms) const
+{
+  if (terms.size() == q[0].getNumChildren())
+  {
+    insts.push_back(terms);
+  }
+  else
+  {
+    for (const std::pair<const Node, InstMatchTrie>& d : d_data)
+    {
+      terms.push_back(d.first);
+      d.second.getInstantiations(q, insts, terms);
       terms.pop_back();
     }
   }
@@ -513,6 +539,36 @@ void CDInstMatchTrie::getExplanationForInstLemmas(
         d.second->getExplanationForInstLemmas(q, terms, lems, quant, tvec);
         terms.pop_back();
       }
+    }
+  }
+}
+
+void CDInstMatchTrie::getInstantiations(
+    Node q, std::vector<std::vector<Node>>& insts) const
+{
+  std::vector<Node> terms;
+  getInstantiations(q, insts, terms);
+}
+
+void CDInstMatchTrie::getInstantiations(Node q,
+                                        std::vector<std::vector<Node>>& insts,
+                                        std::vector<Node>& terms) const
+{
+  if (!d_valid.get())
+  {
+    // do nothing
+  }
+  else if (terms.size() == q[0].getNumChildren())
+  {
+    insts.push_back(terms);
+  }
+  else
+  {
+    for (const std::pair<const Node, CDInstMatchTrie*>& d : d_data)
+    {
+      terms.push_back(d.first);
+      d.second->getInstantiations(q, insts, terms);
+      terms.pop_back();
     }
   }
 }

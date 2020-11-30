@@ -2,10 +2,10 @@
 /*! \file theory_arith_type_rules.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Christopher L. Conway, Tim King
+ **   Andrew Reynolds, Dejan Jovanovic, Christopher L. Conway
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -60,12 +60,13 @@ public:
         }
       }
     }
-    switch(Kind k = n.getKind()) {
+    switch (Kind k = n.getKind())
+    {
       case kind::TO_REAL:
-        return realType;
-      case kind::TO_INTEGER:
-        return integerType;
-      default: {
+      case kind::CAST_TO_REAL: return realType;
+      case kind::TO_INTEGER: return integerType;
+      default:
+      {
         bool isDivision = k == kind::DIVISION || k == kind::DIVISION_TOTAL;
         return (isInteger && !isDivision ? integerType : realType);
       }

@@ -1,6 +1,7 @@
 # import dereference and increment operators
 from cython.operator cimport dereference as deref, preincrement as inc
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
+from libcpp.set cimport set
 from libcpp.string cimport string
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
@@ -27,6 +28,12 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Term getConstructorTerm(const string& name) except +
         size_t getNumConstructors() except +
         bint isParametric() except +
+        bint isCodatatype() except +
+        bint isTuple() except +
+        bint isRecord() except +
+        bint isFinite() except +
+        bint isWellFounded() except +
+        bint hasNestedRecursion() except +
         string toString() except +
         cppclass const_iterator:
             const_iterator() except +
@@ -116,16 +123,19 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
 
     cdef cppclass Solver:
         Solver(Options*) except +
+        bint supportsFloatingPoint() except +
         Sort getBooleanSort() except +
         Sort getIntegerSort() except +
         Sort getRealSort() except +
         Sort getRegExpSort() except +
-        Sort getRoundingmodeSort() except +
+        Sort getRoundingModeSort() except +
         Sort getStringSort() except +
         Sort mkArraySort(Sort indexSort, Sort elemSort) except +
         Sort mkBitVectorSort(uint32_t size) except +
         Sort mkFloatingPointSort(uint32_t exp, uint32_t sig) except +
         Sort mkDatatypeSort(DatatypeDecl dtypedecl) except +
+        vector[Sort] mkDatatypeSorts(const vector[DatatypeDecl]& dtypedecls,
+                                     const set[Sort]& unresolvedSorts) except +
         Sort mkFunctionSort(Sort domain, Sort codomain) except +
         Sort mkFunctionSort(const vector[Sort]& sorts, Sort codomain) except +
         Sort mkParamSort(const string& symbol) except +
@@ -163,6 +173,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Term mkFalse() except +
         Term mkBoolean(bint val) except +
         Term mkPi() except +
+        Term mkInteger(const string& s) except +
         Term mkReal(const string& s) except +
         Term mkRegexpEmpty() except +
         Term mkRegexpSigma() except +
@@ -218,17 +229,16 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Term defineFunsRec(vector[Term]& funs, vector[vector[Term]]& bound_vars,
                            vector[Term]& terms, bint glbl) except +
         vector[Term] getAssertions() except +
-        vector[pair[Term, Term]] getAssignment() except +
         string getInfo(const string& flag) except +
         string getOption(string& option) except +
         vector[Term] getUnsatAssumptions() except +
         vector[Term] getUnsatCore() except +
         Term getValue(Term term) except +
         vector[Term] getValue(const vector[Term]& terms) except +
+        void declareSeparationHeap(Sort locSort, Sort dataSort) except +
         Term getSeparationHeap() except +
         Term getSeparationNilTerm() except +
         void pop(uint32_t nscopes) except +
-        void printModel(ostream& out)
         void push(uint32_t nscopes) except +
         void reset() except +
         void resetAssertions() except +
@@ -312,13 +322,13 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Term()
         bint operator==(const Term&) except +
         bint operator!=(const Term&) except +
+        Term operator[](size_t idx) except +
         Kind getKind() except +
         Sort getSort() except +
         Term substitute(const vector[Term] es, const vector[Term] & reps) except +
         bint hasOp() except +
         Op getOp() except +
         bint isNull() except +
-        bint isConst() except +
         Term getConstArrayBase() except +
         vector[Term] getConstSequenceElements() except +
         Term notTerm() except +

@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -14,7 +14,6 @@
  **/
 #include "theory/quantifiers/ematching/inst_match_generator.h"
 
-#include "expr/datatype.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/theory_datatypes_utils.h"

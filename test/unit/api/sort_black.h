@@ -5,7 +5,7 @@
  **   Aina Niemetz, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -17,6 +17,7 @@
 #include <cxxtest/TestSuite.h>
 
 #include "api/cvc4cpp.h"
+#include "base/configuration.h"
 
 using namespace CVC4::api;
 
@@ -35,6 +36,7 @@ class SortBlack : public CxxTest::TestSuite
   void testGetArrayIndexSort();
   void testGetArrayElementSort();
   void testGetSetElementSort();
+  void testGetBagElementSort();
   void testGetSequenceElementSort();
   void testGetUninterpretedSortName();
   void testIsUninterpretedSortParameterized();
@@ -51,6 +53,8 @@ class SortBlack : public CxxTest::TestSuite
 
   void testSortCompare();
   void testSortSubtyping();
+
+  void testSortScopedToString();
 
  private:
   Solver d_solver;
@@ -110,11 +114,20 @@ void SortBlack::testDatatypeSorts()
   // get tester
   Term isConsTerm = dcons.getTesterTerm();
   TS_ASSERT(isConsTerm.getSort().isTester());
+  TS_ASSERT(isConsTerm.getSort().getTesterDomainSort() == dtypeSort);
+  Sort booleanSort = d_solver.getBooleanSort();
+  TS_ASSERT(isConsTerm.getSort().getTesterCodomainSort() == booleanSort);
+  TS_ASSERT_THROWS(booleanSort.getTesterDomainSort(), CVC4ApiException&);
+  TS_ASSERT_THROWS(booleanSort.getTesterCodomainSort(), CVC4ApiException&);
 
   // get selector
   DatatypeSelector dselTail = dcons[1];
   Term tailTerm = dselTail.getSelectorTerm();
   TS_ASSERT(tailTerm.getSort().isSelector());
+  TS_ASSERT(tailTerm.getSort().getSelectorDomainSort() == dtypeSort);
+  TS_ASSERT(tailTerm.getSort().getSelectorCodomainSort() == dtypeSort);
+  TS_ASSERT_THROWS(booleanSort.getSelectorDomainSort(), CVC4ApiException&);
+  TS_ASSERT_THROWS(booleanSort.getSelectorCodomainSort(), CVC4ApiException&);
 }
 
 void SortBlack::testInstantiate()
@@ -193,8 +206,20 @@ void SortBlack::testGetSetElementSort()
 {
   Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
   TS_ASSERT_THROWS_NOTHING(setSort.getSetElementSort());
+  Sort elementSort = setSort.getSetElementSort();
+  TS_ASSERT(elementSort == d_solver.getIntegerSort());
   Sort bvSort = d_solver.mkBitVectorSort(32);
   TS_ASSERT_THROWS(bvSort.getSetElementSort(), CVC4ApiException&);
+}
+
+void SortBlack::testGetBagElementSort()
+{
+  Sort bagSort = d_solver.mkBagSort(d_solver.getIntegerSort());
+  TS_ASSERT_THROWS_NOTHING(bagSort.getBagElementSort());
+  Sort elementSort = bagSort.getBagElementSort();
+  TS_ASSERT(elementSort == d_solver.getIntegerSort());
+  Sort bvSort = d_solver.mkBitVectorSort(32);
+  TS_ASSERT_THROWS(bvSort.getBagElementSort(), CVC4ApiException&);
 }
 
 void SortBlack::testGetSequenceElementSort()
@@ -218,7 +243,10 @@ void SortBlack::testGetUninterpretedSortName()
 void SortBlack::testIsUninterpretedSortParameterized()
 {
   Sort uSort = d_solver.mkUninterpretedSort("u");
-  TS_ASSERT_THROWS_NOTHING(uSort.isUninterpretedSortParameterized());
+  TS_ASSERT(!uSort.isUninterpretedSortParameterized());
+  Sort sSort = d_solver.mkSortConstructorSort("s", 1);
+  Sort siSort = sSort.instantiate({uSort});
+  TS_ASSERT(siSort.isUninterpretedSortParameterized());
   Sort bvSort = d_solver.mkBitVectorSort(32);
   TS_ASSERT_THROWS(bvSort.isUninterpretedSortParameterized(),
                    CVC4ApiException&);
@@ -228,6 +256,9 @@ void SortBlack::testGetUninterpretedSortParamSorts()
 {
   Sort uSort = d_solver.mkUninterpretedSort("u");
   TS_ASSERT_THROWS_NOTHING(uSort.getUninterpretedSortParamSorts());
+  Sort sSort = d_solver.mkSortConstructorSort("s", 2);
+  Sort siSort = sSort.instantiate({uSort, uSort});
+  TS_ASSERT(siSort.getUninterpretedSortParamSorts().size() == 2);
   Sort bvSort = d_solver.mkBitVectorSort(32);
   TS_ASSERT_THROWS(bvSort.getUninterpretedSortParamSorts(), CVC4ApiException&);
 }
@@ -258,18 +289,24 @@ void SortBlack::testGetBVSize()
 
 void SortBlack::testGetFPExponentSize()
 {
-  Sort fpSort = d_solver.mkFloatingPointSort(4, 8);
-  TS_ASSERT_THROWS_NOTHING(fpSort.getFPExponentSize());
-  Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
-  TS_ASSERT_THROWS(setSort.getFPExponentSize(), CVC4ApiException&);
+  if (CVC4::Configuration::isBuiltWithSymFPU())
+  {
+    Sort fpSort = d_solver.mkFloatingPointSort(4, 8);
+    TS_ASSERT_THROWS_NOTHING(fpSort.getFPExponentSize());
+    Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
+    TS_ASSERT_THROWS(setSort.getFPExponentSize(), CVC4ApiException&);
+  }
 }
 
 void SortBlack::testGetFPSignificandSize()
 {
-  Sort fpSort = d_solver.mkFloatingPointSort(4, 8);
-  TS_ASSERT_THROWS_NOTHING(fpSort.getFPSignificandSize());
-  Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
-  TS_ASSERT_THROWS(setSort.getFPSignificandSize(), CVC4ApiException&);
+  if (CVC4::Configuration::isBuiltWithSymFPU())
+  {
+    Sort fpSort = d_solver.mkFloatingPointSort(4, 8);
+    TS_ASSERT_THROWS_NOTHING(fpSort.getFPSignificandSize());
+    Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
+    TS_ASSERT_THROWS(setSort.getFPSignificandSize(), CVC4ApiException&);
+  }
 }
 
 void SortBlack::testGetDatatypeParamSorts()
@@ -359,7 +396,21 @@ void SortBlack::testSortSubtyping()
 
   Sort setSortI = d_solver.mkSetSort(intSort);
   Sort setSortR = d_solver.mkSetSort(realSort);
-  // we support subtyping for sets
-  TS_ASSERT(setSortI.isSubsortOf(setSortR));
-  TS_ASSERT(setSortR.isComparableTo(setSortI));
+  // we don't support subtyping for sets
+  TS_ASSERT(!setSortI.isComparableTo(setSortR));
+  TS_ASSERT(!setSortI.isSubsortOf(setSortR));
+  TS_ASSERT(!setSortR.isComparableTo(setSortI));
+  TS_ASSERT(!setSortR.isSubsortOf(setSortI));
+}
+
+void SortBlack::testSortScopedToString()
+{
+  std::string name = "uninterp-sort";
+  Sort bvsort8 = d_solver.mkBitVectorSort(8);
+  Sort uninterp_sort = d_solver.mkUninterpretedSort(name);
+  TS_ASSERT_EQUALS(bvsort8.toString(), "(_ BitVec 8)");
+  TS_ASSERT_EQUALS(uninterp_sort.toString(), name);
+  Solver solver2;
+  TS_ASSERT_EQUALS(bvsort8.toString(), "(_ BitVec 8)");
+  TS_ASSERT_EQUALS(uninterp_sort.toString(), name);
 }

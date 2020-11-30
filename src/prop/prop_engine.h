@@ -5,7 +5,7 @@
  **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -36,6 +36,7 @@ namespace CVC4 {
 
 class ResourceManager;
 class DecisionEngine;
+class OutputManager;
 class TheoryEngine;
 
 namespace theory {
@@ -62,12 +63,20 @@ class PropEngine
   PropEngine(TheoryEngine*,
              context::Context* satContext,
              context::UserContext* userContext,
-             ResourceManager* rm);
+             ResourceManager* rm,
+             OutputManager& outMgr);
 
   /**
    * Destructor.
    */
   CVC4_PUBLIC ~PropEngine();
+
+  /**
+   * Finish initialize. Call this after construction just before we are
+   * ready to use this class. Should be called after TheoryEngine::finishInit.
+   * This method converts and asserts true and false into the CNF stream.
+   */
+  void finishInit();
 
   /**
    * This is called by SmtEngine, at shutdown time, just before
@@ -96,11 +105,7 @@ class PropEngine
    * @param removable whether this lemma can be quietly removed based
    * on an activity heuristic (or not)
    */
-  void assertLemma(TNode node,
-                   bool negated,
-                   bool removable,
-                   ProofRule rule,
-                   TNode from = TNode::null());
+  void assertLemma(TNode node, bool negated, bool removable);
 
   /**
    * Pass a list of assertions from an AssertionPipeline to the decision engine.
@@ -252,6 +257,8 @@ class PropEngine
   /** Pointer to resource manager for associated SmtEngine */
   ResourceManager* d_resourceManager;
 
+  /** Reference to the output manager of the smt engine */
+  OutputManager& d_outMgr;
 };
 
 }  // namespace prop

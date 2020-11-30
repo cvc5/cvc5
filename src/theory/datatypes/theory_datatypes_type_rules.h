@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -196,8 +196,7 @@ struct DatatypeAscriptionTypeRule {
                                      bool check) {
     Debug("typecheck-idt") << "typechecking ascription: " << n << std::endl;
     Assert(n.getKind() == kind::APPLY_TYPE_ASCRIPTION);
-    TypeNode t = TypeNode::fromType(
-        n.getOperator().getConst<AscriptionType>().getType());
+    TypeNode t = n.getOperator().getConst<AscriptionType>().getType();
     if (check) {
       TypeNode childType = n[0].getType(check);
 

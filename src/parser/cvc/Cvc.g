@@ -5,7 +5,7 @@
  **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -546,7 +546,6 @@ api::Term addNots(api::Solver* s, size_t n, api::Term e) {
 
 #include <cassert>
 #include <memory>
-#include <stdint.h>
 
 #include "options/set_language.h"
 #include "parser/antlr_tracing.h"
@@ -704,13 +703,12 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   bool formCommaFlag = true;
 }
     /* our bread & butter */
-  : ASSERT_TOK formula[f] { cmd->reset(new AssertCommand(f.getExpr())); }
+  : ASSERT_TOK formula[f] { cmd->reset(new AssertCommand(f)); }
 
-  | QUERY_TOK formula[f] { cmd->reset(new QueryCommand(f.getExpr())); }
+  | QUERY_TOK formula[f] { cmd->reset(new QueryCommand(f)); }
   | CHECKSAT_TOK formula[f]?
     {
-      cmd->reset(f.isNull() ? new CheckSatCommand()
-                            : new CheckSatCommand(f.getExpr()));
+      cmd->reset(f.isNull() ? new CheckSatCommand() : new CheckSatCommand(f));
     }
     /* options */
   | OPTION_TOK
@@ -764,7 +762,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     END_TOK
     { PARSER_STATE->popScope();
       cmd->reset(new DatatypeDeclarationCommand(
-          api::sortVectorToTypes(PARSER_STATE->bindMutualDatatypeTypes(dts))));
+          PARSER_STATE->bindMutualDatatypeTypes(dts)));
     }
 
   | CONTEXT_TOK
@@ -789,7 +787,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     { UNSUPPORTED("GET_OP command"); }
 
   | GET_VALUE_TOK formula[f]
-    { cmd->reset(new GetValueCommand(f.getExpr())); }
+    { cmd->reset(new GetValueCommand(f)); }
 
   | SUBSTITUTE_TOK identifier[id,CHECK_NONE,SYM_VARIABLE] COLON
     type[t,CHECK_DECLARED] EQUAL_TOK formula[f] LBRACKET
@@ -823,7 +821,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
             )
 
   | TRANSFORM_TOK formula[f]
-    { cmd->reset(new SimplifyCommand(f.getExpr())); }
+    { cmd->reset(new SimplifyCommand(f)); }
 
   | PRINT_TOK formula[f]
     { UNSUPPORTED("PRINT command"); }
@@ -936,8 +934,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
           PARSER_STATE->parseError("Type mismatch in definition");
         }
       }
-      cmd->reset(
-          new DefineFunctionRecCommand(SOLVER, funcs, formals, formulas, true));
+      cmd->reset(new DefineFunctionRecCommand(funcs, formals, formulas, true));
     }
   | toplevelDeclaration[cmd]
   ;
@@ -1059,7 +1056,7 @@ declareTypes[std::unique_ptr<CVC4::Command>* cmd,
         // behavior here.
         PARSER_STATE->checkDeclaration(*i, CHECK_UNDECLARED, SYM_SORT);
         api::Sort sort = PARSER_STATE->mkSort(*i);
-        Command* decl = new DeclareTypeCommand(*i, 0, sort.getType());
+        Command* decl = new DeclareSortCommand(*i, 0, sort);
         seq->addCommand(decl);
       }
       cmd->reset(seq.release());
@@ -1125,8 +1122,7 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
             if(topLevel) {
               api::Term func =
                   PARSER_STATE->bindVar(*i, t, ExprManager::VAR_FLAG_GLOBAL);
-              Command* decl =
-                  new DeclareFunctionCommand(*i, func.getExpr(), t.getType());
+              Command* decl = new DeclareFunctionCommand(*i, func, t);
               seq->addCommand(decl);
             } else {
               PARSER_STATE->bindBoundVar(*i, t);
@@ -1145,6 +1141,13 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
           PARSER_STATE->parseError("cannot construct a definition here; maybe you want a LET");
         }
         assert(!idList.empty());
+        api::Term fterm = f;
+        std::vector<api::Term> formals;
+        if (f.getKind()==api::LAMBDA)
+        {
+          formals.insert(formals.end(), f[0].begin(), f[0].end());
+          f = f[1];
+        }
         for(std::vector<std::string>::const_iterator i = idList.begin(),
               i_end = idList.end();
             i != i_end;
@@ -1153,16 +1156,15 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
           PARSER_STATE->checkDeclaration(*i, CHECK_UNDECLARED, SYM_VARIABLE);
           api::Term func = PARSER_STATE->mkVar(
               *i,
-              api::Sort(SOLVER, t.getType()),
+              t,
               ExprManager::VAR_FLAG_GLOBAL | ExprManager::VAR_FLAG_DEFINED);
-          PARSER_STATE->defineVar(*i, f);
-          Command* decl =
-              new DefineFunctionCommand(*i, func.getExpr(), f.getExpr(), true);
+          PARSER_STATE->defineVar(*i, fterm);
+          Command* decl = new DefineFunctionCommand(*i, func, formals, f, true);
           seq->addCommand(decl);
         }
       }
       if(topLevel) {
-        cmd->reset(new DeclarationSequence());
+        cmd->reset(seq.release());
       }
     }
   ;
@@ -2174,20 +2176,10 @@ simpleTerm[CVC4::api::Term& f]
     }
 
     /* array literals */
-  | ARRAY_TOK /* { PARSER_STATE->pushScope(); } */ LPAREN
+  | ARRAY_TOK LPAREN
     restrictedType[t, CHECK_DECLARED] OF_TOK restrictedType[t2, CHECK_DECLARED]
     RPAREN COLON simpleTerm[f]
-    { /* Eventually if we support a bound var (like a lambda) for array
-       * literals, we can use the push/pop scope. */
-      /* PARSER_STATE->popScope(); */
-      t = SOLVER->mkArraySort(t, t2);
-      if(!f.isConst()) {
-        std::stringstream ss;
-        ss << "expected constant term inside array constant, but found "
-           << "nonconstant term" << std::endl
-           << "the term: " << f;
-        PARSER_STATE->parseError(ss.str());
-      }
+    { t = SOLVER->mkArraySort(t, t2);
       if(!t2.isComparableTo(f.getSort())) {
         std::stringstream ss;
         ss << "type mismatch inside array constant term:" << std::endl
@@ -2211,18 +2203,12 @@ simpleTerm[CVC4::api::Term& f]
       std::stringstream strRat;
       strRat << r;
       f = SOLVER->mkReal(strRat.str());
-      if(f.getSort().isInteger()) {
-        // Must cast to Real to ensure correct type is passed to parametric type constructors.
-        // We do this cast using division with 1.
-        // This has the advantage wrt using TO_REAL since (constant) division is always included in the theory.
-        f = MK_TERM(api::DIVISION, f, SOLVER->mkReal(1));
-      }
     }
   | INTEGER_LITERAL {
       Rational r = AntlrInput::tokenToRational($INTEGER_LITERAL);
       std::stringstream strRat;
       strRat << r;
-      f = SOLVER->mkReal(strRat.str());
+      f = SOLVER->mkInteger(strRat.str());
     }
     /* bitvector literals */
   | HEX_LITERAL
@@ -2481,7 +2467,7 @@ fragment DOT:;
 fragment DOTDOT:;
 
 /**
- * Matches the hexidecimal digits (0-9, a-f, A-F)
+ * Matches the hexadecimal digits (0-9, a-f, A-F)
  */
 fragment HEX_DIGIT : DIGIT | 'a'..'f' | 'A'..'F';
 

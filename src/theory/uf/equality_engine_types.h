@@ -2,10 +2,10 @@
 /*! \file equality_engine_types.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Andrew Reynolds, Morgan Deters
+ **   Dejan Jovanovic, Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -63,20 +63,18 @@ static const EqualityEdgeId null_edge = (EqualityEdgeId)(-1);
  * or a merge of an equality to false due to both sides being
  * (different) constants.
  */
-enum MergeReasonType {
-  /** Terms were merged due to application of congruence closure */
+enum MergeReasonType
+{
+  /** Terms were merged due to congruence */
   MERGED_THROUGH_CONGRUENCE,
-  /** Terms were merged due to application of pure equality */
+  /** Terms were merged due to an assumption */
   MERGED_THROUGH_EQUALITY,
-  /** Equality was merged to true, due to both sides of equality being in the same class */
+  /** Terms were merged due to reflexivity */
   MERGED_THROUGH_REFLEXIVITY,
-  /** Equality was merged to false, due to both sides of equality being a constant */
+  /** Terms were merged due to theory reasoning */
   MERGED_THROUGH_CONSTANTS,
-  /** (for proofs only) Equality was merged due to transitivity */
+  /** Terms were merged due to transitivity */
   MERGED_THROUGH_TRANS,
-
-  /** Reason types beyond this constant are theory specific reasons */
-  NUMBER_OF_MERGE_REASONS
 };
 
 inline std::ostream& operator << (std::ostream& out, MergeReasonType reason) {
@@ -90,13 +88,10 @@ inline std::ostream& operator << (std::ostream& out, MergeReasonType reason) {
   case MERGED_THROUGH_REFLEXIVITY:
     out << "reflexivity";
     break;
-  case MERGED_THROUGH_CONSTANTS:
-    out << "constants disequal";
-    break;
+  case MERGED_THROUGH_CONSTANTS: out << "theory constants"; break;
   case MERGED_THROUGH_TRANS:
     out << "transitivity";
     break;
-
   default:
     out << "[theory]";
     break;

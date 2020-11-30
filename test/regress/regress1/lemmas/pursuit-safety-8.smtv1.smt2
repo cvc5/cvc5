@@ -1,4 +1,3 @@
-; COMMAND-LINE:
 (set-option :incremental false)
 (set-info :source "SAL benchmark suite.  Created at SRI by Bruno Dutertre, John Rushby, Maria
 Sorea, and Leonardo de Moura.  Contact demoura@csl.sri.com for more

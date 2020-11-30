@@ -131,24 +131,6 @@ header = "options/smt_options.h"
   help = "Block models based on the concrete model values for the free variables."
 
 [[option]]
-  name       = "proof"
-  smt_name   = "produce-proofs"
-  category   = "regular"
-  long       = "proof"
-  type       = "bool"
-  default    = "false"
-  predicates = ["proofEnabledBuild"]
-  help       = "turn on proof generation"
-
-[[option]]
-  name       = "checkProofs"
-  category   = "regular"
-  long       = "check-proofs"
-  type       = "bool"
-  predicates = ["LFSCEnabledBuild"]
-  help       = "after UNSAT/VALID, machine-check the generated proof"
-
-[[option]]
   name       = "dumpProofs"
   category   = "regular"
   long       = "dump-proofs"
@@ -168,11 +150,48 @@ header = "options/smt_options.h"
 [[option]]
   name       = "proofNewPedantic"
   category   = "regular"
-  long       = "proof-new-pedantic"
+  long       = "proof-new-pedantic=N"
+  type       = "uint32_t"
+  default    = "0"
+  read_only  = true
+  help       = "assertion failure for any incorrect rule application or untrusted lemma having pedantic level <=N with proof-new"
+
+[[option]]
+  name       = "proofNewEagerChecking"
+  category   = "regular"
+  long       = "proof-new-eager-checking"
   type       = "bool"
   default    = "false"
   read_only  = true
-  help       = "assertion failure for any incorrect rule application or untrusted lemma for fully supported portions with proof-new"
+  help       = "check proofs eagerly with proof-new for local debugging"
+
+[[option]]
+  name       = "proofGranularityMode"
+  category   = "regular"
+  long       = "proof-granularity=MODE"
+  type       = "ProofGranularityMode"
+  default    = "THEORY_REWRITE"
+  help       = "modes for proof granularity"
+  help_mode  = "Modes for proof granularity."
+[[option.mode.OFF]]
+  name = "off"
+  help = "Do not improve the granularity of proofs."
+[[option.mode.REWRITE]]
+  name = "rewrite"
+  help = "allow rewrite or substitution steps, expand macros."
+[[option.mode.THEORY_REWRITE]]
+  name = "theory-rewrite"
+  help = "allow theory rewrite steps, expand macros, rewrite and substitution steps."
+[[option.mode.DSL_REWRITE]]
+  name = "dsl-rewrite"
+  help = "Allow DSL rewrites and evaluation steps, expand macros, rewrite, substitution, and theory rewrite steps."
+
+[[option]]
+  name       = "checkProofsNew"
+  category   = "regular"
+  long       = "check-proofs-new"
+  type       = "bool"
+  help       = "after UNSAT/VALID, check the generated proof (with proof-new)"
 
 [[option]]
   name       = "dumpInstantiations"
@@ -373,7 +392,7 @@ header = "options/smt_options.h"
   type       = "bool"
   default    = "false"
   help       = "calculate sort inference of input problem, convert the input based on monotonic sorts"
-  
+
 [[option]]
   name       = "incrementalSolving"
   category   = "common"
@@ -393,13 +412,24 @@ header = "options/smt_options.h"
   help       = "in models, output arrays (and in future, maybe others) using abstract values, as required by the SMT-LIB standard"
 
 [[option]]
-  name       = "modelUninterpDtEnum"
+  name       = "modelUninterpPrint"
+  smt_name   = "model-uninterp-print"
   category   = "regular"
-  long       = "model-u-dt-enum"
-  type       = "bool"
-  default    = "false"
+  long       = "model-u-print=MODE"
+  type       = "ModelUninterpPrintMode"
+  default    = "DeclFun"
   read_only  = true
-  help       = "in models, output uninterpreted sorts as datatype enumerations"
+  help       = "determines how to print uninterpreted elements in models"
+  help_mode  = "uninterpreted elements in models printing  modes."
+[[option.mode.DtEnum]]
+  name = "dtenum"
+  help = "print uninterpreted elements as datatype enumerations, where the sort is the datatype"
+[[option.mode.DeclSortAndFun]]
+  name = "decl-sort-and-fun"
+  help = "print uninterpreted elements declare-fun, and also include a declare-sort for the sort"
+[[option.mode.DeclFun]]
+  name = "decl-fun"
+  help = "(default) print uninterpreted elements declare-fun, but don't include a declare-sort for the sort"
 
 [[option]]
   name       = "modelWitnessValue"
@@ -465,6 +495,24 @@ header = "options/smt_options.h"
   handler    = "limitHandler"
   read_only  = true
   help       = "enable resource limiting per query"
+
+[[option]]
+  name       = "arithPivotStep"
+  category   = "expert"
+  long       = "arith-pivot-step=N"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for each arithmetic pivot step"
+
+[[option]]
+  name       = "arithNlLemmaStep"
+  category   = "expert"
+  long       = "arith-nl-lemma-step=N"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for each arithmetic nonlinear lemma step"
 
 [[option]]
   name       = "rewriteStep"
@@ -539,6 +587,15 @@ header = "options/smt_options.h"
   help       = "amount of resources spent when adding lemmas"
 
 [[option]]
+  name       = "newSkolemStep"
+  category   = "expert"
+  long       = "new-skolem-step=N"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent when adding new skolems"
+
+[[option]]
   name       = "restartStep"
   category   = "expert"
   long       = "restart-step=N"
@@ -593,6 +650,24 @@ header = "options/smt_options.h"
   help       = "amount of resources spent for each sat conflict (bitvectors)"
 
 [[option]]
+  name       = "bvSatPropagateStep"
+  category   = "expert"
+  long       = "bv-sat-propagate-step=N"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for each sat propagate (bitvectors)"
+
+[[option]]
+  name       = "bvSatSimplifyStep"
+  category   = "expert"
+  long       = "bv-sat-simplify-step=N"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for each sat simplify (bitvectors)"
+
+[[option]]
   name       = "forceNoLimitCpuWhileDump"
   category   = "regular"
   long       = "force-no-limit-cpu-while-dump"
@@ -615,6 +690,12 @@ header = "options/smt_options.h"
 [[option.mode.SUM]]
   name = "sum"
   help = "Generate a sum expression for each bvand instance, based on the value in --solbv-bv-as-int-granularity"
+[[option.mode.IAND]]
+  name = "iand"
+  help = "Translate bvand to the iand operator (experimental)"
+[[option.mode.BV]]
+  name = "bv"
+  help = "Translate bvand back to bit-vectors"
 
 [[option]]
   name       = "BVAndIntegerGranularity"
@@ -643,7 +724,7 @@ header = "options/smt_options.h"
   [[option.mode.BITWISE]]
   name = "bitwise"
   help = "use bitwise comparisons on binary representation of integer for refinement (experimental)"
-  
+
 [[option]]
   name       = "solveIntAsBV"
   category   = "undocumented"

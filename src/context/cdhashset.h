@@ -5,7 +5,7 @@
  **   Morgan Deters, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -115,6 +115,7 @@ public:
       V operator*() const {
         return d_val;
       }
+      V* operator->() const { return &d_val; }
     };/* class CDSet<>::iterator::Proxy */
 
     // Actual postfix increment: returns Proxy with the old value.

@@ -5,7 +5,7 @@
  **   Justin Xu, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -18,6 +18,7 @@
 
 #include "smt/dump.h"
 #include "smt/smt_statistics_registry.h"
+#include "printer/printer.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -39,8 +40,13 @@ void PreprocessingPass::dumpAssertions(const char* key,
   if (Dump.isOn("assertions") && Dump.isOn(std::string("assertions:") + key))
   {
     // Push the simplified assertions to the dump output stream
-    for (const auto& n : assertionList) {
-      Dump("assertions") << AssertCommand(Expr(n.toExpr()));
+    OutputManager& outMgr = d_preprocContext->getSmt()->getOutputManager();
+    const Printer& printer = outMgr.getPrinter();
+    std::ostream& out = outMgr.getDumpOut();
+
+    for (const auto& n : assertionList)
+    {
+      printer.toStreamCmdAssert(out, n);
     }
   }
 }

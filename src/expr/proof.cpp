@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -18,8 +18,8 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-CDProof::CDProof(ProofNodeManager* pnm, context::Context* c)
-    : d_manager(pnm), d_context(), d_nodes(c ? c : &d_context)
+CDProof::CDProof(ProofNodeManager* pnm, context::Context* c, std::string name)
+    : d_manager(pnm), d_context(), d_nodes(c ? c : &d_context), d_name(name)
 {
 }
 
@@ -111,9 +111,13 @@ bool CDProof::addStep(Node expected,
                       bool ensureChildren,
                       CDPOverwrite opolicy)
 {
-  Trace("cdproof") << "CDProof::addStep: " << id << " " << expected
-                   << ", ensureChildren = " << ensureChildren
+  Trace("cdproof") << "CDProof::addStep: " << identify() << " : " << id << " "
+                   << expected << ", ensureChildren = " << ensureChildren
                    << ", overwrite policy = " << opolicy << std::endl;
+  Trace("cdproof-debug") << "CDProof::addStep: " << identify()
+                         << " : children: " << children << "\n";
+  Trace("cdproof-debug") << "CDProof::addStep: " << identify()
+                         << " : args: " << args << "\n";
   // We must always provide expected to this method
   Assert(!expected.isNull());
 
@@ -404,7 +408,8 @@ bool CDProof::isSame(TNode f, TNode g)
     // symmetric equality
     return true;
   }
-  if (fk == NOT && gk == NOT && f[0][0] == g[0][1] && f[0][1] == g[0][0])
+  if (fk == NOT && gk == NOT && f[0].getKind() == EQUAL
+      && g[0].getKind() == EQUAL && f[0][0] == g[0][1] && f[0][1] == g[0][0])
   {
     // symmetric disequality
     return true;
@@ -424,6 +429,6 @@ Node CDProof::getSymmFact(TNode f)
   return polarity ? symFact : symFact.notNode();
 }
 
-std::string CDProof::identify() const { return "CDProof"; }
+std::string CDProof::identify() const { return d_name; }
 
 }  // namespace CVC4

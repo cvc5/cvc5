@@ -5,7 +5,7 @@
  **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -638,9 +638,8 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
       ei->d_cardinalityLemK.set(int_k + 1);
       if (!cons.isConst() || !cons.getConst<bool>())
       {
-        std::vector<Node> emptyVec;
         d_im.sendInference(
-            emptyVec, expn, cons, Inference::CARDINALITY, true);
+            expn, expn, cons, Inference::CARDINALITY, false, true);
         return;
       }
     }
@@ -675,7 +674,7 @@ Node BaseSolver::explainConstantEqc(Node n, Node eqc, std::vector<Node>& exp)
     }
     if (!bei.d_exp.isNull())
     {
-      exp.push_back(bei.d_exp);
+      utils::flattenOp(AND, bei.d_exp, exp);
     }
     if (!bei.d_base.isNull())
     {
@@ -695,7 +694,7 @@ Node BaseSolver::explainBestContentEqc(Node n, Node eqc, std::vector<Node>& exp)
     Assert(!bei.d_bestContent.isNull());
     if (!bei.d_exp.isNull())
     {
-      exp.push_back(bei.d_exp);
+      utils::flattenOp(AND, bei.d_exp, exp);
     }
     if (!bei.d_base.isNull())
     {

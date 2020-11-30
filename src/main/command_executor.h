@@ -5,7 +5,7 @@
  **   Aina Niemetz, Kshitij Bansal, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -20,16 +20,14 @@
 
 #include "api/cvc4cpp.h"
 #include "expr/expr_manager.h"
+#include "expr/symbol_manager.h"
 #include "options/options.h"
-#include "smt/command.h"
 #include "smt/smt_engine.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
 
-namespace api {
-class Solver;
-}
+class Command;
 
 namespace main {
 
@@ -39,18 +37,31 @@ class CommandExecutor
   std::string d_lastStatistics;
 
  protected:
+  /**
+   * The solver object, which is allocated by this class and is used for
+   * executing most commands (e.g. check-sat).
+   */
   std::unique_ptr<api::Solver> d_solver;
+  /**
+   * The symbol manager, which is allocated by this class. This manages
+   * all things related to definitions of symbols and their impact on behaviors
+   * for commands (e.g. get-unsat-core, get-model, get-assignment), as well
+   * as tracking expression names. Note the symbol manager is independent from
+   * the parser, which uses this symbol manager given a text input.
+   *
+   * Certain commands (e.g. reset-assertions) have a specific impact on the
+   * symbol manager.
+   */
+  std::unique_ptr<SymbolManager> d_symman;
   SmtEngine* d_smtEngine;
   Options& d_options;
   StatisticsRegistry d_stats;
-  Result d_result;
+  api::Result d_result;
 
  public:
   CommandExecutor(Options& options);
 
-  virtual ~CommandExecutor()
-  {
-  }
+  virtual ~CommandExecutor();
 
   /**
    * Executes a command. Recursively handles if cmd is a command
@@ -66,7 +77,10 @@ class CommandExecutor
   /** Get a pointer to the solver object owned by this CommandExecutor. */
   api::Solver* getSolver() { return d_solver.get(); }
 
-  Result getResult() const { return d_result; }
+  /** Get a pointer to the symbol manager owned by this CommandExecutor */
+  SymbolManager* getSymbolManager() { return d_symman.get(); }
+
+  api::Result getResult() const { return d_result; }
   void reset();
 
   StatisticsRegistry& getStatisticsRegistry() {
@@ -100,7 +114,10 @@ private:
 
 }; /* class CommandExecutor */
 
-bool smtEngineInvoke(SmtEngine* smt, Command* cmd, std::ostream *out);
+bool solverInvoke(api::Solver* solver,
+                  SymbolManager* sm,
+                  Command* cmd,
+                  std::ostream* out);
 
 }/* CVC4::main namespace */
 }/* CVC4 namespace */

@@ -2,10 +2,10 @@
 /*! \file eq_proof.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Haniel Barbosa
+ **   Haniel Barbosa, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -35,36 +35,21 @@ namespace eq {
 class EqProof
 {
  public:
-  /** A custom pretty printer used for custom rules being those in
-   * MergeReasonType. */
-  class PrettyPrinter
-  {
-   public:
-    virtual ~PrettyPrinter() {}
-    virtual std::string printTag(unsigned tag) = 0;
-  };
-
   EqProof() : d_id(MERGED_THROUGH_REFLEXIVITY) {}
   /** The proof rule for concluding d_node */
-  unsigned d_id;
+  MergeReasonType d_id;
   /** The conclusion of this EqProof */
   Node d_node;
   /** The proofs of the premises for deriving d_node with d_id */
   std::vector<std::shared_ptr<EqProof>> d_children;
   /**
-   * Debug print this proof on debug trace c with tabulation tb and pretty
-   * printer prettyPrinter.
+   * Debug print this proof on debug trace c with tabulation tb.
    */
-  void debug_print(const char* c,
-                   unsigned tb = 0,
-                   PrettyPrinter* prettyPrinter = nullptr) const;
+  void debug_print(const char* c, unsigned tb = 0) const;
   /**
-   * Debug print this proof on output stream os with tabulation tb and pretty
-   * printer prettyPrinter.
+   * Debug print this proof on output stream os with tabulation tb.
    */
-  void debug_print(std::ostream& os,
-                   unsigned tb = 0,
-                   PrettyPrinter* prettyPrinter = nullptr) const;
+  void debug_print(std::ostream& os, unsigned tb = 0) const;
 
   /** Add to proof
    *
@@ -182,13 +167,43 @@ class EqProof
    * themselves).
    * @return True if the EqProof transitivity step is in either of the above
    * cases, symbolizing that the ProofNode justifying the conclusion has already
-   * beenproduced.
+   * been produced.
    */
   bool expandTransitivityForDisequalities(
       Node conclusion,
       std::vector<Node>& premises,
       CDProof* p,
       std::unordered_set<Node, NodeHashFunction>& assumptions) const;
+
+  /** Expand coarse-grained transitivity steps for theory disequalities
+   *
+   * Currently the equality engine can represent disequality reasoning of theory
+   * symbols in a rather coarse-grained manner with EqProof. This is the case
+   * when EqProof is
+   *            (= t1 c1) (= t2 c2)
+   *  ------------------------------------- EQP::TR
+   *             (= (t1 t2) false)
+   *
+   * which is converted into
+   *
+   *   (= t1 c1)        (= t2 c2)
+   *  -------------------------- CONG  --------------------- MACRO_SR_PRED_INTRO
+   *   (= (= t1 t2) (= c1 t2))           (= (= c1 c2) false)
+   *  --------------------------------------------------------- TR
+   *           (= (= t1 t2) false)
+   *
+   * @param conclusion the conclusion of the (possibly) coarse-grained
+   * transitivity step
+   * @param premises the premises of the (possibly) coarse-grained
+   * transitivity step
+   * @param p a pointer to a CDProof to store the conversion of this EqProof
+   * @return True if the EqProof transitivity step is the above case,
+   * indicating that the ProofNode justifying the conclusion has already been
+   * produced.
+   */
+  bool expandTransitivityForTheoryDisequalities(Node conclusion,
+                                                std::vector<Node>& premises,
+                                                CDProof* p) const;
 
   /** Builds a transitivity chain from equalities to derive a conclusion
    *

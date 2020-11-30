@@ -2,14 +2,6 @@ on: [push, pull_request]
 name: CI
 
 jobs:
-  cancel:
-    runs-on: ubuntu-latest
-    steps:
-      - name: cancel-previous-runs
-        uses: styfle/cancel-workflow-action@0.4.1
-        with:
-          access_token: ${{ github.token }}
-
   build:
     strategy:
       matrix:
@@ -31,10 +23,11 @@ jobs:
 
         include:
           - name: production
-            config: production --all-bindings --lfsc --editline
+            config: production --all-bindings --lfsc --editline --poly
             cache-key: production
             python-bindings: true
             check-examples: true
+            exclude_regress: 3-4
 
           - name: production-clang
             config: production
@@ -42,16 +35,19 @@ jobs:
             check-examples: true
             env: CC=clang CXX=clang++
             os: ubuntu-latest
+            exclude_regress: 1-4
 
           - name: debug
             config: debug --symfpu --lfsc --no-debug-symbols --editline
             cache-key: debug
             os: ubuntu-latest
+            exclude_regress: 1-4
 
           - name: debug-cln
-            config: debug --symfpu --cln --gpl --no-debug-symbols --no-proofs
+            config: debug --symfpu --cln --gpl --no-debug-symbols --no-proofs --poly
             cache-key: debug-cln
             os: ubuntu-latest
+            exclude_regress: 1-4
 
     name: ${{ matrix.os }}:${{ matrix.name }}
     runs-on: ${{ matrix.os }}
@@ -70,11 +66,13 @@ jobs:
           libcln-dev \
           libgmp-dev \
           libedit-dev \
-          swig3.0
+          flex \
+          libfl-dev \
+          flexc++
         python3 -m pip install toml
         python3 -m pip install setuptools
         python3 -m pip install pexpect
-        echo "::add-path::/usr/lib/ccache"
+        echo "/usr/lib/ccache" >> $GITHUB_PATH
 
     # Note: macOS comes with a libedit; it does not need to brew-installed
     - name: Install Packages (macOS)
@@ -86,30 +84,20 @@ jobs:
           cln \
           gmp \
           pkgconfig \
-          swig
+          flex
         python3 -m pip install toml
         python3 -m pip install setuptools
         python3 -m pip install pexpect
-        echo "::add-path::/usr/local/opt/ccache/libexec"
+        echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
 
-    # Note: We install Cython with sudo since cmake can't find Cython otherwise.
-    - name: Install Cython
-      if: matrix.python-bindings && runner.os == 'Linux'
-      run: |
-        sudo python3 -m pip install \
-          Cython==0.29 --install-option="--no-cython-compile"
-
-    - name: Install Cython (macOS)
-      if: matrix.python-bindings && runner.os == 'macOS'
-      run: |
-        python3 -m pip install \
-          Cython==0.29 --install-option="--no-cython-compile"
-
-    - name: Install Pytest
+    - name: Install Python Dependencies
       if: matrix.python-bindings
       run: |
         python3 -m pip install pytest
         python3 -m pytest --version
+        python3 -m pip install \
+          Cython==0.29.* --install-option="--no-cython-compile"
+        echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
 
     - name: Restore Dependencies
       id: restore-deps
@@ -160,7 +148,6 @@ jobs:
       run: |
         ${{ matrix.env }} ./configure.sh ${{ matrix.config }} \
           --python3 \
-          --poly \
           --prefix=$(pwd)/build/install \
           --unit-testing
 
@@ -174,7 +161,7 @@ jobs:
     - name: Run CTest
       run: make -j2 check
       env:
-        ARGS: --output-on-failure -LE regress[1-4]
+        ARGS: --output-on-failure -LE regress[${{ matrix.exclude_regress }}]
         CVC4_REGRESSION_ARGS: --no-early-exit
       working-directory: build
 
@@ -190,12 +177,6 @@ jobs:
       run: |
        export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
        python3 -c "import pycvc4"
-
-    - name: Run Pytest
-      if: matrix.python-bindings
-      run: |
-       export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
-       python3 -m pytest ./test/unit/api/python
 
       # Examples are built for non-symfpu builds
     - name: Check Examples
