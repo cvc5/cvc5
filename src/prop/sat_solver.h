@@ -19,8 +19,6 @@
 #ifndef CVC4__PROP__SAT_SOLVER_H
 #define CVC4__PROP__SAT_SOLVER_H
 
-#include <stdint.h>
-
 #include <string>
 
 #include "context/cdlist.h"

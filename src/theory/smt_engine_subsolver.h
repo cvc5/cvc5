@@ -22,7 +22,6 @@
 #include <memory>
 #include <vector>
 
-#include "expr/expr_manager.h"
 #include "expr/node.h"
 #include "smt/smt_engine.h"
 

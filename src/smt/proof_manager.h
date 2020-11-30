@@ -19,7 +19,6 @@
 
 #include "context/cdlist.h"
 #include "context/cdhashmap.h"
-#include "expr/expr.h"
 #include "expr/node.h"
 #include "expr/proof_checker.h"
 #include "expr/proof_node.h"

@@ -90,24 +90,14 @@ jobs:
         python3 -m pip install pexpect
         echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
 
-    - name: Install Cython
-      if: matrix.python-bindings && runner.os == 'Linux'
-      run: |
-        python3 -m pip install \
-          Cython==0.29.* --install-option="--no-cython-compile"
-        echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
-
-    - name: Install Cython (macOS)
-      if: matrix.python-bindings && runner.os == 'macOS'
-      run: |
-        python3 -m pip install \
-          Cython==0.29 --install-option="--no-cython-compile"
-
-    - name: Install Pytest
+    - name: Install Python Dependencies
       if: matrix.python-bindings
       run: |
         python3 -m pip install pytest
         python3 -m pytest --version
+        python3 -m pip install \
+          Cython==0.29.* --install-option="--no-cython-compile"
+        echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
 
     - name: Restore Dependencies
       id: restore-deps

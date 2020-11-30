@@ -124,6 +124,8 @@ libcvc4_add_sources(
   printer/cvc/cvc_printer.h
   printer/dagification_visitor.cpp
   printer/dagification_visitor.h
+  printer/let_binding.cpp
+  printer/let_binding.h
   printer/printer.cpp
   printer/printer.h
   printer/smt2/smt2_printer.cpp
@@ -217,8 +219,8 @@ libcvc4_add_sources(
   smt/dump.h
   smt/dump_manager.cpp
   smt/dump_manager.h
-  smt/expr_names.cpp
-  smt/expr_names.h
+  smt/expand_definitions.cpp
+  smt/expand_definitions.h
   smt/listeners.cpp
   smt/listeners.h
   smt/logic_exception.h
@@ -387,8 +389,16 @@ libcvc4_add_sources(
   theory/arith/nl/stats.h
   theory/arith/nl/strategy.cpp
   theory/arith/nl/strategy.h
-  theory/arith/nl/transcendental_solver.cpp
-  theory/arith/nl/transcendental_solver.h
+  theory/arith/nl/transcendental/exponential_solver.cpp
+  theory/arith/nl/transcendental/exponential_solver.h
+  theory/arith/nl/transcendental/sine_solver.cpp
+  theory/arith/nl/transcendental/sine_solver.h
+  theory/arith/nl/transcendental/taylor_generator.cpp
+  theory/arith/nl/transcendental/taylor_generator.h
+  theory/arith/nl/transcendental/transcendental_solver.cpp
+  theory/arith/nl/transcendental/transcendental_solver.h
+  theory/arith/nl/transcendental/transcendental_state.cpp
+  theory/arith/nl/transcendental/transcendental_state.h
   theory/arith/normal_form.cpp
   theory/arith/normal_form.h
   theory/arith/operator_elim.cpp
@@ -616,6 +626,8 @@ libcvc4_add_sources(
   theory/quantifiers/cegqi/ceg_instantiator.h
   theory/quantifiers/cegqi/inst_strategy_cegqi.cpp
   theory/quantifiers/cegqi/inst_strategy_cegqi.h
+  theory/quantifiers/cegqi/nested_qe.cpp
+  theory/quantifiers/cegqi/nested_qe.h
   theory/quantifiers/cegqi/vts_term_cache.cpp
   theory/quantifiers/cegqi/vts_term_cache.h
   theory/quantifiers/conjecture_generator.cpp
@@ -1125,7 +1137,6 @@ install(FILES
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc4)
 install(FILES
-          expr/array.h
           expr/array_store_all.h
           expr/ascription_type.h
           expr/emptyset.h
@@ -1200,10 +1211,10 @@ install(FILES
           util/string.h
           util/tuple.h
           util/unsafe_interrupt_exception.h
-          ${CMAKE_CURRENT_BINARY_DIR}/util/floatingpoint.h
           ${CMAKE_CURRENT_BINARY_DIR}/util/integer.h
           ${CMAKE_CURRENT_BINARY_DIR}/util/rational.h
           ${CMAKE_CURRENT_BINARY_DIR}/util/real_algebraic_number.h
+          ${CMAKE_CURRENT_BINARY_DIR}/util/floatingpoint_literal_symfpu.h
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/util)
 

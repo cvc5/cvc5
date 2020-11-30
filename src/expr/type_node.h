@@ -22,8 +22,6 @@
 #ifndef CVC4__TYPE_NODE_H
 #define CVC4__TYPE_NODE_H
 
-#include <stdint.h>
-
 #include <iostream>
 #include <string>
 #include <unordered_map>
@@ -1073,10 +1071,9 @@ inline bool TypeNode::isTester() const {
 /** Is this a floating-point type of with <code>exp</code> exponent bits
     and <code>sig</code> significand bits */
 inline bool TypeNode::isFloatingPoint(unsigned exp, unsigned sig) const {
-  return
-    ( getKind() == kind::FLOATINGPOINT_TYPE &&
-      getConst<FloatingPointSize>().exponent() == exp &&
-      getConst<FloatingPointSize>().significand() == sig );
+  return (getKind() == kind::FLOATINGPOINT_TYPE
+          && getConst<FloatingPointSize>().exponentWidth() == exp
+          && getConst<FloatingPointSize>().significandWidth() == sig);
 }
 
 /** Is this a bit-vector type of size <code>size</code> */
@@ -1088,13 +1085,13 @@ inline bool TypeNode::isBitVector(unsigned size) const {
 /** Get the exponent size of this floating-point type */
 inline unsigned TypeNode::getFloatingPointExponentSize() const {
   Assert(isFloatingPoint());
-  return getConst<FloatingPointSize>().exponent();
+  return getConst<FloatingPointSize>().exponentWidth();
 }
 
 /** Get the significand size of this floating-point type */
 inline unsigned TypeNode::getFloatingPointSignificandSize() const {
   Assert(isFloatingPoint());
-  return getConst<FloatingPointSize>().significand();
+  return getConst<FloatingPointSize>().significandWidth();
 }
 
 /** Get the size of this bit-vector type */

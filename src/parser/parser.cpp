@@ -16,8 +16,6 @@
 
 #include "parser/parser.h"
 
-#include <stdint.h>
-
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -335,8 +333,7 @@ void Parser::defineParameterizedType(const std::string& name,
 api::Sort Parser::mkSort(const std::string& name, uint32_t flags)
 {
   Debug("parser") << "newSort(" << name << ")" << std::endl;
-  api::Sort type =
-      api::Sort(d_solver, d_solver->getExprManager()->mkSort(name, flags));
+  api::Sort type = d_solver->mkUninterpretedSort(name);
   bool globalDecls = d_symman->getGlobalDeclarations();
   defineType(
       name, type, globalDecls && !(flags & ExprManager::SORT_FLAG_PLACEHOLDER));
@@ -349,9 +346,7 @@ api::Sort Parser::mkSortConstructor(const std::string& name,
 {
   Debug("parser") << "newSortConstructor(" << name << ", " << arity << ")"
                   << std::endl;
-  api::Sort type = api::Sort(
-      d_solver,
-      d_solver->getExprManager()->mkSortConstructor(name, arity, flags));
+  api::Sort type = d_solver->mkSortConstructorSort(name, arity);
   bool globalDecls = d_symman->getGlobalDeclarations();
   defineType(name,
              vector<api::Sort>(arity),
@@ -381,10 +376,7 @@ api::Sort Parser::mkUnresolvedTypeConstructor(
 {
   Debug("parser") << "newSortConstructor(P)(" << name << ", " << params.size()
                   << ")" << std::endl;
-  api::Sort unresolved =
-      api::Sort(d_solver,
-                d_solver->getExprManager()->mkSortConstructor(
-                    name, params.size(), ExprManager::SORT_FLAG_PLACEHOLDER));
+  api::Sort unresolved = d_solver->mkSortConstructorSort(name, params.size());
   defineType(name, params, unresolved);
   api::Sort t = getSort(name, params);
   d_unresolved.insert(unresolved);
@@ -646,8 +638,7 @@ api::Term Parser::mkVar(const std::string& name,
                         const api::Sort& type,
                         uint32_t flags)
 {
-  return api::Term(
-      d_solver, d_solver->getExprManager()->mkVar(name, type.getType(), flags));
+  return d_solver->mkConst(type, name);
 }
 //!!!!!!!!!!! temporary
 
@@ -775,10 +766,10 @@ void Parser::attributeNotSupported(const std::string& attr) {
 
 size_t Parser::scopeLevel() const { return d_symman->scopeLevel(); }
 
-void Parser::pushScope(bool bindingLevel)
+void Parser::pushScope(bool isUserContext)
 {
-  d_symman->pushScope(!bindingLevel);
-  if (!bindingLevel)
+  d_symman->pushScope(isUserContext);
+  if (isUserContext)
   {
     d_assertionLevel = scopeLevel();
   }

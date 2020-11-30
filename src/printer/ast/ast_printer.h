@@ -62,8 +62,6 @@ class AstPrinter : public CVC4::Printer
 
   /** Print declare-sort command */
   void toStreamCmdDeclareType(std::ostream& out,
-                              const std::string& id,
-                              size_t arity,
                               TypeNode type) const override;
 
   /** Print define-sort command */
@@ -78,13 +76,6 @@ class AstPrinter : public CVC4::Printer
                                  const std::vector<Node>& formals,
                                  TypeNode range,
                                  Node formula) const override;
-
-  /** Print define-named-fun command */
-  void toStreamCmdDefineNamedFunction(std::ostream& out,
-                                      const std::string& id,
-                                      const std::vector<Node>& formals,
-                                      TypeNode range,
-                                      Node formula) const override;
 
   /** Print check-sat command */
   void toStreamCmdCheckSat(std::ostream& out,
@@ -172,9 +163,21 @@ class AstPrinter : public CVC4::Printer
 
  private:
   void toStream(std::ostream& out, TNode n, int toDepth) const;
-  void toStream(std::ostream& out,
-                const smt::Model& m,
-                const NodeCommand* c) const override;
+  /**
+   * To stream model sort. This prints the appropriate output for type
+   * tn declared via declare-sort or declare-datatype.
+   */
+  void toStreamModelSort(std::ostream& out,
+                         const smt::Model& m,
+                         TypeNode tn) const override;
+
+  /**
+   * To stream model term. This prints the appropriate output for term
+   * n declared via declare-fun.
+   */
+  void toStreamModelTerm(std::ostream& out,
+                         const smt::Model& m,
+                         Node n) const override;
 }; /* class AstPrinter */
 
 }  // namespace ast

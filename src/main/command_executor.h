@@ -61,9 +61,7 @@ class CommandExecutor
  public:
   CommandExecutor(Options& options);
 
-  virtual ~CommandExecutor()
-  {
-  }
+  virtual ~CommandExecutor();
 
   /**
    * Executes a command. Recursively handles if cmd is a command

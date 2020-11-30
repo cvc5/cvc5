@@ -20,7 +20,6 @@
 
 #pragma once
 
-#include <stdint.h>
 #include "theory/arith/arithvar.h"
 
 namespace CVC4 {

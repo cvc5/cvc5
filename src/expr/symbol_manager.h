@@ -84,6 +84,31 @@ class CVC4_PUBLIC SymbolManager
   void getExpressionNames(const std::vector<api::Term>& ts,
                           std::vector<std::string>& names,
                           bool areAssertions = false) const;
+  /**
+   * Get a mapping of all expression names.
+   *
+   * @param areAssertions Whether we only wish to include assertion names
+   * @return the mapping containing all expression names.
+   */
+  std::map<api::Term, std::string> getExpressionNames(
+      bool areAssertions = false) const;
+  /**
+   * @return The sorts we have declared that should be printed in the model.
+   */
+  std::vector<api::Sort> getModelDeclareSorts() const;
+  /**
+   * @return The terms we have declared that should be printed in the model.
+   */
+  std::vector<api::Term> getModelDeclareTerms() const;
+  /**
+   * Add declared sort to the list of model declarations.
+   */
+  void addModelDeclarationSort(api::Sort s);
+  /**
+   * Add declared term to the list of model declarations.
+   */
+  void addModelDeclarationTerm(api::Term t);
+
   //---------------------------- end named expressions
   /**
    * Get the scope level of the symbol table.
