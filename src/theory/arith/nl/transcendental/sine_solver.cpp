@@ -268,7 +268,7 @@ void SineSolver::doTangentLemma(TNode e, TNode c, TNode poly_approx, int region)
   // approximation cannot be easily established.
   Convexity convexity = regionToConvexity(region);
   int mdir = regionToMonotonicityDir(region);
-  bool usec = (mdir == 1) == (convexity == Convexity::CONVEX);
+  bool usec = (mdir == 1) == (convexity == Convexity::CONCAVE);
   Node lem = nm->mkNode(
       Kind::IMPLIES,
       nm->mkNode(
@@ -277,7 +277,7 @@ void SineSolver::doTangentLemma(TNode e, TNode c, TNode poly_approx, int region)
               Kind::GEQ, e[0], usec ? Node(c) : regionToLowerBound(region)),
           nm->mkNode(
               Kind::LEQ, e[0], usec ? Node(c) : regionToUpperBound(region))),
-      nm->mkNode(convexity == Convexity::CONVEX ? Kind::GEQ : Kind::LEQ,
+      nm->mkNode(convexity == Convexity::CONVEX ? Kind::LEQ : Kind::GEQ,
                  e,
                  poly_approx));
 
