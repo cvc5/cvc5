@@ -9,7 +9,6 @@
 ## directory for licensing information.
 ##
 libcvc4_add_sources(
-  array.h
   array_store_all.cpp
   array_store_all.h
   ascription_type.cpp
