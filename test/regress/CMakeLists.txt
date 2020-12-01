@@ -585,6 +585,8 @@ set(regress_0_tests
   regress0/issue4010-sort-inf-var.smt2
   regress0/issue4469-unc-no-reuse-var.smt2
   regress0/issue4707-bv-to-bool-small.smt2
+  regress0/issue5099-model-1.smt2
+  regress0/issue5099-model-2.smt2
   regress0/issue5144-resetAssertions.smt2
   regress0/ite.cvc
   regress0/ite2.smt2
