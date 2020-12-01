@@ -1622,6 +1622,8 @@ set(regress_1_tests
   regress1/quantifiers/issue5482-rtf-no-fv.smt2
   regress1/quantifiers/issue5484-qe.smt2
   regress1/quantifiers/issue5484b-qe.smt2
+  regress1/quantifiers/issue5506-qe.smt2
+  regress1/quantifiers/issue5507-qe.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lia-witness-div-pp.smt2
