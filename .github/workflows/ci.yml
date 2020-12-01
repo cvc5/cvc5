@@ -65,6 +65,7 @@ jobs:
           cxxtest \
           libcln-dev \
           libgmp-dev \
+          libgtest-dev \
           libedit-dev \
           flex \
           libfl-dev \
