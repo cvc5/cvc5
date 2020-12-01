@@ -18,7 +18,6 @@
 #define CVC4__SMT__PROOF_MANAGER_H
 
 #include "context/cdlist.h"
-#include "expr/expr.h"
 #include "expr/node.h"
 #include "expr/proof_checker.h"
 #include "expr/proof_node.h"
