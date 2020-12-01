@@ -20,6 +20,7 @@
 #include <unordered_map>
 
 #include "expr/node.h"
+#include "expr/term_conversion_proof_generator.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "smt/smt_engine_stats.h"
 #include "util/resource_manager.h"
@@ -61,13 +62,32 @@ class ExpandDefs
   void expandAssertions(preprocessing::AssertionPipeline& assertions,
                         bool expandOnly = false);
 
+  /**
+   * Set proof node manager, which signals this class to enable proofs using the
+   * given proof node manager.
+   */
+  void setProofNodeManager(ProofNodeManager* pnm);
+
  private:
+  /**
+   * Helper function for above, called to specify if we want proof production
+   * based on the optional argument tpg.
+   */
+  theory::TrustNode expandDefinitions(
+      TNode n,
+      std::unordered_map<Node, Node, NodeHashFunction>& cache,
+      bool expandOnly,
+      TConvProofGenerator* tpg);
+  /** Whether proofs are enabled */
+  bool isProofEnabled() const;
   /** Reference to the SMT engine */
   SmtEngine& d_smt;
   /** Reference to resource manager */
   ResourceManager& d_resourceManager;
   /** Reference to the SMT stats */
   SmtEngineStatistics& d_smtStats;
+  /** A proof generator for the term conversion. */
+  std::unique_ptr<TConvProofGenerator> d_tpg;
 };
 
 }  // namespace smt
