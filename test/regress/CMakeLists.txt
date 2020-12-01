@@ -889,6 +889,8 @@ set(regress_0_tests
   regress0/seq/intseq.smt2
   regress0/seq/intseq_dt.smt2
   regress0/seq/issue4370-bool-terms.smt2
+  regress0/seq/issue5547-seq-len-unit.smt2
+  regress0/seq/issue5547-small-seq-len-unit.smt2
   regress0/seq/seq-2var.smt2
   regress0/seq/seq-ex1.smt2
   regress0/seq/seq-ex2.smt2
