@@ -138,7 +138,7 @@ Node LfscTermProcessCallback::convertInternal(Node n)
       // AND(DISTINCT(x1,x2), AND(,..., AND(,..,DISTINCT(x_{n-1},x_n))))
       Node ret = nm->mkNode(k, children[0], children[1]);
       for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; i++)
-        for (unsigned j = i + 1; i < nchild; i++)
+        for (unsigned j = i + 1; j < nchild; j++)
         {
           if (i != 0 && j != 1)
           {
@@ -146,6 +146,7 @@ Node LfscTermProcessCallback::convertInternal(Node n)
                 kind::AND, ret, nm->mkNode(k, children[i], children[j]));
           }
         }
+      Trace("lfsc-term-process-debug") << "n: " << n << std::endl << "ret: " << ret << std::endl;
       return ret;
     }
   }
