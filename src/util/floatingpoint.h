@@ -20,6 +20,8 @@
 #ifndef CVC4__FLOATINGPOINT_H
 #define CVC4__FLOATINGPOINT_H
 
+#include <memory>
+
 #include "util/bitvector.h"
 #include "util/floatingpoint_size.h"
 #include "util/rational.h"
@@ -60,8 +62,6 @@ class CVC4_PUBLIC FloatingPoint
   /** Constructors. */
   FloatingPoint(uint32_t e, uint32_t s, const BitVector& bv);
   FloatingPoint(const FloatingPointSize& size, const BitVector& bv);
-  FloatingPoint(const FloatingPointSize& fp_size,
-                const FloatingPointLiteral* fpl);
   FloatingPoint(const FloatingPoint& fp);
   FloatingPoint(const FloatingPointSize& size,
                 const RoundingMode& rm,
@@ -118,7 +118,7 @@ class CVC4_PUBLIC FloatingPoint
   static FloatingPoint makeMaxNormal(const FloatingPointSize& size, bool sign);
 
   /** Get the wrapped floating-point value. */
-  const FloatingPointLiteral* getLiteral(void) const { return d_fpl; }
+  const FloatingPointLiteral* getLiteral(void) const { return d_fpl.get(); }
 
   /**
    * Return a string representation of this floating-point.
@@ -258,8 +258,16 @@ class CVC4_PUBLIC FloatingPoint
   FloatingPointSize d_fp_size;
 
  private:
+  /**
+   * Constructor.
+   *
+   * Note: This constructor takes ownership of 'fpl' and is not intended for
+   *       public use.
+   */
+  FloatingPoint(const FloatingPointSize& fp_size, FloatingPointLiteral* fpl);
+
   /** The floating-point literal of this floating-point value. */
-  FloatingPointLiteral* d_fpl;
+  std::unique_ptr<FloatingPointLiteral> d_fpl;
 
 }; /* class FloatingPoint */
 
