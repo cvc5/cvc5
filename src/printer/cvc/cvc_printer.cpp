@@ -1591,14 +1591,14 @@ static bool tryToStream(std::ostream& out,
   return false;
 }
     
-void AstPrinter::toStreamWithLetify(std::ostream& out,
+void CvcPrinter::toStreamWithLetify(std::ostream& out,
                                     Node n,
                                     int toDepth, bool bracket,
                                     LetBinding* lbind) const
 {
   if (lbind == nullptr)
   {
-    toStream(out, n, toDepth);
+    toStream(out, n, toDepth, bracket);
     return;
   }
   std::vector<Node> letList;
@@ -1622,7 +1622,7 @@ void AstPrinter::toStreamWithLetify(std::ostream& out,
       uint32_t id = lbind->getId(nl);
       out << "_let_" << id << " = ";
       Node nlc = lbind->convert(nl, "_let_", false);
-      toStream(out, nlc, toDepth, lbind);
+      toStream(out, nlc, toDepth, true, lbind);
     }
     out << " IN ";
   }
