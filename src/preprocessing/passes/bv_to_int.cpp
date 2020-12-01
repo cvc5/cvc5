@@ -471,7 +471,9 @@ Node BVToInt::translateWithChildren(Node original,
           {
             high_bit = bvsize - 1;
           }
-          d_bitwiseAssertions.insert(returnNode.eqNode(
+          Node extractedReturnNode =
+              d_iandUtils.iextract(high_bit, j, returnNode);
+          d_bitwiseAssertions.insert(extractedReturnNode.eqNode(
               d_iandUtils.createBitwiseIAndNode(x, y, high_bit, j)));
         }
       }
