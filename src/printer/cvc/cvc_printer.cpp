@@ -54,7 +54,7 @@ void CvcPrinter::toStream(std::ostream& out,
     LetBinding lbind(dag + 1);
     toStreamWithLetify(out, n, toDepth, false, &lbind);
   } else {
-    toStream(out, n, toDepth, false);
+    toStream(out, n, toDepth, false, nullptr);
   }
 }
 
@@ -305,7 +305,7 @@ void CvcPrinter::toStream(std::ostream& out,
       return;
     case kind::DISTINCT:
       // distinct not supported directly, blast it away with the rewriter
-      toStream(out, theory::Rewriter::rewrite(n), depth, true);
+      toStream(out, theory::Rewriter::rewrite(n), depth, true, lbind);
       return;
     case kind::SORT_TYPE:
     {
@@ -1598,7 +1598,7 @@ void CvcPrinter::toStreamWithLetify(std::ostream& out,
 {
   if (lbind == nullptr)
   {
-    toStream(out, n, toDepth, bracket);
+    toStream(out, n, toDepth, bracket, nullptr);
     return;
   }
   std::vector<Node> letList;
