@@ -322,7 +322,8 @@ EvalResult Evaluator::evalInternal(
 
       switch (currNodeVal.getKind())
       {
-        // APPLY_UF is a special case where we look up the operator
+        // APPLY_UF is a special case where we look up the operator and apply
+        // beta reduction if possible
         case kind::APPLY_UF:
         {
           Trace("evaluator") << "Evaluate " << currNode << std::endl;
