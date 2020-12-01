@@ -52,9 +52,9 @@ void CvcPrinter::toStream(std::ostream& out,
 {
   if(dag != 0) {
     LetBinding lbind(dag + 1);
-    toStreamWithLetify(out, n, toDepth, false, &lbind);
+    toStreamNodeWithLetify(out, n, toDepth, false, &lbind);
   } else {
-    toStream(out, n, toDepth, false, nullptr);
+    toStreamNode(out, n, toDepth, false, nullptr);
   }
 }
 
@@ -72,7 +72,7 @@ void toStreamRational(std::ostream& out, Node n, bool forceRational)
   }
 }
 
-void CvcPrinter::toStream(std::ostream& out,
+void CvcPrinter::toStreamNode(std::ostream& out,
                           TNode n,
                           int depth,
                           bool bracket,
@@ -266,11 +266,11 @@ void CvcPrinter::toStream(std::ostream& out,
       break;
     case kind::ITE:
       out << "IF ";
-      toStream(out, n[0], depth, true, lbind);
+      toStreamNode(out, n[0], depth, true, lbind);
       out << " THEN ";
-      toStream(out, n[1], depth, true, lbind);
+      toStreamNode(out, n[1], depth, true, lbind);
       out << " ELSE ";
-      toStream(out, n[2], depth, true, lbind);
+      toStreamNode(out, n[2], depth, true, lbind);
       out << " ENDIF";
       return;
       break;
@@ -280,7 +280,7 @@ void CvcPrinter::toStream(std::ostream& out,
         if (i > 0) {
           out << ", ";
         }
-        toStream(out, n[i], depth, false, lbind);
+        toStreamNode(out, n[i], depth, false, lbind);
       }
       out << ']';
       return;
@@ -290,22 +290,22 @@ void CvcPrinter::toStream(std::ostream& out,
       break;
     case kind::LAMBDA:
       out << "(LAMBDA";
-      toStream(out, n[0], depth, true, lbind);
+      toStreamNode(out, n[0], depth, true, lbind);
       out << ": ";
-      toStreamWithLetify(out, n[1], depth, true, lbind);
+      toStreamNodeWithLetify(out, n[1], depth, true, lbind);
       out << ")";
       return;
       break;
     case kind::WITNESS:
       out << "(WITNESS";
-      toStream(out, n[0], depth, true, lbind);
+      toStreamNode(out, n[0], depth, true, lbind);
       out << " : ";
-      toStreamWithLetify(out, n[1], depth, true, lbind);
+      toStreamNodeWithLetify(out, n[1], depth, true, lbind);
       out << ')';
       return;
     case kind::DISTINCT:
       // distinct not supported directly, blast it away with the rewriter
-      toStream(out, theory::Rewriter::rewrite(n), depth, true, lbind);
+      toStreamNode(out, theory::Rewriter::rewrite(n), depth, true, lbind);
       return;
     case kind::SORT_TYPE:
     {
@@ -340,7 +340,7 @@ void CvcPrinter::toStream(std::ostream& out,
       break;
 
     // UF
-    case kind::APPLY_UF: toStream(op, n.getOperator(), depth, false, lbind); break;
+    case kind::APPLY_UF: toStreamNode(op, n.getOperator(), depth, false, lbind); break;
     case kind::CARDINALITY_CONSTRAINT:
     case kind::COMBINED_CARDINALITY_CONSTRAINT:
       out << "CARDINALITY_CONSTRAINT";
@@ -355,14 +355,14 @@ void CvcPrinter::toStream(std::ostream& out,
           if (i > 1) {
             out << ", ";
           }
-          toStream(out, n[i - 1], depth, false, lbind);
+          toStreamNode(out, n[i - 1], depth, false, lbind);
         }
         if (n.getNumChildren() > 2) {
           out << ')';
         }
       }
       out << " -> ";
-      toStream(out, n[n.getNumChildren() - 1], depth, false, lbind);
+      toStreamNode(out, n[n.getNumChildren() - 1], depth, false, lbind);
       return;
       break;
 
@@ -384,7 +384,7 @@ void CvcPrinter::toStream(std::ostream& out,
       return;
       break;
     case kind::APPLY_TYPE_ASCRIPTION: {
-      toStream(out, n[0], depth, false, lbind);
+      toStreamNode(out, n[0], depth, false, lbind);
       out << "::";
       TypeNode t = n.getOperator().getConst<AscriptionType>().getType();
       out << (t.isFunctionLike() ? t.getRangeType() : t);
@@ -410,14 +410,14 @@ void CvcPrinter::toStream(std::ostream& out,
               out << ", ";
             }
             out << recCons[i].getName() << " := ";
-            toStream(out, n[i], depth, false, lbind);
+            toStreamNode(out, n[i], depth, false, lbind);
           }
           out << " #)";
           return;
         }
         else
         {
-          toStream(op, n.getOperator(), depth, false, lbind);
+          toStreamNode(op, n.getOperator(), depth, false, lbind);
           if (n.getNumChildren() == 0)
           {
             // for datatype constants d, we print "d" and not "d()"
@@ -433,11 +433,11 @@ void CvcPrinter::toStream(std::ostream& out,
         Node opn = n.getOperator();
         if (!t.isDatatype())
         {
-          toStream(op, opn, depth, false, lbind);
+          toStreamNode(op, opn, depth, false, lbind);
         }
         else if (t.isTuple() || t.isRecord())
         {
-          toStream(out, n[0], depth, true, lbind);
+          toStreamNode(out, n[0], depth, true, lbind);
           out << '.';
           const DType& dt = t.getDType();
           if (t.isTuple())
@@ -456,11 +456,11 @@ void CvcPrinter::toStream(std::ostream& out,
           }
           else
           {
-            toStream(out, opn, depth, false, lbind);
+            toStreamNode(out, opn, depth, false, lbind);
           }
           return;
         }else{
-          toStream(op, opn, depth, false, lbind);
+          toStreamNode(op, opn, depth, false, lbind);
         }
       }
       break;
@@ -469,7 +469,7 @@ void CvcPrinter::toStream(std::ostream& out,
       op << "is_";
       unsigned cindex = DType::indexOf(n.getOperator());
       const DType& dt = DType::datatypeOf(n.getOperator());
-      toStream(op, dt[cindex].getConstructor(), depth, false, lbind);
+      toStreamNode(op, dt[cindex].getConstructor(), depth, false, lbind);
     }
       break;
     case kind::CONSTRUCTOR_TYPE:
@@ -482,45 +482,45 @@ void CvcPrinter::toStream(std::ostream& out,
           if(i > 0) {
             out << ", ";
           }
-          toStream(out, n[i], depth, false, lbind);
+          toStreamNode(out, n[i], depth, false, lbind);
         }
         if(n.getNumChildren() > 2) {
           out << ')';
         }
         out << " -> ";
       }
-      toStream(out, n[n.getNumChildren() - 1], depth, false, lbind);
+      toStreamNode(out, n[n.getNumChildren() - 1], depth, false, lbind);
       return;
     case kind::TESTER_TYPE:
-      toStream(out, n[0], depth, false, lbind);
+      toStreamNode(out, n[0], depth, false, lbind);
       out << " -> BOOLEAN";
       return;
       break;
     case kind::TUPLE_UPDATE:
-      toStream(out, n[0], depth, true, lbind);
+      toStreamNode(out, n[0], depth, true, lbind);
       out << " WITH ." << n.getOperator().getConst<TupleUpdate>().getIndex() << " := ";
-      toStream(out, n[1], depth, true, lbind);
+      toStreamNode(out, n[1], depth, true, lbind);
       return;
       break;
     case kind::RECORD_UPDATE:
-      toStream(out, n[0], depth, true, lbind);
+      toStreamNode(out, n[0], depth, true, lbind);
       out << " WITH ." << n.getOperator().getConst<RecordUpdate>().getField() << " := ";
-      toStream(out, n[1], depth, true, lbind);
+      toStreamNode(out, n[1], depth, true, lbind);
       return;
       break;
 
     // ARRAYS
     case kind::ARRAY_TYPE:
       out << "ARRAY ";
-      toStream(out, n[0], depth, false, lbind);
+      toStreamNode(out, n[0], depth, false, lbind);
       out << " OF ";
-      toStream(out, n[1], depth, false, lbind);
+      toStreamNode(out, n[1], depth, false, lbind);
       return;
       break;
     case kind::SELECT:
-      toStream(out, n[0], depth, true, lbind);
+      toStreamNode(out, n[0], depth, true, lbind);
       out << '[';
-      toStream(out, n[1], depth, false, lbind);
+      toStreamNode(out, n[1], depth, false, lbind);
       out << ']';
       return;
       break;
@@ -534,18 +534,18 @@ void CvcPrinter::toStream(std::ostream& out,
         out << '(';
       }
       TNode x = stk.top();
-      toStream(out, x[0], depth, false, lbind);
+      toStreamNode(out, x[0], depth, false, lbind);
       out << " WITH [";
-      toStream(out, x[1], depth, false, lbind);
+      toStreamNode(out, x[1], depth, false, lbind);
       out << "] := ";
-      toStream(out, x[2], depth, false, lbind);
+      toStreamNode(out, x[2], depth, false, lbind);
       stk.pop();
       while(!stk.empty()) {
         x = stk.top();
         out << ", [";
-        toStream(out, x[1], depth, false, lbind);
+        toStreamNode(out, x[1], depth, false, lbind);
         out << "] := ";
-        toStream(out, x[2], depth, false, lbind);
+        toStreamNode(out, x[2], depth, false, lbind);
         stk.pop();
       }
       if (bracket) {
@@ -631,13 +631,13 @@ void CvcPrinter::toStream(std::ostream& out,
       else
       {
         // ignore, there is no to-real in CVC language
-        toStream(out, n[0], depth, false, lbind);
+        toStreamNode(out, n[0], depth, false, lbind);
       }
       return;
     }
     case kind::DIVISIBLE:
       out << "DIVISIBLE(";
-      toStream(out, n[0], depth, false, lbind);
+      toStreamNode(out, n[0], depth, false, lbind);
       out << ", " << n.getOperator().getConst<Divisible>().k << ")";
       return;
 
@@ -738,16 +738,16 @@ void CvcPrinter::toStream(std::ostream& out,
         out << "BVPLUS(";
         out << BitVectorType(n.getType().toType()).getSize();
         out << ',';
-        toStream(out, n[child], depth, false, lbind);
+        toStreamNode(out, n[child], depth, false, lbind);
         out << ',';
         ++child;
       }
       out << "BVPLUS(";
       out << BitVectorType(n.getType().toType()).getSize();
       out << ',';
-      toStream(out, n[child], depth, false, lbind);
+      toStreamNode(out, n[child], depth, false, lbind);
       out << ',';
-      toStream(out, n[child + 1], depth, false, lbind);
+      toStreamNode(out, n[child + 1], depth, false, lbind);
       while (child > 0) {
         out << ')';
         --child;
@@ -761,9 +761,9 @@ void CvcPrinter::toStream(std::ostream& out,
       Assert(n.getType().isBitVector());
       out << BitVectorType(n.getType().toType()).getSize();
       out << ',';
-      toStream(out, n[0], depth, false, lbind);
+      toStreamNode(out, n[0], depth, false, lbind);
       out << ',';
-      toStream(out, n[1], depth, false, lbind);
+      toStreamNode(out, n[1], depth, false, lbind);
       out << ')';
       return;
       break;
@@ -775,16 +775,16 @@ void CvcPrinter::toStream(std::ostream& out,
         out << "BVMULT(";
         out << BitVectorType(n.getType().toType()).getSize();
         out << ',';
-        toStream(out, n[child], depth, false, lbind);
+        toStreamNode(out, n[child], depth, false, lbind);
         out << ',';
         ++child;
         }
       out << "BVMULT(";
       out << BitVectorType(n.getType().toType()).getSize();
       out << ',';
-      toStream(out, n[child], depth, false, lbind);
+      toStreamNode(out, n[child], depth, false, lbind);
       out << ',';
-      toStream(out, n[child + 1], depth, false, lbind);
+      toStreamNode(out, n[child + 1], depth, false, lbind);
       while (child > 0) {
         out << ')';
         --child;
@@ -803,31 +803,31 @@ void CvcPrinter::toStream(std::ostream& out,
       break;
     case kind::BITVECTOR_REPEAT:
       out << "BVREPEAT(";
-      toStream(out, n[0], depth, false, lbind);
+      toStreamNode(out, n[0], depth, false, lbind);
       out << ", " << n.getOperator().getConst<BitVectorRepeat>() << ')';
       return;
       break;
     case kind::BITVECTOR_ZERO_EXTEND:
       out << "BVZEROEXTEND(";
-      toStream(out, n[0], depth, false, lbind);
+      toStreamNode(out, n[0], depth, false, lbind);
       out << ", " << n.getOperator().getConst<BitVectorZeroExtend>() << ')';
       return;
       break;
     case kind::BITVECTOR_SIGN_EXTEND:
       out << "SX(";
-      toStream(out, n[0], depth, false);
+      toStreamNode(out, n[0], depth, false, lbind);
       out << ", " << BitVectorType(n.getType().toType()).getSize() << ')';
       return;
       break;
     case kind::BITVECTOR_ROTATE_LEFT:
       out << "BVROTL(";
-      toStream(out, n[0], depth, false, lbind);
+      toStreamNode(out, n[0], depth, false, lbind);
       out << ", " << n.getOperator().getConst<BitVectorRotateLeft>() << ')';
       return;
       break;
     case kind::BITVECTOR_ROTATE_RIGHT:
       out << "BVROTR(";
-      toStream(out, n[0], depth, false, lbind);
+      toStreamNode(out, n[0], depth, false, lbind);
       out << ", " << n.getOperator().getConst<BitVectorRotateRight>() << ')';
       return;
       break;
@@ -835,7 +835,7 @@ void CvcPrinter::toStream(std::ostream& out,
     // SETS
     case kind::SET_TYPE:
       out << "SET OF ";
-      toStream(out, n[0], depth, false, lbind);
+      toStreamNode(out, n[0], depth, false, lbind);
       return;
       break;
     case kind::UNION:
@@ -888,7 +888,7 @@ void CvcPrinter::toStream(std::ostream& out,
       break;
     case kind::SINGLETON:
       out << "{";
-      toStream(out, n[0], depth, false, lbind);
+      toStreamNode(out, n[0], depth, false, lbind);
       out << "}";
       return;
       break;
@@ -898,13 +898,13 @@ void CvcPrinter::toStream(std::ostream& out,
       }
       out << '{';
       size_t i = 0;
-      toStream(out, n[i++], depth, false, lbind);
+      toStreamNode(out, n[i++], depth, false, lbind);
       for(;i+1 < n.getNumChildren(); ++i) {
         out << ", ";
-        toStream(out, n[i], depth, false, lbind);
+        toStreamNode(out, n[i], depth, false, lbind);
       }
       out << "} | ";
-      toStream(out, n[i], depth, true, lbind);
+      toStreamNode(out, n[i], depth, true, lbind);
       if(bracket) {
         out << ')';
       }
@@ -913,7 +913,7 @@ void CvcPrinter::toStream(std::ostream& out,
     }
     case kind::CARD: {
       out << "CARD(";
-      toStream(out, n[0], depth, false, lbind);
+      toStreamNode(out, n[0], depth, false, lbind);
       out << ")";
       return;
       break;
@@ -922,17 +922,17 @@ void CvcPrinter::toStream(std::ostream& out,
     // Quantifiers
     case kind::FORALL:
       out << "(FORALL";
-      toStream(out, n[0], depth, false, lbind);
+      toStreamNode(out, n[0], depth, true, lbind);
       out << " : ";
-      toStreamWithLetify(out, n[1], depth, false, lbind);
+      toStreamNodeWithLetify(out, n[1], depth, true, lbind);
       out << ')';
       // TODO: user patterns?
       return;
     case kind::EXISTS:
       out << "(EXISTS";
-      toStream(out, n[0], depth, false, lbind);
+      toStreamNode(out, n[0], depth, true, lbind);
       out << " : ";
-      toStreamWithLetify(out, n[1], depth, false, lbind);
+      toStreamNodeWithLetify(out, n[1], depth, true, lbind);
       out << ')';
       // TODO: user patterns?
       return;
@@ -945,7 +945,7 @@ void CvcPrinter::toStream(std::ostream& out,
         if(i > 0) {
           out << ", ";
         }
-        toStream(out, n[i], -1, false, lbind);
+        toStreamNode(out, n[i], -1, false, lbind);
         out << ":";
         n[i].getType().toStream(out, language::output::LANG_CVC4);
       }
@@ -1001,7 +1001,7 @@ void CvcPrinter::toStream(std::ostream& out,
         out << ", ";
       }
     }
-    toStream(out, n[i], depth, opType == INFIX, lbind);
+    toStreamNode(out, n[i], depth, opType == INFIX, lbind);
   }
 
   switch (opType) {
@@ -1021,7 +1021,7 @@ void CvcPrinter::toStream(std::ostream& out,
       break;
   }
 
-}/* CvcPrinter::toStream(TNode) */
+}
 
 template <class T>
 static bool tryToStream(std::ostream& out, const Command* c, bool cvc3Mode);
@@ -1591,14 +1591,14 @@ static bool tryToStream(std::ostream& out,
   return false;
 }
     
-void CvcPrinter::toStreamWithLetify(std::ostream& out,
+void CvcPrinter::toStreamNodeWithLetify(std::ostream& out,
                                     Node n,
                                     int toDepth, bool bracket,
                                     LetBinding* lbind) const
 {
   if (lbind == nullptr)
   {
-    toStream(out, n, toDepth, bracket, nullptr);
+    toStreamNode(out, n, toDepth, bracket, nullptr);
     return;
   }
   std::vector<Node> letList;
@@ -1622,13 +1622,13 @@ void CvcPrinter::toStreamWithLetify(std::ostream& out,
       uint32_t id = lbind->getId(nl);
       out << "_let_" << id << " = ";
       Node nlc = lbind->convert(nl, "_let_", false);
-      toStream(out, nlc, toDepth, true, lbind);
+      toStreamNode(out, nlc, toDepth, true, lbind);
     }
     out << " IN ";
   }
   Node nc = lbind->convert(n, "_let_");
   // print the body, passing the lbind object
-  toStream(out, nc, toDepth, bracket, lbind);
+  toStreamNode(out, nc, toDepth, bracket, lbind);
   lbind->popScope();
 }
 
