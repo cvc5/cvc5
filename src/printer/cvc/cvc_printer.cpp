@@ -73,10 +73,10 @@ void toStreamRational(std::ostream& out, Node n, bool forceRational)
 }
 
 void CvcPrinter::toStreamNode(std::ostream& out,
-                          TNode n,
-                          int depth,
-                          bool bracket,
-                          LetBinding* lbind) const
+                              TNode n,
+                              int depth,
+                              bool bracket,
+                              LetBinding* lbind) const
 {
   if (depth == 0) {
     out << "(...)";
@@ -340,7 +340,9 @@ void CvcPrinter::toStreamNode(std::ostream& out,
       break;
 
     // UF
-    case kind::APPLY_UF: toStreamNode(op, n.getOperator(), depth, false, lbind); break;
+    case kind::APPLY_UF:
+      toStreamNode(op, n.getOperator(), depth, false, lbind);
+      break;
     case kind::CARDINALITY_CONSTRAINT:
     case kind::COMBINED_CARDINALITY_CONSTRAINT:
       out << "CARDINALITY_CONSTRAINT";
@@ -1020,7 +1022,6 @@ void CvcPrinter::toStreamNode(std::ostream& out,
       out << ')' << op.str();
       break;
   }
-
 }
 
 template <class T>
@@ -1590,11 +1591,12 @@ static bool tryToStream(std::ostream& out,
   }
   return false;
 }
-    
+
 void CvcPrinter::toStreamNodeWithLetify(std::ostream& out,
-                                    Node n,
-                                    int toDepth, bool bracket,
-                                    LetBinding* lbind) const
+                                        Node n,
+                                        int toDepth,
+                                        bool bracket,
+                                        LetBinding* lbind) const
 {
   if (lbind == nullptr)
   {
@@ -1631,7 +1633,6 @@ void CvcPrinter::toStreamNodeWithLetify(std::ostream& out,
   toStreamNode(out, nc, toDepth, bracket, lbind);
   lbind->popScope();
 }
-
 
 }/* CVC4::printer::cvc namespace */
 }/* CVC4::printer namespace */
