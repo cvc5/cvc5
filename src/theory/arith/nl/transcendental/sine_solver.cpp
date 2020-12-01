@@ -277,7 +277,7 @@ void SineSolver::doTangentLemma(TNode e, TNode c, TNode poly_approx, int region)
               Kind::GEQ, e[0], usec ? Node(c) : regionToLowerBound(region)),
           nm->mkNode(
               Kind::LEQ, e[0], usec ? Node(c) : regionToUpperBound(region))),
-      nm->mkNode(convexity == Convexity::CONVEX ? Kind::LEQ : Kind::GEQ,
+      nm->mkNode(convexity == Convexity::CONVEX ? Kind::GEQ : Kind::LEQ,
                  e,
                  poly_approx));
 
