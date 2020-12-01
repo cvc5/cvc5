@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file symfpu_literal.h.in
+/*! \file floatingpoint_literal_symfpu.h.in
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz, Martin Brain, Andres Noetzli
@@ -10,11 +10,13 @@
  ** directory for licensing information.\endverbatim
  **
  ** \brief SymFPU glue code for floating-point values.
+ **
+ ** !!! This header is not to be included in any other headers !!!
  **/
 #include "cvc4_public.h"
 
-#ifndef CVC4__SYMFPULITERAL__SYMFPU_LITERAL_H
-#define CVC4__SYMFPULITERAL__SYMFPU_LITERAL_H
+#ifndef CVC4__UTIL__FLOATINGPOINT_LITERAL_SYMFPU_H
+#define CVC4__UTIL__FLOATINGPOINT_LITERAL_SYMFPU_H
 
 #include "util/bitvector.h"
 #include "util/roundingmode.h"
@@ -25,9 +27,14 @@
 #include <symfpu/core/unpackedFloat.h>
 #endif /* @CVC4_USE_SYMFPU@ */
 
+/* -------------------------------------------------------------------------- */
+
 namespace CVC4 {
 
 class FloatingPointSize;
+class FloatingPoint;
+
+/* -------------------------------------------------------------------------- */
 
 /**
  * This is a symfpu literal "back-end".  It allows the library to be used as
@@ -36,6 +43,8 @@ class FloatingPointSize;
  * BitVector.
  */
 namespace symfpuLiteral {
+
+/* -------------------------------------------------------------------------- */
 
 /**
  * Forward declaration of wrapper so that traits can be defined early and so
@@ -253,7 +262,66 @@ class wrappedBitVector : public BitVector
   wrappedBitVector<isSigned> extract(CVC4BitWidth upper,
                                      CVC4BitWidth lower) const;
 };
+
+/* -------------------------------------------------------------------------- */
+
 }  // namespace symfpuLiteral
+
+/* -------------------------------------------------------------------------- */
+
+// clang-format off
+#if @CVC4_USE_SYMFPU@
+// clang-format on
+using SymFPUUnpackedFloatLiteral = ::symfpu::unpackedFloat<symfpuLiteral::traits>;
+#endif
+
+class FloatingPointLiteral
+{
+  friend class FloatingPoint;
+ public:
+  /** Constructors. */
+  FloatingPointLiteral(FloatingPoint& other);
+// clang-format off
+#if @CVC4_USE_SYMFPU@
+// clang-format on
+  FloatingPointLiteral(SymFPUUnpackedFloatLiteral symuf) : d_symuf(symuf){};
+  FloatingPointLiteral(const bool sign,
+                       const BitVector& exp,
+                       const BitVector& sig)
+      : d_symuf(SymFPUUnpackedFloatLiteral(sign, exp, sig))
+  {
+  }
+#else
+  FloatingPointLiteral(uint32_t, uint32_t, double) { unfinished(); };
+#endif
+  ~FloatingPointLiteral() {}
+
+// clang-format off
+#if @CVC4_USE_SYMFPU@
+// clang-format on
+  /** Return wrapped floating-point literal. */
+  const SymFPUUnpackedFloatLiteral& getSymUF() const { return d_symuf; }
+#else
+  /** Catch-all for unimplemented functions. */
+  void unfinished(void) const;
+  /** Dummy hash function. */
+  size_t hash(void) const;
+  /** Dummy comparison operator overload. */
+  bool operator==(const FloatingPointLiteral& other) const;
+#endif
+
+ private:
+// clang-format off
+#if @CVC4_USE_SYMFPU@
+// clang-format on
+  /** The actual floating-point value, a SymFPU unpackedFloat. */
+  SymFPUUnpackedFloatLiteral d_symuf;
+#endif
+};
+
+
+/* -------------------------------------------------------------------------- */
+
 }
 
 #endif

@@ -354,6 +354,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::DISTINCT, DISTINCT},
         {CVC4::Kind::VARIABLE, CONSTANT},
         {CVC4::Kind::BOUND_VARIABLE, VARIABLE},
+        {CVC4::Kind::SEXPR, SEXPR},
         {CVC4::Kind::LAMBDA, LAMBDA},
         {CVC4::Kind::WITNESS, WITNESS},
         /* Boolean --------------------------------------------------------- */
@@ -822,6 +823,14 @@ class CVC4ApiRecoverableExceptionStream
                 << "Invalid argument '" << arg << "' for '" << #arg \
                 << "', expected "
 
+#define CVC4_API_RECOVERABLE_ARG_CHECK_EXPECTED(cond, arg)          \
+  CVC4_PREDICT_TRUE(cond)                                           \
+  ? (void)0                                                         \
+  : OstreamVoider()                                                 \
+          & CVC4ApiRecoverableExceptionStream().ostream()           \
+                << "Invalid argument '" << arg << "' for '" << #arg \
+                << "', expected "
+
 #define CVC4_API_ARG_SIZE_CHECK_EXPECTED(cond, arg) \
   CVC4_PREDICT_TRUE(cond)                           \
   ? (void)0                                         \
@@ -841,6 +850,10 @@ class CVC4ApiRecoverableExceptionStream
   try                                   \
   {
 #define CVC4_API_SOLVER_TRY_CATCH_END                                          \
+  }                                                                            \
+  catch (const UnrecognizedOptionException& e)                                 \
+  {                                                                            \
+    throw CVC4ApiRecoverableException(e.getMessage());                         \
   }                                                                            \
   catch (const CVC4::RecoverableModalException& e)                             \
   {                                                                            \
@@ -3060,24 +3073,24 @@ const static std::
     unordered_map<RoundingMode, CVC4::RoundingMode, RoundingModeHashFunction>
         s_rmodes{
             {ROUND_NEAREST_TIES_TO_EVEN,
-             CVC4::RoundingMode::roundNearestTiesToEven},
-            {ROUND_TOWARD_POSITIVE, CVC4::RoundingMode::roundTowardPositive},
-            {ROUND_TOWARD_NEGATIVE, CVC4::RoundingMode::roundTowardNegative},
-            {ROUND_TOWARD_ZERO, CVC4::RoundingMode::roundTowardZero},
+             CVC4::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN},
+            {ROUND_TOWARD_POSITIVE, CVC4::RoundingMode::ROUND_TOWARD_POSITIVE},
+            {ROUND_TOWARD_NEGATIVE, CVC4::RoundingMode::ROUND_TOWARD_POSITIVE},
+            {ROUND_TOWARD_ZERO, CVC4::RoundingMode::ROUND_TOWARD_ZERO},
             {ROUND_NEAREST_TIES_TO_AWAY,
-             CVC4::RoundingMode::roundNearestTiesToAway},
+             CVC4::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY},
         };
 
 const static std::unordered_map<CVC4::RoundingMode,
                                 RoundingMode,
                                 CVC4::RoundingModeHashFunction>
     s_rmodes_internal{
-        {CVC4::RoundingMode::roundNearestTiesToEven,
+        {CVC4::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN,
          ROUND_NEAREST_TIES_TO_EVEN},
-        {CVC4::RoundingMode::roundTowardPositive, ROUND_TOWARD_POSITIVE},
-        {CVC4::RoundingMode::roundTowardNegative, ROUND_TOWARD_NEGATIVE},
-        {CVC4::RoundingMode::roundTowardZero, ROUND_TOWARD_ZERO},
-        {CVC4::RoundingMode::roundNearestTiesToAway,
+        {CVC4::RoundingMode::ROUND_TOWARD_POSITIVE, ROUND_TOWARD_POSITIVE},
+        {CVC4::RoundingMode::ROUND_TOWARD_POSITIVE, ROUND_TOWARD_NEGATIVE},
+        {CVC4::RoundingMode::ROUND_TOWARD_ZERO, ROUND_TOWARD_ZERO},
+        {CVC4::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY,
          ROUND_NEAREST_TIES_TO_AWAY},
     };
 
@@ -3093,7 +3106,7 @@ size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
 Solver::Solver(Options* opts)
 {
   d_exprMgr.reset(new ExprManager);
-  d_smtEngine.reset(new SmtEngine(d_exprMgr.get(), opts));
+  d_smtEngine.reset(new SmtEngine(d_exprMgr->getNodeManager(), opts));
   d_smtEngine->setSolver(this);
   Options& o = d_smtEngine->getOptions();
   d_rng.reset(new Random(o[options::seed]));
@@ -5083,7 +5096,7 @@ std::vector<Term> Solver::getAssertions(void) const
 std::string Solver::getInfo(const std::string& flag) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_CHECK(d_smtEngine->isValidGetInfoFlag(flag))
+  CVC4_API_RECOVERABLE_CHECK(d_smtEngine->isValidGetInfoFlag(flag))
       << "Unrecognized flag for getInfo.";
 
   return d_smtEngine->getInfo(flag).toString();
@@ -5415,7 +5428,7 @@ void Solver::resetAssertions(void) const
 void Solver::setInfo(const std::string& keyword, const std::string& value) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_ARG_CHECK_EXPECTED(
+  CVC4_API_RECOVERABLE_ARG_CHECK_EXPECTED(
       keyword == "source" || keyword == "category" || keyword == "difficulty"
           || keyword == "filename" || keyword == "license" || keyword == "name"
           || keyword == "notes" || keyword == "smt-lib-version"
@@ -5423,10 +5436,10 @@ void Solver::setInfo(const std::string& keyword, const std::string& value) const
       keyword)
       << "'source', 'category', 'difficulty', 'filename', 'license', 'name', "
          "'notes', 'smt-lib-version' or 'status'";
-  CVC4_API_ARG_CHECK_EXPECTED(keyword != "smt-lib-version" || value == "2"
-                                  || value == "2.0" || value == "2.5"
-                                  || value == "2.6",
-                              value)
+  CVC4_API_RECOVERABLE_ARG_CHECK_EXPECTED(
+      keyword != "smt-lib-version" || value == "2" || value == "2.0"
+          || value == "2.5" || value == "2.6",
+      value)
       << "'2.0', '2.5', '2.6'";
   CVC4_API_ARG_CHECK_EXPECTED(keyword != "status" || value == "sat"
                                   || value == "unsat" || value == "unknown",

@@ -222,7 +222,7 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
   {
     d_em = new ExprManager();
     d_nm = NodeManager::fromExprManager(d_em);
-    d_smt = new SmtEngine(d_em);
+    d_smt = new SmtEngine(d_nm);
     d_smt->setOption("cegqi-full", CVC4::SExpr(true));
     d_smt->setOption("produce-models", CVC4::SExpr(true));
     d_scope = new SmtScope(d_smt);

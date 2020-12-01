@@ -423,11 +423,11 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
   }
   else if (type.isRoundingMode())
   {
-    ops.push_back(nm->mkConst(RoundingMode::roundNearestTiesToAway));
-    ops.push_back(nm->mkConst(RoundingMode::roundNearestTiesToEven));
-    ops.push_back(nm->mkConst(RoundingMode::roundTowardNegative));
-    ops.push_back(nm->mkConst(RoundingMode::roundTowardPositive));
-    ops.push_back(nm->mkConst(RoundingMode::roundTowardZero));
+    ops.push_back(nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_AWAY));
+    ops.push_back(nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN));
+    ops.push_back(nm->mkConst(RoundingMode::ROUND_TOWARD_NEGATIVE));
+    ops.push_back(nm->mkConst(RoundingMode::ROUND_TOWARD_POSITIVE));
+    ops.push_back(nm->mkConst(RoundingMode::ROUND_TOWARD_ZERO));
   }
   else if (type.isFloatingPoint())
   {

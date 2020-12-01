@@ -113,7 +113,7 @@ Node mkSygusTerm(Node op,
                  const std::vector<Node>& children,
                  bool doBetaReduction = true);
 /**
- * n is a builtin term that is an application of operator op.
+ * n is a builtin term that is a (rewritten) application of operator op.
  *
  * This returns an n' such that (eval n args) is n', where n' is a instance of
  * n for the appropriate substitution.
@@ -122,18 +122,18 @@ Node mkSygusTerm(Node op,
  * say we have grammar:
  *   A -> A+A | A+x | A+(x+y) | y
  * These lead to constructors with sygus ops:
- *   C1 / (lambda w1 w2. w1+w2)
- *   C2 / (lambda w1. w1+x)
- *   C3 / (lambda w1. w1+(x+y))
- *   C4 / y
+ *   C1 / L1 where L1 is (lambda w1 w2. w1+w2)
+ *   C2 / L2 where L2 is (lambda w1. w1+x)
+ *   C3 / L3 where L3 is (lambda w1. w1+(x+y))
+ *   C4 / L4 where L4 is y
  * Examples of calling this function:
- *   applySygusArgs( dt, C1, (APPLY_UF (lambda w1 w2. w1+w2) t1 t2), { 3, 5 } )
+ *   applySygusArgs( dt, L1, (APPLY_UF L1 t1 t2), { 3, 5 } )
  *     ... returns (APPLY_UF (lambda w1 w2. w1+w2) t1 t2).
- *   applySygusArgs( dt, C2, (APPLY_UF (lambda w1. w1+x) t1), { 3, 5 } )
+ *   applySygusArgs( dt, L2, (APPLY_UF L2 t1), { 3, 5 } )
  *     ... returns (APPLY_UF (lambda w1. w1+3) t1).
- *   applySygusArgs( dt, C3, (APPLY_UF (lambda w1. w1+(x+y)) t1), { 3, 5 } )
+ *   applySygusArgs( dt, L3, (APPLY_UF L3 t1), { 3, 5 } )
  *     ... returns (APPLY_UF (lambda w1. w1+(3+5)) t1).
- *   applySygusArgs( dt, C4, y, { 3, 5 } )
+ *   applySygusArgs( dt, L4, L4, { 3, 5 } )
  *     ... returns 5.
  * Notice the attribute SygusVarFreeAttribute is applied to C1, C2, C3, C4,
  * to cache the results of whether the evaluation of this constructor needs
@@ -185,7 +185,7 @@ Node builtinVarToSygus(Node v);
  * where n' is a variable, then this method returns:
  *   12 + (DT_SYGUS_EVAL n' 3 4)
  * Notice that the subterm C_*( C_x(), C_y() ) is converted to its builtin
- * equivalent x*y and evaluated under the substition { x -> 3, x -> 4 } giving
+ * equivalent x*y and evaluated under the substition { x -> 3, y -> 4 } giving
  * 12. The subterm n' is non-constant and thus we return its evaluation under
  * 3,4, giving the term (DT_SYGUS_EVAL n' 3 4). Since the top-level constructor
  * is C_+, these terms are added together to give the result.

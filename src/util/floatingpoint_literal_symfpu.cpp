@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file symfpu_literal.cpp
+/*! \file floatingpoint_literal_symfpu.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Martin Brain, Aina Niemetz
@@ -11,11 +11,30 @@
  **
  ** \brief SymFPU glue code for floating-point values.
  **/
-#include "util/symfpu_literal.h"
+#include "util/floatingpoint_literal_symfpu.h"
 
 #include "base/check.h"
 
 namespace CVC4 {
+
+#ifndef CVC4_USE_SYMFPU
+void FloatingPointLiteral::unfinished(void) const
+{
+  Unimplemented() << "Floating-point literals not yet implemented.";
+}
+
+bool FloatingPointLiteral::operator==(const FloatingPointLiteral& other) const
+{
+  unfinished();
+  return false;
+}
+
+size_t FloatingPointLiteral::hash(void) const
+{
+  unfinished();
+  return 23;
+}
+#endif
 
 namespace symfpuLiteral {
 
@@ -381,11 +400,11 @@ wrappedBitVector<isSigned> wrappedBitVector<isSigned>::extract(
 template class wrappedBitVector<true>;
 template class wrappedBitVector<false>;
 
-traits::rm traits::RNE(void) { return ::CVC4::roundNearestTiesToEven; };
-traits::rm traits::RNA(void) { return ::CVC4::roundNearestTiesToAway; };
-traits::rm traits::RTP(void) { return ::CVC4::roundTowardPositive; };
-traits::rm traits::RTN(void) { return ::CVC4::roundTowardNegative; };
-traits::rm traits::RTZ(void) { return ::CVC4::roundTowardZero; };
+traits::rm traits::RNE(void) { return ::CVC4::ROUND_NEAREST_TIES_TO_EVEN; };
+traits::rm traits::RNA(void) { return ::CVC4::ROUND_NEAREST_TIES_TO_AWAY; };
+traits::rm traits::RTP(void) { return ::CVC4::ROUND_TOWARD_POSITIVE; };
+traits::rm traits::RTN(void) { return ::CVC4::ROUND_TOWARD_NEGATIVE; };
+traits::rm traits::RTZ(void) { return ::CVC4::ROUND_TOWARD_ZERO; };
 // This is a literal back-end so props are actually bools
 // so these can be handled in the same way as the internal assertions above
 
