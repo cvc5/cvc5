@@ -27,6 +27,24 @@ namespace nl {
 namespace transcendental {
 
 /**
+ * This enum indicates whether some function is convex, concave or unknown at
+ * some point.
+ */
+enum class Convexity
+{
+  CONVEX,
+  CONCAVE,
+  UNKNOWN
+};
+inline std::ostream& operator<<(std::ostream& os, Convexity c) {
+  switch (c) {
+    case Convexity::CONVEX: return os << "CONVEX";
+    case Convexity::CONCAVE: return os << "CONCAVE";
+    default: return os << "UNKNOWN";
+  }
+}
+
+/**
  * Holds common state and utilities for transcendental solvers.
  *
  * This includes common lookups and caches as well as generic utilities for
@@ -60,20 +78,24 @@ struct TranscendentalState
    * Get the two closest secant points from the once stored already.
    * "closest" is determined according to the current model.
    * @param e The transcendental term (like (exp t))
-   * @param c The point currently under consideration (probably the model of t)
+   * @param center The point currently under consideration (probably the model
+   * of t)
    * @param d The taylor degree.
    */
-  std::pair<Node, Node> getClosestSecantPoints(TNode e, TNode c, unsigned d);
+  std::pair<Node, Node> getClosestSecantPoints(TNode e,
+                                               TNode center,
+                                               unsigned d);
 
   /**
-   * Construct a secant plane between b and c
+   * Construct a secant plane as function in arg between lower and upper
    * @param arg The argument of the transcendental term
-   * @param b Left secant point
-   * @param c Right secant point
-   * @param approx Approximation for b (not yet substituted)
-   * @param approx_c Approximation for c (already substituted)
+   * @param lower Left secant point
+   * @param upper Right secant point
+   * @param lval Evaluation at lower
+   * @param uval Evaluation at upper
    */
-  Node mkSecantPlane(TNode arg, TNode b, TNode c, TNode approx, TNode approx_c);
+  Node mkSecantPlane(
+      TNode arg, TNode lower, TNode upper, TNode lval, TNode uval);
 
   /**
    * Construct a secant lemma between lower and upper for tf.
@@ -83,26 +105,34 @@ struct TranscendentalState
    * @param tf Current transcendental term
    * @param splane Secant plane as computed by mkSecantPlane()
    */
-  NlLemma mkSecantLemma(
-      TNode lower, TNode upper, int concavity, TNode tf, TNode splane);
+  NlLemma mkSecantLemma(TNode lower,
+                        TNode upper,
+                        TNode lapprox,
+                        TNode uapprox,
+                        int csign,
+                        Convexity convexity,
+                        TNode tf,
+                        TNode splane,
+                        unsigned actual_d);
 
   /**
    * Construct and send secant lemmas (if appropriate)
    * @param bounds Secant bounds
    * @param poly_approx Polynomial approximation
-   * @param c Current point
-   * @param approx_c Approximation for c
+   * @param center Current point
+   * @param cval Evaluation at c
    * @param tf Current transcendental term
    * @param d Current taylor degree
    * @param concavity Concavity in region of c
    */
   void doSecantLemmas(const std::pair<Node, Node>& bounds,
                       TNode poly_approx,
-                      TNode c,
-                      TNode approx_c,
+                      TNode center,
+                      TNode cval,
                       TNode tf,
+                      Convexity convexity,
                       unsigned d,
-                      int concavity);
+                      unsigned actual_d);
 
   Node d_true;
   Node d_false;
