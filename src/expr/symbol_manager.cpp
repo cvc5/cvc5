@@ -39,7 +39,8 @@ class SymbolManager::Implementation
         d_namedAsserts(&d_context),
         d_declareSorts(&d_context),
         d_declareTerms(&d_context),
-        d_hasPushedScope(&d_context, false)
+        d_hasPushedScope(&d_context, false),
+        d_globalDeclarations(false)
   {
   }
 
@@ -72,7 +73,8 @@ class SymbolManager::Implementation
   void pushScope(bool isUserContext);
   /** Pop a scope in the expression names. */
   void popScope();
-
+  /** Set global declarations to the value flag. */
+  void setGlobalDeclarations(bool flag);
  private:
   /** The context manager for the scope maps. */
   Context d_context;
@@ -88,6 +90,8 @@ class SymbolManager::Implementation
    * Have we pushed a scope (e.g. a let or quantifier) in the current context?
    */
   CDO<bool> d_hasPushedScope;
+  /** Whether the global declarations option is enabled. */
+  bool d_globalDeclarations;
 };
 
 bool SymbolManager::Implementation::setExpressionName(api::Term t,
@@ -201,7 +205,11 @@ void SymbolManager::Implementation::pushScope(bool isUserContext)
                        << std::endl;
   PrettyCheckArgument(!d_hasPushedScope.get() || !isUserContext,
                       "cannot push a user context within a scope context");
-  d_context.push();
+  // we don't push user contexts if we are using global declarations
+  if (!d_globalDeclarations || !isUserContext)
+  {
+    d_context.push();
+  }
   if (!isUserContext)
   {
     d_hasPushedScope = true;
@@ -211,13 +219,27 @@ void SymbolManager::Implementation::pushScope(bool isUserContext)
 void SymbolManager::Implementation::popScope()
 {
   Trace("sym-manager") << "popScope" << std::endl;
-  if (d_context.getLevel() == 0)
+  // If global declarations is false, we always pop.
+  // If global declarations is true, then if d_hasPushedScope is true, then
+  // we have pushed a scope context. Since we are not allowed to push user
+  // contexts within scope context, this means that we are popping a scope
+  // context, and hence should always pop. Conversely, since we do not push
+  // user contexts, we should never pop when d_hasPushedScope is false.
+  if (!d_globalDeclarations || d_hasPushedScope.get())
   {
-    throw ScopeException();
+    if (d_context.getLevel() == 0)
+    {
+      throw ScopeException();
+    }
+    d_context.pop();
   }
-  d_context.pop();
   Trace("sym-manager-debug")
       << "d_hasPushedScope is now " << d_hasPushedScope.get() << std::endl;
+}
+
+void SymbolManager::Implementation::setGlobalDeclarations(bool flag)
+{
+  d_globalDeclarations = flag;
 }
 
 void SymbolManager::Implementation::reset()
@@ -303,6 +325,7 @@ void SymbolManager::popScope()
 void SymbolManager::setGlobalDeclarations(bool flag)
 {
   d_globalDeclarations = flag;
+  d_implementation->setGlobalDeclarations(flag);
 }
 
 bool SymbolManager::getGlobalDeclarations() const
