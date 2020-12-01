@@ -156,7 +156,8 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
         {
           d_parent_quant[q].push_back(qi);
           d_children_quant[qi].push_back(q);
-          Assert(hasAddedCbqiLemma(qi));
+          // may not have added the CEX lemma, but the literal is created by
+          // the following call regardless
           Node qicel = getCounterexampleLiteral(qi);
           dep.push_back(qi);
           dep.push_back(qicel);
