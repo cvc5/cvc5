@@ -1416,6 +1416,7 @@ set(regress_1_tests
   regress1/issue3970-nl-ext-purify.smt2
   regress1/issue3990-sort-inference.smt2
   regress1/issue4273-ext-rew-cache.smt2
+  regress1/issue4335-unsat-core.smt2
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smtv1.smt2
   regress1/lemmas/pursuit-safety-8.smtv1.smt2
   regress1/lemmas/simple_startup_9nodes.abstract.base.smtv1.smt2
