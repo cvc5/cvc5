@@ -36,6 +36,13 @@ enum class Convexity
   CONCAVE,
   UNKNOWN
 };
+inline std::ostream& operator<<(std::ostream& os, Convexity c) {
+  switch (c) {
+    case Convexity::CONVEX: return os << "CONVEX";
+    case Convexity::CONCAVE: return os << "CONCAVE";
+    default: return os << "UNKNOWN";
+  }
+}
 
 /**
  * Holds common state and utilities for transcendental solvers.

@@ -158,9 +158,9 @@ class SineSolver
     switch (region)
     {
       case 1:
-      case 2: return Convexity::CONVEX;
+      case 2: return Convexity::CONCAVE;
       case 3:
-      case 4: return Convexity::CONCAVE;
+      case 4: return Convexity::CONVEX;
       default: return Convexity::UNKNOWN;
     }
   }
