@@ -146,7 +146,8 @@ Node LfscTermProcessCallback::convertInternal(Node n)
                 kind::AND, ret, nm->mkNode(k, children[i], children[j]));
           }
         }
-      Trace("lfsc-term-process-debug") << "n: " << n << std::endl << "ret: " << ret << std::endl;
+      Trace("lfsc-term-process-debug") << "n: " << n << std::endl
+                                       << "ret: " << ret << std::endl;
       return ret;
     }
   }

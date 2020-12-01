@@ -20,10 +20,10 @@
 #include <unordered_map>
 
 #include "expr/node.h"
+#include "expr/term_conversion_proof_generator.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "smt/smt_engine_stats.h"
 #include "util/resource_manager.h"
-#include "expr/term_conversion_proof_generator.h"
 
 namespace CVC4 {
 
@@ -67,9 +67,9 @@ class ExpandDefs
    * given proof node manager.
    */
   void setProofNodeManager(ProofNodeManager* pnm);
-  
+
  private:
-  /** 
+  /**
    * Helper function for above, called to specify if we want proof production
    * based on the optional argument tpg.
    */

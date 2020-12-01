@@ -426,7 +426,10 @@ void LfscPrinter::printRule(std::ostream& out, const ProofNode* pn)
   out << rname;
 }
 
-void LfscPrinter::printId(std::ostream& out, uint32_t id) { out << "__t" << id; }
+void LfscPrinter::printId(std::ostream& out, uint32_t id)
+{
+  out << "__t" << id;
+}
 
 void LfscPrinter::printProofId(std::ostream& out, uint32_t id)
 {

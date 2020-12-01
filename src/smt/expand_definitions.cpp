@@ -51,7 +51,7 @@ TrustNode ExpandDefs::expandDefinitions(
     TNode n,
     std::unordered_map<Node, Node, NodeHashFunction>& cache,
     bool expandOnly,
-      TConvProofGenerator* tpg)
+    TConvProofGenerator* tpg)
 {
   Node orig = n;
   NodeManager* nm = d_smt.getNodeManager();
@@ -90,13 +90,10 @@ TrustNode ExpandDefs::expandDefinitions(
           // replacement must be closed
           if (!formals.empty())
           {
-            f =
-                nm->mkNode(LAMBDA,
-                           nm->mkNode(BOUND_VAR_LIST, formals),
-                           f);
+            f = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, formals), f);
           }
           // are we are producing proofs for this call?
-          if (tpg!=nullptr)
+          if (tpg != nullptr)
           {
             // if this is a variable, we can simply assume it
             // ------- ASSUME
@@ -205,7 +202,7 @@ TrustNode ExpandDefs::expandDefinitions(
 
           fm = def.getFormula();
           // are we producing proofs for this call?
-          if (tpg!=nullptr)
+          if (tpg != nullptr)
           {
             Node pfRhs = fm;
             if (!formals.empty())
@@ -213,7 +210,7 @@ TrustNode ExpandDefs::expandDefinitions(
               Node bvl = nm->mkNode(BOUND_VAR_LIST, formals);
               pfRhs = nm->mkNode(LAMBDA, bvl, pfRhs);
             }
-            Assert (func.getType().isComparableTo(pfRhs.getType()));
+            Assert(func.getType().isComparableTo(pfRhs.getType()));
             pfExpChildren.push_back(func.eqNode(pfRhs));
           }
         }
@@ -224,9 +221,9 @@ TrustNode ExpandDefs::expandDefinitions(
                                       n.begin() + formals.size());
         Debug("expand") << "made : " << instance << std::endl;
         // are we producing proofs for this call?
-        if (tpg!=nullptr)
+        if (tpg != nullptr)
         {
-          if (n!=instance)
+          if (n != instance)
           {
             // This code is run both when we are doing expand definitions and
             // simple beta reduction.
@@ -235,13 +232,17 @@ TrustNode ExpandDefs::expandDefinitions(
             // ---------------------- MACRO_SR_PRED_INTRO
             // n = instance
             Node conc = n.eqNode(instance);
-            tpg->addRewriteStep(n, instance, PfRule::MACRO_SR_PRED_INTRO, pfExpChildren, {conc});
+            tpg->addRewriteStep(n,
+                                instance,
+                                PfRule::MACRO_SR_PRED_INTRO,
+                                pfExpChildren,
+                                {conc});
           }
         }
         // now, call expand definitions again on the result
         TrustNode texp = expandDefinitions(instance, cache, expandOnly, tpg);
         Node expanded = texp.isNull() ? instance : texp.getNode();
-        cache[n] = n==expanded ? Node::null() : expanded;
+        cache[n] = n == expanded ? Node::null() : expanded;
         result.push(expanded);
         continue;
       }
@@ -256,9 +257,10 @@ TrustNode ExpandDefs::expandDefinitions(
         if (!trn.isNull())
         {
           node = trn.getNode();
-          if (tpg!=nullptr)
+          if (tpg != nullptr)
           {
-            tpg->addRewriteStep(n, node, trn.getGenerator(), PfRule::THEORY_EXPAND_DEF);
+            tpg->addRewriteStep(
+                n, node, trn.getGenerator(), PfRule::THEORY_EXPAND_DEF);
           }
         }
         else
@@ -316,8 +318,8 @@ TrustNode ExpandDefs::expandDefinitions(
   AlwaysAssert(result.size() == 1);
 
   Node res = result.top();
-  
-  if (res==orig)
+
+  if (res == orig)
   {
     return TrustNode::null();
   }
@@ -340,33 +342,28 @@ void ExpandDefs::expandAssertions(AssertionPipeline& assertions,
     TrustNode expd = expandDefinitions(assert, cache, expandOnly, d_tpg.get());
     if (!expd.isNull())
     {
-      Trace("exp-defs") << "ExpandDefs::expandAssertions: " << assert << " -> " << expd.getNode() << std::endl;
+      Trace("exp-defs") << "ExpandDefs::expandAssertions: " << assert << " -> "
+                        << expd.getNode() << std::endl;
       assertions.replaceTrusted(i, expd);
     }
   }
 }
 
-
 void ExpandDefs::setProofNodeManager(ProofNodeManager* pnm)
 {
-  if (d_tpg==nullptr)
+  if (d_tpg == nullptr)
   {
-    d_tpg.reset(
-        new TConvProofGenerator(pnm,
-                                d_smt.getUserContext(),
-                                TConvPolicy::FIXPOINT,
-                                TConvCachePolicy::NEVER,
-                                "ExpandDefs::TConvProofGenerator",
-                                nullptr,
-                                true
-                               ));
+    d_tpg.reset(new TConvProofGenerator(pnm,
+                                        d_smt.getUserContext(),
+                                        TConvPolicy::FIXPOINT,
+                                        TConvCachePolicy::NEVER,
+                                        "ExpandDefs::TConvProofGenerator",
+                                        nullptr,
+                                        true));
   }
 }
 
-bool ExpandDefs::isProofEnabled() const
-{
-  return d_tpg!=nullptr;
-}
+bool ExpandDefs::isProofEnabled() const { return d_tpg != nullptr; }
 
 }  // namespace smt
 }  // namespace CVC4
