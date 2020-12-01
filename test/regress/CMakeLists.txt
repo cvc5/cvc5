@@ -584,6 +584,7 @@ set(regress_0_tests
   regress0/issue2832-qualId.smt2
   regress0/issue4010-sort-inf-var.smt2
   regress0/issue4469-unc-no-reuse-var.smt2
+  regress0/issue4707-bv-to-bool-small.smt2
   regress0/issue5144-resetAssertions.smt2
   regress0/ite.cvc
   regress0/ite2.smt2
@@ -2169,6 +2170,7 @@ set(regress_2_tests
   regress2/hole7.cvc
   regress2/hole8.cvc
   regress2/instance_1444.smtv1.smt2
+  regress2/issue4707-bv-to-bool-large.smt2
   regress2/javafe.ast.StandardPrettyPrint.319_no_forall.smt2
   regress2/javafe.ast.WhileStmt.447_no_forall.smt2
   regress2/ooo.rf6.smt2
