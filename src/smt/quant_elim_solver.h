@@ -79,8 +79,19 @@ class QuantElimSolver
    * extended command get-qe-disjunct, which can be used
    * for incrementally computing the result of a
    * quantifier elimination.
+   *
+   * @param as The assertions of the SmtEngine
+   * @param q The quantified formula we are eliminating quantifiers from
+   * @param doFull Whether we are doing full quantifier elimination on q
+   * @param isInternalSubsolver Whether the SmtEngine we belong to is an
+   * internal subsolver. If it is not, then we convert the final result to
+   * witness form.
+   * @return The result of eliminating quantifiers from q.
    */
-  Node getQuantifierElimination(Assertions& as, Node q, bool doFull);
+  Node getQuantifierElimination(Assertions& as,
+                                Node q,
+                                bool doFull,
+                                bool isInternalSubsolver);
 
  private:
   /** The SMT solver, which is used during doQuantifierElimination. */

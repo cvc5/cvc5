@@ -14,7 +14,6 @@
 
 #include "smt/dump_manager.h"
 
-#include "expr/expr_manager.h"
 #include "options/smt_options.h"
 #include "smt/dump.h"
 #include "smt/node_command.h"
