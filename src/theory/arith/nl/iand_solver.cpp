@@ -150,16 +150,24 @@ void IAndSolver::checkFullRefine()
         Node lem = sumBasedLemma(i);  // add lemmas based on sum mode
         Trace("iand-lemma")
             << "IAndSolver::Lemma: " << lem << " ; SUM_REFINE" << std::endl;
-        d_im.addPendingArithLemma(
-            lem, InferenceId::NL_IAND_SUM_REFINE, nullptr, true);
+        // lemma can contain div/mod so need to tag it with the PREPROCESS lemma property
+        d_im.addPendingArithLemma(lem,
+                                  InferenceId::NL_IAND_SUM_REFINE,
+                                  nullptr,
+                                  true,
+                                  LemmaProperty::PREPROCESS);
       }
       else if (options::iandMode() == options::IandMode::BITWISE)
       {
         Node lem = bitwiseLemma(i);  // check for violated bitwise axioms
         Trace("iand-lemma")
             << "IAndSolver::Lemma: " << lem << " ; BITWISE_REFINE" << std::endl;
-        d_im.addPendingArithLemma(
-            lem, InferenceId::NL_IAND_BITWISE_REFINE, nullptr, true);
+        // lemma can contain div/mod so need to tag it with the PREPROCESS lemma property
+        d_im.addPendingArithLemma(lem,
+                                  InferenceId::NL_IAND_BITWISE_REFINE,
+                                  nullptr,
+                                  true,
+                                  LemmaProperty::PREPROCESS);
       }
       else
       {
@@ -167,8 +175,12 @@ void IAndSolver::checkFullRefine()
         Node lem = valueBasedLemma(i);
         Trace("iand-lemma")
             << "IAndSolver::Lemma: " << lem << " ; VALUE_REFINE" << std::endl;
-        d_im.addPendingArithLemma(
-            lem, InferenceId::NL_IAND_VALUE_REFINE, nullptr, true);
+        // value lemmas should not contain div/mod so we don't need to tag it with PREPROCESS
+        d_im.addPendingArithLemma(lem,
+                                  InferenceId::NL_IAND_VALUE_REFINE,
+                                  nullptr,
+                                  true,
+                                  LemmaProperty::NONE);
       }
     }
   }
