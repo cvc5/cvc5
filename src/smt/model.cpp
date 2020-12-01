@@ -50,9 +50,9 @@ Node Model::getValue(TNode n) const { return d_tmodel->getValue(n); }
 bool Model::hasApproximations() const { return d_tmodel->hasApproximations(); }
 
 void Model::clearModelDeclarations()
-{ 
+{
   d_declareTerms.clear();
-  d_declareSorts.clear(); 
+  d_declareSorts.clear();
 }
 
 void Model::addDeclarationSort(TypeNode tn) { d_declareSorts.push_back(tn); }
