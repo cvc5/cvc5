@@ -336,6 +336,8 @@ bool QuantifiersEngine::getBoundElements(RepSetIterator* rsi,
 
 void QuantifiersEngine::presolve() {
   Trace("quant-engine-proc") << "QuantifiersEngine : presolve " << std::endl;
+  d_lemmas_waiting.clear();
+  d_phase_req_waiting.clear();
   for( unsigned i=0; i<d_modules.size(); i++ ){
     d_modules[i]->presolve();
   }
