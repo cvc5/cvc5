@@ -49,6 +49,16 @@ namespace smt {
 class Model;
 }
 
+/**
+ * Convert a symbolic expression to string. This method differs from
+ * Term::toString in that it does not surround constant strings with double
+ * quote symbols.
+ *
+ * @param sexpr the symbolic expression to convert
+ * @return the symbolic expression as string
+ */
+std::string sexprToString(api::Term sexpr);
+
 std::ostream& operator<<(std::ostream&, const Command&) CVC4_PUBLIC;
 std::ostream& operator<<(std::ostream&, const Command*) CVC4_PUBLIC;
 std::ostream& operator<<(std::ostream&, const CommandStatus&) CVC4_PUBLIC;
@@ -196,7 +206,6 @@ class CVC4_PUBLIC Command
   typedef CommandPrintSuccess printsuccess;
 
   Command();
-  Command(const api::Solver* solver);
   Command(const Command& cmd);
 
   virtual ~Command();
@@ -1283,13 +1292,13 @@ class CVC4_PUBLIC SetInfoCommand : public Command
 {
  protected:
   std::string d_flag;
-  SExpr d_sexpr;
+  std::string d_sexpr;
 
  public:
-  SetInfoCommand(std::string flag, const SExpr& sexpr);
+  SetInfoCommand(std::string flag, const std::string& sexpr);
 
   std::string getFlag() const;
-  SExpr getSExpr() const;
+  const std::string& getSExpr() const;
 
   void invoke(api::Solver* solver, SymbolManager* sm) override;
   Command* clone() const override;
@@ -1328,13 +1337,13 @@ class CVC4_PUBLIC SetOptionCommand : public Command
 {
  protected:
   std::string d_flag;
-  SExpr d_sexpr;
+  std::string d_sexpr;
 
  public:
-  SetOptionCommand(std::string flag, const SExpr& sexpr);
+  SetOptionCommand(std::string flag, const std::string& sexpr);
 
   std::string getFlag() const;
-  SExpr getSExpr() const;
+  const std::string& getSExpr() const;
 
   void invoke(api::Solver* solver, SymbolManager* sm) override;
   Command* clone() const override;

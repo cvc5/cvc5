@@ -236,7 +236,8 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
   // mapped to for signs of c
   std::map<int, Node> poly_approx_bounds[2];
   std::vector<Node> pbounds;
-  d_tstate.d_taylor.getPolynomialApproximationBoundForArg(k, c, d, pbounds);
+  unsigned actual_d =
+      d_tstate.d_taylor.getPolynomialApproximationBoundForArg(k, c, d, pbounds);
   poly_approx_bounds[0][1] = pbounds[0];
   poly_approx_bounds[0][-1] = pbounds[1];
   poly_approx_bounds[1][1] = pbounds[2];
@@ -365,11 +366,12 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
   {
     if (k == EXPONENTIAL)
     {
-      d_expSlv.doSecantLemmas(tf, poly_approx, c, poly_approx_c, d);
+      d_expSlv.doSecantLemmas(tf, poly_approx, c, poly_approx_c, d, actual_d);
     }
     else if (k == Kind::SINE)
     {
-      d_sineSlv.doSecantLemmas(tf, poly_approx, c, poly_approx_c, d, region);
+      d_sineSlv.doSecantLemmas(
+          tf, poly_approx, c, poly_approx_c, d, actual_d, region);
     }
   }
   return true;
