@@ -317,7 +317,7 @@ EvalResult Evaluator::evalInternal(
         // valid EvalResult and continue. We fallthrough and continue with the
         // block of code below.
       }
-      
+
       Trace("evaluator") << "Current node val : " << currNodeVal << std::endl;
 
       switch (currNodeVal.getKind())
@@ -356,17 +356,21 @@ EvalResult Evaluator::evalInternal(
             lambdaVals.insert(lambdaVals.begin(), results[lambdaVal].toNode());
           }
 
-          // Lambdas are evaluated in a recursive fashion because each evaluation
-          // requires different substitutions. We use a fresh cache since the
-          // evaluation of op[1] is under a new substitution and thus should not
-          // be cached. We could alternatively copy evalAsNode to evalAsNodeC but
-          // favor avoiding this copy for performance reasons.
+          // Lambdas are evaluated in a recursive fashion because each
+          // evaluation requires different substitutions. We use a fresh cache
+          // since the evaluation of op[1] is under a new substitution and thus
+          // should not be cached. We could alternatively copy evalAsNode to
+          // evalAsNodeC but favor avoiding this copy for performance reasons.
           std::unordered_map<TNode, Node, NodeHashFunction> evalAsNodeC;
           std::unordered_map<TNode, EvalResult, TNodeHashFunction> resultsC;
-          results[currNode] =
-              evalInternal(op[1], lambdaArgs, lambdaVals, evalAsNodeC, resultsC, useRewriter);
+          results[currNode] = evalInternal(op[1],
+                                           lambdaArgs,
+                                           lambdaVals,
+                                           evalAsNodeC,
+                                           resultsC,
+                                           useRewriter);
           Trace("evaluator") << "Evaluated via arguments to "
-                            << results[currNode].d_tag << std::endl;
+                             << results[currNode].d_tag << std::endl;
           if (results[currNode].d_tag == EvalResult::INVALID)
           {
             // evaluation was invalid, we take the node of op[1] as the result
@@ -375,7 +379,7 @@ EvalResult Evaluator::evalInternal(
                 << "Take node evaluation: " << evalAsNodeC[op[1]] << std::endl;
           }
         }
-          break;
+        break;
         case kind::CONST_BOOLEAN:
           results[currNode] = EvalResult(currNodeVal.getConst<bool>());
           break;
