@@ -635,9 +635,9 @@ class NodeBlack : public CxxTest::TestSuite {
     sstr.str(string());
     sstr << Node::dag(true) << n;  // always dagify
     TS_ASSERT(sstr.str() ==
-              "LET _let_0 = f(x), _let_1 = g(x), _let_2 = f(f(_let_0)) IN "
-              "(_let_2 = x) OR (_let_2 = y) OR (_let_0 = _let_1) OR (x = y) OR "
-              "(f(_let_1) = g(y))");
+              "LET _let_1 = f(x), _let_2 = g(x), _let_3 = f(f(_let_1)) IN "
+              "(_let_3 = x) OR (_let_3 = y) OR (_let_1 = _let_2) OR (x = y) OR "
+              "(f(_let_2) = g(y))");
 
     sstr.str(string());
     sstr << Node::dag(2) << n;  // dagify subexprs occurring > 2 times
