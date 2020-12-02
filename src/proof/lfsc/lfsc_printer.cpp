@@ -350,7 +350,7 @@ void LfscPrinter::printLetList(std::ostream& out,
     Node nl = letList[i];
     out << "(@ ";
     uint32_t id = lbind.getId(nl);
-    Assert (id!=0);
+    Assert(id != 0);
     printId(out, id);
     out << " ";
     // remove, print, insert again
@@ -362,7 +362,8 @@ void LfscPrinter::printLetList(std::ostream& out,
 
 void LfscPrinter::printInternal(std::ostream& out,
                                 Node n,
-                                LetBinding& lbind, bool letTop)
+                                LetBinding& lbind,
+                                bool letTop)
 {
   // TODO: smt2 printer, dag thresh 0 print?
   Node nc = lbind.convert(n, "__t", letTop);

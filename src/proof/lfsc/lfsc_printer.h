@@ -22,8 +22,8 @@
 
 #include "expr/node.h"
 #include "expr/proof_node.h"
-#include "proof/lfsc/lfsc_term_process.h"
 #include "printer/let_binding.h"
+#include "proof/lfsc/lfsc_term_process.h"
 
 namespace CVC4 {
 namespace proof {
@@ -112,14 +112,13 @@ class LfscPrinter
    */
   void printInternal(std::ostream& out,
                      Node n,
-                     LetBinding& lbind, bool letTop = true);
+                     LetBinding& lbind,
+                     bool letTop = true);
   /**
    * print let list, prints definitions of lbind on out in order, and closing
    * parentheses on cparen.
    */
-  void printLetList(std::ostream& out,
-                    std::ostream& cparen,
-                     LetBinding& lbind);
+  void printLetList(std::ostream& out, std::ostream& cparen, LetBinding& lbind);
   /**
    * Print type node to stream in the expected format of LFSC.
    */
