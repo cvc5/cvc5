@@ -378,7 +378,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   else if (id == PfRule::MACRO_RESOLUTION)
   {
     // first generate the naive chain_resolution
-    std::vector<Node> chainResArgs{args.begin()+1, args.end()};
+    std::vector<Node> chainResArgs{args.begin() + 1, args.end()};
     Node chainConclusion = d_pnm->getChecker()->checkDebug(
         PfRule::CHAIN_RESOLUTION, children, chainResArgs, Node::null(), "");
     Trace("smt-proof-pp-debug") << "Original conclusion: " << args[0] << "\n";
@@ -390,14 +390,19 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     // - if there are literals in chainConclusion that are not in the original
     //   conclusion, we need to transform the MACRO_RESOLUTION into a series of
     //   CHAIN_RESOLUTION + FACTORING steps, so that we explicitly eliminate all
-    //   literals that must be eliminated while not adding an exponential number
-    //   of premises
+    //   these "crowding" literals. We do this via FACTORING so we avoid adding
+    //   an exponential number of premises, which would happen if we just
+    //   repeated in the premises the clauses needed for eliminating crowding
+    //   literals, which could themselves add crowding literals.
     if (chainConclusion == args[0])
     {
       cdp->addStep(
           chainConclusion, PfRule::CHAIN_RESOLUTION, children, chainResArgs);
       return chainConclusion;
     }
+    NodeManager* nm = NodeManager::currentNM();
+    // If we got here, then chainConclusion is NECESSARILY an OR node
+    Assert(chainConclusion.getKind() == kind::OR);
     // get the literals in the chain conclusion
     std::vector<Node> chainConclusionLits{chainConclusion.begin(),
                                           chainConclusion.end()};
@@ -419,16 +424,48 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     }
     std::unordered_set<Node, NodeHashFunction> conclusionLitsSet{
         conclusionLits.begin(), conclusionLits.end()};
+    // Sets are the same: FACTORING on conclusion; otherwise there are crowding
+    // lits. Note that this assertion is not considering reordering.
     Assert(chainConclusionLitsSet != conclusionLitsSet
            || chainConclusionLits.size() != conclusionLits.size());
     // whether same literals
     if (chainConclusionLitsSet == conclusionLitsSet)
     {
+      cdp->addStep(
+          chainConclusion, PfRule::CHAIN_RESOLUTION, children, chainResArgs);
+      // Placeholder for running conclusion
+      Node n = chainConclusion;
       // factoring
       if (chainConclusionLits.size() != conclusionLits.size())
       {
-
+        // We build it rather than taking conclusionLits because the order may be different
+        std::vector<Node> factoredLits;
+        std::unordered_set<TNode, TNodeHashFunction> clauseSet;
+        for (unsigned i = 0, size = chainConclusionLits.size(); i < size; ++i)
+        {
+          if (clauseSet.count(chainConclusionLits[i]))
+          {
+            continue;
+          }
+          factoredLits.push_back(n[i]);
+          clauseSet.insert(n[i]);
+        }
+        Node factored = factoredLits.empty()
+                            ? nm->mkConst(false)
+                            : factoredLits.size() == 1
+                                  ? factoredLits[0]
+                                  : nm->mkNode(kind::OR, factoredLits);
+        cdp->addStep(factored, PfRule::FACTORING, {n}, {factored});
+        n = factored;
       }
+      // either same node or n as a clause
+      Assert(n == args[0] || n.getKind() == kind::OR);
+      // reordering
+      if (n != args[0])
+      {
+        cdp->addStep(args[0], PfRule::REORDERING, {n}, {args[0]});
+      }
+      return args[0];
     }
     // there are "crowding" literals
     else
