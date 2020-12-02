@@ -78,6 +78,7 @@ class SymbolManager::Implementation
   void popScope();
   /** Set global declarations to the value flag. */
   void setGlobalDeclarations(bool flag);
+
  private:
   /** The context manager for the scope maps. */
   Context d_context;
@@ -101,8 +102,8 @@ bool SymbolManager::Implementation::setExpressionName(api::Term t,
                                                       const std::string& name,
                                                       bool isAssertion)
 {
-  Trace("sym-manager") << "SymbolManager: set expression name: " << t << " -> " << name
-                       << ", isAssertion=" << isAssertion << std::endl;
+  Trace("sym-manager") << "SymbolManager: set expression name: " << t << " -> "
+                       << name << ", isAssertion=" << isAssertion << std::endl;
   // cannot name subexpressions under quantifiers
   PrettyCheckArgument(
       !d_hasPushedScope.get(), name, "cannot name function in a scope");
@@ -192,20 +193,22 @@ std::vector<api::Term> SymbolManager::Implementation::getModelDeclareTerms()
 
 void SymbolManager::Implementation::addModelDeclarationSort(api::Sort s)
 {
-  Trace("sym-manager") << "SymbolManager: addModelDeclarationSort " << s << std::endl;
+  Trace("sym-manager") << "SymbolManager: addModelDeclarationSort " << s
+                       << std::endl;
   d_declareSorts.push_back(s);
 }
 
 void SymbolManager::Implementation::addModelDeclarationTerm(api::Term t)
 {
-  Trace("sym-manager") << "SymbolManager: addModelDeclarationTerm " << t << std::endl;
+  Trace("sym-manager") << "SymbolManager: addModelDeclarationTerm " << t
+                       << std::endl;
   d_declareTerms.push_back(t);
 }
 
 void SymbolManager::Implementation::pushScope(bool isUserContext)
 {
-  Trace("sym-manager") << "SymbolManager: pushScope, isUserContext = " << isUserContext
-                       << std::endl;
+  Trace("sym-manager") << "SymbolManager: pushScope, isUserContext = "
+                       << isUserContext << std::endl;
   PrettyCheckArgument(!d_hasPushedScope.get() || !isUserContext,
                       "cannot push a user context within a scope context");
   // we don't push user contexts if we are using global declarations

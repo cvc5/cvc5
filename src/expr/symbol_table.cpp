@@ -412,7 +412,9 @@ bool SymbolTable::Implementation::bind(const string& name,
                                        bool doOverload)
 {
   PrettyCheckArgument(!obj.isNull(), obj, "cannot bind to a null api::Term");
-  Trace("sym-table") << "SymbolTable: bind " << name << ", levelZero=" << levelZero << ", doOverload=" << doOverload << std::endl;
+  Trace("sym-table") << "SymbolTable: bind " << name
+                     << ", levelZero=" << levelZero
+                     << ", doOverload=" << doOverload << std::endl;
   if (doOverload) {
     if (!bindWithOverloading(name, obj)) {
       return false;

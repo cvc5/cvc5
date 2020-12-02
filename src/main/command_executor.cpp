@@ -24,9 +24,9 @@
 #include <string>
 #include <vector>
 
+#include "expr/expr_manager.h"
 #include "main/main.h"
 #include "smt/command.h"
-#include "expr/expr_manager.h"
 
 namespace CVC4 {
 namespace main {

@@ -614,8 +614,7 @@ api::Term Parser::mkVar(const std::string& name, const api::Sort& type)
 
 bool Parser::isDeclared(const std::string& name, SymbolType type) {
   switch (type) {
-    case SYM_VARIABLE:
-      return d_symtab->isBound(name);
+    case SYM_VARIABLE: return d_symtab->isBound(name);
     case SYM_SORT:
       return d_symtab->isBoundType(name);
   }
@@ -740,7 +739,7 @@ void Parser::popScope()
   d_symman->popScope();
 }
 
-void Parser::reset() { }
+void Parser::reset() {}
 
 SymbolManager* Parser::getSymbolManager() { return d_symman; }
 
