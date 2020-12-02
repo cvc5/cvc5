@@ -869,6 +869,7 @@ void ResetCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
+    sm->reset();
     solver->getSmtEngine()->reset();
     d_commandStatus = CommandSuccess::instance();
   }
@@ -897,6 +898,7 @@ void ResetAssertionsCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
+    sm->resetAssertions();
     solver->resetAssertions();
     d_commandStatus = CommandSuccess::instance();
   }

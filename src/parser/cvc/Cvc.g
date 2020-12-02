@@ -739,12 +739,10 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
 
   | RESET_TOK
     { cmd->reset(new ResetCommand());
-      PARSER_STATE->reset();
     }
 
   | RESET_TOK ASSERTIONS_TOK
     { cmd->reset(new ResetAssertionsCommand());
-      PARSER_STATE->reset();
     }
 
     // Datatypes can be mututally-recursive if they're in the same

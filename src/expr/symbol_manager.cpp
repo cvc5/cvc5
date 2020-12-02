@@ -42,9 +42,10 @@ class SymbolManager::Implementation
         d_hasPushedScope(&d_context, false),
         d_globalDeclarations(false)
   {
+    d_context.push();
   }
 
-  ~Implementation() {}
+  ~Implementation() { d_context.pop(); }
   /** set expression name */
   bool setExpressionName(api::Term t,
                          const std::string& name,
@@ -69,6 +70,8 @@ class SymbolManager::Implementation
   void addModelDeclarationTerm(api::Term t);
   /** reset */
   void reset();
+  /** reset assertions */
+  void resetAssertions();
   /** Push a scope in the expression names. */
   void pushScope(bool isUserContext);
   /** Pop a scope in the expression names. */
@@ -98,7 +101,7 @@ bool SymbolManager::Implementation::setExpressionName(api::Term t,
                                                       const std::string& name,
                                                       bool isAssertion)
 {
-  Trace("sym-manager") << "set expression name: " << t << " -> " << name
+  Trace("sym-manager") << "SymbolManager: set expression name: " << t << " -> " << name
                        << ", isAssertion=" << isAssertion << std::endl;
   // cannot name subexpressions under quantifiers
   PrettyCheckArgument(
@@ -189,19 +192,19 @@ std::vector<api::Term> SymbolManager::Implementation::getModelDeclareTerms()
 
 void SymbolManager::Implementation::addModelDeclarationSort(api::Sort s)
 {
-  Trace("sym-manager") << "addModelDeclarationSort " << s << std::endl;
+  Trace("sym-manager") << "SymbolManager: addModelDeclarationSort " << s << std::endl;
   d_declareSorts.push_back(s);
 }
 
 void SymbolManager::Implementation::addModelDeclarationTerm(api::Term t)
 {
-  Trace("sym-manager") << "addModelDeclarationTerm " << t << std::endl;
+  Trace("sym-manager") << "SymbolManager: addModelDeclarationTerm " << t << std::endl;
   d_declareTerms.push_back(t);
 }
 
 void SymbolManager::Implementation::pushScope(bool isUserContext)
 {
-  Trace("sym-manager") << "pushScope, isUserContext = " << isUserContext
+  Trace("sym-manager") << "SymbolManager: pushScope, isUserContext = " << isUserContext
                        << std::endl;
   PrettyCheckArgument(!d_hasPushedScope.get() || !isUserContext,
                       "cannot push a user context within a scope context");
@@ -218,7 +221,7 @@ void SymbolManager::Implementation::pushScope(bool isUserContext)
 
 void SymbolManager::Implementation::popScope()
 {
-  Trace("sym-manager") << "popScope" << std::endl;
+  Trace("sym-manager") << "SymbolManager: popScope" << std::endl;
   // If global declarations is false, we always pop.
   // If global declarations is true, then if d_hasPushedScope is true, then
   // we have pushed a scope context. Since we are not allowed to push user
@@ -244,7 +247,23 @@ void SymbolManager::Implementation::setGlobalDeclarations(bool flag)
 
 void SymbolManager::Implementation::reset()
 {
-  // clear names?
+  Trace("sym-manager") << "SymbolManager: reset" << std::endl;
+  // clear names by popping to context level 0
+  while (d_context.getLevel() > 0)
+  {
+    d_context.pop();
+  }
+  d_context.push();
+}
+
+void SymbolManager::Implementation::resetAssertions()
+{
+  Trace("sym-manager") << "SymbolManager: resetAssertions" << std::endl;
+  // clear names by popping to context level 1
+  while (d_context.getLevel() > 1)
+  {
+    d_context.pop();
+  }
 }
 
 // ---------------------------------------------- SymbolManager
@@ -337,6 +356,12 @@ void SymbolManager::reset()
 {
   d_symtabAllocated.reset();
   d_implementation->reset();
+}
+
+void SymbolManager::resetAssertions()
+{
+  d_symtabAllocated.resetAssertions();
+  d_implementation->resetAssertions();
 }
 
 }  // namespace CVC4

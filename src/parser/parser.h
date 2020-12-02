@@ -127,16 +127,6 @@ private:
   */
  size_t d_assertionLevel;
 
- /**
-  * Maintains a list of reserved symbols at the assertion level that might
-  * not occur in our symbol table.  This is necessary to e.g. support the
-  * proper behavior of the :named annotation in SMT-LIBv2 when used under
-  * a let or a quantifier, since inside a let/quant body the declaration
-  * scope is that of the let/quant body, but the defined name should be
-  * reserved at the assertion level.
-  */
- std::set<std::string> d_reservedSymbols;
-
  /** How many anonymous functions we've created. */
  size_t d_anonymousFunctionCount;
 
@@ -393,11 +383,6 @@ public:
                         DeclarationCheck check,
                         SymbolType type = SYM_VARIABLE,
                         std::string notes = "");
-
-  /**
-   * Reserve a symbol at the assertion level.
-   */
-  void reserveSymbolAtAssertionLevel(const std::string& name);
 
   /**
    * Checks whether the given expression is function-like, i.e.

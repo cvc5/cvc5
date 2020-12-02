@@ -41,10 +41,9 @@ Smt2::Smt2(api::Solver* solver,
       d_logicSet(false),
       d_seenSetLogic(false)
 {
-  pushScope(true);
 }
 
-Smt2::~Smt2() { popScope(); }
+Smt2::~Smt2() {}
 
 void Smt2::addArithmeticOperators() {
   addOperator(api::PLUS, "+");
@@ -473,16 +472,6 @@ void Smt2::reset() {
   d_logic = LogicInfo();
   operatorKindMap.clear();
   d_lastNamedTerm = std::pair<api::Term, std::string>();
-  this->Parser::reset();
-  pushScope(true);
-}
-
-void Smt2::resetAssertions() {
-  // Remove all declarations except the ones at level 0.
-  while (this->scopeLevel() > 0) {
-    this->popScope();
-  }
-  pushScope(true);
 }
 
 std::unique_ptr<Command> Smt2::invConstraint(

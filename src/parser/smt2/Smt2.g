@@ -789,13 +789,11 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
      * Logic and options must be set again. */
   | RESET_TOK
     { cmd->reset(new ResetCommand());
-      PARSER_STATE->reset();
     }
     /* reset-assertions: reset assertions, assertion stack, declarations,
      * etc., but the logic and options remain as they were. */
   | RESET_ASSERTIONS_TOK
     { cmd->reset(new ResetAssertionsCommand());
-      PARSER_STATE->resetAssertions();
     }
   | DEFINE_FUN_REC_TOK
     { PARSER_STATE->checkThatLogicIsSet(); }
