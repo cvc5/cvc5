@@ -463,6 +463,11 @@ Node BVToInt::translateWithChildren(Node original,
 
         // eagerly add bitwise lemmas according to the provided granularity
         uint64_t high_bit;
+        // NOTE in the lazy implementation (see iand_solver.cpp in arith/nl),
+        //      these lemmas are added in a CEGAR loop
+        //      This is why the helper method from d_iandUtils does not
+        //      do this loop internally (the lazy version only adds necessary
+        //      lemmas from this loop)
         for (uint64_t j = 0; j < bvsize; j += granularity)
         {
           high_bit = j + granularity - 1;
